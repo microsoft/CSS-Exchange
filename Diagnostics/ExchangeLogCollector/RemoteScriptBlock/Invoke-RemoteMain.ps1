@@ -49,81 +49,81 @@ function Invoke-RemoteMain {
         if ($PassedInfo.EWSLogs) {
 
             if ($Script:localServerObject.Mailbox) {
-                Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\EWS" "EWS_BE_Logs"
+                Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\EWS" "EWS_BE_Logs"
             }
 
             if ($Script:localServerObject.CAS) {
-                Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\HttpProxy\Ews" "EWS_Proxy_Logs"
+                Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\HttpProxy\Ews" "EWS_Proxy_Logs"
             }
         }
 
         if ($PassedInfo.RPCLogs) {
 
             if ($Script:localServerObject.Mailbox) {
-                Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\RPC Client Access" "RCA_Logs"
+                Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\RPC Client Access" "RCA_Logs"
             }
 
             if ($Script:localServerObject.CAS) {
-                Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\HttpProxy\RpcHttp" "RCA_Proxy_Logs"
+                Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\HttpProxy\RpcHttp" "RCA_Proxy_Logs"
             }
 
             if (-not($Script:localServerObject.Edge)) {
-                Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\RpcHttp" "RPC_Http_Logs"
+                Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\RpcHttp" "RPC_Http_Logs"
             }
         }
 
         if ($Script:localServerObject.CAS -and $PassedInfo.EASLogs) {
-            Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\HttpProxy\Eas" "EAS_Proxy_Logs"
+            Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\HttpProxy\Eas" "EAS_Proxy_Logs"
         }
 
         if ($PassedInfo.AutoDLogs) {
 
             if ($Script:localServerObject.Mailbox) {
-                Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\Autodiscover" "AutoD_Logs"
+                Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\Autodiscover" "AutoD_Logs"
             }
 
             if ($Script:localServerObject.CAS) {
-                Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\HttpProxy\Autodiscover" "AutoD_Proxy_Logs"
+                Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\HttpProxy\Autodiscover" "AutoD_Proxy_Logs"
             }
         }
 
         if ($PassedInfo.OWALogs) {
 
             if ($Script:localServerObject.Mailbox) {
-                Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\OWA" "OWA_Logs"
+                Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\OWA" "OWA_Logs"
             }
 
             if ($Script:localServerObject.CAS) {
-                Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\HttpProxy\OwaCalendar" "OWA_Proxy_Calendar_Logs"
-                Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\HttpProxy\Owa" "OWA_Proxy_Logs"
+                Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\HttpProxy\OwaCalendar" "OWA_Proxy_Calendar_Logs"
+                Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\HttpProxy\Owa" "OWA_Proxy_Logs"
             }
         }
 
         if ($PassedInfo.ADDriverLogs) {
-            Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\ADDriver" "AD_Driver_Logs"
+            Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\ADDriver" "AD_Driver_Logs"
         }
 
         if ($PassedInfo.MapiLogs) {
 
             if ($Script:localServerObject.Mailbox -and $Script:localServerObject.Version -eq 15) {
-                Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\MAPI Client Access" "MAPI_Logs"
+                Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\MAPI Client Access" "MAPI_Logs"
             } elseif ($Script:localServerObject.Mailbox) {
-                Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\MapiHttp\Mailbox" "MAPI_Logs"
+                Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\MapiHttp\Mailbox" "MAPI_Logs"
             }
 
             if ($Script:localServerObject.CAS) {
-                Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\HttpProxy\Mapi" "MAPI_Proxy_Logs"
+                Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\HttpProxy\Mapi" "MAPI_Proxy_Logs"
             }
         }
 
         if ($PassedInfo.ECPLogs) {
 
             if ($Script:localServerObject.Mailbox) {
-                Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\ECP" "ECP_Logs"
+                Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\ECP" "ECP_Logs"
             }
 
             if ($Script:localServerObject.CAS) {
-                Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\HttpProxy\Ecp" "ECP_Proxy_Logs"
+                Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\HttpProxy\Ecp" "ECP_Proxy_Logs"
             }
         }
 
@@ -142,7 +142,7 @@ function Invoke-RemoteMain {
 
         if ($PassedInfo.DailyPerformanceLogs) {
             #Daily Performance Logs are always by days worth
-            $copyFrom = "$Script:localExinstall`Logging\Diagnostics\DailyPerformanceLogs"
+            $copyFrom = "$Script:localExInstall`Logging\Diagnostics\DailyPerformanceLogs"
 
             try {
                 $logmanOutput = logman ExchangeDiagnosticsDailyPerformanceLog
@@ -160,19 +160,19 @@ function Invoke-RemoteMain {
         }
 
         if ($PassedInfo.ManagedAvailabilityLogs) {
-            Add-LogCopyFullTaskAction "$Script:localExinstall`Logging\Monitoring" "ManagedAvailabilityMonitoringLogs"
+            Add-LogCopyFullTaskAction "$Script:localExInstall`Logging\Monitoring" "ManagedAvailabilityMonitoringLogs"
         }
 
         if ($PassedInfo.OABLogs) {
-            Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\HttpProxy\OAB" "OAB_Proxy_Logs"
-            Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\OABGeneratorLog" "OAB_Generation_Logs"
-            Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\OABGeneratorSimpleLog" "OAB_Generation_Simple_Logs"
-            Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\MAPI AddressBook Service" "MAPI_AddressBook_Service_Logs"
+            Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\HttpProxy\OAB" "OAB_Proxy_Logs"
+            Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\OABGeneratorLog" "OAB_Generation_Logs"
+            Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\OABGeneratorSimpleLog" "OAB_Generation_Simple_Logs"
+            Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\MAPI AddressBook Service" "MAPI_AddressBook_Service_Logs"
         }
 
         if ($PassedInfo.PowerShellLogs) {
-            Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\HttpProxy\PowerShell" "PowerShell_Proxy_Logs"
-            Add-LogCopyFullTaskAction "$Script:localExinstall`Logging\CmdletInfra" "CmdletInfra_Logs"
+            Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\HttpProxy\PowerShell" "PowerShell_Proxy_Logs"
+            Add-LogCopyFullTaskAction "$Script:localExInstall`Logging\CmdletInfra" "CmdletInfra_Logs"
         }
 
         if ($Script:localServerObject.DAGMember -and
@@ -181,15 +181,15 @@ function Invoke-RemoteMain {
         }
 
         if ($PassedInfo.MitigationService) {
-            Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\MitigationService" "Mitigation_Service_Logs"
+            Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\MitigationService" "Mitigation_Service_Logs"
         }
 
         if ($PassedInfo.MailboxAssistantsLogs) {
-            Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\MailboxAssistantsLog" "Mailbox_Assistants_Logs"
-            Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\MailboxAssistantsSlaReportLog" "Mailbox_Assistants_Sla_Report_Logs"
+            Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\MailboxAssistantsLog" "Mailbox_Assistants_Logs"
+            Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\MailboxAssistantsSlaReportLog" "Mailbox_Assistants_Sla_Report_Logs"
 
             if ($Script:localServerObject.Version -eq 15) {
-                Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\MailboxAssistantsDatabaseSlaLog" "Mailbox_Assistants_Database_Sla_Logs"
+                Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\MailboxAssistantsDatabaseSlaLog" "Mailbox_Assistants_Database_Sla_Logs"
             }
         }
     }
@@ -204,11 +204,11 @@ function Invoke-RemoteMain {
         if ($Script:localServerObject.CAS) {
 
             if ($PassedInfo.RPCLogs) {
-                Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\RPC Client Access" "RCA_Logs"
+                Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\RPC Client Access" "RCA_Logs"
             }
 
             if ($PassedInfo.EWSLogs) {
-                Add-DefaultLogCopyTaskAction "$Script:localExinstall`Logging\EWS" "EWS_BE_Logs"
+                Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\EWS" "EWS_BE_Logs"
             }
         }
     }
@@ -370,16 +370,16 @@ function Invoke-RemoteMain {
         Add-TaskAction "Save-ServerInfoData"
     }
 
-    if ($PassedInfo.Experfwiz) {
-        Add-TaskAction "Save-LogmanExperfwizData"
+    if ($PassedInfo.ExPerfWiz) {
+        Add-TaskAction "Save-LogmanExPerfWizData"
     }
 
-    if ($PassedInfo.Exmon) {
-        Add-TaskAction "Save-LogmanExmonData"
+    if ($PassedInfo.ExMon) {
+        Add-TaskAction "Save-LogmanExMonData"
     }
 
     Add-TaskAction "Save-WindowsEventLogs"
-    #Execute the cmds
+    #Execute the cmdlets
     foreach ($taskAction in $Script:taskActionList) {
         Write-Verbose(("Task Action: $(GetTaskActionToString $taskAction)"))
 

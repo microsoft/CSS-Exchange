@@ -31,11 +31,11 @@ function Test-VirtualDirectoryFailure {
         }
 
         $selectString = $errorContext | Select-String -Pattern "\[ERROR\] Process execution failed with exit code"
-        $appCmd = $errorContext | Select-String -Pattern "System32\\inetsrv\\appcmd.exe"
+        $appCmd = $errorContext | Select-String -Pattern "System32\\inetSrv\\appCmd.exe"
 
         if ($null -ne $selectString -and
             $null -ne $appCmd) {
-            Write-Verbose "Found issue virtual directory - appcmd.exe failure"
+            Write-Verbose "Found issue virtual directory - appCmd.exe failure"
             return
         }
 

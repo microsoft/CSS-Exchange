@@ -63,7 +63,7 @@ function Get-ExtendedProtectionConfiguration {
                     if ($IsClientAccessServer -eq $false -and $WebSite[$i] -eq "Default Web Site") { continue }
                     if ($IsMailboxServer -eq $false -and $WebSite[$i] -eq "Exchange Back End") { continue }
                 }
-                # Set EWS Vdir to None for known issues
+                # Set EWS VDir to None for known issues
                 if ($ExcludeEWS -and $virtualDirectory -eq "EWS") { $ExtendedProtection[$i] = "None" }
 
                 if ($null -ne $SiteVDirLocations -and
@@ -90,7 +90,7 @@ function Get-ExtendedProtectionConfiguration {
         function GetApplicationHostConfig {
             $appHostConfig = New-Object -TypeName Xml
             try {
-                $appHostConfigPath = "$($env:WINDIR)\System32\inetsrv\config\applicationHost.config"
+                $appHostConfigPath = "$($env:WINDIR)\System32\inetSrv\config\applicationHost.config"
                 $appHostConfig.Load($appHostConfigPath)
             } catch {
                 Write-Verbose "Failed to loaded application host config file. $_"
@@ -111,7 +111,7 @@ function Get-ExtendedProtectionConfiguration {
                 try {
                     $nodePath = [string]::Empty
                     $extendedProtection = "None"
-                    $ipRestictionsHashTable = @{}
+                    $ipRestrictionsHashTable = @{}
                     $pathIndex = [array]::IndexOf(($Xml.configuration.location.path).ToLower(), $Path.ToLower())
                     $rootIndex = [array]::IndexOf(($Xml.configuration.location.path).ToLower(), ($Path.Split("/")[0]).ToLower())
 
@@ -143,7 +143,7 @@ function Get-ExtendedProtectionConfiguration {
                         if (-not([string]::IsNullOrEmpty($ipRestrictions))) {
                             Write-Verbose "IP-filtered restrictions detected"
                             foreach ($restriction in $ipRestrictions.add) {
-                                $ipRestictionsHashTable.Add($restriction.ipAddress, $restriction.allowed)
+                                $ipRestrictionsHashTable.Add($restriction.ipAddress, $restriction.allowed)
                             }
                         }
 
@@ -167,9 +167,9 @@ function Get-ExtendedProtectionConfiguration {
                         } else {
                             if ($sslFlags.Contains("ssl")) { $requireSsl = $true }
                             if ($sslFlags.Contains("ssl128")) { $ssl128Bit = $true }
-                            if ($sslFlags.Contains("sslnegotiatecert")) {
+                            if ($sslFlags.Contains("sslNegotiateCert".ToLower())) {
                                 $clientCertificate = "Accept"
-                            } elseif ($sslFlags.Contains("sslrequirecert")) {
+                            } elseif ($sslFlags.Contains("sslRequireCert".ToLower())) {
                                 $clientCertificate = "Require"
                             } else {
                                 $clientCertificate = "Ignore"
@@ -193,7 +193,7 @@ function Get-ExtendedProtectionConfiguration {
                     }
                     MitigationSettings = [PScustomObject]@{
                         AllowUnlisted = $ipRestrictions.allowUnlisted
-                        Restrictions  = $ipRestictionsHashTable
+                        Restrictions  = $ipRestrictionsHashTable
                     }
                 }
             }
@@ -211,7 +211,7 @@ function Get-ExtendedProtectionConfiguration {
 
         if ($null -eq $ExSetupVersion) {
             [System.Version]$ExSetupVersion = Invoke-ScriptBlockHandler -ComputerName $ComputerName -ScriptBlock {
-                (Get-Command Exsetup.exe |
+                (Get-Command ExSetup.exe |
                     ForEach-Object { $_.FileVersionInfo } |
                     Select-Object -First 1).FileVersion
             }
@@ -291,10 +291,10 @@ function Get-ExtendedProtectionConfiguration {
         }
 
         # Add all vDirs for which the IP filtering mitigation is supported
-        $mitigationSupportedvDirs = $MyInvocation.MyCommand.Parameters["SiteVDirLocations"].Attributes |
+        $mitigationSupportedVDirs = $MyInvocation.MyCommand.Parameters["SiteVDirLocations"].Attributes |
             Where-Object { $_ -is [System.Management.Automation.ValidateSetAttribute] } |
             ForEach-Object { return $_.ValidValues.ToLower() }
-        Write-Verbose "Supported mitigated virtual directories: $([string]::Join(",", $mitigationSupportedvDirs))"
+        Write-Verbose "Supported mitigated virtual directories: $([string]::Join(",", $mitigationSupportedVDirs))"
     }
     process {
         try {
@@ -346,7 +346,7 @@ function Get-ExtendedProtectionConfiguration {
 
                         if ($properlySecuredConfiguration -eq $false) {
                             # Only care about virtual directories that we allow mitigation for
-                            $properlySecuredConfiguration = $mitigationSupportedvDirs.Contains($virtualDirectoryName.ToLower()) -and
+                            $properlySecuredConfiguration = $mitigationSupportedVDirs.Contains($virtualDirectoryName.ToLower()) -and
                             $extendedConfiguration.MitigationSettings.AllowUnlisted -eq "false"
                         }
                     } else {
@@ -360,7 +360,7 @@ function Get-ExtendedProtectionConfiguration {
                             SupportedExtendedProtection   = $expectedExtendedConfiguration -eq $extendedConfiguration.ExtendedProtection
                             ExpectedExtendedConfiguration = $expectedExtendedConfiguration
                             MitigationEnabled             = ($extendedConfiguration.MitigationSettings.AllowUnlisted -eq "false")
-                            MitigationSupported           = $mitigationSupportedvDirs.Contains($virtualDirectoryName.ToLower())
+                            MitigationSupported           = $mitigationSupportedVDirs.Contains($virtualDirectoryName.ToLower())
                             ProperlySecuredConfiguration  = $properlySecuredConfiguration
                             ExpectedSslFlags              = $matchEntry.SslFlags
                             SslFlagsSetCorrectly          = $sslFlagsToSet.Split(",").Count -eq $currentSetFlags.Count

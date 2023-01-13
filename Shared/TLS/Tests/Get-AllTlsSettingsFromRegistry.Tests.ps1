@@ -28,8 +28,8 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
             $Script:tls11 = $result.TLS["1.1"]
             $Script:tls12 = $result.TLS["1.2"]
             $Script:tls13 = $result.TLS["1.3"]
-            $Script:netv4 = $result.NET["NETv4"]
-            $Script:netv2 = $result.NET["NETv2"]
+            $Script:netV4 = $result.NET["NETv4"]
+            $Script:netV2 = $result.NET["NETv2"]
         }
 
         function TestObjectCompare {
@@ -111,8 +111,8 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
                 SchUseStrongCrypto          = $false
                 WowSystemDefaultTlsVersions = $false
                 WowSchUseStrongCrypto       = $false
-                SdtvConfiguredCorrectly     = $true
-                SdtvEnabled                 = $false
+                SDtvConfiguredCorrectly     = $true
+                SDtvEnabled                 = $false
             }
         }
 
@@ -133,11 +133,11 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
         }
 
         It "NET v4 Testing Values" {
-            TestObjectCompare $Script:netCompareObject $netv4
+            TestObjectCompare $Script:netCompareObject $netV4
         }
 
         It "NET v2 Testing Values" {
-            TestObjectCompare $Script:netCompareObject $netv2
+            TestObjectCompare $Script:netCompareObject $netV2
         }
     }
 
@@ -157,8 +157,8 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
                 SchUseStrongCrypto          = $true
                 WowSystemDefaultTlsVersions = $true
                 WowSchUseStrongCrypto       = $true
-                SdtvConfiguredCorrectly     = $true
-                SdtvEnabled                 = $true
+                SDtvConfiguredCorrectly     = $true
+                SDtvEnabled                 = $true
             }
 
             Mock Get-RemoteRegistryValue {
@@ -226,11 +226,11 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
         }
 
         It "NET v4 Testing Values" {
-            TestObjectCompare $Script:netCompareObject $netv4
+            TestObjectCompare $Script:netCompareObject $netV4
         }
 
         It "NET v2 Testing Values" {
-            TestObjectCompare $Script:netCompareObject $netv2
+            TestObjectCompare $Script:netCompareObject $netV2
         }
     }
 
@@ -553,8 +553,8 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
                 SchUseStrongCrypto          = $false
                 WowSystemDefaultTlsVersions = $false
                 WowSchUseStrongCrypto       = $false
-                SdtvConfiguredCorrectly     = $true
-                SdtvEnabled                 = $false
+                SDtvConfiguredCorrectly     = $true
+                SDtvEnabled                 = $false
             }
 
             Mock Get-RemoteRegistryValue {
@@ -588,11 +588,11 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
         }
 
         It "NET v4 Testing Values" {
-            TestObjectCompare $Script:netCompareObject $netv4
+            TestObjectCompare $Script:netCompareObject $netV4
         }
 
         It "NET v2 Testing Values" {
-            TestObjectCompare $Script:netCompareObject $netv2
+            TestObjectCompare $Script:netCompareObject $netV2
         }
     }
 
@@ -603,8 +603,8 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
                 SchUseStrongCrypto          = $true
                 WowSystemDefaultTlsVersions = $true
                 WowSchUseStrongCrypto       = $true
-                SdtvConfiguredCorrectly     = $true
-                SdtvEnabled                 = $true
+                SDtvConfiguredCorrectly     = $true
+                SDtvEnabled                 = $true
             }
 
             Mock Get-RemoteRegistryValue {
@@ -622,11 +622,11 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
         }
 
         It "NET v4 Testing Values" {
-            TestObjectCompare $Script:netCompareObject $netv4
+            TestObjectCompare $Script:netCompareObject $netV4
         }
 
         It "NET v2 Testing Values" {
-            TestObjectCompare $Script:netCompareObject $netv2
+            TestObjectCompare $Script:netCompareObject $netV2
         }
     }
 
@@ -637,8 +637,8 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
                 SchUseStrongCrypto          = $true
                 WowSystemDefaultTlsVersions = $false
                 WowSchUseStrongCrypto       = $false
-                SdtvConfiguredCorrectly     = $false
-                SdtvEnabled                 = $false
+                SDtvConfiguredCorrectly     = $false
+                SDtvEnabled                 = $false
             }
 
             Mock Get-RemoteRegistryValue {
@@ -666,11 +666,11 @@ Describe "Testing Get-AllTlsSettingsFromRegistry.ps1" {
         }
 
         It "NET v4 Testing Values" {
-            TestObjectCompare $Script:netCompareObject $netv4
+            TestObjectCompare $Script:netCompareObject $netV4
         }
 
         It "NET v2 Testing Values" {
-            TestObjectCompare $Script:netCompareObject $netv2
+            TestObjectCompare $Script:netCompareObject $netV2
         }
     }
 }

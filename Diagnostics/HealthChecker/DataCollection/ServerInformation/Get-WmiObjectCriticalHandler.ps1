@@ -45,8 +45,8 @@ function Get-WmiObjectCriticalHandler {
         # Grab the English version of hte message and/or the error code. Could get a different error code if service is not disabled.
         if ($Error[0].Exception.Message -like "The service cannot be started, either because it is disabled or because it has no enabled devices associated with it. *" -or
             $Error[0].Exception.ErrorCode -eq 0x80070422) {
-            Write-Verbose "winmgmt service is disabled or not working."
-            Write-Warning "The 'winmgmt' service appears to not be working correctly. Please make sure it is set to Automatic and in a running state. This script will fail unless this is working correctly."
+            Write-Verbose "winMgmt service is disabled or not working."
+            Write-Warning "The 'winMgmt' service appears to not be working correctly. Please make sure it is set to Automatic and in a running state. This script will fail unless this is working correctly."
         }
 
         Write-Error $($Error[0]) -ErrorAction Stop

@@ -60,7 +60,7 @@ Change into the folder that was just created. Your shell should now look somethi
 
 Because we have PoshGit loaded, it's showing our current branch name in the prompt - main. Let's create a new branch for our work. It's nice to use a descriptive name. For example, if we're updating this guide, we might call name it like so:
 
-![Screesnshot of shell after creating new branch](BranchAndCheckout.png)
+![ScreenShot of shell after creating new branch](BranchAndCheckout.png)
 
 ## Making changes
 
@@ -101,7 +101,7 @@ If we run `git status` again, we should once again see that only one file is mod
 
 ![Screenshot of staging a file](StagingChanges.png)
 
-When we have many files to commit, we can use `git add .` to stage all files in the current folder and subfolders, or `git add :/` to stage all files everywhere. When using those options, it's especially important to check `git status` to make sure we haven't staged something we didn't intend to.
+When we have many files to commit, we can use `git add .` to stage all files in the current folder and SubFolders, or `git add :/` to stage all files everywhere. When using those options, it's especially important to check `git status` to make sure we haven't staged something we didn't intend to.
 
 ## Committing changes
 
@@ -133,7 +133,7 @@ There are a few ways to create a Pull Request. We can see in the previous screen
 
 ![Screenshot of GitHub Pull Request page](PullRequestButton.png)
 
-At this point we're presented with a form to provide some details about the PR. Be sure that at the top of the PR form, we see the offical repo and the `main` branch on the left, followed by your fork and the branch you created on the right.
+At this point we're presented with a form to provide some details about the PR. Be sure that at the top of the PR form, we see the official repo and the `main` branch on the left, followed by your fork and the branch you created on the right.
 
 ![Screenshot of PR form](PullRequestForm.png)
 

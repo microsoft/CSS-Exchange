@@ -11,7 +11,7 @@ function Get-FreeSpace {
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     Write-Verbose "Passed: [string]FilePath: $FilePath"
 
-    $drivesList = Get-WmiObject Win32_Volume -Filter "drivetype = 3"
+    $drivesList = Get-WmiObject Win32_Volume -Filter "DriveType = 3"
     $testPath = $FilePath
     $freeSpaceSize = -1
     while ($true) {

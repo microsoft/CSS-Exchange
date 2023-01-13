@@ -132,17 +132,17 @@ function Out-Columns {
         }
 
         function GetColumnColors {
-            param($obj, $props, $funcs)
+            param($obj, $props, $functions)
 
             $consoleHost = (Get-Host).Name -eq "ConsoleHost"
             $colColors = New-Object string[] $props.Count
             for ($i = 0; $i -lt $props.Count; $i++) {
                 if ($consoleHost) {
-                    $fgColor = (Get-Host).ui.rawui.ForegroundColor
+                    $fgColor = (Get-Host).ui.RawUi.ForegroundColor
                 } else {
                     $fgColor = "White"
                 }
-                foreach ($func in $funcs) {
+                foreach ($func in $functions) {
                     $result = $func.Invoke($obj, $props[$i])
                     if (-not [string]::IsNullOrEmpty($result)) {
                         $fgColor = $result
@@ -265,7 +265,7 @@ function Out-Columns {
             [void]$stb.Append([System.Environment]::NewLine)
 
             foreach ($o in $objects) {
-                $colColors = GetColumnColors -obj $o -props $props -funcs $ColorizerFunctions
+                $colColors = GetColumnColors -obj $o -props $props -functions $ColorizerFunctions
                 $lineObjects = @(GetLineObjects -obj $o -props $props -colWidths $colWidths)
                 foreach ($lineObj in $lineObjects) {
                     Write-Host (" " * $IndentSpaces) -NoNewline

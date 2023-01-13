@@ -31,7 +31,7 @@ Describe "Testing Get-FIPFSScanEngineVersionState.ps1" {
         It "System Affected By Transport Queue Issue" {
             $results.FIPFSFixedBuild | Should -Be $false
             $results.ServerRoleAffected | Should -Be $true
-            $results.HighesVersionNumberDetected | Should -Be 2201010000
+            $results.HighestVersionNumberDetected | Should -Be 2201010000
             $results.BadVersionNumberDirDetected | Should -Be $true
         }
     }
@@ -45,7 +45,7 @@ Describe "Testing Get-FIPFSScanEngineVersionState.ps1" {
         It "System NOT Affected By Transport Queue Issue" {
             $results.FIPFSFixedBuild | Should -Be $false
             $results.ServerRoleAffected | Should -Be $true
-            $results.HighesVersionNumberDetected | Should -Be 2110070014
+            $results.HighestVersionNumberDetected | Should -Be 2110070014
             $results.BadVersionNumberDirDetected | Should -Be $false
         }
     }
@@ -59,7 +59,7 @@ Describe "Testing Get-FIPFSScanEngineVersionState.ps1" {
         It "System NOT Affected By Transport Queue Issue Due To Fixed Exchange Build" {
             $results.FIPFSFixedBuild | Should -Be $true
             $results.ServerRoleAffected | Should -Be $true
-            $results.HighesVersionNumberDetected | Should -Be 2201010000
+            $results.HighestVersionNumberDetected | Should -Be 2201010000
             $results.BadVersionNumberDirDetected | Should -Be $true
         }
     }
@@ -75,7 +75,7 @@ Describe "Testing Get-FIPFSScanEngineVersionState.ps1" {
         It "Edge Transport Server Role Isn't Affected" {
             $results.FIPFSFixedBuild | Should -Be $null
             $results.ServerRoleAffected | Should -Be $false
-            $results.HighesVersionNumberDetected | Should -Be $null
+            $results.HighestVersionNumberDetected | Should -Be $null
             $results.BadVersionNumberDirDetected | Should -Be $false
         }
     }
@@ -86,9 +86,9 @@ Describe "Testing Get-FIPFSScanEngineVersionState.ps1" {
             Mock Write-Verbose {}
         }
 
-        It "HighesVersionNumberDetected return null" {
+        It "HighestVersionNumberDetected return null" {
             $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server -ExSetupVersion $Script:notFixed -ServerRole $Script:serverRoles
-            $results.HighesVersionNumberDetected | Should -Be $null
+            $results.HighestVersionNumberDetected | Should -Be $null
             $results.BadVersionNumberDirDetected | Should -Be $false
             Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -eq "No FIP-FS scan engine version(s) detected - GetFolderFromExchangeInstallPath returned null" }
         }
@@ -100,9 +100,9 @@ Describe "Testing Get-FIPFSScanEngineVersionState.ps1" {
             Mock Write-Verbose {}
         }
 
-        It "HighesVersionNumberDetected return null" {
+        It "HighestVersionNumberDetected return null" {
             $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server -ExSetupVersion $Script:notFixed -ServerRole $Script:serverRoles
-            $results.HighesVersionNumberDetected | Should -Be $null
+            $results.HighestVersionNumberDetected | Should -Be $null
             $results.BadVersionNumberDirDetected | Should -Be $false
             Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -eq "Failed to find the scan engine directory" }
         }

@@ -44,7 +44,7 @@ function Get-IpmSubtree {
             $children = Get-PublicFolder $Folder.EntryId -GetChildren -ResultSize Unlimited
             foreach ($child in $children) {
                 if (-not $FoldersProcessed.Contains($child.EntryId.ToString())) {
-                    if ($child.HasSubfolders) {
+                    if ($child.HasSubFolders) {
                         Get-FoldersRecursive $child $FoldersProcessed
                     }
 
@@ -84,7 +84,7 @@ function Get-IpmSubtree {
                     ParentEntryId     = $Folder.ParentFolder.ToString()
                     DumpsterEntryId   = if ($Folder.DumpsterEntryId) { $Folder.DumpsterEntryId.ToString() } else { $null }
                     FolderSize        = $Folder.FolderSize
-                    HasSubfolders     = $Folder.HasSubfolders
+                    HasSubFolders     = $Folder.HasSubFolders
                     ContentMailbox    = $Folder.ContentMailboxName
                     MailEnabled       = $Folder.MailEnabled
                     MailRecipientGuid = $Folder.MailRecipientGuid

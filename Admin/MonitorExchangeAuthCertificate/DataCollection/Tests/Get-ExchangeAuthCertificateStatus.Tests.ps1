@@ -18,7 +18,7 @@ BeforeAll {
     function New-AuthCertificateUnitTestObject {
         param(
             [string]$Thumbprint = $null,
-            [bool]$IsExired = $false
+            [bool]$IsExpired = $false
         )
 
         return [PSCustomObject]@{
@@ -26,7 +26,7 @@ BeforeAll {
             Issuer     = "CN=Microsoft Exchange Server Auth Certificate"
             Thumbprint = $Thumbprint
             NotBefore  = [DateTime]::Parse('2023-01-01T00:00:00')
-            NotAfter   = if ($IsExired) { [DateTime]::Parse('2020-01-01T00:00:00') } else { [DateTime]::Parse('2029-01-01T00:00:00') }
+            NotAfter   = if ($IsExpired) { [DateTime]::Parse('2020-01-01T00:00:00') } else { [DateTime]::Parse('2029-01-01T00:00:00') }
         }
     }
 

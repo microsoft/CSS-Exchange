@@ -147,9 +147,9 @@ begin {
 
         . $PSScriptRoot\GetCountersWithTranslations.ps1
 
-        $dcsc = New-Object -ComObject Pla.DataCollectorSetCollection
-        $dcsc.GetDataCollectorSets($null, $null)
-        $existingSimplePerf = $dcsc | Where-Object { $_.name -eq "SimplePerf$($CollectorName)" }
+        $dataCollectorSetList = New-Object -ComObject Pla.DataCollectorSetCollection
+        $dataCollectorSetList.GetDataCollectorSets($null, $null)
+        $existingSimplePerf = $dataCollectorSetList | Where-Object { $_.name -eq "SimplePerf$($CollectorName)" }
         if ($null -ne $existingSimplePerf) {
             if ($existingSimplePerf.Status -eq 1) {
                 Write-Host "$($env:COMPUTERNAME): SimplePerf$($CollectorName) is already running."
@@ -159,7 +159,7 @@ begin {
                 $existingSimplePerf.Delete()
             }
 
-            [System.Runtime.Interopservices.Marshal]::ReleaseComObject($dcsc) | Out-Null
+            [System.Runtime.InteropServices.Marshal]::ReleaseComObject($dataCollectorSetList) | Out-Null
         }
 
         Write-Host "$($env:COMPUTERNAME): Getting list of counters."

@@ -17,7 +17,7 @@ function Get-NonIpmSubtree {
         $WarningPreference = "SilentlyContinue"
         $progressCount = 0
         $maxRetries = 10
-        $retryDelay = [timespan]::FromMinutes(5)
+        $retryDelay = [TimeSpan]::FromMinutes(5)
         $nonIpmSubtree = New-Object System.Collections.ArrayList
         $sw = New-Object System.Diagnostics.Stopwatch
         $sw.Start()
@@ -44,7 +44,7 @@ function Get-NonIpmSubtree {
             $children = Get-PublicFolder $Folder.EntryId -GetChildren -ResultSize Unlimited
             foreach ($child in $children) {
                 if (-not $FoldersProcessed.Contains($child.EntryId.ToString())) {
-                    if ($child.HasSubfolders) {
+                    if ($child.HasSubFolders) {
                         Get-FoldersRecursive $child $FoldersProcessed
                     }
 

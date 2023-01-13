@@ -9,7 +9,7 @@ function Register-AuthCertificateRenewalTask {
     param(
         [string]$TaskName = "Daily Auth Certificate Check",
         [string]$Username,
-        [securestring]$Password,
+        [SecureString]$Password,
         [string]$WorkingDirectory,
         [string]$ScriptName,
         [bool]$IgnoreOfflineServers = $false,

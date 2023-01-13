@@ -7,7 +7,7 @@ function Test-NoSwitchesProvided {
         $IISLogs -or
         $DailyPerformanceLogs -or
         $ManagedAvailabilityLogs -or
-        $Experfwiz -or
+        $ExPerfWiz -or
         $RPCLogs -or
         $EASLogs -or
         $ECPLogs -or
@@ -19,9 +19,9 @@ function Test-NoSwitchesProvided {
         $MapiLogs -or
         $Script:AnyTransportSwitchesEnabled -or
         $DAGInformation -or
-        $GetVdirs -or
+        $GetVDirs -or
         $OrganizationConfig -or
-        $Exmon -or
+        $ExMon -or
         $ServerInformation -or
         $PopLogs -or
         $ImapLogs -or

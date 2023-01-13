@@ -27,7 +27,7 @@ function Copy-FullLogFullPathRecurse {
                 Invoke-ZipFolder $CopyToThisLocation
             } else {
                 Write-Verbose("Not going to copy over this set of data due to size restrictions.")
-                New-Item -Path ("{0}\NotEnoughFreeSpace.txt" -f $CopyToThisLocation) -ItemType File -Value (Get-StringDataForNotEnoughFreeSpaceFile -hasher $Script:ItemSizesHashed) | Out-Null
+                New-Item -Path ("{0}\NotEnoughFreeSpace.txt" -f $CopyToThisLocation) -ItemType File -Value (Get-StringDataForNotEnoughFreeSpaceFile -FileSizes $Script:ItemSizesHashed) | Out-Null
             }
         } else {
             Write-Host "No data at path '$LogPath'. Unable to copy this data."

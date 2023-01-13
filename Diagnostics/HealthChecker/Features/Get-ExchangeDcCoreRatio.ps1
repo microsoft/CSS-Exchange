@@ -26,13 +26,13 @@ function Get-ComputerCoresObject {
         Invoke-CatchActions
         $thisError = $Error[0]
 
-        if ($thisError.Exception.Gettype().FullName -eq "System.UnauthorizedAccessException") {
+        if ($thisError.Exception.GetType().FullName -eq "System.UnauthorizedAccessException") {
             Write-Yellow("Unable to get processor information from server {0}. You do not have the correct permissions to get this data from that server. Exception: {1}" -f $Machine_Name, $thisError.ToString())
         } else {
             Write-Yellow("Unable to get processor information from server {0}. Reason: {1}" -f $Machine_Name, $thisError.ToString())
         }
         $returnObj.Exception = $thisError.ToString()
-        $returnObj.ExceptionType = $thisError.Exception.Gettype().FullName
+        $returnObj.ExceptionType = $thisError.Exception.GetType().FullName
         $returnObj.Error = $true
     }
 

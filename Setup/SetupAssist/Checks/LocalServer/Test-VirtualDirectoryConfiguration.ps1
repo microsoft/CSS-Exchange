@@ -11,7 +11,7 @@ function Test-VirtualDirectoryConfiguration {
     begin {
         $problemsFound = $false
         $fixesPerformed = $false
-        $appHostConfigPath = "$($env:WINDIR)\System32\inetsrv\config\applicationHost.config"
+        $appHostConfigPath = "$($env:WINDIR)\System32\inetSrv\config\applicationHost.config"
         $resultParams = @{
             TestName = "Virtual Directory Configuration"
         }
@@ -25,7 +25,7 @@ function Test-VirtualDirectoryConfiguration {
             return
         }
 
-        $expectedVdirs = @(
+        $expectedVDirs = @(
             [PSCustomObject]@{DirectoryName = "Autodiscover (Default Web Site)"; Paths = @("/Autodiscover") },
             [PSCustomObject]@{DirectoryName = "Autodiscover (Exchange Back End)"; Paths = @("/Autodiscover") },
             [PSCustomObject]@{DirectoryName = "ecp (Default Web Site)"; Paths = @("/ecp") },
@@ -78,7 +78,7 @@ function Test-VirtualDirectoryConfiguration {
             return
         }
 
-        $vdirsInDirectory = $httpProtocol.GetDirectoryEntry().Children
+        $VDirsInDirectory = $httpProtocol.GetDirectoryEntry().Children
 
         $appHostConfig = New-Object Xml
         try {
@@ -97,13 +97,13 @@ function Test-VirtualDirectoryConfiguration {
             Validate the state of IIS objects.
         #>
 
-        foreach ($expectedVdir in $expectedVdirs) {
-            Write-Verbose "Validating vdir $($expectedVdir.DirectoryName)."
+        foreach ($expectedVDir in $expectedVDirs) {
+            Write-Verbose "Validating VDir $($expectedVDir.DirectoryName)."
             $expectedIISObjectsPresent = @()
             $expectedIISObjectsMissing = @()
-            $siteName = ($expectedVdir.DirectoryName | Select-String "\((.*)\)").Matches.Groups[1].Value
+            $siteName = ($expectedVDir.DirectoryName | Select-String "\((.*)\)").Matches.Groups[1].Value
             $iisSite = $appHostConfig.LastChild."system.applicationHost".sites.GetEnumerator() | Where-Object { $_.name -eq $siteName }
-            foreach ($expectedPath in $expectedVdir.Paths) {
+            foreach ($expectedPath in $expectedVDir.Paths) {
                 $iisObject = $iisSite.application | Where-Object { $_.Path -eq $expectedPath }
                 if ($null -ne $iisObject) {
                     $expectedIISObjectsPresent += $iisObject.Path
@@ -112,14 +112,14 @@ function Test-VirtualDirectoryConfiguration {
                 }
             }
 
-            $adObject = $vdirsInDirectory | Where-Object { $_.Properties["cn"][0].ToString() -eq $expectedVdir.DirectoryName }
+            $adObject = $VDirsInDirectory | Where-Object { $_.Properties["cn"][0].ToString() -eq $expectedVDir.DirectoryName }
             $locationPaths = ($appHostConfig.LastChild.Location.GetEnumerator() |
-                    Where-Object { $_.Path -like "$($iisSite.Name)$($expectedVdir.Paths[0])*" }).Path
+                    Where-Object { $_.Path -like "$($iisSite.Name)$($expectedVDir.Paths[0])*" }).Path
             $customMetadataPaths = ($appHostConfig.LastChild."system.applicationHost".customMetadata.key.GetEnumerator() |
-                    Where-Object { $_.Path -like "*$($iisSite.Id)/ROOT$($expectedVdir.Paths[0])*" } ).Path
+                    Where-Object { $_.Path -like "*$($iisSite.Id)/ROOT$($expectedVDir.Paths[0])*" } ).Path
             $owaRootPaths = @()
 
-            if ($expectedVdir.DirectoryName -eq "owa (Exchange Back End)") {
+            if ($expectedVDir.DirectoryName -eq "owa (Exchange Back End)") {
                 $specialPaths = @("/Exchange", "/Exchweb", "/Public")
                 $tempLocationPaths = @()
 
@@ -147,10 +147,10 @@ function Test-VirtualDirectoryConfiguration {
                 $null -eq $customMetadataPaths -and
                 $owaRootPaths.Count -eq 0 ) {
                 if ($null -ne $adObject) {
-                    New-TestResult @resultParams -Result "Failed" -Details "Virtual directory `"$($expectedVdir.DirectoryName)`" exists in AD but not in IIS."
+                    New-TestResult @resultParams -Result "Failed" -Details "Virtual directory `"$($expectedVDir.DirectoryName)`" exists in AD but not in IIS."
                     # Should we say to delete the AD object? What if it's PushNotifications?
                 } else {
-                    New-TestResult @resultParams -Result "Information" -Details "$($expectedVdir.DirectoryName) not found. This might be expected."
+                    New-TestResult @resultParams -Result "Information" -Details "$($expectedVDir.DirectoryName) not found. This might be expected."
                     # If there are no IIS objects and no AD object, then the state is consistent.
                     # Do we know when this is expected vs when we need to run New-VirtualDirectory?
                 }
@@ -160,9 +160,9 @@ function Test-VirtualDirectoryConfiguration {
                 # Missing some critical information from IIS or the object is removed from AD
                 # need to remove from a few different locations to allow New-*VirtualDirectory to work
                 if ($expectedIISObjectsMissing.Count -gt 0) {
-                    New-TestResult @resultParams -Result "Failed" -Details "Partial IIS objects exist for `"$($expectedVdir.DirectoryName)`"."
+                    New-TestResult @resultParams -Result "Failed" -Details "Partial IIS objects exist for `"$($expectedVDir.DirectoryName)`"."
                 } else {
-                    New-TestResult @resultParams -Result "Failed" -Details "Full IIS Object exists for `"$($expectedVdir.DirectoryName)`", but doesn't exist in AD."
+                    New-TestResult @resultParams -Result "Failed" -Details "Full IIS Object exists for `"$($expectedVDir.DirectoryName)`", but doesn't exist in AD."
                 }
 
                 if ($expectedIISObjectsMissing.Count -gt 0) {
@@ -202,7 +202,7 @@ function Test-VirtualDirectoryConfiguration {
                 }
 
                 if ($null -ne $adObject) {
-                    New-TestResult @resultParams -Result "Warning" -Details "Only AD object is present for $($expectedVdir.DirectoryName)"
+                    New-TestResult @resultParams -Result "Warning" -Details "Only AD object is present for $($expectedVDir.DirectoryName)"
                     # Should we say to delete the AD object?
                 }
             }

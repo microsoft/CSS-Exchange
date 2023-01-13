@@ -34,7 +34,7 @@ function Get-TlsCipherSuiteInformation {
 
             $policyTlsRegistryParams = @{
                 MachineName         = $MachineName
-                Subkey              = "SOFTWARE\Policies\Microsoft\Cryptography\Configuration\SSL\00010002"
+                SubKey              = "SOFTWARE\Policies\Microsoft\Cryptography\Configuration\SSL\00010002"
                 GetValue            = "Functions"
                 ValueType           = "String"
                 CatchActionFunction = $CatchActionFunction

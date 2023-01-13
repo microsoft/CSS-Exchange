@@ -44,7 +44,7 @@ You can export the Exclusion List with the parameter FileName
 Show the full list of expected exclusions.
 
 .PARAMETER -FileName
-Export the full list of expected exclusions in the definned FileName.
+Export the full list of expected exclusions in the defined FileName.
 
 .INPUTS
 For Set Parameter Set Identifier(Switch):
@@ -113,22 +113,22 @@ if (-not $ListRecommendedExclusions) {
 
 $serverExchangeInstallDirectory = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue
 
-# Check Exchange regsitry key
+# Check Exchange registry key
 if (-not  $serverExchangeInstallDirectory ) {
-    Write-Warning "Failed to find the Exchage instalation Path registry key"
+    Write-Warning "Failed to find the Exchange installation Path registry key"
     exit
 }
 
 # Check the installation path
 if (-not ( Test-Path $($serverExchangeInstallDirectory.MsiInstallPath) -PathType Container) ) {
-    Write-Warning "Failed to find the Exchage instalation Path"
+    Write-Warning "Failed to find the Exchange installation Path"
     exit
 }
 
 # Check Exchange is 2013, 2016 or 2019
 if ( -not ( $($serverExchangeInstallDirectory.MsiProductMajor) -eq 15 -and `
         ($($serverExchangeInstallDirectory.MsiProductMinor) -eq 0 -or $($serverExchangeInstallDirectory.MsiProductMinor) -eq 1 -or $($serverExchangeInstallDirectory.MsiProductMinor) -eq 2 ) ) ) {
-    Write-Warning "This script is desinged for Exchange 2013, 2016 or 2019"
+    Write-Warning "This script is designed for Exchange 2013, 2016 or 2019"
     exit
 }
 
@@ -141,7 +141,7 @@ if ($FileName -like '*\*') {
 
 $ExchangePath = $serverExchangeInstallDirectory.MsiInstallPath
 
-# Check Exchange Shell and Exchange instalation
+# Check Exchange Shell and Exchange installation
 $exchangeShell = Confirm-ExchangeShell
 if (-not($exchangeShell.ShellLoaded)) {
     Write-Warning "Failed to load Exchange Shell Module..."
@@ -159,7 +159,7 @@ foreach ($folder in $BaseFolders) {
     if ($ListRecommendedExclusions) {
         Write-Host ("$folder")
     } else {
-        Write-SimpleLogfile -String ("Adding $folder") -name $LogFile -OutHost
+        Write-SimpleLogFile -String ("Adding $folder") -name $LogFile -OutHost
         Add-MpPreference -ExclusionPath $folder
     }
     if ($FileName) {
@@ -177,7 +177,7 @@ foreach ($extension in $extensionsList) {
     if ($ListRecommendedExclusions) {
         Write-Host ("$extension")
     } else {
-        Write-SimpleLogfile -String ("Adding $extension") -name $LogFile -OutHost
+        Write-SimpleLogFile -String ("Adding $extension") -name $LogFile -OutHost
         Add-MpPreference -ExclusionExtension $extension
     }
     if ($FileName) {
@@ -195,7 +195,7 @@ foreach ($process in $processesList) {
     if ($ListRecommendedExclusions) {
         Write-Host ("$process")
     } else {
-        Write-SimpleLogfile -String ("Adding $process") -name $LogFile -OutHost
+        Write-SimpleLogFile -String ("Adding $process") -name $LogFile -OutHost
         Add-MpPreference -ExclusionPath $process
         Add-MpPreference -ExclusionProcess $process
     }
@@ -208,4 +208,4 @@ if ($ListRecommendedExclusions) {
     Write-Host ('')
 }
 
-Write-SimpleLogfile -String ("Exclusions Completed") -name $LogFile -OutHost
+Write-SimpleLogFile -String ("Exclusions Completed") -name $LogFile -OutHost

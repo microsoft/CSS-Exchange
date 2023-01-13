@@ -4,8 +4,8 @@
 function Invoke-CreateExTRATracingConfig {
 
     function Out-ExTRAConfigFile {
-        param ([string]$fileline)
-        $fileline | Out-File -FilePath "C:\EnabledTraces.Config" -Encoding ASCII -Append
+        param ([string]$FileLine)
+        $FileLine | Out-File -FilePath "C:\EnabledTraces.Config" -Encoding ASCII -Append
     }
 
     " "

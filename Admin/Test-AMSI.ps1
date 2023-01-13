@@ -72,8 +72,8 @@ function Test-AMSI {
         Start-Sleep -Seconds 2
         exit
     }
-    $datetime = Get-Date
-    $installpath = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath
+    $dateTime = Get-Date
+    $installPath = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath
     if ($ExchangeServerFQDN) {
         try {
             if ($IgnoreSSL) {
@@ -104,9 +104,9 @@ function Test-AMSI {
                 $host.ui.RawUI.ForegroundColor = "Yellow"
                 Write-Output "This may be indicative of a potential block from AMSI"
                 $host.ui.RawUI.ForegroundColor = "Green"
-                $msgCheckLogs = "Check your log files located in " + $installpath + "Logging\HttpRequestFiltering\"
+                $msgCheckLogs = "Check your log files located in " + $installPath + "Logging\HttpRequestFiltering\"
                 Write-Output $msgCheckLogs
-                $msgDetectedTimeStamp = "for a Detected result around " + $datetime.ToUniversalTime()
+                $msgDetectedTimeStamp = "for a Detected result around " + $dateTime.ToUniversalTime()
                 Write-Output $msgDetectedTimeStamp
                 $host.ui.RawUI.ForegroundColor = $currentForegroundColor
                 Write-Output $msgNewLine
@@ -121,7 +121,7 @@ function Test-AMSI {
     if ($CheckAMSIProviders) {
         $AMSI = Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\AMSI\Providers' -Recurse
         $AMSI -match '[0-9A-Fa-f\-]{36}' | Out-Null
-        $Matches.Values | ForEach-Object { Get-ChildItem "HKLM:\SOFTWARE\Classes\CLSID\{$_}" | Format-Table -AutoSize }
+        $Matches.Values | ForEach-Object { Get-ChildItem "HKLM:\SOFTWARE\Classes\ClSid\{$_}" | Format-Table -AutoSize }
     }
     if ($EnableAMSI) {
         Remove-SettingOverride -Identity DisablingAMSIScan -Confirm:$false

@@ -13,7 +13,7 @@ function global:Get-ExPerfWiz {
     .PARAMETER Name
     Name of the Data Collector set
 
-    Default Exchange_Perfwiz
+    Default Exchange_PerfWiz
 
     .PARAMETER Server
     Name of the server
@@ -21,7 +21,7 @@ function global:Get-ExPerfWiz {
     Default LocalHost
 
     .PARAMETER ShowLog
-    Shows the experfwiz log file on the server
+    Shows the ExPerfWiz log file on the server
 
 	.OUTPUTS
     Logs all activity into $env:LOCALAPPDATA\ExPerfWiz.log file
@@ -29,15 +29,15 @@ function global:Get-ExPerfWiz {
     .EXAMPLE
     Get info on the default collector set
 
-    Get-ExPerfwiz
+    Get-ExPerfWiz
 
     .EXAMPLE
     Get info on a collector set on a remote server
 
-    Get-ExPerfwiz -Name "My Collector Set" -Server RemoteServer-01
+    Get-ExPerfWiz -Name "My Collector Set" -Server RemoteServer-01
 
     #>
-    [cmdletbinding()]
+    [CmdletBinding()]
     param (
         [string]
         $Name,
@@ -52,7 +52,7 @@ function global:Get-ExPerfWiz {
 
     if ($ShowLog) { Notepad (Join-Path $env:LOCALAPPDATA ExPerfWiz.log); return }
 
-    Write-SimpleLogFile -string ("Getting ExPerfwiz: " + $server) -Name "ExPerfWiz.log"
+    Write-SimpleLogFile -string ("Getting ExPerfWiz: " + $server) -Name "ExPerfWiz.log"
 
     # If no name was provided then we need to return all collectors logman finds
     if ([string]::IsNullOrEmpty($Name)) {
@@ -60,7 +60,7 @@ function global:Get-ExPerfWiz {
         # Returns all found collector sets
         $logmanAll = logman query -s $server
 
-        if (!([string]::isnullorempty(($logmanAll | Select-String "Error:")))) {
+        if (!([string]::IsNullOrEmpty(($logmanAll | Select-String "Error:")))) {
             throw $logmanAll[-1]
         }
 
@@ -71,7 +71,7 @@ function global:Get-ExPerfWiz {
         while (!($logmanAll[$i] | Select-String "---")) {
 
             # pull the first 40 characters then trim and trailing spaces
-            [array]$perfLogNames += $logmanAll[$i].substring(0, 40).trimend()
+            [array]$perfLogNames += $logmanAll[$i].substring(0, 40).TrimEnd()
             $i--
         }
     }
@@ -81,12 +81,12 @@ function global:Get-ExPerfWiz {
     }
 
     # Query each collector found in turn to get their details
-    foreach ($collectorname in $perfLogNames) {
+    foreach ($collectorName in $perfLogNames) {
 
-        $logman = logman query $collectorname -s $Server
+        $logman = logman query $collectorName -s $Server
 
         # Quick error check
-        if (!([string]::isnullorempty(($logman | Select-String "Error:")))) {
+        if (!([string]::IsNullOrEmpty(($logman | Select-String "Error:")))) {
             throw $logman[-1]
         }
 
@@ -96,41 +96,41 @@ function global:Get-ExPerfWiz {
         # Go thru each line and determine what the value should be
         foreach ($line in $logman) {
 
-            $linesplit = $line.split(":").trim()
+            $lineSplit = $line.split(":").trim()
 
-            switch (($linesplit)[0]) {
+            switch (($lineSplit)[0]) {
                 'Name' {
                     # Skip the path to the perfmon inside the counter set
-                    if ($linesplit[1] -like "*\*") {}
+                    if ($lineSplit[1] -like "*\*") {}
                     # Set the name and push it into a variable to use later
                     else {
-                        $name = $linesplit[1]
+                        $name = $lineSplit[1]
                     }
                 }
-                'Status' { $status = $linesplit[1] }
+                'Status' { $status = $lineSplit[1] }
                 'Root Path' {
-                    if ($linesplit[1].contains("%")) {
-                        $rootPath = $linesplit[1]
-                        $outputPath = $linesplit[1]
+                    if ($lineSplit[1].contains("%")) {
+                        $rootPath = $lineSplit[1]
+                        $outputPath = $lineSplit[1]
                     } else {
-                        $rootPath = ($linesplit[1] + ":" + $linesplit[2])
-                        $outputPath = (Join-Path (($linesplit[1] + ":" + $linesplit[2])) ($env:ComputerName + "_" + $name))
+                        $rootPath = ($lineSplit[1] + ":" + $lineSplit[2])
+                        $outputPath = (Join-Path (($lineSplit[1] + ":" + $lineSplit[2])) ($env:ComputerName + "_" + $name))
                     }
                 }
-                'Segment' { $segment = $linesplit[1] }
-                'Schedules' { $schedules = $linesplit[1] }
-                'Duration' { $duration = (New-TimeSpan -Seconds ([int]($linesplit[1].split(" "))[0])) }
-                'Segment Max Size' { $maxSize = (($linesplit[1].replace(" ", "")) / 1MB) }
-                'Run As' { $runAs = $linesplit[1] }
-                'Start Date' { $startDate = $linesplit[1] }
+                'Segment' { $segment = $lineSplit[1] }
+                'Schedules' { $schedules = $lineSplit[1] }
+                'Duration' { $duration = (New-TimeSpan -Seconds ([int]($lineSplit[1].split(" "))[0])) }
+                'Segment Max Size' { $maxSize = (($lineSplit[1].replace(" ", "")) / 1MB) }
+                'Run As' { $runAs = $lineSplit[1] }
+                'Start Date' { $startDate = $lineSplit[1] }
                 'Start Time' { $startTime = ($line.split(" ")[-2] + " " + $line.split(" ")[-1]) }
-                'End Date' { $endDate = $linesplit[1] }
-                'Days' { $days = $linesplit[1] }
-                'Type' { $type = $linesplit[1] }
-                'Append' { $append = (Convert-OnOffBool($linesplit[1])) }
-                'Circular' { $circular = (Convert-OnOffBool($linesplit[1])) }
-                'Overwrite' { $overwrite = (Convert-OnOffBool($linesplit[1])) }
-                'Sample Interval' { $sampleInterval = (($linesplit[1].split(" "))[0]) }
+                'End Date' { $endDate = $lineSplit[1] }
+                'Days' { $days = $lineSplit[1] }
+                'Type' { $type = $lineSplit[1] }
+                'Append' { $append = (Convert-OnOffBool($lineSplit[1])) }
+                'Circular' { $circular = (Convert-OnOffBool($lineSplit[1])) }
+                'Overwrite' { $overwrite = (Convert-OnOffBool($lineSplit[1])) }
+                'Sample Interval' { $sampleInterval = (($lineSplit[1].split(" "))[0]) }
                 default {}
             }
         }
@@ -157,7 +157,7 @@ function global:Get-ExPerfWiz {
         }
 
         # Add customer PS Object type for use with formatting files
-        $logmanObject.pstypenames.insert(0, 'Experfwiz.Counter')
+        $logmanObject.PsTypeNames.insert(0, 'ExPerfWiz.Counter')
 
         # Add each object to the return array
         $logmanObject

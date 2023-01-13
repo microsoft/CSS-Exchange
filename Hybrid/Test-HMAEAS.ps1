@@ -134,7 +134,7 @@ process {
                 Write-Host "We sent an Empty Bearer Token Request to the On-Premises Exchange ActiveSync Virtual Directory and below is the response" -ForegroundColor Green
                 Write-Host "The response should contain a valid WWW-Authenticate=Bearer. Make sure the authorization_uri is populated" -ForegroundColor Yellow
                 Write-Host "---------------------------------------------------------------------------------------------------------------"
-                Write-Host "ERROR: We noticed a certificate error so we cannot test the Exchange ActiveSync Virtual Directory, please chect your certificates for $easUrl" -ForegroundColor Red -Verbose
+                Write-Host "ERROR: We noticed a certificate error so we cannot test the Exchange ActiveSync Virtual Directory, please check your certificates for $easUrl" -ForegroundColor Red -Verbose
                 Write-Host
             } catch {
                 Write-Host
@@ -250,7 +250,7 @@ process {
             try {
                 Write-Host
                 Write-Host "We are trying to get an access token to access the EAS endpoint. Please login with your credentials when prompted." -ForegroundColor Green
-                Write-Host "The token should contain Outlook Mobile under app_displayname" -ForegroundColor Yellow
+                Write-Host "The token should contain Outlook Mobile under app_DisplayName" -ForegroundColor Yellow
                 Write-Host
                 $authority = "https://login.windows.net/common/oauth2/authorize"
                 $uri = New-Object "System.Uri" -ArgumentList $easUrl
@@ -276,14 +276,14 @@ process {
         }
     }
 
-    function Show-JWTtoken {
+    function Show-JwtToken {
         param (
             [string]$token
         )
         process {
-            $tokenheader = $token.Split(".")[0]
-            while ($tokenheader.Length % 4) { $tokenheader += "=" }
-            $decodedHeader = [System.Text.Encoding]::ASCII.GetString([system.convert]::FromBase64String($tokenheader)) | ConvertFrom-Json
+            $tokenHeader = $token.Split(".")[0]
+            while ($tokenHeader.Length % 4) { $tokenHeader += "=" }
+            $decodedHeader = [System.Text.Encoding]::ASCII.GetString([system.convert]::FromBase64String($tokenHeader)) | ConvertFrom-Json
             Write-Host "Token Headers"
             $decodedHeader | Format-List
             Write-Host "Token Claims"
@@ -295,9 +295,9 @@ process {
     }
 
     if ($TestEAS) {
-        Write-Host "Installing ADAL package. Please accept if prompted." -ForegroundColor Green
+        Write-Host "Installing Microsoft.IdentityModel.Clients.ActiveDirectory package. Please accept if prompted." -ForegroundColor Green
         Install-Package Microsoft.IdentityModel.Clients.ActiveDirectory -RequiredVersion 3.19.8 -Source 'https://www.nuget.org/api/v2' -SkipDependencies -Scope CurrentUser
-        Write-Host "Loading ADAL package" -ForegroundColor Green
+        Write-Host "Loading Microsoft.IdentityModel.Clients.ActiveDirectory package" -ForegroundColor Green
         $package = Get-Package "Microsoft.IdentityModel.Clients.ActiveDirectory"
         $packagePath = Split-Path $package.Source -Parent
         $dllPath = Join-Path -Path $packagePath -ChildPath "lib/net45/Microsoft.IdentityModel.Clients.ActiveDirectory.dll"
@@ -306,7 +306,7 @@ process {
         Test-EASBearer
         Test-AutoDetect
         $accessToken = Get-AccessToken -easUrl $easUrl -SMTPAddress $SMTPAddress
-        Show-JWTtoken -token $accessToken
+        Show-JwtToken -token $accessToken
         Read-EASOptions -easUrl $easUrl -accessToken $accessToken
         Read-EASSettings -easUrl $easUrl -accessToken $accessToken
     } else {

@@ -5,15 +5,15 @@ function global:Set-ExPerfWiz {
     <#
 
     .SYNOPSIS
-    Modifiy the configuration of an existing data collector set.
+    Modify the configuration of an existing data collector set.
 
     .DESCRIPTION
-    Allow for th emodification of some parameters of a data collector set once created.
+    Allow for the modification of some parameters of a data collector set once created.
 
     .PARAMETER Name
     The Name of the Data Collector set to update.
 
-    Default Exchange_Perfwiz
+    Default Exchange_PerfWiz
 
     .PARAMETER Server
     Name of the remote server to update the data collector set on.
@@ -27,8 +27,8 @@ function global:Set-ExPerfWiz {
     .PARAMETER Interval
     How often the performance data should be collected.
 
-    .PARAMETER Maxsize
-    Maximum size of the perfmon log in MegaBytes
+    .PARAMETER MaxSize
+    Maximum size of the PerfMon log in MegaBytes
 
     .PARAMETER StartTime
     Time of day to start the data collector set
@@ -43,21 +43,21 @@ function global:Set-ExPerfWiz {
 	.EXAMPLE
     Set the default data collector set to start at 1pm on the local server.
 
-    Set-Experfwiz -StartTime 13:00:00
+    Set-ExPerfWiz -StartTime 13:00:00
 
     .EXAMPLE
     Set the duration to 4 hours and the interval to 1 second on a remove server
 
-    Set-ExPerfwiz -Server RemoteServer-01 -Duration 04:00:00 -Interval 1
+    Set-ExPerfWiz -Server RemoteServer-01 -Duration 04:00:00 -Interval 1
 
     #>
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Low')]
     param (
         [Parameter(ValueFromPipelineByPropertyName)]
         [string]
-        $Name = "Exchange_Perfwiz",
+        $Name = "Exchange_PerfWiz",
 
-        [timespan]
+        [TimeSpan]
         $Duration,
 
         [int]
@@ -77,29 +77,29 @@ function global:Set-ExPerfWiz {
 
     )
     begin {
-        # Get the existing experfwiz object so that we can maintain settings
-        $settings = Get-ExPerfwiz -Name $Name -Server $Server
+        # Get the existing exPerfWiz object so that we can maintain settings
+        $settings = Get-ExPerfWiz -Name $Name -Server $Server
 
         # If a duration is passed process the change
-        if (!($PSBoundParameters.ContainsKey("Duration"))) { $Duration = [timespan]$settings.Duration }
+        if (!($PSBoundParameters.ContainsKey("Duration"))) { $Duration = [TimeSpan]$settings.Duration }
 
         # if Interval is passed set the new interval
         if (!($PSBoundParameters.ContainsKey("Interval"))) { $Interval = $settings.SampleInterval }
 
-        # If maxsize is passed set max size
+        # If maxSize is passed set max size
         if (!($PSBoundParameters.ContainsKey("MaxSize"))) { $MaxSize = $settings.MaxSize }
 
         # If StartTime is passed set the start time
-        if (!($PSBoundParameters.ContainsKey("StartTime"))) { $StartTime = (Get-Date ($settings.startdate + " " + $settings.starttime) -Format 'M/d/yyyy HH:mm:ss').tostring() }
-        else { $StartTime = (Get-Date $StartTime -Format 'M/d/yyyy HH:mm:ss').tostring() }
+        if (!($PSBoundParameters.ContainsKey("StartTime"))) { $StartTime = (Get-Date ($settings.StartDate + " " + $settings.StartTime) -Format 'M/d/yyyy HH:mm:ss').ToString() }
+        else { $StartTime = (Get-Date $StartTime -Format 'M/d/yyyy HH:mm:ss').ToString() }
     }
 
     process {
 
-        Write-SimpleLogFile -string "Updating experfwiz $name on $server" -Name "ExPerfWiz.log"
+        Write-SimpleLogFile -string "Updating ExPerfWiz $name on $server" -Name "ExPerfWiz.log"
 
         # Update the collector
-        if ($PSCmdlet.ShouldProcess("$Server\$Name", "Updating ExPerfwiz Data Collector")) {
+        if ($PSCmdlet.ShouldProcess("$Server\$Name", "Updating ExPerfWiz Data Collector")) {
             [string]$logman = logman update -name $Name -s $Server -rf $Duration.TotalSeconds -si $Interval -max $MaxSize -b $StartTime
         }
 
@@ -107,7 +107,7 @@ function global:Set-ExPerfWiz {
         if ($null -eq ($logman | Select-String "Error:")) {
             Write-SimpleLogFile "Update Successful" -Name "ExPerfWiz.log"
         } else {
-            Write-SimpleLogFile -string "[ERROR] - Problem updating perfwiz:" -Name "ExPerfWiz.log"
+            Write-SimpleLogFile -string "[ERROR] - Problem updating PerfWiz:" -Name "ExPerfWiz.log"
             Write-SimpleLogFile -string $logman -Name "ExPerfWiz.log"
             throw $logman
         }
@@ -115,6 +115,6 @@ function global:Set-ExPerfWiz {
     end {
         # Return the new object and values
         if ($quiet) {}
-        else { Get-ExPerfwiz -Name $name -Server $server }
+        else { Get-ExPerfWiz -Name $name -Server $server }
     }
 }

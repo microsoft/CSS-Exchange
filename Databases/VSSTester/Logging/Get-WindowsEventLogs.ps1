@@ -5,14 +5,14 @@ function Get-WindowsEventLogs {
 
     function Get-WindowEventsPerServer {
         param(
-            [string]$CompunterName
+            [string]$ComputerName
         )
         "Getting application log events..."
-        Get-WinEvent -FilterHashtable @{LogName = "Application"; StartTime = $startTime } -ComputerName $CompunterName | Export-Clixml $path\events-$CompunterName-App.xml
+        Get-WinEvent -FilterHashtable @{LogName = "Application"; StartTime = $startTime } -ComputerName $ComputerName | Export-Clixml $path\events-$ComputerName-App.xml
         "Getting system log events..."
-        Get-WinEvent -FilterHashtable @{LogName = "System"; StartTime = $startTime } -ComputerName $CompunterName | Export-Clixml $path\events-$CompunterName-System.xml
+        Get-WinEvent -FilterHashtable @{LogName = "System"; StartTime = $startTime } -ComputerName $ComputerName | Export-Clixml $path\events-$ComputerName-System.xml
         "Getting TruncationDebug log events..."
-        Get-WinEvent -FilterHashtable @{LogName = "Microsoft-Exchange-HighAvailability/TruncationDebug"; StartTime = $startTime } -ComputerName $CompunterName -ErrorAction SilentlyContinue | Export-Clixml $path\events-$CompunterName-TruncationDebug.xml
+        Get-WinEvent -FilterHashtable @{LogName = "Microsoft-Exchange-HighAvailability/TruncationDebug"; StartTime = $startTime } -ComputerName $ComputerName -ErrorAction SilentlyContinue | Export-Clixml $path\events-$ComputerName-TruncationDebug.xml
     }
     " "
     Get-Date

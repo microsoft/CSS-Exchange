@@ -4,7 +4,7 @@
 [12/19/2020 06:31:13.0397] [0] Local time zone: (UTC-08:00) Pacific Time (US & Canada).
 [12/19/2020 06:31:13.0397] [0] Operating system version: Microsoft Windows NT 6.2.9200.0.
 [12/19/2020 06:31:13.0400] [0] Setup version: 15.2.792.3.
-[12/19/2020 06:31:13.0402] [0] Logged on user: SOLO\Kylo.
+[12/19/2020 06:31:13.0402] [0] Logged on user: SOLO\Han.
 [12/19/2020 06:31:13.0447] [0] Command Line Parameter Name='mode', Value='Upgrade'.
 [12/19/2020 06:31:13.0447] [0] Command Line Parameter Name='iacceptexchangeserverlicenseterms', Value=''.
 [12/19/2020 06:31:13.0460] [0] Command Line Parameter Name='sourcedir', Value='D:\'.
@@ -28,9 +28,9 @@
 [12/19/2020 06:31:29.0854] [0] Exchange organization container for the organization is 'CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=com'.
 [12/19/2020 06:31:29.0881] [0] Setup will search for an Exchange Server object for the local machine with name 'SOLO-E19A'.
 [12/19/2020 06:31:30.0139] [0] Exchange Server object found : 'CN=SOLO-E19A,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=com'.
-[12/19/2020 06:31:30.0232] [0] The following roles have been unpacked: BridgeheadRole ClientAccessRole MailboxRole FrontendTransportRole AdminToolsRole CafeRole 
-[12/19/2020 06:31:30.0235] [0] The following datacenter roles are unpacked: 
-[12/19/2020 06:31:30.0241] [0] The following roles are installed: BridgeheadRole ClientAccessRole MailboxRole FrontendTransportRole AdminToolsRole CafeRole 
+[12/19/2020 06:31:30.0232] [0] The following roles have been unpacked: BridgeheadRole ClientAccessRole MailboxRole FrontendTransportRole AdminToolsRole CafeRole
+[12/19/2020 06:31:30.0235] [0] The following datacenter roles are unpacked:
+[12/19/2020 06:31:30.0241] [0] The following roles are installed: BridgeheadRole ClientAccessRole MailboxRole FrontendTransportRole AdminToolsRole CafeRole
 [12/19/2020 06:31:30.0245] [0] The local server has some Exchange files installed.
 [12/19/2020 06:31:30.0268] [0] Server Name=SOLO-E19A
 [12/19/2020 06:31:30.0269] [0] Setup will use the path 'D:\' for installing Exchange.
@@ -63,7 +63,7 @@
 [12/19/2020 06:31:36.0492] [0] Performing Microsoft Exchange Server Prerequisite Check
 [12/19/2020 06:31:46.0055] [0] **************
 [12/19/2020 06:31:46.0055] [0] Setup will run the task 'Start-PreConfiguration'
-[12/19/2020 06:31:46.0066] [1] Setup launched task 'Start-PreConfiguration -Mode 'BuildToBuildUpgrade' -Roles 'LanguagePacks','AdminToolsRole','BridgeheadRole','ClientAccessRole','MailboxRole','FrontendTransportRole','CafeRole''  
+[12/19/2020 06:31:46.0066] [1] Setup launched task 'Start-PreConfiguration -Mode 'BuildToBuildUpgrade' -Roles 'LanguagePacks','AdminToolsRole','BridgeheadRole','ClientAccessRole','MailboxRole','FrontendTransportRole','CafeRole''
 [12/19/2020 06:31:47.0199] [1] Active Directory session settings for 'Start-PreConfiguration' are: View Entire Forest: 'True', Configuration Domain Controller: 'Solo-DC1.Solo.com', Preferred Global Catalog: 'Solo-DC1.Solo.com', Preferred Domain Controllers: '{ Solo-DC1.Solo.com }'
 [12/19/2020 06:31:47.0218] [1] User specified parameters:  -Mode:'BuildToBuildUpgrade' -Roles:'LanguagePacks','AdminToolsRole','BridgeheadRole','ClientAccessRole','MailboxRole','FrontendTransportRole','CafeRole'
 [12/19/2020 06:31:47.0219] [1] Beginning processing Start-PreConfiguration
@@ -104,59 +104,59 @@
 [12/19/2020 06:31:47.0581] [1] Executing: $RoleTargetVersion = '15.02.0792.003'
 [12/19/2020 06:31:47.0597] [1] 20 tasks were found to run.
 [12/19/2020 06:31:47.0627] [1] Processing component 'Prereq Configuration' (Configuring the server.).
-[12/19/2020 06:31:47.0632] [1] Executing: 
+[12/19/2020 06:31:47.0632] [1] Executing:
           if($RoleInstallWindowsComponents)
-          {          
+          {
             # Install any Windows Roles or Features required for the Management Tools role
             & $RoleBinPath\InstallWindowsComponent.ps1 -ShortNameForRole "AdminTools" -ADToolsNeeded $RoleADToolsNeeded
           }
-        
-[12/19/2020 06:31:47.0667] [1] Executing: 
+
+[12/19/2020 06:31:47.0667] [1] Executing:
           if (Get-Service RemoteRegistry* | ?{$_.Name -eq 'RemoteRegistry'})
           {
             Set-Service RemoteRegistry -StartupType Automatic
             Start-SetupService -ServiceName RemoteRegistry
           }
-        
+
 [12/19/2020 06:31:47.0735] [2] Active Directory session settings for 'start-SetupService' are: View Entire Forest: 'True', Configuration Domain Controller: 'Solo-DC1.Solo.com', Preferred Global Catalog: 'Solo-DC1.Solo.com', Preferred Domain Controllers: '{ Solo-DC1.Solo.com }'
 [12/19/2020 06:31:47.0736] [2] User specified parameters:  -ServiceName:'RemoteRegistry'
 [12/19/2020 06:31:47.0736] [2] Beginning processing Start-SetupService
 [12/19/2020 06:31:47.0807] [2] Ending processing Start-SetupService
-[12/19/2020 06:31:47.0946] [1] Executing: 
+[12/19/2020 06:31:47.0946] [1] Executing:
           if (Get-Service WinMgmt* | ?{$_.Name -eq 'WinMgmt'})
           {
             Set-Service WinMgmt -StartupType Automatic
             Start-SetupService -ServiceName WinMgmt
           }
-        
+
 [12/19/2020 06:31:47.0952] [2] Active Directory session settings for 'start-SetupService' are: View Entire Forest: 'True', Configuration Domain Controller: 'Solo-DC1.Solo.com', Preferred Global Catalog: 'Solo-DC1.Solo.com', Preferred Domain Controllers: '{ Solo-DC1.Solo.com }'
 [12/19/2020 06:31:47.0952] [2] User specified parameters:  -ServiceName:'WinMgmt'
 [12/19/2020 06:31:47.0952] [2] Beginning processing Start-SetupService
 [12/19/2020 06:31:47.0961] [2] Ending processing Start-SetupService
 [12/19/2020 06:31:47.0964] [1] Processing component 'Prereq Configuration' (Configuring the server.).
-[12/19/2020 06:31:47.0964] [1] Executing: 
+[12/19/2020 06:31:47.0964] [1] Executing:
           if (Get-Service RemoteRegistry* | ?{$_.Name -eq 'RemoteRegistry'})
           {
             Set-Service RemoteRegistry -StartupType Automatic
             Start-SetupService -ServiceName RemoteRegistry
           }
-        
+
 [12/19/2020 06:31:47.0971] [2] Active Directory session settings for 'start-SetupService' are: View Entire Forest: 'True', Configuration Domain Controller: 'Solo-DC1.Solo.com', Preferred Global Catalog: 'Solo-DC1.Solo.com', Preferred Domain Controllers: '{ Solo-DC1.Solo.com }'
 [12/19/2020 06:31:47.0971] [2] User specified parameters:  -ServiceName:'RemoteRegistry'
 [12/19/2020 06:31:47.0972] [2] Beginning processing Start-SetupService
 [12/19/2020 06:31:47.0974] [2] Ending processing Start-SetupService
-[12/19/2020 06:31:47.0977] [1] Executing: 
+[12/19/2020 06:31:47.0977] [1] Executing:
           if (Get-Service WinMgmt* | ?{$_.Name -eq 'WinMgmt'})
           {
             Set-Service WinMgmt -StartupType Automatic
             Start-SetupService -ServiceName WinMgmt
           }
-        
+
 [12/19/2020 06:31:47.0985] [2] Active Directory session settings for 'start-SetupService' are: View Entire Forest: 'True', Configuration Domain Controller: 'Solo-DC1.Solo.com', Preferred Global Catalog: 'Solo-DC1.Solo.com', Preferred Domain Controllers: '{ Solo-DC1.Solo.com }'
 [12/19/2020 06:31:47.0985] [2] User specified parameters:  -ServiceName:'WinMgmt'
 [12/19/2020 06:31:47.0985] [2] Beginning processing Start-SetupService
 [12/19/2020 06:31:47.0987] [2] Ending processing Start-SetupService
-[12/19/2020 06:31:47.0988] [1] Executing: 
+[12/19/2020 06:31:47.0988] [1] Executing:
           $mpsSvc = Get-Service MpsSvc -ea:Ignore
           if ($mpsSvc -ne $null)
           {
@@ -171,11 +171,11 @@
               Start-SetupService -ServiceName MpsSvc
             }
           }
-        
-[12/19/2020 06:31:48.0010] [1] Executing: 
+
+[12/19/2020 06:31:48.0010] [1] Executing:
             $aspnet = [System.Runtime.InteropServices.RuntimeEnvironment]::GetRunTimeDirectory() + "aspnet_regiis.exe";
             Start-SetupProcess -name "$aspnet" -args "-ir -enable"
-        
+
 [12/19/2020 06:31:48.0026] [2] Active Directory session settings for 'Start-SetupProcess' are: View Entire Forest: 'True', Configuration Domain Controller: 'Solo-DC1.Solo.com', Preferred Global Catalog: 'Solo-DC1.Solo.com', Preferred Domain Controllers: '{ Solo-DC1.Solo.com }'
 [12/19/2020 06:31:48.0026] [2] User specified parameters:  -Name:'C:\Windows\Microsoft.NET\Framework64\v4.0.30319\aspnet_regiis.exe' -Args:'-ir -enable'
 [12/19/2020 06:31:48.0026] [2] Beginning processing Start-SetupProcess
@@ -187,107 +187,107 @@ Start installing ASP.NET (4.0.30319.0) without changing existing web application
 This option is not supported on this version of the operating system.  Administrators should instead install/uninstall ASP.NET 4.5 with IIS8 using the "Turn Windows Features On/Off" dialog,  the Server Manager management tool, or the dism.exe command line tool.  For more details please see http://go.microsoft.com/fwlink/?LinkID=216771.
 Finished installing ASP.NET (4.0.30319.0) without changing existing web applications to use this version of ASP.Net.
 
-[12/19/2020 06:31:48.0103] [2] Process standard error: 
+[12/19/2020 06:31:48.0103] [2] Process standard error:
 [12/19/2020 06:31:48.0103] [2] Ending processing Start-SetupProcess
-[12/19/2020 06:31:48.0106] [1] Executing: 
+[12/19/2020 06:31:48.0106] [1] Executing:
           if (Get-Service MSDTC* | ?{$_.Name -eq 'MSDTC'})
           {
             Set-Service MSDTC -StartupType Automatic
             Start-SetupService -ServiceName MSDTC
           }
-        
+
 [12/19/2020 06:31:48.0113] [2] Active Directory session settings for 'start-SetupService' are: View Entire Forest: 'True', Configuration Domain Controller: 'Solo-DC1.Solo.com', Preferred Global Catalog: 'Solo-DC1.Solo.com', Preferred Domain Controllers: '{ Solo-DC1.Solo.com }'
 [12/19/2020 06:31:48.0113] [2] User specified parameters:  -ServiceName:'MSDTC'
 [12/19/2020 06:31:48.0113] [2] Beginning processing Start-SetupService
 [12/19/2020 06:31:48.0115] [2] Ending processing Start-SetupService
 [12/19/2020 06:31:48.0118] [1] Processing component 'Prereq Configuration' (Configuring the server.).
-[12/19/2020 06:31:48.0119] [1] Executing: 
+[12/19/2020 06:31:48.0119] [1] Executing:
           if (Get-Service W3Svc* | ?{$_.Name -eq 'W3Svc'})
           {
             Set-Service W3Svc -StartupType Automatic
             Start-SetupService -ServiceName W3Svc
           }
-        
+
 [12/19/2020 06:31:48.0125] [2] Active Directory session settings for 'start-SetupService' are: View Entire Forest: 'True', Configuration Domain Controller: 'Solo-DC1.Solo.com', Preferred Global Catalog: 'Solo-DC1.Solo.com', Preferred Domain Controllers: '{ Solo-DC1.Solo.com }'
 [12/19/2020 06:31:48.0126] [2] User specified parameters:  -ServiceName:'W3Svc'
 [12/19/2020 06:31:48.0126] [2] Beginning processing Start-SetupService
 [12/19/2020 06:31:48.0127] [2] Ending processing Start-SetupService
 [12/19/2020 06:31:48.0128] [1] Processing component 'Prereq Configuration' (Configuring the server.).
-[12/19/2020 06:31:48.0129] [1] Executing: 
+[12/19/2020 06:31:48.0129] [1] Executing:
           if($RoleInstallWindowsComponents)
           {
             # Install any Windows Roles or Features required for the Hub Transport role
             & $RoleBinPath\InstallWindowsComponent.ps1 -ShortNameForRole "Internal-HUB" -ADToolsNeeded $RoleADToolsNeeded
           }
-        
+
 [12/19/2020 06:31:48.0131] [1] Processing component 'Prereq Configuration' (Configuring the server.).
-[12/19/2020 06:31:48.0131] [1] Executing: 
+[12/19/2020 06:31:48.0131] [1] Executing:
           if($RoleInstallWindowsComponents)
           {
             # Install any Windows Roles or Features required for the Client Access role
             & $RoleBinPath\InstallWindowsComponent.ps1 -ShortNameForRole "Internal-CAS" -ADToolsNeeded $RoleADToolsNeeded
           }
-        
-[12/19/2020 06:31:48.0134] [1] Executing: 
+
+[12/19/2020 06:31:48.0134] [1] Executing:
           if (Get-Service IISAdmin* | ?{$_.Name -eq 'IISAdmin'})
           {
             Set-Service IISAdmin -StartupType Automatic
             Start-SetupService -ServiceName IISAdmin
           }
-        
+
 [12/19/2020 06:31:48.0140] [2] Active Directory session settings for 'start-SetupService' are: View Entire Forest: 'True', Configuration Domain Controller: 'Solo-DC1.Solo.com', Preferred Global Catalog: 'Solo-DC1.Solo.com', Preferred Domain Controllers: '{ Solo-DC1.Solo.com }'
 [12/19/2020 06:31:48.0141] [2] User specified parameters:  -ServiceName:'IISAdmin'
 [12/19/2020 06:31:48.0141] [2] Beginning processing Start-SetupService
 [12/19/2020 06:31:48.0143] [2] Ending processing Start-SetupService
-[12/19/2020 06:31:48.0146] [1] Executing: 
+[12/19/2020 06:31:48.0146] [1] Executing:
           if (Get-Service EventSystem* | ?{$_.Name -eq 'EventSystem'})
           {
             Set-Service EventSystem -StartupType Automatic
             Start-SetupService -ServiceName EventSystem
           }
-        
+
 [12/19/2020 06:31:48.0152] [2] Active Directory session settings for 'start-SetupService' are: View Entire Forest: 'True', Configuration Domain Controller: 'Solo-DC1.Solo.com', Preferred Global Catalog: 'Solo-DC1.Solo.com', Preferred Domain Controllers: '{ Solo-DC1.Solo.com }'
 [12/19/2020 06:31:48.0153] [2] User specified parameters:  -ServiceName:'EventSystem'
 [12/19/2020 06:31:48.0153] [2] Beginning processing Start-SetupService
 [12/19/2020 06:31:48.0154] [2] Ending processing Start-SetupService
 [12/19/2020 06:31:48.0156] [1] Processing component 'Prereq Configuration' (Configuring the server.).
-[12/19/2020 06:31:48.0156] [1] Executing: 
+[12/19/2020 06:31:48.0156] [1] Executing:
           if($RoleInstallWindowsComponents)
           {
             # Install any Windows Roles or Features required for the Mailbox role
             & $RoleBinPath\InstallWindowsComponent.ps1 -ShortNameForRole "Internal-MBX" -ADToolsNeeded $RoleADToolsNeeded
           }
-        
-[12/19/2020 06:31:48.0159] [1] Executing: 
+
+[12/19/2020 06:31:48.0159] [1] Executing:
           if (Get-Service IISAdmin* | ?{$_.Name -eq 'IISAdmin'})
           {
             Set-Service IISAdmin -StartupType Automatic
             Start-SetupService -ServiceName IISAdmin
           }
-        
+
 [12/19/2020 06:31:48.0166] [2] Active Directory session settings for 'start-SetupService' are: View Entire Forest: 'True', Configuration Domain Controller: 'Solo-DC1.Solo.com', Preferred Global Catalog: 'Solo-DC1.Solo.com', Preferred Domain Controllers: '{ Solo-DC1.Solo.com }'
 [12/19/2020 06:31:48.0166] [2] User specified parameters:  -ServiceName:'IISAdmin'
 [12/19/2020 06:31:48.0166] [2] Beginning processing Start-SetupService
 [12/19/2020 06:31:48.0168] [2] Ending processing Start-SetupService
 [12/19/2020 06:31:48.0176] [1] Processing component 'FrontendTransport Prereq Configuration' (Configuring the server.).
-[12/19/2020 06:31:48.0181] [1] Executing: 
+[12/19/2020 06:31:48.0181] [1] Executing:
           if($RoleInstallWindowsComponents)
           {
             # Install any Windows Roles or Features required for the Hub Transport role
             & $RoleBinPath\InstallWindowsComponent.ps1 -ShortNameForRole "Internal-HUB" -ADToolsNeeded $RoleADToolsNeeded
           }
-        
+
 [12/19/2020 06:31:48.0189] [1] Processing component 'Prereq Configuration' (Configuring the server.).
-[12/19/2020 06:31:48.0189] [1] Executing: 
+[12/19/2020 06:31:48.0189] [1] Executing:
           if($RoleInstallWindowsComponents)
           {
             # Install any Windows Roles or Features required for the CAFE role
             & $RoleBinPath\InstallWindowsComponent.ps1 -ShortNameForRole "Internal-CAFE" -ADToolsNeeded $RoleADToolsNeeded
           }
-        
+
 [12/19/2020 06:31:48.0192] [1] Processing component 'Prereq Configuration' (Configuring the server.).
 [12/19/2020 06:31:48.0192] [1] Processing component 'Prereq Configuration' (Configuring the server.).
-[12/19/2020 06:31:48.0193] [1] Executing: 
+[12/19/2020 06:31:48.0193] [1] Executing:
           $keyPath = "HKLM:\Software\Microsoft\WebManagement\Server";
           if (!(Get-Item $keyPath -ErrorAction SilentlyContinue))
           {
@@ -301,7 +301,7 @@ Finished installing ASP.NET (4.0.30319.0) without changing existing web applicat
             Stop-SetupService -ServiceName WMSVC;
             Start-SetupService -ServiceName WMSVC
           }
-        
+
 [12/19/2020 06:31:48.0230] [2] Active Directory session settings for 'stop-SetupService' are: View Entire Forest: 'True', Configuration Domain Controller: 'Solo-DC1.Solo.com', Preferred Global Catalog: 'Solo-DC1.Solo.com', Preferred Domain Controllers: '{ Solo-DC1.Solo.com }'
 [12/19/2020 06:31:48.0230] [2] User specified parameters:  -ServiceName:'WMSVC'
 [12/19/2020 06:31:48.0230] [2] Beginning processing Stop-SetupService
@@ -320,16 +320,16 @@ Finished installing ASP.NET (4.0.30319.0) without changing existing web applicat
 [12/19/2020 06:31:50.0550] [2] Will wait '2000' milliseconds for the service 'WMSVC' to reach status 'Running'.
 [12/19/2020 06:31:50.0801] [2] Service 'WMSVC' successfully reached status 'Running on this server while waiting for status change.
 [12/19/2020 06:31:50.0801] [2] Ending processing Start-SetupService
-[12/19/2020 06:31:50.0803] [1] Executing: 
+[12/19/2020 06:31:50.0803] [1] Executing:
           if (Get-Service NetTcpPortSharing* | ?{$_.Name -eq 'NetTcpPortSharing'})
           {
           Set-Service NetTcpPortSharing -StartupType Automatic
           }
-        
-[12/19/2020 06:31:50.0809] [1] Executing: 
+
+[12/19/2020 06:31:50.0809] [1] Executing:
             Set-Service PLA -StartupType Disabled
             Stop-SetupService -ServiceName PLA;
-        
+
 [12/19/2020 06:31:50.0811] [2] Active Directory session settings for 'stop-SetupService' are: View Entire Forest: 'True', Configuration Domain Controller: 'Solo-DC1.Solo.com', Preferred Global Catalog: 'Solo-DC1.Solo.com', Preferred Domain Controllers: '{ Solo-DC1.Solo.com }'
 [12/19/2020 06:31:50.0811] [2] User specified parameters:  -ServiceName:'PLA'
 [12/19/2020 06:31:50.0811] [2] Beginning processing Stop-SetupService
@@ -338,7 +338,7 @@ Finished installing ASP.NET (4.0.30319.0) without changing existing web applicat
 [12/19/2020 06:31:50.0824] [1] Ending processing Start-PreConfiguration
 [12/19/2020 06:31:50.0860] [0] **************
 [12/19/2020 06:31:50.0860] [0] Setup will run the task 'test-SetupPrerequisites'
-[12/19/2020 06:31:50.0860] [1] Setup launched task 'test-SetupPrerequisites -DomainController 'Solo-DC1.Solo.com' -ExchangeVersion '15.2.792.3' -Roles 'LanguagePacks','Bridgehead','ClientAccess','Mailbox','FrontendTransport','Cafe' -ScanType 'PrecheckUpgrade' -SetupRoles 'LanguagePacks','AdminTools','Bridgehead','ClientAccess','Mailbox','FrontendTransport','Cafe' -TargetDir 'C:\Program Files\Microsoft\Exchange Server\V15' -LanguagePackDir 'D:\' -LanguagesAvailableToInstall $true -SufficientLanguagePackDiskSpace $true -LanguagePackVersioning $true -HostingDeploymentEnabled $false'  
+[12/19/2020 06:31:50.0860] [1] Setup launched task 'test-SetupPrerequisites -DomainController 'Solo-DC1.Solo.com' -ExchangeVersion '15.2.792.3' -Roles 'LanguagePacks','Bridgehead','ClientAccess','Mailbox','FrontendTransport','Cafe' -ScanType 'PrecheckUpgrade' -SetupRoles 'LanguagePacks','AdminTools','Bridgehead','ClientAccess','Mailbox','FrontendTransport','Cafe' -TargetDir 'C:\Program Files\Microsoft\Exchange Server\V15' -LanguagePackDir 'D:\' -LanguagesAvailableToInstall $true -SufficientLanguagePackDiskSpace $true -LanguagePackVersioning $true -HostingDeploymentEnabled $false'
 [12/19/2020 06:31:50.0877] [1] Active Directory session settings for 'test-SetupPrerequisites' are: View Entire Forest: 'True', Configuration Domain Controller: 'Solo-DC1.Solo.com', Preferred Global Catalog: 'Solo-DC1.Solo.com', Preferred Domain Controllers: '{ Solo-DC1.Solo.com }'
 [12/19/2020 06:31:50.0877] [1] User specified parameters:  -Roles:'LanguagePacks','Bridgehead','ClientAccess','Mailbox','FrontendTransport','Cafe' -LanguagesAvailableToInstall:'True' -DomainController:'Solo-DC1.Solo.com' -ExchangeVersion:'15.2.792.3' -LanguagePackDir:'D:\' -SufficientLanguagePackDiskSpace:'True' -ScanType:'PrecheckUpgrade' -LanguagePackVersioning:'True' -HostingDeploymentEnabled:'False' -TargetDir:'C:\Program Files\Microsoft\Exchange Server\V15' -SetupRoles:'LanguagePacks','AdminTools','Bridgehead','ClientAccess','Mailbox','FrontendTransport','Cafe'
 [12/19/2020 06:31:50.0877] [1] Beginning processing test-SetupPrerequisites
@@ -555,7 +555,7 @@ Expected failure for SMTPSvcStartMode:The registry key, HKEY_LOCAL_MACHINE\Syste
 [12/19/2020 06:31:51.0687] [1] Started [Rule:LonghornIIS7HttpCompressionStaticNotInstalled] [Parent:RootAnalysisMember] [RuleType:Error]
 [12/19/2020 06:31:51.0693] [1] Started [Setting:IIS7CompressionStatic] [Parent:RootAnalysisMember] [ValueType:Nullable`1]
 [12/19/2020 06:31:51.0693] [1] Active Directory session settings for 'Get-SendConnector' are: View Entire Forest: 'True', Configuration Domain Controller: 'Solo-DC1.Solo.com', Preferred Global Catalog: 'Solo-DC1.Solo.com', Preferred Domain Controllers: '{ Solo-DC1.Solo.com }'
-[12/19/2020 06:31:51.0694] [1] User specified parameters: 
+[12/19/2020 06:31:51.0694] [1] User specified parameters:
 [12/19/2020 06:31:51.0694] [1] Beginning processing Get-SendConnector
 [12/19/2020 06:31:51.0696] [1] Evaluated [Setting:IIS7CompressionStatic] [HasException:False] [Value:"1"] [ParentValue:"<NULL>"] [Thread:22] [Duration:00:00:00.0030354]
 [12/19/2020 06:31:51.0696] [1] Finished [Setting:IIS7CompressionStatic] [Duration:00:00:00.0030354]
@@ -1132,7 +1132,7 @@ System.NullReferenceException: Object reference not set to an instance of an obj
 [12/19/2020 06:31:53.0329] [1] Finished [Rule:ServerNameNotValid] [Duration:00:00:00.5149914]
 [12/19/2020 06:31:53.0329] [1] Started [Rule:LoggedOntoDomain] [Parent:RootAnalysisMember] [RuleType:Error]
 [12/19/2020 06:31:53.0331] [1] Started [Setting:CurrentLogOn] [Parent:RootAnalysisMember] [ValueType:String]
-[12/19/2020 06:31:53.0335] [1] Evaluated [Setting:CurrentLogOn] [HasException:False] [Value:"SOLO\Kylo"] [ParentValue:"<NULL>"] [Thread:6] [Duration:00:00:00.0039996]
+[12/19/2020 06:31:53.0335] [1] Evaluated [Setting:CurrentLogOn] [HasException:False] [Value:"SOLO\Han"] [ParentValue:"<NULL>"] [Thread:6] [Duration:00:00:00.0039996]
 [12/19/2020 06:31:53.0335] [1] Finished [Setting:CurrentLogOn] [Duration:00:00:00.0039996]
 [12/19/2020 06:31:53.0335] [1] Evaluated [Rule:LoggedOntoDomain] [HasException:False] [Value:"False"] [ParentValue:"<NULL>"] [Thread:6] [Duration:00:00:00.0059996]
 [12/19/2020 06:31:53.0335] [1] Finished [Rule:LoggedOntoDomain] [Duration:00:00:00.0059996]
@@ -1743,7 +1743,7 @@ System.NullReferenceException: Object reference not set to an instance of an obj
 [12/19/2020 06:32:05.0069] [1] Evaluated [Setting:CmdletGetExchangeServerResult] [HasException:False] [Value:"SOLO-E19A"] [ParentValue:"<NULL>"] [Thread:72] [Duration:00:00:13.5188108]
 [12/19/2020 06:32:05.0069] [1] Finished [Setting:CmdletGetExchangeServerResult] [Duration:00:00:13.5188108]
 [12/19/2020 06:32:05.0089] [1] Active Directory session settings for 'Get-OrganizationConfig' are: View Entire Forest: 'True', Configuration Domain Controller: 'Solo-DC1.Solo.com', Preferred Global Catalog: 'Solo-DC1.Solo.com', Preferred Domain Controllers: '{ Solo-DC1.Solo.com }'
-[12/19/2020 06:32:05.0089] [1] User specified parameters: 
+[12/19/2020 06:32:05.0089] [1] User specified parameters:
 [12/19/2020 06:32:05.0089] [1] Beginning processing Get-OrganizationConfig
 [12/19/2020 06:32:05.0097] [1] Searching objects of type "ADOrganizationConfig" with filter "$null", scope "SubTree" under the root "$null".
 [12/19/2020 06:32:05.0103] [1] Request filter in Get Task: (&(|(objectCategory=msExchOrganizationContainer)(objectCategory=msExchConfigurationUnitContainer))(|(&(msExchVersion<=3377699720527872)(!(msExchVersion=3377699720527872)))(!(msExchVersion=*)))).

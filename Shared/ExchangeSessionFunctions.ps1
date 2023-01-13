@@ -8,8 +8,8 @@ When Connect-ExchangeServer is used, we set the $global:remoteSession to be the 
 This can be used to determine the Primary Session to be able to restore to it afterwards if need be.
 NOTE: When using these functions, EMS will need to be required and Connect-ExchangeServer will need to be a valid cmdlet.
 When on a Tools box where we load EMS, Connect-ExchangeServer needs to be loaded again by the following:
-. $global:exbin"CommonConnectFunctions.ps1"
-. $global:exbin"ConnectFunctions.ps1"
+. $global:exBin"CommonConnectFunctions.ps1"
+. $global:exBin"ConnectFunctions.ps1"
 #>
 
 . $PSScriptRoot\Invoke-CatchActionError.ps1

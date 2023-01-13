@@ -34,5 +34,5 @@ The default recommended way of using EOMTv2.ps1. This will apply the URL rewrite
 To roll back EOMTv2 mitigations run
 
 ```powershell
-.\EOMTv2.ps1 -Rollbackmitigation
+.\EOMTv2.ps1 -RollbackMitigation
 ```

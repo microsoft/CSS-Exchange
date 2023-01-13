@@ -9,8 +9,8 @@
 # - start a PowerShell transcript
 # - enable ExTRA tracing
 # - enable VSS tracing
-# - optionally: create the diskshadow config file with shadow expose enabled,
-#               execute VSS backup using diskshadow,
+# - optionally: create the DiskShadow config file with shadow expose enabled,
+#               execute VSS backup using DiskShadow,
 #               delete the VSS snapshot post-backup
 # - stop PowerShell transcript
 #
@@ -91,7 +91,7 @@ function Main {
     $nl
     Write-Host "Please select the operation you would like to perform from the following options:" -ForegroundColor Green
     $nl
-    Write-Host "  1. " -ForegroundColor Yellow -NoNewline; Write-Host "Test backup using built-in Diskshadow"
+    Write-Host "  1. " -ForegroundColor Yellow -NoNewline; Write-Host "Test backup using built-in DiskShadow"
     Write-Host "  2. " -ForegroundColor Yellow -NoNewline; Write-Host "Enable logging to troubleshoot backup issues"
     $nl
 

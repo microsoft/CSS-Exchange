@@ -7,7 +7,7 @@
     <MS>
       <B N="FIPFSFixedBuild">true</B>
       <B N="ServerRoleAffected">true</B>
-      <I64 N="HighesVersionNumberDetected">2201010000</I64>
+      <I64 N="HighestVersionNumberDetected">2201010000</I64>
       <B N="BadVersionNumberDirDetected">true</B>
     </MS>
   </Obj>

@@ -40,8 +40,8 @@ function Invoke-EnableExTRATracing {
         #passive server, get tracing from both active and passive nodes
         " "
         "Copying the ExTRA config file 'EnabledTraces.config' file to $dbMountedOn..."
-        #copy enabledtraces.config from current passive copy to active copy server
-        Copy-Item "c:\EnabledTraces.Config" "\\$dbMountedOn\c$\enabledtraces.config" -Force
+        #copy EnabledTraces.config from current passive copy to active copy server
+        Copy-Item "c:\EnabledTraces.Config" "\\$dbMountedOn\c$\EnabledTraces.config" -Force
 
         #create trace on passive copy
         "Creating Exchange Trace data collector set on $serverName..."

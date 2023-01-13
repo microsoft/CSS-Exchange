@@ -65,7 +65,7 @@ Describe "Testing SetupLogReviewer" {
         It "Additional Context" {
             & $sr -SetupLog "$PSScriptRoot\PrerequisiteCheck\ExchangeSetup_Fail_In_Child.log"
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $Object -eq "User Logged On: CHILD\Kylo" }
+                -ParameterFilter { $Object -eq "User Logged On: CHILD\Han" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -eq "Setup Running on: Solo-E16A.Child.Solo.net" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
@@ -102,7 +102,7 @@ Describe "Testing SetupLogReviewer" {
             & $sr -SetupLog "$PSScriptRoot\PrerequisiteCheck\ExchangeSetup_ADUpdated_NoOrgMan.log"
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -Scope It `
-                -ParameterFilter { $Object -eq "User SOLO\Kylo isn't apart of Organization Management group." -and $ForegroundColor -eq "Red" }
+                -ParameterFilter { $Object -eq "User SOLO\Han isn't apart of Organization Management group." -and $ForegroundColor -eq "Red" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -Scope It `
                 -ParameterFilter { $Object -eq "Looking to be in this group SID: S-1-5-21-2947011988-2654620456-2749465584-1105" }
@@ -119,7 +119,7 @@ Describe "Testing SetupLogReviewer" {
         It "Schema Admins group" {
             & $sr -SetupLog "$PSScriptRoot\PrerequisiteCheck\ExchangeSetup_NoPerm.log"
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $Object -eq "/PrepareSchema is required and user SOLO\Kylo isn't apart of the Schema Admins group." -and $ForegroundColor -eq "Red" }
+                -ParameterFilter { $Object -eq "/PrepareSchema is required and user SOLO\Han isn't apart of the Schema Admins group." -and $ForegroundColor -eq "Red" }
             Test-GeneralAdditionalContext
         }
 
@@ -132,9 +132,9 @@ Describe "Testing SetupLogReviewer" {
         It "Enterprise Admins Group" {
             & $sr -SetupLog "$PSScriptRoot\PrerequisiteCheck\ExchangeSetup_SchemaAdmin_PrepareSchema.log"
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $Object -eq "/PrepareSchema is required and user SOLO\Kylo isn't apart of the Enterprise Admins group." -and $ForegroundColor -eq "Red" }
+                -ParameterFilter { $Object -eq "/PrepareSchema is required and user SOLO\Han isn't apart of the Enterprise Admins group." -and $ForegroundColor -eq "Red" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $Object -eq "/PrepareAD is required and user SOLO\Kylo isn't apart of the Enterprise Admins group." -and $ForegroundColor -eq "Red" }
+                -ParameterFilter { $Object -eq "/PrepareAD is required and user SOLO\Han isn't apart of the Enterprise Admins group." -and $ForegroundColor -eq "Red" }
             Test-GeneralAdditionalContext
         }
 
@@ -174,10 +174,10 @@ Describe "Testing SetupLogReviewer" {
             Mock Write-Warning {}
         }
 
-        It "MESG was deleted" {
-            & $sr -SetupLog "$PSScriptRoot\KnownIssues\ExchangeSetupmsExchangeSecurityGroupsContainerDeleted.log"
+        It "Microsoft Exchange Security Group was deleted" {
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\ExchangeSetupMsExchangeSecurityGroupsContainerDeleted.log"
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $Object -eq "`t'OU=Microsoft Exchange Security Groups' was deleted from the root of the domain. We need to have it created again at the root of the domain to continue." }
+                -ParameterFilter { $Object -like "*OU=Microsoft Exchange Security Groups' was deleted from the root of the domain. We need to have it created again at the root of the domain to continue." }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*System.NullReferenceException*" -and $ForegroundColor -eq "Yellow" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
@@ -219,13 +219,13 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*Used domain controller Solo-DC1.Solo.local to read object CN=Microsoft Exchange System Objects,DC=Solo,DC=local*" }
             Assert-MockCalled -Exactly 3 -CommandName Write-Host `
-                -ParameterFilter { $Object -like "*Active directory response: 00000005: SecErr: DSID-03152857, problem 4003 (INSUFF_ACCESS_RIGHTS), data 0*" }
+                -ParameterFilter { $Object -like "*Active directory response: 00000005: SecErr: DSid-03152857, problem 4003 (INSUFF_ACCESS_RIGHTS), data 0*" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -eq "`tWe failed to have the correct permissions to write ACE to 'CN=Microsoft Exchange System Objects,DC=Solo,DC=local' as the current user SOLO\Han" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -eq "`t- Make sure there are no denies for this user on the object" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $Object -eq "`t- By default Enterprise Admins and BUILTIN\Administrators give you the rights to do this action (dsacls 'write permissions')" }
+                -ParameterFilter { $Object -eq "`t- By default Enterprise Admins and BUILTIN\Administrators give you the rights to do this action (dsAcls 'write permissions')" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -eq "`t- If unable to determine the cause, you can apply FULL CONTROL to 'CN=Microsoft Exchange System Objects,DC=Solo,DC=local' for the user SOLO\Han" }
         }
@@ -259,7 +259,7 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -eq "`tPublic Folder Object needs to be created" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $Object -eq "`t- Open ADSIEDIT and go to this location'CN=Folder Hierarchies,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'" }
+                -ParameterFilter { $Object -eq "`t- Open AdsiEdit and go to this location'CN=Folder Hierarchies,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -eq "`t- Right Click select New - Object" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
@@ -287,7 +287,7 @@ Describe "Testing SetupLogReviewer" {
         It "MSI Issue 2" {
             & $sr -SetupLog "$PSScriptRoot\KnownIssues\MsiIssues\ExchangeSetup_MSI_2.log"
             Assert-MockCalled -Exactly 3 -CommandName Write-Host `
-                -ParameterFilter { $Object -like "*Installing product D:\cu23\Setup\ServerRoles\UnifiedMessaging\MSSpeech_SR_TELE.zh-CN.msi failed. The installation source for this product is not available. Verify that the source exists and that you can access it. Error code is 1612." -and $ForegroundColor -eq "Yellow" }
+                -ParameterFilter { $Object -like "*Installing product D:\cu23\Setup\ServerRoles\UnifiedMessaging\MSSpeech_SR_TEL.zh-CN.msi failed. The installation source for this product is not available. Verify that the source exists and that you can access it. Error code is 1612." -and $ForegroundColor -eq "Yellow" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*Run FixInstallerCache.ps1 against 15.0.1367.3" }
         }
@@ -295,7 +295,7 @@ Describe "Testing SetupLogReviewer" {
         It "MSI Issue 3" {
             & $sr -SetupLog "$PSScriptRoot\KnownIssues\MsiIssues\ExchangeSetup_MSI_3.log"
             Assert-MockCalled -Exactly 3 -CommandName Write-Host `
-                -ParameterFilter { $Object -like "* Installing product C:\ExchangeCU23\exchangeserver.msi failed. Fatal error during installation. Error code is 1603." -and $ForegroundColor -eq "Yellow" }
+                -ParameterFilter { $Object -like "* Installing product C:\ExchangeCU23\exchangeServer.msi failed. Fatal error during installation. Error code is 1603." -and $ForegroundColor -eq "Yellow" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*Run FixInstallerCache.ps1 against 15.0.1130.7" }
         }
@@ -377,7 +377,7 @@ Describe "Testing SetupLogReviewer" {
         }
 
         It "Virtual Directory 1" {
-            & $sr -SetupLog "$PSScriptRoot\KnownIssues\VirtualDirectories\ExchangeSetup_Vdir_1.log"
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\VirtualDirectories\ExchangeSetup_VDir_1.log"
             Assert-MockCalled -Exactly 5 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*The operation couldn't be performed because object 'ExSvr1\OWA (Exchange Back End)' couldn't be found on 'DC2.Solo.local'." -and $ForegroundColor -eq "Yellow" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
@@ -385,7 +385,7 @@ Describe "Testing SetupLogReviewer" {
         }
 
         It "Virtual Directory 2" {
-            & $sr -SetupLog "$PSScriptRoot\KnownIssues\VirtualDirectories\ExchangeSetup_Vdir_2.log"
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\VirtualDirectories\ExchangeSetup_VDir_2.log"
             Assert-MockCalled -Exactly 6 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*The virtual directory 'PushNotifications' already exists under 'ExSvr1.child.SoloORG.COM/Exchange Back End'." -and $ForegroundColor -eq "Yellow" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
@@ -393,7 +393,7 @@ Describe "Testing SetupLogReviewer" {
         }
 
         It "Virtual Directory 3" {
-            & $sr -SetupLog "$PSScriptRoot\KnownIssues\VirtualDirectories\ExchangeSetup_Vdir_3.log"
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\VirtualDirectories\ExchangeSetup_VDir_3.log"
             Assert-MockCalled -Exactly 6 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*Process execution failed with exit code 50." -and $ForegroundColor -eq "Yellow" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
@@ -410,7 +410,7 @@ Describe "Testing SetupLogReviewer" {
         It "FIPS Access Denied" {
             & $sr -SetupLog "$PSScriptRoot\KnownIssues\ExchangeSetup_FIPS_AccessDenied.log"
             Assert-MockCalled -Exactly 2 -CommandName Write-Host `
-                -ParameterFilter { $Object -eq "[03/11/2021 12:06:22.0926] [2] [ERROR] Upgrade of Configuration.xml was unsuccessfull, Exception calling `"Upgrade`" with `"0`" argument(s): `"Access to the path is denied.`"" -and $ForegroundColor -eq "Yellow" }
+                -ParameterFilter { $Object -eq "[03/11/2021 12:06:22.0926] [2] [ERROR] Upgrade of Configuration.xml was unsuccessful, Exception calling `"Upgrade`" with `"0`" argument(s): `"Access to the path is denied.`"" -and $ForegroundColor -eq "Yellow" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*Failed to access the path and upgrade '\V15\FIP-FS\Data\Configuration.xml'" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
@@ -418,7 +418,7 @@ Describe "Testing SetupLogReviewer" {
         }
 
         It "Multiple Active Sync Virtual Directories" {
-            & $sr -SetupLog "$PSScriptRoot\KnownIssues\ExchangeSetup_Multi_EAS_Vdirs.log"
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\ExchangeSetup_Multi_EAS_VDirs.log"
             Assert-MockCalled -Exactly 2 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*Cannot convert 'System.Object*' to the type 'Microsoft.Exchange.Configuration.Tasks.VirtualDirectoryIdParameter' required by parameter 'Identity'*" -and $ForegroundColor -eq "Yellow" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
@@ -467,7 +467,7 @@ Describe "Testing SetupLogReviewer" {
         It "Search Foundation Failure - Upgrade" {
             & $sr -SetupLog "$PSScriptRoot\KnownIssues\ExchangeSetup_Search_Foundation_Failure.log"
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $Object -like "*was run: `"System.Exception: Failure configuring SearchFoundation through installconfig.ps1*" -and $ForegroundColor -eq "Yellow" }
+                -ParameterFilter { $Object -like "*was run: `"System.Exception: Failure configuring SearchFoundation through InstallConfig.ps1*" -and $ForegroundColor -eq "Yellow" }
             Assert-MockCalled -Exactly 2 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*at Microsoft.Ceres.Exchange.PostSetup.DeploymentManager.WaitForAdminNode(String hostControllerNetTcpWcfUrl)" -and $ForegroundColor -eq "Yellow" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
@@ -479,19 +479,19 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "* 1. Stop the Microsoft Exchange Search and Microsoft Exchange Search Host Controller services." }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $Object -like "* 2. Remove all subfolders under C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\HostController\Data\Nodes\Fsis" }
+                -ParameterFilter { $Object -like "* 2. Remove all SubFolders under C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\HostController\Data\Nodes\Fsis" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "* 3. Open Powershell as Administrator and navigate to the folder C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Installer" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $Object -like "* 4. Now uninstall the Search Foundation with this command: .\installconfig.ps1 -action U -datafolder `"C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\HostController\Data`”" }
+                -ParameterFilter { $Object -like "* 4. Now uninstall the Search Foundation with this command: .\InstallConfig.ps1 -action U -DataFolder `"C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\HostController\Data`”" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $Object -like "* 5. Now install the Search Foundation with this command: .\installconfig.ps1 -action I -datafolder `"C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\HostController\Data`”" }
+                -ParameterFilter { $Object -like "* 5. Now install the Search Foundation with this command: .\InstallConfig.ps1 -action I -DataFolder `"C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\HostController\Data`”" }
         }
 
         It "Search Foundation Failure - Install" {
             & $sr -SetupLog "$PSScriptRoot\KnownIssues\ExchangeSetup_Search_Foundation_Failure_Install.log"
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $Object -like "*was run: `"System.Exception: Failure configuring SearchFoundation through installconfig.ps1*" -and $ForegroundColor -eq "Yellow" }
+                -ParameterFilter { $Object -like "*was run: `"System.Exception: Failure configuring SearchFoundation through InstallConfig.ps1*" -and $ForegroundColor -eq "Yellow" }
             Assert-MockCalled -Exactly 2 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*Old nodes belonging to the system 'Fsis', already exist in*" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
@@ -499,11 +499,11 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "*- Uninstall the Search Foundation" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $Object -like "* 1. Remove all subfolders under C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\HostController\Data\Nodes\Fsis" }
+                -ParameterFilter { $Object -like "* 1. Remove all SubFolders under C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\HostController\Data\Nodes\Fsis" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "* 2. Open Powershell as Administrator and navigate to the folder C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Installer" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $Object -like "* 3. Now uninstall the Search Foundation with this command: .\installconfig.ps1 -action U -datafolder `"C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\HostController\Data`”" }
+                -ParameterFilter { $Object -like "* 3. Now uninstall the Search Foundation with this command: .\InstallConfig.ps1 -action U -DataFolder `"C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\HostController\Data`”" }
         }
 
         It "Missing HomeMdb" {

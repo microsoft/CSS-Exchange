@@ -56,7 +56,7 @@ function Confirm-ExchangeShell {
                 try {
                     if (Test-Path $edgeTransportKey) {
                         Write-Verbose "We are on Exchange Edge Transport Server"
-                        [xml]$PSSnapIns = Get-Content -Path "$env:ExchangeInstallPath\Bin\exshell.psc1" -ErrorAction Stop
+                        [xml]$PSSnapIns = Get-Content -Path "$env:ExchangeInstallPath\Bin\exShell.psc1" -ErrorAction Stop
 
                         foreach ($PSSnapIn in $PSSnapIns.PSConsoleFile.PSSnapIns.PSSnapIn) {
                             Write-Verbose ("Trying to add PSSnapIn: {0}" -f $PSSnapIn.Name)

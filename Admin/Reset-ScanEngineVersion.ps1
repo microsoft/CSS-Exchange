@@ -21,15 +21,15 @@ begin {
         }
 
         function StopServicesAndProcesses {
-            Write-Host "$($env:COMPUTERNAME) Stopping MSExchangeTransport, FMS, and updateservice..."
+            Write-Host "$($env:COMPUTERNAME) Stopping MSExchangeTransport, FMS, and UpdateService..."
             Stop-Service FMS -Force
-            $updateservice = Get-Process updateservice -ErrorAction SilentlyContinue
-            if ($null -ne $updateservice) {
-                $updateservice | Stop-Process -Force
+            $updateService = Get-Process updateService -ErrorAction SilentlyContinue
+            if ($null -ne $updateService) {
+                $updateService | Stop-Process -Force
                 Start-Sleep -Seconds 2
-                $updateservice = Get-Process updateservice -ErrorAction SilentlyContinue
-                if ($null -ne $updateservice) {
-                    Write-Warning "$($env:COMPUTERNAME) Could not end process updateservice.exe. Please end this process and rerun the script."
+                $updateService = Get-Process updateService -ErrorAction SilentlyContinue
+                if ($null -ne $updateService) {
+                    Write-Warning "$($env:COMPUTERNAME) Could not end process UpdateService.exe. Please end this process and rerun the script."
                     return $false
                 }
             }
@@ -96,7 +96,7 @@ begin {
                 }
             } while ($null -ne $transfer)
         }
-        #endregion Functions
+        #end region Functions
 
         Add-PSSnapin -Name Microsoft.Exchange.Management.Powershell.E2010
         $hasMailboxRole = (Get-ExchangeServer ($env:COMPUTERNAME)).ServerRole -like "*Mailbox*"
@@ -125,7 +125,7 @@ begin {
         StartEngineUpdate -EngineUpdatePath $EngineUpdatePath
         WaitForDownload
     }
-    #endregion Remoting Scriptblock
+    #end region Remoting Scriptblock
 }
 process {
     Invoke-Command -ScriptBlock $scriptBlock -ArgumentList $EngineUpdatePath

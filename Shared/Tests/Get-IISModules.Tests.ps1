@@ -172,11 +172,11 @@ Describe "Testing Get-IISModules.ps1" {
         }
 
         It "Should Not Contain Default Modules Which Are Excluded" {
-            $iisModules.ModuleList.Path.Contains("C:\windows\system32\inetsrv\protsup.dll") | Should -Be $false
-            $iisModules.ModuleList.Path.Contains("C:\windows\system32\inetsrv\iisfreb.dll") | Should -Be $false
-            $iisModules.ModuleList.Path.Contains("C:\windows\system32\inetsrv\protsup.dll") | Should -Be $false
-            $iisModules.ModuleList.Path.Contains("C:\windows\system32\inetsrv\isapi.dll") | Should -Be $false
-            $iisModules.ModuleList.Path.Contains("C:\windows\system32\rpcproxy\rpcproxy.dll") | Should -Be $false
+            $iisModules.ModuleList.Path.Contains("C:\windows\system32\inetSrv\protSup.dll") | Should -Be $false
+            $iisModules.ModuleList.Path.Contains("C:\windows\system32\inetSrv\iisFreb.dll") | Should -Be $false
+            $iisModules.ModuleList.Path.Contains("C:\windows\system32\inetSrv\protSup.dll") | Should -Be $false
+            $iisModules.ModuleList.Path.Contains("C:\windows\system32\inetSrv\isApi.dll") | Should -Be $false
+            $iisModules.ModuleList.Path.Contains("C:\windows\system32\rpcProxy\rpcProxy.dll") | Should -Be $false
         }
     }
 }

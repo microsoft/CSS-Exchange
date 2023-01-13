@@ -47,7 +47,7 @@ function Get-ExchangeEmergencyMitigationServiceState {
                     [System.Net.WebRequest]::DefaultWebProxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
                     [System.Net.WebRequest]::DefaultWebProxy.BypassProxyOnLocal = $true
                 }; `
-                    Invoke-WebRequest -Method Get -Uri "https://officeclient.microsoft.com/getexchangemitigations" -UseBasicParsing
+                    Invoke-WebRequest -Method Get -Uri "https://officeclient.microsoft.com/GetExchangeMitigations" -UseBasicParsing
             } `
                 -ArgumentList $exchangeServerConfiguration.InternetWebProxy
         }

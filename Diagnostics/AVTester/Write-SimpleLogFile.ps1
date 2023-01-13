@@ -15,7 +15,7 @@ Supports writing a basic log file to LocalAppData
 Supports basic log file generation for other scripts.
 Places the log file into the $env:LocalAppData Folder.
 
-Supports outputing to the host as well as the log files.
+Supports out putting to the host as well as the log files.
 
 .PARAMETER String
 String to be written into the log file.
@@ -31,21 +31,21 @@ Opens the log file in notepad.
 
 .OUTPUTS
 Log file specified in the -Name parameter.
-Writes the file intothe $Env:LocalAppData
+Writes the file in to the $Env:LocalAppData
 
 .EXAMPLE
-Write-SimpleLogFile -String "Start ProcessA" -Name mylogfile.log
+Write-SimpleLogFile -String "Start ProcessA" -Name MyLogFile.log
 
-Writes "[Date] - Start ProcessA" to $env:LocalAppData\mylogfile.log
+Writes "[Date] - Start ProcessA" to $env:LocalAppData\MyLogFile.log
 
 .EXAMPLE
-Write-SimpleLogFile -String "Start ProcessB" -Name mylogfile.log -OutHost
+Write-SimpleLogFile -String "Start ProcessB" -Name MyLogFile.log -OutHost
 
-Writes "[Date] - Start ProcessB" to $env:LocalAppData\mylogfile and to the Host
+Writes "[Date] - Start ProcessB" to $env:LocalAppData\MyLogFile and to the Host
 
 #>
-function Write-SimpleLogfile {
-    [cmdletbinding()]
+function Write-SimpleLogFile {
+    [CmdletBinding()]
     param
     (
         [Parameter(Mandatory = $true)]
@@ -75,11 +75,11 @@ function Write-SimpleLogfile {
         [string]$date = Get-Date -Format G
 
         # Build output string
-        [string]$logstring = ( "[" + $date + "] - " + $string)
+        [string]$logString = ( "[" + $date + "] - " + $string)
 
         # Write everything to our log file and the screen
-        $logstring | Out-File -FilePath $LogFile -Append -Confirm:$false
-        if ($OutHost) { Write-Host $logstring }
-        else { Write-Verbose  $logstring }
+        $logString | Out-File -FilePath $LogFile -Append -Confirm:$false
+        if ($OutHost) { Write-Host $logString }
+        else { Write-Verbose  $logString }
     }
 }

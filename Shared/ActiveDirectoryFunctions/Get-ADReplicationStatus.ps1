@@ -5,7 +5,7 @@
 .SYNOPSIS
     Retrieves the replication status for all naming contexts of all DCs.
 .DESCRIPTION
-    Similar to "repadmin /showrepl * /csv", this function retrieves the replication status
+    Similar to "repadmin /ShowRepl * /csv", this function retrieves the replication status
     for each replicated naming context on every DC. The approach used here does not rely
     on the presence of repadmin or other tools. The status of up to 10 DCs is retrieved in
     parallel to improve performance in environments where multiple DCs are offline or
@@ -15,7 +15,7 @@
     CSS-Exchange repository. The goal is to allow this function to be consumed by tools
     that are external to CSS-Exchange.
 .EXAMPLE
-    Get-ADReplicationStatus -Verbose | Select -ExcludeProperty RunspaceId | ft
+    Get-ADReplicationStatus -Verbose | Select -ExcludeProperty RunSpaceId | ft
 #>
 function Get-ADReplicationStatus {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingEmptyCatchBlock', '', Justification = 'CNAME resolution failure should not throw or Write-Error')]
@@ -118,12 +118,12 @@ function Get-ADReplicationStatus {
 
                     $otherDra = @{
                         cb                    = [System.BitConverter]::ToUInt32($Bytes, $linkData.cbOtherDraOffset)
-                        cbpszServerOffset     = [System.BitConverter]::ToUInt32($Bytes, $linkData.cbOtherDraOffset + 4)
-                        cbpszAnnoationOffset  = [System.BitConverter]::ToUInt32($Bytes, $linkData.cbOtherDraOffset + 8)
-                        cbpguidInstanceOffset = [System.BitConverter]::ToUInt32($Bytes, $linkData.cbOtherDraOffset + 12)
+                        cbpSzServerOffset     = [System.BitConverter]::ToUInt32($Bytes, $linkData.cbOtherDraOffset + 4)
+                        cbpSzAnnotationOffset = [System.BitConverter]::ToUInt32($Bytes, $linkData.cbOtherDraOffset + 8)
+                        cbpGuidInstanceOffset = [System.BitConverter]::ToUInt32($Bytes, $linkData.cbOtherDraOffset + 12)
                     }
 
-                    $otherDraServerStart = $linkData.cbOtherDraOffset + $otherDra.cbpszServerOffset
+                    $otherDraServerStart = $linkData.cbOtherDraOffset + $otherDra.cbpSzServerOffset
                     $otherDraServerEnd = Get-UnicodeNullIndex $Bytes $otherDraServerStart
                     $otherDraServerLength = $otherDraServerEnd - $otherDraServerStart
                     $otherDraServer = [System.Text.Encoding]::Unicode.GetString($Bytes, $otherDraServerStart, $otherDraServerLength)
@@ -165,8 +165,8 @@ function Get-ADReplicationStatus {
             process {
                 try {
                     $baseDN = "$(if ($IsGC) { "GC" } else { "LDAP" })://$Server"
-                    $rootDSEDN = "$baseDN/RootDSE"
-                    $rootDSE = [ADSI]($rootDSEDN)
+                    $rootDseDn = "$baseDN/RootDSE"
+                    $rootDSE = [ADSI]($rootDseDn)
                     [void]($rootDSE | Out-String) # This will throw if the server is down and generates a better error than attempting to index into a property
 
                     # Do we need to verify that the dnsHostName on the rootDSE is the server we specified here?
@@ -233,18 +233,18 @@ function Get-ADReplicationStatus {
         $rootDSE = [ADSI]("LDAP://$([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Name)/RootDSE")
         $sitesContainerPath = ("CN=Sites," + $rootDSE.configurationNamingContext)
         $sitesContainer = [ADSI]("LDAP://" + $sitesContainerPath)
-        $ntdsaSearcher = New-Object System.DirectoryServices.DirectorySearcher($sitesContainer, "(objectClass=nTDSDSA)", @("distinguishedName", "options"))
-        $ntdsaSearcher.PageSize = 100
-        $ntdsaResults = $ntdsaSearcher.FindAll()
+        $ntDsaSearcher = New-Object System.DirectoryServices.DirectorySearcher($sitesContainer, "(objectClass=nTDSDSA)", @("distinguishedName", "options"))
+        $ntDsaSearcher.PageSize = 100
+        $ntDsaResults = $ntDsaSearcher.FindAll()
 
-        foreach ($result in $ntdsaResults) {
+        foreach ($result in $ntDsaResults) {
             $isGC = $false
             if ($result.Properties.Contains("options") -and $result.Properties["options"].Count -gt 0 -and $result.Properties["options"][0] -band 1 -eq 1) {
                 $isGC = $true
             }
 
-            $ntdsaDN = $result.Properties["distinguishedName"][0].ToString()
-            $parentDN = $ntdsaDN.Substring($ntdsaDN.IndexOf(",") + 1)
+            $ntDsaDN = $result.Properties["distinguishedName"][0].ToString()
+            $parentDN = $ntDsaDN.Substring($ntDsaDN.IndexOf(",") + 1)
             $parentObject = [ADSI]("LDAP://" + $parentDN)
             $serverSearcher = New-Object System.DirectoryServices.DirectorySearcher($parentObject, "(objectClass=*)", @("cn", "dNSHostName"), "Base")
             $serverResult = $serverSearcher.FindOne()

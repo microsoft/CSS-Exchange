@@ -6,11 +6,11 @@ A proper configured Send- and Receive Connector is important - especially in hyb
 
 We to make sure that the mail flow between Exchange on-premises and Exchange Online works as expected
 
-If a Send Connector has the following setting set, it means that the connector is eligable for cloud mail usage:
+If a Send Connector has the following setting set, it means that the connector is eligible for cloud mail usage:
 
 - CloudServicesMailEnabled
 
-If a Receive Connector has the following setting set, it means that the connector is eligable for cloud mail usage:
+If a Receive Connector has the following setting set, it means that the connector is eligible for cloud mail usage:
 
 - TlsDomainCapabilities
 

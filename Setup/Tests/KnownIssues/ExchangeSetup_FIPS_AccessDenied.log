@@ -92,7 +92,7 @@
               }
               catch
               {
-                Write-ExchangeSetupLog -Error "Upgrade of Configuration.xml was unsuccessfull, $_";
+                Write-ExchangeSetupLog -Error "Upgrade of Configuration.xml was unsuccessful, $_";
               }
               # Stop the process if it is still running
               # We silently continue because if process has already exited, Stop-Process will throw error
@@ -104,12 +104,12 @@
 [03/11/2021 12:06:22.0084] [2] Applying XML Transforms to FIPS configuration
 [03/11/2021 12:06:22.0084] [2] Ending processing Write-ExchangeSetupLog
 [03/11/2021 12:06:22.0926] [2] Beginning processing Write-ExchangeSetupLog
-[03/11/2021 12:06:22.0926] [2] [ERROR] Upgrade of Configuration.xml was unsuccessfull, Exception calling "Upgrade" with "0" argument(s): "Access to the path is denied."
-[03/11/2021 12:06:22.0926] [2] [ERROR] Upgrade of Configuration.xml was unsuccessfull, Exception calling "Upgrade" with "0" argument(s): "Access to the path is denied."
+[03/11/2021 12:06:22.0926] [2] [ERROR] Upgrade of Configuration.xml was unsuccessful, Exception calling "Upgrade" with "0" argument(s): "Access to the path is denied."
+[03/11/2021 12:06:22.0926] [2] [ERROR] Upgrade of Configuration.xml was unsuccessful, Exception calling "Upgrade" with "0" argument(s): "Access to the path is denied."
 [03/11/2021 12:06:22.0942] [2] Ending processing Write-ExchangeSetupLog
 [03/11/2021 12:06:22.0942] [1] The following 1 error(s) occurred during task execution:
-[03/11/2021 12:06:22.0942] [1] 0.  ErrorRecord: Upgrade of Configuration.xml was unsuccessfull, Exception calling "Upgrade" with "0" argument(s): "Access to the path is denied."
-[03/11/2021 12:06:22.0942] [1] 0.  ErrorRecord: System.Exception: Upgrade of Configuration.xml was unsuccessfull, Exception calling "Upgrade" with "0" argument(s): "Access to the path is denied."
+[03/11/2021 12:06:22.0942] [1] 0.  ErrorRecord: Upgrade of Configuration.xml was unsuccessful, Exception calling "Upgrade" with "0" argument(s): "Access to the path is denied."
+[03/11/2021 12:06:22.0942] [1] 0.  ErrorRecord: System.Exception: Upgrade of Configuration.xml was unsuccessful, Exception calling "Upgrade" with "0" argument(s): "Access to the path is denied."
    at Microsoft.Exchange.Configuration.Tasks.Task.ThrowError(Exception exception, ErrorCategory errorCategory, Object target, String helpUrl)
    at Microsoft.Exchange.Management.Deployment.WriteExchangeSetupLog.InternalProcessRecord()
    at Microsoft.Exchange.Configuration.Tasks.Task.<ProcessRecord>b__91_1()
@@ -136,19 +136,19 @@
               }
               catch
               {
-                Write-ExchangeSetupLog -Error "Upgrade of Configuration.xml was unsuccessfull, $_";
+                Write-ExchangeSetupLog -Error "Upgrade of Configuration.xml was unsuccessful, $_";
               }
               # Stop the process if it is still running
               # We silently continue because if process has already exited, Stop-Process will throw error
               # Error is non-terminating and so can be suppressed
               Stop-Process -processname FSCConfigurationServer -Force -ErrorAction SilentlyContinue;
             }
-          " was run: "System.Exception: Upgrade of Configuration.xml was unsuccessfull, Exception calling "Upgrade" with "0" argument(s): "Access to the path is denied."
+          " was run: "System.Exception: Upgrade of Configuration.xml was unsuccessful, Exception calling "Upgrade" with "0" argument(s): "Access to the path is denied."
    at Microsoft.Exchange.Configuration.Tasks.Task.ThrowError(Exception exception, ErrorCategory errorCategory, Object target, String helpUrl)
    at Microsoft.Exchange.Management.Deployment.WriteExchangeSetupLog.InternalProcessRecord()
    at Microsoft.Exchange.Configuration.Tasks.Task.<ProcessRecord>b__91_1()
    at Microsoft.Exchange.Configuration.Tasks.Task.InvokeRetryableFunc(String funcName, Action func, Boolean terminatePipelineIfFailed)".
-[03/11/2021 12:06:22.0942] [1] [ERROR] Upgrade of Configuration.xml was unsuccessfull, Exception calling "Upgrade" with "0" argument(s): "Access to the path is denied."
+[03/11/2021 12:06:22.0942] [1] [ERROR] Upgrade of Configuration.xml was unsuccessful, Exception calling "Upgrade" with "0" argument(s): "Access to the path is denied."
 [03/11/2021 12:06:22.0942] [1] [ERROR-REFERENCE] Id=BridgeheadComponent___9FAA17C4-73D7-4E6D-9012-6274971434D5 Component=EXCHANGE14:\Current\Release\Shared\Datacenter\Setup
 [03/11/2021 12:06:22.0957] [1] Setup is stopping now because of one or more critical errors.
 [03/11/2021 12:06:22.0957] [1] Finished executing component tasks.

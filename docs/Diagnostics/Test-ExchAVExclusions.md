@@ -25,7 +25,7 @@ Once the files are created it will wait 5 minutes for AV to "see" and remove the
 
 Parameter | Description |
 ----------|-------------|
-Recurse | Places an EICAR file in all subfolders as well as the root.
+Recurse | Places an EICAR file in all SubFolders as well as the root.
 OpenLog | Opens the script log file.
 
 ## Outputs

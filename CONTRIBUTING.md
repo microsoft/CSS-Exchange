@@ -62,7 +62,7 @@ without building at dev time.
 
 Non-script files can be embedded in a script as well. This is accomplished with the following syntax:
 
-`$someVarName = Get-Content $PSScriptRoot\someresource.txt -AsByteStream -Raw`
+`$someVarName = Get-Content $PSScriptRoot\SomeResource.txt -AsByteStream -Raw`
 
 This command populates $someVarName with the binary content of the target file. You can then use that
 data however you like, such as converting it to text or processing it some other way. See the `ExTRA.ps1`
@@ -86,7 +86,7 @@ At build time, this variable will be populated with the version number of the sc
 
 ### AutoUpdate
 
-Any script in this repo can add autoupdate capabilities by using the shared script and calling it as follows:
+Any script in this repo can add AutoUpdate capabilities by using the shared script and calling it as follows:
 
 ```powershell
 . $PSScriptRoot\..\..\Shared\Test-ScriptVersion.ps1

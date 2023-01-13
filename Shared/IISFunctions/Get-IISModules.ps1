@@ -22,40 +22,40 @@ function Get-IISModules {
 
         # Add all modules here which should be skipped on legacy OS (pre-Windows Server 2016)
         $modulesToSkip = @(
-            "$env:windir\system32\inetsrv\cachuri.dll",
-            "$env:windir\system32\inetsrv\cachfile.dll",
-            "$env:windir\system32\inetsrv\cachtokn.dll",
-            "$env:windir\system32\inetsrv\cachhttp.dll",
-            "$env:windir\system32\inetsrv\compstat.dll",
-            "$env:windir\system32\inetsrv\defdoc.dll",
-            "$env:windir\system32\inetsrv\dirlist.dll",
-            "$env:windir\system32\inetsrv\protsup.dll",
-            "$env:windir\system32\inetsrv\redirect.dll",
-            "$env:windir\system32\inetsrv\static.dll",
-            "$env:windir\system32\inetsrv\authanon.dll",
-            "$env:windir\system32\inetsrv\custerr.dll",
-            "$env:windir\system32\inetsrv\loghttp.dll",
-            "$env:windir\system32\inetsrv\iisetw.dll",
-            "$env:windir\system32\inetsrv\iisfreb.dll",
-            "$env:windir\system32\inetsrv\iisreqs.dll",
-            "$env:windir\system32\inetsrv\isapi.dll",
-            "$env:windir\system32\inetsrv\compdyn.dll",
-            "$env:windir\system32\inetsrv\authcert.dll",
-            "$env:windir\system32\inetsrv\authbas.dll",
-            "$env:windir\system32\inetsrv\authsspi.dll",
-            "$env:windir\system32\inetsrv\authmd5.dll",
-            "$env:windir\system32\inetsrv\modrqflt.dll",
-            "$env:windir\system32\inetsrv\filter.dll",
-            "$env:windir\system32\rpcproxy\rpcproxy.dll",
-            "$env:windir\system32\inetsrv\validcfg.dll",
-            "$env:windir\system32\wsmsvc.dll",
-            "$env:windir\system32\inetsrv\iprestr.dll",
-            "$env:windir\system32\inetsrv\diprestr.dll",
-            "$env:windir\system32\inetsrv\iis_ssi.dll",
-            "$env:windir\system32\inetsrv\cgi.dll",
-            "$env:windir\system32\inetsrv\iisfcgi.dll",
-            "$env:windir\system32\inetsrv\iiswsock.dll",
-            "$env:windir\system32\inetsrv\warmup.dll")
+            "$env:windir\system32\inetSrv\cachUri.dll",
+            "$env:windir\system32\inetSrv\cachFile.dll",
+            "$env:windir\system32\inetSrv\cachtokn.dll",
+            "$env:windir\system32\inetSrv\cachHttp.dll",
+            "$env:windir\system32\inetSrv\compStat.dll",
+            "$env:windir\system32\inetSrv\defDoc.dll",
+            "$env:windir\system32\inetSrv\dirList.dll",
+            "$env:windir\system32\inetSrv\protsUp.dll",
+            "$env:windir\system32\inetSrv\redirect.dll",
+            "$env:windir\system32\inetSrv\static.dll",
+            "$env:windir\system32\inetSrv\authAnon.dll",
+            "$env:windir\system32\inetSrv\cusTerr.dll",
+            "$env:windir\system32\inetSrv\logHttp.dll",
+            "$env:windir\system32\inetSrv\iisEtw.dll",
+            "$env:windir\system32\inetSrv\iisFreb.dll",
+            "$env:windir\system32\inetSrv\iisReQs.dll",
+            "$env:windir\system32\inetSrv\isApi.dll",
+            "$env:windir\system32\inetSrv\compDyn.dll",
+            "$env:windir\system32\inetSrv\authCert.dll",
+            "$env:windir\system32\inetSrv\authBas.dll",
+            "$env:windir\system32\inetSrv\authsspi.dll",
+            "$env:windir\system32\inetSrv\authMd5.dll",
+            "$env:windir\system32\inetSrv\modRqFlt.dll",
+            "$env:windir\system32\inetSrv\filter.dll",
+            "$env:windir\system32\rpcProxy\rpcProxy.dll",
+            "$env:windir\system32\inetSrv\validCfg.dll",
+            "$env:windir\system32\wsmSvc.dll",
+            "$env:windir\system32\inetSrv\ipReStr.dll",
+            "$env:windir\system32\inetSrv\dipReStr.dll",
+            "$env:windir\system32\inetSrv\iis_ssi.dll",
+            "$env:windir\system32\inetSrv\cgi.dll",
+            "$env:windir\system32\inetSrv\iisFcGi.dll",
+            "$env:windir\system32\inetSrv\iisWSock.dll",
+            "$env:windir\system32\inetSrv\warmup.dll")
 
         function GetModulePath {
             [CmdletBinding()]
@@ -70,7 +70,7 @@ function Get-IISModules {
                 if ($Path -match "\%.+\%") {
                     Write-Verbose "Environment variable found in path: $Path"
                     # Assuming that we have the env var always at the beginning of the string and no other vars within the string
-                    # Example: %windir%\system32\someexample.dll
+                    # Example: %windir%\system32\SomeExample.dll
                     $preparedPath = ($Path.Split("%", [System.StringSplitOptions]::RemoveEmptyEntries))
                     if ($preparedPath.Count -eq 2) {
                         if ($preparedPath[0] -notmatch "\\.+\\") {

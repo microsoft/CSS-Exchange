@@ -243,7 +243,7 @@ This list of addresses should be provided in a TXT file in this way:
 ```text
   10.68.12.48
 
-  2001:4898:5808:14:3938:7838:67ab:cdfb
+  2001:4898:5808:14:3938:7838:67ab:cdf4
 
   10.128.4.204
 
@@ -374,7 +374,7 @@ There may be multiple reasons why some or all clients may start giving authentic
 
    `.\ExchangeExtendedProtectionManagement.ps1 -ExchangeServerNames Server1, Server2`
 
-   Alternatively, you can also use InetMgr.exe and change the Extended Protection setting for those virtual Directories to the "Accept" value. However, we recommend using the script as it checks for the correct values and automatically performs a reconfiguration if the values are not set as expected.
+   Alternatively, you can also use INetMgr.exe and change the Extended Protection setting for those virtual Directories to the "Accept" value. However, we recommend using the script as it checks for the correct values and automatically performs a reconfiguration if the values are not set as expected.
 
 4. If after doing the above, some clients are still not working properly, you can rollback Extended Protection temporarily and report the issue to us. If script was used to configure Extended Protection, you can use the _-RollbackType "RestoreIISAppConfig"_ parameter to revert any changes. If Extended Protection was enabled manually (through IIS Manager) you need to revert the settings manually.
 

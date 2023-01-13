@@ -21,7 +21,7 @@ This is the most effective way to help quickly protect and mitigate your Exchang
 
 This a better approach for Exchange deployments with Internet access and for those who want an attempt at automated remediation. We have not observed any impact to Exchange Server functionality via these mitigation methods nor do these mitigation methods make any direct changes that disable features of Exchange.
 
-Use of the Exchange On-premises Mitigation Tool and the Microsoft Saftey Scanner are subject to the terms of the Microsoft Privacy Statement: https://aka.ms/privacy
+Use of the Exchange On-premises Mitigation Tool and the Microsoft Safety Scanner are subject to the terms of the Microsoft Privacy Statement: https://aka.ms/privacy
 
 ### Requirements to run the Exchange On-premises Mitigation Tool
 
@@ -40,7 +40,7 @@ Use of the Exchange On-premises Mitigation Tool and the Microsoft Saftey Scanner
 Situation | Guidance
 -|-
 If you have done nothing to date to patch or mitigate this issue… | Run EOMT.PS1 as soon as possible.This will both attempt to remediate as well as mitigate your servers against further attacks. Once complete, follow patching guidance to update your servers on http://aka.ms/exchangevulns
-If you have mitigated using any/all of the mitigation guidance Microsoft has given (Exchangemitigations.Ps1, Blog post, etc..) | Run EOMT.PS1 as soon as possible.  This will both attempt to remediate as well as mitigate your servers against further attacks.   Once complete, follow patching guidance to update your servers on http://aka.ms/exchangevulns
+If you have mitigated using any/all of the mitigation guidance Microsoft has given (ExchangeMitigations.Ps1, Blog post, etc..) | Run EOMT.PS1 as soon as possible.  This will both attempt to remediate as well as mitigate your servers against further attacks.   Once complete, follow patching guidance to update your servers on http://aka.ms/exchangevulns
 If you have already patched your systems and are protected, but did NOT investigate for any adversary activity, indicators of compromise, etc…. | Run EOMT.PS1 as soon as possible.   This will attempt to remediate any existing compromise that may not have been full remediated before patching.
 If you have already patched and investigated your systems for any indicators of compromise, etc…. | No action is required
 
@@ -62,11 +62,11 @@ To run the Exchange On-premises Mitigation Tool with MSERT in detect only mode -
 
 To roll back the Exchange On-premises Mitigation Tool mitigations
 
-`.\EOMT.ps1 -Rollbackmitigation`
+`.\EOMT.ps1 -RollbackMitigation`
 
 Note: If ExchangeMitigations.ps1 was used previously to apply mitigations, Use ExchangeMitigations.ps1 for rollback.
 
-***+NEW*** EOMT will now autoupdate by downloading the latest version from GitHub. To prevent EOMT from fetching updates to EOMT.ps1 from the internet.
+***+NEW*** EOMT will now AutoUpdate by downloading the latest version from GitHub. To prevent EOMT from fetching updates to EOMT.ps1 from the internet.
 
 `.\EOMT.ps1 -DoNotAutoUpdateEOMT`
 
@@ -184,7 +184,7 @@ URL Rewrite Module 2.1 must be installed, you can download version 2.1 here:
 
 * x86 & x64 -https://www.iis.net/downloads/microsoft/url-rewrite
 
-For systems running IIS 8.5 and lower KB2999226 must be installed. Please review the pre-reqs for this KB and download from https://support.microsoft.com/en-us/topic/update-for-universal-c-runtime-in-windows-c0514201-7fe6-95a3-b0a5-287930f3560c"
+For systems running IIS 8.5 and lower KB2999226 must be installed. Please review the prerequisite for this KB and download from https://support.microsoft.com/en-us/topic/update-for-universal-c-runtime-in-windows-c0514201-7fe6-95a3-b0a5-287930f3560c"
 
 Script requires PowerShell 3.0 and later and must be executed from an elevated PowerShell Session.
 
@@ -216,5 +216,5 @@ The final release can be downloaded here:
 
 [Download http-vuln-cve2021-26855.nse](https://github.com/microsoft/CSS-Exchange/releases/download/v22.03.03.2154/http-vuln-cve2021-26855.nse)
 
-This file is for use with nmap. It detects whether the specified URL is vulnerable to the Exchange Server SSRF Vulnerability (CVE-2021-26855).
+This file is for use with nmap. It detects whether the specified URL is vulnerable to the Exchange Server Server-Side-Request-Forgery Vulnerability (CVE-2021-26855).
 For usage information, please read the top of the file.

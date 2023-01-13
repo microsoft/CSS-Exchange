@@ -28,7 +28,7 @@
     - Because not all scenarios allow access to both tenants by the same person, this will also allow you to collect the source tenant and mailbox information and wrap it into a zip file so the target tenant admin can use it as a source to validate against.
 
     The script will prompt you to connect to your source and target tenants for EXO and AAD as needed
-    You can decide to run the checks for the source mailbox and target mailuser (individually or by providing a CSV file), for the organization settings described above, collect the source information and compress it to a zip file that can be used by the target tenant admins, or use the collected zip file as a source to validate the target objects and configurations against it.
+    You can decide to run the checks for the source mailbox and target MailUser (individually or by providing a CSV file), for the organization settings described above, collect the source information and compress it to a zip file that can be used by the target tenant admins, or use the collected zip file as a source to validate the target objects and configurations against it.
 
     PRE-REQUISITES:
     -Please make sure you have at least the Exchange Online V2 Powershell module (https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2?view=exchange-ps#install-and-maintain-the-exo-v2-module)
@@ -76,11 +76,11 @@
 
 .EXAMPLE
         .\CrossTenantMailboxMigrationValidation.ps1 -CheckOrgs -LogPath C:\Temp\LogFile.txt
-        This will prompt you for the soureTenantId and TargetTenantId, establish 3 remote powershell sessions (one to the source EXO tenant, one to the target EXO tenant and another one to AAD target tenant), and will validate the migration endpoint on the target tenant, AAD applicationId on target tenant and the Orgnization relationship on both tenants.
+        This will prompt you for the sourceTenantId and TargetTenantId, establish 3 remote powershell sessions (one to the source EXO tenant, one to the target EXO tenant and another one to AAD target tenant), and will validate the migration endpoint on the target tenant, AAD applicationId on target tenant and the Organization relationship on both tenants.
 
 .EXAMPLE
         .\CrossTenantMailboxMigrationValidation.ps1 -SDP -LogPath C:\Temp\LogFile.txt
-        This will prompt you for the soureTenantId and TargetTenantId, establish 3 remote powershell sessions (one to the source EXO tenant, one to the target EXO tenant and another one to AAD target tenant), and will collect all the relevant information (config-wise) so it can be used for troubleshooting and send it to Microsoft Support if needed.
+        This will prompt you for the sourceTenantId and TargetTenantId, establish 3 remote powershell sessions (one to the source EXO tenant, one to the target EXO tenant and another one to AAD target tenant), and will collect all the relevant information (config-wise) so it can be used for troubleshooting and send it to Microsoft Support if needed.
 
 .EXAMPLE
         .\CrossTenantMailboxMigrationValidation.ps1 -SourceIsOffline -PathForCollectedData C:\temp\CTMMCollectedSourceData.zip -CheckObjects -LogPath C:\temp\CTMMTarget.log
@@ -88,7 +88,7 @@
 
 .EXAMPLE
         .\CrossTenantMailboxMigrationValidation.ps1 -SourceIsOffline -PathForCollectedData C:\temp\CTMMCollectedSourceData.zip -CheckOrgs -LogPath C:\temp\CTMMTarget.log
-        This will expand the CTMMCollectedSourceData.zip file contents into a folder with the same name within the zip location, will establish the EXO remote powershell session and also with AAD against the Target tenant, and will validate the migration endpoint on the target tenant, AAD applicationId on target tenant and the Orgnization relationship on both tenants.
+        This will expand the CTMMCollectedSourceData.zip file contents into a folder with the same name within the zip location, will establish the EXO remote powershell session and also with AAD against the Target tenant, and will validate the migration endpoint on the target tenant, AAD applicationId on target tenant and the Organization relationship on both tenants.
 
 .EXAMPLE
         .\CrossTenantMailboxMigrationValidation.ps1 -CollectSourceOnly -PathForCollectedData c:\temp -LogPath C:\temp\CTMMCollectSource.log -CSV C:\temp\UsersToMigrate.csv
@@ -105,8 +105,8 @@ param (
     [System.String]$CSV,
     [Parameter(Mandatory = $True, HelpMessage = "Path pointing to the log file")]
     [System.String]$LogPath,
-    [Parameter(Mandatory = $True, ParameterSetName = "OrgsValidation", HelpMessage = "Validate the organizations settings like organization relationships, migraiton endpoint and AADApplication")]
-    [Parameter(Mandatory = $False, ParameterSetName = "OfflineMode", HelpMessage = "Validate the organizations settings like organization relationships, migraiton endpoint and AADApplication")]
+    [Parameter(Mandatory = $True, ParameterSetName = "OrgsValidation", HelpMessage = "Validate the organizations settings like organization relationships, migration endpoint and AADApplication")]
+    [Parameter(Mandatory = $False, ParameterSetName = "OfflineMode", HelpMessage = "Validate the organizations settings like organization relationships, migration endpoint and AADApplication")]
     [System.Management.Automation.SwitchParameter]$CheckOrgs,
     [Parameter(Mandatory = $True, ParameterSetName = "SDP", HelpMessage = "Collect relevant data for troubleshooting purposes and send it to Microsoft Support if needed")]
     [System.Management.Automation.SwitchParameter]$SDP,
@@ -121,7 +121,7 @@ param (
 )
 
 . $PSScriptRoot\..\Shared\OutputOverrides\Write-Host.ps1
-$wsh = New-Object -ComObject Wscript.Shell
+$wsh = New-Object -ComObject WScript.Shell
 
 function ConnectToEXOTenants {
     #Connect to SourceTenant (EXO)
@@ -162,12 +162,12 @@ function CheckObjects {
             $auxArchiveCount = 0
             $MailboxLocations = $SourceObject.MailboxLocations | Where-Object { ($_ -like '*auxArchive*') }
             $auxArchiveCount = $MailboxLocations.count
-            Write-Verbose -Message $auxArchiveCount" aux archives are present on SOURCE malbox"
+            Write-Verbose -Message $auxArchiveCount" aux archives are present on SOURCE mailbox"
             if ($auxArchiveCount -gt 12) {
-                Write-Host ">> Error: The SOURCE malbox has more than 12 auxArchive present and we can't migrate that much." -ForegroundColor Red
+                Write-Host ">> Error: The SOURCE mailbox has more than 12 auxArchive present and we can't migrate that much." -ForegroundColor Red
                 exit
             } else {
-                Write-Verbose -Message "No aux archives are present on SOURCE malbox"
+                Write-Verbose -Message "No aux archives are present on SOURCE mailbox"
 
                 #Verify if SOURCE mailbox is under any type of hold as we won't support this and will throw an error if this is the case
                 Write-Verbose -Message "Informational: Checking if the SOURCE mailbox is under a litigation hold"
@@ -239,7 +239,7 @@ function CheckObjects {
                 if ($SourceObject.ExchangeGuid -eq $TargetObject.ExchangeGuid) {
                     Write-Host ">> ExchangeGuid match ok" -ForegroundColor Green
                 } else {
-                    Write-Host ">> Error: ExchangeGuid mismatch. Expected Vaue: $($SourceObject.ExchangeGuid) ,Current value: $($TargetObject.ExchangeGuid)" -ForegroundColor Red
+                    Write-Host ">> Error: ExchangeGuid mismatch. Expected value: $($SourceObject.ExchangeGuid) ,Current value: $($TargetObject.ExchangeGuid)" -ForegroundColor Red
                     $ExchangeGuidSetOption = Read-Host "Would you like to set it? (Y/N)"
                     Write-Host " Your input: "$ExchangeGuidSetOption
                     if ($ExchangeGuidSetOption.ToLower() -eq "y") {
@@ -352,7 +352,7 @@ function CheckObjects {
                 }
 
                 #Sync X500 addresses from source mailbox to target mailUser
-                Write-Verbose -Message "Informational: Checking for missing X500 adresses on TARGET that are present on SOURCE mailbox"
+                Write-Verbose -Message "Informational: Checking for missing X500 addresses on TARGET that are present on SOURCE mailbox"
                 if ($SourceObject.EmailAddresses -like '*500:*') {
                     Write-Verbose -Message "SOURCE mailbox contains X500 addresses, checking if they're present on the TARGET MailUser"
                     foreach ($Address in ($SourceObject.EmailAddresses | Where-Object { $_ -like '*500:*' })) {
@@ -423,12 +423,12 @@ function CheckObjectsSourceOffline {
             $auxArchiveCount = 0
             $MailboxLocations = $SourceObject.MailboxLocations | Where-Object { ($_ -like '*auxArchive*') }
             $auxArchiveCount = $MailboxLocations.count
-            Write-Verbose -Message $auxArchiveCount" aux archives are present on SOURCE malbox"
+            Write-Verbose -Message $auxArchiveCount" aux archives are present on SOURCE mailbox"
             if ($auxArchiveCount -gt 12) {
-                Write-Host ">> Error: The SOURCE malbox has more than 12 auxArchive present and we can't migrate that much." -ForegroundColor Red
+                Write-Host ">> Error: The SOURCE mailbox has more than 12 auxArchive present and we can't migrate that much." -ForegroundColor Red
                 exit
             } else {
-                Write-Verbose -Message "No aux archives are present on SOURCE malbox"
+                Write-Verbose -Message "No aux archives are present on SOURCE mailbox"
 
                 #Verify if SOURCE mailbox is under any type of hold as we won't support this and will throw an error if this is the case
                 Write-Verbose -Message "Informational: Checking if the SOURCE mailbox is under a litigation hold"
@@ -489,7 +489,7 @@ function CheckObjectsSourceOffline {
                 if ($SourceObject.ExchangeGuid -eq $TargetObject.ExchangeGuid) {
                     Write-Host ">> ExchangeGuid match ok" -ForegroundColor Green
                 } else {
-                    Write-Host ">> Error: ExchangeGuid mismatch. Expected Vaue: $($SourceObject.ExchangeGuid) ,Current value: $($TargetObject.ExchangeGuid)" -ForegroundColor Red
+                    Write-Host ">> Error: ExchangeGuid mismatch. Expected value: $($SourceObject.ExchangeGuid) ,Current value: $($TargetObject.ExchangeGuid)" -ForegroundColor Red
                     $ExchangeGuidSetOption = Read-Host "Would you like to set it? (Y/N)"
                     Write-Host " Your input: "$ExchangeGuidSetOption
                     if ($ExchangeGuidSetOption.ToLower() -eq "y") {
@@ -602,7 +602,7 @@ function CheckObjectsSourceOffline {
                 }
 
                 #Sync X500 addresses from source mailbox to target mailUser
-                Write-Verbose -Message "Informational: Checking for missing X500 adresses on TARGET that are present on SOURCE mailbox"
+                Write-Verbose -Message "Informational: Checking for missing X500 addresses on TARGET that are present on SOURCE mailbox"
                 if ($SourceObject.EmailAddresses -like '*500:*') {
                     Write-Verbose -Message "SOURCE mailbox contains X500 addresses, checking if they're present on the TARGET MailUser"
                     foreach ($Address in ($SourceObject.EmailAddresses | Where-Object { $_ -like '*500:*' })) {
@@ -673,11 +673,11 @@ function CheckOrgs {
 
     #Check if there's an AAD EXO app as expected and load it onto a variable
     Write-Verbose -Message "Informational: Checking if there's already an AAD Application on TARGET tenant that meets the criteria"
-    $AADEXOAPP = Get-AzureADApplication | Where-Object { ($_.ReplyUrls -eq "https://office.com") -and ($_.RequiredResourceAccess -like "*ResourceAppId: 00000002-0000-0ff1-ce00-000000000000*") }
-    if ($AADEXOAPP) {
+    $AadExoApp = Get-AzureADApplication | Where-Object { ($_.ReplyUrls -eq "https://office.com") -and ($_.RequiredResourceAccess -like "*ResourceAppId: 00000002-0000-0ff1-ce00-000000000000*") }
+    if ($AadExoApp) {
         Write-Host "AAD application for EXO has been found" -ForegroundColor Green
         Write-Verbose -Message "Informational: Loading migration endpoints on TARGET tenant that meets the criteria"
-        if (Get-TargetMigrationEndpoint | Where-Object { ($_.RemoteServer -eq "outlook.office.com") -and ($_.EndpointType -eq "ExchangeRemoteMove") -and ($_.ApplicationId -eq $AADEXOAPP.AppId) }) {
+        if (Get-TargetMigrationEndpoint | Where-Object { ($_.RemoteServer -eq "outlook.office.com") -and ($_.EndpointType -eq "ExchangeRemoteMove") -and ($_.ApplicationId -eq $AadExoApp.AppId) }) {
             Write-Host "Migration endpoint found and correctly set" -ForegroundColor Green
         } else {
             Write-Host ">> Error: Expected Migration endpoint not found" -ForegroundColor Red
@@ -686,9 +686,9 @@ function CheckOrgs {
         Write-Host ">> Error: No AAD application for EXO has been found" -ForegroundColor Red
     }
 
-    #Check orgrelationship flags on source and target orgs
+    #Check orgRelationship flags on source and target orgs
     Write-Verbose -Message "Informational: Loading Organization Relationship on SOURCE tenant that meets the criteria"
-    $SourceTenantOrgRelationship = Get-SourceOrganizationRelationship | Where-Object { $_.OauthApplicationId -eq $AADEXOAPP.AppId }
+    $SourceTenantOrgRelationship = Get-SourceOrganizationRelationship | Where-Object { $_.OauthApplicationId -eq $AadExoApp.AppId }
     Write-Verbose -Message "Informational: Loading Organization Relationship on TARGET tenant that meets the criteria"
     $TargetTenantOrgRelationship = Get-TargetOrganizationRelationship | Where-Object { $_.DomainNames -contains $SourceTenantId }
 
@@ -735,11 +735,11 @@ function CheckOrgsSourceOffline {
 
     #Check if there's an AAD EXO app as expected and load it onto a variable
     Write-Verbose -Message "Informational: Checking if there's already an AAD Application on TARGET tenant that meets the criteria"
-    $AADEXOAPP = Get-AzureADApplication | Where-Object { ($_.ReplyUrls -eq "https://office.com") -and ($_.RequiredResourceAccess -like "*ResourceAppId: 00000002-0000-0ff1-ce00-000000000000*") }
-    if ($AADEXOAPP) {
+    $AadExoApp = Get-AzureADApplication | Where-Object { ($_.ReplyUrls -eq "https://office.com") -and ($_.RequiredResourceAccess -like "*ResourceAppId: 00000002-0000-0ff1-ce00-000000000000*") }
+    if ($AadExoApp) {
         Write-Host "AAD application for EXO has been found" -ForegroundColor Green
         Write-Verbose -Message "Informational: Loading migration endpoints on TARGET tenant that meets the criteria"
-        if (Get-TargetMigrationEndpoint | Where-Object { ($_.RemoteServer -eq "outlook.office.com") -and ($_.EndpointType -eq "ExchangeRemoteMove") -and ($_.ApplicationId -eq $AADEXOAPP.AppId) }) {
+        if (Get-TargetMigrationEndpoint | Where-Object { ($_.RemoteServer -eq "outlook.office.com") -and ($_.EndpointType -eq "ExchangeRemoteMove") -and ($_.ApplicationId -eq $AadExoApp.AppId) }) {
             Write-Host "Migration endpoint found and correctly set" -ForegroundColor Green
         } else {
             Write-Host ">> Error: Expected Migration endpoint not found" -ForegroundColor Red
@@ -748,10 +748,10 @@ function CheckOrgsSourceOffline {
         Write-Host ">> Error: No AAD application for EXO has been found" -ForegroundColor Red
     }
 
-    #Check orgrelationship flags on source and target orgs
+    #Check orgRelationship flags on source and target orgs
     Write-Verbose -Message "Informational: Loading Organization Relationship on SOURCE tenant that meets the criteria"
     $SourceTenantOrgRelationship = (Import-Clixml $OutputPath\SourceOrgRelationship.xml)
-    $SourceTenantOrgRelationship | Where-Object { $_.OauthApplicationId -eq $AADEXOAPP.AppId }
+    $SourceTenantOrgRelationship | Where-Object { $_.OauthApplicationId -eq $AadExoApp.AppId }
     Write-Verbose -Message "Informational: Loading Organization Relationship on TARGET tenant that meets the criteria"
     $TargetTenantOrgRelationship = Get-TargetOrganizationRelationship | Where-Object { $_.DomainNames -contains $SourceTenantId }
 
@@ -799,10 +799,10 @@ function KillSessions {
     Get-PSSession | Where-Object { $_.ComputerName -eq 'outlook.office365.com' } | Remove-PSSession
 }
 function CollectDataForSDP {
-    $currentdate = (Get-Date).ToString('ddMMyyHHMM')
+    $currentDate = (Get-Date).ToString('ddMMyyHHMM')
     if (Test-Path $PathForCollectedData -PathType Container) {
-        $OutputPath = New-Item -ItemType Directory -Path $PathForCollectedData -Name $currentdate | Out-Null
-        $OutputPath = $PathForCollectedData + '\' + $currentdate
+        $OutputPath = New-Item -ItemType Directory -Path $PathForCollectedData -Name $currentDate | Out-Null
+        $OutputPath = $PathForCollectedData + '\' + $currentDate
     } else {
         Write-Host ">> Error: The specified folder doesn't exist, please specify an existent one" -ForegroundColor Red
         exit
@@ -828,9 +828,9 @@ function CollectDataForSDP {
     Write-Host "Informational: Data has been exported. Compressing it into a ZIP file"  -ForegroundColor Yellow
     if ((Get-ChildItem $OutputPath).count -gt 0) {
         try {
-            Compress-Archive -Path $OutputPath\*.XML -DestinationPath $PathForCollectedData\CTMMCollectedData$currentdate.zip -Force
-            Compress-Archive -Path $OutputPath\TenantIds.txt -DestinationPath $PathForCollectedData\CTMMCollectedData$currentdate.zip -Update
-            Write-Host "Informational: ZIP file has been generated with a total of $((Get-ChildItem $OutputPath).count) files, and can be found at"$PathForCollectedData\CTMMCollectedData$currentdate.zip" so it can be sent to Microsoft Support if needed, however you can still access the raw data at $($OutputPath)"  -ForegroundColor Yellow
+            Compress-Archive -Path $OutputPath\*.XML -DestinationPath $PathForCollectedData\CTMMCollectedData$currentDate.zip -Force
+            Compress-Archive -Path $OutputPath\TenantIds.txt -DestinationPath $PathForCollectedData\CTMMCollectedData$currentDate.zip -Update
+            Write-Host "Informational: ZIP file has been generated with a total of $((Get-ChildItem $OutputPath).count) files, and can be found at"$PathForCollectedData\CTMMCollectedData$currentDate.zip" so it can be sent to Microsoft Support if needed, however you can still access the raw data at $($OutputPath)"  -ForegroundColor Yellow
         } catch {
             Write-Host ">> Error: There was an issue trying to compress the exported data" -ForegroundColor Red
         }
@@ -850,7 +850,7 @@ function CollectSourceData {
     Get-SourceMailboxStatistics $SourceIdentity | Export-Clixml $OutputPath\MailboxStatistics_$SourceIdentity.xml
 }
 function ExpandCollectedData {
-    #Expand zip file gathered from the CollectSourceData proccess provided on the 'PathForCollectedData' parameter
+    #Expand zip file gathered from the CollectSourceData process provided on the 'PathForCollectedData' parameter
     Write-Host "Informational: Trying to expand exported data from the source tenant specified on the 'PathForCollectedData' parameter"
     if ($PathForCollectedData -like '*\CTMMCollectedSourceData.zip') {
         try {
@@ -950,10 +950,10 @@ if ($CollectSourceOnly -and $CSV) {
         ConnectToSourceEXOTenant
 
         #Create the folders based on date and time to store the files
-        $currentdate = (Get-Date).ToString('ddMMyyHHMM')
+        $currentDate = (Get-Date).ToString('ddMMyyHHMM')
         if (Test-Path $PathForCollectedData -PathType Container) {
-            $OutputPath = New-Item -ItemType Directory -Path $PathForCollectedData -Name $currentdate | Out-Null
-            $OutputPath = $PathForCollectedData + '\' + $currentdate
+            $OutputPath = New-Item -ItemType Directory -Path $PathForCollectedData -Name $currentDate | Out-Null
+            $OutputPath = $PathForCollectedData + '\' + $currentDate
         } else {
             Write-Host ">> Error: The specified folder doesn't exist, please specify an existent one" -ForegroundColor Red
             exit

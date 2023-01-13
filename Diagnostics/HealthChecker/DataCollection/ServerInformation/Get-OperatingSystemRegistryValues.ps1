@@ -26,13 +26,13 @@ function Get-OperatingSystemRegistryValues {
     }
 
     $ipv6ComponentsParams = $baseParams + @{
-        SubKey    = "SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters"
+        SubKey    = "SYSTEM\CurrentControlSet\Services\TcpIp6\Parameters"
         GetValue  = "DisabledComponents"
         ValueType = "DWord"
     }
 
     $tcpKeepAliveParams = $baseParams + @{
-        SubKey   = "SYSTEM\CurrentControlSet\Services\Tcpip\Parameters"
+        SubKey   = "SYSTEM\CurrentControlSet\Services\TcpIp\Parameters"
         GetValue = "KeepAliveTime"
     }
 

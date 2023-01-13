@@ -26,7 +26,7 @@
         https://aka.ms/privacy
 #>
 
-[Cmdletbinding()]
+[CmdletBinding()]
 param (
     [switch]$RollbackMitigation,
     [switch]$DoNotAutoUpdateEOMTv2,
@@ -42,7 +42,7 @@ $versionsUrl = 'https://aka.ms/EOMTv2-VersionsUri'
 $MicrosoftSigningRoot2010 = 'CN=Microsoft Root Certificate Authority 2010, O=Microsoft Corporation, L=Redmond, S=Washington, C=US'
 $MicrosoftSigningRoot2011 = 'CN=Microsoft Root Certificate Authority 2011, O=Microsoft Corporation, L=Redmond, S=Washington, C=US'
 
-#autopopulated by CSS-Exchange build
+#auto populated by CSS-Exchange build
 $BuildVersion = ""
 
 # Force TLS1.2 to make sure we can download from HTTPS
@@ -56,7 +56,7 @@ function Test-ExchangeMitigationRequired {
     $mitigationRequired = $true
 
     try {
-        $exchangeBuildInformation = Get-Command Exsetup.exe | ForEach-Object { $_.FileVersionInfo }
+        $exchangeBuildInformation = Get-Command ExSetup.exe | ForEach-Object { $_.FileVersionInfo }
         [System.Version]$fullBuildNumber = $exchangeBuildInformation.FileVersion
 
         if ($exchangeBuildInformation.FileMinorPart -eq 0) {
@@ -240,7 +240,7 @@ function Run-Mitigate {
         return $DownloadLinks[$Architecture][$Language]
     }
 
-    #Configure Rewrite Rule consts
+    #Configure Rewrite Rule constants
     $HttpRequestInput = '{UrlDecode:{REQUEST_URI}}'
     $root = 'system.webServer/rewrite/rules'
     $inbound = '.*'
@@ -304,7 +304,7 @@ function Run-Mitigate {
             }
             #KB2999226 required for IIS Rewrite 2.1 on IIS ver under 10
             if (!(Test-IIS10) -and !(Get-HotFix -Id "KB2999226" -ErrorAction SilentlyContinue)) {
-                $Message = "Did not detect the KB2999226 on $env:computername. Please review the pre-reqs for this KB and download from https://support.microsoft.com/en-us/topic/update-for-universal-c-runtime-in-windows-c0514201-7fe6-95a3-b0a5-287930f3560c"
+                $Message = "Did not detect the KB2999226 on $env:computername. Please review the prerequisite for this KB and download from https://support.microsoft.com/en-us/topic/update-for-universal-c-runtime-in-windows-c0514201-7fe6-95a3-b0a5-287930f3560c"
                 $RegMessage = "Did not detect KB299226"
                 Set-LogActivity -Error -Stage $Stage -RegMessage $RegMessage -Message $Message
                 throw
@@ -315,7 +315,7 @@ function Run-Mitigate {
             Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
 
             $arguments = "/i `"$DownloadPath`" /quiet /log `"$RewriteModuleInstallLog`""
-            $msiexecPath = $env:WINDIR + "\System32\msiexec.exe"
+            $msiExecPath = $env:WINDIR + "\System32\msiExec.exe"
 
             if (!(Confirm-Signature -filepath $DownloadPath -Stage $stage)) {
                 $Message = "File present at $DownloadPath does not seem to be signed as expected, stopping execution."
@@ -325,7 +325,7 @@ function Run-Mitigate {
                 throw
             }
 
-            Start-Process -FilePath $msiexecPath -ArgumentList $arguments -Wait
+            Start-Process -FilePath $msiExecPath -ArgumentList $arguments -Wait
             Start-Sleep -Seconds 15
             $RewriteModule = Get-InstalledSoftwareVersion -Name "*IIS*", "*URL*", "*2*"
 
@@ -455,7 +455,7 @@ function Confirm-Signature {
 
         if ($rootCert.Certificate.Subject -ne $rootCert.Certificate.Issuer) {
             $IsValid = $false
-            $failMsg += "Top-level certifcate in chain is not a root certificate"
+            $failMsg += "Top-level certificate in chain is not a root certificate"
             throw
         }
 
@@ -502,7 +502,7 @@ Microsoft saved several files to your system to "$EOMTv2Dir". The only files tha
         rewrite_2.0_rtw_x86.msi
         rewrite_2.0_rtw_x64.msi
 1 - Confirm the IIS URL Rewrite Module is installed. This module is required for the mitigation of CVE-2022-41040, the module and the configuration (present or not) will not impact this system negatively.
-    a - If installed, Confirm the following entry exists in the "$env:SystemDrive\inetpub\wwwroot\web.config". If this configuration is not present, your server is not mitigated. This may have occurred if the module was not successfully installed with a supported version for your system.
+    a - If installed, Confirm the following entry exists in the "$env:SystemDrive\inetPub\wwwRoot\web.config". If this configuration is not present, your server is not mitigated. This may have occurred if the module was not successfully installed with a supported version for your system.
     <system.webServer>
         <rewrite>
             <rules>
@@ -571,9 +571,9 @@ try {
         Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -Notice
     }
 
-    $DisableAutoupdateIfneeded = "If you are getting this error even with updated EOMTv2, re-run with -DoNotAutoUpdateEOMTv2 parameter";
+    $DisableAutoUpdateIfNeeded = "If you are getting this error even with updated EOMTv2, re-run with -DoNotAutoUpdateEOMTv2 parameter";
 
-    $Stage = "AutoupdateEOMTv2"
+    $Stage = "AutoUpdateEOMTv2"
     if ($latestEOMTv2Version -and ($BuildVersion -ne $latestEOMTv2Version)) {
         if ($DoNotAutoUpdateEOMTv2) {
             $Message = "EOMTv2.ps1 is out of date. Version currently running is $BuildVersion, latest version available is $latestEOMTv2Version. We strongly recommend downloading latest EOMTv2 from $EOMTv2DownloadUrl and re-running EOMTv2. DoNotAutoUpdateEOMTv2 is set, so continuing with execution"
@@ -587,7 +587,7 @@ try {
                 Set-LogActivity -Stage $Stage -RegMessage $Message -Message $Message
                 Invoke-WebRequest $EOMTv2DownloadUrl -OutFile $EOMTv2LatestFilepath -UseBasicParsing
             } catch {
-                $Message = "Cannot download latest EOMTv2.  Please download latest EOMTv2 yourself from $EOMTv2DownloadUrl, copy to necessary machine(s), and re-run. $DisableAutoupdateIfNeeded. Exception: $($_.Exception)"
+                $Message = "Cannot download latest EOMTv2.  Please download latest EOMTv2 yourself from $EOMTv2DownloadUrl, copy to necessary machine(s), and re-run. $DisableAutoUpdateIfNeeded. Exception: $($_.Exception)"
                 $RegMessage = "Cannot download latest EOMTv2 from $EOMTv2DownloadUrl. Stopping execution."
                 Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -Error
                 throw
@@ -602,7 +602,7 @@ try {
                     & $EOMTv2LatestFilepath @PSBoundParameters
                     exit
                 } catch {
-                    $Message = "Run failed for latest EOMTv2 version $latestEOMTv2Version downloaded to $EOMTv2LatestFilepath, please re-run $EOMTv2LatestFilepath manually. $DisableAutoupdateIfNeeded. Exception: $($_.Exception)"
+                    $Message = "Run failed for latest EOMTv2 version $latestEOMTv2Version downloaded to $EOMTv2LatestFilepath, please re-run $EOMTv2LatestFilepath manually. $DisableAutoUpdateIfNeeded. Exception: $($_.Exception)"
                     $RegMessage = "Run failed for latest EOMTv2 version $latestEOMTv2Version"
                     Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -Error
                     throw
@@ -623,8 +623,8 @@ try {
     $RegMessage = "Starting EOMTv2.ps1 version $BuildVersion"
     Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
 
-    $Message = "EOMTv2 precheck complete on $env:computername"
-    $RegMessage = "EOMTv2 precheck complete"
+    $Message = "EOMTv2 preCheck complete on $env:computername"
+    $RegMessage = "EOMTv2 preCheck complete"
     Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message
 
     if ($RollbackMitigation) {

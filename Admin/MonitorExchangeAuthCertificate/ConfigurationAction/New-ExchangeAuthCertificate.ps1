@@ -45,9 +45,9 @@ function New-ExchangeAuthCertificate {
             Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
             try {
-                # Remove emtpy elements from array as they could be returned if no certificate is bound to a binding in between, then sort
+                # Remove empty elements from array as they could be returned if no certificate is bound to a binding in between, then sort
                 # the array and remove duplicates.
-                $hashes = ((Get-Website -Name "Default Web Site" -ErrorAction Stop).bindings.collection.certificatehash) | Where-Object {
+                $hashes = ((Get-Website -Name "Default Web Site" -ErrorAction Stop).bindings.collection.CertificateHash) | Where-Object {
                     $_
                 } | Sort-Object -Unique
             } catch {
@@ -118,21 +118,21 @@ function New-ExchangeAuthCertificate {
 
                             if ($null -ne $internalTransportCertificate) {
                                 $internalTransportCertificateFoundOnServer = $true
-                                $isInternalTransportBoundToIISFE = $defaultWebSiteCertificateThumbprints.Contains($internalTransportCertificateThumbprint)
+                                $isInternalTransportBoundToIisFe = $defaultWebSiteCertificateThumbprints.Contains($internalTransportCertificateThumbprint)
 
                                 if (($null -ne $internalTransportCertificate.Services) -and
                                     ($internalTransportCertificate.Services -ne 0)) {
                                     $servicesToEnableList.AddRange(($internalTransportCertificate.Services).ToString().ToUpper().Split(",").Trim())
 
                                     # Make sure to remove IIS from list if the certificate was not bound to Front End Website before
-                                    if (($isInternalTransportBoundToIISFE -eq $false) -and
+                                    if (($isInternalTransportBoundToIisFe -eq $false) -and
                                         ($servicesToEnableList.Contains("IIS"))) {
                                         Write-Verbose ("Internal transport certificate is bound to Back End Website - avoid to enable it for IIS to prevent it being bound to Front End")
                                         $servicesToEnableList.Remove("IIS")
                                     }
                                 } elseif ($null -eq $internalTransportCertificate.Services) {
                                     Write-Verbose ("No service information returned for internal transport certificate")
-                                    if ($isInternalTransportBoundToIISFE) {
+                                    if ($isInternalTransportBoundToIisFe) {
                                         Write-Verbose ("Internal transport certificate was bound to Front-End Website and will be rebound to it again")
                                         $servicesToEnableList.Add("IIS")
                                     }
@@ -149,7 +149,7 @@ function New-ExchangeAuthCertificate {
                                 $newSelfSignedTransportCertificate = New-ExchangeCertificate @newInternalTransportCertificateParams
                                 if ($null -ne $newSelfSignedTransportCertificate) {
                                     if ($null -ne $newSelfSignedTransportCertificate.Thumbprint) {
-                                        Write-Verbose ("Certificate object sucessfully deserialized")
+                                        Write-Verbose ("Certificate object successfully deserialized")
                                         [string]$internalTransportCertificateThumbprint = $newSelfSignedTransportCertificate.Thumbprint
                                     } else {
                                         Write-Verbose ("Looks like deserialization of the certificate object failed - trying to import from RawData")
@@ -161,7 +161,7 @@ function New-ExchangeAuthCertificate {
                                         }
                                     }
 
-                                    Write-Verbose ("A new internal transport certifcate with thumbprint: $($internalTransportCertificateThumbprint) was generated")
+                                    Write-Verbose ("A new internal transport certificate with thumbprint: $($internalTransportCertificateThumbprint) was generated")
                                     $servicesToEnable = "SMTP"
                                 }
                             } catch {
@@ -190,7 +190,7 @@ function New-ExchangeAuthCertificate {
                 if ($null -ne $newAuthCertificate) {
                     $operationSuccessful = $true
                     if ($null -ne $newAuthCertificate.Thumbprint) {
-                        Write-Verbose ("Certificate object sucessfully deserialized")
+                        Write-Verbose ("Certificate object successfully deserialized")
                         [string]$newAuthCertificateThumbprint = $newAuthCertificate.Thumbprint
                     } else {
                         Write-Verbose ("Looks like deserialization of the certificate object failed - trying to import from RawData")
@@ -214,7 +214,7 @@ function New-ExchangeAuthCertificate {
                 FriendlyName                = $authCertificateFriendlyName
                 Thumbprint                  = $newAuthCertificateThumbprint
                 Successful                  = $operationSuccessful
-                ErrorOccured                = if ($Error.Count -gt $errorCount) { $($Error[0].Exception.Message) }
+                ErrorOccurred               = if ($Error.Count -gt $errorCount) { $($Error[0].Exception.Message) }
             }
         }
 
@@ -302,7 +302,7 @@ function New-ExchangeAuthCertificate {
             )
 
             <#
-                We must generate a new self-signed certificate and repalce the existing Auth Certificate
+                We must generate a new self-signed certificate and replace the existing Auth Certificate
                 if it's already expired. We must also set it as active by specifying the current DateTime via
                 -NewCertificateEffectiveDate parameter.
                 To speed things up, restarting 'MSExchangeServiceHost' service is needed as well as 'MSExchangeOWAAppPool'
@@ -365,7 +365,7 @@ function New-ExchangeAuthCertificate {
     }
     process {
         if ($ReplaceExpiredAuthCertificate) {
-            Write-Verbose ("Calling function to replace an alredy expired or invalid Auth Certificat")
+            Write-Verbose ("Calling function to replace an already expired or invalid Auth Certificate")
             $renewalActionPerformed = ReplaceExpiredAuthCertificate -UnattendedMode $UnattendedMode -RecycleAppPools $RecycleAppPoolsAfterRenewal
         } elseif ($ConfigureNextAuthCertificate) {
             Write-Verbose ("Calling function to state the next Auth Certificate for rotation")

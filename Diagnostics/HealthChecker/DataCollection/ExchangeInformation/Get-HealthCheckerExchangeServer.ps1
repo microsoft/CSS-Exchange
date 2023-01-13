@@ -35,7 +35,7 @@ function Get-HealthCheckerExchangeServer {
         }
     }
     $HealthExSvrObj.HealthCheckerVersion = $BuildVersion
-    $HealthExSvrObj.GenerationTime = [datetime]::Now
+    $HealthExSvrObj.GenerationTime = [DateTime]::Now
     Write-Verbose "Finished building health Exchange Server Object for server: $ServerName"
     return $HealthExSvrObj
 }

@@ -391,7 +391,7 @@ function Invoke-AnalyzerSecuritySettings {
 
     if ($null -ne $HealthServerObject.ExchangeInformation.BuildInformation.FIPFSUpdateIssue) {
         $fipfsInfoObject = $HealthServerObject.ExchangeInformation.BuildInformation.FIPFSUpdateIssue
-        $highestVersion = $fipfsInfoObject.HighesVersionNumberDetected
+        $highestVersion = $fipfsInfoObject.HighestVersionNumberDetected
         $fipfsIssueBaseParams = @{
             Name             = "FIP-FS Update Issue Detected"
             Details          = $true
@@ -404,7 +404,7 @@ function Invoke-AnalyzerSecuritySettings {
             Write-Verbose "The Exchange server runs a role which is not affected by the FIP-FS issue"
         } elseif (($fipfsInfoObject.FIPFSFixedBuild -eq $false) -and
             ($fipfsInfoObject.BadVersionNumberDirDetected)) {
-            # Exchange doesn't run a build which is resitent against the problematic pattern
+            # Exchange doesn't run a build which is resistent against the problematic pattern
             # and a folder with the problematic version number was detected on the computer.
             $params = $baseParams + $fipfsIssueBaseParams
             Add-AnalyzedResultInformation @params
@@ -429,7 +429,7 @@ function Invoke-AnalyzerSecuritySettings {
                 DisplayCustomTabNumber = 2
             }
             Add-AnalyzedResultInformation @params
-        } elseif ($null -eq $fipfsInfoObject.HighesVersionNumberDetected) {
+        } elseif ($null -eq $fipfsInfoObject.HighestVersionNumberDetected) {
             # No scan engine was found on the Exchange server. This will cause multiple issues on transport.
             $fipfsIssueBaseParams.Details = "Error: Failed to find the scan engines on server, this can cause issues with transport rules as well as the malware agent."
             $params = $baseParams + $fipfsIssueBaseParams

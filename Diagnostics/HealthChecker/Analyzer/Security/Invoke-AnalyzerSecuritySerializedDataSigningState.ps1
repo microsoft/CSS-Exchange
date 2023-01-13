@@ -29,7 +29,7 @@ function Invoke-AnalyzerSecuritySerializedDataSigningState {
         SerializedDataSigning was introduced with the January 2023 Exchange Server Security Update
         By now, it is disabled by default and must be enabled like this:
         - Exchange 2016/2019 > Feature must be enabled via New-SettingOverride
-        - Exchange 2013 > Feature must be enabled via EnableSerializationDataSigning registy value
+        - Exchange 2013 > Feature must be enabled via EnableSerializationDataSigning registry value
 
         Note:
         If the registry value is set on E16/E19, it will be ignored.
@@ -57,7 +57,7 @@ function Invoke-AnalyzerSecuritySerializedDataSigningState {
         $serializedDataSigningConfigurationWarning = "`r`n`t`tThis may pose a security risk to your servers`r`n`t`tMore Information: https://aka.ms/HC-SerializedDataSigning"
 
         if ($exchangeMajor -ge [HealthChecker.ExchangeMajorVersion]::Exchange2016) {
-            Write-Verbose "Checking SettingOveride for SerializedDataSigning configuration state"
+            Write-Verbose "Checking SettingOverride for SerializedDataSigning configuration state"
             if (($serializedDataSigningInformation.Count -eq 1) -and
                 (-not($serializedDataSigningInformation.FailedQuery -eq $true))) {
 
@@ -89,7 +89,7 @@ function Invoke-AnalyzerSecuritySerializedDataSigningState {
                 }
             } elseif ($serializedDataSigningInformation.Count -gt 1) {
                 $serializedDataSigningState = "Multiple SerializedDataSigning SettingOverrides detected"
-                $additionalSerializedDataSigningDisplayValue = "An override on the server level takes precedence over an organisation-wide override"
+                $additionalSerializedDataSigningDisplayValue = "An override on the server level takes precedence over an organization-wide override"
 
                 $i = 0
                 foreach ($override in $serializedDataSigningInformation) {

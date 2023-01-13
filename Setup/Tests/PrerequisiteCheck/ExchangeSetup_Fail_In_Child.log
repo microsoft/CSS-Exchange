@@ -4,7 +4,7 @@
 [12/21/2020 13:54:47.0140] [0] Local time zone: (UTC-08:00) Pacific Time (US & Canada).
 [12/21/2020 13:54:47.0140] [0] Operating system version: Microsoft Windows NT 6.2.9200.0.
 [12/21/2020 13:54:47.0140] [0] Setup version: 15.1.2106.2.
-[12/21/2020 13:54:47.0140] [0] Logged on user: CHILD\Kylo.
+[12/21/2020 13:54:47.0140] [0] Logged on user: CHILD\Han.
 [12/21/2020 13:54:47.0156] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\V15\Setup, wasn't found.
 [12/21/2020 13:54:47.0171] [0] Command Line Parameter Name='preparead', Value=''.
 [12/21/2020 13:54:47.0171] [0] Command Line Parameter Name='iacceptexchangeserverlicenseterms', Value=''.
@@ -31,9 +31,9 @@
 [12/21/2020 13:55:06.0211] [0] Exchange organization container for the organization is 'CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=net'.
 [12/21/2020 13:55:06.0242] [0] Setup will search for an Exchange Server object for the local machine with name 'SOLO-E16A'.
 [12/21/2020 13:55:06.0273] [0] No Exchange Server with identity 'SOLO-E16A' was found.
-[12/21/2020 13:55:06.0289] [0] The following roles have been unpacked: 
-[12/21/2020 13:55:06.0289] [0] The following datacenter roles are unpacked: 
-[12/21/2020 13:55:06.0289] [0] The following roles are installed: 
+[12/21/2020 13:55:06.0289] [0] The following roles have been unpacked:
+[12/21/2020 13:55:06.0289] [0] The following datacenter roles are unpacked:
+[12/21/2020 13:55:06.0289] [0] The following roles are installed:
 [12/21/2020 13:55:06.0305] [0] The local server does not have any Exchange files installed.
 [12/21/2020 13:55:06.0305] [0] Server Name=SOLO-E16A
 [12/21/2020 13:55:06.0320] [0] Setup will use the path 'D:\' for installing Exchange.
@@ -61,8 +61,8 @@
 [12/21/2020 13:55:11.0773] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
 [12/21/2020 13:55:11.0835] [0] **************
 [12/21/2020 13:55:11.0835] [0] Setup will run the task 'test-SetupPrerequisites'
-[12/21/2020 13:55:11.0851] [1] Setup launched task 'test-SetupPrerequisites -DomainController $null -ExchangeVersion '15.1.2106.2' -Roles 'Global' -ScanType 'PrecheckInstall' -SetupRoles 'Global' -PrepareDomain $null -PrepareOrganization $true -ADInitError 'Setup encountered a problem while validating the state of Active Directory: Exchange organization-level objects have not been created, and setup cannot create them because the local computer is not in the same domain and site as the schema master.  Run setup with the /prepareAD parameter on a computer in the domain Solo and site Default-First-Site-Name, and wait for replication to complete.  See the Exchange setup log for more information on this error.' -CustomerFeedbackEnabled $true -HostingDeploymentEnabled $false'  
-[12/21/2020 13:55:12.0866] [1] Active Directory session settings for 'test-SetupPrerequisites' are: View Entire Forest: 'True', 
+[12/21/2020 13:55:11.0851] [1] Setup launched task 'test-SetupPrerequisites -DomainController $null -ExchangeVersion '15.1.2106.2' -Roles 'Global' -ScanType 'PrecheckInstall' -SetupRoles 'Global' -PrepareDomain $null -PrepareOrganization $true -ADInitError 'Setup encountered a problem while validating the state of Active Directory: Exchange organization-level objects have not been created, and setup cannot create them because the local computer is not in the same domain and site as the schema master.  Run setup with the /prepareAD parameter on a computer in the domain Solo and site Default-First-Site-Name, and wait for replication to complete.  See the Exchange setup log for more information on this error.' -CustomerFeedbackEnabled $true -HostingDeploymentEnabled $false'
+[12/21/2020 13:55:12.0866] [1] Active Directory session settings for 'test-SetupPrerequisites' are: View Entire Forest: 'True',
 [12/21/2020 13:55:12.0882] [1] User specified parameters:  -Roles:'Global' -DomainController:$null -CustomerFeedbackEnabled:'True' -ExchangeVersion:'15.1.2106.2' -PrepareOrganization:'True' -ADInitError:'Setup encountered a problem while validating the state of Active Directory: Exchange organization-level objects have not been created, and setup cannot create them because the local computer is not in the same domain and site as the schema master.  Run setup with the /prepareAD parameter on a computer in the domain Solo and site Default-First-Site-Name, and wait for replication to complete.  See the Exchange setup log for more information on this error.' -ScanType:'PrecheckInstall' -HostingDeploymentEnabled:'False' -PrepareDomain:$null -SetupRoles:'Global'
 [12/21/2020 13:55:12.0882] [1] Beginning processing test-SetupPrerequisites
 [12/21/2020 13:55:13.0257] [1] Started [Analysis:Prereq]
@@ -226,7 +226,7 @@
 [12/21/2020 13:55:13.0476] [1] Finished [Setting:ServerReference] [Duration:00:00:00]
 [12/21/2020 13:55:13.0476] [1] Evaluated [Setting:SmoRoleSchemaRef] [HasException:False] [Value:"<NULL>"] [ParentValue:"<NULL>"] [Thread:11] [Duration:00:00:00]
 [12/21/2020 13:55:13.0476] [1] Finished [Setting:SmoRoleSchemaRef] [Duration:00:00:00]
-[12/21/2020 13:55:13.0476] [1] Evaluated [Setting:CurrentLogOn] [HasException:False] [Value:"CHILD\Kylo"] [ParentValue:"<NULL>"] [Thread:13] [Duration:00:00:00]
+[12/21/2020 13:55:13.0476] [1] Evaluated [Setting:CurrentLogOn] [HasException:False] [Value:"CHILD\Han"] [ParentValue:"<NULL>"] [Thread:13] [Duration:00:00:00]
 [12/21/2020 13:55:13.0476] [1] Finished [Setting:CurrentLogOn] [Duration:00:00:00]
 [12/21/2020 13:55:13.0476] [1] Started [Setting:LocalServerName] [Parent:RootAnalysisMember] [ValueType:String]
 [12/21/2020 13:55:13.0476] [1] Evaluated [Setting:SmoOperatingSystemVersion] [HasException:False] [Value:""] [ParentValue:"<NULL>"] [Thread:11] [Duration:00:00:00]
@@ -492,10 +492,10 @@ Expected failure for ConfigDCHostName:The registry key, HKEY_LOCAL_MACHINE\Syste
 [12/21/2020 13:55:13.0663] [1] Finished [Rule:ExchangeVersionBlock] [Duration:00:00:00.0156258]
 [12/21/2020 13:55:13.0663] [1] Started [Setting:IsExchangeVersionCorrectForTenant] [Parent:RootAnalysisMember] [ValueType:Boolean]
 [12/21/2020 13:55:13.0663] [1] Running the Office 365 tenant hybrid test with input file at: .
-[12/21/2020 13:55:13.0679] [1] Testing . 
+[12/21/2020 13:55:13.0679] [1] Testing .
 [12/21/2020 13:55:13.0679] [1] Evaluated [Setting:IsExchangeVersionCorrectForTenant] [HasException:True] [Value:
-Microsoft.Exchange.Management.Deployment.HybridConfigurationDetection.HybridConfigurationDetectionException: A hybrid deployment with Office 365 has been detected.  Please ensure that you are running setup with the /TenantOrganizationConfig switch.  To use the TenantOrganizationConfig switch you must first connect to your Exchange Online tenant via PowerShell and execute the following command: "Get-OrganizationConfig | Export-Clixml -Path MyTenantOrganizationConfig.XML".  Once the XML file has been generated, run setup with the TenantOrganizationConfig switch as follows "/TenantOrganizationConfig MyTenantOrganizationConfig.XML". 
-If you continue to see this this message then it indicates that either the XML file specified is corrupt, or you are attempting to upgrade your on-premises Exchange installation to a build that isn't compatible with the Exchange version of your Office 365 tenant. Your Office 365 tenant must be upgraded to a compatible version of Exchange before upgrading your on-premises Exchange installation. For more information, see: http://go.microsoft.com/fwlink/?LinkId=262888 
+Microsoft.Exchange.Management.Deployment.HybridConfigurationDetection.HybridConfigurationDetectionException: A hybrid deployment with Office 365 has been detected.  Please ensure that you are running setup with the /TenantOrganizationConfig switch.  To use the TenantOrganizationConfig switch you must first connect to your Exchange Online tenant via PowerShell and execute the following command: "Get-OrganizationConfig | Export-Clixml -Path MyTenantOrganizationConfig.XML".  Once the XML file has been generated, run setup with the TenantOrganizationConfig switch as follows "/TenantOrganizationConfig MyTenantOrganizationConfig.XML".
+If you continue to see this this message then it indicates that either the XML file specified is corrupt, or you are attempting to upgrade your on-premises Exchange installation to a build that isn't compatible with the Exchange version of your Office 365 tenant. Your Office 365 tenant must be upgraded to a compatible version of Exchange before upgrading your on-premises Exchange installation. For more information, see: http://go.microsoft.com/fwlink/?LinkId=262888
    at Microsoft.Exchange.Management.Deployment.HybridConfigurationDetection.HybridConfigurationDetection.TestDCConfigFile(String pathToConfigFile)
    at Microsoft.Exchange.Management.Deployment.HybridConfigurationDetection.HybridConfigurationDetection.RunTenantHybridTest(String pathToConfigFile)
    at Microsoft.Exchange.Management.Analysis.PrereqAnalysis.<.ctor>b__2_42(Result`1 x)
@@ -616,7 +616,7 @@ If you continue to see this this message then it indicates that either the XML f
 [12/21/2020 13:55:25.0501] [0] Beginning processing Write-ExchangeSetupLog
 [12/21/2020 13:55:25.0501] [0] Trying to restore server state.
 [12/21/2020 13:55:25.0501] [0] Ending processing Write-ExchangeSetupLog
-[12/21/2020 13:55:25.0517] [0] Active Directory session settings for 'Get-ExchangeServer' are: View Entire Forest: 'True', 
+[12/21/2020 13:55:25.0517] [0] Active Directory session settings for 'Get-ExchangeServer' are: View Entire Forest: 'True',
 [12/21/2020 13:55:25.0517] [0] User specified parameters:  -ErrorAction:'SilentlyContinue' -Identity:'SOLO-E16A'
 [12/21/2020 13:55:25.0517] [0] Beginning processing get-ExchangeServer
 [12/21/2020 13:55:25.0533] [0] Searching objects "SOLO-E16A" of type "Server" under the root "$null".

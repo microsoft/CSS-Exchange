@@ -20,7 +20,7 @@ function Test-InitializePermissionsOfDomain {
 
             Write-Verbose "KnownOrganizationPreparationErrors - found DomainGlobalConfig___27a706ffe123425f9ee60cb02b930e81"
             $errorContext = $setupLogReviewer | GetFirstErrorWithContextToLine $errorReference.LineNumber 1
-            $permissionsError = $errorContext | Select-String "SecErr: DSID-.+ problem 4003 \(INSUFF_ACCESS_RIGHTS\)"
+            $permissionsError = $errorContext | Select-String "SecErr: DSid-.+ problem 4003 \(INSUFF_ACCESS_RIGHTS\)"
 
             if ($null -ne $permissionsError) {
                 Write-Verbose "KnownOrganizationPreparationErrors - Found INSUFF_ACCESS_RIGHTS"
@@ -32,7 +32,7 @@ function Test-InitializePermissionsOfDomain {
                     New-ActionPlan @(
                         "We failed to have the correct permissions to write ACE to '$($objectDN.Matches.Groups[2].Value)' as the current user $($setupLogReviewer.User)",
                         "- Make sure there are no denies for this user on the object",
-                        "- By default Enterprise Admins and BUILTIN\Administrators give you the rights to do this action (dsacls 'write permissions')",
+                        "- By default Enterprise Admins and BUILTIN\Administrators give you the rights to do this action (dsAcls 'write permissions')",
                         "- If unable to determine the cause, you can apply FULL CONTROL to '$($objectDN.Matches.Groups[2].Value)' for the user $($setupLogReviewer.User)"
                     )
                     return

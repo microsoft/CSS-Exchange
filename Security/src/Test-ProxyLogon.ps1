@@ -8,7 +8,7 @@
 # Check the local Exchange server only and save the report:
 # .\Test-ProxyLogon.ps1 -OutPath $home\desktop\logs
 #
-# Check the local Exchange server, copy the files and folders to the outpath\<ComputerName>\ path
+# Check the local Exchange server, copy the files and folders to the OutPath\<ComputerName>\ path
 # .\Test-ProxyLogon.ps1 -OutPath $home\desktop\logs -CollectFiles
 #
 # Check all Exchange servers and save the reports:
@@ -182,8 +182,8 @@ begin {
 
                     for ( $i = 0; $i -lt $files.Count; $i++) {
                         $maliciousPathFound = $false
-                        $loginstance = Select-String -Path $files[$i] -Pattern "Download failed and temporary file"
-                        foreach ($logLine in $loginstance) {
+                        $logInstance = Select-String -Path $files[$i] -Pattern "Download failed and temporary file"
+                        foreach ($logLine in $logInstance) {
                             $path = ([String]$logLine | Select-String -Pattern 'Download failed and temporary file (.*?) needs to be removed').Matches.Groups[1].value
                             if ($null -ne $path -and (-not ($path.StartsWith("'$exchangePath" + "ClientAccess\OAB", "CurrentCultureIgnoreCase")))) {
                                 [Void]$allResults.downloadPaths.Add( [String]$path )
@@ -269,8 +269,8 @@ begin {
                 function Get-AgeInDays {
                     param ( $dateString )
                     if ( $dateString -and $dateString -as [DateTime] ) {
-                        $CURTIME = Get-Date
-                        $age = $CURTIME.Subtract($dateString)
+                        $CurTime = Get-Date
+                        $age = $CurTime.Subtract($dateString)
                         return $age.TotalDays.ToString("N1")
                     }
                     return ""
@@ -287,9 +287,9 @@ begin {
                     }
 
                     [PSCustomObject]@{
-                        Oabgen           = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\OABGeneratorLog" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
+                        OabGen           = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\OABGeneratorLog" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
                         Ecp              = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\ECP\Server\*.log" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
-                        AutodProxy       = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Autodiscover" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
+                        AutoDProxy       = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Autodiscover" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
                         EasProxy         = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Eas" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
                         EcpProxy         = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Ecp" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
                         EwsProxy         = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\Ews" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
@@ -301,7 +301,7 @@ begin {
                         RpcHttpProxy     = (Get-AgeInDays (Get-ChildItem -Recurse -Path "$exchangePath\Logging\HttpProxy\RpcHttp" -ErrorAction SilentlyContinue | Sort-Object CreationTime | Select-Object -First 1).CreationTime)
                     }
                 }
-                #endregion Functions
+                #end region Functions
 
                 $results = [PSCustomObject]@{
                     ComputerName = $env:COMPUTERNAME
@@ -321,7 +321,7 @@ begin {
 
                 $results
             }
-            #endregion Remoting Scriptblock
+            #end region Remoting Scriptblock
             $parameters = @{
                 ScriptBlock = $scriptBlock
             }
@@ -348,7 +348,7 @@ begin {
         The reports provided by Test-ExchangeProxyLogon
 
     .PARAMETER OutPath
-        Path to a FOLDER in which to generate output logfiles.
+        Path to a FOLDER in which to generate output LogFiles.
         This command will only write to the console screen if no path is provided.
 
     .EXAMPLE
@@ -392,10 +392,10 @@ begin {
                 Write-Host "ProxyLogon Status: Exchange Server $($report.ComputerName)"
 
                 if ($null -ne $report.LogAgeDays) {
-                    Write-Host ("  Log age days: Oabgen {0} Ecp {1} Autod {2} Eas {3} EcpProxy {4} Ews {5} Mapi {6} Oab {7} Owa {8} OwaCal {9} Powershell {10} RpcHttp {11}" -f `
-                            $report.LogAgeDays.Oabgen, `
+                    Write-Host ("  Log age days: OabGen {0} Ecp {1} AutoD {2} Eas {3} EcpProxy {4} Ews {5} Mapi {6} Oab {7} Owa {8} OwaCal {9} Powershell {10} RpcHttp {11}" -f `
+                            $report.LogAgeDays.OabGen, `
                             $report.LogAgeDays.Ecp, `
-                            $report.LogAgeDays.AutodProxy, `
+                            $report.LogAgeDays.AutoDProxy, `
                             $report.LogAgeDays.EasProxy, `
                             $report.LogAgeDays.EcpProxy, `
                             $report.LogAgeDays.EwsProxy, `
@@ -460,13 +460,13 @@ begin {
                             New-Item "$($LogFileOutPath)\CVE26857" -ItemType Directory -Force | Out-Null
                         }
 
-                        Start-Process wevtutil -ArgumentList "epl Software $($LogFileOutPath)\CVE26857\Application.evtx"
+                        Start-Process wEvtUtil -ArgumentList "epl Software $($LogFileOutPath)\CVE26857\Application.evtx"
                     }
                     Write-Host ""
                 }
                 if ($report.Cve26858.downloadPaths.Count -gt 0) {
                     Write-Host "  [CVE-2021-26858] Suspicious activity found in OAB generator logs!" -ForegroundColor Red
-                    Write-Host "  Webshells possibly downloaded in file system. Explore below locations:" -ForegroundColor Red
+                    Write-Host "  WebShells possibly downloaded in file system. Explore below locations:" -ForegroundColor Red
                     if (-not $DisplayOnly) {
                         $newFileDownloadPaths = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-26858-DownloadPaths.log"
                         $newFileForFilePaths = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-26858.log"
@@ -521,8 +521,8 @@ begin {
                     Write-Host ""
                 }
                 if ($report.Cve27065.resetVDirHits.Count -gt 0) {
-                    Write-Host "  [CVE-2021-27065] Webshell possibly downloaded in file system" -ForegroundColor Red
-                    Write-Host "  Please scan your file system for any malicious webshells. Reset-VirtualDirectory entries:"
+                    Write-Host "  [CVE-2021-27065] WebShell possibly downloaded in file system" -ForegroundColor Red
+                    Write-Host "  Please scan your file system for any malicious WebShells. Reset-VirtualDirectory entries:"
                     if (-not $DisplayOnly) {
                         $newFile = Join-Path -Path $OutPath -ChildPath "$($report.ComputerName)-Cve-2021-27065-ResetVDir.csv"
                         $report.Cve27065.resetVDirHits | Export-Csv -Path $newFile
@@ -561,7 +561,7 @@ begin {
                     if ($CollectFiles -and $isLocalMachine) {
                         Write-Host " Copying Files:"
 
-                        #Deleting and recreating suspiciousFiles folder to prevent overwrite exceptions due to folders (folder name: myfolder.zip)
+                        #Deleting and recreating suspiciousFiles folder to prevent overwrite exceptions due to folders (folder name: MyFolder.zip)
                         if ( Test-Path -Path "$($LogFileOutPath)\SuspiciousFiles" ) {
                             Remove-Item -Path "$($LogFileOutPath)\SuspiciousFiles" -Recurse -Force
                         }
@@ -583,7 +583,7 @@ begin {
             }
         }
     }
-    #endregion Functions
+    #end region Functions
 
     $paramTest = @{ }
     if ($Credential) { $paramTest['Credential'] = $Credential }

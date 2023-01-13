@@ -29,7 +29,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "MRS Proxy Enabled" "False"
             TestObjectMatch "Exchange Server Maintenance" "Server is not in Maintenance Mode" -WriteType "Green"
             TestObjectMatch "Internet Web Proxy" "Not Set"
-            TestObjectMatch "Extended Protection Enabled (Any Vdir)" $false
+            TestObjectMatch "Extended Protection Enabled (Any VDir)" $false
             TestObjectMatch "Setting Overrides Detected" $false
             $Script:ActiveGrouping.Count | Should -Be 13
         }
@@ -75,7 +75,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             SetActiveDisplayGrouping "Processor/Hardware Information"
 
             TestObjectMatch "Type" "HyperV"
-            TestObjectMatch "Processor" "Intel(R) Xeon(R) CPU E5-2430 0 @ 2.20GHz"
+            TestObjectMatch "Processor" "Intel(R) XeOn(R) CPU E5-2430 0 @ 2.20GHz"
             TestObjectMatch "Number of Processors" 1
             TestObjectMatch "Number of Physical Cores" 2 -WriteType "Green"
             TestObjectMatch "Number of Logical Cores" 4 -WriteType "Green"
@@ -163,7 +163,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "Extended Protection Enabled" {
             SetActiveDisplayGrouping "Exchange Information"
-            TestObjectMatch "Extended Protection Enabled (Any Vdir)" $true
+            TestObjectMatch "Extended Protection Enabled (Any VDir)" $true
         }
 
         It "Display Results - Operating System Information" {

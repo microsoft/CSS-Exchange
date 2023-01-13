@@ -10,12 +10,12 @@ To use the Microsoft Support Emergency Response Tool (MSERT) to scan the Microso
 4.  Select whether you want to do full scan, or customized scan.
 
 -   **Full scan**  – The most effective way to thoroughly scan every file on the device. It is the most effective option although it might take a long time to complete depending on the directory size of your server.
--   **Customized scan**  – This can be configured to scan the following file paths where malicious files from the threat actor have been observed:  
-  
-_%IIS installation path%\aspnet_client\*_  
-_%IIS installation path%\aspnet_client\system_web\*_  
-_%Exchange Server installation path%\FrontEnd\HttpProxy\owa\auth\*_  
-_%Exchange Server Installation%\FrontEnd\HttpProxy\ecp\auth\*_  
-_Configured temporary ASP.NET files path_  
+-   **Customized scan**  – This can be configured to scan the following file paths where malicious files from the threat actor have been observed:
+
+_%IIS installation path%\AspNet_client\*_
+_%IIS installation path%\AspNet_client\system_web\*_
+_%Exchange Server installation path%\FrontEnd\HttpProxy\owa\auth\*_
+_%Exchange Server Installation%\FrontEnd\HttpProxy\ecp\auth\*_
+_Configured temporary ASP.NET files path_
 
 These remediation steps are effective against known attack patterns but are  **not guaranteed as complete mitigation for all possible exploitation**  of these vulnerabilities. Microsoft Defender will continue to monitor and provide the latest security updates.

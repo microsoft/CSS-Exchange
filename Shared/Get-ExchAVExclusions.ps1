@@ -24,7 +24,7 @@ function Get-ExchAVExclusionsPaths {
     if ((Get-ExchangeServer $env:COMPUTERNAME).IsMailboxServer) {
         if (Get-DatabaseAvailabilityGroup ) {
             if (Get-DatabaseAvailabilityGroup | Where-Object { $_.Servers.Name -contains ($env:COMPUTERNAME) } ) {
-                $BaseFolders.Add((Join-Path $($env:SystemRoot) '\Cluster').tolower())
+                $BaseFolders.Add((Join-Path $($env:SystemRoot) '\Cluster').ToLower())
                 $dag = $null
                 $dag = Get-DatabaseAvailabilityGroup | Where-Object { $_.Servers.Name -contains ($env:COMPUTERNAME) }
                 if ( $null -ne $dag ) {
@@ -32,12 +32,12 @@ function Get-ExchAVExclusionsPaths {
                 }
             }
         }
-        $BaseFolders.Add((Join-Path $ExchangePath '\ClientAccess\OAB').tolower())
-        $BaseFolders.Add((Join-Path $ExchangePath '\FIP-FS').tolower())
-        $BaseFolders.Add((Join-Path $ExchangePath '\GroupMetrics').tolower())
-        $BaseFolders.Add((Join-Path $ExchangePath '\Logging').tolower())
+        $BaseFolders.Add((Join-Path $ExchangePath '\ClientAccess\OAB').ToLower())
+        $BaseFolders.Add((Join-Path $ExchangePath '\FIP-FS').ToLower())
+        $BaseFolders.Add((Join-Path $ExchangePath '\GroupMetrics').ToLower())
+        $BaseFolders.Add((Join-Path $ExchangePath '\Logging').ToLower())
         if ($MsiProductMinor -eq 0 ) {
-            $BaseFolders.Add((Join-Path $ExchangePath '\Mailbox\MDBTEMP').tolower())
+            $BaseFolders.Add((Join-Path $ExchangePath '\Mailbox\MdbTemp').ToLower())
         }
 
         $mbxS = Get-MailboxServer -Identity $($env:COMPUTERNAME) | Select-Object CalendarRepairLogPath, LogPathForManagedFolders, `
@@ -45,20 +45,20 @@ function Get-ExchAVExclusionsPaths {
         $mbxS.PSObject.Properties.Value.PathName | ForEach-Object {
             if ( $_ ) {
                 if ( Test-Path $_ -PathType Container ) {
-                    $BaseFolders.Add($_.tolower())
+                    $BaseFolders.Add($_.ToLower())
                 }
             }
         }
 
         # Add all database folder paths
         foreach ($Entry in (Get-MailboxDatabase -Server $Env:COMPUTERNAME)) {
-            $BaseFolders.Add((Split-Path $Entry.EdbFilePath -Parent).tolower())
-            $mbdblogs = $Entry | Select-Object TemporaryDataFolderPath, LogFolderPath
+            $BaseFolders.Add((Split-Path $Entry.EdbFilePath -Parent).ToLower())
+            $mbDbLogs = $Entry | Select-Object TemporaryDataFolderPath, LogFolderPath
 
-            $mbdblogs.PSObject.Properties.Value.PathName | ForEach-Object {
+            $mbDbLogs.PSObject.Properties.Value.PathName | ForEach-Object {
                 if ( $_ ) {
                     if ( Test-Path $_ -PathType Container ) {
-                        $BaseFolders.Add($_.tolower())
+                        $BaseFolders.Add($_.ToLower())
                     }
                 }
             }
@@ -71,7 +71,7 @@ function Get-ExchAVExclusionsPaths {
         $mtsLogs.PSObject.Properties.Value.PathName | ForEach-Object {
             if ( $_ ) {
                 if ( Test-Path $_ -PathType Container ) {
-                    $BaseFolders.Add($_.tolower())
+                    $BaseFolders.Add($_.ToLower())
                 }
             }
         }
@@ -83,7 +83,7 @@ function Get-ExchAVExclusionsPaths {
                 $possibleGUID = $_.Name.Substring(5, 36)
                 $result = [System.Guid]::Empty
                 if ( [System.Guid]::TryParse($possibleGUID, [System.Management.Automation.PSReference]$result) ) {
-                    $BaseFolders.Add($_.FullName.tolower())
+                    $BaseFolders.Add($_.FullName.ToLower())
                 }
             }
         }
@@ -98,35 +98,35 @@ function Get-ExchAVExclusionsPaths {
 
     if ((Get-ExchangeServer $env:COMPUTERNAME).IsClientAccessServer) {
 
-        $fetsLogs = Get-FrontEndTransportService $($env:COMPUTERNAME) | Select-Object ConnectivityLogPath, `
+        $feTsLogs = Get-FrontEndTransportService $($env:COMPUTERNAME) | Select-Object ConnectivityLogPath, `
             ReceiveProtocolLogPath, SendProtocolLogPath, AgentLogPath, DnsLogPath, ResourceLogPath, `
             AttributionLogPath, `
             RoutingTableLogPath, ProxyDestinationsLogPath, TopInboundIpSourcesLogPath
-        $fetsLogs.PSObject.Properties.Value.PathName | ForEach-Object {
+        $feTsLogs.PSObject.Properties.Value.PathName | ForEach-Object {
             if ( $_) {
                 if ( Test-Path $_ -PathType Container ) {
-                    $BaseFolders.Add($_.tolower())
+                    $BaseFolders.Add($_.ToLower())
                 }
             }
         }
 
-        $BaseFolders.Add((Join-Path $env:SystemDrive '\inetpub\temp\IIS Temporary Compressed Files').tolower())
-        $BaseFolders.Add((Join-Path $env:SystemRoot '\System32\Inetsrv').tolower())
-        $BaseFolders.Add((Join-Path $env:SystemRoot '\Microsoft.NET\Framework64\v4.0.30319\Temporary ASP.NET Files').tolower())
-        $BaseFolders.Add(($((Get-PopSettings).LogFileLocation)).tolower())
-        $BaseFolders.Add(($((Get-ImapSettings).LogFileLocation)).tolower())
+        $BaseFolders.Add((Join-Path $env:SystemDrive '\inetPub\temp\IIS Temporary Compressed Files').ToLower())
+        $BaseFolders.Add((Join-Path $env:SystemRoot '\System32\InetSrv').ToLower())
+        $BaseFolders.Add((Join-Path $env:SystemRoot '\Microsoft.NET\Framework64\v4.0.30319\Temporary ASP.NET Files').ToLower())
+        $BaseFolders.Add(($((Get-PopSettings).LogFileLocation)).ToLower())
+        $BaseFolders.Add(($((Get-ImapSettings).LogFileLocation)).ToLower())
     }
 
     if ((Get-ExchangeServer $env:COMPUTERNAME).IsEdgeServer) {
-        $BaseFolders.Add((Join-Path $ExchangePath '\TransportRoles\Data\Adam').tolower())
-        $BaseFolders.Add((Join-Path $ExchangePath '\TransportRoles\Data\IpFilter').tolower())
+        $BaseFolders.Add((Join-Path $ExchangePath '\TransportRoles\Data\Adam').ToLower())
+        $BaseFolders.Add((Join-Path $ExchangePath '\TransportRoles\Data\IpFilter').ToLower())
     }
 
     if ((Get-ExchangeServer $env:COMPUTERNAME).IsEdgeServer -or (Get-ExchangeServer $env:COMPUTERNAME).IsHubTransportServer) {
-        $BaseFolders.Add((Join-Path $ExchangePath '\TransportRoles\Data\Queue').tolower())
-        $BaseFolders.Add((Join-Path $ExchangePath '\TransportRoles\Data\SenderReputation').tolower())
-        $BaseFolders.Add((Join-Path $ExchangePath '\TransportRoles\Data\Temp').tolower())
-        $BaseFolders.Add((Join-Path $ExchangePath '\TransportRoles\Logs').tolower())
+        $BaseFolders.Add((Join-Path $ExchangePath '\TransportRoles\Data\Queue').ToLower())
+        $BaseFolders.Add((Join-Path $ExchangePath '\TransportRoles\Data\SenderReputation').ToLower())
+        $BaseFolders.Add((Join-Path $ExchangePath '\TransportRoles\Data\Temp').ToLower())
+        $BaseFolders.Add((Join-Path $ExchangePath '\TransportRoles\Logs').ToLower())
 
         $tsLogs = Get-TransportService $($env:COMPUTERNAME) | Select-Object ConnectivityLogPath, MessageTrackingLogPath, `
             IrmLogPath, ActiveUserStatisticsLogPath, ServerStatisticsLogPath, ReceiveProtocolLogPath, RoutingTableLogPath, `
@@ -138,34 +138,34 @@ function Get-ExchAVExclusionsPaths {
         $tsLogs.PSObject.Properties.Value.PathName | ForEach-Object {
             if ( $_ ) {
                 if ( Test-Path $_ -PathType Container ) {
-                    $BaseFolders.Add($_.tolower())
+                    $BaseFolders.Add($_.ToLower())
                 }
             }
         }
 
-        $BaseFolders.Add((Join-Path $ExchangePath '\Working\OleConverter').tolower())
+        $BaseFolders.Add((Join-Path $ExchangePath '\Working\OleConverter').ToLower())
 
         # Get transport database path
         [xml]$TransportConfig = Get-Content (Join-Path $ExchangePath "Bin\EdgeTransport.exe.config")
-        $BaseFolders.Add(($TransportConfig.configuration.AppSettings.Add | Where-Object { $_.key -eq "QueueDatabasePath" }).value.tolower())
-        $BaseFolders.Add(($TransportConfig.configuration.AppSettings.Add | Where-Object { $_.key -eq "QueueDatabaseLoggingPath" }).value.tolower())
+        $BaseFolders.Add(($TransportConfig.configuration.AppSettings.Add | Where-Object { $_.key -eq "QueueDatabasePath" }).value.ToLower())
+        $BaseFolders.Add(($TransportConfig.configuration.AppSettings.Add | Where-Object { $_.key -eq "QueueDatabaseLoggingPath" }).value.ToLower())
 
         if ($MsiProductMinor -eq 0 ) {
             #E13MBX  By default, content conversions are performed in the Exchange server's %TMP% folder.
-            $BaseFolders.Add((Join-Path $env:SystemRoot '\Temp').tolower())
+            $BaseFolders.Add((Join-Path $env:SystemRoot '\Temp').ToLower())
         }
     }
 
     if ($MsiProductMinor -eq 0 ) {
         #E13 Exchange Server setup temporary files.
-        $BaseFolders.Add((Join-Path $env:SystemRoot '\Temp\ExchangeSetup').tolower())
+        $BaseFolders.Add((Join-Path $env:SystemRoot '\Temp\ExchangeSetup').ToLower())
 
-        # it is only in client Access E13 doc--- Inetpub\logs\logfiles\w3svc
+        # it is only in client Access E13 doc--- InetPub\logs\LogFiles\w3svc
         Get-Website | Where-Object { $_.name -eq 'Default Web Site' -or $_.name -eq 'Exchange Back End' } | ForEach-Object {
-            if ($_.logfile.directory.StartsWith('%')) {
+            if ($_.LogFile.directory.StartsWith('%')) {
                 $BaseFolders.Add(("$(Get-Content -Path Env:"$($_.logFile.directory.Split('%')[1])")$($_.logFile.directory.Split('%')[2])\W3SVC$($_.id)").ToLower())
             } else {
-                $BaseFolders.Add(("$($_.logfile.directory)\W3SVC$($_.id)").ToLower())
+                $BaseFolders.Add(("$($_.LogFile.directory)\W3SVC$($_.id)").ToLower())
             }
         }
     }
@@ -217,7 +217,7 @@ function Get-ExchAVExclusionsExtensions {
         $ExtensionsList.Add("002")
         #Unified Messaging-related extensions:
         $ExtensionsList.Add("cfg")
-        $ExtensionsList.Add("grxml")
+        $ExtensionsList.Add("grXml")
         #Group Metrics-related extensions:
         $ExtensionsList.Add("dsc")
         $ExtensionsList.Add("txt")
@@ -245,10 +245,10 @@ function Get-ExchAVExclusionsExtensions {
         if ((Get-ExchangeServer $env:COMPUTERNAME).IsUnifiedMessagingServer) {
             #Unified Messaging-related extensions
             $ExtensionsList.Add("cfg")
-            $ExtensionsList.Add("grxml")
+            $ExtensionsList.Add("grXml")
         }
     }
-    $ExtensionsList
+    $ExtensionsList.ToLower()
 }
 
 function Get-ExchAVExclusionsProcess {
@@ -312,9 +312,9 @@ function Get-ExchAVExclusionsProcess {
 
         if ((Get-ExchangeServer $env:COMPUTERNAME).IsClientAccessServer -or (Get-ExchangeServer $env:COMPUTERNAME).IsMailboxServer) {
             $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Search\Ceres\HostController\hostcontrollerservice.exe'))
-            $ProcessList.Add((Join-Path $env:SystemRoot '\System32\inetsrv\inetinfo.exe'))
+            $ProcessList.Add((Join-Path $env:SystemRoot '\System32\inetSrv\inetInfo.exe'))
             $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Microsoft.Exchange.Directory.TopologyService.exe'))
-            $ProcessList.Add((Join-Path $env:SystemRoot '\System32\inetsrv\W3wp.exe'))
+            $ProcessList.Add((Join-Path $env:SystemRoot '\System32\inetSrv\W3wp.exe'))
         }
 
         if ((Get-ExchangeServer $env:COMPUTERNAME).IsClientAccessServer -or (Get-ExchangeServer $env:COMPUTERNAME).IsMailboxServer -or (Get-ExchangeServer $env:COMPUTERNAME).IsEdgeServer) {
@@ -338,7 +338,7 @@ function Get-ExchAVExclusionsProcess {
             $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\ComplianceAuditService.exe'))
             $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'FIP-FS\Bin\fms.exe'))
             $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Search\Ceres\HostController\hostcontrollerservice.exe'))
-            $ProcessList.Add((Join-Path $env:SystemRoot '\System32\inetsrv\inetinfo.exe'))
+            $ProcessList.Add((Join-Path $env:SystemRoot '\System32\inetSrv\inetInfo.exe'))
             $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Microsoft.Exchange.Directory.TopologyService.exe'))
             $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Microsoft.Exchange.EdgeSyncSvc.exe'))
             $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'FrontEnd\PopImap\Microsoft.Exchange.Imap4.exe'))
@@ -365,8 +365,8 @@ function Get-ExchAVExclusionsProcess {
             $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'FIP-FS\Bin\ScanEngineTest.exe'))
             $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'FIP-FS\Bin\ScanningProcess.exe'))
             $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'FIP-FS\Bin\UpdateService.exe'))
-            $ProcessList.Add((Join-Path $env:SystemRoot '\System32\inetsrv\W3wp.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\wsbexchange.exe'))
+            $ProcessList.Add((Join-Path $env:SystemRoot '\System32\inetSrv\W3wp.exe'))
+            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\wsbExchange.exe'))
         }
 
         if ((Get-ExchangeServer $env:COMPUTERNAME).IsEdgeServer) {

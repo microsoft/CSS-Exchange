@@ -30,7 +30,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "MRS Proxy Enabled" "False"
             TestObjectMatch "Exchange Server Maintenance" "Server is not in Maintenance Mode" -WriteType "Green"
             TestObjectMatch "Internet Web Proxy" "Not Set"
-            TestObjectMatch "Extended Protection Enabled (Any Vdir)" $false
+            TestObjectMatch "Extended Protection Enabled (Any VDir)" $false
             TestObjectMatch "Setting Overrides Detected" $false
             $Script:ActiveGrouping.Count | Should -Be 14
         }
@@ -76,7 +76,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             SetActiveDisplayGrouping "Processor/Hardware Information"
 
             TestObjectMatch "Type" "HyperV"
-            TestObjectMatch "Processor" "Intel(R) Xeon(R) CPU E5-2430 0 @ 2.20GHz"
+            TestObjectMatch "Processor" "Intel(R) XeOn(R) CPU E5-2430 0 @ 2.20GHz"
             TestObjectMatch "Number of Processors" 1
             TestObjectMatch "Number of Physical Cores" 3 -WriteType "Green"
             TestObjectMatch "Number of Logical Cores" 6 -WriteType "Green"

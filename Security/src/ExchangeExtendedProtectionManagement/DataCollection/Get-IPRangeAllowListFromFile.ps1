@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\..\..\..\..\Shared\Write-ErrorInformation.ps1
 
-# This function is used to get a list of all the IP in use by the Exchange Servers accross the topology
+# This function is used to get a list of all the IP in use by the Exchange Servers across the topology
 function Get-IPRangeAllowListFromFile {
     [CmdletBinding()]
     [OutputType([hashtable])]

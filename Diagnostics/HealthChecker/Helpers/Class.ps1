@@ -196,7 +196,7 @@ using System.Collections;
             public string StandardStart;   // the registry value for StandardStart.
             public string DaylightStart;   // the registry value for DaylightStart.
             public bool DstIssueDetected;  // Determines if there is a high chance of an issue.
-            public System.Array ActionsToTake; //array of verbage of the issues detected.
+            public System.Array ActionsToTake; //array of verbiage of the issues detected.
         }
 
         public class ServerRebootInformation
@@ -212,7 +212,7 @@ using System.Collections;
 
         public class InstalledUpdatesInformation
         {
-            public System.Array HotFixes;     //array to keep all the hotfixes of the server
+            public System.Array HotFixes;     //array to keep all the hot fixes of the server
             public System.Array HotFixInfo;   //object to store hotfix information
             public System.Array InstalledUpdates; //store the install updates
         }
@@ -300,7 +300,7 @@ using System.Collections;
             public bool ProcessorIsThrottled;  //True/False if we are throttling our processor
             public bool DifferentProcessorsDetected; //true/false to detect if we have different processor types detected
             public bool DifferentProcessorCoreCountDetected; //detect if there are a different number of core counts per Processor CPU socket
-            public int EnvironmentProcessorCount; //[system.environment]::processorcount
+            public int EnvironmentProcessorCount; //[system.environment]::ProcessorCount
             public object ProcessorClassObject;        // object to store the processor information
         }
 

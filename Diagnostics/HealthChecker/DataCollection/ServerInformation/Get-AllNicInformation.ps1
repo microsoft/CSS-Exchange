@@ -333,7 +333,7 @@ function Get-AllNicInformation {
 
             if ([String]::IsNullOrEmpty($networkConfiguration)) {
                 # Throw if nothing was returned by previous calls.
-                # Can be caused when executed on Server 2008 R2 where CIM namespace ROOT/StandardCimv2 is invalid.
+                # Can be caused when executed on Server 2008 R2 where CIM namespace ROOT/StandardCiMv2 is invalid.
                 Write-Verbose "No value was returned by 'Get-NetworkConfiguration'. Fallback to WMI."
                 throw
             }

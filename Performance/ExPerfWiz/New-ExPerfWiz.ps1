@@ -29,7 +29,7 @@ function global:New-ExPerfWiz {
     Output Path for performance logs.
     The folder path should exist.
 
-    This paramater is required.
+    This parameter is required.
 
     .PARAMETER Interval
     How often the performance data should be collected.
@@ -37,16 +37,16 @@ function global:New-ExPerfWiz {
     Default is 5s (5)
 
     .PARAMETER MaxSize
-    Maximum size of the perfmon log in MegaBytes
+    Maximum size of the PerfMon log in MegaBytes
     Default is 1024MB
 
     .PARAMETER Name
     The name of the data collector set
 
-    Default is Exchange_Perfwiz
+    Default is Exchange_PerfWiz
 
     .PARAMETER Server
-    Name of the server where the perfmon collector should be created
+    Name of the server where the PerfMon collector should be created
 
     Default is Localhost
 
@@ -56,13 +56,13 @@ function global:New-ExPerfWiz {
     Default is False
 
     .PARAMETER Template
-    XML perfmon template file that should be loaded to create the data collector set.
+    XML PerfMon template file that should be loaded to create the data collector set.
 
     Default is to prompt to select a Template from the XMLs provided with this module.
 
     .PARAMETER Threads
     Includes threads in the counter set.
-    *** Including Threads significantly increase the size of perfmon data ***
+    *** Including Threads significantly increase the size of PerfMon data ***
 
     Default is False
 
@@ -73,22 +73,22 @@ function global:New-ExPerfWiz {
     Default is <not set>
 
     .OUTPUTS
-    Creates a data collector set in Perfmon based on the provided XML file
+    Creates a data collector set in PerfMon based on the provided XML file
 
     Logs all activity into $env:LOCALAPPDATA\ExPerfWiz.log file
 
     .EXAMPLE
-    Create a standard ExPerfwiz data collector for troubleshooting performane issues on the local machine.
+    Create a standard ExPerfWiz data collector for troubleshooting performance issues on the local machine.
 
-    New-ExPerfwiz -FolderPath C:\PerfData
+    New-ExPerfWiz -FolderPath C:\PerfData
 
     This will prompt the end user to select a template from the provided set and create a default data collector set using that Template.
-    The perfmon data will be stored in the C:\PerfData folder
+    The PerfMon data will be stored in the C:\PerfData folder
 
     .EXAMPLE
-    Create a custom ExPefwiz data collector on the local machine from a custom template
+    Create a custom ExPerfWiz data collector on the local machine from a custom template
 
-    New-ExPerfwiz -Name "My Collector" -Duration "01:00:00" -Interval 1 -MaxSize 500 -Template C:\Temp\MyTemplate.xml -Circular $true -Threads $True
+    New-ExPerfWiz -Name "My Collector" -Duration "01:00:00" -Interval 1 -MaxSize 500 -Template C:\Temp\MyTemplate.xml -Circular $true -Threads $True
 
     Creates a collector named "My Collector" From the template MyTemplate.xml.
     Circular logging will be enabled along with Threads.
@@ -96,23 +96,23 @@ function global:New-ExPerfWiz {
     It will have a maximum file size of 500MB
 
     .EXAMPLE
-    Create an ExPerfwiz data collector on another server
+    Create an ExPerfWiz data collector on another server
 
-    New-ExPerfwiz -FolderPath C:\temp\experfwiz -Server OtherServer-01
+    New-ExPerfWiz -FolderPath C:\temp\ExPerfWiz -Server OtherServer-01
 
     Will prompt for template to use.
-    Will create a perfmon counter set on the remove server OtherServer-01 with the output folder being C:\temp\experfwiz on that server
+    Will create a PerfMon counter set on the remove server OtherServer-01 with the output folder being C:\temp\ExPerfWiz on that server
 
     #>
 
-    ### Creates a new experfwiz collector
+    ### Creates a new ExPerfWiz collector
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
     param(
         [switch]
         $Circular,
 
-        [timespan]
-        $Duration = [timespan]::Parse('8:00:00'),
+        [TimeSpan]
+        $Duration = [TimeSpan]::Parse('8:00:00'),
 
         [Parameter(Mandatory = $true, HelpMessage = "Please provide a valid folder path for output")]
         [string]
@@ -125,7 +125,7 @@ function global:New-ExPerfWiz {
         $MaxSize = 1024,
 
         [string]
-        $Name = "Exchange_Perfwiz",
+        $Name = "Exchange_PerfWiz",
 
         [Parameter(ValueFromPipeline)]
         [string]
@@ -146,7 +146,7 @@ function global:New-ExPerfWiz {
     )
 
     begin {
-        # Check for new version of Experfwiz
+        # Check for new version of ExPerfWiz
     }
 
     process {
@@ -163,7 +163,7 @@ function global:New-ExPerfWiz {
         if (Test-Path $Template) {
             Write-SimpleLogFile -string ("Using Template:" + $Template) -Name "ExPerfWiz.log"
         } else {
-            throw "Cannot find template xml file provided.  Please provide a valid Perfmon template file. $Template"
+            throw "Cannot find template xml file provided.  Please provide a valid PerfMon template file. $Template"
         }
 
         ### Manipulate Template ###
@@ -206,18 +206,18 @@ function global:New-ExPerfWiz {
         $XML.DataCollectorSet.PerformanceCounterDataCollector.SampleInterval = [string]$Interval
 
         # Make sure the XML schedule is set to reflect if we are setting up a scheduled task
-        if ($PSBoundParameters.ContainsKey("starttime")) {
+        if ($PSBoundParameters.ContainsKey("StartTime".ToLower())) {
             $XML.DataCollectorSet.SchedulesEnabled = "1"
             # Set the schedule date and time to reflect the values in the scheduled task
-            $XML.DataCollectorSet.Schedule.StartDate = (Get-Date -Format MM\/dd\/yyyy).tostring()
-            $XML.DataCollectorSet.Schedule.EndDate = (Get-Date -Day 1 -Month 1 -Year 2100 -Format MM\/dd\/yyyy).tostring()
-            $XML.DataCollectorSet.Schedule.StartTime = (Get-Date $StartTime -Format HH:mm).tostring()
+            $XML.DataCollectorSet.Schedule.StartDate = (Get-Date -Format MM\/dd\/yyyy).ToString()
+            $XML.DataCollectorSet.Schedule.EndDate = (Get-Date -Day 1 -Month 1 -Year 2100 -Format MM\/dd\/yyyy).ToString()
+            $XML.DataCollectorSet.Schedule.StartTime = (Get-Date $StartTime -Format HH:mm).ToString()
         } else {
             $XML.DataCollectorSet.SchedulesEnabled = "0"
             # Since not schedule we are going to set the date / time to 1900
-            $XML.DataCollectorSet.Schedule.StartDate = (Get-Date -Day 1 -Month 1 -Year 1900 -Format MM\/dd\/yyyy).tostring()
-            $XML.DataCollectorSet.Schedule.EndDate = (Get-Date -Day 1 -Month 1 -Year 1900 -Format MM\/dd\/yyyy).tostring()
-            $XML.DataCollectorSet.Schedule.StartTime = (Get-Date -Hour 12 -Minute 0 -Format HH:mm ).tostring()
+            $XML.DataCollectorSet.Schedule.StartDate = (Get-Date -Day 1 -Month 1 -Year 1900 -Format MM\/dd\/yyyy).ToString()
+            $XML.DataCollectorSet.Schedule.EndDate = (Get-Date -Day 1 -Month 1 -Year 1900 -Format MM\/dd\/yyyy).ToString()
+            $XML.DataCollectorSet.Schedule.StartTime = (Get-Date -Hour 12 -Minute 0 -Format HH:mm ).ToString()
         }
 
         # If -threads is specified we need to add it to the counter set
@@ -234,34 +234,34 @@ function global:New-ExPerfWiz {
         } else {}
 
         # Write the XML to disk
-        $xmlfile = Join-Path $env:TEMP ExPerfwiz.xml
-        Write-SimpleLogFile -string ("Writing Configuration to: " + $xmlfile) -Name "ExPerfWiz.log"
-        $XML.Save($xmlfile)
-        Write-SimpleLogFile -string ("Importing Collector Set " + $xmlfile + " for " + $server) -Name "ExPerfWiz.log"
+        $xmlFile = Join-Path $env:TEMP ExPerfWiz.xml
+        Write-SimpleLogFile -string ("Writing Configuration to: " + $xmlFile) -Name "ExPerfWiz.log"
+        $XML.Save($xmlFile)
+        Write-SimpleLogFile -string ("Importing Collector Set " + $xmlFile + " for " + $server) -Name "ExPerfWiz.log"
 
         # Taking a proactive approach on possible conflicts with creating the collector
-        $currentcollector = Get-ExPerfwiz -Name $Name -Server $Server -ErrorAction SilentlyContinue
+        $currentCollector = Get-ExPerfWiz -Name $Name -Server $Server -ErrorAction SilentlyContinue
 
         # Check the status of the collectors and take the correct action
-        switch ($currentcollector.status) {
+        switch ($currentCollector.status) {
             Running {
                 Write-SimpleLogFile "Running Duplicate Found" -Name "ExPerfWiz.log"
                 if ($PSCmdlet.ShouldProcess("$Server\$Name", "Stop Running Collector Set and Replace")) {
-                    Stop-ExPerfwiz -Name $Name -Server $Server
+                    Stop-ExPerfWiz -Name $Name -Server $Server
                 }
-                Remove-ExPerfwiz -Name $Name -Server $server -Confirm:$false
+                Remove-ExPerfWiz -Name $Name -Server $server -Confirm:$false
             }
             Stopped {
                 Write-SimpleLogFile "Duplicate Found" -Name "ExPerfWiz.log"
-                #Remove-ExPerfwiz -Name $Name -Server $server -Confirm:$false
+                #Remove-ExPerfWiz -Name $Name -Server $server -Confirm:$false
             }
             default {
-                Write-SimpleLogFile "No Comflicts Found" -Name "ExPerfWiz.log"
+                Write-SimpleLogFile "No Conflicts Found" -Name "ExPerfWiz.log"
             }
         }
 
         # Import the XML with our configuration
-        [string]$logman = logman import -xml $xmlfile -name $Name -s $server
+        [string]$logman = logman import -xml $xmlFile -name $Name -s $server
 
         # Check if we have an error and throw if needed
         if ($null -eq ($logman | Select-String "Error:")) {
@@ -272,20 +272,20 @@ function global:New-ExPerfWiz {
 
         ## Implement Start time
         # Scenarios supported:
-        # 1) Start Perfmon at time X daily run for time outlined in rest of settings
-        # 2) Setup perfmon without scheduled start time
-        if ($PSBoundParameters.ContainsKey("starttime")) {
-            Set-ExPerfwiz -Name $Name -Server $server -StartTime $startTime -Quiet
+        # 1) Start PerfMon at time X daily run for time outlined in rest of settings
+        # 2) Setup PerfMon without scheduled start time
+        if ($PSBoundParameters.ContainsKey("StartTime".ToLower())) {
+            Set-ExPerfWiz -Name $Name -Server $server -StartTime $startTime -Quiet
         } else {
             Write-SimpleLogFile -string "No Start time provided" -Name "ExPerfWiz.log"
         }
 
         # Need to start the counter set if asked to do so
         if ($StartOnCreate) {
-            Start-ExPerfwiz -Server $Server -Name $Name
+            Start-ExPerfWiz -Server $Server -Name $Name
         } else {}
 
         # Display back the newly created object
-        Get-ExPerfwiz -Name $Name -Server $Server
+        Get-ExPerfWiz -Name $Name -Server $Server
     }
 }

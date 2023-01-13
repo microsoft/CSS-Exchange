@@ -36,7 +36,7 @@ $xml131619 = @"
 <DataCollectorSet>
 <Status>0</Status>
 <Duration>0</Duration>
-<Description>ExPerfwiz Exchange 2013/16/19 Full</Description>
+<Description>ExPerfWiz Exchange 2013/16/19 Full</Description>
 <DescriptionUnresolved>
 </DescriptionUnresolved>
 <DisplayName>ExPerfWiz</DisplayName>
@@ -44,9 +44,9 @@ $xml131619 = @"
 <SchedulesEnabled>-1</SchedulesEnabled>
 <LatestOutputLocation>
 </LatestOutputLocation>
-<Name>ExPefwiz Test</Name>
-<OutputLocation>C:\Temp\experfwiz</OutputLocation>
-<RootPath>C:\Temp\experfwiz</RootPath>
+<Name>ExPerfWiz Test</Name>
+<OutputLocation>C:\Temp\ExPerfWiz</OutputLocation>
+<RootPath>C:\Temp\ExPerfWiz</RootPath>
 <Segment>0</Segment>
 <SegmentMaxDuration>28800</SegmentMaxDuration>
 <SegmentMaxSize>100</SegmentMaxSize>
@@ -69,8 +69,8 @@ $xml131619 = @"
 <StopOnCompletion>0</StopOnCompletion>
 <PerformanceCounterDataCollector>
 <DataCollectorType>0</DataCollectorType>
-<Name>ExPefwiz</Name>
-<FileName>ExPefwiz</FileName>
+<Name>ExPerfWiz</Name>
+<FileName>ExPerfWiz</FileName>
 <FileNameFormat>3</FileNameFormat>
 <FileNameFormatPattern>\_ddMMyy\_HHmm\_z\Z\_NNN</FileNameFormatPattern>
 <LogAppend>-1</LogAppend>
@@ -158,7 +158,7 @@ $xml131619 = @"
 <Counter>\MSExchange HttpProxy Per Array( * )\*</Counter>
 <Counter>\MSExchange HttpProxy Per Site( * )\*</Counter>
 <Counter>\MSExchange HttpProxy( * )\*</Counter>
-<Counter>\MSExchange Hygiene Antimalware( * )\*</Counter>
+<Counter>\MSExchange Hygiene AntiMalware( * )\*</Counter>
 <Counter>\MSExchange Hygiene Cache( * )\*</Counter>
 <Counter>\MSExchange Hygiene Classification\*</Counter>
 <Counter>\MSExchange Hygiene Text Extraction\*</Counter>
@@ -345,14 +345,14 @@ if (Confirm-Administrator) {}
 else { Write-Error "Please run as Administrator" -ErrorAction Stop }
 
 function global:Convert-OnOffBool {
-    [cmdletbinding()]
+    [CmdletBinding()]
     [OutputType([bool])]
     param(
         [Parameter(Mandatory = $true)]
-        [string]$tocompare
+        [string]$toCompare
     )
 
-    switch ($tocompare) {
+    switch ($toCompare) {
         On { return $true }
         default { return $false }
     }
@@ -366,7 +366,7 @@ $title = "Default ExPerfWiz"
 $message = "Create the default ExPerfWiz on this server?"
 
 # Create answers
-$yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes", "Creates the default Perfwiz: 5s Interval; 8 Hour Run time; C:\EXPerfWiz Path"
+$yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes", "Creates the default PerfWiz: 5s Interval; 8 Hour Run time; C:\ExPerfWiz Path"
 $no = New-Object System.Management.Automation.Host.ChoiceDescription "&No", "Returns to a prompt."
 
 # Create ChoiceDescription with answers
@@ -377,6 +377,6 @@ $response = $host.UI.PromptForChoice($title, $message, $options, 0)
 
 # Perform action based on answer
 switch ($response) {
-    0 { New-ExPerfwiz -FolderPath C:\EXPerfWiz } # Yes
+    0 { New-ExPerfWiz -FolderPath C:\ExPerfWiz } # Yes
     1 { break } # No
 }

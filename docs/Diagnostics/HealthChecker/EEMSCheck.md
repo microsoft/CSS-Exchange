@@ -22,7 +22,7 @@ This check performs the following testings to highlight the configuration state 
 
 - Pattern Service Check
     - We validate if we can reach the OCS which is used to serve the latest mitigations
-    - OCS Mitigation Service url: `https://officeclient.microsoft.com/getexchangemitigations`
+    - OCS Mitigation Service url: `https://officeclient.microsoft.com/GetExchangeMitigations`
 
 - Mitigations Check
     - Shows which mitigations are currently being applied

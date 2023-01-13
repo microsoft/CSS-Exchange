@@ -131,13 +131,13 @@ function Get-HealthCheckerData {
             Write-Verbose "Failed to Export-Clixml. Converting HealthCheckerExchangeServer to json"
             $jsonHealthChecker = $analyzedResults.HealthCheckerExchangeServer | ConvertTo-Json
 
-            $testOuputxml = [PSCustomObject]@{
+            $testOutputXml = [PSCustomObject]@{
                 HealthCheckerExchangeServer = $jsonHealthChecker | ConvertFrom-Json
                 HtmlServerValues            = $analyzedResults.HtmlServerValues
                 DisplayResults              = $analyzedResults.DisplayResults
             }
 
-            $testOuputxml | Export-Clixml -Path $Script:OutXmlFullPath -Encoding UTF8 -Depth 6 -ErrorAction Stop
+            $testOutputXml | Export-Clixml -Path $Script:OutXmlFullPath -Encoding UTF8 -Depth 6 -ErrorAction Stop
         } finally {
             Invoke-ErrorCatchActionLoopFromIndex $currentErrors
 

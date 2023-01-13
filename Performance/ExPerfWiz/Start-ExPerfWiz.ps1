@@ -13,7 +13,7 @@ function global:Start-ExPerfWiz {
     .PARAMETER Name
     The Name of the Data Collector set to start
 
-    Default Exchange_Perfwiz
+    Default Exchange_PerfWiz
 
     .PARAMETER Server
     Name of the remote server to start the data collector set on.
@@ -26,42 +26,42 @@ function global:Start-ExPerfWiz {
 	.EXAMPLE
     Start the default data collector set on this server.
 
-    Start-ExPerfwiz
+    Start-ExPerfWiz
 
     .EXAMPLE
     Start a collector set on another server.
 
-    Start-ExPerfwiz -Name "My Collector Set" -Server RemoteServer-01
+    Start-ExPerfWiz -Name "My Collector Set" -Server RemoteServer-01
 
     #>
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Low')]
     param (
         [Parameter(ValueFromPipelineByPropertyName)]
         [string]
-        $Name = "Exchange_Perfwiz",
+        $Name = "Exchange_PerfWiz",
 
         [string]
         $Server = $env:ComputerName
     )
 
     process {
-        Write-SimpleLogFile -string ("Starting ExPerfwiz: " + $Server) -Name "ExPerfWiz.log"
+        Write-SimpleLogFile -string ("Starting ExPerfWiz: " + $Server) -Name "ExPerfWiz.log"
 
         # Check if we have an error and throw and error if needed.
         $i = 0
         $repeat = $false
         do {
-            # Start the experfwiz counter set
-            if ($PSCmdlet.ShouldProcess("$Server\$Name", "Staring ExPerfwiz Data Collection")) {
+            # Start the exPerfWiz counter set
+            if ($PSCmdlet.ShouldProcess("$Server\$Name", "Staring ExPerfWiz Data Collection")) {
                 [string]$logman = logman start -name $Name -s $Server
             }
 
             # We know "unable to create the specified log file" can be worked around by incrementing the size and trying again
             # so incrementing the size and trying again.
             if ($logman | Select-String "Unable to create the specified log file") {
-                Write-Warning "Starting Experfwiz Failed ... Incrementing size and trying again. [Attempt $i/3]"
-                Write-SimpleLogFile "Retrying Start-Experfwiz" -Name "ExPerfWiz.log"
-                Step-ExPerfwizSize -Name $Name -Server $Server
+                Write-Warning "Starting ExPerfWiz Failed ... Incrementing size and trying again. [Attempt $i/3]"
+                Write-SimpleLogFile "Retrying Start-ExPerfWiz" -Name "ExPerfWiz.log"
+                Step-ExPerfWizSize -Name $Name -Server $Server
                 $i++
                 $repeat = $true
             } else { $repeat = $false }
@@ -79,7 +79,7 @@ function global:Start-ExPerfWiz {
                 throw $logman
             }
         } else {
-            Write-SimpleLogFile "ExPerfwiz Started" -Name "ExPerfWiz.log"
+            Write-SimpleLogFile "ExPerfWiz Started" -Name "ExPerfWiz.log"
         }
     }
 }

@@ -142,11 +142,11 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
                 Add-AnalyzedResultInformation @epBackEndParams
                 if ($mitigationOutputObjectDisplayValue.Count -ge 1) {
                     foreach ($mitigation in $mitigationOutputObjectDisplayValue) {
-                        $epMitigationvDir = $baseParams + @{
+                        $epMitigationVDir = $baseParams + @{
                             Details          = "$($mitigation.Details.Count) IPs in filter list on vDir: '$($mitigation.VirtualDirectory)'"
                             DisplayWriteType = "Yellow"
                         }
-                        Add-AnalyzedResultInformation @epMitigationvDir
+                        Add-AnalyzedResultInformation @epMitigationVDir
                         $mitigationOutputObjectDisplayValue.Details.GetEnumerator() | ForEach-Object {
                             Write-Verbose "IP Address: $($_.key) is allowed to connect? $($_.value)"
                         }

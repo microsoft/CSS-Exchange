@@ -11,9 +11,9 @@ function Save-ServerInfoData {
     New-Item -ItemType Directory -Path $copyTo -Force | Out-Null
 
     #Get MSInfo from server
-    msinfo32.exe /nfo (Add-ServerNameToFileName -FilePath ("{0}\msinfo.nfo" -f $copyTo))
-    Write-Host "Waiting for msinfo32.exe process to end before moving on..." -ForegroundColor "Yellow"
-    while ((Get-Process | Where-Object { $_.ProcessName -eq "msinfo32" }).ProcessName -eq "msinfo32") {
+    msInfo32.exe /nfo (Add-ServerNameToFileName -FilePath ("{0}\msInfo.nfo" -f $copyTo))
+    Write-Host "Waiting for msInfo32.exe process to end before moving on..." -ForegroundColor "Yellow"
+    while ((Get-Process | Where-Object { $_.ProcessName -eq "msInfo32" }).ProcessName -eq "msInfo32") {
         Start-Sleep 5;
     }
 
@@ -68,7 +68,7 @@ function Save-ServerInfoData {
 
     Save-DataInfoToFile -DataIn (Get-HotFix | Select-Object Source, Description, HotFixID, InstalledBy, InstalledOn) -SaveToLocation ("{0}\HotFixInfo" -f $copyTo)
 
-    #TCPIP Networking Information #38
+    #TCP IP Networking Information #38
     Save-DataInfoToFile -DataIn (ipconfig /all) -SaveToLocation ("{0}\IPConfiguration" -f $copyTo) -SaveXMLFile $false
     Save-DataInfoToFile -DataIn (netstat -anob) -SaveToLocation ("{0}\NetStat_ANOB" -f $copyTo) -SaveXMLFile $false
     Save-DataInfoToFile -DataIn (route print) -SaveToLocation ("{0}\Network_Routes" -f $copyTo) -SaveXMLFile $false
@@ -85,7 +85,7 @@ function Save-ServerInfoData {
     Save-DataInfoToFile -DataIn (fltmc volumes) -SaveToLocation ("{0}\FLTMC_Volumes" -f $copyTo) -SaveXMLFile $false
     Save-DataInfoToFile -DataIn (fltmc instances) -SaveToLocation ("{0}\FLTMC_Instances" -f $copyTo) -SaveXMLFile $false
 
-    Save-DataInfoToFile -DataIn (TASKLIST /M) -SaveToLocation ("{0}\TaskList_Modules" -f $copyTo) -SaveXMLFile $false
+    Save-DataInfoToFile -DataIn (TaskList /M) -SaveToLocation ("{0}\TaskList_Modules" -f $copyTo) -SaveXMLFile $false
 
     if (!$Script:localServerObject.Edge) {
 
@@ -106,8 +106,8 @@ function Save-ServerInfoData {
         Save-RegistryHive @params
     }
 
-    Save-DataInfoToFile -DataIn (gpresult /R /Z) -SaveToLocation ("{0}\GPResult" -f $copyTo) -SaveXMLFile $false
-    gpresult /H (Add-ServerNameToFileName -FilePath ("{0}\GPResult.html" -f $copyTo))
+    Save-DataInfoToFile -DataIn (gpResult /R /Z) -SaveToLocation ("{0}\GPResult" -f $copyTo) -SaveXMLFile $false
+    gpResult /H (Add-ServerNameToFileName -FilePath ("{0}\GPResult.html" -f $copyTo))
 
     #Storage Information
     if (Test-CommandExists -command "Get-Volume") {

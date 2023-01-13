@@ -8,14 +8,14 @@ function Invoke-DiskShadow {
     Write-Host "--------------------------------------------------------------------------------------------------------------"
     " "
     Write-Host "Running the following command:" $nl
-    Write-Host "`"C:\Windows\System32\diskshadow.exe /s $path\diskshadow.dsh /l $path\diskshadow.log`"" $nl
+    Write-Host "`"C:\Windows\System32\DiskShadow.exe /s $path\DiskShadow.dsh /l $path\DiskShadow.log`"" $nl
     Write-Host " "
 
     #in case the $path and the script location is different we need to change location into the $path directory to get the results to work as expected.
     try {
         $here = (Get-Location).Path
         Set-Location $path
-        diskshadow.exe /s $path\diskshadow.dsh /l $path\diskshadow.log
+        DiskShadow.exe /s $path\DiskShadow.dsh /l $path\DiskShadow.log
     } finally {
         Set-Location $here
     }

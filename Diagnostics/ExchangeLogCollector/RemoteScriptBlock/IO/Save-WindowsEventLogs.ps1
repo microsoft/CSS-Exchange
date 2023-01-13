@@ -10,7 +10,7 @@ function Save-WindowsEventLogs {
     Write-Verbose("Function Enter: Save-WindowsEventLogs")
     $baseSaveLocation = $Script:RootCopyToDirectory + "\Windows_Event_Logs"
     $SaveLogs = @{}
-    $rootLogPath = "$env:SystemRoot\System32\Winevt\Logs"
+    $rootLogPath = "$env:SystemRoot\System32\WinEvt\Logs"
     $allLogPaths = Get-ChildItem $rootLogPath |
         ForEach-Object {
             $_.VersionInfo.FileName

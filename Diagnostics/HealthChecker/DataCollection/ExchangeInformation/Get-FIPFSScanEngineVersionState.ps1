@@ -164,7 +164,7 @@ function Get-FIPFSScanEngineVersionState {
         return [PSCustomObject]@{
             FIPFSFixedBuild             = $fipfsIssueFixedBuild
             ServerRoleAffected          = $serverRoleAffected
-            HighesVersionNumberDetected = $highestScanEngineVersionNumber
+            HighestVersionNumberDetected = $highestScanEngineVersionNumber
             BadVersionNumberDirDetected = $isAffectedByFIPFSUpdateIssue
         }
     }

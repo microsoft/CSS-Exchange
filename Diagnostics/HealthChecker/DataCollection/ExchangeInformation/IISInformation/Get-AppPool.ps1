@@ -68,16 +68,16 @@ function Get-AppPool {
             [PSCustomObject]$hash
         }
 
-        $appPoolCmd = "$env:windir\System32\inetsrv\appcmd.exe"
+        $appPoolCmd = "$env:windir\System32\inetSrv\appCmd.exe"
     }
 
     process {
-        $appPoolNames = & $appPoolCmd list apppool |
-            Select-String "APPPOOL `"(\S+)`" " |
+        $appPoolNames = & $appPoolCmd list appPool |
+            Select-String "AppPool `"(\S+)`" " |
             ForEach-Object { $_.Matches.Groups[1].Value }
 
         foreach ($appPoolName in $appPoolNames) {
-            $appPoolText = & $appPoolCmd list apppool $appPoolName /text:*
+            $appPoolText = & $appPoolCmd list appPool $appPoolName /text:*
             Convert-FromAppPoolText -Text $appPoolText -Line 1
         }
     }

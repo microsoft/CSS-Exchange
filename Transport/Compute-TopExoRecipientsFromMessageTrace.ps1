@@ -29,7 +29,7 @@
     .OUTPUTS
      $results.TopRecipients : hourly report for top recipients over the threshold
      $results.HourlyReport  : hourly aggregated message events without applying the threshold
-     $results.MessageTraceEevents: all downloaded message trace events without aggregations
+     $results.MessageTraceEvents: all downloaded message trace events without aggregations
 #>
 [CmdletBinding()]
 param

@@ -183,8 +183,8 @@ function Get-AllTlsSettingsFromRegistry {
                 WowSchUseStrongCrypto            = (Get-NETDefaultTLSValue -KeyValue $wowSchUseStrongCryptoValue -NetVersion $netVersion -KeyName "WowSchUseStrongCrypto")
                 WowSchUseStrongCryptoValue       = $wowSchUseStrongCryptoValue
                 WowRegistryLocation              = $wowMsRegistryKey
-                SdtvConfiguredCorrectly          = $systemDefaultTlsVersions -eq $wowSystemDefaultTlsVersions
-                SdtvEnabled                      = $systemDefaultTlsVersions -and $wowSystemDefaultTlsVersions
+                SDtvConfiguredCorrectly          = $systemDefaultTlsVersions -eq $wowSystemDefaultTlsVersions
+                SDtvEnabled                      = $systemDefaultTlsVersions -and $wowSystemDefaultTlsVersions
             }
 
             $hashKeyName = "NET{0}" -f ($netVersion.Split(".")[0])

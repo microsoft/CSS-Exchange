@@ -8,7 +8,7 @@ function New-AuthCertificateManagementAccount {
     [CmdletBinding()]
     [OutputType([bool])]
     param(
-        [securestring]$Password,
+        [SecureString]$Password,
         [string]$DomainToUse = $env:USERDNSDOMAIN,
         [string]$DomainController = $env:USERDNSDOMAIN,
         [scriptblock]$CatchActionFunction

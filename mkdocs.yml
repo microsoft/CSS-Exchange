@@ -28,7 +28,7 @@ nav:
       - CTSProcessorAffinityCheck: Diagnostics/HealthChecker/CTSProcessorAffinityPercentageCheck.md
       - CredentialGuardCheck: Diagnostics/HealthChecker/CredentialGuardCheck.md
       - RPCMinConnectionTimeoutCheck: Diagnostics/HealthChecker/RPCMinConnectionTimeoutCheck.md
-      - TCPIPSettingsCheck: Diagnostics/HealthChecker/TCPIPSettingsCheck.md
+      - TcpIpSettingsCheck: Diagnostics/HealthChecker/TCPIpSettingsCheck.md
       - GeneralHardwareInformation: Diagnostics/HealthChecker/GeneralHardwareInformation.md
       - HyperThreadingCheck: Diagnostics/HealthChecker/HyperThreadingCheck.md
       - NumaBiosCheck: Diagnostics/HealthChecker/NumaBiosCheck.md

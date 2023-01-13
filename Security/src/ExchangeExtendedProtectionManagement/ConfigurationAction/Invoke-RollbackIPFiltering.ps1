@@ -117,16 +117,16 @@ function Invoke-RollbackIPFiltering {
                     ErrorContext            = $null
                 }
                 try {
-                    $state.RestorePath = (Get-ChildItem "$($env:WINDIR)\System32\inetsrv\config\" -Filter ("*IpFilteringRules_"+  $SiteVDirLocation.Replace('/', '-') + "*.bak") | Sort-Object CreationTime | Select-Object -First 1).FullName
+                    $state.RestorePath = (Get-ChildItem "$($env:WINDIR)\System32\inetSrv\config\" -Filter ("*IpFilteringRules_"+  $SiteVDirLocation.Replace('/', '-') + "*.bak") | Sort-Object CreationTime | Select-Object -First 1).FullName
                     if ($null -eq $state.RestorePath) {
-                        throw "Invalid operation. No backup file exisits at path $($env:WINDIR)\System32\inetsrv\config\"
+                        throw "Invalid operation. No backup file exists at path $($env:WINDIR)\System32\inetSrv\config\"
                     }
                     $state.RestoreFileExists = $true
 
                     TurnONExtendedProtection -Filter $FilterEP -IISPath $IISPath -SiteVDirLocation $SiteVDirLocation
                     $state.TurnOnEPSuccessful = $true
 
-                    $state.BackUpPath = "$($env:WINDIR)\System32\inetsrv\config\IpFilteringRules_" + $SiteVDirLocation.Replace('/', '-') + "_$([DateTime]::Now.ToString("yyyyMMddHHMMss")).bak"
+                    $state.BackUpPath = "$($env:WINDIR)\System32\inetSrv\config\IpFilteringRules_" + $SiteVDirLocation.Replace('/', '-') + "_$([DateTime]::Now.ToString("yyyyMMddHHMMss")).bak"
                     $ExistingRules = @(Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name collection)
                     $state.BackupCurrentSuccessful = BackupCurrentIPFilteringRules -BackupPath $state.BackUpPath -Filter $Filter -IISPath $IISPath -SiteVDirLocation $SiteVDirLocation -ExistingRules $ExistingRules
 

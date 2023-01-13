@@ -14,7 +14,7 @@ function Build-ExchangeAuthCertificateManagementAccount {
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, ParameterSetName = "UseExistingAccount")]
         [PSCredential]$AccountCredentialObject,
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = "CreateNewAccount")]
-        [securestring]$PasswordToSet,
+        [SecureString]$PasswordToSet,
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = "CreateNewAccount")]
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = "UseExistingAccount")]
         [string]$DomainController,
@@ -149,11 +149,11 @@ function Build-ExchangeAuthCertificateManagementAccount {
         if ($null -ne $systemMailboxMailboxInfo) {
             Write-Verbose ("Auth Certificate management mailbox found")
             if ($systemMailboxMailboxInfo.HiddenFromAddressListsEnabled -eq $false) {
-                Write-Verbose ("Auth Certificate management mailbox is not hidden from addresslist - going to hide the mailbox now")
+                Write-Verbose ("Auth Certificate management mailbox is not hidden from AddressList - going to hide the mailbox now")
                 try {
                     Set-Mailbox -Identity $systemMailboxIdentity -HiddenFromAddressListsEnabled $true -ErrorAction Stop | Out-Null
                 } catch {
-                    Write-Verbose ("Unable to hide Auth Certificate management account from addresslist")
+                    Write-Verbose ("Unable to hide Auth Certificate management account from AddressList")
                     Invoke-CatchActionError $CatchActionFunction
                     return
                 }

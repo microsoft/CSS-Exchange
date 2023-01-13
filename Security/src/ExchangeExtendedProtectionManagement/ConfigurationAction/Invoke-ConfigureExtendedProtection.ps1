@@ -80,7 +80,7 @@ function Invoke-ConfigureExtendedProtection {
                         [object]$Commands,
                         [bool]$PassedWhatIf
                     )
-                    $saveToPath = "$($env:WINDIR)\System32\inetsrv\config\applicationHost.config"
+                    $saveToPath = "$($env:WINDIR)\System32\inetSrv\config\applicationHost.config"
                     $backupLocation = $saveToPath.Replace(".config", ".cep.$([DateTime]::Now.ToString("yyyyMMddHHMMss")).bak")
                     $internalTotalCommands = $Commands.TokenChecking.Count + $Commands.SSLFlags.Count
                     $internalCounter = 0
