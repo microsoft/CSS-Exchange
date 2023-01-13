@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\DataCollection\Get-ExchangeServerCertificate.ps1
-. $PSScriptRoot\..\DataCollection\Import-ExchangeCertificateFromRawData.ps1
+. $PSScriptRoot\..\..\..\Shared\CertificateFunctions\Import-ExchangeCertificateFromRawData.ps1
 . $PSScriptRoot\..\..\..\Shared\Invoke-CatchActionError.ps1
 
 function New-ExchangeAuthCertificate {

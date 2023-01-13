@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\Import-ExchangeCertificateFromRawData.ps1
+. $PSScriptRoot\..\..\..\Shared\CertificateFunctions\Import-ExchangeCertificateFromRawData.ps1
 
 function Get-ExchangeServerCertificate {
     [CmdletBinding()]

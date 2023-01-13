@@ -3,6 +3,7 @@
 
 . $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-InternalTransportCertificateFromServer.ps1
+. $PSScriptRoot\..\..\..\..\Shared\CertificateFunctions\Import-ExchangeCertificateFromRawData.ps1
 
 function Get-ExchangeServerCertificates {
     param(
@@ -90,6 +91,13 @@ function Get-ExchangeServerCertificates {
                 } catch {
                     $authConfigDetected = $false
                     Invoke-CatchActions
+                }
+
+                if ($null -ne $exchangeServerCertificates[0].Thumbprint) {
+                    Write-Verbose "Deserialization of the Exchange certificate object was successful - nothing to do"
+                } else {
+                    Write-Verbose "Deserialization of the Exchange certificate failed - trying to import the certificate from raw data"
+                    $exchangeServerCertificates = Import-ExchangeCertificateFromRawData -ExchangeCertificates $exchangeServerCertificates
                 }
 
                 foreach ($cert in $exchangeServerCertificates) {

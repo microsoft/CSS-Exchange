@@ -112,6 +112,23 @@ Describe "Testing Get-ExchangeServerCertificates.ps1" {
         }
     }
 
+    Context "Exchange Server Certificate Returned In Raw Format" {
+        BeforeAll {
+            Mock Get-ExchangeCertificate { Import-Clixml $Script:parentPath\Tests\DataCollection\GetExchangeCertificateBroken.xml }
+            $Script:results = Get-ExchangeServerCertificates -Server $Script:Server
+        }
+
+        It "Should Successfully Import Certificates From RawData" {
+            $results.Count | Should -Be 4
+            $results.GetType().FullName | Should -Be 'System.Object[]'
+            $results[1].Namespaces.Count | Should -Be 4
+            $results[1].IsSanCertificate | Should -Be $true
+            $results[1].LifetimeInDays | Should -BeGreaterThan 2000
+            $results[1].Thumbprint | Should -Be '2759456DC53C76E3DED093B567B6D8DAA42C0ADD'
+            $results[1].Subject | Should -Be 'CN=mail.contoso.lab'
+        }
+    }
+
     Context "Get-ExchangeCertificate Call Hit An Exception" {
         BeforeAll {
             Mock Get-ExchangeCertificate -MockWith { throw "Bad thing happened - Get-ExchangeCertificate" }
