@@ -162,10 +162,10 @@ function Get-FIPFSScanEngineVersionState {
         }
     } end {
         return [PSCustomObject]@{
-            FIPFSFixedBuild             = $fipfsIssueFixedBuild
-            ServerRoleAffected          = $serverRoleAffected
+            FIPFSFixedBuild              = $fipfsIssueFixedBuild
+            ServerRoleAffected           = $serverRoleAffected
             HighestVersionNumberDetected = $highestScanEngineVersionNumber
-            BadVersionNumberDirDetected = $isAffectedByFIPFSUpdateIssue
+            BadVersionNumberDirDetected  = $isAffectedByFIPFSUpdateIssue
         }
     }
 }
