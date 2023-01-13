@@ -123,8 +123,7 @@ function ValidateContentMBXUniqueness {
 function ValidateEntryIDMapping {
     param([PSCustomObject]$PublicFolderInfo)
     if ($PublicFolderInfo.PublicFolder.EntryId -ne $PublicFolderInfo.PublicFolderDumpster.DumpsterEntryID -or $PublicFolderInfo.PublicFolder.DumpsterEntryID -ne $PublicFolderInfo.PublicFolderDumpster.EntryId) {
-        #TODO: Fix tstamp
-        if (!(Test-Path -Path "$ExportPath\logs_$tstamp\PublicFolderInfo.xml")) {
+        if (!(Test-Path -Path "$ExportPath\logs_\PublicFolderInfo.xml")) {
             ExtractLog($PublicFolderInfo)
         }
         $Issue="Public folder $($PublicFolder.Identity) EntryId & DumpsterEntryID values are not mapped properly"
