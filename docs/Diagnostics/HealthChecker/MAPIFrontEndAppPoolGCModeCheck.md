@@ -19,11 +19,11 @@ You could be seeing some GC issues within the `MSExchangeMapiFrontEndAppPool` Ap
 How to fix this:
 
 1. Go into the file `MSExchangeMapiFrontEndAppPool_CLRConfig.config`\
-You can find the file by running ``%windir%\system32\inetsrv\appcmd.exe list apppool "MSExchangeMapiFrontEndAppPool" /text:"CLRConfigFile"`` via `cmd.exe`\
+You can find the file by running ``%winDir%\system32\inetSrv\AppCmd.exe list AppPool "MSExchangeMapiFrontEndAppPool" /text:"CLRConfigFile"`` via `cmd.exe`\
 It should be located here: `%ExchangeInstallPath%\bin\MSExchangeMapiFrontEndAppPool_CLRConfig.config`
 2. Open the file by using an elevated `notepad.exe` and change the `gcServer Enabled` value from `false` to `true`
 3. Recycle the `MAPI Front End App Pool` by running: `Restart-WebAppPool MSExchangeMapiFrontEndAppPool` via `PowerShell` or by running:\
- ``%windir%\system32\inetsrv\appcmd.exe RECYCLE AppPool "MSExchangeMapiFrontEndAppPool"`` via `cmd.exe`
+ ``%winDir%\system32\inetSrv\AppCmd.exe RECYCLE AppPool "MSExchangeMapiFrontEndAppPool"`` via `cmd.exe`
 
 **Included in HTML Report?**
 

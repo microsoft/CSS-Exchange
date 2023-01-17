@@ -3,9 +3,6 @@
 
 #
 # Get-MRMDetails.ps1
-# Modified 2017/02/13
-# Last Modifier:  Chris Pollitt
-# Project Owner:  Rob Whaley
 # Version: v2.0
 
 # Syntax for running this script:
@@ -16,25 +13,6 @@
 #
 # .\Get-MRMDetails.ps1 -Mailbox rob@contoso.com
 #
-##############################################################################################
-#
-# This script is not officially supported by Microsoft, use it at your own risk.
-# Microsoft has no liability, obligations, warranty, or responsibility regarding
-# any result produced by use of this file.
-#
-##############################################################################################
-# The sample scripts are not supported under any Microsoft standard support
-# program or service. The sample scripts are provided AS IS without warranty
-# of any kind. Microsoft further disclaims all implied warranties including, without
-# limitation, any implied warranties of merchantability or of fitness for a particular
-# purpose. The entire risk arising out of the use or performance of the sample scripts
-# and documentation remains with you. In no event shall Microsoft, its authors, or
-# anyone else involved in the creation, production, or delivery of the scripts be liable
-# for any damages whatsoever (including, without limitation, damages for loss of business
-# profits, business interruption, loss of business information, or other pecuniary loss)
-# arising out of the use of or inability to use the sample scripts or documentation,
-# even if Microsoft has been advised of the possibility of such damages
-##############################################################################################
 
 param (
     [Parameter(Mandatory = $true, HelpMessage = 'You must specify the name of a mailbox user')][string] $Mailbox
@@ -56,41 +34,41 @@ function funcRetentionProperties {
 
     # Export the users mailbox information
     $MailboxProps | Select-Object * | Out-File "$Mailbox - Mailbox Information.txt"
-    $MbxStatistics = get-mailboxstatistics $MailboxProps.exchangeguid.guid.tostring()
+    $MbxStatistics = get-MailboxStatistics $MailboxProps.ExchangeGuid.guid.ToString()
     #4 quotas of concern - total mailbox, recoverable mailbox, total archive, recoverable archive
-    [string]$tempstate = $MailboxProps.ProhibitSendReceiveQuota.split("(")[1]
-    # Not Used Yet [long]$MbxQuota = $tempstate.split("bytes")[0]
-    $tempstate = $MailboxProps.RecoverableItemsQuota.split("(")[1]
-    [long]$MbxRIQuota = $tempstate.split("bytes")[0]
-    $tempstate = $MbxStatistics.TotalItemSize.value.ToString().split("(")[1]
-    [long]$MbxTotalSize = $tempstate.split("bytes")[0]
-    $tempstate = $MbxStatistics.TotalDeletedItemSize.value.ToString().split("(")[1]
-    [long]$MbxDeletedSize = $tempstate.split("bytes")[0]
-    # Not Used Yet [int]$PercentofPriumaryMBXQuota = $MbxTotalSize / $MbxQuota * 100
-    [int]$PercentofPrimaryMBXRIQuota = $MbxDeletedSize / $MbxRIQuota * 100
+    [string]$tempState = $MailboxProps.ProhibitSendReceiveQuota.split("(")[1]
+    # Not Used Yet [long]$MbxQuota = $tempState.split("bytes")[0]
+    $tempState = $MailboxProps.RecoverableItemsQuota.split("(")[1]
+    [long]$MbxRIQuota = $tempState.split("bytes")[0]
+    $tempState = $MbxStatistics.TotalItemSize.value.ToString().split("(")[1]
+    [long]$MbxTotalSize = $tempState.split("bytes")[0]
+    $tempState = $MbxStatistics.TotalDeletedItemSize.value.ToString().split("(")[1]
+    [long]$MbxDeletedSize = $tempState.split("bytes")[0]
+    # Not Used Yet [int]$PercentOfPrimaryMBXQuota = $MbxTotalSize / $MbxQuota * 100
+    [int]$PercentOfPrimaryMbxRiQuota = $MbxDeletedSize / $MbxRIQuota * 100
 
-    if (($NULL -ne $MailboxProps.archivedatabase) -and ($MailboxProps.archiveguid -ne "00000000-0000-0000-0000-000000000000")) {
-        #		$ArchiveMbxProps = get-mailbox $MailboxProps.exchangeguid.guid -archive
-        $ArchiveMbxStats = get-mailboxstatistics $MailboxProps.exchangeguid.guid -archive
+    if (($NULL -ne $MailboxProps.ArchiveDatabase) -and ($MailboxProps.ArchiveGuid -ne "00000000-0000-0000-0000-000000000000")) {
+        #		$ArchiveMbxProps = get-mailbox $MailboxProps.ExchangeGuid.guid -archive
+        $ArchiveMbxStats = get-MailboxStatistics $MailboxProps.ExchangeGuid.guid -archive
 
-        [string]$tempstate = $MailboxProps.ArchiveQuota.split("(")[1]
-        [long]$ArchiveMbxQuota = $tempstate.split("bytes")[0]
+        [string]$tempState = $MailboxProps.ArchiveQuota.split("(")[1]
+        [long]$ArchiveMbxQuota = $tempState.split("bytes")[0]
         #Archive Mailbox Recoverable Items quota does not appear to be visible to admins in PowerShell.  However, recoverable Items quota can be inferred from 3 properties
         #Those properties are the RecoverableItemsQuota of the primary mailbox, Litigation Hold and In-Place Hold.  https://technet.microsoft.com/en-us/library/mt668450.aspx
         [long]$ArchiveMbxRIQuota = $MbxRIQuota
 
-        $tempstate = $ArchiveMbxStats.TotalItemSize.value.ToString().split("(")[1]
-        [long]$ArchiveMbxTotalSize = $tempstate.split("bytes")[0]
-        $tempstate = $ArchiveMbxStats.TotalDeletedItemSize.value.ToString().split("(")[1]
-        [long]$ArchiveMbxDeletedSize = $tempstate.split("bytes")[0]
+        $tempState = $ArchiveMbxStats.TotalItemSize.value.ToString().split("(")[1]
+        [long]$ArchiveMbxTotalSize = $tempState.split("bytes")[0]
+        $tempState = $ArchiveMbxStats.TotalDeletedItemSize.value.ToString().split("(")[1]
+        [long]$ArchiveMbxDeletedSize = $tempState.split("bytes")[0]
         [int]$PrimaryArchiveTotalFillPercentage = $ArchiveMbxTotalSize / $ArchiveMbxQuota * 100
         [int]$PrimaryArchiveRIFillPercentage = $ArchiveMbxDeletedSize / $ArchiveMbxRIQuota * 100
     }
     # Get the Diagnostic Logs for user
     $logProps = Export-MailboxDiagnosticLogs $Mailbox -ExtendedProperties
-    $xmlprops = [xml]($logProps.MailboxLog)
-    $ELCRunLastData = $xmlprops.Properties.MailboxTable.Property | Where-Object { $_.Name -like "*elc*" }
-    [datetime]$ELCLastSuccess = [datetime](($ELCRunLastData | Where-Object { $_.name -eq "ELCLastSuccessTimestamp" }).value)
+    $xmlProps = [xml]($logProps.MailboxLog)
+    $ELCRunLastData = $xmlProps.Properties.MailboxTable.Property | Where-Object { $_.Name -like "*elc*" }
+    [DateTime]$ELCLastSuccess = [DateTime](($ELCRunLastData | Where-Object { $_.name -eq "ELCLastSuccessTimestamp" }).value)
 
     # Get the Component Diagnostic Logs for user
     $error.Clear()
@@ -98,7 +76,7 @@ function funcRetentionProperties {
     ($error[0]).Exception | Out-File "$Mailbox - MRM Component Diagnostic Logs.txt" -Append
     if ($NULL -ne $ELCLastRunFailure) {
         $ELCLastRunFailure | Out-File "$Mailbox - MRM Component Diagnostic Logs.txt"
-        [datetime]$ELCLastFailure = [datetime]$ELCLastRunFailure.mailboxlog.split("Exception")[0]
+        [DateTime]$ELCLastFailure = [DateTime]$ELCLastRunFailure.MailboxLog.split("Exception")[0]
         if ($ELCLastSuccess -gt $ELCLastFailure) {
             "MRM has run successfully since the last failure.  This makes the Component Diagnostic Logs file much less interesting.
 		----------------------------------------------------------------------------------------------------------------------
@@ -128,9 +106,9 @@ function funcRetentionProperties {
 
     Search-AdminAuditLog -Cmdlets Start-ManagedFolderAssistant, Set-RetentionPolicy, Set-RetentionPolicyTag, Set-MailboxPlan, Set-Mailbox | Export-Csv "$Mailbox - MRM Component Audit Logs.csv" -NoTypeInformation
     # Get the Mailbox Folder Statistics
-    $fldrStats = Get-MailboxFolderStatistics $MailboxProps.Identity -IncludeAnalysis -IncludeOldestAndNewestItems
-    $fldrStats | Sort-Object FolderPath | Out-File "$Mailbox - Mailbox Folder Statistics.txt"
-    $fldrStats | Select-Object FolderPath, ItemsInFolder, ItemsInFolderAndSubfolders, FolderAndSubFolderSize, NewestItemReceivedDate, OldestItemReceivedDate | Sort-Object FolderPath | Format-Table -AutoSize -Wrap | Out-File "$Mailbox - Mailbox Folder Statistics (Summary).txt"
+    $folderStats = Get-MailboxFolderStatistics $MailboxProps.Identity -IncludeAnalysis -IncludeOldestAndNewestItems
+    $folderStats | Sort-Object FolderPath | Out-File "$Mailbox - Mailbox Folder Statistics.txt"
+    $folderStats | Select-Object FolderPath, ItemsInFolder, ItemsInFolderAndSubFolders, FolderAndSubFolderSize, NewestItemReceivedDate, OldestItemReceivedDate | Sort-Object FolderPath | Format-Table -AutoSize -Wrap | Out-File "$Mailbox - Mailbox Folder Statistics (Summary).txt"
     # Get the MRM 2.0 Policy and Tags Summary
     $MailboxRetentionPolicy = Get-RetentionPolicy $MailboxProps.RetentionPolicy
     $mrmPolicy = $MailboxRetentionPolicy | Select-Object -ExpandProperty Name
@@ -182,17 +160,17 @@ function funcRetentionProperties {
     $msgRetentionProperties >> ($File)
     if ($MbxTotalSize -le 10485760 ) {
         #If the Total Item size in the mailbox is less than or equal to 10MB MRM will not run. Both values converted to bytes.
-        $msgRetentionProperties = "Primary Mailbox is less than 10MB.  MRM will not run until mailbox exceeds 10MB.  Current Mailbox sixe is " + $MbxTotalSize.ToString() + " bytes."
+        $msgRetentionProperties = "Primary Mailbox is less than 10MB.  MRM will not run until mailbox exceeds 10MB.  Current Mailbox size is " + $MbxTotalSize.ToString() + " bytes."
         $msgRetentionProperties >> ($File)
         $msgRetentionProperties = "##################################################################################################################"
         $msgRetentionProperties >> ($File)
     } else {
-        $msgRetentionProperties = "Primary Mailbox exceeds 10MB.  Minimum mailbox size requirment for MRM has been met.  Current Mailbox sixe is " + $MbxTotalSize.ToString() + " bytes."
+        $msgRetentionProperties = "Primary Mailbox exceeds 10MB.  Minimum mailbox size requirement for MRM has been met.  Current Mailbox size is " + $MbxTotalSize.ToString() + " bytes."
         $msgRetentionProperties >> ($File)
         $msgRetentionProperties = "##################################################################################################################"
         $msgRetentionProperties >> ($File)
     }
-    if ($PercentofPrimaryMBXRIQuota -gt 98) {
+    if ($PercentOfPrimaryMbxRiQuota -gt 98) {
         #if Recoverable items in the primary mailbox is more than 98% full highlight it as a problem.
         $msgRetentionProperties = "Primary Mailbox is critically low on free quota for Recoverable Items. "
         $msgRetentionProperties >> ($File)

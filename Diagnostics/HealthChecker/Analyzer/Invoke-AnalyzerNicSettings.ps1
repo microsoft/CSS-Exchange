@@ -27,7 +27,7 @@ function Invoke-AnalyzerNicSettings {
     foreach ($adapter in $osInformation.NetworkInformation.NetworkAdapters) {
 
         if ($adapter.Description -eq "Remote NDIS Compatible Device") {
-            Write-Verbose "Remote NDSI Compatible Device found. Ignoring NIC."
+            Write-Verbose "Remote NDIS Compatible Device found. Ignoring NIC."
             continue
         }
 

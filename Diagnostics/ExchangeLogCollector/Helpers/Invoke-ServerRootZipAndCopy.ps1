@@ -31,7 +31,7 @@ function Invoke-ServerRootZipAndCopy {
         Write-Verbose("Getting Compress-Folder string to create Script Block")
         $compressFolderString = (${Function:Compress-Folder}).ToString()
         Write-Verbose("Creating script block")
-        $compressFolderScriptBlock = [scriptblock]::Create($compressFolderString)
+        $compressFolderScriptBlock = [ScriptBlock]::Create($compressFolderString)
 
         $serverArgListZipFolder = @()
 

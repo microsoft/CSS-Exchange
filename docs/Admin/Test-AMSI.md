@@ -1,6 +1,6 @@
 # Test-AMSI
 
-The Windows Antimalware Scan Interface (AMSI) is a versatile standard that allows applications and services to integrate with any antimalware product present on a machine. Seeing that Exchange administrators might not be familiar with AMSI, we wanted to provide a script that would make life a bit easier to test, enable, disable, or Check your AMSI Providers.
+The Windows AntiMalware Scan Interface (AMSI) is a versatile standard that allows applications and services to integrate with any AntiMalware product present on a machine. Seeing that Exchange administrators might not be familiar with AMSI, we wanted to provide a script that would make life a bit easier to test, enable, disable, or Check your AMSI Providers.
 
 ## Download
 

@@ -3,7 +3,7 @@
 
 function Get-ScriptDependencyHashtable {
     [CmdletBinding()]
-    [OutputType([hashtable])]
+    [OutputType([Hashtable])]
     param (
         [Parameter()]
         [string[]]

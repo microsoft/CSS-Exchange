@@ -12,7 +12,7 @@ function Get-Databases {
         $script:databases += Get-PublicFolderDatabase -server $serverName -status
     }
 
-    #write-host "Database Name:`t`t Mounted: `t`t Mounted On Server:" -foregroundcolor Yellow $nl
+    #write-host "Database Name:`t`t Mounted: `t`t Mounted On Server:" -ForegroundColor Yellow $nl
     $script:dbID = 0
 
     foreach ($script:db in $databases) {

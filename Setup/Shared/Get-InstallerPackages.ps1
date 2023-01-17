@@ -34,7 +34,7 @@ function Get-InstallerPackages {
             }
 
             $filePackagePath = [IO.FileInfo] $regKey.GetValue("LocalPackage")
-            Write-Verbose "Reviewing File Path $filePacakgePath"
+            Write-Verbose "Reviewing File Path $filePackagePath"
             $item = $null
 
             if ($filePackagePath.Extension -eq ".msp") {

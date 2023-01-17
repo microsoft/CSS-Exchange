@@ -45,7 +45,7 @@ Describe "Testing Get-TlsCipherSuiteInformation.ps1" {
         }
 
         It "Tls cipher suites are configured via GPO and so taking precedence over local Tls cipher suites" {
-            Mock Get-RemoteRegistryValue -ParameterFilter { $Subkey -like "*Policies*" } -MockWith { return Import-Clixml $script:parentPath\Tests\Data\TlsCipherGPOPath.xml }
+            Mock Get-RemoteRegistryValue -ParameterFilter { $SubKey -like "*Policies*" } -MockWith { return Import-Clixml $script:parentPath\Tests\Data\TlsCipherGPOPath.xml }
             $script:results = Get-TlsCipherSuiteInformation
 
             $results | Should -Not -Be $null
@@ -56,8 +56,8 @@ Describe "Testing Get-TlsCipherSuiteInformation.ps1" {
         }
 
         It "Tls cipher suites are not configured via GPO - locally configured cipher suites should be returned" {
-            Mock Get-RemoteRegistryValue -ParameterFilter { $Subkey -like "*Policies*" } -MockWith { return $null }
-            Mock Get-RemoteRegistryValue -ParameterFilter { $Subkey -like "*CurrentControlSet*" } -MockWith { return Import-Clixml $script:parentPath\Tests\Data\TlsCipherLocalPath.xml }
+            Mock Get-RemoteRegistryValue -ParameterFilter { $SubKey -like "*Policies*" } -MockWith { return $null }
+            Mock Get-RemoteRegistryValue -ParameterFilter { $SubKey -like "*CurrentControlSet*" } -MockWith { return Import-Clixml $script:parentPath\Tests\Data\TlsCipherLocalPath.xml }
             $script:results = Get-TlsCipherSuiteInformation
 
             $results | Should -Not -Be $null

@@ -7,7 +7,7 @@ function Get-VisualCRedistributableInstalledVersion {
     [CmdletBinding()]
     param(
         [string]$ComputerName = $env:COMPUTERNAME,
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"

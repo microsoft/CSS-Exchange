@@ -78,13 +78,13 @@ function Write-TestFolderLimitResult {
 
         if ($emptyFolderResults.Count -gt 0) {
             Get-ResultSummary -ResultType $emptyFolderResults[0].ResultType -Severity $emptyFolderResults[0].Severity -Count $emptyFolderResults.Count -Action (
-                "Folders contain no items and have only empty subfolders. " +
+                "Folders contain no items and have only empty SubFolders. " +
                 "These will not cause a migration issue, but they may be pruned if desired.")
         }
 
         if ($noStatisticsResults.Count -gt 0) {
             Get-ResultSummary -ResultType $noStatisticsResults[0].ResultType -Severity $noStatisticsResults[0].Severity -Count $noStatisticsResults.Count -Action (
-                "Public folder statistics could not be retreived for these folders. " +
+                "Public folder statistics could not be retrieved for these folders. " +
                 "ItemCount, TotalItemSize, and EmptyFolder tests were skipped for these folders.")
         }
     }

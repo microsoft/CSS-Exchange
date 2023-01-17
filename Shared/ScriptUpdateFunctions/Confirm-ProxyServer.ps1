@@ -11,7 +11,7 @@ function Confirm-ProxyServer {
     )
 
     try {
-        $proxyObject = ([System.Net.WebRequest]::GetSystemWebproxy()).GetProxy($TargetUri)
+        $proxyObject = ([System.Net.WebRequest]::GetSystemWebProxy()).GetProxy($TargetUri)
         if ($TargetUri -ne $proxyObject.OriginalString) {
             return $true
         } else {

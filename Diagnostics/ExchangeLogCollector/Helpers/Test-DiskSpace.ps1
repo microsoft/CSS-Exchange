@@ -63,7 +63,7 @@ function Test-DiskSpace {
         -IncludeUsingParameter "WriteRemoteVerboseDebugAction" `
         -CatchActionFunction ${Function:Invoke-CatchActions}
     Write-Verbose("Creating Script Block")
-    $getFreeSpaceScriptBlock = [scriptblock]::Create($getFreeSpaceString)
+    $getFreeSpaceScriptBlock = [ScriptBlock]::Create($getFreeSpaceString)
     $serversData = Start-JobManager -ServersWithArguments $serverArgs -ScriptBlock $getFreeSpaceScriptBlock `
         -NeedReturnData $true `
         -JobBatchName "Getting the free space for test disk space" `

@@ -47,7 +47,7 @@ Describe "Testing Get-ExchangeServerCertificates.ps1" {
         }
 
         It "Valid SAN Certificate (using weak SHA1 Hash Algorithm) Detected" {
-            $results[1].FriendlyName | Should -Be "WIN-CTD3L0RGEN4"
+            $results[1].FriendlyName | Should -Be "WIN-CTD3L0RGen4"
             $results[1].Thumbprint | Should -Be "611C687DFC4343A5A03E0005A1EC6E9B6AFF586D"
             $results[1].IsCurrentAuthConfigCertificate | Should -Be $false
             $results[1].SignatureAlgorithm | Should -Be "sha1RSA"
@@ -59,7 +59,7 @@ Describe "Testing Get-ExchangeServerCertificates.ps1" {
         }
 
         It "Valid Certificate (using strong SHA256 Hash Algorithm) Detected" {
-            $results[3].FriendlyName | Should -Be "WMSvc-SHA2-WIN-CTD3L0RGEN4"
+            $results[3].FriendlyName | Should -Be "WMSvc-SHA2-WIN-CTD3L0RGen4"
             $results[3].Thumbprint | Should -Be "3341CEAF3DF4D3A9527EC98BDD53C54ECC3E0620"
             $results[3].PublicKeySize | Should -Be 2048
             $results[3].SignatureAlgorithm | Should -Be "sha256RSA"
@@ -107,7 +107,7 @@ Describe "Testing Get-ExchangeServerCertificates.ps1" {
             $Script:results = Get-ExchangeServerCertificates -Server $Script:Server
         }
 
-        It "No Custom Certifiate Object Returned" {
+        It "No Custom certificate Object Returned" {
             $results | Should -Be $null
         }
     }
@@ -141,7 +141,7 @@ Describe "Testing Get-ExchangeServerCertificates.ps1" {
         }
     }
 
-    Context "Check If Certificates On Skiplist Are Skipped" {
+    Context "Check If Certificates On SkipList Are Skipped" {
         BeforeAll {
             Mock Get-ExchangeCertificate -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetExchangeCertificateOnAzure.xml }
             $Script:results = Get-ExchangeServerCertificates -Server $Script:Server

@@ -9,7 +9,7 @@ function Get-ExchangeSettingOverride {
         [Parameter(Mandatory = $true)]
         [string]$Server,
         [Parameter(Mandatory = $false)]
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
 
     begin {

@@ -49,7 +49,7 @@ Yes
 
 **Additional resources:**
 
-[1 - Does corespersocket Affect Performance?](https://blogs.vmware.com/vsphere/2013/10/does-corespersocket-affect-performance.html)
+[1 - Does CoresPerSocket Affect Performance?](https://blogs.vmware.com/vsphere/2013/10/does-CoresPerSocket-affect-performance.html)
 
 [2 - Commodity servers](https://docs.microsoft.com/exchange/plan-and-deploy/deployment-ref/preferred-architecture-2019?view=exchserver-2019#commodity-servers)
 

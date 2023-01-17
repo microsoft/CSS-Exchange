@@ -15,7 +15,7 @@ function Get-TokenGroupsGlobalAndUniversal {
         [string]$UserSid,
 
         [Parameter(Mandatory = $false)]
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
 
     begin {

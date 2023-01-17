@@ -29,7 +29,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "MRS Proxy Enabled" "False"
             TestObjectMatch "MAPI Front End App Pool GC Mode" "Workstation --- Warning" -WriteType "Yellow"
             TestObjectMatch "Internet Web Proxy" "Not Set"
-            TestObjectMatch "Extended Protection Enabled (Any Vdir)" $false
+            TestObjectMatch "Extended Protection Enabled (Any VDir)" $false
             TestObjectMatch "Setting Overrides Detected" $false
             $Script:ActiveGrouping.Count | Should -Be 16
         }
@@ -75,7 +75,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             SetActiveDisplayGrouping "Processor/Hardware Information"
 
             TestObjectMatch "Type" "HyperV"
-            TestObjectMatch "Processor" "Intel(R) Xeon(R) CPU E5-2430 0 @ 2.20GHz"
+            TestObjectMatch "Processor" "Intel(R) XeOn(R) CPU E5-2430 0 @ 2.20GHz"
             TestObjectMatch "Number of Processors" 1
             TestObjectMatch "Number of Physical Cores" 2 -WriteType "Green"
             TestObjectMatch "Number of Logical Cores" 4 -WriteType "Green"
@@ -132,7 +132,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
         It "Display Results - Security Vulnerability" {
             SetActiveDisplayGrouping "Security Vulnerability"
 
-            $cveTests = $Script:ActiveGrouping.TestingValue | Where-Object { ($_.Gettype().Name -eq "String") -and ($_.StartsWith("CVE")) }
+            $cveTests = $Script:ActiveGrouping.TestingValue | Where-Object { ($_.GetType().Name -eq "String") -and ($_.StartsWith("CVE")) }
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
             $cveTests.Count | Should -Be 49
         }

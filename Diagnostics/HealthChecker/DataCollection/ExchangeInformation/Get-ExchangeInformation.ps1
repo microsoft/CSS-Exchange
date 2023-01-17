@@ -220,13 +220,13 @@ function Get-ExchangeInformation {
         }
 
         Write-Verbose "Checking if FIP-FS is affected by the pattern issue"
-        $fipfsParams = @{
+        $fipFsParams = @{
             ComputerName   = $Server
             ExSetupVersion = $buildInformation.ExchangeSetup.FileVersion
             ServerRole     = $buildInformation.ServerRole
         }
 
-        $buildInformation.FIPFSUpdateIssue = Get-FIPFSScanEngineVersionState @fipfsParams
+        $buildInformation.FIPFSUpdateIssue = Get-FIPFSScanEngineVersionState @fipFsParams
 
         if (($buildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2016) -and
         ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge)) {

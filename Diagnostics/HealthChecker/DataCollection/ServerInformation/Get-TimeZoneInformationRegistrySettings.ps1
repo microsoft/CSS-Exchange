@@ -6,7 +6,7 @@ function Get-TimeZoneInformationRegistrySettings {
     [CmdletBinding()]
     param(
         [string]$MachineName = $env:COMPUTERNAME,
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"

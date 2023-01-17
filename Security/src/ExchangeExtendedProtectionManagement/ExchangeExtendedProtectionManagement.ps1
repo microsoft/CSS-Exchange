@@ -63,7 +63,7 @@ param(
         })]
     [string]$IPRangeFilePath,
 
-    [Parameter (Mandatory = $true, ParameterSetName = 'ConfigureMitigation', HelpMessage = "Using this parameter will allow you to specify the site and vdir on which you want to configure mitigation.")]
+    [Parameter (Mandatory = $true, ParameterSetName = 'ConfigureMitigation', HelpMessage = "Using this parameter will allow you to specify the site and VDir on which you want to configure mitigation.")]
     [ValidateSet('EWSBackend')]
     [ValidateScript({
         ($null -ne $_) -and ($_.Length -gt 0)
@@ -493,7 +493,7 @@ begin {
                         }
                     }
 
-                    # now that we passed the TLS PrerequisitesCheck, now we need to do the RPC vdir check for SSLOffloading.
+                    # now that we passed the TLS PrerequisitesCheck, now we need to do the RPC VDir check for SSLOffloading.
                     $rpcFailedServers = New-Object 'System.Collections.Generic.List[string]'
                     $rpcNullServers = New-Object 'System.Collections.Generic.List[string]'
                     $canNotConfigure = "Therefore, we can not configure Extended Protection."

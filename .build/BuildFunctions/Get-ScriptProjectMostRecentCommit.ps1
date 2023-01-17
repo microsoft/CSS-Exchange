@@ -15,11 +15,11 @@ function Get-ScriptProjectMostRecentCommit {
         $File,
 
         [Parameter()]
-        [hashtable]
+        [Hashtable]
         $CommitTimeHashtable,
 
         [Parameter()]
-        [hashtable]
+        [Hashtable]
         $DependencyHashtable
     )
 

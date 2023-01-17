@@ -8,8 +8,8 @@ function Export-ExchangeAuthCertificate {
     [OutputType([System.Object])]
     param(
         [Parameter(Mandatory = $true)]
-        [securestring]$Password,
-        [scriptblock]$CatchActionFunction
+        [SecureString]$Password,
+        [ScriptBlock]$CatchActionFunction
     )
 
     <#

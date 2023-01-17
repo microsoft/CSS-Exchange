@@ -1,0 +1,25 @@
+{
+    "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
+    "version": "0.2",
+    "dictionaryDefinitions": [
+      {
+        "name": "cspell-words",
+        "path": "./cspell-words.txt",
+        "addWords": true
+      }
+    ],
+    "dictionaries": ["cspell-words"],
+    "useGitignore": true,
+    "ignorePaths": [
+        ".github",
+        ".vscode",
+        "/cspell-words.txt"
+    ],
+    "caseSensitive": true,
+    "overrides": [
+     {
+      "filename": "**/*.md",
+      "caseSensitive": false
+     }
+    ]
+  }

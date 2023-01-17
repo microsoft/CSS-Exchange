@@ -9,7 +9,7 @@ function Get-DotNetDllFileVersions {
     param(
         [string]$ComputerName,
         [array]$FileNames,
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
 
     begin {

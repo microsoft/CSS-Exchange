@@ -8,7 +8,7 @@ function Get-ScriptDependencyTree {
         $File,
 
         [Parameter()]
-        [hashtable]
+        [Hashtable]
         $DependencyHashtable,
 
         [Parameter()]

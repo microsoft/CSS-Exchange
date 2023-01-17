@@ -31,7 +31,7 @@ $dependenciesTable = Import-Clixml $distFolder\dependencyHashtable.xml
 $dependentsTable = Import-Clixml $distFolder\dependentHashtable.xml
 
 if ($null -eq $dependenciesTable -or $null -eq $dependentsTable) {
-    throw "Dependency hashtable not found. Run .build\Build.ps1 first."
+    throw "Dependency Hashtable not found. Run .build\Build.ps1 first."
 }
 
 # Files with commit times that are older than one or more dependent files in main.

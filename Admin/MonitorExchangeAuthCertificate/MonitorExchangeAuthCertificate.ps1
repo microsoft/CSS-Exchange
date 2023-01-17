@@ -103,7 +103,7 @@ param(
     [Parameter(Mandatory = $true, ParameterSetName = "SetupAutomaticExecutionADRequirements")]
     [Parameter(Mandatory = $false, ParameterSetName = "ConfigureAutomaticExecutionViaScheduledTask")]
     [Parameter(Mandatory = $true, ParameterSetName = "ExportExchangeAuthCertificatesAsPfx")]
-    [securestring]$Password,
+    [SecureString]$Password,
 
     [Parameter(Mandatory = $false, ParameterSetName = "ExportExchangeAuthCertificatesAsPfx")]
     [switch]$ExportAuthCertificatesAsPfx,
@@ -182,7 +182,7 @@ function Main {
         Write-Host ("Mode: Prepare AD account to run the script as scheduled task")
         $newAuthCertificateParamsAccountOnly = @{
             Password            = $Password
-            DomainTouse         = $ADAccountDomain
+            DomainToUse         = $ADAccountDomain
             CatchActionFunction = ${Function:Invoke-CatchActions}
         }
         $adAccountSuccessfullyCreated = New-AuthCertificateManagementAccount @newAuthCertificateParamsAccountOnly
@@ -198,33 +198,33 @@ function Main {
     }
 
     $exchangeShell = Confirm-ExchangeShell -CatchActionFunction ${Function:Invoke-CatchActions}
-    $exitScriptDueToShellRequirementsNotFullfilled = $false
+    $exitScriptDueToShellRequirementsNotFullFilled = $false
     if (-not($exchangeShell.ShellLoaded)) {
         Write-Warning ("Unable to load Exchange Management Shell")
-        $exitScriptDueToShellRequirementsNotFullfilled = $true
+        $exitScriptDueToShellRequirementsNotFullFilled = $true
     } else {
         if ($exchangeShell.ToolsOnly) {
             Write-Warning ("The script must be run on an Exchange server")
-            $exitScriptDueToShellRequirementsNotFullfilled = $true
+            $exitScriptDueToShellRequirementsNotFullFilled = $true
         }
 
         if ($exchangeShell.EdgeServer) {
             Write-Warning ("The script cannot be run on an Edge Transport server")
-            $exitScriptDueToShellRequirementsNotFullfilled = $true
+            $exitScriptDueToShellRequirementsNotFullFilled = $true
         }
 
         if ($exchangeShell.RemoteShell) {
             Write-Warning ("Running the script via Remote Shell is not supported")
-            $exitScriptDueToShellRequirementsNotFullfilled = $true
+            $exitScriptDueToShellRequirementsNotFullFilled = $true
         }
 
         if ($exchangeShell.Major -lt 15) {
             Write-Warning ("The script must be run on Exchange 2013 or higher")
-            $exitScriptDueToShellRequirementsNotFullfilled = $true
+            $exitScriptDueToShellRequirementsNotFullFilled = $true
         }
     }
 
-    if ($exitScriptDueToShellRequirementsNotFullfilled) {
+    if ($exitScriptDueToShellRequirementsNotFullFilled) {
         $Error.Clear()
         Start-Sleep -Seconds 2
         exit

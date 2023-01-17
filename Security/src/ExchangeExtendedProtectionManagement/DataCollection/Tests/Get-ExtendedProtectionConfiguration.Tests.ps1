@@ -55,7 +55,7 @@ BeforeAll {
             [bool]$SkipAllow = $false,
             [bool]$SkipAutoDiscover = $false,
             [bool]$IPFilterEnabled = $false,
-            [string]$IPFilteredvDir = $null,
+            [string]$IPFilteredVDir = $null,
             [string[]]$AllowedIpAddresses
         )
 
@@ -98,7 +98,7 @@ BeforeAll {
             $ipFilter = $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
                 Where-Object {
                     ($_.ExtendedProtection -eq "None") -and
-                    ($_.VirtualDirectoryName -eq $IPFilteredvDir)
+                    ($_.VirtualDirectoryName -eq $IPFilteredVDir)
                 }
             $ipFilter.MitigationEnabled | Should -Be $true
             $ipFilter.ProperlySecuredConfiguration | Should -Be $true
@@ -264,7 +264,7 @@ Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
                 ExtendedProtectionNoneCount      = 20
                 SkipAutoDiscover                 = $true
                 IPFilterEnabled                  = $true
-                IPFilteredvDir                   = "Exchange Back End/EWS"
+                IPFilteredVDir                   = "Exchange Back End/EWS"
                 AllowedIpAddresses               = "192.168.100.5", "fe80::de2:4f45:21dc:6c5a%14", "::1", "127.0.0.1"
             }
             TestSupportedConfiguredExtendedProtection @mockParams
@@ -283,7 +283,7 @@ Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
                 ExtendedProtectionNoneCount      = 20
                 SkipAutoDiscover                 = $true
                 IPFilterEnabled                  = $true
-                IPFilteredvDir                   = "Exchange Back End/EWS"
+                IPFilteredVDir                   = "Exchange Back End/EWS"
                 AllowedIpAddresses               = "192.168.100.5", "fe80::de2:4f45:21dc:6c5a%14", "::1", "127.0.0.1"
             }
             TestSupportedConfiguredExtendedProtection @mockParams

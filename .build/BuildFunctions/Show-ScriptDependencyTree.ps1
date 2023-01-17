@@ -4,11 +4,11 @@
 function Show-ScriptDependencyTree {
     param(
         [Parameter()]
-        [hashtable]
+        [Hashtable]
         $DependencyTree,
 
         [Parameter()]
-        [hashtable]
+        [Hashtable]
         $Timestamps,
 
         [Parameter()]

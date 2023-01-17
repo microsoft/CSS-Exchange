@@ -7,7 +7,7 @@ function Invoke-CatchActionErrorLoop {
         [Parameter(Mandatory = $true, Position = 0)]
         [int]$CurrentErrors,
         [Parameter(Mandatory = $false, Position = 1)]
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
     process {
         if ($null -ne $CatchActionFunction -and

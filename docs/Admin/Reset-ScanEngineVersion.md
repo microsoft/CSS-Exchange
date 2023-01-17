@@ -17,5 +17,5 @@ Copy the script to an affected Exchange server and run it with no parameters. It
 In scenarios where centralized distribution of scan engines is used, add the -EngineUpdatePath switch to point to the share containing the engines. For example:
 
 ```powershell
-.\Reset-ScanEngineVersion.ps1 -EngineUpdatePath \\fileserver1\ScanEngineUpdates
+.\Reset-ScanEngineVersion.ps1 -EngineUpdatePath \\FileServer1\ScanEngineUpdates
 ```

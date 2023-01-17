@@ -21,8 +21,8 @@ Set the paging file minimum and maximum value to the same size:
 You can set the pagefile to a static size via `wmic` whereas `InitialSize` and `MaximumSize` is the size in megabytes calculated based on the Exchange Server version and memory installed in the server:
 
 ```
-wmic computersystem set AutomaticManagedPagefile=False
-wmic pagefileset set InitialSize=1024,MaximumSize=1024
+wmic ComputerSystem set AutomaticManagedPagefile=False
+wmic PageFileSet set InitialSize=1024,MaximumSize=1024
 ```
 
 **Included in HTML Report?**

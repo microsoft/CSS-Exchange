@@ -4,7 +4,7 @@
 . $PSScriptRoot\..\ExchangeServerInfo\Get-VirtualDirectoriesLdap.ps1
 . $PSScriptRoot\..\RemoteScriptBlock\IO\Save-DataInfoToFile.ps1
 function Write-DataOnlyOnceOnMasterServer {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseUsingScopeModifierInNewRunspaces', '', Justification = 'Can not use using for an env variable')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseUsingScopeModifierInNewRunSpaces', '', Justification = 'Can not use using for an env variable')]
     param()
     Write-Verbose("Enter Function: Write-DataOnlyOnceOnMasterServer")
     Write-Verbose("Writing only once data")
@@ -16,7 +16,7 @@ function Write-DataOnlyOnceOnMasterServer {
         $RootCopyToDirectory = "{0}{1}" -f $Script:RootFilePath, $env:COMPUTERNAME
     }
 
-    if ($GetVdirs -and (-not($Script:EdgeRoleDetected))) {
+    if ($GetVDirs -and (-not($Script:EdgeRoleDetected))) {
         $target = $RootCopyToDirectory + "\ConfigNC_msExchVirtualDirectory_All.CSV"
         $data = (Get-VirtualDirectoriesLdap)
         $data | Sort-Object -Property Server | Export-Csv $target -NoTypeInformation

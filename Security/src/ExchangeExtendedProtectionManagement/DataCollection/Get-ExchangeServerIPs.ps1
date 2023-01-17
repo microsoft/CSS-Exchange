@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\..\..\..\..\Diagnostics\HealthChecker\DataCollection\ServerInformation\Get-AllNicInformation.ps1
 
-# This function is used to get a list of all the IP in use by the Exchange Servers accross the topology
+# This function is used to get a list of all the IP in use by the Exchange Servers across the topology
 function Get-ExchangeServerIPs {
     [OutputType([System.Collections.Hashtable])]
     [CmdletBinding()]

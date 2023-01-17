@@ -19,11 +19,11 @@ param (
     [switch]$EWSLogs,
     [Alias("ExchangeServerInfo")]
     [switch]$ExchangeServerInformation,
-    [switch]$Exmon,
-    [switch]$Experfwiz,
+    [switch]$ExMon,
+    [switch]$ExPerfWiz,
     [switch]$FrontEndConnectivityLogs,
     [switch]$FrontEndProtocolLogs,
-    [switch]$GetVdirs,
+    [switch]$GetVDirs,
     [switch]$HighAvailabilityLogs,
     [switch]$HubConnectivityLogs,
     [switch]$HubProtocolLogs,
@@ -65,17 +65,17 @@ param (
     [Parameter(ParameterSetName = "Worth")]
     [int]$HoursWorth = 0,
     [switch]$DisableConfigImport,
-    [string]$ExmonLogmanName = "Exmon_Trace",
-    [array]$ExperfwizLogmanName = @("Exchange_Perfwiz", "ExPerfwiz", "SimplePerf"),
+    [string]$ExMonLogmanName = "ExMon_Trace",
+    [array]$ExPerfWizLogmanName = @("Exchange_PerfWiz", "ExPerfWiz", "SimplePerf"),
     [Parameter(ParameterSetName = "LogAge")]
-    [timespan]$LogAge = "3.00:00:00",
+    [TimeSpan]$LogAge = "3.00:00:00",
     [Parameter(ParameterSetName = "LogPeriod")]
-    [datetime]$LogStartDate = (Get-Date).AddDays(-3),
+    [DateTime]$LogStartDate = (Get-Date).AddDays(-3),
     [Parameter(ParameterSetName = "LogPeriod")]
-    [datetime]$LogEndDate = (Get-Date),
+    [DateTime]$LogEndDate = (Get-Date),
     [switch]$OutlookConnectivityIssues,
     [switch]$PerformanceIssues,
-    [switch]$PerformanceMailflowIssues,
+    [switch]$PerformanceMailFlowIssues,
     [switch]$ProtocolLogs,
     [switch]$ScriptDebug,
     [bool]$SkipEndCopyOver

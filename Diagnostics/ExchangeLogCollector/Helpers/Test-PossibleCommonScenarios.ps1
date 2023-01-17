@@ -17,7 +17,7 @@ function Test-PossibleCommonScenarios {
         $Script:SearchLogs = $true
         $Script:HighAvailabilityLogs = $true
         $Script:ServerInformation = $true
-        $Script:GetVdirs = $true
+        $Script:GetVDirs = $true
         $Script:DAGInformation = $true
         $Script:DefaultTransportLogging = $true
         $Script:MapiLogs = $true
@@ -26,7 +26,7 @@ function Test-PossibleCommonScenarios {
         $Script:ExchangeServerInformation = $true
         $Script:PopLogs = $true
         $Script:ImapLogs = $true
-        $Script:Experfwiz = $true
+        $Script:ExPerfWiz = $true
         $Script:OABLogs = $true
         $Script:PowerShellLogs = $true
         $Script:WindowsSecurityLogs = $true
@@ -69,7 +69,7 @@ function Test-PossibleCommonScenarios {
         $Script:HighAvailabilityLogs = $true
         $Script:ManagedAvailabilityLogs = $true
         $Script:DAGInformation = $true
-        $Script:Experfwiz = $true
+        $Script:ExPerfWiz = $true
         $Script:ServerInformation = $true
         $Script:CollectFailoverMetrics = $true
     }
@@ -77,12 +77,12 @@ function Test-PossibleCommonScenarios {
     if ($PerformanceIssues) {
         $Script:DailyPerformanceLogs = $true
         $Script:ManagedAvailabilityLogs = $true
-        $Script:Experfwiz = $true
+        $Script:ExPerfWiz = $true
     }
 
-    if ($PerformanceMailflowIssues) {
+    if ($PerformanceMailFlowIssues) {
         $Script:DailyPerformanceLogs = $true
-        $Script:Experfwiz = $true
+        $Script:ExPerfWiz = $true
         $Script:MessageTrackingLogs = $true
         $Script:QueueInformation = $true
         $Script:TransportConfig = $true
@@ -90,7 +90,7 @@ function Test-PossibleCommonScenarios {
 
     if ($OutlookConnectivityIssues) {
         $Script:DailyPerformanceLogs = $true
-        $Script:Experfwiz = $true
+        $Script:ExPerfWiz = $true
         $Script:IISLogs = $true
         $Script:MapiLogs = $true
         $Script:RPCLogs = $true

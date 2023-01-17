@@ -10,7 +10,7 @@ function Get-AllNicInformation {
     param(
         [string]$ComputerName = $env:COMPUTERNAME,
         [string]$ComputerFQDN,
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
     begin {
 
@@ -145,7 +145,7 @@ function Get-AllNicInformation {
                         Write-Verbose "Working on NIC: $($networkConfig.InterfaceDescription)"
                         $adapter = $networkConfig.NetAdapter
 
-                        if ($adapter.DriverFileName -ne "NdisImPlatform.sys") {
+                        if ($adapter.DriverFileName -ne "NdIsImPlatform.sys") {
                             $nicPnpCapabilitiesSetting = Get-NicPnpCapabilitiesSetting -NicAdapterComponentId $adapter.DeviceID
                         } else {
                             Write-Verbose "Multiplexor adapter detected. Going to skip PnpCapabilities check"
@@ -223,7 +223,7 @@ function Get-AllNicInformation {
                         $adapter = $networkConfig
                         $description = $adapter.Description
 
-                        if ($adapter.ServiceName -ne "NdisImPlatformMp") {
+                        if ($adapter.ServiceName -ne "NdIsImPlatformMp") {
                             $nicPnpCapabilitiesSetting = Get-NicPnpCapabilitiesSetting -NicAdapterComponentId $adapter.Guid
                         } else {
                             Write-Verbose "Multiplexor adapter detected. Going to skip PnpCapabilities check"
@@ -333,7 +333,7 @@ function Get-AllNicInformation {
 
             if ([String]::IsNullOrEmpty($networkConfiguration)) {
                 # Throw if nothing was returned by previous calls.
-                # Can be caused when executed on Server 2008 R2 where CIM namespace ROOT/StandardCimv2 is invalid.
+                # Can be caused when executed on Server 2008 R2 where CIM namespace ROOT/StandardCiMv2 is invalid.
                 Write-Verbose "No value was returned by 'Get-NetworkConfiguration'. Fallback to WMI."
                 throw
             }

@@ -27,9 +27,9 @@ function Get-OperatingSystemInformation {
 
     [HealthChecker.OperatingSystemInformation]$osInformation = New-Object HealthChecker.OperatingSystemInformation
     $win32_OperatingSystem = Get-WmiObjectCriticalHandler -ComputerName $Server -Class Win32_OperatingSystem -CatchActionFunction ${Function:Invoke-CatchActions}
-    $win32_PowerPlan = Get-WmiObjectHandler -ComputerName $Server -Class Win32_PowerPlan -Namespace 'root\cimv2\power' -Filter "isActive='true'" -CatchActionFunction ${Function:Invoke-CatchActions}
+    $win32_PowerPlan = Get-WmiObjectHandler -ComputerName $Server -Class Win32_PowerPlan -Namespace 'root\ciMv2\power' -Filter "isActive='true'" -CatchActionFunction ${Function:Invoke-CatchActions}
     $currentDateTime = Get-Date
-    $lastBootUpTime = [Management.ManagementDateTimeConverter]::ToDateTime($win32_OperatingSystem.lastbootuptime)
+    $lastBootUpTime = [Management.ManagementDateTimeConverter]::ToDateTime($win32_OperatingSystem.LastBootUpTime)
     $osInformation.BuildInformation.VersionBuild = $win32_OperatingSystem.Version
     $osInformation.BuildInformation.MajorVersion = (Get-ServerOperatingSystemVersion -OsCaption $win32_OperatingSystem.Caption)
     $osInformation.BuildInformation.FriendlyName = $win32_OperatingSystem.Caption

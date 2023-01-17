@@ -2,7 +2,7 @@
 
 Download the latest release: [VSSTester.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/VSSTester.ps1)
 
-The script is self-explanatory. You can test run diskshadow on a single Exchange database to ensure backups are working properly (i.e. all the Microsoft components). If the issue only happens with a 3rd-party backup solution, you can utilize operation mode 2 to enable just the logging while you execute a backup with the 3rd-party solution.
+The script is self-explanatory. You can test run DiskShadow on a single Exchange database to ensure backups are working properly (i.e. all the Microsoft components). If the issue only happens with a 3rd-party backup solution, you can utilize operation mode 2 to enable just the logging while you execute a backup with the 3rd-party solution.
 
 ![Start Screen](start_screen.PNG)
 
@@ -15,7 +15,7 @@ The script is self-explanatory. You can test run diskshadow on a single Exchange
 
 Here are the steps to verify that the local Administrators group is allowed to the COM+ Security on the computer. The script will detect if this is a possibility if we can not see the Exchange Writers and we have the registry settings set that determine this is a possibility.
 
-1. Run "dcomcnfg" from the run box or command prompt on the problem machine
+1. Run "dcomCnFg" from the run box or command prompt on the problem machine
 2. Expand Component Services then Computers
 3. Right Click on My Computer and select Properties
 
