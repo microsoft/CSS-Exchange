@@ -195,6 +195,22 @@ function Invoke-AnalyzerKnownBuildIssues {
             -InformationUrl (GetKnownIssueInformation `
                 "Management issues after SerializedDataSigning is enabled on Exchange Server 2013" `
                 "https://techcommunity.microsoft.com/t5/exchange-team-blog/released-january-2023-exchange-server-security-updates/ba-p/3711808")
+
+        Write-Verbose "Working on January 2023 Security Updates - Other known issues"
+        $infoParams = @{
+            Name = "Known Issues with Jan 2023 Security for Exchange 2016 and 2019"
+            Url  = "https://techcommunity.microsoft.com/t5/exchange-team-blog/released-january-2023-exchange-server-security-updates/ba-p/3711808"
+        }
+        $params = @{
+            CurrentVersion          = $currentVersion
+            KnownBuildIssuesToFixes = @(
+                (GetKnownIssueBuildInformation "15.1.2507.17" $null),
+                (GetKnownIssueBuildInformation "15.2.986.37" $null),
+                (GetKnownIssueBuildInformation "15.2.1118.21" $null)
+            )
+            InformationUrl          = (GetKnownIssueInformation @infoParams)
+        }
+        TestForKnownBuildIssues @params
     } catch {
         Write-Verbose "Failed to run TestForKnownBuildIssues"
         Invoke-CatchActions
