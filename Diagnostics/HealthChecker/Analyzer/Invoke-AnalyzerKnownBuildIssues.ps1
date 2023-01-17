@@ -160,41 +160,64 @@ function Invoke-AnalyzerKnownBuildIssues {
 
     try {
         Write-Verbose "Working on November 2021 Security Updates - OWA redirection"
-        TestForKnownBuildIssues -CurrentVersion $currentVersion `
-            -KnownBuildIssuesToFixes @(
-            (GetKnownIssueBuildInformation "15.2.986.14" "15.2.986.15"),
-            (GetKnownIssueBuildInformation "15.2.922.19" "15.2.922.20"),
-            (GetKnownIssueBuildInformation "15.1.2375.17" "15.1.2375.18"),
-            (GetKnownIssueBuildInformation "15.1.2308.20" "15.1.2308.21"),
-            (GetKnownIssueBuildInformation "15.0.1497.26" "15.0.1497.28")
-        ) `
-            -InformationUrl (GetKnownIssueInformation `
-                "OWA redirection doesn't work after installing November 2021 security updates for Exchange Server 2019, 2016, or 2013" `
-                "https://support.microsoft.com/help/5008997")
+        $infoParams = @{
+            Name = "OWA redirection doesn't work after installing November 2021 security updates for Exchange Server 2019, 2016, or 2013"
+            Url  = "https://support.microsoft.com/help/5008997"
+        }
+        $params = @{
+            CurrentVersion          = $currentVersion
+            KnownBuildIssuesToFixes = @((GetKnownIssueBuildInformation "15.2.986.14" "15.2.986.15"),
+                (GetKnownIssueBuildInformation "15.2.922.19" "15.2.922.20"),
+                (GetKnownIssueBuildInformation "15.1.2375.17" "15.1.2375.18"),
+                (GetKnownIssueBuildInformation "15.1.2308.20" "15.1.2308.21"),
+                (GetKnownIssueBuildInformation "15.0.1497.26" "15.0.1497.28"))
+            InformationUrl          = (GetKnownIssueInformation @infoParams)
+        }
+        TestForKnownBuildIssues @params
 
         Write-Verbose "Working on March 2022 Security Updates - MSExchangeServiceHost service may crash"
-        TestForKnownBuildIssues -CurrentVersion $currentVersion `
-            -KnownBuildIssuesToFixes @(
-            (GetKnownIssueBuildInformation "15.2.1118.7" "15.2.1118.9"),
-            (GetKnownIssueBuildInformation "15.2.986.22" "15.2.986.26"),
-            (GetKnownIssueBuildInformation "15.2.922.27" $null),
-            (GetKnownIssueBuildInformation "15.1.2507.6" "15.1.2507.9"),
-            (GetKnownIssueBuildInformation "15.1.2375.24" "15.1.2375.28"),
-            (GetKnownIssueBuildInformation "15.1.2308.27" $null),
-            (GetKnownIssueBuildInformation "15.0.1497.33" "15.0.1497.36")
-        ) `
-            -InformationUrl (GetKnownIssueInformation `
-                "Exchange Service Host service fails after installing March 2022 security update (KB5013118)" `
-                "https://support.microsoft.com/kb/5013118")
+        $infoParams = @{
+            Name = "Exchange Service Host service fails after installing March 2022 security update (KB5013118)"
+            Url  = "https://support.microsoft.com/kb/5013118"
+        }
+        $params = @{
+            CurrentVersion          = $currentVersion
+            KnownBuildIssuesToFixes = @((GetKnownIssueBuildInformation "15.2.1118.7" "15.2.1118.9"),
+                (GetKnownIssueBuildInformation "15.2.986.22" "15.2.986.26"),
+                (GetKnownIssueBuildInformation "15.2.922.27" $null),
+                (GetKnownIssueBuildInformation "15.1.2507.6" "15.1.2507.9"),
+                (GetKnownIssueBuildInformation "15.1.2375.24" "15.1.2375.28"),
+                (GetKnownIssueBuildInformation "15.1.2308.27" $null),
+                (GetKnownIssueBuildInformation "15.0.1497.33" "15.0.1497.36"))
+            InformationUrl          = (GetKnownIssueInformation @infoParams)
+        }
+        TestForKnownBuildIssues @params
 
         Write-Verbose "Working on January 2023 Security Updates - Management issues after SerializedDataSigning is enabled on Exchange Server 2013"
-        TestForKnownBuildIssues -CurrentVersion $currentVersion `
-            -KnownBuildIssuesToFixes @(
-            (GetKnownIssueBuildInformation "15.0.1497.45" $null)
-        ) `
-            -InformationUrl (GetKnownIssueInformation `
-                "Management issues after SerializedDataSigning is enabled on Exchange Server 2013" `
-                "https://techcommunity.microsoft.com/t5/exchange-team-blog/released-january-2023-exchange-server-security-updates/ba-p/3711808")
+        $infoParams = @{
+            Name = "Management issues after SerializedDataSigning is enabled on Exchange Server 2013"
+            Url  = "https://techcommunity.microsoft.com/t5/exchange-team-blog/released-january-2023-exchange-server-security-updates/ba-p/3711808"
+        }
+        $params = @{
+            CurrentVersion          = $currentVersion
+            KnownBuildIssuesToFixes = @((GetKnownIssueBuildInformation "15.0.1497.45" $null))
+            InformationUrl          = (GetKnownIssueInformation @infoParams)
+        }
+        TestForKnownBuildIssues @params
+
+        Write-Verbose "Working on January 2023 Security Updates - Other known issues"
+        $infoParams = @{
+            Name = "Known Issues with Jan 2023 Security for Exchange 2016 and 2019"
+            Url  = "https://techcommunity.microsoft.com/t5/exchange-team-blog/released-january-2023-exchange-server-security-updates/ba-p/3711808"
+        }
+        $params = @{
+            CurrentVersion          = $currentVersion
+            KnownBuildIssuesToFixes = @((GetKnownIssueBuildInformation "15.1.2507.17" $null),
+                (GetKnownIssueBuildInformation "15.2.986.37" $null),
+                (GetKnownIssueBuildInformation "15.2.1118.21" $null))
+            InformationUrl          = (GetKnownIssueInformation @infoParams)
+        }
+        TestForKnownBuildIssues @params
     } catch {
         Write-Verbose "Failed to run TestForKnownBuildIssues"
         Invoke-CatchActions
