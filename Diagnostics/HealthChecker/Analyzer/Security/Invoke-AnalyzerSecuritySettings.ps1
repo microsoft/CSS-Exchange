@@ -329,7 +329,7 @@ function Invoke-AnalyzerSecuritySettings {
     }
     Add-AnalyzedResultInformation @params
 
-    $additionalDisplayValue = [string]::Empty
+    $additionalInformationKey = $null
     $smb1Settings = $osInformation.Smb1ServerSettings
 
     if ($osInformation.BuildInformation.MajorVersion -gt [HealthChecker.OSServerVersion]::Windows2012) {
@@ -342,7 +342,7 @@ function Invoke-AnalyzerSecuritySettings {
         } elseif ($smb1Settings.Installed) {
             $displayValue = "True"
             $writeType = "Red"
-            $additionalDisplayValue = "SMB1 should be uninstalled"
+            $additionalInformationKey = 1
         }
 
         $params = $baseParams + @{
@@ -362,27 +362,28 @@ function Invoke-AnalyzerSecuritySettings {
     } elseif (-not($smb1Settings.IsBlocked)) {
         $displayValue = "False"
         $writeType = "Red"
-        $additionalDisplayValue += " SMB1 should be blocked"
+        $additionalInformationKey = 2
     }
 
     $params = $baseParams + @{
-        Name             = "SMB1 Blocked"
-        Details          = $displayValue
-        DisplayWriteType = $writeType
+        Name                     = "SMB1 Blocked"
+        Details                  = $displayValue
+        DisplayWriteType         = $writeType
+        AdditionalInformation    = @{
+            1 = [HealthChecker.AdditionalInformationEntry]@{
+                Line      = @("SMB1 should be uninstalled",
+                    "More Information: https://aka.ms/HC-SMB1")
+                WriteType = "Yellow"
+            }
+            2 = [HealthChecker.AdditionalInformationEntry]@{
+                Line      = @("SMB1 should be uninstalled & SMB1 should be blocked",
+                    "More Information: https://aka.ms/HC-SMB1")
+                WriteType = "Yellow"
+            }
+        }
+        AdditionalInformationKey = $additionalInformationKey
     }
     Add-AnalyzedResultInformation @params
-
-    if ($additionalDisplayValue -ne [string]::Empty) {
-        $additionalDisplayValue += "`r`n`t`tMore Information: https://aka.ms/HC-SMB1"
-
-        $params = $baseParams + @{
-            Details                = $additionalDisplayValue.Trim()
-            DisplayWriteType       = "Yellow"
-            DisplayCustomTabNumber = 2
-            AddHtmlDetailRow       = $false
-        }
-        Add-AnalyzedResultInformation @params
-    }
 
     Invoke-AnalyzerSecurityExchangeCertificates -AnalyzeResults $AnalyzeResults -HealthServerObject $HealthServerObject -DisplayGroupingKey $keySecuritySettings
     Invoke-AnalyzerSecurityAMSIConfigState -AnalyzeResults $AnalyzeResults -HealthServerObject $HealthServerObject -DisplayGroupingKey $keySecuritySettings

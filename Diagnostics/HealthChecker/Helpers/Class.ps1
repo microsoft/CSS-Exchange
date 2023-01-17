@@ -312,6 +312,12 @@ using System.Collections;
             public System.Array ServerDetails;    // use HtmlServerInformationRow
         }
 
+        public class AdditionalInformationEntry
+        {
+            public System.Array Line;
+            public string WriteType;
+        }
+
         public class HtmlServerActionItemRow
         {
             public string Setting;

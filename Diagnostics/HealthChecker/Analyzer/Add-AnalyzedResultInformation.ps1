@@ -31,6 +31,14 @@ function Add-AnalyzedResultInformation {
 
         [ScriptBlock[]]$OutColumnsColorTests,
 
+        # Used for additional information on a new line
+        # Pass all possible options, use keys to light up the display
+        [Hashtable]$AdditionalInformation,
+
+        # The key(s) for the $AdditionalInformation that need to be displayed
+        # leave null or empty array if no additional information needs to be displayed
+        [array]$AdditionalInformationKey,
+
         [string]$TestingName,
 
         [object]$DisplayTestingValue,
@@ -146,6 +154,29 @@ function Add-AnalyzedResultInformation {
             }
 
             $AnalyzedInformation.DisplayResults[$DisplayGroupingKey].Add($lineInfo)
+
+            # Going to add a custom DisplayResultsLineInfo here for the additional information if we have keys available
+            if ($null -ne $AdditionalInformation -and
+                $null -ne $AdditionalInformationKey -and
+                $AdditionalInformationKey.Count -gt 0) {
+                Write-Verbose "Adding additional line"
+                $parentLineInfo = $lineInfo
+                foreach ($key in $AdditionalInformationKey) {
+                    if ($AdditionalInformation.ContainsKey($key)) {
+                        foreach ($entry in $AdditionalInformation[$key]) {
+                            foreach ($line in $entry.Line) {
+                                $lineInfo = New-Object HealthChecker.DisplayResultsLineInfo
+                                $lineInfo.DisplayValue = $line
+                                $lineInfo.TabNumber = $parentLineInfo.TabNumber + 1
+                                $lineInfo.WriteType = $entry.WriteType
+                                $AnalyzedInformation.DisplayResults[$DisplayGroupingKey].Add($lineInfo)
+                            }
+                        }
+                    } else {
+                        Write-Verbose "Failed to find key $key"
+                    }
+                }
+            }
         }
 
         if ($AddHtmlDetailRow) {
