@@ -9,7 +9,7 @@ function Add-ADUserToLocalGroup {
     param(
         [string]$MemberUPN,
         [string]$Group,
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
 
     <#

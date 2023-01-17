@@ -30,7 +30,7 @@ param (
 )
 
 begin {
-    $defaultSecurityDescriptor = New-Object -TypeName System.Security.AccessControl.RawSecurityDescriptor -ArgumentList "O:PSG:PSD:(A;CI;CCRC;;;PS)"
+    $defaultSecurityDescriptor = New-Object -TypeName System.Security.AccessControl.RawSecurityDescriptor -ArgumentList "O:PSG:PSD:(A;CI;CcRC;;;PS)"
 }
 
 process {

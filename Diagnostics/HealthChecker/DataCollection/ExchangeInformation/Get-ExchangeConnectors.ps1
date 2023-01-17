@@ -16,7 +16,7 @@ function Get-ExchangeConnectors {
 
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        Write-Verbose "Passed - Computername: $ComputerName"
+        Write-Verbose "Passed - ComputerName: $ComputerName"
         function ExchangeConnectorObjectFactory {
             [CmdletBinding()]
             [OutputType("System.Object")]

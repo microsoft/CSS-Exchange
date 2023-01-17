@@ -6,7 +6,7 @@ function Get-Smb1ServerSettings {
     [CmdletBinding()]
     param(
         [string]$ServerName = $env:COMPUTERNAME,
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"

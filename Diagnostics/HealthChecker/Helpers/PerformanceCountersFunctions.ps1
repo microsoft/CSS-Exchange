@@ -182,9 +182,9 @@ function Get-CounterFullNameToCounterObject {
     )
 
     # Supported Scenarios
-    # \\adt-e2k13aio1\logicaldisk(harddiskvolume1)\avg. disk sec/read
-    # \\adt-e2k13aio1\\logicaldisk(harddiskvolume1)\avg. disk sec/read
-    # \logicaldisk(harddiskvolume1)\avg. disk sec/read
+    # \\adt-e2k13aio1\LogicalDisk(HardDiskVolume1)\avg. disk sec/read
+    # \\adt-e2k13aio1\\LogicalDisk(HardDiskVolume1)\avg. disk sec/read
+    # \LogicalDisk(HardDiskVolume1)\avg. disk sec/read
     if (-not ($FullCounterName.StartsWith("\"))) {
         throw "Full Counter Name Should start with '\'"
     } elseif ($FullCounterName.StartsWith("\\")) {

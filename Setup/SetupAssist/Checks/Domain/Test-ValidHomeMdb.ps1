@@ -10,7 +10,7 @@ function Test-ValidHomeMDB {
     $discovery = 0x20000000
     $publicFolder = 0x1000000000
     $recipientTypes = $arbitration -bor $discovery -bor $publicFolder
-    $filter = "(&(objectClass=user)(mailnickname=*)(msExchRecipientTypeDetails:1.2.840.113556.1.4.804:=$recipientTypes))"
+    $filter = "(&(objectClass=user)(mailNickname=*)(msExchRecipientTypeDetails:1.2.840.113556.1.4.804:=$recipientTypes))"
     $propsToLoad = @("distinguishedName", "homeMDB")
 
     $results = Search-AllActiveDirectoryDomains -Filter $filter -PropertiesToLoad $propsToLoad

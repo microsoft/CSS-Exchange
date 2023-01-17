@@ -6,7 +6,7 @@ function Get-ExchangeRegistryValues {
     [CmdletBinding()]
     param(
         [string]$MachineName,
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 

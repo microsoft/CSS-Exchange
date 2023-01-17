@@ -8,7 +8,7 @@ function Test-IsServerValidForAuthCertificateGeneration {
     [OutputType([bool])]
     param(
         [string]$ComputerName = $env:COMPUTERNAME,
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
 
     <#

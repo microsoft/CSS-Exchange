@@ -200,13 +200,13 @@ foreach ($isoGroupings in $groupIso) {
         }
     }
 
-    $dontCopyDlls = New-Object 'System.Collections.Generic.List[object]'
+    $doNotCopyDlls = New-Object 'System.Collections.Generic.List[object]'
     $isoGroupings.Group |
         Where-Object { $_ -ne $greatestGroup } |
         ForEach-Object {
             $_.DllFileNames | ForEach-Object {
                 if (!$greatestGroup.DLLFileNames.Contains($_)) {
-                    $dontCopyDlls.Add($_)
+                    $doNotCopyDlls.Add($_)
                 }
             }
         }
@@ -228,7 +228,7 @@ foreach ($isoGroupings in $groupIso) {
         [PSCustomObject]@{
             IsoRoot        = $IsoRoot
             CopyTo         = $greatestGroup.InstallDirectory
-            Except         = $dontCopyDlls
+            Except         = $doNotCopyDlls
             OtherLocations = $otherLocations
         }
     )

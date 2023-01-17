@@ -10,7 +10,7 @@ function Copy-ScriptToExchangeDirectory {
         [Parameter(Mandatory = $false)]
         [string]$FullPathToScript = $MyInvocation.ScriptName,
         [Parameter(Mandatory = $false)]
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"

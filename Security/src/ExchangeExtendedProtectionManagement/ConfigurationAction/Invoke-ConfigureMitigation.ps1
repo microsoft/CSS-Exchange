@@ -91,10 +91,10 @@ function Invoke-ConfigureMitigation {
                     [Parameter(Mandatory = $true)]
                     [object[]]$IpFilteringRules,
                     [Parameter(Mandatory = $true)]
-                    [hashtable] $state
+                    [Hashtable] $state
                 )
 
-                $backupPath = "$($env:WINDIR)\System32\inetsrv\config\IpFilteringRules_" + $SiteVDirLocation.Replace('/', '-') + "_$([DateTime]::Now.ToString("yyyyMMddHHMMss")).bak"
+                $backupPath = "$($env:WINDIR)\System32\inetSrv\config\IpFilteringRules_" + $SiteVDirLocation.Replace('/', '-') + "_$([DateTime]::Now.ToString("yyyyMMddHHMMss")).bak"
                 $Filter = 'system.webServer/security/ipSecurity'
                 $IISPath = 'IIS:\'
                 $ExistingRules = @(Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name collection)
@@ -191,7 +191,7 @@ function Invoke-ConfigureMitigation {
             return $results
         }
     } process {
-        $scriptblockArgs = [PSCustomObject]@{
+        $ScriptBlockArgs = [PSCustomObject]@{
             SiteVDirLocations    = $SiteVDirLocations
             IpRangesForFiltering = $IPRangeAllowListRules
             PassedWhatIf         = $WhatIfPreference
@@ -227,7 +227,7 @@ function Invoke-ConfigureMitigation {
             $counter ++;
 
             Write-Verbose ("Calling Invoke-ScriptBlockHandler on Server {0} with arguments SiteVDirLocation: {1}, IPRangeAllowListRules : {2}" -f $Server, $SiteVDirLocation, $IPRangeAllowListString)
-            $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock $ConfigureMitigation -ArgumentList $scriptblockArgs
+            $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock $ConfigureMitigation -ArgumentList $ScriptBlockArgs
 
             Write-Verbose ("Adding IP Restriction rules on Server {0}" -f $Server)
             if ($resultsInvoke.IsWindowsFeatureInstalled) {

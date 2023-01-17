@@ -38,7 +38,7 @@ function Confirm-Signature {
         $rootCert = $chain.ChainElements[$chain.ChainElements.Count - 1]
 
         if ($rootCert.Certificate.Subject -ne $rootCert.Certificate.Issuer) {
-            Write-Warning "Top-level certifcate in chain is not a root certificate."
+            Write-Warning "Top-level certificate in chain is not a root certificate."
             throw
         }
 

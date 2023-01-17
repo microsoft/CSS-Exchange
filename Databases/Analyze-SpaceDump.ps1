@@ -5,11 +5,11 @@
 # The space dump must be obtained while the database is dismounted, or on a suspended copy
 # if the issue is happening there. To obtain the space dump, use the following syntax:
 #
-# eseutil /ms /v > C:\spacedump.txt
+# eseUtil /ms /v > C:\SpaceDump.txt
 #
 # Then, feed that file to this script as follows:
 #
-# .\Analyze-SpaceDump.ps1 -File C:\spacedump.txt
+# .\Analyze-SpaceDump.ps1 -File C:\SpaceDump.txt
 #
 # This script will only work with Exchange 2013 and later space dumps.
 
@@ -85,7 +85,7 @@ $piTablesPerMailbox = New-Object 'System.Collections.Generic.Dictionary[string, 
 [double]$numberOfFolderTables = 0
 [double]$spaceOwnedByMessageTables = 0
 [double]$freeSpaceByMessageTables = 0
-[double]$numberofMessageTables = 0
+[double]$numberOfMessageTables = 0
 [double]$spaceOwnedByMsgViewTables = 0
 [double]$freeSpaceByMsgViewTables = 0
 [double]$numberOfMsgViewTables = 0
@@ -130,7 +130,7 @@ while ($null -ne ($buffer = $fileReader.ReadLine())) {
             $spaceOwnedByFolderTables += $thisOwnedSpace
             $freeSpaceByFolderTables += $thisAvailSpace
         } elseif ($buffer.StartsWith("  Message_")) {
-            $numberofMessageTables++
+            $numberOfMessageTables++
             $spaceOwnedByMessageTables += $thisOwnedSpace
             $freeSpaceByMessageTables += $thisAvailSpace
         } elseif ($buffer.StartsWith("  pi")) {

@@ -4,7 +4,7 @@
 function Invoke-CatchActionError {
     [CmdletBinding()]
     param(
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
 
     if ($null -ne $CatchActionFunction) {

@@ -6,7 +6,7 @@
 
 function Test-DomainMultiActiveSyncVirtualDirectories {
     $params = @{
-        TestName = "Multiple Active Sync Vdirs Detected"
+        TestName = "Multiple Active Sync VDirs Detected"
     }
 
     try {

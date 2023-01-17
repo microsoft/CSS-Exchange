@@ -41,13 +41,13 @@ function Write-LargeDataObjectsOnMachine {
         $copyServerComponentStatesRegistryTo = "{0}\regServerComponentStates.TXT" -f $location
         reg query HKLM\SOFTWARE\Microsoft\ExchangeServer\v15\ServerComponentStates /s > $copyServerComponentStatesRegistryTo
 
-        Get-Command exsetup | ForEach-Object { $_.FileVersionInfo } > ("{0}\{1}_GCM.txt" -f $location, $env:COMPUTERNAME)
+        Get-Command ExSetup | ForEach-Object { $_.FileVersionInfo } > ("{0}\{1}_GCM.txt" -f $location, $env:COMPUTERNAME)
 
         #Exchange Web App Pools
         $windir = $env:windir
-        $appCmd = "{0}\system32\inetsrv\appcmd.exe" -f $windir
+        $appCmd = "{0}\system32\inetSrv\appCmd.exe" -f $windir
         if (Test-Path $appCmd) {
-            $appPools = &$appCmd list apppool
+            $appPools = &$appCmd list appPool
             $sites = &$appCmd list sites
 
             $exchangeAppPools = $appPools |
@@ -74,8 +74,8 @@ function Write-LargeDataObjectsOnMachine {
             $cacheConfigFileListLocation = @()
             $exchangeAppPools |
                 ForEach-Object {
-                    $config = &$appCmd list apppool $_ /text:CLRConfigFile
-                    $allInfo = &$appCmd list apppool $_ /text:*
+                    $config = &$appCmd list appPool $_ /text:CLRConfigFile
+                    $allInfo = &$appCmd list appPool $_ /text:*
 
                     if (![string]::IsNullOrEmpty($config) -and
                         (Test-Path $config) -and
@@ -354,7 +354,7 @@ function Write-LargeDataObjectsOnMachine {
 
             <#
             To pass an action to Start-JobManager, need to create objects like this.
-                Where ArgumentList is the arguments for the scriptblock that we are running
+                Where ArgumentList is the arguments for the ScriptBlock that we are running
             [array]
                 [PSCustom]
                     [string]ServerName
@@ -378,7 +378,7 @@ function Write-LargeDataObjectsOnMachine {
                 -PrimaryScriptBlock ${Function:Get-ExchangeInstallDirectory} `
                 -CatchActionFunction ${Function:Invoke-CatchActions}
             Write-Verbose("Creating Script Block")
-            $getExchangeInstallDirectoryScriptBlock = [scriptblock]::Create($getExchangeInstallDirectoryString)
+            $getExchangeInstallDirectoryScriptBlock = [ScriptBlock]::Create($getExchangeInstallDirectoryString)
 
             Write-Verbose("New-Item create Script Block")
             $newFolderScriptBlock = { param($path) New-Item -ItemType Directory -Path $path -Force | Out-Null }

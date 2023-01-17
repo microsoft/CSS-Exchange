@@ -78,26 +78,26 @@ function GetLogmanObject {
         $status = "Stopped"
         $rootPath = [string]::Empty
         $extension = ".blg"
-        $startDate = [datetime]::MinValue
+        $startDate = [DateTime]::MinValue
         $foundLogman = $false
     }
     process {
         try {
-            $dcsc = New-Object -ComObject Pla.DataCollectorSetCollection
-            $dcsc.GetDataCollectorSets($null, $null)
-            $existingLogmanDcsc = $dcsc | Where-Object { $_.Name -eq $LogmanName }
+            $dataCollectorSetList = New-Object -ComObject Pla.DataCollectorSetCollection
+            $dataCollectorSetList.GetDataCollectorSets($null, $null)
+            $existingLogmanDataCollectorSetList = $dataCollectorSetList | Where-Object { $_.Name -eq $LogmanName }
 
-            if ($null -eq $existingLogmanDcsc) { return }
+            if ($null -eq $existingLogmanDataCollectorSetList) { return }
 
-            if ($existingLogmanDcsc.Status -eq 1) {
+            if ($existingLogmanDataCollectorSetList.Status -eq 1) {
                 $status = "Running"
             }
 
-            $rootPath = $existingLogmanDcsc.RootPath
-            $outputLocation = $existingLogmanDcsc.DataCollectors._NewEnum.OutputLocation
+            $rootPath = $existingLogmanDataCollectorSetList.RootPath
+            $outputLocation = $existingLogmanDataCollectorSetList.DataCollectors._NewEnum.OutputLocation
             Write-Verbose "Output Location: $outputLocation"
             $extension = $outputLocation.Substring($outputLocation.LastIndexOf("."))
-            $startDate = $existingLogmanDcsc.Schedules._NewEnum.StartDate
+            $startDate = $existingLogmanDataCollectorSetList.Schedules._NewEnum.StartDate
             Write-Verbose "Status: $status RootPath: $rootPath Extension: $extension StartDate: $startDate"
             $foundLogman = $true
         } catch {
@@ -105,10 +105,10 @@ function GetLogmanObject {
         }
 
         finally {
-            if ($null -ne $dcsc) {
-                [System.Runtime.Interopservices.Marshal]::ReleaseComObject($dcsc) | Out-Null
-                $dcsc = $null
-                $existingLogmanDcsc = $null
+            if ($null -ne $dataCollectorSetList) {
+                [System.Runtime.InteropServices.Marshal]::ReleaseComObject($dataCollectorSetList) | Out-Null
+                $dataCollectorSetList = $null
+                $existingLogmanDataCollectorSetList = $null
             }
         }
     }
@@ -158,12 +158,12 @@ function GetLogmanData {
     }
 }
 
-function Save-LogmanExmonData {
-    GetLogmanData -LogmanName $PassedInfo.ExmonLogmanName
+function Save-LogmanExMonData {
+    GetLogmanData -LogmanName $PassedInfo.ExMonLogmanName
 }
 
-function Save-LogmanExperfwizData {
-    $PassedInfo.ExperfwizLogmanName |
+function Save-LogmanExPerfWizData {
+    $PassedInfo.ExPerfWizLogmanName |
         ForEach-Object {
             GetLogmanData -LogmanName $_
         }

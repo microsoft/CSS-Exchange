@@ -8,7 +8,7 @@ param(
     [ValidateScript({ Test-Path $_ })]
     [Parameter(Mandatory = $true)] [string] $OutputPath = (Get-Location).Path,
     [Parameter(Mandatory = $false)] [int] $Interval = 30,
-    [Parameter(Mandatory = $false)] [nullable[bool]] $EnableMailboxLoggingVerboseMode = $null
+    [Parameter(Mandatory = $false)] [Nullable[bool]] $EnableMailboxLoggingVerboseMode = $null
 )
 
 #parse $EnableMailboxLoggingVerboseMode and convert it boolean value(s)

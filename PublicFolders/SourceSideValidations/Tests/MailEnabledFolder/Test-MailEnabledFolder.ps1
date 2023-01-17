@@ -159,7 +159,7 @@ function Test-MailEnabledFolder {
 
             $thisMPF = $orphanedMailPublicFolders[$i]
             $pf = $null
-            if ($null -ne $thisMPF.ExternalEmailAddress -and $thisMPF.ExternalEmailAddress.ToString().StartsWith("expf")) {
+            if ($null -ne $thisMPF.ExternalEmailAddress -and $thisMPF.ExternalEmailAddress.ToString().StartsWith("exPf".ToLower())) {
                 $partialEntryId = $thisMPF.ExternalEmailAddress.ToString().Substring(5).Replace("-", "")
                 $partialEntryId += "0000"
                 if ($byPartialEntryId.TryGetValue($partialEntryId, [ref]$pf)) {

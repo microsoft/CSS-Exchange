@@ -11,13 +11,13 @@ function Add-ScriptBlockInjection {
     [OutputType([string])]
     param(
         [Parameter(Mandatory = $true)]
-        [scriptblock]$PrimaryScriptBlock,
+        [ScriptBlock]$PrimaryScriptBlock,
 
         [string[]]$IncludeUsingParameter,
 
-        [scriptblock[]]$IncludeScriptBlock,
+        [ScriptBlock[]]$IncludeScriptBlock,
 
-        [scriptblock]
+        [ScriptBlock]
         $CatchActionFunction
     )
     process {
@@ -56,7 +56,7 @@ function Add-ScriptBlockInjection {
             }
 
             # There are a few different ways to create a script block
-            # [scriptblock]::Create(string) and ${Function:Write-Verbose}
+            # [ScriptBlock]::Create(string) and ${Function:Write-Verbose}
             # each one ends up adding in the ParamBlock at different locations
             # You need to add in the injected code after the params, if that is the only thing that is passed
             # If you provide a script block that contains a begin or a process section,
@@ -77,7 +77,7 @@ function Add-ScriptBlockInjection {
             if ($adjustInject) {
                 $scriptBlockInjectLines += $adjustLocation.ParamBlock.ToString()
                 $startIndex = $adjustLocation.ParamBlock.Extent.EndOffSet - $adjustLocation.Extent.StartOffset
-                $adjustedScriptBlock = [scriptblock]::Create($PrimaryScriptBlock.ToString().Substring($startIndex))
+                $adjustedScriptBlock = [ScriptBlock]::Create($PrimaryScriptBlock.ToString().Substring($startIndex))
             }
 
             # Inject the script blocks and using parameters in the begin block when required.
@@ -95,7 +95,7 @@ function Add-ScriptBlockInjection {
                 $startIndex = $replaceMatch.IndexOf("{")
                 #insert the adding context to one character after the begin curl bracket
                 $replaceWith = $replaceMatch.Insert($startIndex + 1, $addString)
-                $adjustedScriptBlock = [scriptblock]::Create($adjustedScriptBlock.ToString().Replace($replaceMatch, $replaceWith))
+                $adjustedScriptBlock = [ScriptBlock]::Create($adjustedScriptBlock.ToString().Replace($replaceMatch, $replaceWith))
                 $injectedLinesHandledInBeginBlock = $true
             } elseif ($null -ne $adjustedScriptBlock.Ast.ProcessBlock) {
                 # Add in a begin block that contains all information that we are wanting.
@@ -112,7 +112,7 @@ function Add-ScriptBlockInjection {
                 $endIndex = $addString.LastIndexOf("}") - 1
                 $addString = $addString.insert($endIndex, [System.Environment]::NewLine + $usingLines + $scriptBlockIncludeLines + [System.Environment]::NewLine )
                 $startIndex = $adjustedScriptBlock.Ast.ProcessBlock.Extent.StartOffset - 1
-                $adjustedScriptBlock = [scriptblock]::Create($adjustedScriptBlock.ToString().Insert($startIndex, $addString))
+                $adjustedScriptBlock = [ScriptBlock]::Create($adjustedScriptBlock.ToString().Insert($startIndex, $addString))
                 $injectedLinesHandledInBeginBlock = $true
             } else {
                 Write-Verbose "No Begin or Process Blocks detected, normal injection"

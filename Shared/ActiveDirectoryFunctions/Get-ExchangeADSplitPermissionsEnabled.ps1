@@ -7,7 +7,7 @@ function Get-ExchangeADSplitPermissionsEnabled {
     [CmdletBinding()]
     [OutputType([bool])]
     param (
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
 
     <#

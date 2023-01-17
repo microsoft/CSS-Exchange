@@ -24,7 +24,7 @@ function Write-OutColumns {
         $Properties,
 
         [Parameter(Mandatory = $false, Position = 1)]
-        [scriptblock[]]
+        [ScriptBlock[]]
         $ColorizerFunctions = @(),
 
         [Parameter(Mandatory = $false)]

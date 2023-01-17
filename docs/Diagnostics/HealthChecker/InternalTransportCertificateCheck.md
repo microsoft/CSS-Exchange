@@ -2,9 +2,9 @@
 
 ## Description
 
-The Internal Transport Certificate in Exchange Server is used in Exchange Server Front-End to Back-End mailflow scenarios as well as in scenarios in which the Exchange Servers communicate with each other, using the `SMTP (Simple Mail Transfer Protocol)` protocol. It is generated on a per-server base during the Exchange Server setup process and contains the computers `NetBIOS (Network Basic Input/Output System)` name as well as the `FQDN (Fully Qualified Domain Name)`.
+The Internal Transport Certificate in Exchange Server is used in Exchange Server Front-End to Back-End MailFlow scenarios as well as in scenarios in which the Exchange Servers communicate with each other, using the `SMTP (Simple Mail Transfer Protocol)` protocol. It is generated on a per-server base during the Exchange Server setup process and contains the computers `NetBIOS (Network Basic Input/Output System)` name as well as the `FQDN (Fully Qualified Domain Name)`.
 
-A missing Internal Transport Certificate can lead to a broken mailflow on or with the affected machine. It's therefore essential to have a valid certificate for this purpose on the machine. We recommend to not replace the self-signed certificate which was created by Exchange itself.
+A missing Internal Transport Certificate can lead to a broken MailFlow on or with the affected machine. It's therefore essential to have a valid certificate for this purpose on the machine. We recommend to not replace the self-signed certificate which was created by Exchange itself.
 
 ### What does the check do?
 

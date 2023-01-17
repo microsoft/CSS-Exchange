@@ -13,7 +13,7 @@ function global:Stop-ExPerfWiz {
     .PARAMETER Name
     Name of the data collector set to stop.
 
-    Default Exchange_Perfwiz
+    Default Exchange_PerfWiz
 
     .PARAMETER Server
     Name of the server to stop the collector set on.
@@ -26,29 +26,29 @@ function global:Stop-ExPerfWiz {
     .EXAMPLE
     Stop the default data collector set on the local server
 
-    Stop-ExPerfwiz
+    Stop-ExPerfWiz
 
     .EXAMPLE
-    Stop a data colletor set on a remote server
+    Stop a data collector set on a remote server
 
-    Stop-ExPerfwiz -Name "My Collector Set" -Server RemoteServer-01
+    Stop-ExPerfWiz -Name "My Collector Set" -Server RemoteServer-01
 
     #>
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
     param (
         [Parameter(ValueFromPipelineByPropertyName)]
         [string]
-        $Name = "Exchange_Perfwiz",
+        $Name = "Exchange_PerfWiz",
 
         [string]
         $Server = $env:ComputerName
     )
 
     process {
-        Write-SimpleLogFile -string ("Stopping ExPerfwiz: " + $server + "\" + $Name) -Name "ExPerfWiz.log"
+        Write-SimpleLogFile -string ("Stopping ExPerfWiz: " + $server + "\" + $Name) -Name "ExPerfWiz.log"
 
-        # Remove the experfwiz counter set
-        if ($PSCmdlet.ShouldProcess("$Server\$Name", "Stopping ExPerfwiz Data Collection")) {
+        # Remove the exPerfWiz counter set
+        if ($PSCmdlet.ShouldProcess("$Server\$Name", "Stopping ExPerfWiz Data Collection")) {
             [string]$logman = logman stop -name $Name -s $server
         }
 
@@ -63,7 +63,7 @@ function global:Stop-ExPerfWiz {
                 throw $logman
             }
         } else {
-            Write-SimpleLogFile "ExPerfwiz Stopped" -Name "ExPerfWiz.log"
+            Write-SimpleLogFile "ExPerfWiz Stopped" -Name "ExPerfWiz.log"
         }
     }
 }

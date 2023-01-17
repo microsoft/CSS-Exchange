@@ -1,6 +1,6 @@
-# ValidateEXOPFDumpster
+# ValidateExoPfDumpster
 
-Download the latest release: [ValidateEXOPFDumpster.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/ValidateEXOPFDumpster.ps1)
+Download the latest release: [ValidateExoPfDumpster.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/ValidateExoPfDumpster.ps1)
 
 This script investigates public folders/items deletion operations failures & propose FIXes for mitigation.
 The script is working to validate the below conditions over the affected public folder
@@ -16,14 +16,14 @@ Checks run:
 5.	Parent public folder dumpster is unhealthy
 6.	Dumpster folder
 7.	Dumpster folder has children
-8.  Mail-enabled public folder health if MEPFProxyGuid was null
+8.  Mail-enabled public folder health if MEPfProxyGuid was null
 
 ## Syntax
 
 ```powershell
-ValidateEXOPFDumpster.ps1
-  [-Pfolder <string[]>]
-  [-Affecteduser <string[]>]
+ValidateExoPfDumpster.ps1
+  [-PFolder <string[]>]
+  [-AffectedUser <string[]>]
   [-ExportPath <string[]>]
 ```
 
@@ -35,21 +35,21 @@ There are other files generated for either script logging purposes or sometimes 
 File Name|Content|Use
 -|-|-
 ValidatePFDumpsterREPORT.txt|Information about any blockers found|The script will display what it found, and in many cases it will provide a mitigation to fix the problem
-ValidatePFDumpsterCheckslogging.csv|Information about the reason of script failure to run|The file will display errors encountered on running the script and at which stage
+ValidatePFDumpsterChecksLogging.csv|Information about the reason of script failure to run|The file will display errors encountered on running the script and at which stage
 PublicFolderInfo.xml|All required information about the affected public folder|This log file to be shared with Microsoft personnel
 
 ## Usage
 
-Typically, the script should run with Pfolder identity parameter as illustrated below:
+Typically, the script should run with PFolder identity parameter as illustrated below:
 
 ```powershell
-.\ValidateEXOPFDumpster.ps1 -Pfolder \pf1
+.\ValidateExoPfDumpster.ps1 -PFolder \pf1
 ```
 
-The script will prompt for affected public folder identity/EntryID if it wasn't provided using Pfolder parameter then it will prompt for global administrator username & password to connect to EXO by default it validates if the issue is specific to the Public folder "e.g. all users are affected"
+The script will prompt for affected public folder identity/EntryID if it wasn't provided using PFolder parameter then it will prompt for global administrator username & password to connect to EXO by default it validates if the issue is specific to the Public folder "e.g. all users are affected"
 
 ![Picture of script intro](PFDumps.jpg)
-![Picture of script intro without use Pfolder parameter](PFDumpswithoutparam.jpg)
+![Picture of script intro without use PFolder parameter](PFDumpswithoutparam.jpg)
 
 If the issue happens only with a specific user on that case an affected user smtp address is required to be provided
 

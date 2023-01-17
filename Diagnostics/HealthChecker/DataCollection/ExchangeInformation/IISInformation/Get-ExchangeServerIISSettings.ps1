@@ -13,7 +13,7 @@ function Get-ExchangeServerIISSettings {
     param(
         [string]$ComputerName,
         [bool]$IsLegacyOS = $false,
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
     process {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"

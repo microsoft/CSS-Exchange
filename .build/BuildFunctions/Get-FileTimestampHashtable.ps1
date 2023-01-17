@@ -3,10 +3,10 @@
 
 function Get-FileTimestampHashtable {
     [CmdletBinding()]
-    [OutputType([hashtable])]
+    [OutputType([Hashtable])]
     param (
         [Parameter()]
-        [hashtable]
+        [Hashtable]
         $DependencyHashtable
     )
 

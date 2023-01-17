@@ -11,7 +11,7 @@ NOTE: This script only supports Exchange 2016 and Exchange 2019. It will not wor
 ```powershell
 Remove-CertExpiryNotifications.ps1
   [-Server <string>]
-  [[-Credential] <pscredential>]
+  [[-Credential] <PsCredential>]
   [-WhatIf]
   [-Confirm]
 ```

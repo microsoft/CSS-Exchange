@@ -21,7 +21,7 @@ function Compress-Folder {
         return $null
     }
 
-    $successful = ([Appdomain]::CurrentDomain.GetAssemblies() | Where-Object { $_.Location -like "*System.IO.Compression.Filesystem*" }).Count -ge 1
+    $successful = ([AppDomain]::CurrentDomain.GetAssemblies() | Where-Object { $_.Location -like "*System.IO.Compression.Filesystem*" }).Count -ge 1
     Write-Verbose "Found IO Compression loaded: $successful"
 
     if ($successful -eq $false) {

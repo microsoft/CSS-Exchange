@@ -319,7 +319,7 @@ function Invoke-AnalyzerExchangeInformation {
     if ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge -and
         $null -ne $exchangeInformation.ExtendedProtectionConfig) {
         $params = $baseParams + @{
-            Name    = "Extended Protection Enabled (Any Vdir)"
+            Name    = "Extended Protection Enabled (Any VDir)"
             Details = $exchangeInformation.ExtendedProtectionConfig.ExtendedProtectionConfigured
         }
         Add-AnalyzedResultInformation @params

@@ -50,8 +50,8 @@ begin {
     function Get-QueueDatabasePath {
         $transportConfigPath = Get-TransportConfigPath
         [xml]$TransportConfig = Get-Content $transportConfigPath
-        $queueDatabasePath = ($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabasePath" }).value
-        $queueDatabaseLoggingPath = ($TransportConfig.configuration.appsettings.Add | Where-Object { $_.key -eq "QueueDatabaseLoggingPath" }).value
+        $queueDatabasePath = ($TransportConfig.configuration.AppSettings.Add | Where-Object { $_.key -eq "QueueDatabasePath" }).value
+        $queueDatabaseLoggingPath = ($TransportConfig.configuration.AppSettings.Add | Where-Object { $_.key -eq "QueueDatabaseLoggingPath" }).value
         if ($queueDatabasePath -ne $queueDatabaseLoggingPath) {
             Write-Warning "QueueDatabasePath and QueueDatabaseLoggingPath are not the same. This script does not yet support this scenario."
             exit

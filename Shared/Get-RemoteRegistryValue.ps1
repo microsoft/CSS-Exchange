@@ -11,7 +11,7 @@ function Get-RemoteRegistryValue {
         [string]$SubKey,
         [string]$GetValue,
         [string]$ValueType,
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
 
     <#

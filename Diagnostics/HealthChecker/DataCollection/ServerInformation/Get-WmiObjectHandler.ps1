@@ -18,7 +18,7 @@ function Get-WmiObjectHandler {
         [string]
         $Namespace,
 
-        [scriptblock]
+        [ScriptBlock]
         $CatchActionFunction
     )
     begin {

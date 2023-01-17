@@ -8,7 +8,7 @@ This article describes some of the ways how to run the script as task and how to
 
 **Note:** We assume that the script is stored under `C:\Scripts\HealthChecker`. Please make sure to adjust the path if you use a different one in your environment.
 
-1. The first thing to do is to create a service account which is used to run the script. It is recommended to use a strong password which will be changed regularly. It's also recommended to add the user to the `View-Only Organization Management` instead of `Organization Management`. This should be sufficent for the script to run.
+1. The first thing to do is to create a service account which is used to run the script. It is recommended to use a strong password which will be changed regularly. It's also recommended to add the user to the `View-Only Organization Management` instead of `Organization Management`. This should be sufficient for the script to run.
 
 **Note:** Using `View-Only Organization Management` instead of `Organization Management` requires you to add the account to the local `Administrators` group on each server. This can be achieved by creating a dedicated `Security Group` which is then added to the `Administrators` group on each Exchange server (manually or via `Group Policy`).
 

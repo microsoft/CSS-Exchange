@@ -30,7 +30,7 @@ function Get-IISLogDirectory {
             }
         } catch {
             Invoke-CatchActions
-            [array]$iisLogDirectory = "C:\inetpub\logs\LogFiles\" #Default location for IIS Logs
+            [array]$iisLogDirectory = "C:\inetPub\logs\LogFiles\" #Default location for IIS Logs
             Write-Verbose("Get-WebSite command doesn't exists. Set IISLogDirectory to: {0}" -f $iisLogDirectory)
         }
     }

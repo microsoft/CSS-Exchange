@@ -10,51 +10,51 @@ function Get-ServerObjects {
 
     Write-Verbose ("Function Enter: Get-ServerObjects")
     Write-Verbose ("Passed: {0} number of Servers" -f $ValidServers.Count)
-    $svrsObject = @()
+    $serversObject = @()
     $validServersList = @()
     foreach ($svr in $ValidServers) {
         Write-Verbose ("Working on Server {0}" -f $svr)
 
-        $sobj = Get-ExchangeBasicServerObject -ServerName $svr
-        if ($sobj -eq $true) {
+        $serverObj = Get-ExchangeBasicServerObject -ServerName $svr
+        if ($serverObj -eq $true) {
             Write-Host "Removing Server $svr from the list" -ForegroundColor "Red"
             continue
         } else {
             $validServersList += $svr
         }
 
-        if ($Script:AnyTransportSwitchesEnabled -and ($sobj.Hub -or $sobj.Version -ge 15)) {
-            $sobj | Add-Member -Name TransportInfoCollect -MemberType NoteProperty -Value $true
-            $sobj | Add-Member -Name TransportInfo -MemberType NoteProperty -Value `
+        if ($Script:AnyTransportSwitchesEnabled -and ($serverObj.Hub -or $serverObj.Version -ge 15)) {
+            $serverObj | Add-Member -Name TransportInfoCollect -MemberType NoteProperty -Value $true
+            $serverObj | Add-Member -Name TransportInfo -MemberType NoteProperty -Value `
             (Get-TransportLoggingInformationPerServer -Server $svr `
-                    -version $sobj.Version `
-                    -EdgeServer $sobj.Edge `
-                    -CASOnly $sobj.CASOnly `
-                    -MailboxOnly $sobj.MailboxOnly)
+                    -version $serverObj.Version `
+                    -EdgeServer $serverObj.Edge `
+                    -CASOnly $serverObj.CASOnly `
+                    -MailboxOnly $serverObj.MailboxOnly)
         } else {
-            $sobj | Add-Member -Name TransportInfoCollect -MemberType NoteProperty -Value $false
+            $serverObj | Add-Member -Name TransportInfoCollect -MemberType NoteProperty -Value $false
         }
 
         if ($PopLogs -and
             !$Script:EdgeRoleDetected) {
-            $sobj | Add-Member -Name PopLogsLocation -MemberType NoteProperty -Value ((Get-PopSettings -Server $svr).LogFileLocation)
+            $serverObj | Add-Member -Name PopLogsLocation -MemberType NoteProperty -Value ((Get-PopSettings -Server $svr).LogFileLocation)
         }
 
         if ($ImapLogs -and
             !$Script:EdgeRoleDetected) {
-            $sobj | Add-Member -Name ImapLogsLocation -MemberType NoteProperty -Value ((Get-ImapSettings -Server $svr).LogFileLocation)
+            $serverObj | Add-Member -Name ImapLogsLocation -MemberType NoteProperty -Value ((Get-ImapSettings -Server $svr).LogFileLocation)
         }
 
-        $svrsObject += $sobj
+        $serversObject += $serverObj
     }
 
-    if (($null -eq $svrsObject) -or
-        ($svrsObject.Count -eq 0)) {
+    if (($null -eq $serversObject) -or
+        ($serversObject.Count -eq 0)) {
         Write-Host "Something wrong happened in Get-ServerObjects stopping script" -ForegroundColor "Red"
         exit
     }
     #Set the valid servers
     $Script:ValidServers = $validServersList
     Write-Verbose("Function Exit: Get-ServerObjects")
-    return $svrsObject
+    return $serversObject
 }

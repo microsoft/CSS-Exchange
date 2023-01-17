@@ -67,7 +67,7 @@ if ($null -ne (Get-PublicFolder).DumpsterEntryId) {
 
     $exFoldersExportFile = (Join-Path $PWD "ExFoldersMailEnabledPropertyExport.txt")
 
-    & $exFoldersExe -connectto $pfDbToUse.Name -export -properties -f (Join-Path $PWD "ExFoldersMailEnabledPropertyExport.txt") | Out-Null
+    & $exFoldersExe -ConnectTo $pfDbToUse.Name -export -properties -f (Join-Path $PWD "ExFoldersMailEnabledPropertyExport.txt") | Out-Null
 
     if (-not (Test-Path $exFoldersExportFile)) {
         Write-Error "Failed to generate ExFolders export. Continuing with other tests. If"
@@ -146,7 +146,7 @@ for ($i = 0; $i -lt $orphanedMailPublicFolders.Count; $i++) {
     Write-Progress -Activity "Checking for orphans that point to a valid folder" -PercentComplete ($i * 100 / $orphanedMailPublicFolders.Count) -Status ("$i of $($orphanedMailPublicFolders.Count)")
     $thisMPF = $orphanedMailPublicFolders[$i]
     $pf = $null
-    if ($null -ne $thisMPF.ExternalEmailAddress -and $thisMPF.ExternalEmailAddress.ToString().StartsWith("expf")) {
+    if ($null -ne $thisMPF.ExternalEmailAddress -and $thisMPF.ExternalEmailAddress.ToString().StartsWith("exPf".ToLower())) {
         $partialEntryId = $thisMPF.ExternalEmailAddress.ToString().Substring(5).Replace("-", "")
         $partialEntryId += "0000"
         if ($byPartialEntryId.TryGetValue($partialEntryId, [ref]$pf)) {

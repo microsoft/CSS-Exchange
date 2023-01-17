@@ -9,10 +9,10 @@ This script reports the space taken up by various tables based on a database spa
 The space dump must be obtained while the database is dismounted, or on a suspended copy
 if the issue is happening there. To obtain the space dump, use the following syntax:
 
-eseutil /ms /v > C:\spacedump.txt
+eseUtil /ms /v > C:\SpaceDump.txt
 
 Then, feed that file to this script as follows:
 
-.\Analyze-SpaceDump.ps1 -File C:\spacedump.txt
+.\Analyze-SpaceDump.ps1 -File C:\SpaceDump.txt
 
 This script will only work with Exchange 2013 and later space dumps.

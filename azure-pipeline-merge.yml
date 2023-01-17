@@ -7,6 +7,9 @@ steps:
     .\docs.ps1
   displayName: "Docs Check"
 
+- pwsh: .\.build\SpellCheck.ps1
+  displayName: "Spell Check"
+
 - pwsh: |
     cd .\.build
     .\CodeFormatter.ps1 -Branch $env:TargetBranchName

@@ -15,7 +15,7 @@ function Invoke-IsoCopy {
     Write-Verbose "Installed Version of Exchange: $installedVersion"
     $filterDisplayNames = @("Microsoft Lync Server", "Exchange", "Microsoft Server Speech", "Microsoft Unified Communications")
 
-    [IO.FileInfo]$cuExchangeMsi = "$CurrentCuRootDirectory\EXCHANGESERVER.msi"
+    [IO.FileInfo]$cuExchangeMsi = "$CurrentCuRootDirectory\ExchangeServer.msi"
 
     if (!(Test-Path $cuExchangeMsi)) {
         #We want the root of the install directory, let the script handle the rest

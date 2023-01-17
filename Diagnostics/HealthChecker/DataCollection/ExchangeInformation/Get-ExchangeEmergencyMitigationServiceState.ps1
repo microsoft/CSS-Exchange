@@ -10,7 +10,7 @@ function Get-ExchangeEmergencyMitigationServiceState {
         [object]
         $RequiredInformation,
         [Parameter(Mandatory = $false)]
-        [scriptblock]
+        [ScriptBlock]
         $CatchActionFunction
     )
     begin {
@@ -18,7 +18,7 @@ function Get-ExchangeEmergencyMitigationServiceState {
         $emergencyMitigationServiceOrgState = $RequiredInformation.MitigationsEnabled
         $exchangeServerConfiguration = $RequiredInformation.GetExchangeServer
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        Write-Verbose "Passed - Computername: $ComputerName"
+        Write-Verbose "Passed - ComputerName: $ComputerName"
     }
     process {
         if ($null -ne $emergencyMitigationServiceOrgState) {
@@ -47,7 +47,7 @@ function Get-ExchangeEmergencyMitigationServiceState {
                     [System.Net.WebRequest]::DefaultWebProxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
                     [System.Net.WebRequest]::DefaultWebProxy.BypassProxyOnLocal = $true
                 }; `
-                    Invoke-WebRequest -Method Get -Uri "https://officeclient.microsoft.com/getexchangemitigations" -UseBasicParsing
+                    Invoke-WebRequest -Method Get -Uri "https://officeclient.microsoft.com/GetExchangeMitigations" -UseBasicParsing
             } `
                 -ArgumentList $exchangeServerConfiguration.InternetWebProxy
         }

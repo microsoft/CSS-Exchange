@@ -9,7 +9,7 @@
         06/16/2021 - Initial Release
 
 .SYNOPSIS
-Uses EICA7 files to verify that all Exchange paths that should be excluded from AV scanning are excluded.
+Uses EICAR files to verify that all Exchange paths that should be excluded from AV scanning are excluded.
 
 .DESCRIPTION
 Writes an EICAR test file https://en.wikipedia.org/wiki/EICAR_test_file to all paths specified by
@@ -23,7 +23,7 @@ IF the file is not removed then it should be properly excluded.
 Once the files are created it will wait 60 seconds for AV to "see" and remove the file.
 
 .PARAMETER Recurse
-Will test not just the root folders but all subfolders.
+Will test not just the root folders but all SubFolders.
 Generally should not be needed unless all folders pass without -Recuse but AV is still suspected.
 
 .OUTPUTS
@@ -41,7 +41,7 @@ Puts and removes an EICAR file in all test paths.
 .EXAMPLE
 .\Test-ExchAVExclusions.ps1 -Recurse
 
-Puts and Remove an EICAR file in all test paths + all subfolders.
+Puts and Remove an EICAR file in all test paths + all SubFolders.
 
 #>
 [CmdletBinding()]
@@ -122,54 +122,54 @@ foreach ($path in $BaseFolders) {
         if (!(Resolve-Path -Path $path -ErrorAction SilentlyContinue)) {
             throw "Failed to resolve"
         }
-        # If -recurse then we need to find all subfolders and Add them to the list to be tested
+        # If -recurse then we need to find all SubFolders and Add them to the list to be tested
         if ($Recurse) {
 
             # Add the root folder
             $FolderList.Add($path.ToLower())
 
-            # Get the Folder and all subFolders and just return the fullname value as a string
+            # Get the Folder and all subFolders and just return the fullName value as a string
             Get-ChildItem $path -Recurse -Directory -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName | ForEach-Object { $FolderList.Add($_.ToLower()) }
         }
         # Just Add the root folder
         else { $FolderList.Add($path.ToLower()) }
-    } catch { Write-SimpleLogfile -string ("[ERROR] - Failed to resolve folder " + $path) -Name $LogFile }
+    } catch { Write-SimpleLogFile -string ("[ERROR] - Failed to resolve folder " + $path) -Name $LogFile }
 }
 
 # Remove any Duplicates
 $FolderList = $FolderList | Select-Object -Unique
 
-Write-SimpleLogfile -String "Creating EICAR Files" -name $LogFile -OutHost
+Write-SimpleLogFile -String "Creating EICAR Files" -name $LogFile -OutHost
 
 # Create the EICAR file in each path
-$EicarFileName = "eicar"
-$EicarFileExt = "com"
-$EicarFullFileName = "$EicarFileName.$EicarFileExt"
+$eicarFileName = "eicar"
+$eicarFileExt = "com"
+$eicarFullFileName = "$eicarFileName.$eicarFileExt"
 
-#Base64 of Eicar string
+#Base64 of eicar string
 [string] $EncodedEicar = 'WDVPIVAlQEFQWzRcUFpYNTQoUF4pN0NDKTd9JEVJQ0FSLVNUQU5EQVJELUFOVElWSVJVUy1URVNULUZJTEUhJEgrSCo='
 
 foreach ($Folder in $FolderList) {
 
-    [string] $FilePath = (Join-Path $Folder $EicarFullFileName)
-    Write-SimpleLogfile -String ("Creating $EicarFullFileName file " + $FilePath) -name $LogFile
+    [string] $FilePath = (Join-Path $Folder $eicarFullFileName)
+    Write-SimpleLogFile -String ("Creating $eicarFullFileName file " + $FilePath) -name $LogFile
 
     if (!(Test-Path -Path $FilePath)) {
 
         # Try writing the encoded string to a the file
         try {
-            [byte[]] $EicarBytes = [System.Convert]::FromBase64String($EncodedEicar)
-            [string] $Eicar = [System.Text.Encoding]::UTF8.GetString($EicarBytes)
-            [IO.File]::WriteAllText($FilePath, $Eicar)
+            [byte[]] $eicarBytes = [System.Convert]::FromBase64String($EncodedEicar)
+            [string] $eicar = [System.Text.Encoding]::UTF8.GetString($eicarBytes)
+            [IO.File]::WriteAllText($FilePath, $eicar)
         }
 
         catch {
-            Write-Warning "$Folder $EicarFullFileName file couldn't be created. Either permissions or AV prevented file creation."
+            Write-Warning "$Folder $eicarFullFileName file couldn't be created. Either permissions or AV prevented file creation."
         }
     }
 
     else {
-        Write-SimpleLogfile -string ("[WARNING] - $EicarFullFileName already exists!: " + $FilePath) -name $LogFile -OutHost
+        Write-SimpleLogFile -string ("[WARNING] - $eicarFullFileName already exists!: " + $FilePath) -name $LogFile -OutHost
     }
 }
 
@@ -181,36 +181,36 @@ $extensionsList = Get-ExchAVExclusionsExtensions -ExchangePath $ExchangePath -Ms
 
 if ($randomFolder) {
     foreach ($extension in $extensionsList) {
-        $filepath = Join-Path $randomFolder "$EicarFileName.$extension"
-        Write-SimpleLogfile -String ("Creating $EicarFileName.$extension file " + $FilePath) -name $LogFile
+        $filepath = Join-Path $randomFolder "$eicarFileName.$extension"
+        Write-SimpleLogFile -String ("Creating $eicarFileName.$extension file " + $FilePath) -name $LogFile
 
         if (!(Test-Path -Path $FilePath)) {
 
             # Try writing the encoded string to a the file
             try {
-                [byte[]] $EicarBytes = [System.Convert]::FromBase64String($EncodedEicar)
-                [string] $Eicar = [System.Text.Encoding]::UTF8.GetString($EicarBytes)
-                [IO.File]::WriteAllText($FilePath, $Eicar)
+                [byte[]] $eicarBytes = [System.Convert]::FromBase64String($EncodedEicar)
+                [string] $eicar = [System.Text.Encoding]::UTF8.GetString($eicarBytes)
+                [IO.File]::WriteAllText($FilePath, $eicar)
             } catch {
-                Write-Warning "$randomFolder $EicarFileName.$extension file couldn't be created. Either permissions or AV prevented file creation."
+                Write-Warning "$randomFolder $eicarFileName.$extension file couldn't be created. Either permissions or AV prevented file creation."
             }
         } else {
-            Write-SimpleLogfile -string ("[WARNING] - $randomFolder $EicarFileName.$extension  already exists!: ") -name $LogFile -OutHost
+            Write-SimpleLogFile -string ("[WARNING] - $randomFolder $eicarFileName.$extension  already exists!: ") -name $LogFile -OutHost
         }
     }
 } else {
     Write-Warning "We cannot create a folder in root path to test extension exclusions."
 }
 
-Write-SimpleLogfile -String "EICAR Files Created" -name $LogFile -OutHost
+Write-SimpleLogFile -String "EICAR Files Created" -name $LogFile -OutHost
 
-Write-SimpleLogfile -String "Accessing EICAR Files" -name $LogFile -OutHost
+Write-SimpleLogFile -String "Accessing EICAR Files" -name $LogFile -OutHost
 # Try to open each EICAR file to force detection in paths
 $i = 0
 foreach ($Folder in $FolderList) {
-    $FilePath = (Join-Path $Folder $EicarFullFileName)
+    $FilePath = (Join-Path $Folder $eicarFullFileName)
     if (Test-Path $FilePath -PathType Leaf) {
-        Write-SimpleLogfile -String ("Opening $EicarFullFileName file " + $FilePath) -name $LogFile
+        Write-SimpleLogFile -String ("Opening $eicarFullFileName file " + $FilePath) -name $LogFile
         Start-Process -FilePath more -ArgumentList """$FilePath""" -ErrorAction SilentlyContinue -WindowStyle Hidden | Out-Null
     }
     $i++
@@ -219,44 +219,44 @@ foreach ($Folder in $FolderList) {
 # Try to open extensions:
 $i = 0
 foreach ($extension in $extensionsList) {
-    $FilePath = Join-Path $randomFolder "$EicarFileName.$extension"
+    $FilePath = Join-Path $randomFolder "$eicarFileName.$extension"
     if (Test-Path $FilePath -PathType Leaf) {
-        Write-SimpleLogfile -String ("Opening $EicarFileName.$extension file " + $FilePath) -name $LogFile
+        Write-SimpleLogFile -String ("Opening $eicarFileName.$extension file " + $FilePath) -name $LogFile
         Start-Process -FilePath more -ArgumentList """$FilePath""" -ErrorAction SilentlyContinue -WindowStyle Hidden | Out-Null
     }
     $i++
 }
 
-Write-SimpleLogfile -String "Access EICAR Files Finished" -name $LogFile -OutHost
+Write-SimpleLogFile -String "Access EICAR Files Finished" -name $LogFile -OutHost
 
 # Sleeping 5 minutes for AV to "find" the files
-Start-SleepWithProgress -sleeptime 300 -message "Allowing time for AV to Scan"
+Start-SleepWithProgress -SleepTime 300 -message "Allowing time for AV to Scan"
 
 # Create a list of folders that are probably being scanned by AV
 $BadFolderList = New-Object Collections.Generic.List[string]
 
-Write-SimpleLogfile -string "Testing for EICAR files" -name $LogFile -OutHost
+Write-SimpleLogFile -string "Testing for EICAR files" -name $LogFile -OutHost
 
 # Test each location for the EICAR file
 foreach ($Folder in $FolderList) {
 
-    $FilePath = (Join-Path $Folder $EicarFullFileName)
+    $FilePath = (Join-Path $Folder $eicarFullFileName)
 
     # If the file exists delete it -- this means the folder is not being scanned
     if (Test-Path $FilePath ) {
         #Get content to confirm that the file is not blocked by AV
         $output = Get-Content $FilePath -ErrorAction SilentlyContinue
-        if ($output -eq $Eicar) {
-            Write-SimpleLogfile -String ("Removing " + $FilePath) -name $LogFile
+        if ($output -eq $eicar) {
+            Write-SimpleLogFile -String ("Removing " + $FilePath) -name $LogFile
             Remove-Item $FilePath -Confirm:$false -Force
         } else {
-            Write-SimpleLogfile -String ("[FAIL] - Possible AV Scanning on Path: " + $Folder) -name $LogFile -OutHost
+            Write-SimpleLogFile -String ("[FAIL] - Possible AV Scanning on Path: " + $Folder) -name $LogFile -OutHost
             $BadFolderList.Add($Folder)
         }
     }
     # If the file doesn't exist Add that to the bad folder list -- means the folder is being scanned
     else {
-        Write-SimpleLogfile -String ("[FAIL] - Possible AV Scanning on Path: " + $Folder) -name $LogFile -OutHost
+        Write-SimpleLogFile -String ("[FAIL] - Possible AV Scanning on Path: " + $Folder) -name $LogFile -OutHost
         $BadFolderList.Add($Folder)
     }
 }
@@ -265,23 +265,23 @@ $BadExtensionList = New-Object Collections.Generic.List[string]
 # Test each extension for the EICAR file
 foreach ($extension in $extensionsList) {
 
-    $filepath = Join-Path $randomFolder "$EicarFileName.$extension"
+    $filepath = Join-Path $randomFolder "$eicarFileName.$extension"
 
     # If the file exists delete it -- this means the extension is not being scanned
     if (Test-Path $filepath ) {
         #Get content to confirm that the file is not blocked by AV
         $output = Get-Content $FilePath -ErrorAction SilentlyContinue
-        if ($output -eq $Eicar) {
-            Write-SimpleLogfile -String ("Removing " + $FilePath) -name $LogFile
+        if ($output -eq $eicar) {
+            Write-SimpleLogFile -String ("Removing " + $FilePath) -name $LogFile
             Remove-Item $FilePath -Confirm:$false -Force
         } else {
-            Write-SimpleLogfile -String ("[FAIL] - Possible AV Scanning on Extension: " + $extension) -name $LogFile -OutHost
+            Write-SimpleLogFile -String ("[FAIL] - Possible AV Scanning on Extension: " + $extension) -name $LogFile -OutHost
             $BadExtensionList.Add($extension)
         }
     }
     # If the file doesn't exist Add that to the bad extension list -- means the extension is being scanned
     else {
-        Write-SimpleLogfile -String ("[FAIL] - Possible AV Scanning on Extension: " + $extension) -name $LogFile -OutHost
+        Write-SimpleLogFile -String ("[FAIL] - Possible AV Scanning on Extension: " + $extension) -name $LogFile -OutHost
         $BadExtensionList.Add($extension)
     }
 }
@@ -295,7 +295,7 @@ if ($BadFolderList.count -gt 0 -or $BadExtensionList.Count -gt 0 ) {
     $BadFolderList | Out-File $OutputPath
     $BadExtensionList | Out-File $OutputPath -Append
 
-    Write-SimpleLogfile -String "Possible AV Scanning found" -name $LogFile
+    Write-SimpleLogFile -String "Possible AV Scanning found" -name $LogFile
     if ($BadFolderList.count -gt 0 ) {
         Write-Warning ("Found $($BadFolderList.count) of $($FolderList.Count) folders that are possibly being scanned! ")
     }
@@ -304,5 +304,5 @@ if ($BadFolderList.count -gt 0 -or $BadExtensionList.Count -gt 0 ) {
     }
     Write-Warning ("Review " + $OutputPath + " For the full list.")
 } else {
-    Write-SimpleLogfile -String "All EICAR files found; Exclusions appear to be set properly" -Name $LogFile -OutHost
+    Write-SimpleLogFile -String "All EICAR files found; Exclusions appear to be set properly" -Name $LogFile -OutHost
 }

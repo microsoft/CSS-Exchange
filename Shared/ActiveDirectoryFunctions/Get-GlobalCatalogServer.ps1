@@ -9,7 +9,7 @@ function Get-GlobalCatalogServer {
         [Parameter(Mandatory = $false)]
         [string]$SiteName = [System.DirectoryServices.ActiveDirectory.ActiveDirectorySite]::GetComputerSite().Name,
         [Parameter(Mandatory = $false)]
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
 
     <#

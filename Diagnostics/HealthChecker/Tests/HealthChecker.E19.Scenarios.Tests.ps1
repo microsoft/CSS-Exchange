@@ -44,7 +44,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
         It "Generic Exchange Information" {
             SetActiveDisplayGrouping "Exchange Information"
             TestObjectMatch "Setting Overrides Detected" $true
-            TestObjectMatch "Extended Protection Enabled (Any Vdir)" $true
+            TestObjectMatch "Extended Protection Enabled (Any VDir)" $true
         }
 
         It "Dependent Services" {
@@ -170,7 +170,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "Generic Exchange Information" {
             SetActiveDisplayGrouping "Exchange Information"
-            TestObjectMatch "Extended Protection Enabled (Any Vdir)" $true
+            TestObjectMatch "Extended Protection Enabled (Any VDir)" $true
         }
 
         It "TCP Keep Alive Time" {
@@ -244,7 +244,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "Extended Protection Enabled" {
             SetActiveDisplayGrouping "Exchange Information"
-            TestObjectMatch "Extended Protection Enabled (Any Vdir)" $true
+            TestObjectMatch "Extended Protection Enabled (Any VDir)" $true
         }
 
         It "Number of Processors" {

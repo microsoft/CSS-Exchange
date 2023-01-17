@@ -52,7 +52,7 @@ Limit|NoStatistics|Get-PublicFolderStatistics did not return any statistics for 
 Limit|TotalItemSize|The items directly in this folder (not child folders) add up to more than 25 GB.
 MailEnabledFolder|MailDisabledWithProxyGuid|The folder is not mail-enabled, but it has the GUID of an Active Directory object in its MailRecipientGuid property.
 MailEnabledFolder|MailEnabledSystemFolder|The folder is a system folder, which should not be mail-enabled.
-MailEnabledFolder|MailEnabledWithNoADOjbect|The folder is mail-enabled, but it has no Active Directory object.
+MailEnabledFolder|MailEnabledWithNoADObject|The folder is mail-enabled, but it has no Active Directory object.
 MailEnabledFolder|OrphanedMPF|An Active Directory object exists, but it is not linked to any folder.
 MailEnabledFolder|OrphanedMPFDuplicate|An Active Directory object exists, but it points to a public folder which points to a different object.
 MailEnabledFolder|OrphanedMPFDisconnected|An Active Directory object exists, but it points to a public folder that is mail-disabled.

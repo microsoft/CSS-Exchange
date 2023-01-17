@@ -1,6 +1,6 @@
-# DLT365Groupsupgrade
+# DLT365GroupsUpgrade
 
-Download the latest release: [DLT365Groupsupgrade.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/DLT365Groupsupgrade.ps1)
+Download the latest release: [DLT365GroupsUpgrade.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/DLT365GroupsUpgrade.ps1)
 
 ## Validating Distribution group eligibility for upgrade to O365 Group
 

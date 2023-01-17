@@ -17,6 +17,6 @@ function Copy-BulkItems {
         }
     } else {
         Write-Host "Not enough free space to copy over this data set."
-        New-Item -Path ("{0}\NotEnoughFreeSpace.txt" -f $CopyToLocation) -ItemType File -Value (Get-StringDataForNotEnoughFreeSpaceFile -hasher $Script:ItemSizesHashed) | Out-Null
+        New-Item -Path ("{0}\NotEnoughFreeSpace.txt" -f $CopyToLocation) -ItemType File -Value (Get-StringDataForNotEnoughFreeSpaceFile -FileSizes $Script:ItemSizesHashed) | Out-Null
     }
 }

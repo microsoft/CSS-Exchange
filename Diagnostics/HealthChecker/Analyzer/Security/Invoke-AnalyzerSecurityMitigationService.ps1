@@ -110,7 +110,7 @@ function Invoke-AnalyzerSecurityMitigationService {
                 }
 
                 $params = $baseParams + @{
-                    Details                = "Run: 'Get-Mitigations.ps1' from: '$exscripts' to learn more."
+                    Details                = "Run: 'Get-Mitigations.ps1' from: '$ExScripts' to learn more."
                     DisplayCustomTabNumber = 2
                 }
                 Add-AnalyzedResultInformation @params

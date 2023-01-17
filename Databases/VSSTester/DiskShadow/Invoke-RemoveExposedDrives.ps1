@@ -6,20 +6,20 @@ function Invoke-RemoveExposedDrives {
     param()
 
     function Out-removeDHSFile {
-        param ([string]$fileline)
-        $fileline | Out-File -FilePath "$path\removeSnapshot.dsh" -Encoding ASCII -Append
+        param ([string]$FileLine)
+        $FileLine | Out-File -FilePath "$path\removeSnapshot.dsh" -Encoding ASCII -Append
     }
 
     " "
     Get-Date
-    Write-Host "Diskshadow Snapshots" -ForegroundColor Green $nl
+    Write-Host "DiskShadow Snapshots" -ForegroundColor Green $nl
     Write-Host "--------------------------------------------------------------------------------------------------------------"
     " "
     Write-Host " "
-    if ($null -eq $logsnapvol) {
-        $exposedDrives = $dbsnapvol
+    if ($null -eq $logSnapVol) {
+        $exposedDrives = $dbSnapVol
     } else {
-        $exposedDrives = $dbsnapvol.ToString() + " and " + $logsnapvol.ToString()
+        $exposedDrives = $dbSnapVol.ToString() + " and " + $logSnapVol.ToString()
     }
     "If the snapshot was successful, the snapshot should be exposed as drive(s) $exposedDrives."
     "You should be able to see and navigate the snapshot with File Explorer. How would you like to proceed?"
@@ -44,19 +44,19 @@ function Invoke-RemoveExposedDrives {
         }
     } while ($removeExpose -notmatch $matchCondition)
 
-    $unexposeCommand = "delete shadows exposed $dbsnapvol"
-    if ($null -ne $logsnapvol) {
-        $unexposeCommand += $nl + "delete shadows exposed $logsnapvol"
+    $unexposedCommand = "delete shadows exposed $dbSnapVol"
+    if ($null -ne $logSnapVol) {
+        $unexposedCommand += $nl + "delete shadows exposed $logSnapVol"
     }
 
     if ($removeExpose -eq "1") {
         New-Item -Path $path\removeSnapshot.dsh -type file -Force
-        Out-removeDHSFile $unexposeCommand
+        Out-removeDHSFile $unexposedCommand
         Out-removeDHSFile "exit"
-        & 'C:\Windows\System32\diskshadow.exe' /s $path\removeSnapshot.dsh
+        & 'C:\Windows\System32\DiskShadow.exe' /s $path\removeSnapshot.dsh
     } elseif ($removeExpose -eq "2") {
-        Write-Host "You can remove the snapshots at a later time using the diskshadow tool from a command prompt."
-        Write-Host "Run diskshadow followed by these commands:"
-        Write-Host $unexposeCommand
+        Write-Host "You can remove the snapshots at a later time using the DiskShadow tool from a command prompt."
+        Write-Host "Run DiskShadow followed by these commands:"
+        Write-Host $unexposedCommand
     }
 }
