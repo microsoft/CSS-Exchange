@@ -10,7 +10,7 @@ function Get-InternalTransportCertificateFromServer {
     param (
         [string]$ComputerName = $env:COMPUTERNAME,
         [Parameter(Mandatory = $false)]
-        [scriptblock]$CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
 
     <#
