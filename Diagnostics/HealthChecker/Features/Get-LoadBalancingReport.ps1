@@ -198,8 +198,9 @@ function Get-LoadBalancingReport {
             } else {
                 $serverValue = 0
             }
-            if ( $totalRequests -eq 0 -or $null -eq $totalRequests) {
-                $percentageLoad = 100
+            if (($totalRequests -eq 0) -or
+                ($null -eq $totalRequests)) {
+                $percentageLoad = 0
             } else {
                 $percentageLoad = [math]::Round((($serverValue / $totalRequests) * 100))
             }
@@ -252,8 +253,9 @@ function Get-LoadBalancingReport {
             } else {
                 $serverValue = 0
             }
-            if ( $totalRequests -eq 0 -or $null -eq $totalRequests) {
-                $percentageLoad = 100
+            if (($totalRequests -eq 0) -or
+                ($null -eq $totalRequests)) {
+                $percentageLoad = 0
             } else {
                 $percentageLoad = [math]::Round((($serverValue / $totalRequests) * 100))
             }
