@@ -76,13 +76,8 @@ function Get-ExchangeServerCertificates {
             Write-Verbose "Trying to receive certificates from Exchange server: $($Server)"
             $exchangeServerCertificates = Get-ExchangeCertificate -Server $Server -ErrorAction Stop
 
-            try {
-                Write-Verbose "Trying to query internal transport certificate from AD for this server"
-                $internalTransportCertificate = Get-InternalTransportCertificateFromServer -ComputerName $Server
-            } catch {
-                Write-Verbose "Unable to query the internal transport certificate from AD - call is expected to fail on Edge Transport Servers"
-                Invoke-CatchActions
-            }
+            Write-Verbose "Trying to query internal transport certificate from AD for this server"
+            $internalTransportCertificate = Get-InternalTransportCertificateFromServer -ComputerName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
 
             if ($null -ne $exchangeServerCertificates) {
                 try {

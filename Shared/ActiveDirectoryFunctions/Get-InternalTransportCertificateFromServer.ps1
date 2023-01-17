@@ -2,12 +2,15 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-OrganizationContainer.ps1
+. $PSScriptRoot\..\Invoke-CatchActionError.ps1
 
 function Get-InternalTransportCertificateFromServer {
     [CmdletBinding()]
     [OutputType([System.Security.Cryptography.X509Certificates.X509Certificate2])]
     param (
-        [string]$ComputerName = $env:COMPUTERNAME
+        [string]$ComputerName = $env:COMPUTERNAME,
+        [Parameter(Mandatory = $false)]
+        [ScriptBlock]$CatchActionFunction
     )
 
     <#
@@ -29,6 +32,7 @@ function Get-InternalTransportCertificateFromServer {
         }
     } catch {
         Write-Verbose ("Unable to query the internal transport certificate - Exception: $($Error[0].Exception.Message)")
+        Invoke-CatchActionError $CatchActionFunction
     }
 
     return $certObject
