@@ -334,8 +334,10 @@ using System.Collections;
             public string DisplayValue;
             public string Name;
             public string TestingName; // Used for pestering testing
+            public string CustomName; // Used for security vulnerability
             public int TabNumber;
             public object TestingValue; //Used for pester testing down the road.
+            public object CustomValue; // Used for security vulnerability
             public object OutColumns; //used for colorized format table option.
             public string WriteType;
 
