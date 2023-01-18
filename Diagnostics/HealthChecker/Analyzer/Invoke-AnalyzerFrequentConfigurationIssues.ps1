@@ -106,18 +106,18 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     }
     Add-AnalyzedResultInformation @params
 
-    $displayValue = $osInformation.RegistryValues.CredentialGuard -ne 0
+    $credentialGuardValue = $osInformation.RegistryValues.CredentialGuard -ne 0
     $displayWriteType = "Grey"
 
-    if ($osInformation.CredentialGuardEnabled) {
-        $displayValue = "{0} `r`n`t`tError: Credential Guard is not supported on an Exchange Server. This can cause a performance hit on the server." -f $osInformation.CredentialGuardEnabled
+    if ($credentialGuardValue) {
+        $displayValue = "{0} `r`n`t`tError: Credential Guard is not supported on an Exchange Server. This can cause a performance hit on the server." -f $credentialGuardValue
         $displayWriteType = "Red"
     }
 
     $params = $baseParams + @{
         Name                = "Credential Guard Enabled"
         Details             = $displayValue
-        DisplayTestingValue = $osInformation.CredentialGuardEnabled
+        DisplayTestingValue = $credentialGuardValue
         DisplayWriteType    = $displayWriteType
     }
     Add-AnalyzedResultInformation @params
