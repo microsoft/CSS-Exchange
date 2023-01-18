@@ -106,7 +106,7 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     }
     Add-AnalyzedResultInformation @params
 
-    $displayValue = $osInformation.CredentialGuardEnabled
+    $displayValue = $osInformation.RegistryValues.CredentialGuard -ne 0
     $displayWriteType = "Grey"
 
     if ($osInformation.CredentialGuardEnabled) {

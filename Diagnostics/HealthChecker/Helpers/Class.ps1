@@ -10,7 +10,7 @@ using System.Collections;
         {
             public string ServerName;        //String of the server that we are working with
             public HardwareInformation HardwareInformation;  // Hardware Object Information
-            public OperatingSystemInformation  OSInformation; // OS Version Object Information
+            public object  OSInformation; // OS Version Object Information
             public ExchangeInformation ExchangeInformation; //Detailed Exchange Information
             public OrganizationInformation OrganizationInformation; // Organization Information that doesn't need to be collect multiple times.
             public string HealthCheckerVersion; //To determine the version of the script on the object.
@@ -144,95 +144,6 @@ using System.Collections;
         }
         // End ExchangeInformation
 
-        // OperatingSystemInformation
-        public class OperatingSystemInformation
-        {
-            public OSBuildInformation BuildInformation = new OSBuildInformation(); // contains build information
-            public NetworkInformation NetworkInformation = new NetworkInformation(); //stores network information and settings
-            public PowerPlanInformation PowerPlan = new PowerPlanInformation(); //stores the power plan information
-            public object PageFile;             //stores the page file information
-            public object ServerPendingReboot; // determine if server is pending a reboot.
-            public TimeZoneInformation TimeZone = new TimeZoneInformation();    //stores time zone information
-            public object TLSSettings;            // stores the TLS settings on the server.
-            public InstalledUpdatesInformation InstalledUpdates = new InstalledUpdatesInformation();  //store the install update
-            public ServerBootUpInformation ServerBootUp = new ServerBootUpInformation();   // stores the server boot up time information
-            public System.Array VcRedistributable;            //stores the Visual C++ Redistributable
-            public OSNetFrameworkInformation NETFramework = new OSNetFrameworkInformation();          //stores OS Net Framework
-            public bool CredentialGuardEnabled;
-            public object RegistryValues; // stores generic registry values
-            public object Smb1ServerSettings;
-        }
-
-        public class OSBuildInformation
-        {
-            public OSServerVersion MajorVersion; //OS Major Version
-            public string VersionBuild;           //hold the build number
-            public string FriendlyName;           //string holder of the Windows Server friendly name
-            public object OperatingSystem;        // holds Win32_OperatingSystem
-        }
-
-        public class NetworkInformation
-        {
-            public object HttpProxy;                // holds the setting for HttpProxy if one is set.
-            public object PacketsReceivedDiscarded;   //hold all the packets received discarded on the server.
-            public bool IPv6DisabledOnNICs;          //value that determines if we have IPv6 disabled on some NICs or not.
-            public System.Array NetworkAdapters;           //stores all the NICs on the servers.
-            public string PnPCapabilities;      //Value from PnPCapabilities registry
-            public bool SleepyNicDisabled;     //If the NIC can be in power saver mode by the OS.
-        }
-
-        public class PowerPlanInformation
-        {
-            public bool HighPerformanceSet;      // If the power plan is High Performance
-            public string PowerPlanSetting;      //value for the power plan that is set
-            public object PowerPlan;            //object to store the power plan information
-        }
-
-        public class TimeZoneInformation
-        {
-            public string CurrentTimeZone; //stores the value for the current time zone of the server.
-            public int DynamicDaylightTimeDisabled; // the registry value for DynamicDaylightTimeDisabled.
-            public string TimeZoneKeyName; // the registry value TimeZoneKeyName.
-            public string StandardStart;   // the registry value for StandardStart.
-            public string DaylightStart;   // the registry value for DaylightStart.
-            public bool DstIssueDetected;  // Determines if there is a high chance of an issue.
-            public System.Array ActionsToTake; //array of verbiage of the issues detected.
-        }
-
-        public class ServerRebootInformation
-        {
-            public bool PendingFileRenameOperations;            //bool "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\" item PendingFileRenameOperations.
-            public object SccmReboot;                           // object to store CimMethod for class name CCM_ClientUtilities
-            public bool SccmRebootPending;                      // SccmReboot has either PendingReboot or IsHardRebootPending is set to true.
-            public bool ComponentBasedServicingPendingReboot;   // bool HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending
-            public bool AutoUpdatePendingReboot;                // bool HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired
-            public bool PendingReboot;                         // bool if reboot types are set to true
-            public bool UpdateExeVolatile;                      // bool HKLM:\Software\Microsoft\Updates\UpdateExeVolatile\Flags
-        }
-
-        public class InstalledUpdatesInformation
-        {
-            public System.Array HotFixes;     //array to keep all the hot fixes of the server
-            public System.Array HotFixInfo;   //object to store hotfix information
-            public System.Array InstalledUpdates; //store the install updates
-        }
-
-        public class ServerBootUpInformation
-        {
-            public string Days;
-            public string Hours;
-            public string Minutes;
-            public string Seconds;
-        }
-
-        public class OSNetFrameworkInformation
-        {
-            public NetMajorVersion NetMajorVersion; //NetMajorVersion value
-            public string FriendlyName;  //string of the friendly name
-            public int RegistryValue; //store the registry value
-            public Hashtable FileInformation; //stores Get-Item information for .NET Framework
-        }
-
         //enum for the OSServerVersion that we are
         public enum OSServerVersion
         {
@@ -365,7 +276,7 @@ using System.Collections;
 
         public class AnalyzedInformation
         {
-            public HealthCheckerExchangeServer HealthCheckerExchangeServer;
+            public object HealthCheckerExchangeServer;
             public Hashtable HtmlServerValues = new Hashtable();
             public Hashtable DisplayResults = new Hashtable();
         }

@@ -16,7 +16,7 @@
 . $PSScriptRoot\Security\Invoke-AnalyzerSecurityVulnerability.ps1
 function Invoke-AnalyzerEngine {
     param(
-        [HealthChecker.HealthCheckerExchangeServer]$HealthServerObject
+        [object]$HealthServerObject
     )
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 

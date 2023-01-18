@@ -23,17 +23,10 @@ function Get-HealthCheckerExchangeServer {
     $HealthExSvrObj.OSInformation = Get-OperatingSystemInformation -Server $ServerName
     $HealthExSvrObj.ExchangeInformation = Get-ExchangeInformation -Server $ServerName -OSMajorVersion $HealthExSvrObj.OSInformation.BuildInformation.MajorVersion -PassedOrganizationInformation $PassedOrganizationInformation
 
-    if ($HealthExSvrObj.ExchangeInformation.BuildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2013) {
-        $netFrameworkVersion = Get-NETFrameworkVersion -MachineName $ServerName -CatchActionFunction ${Function:Invoke-CatchActions}
-        $HealthExSvrObj.OSInformation.NETFramework.FriendlyName = $netFrameworkVersion.FriendlyName
-        $HealthExSvrObj.OSInformation.NETFramework.RegistryValue = $netFrameworkVersion.RegistryValue
-        $HealthExSvrObj.OSInformation.NETFramework.NetMajorVersion = $netFrameworkVersion.MinimumValue
-        $HealthExSvrObj.OSInformation.NETFramework.FileInformation = Get-DotNetDllFileVersions -ComputerName $ServerName -FileNames @("System.Data.dll", "System.Configuration.dll") -CatchActionFunction ${Function:Invoke-CatchActions}
-
-        if ($netFrameworkVersion.MinimumValue -eq $HealthExSvrObj.ExchangeInformation.NETFramework.MaxSupportedVersion) {
-            $HealthExSvrObj.ExchangeInformation.NETFramework.OnRecommendedVersion = $true
-        }
+    if ($HealthExSvrObj.OSInformation.NETFramework.MajorVersion -eq $HealthExSvrObj.ExchangeInformation.NETFramework.MaxSupportedVersion) {
+        $HealthExSvrObj.ExchangeInformation.NETFramework.OnRecommendedVersion = $true
     }
+
     $HealthExSvrObj.HealthCheckerVersion = $BuildVersion
     $HealthExSvrObj.GenerationTime = [DateTime]::Now
     Write-Verbose "Finished building health Exchange Server Object for server: $ServerName"
