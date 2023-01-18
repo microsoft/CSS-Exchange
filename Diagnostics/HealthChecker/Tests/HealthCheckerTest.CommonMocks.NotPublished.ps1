@@ -55,6 +55,7 @@ Mock Get-RemoteRegistryValue {
         "AllowInsecureRenegoClients" { return 0 }
         "AllowInsecureRenegoServers" { return 0 }
         "EnableSerializationDataSigning" { return 0 }
+        "LsaCfgFlags" { return 0 }
         default { throw "Failed to find GetValue: $GetValue" }
     }
 }
@@ -102,7 +103,7 @@ Mock Get-ServerRebootPending {
     return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetServerRebootPending.xml"
 }
 
-Mock Get-TimeZoneInformationRegistrySettings {
+Mock Get-TimeZoneInformation {
     return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetTimeZoneInformationRegistrySettings.xml"
 }
 
@@ -112,10 +113,6 @@ Mock Get-AllTlsSettings {
 
 Mock Get-VisualCRedistributableInstalledVersion {
     return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetVisualCRedistributableInstalledVersion.xml"
-}
-
-Mock Get-CredentialGuardEnabled {
-    return $false
 }
 
 Mock Get-Smb1ServerSettings {

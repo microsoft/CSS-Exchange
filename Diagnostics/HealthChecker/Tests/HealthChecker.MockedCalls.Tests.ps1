@@ -65,9 +65,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-HotFix -Exactly 1
             Assert-MockCalled Get-LocalizedCounterSamples -Exactly 1
             Assert-MockCalled Get-ServerRebootPending -Exactly 1
-            Assert-MockCalled Get-TimeZoneInformationRegistrySettings -Exactly 1
+            Assert-MockCalled Get-TimeZoneInformation -Exactly 1
             Assert-MockCalled Get-AllTlsSettings -Exactly 1
-            Assert-MockCalled Get-CredentialGuardEnabled -Exactly 1
             Assert-MockCalled Get-Smb1ServerSettings -Exactly 1
             Assert-MockCalled Get-ExchangeAppPoolsInformation -Exactly 1
             Assert-MockCalled Get-ExchangeApplicationConfigurationFileValidation -Exactly 1
