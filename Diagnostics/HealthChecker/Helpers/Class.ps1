@@ -9,7 +9,7 @@ using System.Collections;
         public class HealthCheckerExchangeServer
         {
             public string ServerName;        //String of the server that we are working with
-            public HardwareInformation HardwareInformation;  // Hardware Object Information
+            public object HardwareInformation;  // Hardware Object Information
             public object  OSInformation; // OS Version Object Information
             public ExchangeInformation ExchangeInformation; //Detailed Exchange Information
             public OrganizationInformation OrganizationInformation; // Organization Information that doesn't need to be collect multiple times.
@@ -177,19 +177,6 @@ using System.Collections;
         }
         // End OperatingSystemInformation
 
-        // HardwareInformation
-        public class HardwareInformation
-        {
-            public string Manufacturer; //String to display the hardware information
-            public ServerType ServerType; //Enum to determine if the hardware is VMware, HyperV, Physical, or Unknown
-            public System.Array MemoryInformation; //Detailed information about the installed memory
-            public UInt64 TotalMemory; //Stores the total memory cooked value
-            public object System;   //object to store the system information that we have collected
-            public ProcessorInformation Processor;   //Detailed processor Information
-            public bool AutoPageFile; //True/False if we are using a page file that is being automatically set
-            public string Model; //string to display Model
-        }
-
         //enum for the type of computer that we are
         public enum ServerType
         {
@@ -198,21 +185,6 @@ using System.Collections;
             HyperV,
             Physical,
             Unknown
-        }
-
-        public class ProcessorInformation
-        {
-            public string Name;    //String of the processor name
-            public int NumberOfPhysicalCores;    //Number of Physical cores that we have
-            public int NumberOfLogicalCores;  //Number of Logical cores that we have presented to the os
-            public int NumberOfProcessors; //Total number of processors that we have in the system
-            public int MaxMegacyclesPerCore; //Max speed that we can get out of the cores
-            public int CurrentMegacyclesPerCore; //Current speed that we are using the cores at
-            public bool ProcessorIsThrottled;  //True/False if we are throttling our processor
-            public bool DifferentProcessorsDetected; //true/false to detect if we have different processor types detected
-            public bool DifferentProcessorCoreCountDetected; //detect if there are a different number of core counts per Processor CPU socket
-            public int EnvironmentProcessorCount; //[system.environment]::ProcessorCount
-            public object ProcessorClassObject;        // object to store the processor information
         }
 
         //HTML & display classes

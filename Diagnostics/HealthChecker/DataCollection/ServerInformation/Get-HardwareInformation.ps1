@@ -11,43 +11,33 @@ function Get-HardwareInformation {
         [string]$Server
     )
 
-    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
+    process {
+        Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
-    [HealthChecker.HardwareInformation]$hardware_obj = New-Object HealthChecker.HardwareInformation
-    $system = Get-WmiObjectCriticalHandler -ComputerName $Server -Class "Win32_ComputerSystem" -CatchActionFunction ${Function:Invoke-CatchActions}
-    $hardware_obj.MemoryInformation = Get-WmiObjectHandler -ComputerName $Server -Class "Win32_PhysicalMemory" -CatchActionFunction ${Function:Invoke-CatchActions}
+        $system = Get-WmiObjectCriticalHandler -ComputerName $Server -Class "Win32_ComputerSystem" -CatchActionFunction ${Function:Invoke-CatchActions}
+        $physicalMemory = Get-WmiObjectHandler -ComputerName $Server -Class "Win32_PhysicalMemory" -CatchActionFunction ${Function:Invoke-CatchActions}
+        $processorInformation = Get-ProcessorInformation -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
+        $totalMemory = 0
 
-    if ($null -eq $hardware_obj.MemoryInformation) {
-        Write-Verbose "Using memory from Win32_ComputerSystem class instead. This may cause memory calculation issues."
-        $hardware_obj.TotalMemory = $system.TotalPhysicalMemory
-    } else {
-        foreach ($memory in $hardware_obj.MemoryInformation) {
-            $hardware_obj.TotalMemory += $memory.Capacity
+        if ($null -eq $physicalMemory) {
+            Write-Verbose "Using memory from Win32_ComputerSystem class instead. This may cause memory calculation issues."
+            $totalMemory = $system.TotalPhysicalMemory
+        } else {
+            foreach ($memory in $physicalMemory) {
+                $totalMemory += $memory.Capacity
+            }
+        }
+    } end {
+        Write-Verbose "Exiting: $($MyInvocation.MyCommand)"
+        return [PSCustomObject]@{
+            Manufacturer      = $system.Manufacturer
+            ServerType        = (Get-ServerType -ServerType $system.Manufacturer)
+            AutoPageFile      = $system.AutomaticManagedPagefile
+            Model             = $system.Model
+            System            = $system
+            Processor         = $processorInformation
+            TotalMemory       = $totalMemory
+            MemoryInformation = $physicalMemory
         }
     }
-    $hardware_obj.Manufacturer = $system.Manufacturer
-    $hardware_obj.System = $system
-    $hardware_obj.AutoPageFile = $system.AutomaticManagedPagefile
-    $hardware_obj.ServerType = (Get-ServerType -ServerType $system.Manufacturer)
-    $processorInformation = Get-ProcessorInformation -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
-
-    #Need to do it this way because of Windows 2012R2
-    $processor = New-Object HealthChecker.ProcessorInformation
-    $processor.Name = $processorInformation.Name
-    $processor.NumberOfPhysicalCores = $processorInformation.NumberOfPhysicalCores
-    $processor.NumberOfLogicalCores = $processorInformation.NumberOfLogicalCores
-    $processor.NumberOfProcessors = $processorInformation.NumberOfProcessors
-    $processor.MaxMegacyclesPerCore = $processorInformation.MaxMegacyclesPerCore
-    $processor.CurrentMegacyclesPerCore = $processorInformation.CurrentMegacyclesPerCore
-    $processor.ProcessorIsThrottled = $processorInformation.ProcessorIsThrottled
-    $processor.DifferentProcessorsDetected = $processorInformation.DifferentProcessorsDetected
-    $processor.DifferentProcessorCoreCountDetected = $processorInformation.DifferentProcessorCoreCountDetected
-    $processor.EnvironmentProcessorCount = $processorInformation.EnvironmentProcessorCount
-    $processor.ProcessorClassObject = $processorInformation.ProcessorClassObject
-
-    $hardware_obj.Processor = $processor
-    $hardware_obj.Model = $system.Model
-
-    Write-Verbose "Exiting: $($MyInvocation.MyCommand)"
-    return $hardware_obj
 }
