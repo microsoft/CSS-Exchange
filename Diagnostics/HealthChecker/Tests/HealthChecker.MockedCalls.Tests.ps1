@@ -55,7 +55,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
             Assert-MockCalled Get-WmiObjectHandler -Exactly 6
             Assert-MockCalled Invoke-ScriptBlockHandler -Exactly 7
-            Assert-MockCalled Get-RemoteRegistryValue -Exactly 14
+            Assert-MockCalled Get-RemoteRegistryValue -Exactly 19
             Assert-MockCalled Get-NETFrameworkVersion -Exactly 1
             Assert-MockCalled Get-DotNetDllFileVersions -Exactly 1
             Assert-MockCalled Get-NicPnpCapabilitiesSetting -Exactly 1
@@ -65,7 +65,6 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-HotFix -Exactly 1
             Assert-MockCalled Get-LocalizedCounterSamples -Exactly 1
             Assert-MockCalled Get-ServerRebootPending -Exactly 1
-            Assert-MockCalled Get-TimeZoneInformation -Exactly 1
             Assert-MockCalled Get-AllTlsSettings -Exactly 1
             Assert-MockCalled Get-Smb1ServerSettings -Exactly 1
             Assert-MockCalled Get-ExchangeAppPoolsInformation -Exactly 1

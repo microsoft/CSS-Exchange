@@ -56,6 +56,10 @@ Mock Get-RemoteRegistryValue {
         "AllowInsecureRenegoServers" { return 0 }
         "EnableSerializationDataSigning" { return 0 }
         "LsaCfgFlags" { return 0 }
+        "DynamicDaylightTimeDisabled" { return 0 }
+        "TimeZoneKeyName" { return "Pacific Standard Time" }
+        "StandardStart" { return @(0, 0, 11, 0, 1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0) }
+        "DaylightStart" { return @(0, 0, 3, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0) }
         default { throw "Failed to find GetValue: $GetValue" }
     }
 }
@@ -101,10 +105,6 @@ Mock Get-LocalizedCounterSamples {
 
 Mock Get-ServerRebootPending {
     return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetServerRebootPending.xml"
-}
-
-Mock Get-TimeZoneInformation {
-    return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetTimeZoneInformationRegistrySettings.xml"
 }
 
 Mock Get-AllTlsSettings {
