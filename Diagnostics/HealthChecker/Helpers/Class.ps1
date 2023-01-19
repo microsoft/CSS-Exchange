@@ -12,27 +12,9 @@ using System.Collections;
             public object HardwareInformation;  // Hardware Object Information
             public object  OSInformation; // OS Version Object Information
             public ExchangeInformation ExchangeInformation; //Detailed Exchange Information
-            public OrganizationInformation OrganizationInformation; // Organization Information that doesn't need to be collect multiple times.
+            public object OrganizationInformation; // Organization Information that doesn't need to be collect multiple times.
             public string HealthCheckerVersion; //To determine the version of the script on the object.
             public DateTime GenerationTime; //Time stamp of running the script
-        }
-
-        // Organization Information - Things that only need to be collected once
-        public class OrganizationInformation
-        {
-            public object GetOrganizationConfig; //Stores the result from Get-OrganizationConfig
-            public object DomainsAclPermissions; //Stores the ACLs that we care about from Exchange Domain that contains the MESO container
-            public object WellKnownSecurityGroups; //Stores the well known Exchange Security Groups information
-            public object AdSchemaInformation;   //Stores the properties of from the Schema class
-            public object GetHybridConfiguration; //Stores the Get-HybridConfiguration Object
-            public object EnableDownloadDomains; //True if Download Domains are enabled on org level
-            public object WildCardAcceptedDomain; // for issues with * accepted domain.
-            public System.Array AMSIConfiguration; //Stores the Setting Override for AMSI Interface
-            public bool MapiHttpEnabled; //Stored from organization config
-            public object SecurityResults; // Stores different CVE results that are secured against Setup.exe /PrepareAD /PrepareDomain /PrepareSchema
-            public bool IsSplitADPermissions = new bool(); // Used to determine if split permissions are detected.
-            public int ADSiteCount; // Count for the numbers of sites the environment has.
-            public object GetSettingOverride; // Stores the Get-SettingOverride
         }
 
         // ExchangeInformation

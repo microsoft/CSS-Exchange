@@ -15,11 +15,21 @@ function Get-OrganizationInformation {
     )
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        [HealthChecker.OrganizationInformation]$orgInfo = New-Object -TypeName HealthChecker.OrganizationInformation
+        $organizationConfig = $null
+        $domainsAclPermissions = $null
+        $wellKnownSecurityGroups = $null
+        $adSchemaInformation = $null
+        $getHybridConfiguration = $null
+        $enableDownloadDomains = $null
+        $wildCardAcceptedDomain = $null
+        $mapiHttpEnabled = $false
+        $securityResults = $null
+        $isSplitADPermissions = $false
+        $adSiteCount = 0
+        $getSettingOverride = $null
     } process {
         try {
             $organizationConfig = Get-OrganizationConfig -ErrorAction Stop
-            $orgInfo.GetOrganizationConfig = $organizationConfig
         } catch {
             Write-Yellow "Failed to run Get-OrganizationConfig."
             Invoke-CatchActions
@@ -28,34 +38,34 @@ function Get-OrganizationInformation {
         # Pull out information from OrganizationConfig
         # This is done incase Get-OrganizationConfig and we set a true boolean value of false
         if ($null -ne $organizationConfig) {
-            $orgInfo.MapiHttpEnabled = $organizationConfig.MapiHttpEnabled
+            $mapiHttpEnabled = $organizationConfig.MapiHttpEnabled
             # Enabled Download Domains will not be there if running EMS from Exchange 2013.
             # By default, EnableDownloadDomains is set to Unknown in case this is run on 2013 server.
             if ($null -ne $organizationConfig.EnableDownloadDomains) {
-                $orgInfo.EnableDownloadDomains = $organizationConfig.EnableDownloadDomains
+                $enableDownloadDomains = $organizationConfig.EnableDownloadDomains
             } else {
                 Write-Verbose "No EnableDownloadDomains detected on Get-OrganizationConfig"
-                $orgInfo.EnableDownloadDomains = "Unknown"
+                $enableDownloadDomains = "Unknown"
             }
         } else {
             Write-Verbose "MAPI HTTP Enabled and Download Domains Enabled results not accurate"
         }
 
         try {
-            $orgInfo.WildCardAcceptedDomain = Get-AcceptedDomain -ErrorAction Stop | Where-Object { $_.DomainName.ToString() -eq "*" }
+            $wildCardAcceptedDomain = Get-AcceptedDomain -ErrorAction Stop | Where-Object { $_.DomainName.ToString() -eq "*" }
         } catch {
             Write-Verbose "Failed to run Get-AcceptedDomain"
-            $orgInfo.WildCardAcceptedDomain = "Unknown"
+            $wildCardAcceptedDomain = "Unknown"
             Invoke-CatchActions
         }
 
         # NO Edge Server Collection
         if (-not ($EdgeServer)) {
 
-            $orgInfo.AdSchemaInformation = Get-ExchangeAdSchemaInformation
-            $orgInfo.DomainsAclPermissions = Get-ExchangeDomainsAclPermissions
-            $orgInfo.WellKnownSecurityGroups = Get-ExchangeWellKnownSecurityGroups
-            $orgInfo.IsSplitADPermissions = Get-ExchangeADSplitPermissionsEnabled -CatchActionFunction ${Function:Invoke-CatchActions}
+            $adSchemaInformation = Get-ExchangeAdSchemaInformation
+            $domainsAclPermissions = Get-ExchangeDomainsAclPermissions
+            $wellKnownSecurityGroups = Get-ExchangeWellKnownSecurityGroups
+            $isSplitADPermissions = Get-ExchangeADSplitPermissionsEnabled -CatchActionFunction ${Function:Invoke-CatchActions}
 
             try {
                 $rootDSE = [ADSI]("LDAP://$([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Name)/RootDSE")
@@ -64,14 +74,14 @@ function Get-OrganizationInformation {
                 $directorySearcher.SearchRoot = [ADSI]("LDAP://" + $rootDSE.configurationNamingContext.ToString())
                 $directorySearcher.Filter = "(objectCategory=site)"
                 $directorySearcher.PageSize = 100
-                $orgInfo.ADSiteCount = ($directorySearcher.FindAll()).Count
+                $adSiteCount = ($directorySearcher.FindAll()).Count
             } catch {
                 Write-Verbose "Failed to collect AD Site Count information"
                 Invoke-CatchActions
             }
 
             $schemaRangeUpper = (
-                ($orgInfo.AdSchemaInformation.msExchSchemaVersionPt.Properties["RangeUpper"])[0]).ToInt32([System.Globalization.NumberFormatInfo]::InvariantInfo)
+                ($adSchemaInformation.msExchSchemaVersionPt.Properties["RangeUpper"])[0]).ToInt32([System.Globalization.NumberFormatInfo]::InvariantInfo)
 
             if ($schemaRangeUpper -lt 15323) {
                 $schemaLevel = "2013"
@@ -82,37 +92,50 @@ function Get-OrganizationInformation {
             }
 
             $cve21978Params = @{
-                DomainsAcls                     = $orgInfo.DomainsAclPermissions
-                ExchangeWellKnownSecurityGroups = $orgInfo.WellKnownSecurityGroups
+                DomainsAcls                     = $domainsAclPermissions
+                ExchangeWellKnownSecurityGroups = $wellKnownSecurityGroups
                 ExchangeSchemaLevel             = $schemaLevel
-                SplitADPermissions              = $orgInfo.IsSplitADPermissions
+                SplitADPermissions              = $isSplitADPermissions
             }
 
             $cve34470Params = @{
-                MsExchStorageGroup = $orgInfo.AdSchemaInformation.MsExchStorageGroup
+                MsExchStorageGroup = $adSchemaInformation.MsExchStorageGroup
             }
 
-            $orgInfo.SecurityResults = [PSCustomObject]@{
+            $securityResults = [PSCustomObject]@{
                 CVE202221978 = (Get-SecurityCve-2022-21978 @cve21978Params)
                 CVE202134470 = (Get-SecurityCve-2021-34470 @cve34470Params)
             }
 
             try {
-                $orgInfo.GetHybridConfiguration = Get-HybridConfiguration -ErrorAction Stop
+                $getHybridConfiguration = Get-HybridConfiguration -ErrorAction Stop
             } catch {
                 Write-Yellow "Failed to run Get-HybridConfiguration"
                 Invoke-CatchActions
             }
 
             try {
-                $orgInfo.GetSettingOverride = Get-SettingOverride -ErrorAction Stop
+                $getSettingOverride = Get-SettingOverride -ErrorAction Stop
             } catch {
                 Write-Verbose "Failed to run Get-SettingOverride"
-                $orgInfo.GetSettingOverride = "Unknown"
+                $getSettingOverride = "Unknown"
                 Invoke-CatchActions
             }
         }
     } end {
-        return $orgInfo
+        return [PSCustomObject]@{
+            GetOrganizationConfig   = $organizationConfig
+            DomainsAclPermissions   = $domainsAclPermissions
+            WellKnownSecurityGroups = $wellKnownSecurityGroups
+            AdSchemaInformation     = $adSchemaInformation
+            GetHybridConfiguration  = $getHybridConfiguration
+            EnableDownloadDomains   = $enableDownloadDomains
+            WildCardAcceptedDomain  = $wildCardAcceptedDomain
+            MapiHttpEnabled         = $mapiHttpEnabled
+            SecurityResults         = $securityResults
+            IsSplitADPermissions    = $isSplitADPermissions
+            ADSiteCount             = $adSiteCount
+            GetSettingOverride      = $getSettingOverride
+        }
     }
 }
