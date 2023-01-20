@@ -438,9 +438,11 @@ function Invoke-AnalyzerSecuritySettings {
             Write-Verbose "Server runs a FIP-FS fixed build: $($fipFsInfoObject.FIPFSFixedBuild) - Highest version number: $highestVersion"
         }
     } else {
-        $fipFsIssueBaseParams.Details = "Warning: Unable to check if the system is vulnerable to the FIP-FS bad pattern issue. Please re-run. $moreInformation"
-        $fipFsIssueBaseParams.DisplayWriteType = "Yellow"
-        $params = $baseParams + $fipFsIssueBaseParams
+        $fipFsIssueBaseParams = $baseParams + @{
+            Name             = "FIP-FS Update Issue Detected"
+            Details          = "Warning: Unable to check if the system is vulnerable to the FIP-FS bad pattern issue. Please re-run. $moreInformation"
+            DisplayWriteType = "Yellow"
+        }
         Add-AnalyzedResultInformation @params
     }
 }

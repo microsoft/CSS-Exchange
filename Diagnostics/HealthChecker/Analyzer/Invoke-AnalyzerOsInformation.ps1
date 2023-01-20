@@ -93,7 +93,59 @@ function Invoke-AnalyzerOsInformation {
         Add-AnalyzedResultInformation @params
     }
 
-    if ($exchangeInformation.NETFramework.OnRecommendedVersion) {
+    # .NET Supported Levels
+    [HealthChecker.ExchangeCULevel]$cuLevel = $exchangeInformation.BuildInformation.CU
+    [HealthChecker.OSServerVersion]$osVersion = $osInformation.BuildInformation.MajorVersion
+    [HealthChecker.ExchangeMajorVersion]$exchangeVersion = $exchangeInformation.BuildInformation.MajorVersion
+    $recommendedNetVersion = $null
+
+    Write-Verbose "Checking $exchangeVersion .NET Framework Support Versions"
+
+    if ([HealthChecker.ExchangeMajorVersion]::Exchange2019 -eq $exchangeVersion) {
+        if ($cuLevel -lt [HealthChecker.ExchangeCULevel]::CU2) {
+            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d7d2
+        } else {
+            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d8
+        }
+    } elseif ([HealthChecker.ExchangeMajorVersion]::Exchange2016 -eq $exchangeVersion) {
+        if ($cuLevel -lt [HealthChecker.ExchangeCULevel]::CU2) {
+            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d5d2wFix
+        } elseif ($cuLevel -eq [HealthChecker.ExchangeCULevel]::CU2) {
+            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d6d1wFix
+        } elseif ($cuLevel -eq [HealthChecker.ExchangeCULevel]::CU3) {
+            if ($osVersion -eq [HealthChecker.OSServerVersion]::Windows2016) {
+                $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d6d2
+            } else {
+                $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d6d1wFix
+            }
+        } elseif ($cuLevel -lt [HealthChecker.ExchangeCULevel]::CU8) {
+            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d6d2
+        } elseif ($cuLevel -lt [HealthChecker.ExchangeCULevel]::CU11) {
+            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d7d1
+        } elseif ($cuLevel -lt [HealthChecker.ExchangeCULevel]::CU13) {
+            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d7d2
+        } else {
+            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d8
+        }
+    } else {
+        if ($cuLevel -lt [HealthChecker.ExchangeCULevel]::CU4) {
+            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d5
+        } elseif ($cuLevel -lt [HealthChecker.ExchangeCULevel]::CU13) {
+            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d5d2wFix
+        } elseif ($cuLevel -lt [HealthChecker.ExchangeCULevel]::CU15) {
+            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d6d1wFix
+        } elseif ($cuLevel -lt [HealthChecker.ExchangeCULevel]::CU19) {
+            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d6d2
+        } elseif ($cuLevel -lt [HealthChecker.ExchangeCULevel]::CU21) {
+            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d7d1
+        } elseif ($cuLevel -lt [HealthChecker.ExchangeCULevel]::CU23) {
+            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d7d2
+        } else {
+            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d8
+        }
+    }
+
+    if ($osInformation.NETFramework.MajorVersion -eq $recommendedNetVersion) {
         $params = $baseParams + @{
             Name                  = ".NET Framework"
             Details               = $osInformation.NETFramework.FriendlyName
@@ -102,11 +154,11 @@ function Invoke-AnalyzerOsInformation {
         }
         Add-AnalyzedResultInformation @params
     } else {
-        $displayFriendly = Get-NETFrameworkVersion -NetVersionKey $exchangeInformation.NETFramework.MaxSupportedVersion
+        $displayFriendly = Get-NETFrameworkVersion -NetVersionKey $recommendedNetVersion
         $displayValue = "{0} - Warning Recommended .NET Version is {1}" -f $osInformation.NETFramework.FriendlyName, $displayFriendly.FriendlyName
         $testValue = [PSCustomObject]@{
             CurrentValue        = $osInformation.NETFramework.FriendlyName
-            MaxSupportedVersion = $exchangeInformation.NETFramework.MaxSupportedVersion
+            MaxSupportedVersion = $recommendedNetVersion
         }
         $params = $baseParams + @{
             Name                   = ".NET Framework"

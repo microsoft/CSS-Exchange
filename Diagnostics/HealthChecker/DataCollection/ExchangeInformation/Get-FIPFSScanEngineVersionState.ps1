@@ -15,8 +15,8 @@ function Get-FIPFSScanEngineVersionState {
         [System.Version]
         $ExSetupVersion,
         [Parameter(Mandatory = $true)]
-        [HealthChecker.ExchangeServerRole]
-        $ServerRole
+        [bool]
+        $AffectedServerRole
     )
 
     begin {
@@ -83,25 +83,6 @@ function Get-FIPFSScanEngineVersionState {
             return $null
         }
 
-        function IsServerRoleAffected {
-            param (
-                [HealthChecker.ExchangeServerRole]
-                $ServerRole
-            )
-
-            Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-
-            # Affected roles are Hub Transport, Mailbox and MultiRole
-            if (($ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) -and
-                ($ServerRole -ne [HealthChecker.ExchangeServerRole]::None) -and
-                ($ServerRole -ne [HealthChecker.ExchangeServerRole]::ClientAccess)) {
-                Write-Verbose "Server role is affected by this FIP-FS issue"
-                return $true
-            } else {
-                Write-Verbose "Server role is NOT affected by this FIP-FS issue"
-                return $false
-            }
-        }
         function IsFIPFSFixedBuild {
             param (
                 [System.Version]
@@ -137,8 +118,7 @@ function Get-FIPFSScanEngineVersionState {
         $isAffectedByFIPFSUpdateIssue = $false
         try {
 
-            $serverRoleAffected = IsServerRoleAffected -ServerRole $ServerRole
-            if ($serverRoleAffected) {
+            if ($AffectedServerRole) {
                 $highestScanEngineVersionNumber = GetHighestScanEngineVersionNumber -ComputerName $ComputerName
                 $fipFsIssueFixedBuild = IsFIPFSFixedBuild -BuildNumber $ExSetupVersion
 
@@ -163,7 +143,7 @@ function Get-FIPFSScanEngineVersionState {
     } end {
         return [PSCustomObject]@{
             FIPFSFixedBuild              = $fipFsIssueFixedBuild
-            ServerRoleAffected           = $serverRoleAffected
+            ServerRoleAffected           = $AffectedServerRole
             HighestVersionNumberDetected = $highestScanEngineVersionNumber
             BadVersionNumberDirDetected  = $isAffectedByFIPFSUpdateIssue
         }

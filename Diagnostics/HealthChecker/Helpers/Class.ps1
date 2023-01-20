@@ -11,66 +11,10 @@ using System.Collections;
             public string ServerName;        //String of the server that we are working with
             public object HardwareInformation;  // Hardware Object Information
             public object  OSInformation; // OS Version Object Information
-            public ExchangeInformation ExchangeInformation; //Detailed Exchange Information
+            public object ExchangeInformation; //Detailed Exchange Information
             public object OrganizationInformation; // Organization Information that doesn't need to be collect multiple times.
             public string HealthCheckerVersion; //To determine the version of the script on the object.
             public DateTime GenerationTime; //Time stamp of running the script
-        }
-
-        // ExchangeInformation
-        public class ExchangeInformation
-        {
-            public ExchangeBuildInformation BuildInformation = new ExchangeBuildInformation();   //Exchange build information
-            public object GetExchangeServer;      //Stores the Get-ExchangeServer Object
-            public object GetMailboxServer;       //Stores the Get-MailboxServer Object
-            public object GetOwaVirtualDirectory; //Stores the Get-OwaVirtualDirectory Object
-            public object GetWebServicesVirtualDirectory; //stores the Get-WebServicesVirtualDirectory object
-            public object GetOrganizationConfig; //Stores the result from Get-OrganizationConfig
-            public object ExchangeAdPermissions; //Stores the Exchange AD permissions for vulnerability testing
-            public object ExtendedProtectionConfig; //Stores the extended protection configuration
-            public object ExchangeConnectors; //Stores the Get-ExchangeConnectors Object
-            public System.Array AMSIConfiguration; //Stores the Setting Override for AMSI Interface
-            public System.Array SerializationDataSigningConfiguration; //Stores for the SerializationDataSigning feature configuration
-            public ExchangeNetFrameworkInformation NETFramework = new ExchangeNetFrameworkInformation();
-            public System.Array ExchangeServicesNotRunning; //Contains the Exchange services not running by Test-ServiceHealth
-            public Hashtable ApplicationPools = new Hashtable();
-            public object RegistryValues; //stores all Exchange Registry values
-            public ExchangeServerMaintenance ServerMaintenance;
-            public System.Array ExchangeCertificates;           //stores all the Exchange certificates on the servers.
-            public object ExchangeEmergencyMitigationService;   //stores the Exchange Emergency Mitigation Service (EEMS) object
-            public Hashtable ApplicationConfigFileStatus = new Hashtable();
-            public object DependentServices; // store the results for the dependent services of Exchange.
-            public object IISSettings;  //Stores the IISConfigurationSettings, applicationHostConfig and IISModulesInformation
-            public object SettingOverrides; //Stores the information regarding the Exchange Setting Overrides on the server.
-        }
-
-        public class ExchangeBuildInformation
-        {
-            public ExchangeServerRole ServerRole; //Roles that are currently set and installed.
-            public ExchangeMajorVersion MajorVersion; //Exchange Version (Exchange 2010/2013/2019)
-            public ExchangeCULevel CU;             // Exchange CU Level
-            public object VersionInformation; // Stores results from Get-ExchangeBuildVersionInformation
-            public System.Version LocalBuildNumber; //Local Build Number. Is only populated if from a Tools Machine
-            public object ExchangeSetup;    //Stores the Get-Command ExSetup object
-            public System.Array KBsInstalled;  //Stored object IU or Security KB fixes
-            public bool March2021SUInstalled;    //True if March 2021 SU is installed
-            public object FIPFSUpdateIssue; //Stores FIP-FS update issue information
-        }
-
-        public class ExchangeNetFrameworkInformation
-        {
-            public NetMajorVersion MinSupportedVersion; //Min Supported .NET Framework version
-            public NetMajorVersion MaxSupportedVersion; //Max (Recommended) Supported .NET version.
-            public bool OnRecommendedVersion; //RecommendedNetVersion Info includes all the factors. Windows Version & CU.
-            public string DisplayWording; //Display if we are in Support or not
-        }
-
-        public class ExchangeServerMaintenance
-        {
-            public System.Array InactiveComponents;
-            public object GetServerComponentState;
-            public object GetClusterNode;
-            public object GetMailboxServer; //TODO: Remove this
         }
 
         //enum for CU levels of Exchange
