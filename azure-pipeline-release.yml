@@ -12,12 +12,7 @@ steps:
     .\Build.ps1
   displayName: "Build Script"
 
-- task: UseDotNet@2
-  inputs:
-    packageType: 'sdk'
-    version: '2.1.x'
-
-- task: EsrpCodeSigning@1
+- task: EsrpCodeSigning@2
   condition: and(succeeded(), ne (variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/release'))
   inputs:
     ConnectedServiceName: 'CSS Exchange Code Sign'
