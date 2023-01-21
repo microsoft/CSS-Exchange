@@ -21,7 +21,7 @@ function Get-OrganizationInformation {
         $adSchemaInformation = $null
         $getHybridConfiguration = $null
         $enableDownloadDomains = $null
-        $wildCardAcceptedDomain = $null
+        $getAcceptedDomain = $null
         $mapiHttpEnabled = $false
         $securityResults = $null
         $isSplitADPermissions = $false
@@ -52,10 +52,10 @@ function Get-OrganizationInformation {
         }
 
         try {
-            $wildCardAcceptedDomain = Get-AcceptedDomain -ErrorAction Stop | Where-Object { $_.DomainName.ToString() -eq "*" }
+            $getAcceptedDomain = Get-AcceptedDomain -ErrorAction Stop
         } catch {
             Write-Verbose "Failed to run Get-AcceptedDomain"
-            $wildCardAcceptedDomain = "Unknown"
+            $getAcceptedDomain = "Unknown"
             Invoke-CatchActions
         }
 
@@ -130,7 +130,7 @@ function Get-OrganizationInformation {
             AdSchemaInformation     = $adSchemaInformation
             GetHybridConfiguration  = $getHybridConfiguration
             EnableDownloadDomains   = $enableDownloadDomains
-            WildCardAcceptedDomain  = $wildCardAcceptedDomain
+            GetAcceptedDomain       = $getAcceptedDomain
             MapiHttpEnabled         = $mapiHttpEnabled
             SecurityResults         = $securityResults
             IsSplitADPermissions    = $isSplitADPermissions

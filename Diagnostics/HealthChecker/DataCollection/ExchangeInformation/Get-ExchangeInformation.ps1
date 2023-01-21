@@ -48,7 +48,6 @@ function Get-ExchangeInformation {
             CU                 = $versionInformation.CU
             ExchangeSetup      = $exSetupDetails
             VersionInformation = $versionInformation
-            LocalBuildNumber   = "$($Script:ExchangeShellComputer.Major).$($Script:ExchangeShellComputer.Minor).$($Script:ExchangeShellComputer.Build).$($Script:ExchangeShellComputer.Revision)"
             KBsInstalled       = Get-ExchangeUpdates -Server $Server -ExchangeMajorVersion $versionInformation.MajorVersion
         }
 

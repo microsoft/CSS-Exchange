@@ -144,15 +144,18 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
         }
     }
 
-    $displayWriteType = "Grey"
-    $displayValue = "Not Set"
+    $displayWriteType = "Yellow"
+    $displayValue = "Unknown - Unable to run Get-AcceptedDomain"
     $additionalDisplayValue = [string]::Empty
 
-    if ($null -ne $organizationInformation.WildCardAcceptedDomain) {
+    if ($null -ne $organizationInformation.GetAcceptedDomain -and
+        $organizationInformation.GetAcceptedDomain -ne "Unknown") {
 
-        if ($organizationInformation.WildCardAcceptedDomain -eq "Unknown") {
-            $displayValue = "Unknown - Unable to run Get-AcceptedDomain"
-            $displayWriteType = "Yellow"
+        $wildCardAcceptedDomain = $organizationInformation.GetAcceptedDomain | Where-Object { $_.DomainName.ToString() -eq "*" }
+
+        if ($null -eq $wildCardAcceptedDomain) {
+            $displayValue = "Not Set"
+            $displayWriteType = "Grey"
         } else {
             $displayWriteType = "Red"
             $domain = $organizationInformation.WildCardAcceptedDomain
