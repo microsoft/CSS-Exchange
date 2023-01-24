@@ -616,6 +616,7 @@ function GetExchangeBuildDictionary {
                     "Mar21SU" = "15.1.1591.18"
                 })
             "CU12" = (NewCUAndSUObject "15.1.1713.5" @{
+                    "Feb19SU" = "15.1.1713.5"
                     "Apr19SU" = "15.1.1713.6"
                     "Jun19SU" = "15.1.1713.7"
                     "Jul19SU" = "15.1.1713.8"
@@ -695,6 +696,7 @@ function GetExchangeBuildDictionary {
         }
         "Exchange2019" = @{
             "CU1"  = (NewCUAndSUObject "15.2.330.5" @{
+                    "Feb19SU" = "15.2.330.5"
                     "Apr19SU" = "15.2.330.7"
                     "Jun19SU" = "15.2.330.8"
                     "Jul19SU" = "15.2.330.9"
