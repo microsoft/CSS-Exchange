@@ -81,9 +81,9 @@ Describe "Testing Get-ExchangeBuildVersionInformation.ps1" {
             $Script:results = Get-ExchangeBuildVersionInformation -FileVersion $fileVersion
         }
 
-        It "Return the final E19CU12 Oct22SU version object" {
+        It "Return the final E19CU10 Jul21SU version object" {
             $results.MajorVersion | Should -Be "Exchange2019"
-            $results.FriendlyName | Should -Be "Exchange 2019 CU10"
+            $results.FriendlyName | Should -Be "Exchange 2019 CU10 Jul21SU"
             $results.BuildVersion.ToString() | Should -Be "15.2.922.13"
             $results.CU | Should -Be "CU10"
             $results.ReleaseDate | Should -Be ([System.Convert]::ToDateTime([DateTime]"06/29/2021", [System.Globalization.DateTimeFormatInfo]::InvariantInfo))
@@ -130,6 +130,13 @@ Describe "Testing Get-ExchangeBuildVersionInformation.ps1" {
         It "Exchange 2019 CU23 - Should be NULL" {
             $results = Get-ExchangeBuildVersionInformation -Version "Exchange2019" -CU "CU23"
             $results.BuildVersion | Should -Be $null
+        }
+    }
+
+    Context "Testing FindBySUName" {
+        It "Nov22SU" {
+            $results = Get-ExchangeBuildVersionInformation -FindBySUName "Nov22SU"
+            $results.Count | Should -Be 5
         }
     }
 }

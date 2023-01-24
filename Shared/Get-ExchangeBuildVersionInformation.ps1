@@ -16,36 +16,25 @@ function Get-ExchangeBuildVersionInformation {
         [System.Version]$FileVersion,
 
         [Parameter(ParameterSetName = "VersionCU", Mandatory = $true)]
-        [ValidateSet("Exchange2013", "Exchange2016", "Exchange2019")]
+        [ValidateScript( { ValidateVersionParameter $_ } )]
         [string]$Version,
 
         [Parameter(ParameterSetName = "VersionCU", Mandatory = $true)]
-        [ValidateSet("CU1", "CU2", "CU3", "CU4", "CU5", "CU6", "CU7", "CU8",
-            "CU9", "CU10", "CU11", "CU12", "CU13", "CU14", "CU15", "CU16", "CU17",
-            "CU18", "CU19", "CU20", "CU21", "CU22", "CU23")]
+        [ValidateScript( { ValidateCUParameter $_ } )]
         [string]$CU,
 
         [Parameter(ParameterSetName = "VersionCU", Mandatory = $false)]
-        [ValidateSet("Mar21SU", "Apr21SU", "May21SU", "Jul21SU", "Oct21SU",
-            "Nov21SU", "Jan22SU", "Mar22SU", "May22SU", "Aug22SU", "Oct22SU",
-            "Nov22SU", "Jan23SU")]
+        [ValidateScript( { ValidateSUParameter $_ } )]
         [string]$SU,
+
+        [Parameter(ParameterSetName = "FindSUBuilds", Mandatory = $true)]
+        [ValidateScript( { ValidateSUParameter $_ } )]
+        [string]$FindBySUName,
 
         [Parameter(Mandatory = $false)]
         [ScriptBlock]$CatchActionFunction
     )
     begin {
-
-        function NewCUAndSUObject {
-            param(
-                [string]$CUBuildNumber,
-                [Hashtable]$SUBuildNumber
-            )
-            return @{
-                "CU" = $CUBuildNumber
-                "SU" = $SUBuildNumber
-            }
-        }
 
         function GetBuildVersion {
             param(
@@ -58,7 +47,7 @@ function Get-ExchangeBuildVersionInformation {
             )
             $cuResult = $exchangeBuildDictionary[$ExchangeVersion][$CU]
 
-            if ((-not [string]::IsNullOrEmpty($SU))  -and
+            if ((-not [string]::IsNullOrEmpty($SU)) -and
                 $cuResult.SU.ContainsKey($SU)) {
                 return $cuResult.SU[$SU]
             } else {
@@ -67,117 +56,7 @@ function Get-ExchangeBuildVersionInformation {
         }
 
         # Dictionary of Exchange Version/CU/SU to build number
-        $exchangeBuildDictionary = @{
-            "Exchange2013" = @{
-                "CU1"  = (NewCUAndSUObject "15.0.620.29")
-                "CU2"  = (NewCUAndSUObject "15.0.712.24")
-                "CU3"  = (NewCUAndSUObject "15.0.775.38")
-                "CU4"  = (NewCUAndSUObject "15.0.847.32")
-                "CU5"  = (NewCUAndSUObject "15.0.913.22")
-                "CU6"  = (NewCUAndSUObject "15.0.995.29")
-                "CU7"  = (NewCUAndSUObject "15.0.1044.25")
-                "CU8"  = (NewCUAndSUObject "15.0.1076.9")
-                "CU9"  = (NewCUAndSUObject "15.0.1104.5")
-                "CU10" = (NewCUAndSUObject "15.0.1130.7")
-                "CU11" = (NewCUAndSUObject "15.0.1156.6")
-                "CU12" = (NewCUAndSUObject "15.0.1178.4")
-                "CU13" = (NewCUAndSUObject "15.0.1210.3")
-                "CU14" = (NewCUAndSUObject "15.0.1236.3")
-                "CU15" = (NewCUAndSUObject "15.0.1263.5")
-                "CU16" = (NewCUAndSUObject "15.0.1293.2")
-                "CU17" = (NewCUAndSUObject "15.0.1320.4")
-                "CU18" = (NewCUAndSUObject "15.0.1347.2")
-                "CU19" = (NewCUAndSUObject "15.0.1365.1")
-                "CU20" = (NewCUAndSUObject "15.0.1367.3")
-                "CU21" = (NewCUAndSUObject "15.0.1395.4")
-                "CU22" = (NewCUAndSUObject "15.0.1473.3")
-                "CU23" = (NewCUAndSUObject "15.0.1497.2" @{
-                        "Mar21SU" = "15.0.1497.12"
-                        "Apr21SU" = "15.0.1497.15"
-                        "May21SU" = "15.0.1497.18"
-                        "Jul21SU" = "15.0.1497.23"
-                        "Oct21SU" = "15.0.1497.24"
-                        "Nov21SU" = "15.0.1497.26"
-                        "Jan22SU" = "15.0.1497.28"
-                        "Mar22SU" = "15.0.1497.33"
-                        "May22SU" = "15.0.1497.36"
-                        "Aug22SU" = "15.0.1497.40"
-                        "Oct22SU" = "15.0.1497.42"
-                        "Nov22SU" = "15.0.1497.44"
-                        "Jan23SU" = "15.0.1497.45"
-                    })
-            }
-            "Exchange2016" = @{
-                "CU1"  = (NewCUAndSUObject "15.1.396.30")
-                "CU2"  = (NewCUAndSUObject "15.1.466.34")
-                "CU3"  = (NewCUAndSUObject "15.1.544.27")
-                "CU4"  = (NewCUAndSUObject "15.1.669.32")
-                "CU5"  = (NewCUAndSUObject "15.1.845.34")
-                "CU6"  = (NewCUAndSUObject "15.1.1034.26")
-                "CU7"  = (NewCUAndSUObject "15.1.1261.35")
-                "CU8"  = (NewCUAndSUObject "15.1.1415.2")
-                "CU9"  = (NewCUAndSUObject "15.1.1466.3")
-                "CU10" = (NewCUAndSUObject "15.1.1531.3")
-                "CU11" = (NewCUAndSUObject "15.1.1591.10")
-                "CU12" = (NewCUAndSUObject "15.1.1713.5")
-                "CU13" = (NewCUAndSUObject "15.1.1779.2")
-                "CU14" = (NewCUAndSUObject "15.1.1847.3")
-                "CU15" = (NewCUAndSUObject "15.1.1913.5")
-                "CU16" = (NewCUAndSUObject "15.1.1979.3")
-                "CU17" = (NewCUAndSUObject "15.1.2044.4")
-                "CU18" = (NewCUAndSUObject "15.1.2106.2")
-                "CU19" = (NewCUAndSUObject "15.1.2176.2")
-                "CU20" = (NewCUAndSUObject "15.1.2242.4")
-                "CU21" = (NewCUAndSUObject "15.1.2308.8")
-                "CU22" = (NewCUAndSUObject "15.1.2375.7" @{
-                        "Oct21SU" = "15.1.2375.12"
-                        "Nov21SU" = "15.1.2375.17"
-                        "Jan22SU" = "15.1.2375.18"
-                        "Mar22SU" = "15.1.2375.24"
-                        "May22SU" = "15.1.2375.28"
-                        "Aug22SU" = "15.1.2375.31"
-                        "Oct22SU" = "15.1.2375.32"
-                        "Nov22SU" = "15.1.2375.37"
-                    })
-                "CU23" = (NewCUAndSUObject "15.1.2507.6" @{
-                        "May22SU" = "15.1.2507.9"
-                        "Aug22SU" = "15.1.2507.12"
-                        "Oct22SU" = "15.1.2507.13"
-                        "Nov22SU" = "15.1.2507.16"
-                        "Jan23SU" = "15.1.2507.17"
-                    })
-            }
-            "Exchange2019" = @{
-                "CU1"  = (NewCUAndSUObject "15.2.330.5")
-                "CU2"  = (NewCUAndSUObject "15.2.397.3")
-                "CU3"  = (NewCUAndSUObject "15.2.464.5")
-                "CU4"  = (NewCUAndSUObject "15.2.529.5")
-                "CU5"  = (NewCUAndSUObject "15.2.595.3")
-                "CU6"  = (NewCUAndSUObject "15.2.659.4")
-                "CU7"  = (NewCUAndSUObject "15.2.721.2")
-                "CU8"  = (NewCUAndSUObject "15.2.792.3")
-                "CU9"  = (NewCUAndSUObject "15.2.858.5")
-                "CU10" = (NewCUAndSUObject "15.2.922.7")
-                "CU11" = (NewCUAndSUObject "15.2.986.5" @{
-                        "Oct21SU" = "15.2.986.9"
-                        "Nov21SU" = "15.2.986.14"
-                        "Jan22SU" = "15.2.986.15"
-                        "Mar22SU" = "15.2.986.22"
-                        "May22SU" = "15.2.986.26"
-                        "Aug22SU" = "15.2.986.29"
-                        "Oct22SU" = "15.2.986.30"
-                        "Nov22SU" = "15.2.986.36"
-                        "Jan23SU" = "15.2.986.37"
-                    })
-                "CU12" = (NewCUAndSUObject "15.2.1118.7" @{
-                        "May22SU" = "15.2.1118.9"
-                        "Aug22SU" = "15.2.1118.12"
-                        "Oct22SU" = "15.2.1118.15"
-                        "Nov22SU" = "15.2.1118.20"
-                        "Jan23SU" = "15.2.1118.21"
-                    })
-            }
-        }
+        $exchangeBuildDictionary = GetExchangeBuildDictionary
 
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $exchangeMajorVersion = [string]::Empty
@@ -199,7 +78,17 @@ function Get-ExchangeBuildVersionInformation {
     process {
         # Convert both input types to a [System.Version]
         try {
-            if ($PSCmdlet.ParameterSetName -eq "VersionCU") {
+            if ($PSCmdlet.ParameterSetName -eq "FindSUBuilds") {
+                foreach ($exchangeKey in $exchangeBuildDictionary.Keys) {
+                    foreach ($cuKey in $exchangeBuildDictionary[$exchangeKey].Keys) {
+                        if ($null -ne $exchangeBuildDictionary[$exchangeKey][$cuKey].SU -and
+                            $exchangeBuildDictionary[$exchangeKey][$cuKey].SU.ContainsKey($FindBySUName)) {
+                            Get-ExchangeBuildVersionInformation -FileVersion $exchangeBuildDictionary[$exchangeKey][$cuKey].SU[$FindBySUName]
+                        }
+                    }
+                }
+                return
+            } elseif ($PSCmdlet.ParameterSetName -eq "VersionCU") {
                 [System.Version]$exchangeVersion = GetBuildVersion -ExchangeVersion $Version -CU $CU -SU $SU
             } elseif ($PSCmdlet.ParameterSetName -eq "AdminDisplayVersion") {
                 $AdminDisplayVersion = $AdminDisplayVersion.ToString()
@@ -238,11 +127,7 @@ function Get-ExchangeBuildVersionInformation {
                     $cuReleaseDate = "04/20/2022"
                     $supportedBuildNumber = $true
                 }
-                (GetBuildVersion $ex19 "CU12" -SU "Jan23SU") { $suName = "Jan23SU"; $latestSUBuild = $true }
-                (GetBuildVersion $ex19 "CU12" -SU "Nov22SU") { $suName = "Nov22SU" }
-                (GetBuildVersion $ex19 "CU12" -SU "Oct22SU") { $suName = "Oct22SU" }
-                (GetBuildVersion $ex19 "CU12" -SU "Aug22SU") { $suName = "Aug22SU" }
-                (GetBuildVersion $ex19 "CU12" -SU "May22SU") { $suName = "May22SU" }
+                (GetBuildVersion $ex19 "CU12" -SU "Jan23SU") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex19 "CU12") } {
                     $cuLevel = "CU11"
                     $cuReleaseDate = "09/28/2021"
@@ -250,15 +135,8 @@ function Get-ExchangeBuildVersionInformation {
                     $mesoValue = 13242
                     $orgValue = 16759
                 }
-                (GetBuildVersion $ex19 "CU11" -SU "Jan23SU") { $suName = "Jan23SU"; $latestSUBuild = $true }
-                (GetBuildVersion $ex19 "CU11" -SU "Nov22SU") { $suName = "Nov22SU" }
-                (GetBuildVersion $ex19 "CU11" -SU "Oct22SU") { $suName = "Oct22SU" }
-                (GetBuildVersion $ex19 "CU11" -SU "Aug22SU") { $suName = "Aug22SU" }
-                (GetBuildVersion $ex19 "CU11" -SU "May22SU") { $suName = "May22SU"; $mesoValue = 13243 }
-                (GetBuildVersion $ex19 "CU11" -SU "Mar22SU") { $suName = "Mar22SU" }
-                (GetBuildVersion $ex19 "CU11" -SU "Jan22SU") { $suName = "Jan22SU" }
-                (GetBuildVersion $ex19 "CU11" -SU "Nov21SU") { $suName = "Nov21SU" }
-                (GetBuildVersion $ex19 "CU11" -SU "Oct21SU") { $suName = "Oct21SU" }
+                (GetBuildVersion $ex19 "CU11" -SU "Jan23SU") { $latestSUBuild = $true }
+                (GetBuildVersion $ex19 "CU11" -SU "May22SU") { $mesoValue = 13243 }
                 { $_ -lt (GetBuildVersion $ex19 "CU11") } {
                     $cuLevel = "CU10"
                     $cuReleaseDate = "06/29/2021"
@@ -338,11 +216,7 @@ function Get-ExchangeBuildVersionInformation {
                     $cuReleaseDate = "04/20/2022"
                     $supportedBuildNumber = $true
                 }
-                (GetBuildVersion $ex16 "CU23" -SU "Jan23SU") { $suName = "Jan23SU"; $latestSUBuild = $true }
-                (GetBuildVersion $ex16 "CU23" -SU "Nov22SU") { $suName = "Nov22SU" }
-                (GetBuildVersion $ex16 "CU23" -SU "Oct22SU") { $suName = "Oct22SU" }
-                (GetBuildVersion $ex16 "CU23" -SU "Aug22SU") { $suName = "Aug22SU" }
-                (GetBuildVersion $ex16 "CU23" -SU "May22SU") { $suName = "May22SU" }
+                (GetBuildVersion $ex16 "CU23" -SU "Jan23SU") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex16 "CU23") } {
                     $cuLevel = "CU22"
                     $cuReleaseDate = "09/28/2021"
@@ -350,14 +224,7 @@ function Get-ExchangeBuildVersionInformation {
                     $mesoValue = 13242
                     $orgValue = 16222
                 }
-                (GetBuildVersion $ex16 "CU22" -SU "Nov22SU") { $suName = "Nov22SU" }
-                (GetBuildVersion $ex16 "CU22" -SU "Oct22SU") { $suName = "Oct22SU" }
-                (GetBuildVersion $ex16 "CU22" -SU "Aug22SU") { $suName = "Aug22SU" }
-                (GetBuildVersion $ex16 "CU22" -SU "May22SU") { $suName = "May22SU"; $mesoValue = 13243 }
-                (GetBuildVersion $ex16 "CU22" -SU "Mar22SU") { $suName = "Mar22SU" }
-                (GetBuildVersion $ex16 "CU22" -SU "Jan22SU") { $suName = "Jan22SU" }
-                (GetBuildVersion $ex16 "CU22" -SU "Nov21SU") { $suName = "Nov21SU" }
-                (GetBuildVersion $ex16 "CU22" -SU "Oct21SU") { $suName = "Oct21SU" }
+                (GetBuildVersion $ex16 "CU22" -SU "May22SU") { $mesoValue = 13243 }
                 { $_ -lt (GetBuildVersion $ex16 "CU22") } {
                     $cuLevel = "CU21"
                     $cuReleaseDate = "06/29/2021"
@@ -482,19 +349,8 @@ function Get-ExchangeBuildVersionInformation {
                     $cuReleaseDate = "06/18/2019"
                     $supportedBuildNumber = $true
                 }
-                (GetBuildVersion $ex13 "CU23" -SU "Jan23SU") { $suName = "Jan23SU"; $latestSUBuild = $true }
-                (GetBuildVersion $ex13 "CU23" -SU "Nov22SU") { $suName = "Nov22SU" }
-                (GetBuildVersion $ex13 "CU23" -SU "Oct22SU") { $suName = "Oct22SU" }
-                (GetBuildVersion $ex13 "CU23" -SU "Aug22SU") { $suName = "Aug22SU" }
-                (GetBuildVersion $ex13 "CU23" -SU "May22SU") { $suName = "May22SU"; $mesoValue = 13238 }
-                (GetBuildVersion $ex13 "CU23" -SU "Mar22SU") { $suName = "Mar22SU" }
-                (GetBuildVersion $ex13 "CU23" -SU "Jan22SU") { $suName = "Jan22SU" }
-                (GetBuildVersion $ex13 "CU23" -SU "Nov21SU") { $suName = "Nov21SU" }
-                (GetBuildVersion $ex13 "CU23" -SU "Oct21SU") { $suName = "Oct21SU" }
-                (GetBuildVersion $ex13 "CU23" -SU "Jul21SU") { $suName = "Jul21SU" }
-                (GetBuildVersion $ex13 "CU23" -SU "May21SU") { $suName = "May21SU" }
-                (GetBuildVersion $ex13 "CU23" -SU "Apr21SU") { $suName = "Apr21SU" }
-                (GetBuildVersion $ex13 "CU23" -SU "Mar21SU") { $suName = "Mar21SU" }
+                (GetBuildVersion $ex13 "CU23" -SU "Jan23SU") { $latestSUBuild = $true }
+                (GetBuildVersion $ex13 "CU23" -SU "May22SU") { $mesoValue = 13238 }
                 { $_ -lt (GetBuildVersion $ex13 "CU23") } {
                     $cuLevel = "CU22"
                     $cuReleaseDate = "02/12/2019"
@@ -603,8 +459,32 @@ function Get-ExchangeBuildVersionInformation {
         } else {
             Write-Verbose "Unknown version of Exchange is detected."
         }
+
+        # Now get the SU Name
+        if ([string]::IsNullOrEmpty($exchangeMajorVersion) -or
+            [string]::IsNullOrEmpty($cuLevel)) {
+            Write-Verbose "Can't lookup when keys aren't set"
+            return
+        }
+
+        $currentSUInfo = $exchangeBuildDictionary[$exchangeMajorVersion][$cuLevel].SU
+        $compareValue = $exchangeVersion.ToString()
+        if ($null -ne $currentSUInfo -and
+            $currentSUInfo.ContainsValue($compareValue)) {
+            foreach ($key in $currentSUInfo.Keys) {
+                if ($compareValue -eq $currentSUInfo[$key]) {
+                    $suName = $key
+                }
+            }
+        }
     }
     end {
+
+        if ($PSCmdlet.ParameterSetName -eq "FindSUBuilds") {
+            Write-Verbose "Return nothing here, results were already returned on the pipeline"
+            return
+        }
+
         $friendlyName = "$friendlyName $cuLevel $suName".Trim()
         Write-Verbose "Determined Build Version $friendlyName"
         return [PSCustomObject]@{
@@ -623,4 +503,320 @@ function Get-ExchangeBuildVersionInformation {
             }
         }
     }
+}
+
+function GetExchangeBuildDictionary {
+
+    function NewCUAndSUObject {
+        param(
+            [string]$CUBuildNumber,
+            [Hashtable]$SUBuildNumber
+        )
+        return @{
+            "CU" = $CUBuildNumber
+            "SU" = $SUBuildNumber
+        }
+    }
+
+    @{
+        "Exchange2013" = @{
+            "CU1"  = (NewCUAndSUObject "15.0.620.29")
+            "CU2"  = (NewCUAndSUObject "15.0.712.24")
+            "CU3"  = (NewCUAndSUObject "15.0.775.38")
+            "CU4"  = (NewCUAndSUObject "15.0.847.32")
+            "CU5"  = (NewCUAndSUObject "15.0.913.22")
+            "CU6"  = (NewCUAndSUObject "15.0.995.29")
+            "CU7"  = (NewCUAndSUObject "15.0.1044.25")
+            "CU8"  = (NewCUAndSUObject "15.0.1076.9")
+            "CU9"  = (NewCUAndSUObject "15.0.1104.5")
+            "CU10" = (NewCUAndSUObject "15.0.1130.7")
+            "CU11" = (NewCUAndSUObject "15.0.1156.6")
+            "CU12" = (NewCUAndSUObject "15.0.1178.4")
+            "CU13" = (NewCUAndSUObject "15.0.1210.3")
+            "CU14" = (NewCUAndSUObject "15.0.1236.3")
+            "CU15" = (NewCUAndSUObject "15.0.1263.5")
+            "CU16" = (NewCUAndSUObject "15.0.1293.2")
+            "CU17" = (NewCUAndSUObject "15.0.1320.4")
+            "CU18" = (NewCUAndSUObject "15.0.1347.2" @{
+                    "Mar18SU" = "15.0.1347.5"
+                })
+            "CU19" = (NewCUAndSUObject "15.0.1365.1" @{
+                    "Mar18SU" = "15.0.1365.3"
+                    "May18SU" = "15.0.1365.7"
+                })
+            "CU20" = (NewCUAndSUObject "15.0.1367.3" @{
+                    "May18SU" = "15.0.1367.6"
+                    "Aug18SU" = "15.0.1367.9"
+                })
+            "CU21" = (NewCUAndSUObject "15.0.1395.4" @{
+                    "Aug18SU" = "15.0.1395.7"
+                    "Oct18SU" = "15.0.1395.8"
+                    "Jan19SU" = "15.0.1395.10"
+                    "Mar21SU" = "15.0.1395.12"
+                })
+            "CU22" = (NewCUAndSUObject "15.0.1473.3" @{
+                    "Feb19SU" = "15.0.1473.3"
+                    "Apr19SU" = "15.0.1473.4"
+                    "Jun19SU" = "15.0.1473.5"
+                    "Mar21SU" = "15.0.1473.6"
+                })
+            "CU23" = (NewCUAndSUObject "15.0.1497.2" @{
+                    "Jul19SU" = "15.0.1497.3"
+                    "Nov19SU" = "15.0.1497.4"
+                    "Feb20SU" = "15.0.1497.6"
+                    "Oct20SU" = "15.0.1497.7"
+                    "Nov20SU" = "15.0.1497.8"
+                    "Dec20SU" = "15.0.1497.10"
+                    "Mar21SU" = "15.0.1497.12"
+                    "Apr21SU" = "15.0.1497.15"
+                    "May21SU" = "15.0.1497.18"
+                    "Jul21SU" = "15.0.1497.23"
+                    "Oct21SU" = "15.0.1497.24"
+                    "Nov21SU" = "15.0.1497.26"
+                    "Jan22SU" = "15.0.1497.28"
+                    "Mar22SU" = "15.0.1497.33"
+                    "May22SU" = "15.0.1497.36"
+                    "Aug22SU" = "15.0.1497.40"
+                    "Oct22SU" = "15.0.1497.42"
+                    "Nov22SU" = "15.0.1497.44"
+                    "Jan23SU" = "15.0.1497.45"
+                })
+        }
+        "Exchange2016" = @{
+            "CU1"  = (NewCUAndSUObject "15.1.396.30")
+            "CU2"  = (NewCUAndSUObject "15.1.466.34")
+            "CU3"  = (NewCUAndSUObject "15.1.544.27")
+            "CU4"  = (NewCUAndSUObject "15.1.669.32")
+            "CU5"  = (NewCUAndSUObject "15.1.845.34")
+            "CU6"  = (NewCUAndSUObject "15.1.1034.26")
+            "CU7"  = (NewCUAndSUObject "15.1.1261.35" @{
+                    "Mar18SU" = "15.1.1261.39"
+                })
+            "CU8"  = (NewCUAndSUObject "15.1.1415.2" @{
+                    "Mar18SU" = "15.1.1415.4"
+                    "May18SU" = "15.1.1415.7"
+                    "Mar21SU" = "15.1.1415.8"
+                })
+            "CU9"  = (NewCUAndSUObject "15.1.1466.3" @{
+                    "May18SU" = "15.1.1466.8"
+                    "Aug18SU" = "15.1.1466.9"
+                    "Mar21SU" = "15.1.1466.13"
+                })
+            "CU10" = (NewCUAndSUObject "15.1.1531.3" @{
+                    "Aug18SU" = "15.1.1531.6"
+                    "Oct18SU" = "15.1.1531.8"
+                    "Jan19SU" = "15.1.1531.10"
+                    "Mar21SU" = "15.1.1531.12"
+                })
+            "CU11" = (NewCUAndSUObject "15.1.1591.10" @{
+                    "Dec18SU" = "15.1.1591.11"
+                    "Jan19SU" = "15.1.1591.13"
+                    "Apr19SU" = "15.1.1591.16"
+                    "Jun19SU" = "15.1.1591.17"
+                    "Mar21SU" = "15.1.1591.18"
+                })
+            "CU12" = (NewCUAndSUObject "15.1.1713.5" @{
+                    "Apr19SU" = "15.1.1713.6"
+                    "Jun19SU" = "15.1.1713.7"
+                    "Jul19SU" = "15.1.1713.8"
+                    "Sep19SU" = "15.1.1713.9"
+                    "Mar21SU" = "15.1.1713.10"
+                })
+            "CU13" = (NewCUAndSUObject "15.1.1779.2" @{
+                    "Jul19SU" = "15.1.1779.4"
+                    "Sep19SU" = "15.1.1779.5"
+                    "Nov19SU" = "15.1.1779.7"
+                    "Mar21SU" = "15.1.1779.8"
+                })
+            "CU14" = (NewCUAndSUObject "15.1.1847.3" @{
+                    "Nov19SU" = "15.1.1847.5"
+                    "Feb20SU" = "15.1.1847.7"
+                    "Mar20SU" = "15.1.1847.10"
+                    "Mar21SU" = "15.1.1847.12"
+                })
+            "CU15" = (NewCUAndSUObject "15.1.1913.5" @{
+                    "Feb20SU" = "15.1.1913.7"
+                    "Mar20SU" = "15.1.1913.10"
+                    "Mar21SU" = "15.1.1913.12"
+                })
+            "CU16" = (NewCUAndSUObject "15.1.1979.3" @{
+                    "Sep20SU" = "15.1.1979.6"
+                    "Mar21SU" = "15.1.1979.8"
+                })
+            "CU17" = (NewCUAndSUObject "15.1.2044.4" @{
+                    "Sep20SU" = "15.1.2044.6"
+                    "Oct20SU" = "15.1.2044.7"
+                    "Nov20SU" = "15.1.2044.8"
+                    "Dec20SU" = "15.1.2044.12"
+                    "Mar21SU" = "15.1.2044.13"
+                })
+            "CU18" = (NewCUAndSUObject "15.1.2106.2" @{
+                    "Oct20SU" = "15.1.2106.3"
+                    "Nov20SU" = "15.1.2106.4"
+                    "Dec20SU" = "15.1.2106.6"
+                    "Feb21SU" = "15.1.2106.8"
+                    "Mar21SU" = "15.1.2106.13"
+                })
+            "CU19" = (NewCUAndSUObject "15.1.2176.2" @{
+                    "Feb21SU" = "15.1.2176.4"
+                    "Mar21SU" = "15.1.2176.9"
+                    "Apr21SU" = "15.1.2176.12"
+                    "May21SU" = "15.1.2176.14"
+                })
+            "CU20" = (NewCUAndSUObject "15.1.2242.4" @{
+                    "Apr21SU" = "15.1.2242.8"
+                    "May21SU" = "15.1.2242.10"
+                    "Jul21SU" = "15.1.2242.12"
+                })
+            "CU21" = (NewCUAndSUObject "15.1.2308.8" @{
+                    "Jul21SU" = "15.1.2308.14"
+                    "Oct21SU" = "15.1.2308.15"
+                    "Nov21SU" = "15.1.2308.20"
+                    "Jan22SU" = "15.1.2308.21"
+                    "Mar22SU" = "15.1.2308.27"
+                })
+            "CU22" = (NewCUAndSUObject "15.1.2375.7" @{
+                    "Oct21SU" = "15.1.2375.12"
+                    "Nov21SU" = "15.1.2375.17"
+                    "Jan22SU" = "15.1.2375.18"
+                    "Mar22SU" = "15.1.2375.24"
+                    "May22SU" = "15.1.2375.28"
+                    "Aug22SU" = "15.1.2375.31"
+                    "Oct22SU" = "15.1.2375.32"
+                    "Nov22SU" = "15.1.2375.37"
+                })
+            "CU23" = (NewCUAndSUObject "15.1.2507.6" @{
+                    "May22SU" = "15.1.2507.9"
+                    "Aug22SU" = "15.1.2507.12"
+                    "Oct22SU" = "15.1.2507.13"
+                    "Nov22SU" = "15.1.2507.16"
+                    "Jan23SU" = "15.1.2507.17"
+                })
+        }
+        "Exchange2019" = @{
+            "CU1"  = (NewCUAndSUObject "15.2.330.5" @{
+                    "Apr19SU" = "15.2.330.7"
+                    "Jun19SU" = "15.2.330.8"
+                    "Jul19SU" = "15.2.330.9"
+                    "Sep19SU" = "15.2.330.10"
+                    "Mar21SU" = "15.2.330.11"
+                })
+            "CU2"  = (NewCUAndSUObject "15.2.397.3" @{
+                    "Jul19SU" = "15.2.397.5"
+                    "Sep19SU" = "15.2.397.6"
+                    "Nov19SU" = "15.2.397.9"
+                    "Mar21SU" = "15.2.397.11"
+                })
+            "CU3"  = (NewCUAndSUObject "15.2.464.5" @{
+                    "Nov19SU" = "15.2.464.7"
+                    "Feb20SU" = "15.2.464.11"
+                    "Mar20SU" = "15.2.464.14"
+                    "Mar21SU" = "15.2.464.15"
+                })
+            "CU4"  = (NewCUAndSUObject "15.2.529.5" @{
+                    "Feb20SU" = "15.2.529.8"
+                    "Mar20SU" = "15.2.529.11"
+                    "Mar21SU" = "15.2.529.13"
+                })
+            "CU5"  = (NewCUAndSUObject "15.2.595.3" @{
+                    "Sep20SU" = "15.2.595.6"
+                    "Mar21SU" = "15.2.595.8"
+                })
+            "CU6"  = (NewCUAndSUObject "15.2.659.4" @{
+                    "Sep20SU" = "15.2.659.6"
+                    "Oct20SU" = "15.2.659.7"
+                    "Nov20SU" = "15.2.659.8"
+                    "Dec20SU" = "15.2.659.11"
+                    "Mar21SU" = "15.2.659.12"
+                })
+            "CU7"  = (NewCUAndSUObject "15.2.721.2" @{
+                    "Oct20SU" = "15.2.721.3"
+                    "Nov20SU" = "15.2.721.4"
+                    "Dec20SU" = "15.2.721.6"
+                    "Feb21SU" = "15.2.721.8"
+                    "Mar21SU" = "15.2.721.13"
+                })
+            "CU8"  = (NewCUAndSUObject "15.2.792.3" @{
+                    "Feb21SU" = "15.2.792.5"
+                    "Mar21SU" = "15.2.792.10"
+                    "Apr21SU" = "15.2.792.13"
+                    "May21SU" = "15.2.792.15"
+                })
+            "CU9"  = (NewCUAndSUObject "15.2.858.5" @{
+                    "Apr21SU" = "15.2.858.10"
+                    "May21SU" = "15.2.858.12"
+                    "Jul21SU" = "15.2.858.15"
+                })
+            "CU10" = (NewCUAndSUObject "15.2.922.7" @{
+                    "Jul21SU" = "15.2.922.13"
+                    "Oct21SU" = "15.2.922.14"
+                    "Nov21SU" = "15.2.922.19"
+                    "Jan22SU" = "15.2.922.20"
+                    "Mar22SU" = "15.2.922.27"
+                })
+            "CU11" = (NewCUAndSUObject "15.2.986.5" @{
+                    "Oct21SU" = "15.2.986.9"
+                    "Nov21SU" = "15.2.986.14"
+                    "Jan22SU" = "15.2.986.15"
+                    "Mar22SU" = "15.2.986.22"
+                    "May22SU" = "15.2.986.26"
+                    "Aug22SU" = "15.2.986.29"
+                    "Oct22SU" = "15.2.986.30"
+                    "Nov22SU" = "15.2.986.36"
+                    "Jan23SU" = "15.2.986.37"
+                })
+            "CU12" = (NewCUAndSUObject "15.2.1118.7" @{
+                    "May22SU" = "15.2.1118.9"
+                    "Aug22SU" = "15.2.1118.12"
+                    "Oct22SU" = "15.2.1118.15"
+                    "Nov22SU" = "15.2.1118.20"
+                    "Jan23SU" = "15.2.1118.21"
+                })
+        }
+    }
+}
+
+# Must be outside function to use it as a validate script
+function GetValidatePossibleParameters {
+    $exchangeBuildDictionary = GetExchangeBuildDictionary
+    $suNames = New-Object 'System.Collections.Generic.HashSet[string]'
+    $cuNames = New-Object 'System.Collections.Generic.HashSet[string]'
+    $versionNames = New-Object 'System.Collections.Generic.HashSet[string]'
+
+    foreach ($exchangeKey in $exchangeBuildDictionary.Keys) {
+        [void]$versionNames.Add($exchangeKey)
+        foreach ($cuKey in $exchangeBuildDictionary[$exchangeKey].Keys) {
+            [void]$cuNames.Add($cuKey)
+            if ($null -eq $exchangeBuildDictionary[$exchangeKey][$cuKey].SU) { continue }
+            foreach ($suKey in $exchangeBuildDictionary[$exchangeKey][$cuKey].SU.Keys) {
+                [void]$suNames.Add($suKey)
+            }
+        }
+    }
+    return [PSCustomObject]@{
+        Version = $versionNames
+        CU      = $cuNames
+        SU      = $suNames
+    }
+}
+
+function ValidateSUParameter {
+    param($name)
+
+    $possibleParameters = GetValidatePossibleParameters
+    $possibleParameters.SU.Contains($Name)
+}
+
+function ValidateCUParameter {
+    param($Name)
+
+    $possibleParameters = GetValidatePossibleParameters
+    $possibleParameters.CU.Contains($Name)
+}
+
+function ValidateVersionParameter {
+    param($Name)
+
+    $possibleParameters = GetValidatePossibleParameters
+    $possibleParameters.Version.Contains($Name)
 }
