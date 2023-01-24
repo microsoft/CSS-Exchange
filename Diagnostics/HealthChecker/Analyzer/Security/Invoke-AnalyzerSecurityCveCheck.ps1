@@ -10,6 +10,7 @@
 . $PSScriptRoot\Invoke-AnalyzerSecurityExtendedProtectionConfigState.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityIISModules.ps1
 . $PSScriptRoot\..\Add-AnalyzedResultInformation.ps1
+. $PSScriptRoot\..\..\Helpers\CompareExchangeBuildLevel.ps1
 function Invoke-AnalyzerSecurityCveCheck {
     [CmdletBinding()]
     param(
@@ -65,6 +66,19 @@ function Invoke-AnalyzerSecurityCveCheck {
         }
     }
 
+    function NewCveEntry {
+        param(
+            [string[]]$CVENames,
+            [string[]]$ExchangeVersion
+        )
+        foreach ($cve in $CVENames) {
+            [PSCustomObject]@{
+                CVE     = $cve
+                Version = $ExchangeVersion
+            }
+        }
+    }
+
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $osInformation = $HealthServerObject.OSInformation
 
@@ -73,370 +87,105 @@ function Invoke-AnalyzerSecurityCveCheck {
     $exchangeCU = $exchangeInformation.BuildInformation.CU
     Write-Verbose "Exchange Build Revision: $buildRevision"
     Write-Verbose "Exchange CU: $exchangeCU"
+    # This dictionary is a list of how to crawl through the list and add all the vulnerabilities to display
+    # only place CVEs here that are fix by code fix only. If special checks are required, we need to check for that manually.
+    $ex131619 = @("Exchange2013", "Exchange2016", "Exchange2019")
+    $ex2013 = "Exchange2013"
+    $ex2016 = "Exchange2016"
+    $ex2019 = "Exchange2019"
+    $suNameDictionary = @{
+        "Mar18SU" = ((NewCveEntry @("CVE-2018-0924", "CVE-2018-0940") @($ex2013, $ex2016)) + (NewCveEntry "CVE-2018-0941" $ex2016))
+        "May18SU" = ((NewCveEntry @("CVE-2018-8151", "CVE-2018-8154", "CVE-2018-8159") @($ex2013, $ex2016)) + (NewCveEntry @("CVE-2018-8152", "CVE-2018-8153") $ex2016))
+        "Aug18SU" = (@((NewCveEntry "CVE-2018-8302" @($ex2013, $ex2016))) + (NewCveEntry "CVE-2018-8374" $ex2016))
+        "Oct18SU" = (NewCveEntry @("CVE-2018-8265", "CVE-2018-8448") @($ex2013, $ex2016))
+        "Dec18SU" = (@(NewCveEntry "CVE-2018-8604" $ex2016))
+        "Jan19SU" = (NewCveEntry @("CVE-2019-0586", "CVE-2019-0588") @($ex2013, $ex2016))
+        "Feb19SU" = (NewCveEntry @("CVE-2019-0686", "CVE-2019-0724") $ex131619)
+        "Apr19SU" = (NewCveEntry @("CVE-2019-0817", "CVE-2019-0858") $ex131619)
+        "Jun19SU" = (@(NewCveEntry @("ADV190018") $ex131619))
+        "Jul19SU" = ((NewCveEntry @("CVE-2019-1084", "CVE-2019-1137") $ex131619) + (NewCveEntry "CVE-2019-1136" @($ex2013, $ex2016)))
+        "Sep19SU" = (NewCveEntry @("CVE-2019-1233", "CVE-2019-1266") @($ex2016, $ex2019))
+        "Nov19SU" = (@(NewCveEntry "CVE-2019-1373" $ex131619))
+        "Feb20SU" = (NewCveEntry @("CVE-2020-0688", "CVE-2020-0692") $ex131619)
+        "Mar20SU" = (@(NewCveEntry "CVE-2020-0903" @($ex2016, $ex2019)))
+        "Sep20SU" = (@(NewCveEntry "CVE-2020-16875" @($ex2016, $ex2019)))
+        "Oct20SU" = (@(NewCveEntry "CVE-2020-16969" $ex131619))
+        "Nov20SU" = (NewCveEntry @("CVE-2020-17083", "CVE-2020-17084", "CVE-2020-17085") $ex131619)
+        "Dec20SU" = ((NewCveEntry @("CVE-2020-17117", "CVE-2020-17132", "CVE-2020-17142", "CVE-2020-17143") $ex131619) + (NewCveEntry "CVE-2020-17141" @($ex2016, $ex2019)))
+        "Feb21SU" = (@(NewCveEntry "CVE-2021-24085" @($ex2016, $ex2019)))
+        "Mar21SU" = (NewCveEntry @("CVE-2021-26855", "CVE-2021-26857", "CVE-2021-26858", "CVE-2021-27065", "CVE-2021-26412", "CVE-2021-27078", "CVE-2021-26854") $ex131619)
+        "Apr21SU" = (NewCveEntry @("CVE-2021-28480", "CVE-2021-28481", "CVE-2021-28482", "CVE-2021-28483") $ex131619)
+        "May21SU" = (NewCveEntry @("CVE-2021-31195", "CVE-2021-31198", "CVE-2021-31207", "CVE-2021-31209") $ex131619)
+        "Jul21SU" = (NewCveEntry @("CVE-2021-31206", "CVE-2021-31196", "CVE-2021-33768") $ex131619)
+        "Oct21SU" = (@((NewCveEntry "CVE-2021-26427" $ex131619)) + (NewCveEntry @("CVE-2021-41350", "CVE-2021-41348", "CVE-2021-34453") @($ex2016, $ex2019)))
+        "Nov21SU" = ((NewCveEntry @("CVE-2021-42305", "CVE-2021-41349") $ex131619) + (NewCveEntry "CVE-2021-42321" @($ex2016, $ex2019)))
+        "Jan22SU" = (NewCveEntry @("CVE-2022-21855", "CVE-2022-21846", "CVE-2022-21969") $ex131619)
+        "Mar22SU" = (@((NewCveEntry "CVE-2022-23277" $ex131619)) + (NewCveEntry "CVE-2022-24463" @($ex2016, $ex2019)))
+        "Aug22SU" = (@(NewCveEntry "CVE-2022-34692" @($ex2016, $ex2019)))
+        "Nov22SU" = ((NewCveEntry @("CVE-2022-41040", "CVE-2022-41082", "CVE-2022-41079", "CVE-2022-41078", "CVE-2022-41080") $ex131619) + (NewCveEntry "CVE-2022-41123" @($ex2016, $ex2019)))
+        "Jan23SU" = (@((NewCveEntry "CVE-2023-21762" $ex131619)) + (NewCveEntry @("CVE-2023-21745", "CVE-2023-21761", "CVE-2023-21763", "CVE-2023-21764") @($ex2016, $ex2019)))
+    }
 
-    if ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013) {
+    # Need to organize the list so oldest CVEs come out first.
+    $monthOrder = @{
+        "Jan" = 1
+        "Feb" = 2
+        "Mar" = 3
+        "Apr" = 4
+        "May" = 5
+        "Jun" = 6
+        "Jul" = 7
+        "Aug" = 8
+        "Sep" = 9
+        "Oct" = 10
+        "Nov" = 11
+        "Dec" = 12
+    }
+    $unsortedKeys = @($suNameDictionary.Keys)
+    $sortedKeys = New-Object System.Collections.Generic.List[string]
 
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU19) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1347.5", "1365.3" `
-                -CVENames "CVE-2018-0924", "CVE-2018-0940"
+    foreach ($value in $unsortedKeys) {
+        $month = $value.Substring(0, 3)
+        $year = [int]$value.Substring(3, 2)
+        $insertAt = 0
+        while ($insertAt -lt $sortedKeys.Count) {
+
+            $compareMonth = $sortedKeys[$insertAt].Substring(0, 3)
+            $compareYear = [int]$sortedKeys[$insertAt].Substring(3, 2)
+            # break to add at current spot in list
+            if ($compareYear -gt $year) { break }
+            elseif ( $compareYear -eq $year -and
+                $monthOrder[$month] -lt $monthOrder[$compareMonth]) { break }
+
+            $insertAt++
         }
 
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU20) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1365.7", "1367.6" `
-                -CVENames "CVE-2018-8151", "CVE-2018-8154", "CVE-2018-8159"
-        }
+        $sortedKeys.Insert($insertAt, $value)
+    }
 
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU21) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1367.9", "1395.7" `
-                -CVENames "CVE-2018-8302"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1395.8" `
-                -CVENames "CVE-2018-8265", "CVE-2018-8448"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1395.10" `
-                -CVENames "CVE-2019-0586", "CVE-2019-0588"
+    foreach ($key in $sortedKeys) {
+        if (-not (Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -SUName $key)) {
+            Write-Verbose "Tested that we aren't on SU $key or greater"
+            $cveNames = ($suNameDictionary[$key] | Where-Object { $_.Version.Contains($exchangeInformation.BuildInformation.MajorVersion) }).CVE
+            foreach ($cveName in $cveNames) {
+                $params = @{
+                    AnalyzedInformation = $AnalyzeResults
+                    DisplayGroupingKey  = $DisplayGroupingKey
+                    Name                = "Security Vulnerability"
+                    Details             = ("{0}`r`n`t`tSee: https://portal.msrc.microsoft.com/security-guidance/advisory/{0} for more information." -f $cveName)
+                    DisplayWriteType    = "Red"
+                    DisplayTestingValue = $cveName
+                    AddHtmlDetailRow    = $false
+                }
+                Add-AnalyzedResultInformation @params
+            }
         }
-
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU22) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1473.3" `
-                -CVENames "CVE-2019-0686", "CVE-2019-0724"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1473.4" `
-                -CVENames "CVE-2019-0817", "CVE-2019-0858"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1473.5" `
-                -CVENames "ADV190018"
-        }
-
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU23) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1497.3" `
-                -CVENames "CVE-2019-1084", "CVE-2019-1136", "CVE-2019-1137"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1497.4" `
-                -CVENames "CVE-2019-1373"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1497.6" `
-                -CVENames "CVE-2020-0688", "CVE-2020-0692"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1497.7" `
-                -CVENames "CVE-2020-16969"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1497.8" `
-                -CVENames "CVE-2020-17083", "CVE-2020-17084", "CVE-2020-17085"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1497.10" `
-                -CVENames "CVE-2020-17117", "CVE-2020-17132", "CVE-2020-17142", "CVE-2020-17143"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1395.12", "1473.6", "1497.12" `
-                -CVENames "CVE-2021-26855", "CVE-2021-26857", "CVE-2021-26858", "CVE-2021-27065"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1497.12" `
-                -CVENames "CVE-2021-26412", "CVE-2021-27078", "CVE-2021-26854"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1497.15" `
-                -CVENames "CVE-2021-28480", "CVE-2021-28481", "CVE-2021-28482", "CVE-2021-28483"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1497.18" `
-                -CVENames "CVE-2021-31195", "CVE-2021-31198", "CVE-2021-31207", "CVE-2021-31209"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1497.23" `
-                -CVENames "CVE-2021-31206", "CVE-2021-31196", "CVE-2021-33768"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1497.24" `
-                -CVENames "CVE-2021-26427"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1497.26" `
-                -CVENames "CVE-2021-42305", "CVE-2021-41349"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1497.28" `
-                -CVENames "CVE-2022-21855", "CVE-2022-21846", "CVE-2022-21969"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1497.33" `
-                -CVENames "CVE-2022-23277"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1497.44" `
-                -CVENames "CVE-2022-41040", "CVE-2022-41082", "CVE-2022-41079", "CVE-2022-41078", "CVE-2022-41080"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1497.45" `
-                -CVENames "CVE-2023-21762"
-        }
-    } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016) {
-
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU8) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1261.39", "1415.4" `
-                -CVENames "CVE-2018-0924", "CVE-2018-0940", "CVE-2018-0941"
-        }
-
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU9) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1415.7", "1466.8" `
-                -CVENames "CVE-2018-8151", "CVE-2018-8152", "CVE-2018-8153", "CVE-2018-8154", "CVE-2018-8159"
-        }
-
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU10) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1466.9", "1531.6" `
-                -CVENames "CVE-2018-8374", "CVE-2018-8302"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1531.8" `
-                -CVENames "CVE-2018-8265", "CVE-2018-8448"
-        }
-
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU11) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1531.8", "1591.11" `
-                -CVENames "CVE-2018-8604"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1531.10", "1591.13" `
-                -CVENames "CVE-2019-0586", "CVE-2019-0588"
-        }
-
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU12) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1591.16", "1713.6" `
-                -CVENames "CVE-2019-0817", "CVE-2018-0858"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1591.17", "1713.7" `
-                -CVENames "ADV190018"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1713.5" `
-                -CVENames "CVE-2019-0686", "CVE-2019-0724"
-        }
-
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU13) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1713.8", "1779.4" `
-                -CVENames "CVE-2019-1084", "CVE-2019-1136", "CVE-2019-1137"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1713.9", "1779.5" `
-                -CVENames "CVE-2019-1233", "CVE-2019-1266"
-        }
-
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU14) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1779.7", "1847.5" `
-                -CVENames "CVE-2019-1373"
-        }
-
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU15) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1847.7", "1913.7" `
-                -CVENames "CVE-2020-0688", "CVE-2020-0692"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1847.10", "1913.10" `
-                -CVENames "CVE-2020-0903"
-        }
-
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU17) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1979.6", "2044.6" `
-                -CVENames "CVE-2020-16875"
-        }
-
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU18) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "2106.2" `
-                -CVENames "CVE-2021-1730"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "2044.7", "2106.3" `
-                -CVENames "CVE-2020-16969"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "2044.8", "2106.4" `
-                -CVENames "CVE-2020-17083", "CVE-2020-17084", "CVE-2020-17085"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "2044.12", "2106.6" `
-                -CVENames "CVE-2020-17117", "CVE-2020-17132", "CVE-2020-17141", "CVE-2020-17142", "CVE-2020-17143"
-        }
-
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU19) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "2106.8", "2176.4" `
-                -CVENames "CVE-2021-24085"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "1415.8", "1466.13", "1531.12", "1591.18", "1713.10", "1779.8", "1847.12", "1913.12", "1979.8", "2044.13", "2106.13", "2176.9" `
-                -CVENames "CVE-2021-26855", "CVE-2021-26857", "CVE-2021-26858", "CVE-2021-27065"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "2106.13", "2176.9" `
-                -CVENames "CVE-2021-26412", "CVE-2021-27078", "CVE-2021-26854"
-        }
-
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU20) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "2176.12", "2242.8" `
-                -CVENames "CVE-2021-28480", "CVE-2021-28481", "CVE-2021-28482", "CVE-2021-28483"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "2176.14", "2242.10" `
-                -CVENames "CVE-2021-31195", "CVE-2021-31198", "CVE-2021-31207", "CVE-2021-31209"
-        }
-
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU21) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "2242.12", "2308.14" `
-                -CVENames "CVE-2021-31206", "CVE-2021-31196", "CVE-2021-33768"
-        }
-
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU22) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "2308.15", "2375.7" `
-                -CVENames "CVE-2021-26427"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "2308.15", "2375.12" `
-                -CVENames "CVE-2021-41350", "CVE-2021-41348", "CVE-2021-34453"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "2308.20", "2375.17" `
-                -CVENames "CVE-2021-42305", "CVE-2021-41349", "CVE-2021-42321"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "2308.21", "2375.18" `
-                -CVENames "CVE-2022-21855", "CVE-2022-21846", "CVE-2022-21969"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "2308.27", "2375.24" `
-                -CVENames "CVE-2022-23277", "CVE-2022-24463"
-        }
-
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU23) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "2375.31", "2507.12" `
-                -CVENames "CVE-2022-34692"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "2375.37", "2507.16" `
-                -CVENames "CVE-2022-41040", "CVE-2022-41082", "CVE-2022-41079", "CVE-2022-41078", "CVE-2022-41080", "CVE-2022-41123"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "2507.17" `
-                -CVENames "CVE-2023-21745", "CVE-2023-21761", "CVE-2023-21762", "CVE-2023-21763", "CVE-2023-21764"
-        }
-    } elseif ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
-
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU1) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "221.14" `
-                -CVENames "CVE-2019-0586", "CVE-2019-0588"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "221.16", "330.7" `
-                -CVENames "CVE-2019-0817", "CVE-2019-0858"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "221.17", "330.8" `
-                -CVENames "ADV190018"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "330.6" `
-                -CVENames "CVE-2019-0686", "CVE-2019-0724"
-        }
-
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU2) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "330.9", "397.5" `
-                -CVENames "CVE-2019-1084", "CVE-2019-1137"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "397.6", "330.10" `
-                -CVENames "CVE-2019-1233", "CVE-2019-1266"
-        }
-
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU3) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "397.9", "464.7" `
-                -CVENames "CVE-2019-1373"
-        }
-
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU4) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "464.11", "529.8" `
-                -CVENames "CVE-2020-0688", "CVE-2020-0692"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "464.14", "529.11" `
-                -CVENames "CVE-2020-0903"
-        }
-
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU6) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "595.6", "659.6" `
-                -CVENames "CVE-2020-16875"
-        }
-
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU7) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "721.2" `
-                -CVENames "CVE-2021-1730"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "659.7", "721.3" `
-                -CVENames "CVE-2020-16969"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "659.8", "721.4" `
-                -CVENames "CVE-2020-17083", "CVE-2020-17084", "CVE-2020-17085"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "659.11", "721.6" `
-                -CVENames "CVE-2020-17117", "CVE-2020-17132", "CVE-2020-17141", "CVE-2020-17142", "CVE-2020-17143"
-        }
-
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU8) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "721.8", "792.5" `
-                -CVENames "CVE-2021-24085"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "221.18", "330.11", "397.11", "464.15", "529.13", "595.8", "659.12", "721.13", "792.10" `
-                -CVENames "CVE-2021-26855", "CVE-2021-26857", "CVE-2021-26858", "CVE-2021-27065"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "721.13", "792.10" `
-                -CVENames "CVE-2021-26412", "CVE-2021-27078", "CVE-2021-26854"
-        }
-
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU9) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "792.13", "858.10" `
-                -CVENames "CVE-2021-28480", "CVE-2021-28481", "CVE-2021-28482", "CVE-2021-28483"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "792.15", "858.12" `
-                -CVENames "CVE-2021-31195", "CVE-2021-31198", "CVE-2021-31207", "CVE-2021-31209"
-        }
-
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU10) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "858.15", "922.13" `
-                -CVENames "CVE-2021-31206", "CVE-2021-31196", "CVE-2021-33768"
-        }
-
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU11) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "922.14", "986.5" `
-                -CVENames "CVE-2021-26427"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "922.14", "986.9" `
-                -CVENames "CVE-2021-41350", "CVE-2021-41348", "CVE-2021-34453"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "922.19", "986.14" `
-                -CVENames "CVE-2021-42305", "CVE-2021-41349", "CVE-2021-42321"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "922.20", "986.15" `
-                -CVENames "CVE-2022-21855", "CVE-2022-21846", "CVE-2022-21969"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "922.27", "986.22" `
-                -CVENames "CVE-2022-23277", "CVE-2022-24463"
-        }
-
-        if ($exchangeCU -le [HealthChecker.ExchangeCULevel]::CU12) {
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "986.29", "1118.12" `
-                -CVENames "CVE-2022-34692"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "986.36", "1118.20" `
-                -CVENames "CVE-2022-41040", "CVE-2022-41082", "CVE-2022-41079", "CVE-2022-41078", "CVE-2022-41080", "CVE-2022-41123"
-            TestVulnerabilitiesByBuildNumbersForDisplay -ExchangeBuildRevision $buildRevision `
-                -SecurityFixedBuilds "986.37", "1118.21" `
-                -CVENames "CVE-2023-21745", "CVE-2023-21761", "CVE-2023-21762", "CVE-2023-21763", "CVE-2023-21764"
-        }
-    } else {
-        Write-Verbose "Unknown Version of Exchange"
     }
 
     $securityObject = [PSCustomObject]@{
+        BuildInformation    = $exchangeInformation.BuildInformation.VersionInformation
         MajorVersion        = $exchangeInformation.BuildInformation.MajorVersion
-        ServerRole          = $exchangeInformation.BuildInformation.ServerRole
-        CU                  = $exchangeCU
-        BuildRevision       = $buildRevision
+        IsEdgeServer        = $exchangeInformation.GetExchangeServer.IsEdgeServer
         ExchangeInformation = $exchangeInformation
         OsInformation       = $osInformation
         OrgInformation      = $HealthServerObject.OrganizationInformation

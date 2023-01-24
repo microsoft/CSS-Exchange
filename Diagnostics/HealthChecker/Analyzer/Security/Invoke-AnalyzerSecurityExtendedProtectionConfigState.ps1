@@ -23,8 +23,7 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
     }
 
     # Supported server roles are: Mailbox and ClientAccess
-    if (($SecurityObject.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2013) -and
-            ($SecurityObject.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge)) {
+    if ($SecurityObject.IsEdgeServer -eq $false) {
 
         if ($null -ne $extendedProtection) {
             Write-Verbose "Exchange extended protection information found - performing vulnerability testing"

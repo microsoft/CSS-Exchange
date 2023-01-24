@@ -26,7 +26,7 @@ function Invoke-AnalyzerSecurityIISModules {
     }
 
     # Description: Check for modules which are loaded by IIS and not signed by Microsoft or not signed at all
-    if ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
+    if ($SecurityObject.IsEdgeServer -eq $false) {
         if ($null -ne $moduleInformation) {
             $iisModulesOutputList = New-Object 'System.Collections.Generic.List[object]'
             $modulesWriteType = "Grey"

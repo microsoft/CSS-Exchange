@@ -4,6 +4,7 @@
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
 . $PSScriptRoot\..\..\..\Shared\VisualCRedistributableVersionFunctions.ps1
+. $PSScriptRoot\..\Helpers\CompareExchangeBuildLevel.ps1
 function Invoke-AnalyzerOsInformation {
     [CmdletBinding()]
     param(
@@ -94,56 +95,40 @@ function Invoke-AnalyzerOsInformation {
     }
 
     # .NET Supported Levels
-    [HealthChecker.ExchangeCULevel]$cuLevel = $exchangeInformation.BuildInformation.CU
-    [HealthChecker.OSServerVersion]$osVersion = $osInformation.BuildInformation.MajorVersion
-    [HealthChecker.ExchangeMajorVersion]$exchangeVersion = $exchangeInformation.BuildInformation.MajorVersion
+    $currentExchangeBuild = $exchangeInformation.BuildInformation.VersionInformation
+    $ex2019 = "Exchange2019"
+    $ex2016 = "Exchange2016"
+    $ex2013 = "Exchange2013"
+    $osVersion = $osInformation.BuildInformation.MajorVersion
     $recommendedNetVersion = $null
 
-    Write-Verbose "Checking $exchangeVersion .NET Framework Support Versions"
+    Write-Verbose "Checking $($exchangeInformation.BuildInformation.MajorVersion) .NET Framework Support Versions"
 
-    if ([HealthChecker.ExchangeMajorVersion]::Exchange2019 -eq $exchangeVersion) {
-        if ($cuLevel -lt [HealthChecker.ExchangeCULevel]::CU2) {
-            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d7d2
-        } else {
-            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d8
-        }
-    } elseif ([HealthChecker.ExchangeMajorVersion]::Exchange2016 -eq $exchangeVersion) {
-        if ($cuLevel -lt [HealthChecker.ExchangeCULevel]::CU2) {
-            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d5d2wFix
-        } elseif ($cuLevel -eq [HealthChecker.ExchangeCULevel]::CU2) {
-            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d6d1wFix
-        } elseif ($cuLevel -eq [HealthChecker.ExchangeCULevel]::CU3) {
-            if ($osVersion -eq [HealthChecker.OSServerVersion]::Windows2016) {
-                $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d6d2
-            } else {
-                $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d6d1wFix
-            }
-        } elseif ($cuLevel -lt [HealthChecker.ExchangeCULevel]::CU8) {
-            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d6d2
-        } elseif ($cuLevel -lt [HealthChecker.ExchangeCULevel]::CU11) {
-            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d7d1
-        } elseif ($cuLevel -lt [HealthChecker.ExchangeCULevel]::CU13) {
-            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d7d2
-        } else {
-            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d8
-        }
+    if ((Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU4")) {
+        $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d5
+    } elseif ((Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU13") -or
+    (Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU2")) {
+        $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d5d2wFix
+    } elseif ((Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU15") -or
+    (Test-ExchangeBuildEqualBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU2") -or
+    ((Test-ExchangeBuildEqualBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU3") -and
+        $osVersion -ne "Windows2016")) {
+        $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d6d1wFix
+    } elseif ((Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU19") -or
+    (Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU8")) {
+        $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d6d2
+    } elseif ((Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU21") -or
+    (Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU11")) {
+        $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d7d1
+    } elseif ((Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU21") -or
+    (Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU13") -or
+    (Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2019 -CU "CU2")) {
+        $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d7d2
     } else {
-        if ($cuLevel -lt [HealthChecker.ExchangeCULevel]::CU4) {
-            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d5
-        } elseif ($cuLevel -lt [HealthChecker.ExchangeCULevel]::CU13) {
-            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d5d2wFix
-        } elseif ($cuLevel -lt [HealthChecker.ExchangeCULevel]::CU15) {
-            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d6d1wFix
-        } elseif ($cuLevel -lt [HealthChecker.ExchangeCULevel]::CU19) {
-            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d6d2
-        } elseif ($cuLevel -lt [HealthChecker.ExchangeCULevel]::CU21) {
-            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d7d1
-        } elseif ($cuLevel -lt [HealthChecker.ExchangeCULevel]::CU23) {
-            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d7d2
-        } else {
-            $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d8
-        }
+        $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d8
     }
+
+    Write-Verbose "Recommended NET Version: $recommendedNetVersion"
 
     if ($osInformation.NETFramework.MajorVersion -eq $recommendedNetVersion) {
         $params = $baseParams + @{

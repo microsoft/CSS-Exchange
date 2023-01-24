@@ -17,37 +17,6 @@ using System.Collections;
             public DateTime GenerationTime; //Time stamp of running the script
         }
 
-        //enum for CU levels of Exchange
-        public enum ExchangeCULevel
-        {
-            Unknown,
-            Preview,
-            RTM,
-            CU1,
-            CU2,
-            CU3,
-            CU4,
-            CU5,
-            CU6,
-            CU7,
-            CU8,
-            CU9,
-            CU10,
-            CU11,
-            CU12,
-            CU13,
-            CU14,
-            CU15,
-            CU16,
-            CU17,
-            CU18,
-            CU19,
-            CU20,
-            CU21,
-            CU22,
-            CU23
-        }
-
         //enum for the server roles that the computer is
         public enum ExchangeServerRole
         {
