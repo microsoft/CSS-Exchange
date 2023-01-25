@@ -2255,7 +2255,7 @@
 <td>The Exchange services in Automatic start-up mode will not start after reboot of the server. The services start successfully if started manually</td>
 <td>Exchange 2016 installed on Windows 2012 R2, other versions are not affected</td>
 <td>Under investigation</td>
-<td>Use the following PowerShell command to check the Exchange services that are configure to start automatically but have not started and start the services: <BR><BR> "Get-Service -DisplayName *exchange* | ?{\$<em>.StartType -eq "Automatic" -and $</em>.Status -ne "Running"} | Start-Service'</td>
+<td>Use the following PowerShell command to check the Exchange services that are configure to start automatically but have not started and start the services: <BR><BR> <code>Get-Service -DisplayName "Microsoft Exchange*" | Where-Object {$_.StartType -eq "Automatic" -and $_.Status -ne "Running"} | Start-Service</code></td>
 </tr>
 <tr>
 <td>The Exchange toolbox may start crashing on launch after <a href="https://aka.ms/HC-SerializedDataSigning">certificate Serialization for PowerShell</a> is enabled. The error noticed is "Deserialization fails: System.Reflection.TargetInvocationException".</td>
