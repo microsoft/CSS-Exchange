@@ -7,6 +7,23 @@ hide:
 
 This page lists emerging issues for Exchange On-Premises deployments, possible root cause and solution/workaround to fix the issues. The page will be consistently updated with new issues found and reflect current status of the issues mentioned.
 
+**Updated on 1/25/2023**
+
+**Following is list of known issues that can occur after installing [January 2023 Security Update](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-january-2023-exchange-server-security-updates/ba-p/3711808) on Exchange Servers**
+
+**Issue** |**Products impacted** | **Possible reason**| **Workaround/Solution**
+-|-|-|-
+You may find  various Exchange commands and scripts (example: RedistributeActiveDatabases.ps1) that use deserialization failing with the error similar to : <BR> Error: "Cannot convert the value of type.....to type".| Exchange 2016 <BR> Exchange 2019| The issue occurs if the [certificate signing for serialization of PowerShell](https://aka.ms/HC-SerializedDataSigning) is enabled and if the auth certificate is not present or has expired | Option 1: <BR> Use the [MonitorExchangeAuthCertificate.ps1](https://aka.ms/MonitorExchangeAuthCertificate) script to update the auth certificate. <BR> Option 2:<BR> Use the steps [here](https://aka.ms/AuthCertRenew) to  correct the issue with auth certificate|
+RecoverServer may fail at pre-requisites check with following error: <BR> "Exchange Server version Version 15.1 (Build 2507.17) or later must be used to perform a recovery of this server." | Exchange 2016 <BR> Exchange 2019| Please check [this article](https://learn.microsoft.com/exchange/troubleshoot/setup/version-error-in-recover-server-mode-install) | Follow steps on [this article](https://learn.microsoft.com/exchange/troubleshoot/setup/version-error-in-recover-server-mode-install) to fix the issue|
+The Exchange services in Automatic start-up mode will not start after reboot of the server. The services start successfully if started manually | Exchange 2016 installed on Windows 2012 R2, other versions are not affected| Under investigation | Use the following PowerShell command to check the Exchange services that are configure to start automatically but have not started and start the services: <BR><BR> "Get-Service -DisplayName \*exchange* \| ?{\$_.StartType -eq "Automatic" -and $_.Status -ne "Running"} \| Start-Service' |
+The Exchange toolbox may start crashing on launch after [certificate Serialization for PowerShell](https://aka.ms/HC-SerializedDataSigning) is enabled. The error noticed is "Deserialization fails: System.Reflection.TargetInvocationException".|Exchange 2016 <BR> Exchange 2019 | Under investigation | Option 1: Use the exchange Management shell equivalent commands to perform the toolbox tasks <BR> Option 2: Remove the setting override to disable [certificate Serialization for PowerShell](https://aka.ms/HC-SerializedDataSigning)
+Get-ExchangeCertificate command may not list any certificates | Exchange 2016 <BR> Exchange 2019 <BR> | Under investigation | Launch the Exchange management shell in elevated mode and then use Get-ExchangeCertificate command
+
+
+
+
+
+
 **Updated on 11/8/2022**
 
 **Issue** |**Possible reason**| **Workaround/Solution**
