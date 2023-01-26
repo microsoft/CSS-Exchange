@@ -2255,13 +2255,13 @@
 <td>The Exchange services in Automatic start-up mode will not start after reboot of the server. The services start successfully if started manually</td>
 <td>Exchange 2016 installed on Windows 2012 R2, other versions are not affected</td>
 <td>Under investigation</td>
-<td>Use the following PowerShell command to check the Exchange services that are configure to start automatically but have not started and start the services: <BR><BR> <code>Get-Service -DisplayName "Microsoft Exchange*" | Where-Object {$_.StartType -eq "Automatic" -and $_.Status -ne "Running"} | Start-Service</code></td>
+<td>Use the workarounds described in <a href="https://support.microsoft.com/help/5023353">this article</a> <BR> or use the following PowerShell command to check the Exchange services that are configure to start automatically but have not started and start the services: <BR><BR> <code>Get-Service -DisplayName "Microsoft Exchange*" | Where-Object {$_.StartType -eq "Automatic" -and $_.Status -ne "Running"} | Start-Service</code></td>
 </tr>
 <tr>
 <td>The Exchange toolbox may start crashing on launch after <a href="https://aka.ms/HC-SerializedDataSigning">certificate Serialization for PowerShell</a> is enabled. The error noticed is "Deserialization fails: System.Reflection.TargetInvocationException".</td>
 <td>Exchange 2016 <BR> Exchange 2019</td>
 <td>Under investigation</td>
-<td>Option 1: Use the exchange Management shell equivalent commands to perform the toolbox tasks <BR> Option 2: Remove the setting override to disable <a href="https://aka.ms/HC-SerializedDataSigning">certificate Serialization for PowerShell</a></td>
+<td>Use one of the workarounds described in <a href="https://support.microsoft.com/help/5023352">this article</a></td>
 </tr>
 <tr>
 <td>Get-ExchangeCertificate command may not list any certificates</td>
@@ -2425,7 +2425,7 @@
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">January 25, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">January 26, 2023</span>
       
     
   </small>
