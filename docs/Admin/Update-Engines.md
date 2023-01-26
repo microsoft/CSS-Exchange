@@ -46,8 +46,12 @@ Update-Engines.ps1
 
 The following syntax uses the directory `C:\ScanEngineUpdates\` as the root engine's directory to store the update pattern.
 
-`Update-Engines.ps1 -EngineDirPath C:\ScanEngineUpdates\`
+```powershell
+Update-Engines.ps1 -EngineDirPath C:\ScanEngineUpdates\
+```
 
 The following syntax uses the directory `C:\ScanEngineUpdates\` as the root engine's directory. It also tries to download the latest updates for the `Microsoft` engine using the `amd64` platform from `http://forefrontdl.microsoft.com/server/scanengineupdate/`.
 
-`Update-Engines.ps1 -EngineDirPath C:\ScanEngineUpdates\ -UpdatePathUrl http://forefrontdl.microsoft.com/server/scanengineupdate/ -Engines Microsoft -Platforms amd64`
+```powershell
+Update-Engines.ps1 -EngineDirPath C:\ScanEngineUpdates\ -UpdatePathUrl http://forefrontdl.microsoft.com/server/scanengineupdate/ -Engines Microsoft -Platforms amd64
+```
