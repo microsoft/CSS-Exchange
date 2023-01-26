@@ -4,22 +4,47 @@
 function Add-AnalyzedResultInformation {
     [CmdletBinding()]
     param(
+        # Main object that we are manipulating and adding entries to
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
         [HealthChecker.AnalyzedInformation]$AnalyzedInformation,
+
+        # The value of the display entry
         [object]$Details,
-        [string]$Name,
-        [string]$TestingName,
-        [object]$OutColumns,
-        [ScriptBlock[]]$OutColumnsColorTests,
-        [string]$HtmlName,
+
         [object]$DisplayGroupingKey,
+
         [int]$DisplayCustomTabNumber = -1,
-        [object]$DisplayTestingValue,
+
         [string]$DisplayWriteType = "Grey",
-        [bool]$AddDisplayResultsLineInfo = $true,
-        [bool]$AddHtmlDetailRow = $true,
+
+        # The name of the display entry
+        [string]$Name,
+
+        # Used for when the name might have a duplicate and we want it to be unique for logic outside of display
+        [string]$CustomName,
+
+        # Used for when the value might have a duplicate and we want it to be unique for logic outside of display
+        [object]$CustomValue,
+
+        # Used to display an Object in a table
+        [object]$OutColumns,
+
+        [ScriptBlock[]]$OutColumnsColorTests,
+
+        [string]$TestingName,
+
+        [object]$DisplayTestingValue,
+
+        [string]$HtmlName,
+
         [string]$HtmlDetailsCustomValue = "",
+
+        [bool]$AddDisplayResultsLineInfo = $true,
+
+        [bool]$AddHtmlDetailRow = $true,
+
         [bool]$AddHtmlOverviewValues = $false,
+
         [bool]$AddHtmlActionRow = $false
         #[string]$ActionSettingClass = "",
         #[string]$ActionSettingValue,
@@ -95,10 +120,26 @@ function Add-AnalyzedResultInformation {
                     $lineInfo.TestingValue = $Details
                 }
 
+                if ($null -ne $CustomValue) {
+                    $lineInfo.CustomValue = $CustomValue
+                } elseif ($null -ne $DisplayTestingValue) {
+                    $lineInfo.CustomValue = $DisplayTestingValue
+                } else {
+                    $lineInfo.CustomValue = $Details
+                }
+
                 if (-not ([string]::IsNullOrEmpty($TestingName))) {
                     $lineInfo.TestingName = $TestingName
                 } else {
                     $lineInfo.TestingName = $Name
+                }
+
+                if (-not ([string]::IsNullOrEmpty($CustomName))) {
+                    $lineInfo.CustomName = $CustomName
+                } elseif (-not ([string]::IsNullOrEmpty($TestingName))) {
+                    $lineInfo.CustomName = $TestingName
+                } else {
+                    $lineInfo.CustomName = $Name
                 }
 
                 $lineInfo.WriteType = $DisplayWriteType
