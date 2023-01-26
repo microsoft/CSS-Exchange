@@ -77,7 +77,7 @@ function GetMailbox {
     }
 }
 
-function Transpose-Data {
+function Convert-Data {
     param(
         [Parameter(Mandatory = $True)]
         [string[]]$ArrayNames,
@@ -505,7 +505,7 @@ function MeetingSummary {
         $MeetingChanges += $InitialToList, $InitialLocation, $InitialStartTime, $InitialEndTime, $InitialRecurring;
     }
 
-    Transpose-Data -ArrayNames "Time", "MeetingChanges";
+    Convert-Data -ArrayNames "Time", "MeetingChanges";
 }
 
 function BuildTimeline {
