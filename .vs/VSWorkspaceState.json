@@ -1,0 +1,16 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\.build\\BuildFunctions",
+    "\\.build\\CodeFormatterChecks",
+    "\\docs\\Admin",
+    "\\docs\\Databases",
+    "\\docs\\Diagnostics",
+    "\\docs\\Diagnostics\\HealthChecker",
+    "\\docs\\M365",
+    "\\docs\\M365\\img",
+    "\\Shared"
+  ],
+  "SelectedNode": "\\Shared\\StoreQueryFunctions.ps1",
+  "PreviewInSolutionExplorer": false
+}
