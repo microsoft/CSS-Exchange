@@ -15,15 +15,9 @@
 # The MeetingID of the meeting to query
 #
 # .EXAMPLE
-# Get-CalendarDiagnosticObjectsSummary.ps1 -Identity marcust@microsoft.com -MeetingID 040000008200E00074C5B7101A82E0080000000010E6401F9355D801000000000000000010000000996102014F1D484A8334C16DDBF8603E
+# Get-CalendarDiagnosticObjectsSummary.ps1 -Identity user@contoso.com -MeetingID 040000008200E00074C5B7101A82E0080000000010E6401F9355D801000000000000000010000000996102014F1D484A8334C16DDBF8603E
 #
-# Get-CalendarDiagnosticObjectsSummary.ps1 -Identity marcust@microsoft.com -Subject Test_OneTime_Meeting_Subject
-#
-# .NOTES
-# Author  : enlo
-# Date    : 8th November 2022
-# Update  : -
-# Change  : Version 1
+# Get-CalendarDiagnosticObjectsSummary.ps1 -Identity user@contoso.com -Subject Test_OneTime_Meeting_Subject
 #
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # THIS CODE IS MADE AVAILABLE AS IS, WITHOUT WARRANTY OF ANY KIND. THE ENTIRE RISK OF THE USE OR THE RESULTS FROM THE USE OF THIS CODE REMAINS WITH THE USER.
@@ -61,10 +55,10 @@ GetCalendarDiagnosticObjects;
 
 function FindMatch {
     param(
-        [hashtable]$PassedHash
+        [HashTable]$PassedHash
     )
     foreach ($val in $PassedHash.keys) {
-        if ($keyinput -like "*$val*") {
+        if ($Keyinput -like "*$val*") {
             return $PassedHash[$val];
         }
     }
@@ -256,7 +250,7 @@ function BuildCSV {
     foreach ($CalLog in $GCDO) {
         $CalLogACP = $CalLog.AppointmentCounterProposal.ToString();
         $Index++;
-        $ItemType = $CalendarItemTypes.($CalLog.itemclass);
+        $ItemType = $CalendarItemTypes.($CalLog.ItemClass);
         $ShortClientName = @();
         $Global:Keyinput = $CalLog.ClientInfoString;
         $ResponseType = $RT.($CalLog.ResponseType.ToString());
@@ -349,10 +343,10 @@ function BuildCSV {
                 -or $ShortClientName -eq "RestConnector" `
                 -or $ShortClientName -eq "CalendarReplication" `
                 -or $ShortClientName -eq "TimeService" `
-                -or $CalendarItemTypes.($CalLog.itemclass) -eq "SharingCFM" `
-                -or $CalendarItemTypes.($CalLog.itemclass) -eq "SharingDelete" `
-                -or $CalendarItemTypes.($CalLog.itemclass) -eq "AttendeeList" `
-                -or $CalendarItemTypes.($CalLog.itemclass) -eq "RespAny") {
+                -or $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingCFM" `
+                -or $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingDelete" `
+                -or $CalendarItemTypes.($CalLog.ItemClass) -eq "AttendeeList" `
+                -or $CalendarItemTypes.($CalLog.ItemClass) -eq "RespAny") {
             $IsIgnorable = "True";
         } else {
             $IsIgnorable = "False";
@@ -380,7 +374,7 @@ function BuildCSV {
 
         $IsFromSharedCalendar = ($null -ne $CalLog.externalSharingMasterId -and $CalLog.externalSharingMasterId -ne "NotFound");
 
-        if ($CalendarItemTypes.($CalLog.itemclass) -eq "IpmAppointment" -and $CalLog.IsOrganizerProperty -eq $True -or $CalendarItemTypes.($CalLog.itemclass) -eq "MeetingRequest" -or $CalendarItemTypes.($CalLog.itemclass) -eq "AttendeeList") {
+        if ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -and $CalLog.IsOrganizerProperty -eq $True -or $CalendarItemTypes.($CalLog.ItemClass) -eq "MeetingRequest" -or $CalendarItemTypes.($CalLog.ItemClass) -eq "AttendeeList") {
             [bool] $GetIsOrganizer = $True;
         }
 
@@ -459,7 +453,7 @@ function BuildCSV {
     return;
 }
 
-function Meetingsummary {
+function MeetingSummary {
     param(
         [Array]$Time,
         $MeetingChanges,
@@ -519,8 +513,8 @@ function Meetingsummary {
 
 function BuildTimeline {
     [Array]$Header = ("Subject: " + ($GCDO[0].NormalizedSubject) + " | Display Name: " + ($GCDO[0].SentRepresentingDisplayName) + " | MeetingID: " + ($GCDO[0].CleanGlobalObjectId));
-    Meetingsummary -Time "Calendar Logs for Meeting with" -MeetingChanges $Header;
-    Meetingsummary -Time "Initial Message Values" -Entry $GCDO[0] -LongVersion;
+    MeetingSummary -Time "Calendar Logs for Meeting with" -MeetingChanges $Header;
+    MeetingSummary -Time "Initial Message Values" -Entry $GCDO[0] -LongVersion;
     $Global:MeetingTimeLine = $Results | Where-Object { $_.IsIgnorable -eq "False" };
 
     foreach ($CalLog in $MeetingTimeLine) {
@@ -532,157 +526,157 @@ function BuildTimeline {
                 if ($PreviousCalLog -and $AddChangedProperties) {
                     if ($CalLog.MapiStartTime.ToString() -ne $PreviousCalLog.MapiStartTime.ToString()) {
                         [Array]$TimeLineText = "The StartTime changed from [$($PreviousCalLog.MapiStartTime)] to: [$($CalLog.MapiStartTime)]";
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText;
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText;
                     }
 
                     if ($CalLog.MapiEndTime.ToString() -ne $PreviousCalLog.MapiEndTime.ToString()) {
                         [Array]$TimeLineText = "The EndTime changed from [$($PreviousCalLog.MapiEndTime)] to: [$($CalLog.MapiEndTime)]";
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText;
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText;
                     }
 
-                    if ($callog.SubjectProperty -ne $PreviousCallog.SubjectProperty) {
-                        [Array]$TimeLineText = "The EndTime changed from [$($PreviousCallog.SubjectProperty)] to: [$($Callog.SubjectProperty)]"
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText;
+                    if ($CalLog.SubjectProperty -ne $PreviousCallog.SubjectProperty) {
+                        [Array]$TimeLineText = "The EndTime changed from [$($PreviousCallog.SubjectProperty)] to: [$($CalLog.SubjectProperty)]"
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText;
                     }
 
-                    if ($callog.NormalizedSubject -ne $PreviousCallog.NormalizedSubject) {
-                        [Array]$TimeLineText = "The EndTime changed from [$($PreviousCallog.NormalizedSubject)] to: [$($Callog.NormalizedSubject)]"
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText;
+                    if ($CalLog.NormalizedSubject -ne $PreviousCallog.NormalizedSubject) {
+                        [Array]$TimeLineText = "The EndTime changed from [$($PreviousCallog.NormalizedSubject)] to: [$($CalLog.NormalizedSubject)]"
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText;
                     }
                     if ($CalLog.Location -ne $PreviousCalLog.Location) {
                         [Array]$TimeLineText = "The Location changed from [$($PreviousCalLog.Location)] to: [$($CalLog.Location)]"
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
                     if ($CalLog.TimeZone -ne $PreviousCalLog.TimeZone) {
                         [Array]$TimeLineText = "The TimeZone changed from [$($PreviousCalLog.TimeZone)] to: [$($CalLog.TimeZone)]"
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
                     if ($CalLog.DisplayAttendeesAll -ne $PreviousCalLog.DisplayAttendeesAll) {
                         [Array]$TimeLineText = "The All Attendees changed from [$($PreviousCalLog.DisplayAttendeesAll)] to: [$($CalLog.DisplayAttendeesAll)]"
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
                     if ($CalLog.AppointmentRecurring -ne $PreviousCalLog.AppointmentRecurring) {
                         [Array]$TimeLineText = "The Appointment Recurrence changed from [$($PreviousCalLog.AppointmentRecurring)] to: [$($CalLog.AppointmentRecurring)]"
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
                     if ($CalLog.HasAttachment -ne $PreviousCalLog.HasAttachment) {
                         [Array]$TimeLineText = "The Meeting has Attachment changed from [$($PreviousCalLog.HasAttachment)] to: [$($CalLog.HasAttachment)]"
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
                     if ($CalLog.IsCancelled -ne $PreviousCalLog.IsCancelled) {
                         [Array]$TimeLineText = "The Meeting is Cancelled changed from [$($PreviousCalLog.IsCancelled)] to: [$($CalLog.IsCancelled)]"
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
                     if ($CalLog.IsAllDayEvent -ne $PreviousCalLog.IsAllDayEvent) {
                         [Array]$TimeLineText = "The Meeting is an All Day Event changed from [$($PreviousCalLog.IsAllDayEvent)] to: [$($CalLog.IsAllDayEvent)]"
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
                     if ($CalLog.IsException -ne $PreviousCalLog.IsException) {
                         [Array]$TimeLineText = "The Meeting Is Exception changed from [$($PreviousCalLog.IsException)] to: [$($CalLog.IsException)]"
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
                     if ($CalLog.IsSeriesCancelled -ne $PreviousCalLog.IsSeriesCancelled) {
                         [Array]$TimeLineText = "The Is Series Cancelled changed from [$($PreviousCalLog.IsSeriesCancelled)] to: [$($CalLog.IsSeriesCancelled)]"
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
                     if ($CalLog.IsOrganizerProperty -ne $PreviousCalLog.IsOrganizerProperty) {
                         [Array]$TimeLineText = "The Is Organizer changed from [$($PreviousCalLog.IsOrganizerProperty)] to: [$($CalLog.IsOrganizerProperty)]"
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
                     if ($CalLog.EventEmailReminderTimer -ne $PreviousCalLog.EventEmailReminderTimer) {
                         [Array]$TimeLineText = "The Email Reminder changed from [$($PreviousCalLog.EventEmailReminderTimer)] to: [$($CalLog.EventEmailReminderTimer)]"
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
                     if ($CalLog.FreeBusyStatus -ne $PreviousCalLog.FreeBusyStatus) {
                         [Array]$TimeLineText = "The FreeBusy Status changed from [$($PreviousCalLog.FreeBusyStatus)] to: [$($CalLog.FreeBusyStatus)]"
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
                     if ($CalLog.AppointmentState -ne $PreviousCalLog.AppointmentState) {
                         [Array]$TimeLineText = "The Appointment State changed from [$($PreviousCalLog.AppointmentState)] to: [$($CalLog.AppointmentState)]"
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
                     if ($CalLog.MeetingRequestType -ne $PreviousCalLog.MeetingRequestType) {
                         [Array]$TimeLineText = "The Meeting Request Type changed from [$($PreviousCalLog.MeetingRequestType)] to: [$($CalLog.MeetingRequestType)]"
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
                     if ($CalLog.CalendarItemType -ne $PreviousCalLog.CalendarItemType) {
                         [Array]$TimeLineText = "The Calendar Item Type changed from [$($PreviousCalLog.CalendarItemType)] to: [$($CalLog.CalendarItemType)]"
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
                     if ($CalLog.ResponseType -ne $PreviousCalLog.ResponseType) {
                         [Array]$TimeLineText = "The ResponseType changed from [$($PreviousCalLog.ResponseType)] to: [$($CalLog.ResponseType)]"
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
                     if ($CalLog.EstimatedAcceptCount -ne $PreviousCalLog.EstimatedAcceptCount) {
                         [Array]$TimeLineText = "The Estimated Accept Count changed from [$($PreviousCalLog.EstimatedAcceptCount)] to: [$($CalLog.EstimatedAcceptCount)]"
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
                     if ($CalLog.EstimatedTentativeCount -ne $PreviousCalLog.EstimatedTentativeCount) {
                         [Array]$TimeLineText = "The Estimated Tentative Count changed from [$($PreviousCalLog.EstimatedTentativeCount)] to: [$($CalLog.EstimatedTentativeCount)]"
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
                     if ($CalLog.EstimatedDeclineCount -ne $PreviousCalLog.EstimatedDeclineCount) {
                         [Array]$TimeLineText = "The Estimated Declined Count changed from [$($PreviousCalLog.EstimatedDeclineCount)] to: [$($CalLog.EstimatedDeclineCount)]"
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
                     if ($CalLog.OnlineMeetingConfLink -ne $PreviousCalLog.OnlineMeetingConfLink) {
                         [Array]$TimeLineText = "The Online Meeting Conference Link changed from [$($PreviousCalLog.OnlineMeetingConfLink)] to: [$($CalLog.OnlineMeetingConfLink)]"
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
                     if ($CalLog.OnlineMeetingExternalLink -ne $PreviousCalLog.OnlineMeetingExternalLink) {
                         [Array]$TimeLineText = "The Online Meeting External Link changed from [$($PreviousCalLog.OnlineMeetingExternalLink)] to: [$($CalLog.OnlineMeetingExternalLink)]"
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
                     if ($CalLog.OnlineMeetingInternalLink -ne $PreviousCalLog.OnlineMeetingInternalLink) {
                         [Array]$TimeLineText = "The Online Meeting Internal Link changed from [$($PreviousCalLog.OnlineMeetingInternalLink)] to: [$($CalLog.OnlineMeetingInternalLink)]"
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
                     if ($CalLog.SenderEmailAddress -ne $PreviousCalLog.SenderEmailAddress) {
                         [Array]$TimeLineText = "The Sender Email Address changed from [$($PreviousCalLog.SenderEmailAddress)] to: [$($CalLog.SenderEmailAddress)]"
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
                     if ($CalLog.From -ne $PreviousCalLog.From) {
                         [Array]$TimeLineText = "The From changed from [$($PreviousCalLog.From)] to: [$($CalLog.From)]"
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
                     if ($CalLog.ReceivedBy -ne $PreviousCalLog.ReceivedBy) {
                         [Array]$TimeLineText = "The Received By changed from [$($PreviousCalLog.ReceivedBy)] to: [$($CalLog.ReceivedBy)]"
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
                     if ($CalLog.ReceivedRepresenting -ne $PreviousCalLog.ReceivedRepresenting) {
                         [Array]$TimeLineText = "The Received Representing changed from [$($PreviousCalLog.ReceivedRepresenting)] to: [$($CalLog.ReceivedRepresenting)]"
-                        Meetingsummary -Time " " -MeetingChanges $TimeLineText
+                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
                 }
             }
         }
 
-        switch ($CalendarItemTypes.($CalLog.itemclass)) {
+        switch ($CalendarItemTypes.($CalLog.ItemClass)) {
             MeetingRequest {
                 switch ($CalLog.TriggerAction) {
                     Create {
@@ -914,7 +908,7 @@ function BuildTimeline {
                 }
             }
             Canceled {
-                [array] $Output = "$($CalLog.ResponsibleUser) Created a new Cancellation message for the $($CalendarItemTypes.($CalLog.itemclass)) with $($CalLog.Client)";
+                [array] $Output = "$($CalLog.ResponsibleUser) Created a new Cancellation message for the $($CalendarItemTypes.($CalLog.ItemClass)) with $($CalLog.Client)";
             }
             default {
                 if ($CalLog.TriggerAction -eq "Create") {
@@ -922,7 +916,7 @@ function BuildTimeline {
                 } else {
                     $Action = "$($CalLog.TriggerAction)";
                 }
-                [array] $Output = "$($Action) was performed on the $($CalLog.itemclass) by $($CalLog.ResponsibleUser) with $($CalLog.Client)";
+                [array] $Output = "$($Action) was performed on the $($CalLog.ItemClass) by $($CalLog.ResponsibleUser) with $($CalLog.Client)";
             }
         }
 
@@ -930,18 +924,18 @@ function BuildTimeline {
 
         if ($Output) {
             if ($MeetingSummaryNeeded) {
-                Meetingsummary -Time $Time -MeetingChanges $Output;
+                MeetingSummary -Time $Time -MeetingChanges $Output;
                 $MeetingChanges = @();
-                Meetingsummary -Time " " -ShortVersion -Entry $CalLog;
+                MeetingSummary -Time " " -ShortVersion -Entry $CalLog;
             } else {
-                Meetingsummary -Time $Time -MeetingChanges $Output;
+                MeetingSummary -Time $Time -MeetingChanges $Output;
                 if ($AddChangedProperties) {
                     ChangedProperties
                 }
             }
         }
 
-        if ($CalendarItemTypes.($CalLog.itemclass) -eq "IpmAppointment" -or $CalendarItemTypes.($CalLog.itemclass) -eq "ExceptionMsgClass") {
+        if ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -or $CalendarItemTypes.($CalLog.ItemClass) -eq "ExceptionMsgClass") {
             $PreviousCalLog = $CalLog;
         }
     }
