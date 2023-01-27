@@ -98,7 +98,7 @@ function Get-LoadBalancingReport {
 
     $currentErrors = $Error.Count
     foreach ( $CASServer in $CASServers) {
-        $DefaultIdSite = Invoke-Command -ComputerName $CASServer -ScriptBlock { (get-iissite "Default Web Site").Id }
+        $DefaultIdSite = Invoke-Command -ComputerName $CASServer -ScriptBlock { (Get-IISSite "Default Web Site").Id }
 
         $FECounters = Get-LocalizedCounterSamples -MachineName $CASServer -Counter @(
             "\ASP.NET Apps v4.0.30319(_lm_w3svc_$($DefaultIdSite)_*)\Requests Executing"
@@ -142,7 +142,7 @@ function Get-LoadBalancingReport {
     $keyOrders = $displayKeys.Keys | Sort-Object
 
     foreach ( $MBXServer in $MBXServers) {
-        $BackendIdSite = Invoke-Command -ComputerName $MBXServer -ScriptBlock { (get-iissite "Exchange Back End").Id }
+        $BackendIdSite = Invoke-Command -ComputerName $MBXServer -ScriptBlock { (Get-IISSite "Exchange Back End").Id }
 
         $BECounters = Get-LocalizedCounterSamples -MachineName $MBXServer -Counter @(
             "\ASP.NET Apps v4.0.30319(_lm_w3svc_$($BackendIdSite)_*)\Requests Executing"
