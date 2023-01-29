@@ -39,6 +39,7 @@ Fsis
 fltmc
 freb
 FYDIBOHF
+GCDO
 Get-AuthenticodeSignature
 globalsequence
 Hashtable
@@ -101,6 +102,7 @@ nspi
 ntlm
 NUMA
 onprem
+OutlookiOS
 Perflib
 perfmon
 PKCS
@@ -141,4 +143,5 @@ vssadmin
 vsstester
 vuln
 wbxml
+Webex
 Weve
