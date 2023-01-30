@@ -6,8 +6,7 @@
 . $PSScriptRoot\..\..\..\Shared\Invoke-CatchActionError.ps1
 
 function New-ExchangeAuthCertificate {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Logic via UnattendedMode parameter implemented')]
-    [CmdletBinding(DefaultParameterSetName = "NewPrimaryAuthCert")]
+    [CmdletBinding(DefaultParameterSetName = "NewPrimaryAuthCert", SupportsShouldProcess = $true, ConfirmImpact = "High")]
     [OutputType([System.Object])]
     param(
         [Parameter(Mandatory = $false, ParameterSetName = "NewPrimaryAuthCert")]
@@ -18,13 +17,6 @@ function New-ExchangeAuthCertificate {
 
         [Parameter(Mandatory = $true, ParameterSetName = "NewNextAuthCert")]
         [int]$CurrentAuthCertificateLifetimeInDays,
-
-        [Parameter(Mandatory = $false, ParameterSetName = "NewPrimaryAuthCert")]
-        [Parameter(Mandatory = $false, ParameterSetName = "NewNextAuthCert")]
-        [bool]$UnattendedMode = $false,
-
-        [Parameter(Mandatory = $false, ParameterSetName = "NewPrimaryAuthCert")]
-        [bool]$RecycleAppPoolsAfterRenewal = $false,
 
         [Parameter(Mandatory = $false, ParameterSetName = "NewPrimaryAuthCert")]
         [Parameter(Mandatory = $false, ParameterSetName = "NewNextAuthCert")]
@@ -59,11 +51,9 @@ function New-ExchangeAuthCertificate {
         }
 
         function GenerateNewAuthCertificate {
-            [CmdletBinding()]
+            [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = "High")]
             [OutputType([System.Object])]
-            param(
-                [bool]$SuppressInternalTransportConfirmation = $false
-            )
+            param()
 
             <#
                 Generates a new Auth Certificate which can then be configured via 'Set-AuthConfig'
@@ -102,7 +92,7 @@ function New-ExchangeAuthCertificate {
                     ErrorAction          = "Stop"
                 }
 
-                if ($SuppressInternalTransportConfirmation) {
+                if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Unattended Exchange certificate generation")) {
                     Write-Verbose ("Function called in unattended mode - internal transport certificate will be overwritten for a short time and then reset to the previous one")
                     $internalTransportCertificate = Get-InternalTransportCertificateFromServer $env:COMPUTERNAME
                     $defaultWebSiteCertificateThumbprints = GetCertificateBoundToDefaultWebSiteThumbprints
@@ -149,6 +139,7 @@ function New-ExchangeAuthCertificate {
                                 if (-not($WhatIfPreference)) {
                                     $newSelfSignedTransportCertificate = New-ExchangeCertificate @newInternalTransportCertificateParams
                                     if ($null -ne $newSelfSignedTransportCertificate) {
+                                        $internalTransportCertificateFoundOnServer = $true
                                         if ($null -ne $newSelfSignedTransportCertificate.Thumbprint) {
                                             Write-Verbose ("Certificate object successfully deserialized")
                                             [string]$internalTransportCertificateThumbprint = $newSelfSignedTransportCertificate.Thumbprint
@@ -204,6 +195,7 @@ function New-ExchangeAuthCertificate {
                         Write-Verbose ("Resetting internal transport certificate back to previous one")
                         Enable-ExchangeCertificate -Server $env:COMPUTERNAME -Thumbprint $internalTransportCertificateThumbprint -Services $servicesToEnable -Force | Out-Null
                         Start-Sleep -Seconds 10
+                        Write-Verbose ("Internal transport certificate was reset back to: $((Get-InternalTransportCertificateFromServer $env:COMPUTERNAME).Thumbprint)")
                     } else {
                         Write-Host ("What if: Will reset the transport certificate back to the previous one - Thumbprint '$($internalTransportCertificateThumbprint)' - Services '$($servicesToEnable)' via 'Enable-ExchangeCertificate'")
                     }
@@ -244,7 +236,6 @@ function New-ExchangeAuthCertificate {
             [CmdletBinding()]
             [OutputType([System.Object])]
             param(
-                [bool]$UnattendedMode = $false,
                 [int]$CurrentAuthCertificateLifetimeInDays,
                 [int]$EnableDaysInFuture = 30
             )
@@ -260,7 +251,7 @@ function New-ExchangeAuthCertificate {
             Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
             $renewalSuccessful = $false
-            $newAuthCertificateObject = GenerateNewAuthCertificate -SuppressInternalTransportConfirmation $UnattendedMode
+            $newAuthCertificateObject = GenerateNewAuthCertificate
             $nextAuthCertificateActiveOn = (Get-Date).AddDays($EnableDaysInFuture)
 
             if ($null -ne $CurrentAuthCertificateLifetimeInDays) {
@@ -320,12 +311,9 @@ function New-ExchangeAuthCertificate {
         }
 
         function ReplaceExpiredAuthCertificate {
-            [CmdletBinding()]
+            [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = "High")]
             [OutputType([System.Object])]
-            param(
-                [bool]$UnattendedMode = $false,
-                [bool]$RecycleAppPools = $false
-            )
+            param()
 
             <#
                 We must generate a new self-signed certificate and replace the existing Auth Certificate
@@ -339,10 +327,9 @@ function New-ExchangeAuthCertificate {
             #>
 
             Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-            Write-Verbose ("AppPools will be recycled after renewal? $($RecycleAppPools)")
             $newAuthCertificateActiveOn = (Get-Date)
             $renewalSuccessful = $false
-            $newAuthCertificateObject = GenerateNewAuthCertificate -SuppressInternalTransportConfirmation $UnattendedMode
+            $newAuthCertificateObject = GenerateNewAuthCertificate
 
             if (($null -ne $newAuthCertificateObject) -and
                 ($newAuthCertificateObject.Successful)) {
@@ -375,7 +362,7 @@ function New-ExchangeAuthCertificate {
                         Write-Verbose ("[Optional] Step 4: Restart service 'MSExchangeServiceHost' on computer: $($env:COMPUTERNAME)")
                         Restart-Service -Name "MSExchangeServiceHost" -ErrorAction Stop
 
-                        if ($RecycleAppPools) {
+                        if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Restart-WebAppPool")) {
                             Write-Verbose ("[Optional] Step 5: Restart WebApp Pools 'MSExchangeOWAAppPool' and 'MSExchangeECPAppPool' on computer $($env:COMPUTERNAME)")
                             Restart-WebAppPool -Name "MSExchangeOWAAppPool" -ErrorAction Stop
                             Restart-WebAppPool -Name "MSExchangeECPAppPool" -ErrorAction Stop
@@ -404,10 +391,10 @@ function New-ExchangeAuthCertificate {
     process {
         if ($ReplaceExpiredAuthCertificate) {
             Write-Verbose ("Calling function to replace an already expired or invalid Auth Certificate")
-            $renewalActionPerformed = ReplaceExpiredAuthCertificate -UnattendedMode $UnattendedMode -RecycleAppPools $RecycleAppPoolsAfterRenewal
+            $renewalActionPerformed = ReplaceExpiredAuthCertificate
         } elseif ($ConfigureNextAuthCertificate) {
             Write-Verbose ("Calling function to state the next Auth Certificate for rotation")
-            $renewalActionPerformed = ConfigureNextAuthCertificate -UnattendedMode $UnattendedMode -CurrentAuthCertificateLifetimeInDays $CurrentAuthCertificateLifetimeInDays
+            $renewalActionPerformed = ConfigureNextAuthCertificate -CurrentAuthCertificateLifetimeInDays $CurrentAuthCertificateLifetimeInDays
         } else {
             Write-Verbose ("No Auth Certificate configuration action was specified")
         }
