@@ -12,12 +12,12 @@ This is a PowerShell script that is used for generating reports related to mailb
 - MigrationBatch
 - MigrationEndPoint
 - MigrationConfig
-- Summary report with the fialure and detailed message of each uniqe failure.
+- Summary report with the failure and detailed message of each unique failure.
 
 The script also exports a report containing statistics for the specified mailbox, as well as a report containing the move history for the specified mailbox. Finally, the script logs any errors that occur during the export process to a log file called LogFile.txt.
 
 ## How to Run
-The script **must** be run as Administrator in PowerShell session on an Exchange Server or Exchange Online Powershell. Supported to run and collected logs against Exchange 2013 and greater and exchange Online. The intent of the script is to collect Migration logs only that you need from X move request quickly without needing to have to manually collect it yourself.
+The script **must** be run as Administrator in PowerShell session on an Exchange Server or Exchange Online PowerShell. Supported to run and collected logs against Exchange 2013 and greater and exchange Online. The intent of the script is to collect Migration logs only that you need from X move request quickly without needing to have to manually collect it yourself.
 
 ## Common Usage
 
