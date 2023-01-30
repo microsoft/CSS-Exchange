@@ -157,8 +157,11 @@ function Get-ExchangeAuthCertificateStatus {
         }
     } end {
         return [PSCustomObject]@{
+            CurrentAuthCertificateThumbprint     = $authConfiguration.CurrentCertificateThumbprint
             CurrentAuthCertificateLifetimeInDays = $currentAuthCertificateValidInDays
             ReplaceRequired                      = $replaceRequired
+            NextAuthCertificateThumbprint        = $authConfiguration.NextCertificateThumbprint
+            NextAuthCertificateLifetimeInDays    = $nextAuthCertificateValidInDays
             ConfigureNextAuthRequired            = $configureNextAuthRequired
             NumberOfUnreachableServers           = $exchangeServersUnreachableList.Count
             UnreachableServersList               = $exchangeServersUnreachableList

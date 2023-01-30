@@ -124,7 +124,6 @@ $BuildVersion = ""
 . $PSScriptRoot\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
 . $PSScriptRoot\..\..\Shared\ActiveDirectoryFunctions\Get-GlobalCatalogServer.ps1
-. $PSScriptRoot\..\..\Shared\ActiveDirectoryFunctions\Get-InternalTransportCertificateFromServer.ps1
 . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Host.ps1
 . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Verbose.ps1
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
@@ -398,6 +397,22 @@ function Main {
                 Write-Host ("There was an issue while performing the renewal action - please check the verbose script log for more details.") -ForegroundColor Red
             }
         } else {
+            Write-Host ""
+            Write-Host ("Current Auth Certificate thumbprint: $($authCertStatus.CurrentAuthCertificateThumbprint)") -ForegroundColor Cyan
+            Write-Host ("Current Auth Certificate is valid for $($authCertStatus.CurrentAuthCertificateLifetimeInDays) day(s)") -ForegroundColor Cyan
+            if (-not([string]::IsNullOrEmpty($authCertStatus.NextAuthCertificateThumbprint))) {
+                Write-Host ("Next Auth Certificate thumbprint: $($authCertStatus.NextAuthCertificateThumbprint)") -ForegroundColor Cyan
+                Write-Host ("Next Auth Certificate is valid for $($authCertStatus.NextAuthCertificateLifetimeInDays) day(s)") -ForegroundColor Cyan
+            }
+            if ($authCertStatus.MultipleExchangeADSites) {
+                Write-Host ("We've detected Exchange servers in multiple AD sites") -ForegroundColor Cyan
+            }
+            if ($authCertStatus.HybridSetupDetected) {
+                Write-Host ("Exchange Hybrid was detected in this environment") -ForegroundColor Cyan
+            }
+            if ($authCertStatus.NumberOfUnreachableServers -gt 0) {
+                Write-Host ("Number of unreachable Exchange servers: $($authCertStatus.NumberOfUnreachableServers)") -ForegroundColor Cyan
+            }
             Write-Host ("")
             Write-Host ("Test result: $($renewalActionWording)") -ForegroundColor Cyan
         }
