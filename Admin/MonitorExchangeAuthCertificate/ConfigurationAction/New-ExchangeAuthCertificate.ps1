@@ -146,23 +146,30 @@ function New-ExchangeAuthCertificate {
                             Write-Verbose ("Internal transport certificate wasn't detected on server: $($env:COMPUTERNAME)")
                             Write-Verbose ("We will generate a new internal transport certificate now")
                             try {
-                                $newSelfSignedTransportCertificate = New-ExchangeCertificate @newInternalTransportCertificateParams
-                                if ($null -ne $newSelfSignedTransportCertificate) {
-                                    if ($null -ne $newSelfSignedTransportCertificate.Thumbprint) {
-                                        Write-Verbose ("Certificate object successfully deserialized")
-                                        [string]$internalTransportCertificateThumbprint = $newSelfSignedTransportCertificate.Thumbprint
-                                    } else {
-                                        Write-Verbose ("Looks like deserialization of the certificate object failed - trying to import from RawData")
-                                        [string]$internalTransportCertificateThumbprint = (Import-ExchangeCertificateFromRawData $newSelfSignedTransportCertificate).Thumbprint
-                                        if ($null -ne $internalTransportCertificateThumbprint) {
-                                            Write-Verbose ("Import from RawData was successful")
+                                if (-not($WhatIfPreference)) {
+                                    $newSelfSignedTransportCertificate = New-ExchangeCertificate @newInternalTransportCertificateParams
+                                    if ($null -ne $newSelfSignedTransportCertificate) {
+                                        if ($null -ne $newSelfSignedTransportCertificate.Thumbprint) {
+                                            Write-Verbose ("Certificate object successfully deserialized")
+                                            [string]$internalTransportCertificateThumbprint = $newSelfSignedTransportCertificate.Thumbprint
                                         } else {
-                                            throw ("Import from RawData failed")
+                                            Write-Verbose ("Looks like deserialization of the certificate object failed - trying to import from RawData")
+                                            [string]$internalTransportCertificateThumbprint = (Import-ExchangeCertificateFromRawData $newSelfSignedTransportCertificate).Thumbprint
+                                            if ($null -ne $internalTransportCertificateThumbprint) {
+                                                Write-Verbose ("Import from RawData was successful")
+                                            } else {
+                                                throw ("Import from RawData failed")
+                                            }
                                         }
-                                    }
 
-                                    Write-Verbose ("A new internal transport certificate with thumbprint: $($internalTransportCertificateThumbprint) was generated")
-                                    $servicesToEnable = "SMTP"
+                                        Write-Verbose ("A new internal transport certificate with thumbprint: $($internalTransportCertificateThumbprint) was generated")
+                                        $servicesToEnable = "SMTP"
+                                    }
+                                } else {
+                                    Write-Host ("What if: Will generate a new internal transport certificate by using the following parameters")
+                                    $newInternalTransportCertificateParams.GetEnumerator() | ForEach-Object {
+                                        Write-Host ("What if: Key: $($_.key) - Value: $($_.value)")
+                                    }
                                 }
                             } catch {
                                 Write-Verbose ("Hit an exception while trying to generate a new internal transport certificate - Exception: $(Error[0].Exception.Message)")
@@ -174,17 +181,32 @@ function New-ExchangeAuthCertificate {
 
                 Write-Verbose ("Starting Auth Certificate creation process")
                 try {
-                    $newAuthCertificate = New-ExchangeCertificate @newAuthCertificateParams
-                    Start-Sleep -Seconds 5
+                    if (-not($WhatIfPreference)) {
+                        $newAuthCertificate = New-ExchangeCertificate @newAuthCertificateParams
+                        Start-Sleep -Seconds 5
+                    } else {
+                        Write-Host ("What if: Will generate a new Auth Certificate by using the following parameters")
+                        $newAuthCertificateParams.GetEnumerator() | ForEach-Object {
+                            Write-Host ("What if: Key: $($_.key) - Value: $($_.value)")
+                        }
+                        # Create dummy object to pass the following checks if -WhatIf was used as we don't create a new certificate in this mode
+                        $newAuthCertificate = @{
+                            Thumbprint = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ1234"
+                        }
+                    }
                 } catch {
                     Write-Verbose ("Hit an exception while trying to generate a new Exchange Server Auth Certificate - Exception: $($Error[0].Exception.Message)")
                     Invoke-CatchActionError $CatchActionFunction
                 }
 
                 if ($internalTransportCertificateFoundOnServer) {
-                    Write-Verbose ("Resetting internal transport certificate back to previous one")
-                    Enable-ExchangeCertificate -Server $env:COMPUTERNAME -Thumbprint $internalTransportCertificateThumbprint -Services $servicesToEnable -Force | Out-Null
-                    Start-Sleep -Seconds 10
+                    if (-not($WhatIfPreference)) {
+                        Write-Verbose ("Resetting internal transport certificate back to previous one")
+                        Enable-ExchangeCertificate -Server $env:COMPUTERNAME -Thumbprint $internalTransportCertificateThumbprint -Services $servicesToEnable -Force | Out-Null
+                        Start-Sleep -Seconds 10
+                    } else {
+                        Write-Host ("What if: Will reset the transport certificate back to the previous one - Thumbprint '$($internalTransportCertificateThumbprint)' - Services '$($servicesToEnable)' via 'Enable-ExchangeCertificate'")
+                    }
                 }
 
                 if ($null -ne $newAuthCertificate) {
@@ -269,7 +291,11 @@ function New-ExchangeAuthCertificate {
                 Write-Verbose ("New Auth Certificate with thumbprint: $($newAuthCertificateThumbprint) generated - the new one will replace the existing one in: $($EnableDaysInFuture) days")
                 try {
                     Write-Verbose ("[Required] Step 1: Set certificate: $($newAuthCertificateThumbprint) as the next Auth Certificate")
-                    Set-AuthConfig -NewCertificateThumbprint $newAuthCertificateThumbprint -NewCertificateEffectiveDate $nextAuthCertificateActiveOn -Force -ErrorAction Stop
+                    if (-not($WhatIfPreference)) {
+                        Set-AuthConfig -NewCertificateThumbprint $newAuthCertificateThumbprint -NewCertificateEffectiveDate $nextAuthCertificateActiveOn -Force -ErrorAction Stop
+                    } else {
+                        Write-Host ("What if: Will set the newly created certificate as next Auth Certificate by running 'Set-AuthConfig'")
+                    }
 
                     if ($EnableDaysInFuture -eq 0) {
                         # Restart MSExchangeServiceHost service to ensure that the new Auth Certificate is used immediately as don't have time
@@ -324,13 +350,25 @@ function New-ExchangeAuthCertificate {
                 Write-Verbose ("New Auth Certificate with thumbprint: $($newAuthCertificateThumbprint) generated - the existing one will be replaced immediately with the new one")
                 try {
                     Write-Verbose ("[Required] Step 1: Set certificate: $($newAuthCertificateThumbprint) as new Auth Certificate")
-                    Set-AuthConfig -NewCertificateThumbprint $newAuthCertificateThumbprint -NewCertificateEffectiveDate $newAuthCertificateActiveOn -Force -ErrorAction Stop
+                    if (-not($WhatIfPreference)) {
+                        Set-AuthConfig -NewCertificateThumbprint $newAuthCertificateThumbprint -NewCertificateEffectiveDate $newAuthCertificateActiveOn -Force -ErrorAction Stop
+                    } else {
+                        Write-Host ("What if: Will set the newly created certificate as primary Auth Certificate by running 'Set-AuthConfig'")
+                    }
 
                     Write-Verbose ("[Required] Step 2: Publish the new Auth Certificate")
-                    Set-AuthConfig -PublishCertificate -ErrorAction Stop
+                    if (-not($WhatIfPreference)) {
+                        Set-AuthConfig -PublishCertificate -ErrorAction Stop
+                    } else {
+                        Write-Host ("What if: Will publish the newly created Auth Certificate by running 'Set-AuthConfig'")
+                    }
 
                     Write-Verbose ("[Required] Step 3: Clear previous Auth Certificate")
-                    Set-AuthConfig -ClearPreviousCertificate -ErrorAction Stop
+                    if (-not($WhatIfPreference)) {
+                        Set-AuthConfig -ClearPreviousCertificate -ErrorAction Stop
+                    } else {
+                        Write-Host ("What if: Will clear the previous Auth Certificate by running 'Set-AuthConfig'")
+                    }
 
                     try {
                         # Run these commands in a separate try / catch as it isn't a terminating issue if they fail

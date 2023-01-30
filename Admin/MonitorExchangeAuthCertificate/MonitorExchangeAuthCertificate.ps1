@@ -248,7 +248,7 @@ function Main {
         $authCertificateExportStatusObject = Export-ExchangeAuthCertificate @authCertificateExportParams
 
         if ($authCertificateExportStatusObject.CertificatesAvailableToExport) {
-            Write-Host ("There are $($authCertificateExportStatusObject.NumberOfCertificatesToExport) certificates that could be exported")
+            Write-Host ("There is/are $($authCertificateExportStatusObject.NumberOfCertificatesToExport) certificate(s) that could be exported")
             if ($authCertificateExportStatusObject.ExportSuccessful) {
                 Write-Host ("All of them were successfully exported to the following directory: $($PSScriptRoot)") -ForegroundColor Green
             } else {
@@ -455,15 +455,21 @@ try {
         ErrorAction    = "SilentlyContinue"
     }
 
-    $Script:Logger = Get-NewLoggerInstance @loggerParams
-    SetProperForegroundColor
-    SetWriteHostAction ${Function:Write-DebugLog}
-    SetWriteVerboseAction ${Function:Write-DebugLog}
+    if (-not($WhatIfPreference)) {
+        $Script:Logger = Get-NewLoggerInstance @loggerParams
+        SetProperForegroundColor
+        SetWriteHostAction ${Function:Write-DebugLog}
+        SetWriteVerboseAction ${Function:Write-DebugLog}
+    }
 
     Main
 } finally {
     Write-Host ""
-    Write-Host ("Log file written to: $($Script:Logger.FullPath)")
+    if (-not($WhatIfPreference)) {
+        Write-Host ("Log file written to: $($Script:Logger.FullPath)")
+    } else {
+        Write-Host ("Script was executed by using '-WhatIf' parameter - no log file was generated")
+    }
     Write-Host ""
     Write-Host ("Do you have feedback regarding the script? Please email ExToolsFeedback@microsoft.com.") -ForegroundColor Green
     Write-Host ""
@@ -476,5 +482,7 @@ try {
     } else {
         Write-Verbose ("No errors occurred within the script")
     }
-    RevertProperForegroundColor
+    if (-not($WhatIfPreference)) {
+        RevertProperForegroundColor
+    }
 }
