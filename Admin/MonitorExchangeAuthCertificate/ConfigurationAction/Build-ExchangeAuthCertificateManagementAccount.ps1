@@ -66,7 +66,9 @@ function Build-ExchangeAuthCertificateManagementAccount {
                 Write-Verbose ("Trying to create 'Auth Certificate Management' role group by using Domain Controller: $($DomainController)")
                 if ($WhatIfPreference) {
                     Write-Host ("What if: Will create role group: 'Auth Certificate Management'")
+                    $roleGroupParams.Add("WhatIf", $true)
                 }
+
                 New-RoleGroup @roleGroupParams | Out-Null
 
                 if (-not($WhatIfPreference)) {

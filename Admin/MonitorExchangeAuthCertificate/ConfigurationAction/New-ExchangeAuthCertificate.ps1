@@ -64,6 +64,13 @@ function New-ExchangeAuthCertificate {
             #>
 
             Write-Verbose "Calling: $($MyInvocation.MyCommand)"
+            $confirmationMessage = "The following actions will be performed:" +
+            "`r`n    - The internal transport certificate will be queried" +
+            "`r`n    - A new certificate will be generated, it overrides the internal transport certificate" +
+            "`r`n    - The internal transport certificate will be set back to the previous one" +
+            "`r`n      or" +
+            "`r`n    - A new internal transport certificate will be generated if the previous one is invalid"
+
             $operationSuccessful = $false
             $internalTransportCertificateFoundOnServer = $false
             $errorCount = $Error.Count
@@ -93,7 +100,7 @@ function New-ExchangeAuthCertificate {
                     ErrorAction          = "Stop"
                 }
 
-                if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Unattended Exchange certificate generation")) {
+                if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, $confirmationMessage, "Unattended Exchange certificate generation")) {
                     Write-Verbose ("Function called in unattended mode - internal transport certificate will be overwritten for a short time and then reset to the previous one")
                     $internalTransportCertificate = Get-InternalTransportCertificateFromServer $env:COMPUTERNAME
                     $defaultWebSiteCertificateThumbprints = GetCertificateBoundToDefaultWebSiteThumbprints
@@ -158,7 +165,7 @@ function New-ExchangeAuthCertificate {
                                         $servicesToEnable = "SMTP"
                                     }
                                 } else {
-                                    Write-Host ("What if: Will generate a new internal transport certificate by using the following parameters")
+                                    Write-Host ("What if: Will generate a new internal transport certificate by using the following parameters:")
                                     $newInternalTransportCertificateParams.GetEnumerator() | ForEach-Object {
                                         Write-Host ("What if: Key: $($_.key) - Value: $($_.value)")
                                     }
@@ -177,7 +184,7 @@ function New-ExchangeAuthCertificate {
                         $newAuthCertificate = New-ExchangeCertificate @newAuthCertificateParams
                         Start-Sleep -Seconds 5
                     } else {
-                        Write-Host ("What if: Will generate a new Auth Certificate by using the following parameters")
+                        Write-Host ("What if: Will generate a new Auth Certificate by using the following parameters:")
                         $newAuthCertificateParams.GetEnumerator() | ForEach-Object {
                             Write-Host ("What if: Key: $($_.key) - Value: $($_.value)")
                         }

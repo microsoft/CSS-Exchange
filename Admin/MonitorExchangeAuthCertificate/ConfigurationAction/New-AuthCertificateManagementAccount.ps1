@@ -48,7 +48,7 @@ function New-AuthCertificateManagementAccount {
             }
 
             if ($WhatIfPreference) {
-                Write-Host ("What if: Will create a new AD User account with UPN: $($userPrincipalName)")
+                $newADUserParams.Add("WhatIf", $true)
             }
             New-ADUser @newADUserParams | Out-Null
             Write-Verbose ("User: 'Microsoft Exchange Auth Certificate Manager' was successfully created")
