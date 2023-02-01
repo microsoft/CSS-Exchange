@@ -99,6 +99,7 @@ notlike
 notmatch
 nspi
 ntlm
+NTFS
 NUMA
 onprem
 Perflib
