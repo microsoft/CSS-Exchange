@@ -7,7 +7,7 @@ function Get-LoadBalancingReport {
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $CASServers = @()
     $MBXServers = @()
-    $getExchangeServer  = Get-ExchangeServer
+    $getExchangeServer = Get-ExchangeServer
 
     if ($SiteName -ne [string]::Empty) {
         Write-Grey("Site filtering ON.  Only Exchange 2013+ CAS servers in {0} will be used in the report." -f $SiteName)
@@ -42,6 +42,12 @@ function Get-LoadBalancingReport {
         exit
     }
 
+    foreach ($server in $ServerList) {
+        if ($server -notin $CASServers -and $server -notin $MBXServers) {
+            Write-Warning "$server was not found as an Exchange server."
+        }
+    }
+
     function DisplayKeyMatching {
         param(
             [string]$CounterValue,
@@ -55,34 +61,34 @@ function Get-LoadBalancingReport {
 
     #Request stats from perfmon for all CAS
     $displayKeys = @{
-        1  = DisplayKeyMatching "_LM_W3SVC_1_Total" "Load Distribution"
-        2  = DisplayKeyMatching "_LM_W3SVC_1_ROOT" "root"
-        3  = DisplayKeyMatching "_LM_W3SVC_1_ROOT_API" "API"
-        4  = DisplayKeyMatching "_LM_W3SVC_1_ROOT_Autodiscover" "AutoDiscover"
-        5  = DisplayKeyMatching "_LM_W3SVC_1_ROOT_ecp" "ECP"
-        6  = DisplayKeyMatching "_LM_W3SVC_1_ROOT_EWS" "EWS"
-        7  = DisplayKeyMatching "_LM_W3SVC_1_ROOT_mapi" "MapiHttp"
-        8  = DisplayKeyMatching "_LM_W3SVC_1_ROOT_Microsoft-Server-ActiveSync" "EAS"
-        9  = DisplayKeyMatching "_LM_W3SVC_1_ROOT_OAB" "OAB"
-        10 = DisplayKeyMatching "_LM_W3SVC_1_ROOT_owa" "OWA"
-        11 = DisplayKeyMatching "_LM_W3SVC_1_ROOT_owa_Calendar" "OWA-Calendar"
-        12 = DisplayKeyMatching "_LM_W3SVC_1_ROOT_PowerShell" "PowerShell"
-        13 = DisplayKeyMatching "_LM_W3SVC_1_ROOT_Rpc" "RpcHttp"
+        1  = DisplayKeyMatching "_LM_W3SVC_DefaultSite_Total" "Load Distribution"
+        2  = DisplayKeyMatching "_LM_W3SVC_DefaultSite_ROOT" "root"
+        3  = DisplayKeyMatching "_LM_W3SVC_DefaultSite_ROOT_API" "API"
+        4  = DisplayKeyMatching "_LM_W3SVC_DefaultSite_ROOT_Autodiscover" "AutoDiscover"
+        5  = DisplayKeyMatching "_LM_W3SVC_DefaultSite_ROOT_ecp" "ECP"
+        6  = DisplayKeyMatching "_LM_W3SVC_DefaultSite_ROOT_EWS" "EWS"
+        7  = DisplayKeyMatching "_LM_W3SVC_DefaultSite_ROOT_mapi" "MapiHttp"
+        8  = DisplayKeyMatching "_LM_W3SVC_DefaultSite_ROOT_Microsoft-Server-ActiveSync" "EAS"
+        9  = DisplayKeyMatching "_LM_W3SVC_DefaultSite_ROOT_OAB" "OAB"
+        10 = DisplayKeyMatching "_LM_W3SVC_DefaultSite_ROOT_owa" "OWA"
+        11 = DisplayKeyMatching "_LM_W3SVC_DefaultSite_ROOT_owa_Calendar" "OWA-Calendar"
+        12 = DisplayKeyMatching "_LM_W3SVC_DefaultSite_ROOT_PowerShell" "PowerShell"
+        13 = DisplayKeyMatching "_LM_W3SVC_DefaultSite_ROOT_Rpc" "RpcHttp"
     }
 
     #Request stats from perfmon for all MBX
     $displayKeysBackend = @{
-        1  = DisplayKeyMatching "_LM_W3SVC_2_Total" "Load Distribution-BackEnd"
-        2  = DisplayKeyMatching "_LM_W3SVC_2_ROOT_API" "API-BackEnd"
-        3  = DisplayKeyMatching "_LM_W3SVC_2_ROOT_Autodiscover" "AutoDiscover-BackEnd"
-        4  = DisplayKeyMatching "_LM_W3SVC_2_ROOT_ecp" "ECP-BackEnd"
-        5  = DisplayKeyMatching "_LM_W3SVC_2_ROOT_EWS" "EWS-BackEnd"
-        6  = DisplayKeyMatching "_LM_W3SVC_2_ROOT_mapi_emsmdb" "MapiHttp_emsmdb-BackEnd"
-        7  = DisplayKeyMatching "_LM_W3SVC_2_ROOT_mapi_nspi" "MapiHttp_nspi-BackEnd"
-        8  = DisplayKeyMatching "_LM_W3SVC_2_ROOT_Microsoft-Server-ActiveSync" "EAS-BackEnd"
-        9  = DisplayKeyMatching "_LM_W3SVC_2_ROOT_owa" "OWA-BackEnd"
-        10 = DisplayKeyMatching "_LM_W3SVC_2_ROOT_PowerShell" "PowerShell-BackEnd"
-        11 = DisplayKeyMatching "_LM_W3SVC_2_ROOT_Rpc" "RpcHttp-BackEnd"
+        1  = DisplayKeyMatching "_LM_W3SVC_BackendSite_Total" "Load Distribution-BackEnd"
+        2  = DisplayKeyMatching "_LM_W3SVC_BackendSite_ROOT_API" "API-BackEnd"
+        3  = DisplayKeyMatching "_LM_W3SVC_BackendSite_ROOT_Autodiscover" "AutoDiscover-BackEnd"
+        4  = DisplayKeyMatching "_LM_W3SVC_BackendSite_ROOT_ecp" "ECP-BackEnd"
+        5  = DisplayKeyMatching "_LM_W3SVC_BackendSite_ROOT_EWS" "EWS-BackEnd"
+        6  = DisplayKeyMatching "_LM_W3SVC_BackendSite_ROOT_mapi_emsmdb" "MapiHttp_emsmdb-BackEnd"
+        7  = DisplayKeyMatching "_LM_W3SVC_BackendSite_ROOT_mapi_nspi" "MapiHttp_nspi-BackEnd"
+        8  = DisplayKeyMatching "_LM_W3SVC_BackendSite_ROOT_Microsoft-Server-ActiveSync" "EAS-BackEnd"
+        9  = DisplayKeyMatching "_LM_W3SVC_BackendSite_ROOT_owa" "OWA-BackEnd"
+        10 = DisplayKeyMatching "_LM_W3SVC_BackendSite_ROOT_PowerShell" "PowerShell-BackEnd"
+        11 = DisplayKeyMatching "_LM_W3SVC_BackendSite_ROOT_Rpc" "RpcHttp-BackEnd"
     }
 
     $perServerStats = [ordered]@{}
@@ -91,12 +97,23 @@ function Get-LoadBalancingReport {
     $totalBackendStats = [ordered]@{}
 
     $currentErrors = $Error.Count
-    $counterSamples = Get-LocalizedCounterSamples -MachineName $CASServers -Counter @(
-        "\ASP.NET Apps v4.0.30319(_lm_w3svc_1_*)\Requests Executing"
-    ) `
-        -CustomErrorAction "SilentlyContinue"
+    foreach ( $CASServer in $CASServers) {
+        $DefaultIdSite = Invoke-Command -ComputerName $CASServer -ScriptBlock { (Get-IISSite "Default Web Site").Id }
 
-    Invoke-CatchActionErrorLoop $currentErrors ${Function:Invoke-CatchActions}
+        $FECounters = Get-LocalizedCounterSamples -MachineName $CASServer -Counter @(
+            "\ASP.NET Apps v4.0.30319(_lm_w3svc_$($DefaultIdSite)_*)\Requests Executing"
+        ) `
+            -CustomErrorAction "SilentlyContinue"
+
+        Invoke-CatchActionErrorLoop $currentErrors ${Function:Invoke-CatchActions}
+
+        foreach ( $sample in $FECounters) {
+            $sample.Path = $sample.Path.Replace("_$($DefaultIdSite)_", "_DefaultSite_")
+            $sample.InstanceName = $sample.InstanceName.Replace("_$($DefaultIdSite)_", "_DefaultSite_")
+        }
+
+        $counterSamples += $FECounters
+    }
 
     foreach ($counterSample in $counterSamples) {
         $counterObject = Get-CounterFullNameToCounterObject -FullCounterName $counterSample.Path
@@ -116,17 +133,31 @@ function Get-LoadBalancingReport {
         $totalStats[$counterObject.InstanceName] += $counterSample.CookedValue
     }
 
-    $totalStats.Add('_lm_w3svc_1_total', ($totalStats.Values | Measure-Object -Sum).Sum)
+    $totalStats.Add("_lm_w3svc_DefaultSite_total", ($totalStats.Values | Measure-Object -Sum).Sum)
 
     for ($i = 0; $i -lt $perServerStats.count; $i++) {
-        $perServerStats[$i].Add('_lm_w3svc_1_total', ($perServerStats[$i].Values | Measure-Object -Sum).Sum)
+        $perServerStats[$i].Add("_lm_w3svc_DefaultSite_total", ($perServerStats[$i].Values | Measure-Object -Sum).Sum)
     }
+
     $keyOrders = $displayKeys.Keys | Sort-Object
 
-    $counterBackendSamples = Get-LocalizedCounterSamples -MachineName $MBXServers -Counter @(
-        "\ASP.NET Apps v4.0.30319(_lm_w3svc_2_*)\Requests Executing"
-    ) `
-        -CustomErrorAction "SilentlyContinue"
+    foreach ( $MBXServer in $MBXServers) {
+        $BackendIdSite = Invoke-Command -ComputerName $MBXServer -ScriptBlock { (Get-IISSite "Exchange Back End").Id }
+
+        $BECounters = Get-LocalizedCounterSamples -MachineName $MBXServer -Counter @(
+            "\ASP.NET Apps v4.0.30319(_lm_w3svc_$($BackendIdSite)_*)\Requests Executing"
+        ) `
+            -CustomErrorAction "SilentlyContinue"
+
+        Invoke-CatchActionErrorLoop $currentErrors ${Function:Invoke-CatchActions}
+
+        foreach ( $sample in $BECounters) {
+            $sample.Path = $sample.Path.Replace("_$($BackendIdSite)_", "_BackendSite_")
+            $sample.InstanceName = $sample.InstanceName.Replace("_$($BackendIdSite)_", "_BackendSite_")
+        }
+
+        $counterBackendSamples += $BECounters
+    }
 
     foreach ($counterSample in $counterBackendSamples) {
         $counterObject = Get-CounterFullNameToCounterObject -FullCounterName $counterSample.Path
@@ -145,10 +176,13 @@ function Get-LoadBalancingReport {
         }
         $totalBackendStats[$counterObject.InstanceName] += $counterSample.CookedValue
     }
-    $totalBackendStats.Add('_lm_w3svc_2_total', ($totalBackendStats.Values | Measure-Object -Sum).Sum)
+
+    $totalBackendStats.Add("_lm_w3svc_BackendSite_total", ($totalBackendStats.Values | Measure-Object -Sum).Sum)
+
     for ($i = 0; $i -lt $perServerBackendStats.count; $i++) {
-        $perServerBackendStats[$i].Add('_lm_w3svc_2_total', ($perServerBackendStats[$i].Values | Measure-Object -Sum).Sum)
+        $perServerBackendStats[$i].Add("_lm_w3svc_BackendSite_total", ($perServerBackendStats[$i].Values | Measure-Object -Sum).Sum)
     }
+
     $keyOrdersBackend = $displayKeysBackend.Keys | Sort-Object
 
     $htmlHeader = "<html>
@@ -176,8 +210,10 @@ function Get-LoadBalancingReport {
     "
     #Load the key Headers
     $keyOrders | ForEach-Object {
-        $htmlLoadDetails += "$([System.Environment]::NewLine)<th><center>$($displayKeys[$_].Display) Requests</center></th>
-        <th><center>$($displayKeys[$_].Display) %</center></th>"
+        if ( $totalStats[$displayKeys[$_].counter] -gt 0) {
+            $htmlLoadDetails += "$([System.Environment]::NewLine)<th><center>$($displayKeys[$_].Display) Requests</center></th>
+            <th><center>$($displayKeys[$_].Display) %</center></th>"
+        }
     }
     $htmlLoadDetails += "$([System.Environment]::NewLine)</tr>$([System.Environment]::NewLine)"
 
@@ -189,25 +225,33 @@ function Get-LoadBalancingReport {
         <td><center>$($server.Site)</center></td>"
 
         foreach ($key in $keyOrders) {
-            $currentDisplayKey = $displayKeys[$key]
-            $totalRequests = $totalStats[$currentDisplayKey.Counter]
+            if ( $totalStats[$displayKeys[$key].counter] -gt 0) {
+                $currentDisplayKey = $displayKeys[$key]
+                $totalRequests = $totalStats[$currentDisplayKey.Counter]
 
-            if ($perServerStats.Contains($serverKey)) {
-                $serverValue = $perServerStats[$serverKey][$currentDisplayKey.Counter]
-                if ($null -eq $serverValue) { $serverValue = 0 }
-            } else {
-                $serverValue = 0
-            }
-            if (($totalRequests -eq 0) -or
+                if ($perServerStats.Contains($serverKey)) {
+                    $serverValue = $perServerStats[$serverKey][$currentDisplayKey.Counter]
+                    if ($null -eq $serverValue) { $serverValue = 0 }
+                } else {
+                    $serverValue = 0
+                }
+                if ($perServerStats.Contains($serverKey)) {
+                    $serverValue = $perServerStats[$serverKey][$currentDisplayKey.Counter]
+                    if ($null -eq $serverValue) { $serverValue = 0 }
+                } else {
+                    $serverValue = 0
+                }
+                if (($totalRequests -eq 0) -or
                 ($null -eq $totalRequests)) {
-                $percentageLoad = 0
-            } else {
-                $percentageLoad = [math]::Round((($serverValue / $totalRequests) * 100))
-            }
-            Write-Verbose "$($currentDisplayKey.Display) Server Value $serverValue Percentage usage $percentageLoad"
+                    $percentageLoad = 0
+                } else {
+                    $percentageLoad = [math]::Round((($serverValue / $totalRequests) * 100))
+                    Write-Verbose "$($currentDisplayKey.Display) Server Value $serverValue Percentage usage $percentageLoad"
 
-            $htmlLoadDetails += "$([System.Environment]::NewLine)<td><center>$($serverValue)</center></td>
-            <td><center>$percentageLoad</center></td>"
+                    $htmlLoadDetails += "$([System.Environment]::NewLine)<td><center>$($serverValue)</center></td>
+                    <td><center>$percentageLoad</center></td>"
+                }
+            }
         }
         $htmlLoadDetails += "$([System.Environment]::NewLine)</tr>"
     }
@@ -217,11 +261,13 @@ function Get-LoadBalancingReport {
         <td><center>Totals</center></td>
         <td></td>"
     $keyOrders | ForEach-Object {
-        $htmlLoadDetails += "$([System.Environment]::NewLine)<td><center>$($totalStats[(($displayKeys[$_]).Counter)])</center></td>
-        <td></td>"
+        if ( $totalStats[$displayKeys[$_].counter] -gt 0) {
+            $htmlLoadDetails += "$([System.Environment]::NewLine)<td><center>$($totalStats[(($displayKeys[$_]).Counter)])</center></td>
+            <td></td>"
+        }
     }
 
-    $htmlLoadDetails += "$([System.Environment]::NewLine)</table></p>"
+    $htmlLoadDetails += "$([System.Environment]::NewLine)</table>"
 
     $htmlHeaderBackend = "<h2 align=""center"">BackEnd - Mailbox Role</h2><br>"
 
@@ -231,8 +277,10 @@ function Get-LoadBalancingReport {
         "
     #Load the key Headers
     $keyOrdersBackend | ForEach-Object {
-        $htmlLoadDetailsBackend += "$([System.Environment]::NewLine)<th><center>$($displayKeysBackend[$_].Display) Requests</center></th>
+        if ( $totalBackendStats[$displayKeysBackend[$_].counter] -gt 0) {
+            $htmlLoadDetailsBackend += "$([System.Environment]::NewLine)<th><center>$($displayKeysBackend[$_].Display) Requests</center></th>
             <th><center>$($displayKeysBackend[$_].Display) %</center></th>"
+        }
     }
     $htmlLoadDetailsBackend += "$([System.Environment]::NewLine)</tr>$([System.Environment]::NewLine)"
 
@@ -244,24 +292,32 @@ function Get-LoadBalancingReport {
             <td><center>$($server.Site)</center></td>"
 
         foreach ($key in $keyOrdersBackend) {
-            $currentDisplayKey = $displayKeysBackend[$key]
-            $totalRequests = $totalBackendStats[$currentDisplayKey.Counter]
+            if ( $totalBackendStats[$displayKeysBackend[$key].counter] -gt 0) {
+                $currentDisplayKey = $displayKeysBackend[$key]
+                $totalRequests = $totalBackendStats[$currentDisplayKey.Counter]
 
-            if ($perServerBackendStats.Contains($serverKey)) {
-                $serverValue = $perServerBackendStats[$serverKey][$currentDisplayKey.Counter]
-                if ($null -eq $serverValue) { $serverValue = 0 }
-            } else {
-                $serverValue = 0
-            }
-            if (($totalRequests -eq 0) -or
+                if ($perServerBackendStats.Contains($serverKey)) {
+                    $serverValue = $perServerBackendStats[$serverKey][$currentDisplayKey.Counter]
+                    if ($null -eq $serverValue) { $serverValue = 0 }
+                } else {
+                    $serverValue = 0
+                }
+                if ($perServerBackendStats.Contains($serverKey)) {
+                    $serverValue = $perServerBackendStats[$serverKey][$currentDisplayKey.Counter]
+                    if ($null -eq $serverValue) { $serverValue = 0 }
+                } else {
+                    $serverValue = 0
+                }
+                if (($totalRequests -eq 0) -or
                 ($null -eq $totalRequests)) {
-                $percentageLoad = 0
-            } else {
-                $percentageLoad = [math]::Round((($serverValue / $totalRequests) * 100))
+                    $percentageLoad = 0
+                } else {
+                    $percentageLoad = [math]::Round((($serverValue / $totalRequests) * 100))
+                    Write-Verbose "$($currentDisplayKey.Display) Server Value $serverValue Percentage usage $percentageLoad"
+                    $htmlLoadDetailsBackend += "$([System.Environment]::NewLine)<td><center>$($serverValue)</center></td>
+                    <td><center>$percentageLoad</center></td>"
+                }
             }
-            Write-Verbose "$($currentDisplayKey.Display) Server Value $serverValue Percentage usage $percentageLoad"
-            $htmlLoadDetailsBackend += "$([System.Environment]::NewLine)<td><center>$($serverValue)</center></td>
-                <td><center>$percentageLoad</center></td>"
         }
         $htmlLoadDetailsBackend += "$([System.Environment]::NewLine)</tr>"
     }
@@ -271,10 +327,12 @@ function Get-LoadBalancingReport {
             <td><center>Totals</center></td>
             <td></td>"
     $keyOrdersBackend | ForEach-Object {
-        $htmlLoadDetailsBackend += "$([System.Environment]::NewLine)<td><center>$($totalBackendStats[(($displayKeysBackend[$_]).Counter)])</center></td>
+        if ( $totalBackendStats[$displayKeysBackend[$_].counter] -gt 0) {
+            $htmlLoadDetailsBackend += "$([System.Environment]::NewLine)<td><center>$($totalBackendStats[(($displayKeysBackend[$_]).Counter)])</center></td>
             <td></td>"
+        }
     }
-    $htmlLoadDetailsBackend += "$([System.Environment]::NewLine)</table></p>"
+    $htmlLoadDetailsBackend += "$([System.Environment]::NewLine)</table>"
 
     $htmlReport = $htmlHeader + $htmlLoadDetails
     $htmlReport = $htmlReport + $htmlHeaderBackend + $htmlLoadDetailsBackend
