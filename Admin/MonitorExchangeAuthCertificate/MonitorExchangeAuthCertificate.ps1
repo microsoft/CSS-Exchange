@@ -124,7 +124,6 @@ $BuildVersion = ""
 . $PSScriptRoot\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
 . $PSScriptRoot\..\..\Shared\ActiveDirectoryFunctions\Get-GlobalCatalogServer.ps1
-. $PSScriptRoot\..\..\Shared\ActiveDirectoryFunctions\Get-InternalTransportCertificateFromServer.ps1
 . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Host.ps1
 . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Verbose.ps1
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
@@ -144,7 +143,6 @@ function Write-DebugLog($Message) {
 }
 
 function Main {
-    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = "High")]
     param()
 
     if (-not(Confirm-Administrator)) {
@@ -248,7 +246,7 @@ function Main {
         $authCertificateExportStatusObject = Export-ExchangeAuthCertificate @authCertificateExportParams
 
         if ($authCertificateExportStatusObject.CertificatesAvailableToExport) {
-            Write-Host ("There are $($authCertificateExportStatusObject.NumberOfCertificatesToExport) certificates that could be exported")
+            Write-Host ("There is/are $($authCertificateExportStatusObject.NumberOfCertificatesToExport) certificate(s) that could be exported")
             if ($authCertificateExportStatusObject.ExportSuccessful) {
                 Write-Host ("All of them were successfully exported to the following directory: $($PSScriptRoot)") -ForegroundColor Green
             } else {
@@ -370,40 +368,16 @@ function Main {
         if (($ValidateAndRenewAuthCertificate) -and
             ($renewalActionRequired)) {
             Write-Host ("Renewal scenario: $($renewalActionWording)")
-            if ($PSCmdlet.ShouldProcess("Ask if the script should run unattended", "Do you want to run the script in unattended mode?", "Run Unattended") -or
-                $WhatIfPreference) {
-                $UnattendedMode = $true
-                $recycleAppPoolsAfterRenewal = $true
-            } else {
-                $UnattendedMode = $false
-                $recycleAppPoolsMessage = ("It's recommended to restart the 'MSExchangeOWAAppPool' and 'MSExchangeECPAppPool' WebApp Pools in case the Auth Certificate was replaced. " +
-                    "This is to speed up the adoption of the new configuration." +
-                    "`r`nDo you want to restart the WebApp Pools after the Auth Certificate was replaced?"
-                )
-                if ($PSCmdlet.ShouldProcess("Ask if the script should recycling the WebApp pools", $recycleAppPoolsMessage, "Recycle WebApp Pools") -or
-                    $WhatIfPreference) {
-                    $recycleAppPoolsAfterRenewal = $true
-                } else {
-                    $recycleAppPoolsAfterRenewal = $false
-                }
-            }
-
             if ($authCertStatus.ReplaceRequired) {
                 $replaceExpiredAuthCertificateParams = @{
                     ReplaceExpiredAuthCertificate = $true
-                    UnattendedMode                = $UnattendedMode
                     CatchActionFunction           = ${Function:Invoke-CatchActions}
-                }
-
-                if ($recycleAppPoolsAfterRenewal) {
-                    $replaceExpiredAuthCertificateParams.Add("RecycleAppPoolsAfterRenewal", $recycleAppPoolsAfterRenewal)
                 }
                 $renewalActionResult = New-ExchangeAuthCertificate @replaceExpiredAuthCertificateParams
             } elseif ($authCertStatus.ConfigureNextAuthRequired) {
                 $configureNextAuthCertificateParams = @{
                     ConfigureNextAuthCertificate         = $true
                     CurrentAuthCertificateLifetimeInDays = $authCertStatus.CurrentAuthCertificateLifetimeInDays
-                    UnattendedMode                       = $UnattendedMode
                     CatchActionFunction                  = ${Function:Invoke-CatchActions}
                 }
                 $renewalActionResult = New-ExchangeAuthCertificate @configureNextAuthCertificateParams
@@ -423,6 +397,22 @@ function Main {
                 Write-Host ("There was an issue while performing the renewal action - please check the verbose script log for more details.") -ForegroundColor Red
             }
         } else {
+            Write-Host ""
+            Write-Host ("Current Auth Certificate thumbprint: $($authCertStatus.CurrentAuthCertificateThumbprint)") -ForegroundColor Cyan
+            Write-Host ("Current Auth Certificate is valid for $($authCertStatus.CurrentAuthCertificateLifetimeInDays) day(s)") -ForegroundColor Cyan
+            if (-not([string]::IsNullOrEmpty($authCertStatus.NextAuthCertificateThumbprint))) {
+                Write-Host ("Next Auth Certificate thumbprint: $($authCertStatus.NextAuthCertificateThumbprint)") -ForegroundColor Cyan
+                Write-Host ("Next Auth Certificate is valid for $($authCertStatus.NextAuthCertificateLifetimeInDays) day(s)") -ForegroundColor Cyan
+            }
+            if ($authCertStatus.MultipleExchangeADSites) {
+                Write-Host ("We've detected Exchange servers in multiple AD sites") -ForegroundColor Cyan
+            }
+            if ($authCertStatus.HybridSetupDetected) {
+                Write-Host ("Exchange Hybrid was detected in this environment") -ForegroundColor Cyan
+            }
+            if ($authCertStatus.NumberOfUnreachableServers -gt 0) {
+                Write-Host ("Number of unreachable Exchange servers: $($authCertStatus.NumberOfUnreachableServers)") -ForegroundColor Cyan
+            }
             Write-Host ("")
             Write-Host ("Test result: $($renewalActionWording)") -ForegroundColor Cyan
         }
@@ -455,15 +445,21 @@ try {
         ErrorAction    = "SilentlyContinue"
     }
 
-    $Script:Logger = Get-NewLoggerInstance @loggerParams
-    SetProperForegroundColor
-    SetWriteHostAction ${Function:Write-DebugLog}
-    SetWriteVerboseAction ${Function:Write-DebugLog}
+    if (-not($WhatIfPreference)) {
+        $Script:Logger = Get-NewLoggerInstance @loggerParams
+        SetProperForegroundColor
+        SetWriteHostAction ${Function:Write-DebugLog}
+        SetWriteVerboseAction ${Function:Write-DebugLog}
+    }
 
     Main
 } finally {
     Write-Host ""
-    Write-Host ("Log file written to: $($Script:Logger.FullPath)")
+    if (-not($WhatIfPreference)) {
+        Write-Host ("Log file written to: $($Script:Logger.FullPath)")
+    } else {
+        Write-Host ("Script was executed by using '-WhatIf' parameter - no log file was generated")
+    }
     Write-Host ""
     Write-Host ("Do you have feedback regarding the script? Please email ExToolsFeedback@microsoft.com.") -ForegroundColor Green
     Write-Host ""
@@ -476,5 +472,7 @@ try {
     } else {
         Write-Verbose ("No errors occurred within the script")
     }
-    RevertProperForegroundColor
+    if (-not($WhatIfPreference)) {
+        RevertProperForegroundColor
+    }
 }
