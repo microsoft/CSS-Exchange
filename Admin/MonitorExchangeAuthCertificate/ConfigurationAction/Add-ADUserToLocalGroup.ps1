@@ -26,8 +26,12 @@ function Add-ADUserToLocalGroup {
         $localGroup = [System.DirectoryServices.AccountManagement.GroupPrincipal]::FindByIdentity($localMachine, $Group)
 
         if (-not($localGroup.Members.Contains($domainContext, [System.DirectoryServices.AccountManagement.IdentityType]::UserPrincipalName, $MemberUPN))) {
-            $localGroup.Members.Add($domainContext, [System.DirectoryServices.AccountManagement.IdentityType]::UserPrincipalName, $MemberUPN)
-            $localGroup.Save()
+            if (-not($WhatIfPreference)) {
+                $localGroup.Members.Add($domainContext, [System.DirectoryServices.AccountManagement.IdentityType]::UserPrincipalName, $MemberUPN)
+                $localGroup.Save()
+            } else {
+                Write-Host ("What if: Will add user: $($MemberUPN) to local group: $($Group)")
+            }
         } else {
             Write-Verbose ("User: $($MemberUPN) is already a member of group: $($Group)")
         }

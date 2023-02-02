@@ -35,7 +35,11 @@ function Register-AuthCertificateRenewalTask {
         Write-Verbose ("Scheduled task already exists - will be deleted now to re-create a new one")
         try {
             foreach ($t in $existingScheduledTask) {
-                Unregister-ScheduledTask -TaskPath $($t.TaskPath) -TaskName $($t.TaskName) -Confirm:$false -ErrorAction Stop
+                if (-not($WhatIfPreference)) {
+                    Unregister-ScheduledTask -TaskPath $($t.TaskPath) -TaskName $($t.TaskName) -Confirm:$false -ErrorAction Stop
+                } else {
+                    Write-Host ("What if: Will unregister scheduled task: '$($t.TaskName)' by running 'Unregister-ScheduledTask'")
+                }
                 Write-Verbose ("Scheduled task: $($t.TaskName) successfully unregistered")
             }
         } catch {
@@ -45,7 +49,8 @@ function Register-AuthCertificateRenewalTask {
         }
     }
 
-    if (Test-Path -Path $fullPathToScript) {
+    if (($WhatIfPreference) -or
+        (Test-Path -Path $fullPathToScript)) {
         $passwordAsPlaintextString = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($Password))
 
         $schTaskTrigger = New-ScheduledTaskTrigger -Daily -At $DailyRuntime
@@ -71,8 +76,12 @@ function Register-AuthCertificateRenewalTask {
         }
 
         try {
-            Register-ScheduledTask @registerSchTaskParams | Out-Null
             Write-Verbose ("Scheduled Task: $($TaskName) successfully created")
+            if (-not($WhatIfPreference)) {
+                Register-ScheduledTask @registerSchTaskParams | Out-Null
+            } else {
+                Write-Host ("What if: Registering scheduled task with name '$($TaskName)' by running 'Register-ScheduledTask'")
+            }
             return $true
         } catch {
             Write-Verbose ("Error while creating Scheduled Task: $($TaskName) - Exception: $($Error[0].Exception.Message)")
