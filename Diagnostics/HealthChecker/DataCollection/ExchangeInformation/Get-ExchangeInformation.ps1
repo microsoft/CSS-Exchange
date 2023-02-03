@@ -141,7 +141,7 @@ function Get-ExchangeInformation {
             Write-Verbose "SerializedDataSigning is not supported on this Exchange version & role combination"
         }
 
-        if (($getExchangeServer.IsMailboxServer) -and
+        if (($getExchangeServer.IsMailboxServer) -or
         ($getExchangeServer.IsEdgeServer)) {
             try {
                 $exchangeServicesNotRunning = @()
