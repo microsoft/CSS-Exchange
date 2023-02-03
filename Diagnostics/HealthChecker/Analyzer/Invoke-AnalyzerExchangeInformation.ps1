@@ -256,7 +256,8 @@ function Invoke-AnalyzerExchangeInformation {
     Write-Verbose "Working on results from Test-ServiceHealth"
     $servicesNotRunning = $exchangeInformation.ExchangeServicesNotRunning
 
-    if ($null -ne $servicesNotRunning) {
+    if ($null -ne $servicesNotRunning -and
+        $servicesNotRunning.Count -gt 0 ) {
         Add-AnalyzedResultInformation -Name "Services Not Running" @baseParams
 
         foreach ($stoppedService in $servicesNotRunning) {
