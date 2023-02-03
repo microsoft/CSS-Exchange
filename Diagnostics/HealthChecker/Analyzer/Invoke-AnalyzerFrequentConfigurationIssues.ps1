@@ -158,17 +158,16 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
             $displayWriteType = "Grey"
         } else {
             $displayWriteType = "Red"
-            $domain = $organizationInformation.WildCardAcceptedDomain
-            $displayValue = "Error --- Accepted Domain `"$($domain.Id)`" is set to a Wild Card (*) Domain Name with a domain type of $($domain.DomainType.ToString()). This is not recommended as this is an open relay for the entire environment.`r`n`t`tMore Information: https://aka.ms/HC-OpenRelayDomain"
+            $displayValue = "Error --- Accepted Domain `"$($wildCardAcceptedDomain.Id)`" is set to a Wild Card (*) Domain Name with a domain type of $($wildCardAcceptedDomain.DomainType.ToString()). This is not recommended as this is an open relay for the entire environment.`r`n`t`tMore Information: https://aka.ms/HC-OpenRelayDomain"
 
-            if ($domain.DomainType.ToString() -eq "InternalRelay" -and
+            if ($wildCardAcceptedDomain.DomainType.ToString() -eq "InternalRelay" -and
                 (($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016 -and
                     $exchangeInformation.BuildInformation.CU -ge [HealthChecker.ExchangeCULevel]::CU22) -or
                 ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019 -and
                 $exchangeInformation.BuildInformation.CU -ge [HealthChecker.ExchangeCULevel]::CU11))) {
 
                 $additionalDisplayValue = "`r`n`t`tERROR: You have an open relay set as Internal Replay Type and on a CU that is known to cause issues with transport services crashing. Follow the above article for more information."
-            } elseif ($domain.DomainType.ToString() -eq "InternalRelay") {
+            } elseif ($wildCardAcceptedDomain.DomainType.ToString() -eq "InternalRelay") {
                 $additionalDisplayValue = "`r`n`t`tWARNING: You have an open relay set as Internal Relay Type. You are not on a CU yet that is having issue, recommended to change this prior to upgrading. Follow the above article for more information."
             }
         }
