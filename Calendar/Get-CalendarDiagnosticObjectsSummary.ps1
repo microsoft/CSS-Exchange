@@ -31,15 +31,15 @@ param(
 function GetCalendarDiagnosticObjects {
     $CustomPropertyNameList = "AppointmentCounterProposal", "AppointmentRecurring", "CalendarItemType", "CalendarProcessed", "ClientIntent", "DisplayAttendeesCc", "DisplayAttendeesTo", "EventEmailReminderTimer", "ExternalSharingMasterId", "FreeBusyStatus", "From", "HasAttachment", "IsAllDayEvent", "IsCancelled", "IsMeeting", "MapiEndTime", "MapiStartTime", "OnlineMeetingConfLink", "OnlineMeetingExternalLink", "OnlineMeetingInternalLink", "SentRepresentingDisplayName", "SentRepresentingEmailAddress";
     if ($Identity -and $Subject -and $MeetingID) {
-        $Global:GetCDO = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore;
+        $Global:GetCDO = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults 2000;
     }
 
     if ($Identity -and $Subject -and !$MeetingID) {
-        $Global:GetCDO = Get-CalendarDiagnosticObjects -Identity $Identity -Subject $Subject -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore;
+        $Global:GetCDO = Get-CalendarDiagnosticObjects -Identity $Identity -Subject $Subject -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults 2000;
     }
 
     if ($Identity -and $MeetingID -and !$Subject) {
-        $Global:GetCDO = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore;
+        $Global:GetCDO = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults 2000;
     }
 
     if ($Identity -and !$Subject -and !$MeetingID) {
@@ -397,7 +397,8 @@ function BuildCSV {
     $Global:Results = $GCDOResults;
 
     # Automation won't have access to this file - will add code in next version to save contents to a variable
-    $Filename = "$($Results[0].ReceivedBy)_$ShortMeetingID.csv";
+    #$Filename = "$($Results[0].ReceivedBy)_$ShortMeetingID.csv";
+    $Filename = "$($Identity)_$ShortMeetingID.csv";
     $GCDOResults | Export-Csv -Path $Filename -NoTypeInformation
     $MeetingTimeLine = $Results | Where-Object { $_.IsIgnorable -eq "False" } ;
     "`n`n`nThis is the meetingID $MeetingID`nThis is Short MeetingID $ShortMeetingID`nFound $($GCDO.count) Log entries, Only $($MeetingTimeLine.count) entries will be analyzed.";
@@ -854,7 +855,7 @@ function BuildTimeline {
                     }
                     default {
                         [array] $Output = "[$($CalLog.ResponsibleUser)] $($CalLog.TriggerAction) the Meeting with $($CalLog.Client).";
-                        [bool] $MeetingSummaryNeeded = False;
+                        [bool] $MeetingSummaryNeeded = $False;
                     }
                 }
             }
@@ -907,7 +908,7 @@ $UniqueMeetingID = $GlobalObjectId | Select-Object -Unique;
 if ($UniqueMeetingID.count -gt 1) {
     $UniqueMeetingID | ForEach-Object {
         $MeetingID = $_;
-        $Global:GCDO = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames AppointmentCounterProposal, AppointmentRecurring, CalendarItemType, CalendarProcessed, ClientIntent, DisplayAttendeesCc, DisplayAttendeesTo, EventEmailReminderTimer, ExternalSharingMasterId, FreeBusyStatus, From, HasAttachment, IsAllDayEvent, IsCancelled, IsMeeting, MapiEndTime, MapiStartTime, OnlineMeetingConfLink, OnlineMeetingExternalLink, OnlineMeetingInternalLink, SentRepresentingDisplayName, SentRepresentingEmailAddress -WarningAction Ignore;
+        $Global:GCDO = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames AppointmentCounterProposal, AppointmentRecurring, CalendarItemType, CalendarProcessed, ClientIntent, DisplayAttendeesCc, DisplayAttendeesTo, EventEmailReminderTimer, ExternalSharingMasterId, FreeBusyStatus, From, HasAttachment, IsAllDayEvent, IsCancelled, IsMeeting, MapiEndTime, MapiStartTime, OnlineMeetingConfLink, OnlineMeetingExternalLink, OnlineMeetingInternalLink, SentRepresentingDisplayName, SentRepresentingEmailAddress -WarningAction Ignore -MaxResults 2000;
         BuildCSV;
         BuildTimeline;
     }
