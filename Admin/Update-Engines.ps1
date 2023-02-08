@@ -7,8 +7,14 @@ param(
     [string]$FailoverPathUrl = "https://amupdatedl.microsoft.com/server/scanengineupdate/",
     [string]$EngineDownloadUrlV2 = "http://amupdatedl.microsoft.com/server/amupdate/",
     [string[]]$Engines = ("Microsoft"),
-    [string[]]$Platforms = ("amd64")
+    [string[]]$Platforms = ("amd64"),
+    [switch]$ScriptUpdateOnly,
+    [switch]$SkipVersionCheck
 )
+
+. $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
+
+$BuildVersion = ""
 
 # Display Help
 if (($Args[0] -eq "-?") -or ($Args[0] -eq "-help")) {
@@ -24,6 +30,23 @@ if (($Args[0] -eq "-?") -or ($Args[0] -eq "-help")) {
     "     Update-Engines.ps1 -EngineDirPath C:\Engines\ -UpdatePathUrl http://forefrontdl.microsoft.com/server/scanengineupdate/ -Engines Microsoft -Platforms amd64"
     ""
     exit
+}
+
+Write-Host ("Update-Engines.ps1 script version $($BuildVersion)") -ForegroundColor Green
+
+if ($ScriptUpdateOnly) {
+    switch (Test-ScriptVersion -AutoUpdate -Confirm:$false) {
+        ($true) { Write-Host ("Script was successfully updated") -ForegroundColor Green }
+        ($false) { Write-Host ("No update of the script performed") -ForegroundColor Yellow }
+        default { Write-Host ("Unable to perform ScriptUpdateOnly operation") -ForegroundColor Red }
+    }
+    return
+}
+
+if ((-not($SkipVersionCheck)) -and
+    (Test-ScriptVersion -AutoUpdate -Confirm:$false)) {
+    Write-Host ("Script was updated. Please re-run the command") -ForegroundColor Yellow
+    return
 }
 
 if ($EngineDirPath.Length -eq 0) {

@@ -26,6 +26,8 @@ Update-Engines.ps1
   [-EngineDownloadUrlV2 <string>]
   [-Engines <string[]>]
   [-Platforms <string[]>]
+  [-ScriptUpdateOnly <switch>]
+  [-SkipVersionCheck <switch>]
 ```
 
 ## Steps to update scan engines
@@ -55,3 +57,7 @@ The following syntax uses the directory `C:\ScanEngineUpdates\` as the root engi
 ```powershell
 Update-Engines.ps1 -EngineDirPath C:\ScanEngineUpdates\ -UpdatePathUrl http://forefrontdl.microsoft.com/server/scanengineupdate/ -Engines Microsoft -Platforms amd64
 ```
+
+## Found a bug or want to update the script?
+
+Please open a new work item [here](https://github.com/microsoft/CSS-Exchange/issues) or reach out to us via: ExToolsFeedback@microsoft.com
