@@ -38,7 +38,8 @@ function Invoke-AnalyzerNicSettings {
         }
         Add-AnalyzedResultInformation @params
 
-        if ($osInformation.BuildInformation.MajorVersion -ge [HealthChecker.OSServerVersion]::Windows2012R2) {
+        if ($osInformation.BuildInformation.MajorVersion -notlike "Windows2008*" -and
+            $osInformation.BuildInformation.MajorVersion -ne "Windows2012") {
             Write-Verbose "On Windows 2012 R2 or new. Can provide more details on the NICs"
 
             $driverDate = $adapter.DriverDate

@@ -148,7 +148,7 @@ function Invoke-AnalyzerExchangeInformation {
     }
     Add-AnalyzedResultInformation @params
 
-    if ($exchangeInformation.BuildInformation.ServerRole -le [HealthChecker.ExchangeServerRole]::Mailbox) {
+    if ($exchangeInformation.GetExchangeServer.IsMailboxServer -eq $true) {
         $dagName = [System.Convert]::ToString($exchangeInformation.GetMailboxServer.DatabaseAvailabilityGroup)
         if ([System.String]::IsNullOrWhiteSpace($dagName)) {
             $dagName = "Standalone Server"
@@ -166,9 +166,7 @@ function Invoke-AnalyzerExchangeInformation {
     }
     Add-AnalyzedResultInformation @params
 
-    if (($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) -and
-        ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Hub) -and
-        ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::None)) {
+    if ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false) {
 
         Write-Verbose "Working on MRS Proxy Settings"
         $mrsProxyDetails = $exchangeInformation.GetWebServicesVirtualDirectory.MRSProxyEnabled
@@ -187,9 +185,8 @@ function Invoke-AnalyzerExchangeInformation {
         Add-AnalyzedResultInformation @params
     }
 
-    if ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013 -and
-        $exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge -and
-        $exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Mailbox) {
+    if ($exchangeInformation.BuildInformation.MajorVersion -eq "Exchange2013" -and
+        $exchangeInformation.GetExchangeServer.IsClientAccessServer -eq $true) {
 
         if ($null -ne $exchangeInformation.ApplicationPools -and
             $exchangeInformation.ApplicationPools.Count -gt 0) {
@@ -317,7 +314,7 @@ function Invoke-AnalyzerExchangeInformation {
         }
     }
 
-    if ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge -and
+    if ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false -and
         $null -ne $exchangeInformation.ExtendedProtectionConfig) {
         $params = $baseParams + @{
             Name    = "Extended Protection Enabled (Any VDir)"

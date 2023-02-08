@@ -8,14 +8,15 @@ function Get-ExchangeUpdates {
         [string]$Server,
 
         [Parameter(Mandatory = $true)]
-        [HealthChecker.ExchangeMajorVersion]$ExchangeMajorVersion
+        [ValidateSet("Exchange2013", "Exchange2016", "Exchange2019")]
+        [string]$ExchangeMajorVersion
     )
     Write-Verbose("Calling: $($MyInvocation.MyCommand) Passed: $ExchangeMajorVersion")
     $RegLocation = [string]::Empty
 
-    if ([HealthChecker.ExchangeMajorVersion]::Exchange2013 -eq $ExchangeMajorVersion) {
+    if ("Exchange2013" -eq $ExchangeMajorVersion) {
         $RegLocation = "SOFTWARE\Microsoft\Updates\Exchange 2013"
-    } elseif ([HealthChecker.ExchangeMajorVersion]::Exchange2016 -eq $ExchangeMajorVersion) {
+    } elseif ("Exchange2016" -eq $ExchangeMajorVersion) {
         $RegLocation = "SOFTWARE\Microsoft\Updates\Exchange 2016"
     } else {
         $RegLocation = "SOFTWARE\Microsoft\Updates\Exchange 2019"

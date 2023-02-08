@@ -6,53 +6,6 @@ using System;
 using System.Collections;
     namespace HealthChecker
     {
-        public class HealthCheckerExchangeServer
-        {
-            public string ServerName;        //String of the server that we are working with
-            public object HardwareInformation;  // Hardware Object Information
-            public object  OSInformation; // OS Version Object Information
-            public object ExchangeInformation; //Detailed Exchange Information
-            public object OrganizationInformation; // Organization Information that doesn't need to be collect multiple times.
-            public string HealthCheckerVersion; //To determine the version of the script on the object.
-            public DateTime GenerationTime; //Time stamp of running the script
-        }
-
-        //enum for the server roles that the computer is
-        public enum ExchangeServerRole
-        {
-            MultiRole,
-            Mailbox,
-            ClientAccess,
-            Hub,
-            Edge,
-            None
-        }
-
-        //enum for the Exchange version
-        public enum ExchangeMajorVersion
-        {
-            Unknown,
-            Exchange2010,
-            Exchange2013,
-            Exchange2016,
-            Exchange2019
-        }
-        // End ExchangeInformation
-
-        //enum for the OSServerVersion that we are
-        public enum OSServerVersion
-        {
-            Unknown,
-            Windows2008,
-            Windows2008R2,
-            Windows2012,
-            Windows2012R2,
-            Windows2016,
-            Windows2019,
-            Windows2022,
-            WindowsCore
-        }
-
         //enum for the DWORD value of the .NET frame 4 that we are on
         public enum NetMajorVersion
         {
