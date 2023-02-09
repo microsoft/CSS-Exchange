@@ -55,7 +55,7 @@ function Get-OperatingSystemInformation {
             TimeZone            = $timeZoneInformation
             TLSSettings         = $tlsSettings
             ServerBootUp        = $serverBootUp
-            VcRedistributable   = $vcRedistributable
+            VcRedistributable   = [array]$vcRedistributable
             RegistryValues      = $registryValues
             Smb1ServerSettings  = $smb1ServerSettings
             HotFixes            = $hotFixes

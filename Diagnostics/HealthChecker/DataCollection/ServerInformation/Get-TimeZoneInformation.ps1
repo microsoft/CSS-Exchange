@@ -61,7 +61,7 @@ function Get-TimeZoneInformation {
             StandardStart               = $standardStart
             DaylightStart               = $daylightStart
             DstIssueDetected            = $dstIssueDetected
-            ActionsToTake               = $actionsToTake
+            ActionsToTake               = [array]$actionsToTake
             CurrentTimeZone             = $currentTimeZone
         }
     }

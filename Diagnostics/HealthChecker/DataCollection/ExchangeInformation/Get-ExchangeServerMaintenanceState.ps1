@@ -71,7 +71,7 @@ function Get-ExchangeServerMaintenanceState {
     } end {
 
         return [PSCustomObject]@{
-            InactiveComponents      = $inactiveComponents
+            InactiveComponents      = [array]$inactiveComponents
             GetServerComponentState = $getServerComponentState
             GetClusterNode          = $getClusterNode
         }

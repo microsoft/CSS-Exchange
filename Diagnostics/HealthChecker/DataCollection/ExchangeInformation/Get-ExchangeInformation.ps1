@@ -48,7 +48,7 @@ function Get-ExchangeInformation {
             CU                 = $versionInformation.CU
             ExchangeSetup      = $exSetupDetails
             VersionInformation = $versionInformation
-            KBsInstalled       = Get-ExchangeUpdates -Server $Server -ExchangeMajorVersion $versionInformation.MajorVersion
+            KBsInstalled       = [array](Get-ExchangeUpdates -Server $Server -ExchangeMajorVersion $versionInformation.MajorVersion)
         }
 
         $dependentServices = (Get-ExchangeDependentServices -MachineName $Server)
@@ -176,13 +176,13 @@ function Get-ExchangeInformation {
             GetWebServicesVirtualDirectory        = $getWebServicesVirtualDirectory
             ExtendedProtectionConfig              = $extendedProtectionConfig
             ExchangeConnectors                    = $exchangeConnectors
-            AMSIConfiguration                     = $amsiConfiguration
-            SerializationDataSigningConfiguration = $serializationDataSigningConfiguration
-            ExchangeServicesNotRunning            = $exchangeServicesNotRunning
+            AMSIConfiguration                     = [array]$amsiConfiguration
+            SerializationDataSigningConfiguration = [array]$serializationDataSigningConfiguration
+            ExchangeServicesNotRunning            = [array]$exchangeServicesNotRunning
             ApplicationPools                      = $applicationPools
             RegistryValues                        = $registryValues
             ServerMaintenance                     = $serverMaintenance
-            ExchangeCertificates                  = $exchangeCertificates
+            ExchangeCertificates                  = [array]$exchangeCertificates
             ExchangeEmergencyMitigationService    = $exchangeEmergencyMitigationService
             ApplicationConfigFileStatus           = $applicationConfigFileStatus
             DependentServices                     = $dependentServices

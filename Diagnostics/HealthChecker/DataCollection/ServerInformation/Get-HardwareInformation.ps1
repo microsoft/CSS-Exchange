@@ -37,7 +37,7 @@ function Get-HardwareInformation {
             System            = $system
             Processor         = $processorInformation
             TotalMemory       = $totalMemory
-            MemoryInformation = $physicalMemory
+            MemoryInformation = [array]$physicalMemory
         }
     }
 }

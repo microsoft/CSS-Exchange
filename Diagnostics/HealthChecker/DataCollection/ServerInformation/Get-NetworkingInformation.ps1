@@ -29,7 +29,7 @@ function Get-NetworkingInformation {
         return [PSCustomObject]@{
             HttpProxy                = $httpProxy
             PacketsReceivedDiscarded = $packetsReceivedDiscarded
-            NetworkAdapters          = $networkAdapters
+            NetworkAdapters          = [array]$networkAdapters
             IPv6DisabledOnNICs       = $ipv6DisabledOnNICs
         }
     }
