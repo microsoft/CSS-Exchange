@@ -333,7 +333,7 @@ function Invoke-AnalyzerSecuritySettings {
     $smb1Settings = $osInformation.Smb1ServerSettings
 
     if ($osInformation.BuildInformation.BuildVersion -ge "10.0.0.0" -or
-        $osInformation.BuildInformation.MajorVersion -like "Windows2012*") {
+        $osInformation.BuildInformation.MajorVersion -eq "Windows2012R2") {
         $displayValue = "False"
         $writeType = "Green"
 
