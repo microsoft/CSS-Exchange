@@ -102,7 +102,7 @@ function Get-HealthCheckerData {
         try {
             Invoke-SetOutputInstanceLocation -Server $serverName -FileName "HealthChecker" -IncludeServerName $true
             Write-HostLog "Exchange Health Checker version $BuildVersion"
-            [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer -ServerName $serverNameParam -PassedOrganizationInformation $passedOrganizationInformation
+            $HealthObject = Get-HealthCheckerExchangeServer -ServerName $serverNameParam -PassedOrganizationInformation $passedOrganizationInformation
             $HealthObject.OrganizationInformation = $organizationInformation
 
             $paramWriteProgress.Status = "Analyzing Data"

@@ -2,7 +2,8 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
-function Get-TimeZoneInformationRegistrySettings {
+. $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
+function Get-TimeZoneInformation {
     [CmdletBinding()]
     param(
         [string]$MachineName = $env:COMPUTERNAME,
@@ -10,15 +11,19 @@ function Get-TimeZoneInformationRegistrySettings {
     )
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        $timeZoneInformationSubKey = "SYSTEM\CurrentControlSet\Control\TimeZoneInformation"
         $actionsToTake = @()
         $dstIssueDetected = $false
+        $registryParams = @{
+            MachineName         = $MachineName
+            SubKey              = "SYSTEM\CurrentControlSet\Control\TimeZoneInformation"
+            CatchActionFunction = $CatchActionFunction
+        }
     }
     process {
-        $dynamicDaylightTimeDisabled = Get-RemoteRegistryValue -MachineName $MachineName -SubKey $timeZoneInformationSubKey -GetValue "DynamicDaylightTimeDisabled" -CatchActionFunction $CatchActionFunction
-        $timeZoneKeyName = Get-RemoteRegistryValue -MachineName $MachineName -SubKey $timeZoneInformationSubKey -GetValue "TimeZoneKeyName" -CatchActionFunction $CatchActionFunction
-        $standardStart = Get-RemoteRegistryValue -MachineName $MachineName -SubKey $timeZoneInformationSubKey -GetValue "StandardStart" -CatchActionFunction $CatchActionFunction
-        $daylightStart = Get-RemoteRegistryValue -MachineName $MachineName -SubKey $timeZoneInformationSubKey -GetValue "DaylightStart" -CatchActionFunction $CatchActionFunction
+        $dynamicDaylightTimeDisabled = Get-RemoteRegistryValue @registryParams -GetValue "DynamicDaylightTimeDisabled"
+        $timeZoneKeyName = Get-RemoteRegistryValue @registryParams -GetValue "TimeZoneKeyName"
+        $standardStart = Get-RemoteRegistryValue @registryParams -GetValue "StandardStart"
+        $daylightStart = Get-RemoteRegistryValue @registryParams -GetValue "DaylightStart"
 
         if ([string]::IsNullOrEmpty($timeZoneKeyName)) {
             Write-Verbose "TimeZoneKeyName is null or empty. Action should be taken to address this."
@@ -39,6 +44,15 @@ function Get-TimeZoneInformationRegistrySettings {
             Write-Verbose "Daylight savings auto adjustment is disabled."
             $actionsToTake += "Warning: DynamicDaylightTimeDisabled is set, Windows can not properly detect any DST rule changes in your time zone."
         }
+
+        $params = @{
+            ComputerName           = $Server
+            ScriptBlock            = { ([System.TimeZone]::CurrentTimeZone).StandardName }
+            ScriptBlockDescription = "Getting Current Time Zone"
+            CatchActionFunction    = $CatchActionFunction
+        }
+
+        $currentTimeZone = Invoke-ScriptBlockHandler @params
     }
     end {
         return [PSCustomObject]@{
@@ -47,7 +61,8 @@ function Get-TimeZoneInformationRegistrySettings {
             StandardStart               = $standardStart
             DaylightStart               = $daylightStart
             DstIssueDetected            = $dstIssueDetected
-            ActionsToTake               = $actionsToTake
+            ActionsToTake               = [array]$actionsToTake
+            CurrentTimeZone             = $currentTimeZone
         }
     }
 }

@@ -1,6 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\Helpers\CompareExchangeBuildLevel.ps1
+
 function Invoke-AnalyzerSecurityAMSIConfigState {
     [CmdletBinding()]
     param(
@@ -26,12 +28,10 @@ function Invoke-AnalyzerSecurityAMSIConfigState {
     # AMSI integration is only available on Windows Server 2016 or higher and only on
     # Exchange Server 2016 CU21+ or Exchange Server 2019 CU10+.
     # AMSI is also not available on Edge Transport Servers (no http component available).
-    if ((($osInformation.BuildInformation.MajorVersion -ge [HealthChecker.OSServerVersion]::Windows2016) -and
-        (($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016) -and
-            ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU21)) -or
-        (($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) -and
-            ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU10))) -and
-        ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge)) {
+    if (($osInformation.BuildInformation.BuildVersion -ge [System.Version]"10.0.0.0") -and
+        ((Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2016" -CU "CU21") -or
+        (Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2019" -CU "CU10")) -and
+        ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false)) {
 
         $amsiInformation = $HealthServerObject.ExchangeInformation.AMSIConfiguration
         $amsiWriteType = "Yellow"

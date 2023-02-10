@@ -15,27 +15,22 @@ function Get-HealthCheckerExchangeServer {
         [object]$PassedOrganizationInformation
     )
 
-    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
+    process {
+        Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
-    [HealthChecker.HealthCheckerExchangeServer]$HealthExSvrObj = New-Object -TypeName HealthChecker.HealthCheckerExchangeServer
-    $HealthExSvrObj.ServerName = $ServerName
-    $HealthExSvrObj.HardwareInformation = Get-HardwareInformation -Server $ServerName
-    $HealthExSvrObj.OSInformation = Get-OperatingSystemInformation -Server $ServerName
-    $HealthExSvrObj.ExchangeInformation = Get-ExchangeInformation -Server $ServerName -OSMajorVersion $HealthExSvrObj.OSInformation.BuildInformation.MajorVersion -PassedOrganizationInformation $PassedOrganizationInformation
-
-    if ($HealthExSvrObj.ExchangeInformation.BuildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2013) {
-        $netFrameworkVersion = Get-NETFrameworkVersion -MachineName $ServerName -CatchActionFunction ${Function:Invoke-CatchActions}
-        $HealthExSvrObj.OSInformation.NETFramework.FriendlyName = $netFrameworkVersion.FriendlyName
-        $HealthExSvrObj.OSInformation.NETFramework.RegistryValue = $netFrameworkVersion.RegistryValue
-        $HealthExSvrObj.OSInformation.NETFramework.NetMajorVersion = $netFrameworkVersion.MinimumValue
-        $HealthExSvrObj.OSInformation.NETFramework.FileInformation = Get-DotNetDllFileVersions -ComputerName $ServerName -FileNames @("System.Data.dll", "System.Configuration.dll") -CatchActionFunction ${Function:Invoke-CatchActions}
-
-        if ($netFrameworkVersion.MinimumValue -eq $HealthExSvrObj.ExchangeInformation.NETFramework.MaxSupportedVersion) {
-            $HealthExSvrObj.ExchangeInformation.NETFramework.OnRecommendedVersion = $true
+        $hardwareInformation = Get-HardwareInformation -Server $ServerName
+        $osInformation = Get-OperatingSystemInformation -Server $ServerName
+        $exchangeInformation = Get-ExchangeInformation -Server $ServerName -PassedOrganizationInformation $PassedOrganizationInformation
+    } end {
+        Write-Verbose "Finished building health Exchange Server Object for server: $ServerName"
+        return [PSCustomObject]@{
+            ServerName              = $ServerName
+            HardwareInformation     = $hardwareInformation
+            OSInformation           = $osInformation
+            ExchangeInformation     = $exchangeInformation
+            HealthCheckerVersion    = $BuildVersion
+            OrganizationInformation = $null
+            GenerationTime          = [DateTime]::Now
         }
     }
-    $HealthExSvrObj.HealthCheckerVersion = $BuildVersion
-    $HealthExSvrObj.GenerationTime = [DateTime]::Now
-    Write-Verbose "Finished building health Exchange Server Object for server: $ServerName"
-    return $HealthExSvrObj
 }

@@ -3,6 +3,7 @@
 
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
+. $PSScriptRoot\..\Helpers\CompareExchangeBuildLevel.ps1
 function Invoke-AnalyzerFrequentConfigurationIssues {
     [CmdletBinding()]
     param(
@@ -106,18 +107,18 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     }
     Add-AnalyzedResultInformation @params
 
-    $displayValue = $osInformation.CredentialGuardEnabled
+    $credentialGuardValue = $osInformation.RegistryValues.CredentialGuard -ne 0
     $displayWriteType = "Grey"
 
-    if ($osInformation.CredentialGuardEnabled) {
-        $displayValue = "{0} `r`n`t`tError: Credential Guard is not supported on an Exchange Server. This can cause a performance hit on the server." -f $osInformation.CredentialGuardEnabled
+    if ($credentialGuardValue) {
+        $displayValue = "{0} `r`n`t`tError: Credential Guard is not supported on an Exchange Server. This can cause a performance hit on the server." -f $credentialGuardValue
         $displayWriteType = "Red"
     }
 
     $params = $baseParams + @{
         Name                = "Credential Guard Enabled"
         Details             = $displayValue
-        DisplayTestingValue = $osInformation.CredentialGuardEnabled
+        DisplayTestingValue = $credentialGuardValue
         DisplayWriteType    = $displayWriteType
     }
     Add-AnalyzedResultInformation @params
@@ -144,28 +145,27 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
         }
     }
 
-    $displayWriteType = "Grey"
-    $displayValue = "Not Set"
+    $displayWriteType = "Yellow"
+    $displayValue = "Unknown - Unable to run Get-AcceptedDomain"
     $additionalDisplayValue = [string]::Empty
 
-    if ($null -ne $organizationInformation.WildCardAcceptedDomain) {
+    if ($null -ne $organizationInformation.GetAcceptedDomain -and
+        $organizationInformation.GetAcceptedDomain -ne "Unknown") {
 
-        if ($organizationInformation.WildCardAcceptedDomain -eq "Unknown") {
-            $displayValue = "Unknown - Unable to run Get-AcceptedDomain"
-            $displayWriteType = "Yellow"
+        $wildCardAcceptedDomain = $organizationInformation.GetAcceptedDomain | Where-Object { $_.DomainName.ToString() -eq "*" }
+
+        if ($null -eq $wildCardAcceptedDomain) {
+            $displayValue = "Not Set"
+            $displayWriteType = "Grey"
         } else {
             $displayWriteType = "Red"
-            $domain = $organizationInformation.WildCardAcceptedDomain
-            $displayValue = "Error --- Accepted Domain `"$($domain.Id)`" is set to a Wild Card (*) Domain Name with a domain type of $($domain.DomainType.ToString()). This is not recommended as this is an open relay for the entire environment.`r`n`t`tMore Information: https://aka.ms/HC-OpenRelayDomain"
+            $displayValue = "Error --- Accepted Domain `"$($wildCardAcceptedDomain.Id)`" is set to a Wild Card (*) Domain Name with a domain type of $($wildCardAcceptedDomain.DomainType.ToString()). This is not recommended as this is an open relay for the entire environment.`r`n`t`tMore Information: https://aka.ms/HC-OpenRelayDomain"
 
-            if ($domain.DomainType.ToString() -eq "InternalRelay" -and
-                (($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016 -and
-                    $exchangeInformation.BuildInformation.CU -ge [HealthChecker.ExchangeCULevel]::CU22) -or
-                ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019 -and
-                $exchangeInformation.BuildInformation.CU -ge [HealthChecker.ExchangeCULevel]::CU11))) {
-
+            if ($wildCardAcceptedDomain.DomainType.ToString() -eq "InternalRelay" -and
+                ((Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2016" -CU "CU22") -or
+                (Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2019" -CU "CU11"))) {
                 $additionalDisplayValue = "`r`n`t`tERROR: You have an open relay set as Internal Replay Type and on a CU that is known to cause issues with transport services crashing. Follow the above article for more information."
-            } elseif ($domain.DomainType.ToString() -eq "InternalRelay") {
+            } elseif ($wildCardAcceptedDomain.DomainType.ToString() -eq "InternalRelay") {
                 $additionalDisplayValue = "`r`n`t`tWARNING: You have an open relay set as Internal Relay Type. You are not on a CU yet that is having issue, recommended to change this prior to upgrading. Follow the above article for more information."
             }
         }

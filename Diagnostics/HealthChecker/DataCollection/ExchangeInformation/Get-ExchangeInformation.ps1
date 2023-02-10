@@ -26,167 +26,84 @@ function Get-ExchangeInformation {
         [string]$Server,
 
         [Parameter(Mandatory = $true)]
-        [object]$PassedOrganizationInformation,
-
-        [HealthChecker.OSServerVersion]$OSMajorVersion
+        [object]$PassedOrganizationInformation
     )
-    Write-Verbose "Calling: $($MyInvocation.MyCommand) Passed: OSMajorVersion: $OSMajorVersion"
-    [HealthChecker.ExchangeInformation]$exchangeInformation = New-Object -TypeName HealthChecker.ExchangeInformation
-    $exchangeInformation.GetExchangeServer = (Get-ExchangeServer -Identity $Server -Status)
-    $exchangeInformation.ExchangeCertificates = Get-ExchangeServerCertificates -Server $Server
-    $buildInformation = $exchangeInformation.BuildInformation
-    $buildInformation.ServerRole = (Get-ServerRole -ExchangeServerObj $exchangeInformation.GetExchangeServer)
-    $buildInformation.ExchangeSetup = Get-ExSetupDetails -Server $Server
-    $exchangeInformation.DependentServices = (Get-ExchangeDependentServices -MachineName $Server)
-    $buildInformation.VersionInformation = (Get-ExchangeBuildVersionInformation -FileVersion ($buildInformation.ExchangeSetup.FileVersion))
-    $buildInformation.MajorVersion = ([HealthChecker.ExchangeMajorVersion]$buildInformation.VersionInformation.MajorVersion)
-    $buildInformation.CU = ([HealthChecker.ExchangeCULevel]$buildInformation.VersionInformation.CU)
+    process {
+        Write-Verbose "Calling: $($MyInvocation.MyCommand)"
+        $params = @{
+            ComputerName           = $Server
+            ScriptBlock            = { [environment]::OSVersion.Version -ge "10.0.0.0" }
+            ScriptBlockDescription = "Windows 2016 or Greater Check"
+            CatchActionFunction    = ${Function:Invoke-CatchActions}
+        }
+        $windows2016OrGreater = Invoke-ScriptBlockHandler @params
+        $getExchangeServer = (Get-ExchangeServer -Identity $Server -Status)
+        $exchangeCertificates = Get-ExchangeServerCertificates -Server $Server
+        $exSetupDetails = Get-ExSetupDetails -Server $Server
+        $versionInformation = (Get-ExchangeBuildVersionInformation -FileVersion ($exSetupDetails.FileVersion))
 
-    if ($buildInformation.ServerRole -le [HealthChecker.ExchangeServerRole]::Mailbox ) {
+        $buildInformation = [PSCustomObject]@{
+            ServerRole         = (Get-ServerRole -ExchangeServerObj $getExchangeServer)
+            MajorVersion       = $versionInformation.MajorVersion
+            CU                 = $versionInformation.CU
+            ExchangeSetup      = $exSetupDetails
+            VersionInformation = $versionInformation
+            KBsInstalled       = [array](Get-ExchangeUpdates -Server $Server -ExchangeMajorVersion $versionInformation.MajorVersion)
+        }
+
+        $dependentServices = (Get-ExchangeDependentServices -MachineName $Server)
+
         try {
-            $exchangeInformation.GetMailboxServer = (Get-MailboxServer -Identity $Server -ErrorAction Stop)
+            $getMailboxServer = (Get-MailboxServer -Identity $Server -ErrorAction Stop)
         } catch {
             Write-Verbose "Failed to run Get-MailboxServer"
             Invoke-CatchActions
         }
-    }
 
-    if (($buildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2016 -and
-            $buildInformation.ServerRole -le [HealthChecker.ExchangeServerRole]::Mailbox) -or
-        ($buildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013 -and
-            ($buildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::ClientAccess -or
-        $buildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::MultiRole))) {
-        $exchangeInformation.GetOwaVirtualDirectory = Get-OwaVirtualDirectory -Identity ("{0}\owa (Default Web Site)" -f $Server) -ADPropertiesOnly
-        $exchangeInformation.GetWebServicesVirtualDirectory = Get-WebServicesVirtualDirectory -Server $Server
-    }
-
-    if ($Script:ExchangeShellComputer.ToolsOnly) {
-        $buildInformation.LocalBuildNumber = "{0}.{1}.{2}.{3}" -f $Script:ExchangeShellComputer.Major, $Script:ExchangeShellComputer.Minor, `
-            $Script:ExchangeShellComputer.Build, `
-            $Script:ExchangeShellComputer.Revision
-    }
-
-    #Exchange 2013 or greater
-    if ($buildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2013) {
-        $netFrameworkExchange = $exchangeInformation.NETFramework
-        if ($buildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
-            Write-Verbose "Exchange 2019 is detected. Setting Supported .NET Builds"
-            #Exchange 2019 .NET Information
-            if ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU2) {
-                $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d7d2
-                $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d7d2
-            } elseif ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU4) {
-                $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d7d2
-                $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d8
-            } else {
-                $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d8
-                $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d8
-            }
-        } elseif ($buildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016) {
-            Write-Verbose "Exchange 2016 is detected. Setting Supported .NET Builds"
-            #Exchange 2016 .NET Information
-            if ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU2) {
-                $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d5d2wFix
-                $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d5d2wFix
-            } elseif ($buildInformation.CU -eq [HealthChecker.ExchangeCULevel]::CU2) {
-                $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d5d2wFix
-                $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d6d1wFix
-            } elseif ($buildInformation.CU -eq [HealthChecker.ExchangeCULevel]::CU3) {
-
-                if ($OSMajorVersion -eq [HealthChecker.OSServerVersion]::Windows2016) {
-                    $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d5d2wFix
-                    $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d6d2
-                } else {
-                    $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d5d2wFix
-                    $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d6d1wFix
-                }
-            } elseif ($buildInformation.CU -eq [HealthChecker.ExchangeCULevel]::CU4) {
-                $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d5d2wFix
-                $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d6d2
-            } elseif ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU8) {
-                $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d6d2
-                $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d6d2
-            } elseif ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU10) {
-                $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d6d2
-                $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d7d1
-            } elseif ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU11) {
-                $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d7d1
-                $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d7d1
-            } elseif ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU13) {
-                $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d7d1
-                $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d7d2
-            } elseif ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU15) {
-                $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d7d2
-                $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d8
-            } else {
-                $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d8
-                $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d8
-            }
-        } else {
-            Write-Verbose "Exchange 2013 is detected. Setting Supported .NET Builds"
-            #Exchange 2013 .NET Information
-            if ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU4) {
-                $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d5
-                $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d5
-            } elseif ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU13) {
-                $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d5
-                $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d5d2wFix
-            } elseif ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU15) {
-                $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d5
-                $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d6d1wFix
-            } elseif ($buildInformation.CU -eq [HealthChecker.ExchangeCULevel]::CU15) {
-                $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d5d1
-                $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d6d2
-            } elseif ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU19) {
-                $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d6d2
-                $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d6d2
-            } elseif ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU21) {
-                $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d6d2
-                $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d7d1
-            } elseif ($buildInformation.CU -lt [HealthChecker.ExchangeCULevel]::CU23) {
-                $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d7d1
-                $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d7d2
-            } else {
-                $netFrameworkExchange.MinSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d7d2
-                $netFrameworkExchange.MaxSupportedVersion = [HealthChecker.NetMajorVersion]::Net4d8
-            }
+        try {
+            $getOwaVirtualDirectory = Get-OwaVirtualDirectory -Identity ("{0}\owa (Default Web Site)" -f $Server) -ADPropertiesOnly -ErrorAction Stop
+            $getWebServicesVirtualDirectory = Get-WebServicesVirtualDirectory -Server $Server -ErrorAction Stop
+        } catch {
+            Write-Verbose "Failed to get OWA or EWS virtual directory"
+            Invoke-CatchActions
         }
 
-        $exchangeInformation.ExchangeEmergencyMitigationService = Get-ExchangeEmergencyMitigationServiceState `
-            -RequiredInformation ([PSCustomObject]@{
+        $params = @{
+            RequiredInformation = [PSCustomObject]@{
                 ComputerName       = $Server
                 MitigationsEnabled = if ($null -ne $PassedOrganizationInformation.OrganizationConfig) { $PassedOrganizationInformation.OrganizationConfig.MitigationsEnabled } else { $null }
-                GetExchangeServer  = $exchangeInformation.GetExchangeServer
-            }) `
-            -CatchActionFunction ${Function:Invoke-CatchActions}
+                GetExchangeServer  = $getExchangeServer
+            }
+            CatchActionFunction = ${Function:Invoke-CatchActions}
+        }
 
-        if (($OSMajorVersion -ge [HealthChecker.OSServerVersion]::Windows2016) -and
-            ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge)) {
-            $exchangeInformation.AMSIConfiguration = Get-ExchangeAMSIConfigurationState -GetSettingOverride $PassedOrganizationInformation.SettingOverride
+        $exchangeEmergencyMitigationService = Get-ExchangeEmergencyMitigationServiceState @params
+
+        if (($windows2016OrGreater) -and
+        ($getExchangeServer.IsEdgeServer -eq $false)) {
+            $amsiConfiguration = Get-ExchangeAMSIConfigurationState -GetSettingOverride $PassedOrganizationInformation.SettingOverride
         } else {
             Write-Verbose "AMSI Interface is not available on this OS / Exchange server role"
         }
 
-        $exchangeInformation.RegistryValues = Get-ExchangeRegistryValues -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
-        $serverExchangeBinDirectory = [System.Io.Path]::Combine($exchangeInformation.RegistryValues.MisInstallPath, "Bin\")
+        $registryValues = Get-ExchangeRegistryValues -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
+        $serverExchangeBinDirectory = [System.Io.Path]::Combine($registryValues.MisInstallPath, "Bin\")
         Write-Verbose "Found Exchange Bin: $serverExchangeBinDirectory"
 
-        if ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
-            $exchangeInformation.ApplicationPools = Get-ExchangeAppPoolsInformation -Server $Server
+        if ($getExchangeServer.IsEdgeServer -eq $false) {
+            $applicationPools = Get-ExchangeAppPoolsInformation -Server $Server
 
             Write-Verbose "Query Exchange Connector settings via 'Get-ExchangeConnectors'"
-            $exchangeInformation.ExchangeConnectors = Get-ExchangeConnectors `
-                -ComputerName $Server `
-                -CertificateObject $exchangeInformation.ExchangeCertificates
+            $exchangeConnectors = Get-ExchangeConnectors -ComputerName $Server -CertificateObject $exchangeCertificates
 
             $exchangeServerIISParams = @{
                 ComputerName        = $Server
-                IsLegacyOS          = ($OSMajorVersion -lt [HealthChecker.OSServerVersion]::Windows2016)
+                IsLegacyOS          = ($windows2016OrGreater -eq $false)
                 CatchActionFunction = ${Function:Invoke-CatchActions}
             }
 
             Write-Verbose "Trying to query Exchange Server IIS settings"
-            $exchangeInformation.IISSettings = Get-ExchangeServerIISSettings @exchangeServerIISParams
+            $iisSettings = Get-ExchangeServerIISSettings @exchangeServerIISParams
 
             Write-Verbose "Query extended protection configuration for multiple CVEs testing"
             $getExtendedProtectionConfigurationParams = @{
@@ -196,60 +113,42 @@ function Get-ExchangeInformation {
             }
 
             try {
-                if ($null -ne $exchangeInformation.IISSettings.ApplicationHostConfig) {
-                    $getExtendedProtectionConfigurationParams.ApplicationHostConfig = [xml]$exchangeInformation.IISSettings.ApplicationHostConfig
+                if ($null -ne $iisSettings.ApplicationHostConfig) {
+                    $getExtendedProtectionConfigurationParams.ApplicationHostConfig = [xml]$iisSettings.ApplicationHostConfig
                 }
                 Write-Verbose "Was able to convert the ApplicationHost.Config to XML"
 
-                $exchangeInformation.ExtendedProtectionConfig = Get-ExtendedProtectionConfiguration @getExtendedProtectionConfigurationParams
+                $extendedProtectionConfig = Get-ExtendedProtectionConfiguration @getExtendedProtectionConfigurationParams
             } catch {
                 Write-Verbose "Failed to get the ExtendedProtectionConfig"
                 Invoke-CatchActions
             }
         }
 
-        $exchangeInformation.ApplicationConfigFileStatus = Get-ExchangeApplicationConfigurationFileValidation -ComputerName $Server -ConfigFileLocation ("{0}EdgeTransport.exe.config" -f $serverExchangeBinDirectory)
+        $applicationConfigFileStatus = Get-ExchangeApplicationConfigurationFileValidation -ComputerName $Server -ConfigFileLocation ("{0}EdgeTransport.exe.config" -f $serverExchangeBinDirectory)
+        $serverMaintenance = Get-ExchangeServerMaintenanceState -Server $Server -ComponentsToSkip "ForwardSyncDaemon", "ProvisioningRps"
+        $settingOverrides = Get-ExchangeSettingOverride -Server $Server -CatchActionFunction ${Function:Invoke-CatchActions}
 
-        $buildInformation.KBsInstalled = Get-ExchangeUpdates -Server $Server -ExchangeMajorVersion $buildInformation.MajorVersion
-        if (($null -ne $buildInformation.KBsInstalled) -and ($buildInformation.KBsInstalled -like "*KB5000871*")) {
-            Write-Verbose "March 2021 SU: KB5000871 was detected on the system"
-            $buildInformation.March2021SUInstalled = $true
-        } else {
-            Write-Verbose "March 2021 SU: KB5000871 was not detected on the system"
-            $buildInformation.March2021SUInstalled = $false
-        }
-
-        Write-Verbose "Checking if FIP-FS is affected by the pattern issue"
-        $fipFsParams = @{
-            ComputerName   = $Server
-            ExSetupVersion = $buildInformation.ExchangeSetup.FileVersion
-            ServerRole     = $buildInformation.ServerRole
-        }
-
-        $buildInformation.FIPFSUpdateIssue = Get-FIPFSScanEngineVersionState @fipFsParams
-
-        if (($buildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2016) -and
-        ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge)) {
+        if (($versionInformation.BuildVersion -ge "15.1.0.0") -and
+        ($getExchangeServer.IsEdgeServer -eq $false)) {
             Write-Verbose "SerializedDataSigning must be configured via SettingOverride"
-            $exchangeInformation.SerializationDataSigningConfiguration = Get-ExchangeSerializedDataSigningState -GetSettingOverride $PassedOrganizationInformation.SettingOverride
-        } elseif (($buildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013) -and
-            ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge)) {
+            $serializationDataSigningConfiguration = Get-ExchangeSerializedDataSigningState -GetSettingOverride $PassedOrganizationInformation.SettingOverride
+        } elseif (($versionInformation.BuildVersion -like "15.0.*") -and
+        ($getExchangeServer.IsEdgeServer -eq $false)) {
             Write-Verbose "SerializedDataSigning must be configured via Registry Value"
-            $exchangeInformation.SerializationDataSigningConfiguration = $exchangeInformation.RegistryValues.SerializedDataSigning
+            $serializationDataSigningConfiguration = $registryValues.SerializedDataSigning
         } else {
             Write-Verbose "SerializedDataSigning is not supported on this Exchange version & role combination"
         }
 
-        $exchangeInformation.ServerMaintenance = Get-ExchangeServerMaintenanceState -Server $Server -ComponentsToSkip "ForwardSyncDaemon", "ProvisioningRps"
-        $exchangeInformation.SettingOverrides = Get-ExchangeSettingOverride -Server $Server -CatchActionFunction ${Function:Invoke-CatchActions}
-
-        if (($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::ClientAccess) -and
-            ($buildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::None)) {
+        if (($getExchangeServer.IsMailboxServer) -or
+        ($getExchangeServer.IsEdgeServer)) {
             try {
+                $exchangeServicesNotRunning = @()
                 $testServiceHealthResults = Test-ServiceHealth -Server $Server -ErrorAction Stop
                 foreach ($notRunningService in $testServiceHealthResults.ServicesNotRunning) {
-                    if ($exchangeInformation.ExchangeServicesNotRunning -notcontains $notRunningService) {
-                        $exchangeInformation.ExchangeServicesNotRunning += $notRunningService
+                    if ($exchangeServicesNotRunning -notcontains $notRunningService) {
+                        $exchangeServicesNotRunning += $notRunningService
                     }
                 }
             } catch {
@@ -257,12 +156,39 @@ function Get-ExchangeInformation {
                 Invoke-CatchActions
             }
         }
-    } elseif ($buildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2010) {
-        Write-Verbose "Exchange 2010 detected."
-        $buildInformation.FriendlyName = "Exchange 2010"
-        $buildInformation.BuildNumber = $exchangeInformation.GetExchangeServer.AdminDisplayVersion.ToString()
-    }
 
-    Write-Verbose "Exiting: Get-ExchangeInformation"
-    return $exchangeInformation
+        Write-Verbose "Checking if FIP-FS is affected by the pattern issue"
+        $fipFsParams = @{
+            ComputerName       = $Server
+            ExSetupVersion     = $buildInformation.ExchangeSetup.FileVersion
+            AffectedServerRole = $($getExchangeServer.IsMailboxServer -eq $true)
+        }
+
+        $FIPFSUpdateIssue = Get-FIPFSScanEngineVersionState @fipFsParams
+    } end {
+
+        Write-Verbose "Exiting: Get-ExchangeInformation"
+        return [PSCustomObject]@{
+            BuildInformation                      = $buildInformation
+            GetExchangeServer                     = $getExchangeServer
+            GetMailboxServer                      = $getMailboxServer
+            GetOwaVirtualDirectory                = $getOwaVirtualDirectory
+            GetWebServicesVirtualDirectory        = $getWebServicesVirtualDirectory
+            ExtendedProtectionConfig              = $extendedProtectionConfig
+            ExchangeConnectors                    = $exchangeConnectors
+            AMSIConfiguration                     = [array]$amsiConfiguration
+            SerializationDataSigningConfiguration = [array]$serializationDataSigningConfiguration
+            ExchangeServicesNotRunning            = [array]$exchangeServicesNotRunning
+            ApplicationPools                      = $applicationPools
+            RegistryValues                        = $registryValues
+            ServerMaintenance                     = $serverMaintenance
+            ExchangeCertificates                  = [array]$exchangeCertificates
+            ExchangeEmergencyMitigationService    = $exchangeEmergencyMitigationService
+            ApplicationConfigFileStatus           = $applicationConfigFileStatus
+            DependentServices                     = $dependentServices
+            IISSettings                           = $iisSettings
+            SettingOverrides                      = $settingOverrides
+            FIPFSUpdateIssue                      = $FIPFSUpdateIssue
+        }
+    }
 }
