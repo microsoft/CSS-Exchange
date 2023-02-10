@@ -6,25 +6,6 @@ using System;
 using System.Collections;
     namespace HealthChecker
     {
-        //enum for the DWORD value of the .NET frame 4 that we are on
-        public enum NetMajorVersion
-        {
-            Unknown = 0,
-            Net4d5 = 378389,
-            Net4d5d1 = 378675,
-            Net4d5d2 = 379893,
-            Net4d5d2wFix = 380035,
-            Net4d6 = 393295,
-            Net4d6d1 = 394254,
-            Net4d6d1wFix = 394294,
-            Net4d6d2 = 394802,
-            Net4d7 = 460798,
-            Net4d7d1 = 461308,
-            Net4d7d2 = 461808,
-            Net4d8 = 528040
-        }
-        // End OperatingSystemInformation
-
         //enum for the type of computer that we are
         public enum ServerType
         {
