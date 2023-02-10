@@ -6,16 +6,6 @@ using System;
 using System.Collections;
     namespace HealthChecker
     {
-        //enum for the type of computer that we are
-        public enum ServerType
-        {
-            VMWare,
-            AmazonEC2,
-            HyperV,
-            Physical,
-            Unknown
-        }
-
         //HTML & display classes
         public class HtmlServerValues
         {

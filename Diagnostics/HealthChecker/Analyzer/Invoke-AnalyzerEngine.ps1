@@ -56,8 +56,8 @@ For further details, please review the virtualization recommendations on Microso
 
 "@
 
-    if ($HealthServerObject.HardwareInformation.ServerType -eq [HealthChecker.ServerType]::VMWare -or
-        $HealthServerObject.HardwareInformation.ServerType -eq [HealthChecker.ServerType]::HyperV) {
+    if ($HealthServerObject.HardwareInformation.ServerType -eq "VMWare" -or
+        $HealthServerObject.HardwareInformation.ServerType -eq "HyperV") {
         $params = $baseParams + @{
             Details          = $VirtualizationWarning
             DisplayWriteType = "Yellow"

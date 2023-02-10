@@ -34,8 +34,8 @@ function Invoke-AnalyzerHardwareInformation {
     }
     Add-AnalyzedResultInformation @params
 
-    if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::Physical -or
-        $hardwareInformation.ServerType -eq [HealthChecker.ServerType]::AmazonEC2) {
+    if ($hardwareInformation.ServerType -eq "Physical" -or
+        $hardwareInformation.ServerType -eq "AmazonEC2") {
         $params = $baseParams + @{
             Name    = "Manufacturer"
             Details = $hardwareInformation.Manufacturer
@@ -59,7 +59,7 @@ function Invoke-AnalyzerHardwareInformation {
     $displayWriteType = "Green"
     $displayValue = $numberOfProcessors
 
-    if ($hardwareInformation.ServerType -ne [HealthChecker.ServerType]::Physical) {
+    if ($hardwareInformation.ServerType -ne "Physical") {
         $displayWriteType = "Grey"
     } elseif ($numberOfProcessors -gt 2) {
         $displayWriteType = "Red"
@@ -118,7 +118,7 @@ function Invoke-AnalyzerHardwareInformation {
 
     if ($logicalValue -gt $physicalValue) {
 
-        if ($hardwareInformation.ServerType -ne [HealthChecker.ServerType]::HyperV) {
+        if ($hardwareInformation.ServerType -ne "HyperV") {
             $displayValue = "Enabled --- Error: Having Hyper-Threading enabled goes against best practices and can cause performance issues. Please disable as soon as possible."
             $displayTestingValue = $true
             $displayWriteType = "Red"
@@ -128,7 +128,7 @@ function Invoke-AnalyzerHardwareInformation {
             $displayWriteType = "Grey"
         }
 
-        if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::AmazonEC2) {
+        if ($hardwareInformation.ServerType -eq "AmazonEC2") {
             $additionalDisplayValue = "Error: For high-performance computing (HPC) application, like Exchange, Amazon recommends that you have Hyper-Threading Technology disabled in their service. More information: https://aka.ms/HC-EC2HyperThreading"
         }
 
