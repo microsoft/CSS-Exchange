@@ -133,7 +133,7 @@ function Get-ExchangeInformation {
         ($getExchangeServer.IsEdgeServer -eq $false)) {
             Write-Verbose "SerializedDataSigning must be configured via SettingOverride"
             $serializationDataSigningConfiguration = Get-ExchangeSerializedDataSigningState -GetSettingOverride $PassedOrganizationInformation.SettingOverride
-        } elseif (($versionInformation -like "15.0.*") -and
+        } elseif (($versionInformation.BuildVersion -like "15.0.*") -and
         ($getExchangeServer.IsEdgeServer -eq $false)) {
             Write-Verbose "SerializedDataSigning must be configured via Registry Value"
             $serializationDataSigningConfiguration = $registryValues.SerializedDataSigning
