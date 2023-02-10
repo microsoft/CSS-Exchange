@@ -158,7 +158,6 @@ begin {
     . $PSScriptRoot\Helpers\Get-ExportedHealthCheckerFiles.ps1
     . $PSScriptRoot\Helpers\Invoke-ConfirmExchangeShell.ps1
     . $PSScriptRoot\Helpers\Invoke-SetOutputInstanceLocation.ps1
-    . $PSScriptRoot\Helpers\Class.ps1
     . $PSScriptRoot\Writers\Write-ResultsToScreen.ps1
     . $PSScriptRoot\Writers\Write-Functions.ps1
     . $PSScriptRoot\Features\Get-HtmlServerReport.ps1

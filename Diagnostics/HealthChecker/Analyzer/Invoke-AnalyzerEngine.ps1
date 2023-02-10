@@ -21,8 +21,11 @@ function Invoke-AnalyzerEngine {
     )
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
-    $analyzedResults = New-Object HealthChecker.AnalyzedInformation
-    $analyzedResults.HealthCheckerExchangeServer = $HealthServerObject
+    $analyzedResults = [PSCustomObject]@{
+        HealthCheckerExchangeServer = $HealthServerObject
+        HtmlServerValues            = @{}
+        DisplayResults              = @{}
+    }
 
     #Display Grouping Keys
     $order = 1
