@@ -17,7 +17,7 @@
         <link rel="next" href="../../Databases/Analyze-SpaceDump/">
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.11">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.12">
     
     
       
@@ -491,6 +491,13 @@
         <li class="md-nav__item">
   <a href="#examples" class="md-nav__link">
     Examples
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#found-a-bug-or-want-to-update-the-script" class="md-nav__link">
+    Found a bug or want to update the script?
   </a>
   
 </li>
@@ -2191,6 +2198,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#found-a-bug-or-want-to-update-the-script" class="md-nav__link">
+    Found a bug or want to update the script?
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2234,6 +2248,8 @@
   <span class="p">[</span><span class="n">-EngineDownloadUrlV2</span> <span class="p">&lt;</span><span class="n">string</span><span class="p">&gt;]</span>
   <span class="p">[</span><span class="n">-Engines</span> <span class="p">&lt;</span><span class="n">string</span><span class="p">[]&gt;]</span>
   <span class="p">[</span><span class="n">-Platforms</span> <span class="p">&lt;</span><span class="n">string</span><span class="p">[]&gt;]</span>
+  <span class="p">[</span><span class="n">-ScriptUpdateOnly</span> <span class="p">&lt;</span><span class="k">switch</span><span class="p">&gt;]</span>
+  <span class="p">[</span><span class="n">-SkipVersionCheck</span> <span class="p">&lt;</span><span class="k">switch</span><span class="p">&gt;]</span>
 </code></pre></div>
 <h2 id="steps-to-update-scan-engines">Steps to update scan engines</h2>
 <ol>
@@ -2259,13 +2275,15 @@
 <p>The following syntax uses the directory <code>C:\ScanEngineUpdates\</code> as the root engine's directory. It also tries to download the latest updates for the <code>Microsoft</code> engine using the <code>amd64</code> platform from <code>http://forefrontdl.microsoft.com/server/scanengineupdate/</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">Update-Engines</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-EngineDirPath</span> <span class="n">C</span><span class="p">:\</span><span class="n">ScanEngineUpdates</span><span class="p">\</span> <span class="n">-UpdatePathUrl</span> <span class="n">http</span><span class="p">://</span><span class="n">forefrontdl</span><span class="p">.</span><span class="n">microsoft</span><span class="p">.</span><span class="n">com</span><span class="p">/</span><span class="n">server</span><span class="p">/</span><span class="n">scanengineupdate</span><span class="p">/</span> <span class="n">-Engines</span> <span class="n">Microsoft</span> <span class="n">-Platforms</span> <span class="n">amd64</span>
 </code></pre></div>
+<h2 id="found-a-bug-or-want-to-update-the-script">Found a bug or want to update the script?</h2>
+<p>Please open a new work item <a href="https://github.com/microsoft/CSS-Exchange/issues">here</a> or reach out to us via: ExToolsFeedback@microsoft.com</p>
 
   <hr>
 <div class="md-source-file">
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">January 26, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">February 8, 2023</span>
       
     
   </small>
@@ -2310,7 +2328,7 @@
     <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.indexes", "content.action.edit"], "search": "../../assets/javascripts/workers/search.db81ec45.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.6df46069.min.js"></script>
+      <script src="../../assets/javascripts/bundle.4b2c34cd.min.js"></script>
       
     
   </body>
