@@ -133,6 +133,7 @@ Sids
 Snapin
 SPDLT
 STMP
+subfolders
 tcpip
 TDSDSA
 Truncater
@@ -147,4 +148,5 @@ vsstester
 vuln
 wbxml
 Webex
+Webservices
 Weve

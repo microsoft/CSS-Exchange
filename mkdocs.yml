@@ -81,6 +81,7 @@ nav:
   - Search:
     - Troubleshoot-ModernSearch: Search/Troubleshoot-ModernSearch.md
   - Security:
+    - ClearEmailProperty: Security/ClearEmailProperty.md
     - EOMT: Security/EOMT.md
     - EOMTv2: Security/EOMTv2.md
     - Extended Protection: Security/Extended-Protection.md
