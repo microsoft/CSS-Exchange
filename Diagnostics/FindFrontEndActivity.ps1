@@ -51,7 +51,7 @@
     or "2023-02-11 09:00". Use this parameter to search old logs. Use -TimeSpan to search the
     most recent logs.
 .LINK
-    https://microsoft.github.io/CSS-Exchange/Diagnostics/FindFrontEndActivity
+    https://aka.ms/FindFrontEndActivity
 .EXAMPLE
     Get-ExchangeServer | .\FindFrontEndActivity.ps1 -SamAccountName "user1", "user2" | ft
     Show any MAPI HttpProxy activity that took more than 1 second for user1 or user2 within the last 15 minutes on all Exchange servers in the forest.
@@ -70,6 +70,7 @@ param (
     $ServerName,
 
     [Parameter(Mandatory = $true)]
+    [ValidateScript({ $_ -notmatch "[\[\]:;\|=\+\*\?<>/\\]" })]
     [string[]]
     $SamAccountName,
 
@@ -104,7 +105,15 @@ param (
 )
 
 begin {
+    . $PSScriptRoot\..\Shared\Confirm-Administrator.ps1
+
+    if (-not (Confirm-Administrator)) {
+        Write-Host "This script must be run as an Administrator."
+        exit
+    }
+
     $serverNames = New-Object System.Collections.ArrayList
+    $SamAccountName = $SamAccountName | ForEach-Object { [Regex]::Escape($_) }
     $samAccountRegexForFileMatch = [string]::Join('|', ($SamAccountName | ForEach-Object { "\\$_," }))
     $samAccountRegexForFieldMatch = [string]::Join('|', ($SamAccountName | ForEach-Object { "\\$_$" }))
 }
@@ -140,7 +149,7 @@ end {
                     }
                 } | Sort-Object LastWriteTime
 
-                $files = $files | Where-Object { Select-String $using:samAccountRegexForFileMatch $_.FullName -Quiet }
+                $files = @($files | Where-Object { Select-String $using:samAccountRegexForFileMatch $_.FullName -Quiet })
 
                 if ($files.Count -gt 0) {
                     if ($using:Quiet) {
