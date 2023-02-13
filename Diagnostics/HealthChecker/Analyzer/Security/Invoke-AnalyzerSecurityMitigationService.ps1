@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\Add-AnalyzedResultInformation.ps1
+. $PSScriptRoot\..\..\Helpers\CompareExchangeBuildLevel.ps1
 function Invoke-AnalyzerSecurityMitigationService {
     [CmdletBinding()]
     param(
@@ -25,11 +26,9 @@ function Invoke-AnalyzerSecurityMitigationService {
     }
     #Description: Check for Exchange Emergency Mitigation Service (EEMS)
     #Introduced in: Exchange 2016 CU22, Exchange 2019 CU11
-    if (((($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016) -and
-                ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU22)) -or
-            (($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) -and
-                ($exchangeCU -ge [HealthChecker.ExchangeCULevel]::CU11))) -and
-        $exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
+    if (((Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2016" -CU "CU22") -or
+        (Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2019" -CU "CU11")) -and
+        $exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false) {
 
         if (-not([String]::IsNullOrEmpty($mitigationService.MitigationServiceOrgState))) {
             if (($mitigationService.MitigationServiceOrgState) -and

@@ -53,6 +53,11 @@ function Get-OperatingSystemRegistryValues {
         ValueType = "DWord"
     }
 
+    $credGuardParams = $baseParams + @{
+        SubKey   = "SYSTEM\CurrentControlSet\Control\LSA"
+        GetValue = "LsaCfgFlags"
+    }
+
     $lmCompParams = $baseParams + @{
         SubKey    = "SYSTEM\CurrentControlSet\Control\Lsa"
         GetValue  = "LmCompatibilityLevel"
@@ -71,5 +76,6 @@ function Get-OperatingSystemRegistryValues {
         RpcMinConnectionTimeout         = [int](Get-RemoteRegistryValue @rpcMinParams)
         AllowInsecureRenegoServers      = [int](Get-RemoteRegistryValue @renegoServersParams)
         AllowInsecureRenegoClients      = [int](Get-RemoteRegistryValue @renegoClientsParams)
+        CredentialGuard                 = [int](Get-RemoteRegistryValue @credGuardParams)
     }
 }

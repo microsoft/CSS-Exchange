@@ -24,7 +24,7 @@ function Invoke-AnalyzerHybridInformation {
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $getHybridConfiguration = $HealthServerObject.OrganizationInformation.GetHybridConfiguration
 
-    if ($exchangeInformation.BuildInformation.MajorVersion -ge [HealthChecker.ExchangeMajorVersion]::Exchange2013 -and
+    if ($exchangeInformation.BuildInformation.VersionInformation.BuildVersion -ge "15.0.0.0" -and
         $null -ne $getHybridConfiguration) {
 
         $params = $baseParams + @{

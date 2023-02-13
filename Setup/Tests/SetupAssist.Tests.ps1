@@ -71,7 +71,7 @@ Describe "Testing SetupAssist" {
             $results = Test-ExchangeADSetupLevel
             Assert-MockCalled -CommandName Test-UserGroupMemberOf -ParameterFilter { $PrepareAdRequired -eq $true -and $PrepareSchemaRequired -eq $true } -Exactly 1
             $results.Result | Should -Be "Failed"
-            $results.Details | Should -Be "Exchange 2013 CU22"
+            $results.Details | Should -Be "Exchange 2013 CU22 Feb19SU"
         }
 
         It "Exchange 2013 CU23 Ready" {

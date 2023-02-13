@@ -1,6 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\Add-AnalyzedResultInformation.ps1
+. $PSScriptRoot\..\..\Helpers\CompareExchangeBuildLevel.ps1
 function Invoke-AnalyzerSecuritySerializedDataSigningState {
     [CmdletBinding()]
     param(
@@ -18,8 +20,6 @@ function Invoke-AnalyzerSecuritySerializedDataSigningState {
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $serverName = ($HealthServerObject.ServerName.Split(".")[0]).ToLower()
     $exchangeBuild = $exchangeInformation.BuildInformation.VersionInformation.BuildVersion
-    $exchangeCU = $exchangeInformation.BuildInformation.VersionInformation.CU
-    $exchangeMajor = $exchangeInformation.BuildInformation.MajorVersion
     $baseParams = @{
         AnalyzedInformation = $AnalyzeResults
         DisplayGroupingKey  = $DisplayGroupingKey
@@ -36,27 +36,15 @@ function Invoke-AnalyzerSecuritySerializedDataSigningState {
         Same goes for the SettingOverride set on E15 - it will be ignored and the feature remains off until the registry value is set.
     #>
 
-    if ($exchangeMajor -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
-        switch ($exchangeCU) {
-            { $_ -eq "CU12" } { $serializedDataSigningSupportedBuild = ($exchangeBuild -ge "15.2.1118.21"); break }
-            { $_ -eq "CU11" } { $serializedDataSigningSupportedBuild = ($exchangeBuild -ge "15.2.986.37"); break }
-            default { $serializedDataSigningSupportedBuild = $false }
-        }
-    } elseif ($exchangeMajor -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016) {
-        $serializedDataSigningSupportedBuild = ($exchangeBuild -ge "15.1.2507.17")
-    } else {
-        $serializedDataSigningSupportedBuild = ($exchangeBuild -ge "15.0.1497.45")
-    }
-
-    if (($serializedDataSigningSupportedBuild) -and
-        ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge)) {
+    if ((Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -SUName "Jan23SU") -and
+        ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false)) {
         Write-Verbose "SerializedDataSigning is available on this Exchange role / version build combination"
 
         $serializedDataSigningInformation = $HealthServerObject.ExchangeInformation.SerializationDataSigningConfiguration
         $serializedDataSigningWriteType = "Yellow"
         $serializedDataSigningConfigurationWarning = "`r`n`t`tThis may pose a security risk to your servers`r`n`t`tMore Information: https://aka.ms/HC-SerializedDataSigning"
 
-        if ($exchangeMajor -ge [HealthChecker.ExchangeMajorVersion]::Exchange2016) {
+        if ($exchangeBuild -ge "15.1.0.0") {
             Write-Verbose "Checking SettingOverride for SerializedDataSigning configuration state"
             if (($serializedDataSigningInformation.Count -eq 1) -and
                 (-not($serializedDataSigningInformation.FailedQuery -eq $true))) {

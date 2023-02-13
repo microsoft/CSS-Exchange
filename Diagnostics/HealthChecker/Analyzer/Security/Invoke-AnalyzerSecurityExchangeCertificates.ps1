@@ -170,7 +170,7 @@ function Invoke-AnalyzerSecurityExchangeCertificates {
             Add-AnalyzedResultInformation @params
         }
 
-        if ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
+        if ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false) {
             $params = $baseParams + @{
                 Name                   = "Internal Transport Certificate"
                 Details                = $certificate.IsInternalTransportCertificate
@@ -251,7 +251,7 @@ function Invoke-AnalyzerSecurityExchangeCertificates {
             }
             Add-AnalyzedResultInformation @params
         }
-    } elseif ($exchangeInformation.BuildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::Edge) {
+    } elseif ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $true) {
         $params = $baseParams + @{
             Name                   = "Valid Internal Transport Certificate Found On Server"
             Details                = $false
@@ -322,7 +322,7 @@ function Invoke-AnalyzerSecurityExchangeCertificates {
             }
             Add-AnalyzedResultInformation @params
         }
-    } elseif ($exchangeInformation.BuildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::Edge) {
+    } elseif ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $true) {
         $params = $baseParams + @{
             Name                   = "Valid Auth Certificate Found On Server"
             Details                = $false

@@ -34,7 +34,13 @@ function Write-ResultsToScreen {
                 1..($line.TabNumber) | ForEach-Object { $tab = $tab + "`t" }
             }
 
-            $writeValue = "{0}{1}" -f $tab, $line.Line
+            if ([string]::IsNullOrEmpty($line.Name)) {
+                $displayLine = $line.DisplayValue
+            } else {
+                $displayLine = [string]::Concat($line.Name, ": ", $line.DisplayValue)
+            }
+
+            $writeValue = "{0}{1}" -f $tab, $displayLine
             switch ($line.WriteType) {
                 "Grey" { Write-Grey($writeValue) }
                 "Yellow" { Write-Yellow($writeValue) }

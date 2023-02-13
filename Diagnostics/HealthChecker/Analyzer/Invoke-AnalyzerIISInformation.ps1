@@ -23,7 +23,7 @@ function Invoke-AnalyzerIISInformation {
         DisplayGroupingKey  = (Get-DisplayResultsGroupingKey -Name "Exchange IIS Information"  -DisplayOrder $Order)
     }
 
-    if ($exchangeInformation.BuildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::Edge) {
+    if ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $true) {
         Write-Verbose "No IIS information to review on an Edge Server"
         return
     }

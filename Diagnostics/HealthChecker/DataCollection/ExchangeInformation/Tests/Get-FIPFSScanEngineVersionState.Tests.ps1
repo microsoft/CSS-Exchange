@@ -8,14 +8,12 @@ param()
 BeforeAll {
     $Script:parentPath = (Split-Path -Parent $PSScriptRoot)
     $Script:Server = $env:COMPUTERNAME
-    . $Script:parentPath\..\..\Helpers\Class.ps1
     . $Script:parentPath\Get-FIPFSScanEngineVersionState.ps1
 
     function Invoke-CatchActions {
         param()
     }
 
-    $Script:serverRoles = New-Object HealthChecker.ExchangeServerRole
     [System.Version]$Script:fixed = "15.1.2308.27"
     [System.Version]$Script:notFixed = "15.1.2300.20"
 }
@@ -25,7 +23,7 @@ Describe "Testing Get-FIPFSScanEngineVersionState.ps1" {
     Context "Invalid Pattern Detected On Affected Exchange Build" {
         BeforeAll {
             Mock Invoke-ScriptBlockHandler -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetChildItemInvalidPattern.xml }
-            $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server -ExSetupVersion $Script:notFixed -ServerRole $Script:serverRoles
+            $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server -ExSetupVersion $Script:notFixed -AffectedServerRole $true
         }
 
         It "System Affected By Transport Queue Issue" {
@@ -39,7 +37,7 @@ Describe "Testing Get-FIPFSScanEngineVersionState.ps1" {
     Context "Valid Pattern Detected On Affected Exchange Build" {
         BeforeAll {
             Mock Invoke-ScriptBlockHandler -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetChildItemValidPattern.xml }
-            $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server -ExSetupVersion $Script:notFixed -ServerRole $Script:serverRoles
+            $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server -ExSetupVersion $Script:notFixed -AffectedServerRole $true
         }
 
         It "System NOT Affected By Transport Queue Issue" {
@@ -53,7 +51,7 @@ Describe "Testing Get-FIPFSScanEngineVersionState.ps1" {
     Context "Invalid Pattern Detected On Fixed Exchange Build" {
         BeforeAll {
             Mock Invoke-ScriptBlockHandler -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetChildItemInvalidPattern.xml }
-            $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server -ExSetupVersion $Script:Fixed -ServerRole $Script:serverRoles
+            $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server -ExSetupVersion $Script:Fixed -AffectedServerRole $true
         }
 
         It "System NOT Affected By Transport Queue Issue Due To Fixed Exchange Build" {
@@ -66,10 +64,8 @@ Describe "Testing Get-FIPFSScanEngineVersionState.ps1" {
 
     Context "Exchange Server Role Not Affected" {
         BeforeAll {
-            $edgeRole = $Script:serverRoles
-            $edgeRole = [HealthChecker.ExchangeServerRole]::Edge
             Mock Invoke-ScriptBlockHandler -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetChildItemInvalidPattern.xml }
-            $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server -ExSetupVersion $Script:Fixed -ServerRole $edgeRole
+            $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server -ExSetupVersion $Script:Fixed -AffectedServerRole $false
         }
 
         It "Edge Transport Server Role Isn't Affected" {
@@ -87,7 +83,7 @@ Describe "Testing Get-FIPFSScanEngineVersionState.ps1" {
         }
 
         It "HighestVersionNumberDetected return null" {
-            $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server -ExSetupVersion $Script:notFixed -ServerRole $Script:serverRoles
+            $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server -ExSetupVersion $Script:notFixed -AffectedServerRole $true
             $results.HighestVersionNumberDetected | Should -Be $null
             $results.BadVersionNumberDirDetected | Should -Be $false
             Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -eq "No FIP-FS scan engine version(s) detected - GetFolderFromExchangeInstallPath returned null" }
@@ -101,7 +97,7 @@ Describe "Testing Get-FIPFSScanEngineVersionState.ps1" {
         }
 
         It "HighestVersionNumberDetected return null" {
-            $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server -ExSetupVersion $Script:notFixed -ServerRole $Script:serverRoles
+            $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server -ExSetupVersion $Script:notFixed -AffectedServerRole $true
             $results.HighestVersionNumberDetected | Should -Be $null
             $results.BadVersionNumberDirDetected | Should -Be $false
             Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -eq "Failed to find the scan engine directory" }

@@ -55,6 +55,11 @@ Mock Get-RemoteRegistryValue {
         "AllowInsecureRenegoClients" { return 0 }
         "AllowInsecureRenegoServers" { return 0 }
         "EnableSerializationDataSigning" { return 0 }
+        "LsaCfgFlags" { return 0 }
+        "DynamicDaylightTimeDisabled" { return 0 }
+        "TimeZoneKeyName" { return "Pacific Standard Time" }
+        "StandardStart" { return @(0, 0, 11, 0, 1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0) }
+        "DaylightStart" { return @(0, 0, 3, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0) }
         default { throw "Failed to find GetValue: $GetValue" }
     }
 }
@@ -102,20 +107,12 @@ Mock Get-ServerRebootPending {
     return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetServerRebootPending.xml"
 }
 
-Mock Get-TimeZoneInformationRegistrySettings {
-    return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetTimeZoneInformationRegistrySettings.xml"
-}
-
 Mock Get-AllTlsSettings {
     return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetAllTlsSettings.xml"
 }
 
 Mock Get-VisualCRedistributableInstalledVersion {
     return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetVisualCRedistributableInstalledVersion.xml"
-}
-
-Mock Get-CredentialGuardEnabled {
-    return $false
 }
 
 Mock Get-Smb1ServerSettings {

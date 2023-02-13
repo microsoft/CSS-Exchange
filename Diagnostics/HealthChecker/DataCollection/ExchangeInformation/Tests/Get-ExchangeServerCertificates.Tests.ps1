@@ -8,6 +8,11 @@ BeforeAll {
     $Script:parentPath = (Split-Path -Parent $PSScriptRoot)
     $Script:Server = $env:COMPUTERNAME
     . $Script:parentPath\Get-ExchangeServerCertificates.ps1
+    . $PSScriptRoot\..\..\..\..\..\.build\Load-Module.ps1
+
+    if (-not (Load-Module -Name "Microsoft.PowerShell.Security" -MinimumVersion "7.0.0.0")) {
+        throw "Failed to load required security module"
+    }
 
     function Invoke-CatchActions {
         param()

@@ -34,8 +34,8 @@ function Invoke-AnalyzerHardwareInformation {
     }
     Add-AnalyzedResultInformation @params
 
-    if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::Physical -or
-        $hardwareInformation.ServerType -eq [HealthChecker.ServerType]::AmazonEC2) {
+    if ($hardwareInformation.ServerType -eq "Physical" -or
+        $hardwareInformation.ServerType -eq "AmazonEC2") {
         $params = $baseParams + @{
             Name    = "Manufacturer"
             Details = $hardwareInformation.Manufacturer
@@ -59,7 +59,7 @@ function Invoke-AnalyzerHardwareInformation {
     $displayWriteType = "Green"
     $displayValue = $numberOfProcessors
 
-    if ($hardwareInformation.ServerType -ne [HealthChecker.ServerType]::Physical) {
+    if ($hardwareInformation.ServerType -ne "Physical") {
         $displayWriteType = "Grey"
     } elseif ($numberOfProcessors -gt 2) {
         $displayWriteType = "Red"
@@ -81,12 +81,12 @@ function Invoke-AnalyzerHardwareInformation {
     $displayWriteTypeLogic = $displayWriteTypePhysical = "Green"
 
     if (($logicalValue -gt 24 -and
-            $exchangeInformation.BuildInformation.MajorVersion -lt [HealthChecker.ExchangeMajorVersion]::Exchange2019) -or
+            $exchangeInformation.BuildInformation.VersionInformation.BuildVersion -lt "15.2.0.0") -or
         $logicalValue -gt 48) {
         $displayWriteTypeLogic = "Red"
 
         if (($physicalValue -gt 24 -and
-                $exchangeInformation.BuildInformation.MajorVersion -lt [HealthChecker.ExchangeMajorVersion]::Exchange2019) -or
+                $exchangeInformation.BuildInformation.VersionInformation.BuildVersion -lt "15.2.0.0") -or
             $physicalValue -gt 48) {
             $physicalValueDisplay = "$physicalValue - Error"
             $displayWriteTypePhysical = "Red"
@@ -118,7 +118,7 @@ function Invoke-AnalyzerHardwareInformation {
 
     if ($logicalValue -gt $physicalValue) {
 
-        if ($hardwareInformation.ServerType -ne [HealthChecker.ServerType]::HyperV) {
+        if ($hardwareInformation.ServerType -ne "HyperV") {
             $displayValue = "Enabled --- Error: Having Hyper-Threading enabled goes against best practices and can cause performance issues. Please disable as soon as possible."
             $displayTestingValue = $true
             $displayWriteType = "Red"
@@ -128,7 +128,7 @@ function Invoke-AnalyzerHardwareInformation {
             $displayWriteType = "Grey"
         }
 
-        if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::AmazonEC2) {
+        if ($hardwareInformation.ServerType -eq "AmazonEC2") {
             $additionalDisplayValue = "Error: For high-performance computing (HPC) application, like Exchange, Amazon recommends that you have Hyper-Threading Technology disabled in their service. More information: https://aka.ms/HC-EC2HyperThreading"
         }
 
@@ -243,12 +243,12 @@ function Invoke-AnalyzerHardwareInformation {
     $displayWriteType = "Yellow"
     $displayDetails = [string]::Empty
 
-    if ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
+    if ($exchangeInformation.BuildInformation.VersionInformation.BuildVersion -ge "15.2.0.0") {
 
         if ($totalPhysicalMemory -gt 256) {
             $displayDetails = "{0} GB `r`n`t`tWarning: We recommend for the best performance to be scaled at or below 256 GB of Memory" -f $totalPhysicalMemory
         } elseif ($totalPhysicalMemory -lt 64 -and
-            $exchangeInformation.BuildInformation.ServerRole -eq [HealthChecker.ExchangeServerRole]::Edge) {
+            $exchangeInformation.GetExchangeServer.IsEdgeServer -eq $true) {
             $displayDetails = "{0} GB `r`n`t`tWarning: We recommend for the best performance to have a minimum of 64GB of RAM installed on the machine." -f $totalPhysicalMemory
         } elseif ($totalPhysicalMemory -lt 128) {
             $displayDetails = "{0} GB `r`n`t`tWarning: We recommend for the best performance to have a minimum of 128GB of RAM installed on the machine." -f $totalPhysicalMemory
@@ -257,10 +257,10 @@ function Invoke-AnalyzerHardwareInformation {
             $displayWriteType = "Grey"
         }
     } elseif ($totalPhysicalMemory -gt 192 -and
-        $exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2016) {
+        $exchangeInformation.BuildInformation.MajorVersion -eq "Exchange2016") {
         $displayDetails = "{0} GB `r`n`t`tWarning: We recommend for the best performance to be scaled at or below 192 GB of Memory." -f $totalPhysicalMemory
     } elseif ($totalPhysicalMemory -gt 96 -and
-        $exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2013) {
+        $exchangeInformation.BuildInformation.MajorVersion -eq "Exchange2013") {
         $displayDetails = "{0} GB `r`n`t`tWarning: We recommend for the best performance to be scaled at or below 96GB of Memory." -f $totalPhysicalMemory
     } else {
         $displayDetails = "{0} GB" -f $totalPhysicalMemory

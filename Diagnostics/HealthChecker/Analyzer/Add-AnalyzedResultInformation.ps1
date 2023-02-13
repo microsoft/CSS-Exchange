@@ -6,7 +6,7 @@ function Add-AnalyzedResultInformation {
     param(
         # Main object that we are manipulating and adding entries to
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
-        [HealthChecker.AnalyzedInformation]$AnalyzedInformation,
+        [object]$AnalyzedInformation,
 
         # The value of the display entry
         [object]$Details,
@@ -92,11 +92,21 @@ function Add-AnalyzedResultInformation {
         if ($AddDisplayResultsLineInfo) {
             if (!($AnalyzedInformation.DisplayResults.ContainsKey($DisplayGroupingKey))) {
                 Write-Verbose "Adding Display Grouping Key: $($DisplayGroupingKey.Name)"
-                [System.Collections.Generic.List[HealthChecker.DisplayResultsLineInfo]]$list = New-Object System.Collections.Generic.List[HealthChecker.DisplayResultsLineInfo]
+                [System.Collections.Generic.List[object]]$list = New-Object System.Collections.Generic.List[object]
                 $AnalyzedInformation.DisplayResults.Add($DisplayGroupingKey, $list)
             }
 
-            $lineInfo = New-Object HealthChecker.DisplayResultsLineInfo
+            $lineInfo = [PSCustomObject]@{
+                DisplayValue = [string]::Empty
+                Name         = [string]::Empty
+                TestingName  = [string]::Empty       # Used for pestering testing
+                CustomName   = [string]::Empty       # Used for security vulnerability
+                TabNumber    = 0
+                TestingValue = $null                 # Used for pester testing down the road
+                CustomValue  = $null                 # Used for security vulnerability
+                OutColumns   = $null                 # Used for colorized format table option
+                WriteType    = [string]::Empty
+            }
 
             if ($null -ne $OutColumns) {
                 $lineInfo.OutColumns = $OutColumns
@@ -148,13 +158,20 @@ function Add-AnalyzedResultInformation {
             $AnalyzedInformation.DisplayResults[$DisplayGroupingKey].Add($lineInfo)
         }
 
+        $htmlDetailRow = [PSCustomObject]@{
+            Name        = [string]::Empty
+            DetailValue = [string]::Empty
+            TableValue  = $null
+            Class       = [string]::Empty
+        }
+
         if ($AddHtmlDetailRow) {
             if (!($analyzedResults.HtmlServerValues.ContainsKey("ServerDetails"))) {
-                [System.Collections.Generic.List[HealthChecker.HtmlServerInformationRow]]$list = New-Object System.Collections.Generic.List[HealthChecker.HtmlServerInformationRow]
+                [System.Collections.Generic.List[object]]$list = New-Object System.Collections.Generic.List[object]
                 $AnalyzedInformation.HtmlServerValues.Add("ServerDetails", $list)
             }
 
-            $detailRow = New-Object HealthChecker.HtmlServerInformationRow
+            $detailRow = $htmlDetailRow
 
             if ($displayWriteType -ne "Grey") {
                 $detailRow.Class = $displayWriteType
@@ -179,11 +196,11 @@ function Add-AnalyzedResultInformation {
 
         if ($AddHtmlOverviewValues) {
             if (!($analyzedResults.HtmlServerValues.ContainsKey("OverviewValues"))) {
-                [System.Collections.Generic.List[HealthChecker.HtmlServerInformationRow]]$list = New-Object System.Collections.Generic.List[HealthChecker.HtmlServerInformationRow]
+                [System.Collections.Generic.List[object]]$list = New-Object System.Collections.Generic.List[object]
                 $AnalyzedInformation.HtmlServerValues.Add("OverviewValues", $list)
             }
 
-            $overviewValue = New-Object HealthChecker.HtmlServerInformationRow
+            $overviewValue = $htmlDetailRow
 
             if ($displayWriteType -ne "Grey") {
                 $overviewValue.Class = $displayWriteType
