@@ -11,7 +11,6 @@
 . $PSScriptRoot\Get-ExchangeApplicationConfigurationFileValidation.ps1
 . $PSScriptRoot\Get-ExchangeConnectors.ps1
 . $PSScriptRoot\Get-ExchangeDependentServices.ps1
-. $PSScriptRoot\Get-ExchangeEmergencyMitigationServiceState.ps1
 . $PSScriptRoot\Get-ExchangeRegistryValues.ps1
 . $PSScriptRoot\Get-ExchangeSerializedDataSigningState.ps1
 . $PSScriptRoot\Get-ExchangeServerCertificates.ps1
@@ -67,17 +66,6 @@ function Get-ExchangeInformation {
             Write-Verbose "Failed to get OWA or EWS virtual directory"
             Invoke-CatchActions
         }
-
-        $params = @{
-            RequiredInformation = [PSCustomObject]@{
-                ComputerName       = $Server
-                MitigationsEnabled = if ($null -ne $PassedOrganizationInformation.OrganizationConfig) { $PassedOrganizationInformation.OrganizationConfig.MitigationsEnabled } else { $null }
-                GetExchangeServer  = $getExchangeServer
-            }
-            CatchActionFunction = ${Function:Invoke-CatchActions}
-        }
-
-        $exchangeEmergencyMitigationService = Get-ExchangeEmergencyMitigationServiceState @params
 
         if (($windows2016OrGreater) -and
         ($getExchangeServer.IsEdgeServer -eq $false)) {
@@ -165,30 +153,48 @@ function Get-ExchangeInformation {
         }
 
         $FIPFSUpdateIssue = Get-FIPFSScanEngineVersionState @fipFsParams
+
+        $eemsEndpointParams = @{
+            ComputerName           = $Server
+            ScriptBlockDescription = "Test EEMS pattern service connectivity"
+            CatchActionFunction    = ${Function:Invoke-CatchActions}
+            ArgumentList           = $getExchangeServer.InternetWebProxy
+            ScriptBlock            = {
+                [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+                if ($null -ne $args[0]) {
+                    Write-Verbose "Proxy Server detected. Going to use: $($args[0])"
+                    [System.Net.WebRequest]::DefaultWebProxy = New-Object System.Net.WebProxy($args[0])
+                    [System.Net.WebRequest]::DefaultWebProxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
+                    [System.Net.WebRequest]::DefaultWebProxy.BypassProxyOnLocal = $true
+                }
+                Invoke-WebRequest -Method Get -Uri "https://officeclient.microsoft.com/GetExchangeMitigations" -UseBasicParsing
+            }
+        }
+        $eemsEndpointResults = Invoke-ScriptBlockHandler @eemsEndpointParams
     } end {
 
         Write-Verbose "Exiting: Get-ExchangeInformation"
         return [PSCustomObject]@{
-            BuildInformation                      = $buildInformation
-            GetExchangeServer                     = $getExchangeServer
-            GetMailboxServer                      = $getMailboxServer
-            GetOwaVirtualDirectory                = $getOwaVirtualDirectory
-            GetWebServicesVirtualDirectory        = $getWebServicesVirtualDirectory
-            ExtendedProtectionConfig              = $extendedProtectionConfig
-            ExchangeConnectors                    = $exchangeConnectors
-            AMSIConfiguration                     = [array]$amsiConfiguration
-            SerializationDataSigningConfiguration = [array]$serializationDataSigningConfiguration
-            ExchangeServicesNotRunning            = [array]$exchangeServicesNotRunning
-            ApplicationPools                      = $applicationPools
-            RegistryValues                        = $registryValues
-            ServerMaintenance                     = $serverMaintenance
-            ExchangeCertificates                  = [array]$exchangeCertificates
-            ExchangeEmergencyMitigationService    = $exchangeEmergencyMitigationService
-            ApplicationConfigFileStatus           = $applicationConfigFileStatus
-            DependentServices                     = $dependentServices
-            IISSettings                           = $iisSettings
-            SettingOverrides                      = $settingOverrides
-            FIPFSUpdateIssue                      = $FIPFSUpdateIssue
+            BuildInformation                         = $buildInformation
+            GetExchangeServer                        = $getExchangeServer
+            GetMailboxServer                         = $getMailboxServer
+            GetOwaVirtualDirectory                   = $getOwaVirtualDirectory
+            GetWebServicesVirtualDirectory           = $getWebServicesVirtualDirectory
+            ExtendedProtectionConfig                 = $extendedProtectionConfig
+            ExchangeConnectors                       = $exchangeConnectors
+            AMSIConfiguration                        = [array]$amsiConfiguration
+            SerializationDataSigningConfiguration    = [array]$serializationDataSigningConfiguration
+            ExchangeServicesNotRunning               = [array]$exchangeServicesNotRunning
+            ApplicationPools                         = $applicationPools
+            RegistryValues                           = $registryValues
+            ServerMaintenance                        = $serverMaintenance
+            ExchangeCertificates                     = [array]$exchangeCertificates
+            ExchangeEmergencyMitigationServiceResult = $eemsEndpointResults
+            ApplicationConfigFileStatus              = $applicationConfigFileStatus
+            DependentServices                        = $dependentServices
+            IISSettings                              = $iisSettings
+            SettingOverrides                         = $settingOverrides
+            FIPFSUpdateIssue                         = $FIPFSUpdateIssue
         }
     }
 }

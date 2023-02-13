@@ -81,7 +81,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-WebServicesVirtualDirectory -Exactly 1
             Assert-MockCalled Get-OrganizationConfig -Exactly 1
             Assert-MockCalled Get-HybridConfiguration -Exactly 1
-            Assert-MockCalled Get-Service -Exactly 2
+            Assert-MockCalled Get-Service -Exactly 1
             Assert-MockCalled Get-SettingOverride -Exactly 1
             Assert-MockCalled Get-ServerComponentState -Exactly 1
             Assert-MockCalled Test-ServiceHealth -Exactly 1
