@@ -101,6 +101,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://microsoft.github.io/CSS-Exchange/Diagnostics/FindFrontEndActivity/FindFrontEndActivity/</loc>
+         <lastmod>2023-02-13</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://microsoft.github.io/CSS-Exchange/Diagnostics/HealthChecker/</loc>
          <lastmod>2023-02-13</lastmod>
          <changefreq>daily</changefreq>

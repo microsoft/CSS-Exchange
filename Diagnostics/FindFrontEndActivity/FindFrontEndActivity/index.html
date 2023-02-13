@@ -8,20 +8,20 @@
       
       
       
-        <link rel="canonical" href="https://microsoft.github.io/CSS-Exchange/Diagnostics/HealthChecker/RunHCViaSchedTask/">
+        <link rel="canonical" href="https://microsoft.github.io/CSS-Exchange/Diagnostics/FindFrontEndActivity/FindFrontEndActivity/">
       
       
-        <link rel="prev" href="../IISWebConfigCheck/">
+        <link rel="prev" href="../../ExTRA/">
       
       
-        <link rel="next" href="../ADSiteCount/">
+        <link rel="next" href="../../HealthChecker/">
       
       <link rel="icon" href="../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.12">
     
     
       
-        <title>HCScheduledTask - Microsoft - CSS-Exchange</title>
+        <title>FindFrontEndActivity - Microsoft - CSS-Exchange</title>
       
     
     
@@ -83,7 +83,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#how-to-run-the-exchange-health-checker-via-scheduled-task" class="md-skip">
+        <a href="#findfrontendactivity" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              HCScheduledTask
+              FindFrontEndActivity
             
           </span>
         </div>
@@ -608,11 +608,101 @@
               
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../../FindFrontEndActivity/FindFrontEndActivity/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          FindFrontEndActivity
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         FindFrontEndActivity
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#synopsis" class="md-nav__link">
+    Synopsis
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#syntax" class="md-nav__link">
+    Syntax
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start-examples" class="md-nav__link">
+    Quick Start Examples
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#description" class="md-nav__link">
+    Description
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-1" class="md-nav__link">
+    Example 1
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-2" class="md-nav__link">
+    Example 2
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-3" class="md-nav__link">
+    Example 3
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -622,16 +712,14 @@
               
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" checked>
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" >
       
       
         
@@ -716,7 +804,7 @@
         
         
         <div class="md-nav__link md-nav__link--index ">
-          <a href="../">HealthChecker</a>
+          <a href="../../HealthChecker/">HealthChecker</a>
           
             <label for="__nav_4_4">
               <span class="md-nav__icon md-icon"></span>
@@ -724,7 +812,7 @@
           
         </div>
       
-      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="true">
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_4_4">
           <span class="md-nav__icon md-icon"></span>
           HealthChecker
@@ -739,7 +827,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../ExchangeServerMaintenanceCheck/" class="md-nav__link">
+      <a href="../../HealthChecker/ExchangeServerMaintenanceCheck/" class="md-nav__link">
         MaintenanceCheck
       </a>
     </li>
@@ -753,7 +841,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../MAPIFrontEndAppPoolGCModeCheck/" class="md-nav__link">
+      <a href="../../HealthChecker/MAPIFrontEndAppPoolGCModeCheck/" class="md-nav__link">
         GCModeCheck
       </a>
     </li>
@@ -767,7 +855,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../RebootPending/" class="md-nav__link">
+      <a href="../../HealthChecker/RebootPending/" class="md-nav__link">
         RebootPending
       </a>
     </li>
@@ -781,7 +869,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../CTSProcessorAffinityPercentageCheck/" class="md-nav__link">
+      <a href="../../HealthChecker/CTSProcessorAffinityPercentageCheck/" class="md-nav__link">
         CTSProcessorAffinityCheck
       </a>
     </li>
@@ -795,7 +883,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../CredentialGuardCheck/" class="md-nav__link">
+      <a href="../../HealthChecker/CredentialGuardCheck/" class="md-nav__link">
         CredentialGuardCheck
       </a>
     </li>
@@ -809,7 +897,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../RPCMinConnectionTimeoutCheck/" class="md-nav__link">
+      <a href="../../HealthChecker/RPCMinConnectionTimeoutCheck/" class="md-nav__link">
         RPCMinConnectionTimeoutCheck
       </a>
     </li>
@@ -823,7 +911,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../TCPIPSettingsCheck/" class="md-nav__link">
+      <a href="../../HealthChecker/TCPIPSettingsCheck/" class="md-nav__link">
         TCPIPSettingsCheck
       </a>
     </li>
@@ -837,7 +925,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../GeneralHardwareInformation/" class="md-nav__link">
+      <a href="../../HealthChecker/GeneralHardwareInformation/" class="md-nav__link">
         GeneralHardwareInformation
       </a>
     </li>
@@ -851,7 +939,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../HyperThreadingCheck/" class="md-nav__link">
+      <a href="../../HealthChecker/HyperThreadingCheck/" class="md-nav__link">
         HyperThreadingCheck
       </a>
     </li>
@@ -865,7 +953,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../NumaBiosCheck/" class="md-nav__link">
+      <a href="../../HealthChecker/NumaBiosCheck/" class="md-nav__link">
         NumaBiosCheck
       </a>
     </li>
@@ -879,7 +967,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../ProcessorCheck/" class="md-nav__link">
+      <a href="../../HealthChecker/ProcessorCheck/" class="md-nav__link">
         ProcessorCheck
       </a>
     </li>
@@ -893,7 +981,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../IPv6EnabledCheck/" class="md-nav__link">
+      <a href="../../HealthChecker/IPv6EnabledCheck/" class="md-nav__link">
         IPv6EnabledCheck
       </a>
     </li>
@@ -907,7 +995,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../PacketsLossCheck/" class="md-nav__link">
+      <a href="../../HealthChecker/PacketsLossCheck/" class="md-nav__link">
         PacketsLossCheck
       </a>
     </li>
@@ -921,7 +1009,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../RSSEnabledCheck/" class="md-nav__link">
+      <a href="../../HealthChecker/RSSEnabledCheck/" class="md-nav__link">
         RSSEnabledCheck
       </a>
     </li>
@@ -935,7 +1023,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../SleepyNICCheck/" class="md-nav__link">
+      <a href="../../HealthChecker/SleepyNICCheck/" class="md-nav__link">
         SleepyNICCheck
       </a>
     </li>
@@ -949,7 +1037,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../NETFrameworkSupportabilityCheck/" class="md-nav__link">
+      <a href="../../HealthChecker/NETFrameworkSupportabilityCheck/" class="md-nav__link">
         NETFrameworkCheck
       </a>
     </li>
@@ -963,7 +1051,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../PagefileSizeCheck/" class="md-nav__link">
+      <a href="../../HealthChecker/PagefileSizeCheck/" class="md-nav__link">
         PagefileCheck
       </a>
     </li>
@@ -977,7 +1065,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../VisualCRedistributableVersionCheck/" class="md-nav__link">
+      <a href="../../HealthChecker/VisualCRedistributableVersionCheck/" class="md-nav__link">
         VisualCCheck
       </a>
     </li>
@@ -991,7 +1079,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../LMCompatibilityLevelInformationCheck/" class="md-nav__link">
+      <a href="../../HealthChecker/LMCompatibilityLevelInformationCheck/" class="md-nav__link">
         LMCompatibilityLevelInformationCheck
       </a>
     </li>
@@ -1005,7 +1093,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../May22SU/" class="md-nav__link">
+      <a href="../../HealthChecker/May22SU/" class="md-nav__link">
         May22SU
       </a>
     </li>
@@ -1019,7 +1107,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../CloudConnectorCheck/" class="md-nav__link">
+      <a href="../../HealthChecker/CloudConnectorCheck/" class="md-nav__link">
         CloudConnectorCheck
       </a>
     </li>
@@ -1033,7 +1121,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../TLSConfigurationCheck/" class="md-nav__link">
+      <a href="../../HealthChecker/TLSConfigurationCheck/" class="md-nav__link">
         TLSConfigurationCheck
       </a>
     </li>
@@ -1047,7 +1135,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../CertificateCheck/" class="md-nav__link">
+      <a href="../../HealthChecker/CertificateCheck/" class="md-nav__link">
         CertificateCheck
       </a>
     </li>
@@ -1061,7 +1149,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../AuthCertificateCheck/" class="md-nav__link">
+      <a href="../../HealthChecker/AuthCertificateCheck/" class="md-nav__link">
         AuthCertificateCheck
       </a>
     </li>
@@ -1075,7 +1163,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../SerializedDataSigningCheck/" class="md-nav__link">
+      <a href="../../HealthChecker/SerializedDataSigningCheck/" class="md-nav__link">
         SerializedDataSigningCheck
       </a>
     </li>
@@ -1089,7 +1177,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../InternalTransportCertificateCheck/" class="md-nav__link">
+      <a href="../../HealthChecker/InternalTransportCertificateCheck/" class="md-nav__link">
         InternalTransportCertificateCheck
       </a>
     </li>
@@ -1103,7 +1191,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../SMBv1Check/" class="md-nav__link">
+      <a href="../../HealthChecker/SMBv1Check/" class="md-nav__link">
         SMBv1Check
       </a>
     </li>
@@ -1117,7 +1205,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../EEMSCheck/" class="md-nav__link">
+      <a href="../../HealthChecker/EEMSCheck/" class="md-nav__link">
         EEMSCheck
       </a>
     </li>
@@ -1131,7 +1219,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../AMSIIntegration/" class="md-nav__link">
+      <a href="../../HealthChecker/AMSIIntegration/" class="md-nav__link">
         AMSICheck
       </a>
     </li>
@@ -1145,7 +1233,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../VulnerabilityCheck/" class="md-nav__link">
+      <a href="../../HealthChecker/VulnerabilityCheck/" class="md-nav__link">
         VulnerabilityCheck
       </a>
     </li>
@@ -1159,7 +1247,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../DownloadDomainCheck/" class="md-nav__link">
+      <a href="../../HealthChecker/DownloadDomainCheck/" class="md-nav__link">
         DownloadDomainCheck
       </a>
     </li>
@@ -1173,7 +1261,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../OpenRelayDomain/" class="md-nav__link">
+      <a href="../../HealthChecker/OpenRelayDomain/" class="md-nav__link">
         OpenRelayDomainCheck
       </a>
     </li>
@@ -1187,7 +1275,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../FIPFSCheck/" class="md-nav__link">
+      <a href="../../HealthChecker/FIPFSCheck/" class="md-nav__link">
         FIPFSCheck
       </a>
     </li>
@@ -1201,7 +1289,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../IISWebConfigCheck/" class="md-nav__link">
+      <a href="../../HealthChecker/IISWebConfigCheck/" class="md-nav__link">
         IISWebConfigCheck
       </a>
     </li>
@@ -1213,21 +1301,11 @@
               
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../HealthChecker/RunHCViaSchedTask/" class="md-nav__link">
         HCScheduledTask
       </a>
-      
     </li>
   
 
@@ -1239,7 +1317,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../ADSiteCount/" class="md-nav__link">
+      <a href="../../HealthChecker/ADSiteCount/" class="md-nav__link">
         ADSiteCount
       </a>
     </li>
@@ -2123,6 +2201,70 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#synopsis" class="md-nav__link">
+    Synopsis
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#syntax" class="md-nav__link">
+    Syntax
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start-examples" class="md-nav__link">
+    Quick Start Examples
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#description" class="md-nav__link">
+    Description
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-1" class="md-nav__link">
+    Example 1
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-2" class="md-nav__link">
+    Example 2
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-3" class="md-nav__link">
+    Example 3
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -2136,7 +2278,7 @@
                   
 
   
-    <a href="https://github.com/microsoft/CSS-Exchange/edit/main/docs/Diagnostics/HealthChecker/RunHCViaSchedTask.md" title="Edit this page" class="md-content__button md-icon">
+    <a href="https://github.com/microsoft/CSS-Exchange/edit/main/docs/Diagnostics/FindFrontEndActivity/FindFrontEndActivity.md" title="Edit this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4v-2m10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1 2.1 2.1Z"/></svg>
     </a>
@@ -2145,85 +2287,212 @@
 
 
 
-<h1 id="how-to-run-the-exchange-health-checker-via-scheduled-task">How to run the Exchange Health Checker via Scheduled Task</h1>
-<p><strong>Description:</strong></p>
-<p>You can run the Exchange Health Checker script by the help of a Scheduled Task on a daily, weekly or monthly base.</p>
-<p>This article describes some of the ways how to run the script as task and how to create those tasks.</p>
-<p><strong>Note:</strong> We assume that the script is stored under <code>C:\Scripts\HealthChecker</code>. Please make sure to adjust the path if you use a different one in your environment.</p>
-<ol>
-<li>The first thing to do is to create a service account which is used to run the script. It is recommended to use a strong password which will be changed regularly. It's also recommended to add the user to the <code>View-Only Organization Management</code> instead of <code>Organization Management</code>. This should be sufficient for the script to run.</li>
-</ol>
-<p><strong>Note:</strong> Using <code>View-Only Organization Management</code> instead of <code>Organization Management</code> requires you to add the account to the local <code>Administrators</code> group on each server. This can be achieved by creating a dedicated <code>Security Group</code> which is then added to the <code>Administrators</code> group on each Exchange server (manually or via <code>Group Policy</code>).</p>
-<ol>
-<li>Now it's time to create the Scheduled Task. This can be done by the help of PowerShell:</li>
-</ol>
-<p>We need to create multiple objects and finally combining them to the Scheduled Task. We need a <code>trigger</code>, <code>settings</code>, <code>action</code> and <code>task</code> object.</p>
-<ul>
-<li>
-<p>Create a trigger that defines when the script should be executed:</p>
-<ul>
-<li>(Example) Daily at 3 AM:<ul>
-<li><code>$hcTrigger = New-ScheduledTaskTrigger -Daily -At 3am</code></li>
-</ul>
-</li>
-<li>(Example) Every four weeks on Monday at 3 AM:<ul>
-<li><code>$hcTrigger = New-ScheduledTaskTrigger -Weekly -WeeksInterval 4 -DaysOfWeek Monday -At 3am</code></li>
-</ul>
-</li>
-</ul>
-</li>
-<li>
-<p>Create a Scheduled Task setting object:</p>
-<ul>
-<li>(Example) Create a Scheduled Task settings object using the default settings:<ul>
-<li><code>$hcSettings = New-ScheduledTaskSettingsSet</code></li>
-</ul>
-</li>
-<li>(Example) Create a Scheduled Task settings object and define <code>RestartCount</code> and <code>RestartInterval</code>:<ul>
-<li><code>$hcSettings = New-ScheduledTaskSettingsSet -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 60)</code></li>
-</ul>
-</li>
-</ul>
-</li>
-<li>
-<p>Define the actions to be executed via Scheduled Task:</p>
-<ul>
-<li>(Example) Update the HealthChecker script, execute the script against the local server and generate the HTML report:<ul>
-<li><code>$hcAction = New-ScheduledTaskAction -Execute 'powershell.exe' -WorkingDirectory "C:\Scripts\HealthChecker\" -Argument '-NonInteractive -NoLogo -NoProfile -Command ".\HealthChecker.ps1 -ScriptUpdateOnly; .\HealthChecker.ps1; .\HealthChecker.ps1 -BuildHtmlServersReport"'</code></li>
-</ul>
-</li>
-<li>(Example) Run the HealthChecker script against a remote Exchange server (named <code>ExchSrv01</code> in this example):<ul>
-<li><code>$hcAction = New-ScheduledTaskAction -Execute 'powershell.exe' -WorkingDirectory "C:\Scripts\HealthChecker\" -Argument '-NonInteractive -NoLogo -NoProfile -Command ".\HealthChecker.ps1 -ScriptUpdateOnly; .\HealthChecker.ps1 -Server ExchSrv01; .\HealthChecker.ps1 -BuildHtmlServersReport"'</code></li>
-</ul>
-</li>
-</ul>
-</li>
-<li>
-<p>Create the Scheduled Task object using the pre-defined action, trigger and settings objects:</p>
-<ul>
-<li><code>$hcTask = New-ScheduledTask -Action $hcAction -Trigger $hcTrigger -Settings $hcSettings</code></li>
-</ul>
-</li>
-<li>
-<p>Create the Scheduled Task:</p>
-<ul>
-<li><code>Register-ScheduledTask -TaskName 'HealthChecker Daily Run' -InputObject $hcTask -User (Read-Host "Please enter username in format (Domain\Username)") -Password (Read-Host "Please enter password")</code></li>
-</ul>
-</li>
-</ul>
-<p><strong>Additional resources:</strong></p>
-<p><a href="https://docs.microsoft.com/powershell/module/scheduledtasks/new-scheduledtasktrigger?view=windowsserver2022-ps">New-ScheduledTaskTrigger</a></p>
-<p><a href="https://docs.microsoft.com/powershell/module/scheduledtasks/new-scheduledtasksettingsset?view=windowsserver2022-ps">New-ScheduledTaskSettingsSet</a></p>
-<p><a href="https://docs.microsoft.com/powershell/module/scheduledtasks/new-scheduledtaskaction?view=windowsserver2022-ps">New-ScheduledTaskAction</a></p>
-<p><a href="https://docs.microsoft.com/powershell/module/scheduledtasks/new-scheduledtask?view=windowsserver2022-ps">New-ScheduledTask</a></p>
-<p><a href="https://docs.microsoft.com/powershell/module/scheduledtasks/register-scheduledtask?view=windowsserver2022-ps">Register-ScheduledTask</a></p>
+<h1 id="findfrontendactivity">FindFrontEndActivity</h1>
+<p>Download the latest release: <a href="https://github.com/microsoft/CSS-Exchange/releases/latest/download/FindFrontEndActivity.ps1">FindFrontEndActivity.ps1</a></p>
+<h2 id="synopsis">Synopsis</h2>
+<p>Find HttpProxy protocol activity for one or more users.</p>
+<h2 id="syntax">Syntax</h2>
+<div class="highlight"><pre><span></span><code>.\FindFrontEndActivity.ps1 -ServerName &lt;String[]&gt; -SamAccountName &lt;String[]&gt; [-LatencyThreshold &lt;Int32&gt;] [-Protocol &lt;String[]&gt;] [-IncludeNonExecutes] [-Quiet] [-TimeSpan &lt;TimeSpan&gt;] [&lt;CommonParameters&gt;]
+
+.\FindFrontEndActivity.ps1 -ServerName &lt;String[]&gt; -SamAccountName &lt;String[]&gt; [-LatencyThreshold &lt;Int32&gt;] [-Protocol &lt;String[]&gt;] [-IncludeNonExecutes] [-Quiet] -StartTime &lt;DateTime&gt; -EndTime &lt;DateTime&gt; [&lt;CommonParameters&gt;]
+</code></pre></div>
+<h2 id="quick-start-examples">Quick Start Examples</h2>
+<div class="highlight"><pre><span></span><code><span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">&quot;john.doe&quot;</span> <span class="p">|</span> <span class="nb">ft</span>
+
+<span class="n">DateTime</span>                 <span class="n">AuthenticatedUser</span>  <span class="n">UrlStem</span>       <span class="n">ServerHostName</span> <span class="n">TargetServer</span>         <span class="n">TotalRequestTime</span>
+<span class="p">--------</span>                 <span class="p">-----------------</span>  <span class="p">-------</span>       <span class="p">--------------</span> <span class="p">------------</span>         <span class="p">----------------</span>
+<span class="n">2023</span><span class="p">-</span><span class="n">02</span><span class="p">-</span><span class="n">11T15</span><span class="p">:</span><span class="n">59</span><span class="p">:</span><span class="n">35</span><span class="p">.</span><span class="n">174Z</span> <span class="n">contoso</span><span class="p">\</span><span class="n">john</span><span class="p">.</span><span class="n">doe</span>   <span class="p">/</span><span class="n">mapi</span><span class="p">/</span><span class="n">emsmdb</span><span class="p">/</span> <span class="n">EXCH1</span>          <span class="n">exch1</span><span class="p">.</span><span class="n">contoso</span><span class="p">.</span><span class="n">local</span>  <span class="n">2214</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">&quot;john.doe&quot;</span> <span class="n">-LatencyThreshold</span> <span class="n">100</span> <span class="p">|</span> <span class="nb">ft</span>
+
+<span class="n">DateTime</span>                 <span class="n">AuthenticatedUser</span>  <span class="n">UrlStem</span>       <span class="n">ServerHostName</span> <span class="n">TargetServer</span>         <span class="n">TotalRequestTime</span>
+<span class="p">--------</span>                 <span class="p">-----------------</span>  <span class="p">-------</span>       <span class="p">--------------</span> <span class="p">------------</span>         <span class="p">----------------</span>
+<span class="n">2023</span><span class="p">-</span><span class="n">02</span><span class="p">-</span><span class="n">11T15</span><span class="p">:</span><span class="n">59</span><span class="p">:</span><span class="n">29</span><span class="p">.</span><span class="n">898Z</span> <span class="n">contoso</span><span class="p">\</span><span class="n">john</span><span class="p">.</span><span class="n">doe</span>   <span class="p">/</span><span class="n">mapi</span><span class="p">/</span><span class="n">emsmdb</span><span class="p">/</span> <span class="n">EXCH1</span>          <span class="n">exch1</span><span class="p">.</span><span class="n">contoso</span><span class="p">.</span><span class="n">local</span>  <span class="n">505</span>
+<span class="n">2023</span><span class="p">-</span><span class="n">02</span><span class="p">-</span><span class="n">11T15</span><span class="p">:</span><span class="n">59</span><span class="p">:</span><span class="n">31</span><span class="p">.</span><span class="n">560Z</span> <span class="n">contoso</span><span class="p">\</span><span class="n">john</span><span class="p">.</span><span class="n">doe</span>   <span class="p">/</span><span class="n">mapi</span><span class="p">/</span><span class="n">emsmdb</span><span class="p">/</span> <span class="n">EXCH1</span>          <span class="n">exch1</span><span class="p">.</span><span class="n">contoso</span><span class="p">.</span><span class="n">local</span>  <span class="n">403</span>
+<span class="n">2023</span><span class="p">-</span><span class="n">02</span><span class="p">-</span><span class="n">11T15</span><span class="p">:</span><span class="n">59</span><span class="p">:</span><span class="n">35</span><span class="p">.</span><span class="n">174Z</span> <span class="n">contoso</span><span class="p">\</span><span class="n">john</span><span class="p">.</span><span class="n">doe</span>   <span class="p">/</span><span class="n">mapi</span><span class="p">/</span><span class="n">emsmdb</span><span class="p">/</span> <span class="n">EXCH1</span>          <span class="n">exch1</span><span class="p">.</span><span class="n">contoso</span><span class="p">.</span><span class="n">local</span>  <span class="n">2214</span>
+<span class="n">2023</span><span class="p">-</span><span class="n">02</span><span class="p">-</span><span class="n">11T15</span><span class="p">:</span><span class="n">59</span><span class="p">:</span><span class="n">35</span><span class="p">.</span><span class="n">488Z</span> <span class="n">contoso</span><span class="p">\</span><span class="n">john</span><span class="p">.</span><span class="n">doe</span>   <span class="p">/</span><span class="n">mapi</span><span class="p">/</span><span class="n">emsmdb</span><span class="p">/</span> <span class="n">EXCH1</span>          <span class="n">exch1</span><span class="p">.</span><span class="n">contoso</span><span class="p">.</span><span class="n">local</span>  <span class="n">161</span>
+<span class="n">2023</span><span class="p">-</span><span class="n">02</span><span class="p">-</span><span class="n">11T15</span><span class="p">:</span><span class="n">59</span><span class="p">:</span><span class="n">38</span><span class="p">.</span><span class="n">133Z</span> <span class="n">contoso</span><span class="p">\</span><span class="n">john</span><span class="p">.</span><span class="n">doe</span>   <span class="p">/</span><span class="n">mapi</span><span class="p">/</span><span class="n">emsmdb</span><span class="p">/</span> <span class="n">EXCH1</span>          <span class="n">exch1</span><span class="p">.</span><span class="n">contoso</span><span class="p">.</span><span class="n">local</span>  <span class="n">399</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">&quot;john.doe&quot;</span> <span class="n">-Protocol</span> <span class="s2">&quot;ews&quot;</span><span class="p">,</span> <span class="s2">&quot;mapi&quot;</span> <span class="p">|</span> <span class="nb">ft</span>
+
+<span class="n">DateTime</span>                 <span class="n">AuthenticatedUser</span>  <span class="n">UrlStem</span>            <span class="n">ServerHostName</span> <span class="n">TargetServer</span>         <span class="n">TotalRequestTime</span>
+<span class="p">--------</span>                 <span class="p">-----------------</span>  <span class="p">-------</span>            <span class="p">--------------</span> <span class="p">------------</span>         <span class="p">----------------</span>
+<span class="n">2023</span><span class="p">-</span><span class="n">02</span><span class="p">-</span><span class="n">11T15</span><span class="p">:</span><span class="n">10</span><span class="p">:</span><span class="n">10</span><span class="p">.</span><span class="n">643Z</span> <span class="n">contoso</span><span class="p">\</span><span class="n">john</span><span class="p">.</span><span class="n">doe</span>   <span class="p">/</span><span class="n">EWS</span><span class="p">/</span><span class="n">Exchange</span><span class="p">.</span><span class="n">asmx</span> <span class="n">EXCH1</span>          <span class="n">exch1</span><span class="p">.</span><span class="n">contoso</span><span class="p">.</span><span class="n">local</span>  <span class="n">1800019</span>
+<span class="n">2023</span><span class="p">-</span><span class="n">02</span><span class="p">-</span><span class="n">11T15</span><span class="p">:</span><span class="n">40</span><span class="p">:</span><span class="n">44</span><span class="p">.</span><span class="n">254Z</span> <span class="n">contoso</span><span class="p">\</span><span class="n">john</span><span class="p">.</span><span class="n">doe</span>   <span class="p">/</span><span class="n">EWS</span><span class="p">/</span><span class="n">Exchange</span><span class="p">.</span><span class="n">asmx</span> <span class="n">EXCH1</span>          <span class="n">exch1</span><span class="p">.</span><span class="n">contoso</span><span class="p">.</span><span class="n">local</span>  <span class="n">1800028</span>
+<span class="n">2023</span><span class="p">-</span><span class="n">02</span><span class="p">-</span><span class="n">11T15</span><span class="p">:</span><span class="n">59</span><span class="p">:</span><span class="n">35</span><span class="p">.</span><span class="n">174Z</span> <span class="n">contoso</span><span class="p">\</span><span class="n">john</span><span class="p">.</span><span class="n">doe</span>   <span class="p">/</span><span class="n">mapi</span><span class="p">/</span><span class="n">emsmdb</span><span class="p">/</span>      <span class="n">EXCH1</span>          <span class="n">exch1</span><span class="p">.</span><span class="n">contoso</span><span class="p">.</span><span class="n">local</span>  <span class="n">2214</span>
+</code></pre></div>
+<p>Note the difference between -Quiet mode and the default:</p>
+<div class="highlight"><pre><span></span><code><span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">&quot;john.doe&quot;</span> <span class="n">-Quiet</span>
+<span class="n">EXCH1</span>
+<span class="n">EXCH3</span>
+<span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span>
+<span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="c"># Notice how we returned two servers when using -Quiet.</span>
+<span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span>
+<span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">&quot;john.doe&quot;</span> <span class="p">|</span> <span class="nb">ft</span>
+
+<span class="n">DateTime</span>                 <span class="n">AuthenticatedUser</span>  <span class="n">UrlStem</span>       <span class="n">ServerHostName</span> <span class="n">TargetServer</span>         <span class="n">TotalRequestTime</span>
+<span class="p">--------</span>                 <span class="p">-----------------</span>  <span class="p">-------</span>       <span class="p">--------------</span> <span class="p">------------</span>         <span class="p">----------------</span>
+<span class="n">2023</span><span class="p">-</span><span class="n">02</span><span class="p">-</span><span class="n">11T16</span><span class="p">:</span><span class="n">25</span><span class="p">:</span><span class="n">14</span><span class="p">.</span><span class="n">508Z</span> <span class="n">contoso</span><span class="p">\</span><span class="n">john</span><span class="p">.</span><span class="n">doe</span>   <span class="p">/</span><span class="n">mapi</span><span class="p">/</span><span class="n">emsmdb</span><span class="p">/</span> <span class="n">EXCH1</span>          <span class="n">exch1</span><span class="p">.</span><span class="n">contoso</span><span class="p">.</span><span class="n">local</span>  <span class="n">1182</span>
+
+
+<span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="c"># But only one in the default mode. This is because the default is intended</span>
+<span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="c"># to look for calls that are slow and are Execute calls. To see everything,</span>
+<span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="c"># we need to remove the latency filter and include non-execute activity,</span>
+<span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="c"># but this will return a lot of noise.</span>
+<span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span>
+<span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">&quot;john.doe&quot;</span> <span class="n">-LatencyThreshold</span> <span class="n">0</span> <span class="n">-IncludeNonExecutes</span> <span class="p">|</span> <span class="nb">ft</span>
+
+<span class="n">DateTime</span>                 <span class="n">AuthenticatedUser</span>  <span class="n">UrlStem</span>       <span class="n">ServerHostName</span> <span class="n">TargetServer</span>         <span class="n">TotalRequestTime</span>
+<span class="p">--------</span>                 <span class="p">-----------------</span>  <span class="p">-------</span>       <span class="p">--------------</span> <span class="p">------------</span>         <span class="p">----------------</span>
+<span class="n">2023</span><span class="p">-</span><span class="n">02</span><span class="p">-</span><span class="n">11T16</span><span class="p">:</span><span class="n">00</span><span class="p">:</span><span class="n">07</span><span class="p">.</span><span class="n">619Z</span> <span class="n">contoso</span><span class="p">\</span><span class="n">john</span><span class="p">.</span><span class="n">doe</span>   <span class="p">/</span><span class="n">mapi</span><span class="p">/</span><span class="n">emsmdb</span><span class="p">/</span> <span class="n">EXCH3</span>          <span class="n">exch1</span><span class="p">.</span><span class="n">contoso</span><span class="p">.</span><span class="n">local</span>  <span class="n">17</span>
+<span class="n">2023</span><span class="p">-</span><span class="n">02</span><span class="p">-</span><span class="n">11T16</span><span class="p">:</span><span class="n">01</span><span class="p">:</span><span class="n">10</span><span class="p">.</span><span class="n">555Z</span> <span class="n">contoso</span><span class="p">\</span><span class="n">john</span><span class="p">.</span><span class="n">doe</span>   <span class="p">/</span><span class="n">mapi</span><span class="p">/</span><span class="n">nspi</span><span class="p">/</span>   <span class="n">EXCH1</span>          <span class="n">exch1</span><span class="p">.</span><span class="n">contoso</span><span class="p">.</span><span class="n">local</span>  <span class="n">22</span>
+<span class="n">2023</span><span class="p">-</span><span class="n">02</span><span class="p">-</span><span class="n">11T16</span><span class="p">:</span><span class="n">05</span><span class="p">:</span><span class="n">11</span><span class="p">.</span><span class="n">132Z</span> <span class="n">contoso</span><span class="p">\</span><span class="n">john</span><span class="p">.</span><span class="n">doe</span>   <span class="p">/</span><span class="n">mapi</span><span class="p">/</span><span class="n">emsmdb</span><span class="p">/</span> <span class="n">EXCH1</span>          <span class="n">exch1</span><span class="p">.</span><span class="n">contoso</span><span class="p">.</span><span class="n">local</span>  <span class="n">659066</span>
+<span class="n">2023</span><span class="p">-</span><span class="n">02</span><span class="p">-</span><span class="n">11T16</span><span class="p">:</span><span class="n">05</span><span class="p">:</span><span class="n">12</span><span class="p">.</span><span class="n">101Z</span> <span class="n">contoso</span><span class="p">\</span><span class="n">john</span><span class="p">.</span><span class="n">doe</span>   <span class="p">/</span><span class="n">mapi</span><span class="p">/</span><span class="n">nspi</span><span class="p">/</span>   <span class="n">EXCH1</span>          <span class="n">exch1</span><span class="p">.</span><span class="n">contoso</span><span class="p">.</span><span class="n">local</span>  <span class="n">21</span>
+<span class="p">...</span>
+</code></pre></div>
+<p>To see all details, use <code>fl *</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">&quot;john.doe&quot;</span> <span class="p">|</span> <span class="nb">fl </span><span class="p">*</span>
+
+
+<span class="n">DateTime</span>                        <span class="p">:</span> <span class="n">2023</span><span class="p">-</span><span class="n">02</span><span class="p">-</span><span class="n">11T16</span><span class="p">:</span><span class="n">25</span><span class="p">:</span><span class="n">14</span><span class="p">.</span><span class="n">508Z</span>
+<span class="n">RequestId</span>                       <span class="p">:</span> <span class="n">0aa7958e-c59a</span><span class="p">-</span><span class="n">4f0a</span><span class="p">-</span><span class="n">903f-ebbd6ed93c9a</span>
+<span class="n">MajorVersion</span>                    <span class="p">:</span> <span class="n">15</span>
+<span class="n">MinorVersion</span>                    <span class="p">:</span> <span class="n">2</span>
+<span class="n">BuildVersion</span>                    <span class="p">:</span> <span class="n">1118</span>
+<span class="p">...</span>
+</code></pre></div>
+<h2 id="description">Description</h2>
+<p>When an Exchange client experiences issues, the HttpProxy logs are often the starting
+point for determining whether the issue is with the client, the network, or the server.
+However, since an Exchange environment may have dozens of front-end servers, it can be
+difficult to find the relevant logs for a given user.</p>
+<p>This script is designed to search the logs of all Exchange servers in parallel to quickly
+find the HttpProxy logs related to specified users.</p>
+<p>The default mode of the script is intended for finding slow MAPI calls from Outlook
+clients. The <code>-Protocol</code> switch can be used to search more protocols, while specifying
+<code>-LatencyThreshold</code> allows the admin to filter more aggressively or remove the
+latency filter entirely. Running in <code>-Quiet</code> mode skips the filtering and just reports
+any servers that have the specified users in the HttpProxy logs for the specified
+protocols. See the parameters and examples for more information.</p>
+<h2 id="parameters">Parameters</h2>
+<div class="highlight"><pre><span></span><code>-ServerName &lt;String[]&gt;
+    The name of one or more Exchange servers to search. An easy way to search all Exchange
+    servers in the forest is to simply pipe Get-ExchangeServer to the script.
+
+    Required?                    true
+    Position?                    named
+    Default value
+    Accept pipeline input?       true (ByValue, ByPropertyName)
+    Accept wildcard characters?  false
+
+-SamAccountName &lt;String[]&gt;
+    The samAccountNames of one or more users to search for.
+
+    Required?                    true
+    Position?                    named
+    Default value
+    Accept pipeline input?       false
+    Accept wildcard characters?  false
+
+-LatencyThreshold &lt;Int32&gt;
+    The minimum latency (in milliseconds) to search for. This is useful for filtering out
+    noise from the logs. (Default: 1000). This parameter has no effect when -Quiet is used.
+
+    Required?                    false
+    Position?                    named
+    Default value                1000
+    Accept pipeline input?       false
+    Accept wildcard characters?  false
+
+-Protocol &lt;String[]&gt;
+    The protocols to search. Valid values are: Autodiscover, EAS, ECP, EWS, MAPI, OWA, PowerShell,
+    RpcHttp. (Default: MAPI)
+
+    Required?                    false
+    Position?                    named
+    Default value                @(&#39;MAPI&#39;)
+    Accept pipeline input?       false
+    Accept wildcard characters?  false
+
+-IncludeNonExecutes [&lt;SwitchParameter&gt;]
+    By default, NotificationWaits from the MAPI logs are not included, because these are slow
+    by design. Specify this switch to include them.
+
+    Required?                    false
+    Position?                    named
+    Default value                False
+    Accept pipeline input?       false
+    Accept wildcard characters?  false
+
+-Quiet [&lt;SwitchParameter&gt;]
+    This switch causes the script to only report the server names rather than the full log
+    entries. This may be somewhat faster. However, there is no filtering for LatencyThreshold
+    and NotificationWait when this option is used.
+
+    Required?                    false
+    Position?                    named
+    Default value                False
+    Accept pipeline input?       false
+    Accept wildcard characters?  false
+
+-TimeSpan &lt;TimeSpan&gt;
+    Specify how far back to search the logs. This is a TimeSpan value, such as &quot;01:00&quot; for the
+    last hour or &quot;00:30&quot; for the last 30 minutes. (Default: 15 minutes). Use this parameter to
+    search the most recent logs. Use StartTime and EndTime to search older logs.
+
+    Required?                    false
+    Position?                    named
+    Default value                (New-TimeSpan -Minutes 15)
+    Accept pipeline input?       false
+    Accept wildcard characters?  false
+
+-StartTime &lt;DateTime&gt;
+    Logs older than this time are not searched. This is a DateTime value, such as (Get-Date).AddDays(-1)
+    or &quot;2023-02-11 08:00&quot;. Use this parameter to search old logs. Use -TimeSpan to search the
+    most recent logs.
+
+    Required?                    true
+    Position?                    named
+    Default value
+    Accept pipeline input?       false
+    Accept wildcard characters?  false
+
+-EndTime &lt;DateTime&gt;
+    Logs newer than this time are not searched. This is a DateTime value, such as (Get-Date).AddDays(-1)
+    or &quot;2023-02-11 09:00&quot;. Use this parameter to search old logs. Use -TimeSpan to search the
+    most recent logs.
+
+    Required?                    true
+    Position?                    named
+    Default value
+    Accept pipeline input?       false
+    Accept wildcard characters?  false
+
+&lt;CommonParameters&gt;
+    This cmdlet supports the common parameters: Verbose, Debug,
+    ErrorAction, ErrorVariable, WarningAction, WarningVariable,
+    OutBuffer, PipelineVariable, and OutVariable. For more information, see
+    about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
+</code></pre></div>
+<h2 id="example-1">Example 1</h2>
+<p><div class="highlight"><pre><span></span><code><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">&quot;user1&quot;</span><span class="p">,</span> <span class="s2">&quot;user2&quot;</span> <span class="p">|</span> <span class="nb">ft</span>
+</code></pre></div>
+Show any MAPI HttpProxy activity that took more than 1 second for user1 or user2 within the last 15 minutes on all Exchange servers in the forest.</p>
+<h2 id="example-2">Example 2</h2>
+<p><div class="highlight"><pre><span></span><code><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">&quot;user1&quot;</span><span class="p">,</span> <span class="s2">&quot;user2&quot;</span> <span class="n">-Quiet</span>
+</code></pre></div>
+Show only the server names where user1 or user2 are found in the MAPI HttpProxy logs within the last 15 minutes.</p>
+<h2 id="example-3">Example 3</h2>
+<p><div class="highlight"><pre><span></span><code><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">&quot;user1&quot;</span><span class="p">,</span> <span class="s2">&quot;user2&quot;</span> <span class="n">-Protocol</span> <span class="s2">&quot;ews&quot;</span><span class="p">,</span> <span class="s2">&quot;mapi&quot;</span> <span class="n">-LatencyThreshold</span> <span class="n">100</span> <span class="n">-TimeSpan</span> <span class="s2">&quot;00:30&quot;</span>
+</code></pre></div>
+Show any EWS or MAPI HttpProxy activity that took more than 100 milliseconds for user1 or user2 within the last 30 minutes on all Exchange servers in the forest.</p>
 
   <hr>
 <div class="md-source-file">
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">January 13, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">February 11, 2023</span>
       
     
   </small>
