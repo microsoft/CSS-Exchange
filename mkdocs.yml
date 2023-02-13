@@ -21,6 +21,7 @@ nav:
   - Diagnostics:
     - ExchangeLogCollector: Diagnostics/ExchangeLogCollector.md
     - ExTRA: Diagnostics/ExTRA.md
+    - FindFrontEndActivity: Diagnostics/FindFrontEndActivity/FindFrontEndActivity.md
     - HealthChecker:
       - Diagnostics/HealthChecker/index.md
       - MaintenanceCheck: Diagnostics/HealthChecker/ExchangeServerMaintenanceCheck.md
