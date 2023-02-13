@@ -132,4 +132,62 @@ Describe "Testing $scriptName" {
             Assert-MockCalled -CommandName Write-Host -Exactly 1 -ParameterFilter { $Object -eq "Write-CustomScriptBlock" }
         }
     }
+
+    Context "Test By Name Results" {
+
+        It "NET 4.5" {
+            $result = Get-NETFrameworkVersion -NetVersionShortName "Net4d5"
+            $result.FriendlyName = "4.5"
+        }
+
+        It "NET 4.5.1" {
+            $result = Get-NETFrameworkVersion -NetVersionShortName "Net4d5d1"
+            $result.FriendlyName = "4.5.1"
+        }
+
+        It "NET 4.5.2" {
+            $result = Get-NETFrameworkVersion -NetVersionShortName "Net4d5d2"
+            $result.FriendlyName = "4.5.2"
+        }
+
+        It "NET 4.6" {
+            $result = Get-NETFrameworkVersion -NetVersionShortName "Net4d6"
+            $result.FriendlyName = "4.6"
+        }
+
+        It "NET 4.6" {
+            $result = Get-NETFrameworkVersion -NetVersionShortName "Net4d6"
+            $result.FriendlyName = "4.6"
+        }
+
+        It "NET 4.6.1" {
+            $result = Get-NETFrameworkVersion -NetVersionShortName "Net4d6d1"
+            $result.FriendlyName = "4.6.1"
+        }
+
+        It "NET 4.6.2" {
+            $result = Get-NETFrameworkVersion -NetVersionShortName "Net4d6d2"
+            $result.FriendlyName = "4.6.2"
+        }
+
+        It "NET 4.7" {
+            $result = Get-NETFrameworkVersion -NetVersionShortName "Net4d7"
+            $result.FriendlyName = "4.7"
+        }
+
+        It "NET 4.7.1" {
+            $result = Get-NETFrameworkVersion -NetVersionShortName "Net4d7d1"
+            $result.FriendlyName = "4.7.1"
+        }
+
+        It "NET 4.7.2" {
+            $result = Get-NETFrameworkVersion -NetVersionShortName "Net4d7d2"
+            $result.FriendlyName = "4.7.2"
+        }
+
+        It "NET 4.8" {
+            $result = Get-NETFrameworkVersion -NetVersionShortName "Net4d8"
+            $result.FriendlyName = "4.8"
+        }
+    }
 }

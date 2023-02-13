@@ -21,8 +21,11 @@ function Invoke-AnalyzerEngine {
     )
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
-    $analyzedResults = New-Object HealthChecker.AnalyzedInformation
-    $analyzedResults.HealthCheckerExchangeServer = $HealthServerObject
+    $analyzedResults = [PSCustomObject]@{
+        HealthCheckerExchangeServer = $HealthServerObject
+        HtmlServerValues            = @{}
+        DisplayResults              = @{}
+    }
 
     #Display Grouping Keys
     $order = 1
@@ -56,8 +59,8 @@ For further details, please review the virtualization recommendations on Microso
 
 "@
 
-    if ($HealthServerObject.HardwareInformation.ServerType -eq [HealthChecker.ServerType]::VMWare -or
-        $HealthServerObject.HardwareInformation.ServerType -eq [HealthChecker.ServerType]::HyperV) {
+    if ($HealthServerObject.HardwareInformation.ServerType -eq "VMWare" -or
+        $HealthServerObject.HardwareInformation.ServerType -eq "HyperV") {
         $params = $baseParams + @{
             Details          = $VirtualizationWarning
             DisplayWriteType = "Yellow"

@@ -8,7 +8,6 @@ param()
 BeforeAll {
     $Script:parentPath = (Split-Path -Parent $PSScriptRoot)
     $Script:Server = $env:COMPUTERNAME
-    . $Script:parentPath\..\..\Helpers\Class.ps1
     . $Script:parentPath\Get-FIPFSScanEngineVersionState.ps1
 
     function Invoke-CatchActions {
