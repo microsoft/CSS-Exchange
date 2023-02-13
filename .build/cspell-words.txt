@@ -3,6 +3,7 @@ Adsi
 amsi
 Antispam
 anob
+asmx
 authsspi
 autodiscover
 bincirc
