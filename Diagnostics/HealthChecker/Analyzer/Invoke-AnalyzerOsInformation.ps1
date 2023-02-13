@@ -101,31 +101,32 @@ function Invoke-AnalyzerOsInformation {
     $ex2013 = "Exchange2013"
     $osVersion = $osInformation.BuildInformation.MajorVersion
     $recommendedNetVersion = $null
+    $netVersionDictionary = GetNetVersionDictionary
 
     Write-Verbose "Checking $($exchangeInformation.BuildInformation.MajorVersion) .NET Framework Support Versions"
 
     if ((Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU4")) {
-        $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d5
+        $recommendedNetVersion = $netVersionDictionary["Net4d5"]
     } elseif ((Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU13") -or
     (Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU2")) {
-        $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d5d2wFix
+        $recommendedNetVersion = $netVersionDictionary["Net4d5d2wFix"]
     } elseif ((Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU15") -or
     (Test-ExchangeBuildEqualBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU2") -or
     ((Test-ExchangeBuildEqualBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU3") -and
         $osVersion -ne "Windows2016")) {
-        $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d6d1wFix
+        $recommendedNetVersion = $netVersionDictionary["Net4d6d1wFix"]
     } elseif ((Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU19") -or
     (Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU8")) {
-        $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d6d2
+        $recommendedNetVersion = $netVersionDictionary["Net4d6d2"]
     } elseif ((Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU21") -or
     (Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU11")) {
-        $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d7d1
+        $recommendedNetVersion = $netVersionDictionary["Net4d7d1"]
     } elseif ((Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU21") -or
     (Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU13") -or
     (Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2019 -CU "CU2")) {
-        $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d7d2
+        $recommendedNetVersion = $netVersionDictionary["Net4d7d2"]
     } else {
-        $recommendedNetVersion = [HealthChecker.NetMajorVersion]::Net4d8
+        $recommendedNetVersion = $netVersionDictionary["Net4d8"]
     }
 
     Write-Verbose "Recommended NET Version: $recommendedNetVersion"

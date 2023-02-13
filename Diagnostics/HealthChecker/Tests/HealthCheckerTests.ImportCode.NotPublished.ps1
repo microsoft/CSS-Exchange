@@ -7,7 +7,6 @@
 [CmdletBinding()]
 param()
 $Script:parentPath = (Split-Path -Parent $PSScriptRoot)
-. $PSScriptRoot\..\Helpers\Class.ps1
 . $PSScriptRoot\..\..\..\Shared\PesterLoadFunctions.NotPublished.ps1
 . $PSScriptRoot\..\..\..\.build\Load-Module.ps1
 
