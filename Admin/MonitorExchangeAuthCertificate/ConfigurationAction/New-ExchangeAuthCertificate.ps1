@@ -101,7 +101,7 @@ function New-ExchangeAuthCertificate {
                 }
 
                 if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, $confirmationMessage, "Unattended Exchange certificate generation")) {
-                    Write-Verbose ("Function called in unattended mode - internal transport certificate will be overwritten for a short time and then reset to the previous one")
+                    Write-Verbose ("Internal transport certificate will be overwritten for a short time and then reset to the previous one")
                     $internalTransportCertificate = Get-InternalTransportCertificateFromServer $env:COMPUTERNAME
                     $defaultWebSiteCertificateThumbprints = GetCertificateBoundToDefaultWebSiteThumbprints
                     [string]$internalTransportCertificateThumbprint = $internalTransportCertificate.Thumbprint
