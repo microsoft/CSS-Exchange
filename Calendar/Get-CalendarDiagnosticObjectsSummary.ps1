@@ -31,15 +31,15 @@ param(
 function GetCalendarDiagnosticObjects {
     $CustomPropertyNameList = "AppointmentCounterProposal", "AppointmentRecurring", "CalendarItemType", "CalendarProcessed", "ClientIntent", "DisplayAttendeesCc", "DisplayAttendeesTo", "EventEmailReminderTimer", "ExternalSharingMasterId", "FreeBusyStatus", "From", "HasAttachment", "IsAllDayEvent", "IsCancelled", "IsMeeting", "MapiEndTime", "MapiStartTime", "OnlineMeetingConfLink", "OnlineMeetingExternalLink", "OnlineMeetingInternalLink", "SentRepresentingDisplayName", "SentRepresentingEmailAddress";
     if ($Identity -and $Subject -and $MeetingID) {
-        $Global:GetCDO = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults 2000;
+        $script:GetCDO = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults 2000;
     }
 
     if ($Identity -and $Subject -and !$MeetingID) {
-        $Global:GetCDO = Get-CalendarDiagnosticObjects -Identity $Identity -Subject $Subject -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults 2000;
+        $script:GetCDO = Get-CalendarDiagnosticObjects -Identity $Identity -Subject $Subject -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults 2000;
     }
 
     if ($Identity -and $MeetingID -and !$Subject) {
-        $Global:GetCDO = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults 2000;
+        $script:GetCDO = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults 2000;
     }
 
     if ($Identity -and !$Subject -and !$MeetingID) {
@@ -68,11 +68,11 @@ function GetMailbox {
     )
 
     if ($Identity -and $Organization) {
-        $Global:GetMailboxOutput = Get-Mailbox -Identity $Identity -Organization $Organization  -ErrorAction stop;
+        $script:GetMailboxOutput = Get-Mailbox -Identity $Identity -Organization $Organization  -ErrorAction stop;
         return $GetMailboxOutput;
     }
     if ($Identity -and !$Organization) {
-        $Global:GetMailboxOutput = Get-Mailbox -Identity $Identity;
+        $script:GetMailboxOutput = Get-Mailbox -Identity $Identity;
         return $GetMailboxOutput;
     }
 }
@@ -155,7 +155,7 @@ function BuildCSV {
         }
     }
 
-    $Global:CalendarItemTypes = @{
+    $script:CalendarItemTypes = @{
         'IPM.Schedule.Meeting.Request.AttendeeListReplication' = "AttendeeList"
         'IPM.Schedule.Meeting.Canceled'                        = "Canceled"
         'IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}' = "ExceptionMsgClass"
@@ -207,7 +207,7 @@ function BuildCSV {
         $Index++;
         $ItemType = $CalendarItemTypes.($CalLog.ItemClass);
         $ShortClientName = @();
-        $Global:KeyInput = $CalLog.ClientInfoString;
+        $script:KeyInput = $CalLog.ClientInfoString;
         $ResponseType = $RT.($CalLog.ResponseType.ToString());
 
         if (!$CalLog.ClientInfoString) {
@@ -394,7 +394,7 @@ function BuildCSV {
             'OnlineMeetingInternalLink'    = $CalLog.OnlineMeetingInternalLink
         }
     }
-    $Global:Results = $GCDOResults;
+    $script:Results = $GCDOResults;
 
     # Automation won't have access to this file - will add code in next version to save contents to a variable
     #$Filename = "$($Results[0].ReceivedBy)_$ShortMeetingID.csv";
@@ -877,7 +877,6 @@ function BuildTimeline {
         if ($Output) {
             if ($MeetingSummaryNeeded) {
                 MeetingSummary -Time $Time -MeetingChanges $Output;
-                $MeetingChanges = @();
                 MeetingSummary -Time " " -ShortVersion -Entry $CalLog;
             } else {
                 MeetingSummary -Time $Time -MeetingChanges $Output;
@@ -908,7 +907,7 @@ $UniqueMeetingID = $GlobalObjectId | Select-Object -Unique;
 if ($UniqueMeetingID.count -gt 1) {
     $UniqueMeetingID | ForEach-Object {
         $MeetingID = $_;
-        $Global:GCDO = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames AppointmentCounterProposal, AppointmentRecurring, CalendarItemType, CalendarProcessed, ClientIntent, DisplayAttendeesCc, DisplayAttendeesTo, EventEmailReminderTimer, ExternalSharingMasterId, FreeBusyStatus, From, HasAttachment, IsAllDayEvent, IsCancelled, IsMeeting, MapiEndTime, MapiStartTime, OnlineMeetingConfLink, OnlineMeetingExternalLink, OnlineMeetingInternalLink, SentRepresentingDisplayName, SentRepresentingEmailAddress -WarningAction Ignore -MaxResults 2000;
+        $script:GCDO = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames AppointmentCounterProposal, AppointmentRecurring, CalendarItemType, CalendarProcessed, ClientIntent, DisplayAttendeesCc, DisplayAttendeesTo, EventEmailReminderTimer, ExternalSharingMasterId, FreeBusyStatus, From, HasAttachment, IsAllDayEvent, IsCancelled, IsMeeting, MapiEndTime, MapiStartTime, OnlineMeetingConfLink, OnlineMeetingExternalLink, OnlineMeetingInternalLink, SentRepresentingDisplayName, SentRepresentingEmailAddress -WarningAction Ignore -MaxResults 2000;
         BuildCSV;
         BuildTimeline;
     }
