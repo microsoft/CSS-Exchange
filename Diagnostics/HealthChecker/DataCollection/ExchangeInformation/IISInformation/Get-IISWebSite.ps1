@@ -27,7 +27,7 @@ function Get-IISWebSite {
         $webConfigContent = $null
 
         if ($webConfigExists) {
-            $webConfigContent = Get-Content $configurationFilePath
+            $webConfigContent = Get-Content $configurationFilePath -Raw
         }
 
         $returnList.Add([PSCustomObject]@{

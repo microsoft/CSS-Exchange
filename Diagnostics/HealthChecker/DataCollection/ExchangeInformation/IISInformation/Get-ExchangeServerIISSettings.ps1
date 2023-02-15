@@ -47,7 +47,7 @@ function Get-ExchangeServerIISSettings {
                 [PSCustomObject]@{
                     Location = $_
                     Exist    = $(Test-Path $_)
-                    Content  = if (Test-Path $_) { Get-Content $_ } else { $null }
+                    Content  = if (Test-Path $_) { Get-Content $_ -Raw } else { $null }
                 }
             }
         } -ArgumentList (, $sharedWebConfigPaths) -ScriptBlockDescription "Getting Shared Web Config Files"

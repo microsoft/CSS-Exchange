@@ -16,7 +16,7 @@ function Get-IISWebApplication {
             $webConfigExists = Test-Path $configurationFilePath
 
             if ($webConfigExists) {
-                $webConfigContent = Get-Content $configurationFilePath
+                $webConfigContent = Get-Content $configurationFilePath -Raw
                 $linkedConfigurationLine = ($webConfigContent | Select-String "linkedConfiguration").Line
 
                 if ($null -ne $linkedConfigurationLine) {
