@@ -2311,8 +2311,8 @@
 <p><strong>NOTE:</strong> We recommend creating a user account in the same domain where Exchange was installed. You can specify the domain by using the <code>ADAccountDomain</code> parameter.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">MonitorExchangeAuthCertificate</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-PrepareADForAutomationOnly</span> <span class="n">-ADAccountDomain</span> <span class="s2">&quot;root.local&quot;</span>
 </code></pre></div>
-<p>The following syntax executes the script in scheduled task mode, but it doesn't create the <code>SystemMailbox{b963af59-3975-4f92-9d58-ad0b1fe3a1a3}@contoso.local</code> user account. Instead, the account passed via <code>AutomationAccountCredential</code> parameter is used.</p>
-<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">MonitorExchangeAuthCertificate</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ConfigureScriptToRunViaScheduledTask</span> <span class="n">-AutomationAccountCredential</span> <span class="p">(</span><span class="nb">Get-Credential</span><span class="p">)</span>
+<p>The following syntax executes the script in scheduled task mode, but it doesn't create the <code>SystemMailbox{b963af59-3975-4f92-9d58-ad0b1fe3a1a3}@contoso.local</code> user account. Instead, the account passed via <code>AutomationAccountCredential</code> parameter is used. Should a renewal action be performed, then email notifications will be sent to <code>John.Doe@contoso.com"</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">MonitorExchangeAuthCertificate</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ConfigureScriptToRunViaScheduledTask</span> <span class="n">-AutomationAccountCredential</span> <span class="p">(</span><span class="nb">Get-Credential</span><span class="p">)</span> <span class="n">-SendEmailNotificationTo</span> <span class="s2">&quot;John.Doe@contoso.com&quot;</span>
 </code></pre></div>
 <p>The following syntax runs the script in Auth Certificate export mode. In this mode, the script exports the current and (if configured) the next Auth Certificate as DER (Distinguished Encoding Rules) binary encoded <code>PKCS #12</code> files, using the <code>.pfx</code> file name extension.</p>
 <p>The naming syntax for the exported .pfx file is: <code>&lt;CertificateThumbprint&gt;-&lt;Timestamp&gt;.pfx</code></p>
@@ -2359,6 +2359,18 @@
 <td>This optional parameter can be used to provide a different user under whose context the script is then executed via scheduled task.</td>
 </tr>
 <tr>
+<td>SendEmailNotificationTo</td>
+<td>This optional parameter can be used to specify recipients which will then be notified in case that an Exchange Auth Certificate renewal action was performed. The script uses the <code>EWS API</code> to send out email notifications. Make sure that the user in whose context the script is running is allowed to use <code>EWS</code>.</td>
+</tr>
+<tr>
+<td>TrustAllCertificates</td>
+<td>This optional parameter can be used to trust all certificates when connecting to the EWS service to send out email notifications.</td>
+</tr>
+<tr>
+<td>TestEmailNotification</td>
+<td>This optional parameter can be used to test the email notification feature of the script.</td>
+</tr>
+<tr>
 <td>Password</td>
 <td>Parameter to provide a password to the script which is required in some scenarios.</td>
 </tr>
@@ -2382,7 +2394,7 @@
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">December 1, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">February 15, 2023</span>
       
     
   </small>

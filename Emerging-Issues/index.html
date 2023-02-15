@@ -2259,7 +2259,7 @@
 
 <h1 id="emerging-issues-for-exchange-on-premises">Emerging Issues for Exchange On-Premises</h1>
 <p>This page lists emerging issues for Exchange On-Premises deployments, possible root cause and solution/workaround to fix the issues. The page will be consistently updated with new issues found and reflect current status of the issues mentioned.</p>
-<p><strong>Updated on 1/25/2023</strong></p>
+<p><strong>Updated on 2/15/2023</strong></p>
 <p><strong>Following is list of known issues that can occur after installing <a href="https://techcommunity.microsoft.com/t5/exchange-team-blog/released-january-2023-exchange-server-security-updates/ba-p/3711808">January 2023 Security Update</a> on Exchange Servers</strong></p>
 <table>
 <thead>
@@ -2275,19 +2275,19 @@
 <td>You may find  various Exchange commands and scripts (example: RedistributeActiveDatabases.ps1) that use deserialization failing with the error similar to : <BR> Error: "Cannot convert the value of type.....to type".</td>
 <td>Exchange 2016 <BR> Exchange 2019</td>
 <td>The issue occurs if the <a href="https://aka.ms/HC-SerializedDataSigning">certificate signing for serialization of PowerShell</a> is enabled and if the auth certificate is not present or has expired</td>
-<td>Option 1: <BR> Use the <a href="https://aka.ms/MonitorExchangeAuthCertificate">MonitorExchangeAuthCertificate.ps1</a> script to update the auth certificate. <BR> Option 2:<BR> Use the steps <a href="https://aka.ms/AuthCertRenew">here</a> to  correct the issue with auth certificate</td>
+<td>Option 1: <BR> Use the <a href="https://aka.ms/MonitorExchangeAuthCertificate">MonitorExchangeAuthCertificate.ps1</a> script to update the auth certificate. <BR> Option 2:<BR> Use the steps <a href="https://aka.ms/AuthCertRenew">here</a> to correct the issue with auth certificate</td>
 </tr>
 <tr>
 <td>RecoverServer may fail at pre-requisites check with following error: <BR> "Exchange Server version Version 15.1 (Build 2507.17) or later must be used to perform a recovery of this server."</td>
 <td>Exchange 2016 <BR> Exchange 2019</td>
-<td>Please check <a href="https://learn.microsoft.com/exchange/troubleshoot/setup/version-error-in-recover-server-mode-install">this article</a></td>
-<td>Follow steps on <a href="https://learn.microsoft.com/exchange/troubleshoot/setup/version-error-in-recover-server-mode-install">this article</a> to fix the issue</td>
+<td>Resolved</td>
+<td><a href="https://support.microsoft.com/help/5023038">February 2023</a> and newer SUs will not cause this issue (but modifications made by the January 2023 SU might still require manual action during a server recovery operation). Follow steps on <a href="https://learn.microsoft.com/exchange/troubleshoot/setup/version-error-in-recover-server-mode-install">this article</a> to fix the issue.</td>
 </tr>
 <tr>
 <td>The Exchange services in Automatic start-up mode will not start after reboot of the server. The services start successfully if started manually</td>
 <td>Exchange 2016 installed on Windows 2012 R2, other versions are not affected</td>
-<td>Under investigation</td>
-<td>Use the workarounds described in <a href="https://support.microsoft.com/help/5023353">this article</a> <BR> or use the following PowerShell command to check the Exchange services that are configure to start automatically but have not started and start the services: <BR><BR> <code>Get-Service -DisplayName "Microsoft Exchange*" | Where-Object {$_.StartType -eq "Automatic" -and $_.Status -ne "Running"} | Start-Service</code></td>
+<td>Resolved</td>
+<td>Install the <a href="https://support.microsoft.com/help/5023038">February 2023 Exchange Server Security Updates</a> to fix the issue</td>
 </tr>
 <tr>
 <td>The Exchange toolbox may start crashing on launch after <a href="https://aka.ms/HC-SerializedDataSigning">certificate Serialization for PowerShell</a> is enabled. The error noticed is "Deserialization fails: System.Reflection.TargetInvocationException".</td>
@@ -2457,7 +2457,7 @@
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">January 26, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">February 15, 2023</span>
       
     
   </small>
