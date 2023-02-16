@@ -36,7 +36,14 @@ function Get-OperatingSystemInformation {
         $powerPlan = Get-PowerPlanSetting -Server $Server
         $pageFile = Get-PageFileInformation -Server $Server
         $networkInformation = Get-NetworkingInformation -Server $Server
-        $hotFixes = (Get-HotFix -ComputerName $Server -ErrorAction SilentlyContinue) #old school check still valid and faster and a failsafe
+
+        try {
+            $hotFixes = (Get-HotFix -ComputerName $Server -ErrorAction Stop) #old school check still valid and faster and a failsafe
+        } catch {
+            Write-Verbose "Failed to run Get-HotFix"
+            Invoke-CatchActions
+        }
+
         $serverPendingReboot = (Get-ServerRebootPending -ServerName $Server -CatchActionFunction ${Function:Invoke-CatchActions})
         $timeZoneInformation = Get-TimeZoneInformation -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
         $tlsSettings = Get-AllTlsSettings -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
