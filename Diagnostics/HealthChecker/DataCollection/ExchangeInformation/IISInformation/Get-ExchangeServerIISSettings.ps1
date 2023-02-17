@@ -44,10 +44,25 @@ function Get-ExchangeServerIISSettings {
         $sharedWebConfig = Invoke-ScriptBlockHandler @params -ScriptBlock {
             param ($ConfigFiles)
             $ConfigFiles | ForEach-Object {
+                $validWebConfig = $false
+                $exist = Test-Path $_
+                $content = $null
+                try {
+                    if ($exist) {
+                        $content = Get-Content $_ -Raw
+                        [xml]$content | Out-Null # test to make sure it is valid
+                        $validWebConfig = $true
+                    }
+                } catch {
+                    # Inside of Invoke-Command, can't use Invoke-CatchActions
+                    Write-Verbose "Failed to convert shared web config '$_' to xml. Exception: $($_.Exception)"
+                }
+
                 [PSCustomObject]@{
                     Location = $_
-                    Exist    = $(Test-Path $_)
-                    Content  = if (Test-Path $_) { Get-Content $_ -Raw } else { $null }
+                    Exist    = $exist
+                    Content  = $content
+                    Valid    = $validWebConfig
                 }
             }
         } -ArgumentList (, $sharedWebConfigPaths) -ScriptBlockDescription "Getting Shared Web Config Files"

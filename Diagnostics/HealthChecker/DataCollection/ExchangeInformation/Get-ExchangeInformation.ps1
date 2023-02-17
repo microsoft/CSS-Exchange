@@ -87,7 +87,7 @@ function Get-ExchangeInformation {
         }
 
         $registryValues = Get-ExchangeRegistryValues -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
-        $serverExchangeBinDirectory = [System.Io.Path]::Combine($registryValues.MisInstallPath, "Bin\")
+        $serverExchangeBinDirectory = [System.Io.Path]::Combine($registryValues.MsiInstallPath, "Bin\")
         Write-Verbose "Found Exchange Bin: $serverExchangeBinDirectory"
 
         if ($getExchangeServer.IsEdgeServer -eq $false) {
