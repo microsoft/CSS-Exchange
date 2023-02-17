@@ -198,9 +198,10 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
         $binSearchFoldersNotFound = $iisConfigurationSettings |
             Where-Object { $_.Location -like "*\ClientAccess\ecp\web.config" -and $_.Exist -eq $true } |
             Where-Object {
-                $binSearchFolders = $_.Content | Select-String "BinSearchFolders" | Select-Object -ExpandProperty Line
-                $startIndex = $binSearchFolders.IndexOf("value=`"") + 7
-                $paths = $binSearchFolders.Substring($startIndex, $binSearchFolders.LastIndexOf("`"") - $startIndex).Split(";").Trim().ToLower()
+                $binSearchFolders = (([xml]($_.Content)).configuration.appSettings.add | Where-Object {
+                        $_.key -eq "BinSearchFolders"
+                    }).value
+                $paths = $binSearchFolders.Split(";").Trim().ToLower()
                 $paths | ForEach-Object { Write-Verbose "BinSearchFolder: $($_)" }
                 $installPath = $exchangeInformation.RegistryValues.MsiInstallPath
                 foreach ($binTestPath in  @("bin", "bin\CmdletExtensionAgents", "ClientAccess\Owa\bin")) {
