@@ -13,8 +13,7 @@ This page lists emerging issues for Exchange On-Premises deployments, possible r
 
 **Issue** | **Products impacted** | **Possible reason**| **Workaround/Solution**
 -|-|-|-
-After installing [February 2023 Security Update](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-february-2023-exchange-server-security-updates/ba-p/3741058), you may observe EWS application pool crash with Event ID 4999 with following error <BR><BR> E12IIS, c-RTL-AMD64, 15.01.2507.021, w3wp#MSExchangeServicesAppPool, M.Exchange.Diagnostics, M.E.D.ChainedSerializationBinder.EnforceBlockReason, M.E.Diagnostics.BlockedDeserializeTypeException, 437c-dumptidset, 15.01.2507.021. <BR><BR> The issue also may cause connectivity issues to EWS based clients like Outlook for Mac | Exchange 2016, Exchange 2019 | Still under investigation | We are currently testing the workaround for the EWS crashing problem and will post more information when we have it. Until the reliable workaround is available, the only way to make this go away is to uninstall the Feb SU temporarily. January SU does not cause this issue.
-
+After installing [February 2023 Security Update](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-february-2023-exchange-server-security-updates/ba-p/3741058), you may observe EWS application pool crash with Event ID 4999 with following error <BR><BR> E12IIS, c-RTL-AMD64, 15.01.2507.021, w3wp#MSExchangeServicesAppPool, M.Exchange.Diagnostics, M.E.D.ChainedSerializationBinder.EnforceBlockReason, M.E.Diagnostics.BlockedDeserializeTypeException, 437c-dumptidset, 15.01.2507.021. <BR><BR> The issue also may cause connectivity issues to EWS based clients like Outlook for Mac | Exchange 2016, Exchange 2019 | Still under investigation | Follow the steps on [this KB article](https://support.microsoft.com/help/5024257)
 
 
 **Updated on 2/15/2023**
