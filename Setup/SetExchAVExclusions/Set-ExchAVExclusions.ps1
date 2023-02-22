@@ -105,9 +105,16 @@ if (-not $ListRecommendedExclusions) {
         exit
     }
 
-    if (-not (Get-MpComputerStatus).AntivirusEnabled ) {
-        Write-Warning "Microsoft Defender is not enabled."
-        Write-Warning "We will apply the exclusions but they do not take effect until you Enabled Microsoft Defender."
+    $mpStatus = $null
+    $mpStatus = Get-MpComputerStatus -ErrorAction SilentlyContinue
+    if ($null -eq $mpStatus) {
+        Write-Error "We cannot get Microsoft Defender information"
+        exit
+    } else {
+        if (-not $mpStatus.AntivirusEnabled ) {
+            Write-Warning "Microsoft Defender is not enabled."
+            Write-Warning "We will apply the exclusions but they do not take effect until you Enabled Microsoft Defender."
+        }
     }
 }
 
