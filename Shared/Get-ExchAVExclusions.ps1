@@ -111,8 +111,6 @@ function Get-ExchAVExclusionsPaths {
         }
 
         $BaseFolders.Add((Join-Path $env:SystemDrive '\inetPub\temp\IIS Temporary Compressed Files').ToLower())
-        $BaseFolders.Add((Join-Path $env:SystemRoot '\System32\InetSrv').ToLower())
-        $BaseFolders.Add((Join-Path $env:SystemRoot '\Microsoft.NET\Framework64\v4.0.30319\Temporary ASP.NET Files').ToLower())
         $BaseFolders.Add(($((Get-PopSettings).LogFileLocation)).ToLower())
         $BaseFolders.Add(($((Get-ImapSettings).LogFileLocation)).ToLower())
     }
@@ -314,7 +312,6 @@ function Get-ExchAVExclusionsProcess {
             $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Search\Ceres\HostController\hostcontrollerservice.exe'))
             $ProcessList.Add((Join-Path $env:SystemRoot '\System32\inetSrv\inetInfo.exe'))
             $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Microsoft.Exchange.Directory.TopologyService.exe'))
-            $ProcessList.Add((Join-Path $env:SystemRoot '\System32\inetSrv\W3wp.exe'))
         }
 
         if ((Get-ExchangeServer $env:COMPUTERNAME).IsClientAccessServer -or (Get-ExchangeServer $env:COMPUTERNAME).IsMailboxServer -or (Get-ExchangeServer $env:COMPUTERNAME).IsEdgeServer) {
@@ -323,7 +320,6 @@ function Get-ExchAVExclusionsProcess {
             $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Microsoft.Exchange.Servicehost.exe'))
             $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeHMHost.exe'))
             $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeHMWorker.exe'))
-            $ProcessList.Add('C:\Windows\System32\WindowsPowerShell\v1.0\Powershell.exe')
         }
 
         if ((Get-ExchangeServer $env:COMPUTERNAME).IsEdgeServer -or (Get-ExchangeServer $env:COMPUTERNAME).IsMailboxServer) {
