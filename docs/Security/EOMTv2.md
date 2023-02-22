@@ -1,6 +1,8 @@
 # Exchange On-premises Mitigation Tool v2 (EOMTv2)
 
-**NOTE:** The vulnerability has been addressed with the [November 2022 Exchange Server Security Updates](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-november-2022-exchange-server-security-updates/ba-p/3669045). The mitigation is no longer required once the update has been installed. You can rollback the mitigation as described in the [Exchange On-premises Mitigation Tool v2 Examples](#exchange-on-premises-mitigation-tool-v2-examples) section.
+!!! warning "Please read carefully"
+
+      The vulnerability addressed by this mitigation script has been addressed in [latest Exchange Server Security Updates](https://aka.ms/LatestExchangeServerUpdate) (starting with November 2022 SU). Mitigations can become insufficient to protect against all variations of an attack. Thus, installation of an applicable SU is the only way to protect your servers. Once you install the updates, you can rollback the mitigation as described in the [Exchange On-premises Mitigation Tool v2 Examples](#exchange-on-premises-mitigation-tool-v2-examples) section.
 
 Download the latest release: [EOMTv2.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/EOMTv2.ps1)
 
