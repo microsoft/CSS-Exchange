@@ -542,10 +542,11 @@ try {
         ($RollbackMitigation -eq $false)) {
         $params = @{
             Message   = "Display Warning about CVE-2022-41040 mitigation"
-            Target    = "The CVE-2022-41040 security vulnerability has been addressed with the November 2022 Exchange Server Security Update." +
-            "`r`nTherefore, it's no longer required to apply the mitigation in case the update has been installed." +
-            "`r`nSee: https://techcommunity.microsoft.com/t5/exchange-team-blog/released-november-2022-exchange-server-security-updates/ba-p/3669045" +
-            "`r`nDo you want to proceed?"
+            Target    = "The CVE-2022-41040 security vulnerability has been addressed with the November 2022 and later Exchange Server Security Update." +
+            "`r`nMitigations can become insufficient to protect against all variations of an attack." +
+            "`r`nThus, installation of an applicable SU is the ***only way to protect your servers***." +
+            "`r`nGet the latest Exchange Server update here: https://aka.ms/LatestExchangeServerUpdate" +
+            "`r`nDo you really want to proceed?"
             Operation = "Applying CVE-2022-41040 mitigation"
         }
 
