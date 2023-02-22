@@ -158,7 +158,7 @@ function Get-ExchAVExclusionsPaths {
         #E13 Exchange Server setup temporary files.
         $BaseFolders.Add((Join-Path $env:SystemRoot '\Temp\ExchangeSetup').ToLower())
 
-        # it is only in client Access E13 doc--- InetPub\logs\LogFiles\w3svc
+        # it is only in client Access E13 doc--- inetPub\logs\LogFiles\w3svc
         Get-Website | Where-Object { $_.name -eq 'Default Web Site' -or $_.name -eq 'Exchange Back End' } | ForEach-Object {
             if ($_.LogFile.directory.StartsWith('%')) {
                 $BaseFolders.Add(("$(Get-Content -Path Env:"$($_.logFile.directory.Split('%')[1])")$($_.logFile.directory.Split('%')[2])\W3SVC$($_.id)").ToLower())
