@@ -1,0 +1,1097 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>Microsoft.IIs.PowerShell.Framework.ConfigurationElement#bindings#binding</T>
+      <T>Microsoft.IIs.PowerShell.Framework.ConfigurationElement</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>http *:80:</ToString>
+    <Props>
+      <Obj N="Attributes" RefId="1">
+        <TN RefId="1">
+          <T>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeCollection</T>
+          <T>System.Object</T>
+        </TN>
+        <IE>
+          <Obj RefId="2">
+            <TN RefId="2">
+              <T>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</T>
+              <T>System.Object</T>
+            </TN>
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">protocol</S>
+              <S N="TypeName">System.String</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S N="Value">http</S>
+              <B N="IsExtended">false</B>
+            </Props>
+          </Obj>
+          <Obj RefId="3">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">bindingInformation</S>
+              <S N="TypeName">System.String</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S N="Value">*:80:</S>
+              <B N="IsExtended">false</B>
+            </Props>
+          </Obj>
+          <Obj RefId="4">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">true</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">sslFlags</S>
+              <S N="TypeName">System.Int64</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <I64 N="Value">0</I64>
+              <B N="IsExtended">false</B>
+            </Props>
+          </Obj>
+          <Obj RefId="5">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">isDsMapperEnabled</S>
+              <S N="TypeName">System.Boolean</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <B N="Value">false</B>
+              <B N="IsExtended">true</B>
+            </Props>
+          </Obj>
+          <Obj RefId="6">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">certificateHash</S>
+              <S N="TypeName">System.String</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S N="Value"></S>
+              <B N="IsExtended">true</B>
+            </Props>
+          </Obj>
+          <Obj RefId="7">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">certificateStoreName</S>
+              <S N="TypeName">System.String</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S N="Value"></S>
+              <B N="IsExtended">true</B>
+            </Props>
+          </Obj>
+        </IE>
+        <Props>
+          <I32 N="Count">6</I32>
+          <S N="SyncRoot">System.Object</S>
+          <B N="IsSynchronized">false</B>
+        </Props>
+      </Obj>
+      <Obj N="ChildElements" RefId="8">
+        <TN RefId="3">
+          <T>Microsoft.IIs.PowerShell.Framework.ConfigurationChildElementCollection</T>
+          <T>System.Object</T>
+        </TN>
+        <IE />
+        <Props>
+          <I32 N="Count">0</I32>
+          <S N="SyncRoot">System.Object</S>
+          <B N="IsSynchronized">false</B>
+        </Props>
+      </Obj>
+      <S N="ElementTagName">binding</S>
+      <Obj N="Methods" RefId="9">
+        <TN RefId="4">
+          <T>Microsoft.IIs.PowerShell.Framework.ConfigurationMethodCollection</T>
+          <T>System.Object</T>
+        </TN>
+        <IE>
+          <Obj RefId="10">
+            <TN RefId="5">
+              <T>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</T>
+              <T>System.Object</T>
+            </TN>
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">EnableDsMapper</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+          <Obj RefId="11">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">DisableDsMapper</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+          <Obj RefId="12">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">AddSslCertificate</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+          <Obj RefId="13">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">RemoveSslCertificate</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+          <Obj RefId="14">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">RebindSslCertificate</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+        </IE>
+        <Props>
+          <I32 N="Count">5</I32>
+          <S N="SyncRoot">System.Object</S>
+          <B N="IsSynchronized">false</B>
+        </Props>
+      </Obj>
+      <Obj N="Schema" RefId="15">
+        <TN RefId="6">
+          <T>Microsoft.IIs.PowerShell.Framework.ConfigurationElementSchema</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationElementSchema</ToString>
+        <Props>
+          <B N="AllowUnrecognizedAttributes">false</B>
+          <Obj N="AttributeSchemas" RefId="16">
+            <TN RefId="7">
+              <T>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchemaCollection</T>
+              <T>System.Object</T>
+            </TN>
+            <IE>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+            </IE>
+          </Obj>
+          <Nil N="ChildElementSchemas" />
+          <Nil N="CollectionSchema" />
+          <B N="IsCollectionDefault">false</B>
+          <S N="Name">binding</S>
+        </Props>
+      </Obj>
+    </Props>
+    <MS>
+      <S N="protocol">http</S>
+      <S N="bindingInformation">*:80:</S>
+      <I64 N="sslFlags">0</I64>
+      <B N="isDsMapperEnabled">false</B>
+      <S N="certificateHash"></S>
+      <S N="certificateStoreName"></S>
+      <S N="ItemXPath">/system.applicationHost/sites/site[@name='Default Web Site' and @id='1']</S>
+    </MS>
+  </Obj>
+  <Obj RefId="17">
+    <TNRef RefId="0" />
+    <ToString>https :443: sslFlags=0</ToString>
+    <Props>
+      <Obj N="Attributes" RefId="18">
+        <TNRef RefId="1" />
+        <IE>
+          <Obj RefId="19">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">protocol</S>
+              <S N="TypeName">System.String</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S N="Value">https</S>
+              <B N="IsExtended">false</B>
+            </Props>
+          </Obj>
+          <Obj RefId="20">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">bindingInformation</S>
+              <S N="TypeName">System.String</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S N="Value">:443:</S>
+              <B N="IsExtended">false</B>
+            </Props>
+          </Obj>
+          <Obj RefId="21">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">true</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">sslFlags</S>
+              <S N="TypeName">System.Int64</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <I64 N="Value">0</I64>
+              <B N="IsExtended">false</B>
+            </Props>
+          </Obj>
+          <Obj RefId="22">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">isDsMapperEnabled</S>
+              <S N="TypeName">System.Boolean</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <B N="Value">false</B>
+              <B N="IsExtended">true</B>
+            </Props>
+          </Obj>
+          <Obj RefId="23">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">certificateHash</S>
+              <S N="TypeName">System.String</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S N="Value">460EC056E2B7BFF2960AFFD42AAD47235FA240EF</S>
+              <B N="IsExtended">true</B>
+            </Props>
+          </Obj>
+          <Obj RefId="24">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">certificateStoreName</S>
+              <S N="TypeName">System.String</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S N="Value">MY</S>
+              <B N="IsExtended">true</B>
+            </Props>
+          </Obj>
+        </IE>
+        <Props>
+          <I32 N="Count">6</I32>
+          <S N="SyncRoot">System.Object</S>
+          <B N="IsSynchronized">false</B>
+        </Props>
+      </Obj>
+      <Ref N="ChildElements" RefId="8" />
+      <S N="ElementTagName">binding</S>
+      <Obj N="Methods" RefId="25">
+        <TNRef RefId="4" />
+        <IE>
+          <Obj RefId="26">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">EnableDsMapper</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+          <Obj RefId="27">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">DisableDsMapper</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+          <Obj RefId="28">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">AddSslCertificate</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+          <Obj RefId="29">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">RemoveSslCertificate</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+          <Obj RefId="30">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">RebindSslCertificate</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+        </IE>
+        <Props>
+          <I32 N="Count">5</I32>
+          <S N="SyncRoot">System.Object</S>
+          <B N="IsSynchronized">false</B>
+        </Props>
+      </Obj>
+      <Obj N="Schema" RefId="31">
+        <TNRef RefId="6" />
+        <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationElementSchema</ToString>
+        <Props>
+          <B N="AllowUnrecognizedAttributes">false</B>
+          <Obj N="AttributeSchemas" RefId="32">
+            <TNRef RefId="7" />
+            <IE>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+            </IE>
+          </Obj>
+          <Nil N="ChildElementSchemas" />
+          <Nil N="CollectionSchema" />
+          <B N="IsCollectionDefault">false</B>
+          <S N="Name">binding</S>
+        </Props>
+      </Obj>
+    </Props>
+    <MS>
+      <S N="protocol">https</S>
+      <S N="bindingInformation">:443:</S>
+      <I64 N="sslFlags">0</I64>
+      <B N="isDsMapperEnabled">false</B>
+      <S N="certificateHash">460EC056E2B7BFF2960AFFD42AAD47235FA240EF</S>
+      <S N="certificateStoreName">MY</S>
+      <S N="ItemXPath">/system.applicationHost/sites/site[@name='Default Web Site' and @id='1']</S>
+    </MS>
+  </Obj>
+  <Obj RefId="33">
+    <TNRef RefId="0" />
+    <ToString>http 127.0.0.1:80:</ToString>
+    <Props>
+      <Obj N="Attributes" RefId="34">
+        <TNRef RefId="1" />
+        <IE>
+          <Obj RefId="35">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">protocol</S>
+              <S N="TypeName">System.String</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S N="Value">http</S>
+              <B N="IsExtended">false</B>
+            </Props>
+          </Obj>
+          <Obj RefId="36">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">bindingInformation</S>
+              <S N="TypeName">System.String</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S N="Value">127.0.0.1:80:</S>
+              <B N="IsExtended">false</B>
+            </Props>
+          </Obj>
+          <Obj RefId="37">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">true</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">sslFlags</S>
+              <S N="TypeName">System.Int64</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <I64 N="Value">0</I64>
+              <B N="IsExtended">false</B>
+            </Props>
+          </Obj>
+          <Obj RefId="38">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">isDsMapperEnabled</S>
+              <S N="TypeName">System.Boolean</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <B N="Value">false</B>
+              <B N="IsExtended">true</B>
+            </Props>
+          </Obj>
+          <Obj RefId="39">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">certificateHash</S>
+              <S N="TypeName">System.String</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S N="Value"></S>
+              <B N="IsExtended">true</B>
+            </Props>
+          </Obj>
+          <Obj RefId="40">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">certificateStoreName</S>
+              <S N="TypeName">System.String</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S N="Value"></S>
+              <B N="IsExtended">true</B>
+            </Props>
+          </Obj>
+        </IE>
+        <Props>
+          <I32 N="Count">6</I32>
+          <S N="SyncRoot">System.Object</S>
+          <B N="IsSynchronized">false</B>
+        </Props>
+      </Obj>
+      <Ref N="ChildElements" RefId="8" />
+      <S N="ElementTagName">binding</S>
+      <Obj N="Methods" RefId="41">
+        <TNRef RefId="4" />
+        <IE>
+          <Obj RefId="42">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">EnableDsMapper</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+          <Obj RefId="43">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">DisableDsMapper</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+          <Obj RefId="44">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">AddSslCertificate</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+          <Obj RefId="45">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">RemoveSslCertificate</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+          <Obj RefId="46">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">RebindSslCertificate</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+        </IE>
+        <Props>
+          <I32 N="Count">5</I32>
+          <S N="SyncRoot">System.Object</S>
+          <B N="IsSynchronized">false</B>
+        </Props>
+      </Obj>
+      <Obj N="Schema" RefId="47">
+        <TNRef RefId="6" />
+        <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationElementSchema</ToString>
+        <Props>
+          <B N="AllowUnrecognizedAttributes">false</B>
+          <Obj N="AttributeSchemas" RefId="48">
+            <TNRef RefId="7" />
+            <IE>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+            </IE>
+          </Obj>
+          <Nil N="ChildElementSchemas" />
+          <Nil N="CollectionSchema" />
+          <B N="IsCollectionDefault">false</B>
+          <S N="Name">binding</S>
+        </Props>
+      </Obj>
+    </Props>
+    <MS>
+      <S N="protocol">http</S>
+      <S N="bindingInformation">127.0.0.1:80:</S>
+      <I64 N="sslFlags">0</I64>
+      <B N="isDsMapperEnabled">false</B>
+      <S N="certificateHash"></S>
+      <S N="certificateStoreName"></S>
+      <S N="ItemXPath">/system.applicationHost/sites/site[@name='Default Web Site' and @id='1']</S>
+    </MS>
+  </Obj>
+  <Obj RefId="49">
+    <TNRef RefId="0" />
+    <ToString>https 127.0.0.1:443: sslFlags=0</ToString>
+    <Props>
+      <Obj N="Attributes" RefId="50">
+        <TNRef RefId="1" />
+        <IE>
+          <Obj RefId="51">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">protocol</S>
+              <S N="TypeName">System.String</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S N="Value">https</S>
+              <B N="IsExtended">false</B>
+            </Props>
+          </Obj>
+          <Obj RefId="52">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">bindingInformation</S>
+              <S N="TypeName">System.String</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S N="Value">127.0.0.1:443:</S>
+              <B N="IsExtended">false</B>
+            </Props>
+          </Obj>
+          <Obj RefId="53">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">true</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">sslFlags</S>
+              <S N="TypeName">System.Int64</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <I64 N="Value">0</I64>
+              <B N="IsExtended">false</B>
+            </Props>
+          </Obj>
+          <Obj RefId="54">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">isDsMapperEnabled</S>
+              <S N="TypeName">System.Boolean</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <B N="Value">false</B>
+              <B N="IsExtended">true</B>
+            </Props>
+          </Obj>
+          <Obj RefId="55">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">certificateHash</S>
+              <S N="TypeName">System.String</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S N="Value">460EC056E2B7BFF2960AFFD42AAD47235FA240EF</S>
+              <B N="IsExtended">true</B>
+            </Props>
+          </Obj>
+          <Obj RefId="56">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">certificateStoreName</S>
+              <S N="TypeName">System.String</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S N="Value">MY</S>
+              <B N="IsExtended">true</B>
+            </Props>
+          </Obj>
+        </IE>
+        <Props>
+          <I32 N="Count">6</I32>
+          <S N="SyncRoot">System.Object</S>
+          <B N="IsSynchronized">false</B>
+        </Props>
+      </Obj>
+      <Ref N="ChildElements" RefId="8" />
+      <S N="ElementTagName">binding</S>
+      <Obj N="Methods" RefId="57">
+        <TNRef RefId="4" />
+        <IE>
+          <Obj RefId="58">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">EnableDsMapper</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+          <Obj RefId="59">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">DisableDsMapper</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+          <Obj RefId="60">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">AddSslCertificate</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+          <Obj RefId="61">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">RemoveSslCertificate</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+          <Obj RefId="62">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">RebindSslCertificate</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+        </IE>
+        <Props>
+          <I32 N="Count">5</I32>
+          <S N="SyncRoot">System.Object</S>
+          <B N="IsSynchronized">false</B>
+        </Props>
+      </Obj>
+      <Obj N="Schema" RefId="63">
+        <TNRef RefId="6" />
+        <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationElementSchema</ToString>
+        <Props>
+          <B N="AllowUnrecognizedAttributes">false</B>
+          <Obj N="AttributeSchemas" RefId="64">
+            <TNRef RefId="7" />
+            <IE>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+            </IE>
+          </Obj>
+          <Nil N="ChildElementSchemas" />
+          <Nil N="CollectionSchema" />
+          <B N="IsCollectionDefault">false</B>
+          <S N="Name">binding</S>
+        </Props>
+      </Obj>
+    </Props>
+    <MS>
+      <S N="protocol">https</S>
+      <S N="bindingInformation">127.0.0.1:443:</S>
+      <I64 N="sslFlags">0</I64>
+      <B N="isDsMapperEnabled">false</B>
+      <S N="certificateHash">460EC056E2B7BFF2960AFFD42AAD47235FA240EF</S>
+      <S N="certificateStoreName">MY</S>
+      <S N="ItemXPath">/system.applicationHost/sites/site[@name='Default Web Site' and @id='1']</S>
+    </MS>
+  </Obj>
+  <Obj RefId="65">
+    <TNRef RefId="0" />
+    <ToString>http *:81:</ToString>
+    <Props>
+      <Obj N="Attributes" RefId="66">
+        <TNRef RefId="1" />
+        <IE>
+          <Obj RefId="67">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">protocol</S>
+              <S N="TypeName">System.String</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S N="Value">http</S>
+              <B N="IsExtended">false</B>
+            </Props>
+          </Obj>
+          <Obj RefId="68">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">bindingInformation</S>
+              <S N="TypeName">System.String</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S N="Value">*:81:</S>
+              <B N="IsExtended">false</B>
+            </Props>
+          </Obj>
+          <Obj RefId="69">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">true</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">sslFlags</S>
+              <S N="TypeName">System.Int64</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <I64 N="Value">0</I64>
+              <B N="IsExtended">false</B>
+            </Props>
+          </Obj>
+          <Obj RefId="70">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">isDsMapperEnabled</S>
+              <S N="TypeName">System.Boolean</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <B N="Value">false</B>
+              <B N="IsExtended">true</B>
+            </Props>
+          </Obj>
+          <Obj RefId="71">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">certificateHash</S>
+              <S N="TypeName">System.String</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S N="Value"></S>
+              <B N="IsExtended">true</B>
+            </Props>
+          </Obj>
+          <Obj RefId="72">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">certificateStoreName</S>
+              <S N="TypeName">System.String</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S N="Value"></S>
+              <B N="IsExtended">true</B>
+            </Props>
+          </Obj>
+        </IE>
+        <Props>
+          <I32 N="Count">6</I32>
+          <S N="SyncRoot">System.Object</S>
+          <B N="IsSynchronized">false</B>
+        </Props>
+      </Obj>
+      <Ref N="ChildElements" RefId="8" />
+      <S N="ElementTagName">binding</S>
+      <Obj N="Methods" RefId="73">
+        <TNRef RefId="4" />
+        <IE>
+          <Obj RefId="74">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">EnableDsMapper</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+          <Obj RefId="75">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">DisableDsMapper</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+          <Obj RefId="76">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">AddSslCertificate</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+          <Obj RefId="77">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">RemoveSslCertificate</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+          <Obj RefId="78">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">RebindSslCertificate</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+        </IE>
+        <Props>
+          <I32 N="Count">5</I32>
+          <S N="SyncRoot">System.Object</S>
+          <B N="IsSynchronized">false</B>
+        </Props>
+      </Obj>
+      <Obj N="Schema" RefId="79">
+        <TNRef RefId="6" />
+        <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationElementSchema</ToString>
+        <Props>
+          <B N="AllowUnrecognizedAttributes">false</B>
+          <Obj N="AttributeSchemas" RefId="80">
+            <TNRef RefId="7" />
+            <IE>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+            </IE>
+          </Obj>
+          <Nil N="ChildElementSchemas" />
+          <Nil N="CollectionSchema" />
+          <B N="IsCollectionDefault">false</B>
+          <S N="Name">binding</S>
+        </Props>
+      </Obj>
+    </Props>
+    <MS>
+      <S N="protocol">http</S>
+      <S N="bindingInformation">*:81:</S>
+      <I64 N="sslFlags">0</I64>
+      <B N="isDsMapperEnabled">false</B>
+      <S N="certificateHash"></S>
+      <S N="certificateStoreName"></S>
+      <S N="ItemXPath">/system.applicationHost/sites/site[@name='Exchange Back End' and @id='2']</S>
+    </MS>
+  </Obj>
+  <Obj RefId="81">
+    <TNRef RefId="0" />
+    <ToString>https *:444: sslFlags=0</ToString>
+    <Props>
+      <Obj N="Attributes" RefId="82">
+        <TNRef RefId="1" />
+        <IE>
+          <Obj RefId="83">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">protocol</S>
+              <S N="TypeName">System.String</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S N="Value">https</S>
+              <B N="IsExtended">false</B>
+            </Props>
+          </Obj>
+          <Obj RefId="84">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">bindingInformation</S>
+              <S N="TypeName">System.String</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S N="Value">*:444:</S>
+              <B N="IsExtended">false</B>
+            </Props>
+          </Obj>
+          <Obj RefId="85">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">true</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">sslFlags</S>
+              <S N="TypeName">System.Int64</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <I64 N="Value">0</I64>
+              <B N="IsExtended">false</B>
+            </Props>
+          </Obj>
+          <Obj RefId="86">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">isDsMapperEnabled</S>
+              <S N="TypeName">System.Boolean</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <B N="Value">false</B>
+              <B N="IsExtended">true</B>
+            </Props>
+          </Obj>
+          <Obj RefId="87">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">certificateHash</S>
+              <S N="TypeName">System.String</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S N="Value">460EC056E2B7BFF2960AFFD42AAD47235FA240EF</S>
+              <B N="IsExtended">true</B>
+            </Props>
+          </Obj>
+          <Obj RefId="88">
+            <TNRef RefId="2" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationAttribute</ToString>
+            <Props>
+              <B N="IsInheritedFromDefaultValue">false</B>
+              <B N="IsProtected">false</B>
+              <S N="Name">certificateStoreName</S>
+              <S N="TypeName">System.String</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S N="Value">MY</S>
+              <B N="IsExtended">true</B>
+            </Props>
+          </Obj>
+        </IE>
+        <Props>
+          <I32 N="Count">6</I32>
+          <S N="SyncRoot">System.Object</S>
+          <B N="IsSynchronized">false</B>
+        </Props>
+      </Obj>
+      <Ref N="ChildElements" RefId="8" />
+      <S N="ElementTagName">binding</S>
+      <Obj N="Methods" RefId="89">
+        <TNRef RefId="4" />
+        <IE>
+          <Obj RefId="90">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">EnableDsMapper</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+          <Obj RefId="91">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">DisableDsMapper</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+          <Obj RefId="92">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">AddSslCertificate</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+          <Obj RefId="93">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">RemoveSslCertificate</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+          <Obj RefId="94">
+            <TNRef RefId="5" />
+            <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationMethod</ToString>
+            <Props>
+              <S N="Name">RebindSslCertificate</S>
+              <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationMethodSchema</S>
+            </Props>
+          </Obj>
+        </IE>
+        <Props>
+          <I32 N="Count">5</I32>
+          <S N="SyncRoot">System.Object</S>
+          <B N="IsSynchronized">false</B>
+        </Props>
+      </Obj>
+      <Obj N="Schema" RefId="95">
+        <TNRef RefId="6" />
+        <ToString>Microsoft.IIs.PowerShell.Framework.ConfigurationElementSchema</ToString>
+        <Props>
+          <B N="AllowUnrecognizedAttributes">false</B>
+          <Obj N="AttributeSchemas" RefId="96">
+            <TNRef RefId="7" />
+            <IE>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+              <S>Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
+            </IE>
+          </Obj>
+          <Nil N="ChildElementSchemas" />
+          <Nil N="CollectionSchema" />
+          <B N="IsCollectionDefault">false</B>
+          <S N="Name">binding</S>
+        </Props>
+      </Obj>
+    </Props>
+    <MS>
+      <S N="protocol">https</S>
+      <S N="bindingInformation">*:444:</S>
+      <I64 N="sslFlags">0</I64>
+      <B N="isDsMapperEnabled">false</B>
+      <S N="certificateHash">460EC056E2B7BFF2960AFFD42AAD47235FA240EF</S>
+      <S N="certificateStoreName">MY</S>
+      <S N="ItemXPath">/system.applicationHost/sites/site[@name='Exchange Back End' and @id='2']</S>
+    </MS>
+  </Obj>
+</Objs>
