@@ -11,6 +11,9 @@ function Get-IISWebApplication {
             $webConfigContent = $null
             $linkedConfigurationFilePath = $null
             $validWebConfig = $false # able to convert the file to xml type
+            # set back to default, just incase there is an exception below
+            $webConfigExists = $false
+            $configurationFilePath = [string]::Empty
             $siteName = $webApplication.ItemXPath | Select-String -Pattern "site\[\@name='(.+)'\s|\]"
             $friendlyName = "$($siteName.Matches.Groups[1].Value)$($webApplication.Path)"
             $configurationFilePath = (Get-WebConfigFile "IIS:\Sites\$friendlyName").FullName
