@@ -32,6 +32,10 @@
     Use this parameter to provide a cleanup action. ClearProperty or ClearEmail
 .PARAMETER CleanupInfoFilePath
     Use this parameter to provide path to the csv file containing the details of emails to be cleaned up
+.PARAMETER ScriptUpdateOnly
+    This optional parameter allows you to only update the script without performing any other actions.
+.PARAMETER SkipVersionCheck
+    This optional parameter allows you to skip the automatic version check and script update.
 .EXAMPLE
     PS C:\> .\ClearEmailProperty.ps1 -UserMailboxesFilePath <path to file containing user mailboxes> -DLLPath <path to Microsoft.Exchange.WebServices.dll>
     This will run the tool in audit mode on all the mailboxes provided in UserMailboxesFilePath and provide the user with a csv AuditResults_<current time>.csv in the same folder
@@ -45,8 +49,8 @@
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
 
 param(
-    [Parameter(Mandatory=$true, ParameterSetName = 'Audit')]
-    [Parameter(Mandatory=$true, ParameterSetName = 'Cleanup')]
+    [Parameter(Mandatory=$false, ParameterSetName = 'Audit')]
+    [Parameter(Mandatory=$false, ParameterSetName = 'Cleanup')]
     [ValidateScript({ Test-Path -Path $_ -PathType leaf })]
     [String]$DLLPath,
 
@@ -82,15 +86,27 @@ param(
 
     [Parameter(Mandatory=$true, ParameterSetName = 'Cleanup')]
     [ValidateScript({ Test-Path -Path $_ -PathType leaf })]
-    [string]$CleanupInfoFilePath
+    [string]$CleanupInfoFilePath,
+
+    [Parameter(Mandatory = $false, ParameterSetName = "ScriptUpdateOnly")]
+    [switch]$ScriptUpdateOnly,
+
+    [Parameter(Mandatory = $false, ParameterSetName = "Audit")]
+    [Parameter(Mandatory = $false, ParameterSetName = "Cleanup")]
+    [switch]$SkipVersionCheck
 )
 
 begin {
+    $BuildVersion = ""
+
     . $PSScriptRoot\WriteFunctions.ps1
     . $PSScriptRoot\..\..\..\Shared\OutputOverrides\Write-Host.ps1
     . $PSScriptRoot\..\..\..\Shared\OutputOverrides\Write-Progress.ps1
     . $PSScriptRoot\..\..\..\Shared\OutputOverrides\Write-Verbose.ps1
     . $PSScriptRoot\..\..\..\Shared\OutputOverrides\Write-Warning.ps1
+    . $PSScriptRoot\..\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
+    . $PSScriptRoot\..\..\..\Shared\Get-NuGetPackage.ps1
+    . $PSScriptRoot\..\..\..\Shared\Invoke-ExtractArchive.ps1
     . $PSScriptRoot\..\..\..\Shared\LoggerFunctions.ps1
     . $PSScriptRoot\..\..\..\Shared\Show-Disclaimer.ps1
     . $PSScriptRoot\..\..\..\Shared\Get-ExchangeBuildVersionInformation.ps1
@@ -446,8 +462,57 @@ begin {
         }
     }
 } process {
-    # Import "Microsoft Exchange Web Services Managed API 2.2"
-    Import-Module -Name $DLLPath
+    Write-Host ("ClearEmailProperty script version $($BuildVersion)") -ForegroundColor Green
+
+    if ($ScriptUpdateOnly) {
+        switch (Test-ScriptVersion -AutoUpdate -Confirm:$false) {
+            ($true) { Write-Host ("Script was successfully updated") -ForegroundColor Green }
+            ($false) { Write-Host ("No update of the script performed") -ForegroundColor Yellow }
+            default { Write-Host ("Unable to perform ScriptUpdateOnly operation") -ForegroundColor Red }
+        }
+        return
+    }
+
+    if ((-not($SkipVersionCheck)) -and
+        (Test-ScriptVersion -AutoUpdate -Confirm:$false)) {
+        Write-Host ("Script was updated. Please rerun the command") -ForegroundColor Yellow
+        return
+    }
+
+    if ([System.String]::IsNullOrEmpty($DLLPath)) {
+        Write-Host "Trying to find Microsoft.Exchange.WebServices.dll in the script folder"
+        $DLLPath = (Get-ChildItem -Path "$PSScriptRoot\EWS" -Recurse -Filter "Microsoft.Exchange.WebServices.dll" |
+                Select-Object -First 1).FullName
+
+        if ([System.String]::IsNullOrEmpty($DLLPath)) {
+            Write-Host "Microsoft.Exchange.WebServices.dll wasn't found - attempting to download it from the internet" -ForegroundColor Yellow
+            $nuGetPackage = Get-NuGetPackage -PackageId "Microsoft.Exchange.WebServices" -Author "Microsoft"
+
+            if ($nuGetPackage.DownloadSuccessful) {
+                $unzipNuGetPackage = Invoke-ExtractArchive -CompressedFilePath $nuGetPackage.NuGetPackageFullPath -TargetFolder "$PSScriptRoot\EWS"
+
+                if ($unzipNuGetPackage.DecompressionSuccessful) {
+                    $DLLPath = (Get-ChildItem -Path $unzipNuGetPackage.FullPathToDecompressedFiles -Recurse -Filter "Microsoft.Exchange.WebServices.dll" |
+                            Select-Object -First 1).FullName
+                } else {
+                    Write-Host "Failed to unzip Microsoft.Exchange.WebServices.dll" -ForegroundColor Red
+                    exit
+                }
+            } else {
+                Write-Host "Failed to download Microsoft.Exchange.WebServices.dll from the internet" -ForegroundColor Red
+                exit
+            }
+        } else {
+            Write-Host "Microsoft.Exchange.WebServices.dll was found in the script folder" -ForegroundColor Green
+        }
+    }
+
+    try {
+        Import-Module -Name $DLLPath -ErrorAction Stop
+    } catch {
+        Write-Host "Failed to import Microsoft.Exchange.WebServices.dll" -ForegroundColor Red
+        exit
+    }
 
     $failedMailboxes = New-Object 'System.Collections.Generic.List[string]'
     $invalidEntries = New-Object 'System.Collections.Generic.List[string]'
@@ -665,4 +730,6 @@ begin {
     if ($mode -eq "Cleanup" -and $null -ne $invalidEntries -and $invalidEntries.Count -gt 0) {
         Write-Host ("Couldn't Cleanup the entries: {0}" -f [string]::Join(", ", $invalidEntries))
     }
+
+    Remove-Module -Name "Microsoft.Exchange.WebServices" -ErrorAction SilentlyContinue
 }

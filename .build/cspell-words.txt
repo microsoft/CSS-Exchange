@@ -104,6 +104,7 @@ nspi
 ntlm
 NTFS
 NUMA
+nupkg
 onprem
 OutlookiOS
 Perflib
