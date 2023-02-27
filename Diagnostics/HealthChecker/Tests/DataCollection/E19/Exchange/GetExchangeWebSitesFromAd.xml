@@ -15,10 +15,4 @@
       <S>Exchange Back End</S>
     </LST>
   </Obj>
-  <Obj RefId="2">
-    <TNRef RefId="0" />
-    <LST>
-      <S>OWA_Secondary</S>
-    </LST>
-  </Obj>
 </Objs>
