@@ -40,7 +40,7 @@ function SetDefaultRunOfHealthChecker {
     # By not exporting, we save a few seconds. If you need to debug set $Script:DebugHCPester = $true
     # Then run test manually with Invoke-Pester
     if ($DebugHCPester) {
-        $hc | Export-Clixml $PSScriptRoot\$ExportDebugFileName -Depth 6 -Encoding utf8
+        $hc | Export-Clixml $PSScriptRoot\$ExportDebugFileName -Depth 2 -Encoding utf8
     }
 
     $Script:results = Invoke-AnalyzerEngine $hc
