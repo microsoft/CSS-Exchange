@@ -21,26 +21,49 @@ function Confirm-ExchangeShell {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         Write-Verbose "Passed: LoadExchangeShell: $LoadExchangeShell"
         $currentErrors = $Error.Count
-        $passed = $false
         $edgeTransportKey = 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\EdgeTransportRole'
         $setupKey = 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'
-        $remoteShell = (!(Test-Path $setupKey))
-        $toolsServer = (Test-Path $setupKey) -and (!(Test-Path $edgeTransportKey)) -and `
-        ($null -eq (Get-ItemProperty -Path $setupKey -Name "Services" -ErrorAction SilentlyContinue))
+        $remoteShell = (-not(Test-Path $setupKey))
+        $toolsServer = (Test-Path $setupKey) -and
+            (-not(Test-Path $edgeTransportKey)) -and
+            ($null -eq (Get-ItemProperty -Path $setupKey -Name "Services" -ErrorAction SilentlyContinue))
         Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
+
+        function IsExchangeManagementSession {
+            [OutputType("System.Boolean")]
+            param(
+                [ScriptBlock]$CatchActionFunction
+            )
+
+            $getEventLogLevelCallSuccessful = $false
+            $isExchangeManagementShell = $false
+
+            try {
+                $eventLogLevel = Get-EventLogLevel -ErrorAction Stop | Select-Object -First 1
+                $getEventLogLevelCallSuccessful = $true
+                foreach ($e in $eventLogLevel) {
+                    if (($e.GetType().Name -eq "EventCategoryObject") -or
+                        (($e.GetType().Name -eq "PSObject") -and
+                            ($null -ne $e.SerializationData))) {
+                        $isExchangeManagementShell = $true
+                    }
+                }
+            } catch {
+                Write-Verbose "Failed to run Get-EventLogLevel"
+                Invoke-CatchActionError $CatchActionFunction
+            }
+
+            return [PSCustomObject]@{
+                CallWasSuccessful = $getEventLogLevelCallSuccessful
+                IsManagementShell = $isExchangeManagementShell
+            }
+        }
     }
     process {
-        try {
-            $currentErrors = $Error.Count
-            $isEMS = Get-EventLogLevel -ErrorAction Stop |
-                Select-Object -First 1 |
-                ForEach-Object { if ($_.GetType().Name -eq "EventCategoryObject") { return $true } return $false }
+        $isEMS = IsExchangeManagementSession $CatchActionFunction
+        if ($isEMS.CallWasSuccessful) {
             Write-Verbose "Exchange PowerShell Module already loaded."
-            $passed = $true
-            Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
-        } catch {
-            Write-Verbose "Failed to run Get-EventLogLevel"
-            Invoke-CatchActionError $CatchActionFunction
+        } else {
             if (-not ($LoadExchangeShell)) { return }
 
             #Test 32 bit process, as we can't see the registry if that is the case.
@@ -50,10 +73,10 @@ function Confirm-ExchangeShell {
             }
 
             if (Test-Path "$setupKey") {
-                $currentErrors = $Error.Count
                 Write-Verbose "We are on Exchange 2013 or newer"
 
                 try {
+                    $currentErrors = $Error.Count
                     if (Test-Path $edgeTransportKey) {
                         Write-Verbose "We are on Exchange Edge Transport Server"
                         [xml]$PSSnapIns = Get-Content -Path "$env:ExchangeInstallPath\Bin\exShell.psc1" -ErrorAction Stop
@@ -68,18 +91,15 @@ function Confirm-ExchangeShell {
                         Import-Module $env:ExchangeInstallPath\bin\RemoteExchange.ps1 -ErrorAction Stop
                         Connect-ExchangeServer -Auto -ClientApplication:ManagementShell
                     }
+                    Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
 
                     Write-Verbose "Imported Module. Trying Get-EventLogLevel Again"
-                    try {
-                        $isEMS = Get-EventLogLevel -ErrorAction Stop |
-                            Select-Object -First 1 |
-                            ForEach-Object { if ($_.GetType().Name -eq "EventCategoryObject") { return $true } return $false }
-                        $passed = $true
+                    $isEMS = IsExchangeManagementSession $CatchActionFunction
+                    if (($isEMS.CallWasSuccessful) -and
+                        ($isEMS.IsManagementShell)) {
                         Write-Verbose "Successfully loaded Exchange Management Shell"
-                        Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
-                    } catch {
-                        Write-Verbose "Failed to run Get-EventLogLevel again"
-                        Invoke-CatchActionError $CatchActionFunction
+                    } else {
+                        Write-Warning "Something went wrong while loading the Exchange Management Shell"
                     }
                 } catch {
                     Write-Warning "Failed to Load Exchange PowerShell Module..."
@@ -92,20 +112,17 @@ function Confirm-ExchangeShell {
     }
     end {
 
-        $currentErrors = $Error.Count
         $returnObject = [PSCustomObject]@{
-            ShellLoaded = $passed
+            ShellLoaded = $isEMS.CallWasSuccessful
             Major       = ((Get-ItemProperty -Path $setupKey -Name "MsiProductMajor" -ErrorAction SilentlyContinue).MsiProductMajor)
             Minor       = ((Get-ItemProperty -Path $setupKey -Name "MsiProductMinor" -ErrorAction SilentlyContinue).MsiProductMinor)
             Build       = ((Get-ItemProperty -Path $setupKey -Name "MsiBuildMajor" -ErrorAction SilentlyContinue).MsiBuildMajor)
             Revision    = ((Get-ItemProperty -Path $setupKey -Name "MsiBuildMinor" -ErrorAction SilentlyContinue).MsiBuildMinor)
-            EdgeServer  = $passed -and (Test-Path $setupKey) -and (Test-Path $edgeTransportKey)
-            ToolsOnly   = $passed -and $toolsServer
-            RemoteShell = $passed -and $remoteShell
-            EMS         = $isEMS
+            EdgeServer  = $isEMS.CallWasSuccessful -and (Test-Path $setupKey) -and (Test-Path $edgeTransportKey)
+            ToolsOnly   = $isEMS.CallWasSuccessful -and $toolsServer
+            RemoteShell = $isEMS.CallWasSuccessful -and $remoteShell
+            EMS         = $isEMS.IsManagementShell
         }
-
-        Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
 
         return $returnObject
     }

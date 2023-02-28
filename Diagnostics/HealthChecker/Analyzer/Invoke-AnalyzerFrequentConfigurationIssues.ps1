@@ -196,7 +196,7 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
         $missingConfigFile = $iisConfigurationSettings | Where-Object { $_.Exist -eq $false }
         $defaultVariableDetected = $iisConfigurationSettings | Where-Object { $null -ne ($_.Content | Select-String "%ExchangeInstallDir%") }
         $binSearchFoldersNotFound = $iisConfigurationSettings |
-            Where-Object { $_.Location -like "*\ClientAccess\ecp\web.config" -and $_.Exist -eq $true } |
+            Where-Object { $_.Location -like "*\ClientAccess\ecp\web.config" -and $_.Exist -eq $true  -and $_.Valid -eq $true } |
             Where-Object {
                 $binSearchFolders = (([xml]($_.Content)).configuration.appSettings.add | Where-Object {
                         $_.key -eq "BinSearchFolders"
