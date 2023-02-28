@@ -26,7 +26,7 @@ function Get-LoadBalancingReport {
             $CASServers = $getExchangeServer | Where-Object { ($_.IsClientAccessServer -eq $true) -and ($_.AdminDisplayVersion -Match "^Version 15") } | Sort-Object Name
             $MBXServers = $getExchangeServer | Where-Object { ($_.IsMailboxServer -eq $true) -and ($_.AdminDisplayVersion -Match "^Version 15") } | Sort-Object Name
         } else {
-            Write-Grey("Custom server list is being used.  Only servers specified after the -ServerList parameter will be used in the report.")
+            Write-Grey("Custom server list is being used. Only servers specified after the -ServerList parameter will be used in the report.")
             $CASServers = $getExchangeServer | Where-Object { ($_.IsClientAccessServer -eq $true) -and ( ($_.Name -in $ServerList) -or ($_.FQDN -in $ServerList) ) } | Sort-Object Name
             $MBXServers = $getExchangeServer | Where-Object { ($_.IsMailboxServer -eq $true) -and ( ($_.Name -in $ServerList) -or ($_.FQDN -in $ServerList) ) } | Sort-Object Name
         }
@@ -43,7 +43,7 @@ function Get-LoadBalancingReport {
     }
 
     foreach ($server in $ServerList) {
-        if ($server -notin $CASServers -and $server -notin $MBXServers) {
+        if ($server -notin $CASServers.Name -and $server -notin $MBXServers.Name) {
             Write-Warning "$server was not found as an Exchange server."
         }
     }
