@@ -104,6 +104,7 @@ function Invoke-AnalyzerSecuritySerializedDataSigningState {
             if ($serializedDataSigningInformation -eq 1) {
                 Write-Verbose "SerializedDataSigning enabled via Registry Value"
                 $serializedDataSigningState = $true
+                $serializedDataSigningWriteType = "Green"
             } else {
                 Write-Verbose "SerializedDataSigning not configured or explicitly disabled via Registry Value"
                 $serializedDataSigningState = $false

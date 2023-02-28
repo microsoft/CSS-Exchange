@@ -60,9 +60,7 @@ function Confirm-ExchangeShell {
         }
     }
     process {
-        $currentErrors = $Error.Count
         $isEMS = IsExchangeManagementSession $CatchActionFunction
-        Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
         if ($isEMS.CallWasSuccessful) {
             Write-Verbose "Exchange PowerShell Module already loaded."
         } else {
@@ -75,10 +73,10 @@ function Confirm-ExchangeShell {
             }
 
             if (Test-Path "$setupKey") {
-                $currentErrors = $Error.Count
                 Write-Verbose "We are on Exchange 2013 or newer"
 
                 try {
+                    $currentErrors = $Error.Count
                     if (Test-Path $edgeTransportKey) {
                         Write-Verbose "We are on Exchange Edge Transport Server"
                         [xml]$PSSnapIns = Get-Content -Path "$env:ExchangeInstallPath\Bin\exShell.psc1" -ErrorAction Stop
@@ -93,10 +91,10 @@ function Confirm-ExchangeShell {
                         Import-Module $env:ExchangeInstallPath\bin\RemoteExchange.ps1 -ErrorAction Stop
                         Connect-ExchangeServer -Auto -ClientApplication:ManagementShell
                     }
+                    Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
 
                     Write-Verbose "Imported Module. Trying Get-EventLogLevel Again"
                     $isEMS = IsExchangeManagementSession $CatchActionFunction
-                    Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
                     if (($isEMS.CallWasSuccessful) -and
                         ($isEMS.IsManagementShell)) {
                         Write-Verbose "Successfully loaded Exchange Management Shell"
@@ -114,7 +112,6 @@ function Confirm-ExchangeShell {
     }
     end {
 
-        $currentErrors = $Error.Count
         $returnObject = [PSCustomObject]@{
             ShellLoaded = $isEMS.CallWasSuccessful
             Major       = ((Get-ItemProperty -Path $setupKey -Name "MsiProductMajor" -ErrorAction SilentlyContinue).MsiProductMajor)
@@ -126,8 +123,6 @@ function Confirm-ExchangeShell {
             RemoteShell = $isEMS.CallWasSuccessful -and $remoteShell
             EMS         = $isEMS.IsManagementShell
         }
-
-        Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
 
         return $returnObject
     }
