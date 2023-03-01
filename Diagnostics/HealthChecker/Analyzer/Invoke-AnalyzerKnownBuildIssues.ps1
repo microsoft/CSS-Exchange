@@ -200,7 +200,7 @@ function Invoke-AnalyzerKnownBuildIssues {
         }
         $params = @{
             CurrentVersion          = $currentVersion
-            KnownBuildIssuesToFixes = @((GetKnownIssueBuildInformation "15.0.1497.45" $null))
+            KnownBuildIssuesToFixes = @((GetKnownIssueBuildInformation "15.0.1497.45" "15.0.1497.47"))
             InformationUrl          = (GetKnownIssueInformation @infoParams)
         }
         TestForKnownBuildIssues @params
@@ -212,9 +212,23 @@ function Invoke-AnalyzerKnownBuildIssues {
         }
         $params = @{
             CurrentVersion          = $currentVersion
-            KnownBuildIssuesToFixes = @((GetKnownIssueBuildInformation "15.1.2507.17" $null),
-                (GetKnownIssueBuildInformation "15.2.986.37" $null),
-                (GetKnownIssueBuildInformation "15.2.1118.21" $null))
+            KnownBuildIssuesToFixes = @((GetKnownIssueBuildInformation "15.1.2507.17" "15.1.2507.21"),
+                (GetKnownIssueBuildInformation "15.2.986.37" "15.2.986.41"),
+                (GetKnownIssueBuildInformation "15.2.1118.21" "15.2.1118.25"))
+            InformationUrl          = (GetKnownIssueInformation @infoParams)
+        }
+        TestForKnownBuildIssues @params
+
+        Write-Verbose "Working on February 2023 Security Updates"
+        $infoParams = @{
+            Name = "Known Issues with Feb 2023 Security Updates"
+            Url  = "https://techcommunity.microsoft.com/t5/exchange-team-blog/released-february-2023-exchange-server-security-updates/ba-p/3741058"
+        }
+        $params = @{
+            CurrentVersion          = $currentVersion
+            KnownBuildIssuesToFixes = @((GetKnownIssueBuildInformation "15.2.1118.25" $null),
+                (GetKnownIssueBuildInformation "15.2.986.41" $null),
+                (GetKnownIssueBuildInformation "15.1.2507.21" $null))
             InformationUrl          = (GetKnownIssueInformation @infoParams)
         }
         TestForKnownBuildIssues @params

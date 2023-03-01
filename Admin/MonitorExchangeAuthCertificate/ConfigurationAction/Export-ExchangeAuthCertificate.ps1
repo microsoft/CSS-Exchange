@@ -69,7 +69,11 @@ function Export-ExchangeAuthCertificate {
                 try {
                     $authCert = Export-ExchangeCertificate -Thumbprint $cert.Thumbprint -BinaryEncoded -Password $Password
                     $certExportPath = "$($PSScriptRoot)\$($cert.Thumbprint)-$($dateTimeAppendix).pfx"
-                    [System.IO.File]::WriteAllBytes($certExportPath, $authCert.FileData)
+                    if (-not($WhatIfPreference)) {
+                        [System.IO.File]::WriteAllBytes($certExportPath, $authCert.FileData)
+                    } else {
+                        Write-Host ("What if: Will export certificate with thumbprint: $($cert.Thumbprint) to: $($certExportPath)")
+                    }
                     Write-Verbose ("Certificate exported to: $certExportPath")
                 } catch {
                     Write-Verbose ("We hit an issue during certificate export - Exception $($Error[0].Exception.Message)")

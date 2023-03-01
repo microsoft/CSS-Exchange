@@ -332,7 +332,8 @@ function Invoke-AnalyzerSecuritySettings {
     $additionalDisplayValue = [string]::Empty
     $smb1Settings = $osInformation.Smb1ServerSettings
 
-    if ($osInformation.BuildInformation.MajorVersion -gt [HealthChecker.OSServerVersion]::Windows2012) {
+    if ($osInformation.BuildInformation.BuildVersion -ge "10.0.0.0" -or
+        $osInformation.BuildInformation.MajorVersion -eq "Windows2012R2") {
         $displayValue = "False"
         $writeType = "Green"
 
@@ -389,8 +390,8 @@ function Invoke-AnalyzerSecuritySettings {
     Invoke-AnalyzerSecuritySerializedDataSigningState -AnalyzeResults $AnalyzeResults -HealthServerObject $HealthServerObject -DisplayGroupingKey $keySecuritySettings
     Invoke-AnalyzerSecurityMitigationService -AnalyzeResults $AnalyzeResults -HealthServerObject $HealthServerObject -DisplayGroupingKey $keySecuritySettings
 
-    if ($null -ne $HealthServerObject.ExchangeInformation.BuildInformation.FIPFSUpdateIssue) {
-        $fipFsInfoObject = $HealthServerObject.ExchangeInformation.BuildInformation.FIPFSUpdateIssue
+    if ($null -ne $HealthServerObject.ExchangeInformation.FIPFSUpdateIssue) {
+        $fipFsInfoObject = $HealthServerObject.ExchangeInformation.FIPFSUpdateIssue
         $highestVersion = $fipFsInfoObject.HighestVersionNumberDetected
         $fipFsIssueBaseParams = @{
             Name             = "FIP-FS Update Issue Detected"
@@ -438,9 +439,11 @@ function Invoke-AnalyzerSecuritySettings {
             Write-Verbose "Server runs a FIP-FS fixed build: $($fipFsInfoObject.FIPFSFixedBuild) - Highest version number: $highestVersion"
         }
     } else {
-        $fipFsIssueBaseParams.Details = "Warning: Unable to check if the system is vulnerable to the FIP-FS bad pattern issue. Please re-run. $moreInformation"
-        $fipFsIssueBaseParams.DisplayWriteType = "Yellow"
-        $params = $baseParams + $fipFsIssueBaseParams
+        $fipFsIssueBaseParams = $baseParams + @{
+            Name             = "FIP-FS Update Issue Detected"
+            Details          = "Warning: Unable to check if the system is vulnerable to the FIP-FS bad pattern issue. Please re-run. $moreInformation"
+            DisplayWriteType = "Yellow"
+        }
         Add-AnalyzedResultInformation @params
     }
 }

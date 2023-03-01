@@ -25,9 +25,18 @@ function Get-IISWebSite {
         $configurationFilePath = (Get-WebConfigFile "IIS:\Sites\$($site.Name)").FullName
         $webConfigExists = Test-Path $configurationFilePath
         $webConfigContent = $null
+        $validWebConfig = $false
 
         if ($webConfigExists) {
-            $webConfigContent = Get-Content $configurationFilePath
+            $webConfigContent = Get-Content $configurationFilePath -Raw
+
+            try {
+                [xml]$webConfigContent | Out-Null
+                $validWebConfig = $true
+            } catch {
+                # Inside of Invoke-Command, can't use Invoke-CatchActions
+                Write-Verbose "Failed to convert IIS web config '$configurationFilePath' to xml. Exception: $($_.Exception)"
+            }
         }
 
         $returnList.Add([PSCustomObject]@{
@@ -49,6 +58,7 @@ function Get-IISWebSite {
                     Location = $configurationFilePath
                     Content  = $webConfigContent
                     Exist    = $webConfigExists
+                    Valid    = $validWebConfig
                 }
             }
         )

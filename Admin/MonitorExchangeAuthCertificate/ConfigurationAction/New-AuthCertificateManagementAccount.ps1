@@ -47,6 +47,9 @@ function New-AuthCertificateManagementAccount {
                 ErrorAction          = "Stop"
             }
 
+            if ($WhatIfPreference) {
+                $newADUserParams.Add("WhatIf", $true)
+            }
             New-ADUser @newADUserParams | Out-Null
             Write-Verbose ("User: 'Microsoft Exchange Auth Certificate Manager' was successfully created")
             return $true
@@ -58,11 +61,19 @@ function New-AuthCertificateManagementAccount {
             Invoke-CatchActionError $CatchActionFunction
         }
     } else {
+        if ($WhatIfPreference) {
+            Write-Host ("What if: Will reset the password for the existing AD User account with UPN: $($userPrincipalName)")
+        }
         Write-Verbose ("The AD account: $($userPrincipalName) already exists")
         Write-Verbose ("Trying to reset the password for the account")
         try {
-            Set-ADAccountPassword -Identity $adAccount -NewPassword $Password -Reset -Server $DomainController -Confirm:$false -ErrorAction Stop
-            Set-ADUser -Identity $adAccount -ChangePasswordAtLogon $false -Server $DomainController -Confirm:$false -ErrorAction Stop
+            if (-not($WhatIfPreference)) {
+                Set-ADAccountPassword -Identity $adAccount -NewPassword $Password -Reset -Server $DomainController -Confirm:$false -ErrorAction Stop
+                Set-ADUser -Identity $adAccount -ChangePasswordAtLogon $false -Server $DomainController -Confirm:$false -ErrorAction Stop
+            } else {
+                Write-Host ("What if: Will reset the password for AD account '$($adAccount)' by running 'Set-ADAccountPassword'")
+                Write-Host ("What if: Will set 'ChangePasswordAtLogon' to 'false' by running 'Set-ADUser'")
+            }
             return $true
         } catch [System.UnauthorizedAccessException] {
             Write-Verbose ("You don't have the permissions to reset the password of an AD account")

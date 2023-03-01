@@ -97,10 +97,10 @@ In this mode, the script can be executed from an elevated PowerShell command pro
 PS C:\> .\MonitorExchangeAuthCertificate.ps1 -PrepareADForAutomationOnly -ADAccountDomain "root.local"
 ```
 
-The following syntax executes the script in scheduled task mode, but it doesn't create the `SystemMailbox{b963af59-3975-4f92-9d58-ad0b1fe3a1a3}@contoso.local` user account. Instead, the account passed via `AutomationAccountCredential` parameter is used.
+The following syntax executes the script in scheduled task mode, but it doesn't create the `SystemMailbox{b963af59-3975-4f92-9d58-ad0b1fe3a1a3}@contoso.local` user account. Instead, the account passed via `AutomationAccountCredential` parameter is used. Should a renewal action be performed, then email notifications will be sent to `John.Doe@contoso.com"`.
 
 ```powershell
-PS C:\> .\MonitorExchangeAuthCertificate.ps1 -ConfigureScriptToRunViaScheduledTask -AutomationAccountCredential (Get-Credential)
+PS C:\> .\MonitorExchangeAuthCertificate.ps1 -ConfigureScriptToRunViaScheduledTask -AutomationAccountCredential (Get-Credential) -SendEmailNotificationTo "John.Doe@contoso.com"
 ```
 
 The following syntax runs the script in Auth Certificate export mode. In this mode, the script exports the current and (if configured) the next Auth Certificate as DER (Distinguished Encoding Rules) binary encoded `PKCS #12` files, using the `.pfx` file name extension.
@@ -128,6 +128,9 @@ PrepareADForAutomationOnly | This optional parameter can be used in AD Split Per
 ADAccountDomain | This optional parameter allows you to specify the domain which is then used by the script to generate the AD account used for automation. Parameter can be combined with the `PrepareADForAutomationOnly` parameter.
 ConfigureScriptToRunViaScheduledTask | This optional parameter can be used to automatically prepare the requirements in AD (user account), Exchange (email enable the account, hide the account from address book, create a new role group with limited permissions) and finally it creates the scheduled task on the computer on which the script was executed (it has to be an Exchange server running the mailbox role).
 AutomationAccountCredential | This optional parameter can be used to provide a different user under whose context the script is then executed via scheduled task.
+SendEmailNotificationTo | This optional parameter can be used to specify recipients which will then be notified in case that an Exchange Auth Certificate renewal action was performed. The script uses the `EWS API` to send out email notifications. Make sure that the user in whose context the script is running is allowed to use `EWS`.
+TrustAllCertificates | This optional parameter can be used to trust all certificates when connecting to the EWS service to send out email notifications.
+TestEmailNotification | This optional parameter can be used to test the email notification feature of the script.
 Password | Parameter to provide a password to the script which is required in some scenarios.
 ExportAuthCertificatesAsPfx | This optional parameter can be used to export all on the system available Auth Certificates as password protected .pfx file.
 ScriptUpdateOnly | This optional parameter allows you to only update the script without performing any other actions.

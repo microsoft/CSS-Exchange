@@ -64,15 +64,25 @@ function Build-ExchangeAuthCertificateManagementAccount {
                     ErrorAction      = "Stop"
                 }
                 Write-Verbose ("Trying to create 'Auth Certificate Management' role group by using Domain Controller: $($DomainController)")
+                if ($WhatIfPreference) {
+                    Write-Host ("What if: Will create role group: 'Auth Certificate Management'")
+                    $roleGroupParams.Add("WhatIf", $true)
+                }
+
                 New-RoleGroup @roleGroupParams | Out-Null
 
-                Write-Verbose ("Validate that the role group was created successful")
-                $roleGroup = Get-RoleGroup -Identity "Auth Certificate Management" -DomainController $DomainController -ErrorAction SilentlyContinue
-                if ($null -ne $roleGroup) {
-                    Write-Verbose ("Role group 'Auth Certificate Management' found by using Domain Controller: $($DomainController)")
-                    return $true
+                if (-not($WhatIfPreference)) {
+                    Write-Verbose ("Validate that the role group was created successful")
+                    $roleGroup = Get-RoleGroup -Identity "Auth Certificate Management" -DomainController $DomainController -ErrorAction SilentlyContinue
+
+                    if ($null -ne $roleGroup) {
+                        Write-Verbose ("Role group 'Auth Certificate Management' found by using Domain Controller: $($DomainController)")
+                        return $true
+                    } else {
+                        throw ("Role group 'Auth Certificate Management' not found by using Domain Controller: $($DomainController)")
+                    }
                 } else {
-                    throw ("Role group 'Auth Certificate Management' not found by using Domain Controller: $($DomainController)")
+                    return $true
                 }
             } catch {
                 Write-Verbose ("Unable to create 'Auth Certificate Management' role group - Exception: $($Error[0].Exception.Message)")
@@ -130,9 +140,13 @@ function Build-ExchangeAuthCertificateManagementAccount {
             if ($null -eq $systemMailboxRecipientInfo) {
                 Write-Verbose ("Recipient has not yet been email enabled")
                 try {
-                    Enable-Mailbox -Identity $systemMailboxIdentity -DomainController $DomainController -ErrorAction Stop | Out-Null
-                    Write-Verbose ("Wait another 5 seconds and give Exchange time to process")
-                    Start-Sleep -Seconds 5
+                    if (-not($WhatIfPreference)) {
+                        Enable-Mailbox -Identity $systemMailboxIdentity -DomainController $DomainController -ErrorAction Stop | Out-Null
+                        Write-Verbose ("Wait another 5 seconds and give Exchange time to process")
+                        Start-Sleep -Seconds 5
+                    } else {
+                        Write-Host ("What if: Will run 'Enable-Mailbox' to mail-enable the newly created AD user account")
+                    }
                 } catch {
                     Write-Verbose ("Something went wrong while email activating the Auth Certificate management account")
                     Invoke-CatchActionError $CatchActionFunction
@@ -146,12 +160,23 @@ function Build-ExchangeAuthCertificateManagementAccount {
 
         $systemMailboxMailboxInfo = Get-Mailbox -Identity $systemMailboxIdentity -DomainController $DomainController -ErrorAction SilentlyContinue
 
+        if (($WhatIfPreference) -and
+            ($null -eq $systemMailboxMailboxInfo)) {
+            $systemMailboxMailboxInfo = @{
+                HiddenFromAddressListsEnabled = $false
+            }
+        }
+
         if ($null -ne $systemMailboxMailboxInfo) {
             Write-Verbose ("Auth Certificate management mailbox found")
             if ($systemMailboxMailboxInfo.HiddenFromAddressListsEnabled -eq $false) {
                 Write-Verbose ("Auth Certificate management mailbox is not hidden from AddressList - going to hide the mailbox now")
                 try {
-                    Set-Mailbox -Identity $systemMailboxIdentity -HiddenFromAddressListsEnabled $true -ErrorAction Stop | Out-Null
+                    if (-not($WhatIfPreference)) {
+                        Set-Mailbox -Identity $systemMailboxIdentity -HiddenFromAddressListsEnabled $true -ErrorAction Stop | Out-Null
+                    } else {
+                        Write-Host ("What if: Will run 'Set-Mailbox' to hide the newly created mailbox from address book")
+                    }
                 } catch {
                     Write-Verbose ("Unable to hide Auth Certificate management account from AddressList")
                     Invoke-CatchActionError $CatchActionFunction
@@ -166,12 +191,24 @@ function Build-ExchangeAuthCertificateManagementAccount {
         $roleGroupMembership = Get-RoleGroupMember "Auth Certificate Management" -ErrorAction SilentlyContinue
         $systemMailboxUserInfo = Get-User -Identity $systemMailboxIdentity -DomainController $DomainController -ErrorAction SilentlyContinue
 
+        if (($WhatIfPreference) -and
+            ($null -eq $systemMailboxUserInfo)) {
+            $systemMailboxUserInfo = @{
+                SamAccountName    = $systemMailboxIdentity
+                UserPrincipalName = $systemMailboxIdentity
+            }
+        }
+
         if (($null -eq $roleGroupMembership) -or
             (-not($roleGroupMembership.DistinguishedName.ToLower().Contains($systemMailboxUserInfo.DistinguishedName.ToLower())))) {
             Write-Verbose ("Add Auth Certificate management account to 'Auth Certificate Management' role group")
             try {
-                Add-RoleGroupMember "Auth Certificate Management" -Member $systemMailboxIdentity -ErrorAction Stop | Out-Null
-                Write-Verbose ("Auth Certificate management account added to 'Auth Certificate Management' role group")
+                if (-not($WhatIfPreference)) {
+                    Add-RoleGroupMember "Auth Certificate Management" -Member $systemMailboxIdentity -ErrorAction Stop | Out-Null
+                    Write-Verbose ("Auth Certificate management account added to 'Auth Certificate Management' role group")
+                } else {
+                    Write-Host ("What if: Will add user $($systemMailboxIdentity) to role group 'Auth Certificate Management' by running 'Add-RoleGroupMember'")
+                }
             } catch {
                 Write-Verbose ("Unable to add Auth Certificate management account to role group")
                 Invoke-CatchActionError $CatchActionFunction
@@ -182,12 +219,16 @@ function Build-ExchangeAuthCertificateManagementAccount {
         }
 
         if ($null -ne $systemMailboxUserInfo) {
-            Write-Verbose ("Account: $($systemMailboxIdentity) must be added to the local administrators group")
-            if (Add-ADUserToLocalGroup -MemberUPN $systemMailboxUserInfo.UserPrincipalName -Group "S-1-5-32-544") {
-                Write-Verbose ("Account successfully added to local administrators group")
+            if (-not($WhatIfPreference)) {
+                Write-Verbose ("Account: $($systemMailboxIdentity) must be added to the local administrators group")
+                if (Add-ADUserToLocalGroup -MemberUPN $systemMailboxUserInfo.UserPrincipalName -Group "S-1-5-32-544") {
+                    Write-Verbose ("Account successfully added to local administrators group")
+                } else {
+                    Write-Verbose ("Error while adding the user to the local administrators group - Exception: $($Error[0].Exception.Message)")
+                    return
+                }
             } else {
-                Write-Verbose ("Error while adding the user to the local administrators group - Exception: $($Error[0].Exception.Message)")
-                return
+                Write-Host ("What if: Will add user '$($systemMailboxUserInfo.UserPrincipalName)' to group with well-known SID 'S-1-5-32-544' by running 'Add-ADUserToLocalGroup'")
             }
         } else {
             Write-Verbose ("Something went wrong as we can no longer find the Auth Certificate management account")

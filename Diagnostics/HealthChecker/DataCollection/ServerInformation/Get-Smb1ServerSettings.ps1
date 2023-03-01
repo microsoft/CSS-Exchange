@@ -15,7 +15,7 @@ function Get-Smb1ServerSettings {
     }
     process {
         $smbServerConfiguration = Invoke-ScriptBlockHandler -ComputerName $ServerName `
-            -ScriptBlock { Get-SmbServerConfiguration } `
+            -ScriptBlock { Get-SmbServerConfiguration -ErrorAction Stop } `
             -CatchActionFunction $CatchActionFunction `
             -ScriptBlockDescription "Get-SmbServerConfiguration"
 

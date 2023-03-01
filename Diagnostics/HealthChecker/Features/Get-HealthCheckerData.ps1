@@ -102,7 +102,7 @@ function Get-HealthCheckerData {
         try {
             Invoke-SetOutputInstanceLocation -Server $serverName -FileName "HealthChecker" -IncludeServerName $true
             Write-HostLog "Exchange Health Checker version $BuildVersion"
-            [HealthChecker.HealthCheckerExchangeServer]$HealthObject = Get-HealthCheckerExchangeServer -ServerName $serverNameParam -PassedOrganizationInformation $passedOrganizationInformation
+            $HealthObject = Get-HealthCheckerExchangeServer -ServerName $serverNameParam -PassedOrganizationInformation $passedOrganizationInformation
             $HealthObject.OrganizationInformation = $organizationInformation
 
             $paramWriteProgress.Status = "Analyzing Data"
@@ -126,7 +126,7 @@ function Get-HealthCheckerData {
         Write-Progress @paramWriteProgress
 
         try {
-            $analyzedResults | Export-Clixml -Path $Script:OutXmlFullPath -Encoding UTF8 -Depth 6 -ErrorAction SilentlyContinue
+            $analyzedResults | Export-Clixml -Path $Script:OutXmlFullPath -Encoding UTF8 -Depth 2 -ErrorAction SilentlyContinue
         } catch {
             Write-Verbose "Failed to Export-Clixml. Converting HealthCheckerExchangeServer to json"
             $jsonHealthChecker = $analyzedResults.HealthCheckerExchangeServer | ConvertTo-Json
@@ -137,7 +137,7 @@ function Get-HealthCheckerData {
                 DisplayResults              = $analyzedResults.DisplayResults
             }
 
-            $testOutputXml | Export-Clixml -Path $Script:OutXmlFullPath -Encoding UTF8 -Depth 6 -ErrorAction Stop
+            $testOutputXml | Export-Clixml -Path $Script:OutXmlFullPath -Encoding UTF8 -Depth 2 -ErrorAction Stop
         } finally {
             Invoke-ErrorCatchActionLoopFromIndex $currentErrors
 

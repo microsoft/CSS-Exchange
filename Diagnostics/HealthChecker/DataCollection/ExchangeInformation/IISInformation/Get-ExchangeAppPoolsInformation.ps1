@@ -25,7 +25,7 @@ function Get-ExchangeAppPoolsInformation {
                     $FilePath
                 )
                 if (Test-Path $FilePath) {
-                    return (Get-Content $FilePath)
+                    return (Get-Content $FilePath -Raw)
                 }
                 return [string]::Empty
             } `

@@ -51,6 +51,6 @@ function Get-ExchangeRegistryValues {
         DisableGranularReplication     = [int](Get-RemoteRegistryValue @blockReplParams)
         DisableAsyncNotification       = [int](Get-RemoteRegistryValue @disableAsyncParams)
         SerializedDataSigning          = [int](Get-RemoteRegistryValue @serializedDataSigningParams)
-        MisInstallPath                 = [string](Get-RemoteRegistryValue @installDirectoryParams)
+        MsiInstallPath                 = [string](Get-RemoteRegistryValue @installDirectoryParams)
     }
 }

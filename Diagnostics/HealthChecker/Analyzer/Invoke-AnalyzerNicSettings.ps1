@@ -38,14 +38,15 @@ function Invoke-AnalyzerNicSettings {
         }
         Add-AnalyzedResultInformation @params
 
-        if ($osInformation.BuildInformation.MajorVersion -ge [HealthChecker.OSServerVersion]::Windows2012R2) {
+        if ($osInformation.BuildInformation.MajorVersion -notlike "Windows2008*" -and
+            $osInformation.BuildInformation.MajorVersion -ne "Windows2012") {
             Write-Verbose "On Windows 2012 R2 or new. Can provide more details on the NICs"
 
             $driverDate = $adapter.DriverDate
             $detailsValue = $driverDate
 
-            if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::Physical -or
-                $hardwareInformation.ServerType -eq [HealthChecker.ServerType]::AmazonEC2) {
+            if ($hardwareInformation.ServerType -eq "Physical" -or
+                $hardwareInformation.ServerType -eq "AmazonEC2") {
 
                 if ($null -eq $driverDate -or
                     $driverDate -eq [DateTime]::MaxValue) {
@@ -124,8 +125,8 @@ function Invoke-AnalyzerNicSettings {
         $linkSpeed = $adapter.LinkSpeed
         $displayValue = "{0} --- This may not be accurate due to virtualized hardware" -f $linkSpeed
 
-        if ($hardwareInformation.ServerType -eq [HealthChecker.ServerType]::Physical -or
-            $hardwareInformation.ServerType -eq [HealthChecker.ServerType]::AmazonEC2) {
+        if ($hardwareInformation.ServerType -eq "Physical" -or
+            $hardwareInformation.ServerType -eq "AmazonEC2") {
             $displayValue = $linkSpeed
         }
 
@@ -202,7 +203,7 @@ function Invoke-AnalyzerNicSettings {
         Add-AnalyzedResultInformation @params
 
         #Assuming that all versions of Hyper-V doesn't allow sleepy NICs
-        if (($hardwareInformation.ServerType -ne [HealthChecker.ServerType]::HyperV) -and ($adapter.PnPCapabilities -ne "MultiplexorNoPnP")) {
+        if (($hardwareInformation.ServerType -ne "HyperV") -and ($adapter.PnPCapabilities -ne "MultiplexorNoPnP")) {
             $displayWriteType = "Grey"
             $displayValue = $adapter.SleepyNicDisabled
 

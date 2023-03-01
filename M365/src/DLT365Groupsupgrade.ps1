@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('CustomRules\AvoidUsingReadHost', '', Justification = 'Do not want to change logic of script as of now')]
-[CmdletBiding()]
+[CmdletBinding()]
 param()
 
 #Create working folder on the logged user desktop

@@ -3,7 +3,9 @@
 
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
+. $PSScriptRoot\..\Helpers\CompareExchangeBuildLevel.ps1
 . $PSScriptRoot\..\..\..\Shared\VisualCRedistributableVersionFunctions.ps1
+. $PSScriptRoot\..\..\..\Shared\Get-NETFrameworkVersion.ps1
 function Invoke-AnalyzerOsInformation {
     [CmdletBinding()]
     param(
@@ -93,7 +95,44 @@ function Invoke-AnalyzerOsInformation {
         Add-AnalyzedResultInformation @params
     }
 
-    if ($exchangeInformation.NETFramework.OnRecommendedVersion) {
+    # .NET Supported Levels
+    $currentExchangeBuild = $exchangeInformation.BuildInformation.VersionInformation
+    $ex2019 = "Exchange2019"
+    $ex2016 = "Exchange2016"
+    $ex2013 = "Exchange2013"
+    $osVersion = $osInformation.BuildInformation.MajorVersion
+    $recommendedNetVersion = $null
+    $netVersionDictionary = GetNetVersionDictionary
+
+    Write-Verbose "Checking $($exchangeInformation.BuildInformation.MajorVersion) .NET Framework Support Versions"
+
+    if ((Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU4")) {
+        $recommendedNetVersion = $netVersionDictionary["Net4d5"]
+    } elseif ((Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU13") -or
+    (Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU2")) {
+        $recommendedNetVersion = $netVersionDictionary["Net4d5d2wFix"]
+    } elseif ((Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU15") -or
+    (Test-ExchangeBuildEqualBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU2") -or
+    ((Test-ExchangeBuildEqualBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU3") -and
+        $osVersion -ne "Windows2016")) {
+        $recommendedNetVersion = $netVersionDictionary["Net4d6d1wFix"]
+    } elseif ((Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU19") -or
+    (Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU8")) {
+        $recommendedNetVersion = $netVersionDictionary["Net4d6d2"]
+    } elseif ((Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU21") -or
+    (Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU11")) {
+        $recommendedNetVersion = $netVersionDictionary["Net4d7d1"]
+    } elseif ((Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU21") -or
+    (Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU13") -or
+    (Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2019 -CU "CU2")) {
+        $recommendedNetVersion = $netVersionDictionary["Net4d7d2"]
+    } else {
+        $recommendedNetVersion = $netVersionDictionary["Net4d8"]
+    }
+
+    Write-Verbose "Recommended NET Version: $recommendedNetVersion"
+
+    if ($osInformation.NETFramework.MajorVersion -eq $recommendedNetVersion) {
         $params = $baseParams + @{
             Name                  = ".NET Framework"
             Details               = $osInformation.NETFramework.FriendlyName
@@ -102,11 +141,11 @@ function Invoke-AnalyzerOsInformation {
         }
         Add-AnalyzedResultInformation @params
     } else {
-        $displayFriendly = Get-NETFrameworkVersion -NetVersionKey $exchangeInformation.NETFramework.MaxSupportedVersion
+        $displayFriendly = Get-NETFrameworkVersion -NetVersionKey $recommendedNetVersion
         $displayValue = "{0} - Warning Recommended .NET Version is {1}" -f $osInformation.NETFramework.FriendlyName, $displayFriendly.FriendlyName
         $testValue = [PSCustomObject]@{
             CurrentValue        = $osInformation.NETFramework.FriendlyName
-            MaxSupportedVersion = $exchangeInformation.NETFramework.MaxSupportedVersion
+            MaxSupportedVersion = $recommendedNetVersion
         }
         $params = $baseParams + @{
             Name                   = ".NET Framework"
@@ -156,7 +195,7 @@ function Invoke-AnalyzerOsInformation {
             $displayValue = ($pageFileDisplayTemplate -f $pageFileObj.Name, $pageFileObj.MaxPageSize)
         }
 
-        if ($exchangeInformation.BuildInformation.MajorVersion -eq [HealthChecker.ExchangeMajorVersion]::Exchange2019) {
+        if ($exchangeInformation.BuildInformation.VersionInformation.BuildVersion -ge "15.2.0.0") {
             $recommendedPageFile = [Math]::Round($totalPhysicalMemory / 4)
             $pageFileObj.RecommendedPageFile = $recommendedPageFile
             Write-Verbose "System is running Exchange 2019. Recommended PageFile Size: $recommendedPageFile"
@@ -255,7 +294,7 @@ function Invoke-AnalyzerOsInformation {
     $displayValue = $osInformation.NetworkInformation.HttpProxy.ProxyAddress
 
     if (($osInformation.NetworkInformation.HttpProxy.ProxyAddress -ne "None") -and
-        ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge)) {
+        ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false)) {
         $displayValue = "$($osInformation.NetworkInformation.HttpProxy.ProxyAddress) --- Warning this can cause client connectivity issues."
         $displayWriteType = "Yellow"
     }
@@ -278,7 +317,7 @@ function Invoke-AnalyzerOsInformation {
     }
 
     if (($osInformation.NetworkInformation.HttpProxy.ProxyAddress -ne "None") -and
-        ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) -and
+        ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false) -and
         ($osInformation.NetworkInformation.HttpProxy.ProxyAddress -ne $exchangeInformation.GetExchangeServer.InternetWebProxy.Authority)) {
         $params = $baseParams + @{
             Details                = "Error: Exchange Internet Web Proxy doesn't match OS Web Proxy."
@@ -318,7 +357,7 @@ function Invoke-AnalyzerOsInformation {
     }
     Add-AnalyzedResultInformation @params
 
-    if ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge) {
+    if ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false) {
         $params = $baseParams + @{
             Name             = "Visual C++ 2013"
             Details          = $displayValue2013
@@ -327,7 +366,7 @@ function Invoke-AnalyzerOsInformation {
         Add-AnalyzedResultInformation @params
     }
 
-    if (($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge -and
+    if (($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false -and
             ($displayWriteType2012 -eq "Yellow" -or
             $displayWriteType2013 -eq "Yellow")) -or
         $displayWriteType2012 -eq "Yellow") {
@@ -341,7 +380,7 @@ function Invoke-AnalyzerOsInformation {
     }
 
     if ($defaultValue -eq $displayValue2012 -or
-        ($exchangeInformation.BuildInformation.ServerRole -ne [HealthChecker.ExchangeServerRole]::Edge -and
+        ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false -and
         $displayValue2013 -eq $defaultValue)) {
 
         $params = $baseParams + @{

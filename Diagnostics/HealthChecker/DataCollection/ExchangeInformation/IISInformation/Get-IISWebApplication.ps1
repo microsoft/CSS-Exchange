@@ -10,17 +10,26 @@ function Get-IISWebApplication {
             $linkedConfigurationLine = $null
             $webConfigContent = $null
             $linkedConfigurationFilePath = $null
+            $validWebConfig = $false # able to convert the file to xml type
+            # set back to default, just incase there is an exception below
+            $webConfigExists = $false
+            $configurationFilePath = [string]::Empty
             $siteName = $webApplication.ItemXPath | Select-String -Pattern "site\[\@name='(.+)'\s|\]"
             $friendlyName = "$($siteName.Matches.Groups[1].Value)$($webApplication.Path)"
             $configurationFilePath = (Get-WebConfigFile "IIS:\Sites\$friendlyName").FullName
             $webConfigExists = Test-Path $configurationFilePath
 
             if ($webConfigExists) {
-                $webConfigContent = Get-Content $configurationFilePath
-                $linkedConfigurationLine = ($webConfigContent | Select-String "linkedConfiguration").Line
+                $webConfigContent = Get-Content $configurationFilePath -Raw
 
-                if ($null -ne $linkedConfigurationLine) {
-                    $linkedConfigurationFilePath = ($linkedConfigurationLine | Select-String "file://(.+)\`"").Matches.Groups[1].Value
+                try {
+                    $linkedConfigurationLine = ([xml]$webConfigContent).configuration.assemblyBinding.linkedConfiguration.href
+                    $validWebConfig = $true
+                    if ($null -ne $linkedConfigurationLine) {
+                        $linkedConfigurationFilePath = $linkedConfigurationLine.Substring("file://".Length)
+                    }
+                } catch {
+                    Write-Verbose "Failed to convert '$configurationFilePath' to xml. Exception: $($_.Exception)"
                 }
             }
         } catch {
@@ -32,6 +41,7 @@ function Get-IISWebApplication {
                 FriendlyName               = $friendlyName
                 Path                       = $webApplication.Path
                 ConfigurationFileInfo      = ([PSCustomObject]@{
+                        Valid                       = $validWebConfig
                         Location                    = $configurationFilePath
                         Content                     = $webConfigContent
                         Exist                       = $webConfigExists

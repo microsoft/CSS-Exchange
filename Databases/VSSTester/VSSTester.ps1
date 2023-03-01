@@ -202,6 +202,5 @@ function Main {
 }
 
 try {
-    Clear-Host
     Main
 } catch { } finally { }

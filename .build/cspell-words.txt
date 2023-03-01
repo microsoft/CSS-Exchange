@@ -3,6 +3,7 @@ Adsi
 amsi
 Antispam
 anob
+asmx
 authsspi
 autodiscover
 bincirc
@@ -19,6 +20,7 @@ CTMM
 Datacenter
 dcom
 Dsamain
+dumptidset
 DWORD
 eems
 EFORMS
@@ -100,6 +102,7 @@ notlike
 notmatch
 nspi
 ntlm
+NTFS
 NUMA
 onprem
 OutlookiOS

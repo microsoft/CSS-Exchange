@@ -41,6 +41,13 @@
     on which the script was executed (it has to be an Exchange server running the mailbox role).
 .PARAMETER AutomationAccountCredential
     This optional parameter can be used to provide a different user under whose context the script is then executed via scheduled task.
+.PARAMETER SendEmailNotificationTo
+    This optional parameter can be used to specify recipients which will then be notified in case that an Exchange Auth Certificate renewal action
+    was performed.
+.PARAMETER TrustAllCertificates
+    This optional parameter can be used to trust all certificates when connecting to the EWS service to send out email notifications.
+.PARAMETER TestEmailNotification
+    This optional parameter can be used to test the email notification feature of the script.
 .PARAMETER Password
     Parameter to provide a password to the script which is required in some scenarios.
     This parameter is required if you use one of the following parameters:
@@ -100,6 +107,20 @@ param(
     [Parameter(Mandatory = $false, ParameterSetName = "ConfigureAutomaticExecutionViaScheduledTask")]
     [PSCredential]$AutomationAccountCredential,
 
+    [Parameter(Mandatory = $false, ParameterSetName = "MonitorExchangeAuthCertificateManually")]
+    [Parameter(Mandatory = $false, ParameterSetName = "ConfigureAutomaticExecutionViaScheduledTask")]
+    [Parameter(Mandatory = $true, ParameterSetName = "TestEmailNotification")]
+    [ValidatePattern("^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$")]
+    [string[]]$SendEmailNotificationTo,
+
+    [Parameter(Mandatory = $false, ParameterSetName = "MonitorExchangeAuthCertificateManually")]
+    [Parameter(Mandatory = $false, ParameterSetName = "ConfigureAutomaticExecutionViaScheduledTask")]
+    [Parameter(Mandatory = $false, ParameterSetName = "TestEmailNotification")]
+    [switch]$TrustAllCertificates,
+
+    [Parameter(Mandatory = $false, ParameterSetName = "TestEmailNotification")]
+    [switch]$TestEmailNotification,
+
     [Parameter(Mandatory = $true, ParameterSetName = "SetupAutomaticExecutionADRequirements")]
     [Parameter(Mandatory = $false, ParameterSetName = "ConfigureAutomaticExecutionViaScheduledTask")]
     [Parameter(Mandatory = $true, ParameterSetName = "ExportExchangeAuthCertificatesAsPfx")]
@@ -124,7 +145,7 @@ $BuildVersion = ""
 . $PSScriptRoot\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
 . $PSScriptRoot\..\..\Shared\ActiveDirectoryFunctions\Get-GlobalCatalogServer.ps1
-. $PSScriptRoot\..\..\Shared\ActiveDirectoryFunctions\Get-InternalTransportCertificateFromServer.ps1
+. $PSScriptRoot\..\..\Shared\EMailFunctions\Send-EwsMailMessage.ps1
 . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Host.ps1
 . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Verbose.ps1
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
@@ -144,7 +165,6 @@ function Write-DebugLog($Message) {
 }
 
 function Main {
-    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = "High")]
     param()
 
     if (-not(Confirm-Administrator)) {
@@ -248,7 +268,7 @@ function Main {
         $authCertificateExportStatusObject = Export-ExchangeAuthCertificate @authCertificateExportParams
 
         if ($authCertificateExportStatusObject.CertificatesAvailableToExport) {
-            Write-Host ("There are $($authCertificateExportStatusObject.NumberOfCertificatesToExport) certificates that could be exported")
+            Write-Host ("There is/are $($authCertificateExportStatusObject.NumberOfCertificatesToExport) certificate(s) that could be exported")
             if ($authCertificateExportStatusObject.ExportSuccessful) {
                 Write-Host ("All of them were successfully exported to the following directory: $($PSScriptRoot)") -ForegroundColor Green
             } else {
@@ -260,6 +280,32 @@ function Main {
             Write-Host ("There are no Auth Certificates on the system that are available to export")
         }
 
+        return
+    }
+
+    if ($TestEmailNotification) {
+        Write-Host ("Mode: Test email notification feature")
+
+        $sendEmailNotificationTestParams = @{
+            To                  = $SendEmailNotificationTo
+            Subject             = "[Test] An Exchange Auth Certificate renewal task was performed"
+            Importance          = "Low"
+            Body                = "This is a test message sent by the MonitorExchangeAuthCertificate.ps1 script.<BR><B>No action is required!</B>"
+            EwsServiceUrl       = (Get-WebServicesVirtualDirectory -Server $env:COMPUTERNAME -ADPropertiesOnly).InternalUrl.AbsoluteUri
+            BodyAsHtml          = $true
+            CatchActionFunction = ${Function:Invoke-CatchActions}
+        }
+
+        if ($TrustAllCertificates) {
+            $sendEmailNotificationTestParams.Add("IgnoreCertificateMismatch", $true)
+        }
+
+        # Check for the last value as Send-EwsMailMessage returns the SendAndSaveCopy() result too (not sure how to suppress this yet)
+        if (Send-EwsMailMessage @sendEmailNotificationTestParams) {
+            Write-Host ("Please check if the test message was received by the following recipient(s): $($SendEmailNotificationTo)")
+        } else {
+            Write-Host ("We hit an exception while processing your test email message. Please check the log file") -ForegroundColor Yellow
+        }
         return
     }
 
@@ -314,6 +360,17 @@ function Main {
                         IgnoreHybridConfig   = $IgnoreHybridConfig
                         CatchActionFunction  = ${Function:Invoke-CatchActions}
                     }
+
+                    if ($null -ne $SendEmailNotificationTo) {
+                        Write-Host ("We're trying to notify the following recipient(s): $($SendEmailNotificationTo)")
+                        $registerSchTaskParams.Add("SendEmailNotificationTo", $SendEmailNotificationTo)
+
+                        if ($TrustAllCertificates) {
+                            Write-Host ("We trust all certificates when connecting to EWS service")
+                            $registerSchTaskParams.Add("TrustAllCertificates", $true)
+                        }
+                    }
+
                     $schTaskResults = Register-AuthCertificateRenewalTask @registerSchTaskParams
                 } else {
                     Write-Host ("We couldn't copy the script: $($scriptInfo.ScriptName) to: $($scriptInfo.WorkingDirectory)") -ForegroundColor Red
@@ -344,6 +401,20 @@ function Main {
         return
     }
 
+    if ($null -ne $SendEmailNotificationTo) {
+        $sendEmailNotificationParams = @{
+            To                  = $SendEmailNotificationTo
+            Subject             = "[Action required] An Exchange Auth Certificate renewal task was performed"
+            Importance          = "High"
+            EwsServiceUrl       = (Get-WebServicesVirtualDirectory -Server $env:COMPUTERNAME -ADPropertiesOnly).InternalUrl.AbsoluteUri
+            BodyAsHtml          = $true
+            CatchActionFunction = ${Function:Invoke-CatchActions}
+        }
+
+        $emailBodyBase = "On $(Get-Date) we performed an Exchange Auth Certificate renewal action.<BR>" +
+        "Based on your Exchange organization configuration, the following further actions may be necessary:<BR><BR>"
+    }
+
     $authCertificateStatusParams = @{
         IgnoreUnreachableServers = $IgnoreUnreachableServers
         IgnoreHybridSetup        = $IgnoreHybridConfig
@@ -370,61 +441,113 @@ function Main {
         if (($ValidateAndRenewAuthCertificate) -and
             ($renewalActionRequired)) {
             Write-Host ("Renewal scenario: $($renewalActionWording)")
-            if ($PSCmdlet.ShouldProcess("Ask if the script should run unattended", "Do you want to run the script in unattended mode?", "Run Unattended") -or
-                $WhatIfPreference) {
-                $UnattendedMode = $true
-                $recycleAppPoolsAfterRenewal = $true
-            } else {
-                $UnattendedMode = $false
-                $recycleAppPoolsMessage = ("It's recommended to restart the 'MSExchangeOWAAppPool' and 'MSExchangeECPAppPool' WebApp Pools in case the Auth Certificate was replaced. " +
-                    "This is to speed up the adoption of the new configuration." +
-                    "`r`nDo you want to restart the WebApp Pools after the Auth Certificate was replaced?"
-                )
-                if ($PSCmdlet.ShouldProcess("Ask if the script should recycling the WebApp pools", $recycleAppPoolsMessage, "Recycle WebApp Pools") -or
-                    $WhatIfPreference) {
-                    $recycleAppPoolsAfterRenewal = $true
-                } else {
-                    $recycleAppPoolsAfterRenewal = $false
-                }
-            }
-
             if ($authCertStatus.ReplaceRequired) {
                 $replaceExpiredAuthCertificateParams = @{
                     ReplaceExpiredAuthCertificate = $true
-                    UnattendedMode                = $UnattendedMode
                     CatchActionFunction           = ${Function:Invoke-CatchActions}
                 }
-
-                if ($recycleAppPoolsAfterRenewal) {
-                    $replaceExpiredAuthCertificateParams.Add("RecycleAppPoolsAfterRenewal", $recycleAppPoolsAfterRenewal)
-                }
                 $renewalActionResult = New-ExchangeAuthCertificate @replaceExpiredAuthCertificateParams
+
+                $emailBodyRenewalScenario = "The Auth Certificate in use was invalid (expired) or not available on all Exchange Servers within your organization.<BR>" +
+                "It was immediately replaced by a new one which is already active.<BR><BR>"
             } elseif ($authCertStatus.ConfigureNextAuthRequired) {
                 $configureNextAuthCertificateParams = @{
                     ConfigureNextAuthCertificate         = $true
                     CurrentAuthCertificateLifetimeInDays = $authCertStatus.CurrentAuthCertificateLifetimeInDays
-                    UnattendedMode                       = $UnattendedMode
                     CatchActionFunction                  = ${Function:Invoke-CatchActions}
                 }
                 $renewalActionResult = New-ExchangeAuthCertificate @configureNextAuthCertificateParams
+
+                $emailBodyRenewalScenario = "The new Auth Certificate will replace the current one on: <B>$($renewalActionResult.AuthCertificateActivationDate)</B>, " +
+                "as soon as the AuthAdmin servicelet runs the next time (from the mentioned date within 12 hours).<BR><BR>"
             }
+
+            if ($authCertStatus.HybridSetupDetected) {
+                $emailBodyHybrid = "Please ensure to run the Hybrid Configuration Wizard (HCW) as soon as the new Auth Certificate replaces the active one."
+            }
+
+            if ($renewalActionResult.RenewalActionPerformed) {
+                $emailBodyRenewalAction = "New Exchange Auth Certificate thumbprint: <B>$($renewalActionResult.NewCertificateThumbprint)</B><BR>" +
+                $emailBodyRenewalScenario
+            }
+
+            if ($authCertStatus.MultipleExchangeADSites) {
+                $emailBodyMultiADSites = "Please validate that the newly created Auth Certificate was successfully replicated to all Exchange Servers (except Edge Transport) " +
+                "which are located in another Active-Directory site.<BR>" +
+                "You can do so by running the following command against one Exchange Server per AD site:<BR><BR>" +
+                "Get-ExchangeCertificate -Server 'ServerName' -Thumbprint $($renewalActionResult.NewCertificateThumbprint)<BR><BR>" +
+                "If you find that the Auth Certificate is missing on a server in a different AD site, please follow these steps:<BR><BR>" +
+                "1. Export the Auth Certificate: .\MonitorExchangeAuthCertificate.ps1 -ExportAuthCertificatesAsPfx<BR>" +
+                "2. Import it to the Computer Accounts 'Personal' certificate store on an Exchange Server per other AD site<BR><BR>" +
+                "The Auth Certificate will then be automatically replicated to all Exchange Servers within this AD site.<BR><BR>"
+            }
+
+            $emailBodyFailure = "We ran into an issue while trying to renew the Exchange Auth Certificate. Please check the verbose script log for more details.<BR>" +
+            "You can find it under: '$($Script:Logger.FullPath)' on computer: $($env:COMPUTERNAME)"
 
             if (($renewalActionResult.RenewalActionPerformed) -and
             ($authCertStatus.HybridSetupDetected -eq $false)) {
+                if ($null -ne $emailBodyBase) {
+                    if ($authCertStatus.MultipleExchangeADSites) {
+                        $finalEmailBody = $emailBodyBase + $emailBodyRenewalAction + $emailBodyMultiADSites
+                    } else {
+                        $finalEmailBody = $emailBodyBase + $emailBodyRenewalAction + "No further action is required on your part."
+                    }
+                }
                 Write-Host ("")
                 Write-Host ("The renewal action was successfully performed") -ForegroundColor Green
             } elseif (($renewalActionResult.RenewalActionPerformed) -and
             ($authCertStatus.HybridSetupDetected)) {
+                if ($null -ne $emailBodyBase) {
+                    if ($authCertStatus.MultipleExchangeADSites) {
+                        $finalEmailBody = $emailBodyBase + $emailBodyRenewalAction + $emailBodyMultiADSites + $emailBodyHybrid
+                    } else {
+                        $finalEmailBody = $emailBodyBase + $emailBodyRenewalAction + $emailBodyHybrid
+                    }
+                }
                 Write-Host ("")
                 Write-Host ("The renewal action was successfully performed - the new Auth Certificate will become active on: $($renewalActionResult.AuthCertificateActivationDate)") -ForegroundColor Green
                 Write-Host ("Please ensure to run the Hybrid Configuration Wizard (HCW) as soon as the new Auth Certificate becomes active.") -ForegroundColor Green
             } else {
+                if ($null -ne $emailBodyBase) {
+                    $finalEmailBody = $emailBodyBase + $emailBodyFailure
+                }
                 Write-Host ("")
                 Write-Host ("There was an issue while performing the renewal action - please check the verbose script log for more details.") -ForegroundColor Red
             }
         } else {
+            Write-Host ""
+            Write-Host ("Current Auth Certificate thumbprint: $($authCertStatus.CurrentAuthCertificateThumbprint)") -ForegroundColor Cyan
+            Write-Host ("Current Auth Certificate is valid for $($authCertStatus.CurrentAuthCertificateLifetimeInDays) day(s)") -ForegroundColor Cyan
+            if (-not([string]::IsNullOrEmpty($authCertStatus.NextAuthCertificateThumbprint))) {
+                Write-Host ("Next Auth Certificate thumbprint: $($authCertStatus.NextAuthCertificateThumbprint)") -ForegroundColor Cyan
+                Write-Host ("Next Auth Certificate is valid for $($authCertStatus.NextAuthCertificateLifetimeInDays) day(s)") -ForegroundColor Cyan
+            }
+            if ($authCertStatus.MultipleExchangeADSites) {
+                Write-Host ("We've detected Exchange servers in multiple AD sites") -ForegroundColor Cyan
+            }
+            if ($authCertStatus.HybridSetupDetected) {
+                Write-Host ("Exchange Hybrid was detected in this environment") -ForegroundColor Cyan
+            }
+            if ($authCertStatus.NumberOfUnreachableServers -gt 0) {
+                Write-Host ("Number of unreachable Exchange servers: $($authCertStatus.NumberOfUnreachableServers)") -ForegroundColor Cyan
+            }
+            if ($authCertStatus.AuthCertificateMissingOnServers.Count -gt 0) {
+                Write-Host ("The actively used Auth Certificate is missing on the following servers:") -ForegroundColor Cyan
+                Write-Host ("$([string]::Join(", ", $authCertStatus.AuthCertificateMissingOnServers))") -ForegroundColor Cyan
+            }
+            if ($authCertStatus.NextAuthCertificateMissingOnServers.Count -gt 0) {
+                Write-Host ("The certificate which is configured as next Auth Certificate is missing on the following servers:") -ForegroundColor Cyan
+                Write-Host ("$([string]::Join(", ", $authCertStatus.NextAuthCertificateMissingOnServers))") -ForegroundColor Cyan
+            }
             Write-Host ("")
             Write-Host ("Test result: $($renewalActionWording)") -ForegroundColor Cyan
+            if (($authCertStatus.AuthCertificateMissingOnServers.Count -gt 0) -or
+                ($authCertStatus.NextAuthCertificateMissingOnServers.Count -gt 0)) {
+                $certificateMissingOnServersWording = ("`r`nYou should copy the Auth Certificate to the missing servers and re-run the script." +
+                    "`r`nA missing Auth Certificate will cause a new one to be generated by the script.")
+                Write-Host $certificateMissingOnServersWording -ForegroundColor Cyan
+            }
         }
 
         if (($renewalActionRequired) -and
@@ -444,6 +567,23 @@ function Main {
             Write-Host ""
             Write-Host ($multipleExchangeADSitesWording) -ForegroundColor Yellow
         }
+
+        if ((-not($WhatIfPreference)) -and
+            ($renewalActionResult.RenewalActionPerformed) -and
+            (-not([System.String]::IsNullOrEmpty($SendEmailNotificationTo)))) {
+            Write-Host ("Trying to send out email notification to the following recipients: $($SendEmailNotificationTo)")
+            $sendEmailNotificationParams.Add("Body", $finalEmailBody)
+
+            if ($TrustAllCertificates) {
+                $sendEmailNotificationParams.Add("IgnoreCertificateMismatch", $true)
+            }
+
+            if (Send-EwsMailMessage @sendEmailNotificationParams) {
+                Write-Host ("An email message was successfully sent")
+            } else {
+                Write-Host ("We ran into an issue while trying to notify you via email - please check the log of the script") -ForegroundColor Yellow
+            }
+        }
     }
 }
 
@@ -455,15 +595,21 @@ try {
         ErrorAction    = "SilentlyContinue"
     }
 
-    $Script:Logger = Get-NewLoggerInstance @loggerParams
-    SetProperForegroundColor
-    SetWriteHostAction ${Function:Write-DebugLog}
-    SetWriteVerboseAction ${Function:Write-DebugLog}
+    if (-not($WhatIfPreference)) {
+        $Script:Logger = Get-NewLoggerInstance @loggerParams
+        SetProperForegroundColor
+        SetWriteHostAction ${Function:Write-DebugLog}
+        SetWriteVerboseAction ${Function:Write-DebugLog}
+    }
 
     Main
 } finally {
     Write-Host ""
-    Write-Host ("Log file written to: $($Script:Logger.FullPath)")
+    if (-not($WhatIfPreference)) {
+        Write-Host ("Log file written to: $($Script:Logger.FullPath)")
+    } else {
+        Write-Host ("Script was executed by using '-WhatIf' parameter - no log file was generated")
+    }
     Write-Host ""
     Write-Host ("Do you have feedback regarding the script? Please email ExToolsFeedback@microsoft.com.") -ForegroundColor Green
     Write-Host ""
@@ -476,5 +622,7 @@ try {
     } else {
         Write-Verbose ("No errors occurred within the script")
     }
-    RevertProperForegroundColor
+    if (-not($WhatIfPreference)) {
+        RevertProperForegroundColor
+    }
 }

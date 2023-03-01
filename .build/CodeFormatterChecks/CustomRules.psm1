@@ -34,3 +34,37 @@ function AvoidUsingReadHost {
         }
     }
 }
+
+function AvoidUsingClearHost {
+
+    [CmdletBinding()]
+    [OutputType([PSCustomObject[]])]
+    param (
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [System.Management.Automation.Language.ScriptBlockAst]$ScriptBlockAst
+    )
+
+    process {
+
+        try {
+            $functions = $ScriptBlockAst.FindAll(
+                {
+                    $args[0] -is [System.Management.Automation.Language.CommandAst]
+                }, $true )
+            foreach ( $function in $functions ) {
+
+                if (($function.GetCommandName()) -eq "Clear-Host") {
+                    [PSCustomObject]@{
+                        Message  = "Avoid using Clear-Host. The screen should not be cleared when running the script."
+                        Extent   = $function.Extent
+                        RuleName = $PSCmdlet.MyInvocation.InvocationName
+                        Severity = "Error"
+                    }
+                }
+            }
+        } catch {
+            $PSCmdlet.ThrowTerminatingError( $_ )
+        }
+    }
+}

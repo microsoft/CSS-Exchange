@@ -46,12 +46,6 @@ if ($null -ne $EnableVerboseLogging) {
     }
 }
 
-Clear-Host
-Write-Host "Do not close this window until you are ready to collect the logs." -ForegroundColor Black -BackgroundColor Yellow
-Write-Host "Press any key to continue ..." -ForegroundColor Yellow
-$host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown") | Out-Null
-Clear-Host
-
 # Convert the interval into seconds
 $Interval = $Interval * 60
 
