@@ -104,7 +104,6 @@ function Convert-Data {
         }
         $FinalArray += $FinalObj;
     }
-    #return $TimeSum += $FinalArray;
     return $FinalArray;
     $FinalArray = @();
 }
@@ -127,11 +126,8 @@ function BuildCSV {
     $GCDOResults = @();
     $GlobalObjectId = @();
     $IsFromSharedCalendar = @();
-    #$CalendarItemType = @();
     $IsIgnorable = @();
     $ShortClientName = @();
-    #$AppointmentSequenceNumber = @();
-    #$Organizer = @();
     $ResponsibleUser = @();
     $MeetingID = @();
     $MailboxList = @{};
