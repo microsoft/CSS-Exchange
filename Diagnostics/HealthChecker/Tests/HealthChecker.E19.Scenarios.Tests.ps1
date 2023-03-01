@@ -155,6 +155,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
     Context "Checking Scenarios 2" {
         BeforeAll {
+            Mock Get-SettingOverride { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetSettingOverride1.xml" }
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "KeepAliveTime" } -MockWith { return 1800000 }
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "DisableGranularReplication" } -MockWith { return 1 }
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "DisableAsyncNotification" } -MockWith { return 1 }
@@ -207,6 +208,10 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
             $tlsCipherSuite = (GetObject "TLS Cipher Suite Group")
             $tlsCipherSuite.Count | Should -Be 8
+        }
+
+        It "SerializedDataSigning Enabled" {
+            TestObjectMatch "SerializedDataSigning Enabled" "True" -WriteType "Green"
         }
 
         It "Enabled Domains" {
