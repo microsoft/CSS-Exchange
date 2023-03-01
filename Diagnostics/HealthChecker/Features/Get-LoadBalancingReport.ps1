@@ -7,28 +7,28 @@ function Get-LoadBalancingReport {
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $CASServers = @()
     $MBXServers = @()
-    $getExchangeServer = Get-ExchangeServer
+    $getExchangeServer = Get-ExchangeServer | Select-Object Name, Site, IsClientAccessServer, IsMailboxServer, AdminDisplayVersion, FQDN
 
     if ($SiteName -ne [string]::Empty) {
         Write-Grey("Site filtering ON.  Only Exchange 2013+ CAS servers in {0} will be used in the report." -f $SiteName)
         $CASServers = $getExchangeServer | Where-Object {
             ($_.IsClientAccessServer -eq $true) -and
             ($_.AdminDisplayVersion -Match "^Version 15") -and
-            ([System.Convert]::ToString($_.Site).Split("/")[-1] -eq $SiteName) } | Sort-Object Name
+            ([System.Convert]::ToString($_.Site).Split("/")[-1] -eq $SiteName) } | Select-Object Name, Site | Sort-Object Name
         Write-Grey("Site filtering ON.  Only Exchange 2013+ MBX servers in {0} will be used in the report." -f $SiteName)
         $MBXServers = $getExchangeServer | Where-Object {
                 ($_.IsMailboxServer -eq $true) -and
                 ($_.AdminDisplayVersion -Match "^Version 15") -and
-                ([System.Convert]::ToString($_.Site).Split("/")[-1] -eq $SiteName) } | Sort-Object Name
+                ([System.Convert]::ToString($_.Site).Split("/")[-1] -eq $SiteName) } | Select-Object Name, Site | Sort-Object Name
     } else {
         if ( ($null -eq $ServerList) ) {
             Write-Grey("Filtering OFF.  All Exchange 2013+ servers will be used in the report.")
-            $CASServers = $getExchangeServer | Where-Object { ($_.IsClientAccessServer -eq $true) -and ($_.AdminDisplayVersion -Match "^Version 15") } | Sort-Object Name
-            $MBXServers = $getExchangeServer | Where-Object { ($_.IsMailboxServer -eq $true) -and ($_.AdminDisplayVersion -Match "^Version 15") } | Sort-Object Name
+            $CASServers = $getExchangeServer | Where-Object { ($_.IsClientAccessServer -eq $true) -and ($_.AdminDisplayVersion -Match "^Version 15") } | Select-Object Name, Site | Sort-Object Name
+            $MBXServers = $getExchangeServer | Where-Object { ($_.IsMailboxServer -eq $true) -and ($_.AdminDisplayVersion -Match "^Version 15") } | Select-Object Name, Site | Sort-Object Name
         } else {
-            Write-Grey("Custom server list is being used.  Only servers specified after the -ServerList parameter will be used in the report.")
-            $CASServers = $getExchangeServer | Where-Object { ($_.IsClientAccessServer -eq $true) -and ( ($_.Name -in $ServerList) -or ($_.FQDN -in $ServerList) ) } | Sort-Object Name
-            $MBXServers = $getExchangeServer | Where-Object { ($_.IsMailboxServer -eq $true) -and ( ($_.Name -in $ServerList) -or ($_.FQDN -in $ServerList) ) } | Sort-Object Name
+            Write-Grey("Custom server list is being used. Only servers specified after the -ServerList parameter will be used in the report.")
+            $CASServers = $getExchangeServer | Where-Object { ($_.IsClientAccessServer -eq $true) -and ( ($_.Name -in $ServerList) -or ($_.FQDN -in $ServerList) ) } | Select-Object Name, Site | Sort-Object Name
+            $MBXServers = $getExchangeServer | Where-Object { ($_.IsMailboxServer -eq $true) -and ( ($_.Name -in $ServerList) -or ($_.FQDN -in $ServerList) ) } | Select-Object Name, Site | Sort-Object Name
         }
     }
 
@@ -43,7 +43,7 @@ function Get-LoadBalancingReport {
     }
 
     foreach ($server in $ServerList) {
-        if ($server -notin $CASServers -and $server -notin $MBXServers) {
+        if ($server -notin $CASServers.Name -and $server -notin $MBXServers.Name) {
             Write-Warning "$server was not found as an Exchange server."
         }
     }
@@ -97,7 +97,7 @@ function Get-LoadBalancingReport {
     $totalBackendStats = [ordered]@{}
 
     $currentErrors = $Error.Count
-    foreach ( $CASServer in $CASServers) {
+    foreach ( $CASServer in $CASServers.Name) {
         $DefaultIdSite = Invoke-Command -ComputerName $CASServer -ScriptBlock { (Get-Website "Default Web Site").Id }
 
         $FECounters = Get-LocalizedCounterSamples -MachineName $CASServer -Counter @(
@@ -141,7 +141,7 @@ function Get-LoadBalancingReport {
 
     $keyOrders = $displayKeys.Keys | Sort-Object
 
-    foreach ( $MBXServer in $MBXServers) {
+    foreach ( $MBXServer in $MBXServers.Name) {
         $BackendIdSite = Invoke-Command -ComputerName $MBXServer -ScriptBlock { (Get-Website "Exchange Back End").Id }
 
         $BECounters = Get-LocalizedCounterSamples -MachineName $MBXServer -Counter @(
@@ -218,7 +218,7 @@ function Get-LoadBalancingReport {
     $htmlLoadDetails += "$([System.Environment]::NewLine)</tr>$([System.Environment]::NewLine)"
 
     foreach ($server in $CASServers) {
-        $serverKey = $server.Name.ToString()
+        $serverKey = $server.Name
         Write-Verbose "Working Server for HTML report $serverKey"
         $htmlLoadDetails += "<tr>
         <td>$($serverKey)</td>
@@ -285,7 +285,7 @@ function Get-LoadBalancingReport {
     $htmlLoadDetailsBackend += "$([System.Environment]::NewLine)</tr>$([System.Environment]::NewLine)"
 
     foreach ($server in $MBXServers) {
-        $serverKey = $server.Name.ToString()
+        $serverKey = $server.Name
         Write-Verbose "Working Server for HTML report $serverKey"
         $htmlLoadDetailsBackend += "<tr>
             <td>$($serverKey)</td>

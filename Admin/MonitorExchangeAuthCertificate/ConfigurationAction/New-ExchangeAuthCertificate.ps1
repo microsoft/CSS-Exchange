@@ -64,7 +64,7 @@ function New-ExchangeAuthCertificate {
             #>
 
             Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-            $confirmationMessage = "The following actions will be performed:" +
+            $confirmationMessage = "The following actions will be performed without the need to reconfirm:" +
             "`r`n    - The internal transport certificate will be queried" +
             "`r`n    - A new certificate will be generated, it overrides the internal transport certificate" +
             "`r`n    - The internal transport certificate will be set back to the previous one" +
