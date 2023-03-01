@@ -129,8 +129,9 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Windows service" "Running"
             TestObjectMatch "Pattern service" "200 - Reachable"
             TestObjectMatch "Telemetry enabled" "False"
+            TestObjectMatch "AMSI Enabled" "True" -WriteType "Green"
 
-            $Script:ActiveGrouping.Count | Should -Be 77
+            $Script:ActiveGrouping.Count | Should -Be 76
         }
 
         It "Display Results - Security Vulnerability" {
