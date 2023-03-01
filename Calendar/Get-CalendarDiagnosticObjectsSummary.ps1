@@ -48,8 +48,6 @@ function GetCalendarDiagnosticObjects {
     }
 }
 
-GetCalendarDiagnosticObjects;
-
 function FindMatch {
     param(
         [HashTable] $PassedHash
@@ -106,7 +104,8 @@ function Convert-Data {
         }
         $FinalArray += $FinalObj;
     }
-    return $TimeSum += $FinalArray;
+    #return $TimeSum += $FinalArray;
+    return $FinalArray;
     $FinalArray = @();
 }
 
@@ -894,6 +893,8 @@ function BuildTimeline {
     $Results = @();
 }
 
+GetCalendarDiagnosticObjects;
+
 $GlobalObjectId = @();
 
 foreach ($ObjectId in $GetCDO.CleanGlobalObjectId) {
@@ -919,4 +920,5 @@ if ($UniqueMeetingID.count -gt 1) {
 } else {
     Write-Warning "A valid meeting ID was not found, manually confirm the meetingID";
 }
-$TimeSum = @();
+
+
