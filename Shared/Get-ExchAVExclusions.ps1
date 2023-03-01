@@ -361,7 +361,6 @@ function Get-ExchAVExclusionsProcess {
             $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'FIP-FS\Bin\ScanEngineTest.exe'))
             $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'FIP-FS\Bin\ScanningProcess.exe'))
             $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'FIP-FS\Bin\UpdateService.exe'))
-            $ProcessList.Add((Join-Path $env:SystemRoot '\System32\inetSrv\W3wp.exe'))
             $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\wsbExchange.exe'))
         }
 
@@ -382,7 +381,6 @@ function Get-ExchAVExclusionsProcess {
             $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeHMWorker.exe'))
             $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeTransport.exe'))
             $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeTransportLogSearch.exe'))
-            $ProcessList.Add('C:\Windows\System32\WindowsPowerShell\v1.0\Powershell.exe')
         }
 
         if ((Get-ExchangeServer $env:COMPUTERNAME).IsUnifiedMessagingServer) {
