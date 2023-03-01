@@ -202,7 +202,8 @@ Describe "Testing Get-ExchangeAuthCertificateStatus.ps1" {
             Mock Get-ExchangeServerCertificate {
                 throw [System.InvalidOperationException]::New()
             } -ParameterFilter {
-                $Thumbprint -eq "E1BDF9AE58C93C75E76C9DD882138FB8FF0FA786"
+                ($Thumbprint -eq "E1BDF9AE58C93C75E76C9DD882138FB8FF0FA786") -and
+                ($Server -eq "E2k16-2.Contoso.lab")
             }
             $Script:results = Get-ExchangeAuthCertificateStatus
         }
@@ -212,6 +213,8 @@ Describe "Testing Get-ExchangeAuthCertificateStatus.ps1" {
             $results.ReplaceRequired | Should -Be $true
             $results.ConfigureNextAuthRequired | Should -Be $false
             $results.NumberOfUnreachableServers | Should -Be 0
+            $results.AuthCertificateMissingOnServers.Count | Should -Be 1
+            $results.AuthCertificateMissingOnServers | Should -Contain "E2k16-2.Contoso.lab"
         }
     }
 
@@ -222,7 +225,8 @@ Describe "Testing Get-ExchangeAuthCertificateStatus.ps1" {
             Mock Get-ExchangeServerCertificate {
                 throw [System.InvalidOperationException]::New()
             } -ParameterFilter {
-                $Thumbprint -eq "BC6BF924D6EF046E64F8D1987DC1D7D2F4C0042A"
+                ($Thumbprint -eq "BC6BF924D6EF046E64F8D1987DC1D7D2F4C0042A") -and
+                ($Server -eq "E2k16-1.Contoso.lab")
             }
             $Script:results = Get-ExchangeAuthCertificateStatus
         }
@@ -233,6 +237,8 @@ Describe "Testing Get-ExchangeAuthCertificateStatus.ps1" {
             $results.ReplaceRequired | Should -Be $false
             $results.ConfigureNextAuthRequired | Should -Be $true
             $results.NumberOfUnreachableServers | Should -Be 0
+            $results.NextAuthCertificateMissingOnServers.Count | Should -Be 1
+            $results.NextAuthCertificateMissingOnServers | Should -Contain "E2k16-1.Contoso.lab"
         }
     }
 
