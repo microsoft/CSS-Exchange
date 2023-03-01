@@ -114,6 +114,12 @@ foreach ($commitMatch in $m) {
     }
 
     foreach ($affectedFile in $allAffectedFiles) {
+        # Only care about .ps1 files for versioning
+        if (-not ($affectedFile.EndsWith(".ps1"))) {
+            Write-Host "Skipping non ps1 file: $affectedFile"
+            continue
+        }
+
         $commitTimeOnMainString = git log origin/$Branch -n 1 --format="%cd" --date=rfc -- $affectedFile
         $commitTimeOnMain = $null
         if (-not [string]::IsNullOrEmpty($commitTimeOnMainString)) {
