@@ -37,8 +37,8 @@ function Invoke-AnalyzerOrganizationInformation {
     }
     Add-AnalyzedResultInformation @params
 
-    if ($organizationInformation.EnableDownloadDomains.ToString() -eq "Unknown" -and
-        $null -ne $organizationInformation.GetOrganizationConfig) {
+    if ($null -ne $organizationInformation.GetOrganizationConfig -and
+        $organizationInformation.EnableDownloadDomains.ToString() -eq "Unknown") {
         $params = $baseParams + @{
             Details                = "This is 'Unknown' because EMS is connected to an Exchange Version that doesn't know about Enable Download Domains in Get-OrganizationConfig"
             DisplayCustomTabNumber = 2
