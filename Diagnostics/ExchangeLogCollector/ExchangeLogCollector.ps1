@@ -165,6 +165,8 @@ function Main {
     Test-NoSwitchesProvided
 
     Write-Host "Exchange Log Collector v$($BuildVersion)"
+    # Used throughout the script for checking for free space available.
+    $Script:StandardFreeSpaceInGBCheckSize = 10
 
     if ( $PSCmdlet.ParameterSetName -eq "LogPeriod" -and ( $LogAge.CompareTo($LogEndAge) -ne 1 ) ) {
         Write-Host "LogStartDate time should smaller than LogEndDate time." -ForegroundColor "Yellow"
