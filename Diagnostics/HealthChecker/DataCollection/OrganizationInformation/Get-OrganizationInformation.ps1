@@ -20,7 +20,7 @@ function Get-OrganizationInformation {
         $wellKnownSecurityGroups = $null
         $adSchemaInformation = $null
         $getHybridConfiguration = $null
-        $enableDownloadDomains = $null
+        $enableDownloadDomains = "Unknown" # Set to unknown by default.
         $getAcceptedDomain = $null
         $mapiHttpEnabled = $false
         $securityResults = $null
@@ -45,7 +45,6 @@ function Get-OrganizationInformation {
                 $enableDownloadDomains = $organizationConfig.EnableDownloadDomains
             } else {
                 Write-Verbose "No EnableDownloadDomains detected on Get-OrganizationConfig"
-                $enableDownloadDomains = "Unknown"
             }
         } else {
             Write-Verbose "MAPI HTTP Enabled and Download Domains Enabled results not accurate"
