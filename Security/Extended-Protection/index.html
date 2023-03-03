@@ -1913,15 +1913,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#scenario-2-using-retention-policies-for-automated-archiving-of-mailboxes" class="md-nav__link">
-    Scenario 2: Using Retention Policies for automated archiving of mailboxes
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#scenario-3-using-modern-hybrid-configuration-or-hybrid-agent" class="md-nav__link">
-    Scenario 3: Using Modern Hybrid Configuration or Hybrid Agent
+  <a href="#scenario-1-using-modern-hybrid-configuration-or-hybrid-agent" class="md-nav__link">
+    Scenario 1: Using Modern Hybrid Configuration or Hybrid Agent
   </a>
   
 </li>
@@ -2574,15 +2567,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#scenario-2-using-retention-policies-for-automated-archiving-of-mailboxes" class="md-nav__link">
-    Scenario 2: Using Retention Policies for automated archiving of mailboxes
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#scenario-3-using-modern-hybrid-configuration-or-hybrid-agent" class="md-nav__link">
-    Scenario 3: Using Modern Hybrid Configuration or Hybrid Agent
+  <a href="#scenario-1-using-modern-hybrid-configuration-or-hybrid-agent" class="md-nav__link">
+    Scenario 1: Using Modern Hybrid Configuration or Hybrid Agent
   </a>
   
 </li>
@@ -3076,7 +3062,7 @@ The same applies to the <em>SystemDefaultTlsVersions</em> registry value which m
 </tr>
 <tr>
 <td>RestrictType</td>
-<td>Used to restrict incoming IP connections on specified vDir Parameter Value: <strong>EWSBackend</strong>: This parameter should be used to restrict incoming IP connections to a specified allow list of IP addresses or Subnets. This will also turn off EP on EWSBackend. <strong>Note:</strong> This parameter should only be used if automated archiving via retention tags is enabled in the Exchange environment.</td>
+<td>Used to restrict incoming IP connections on specified vDir Parameter Value: <strong>EWSBackend</strong>: This parameter should be used to restrict incoming IP connections to a specified allow list of IP addresses or Subnets. This will also turn off EP on EWSBackend. <strong>Note:</strong> This parameter should no longer be used.</td>
 </tr>
 <tr>
 <td>IPRangeFilePath</td>
@@ -3103,27 +3089,7 @@ The same applies to the <em>SystemDefaultTlsVersions</em> registry value which m
 <p>The script will also check if all Exchange servers in scope have the same TLS configuration. An inconsistent (or invalid) TLS configuration will cause client connections or connections to Exchange Online to fail.</p>
 <p>After the prerequisites checks have been passed, the script will enable Extended Protection and add the required SSL flags on all virtual directories of all Exchange servers in scope.</p>
 <p><img alt="Text Description automatically generated" src="../attachments/9a4e6863e860e064d2831d7d714c95ce.png" /></p>
-<h4 id="scenario-2-using-retention-policies-for-automated-archiving-of-mailboxes"><strong>Scenario 2</strong>: Using Retention Policies for automated archiving of mailboxes</h4>
-<p>If you are using a <em>Retention Policy</em> containing <em>Retention Tags</em> which perform <em>Move to Archive</em> actions, you should use the script as follows:</p>
-<p><code>.\ExchangeExtendedProtectionManagement.ps1 -RestrictType EWSBackend -IPRangeFilePath "IPList.txt"</code></p>
-<p>Executing the script this way, configures extended protection on all vDirs like scenario 1 barring Exchange Back End/EWS vDir, where it sets the Extended Protection setting to OFF. The Extended Protection setting is required to be turned OFF to ensure automated archiving works without any hinderance.</p>
-<p>As turning OFF Extended Protection settings in Backend EWS vDir is not recommended, this command mitigates the risk by limiting the incoming connections to Backend EWS vDir. The script does this by installing an IIS module called <strong>IP Address and Domain Restriction</strong> and adding allow rules for IP addresses of Exchange Servers. It then adds a deny rule for any incoming connections which is not present in the list.</p>
-<p>While using this command customers must provide the list of IPv4 addresses (and IPv6 if used) of all Exchange Servers in the organization.</p>
-<p>This list of addresses should be provided in a TXT file in this way:</p>
-<div class="highlight"><pre><span></span><code>  10.68.12.48
-
-  2001:4898:5808:14:3938:7838:67ab:cdf4
-
-  10.128.4.204
-
-  10.231.234.140/20
-</code></pre></div>
-<p>File should contain only IP addresses or IP subnets of Exchange servers separated by newline character. For customers who have more than 100 servers, it is recommended to use IP subnets instead of IP addresses, so that the list is short and efficient.</p>
-<p>To help get all the IP addresses of all Exchange Servers in the organization, customers can use the following command.</p>
-<p><code>.\ExchangeExtendedProtectionManagement.ps1 -FindExchangeServerIPAddresses</code></p>
-<p>The above command will generate a file IPList.txt in the directory where script is stored.</p>
-<p><strong>Important Note:</strong> Customers with many Exchange Servers are expected to modify this list and use IP subnets to reduce the number of allow rules to be added.</p>
-<h4 id="scenario-3-using-modern-hybrid-configuration-or-hybrid-agent">Scenario 3: Using Modern Hybrid Configuration or Hybrid Agent</h4>
+<h4 id="scenario-1-using-modern-hybrid-configuration-or-hybrid-agent">Scenario 1: Using Modern Hybrid Configuration or Hybrid Agent</h4>
 <p>In case you have Modern Hybrid configuration, you need to skip Exchange servers published using the Hybrid Agent. This can be done by using the <em>SkipExchangeServerNames</em> parameter:</p>
 <p><code>.\ExchangeExtendedProtectionManagement.ps1 -SkipExchangeServerNames HybridServer1, HybridServer2</code></p>
 <p>Or</p>
@@ -3155,8 +3121,7 @@ The same applies to the <em>SystemDefaultTlsVersions</em> registry value which m
 <h4 id="rolling-back-ip-restriction-settings">Rolling back IP Restriction settings</h4>
 <p>You can use the script to <strong>only</strong> roll back <strong>Allow and Deny rules</strong> set in Backend EWS vDir’s IP Address and Domain Restriction module in the following way.</p>
 <p><code>.\ExchangeExtendedProtectionManagement.ps1 -RollbackType RestrictTypeEWSBackend</code></p>
-<p><strong>Note:</strong> To safeguard Backend EWS vDir against NTLM relay, executing above command will set Extended Protection setting back to Required. If automated archiving is enabled, executing this command can cause automated archiving to stop working till the time Allow and Deny rules are not added back using the following command.</p>
-<p>.\ExchangeExtendedProtectionManagement.ps1 -RestrictType EWSBackend -IPRangeFilePath "IPList.txt"</p>
+<p><strong>Note:</strong> To safeguard Backend EWS vDir against NTLM relay, executing above command will set Extended Protection setting back to Required.</p>
 <p><code>.\ExchangeExtendedProtectionManagement.ps1 –RollbackType "RestoreIISAppConfig"</code></p>
 <h3 id="enabling-extended-protection-manually-via-iis-settings">Enabling Extended Protection manually via IIS settings</h3>
 <p>If you want to enable Extended Protection in your environment manually without using the script, you can use the following steps.</p>
@@ -3183,12 +3148,14 @@ The same applies to the <em>SystemDefaultTlsVersions</em> registry value which m
 </ol>
 <h2 id="known-issues-and-workarounds">Known issues and workarounds</h2>
 <ol>
-<li>
-<p>Customers using a <em>Retention Policy</em> containing <em>Retention Tags</em> which perform <em>Move to Archive</em> can now configure Extended Protection with this update. We are actively working on a permanent solution to resolve this issue. Once we ship the solution you will be required to run this script again and rollback the changes.</p>
-</li>
-<li>
-<p>In Exchange Server 2013, 2016 and 2019 the following probes will show <em>FAILED</em> status after running the script which switches on Extended Protection with required SSL flags on various vDirs as per recommended guidelines:</p>
+<li>Customers using a <em>Retention Policy</em> containing <em>Retention Tags</em> which perform <em>Move to Archive</em> can now configure Extended Protection with this update. We are actively working on a permanent solution to resolve this issue. Once we ship the solution you will be required to run this script again and rollback the changes.</li>
+</ol>
+<p>!!! warning "Fixed"</p>
+<div class="highlight"><pre><span></span><code>     The archiving issue has been fixed with the [latest Exchange Server update](https://aka.ms/LatestExchangeServerUpdate).
+     We recommend rolling back the mitigation by following the steps outlined in the [rollback section](#rolling-back-ip-restriction-settings).
+</code></pre></div>
 <ol>
+<li>In Exchange Server 2013, 2016 and 2019 the following probes will show <em>FAILED</em> status after running the script which switches on Extended Protection with required SSL flags on various vDirs as per recommended guidelines:<ol>
 <li>OutlookMapiHttpCtpProbe</li>
 <li>OutlookRpcCtpProbe</li>
 <li>OutlookRpcDeepTestProbe</li>
@@ -3201,7 +3168,9 @@ The same applies to the <em>SystemDefaultTlsVersions</em> registry value which m
 <p>You will also notice that some Health Mailbox logins fail with event ID: 4625 and failure reason "<em>An Error occurred during Logon</em>" and status <em>0xC000035B</em> which is related to the failed probes. <a href="https://docs.microsoft.com/exchange/high-availability/managed-availability/health-sets?view=exchserver-2019#use-the-exchange-management-shell-to-view-a-list-of-monitors-and-their-current-health"><strong>Get-ServerHealth</strong></a> command will also show RPC and Mapi monitors as Unhealthy.</p>
 <p><strong>Impact of these failures</strong>: Due to this probe failure, the Mapi and Rpc App pools will get restarted once. There should be no other impact.</p>
 <p>You can also turn off any of the above probes temporarily (till the fix is provided) by going through steps mentioned in <a href="https://docs.microsoft.com/exchange/high-availability/managed-availability/configure-overrides?view=exchserver-2019">Configure managed availability overrides | Microsoft Docs</a>.</p>
-<p><strong>Fixed:</strong> This issue has been addressed with the <a href="https://techcommunity.microsoft.com/t5/exchange-team-blog/released-october-2022-exchange-server-security-updates/ba-p/3646263">October 2022 (and later) Exchange Server Security Updates</a>.</p>
+<p>!!! warning "Fixed"</p>
+<div class="highlight"><pre><span></span><code>     This issue has been addressed with the [October 2022 (and later) Exchange Server Security Updates](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-october-2022-exchange-server-security-updates/ba-p/3646263).
+</code></pre></div>
 <h2 id="troubleshooting-issues-after-enabling-extended-protection">Troubleshooting issues after enabling Extended Protection</h2>
 <h3 id="users-cannot-access-their-mailbox-through-one-or-more-clients">Users cannot access their mailbox through one or more clients</h3>
 <p>There may be multiple reasons why some or all clients may start giving authentication errors to users after enabling Extended Protection. If this happens, check the following:</p>
@@ -3247,7 +3216,7 @@ A: If the device uses the same certificate as the Exchange Server, they can be u
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">January 13, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">March 3, 2023</span>
       
     
   </small>
