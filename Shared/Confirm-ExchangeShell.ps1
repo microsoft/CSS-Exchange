@@ -39,6 +39,7 @@ function Confirm-ExchangeShell {
             $isExchangeManagementShell = $false
 
             try {
+                $currentErrors = $Error.Count
                 $eventLogLevel = Get-EventLogLevel -ErrorAction Stop | Select-Object -First 1
                 $getEventLogLevelCallSuccessful = $true
                 foreach ($e in $eventLogLevel) {
@@ -49,6 +50,7 @@ function Confirm-ExchangeShell {
                         $isExchangeManagementShell = $true
                     }
                 }
+                Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
             } catch {
                 Write-Verbose "Failed to run Get-EventLogLevel"
                 Invoke-CatchActionError $CatchActionFunction
