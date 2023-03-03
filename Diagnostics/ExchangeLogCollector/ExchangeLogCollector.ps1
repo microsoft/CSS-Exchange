@@ -7,7 +7,7 @@ param (
     [string]$FilePath = "C:\MS_Logs_Collection",
     [Parameter(Mandatory = $false, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
     [Alias('Fqdn')]
-    [array]$Servers = @($env:COMPUTERNAME),
+    [string[]]$Servers = @($env:COMPUTERNAME),
     [switch]$ADDriverLogs,
     [bool]$AppSysLogs = $true,
     [bool]$AppSysLogsToXml = $true,
