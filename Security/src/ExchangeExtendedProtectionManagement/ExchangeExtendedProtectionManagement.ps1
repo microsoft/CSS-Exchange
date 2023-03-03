@@ -208,6 +208,9 @@ begin {
     }
 
     try {
+        $BuildVersion = ""
+        Write-Host "Version $BuildVersion"
+
         $exchangeShell = Confirm-ExchangeShell
         if (-not($exchangeShell.ShellLoaded)) {
             Write-Warning "Failed to load the Exchange Management Shell. Start the script using the Exchange Management Shell."
@@ -216,9 +219,6 @@ begin {
             Write-Warning "This script requires to be run inside of Exchange Management Shell. Please run on an Exchange Management Server or an Exchange Server with Exchange Management Shell."
             exit
         }
-
-        $BuildVersion = ""
-        Write-Host "Version $BuildVersion"
 
         if ($SkipAutoUpdate) {
             Write-Verbose "Skipping AutoUpdate"
