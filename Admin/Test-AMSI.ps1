@@ -17,14 +17,8 @@ param(
     [switch]$RestartIIS
 )
 
-function Confirm-Administrator {
-    $currentPrincipal = New-Object Security.Principal.WindowsPrincipal( [Security.Principal.WindowsIdentity]::GetCurrent() )
-    if ($currentPrincipal.IsInRole( [Security.Principal.WindowsBuiltInRole]::Administrator )) {
-        return $true
-    } else {
-        return $false
-    }
-}
+. $PSScriptRoot\..\Shared\Confirm-Administrator.ps1
+. $PSScriptRoot\..\Shared\Confirm-ExchangeShell.ps1
 
 function SetCertificateValidationBehavior {
     [CmdletBinding()]
@@ -62,6 +56,82 @@ function SetCertificateValidationBehavior {
     }
 }
 
+function CheckExchangeAndWindowsVersionsSupportedByAMSI {
+    $E16orLaterMBXServers = Get-ExchangeServer | Where-Object { $_.IsMailboxServer -and $_.IsE15OrLater -and $_.AdminDisplayVersion.Minor -gt 0 } | Select-Object Name
+    if ( $E16orLaterMBXServers.Count -eq 0 ) {
+        Write-Output $msgNewLine
+        Write-Warning "AMSI integration only applies to Exchange 2016 or later but we do not found anyone in the organization."
+        $Error.Clear()
+        Start-Sleep -Seconds 2
+        exit
+    }
+
+    $E15orOlderMBXServers = Get-ExchangeServer | Where-Object { $_.IsMailboxServer -and ( -not $_.IsE15OrLater -or $_.AdminDisplayVersion.Minor -eq 0 ) } | Select-Object Name
+    foreach ( $server in $E15orOlderMBXServers.Name ) {
+        Write-Warning "AMSI does not apply on $server because it is Exchange 2013 or older"
+    }
+
+    $hasWindows2016orHigher = $false
+    $hasWindows2012R2orLower = $false
+    foreach ( $server in $E16orLaterMBXServers.Name ) {
+        $temp = $null
+        $temp = Get-CimInstance -ComputerName $server -ClassName Win32_OperatingSystem -ErrorAction SilentlyContinue
+        if ( $temp ) {
+            if ( $temp.Version.Split('.')[0] -ge 10 ) {
+                $hasWindows2016orHigher = $true
+            } else {
+                $hasWindows2012R2orLower = $true
+                Write-Warning "AMSI does not apply on $server because it is Windows 2012 R2 or older"
+            }
+        }
+    }
+
+    if ( -not $hasWindows2016orHigher ) {
+        Write-Output $msgNewLine
+        Write-Warning "We were not able to find any Exchange server 2016 or newest in a Windows 2016 or newest."
+        Write-Warning "AMSI only works in Exchange 2016 or newest with Windows 2016 or newest."
+        $Error.Clear()
+        Start-Sleep -Seconds 2
+        exit
+    }
+
+    if ( $hasWindows2012R2orLower ) {
+        Write-Output $msgNewLine
+        Write-Warning "We found Exchange servers runing Windows older than Windows 2016."
+        Write-Warning "AMSI only works in Exchange 2016 or newest with Windows 2016 or newest."
+        Write-Warning "It will only applies in the newest versions."
+        Start-Sleep -Seconds 2
+    }
+}
+
+function CheckWindowsVersionIsW16orOlder {
+    param(
+        [string]$ExchangeServerFQDN
+    )
+    $temp = $null
+    if ($ExchangeServerFQDN) {
+        $temp = Get-CimInstance -ComputerName $ExchangeServerFQDN -ClassName Win32_OperatingSystem -ErrorAction SilentlyContinue
+    } else {
+        $temp = Get-CimInstance -ClassName Win32_OperatingSystem -ErrorAction SilentlyContinue
+    }
+    if ( $temp ) {
+        if ( $temp.Version.Split('.')[0] -lt 10 ) {
+            Write-Output $msgNewLine
+            Write-Warning "AMSI integration only applies to Windows 2016 or older."
+            $Error.Clear()
+            Start-Sleep -Seconds 2
+            exit
+        }
+    } else {
+        Write-Output $msgNewLine
+        Write-Warning "We could not get Windows version."
+        Write-Warning "AMSI integration only applies to Windows 2016 or older."
+        $Error.Clear()
+        Start-Sleep -Seconds 2
+        exit
+    }
+}
+
 function Test-AMSI {
     $msgNewLine = "`n"
     $currentForegroundColor = $host.ui.RawUI.ForegroundColor
@@ -72,9 +142,30 @@ function Test-AMSI {
         Start-Sleep -Seconds 2
         exit
     }
+
+    if ( $TestAMSI -or $EnableAMSI -or $DisableAMSI) {
+        $exchangeShell = Confirm-ExchangeShell
+        if (-not($exchangeShell.ShellLoaded)) {
+            Write-Warning "Failed to load Exchange Shell Module..."
+            exit
+        }
+    }
+
     $dateTime = Get-Date
     $installPath = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath
     if ($ExchangeServerFQDN) {
+        $isE16orNewest = $null
+        $isE16orNewest = Get-ExchangeServer $ExchangeServerFQDN | Where-Object { $_.IsMailboxServer -and $_.IsE15OrLater -and $_.AdminDisplayVersion.Minor -gt 0 }
+        if ( $null -eq $isE16orNewest ) {
+            Write-Output $msgNewLine
+            Write-Warning "AMSI integration only applies to Exchange 2016 or older."
+            $Error.Clear()
+            Start-Sleep -Seconds 2
+            exit
+        }
+
+        CheckWindowsVersionIsW16orOlder -ExchangeServerFQDN $ExchangeServerFQDN
+
         try {
             if ($IgnoreSSL) {
                 SetCertificateValidationBehavior -Ignore
@@ -119,17 +210,20 @@ function Test-AMSI {
         return
     }
     if ($CheckAMSIProviders) {
+        CheckWindowsVersionIsW16orOlder
         $AMSI = Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\AMSI\Providers' -Recurse
         $AMSI -match '[0-9A-Fa-f\-]{36}' | Out-Null
         $Matches.Values | ForEach-Object { Get-ChildItem "HKLM:\SOFTWARE\Classes\ClSid\{$_}" | Format-Table -AutoSize }
     }
     if ($EnableAMSI) {
+        CheckExchangeAndWindowsVersionsSupportedByAMSI
         Remove-SettingOverride -Identity DisablingAMSIScan -Confirm:$false
         Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh
         Write-Warning "Remember to restart IIS for this to take affect. You can accomplish this by running .\Test-AMSI.ps1 -RestartIIS"
         return
     }
     if ($DisableAMSI) {
+        CheckExchangeAndWindowsVersionsSupportedByAMSI
         New-SettingOverride -Name DisablingAMSIScan -Component Cafe -Section HttpRequestFiltering -Parameters ("Enabled=False") -Reason "Disabled via CSS-Exchange Script"
         Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh
         Write-Warning "Remember to restart IIS for this to take affect. You can accomplish this by running .\Test-AMSI.ps1 -RestartIIS"
