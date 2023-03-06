@@ -17,7 +17,7 @@
         <link rel="next" href="../ExchangeExtendedProtectionManagement/">
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.0">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.1">
     
     
       
@@ -2023,7 +2023,7 @@
         
           <li class="md-nav__item">
   <a href="#exchange-server-2016-cu22-exchange-server-2019-cu11-or-older" class="md-nav__link">
-    Exchange Server 2016 CU22 / Exchange Server 2019 CU11 or Older
+    Exchange Server 2016 CU22 / Exchange Server 2019 CU11 or older
   </a>
   
 </li>
@@ -2677,7 +2677,7 @@
         
           <li class="md-nav__item">
   <a href="#exchange-server-2016-cu22-exchange-server-2019-cu11-or-older" class="md-nav__link">
-    Exchange Server 2016 CU22 / Exchange Server 2019 CU11 or Older
+    Exchange Server 2016 CU22 / Exchange Server 2019 CU11 or older
   </a>
   
 </li>
@@ -2835,7 +2835,10 @@
 <p>Extended Protection cannot be enabled on Hybrid Servers which uses Modern Hybrid configuration. In Modern Hybrid configuration, Hybrid Server are published to Exchange Online via Hybrid Agent which proxies the Exchange Online call to Exchange Server.</p>
 <p>Enabling Extended Protection on Hybrid servers using Modern Hybrid configuration will lead to disruption of hybrid features like mailbox migrations and Free/Busy. Hence, it is important to identify all the Hybrid Servers in the organization published via Hybrid Agent and not enable Extended Protection specifically on these servers.</p>
 <h4 id="identifying-hybrid-exchange-servers-published-using-hybrid-agent">Identifying hybrid Exchange servers published using Hybrid Agent</h4>
-<p><strong>Note:</strong> This step is not required if you are using classic Hybrid configuration.</p>
+<div class="admonition warning">
+<p class="admonition-title">Note</p>
+<p>This step is not required if you are using classic Hybrid configuration.</p>
+</div>
 <p>In case you don’t have a list of servers published via Hybrid Agent, you can use the following steps to identify them:</p>
 <ol>
 <li>Log into a machine where the Hybrid Agent is installed and running. Open the <a href="https://docs.microsoft.com/exchange/hybrid-deployment/hybrid-agent#hybrid-agent-powershell-module">PowerShell module</a> of the Hybrid Agent and run <em>Get-HybridApplication</em> to identify the <em>TargetUri</em> used by the Hybrid Agent.</li>
@@ -2850,11 +2853,15 @@
 <li>No mailboxes should be hosted on the hybrid server, and if any mailbox exists, they should be migrated to other mailbox servers.</li>
 <li>You can enable Extended Protection on all virtual directories except Front End EWS on the hybrid Exchange server.</li>
 </ol>
-<p><strong>Note:</strong> Specifically skipping extended protection on Front End EWS of Exchange Server is not supported via script. So, you would need to change this setting manually.</p>
+<div class="admonition warning">
+<p class="admonition-title">Note</p>
+<p>Specifically skipping extended protection on Front End EWS of Exchange Server is not supported via script. So, you would need to change this setting manually.</p>
+</div>
 <h3 id="ntlmv1-is-not-supported-when-extended-protection-is-enabled">NTLMv1 is not supported when Extended Protection is enabled</h3>
-<blockquote>
-<p><strong>Note:</strong> To increase security, we recommend that you review and configure this setting regardless of whether you experience problems or not.</p>
-</blockquote>
+<div class="admonition warning">
+<p class="admonition-title">Note</p>
+<p>To increase security, we recommend that you review and configure this setting regardless of whether you experience problems or not.</p>
+</div>
 <p>NTLMv1 is weak and doesn't provide protection against man-in-the-middle (MitM) attacks. It should be <a href="https://support.microsoft.com/topic/security-guidance-for-ntlmv1-and-lm-network-authentication-da2168b6-4a31-0088-fb03-f081acde6e73">considered as vulnerable</a> and so, no longer be used. Therefore NTLMv1 should not be used together with Extended Protection. Additionally, if you enforce a client to use NTLMv1 instead of NTLMv2 and you have Extended Protection enabled on your Exchange server, this will lead to password prompts on the client side without a way to authenticate successfully against Exchange.</p>
 <p>If you experience password prompts on your clients once Extended Protection is enabled, you should check the following registry key and value on client and Exchange server side:</p>
 <p>Registry key: <code>HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa</code></p>
@@ -3033,7 +3040,10 @@ The same applies to the <em>SystemDefaultTlsVersions</em> registry value which m
 <p>Before enabling Extended Protection in your Exchange environment, ensure you meet all the prerequisites listed in this document.</p>
 <p>To enable Extended Protection on all your Exchange Servers, you can use the <a href="https://aka.ms/ExchangeEPScript">ExchangeExtendedProtectionManagement.ps1</a> script, which is hosted on the Microsoft Exchange-CSS repository on GitHub.</p>
 <p>It’s not required to run the script directly on any specific Exchange Server in your environment. Just copy it to a machine that has the Exchange Management Shell (EMS) installed.</p>
-<p><strong>Note:</strong> Over time, we will be updating the script and documentation. The script will attempt to auto-update when it is run. If the computer where the script is run is not connected to the Internet, this update check will fail. You should always check for the latest version of the script before running it.</p>
+<div class="admonition warning">
+<p class="admonition-title">Note</p>
+<p>Over time, we will be updating the script and documentation. The script will attempt to auto-update when it is run. If the computer where the script is run is not connected to the Internet, this update check will fail. You should always check for the latest version of the script before running it.</p>
+</div>
 <h4 id="parameters">Parameters</h4>
 <p>If the script is executed without any parameters, it will enable Extended Protection on any Exchange Server that can be reached from the machine where the script was run. You can use the following parameters to specify the scope of script operations:</p>
 <table>
@@ -3121,11 +3131,17 @@ The same applies to the <em>SystemDefaultTlsVersions</em> registry value which m
 <h4 id="rolling-back-ip-restriction-settings">Rolling back IP Restriction settings</h4>
 <p>You can use the script to <strong>only</strong> roll back <strong>Allow and Deny rules</strong> set in Backend EWS vDir’s IP Address and Domain Restriction module in the following way.</p>
 <p><code>.\ExchangeExtendedProtectionManagement.ps1 -RollbackType RestrictTypeEWSBackend</code></p>
-<p><strong>Note:</strong> To safeguard Backend EWS vDir against NTLM relay, executing above command will set Extended Protection setting back to Required.</p>
+<div class="admonition warning">
+<p class="admonition-title">Note</p>
+<p>To safeguard Backend EWS vDir against NTLM relay, executing above command will set Extended Protection setting back to Required.</p>
+</div>
 <p><code>.\ExchangeExtendedProtectionManagement.ps1 –RollbackType "RestoreIISAppConfig"</code></p>
 <h3 id="enabling-extended-protection-manually-via-iis-settings">Enabling Extended Protection manually via IIS settings</h3>
 <p>If you want to enable Extended Protection in your environment manually without using the script, you can use the following steps.</p>
-<p><strong>Note:</strong> When manually enabling Extended Protection, ensure that all virtual directories on the Exchange servers have Extended Protected configured according to the table above.</p>
+<div class="admonition warning">
+<p class="admonition-title">Note</p>
+<p>When manually enabling Extended Protection, ensure that all virtual directories on the Exchange servers have Extended Protected configured according to the table above.</p>
+</div>
 <h4 id="set-extended-protection-to-either-required-or-accept-for-an-exchange-virtual-directory">Set Extended Protection to either Required or Accept for an Exchange Virtual Directory</h4>
 <ol>
 <li>Launch IIS Manager on the Exchange server where you want to configure Extended Protection.</li>
@@ -3150,10 +3166,11 @@ The same applies to the <em>SystemDefaultTlsVersions</em> registry value which m
 <ol>
 <li>Customers using a <em>Retention Policy</em> containing <em>Retention Tags</em> which perform <em>Move to Archive</em> can now configure Extended Protection with this update. We are actively working on a permanent solution to resolve this issue. Once we ship the solution you will be required to run this script again and rollback the changes.</li>
 </ol>
-<p>!!! warning "Fixed"</p>
-<div class="highlight"><pre><span></span><code>     The archiving issue has been fixed with the [latest Exchange Server update](https://aka.ms/LatestExchangeServerUpdate).
-     We recommend rolling back the mitigation by following the steps outlined in the [rollback section](#rolling-back-ip-restriction-settings).
-</code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Fixed</p>
+<p>The archiving issue has been fixed with the <a href="https://aka.ms/LatestExchangeServerUpdate">latest Exchange Server update</a>.
+  We recommend rolling back the mitigation by following the steps outlined in the <a href="#rolling-back-ip-restriction-settings">rollback section</a>.</p>
+</div>
 <ol>
 <li>In Exchange Server 2013, 2016 and 2019 the following probes will show <em>FAILED</em> status after running the script which switches on Extended Protection with required SSL flags on various vDirs as per recommended guidelines:<ol>
 <li>OutlookMapiHttpCtpProbe</li>
@@ -3168,9 +3185,10 @@ The same applies to the <em>SystemDefaultTlsVersions</em> registry value which m
 <p>You will also notice that some Health Mailbox logins fail with event ID: 4625 and failure reason "<em>An Error occurred during Logon</em>" and status <em>0xC000035B</em> which is related to the failed probes. <a href="https://docs.microsoft.com/exchange/high-availability/managed-availability/health-sets?view=exchserver-2019#use-the-exchange-management-shell-to-view-a-list-of-monitors-and-their-current-health"><strong>Get-ServerHealth</strong></a> command will also show RPC and Mapi monitors as Unhealthy.</p>
 <p><strong>Impact of these failures</strong>: Due to this probe failure, the Mapi and Rpc App pools will get restarted once. There should be no other impact.</p>
 <p>You can also turn off any of the above probes temporarily (till the fix is provided) by going through steps mentioned in <a href="https://docs.microsoft.com/exchange/high-availability/managed-availability/configure-overrides?view=exchserver-2019">Configure managed availability overrides | Microsoft Docs</a>.</p>
-<p>!!! warning "Fixed"</p>
-<div class="highlight"><pre><span></span><code>     This issue has been addressed with the [October 2022 (and later) Exchange Server Security Updates](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-october-2022-exchange-server-security-updates/ba-p/3646263).
-</code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Fixed</p>
+<p>This issue has been addressed with the <a href="https://aka.ms/LatestExchangeServerUpdate">October 2022 (and later) Exchange Server Security Updates</a>.</p>
+</div>
 <h2 id="troubleshooting-issues-after-enabling-extended-protection">Troubleshooting issues after enabling Extended Protection</h2>
 <h3 id="users-cannot-access-their-mailbox-through-one-or-more-clients">Users cannot access their mailbox through one or more clients</h3>
 <p>There may be multiple reasons why some or all clients may start giving authentication errors to users after enabling Extended Protection. If this happens, check the following:</p>
@@ -3194,29 +3212,29 @@ The same applies to the <em>SystemDefaultTlsVersions</em> registry value which m
 <p>There are two issues that currently impact Public Folders Connectivity:</p>
 <h4 id="exchange-2013">Exchange 2013</h4>
 <p>If Public Folders exist on Exchange 2013 servers and Extended Protection is enabled, they will no longer appear and end users will be unable to access them. To resolve the issue in a coexistence environment, migrate all Public Folders to Exchange Server 2016 or Exchange Server 2019. If you have an environment containing only Exchange 2013 servers with Public Folders, you can manually remove the SSL flag from the Backend RPC virtual directory to make Public Folders accessible.</p>
-<h4 id="exchange-server-2016-cu22-exchange-server-2019-cu11-or-older">Exchange Server 2016 CU22 / Exchange Server 2019 CU11 or Older</h4>
+<h4 id="exchange-server-2016-cu22-exchange-server-2019-cu11-or-older">Exchange Server 2016 CU22 / Exchange Server 2019 CU11 or older</h4>
 <p>If you have an environment containing Exchange Server 2016 CU22 or Exchange Server 2019 CU11 or older and are utilizing Public Folders, before enabling extended protection you must confirm the version of the server hosting the Public Folder hierarchy. <strong>Ensure the server hosting the Public Folder hierarchy is upgraded to Exchange Server 2016 CU23 or Exchange Server 2019 CU12 with the latest Security Updates</strong> or move the hierarchy to one with these latest versions and updates.</p>
 <h2 id="faqs">FAQs</h2>
-<p>Q: Is it required to install the August 2022 Security Update (SU) if it was already installed on the previous Cumulative Update (CU)?<br>
-A: Yes, it's required to install the August 2022 SU again if you update to a newer CU build (e.g., Exchange Server 2019 CU11 --&gt; Exchange Server 2019 CU12).
+<p><strong>Q:</strong> Is it required to install the August 2022 Security Update (SU) if it was already installed on the previous Cumulative Update (CU)?<br>
+<strong>A:</strong> Yes, it's required to install the August 2022 SU again if you update to a newer CU build (e.g., Exchange Server 2019 CU11 --&gt; Exchange Server 2019 CU12).
 Please remember:
 If you plan to do the update immediately (means CU + SU installation) Extended Protection does not need to be switched off.
 If you plan to stay on the CU without installing the SU immediately, you must disable Extended Protection (find the required steps above) as the CU without the SU being installed doesn't support Extended Protection and therefore, you'll experience client connectivity issues.</p>
-<p>Q: Is it safe to enable Windows Extended Protection on an environment that uses Active Directory Federation Services (ADFS) for OWA?<br>
-A: Yes, ADFS is not impacted by this change.</p>
-<p>Q: Is it safe to enable Windows Extended Protection on an environment that uses Hybrid Modern Auth (HMA)?<br>
-A: Yes, HMA is not impacted by this change. While EP does not further enhance HMA, windows auth may still be used for applications that do not support Hybrid Modern Auth. Considering this, the enablement of Extended Protection would be recommended in any environment eligible that still has Exchange on-premises services.</p>
-<p>Q: Does Extended Protection Impact Hybrid Modern Auth or Teams Integration?<br>
-A: Extended Protection will not influence Teams Integration or Hybrid Modern Auth.</p>
-<p>Q: While we understand that preventing MitM attacks is important, can we have our own devices in the middle with our own certificates?<br>
-A: If the device uses the same certificate as the Exchange Server, they can be used.</p>
+<p><strong>Q:</strong> Is it safe to enable Windows Extended Protection on an environment that uses Active Directory Federation Services (ADFS) for OWA?<br>
+<strong>A:</strong> Yes, ADFS is not impacted by this change.</p>
+<p><strong>Q:</strong> Is it safe to enable Windows Extended Protection on an environment that uses Hybrid Modern Auth (HMA)?<br>
+<strong>A:</strong> Yes, HMA is not impacted by this change. While EP does not further enhance HMA, windows auth may still be used for applications that do not support Hybrid Modern Auth. Considering this, the enablement of Extended Protection would be recommended in any environment eligible that still has Exchange on-premises services.</p>
+<p><strong>Q:</strong> Does Extended Protection Impact Hybrid Modern Auth or Teams Integration?<br>
+<strong>A:</strong> Extended Protection will not influence Teams Integration or Hybrid Modern Auth.</p>
+<p><strong>Q:</strong> While we understand that preventing MitM attacks is important, can we have our own devices in the middle with our own certificates?<br>
+<strong>A:</strong> If the device uses the same certificate as the Exchange Server, they can be used.</p>
 
   <hr>
 <div class="md-source-file">
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">March 3, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">March 6, 2023</span>
       
     
   </small>
@@ -3261,7 +3279,7 @@ A: If the device uses the same certificate as the Exchange Server, they can be u
     <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.indexes", "content.action.edit"], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.ce72ebac.min.js"></script>
+      <script src="../../assets/javascripts/bundle.b78d2936.min.js"></script>
       
     
   </body>
