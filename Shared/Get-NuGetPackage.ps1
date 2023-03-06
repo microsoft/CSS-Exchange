@@ -83,7 +83,8 @@ function Get-NuGetPackage {
                     $nuGetPackage = $nuGetPackage | Where-Object { $_.authors -eq $Author }
                 }
 
-                if ($null -ne $nuGetPackage) {
+                if (($null -ne $nuGetPackage) -and
+                ($nuGetPackage.title.Count -eq 1)) {
                     Write-Verbose "NuGet package found: $($nuGetPackage.id)"
                     $packageFound = $true
                     Write-Verbose "Description: $($nuGetPackage.description)"
