@@ -100,7 +100,7 @@ function CheckExchangeAndWindowsVersionsSupportedByAMSI {
 
     if ( $hasWindows2012R2orLower ) {
         Write-Output $msgNewLine
-        Write-Warning "We found Exchange servers runing Windows older than Windows 2016."
+        Write-Warning "We found Exchange servers running Windows older than Windows 2016."
         Write-Warning "AMSI only works in Exchange 2016 or newest with Windows 2016 or newest."
         Write-Warning "It will only applies in the newest versions."
         Start-Sleep -Seconds 2
@@ -242,7 +242,7 @@ function Test-AMSI {
             Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh
             Write-Warning "Remember to restart IIS for this to take affect. You can accomplish this by running .\Test-AMSI.ps1 -RestartIIS"
         } else {
-            Write-Warning "AMSI is alreday disabled on Exchange configuration"
+            Write-Warning "AMSI is alredy disabled on Exchange configuration"
         }
         return
     }
