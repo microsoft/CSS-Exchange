@@ -242,7 +242,7 @@ function Test-AMSI {
             Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh
             Write-Warning "Remember to restart IIS for this to take affect. You can accomplish this by running .\Test-AMSI.ps1 -RestartIIS"
         } else {
-            Write-Warning "AMSI is alredy disabled on Exchange configuration"
+            Write-Warning "AMSI is already disabled on Exchange configuration"
         }
         return
     }
