@@ -48,6 +48,13 @@ if ($optimizeCodeFormatter) {
 
         foreach ($fileChanged in $filesChangedInCommit) {
             $fullPath = Join-Path $repoRoot $fileChanged
+
+            if (-not (Test-Path $fullPath)) {
+                # not typical scenario, but want to have the pipeline continue
+                Write-Verbose "File no longer exists, skip file: $fullPath"
+                continue
+            }
+
             Write-Verbose "Adding commit file to list: $fullPath"
             [void]$filesFullPath.Add($fullPath)
         }

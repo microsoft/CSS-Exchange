@@ -1,4 +1,7 @@
 # About ExPerfWiz
+
+Download the latest release: [ExPerfWiz.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/ExPerfWiz.ps1)
+
 ExPerfWiz is a PowerShell based script to help automate the collection of performance data on Exchange 2013, 2016 and 2019 servers.  Supported operating systems are Windows 2012, 2012 R2, 2016 and 2019 Core and Standard.
 
 # Initial Run
