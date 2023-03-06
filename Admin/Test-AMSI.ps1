@@ -6,6 +6,7 @@ param(
     [Parameter(ParameterSetName = 'TestAMSI', Mandatory = $true, Position = 0)]
     [ValidateNotNullOrEmpty()]
     [string]$ExchangeServerFQDN,
+    [Parameter(ParameterSetName = 'TestAMSI', Mandatory = $false)]
     [switch]$IgnoreSSL,
     [Parameter(ParameterSetName = 'CheckAMSIProviders', Mandatory = $false)]
     [switch]$CheckAMSIProviders,
@@ -13,6 +14,8 @@ param(
     [switch]$EnableAMSI,
     [Parameter(ParameterSetName = 'DisableAMSI', Mandatory = $false)]
     [switch]$DisableAMSI,
+    [Parameter(ParameterSetName = 'CheckStatus', Mandatory = $false)]
+    [switch]$CheckStatus,
     [Parameter(ParameterSetName = 'RestartIIS', Mandatory = $false)]
     [switch]$RestartIIS
 )
@@ -209,26 +212,52 @@ function Test-AMSI {
         }
         return
     }
+
     if ($CheckAMSIProviders) {
         CheckWindowsVersionIsW16orOlder
         $AMSI = Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\AMSI\Providers' -Recurse
         $AMSI -match '[0-9A-Fa-f\-]{36}' | Out-Null
         $Matches.Values | ForEach-Object { Get-ChildItem "HKLM:\SOFTWARE\Classes\ClSid\{$_}" | Format-Table -AutoSize }
     }
+
+    $getSO = $null
     if ($EnableAMSI) {
         CheckExchangeAndWindowsVersionsSupportedByAMSI
-        Remove-SettingOverride -Identity DisablingAMSIScan -Confirm:$false
-        Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh
-        Write-Warning "Remember to restart IIS for this to take affect. You can accomplish this by running .\Test-AMSI.ps1 -RestartIIS"
+        $getSO = Get-SettingOverride -Identity DisablingAMSIScan -ErrorAction SilentlyContinue | Where-Object { $_.SectionName -eq 'HttpRequestFiltering' -and $_.Parameters -eq 'Enabled=False' -and $_.Reason -eq 'Disabled via CSS-Exchange Script' }
+        if ( $null -eq $getSO ) {
+            Write-Warning "AMSI is NOT disabled by CSS-Exchange Script on Exchange configuration"
+        } else {
+            Remove-SettingOverride -Identity DisablingAMSIScan -Confirm:$false
+            Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh
+            Write-Warning "Remember to restart IIS for this to take affect. You can accomplish this by running .\Test-AMSI.ps1 -RestartIIS"
+        }
         return
     }
+
     if ($DisableAMSI) {
         CheckExchangeAndWindowsVersionsSupportedByAMSI
-        New-SettingOverride -Name DisablingAMSIScan -Component Cafe -Section HttpRequestFiltering -Parameters ("Enabled=False") -Reason "Disabled via CSS-Exchange Script"
-        Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh
-        Write-Warning "Remember to restart IIS for this to take affect. You can accomplish this by running .\Test-AMSI.ps1 -RestartIIS"
+        $getSO = Get-SettingOverride -Identity DisablingAMSIScan -ErrorAction SilentlyContinue | Where-Object { $_.SectionName -eq 'HttpRequestFiltering' -and $_.Parameters -eq 'Enabled=False' -and $_.Reason -eq 'Disabled via CSS-Exchange Script' }
+        if ( $null -eq $getSO ) {
+            New-SettingOverride -Name DisablingAMSIScan -Component Cafe -Section HttpRequestFiltering -Parameters ("Enabled=False") -Reason "Disabled via CSS-Exchange Script"
+            Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh
+            Write-Warning "Remember to restart IIS for this to take affect. You can accomplish this by running .\Test-AMSI.ps1 -RestartIIS"
+        } else {
+            Write-Warning "AMSI is alreday disabled on Exchange configuration"
+        }
         return
     }
+
+    if ($CheckStatus) {
+        CheckExchangeAndWindowsVersionsSupportedByAMSI
+        $getSO = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object { $_.SectionName -eq 'HttpRequestFiltering' -and $_.Parameters -eq 'Enabled=False' }
+        if ( $null -eq $getSO ) {
+            Write-Host "AMSI is Enabled for Exchange. We did not find any Settings Override that remove AMSI"
+        } else {
+            Write-Host "AMSI is Disabled by $($getSO.Identity) SettingOverride"
+        }
+        return
+    }
+
     if ($RestartIIS) {
         Restart-Service -Name W3SVC, WAS -Force
         return
