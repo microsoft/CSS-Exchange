@@ -20,10 +20,7 @@
 function Get-ExchangeInformation {
     param(
         [Parameter(Mandatory = $true)]
-        [string]$Server,
-
-        [Parameter(Mandatory = $true)]
-        [object]$PassedOrganizationInformation
+        [string]$Server
     )
     process {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"

@@ -9,10 +9,7 @@
 function Get-HealthCheckerExchangeServer {
     param(
         [Parameter(Mandatory = $true)]
-        [string]$ServerName,
-
-        [Parameter(Mandatory = $true)]
-        [object]$PassedOrganizationInformation
+        [string]$ServerName
     )
 
     process {
@@ -20,7 +17,7 @@ function Get-HealthCheckerExchangeServer {
 
         $hardwareInformation = Get-HardwareInformation -Server $ServerName
         $osInformation = Get-OperatingSystemInformation -Server $ServerName
-        $exchangeInformation = Get-ExchangeInformation -Server $ServerName -PassedOrganizationInformation $PassedOrganizationInformation
+        $exchangeInformation = Get-ExchangeInformation -Server $ServerName
     } end {
         Write-Verbose "Finished building health Exchange Server Object for server: $ServerName"
         return [PSCustomObject]@{

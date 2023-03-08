@@ -55,11 +55,6 @@ function Get-HealthCheckerData {
     Write-Progress @paramWriteProgress
     $organizationInformation = Get-OrganizationInformation -EdgeServer $EdgeServer
 
-    $passedOrganizationInformation = @{
-        OrganizationConfig = $organizationInformation.GetOrganizationConfig
-        SettingOverride    = $organizationInformation.GetSettingOverride
-    }
-
     $failedServerList = New-Object "System.Collections.Generic.List[string]"
     $returnDataList = New-Object "System.Collections.Generic.List[object]"
     $serverCount = 0
@@ -102,7 +97,7 @@ function Get-HealthCheckerData {
         try {
             Invoke-SetOutputInstanceLocation -Server $serverName -FileName "HealthChecker" -IncludeServerName $true
             Write-HostLog "Exchange Health Checker version $BuildVersion"
-            $HealthObject = Get-HealthCheckerExchangeServer -ServerName $serverNameParam -PassedOrganizationInformation $passedOrganizationInformation
+            $HealthObject = Get-HealthCheckerExchangeServer -ServerName $serverNameParam
             $HealthObject.OrganizationInformation = $organizationInformation
 
             $paramWriteProgress.Status = "Analyzing Data"

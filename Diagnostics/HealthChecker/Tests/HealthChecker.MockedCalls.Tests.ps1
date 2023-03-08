@@ -42,12 +42,9 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-SendConnector { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetSendConnector.xml" }
 
             $Error.Clear()
-            $org = Get-OrganizationInformation -EdgeServer $false
-            $passedOrganizationInformation = @{
-                OrganizationConfig = $org.GetOrganizationConfig
-                SettingOverride    = $org.GetSettingOverride
-            }
-            Get-HealthCheckerExchangeServer -ServerName $Script:Server -PassedOrganizationInformation $passedOrganizationInformation | Out-Null
+            Get-OrganizationInformation -EdgeServer $false | Out-Null
+            Get-HealthCheckerExchangeServer -ServerName $Script:Server | Out-Null
+
             $Error.Count | Should -Be $Script:ErrorCount
             # Hard coded to know if this ever changes.
             # Not sure why, but in the build pipeline this has now changed to 2. Where as on my computer it is 1
