@@ -7,12 +7,10 @@
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeSettingOverride.ps1
 . $PSScriptRoot\IISInformation\Get-ExchangeAppPoolsInformation.ps1
 . $PSScriptRoot\IISInformation\Get-ExchangeServerIISSettings.ps1
-. $PSScriptRoot\Get-ExchangeAMSIConfigurationState.ps1
 . $PSScriptRoot\Get-ExchangeApplicationConfigurationFileValidation.ps1
 . $PSScriptRoot\Get-ExchangeConnectors.ps1
 . $PSScriptRoot\Get-ExchangeDependentServices.ps1
 . $PSScriptRoot\Get-ExchangeRegistryValues.ps1
-. $PSScriptRoot\Get-ExchangeSerializedDataSigningState.ps1
 . $PSScriptRoot\Get-ExchangeServerCertificates.ps1
 . $PSScriptRoot\Get-ExchangeServerMaintenanceState.ps1
 . $PSScriptRoot\Get-ExchangeUpdates.ps1
@@ -67,13 +65,6 @@ function Get-ExchangeInformation {
             Invoke-CatchActions
         }
 
-        if (($windows2016OrGreater) -and
-        ($getExchangeServer.IsEdgeServer -eq $false)) {
-            $amsiConfiguration = Get-ExchangeAMSIConfigurationState -GetSettingOverride $PassedOrganizationInformation.SettingOverride
-        } else {
-            Write-Verbose "AMSI Interface is not available on this OS / Exchange server role"
-        }
-
         $registryValues = Get-ExchangeRegistryValues -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
         $serverExchangeBinDirectory = [System.Io.Path]::Combine($registryValues.MsiInstallPath, "Bin\")
         Write-Verbose "Found Exchange Bin: $serverExchangeBinDirectory"
@@ -116,18 +107,6 @@ function Get-ExchangeInformation {
         $applicationConfigFileStatus = Get-ExchangeApplicationConfigurationFileValidation -ComputerName $Server -ConfigFileLocation ("{0}EdgeTransport.exe.config" -f $serverExchangeBinDirectory)
         $serverMaintenance = Get-ExchangeServerMaintenanceState -Server $Server -ComponentsToSkip "ForwardSyncDaemon", "ProvisioningRps"
         $settingOverrides = Get-ExchangeSettingOverride -Server $Server -CatchActionFunction ${Function:Invoke-CatchActions}
-
-        if (($versionInformation.BuildVersion -ge "15.1.0.0") -and
-        ($getExchangeServer.IsEdgeServer -eq $false)) {
-            Write-Verbose "SerializedDataSigning must be configured via SettingOverride"
-            $serializationDataSigningConfiguration = Get-ExchangeSerializedDataSigningState -GetSettingOverride $PassedOrganizationInformation.SettingOverride
-        } elseif (($versionInformation.BuildVersion -like "15.0.*") -and
-        ($getExchangeServer.IsEdgeServer -eq $false)) {
-            Write-Verbose "SerializedDataSigning must be configured via Registry Value"
-            $serializationDataSigningConfiguration = $registryValues.SerializedDataSigning
-        } else {
-            Write-Verbose "SerializedDataSigning is not supported on this Exchange version & role combination"
-        }
 
         if (($getExchangeServer.IsMailboxServer) -or
         ($getExchangeServer.IsEdgeServer)) {
@@ -182,8 +161,6 @@ function Get-ExchangeInformation {
             GetWebServicesVirtualDirectory           = $getWebServicesVirtualDirectory
             ExtendedProtectionConfig                 = $extendedProtectionConfig
             ExchangeConnectors                       = $exchangeConnectors
-            AMSIConfiguration                        = [array]$amsiConfiguration
-            SerializationDataSigningConfiguration    = [array]$serializationDataSigningConfiguration
             ExchangeServicesNotRunning               = [array]$exchangeServicesNotRunning
             ApplicationPools                         = $applicationPools
             RegistryValues                           = $registryValues
