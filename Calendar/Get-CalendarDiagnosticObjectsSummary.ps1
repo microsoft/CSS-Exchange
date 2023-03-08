@@ -916,5 +916,3 @@ if ($UniqueMeetingID.count -gt 1) {
 } else {
     Write-Warning "A valid meeting ID was not found, manually confirm the meetingID";
 }
-
-
