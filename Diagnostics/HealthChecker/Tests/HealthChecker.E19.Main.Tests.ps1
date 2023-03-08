@@ -202,7 +202,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "Display Results - Security Settings" {
             SetActiveDisplayGrouping "Security Settings"
-            TestObjectMatch "AMSI Enabled" "False" -WriteType "Yellow"
+            TestObjectMatch "AMSI Enabled" "True" -WriteType "Green"
             TestObjectMatch "SerializedDataSigning Enabled" "False" -WriteType "Yellow"
         }
 
