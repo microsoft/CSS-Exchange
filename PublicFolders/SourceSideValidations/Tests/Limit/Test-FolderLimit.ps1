@@ -22,7 +22,7 @@ function Test-FolderLimit {
         $sw = New-Object System.Diagnostics.Stopwatch
         $sw.Start()
         $progressParams = @{
-            Activity = "Checking limits"
+            Activity = "Checking limits in IPM_SUBTREE"
             Id       = 2
             ParentId = 1
         }
@@ -124,6 +124,24 @@ function Test-FolderLimit {
             $testResultParams.FolderEntryId = ""
             $testResultParams.ResultData = $folderData.IpmSubtree.Count
             New-TestResult @testResultParams
+        }
+
+        $progressParams.Activity = "Checking limits in NON_IPM_SUBTREE"
+        $progressCount = 0
+
+        foreach ($folder in ($FolderData.NonIpmSubtree | Sort-Object FolderPathDepth -Descending)) {
+            $progressCount++
+            if ($sw.ElapsedMilliseconds -gt 1000) {
+                $sw.Restart()
+                Write-Progress @progressParams -Status $progressCount -PercentComplete ($progressCount * 100 / $FolderData.NonIpmSubtree.Count)
+            }
+
+            if ($FolderData.ParentEntryIdCounts[$folder.EntryId] -gt 10000) {
+                $testResultParams.ResultType = "ChildCount"
+                $testResultParams.FolderIdentity = $folder.Identity.ToString()
+                $testResultParams.FolderEntryId = $folder.EntryId.ToString()
+                New-TestResult @testResultParams
+            }
         }
     }
 
