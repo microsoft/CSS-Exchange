@@ -67,7 +67,11 @@ function Get-RemoteRegistryValue {
         }
     }
     end {
-        Write-Verbose "Get-RemoteRegistryValue Return Value: '$registryGetValue'"
+        if ($registryGetValue.Length -le 100) {
+            Write-Verbose "$($MyInvocation.MyCommand) Return Value: '$registryGetValue'"
+        } else {
+            Write-Verbose "$($MyInvocation.MyCommand) Return Value is too long to log"
+        }
         return $registryGetValue
     }
 }

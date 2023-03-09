@@ -208,6 +208,9 @@ begin {
     }
 
     try {
+        $BuildVersion = ""
+        Write-Host "Version $BuildVersion"
+
         $exchangeShell = Confirm-ExchangeShell
         if (-not($exchangeShell.ShellLoaded)) {
             Write-Warning "Failed to load the Exchange Management Shell. Start the script using the Exchange Management Shell."
@@ -216,9 +219,6 @@ begin {
             Write-Warning "This script requires to be run inside of Exchange Management Shell. Please run on an Exchange Management Server or an Exchange Server with Exchange Management Shell."
             exit
         }
-
-        $BuildVersion = ""
-        Write-Host "Version $BuildVersion"
 
         if ($SkipAutoUpdate) {
             Write-Verbose "Skipping AutoUpdate"
@@ -230,18 +230,11 @@ begin {
         }
 
         if ($ConfigureEPSelected) {
-
-            $ArchivingKnownIssueString = "`r`n    - Automated Archiving using Archive policy."
-            if ($ConfigureMitigationSelected) {
-                $ArchivingKnownIssueString = ""
-            }
-
             $params = @{
                 Message   = "Display Warning about Extended Protection"
                 Target    = "Extended Protection is recommended to be enabled for security reasons. " +
                 "Known Issues: Following scenarios will not work when Extended Protection is enabled." +
                 "`r`n    - SSL offloading or SSL termination via Layer 7 load balancing." +
-                $ArchivingKnownIssueString +
                 "`r`n    - Exchange Hybrid Features if using Modern Hybrid." +
                 "`r`n    - Access to Public folders on Exchange 2013 Servers." +
                 "`r`nYou can find more information on: https://aka.ms/ExchangeEPDoc. Do you want to proceed?"

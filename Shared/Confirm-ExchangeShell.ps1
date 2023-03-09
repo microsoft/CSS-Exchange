@@ -39,15 +39,18 @@ function Confirm-ExchangeShell {
             $isExchangeManagementShell = $false
 
             try {
+                $currentErrors = $Error.Count
                 $eventLogLevel = Get-EventLogLevel -ErrorAction Stop | Select-Object -First 1
                 $getEventLogLevelCallSuccessful = $true
                 foreach ($e in $eventLogLevel) {
+                    Write-Verbose "Type is: $($e.GetType().Name) BaseType is: $($e.GetType().BaseType)"
                     if (($e.GetType().Name -eq "EventCategoryObject") -or
                         (($e.GetType().Name -eq "PSObject") -and
                             ($null -ne $e.SerializationData))) {
                         $isExchangeManagementShell = $true
                     }
                 }
+                Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
             } catch {
                 Write-Verbose "Failed to run Get-EventLogLevel"
                 Invoke-CatchActionError $CatchActionFunction
