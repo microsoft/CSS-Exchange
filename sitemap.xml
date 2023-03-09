@@ -66,6 +66,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://microsoft.github.io/CSS-Exchange/Calendar/Get-CalendarDiagnosticObjectsSummary/</loc>
+         <lastmod>2023-03-09</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://microsoft.github.io/CSS-Exchange/Databases/Analyze-SpaceDump/</loc>
          <lastmod>2023-03-09</lastmod>
          <changefreq>daily</changefreq>
