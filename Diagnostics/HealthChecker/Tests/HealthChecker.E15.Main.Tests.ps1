@@ -14,6 +14,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
 
     Context "Basic Exchange 2013 CU23 Testing" {
         BeforeAll {
+            Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Test EEMS pattern service connectivity" } -MockWith { return $null }
             SetDefaultRunOfHealthChecker "Debug_E15_Results.xml"
         }
 

@@ -30,11 +30,7 @@ function SetDefaultRunOfHealthChecker {
         [string]$ExportDebugFileName
     )
     $org = Get-OrganizationInformation -EdgeServer $false
-    $passedOrganizationInformation = @{
-        OrganizationConfig = $org.GetOrganizationConfig
-        SettingOverride    = $org.GetSettingOverride
-    }
-    $hc = Get-HealthCheckerExchangeServer -ServerName $env:COMPUTERNAME -PassedOrganizationInformation $passedOrganizationInformation
+    $hc = Get-HealthCheckerExchangeServer -ServerName $env:COMPUTERNAME
     $hc.OrganizationInformation = $org
 
     # By not exporting, we save a few seconds. If you need to debug set $Script:DebugHCPester = $true

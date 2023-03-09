@@ -209,10 +209,6 @@ Mock Get-IISModules {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetIISModules.xml"
 }
 
-Mock Get-ExchangeSettingOverride {
-    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeSettingOverride.xml"
-}
-
 Mock Get-ExchangeADSplitPermissionsEnabled {
     return $false
 }
@@ -295,4 +291,8 @@ function Get-ExchangeProtocolContainer {
 }
 function Get-ExchangeWebSitesFromAd {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeWebSitesFromAd.xml"
+}
+
+function Get-ExchangeDiagnosticInfo {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo.xml"
 }
