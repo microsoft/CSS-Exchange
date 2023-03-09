@@ -1,13 +1,15 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-# This function is to create a simple return value for the Setting Override you are looking for
-# It will also determine if this setting override should be applied on the server or not
-# You should pass in the results from Get-ExchangeSettingOverride (the true settings on the Exchange Server)
-# And the Get-SettingOverride (what is stored in AD) as a fallback
-# WARNING: Get-SettingOverride should really not be used as the status is only accurate for the session we are connected to for EMS.
-#    Caller should determine if the override is applied to the server by the Status and FromAdSettings properties.
-#    If FromAdSettings is set to true, the data was determined from Get-SettingOverride and to be not accurate.
+<#
+ This function is to create a simple return value for the Setting Override you are looking for
+ It will also determine if this setting override should be applied on the server or not
+ You should pass in the results from Get-ExchangeSettingOverride (the true settings on the Exchange Server)
+ And the Get-SettingOverride (what is stored in AD) as a fallback
+ WARNING: Get-SettingOverride should really not be used as the status is only accurate for the session we are connected to for EMS.
+    Caller should determine if the override is applied to the server by the Status and FromAdSettings properties.
+    If FromAdSettings is set to true, the data was determined from Get-SettingOverride and to be not accurate.
+#>
 function Get-FilteredSettingOverrideInformation {
     [CmdletBinding()]
     param(
