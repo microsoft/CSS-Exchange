@@ -19,7 +19,9 @@ function Invoke-AnalyzerSecurityMitigationService {
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $exchangeCU = $exchangeInformation.BuildInformation.CU
-    $mitigationService = $exchangeInformation.ExchangeEmergencyMitigationService
+    $getExchangeServer = $exchangeInformation.GetExchangeServer
+    $mitigationEnabledAtOrg = $HealthServerObject.OrganizationInformation.GetOrganizationConfig.MitigationsEnabled
+    $mitigationEnabledAtServer = $getExchangeServer.MitigationsEnabled
     $baseParams = @{
         AnalyzedInformation = $AnalyzeResults
         DisplayGroupingKey  = $DisplayGroupingKey
@@ -30,17 +32,17 @@ function Invoke-AnalyzerSecurityMitigationService {
         (Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2019" -CU "CU11")) -and
         $exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false) {
 
-        if (-not([String]::IsNullOrEmpty($mitigationService.MitigationServiceOrgState))) {
-            if (($mitigationService.MitigationServiceOrgState) -and
-                ($mitigationService.MitigationServiceSrvState)) {
+        if (-not([String]::IsNullOrEmpty($mitigationEnabledAtOrg))) {
+            if (($mitigationEnabledAtOrg) -and
+                ($mitigationEnabledAtServer)) {
                 $eemsWriteType = "Green"
                 $eemsOverallState = "Enabled"
-            } elseif (($mitigationService.MitigationServiceOrgState -eq $false) -and
-                ($mitigationService.MitigationServiceSrvState)) {
+            } elseif (($mitigationEnabledAtOrg -eq $false) -and
+                ($mitigationEnabledAtServer)) {
                 $eemsWriteType = "Yellow"
                 $eemsOverallState = "Disabled on org level"
-            } elseif (($mitigationService.MitigationServiceSrvState -eq $false) -and
-                ($mitigationService.MitigationServiceOrgState)) {
+            } elseif (($mitigationEnabledAtServer -eq $false) -and
+                ($mitigationEnabledAtOrg)) {
                 $eemsWriteType = "Yellow"
                 $eemsOverallState = "Disabled on server level"
             } else {
@@ -66,13 +68,17 @@ function Invoke-AnalyzerSecurityMitigationService {
             }
 
             $eemsWinSrvWriteType = "Yellow"
-            if (-not([String]::IsNullOrEmpty($mitigationService.MitigationWinServiceState))) {
-                if ($mitigationService.MitigationWinServiceState -eq "Running") {
+            $details = "Unknown"
+            $service = $exchangeInformation.DependentServices.Monitor |
+                Where-Object { $_.Name -eq "MSExchangeMitigation" }
+
+            if ($null -ne $service) {
+                if ($service.Status -eq "Running" -and $service.StartType -eq "Automatic") {
+                    $details = "Running"
                     $eemsWinSrvWriteType = "Grey"
+                } else {
+                    $details = "Investigate"
                 }
-                $details = $mitigationService.MitigationWinServiceState
-            } else {
-                $details = "Unknown"
             }
 
             $params = $baseParams + @{
@@ -83,9 +89,9 @@ function Invoke-AnalyzerSecurityMitigationService {
             }
             Add-AnalyzedResultInformation @params
 
-            if ($mitigationService.MitigationServiceEndpoint -eq 200) {
+            if ($exchangeInformation.ExchangeEmergencyMitigationServiceResult.StatusCode -eq 200) {
                 $eemsPatternServiceWriteType = "Grey"
-                $eemsPatternServiceStatus = ("{0} - Reachable" -f $mitigationService.MitigationServiceEndpoint)
+                $eemsPatternServiceStatus = ("200 - Reachable")
             } else {
                 $eemsPatternServiceWriteType = "Yellow"
                 $eemsPatternServiceStatus = "Unreachable`r`n`t`tMore information: https://aka.ms/HelpConnectivityEEMS"
@@ -98,8 +104,8 @@ function Invoke-AnalyzerSecurityMitigationService {
             }
             Add-AnalyzedResultInformation @params
 
-            if (-not([String]::IsNullOrEmpty($mitigationService.MitigationsApplied))) {
-                foreach ($mitigationApplied in $mitigationService.MitigationsApplied) {
+            if (-not([String]::IsNullOrEmpty($getExchangeServer.MitigationsApplied))) {
+                foreach ($mitigationApplied in $getExchangeServer.MitigationsApplied) {
                     $params = $baseParams + @{
                         Name                   = "Mitigation applied"
                         Details                = $mitigationApplied
@@ -115,8 +121,8 @@ function Invoke-AnalyzerSecurityMitigationService {
                 Add-AnalyzedResultInformation @params
             }
 
-            if (-not([String]::IsNullOrEmpty($mitigationService.MitigationsBlocked))) {
-                foreach ($mitigationBlocked in $mitigationService.MitigationsBlocked) {
+            if (-not([String]::IsNullOrEmpty($getExchangeServer.MitigationsBlocked))) {
+                foreach ($mitigationBlocked in $getExchangeServer.MitigationsBlocked) {
                     $params = $baseParams + @{
                         Name                   = "Mitigation blocked"
                         Details                = $mitigationBlocked
@@ -127,10 +133,10 @@ function Invoke-AnalyzerSecurityMitigationService {
                 }
             }
 
-            if (-not([String]::IsNullOrEmpty($mitigationService.DataCollectionEnabled))) {
+            if (-not([String]::IsNullOrEmpty($getExchangeServer.DataCollectionEnabled))) {
                 $params = $baseParams + @{
                     Name                   = "Telemetry enabled"
-                    Details                = $mitigationService.DataCollectionEnabled
+                    Details                = $getExchangeServer.DataCollectionEnabled
                     DisplayCustomTabNumber = 2
                 }
                 Add-AnalyzedResultInformation @params

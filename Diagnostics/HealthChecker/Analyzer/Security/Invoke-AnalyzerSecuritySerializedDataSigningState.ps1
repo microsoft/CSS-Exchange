@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\Add-AnalyzedResultInformation.ps1
+. $PSScriptRoot\..\Get-FilteredSettingOverrideInformation.ps1
 . $PSScriptRoot\..\..\Helpers\CompareExchangeBuildLevel.ps1
 function Invoke-AnalyzerSecuritySerializedDataSigningState {
     [CmdletBinding()]
@@ -18,7 +19,6 @@ function Invoke-AnalyzerSecuritySerializedDataSigningState {
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $exchangeInformation = $HealthServerObject.ExchangeInformation
-    $serverName = ($HealthServerObject.ServerName.Split(".")[0]).ToLower()
     $exchangeBuild = $exchangeInformation.BuildInformation.VersionInformation.BuildVersion
     $baseParams = @{
         AnalyzedInformation = $AnalyzeResults
@@ -39,69 +39,51 @@ function Invoke-AnalyzerSecuritySerializedDataSigningState {
     if ((Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -SUName "Jan23SU") -and
         ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false)) {
         Write-Verbose "SerializedDataSigning is available on this Exchange role / version build combination"
-
-        $serializedDataSigningInformation = $HealthServerObject.ExchangeInformation.SerializationDataSigningConfiguration
         $serializedDataSigningWriteType = "Yellow"
-        $serializedDataSigningConfigurationWarning = "`r`n`t`tThis may pose a security risk to your servers`r`n`t`tMore Information: https://aka.ms/HC-SerializedDataSigning"
 
         if ($exchangeBuild -ge "15.1.0.0") {
             Write-Verbose "Checking SettingOverride for SerializedDataSigning configuration state"
-            if (($serializedDataSigningInformation.Count -eq 1) -and
-                (-not($serializedDataSigningInformation.FailedQuery -eq $true))) {
 
-                if (($serializedDataSigningInformation.Enabled) -and
-                    (($serializedDataSigningInformation.OrgWideSetting) -or
-                    ($serializedDataSigningInformation.Server.ToLower().Contains($serverName)))) {
-                    Write-Verbose "SerializedDataSigning is enabled for the whole organization or the server which is currently processed"
-                    $serializedDataSigningWriteType = "Green"
-                    $serializedDataSigningState = $serializedDataSigningInformation.Enabled
-                } elseif (($serializedDataSigningInformation.Enabled) -and
-                    (-not($serializedDataSigningInformation.Server.ToLower().Contains($serverName)))) {
-                    Write-Verbose "SerializedDataSigning is enabled but not for the server which is currently processed"
-                    $serializedDataSigningState = $false
-                } elseif ($serializedDataSigningInformation.Enabled -eq $false) {
-                    Write-Verbose "Checking if SerializedDataSigning is explicitly disabled on organizational level"
-                    $serializedDataSigningState = $false
-                    switch ($serializedDataSigningInformation.OrgWideSetting) {
-                        $true { $additionalSerializedDataSigningDisplayValue = "Setting applies to all servers of the organization" }
-                        $false {
-                            $additionalSerializedDataSigningDisplayValue = "Setting applies to the following server(s) of the organization:"
-                            foreach ($server in $serializedDataSigningInformation.Server) {
-                                $additionalSerializedDataSigningDisplayValue += "`r`n`t`t{0}" -f $server
-                            }
-                        }
-                    }
-                    $additionalSerializedDataSigningDisplayValue += $serializedDataSigningConfigurationWarning
-                } else {
-                    $additionalSerializedDataSigningDisplayValue = "SerializedDataSigning configuration state is unknown"
-                }
-            } elseif ($serializedDataSigningInformation.Count -gt 1) {
-                $serializedDataSigningState = "Multiple SerializedDataSigning SettingOverrides detected"
-                $additionalSerializedDataSigningDisplayValue = "An override on the server level takes precedence over an organization-wide override"
+            $params = @{
+                ExchangeSettingOverride = $exchangeInformation.SettingOverrides
+                GetSettingOverride      = $HealthServerObject.OrganizationInformation.GetSettingOverride
+                FilterServer            = $HealthServerObject.ServerName
+                FilterServerVersion     = $exchangeBuild
+                FilterComponentName     = "Data"
+                FilterSectionName       = "EnableSerializationDataSigning"
+                FilterParameterName     = "Enabled"
+            }
 
-                $i = 0
-                foreach ($override in $serializedDataSigningInformation) {
-                    $i++
-                    $additionalSerializedDataSigningDisplayValue += "`r`n`t`tOverride `#{0}" -f $i
-                    $additionalSerializedDataSigningDisplayValue += "`r`n`t`t`tName: {0}" -f $override.Name
-                    $additionalSerializedDataSigningDisplayValue += "`r`n`t`t`tEnabled: {0}" -f $override.Enabled
-                    if ($override.OrgWideSetting) {
-                        $additionalSerializedDataSigningDisplayValue += "`r`n`t`t`tSetting applies to all servers of the organization"
-                    } else {
-                        $additionalSerializedDataSigningDisplayValue += "`r`n`t`t`tSetting applies to the following server(s) of the organization:"
-                        foreach ($server in $override.Server) {
-                            $additionalSerializedDataSigningDisplayValue += "`r`n`t`t`t{0}" -f $server
-                        }
-                    }
-                }
-                $additionalSerializedDataSigningDisplayValue += $serializedDataSigningConfigurationWarning
-            } else {
+            [array]$serializedDataSigningSettingOverride = Get-FilteredSettingOverrideInformation @params
+
+            if ($null -eq $serializedDataSigningSettingOverride) {
                 Write-Verbose "SerializedDataSigning is not configured via SettingOverride and is considered disabled"
                 $serializedDataSigningState = $false
+            } elseif ($serializedDataSigningSettingOverride.Count -eq 1) {
+                $stateValue = $serializedDataSigningSettingOverride.ParameterValue
+                if ($stateValue -eq "False") {
+                    Write-Verbose "SerializedDataSigning is explicitly disabled"
+                    $serializedDataSigningState = $false
+                    $additionalSerializedDataSigningDisplayValue = "SerializedDataSigning is explicitly disabled"
+                } elseif ($stateValue -eq "True") {
+                    Write-Verbose "SerializedDataSigning is enabled for the server"
+                    $serializedDataSigningState = $true
+                    $serializedDataSigningWriteType = "Green"
+                } else {
+                    Write-Verbose "Unknown value provided"
+                    $serializedDataSigningState = "Unknown"
+                    $serializedDataSigningWriteType = "Red"
+                    $additionalSerializedDataSigningDisplayValue = "SerializedDataSigning is unknown"
+                }
+            } else {
+                Write-Verbose "Multi overrides detected"
+                $serializedDataSigningState = "Unknown"
+                $serializedDataSigningWriteType = "Red"
+                $additionalSerializedDataSigningDisplayValue = "SerializedDataSigning is unknown - Multi Setting Overrides Applied: $([string]::Join(", ", $serializedDataSigningSettingOverride.Name))"
             }
         } else {
             Write-Verbose "Checking Registry Value for SerializedDataSigning configuration state"
-            if ($serializedDataSigningInformation -eq 1) {
+            if ($exchangeInformation.RegistryValues.SerializedDataSigning -eq 1) {
                 Write-Verbose "SerializedDataSigning enabled via Registry Value"
                 $serializedDataSigningState = $true
                 $serializedDataSigningWriteType = "Green"
@@ -120,7 +102,8 @@ function Invoke-AnalyzerSecuritySerializedDataSigningState {
 
         if ($null -ne $additionalSerializedDataSigningDisplayValue) {
             $params = $baseParams + @{
-                Details                = $additionalSerializedDataSigningDisplayValue
+                Details                = $additionalSerializedDataSigningDisplayValue +
+                "`r`n`t`tThis may pose a security risk to your servers`r`n`t`tMore Information: https://aka.ms/HC-SerializedDataSigning"
                 DisplayWriteType       = $serializedDataSigningWriteType
                 DisplayCustomTabNumber = 2
             }

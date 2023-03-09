@@ -4,6 +4,15 @@
 [CmdletBinding()]
 param()
 
+<#
+SettingOverride Setting Tests:
+New-SettingOverride -Name "Big Funnel Permanent Retry" -Component BigFunnel -Section BigFunnelFailedItemsQuerySettings -Parameters @("ExcludePermanentFailures=false") -Reason "Testing"
+New-SettingOverride -Name "Improve Discovery Settings" -Component BigFunnel -Section BigFunnelDiscoveryQuerySettings -Parameters @("StoreRetryCount=5","NoSearchFolder=false","StoreDiagnosticLevel=5") -Reason "Testing"
+New-SettingOverride -Name "DisablingAMSIScan" -Component Cafe -Section HttpRequestFiltering -Parameters @("Enabled=false") -Reason "Testing"
+New-SettingOverride -Name "EnableSigningVerification" -Component Data -Section EnableSerializationDataSigning -Parameters @("Enabled=true") -Reason "Enabling Signing Verification"
+Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh
+#>
+
 Describe "Testing Health Checker by Mock Data Imports" {
 
     BeforeAll {
@@ -29,7 +38,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             # Needs to be like this to match the filter
             Mock Get-WebConfigFile -ParameterFilter { $PSPath -eq "IIS:\Sites\Exchange Back End/ecp" } -MockWith { return [PSCustomObject]@{ FullName = "$Script:MockDataCollectionRoot\Exchange\IIS\ClientAccess\ecp\web.config" } }
             Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost1.config" -Raw }
-            Mock Get-ExchangeSettingOverride { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeSettingOverride1.xml" }
+            Mock Get-ExchangeDiagnosticInfo { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo1.xml" }
             Mock Get-Service {
                 param(
                     [string]$ComputerName,
@@ -155,6 +164,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
     Context "Checking Scenarios 2" {
         BeforeAll {
+            Mock Get-SettingOverride { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetSettingOverride1.xml" }
+            Mock Get-ExchangeDiagnosticInfo { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo1.xml" }
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "KeepAliveTime" } -MockWith { return 1800000 }
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "DisableGranularReplication" } -MockWith { return 1 }
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "DisableAsyncNotification" } -MockWith { return 1 }
@@ -207,6 +218,10 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
             $tlsCipherSuite = (GetObject "TLS Cipher Suite Group")
             $tlsCipherSuite.Count | Should -Be 8
+        }
+
+        It "SerializedDataSigning Enabled" {
+            TestObjectMatch "SerializedDataSigning Enabled" "True" -WriteType "Green"
         }
 
         It "Enabled Domains" {
