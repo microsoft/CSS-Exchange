@@ -1,6 +1,6 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-
+. $PSScriptRoot\..\Get-FilteredSettingOverrideInformation.ps1
 . $PSScriptRoot\..\..\Helpers\CompareExchangeBuildLevel.ps1
 
 function Invoke-AnalyzerSecurityAMSIConfigState {
@@ -33,50 +33,44 @@ function Invoke-AnalyzerSecurityAMSIConfigState {
         (Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2019" -CU "CU10")) -and
         ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false)) {
 
-        $amsiInformation = $HealthServerObject.ExchangeInformation.AMSIConfiguration
+        $params = @{
+            ExchangeSettingOverride = $HealthServerObject.ExchangeInformation.SettingOverrides
+            GetSettingOverride      = $HealthServerObject.OrganizationInformation.GetSettingOverride
+            FilterServer            = $HealthServerObject.ServerName
+            FilterServerVersion     = $exchangeInformation.BuildInformation.VersionInformation.BuildVersion
+            FilterComponentName     = "Cafe"
+            FilterSectionName       = "HttpRequestFiltering"
+            FilterParameterName     = "Enabled"
+        }
+
+        # Only thing that is returned is Accepted values and unique
+        [array]$amsiInformation = Get-FilteredSettingOverrideInformation @params
+
         $amsiWriteType = "Yellow"
         $amsiConfigurationWarning = "`r`n`t`tThis may pose a security risk to your servers`r`n`t`tMore Information: https://aka.ms/HC-AMSIExchange"
+        $amsiConfigurationUnknown = "Exchange AMSI integration state is unknown"
+        $additionalAMSIDisplayValue = $null
 
-        if (($amsiInformation.Count -eq 1) -and
-            (-not ($amsiInformation.FailedQuery -eq $true ))) {
-            $amsiState = $amsiInformation.Enabled
-            if ($amsiInformation.Enabled -eq $true) {
-                $amsiWriteType = "Green"
-            } elseif ($amsiInformation.Enabled -eq $false) {
-                switch ($amsiInformation.OrgWideSetting) {
-                    ($true) { $additionalAMSIDisplayValue = "Setting applies to all servers of the organization" }
-                    ($false) {
-                        $additionalAMSIDisplayValue = "Setting applies to the following server(s) of the organization:"
-                        foreach ($server in $amsiInformation.Server) {
-                            $additionalAMSIDisplayValue += "`r`n`t`t{0}" -f $server
-                        }
-                    }
-                }
-                $additionalAMSIDisplayValue += $amsiConfigurationWarning
-            } else {
-                $additionalAMSIDisplayValue = "Exchange AMSI integration state is unknown"
-            }
-        } elseif ($amsiInformation.Count -gt 1) {
-            $amsiState = "Multiple overrides detected"
-            $additionalAMSIDisplayValue = "Exchange AMSI integration state is unknown"
-            $i = 0
-            foreach ($amsi in $amsiInformation) {
-                $i++
-                $additionalAMSIDisplayValue += "`r`n`t`tOverride `#{0}" -f $i
-                $additionalAMSIDisplayValue += "`r`n`t`t`tName: {0}" -f $amsi.Name
-                $additionalAMSIDisplayValue += "`r`n`t`t`tEnabled: {0}" -f $amsi.Enabled
-                if ($amsi.OrgWideSetting) {
-                    $additionalAMSIDisplayValue += "`r`n`t`t`tSetting applies to all servers of the organization"
-                } else {
-                    $additionalAMSIDisplayValue += "`r`n`t`t`tSetting applies to the following server(s) of the organization:"
-                    foreach ($server in $amsi.Server) {
-                        $additionalAMSIDisplayValue += "`r`n`t`t`t{0}" -f $server
-                    }
-                }
-            }
-            $additionalAMSIDisplayValue += $amsiConfigurationWarning
-        } else {
+        if ($null -eq $amsiInformation) {
+            # No results returned, no matches therefore good.
+            $amsiWriteType = "Green"
+            $amsiState = "True"
+        } elseif ($amsiInformation -eq "Unknown") {
             $additionalAMSIDisplayValue = "Unable to query Exchange AMSI integration state"
+        } elseif ($amsiInformation.Count -eq 1) {
+            $amsiState = $amsiInformation.ParameterValue
+            if ($amsiInformation.ParameterValue -eq "False") {
+                $additionalAMSIDisplayValue = "Setting applies to the server" + $amsiConfigurationWarning
+            } elseif ($amsiInformation.ParameterValue -eq "True") {
+                $amsiWriteType = "Green"
+            } else {
+                $additionalAMSIDisplayValue = $amsiConfigurationUnknown + " - Setting Override Name: $($amsiInformation.Name)"
+                $additionalAMSIDisplayValue += $amsiConfigurationWarning
+            }
+        } else {
+            $amsiState = "Multiple overrides detected"
+            $additionalAMSIDisplayValue = $amsiConfigurationUnknown + " - Multi Setting Overrides Applied: $([string]::Join(", ", $amsiInformation.Name))"
+            $additionalAMSIDisplayValue += $amsiConfigurationWarning
         }
 
         $params = $baseParams + @{
