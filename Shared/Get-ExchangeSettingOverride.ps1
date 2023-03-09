@@ -38,6 +38,8 @@ function Get-ExchangeSettingOverride {
                 Write-Verbose "Working on $($override.Name)"
                 $simpleSettingOverrides.Add([PSCustomObject]@{
                         Name          = $override.Name
+                        ModifiedBy    = $override.ModifiedBy
+                        Reason        = $override.Reason
                         ComponentName = $override.ComponentName
                         SectionName   = $override.SectionName
                         Status        = $override.Status

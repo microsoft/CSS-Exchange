@@ -13,8 +13,8 @@
       <I32 N="FileMajorPart">15</I32>
       <I32 N="FileMinorPart">2</I32>
       <S N="FileName">C:\Program Files\Microsoft\Exchange Server\V15\bin\ExSetup.exe</S>
-      <I32 N="FilePrivatePart">20</I32>
-      <S N="FileVersion">15.02.1118.020</S>
+      <I32 N="FilePrivatePart">25</I32>
+      <S N="FileVersion">15.02.1118.025</S>
       <S N="InternalName">ExSetup.exe</S>
       <B N="IsDebug">false</B>
       <B N="IsPatched">false</B>
@@ -30,13 +30,13 @@
       <I32 N="ProductMajorPart">15</I32>
       <I32 N="ProductMinorPart">2</I32>
       <S N="ProductName">Microsoft® Exchange</S>
-      <I32 N="ProductPrivatePart">20</I32>
-      <S N="ProductVersion">15.02.1118.020</S>
+      <I32 N="ProductPrivatePart">25</I32>
+      <S N="ProductVersion">15.02.1118.025</S>
       <S N="SpecialBuild"></S>
     </Props>
     <MS>
-      <Version N="FileVersionRaw">15.2.1118.20</Version>
-      <Version N="ProductVersionRaw">15.2.1118.20</Version>
+      <Version N="FileVersionRaw">15.2.1118.25</Version>
+      <Version N="ProductVersionRaw">15.2.1118.25</Version>
     </MS>
   </Obj>
 </Objs>
