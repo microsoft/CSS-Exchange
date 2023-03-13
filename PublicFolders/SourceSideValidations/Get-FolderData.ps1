@@ -90,6 +90,7 @@ function Get-FolderData {
 
         $folderData.IpmSubtreeByMailbox = $folderData.IpmSubtree | Group-Object ContentMailbox
         $folderData.IpmSubtree | ForEach-Object { $folderData.ParentEntryIdCounts[$_.ParentEntryId] += 1 }
+        $folderData.NonIpmSubtree | ForEach-Object { $folderData.ParentEntryIdCounts[$_.ParentEntryId] += 1 }
         $folderData.IpmSubtree | ForEach-Object { $folderData.EntryIdDictionary[$_.EntryId] = $_ }
         # We can't count on $folder.Path.Depth being available in remote powershell,
         # so we calculate the depth by walking the parent entry IDs.
