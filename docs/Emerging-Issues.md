@@ -10,7 +10,7 @@ This page lists emerging issues for Exchange On-Premises deployments, possible r
 **Updated on 3/10/2023**
 **Issue** | **Products impacted** | **Possible reason**| **Workaround/Solution**
 -|-|-|-
-Uninstall of Exchange servers, that had  [January 2023 Security Update](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-january-2023-exchange-server-security-updates/ba-p/3711808) installed at any point in time, fails with error "The operation couldn't be performed because object 'ServerName' couldn't be found on 'DomainControllerName'." <BR><BR> **Note:** You can run the [Exchange health checker](https://aka.ms/ExchangeHealthChecker) script to list the security updates installed on the server  | Exchange 2016, Exchange 2019 | Still under investigation | Follow the steps on [this KB article](https://support.microsoft.com/help/5025312)
+Uninstall of Exchange servers, that had  [January 2023 Security Update](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-january-2023-exchange-server-security-updates/ba-p/3711808) installed at any point in time, fails with error "The operation couldn't be performed because object 'ServerName' couldn't be found on 'DomainControllerName'." | Exchange 2016, Exchange 2019 <BR><BR> **Note:** <BR>You can run the [Exchange health checker](https://aka.ms/ExchangeHealthChecker) script to list the security updates installed on the server  | Still under investigation | Follow the steps on [this KB article](https://support.microsoft.com/help/5025312)
 
 
 
