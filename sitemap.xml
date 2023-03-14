@@ -271,6 +271,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://microsoft.github.io/CSS-Exchange/Diagnostics/HealthChecker/SettingOverridesCheck/</loc>
+         <lastmod>2023-03-14</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://microsoft.github.io/CSS-Exchange/Diagnostics/HealthChecker/SleepyNICCheck/</loc>
          <lastmod>2023-03-14</lastmod>
          <changefreq>daily</changefreq>
@@ -347,6 +352,11 @@
     </url>
     <url>
          <loc>https://microsoft.github.io/CSS-Exchange/Search/Troubleshoot-ModernSearch/</loc>
+         <lastmod>2023-03-14</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://microsoft.github.io/CSS-Exchange/Security/CVE-2023-23397/</loc>
          <lastmod>2023-03-14</lastmod>
          <changefreq>daily</changefreq>
     </url>
