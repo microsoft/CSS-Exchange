@@ -110,6 +110,7 @@ Mock Get-RemoteRegistryValue {
         "TimeZoneKeyName" { return "Pacific Standard Time" }
         "StandardStart" { return @(0, 0, 11, 0, 1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0) }
         "DaylightStart" { return @(0, 0, 3, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0) }
+        "DisableBaseTypeCheckForDeserialization" { return $null }
         default { throw "Failed to find GetValue: $GetValue" }
     }
 }
