@@ -45,12 +45,18 @@ function Get-ExchangeRegistryValues {
         GetValue = "MsiInstallPath"
     }
 
+    $baseTypeCheckForDeserializationParams = $baseParams + @{
+        SubKey   = "SOFTWARE\Microsoft\ExchangeServer\v15\Diagnostics"
+        GetValue = "DisableBaseTypeCheckForDeserialization"
+    }
+
     return [PSCustomObject]@{
-        CtsProcessorAffinityPercentage = [int](Get-RemoteRegistryValue @ctsParams)
-        FipsAlgorithmPolicyEnabled     = [int](Get-RemoteRegistryValue @fipsParams)
-        DisableGranularReplication     = [int](Get-RemoteRegistryValue @blockReplParams)
-        DisableAsyncNotification       = [int](Get-RemoteRegistryValue @disableAsyncParams)
-        SerializedDataSigning          = [int](Get-RemoteRegistryValue @serializedDataSigningParams)
-        MsiInstallPath                 = [string](Get-RemoteRegistryValue @installDirectoryParams)
+        DisableBaseTypeCheckForDeserialization = [int](Get-RemoteRegistryValue @baseTypeCheckForDeserializationParams)
+        CtsProcessorAffinityPercentage         = [int](Get-RemoteRegistryValue @ctsParams)
+        FipsAlgorithmPolicyEnabled             = [int](Get-RemoteRegistryValue @fipsParams)
+        DisableGranularReplication             = [int](Get-RemoteRegistryValue @blockReplParams)
+        DisableAsyncNotification               = [int](Get-RemoteRegistryValue @disableAsyncParams)
+        SerializedDataSigning                  = [int](Get-RemoteRegistryValue @serializedDataSigningParams)
+        MsiInstallPath                         = [string](Get-RemoteRegistryValue @installDirectoryParams)
     }
 }

@@ -12,6 +12,10 @@ param (
 
 begin {
     function IsAnyWellKnownSid($sid) {
+        if ($sid.ToString() -eq "S-1-5-10") {
+            return $true
+        }
+
         foreach ($t in [Enum]::GetNames([System.Security.Principal.WellKnownSidType])) {
             if ($sid.IsWellKnown($t)) {
                 return $true
@@ -42,7 +46,11 @@ begin {
         if ($null -eq $sidTable[$sidString]) {
             $sidTable[$sidString] = $distinguishedName
         } else {
-            Write-Host "Ambiguous SID found: $sidString.`n  Object 1:$($sidTable[$sidString])`n  Object 2:$($distinguishedName)"
+            [PSCustomObject]@{
+                SID     = $sidString
+                Object1 = $($sidTable[$sidString])
+                Object2 = $($distinguishedName)
+            }
         }
     }
 

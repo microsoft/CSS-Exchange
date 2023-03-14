@@ -130,8 +130,10 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Pattern service" "200 - Reachable"
             TestObjectMatch "Telemetry enabled" "False"
             TestObjectMatch "AMSI Enabled" "True" -WriteType "Green"
+            TestObjectMatch "Strict Mode disabled" "False" -WriteType "Green"
+            TestObjectMatch "BaseTypeCheckForDeserialization disabled" "False" -WriteType "Green"
 
-            $Script:ActiveGrouping.Count | Should -Be 76
+            $Script:ActiveGrouping.Count | Should -Be 78
         }
 
         It "Display Results - Security Vulnerability" {
@@ -139,7 +141,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
             $cveTests = GetObject "Security Vulnerability"
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
-            $cveTests.Count | Should -Be 30
+            $cveTests.Count | Should -Be 31
             $downloadDomains = GetObject "CVE-2021-1730"
             $downloadDomains.DownloadDomainsEnabled | Should -Be "False"
             TestObjectMatch "Extended Protection Vulnerable" "True" -WriteType "Red"

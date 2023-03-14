@@ -5,6 +5,7 @@
 . $PSScriptRoot\..\Get-DisplayResultsGroupingKey.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityExchangeCertificates.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityAMSIConfigState.ps1
+. $PSScriptRoot\Invoke-AnalyzerSecurityOverrides.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityMitigationService.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecuritySerializedDataSigningState.ps1
 function Invoke-AnalyzerSecuritySettings {
@@ -388,6 +389,7 @@ function Invoke-AnalyzerSecuritySettings {
     Invoke-AnalyzerSecurityExchangeCertificates -AnalyzeResults $AnalyzeResults -HealthServerObject $HealthServerObject -DisplayGroupingKey $keySecuritySettings
     Invoke-AnalyzerSecurityAMSIConfigState -AnalyzeResults $AnalyzeResults -HealthServerObject $HealthServerObject -DisplayGroupingKey $keySecuritySettings
     Invoke-AnalyzerSecuritySerializedDataSigningState -AnalyzeResults $AnalyzeResults -HealthServerObject $HealthServerObject -DisplayGroupingKey $keySecuritySettings
+    Invoke-AnalyzerSecurityOverrides -AnalyzeResults $AnalyzeResults -HealthServerObject $HealthServerObject -DisplayGroupingKey $keySecuritySettings
     Invoke-AnalyzerSecurityMitigationService -AnalyzeResults $AnalyzeResults -HealthServerObject $HealthServerObject -DisplayGroupingKey $keySecuritySettings
 
     if ($null -ne $HealthServerObject.ExchangeInformation.FIPFSUpdateIssue) {
