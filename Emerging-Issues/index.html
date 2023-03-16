@@ -2395,86 +2395,75 @@
 
 <h1 id="emerging-issues-for-exchange-on-premises">Emerging Issues for Exchange On-Premises</h1>
 <p>This page lists emerging issues for Exchange On-Premises deployments, possible root cause and solution/workaround to fix the issues. The page will be consistently updated with new issues found and reflect current status of the issues mentioned.</p>
-<p><strong>Updated on 3/10/2023</strong></p>
 <table>
 <thead>
 <tr>
+<th><strong>Updated on</strong></th>
+<th><strong>Update causing the issue</strong></th>
 <th><strong>Issue</strong></th>
-<th><strong>Products impacted</strong></th>
-<th><strong>Possible reason</strong></th>
 <th><strong>Workaround/Solution</strong></th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Uninstall of Exchange servers, that had  <a href="https://techcommunity.microsoft.com/t5/exchange-team-blog/released-january-2023-exchange-server-security-updates/ba-p/3711808">January 2023 Security Update</a> installed at any point in time, fails with error "The operation couldn't be performed because object 'ServerName' couldn't be found on 'DomainControllerName'."</td>
-<td>Exchange 2016, Exchange 2019 <BR><BR> <strong>Note:</strong> <BR>You can run the <a href="https://aka.ms/ExchangeHealthChecker">Exchange health checker</a> script to list the security updates installed on the server</td>
-<td>Still under investigation</td>
-<td>Follow the steps on <a href="https://support.microsoft.com/help/5025312">this KB article</a></td>
-</tr>
-</tbody>
-</table>
-<p><strong>Updated on 2/16/2023</strong></p>
-<p><strong>Following is list of known issues that can occur after installing <a href="https://techcommunity.microsoft.com/t5/exchange-team-blog/released-february-2023-exchange-server-security-updates/ba-p/3741058">February 2023 Security Update</a> on Exchange Servers</strong></p>
-<table>
-<thead>
-<tr>
-<th><strong>Issue</strong></th>
-<th><strong>Products impacted</strong></th>
-<th><strong>Possible reason</strong></th>
-<th><strong>Workaround/Solution</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>After installing <a href="https://techcommunity.microsoft.com/t5/exchange-team-blog/released-february-2023-exchange-server-security-updates/ba-p/3741058">February 2023 Security Update</a>, you may observe EWS application pool crash with Event ID 4999 with following error <BR><BR> E12IIS, c-RTL-AMD64, 15.01.2507.021, w3wp#MSExchangeServicesAppPool, M.Exchange.Diagnostics, M.E.D.ChainedSerializationBinder.EnforceBlockReason, M.E.Diagnostics.BlockedDeserializeTypeException, 437c-dumptidset, 15.01.2507.021. <BR><BR> The issue also may cause connectivity issues to EWS based clients like Outlook for Mac</td>
-<td>Exchange 2016, Exchange 2019</td>
-<td>Still under investigation</td>
-<td>Follow the steps on <a href="https://support.microsoft.com/help/5024257">this KB article</a></td>
-</tr>
-</tbody>
-</table>
-<p><strong>Updated on 2/15/2023</strong></p>
-<p><strong>Following is list of known issues that can occur after installing <a href="https://techcommunity.microsoft.com/t5/exchange-team-blog/released-january-2023-exchange-server-security-updates/ba-p/3711808">January 2023 Security Update</a> on Exchange Servers</strong></p>
-<table>
-<thead>
-<tr>
-<th><strong>Issue</strong></th>
-<th><strong>Products impacted</strong></th>
-<th><strong>Possible reason</strong></th>
-<th><strong>Workaround/Solution</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>You may find  various Exchange commands and scripts (example: RedistributeActiveDatabases.ps1) that use deserialization failing with the error similar to : <BR> Error: "Cannot convert the value of type.....to type".</td>
-<td>Exchange 2016 <BR> Exchange 2019</td>
-<td>The issue occurs if the <a href="https://aka.ms/HC-SerializedDataSigning">certificate signing for serialization of PowerShell</a> is enabled and if the auth certificate is not present or has expired</td>
-<td>Option 1: <BR> Use the <a href="https://aka.ms/MonitorExchangeAuthCertificate">MonitorExchangeAuthCertificate.ps1</a> script to update the auth certificate. <BR> Option 2:<BR> Use the steps <a href="https://aka.ms/AuthCertRenew">here</a> to correct the issue with auth certificate</td>
+<td>3/16/2023</td>
+<td><a href="https://msrc.microsoft.com/update-guide/vulnerability/CVE-2023-23397">Outlook client update for CVE-2023-23397 released</a></td>
+<td>These vulnerabilities affect Exchange Server. Exchange Online customers are already protected from the vulnerabilities addressed in these SUs and do not need to take any action <strong>other than updating Exchange servers in their environment, and if applicable, installing the security update for Outlook on Windows described on the link on the right.</strong><br>More details about specific CVEs can be found in the <a href="https://msrc.microsoft.com/update-guide/">Security Update Guide</a> (filter on Exchange Server under Product Family).<br><strong>Awareness: Outlook client update for CVE-2023-23397 released</strong><br>There is a critical security update for Microsoft Outlook for Windows that is required to address <a href="https://msrc.microsoft.com/update-guide/vulnerability/CVE-2023-23397">CVE-2023-23397</a>. To address this CVE, <strong>you must install the Outlook security update, regardless of where your mail is hosted (e.g., Exchange Online, Exchange Server, some other platform).</strong></td>
+<td><strong>Please check <a href="https://aka.ms/OLKCVEFAQ">this page</a> for FAQs about the <a href="https://msrc.microsoft.com/update-guide/vulnerability/CVE-2023-23397">Outlook CVE-2023-23397</a></strong></td>
 </tr>
 <tr>
-<td>RecoverServer may fail at pre-requisites check with following error: <BR> "Exchange Server version Version 15.1 (Build 2507.17) or later must be used to perform a recovery of this server."</td>
-<td>Exchange 2016 <BR> Exchange 2019</td>
-<td>Resolved</td>
-<td><a href="https://support.microsoft.com/help/5023038">February 2023</a> and newer SUs will not cause this issue (but modifications made by the January 2023 SU might still require manual action during a server recovery operation). Follow steps on <a href="https://learn.microsoft.com/exchange/troubleshoot/setup/version-error-in-recover-server-mode-install">this article</a> to fix the issue.</td>
+<td>3/14/2023</td>
+<td><a href="https://techcommunity.microsoft.com/t5/exchange-team-blog/released-february-2023-exchange-server-security-updates/ba-p/3741058">February 2023 Security Update</a> for Exchange 2016, Exchange 2019, Exchange 2013</td>
+<td>After installing February 2023 security update, customers are seeing EWS application pool crash with Event ID 4999 with following error <BR><BR> E12IIS, c-RTL-AMD64, 15.01.2507.021, w3wp#MSExchangeServicesAppPool, M.Exchange.Diagnostics, M.E.D.ChainedSerializationBinder.EnforceBlockReason, M.E.Diagnostics.BlockedDeserializeTypeException, 437c-dumptidset, 15.01.2507.021. <BR><BR> The issue is causing connectivity issues to EWS based clients (Outlook for Mac)</td>
+<td><strong>Update on 3/14/2023</strong> <BR> The issue is fixed in <a href="https://techcommunity.microsoft.com/t5/exchange-team-blog/released-march-2023-exchange-server-security-updates/ba-p/3764224">March 2023 security update for Exchange servers</a> <BR> Please follow the steps in <a href="https://support.microsoft.com/help/5024257">this KB</a></td>
 </tr>
 <tr>
+<td>3/14/2023</td>
+<td><a href="https://techcommunity.microsoft.com/t5/exchange-team-blog/released-february-2023-exchange-server-security-updates/ba-p/3741058">February 2023 Security Update</a> for Exchange 2016, Exchange 2019, Exchange 2013</td>
+<td>Some customers are reporting issues with Outlook/OWA add-ins, like add-in not listing in EAC or with the Get-App command. Additionally, they may notice EWS application pool crash with Event ID 4999 in the application log of the Exchange server.</td>
+<td><strong>Update on 3/14/2023</strong> <BR> The issue is fixed in <a href="https://techcommunity.microsoft.com/t5/exchange-team-blog/released-march-2023-exchange-server-security-updates/ba-p/3764224">March 2023 security update for Exchange servers</a></td>
+</tr>
+<tr>
+<td>3/14/2023</td>
+<td><a href="https://www.microsoft.com/en-us/download/details.aspx?id=104914">January 2023 Security Update</a> for Exchange 2016, Exchange 2019</td>
+<td>The Exchange toolbox may start crashing on launch after <a href="https://aka.ms/HC-SerializedDataSigning">certificate Serialization for PowerShell</a> is enabled. The error noticed is "Deserialization fails: System.Reflection.TargetInvocationException". <BR><BR> The issue happens only on Exchange 2016 and Exchange 2019</td>
+<td><strong>Update on 3/14/2023</strong> <BR> The issue is fixed in <a href="https://techcommunity.microsoft.com/t5/exchange-team-blog/released-march-2023-exchange-server-security-updates/ba-p/3764224">March 2023 security update for Exchange servers</a></td>
+</tr>
+<tr>
+<td>3/10/2023</td>
+<td><a href="https://www.microsoft.com/en-us/download/details.aspx?id=104914">January 2023 Security Update</a> for Exchange 2016, Exchange 2019</td>
+<td>When you try to uninstall Microsoft Exchange Server 2019 or 2016 on servers, that had January 2023 Security Update for Exchange Server installed at any point, the Setup fails with following error message: <BR><BR>[ERROR] The operation couldn't be performed because object '<ServerName>' couldn't be found on '<DomainControllerName>'.</td>
+<td>Follow the steps from <a href="https://support.microsoft.com/help/5025312">this KB</a></td>
+</tr>
+<tr>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr>
+<td>1/24/2023</td>
+<td><a href="https://www.microsoft.com/en-us/download/details.aspx?id=104914">January 2023 Security Update</a> for Exchange 2016, Exchange 2019</td>
+<td>After installing January 2023 security update and enabling <a href="https://aka.ms/HC-SerializedDataSigning">certificate signing for serialization of PowerShell</a>, you may find  various Exchange commands and scripts (example: RedistributeActiveDatabases.ps1) that use deserialization failing with the error similar to : <BR> Error: "Cannot convert the value of type.....to type"</td>
+<td>Use <a href="https://aka.ms/MonitorExchangeAuthCertificate">this script</a> to update the auth certificate</td>
+</tr>
+<tr>
+<td>1/24/2023</td>
+<td><a href="https://www.microsoft.com/en-us/download/details.aspx?id=104914">January 2023 Security Update</a> for Exchange 2016, Exchange 2019</td>
+<td>RecoverServer will fail at pre-requisites check with following error: <BR> "Exchange Server version Version 15.1 (Build 2507.17) or later must be used to perform a recovery of this server."</td>
+<td><strong>Update on 02/23/2023</strong> <BR>The issue has been fixed in <a href="https://support.microsoft.com/KB/5023038">February 2023 Security Update for Exchange servers</a>, however, the following workaround still needs to be used for servers that are on January 2023 Security Update <BR><BR> <strong>Workaround</strong> <BR> Use the steps in <a href="https://learn.microsoft.com/exchange/troubleshoot/setup/version-error-in-recover-server-mode-install">this</a> article</td>
+</tr>
+<tr>
+<td>1/24/2023</td>
+<td><a href="https://www.microsoft.com/en-us/download/details.aspx?id=104914">January 2023 Security Update</a> for Exchange 2016 installed on Windows 2012 R2, other versions are not affected</td>
 <td>The Exchange services in Automatic start-up mode will not start after reboot of the server. The services start successfully if started manually</td>
-<td>Exchange 2016 installed on Windows 2012 R2, other versions are not affected</td>
-<td>Resolved</td>
-<td>Install the <a href="https://support.microsoft.com/help/5023038">February 2023 Exchange Server Security Updates</a> to fix the issue</td>
+<td><strong>Update on 02/23/2023</strong><BR>The issue has been fixed in <a href="https://support.microsoft.com/KB/5023038">February 2023 Security Update for Exchange servers</a></td>
 </tr>
 <tr>
-<td>The Exchange toolbox may start crashing on launch after <a href="https://aka.ms/HC-SerializedDataSigning">certificate Serialization for PowerShell</a> is enabled. The error noticed is "Deserialization fails: System.Reflection.TargetInvocationException".</td>
-<td>Exchange 2016 <BR> Exchange 2019</td>
-<td>Under investigation</td>
-<td>Use one of the workarounds described in <a href="https://support.microsoft.com/help/5023352">this article</a></td>
-</tr>
-<tr>
-<td>Get-ExchangeCertificate command may not list any certificates</td>
-<td>Exchange 2016 <BR> Exchange 2019 <BR></td>
-<td>Under investigation</td>
-<td>Launch the Exchange management shell in elevated mode and then use Get-ExchangeCertificate command</td>
+<td>1/24/2023</td>
+<td><a href="https://www.microsoft.com/en-us/download/details.aspx?id=104914">January 2023 Security Update</a> for Exchange 2016, Exchange 2019</td>
+<td>Transport header shows the older version of server once January 2023 SU is installed (the build shown seems to be the build of the last CU)</td>
+<td>The issue will be addressed in upcoming security update</td>
 </tr>
 </tbody>
 </table>
@@ -2632,7 +2621,7 @@
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">March 13, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">March 16, 2023</span>
       
     
   </small>
