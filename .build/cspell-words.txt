@@ -58,6 +58,7 @@ hostnames
 HRESULT
 hsts
 httperr
+ietf
 imap
 Infoworker
 INSUFF
@@ -105,11 +106,12 @@ ntlm
 NTFS
 NUMA
 nupkg
+onmicrosoft
 onprem
 OutlookiOS
 Perflib
 perfmon
-PKCS
+Pkcs
 Prelicensing
 PROCMON
 QWORD
