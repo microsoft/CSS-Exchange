@@ -112,6 +112,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "RPC Min Connection Timeout" 0
             TestObjectMatch "FIPS Algorithm Policy Enabled" 0
             TestObjectMatch "CTS Processor Affinity Percentage" 0 -WriteType "Green"
+            TestObjectMatch "Disable Async Notification" $false
             TestObjectMatch "Credential Guard Enabled" $false
             TestObjectMatch "EdgeTransport.exe.config Present" "True" -WriteType "Green"
             TestObjectMatch "Open Relay Wild Card Domain" "Not Set"
