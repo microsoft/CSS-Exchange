@@ -3,40 +3,46 @@
 
 function Get-ComputerCoresObject {
     param(
-        [Parameter(Mandatory = $true)][string]$Machine_Name
+        [Parameter(Mandatory = $true)][string]$MachineName
     )
-    Write-Verbose "Calling: $($MyInvocation.MyCommand) Passed: $Machine_Name"
+    begin {
+        Write-Verbose "Calling: $($MyInvocation.MyCommand) Passed: $MachineName"
+        $errorOccurred = $false
+        $numberOfCores = [int]::empty
+        $exception = [string]::empty
+        $exceptionType = [string]::empty
+    } process {
 
-    $returnObj = New-Object PSCustomObject
-    $returnObj | Add-Member -MemberType NoteProperty -Name Error -Value $false
-    $returnObj | Add-Member -MemberType NoteProperty -Name ComputerName -Value $Machine_Name
-    $returnObj | Add-Member -MemberType NoteProperty -Name NumberOfCores -Value ([int]::empty)
-    $returnObj | Add-Member -MemberType NoteProperty -Name Exception -Value ([string]::empty)
-    $returnObj | Add-Member -MemberType NoteProperty -Name ExceptionType -Value ([string]::empty)
+        try {
+            # rethrow the previous error to get handled here
+            $wmi_obj_processor = Get-WmiObjectHandler -ComputerName $MachineName -Class "Win32_Processor" -CatchActionFunction { throw $_ }
 
-    try {
-        $wmi_obj_processor = Get-WmiObjectHandler -ComputerName $Machine_Name -Class "Win32_Processor" -CatchActionFunction ${Function:Invoke-CatchActions}
+            foreach ($processor in $wmi_obj_processor) {
+                $numberOfCores += $processor.NumberOfCores
+            }
 
-        foreach ($processor in $wmi_obj_processor) {
-            $returnObj.NumberOfCores += $processor.NumberOfCores
+            Write-Grey "Server $MachineName Cores: $numberOfCores"
+        } catch {
+            Invoke-CatchActions
+
+            if ($_.Exception.GetType().FullName -eq "System.UnauthorizedAccessException") {
+                Write-Yellow "Unable to get processor information from server $MachineName. You do not have the correct permissions to get this data from that server. Exception: $($_.ToString())"
+            } else {
+                Write-Yellow "Unable to get processor information from server $MachineName. Reason: $($_.ToString())"
+            }
+            $exception = $_.ToString()
+            $exceptionType = $_.Exception.GetType().FullName
+            $errorOccurred = $true
         }
-
-        Write-Grey("Server {0} Cores: {1}" -f $Machine_Name, $returnObj.NumberOfCores)
-    } catch {
-        Invoke-CatchActions
-        $thisError = $Error[0]
-
-        if ($thisError.Exception.GetType().FullName -eq "System.UnauthorizedAccessException") {
-            Write-Yellow("Unable to get processor information from server {0}. You do not have the correct permissions to get this data from that server. Exception: {1}" -f $Machine_Name, $thisError.ToString())
-        } else {
-            Write-Yellow("Unable to get processor information from server {0}. Reason: {1}" -f $Machine_Name, $thisError.ToString())
+    } end {
+        return [PSCustomObject]@{
+            Error         = $errorOccurred
+            ComputerName  = $MachineName
+            NumberOfCores = $numberOfCores
+            Exception     = $exception
+            ExceptionType = $exceptionType
         }
-        $returnObj.Exception = $thisError.ToString()
-        $returnObj.ExceptionType = $thisError.Exception.GetType().FullName
-        $returnObj.Error = $true
     }
-
-    return $returnObj
 }
 
 function Get-ExchangeDCCoreRatio {
@@ -66,7 +72,7 @@ function Get-ExchangeDCCoreRatio {
     $iFailedDCs = 0
 
     foreach ($DC in $DomainControllers) {
-        $DCCoreObj = Get-ComputerCoresObject -Machine_Name $DC.Name
+        $DCCoreObj = Get-ComputerCoresObject -MachineName $DC.Name
         $DCList.Add($DCCoreObj)
 
         if (-not ($DCCoreObj.Error)) {
@@ -91,7 +97,7 @@ function Get-ExchangeDCCoreRatio {
     Write-Break
     Write-Grey("Collecting data for the Exchange Environment in Site: {0}" -f $ADSite)
     foreach ($svr in $ExchangeServers) {
-        $EXCoreObj = Get-ComputerCoresObject -Machine_Name $svr.Name
+        $EXCoreObj = Get-ComputerCoresObject -MachineName $svr.Name
         $EXList.Add($EXCoreObj)
 
         if (-not ($EXCoreObj.Error)) {
