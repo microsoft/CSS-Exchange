@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\Invoke-CatchActionError.ps1
+. $PSScriptRoot\..\CertificateFunctions\Enable-TrustAnyCertificateCallback.ps1
 
 function Send-EwsMailMessage {
     [CmdletBinding()]
@@ -57,19 +58,6 @@ function Send-EwsMailMessage {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-        $trustAllCertsPolicyClass = @"
-        using System.Net;
-        using System.Security.Cryptography.X509Certificates;
-        public class TrustAllCertsPolicy : ICertificatePolicy {
-            public bool CheckValidationResult(
-                ServicePoint srvPoint, X509Certificate certificate,
-                WebRequest request, int certificateProblem) {
-                return true;
-            }
-        }
-"@
-        Add-Type -TypeDefinition $trustAllCertsPolicyClass -ErrorAction Stop
-
         if (Test-Path $EwsManagedAPIAssemblyPath) {
             Write-Verbose ("EWS Managed API Assembly was found under: $($EwsManagedAPIAssemblyPath)")
             Add-Type -Path $EwsManagedAPIAssemblyPath
@@ -80,8 +68,8 @@ function Send-EwsMailMessage {
         }
     } process {
         if ($IgnoreCertificateMismatch) {
-            Write-Verbose ("IgnoreCertificateMismatch was used -policy will be set to: TrustAllCertsPolicy")
-            [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+            Write-Verbose ("IgnoreCertificateMismatch was used - policy will be set to: TrustAnyCertificate")
+            Enable-TrustAnyCertificateCallback
         }
 
         try {

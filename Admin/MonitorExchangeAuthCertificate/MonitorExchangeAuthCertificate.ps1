@@ -305,6 +305,7 @@ function Main {
             Write-Host ("Please check if the test message was received by the following recipient(s): $($SendEmailNotificationTo)")
         } else {
             Write-Host ("We hit an exception while processing your test email message. Please check the log file") -ForegroundColor Yellow
+            Write-Host ("`n$($Error[0].Exception.Message)") -ForegroundColor Red
         }
         return
     }
@@ -434,7 +435,7 @@ function Main {
         Write-Host ("We couldn't validate if the Auth Certificate is properly configured because $($authCertStatus.NumberOfUnreachableServers) servers were unreachable.") -ForegroundColor Yellow
         Write-Host ("The unreachable servers are: $([string]::Join(", ", $authCertStatus.UnreachableServersList))") -ForegroundColor Yellow
     } elseif ($stopProcessingDueToHybrid) {
-        Write-Host ("We have not made any configuration change because because Exchange Hybrid has been detected in your environment.") -ForegroundColor Yellow
+        Write-Host ("We have not made any configuration change because Exchange Hybrid has been detected in your environment.") -ForegroundColor Yellow
         Write-Host ("Please rerun the script using the '-IgnoreHybridConfig `$true' parameter to perform the renewal action.") -ForegroundColor Yellow
         Write-Host ("It's also required to run the Hybrid Configuration Wizard (HCW) after the primary Auth Certificate was replaced.") -ForegroundColor Yellow
     } else {
