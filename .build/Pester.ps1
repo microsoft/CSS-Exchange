@@ -3,11 +3,16 @@
 
 [CmdletBinding()]
 param(
-    [switch]$NoProgress
+    [switch]
+    $NoProgress,
+
+    [string]
+    $Branch
 )
 
 begin {
     . $PSScriptRoot\Load-Module.ps1
+    . $PSScriptRoot\HelpFunctions\Get-CommitFilesOnBranch.ps1
 
     if (-not (Load-Module -Name Pester -MinimumVersion 5.2.0)) {
         throw "Pester module could not be loaded"
@@ -24,6 +29,16 @@ begin {
     $failPipeline = $false
     $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
 } process {
+
+    if (-not ([string]::IsNullOrEmpty($Branch))) {
+        Write-Host "Checking commits on Branch $Branch"
+        $committedFiles = Get-CommitFilesOnBranch -Branch $Branch
+        # if the branch only has doc changes return
+        if ($null -eq ($committedFiles | Where-Object { $_.EndsWith(".ps1") } )) {
+            Write-Host "No Commits on PS1 files, skipping over pester testing."
+            return
+        }
+    }
 
     $root = Get-Item "$PSScriptRoot\.."
     $scripts = @(Get-ChildItem -Recurse $root |
@@ -118,7 +133,8 @@ begin {
 
     Write-Host
 
-    if (-not $NoProgress) {
+    if (-not $NoProgress -and
+        $null -ne $parentProgress) {
         Write-Progress @parentProgress -Completed
     }
     $sumTotalSeconds = 0

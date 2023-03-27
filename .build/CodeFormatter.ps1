@@ -21,6 +21,7 @@ Set-StrictMode -Version Latest
 . $PSScriptRoot\CodeFormatterChecks\CheckScriptFileHasComplianceHeader.ps1
 . $PSScriptRoot\CodeFormatterChecks\CheckKeywordCasing.ps1
 . $PSScriptRoot\CodeFormatterChecks\CheckScriptFormat.ps1
+. $PSScriptRoot\HelpFunctions\Get-CommitFilesOnBranch.ps1
 
 if (-not (Load-Module -Name PSScriptAnalyzer -MinimumVersion "1.20")) {
     throw "PSScriptAnalyzer module could not be loaded"
@@ -33,46 +34,10 @@ if (-not (Load-Module -Name EncodingAnalyzer)) {
 $repoRoot = Get-Item "$PSScriptRoot\.."
 
 $optimizeCodeFormatter = [string]::IsNullOrEmpty($Branch) -eq $false
-$filesFullPath = New-Object 'System.Collections.Generic.HashSet[string]'
 # Get only the files that are changed in this PR
 if ($optimizeCodeFormatter) {
 
-    Write-Verbose "Checking commits only"
-    # Get all the commits between origin/$Branch and HEAD.
-    $gitlog = git log --format="%H %cd" --date=rfc origin/$Branch..HEAD
-    $m = $gitlog | Select-String "^(\S+) (.*)$"
-
-    foreach ($commitMatch in $m) {
-        $commitHash = $commitMatch.Matches.Groups[1].Value
-        $filesChangedInCommit = git diff-tree --no-commit-id --name-only -r $commitHash
-
-        foreach ($fileChanged in $filesChangedInCommit) {
-            $fullPath = Join-Path $repoRoot $fileChanged
-
-            if (-not (Test-Path $fullPath)) {
-                # not typical scenario, but want to have the pipeline continue
-                Write-Verbose "File no longer exists, skip file: $fullPath"
-                continue
-            }
-
-            Write-Verbose "Adding commit file to list: $fullPath"
-            [void]$filesFullPath.Add($fullPath)
-        }
-    }
-
-    # Also include modified files, but not committed yet for local work.
-    $gitStatus = git status --short
-    $m = $gitStatus | Select-String "M (.*)"
-    foreach ($match in $m) {
-        $file = $match.Matches.Groups[1].Value.Trim()
-        $fullPath = Join-Path $PSScriptRoot $file
-
-        Write-Verbose "Adding modified file to list: $fullPath"
-        [void]$filesFullPath.Add($fullPath)
-    }
-
-    Write-Verbose "Files changed or modified"
-    $filesFullPath | Write-Verbose
+    $filesFullPath = Get-CommitFilesOnBranch -Branch $Branch
 
     # Only optimize CodeFormatter IF any CodeFormatter related files were not modified or PSScriptAnalyzerSettings.psd1
     $optimizeCodeFormatter = $null -eq ($filesFullPath | Where-Object { $_ -like "*.build\CodeFormatter*" -or $_ -like "*\PSScriptAnalyzerSettings.psd1" })
