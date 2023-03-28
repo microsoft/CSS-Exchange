@@ -9,7 +9,7 @@ It will parse the audit log and attempt to reconstruct the actual Cmdlet that wa
 ## Common Usage
 `$Search = Search-AdminAuditLog`
 
-`$search | C:\Scripts\Get-SimpleAuditLogReport.ps1 -agree`
+`$search | C:\Scripts\Get-SimpleAuditLogReport.ps1`
 
 ## How to use
 1. Gather admin audit log results using [Search-AdminAuditLog](https://docs.microsoft.com/en-us/powershell/module/exchange/search-adminauditlog?view=exchange-ps).
