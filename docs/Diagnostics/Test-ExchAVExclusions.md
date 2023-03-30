@@ -9,23 +9,27 @@ Assists with testing Exchange Servers to determine if AV Exclusions have been pr
 
 ## Usage
 
-Writes an [EICAR test file](https://en.wikipedia.org/wiki/EICAR_test_file) to all paths specified in our AV Exclusions documentation and verifies all extensions in the documentation in a temporary folder.
+Writes an [EICAR test file](https://en.wikipedia.org/wiki/EICAR_test_file) to all paths specified in our AV Exclusions documentation, verifies all extensions in the documentation in a temporary folder and checks all Exchange processes for 3rd party DLLs.
 
 If the file is removed then the path is not properly excluded from AV Scanning.
-IF the file is not removed then it should be properly excluded.
+If the file is not removed then it should be properly excluded.
 
 Once the files are created it will wait 5 minutes for AV to "see" and remove the file.
 
-...
+```
 .\Test-ExchAVExclusions.ps1
-...
+```
 
 
 ## Parameters
 
 Parameter | Description |
 ----------|-------------|
-Recurse | Places an EICAR file in all SubFolders as well as the root.
+DirectoriesAnalysis | Places an EICAR file in root of all Folders in the Exclusions list.
+Recurse | Places an EICAR file in all SubFolders in the Exclusions list as well as the root.
+ProcessesAnalysis | Analyzes all Processes in the Exclusions list for 3rd party modules.
+IncludeW3wpProcesses | Includes w3wp processes in the analysis.
+ExtensionsAnalysis | Create EICAR files with the Extensions in the Exclusions List in a new folder to check the Extension Exclusions.
 OpenLog | Opens the script log file.
 
 ## Outputs
