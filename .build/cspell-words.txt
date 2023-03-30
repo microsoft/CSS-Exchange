@@ -12,6 +12,7 @@ cach
 cachtokn
 Clixml
 cmatch
+codecp
 comparables
 COMPUTERNAME
 Concat
@@ -64,6 +65,7 @@ Infoworker
 INSUFF
 isnot
 Journaling
+Корпорация
 Lanman
 LASTEXITCODE
 ldif
@@ -74,6 +76,7 @@ LOCALAPPDATA
 logman
 lsass
 Lync
+Майкрософт
 mapi
 Mbps
 mbxs
@@ -95,6 +98,7 @@ NDIS
 Nego
 Netlogon
 netsh
+Newtonsoft
 nmap
 noderunner
 notcontains
@@ -108,12 +112,14 @@ NUMA
 nupkg
 onmicrosoft
 onprem
+osafehtm
 OutlookiOS
 Perflib
 perfmon
 Pkcs
 Prelicensing
 PROCMON
+Protobuf
 QWORD
 Redistributable
 regedit

@@ -255,7 +255,7 @@ if ($DirectoriesAnalysis) {
                 $FolderList.Add($path.ToLower())
 
                 # Get the Folder and all SubFolders and just return the FullName value as a string
-                Get-ChildItem $path -Recurse -Directory -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName | ForEach-Object { $FolderList.Add($_.tolower()) }
+                Get-ChildItem $path -Recurse -Directory -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName | ForEach-Object { $FolderList.Add($_.ToLower()) }
             }
             # Just Add the root folder
             else { $FolderList.Add($path.ToLower()) }
@@ -371,11 +371,11 @@ if ( $DirectoriesAnalysis -or $ExtensionsAnalysis ) {
 }
 
 if ( $ProcessesAnalysis ) {
-    # Check thru all of the Processes that are supposed to be excluded and verify if there are non-msft modules loaded
+    # Check thru all of the Processes that are supposed to be excluded and verify if there are non Microsoft modules loaded
     Write-SimpleLogFile -string "Checking Processes for 3rd party Modules" -name $LogFile -OutHost
     if ( $IncludeW3wpProcesses ) {
-        Write-Warning "W3wp.exe is not present in the recomended Exclusion list but we will check if it includes 3rd Party modules"
-        Write-SimpleLogFile -string "W3wp.exe is not present in the recomended Exclusion list but we will check if it includes 3rd Party modules" -name $LogFile
+        Write-Warning "W3wp.exe is not present in the recommended Exclusion list but we will check if it includes 3rd Party modules"
+        Write-SimpleLogFile -string "W3wp.exe is not present in the recommended Exclusion list but we will check if it includes 3rd Party modules" -name $LogFile
     }
 
     # Create the Array List
@@ -425,11 +425,11 @@ if ( $ProcessesAnalysis ) {
                         $signature = $module.FileName | Get-AuthenticodeSignature
                         if ( $signature.Status -eq 'NotSigned') {
                             #Write-Host " -> $($module.FileName)" -ForegroundColor DarkGreen
-                            if ( ($module.FileName.ToLower().StartsWith('c:\windows\assembly\nativeimages_') -and (
+                            if ( ($module.FileName.ToLower().StartsWith(('c:\windows\assembly\NativeImages_').ToLower()) -and (
                                         $module.FileName.ToLower().EndsWith('.ni.dll') -or $module.FileName.ToLower().EndsWith('.ni.exe') -or
                                         $module.FileName.ToLower().EndsWith('.wrapper.dll') ) ) -or
                             ($module.FileName.ToLower().StartsWith('c:\windows\system32\') -and [environment]::OSVersion.Version.Major -le 6 ) -or
-                            ($module.FileName.ToLower().StartsWith('c:\windows\winsxs\') -and [environment]::OSVersion.Version.Major -le 6 ) -or
+                            ($module.FileName.ToLower().StartsWith(('c:\windows\WinSxS\').ToLower()) -and [environment]::OSVersion.Version.Major -le 6 ) -or
                             ($module.FileName.ToLower().StartsWith('c:\windows\assembly\') -and [environment]::OSVersion.Version.Major -le 6 ) -or
                             ($module.FileName.ToLower().StartsWith('c:\windows\microsoft.net\assembly\gac_64\') -and [environment]::OSVersion.Version.Major -le 6 ) -or
                             ($module.FileName.ToLower() -eq (Join-Path ($env:ExchangeInstallPath).ToLower() 'bin\osafehtm.dll') -and ([byte]$serverExchangeInstallDirectory.MsiProductMinor) -gt 0 ) ) {
@@ -506,7 +506,7 @@ if ( $ProcessesAnalysis ) {
 
 if ( -not $ProcessesAnalysis ) {
     # Sleeping 5 minutes for AV to "find" the files
-    Start-SleepWithProgress -SleepTime 300 -message "Allowing time for AV to Scan" # Cambiar en la version final
+    Start-SleepWithProgress -SleepTime 300 -message "Allowing time for AV to Scan"
 }
 
 if ( $DirectoriesAnalysis -or $ExtensionsAnalysis ) {
@@ -584,7 +584,7 @@ $OutputPath = Join-Path $env:LOCALAPPDATA BadExclusions.txt
 
 #Report what we found
 if ($BadFolderList.count -gt 0 -or $BadExtensionList.Count -gt 0 -or $BadProcessList.count -gt 0) {
-    Write-SimpleLogFile -String "Possbile AV Scanning found" -name $LogFile
+    Write-SimpleLogFile -String "Possible AV Scanning found" -name $LogFile
     "Non-Expected Exclusions Detected - ($((Get-Date).ToString())):" | Out-File $OutputPath
 }
 if ($BadFolderList.count -eq 0 -and $BadExtensionList.Count -eq 0 -and $BadProcessList.count -eq 0) {
@@ -599,7 +599,7 @@ if ( $DirectoriesAnalysis ) {
         "Folders not Excluded:" | Out-File $OutputPath -Append
         $BadFolderList | Out-File $OutputPath -Append
     } else {
-        Write-SimpleLogFile -String "Directoy Exclusions appear to be set properly" -Name $LogFile -OutHost
+        Write-SimpleLogFile -String "Directory Exclusions appear to be set properly" -Name $LogFile -OutHost
         "All EICAR files found in the directories" | Out-File $OutputPath -Append
     }
 }
