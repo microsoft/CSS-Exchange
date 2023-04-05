@@ -106,11 +106,13 @@ ntlm
 NTFS
 NUMA
 nupkg
+odata
 onmicrosoft
 onprem
 OutlookiOS
 Perflib
 perfmon
+PKCE
 Pkcs
 Prelicensing
 PROCMON
