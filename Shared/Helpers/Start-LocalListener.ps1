@@ -30,6 +30,7 @@ function Start-LocalListener {
         Write-Verbose "Calling $($MyInvocation.MyCommand)"
         $url = $null
         $signalled = $false
+        $stopwatch = New-Object System.Diagnostics.Stopwatch
         $listener = New-Object Net.HttpListener
     }
     process {
@@ -38,11 +39,19 @@ function Start-LocalListener {
             Write-Verbose "Starting listener..."
             Write-Verbose "Listening on port: $($Port)"
             Write-Verbose "Waiting $($TimeoutSeconds) seconds for request to be made to url that contains: $($UrlContains)"
+            $stopwatch.Start()
             $listener.Start()
 
             while ($listener.IsListening) {
                 $task = $listener.GetContextAsync()
-                $signalled = $task.AsyncWaitHandle.WaitOne(($TimeoutSeconds * 1000), $true)
+
+                while ($stopwatch.Elapsed.TotalSeconds -lt $TimeoutSeconds) {
+                    if ($task.AsyncWaitHandle.WaitOne(100)) {
+                        $signalled = $true
+                        break
+                    }
+                    Start-Sleep -Milliseconds 100
+                }
 
                 if ($signalled) {
                     $context = $task.GetAwaiter().GetResult()
@@ -74,6 +83,7 @@ function Start-LocalListener {
         } finally {
             Write-Verbose "Stopping listener..."
             Start-Sleep -Seconds 2
+            $stopwatch.Stop()
             $listener.Stop()
         }
     }
