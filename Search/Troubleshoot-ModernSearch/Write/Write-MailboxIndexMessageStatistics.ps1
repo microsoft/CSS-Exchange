@@ -42,9 +42,11 @@ function Write-MailboxIndexMessageStatistics {
                     foreach ($message in $messages) {
                         Write-Host "---------------------"
                         Write-DisplayObjectInformation -DisplayObject $message -PropertyToDisplay @(
+                            "FolderId",
                             "MessageId",
                             "InternetMessageId",
                             "MessageSubject",
+                            "MessageClass",
                             "BigFunnelPOISize",
                             "BigFunnelPOIIsUpToDate",
                             "IndexingErrorCode",
@@ -54,13 +56,14 @@ function Write-MailboxIndexMessageStatistics {
                             "ErrorProperties",
                             "LastIndexingAttemptTime",
                             "IsPermanentFailure",
-                            "IndexStatus"
+                            "IndexStatus",
+                            "DateCreated"
                         )
                     }
                     continue
                 }
 
-                $groupedStatus = $messages | Group-Object IndexStatus
+                $groupedStatus = $messages | Group-Object IndexStatus, MessageClass
 
                 foreach ($statusGrouping in $groupedStatus) {
                     Write-Host "---------------------"

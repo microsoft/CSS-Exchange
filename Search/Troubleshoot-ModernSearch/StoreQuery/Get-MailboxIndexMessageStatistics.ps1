@@ -44,7 +44,9 @@ function Get-MailboxIndexMessageStatistics {
                 "p1035001F",
                 "BigFunnelPOISize",
                 "BigFunnelPOIIsUpToDate",
-                "BigFunnelPoiNotNeededReason") |
+                "BigFunnelPoiNotNeededReason",
+                "FolderId",
+                "DateCreated") |
             AddToSelect -Value $addSelect |
             SetFrom -Value "Message" |
             SetWhere -Value "MailboxNumber = $mailboxNumber"
