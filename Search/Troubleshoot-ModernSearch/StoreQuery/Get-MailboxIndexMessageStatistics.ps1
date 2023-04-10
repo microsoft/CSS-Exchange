@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Get-CacheFolderInformation.ps1
 . $PSScriptRoot\Get-IndexingErrorMessage.ps1
 . $PSScriptRoot\Get-MessageInformationObject.ps1
 function Get-MailboxIndexMessageStatistics {
@@ -44,7 +45,9 @@ function Get-MailboxIndexMessageStatistics {
                 "p1035001F",
                 "BigFunnelPOISize",
                 "BigFunnelPOIIsUpToDate",
-                "BigFunnelPoiNotNeededReason") |
+                "BigFunnelPoiNotNeededReason",
+                "FolderId",
+                "DateCreated") |
             AddToSelect -Value $addSelect |
             SetFrom -Value "Message" |
             SetWhere -Value "MailboxNumber = $mailboxNumber"
@@ -102,8 +105,24 @@ function Get-MailboxIndexMessageStatistics {
 
         for ($i = 0; $i -lt $messages.Count; $i++) {
 
-            $messageInformationObject = Get-MessageInformationObject -StoreQueryMessage $messages[$i] `
-                -BigFunnelPropNameMapping $extPropMapping
+            $folderId = $messages[$i].FolderId
+            $displayName = "NULL"
+
+            if ($null -ne $folderId) {
+                $displayFolderInformation = Get-CacheFolderInformation -BasicMailboxQueryContext $BasicMailboxQueryContext -FolderId $folderId
+                if ($null -ne $displayFolderInformation -and
+                    $null -ne $displayFolderInformation.DisplayName) {
+                    $displayName = $displayFolderInformation.DisplayName
+                }
+            }
+
+            $params = @{
+                StoreQueryMessage        = $messages[$i]
+                BigFunnelPropNameMapping = $extPropMapping
+                DisplayName              = $displayName
+            }
+
+            $messageInformationObject = Get-MessageInformationObject @params
 
             $messageInformationObject | Add-Member -MemberType NoteProperty -Name "CondensedErrorMessage" -Value (Get-IndexingErrorMessage -Message $messageInformationObject)
 
