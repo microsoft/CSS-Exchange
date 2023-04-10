@@ -79,13 +79,25 @@ function Write-MailboxIndexMessageStatistics {
 
                         foreach ($groupEntry in $groupedResults.Group) {
 
-                            if ($groupEntry.LastIndexingAttemptTime -gt $lastIndexingAttemptTime) {
+                            if ($groupEntry.LastIndexingAttemptTime -ne "NULL" -and
+                                $groupEntry.LastIndexingAttemptTime -gt $lastIndexingAttemptTime) {
                                 $lastIndexingAttemptTime = $groupEntry.LastIndexingAttemptTime
                             }
 
-                            if ($groupEntry.LastIndexingAttemptTime -lt $earliestLastIndexingAttemptTime) {
+                            if ($groupEntry.LastIndexingAttemptTime -ne "NULL" -and
+                                $groupEntry.LastIndexingAttemptTime -lt $earliestLastIndexingAttemptTime) {
                                 $earliestLastIndexingAttemptTime = $groupEntry.LastIndexingAttemptTime
                             }
+                        }
+
+                        # Set to NULL if we are set to the default times.
+                        # If NULL is set, that means all items in the group don't have a value set.
+                        if ($lastIndexingAttemptTime -eq [DateTime]::MinValue) {
+                            $lastIndexingAttemptTime = "NULL"
+                        }
+
+                        if ($earliestLastIndexingAttemptTime -eq [DateTime]::MaxValue) {
+                            $earliestLastIndexingAttemptTime = "NULL"
                         }
 
                         $obj = [PSCustomObject]@{
