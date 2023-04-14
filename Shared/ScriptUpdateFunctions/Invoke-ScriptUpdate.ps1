@@ -20,11 +20,7 @@
 function Invoke-ScriptUpdate {
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
     [OutputType([boolean])]
-    param (
-        [Parameter(Mandatory = $false)]
-        [string]
-        $OriginalScriptName = $script:MyInvocation.MyCommand.Name
-    )
+    param ()
 
     $scriptName = $script:MyInvocation.MyCommand.Name
     $scriptPath = [IO.Path]::GetDirectoryName($script:MyInvocation.MyCommand.Path)
@@ -36,7 +32,7 @@ function Invoke-ScriptUpdate {
 
     if ($PSCmdlet.ShouldProcess("$scriptName", "Update script to latest version")) {
         try {
-            Invoke-WebRequestWithProxyDetection "https://github.com/microsoft/CSS-Exchange/releases/latest/download/$OriginalScriptName" -OutFile $tempFullName
+            Invoke-WebRequestWithProxyDetection "https://github.com/microsoft/CSS-Exchange/releases/latest/download/$scriptName" -OutFile $tempFullName
         } catch {
             Write-Warning "AutoUpdate: Failed to download update: $($_.Exception.Message)"
             return $false

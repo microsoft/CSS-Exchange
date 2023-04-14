@@ -22,12 +22,11 @@ function Get-ScriptUpdateAvailable {
     $scriptFullName = (Join-Path $scriptPath $scriptName)
 
     $result = [PSCustomObject]@{
-        ScriptName         = $scriptName
-        OriginalScriptName = $scriptName
-        CurrentVersion     = $BuildVersion
-        LatestVersion      = ""
-        UpdateFound        = $false
-        Error              = $null
+        ScriptName     = $scriptName
+        CurrentVersion = $BuildVersion
+        LatestVersion  = ""
+        UpdateFound    = $false
+        Error          = $null
     }
 
     if ((Get-AuthenticodeSignature -FilePath $scriptFullName).Status -eq "NotSigned") {
@@ -35,14 +34,10 @@ function Get-ScriptUpdateAvailable {
     } else {
         try {
             $versionData = [Text.Encoding]::UTF8.GetString((Invoke-WebRequestWithProxyDetection $VersionsUrl -UseBasicParsing).Content) | ConvertFrom-Csv
-            $fileMatch = $versionData | Where-Object {
-                $scriptName -match "\b$([System.IO.Path]::GetFileNameWithoutExtension($_.File))\b"
-            }
-            $latestVersion = $fileMatch.Version
+            $latestVersion = ($versionData | Where-Object { $_.File -eq $scriptName }).Version
             $result.LatestVersion = $latestVersion
             if ($null -ne $latestVersion -and $latestVersion -ne $BuildVersion) {
                 $result.UpdateFound = $true
-                $result.OriginalScriptName = $fileMatch.File
             }
 
             Write-Verbose "Current version: $($result.CurrentVersion) Latest version: $($result.LatestVersion) Update found: $($result.UpdateFound)"
