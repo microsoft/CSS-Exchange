@@ -29,7 +29,7 @@ function Test-ScriptVersion {
     $updateInfo = Get-ScriptUpdateAvailable $VersionsUrl
     if ($updateInfo.UpdateFound) {
         if ($AutoUpdate) {
-            return Invoke-ScriptUpdate
+            return Invoke-ScriptUpdate $updateInfo.OriginalScriptName
         } else {
             Write-Warning "$($updateInfo.ScriptName) $BuildVersion is outdated. Please download the latest, version $($updateInfo.LatestVersion)."
         }
