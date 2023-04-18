@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\Get-FolderInformation.ps1
+. $PSScriptRoot\Get-CacheFolderInformation.ps1
 . $PSScriptRoot\Get-MessageInformationObject.ps1
 function Get-MessageIndexState {
     [CmdletBinding()]
@@ -28,7 +28,6 @@ function Get-MessageIndexState {
 
     begin {
         $messageList = New-Object 'System.Collections.Generic.List[object]'
-        $cacheFolderNames = @{}
     }
     process {
         $storeQueryHandler = $BasicMailboxQueryContext.StoreQueryHandler
@@ -101,30 +100,23 @@ function Get-MessageIndexState {
 
         for ($i = 0; $i -lt $messages.Count; $i++) {
             $folderId = $messages[$i].FolderId
-
             $displayName = "NULL"
 
-            if ($null -ne $FolderInformation -and
-                $FolderInformation.Count -ne 0) {
-                $messageFolderInfo = $FolderInformation |
-                    Where-Object { $_.FolderId -eq $FolderId }
-
-                $displayName = $messageFolderInfo.DisplayName
-            } elseif (-not([string]::IsNullOrEmpty($folderId))) {
-
-                if (-not($cacheFolderNames.ContainsKey($folderId))) {
-                    $folderInformation = Get-FolderInformation -BasicMailboxQueryContext $BasicMailboxQueryContext -FolderId $folderId
-                    $cacheFolderNames.Add($folderId, $folderInformation.DisplayName)
+            if ($null -ne $folderId) {
+                $displayFolderInformation = Get-CacheFolderInformation -BasicMailboxQueryContext $BasicMailboxQueryContext -FolderId $folderId
+                if ($null -ne $displayFolderInformation -and
+                    $null -ne $displayFolderInformation.DisplayName) {
+                    $displayName = $displayFolderInformation.DisplayName
                 }
-
-                $displayName = $cacheFolderNames[$folderId]
             }
 
-            $messageList.Add(
-                (Get-MessageInformationObject -StoreQueryMessage $messages[$i] `
-                    -BigFunnelPropNameMapping $extPropMapping `
-                    -DisplayName $displayName)
-            )
+            $params = @{
+                StoreQueryMessage        = $messages[$i]
+                BigFunnelPropNameMapping = $extPropMapping
+                DisplayName              = $displayName
+            }
+
+            $messageList.Add((Get-MessageInformationObject @params))
         }
     }
     end {

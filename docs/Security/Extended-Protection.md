@@ -282,8 +282,6 @@ You can use the script to **only** roll back **Allow and Deny rules** set in Bac
 
       To safeguard Backend EWS vDir against NTLM relay, executing above command will set Extended Protection setting back to Required.
 
-`.\ExchangeExtendedProtectionManagement.ps1 –RollbackType "RestoreIISAppConfig"`
-
 ### Enabling Extended Protection manually via IIS settings
 
 If you want to enable Extended Protection in your environment manually without using the script, you can use the following steps.
