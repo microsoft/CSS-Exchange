@@ -208,9 +208,11 @@ Describe "Testing Get-ExchangeAuthCertificateStatus.ps1" {
             $Script:results = Get-ExchangeAuthCertificateStatus
         }
 
-        It "Should Return That The Active Auth Certificate Must To Be Replaced" {
+        It "Should Return That The Active Auth Certificate Must To Be Imported" {
             $results | Should -Not -BeNullOrEmpty
-            $results.ReplaceRequired | Should -Be $true
+            $results.ReplaceRequired | Should -Be $false
+            $results.CurrentAuthCertificateImportRequired | Should -Be $true
+            $results.NextAuthCertificateImportRequired | Should -Be $false
             $results.ConfigureNextAuthRequired | Should -Be $false
             $results.NumberOfUnreachableServers | Should -Be 0
             $results.AuthCertificateMissingOnServers.Count | Should -Be 1
@@ -231,11 +233,13 @@ Describe "Testing Get-ExchangeAuthCertificateStatus.ps1" {
             $Script:results = Get-ExchangeAuthCertificateStatus
         }
 
-        It "Should Return That The Next Auth Certificate Must To Be Replaced" {
+        It "Should Return That The Next Auth Certificate Must To Be Imported" {
             $results | Should -Not -BeNullOrEmpty
             $results.CurrentAuthCertificateLifetimeInDays | Should -BeGreaterThan 60
             $results.ReplaceRequired | Should -Be $false
-            $results.ConfigureNextAuthRequired | Should -Be $true
+            $results.ConfigureNextAuthRequired | Should -Be $false
+            $results.CurrentAuthCertificateImportRequired | Should -Be $false
+            $results.NextAuthCertificateImportRequired | Should -Be $true
             $results.NumberOfUnreachableServers | Should -Be 0
             $results.NextAuthCertificateMissingOnServers.Count | Should -Be 1
             $results.NextAuthCertificateMissingOnServers | Should -Contain "E2k16-1.Contoso.lab"
