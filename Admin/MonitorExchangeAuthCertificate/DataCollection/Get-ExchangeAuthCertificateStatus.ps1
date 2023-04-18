@@ -28,13 +28,16 @@ function Get-ExchangeAuthCertificateStatus {
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $replaceRequired = $false
+        $importCurrentAuthCertificateRequired = $false
         $configureNextAuthRequired = $false
+        $importNextAuthCertificateRequired = $false
 
         $currentAuthCertificateValidInDays = 0
         $nextAuthCertificateValidInDays = 0
 
         $exchangeServersUnreachableList = New-Object 'System.Collections.Generic.List[string]'
         $exchangeServersReachableList = New-Object 'System.Collections.Generic.List[string]'
+        $nextAuthCertificateFoundOnServersList = New-Object 'System.Collections.Generic.List[string]'
         $currentAuthCertificateMissingOnServersList = New-Object 'System.Collections.Generic.List[string]'
         $nextAuthCertificateMissingOnServersList = New-Object 'System.Collections.Generic.List[string]'
     } process {
@@ -88,6 +91,7 @@ function Get-ExchangeAuthCertificateStatus {
                     try {
                         Write-Verbose ("Trying to query next Auth Certificate on server: $($mbxServer)")
                         $nextAuthCertificate = Get-ExchangeServerCertificate -Server $mbxServer -Thumbprint $authConfiguration.NextCertificateThumbprint -ErrorAction Stop
+                        $nextAuthCertificateFoundOnServersList.Add($mbxServer)
                     } catch {
                         Invoke-CatchActionError $CatchActionFunction
 
@@ -133,19 +137,24 @@ function Get-ExchangeAuthCertificateStatus {
                     ($nextAuthCertificateValidInDays -ge 0)) {
                     # Scenario 3: Unlikely but possible - current Auth Certificate has expired and next Auth Certificate is set but not yet active
                     $replaceRequired = $true
-                } elseif ($currentAuthCertificateMissingOnServersList.Count -gt 0) {
-                    # Scenario 4: Current Auth Certificate is missing on at least one (1) mailbox or CAS server
-                    $replaceRequired = $true
-                } elseif ($nextAuthCertificateMissingOnServersList.Count -gt 0) {
-                    # Scenario 5: Next Auth Certificate is missing on at least one (1) mailbox or CAS server
-                    $configureNextAuthRequired = $true
+                } else {
+                    if ($currentAuthCertificateMissingOnServersList.Count -gt 0) {
+                        # Scenario 4: Current Auth Certificate is missing on at least one (1) mailbox or CAS server
+                        $importCurrentAuthCertificateRequired = $true
+                    }
+                    if ($nextAuthCertificateMissingOnServersList.Count -gt 0) {
+                        # Scenario 5: Next Auth Certificate is missing on at least one (1) mailbox or CAS server
+                        $importNextAuthCertificateRequired = $true
+                    }
                 }
 
                 $stopProcessingDueToHybrid = ((($null -ne $hybridConfiguration) -and ($IgnoreHybridSetup -eq $false)) -and
                 (($replaceRequired) -or ($configureNextAuthRequired)))
 
                 Write-Verbose ("Replace of the primary Auth Certificate required? $($replaceRequired)")
+                Write-Verbose ("Import of the primary Auth Certificate required? $($importCurrentAuthCertificateRequired)")
                 Write-Verbose ("Replace of the next Auth Certificate required? $($configureNextAuthRequired)")
+                Write-Verbose ("Import of the next Auth Certificate required? $($importNextAuthCertificateRequired)")
                 Write-Verbose ("Hybrid Configuration detected? $($null -ne $hybridConfiguration)")
                 Write-Verbose ("Stop processing due to hybrid? $($stopProcessingDueToHybrid)")
             } else {
@@ -160,12 +169,16 @@ function Get-ExchangeAuthCertificateStatus {
             CurrentAuthCertificateThumbprint     = $authConfiguration.CurrentCertificateThumbprint
             CurrentAuthCertificateLifetimeInDays = $currentAuthCertificateValidInDays
             ReplaceRequired                      = $replaceRequired
+            CurrentAuthCertificateImportRequired = $importCurrentAuthCertificateRequired
             NextAuthCertificateThumbprint        = $authConfiguration.NextCertificateThumbprint
             NextAuthCertificateLifetimeInDays    = $nextAuthCertificateValidInDays
             ConfigureNextAuthRequired            = $configureNextAuthRequired
+            NextAuthCertificateImportRequired    = $importNextAuthCertificateRequired
             NumberOfUnreachableServers           = $exchangeServersUnreachableList.Count
             UnreachableServersList               = $exchangeServersUnreachableList
+            AuthCertificateFoundOnServers        = $exchangeServersReachableList
             AuthCertificateMissingOnServers      = $currentAuthCertificateMissingOnServersList
+            NextAuthCertificateFoundOnServers    = $nextAuthCertificateFoundOnServersList
             NextAuthCertificateMissingOnServers  = $nextAuthCertificateMissingOnServersList
             HybridSetupDetected                  = ($null -ne $hybridConfiguration)
             StopProcessingDueToHybrid            = $stopProcessingDueToHybrid

@@ -153,6 +153,7 @@ $BuildVersion = ""
 . $PSScriptRoot\ConfigurationAction\Build-ExchangeAuthCertificateManagementAccount.ps1
 . $PSScriptRoot\ConfigurationAction\Copy-ScriptToExchangeDirectory.ps1
 . $PSScriptRoot\ConfigurationAction\Export-ExchangeAuthCertificate.ps1
+. $PSScriptRoot\ConfigurationAction\Import-ExchangeAuthCertificateToServers.ps1
 . $PSScriptRoot\ConfigurationAction\New-AuthCertificateManagementAccount.ps1
 . $PSScriptRoot\ConfigurationAction\New-AuthCertificateMonitoringLogFolder.ps1
 . $PSScriptRoot\ConfigurationAction\New-ExchangeAuthCertificate.ps1
@@ -251,6 +252,7 @@ function Main {
     }
 
     Set-ADServerSettings -ViewEntireForest $true
+    $localServerFqdn = (([System.Net.Dns]::GetHostEntry($env:COMPUTERNAME)).HostName).ToLower()
 
     if ($ExportAuthCertificatesAsPfx) {
         Write-Host ("Mode: Export all Exchange Auth Certificates available on this system")
@@ -288,7 +290,7 @@ function Main {
 
         $sendEmailNotificationTestParams = @{
             To                  = $SendEmailNotificationTo
-            Subject             = "[Test] An Exchange Auth Certificate renewal task was performed"
+            Subject             = "[Test] An Exchange Auth Certificate maintenance action was performed"
             Importance          = "Low"
             Body                = "This is a test message sent by the MonitorExchangeAuthCertificate.ps1 script.<BR><B>No action is required!</B>"
             EwsServiceUrl       = (Get-WebServicesVirtualDirectory -Server $env:COMPUTERNAME -ADPropertiesOnly).InternalUrl.AbsoluteUri
@@ -392,7 +394,7 @@ function Main {
     }
 
     if ($ValidateAndRenewAuthCertificate) {
-        Write-Host ("Mode: Testing and replacing Auth Certificate (if required)")
+        Write-Host ("Mode: Testing and replacing or importing the Auth Certificate (if required)")
     } else {
         Write-Host ("The script was run without parameter therefore, only a check of the Auth Certificate configuration is performed and no change will be made")
     }
@@ -405,15 +407,15 @@ function Main {
     if ($null -ne $SendEmailNotificationTo) {
         $sendEmailNotificationParams = @{
             To                  = $SendEmailNotificationTo
-            Subject             = "[Action required] An Exchange Auth Certificate renewal task was performed"
+            Subject             = "[Action required] An Exchange Auth Certificate maintenance action was performed"
             Importance          = "High"
             EwsServiceUrl       = (Get-WebServicesVirtualDirectory -Server $env:COMPUTERNAME -ADPropertiesOnly).InternalUrl.AbsoluteUri
             BodyAsHtml          = $true
             CatchActionFunction = ${Function:Invoke-CatchActions}
         }
 
-        $emailBodyBase = "On $(Get-Date) we performed an Exchange Auth Certificate renewal action.<BR>" +
-        "Based on your Exchange organization configuration, the following further actions may be necessary:<BR><BR>"
+        $emailBodyBase = "On $(Get-Date) we performed an Exchange Auth Certificate maintenance action.<BR>" +
+        "Due to your Exchange Server or organization configuration, manual actions may be required.<BR><BR>"
     }
 
     $authCertificateStatusParams = @{
@@ -425,11 +427,21 @@ function Main {
 
     $noRenewalDueToUnreachableServers = (($authCertStatus.NumberOfUnreachableServers -gt 0) -and ($IgnoreUnreachableServers -eq $false))
     $stopProcessingDueToHybrid = $authCertStatus.StopProcessingDueToHybrid
-    $renewalActionRequired = (($authCertStatus.ReplaceRequired) -or ($authCertStatus.ConfigureNextAuthRequired))
+    $renewalActionRequired = (($authCertStatus.ReplaceRequired) -or
+        ($authCertStatus.ConfigureNextAuthRequired) -or
+        ($authCertStatus.CurrentAuthCertificateImportRequired) -or
+        ($authCertStatus.NextAuthCertificateImportRequired))
 
-    if ($authCertStatus.ReplaceRequired) { $renewalActionWording = "The Auth Certificate in use must be replaced by a new one." }
-    elseif ($authCertStatus.ConfigureNextAuthRequired) { $renewalActionWording = "The Auth Certificate configured as next Auth Certificate must be configured or replaced by a new one." }
-    else { $renewalActionWording = "No renewal action is required" }
+    if ($authCertStatus.ReplaceRequired) {
+        $renewalActionWording = "The Auth Certificate in use must be replaced by a new one."
+    } elseif ($authCertStatus.ConfigureNextAuthRequired) {
+        $renewalActionWording = "The Auth Certificate configured as next Auth Certificate must be configured or replaced by a new one."
+    } elseif (($authCertStatus.CurrentAuthCertificateImportRequired) -or
+        ($authCertStatus.NextAuthCertificateImportRequired)) {
+        $renewalActionWording = "The current or next Auth Certificate is missing on some servers and must be imported."
+    } else {
+        $renewalActionWording = "No renewal action is required"
+    }
 
     if ($noRenewalDueToUnreachableServers) {
         Write-Host ("We couldn't validate if the Auth Certificate is properly configured because $($authCertStatus.NumberOfUnreachableServers) servers were unreachable.") -ForegroundColor Yellow
@@ -461,6 +473,54 @@ function Main {
 
                 $emailBodyRenewalScenario = "The new Auth Certificate will replace the current one on: <B>$($renewalActionResult.AuthCertificateActivationDate)</B>, " +
                 "as soon as the AuthAdmin servicelet runs the next time (from the mentioned date within 12 hours).<BR><BR>"
+            } elseif (($authCertStatus.CurrentAuthCertificateImportRequired) -or
+                ($authCertStatus.NextAuthCertificateImportRequired)) {
+
+                if ($authCertStatus.CurrentAuthCertificateImportRequired) {
+                    $importCurrentAuthCertificateParams = @{
+                        Thumbprint          = $authCertStatus.CurrentAuthCertificateThumbprint
+                        ServersToImportList = $authCertStatus.AuthCertificateMissingOnServers
+                        CatchActionFunction = ${Function:Invoke-CatchActions}
+                        WhatIf              = $WhatIfPreference
+                    }
+
+                    if ($authCertStatus.AuthCertificateMissingOnServers.ToLower().Contains($localServerFqdn)) {
+                        Write-Verbose ("Current Auth Certificate can't be exported from the local system - must be exported from another server")
+                        $importCurrentAuthCertificateParams.Add("ExportFromServer", $authCertStatus.AuthCertificateFoundOnServers[0])
+                    }
+                    $importCurrentAuthCertificateResults = Import-ExchangeAuthCertificateToServers @importCurrentAuthCertificateParams
+
+                    $emailBodyImportCurrentAuthCertificateResult = "The current Auth Certificate is valid but was missing on some servers.<BR>" +
+                    "It was imported to the following server(s): <B>$([string]::Join(", ", $importCurrentAuthCertificateResults.ImportedToServersList))</B><BR><BR>"
+
+                    if ($importCurrentAuthCertificateResults.ImportToServersFailedList.Count -gt 0) {
+                        $emailBodyImportCurrentAuthCertificateResult += "We failed to import it to the following servers: <B>$([string]::Join(", ", $importCurrentAuthCertificateResults.ImportToServersFailedList))</B><BR>" +
+                        "Please export the Auth Certificate manually and import it on these Exchange server(s).<BR><BR>"
+                    }
+                }
+
+                if ($authCertStatus.NextAuthCertificateImportRequired) {
+                    $importNextAuthCertificateParams = @{
+                        Thumbprint          = $authCertStatus.NextAuthCertificateThumbprint
+                        ServersToImportList = $authCertStatus.NextAuthCertificateMissingOnServers
+                        CatchActionFunction = ${Function:Invoke-CatchActions}
+                        WhatIf              = $WhatIfPreference
+                    }
+
+                    if ($authCertStatus.NextAuthCertificateMissingOnServers.ToLower().Contains($localServerFqdn)) {
+                        Write-Verbose ("Next Auth Certificate can't be exported from the local system - must be exported from another server")
+                        $importNextAuthCertificateParams.Add("ExportFromServer", $authCertStatus.NextAuthCertificateFoundOnServers[0])
+                    }
+                    $importNextAuthCertificateResults = Import-ExchangeAuthCertificateToServers @importNextAuthCertificateParams
+
+                    $emailBodyImportNextAuthCertificateResult = "The next Auth Certificate is valid but was missing on some servers.<BR>" +
+                    "It was imported to the following server(s): <B>$([string]::Join(", ", $importNextAuthCertificateResults.ImportedToServersList))</B><BR><BR>"
+
+                    if ($importNextAuthCertificateResults.ImportToServersFailedList.Count -gt 0) {
+                        $emailBodyImportNextAuthCertificateResult += "We failed to import it to the following servers: <B>$([string]::Join(", ", $importNextAuthCertificateResults.ImportToServersFailedList))</B><BR>" +
+                        "Please export the next Auth Certificate manually and import it on these Exchange server(s).<BR><BR>"
+                    }
+                }
             }
 
             if ($authCertStatus.HybridSetupDetected) {
@@ -477,7 +537,8 @@ function Main {
                 "which are located in another Active-Directory site.<BR>" +
                 "You can do so by running the following command against one Exchange Server per AD site:<BR><BR>" +
                 "Get-ExchangeCertificate -Server 'ServerName' -Thumbprint $($renewalActionResult.NewCertificateThumbprint)<BR><BR>" +
-                "If you find that the Auth Certificate is missing on a server in a different AD site, please follow these steps:<BR><BR>" +
+                "If you run the script again, it will try to import the newly created certificate to all servers where it's missing.<BR><BR>" +
+                "However, if you still find that the Auth Certificate is missing on a server in a different AD site, please follow these steps:<BR><BR>" +
                 "1. Export the Auth Certificate: .\MonitorExchangeAuthCertificate.ps1 -ExportAuthCertificatesAsPfx<BR>" +
                 "2. Import it to the Computer Accounts 'Personal' certificate store on an Exchange Server per other AD site<BR><BR>" +
                 "The Auth Certificate will then be automatically replicated to all Exchange Servers within this AD site.<BR><BR>"
@@ -509,12 +570,75 @@ function Main {
                 Write-Host ("")
                 Write-Host ("The renewal action was successfully performed - the new Auth Certificate will become active on: $($renewalActionResult.AuthCertificateActivationDate)") -ForegroundColor Green
                 Write-Host ("Please ensure to run the Hybrid Configuration Wizard (HCW) as soon as the new Auth Certificate becomes active.") -ForegroundColor Green
+            } elseif (($null -ne $importCurrentAuthCertificateResults) -or
+                ($null -ne $importNextAuthCertificateResults)) {
+                $importFailedAppendixWording = (
+                    "Our approach to automatically import the certificate failed." +
+                    "`r`nPlease export the Auth Certificate manually and import it to the Exchange servers where it's missing." +
+                    "`r`nIt's sufficient to import it to at least one Exchange server per AD site." +
+                    "`r`nIt will then be automatically deployed to all Exchange servers within that particular AD site."
+                )
+                $importTriedWording = "`r`nWe've tried to import it to those Exchange servers and this is the result:"
+                $importFailedWording = "Import failed: {0}"
+                $importSuccessfulWording = "Import successful: {0}"
+
+                if ($null -ne $importCurrentAuthCertificateResults) {
+                    Write-Host ("")
+                    if ($null -ne $emailBodyBase) {
+                        $finalEmailBody = $emailBodyBase + $emailBodyImportCurrentAuthCertificateResult
+                    }
+
+                    Write-Host ("The current Auth Certificate: $($authCertStatus.CurrentAuthCertificateThumbprint) is valid but missing on the following server(s):") -ForegroundColor Yellow
+                    Write-Host ([string]::Join(", ", $authCertStatus.AuthCertificateMissingOnServers)) -ForegroundColor Yellow
+                    if ($importCurrentAuthCertificateResults.ExportSuccessful) {
+                        Write-Host ($importTriedWording)
+                        if ($importCurrentAuthCertificateResults.ImportedToServersList.Count -gt 0) {
+                            Write-Host ($importSuccessfulWording -f [string]::Join(", ", $importCurrentAuthCertificateResults.ImportedToServersList)) -ForegroundColor Green
+                        }
+
+                        if ($importCurrentAuthCertificateResults.ImportToServersFailedList.Count -gt 0) {
+                            Write-Host ($importFailedWording -f [string]::Join(", ", $importCurrentAuthCertificateResults.ImportToServersFailedList)) -ForegroundColor Yellow
+                            Write-Host ($importFailedAppendixWording) -ForegroundColor Yellow
+                        }
+                    } else {
+                        Write-Host $importFailedAppendixWording -ForegroundColor Yellow
+                    }
+                }
+
+                if ($null -ne $importNextAuthCertificateResults) {
+                    Write-Host ("")
+                    if (($null -ne $emailBodyBase) -and
+                        ($null -eq $finalEmailBody)) {
+                        # No email content available as the current Auth Certificate wasn't imported before
+                        $finalEmailBody = $emailBodyBase + $emailBodyImportNextAuthCertificateResult
+                    } elseif (($null -ne $emailBodyBase) -and
+                        ($null -ne $finalEmailBody)) {
+                        # Email content available as the current Auth Certificate was imported too
+                        $finalEmailBody = $finalEmailBody + $emailBodyImportNextAuthCertificateResult
+                    }
+
+                    Write-Host ("The next Auth Certificate: $($authCertStatus.NextAuthCertificateThumbprint) is valid but missing on the following server(s):") -ForegroundColor Yellow
+                    Write-Host ([string]::Join(", ", $authCertStatus.NextAuthCertificateMissingOnServers)) -ForegroundColor Yellow
+                    if ($importNextAuthCertificateResults.ExportSuccessful) {
+                        Write-Host ($importTriedWording)
+                        if ($importNextAuthCertificateResults.ImportedToServersList.Count -gt 0) {
+                            Write-Host ($importSuccessfulWording -f [string]::Join(", ", $importNextAuthCertificateResults.ImportedToServersList)) -ForegroundColor Green
+                        }
+
+                        if ($importNextAuthCertificateResults.ImportToServersFailedList.Count -gt 0) {
+                            Write-Host ($importFailedWording -f [string]::Join(", ", $importNextAuthCertificateResults.ImportToServersFailedList)) -ForegroundColor Yellow
+                            Write-Host ($importFailedAppendixWording) -ForegroundColor Yellow
+                        }
+                    } else {
+                        Write-Host $exportFailedWording -ForegroundColor Yellow
+                    }
+                }
             } else {
                 if ($null -ne $emailBodyBase) {
                     $finalEmailBody = $emailBodyBase + $emailBodyFailure
                 }
                 Write-Host ("")
-                Write-Host ("There was an issue while performing the renewal action - please check the verbose script log for more details.") -ForegroundColor Red
+                Write-Host ("There was an issue while performing the appropriate action - please check the verbose script log for more details.") -ForegroundColor Red
             }
         } else {
             Write-Host ""
@@ -534,20 +658,18 @@ function Main {
                 Write-Host ("Number of unreachable Exchange servers: $($authCertStatus.NumberOfUnreachableServers)") -ForegroundColor Cyan
             }
             if ($authCertStatus.AuthCertificateMissingOnServers.Count -gt 0) {
-                Write-Host ("The actively used Auth Certificate is missing on the following servers:") -ForegroundColor Cyan
+                Write-Host ("`r`nThe actively used Auth Certificate is missing on the following servers:") -ForegroundColor Cyan
                 Write-Host ("$([string]::Join(", ", $authCertStatus.AuthCertificateMissingOnServers))") -ForegroundColor Cyan
             }
             if ($authCertStatus.NextAuthCertificateMissingOnServers.Count -gt 0) {
-                Write-Host ("The certificate which is configured as next Auth Certificate is missing on the following servers:") -ForegroundColor Cyan
+                Write-Host ("`r`nThe certificate which is configured as next Auth Certificate is missing on the following servers:") -ForegroundColor Cyan
                 Write-Host ("$([string]::Join(", ", $authCertStatus.NextAuthCertificateMissingOnServers))") -ForegroundColor Cyan
             }
             Write-Host ("")
             Write-Host ("Test result: $($renewalActionWording)") -ForegroundColor Cyan
             if (($authCertStatus.AuthCertificateMissingOnServers.Count -gt 0) -or
                 ($authCertStatus.NextAuthCertificateMissingOnServers.Count -gt 0)) {
-                $certificateMissingOnServersWording = ("`r`nYou should copy the Auth Certificate to the missing servers and re-run the script." +
-                    "`r`nA missing Auth Certificate will cause a new one to be generated by the script.")
-                Write-Host $certificateMissingOnServersWording -ForegroundColor Cyan
+                Write-Host ("`rThe script will try to import the certificate to the missing servers automatically (as long as it's valid).") -ForegroundColor Cyan
             }
         }
 
@@ -559,10 +681,10 @@ function Main {
                 "`r`nThe new certificate has the following thumbprint: $($renewalActionResult.NewCertificateThumbprint)" +
                 "`r`n`nWe've also detected that Exchange is installed in multiple Active Directory sites. In rare cases the Exchange certificate servicelet " +
                 "will fail to deploy the certificate to the other AD sites. `r`nYou can validate that the certificate was deployed by running the following command " +
-                "on an Exchange server located in a different site than this server:" +
-                "`r`n`nGet-ExchangeCertificate -Thumbprint $($renewalActionResult.NewCertificateThumbprint)" +
-                "`r`n`nPlease export the Auth Certificate manually if it is missing in the other site and import it to an Exchange server." +
-                "`r`nIt will then be automatically deployed to all Exchange servers within that particular AD site."
+                "on an Exchange server located in a different AD site than this server:" +
+                "`r`n`nGet-ExchangeCertificate -Server <ServerFqdn> -Thumbprint $($renewalActionResult.NewCertificateThumbprint)" +
+                "`r`n`nIf you run the script again, it will try to import the certificate to the server(s) where it's missing." +
+                "`r`nHowever, we recommend to wait for at least 24 hours to let Exchange Server perform the certificate replication task."
             )
 
             Write-Host ""
@@ -570,9 +692,11 @@ function Main {
         }
 
         if ((-not($WhatIfPreference)) -and
-            ($renewalActionResult.RenewalActionPerformed) -and
+            (($renewalActionResult.RenewalActionPerformed) -or
+                ($null -ne $importCurrentAuthCertificateResults) -or
+                ($null -ne $importNextAuthCertificateResults)) -and
             (-not([System.String]::IsNullOrEmpty($SendEmailNotificationTo)))) {
-            Write-Host ("Trying to send out email notification to the following recipients: $($SendEmailNotificationTo)")
+            Write-Host ("`r`nTrying to send out email notification to the following recipients: $($SendEmailNotificationTo)")
             $sendEmailNotificationParams.Add("Body", $finalEmailBody)
 
             if ($TrustAllCertificates) {
@@ -609,7 +733,7 @@ try {
     if (-not($WhatIfPreference)) {
         Write-Host ("Log file written to: $($Script:Logger.FullPath)")
     } else {
-        Write-Host ("Script was executed by using '-WhatIf' parameter - no log file was generated")
+        Write-Host ("Script was executed by using '-WhatIf' parameter - no action was performed and no log file was generated")
     }
     Write-Host ""
     Write-Host ("Do you have feedback regarding the script? Please email ExToolsFeedback@microsoft.com.") -ForegroundColor Green
