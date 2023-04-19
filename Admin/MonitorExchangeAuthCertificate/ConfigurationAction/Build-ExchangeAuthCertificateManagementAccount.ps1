@@ -6,7 +6,7 @@
 . $PSScriptRoot\..\..\..\Shared\Invoke-CatchActionError.ps1
 
 function Build-ExchangeAuthCertificateManagementAccount {
-    [CmdletBinding(DefaultParameterSetName = "CreateNewAccount")]
+    [CmdletBinding(DefaultParameterSetName = "CreateNewAccount", SupportsShouldProcess)]
     [OutputType([System.Object])]
     param(
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, ParameterSetName = "UseExistingAccount")]
@@ -56,22 +56,18 @@ function Build-ExchangeAuthCertificateManagementAccount {
             Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
             try {
-                $roleGroupParams = @{
-                    Name             = "Auth Certificate Management"
-                    Roles            = "View-Only Configuration", "View-Only Recipients" , "Exchange Server Certificates", "Organization Client Access"
-                    Description      = "Members of this management group can create and manage Auth Certificates"
-                    DomainController = $DomainController
-                    ErrorAction      = "Stop"
-                }
                 Write-Verbose ("Trying to create 'Auth Certificate Management' role group by using Domain Controller: $($DomainController)")
-                if ($WhatIfPreference) {
-                    Write-Host ("What if: Will create role group: 'Auth Certificate Management'")
-                    $roleGroupParams.Add("WhatIf", $true)
-                }
+                if ($PSCmdlet.ShouldProcess("View-Only Configuration, View-Only Recipients, Exchange Server Certificates, Organization Client Access", "New-RoleGroup")) {
+                    $roleGroupParams = @{
+                        Name             = "Auth Certificate Management"
+                        Roles            = "View-Only Configuration", "View-Only Recipients" , "Exchange Server Certificates", "Organization Client Access"
+                        Description      = "Members of this management group can create and manage Auth Certificates"
+                        DomainController = $DomainController
+                        ErrorAction      = "Stop"
+                        WhatIf           = $WhatIfPreference
+                    }
+                    New-RoleGroup @roleGroupParams | Out-Null
 
-                New-RoleGroup @roleGroupParams | Out-Null
-
-                if (-not($WhatIfPreference)) {
                     Write-Verbose ("Validate that the role group was created successful")
                     $roleGroup = Get-RoleGroup -Identity "Auth Certificate Management" -DomainController $DomainController -ErrorAction SilentlyContinue
 
@@ -114,6 +110,7 @@ function Build-ExchangeAuthCertificateManagementAccount {
                     Password         = $PasswordToSet
                     DomainToUse      = $domainToUse
                     DomainController = $DomainController
+                    WhatIf           = $WhatIfPreference
                 }
 
                 if ($null -ne $CatchActionFunction) {
@@ -140,12 +137,10 @@ function Build-ExchangeAuthCertificateManagementAccount {
             if ($null -eq $systemMailboxRecipientInfo) {
                 Write-Verbose ("Recipient has not yet been email enabled")
                 try {
-                    if (-not($WhatIfPreference)) {
+                    if ($PSCmdlet.ShouldProcess($systemMailboxIdentity, "Enable-Mailbox")) {
                         Enable-Mailbox -Identity $systemMailboxIdentity -DomainController $DomainController -ErrorAction Stop | Out-Null
                         Write-Verbose ("Wait another 5 seconds and give Exchange time to process")
                         Start-Sleep -Seconds 5
-                    } else {
-                        Write-Host ("What if: Will run 'Enable-Mailbox' to mail-enable the newly created AD user account")
                     }
                 } catch {
                     Write-Verbose ("Something went wrong while email activating the Auth Certificate management account")
@@ -172,10 +167,8 @@ function Build-ExchangeAuthCertificateManagementAccount {
             if ($systemMailboxMailboxInfo.HiddenFromAddressListsEnabled -eq $false) {
                 Write-Verbose ("Auth Certificate management mailbox is not hidden from AddressList - going to hide the mailbox now")
                 try {
-                    if (-not($WhatIfPreference)) {
+                    if ($PSCmdlet.ShouldProcess($systemMailboxIdentity, "Set-Mailbox")) {
                         Set-Mailbox -Identity $systemMailboxIdentity -HiddenFromAddressListsEnabled $true -ErrorAction Stop | Out-Null
-                    } else {
-                        Write-Host ("What if: Will run 'Set-Mailbox' to hide the newly created mailbox from address book")
                     }
                 } catch {
                     Write-Verbose ("Unable to hide Auth Certificate management account from AddressList")
@@ -203,11 +196,9 @@ function Build-ExchangeAuthCertificateManagementAccount {
             (-not($roleGroupMembership.DistinguishedName.ToLower().Contains($systemMailboxUserInfo.DistinguishedName.ToLower())))) {
             Write-Verbose ("Add Auth Certificate management account to 'Auth Certificate Management' role group")
             try {
-                if (-not($WhatIfPreference)) {
+                if ($PSCmdlet.ShouldProcess($systemMailboxIdentity, "Add-RoleGroupMember")) {
                     Add-RoleGroupMember "Auth Certificate Management" -Member $systemMailboxIdentity -ErrorAction Stop | Out-Null
                     Write-Verbose ("Auth Certificate management account added to 'Auth Certificate Management' role group")
-                } else {
-                    Write-Host ("What if: Will add user $($systemMailboxIdentity) to role group 'Auth Certificate Management' by running 'Add-RoleGroupMember'")
                 }
             } catch {
                 Write-Verbose ("Unable to add Auth Certificate management account to role group")
@@ -219,16 +210,12 @@ function Build-ExchangeAuthCertificateManagementAccount {
         }
 
         if ($null -ne $systemMailboxUserInfo) {
-            if (-not($WhatIfPreference)) {
-                Write-Verbose ("Account: $($systemMailboxIdentity) must be added to the local administrators group")
-                if (Add-ADUserToLocalGroup -MemberUPN $systemMailboxUserInfo.UserPrincipalName -Group "S-1-5-32-544") {
-                    Write-Verbose ("Account successfully added to local administrators group")
-                } else {
-                    Write-Verbose ("Error while adding the user to the local administrators group - Exception: $($Error[0].Exception.Message)")
-                    return
-                }
+            Write-Verbose ("Account: $($systemMailboxIdentity) must be added to the local administrators group")
+            if (Add-ADUserToLocalGroup -MemberUPN $systemMailboxUserInfo.UserPrincipalName -Group "S-1-5-32-544" -WhatIf:$WhatIfPreference) {
+                Write-Verbose ("Account successfully added to local administrators group")
             } else {
-                Write-Host ("What if: Will add user '$($systemMailboxUserInfo.UserPrincipalName)' to group with well-known SID 'S-1-5-32-544' by running 'Add-ADUserToLocalGroup'")
+                Write-Verbose ("Error while adding the user to the local administrators group - Exception: $($Error[0].Exception.Message)")
+                return
             }
         } else {
             Write-Verbose ("Something went wrong as we can no longer find the Auth Certificate management account")
