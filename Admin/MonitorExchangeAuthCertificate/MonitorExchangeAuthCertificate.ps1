@@ -205,6 +205,7 @@ function Main {
             Password            = $Password
             DomainToUse         = $ADAccountDomain
             CatchActionFunction = ${Function:Invoke-CatchActions}
+            WhatIf              = $WhatIfPreference
         }
         $adAccountSuccessfullyCreated = New-AuthCertificateManagementAccount @newAuthCertificateParamsAccountOnly
 
@@ -265,6 +266,7 @@ function Main {
         $authCertificateExportParams = @{
             Password            = $Password
             CatchActionFunction = ${Function:Invoke-CatchActions}
+            WhatIf              = $WhatIfPreference
         }
 
         $authCertificateExportStatusObject = Export-ExchangeAuthCertificate @authCertificateExportParams
@@ -331,6 +333,7 @@ function Main {
             $buildExchangeAuthManagementAccountParams = @{
                 DomainController    = $dcToUseAsConfigDC
                 CatchActionFunction = ${Function:Invoke-CatchActions}
+                WhatIf              = $WhatIfPreference
             }
 
             if ($null -ne $AutomationAccountCredential) {
@@ -351,7 +354,7 @@ function Main {
                 $Username = $adAccountInfo.UserPrincipalName
                 $Password = $adAccountInfo.Password
 
-                $scriptInfo = Copy-ScriptToExchangeDirectory -CatchActionFunction ${Function:Invoke-CatchActions}
+                $scriptInfo = Copy-ScriptToExchangeDirectory -CatchActionFunction ${Function:Invoke-CatchActions} -WhatIf:$WhatIfPreference
                 if ($null -ne $scriptInfo) {
                     Write-Host ("Script: $($scriptInfo.ScriptName) was successfully copied over to: $($scriptInfo.WorkingDirectory)")
                     $registerSchTaskParams = @{
@@ -362,6 +365,7 @@ function Main {
                         IgnoreOfflineServers = $IgnoreUnreachableServers
                         IgnoreHybridConfig   = $IgnoreHybridConfig
                         CatchActionFunction  = ${Function:Invoke-CatchActions}
+                        WhatIf               = $WhatIfPreference
                     }
 
                     if ($null -ne $SendEmailNotificationTo) {
@@ -458,6 +462,7 @@ function Main {
                 $replaceExpiredAuthCertificateParams = @{
                     ReplaceExpiredAuthCertificate = $true
                     CatchActionFunction           = ${Function:Invoke-CatchActions}
+                    WhatIf                        = $WhatIfPreference
                 }
                 $renewalActionResult = New-ExchangeAuthCertificate @replaceExpiredAuthCertificateParams
 
@@ -468,6 +473,7 @@ function Main {
                     ConfigureNextAuthCertificate         = $true
                     CurrentAuthCertificateLifetimeInDays = $authCertStatus.CurrentAuthCertificateLifetimeInDays
                     CatchActionFunction                  = ${Function:Invoke-CatchActions}
+                    WhatIf                               = $WhatIfPreference
                 }
                 $renewalActionResult = New-ExchangeAuthCertificate @configureNextAuthCertificateParams
 
@@ -715,7 +721,7 @@ function Main {
 try {
     $loggerParams = @{
         LogName        = "AuthCertificateMonitoringLog"
-        LogDirectory   = (New-AuthCertificateMonitoringLogFolder)
+        LogDirectory   = (New-AuthCertificateMonitoringLogFolder -WhatIf:$WhatIfPreference)
         AppendDateTime = $true
         ErrorAction    = "SilentlyContinue"
     }

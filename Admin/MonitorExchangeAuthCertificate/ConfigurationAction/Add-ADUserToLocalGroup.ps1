@@ -4,7 +4,7 @@
 . $PSScriptRoot\..\..\..\Shared\Invoke-CatchActionError.ps1
 
 function Add-ADUserToLocalGroup {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     [OutputType([bool])]
     param(
         [string]$MemberUPN,
@@ -26,11 +26,9 @@ function Add-ADUserToLocalGroup {
         $localGroup = [System.DirectoryServices.AccountManagement.GroupPrincipal]::FindByIdentity($localMachine, $Group)
 
         if (-not($localGroup.Members.Contains($domainContext, [System.DirectoryServices.AccountManagement.IdentityType]::UserPrincipalName, $MemberUPN))) {
-            if (-not($WhatIfPreference)) {
+            if ($PSCmdlet.ShouldProcess($Group, "Add user $($MemberUPN) to local group")) {
                 $localGroup.Members.Add($domainContext, [System.DirectoryServices.AccountManagement.IdentityType]::UserPrincipalName, $MemberUPN)
                 $localGroup.Save()
-            } else {
-                Write-Host ("What if: Will add user: $($MemberUPN) to local group: $($Group)")
             }
         } else {
             Write-Verbose ("User: $($MemberUPN) is already a member of group: $($Group)")
