@@ -4,20 +4,22 @@
 function Write-DashLineBox {
     [CmdletBinding()]
     param(
-        [string]$Line
+        [string[]]$Line
     )
     <#
         This is to simply create a quick and easy display around a line
         -------------------------------------
         Line                           Length
+        Line                           Length
         -------------------------------------
         # Empty Line
     #>
-
+    $highLineLength = 0
     $dashLine = [string]::Empty
-    1..$Line.Length | ForEach-Object { $dashLine += "-" }
+    $Line | ForEach-Object { if ($_.Length -gt $highLineLength) { $highLineLength = $_.Length } }
+    1..$highLineLength | ForEach-Object { $dashLine += "-" }
     Write-Host $dashLine
-    Write-Host $Line
+    $Line | ForEach-Object { Write-Host $_ }
     Write-Host $dashLine
     Write-Host
 }
