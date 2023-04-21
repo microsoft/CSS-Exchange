@@ -58,16 +58,19 @@ function Invoke-GraphApiRequest {
         }
 
         if (-not([System.String]::IsNullOrEmpty($Body))) {
+            Write-Verbose "Body: $Body"
             $graphApiRequestParams.Add("Body", $Body)
         }
 
+        Write-Verbose "Graph API uri called: $($graphApiRequestParams.Uri)"
+        Write-Verbose "Method: $($graphApiRequestParams.Method) ContentType: $($graphApiRequestParams.ContentType)"
         $graphApiResponse = Invoke-WebRequestWithProxyDetection -ParametersObject $graphApiRequestParams
 
         if (($null -eq $graphApiResponse) -or
             ([System.String]::IsNullOrEmpty($graphApiResponse.StatusCode))) {
             Write-Verbose "Graph API request failed - no response"
         } elseif ($graphApiResponse.StatusCode -ne $ExpectedStatusCode) {
-            Write-Verbose "Graph API status code $($graphApiResponse.StatusCode) does not match expected status code $ExpectedStatusCode"
+            Write-Verbose "Graph API status code: $($graphApiResponse.StatusCode) does not match expected status code: $ExpectedStatusCode"
         } else {
             Write-Verbose "Graph API request successful"
             $successful = $true
