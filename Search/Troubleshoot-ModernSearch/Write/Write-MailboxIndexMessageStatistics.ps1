@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\StoreQuery\Get-MailboxIndexMessageStatistics.ps1
-. $PSScriptRoot\Write-DisplayObjectInformation.ps1
+. $PSScriptRoot\WriteHelpers.ps1
 function Write-MailboxIndexMessageStatistics {
     [CmdletBinding()]
     param(

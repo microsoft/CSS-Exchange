@@ -81,10 +81,10 @@ $BuildVersion = ""
 
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-BasicMailboxInformation.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-DataExport.ps1
-. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-DisplayObjectInformation.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-Error.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-LogInformation.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-MailboxIndexMessageStatistics.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write\WriteHelpers.ps1
 
 . $PSScriptRoot\Troubleshoot-ModernSearch\Invoke-MailboxMessagesForCategory.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Invoke-SearchServiceState.ps1

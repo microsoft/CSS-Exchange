@@ -1,7 +1,6 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\Write-DisplayObjectInformation.ps1
 . $PSScriptRoot\WriteHelpers.ps1
 
 function Write-SearchProcessStateObject {
