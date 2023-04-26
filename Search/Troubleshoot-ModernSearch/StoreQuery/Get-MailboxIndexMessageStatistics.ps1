@@ -16,6 +16,7 @@ function Get-MailboxIndexMessageStatistics {
         [string]$Category
     )
     begin {
+        $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
         $extPropMapping = $BasicMailboxQueryContext.ExtPropMapping
         $storeQueryHandler = $BasicMailboxQueryContext.StoreQueryHandler
         $mailboxNumber = $BasicMailboxQueryContext.MailboxNumber
@@ -130,6 +131,7 @@ function Get-MailboxIndexMessageStatistics {
         }
     }
     end {
+        Write-Verbose "Took $($stopWatch.Elapsed.TotalSeconds) seconds to get the mailbox index message stats for $($messageList.count) messages"
         return $messageList
     }
 }
