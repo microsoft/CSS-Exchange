@@ -37,11 +37,11 @@ param(
     [Parameter(Mandatory = $false, ParameterSetName = "MailboxIndexStatistics")]
     [bool]$GroupMessages = $true,
 
-    [Parameter(Mandatory = $false, ParameterSetName = "MultiMailboxStatistics")]
+    [Parameter(Mandatory = $true, ParameterSetName = "ServerSearchInformation")]
     [ValidateNotNullOrEmpty()]
     [string[]]$Server,
 
-    [Parameter(Mandatory = $false, ParameterSetName = "MultiMailboxStatistics")]
+    [Parameter(Mandatory = $false, ParameterSetName = "ServerSearchInformation")]
     [ValidateSet("TotalMailboxItems", "TotalBigFunnelSearchableItems", "TotalSearchableItems",
         "BigFunnelIndexedCount", "IndexedCount", "BigFunnelNotIndexedCount", "NotIndexedCount",
         "BigFunnelPartiallyIndexedCount", "PartIndexedCount", "BigFunnelCorruptedCount", "CorruptedCount",
@@ -49,7 +49,7 @@ param(
     [ValidateNotNullOrEmpty()]
     [string]$SortByProperty = "FullyIndexPercentage",
 
-    [Parameter(Mandatory = $false, ParameterSetName = "MultiMailboxStatistics")]
+    [Parameter(Mandatory = $false, ParameterSetName = "ServerSearchInformation")]
     [ValidateNotNullOrEmpty()]
     [bool]$ExcludeFullyIndexedMailboxes = $true,
 
@@ -69,7 +69,9 @@ param(
 
 $BuildVersion = ""
 
+. $PSScriptRoot\Troubleshoot-ModernSearch\Exchange\Get-ActiveDatabasesOnServer.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Exchange\Get-MailboxInformation.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Exchange\Get-MailboxStatisticsOnDatabase.ps1
 
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-BasicMailboxQueryContext.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-CategoryOffStatistics.ps1
@@ -78,12 +80,14 @@ $BuildVersion = ""
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-QueryItemResult.ps1
 
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-BasicMailboxInformation.ps1
-. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-CheckSearchProcessState.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-DataExport.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-DisplayObjectInformation.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-Error.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-LogInformation.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-MailboxIndexMessageStatistics.ps1
-. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-MailboxStatisticsOnServer.ps1
+
+. $PSScriptRoot\Troubleshoot-ModernSearch\Invoke-MailboxMessagesForCategory.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Invoke-SearchServiceState.ps1
 
 . $PSScriptRoot\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\Shared\StoreQueryFunctions.ps1
@@ -125,10 +129,102 @@ function Main {
     ) | Write-Verbose
     Write-Verbose ""
 
-    if ($null -ne $Server -and
-        $Server.Count -ge 1) {
+    if ($PsCmdlet.ParameterSetName -eq "ServerSearchInformation") {
 
-        Write-MailboxStatisticsOnServer -Server $Server -SortByProperty $SortByProperty -ExcludeFullyIndexedMailboxes $ExcludeFullyIndexedMailboxes -ExportData $ExportData
+        <#
+            Check the Search Services state on the server(s).
+            Collect the active mailbox databases on the server(s).
+            Then review the mailbox stats on the server(s), based off the active mailbox databases.
+            Sort the mailboxes in the order based off possible parameters passed to the script.
+            For the top 10 mailboxes, we want to collect additional mailbox information for them.
+        #>
+        Invoke-SearchServiceState -Servers $Server
+        $activeDatabases = Get-ActiveDatabasesOnServer -Server $Server
+        $mailboxStatistics = Get-MailboxStatisticsOnDatabase -MailboxDatabase $activeDatabases.DBName
+
+        # Set the Correct SortByProperty
+        switch ($SortByProperty) {
+            "TotalSearchableItems" { $SortByProperty = "TotalBigFunnelSearchableItems" }
+            "IndexedCount" { $SortByProperty = "BigFunnelIndexedCount" }
+            "NotIndexedCount" { $SortByProperty = "BigFunnelNotIndexedCount" }
+            "PartIndexedCount" { $SortByProperty = "BigFunnelPartiallyIndexedCount" }
+            "CorruptedCount" { $SortByProperty = "BigFunnelCorruptedCount" }
+            "StaleCount" { $SortByProperty = "BigFunnelStaleCount" }
+            "ShouldNotIndexCount" { $SortByProperty = "BigFunnelShouldNotBeIndexedCount" }
+        }
+        $sortObjectDescending = $SortByProperty -ne "FullyIndexPercentage"
+
+        $filterMailboxes = $mailboxStatistics | Where-Object {
+            if ($ExcludeFullyIndexedMailboxes -and
+                $_.FullyIndexPercentage -eq 100) {
+                # Don't add to the list
+            } else {
+                return $_
+            }
+        } | Sort-Object $SortByProperty -Descending:$sortObjectDescending
+
+        $filterMailboxes |
+            Select-Object MailboxGuid,
+            @{Name = "TotalSearchableItems"; Expression = { $_.TotalBigFunnelSearchableItems } },
+            @{Name = "IndexedCount"; Expression = { $_.BigFunnelIndexedCount } },
+            @{Name = "NotIndexedCount"; Expression = { $_.BigFunnelNotIndexedCount } },
+            @{Name = "PartIndexedCount"; Expression = { $_.BigFunnelPartiallyIndexedCount } } ,
+            @{Name = "CorruptedCount"; Expression = { $_.BigFunnelCorruptedCount } },
+            @{Name = "StaleCount"; Expression = { $_.BigFunnelStaleCount } },
+            @{Name = "ShouldNotIndexCount"; Expression = { $_.BigFunnelShouldNotBeIndexedCount } },
+            FullyIndexPercentage,
+            IndexPercentage |
+            Format-Table |
+            Out-String |
+            Write-Host
+
+        # Get the top 10 mailboxes for a list to automatically process
+        Write-Host "Getting the top 10 mailboxes category information"
+        $topMailboxes = $filterMailboxes |
+            Select-Object -First 10 |
+            ForEach-Object { return $_ }
+        $cacheMailboxInformation = @{}
+
+        # TODO: Write-Progress
+        $topMailboxes | ForEach-Object {
+            $mbxGuid = $_.MailboxGuid
+            Write-Host "Getting basic user mailbox information for $mbxGuid"
+            $isPublicFolder = $_.MailboxTypeDetail -eq "None" -and $_.MailboxType -like "PublicFolder*"
+            $isArchive = $_.IsArchiveMailbox
+            try {
+                $mailboxInformation = Get-MailboxInformation -Identity $mbxGuid -IsArchive $isArchive -IsPublicFolder $isPublicFolder
+                $cacheMailboxInformation.Add($mbxGuid, $mailboxInformation)
+            } catch {
+                Write-Host "Failed to find mailbox $mbxGuid."
+                Write-HostErrorInformation
+            }
+        }
+
+        # foreach of the mailboxes we got data back from, loop through and collect the data we want.
+        $cacheMailboxInformation.Keys | ForEach-Object {
+            $mbxGuid = $_
+            $mailboxInformation = $cacheMailboxInformation[$mbxGuid]
+
+            # Write Basic Mailbox Information to screen.
+            Write-BasicMailboxInformation -MailboxInformation $mailboxInformation
+
+            # Determine the categories that we want to collect
+            # Based off default or what is passed. #TODO this action
+            $categories = Get-CategoryOffStatistics -MailboxStatistics $mailboxInformation.MailboxStatistics
+
+            # Query the database with store query based off the categories that we have.
+            # Each category is another query against the database
+            # After each category query, display the information, but add it to a list of found messages.
+            # Display is depending on GroupMessages or not.
+            $messagesForMailbox = Invoke-MailboxMessagesForCategory -MailboxInformation $mailboxInformation -Category $categories -GroupMessages $GroupMessages
+
+            if ($ExportData) {
+                Write-DataExport -MailboxInformation $mailboxInformation -Messages $messagesForMailbox
+            }
+
+            Write-Host
+            Write-DashLineBox "----------------------------------------------------"
+        }
         return
     }
 
@@ -137,7 +233,7 @@ function Main {
     $mailboxInformation = Get-MailboxInformation -Identity $MailboxIdentity -IsArchive $IsArchive -IsPublicFolder $IsPublicFolder
 
     Write-BasicMailboxInformation -MailboxInformation $mailboxInformation
-    Write-CheckSearchProcessState -ActiveServer $mailboxInformation.PrimaryServer
+    Invoke-SearchServiceState -Servers $mailboxInformation.PrimaryServer
 
     $storeQueryHandler = Get-StoreQueryObject -MailboxInformation $mailboxInformation
     $basicMailboxQueryContext = Get-BasicMailboxQueryContext -StoreQueryHandler $storeQueryHandler
