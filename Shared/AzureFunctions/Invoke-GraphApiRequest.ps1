@@ -23,7 +23,8 @@ function Invoke-GraphApiRequest {
         [string]$Body,
 
         [Parameter(Mandatory = $true)]
-        [ValidatePattern("^([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_\-\+\/=]*)")]
+        #[ValidatePattern("^([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_\-\+\/=]*)")] - commented out by now as it doesn't work
+        #with the Access Token returned when running against the consumer cloud - need to investigate further
         [string]$AccessToken,
 
         [Parameter(Mandatory = $false)]

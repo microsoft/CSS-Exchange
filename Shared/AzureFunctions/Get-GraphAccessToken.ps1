@@ -16,6 +16,9 @@ function Get-GraphAccessToken {
         [string]$GraphApiUrl = "https://graph.microsoft.com",
 
         [Parameter(Mandatory = $false)]
+        [string]$ClientId = "1950a258-227b-4e31-a9cf-717495945fc2", # Well-known Microsoft Azure PowerShell application ID
+
+        [Parameter(Mandatory = $false)]
         [string]$Scope = "$($GraphApiUrl)//AuditLog.Read.All Directory.AccessAsUser.All email openid profile"
     )
 
@@ -32,8 +35,7 @@ function Get-GraphAccessToken {
 
     begin {
         Write-Verbose "Calling $($MyInvocation.MyCommand)"
-
-        $clientId = "1950a258-227b-4e31-a9cf-717495945fc2" # Well-known Microsoft Azure PowerShell application ID
+        $tenantType = if ($AzureADEndpoint -eq "https://login.live.com") { "Consumers" } else { "Enterprise" }
         $responseType = "code" # Provides the code as a query string parameter on our redirect URI
         $prompt = "select_account" # We want to show the select account dialog
         $redirectUri = "http://localhost:8004" # This is the default port for the local listener
@@ -47,9 +49,17 @@ function Get-GraphAccessToken {
         $codeVerifier = $codeChallengeVerifier.Verifier
 
         # Request an authorization code from the Microsoft Azure Active Directory endpoint
-        $authCodeRequestUrl = "$AzureADEndpoint/organizations/oauth2/v2.0/authorize?client_id=$clientId" +
-        "&response_type=$responseType&redirect_uri=$redirectUri&scope=$scope&state=$state&prompt=$prompt" +
-        "&code_challenge_method=$codeChallengeMethod&code_challenge=$codeChallenge"
+        if ($tenantType -eq "Consumers") {
+            $authCodeRequestUrl = "$AzureADEndpoint/oauth20_authorize.srf?client_id=$ClientId" +
+            "&response_type=$responseType&redirect_uri=$redirectUri&scope=$scope&state=$state&prompt=$prompt" +
+            "&code_challenge_method=$codeChallengeMethod&code_challenge=$codeChallenge"
+            $tokenEndpoint = "https://login.live.com/oauth20_token.srf"
+        } else {
+            $authCodeRequestUrl = "$AzureADEndpoint/organizations/oauth2/v2.0/authorize?client_id=$ClientId" +
+            "&response_type=$responseType&redirect_uri=$redirectUri&scope=$scope&state=$state&prompt=$prompt" +
+            "&code_challenge_method=$codeChallengeMethod&code_challenge=$codeChallenge"
+            $tokenEndpoint = "$AzureADEndpoint/organizations/oauth2/v2.0/token"
+        }
 
         Start-Process -FilePath $authCodeRequestUrl
         $authCodeResponse = Start-LocalListener
@@ -57,11 +67,11 @@ function Get-GraphAccessToken {
         if ($null -ne $authCodeResponse) {
             # Redeem the returned code for an access token
             $redeemAuthCodeParams = @{
-                Uri             = "$AzureADEndpoint/organizations/oauth2/v2.0/token"
+                Uri             = $tokenEndpoint
                 Method          = "POST"
                 ContentType     = "application/x-www-form-urlencoded"
                 Body            = @{
-                    client_id     = $clientId
+                    client_id     = $ClientId
                     scope         = $scope
                     code          = ($($authCodeResponse.Split("=")[1]).Split("&")[0])
                     redirect_uri  = $redirectUri
@@ -84,9 +94,13 @@ function Get-GraphAccessToken {
     }
     end {
         if ($connectionSuccessful) {
+            $tenantId = if ($tenantType -eq "Consumers") { "common" } else { (Convert-JsonWebTokenToObject $tokens.id_token).Payload.tid }
+
             return [PSCustomObject]@{
                 AccessToken = $tokens.access_token
-                TenantId    = (Convert-JsonWebTokenToObject $tokens.id_token).Payload.tid
+                TenantId    = $tenantId
+                ClientId    = $ClientId
+                RedirectUri = $redirectUri
             }
         }
 
