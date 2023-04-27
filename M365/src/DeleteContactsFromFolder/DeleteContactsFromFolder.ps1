@@ -117,7 +117,8 @@ function Main {
                 Write-Host "Number of contacts in the folder: '$($folderObj.displayName)' is: $($contacts.Count)"
                 if ($PSCmdlet.ShouldProcess("", $folderObj.displayName, "About to delete the folder and its content. Are you sure?")) {
                     Write-Host "Deleting folder contents..." -ForegroundColor Cyan
-                    # Loop through and delete the contacts
+                    # Loop through and delete the contacts we need to delete all the contacts in the folder prior to deleting the folder.
+                    # This is needed in order to force the sync vs doing a folder delete.
                     foreach ($contact in $contacts) {
                         Write-Host "Now processing: '$($contact.displayName)'" -ForegroundColor Cyan
                         Write-Host "Id:  $($contact.id)" -ForegroundColor Cyan
@@ -165,7 +166,7 @@ function Main {
             Write-Host "No folders exists in this mailbox - nothing to do" -ForegroundColor Yellow
         }
     } catch {
-        Write-Host "An error occurred. Please contact support"
+        Write-Host "An error occurred. Please contact support" -ForegroundColor Red
         Write-VerboseErrorInformation
     }
 }
