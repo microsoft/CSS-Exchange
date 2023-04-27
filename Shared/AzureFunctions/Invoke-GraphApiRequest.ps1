@@ -70,8 +70,11 @@ function Invoke-GraphApiRequest {
         if (($null -eq $graphApiResponse) -or
             ([System.String]::IsNullOrEmpty($graphApiResponse.StatusCode))) {
             Write-Verbose "Graph API request failed - no response"
+            Write-Verbose "Exception: $($Error[0].Exception.Message)"
         } elseif ($graphApiResponse.StatusCode -ne $ExpectedStatusCode) {
             Write-Verbose "Graph API status code: $($graphApiResponse.StatusCode) does not match expected status code: $ExpectedStatusCode"
+            Write-Verbose "Status Description: $($graphApiResponse.StatusDescription)"
+            Write-Verbose "Response Content: $($graphApiResponse.Content)"
         } else {
             Write-Verbose "Graph API request successful"
             $successful = $true
