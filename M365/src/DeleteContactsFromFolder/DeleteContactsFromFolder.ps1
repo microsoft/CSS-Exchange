@@ -23,6 +23,10 @@ function Write-DebugLog($Message) {
 }
 
 function Main {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('CustomRules\AvoidUsingReadHost', '', Justification = 'As discussed we need to use Read-Host in this script')]
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = "High")]
+    param()
+
     if (Test-ScriptVersion -AutoUpdate -Confirm:$false) {
         Write-Host ("Script was updated. Please re-run the command") -ForegroundColor Yellow
         return
@@ -98,19 +102,21 @@ function Main {
                     exit
                 }
 
-                # Get all the contacts in the folder by looping through the nextLink (pagination)
-                do {
+                # Get all the contacts in the folder and probably looping through the nextLink (pagination)
+                if (-not([System.String]::IsNullOrEmpty($contactsResponse.Content.'@odata.nextLink'))) {
+                    do {
+                        $contacts.AddRange($contactsResponse.Content.value)
+                        $query = $contactsResponse.Content.'@odata.nextLink'.replace("https://graph.microsoft.com/v1.0/", "")
+                        $listContactsInFolder.Query = $query
+                        $contactsResponse = Invoke-GraphApiRequest @listContactsInFolder
+                    } until (-not($contactsResponse.Content.'@odata.nextLink'))
+                } else {
                     $contacts.AddRange($contactsResponse.Content.value)
-                    $query = $contactsResponse.Content.'@odata.nextLink'.replace("https://graph.microsoft.com/v1.0/", "")
-                    $listContactsInFolder.Query = $query
-                    $contactsResponse = Invoke-GraphApiRequest @listContactsInFolder
-                } until (-not($contactsResponse.Content.'@odata.nextLink'))
+                }
 
                 Write-Host "Number of contacts in the folder: '$($folderObj.displayName)' is: $($contacts.Count)"
-                $userConfirmation = Read-Host -Prompt "About to delete the folder and its content. Are you sure Y/N"
-
-                if ($userConfirmation.ToLower() -eq "y") {
-                    Write-Host "Deleting Folder contents..." -ForegroundColor Cyan
+                if ($PSCmdlet.ShouldProcess("", $folderObj.displayName, "About to delete the folder and its content. Are you sure?")) {
+                    Write-Host "Deleting folder contents..." -ForegroundColor Cyan
                     # Loop through and delete the contacts
                     foreach ($contact in $contacts) {
                         Write-Host "Now processing: '$($contact.displayName)'" -ForegroundColor Cyan
@@ -156,7 +162,7 @@ function Main {
                 Write-Host "A folder with the name '$folderToBeDeleted' wasn't found" -ForegroundColor Red
             }
         } else {
-            Write-Host "No Folders exists in this mailbox - nothing to do" -ForegroundColor Yellow
+            Write-Host "No folders exists in this mailbox - nothing to do" -ForegroundColor Yellow
         }
     } catch {
         Write-Host "An error occurred. Please contact support"
