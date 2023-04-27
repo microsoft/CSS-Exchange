@@ -10,13 +10,14 @@
 
 $BuildVersion = ""
 
+. $PSScriptRoot\..\..\..\Shared\LoggerFunctions.ps1
+. $PSScriptRoot\..\..\..\Shared\Write-ErrorInformation.ps1
+. $PSScriptRoot\..\..\..\Shared\AzureFunctions\Get-GraphAccessToken.ps1
+. $PSScriptRoot\..\..\..\Shared\AzureFunctions\Invoke-GraphApiRequest.ps1
 . $PSScriptRoot\..\..\..\Shared\OutputOverrides\Write-Host.ps1
 . $PSScriptRoot\..\..\..\Shared\OutputOverrides\Write-Verbose.ps1
 . $PSScriptRoot\..\..\..\Shared\OutputOverrides\Write-Warning.ps1
 . $PSScriptRoot\..\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
-. $PSScriptRoot\..\..\..\Shared\LoggerFunctions.ps1
-. $PSScriptRoot\..\..\..\Shared\AzureFunctions\Get-GraphAccessToken.ps1
-. $PSScriptRoot\..\..\..\Shared\AzureFunctions\Invoke-GraphApiRequest.ps1
 
 function Write-DebugLog($Message) {
     $Script:Logger = $Script:Logger | Write-LoggerInstance $Message
@@ -165,6 +166,7 @@ function Main {
         }
     } catch {
         Write-Host "An error occurred. Please contact support"
+        Write-VerboseErrorInformation
     }
 }
 
@@ -182,6 +184,8 @@ try {
     SetWriteVerboseAction ${Function:Write-DebugLog}
 
     Main
+} catch {
+    Write-VerboseErrorInformation
 } finally {
     Write-Host ""
     Write-Host ("Log file written to: $($Script:Logger.FullPath)")
