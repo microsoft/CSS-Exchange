@@ -101,17 +101,16 @@ function Main {
                     Write-Host "Unable to query the contacts. Please try again." -ForegroundColor Red
                     exit
                 }
+                $contacts.AddRange($contactsResponse.Content.value)
 
                 # Get all the contacts in the folder and probably looping through the nextLink (pagination)
                 if (-not([System.String]::IsNullOrEmpty($contactsResponse.Content.'@odata.nextLink'))) {
                     do {
-                        $contacts.AddRange($contactsResponse.Content.value)
                         $query = $contactsResponse.Content.'@odata.nextLink'.replace("https://graph.microsoft.com/v1.0/", "")
                         $listContactsInFolder.Query = $query
                         $contactsResponse = Invoke-GraphApiRequest @listContactsInFolder
+                        $contacts.AddRange($contactsResponse.Content.value)
                     } until (-not($contactsResponse.Content.'@odata.nextLink'))
-                } else {
-                    $contacts.AddRange($contactsResponse.Content.value)
                 }
 
                 Write-Host "Number of contacts in the folder: '$($folderObj.displayName)' is: $($contacts.Count)"
