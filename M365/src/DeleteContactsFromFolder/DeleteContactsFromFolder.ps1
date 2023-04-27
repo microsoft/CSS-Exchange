@@ -121,7 +121,7 @@ function Main {
                     # This is needed in order to force the sync vs doing a folder delete.
                     foreach ($contact in $contacts) {
                         Write-Host "Now processing: '$($contact.displayName)'" -ForegroundColor Cyan
-                        Write-Host "Id:  $($contact.id)" -ForegroundColor Cyan
+                        Write-Host "Id: $($contact.id)" -ForegroundColor Cyan
                         $deleteContactParams = @{
                             Query              = "me/contactFolders/$($folderObj.id)/contacts/$($contact.id)"
                             AccessToken        = $token.AccessToken
@@ -151,7 +151,7 @@ function Main {
                         $deleteContactFolderResponse = Invoke-GraphApiRequest @deleteContactFolderParams
                         if ($deleteContactFolderResponse.Successful -eq $false) {
                             Write-Host "Unable to delete the folder: '$($folderObj.displayName)'" -ForegroundColor Red
-                            Write-Host "Id: Id: $($folderObj.id)" -ForegroundColor Red
+                            Write-Host "Id: $($folderObj.id)" -ForegroundColor Red
                             exit
                         }
                         Write-Host "Folder: '$($folderObj.displayName)' has been deleted" -ForegroundColor Green
