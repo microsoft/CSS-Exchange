@@ -159,7 +159,7 @@ function Main {
             Write-Host "No Folders exists in this mailbox - nothing to do" -ForegroundColor Yellow
         }
     } catch {
-        Write-Host "An error occured. Please contact support"
+        Write-Host "An error occurred. Please contact support"
     }
 }
 
