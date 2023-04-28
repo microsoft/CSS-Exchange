@@ -88,7 +88,6 @@ $BuildVersion = ""
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-DataExport.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-Error.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-LogInformation.ps1
-. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-MailboxIndexMessageStatistics.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\WriteHelpers.ps1
 
 . $PSScriptRoot\..\Shared\Confirm-Administrator.ps1
@@ -238,14 +237,15 @@ function Main {
             - Then logic detection for what set of parameters were selected
     #>
 
+    # It is possible this can throw and should not be handled to allow the script to bail out here.
     $mailboxInformation = Get-MailboxInformation -Identity $MailboxIdentity -IsArchive $IsArchive -IsPublicFolder $IsPublicFolder
 
-    Write-BasicMailboxInformation -MailboxInformation $mailboxInformation
     Invoke-SearchServiceState -Servers $mailboxInformation.PrimaryServer
 
     $storeQueryHandler = Get-StoreQueryObject -MailboxInformation $mailboxInformation
     $basicMailboxQueryContext = Get-StoreQueryBasicMailboxQueryContext -StoreQueryHandler $storeQueryHandler
 
+    Write-BasicMailboxInformation -MailboxInformation $mailboxInformation
     Write-DisplayObjectInformation -DisplayObject $basicMailboxQueryContext -PropertyToDisplay @(
         "BigFunnelIsEnabled",
         "FastIsEnabled",
@@ -259,18 +259,30 @@ function Main {
         "CreationTime",
         "MailboxNumber"
     )
-    Write-Host "----------------------------------------"
+
+    <#
+        Logic for determining what we are wanting to lookup.
+        - If $Category is set, we only want to find that category information
+            - Do this export the data then return
+        - Ready the parameters for trying to find the message(s)
+            - If $FolderName isn't null, add it to the parameters
+        - If messages found display them
+        - If $QueryString provided, test Query against the found messages
+        - Collect Additional Mailbox Information off of Categories if Mailbox Stats meet the criteria
+        - Export the data
+    #>
 
     if ($Category.Count -ge 1) {
 
-        Write-MailboxIndexMessageStatistics -BasicMailboxQueryContext $basicMailboxQueryContext -MailboxStatistics $mailboxInformation.MailboxStatistics -Category $Category -GroupMessages $GroupMessages
+        $messagesForMailbox = Get-MailboxMessagesForCategory -MailboxInformation $mailboxInformation -Category $Category -GroupMessages $GroupMessages
+
+        if ($ExportData) {
+            Write-DataExport -MailboxInformation $mailboxInformation -Messages $messagesForMailbox
+        }
         return
     }
 
-    if (-not([string]::IsNullOrEmpty($FolderName))) {
-        $folderInformation = Get-StoreQueryFolderInformation -BasicMailboxQueryContext $basicMailboxQueryContext -DisplayName $FolderName
-    }
-
+    # Ready the parameters to pass to Get-StoreQueryMessageIndexState
     $passParams = @{
         BasicMailboxQueryContext = $basicMailboxQueryContext
     }
@@ -282,28 +294,28 @@ function Main {
         $passParams["MessageSubject"] = $ItemSubject
         $passParams["MatchSubjectSubstring"] = $MatchSubjectSubstring
 
-        if ($null -ne $folderInformation) {
-            $passParams["FolderInformation"] = $folderInformation
+        if (-not([string]::IsNullOrEmpty($FolderName))) {
+            $folderInformation = Get-StoreQueryFolderInformation -BasicMailboxQueryContext $basicMailboxQueryContext -DisplayName $FolderName
+
+            if ($null -ne $folderInformation) {
+                $passParams["FolderInformation"] = $folderInformation
+            }
         }
     }
 
+    $messagesForMailbox = New-Object 'System.Collections.Generic.List[object]'
     $messages = @(Get-StoreQueryMessageIndexState @passParams)
 
     if ($messages.Count -gt 0) {
 
-        Write-Host "Found $($messages.Count) different messages"
-        Write-Host "Messages Index State:"
+        Write-Host
+        Write-DashLineBox @("Found $($messages.Count) different message(s)", "", "Message(s) Index State")
+        $messagesForMailbox.AddRange($messages)
 
         for ($i = 0; $i -lt $messages.Count; $i++) {
             Write-Host ""
             Write-Host "Found Item $($i + 1): "
             $messages[$i] | Out-String | Write-Host
-        }
-
-        if ($ExportData) {
-            $filePath = "$PSScriptRoot\MessageResults_$ItemSubject_$(([DateTime]::Now).ToString('yyyyMMddhhmmss')).csv"
-            Write-Host "Exporting Full Mailbox Stats out to: $filePath"
-            $messages | Export-Csv -Path $filePath
         }
 
         if (-not([string]::IsNullOrEmpty($QueryString))) {
@@ -332,17 +344,22 @@ function Main {
         }
     }
 
+    # Check to see if we have any categories of messages that we should look into.
     $categories = Get-CategoryOffStatistics -MailboxStatistics $mailboxInformation.MailboxStatistics
 
     if ($categories.Count -gt 0) {
         Write-Host ""
-        Write-Host "----------------------------------------"
-        Write-Host "Collecting Message Stats on the following Categories:"
-        Write-Host ""
-        $categories | Out-String | Write-Host
-        Write-Host ""
+        Write-DashLineBox @("Collecting Message Stats on the following Categories:", "", $categories)
         Write-Host "This may take some time to collect."
-        Write-MailboxIndexMessageStatistics -BasicMailboxQueryContext $basicMailboxQueryContext -MailboxStatistics $mailboxInformation.MailboxStatistics -Category $categories -GroupMessages $GroupMessages
+        [array]$messages = Get-MailboxMessagesForCategory -MailboxInformation $mailboxInformation -Category $categories -GroupMessages $GroupMessages
+
+        if ($messages.Count -gt 0) {
+            $messagesForMailbox.AddRange($messages)
+        }
+    }
+
+    if ($ExportData) {
+        Write-DataExport -MailboxInformation $mailboxInformation -Messages $messagesForMailbox
     }
 }
 
