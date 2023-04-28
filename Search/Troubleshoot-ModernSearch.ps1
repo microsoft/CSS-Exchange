@@ -190,7 +190,6 @@ function Main {
         # TODO: Write-Progress
         $topMailboxes | ForEach-Object {
             $mbxGuid = $_.MailboxGuid
-            Write-Host "Getting basic user mailbox information for $mbxGuid"
             $isPublicFolder = $_.MailboxTypeDetail -eq "None" -and $_.MailboxType -like "PublicFolder*"
             $isArchive = $_.IsArchiveMailbox
             try {
@@ -238,8 +237,6 @@ function Main {
             - Display the information about the mailbox
             - Then logic detection for what set of parameters were selected
     #>
-
-    Write-Host "Getting user mailbox information for $MailboxIdentity"
 
     $mailboxInformation = Get-MailboxInformation -Identity $MailboxIdentity -IsArchive $IsArchive -IsPublicFolder $IsPublicFolder
 

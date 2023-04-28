@@ -26,10 +26,11 @@ function Get-MailboxInformation {
                 - Get-ExchangeServer
                 - Get-MailboxDatabase -Status
         #>
+        Write-Host "Getting basic mailbox information for $Identity"
         $storeQueryMailboxInfo = Get-StoreQueryMailboxInformation -Identity $Identity -IsArchive $IsArchive -IsPublicFolder $IsPublicFolder
 
         if ($storeQueryMailboxInfo.ExchangeServer.AdminDisplayVersion.ToString() -notlike "Version 15.2*") {
-            throw "User isn't on an Exchange 2019 server"
+            throw "Mailbox isn't on an Exchange 2019 server"
         }
 
         if (-not $IsPublicFolder) {
