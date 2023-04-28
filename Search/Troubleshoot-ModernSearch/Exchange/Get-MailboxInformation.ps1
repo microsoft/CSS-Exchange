@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\Shared\StoreQueryFunctions.ps1
+. $PSScriptRoot\..\..\..\Shared\Write-ErrorInformation.ps1
 # Gets the information required to determine an issue for the particular mailbox.
 function Get-MailboxInformation {
     [CmdletBinding()]
@@ -45,6 +46,7 @@ function Get-MailboxInformation {
 
         return $storeQueryMailboxInfo
     } catch {
+        Write-VerboseErrorInformation
         throw "Failed to find '$Identity' information. InnerException: $($Error[0].Exception)"
     }
 }
