@@ -1,8 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\Exchange\Get-SearchProcessState.ps1
-. $PSScriptRoot\Write\Write-SearchProcessStateObject.ps1
+. $PSScriptRoot\..\Exchange\Get-SearchProcessState.ps1
+. $PSScriptRoot\..\Write\Write-SearchProcessStateObject.ps1
 
 function Invoke-SearchServiceState {
     [CmdletBinding()]

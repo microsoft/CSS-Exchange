@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\Get-FolderInformation.ps1
+. $PSScriptRoot\..\Get-FolderInformation.ps1
 
 # Get the Folder Information from a cached object first before trying to get it from Get-StoreQuery
 function Get-CacheFolderInformation {

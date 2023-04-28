@@ -1,8 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\Get-CacheFolderInformation.ps1
-. $PSScriptRoot\Get-MessageInformationObject.ps1
+. $PSScriptRoot\Helpers\Get-CacheFolderInformation.ps1
+. $PSScriptRoot\Helpers\Get-MessageInformationObject.ps1
 function Get-MessageIndexState {
     [CmdletBinding()]
     param(

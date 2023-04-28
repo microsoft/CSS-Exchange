@@ -1,9 +1,9 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\StoreQuery\Get-MailboxIndexMessageStatistics.ps1
-. $PSScriptRoot\Write\Write-BasicMailboxInformation.ps1
-. $PSScriptRoot\Write\WriteHelpers.ps1
+. $PSScriptRoot\..\Get-MailboxIndexMessageStatistics.ps1
+. $PSScriptRoot\..\..\Write\Write-BasicMailboxInformation.ps1
+. $PSScriptRoot\..\..\Write\WriteHelpers.ps1
 
 <#
     Used to collect the messages from a single mailbox based off the category type

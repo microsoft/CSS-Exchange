@@ -73,11 +73,16 @@ $BuildVersion = ""
 . $PSScriptRoot\Troubleshoot-ModernSearch\Exchange\Get-MailboxInformation.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Exchange\Get-MailboxStatisticsOnDatabase.ps1
 
+. $PSScriptRoot\Troubleshoot-ModernSearch\Helpers\Invoke-SearchServiceState.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Helpers\Get-CategoryOffStatistics.ps1
+
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-BasicMailboxQueryContext.ps1
-. $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-CategoryOffStatistics.ps1
+
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-FolderInformation.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-MessageIndexState.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-QueryItemResult.ps1
+
+. $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Helpers\Invoke-MailboxMessagesForCategory.ps1
 
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-BasicMailboxInformation.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-DataExport.ps1
@@ -85,9 +90,6 @@ $BuildVersion = ""
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-LogInformation.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-MailboxIndexMessageStatistics.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\WriteHelpers.ps1
-
-. $PSScriptRoot\Troubleshoot-ModernSearch\Invoke-MailboxMessagesForCategory.ps1
-. $PSScriptRoot\Troubleshoot-ModernSearch\Invoke-SearchServiceState.ps1
 
 . $PSScriptRoot\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\Shared\StoreQueryFunctions.ps1
