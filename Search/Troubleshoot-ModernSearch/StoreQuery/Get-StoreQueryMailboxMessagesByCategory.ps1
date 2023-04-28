@@ -4,7 +4,7 @@
 . $PSScriptRoot\Helpers\Get-CacheFolderInformation.ps1
 . $PSScriptRoot\Helpers\Get-IndexingErrorMessage.ps1
 . $PSScriptRoot\Helpers\Get-MessageInformationObject.ps1
-function Get-MailboxIndexMessageStatistics {
+function Get-StoreQueryMailboxMessagesByCategory {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]

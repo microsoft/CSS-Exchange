@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-function Get-FolderInformation {
+function Get-StoreQueryFolderInformation {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]

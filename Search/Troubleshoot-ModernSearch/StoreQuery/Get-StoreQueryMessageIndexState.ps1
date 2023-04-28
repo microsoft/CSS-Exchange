@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\Helpers\Get-CacheFolderInformation.ps1
 . $PSScriptRoot\Helpers\Get-MessageInformationObject.ps1
-function Get-MessageIndexState {
+function Get-StoreQueryMessageIndexState {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]

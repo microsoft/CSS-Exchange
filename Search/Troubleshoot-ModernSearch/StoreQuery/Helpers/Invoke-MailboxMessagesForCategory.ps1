@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\..\Get-MailboxIndexMessageStatistics.ps1
+. $PSScriptRoot\..\Get-StoreQueryMailboxMessagesByCategory.ps1
 . $PSScriptRoot\..\..\Write\Write-BasicMailboxInformation.ps1
 . $PSScriptRoot\..\..\Write\WriteHelpers.ps1
 
@@ -25,11 +25,11 @@ function Invoke-MailboxMessagesForCategory {
     )
     begin {
         $messagesForMailbox = New-Object 'System.Collections.Generic.List[object]'
-        $basicMailboxQueryContext = Get-BasicMailboxQueryContext -StoreQueryHandler (Get-StoreQueryObject -MailboxInformation $MailboxInformation)
+        $basicMailboxQueryContext = Get-StoreQueryBasicMailboxQueryContext -StoreQueryHandler (Get-StoreQueryObject -MailboxInformation $MailboxInformation)
     }
     process {
         foreach ($categoryType in $Category) {
-            [array]$messages = Get-MailboxIndexMessageStatistics -BasicMailboxQueryContext $basicMailboxQueryContext -Category $categoryType
+            [array]$messages = Get-StoreQueryMailboxMessagesByCategory -BasicMailboxQueryContext $basicMailboxQueryContext -Category $categoryType
 
             if ($messages.Count -eq 0) {
                 Write-Host "Failed to find any results when doing a search on the category $categoryType"

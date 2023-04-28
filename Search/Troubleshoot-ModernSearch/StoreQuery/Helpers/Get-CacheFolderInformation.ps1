@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\..\Get-FolderInformation.ps1
+. $PSScriptRoot\..\Get-StoreQueryFolderInformation.ps1
 
 # Get the Folder Information from a cached object first before trying to get it from Get-StoreQuery
 function Get-CacheFolderInformation {
@@ -34,7 +34,7 @@ function Get-CacheFolderInformation {
     } process {
         if ($null -ne $FolderId) {
             if (-not ($Script:CacheFolderInformation[$mailboxGuid].ContainsKey($FolderId))) {
-                $folderInformation = Get-FolderInformation -BasicMailboxQueryContext $BasicMailboxQueryContext -FolderId $FolderId
+                $folderInformation = Get-StoreQueryFolderInformation -BasicMailboxQueryContext $BasicMailboxQueryContext -FolderId $FolderId
                 $Script:CacheFolderInformation[$mailboxGuid].Add($FolderId, $folderInformation)
             }
 
@@ -42,7 +42,7 @@ function Get-CacheFolderInformation {
         } else {
             # Because you can have multiple Display Names the same name, must query and return all the same results.
             # Since it is possible that we don't have all the folders cached already
-            $returnFolderInformation = Get-FolderInformation -BasicMailboxQueryContext $BasicMailboxQueryContext -DisplayName $DisplayName
+            $returnFolderInformation = Get-StoreQueryFolderInformation -BasicMailboxQueryContext $BasicMailboxQueryContext -DisplayName $DisplayName
 
             if ($null -ne $returnFolderInformation) {
                 foreach ($folderInformation in $returnFolderInformation) {

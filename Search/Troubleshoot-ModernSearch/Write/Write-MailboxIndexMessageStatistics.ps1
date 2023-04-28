@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\..\StoreQuery\Get-MailboxIndexMessageStatistics.ps1
+. $PSScriptRoot\..\StoreQuery\Get-StoreQueryMailboxMessagesByCategory.ps1
 . $PSScriptRoot\WriteHelpers.ps1
 function Write-MailboxIndexMessageStatistics {
     [CmdletBinding()]
@@ -32,7 +32,7 @@ function Write-MailboxIndexMessageStatistics {
         foreach ($categoryType in $Category) {
 
             $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
-            [array]$messages = Get-MailboxIndexMessageStatistics -BasicMailboxQueryContext $BasicMailboxQueryContext -Category $categoryType
+            [array]$messages = Get-StoreQueryMailboxMessagesByCategory -BasicMailboxQueryContext $BasicMailboxQueryContext -Category $categoryType
             Write-Verbose "Took $($stopWatch.Elapsed.TotalSeconds) seconds to get the mailbox index message stats for $($messages.count) messages"
 
             if ($messages.Count -gt 0) {

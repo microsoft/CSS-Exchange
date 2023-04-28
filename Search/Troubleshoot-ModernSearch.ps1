@@ -76,11 +76,11 @@ $BuildVersion = ""
 . $PSScriptRoot\Troubleshoot-ModernSearch\Helpers\Invoke-SearchServiceState.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Helpers\Get-CategoryOffStatistics.ps1
 
-. $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-BasicMailboxQueryContext.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-StoreQueryBasicMailboxQueryContext.ps1
 
-. $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-FolderInformation.ps1
-. $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-MessageIndexState.ps1
-. $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-QueryItemResult.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-StoreQueryFolderInformation.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-StoreQueryMessageIndexState.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-StoreQueryQueryItemResult.ps1
 
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Helpers\Invoke-MailboxMessagesForCategory.ps1
 
@@ -238,7 +238,7 @@ function Main {
     Invoke-SearchServiceState -Servers $mailboxInformation.PrimaryServer
 
     $storeQueryHandler = Get-StoreQueryObject -MailboxInformation $mailboxInformation
-    $basicMailboxQueryContext = Get-BasicMailboxQueryContext -StoreQueryHandler $storeQueryHandler
+    $basicMailboxQueryContext = Get-StoreQueryBasicMailboxQueryContext -StoreQueryHandler $storeQueryHandler
 
     Write-DisplayObjectInformation -DisplayObject $basicMailboxQueryContext -PropertyToDisplay @(
         "BigFunnelIsEnabled",
@@ -262,7 +262,7 @@ function Main {
     }
 
     if (-not([string]::IsNullOrEmpty($FolderName))) {
-        $folderInformation = Get-FolderInformation -BasicMailboxQueryContext $basicMailboxQueryContext -DisplayName $FolderName
+        $folderInformation = Get-StoreQueryFolderInformation -BasicMailboxQueryContext $basicMailboxQueryContext -DisplayName $FolderName
     }
 
     $passParams = @{
@@ -281,7 +281,7 @@ function Main {
         }
     }
 
-    $messages = @(Get-MessageIndexState @passParams)
+    $messages = @(Get-StoreQueryMessageIndexState @passParams)
 
     if ($messages.Count -gt 0) {
 
@@ -301,7 +301,7 @@ function Main {
         }
 
         if (-not([string]::IsNullOrEmpty($QueryString))) {
-            $queryItemResults = Get-QueryItemResult -BasicMailboxQueryContext $basicMailboxQueryContext `
+            $queryItemResults = Get-StoreQueryQueryItemResult -BasicMailboxQueryContext $basicMailboxQueryContext `
                 -DocumentId ($messages.MessageDocumentId) `
                 -QueryString $QueryString `
                 -QueryScope "SearchAllIndexedProps"
