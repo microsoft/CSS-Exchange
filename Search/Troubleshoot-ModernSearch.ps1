@@ -82,7 +82,7 @@ $BuildVersion = ""
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-StoreQueryMessageIndexState.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Get-StoreQueryQueryItemResult.ps1
 
-. $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Helpers\Invoke-MailboxMessagesForCategory.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\StoreQuery\Helpers\Get-MailboxMessagesForCategory.ps1
 
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-BasicMailboxInformation.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-DataExport.ps1
@@ -218,7 +218,7 @@ function Main {
             # Each category is another query against the database
             # After each category query, display the information, but add it to a list of found messages.
             # Display is depending on GroupMessages or not.
-            $messagesForMailbox = Invoke-MailboxMessagesForCategory -MailboxInformation $mailboxInformation -Category $categories -GroupMessages $GroupMessages
+            $messagesForMailbox = Get-MailboxMessagesForCategory -MailboxInformation $mailboxInformation -Category $categories -GroupMessages $GroupMessages
 
             if ($ExportData) {
                 Write-DataExport -MailboxInformation $mailboxInformation -Messages $messagesForMailbox

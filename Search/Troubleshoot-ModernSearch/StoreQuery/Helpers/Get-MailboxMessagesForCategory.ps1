@@ -11,7 +11,7 @@
     Then will display that information after each category collection to make it less of a day for the display
     At the end, return all the messages to the caller that was found for this user.
 #>
-function Invoke-MailboxMessagesForCategory {
+function Get-MailboxMessagesForCategory {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
