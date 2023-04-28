@@ -230,6 +230,15 @@ function Main {
         return
     }
 
+    <#
+        Lookup a single mailbox collection option
+            - Find the information about the mailbox (Exchange)
+            - Check the status of the Search Services on that active server
+            - Get Store Query Information
+            - Display the information about the mailbox
+            - Then logic detection for what set of parameters were selected
+    #>
+
     Write-Host "Getting user mailbox information for $MailboxIdentity"
 
     $mailboxInformation = Get-MailboxInformation -Identity $MailboxIdentity -IsArchive $IsArchive -IsPublicFolder $IsPublicFolder
