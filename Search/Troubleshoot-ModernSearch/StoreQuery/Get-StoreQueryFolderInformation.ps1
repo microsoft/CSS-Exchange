@@ -1,6 +1,12 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+<#
+    Query for additional folder information from the Folder table.
+    This is need to get the DisplayName from the FolderID or the other way around.
+    The FolderID is required to be used when doing restrictions on where a message
+    is within a mailbox.
+#>
 function Get-StoreQueryFolderInformation {
     [CmdletBinding()]
     param(

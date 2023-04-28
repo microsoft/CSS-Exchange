@@ -3,6 +3,11 @@
 
 . $PSScriptRoot\WriteHelpers.ps1
 
+<#
+    Take the object from Get-MailboxInformation and
+    quickly display some information about the object to the
+    screen that is useful.
+#>
 function Write-BasicMailboxInformation {
     [CmdletBinding()]
     param(

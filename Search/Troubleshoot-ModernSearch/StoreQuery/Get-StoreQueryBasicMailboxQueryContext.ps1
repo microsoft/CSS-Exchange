@@ -2,6 +2,10 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-StoreQueryBigFunnelPropertyNameMapping.ps1
+<#
+    This returns the basic mailbox query context required to query against
+    a particular mailbox with store query with this script.
+#>
 function Get-StoreQueryBasicMailboxQueryContext {
     [CmdletBinding()]
     param(

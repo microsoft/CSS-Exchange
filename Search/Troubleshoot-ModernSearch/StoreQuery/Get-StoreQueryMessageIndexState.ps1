@@ -3,6 +3,12 @@
 
 . $PSScriptRoot\Helpers\Get-CacheFolderInformation.ps1
 . $PSScriptRoot\Helpers\Get-MessageInformationObject.ps1
+
+<#
+    Get a message by Subject finding capabilities (substring match and folder)
+    or by finding a particular message by a DocumentId
+    The return, if message(s) found, a list of object of the type from Get-MessageInformationObject
+#>
 function Get-StoreQueryMessageIndexState {
     [CmdletBinding()]
     param(
