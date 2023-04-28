@@ -1,6 +1,18 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+function Get-DashLine {
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [int]$Length
+    )
+    $dashLine = [string]::Empty
+    1..$Length | ForEach-Object { $dashLine += "-" }
+    return $dashLine
+}
+
 function Write-DashLineBox {
     [CmdletBinding()]
     param(
@@ -15,9 +27,8 @@ function Write-DashLineBox {
         # Empty Line
     #>
     $highLineLength = 0
-    $dashLine = [string]::Empty
     $Line | ForEach-Object { if ($_.Length -gt $highLineLength) { $highLineLength = $_.Length } }
-    1..$highLineLength | ForEach-Object { $dashLine += "-" }
+    $dashLine = Get-DashLine $highLineLength
     Write-Host $dashLine
     $Line | ForEach-Object { Write-Host $_ }
     Write-Host $dashLine
@@ -40,8 +51,12 @@ function Write-DisplayObjectInformation {
             }
         }
 
+        $dashLine = Get-DashLine $width
+        Write-Host $dashLine
         foreach ($property in $PropertyToDisplay) {
             Write-Host ("{0,-$width} = {1}" -f $property, $DisplayObject.($property))
         }
+        Write-Host $dashLine
+        Write-Host
     }
 }
