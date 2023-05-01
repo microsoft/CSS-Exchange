@@ -91,6 +91,7 @@ $BuildVersion = ""
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\WriteHelpers.ps1
 
 . $PSScriptRoot\..\Shared\Confirm-Administrator.ps1
+. $PSScriptRoot\..\Shared\LoggerFunctions.ps1
 . $PSScriptRoot\..\Shared\StoreQueryFunctions.ps1
 . $PSScriptRoot\..\Shared\Write-ErrorInformation.ps1
 . $PSScriptRoot\..\Shared\OutputOverrides\Write-Host.ps1
@@ -98,7 +99,23 @@ $BuildVersion = ""
 . $PSScriptRoot\..\Shared\OutputOverrides\Write-Warning.ps1
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 
-$Script:ScriptLogging = "$PSScriptRoot\Troubleshoot-ModernSearchLog_$(([DateTime]::Now).ToString('yyyyMMddhhmmss')).log"
+
+$scriptName = $MyInvocation.MyCommand.ToString().Replace(".ps1", "")
+$loggingDirectory = "$PSScriptRoot\$scriptName"
+$uniqueRunTime = ([DateTime]::Now).ToString('yyyyMMddhhmmss')
+
+try {
+    # Logger instance will create the directory and can throw.
+    $params = @{
+        LogDirectory             = $loggingDirectory
+        AppendDateTimeToFileName = $false
+    }
+    $Script:ScriptLogger = Get-NewLoggerInstance @params -LogName "$scriptName`_Log_$($uniqueRunTime)" -AppendDateTime $false
+    $Script:ScriptDebugLogger = Get-NewLoggerInstance @params -LogName "$scriptName`_Debug_Log_$($uniqueRunTime)"
+} catch {
+    Write-Error "Failed to create logging directory: $loggingDirectory. Inner Exception: $_"
+    exit
+}
 
 try {
     $configuredVersion = (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\AdminTools -ErrorAction Stop).ConfiguredVersion
@@ -368,9 +385,8 @@ try {
         Write-Warning "The script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator."
         exit
     }
-    Out-File -FilePath $Script:ScriptLogging -Force | Out-Null
     SetWriteHostAction ${Function:Write-LogInformation}
-    SetWriteVerboseAction ${Function:Write-LogInformation}
+    SetWriteVerboseAction ${Function:Write-DebugLogInformation}
     SetWriteWarningAction ${Function:Write-LogInformation}
 
     if ((Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/TMS-VersionsUrl")) {
@@ -382,7 +398,7 @@ try {
     Write-Host "Exchange Troubleshot Modern Search Version $BuildVersion"
     Main
     Write-Verbose "Finished Script At: $([DateTime]::Now)"
-    Write-Host "File Written at: $Script:ScriptLogging"
+    Write-Host "File Written at: $($Script:ScriptLogger.FullPath)"
 } catch {
     Write-HostErrorInformation $_
     Write-Warning ("Ran into an issue with the script. If possible please email 'ExToolsFeedback@microsoft.com' of the issue that you are facing")
