@@ -27,7 +27,7 @@ function Get-NewLoggerInstance {
         try {
             New-Item -ItemType Directory -Path $LogDirectory -ErrorAction Stop | Out-Null
         } catch {
-            throw "Failed to create Log Directory: $LogDirectory"
+            throw "Failed to create Log Directory: $LogDirectory. Inner Exception: $_"
         }
     }
 

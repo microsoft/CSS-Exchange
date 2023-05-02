@@ -1,8 +1,12 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\Get-BigFunnelPropertyNameMapping.ps1
-function Get-BasicMailboxQueryContext {
+. $PSScriptRoot\Get-StoreQueryBigFunnelPropertyNameMapping.ps1
+<#
+    This returns the basic mailbox query context required to query against
+    a particular mailbox with store query with this script.
+#>
+function Get-StoreQueryBasicMailboxQueryContext {
     [CmdletBinding()]
     param(
         [object]$StoreQueryHandler
@@ -28,7 +32,7 @@ function Get-BasicMailboxQueryContext {
             SetWhere -Value ("MailboxGuid = '$($StoreQueryHandler.MailboxGuid)'") |
             InvokeGetStoreQuery
 
-        $bigFunnelPropertyNameMapping = Get-BigFunnelPropertyNameMapping -StoreQueryHandler $StoreQueryHandler -MailboxNumber $result.MailboxNumber
+        $bigFunnelPropertyNameMapping = Get-StoreQueryBigFunnelPropertyNameMapping -StoreQueryHandler $StoreQueryHandler -MailboxNumber $result.MailboxNumber
     }
     end {
         return [PSCustomObject]@{

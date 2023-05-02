@@ -1,6 +1,9 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+# Get a simple results of Mailbox Statistics of all the mailboxes on the database(s).
+# Don't want to store all the mailboxes full mailbox stats as that could be rather large
+# and don't require all the information.
 function Get-MailboxStatisticsOnDatabase {
     [CmdletBinding()]
     param(
@@ -8,6 +11,12 @@ function Get-MailboxStatisticsOnDatabase {
     )
     begin {
         $mailboxStatisticsList = New-Object 'System.Collections.Generic.List[object]'
+        Write-Host "Getting the mailbox statistics of all these databases"
+        $MailboxDatabase |
+            Out-String |
+            Write-Host
+        Write-Host "This may take some time..."
+        # TODO: Add Write-Progress
     }
     process {
 
@@ -35,6 +44,9 @@ function Get-MailboxStatisticsOnDatabase {
                         $mailboxStatisticsList.Add([PSCustomObject]@{
                                 MailboxGuid                      = $_.MailboxGuid.ToString()
                                 DisplayName                      = $_.DisplayName
+                                MailboxType                      = $_.MailboxType.ToString()
+                                MailboxTypeDetail                = $_.MailboxTypeDetail.ToString()
+                                IsArchiveMailbox                 = $_.IsArchiveMailbox
                                 DatabaseName                     = $_.DatabaseName
                                 ServerName                       = $_.ServerName
                                 AssociatedItemCount              = $_.AssociatedItemCount

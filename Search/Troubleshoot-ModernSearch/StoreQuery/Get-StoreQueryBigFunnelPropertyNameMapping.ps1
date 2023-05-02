@@ -1,7 +1,11 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-function Get-BigFunnelPropertyNameMapping {
+<#
+    Get the Big Funnel Properties from the database table ExtendedPropertyNameMapping
+    For this particular mailbox, as it appears it can be different to each mailbox.
+#>
+function Get-StoreQueryBigFunnelPropertyNameMapping {
     [CmdletBinding()]
     param(
         [object]$StoreQueryHandler,

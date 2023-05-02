@@ -1,6 +1,11 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+<#
+    Used to determine what categories we should try to include
+    in data collection to assist with troubleshooting.
+    This determination is based off of Get-MailboxStatistics
+#>
 function Get-CategoryOffStatistics {
     [CmdletBinding()]
     param(
