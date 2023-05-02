@@ -1,7 +1,11 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-function Get-QueryItemResult {
+<#
+    Used to test a possible query against an item to see if the
+    query provided will return this item back or not.
+#>
+function Get-StoreQueryQueryItemResult {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]

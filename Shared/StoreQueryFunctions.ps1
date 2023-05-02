@@ -155,6 +155,7 @@ function Get-StoreQueryMailboxInformation {
         try {
             Write-Verbose "Calling: $($MyInvocation.MyCommand)"
             Write-Verbose "Attempting to run Get-Mailbox"
+            Write-Verbose "Identity: '$Identity' IsArchive: $IsArchive IsPublicFolder: $IsPublicFolder"
             $mailboxInfo = Get-Mailbox -Identity $Identity -PublicFolder:$IsPublicFolder -Archive:$IsArchive -ErrorAction Stop
 
             if ($IsArchive) {
