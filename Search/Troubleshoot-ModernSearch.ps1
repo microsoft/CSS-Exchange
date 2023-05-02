@@ -88,6 +88,7 @@ $BuildVersion = ""
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-DataExport.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-Error.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-LogInformation.ps1
+. $PSScriptRoot\Troubleshoot-ModernSearch\Write\Write-LogsToZip.ps1
 . $PSScriptRoot\Troubleshoot-ModernSearch\Write\WriteHelpers.ps1
 
 . $PSScriptRoot\..\Shared\Confirm-Administrator.ps1
@@ -99,10 +100,10 @@ $BuildVersion = ""
 . $PSScriptRoot\..\Shared\OutputOverrides\Write-Warning.ps1
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 
-
 $scriptName = $MyInvocation.MyCommand.ToString().Replace(".ps1", "")
 $loggingDirectory = "$PSScriptRoot\$scriptName"
 $uniqueRunTime = ([DateTime]::Now).ToString('yyyyMMddhhmmss')
+$exportDataFilePaths = New-Object "System.Collections.Generic.List[string]"
 
 try {
     # Logger instance will create the directory and can throw.
@@ -236,7 +237,14 @@ function Main {
             $messagesForMailbox = Get-MailboxMessagesForCategory -MailboxInformation $mailboxInformation -Category $categories -GroupMessages $GroupMessages
 
             if ($ExportData) {
-                Write-DataExport -MailboxInformation $mailboxInformation -Messages $messagesForMailbox
+                $params = @{
+                    MailboxInformation = $mailboxInformation
+                    RootDirectory      = $loggingDirectory
+                    LocationExported   = [ref]$exportDataFilePaths
+                    Messages           = $messagesForMailbox
+                    UniqueId           = $uniqueRunTime
+                }
+                Write-DataExport @params
             }
 
             Write-Host
@@ -294,7 +302,14 @@ function Main {
         $messagesForMailbox = Get-MailboxMessagesForCategory -MailboxInformation $mailboxInformation -Category $Category -GroupMessages $GroupMessages
 
         if ($ExportData) {
-            Write-DataExport -MailboxInformation $mailboxInformation -Messages $messagesForMailbox
+            $params = @{
+                MailboxInformation = $mailboxInformation
+                RootDirectory      = $loggingDirectory
+                LocationExported   = [ref]$exportDataFilePaths
+                Messages           = $messagesForMailbox
+                UniqueId           = $uniqueRunTime
+            }
+            Write-DataExport @params
         }
         return
     }
@@ -376,7 +391,14 @@ function Main {
     }
 
     if ($ExportData) {
-        Write-DataExport -MailboxInformation $mailboxInformation -Messages $messagesForMailbox
+        $params = @{
+            MailboxInformation = $mailboxInformation
+            RootDirectory      = $loggingDirectory
+            LocationExported   = [ref]$exportDataFilePaths
+            Messages           = $messagesForMailbox
+            UniqueId           = $uniqueRunTime
+        }
+        Write-DataExport @params
     }
 }
 
@@ -398,7 +420,14 @@ try {
     Write-Host "Exchange Troubleshot Modern Search Version $BuildVersion"
     Main
     Write-Verbose "Finished Script At: $([DateTime]::Now)"
-    Write-Host "File Written at: $($Script:ScriptLogger.FullPath)"
+
+    if ($exportDataFilePaths.Count -gt 0) {
+        $exportDataFilePaths.Add($Script:ScriptLogger.FullPath)
+        $exportDataFilePaths.Add($Script:ScriptDebugLogger.FullPath)
+        Write-LogsToZip -LiteralPath $exportDataFilePaths -DestinationPath ( [System.IO.Path]::Combine($loggingDirectory, "Logs-$uniqueRunTime.zip"))
+    } else {
+        Write-Host "File Written at: $($Script:ScriptLogger.FullPath)"
+    }
 } catch {
     Write-HostErrorInformation $_
     Write-Warning ("Ran into an issue with the script. If possible please email 'ExToolsFeedback@microsoft.com' of the issue that you are facing")
