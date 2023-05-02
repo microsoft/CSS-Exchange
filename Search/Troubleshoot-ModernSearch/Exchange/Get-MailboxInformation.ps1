@@ -37,7 +37,15 @@ function Get-MailboxInformation {
         if (-not $IsPublicFolder) {
             try {
                 # Only thing additionally that needs to be collected is Get-MailboxFolderStatistics
-                $mailboxFolderStats = Get-MailboxFolderStatistics -Identity $Identity -Archive:$IsArchive -ErrorAction Stop
+                $params = @{
+                    Identity                    = $Identity
+                    Archive                     = $IsArchive
+                    ErrorAction                 = "Stop"
+                    FolderScope                 = "NonIPMRoot"
+                    IncludeOldestAndNewestItems = $true
+                    IncludeAnalysis             = $true
+                }
+                $mailboxFolderStats = Get-MailboxFolderStatistics @params
                 $storeQueryMailboxInfo | Add-Member -MemberType NoteProperty -Name "MailboxFolderStatistics" -Value $mailboxFolderStats
             } catch {
                 Write-Verbose "Failed to collect Get-MailboxFolderStatistics"
