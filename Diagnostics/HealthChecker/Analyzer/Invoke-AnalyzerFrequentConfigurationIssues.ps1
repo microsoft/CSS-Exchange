@@ -186,6 +186,12 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
         Add-AnalyzedResultInformation @params
     }
 
+    $params = $baseParams + @{
+        Name    = "DisablePreservation"
+        Details = $exchangeInformation.RegistryValues.DisablePreservation
+    }
+    Add-AnalyzedResultInformation @params
+
     if ($null -ne $exchangeInformation.IISSettings.IISWebApplication -or
         $null -ne $exchangeInformation.IISSettings.IISWebSite -or
         $null -ne $exchangeInformation.IISSettings.IISSharedWebConfig) {
