@@ -31,7 +31,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Internet Web Proxy" "Not Set"
             TestObjectMatch "Extended Protection Enabled (Any VDir)" $false
             TestObjectMatch "Setting Overrides Detected" $false
-            $Script:ActiveGrouping.Count | Should -Be 13
+            TestObjectMatch "Out of Date" $true -WriteType "Red"
+            $Script:ActiveGrouping.Count | Should -Be 14
         }
 
         It "Display Results - Organization Information" {
@@ -117,7 +118,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "EdgeTransport.exe.config Present" "True" -WriteType "Green"
             TestObjectMatch "Open Relay Wild Card Domain" "Not Set"
 
-            $Script:ActiveGrouping.Count | Should -Be 8
+            $Script:ActiveGrouping.Count | Should -Be 9
         }
 
         It "Display Results - Security Settings" {
