@@ -126,6 +126,7 @@ function Get-ExchangeBuildVersionInformation {
                     $cuLevel = "CU13"
                     $cuReleaseDate = "05/03/2023"
                     $supportedBuildNumber = $true
+                    $latestSUBuild = $true
                 }
                 { $_ -lt (GetBuildVersion $ex19 "CU13") } {
                     $cuLevel = "CU12"
