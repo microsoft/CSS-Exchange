@@ -279,6 +279,7 @@ function Invoke-AnalyzerSecuritySettings {
                         CipherSuite        = $tlsCipher.CipherSuite
                         Cipher             = $tlsCipher.Cipher
                         Certificate        = $tlsCipher.Certificate
+                        Protocols          = $tlsCipher.Protocols
                     })
             )
         }
