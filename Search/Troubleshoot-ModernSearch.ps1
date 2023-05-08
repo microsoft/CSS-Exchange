@@ -177,6 +177,8 @@ function Main {
             if ($ExcludeFullyIndexedMailboxes -and
                 $_.FullyIndexPercentage -eq 100) {
                 # Don't add to the list
+            } elseif ($_.TotalBigFunnelSearchableItems -eq 0) {
+                Write-Verbose "Not adding mailbox $($_.MailboxGuid) to list because there are no searchable items"
             } else {
                 return $_
             }
