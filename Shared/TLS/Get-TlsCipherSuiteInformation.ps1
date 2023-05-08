@@ -28,7 +28,6 @@ function Get-TlsCipherSuiteInformation {
                 elseif ($p -eq 770) { $name = "TLS_1_1" }
                 elseif ($p -eq 771) { $name = "TLS_1_2" }
                 elseif ($p -eq 772) { $name = "TLS_1_3" }
-                elseif ($p -eq 256) { $name = "PROTOCOL_DTLS_1_0_OPENSSL_PRE_0_9_8f" }
                 elseif ($p -eq 32528) { $name = "TLS_1_3_DRAFT_16" }
                 elseif ($p -eq 32530) { $name = "TLS_1_3_DRAFT_18" }
                 elseif ($p -eq 65279) { $name = "DTLS_1_0" }
