@@ -132,6 +132,13 @@ function Invoke-AnalyzerExchangeInformation {
             DisplayCustomTabNumber = 2
         }
         Add-AnalyzedResultInformation @params
+    } elseif ($extendedSupportDate -le ([DateTime]::Now)) {
+        $params = $baseParams + @{
+            Details                = "Latest SU installed. Error: No new SUs available after End of Life. Server might be persistently vulnerable."
+            DisplayWriteType       = "Red"
+            DisplayCustomTabNumber = 2
+        }
+        Add-AnalyzedResultInformation @params
     }
 
     $params = @{

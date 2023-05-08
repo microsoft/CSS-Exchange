@@ -61,6 +61,8 @@ function Get-StoreQueryFolderInformation {
             InvokeGetStoreQuery
 
         foreach ($folder in $folderInformation) {
+            # Log the return display name
+            Write-Verbose "FolderID: $($folder.FolderId) DisplayName: $($folder.DisplayName)"
             $folderList.Add([PSCustomObject]@{
                     FolderId             = $folder.FolderId
                     DisplayName          = $folder.DisplayName
