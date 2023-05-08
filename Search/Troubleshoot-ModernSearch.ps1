@@ -177,6 +177,8 @@ function Main {
             if ($ExcludeFullyIndexedMailboxes -and
                 $_.FullyIndexPercentage -eq 100) {
                 # Don't add to the list
+            } elseif ($_.TotalBigFunnelSearchableItems -eq 0) {
+                Write-Verbose "Not adding mailbox $($_.MailboxGuid) to list because there are no searchable items"
             } else {
                 return $_
             }
@@ -418,6 +420,7 @@ try {
 
     Write-Verbose "Starting Script At: $([DateTime]::Now)"
     Write-Host "Exchange Troubleshot Modern Search Version $BuildVersion"
+    Set-ADServerSettings -ViewEntireForest $true
     Main
     Write-Verbose "Finished Script At: $([DateTime]::Now)"
 
