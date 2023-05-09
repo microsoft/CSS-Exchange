@@ -103,11 +103,11 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
         Name                = "Disable Async Notification"
         Details             = $displayValue
         DisplayWriteType    = $displayWriteType
-        DisplayTestingValue = $true
+        DisplayTestingValue = $displayValue -ne 0
     }
     Add-AnalyzedResultInformation @params
 
-    $credentialGuardValue = $osInformation.RegistryValues.CredentialGuard -ne 0
+    $displayValue = $credentialGuardValue = $osInformation.RegistryValues.CredentialGuard -ne 0
     $displayWriteType = "Grey"
 
     if ($credentialGuardValue) {
@@ -185,6 +185,12 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
         }
         Add-AnalyzedResultInformation @params
     }
+
+    $params = $baseParams + @{
+        Name    = "DisablePreservation"
+        Details = $exchangeInformation.RegistryValues.DisablePreservation
+    }
+    Add-AnalyzedResultInformation @params
 
     if ($null -ne $exchangeInformation.IISSettings.IISWebApplication -or
         $null -ne $exchangeInformation.IISSettings.IISWebSite -or

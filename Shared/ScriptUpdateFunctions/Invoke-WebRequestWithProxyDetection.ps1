@@ -2,22 +2,32 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Confirm-ProxyServer.ps1
+. $PSScriptRoot\..\Write-ErrorInformation.ps1
 
 function Invoke-WebRequestWithProxyDetection {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = "Default")]
     param (
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, ParameterSetName = "Default")]
         [string]
         $Uri,
 
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $false, ParameterSetName = "Default")]
         [switch]
         $UseBasicParsing,
 
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $true, ParameterSetName = "ParametersObject")]
+        [hashtable]
+        $ParametersObject,
+
+        [Parameter(Mandatory = $false, ParameterSetName = "Default")]
         [string]
         $OutFile
     )
+
+    Write-Verbose "Calling $($MyInvocation.MyCommand)"
+    if ([System.String]::IsNullOrEmpty($Uri)) {
+        $Uri = $ParametersObject.Uri
+    }
 
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     if (Confirm-ProxyServer -TargetUri $Uri) {
@@ -26,14 +36,22 @@ function Invoke-WebRequestWithProxyDetection {
         $webClient.Proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
     }
 
-    $params = @{
-        Uri     = $Uri
-        OutFile = $OutFile
+    if ($null -eq $ParametersObject) {
+        $params = @{
+            Uri     = $Uri
+            OutFile = $OutFile
+        }
+
+        if ($UseBasicParsing) {
+            $params.UseBasicParsing = $true
+        }
+    } else {
+        $params = $ParametersObject
     }
 
-    if ($UseBasicParsing) {
-        $params.UseBasicParsing = $true
+    try {
+        Invoke-WebRequest @params
+    } catch {
+        Write-VerboseErrorInformation
     }
-
-    Invoke-WebRequest @params
 }

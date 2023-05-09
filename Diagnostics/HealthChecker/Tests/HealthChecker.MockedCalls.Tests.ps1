@@ -31,6 +31,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-OrganizationConfig { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOrganizationConfig.xml" }
             Mock Get-InternalTransportCertificateFromServer { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetInternalTransportCertificateFromServer.xml" }
             Mock Get-HybridConfiguration { return $null }
+            Mock Get-ExchangeDiagnosticInfo { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo.xml" }
             # do not need to match the function. Only needed really to test the Assert-MockCalled
             Mock Get-Service { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetServiceMitigation.xml" }
             Mock Get-SettingOverride { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetSettingOverride.xml" }
@@ -41,12 +42,9 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-SendConnector { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetSendConnector.xml" }
 
             $Error.Clear()
-            $org = Get-OrganizationInformation -EdgeServer $false
-            $passedOrganizationInformation = @{
-                OrganizationConfig = $org.GetOrganizationConfig
-                SettingOverride    = $org.GetSettingOverride
-            }
-            Get-HealthCheckerExchangeServer -ServerName $Script:Server -PassedOrganizationInformation $passedOrganizationInformation | Out-Null
+            Get-OrganizationInformation -EdgeServer $false | Out-Null
+            Get-HealthCheckerExchangeServer -ServerName $Script:Server | Out-Null
+
             $Error.Count | Should -Be $Script:ErrorCount
             # Hard coded to know if this ever changes.
             # Not sure why, but in the build pipeline this has now changed to 2. Where as on my computer it is 1
@@ -55,7 +53,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
             Assert-MockCalled Get-WmiObjectHandler -Exactly 6
             Assert-MockCalled Invoke-ScriptBlockHandler -Exactly 4
-            Assert-MockCalled Get-RemoteRegistryValue -Exactly 19
+            Assert-MockCalled Get-RemoteRegistryValue -Exactly 21
             Assert-MockCalled Get-NETFrameworkVersion -Exactly 1
             Assert-MockCalled Get-DotNetDllFileVersions -Exactly 1
             Assert-MockCalled Get-NicPnpCapabilitiesSetting -Exactly 1
@@ -81,7 +79,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-WebServicesVirtualDirectory -Exactly 1
             Assert-MockCalled Get-OrganizationConfig -Exactly 1
             Assert-MockCalled Get-HybridConfiguration -Exactly 1
-            Assert-MockCalled Get-Service -Exactly 2
+            Assert-MockCalled Get-Service -Exactly 1
             Assert-MockCalled Get-SettingOverride -Exactly 1
             Assert-MockCalled Get-ServerComponentState -Exactly 1
             Assert-MockCalled Test-ServiceHealth -Exactly 1
@@ -90,7 +88,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-ReceiveConnector -Exactly 1
             Assert-MockCalled Get-SendConnector -Exactly 1
             Assert-MockCalled Get-IISModules -Exactly 1
-            Assert-MockCalled Get-ExchangeSettingOverride -Exactly 1
+            Assert-MockCalled Get-ExchangeDiagnosticInfo -Exactly 1
             Assert-MockCalled Get-ExchangeADSplitPermissionsEnabled -Exactly 1
         }
     }

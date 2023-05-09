@@ -110,6 +110,8 @@ Mock Get-RemoteRegistryValue {
         "TimeZoneKeyName" { return "Pacific Standard Time" }
         "StandardStart" { return @(0, 0, 11, 0, 1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0) }
         "DaylightStart" { return @(0, 0, 3, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0) }
+        "DisableBaseTypeCheckForDeserialization" { return $null }
+        "DisablePreservation" { return 0 }
         default { throw "Failed to find GetValue: $GetValue" }
     }
 }
@@ -209,10 +211,6 @@ Mock Get-IISModules {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetIISModules.xml"
 }
 
-Mock Get-ExchangeSettingOverride {
-    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeSettingOverride.xml"
-}
-
 Mock Get-ExchangeADSplitPermissionsEnabled {
     return $false
 }
@@ -295,4 +293,8 @@ function Get-ExchangeProtocolContainer {
 }
 function Get-ExchangeWebSitesFromAd {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeWebSitesFromAd.xml"
+}
+
+function Get-ExchangeDiagnosticInfo {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo.xml"
 }

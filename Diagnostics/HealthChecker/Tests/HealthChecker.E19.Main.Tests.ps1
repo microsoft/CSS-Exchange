@@ -31,7 +31,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Internet Web Proxy" "Not Set"
             TestObjectMatch "Extended Protection Enabled (Any VDir)" $false
             TestObjectMatch "Setting Overrides Detected" $false
-            $Script:ActiveGrouping.Count | Should -Be 13
+            TestObjectMatch "Out of Date" $true -WriteType "Red"
+            $Script:ActiveGrouping.Count | Should -Be 14
         }
 
         It "Display Results - Organization Information" {
@@ -112,11 +113,12 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "RPC Min Connection Timeout" 0
             TestObjectMatch "FIPS Algorithm Policy Enabled" 0
             TestObjectMatch "CTS Processor Affinity Percentage" 0 -WriteType "Green"
+            TestObjectMatch "Disable Async Notification" $false
             TestObjectMatch "Credential Guard Enabled" $false
             TestObjectMatch "EdgeTransport.exe.config Present" "True" -WriteType "Green"
             TestObjectMatch "Open Relay Wild Card Domain" "Not Set"
 
-            $Script:ActiveGrouping.Count | Should -Be 8
+            $Script:ActiveGrouping.Count | Should -Be 9
         }
 
         It "Display Results - Security Settings" {
@@ -129,8 +131,11 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Windows service" "Running"
             TestObjectMatch "Pattern service" "200 - Reachable"
             TestObjectMatch "Telemetry enabled" "False"
+            TestObjectMatch "AMSI Enabled" "True" -WriteType "Green"
+            TestObjectMatch "Strict Mode disabled" "False" -WriteType "Green"
+            TestObjectMatch "BaseTypeCheckForDeserialization disabled" "False" -WriteType "Green"
 
-            $Script:ActiveGrouping.Count | Should -Be 77
+            $Script:ActiveGrouping.Count | Should -Be 78
         }
 
         It "Display Results - Security Vulnerability" {
@@ -138,7 +143,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
             $cveTests = GetObject "Security Vulnerability"
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
-            $cveTests.Count | Should -Be 30
+            $cveTests.Count | Should -Be 31
             $downloadDomains = GetObject "CVE-2021-1730"
             $downloadDomains.DownloadDomainsEnabled | Should -Be "False"
             TestObjectMatch "Extended Protection Vulnerable" "True" -WriteType "Red"
@@ -163,6 +168,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "Extended Protection Enabled" {
             SetActiveDisplayGrouping "Exchange Information"
+            TestObjectMatch "Version" "Exchange 2019 CU12 Feb23SU"
+            TestObjectMatch "Build Number" "15.02.1118.025"
             TestObjectMatch "Extended Protection Enabled (Any VDir)" $true
         }
 
@@ -195,6 +202,12 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Sleepy NIC Disabled" "True"
 
             $Script:ActiveGrouping.Count | Should -Be 18
+        }
+
+        It "Display Results - Security Settings" {
+            SetActiveDisplayGrouping "Security Settings"
+            TestObjectMatch "AMSI Enabled" "True" -WriteType "Green"
+            TestObjectMatch "SerializedDataSigning Enabled" "False" -WriteType "Yellow"
         }
 
         It "Extended Protection" {

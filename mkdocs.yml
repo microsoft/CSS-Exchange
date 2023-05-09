@@ -14,6 +14,8 @@ nav:
     - SetUnifiedContentPath: Admin/SetUnifiedContentPath.md
     - Test-AMSI: Admin/Test-AMSI.md
     - Update-Engines: Admin/Update-Engines.md
+  - Calendar:
+    - Get-CalendarDiagnosticObjectsSummary: Calendar/Get-CalendarDiagnosticObjectsSummary.md
   - Databases:
     - Analyze-SpaceDump: Databases/Analyze-SpaceDump.md
     - Compare-MailboxStatistics: Databases/Compare-MailboxStatistics.md
@@ -49,6 +51,7 @@ nav:
       - CertificateCheck: Diagnostics/HealthChecker/CertificateCheck.md
       - AuthCertificateCheck: Diagnostics/HealthChecker/AuthCertificateCheck.md
       - SerializedDataSigningCheck: Diagnostics/HealthChecker/SerializedDataSigningCheck.md
+      - SettingOverridesCheck: Diagnostics/HealthChecker/SettingOverridesCheck.md
       - InternalTransportCertificateCheck: Diagnostics/HealthChecker/InternalTransportCertificateCheck.md
       - SMBv1Check: Diagnostics/HealthChecker/SMBv1Check.md
       - EEMSCheck: Diagnostics/HealthChecker/EEMSCheck.md
@@ -79,6 +82,9 @@ nav:
   - Search:
     - Troubleshoot-ModernSearch: Search/Troubleshoot-ModernSearch.md
   - Security:
+    - CVE-2023-23397:
+      - Security/CVE-2023-23397/index.md
+      - FAQ: Security/CVE-2023-23397/FAQ.md
     - EOMT: Security/EOMT.md
     - EOMTv2: Security/EOMTv2.md
     - Extended Protection: Security/Extended-Protection.md

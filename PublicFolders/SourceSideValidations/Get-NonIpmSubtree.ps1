@@ -79,6 +79,7 @@ function Get-NonIpmSubtree {
                 $result = [PSCustomObject]@{
                     Identity        = $Folder.Identity.ToString()
                     EntryId         = $Folder.EntryId.ToString()
+                    ParentEntryId   = $Folder.ParentFolder.ToString()
                     DumpsterEntryId = if ($Folder.DumpsterEntryId) { $Folder.DumpsterEntryId.ToString() } else { $null }
                     MailEnabled     = $Folder.MailEnabled
                 }

@@ -15,10 +15,7 @@ function Get-ActiveDatabasesOnServer {
 
         foreach ($srv in $Server) {
 
-            Get-MailboxDatabaseCopyStatus *\$srv |
-                Where-Object {
-                    $_.Status -like "*Mounted*"
-                } |
+            Get-MailboxDatabaseCopyStatus -Server $srv -Active |
                 ForEach-Object {
                     $activeDatabasesOnServerList.Add([PSCustomObject]@{
                             DBName = $_.DatabaseName

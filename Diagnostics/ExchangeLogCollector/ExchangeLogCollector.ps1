@@ -83,6 +83,24 @@ param (
 )
 
 begin {
+
+    . $PSScriptRoot\Helpers\Enter-YesNoLoopAction.ps1
+    . $PSScriptRoot\Helpers\Import-ScriptConfigFile.ps1
+
+    #Need to do this here otherwise can't find the script path
+    $configPath = "{0}\{1}.json" -f (Split-Path -Parent $MyInvocation.MyCommand.Path), (Split-Path -Leaf $MyInvocation.MyCommand.Path)
+
+    if ((Test-Path $configPath) -and
+        !$DisableConfigImport) {
+        try {
+            Import-ScriptConfigFile -ScriptConfigFileLocation $configPath
+        } catch {
+            # can't monitor this because monitor needs to start in the end function.
+            Write-Host "Failed to load the config file at $configPath. `r`nPlease update the config file to be able to run 'ConvertFrom-Json' against it" -ForegroundColor "Red"
+            Enter-YesNoLoopAction -Question "Do you wish to continue?" -YesAction {} -NoAction { exit }
+        }
+    }
+
     $BuildVersion = ""
     $serversToProcess = New-Object System.Collections.ArrayList
 }
@@ -162,14 +180,12 @@ end {
         }
     }
 
-    # Need to dot load the files outside of the remote functions after them to avoid issues with encapsulation
+    # Need to dot load the files outside of the remote functions and AFTER them to avoid issues with encapsulation and dependencies
     . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
     . $PSScriptRoot\..\..\Shared\Confirm-ExchangeShell.ps1
     . $PSScriptRoot\Write\Write-DataOnlyOnceOnMasterServer.ps1
     . $PSScriptRoot\Write\Write-LargeDataObjectsOnMachine.ps1
-    . $PSScriptRoot\Helpers\Enter-YesNoLoopAction.ps1
     . $PSScriptRoot\Helpers\Get-ArgumentList.ps1
-    . $PSScriptRoot\Helpers\Import-ScriptConfigFile.ps1
     . $PSScriptRoot\Helpers\Invoke-ServerRootZipAndCopy.ps1
     . $PSScriptRoot\Helpers\Test-DiskSpace.ps1
     . $PSScriptRoot\Helpers\Test-NoSwitchesProvided.ps1
@@ -258,31 +274,19 @@ end {
 
         Write-Host "`r`n`r`n`r`nLooks like the script is done. If you ran into any issues or have additional feedback, please feel free to reach out ExToolsFeedback@microsoft.com."
     }
-    #Need to do this here otherwise can't find the script path
-    $configPath = "{0}\{1}.json" -f (Split-Path -Parent $MyInvocation.MyCommand.Path), (Split-Path -Leaf $MyInvocation.MyCommand.Path)
 
     try {
         <#
-    Added the ability to call functions from within a bundled function so i don't have to duplicate work.
-    Loading the functions into memory by using the '.' allows me to do this,
-    providing that the calling of that function doesn't do anything of value when doing this.
-    #>
+        Added the ability to call functions from within a bundled function so i don't have to duplicate work.
+        Loading the functions into memory by using the '.' allows me to do this,
+        providing that the calling of that function doesn't do anything of value when doing this.
+        #>
         . Invoke-RemoteFunctions -PassedInfo ([PSCustomObject]@{
                 ByPass = $true
             })
 
         Invoke-ErrorMonitoring
 
-        if ((Test-Path $configPath) -and
-            !$DisableConfigImport) {
-            try {
-                Import-ScriptConfigFile -ScriptConfigFileLocation $configPath
-            } catch {
-                Write-Host "Failed to load the config file at $configPath. `r`nPlease update the config file to be able to run 'ConvertFrom-Json' against it" -ForegroundColor "Red"
-                Invoke-CatchActions
-                Enter-YesNoLoopAction -Question "Do you wish to continue?" -YesAction {} -NoAction { exit }
-            }
-        }
         $Script:RootFilePath = "{0}\{1}\" -f $FilePath, (Get-Date -Format yyyyMd)
         $Script:Logger = Get-NewLoggerInstance -LogName "ExchangeLogCollector-Main-Debug" -LogDirectory ("$RootFilePath$env:COMPUTERNAME")
         SetWriteVerboseAction ${Function:Write-DebugLog}

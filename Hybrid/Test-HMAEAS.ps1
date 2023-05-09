@@ -256,7 +256,7 @@ process {
                 $uri = New-Object "System.Uri" -ArgumentList $easUrl
                 $resource = "$($uri.Scheme)://$($uri.Host)"
                 $applicationClientId = "27922004-5251-4030-b22d-91ecd9a37ea4"
-                $redirectUri = [System.Uri]("urn:ieTf:wg:oauth:2.0:oob").ToLower()
+                $redirectUri = [System.Uri]("urn:ietf:wg:oauth:2.0:oob").ToLower()
                 $authenticationContext = New-Object "Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
                 $PromptBehavior = [Microsoft.IdentityModel.Clients.ActiveDirectory.PromptBehavior]::RefreshSession
                 $platformParam = New-Object "Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList $PromptBehavior, $NULL
