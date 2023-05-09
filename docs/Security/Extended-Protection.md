@@ -316,7 +316,7 @@ If you want to enable Extended Protection in your environment manually without u
 
 `The modified Permissions cannot be changed.`
 
- This happens if the Public Folder for which you try to change the permissions, is hosted on a secondary Public Folder mailbox (`IsExcludedFromServingHierarchy` is `$false`) while the primary Public Folder mailbox (`IsExcludedFromServingHierarchy` is `$true`) is on a different server.
+ This happens if the Public Folder for which you try to change the permissions, is hosted on a secondary Public Folder mailbox while the primary Public Folder mailbox is on a different server.
 
 !!! bug "Active"
 
