@@ -4,8 +4,7 @@
 . $PSScriptRoot\..\..\..\Shared\Invoke-CatchActionError.ps1
 
 function New-AuthCertificateManagementAccount {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Only non-destructive operations are performed in this function.')]
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     [OutputType([bool])]
     param(
         [SecureString]$Password,
@@ -47,10 +46,9 @@ function New-AuthCertificateManagementAccount {
                 ErrorAction          = "Stop"
             }
 
-            if ($WhatIfPreference) {
-                $newADUserParams.Add("WhatIf", $true)
+            if ($PSCmdlet.ShouldProcess($samAccountName, "New-ADUser")) {
+                New-ADUser @newADUserParams | Out-Null
             }
-            New-ADUser @newADUserParams | Out-Null
             Write-Verbose ("User: 'Microsoft Exchange Auth Certificate Manager' was successfully created")
             return $true
         } catch [System.UnauthorizedAccessException] {
@@ -61,18 +59,14 @@ function New-AuthCertificateManagementAccount {
             Invoke-CatchActionError $CatchActionFunction
         }
     } else {
-        if ($WhatIfPreference) {
-            Write-Host ("What if: Will reset the password for the existing AD User account with UPN: $($userPrincipalName)")
-        }
         Write-Verbose ("The AD account: $($userPrincipalName) already exists")
         Write-Verbose ("Trying to reset the password for the account")
         try {
-            if (-not($WhatIfPreference)) {
+            if ($PSCmdlet.ShouldProcess($adAccount, "Set-ADAccountPassword")) {
                 Set-ADAccountPassword -Identity $adAccount -NewPassword $Password -Reset -Server $DomainController -Confirm:$false -ErrorAction Stop
+            }
+            if ($PSCmdlet.ShouldProcess($adAccount, "Set-ADUser")) {
                 Set-ADUser -Identity $adAccount -ChangePasswordAtLogon $false -Server $DomainController -Confirm:$false -ErrorAction Stop
-            } else {
-                Write-Host ("What if: Will reset the password for AD account '$($adAccount)' by running 'Set-ADAccountPassword'")
-                Write-Host ("What if: Will set 'ChangePasswordAtLogon' to 'false' by running 'Set-ADUser'")
             }
             return $true
         } catch [System.UnauthorizedAccessException] {
