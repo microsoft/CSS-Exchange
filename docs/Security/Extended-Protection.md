@@ -312,7 +312,7 @@ If you want to enable Extended Protection in your environment manually without u
 
 ## Known issues and workarounds
 
-1. Changing the permissions for Public Folders by using an Outlook client will fail with the following message, if Extended Protection is enabled:
+1. Changing the permissions for Public Folders by using an Outlook client will fail with the following error, if Extended Protection is enabled:
 
 `The modified Permissions cannot be changed.`
 
