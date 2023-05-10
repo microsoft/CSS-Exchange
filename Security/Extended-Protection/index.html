@@ -3238,26 +3238,36 @@ The same applies to the <em>SystemDefaultTlsVersions</em> registry value which m
 <p>Or</p>
 <p><code>.\ExchangeExtendedProtectionManagement.ps1 -RestrictType EWSBackend -IPRangeFilePath "IPList.txt" -SkipExchangeServerNames HybridServer1, HybridServer2</code></p>
 <h4 id="troubleshooting-warnings-and-errors-during-script-execution">Troubleshooting warnings and errors during script execution</h4>
-<p><strong>Script gives a cursory warning of known issues before enabling Extended Protection:</strong></p>
+<ol>
+<li>
+<p>Script gives a cursory warning of known issues before enabling Extended Protection:</p>
 <p>To prevent a scenario where existing Exchange functions are disrupted due to enabling Extended Protection, the script provides a list of scenarios that have known issues. You should <strong>read and evaluate this list carefully</strong> before enabling Extended Protection.
-   You can proceed to turn on Extended Protection by pressing Y.</p>
+  You can proceed to turn on Extended Protection by pressing Y.</p>
 <p><img alt="Text Description automatically generated" src="../attachments/7f3e88c6e5ca34c25c0e1ca9e684cb6a.png" /></p>
-<p><strong>Script does not enable Extended Protection because of Failed Prerequisite Check:</strong></p>
+</li>
+<li>
+<p>Script does not enable Extended Protection because of Failed Prerequisite Check:</p>
 <ol>
-<li>No Exchange server runs an Extended Protection supported build:</li>
-</ol>
+<li>
+<p>No Exchange server runs an Extended Protection supported build:</p>
 <p>If no Exchange server in the organization is running a CU that supports Extended Protection, the script will not enable Extended Protection on unsupported servers thereby ensuring server-to-server communication does not fail.
-   To resolve this, upgrade all servers to the latest CU and SU and re-run the script to enable Extended Protection.</p>
-<ol>
-<li>TLS mismatch:</li>
-</ol>
+ To resolve this, upgrade all servers to the latest CU and SU and re-run the script to enable Extended Protection.</p>
+</li>
+<li>
+<p>TLS mismatch:</p>
 <p>A valid and consistent TLS configuration is required on all Exchange servers in scope. If the TLS settings on all servers in scope are not the same, enabling Extended Protection will disrupt client connections to mailbox servers.</p>
-<p><img alt="Text Description automatically generated" src="../attachments/fca12d63a89e230c7f3cfaf67b642330.png" /></p>
-<p>To resolve this, configure the TLS settings on all servers in the organization to be the same and then re-run the script. You can find an overview of the Exchange Server TLS configuration best practices <a href="https://docs.microsoft.com/Exchange/exchange-tls-configuration">here</a>.</p>
-<p><strong>Some Exchange servers are not reachable:</strong></p>
+<p><img alt="Text Description automatically generated" src="../attachments/fca12d63a89e230c7f3cfaf67b642330.png" />
+ To resolve this, configure the TLS settings on all servers in the organization to be the same and then re-run the script. You can find an overview of the Exchange Server TLS configuration best practices <a href="https://docs.microsoft.com/Exchange/exchange-tls-configuration">here</a>.</p>
+</li>
+</ol>
+</li>
+<li>
+<p>Some Exchange servers are not reachable:</p>
 <p>The script performs multiple tests against all Exchange servers in scope. If one or more of these servers aren’t reachable, the script will exclude them and not configure Extended Protection on them.</p>
-<p><img alt="Text Description automatically generated" src="../attachments/3095edc994a8aa4bb79f90fe519a0e36.png" /></p>
-<p>If the server is offline, you should enable Extended Protection on it once it is back online. If the server was unreachable for other reasons, you should run the script directly on the servers to enable Extended Protection.</p>
+<p><img alt="Text Description automatically generated" src="../attachments/3095edc994a8aa4bb79f90fe519a0e36.png" />
+  If the server is offline, you should enable Extended Protection on it once it is back online. If the server was unreachable for other reasons, you should run the script directly on the servers to enable Extended Protection.</p>
+</li>
+</ol>
 <h4 id="rolling-back-extended-protection-settings">Rolling back Extended Protection settings</h4>
 <p>You can also use the script to roll back the <strong>Extended Protection settings and any IP restriction rules</strong> added via script from one or more servers. When Extended Protection settings are modified by the script, an applicationHost.cep.*.bak file is created on each server, which contains a backup of pre-existing settings before the script is run. Those files are going to be local to each individual server that the script modifies. Therefore, the rollback of Extended Protection settings can be rolled back from any machine where the script will run using the <em>earliest</em> version of the .bak file to roll back the changes.</p>
 <p>The following command initiates a full rollback of <strong>Extended Protection settings</strong> and <strong>IP restriction rules</strong> on any Exchange server where it was enabled using the script:</p>
