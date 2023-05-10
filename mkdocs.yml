@@ -115,7 +115,10 @@ theme:
     admonition:
       note: octicons/tag-16
       info: octicons/info-16
+      success: octicons/check-16
+      bug: octicons/bug-16
       warning: octicons/alert-16
+  logo: Images/MicrosoftLogo.svg
 markdown_extensions:
   - admonition
   - pymdownx.details
