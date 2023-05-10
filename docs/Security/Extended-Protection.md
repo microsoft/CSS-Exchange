@@ -246,35 +246,33 @@ Or
 
 #### Troubleshooting warnings and errors during script execution
 
-**Script gives a cursory warning of known issues before enabling Extended Protection:**
+1. Script gives a cursory warning of known issues before enabling Extended Protection:
 
-   To prevent a scenario where existing Exchange functions are disrupted due to enabling Extended Protection, the script provides a list of scenarios that have known issues. You should **read and evaluate this list carefully** before enabling Extended Protection.
-   You can proceed to turn on Extended Protection by pressing Y.
+      To prevent a scenario where existing Exchange functions are disrupted due to enabling Extended Protection, the script provides a list of scenarios that have known issues. You should **read and evaluate this list carefully** before enabling Extended Protection.
+      You can proceed to turn on Extended Protection by pressing Y.
 
-   ![Text Description automatically generated](attachments/7f3e88c6e5ca34c25c0e1ca9e684cb6a.png)
+      ![Text Description automatically generated](attachments/7f3e88c6e5ca34c25c0e1ca9e684cb6a.png)
 
-**Script does not enable Extended Protection because of Failed Prerequisite Check:**
+2. Script does not enable Extended Protection because of Failed Prerequisite Check:
 
-1. No Exchange server runs an Extended Protection supported build:
+      1. No Exchange server runs an Extended Protection supported build:
 
-   If no Exchange server in the organization is running a CU that supports Extended Protection, the script will not enable Extended Protection on unsupported servers thereby ensuring server-to-server communication does not fail.
-   To resolve this, upgrade all servers to the latest CU and SU and re-run the script to enable Extended Protection.
+         If no Exchange server in the organization is running a CU that supports Extended Protection, the script will not enable Extended Protection on unsupported servers thereby ensuring server-to-server communication does not fail.
+         To resolve this, upgrade all servers to the latest CU and SU and re-run the script to enable Extended Protection.
 
-2. TLS mismatch:
+      2. TLS mismatch:
 
-   A valid and consistent TLS configuration is required on all Exchange servers in scope. If the TLS settings on all servers in scope are not the same, enabling Extended Protection will disrupt client connections to mailbox servers.
+         A valid and consistent TLS configuration is required on all Exchange servers in scope. If the TLS settings on all servers in scope are not the same, enabling Extended Protection will disrupt client connections to mailbox servers.
 
-   ![Text Description automatically generated](attachments/fca12d63a89e230c7f3cfaf67b642330.png)
+         ![Text Description automatically generated](attachments/fca12d63a89e230c7f3cfaf67b642330.png)
+         To resolve this, configure the TLS settings on all servers in the organization to be the same and then re-run the script. You can find an overview of the Exchange Server TLS configuration best practices [here](https://docs.microsoft.com/Exchange/exchange-tls-configuration).
 
-   To resolve this, configure the TLS settings on all servers in the organization to be the same and then re-run the script. You can find an overview of the Exchange Server TLS configuration best practices [here](https://docs.microsoft.com/Exchange/exchange-tls-configuration).
+3. Some Exchange servers are not reachable:
 
-**Some Exchange servers are not reachable:**
+      The script performs multiple tests against all Exchange servers in scope. If one or more of these servers aren’t reachable, the script will exclude them and not configure Extended Protection on them.
 
-   The script performs multiple tests against all Exchange servers in scope. If one or more of these servers aren’t reachable, the script will exclude them and not configure Extended Protection on them.
-
-   ![Text Description automatically generated](attachments/3095edc994a8aa4bb79f90fe519a0e36.png)
-
-   If the server is offline, you should enable Extended Protection on it once it is back online. If the server was unreachable for other reasons, you should run the script directly on the servers to enable Extended Protection.
+      ![Text Description automatically generated](attachments/3095edc994a8aa4bb79f90fe519a0e36.png)
+      If the server is offline, you should enable Extended Protection on it once it is back online. If the server was unreachable for other reasons, you should run the script directly on the servers to enable Extended Protection.
 
 #### Rolling back Extended Protection settings
 
