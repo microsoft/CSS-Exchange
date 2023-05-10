@@ -3238,26 +3238,23 @@ The same applies to the <em>SystemDefaultTlsVersions</em> registry value which m
 <p>Or</p>
 <p><code>.\ExchangeExtendedProtectionManagement.ps1 -RestrictType EWSBackend -IPRangeFilePath "IPList.txt" -SkipExchangeServerNames HybridServer1, HybridServer2</code></p>
 <h4 id="troubleshooting-warnings-and-errors-during-script-execution">Troubleshooting warnings and errors during script execution</h4>
-<ol>
-<li><strong>Script gives a cursory warning of known issues before enabling Extended Protection:</strong></li>
-</ol>
+<p><strong>Script gives a cursory warning of known issues before enabling Extended Protection:</strong></p>
 <p>To prevent a scenario where existing Exchange functions are disrupted due to enabling Extended Protection, the script provides a list of scenarios that have known issues. You should <strong>read and evaluate this list carefully</strong> before enabling Extended Protection.
    You can proceed to turn on Extended Protection by pressing Y.</p>
-<p><img alt="Text Description automatically generated" src="../attachments/7f3e88c6e5ca34c25c0e1ca9e684cb6a.png" />
-2. <strong>Script does not enable Extended Protection because of Failed Prerequisite Check:</strong>
-   1. No Exchange server runs an Extended Protection supported build:</p>
-<div class="highlight"><pre><span></span><code>  If no Exchange server in the organization is running a CU that supports Extended Protection, the script will not enable Extended Protection on unsupported servers thereby ensuring server-to-server communication does not fail.
-  To resolve this, upgrade all servers to the latest CU and SU and re-run the script to enable Extended Protection.
-</code></pre></div>
+<p><img alt="Text Description automatically generated" src="../attachments/7f3e88c6e5ca34c25c0e1ca9e684cb6a.png" /></p>
+<p><strong>Script does not enable Extended Protection because of Failed Prerequisite Check:</strong></p>
 <ol>
-<li>
-<p>TLS mismatch:</p>
+<li>No Exchange server runs an Extended Protection supported build:</li>
+</ol>
+<p>If no Exchange server in the organization is running a CU that supports Extended Protection, the script will not enable Extended Protection on unsupported servers thereby ensuring server-to-server communication does not fail.
+   To resolve this, upgrade all servers to the latest CU and SU and re-run the script to enable Extended Protection.</p>
+<ol>
+<li>TLS mismatch:</li>
+</ol>
 <p>A valid and consistent TLS configuration is required on all Exchange servers in scope. If the TLS settings on all servers in scope are not the same, enabling Extended Protection will disrupt client connections to mailbox servers.</p>
 <p><img alt="Text Description automatically generated" src="../attachments/fca12d63a89e230c7f3cfaf67b642330.png" /></p>
-<p>To resolve this, configure the TLS settings on all servers in the organization to be the same and then re-run the script. You can find an overview of the Exchange Server TLS configuration best practices <a href="https://docs.microsoft.com/Exchange/exchange-tls-configuration">here</a>.
-3. <strong>Some Exchange servers are not reachable:</strong></p>
-</li>
-</ol>
+<p>To resolve this, configure the TLS settings on all servers in the organization to be the same and then re-run the script. You can find an overview of the Exchange Server TLS configuration best practices <a href="https://docs.microsoft.com/Exchange/exchange-tls-configuration">here</a>.</p>
+<p><strong>Some Exchange servers are not reachable:</strong></p>
 <p>The script performs multiple tests against all Exchange servers in scope. If one or more of these servers aren’t reachable, the script will exclude them and not configure Extended Protection on them.</p>
 <p><img alt="Text Description automatically generated" src="../attachments/3095edc994a8aa4bb79f90fe519a0e36.png" /></p>
 <p>If the server is offline, you should enable Extended Protection on it once it is back online. If the server was unreachable for other reasons, you should run the script directly on the servers to enable Extended Protection.</p>
