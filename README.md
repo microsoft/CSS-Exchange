@@ -1,6 +1,7 @@
 # Exchange Server Support Scripts
 
 [![Build Status](https://dev.azure.com/CSS-Exchange-Tools/CSS%20Exchange%20Scripts/_apis/build/status/microsoft.CSS-Exchange?branchName=release)](https://dev.azure.com/CSS-Exchange-Tools/CSS%20Exchange%20Scripts/_build/latest?definitionId=7&branchName=release)
+[![Download Statistics](https://img.shields.io/github/downloads/microsoft/css-exchange/total.svg?label=Downloads&maxAge=9999)](https://github.com/microsoft/CSS-Exchange/releases/latest)
 
 ## The Repository
 
