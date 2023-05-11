@@ -105,15 +105,27 @@ if (-not $ListRecommendedExclusions) {
         exit
     }
 
-    $mpStatus = $null
-    $mpStatus = Get-MpComputerStatus -ErrorAction SilentlyContinue
-    if ($null -eq $mpStatus) {
-        Write-Error "We cannot get Microsoft Defender information"
+    $checkCmdLet = $null
+    $checkCmdLet = Get-Command Get-MpComputerStatus -ErrorAction SilentlyContinue
+    if ($null -eq $checkCmdLet) {
+        Write-Host "Get-MpComputerStatus cmdLet is not available" -ForegroundColor Red
+        Write-Host "This script only sets Exclusions on Microsoft Defender" -ForegroundColor Red
+        Write-Host "If you have any other Antivirus you can use -ListRecommendedExclusions parameter to get the Recommended Exclusion List"
         exit
     } else {
-        if (-not $mpStatus.AntivirusEnabled ) {
-            Write-Warning "Microsoft Defender is not enabled."
-            Write-Warning "We will apply the exclusions but they do not take effect until you Enabled Microsoft Defender."
+        $mpStatus = $null
+        $mpStatus = Get-MpComputerStatus -ErrorAction SilentlyContinue
+        if ($null -eq $mpStatus) {
+            Write-Host "We cannot get Microsoft Defender information" -ForegroundColor Red
+            Write-Host "This script only sets Exclusions on Microsoft Defender" -ForegroundColor Red
+            Write-Host "If you have any other Antivirus you can use -ListRecommendedExclusions parameter to get the Recommended Exclusion List"
+            exit
+        } else {
+            if (-not $mpStatus.AntivirusEnabled ) {
+                Write-Warning "Microsoft Defender is not enabled."
+                Write-Warning "We will apply the exclusions but they do not take effect until you Enabled Microsoft Defender."
+                Write-Host "If you have any other Antivirus you can use -ListRecommendedExclusions parameter to get the Recommended Exclusion List"
+            }
         }
     }
 }
