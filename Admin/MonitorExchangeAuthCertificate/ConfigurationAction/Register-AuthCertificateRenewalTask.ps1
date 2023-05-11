@@ -4,7 +4,7 @@
 . $PSScriptRoot\..\..\..\Shared\Invoke-CatchActionError.ps1
 
 function Register-AuthCertificateRenewalTask {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     [OutputType([bool])]
     param(
         [string]$TaskName = "Daily Auth Certificate Check",
@@ -38,10 +38,8 @@ function Register-AuthCertificateRenewalTask {
         Write-Verbose ("Scheduled task already exists - will be deleted now to re-create a new one")
         try {
             foreach ($t in $existingScheduledTask) {
-                if (-not($WhatIfPreference)) {
+                if ($PSCmdlet.ShouldProcess($t.TaskName, "Unregister-ScheduledTask")) {
                     Unregister-ScheduledTask -TaskPath $($t.TaskPath) -TaskName $($t.TaskName) -Confirm:$false -ErrorAction Stop
-                } else {
-                    Write-Host ("What if: Will unregister scheduled task: '$($t.TaskName)' by running 'Unregister-ScheduledTask'")
                 }
                 Write-Verbose ("Scheduled task: $($t.TaskName) successfully unregistered")
             }
@@ -56,7 +54,9 @@ function Register-AuthCertificateRenewalTask {
         (Test-Path -Path $fullPathToScript)) {
         $passwordAsPlaintextString = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($Password))
 
-        $schTaskTrigger = New-ScheduledTaskTrigger -Daily -At $DailyRuntime
+        if ($PSCmdlet.ShouldProcess($DailyRuntime, "New-ScheduledTaskTrigger")) {
+            $schTaskTrigger = New-ScheduledTaskTrigger -Daily -At $DailyRuntime
+        }
 
         $newScheduledTaskParams = @{
             Execute          = "powershell.exe"
@@ -74,26 +74,26 @@ function Register-AuthCertificateRenewalTask {
             $newScheduledTaskParams.Add("Argument", "$($basicArgumentParameters) -Confirm:`$false`"")
         }
 
-        $schTaskAction = New-ScheduledTaskAction @newScheduledTaskParams
+        if ($PSCmdlet.ShouldProcess($TaskName, "New-ScheduledTaskAction")) {
+            $schTaskAction = New-ScheduledTaskAction @newScheduledTaskParams
 
-        $registerSchTaskParams = @{
-            TaskName    = $TaskName
-            Trigger     = $schTaskTrigger
-            Action      = $schTaskAction
-            Description = $TaskDescription
-            RunLevel    = "Highest"
-            User        = $Username
-            Password    = $passwordAsPlaintextString
-            Force       = $true
-            ErrorAction = "Stop"
+            $registerSchTaskParams = @{
+                TaskName    = $TaskName
+                Trigger     = $schTaskTrigger
+                Action      = $schTaskAction
+                Description = $TaskDescription
+                RunLevel    = "Highest"
+                User        = $Username
+                Password    = $passwordAsPlaintextString
+                Force       = $true
+                ErrorAction = "Stop"
+            }
         }
 
         try {
             Write-Verbose ("Scheduled Task: $($TaskName) successfully created")
-            if (-not($WhatIfPreference)) {
+            if ($PScmdlet.ShouldProcess($TaskName, "Register-ScheduledTask")) {
                 Register-ScheduledTask @registerSchTaskParams | Out-Null
-            } else {
-                Write-Host ("What if: Registering scheduled task with name '$($TaskName)' by running 'Register-ScheduledTask'")
             }
             return $true
         } catch {
