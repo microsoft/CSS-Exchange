@@ -108,16 +108,16 @@ if (-not $ListRecommendedExclusions) {
     $checkCmdLet = $null
     $checkCmdLet = Get-Command Get-MpComputerStatus -ErrorAction SilentlyContinue
     if ($null -eq $checkCmdLet) {
-        Write-Error "Get-MpComputerStatus cmdLet is not available"
-        Write-Error "This script only sets Exclusions on Microsoft Defender"
+        Write-Host "Get-MpComputerStatus cmdLet is not available" -ForegroundColor Red
+        Write-Host "This script only sets Exclusions on Microsoft Defender" -ForegroundColor Red
         Write-Host "If you have any other Antivirus you can use -ListRecommendedExclusions parameter to get the Recommended Exclusion List"
         exit
     } else {
         $mpStatus = $null
         $mpStatus = Get-MpComputerStatus -ErrorAction SilentlyContinue
         if ($null -eq $mpStatus) {
-            Write-Error "We cannot get Microsoft Defender information"
-            Write-Error "This script only sets Exclusions on Microsoft Defender"
+            Write-Host "We cannot get Microsoft Defender information" -ForegroundColor Red
+            Write-Host "This script only sets Exclusions on Microsoft Defender" -ForegroundColor Red
             Write-Host "If you have any other Antivirus you can use -ListRecommendedExclusions parameter to get the Recommended Exclusion List"
             exit
         } else {
