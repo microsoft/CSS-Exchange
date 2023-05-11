@@ -246,23 +246,33 @@ Or
 
 #### Troubleshooting warnings and errors during script execution
 
-1. **Script gives a cursory warning of known issues before enabling Extended Protection**
-   To prevent a scenario where existing Exchange functions are disrupted due to enabling Extended Protection, the script provides a list of scenarios that have known issues. You should **read and evaluate this list carefully** before enabling Extended Protection.
-   You can proceed to turn on Extended Protection by pressing Y.
-   ![Text Description automatically generated](attachments/7f3e88c6e5ca34c25c0e1ca9e684cb6a.png)
-2. **Script does not enable Extended Protection because of Failed Prerequisite Check**
-   1. No Exchange server runs an Extended Protection supported build:
-      If no Exchange server in the organization is running a CU that supports Extended Protection, the script will not enable Extended Protection on unsupported servers thereby ensuring server-to-server communication does not fail.
-      To resolve this, upgrade all servers to the latest CU and SU and re-run the script to enable Extended Protection.
-   2. TLS mismatch
-      A valid and consistent TLS configuration is required on all Exchange servers in scope. If the TLS settings on all servers in scope are not the same, enabling Extended Protection will disrupt client connections to mailbox servers.
-      ![Text Description automatically generated](attachments/fca12d63a89e230c7f3cfaf67b642330.png)
-      To resolve this, configure the TLS settings on all servers in the organization to be the same and then re-run the script. You can find an overview of the Exchange Server TLS configuration best practices [here](https://docs.microsoft.com/Exchange/exchange-tls-configuration).
-3. **Some Exchange servers are not reachable**
-   **Cause**
-   The script performs multiple tests against all Exchange servers in scope. If one or more of these servers aren’t reachable, the script will exclude them and not configure Extended Protection on them.
-   ![Text Description automatically generated](attachments/3095edc994a8aa4bb79f90fe519a0e36.png)
-   If the server is offline, you should enable Extended Protection on it once it is back online. If the server was unreachable for other reasons, you should run the script directly on the servers to enable Extended Protection.
+1. Script gives a cursory warning of known issues before enabling Extended Protection:
+
+      To prevent a scenario where existing Exchange functions are disrupted due to enabling Extended Protection, the script provides a list of scenarios that have known issues. You should **read and evaluate this list carefully** before enabling Extended Protection.
+      You can proceed to turn on Extended Protection by pressing Y.
+
+      ![Text Description automatically generated](attachments/7f3e88c6e5ca34c25c0e1ca9e684cb6a.png)
+
+2. Script does not enable Extended Protection because of Failed Prerequisite Check:
+
+      1. No Exchange server runs an Extended Protection supported build:
+
+         If no Exchange server in the organization is running a CU that supports Extended Protection, the script will not enable Extended Protection on unsupported servers thereby ensuring server-to-server communication does not fail.
+         To resolve this, upgrade all servers to the latest CU and SU and re-run the script to enable Extended Protection.
+
+      2. TLS mismatch:
+
+         A valid and consistent TLS configuration is required on all Exchange servers in scope. If the TLS settings on all servers in scope are not the same, enabling Extended Protection will disrupt client connections to mailbox servers.
+
+         ![Text Description automatically generated](attachments/fca12d63a89e230c7f3cfaf67b642330.png)
+         To resolve this, configure the TLS settings on all servers in the organization to be the same and then re-run the script. You can find an overview of the Exchange Server TLS configuration best practices [here](https://docs.microsoft.com/Exchange/exchange-tls-configuration).
+
+3. Some Exchange servers are not reachable:
+
+      The script performs multiple tests against all Exchange servers in scope. If one or more of these servers aren’t reachable, the script will exclude them and not configure Extended Protection on them.
+
+      ![Text Description automatically generated](attachments/3095edc994a8aa4bb79f90fe519a0e36.png)
+      If the server is offline, you should enable Extended Protection on it once it is back online. If the server was unreachable for other reasons, you should run the script directly on the servers to enable Extended Protection.
 
 #### Rolling back Extended Protection settings
 
@@ -312,28 +322,55 @@ If you want to enable Extended Protection in your environment manually without u
 
 ## Known issues and workarounds
 
-1. Customers using a _Retention Policy_ containing _Retention Tags_ which perform _Move to Archive_ can now configure Extended Protection with this update. We are actively working on a permanent solution to resolve this issue. Once we ship the solution you will be required to run this script again and rollback the changes.
+**Issue:**
 
-!!! warning "Fixed"
+Changing the permissions for Public Folders by using an Outlook client will fail with the following error, if Extended Protection is enabled:
+
+`The modified Permissions cannot be changed.`
+
+**Cause:**
+
+This happens if the Public Folder for which you try to change the permissions, is hosted on a secondary Public Folder mailbox while the primary Public Folder mailbox is on a different server.
+
+**Status:**
+
+!!! bug "Active"
+
+      This is a known issue which will be resolved in a future update.
+
+**Issue:**
+
+Customers using a _Retention Policy_ containing _Retention Tags_ which perform _Move to Archive_ can now configure Extended Protection with this update. We are actively working on a permanent solution to resolve this issue. Once we ship the solution you will be required to run this script again and rollback the changes.
+
+**Status:**
+
+!!! success "Fixed"
 
       The archiving issue has been fixed with the [latest Exchange Server update](https://aka.ms/LatestExchangeServerUpdate).
       We recommend rolling back the mitigation by following the steps outlined in the [rollback section](#rolling-back-ip-restriction-settings).
 
-2. In Exchange Server 2013, 2016 and 2019 the following probes will show _FAILED_ status after running the script which switches on Extended Protection with required SSL flags on various vDirs as per recommended guidelines:
-    1. OutlookMapiHttpCtpProbe
-    2. OutlookRpcCtpProbe
-    3. OutlookRpcDeepTestProbe
-    4. OutlookRpcSelfTestProbe
-    5. ComplianceOutlookLogonToArchiveMapiHttpCtpProbe
-    6. ComplianceOutlookLogonToArchiveRpcCtpProbe
+**Issue:**
 
-   You will also notice that some Health Mailbox logins fail with event ID: 4625 and failure reason "_An Error occurred during Logon_" and status _0xC000035B_ which is related to the failed probes. [**Get-ServerHealth**](https://docs.microsoft.com/exchange/high-availability/managed-availability/health-sets?view=exchserver-2019#use-the-exchange-management-shell-to-view-a-list-of-monitors-and-their-current-health) command will also show RPC and Mapi monitors as Unhealthy.
+In Exchange Server 2013, 2016 and 2019 the following probes will show _FAILED_ status after running the script which switches on Extended Protection with required SSL flags on various vDirs as per recommended guidelines:
 
-   **Impact of these failures**: Due to this probe failure, the Mapi and Rpc App pools will get restarted once. There should be no other impact.
+   1. OutlookMapiHttpCtpProbe
+   2. OutlookRpcCtpProbe
+   3. OutlookRpcDeepTestProbe
+   4. OutlookRpcSelfTestProbe
+   5. ComplianceOutlookLogonToArchiveMapiHttpCtpProbe
+   6. ComplianceOutlookLogonToArchiveRpcCtpProbe
 
-   You can also turn off any of the above probes temporarily (till the fix is provided) by going through steps mentioned in [Configure managed availability overrides \| Microsoft Docs](https://docs.microsoft.com/exchange/high-availability/managed-availability/configure-overrides?view=exchserver-2019).
+You will also notice that some Health Mailbox logins fail with event ID: 4625 and failure reason "_An Error occurred during Logon_" and status _0xC000035B_ which is related to the failed probes. [**Get-ServerHealth**](https://docs.microsoft.com/exchange/high-availability/managed-availability/health-sets?view=exchserver-2019#use-the-exchange-management-shell-to-view-a-list-of-monitors-and-their-current-health) command will also show RPC and Mapi monitors as Unhealthy.
 
-!!! warning "Fixed"
+**Impact of these failures:**
+
+Due to this probe failure, the Mapi and Rpc App pools will get restarted once. There should be no other impact.
+
+You can also turn off any of the above probes temporarily (till the fix is provided) by going through steps mentioned in [Configure managed availability overrides \| Microsoft Docs](https://docs.microsoft.com/exchange/high-availability/managed-availability/configure-overrides?view=exchserver-2019).
+
+**Status:**
+
+!!! success "Fixed"
 
       This issue has been addressed with the [October 2022 (and later) Exchange Server Security Updates](https://aka.ms/LatestExchangeServerUpdate).
 
