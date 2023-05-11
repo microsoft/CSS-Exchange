@@ -144,7 +144,7 @@ function New-ExchangeAuthCertificate {
                             Write-Verbose ("Internal transport certificate wasn't detected on server: $($env:COMPUTERNAME)")
                             Write-Verbose ("We will generate a new internal transport certificate now")
                             try {
-                                if (-not($WhatIfPreference)) {
+                                if ($PSCmdlet.ShouldProcess("New-ExchangeCertificate", "Generate new internal transport certificate")) {
                                     $newSelfSignedTransportCertificate = New-ExchangeCertificate @newInternalTransportCertificateParams
                                     if ($null -ne $newSelfSignedTransportCertificate) {
                                         $internalTransportCertificateFoundOnServer = $true
@@ -165,7 +165,6 @@ function New-ExchangeAuthCertificate {
                                         $servicesToEnable = "SMTP"
                                     }
                                 } else {
-                                    Write-Host ("What if: Will generate a new internal transport certificate by using the following parameters:")
                                     $newInternalTransportCertificateParams.GetEnumerator() | ForEach-Object {
                                         Write-Host ("What if: Key: $($_.key) - Value: $($_.value)")
                                     }
@@ -180,11 +179,10 @@ function New-ExchangeAuthCertificate {
 
                 Write-Verbose ("Starting Auth Certificate creation process")
                 try {
-                    if (-not($WhatIfPreference)) {
+                    if ($PSCmdlet.ShouldProcess("New-ExchangeCertificate", "Generate new Auth Certificate")) {
                         $newAuthCertificate = New-ExchangeCertificate @newAuthCertificateParams
                         Start-Sleep -Seconds 5
                     } else {
-                        Write-Host ("What if: Will generate a new Auth Certificate by using the following parameters:")
                         $newAuthCertificateParams.GetEnumerator() | ForEach-Object {
                             Write-Host ("What if: Key: $($_.key) - Value: $($_.value)")
                         }
@@ -199,13 +197,11 @@ function New-ExchangeAuthCertificate {
                 }
 
                 if ($internalTransportCertificateFoundOnServer) {
-                    if (-not($WhatIfPreference)) {
+                    if ($PSCmdlet.ShouldProcess("Certificate: $internalTransportCertificateThumbprint on: $env:COMPUTERNAME for: $servicesToEnable", "Enable-ExchangeCertificate")) {
                         Write-Verbose ("Resetting internal transport certificate back to previous one")
                         Enable-ExchangeCertificate -Server $env:COMPUTERNAME -Thumbprint $internalTransportCertificateThumbprint -Services $servicesToEnable -Force | Out-Null
                         Start-Sleep -Seconds 10
                         Write-Verbose ("Internal transport certificate was reset back to: $((Get-InternalTransportCertificateFromServer $env:COMPUTERNAME).Thumbprint)")
-                    } else {
-                        Write-Host ("What if: Will reset the transport certificate back to the previous one - Thumbprint '$($internalTransportCertificateThumbprint)' - Services '$($servicesToEnable)' via 'Enable-ExchangeCertificate'")
                     }
                 }
 
@@ -290,10 +286,8 @@ function New-ExchangeAuthCertificate {
                 Write-Verbose ("New Auth Certificate with thumbprint: $($newAuthCertificateThumbprint) generated - the new one will replace the existing one in: $($EnableDaysInFuture) days")
                 try {
                     Write-Verbose ("[Required] Step 1: Set certificate: $($newAuthCertificateThumbprint) as the next Auth Certificate")
-                    if (-not($WhatIfPreference)) {
+                    if ($PSCmdlet.ShouldProcess("Certificate: $newAuthCertificateThumbprint Date: $nextAuthCertificateActiveOn", "Set-AuthConfig")) {
                         Set-AuthConfig -NewCertificateThumbprint $newAuthCertificateThumbprint -NewCertificateEffectiveDate $nextAuthCertificateActiveOn -Force -ErrorAction Stop
-                    } else {
-                        Write-Host ("What if: Will set the newly created certificate as next Auth Certificate by running 'Set-AuthConfig'")
                     }
 
                     if ($EnableDaysInFuture -eq 0) {
@@ -345,24 +339,18 @@ function New-ExchangeAuthCertificate {
                 Write-Verbose ("New Auth Certificate with thumbprint: $($newAuthCertificateThumbprint) generated - the existing one will be replaced immediately with the new one")
                 try {
                     Write-Verbose ("[Required] Step 1: Set certificate: $($newAuthCertificateThumbprint) as new Auth Certificate")
-                    if (-not($WhatIfPreference)) {
+                    if ($PSCmdlet.ShouldProcess("Certificate: $newAuthCertificateThumbprint Date: $newAuthCertificateActiveOn", "Set-AuthConfig")) {
                         Set-AuthConfig -NewCertificateThumbprint $newAuthCertificateThumbprint -NewCertificateEffectiveDate $newAuthCertificateActiveOn -Force -ErrorAction Stop
-                    } else {
-                        Write-Host ("What if: Will set the newly created certificate as primary Auth Certificate by running 'Set-AuthConfig'")
                     }
 
                     Write-Verbose ("[Required] Step 2: Publish the new Auth Certificate")
-                    if (-not($WhatIfPreference)) {
+                    if ($PSCmdlet.ShouldProcess("PublishCertificate", "Set-AuthConfig")) {
                         Set-AuthConfig -PublishCertificate -ErrorAction Stop
-                    } else {
-                        Write-Host ("What if: Will publish the newly created Auth Certificate by running 'Set-AuthConfig'")
                     }
 
                     Write-Verbose ("[Required] Step 3: Clear previous Auth Certificate")
-                    if (-not($WhatIfPreference)) {
+                    if ($PSCmdlet.ShouldProcess("ClearPreviousCertificate", "Set-AuthConfig")) {
                         Set-AuthConfig -ClearPreviousCertificate -ErrorAction Stop
-                    } else {
-                        Write-Host ("What if: Will clear the previous Auth Certificate by running 'Set-AuthConfig'")
                     }
 
                     try {
