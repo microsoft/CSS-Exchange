@@ -1,124 +1,172 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
+
+<#
+    This collects the current state of the Search Processes on the server
+    It flags if there is a possible issue by a few different checks.
+        - Services Running
+        - Services are set to Automatic
+        - All 6 processes are up and running and have been for at least 1 hour.
+            -> This is to detect possible crashes that might be occurring.
+        - Are there 3rd party modules loaded into the process. This can have negative impact to the service.
+#>
 function Get-SearchProcessState {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWMICmdlet', '', Justification = 'Cmdlet required')]
     [CmdletBinding()]
     param(
         [string]$ComputerName = $env:COMPUTERNAME
     )
     begin {
 
-        function Get-DefaultSettings {
-            return [PSCustomObject]@{
-                PID               = 0
-                ThirdPartyModules = (New-Object 'System.Collections.Generic.List[object]')
-                StartTime         = [DateTime]::MinValue
-            }
-        }
-        $adminNodeName = "noderunner - AdminNode1"
-        $contentNodeName = "noderunner - ContentEngineNode1"
-        $indexNodeName = "noderunner - IndexNode1"
-        $interactionNodeName = "noderunner - InteractionEngineNode1"
+        function GetSearchProcessStateScriptBlock {
 
-        $searchProcessState = @{}
+            $admin = "AdminNode1"
+            $content = "ContentEngineNode1"
+            $index = "IndexNode1"
+            $interaction = "InteractionEngineNode1"
+            $node = "noderunner"
 
-        $searchProcessState.Add($adminNodeName, (Get-DefaultSettings))
-        $searchProcessState.Add($contentNodeName, (Get-DefaultSettings))
-        $searchProcessState.Add($indexNodeName, (Get-DefaultSettings))
-        $searchProcessState.Add($interactionNodeName, (Get-DefaultSettings))
-        $searchProcessState.Add("hostcontrollerservice", (Get-DefaultSettings))
-        $searchProcessState.Add("microsoft.exchange.search.service", (Get-DefaultSettings))
-
-        $serverSearchProcessState = [PSCustomObject]@{
-            ServerName             = $ComputerName
-            ServicesCheckPass      = $true
-            ProcessesCheckPass     = $true
-            ProcessResults         = $searchProcessState
-            LatestProcessStartTime = [DateTime]::MinValue
-            ProcessesNotStarted    = (New-Object 'System.Collections.Generic.List[string]')
-        }
-    }
-    process {
-
-        $searchServices = Get-Service -ComputerName $ComputerName |
-            Where-Object {
+            $getSearchServices = Get-Service | Where-Object {
                 $_.Name -eq "HostControllerService" -or
                 $_.Name -eq "MSExchangeFastSearch"
-            }
-
-        $searchServices |
-            ForEach-Object {
-
-                if ($_.StartType -ne "Automatic") {
-                    Write-Warning "Service: '$($_.Name)' doesn't have the start up type set to Automatic. Currently: '$($_.StartType)'. This can cause problems."
-                    $serverSearchProcessState.ServicesCheckPass = $false
-                }
-
-                if ($_.Status -ne "Running") {
-                    Write-Error "Service: '$($_.Name)' is currently not running. Currently: '$($_.Status)'. This will cause problems."
-                    $serverSearchProcessState.ServicesCheckPass = $false
+            } | ForEach-Object {
+                # Going to include value for non-english OSs
+                [PSCustomObject]@{
+                    Name           = $_.Name
+                    StatusValue    = $_.Status.Value__ # 4 = Running
+                    StartTypeValue = $_.StartType.Value__ # 2 = Automatic
+                    Status         = $_.Status.ToString()
+                    StartType      = $_.StartType.ToString()
                 }
             }
-        #This is to get the command line information and know which node runner is which
-        $nodeRunner = Get-WmiObject Win32_Process -Filter "name = 'noderunner.exe'" -ComputerName $ComputerName
-        $searchProcesses = Get-Process -ComputerName $ComputerName |
-            Where-Object {
+
+            #This is to get the command line information and know which node runner is which
+            $nodeRunner = Get-CimInstance Win32_Process -Filter "name = 'noderunner.exe'"
+            $searchProcesses = Get-Process | Where-Object {
                 $_.Name -eq "noderunner" -or
                 $_.Name -eq "hostcontrollerservice" -or
                 $_.Name -eq "Microsoft.Exchange.Search.Service"
             }
 
-        foreach ($process in $searchProcesses) {
-            $thirdPartyModule = New-Object 'System.Collections.Generic.List[object]'
-            $process.Modules |
-                ForEach-Object {
+            $returnProcesses = New-Object 'System.Collections.Generic.List[object]'
+            # Foreach of the processes collect some minor information
+            foreach ($process in $searchProcesses) {
+                # Only return 3 party modules, as that should be the only thing we care about.
+                $thirdPartyModule = New-Object 'System.Collections.Generic.List[object]'
+                $process.Modules | Where-Object {
+                    $_.Company -notlike "*Microsoft*" -and
+                    $_.ModuleName -ne "ManagedBlingSigned.dll"
+                } | ForEach-Object {
+                    $thirdPartyModule.Add([PSCustomObject]@{
+                            ModuleName = $_.ModuleName
+                            Company    = $_.Company
+                            FileName   = $_.FileName
+                        })
+                }
 
-                    if ($_.Company -notlike "*Microsoft*" -and
-                        $_.ModuleName -ne "ManagedBlingSigned.dll") {
-                        $thirdPartyModule.Add($_)
+                # Need to know which node runners are having an issue.
+                # To known this, we need to look at the command line of the process
+                $processFriendlyDisplayName = $process.Name
+
+                if ($processFriendlyDisplayName -eq $node) {
+                    $cmdLine = ($nodeRunner | Where-Object { $_.ProcessId -eq $process.Id }).CommandLine
+
+                    if ($cmdLine -like "*$admin*") {
+                        $processFriendlyDisplayName = "$node - $admin"
+                    } elseif ($cmdLine -like "*$content*") {
+                        $processFriendlyDisplayName = "$node - $content"
+                    } elseif ($cmdLine -like "*$index*") {
+                        $processFriendlyDisplayName = "$node - $index"
+                    } elseif ($cmdLine -like "*$interaction*") {
+                        $processFriendlyDisplayName = "$node - $interaction"
                     }
                 }
-            $processName = $process.name.ToLower()
 
-            if ($processName -eq "noderunner") {
-
-                $win32 = $nodeRunner |
-                    Where-Object { $_.ProcessId -eq $process.Id }
-
-                if ($win32.CommandLine -like "*AdminNode1*") {
-                    $processName = $adminNodeName
-                } elseif ($win32.CommandLine -like "*ContentEngineNode1*") {
-                    $processName = $contentNodeName
-                } elseif ($win32.CommandLine -like "*IndexNode1*") {
-                    $processName = $indexNodeName
-                } elseif ($win32.CommandLine -like "*InteractionEngineNode1*") {
-                    $processName = "$processName - InteractionEngineNode1"
-                }
+                $returnProcesses.Add([PSCustomObject]@{
+                        Name              = $processFriendlyDisplayName
+                        PID               = $process.Id
+                        StartTime         = $process.StartTime
+                        ThirdPartyModules = $thirdPartyModule
+                    })
             }
 
-            if ($process.StartTime -gt $serverSearchProcessState.LatestProcessStartTime) {
-                $serverSearchProcessState.LatestProcessStartTime = $process.StartTime
+            return [PSCustomObject]@{
+                Services    = $getSearchServices
+                Processes   = $returnProcesses
+                CurrentTime = [DateTime]::Now
             }
-
-            if ($process.StartTime -gt ([DateTime]::Now.AddHours(-1))) {
-                $serverSearchProcessState.ProcessesCheckPass = $false
-            }
-
-            $searchProcessState[$processName].PID = $process.Id
-            $searchProcessState[$processName].StartTime = $process.StartTime
-            $searchProcessState[$processName].ThirdPartyModules = $thirdPartyModule
         }
 
-        foreach ($key in $serverSearchProcessState.ProcessResults.Keys) {
+        $requiredProcessNames = @("hostcontrollerservice",
+            "microsoft.exchange.search.service",
+            "noderunner - AdminNode1",
+            "noderunner - ContentEngineNode1",
+            "noderunner - IndexNode1",
+            "noderunner - InteractionEngineNode1")
 
-            if ($serverSearchProcessState.ProcessResults[$key].StartTime -eq [DateTime]::MinValue) {
-                $serverSearchProcessState.ProcessesNotStarted.Add($key)
-                $serverSearchProcessState.ProcessesCheckPass = $false
+        $latestProcessStartTime = [DateTime]::MinValue
+        $processesNotRunning = New-Object 'System.Collections.Generic.List[string]'
+        $servicesNotCorrect = New-Object 'System.Collections.Generic.List[object]'
+        $processesRunningForOneHour = $true
+        $thirdPartyModuleFound = $false
+    }
+    process {
+
+        $params = @{
+            ComputerName = $ComputerName
+            ScriptBlock  = ${Function:GetSearchProcessStateScriptBlock}
+        }
+
+        $processInformation = Invoke-ScriptBlockHandler @params
+
+        # Now that we have all the correct data, process it for the following:
+        # Services are running and automatic
+        # all 6 required processes are running
+
+        foreach ($requiredProcessName in $requiredProcessNames) {
+            $check = $processInformation.Processes | Where-Object { $_.Name -eq $requiredProcessName }
+
+            if ($null -eq $check) { $processesNotRunning.Add($requiredProcessName) }
+        }
+
+        foreach ($service in $processInformation.Services) {
+            if ($service.StatusValue -ne 4 -or
+                $service.StartTypeValue -ne 2) {
+                $servicesNotCorrect.Add([PSCustomObject]@{
+                        Name      = $service.Name
+                        Status    = $service.Status
+                        StartType = $service.StartType
+                    })
+            }
+        }
+
+        foreach ($process in $processInformation.Processes) {
+
+            if ($process.StartTime -gt ($processInformation.CurrentTime.AddHours(-1))) {
+                $processesRunningForOneHour = $false
+            }
+
+            if ($process.StartTime -gt $latestProcessStartTime) {
+                $latestProcessStartTime = $process.StartTime
+            }
+
+            if ($process.ThirdPartyModules.Count -gt 0) {
+                $thirdPartyModuleFound = $true
             }
         }
     }
     end {
-        return $serverSearchProcessState
+        return [PSCustomObject]@{
+            ServerName              = $ComputerName
+            ProcessInformation      = $processInformation
+            ServicesConfigCorrectly = $servicesNotCorrect.Count -eq 0
+            ServicesNotCorrect      = $servicesNotCorrect
+            AllProcessesRunning     = $processesNotRunning.Count -eq 0
+            ProcessesNotRunning     = $processesNotRunning
+            RunForAnHour            = $processesRunningForOneHour
+            ThirdPartyModuleFound   = $thirdPartyModuleFound
+            LatestProcessStartTime  = $latestProcessStartTime
+        }
     }
 }

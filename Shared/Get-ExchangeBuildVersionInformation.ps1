@@ -119,19 +119,26 @@ function Get-ExchangeBuildVersionInformation {
             #Latest Version AD Settings
             $schemaValue = 17003
             $mesoValue = 13243
-            $orgValue = 16760
+            $orgValue = 16761
 
             switch ($exchangeVersion) {
-                { $_ -ge (GetBuildVersion $ex19 "CU12") } {
+                { $_ -ge (GetBuildVersion $ex19 "CU13") } {
+                    $cuLevel = "CU13"
+                    $cuReleaseDate = "05/03/2023"
+                    $supportedBuildNumber = $true
+                    $latestSUBuild = $true
+                }
+                { $_ -lt (GetBuildVersion $ex19 "CU13") } {
                     $cuLevel = "CU12"
                     $cuReleaseDate = "04/20/2022"
                     $supportedBuildNumber = $true
+                    $orgValue = 16760
                 }
                 (GetBuildVersion $ex19 "CU12" -SU "Mar23SU") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex19 "CU12") } {
                     $cuLevel = "CU11"
                     $cuReleaseDate = "09/28/2021"
-                    $supportedBuildNumber = $true
+                    $supportedBuildNumber = $false
                     $mesoValue = 13242
                     $orgValue = 16759
                 }
@@ -142,7 +149,6 @@ function Get-ExchangeBuildVersionInformation {
                     $cuReleaseDate = "06/29/2021"
                     $mesoValue = 13241
                     $orgValue = 16758
-                    $supportedBuildNumber = $false
                 }
                 { $_ -lt (GetBuildVersion $ex19 "CU10") } {
                     $cuLevel = "CU9"
@@ -782,6 +788,7 @@ function GetExchangeBuildDictionary {
                     "Feb23SU" = "15.2.1118.25"
                     "Mar23SU" = "15.2.1118.26"
                 })
+            "CU13" = (NewCUAndSUObject "15.2.1258.12")
         }
     }
 }

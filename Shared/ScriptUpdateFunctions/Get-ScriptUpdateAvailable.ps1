@@ -33,7 +33,7 @@ function Get-ScriptUpdateAvailable {
         Write-Warning "This script appears to be an unsigned test build. Skipping version check."
     } else {
         try {
-            $versionData = [Text.Encoding]::UTF8.GetString((Invoke-WebRequestWithProxyDetection $VersionsUrl -UseBasicParsing).Content) | ConvertFrom-Csv
+            $versionData = [Text.Encoding]::UTF8.GetString((Invoke-WebRequestWithProxyDetection -Uri $VersionsUrl -UseBasicParsing).Content) | ConvertFrom-Csv
             $latestVersion = ($versionData | Where-Object { $_.File -eq $scriptName }).Version
             $result.LatestVersion = $latestVersion
             if ($null -ne $latestVersion) {

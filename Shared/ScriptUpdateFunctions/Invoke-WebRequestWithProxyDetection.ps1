@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Confirm-ProxyServer.ps1
+. $PSScriptRoot\..\Write-ErrorInformation.ps1
 
 function Invoke-WebRequestWithProxyDetection {
     [CmdletBinding(DefaultParameterSetName = "Default")]
@@ -23,6 +24,7 @@ function Invoke-WebRequestWithProxyDetection {
         $OutFile
     )
 
+    Write-Verbose "Calling $($MyInvocation.MyCommand)"
     if ([System.String]::IsNullOrEmpty($Uri)) {
         $Uri = $ParametersObject.Uri
     }
@@ -47,5 +49,9 @@ function Invoke-WebRequestWithProxyDetection {
         $params = $ParametersObject
     }
 
-    Invoke-WebRequest @params
+    try {
+        Invoke-WebRequest @params
+    } catch {
+        Write-VerboseErrorInformation
+    }
 }

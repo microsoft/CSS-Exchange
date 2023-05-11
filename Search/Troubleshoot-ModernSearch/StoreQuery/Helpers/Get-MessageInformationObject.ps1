@@ -2,6 +2,13 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-IndexStateOfMessage.ps1
+
+<#
+    Takes the Message object that was collected from a Store Query
+    and converts it to a consistent object type.
+    If properties are missing, then the query that got the message didn't
+    include it to be collected or it is possibly null
+#>
 function Get-MessageInformationObject {
     [CmdletBinding()]
     param(

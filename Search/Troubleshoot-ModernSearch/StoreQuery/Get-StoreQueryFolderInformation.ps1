@@ -1,7 +1,13 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-function Get-FolderInformation {
+<#
+    Query for additional folder information from the Folder table.
+    This is need to get the DisplayName from the FolderID or the other way around.
+    The FolderID is required to be used when doing restrictions on where a message
+    is within a mailbox.
+#>
+function Get-StoreQueryFolderInformation {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
@@ -55,6 +61,8 @@ function Get-FolderInformation {
             InvokeGetStoreQuery
 
         foreach ($folder in $folderInformation) {
+            # Log the return display name
+            Write-Verbose "FolderID: $($folder.FolderId) DisplayName: $($folder.DisplayName)"
             $folderList.Add([PSCustomObject]@{
                     FolderId             = $folder.FolderId
                     DisplayName          = $folder.DisplayName

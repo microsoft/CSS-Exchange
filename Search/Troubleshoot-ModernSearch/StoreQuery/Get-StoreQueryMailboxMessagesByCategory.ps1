@@ -1,10 +1,16 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\Get-CacheFolderInformation.ps1
-. $PSScriptRoot\Get-IndexingErrorMessage.ps1
-. $PSScriptRoot\Get-MessageInformationObject.ps1
-function Get-MailboxIndexMessageStatistics {
+. $PSScriptRoot\Helpers\Get-CacheFolderInformation.ps1
+. $PSScriptRoot\Helpers\Get-IndexingErrorMessage.ps1
+. $PSScriptRoot\Helpers\Get-MessageInformationObject.ps1
+
+<#
+    Query the entire mailbox for messages that are a particular category type
+    From testing it seems that Get-StoreQuery has a timeout of about 170 seconds,
+    therefore it is possible that this might not return all the items within the mailbox.
+#>
+function Get-StoreQueryMailboxMessagesByCategory {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
@@ -16,6 +22,7 @@ function Get-MailboxIndexMessageStatistics {
         [string]$Category
     )
     begin {
+        $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
         $extPropMapping = $BasicMailboxQueryContext.ExtPropMapping
         $storeQueryHandler = $BasicMailboxQueryContext.StoreQueryHandler
         $mailboxNumber = $BasicMailboxQueryContext.MailboxNumber
@@ -130,6 +137,7 @@ function Get-MailboxIndexMessageStatistics {
         }
     }
     end {
+        Write-Verbose "Took $($stopWatch.Elapsed.TotalSeconds) seconds to get the mailbox index message stats for $($messageList.count) messages"
         return $messageList
     }
 }

@@ -4,7 +4,7 @@
 . $PSScriptRoot\..\..\..\Shared\Invoke-CatchActionError.ps1
 
 function Export-ExchangeAuthCertificate {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     [OutputType([System.Object])]
     param(
         [Parameter(Mandatory = $true)]
@@ -67,12 +67,12 @@ function Export-ExchangeAuthCertificate {
             foreach ($cert in $certificatesReadyToExportList) {
                 Write-Verbose ("Exporting the certificate with thumbprint: $($cert.Thumbprint) now...")
                 try {
-                    $authCert = Export-ExchangeCertificate -Thumbprint $cert.Thumbprint -BinaryEncoded -Password $Password
+                    if ($PSCmdlet.ShouldProcess($cert.Thumbprint, "Export-ExchangeCertificate")) {
+                        $authCert = Export-ExchangeCertificate -Thumbprint $cert.Thumbprint -BinaryEncoded -Password $Password
+                    }
                     $certExportPath = "$($PSScriptRoot)\$($cert.Thumbprint)-$($dateTimeAppendix).pfx"
-                    if (-not($WhatIfPreference)) {
+                    if ($PSCmdlet.ShouldProcess("Export certificate: $($cert.Thumbprint) To: $certExportPath", "[System.IO.File]::WriteAllBytes")) {
                         [System.IO.File]::WriteAllBytes($certExportPath, $authCert.FileData)
-                    } else {
-                        Write-Host ("What if: Will export certificate with thumbprint: $($cert.Thumbprint) to: $($certExportPath)")
                     }
                     Write-Verbose ("Certificate exported to: $certExportPath")
                 } catch {

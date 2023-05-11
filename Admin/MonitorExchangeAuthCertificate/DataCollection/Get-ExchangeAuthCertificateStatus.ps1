@@ -37,6 +37,7 @@ function Get-ExchangeAuthCertificateStatus {
 
         $exchangeServersUnreachableList = New-Object 'System.Collections.Generic.List[string]'
         $exchangeServersReachableList = New-Object 'System.Collections.Generic.List[string]'
+        $currentAuthCertificateFoundOnServersList = New-Object 'System.Collections.Generic.List[string]'
         $nextAuthCertificateFoundOnServersList = New-Object 'System.Collections.Generic.List[string]'
         $currentAuthCertificateMissingOnServersList = New-Object 'System.Collections.Generic.List[string]'
         $nextAuthCertificateMissingOnServersList = New-Object 'System.Collections.Generic.List[string]'
@@ -68,6 +69,7 @@ function Get-ExchangeAuthCertificateStatus {
                         Write-Verbose ("Trying to query current Auth Certificate on server: $($mbxServer)")
                         $currentAuthCertificate = Get-ExchangeServerCertificate -Server $($mbxServer.Fqdn) -Thumbprint $authConfiguration.CurrentCertificateThumbprint -ErrorAction Stop
                         $exchangeServersReachableList.Add($mbxServer.Fqdn)
+                        $currentAuthCertificateFoundOnServersList.Add($mbxServer.Fqdn)
                     } catch {
                         Write-Verbose ("We hit an exception - going to determine the reason")
                         Invoke-CatchActionError $CatchActionFunction
@@ -176,7 +178,7 @@ function Get-ExchangeAuthCertificateStatus {
             NextAuthCertificateImportRequired    = $importNextAuthCertificateRequired
             NumberOfUnreachableServers           = $exchangeServersUnreachableList.Count
             UnreachableServersList               = $exchangeServersUnreachableList
-            AuthCertificateFoundOnServers        = $exchangeServersReachableList
+            AuthCertificateFoundOnServers        = $currentAuthCertificateFoundOnServersList
             AuthCertificateMissingOnServers      = $currentAuthCertificateMissingOnServersList
             NextAuthCertificateFoundOnServers    = $nextAuthCertificateFoundOnServersList
             NextAuthCertificateMissingOnServers  = $nextAuthCertificateMissingOnServersList

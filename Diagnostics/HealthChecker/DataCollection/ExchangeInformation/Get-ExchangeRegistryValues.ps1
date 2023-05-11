@@ -50,6 +50,12 @@ function Get-ExchangeRegistryValues {
         GetValue = "DisableBaseTypeCheckForDeserialization"
     }
 
+    $disablePreservationParams = $baseParams + @{
+        SubKey    = "SOFTWARE\Microsoft\ExchangeServer\v15\Setup"
+        GetValue  = "DisablePreservation"
+        ValueType = "String"
+    }
+
     return [PSCustomObject]@{
         DisableBaseTypeCheckForDeserialization = [int](Get-RemoteRegistryValue @baseTypeCheckForDeserializationParams)
         CtsProcessorAffinityPercentage         = [int](Get-RemoteRegistryValue @ctsParams)
@@ -58,5 +64,6 @@ function Get-ExchangeRegistryValues {
         DisableAsyncNotification               = [int](Get-RemoteRegistryValue @disableAsyncParams)
         SerializedDataSigning                  = [int](Get-RemoteRegistryValue @serializedDataSigningParams)
         MsiInstallPath                         = [string](Get-RemoteRegistryValue @installDirectoryParams)
+        DisablePreservation                    = [string](Get-RemoteRegistryValue @disablePreservationParams)
     }
 }

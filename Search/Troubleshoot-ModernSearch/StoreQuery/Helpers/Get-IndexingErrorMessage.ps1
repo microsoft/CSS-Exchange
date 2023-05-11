@@ -1,6 +1,11 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+<#
+    Takes the message object from Get-MessageInformationObject
+    reviews the properties to give a condensed version of the error message
+    into a single string return.
+#>
 function Get-IndexingErrorMessage {
     [CmdletBinding()]
     param(

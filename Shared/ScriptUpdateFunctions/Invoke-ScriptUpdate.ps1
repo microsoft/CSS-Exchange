@@ -32,7 +32,7 @@ function Invoke-ScriptUpdate {
 
     if ($PSCmdlet.ShouldProcess("$scriptName", "Update script to latest version")) {
         try {
-            Invoke-WebRequestWithProxyDetection "https://github.com/microsoft/CSS-Exchange/releases/latest/download/$scriptName" -OutFile $tempFullName
+            Invoke-WebRequestWithProxyDetection -Uri "https://github.com/microsoft/CSS-Exchange/releases/latest/download/$scriptName" -OutFile $tempFullName
         } catch {
             Write-Warning "AutoUpdate: Failed to download update: $($_.Exception.Message)"
             return $false

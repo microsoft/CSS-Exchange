@@ -1,6 +1,17 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+<#
+    Takes the message to get the current determined index state.
+        ShouldNotBeIndexed - If BigFunnelPoiNotNeededReason (p365A0003) has any value besides 0 besides NULL
+        Indexed - If BigFunnelPOISize has value and BigFunnelPOIIsUpToDate (p3655000B) is set to true
+                    while IsPartiallyIndexed property is not set to NULL or False
+        PartiallyIndexed -  If BigFunnelPOISize has value and BigFunnelPOIIsUpToDate (p3655000B) is set to true
+                    while IsPartiallyIndexed property is set to True
+        NotIndexed - If BigFunnelPOISize is NULL or a value of 0 and BigFunnelPOIIsUpToDate (p3655000B) is set to NULL or False
+        Corrupted - If BigFunnelPOISize is NULL or a value of 0 and BigFunnelPOIIsUpToDate (p3655000B) is set to True
+        Stale - If BigFunnelPOISize has a value and BigFunnelPOIIsUpToDate (p3655000B) is set to NULL or False
+#>
 function Get-IndexStateOfMessage {
     [CmdletBinding()]
     [OutputType([System.String])]
@@ -16,16 +27,6 @@ function Get-IndexStateOfMessage {
     }
     process {
 
-        <#
-            ShouldNotBeIndexed - If BigFunnelPoiNotNeededReason (p365A0003) has any value besides 0 besides NULL
-            Indexed - If BigFunnelPOISize has value and BigFunnelPOIIsUpToDate (p3655000B) is set to true
-                      while IsPartiallyIndexed property is not set to NULL or False
-            PartiallyIndexed -  If BigFunnelPOISize has value and BigFunnelPOIIsUpToDate (p3655000B) is set to true
-                      while IsPartiallyIndexed property is set to True
-            NotIndexed - If BigFunnelPOISize is NULL or a value of 0 and BigFunnelPOIIsUpToDate (p3655000B) is set to NULL or False
-            Corrupted - If BigFunnelPOISize is NULL or a value of 0 and BigFunnelPOIIsUpToDate (p3655000B) is set to True
-            Stale - If BigFunnelPOISize has a value and BigFunnelPOIIsUpToDate (p3655000B) is set to NULL or False
-        #>
         if ($Message.p365A0003 -gt 0 -and
             $Message.p365A0003.ToString() -ne "NULL") {
             $status = "ShouldNotBeIndexed"

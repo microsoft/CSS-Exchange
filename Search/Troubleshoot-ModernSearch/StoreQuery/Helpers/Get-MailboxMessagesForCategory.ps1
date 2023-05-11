@@ -1,79 +1,74 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\..\StoreQuery\Get-MailboxIndexMessageStatistics.ps1
-. $PSScriptRoot\Write-DisplayObjectInformation.ps1
-function Write-MailboxIndexMessageStatistics {
+. $PSScriptRoot\..\Get-StoreQueryMailboxMessagesByCategory.ps1
+. $PSScriptRoot\..\..\Write\Write-BasicMailboxInformation.ps1
+. $PSScriptRoot\..\..\Write\WriteHelpers.ps1
+
+<#
+    Used to collect the messages from a single mailbox based off the category type
+    Will proceed to collect the messages based off each category type
+    Then will display that information after each category collection to make it less of a day for the display
+    At the end, return all the messages to the caller that was found for this user.
+#>
+function Get-MailboxMessagesForCategory {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [object]$BasicMailboxQueryContext,
-
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [object]$MailboxStatistics,
+        [object]$MailboxInformation,
 
         [Parameter(Mandatory = $true)]
         [ValidateSet("All", "Indexed", "PartiallyIndexed", "NotIndexed", "Corrupted", "Stale", "ShouldNotBeIndexed")]
         [string[]]$Category,
 
         [bool]$GroupMessages
-
     )
-
+    begin {
+        $messagesForMailbox = New-Object 'System.Collections.Generic.List[object]'
+        $basicMailboxQueryContext = Get-StoreQueryBasicMailboxQueryContext -StoreQueryHandler (Get-StoreQueryObject -MailboxInformation $MailboxInformation)
+    }
     process {
-        $totalIndexableItems = ($MailboxStatistics.AssociatedItemCount + $MailboxStatistics.ItemCount + $MailboxStatistics.DeletedItemCount) - $MailboxStatistics.BigFunnelShouldNotBeIndexedCount
-
-        Write-Host ""
-        Write-Host "All Indexable Items Count: $totalIndexableItems"
-        Write-Host ""
-
         foreach ($categoryType in $Category) {
+            [array]$messages = Get-StoreQueryMailboxMessagesByCategory -BasicMailboxQueryContext $basicMailboxQueryContext -Category $categoryType
 
-            $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
-            [array]$messages = Get-MailboxIndexMessageStatistics -BasicMailboxQueryContext $BasicMailboxQueryContext -Category $categoryType
-            Write-Verbose "Took $($stopWatch.Elapsed.TotalSeconds) seconds to get the mailbox index message stats for $($messages.count) messages"
+            if ($messages.Count -eq 0) {
+                Write-Host "Failed to find any results when doing a search on the category $categoryType"
+                continue
+            }
 
-            if ($messages.Count -gt 0) {
-
-                if (-not $GroupMessages) {
-
-                    foreach ($message in $messages) {
-                        Write-Host "---------------------"
-                        Write-DisplayObjectInformation -DisplayObject $message -PropertyToDisplay @(
-                            "FolderId",
-                            "MessageId",
-                            "InternetMessageId",
-                            "MessageSubject",
-                            "MessageClass",
-                            "BigFunnelPOISize",
-                            "BigFunnelPOIIsUpToDate",
-                            "IndexingErrorCode",
-                            "IndexingErrorMessage",
-                            "CondensedErrorMessage",
-                            "ErrorTags",
-                            "ErrorProperties",
-                            "LastIndexingAttemptTime",
-                            "IsPermanentFailure",
-                            "IndexStatus",
-                            "DateCreated"
-                        )
-                    }
-                    continue
+            if (-not $GroupMessages) {
+                foreach ($message in $messages) {
+                    #TODO: Add a break line somewhere
+                    Write-DisplayObjectInformation -DisplayObject $message -PropertyToDisplay @(
+                        "FolderId",
+                        "MessageId",
+                        "InternetMessageId",
+                        "MessageSubject",
+                        "MessageClass",
+                        "BigFunnelPOISize",
+                        "BigFunnelPOIIsUpToDate",
+                        "IndexingErrorCode",
+                        "IndexingErrorMessage",
+                        "CondensedErrorMessage",
+                        "ErrorTags",
+                        "ErrorProperties",
+                        "LastIndexingAttemptTime",
+                        "IsPermanentFailure",
+                        "IndexStatus",
+                        "DateCreated"
+                    )
                 }
-
+            } else {
+                # Group the messages to make a simplified view
                 $groupedStatus = $messages | Group-Object IndexStatus, MessageClass
 
                 foreach ($statusGrouping in $groupedStatus) {
-                    Write-Host "---------------------"
-                    Write-Host "Message Index Status: $($statusGrouping.Name)"
-                    Write-Host "---------------------"
+                    Write-DashLineBox "Message Index Status: $($statusGrouping.Name)"
                     $groupedResults = $statusGrouping.Group |
                         Group-Object CondensedErrorMessage, IsPermanentFailure |
                         Sort-Object Count -Descending
-                    foreach ($result in $groupedResults) {
 
+                    foreach ($result in $groupedResults) {
                         $earliestLastIndexingAttemptTime = [DateTime]::MaxValue
                         $lastIndexingAttemptTime = [DateTime]::MinValue
 
@@ -117,9 +112,11 @@ function Write-MailboxIndexMessageStatistics {
                         Write-Host ""
                     }
                 }
-            } else {
-                Write-Host "Failed to find any results when doing a search on the category $categoryType"
             }
+            $messagesForMailbox.AddRange($messages)
         }
+    }
+    end {
+        return $messagesForMailbox
     }
 }
