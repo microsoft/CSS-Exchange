@@ -23,12 +23,33 @@ function Write-BasicMailboxInformation {
             "Active Server: $($MailboxInformation.PrimaryServer)",
             "Exchange Server Version: $($MailboxInformation.ExchangeServer.AdminDisplayVersion)",
             "Max Send Size: $($MailboxInformation.MailboxInfo.MaxSendSize.ToString())",
-            "Max Receive Size: $($MailboxInformation.MailboxInfo.MaxReceiveSize.ToString())"
+            "Max Receive Size: $($MailboxInformation.MailboxInfo.MaxReceiveSize.ToString())",
+            "Use Database Quotas: $($MailboxInformation.MailboxInfo.UseDatabaseQuotaDefaults.ToString())",
+            "Database Send Quota: $($MailboxInformation.MailboxStatistics.DatabaseProhibitSendQuota.ToString())"
+            "Database Send & Receive Quota: $($MailboxInformation.MailboxStatistics.DatabaseProhibitSendReceiveQuota.ToString())"
+            "Total Item Size: $($MailboxInformation.MailboxStatistics.TotalItemSize.ToString())",
+            "Total Deleted Item Size: $($MailboxInformation.MailboxStatistics.TotalDeletedItemSize.ToString())"
+
         )
         Write-DashLineBox $display
 
         if ($MailboxInformation.MailboxInfo.MaxReceiveSize.ToString() -eq "0 B (0 bytes)") {
-            Write-Warning "The Max Receive Size is set to 0 Bytes, all messages greater than 1MB will be failed to indexed."
+            Write-Warning "The Max Receive Size is set to 0 Bytes, all messages greater than 1MB will fail to be indexed."
+        }
+
+        try {
+            # Just in case the objects for size and quotas are not in comparable formats
+            if ((-not ($MailboxInformation.MailboxInfo.MaxReceiveSize.ToString() -eq "0 B (0 bytes)")) -and
+                (($MailboxInformation.MailboxInfo.UseDatabaseQuotaDefaults -eq $true -and
+                    $MailboxInformation.MailboxStatistics.TotalItemSize.Value -ge $MailboxInformation.MailboxStatistics.DatabaseProhibitSendReceiveQuota) -or
+                    ($MailboxInformation.MailboxInfo.UseDatabaseQuotaDefaults -eq $false -and
+                $MailboxInformation.MailboxStatistics.TotalItemSize.Value -ge $MailboxInformation.MailboxInfo.MaxReceiveSize))) {
+                Write-Warning "The mailbox is full, all messages greater than 1MB will fail to be indexed."
+            } else {
+                Write-Verbose "Mailbox is not full. Indexing should work."
+            }
+        } catch {
+            Write-Verbose "Failed to properly test to see if the mailbox is full causing indexing issues. Must look over this manually."
         }
 
         Write-Host ""
