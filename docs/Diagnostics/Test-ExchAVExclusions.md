@@ -25,11 +25,11 @@ Once the files are created it will wait 5 minutes for AV to "see" and remove the
 
 Parameter | Description |
 ----------|-------------|
-DirectoriesAnalysis | Places an EICAR file in root of all Folders in the Exclusions list.
+DisableDirectoriesAnalysis | Disable the Directories Analysis exclusions.
 Recurse | Places an EICAR file in all SubFolders in the Exclusions list as well as the root.
-ProcessesAnalysis | Analyzes all Processes in the Exclusions list for 3rd party modules.
+DisableProcessesAnalysis | Disable the Processes Analysis exclusions.
 IncludeW3wpProcesses | Includes w3wp processes in the analysis.
-ExtensionsAnalysis | Create EICAR files with the Extensions in the Exclusions List in a new folder to check the Extension Exclusions.
+DisableExtensionsAnalysis | Disable the Extension Analysis exclusions.
 OpenLog | Opens the script log file.
 
 ## Outputs
