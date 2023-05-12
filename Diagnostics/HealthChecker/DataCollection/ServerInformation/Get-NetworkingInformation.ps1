@@ -1,9 +1,9 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\Get-AllNicInformation.ps1
 . $PSScriptRoot\Get-HttpProxySetting.ps1
 . $PSScriptRoot\..\..\Helpers\PerformanceCountersFunctions.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Get-AllNicInformation.ps1
 
 function Get-NetworkingInformation {
     [CmdletBinding()]

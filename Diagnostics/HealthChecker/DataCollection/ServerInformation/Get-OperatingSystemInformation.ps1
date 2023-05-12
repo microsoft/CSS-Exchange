@@ -4,7 +4,7 @@
 . $PSScriptRoot\..\..\..\..\Shared\Get-ServerRebootPending.ps1
 . $PSScriptRoot\..\..\..\..\Shared\VisualCRedistributableVersionFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\TLS\Get-AllTlsSettings.ps1
-. $PSScriptRoot\Get-AllNicInformation.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Get-AllNicInformation.ps1
 . $PSScriptRoot\Get-NETFrameworkInformation.ps1
 . $PSScriptRoot\Get-NetworkingInformation.ps1
 . $PSScriptRoot\Get-OperatingSystemBuildInformation.ps1

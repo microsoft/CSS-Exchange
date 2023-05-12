@@ -1,6 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Invoke-CatchActionError.ps1
+
 function Get-WmiObjectHandler {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWMICmdlet', '', Justification = 'This is what this function is for')]
     [CmdletBinding()]
@@ -28,6 +30,7 @@ function Get-WmiObjectHandler {
         $execute = @{
             ComputerName = $ComputerName
             Class        = $Class
+            ErrorAction  = "Stop"
         }
 
         if (-not ([string]::IsNullOrEmpty($Filter))) {
@@ -40,14 +43,12 @@ function Get-WmiObjectHandler {
     }
     process {
         try {
-            $wmi = Get-WmiObject @execute -ErrorAction Stop
+            $wmi = Get-WmiObject @execute
+            Write-Verbose "Return a value: $($null -ne $wmi)"
             return $wmi
         } catch {
             Write-Verbose "Failed to run Get-WmiObject on class '$class'"
-
-            if ($null -ne $CatchActionFunction) {
-                & $CatchActionFunction
-            }
+            Invoke-CatchActionError $CatchActionFunction
         }
     }
 }
