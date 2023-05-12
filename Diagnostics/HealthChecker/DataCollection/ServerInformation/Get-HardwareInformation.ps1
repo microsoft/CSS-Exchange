@@ -4,7 +4,7 @@
 . $PSScriptRoot\Get-ProcessorInformation.ps1
 . $PSScriptRoot\Get-ServerType.ps1
 . $PSScriptRoot\Get-WmiObjectCriticalHandler.ps1
-. $PSScriptRoot\Get-WmiObjectHandler.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Get-WmiObjectHandler.ps1
 function Get-HardwareInformation {
     param(
         [Parameter(Mandatory = $true)]

@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\Get-WmiObjectHandler.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Get-WmiObjectHandler.ps1
 function Get-PageFileInformation {
     param(
         [Parameter(Mandatory = $true)]

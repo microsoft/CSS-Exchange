@@ -1,10 +1,10 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 . $PSScriptRoot\Get-WmiObjectHandler.ps1
-. $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistrySubKey.ps1
-. $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
-. $PSScriptRoot\..\..\..\..\Shared\Invoke-CatchActionError.ps1
-. $PSScriptRoot\..\..\..\..\Shared\Invoke-CatchActionErrorLoop.ps1
+. $PSScriptRoot\Get-RemoteRegistrySubKey.ps1
+. $PSScriptRoot\Get-RemoteRegistryValue.ps1
+. $PSScriptRoot\Invoke-CatchActionError.ps1
+. $PSScriptRoot\Invoke-CatchActionErrorLoop.ps1
 function Get-AllNicInformation {
     [CmdletBinding()]
     param(
