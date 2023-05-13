@@ -62,6 +62,7 @@ httperr
 ietf
 imap
 Infoworker
+Inproc
 INSUFF
 isnot
 Journaling
@@ -139,6 +140,7 @@ Sids
 Snapin
 SPDLT
 STMP
+syncall
 tcpip
 TDSDSA
 Truncater
