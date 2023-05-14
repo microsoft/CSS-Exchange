@@ -22,9 +22,26 @@ IF the file is not removed then it should be properly excluded.
 
 Once the files are created it will wait 60 seconds for AV to "see" and remove the file.
 
+.PARAMETER DisableDirectoriesAnalysis
+Disable the Directories Analysis exclusions
+
 .PARAMETER Recurse
-Will test not just the root folders but all SubFolders.
+Places an EICAR file in all SubFolders in the Exclusions list as well as the root.
 Generally should not be needed unless all folders pass without -Recuse but AV is still suspected.
+It does not apply if you use DisableDirectoriesAnalysis parameter.
+
+.PARAMETER DisableProcessesAnalysis
+Disable the Processes Analysis exclusions.
+
+.PARAMETER IncludeW3wpProcesses
+Includes w3wp processes in the analysis.
+It does not apply if you use DisableProcessesAnalysis parameter.
+
+.PARAMETER DisableExtensionsAnalysis
+Disable the Extension Analysis exclusions.
+
+.PARAMETER OpenLog
+Opens the script log file.
 
 .OUTPUTS
 Log file:
@@ -49,7 +66,7 @@ param (
 
     [Parameter()]
     [switch]
-    $DirectoriesAnalysis,
+    $DisableDirectoriesAnalysis,
 
     [Parameter()]
     [switch]
@@ -57,7 +74,7 @@ param (
 
     [Parameter()]
     [switch]
-    $ProcessesAnalysis,
+    $DisableProcessesAnalysis,
 
     [Parameter()]
     [switch]
@@ -65,7 +82,7 @@ param (
 
     [Parameter()]
     [switch]
-    $ExtensionsAnalysis,
+    $DisableExtensionsAnalysis,
 
     [Parameter()]
     [switch]
@@ -142,19 +159,8 @@ function Test-UnknownModule {
     }
 }
 
-if ( (-not $DirectoriesAnalysis) -and (-not $ProcessesAnalysis) -and (-not  $ExtensionsAnalysis) ) {
-    $DirectoriesAnalysis = $true
-    $ProcessesAnalysis = $true
-    $ExtensionsAnalysis = $true
-}
-
-if ( $IncludeW3wpProcesses -and ( -not $ProcessesAnalysis ) ) {
-    Write-Error "IncludeW3wpProcesses parameter works with Processes Analysis"
-    exit
-}
-
-if ( $Recurse -and ( -not $DirectoriesAnalysis ) ) {
-    Write-Error "Recurse parameter works with Directories Analysis"
+if ( $DisableDirectoriesAnalysis -and $DisableProcessesAnalysis -and $DisableExtensionsAnalysis ) {
+    Write-Host "All Analysis are disabled" -ForegroundColor Red -BackgroundColor Black
     exit
 }
 
@@ -166,7 +172,7 @@ if ($OpenLog) { Write-SimpleLogFile -OpenLog -String " " -Name $LogFile }
 
 # Confirm that we are an administrator
 if (-not (Confirm-Administrator)) {
-    Write-Error "Please run as Administrator"
+    Write-Host "Please run as Administrator"  -ForegroundColor Red -BackgroundColor Black
     exit
 }
 
@@ -204,7 +210,7 @@ Write-SimpleLogFile -String ("##################################################
 Write-SimpleLogFile -String ("Starting AV Exclusions analysis at $((Get-Date).ToString())") -name $LogFile
 Write-SimpleLogFile -String ("###########################################################################################") -name $LogFile
 
-if ($ProcessesAnalysis) {
+if ( -not $DisableProcessesAnalysis) {
     try {
         $response = $null
         $response = Invoke-WebRequest http://crl.microsoft.com/pki/crl/products/CodeSigPCA.crl
@@ -229,7 +235,7 @@ if ($ProcessesAnalysis) {
     }
 }
 
-if ($DirectoriesAnalysis) {
+if ( -not $DisableDirectoriesAnalysis) {
     # Create the Array List
     $BaseFolders = Get-ExchAVExclusionsPaths -ExchangePath $ExchangePath -MsiProductMinor ([byte]$serverExchangeInstallDirectory.MsiProductMinor)
 
@@ -266,7 +272,7 @@ if ($DirectoriesAnalysis) {
     $FolderList = $FolderList | Select-Object -Unique
 }
 
-if ( $DirectoriesAnalysis -or $ExtensionsAnalysis ) {
+if ( -not ( ($DisableDirectoriesAnalysis ) -and ( $DisableExtensionsAnalysis ) ) ) {
     Write-SimpleLogFile -String "Creating EICAR Files" -name $LogFile -OutHost
 
     # Create the EICAR file in each path
@@ -278,7 +284,7 @@ if ( $DirectoriesAnalysis -or $ExtensionsAnalysis ) {
     [string] $EncodedEicar = 'WDVPIVAlQEFQWzRcUFpYNTQoUF4pN0NDKTd9JEVJQ0FSLVNUQU5EQVJELUFOVElWSVJVUy1URVNULUZJTEUhJEgrSCo='
 }
 
-if ( $DirectoriesAnalysis ) {
+if ( -not $DisableDirectoriesAnalysis ) {
     foreach ($Folder in $FolderList) {
 
         [string] $FilePath = (Join-Path $Folder $EicarFullFileName)
@@ -304,7 +310,7 @@ if ( $DirectoriesAnalysis ) {
     }
 }
 
-if ( $ExtensionsAnalysis ) {
+if ( -not $DisableExtensionsAnalysis ) {
     # Create a random folder in root path
     $randomString = -join ((65..90) + (97..122) | Get-Random -Count 10 | ForEach-Object { [char]$_ })
     $randomFolder = New-Item -Path (Join-Path (Join-Path $env:SystemDrive '\') "TestExchAVExclusions-$randomString") -ItemType Directory
@@ -335,42 +341,42 @@ if ( $ExtensionsAnalysis ) {
     }
 }
 
-if ( $DirectoriesAnalysis -or $ExtensionsAnalysis ) {
+if ( -not ( ( $DisableDirectoriesAnalysis ) -and ( $DisableExtensionsAnalysis ) ) ) {
     Write-SimpleLogFile -String "EICAR Files Created" -name $LogFile -OutHost
     Write-SimpleLogFile -String "Accessing EICAR Files" -name $LogFile -OutHost
     # Try to open each EICAR file to force detection in paths
 }
 
-if ( $DirectoriesAnalysis ) {
-    $i = 0
+if ( -not $DisableDirectoriesAnalysis ) {
+    $foldersCounter = 0
     foreach ($Folder in $FolderList) {
         $FilePath = (Join-Path $Folder $EicarFullFileName)
         if (Test-Path $FilePath -PathType Leaf -ErrorAction SilentlyContinue) {
             Write-SimpleLogFile -String ("Opening $EicarFullFileName file " + $FilePath) -name $LogFile
             Start-Process -FilePath more -ArgumentList """$FilePath""" -ErrorAction SilentlyContinue -WindowStyle Hidden | Out-Null
         }
-        $i++
+        $foldersCounter++
     }
 }
 
-if ( $ExtensionsAnalysis ) {
+if ( -not $DisableExtensionsAnalysis ) {
     # Try to open extensions:
-    $i = 0
+    $extensionsCounter = 0
     foreach ($extension in $extensionsList) {
         $FilePath = Join-Path $randomFolder "$EicarFileName.$extension"
         if (Test-Path $FilePath -PathType Leaf -ErrorAction SilentlyContinue) {
             Write-SimpleLogFile -String ("Opening $EicarFileName.$extension file " + $FilePath) -name $LogFile
             Start-Process -FilePath more -ArgumentList """$FilePath""" -ErrorAction SilentlyContinue -WindowStyle Hidden | Out-Null
         }
-        $i++
+        $extensionsCounter++
     }
 }
 
-if ( $DirectoriesAnalysis -or $ExtensionsAnalysis ) {
+if ( -not ( ( $DisableDirectoriesAnalysis ) -and ( $DisableExtensionsAnalysis ) ) ) {
     Write-SimpleLogFile -String "Access EICAR Files Finished" -name $LogFile -OutHost
 }
 
-if ( $ProcessesAnalysis ) {
+if ( -not $DisableProcessesAnalysis ) {
     # Check thru all of the Processes that are supposed to be excluded and verify if there are non Microsoft modules loaded
     Write-SimpleLogFile -string "Checking Processes for 3rd party Modules" -name $LogFile -OutHost
     if ( $IncludeW3wpProcesses ) {
@@ -384,7 +390,7 @@ if ( $ProcessesAnalysis ) {
         $ExchProcessList += (Join-Path $env:SystemRoot '\System32\inetSrv\W3wp.exe')
     }
 
-    $i = 0
+    $processListCounter = 0
 
     $BadProcessList = [ordered]@{}
 
@@ -392,7 +398,7 @@ if ( $ProcessesAnalysis ) {
     foreach ($Process in $ExchProcessList) {
         [array]$RunningProcess = $null
 
-        Write-Progress -Id 0 -Activity "Examining Exchange processes." -PercentComplete (($i / $ExchProcessList.Count) * 100) -Status " "
+        Write-Progress -Id 0 -Activity "Examining Exchange processes." -PercentComplete (($processListCounter / $ExchProcessList.Count) * 100) -Status " "
 
         # First see if the process is running
         $ProcessName = (($Process.Split('\')[-1])).Substring(0, ($Process.Split('\')[-1]).lastIndexOf('.'))
@@ -404,27 +410,25 @@ if ( $ProcessesAnalysis ) {
         } else {
             Write-SimpleLogFile -string "Found $Process" -name $LogFile
 
-            $j = 0
+            $runningProcessesCounter = 0
             # Pull each instance of the process
             foreach ($Instance in $RunningProcess) {
-                Write-Progress -Id 1 -ParentId 0 -Activity "Examining $Process $($j+1) of $($RunningProcess.Count)" -Status " "
+                Write-Progress -Id 1 -ParentId 0 -Activity "Examining $Process $($runningProcessesCounter+1) of $($RunningProcess.Count)" -Status " "
 
                 if ( $Process -eq $Instance.Path) {
                     Write-SimpleLogFile -String ("############################################################") -name $LogFile
                     Write-SimpleLogFile -String ("Working on Process $($Instance.Path)") -name $LogFile
                     Write-SimpleLogFile -String ("Working on PID $($Instance.Id)") -name $LogFile
-                    #$CommandLine = (Get-WmiObject Win32_Process -Filter "ProcessId = '$($Instance.Id)'" | Select-Object CommandLine).CommandLine
                     $CommandLine = (Get-CimInstance  -Query "Select * from Win32_Process where ProcessId = '$($Instance.Id)'" | Select-Object CommandLine).CommandLine
 
                     Write-SimpleLogFile -String ("CommandLine: $CommandLine") -name $LogFile
 
-                    $k = 0
+                    $instancesCounter = 0
                     foreach ($module in $Instance.Modules ) {
-                        Write-Progress -Id 2 -ParentId 1 -Activity "Examining loaded modules in $($Instance.Id) process." -PercentComplete (($k / $Instance.Modules.Count) * 100) -Status " "
+                        Write-Progress -Id 2 -ParentId 1 -Activity "Examining loaded modules in $($Instance.Id) process." -PercentComplete (($instancesCounter / $Instance.Modules.Count) * 100) -Status " "
                         Write-SimpleLogFile -String ("Working on Module $($module.FileName)") -name $LogFile
                         $signature = $module.FileName | Get-AuthenticodeSignature
                         if ( $signature.Status -eq 'NotSigned') {
-                            #Write-Host " -> $($module.FileName)" -ForegroundColor DarkGreen
                             if ( ($module.FileName.ToLower().StartsWith(('c:\windows\assembly\NativeImages_').ToLower()) -and (
                                         $module.FileName.ToLower().EndsWith('.ni.dll') -or $module.FileName.ToLower().EndsWith('.ni.exe') -or
                                         $module.FileName.ToLower().EndsWith('.wrapper.dll') ) ) -or
@@ -435,85 +439,85 @@ if ( $ProcessesAnalysis ) {
                             ($module.FileName.ToLower() -eq (Join-Path ($env:ExchangeInstallPath).ToLower() 'bin\osafehtm.dll') -and ([byte]$serverExchangeInstallDirectory.MsiProductMinor) -gt 0 ) ) {
                                 if ( Test-UnknownCompany $module.Company) {
                                     if ( Test-UnknownModule $module.ModuleName) {
-                                        $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($Instance.Path), $($module.FileName), $CommandLine"
-                                        Write-SimpleLogFile -String ("[FAIL] - Unknown Module $($module.FileName) - $($module.ModuleName) - on process $($Instance.Id) - $CommandLine") -name $LogFile -OutHost
+                                        $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($module.FileName), $($module.Company), $($module.Description), $($module.Product),  $($Instance.Path), $CommandLine"
+                                        Write-SimpleLogFile -String ("[FAIL] - Unknown Module $($module.FileName) `n`tCompany: $($module.Company) `n`tDescription: $($module.Description) `n`tProduct: $($module.Product) `n`tProcess Id: $($Instance.Id) `n`tCommandLine: $CommandLine") -name $LogFile -OutHost
                                     }
                                 }
                             } else {
-                                $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($Instance.Path), $($module.FileName), $CommandLine"
-                                Write-SimpleLogFile -String ("[FAIL] - Unsigned Module $($module.FileName) - $($module.ModuleName) - on process $($Instance.Id) - $CommandLine") -name $LogFile -OutHost
+                                $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($module.FileName), $($module.Company), $($module.Description), $($module.Product),  $($Instance.Path), $CommandLine"
+                                Write-SimpleLogFile -String ("[FAIL] - Unsigned Module File $($module.FileName) `n`tCompany: $($module.Company) `n`tDescription: $($module.Description) `n`tProduct: $($module.Product) `n`tProcess ID: $($Instance.Id) `n`tCommand Line: $CommandLine") -name $LogFile -OutHost
                             }
                         } else {
                             if ( $signature.Status -eq 'Valid' -and $signature.StatusMessage -eq 'Signature verified.') {
                                 $cert = $null
                                 $cert = $signature.SignerCertificate
                                 if ( $null -eq $cert) {
-                                    $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($Instance.Path), $($module.FileName), $CommandLine"
-                                    Write-SimpleLogFile -String ("[FAIL] - We could not get signer certificate of $($module.FileName) - on process $($Instance.Id) - $CommandLine") -name $LogFile -OutHost
+                                    $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($module.FileName), $($module.Company), $($module.Description), $($module.Product),  $($Instance.Path), $CommandLine"
+                                    Write-SimpleLogFile -String ("[FAIL] - We could not get signer certificate on Module: $($module.FileName) `n`tCompany: $($module.Company) `n`tDescription: $($module.Description) `n`tProduct: $($module.Product) `n`tProcess ID: $($Instance.Id) `n`tCommand Line: $CommandLine") -name $LogFile -OutHost
                                 } else {
                                     $chain = New-Object -TypeName System.Security.Cryptography.X509Certificates.X509Chain
                                     $chain.Build($cert) | Out-Null
                                     $rootCertificate = $null
                                     $rootCertificate = $chain.ChainElements[$chain.ChainElements.Count - 1].Certificate.Subject
                                     if ( $null -eq $rootCertificate) {
-                                        $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($Instance.Path), $($module.FileName), $CommandLine"
-                                        Write-SimpleLogFile -String ("[FAIL] - We could not get root certificate of $($module.FileName) - on process $($Instance.Id) - $CommandLine") -name $LogFile -OutHost
+                                        $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($module.FileName), $($module.Company), $($module.Description), $($module.Product),  $($Instance.Path), $CommandLine"
+                                        Write-SimpleLogFile -String ("[FAIL] - We could not get root certificate on Module: $($module.FileName) `n`tCompany: $($module.Company) `n`tDescription: $($module.Description) `n`tProduct: $($module.Product) `n`tProcess ID: $($Instance.Id) `n`tCommand Line: $CommandLine") -name $LogFile -OutHost
                                     } else {
                                         $FIPSPath = Join-Path $env:ExchangeInstallPath 'FIP-FS\Bin\TE'
                                         if ($module.FileName.ToLower().StartsWith($FIPSPath.ToLower()) ) {
                                             if ($Offline) {
                                                 if ( -not (CheckIfISAcceptedRootCA -CAString $rootCertificate -isFIPFS -Offline) ) {
-                                                    $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($Instance.Path), $($module.FileName), $CommandLine"
-                                                    Write-SimpleLogFile -String ("[FAIL] - root do not expected on FIP-FS $($module.FileName) - $rootCertificate - on process $($Instance.Id) - $CommandLine") -name $LogFile -OutHost
+                                                    $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($module.FileName), $($module.Company), $($module.Description), $($module.Product),  $($Instance.Path), $CommandLine"
+                                                    Write-SimpleLogFile -String ("[FAIL] - root do not expected (FIP-FS) on Module: $($module.FileName) `n`tCompany: $($module.Company) `n`tDescription: $($module.Description) `n`tProduct: $($module.Product) `n`tRoot CA $rootCertificate `n`tProcess ID: $($Instance.Id) `n`tCommand Line: $CommandLine") -name $LogFile -OutHost
                                                 }
                                             } else {
                                                 if ( -not (CheckIfISAcceptedRootCA -CAString $rootCertificate -isFIPFS) ) {
-                                                    $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($Instance.Path), $($module.FileName), $CommandLine"
-                                                    Write-SimpleLogFile -String ("[FAIL] - root do not expected on FIP-FS $($module.FileName) - $rootCertificate - on process $($Instance.Id) - $CommandLine") -name $LogFile -OutHost
+                                                    $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($module.FileName), $($module.Company), $($module.Description), $($module.Product),  $($Instance.Path), $CommandLine"
+                                                    Write-SimpleLogFile -String ("[FAIL] - root do not expected (FIP-FS) on Module: $($module.FileName) `n`tCompany: $($module.Company) `n`tDescription: $($module.Description) `n`tProduct: $($module.Product) `n`tRoot CA: $rootCertificate `n`tProcess ID: $($Instance.Id) `n`tCommand Line: $CommandLine") -name $LogFile -OutHost
                                                 }
                                             }
                                         } else {
                                             if ($Offline) {
                                                 if ( -not (CheckIfISAcceptedRootCA($rootCertificate) -Offline) ) {
-                                                    $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($Instance.Path), $($module.FileName), $CommandLine"
-                                                    Write-SimpleLogFile -String ("[FAIL] - root do not expected $($module.FileName) - $rootCertificate - on process $($Instance.Id) - $CommandLine" ) -name $LogFile -OutHost
+                                                    $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($module.FileName), $($module.Company), $($module.Description), $($module.Product),  $($Instance.Path), $CommandLine"
+                                                    Write-SimpleLogFile -String ("[FAIL] - root do not expected on Module: $($module.FileName) `n`tCompany: $($module.Company) `n`tDescription: $($module.Description) `n`tProduct: $($module.Product) `n`tRoot CA: $rootCertificate `n`tProcess ID: $($Instance.Id) `n`tCommand Line: $CommandLine" ) -name $LogFile -OutHost
                                                 }
                                             } else {
                                                 if ( -not (CheckIfISAcceptedRootCA($rootCertificate)) ) {
-                                                    $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($Instance.Path), $($module.FileName), $CommandLine"
-                                                    Write-SimpleLogFile -String ("[FAIL] - root do not expected $($module.FileName) - $rootCertificate - on process $($Instance.Id) - $CommandLine" ) -name $LogFile -OutHost
+                                                    $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($module.FileName), $($module.Company), $($module.Description), $($module.Product),  $($Instance.Path), $CommandLine"
+                                                    Write-SimpleLogFile -String ("[FAIL] - root do not expected on Module: $($module.FileName) `n`tCompany: $($module.Company) `n`tDescription: $($module.Description) `n`tProduct: $($module.Product) `n`tRoot CA: $rootCertificate `n`tProcess ID: $($Instance.Id) `n`tCommand Line: $CommandLine" ) -name $LogFile -OutHost
                                                 }
                                             }
                                         }
                                     }
                                 }
                             } else {
-                                $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($module.FileName), $($Instance.Path), $CommandLine"
-                                Write-SimpleLogFile -String ("[FAIL] - We could not verify the signature of $($module.FileName) - on process $($Instance.Id) - $CommandLine") -name $LogFile -OutHost
+                                $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($module.FileName), $($module.Company), $($module.Description), $($module.Product),  $($Instance.Path), $CommandLine"
+                                Write-SimpleLogFile -String ("[FAIL] - We could not verify the signature of $($module.FileName) `n`tCompany: $($module.Company) `n`tDescription: $($module.Description) `n`tProduct: $($module.Product) `n`tProcess ID: $($Instance.Id) `n`tCommand Line: $CommandLine") -name $LogFile -OutHost
                             }
                         }
-                        $k++
+                        $instancesCounter++
                     }
                 }
-                $j++
+                $runningProcessesCounter++
             }
         }
-        $i++
+        $processListCounter++
     }
     Write-Progress -Completed -Activity "Examining loaded modules in Exchange processes." -Status " "
     Write-SimpleLogFile -string "Finished  Processes for 3rd party Modules" -name $LogFile -OutHost
 }
 
-if ( -not $ProcessesAnalysis ) {
+if ( $DisableProcessesAnalysis ) {
     # Sleeping 5 minutes for AV to "find" the files
     Start-SleepWithProgress -SleepTime 300 -message "Allowing time for AV to Scan"
 }
 
-if ( $DirectoriesAnalysis -or $ExtensionsAnalysis ) {
+if ( -not ( ( $DisableDirectoriesAnalysis ) -and ( $DisableExtensionsAnalysis ) ) ) {
     Write-SimpleLogFile -string "Testing for EICAR files" -name $LogFile -OutHost
 }
 
-if ( $DirectoriesAnalysis ) {
+if ( -not $DisableDirectoriesAnalysis ) {
     # Create a list of folders that are probably being scanned by AV
     $BadFolderList = New-Object Collections.Generic.List[string]
 
@@ -543,7 +547,7 @@ if ( $DirectoriesAnalysis ) {
     }
 }
 
-if ( $ExtensionsAnalysis ) {
+if ( -not $DisableExtensionsAnalysis ) {
     $BadExtensionList = New-Object Collections.Generic.List[string]
     # Test each extension for the EICAR file
     foreach ($extension in $extensionsList) {
@@ -592,7 +596,7 @@ if ($BadFolderList.count -eq 0 -and $BadExtensionList.Count -eq 0 -and $BadProce
     "Exclusions appear to be set properly - ($((Get-Date).ToString())):" | Out-File $OutputPath
 }
 
-if ( $DirectoriesAnalysis ) {
+if ( -not $DisableDirectoriesAnalysis ) {
     " " | Out-File $OutputPath -Append
     if ( $BadFolderList.count -gt 0 ) {
         Write-Warning ("Found $($BadFolderList.count) of $($FolderList.Count) folders that are possibly being scanned! ")
@@ -604,7 +608,7 @@ if ( $DirectoriesAnalysis ) {
     }
 }
 
-if ( $ExtensionsAnalysis ) {
+if ( -not $DisableExtensionsAnalysis ) {
     " " | Out-File $OutputPath -Append
     if ( $BadExtensionList.count -gt 0 ) {
         Write-Warning ("Found $($BadExtensionList.count) of $($extensionsList.Count) extensions that are possibly being scanned! ")
@@ -616,11 +620,11 @@ if ( $ExtensionsAnalysis ) {
     }
 }
 
-if ( $ProcessesAnalysis ) {
+if ( -not $DisableProcessesAnalysis ) {
     " " | Out-File $OutputPath -Append
     if ($BadProcessList.count -gt 0) {
         Write-Warning ("Found $($BadProcessList.count) processes that are possibly being scanned! ")
-        "Processes not Excluded (PID, Process, ExternalModule, CommandLine):" | Out-File $OutputPath -Append
+        "Processes not Excluded (PID, Module, Company, Description, Product, Path, CommandLine):" | Out-File $OutputPath -Append
         $BadProcessList.Keys | ForEach-Object { $BadProcessList[$_] } | Out-File $OutputPath -Append
     } else {
         Write-SimpleLogFile -String "Exchange Processes appear clean" -Name $LogFile -OutHost
