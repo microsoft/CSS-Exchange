@@ -26,9 +26,9 @@ Once the files are created it will wait 5 minutes for AV to "see" and remove the
 Parameter | Description |
 ----------|-------------|
 DisableDirectoriesAnalysis | Disable the Directories Analysis exclusions.
-Recurse | Places an EICAR file in all SubFolders in the Exclusions list as well as the root.
+Recurse | Places an EICAR file in all SubFolders in the Exclusions list as well as the root. Generally should not be needed unless all folders pass without -Recuse but AV is still suspected. It does not apply if you use DisableDirectoriesAnalysis parameter.
 DisableProcessesAnalysis | Disable the Processes Analysis exclusions.
-IncludeW3wpProcesses | Includes w3wp processes in the analysis.
+IncludeW3wpProcesses | Includes w3wp processes in the analysis. It does not apply if you use DisableProcessesAnalysis parameter.
 DisableExtensionsAnalysis | Disable the Extension Analysis exclusions.
 OpenLog | Opens the script log file.
 

@@ -26,14 +26,16 @@ Once the files are created it will wait 60 seconds for AV to "see" and remove th
 Disable the Directories Analysis exclusions
 
 .PARAMETER Recurse
-Places an EICAR file in all SubFolders in the Exclusions list as well as the root.
+Places an EICAR file in all SubFolders in the Exclusions list as well as the root. 
 Generally should not be needed unless all folders pass without -Recuse but AV is still suspected.
+It does not apply if you use DisableDirectoriesAnalysis parameter.
 
 .PARAMETER DisableProcessesAnalysis
 Disable the Processes Analysis exclusions.
 
 .PARAMETER IncludeW3wpProcesses
-Includes w3wp processes in the analysis.
+Includes w3wp processes in the analysis. 
+It does not apply if you use DisableProcessesAnalysis parameter.
 
 .PARAMETER DisableExtensionsAnalysis
 Disable the Extension Analysis exclusions.
@@ -270,7 +272,7 @@ if ( -not $DisableDirectoriesAnalysis) {
     $FolderList = $FolderList | Select-Object -Unique
 }
 
-if ( (-not $DisableDirectoriesAnalysis ) -and ( -not $DisableExtensionsAnalysis ) ) {
+if ( -not ( ($DisableDirectoriesAnalysis ) -and ( $DisableExtensionsAnalysis ) ) ) {
     Write-SimpleLogFile -String "Creating EICAR Files" -name $LogFile -OutHost
 
     # Create the EICAR file in each path
@@ -339,7 +341,7 @@ if ( -not $DisableExtensionsAnalysis ) {
     }
 }
 
-if ( ( -not $DisableDirectoriesAnalysis ) -and ( -not $DisableExtensionsAnalysis ) ) {
+if ( -not ( ( $DisableDirectoriesAnalysis ) -and ( $DisableExtensionsAnalysis ) ) ) {
     Write-SimpleLogFile -String "EICAR Files Created" -name $LogFile -OutHost
     Write-SimpleLogFile -String "Accessing EICAR Files" -name $LogFile -OutHost
     # Try to open each EICAR file to force detection in paths
@@ -370,7 +372,7 @@ if ( -not $DisableExtensionsAnalysis ) {
     }
 }
 
-if ( ( -not $DisableDirectoriesAnalysis ) -and ( -not $DisableExtensionsAnalysis ) ) {
+if ( -not ( ( $DisableDirectoriesAnalysis ) -and ( $DisableExtensionsAnalysis ) ) ) {
     Write-SimpleLogFile -String "Access EICAR Files Finished" -name $LogFile -OutHost
 }
 
@@ -437,61 +439,61 @@ if ( -not $DisableProcessesAnalysis ) {
                             ($module.FileName.ToLower() -eq (Join-Path ($env:ExchangeInstallPath).ToLower() 'bin\osafehtm.dll') -and ([byte]$serverExchangeInstallDirectory.MsiProductMinor) -gt 0 ) ) {
                                 if ( Test-UnknownCompany $module.Company) {
                                     if ( Test-UnknownModule $module.ModuleName) {
-                                        $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($Instance.Path), $($module.FileName), $CommandLine"
-                                        Write-SimpleLogFile -String ("[FAIL] - Unknown Module $($module.FileName) - $($module.ModuleName) - on process $($Instance.Id) - $CommandLine") -name $LogFile -OutHost
+                                        $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($module.FileName), $($module.Company), $($module.Description), $($module.Product),  $($Instance.Path), $CommandLine"
+                                        Write-SimpleLogFile -String ("[FAIL] - Unknown Module $($module.FileName) `n`tCompany: $($module.Company) `n`tDescription: $($module.Description) `n`tProduct: $($module.Product) `n`tProcess Id: $($Instance.Id) `n`tCommandLine: $CommandLine") -name $LogFile -OutHost
                                     }
                                 }
                             } else {
-                                $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($Instance.Path), $($module.FileName), $CommandLine"
-                                Write-SimpleLogFile -String ("[FAIL] - Unsigned Module $($module.FileName) - $($module.ModuleName) - on process $($Instance.Id) - $CommandLine") -name $LogFile -OutHost
+                                $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($module.FileName), $($module.Company), $($module.Description), $($module.Product),  $($Instance.Path), $CommandLine"
+                                Write-SimpleLogFile -String ("[FAIL] - Unsigned Module File $($module.FileName) `n`tCompany: $($module.Company) `n`tDescription: $($module.Description) `n`tProduct: $($module.Product) `n`tProcess ID: $($Instance.Id) `n`tCommand Line: $CommandLine") -name $LogFile -OutHost
                             }
                         } else {
                             if ( $signature.Status -eq 'Valid' -and $signature.StatusMessage -eq 'Signature verified.') {
                                 $cert = $null
                                 $cert = $signature.SignerCertificate
                                 if ( $null -eq $cert) {
-                                    $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($Instance.Path), $($module.FileName), $CommandLine"
-                                    Write-SimpleLogFile -String ("[FAIL] - We could not get signer certificate of $($module.FileName) - on process $($Instance.Id) - $CommandLine") -name $LogFile -OutHost
+                                    $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($module.FileName), $($module.Company), $($module.Description), $($module.Product),  $($Instance.Path), $CommandLine"
+                                    Write-SimpleLogFile -String ("[FAIL] - We could not get signer certificate on Module: $($module.FileName) `n`tCompany: $($module.Company) `n`tDescription: $($module.Description) `n`tProduct: $($module.Product) `n`tProcess ID: $($Instance.Id) `n`tCommand Line: $CommandLine") -name $LogFile -OutHost
                                 } else {
                                     $chain = New-Object -TypeName System.Security.Cryptography.X509Certificates.X509Chain
                                     $chain.Build($cert) | Out-Null
                                     $rootCertificate = $null
                                     $rootCertificate = $chain.ChainElements[$chain.ChainElements.Count - 1].Certificate.Subject
                                     if ( $null -eq $rootCertificate) {
-                                        $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($Instance.Path), $($module.FileName), $CommandLine"
-                                        Write-SimpleLogFile -String ("[FAIL] - We could not get root certificate of $($module.FileName) - on process $($Instance.Id) - $CommandLine") -name $LogFile -OutHost
+                                        $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($module.FileName), $($module.Company), $($module.Description), $($module.Product),  $($Instance.Path), $CommandLine"
+                                        Write-SimpleLogFile -String ("[FAIL] - We could not get root certificate on Module: $($module.FileName) `n`tCompany: $($module.Company) `n`tDescription: $($module.Description) `n`tProduct: $($module.Product) `n`tProcess ID: $($Instance.Id) `n`tCommand Line: $CommandLine") -name $LogFile -OutHost
                                     } else {
                                         $FIPSPath = Join-Path $env:ExchangeInstallPath 'FIP-FS\Bin\TE'
                                         if ($module.FileName.ToLower().StartsWith($FIPSPath.ToLower()) ) {
                                             if ($Offline) {
                                                 if ( -not (CheckIfISAcceptedRootCA -CAString $rootCertificate -isFIPFS -Offline) ) {
-                                                    $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($Instance.Path), $($module.FileName), $CommandLine"
-                                                    Write-SimpleLogFile -String ("[FAIL] - root do not expected on FIP-FS $($module.FileName) - $rootCertificate - on process $($Instance.Id) - $CommandLine") -name $LogFile -OutHost
+                                                    $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($module.FileName), $($module.Company), $($module.Description), $($module.Product),  $($Instance.Path), $CommandLine"
+                                                    Write-SimpleLogFile -String ("[FAIL] - root do not expected (FIP-FS) on Module: $($module.FileName) `n`tCompany: $($module.Company) `n`tDescription: $($module.Description) `n`tProduct: $($module.Product) `n`tRoot CA $rootCertificate `n`tProcess ID: $($Instance.Id) `n`tCommand Line: $CommandLine") -name $LogFile -OutHost
                                                 }
                                             } else {
                                                 if ( -not (CheckIfISAcceptedRootCA -CAString $rootCertificate -isFIPFS) ) {
-                                                    $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($Instance.Path), $($module.FileName), $CommandLine"
-                                                    Write-SimpleLogFile -String ("[FAIL] - root do not expected on FIP-FS $($module.FileName) - $rootCertificate - on process $($Instance.Id) - $CommandLine") -name $LogFile -OutHost
+                                                    $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($module.FileName), $($module.Company), $($module.Description), $($module.Product),  $($Instance.Path), $CommandLine"
+                                                    Write-SimpleLogFile -String ("[FAIL] - root do not expected (FIP-FS) on Module: $($module.FileName) `n`tCompany: $($module.Company) `n`tDescription: $($module.Description) `n`tProduct: $($module.Product) `n`tRoot CA: $rootCertificate `n`tProcess ID: $($Instance.Id) `n`tCommand Line: $CommandLine") -name $LogFile -OutHost
                                                 }
                                             }
                                         } else {
                                             if ($Offline) {
                                                 if ( -not (CheckIfISAcceptedRootCA($rootCertificate) -Offline) ) {
-                                                    $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($Instance.Path), $($module.FileName), $CommandLine"
-                                                    Write-SimpleLogFile -String ("[FAIL] - root do not expected $($module.FileName) - $rootCertificate - on process $($Instance.Id) - $CommandLine" ) -name $LogFile -OutHost
+                                                    $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($module.FileName), $($module.Company), $($module.Description), $($module.Product),  $($Instance.Path), $CommandLine"
+                                                    Write-SimpleLogFile -String ("[FAIL] - root do not expected on Module: $($module.FileName) `n`tCompany: $($module.Company) `n`tDescription: $($module.Description) `n`tProduct: $($module.Product) `n`tRoot CA: $rootCertificate `n`tProcess ID: $($Instance.Id) `n`tCommand Line: $CommandLine" ) -name $LogFile -OutHost
                                                 }
                                             } else {
                                                 if ( -not (CheckIfISAcceptedRootCA($rootCertificate)) ) {
-                                                    $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($Instance.Path), $($module.FileName), $CommandLine"
-                                                    Write-SimpleLogFile -String ("[FAIL] - root do not expected $($module.FileName) - $rootCertificate - on process $($Instance.Id) - $CommandLine" ) -name $LogFile -OutHost
+                                                    $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($module.FileName), $($module.Company), $($module.Description), $($module.Product),  $($Instance.Path), $CommandLine"
+                                                    Write-SimpleLogFile -String ("[FAIL] - root do not expected on Module: $($module.FileName) `n`tCompany: $($module.Company) `n`tDescription: $($module.Description) `n`tProduct: $($module.Product) `n`tRoot CA: $rootCertificate `n`tProcess ID: $($Instance.Id) `n`tCommand Line: $CommandLine" ) -name $LogFile -OutHost
                                                 }
                                             }
                                         }
                                     }
                                 }
                             } else {
-                                $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($module.FileName), $($Instance.Path), $CommandLine"
-                                Write-SimpleLogFile -String ("[FAIL] - We could not verify the signature of $($module.FileName) - on process $($Instance.Id) - $CommandLine") -name $LogFile -OutHost
+                                $BadProcessList["$($Instance.Id) - $($module.FileName)"] = "$($Instance.Id), $($module.FileName), $($module.Company), $($module.Description), $($module.Product),  $($Instance.Path), $CommandLine"
+                                Write-SimpleLogFile -String ("[FAIL] - We could not verify the signature of $($module.FileName) `n`tCompany: $($module.Company) `n`tDescription: $($module.Description) `n`tProduct: $($module.Product) `n`tProcess ID: $($Instance.Id) `n`tCommand Line: $CommandLine") -name $LogFile -OutHost
                             }
                         }
                         $instancesCounter++
@@ -511,7 +513,7 @@ if ( $DisableProcessesAnalysis ) {
     Start-SleepWithProgress -SleepTime 300 -message "Allowing time for AV to Scan"
 }
 
-if ( ( -not $DisableDirectoriesAnalysis ) -and ( -not $DisableExtensionsAnalysis ) ) {
+if ( -not ( ( $DisableDirectoriesAnalysis ) -and ( $DisableExtensionsAnalysis ) ) ) {
     Write-SimpleLogFile -string "Testing for EICAR files" -name $LogFile -OutHost
 }
 
@@ -622,7 +624,7 @@ if ( -not $DisableProcessesAnalysis ) {
     " " | Out-File $OutputPath -Append
     if ($BadProcessList.count -gt 0) {
         Write-Warning ("Found $($BadProcessList.count) processes that are possibly being scanned! ")
-        "Processes not Excluded (PID, Process, ExternalModule, CommandLine):" | Out-File $OutputPath -Append
+        "Processes not Excluded (PID, Module, Company, Description, Product, Path, CommandLine):" | Out-File $OutputPath -Append
         $BadProcessList.Keys | ForEach-Object { $BadProcessList[$_] } | Out-File $OutputPath -Append
     } else {
         Write-SimpleLogFile -String "Exchange Processes appear clean" -Name $LogFile -OutHost
