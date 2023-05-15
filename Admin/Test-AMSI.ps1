@@ -95,7 +95,8 @@
 
 #>
 
-[CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = "TestAMSI", HelpUri = "https://aka.ms/css-exchange")]
+[CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = "TestAMSI", HelpUri = "https://microsoft.github.io/CSS-Exchange/Admin/Test-AMSI/")]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWMICmdlet', '', Justification = 'Used Get-WmiObject just in case Get-CimInstance does not get the Windows version as a fallback.')]
 param(
     [Parameter(ParameterSetName = 'TestAMSI', Mandatory = $false)]
     [Parameter(ParameterSetName = 'TestAMSIAll', Mandatory = $false)]
