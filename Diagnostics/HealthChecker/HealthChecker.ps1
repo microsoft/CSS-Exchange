@@ -211,6 +211,15 @@ begin {
         $Script:date = (Get-Date)
         $Script:dateTimeStringFormat = $date.ToString("yyyyMMddHHmmss")
 
+        # Some companies might already provide a full path for HtmlReportFile
+        # Detect if it is just a name, if it is, then append OutputFilePath to it.
+        # Otherwise, keep it as is
+        if ($HtmlReportFile.Contains("\")) {
+            $htmlOutFilePath = $HtmlReportFile
+        } else {
+            $htmlOutFilePath = [System.IO.Path]::Combine($OutputFilePath, $HtmlReportFile)
+        }
+
         # Features that doesn't require Exchange Shell
         if ($BuildHtmlServersReport) {
             Invoke-SetOutputInstanceLocation -FileName "HealthChecker-HTMLServerReport"
@@ -220,7 +229,7 @@ begin {
                 Write-Host "Doesn't appear to be any Health Check XML files here....stopping the script"
                 exit
             }
-            Get-HtmlServerReport -AnalyzedHtmlServerValues $importData.HtmlServerValues
+            Get-HtmlServerReport -AnalyzedHtmlServerValues $importData.HtmlServerValues -HtmlOutFilePath $htmlOutFilePath
             Start-Sleep 2;
             return
         }
@@ -241,7 +250,7 @@ begin {
                 $analyzedResults += $analyzedServerResults
             }
 
-            Get-HtmlServerReport -AnalyzedHtmlServerValues $analyzedResults.HtmlServerValues
+            Get-HtmlServerReport -AnalyzedHtmlServerValues $analyzedResults.HtmlServerValues -HtmlOutFilePath $htmlOutFilePath
             return
         }
 
