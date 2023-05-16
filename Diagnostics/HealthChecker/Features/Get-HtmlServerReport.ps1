@@ -3,7 +3,10 @@
 
 function Get-HtmlServerReport {
     param(
-        [Parameter(Mandatory = $true)][array]$AnalyzedHtmlServerValues
+        [Parameter(Mandatory = $true)]
+        [array]$AnalyzedHtmlServerValues,
+
+        [string]$HtmlOutFilePath
     )
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
@@ -96,5 +99,5 @@ function Get-HtmlServerReport {
 
     $htmlReport = $htmlHeader + $htmlOverviewTable + $htmlServerDetails + "</body>$([System.Environment]::NewLine)</html>"
 
-    $htmlReport | Out-File $HtmlReportFile -Encoding UTF8
+    $htmlReport | Out-File $HtmlOutFilePath -Encoding UTF8
 }
