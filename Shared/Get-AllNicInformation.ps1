@@ -1,10 +1,10 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 . $PSScriptRoot\Get-WmiObjectHandler.ps1
-. $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistrySubKey.ps1
-. $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
-. $PSScriptRoot\..\..\..\..\Shared\Invoke-CatchActionError.ps1
-. $PSScriptRoot\..\..\..\..\Shared\Invoke-CatchActionErrorLoop.ps1
+. $PSScriptRoot\Get-RemoteRegistrySubKey.ps1
+. $PSScriptRoot\Get-RemoteRegistryValue.ps1
+. $PSScriptRoot\Invoke-CatchActionError.ps1
+. $PSScriptRoot\Invoke-CatchActionErrorLoop.ps1
 function Get-AllNicInformation {
     [CmdletBinding()]
     param(
@@ -140,6 +140,8 @@ function Get-AllNicInformation {
                     $ipv4Address = @()
                     $ipv6Address = @()
                     $ipv6Enabled = $false
+                    $isRegisteredInDns = $false
+                    $dnsServerToBeUsed = $null
 
                     if (-not ($WmiObject)) {
                         Write-Verbose "Working on NIC: $($networkConfig.InterfaceDescription)"
@@ -240,43 +242,43 @@ function Get-AllNicInformation {
                         if ($null -eq $adapterConfiguration) {
                             Write-Verbose "Failed to find correct adapterConfiguration for this networkConfig."
                             Write-Verbose "GUID: $($networkConfig.GUID) | InterfaceGuid: $($networkConfig.InterfaceGuid)"
-                        }
-
-                        $ipv6Enabled = ($adapterConfiguration.IPAddress | Where-Object { $_.Contains(":") }).Count -ge 1
-
-                        if ($null -ne $adapterConfiguration.DefaultIPGateway) {
-                            $ipv4Gateway = $adapterConfiguration.DefaultIPGateway | Where-Object { $_.Contains(".") }
-                            $ipv6Gateway = $adapterConfiguration.DefaultIPGateway | Where-Object { $_.Contains(":") }
                         } else {
-                            $ipv4Gateway = "No default IPv4 gateway set"
-                            $ipv6Gateway = "No default IPv6 gateway set"
-                        }
+                            $ipv6Enabled = ($adapterConfiguration.IPAddress | Where-Object { $_.Contains(":") }).Count -ge 1
 
-                        for ($i = 0; $i -lt $adapterConfiguration.IPAddress.Count; $i++) {
-
-                            if ($adapterConfiguration.IPAddress[$i].Contains(":")) {
-                                $newIpv6Address = Get-IpvAddresses
-                                if ($i -lt $adapterConfiguration.IPAddress.Count) {
-                                    $newIpv6Address.Address = $adapterConfiguration.IPAddress[$i]
-                                    $newIpv6Address.Subnet = $adapterConfiguration.IPSubnet[$i]
-                                }
-
-                                $newIpv6Address.DefaultGateway = $ipv6Gateway
-                                $ipv6Address += $newIpv6Address
+                            if ($null -ne $adapterConfiguration.DefaultIPGateway) {
+                                $ipv4Gateway = $adapterConfiguration.DefaultIPGateway | Where-Object { $_.Contains(".") }
+                                $ipv6Gateway = $adapterConfiguration.DefaultIPGateway | Where-Object { $_.Contains(":") }
                             } else {
-                                $newIpv4Address = Get-IpvAddresses
-                                if ($i -lt $adapterConfiguration.IPAddress.Count) {
-                                    $newIpv4Address.Address = $adapterConfiguration.IPAddress[$i]
-                                    $newIpv4Address.Subnet = $adapterConfiguration.IPSubnet[$i]
-                                }
-
-                                $newIpv4Address.DefaultGateway = $ipv4Gateway
-                                $ipv4Address += $newIpv4Address
+                                $ipv4Gateway = "No default IPv4 gateway set"
+                                $ipv6Gateway = "No default IPv6 gateway set"
                             }
-                        }
 
-                        $isRegisteredInDns = $adapterConfiguration.FullDNSRegistrationEnabled
-                        $dnsServerToBeUsed = $adapterConfiguration.DNSServerSearchOrder
+                            for ($i = 0; $i -lt $adapterConfiguration.IPAddress.Count; $i++) {
+
+                                if ($adapterConfiguration.IPAddress[$i].Contains(":")) {
+                                    $newIpv6Address = Get-IpvAddresses
+                                    if ($i -lt $adapterConfiguration.IPAddress.Count) {
+                                        $newIpv6Address.Address = $adapterConfiguration.IPAddress[$i]
+                                        $newIpv6Address.Subnet = $adapterConfiguration.IPSubnet[$i]
+                                    }
+
+                                    $newIpv6Address.DefaultGateway = $ipv6Gateway
+                                    $ipv6Address += $newIpv6Address
+                                } else {
+                                    $newIpv4Address = Get-IpvAddresses
+                                    if ($i -lt $adapterConfiguration.IPAddress.Count) {
+                                        $newIpv4Address.Address = $adapterConfiguration.IPAddress[$i]
+                                        $newIpv4Address.Subnet = $adapterConfiguration.IPSubnet[$i]
+                                    }
+
+                                    $newIpv4Address.DefaultGateway = $ipv4Gateway
+                                    $ipv4Address += $newIpv4Address
+                                }
+                            }
+
+                            $isRegisteredInDns = $adapterConfiguration.FullDNSRegistrationEnabled
+                            $dnsServerToBeUsed = $adapterConfiguration.DNSServerSearchOrder
+                        }
                     }
 
                     $nicObjects.Add([PSCustomObject]@{
