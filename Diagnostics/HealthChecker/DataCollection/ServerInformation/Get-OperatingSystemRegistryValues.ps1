@@ -46,12 +46,18 @@ function Get-OperatingSystemRegistryValues {
         GetValue  = "AllowInsecureRenegoClients"
         ValueType = "DWord"
     }
+    $renegoClientValue = Get-RemoteRegistryValue @renegoClientsParams
+
+    if ($null -eq $renegoClientValue) { $renegoClientValue = "NULL" }
 
     $renegoServersParams = $baseParams + @{
         SubKey    = "SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL"
         GetValue  = "AllowInsecureRenegoServers"
         ValueType = "DWord"
     }
+    $renegoServerValue = Get-RemoteRegistryValue @renegoServersParams
+
+    if ($null -eq $renegoServerValue) { $renegoServerValue = "NULL" }
 
     $credGuardParams = $baseParams + @{
         SubKey   = "SYSTEM\CurrentControlSet\Control\LSA"
@@ -74,8 +80,8 @@ function Get-OperatingSystemRegistryValues {
         IPv6DisabledComponents          = [int](Get-RemoteRegistryValue @ipv6ComponentsParams)
         TCPKeepAlive                    = [int](Get-RemoteRegistryValue @tcpKeepAliveParams)
         RpcMinConnectionTimeout         = [int](Get-RemoteRegistryValue @rpcMinParams)
-        AllowInsecureRenegoServers      = [int](Get-RemoteRegistryValue @renegoServersParams)
-        AllowInsecureRenegoClients      = [int](Get-RemoteRegistryValue @renegoClientsParams)
+        AllowInsecureRenegoServers      = $renegoServerValue
+        AllowInsecureRenegoClients      = $renegoClientValue
         CredentialGuard                 = [int](Get-RemoteRegistryValue @credGuardParams)
     }
 }
