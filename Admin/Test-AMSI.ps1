@@ -353,64 +353,27 @@ begin {
                     Write-Output $msgNewLine
                     if ( $ExchangeServer.ToLower() -eq $env:COMPUTERNAME.ToLower() ) {
                         Write-Host "Local AMSI Providers detection:" -ForegroundColor Green
+                        $providers = $null
                         $providers = Get-ChildItem $key -ErrorAction SilentlyContinue
-                        $providers | Format-Table -AutoSize
-                        $path = $null
-                        $path = ($providers | Where-Object { $_.PSChildName -eq 'InprocServer32' } ).GetValue('')
-                        if ( $path ) {
-                            $WindowsDefenderPath = $path.Substring(1, $path.LastIndexOf("\"))
-                            if ( $WindowsDefenderPath -like '*Windows Defender*') {
-                                Write-Host "Windows Defender with AMSI integration found." -ForegroundColor Green
-                                $checkCmdLet = $null
-                                $checkCmdLet = Get-Command Get-MpComputerStatus -ErrorAction SilentlyContinue
-                                if ($null -eq $checkCmdLet) {
-                                    Write-Warning "Get-MpComputerStatus cmdLet is not available"
-                                } else {
-                                    if ( (Get-MpComputerStatus).RealTimeProtectionEnabled ) {
-                                        Write-Host "Windows Defender has Real Time Protection Enabled" -ForegroundColor Green
-                                    } else {
-                                        Write-Warning "Windows Defender has Real Time Protection Disabled"
-                                    }
-                                }
-                                Write-Host "It should be version 1.1.18300.4 or newest."
-                                if ( Test-Path $WindowsDefenderPath -PathType Container ) {
-                                    $folder = Get-ChildItem  $WindowsDefenderPath | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-                                    $process = Join-Path $folder.FullName "MpCmdRun.exe"
-                                    if ( Test-Path $process -PathType Leaf ) {
-                                        $DefenderVersion = (& $process -SignatureUpdate | Where-Object { $_.StartsWith('Engine Version:') }).Split(' ')[2]
-                                        if ( [int]$DefenderVersion.Split('.')[0] -gt 1 -or
-                                    ( [int]$DefenderVersion.Split('.')[0] -eq 1 -and [int]$DefenderVersion.Split('.')[1] -gt 1 ) -or
-                                    ( [int]$DefenderVersion.Split('.')[0] -eq 1 -and [int]$DefenderVersion.Split('.')[1] -eq 1 -and [int]$DefenderVersion.Split('.')[2] -gt 18300 ) -or
-                                    ( [int]$DefenderVersion.Split('.')[0] -eq 1 -and [int]$DefenderVersion.Split('.')[1] -eq 1 -and [int]$DefenderVersion.Split('.')[2] -eq 18300 -and [int]$DefenderVersion.Split('.')[3] -ge 4) ) {
-                                            Write-Host "Windows Defender version supported for AMSI: $DefenderVersion" -ForegroundColor Green
-                                        } else {
-                                            Write-Warning  "Windows Defender version Non-supported for AMSI: $DefenderVersion"
-                                        }
-                                    } else {
-                                        Write-Warning  "We did not find Windows Defender MpCmdRun.exe."
-                                    }
-                                } else {
-                                    Write-Warning "We did not find Windows Defender Path."
-                                }
-                            } else {
-                                Write-Warning "It is not Windows Defender AV, check with your provider."
-                            }
-                        } else {
-                            Write-Warning "We did not find AMSI providers."
-                        }
-                    } else {
-                        Invoke-Command -ComputerName $ExchangeServer -ScriptBlock { Get-ChildItem $using:key -ErrorAction SilentlyContinue } -ErrorAction SilentlyContinue | Format-Table -AutoSize
-                        $remoteExchangePath = Invoke-Command -ComputerName $server -ScriptBlock {
-                            Write-Host "Remote AMSI Providers detection ($($using:ExchangeServer)): "
-                            $providers = Get-ChildItem $using:key -ErrorAction SilentlyContinue
-
+                        if ($providers) {
+                            $providers | Format-Table -AutoSize
                             $path = $null
                             $path = ($providers | Where-Object { $_.PSChildName -eq 'InprocServer32' } ).GetValue('')
                             if ( $path ) {
                                 $WindowsDefenderPath = $path.Substring(1, $path.LastIndexOf("\"))
-
                                 if ( $WindowsDefenderPath -like '*Windows Defender*') {
                                     Write-Host "Windows Defender with AMSI integration found." -ForegroundColor Green
+                                    $checkCmdLet = $null
+                                    $checkCmdLet = Get-Command Get-MpComputerStatus -ErrorAction SilentlyContinue
+                                    if ($null -eq $checkCmdLet) {
+                                        Write-Warning "Get-MpComputerStatus cmdLet is not available"
+                                    } else {
+                                        if ( (Get-MpComputerStatus).RealTimeProtectionEnabled ) {
+                                            Write-Host "Windows Defender has Real Time Protection Enabled" -ForegroundColor Green
+                                        } else {
+                                            Write-Warning "Windows Defender has Real Time Protection Disabled"
+                                        }
+                                    }
                                     Write-Host "It should be version 1.1.18300.4 or newest."
                                     if ( Test-Path $WindowsDefenderPath -PathType Container ) {
                                         $folder = Get-ChildItem  $WindowsDefenderPath | Sort-Object LastWriteTime -Descending | Select-Object -First 1
@@ -437,8 +400,64 @@ begin {
                             } else {
                                 Write-Warning "We did not find AMSI providers."
                             }
+                        } else {
+                            Write-Host "We did not find any AMSI provider" -ForegroundColor Red
                         }
-                        $remoteExchangePath
+                    } else {
+                        Write-Host "Remote AMSI Providers detection:" -ForegroundColor Green
+                        $providers = $null
+                        $providers = Invoke-Command -ComputerName $ExchangeServer -ScriptBlock { Get-ChildItem $using:key -ErrorAction SilentlyContinue } -ErrorAction SilentlyContinue | Format-Table -AutoSize
+                        if ($providers) {
+                            $providers | Format-Table -AutoSize
+                            Invoke-Command -ComputerName $server -ScriptBlock {
+                                $providers = Get-ChildItem $using:key -ErrorAction SilentlyContinue
+                                $path = $null
+                                $path = ($providers | Where-Object { $_.PSChildName -eq 'InprocServer32' } ).GetValue('')
+                                if ( $path ) {
+                                    $WindowsDefenderPath = $path.Substring(1, $path.LastIndexOf("\"))
+                                    if ( $WindowsDefenderPath -like '*Windows Defender*') {
+                                        Write-Host "Windows Defender with AMSI integration found." -ForegroundColor Green
+                                        $checkCmdLet = $null
+                                        $checkCmdLet = Get-Command Get-MpComputerStatus -ErrorAction SilentlyContinue
+                                        if ($null -eq $checkCmdLet) {
+                                            Write-Warning "Get-MpComputerStatus cmdLet is not available"
+                                        } else {
+                                            if ( (Get-MpComputerStatus).RealTimeProtectionEnabled ) {
+                                                Write-Host "Windows Defender has Real Time Protection Enabled" -ForegroundColor Green
+                                            } else {
+                                                Write-Warning "Windows Defender has Real Time Protection Disabled"
+                                            }
+                                        }
+                                        Write-Host "It should be version 1.1.18300.4 or newest."
+                                        if ( Test-Path $WindowsDefenderPath -PathType Container ) {
+                                            $folder = Get-ChildItem  $WindowsDefenderPath | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+                                            $process = Join-Path $folder.FullName "MpCmdRun.exe"
+                                            if ( Test-Path $process -PathType Leaf ) {
+                                                $DefenderVersion = (& $process -SignatureUpdate | Where-Object { $_.StartsWith('Engine Version:') }).Split(' ')[2]
+                                                if ( [int]$DefenderVersion.Split('.')[0] -gt 1 -or
+                                            ( [int]$DefenderVersion.Split('.')[0] -eq 1 -and [int]$DefenderVersion.Split('.')[1] -gt 1 ) -or
+                                            ( [int]$DefenderVersion.Split('.')[0] -eq 1 -and [int]$DefenderVersion.Split('.')[1] -eq 1 -and [int]$DefenderVersion.Split('.')[2] -gt 18300 ) -or
+                                            ( [int]$DefenderVersion.Split('.')[0] -eq 1 -and [int]$DefenderVersion.Split('.')[1] -eq 1 -and [int]$DefenderVersion.Split('.')[2] -eq 18300 -and [int]$DefenderVersion.Split('.')[3] -ge 4) ) {
+                                                    Write-Host "Windows Defender version supported for AMSI: $DefenderVersion" -ForegroundColor Green
+                                                } else {
+                                                    Write-Warning  "Windows Defender version Non-supported for AMSI: $DefenderVersion"
+                                                }
+                                            } else {
+                                                Write-Warning  "We did not find Windows Defender MpCmdRun.exe."
+                                            }
+                                        } else {
+                                            Write-Warning "We did not find Windows Defender Path."
+                                        }
+                                    } else {
+                                        Write-Warning "It is not Windows Defender AV, check with your provider."
+                                    }
+                                } else {
+                                    Write-Warning "We did not find AMSI providers."
+                                }
+                            } -ErrorAction SilentlyContinue
+                        } else {
+                            Write-Host "We did not find any AMSI provider" -ForegroundColor Red
+                        }
                     }
                 }
             }
@@ -463,50 +482,56 @@ begin {
         } else {
             Write-Output ""
             Write-Host "AMSI is Enabled on Server $ExchangeServer. We did not find any Settings Override that remove AMSI." -ForegroundColor Green
+
+            $FEEcpWebConfig = $null
+            $CAEEcpWebConfig = $null
             if ( $ExchangeServer.ToLower() -eq $env:COMPUTERNAME.ToLower() ) {
-                $FEEcpWebConfig = Join-Path $env:ExchangeInstallPath "FrontEnd\HttpProxy\ecp\web.config"
-                $CAEEcpWebConfig = Join-Path $env:ExchangeInstallPath "ClientAccess\ecp\web.config"
+                if ( $env:ExchangeInstallPath ) {
+                    $FEEcpWebConfig = Join-Path $env:ExchangeInstallPath "FrontEnd\HttpProxy\ecp\web.config"
+                    $CAEEcpWebConfig = Join-Path $env:ExchangeInstallPath "ClientAccess\ecp\web.config"
+                }
             } else {
                 $remoteExchangePath = (Invoke-Command -ComputerName $ExchangeServer -ScriptBlock { (Get-ChildItem Env:ExchangeInstallPath).Value }  -ArgumentList $env:ExchangeInstallPath -ErrorAction SilentlyContinue -ErrorVariable InvokeError)
                 if ( $remoteExchangePath ) {
                     $FEEcpWebConfig = Join-Path "\\$ExchangeServer\$($remoteExchangePath.Replace(':','$'))" "FrontEnd\HttpProxy\ecp\web.config"
                     $CAEEcpWebConfig = Join-Path "\\$ExchangeServer\$($remoteExchangePath.Replace(':','$'))" "ClientAccess\ecp\web.config"
-                } else {
-                    Write-Host "We could not get ExchangeInstallPath on $ExchangeServer." -ForegroundColor Red
-                    Exit
                 }
             }
 
-            if ( Test-Path $FEEcpWebConfig -PathType Leaf) {
-                $FEFilterModule = $null
-                $FEFilterModule = Get-Content $FEEcpWebConfig | Where-Object { $_ -match '<add name="HttpRequestFilteringModule" type="Microsoft.Exchange.HttpRequestFiltering.HttpRequestFilteringModule, Microsoft.Exchange.HttpRequestFiltering, Version=15.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"' }
-                Write-Output ""
-                if ( $FEFilterModule ) {
-                    Write-Host "We found HttpRequestFilteringModule on FrontEnd ECP web.config" -ForegroundColor Green
-                    Write-Host "on: $FEEcpWebConfig"
+            if ( $FEEcpWebConfig -and $CAEEcpWebConfig) {
+                if ( Test-Path $FEEcpWebConfig -PathType Leaf) {
+                    $FEFilterModule = $null
+                    $FEFilterModule = Get-Content $FEEcpWebConfig | Where-Object { $_ -match '<add name="HttpRequestFilteringModule" type="Microsoft.Exchange.HttpRequestFiltering.HttpRequestFilteringModule, Microsoft.Exchange.HttpRequestFiltering, Version=15.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"' }
+                    Write-Output ""
+                    if ( $FEFilterModule ) {
+                        Write-Host "We found HttpRequestFilteringModule on FrontEnd ECP web.config" -ForegroundColor Green
+                        Write-Host "on: %ExchangeInstallPath%FrontEnd\HttpProxy\ecp\web.config"
+                    } else {
+                        Write-Warning "We did not find HttpRequestFilteringModule on FrontEnd ECP web.config"
+                        Write-Warning "on: %ExchangeInstallPath%FrontEnd\HttpProxy\ecp\web.config"
+                    }
                 } else {
-                    Write-Warning "We did not find HttpRequestFilteringModule on FrontEnd ECP web.config"
-                    Write-Host "on:$FEEcpWebConfig"
+                    Write-Warning "We did not find web.config for FrontEnd ECP"
+                    Write-Warning "on: %ExchangeInstallPath%FrontEnd\HttpProxy\ecp\web.config"
                 }
-            } else {
-                Write-Warning "We did not find web.config for FrontEnd ECP"
-                Write-Host "on:$FEEcpWebConfig"
-            }
 
-            if ( Test-Path $FEEcpWebConfig -PathType Leaf) {
-                $CEFilterModule = $null
-                $CEFilterModule = Get-Content $CAEEcpWebConfig | Where-Object { $_ -match '<add name="HttpRequestFilteringModule" type="Microsoft.Exchange.HttpRequestFiltering.HttpRequestFilteringModule, Microsoft.Exchange.HttpRequestFiltering, Version=15.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"' }
-                Write-Output ""
-                if ( $CEFilterModule ) {
-                    Write-Host "We found HttpRequestFilteringModule on ClientAccess ECP web.config" -ForegroundColor Green
-                    Write-Host "on $CAEEcpWebConfig"
+                if ( Test-Path $FEEcpWebConfig -PathType Leaf) {
+                    $CEFilterModule = $null
+                    $CEFilterModule = Get-Content $CAEEcpWebConfig | Where-Object { $_ -match '<add name="HttpRequestFilteringModule" type="Microsoft.Exchange.HttpRequestFiltering.HttpRequestFilteringModule, Microsoft.Exchange.HttpRequestFiltering, Version=15.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"' }
+                    Write-Output ""
+                    if ( $CEFilterModule ) {
+                        Write-Host "We found HttpRequestFilteringModule on ClientAccess ECP web.config" -ForegroundColor Green
+                        Write-Host "on %ExchangeInstallPath%ClientAccess\ecp\web.config"
+                    } else {
+                        Write-Warning "We did not find HttpRequestFilteringModule on ClientAccess ECP web.config"
+                        Write-Warning "on %ExchangeInstallPath%ClientAccess\ecp\web.config"
+                    }
                 } else {
-                    Write-Warning "We did not find HttpRequestFilteringModule on ClientAccess ECP web.config"
-                    Write-Host "on $CAEEcpWebConfig"
+                    Write-Warning "We did not find web.config for ClientAccess ECP"
+                    Write-Warning "on %ExchangeInstallPath%ClientAccess\ecp\web.config"
                 }
             } else {
-                Write-Warning "We did not find web.config for ClientAccess ECP"
-                Write-Host "on:$CAEEcpWebConfig"
+                Write-Host "We could not get FrontEnd or BackEnd Web.config path on $ExchangeServer." -ForegroundColor Red
             }
         }
     }
