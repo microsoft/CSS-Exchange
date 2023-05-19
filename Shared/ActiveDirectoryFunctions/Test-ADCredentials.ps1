@@ -70,6 +70,7 @@ function Test-ADCredentials {
                     $credentialsValid = $false
                 } else {
                     Write-Verbose "Failed to connect to LDAP server for other reason"
+                    Write-Verbose "ErrorCode: $($_.Exception.ErrorCode)"
                 }
                 Write-Verbose "Exception: $_"
                 Invoke-CatchActionError $CatchActionFunction
