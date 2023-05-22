@@ -44,12 +44,13 @@ function Get-ExchangeServerIISSettings {
         $sharedWebConfig = Invoke-ScriptBlockHandler @params -ScriptBlock {
             param ($ConfigFiles)
             $ConfigFiles | ForEach-Object {
+                Write-Verbose "Working on shared config file: $_"
                 $validWebConfig = $false
                 $exist = Test-Path $_
                 $content = $null
                 try {
                     if ($exist) {
-                        $content = Get-Content $_ -Raw
+                        $content = (Get-Content $_ -Raw).Trim()
                         [xml]$content | Out-Null # test to make sure it is valid
                         $validWebConfig = $true
                     }

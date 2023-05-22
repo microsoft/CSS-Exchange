@@ -16,11 +16,12 @@ function Get-IISWebApplication {
             $configurationFilePath = [string]::Empty
             $siteName = $webApplication.ItemXPath | Select-String -Pattern "site\[\@name='(.+)'\s|\]"
             $friendlyName = "$($siteName.Matches.Groups[1].Value)$($webApplication.Path)"
+            Write-Verbose "Working on Web Application: $friendlyName"
             $configurationFilePath = (Get-WebConfigFile "IIS:\Sites\$friendlyName").FullName
             $webConfigExists = Test-Path $configurationFilePath
 
             if ($webConfigExists) {
-                $webConfigContent = Get-Content $configurationFilePath -Raw
+                $webConfigContent = (Get-Content $configurationFilePath -Raw).Trim()
 
                 try {
                     $linkedConfigurationLine = ([xml]$webConfigContent).configuration.assemblyBinding.linkedConfiguration.href

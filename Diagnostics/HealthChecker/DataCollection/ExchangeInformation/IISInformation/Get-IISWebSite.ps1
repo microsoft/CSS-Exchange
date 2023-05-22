@@ -20,6 +20,7 @@ function Get-IISWebSite {
     $bindings = Get-WebBinding
 
     foreach ($site in $webSites) {
+        Write-Verbose "Working on Site: $($site.Name)"
         $siteBindings = $bindings |
             Where-Object { $_.ItemXPath -like "*@name='$($site.name)' and @id='$($site.id)'*" }
         $configurationFilePath = (Get-WebConfigFile "IIS:\Sites\$($site.Name)").FullName
@@ -28,7 +29,7 @@ function Get-IISWebSite {
         $validWebConfig = $false
 
         if ($webConfigExists) {
-            $webConfigContent = Get-Content $configurationFilePath -Raw
+            $webConfigContent = (Get-Content $configurationFilePath -Raw).Trim()
 
             try {
                 [xml]$webConfigContent | Out-Null
