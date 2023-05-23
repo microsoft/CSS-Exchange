@@ -27,11 +27,12 @@ function Get-UnhandledErrors {
                 Where-Object { $_.Equals($currentError) }
 
                 if ($null -eq $handledError) {
-                    return [PSCustomObject]@{
+                    [PSCustomObject]@{
                         ErrorInformation = $currentError
-                        Index            = $index++
+                        Index            = $index
                     }
                 }
+                $index++
             }
 }
 
@@ -46,11 +47,12 @@ function Get-HandledErrors {
                 Where-Object { $_.Equals($currentError) }
 
                 if ($null -ne $handledError) {
-                    return [PSCustomObject]@{
+                    [PSCustomObject]@{
                         ErrorInformation = $currentError
-                        Index            = $index++
+                        Index            = $index
                     }
                 }
+                $index++
             }
 }
 
