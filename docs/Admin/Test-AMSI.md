@@ -35,7 +35,7 @@ If you want to test to see if AMSI integration is working in all server in a lis
 
 If you need to test and ignoring the certificate check, you can run: `.\Test-AMSI.ps1 -IgnoreSSL`
 
-If you want to see what AMSI Providers are installed on the local machine you can run: `.\Test-AMSI.ps1 -CheckAMSIProviders`
+If you want to see what AMSI Providers are installed on the local machine you can run: `.\Test-AMSI.ps1 -CheckAMSIConfig`
 
 If you want to enable AMSI at organization level, you can run: `.\Test-AMSI.ps1 -EnableAMSI`
 
