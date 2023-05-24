@@ -4,7 +4,7 @@
 [CmdletBinding()]
 param()
 
-Describe "Checking PageFile Scenarios" {
+Describe "Exchange 2019 Scenarios testing 2" {
 
     BeforeAll {
         . $PSScriptRoot\HealthCheckerTests.ImportCode.NotPublished.ps1
@@ -12,7 +12,7 @@ Describe "Checking PageFile Scenarios" {
         . $PSScriptRoot\HealthCheckerTest.CommonMocks.NotPublished.ps1
     }
 
-    Context "Scenario 1 - Configure As Expected" {
+    Context "Scenario 1" {
 
         BeforeAll {
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_PageFileSetting" } `
@@ -36,7 +36,7 @@ Describe "Checking PageFile Scenarios" {
         }
     }
 
-    Context "Scenario 2 - Oversized" {
+    Context "Scenario 2" {
 
         BeforeAll {
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_PageFileSetting" } `
@@ -60,7 +60,7 @@ Describe "Checking PageFile Scenarios" {
         }
     }
 
-    Context "Scenario 3 - System-managed" {
+    Context "Scenario 3" {
 
         BeforeAll {
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_PageFileSetting" } `
@@ -84,7 +84,7 @@ Describe "Checking PageFile Scenarios" {
         }
     }
 
-    Context "Scenario 4 - System Managed and Static" {
+    Context "Scenario 4" {
 
         BeforeAll {
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_PageFileSetting" } `
@@ -118,7 +118,7 @@ Describe "Checking PageFile Scenarios" {
         }
     }
 
-    Context "Scenario 5 - One Correct and One Oversized" {
+    Context "Scenario 5" {
 
         BeforeAll {
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_PageFileSetting" } `
