@@ -32,6 +32,7 @@ function Invoke-ScriptBlockHandler {
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $returnValue = $null
+        $currentErrors = $null
     }
     process {
 
@@ -83,8 +84,14 @@ function Invoke-ScriptBlockHandler {
                 Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
             }
         } catch {
-            Write-Verbose "Failed to run $($MyInvocation.MyCommand)"
-            Invoke-CatchActionError $CatchActionFunction
+            Write-Verbose "Failed to run $($MyInvocation.MyCommand) - $ScriptBlockDescription"
+
+            # Possible that locally we hit multiple errors prior to bailing out.
+            if ($null -ne $currentErrors) {
+                Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
+            } else {
+                Invoke-CatchActionError $CatchActionFunction
+            }
         }
     }
     end {
