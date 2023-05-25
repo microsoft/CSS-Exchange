@@ -7,6 +7,7 @@ param()
 BeforeAll {
     $Script:parentPath = (Split-Path -Parent $PSScriptRoot)
     . $Script:parentPath\IISFunctions\Get-IISModules.ps1
+    . $Script:parentPath\Invoke-ScriptBlockHandler.ps1
 
     function LoadApplicationHostConfig {
         [CmdletBinding()]
@@ -31,15 +32,21 @@ BeforeAll {
 
     Mock Get-AuthenticodeSignature {
         param(
-            [string]$FilePath
+            [string[]]$FilePath
         )
-        $pathArray = $FilePath.Split("\")
-        try {
-            $mockedData = $pathArray[-1].replace(".dll", ".xml")
-            return Import-Clixml -Path $Script:parentPath\Tests\Data\acs_$mockedData -ErrorAction Stop
-        } catch {
-            return $null
+
+        $modulesList = New-Object 'System.Collections.Generic.List[System.Object]'
+        foreach ($path in $FilePath) {
+            $pathArray = $path.Split("\")
+            try {
+                $mockedData = $pathArray[-1].replace(".dll", ".xml")
+                $modulesList.Add((Import-Clixml -Path $Script:parentPath\Tests\Data\acs_$mockedData -ErrorAction Stop))
+            } catch {
+                Write-Verbose "Unable to mock module signature for $path"
+            }
         }
+
+        return $modulesList
     }
 
     $Script:E19_ApplicationHost_Default = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E19_applicationHost_Default.config
@@ -57,7 +64,7 @@ Describe "Testing Get-IISModules.ps1" {
             $iisModules.GetType() | Should -Be PSCustomObject
             $iisModules.ModuleList.GetType() | Should -Be System.Object[]
             $iisModules.Count | Should -Be 1
-            $iisModules.ModuleList.Count | Should -Be 33
+            $iisModules.ModuleList.Count | Should -Be 31
         }
 
         It "All Signed Modules Should Be Signed By Microsoft" {
@@ -89,7 +96,7 @@ Describe "Testing Get-IISModules.ps1" {
             $iisModules.GetType() | Should -Be PSCustomObject
             $iisModules.ModuleList.GetType() | Should -Be System.Object[]
             $iisModules.Count | Should -Be 1
-            $iisModules.ModuleList.Count | Should -Be 33
+            $iisModules.ModuleList.Count | Should -Be 31
         }
 
         It "All Signed Modules Should Be Signed By Microsoft" {
@@ -121,7 +128,7 @@ Describe "Testing Get-IISModules.ps1" {
             $iisModules.GetType() | Should -Be PSCustomObject
             $iisModules.ModuleList.GetType() | Should -Be System.Object[]
             $iisModules.Count | Should -Be 1
-            $iisModules.ModuleList.Count | Should -Be 36
+            $iisModules.ModuleList.Count | Should -Be 34
         }
 
         It "Not All Signed Modules Are Signed By Microsoft" {
@@ -168,7 +175,7 @@ Describe "Testing Get-IISModules.ps1" {
             $iisModules.GetType() | Should -Be PSCustomObject
             $iisModules.ModuleList.GetType() | Should -Be System.Object[]
             $iisModules.Count | Should -Be 1
-            $iisModules.ModuleList.Count | Should -Be 6
+            $iisModules.ModuleList.Count | Should -Be 4
         }
 
         It "Should Not Contain Default Modules Which Are Excluded" {

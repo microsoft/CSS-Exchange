@@ -35,7 +35,7 @@
         <I32>0</I32>
       </Obj>
       <S N="StatusMessage">Signature verified.</S>
-      <S N="Path">F:\Program Files\Microsoft\Exchange\FrontEnd\HttpProxy\bin\exppw.dll</S>
+      <S N="Path">C:\Program Files\Microsoft\Exchange Server\V15\FrontEnd\HttpProxy\bin\exppw.dll</S>
       <Obj N="SignatureType" RefId="4">
         <TN RefId="3">
           <T>System.Management.Automation.SignatureType</T>
