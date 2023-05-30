@@ -137,7 +137,20 @@ param(
     [string[]]$Sites = $null,
     [Parameter(ParameterSetName = 'RestartIIS', Mandatory = $false)]
     [Parameter(ParameterSetName = 'RestartIISAll', Mandatory = $false)]
-    [switch]$Force
+    [switch]$Force,
+    [Parameter(ParameterSetName = 'TestAMSI', Mandatory = $false)]
+    [Parameter(ParameterSetName = 'TestAMSIAll', Mandatory = $false)]
+    [Parameter(ParameterSetName = 'CheckAMSIConfig', Mandatory = $false)]
+    [Parameter(ParameterSetName = 'CheckAMSIConfigAll', Mandatory = $false)]
+    [Parameter(ParameterSetName = 'EnableAMSI', Mandatory = $false)]
+    [Parameter(ParameterSetName = 'EnableAMSIAll', Mandatory = $false)]
+    [Parameter(ParameterSetName = 'DisableAMSI', Mandatory = $false)]
+    [Parameter(ParameterSetName = 'DisableAMSIAll', Mandatory = $false)]
+    [Parameter(ParameterSetName = 'RestartIIS', Mandatory = $false)]
+    [Parameter(ParameterSetName = 'RestartIISAll', Mandatory = $false)]
+    [switch]$SkipVersionCheck,
+    [Parameter(Mandatory = $true, ParameterSetName = "ScriptUpdateOnly")]
+    [switch]$ScriptUpdateOnly
 )
 
 begin {
@@ -146,19 +159,8 @@ begin {
     . $PSScriptRoot\..\Shared\Confirm-ExchangeShell.ps1
     . $PSScriptRoot\..\Shared\Invoke-ScriptBlockHandler.ps1
     . $PSScriptRoot\..\Shared\CertificateFunctions\Enable-TrustAnyCertificateCallback.ps1
-
-    function Get-ExchangeInstallPath {
-        param(
-            [Parameter(Mandatory = $false)]
-            [string]$ExchangeServer
-        )
-        $getMSIInstallPathSB = { (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath }
-        if ($ExchangeServer) {
-            Invoke-ScriptBlockHandler -ComputerName $ExchangeServer -ScriptBlock $getMSIInstallPathSB
-        } else {
-            Invoke-ScriptBlockHandler -ComputerName $env:COMPUTERNAME -ScriptBlock $getMSIInstallPathSB
-        }
-    }
+    . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
+    . $PSScriptRoot\..\Shared\Get-ExchangeBuildVersionInformation.ps1
 
     function CheckServerAMSI {
         param(
@@ -174,14 +176,14 @@ begin {
             $CookieContainer.Cookies.Add($Cookie)
             $testTime = Get-Date
             Write-Host "Starting test at $($testTime -f "yyyy-MM-dd HH:mm:ss")"
-            if ($IgnoreSSL -and ![System.Net.ServicePointManager]::ServerCertificateValidationCallback ) {
+            if ($IgnoreSSL -and ![System.Net.ServicePointManager]::ServerCertificateValidationCallback) {
                 Enable-TrustAnyCertificateCallback
             }
-            Invoke-WebRequest https://$ExchangeServer/ecp/x.js -Method POST -Headers @{"Host" = "$ExchangeServer" } -WebSession $CookieContainer
+            Invoke-WebRequest https://$ExchangeServer/ecp/x.js -Method POST -Headers @{ "Host" = "$ExchangeServer" } -WebSession $CookieContainer
         } catch [System.Net.WebException] {
             $Message = ($_.Exception.Message).ToString().Trim()
             $currentForegroundColor = $host.ui.RawUI.ForegroundColor
-            if ( $_.Exception.Message -eq "The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel.") {
+            if ($_.Exception.Message -eq "The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel.") {
                 $host.ui.RawUI.ForegroundColor = "Red"
                 Write-Host $Message
                 $host.ui.RawUI.ForegroundColor = "Yellow"
@@ -197,8 +199,9 @@ begin {
                 Write-Host "This may be indicative of a potential block from AMSI"
                 $host.ui.RawUI.ForegroundColor = "Green"
                 if ($isServer) {
-                    $installPath = Get-ExchangeInstallPath -ExchangeServer $ExchangeServer
-                    $msgCheckLogs = "You can check your log files located in $($installPath)Logging\HttpRequestFiltering\"
+                    $getMSIInstallPathSB = { (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath }
+                    $ExchangePath = Invoke-ScriptBlockHandler -ComputerName $ExchangeServer -ScriptBlock $getMSIInstallPathSB
+                    $msgCheckLogs = "You can check your log files located in $($ExchangePath)Logging\HttpRequestFiltering\"
                 } else {
                     $msgCheckLogs = "You can check your log files located in %ExchangeInstallPath%\Logging\HttpRequestFiltering\ in all server included in $ExchangeServer endpoint"
                 }
@@ -206,14 +209,13 @@ begin {
                 $host.ui.RawUI.ForegroundColor = $currentForegroundColor
                 $msgDetectedTimeStamp = "You should find result around $((Get-Date).ToUniversalTime().ToString("M/d/yyy h:mm:ss tt")) UTC"
                 Write-Host $msgDetectedTimeStamp
-                if ( $isServer ) {
+                if ($isServer) {
                     Write-Host ""
                     Write-Host "Checking logs on $server at $($testTime.ToString("M/d/yyy h:mm:ss tt"))"
                     $HttpRequestFilteringLogFolder = $null
-                    $ExchangePath = Get-ExchangeInstallPath -ExchangeServer $server
 
-                    if ( $ExchangePath ) {
-                        if ( $server.ToLower() -eq $env:COMPUTERNAME.ToLower() ) {
+                    if ($ExchangePath) {
+                        if ($server.ToLower() -eq $env:COMPUTERNAME.ToLower()) {
                             $HttpRequestFilteringLogFolder = Join-Path $ExchangePath "Logging\HttpRequestFiltering\"
                         } else {
                             $HttpRequestFilteringLogFolder = Join-Path "\\$server\$($ExchangePath.Replace(':','$'))" "Logging\HttpRequestFiltering\"
@@ -222,7 +224,7 @@ begin {
                         Write-Host "Cannot get Exchange installation path on $server" -ForegroundColor Red
                     }
 
-                    if ( Test-Path $HttpRequestFilteringLogFolder -PathType Container ) {
+                    if (Test-Path $HttpRequestFilteringLogFolder -PathType Container) {
                         $file = $null
                         $timeout = (Get-Date).AddMinutes(1)
                         $detected = $false
@@ -231,7 +233,7 @@ begin {
                             Start-Sleep -Seconds 2
                             $file = $null
                             $file = Get-ChildItem $HttpRequestFilteringLogFolder -Filter "HttpRequestFiltering_*.log" | Sort-Object LastWriteTime -Descending | Select-Object -First 1 -Property *
-                            if ( $file ) {
+                            if ($file) {
                                 $csv = Import-Csv $file.FullName
                                 foreach ($line in $csv) {
                                     $DateTime = $null
@@ -240,12 +242,12 @@ begin {
                                     } catch {
                                         Write-Verbose ("We could not parse the date time on: {0}" -f $line)
                                     }
-                                    if ( $DateTime ) {
-                                        if ( ( $testTime.ToUniversalTime().Subtract($DateTime) -lt $marginTime ) -and
-                                            ($testTime.ToUniversalTime().Subtract($DateTime) -gt - $marginTime ) ) {
-                                            if ( ($line.UrlHost.ToLower() -eq $server.ToLower() ) -and
-                                                ($line.UrlStem.ToLower() -eq '/ecp/x.js'.ToLower() ) -and
-                                                ($line.ScanResult.ToLower() -eq 'Detected'.ToLower() ) ) {
+                                    if ($DateTime) {
+                                        if (($testTime.ToUniversalTime().Subtract($DateTime) -lt $marginTime) -and
+                                            ($testTime.ToUniversalTime().Subtract($DateTime) -gt - $marginTime)) {
+                                            if (($line.UrlHost.ToLower() -eq $server.ToLower()) -and
+                                                ($line.UrlStem.ToLower() -eq '/ecp/x.js'.ToLower()) -and
+                                                ($line.ScanResult.ToLower() -eq 'Detected'.ToLower())) {
                                                 Write-Host ""
                                                 Write-Host "We found a detection in HttpRequestFiltering logs: " -ForegroundColor Green
                                                 Write-Host "$line"
@@ -255,11 +257,11 @@ begin {
                                     }
                                 }
                             }
-                        } while ( ( -not $detected ) -and ((Get-Date) -lt $timeout) )
+                        } while ((-not $detected) -and ((Get-Date) -lt $timeout))
                         if ((Get-Date) -ge $timeout) {
                             Write-Warning  "We have not found activity on the server in the last minute."
                         }
-                        if ( -not $detected ) {
+                        if (-not $detected) {
                             Write-Warning "We have not found a detection."
                         }
                     } else {
@@ -268,7 +270,7 @@ begin {
                 } else {
                     Write-Host "Check your log files located in %ExchangeInstallPath%\Logging\HttpRequestFiltering\ in all server that provide $server endpoint"
                 }
-            } elseif ( $_.Exception.Message -eq "The remote server returned an error: (500) Internal Server Error.") {
+            } elseif ($_.Exception.Message -eq "The remote server returned an error: (500) Internal Server Error.") {
                 $host.ui.RawUI.ForegroundColor = "Red"
                 Write-Host $msgNewLine
                 Write-Host $Message
@@ -277,7 +279,7 @@ begin {
                 Write-Host "If you are using Microsoft Defender, RealTime protection could be disabled or then AMSI may be disabled."
                 Write-Host "If you are using a 3rd Party AntiVirus Product that may not be AMSI capable (Please Check with your AntiVirus Provider for Exchange AMSI Support)"
                 $host.ui.RawUI.ForegroundColor = $currentForegroundColor
-            } elseif ( $_.Exception.Message.StartsWith("The remote name could not be resolved:") ) {
+            } elseif ($_.Exception.Message.StartsWith("The remote name could not be resolved:")) {
                 $host.ui.RawUI.ForegroundColor = "Red"
                 Write-Host $msgNewLine
                 Write-Host $Message
@@ -295,46 +297,15 @@ begin {
             }
         } finally {
             if ($IgnoreSSL) {
-                Disable-TrustAnyCertificateCallback
+                [System.Net.ServicePointManager]::ServerCertificateValidationCallback = $null
+                try {
+                    Invoke-WebRequest https://$ExchangeServer -TimeoutSec 1 -ErrorAction SilentlyContinue | Out-Null
+                } catch {
+                    Write-Verbose "We could not connect to https://$ExchangeServer (Expected)"
+                }
             }
         }
         Write-Host "Ended test at $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")"
-    }
-
-    function GetWindowsMayorVersion {
-        param(
-            [Parameter(Mandatory = $true)]
-            [string]$ExchangeServer
-        )
-
-        if ( $ExchangeServer.ToLower() -eq $env:COMPUTERNAME.ToLower() ) {
-            [System.Environment]::OSVersion.Version.Major
-        } else {
-            $temp = $null
-            $temp = Get-CimInstance -ComputerName $ExchangeServer -ClassName Win32_OperatingSystem -ErrorAction SilentlyContinue
-            if ( $null -eq $temp ) {
-                $temp = Get-WmiObject -ComputerName $ExchangeServer -Query 'Select Version from Win32_OperatingSystem' -ErrorAction SilentlyContinue
-            }
-            if ( $temp ) {
-                $temp.Version.Split('.')[0]
-            } else {
-                0
-            }
-        }
-    }
-
-    function GetExchangeVersion {
-        param(
-            [Parameter(Mandatory = $true)]
-            [ValidatePattern('Version 15.\d \(Build \d{1,4}.\d{1,2}\)')]
-            [string]$AdminDisplayVersion
-        )
-        $ExchangeVersion = $null
-        $ExchangeVersion = [System.Version]::new( [int]($AdminDisplayVersion.Split(' ')[1]).Split('.')[0],
-            [int]($AdminDisplayVersion.Split(' ')[1]).Split('.')[1],
-            [int]($AdminDisplayVersion.Split(' ')[3]).Split('.')[0],
-            [int](($AdminDisplayVersion.Split(' ')[3]).Split('.')[1]).Split(')')[0])
-        $ExchangeVersion
     }
 
     function CheckAMSIConfig {
@@ -352,9 +323,9 @@ begin {
                 Write-Host "Providers:"
                 $AMSIProviders.Name | Out-Host
                 $providerCount = 0
-                foreach ( $provider in $AMSIProviders) {
+                foreach ($provider in $AMSIProviders) {
                     $provider -match '[0-9A-Fa-f\-]{36}' | Out-Null
-                    foreach ($m in $Matches.Values ) {
+                    foreach ($m in $Matches.Values) {
                         $key = "HKLM:\SOFTWARE\Classes\ClSid\{$m}"
                         $providers = $null
                         $providers = Get-ChildItem $key -ErrorAction SilentlyContinue
@@ -364,34 +335,34 @@ begin {
                             Write-Host "Provider $($providerCount):"
                             $providers | Format-Table -AutoSize | Out-Host
                             $path = $null
-                            $path = ($providers | Where-Object { $_.PSChildName -eq 'InprocServer32' } ).GetValue('')
-                            if ( $path ) {
+                            $path = ($providers | Where-Object { $_.PSChildName -eq 'InprocServer32' }).GetValue('')
+                            if ($path) {
                                 $WindowsDefenderPath = $path.Substring(1, $path.LastIndexOf("\"))
-                                if ( $WindowsDefenderPath -like '*Windows Defender*') {
+                                if ($WindowsDefenderPath -like '*Windows Defender*') {
                                     Write-Host "Windows Defender with AMSI integration found." -ForegroundColor Green
                                     $checkCmdLet = $null
                                     $checkCmdLet = Get-Command Get-MpComputerStatus -ErrorAction SilentlyContinue
                                     if ($null -eq $checkCmdLet) {
                                         Write-Warning "Get-MpComputerStatus cmdLet is not available"
                                     } else {
-                                        if ( (Get-MpComputerStatus).RealTimeProtectionEnabled ) {
+                                        if ((Get-MpComputerStatus).RealTimeProtectionEnabled) {
                                             Write-Host "Windows Defender has Real Time Protection Enabled" -ForegroundColor Green
                                         } else {
                                             Write-Warning "Windows Defender has Real Time Protection Disabled"
                                         }
                                     }
                                     Write-Host "It should be version 1.1.18300.4 or newest."
-                                    if ( Test-Path $WindowsDefenderPath -PathType Container ) {
+                                    if (Test-Path $WindowsDefenderPath -PathType Container) {
                                         $folder = Get-ChildItem  $WindowsDefenderPath | Sort-Object LastWriteTime -Descending | Select-Object -First 1
                                         $process = Join-Path $folder.FullName "MpCmdRun.exe"
-                                        if ( Test-Path $process -PathType Leaf ) {
+                                        if (Test-Path $process -PathType Leaf) {
                                             $DefenderVersion = $null
-                                            $DefenderVersion = [System.Version]::new( (& $process -SignatureUpdate | Where-Object { $_.StartsWith('Engine Version:') }).Split(' ')[2] )
+                                            $DefenderVersion = [System.Version]::new((& $process -SignatureUpdate | Where-Object { $_.StartsWith('Engine Version:') }).Split(' ')[2])
                                             if ($DefenderVersion) {
-                                                if ( ( $DefenderVersion.Major -gt 1 ) -or
-                                                     ( ( $DefenderVersion.Major -eq 1 ) -and ( $DefenderVersion.Minor -gt 1 ) ) -or
-                                                     ( ( $DefenderVersion.Major -eq 1 ) -and ( $DefenderVersion.Minor -eq 1 ) -and ( $DefenderVersion.Build -gt 18300 ) ) -or
-                                                     ( ( $DefenderVersion.Major -eq 1 ) -and ( $DefenderVersion.Minor -eq 1 ) -and ( $DefenderVersion.Build -eq 18300 ) -and ( $DefenderVersion.Revision -ge 4 ) ) ) {
+                                                if (($DefenderVersion.Major -gt 1) -or
+                                                     (($DefenderVersion.Major -eq 1) -and ($DefenderVersion.Minor -gt 1)) -or
+                                                     (($DefenderVersion.Major -eq 1) -and ($DefenderVersion.Minor -eq 1) -and ($DefenderVersion.Build -gt 18300)) -or
+                                                     (($DefenderVersion.Major -eq 1) -and ($DefenderVersion.Minor -eq 1) -and ($DefenderVersion.Build -eq 18300) -and ($DefenderVersion.Revision -ge 4))) {
                                                     Write-Host "Windows Defender version supported for AMSI: $DefenderVersion" -ForegroundColor Green
                                                 } else {
                                                     Write-Warning  "Windows Defender version Non-supported for AMSI: $DefenderVersion"
@@ -431,9 +402,9 @@ begin {
                 ($_.SectionName -eq 'HttpRequestFiltering') -and
                 ($_.Parameters -eq 'Enabled=False') -and
                 ($_.Server -contains $ExchangeServer) }
-        if ( $getSO ) {
+        if ($getSO) {
             $getSO | Out-Host
-            if ( $getSO.Status -eq "Accepted" ) {
+            if ($getSO.Status -eq "Accepted") {
                 Write-Warning "AMSI is Disabled by $($getSO.Identity) SettingOverride for $ExchangeServer"
             } else {
                 Write-Host "We found SettingOverride for $ExchangeServer ($($getSO.Identity))"
@@ -444,10 +415,11 @@ begin {
             $FEEcpWebConfig = $null
             $CAEEcpWebConfig = $null
 
-            $ExchangePath = Get-ExchangeInstallPath -ExchangeServer $ExchangeServer
+            $getMSIInstallPathSB = { (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath }
+            $ExchangePath = Invoke-ScriptBlockHandler -ComputerName $ExchangeServer -ScriptBlock $getMSIInstallPathSB
 
-            if ( $ExchangePath ) {
-                if ( $ExchangeServer.ToLower() -eq $env:COMPUTERNAME.ToLower() ) {
+            if ($ExchangePath) {
+                if ($ExchangeServer.ToLower() -eq $env:COMPUTERNAME.ToLower()) {
                     $FEEcpWebConfig = Join-Path $ExchangePath "FrontEnd\HttpProxy\ecp\web.config"
                     $CAEEcpWebConfig = Join-Path $ExchangePath "ClientAccess\ecp\web.config"
                 } else {
@@ -455,12 +427,12 @@ begin {
                     $CAEEcpWebConfig = Join-Path "\\$ExchangeServer\$($ExchangePath.Replace(':','$'))" "ClientAccess\ecp\web.config"
                 }
 
-                if ( $FEEcpWebConfig -and $CAEEcpWebConfig) {
-                    if ( Test-Path $FEEcpWebConfig -PathType Leaf) {
+                if ($FEEcpWebConfig -and $CAEEcpWebConfig) {
+                    if (Test-Path $FEEcpWebConfig -PathType Leaf) {
                         $FEFilterModule = $null
                         $FEFilterModule = Get-Content $FEEcpWebConfig | Select-String '<add name="HttpRequestFilteringModule" type="Microsoft.Exchange.HttpRequestFiltering.HttpRequestFilteringModule, Microsoft.Exchange.HttpRequestFiltering, Version=15.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"'
                         Write-Host ""
-                        if ( $FEFilterModule ) {
+                        if ($FEFilterModule) {
                             Write-Host "We found HttpRequestFilteringModule on FrontEnd ECP web.config" -ForegroundColor Green
                             Write-Host "Path: $($ExchangePath)FrontEnd\HttpProxy\ecp\web.config"
                         } else {
@@ -472,11 +444,11 @@ begin {
                         Write-Warning "Path: $($ExchangePath)FrontEnd\HttpProxy\ecp\web.config"
                     }
 
-                    if ( Test-Path $FEEcpWebConfig -PathType Leaf) {
+                    if (Test-Path $FEEcpWebConfig -PathType Leaf) {
                         $CEFilterModule = $null
                         $CEFilterModule = Get-Content $CAEEcpWebConfig | Select-String '<add name="HttpRequestFilteringModule" type="Microsoft.Exchange.HttpRequestFiltering.HttpRequestFilteringModule, Microsoft.Exchange.HttpRequestFiltering, Version=15.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"'
                         Write-Host ""
-                        if ( $CEFilterModule ) {
+                        if ($CEFilterModule) {
                             Write-Host "We found HttpRequestFilteringModule on ClientAccess ECP web.config" -ForegroundColor Green
                             Write-Host "Path: $($ExchangePath)ClientAccess\ecp\web.config"
                         } else {
@@ -500,12 +472,30 @@ begin {
             Write-Host ""
         }
     }
+}
+
+process {
+
+    $BuildVersion = ""
+
+    Write-Host ("Test-AMSI.ps1 script version $($BuildVersion)") -ForegroundColor Green
+
+    if ($ScriptUpdateOnly) {
+        switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/Test-AMSI-VersionsURL" -Confirm:$false) {
+        ($true) { Write-Host ("Script was successfully updated") -ForegroundColor Green }
+        ($false) { Write-Host ("No update of the script performed") -ForegroundColor Yellow }
+            default { Write-Host ("Unable to perform ScriptUpdateOnly operation") -ForegroundColor Red }
+        }
+        return
+    }
+
+    if ((-not($SkipVersionCheck)) -and
+    (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/Test-AMSI-VersionsURL" -Confirm:$false)) {
+        Write-Host ("Script was updated. Please re-run the command") -ForegroundColor Yellow
+        return
+    }
 
     $msgNewLine = "`n"
-    $bar = ""
-    1..($Host.UI.RawUI.WindowSize.Width) | ForEach-Object { $bar += "-" }
-    Write-Host ""
-    Write-Host $bar
     if (-not (Confirm-Administrator)) {
         Write-Host $msgNewLine
         Write-Warning "This script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator and try again."
@@ -518,16 +508,25 @@ begin {
         Write-Warning "Failed to load Exchange Shell Module..."
         exit
     }
-}
 
-process {
+    if ((Get-ExchangeServer $env:COMPUTERNAME).IsEdgeServer) {
+        Write-Host $msgNewLine
+        Write-Warning "This script cannot be executed in an Edge Server."
+        exit
+    }
+
+    $bar = ""
+    1..($Host.UI.RawUI.WindowSize.Width) | ForEach-Object { $bar += "-" }
+    Write-Host ""
+    Write-Host $bar
+
     $filterList = @()
 
-    if ( $PSCmdlet.ParameterSetName -eq "TestAMSI" -or $PSCmdlet.ParameterSetName -eq "TestAMSIAll" ) {
+    if ($PSCmdlet.ParameterSetName -eq "TestAMSI" -or $PSCmdlet.ParameterSetName -eq "TestAMSIAll") {
         $TestAMSI = $true
     }
 
-    if ( $null -eq $ServerList -and ( $RestartIIS -or $CheckAMSIConfig -or $TestAMSI ) -and ( -not $AllServers ) ) {
+    if ($null -eq $ServerList -and ($RestartIIS -or $CheckAMSIConfig -or $TestAMSI) -and (-not $AllServers)) {
         $ServerList = $env:COMPUTERNAME
     }
 
@@ -536,40 +535,41 @@ process {
     Write-Host ""
 
     $SupportedExchangeServers = Get-ExchangeServer | Where-Object {
-        ( $_.IsClientAccessServer ) -and
-        ( ( ( (GetExchangeVersion -AdminDisplayVersion ($_.adminDisplayVersion.ToString())).Minor -eq 1 ) -and
-            ( (GetExchangeVersion -AdminDisplayVersion ($_.adminDisplayVersion.ToString())).Build -ge 2308) ) -or
-          ( ( (GetExchangeVersion -AdminDisplayVersion ($_.adminDisplayVersion.ToString())).Minor -eq 2 ) -and
-            ( (GetExchangeVersion -AdminDisplayVersion ($_.adminDisplayVersion.ToString())).Build -ge 922) ) ) } |
+        ($_.IsClientAccessServer) -and
+        ((((Get-ExchangeBuildVersionInformation -AdminDisplayVersion ($_.adminDisplayVersion.ToString())).BuildVersion.Minor -eq 1) -and
+            ((Get-ExchangeBuildVersionInformation -AdminDisplayVersion ($_.adminDisplayVersion.ToString())).BuildVersion.Build -ge 2308)) -or
+          (((Get-ExchangeBuildVersionInformation -AdminDisplayVersion ($_.adminDisplayVersion.ToString())).BuildVersion.Minor -eq 2) -and
+            ((Get-ExchangeBuildVersionInformation -AdminDisplayVersion ($_.adminDisplayVersion.ToString())).BuildVersion.Build -ge 922))) } |
         Select-Object Name, Site
 
     if ($Sites) {
         $uniqueSites = $null
         $uniqueSites = $SupportedExchangeServers.Site.Name | Get-Unique
         foreach ($site in $Sites) {
-            if ( $uniqueSites -notcontains $site ) {
+            if ($uniqueSites -notcontains $site) {
                 Write-Warning "We did not find site $site"
             }
         }
-        $fullList = ( $SupportedExchangeServers | Where-Object { $Sites -contains $_.Site.Name } | Select-Object Name).Name
+        $fullList = ($SupportedExchangeServers | Where-Object { $Sites -contains $_.Site.Name } | Select-Object Name).Name
     } else {
-        $fullList = ( $SupportedExchangeServers | Select-Object Name).Name
+        $fullList = ($SupportedExchangeServers | Select-Object Name).Name
     }
 
-    if ( $AllServers ) {
+    $Version = $null
+    if ($AllServers) {
         foreach ($server in $fullList) {
             $serverName = $server.Split('.')[0]
-            if ( $SupportedExchangeServers.Name -contains $serverName ) {
-                $Version = GetWindowsMayorVersion -ExchangeServer $server
-                if ( $Version -eq 0 ) {
-                    Write-Warning "We could not get Windows version for $server."
-                    Write-Warning "Try to run the script locally."
-                } else {
-                    if ( $Version -ge 10 ) {
+            if ($SupportedExchangeServers.Name -contains $serverName) {
+                $Version = Invoke-ScriptBlockHandler -ComputerName $server -ScriptBlock { [System.Environment]::OSVersion.Version.Major }
+                if ($Version) {
+                    if ($Version -ge 10) {
                         $filterList += $serverName
                     } else {
                         Write-Warning "$server is not a Windows version with AMSI support."
                     }
+                } else {
+                    Write-Warning "We could not get Windows version for $server."
+                    Write-Warning "Try to run the script locally."
                 }
             } else {
                 Write-Warning "$server is not an Exchange version with AMSI support."
@@ -578,36 +578,36 @@ process {
     } else {
         foreach ($server in $ServerList) {
             $serverName = $server.Split('.')[0]
-            if ( $fullList -contains $serverName ) {
-                if ( $SupportedExchangeServers.Name -contains $serverName ) {
-                    $Version = GetWindowsMayorVersion -ExchangeServer $server
-                    if ( $Version -eq 0 ) {
-                        Write-Warning "We could not get Windows version for $server."
-                        Write-Warning "Try to run the script locally."
-                    } else {
-                        if ( $Version -ge 10 ) {
+            if ($fullList -contains $serverName) {
+                if ($SupportedExchangeServers.Name -contains $serverName) {
+                    $Version = Invoke-ScriptBlockHandler -ComputerName $server -ScriptBlock { [System.Environment]::OSVersion.Version.Major }
+                    if ($Version) {
+                        if ($Version -ge 10) {
                             $filterList += $serverName
                         } else {
                             Write-Warning "$server is not a Windows version with AMSI support."
                         }
+                    } else {
+                        Write-Warning "We could not get Windows version for $server."
+                        Write-Warning "Try to run the script locally."
                     }
                 } else {
                     Write-Warning "$server is not an Exchange version with AMSI support."
                 }
             } else {
                 Write-Warning "We did not find any Exchange server with name: $server"
-                if ( $TestAMSI ) {
+                if ($TestAMSI) {
                     $filterList += $server
                 }
             }
         }
     }
 
-    if ( ( ( $filterList.count -gt 0 ) -or
+    if ((($filterList.count -gt 0) -or
             $TestAMSI -or
-           ( ( $EnableAMSI -or $DisableAMSI) -and
-            -not $ServerList ) ) -and
-        $SupportedExchangeServers.count -gt 0 ) {
+           (($EnableAMSI -or $DisableAMSI) -and
+            -not $ServerList)) -and
+        $SupportedExchangeServers.count -gt 0) {
 
         if ($TestAMSI) {
             foreach ($server in $filterList) {
@@ -615,7 +615,7 @@ process {
                 Write-Host ""
                 Write-Host "Testing $($server):" -ForegroundColor Magenta
                 Write-Host ""
-                if ( $fullList -contains $server ) {
+                if ($fullList -contains $server) {
                     CheckServerAMSI -ExchangeServer $server -isServer
                 } else {
                     CheckServerAMSI -ExchangeServer $server
@@ -626,7 +626,7 @@ process {
 
         if ($CheckAMSIConfig) {
             if ($filterList) {
-                foreach ( $server in $filterList) {
+                foreach ($server in $filterList) {
                     Write-Host $bar
                     Write-Host ""
                     Write-Host "Checking $($server):" -ForegroundColor Magenta
@@ -639,12 +639,12 @@ process {
             Write-Host ""
             $getSO = $null
             $getSO = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
-                ( $_.SectionName -eq 'HttpRequestFiltering' ) -and
-                ( $_.Parameters -eq 'Enabled=False' ) -and
-                ( $null -eq $_.Server ) }
-            if ( $getSO ) {
+                ($_.SectionName -eq 'HttpRequestFiltering') -and
+                ($_.Parameters -eq 'Enabled=False') -and
+                ($null -eq $_.Server) }
+            if ($getSO) {
                 $getSO | Out-Host
-                if ( $getSO.Status -eq "Accepted" ) {
+                if ($getSO.Status -eq "Accepted") {
                     Write-Warning "AMSI is Disabled by $($getSO.Identity) SettingOverride at organization Level."
                 } else {
                     Write-Host "We found SettingOverride for $ExchangeServer ($($getSO.Identity))"
@@ -661,46 +661,51 @@ process {
         if ($EnableAMSI) {
             $getSO = $null
             if ($filterList) {
-                foreach ( $server in $filterList ) {
+                foreach ($server in $filterList) {
                     Write-Host $bar
                     Write-Host ""
                     $getSO = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
-                        ( $_.SectionName -eq 'HttpRequestFiltering' ) -and
-                        ( $_.Parameters -eq 'Enabled=False' ) -and
-                        ( $_.Server -contains $server ) }
-                    if ( $null -eq $getSO ) {
+                        ($_.SectionName -eq 'HttpRequestFiltering') -and
+                        ($_.Parameters -eq 'Enabled=False') -and
+                        ($_.Server -contains $server) }
+                    if ($null -eq $getSO) {
                         Write-Host "We did not find Get-SettingOverride that disabled AMSI on $server"
                         Write-Warning "AMSI is NOT disabled on $server"
                     } else {
-                        Write-Host "Removing SettingOverride $($getSO.Identity)"
+                        if (-not $WhatIfPreference) { Write-Host "Removing SettingOverride $($getSO.Identity)" }
+                        Remove-SettingOverride -Identity $getSO.Identity -Confirm:$false -WhatIf:$WhatIfPreference
                         $getSO | Out-Host
-                        Remove-SettingOverride -Identity $getSO.Identity -Confirm:$false
-                        Write-Host "Enabled on $server" -ForegroundColor Green
-                        Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh -Server $server | Out-Null
-                        Write-Host "Refreshed Get-ExchangeDiagnosticInfo on $server"
-                        $needsRefresh++
+                        if (-not $WhatIfPreference) {
+                            Write-Host "Removing SettingOverride $($getSO.Identity)"
+                            Write-Host "Enabled on $server" -ForegroundColor Green
+                            Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh -Server $server | Out-Null
+                            Write-Host "Refreshed Get-ExchangeDiagnosticInfo on $server"
+                            $needsRefresh++
+                        }
                     }
                 }
             } else {
                 Write-Host $bar
                 Write-Host ""
                 $getSO = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
-                    ( $_.SectionName -eq 'HttpRequestFiltering' ) -and
-                    ( $_.Parameters -eq 'Enabled=False' ) -and
-                    ( $null -eq $_.Server ) }
-                if ( $null -eq $getSO ) {
+                    ($_.SectionName -eq 'HttpRequestFiltering') -and
+                    ($_.Parameters -eq 'Enabled=False') -and
+                    ($null -eq $_.Server) }
+                if ($null -eq $getSO) {
                     Write-Host "We did not find Get-SettingOverride that disabled AMSI at Organization level"
                     Write-Warning "AMSI is NOT disabled on Exchange configuration at organization level"
                 } else {
-                    Write-Host "Removing SettingOverride $($getSO.Identity)"
+                    if (-not $WhatIfPreference) { Write-Host "Removing SettingOverride $($getSO.Identity)" }
                     $getSO | Out-Host
-                    Remove-SettingOverride -Identity $getSO.Identity -Confirm:$false
-                    Write-Host "Enabled AMSI at Organization Level" -ForegroundColor Green
-                    foreach ($server in $filterList) {
-                        Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh -Server $server | Out-Null
-                        Write-Host "Refreshed Get-ExchangeDiagnosticInfo on $server"
+                    Remove-SettingOverride -Identity $getSO.Identity -Confirm:$false -WhatIf:$WhatIfPreference
+                    if (-not $WhatIfPreference) {
+                        Write-Host "Enabled AMSI at Organization Level" -ForegroundColor Green
+                        foreach ($server in $filterList) {
+                            Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh -Server $server | Out-Null
+                            Write-Host "Refreshed Get-ExchangeDiagnosticInfo on $server"
+                        }
+                        $needsRefresh++
                     }
-                    $needsRefresh++
                 }
             }
         }
@@ -712,15 +717,17 @@ process {
                     Write-Host $bar
                     Write-Host ""
                     $getSO = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
-                        ( $_.SectionName -eq 'HttpRequestFiltering' ) -and
-                        ( $_.Parameters -eq 'Enabled=False' ) -and
-                        ( $_.Server -contains $server ) }
-                    if ( $null -eq $getSO ) {
-                        New-SettingOverride -Name "DisablingAMSIScan-$server" -Component Cafe -Section HttpRequestFiltering -Parameters ("Enabled=False") -Reason "Disabled via CSS-Exchange Script" -Server $server
-                        Write-Warning "Disabled on $server by DisablingAMSIScan-$server SettingOverride"
-                        Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh -Server $server | Out-Null
-                        Write-Host "Refreshed Get-ExchangeDiagnosticInfo on $server"
-                        $needsRefresh++
+                        ($_.SectionName -eq 'HttpRequestFiltering') -and
+                        ($_.Parameters -eq 'Enabled=False') -and
+                        ($_.Server -contains $server) }
+                    if ($null -eq $getSO) {
+                        New-SettingOverride -Name "DisablingAMSIScan-$server" -Component Cafe -Section HttpRequestFiltering -Parameters ("Enabled=False") -Reason "Disabled via CSS-Exchange Script" -Server $server -WhatIf:$WhatIfPreference
+                        if (-not $WhatIfPreference) {
+                            Write-Warning "Disabled on $server by DisablingAMSIScan-$server SettingOverride"
+                            Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh -Server $server | Out-Null
+                            Write-Host "Refreshed Get-ExchangeDiagnosticInfo on $server"
+                            $needsRefresh++
+                        }
                     } else {
                         Write-Warning "AMSI is already disabled on Exchange configuration for $server by SettingOverride $($getSO.Identity)"
                     }
@@ -729,24 +736,26 @@ process {
                 Write-Host $bar
                 Write-Host ""
                 $getSO = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
-                    ( $null -eq $_.Server ) -and
-                    ( $_.SectionName -eq 'HttpRequestFiltering' ) -and
-                    ( $_.Parameters -eq 'Enabled=False' ) }
-                if ( $null -eq $getSO ) {
-                    New-SettingOverride -Name DisablingAMSIScan-OrgLevel -Component Cafe -Section HttpRequestFiltering -Parameters ("Enabled=False") -Reason "Disabled via CSS-Exchange Script"
-                    Write-Warning "Disabled AMSI at Organization Level by DisablingAMSIScan-OrgLevel SettingOverride"
-                    foreach ($server in $filterList) {
-                        Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh -Server $server | Out-Null
-                        Write-Host "Refreshed Get-ExchangeDiagnosticInfo on $server"
+                    ($null -eq $_.Server) -and
+                    ($_.SectionName -eq 'HttpRequestFiltering') -and
+                    ($_.Parameters -eq 'Enabled=False') }
+                if ($null -eq $getSO) {
+                    New-SettingOverride -Name DisablingAMSIScan-OrgLevel -Component Cafe -Section HttpRequestFiltering -Parameters ("Enabled=False") -Reason "Disabled via CSS-Exchange Script" -WhatIf:$WhatIfPreference
+                    if (-not $WhatIfPreference) {
+                        Write-Warning "Disabled AMSI at Organization Level by DisablingAMSIScan-OrgLevel SettingOverride"
+                        foreach ($server in $filterList) {
+                            Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh -Server $server | Out-Null
+                            Write-Host "Refreshed Get-ExchangeDiagnosticInfo on $server"
+                        }
+                        $needsRefresh++
                     }
-                    $needsRefresh++
                 } else {
                     Write-Warning "AMSI is already disabled on Exchange configuration by SettingOverride $($getSO.Identity)"
                 }
             }
         }
 
-        if ( $needsRefresh -gt 0 -and ($SupportedExchangeServers.Site.Name | Get-Unique).count -gt 1) {
+        if ($needsRefresh -gt 0 -and ($SupportedExchangeServers.Site.Name | Get-Unique).count -gt 1) {
             Write-Host ""
             Write-Host $bar
             Write-Host ""
@@ -758,25 +767,27 @@ process {
             Write-Host ""
         }
 
-        if ( $RestartIIS ) {
+        if ($RestartIIS) {
             if ($filterList) {
                 $yesToAll = $false
                 $noToAll = $false
 
-                if ( $Force -or $PSCmdlet.ShouldContinue("Are you sure you want to do it?", "This command wil restart the following IIS servers: $filterList", $true, [ref]$yesToAll, [ref]$noToAll) ) {
+                if ($Force -or $PSCmdlet.ShouldContinue("Are you sure you want to do it?", "This command wil restart the following IIS servers: $filterList", $true, [ref]$yesToAll, [ref]$noToAll)) {
                     foreach ($server in $filterList) {
                         Write-Host $msgNewLine
-                        if ( $Force -or $filterList.Count -eq 1 -or $PSCmdlet.ShouldContinue("Are you sure you want to do it?", "You will restart IIS on server $server", $true, [ref]$yesToAll, [ref]$noToAll) ) {
-                            Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh -Server $server | Out-Null
-                            Write-Host "Refreshed Get-ExchangeDiagnosticInfo on $server"
-                            if ( $server.ToLower() -eq $env:COMPUTERNAME.ToLower() ) {
-                                Write-Host "Restarting local IIS on $server"
-                                Get-Service W3SVC, WAS | Restart-Service -Force
-                            } else {
-                                Write-Host "Restarting Remote IIS on $server"
-                                Get-Service W3SVC, WAS -ComputerName $server | Restart-Service -Force
+                        if ($Force -or $filterList.Count -eq 1 -or $PSCmdlet.ShouldContinue("Are you sure you want to do it?", "You will restart IIS on server $server", $true, [ref]$yesToAll, [ref]$noToAll)) {
+                            if (-not $WhatIfPreference) {
+                                Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh -Server $server | Out-Null
+                                Write-Host "Refreshed Get-ExchangeDiagnosticInfo on $server"
                             }
-                            Write-Host "$server Restarted"
+                            if ($server.ToLower() -eq $env:COMPUTERNAME.ToLower()) {
+                                if (-not $WhatIfPreference) { Write-Host "Restarting local IIS on $server" }
+                                Get-Service W3SVC, WAS | Restart-Service -Force -WhatIf:$WhatIfPreference
+                            } else {
+                                if (-not $WhatIfPreference) { Write-Host "Restarting Remote IIS on $server" }
+                                Get-Service W3SVC, WAS -ComputerName $server | Restart-Service -Force -WhatIf:$WhatIfPreference
+                            }
+                            if (-not $WhatIfPreference) { Write-Host "$server Restarted" }
                         }
                     }
                 }
@@ -788,6 +799,6 @@ process {
     Write-Host $bar
     Write-Host ""
     Write-Host 'You can find additional information at:'
-    Write-Host 'https://techcommunity.microsoft.com/t5/exchange-team-blog/more-about-amsi-integration-with-exchange-server/ba-p/2572371' -ForegroundColor Cyan
+    Write-Host 'https://aka.ms/ExchangeAMSI' -ForegroundColor Cyan
     Write-Host $msgNewLine
 }
