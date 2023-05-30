@@ -40,33 +40,37 @@ function Get-ExchangeServerIISSettings {
         $webApplication = Invoke-ScriptBlockHandler @params -ScriptBlock ${Function:Get-IISWebApplication} -ScriptBlockDescription "Get-IISWebApplication"
 
         # Get the shared web configuration files
-        $sharedWebConfigPaths = $webApplication.ConfigurationFileInfo.LinkedConfigurationFilePath | Select-Object -Unique
-        $sharedWebConfig = Invoke-ScriptBlockHandler @params -ScriptBlock {
-            param ($ConfigFiles)
-            $ConfigFiles | ForEach-Object {
-                Write-Verbose "Working on shared config file: $_"
-                $validWebConfig = $false
-                $exist = Test-Path $_
-                $content = $null
-                try {
-                    if ($exist) {
-                        $content = (Get-Content $_ -Raw).Trim()
-                        [xml]$content | Out-Null # test to make sure it is valid
-                        $validWebConfig = $true
-                    }
-                } catch {
-                    # Inside of Invoke-Command, can't use Invoke-CatchActions
-                    Write-Verbose "Failed to convert shared web config '$_' to xml. Exception: $($_.Exception)"
-                }
+        $sharedWebConfigPaths = @($webApplication.ConfigurationFileInfo.LinkedConfigurationFilePath | Select-Object -Unique)
+        $sharedWebConfig = $null
 
-                [PSCustomObject]@{
-                    Location = $_
-                    Exist    = $exist
-                    Content  = $content
-                    Valid    = $validWebConfig
+        if ($sharedWebConfigPaths.Count -gt 0) {
+            $sharedWebConfig = Invoke-ScriptBlockHandler @params -ScriptBlock {
+                param ($ConfigFiles)
+                $ConfigFiles | ForEach-Object {
+                    Write-Verbose "Working on shared config file: $_"
+                    $validWebConfig = $false
+                    $exist = Test-Path $_
+                    $content = $null
+                    try {
+                        if ($exist) {
+                            $content = (Get-Content $_ -Raw).Trim()
+                            [xml]$content | Out-Null # test to make sure it is valid
+                            $validWebConfig = $true
+                        }
+                    } catch {
+                        # Inside of Invoke-Command, can't use Invoke-CatchActions
+                        Write-Verbose "Failed to convert shared web config '$_' to xml. Exception: $($_.Exception)"
+                    }
+
+                    [PSCustomObject]@{
+                        Location = $_
+                        Exist    = $exist
+                        Content  = $content
+                        Valid    = $validWebConfig
+                    }
                 }
-            }
-        } -ArgumentList (, $sharedWebConfigPaths) -ScriptBlockDescription "Getting Shared Web Config Files"
+            } -ArgumentList (, $sharedWebConfigPaths) -ScriptBlockDescription "Getting Shared Web Config Files"
+        }
 
         Write-Verbose "Trying to query the 'applicationHost.config' file"
         $applicationHostConfig = Get-ApplicationHostConfig $ComputerName $CatchActionFunction

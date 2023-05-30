@@ -23,7 +23,23 @@ function Get-IISWebSite {
         Write-Verbose "Working on Site: $($site.Name)"
         $siteBindings = $bindings |
             Where-Object { $_.ItemXPath -like "*@name='$($site.name)' and @id='$($site.id)'*" }
-        $configurationFilePath = (Get-WebConfigFile "IIS:\Sites\$($site.Name)").FullName
+        # Logic should be consistent for all ways we call Get-WebConfigFile
+        try {
+            $configurationFilePath = (Get-WebConfigFile "IIS:\Sites\$($site.Name)").FullName
+        } catch {
+            $finder = "\\?\"
+            if (($_.Exception.ErrorCode -eq -2147024846 -or
+                    $_.Exception.ErrorCode -eq -2147024883) -and
+                $_.Exception.Message.Contains($finder)) {
+                $message = $_.Exception.Message
+                $index = $message.IndexOf($finder) + $finder.Length
+                $configurationFilePath = $message.Substring($index, ($message.IndexOf([System.Environment]::NewLine) - $index)).Trim()
+                Write-Verbose "Found possible file path from exception: $configurationFilePath"
+            } else {
+                Write-Verbose "Unable to find possible file path based off exception: $($_.Exception)"
+            }
+        }
+
         $webConfigExists = Test-Path $configurationFilePath
         $webConfigContent = $null
         $validWebConfig = $false
