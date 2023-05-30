@@ -29,6 +29,7 @@ function SetDefaultRunOfHealthChecker {
         [Parameter(Mandatory = $true)]
         [string]$ExportDebugFileName
     )
+    Invoke-ErrorMonitoring
     $org = Get-OrganizationInformation -EdgeServer $false
     $hc = Get-HealthCheckerExchangeServer -ServerName $env:COMPUTERNAME
     $hc.OrganizationInformation = $org
