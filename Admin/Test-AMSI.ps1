@@ -397,8 +397,8 @@ begin {
         Invoke-ScriptBlockHandler -ComputerName $ExchangeServer -ScriptBlock $AMSIProvidersSB
 
         $getSO = $null
-        $getSO = Get-FilteredSettingOverrideInformation -ErrorAction SilentlyContinue | Where-Object {
-            ($_.Component.ToLower() -eq 'Cafe'.ToLower()) -and
+        $getSO = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
+            ($_.ComponentName.ToLower() -eq 'Cafe'.ToLower()) -and
             ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
             ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) -and
             ($_.Server.ToLower() -contains $ExchangeServer.ToLower()) }
@@ -638,8 +638,8 @@ process {
             Write-Host $bar
             Write-Host ""
             $getSO = $null
-            $getSO = Get-FilteredSettingOverrideInformation -ErrorAction SilentlyContinue | Where-Object {
-                ($_.Component.ToLower() -eq 'Cafe'.ToLower()) -and
+            $getSO = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
+                ($_.ComponentName.ToLower() -eq 'Cafe'.ToLower()) -and
                 ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
                 ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) -and
                 ($null -eq $_.Server) }
@@ -665,8 +665,9 @@ process {
                 foreach ($server in $filterList) {
                     Write-Host $bar
                     Write-Host ""
-                    $getSO = Get-FilteredSettingOverrideInformation -ErrorAction SilentlyContinue | Where-Object {
-                        ($_.Component.ToLower() -eq 'Cafe'.ToLower()) -and
+                    $getSO = $null
+                    $getSO = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
+                        ($_.ComponentName.ToLower() -eq 'Cafe'.ToLower()) -and
                         ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
                         ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) -and
                         ($_.Server.ToLower() -contains $server.ToLower()) }
@@ -689,8 +690,9 @@ process {
             } else {
                 Write-Host $bar
                 Write-Host ""
+                $getSO = $null
                 $getSO = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
-                    ($_.Component.ToLower() -eq 'Cafe'.ToLower()) -and
+                    ($_.ComponentName.ToLower() -eq 'Cafe'.ToLower()) -and
                     ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
                     ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) -and
                     ($null -eq $_.Server) }
@@ -719,8 +721,9 @@ process {
                 foreach ($server in $filterList) {
                     Write-Host $bar
                     Write-Host ""
+                    $getSO = $null
                     $getSO = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
-                        ($_.Component.ToLower() -eq 'Cafe'.ToLower()) -and
+                        ($_.ComponentName.ToLower() -eq 'Cafe'.ToLower()) -and
                         ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
                         ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) -and
                         ($_.Server.ToLower() -contains $server.ToLower()) }
@@ -739,9 +742,10 @@ process {
             } else {
                 Write-Host $bar
                 Write-Host ""
+                $getSO = $null
                 $getSO = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
                     ($null -eq $_.Server) -and
-                    ($_.Component.ToLower() -eq 'Cafe'.ToLower()) -and
+                    ($_.ComponentName.ToLower() -eq 'Cafe'.ToLower()) -and
                     ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
                     ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) }
                 if ($null -eq $getSO) {
