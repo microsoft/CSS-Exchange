@@ -96,7 +96,6 @@
 #>
 
 [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = "TestAMSI", HelpUri = "https://microsoft.github.io/CSS-Exchange/Admin/Test-AMSI/")]
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWMICmdlet', '', Justification = 'Used Get-WmiObject just in case Get-CimInstance does not get the Windows version as a fallback.')]
 param(
     [Parameter(ParameterSetName = 'TestAMSI', Mandatory = $false)]
     [Parameter(ParameterSetName = 'TestAMSIAll', Mandatory = $false)]
@@ -398,10 +397,11 @@ begin {
         Invoke-ScriptBlockHandler -ComputerName $ExchangeServer -ScriptBlock $AMSIProvidersSB
 
         $getSO = $null
-        $getSO = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
-                ($_.SectionName -eq 'HttpRequestFiltering') -and
-                ($_.Parameters -eq 'Enabled=False') -and
-                ($_.Server -contains $ExchangeServer) }
+        $getSO = Get-FilteredSettingOverrideInformation -ErrorAction SilentlyContinue | Where-Object {
+            ($_.Component.ToLower() -eq 'Cafe'.ToLower()) -and
+            ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
+            ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) -and
+            ($_.Server.ToLower() -contains $ExchangeServer.ToLower()) }
         if ($getSO) {
             $getSO | Out-Host
             if ($getSO.Status -eq "Accepted") {
@@ -638,9 +638,10 @@ process {
             Write-Host $bar
             Write-Host ""
             $getSO = $null
-            $getSO = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
-                ($_.SectionName -eq 'HttpRequestFiltering') -and
-                ($_.Parameters -eq 'Enabled=False') -and
+            $getSO = Get-FilteredSettingOverrideInformation -ErrorAction SilentlyContinue | Where-Object {
+                ($_.Component.ToLower() -eq 'Cafe'.ToLower()) -and
+                ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
+                ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) -and
                 ($null -eq $_.Server) }
             if ($getSO) {
                 $getSO | Out-Host
@@ -664,10 +665,11 @@ process {
                 foreach ($server in $filterList) {
                     Write-Host $bar
                     Write-Host ""
-                    $getSO = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
-                        ($_.SectionName -eq 'HttpRequestFiltering') -and
-                        ($_.Parameters -eq 'Enabled=False') -and
-                        ($_.Server -contains $server) }
+                    $getSO = Get-FilteredSettingOverrideInformation -ErrorAction SilentlyContinue | Where-Object {
+                        ($_.Component.ToLower() -eq 'Cafe'.ToLower()) -and
+                        ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
+                        ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) -and
+                        ($_.Server.ToLower() -contains $server.ToLower()) }
                     if ($null -eq $getSO) {
                         Write-Host "We did not find Get-SettingOverride that disabled AMSI on $server"
                         Write-Warning "AMSI is NOT disabled on $server"
@@ -688,8 +690,9 @@ process {
                 Write-Host $bar
                 Write-Host ""
                 $getSO = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
-                    ($_.SectionName -eq 'HttpRequestFiltering') -and
-                    ($_.Parameters -eq 'Enabled=False') -and
+                    ($_.Component.ToLower() -eq 'Cafe'.ToLower()) -and
+                    ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
+                    ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) -and
                     ($null -eq $_.Server) }
                 if ($null -eq $getSO) {
                     Write-Host "We did not find Get-SettingOverride that disabled AMSI at Organization level"
@@ -717,9 +720,10 @@ process {
                     Write-Host $bar
                     Write-Host ""
                     $getSO = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
-                        ($_.SectionName -eq 'HttpRequestFiltering') -and
-                        ($_.Parameters -eq 'Enabled=False') -and
-                        ($_.Server -contains $server) }
+                        ($_.Component.ToLower() -eq 'Cafe'.ToLower()) -and
+                        ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
+                        ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) -and
+                        ($_.Server.ToLower() -contains $server.ToLower()) }
                     if ($null -eq $getSO) {
                         New-SettingOverride -Name "DisablingAMSIScan-$server" -Component Cafe -Section HttpRequestFiltering -Parameters ("Enabled=False") -Reason "Disabled via CSS-Exchange Script" -Server $server -WhatIf:$WhatIfPreference
                         if (-not $WhatIfPreference) {
@@ -737,8 +741,9 @@ process {
                 Write-Host ""
                 $getSO = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
                     ($null -eq $_.Server) -and
-                    ($_.SectionName -eq 'HttpRequestFiltering') -and
-                    ($_.Parameters -eq 'Enabled=False') }
+                    ($_.Component.ToLower() -eq 'Cafe'.ToLower()) -and
+                    ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
+                    ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) }
                 if ($null -eq $getSO) {
                     New-SettingOverride -Name DisablingAMSIScan-OrgLevel -Component Cafe -Section HttpRequestFiltering -Parameters ("Enabled=False") -Reason "Disabled via CSS-Exchange Script" -WhatIf:$WhatIfPreference
                     if (-not $WhatIfPreference) {
