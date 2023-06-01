@@ -161,6 +161,27 @@ begin {
     . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
     . $PSScriptRoot\..\Shared\Get-ExchangeBuildVersionInformation.ps1
 
+    function HasWindowsVersionAmsiSupport {
+        param(
+            [Parameter(Mandatory = $true)]
+            [string]$server
+        )
+
+        $Version
+        $Version = Invoke-ScriptBlockHandler -ComputerName $server -ScriptBlock { [System.Environment]::OSVersion.Version.Major }
+        if ($Version) {
+            if ($Version -ge 10) {
+                return $true
+            } else {
+                Write-Warning "$server is not a Windows version with AMSI support."
+                return $false
+            }
+        } else {
+            Write-Warning "We could not get Windows version for $server."
+            return $false
+        }
+    }
+
     function CheckServerAMSI {
         param(
             [Parameter(Mandatory = $true)]
@@ -396,22 +417,19 @@ begin {
         Write-Host ""
         Invoke-ScriptBlockHandler -ComputerName $ExchangeServer -ScriptBlock $AMSIProvidersSB
 
-        $getSO = $null
-        $getSO = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
+        $getSOs = $null
+        $getSOs = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
             ($_.ComponentName.ToLower() -eq 'Cafe'.ToLower()) -and
             ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
             ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) -and
-            ($_.Server.ToLower() -contains $ExchangeServer.ToLower()) }
-        if ($getSO) {
-            $getSO | Out-Host
-            if ($getSO.Status -eq "Accepted") {
-                Write-Warning "AMSI is Disabled by $($getSO.Identity) SettingOverride for $ExchangeServer"
-            } else {
-                Write-Host "We found SettingOverride for $ExchangeServer ($($getSO.Identity))"
-                Write-Warning "The Status of $($getSO.Identity) is not Accepted. Should not apply for $ExchangeServer."
+            ($_.Status -eq 'Accepted') -and
+            ($null -ne $_.Server -and ($_.Server.ToLower() -contains $ExchangeServer.ToLower())) }
+        if ($getSOs) {
+            $getSOs | Out-Host
+            foreach ($so in $getSOs) {
+                Write-Warning "AMSI is Disabled by $($so.Name) SettingOverride for $ExchangeServer"
             }
         } else {
-
             $FEEcpWebConfig = $null
             $CAEEcpWebConfig = $null
 
@@ -509,7 +527,9 @@ process {
         exit
     }
 
-    if ((Get-ExchangeServer $env:COMPUTERNAME).IsEdgeServer) {
+    $localServer = $null
+    $localServer = Get-ExchangeServer $env:COMPUTERNAME -ErrorAction SilentlyContinue
+    if ($localServer -and $localServer.IsEdgeServer) {
         Write-Host $msgNewLine
         Write-Warning "This script cannot be executed in an Edge Server."
         exit
@@ -527,6 +547,11 @@ process {
     }
 
     if ($null -eq $ServerList -and ($RestartIIS -or $CheckAMSIConfig -or $TestAMSI) -and (-not $AllServers)) {
+        if (-not $localServer) {
+            Write-Host $msgNewLine
+            Write-Warning "This option is not available in a management tools server. You must select a server with any of the following parameters: ServerList, AllServers, Sites."
+            exit
+        }
         $ServerList = $env:COMPUTERNAME
     }
 
@@ -534,23 +559,35 @@ process {
     Write-Host "AMSI only support on Exchange 2016 CU21 or newer, Exchange 2019 CU10 or newer and running on Windows 2016 or newer" -ForegroundColor Green
     Write-Host ""
 
-    $SupportedExchangeServers = Get-ExchangeServer | Where-Object {
-        ($_.IsClientAccessServer) -and
-        ((((Get-ExchangeBuildVersionInformation -AdminDisplayVersion ($_.adminDisplayVersion.ToString())).BuildVersion.Minor -eq 1) -and
-            ((Get-ExchangeBuildVersionInformation -AdminDisplayVersion ($_.adminDisplayVersion.ToString())).BuildVersion.Build -ge 2308)) -or
-          (((Get-ExchangeBuildVersionInformation -AdminDisplayVersion ($_.adminDisplayVersion.ToString())).BuildVersion.Minor -eq 2) -and
-            ((Get-ExchangeBuildVersionInformation -AdminDisplayVersion ($_.adminDisplayVersion.ToString())).BuildVersion.Build -ge 922))) } |
-        Select-Object Name, Site
+    $SupportedExchangeServers = New-Object 'System.Collections.Generic.List[object]'
+    Get-ExchangeServer | Where-Object { $_.IsClientAccessServer } | ForEach-Object {
+        $server = $_
+        $versionInformation = Get-ExchangeBuildVersionInformation -AdminDisplayVersion $_.AdminDisplayVersion.ToString()
+        switch ($versionInformation.MajorVersion) {
+            "Exchange2016" { if ($versionInformation.BuildVersion -ge "15.1.2308.8") { $SupportedExchangeServers.Add($server); break } }
+            "Exchange2019" { if ($versionInformation.BuildVersion -ge "15.2.922.7") { $SupportedExchangeServers.Add($server); break } }
+        }
+    }
+
+    $uniqueSites = $null
+    if ($localServer) {
+        $uniqueSites = $SupportedExchangeServers.Site.Name | Get-Unique
+    } else {
+        $uniqueSites = $SupportedExchangeServers.Site | Get-Unique | ForEach-Object { $_.split('/')[-1] }
+    }
+    $sitesCounter = $uniqueSites.count
 
     if ($Sites) {
-        $uniqueSites = $null
-        $uniqueSites = $SupportedExchangeServers.Site.Name | Get-Unique
         foreach ($site in $Sites) {
             if ($uniqueSites -notcontains $site) {
                 Write-Warning "We did not find site $site"
             }
         }
-        $fullList = ($SupportedExchangeServers | Where-Object { $Sites -contains $_.Site.Name } | Select-Object Name).Name
+        if ($localServer) {
+            $fullList = ($SupportedExchangeServers | Where-Object { $Sites -contains $_.Site.Name } | Select-Object Name).Name
+        } else {
+            $fullList = ($SupportedExchangeServers | Where-Object { $Sites -contains $_.Site.split('/')[-1] } | Select-Object Name).Name
+        }
     } else {
         $fullList = ($SupportedExchangeServers | Select-Object Name).Name
     }
@@ -560,16 +597,8 @@ process {
         foreach ($server in $fullList) {
             $serverName = $server.Split('.')[0]
             if ($SupportedExchangeServers.Name -contains $serverName) {
-                $Version = Invoke-ScriptBlockHandler -ComputerName $server -ScriptBlock { [System.Environment]::OSVersion.Version.Major }
-                if ($Version) {
-                    if ($Version -ge 10) {
-                        $filterList += $serverName
-                    } else {
-                        Write-Warning "$server is not a Windows version with AMSI support."
-                    }
-                } else {
-                    Write-Warning "We could not get Windows version for $server."
-                    Write-Warning "Try to run the script locally."
+                if (HasWindowsVersionAmsiSupport -server $server) {
+                    $filterList += $serverName
                 }
             } else {
                 Write-Warning "$server is not an Exchange version with AMSI support."
@@ -580,16 +609,8 @@ process {
             $serverName = $server.Split('.')[0]
             if ($fullList -contains $serverName) {
                 if ($SupportedExchangeServers.Name -contains $serverName) {
-                    $Version = Invoke-ScriptBlockHandler -ComputerName $server -ScriptBlock { [System.Environment]::OSVersion.Version.Major }
-                    if ($Version) {
-                        if ($Version -ge 10) {
-                            $filterList += $serverName
-                        } else {
-                            Write-Warning "$server is not a Windows version with AMSI support."
-                        }
-                    } else {
-                        Write-Warning "We could not get Windows version for $server."
-                        Write-Warning "Try to run the script locally."
+                    if (HasWindowsVersionAmsiSupport -server $server) {
+                        $filterList += $serverName
                     }
                 } else {
                     Write-Warning "$server is not an Exchange version with AMSI support."
@@ -637,19 +658,17 @@ process {
             }
             Write-Host $bar
             Write-Host ""
-            $getSO = $null
-            $getSO = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
+            $getSOs = $null
+            $getSOs = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
                 ($_.ComponentName.ToLower() -eq 'Cafe'.ToLower()) -and
                 ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
                 ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) -and
+                ($_.Status -eq 'Accepted') -and
                 ($null -eq $_.Server) }
-            if ($getSO) {
-                $getSO | Out-Host
-                if ($getSO.Status -eq "Accepted") {
-                    Write-Warning "AMSI is Disabled by $($getSO.Identity) SettingOverride at organization Level."
-                } else {
-                    Write-Host "We found SettingOverride for $ExchangeServer ($($getSO.Identity))"
-                    Write-Warning "The Status of $($getSO.Identity) is not Accepted. Should not apply at organization Level."
+            if ($getSOs) {
+                $getSOs | Out-Host
+                foreach ($so in $getSOs) {
+                    Write-Warning "AMSI is Disabled by $($so.Name) SettingOverride at organization Level."
                 }
             } else {
                 Write-Host "AMSI is Enabled for Exchange at Organization Level." -ForegroundColor Green
@@ -660,26 +679,27 @@ process {
 
         $needsRefresh = 0
         if ($EnableAMSI) {
-            $getSO = $null
             if ($filterList) {
                 foreach ($server in $filterList) {
                     Write-Host $bar
                     Write-Host ""
-                    $getSO = $null
-                    $getSO = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
+                    $getSOs = $null
+                    $getSOs = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
                         ($_.ComponentName.ToLower() -eq 'Cafe'.ToLower()) -and
                         ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
                         ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) -and
-                        ($_.Server.ToLower() -contains $server.ToLower()) }
-                    if ($null -eq $getSO) {
+                        ($_.Status -eq 'Accepted') -and
+                        ($null -ne $_.Server -and ($_.Server.ToLower() -contains $server.ToLower())) }
+                    if ($null -eq $getSOs) {
                         Write-Host "We did not find Get-SettingOverride that disabled AMSI on $server"
                         Write-Warning "AMSI is NOT disabled on $server"
                     } else {
-                        if (-not $WhatIfPreference) { Write-Host "Removing SettingOverride $($getSO.Identity)" }
-                        Remove-SettingOverride -Identity $getSO.Identity -Confirm:$false -WhatIf:$WhatIfPreference
-                        $getSO | Out-Host
+                        foreach ($so in $getSOs) {
+                            $so | Out-Host
+                            if (-not $WhatIfPreference) { Write-Host "Removing SettingOverride $($so.Name)" }
+                            Remove-SettingOverride -Identity $so.Identity -Confirm:$false -WhatIf:$WhatIfPreference
+                        }
                         if (-not $WhatIfPreference) {
-                            Write-Host "Removing SettingOverride $($getSO.Identity)"
                             Write-Host "Enabled on $server" -ForegroundColor Green
                             Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh -Server $server | Out-Null
                             Write-Host "Refreshed Get-ExchangeDiagnosticInfo on $server"
@@ -690,44 +710,50 @@ process {
             } else {
                 Write-Host $bar
                 Write-Host ""
-                $getSO = $null
-                $getSO = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
+                $getSOs = $null
+                $getSOs = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
                     ($_.ComponentName.ToLower() -eq 'Cafe'.ToLower()) -and
                     ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
                     ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) -and
+                    ($_.Status -eq 'Accepted') -and
                     ($null -eq $_.Server) }
-                if ($null -eq $getSO) {
+                if ($null -eq $getSOs) {
                     Write-Host "We did not find Get-SettingOverride that disabled AMSI at Organization level"
                     Write-Warning "AMSI is NOT disabled on Exchange configuration at organization level"
                 } else {
-                    if (-not $WhatIfPreference) { Write-Host "Removing SettingOverride $($getSO.Identity)" }
-                    $getSO | Out-Host
-                    Remove-SettingOverride -Identity $getSO.Identity -Confirm:$false -WhatIf:$WhatIfPreference
-                    if (-not $WhatIfPreference) {
-                        Write-Host "Enabled AMSI at Organization Level" -ForegroundColor Green
-                        foreach ($server in $filterList) {
-                            Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh -Server $server | Out-Null
-                            Write-Host "Refreshed Get-ExchangeDiagnosticInfo on $server"
+                    foreach ($so in $getSOs) {
+                        $so | Out-Host
+                        if (-not $WhatIfPreference) { Write-Host "Removing SettingOverride $($so.Name)" }
+                        Remove-SettingOverride -Identity $so.Name -Confirm:$false -WhatIf:$WhatIfPreference
+                        if (-not $WhatIfPreference) {
+                            Write-Host "Enabled AMSI at Organization Level" -ForegroundColor Green
+                            foreach ($server in $SupportedExchangeServers) {
+                                Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh -Server $server | Out-Null
+                                Write-Host "Refreshed Get-ExchangeDiagnosticInfo on $server"
+                                $needsRefresh++
+                            }
                         }
-                        $needsRefresh++
                     }
                 }
             }
         }
 
         if ($DisableAMSI) {
-            $getSO = $null
             if ($filterList) {
                 foreach ($server in $filterList) {
                     Write-Host $bar
                     Write-Host ""
-                    $getSO = $null
-                    $getSO = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
+                    $getSOs = $null
+                    $getSOs = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
                         ($_.ComponentName.ToLower() -eq 'Cafe'.ToLower()) -and
                         ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
                         ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) -and
-                        ($_.Server.ToLower() -contains $server.ToLower()) }
-                    if ($null -eq $getSO) {
+                        ($_.Status -eq 'Accepted') -and
+                        ($null -ne $_.Server -and ($_.Server.ToLower() -contains $server.ToLower())) }
+                    if ($null -eq $getSOs) {
+                        if (-not $WhatIfPreference) {
+                            Write-Warning "Disabling on $server by DisablingAMSIScan-$server SettingOverride"
+                        }
                         New-SettingOverride -Name "DisablingAMSIScan-$server" -Component Cafe -Section HttpRequestFiltering -Parameters ("Enabled=False") -Reason "Disabled via CSS-Exchange Script" -Server $server -WhatIf:$WhatIfPreference
                         if (-not $WhatIfPreference) {
                             Write-Warning "Disabled on $server by DisablingAMSIScan-$server SettingOverride"
@@ -736,42 +762,52 @@ process {
                             $needsRefresh++
                         }
                     } else {
-                        Write-Warning "AMSI is already disabled on Exchange configuration for $server by SettingOverride $($getSO.Identity)"
+                        foreach ($so in $getSOs) {
+                            Write-Warning "AMSI is already disabled on Exchange configuration for $server by SettingOverride $($so.Name)"
+                        }
                     }
                 }
             } else {
                 Write-Host $bar
                 Write-Host ""
-                $getSO = $null
-                $getSO = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
+                $getSOs = $null
+                $getSOs = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
                     ($null -eq $_.Server) -and
                     ($_.ComponentName.ToLower() -eq 'Cafe'.ToLower()) -and
                     ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
+                    ($_.Status -eq 'Accepted') -and
                     ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) }
-                if ($null -eq $getSO) {
+                if ($null -eq $getSOs) {
+                    if (-not $WhatIfPreference) {
+                        Write-Warning "Disabling AMSI at Organization Level by DisablingAMSIScan-OrgLevel SettingOverride"
+                    }
                     New-SettingOverride -Name DisablingAMSIScan-OrgLevel -Component Cafe -Section HttpRequestFiltering -Parameters ("Enabled=False") -Reason "Disabled via CSS-Exchange Script" -WhatIf:$WhatIfPreference
                     if (-not $WhatIfPreference) {
                         Write-Warning "Disabled AMSI at Organization Level by DisablingAMSIScan-OrgLevel SettingOverride"
-                        foreach ($server in $filterList) {
+                        foreach ($server in $SupportedExchangeServers) {
                             Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh -Server $server | Out-Null
                             Write-Host "Refreshed Get-ExchangeDiagnosticInfo on $server"
+                            $needsRefresh++
                         }
-                        $needsRefresh++
                     }
                 } else {
-                    Write-Warning "AMSI is already disabled on Exchange configuration by SettingOverride $($getSO.Identity)"
+                    foreach ($so in $getSOs) {
+                        Write-Warning "AMSI is already disabled on Exchange configuration by SettingOverride $($so.Name)"
+                    }
                 }
             }
         }
 
-        if ($needsRefresh -gt 0 -and ($SupportedExchangeServers.Site.Name | Get-Unique).count -gt 1) {
+        if ($needsRefresh -gt 0) {
             Write-Host ""
             Write-Host $bar
             Write-Host ""
-            Write-Warning "You have a multi site environment, confirm that all affected Exchange sites has replicated changes."
-            Write-Host "You can push changes on your DCs with: repadmin /syncall /AdeP"
-            Write-Host ""
-            Write-Warning "Remember to restart IIS to be effective."
+            if ($sitesCounter -gt 1) {
+                Write-Warning "You have a multi site environment, confirm that all affected Exchange sites has replicated changes."
+                Write-Host "You can push changes on your DCs with: repadmin /syncall /AdeP"
+                Write-Host ""
+            }
+            Write-Warning "Remember to restart IIS to be effective on all affected servers."
             Write-Host "You can accomplish this by running .\Test-AMSI.ps1 -RestartIIS"
             Write-Host ""
         }
