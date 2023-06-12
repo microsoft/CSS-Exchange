@@ -79,6 +79,10 @@ function ValidateDumpsterExistence {
         $CurrentDescription = "Retrieving: $($PublicFolder.Identity) dumpster for diagnosing"
         $CurrentStatus = "Failure with error: "+$ErrorEncountered
         LogError -Function "Retrieve public folder $($PublicFolder.Identity) dumpster" -CurrentStatus $CurrentStatus -CurrentDescription $CurrentDescription
+        if (!(Test-Path  "$ExportPath\logs_$ts")) {
+            mkdir "$ExportPath\logs_$ts" -Force | Out-Null
+        }
+        $PublicFolder | Export-Clixml -Path "$ExportPath\logs_$ts\PublicFolderInfo$($PublicFolder.Name).xml"
         AskForFeedback
         QuitEXOSession
     }
@@ -141,7 +145,7 @@ function ValidateContentMBXUniqueness {
 function ValidateEntryIDMapping {
     param([PSCustomObject]$PublicFolderInfo)
     if ($PublicFolderInfo.PublicFolder.EntryId -ne $PublicFolderInfo.PublicFolderDumpster.DumpsterEntryID -or $PublicFolderInfo.PublicFolder.DumpsterEntryID -ne $PublicFolderInfo.PublicFolderDumpster.EntryId) {
-        if (!(Test-Path -Path "$ExportPath\logs_$ts\PublicFolderInfo.xml")) {
+        if (!(Test-Path -Path "$ExportPath\logs_$ts\$($PublicFolderInfo.PublicFolder.Name).xml")) {
             ExtractLog($PublicFolderInfo)
         }
         $Issue="Public folder $($PublicFolder.Identity) EntryId & DumpsterEntryID values are not mapped properly"
