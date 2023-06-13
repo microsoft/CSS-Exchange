@@ -203,13 +203,14 @@ begin {
         } catch [System.Net.WebException] {
             $Message = ($_.Exception.Message).ToString().Trim()
             $currentForegroundColor = $host.ui.RawUI.ForegroundColor
-            if ($_.Exception.Message -eq "The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel.") {
+            if ($_.Exception.Status -eq [System.Net.WebExceptionStatus]::TrustFailure) {
                 $host.ui.RawUI.ForegroundColor = "Red"
                 Write-Host $Message
                 $host.ui.RawUI.ForegroundColor = "Yellow"
                 Write-Host "You could use the -IgnoreSSL parameter"
                 $host.ui.RawUI.ForegroundColor = $currentForegroundColor
-            } elseif ($_.Exception.Message -eq "The remote server returned an error: (400) Bad Request.") {
+            } elseif ($_.Exception.Status -eq [System.Net.WebExceptionStatus]::ProtocolError -and
+                $_.Exception.Response.StatusCode -eq [System.Net.HttpStatusCode]::BadRequest ) {
                 $host.ui.RawUI.ForegroundColor = "Green"
                 Write-Host "We sent an test request to the ECP Virtual Directory of the server requested"
                 $host.ui.RawUI.ForegroundColor = "Yellow"
@@ -422,73 +423,76 @@ begin {
             ($_.ComponentName.ToLower() -eq 'Cafe'.ToLower()) -and
             ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
             ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) -and
-            ($_.Status -eq 'Accepted') -and
             ($null -ne $_.Server -and ($_.Server.ToLower() -contains $ExchangeServer.ToLower())) }
         if ($getSOs) {
             $getSOs | Out-Host
             foreach ($so in $getSOs) {
-                Write-Warning "AMSI is Disabled by $($so.Name) SettingOverride for $ExchangeServer"
-            }
-        } else {
-            $FEEcpWebConfig = $null
-            $CAEEcpWebConfig = $null
-
-            $getMSIInstallPathSB = { (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath }
-            $ExchangePath = Invoke-ScriptBlockHandler -ComputerName $ExchangeServer -ScriptBlock $getMSIInstallPathSB
-
-            if ($ExchangePath) {
-                if ($ExchangeServer.ToLower() -eq $env:COMPUTERNAME.ToLower()) {
-                    $FEEcpWebConfig = Join-Path $ExchangePath "FrontEnd\HttpProxy\ecp\web.config"
-                    $CAEEcpWebConfig = Join-Path $ExchangePath "ClientAccess\ecp\web.config"
+                if ($so.Status -eq 'Accepted') {
+                    Write-Warning "AMSI is Disabled by $($so.Name) SettingOverride for $ExchangeServer"
                 } else {
-                    $FEEcpWebConfig = Join-Path "\\$ExchangeServer\$($ExchangePath.Replace(':','$'))" "FrontEnd\HttpProxy\ecp\web.config"
-                    $CAEEcpWebConfig = Join-Path "\\$ExchangeServer\$($ExchangePath.Replace(':','$'))" "ClientAccess\ecp\web.config"
+                    Write-Host "AMSI is Disabled by $($so.Name) SettingOverride for $ExchangeServer but it is not Accepted." -ForegroundColor Red
                 }
+            }
+        }
 
-                if ($FEEcpWebConfig -and $CAEEcpWebConfig) {
-                    if (Test-Path $FEEcpWebConfig -PathType Leaf) {
-                        $FEFilterModule = $null
-                        $FEFilterModule = Get-Content $FEEcpWebConfig | Select-String '<add name="HttpRequestFilteringModule" type="Microsoft.Exchange.HttpRequestFiltering.HttpRequestFilteringModule, Microsoft.Exchange.HttpRequestFiltering, Version=15.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"'
-                        Write-Host ""
-                        if ($FEFilterModule) {
-                            Write-Host "We found HttpRequestFilteringModule on FrontEnd ECP web.config" -ForegroundColor Green
-                            Write-Host "Path: $($ExchangePath)FrontEnd\HttpProxy\ecp\web.config"
-                        } else {
-                            Write-Warning "We did not find HttpRequestFilteringModule on FrontEnd ECP web.config"
-                            Write-Warning "Path: $($ExchangePath)FrontEnd\HttpProxy\ecp\web.config"
-                        }
+        $FEEcpWebConfig = $null
+        $CAEEcpWebConfig = $null
+
+        $getMSIInstallPathSB = { (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath }
+        $ExchangePath = Invoke-ScriptBlockHandler -ComputerName $ExchangeServer -ScriptBlock $getMSIInstallPathSB
+
+        if ($ExchangePath) {
+            if ($ExchangeServer.ToLower() -eq $env:COMPUTERNAME.ToLower()) {
+                $FEEcpWebConfig = Join-Path $ExchangePath "FrontEnd\HttpProxy\ecp\web.config"
+                $CAEEcpWebConfig = Join-Path $ExchangePath "ClientAccess\ecp\web.config"
+            } else {
+                $FEEcpWebConfig = Join-Path "\\$ExchangeServer\$($ExchangePath.Replace(':','$'))" "FrontEnd\HttpProxy\ecp\web.config"
+                $CAEEcpWebConfig = Join-Path "\\$ExchangeServer\$($ExchangePath.Replace(':','$'))" "ClientAccess\ecp\web.config"
+            }
+
+            if ($FEEcpWebConfig -and $CAEEcpWebConfig) {
+                if (Test-Path $FEEcpWebConfig -PathType Leaf) {
+                    $FEFilterModule = $null
+                    $FEFilterModule = Get-Content $FEEcpWebConfig | Select-String '<add name="HttpRequestFilteringModule" type="Microsoft.Exchange.HttpRequestFiltering.HttpRequestFilteringModule, Microsoft.Exchange.HttpRequestFiltering, Version=15.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"'
+                    Write-Host ""
+                    if ($FEFilterModule) {
+                        Write-Host "We found HttpRequestFilteringModule on FrontEnd ECP web.config" -ForegroundColor Green
+                        Write-Host "Path: $($ExchangePath)FrontEnd\HttpProxy\ecp\web.config"
                     } else {
-                        Write-Warning "We did not find web.config for FrontEnd ECP"
+                        Write-Warning "We did not find HttpRequestFilteringModule on FrontEnd ECP web.config"
                         Write-Warning "Path: $($ExchangePath)FrontEnd\HttpProxy\ecp\web.config"
                     }
+                } else {
+                    Write-Warning "We did not find web.config for FrontEnd ECP"
+                    Write-Warning "Path: $($ExchangePath)FrontEnd\HttpProxy\ecp\web.config"
+                }
 
-                    if (Test-Path $FEEcpWebConfig -PathType Leaf) {
-                        $CEFilterModule = $null
-                        $CEFilterModule = Get-Content $CAEEcpWebConfig | Select-String '<add name="HttpRequestFilteringModule" type="Microsoft.Exchange.HttpRequestFiltering.HttpRequestFilteringModule, Microsoft.Exchange.HttpRequestFiltering, Version=15.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"'
-                        Write-Host ""
-                        if ($CEFilterModule) {
-                            Write-Host "We found HttpRequestFilteringModule on ClientAccess ECP web.config" -ForegroundColor Green
-                            Write-Host "Path: $($ExchangePath)ClientAccess\ecp\web.config"
-                        } else {
-                            Write-Warning "We did not find HttpRequestFilteringModule on ClientAccess ECP web.config"
-                            Write-Warning "Path: $($ExchangePath)ClientAccess\ecp\web.config"
-                        }
+                if (Test-Path $FEEcpWebConfig -PathType Leaf) {
+                    $CEFilterModule = $null
+                    $CEFilterModule = Get-Content $CAEEcpWebConfig | Select-String '<add name="HttpRequestFilteringModule" type="Microsoft.Exchange.HttpRequestFiltering.HttpRequestFilteringModule, Microsoft.Exchange.HttpRequestFiltering, Version=15.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"'
+                    Write-Host ""
+                    if ($CEFilterModule) {
+                        Write-Host "We found HttpRequestFilteringModule on ClientAccess ECP web.config" -ForegroundColor Green
+                        Write-Host "Path: $($ExchangePath)ClientAccess\ecp\web.config"
                     } else {
-                        Write-Warning "We did not find web.config for ClientAccess ECP"
+                        Write-Warning "We did not find HttpRequestFilteringModule on ClientAccess ECP web.config"
                         Write-Warning "Path: $($ExchangePath)ClientAccess\ecp\web.config"
                     }
                 } else {
-                    Write-Host "We could not get FrontEnd or BackEnd Web.config path on $ExchangeServer." -ForegroundColor Red
+                    Write-Warning "We did not find web.config for ClientAccess ECP"
+                    Write-Warning "Path: $($ExchangePath)ClientAccess\ecp\web.config"
                 }
             } else {
-                Write-Host "Cannot get Exchange installation path on $server" -ForegroundColor Red
+                Write-Host "We could not get FrontEnd or BackEnd Web.config path on $ExchangeServer." -ForegroundColor Red
             }
-
-            Write-Host $msgNewLine
-            Write-Host "AMSI is Enabled on Server $ExchangeServer." -ForegroundColor Green
-            Write-Host "We did not find any Settings Override that remove AMSI on server $ExchangeServer."
-            Write-Host ""
+        } else {
+            Write-Host "Cannot get Exchange installation path on $server" -ForegroundColor Red
         }
+
+        Write-Host $msgNewLine
+        Write-Host "AMSI is Enabled on Server $ExchangeServer." -ForegroundColor Green
+        Write-Host "We did not find any Settings Override that remove AMSI on server $ExchangeServer."
+        Write-Host ""
     }
 }
 
@@ -663,12 +667,15 @@ process {
                 ($_.ComponentName.ToLower() -eq 'Cafe'.ToLower()) -and
                 ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
                 ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) -and
-                ($_.Status -eq 'Accepted') -and
                 ($null -eq $_.Server) }
             if ($getSOs) {
                 $getSOs | Out-Host
                 foreach ($so in $getSOs) {
-                    Write-Warning "AMSI is Disabled by $($so.Name) SettingOverride at organization Level."
+                    if ($so.Status -eq 'Accepted') {
+                        Write-Warning "AMSI is Disabled by $($so.Name) SettingOverride at organization Level."
+                    } else {
+                        Write-Host "AMSI is Disabled by $($so.Name) SettingOverride at organization Level but it is not Accepted." -ForegroundColor Red
+                    }
                 }
             } else {
                 Write-Host "AMSI is Enabled for Exchange at Organization Level." -ForegroundColor Green
@@ -688,22 +695,31 @@ process {
                         ($_.ComponentName.ToLower() -eq 'Cafe'.ToLower()) -and
                         ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
                         ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) -and
-                        ($_.Status -eq 'Accepted') -and
                         ($null -ne $_.Server -and ($_.Server.ToLower() -contains $server.ToLower())) }
                     if ($null -eq $getSOs) {
                         Write-Host "We did not find Get-SettingOverride that disabled AMSI on $server"
                         Write-Warning "AMSI is NOT disabled on $server"
                     } else {
                         foreach ($so in $getSOs) {
+                            if ($so.Status -eq 'Accepted') {
+                                Write-Warning "AMSI is Disabled by $($so.Name) SettingOverride on $server"
+                            } else {
+                                Write-Warning "AMSI is Disabled by $($so.Name) SettingOverride on $server but it is not Accepted."
+                            }
                             $so | Out-Host
                             if (-not $WhatIfPreference) { Write-Host "Removing SettingOverride $($so.Name)" }
-                            Remove-SettingOverride -Identity $so.Identity -Confirm:$false -WhatIf:$WhatIfPreference
-                        }
-                        if (-not $WhatIfPreference) {
-                            Write-Host "Enabled on $server" -ForegroundColor Green
-                            Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh -Server $server | Out-Null
-                            Write-Host "Refreshed Get-ExchangeDiagnosticInfo on $server"
-                            $needsRefresh++
+                            $rso = $null
+                            Remove-SettingOverride -Identity $so.Identity -Confirm:$false -WhatIf:$WhatIfPreference -ErrorVariable $rso
+                            if (-not $WhatIfPreference) {
+                                if ($rso) {
+                                    Write-Host "We could not remove the SettingOverride on $server" -ForegroundColor Red
+                                } else {
+                                    Write-Host "Enabled on $server" -ForegroundColor Green
+                                    Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh -Server $server | Out-Null
+                                    Write-Host "Refreshed Get-ExchangeDiagnosticInfo on $server"
+                                    $needsRefresh++
+                                }
+                            }
                         }
                     }
                 }
@@ -715,22 +731,31 @@ process {
                     ($_.ComponentName.ToLower() -eq 'Cafe'.ToLower()) -and
                     ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
                     ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) -and
-                    ($_.Status -eq 'Accepted') -and
                     ($null -eq $_.Server) }
                 if ($null -eq $getSOs) {
                     Write-Host "We did not find Get-SettingOverride that disabled AMSI at Organization level"
                     Write-Warning "AMSI is NOT disabled on Exchange configuration at organization level"
                 } else {
                     foreach ($so in $getSOs) {
+                        if ($so.Status -eq 'Accepted') {
+                            Write-Warning "AMSI is Disabled by $($so.Name) SettingOverride at Organization level"
+                        } else {
+                            Write-Warning "AMSI is Disabled by $($so.Name) SettingOverride at Organization level but it is not Accepted."
+                        }
                         $so | Out-Host
                         if (-not $WhatIfPreference) { Write-Host "Removing SettingOverride $($so.Name)" }
-                        Remove-SettingOverride -Identity $so.Name -Confirm:$false -WhatIf:$WhatIfPreference
+                        $rso = $null
+                        Remove-SettingOverride -Identity $so.Name -Confirm:$false -WhatIf:$WhatIfPreference -ErrorVariable $rso
                         if (-not $WhatIfPreference) {
-                            Write-Host "Enabled AMSI at Organization Level" -ForegroundColor Green
-                            foreach ($server in $SupportedExchangeServers) {
-                                Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh -Server $server | Out-Null
-                                Write-Host "Refreshed Get-ExchangeDiagnosticInfo on $server"
-                                $needsRefresh++
+                            if ($rso) {
+                                Write-Host "We could not remove the SettingOverride on $server" -ForegroundColor Red
+                            } else {
+                                Write-Host "Enabled AMSI at Organization Level" -ForegroundColor Green
+                                foreach ($server in $SupportedExchangeServers) {
+                                    Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh -Server $server | Out-Null
+                                    Write-Host "Refreshed Get-ExchangeDiagnosticInfo on $server"
+                                    $needsRefresh++
+                                }
                             }
                         }
                     }
@@ -748,22 +773,30 @@ process {
                         ($_.ComponentName.ToLower() -eq 'Cafe'.ToLower()) -and
                         ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
                         ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) -and
-                        ($_.Status -eq 'Accepted') -and
                         ($null -ne $_.Server -and ($_.Server.ToLower() -contains $server.ToLower())) }
                     if ($null -eq $getSOs) {
                         if (-not $WhatIfPreference) {
                             Write-Warning "Disabling on $server by DisablingAMSIScan-$server SettingOverride"
                         }
-                        New-SettingOverride -Name "DisablingAMSIScan-$server" -Component Cafe -Section HttpRequestFiltering -Parameters ("Enabled=False") -Reason "Disabled via CSS-Exchange Script" -Server $server -WhatIf:$WhatIfPreference
+                        $nso = $null
+                        $nso = New-SettingOverride -Name "DisablingAMSIScan-$server" -Component Cafe -Section HttpRequestFiltering -Parameters ("Enabled=False") -Reason "Disabled via CSS-Exchange Script" -Server $server -WhatIf:$WhatIfPreference
                         if (-not $WhatIfPreference) {
-                            Write-Warning "Disabled on $server by DisablingAMSIScan-$server SettingOverride"
-                            Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh -Server $server | Out-Null
-                            Write-Host "Refreshed Get-ExchangeDiagnosticInfo on $server"
-                            $needsRefresh++
+                            if ($nso) {
+                                Write-Warning "Disabled on $server by DisablingAMSIScan-$server SettingOverride"
+                                Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh -Server $server | Out-Null
+                                Write-Host "Refreshed Get-ExchangeDiagnosticInfo on $server"
+                                $needsRefresh++
+                            } else {
+                                Write-Host "Failed to disable AMSI on $server by DisablingAMSIScan-$server SettingOverride" -ForegroundColor Red
+                            }
                         }
                     } else {
                         foreach ($so in $getSOs) {
-                            Write-Warning "AMSI is already disabled on Exchange configuration for $server by SettingOverride $($so.Name)"
+                            if ($so.Status -eq 'Accepted') {
+                                Write-Warning "AMSI is already disabled on $server by $($so.Name) SettingOverride"
+                            } else {
+                                Write-Host "AMSI is already disabled on $server by $($so.Name) SettingOverride but it is not Accepted."  -ForegroundColor Red
+                            }
                         }
                     }
                 }
@@ -775,24 +808,32 @@ process {
                     ($null -eq $_.Server) -and
                     ($_.ComponentName.ToLower() -eq 'Cafe'.ToLower()) -and
                     ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
-                    ($_.Status -eq 'Accepted') -and
                     ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) }
                 if ($null -eq $getSOs) {
                     if (-not $WhatIfPreference) {
                         Write-Warning "Disabling AMSI at Organization Level by DisablingAMSIScan-OrgLevel SettingOverride"
                     }
-                    New-SettingOverride -Name DisablingAMSIScan-OrgLevel -Component Cafe -Section HttpRequestFiltering -Parameters ("Enabled=False") -Reason "Disabled via CSS-Exchange Script" -WhatIf:$WhatIfPreference
+                    $nso = $null
+                    $nso = New-SettingOverride -Name DisablingAMSIScan-OrgLevel -Component Cafe -Section HttpRequestFiltering -Parameters ("Enabled=False") -Reason "Disabled via CSS-Exchange Script" -WhatIf:$WhatIfPreference
                     if (-not $WhatIfPreference) {
-                        Write-Warning "Disabled AMSI at Organization Level by DisablingAMSIScan-OrgLevel SettingOverride"
-                        foreach ($server in $SupportedExchangeServers) {
-                            Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh -Server $server | Out-Null
-                            Write-Host "Refreshed Get-ExchangeDiagnosticInfo on $server"
-                            $needsRefresh++
+                        if ($nso) {
+                            Write-Warning "Disabled AMSI at Organization Level by DisablingAMSIScan-OrgLevel SettingOverride"
+                            foreach ($server in $SupportedExchangeServers) {
+                                Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh -Server $server | Out-Null
+                                Write-Host "Refreshed Get-ExchangeDiagnosticInfo on $server"
+                                $needsRefresh++
+                            }
+                        } else {
+                            Write-Host "Failed to disable AMSI at Organization Level by DisablingAMSIScan-OrgLevel SettingOverride" -ForegroundColor Red
                         }
                     }
                 } else {
                     foreach ($so in $getSOs) {
-                        Write-Warning "AMSI is already disabled on Exchange configuration by SettingOverride $($so.Name)"
+                        if ($so.Status -eq 'Accepted') {
+                            Write-Warning "AMSI is already disabled at Organization Level by $($so.Name) SettingOverride"
+                        } else {
+                            Write-Host "AMSI is already disabled at Organization Level by $($so.Name) SettingOverride but it is not Accepted." -ForegroundColor Red
+                        }
                     }
                 }
             }
@@ -817,14 +858,17 @@ process {
                 $yesToAll = $false
                 $noToAll = $false
 
+                foreach ($server in $filterList) {
+                    if (-not $WhatIfPreference) {
+                        Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh -Server $server | Out-Null
+                        Write-Host "Refreshed Get-ExchangeDiagnosticInfo on $server"
+                    }
+                }
+
                 if ($Force -or $PSCmdlet.ShouldContinue("Are you sure you want to do it?", "This command wil restart the following IIS servers: $filterList", $true, [ref]$yesToAll, [ref]$noToAll)) {
                     foreach ($server in $filterList) {
                         Write-Host $msgNewLine
                         if ($Force -or $filterList.Count -eq 1 -or $PSCmdlet.ShouldContinue("Are you sure you want to do it?", "You will restart IIS on server $server", $true, [ref]$yesToAll, [ref]$noToAll)) {
-                            if (-not $WhatIfPreference) {
-                                Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh -Server $server | Out-Null
-                                Write-Host "Refreshed Get-ExchangeDiagnosticInfo on $server"
-                            }
                             if ($server.ToLower() -eq $env:COMPUTERNAME.ToLower()) {
                                 if (-not $WhatIfPreference) { Write-Host "Restarting local IIS on $server" }
                                 Get-Service W3SVC, WAS | Restart-Service -Force -WhatIf:$WhatIfPreference
@@ -832,7 +876,7 @@ process {
                                 if (-not $WhatIfPreference) { Write-Host "Restarting Remote IIS on $server" }
                                 Get-Service W3SVC, WAS -ComputerName $server | Restart-Service -Force -WhatIf:$WhatIfPreference
                             }
-                            if (-not $WhatIfPreference) { Write-Host "$server Restarted" }
+                            if (-not $WhatIfPreference) { Write-Host "Ended $server Restart" }
                         }
                     }
                 }
