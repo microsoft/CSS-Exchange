@@ -976,6 +976,12 @@ function Get-CountersFromXml {
 
 function Main {
 
+    # Currently no support for core with this script.
+    if ($PSVersionTable.PSEdition -eq "Core") {
+        Write-Error "Unable to use PowerShell Core with this script."
+        exit
+    }
+
     $script:processStartTime = [System.DateTime]::Now
 
     #determine the logic we want out of the script
