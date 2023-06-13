@@ -2,10 +2,14 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\Invoke-CatchActionError.ps1
+. $PSScriptRoot\..\Invoke-ScriptBlockHandler.ps1
 
 function Get-IISModules {
     [CmdletBinding()]
     param(
+        [Parameter(Mandatory = $false)]
+        [string]$ComputerName = $env:COMPUTERNAME,
+
         [Parameter(Mandatory = $true)]
         [System.Xml.XmlNode]$ApplicationHostConfig,
 
@@ -89,15 +93,33 @@ function Get-IISModules {
             [CmdletBinding()]
             param(
                 [Parameter(Mandatory = $true)]
-                [object[]]$Modules
+                [string]$ComputerName,
+
+                [Parameter(Mandatory = $true)]
+                [object[]]$Modules,
+
+                [Parameter(Mandatory = $false)]
+                [ScriptBlock]$CatchActionFunction
             )
             process {
                 try {
                     $iisModulesList = New-Object 'System.Collections.Generic.List[object]'
-                    if ($Modules.Count -ge 1) {
-                        Write-Verbose "At least one module is loaded by IIS"
+                    $numberOfModulesFound = $Modules.Count
+                    if ($numberOfModulesFound -ge 1) {
+                        Write-Verbose "$numberOfModulesFound module(s) loaded by IIS"
+                        Write-Verbose "Checking file signing information now..."
+
+                        $signatureParams = @{
+                            ComputerName        = $ComputerName
+                            ScriptBlock         = { Get-AuthenticodeSignature -FilePath $args[0] }
+                            ArgumentList        = , $Modules.image # , is used to force the array to be passed as a single object
+                            CatchActionFunction = $CatchActionFunction
+                        }
+                        $allSignatures = Invoke-ScriptBlockHandler @signatureParams
+
                         foreach ($m in $Modules) {
-                            Write-Verbose "Now processing module: $($m.Name)"
+                            Write-Verbose "Now processing module: $($m.name)"
+                            $signature = $null
                             $isModuleSigned = $false
                             $signatureDetails = [PSCustomObject]@{
                                 Signer            = $null
@@ -105,35 +127,36 @@ function Get-IISModules {
                                 IsMicrosoftSigned = $null
                             }
 
-                            $moduleFilePath = GetModulePath -Path $m.Image
-
                             try {
-                                Write-Verbose "Querying file signing information"
-                                $signature = Get-AuthenticodeSignature -FilePath $moduleFilePath -ErrorAction Stop
-                                Write-Verbose "Performing signature status validation. Status: $($signature.Status)"
-                                # Signature Status Enum Values:
-                                # <0> Valid, <1> UnknownError, <2> NotSigned, <3> HashMismatch,
-                                # <4> NotTrusted, <5> NotSupportedFileFormat, <6> Incompatible,
-                                # https://docs.microsoft.com/dotnet/api/system.management.automation.signaturestatus
-                                if (($null -ne $signature.Status) -and
-                                    ($signature.Status -ne 1) -and
-                                    ($signature.Status -ne 2) -and
-                                    ($signature.Status -ne 5) -and
-                                    ($signature.Status -ne 6)) {
+                                $signature = $allSignatures | Where-Object { $_.Path -eq $m.image } | Select-Object -First 1
+                                if ($null -ne $signature) {
+                                    Write-Verbose "Performing signature status validation. Status: $($signature.Status)"
+                                    # Signature Status Enum Values:
+                                    # <0> Valid, <1> UnknownError, <2> NotSigned, <3> HashMismatch,
+                                    # <4> NotTrusted, <5> NotSupportedFileFormat, <6> Incompatible,
+                                    # https://docs.microsoft.com/dotnet/api/system.management.automation.signaturestatus
+                                    if (($null -ne $signature.Status) -and
+                                        ($signature.Status -ne 1) -and
+                                        ($signature.Status -ne 2) -and
+                                        ($signature.Status -ne 5) -and
+                                        ($signature.Status -ne 6)) {
 
-                                    $signatureDetails.SignatureStatus = $signature.Status
-                                    $isModuleSigned = $true
+                                        $signatureDetails.SignatureStatus = $signature.Status
+                                        $isModuleSigned = $true
 
-                                    if ($null -ne $signature.SignerCertificate.Subject) {
-                                        Write-Verbose "Signer information found. Subject: $($signature.SignerCertificate.Subject)"
-                                        $signatureDetails.Signer = $signature.SignerCertificate.Subject.ToString()
-                                        $signatureDetails.IsMicrosoftSigned = $signature.SignerCertificate.Subject -cmatch "O=Microsoft Corporation, L=Redmond, S=Washington"
+                                        if ($null -ne $signature.SignerCertificate.Subject) {
+                                            Write-Verbose "Signer information found. Subject: $($signature.SignerCertificate.Subject)"
+                                            $signatureDetails.Signer = $signature.SignerCertificate.Subject.ToString()
+                                            $signatureDetails.IsMicrosoftSigned = $signature.SignerCertificate.Subject -cmatch "O=Microsoft Corporation, L=Redmond, S=Washington"
+                                        }
                                     }
+                                } else {
+                                    Write-Verbose "No signature information found for module $($m.name)"
                                 }
 
                                 $iisModulesList.Add([PSCustomObject]@{
-                                        Name             = $m.Name
-                                        Path             = $moduleFilePath
+                                        Name             = $m.name
+                                        Path             = $m.image
                                         Signed           = $isModuleSigned
                                         SignatureDetails = $signatureDetails
                                     })
@@ -157,8 +180,11 @@ function Get-IISModules {
     }
     process {
         $ApplicationHostConfig.configuration.'system.webServer'.globalModules.add | ForEach-Object {
+            $moduleFilePath = GetModulePath -Path $_.image
+            # Replace the image path with the full path without environment variables
+            $_.image = $moduleFilePath
             if ($SkipLegacyOSModulesCheck) {
-                if ((GetModulePath $_.image) -notin $modulesToSkip) {
+                if ($moduleFilePath -notin $modulesToSkip) {
                     $modulesToCheckList.Add($_)
                 }
             } else {
@@ -166,7 +192,12 @@ function Get-IISModules {
             }
         }
 
-        $modules = GetIISModulesSignatureStatus -Modules $modulesToCheckList
+        $getIISModulesSignatureStatusParams = @{
+            ComputerName        = $ComputerName
+            Modules             = $modulesToCheckList
+            CatchActionFunction = $CatchActionFunction
+        }
+        $modules = GetIISModulesSignatureStatus @getIISModulesSignatureStatusParams
 
         # Validate if all modules that are loaded are digitally signed
         $allModulesAreSigned = (-not($modules.Signed.Contains($false)))
@@ -177,8 +208,10 @@ function Get-IISModules {
         Write-Verbose "Are all modules signed by Microsoft Corporation? $allModulesSignedByMSFT"
 
         # Validate if all signatures are valid (regardless of whether signed by Microsoft Corp. or not)
-        $allSignaturesValid = $null -eq ($modules |
-                Where-Object { $_.Signed -and $_.SignatureDetails.SignatureStatus -ne 0 })
+        $allSignaturesValid = $null -eq ($modules | Where-Object {
+                ($_.Signed) -and
+                ($_.SignatureDetails.SignatureStatus -ne 0)
+            })
     }
     end {
         return [PSCustomObject]@{

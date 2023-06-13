@@ -195,14 +195,32 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     if ($null -ne $exchangeInformation.IISSettings.IISWebApplication -or
         $null -ne $exchangeInformation.IISSettings.IISWebSite -or
         $null -ne $exchangeInformation.IISSettings.IISSharedWebConfig) {
+        $iisWebSettings = @($exchangeInformation.IISSettings.IISWebApplication)
+        $iisWebSettings += @($exchangeInformation.IISSettings.IISWebSite)
         $iisConfigurationSettings = @($exchangeInformation.IISSettings.IISWebApplication.ConfigurationFileInfo)
-        $iisConfigurationSettings += @($exchangeInformation.IISSettings.IISWebSite.ConfigurationFileInfo)
+        $iisConfigurationSettings += $iisWebSiteConfigs = @($exchangeInformation.IISSettings.IISWebSite.ConfigurationFileInfo)
         $iisConfigurationSettings += @($exchangeInformation.IISSettings.IISSharedWebConfig)
 
-        $missingConfigFile = $iisConfigurationSettings | Where-Object { $_.Exist -eq $false }
+        # Invalid configuration files are ones that we can't convert to xml.
+        $invalidConfigurationFile = $iisConfigurationSettings | Where-Object { $_.Valid -eq $false -and $_.Exist -eq $true }
+        # If a web application config file doesn't truly exists, we end up using the parent web.config file
+        # If any of the web application config file paths match a parent path, that is a problem.
+        # only collect the ones that are valid, if not valid we will assume that the child web apps will point to it and can be misleading.
+        $siteConfigPaths = $iisWebSiteConfigs |
+            Where-Object { $_.Valid -eq $true -and $_.Exist -eq $true } |
+            ForEach-Object { $_.Location.ToLower() }
+
+        if ($null -ne $siteConfigPaths) {
+            $missingWebApplicationConfigFile = $exchangeInformation.IISSettings.IISWebApplication |
+                Where-Object { $siteConfigPaths.Contains($_.ConfigurationFileInfo.Location.ToLower()) }
+        }
+
+        # Missing config file should really only occur for SharedWebConfig files, as the web application would go back to the parent site.
+        $missingSharedConfigFile = @($exchangeInformation.IISSettings.IISSharedWebConfig) | Where-Object { $_.Exist -eq $false }
+        $missingConfigFiles = $iisWebSettings | Where-Object { $_.ConfigurationFileInfo.Exist -eq $false }
         $defaultVariableDetected = $iisConfigurationSettings | Where-Object { $null -ne ($_.Content | Select-String "%ExchangeInstallDir%") }
         $binSearchFoldersNotFound = $iisConfigurationSettings |
-            Where-Object { $_.Location -like "*\ClientAccess\ecp\web.config" -and $_.Exist -eq $true  -and $_.Valid -eq $true } |
+            Where-Object { $_.Location -like "*\ClientAccess\ecp\web.config" -and $_.Exist -eq $true -and $_.Valid -eq $true } |
             Where-Object {
                 $binSearchFolders = (([xml]($_.Content)).configuration.appSettings.add | Where-Object {
                         $_.key -eq "BinSearchFolders"
@@ -219,15 +237,58 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
                 }
             }
 
-        if ($null -ne $missingConfigFile) {
+        if ($null -ne $missingWebApplicationConfigFile) {
             $params = $baseParams + @{
-                Name                = "Missing Configuration File"
+                Name                = "Missing Web Application Configuration File"
                 DisplayWriteType    = "Red"
                 DisplayTestingValue = $true
             }
             Add-AnalyzedResultInformation @params
 
-            foreach ($file in $missingConfigFile) {
+            foreach ($webApp in $missingWebApplicationConfigFile) {
+                $params = $baseParams + @{
+                    Details                = "Web Application: '$($webApp.FriendlyName)' Attempting to use config: '$($webApp.ConfigurationFileInfo.Location)'"
+                    DisplayWriteType       = "Red"
+                    DisplayCustomTabNumber = 2
+                    TestingName            = "Web Application: '$($webApp.FriendlyName)'"
+                    DisplayTestingValue    = $($webApp.ConfigurationFileInfo.Location)
+                }
+                Add-AnalyzedResultInformation @params
+            }
+        }
+
+        if ($null -ne $invalidConfigurationFile) {
+            $params = $baseParams + @{
+                Name                = "Invalid Configuration File"
+                DisplayWriteType    = "Red"
+                DisplayTestingValue = $true
+            }
+            Add-AnalyzedResultInformation @params
+
+            $alreadyDisplayConfigs = New-Object 'System.Collections.Generic.HashSet[string]'
+            foreach ($configFile in $invalidConfigurationFile) {
+                if ($alreadyDisplayConfigs.Add($configFile.Location)) {
+                    $params = $baseParams + @{
+                        Details                = "Invalid: $($configFile.Location)"
+                        DisplayWriteType       = "Red"
+                        DisplayCustomTabNumber = 2
+                        TestingName            = "Invalid: $($configFile.Location)"
+                        DisplayTestingValue    = $true
+                    }
+                    Add-AnalyzedResultInformation @params
+                }
+            }
+        }
+
+        if ($null -ne $missingSharedConfigFile) {
+            $params = $baseParams + @{
+                Name                = "Missing Shared Configuration File"
+                DisplayWriteType    = "Red"
+                DisplayTestingValue = $true
+            }
+            Add-AnalyzedResultInformation @params
+
+            foreach ($file in $missingSharedConfigFile) {
                 $params = $baseParams + @{
                     Details                = "Missing: $($file.Location)"
                     DisplayWriteType       = "Red"
@@ -242,6 +303,24 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
                 DisplayCustomTabNumber = 2
             }
             Add-AnalyzedResultInformation @params
+        }
+
+        if ($null -ne $missingConfigFiles) {
+            $params = $baseParams + @{
+                Name                = "Couldn't Find Config File"
+                DisplayWriteType    = "Red"
+                DisplayTestingValue = $true
+            }
+            Add-AnalyzedResultInformation @params
+
+            foreach ($file in $missingConfigFiles) {
+                $params = $baseParams + @{
+                    Details                = "Friendly Name: $($file.FriendlyName)"
+                    DisplayWriteType       = "Red"
+                    DisplayCustomTabNumber = 2
+                }
+                Add-AnalyzedResultInformation @params
+            }
         }
 
         if ($null -ne $defaultVariableDetected) {
@@ -290,6 +369,23 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
                 Details                = "More Information: https://aka.ms/HC-BinSearchFolder"
                 DisplayWriteType       = "Yellow"
                 DisplayCustomTabNumber = 2
+            }
+            Add-AnalyzedResultInformation @params
+        }
+    } elseif ($null -ne $exchangeInformation.IISSettings.ApplicationHostConfig) {
+        Write-Verbose "Wasn't able find any other IIS settings, likely due to application host config file being messed up."
+        try {
+            [xml]$exchangeInformation.IISSettings.ApplicationHostConfig | Out-Null
+            Write-Verbose "Application Host Config file is in a readable file, not sure how we got here."
+        } catch {
+            Invoke-CatchActions
+            Write-Verbose "Confirmed Application Host Config file isn't in a readable xml format."
+            $params = $baseParams + @{
+                Name                = "Invalid Configuration File"
+                Details             = "Application Host Config File: '$($env:WINDIR)\System32\inetSrv\config\applicationHost.config'"
+                DisplayWriteType    = "Red"
+                TestingName         = "Invalid Configuration File - Application Host Config File"
+                DisplayTestingValue = $true
             }
             Add-AnalyzedResultInformation @params
         }

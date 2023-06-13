@@ -89,7 +89,7 @@ At build time, this variable will be populated with the version number of the sc
 Any script in this repo can add AutoUpdate capabilities by using the shared script and calling it as follows:
 
 ```powershell
-. $PSScriptRoot\..\..\Shared\Test-ScriptVersion.ps1
+. $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 
 if (Test-ScriptVersion -AutoUpdate) {
     # Update was downloaded, so stop here.
