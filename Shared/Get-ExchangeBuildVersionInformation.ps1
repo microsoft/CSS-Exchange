@@ -355,7 +355,6 @@ function Get-ExchangeBuildVersionInformation {
                     $cuReleaseDate = "06/18/2019"
                     $supportedBuildNumber = $true
                 }
-                (GetBuildVersion $ex13 "CU23" -SU "Mar23SU") { $latestSUBuild = $true }
                 (GetBuildVersion $ex13 "CU23" -SU "May22SU") { $mesoValue = 13238 }
                 { $_ -lt (GetBuildVersion $ex13 "CU23") } {
                     $cuLevel = "CU22"
