@@ -418,6 +418,7 @@ function QuitEXOSession {
             LogError -CurrentStatus $CurrentStatus -Function "Disconnecting from EXO" -CurrentDescription $CurrentDescription
             Write-Host "`nOutput was exported in the following location: $ExportPath" -ForegroundColor Yellow
             Start-Sleep -Seconds 3
+            Exit
         } catch {
             $ErrorEncountered=$Global:error[0].Exception
             $CurrentDescription = "Disconnecting from EXO"
@@ -427,6 +428,7 @@ function QuitEXOSession {
             Write-Host $ErrorEncountered -ForegroundColor Red
             Write-Host "`nOutput was exported in the following location: $ExportPath" -ForegroundColor Yellow
             Start-Sleep -Seconds 3
+            Exit
         }
     }
 }
