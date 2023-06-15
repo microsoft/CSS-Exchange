@@ -203,7 +203,7 @@ function ValidateDumpsterFlag {
 }
 function GetUserPermissions {
     param([PSCustomObject]$Perms)
-    $WorkingPermissions=@("editor", "owner", "PublishingEditor", "DeleteAllItems")
+    $WorkingPermissions=@("Editor", "Owner", "PublishingEditor", "DeleteAllItems").ToLower()
     if ($null -ne $Perms) {
         foreach ($perm in $Perms.AccessRights) {
             if ($WorkingPermissions.Contains($($perm.ToLower()))) {
@@ -382,6 +382,7 @@ function ValidateDumpsterChildren {
         WriteToScreenAndLog -Issue $Issue -Fix $Fix
     }
 }
+#MePf=Mail Enabled Public Folder
 function ValidateMePfGuid {
     param([PSCustomObject]$PublicFolderInfo)
     #validate if MailRecipientGuid parameter is found empty/null
@@ -403,8 +404,9 @@ function ExtractLog {
     $PublicFolderInfo | Export-Clixml -Path "$ExportPath\logs_$ts\PublicFolderInfo$($PublicFolderInfo.PublicFolder.Name).xml"
 }
 function AskForFeedback {
-    Write-Host "Please rate the script experience & tell us what you liked or what we can do better over https://aka.ms/PFDumpsterFeedback!" -ForegroundColor Cyan
-    "Please rate the script experience & tell us what you liked or what we can do better over https://aka.ms/PFDumpsterFeedback!" | Out-File $ExportPath\$Script:ReportName -Append
+    $Feedback="Please rate the script experience & tell us what you liked or what we can do better over https://aka.ms/PFDumpsterFeedback!"
+    Write-Host $Feedback -ForegroundColor Cyan
+    $Feedback | Out-File $ExportPath\$Script:ReportName -Append
 }
 function QuitEXOSession {
     if ($null -eq $SessionCheck) {
@@ -416,7 +418,6 @@ function QuitEXOSession {
             LogError -CurrentStatus $CurrentStatus -Function "Disconnecting from EXO" -CurrentDescription $CurrentDescription
             Write-Host "`nOutput was exported in the following location: $ExportPath" -ForegroundColor Yellow
             Start-Sleep -Seconds 3
-            break
         } catch {
             $ErrorEncountered=$Global:error[0].Exception
             $CurrentDescription = "Disconnecting from EXO"
@@ -426,7 +427,6 @@ function QuitEXOSession {
             Write-Host $ErrorEncountered -ForegroundColor Red
             Write-Host "`nOutput was exported in the following location: $ExportPath" -ForegroundColor Yellow
             Start-Sleep -Seconds 3
-            break
         }
     }
 }
