@@ -2404,6 +2404,18 @@
 </thead>
 <tbody>
 <tr>
+<td>6/15/2023</td>
+<td><a href="https://www.microsoft.com/en-us/download/details.aspx?id=104914">January 2023 Security Update</a> for Exchange 2016, Exchange 2019</td>
+<td>When you try to uninstall Microsoft Exchange Server 2019 or 2016 on servers, that had January 2023 Security Update for Exchange Server installed at any point, the Setup fails with following error message: <BR><BR>[ERROR] The operation couldn't be performed because object '<ServerName>' couldn't be found on '<DomainControllerName>'.</td>
+<td>Install Exchange Security Update June 2023 or higher to resolve the issue. Check <a href="https://support.microsoft.com/help/5025312">this KB</a> for more details</td>
+</tr>
+<tr>
+<td>6/15/2023</td>
+<td>Extended protection enabled on Exchange server</td>
+<td>Changing the permissions for Public Folders by using an Outlook client will fail with the following error, if Extended Protection is enabled: <BR><BR><code>The modified Permissions cannot be changed.</code></td>
+<td>Install Exchange Security Update June 2023 or higher to resolve the issue. Check <a href="https://support.microsoft.com/en-us/topic/extended-protection-doesn-t-support-public-folder-client-permissions-management-through-outlook-bd2037b5-40e0-413a-b368-746b3f5439ee">this KB</a> for more details</td>
+</tr>
+<tr>
 <td>3/16/2023</td>
 <td><a href="https://msrc.microsoft.com/update-guide/vulnerability/CVE-2023-23397">Outlook client update for CVE-2023-23397 released</a></td>
 <td>These vulnerabilities affect Exchange Server. Exchange Online customers are already protected from the vulnerabilities addressed in these SUs and do not need to take any action <strong>other than updating Exchange servers in their environment, and if applicable, installing the security update for Outlook on Windows described on the link on the right.</strong><br>More details about specific CVEs can be found in the <a href="https://msrc.microsoft.com/update-guide/">Security Update Guide</a> (filter on Exchange Server under Product Family).<br><strong>Awareness: Outlook client update for CVE-2023-23397 released</strong><br>There is a critical security update for Microsoft Outlook for Windows that is required to address <a href="https://msrc.microsoft.com/update-guide/vulnerability/CVE-2023-23397">CVE-2023-23397</a>. To address this CVE, <strong>you must install the Outlook security update, regardless of where your mail is hosted (e.g., Exchange Online, Exchange Server, some other platform).</strong></td>
@@ -2426,12 +2438,6 @@
 <td><a href="https://www.microsoft.com/en-us/download/details.aspx?id=104914">January 2023 Security Update</a> for Exchange 2016, Exchange 2019</td>
 <td>The Exchange toolbox may start crashing on launch after <a href="https://aka.ms/HC-SerializedDataSigning">certificate Serialization for PowerShell</a> is enabled. The error noticed is "Deserialization fails: System.Reflection.TargetInvocationException". <BR><BR> The issue happens only on Exchange 2016 and Exchange 2019</td>
 <td><strong>Update on 3/14/2023</strong> <BR> The issue is fixed in <a href="https://techcommunity.microsoft.com/t5/exchange-team-blog/released-march-2023-exchange-server-security-updates/ba-p/3764224">March 2023 security update for Exchange servers</a></td>
-</tr>
-<tr>
-<td>3/10/2023</td>
-<td><a href="https://www.microsoft.com/en-us/download/details.aspx?id=104914">January 2023 Security Update</a> for Exchange 2016, Exchange 2019</td>
-<td>When you try to uninstall Microsoft Exchange Server 2019 or 2016 on servers, that had January 2023 Security Update for Exchange Server installed at any point, the Setup fails with following error message: <BR><BR>[ERROR] The operation couldn't be performed because object '<ServerName>' couldn't be found on '<DomainControllerName>'.</td>
-<td>Follow the steps from <a href="https://support.microsoft.com/help/5025312">this KB</a></td>
 </tr>
 <tr>
 <td>-</td>
@@ -2619,7 +2625,7 @@
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">March 16, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">June 15, 2023</span>
       
     
   </small>
