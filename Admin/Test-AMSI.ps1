@@ -236,7 +236,7 @@ begin {
                     $HttpRequestFilteringLogFolder = $null
 
                     if ($ExchangePath) {
-                        if ($server.ToLower() -eq $env:COMPUTERNAME.ToLower()) {
+                        if ($server.Equals($env:COMPUTERNAME, [System.StringComparison]::OrdinalIgnoreCase)) {
                             $HttpRequestFilteringLogFolder = Join-Path $ExchangePath "Logging\HttpRequestFiltering\"
                         } else {
                             $HttpRequestFilteringLogFolder = Join-Path "\\$server\$($ExchangePath.Replace(':','$'))" "Logging\HttpRequestFiltering\"
@@ -266,9 +266,9 @@ begin {
                                     if ($DateTime) {
                                         if (($testTime.ToUniversalTime().Subtract($DateTime) -lt $marginTime) -and
                                             ($testTime.ToUniversalTime().Subtract($DateTime) -gt - $marginTime)) {
-                                            if (($line.UrlHost.ToLower() -eq $server.ToLower()) -and
-                                                ($line.UrlStem.ToLower() -eq '/ecp/x.js'.ToLower()) -and
-                                                ($line.ScanResult.ToLower() -eq 'Detected'.ToLower())) {
+                                            if (($line.UrlHost.Equals($server, [System.StringComparison]::OrdinalIgnoreCase)) -and
+                                                ($line.UrlStem.Equals('/ecp/x.js', [System.StringComparison]::OrdinalIgnoreCase)) -and
+                                                ($line.ScanResult.Equals('Detected', [System.StringComparison]::OrdinalIgnoreCase))) {
                                                 Write-Host ""
                                                 Write-Host "We found a detection in HttpRequestFiltering logs: " -ForegroundColor Green
                                                 Write-Host "$line"
@@ -420,10 +420,10 @@ begin {
 
         $getSOs = $null
         $getSOs = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
-            ($_.ComponentName.ToLower() -eq 'Cafe'.ToLower()) -and
-            ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
-            ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) -and
-            ($null -ne $_.Server -and ($_.Server.ToLower() -contains $ExchangeServer.ToLower())) }
+            ($_.ComponentName.Equals('Cafe', [System.StringComparison]::OrdinalIgnoreCase)) -and
+            ($_.SectionName.Equals('HttpRequestFiltering', [System.StringComparison]::OrdinalIgnoreCase)) -and
+            ($_.Parameters -contains 'Enabled=False') -and
+            ($null -ne $_.Server -and ($_.Server -contains $ExchangeServer)) }
         if ($getSOs) {
             $getSOs | Out-Host
             foreach ($so in $getSOs) {
@@ -442,7 +442,7 @@ begin {
         $ExchangePath = Invoke-ScriptBlockHandler -ComputerName $ExchangeServer -ScriptBlock $getMSIInstallPathSB
 
         if ($ExchangePath) {
-            if ($ExchangeServer.ToLower() -eq $env:COMPUTERNAME.ToLower()) {
+            if ($ExchangeServer.Equals($env:COMPUTERNAME, [System.StringComparison]::OrdinalIgnoreCase)) {
                 $FEEcpWebConfig = Join-Path $ExchangePath "FrontEnd\HttpProxy\ecp\web.config"
                 $CAEEcpWebConfig = Join-Path $ExchangePath "ClientAccess\ecp\web.config"
             } else {
@@ -664,9 +664,9 @@ process {
             Write-Host ""
             $getSOs = $null
             $getSOs = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
-                ($_.ComponentName.ToLower() -eq 'Cafe'.ToLower()) -and
-                ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
-                ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) -and
+                ($_.ComponentName.Equals('Cafe', [System.StringComparison]::OrdinalIgnoreCase)) -and
+                ($_.SectionName.Equals('HttpRequestFiltering', [System.StringComparison]::OrdinalIgnoreCase)) -and
+                ($_.Parameters -contains 'Enabled=False') -and
                 ($null -eq $_.Server) }
             if ($getSOs) {
                 $getSOs | Out-Host
@@ -692,10 +692,10 @@ process {
                     Write-Host ""
                     $getSOs = $null
                     $getSOs = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
-                        ($_.ComponentName.ToLower() -eq 'Cafe'.ToLower()) -and
-                        ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
-                        ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) -and
-                        ($null -ne $_.Server -and ($_.Server.ToLower() -contains $server.ToLower())) }
+                        ($_.ComponentName.Equals('Cafe', [System.StringComparison]::OrdinalIgnoreCase)) -and
+                        ($_.SectionName.Equals('HttpRequestFiltering', [System.StringComparison]::OrdinalIgnoreCase)) -and
+                        ($_.Parameters -contains  'Enabled=False') -and
+                        ($null -ne $_.Server -and ($_.Server -contains $server)) }
                     if ($null -eq $getSOs) {
                         Write-Host "We did not find Get-SettingOverride that disabled AMSI on $server"
                         Write-Warning "AMSI is NOT disabled on $server"
@@ -728,9 +728,9 @@ process {
                 Write-Host ""
                 $getSOs = $null
                 $getSOs = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
-                    ($_.ComponentName.ToLower() -eq 'Cafe'.ToLower()) -and
-                    ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
-                    ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) -and
+                    ($_.ComponentName.Equals('Cafe', [System.StringComparison]::OrdinalIgnoreCase)) -and
+                    ($_.SectionName.Equals('HttpRequestFiltering', [System.StringComparison]::OrdinalIgnoreCase)) -and
+                    ($_.Parameters -contains  'Enabled=False') -and
                     ($null -eq $_.Server) }
                 if ($null -eq $getSOs) {
                     Write-Host "We did not find Get-SettingOverride that disabled AMSI at Organization level"
@@ -770,10 +770,10 @@ process {
                     Write-Host ""
                     $getSOs = $null
                     $getSOs = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
-                        ($_.ComponentName.ToLower() -eq 'Cafe'.ToLower()) -and
-                        ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
-                        ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) -and
-                        ($null -ne $_.Server -and ($_.Server.ToLower() -contains $server.ToLower())) }
+                        ($_.ComponentName.Equals('Cafe', [System.StringComparison]::OrdinalIgnoreCase)) -and
+                        ($_.SectionName.Equals('HttpRequestFiltering', [System.StringComparison]::OrdinalIgnoreCase)) -and
+                        ($_.Parameters -contains  'Enabled=False') -and
+                        ($null -ne $_.Server -and ($_.Server -contains $server)) }
                     if ($null -eq $getSOs) {
                         if (-not $WhatIfPreference) {
                             Write-Warning "Disabling on $server by DisablingAMSIScan-$server SettingOverride"
@@ -806,9 +806,9 @@ process {
                 $getSOs = $null
                 $getSOs = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
                     ($null -eq $_.Server) -and
-                    ($_.ComponentName.ToLower() -eq 'Cafe'.ToLower()) -and
-                    ($_.SectionName.ToLower() -eq 'HttpRequestFiltering'.ToLower()) -and
-                    ($_.Parameters.ToLower() -eq 'Enabled=False'.ToLower()) }
+                    ($_.ComponentName.Equals('Cafe', [System.StringComparison]::OrdinalIgnoreCase)) -and
+                    ($_.SectionName.Equals('HttpRequestFiltering', [System.StringComparison]::OrdinalIgnoreCase)) -and
+                    ($_.Parameters -contains 'Enabled=False') }
                 if ($null -eq $getSOs) {
                     if (-not $WhatIfPreference) {
                         Write-Warning "Disabling AMSI at Organization Level by DisablingAMSIScan-OrgLevel SettingOverride"
@@ -869,7 +869,7 @@ process {
                     foreach ($server in $filterList) {
                         Write-Host $msgNewLine
                         if ($Force -or $filterList.Count -eq 1 -or $PSCmdlet.ShouldContinue("Are you sure you want to do it?", "You will restart IIS on server $server", $true, [ref]$yesToAll, [ref]$noToAll)) {
-                            if ($server.ToLower() -eq $env:COMPUTERNAME.ToLower()) {
+                            if ($server.Equals($env:COMPUTERNAME, [System.StringComparison]::OrdinalIgnoreCase)) {
                                 if (-not $WhatIfPreference) { Write-Host "Restarting local IIS on $server" }
                                 Get-Service W3SVC, WAS | Restart-Service -Force -WhatIf:$WhatIfPreference
                             } else {
