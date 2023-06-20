@@ -289,6 +289,21 @@ foreach ($extension in $extensionsList) {
 #Delete Random Folder
 Remove-Item $randomFolder
 
+# Test Exchange Processes for unexpected modules
+$ProcessList = Get-ExchAVExclusionsProcess -ExchangePath $ExchangePath -MsiProductMinor ([byte]$serverExchangeInstallDirectory.MsiProductMinor)
+
+# Gather all processes on the computer
+$ServerProcess = Get-Process
+
+# Gather each process and work thru their module list to remove any known modules.
+foreach ($process in $process ) {
+
+
+
+}
+
+
+
 # Report what we found
 if ($BadFolderList.count -gt 0 -or $BadExtensionList.Count -gt 0 ) {
     $OutputPath = Join-Path $env:LOCALAPPDATA BadExclusions.txt
