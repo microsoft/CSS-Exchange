@@ -289,21 +289,6 @@ foreach ($extension in $extensionsList) {
 #Delete Random Folder
 Remove-Item $randomFolder
 
-# Test Exchange Processes for unexpected modules
-$ProcessList = Get-ExchAVExclusionsProcess -ExchangePath $ExchangePath -MsiProductMinor ([byte]$serverExchangeInstallDirectory.MsiProductMinor)
-
-# Gather all processes on the computer
-$ServerProcess = Get-Process
-
-# Gather each process and work thru their module list to remove any known modules.
-foreach ($process in $process ) {
-
-
-
-}
-
-
-
 # Report what we found
 if ($BadFolderList.count -gt 0 -or $BadExtensionList.Count -gt 0 ) {
     $OutputPath = Join-Path $env:LOCALAPPDATA BadExclusions.txt
@@ -319,5 +304,72 @@ if ($BadFolderList.count -gt 0 -or $BadExtensionList.Count -gt 0 ) {
     }
     Write-Warning ("Review " + $OutputPath + " For the full list.")
 } else {
-    Write-SimpleLogFile -String "All EICAR files found; Exclusions appear to be set properly" -Name $LogFile -OutHost
+    Write-SimpleLogFile -String "All EICAR files found; File Exclusions appear to be set properly" -Name $LogFile -OutHost
+}
+
+Write-SimpleLogFile -string "Testing for AV loaded in processes" -name $LogFile -OutHost
+
+# Test Exchange Processes for unexpected modules
+$ProcessList = Get-ExchAVExclusionsProcess -ExchangePath $ExchangePath -MsiProductMinor ([byte]$serverExchangeInstallDirectory.MsiProductMinor)
+
+# Gather all processes on the computer
+$ServerProcess = Get-Process
+
+# Module white list
+$ModuleWhiteList = New-Object Collections.Generic.List[string]
+
+$ModuleWhiteList.add("Google.Protobuf.ni.dll")
+$ModuleWhiteList.add("Microsoft.RightsManagementServices.Core.ni.dll")
+$ModuleWhiteList.add("Newtonsoft.Json.ni.dll")
+$ModuleWhiteList.add("Microsoft.Cloud.InstrumentationFramework.Events.ni.dll")
+$ModuleWhiteList.add("HealthServicePerformance.dll")
+$ModuleWhiteList.add("InterceptCounters.dll")
+$ModuleWhiteList.add("MOMConnectorPerformance.dll")
+$ModuleWhiteList.add("ExDbFailureItemApi.dll")
+$ModuleWhiteList.add("Microsoft.Cloud.InstrumentationFramework.Metrics.ni.dll")
+$ModuleWhiteList.add("IfxMetrics.dll")
+$ModuleWhiteList.add("ManagedBlingSigned.dll")
+
+Write-SimpleLogFile -string ("White Listed Module Count: " + $ModuleWhiteList.count) -Name $LogFile
+
+$UnexpectedModuleFound = 0
+
+# Gather each process and work thru their module list to remove any known modules.
+foreach ($process in $ServerProcess) {
+
+    # Determine if it is a known exchange process
+    if ($ProcessList -contains $process.path ) {
+
+        # Gather all modules
+        [array]$ProcessModules = $process.modules
+
+        # Remove all "known" modules
+        $ProcessModules = $ProcessModules | Where-Object { $_.company -notlike "Oracle*" -and $_.Product -notlike "Outside In*" }
+        $ProcessModules = $ProcessModules | Where-Object { $_.fileversioninfo.companyname -ne "Microsoft Corporation." }
+        $ProcessModules = $ProcessModules | Where-Object { $_.fileversioninfo.companyname -ne "Microsoft" }
+        $ProcessModules = $ProcessModules | Where-Object { $_.FileVersionInfo.companyname -ne "Microsoft Corporation" }
+
+        # Clear out modules from the white list
+        Foreach ($module in $ModuleWhiteList) {
+            $ProcessModules = $ProcessModules | Where-Object { $_.modulename -ne $module }
+        }
+
+        if ($ProcessModules.count -gt 0) {
+            Write-Warning ("Possible AV Modules found in process $($process.processname)")
+            $UnexpectedModuleFound++
+            foreach ($module in $ProcessModules) {
+                Write-SimpleLogFile -string ("[FAIL] - PROCESS: $($process.processname) MODULE: $($module.modulename) COMPANY: $($module.company)") -Name $LogFile
+            }
+        }
+    }
+}
+
+# Final output for process detection
+if ($UnexpectedModuleFound -gt 0){
+    Write-SimpleLogFile -string ("Found $($UnexpectedModuleFound) processes with unexpected modules loaded") -Name $LogFile -OutHost
+    Write-Warning ("Review " + $OutputPath + " For more information.")
+    Write-Information ("If a module is labeled `"Unexpected`" in error please submit the log file to ExToolsFeedback@microsoft.com" )
+}
+else {
+    Write-SimpleLogFile -string ("No Unexpected modules found loaded.") -Name $LogFile -OutHost
 }
