@@ -365,11 +365,10 @@ foreach ($process in $ServerProcess) {
 }
 
 # Final output for process detection
-if ($UnexpectedModuleFound -gt 0){
+if ($UnexpectedModuleFound -gt 0) {
     Write-SimpleLogFile -string ("Found $($UnexpectedModuleFound) processes with unexpected modules loaded") -Name $LogFile -OutHost
     Write-Warning ("Review " + $OutputPath + " For more information.")
     Write-Information ("If a module is labeled `"Unexpected`" in error please submit the log file to ExToolsFeedback@microsoft.com" )
-}
-else {
+} else {
     Write-SimpleLogFile -string ("No Unexpected modules found loaded.") -Name $LogFile -OutHost
 }
