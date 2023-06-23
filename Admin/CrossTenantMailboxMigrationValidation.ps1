@@ -119,6 +119,7 @@ param (
     [Parameter(Mandatory = $false, ParameterSetName = "OfflineMode", HelpMessage = "Do not connect to source EXO tenant, but specify a zip file gathered when running the script with the 'CollectSourceOnly' parameter.")]
     [System.Management.Automation.SwitchParameter]$SourceIsOffline
 )
+. $PSScriptRoot\..\Shared\OutputOverrides\Write-Host.ps1
 $wsh = New-Object -ComObject WScript.Shell
 
 function ConnectToEXOTenants {
