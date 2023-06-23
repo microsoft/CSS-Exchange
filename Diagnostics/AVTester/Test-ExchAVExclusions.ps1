@@ -364,7 +364,7 @@ foreach ($process in $ServerProcess) {
         $ProcessModules = $ProcessModules | Where-Object { $_.FileVersionInfo.CompanyName -ne "Microsoft Corporation." -and $_.FileVersionInfo.CompanyName -ne "Microsoft" -and $_.FileVersionInfo.CompanyName -ne "Microsoft Corporation" }
 
         # Clear out modules from the white list
-        Foreach ($module in $ModuleWhiteList) {
+        foreach ($module in $ModuleWhiteList) {
             $ProcessModules = $ProcessModules | Where-Object { $_.ModuleName -ne $module }
         }
 
