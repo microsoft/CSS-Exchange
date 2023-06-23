@@ -1,4 +1,7 @@
-﻿#Requires -Version 5.1
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+#Requires -Version 5.1
 #Requires -Modules AzureAD, ExchangeOnlineManagement
 
 <#
@@ -911,7 +914,7 @@ function CollectSourceData {
 
     Write-Host "Informational: Exporting the SOURCE mailbox statistics for" $SourceIdentity -ForegroundColor Yellow
     Get-SourceMailboxStatistics $SourceIdentity | Export-Clixml $OutputPath\MailboxStatistics_$SourceIdentity.xml
-    If (Get-SourceMailbox $SourceIdentity.ArchiveGuid -notmatch "00000000-0000-0000-0000-000000000000") {
+    if (Get-SourceMailbox $SourceIdentity.ArchiveGuid -notmatch "00000000-0000-0000-0000-000000000000") {
         Get-SourceMailboxFolderStatistics $SourceIdentity.ArchiveGuid -FolderScope RecoverableItems | Where-Object { $_.Name -eq 'SubstrateHolds' } | Export-Clixml $OutputPath\ArchiveMailboxStatistics_$SourceIdentity.xml
     }
 }
