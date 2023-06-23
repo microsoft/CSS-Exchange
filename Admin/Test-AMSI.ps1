@@ -187,7 +187,7 @@ begin {
             [Parameter(Mandatory = $true)]
             [string]$ExchangeServer,
             [Parameter(Mandatory = $false)]
-            [switch]$isServer
+            [switch]$IsServer
         )
 
         try {
@@ -219,7 +219,7 @@ begin {
                 $host.ui.RawUI.ForegroundColor = "Yellow"
                 Write-Host "This may be indicative of a potential block from AMSI"
                 $host.ui.RawUI.ForegroundColor = "Green"
-                if ($isServer) {
+                if ($IsServer) {
                     $getMSIInstallPathSB = { (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath }
                     $ExchangePath = Invoke-ScriptBlockHandler -ComputerName $ExchangeServer -ScriptBlock $getMSIInstallPathSB
                     $msgCheckLogs = "You can check your log files located in $($ExchangePath)Logging\HttpRequestFiltering\"
@@ -230,7 +230,7 @@ begin {
                 $host.ui.RawUI.ForegroundColor = $currentForegroundColor
                 $msgDetectedTimeStamp = "You should find result around $((Get-Date).ToUniversalTime().ToString("M/d/yyy h:mm:ss tt")) UTC"
                 Write-Host $msgDetectedTimeStamp
-                if ($isServer) {
+                if ($IsServer) {
                     Write-Host ""
                     Write-Host "Checking logs on $server at $($testTime.ToString("M/d/yyy h:mm:ss tt"))"
                     $HttpRequestFilteringLogFolder = $null
@@ -291,7 +291,8 @@ begin {
                 } else {
                     Write-Host "Check your log files located in %ExchangeInstallPath%\Logging\HttpRequestFiltering\ in all server that provide $server endpoint"
                 }
-            } elseif ($_.Exception.Message -eq "The remote server returned an error: (500) Internal Server Error.") {
+            } elseif ($_.Exception.Status -eq [System.Net.WebExceptionStatus]::ProtocolError -and
+                $_.Exception.Response.StatusCode -eq [System.Net.HttpStatusCode]::InternalServerError) {
                 $host.ui.RawUI.ForegroundColor = "Red"
                 Write-Host $msgNewLine
                 Write-Host $Message
@@ -300,7 +301,7 @@ begin {
                 Write-Host "If you are using Microsoft Defender, RealTime protection could be disabled or then AMSI may be disabled."
                 Write-Host "If you are using a 3rd Party AntiVirus Product that may not be AMSI capable (Please Check with your AntiVirus Provider for Exchange AMSI Support)"
                 $host.ui.RawUI.ForegroundColor = $currentForegroundColor
-            } elseif ($_.Exception.Message.StartsWith("The remote name could not be resolved:")) {
+            } elseif ($_.Exception.Status -eq [System.Net.WebExceptionStatus]::NameResolutionFailure) {
                 $host.ui.RawUI.ForegroundColor = "Red"
                 Write-Host $msgNewLine
                 Write-Host $Message
@@ -380,10 +381,7 @@ begin {
                                             $DefenderVersion = $null
                                             $DefenderVersion = [System.Version]::new((& $process -SignatureUpdate | Where-Object { $_.StartsWith('Engine Version:') }).Split(' ')[2])
                                             if ($DefenderVersion) {
-                                                if (($DefenderVersion.Major -gt 1) -or
-                                                     (($DefenderVersion.Major -eq 1) -and ($DefenderVersion.Minor -gt 1)) -or
-                                                     (($DefenderVersion.Major -eq 1) -and ($DefenderVersion.Minor -eq 1) -and ($DefenderVersion.Build -gt 18300)) -or
-                                                     (($DefenderVersion.Major -eq 1) -and ($DefenderVersion.Minor -eq 1) -and ($DefenderVersion.Build -eq 18300) -and ($DefenderVersion.Revision -ge 4))) {
+                                                if ($DefenderVersion -ge "1.1.18300.4") {
                                                     Write-Host "Windows Defender version supported for AMSI: $DefenderVersion" -ForegroundColor Green
                                                 } else {
                                                     Write-Warning  "Windows Defender version Non-supported for AMSI: $DefenderVersion"
@@ -527,7 +525,7 @@ process {
     $exchangeShell = Confirm-ExchangeShell
     if (-not($exchangeShell.ShellLoaded)) {
         Write-Host $msgNewLine
-        Write-Warning "Failed to load Exchange Shell Module..."
+        Write-Warning "Failed to load Exchange Management Shell..."
         exit
     }
 
@@ -641,7 +639,7 @@ process {
                 Write-Host "Testing $($server):" -ForegroundColor Magenta
                 Write-Host ""
                 if ($fullList -contains $server) {
-                    CheckServerAMSI -ExchangeServer $server -isServer
+                    CheckServerAMSI -ExchangeServer $server -IsServer
                 } else {
                     CheckServerAMSI -ExchangeServer $server
                 }
@@ -694,7 +692,7 @@ process {
                     $getSOs = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
                         ($_.ComponentName.Equals('Cafe', [System.StringComparison]::OrdinalIgnoreCase)) -and
                         ($_.SectionName.Equals('HttpRequestFiltering', [System.StringComparison]::OrdinalIgnoreCase)) -and
-                        ($_.Parameters -contains  'Enabled=False') -and
+                        ($_.Parameters -contains 'Enabled=False') -and
                         ($null -ne $_.Server -and ($_.Server -contains $server)) }
                     if ($null -eq $getSOs) {
                         Write-Host "We did not find Get-SettingOverride that disabled AMSI on $server"
@@ -730,7 +728,7 @@ process {
                 $getSOs = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
                     ($_.ComponentName.Equals('Cafe', [System.StringComparison]::OrdinalIgnoreCase)) -and
                     ($_.SectionName.Equals('HttpRequestFiltering', [System.StringComparison]::OrdinalIgnoreCase)) -and
-                    ($_.Parameters -contains  'Enabled=False') -and
+                    ($_.Parameters -contains 'Enabled=False') -and
                     ($null -eq $_.Server) }
                 if ($null -eq $getSOs) {
                     Write-Host "We did not find Get-SettingOverride that disabled AMSI at Organization level"
@@ -772,7 +770,7 @@ process {
                     $getSOs = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
                         ($_.ComponentName.Equals('Cafe', [System.StringComparison]::OrdinalIgnoreCase)) -and
                         ($_.SectionName.Equals('HttpRequestFiltering', [System.StringComparison]::OrdinalIgnoreCase)) -and
-                        ($_.Parameters -contains  'Enabled=False') -and
+                        ($_.Parameters -contains 'Enabled=False') -and
                         ($null -ne $_.Server -and ($_.Server -contains $server)) }
                     if ($null -eq $getSOs) {
                         if (-not $WhatIfPreference) {
