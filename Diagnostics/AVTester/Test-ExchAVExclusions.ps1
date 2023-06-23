@@ -318,6 +318,7 @@ $ServerProcess = Get-Process
 # Module white list
 $ModuleWhiteList = New-Object Collections.Generic.List[string]
 
+# cSpell:disable
 $ModuleWhiteList.add("Google.Protobuf.ni.dll")
 $ModuleWhiteList.add("Microsoft.RightsManagementServices.Core.ni.dll")
 $ModuleWhiteList.add("Newtonsoft.Json.ni.dll")
@@ -344,6 +345,7 @@ $ModuleWhiteList.add("scclo.dll")
 $ModuleWhiteList.add("SCCOLE2.DLL")
 $ModuleWhiteList.add("SCCSD.DLL")
 $ModuleWhiteList.add("SCCXT.DLL")
+# cSpell:enable
 
 Write-SimpleLogFile -string ("White Listed Module Count: " + $ModuleWhiteList.count) -Name $LogFile
 
