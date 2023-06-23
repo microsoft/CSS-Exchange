@@ -1,6 +1,32 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+<#
+    MIT License
+
+    Copyright (c) Microsoft Corporation.
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE
+#>
+
+# Version 23.01.13.1832
+
 #Requires -Version 5.1
 #Requires -Modules AzureAD, ExchangeOnlineManagement
 
@@ -120,7 +146,84 @@ param (
     [System.Management.Automation.SwitchParameter]$SourceIsOffline
 )
 
-. $PSScriptRoot\..\Shared\OutputOverrides\Write-Host.ps1
+function Write-Host {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Proper handling of write host with colors')]
+    [CmdletBinding()]
+    param(
+        [Parameter(Position = 1, ValueFromPipeline)]
+        [object]$Object,
+        [switch]$NoNewLine,
+        [string]$ForegroundColor
+    )
+    process {
+        $consoleHost = $host.Name -eq "ConsoleHost"
+
+        if ($null -ne $Script:WriteHostManipulateObjectAction) {
+            $Object = & $Script:WriteHostManipulateObjectAction $Object
+        }
+
+        $params = @{
+            Object    = $Object
+            NoNewLine = $NoNewLine
+        }
+
+        if ([string]::IsNullOrEmpty($ForegroundColor)) {
+            if ($null -ne $host.UI.RawUI.ForegroundColor -and
+                $consoleHost) {
+                $params.Add("ForegroundColor", $host.UI.RawUI.ForegroundColor)
+            }
+        } elseif ($ForegroundColor -eq "Yellow" -and
+            $consoleHost -and
+            $null -ne $host.PrivateData.WarningForegroundColor) {
+            $params.Add("ForegroundColor", $host.PrivateData.WarningForegroundColor)
+        } elseif ($ForegroundColor -eq "Red" -and
+            $consoleHost -and
+            $null -ne $host.PrivateData.ErrorForegroundColor) {
+            $params.Add("ForegroundColor", $host.PrivateData.ErrorForegroundColor)
+        } else {
+            $params.Add("ForegroundColor", $ForegroundColor)
+        }
+
+        Microsoft.PowerShell.Utility\Write-Host @params
+
+        if ($null -ne $Script:WriteHostDebugAction -and
+            $null -ne $Object) {
+            &$Script:WriteHostDebugAction $Object
+        }
+    }
+}
+
+function SetProperForegroundColor {
+    $Script:OriginalConsoleForegroundColor = $host.UI.RawUI.ForegroundColor
+
+    if ($Host.UI.RawUI.ForegroundColor -eq $Host.PrivateData.WarningForegroundColor) {
+        Write-Verbose "Foreground Color matches warning's color"
+
+        if ($Host.UI.RawUI.ForegroundColor -ne "Gray") {
+            $Host.UI.RawUI.ForegroundColor = "Gray"
+        }
+    }
+
+    if ($Host.UI.RawUI.ForegroundColor -eq $Host.PrivateData.ErrorForegroundColor) {
+        Write-Verbose "Foreground Color matches error's color"
+
+        if ($Host.UI.RawUI.ForegroundColor -ne "Gray") {
+            $Host.UI.RawUI.ForegroundColor = "Gray"
+        }
+    }
+}
+
+function RevertProperForegroundColor {
+    $Host.UI.RawUI.ForegroundColor = $Script:OriginalConsoleForegroundColor
+}
+
+function SetWriteHostAction ($DebugAction) {
+    $Script:WriteHostDebugAction = $DebugAction
+}
+
+function SetWriteHostManipulateObjectAction ($ManipulateObject) {
+    $Script:WriteHostManipulateObjectAction = $ManipulateObject
+}
 $wsh = New-Object -ComObject WScript.Shell
 
 function ConnectToEXOTenants {
@@ -169,6 +272,22 @@ function CheckObjects {
             } else {
                 Write-Verbose -Message "No aux archives are present on SOURCE mailbox"
 
+                #Check for the T2T license on any of the objects (either source or target) as long as the source mailbox is a regular mailbox
+                Write-Verbose -Message "Informational: Source mailbox is regular, checking if either SOURCE mailbox or TARGET MailUser has the T2T license assigned"
+                if ($SourceObject.RecipienTypeDetails -eq 'UserMailbox') {
+                    if ($SourceObject.PersistedCapabilities -notmatch 'EXCHANGET2TMBXMOVE') {
+                        if ($TargetObject.PersistedCapabilities -notmatch 'EXCHANGET2TMBXMOVE') {
+                            Write-Host ">> Error: Neither SOURCE mailbox or TARGET MailUser have a valid T2T migration license. This is a pre-requisite, and if the license is not assigned by the time the migration is injected, it will fail to complete" -ForegroundColor Red
+                        } else {
+                            Write-Verbose -Message "TARGET MailUser has a valid T2T migration license"
+                        }
+                    } else {
+                        Write-Verbose -Message "SOURCE mailbox has a valid T2T migration license"
+                    }
+                } else {
+                    Write-Verbose -Message "Mailbox is not regular, skiping T2T migration license validation check"
+                }
+
                 #Verify if SOURCE mailbox is under any type of hold as we won't support this and will throw an error if this is the case
                 Write-Verbose -Message "Informational: Checking if the SOURCE mailbox is under a litigation hold"
                 if ($SourceObject.litigationHoldEnabled) {
@@ -215,7 +334,22 @@ function CheckObjects {
                 } else {
                     Write-Verbose -Message "Mailbox is not under any Organizational Hold"
                 }
-
+                #Verify if SOURCE mailbox has an Archive, and if it does, check if there's any item within recoverable items SubstrateHolds folder.
+                if ($SourceObject.ArchiveGUID -notmatch "00000000-0000-0000-0000-000000000000") {
+                    Write-Verbose -Message "Informational: SOURCE mailbox has an Archive enabled, checking if there's any SubstrateHold folder present"
+                    if ((Get-SourceMailboxFolderStatistics $SourceObject.ArchiveGuid -FolderScope RecoverableItems | Where-Object { $_.Name -eq 'SubstrateHolds' })) {
+                        Write-Verbose -Message "Informational: SubstrateHolds folder found in SOURCE Archive mailbox, checking if there's any content inside it"
+                        if ((Get-SourceMailboxFolderStatistics $SourceObject.ArchiveGuid -FolderScope RecoverableItems | Where-Object { $_.Name -eq 'SubstrateHolds' }).ItemsInFolder -gt 0) {
+                            Write-Host ">> Error: SOURCE Archive mailbox has items within the SubstrateHolds folder and this will cause the migration to fail. Please work on removing those items with MFCMapi manually before creating the move for this mailbox" -ForegroundColor Red
+                        } else {
+                            Write-Verbose -Message "Informational: No items found within the Archive mailbox SubstrateHolds folder"
+                        }
+                    } else {
+                        Write-Verbose -Message "Informational: No SubstrateHolds folder found in SOURCE Archive mailbox"
+                    }
+                } else {
+                    Write-Verbose -Message "Informational: SOURCE mailbox has no Archive enabled. Skiping Archive mailbox SubstrateHolds folder check"
+                }
                 #Verify if SOURCE mailbox is part of the Mail-Enabled Security Group defined on the SOURCE organization relationship
                 Write-Verbose -Message "Informational: Checking if the SOURCE mailbox is a member of the SOURCE organization relationship Mail-Enabled Security Group defined on the MailboxMovePublishedScopes"
                 $SourceTenantOrgRelationship = Get-SourceOrganizationRelationship | Where-Object { ($_.MailboxMoveCapability -eq "RemoteOutbound") -and ($null -ne $_.OauthApplicationId) }
@@ -430,6 +564,22 @@ function CheckObjectsSourceOffline {
             } else {
                 Write-Verbose -Message "No aux archives are present on SOURCE mailbox"
 
+                #Check for the T2T license on any of the objects (either source or target) as long as the source mailbox is a regular mailbox
+                Write-Verbose -Message "Informational: Source mailbox is regular, checking if either SOURCE mailbox or TARGET MailUser has the T2T license assigned"
+                if ($SourceObject.RecipienTypeDetails -eq 'UserMailbox') {
+                    if ($SourceObject.PersistedCapabilities -notmatch 'EXCHANGET2TMBXMOVE') {
+                        if ($TargetObject.PersistedCapabilities -notmatch 'EXCHANGET2TMBXMOVE') {
+                            Write-Host ">> Error: Neither SOURCE mailbox or TARGET MailUser have a valid T2T migration license. This is a pre-requisite, and if the license is not assigned by the time the migration is injected, it will fail to complete" -ForegroundColor Red
+                        } else {
+                            Write-Verbose -Message "TARGET MailUser has a valid T2T migration license"
+                        }
+                    } else {
+                        Write-Verbose -Message "SOURCE mailbox has a valid T2T migration license"
+                    }
+                } else {
+                    Write-Verbose -Message "Mailbox is not regular, skiping T2T migration license validation check"
+                }
+
                 #Verify if SOURCE mailbox is under any type of hold as we won't support this and will throw an error if this is the case
                 Write-Verbose -Message "Informational: Checking if the SOURCE mailbox is under a litigation hold"
                 if ($SourceObject.litigationHoldEnabled) {
@@ -461,6 +611,23 @@ function CheckObjectsSourceOffline {
                 $MailboxDiagnosticLogs = Import-Clixml $OutputPath\MailboxDiagnosticLogs_$SourceIdentity.xml
                 if ($MailboxDiagnosticLogs.MailboxLog -like '*"hid":"mbx*","ht":4*') {
                     Write-Host ">> Error: SOURCE mailbox is under an Organizational Hold. This move is not supported as it would lead into data loss" -ForegroundColor Red
+                }
+
+                #Verify if SOURCE mailbox has an Archive, and if it does, check if there's any item within recoverable items SubstrateHolds folder.
+                if ($SourceObject.ArchiveGUID -notmatch "00000000-0000-0000-0000-000000000000") {
+                    Write-Verbose -Message "Informational: SOURCE mailbox has an Archive enabled, checking if there's any SubstrateHold folder present"
+                    $ArchiveMailboxFolderStatistics = Import-Clixml $OutputPath\ArchiveMailboxStatistics_$SourceIdentity.xml
+                    if ($ArchiveMailboxFolderStatistics.Name -eq 'SubstrateHolds') {
+                        if ($ArchiveMailboxFolderStatistics.ItemsInFolder -gt 0) {
+                            Write-Host ">> Error: SOURCE Archive mailbox has items within the SubstrateHolds folder and this will cause the migration to fail. Please work on removing those items with MFCMapi manually before creating the move for this mailbox" -ForegroundColor Red
+                        } else {
+                            Write-Verbose -Message "Informational: No items found within the Archive mailbox SubstrateHolds folder"
+                        }
+                    } else {
+                        Write-Verbose -Message "Informational: No SubstrateHolds folder found in SOURCE Archive mailbox"
+                    }
+                } else {
+                    Write-Verbose -Message "Informational: SOURCE mailbox has no Archive enabled. Skiping Archive mailbox SubstrateHolds folder check"
                 }
 
                 #Verify if SOURCE mailbox is part of the Mail-Enabled Security Group defined on the SOURCE organization relationship
@@ -848,6 +1015,9 @@ function CollectSourceData {
 
     Write-Host "Informational: Exporting the SOURCE mailbox statistics for" $SourceIdentity -ForegroundColor Yellow
     Get-SourceMailboxStatistics $SourceIdentity | Export-Clixml $OutputPath\MailboxStatistics_$SourceIdentity.xml
+    if (Get-SourceMailbox $SourceIdentity.ArchiveGuid -notmatch "00000000-0000-0000-0000-000000000000") {
+        Get-SourceMailboxFolderStatistics $SourceIdentity.ArchiveGuid -FolderScope RecoverableItems | Where-Object { $_.Name -eq 'SubstrateHolds' } | Export-Clixml $OutputPath\ArchiveMailboxStatistics_$SourceIdentity.xml
+    }
 }
 function ExpandCollectedData {
     #Expand zip file gathered from the CollectSourceData process provided on the 'PathForCollectedData' parameter
@@ -1046,3 +1216,218 @@ if ($SourceIsOffline -and $PathForCollectedData -and $CheckOrgs) {
     LoggingOff
     KillSessions
 }
+
+# SIG # Begin signature block
+# MIInqwYJKoZIhvcNAQcCoIInnDCCJ5gCAQExDzANBglghkgBZQMEAgEFADB5Bgor
+# BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAs+yAgppM+c5rP
+# gulpQZBp94uZv2z2UnivRKQ6yaYgC6CCDXYwggX0MIID3KADAgECAhMzAAADTrU8
+# esGEb+srAAAAAANOMA0GCSqGSIb3DQEBCwUAMH4xCzAJBgNVBAYTAlVTMRMwEQYD
+# VQQIEwpXYXNoaW5ndG9uMRAwDgYDVQQHEwdSZWRtb25kMR4wHAYDVQQKExVNaWNy
+# b3NvZnQgQ29ycG9yYXRpb24xKDAmBgNVBAMTH01pY3Jvc29mdCBDb2RlIFNpZ25p
+# bmcgUENBIDIwMTEwHhcNMjMwMzE2MTg0MzI5WhcNMjQwMzE0MTg0MzI5WjB0MQsw
+# CQYDVQQGEwJVUzETMBEGA1UECBMKV2FzaGluZ3RvbjEQMA4GA1UEBxMHUmVkbW9u
+# ZDEeMBwGA1UEChMVTWljcm9zb2Z0IENvcnBvcmF0aW9uMR4wHAYDVQQDExVNaWNy
+# b3NvZnQgQ29ycG9yYXRpb24wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIB
+# AQDdCKiNI6IBFWuvJUmf6WdOJqZmIwYs5G7AJD5UbcL6tsC+EBPDbr36pFGo1bsU
+# p53nRyFYnncoMg8FK0d8jLlw0lgexDDr7gicf2zOBFWqfv/nSLwzJFNP5W03DF/1
+# 1oZ12rSFqGlm+O46cRjTDFBpMRCZZGddZlRBjivby0eI1VgTD1TvAdfBYQe82fhm
+# WQkYR/lWmAK+vW/1+bO7jHaxXTNCxLIBW07F8PBjUcwFxxyfbe2mHB4h1L4U0Ofa
+# +HX/aREQ7SqYZz59sXM2ySOfvYyIjnqSO80NGBaz5DvzIG88J0+BNhOu2jl6Dfcq
+# jYQs1H/PMSQIK6E7lXDXSpXzAgMBAAGjggFzMIIBbzAfBgNVHSUEGDAWBgorBgEE
+# AYI3TAgBBggrBgEFBQcDAzAdBgNVHQ4EFgQUnMc7Zn/ukKBsBiWkwdNfsN5pdwAw
+# RQYDVR0RBD4wPKQ6MDgxHjAcBgNVBAsTFU1pY3Jvc29mdCBDb3Jwb3JhdGlvbjEW
+# MBQGA1UEBRMNMjMwMDEyKzUwMDUxNjAfBgNVHSMEGDAWgBRIbmTlUAXTgqoXNzci
+# tW2oynUClTBUBgNVHR8ETTBLMEmgR6BFhkNodHRwOi8vd3d3Lm1pY3Jvc29mdC5j
+# b20vcGtpb3BzL2NybC9NaWNDb2RTaWdQQ0EyMDExXzIwMTEtMDctMDguY3JsMGEG
+# CCsGAQUFBwEBBFUwUzBRBggrBgEFBQcwAoZFaHR0cDovL3d3dy5taWNyb3NvZnQu
+# Y29tL3BraW9wcy9jZXJ0cy9NaWNDb2RTaWdQQ0EyMDExXzIwMTEtMDctMDguY3J0
+# MAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQELBQADggIBAD21v9pHoLdBSNlFAjmk
+# mx4XxOZAPsVxxXbDyQv1+kGDe9XpgBnT1lXnx7JDpFMKBwAyIwdInmvhK9pGBa31
+# TyeL3p7R2s0L8SABPPRJHAEk4NHpBXxHjm4TKjezAbSqqbgsy10Y7KApy+9UrKa2
+# kGmsuASsk95PVm5vem7OmTs42vm0BJUU+JPQLg8Y/sdj3TtSfLYYZAaJwTAIgi7d
+# hzn5hatLo7Dhz+4T+MrFd+6LUa2U3zr97QwzDthx+RP9/RZnur4inzSQsG5DCVIM
+# pA1l2NWEA3KAca0tI2l6hQNYsaKL1kefdfHCrPxEry8onJjyGGv9YKoLv6AOO7Oh
+# JEmbQlz/xksYG2N/JSOJ+QqYpGTEuYFYVWain7He6jgb41JbpOGKDdE/b+V2q/gX
+# UgFe2gdwTpCDsvh8SMRoq1/BNXcr7iTAU38Vgr83iVtPYmFhZOVM0ULp/kKTVoir
+# IpP2KCxT4OekOctt8grYnhJ16QMjmMv5o53hjNFXOxigkQWYzUO+6w50g0FAeFa8
+# 5ugCCB6lXEk21FFB1FdIHpjSQf+LP/W2OV/HfhC3uTPgKbRtXo83TZYEudooyZ/A
+# Vu08sibZ3MkGOJORLERNwKm2G7oqdOv4Qj8Z0JrGgMzj46NFKAxkLSpE5oHQYP1H
+# tPx1lPfD7iNSbJsP6LiUHXH1MIIHejCCBWKgAwIBAgIKYQ6Q0gAAAAAAAzANBgkq
+# hkiG9w0BAQsFADCBiDELMAkGA1UEBhMCVVMxEzARBgNVBAgTCldhc2hpbmd0b24x
+# EDAOBgNVBAcTB1JlZG1vbmQxHjAcBgNVBAoTFU1pY3Jvc29mdCBDb3Jwb3JhdGlv
+# bjEyMDAGA1UEAxMpTWljcm9zb2Z0IFJvb3QgQ2VydGlmaWNhdGUgQXV0aG9yaXR5
+# IDIwMTEwHhcNMTEwNzA4MjA1OTA5WhcNMjYwNzA4MjEwOTA5WjB+MQswCQYDVQQG
+# EwJVUzETMBEGA1UECBMKV2FzaGluZ3RvbjEQMA4GA1UEBxMHUmVkbW9uZDEeMBwG
+# A1UEChMVTWljcm9zb2Z0IENvcnBvcmF0aW9uMSgwJgYDVQQDEx9NaWNyb3NvZnQg
+# Q29kZSBTaWduaW5nIFBDQSAyMDExMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIIC
+# CgKCAgEAq/D6chAcLq3YbqqCEE00uvK2WCGfQhsqa+laUKq4BjgaBEm6f8MMHt03
+# a8YS2AvwOMKZBrDIOdUBFDFC04kNeWSHfpRgJGyvnkmc6Whe0t+bU7IKLMOv2akr
+# rnoJr9eWWcpgGgXpZnboMlImEi/nqwhQz7NEt13YxC4Ddato88tt8zpcoRb0Rrrg
+# OGSsbmQ1eKagYw8t00CT+OPeBw3VXHmlSSnnDb6gE3e+lD3v++MrWhAfTVYoonpy
+# 4BI6t0le2O3tQ5GD2Xuye4Yb2T6xjF3oiU+EGvKhL1nkkDstrjNYxbc+/jLTswM9
+# sbKvkjh+0p2ALPVOVpEhNSXDOW5kf1O6nA+tGSOEy/S6A4aN91/w0FK/jJSHvMAh
+# dCVfGCi2zCcoOCWYOUo2z3yxkq4cI6epZuxhH2rhKEmdX4jiJV3TIUs+UsS1Vz8k
+# A/DRelsv1SPjcF0PUUZ3s/gA4bysAoJf28AVs70b1FVL5zmhD+kjSbwYuER8ReTB
+# w3J64HLnJN+/RpnF78IcV9uDjexNSTCnq47f7Fufr/zdsGbiwZeBe+3W7UvnSSmn
+# Eyimp31ngOaKYnhfsi+E11ecXL93KCjx7W3DKI8sj0A3T8HhhUSJxAlMxdSlQy90
+# lfdu+HggWCwTXWCVmj5PM4TasIgX3p5O9JawvEagbJjS4NaIjAsCAwEAAaOCAe0w
+# ggHpMBAGCSsGAQQBgjcVAQQDAgEAMB0GA1UdDgQWBBRIbmTlUAXTgqoXNzcitW2o
+# ynUClTAZBgkrBgEEAYI3FAIEDB4KAFMAdQBiAEMAQTALBgNVHQ8EBAMCAYYwDwYD
+# VR0TAQH/BAUwAwEB/zAfBgNVHSMEGDAWgBRyLToCMZBDuRQFTuHqp8cx0SOJNDBa
+# BgNVHR8EUzBRME+gTaBLhklodHRwOi8vY3JsLm1pY3Jvc29mdC5jb20vcGtpL2Ny
+# bC9wcm9kdWN0cy9NaWNSb29DZXJBdXQyMDExXzIwMTFfMDNfMjIuY3JsMF4GCCsG
+# AQUFBwEBBFIwUDBOBggrBgEFBQcwAoZCaHR0cDovL3d3dy5taWNyb3NvZnQuY29t
+# L3BraS9jZXJ0cy9NaWNSb29DZXJBdXQyMDExXzIwMTFfMDNfMjIuY3J0MIGfBgNV
+# HSAEgZcwgZQwgZEGCSsGAQQBgjcuAzCBgzA/BggrBgEFBQcCARYzaHR0cDovL3d3
+# dy5taWNyb3NvZnQuY29tL3BraW9wcy9kb2NzL3ByaW1hcnljcHMuaHRtMEAGCCsG
+# AQUFBwICMDQeMiAdAEwAZQBnAGEAbABfAHAAbwBsAGkAYwB5AF8AcwB0AGEAdABl
+# AG0AZQBuAHQALiAdMA0GCSqGSIb3DQEBCwUAA4ICAQBn8oalmOBUeRou09h0ZyKb
+# C5YR4WOSmUKWfdJ5DJDBZV8uLD74w3LRbYP+vj/oCso7v0epo/Np22O/IjWll11l
+# hJB9i0ZQVdgMknzSGksc8zxCi1LQsP1r4z4HLimb5j0bpdS1HXeUOeLpZMlEPXh6
+# I/MTfaaQdION9MsmAkYqwooQu6SpBQyb7Wj6aC6VoCo/KmtYSWMfCWluWpiW5IP0
+# wI/zRive/DvQvTXvbiWu5a8n7dDd8w6vmSiXmE0OPQvyCInWH8MyGOLwxS3OW560
+# STkKxgrCxq2u5bLZ2xWIUUVYODJxJxp/sfQn+N4sOiBpmLJZiWhub6e3dMNABQam
+# ASooPoI/E01mC8CzTfXhj38cbxV9Rad25UAqZaPDXVJihsMdYzaXht/a8/jyFqGa
+# J+HNpZfQ7l1jQeNbB5yHPgZ3BtEGsXUfFL5hYbXw3MYbBL7fQccOKO7eZS/sl/ah
+# XJbYANahRr1Z85elCUtIEJmAH9AAKcWxm6U/RXceNcbSoqKfenoi+kiVH6v7RyOA
+# 9Z74v2u3S5fi63V4GuzqN5l5GEv/1rMjaHXmr/r8i+sLgOppO6/8MO0ETI7f33Vt
+# Y5E90Z1WTk+/gFcioXgRMiF670EKsT/7qMykXcGhiJtXcVZOSEXAQsmbdlsKgEhr
+# /Xmfwb1tbWrJUnMTDXpQzTGCGYswghmHAgEBMIGVMH4xCzAJBgNVBAYTAlVTMRMw
+# EQYDVQQIEwpXYXNoaW5ndG9uMRAwDgYDVQQHEwdSZWRtb25kMR4wHAYDVQQKExVN
+# aWNyb3NvZnQgQ29ycG9yYXRpb24xKDAmBgNVBAMTH01pY3Jvc29mdCBDb2RlIFNp
+# Z25pbmcgUENBIDIwMTECEzMAAANOtTx6wYRv6ysAAAAAA04wDQYJYIZIAWUDBAIB
+# BQCggcYwGQYJKoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEO
+# MAwGCisGAQQBgjcCARUwLwYJKoZIhvcNAQkEMSIEIMdY2yFhFRWY3me7HNyk65XK
+# MNvzh6RGST42o0EiwzkXMFoGCisGAQQBgjcCAQwxTDBKoBqAGABDAFMAUwAgAEUA
+# eABjAGgAYQBuAGcAZaEsgCpodHRwczovL2dpdGh1Yi5jb20vbWljcm9zb2Z0L0NT
+# Uy1FeGNoYW5nZSAwDQYJKoZIhvcNAQEBBQAEggEAhs5ELDD4mu8Em5HyaGWNT8R+
+# nF/Oy7itrcLBwgBALidpboftT6K0g5x8IqzpRajsUJveJQXR7/RogI0GYW8ePC1h
+# xoQKabDfGrnndtXfPnJHun5q2mq9q1NZlQWQw6TLJrMsUONxYvSIeprQuGlqHrCP
+# OMLMtA6N7qzggdywxbIbePOWcFjpckwN4pAAGwnJT8ennTjSRSFTNvCJ+un6mR95
+# oFY17skcc93TVkXN182bNQMBrwEsZX9I75TESiLLgyyIlgsnnCMdbg/AjsSsLOIO
+# jO4UiZYavgYR7A+HPNO8bwpv+BqAFt9mEu4t4dBSvfdL3kkBBRgl6pHrSH1XmaGC
+# Fv0wghb5BgorBgEEAYI3AwMBMYIW6TCCFuUGCSqGSIb3DQEHAqCCFtYwghbSAgED
+# MQ8wDQYJYIZIAWUDBAIBBQAwggFRBgsqhkiG9w0BCRABBKCCAUAEggE8MIIBOAIB
+# AQYKKwYBBAGEWQoDATAxMA0GCWCGSAFlAwQCAQUABCC1scjgGbT24vz240zsXrLL
+# xO+qPVlQEKzst2mfLDgQfwIGZF0DdBhXGBMyMDIzMDUxOTE3MTgwOS40MzFaMASA
+# AgH0oIHQpIHNMIHKMQswCQYDVQQGEwJVUzETMBEGA1UECBMKV2FzaGluZ3RvbjEQ
+# MA4GA1UEBxMHUmVkbW9uZDEeMBwGA1UEChMVTWljcm9zb2Z0IENvcnBvcmF0aW9u
+# MSUwIwYDVQQLExxNaWNyb3NvZnQgQW1lcmljYSBPcGVyYXRpb25zMSYwJAYDVQQL
+# Ex1UaGFsZXMgVFNTIEVTTjoxMkJDLUUzQUUtNzRFQjElMCMGA1UEAxMcTWljcm9z
+# b2Z0IFRpbWUtU3RhbXAgU2VydmljZaCCEVQwggcMMIIE9KADAgECAhMzAAAByk/C
+# s+0DDRhsAAEAAAHKMA0GCSqGSIb3DQEBCwUAMHwxCzAJBgNVBAYTAlVTMRMwEQYD
+# VQQIEwpXYXNoaW5ndG9uMRAwDgYDVQQHEwdSZWRtb25kMR4wHAYDVQQKExVNaWNy
+# b3NvZnQgQ29ycG9yYXRpb24xJjAkBgNVBAMTHU1pY3Jvc29mdCBUaW1lLVN0YW1w
+# IFBDQSAyMDEwMB4XDTIyMTEwNDE5MDE0MFoXDTI0MDIwMjE5MDE0MFowgcoxCzAJ
+# BgNVBAYTAlVTMRMwEQYDVQQIEwpXYXNoaW5ndG9uMRAwDgYDVQQHEwdSZWRtb25k
+# MR4wHAYDVQQKExVNaWNyb3NvZnQgQ29ycG9yYXRpb24xJTAjBgNVBAsTHE1pY3Jv
+# c29mdCBBbWVyaWNhIE9wZXJhdGlvbnMxJjAkBgNVBAsTHVRoYWxlcyBUU1MgRVNO
+# OjEyQkMtRTNBRS03NEVCMSUwIwYDVQQDExxNaWNyb3NvZnQgVGltZS1TdGFtcCBT
+# ZXJ2aWNlMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAwwGcq9j50rWE
+# kcLSlGZLweUVfxXRaUjiPsyaNVxPdMRs3CVe58siu/EkaVt7t7PNTPko/s8lNtus
+# AeLEnzki44yxk2c9ekm8E1SQ2YV9b8/LOxfKapZ8tVlPyxw6DmFzNFQjifVm8EiZ
+# 7lFRoY448vpcbBD18qjYNF/2Z3SQchcsdV1N9Y6V2WGl55VmLqFRX5+dptdjreBX
+# zi3WW9TsoCEWcYCBK5wYgS9tT2SSSTzae3jmdw40g+LOIyrVPF2DozkStv6JBDPv
+# wahXWpKGpO7rHrKF+o7ECN/ViQFMZyp/vxePiUABDNqzEUI8s7klYmeHXvjeQOq/
+# CM3C/Y8bj3fJObnZH7eAXvRDnxT8R6W/uD1mGUJvv9M9BMu3nhKpKmSxzzO5LtcM
+# Eh2tMXxhMGGNMUP3DOEK3X+2/LD1Z03usJTk5pHNoH/gDIvbp787Cw40tsApiAvt
+# rHYwub0TqIv8Zy62l8n8s/Mv/P764CTqrxcXzalBHh+Xy4XPjmadnPkZJycp3Kcz
+# bkg9QbvJp0H/0FswHS+efFofpDNJwLh1hs/aMi1K/ozEv7/WLIPsDgK16fU/axyb
+# qMKk0NOxgelUjAYKl4wU0Y6Q4q9N/9PwAS0csifQhY1ooQfAI0iDCCSEATslD8bT
+# O0tRtqdcIdavOReqzoPdvAv3Dr1XXQ8CAwEAAaOCATYwggEyMB0GA1UdDgQWBBT6
+# x/6lS4ESQ8KZhd0RgU7RYXM8fzAfBgNVHSMEGDAWgBSfpxVdAF5iXYP05dJlpxtT
+# NRnpcjBfBgNVHR8EWDBWMFSgUqBQhk5odHRwOi8vd3d3Lm1pY3Jvc29mdC5jb20v
+# cGtpb3BzL2NybC9NaWNyb3NvZnQlMjBUaW1lLVN0YW1wJTIwUENBJTIwMjAxMCgx
+# KS5jcmwwbAYIKwYBBQUHAQEEYDBeMFwGCCsGAQUFBzAChlBodHRwOi8vd3d3Lm1p
+# Y3Jvc29mdC5jb20vcGtpb3BzL2NlcnRzL01pY3Jvc29mdCUyMFRpbWUtU3RhbXAl
+# MjBQQ0ElMjAyMDEwKDEpLmNydDAMBgNVHRMBAf8EAjAAMBMGA1UdJQQMMAoGCCsG
+# AQUFBwMIMA0GCSqGSIb3DQEBCwUAA4ICAQDY0HkqCS3KuKefFX8/rm/dtD9066dK
+# EleNqriwZqsM4Ym8Ew4QiqOqO7mWoYYY4K5y8eXSOHKNXOfpO6RbaYj8jCOcJAB5
+# tqLl5hiMgaMbAVLrl1hlix9sloO45LON0JphKva3D6AVKA7P78mA9iRHZYUVrRiy
+# fvQjWxmUnxhis8fom92+/RHcEZ1Dh5+p4gzeeL84Yl00Wyq9EcgBKKfgq0lCjWNS
+# q1AUG1sELlgXOSvKZ4/lXXH+MfhcHe91WLIaZkS/Hu9wdTT6I14BC97yhDsZWXAl
+# 0IJ801I6UtEFpCsTeOyZBJ7CF0rf5lxJ8tE9ojNsyqXJKuwVn0ewCMkZqz/cEwv9
+# FEx8QmsZ0ZNodTtsl+V9dZm+eUrMKZk6PKsKArtQ+jHkfVsHgKODloelpOmHqgX7
+# UbO0NVnIlpP55gQTqV76vU7wRXpUfz7KhE3BZXNgwG05dRnCXDwrhhYz+Itbzs1K
+# 1R8I4YMDJjW90ASCg9Jf+xygRKZGKHjo2Bs2XyaKuN1P6FFCIVXN7KgHl/bZiakG
+# q7k5TQ4OXK5xkhCHhjdgHuxj3hK5AaOy+GXxO/jbyqGRqeSxf+TTPuWhDWurIo33
+# RMDGe5DbImjcbcj6dVhQevqHClR1OHSfr+8m1hWRJGlC1atcOWKajArwOURqJSVl
+# ThwVgIyzGNmjzjCCB3EwggVZoAMCAQICEzMAAAAVxedrngKbSZkAAAAAABUwDQYJ
+# KoZIhvcNAQELBQAwgYgxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpXYXNoaW5ndG9u
+# MRAwDgYDVQQHEwdSZWRtb25kMR4wHAYDVQQKExVNaWNyb3NvZnQgQ29ycG9yYXRp
+# b24xMjAwBgNVBAMTKU1pY3Jvc29mdCBSb290IENlcnRpZmljYXRlIEF1dGhvcml0
+# eSAyMDEwMB4XDTIxMDkzMDE4MjIyNVoXDTMwMDkzMDE4MzIyNVowfDELMAkGA1UE
+# BhMCVVMxEzARBgNVBAgTCldhc2hpbmd0b24xEDAOBgNVBAcTB1JlZG1vbmQxHjAc
+# BgNVBAoTFU1pY3Jvc29mdCBDb3Jwb3JhdGlvbjEmMCQGA1UEAxMdTWljcm9zb2Z0
+# IFRpbWUtU3RhbXAgUENBIDIwMTAwggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIK
+# AoICAQDk4aZM57RyIQt5osvXJHm9DtWC0/3unAcH0qlsTnXIyjVX9gF/bErg4r25
+# PhdgM/9cT8dm95VTcVrifkpa/rg2Z4VGIwy1jRPPdzLAEBjoYH1qUoNEt6aORmsH
+# FPPFdvWGUNzBRMhxXFExN6AKOG6N7dcP2CZTfDlhAnrEqv1yaa8dq6z2Nr41JmTa
+# mDu6GnszrYBbfowQHJ1S/rboYiXcag/PXfT+jlPP1uyFVk3v3byNpOORj7I5LFGc
+# 6XBpDco2LXCOMcg1KL3jtIckw+DJj361VI/c+gVVmG1oO5pGve2krnopN6zL64NF
+# 50ZuyjLVwIYwXE8s4mKyzbnijYjklqwBSru+cakXW2dg3viSkR4dPf0gz3N9QZpG
+# dc3EXzTdEonW/aUgfX782Z5F37ZyL9t9X4C626p+Nuw2TPYrbqgSUei/BQOj0XOm
+# TTd0lBw0gg/wEPK3Rxjtp+iZfD9M269ewvPV2HM9Q07BMzlMjgK8QmguEOqEUUbi
+# 0b1qGFphAXPKZ6Je1yh2AuIzGHLXpyDwwvoSCtdjbwzJNmSLW6CmgyFdXzB0kZSU
+# 2LlQ+QuJYfM2BjUYhEfb3BvR/bLUHMVr9lxSUV0S2yW6r1AFemzFER1y7435UsSF
+# F5PAPBXbGjfHCBUYP3irRbb1Hode2o+eFnJpxq57t7c+auIurQIDAQABo4IB3TCC
+# AdkwEgYJKwYBBAGCNxUBBAUCAwEAATAjBgkrBgEEAYI3FQIEFgQUKqdS/mTEmr6C
+# kTxGNSnPEP8vBO4wHQYDVR0OBBYEFJ+nFV0AXmJdg/Tl0mWnG1M1GelyMFwGA1Ud
+# IARVMFMwUQYMKwYBBAGCN0yDfQEBMEEwPwYIKwYBBQUHAgEWM2h0dHA6Ly93d3cu
+# bWljcm9zb2Z0LmNvbS9wa2lvcHMvRG9jcy9SZXBvc2l0b3J5Lmh0bTATBgNVHSUE
+# DDAKBggrBgEFBQcDCDAZBgkrBgEEAYI3FAIEDB4KAFMAdQBiAEMAQTALBgNVHQ8E
+# BAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAfBgNVHSMEGDAWgBTV9lbLj+iiXGJo0T2U
+# kFvXzpoYxDBWBgNVHR8ETzBNMEugSaBHhkVodHRwOi8vY3JsLm1pY3Jvc29mdC5j
+# b20vcGtpL2NybC9wcm9kdWN0cy9NaWNSb29DZXJBdXRfMjAxMC0wNi0yMy5jcmww
+# WgYIKwYBBQUHAQEETjBMMEoGCCsGAQUFBzAChj5odHRwOi8vd3d3Lm1pY3Jvc29m
+# dC5jb20vcGtpL2NlcnRzL01pY1Jvb0NlckF1dF8yMDEwLTA2LTIzLmNydDANBgkq
+# hkiG9w0BAQsFAAOCAgEAnVV9/Cqt4SwfZwExJFvhnnJL/Klv6lwUtj5OR2R4sQaT
+# lz0xM7U518JxNj/aZGx80HU5bbsPMeTCj/ts0aGUGCLu6WZnOlNN3Zi6th542DYu
+# nKmCVgADsAW+iehp4LoJ7nvfam++Kctu2D9IdQHZGN5tggz1bSNU5HhTdSRXud2f
+# 8449xvNo32X2pFaq95W2KFUn0CS9QKC/GbYSEhFdPSfgQJY4rPf5KYnDvBewVIVC
+# s/wMnosZiefwC2qBwoEZQhlSdYo2wh3DYXMuLGt7bj8sCXgU6ZGyqVvfSaN0DLzs
+# kYDSPeZKPmY7T7uG+jIa2Zb0j/aRAfbOxnT99kxybxCrdTDFNLB62FD+CljdQDzH
+# VG2dY3RILLFORy3BFARxv2T5JL5zbcqOCb2zAVdJVGTZc9d/HltEAY5aGZFrDZ+k
+# KNxnGSgkujhLmm77IVRrakURR6nxt67I6IleT53S0Ex2tVdUCbFpAUR+fKFhbHP+
+# CrvsQWY9af3LwUFJfn6Tvsv4O+S3Fb+0zj6lMVGEvL8CwYKiexcdFYmNcP7ntdAo
+# GokLjzbaukz5m/8K6TT4JDVnK+ANuOaMmdbhIurwJ0I9JZTmdHRbatGePu1+oDEz
+# fbzL6Xu/OHBE0ZDxyKs6ijoIYn/ZcGNTTY3ugm2lBRDBcQZqELQdVTNYs6FwZvKh
+# ggLLMIICNAIBATCB+KGB0KSBzTCByjELMAkGA1UEBhMCVVMxEzARBgNVBAgTCldh
+# c2hpbmd0b24xEDAOBgNVBAcTB1JlZG1vbmQxHjAcBgNVBAoTFU1pY3Jvc29mdCBD
+# b3Jwb3JhdGlvbjElMCMGA1UECxMcTWljcm9zb2Z0IEFtZXJpY2EgT3BlcmF0aW9u
+# czEmMCQGA1UECxMdVGhhbGVzIFRTUyBFU046MTJCQy1FM0FFLTc0RUIxJTAjBgNV
+# BAMTHE1pY3Jvc29mdCBUaW1lLVN0YW1wIFNlcnZpY2WiIwoBATAHBgUrDgMCGgMV
+# AKOO55cMT4syPP6nClg2IWfajMqkoIGDMIGApH4wfDELMAkGA1UEBhMCVVMxEzAR
+# BgNVBAgTCldhc2hpbmd0b24xEDAOBgNVBAcTB1JlZG1vbmQxHjAcBgNVBAoTFU1p
+# Y3Jvc29mdCBDb3Jwb3JhdGlvbjEmMCQGA1UEAxMdTWljcm9zb2Z0IFRpbWUtU3Rh
+# bXAgUENBIDIwMTAwDQYJKoZIhvcNAQEFBQACBQDoEgzbMCIYDzIwMjMwNTE5MjI1
+# NzMxWhgPMjAyMzA1MjAyMjU3MzFaMHQwOgYKKwYBBAGEWQoEATEsMCowCgIFAOgS
+# DNsCAQAwBwIBAAICDg4wBwIBAAICETEwCgIFAOgTXlsCAQAwNgYKKwYBBAGEWQoE
+# AjEoMCYwDAYKKwYBBAGEWQoDAqAKMAgCAQACAwehIKEKMAgCAQACAwGGoDANBgkq
+# hkiG9w0BAQUFAAOBgQCvPd0HL+B4LScWRhN9giSdB2hycdm/I+GM7GgKxSVK9ZEz
+# m31kjnAd6Ky/XoPfwndbPajpMTCBXySuAFBogqnMMPA/iaR1SbF5KCkKcHPIkwjr
+# GSQ9mA/orKATWjwCLPoc1sKej00AMVibJ+HAYGtUlkcsqNddjMoD8uwftYCmLDGC
+# BA0wggQJAgEBMIGTMHwxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpXYXNoaW5ndG9u
+# MRAwDgYDVQQHEwdSZWRtb25kMR4wHAYDVQQKExVNaWNyb3NvZnQgQ29ycG9yYXRp
+# b24xJjAkBgNVBAMTHU1pY3Jvc29mdCBUaW1lLVN0YW1wIFBDQSAyMDEwAhMzAAAB
+# yk/Cs+0DDRhsAAEAAAHKMA0GCWCGSAFlAwQCAQUAoIIBSjAaBgkqhkiG9w0BCQMx
+# DQYLKoZIhvcNAQkQAQQwLwYJKoZIhvcNAQkEMSIEICXyWRjO+xBGF3fPzunmI/gQ
+# Chr2LlNI5M+keRRmPsAqMIH6BgsqhkiG9w0BCRACLzGB6jCB5zCB5DCBvQQgEz0b
+# 85vrVU2slZAk4jt1SDEk6IzZAwVCoWwF3KzcGuAwgZgwgYCkfjB8MQswCQYDVQQG
+# EwJVUzETMBEGA1UECBMKV2FzaGluZ3RvbjEQMA4GA1UEBxMHUmVkbW9uZDEeMBwG
+# A1UEChMVTWljcm9zb2Z0IENvcnBvcmF0aW9uMSYwJAYDVQQDEx1NaWNyb3NvZnQg
+# VGltZS1TdGFtcCBQQ0EgMjAxMAITMwAAAcpPwrPtAw0YbAABAAAByjAiBCB1vpsN
+# Jt7vqQn/K6C6b12A6igkJ+j4jJnr7WHKPXXPjjANBgkqhkiG9w0BAQsFAASCAgAJ
+# gJxD4AtSpIq3M8iS/4ecK+QAzzrLcyFlGrf+s7AgJk0q0DyFW+NuL0apDozaKwiQ
+# eIUnQYn0PfXCW+EjTtxpi+m+85kyJxCbp/aN1sMgUXcxSKBbm1D0Ti4Y8oCqiSyO
+# 893QQVGVdRqw8djJ+KhSnM8GyW/UxOHypuHIuM/Nh6bPBP+SEW0G0ButepjZrZxU
+# 92KKRj62oCRJ72GZcrFJMMuwb7yrNUe/mZ3sYO+WZQx+Wc/lFuWedokbVQbJGqbD
+# 2zxmjTSeUx7uslPnoK9XrlOb2yIo32pDDRblj0EBsXz2S4cxWAeB1a3dFIV7Vr+c
+# BRZgWyKtXThFdxSmQ2KGSvWcBKyztouqFDsR2fYjfbVLLU6/KVDcbCVoDNIYQffH
+# P0daLZKxkNCZSGWI6DCzB6+hA1exphfflAFmwt3GzVn+Vb8QdYJ/j+MhBgKO31lT
+# WGbS186iGn0f80tSnX3mlAX+iqWOO5kWy9YQAkuj/PJnZc6y+IDnwRJH8rYuP3Bv
+# RsaW1dIROzjdBL7YxSS60Ye+zIELFNFlHbOaA3EfNRDvsfwykmJlwrrxgw9XYx0C
+# 87xWQ0RRwXXpX6lCXRDvJPeoIBcdnuLJW71IBGlLoqieD39npah99t8oRzIfWAV6
+# mL6QukjDJjntryCmQRaJWELjG/L508kSTeND2AHpiA==
+# SIG # End signature block
