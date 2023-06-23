@@ -5,10 +5,11 @@ function DoSpellCheck {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPositionalParameters', '', Justification = 'This is the correct syntax for cspell')]
     param()
 
-    $nodeVersion = node -v
-
-    if ([string]::IsNullOrEmpty($nodeVersion)) {
-        Write-Host "Node.js is not installed. Please install Node.js and try again."
+    $nodeVersion = $null
+    try {
+        $nodeVersion = node -v
+    } catch {
+        Write-Host "Node.js is not installed. Please install Node.js from https://nodejs.org, launch a new instance of PowerShell, and try again."
         exit 1
     }
 
