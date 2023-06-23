@@ -329,6 +329,21 @@ $ModuleWhiteList.add("ExDbFailureItemApi.dll")
 $ModuleWhiteList.add("Microsoft.Cloud.InstrumentationFramework.Metrics.ni.dll")
 $ModuleWhiteList.add("IfxMetrics.dll")
 $ModuleWhiteList.add("ManagedBlingSigned.dll")
+# Oracle modules associated with 'Outside In® Technology'
+$ModuleWhiteList.add("wvcore.dll")
+$ModuleWhiteList.add("sccut.dll")
+$ModuleWhiteList.add("sccfut.dll")
+$ModuleWhiteList.add("sccfa.dll")
+$ModuleWhiteList.add("sccfi.dll")
+$ModuleWhiteList.add("sccch.dll")
+$ModuleWhiteList.add("sccda.dll")
+$ModuleWhiteList.add("sccfmt.dll")
+$ModuleWhiteList.add("sccind.dll")
+$ModuleWhiteList.add("sccca.dll")
+$ModuleWhiteList.add("scclo.dll")
+$ModuleWhiteList.add("SCCOLE2.DLL")
+$ModuleWhiteList.add("SCCSD.DLL")
+$ModuleWhiteList.add("SCCXT.DLL")
 
 Write-SimpleLogFile -string ("White Listed Module Count: " + $ModuleWhiteList.count) -Name $LogFile
 
@@ -343,11 +358,8 @@ foreach ($process in $ServerProcess) {
         # Gather all modules
         [array]$ProcessModules = $process.modules
 
-        # Remove all "known" modules
-        $ProcessModules = $ProcessModules | Where-Object { $_.company -notlike "Oracle*" -and $_.Product -notlike "Outside In*" }
-        $ProcessModules = $ProcessModules | Where-Object { $_.fileversioninfo.companyname -ne "Microsoft Corporation." }
-        $ProcessModules = $ProcessModules | Where-Object { $_.fileversioninfo.companyname -ne "Microsoft" }
-        $ProcessModules = $ProcessModules | Where-Object { $_.FileVersionInfo.companyname -ne "Microsoft Corporation" }
+        # Remove Microsoft modules
+        $ProcessModules = $ProcessModules | Where-Object { $_.fileversioninfo.companyname -ne "Microsoft Corporation." -and $_.fileversioninfo.companyname -ne "Microsoft" -and $_.FileVersionInfo.companyname -ne "Microsoft Corporation" }
 
         # Clear out modules from the white list
         Foreach ($module in $ModuleWhiteList) {
