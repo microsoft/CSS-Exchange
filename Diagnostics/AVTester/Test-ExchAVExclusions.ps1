@@ -361,18 +361,18 @@ foreach ($process in $ServerProcess) {
         [array]$ProcessModules = $process.modules
 
         # Remove Microsoft modules
-        $ProcessModules = $ProcessModules | Where-Object { $_.fileversioninfo.companyname -ne "Microsoft Corporation." -and $_.fileversioninfo.companyname -ne "Microsoft" -and $_.FileVersionInfo.companyname -ne "Microsoft Corporation" }
+        $ProcessModules = $ProcessModules | Where-Object { $_.FileVersionInfo.CompanyName -ne "Microsoft Corporation." -and $_.FileVersionInfo.CompanyName -ne "Microsoft" -and $_.FileVersionInfo.CompanyName -ne "Microsoft Corporation" }
 
         # Clear out modules from the white list
         Foreach ($module in $ModuleWhiteList) {
-            $ProcessModules = $ProcessModules | Where-Object { $_.modulename -ne $module }
+            $ProcessModules = $ProcessModules | Where-Object { $_.ModuleName -ne $module }
         }
 
         if ($ProcessModules.count -gt 0) {
-            Write-Warning ("Possible AV Modules found in process $($process.processname)")
+            Write-Warning ("Possible AV Modules found in process $($process.ProcessName)")
             $UnexpectedModuleFound++
             foreach ($module in $ProcessModules) {
-                Write-SimpleLogFile -string ("[FAIL] - PROCESS: $($process.processname) MODULE: $($module.modulename) COMPANY: $($module.company)") -Name $LogFile
+                Write-SimpleLogFile -string ("[FAIL] - PROCESS: $($process.ProcessName) MODULE: $($module.ModuleName) COMPANY: $($module.Company)") -Name $LogFile
             }
         }
     }
