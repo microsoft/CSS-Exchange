@@ -235,9 +235,10 @@ function CheckObjects {
                 #Verify if SOURCE mailbox has an Archive, and if it does, check if there's any item within recoverable items SubstrateHolds folder.
                 if ($SourceObject.ArchiveGUID -notmatch "00000000-0000-0000-0000-000000000000") {
                     Write-Verbose -Message "Informational: SOURCE mailbox has an Archive enabled, checking if there's any SubstrateHold folder present"
-                    if ((Get-SourceMailboxFolderStatistics $SourceObject.ArchiveGuid -FolderScope RecoverableItems | Where-Object { $_.Name -eq 'SubstrateHolds' })) {
+                    $ArchiveSubstrateHolds = (Get-MailboxFolderStatistics $SourceObject.ArchiveGuid -FolderScope RecoverableItems | Where-Object { $_.Name -eq 'SubstrateHolds' })
+                    if ($ArchiveSubstrateHolds) {
                         Write-Verbose -Message "Informational: SubstrateHolds folder found in SOURCE Archive mailbox, checking if there's any content inside it"
-                        if ((Get-SourceMailboxFolderStatistics $SourceObject.ArchiveGuid -FolderScope RecoverableItems | Where-Object { $_.Name -eq 'SubstrateHolds' }).ItemsInFolder -gt 0) {
+                        if (($ArchiveSubstrateHolds).ItemsInFolder -gt 0) {
                             Write-Host ">> Error: SOURCE Archive mailbox has items within the SubstrateHolds folder and this will cause the migration to fail. Please work on removing those items with MFCMapi manually before creating the move for this mailbox" -ForegroundColor Red
                         } else {
                             Write-Verbose -Message "Informational: No items found within the Archive mailbox SubstrateHolds folder"
