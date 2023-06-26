@@ -7,9 +7,11 @@
 	Requires: Administrator rights
     Major Release History:
         06/16/2021 - Initial Release
+        06/26/2023 - Added ability to scan processes
 
 .SYNOPSIS
 Uses EICAR files to verify that all Exchange paths that should be excluded from AV scanning are excluded.
+Checks Exchange processes for "unknown" modules being loaded into them.
 
 .DESCRIPTION
 Writes an EICAR test file https://en.wikipedia.org/wiki/EICAR_test_file to all paths specified by
@@ -20,7 +22,10 @@ https://docs.microsoft.com/en-us/exchange/anti-virus-software-in-the-operating-s
 If the file is removed then the path is not properly excluded from AV Scanning.
 IF the file is not removed then it should be properly excluded.
 
-Once the files are created it will wait 60 seconds for AV to "see" and remove the file.
+Once the files are created it will wait 300 seconds for AV to "see" and remove the file.
+
+Pulls all Exchange processes and their modules.
+Excludes known modules and reports all unknown modules.
 
 .PARAMETER Recurse
 Will test not just the root folders but all SubFolders.
