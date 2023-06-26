@@ -315,39 +315,39 @@ $ProcessList = Get-ExchAVExclusionsProcess -ExchangePath $ExchangePath -MsiProdu
 # Gather all processes on the computer
 $ServerProcess = Get-Process
 
-# Module white list
-$ModuleWhiteList = New-Object Collections.Generic.List[string]
+# Module allow list
+$ModuleAllowList = New-Object Collections.Generic.List[string]
 
 # cSpell:disable
-$ModuleWhiteList.add("Google.Protobuf.ni.dll")
-$ModuleWhiteList.add("Microsoft.RightsManagementServices.Core.ni.dll")
-$ModuleWhiteList.add("Newtonsoft.Json.ni.dll")
-$ModuleWhiteList.add("Microsoft.Cloud.InstrumentationFramework.Events.ni.dll")
-$ModuleWhiteList.add("HealthServicePerformance.dll")
-$ModuleWhiteList.add("InterceptCounters.dll")
-$ModuleWhiteList.add("MOMConnectorPerformance.dll")
-$ModuleWhiteList.add("ExDbFailureItemApi.dll")
-$ModuleWhiteList.add("Microsoft.Cloud.InstrumentationFramework.Metrics.ni.dll")
-$ModuleWhiteList.add("IfxMetrics.dll")
-$ModuleWhiteList.add("ManagedBlingSigned.dll")
+$ModuleAllowList.add("Google.Protobuf.ni.dll")
+$ModuleAllowList.add("Microsoft.RightsManagementServices.Core.ni.dll")
+$ModuleAllowList.add("Newtonsoft.Json.ni.dll")
+$ModuleAllowList.add("Microsoft.Cloud.InstrumentationFramework.Events.ni.dll")
+$ModuleAllowList.add("HealthServicePerformance.dll")
+$ModuleAllowList.add("InterceptCounters.dll")
+$ModuleAllowList.add("MOMConnectorPerformance.dll")
+$ModuleAllowList.add("ExDbFailureItemApi.dll")
+$ModuleAllowList.add("Microsoft.Cloud.InstrumentationFramework.Metrics.ni.dll")
+$ModuleAllowList.add("IfxMetrics.dll")
+$ModuleAllowList.add("ManagedBlingSigned.dll")
 # Oracle modules associated with 'Outside In® Technology'
-$ModuleWhiteList.add("wvcore.dll")
-$ModuleWhiteList.add("sccut.dll")
-$ModuleWhiteList.add("sccfut.dll")
-$ModuleWhiteList.add("sccfa.dll")
-$ModuleWhiteList.add("sccfi.dll")
-$ModuleWhiteList.add("sccch.dll")
-$ModuleWhiteList.add("sccda.dll")
-$ModuleWhiteList.add("sccfmt.dll")
-$ModuleWhiteList.add("sccind.dll")
-$ModuleWhiteList.add("sccca.dll")
-$ModuleWhiteList.add("scclo.dll")
-$ModuleWhiteList.add("SCCOLE2.DLL")
-$ModuleWhiteList.add("SCCSD.DLL")
-$ModuleWhiteList.add("SCCXT.DLL")
+$ModuleAllowList.add("wvcore.dll")
+$ModuleAllowList.add("sccut.dll")
+$ModuleAllowList.add("sccfut.dll")
+$ModuleAllowList.add("sccfa.dll")
+$ModuleAllowList.add("sccfi.dll")
+$ModuleAllowList.add("sccch.dll")
+$ModuleAllowList.add("sccda.dll")
+$ModuleAllowList.add("sccfmt.dll")
+$ModuleAllowList.add("sccind.dll")
+$ModuleAllowList.add("sccca.dll")
+$ModuleAllowList.add("scclo.dll")
+$ModuleAllowList.add("SCCOLE2.DLL")
+$ModuleAllowList.add("SCCSD.DLL")
+$ModuleAllowList.add("SCCXT.DLL")
 # cSpell:enable
 
-Write-SimpleLogFile -string ("White Listed Module Count: " + $ModuleWhiteList.count) -Name $LogFile
+Write-SimpleLogFile -string ("Allow List Module Count: " + $ModuleAllowList.count) -Name $LogFile
 
 $UnexpectedModuleFound = 0
 
@@ -363,8 +363,8 @@ foreach ($process in $ServerProcess) {
         # Remove Microsoft modules
         $ProcessModules = $ProcessModules | Where-Object { $_.FileVersionInfo.CompanyName -ne "Microsoft Corporation." -and $_.FileVersionInfo.CompanyName -ne "Microsoft" -and $_.FileVersionInfo.CompanyName -ne "Microsoft Corporation" }
 
-        # Clear out modules from the white list
-        foreach ($module in $ModuleWhiteList) {
+        # Clear out modules from the allow list
+        foreach ($module in $ModuleAllowList) {
             $ProcessModules = $ProcessModules | Where-Object { $_.ModuleName -ne $module }
         }
 
