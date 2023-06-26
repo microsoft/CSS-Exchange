@@ -185,21 +185,20 @@ begin {
     function CheckServerAMSI {
         param(
             [Parameter(Mandatory = $true)]
-            [string]$ExchangeServer,
+            [string]$Server,
             [Parameter(Mandatory = $false)]
-            [switch]$IsServer
+            [switch]$IsExchangeServer
         )
 
         try {
             $CookieContainer = New-Object Microsoft.PowerShell.Commands.WebRequestSession
-            $Cookie = New-Object System.Net.Cookie("X-BEResource", "a]@$($ExchangeServer):444/ecp/proxyLogon.ecp#~1941997017", "/", "$ExchangeServer")
+            $Cookie = New-Object System.Net.Cookie("X-BEResource", "a]@$($Server):444/ecp/proxyLogon.ecp#~1941997017", "/", "$Server")
             $CookieContainer.Cookies.Add($Cookie)
-            $testTime = Get-Date
-            Write-Host "Starting test at $($testTime -f "yyyy-MM-dd HH:mm:ss")"
             if ($IgnoreSSL -and ![System.Net.ServicePointManager]::ServerCertificateValidationCallback) {
                 Enable-TrustAnyCertificateCallback
             }
-            Invoke-WebRequest https://$ExchangeServer/ecp/x.js -Method POST -Headers @{ "Host" = "$ExchangeServer" } -WebSession $CookieContainer
+            $StringDate = (Get-Date -Format yyyyMMddhhmmss)
+            Invoke-WebRequest https://$Server/ecp/CSS-Test-$StringDate.js -Method POST -Headers @{ "Host" = "$Server" } -WebSession $CookieContainer
         } catch [System.Net.WebException] {
             $Message = ($_.Exception.Message).ToString().Trim()
             $currentForegroundColor = $host.ui.RawUI.ForegroundColor
@@ -215,96 +214,67 @@ begin {
                 Write-Host "We sent an test request to the ECP Virtual Directory of the server requested"
                 $host.ui.RawUI.ForegroundColor = "Yellow"
                 Write-Host "The remote server returned an error: (400) Bad Request"
-                $host.ui.RawUI.ForegroundColor = "Green"
-                $host.ui.RawUI.ForegroundColor = "Yellow"
                 Write-Host "This may be indicative of a potential block from AMSI"
                 $host.ui.RawUI.ForegroundColor = "Green"
-                if ($IsServer) {
+                if ($IsExchangeServer) {
                     $getMSIInstallPathSB = { (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath }
-                    $ExchangePath = Invoke-ScriptBlockHandler -ComputerName $ExchangeServer -ScriptBlock $getMSIInstallPathSB
-                    $msgCheckLogs = "You can check your log files located in $($ExchangePath)Logging\HttpRequestFiltering\"
+                    $ExchangePath = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock $getMSIInstallPathSB
+                    Write-Host "You can check your log files located in $($ExchangePath)Logging\HttpRequestFiltering\ in $Server"
                 } else {
-                    $msgCheckLogs = "You can check your log files located in %ExchangeInstallPath%\Logging\HttpRequestFiltering\ in all server included in $ExchangeServer endpoint"
+                    Write-Host "You can check your log files located in %ExchangeInstallPath%\Logging\HttpRequestFiltering\ in all server included in $Server endpoint"
                 }
-                Write-Host $msgCheckLogs
                 $host.ui.RawUI.ForegroundColor = $currentForegroundColor
-                $msgDetectedTimeStamp = "You should find result around $((Get-Date).ToUniversalTime().ToString("M/d/yyy h:mm:ss tt")) UTC"
-                Write-Host $msgDetectedTimeStamp
-                if ($IsServer) {
+                Write-Host  "You should find a request for CSS-Test-$StringDate.js in the HttpRequestFiltering logs"
+                if ($IsExchangeServer) {
                     Write-Host ""
-                    Write-Host "Checking logs on $server at $($testTime.ToString("M/d/yyy h:mm:ss tt"))"
+                    Write-Host "Looking for a request CSS-Test-$StringDate.js in the HttpRequestFiltering logs"
                     $HttpRequestFilteringLogFolder = $null
 
                     if ($ExchangePath) {
-                        if ($server.Equals($env:COMPUTERNAME, [System.StringComparison]::OrdinalIgnoreCase)) {
+                        if ($Server.Equals($env:COMPUTERNAME, [System.StringComparison]::OrdinalIgnoreCase)) {
                             $HttpRequestFilteringLogFolder = Join-Path $ExchangePath "Logging\HttpRequestFiltering\"
                         } else {
                             $HttpRequestFilteringLogFolder = Join-Path "\\$server\$($ExchangePath.Replace(':','$'))" "Logging\HttpRequestFiltering\"
                         }
-                    } else {
-                        Write-Host "Cannot get Exchange installation path on $server" -ForegroundColor Red
-                    }
-
-                    if (Test-Path $HttpRequestFilteringLogFolder -PathType Container) {
-                        $file = $null
-                        $timeout = (Get-Date).AddMinutes(1)
-                        $detected = $false
-                        $marginTime = New-TimeSpan -Seconds 5
-                        do {
-                            Start-Sleep -Seconds 2
+                        if (Test-Path $HttpRequestFilteringLogFolder -PathType Container) {
                             $file = $null
-                            $file = Get-ChildItem $HttpRequestFilteringLogFolder -Filter "HttpRequestFiltering_*.log" | Sort-Object LastWriteTime -Descending | Select-Object -First 1 -Property *
-                            if ($file) {
-                                $csv = Import-Csv $file.FullName
-                                foreach ($line in $csv) {
-                                    $DateTime = $null
-                                    try {
-                                        $DateTime = [DateTime]::ParseExact($line.DateTime, 'M/d/yyyy h:mm:ss tt', $null)
-                                    } catch {
-                                        Write-Verbose ("We could not parse the date time on: {0}" -f $line)
-                                    }
-                                    if ($DateTime) {
-                                        if (($testTime.ToUniversalTime().Subtract($DateTime) -lt $marginTime) -and
-                                            ($testTime.ToUniversalTime().Subtract($DateTime) -gt - $marginTime)) {
-                                            if (($line.UrlHost.Equals($server, [System.StringComparison]::OrdinalIgnoreCase)) -and
-                                                ($line.UrlStem.Equals('/ecp/x.js', [System.StringComparison]::OrdinalIgnoreCase)) -and
-                                                ($line.ScanResult.Equals('Detected', [System.StringComparison]::OrdinalIgnoreCase))) {
-                                                Write-Host ""
-                                                Write-Host "We found a detection in HttpRequestFiltering logs: " -ForegroundColor Green
-                                                Write-Host "$line"
-                                                $detected = $true
-                                            }
+                            $timeout1min = (Get-Date).AddMinutes(1)
+                            $foundRequest = $false
+                            do {
+                                Start-Sleep -Seconds 2
+                                $file = $null
+                                $file = Get-ChildItem $HttpRequestFilteringLogFolder -Filter "HttpRequestFiltering_*.log" | Sort-Object LastWriteTime -Descending | Select-Object -First 1 -Property *
+                                if ($file) {
+                                    $found = $null
+                                    $found = $file | Get-Content | Select-String "/ecp/CSS-Test-$StringDate.js"
+                                    if ($found) {
+                                        if ($found.Line -match "Detected") {
+                                            Write-Host "We found the request Detected in HttpRequestFiltering logs: " -ForegroundColor Green
+                                        } else {
+                                            Write-Warning "We found the request in HttpRequestFiltering logs but was not detected: "
                                         }
+                                        Write-Host "$($found.Line)"
+                                        $foundRequest = $true
                                     }
                                 }
+                            } while ((-not $foundRequest) -and ((Get-Date) -lt $timeout1min))
+                            if (-not $foundRequest) {
+                                Write-Warning "We have not found the request."
                             }
-                        } while ((-not $detected) -and ((Get-Date) -lt $timeout))
-                        if ((Get-Date) -ge $timeout) {
-                            Write-Warning  "We have not found activity on the server in the last minute."
-                        }
-                        if (-not $detected) {
-                            Write-Warning "We have not found a detection."
+                        } else {
+                            Write-Host "We could not access HttpRequestFiltering folder on $Server" -ForegroundColor Red
                         }
                     } else {
-                        Write-Host "We could not access HttpRequestFiltering folder on $server" -ForegroundColor Red
+                        Write-Host "Cannot get Exchange installation path on $Server" -ForegroundColor Red
                     }
                 } else {
-                    Write-Host "Check your log files located in %ExchangeInstallPath%\Logging\HttpRequestFiltering\ in all server that provide $server endpoint"
+                    Write-Host "Check your log files located in %ExchangeInstallPath%\Logging\HttpRequestFiltering\ in all server that provide $Server endpoint"
                 }
-            } elseif ($_.Exception.Status -eq [System.Net.WebExceptionStatus]::ProtocolError -and
-                $_.Exception.Response.StatusCode -eq [System.Net.HttpStatusCode]::InternalServerError) {
-                $host.ui.RawUI.ForegroundColor = "Red"
-                Write-Host $msgNewLine
-                Write-Host $Message
-                Write-Host $msgNewLine
-                $host.ui.RawUI.ForegroundColor = "Yellow"
-                Write-Host "If you are using Microsoft Defender, RealTime protection could be disabled or then AMSI may be disabled."
-                Write-Host "If you are using a 3rd Party AntiVirus Product that may not be AMSI capable (Please Check with your AntiVirus Provider for Exchange AMSI Support)"
-                $host.ui.RawUI.ForegroundColor = $currentForegroundColor
             } elseif ($_.Exception.Status -eq [System.Net.WebExceptionStatus]::NameResolutionFailure) {
                 $host.ui.RawUI.ForegroundColor = "Red"
                 Write-Host $msgNewLine
                 Write-Host $Message
+                Write-Host "`nWe could not find the server requested. Please check the name of the server."
                 Write-Host $msgNewLine
                 $host.ui.RawUI.ForegroundColor = $currentForegroundColor
             } else {
@@ -321,13 +291,12 @@ begin {
             if ($IgnoreSSL) {
                 [System.Net.ServicePointManager]::ServerCertificateValidationCallback = $null
                 try {
-                    Invoke-WebRequest https://$ExchangeServer -TimeoutSec 1 -ErrorAction SilentlyContinue | Out-Null
+                    Invoke-WebRequest https://$Server -TimeoutSec 1 -ErrorAction SilentlyContinue | Out-Null
                 } catch {
-                    Write-Verbose "We could not connect to https://$ExchangeServer (Expected)"
+                    Write-Verbose "We could not connect to https://$Server (Expected)"
                 }
             }
         }
-        Write-Host "Ended test at $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")"
     }
 
     function CheckAMSIConfig {
@@ -343,67 +312,69 @@ begin {
             $AMSIProviders = Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\AMSI\Providers' -Recurse -ErrorAction SilentlyContinue
             if ($AMSIProviders) {
                 Write-Host "Providers:"
-                $AMSIProviders.Name | Out-Host
                 $providerCount = 0
                 foreach ($provider in $AMSIProviders) {
-                    $provider -match '[0-9A-Fa-f\-]{36}' | Out-Null
-                    foreach ($m in $Matches.Values) {
-                        $key = "HKLM:\SOFTWARE\Classes\ClSid\{$m}"
-                        $providers = $null
-                        $providers = Get-ChildItem $key -ErrorAction SilentlyContinue
-                        if ($providers) {
-                            $providerCount++
-                            Write-Host ""
-                            Write-Host "Provider $($providerCount):"
-                            $providers | Format-Table -AutoSize | Out-Host
-                            $path = $null
-                            $path = ($providers | Where-Object { $_.PSChildName -eq 'InprocServer32' }).GetValue('')
-                            if ($path) {
-                                $WindowsDefenderPath = $path.Substring(1, $path.LastIndexOf("\"))
-                                if ($WindowsDefenderPath -like '*Windows Defender*') {
-                                    Write-Host "Windows Defender with AMSI integration found." -ForegroundColor Green
-                                    $checkCmdLet = $null
-                                    $checkCmdLet = Get-Command Get-MpComputerStatus -ErrorAction SilentlyContinue
-                                    if ($null -eq $checkCmdLet) {
-                                        Write-Warning "Get-MpComputerStatus cmdLet is not available"
-                                    } else {
-                                        if ((Get-MpComputerStatus).RealTimeProtectionEnabled) {
-                                            Write-Host "Windows Defender has Real Time Protection Enabled" -ForegroundColor Green
+                    Write-Host "`nProvider $($providerCount+1): $($provider.PSChildName)" -ForegroundColor DarkGreen
+                    # when using -match we set the variable $Match when a true value is performed.
+                    $foundMatch = $provider -match '[0-9A-Fa-f\-]{36}'
+                    if ($foundMatch) {
+                        foreach ($m in $Matches.Values) {
+                            $key = "HKLM:\SOFTWARE\Classes\ClSid\{$m}"
+                            $providers = $null
+                            $providers = Get-ChildItem $key -ErrorAction SilentlyContinue
+                            if ($providers) {
+                                $providerCount++
+                                $providers | Format-Table -AutoSize | Out-Host
+                                $path = $null
+                                $path = ($providers | Where-Object { $_.PSChildName -eq 'InprocServer32' }).GetValue('')
+                                if ($path) {
+                                    $WindowsDefenderPath = $path.Substring(1, $path.LastIndexOf("\"))
+                                    if ($WindowsDefenderPath -like '*Windows Defender*') {
+                                        Write-Host "Windows Defender with AMSI integration found." -ForegroundColor Green
+                                        $checkCmdLet = $null
+                                        $checkCmdLet = Get-Command Get-MpComputerStatus -ErrorAction SilentlyContinue
+                                        if ($null -eq $checkCmdLet) {
+                                            Write-Warning "Get-MpComputerStatus cmdLet is not available"
                                         } else {
-                                            Write-Warning "Windows Defender has Real Time Protection Disabled"
-                                        }
-                                    }
-                                    Write-Host "It should be version 1.1.18300.4 or newest."
-                                    if (Test-Path $WindowsDefenderPath -PathType Container) {
-                                        $folder = Get-ChildItem  $WindowsDefenderPath | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-                                        $process = Join-Path $folder.FullName "MpCmdRun.exe"
-                                        if (Test-Path $process -PathType Leaf) {
-                                            $DefenderVersion = $null
-                                            $DefenderVersion = [System.Version]::new((& $process -SignatureUpdate | Where-Object { $_.StartsWith('Engine Version:') }).Split(' ')[2])
-                                            if ($DefenderVersion) {
-                                                if ($DefenderVersion -ge "1.1.18300.4") {
-                                                    Write-Host "Windows Defender version supported for AMSI: $DefenderVersion" -ForegroundColor Green
+                                            if ((Get-MpComputerStatus).RealTimeProtectionEnabled) {
+                                                Write-Host "Windows Defender has Real Time Protection Enabled" -ForegroundColor Green
+                                            } else {
+                                                Write-Warning "Windows Defender has Real Time Protection Disabled"
+                                            }
+                                            Write-Host "It should be version 1.1.18300.4 or newest."
+                                            if (Test-Path $WindowsDefenderPath -PathType Container) {
+                                                $process = Join-Path -Path $WindowsDefenderPath -ChildPath "MpCmdRun.exe"
+                                                if (Test-Path $process -PathType Leaf) {
+                                                    $DefenderVersion = $null
+                                                    $DefenderVersion = [System.Version]::new((& $process -SignatureUpdate | Where-Object { $_.StartsWith('Engine Version:') }).Split(' ')[2])
+                                                    if ($DefenderVersion) {
+                                                        if ($DefenderVersion -ge "1.1.18300.4") {
+                                                            Write-Host "Windows Defender version supported for AMSI: $DefenderVersion" -ForegroundColor Green
+                                                        } else {
+                                                            Write-Warning  "Windows Defender version Non-supported for AMSI: $DefenderVersion"
+                                                        }
+                                                    } else {
+                                                        Write-Warning  "We could not get Windows Defender version "
+                                                    }
                                                 } else {
-                                                    Write-Warning  "Windows Defender version Non-supported for AMSI: $DefenderVersion"
+                                                    Write-Warning  "We did not find Windows Defender MpCmdRun.exe."
                                                 }
                                             } else {
-                                                Write-Warning  "We could not get Windows Defender version "
+                                                Write-Warning "We did not find Windows Defender Path."
                                             }
-                                        } else {
-                                            Write-Warning  "We did not find Windows Defender MpCmdRun.exe."
                                         }
                                     } else {
-                                        Write-Warning "We did not find Windows Defender Path."
+                                        Write-Warning "It is not Windows Defender AV, check with your provider."
                                     }
                                 } else {
-                                    Write-Warning "It is not Windows Defender AV, check with your provider."
+                                    Write-Warning "We did not find AMSI providers."
                                 }
                             } else {
-                                Write-Warning "We did not find AMSI providers."
+                                Write-Host "We did not find $m ClSid registered" -ForegroundColor Red
                             }
-                        } else {
-                            Write-Host "We did not find any AMSI provider on ClSid for $m" -ForegroundColor Red
                         }
+                    } else {
+                        Write-Warning "We did not find any ClSid on $($provider.PSChildName) AMSI provider."
                     }
                 }
             } else {
@@ -412,26 +383,9 @@ begin {
         }
 
         Write-Host ""
-        "Checking AMSI Provider on $ExchangeServer"
+        Write-Host "Checking AMSI Provider on $ExchangeServer"
         Write-Host ""
         Invoke-ScriptBlockHandler -ComputerName $ExchangeServer -ScriptBlock $AMSIProvidersSB
-
-        $getSOs = $null
-        $getSOs = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
-            ($_.ComponentName.Equals('Cafe', [System.StringComparison]::OrdinalIgnoreCase)) -and
-            ($_.SectionName.Equals('HttpRequestFiltering', [System.StringComparison]::OrdinalIgnoreCase)) -and
-            ($_.Parameters -contains 'Enabled=False') -and
-            ($null -ne $_.Server -and ($_.Server -contains $ExchangeServer)) }
-        if ($getSOs) {
-            $getSOs | Out-Host
-            foreach ($so in $getSOs) {
-                if ($so.Status -eq 'Accepted') {
-                    Write-Warning "AMSI is Disabled by $($so.Name) SettingOverride for $ExchangeServer"
-                } else {
-                    Write-Host "AMSI is Disabled by $($so.Name) SettingOverride for $ExchangeServer but it is not Accepted." -ForegroundColor Red
-                }
-            }
-        }
 
         $FEEcpWebConfig = $null
         $CAEEcpWebConfig = $null
@@ -487,10 +441,27 @@ begin {
             Write-Host "Cannot get Exchange installation path on $server" -ForegroundColor Red
         }
 
-        Write-Host $msgNewLine
-        Write-Host "AMSI is Enabled on Server $ExchangeServer." -ForegroundColor Green
-        Write-Host "We did not find any Settings Override that remove AMSI on server $ExchangeServer."
-        Write-Host ""
+        $getSOs = $null
+        $getSOs = Get-SettingOverride -ErrorAction SilentlyContinue | Where-Object {
+            ($_.ComponentName.Equals('Cafe', [System.StringComparison]::OrdinalIgnoreCase)) -and
+            ($_.SectionName.Equals('HttpRequestFiltering', [System.StringComparison]::OrdinalIgnoreCase)) -and
+            ($_.Parameters -contains 'Enabled=False') -and
+            ($null -ne $_.Server -and ($_.Server -contains $ExchangeServer)) }
+        if ($getSOs) {
+            $getSOs | Out-Host
+            foreach ($so in $getSOs) {
+                if ($so.Status -eq 'Accepted') {
+                    Write-Warning "AMSI is Disabled by $($so.Name) SettingOverride for $ExchangeServer"
+                } else {
+                    Write-Host "AMSI is Disabled by $($so.Name) SettingOverride for $ExchangeServer but it is not Accepted." -ForegroundColor Red
+                }
+            }
+        } else {
+            Write-Host $msgNewLine
+            Write-Host "AMSI is Enabled on Server $ExchangeServer." -ForegroundColor Green
+            Write-Host "We did not find any Settings Override that remove AMSI on server $ExchangeServer."
+            Write-Host ""
+        }
     }
 }
 
@@ -639,9 +610,9 @@ process {
                 Write-Host "Testing $($server):" -ForegroundColor Magenta
                 Write-Host ""
                 if ($fullList -contains $server) {
-                    CheckServerAMSI -ExchangeServer $server -IsServer
+                    CheckServerAMSI -Server $server -IsExchangeServer
                 } else {
-                    CheckServerAMSI -ExchangeServer $server
+                    CheckServerAMSI -Server $server
                 }
                 Write-Host ""
             }
