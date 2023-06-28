@@ -105,7 +105,7 @@ Describe "Testing $scriptName" {
                 -ScriptBlockDescription "Getting Processor Count"
             $result | Should -Be $null
 
-            Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -like "*Getting Processor Count" }
+            Assert-MockCalled -CommandName Write-Verbose -Exactly 2 -ParameterFilter { $Message -like "*Getting Processor Count" }
             Test-VerboseOutput -Local $false
         }
 

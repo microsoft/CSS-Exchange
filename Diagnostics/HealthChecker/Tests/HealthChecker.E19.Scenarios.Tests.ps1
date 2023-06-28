@@ -37,6 +37,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Test-Path -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\FrontEnd\HttpProxy\SharedWebConfig.config" } -MockWith { return $false }
             # Needs to be like this to match the filter
             Mock Get-WebConfigFile -ParameterFilter { $PSPath -eq "IIS:\Sites\Exchange Back End/ecp" } -MockWith { return [PSCustomObject]@{ FullName = "$Script:MockDataCollectionRoot\Exchange\IIS\ClientAccess\ecp\web.config" } }
+            Mock Get-WebConfigFile -ParameterFilter { $PSPath -eq "IIS:\Sites\Default Web Site/ecp" } -MockWith { return [PSCustomObject]@{ FullName = "$Script:MockDataCollectionRoot\Exchange\IIS\DefaultWebSite_web.config" } }
             Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost1.config" -Raw }
             Mock Get-ExchangeDiagnosticInfo { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo1.xml" }
             Mock Get-Service {
@@ -76,6 +77,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
         It "TCP Keep Alive Time" {
             SetActiveDisplayGrouping "Frequent Configuration Issues"
             TestObjectMatch "TCP/IP Settings" 0 -WriteType "Red"
+            TestObjectMatch "Missing Web Application Configuration File" $true -WriteType "Red"
+            TestObjectMatch "Web Application: 'Default Web Site/ecp'" "$Script:MockDataCollectionRoot\Exchange\IIS\DefaultWebSite_web.config" -WriteType "Red"
         }
 
         It "CTS Processor Affinity Percentage" {
@@ -94,8 +97,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Open Relay Wild Card Domain" "Error --- Accepted Domain `"Problem Accepted Domain`" is set to a Wild Card (*) Domain Name with a domain type of InternalRelay. This is not recommended as this is an open relay for the entire environment.`r`n`t`tMore Information: https://aka.ms/HC-OpenRelayDomain" -WriteType "Red"
         }
 
-        It "Testing Missing Configuration File" {
-            TestObjectMatch "Missing Configuration File" $true -WriteType "Red"
+        It "Testing Missing Shared Configuration File" {
+            TestObjectMatch "Missing Shared Configuration File" $true -WriteType "Red"
         }
 
         It "Testing Default Variable Detected" {

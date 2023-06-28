@@ -4,7 +4,7 @@
 [CmdletBinding()]
 param()
 
-Describe "Checking PageFile Scenarios" {
+Describe "Exchange 2019 Scenarios testing 2" {
 
     BeforeAll {
         . $PSScriptRoot\HealthCheckerTests.ImportCode.NotPublished.ps1
@@ -12,11 +12,16 @@ Describe "Checking PageFile Scenarios" {
         . $PSScriptRoot\HealthCheckerTest.CommonMocks.NotPublished.ps1
     }
 
-    Context "Scenario 1 - Configure As Expected" {
+    Context "Scenario 1" {
 
         BeforeAll {
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_PageFileSetting" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\OS\Win32_PageFileWellConfigured.xml" }
+            Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\BadApplicationHost.config" -Raw }
+            Mock Get-WebApplication -MockWith { throw "Error - Pester" }
+            Mock Get-WebSite -ParameterFilter { $null -eq $Name } -MockWith { throw "Error - Pester" }
+            Mock Get-WebSite -ParameterFilter { $Name -eq "Default Web Site" } -MockWith { throw "Error - Pester" }
+            Mock Get-WebSite -ParameterFilter { $Name -eq "Exchange Back End" } -MockWith { throw "Error - Pester" }
 
             SetDefaultRunOfHealthChecker "Debug_PageFile_Well_Scenario_Results.xml"
         }
@@ -34,14 +39,25 @@ Describe "Checking PageFile Scenarios" {
             $pageFileAdditional = GetObject "PageFile Additional Information"
             $pageFileAdditional | Should -Be $null
         }
+
+        It "Bad application host config file" {
+            SetActiveDisplayGrouping "Frequent Configuration Issues"
+            TestObjectMatch "Invalid Configuration File - Application Host Config File" $true -WriteType "Red"
+            $m = GetObject "Missing Web Application Configuration File"
+            $m | Should -Be $null
+        }
     }
 
-    Context "Scenario 2 - Oversized" {
+    Context "Scenario 2" {
 
         BeforeAll {
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_PageFileSetting" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\OS\Win32_PageFileOverSized.xml" }
 
+            # Unable to test the error logic for Get-WebConfigFile at this time.
+            # Instead just going to point the path to the bad file to continue to test out the rest of the logic.
+            Mock Get-WebConfigFile -ParameterFilter { $PSPath -like "IIS:\Sites\Default Web Site*" } -MockWith { return [PSCustomObject]@{ FullName = "$Script:MockDataCollectionRoot\Exchange\IIS\DefaultWebSite_web1.config" } }
+            Mock Get-WebConfigFile -ParameterFilter { $PSPath -eq "IIS:\Sites\Exchange Back End/mapi/emsmdb" } -MockWith { return [PSCustomObject]@{ FullName = "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost.config" } }
             SetDefaultRunOfHealthChecker "Debug_PageFile_OverSized_Scenario_Results.xml"
         }
 
@@ -58,9 +74,17 @@ Describe "Checking PageFile Scenarios" {
             $pageFileAdditional = GetObject "PageFile Additional Information"
             $pageFileAdditional | Should -Be "Warning: On Exchange 2019, the recommended PageFile size is 25% (1536MB) of the total system memory (6144MB)."
         }
+
+        It "Bad Default Web Site web.config file" {
+            SetActiveDisplayGrouping "Frequent Configuration Issues"
+            TestObjectMatch "Invalid Configuration File" $true -WriteType "Red"
+            TestObjectMatch "Invalid: $Script:MockDataCollectionRoot\Exchange\IIS\DefaultWebSite_web1.config" $true -WriteType "Red"
+            TestObjectMatch "Missing Web Application Configuration File" $true -WriteType "Red"
+            TestObjectMatch "Web Application: 'Exchange Back End/mapi/emsmdb'" "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost.config" -WriteType "Red"
+        }
     }
 
-    Context "Scenario 3 - System-managed" {
+    Context "Scenario 3" {
 
         BeforeAll {
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_PageFileSetting" } `
@@ -84,7 +108,7 @@ Describe "Checking PageFile Scenarios" {
         }
     }
 
-    Context "Scenario 4 - System Managed and Static" {
+    Context "Scenario 4" {
 
         BeforeAll {
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_PageFileSetting" } `
@@ -118,7 +142,7 @@ Describe "Checking PageFile Scenarios" {
         }
     }
 
-    Context "Scenario 5 - One Correct and One Oversized" {
+    Context "Scenario 5" {
 
         BeforeAll {
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_PageFileSetting" } `

@@ -126,6 +126,7 @@ function Invoke-AnalyzerSecurityCveCheck {
         "Jan23SU" = (@((NewCveEntry "CVE-2023-21762" $ex131619)) + (NewCveEntry @("CVE-2023-21745", "CVE-2023-21761", "CVE-2023-21763", "CVE-2023-21764") @($ex2016, $ex2019)))
         "Feb23SU" = (@(NewCveEntry @("CVE-2023-21529", "CVE-2023-21706", "CVE-2023-21707") $ex131619) + (NewCveEntry "CVE-2023-21710" @($ex2016, $ex2019)))
         "Mar23SU" = (@(NewCveEntry ("CVE-2023-21707") $ex131619))
+        "Jun23SU" = (NewCveEntry @("CVE-2023-28310", "CVE-2023-32031") @($ex2016, $ex2019))
     }
 
     # Need to organize the list so oldest CVEs come out first.
