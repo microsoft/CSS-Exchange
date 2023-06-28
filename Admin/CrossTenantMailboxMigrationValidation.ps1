@@ -17,10 +17,13 @@
     - Making sure the source mailbox object has no hold applied
     - Making sure the source mailbox object TotalDeletedItemsSize is not bigger than Target MailUser recoverable items size
     - Making sure the source mailbox object LegacyExchangeDN attribute value is present on the target MailUser object as an X500 proxyAddress, and give you the option to set it, as long as the Target MailUser is not DirSynced
+    - Making sure the source mailbox object X500 addresses are also present on the target MailUser object.
     - Making sure the target MailUser object PrimarySMTPAddress attribute value is part of the target tenant accepted domains and give you the option to set it to be like the UPN if not true, as long as the Target MailUser is not DirSynced
     - Making sure the target MailUser object EmailAddresses are all part of the target tenant accepted domains and give you the option to remove them if any doesn't belong to are found, as long as the Target MailUser is not DirSynced
     - Making sure the target MailUser object ExternalEmailAddress attribute value points to the source Mailbox object PrimarySMTPAddress and give you the option to set it if not true, as long as the Target MailUser is not DirSynced
+    - Verifying if there's a T2T license assigned on either the source or target objects.
     - Checking if there's an AAD app as described on https://docs.microsoft.com/en-us/microsoft-365/enterprise/cross-tenant-mailbox-migration?view=o365-worldwide#prepare-the-target-destination-tenant-by-creating-the-migration-application-and-secret
+    - Checking if the AAD app on Target has been consented in Sorce tenant as described on https://docs.microsoft.com/en-us/microsoft-365/enterprise/cross-tenant-mailbox-migration?view=o365-worldwide#prepare-the-source-current-mailbox-location-tenant-by-accepting-the-migration-application-and-configuring-the-organization-relationship
     - Checking if the target tenant has an Organization Relationship as described on https://docs.microsoft.com/en-us/microsoft-365/enterprise/cross-tenant-mailbox-migration?view=o365-worldwide#prepare-the-target-tenant-by-creating-the-exchange-online-migration-endpoint-and-organization-relationship
     - Checking if the target tenant has a Migration Endpoint as described on https://docs.microsoft.com/en-us/microsoft-365/enterprise/cross-tenant-mailbox-migration?view=o365-worldwide#prepare-the-target-tenant-by-creating-the-exchange-online-migration-endpoint-and-organization-relationship
     - Checking if the source tenant has an Organization Relationship as described on https://docs.microsoft.com/en-us/microsoft-365/enterprise/cross-tenant-mailbox-migration?view=o365-worldwide#prepare-the-source-current-mailbox-location-tenant-by-accepting-the-migration-application-and-configuring-the-organization-relationship including a Mail-Enabled security group defined on the MailboxMovePublishedScopes property.
@@ -169,6 +172,22 @@ function CheckObjects {
             } else {
                 Write-Verbose -Message "No aux archives are present on SOURCE mailbox"
 
+                #Check for the T2T license on any of the objects (either source or target) as long as the source mailbox is a regular mailbox
+                Write-Verbose -Message "Informational: Source mailbox is regular, checking if either SOURCE mailbox or TARGET MailUser has the T2T license assigned"
+                if ($SourceObject.RecipientTypeDetails -eq 'UserMailbox') {
+                    if ($SourceObject.PersistedCapabilities -notmatch 'ExchangeT2TMbxMove') {
+                        if ($TargetObject.PersistedCapabilities -notmatch 'ExchangeT2TMbxMove') {
+                            Write-Host ">> Error: Neither SOURCE mailbox or TARGET MailUser have a valid T2T migration license. This is a pre-requisite, and if the license is not assigned by the time the migration is injected, it will fail to complete" -ForegroundColor Red
+                        } else {
+                            Write-Verbose -Message "TARGET MailUser has a valid T2T migration license"
+                        }
+                    } else {
+                        Write-Verbose -Message "SOURCE mailbox has a valid T2T migration license"
+                    }
+                } else {
+                    Write-Verbose -Message "Mailbox is not regular, skipping T2T migration license validation check"
+                }
+
                 #Verify if SOURCE mailbox is under any type of hold as we won't support this and will throw an error if this is the case
                 Write-Verbose -Message "Informational: Checking if the SOURCE mailbox is under a litigation hold"
                 if ($SourceObject.litigationHoldEnabled) {
@@ -214,6 +233,24 @@ function CheckObjects {
                     Write-Host ">> Error: SOURCE mailbox is under an Organizational Hold and this is not a supported scenario" -ForegroundColor Red
                 } else {
                     Write-Verbose -Message "Mailbox is not under any Organizational Hold"
+                }
+
+                #Verify if SOURCE mailbox has an Archive, and if it does, check if there's any item within recoverable items SubstrateHolds folder.
+                if ($SourceObject.ArchiveGUID -notmatch "00000000-0000-0000-0000-000000000000") {
+                    Write-Verbose -Message "Informational: SOURCE mailbox has an Archive enabled, checking if there's any SubstrateHold folder present"
+                    $ArchiveSubstrateHolds = (Get-MailboxFolderStatistics $SourceObject.ArchiveGuid -FolderScope RecoverableItems | Where-Object { $_.Name -eq 'SubstrateHolds' })
+                    if ($ArchiveSubstrateHolds) {
+                        Write-Verbose -Message "Informational: SubstrateHolds folder found in SOURCE Archive mailbox, checking if there's any content inside it"
+                        if (($ArchiveSubstrateHolds).ItemsInFolder -gt 0) {
+                            Write-Host ">> Error: SOURCE Archive mailbox has items within the SubstrateHolds folder and this will cause the migration to fail. Please work on removing those items with MFCMapi manually before creating the move for this mailbox" -ForegroundColor Red
+                        } else {
+                            Write-Verbose -Message "Informational: No items found within the Archive mailbox SubstrateHolds folder"
+                        }
+                    } else {
+                        Write-Verbose -Message "Informational: No SubstrateHolds folder found in SOURCE Archive mailbox"
+                    }
+                } else {
+                    Write-Verbose -Message "Informational: SOURCE mailbox has no Archive enabled. Skipping Archive mailbox SubstrateHolds folder check"
                 }
 
                 #Verify if SOURCE mailbox is part of the Mail-Enabled Security Group defined on the SOURCE organization relationship
@@ -430,6 +467,22 @@ function CheckObjectsSourceOffline {
             } else {
                 Write-Verbose -Message "No aux archives are present on SOURCE mailbox"
 
+                #Check for the T2T license on any of the objects (either source or target) as long as the source mailbox is a regular mailbox
+                Write-Verbose -Message "Informational: Source mailbox is regular, checking if either SOURCE mailbox or TARGET MailUser has the T2T license assigned"
+                if ($SourceObject.RecipientTypeDetails -eq 'UserMailbox') {
+                    if ($SourceObject.PersistedCapabilities -notmatch 'ExchangeT2TMbxMove') {
+                        if ($TargetObject.PersistedCapabilities -notmatch 'ExchangeT2TMbxMove') {
+                            Write-Host ">> Error: Neither SOURCE mailbox or TARGET MailUser have a valid T2T migration license. This is a pre-requisite, and if the license is not assigned by the time the migration is injected, it will fail to complete" -ForegroundColor Red
+                        } else {
+                            Write-Verbose -Message "TARGET MailUser has a valid T2T migration license"
+                        }
+                    } else {
+                        Write-Verbose -Message "SOURCE mailbox has a valid T2T migration license"
+                    }
+                } else {
+                    Write-Verbose -Message "Mailbox is not regular, skipping T2T migration license validation check"
+                }
+
                 #Verify if SOURCE mailbox is under any type of hold as we won't support this and will throw an error if this is the case
                 Write-Verbose -Message "Informational: Checking if the SOURCE mailbox is under a litigation hold"
                 if ($SourceObject.litigationHoldEnabled) {
@@ -461,6 +514,23 @@ function CheckObjectsSourceOffline {
                 $MailboxDiagnosticLogs = Import-Clixml $OutputPath\MailboxDiagnosticLogs_$SourceIdentity.xml
                 if ($MailboxDiagnosticLogs.MailboxLog -like '*"hid":"mbx*","ht":4*') {
                     Write-Host ">> Error: SOURCE mailbox is under an Organizational Hold. This move is not supported as it would lead into data loss" -ForegroundColor Red
+                }
+
+                #Verify if SOURCE mailbox has an Archive, and if it does, check if there's any item within recoverable items SubstrateHolds folder.
+                if ($SourceObject.ArchiveGUID -notmatch "00000000-0000-0000-0000-000000000000") {
+                    Write-Verbose -Message "Informational: SOURCE mailbox has an Archive enabled, checking if there's any SubstrateHold folder present"
+                    $ArchiveMailboxFolderStatistics = Import-Clixml $OutputPath\ArchiveMailboxStatistics_$SourceIdentity.xml
+                    if ($ArchiveMailboxFolderStatistics.Name -eq 'SubstrateHolds') {
+                        if ($ArchiveMailboxFolderStatistics.ItemsInFolder -gt 0) {
+                            Write-Host ">> Error: SOURCE Archive mailbox has items within the SubstrateHolds folder and this will cause the migration to fail. Please work on removing those items with MFCMapi manually before creating the move for this mailbox" -ForegroundColor Red
+                        } else {
+                            Write-Verbose -Message "Informational: No items found within the Archive mailbox SubstrateHolds folder"
+                        }
+                    } else {
+                        Write-Verbose -Message "Informational: No SubstrateHolds folder found in SOURCE Archive mailbox"
+                    }
+                } else {
+                    Write-Verbose -Message "Informational: SOURCE mailbox has no Archive enabled. Skipping Archive mailbox SubstrateHolds folder check"
                 }
 
                 #Verify if SOURCE mailbox is part of the Mail-Enabled Security Group defined on the SOURCE organization relationship
@@ -670,14 +740,11 @@ function ConnectToTargetTenantAAD {
     Connect-AzureAD | Out-Null
 }
 function CheckOrgs {
-
-    #Check if there's an AAD EXO app as expected and load it onto a variable
-    Write-Verbose -Message "Informational: Checking if there's already an AAD Application on TARGET tenant that meets the criteria"
-    $AadExoApp = Get-AzureADApplication | Where-Object { ($_.ReplyUrls -eq "https://office.com") -and ($_.RequiredResourceAccess -like "*ResourceAppId: 00000002-0000-0ff1-ce00-000000000000*") }
-    if ($AadExoApp) {
-        Write-Host "AAD application for EXO has been found" -ForegroundColor Green
+    #Check if there's an AAD app on the TARGET tenant as expected and load it onto a variable
+    if ($TargetAADApp) {
+        Write-Host "AAD application for EXO has been found on TARGET tenant" -ForegroundColor Green
         Write-Verbose -Message "Informational: Loading migration endpoints on TARGET tenant that meets the criteria"
-        if (Get-TargetMigrationEndpoint | Where-Object { ($_.RemoteServer -eq "outlook.office.com") -and ($_.EndpointType -eq "ExchangeRemoteMove") -and ($_.ApplicationId -eq $AadExoApp.AppId) }) {
+        if (Get-TargetMigrationEndpoint | Where-Object { ($_.RemoteServer -eq "outlook.office.com") -and ($_.EndpointType -eq "ExchangeRemoteMove") -and ($_.ApplicationId -eq $TargetAADApp.AppId) }) {
             Write-Host "Migration endpoint found and correctly set" -ForegroundColor Green
         } else {
             Write-Host ">> Error: Expected Migration endpoint not found" -ForegroundColor Red
@@ -686,9 +753,17 @@ function CheckOrgs {
         Write-Host ">> Error: No AAD application for EXO has been found" -ForegroundColor Red
     }
 
+    # Check if there's an AAD app on the SOURCE tenant that matches the TargetTenantId
+    if (($SourceAADApp | Where-Object { $_.Appid -eq $TargetAADApp.Appid }).AppOwnerTenantId -eq $TargetTenantId) {
+        Write-Host "AAD application for EXO has been found on SOURCE tenant matching TARGET tenant" -ForegroundColor Green
+        Write-Verbose -Message "Informational: AAD Application matching SOURCE AppId has been found on TARGET tenant"
+    } else {
+        Write-Host ">> Error: No AAD Application matching SOURCE AppId has been found on TARGET tenant" -ForegroundColor Red
+    }
+
     #Check orgRelationship flags on source and target orgs
     Write-Verbose -Message "Informational: Loading Organization Relationship on SOURCE tenant that meets the criteria"
-    $SourceTenantOrgRelationship = Get-SourceOrganizationRelationship | Where-Object { $_.OauthApplicationId -eq $AadExoApp.AppId }
+    $SourceTenantOrgRelationship = Get-SourceOrganizationRelationship | Where-Object { $_.OauthApplicationId -eq $TargetAADApp.AppId }
     Write-Verbose -Message "Informational: Loading Organization Relationship on TARGET tenant that meets the criteria"
     $TargetTenantOrgRelationship = Get-TargetOrganizationRelationship | Where-Object { $_.DomainNames -contains $SourceTenantId }
 
@@ -734,12 +809,10 @@ function CheckOrgs {
 function CheckOrgsSourceOffline {
 
     #Check if there's an AAD EXO app as expected and load it onto a variable
-    Write-Verbose -Message "Informational: Checking if there's already an AAD Application on TARGET tenant that meets the criteria"
-    $AadExoApp = Get-AzureADApplication | Where-Object { ($_.ReplyUrls -eq "https://office.com") -and ($_.RequiredResourceAccess -like "*ResourceAppId: 00000002-0000-0ff1-ce00-000000000000*") }
-    if ($AadExoApp) {
+    if ($TargetAADApp) {
         Write-Host "AAD application for EXO has been found" -ForegroundColor Green
         Write-Verbose -Message "Informational: Loading migration endpoints on TARGET tenant that meets the criteria"
-        if (Get-TargetMigrationEndpoint | Where-Object { ($_.RemoteServer -eq "outlook.office.com") -and ($_.EndpointType -eq "ExchangeRemoteMove") -and ($_.ApplicationId -eq $AadExoApp.AppId) }) {
+        if (Get-TargetMigrationEndpoint | Where-Object { ($_.RemoteServer -eq "outlook.office.com") -and ($_.EndpointType -eq "ExchangeRemoteMove") -and ($_.ApplicationId -eq $TargetAADApp.AppId) }) {
             Write-Host "Migration endpoint found and correctly set" -ForegroundColor Green
         } else {
             Write-Host ">> Error: Expected Migration endpoint not found" -ForegroundColor Red
@@ -748,10 +821,18 @@ function CheckOrgsSourceOffline {
         Write-Host ">> Error: No AAD application for EXO has been found" -ForegroundColor Red
     }
 
+    # Check if there's an AAD app on the SOURCE tenant that matches the TargetTenantId
+    if (($SourceAADApp | Where-Object { $_.Appid -eq $TargetAADApp.Appid }).AppOwnerTenantId -eq $TargetTenantId) {
+        Write-Host "AAD application for EXO has been found on SOURCE tenant matching TARGET tenant" -ForegroundColor Green
+        Write-Verbose -Message "Informational: AAD Application matching SOURCE AppId has been found on TARGET tenant"
+    } else {
+        Write-Host ">> Error: No AAD Application matching SOURCE AppId has been found on TARGET tenant" -ForegroundColor Red
+    }
+
     #Check orgRelationship flags on source and target orgs
     Write-Verbose -Message "Informational: Loading Organization Relationship on SOURCE tenant that meets the criteria"
     $SourceTenantOrgRelationship = (Import-Clixml $OutputPath\SourceOrgRelationship.xml)
-    $SourceTenantOrgRelationship | Where-Object { $_.OauthApplicationId -eq $AadExoApp.AppId }
+    $SourceTenantOrgRelationship | Where-Object { $_.OauthApplicationId -eq $TargetAADApp.AppId }
     Write-Verbose -Message "Informational: Loading Organization Relationship on TARGET tenant that meets the criteria"
     $TargetTenantOrgRelationship = Get-TargetOrganizationRelationship | Where-Object { $_.DomainNames -contains $SourceTenantId }
 
@@ -848,6 +929,9 @@ function CollectSourceData {
 
     Write-Host "Informational: Exporting the SOURCE mailbox statistics for" $SourceIdentity -ForegroundColor Yellow
     Get-SourceMailboxStatistics $SourceIdentity | Export-Clixml $OutputPath\MailboxStatistics_$SourceIdentity.xml
+    if (Get-SourceMailbox $SourceIdentity.ArchiveGuid -notmatch "00000000-0000-0000-0000-000000000000") {
+        Get-SourceMailboxFolderStatistics $SourceIdentity.ArchiveGuid -FolderScope RecoverableItems | Where-Object { $_.Name -eq 'SubstrateHolds' } | Export-Clixml $OutputPath\ArchiveMailboxStatistics_$SourceIdentity.xml
+    }
 }
 function ExpandCollectedData {
     #Expand zip file gathered from the CollectSourceData process provided on the 'PathForCollectedData' parameter
@@ -919,9 +1003,13 @@ if ($CheckOrgs -and !$SourceIsOffline) {
     ConnectToSourceTenantAAD
     $SourceTenantId = (Get-AzureADTenantDetail).ObjectId
     Write-Verbose -Message "Informational: SourceTenantId gathered from AzureADTenantDetail.ObjectId: $SourceTenantId"
+    $SourceAADApp = Get-AzureADServicePrincipal -All $true
+    Write-Verbose -Message "Informational: AAD apps gathered from AzureADServicePrincipal"
     ConnectToTargetTenantAAD
     $TargetTenantId = (Get-AzureADTenantDetail).ObjectId
     Write-Verbose -Message "Informational: TargetTenantId gathered from AzureADTenantDetail.ObjectId: $TargetTenantId"
+    Write-Verbose -Message "Informational: Checking if there's already an AAD Application on TARGET tenant that meets the criteria"
+    $TargetAADApp = Get-AzureADApplication | Where-Object { ($_.ReplyUrls -eq "https://office.com") -and ($_.RequiredResourceAccess -like "*ResourceAppId: 00000002-0000-0ff1-ce00-000000000000*") }
     ConnectToEXOTenants
     CheckOrgs
     LoggingOff
@@ -944,6 +1032,8 @@ if ($CollectSourceOnly -and $CSV) {
     ConnectToSourceTenantAAD
     $SourceTenantId = (Get-AzureADTenantDetail).ObjectId
     Write-Verbose -Message "SourceTenantId gathered from AzureADTenantDetail.ObjectId: $SourceTenantId"
+    Write-Verbose -Message "Gathering AAD Service Principals"
+    Get-AzureADServicePrincipal -all $True | Where-Object { $_.ReplyUrls -eq 'https://office.com' } | Export-Clixml $OutputPath\SourceAADServicePrincipals.xml
     $Objects = Import-Csv $CSV
     if ($Objects.SourceUser) {
         Write-Verbose -Message "Informational: CSV file contains the SourceUser column, now we need to connect to the source EXO tenant"
@@ -1041,6 +1131,9 @@ if ($SourceIsOffline -and $PathForCollectedData -and $CheckOrgs) {
     Write-Verbose -Message "SourceTenantId gathered from SourceTenantId.txt: $SourceTenantId"
     $TargetTenantId = (Get-AzureADTenantDetail).ObjectId
     Write-Verbose -Message "TargetTenantId gathered from AzureADTenantDetail.ObjectId: $TargetTenantId"
+    $SourceAADApp = (Import-Clixml $OutputPath\SourceAADServicePrincipals.xml)
+    Write-Verbose -Message "Informational: Checking if there's already an AAD Application on TARGET tenant that meets the criteria"
+    $TargetAADApp = Get-AzureADApplication | Where-Object { ($_.ReplyUrls -eq "https://office.com") -and ($_.RequiredResourceAccess -like "*ResourceAppId: 00000002-0000-0ff1-ce00-000000000000*") }
     ConnectToTargetEXOTenant
     CheckOrgsSourceOffline
     LoggingOff
