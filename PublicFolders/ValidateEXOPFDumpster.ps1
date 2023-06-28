@@ -8,7 +8,7 @@ param(
     [Parameter(Mandatory = $false)]
     [String]$AffectedUser)
 $Script:ReportName = "ValidatePFDumpsterREPORT.txt"
-#Requires -Modules @{ModuleName="ExchangeOnlineManagement"; ModuleVersion="2.0.0" }
+#Requires -Modules @{ModuleName="ExchangeOnlineManagement"; ModuleVersion="3.0.0" }
 function LogError {
     param(
         [Parameter(Mandatory = $true)]
@@ -45,17 +45,17 @@ function WriteToScreenAndLog {
 function Connect2EXO {
     try {
 
-        Write-Host "Connecting to EXO V2, please enter Global administrator credentials when prompted!" -ForegroundColor Yellow
+        Write-Host "Connecting to EXO, please enter Global administrator credentials when prompted!" -ForegroundColor Yellow
         Connect-ExchangeOnline -ErrorAction Stop
-        $CurrentDescription= "Connecting to EXO V2"
+        $CurrentDescription= "Connecting to EXO"
         $CurrentStatus = "Success"
-        LogError -CurrentStatus $CurrentStatus -Function "Connecting to EXO V2" -CurrentDescription $CurrentDescription
-        Write-Host "Connected to EXO V2 successfully" -ForegroundColor Cyan
+        LogError -CurrentStatus $CurrentStatus -Function "Connecting to EXO" -CurrentDescription $CurrentDescription
+        Write-Host "Connected to EXO successfully" -ForegroundColor Cyan
     } catch {
         $ErrorEncountered=$Global:error[0].Exception
-        $CurrentDescription = "Connecting to EXO V2"
+        $CurrentDescription = "Connecting to EXO"
         $CurrentStatus = "Failure"
-        LogError -CurrentStatus $CurrentStatus -Function "Connecting to EXO V2" -CurrentDescription $CurrentDescription
+        LogError -CurrentStatus $CurrentStatus -Function "Connecting to EXO" -CurrentDescription $CurrentDescription
         Write-Host "Error encountered during executing the script!"-ForegroundColor Red
         Write-Host $ErrorEncountered -ForegroundColor Red
         Write-Host "`nOutput was exported in the following location: $ExportPath" -ForegroundColor Yellow
@@ -63,28 +63,52 @@ function Connect2EXO {
         break
     }
 }
+function ValidateDumpsterExistence {
+    param([PSCustomObject]$PublicFolder)
+    try {
+        $PublicFolderDumpster=Get-PublicFolder $PublicFolder.DumpsterEntryId -ErrorAction stop
+        $CurrentDescription = "Retrieving: $($PublicFolder.Identity) dumpster for diagnosing"
+        $CurrentStatus = "Success"
+        LogError -Function "Retrieve public folder $($PublicFolder.Identity) dumpster" -CurrentStatus $CurrentStatus -CurrentDescription $CurrentDescription
+        return $PublicFolderDumpster
+    } catch {
+        $Issue="Public folder $($PublicFolder.Identity) Dumpster is not existing!"
+        $Fix="FIX --> Please raise a support request for microsoft including the report & logs folder"
+        WriteToScreenAndLog -Issue $Issue -Fix $Fix
+        $ErrorEncountered=$Global:error[0].Exception
+        $CurrentDescription = "Retrieving: $($PublicFolder.Identity) dumpster for diagnosing"
+        $CurrentStatus = "Failure with error: "+$ErrorEncountered
+        LogError -Function "Retrieve public folder $($PublicFolder.Identity) dumpster" -CurrentStatus $CurrentStatus -CurrentDescription $CurrentDescription
+        if (!(Test-Path  "$ExportPath\logs_$ts")) {
+            mkdir "$ExportPath\logs_$ts" -Force | Out-Null
+        }
+        $PublicFolder | Export-Clixml -Path "$ExportPath\logs_$ts\PublicFolderInfo$($PublicFolder.Name).xml"
+        AskForFeedback
+        QuitEXOSession
+    }
+}
 function GetPublicFolderInfo {
     param([String]$PFolder)
-    Write-Host "Retrieving PublicFolder information for diagnosing!,please wait as this might take awhile...." -ForegroundColor Yellow
     try {
         $PublicFolder=Get-PublicFolder $PFolder -ErrorAction stop
-        $PublicFolderDumpster=Get-PublicFolder $PublicFolder.DumpsterEntryId -ErrorAction stop
+        Write-Host "Retrieving PublicFolder $($PublicFolder.Identity) information for diagnosing!,please wait as this might take awhile...." -ForegroundColor Yellow
+        $PublicFolderDumpster=ValidateDumpsterExistence($PublicFolder)
         $PublicFolderStats=Get-PublicFolderStatistics $PublicFolder.EntryId -ErrorAction stop
         $PfMbx=Get-mailbox -PublicFolder $PublicFolder.ContentMailboxGuid.Guid
-        $PfMBXStats=Get-mailboxStatistics $PublicFolder.ContentMailboxGuid.Guid -ErrorAction stop
+        $PfMbxStats=Get-mailboxStatistics $PublicFolder.ContentMailboxGuid.Guid -ErrorAction stop
         $IPM_SUBTREE=Get-PublicFolder \ -ErrorAction stop
         $NON_IPM_SUBTREE=Get-PublicFolder \NON_IPM_SUBTREE -ErrorAction stop
         $DUMPSTER_ROOT=Get-PublicFolder \NON_IPM_SUBTREE\DUMPSTER_ROOT -ErrorAction stop
         $OrganizationConfig =Get-OrganizationConfig -ErrorAction stop
         [Int64]$DefaultPublicFolderProhibitPostQuota=[Int64]$OrganizationConfig.DefaultPublicFolderProhibitPostQuota.Split("(")[1].split(" ")[0].Replace(",", "")
         [Int64]$DefaultPublicFolderIssueWarningQuota=[Int64]$OrganizationConfig.DefaultPublicFolderIssueWarningQuota.Split("(")[1].split(" ")[0].Replace(",", "")
-        [Int64]$PublicFolderSize=[Int64]$PublicFolderStats.TotalItemSize.Split("(")[1].split("")[0].replace(",", "")+[Int64]$PublicFolderStats.TotalDeletedItemSize.Split("(")[1].split("")[0].replace(",", "")
+        [Int64]$PublicFolderSize=[Int64]$PublicFolderStats.TotalItemSize.Split("(")[1].split(" ")[0].replace(",", "")+[Int64]$PublicFolderStats.TotalDeletedItemSize.Split("(")[1].split(" ")[0].replace(",", "")
         [PSCustomObject]$PublicFolderInfo=@{
             PublicFolder                         = $PublicFolder
             PublicFolderDumpster                 = $PublicFolderDumpster
             PfMbx                                = $PfMbx
             PublicFolderStats                    = $PublicFolderStats
-            PfMBXStats                           = $PfMBXStats
+            PfMbxStats                           = $PfMbxStats
             IPM_SUBTREE                          = $IPM_SUBTREE
             NON_IPM_SUBTREE                      = $NON_IPM_SUBTREE
             DUMPSTER_ROOT                        = $DUMPSTER_ROOT
@@ -100,14 +124,12 @@ function GetPublicFolderInfo {
 
     catch {
         $ErrorEncountered=$Global:error[0].Exception
-        $CurrentDescription = "Retrieving: $($PFolder) & its dumpster for diagnosing"
+        $CurrentDescription = "Retrieving: $($PublicFolder.Identity) & its dumpster for diagnosing"
         $CurrentStatus = "Failure with error: "+$ErrorEncountered
         LogError -Function "Retrieve public folder & its dumpster statistics" -CurrentStatus $CurrentStatus -CurrentDescription $CurrentDescription
         Write-Host "Error encountered during executing the script!"-ForegroundColor Red
         Write-Host $ErrorEncountered -ForegroundColor Red
-        Write-Host "`nOutput was exported in the following location: $ExportPath" -ForegroundColor Yellow
-        Start-Sleep -Seconds 3
-        break
+        QuitEXOSession
         #write log and exit function
     }
 }
@@ -123,7 +145,7 @@ function ValidateContentMBXUniqueness {
 function ValidateEntryIDMapping {
     param([PSCustomObject]$PublicFolderInfo)
     if ($PublicFolderInfo.PublicFolder.EntryId -ne $PublicFolderInfo.PublicFolderDumpster.DumpsterEntryID -or $PublicFolderInfo.PublicFolder.DumpsterEntryID -ne $PublicFolderInfo.PublicFolderDumpster.EntryId) {
-        if (!(Test-Path -Path "$ExportPath\logs_\PublicFolderInfo.xml")) {
+        if (!(Test-Path -Path "$ExportPath\logs_$ts\$($PublicFolderInfo.PublicFolder.Name).xml")) {
             ExtractLog($PublicFolderInfo)
         }
         $Issue="Public folder $($PublicFolder.Identity) EntryId & DumpsterEntryID values are not mapped properly"
@@ -134,8 +156,8 @@ function ValidateEntryIDMapping {
 function ValidateContentMBXQuota {
     param([PSCustomObject]$PublicFolderInfo)
     [Int64]$PfMbxRecoverableItemsQuotaInB=[Int64]$PublicFolderInfo.PfMbx.RecoverableItemsQuota.Split("(")[1].split(" ")[0].Replace(",", "")
-    [Int64]$PfMBXStatsInB=[Int64]$PublicFolderInfo.PfMBXStats.TotalDeletedItemSize.Value.ToString().Split("(")[1].split(" ")[0].Replace(",", "")
-    if ($PfMBXStatsInB -ge $PfMbxRecoverableItemsQuotaInB  ) {
+    [Int64]$PfMbxStatsInB=[Int64]$PublicFolderInfo.PfMbxStats.TotalDeletedItemSize.Value.ToString().Split("(")[1].split(" ")[0].Replace(",", "")
+    if ($PfMbxStatsInB -ge $PfMbxRecoverableItemsQuotaInB  ) {
         $article="https://aka.ms/PFrecovery"
         $RecoverDeletedItems="https://aka.ms/cannotdeleteitemsOWA"
         $Fix="FIX --> To resolve a scenario where content public folder mailbox TotalDeletedItemSize value has reached RecoverableItemsQuota value, users could manually clean up the dumpster using:
@@ -160,7 +182,7 @@ function ValidateParentPublicFolder {
     }
     #Validate on IPM_Subtree
     else {
-        if ($PublicFolderInfo.PublicFolder.ParentFolder -ne  $PublicFolderInfo.IPM_SUBTREE.EntryId) {
+        if (![string]::IsNullOrEmpty($PublicFolderInfo.PublicFolder.ParentFolder)) {
             $ParentPublicFolderInfo=GetPublicFolderInfo($PublicFolderInfo.PublicFolder.ParentFolder)
             ValidateContentMBXUniqueness($ParentPublicFolderInfo)
             ValidateEntryIDMapping($ParentPublicFolderInfo)
@@ -175,14 +197,16 @@ function ValidateDumpsterFlag {
         $Issue="Public folder $($PublicFolderInfo.PublicFolder.Identity) is a dumpster folder, content folder and its dumpster are linked to each other, that link cannot be undone, in other words admins cannot delete dumpster only"
         $Fix="FIX --> Please move $($PublicFolderInfo.PublicFolder.Identity) public folder to be under NON_IPM_SUBTREE using Set-PublicFolder command, for more information please check https://aka.ms/setpf"
         WriteToScreenAndLog -Issue $Issue -Fix $Fix
+        AskForFeedback
+        QuitEXOSession
     }
 }
 function GetUserPermissions {
     param([PSCustomObject]$Perms)
-    $workingPermissions=@("Editor", "Owner", "PublishingEditor", "DeleteAllItems").ToLower()
+    $WorkingPermissions=@("Editor", "Owner", "PublishingEditor", "DeleteAllItems").ToLower()
     if ($null -ne $Perms) {
         foreach ($perm in $Perms.AccessRights) {
-            if ($workingPermissions.Contains($($perm.ToLower()))) {
+            if ($WorkingPermissions.Contains($($perm.ToLower()))) {
                 return "user has permission"
             }
         }
@@ -224,7 +248,7 @@ function ValidatePublicFolderIssue {
         $ExplicitPermsResult=GetUserPermissions($ExplicitPerms)
         $DefaultPermsResult=GetUserPermissions($DefaultPerms)
         if ($UserPermSyncIssue -eq "sync issue exist") {
-            #explicitUser sync perm issue
+            #ExplicitUser sync perm issue
             #validate that user has sufficient perms
             if ($ExplicitPermsResult -match "user has no permission") {
                 #user has no sufficient perm
@@ -237,22 +261,42 @@ function ValidatePublicFolderIssue {
             $Issue="$($User.PrimarySmtpAddress) has permissions sync problems over EffectivePublicFolderMailbox $($User.EffectivePublicFolderMailbox)!"
             WriteToScreenAndLog -Issue $Issue -Fix $fix
         }
-        if ($DefaultUserPermSyncIssue -eq "sync issue exist" -and $ExplicitPermsResult -match "user has no permission") {
+        if ($DefaultUserPermSyncIssue -eq "sync issue exist" ) {
             #DefaultUser sync perm issue
             #validate that Default has sufficient perms
-            if ($DefaultPermsResult -match "user has no permission") {
+            if ($DefaultPermsResult -match "user has no permission" -and $ExplicitPermsResult -match "user has no permission") {
                 #Default user has no sufficient perm
                 $FIX="FIX --> Please ensure that either $($User.PrimarySmtpAddress) or Default user has sufficient permissions to delete, for more information please check the following article https://aka.ms/addPFperm"
                 $Issue="Neither $($User.PrimarySmtpAddress) nor Default user have sufficient permissions to delete items inside $($PublicFolderInfo.PublicFolder.identity)"
                 WriteToScreenAndLog -Issue $Issue -Fix $fix
             }
             #Default user has sufficient perm
-            $FIX="FIX --> Please ensure that Default user permissions are synced properly over user EffectivePublicFolderMailbox $($User.EffectivePublicFolderMailbox), for more information please check the following article https://aka.ms/Fixpfpermissue"
-            $Issue="Default user has permissions sync problems over user EffectivePublicFolderMailbox $($User.EffectivePublicFolderMailbox)!"
-            WriteToScreenAndLog -Issue $Issue -Fix $fix
+            if ($DefaultPermsResult -match "user has permission" -and $ExplicitPermsResult -match "user has no permission") {
+                $FIX="FIX --> Please ensure that Default user permissions are synced properly over user EffectivePublicFolderMailbox $($User.EffectivePublicFolderMailbox), for more information please check the following article https://aka.ms/Fixpfpermissue"
+                $Issue="Default user has permissions sync problems over user EffectivePublicFolderMailbox $($User.EffectivePublicFolderMailbox)!"
+                WriteToScreenAndLog -Issue $Issue -Fix $fix
+                $FIX="FIX --> Please ensure that user $($User.PrimarySmtpAddress) has sufficient permissions to delete, for more information please check the following article https://aka.ms/addPFperm"
+                $Issue="$($User.PrimarySmtpAddress) have no sufficient permissions to delete items inside $($PublicFolderInfo.PublicFolder.identity)"
+                WriteToScreenAndLog -Issue $Issue -Fix $fix
+            }
+            if ($DefaultPermsResult -match "user has permission" -and $ExplicitPermsResult -match "user has permission") {
+                $FIX="FIX --> Please re-grant user $($User.PrimarySmtpAddress) permissions over the affected public folder, for more information please check the following articles https://aka.ms/removePFperm, https://aka.ms/addPFperm"
+                $Issue="$($User.PrimarySmtpAddress) user has corrupted permission over public folder $($PublicFolderInfo.PublicFolder.identity)"
+                WriteToScreenAndLog -Issue $Issue -Fix $fix
+            }
+            if ($DefaultPermsResult -match "user has no permission" -and $ExplicitPermsResult -match "user has permission") {
+                $FIX="FIX --> Please re-grant user $($User.PrimarySmtpAddress) permissions over the affected public folder, for more information please check the following articles https://aka.ms/removePFperm, https://aka.ms/addPFperm"
+                $Issue="$($User.PrimarySmtpAddress) user has corrupted permission over public folder $($PublicFolderInfo.PublicFolder.identity)"
+                WriteToScreenAndLog -Issue $Issue -Fix $fix
+            }
         }
-        if ($UserPermSyncIssue -eq "no sync issue exist" -or $DefaultUserPermSyncIssue -eq "no sync issue exist") {
-            #No sync issue found
+        if ($UserPermSyncIssue -eq "no sync issue exist" -and $DefaultUserPermSyncIssue -eq "no sync issue exist") {
+            if ($ExplicitPermsResult -match "user has no permission" -and $DefaultPermsResult -match "user has no permission") {
+                #user has no permission to delete
+                $FIX="FIX --> Please ensure that user $($User.PrimarySmtpAddress) has sufficient permissions to delete, for more information please check the following article https://aka.ms/addPFperm"
+                $Issue="Neither $($User.PrimarySmtpAddress) nor Default user have sufficient permissions to delete items inside $($PublicFolderInfo.PublicFolder.identity)"
+                WriteToScreenAndLog -Issue $Issue -Fix $fix
+            }
             #if Default/user has sufficient permission might be perm is corrupted, we might need to re-add default/user permission again
             if ($ExplicitPermsResult -match "user has permission") {
                 #user has sufficient permission to delete but might be corrupted acl
@@ -264,14 +308,6 @@ function ValidatePublicFolderIssue {
                 #user has sufficient permission to delete but might be corrupted acl
                 $FIX="FIX --> Please re-grant Default user permissions over the affected public folder or add the permission for the affected user explicitly, for more information please check the following articles https://aka.ms/removePFperm, https://aka.ms/addPFperm"
                 $Issue="Default user has corrupted permission over public folder $($PublicFolderInfo.PublicFolder.identity)"
-                WriteToScreenAndLog -Issue $Issue -Fix $fix
-            }
-        }
-        if ($UserPermSyncIssue -eq "no sync issue exist" -and $DefaultUserPermSyncIssue -eq "no sync issue exist") {
-            if ($ExplicitPermsResult -match "user has no permission" -and $DefaultPermsResult -match "user has no permission") {
-                #user has no permission to delete
-                $FIX="FIX --> Please ensure that user $($User.PrimarySmtpAddress) has sufficient permissions to delete, for more information please check the following article https://aka.ms/addPFperm"
-                $Issue="Neither $($User.PrimarySmtpAddress) nor Default user have sufficient permissions to delete items inside $($PublicFolderInfo.PublicFolder.identity)"
                 WriteToScreenAndLog -Issue $Issue -Fix $fix
             }
         }
@@ -326,7 +362,7 @@ function ValidateDumpsterChildren {
     param([PSCustomObject]$PublicFolderInfo)
     try {
         $HasChildren= Get-PublicFolder $PublicFolderInfo.PublicFolderDumpster.EntryId -ErrorAction stop -GetChildren
-        $CurrentDescription = "Validating if dumpster folder:$($PublicFolderInfo.PublicFolderDumpster.EntryId)"
+        $CurrentDescription = "Validating if dumpster folder:$($PublicFolderInfo.PublicFolderDumpster.EntryId) has children"
         $CurrentStatus = "Success"
         LogError -Function "Validate if dumpster folder has children" -CurrentStatus $CurrentStatus -CurrentDescription $CurrentDescription
     } catch {
@@ -346,7 +382,8 @@ function ValidateDumpsterChildren {
         WriteToScreenAndLog -Issue $Issue -Fix $Fix
     }
 }
-function ValidateMEPfGuid {
+#MePf=Mail Enabled Public Folder
+function ValidateMePfGuid {
     param([PSCustomObject]$PublicFolderInfo)
     #validate if MailRecipientGuid parameter is found empty/null
     if ($PublicFolderInfo.PublicFolder.MailEnabled -eq $true) {
@@ -364,7 +401,36 @@ function ExtractLog {
     if (!(Test-Path  "$ExportPath\logs_$ts")) {
         mkdir "$ExportPath\logs_$ts" -Force | Out-Null
     }
-    $PublicFolderInfo | Export-Clixml -Path "$ExportPath\logs_$ts\PublicFolderInfo.xml"
+    $PublicFolderInfo | Export-Clixml -Path "$ExportPath\logs_$ts\PublicFolderInfo$($PublicFolderInfo.PublicFolder.Name).xml"
+}
+function AskForFeedback {
+    $Feedback="Please rate the script experience & tell us what you liked or what we can do better over https://aka.ms/PFDumpsterFeedback!"
+    Write-Host $Feedback -ForegroundColor Cyan
+    $Feedback | Out-File $ExportPath\$Script:ReportName -Append
+}
+function QuitEXOSession {
+    if ($null -eq $SessionCheck) {
+        try {
+            Write-Host "Quitting EXO PowerShell session..." -ForegroundColor Yellow
+            Disconnect-ExchangeOnline -ErrorAction Stop -Confirm:$false
+            $CurrentDescription= "Disconnecting from EXO"
+            $CurrentStatus = "Success"
+            LogError -CurrentStatus $CurrentStatus -Function "Disconnecting from EXO" -CurrentDescription $CurrentDescription
+            Write-Host "`nOutput was exported in the following location: $ExportPath" -ForegroundColor Yellow
+            Start-Sleep -Seconds 3
+            exit
+        } catch {
+            $ErrorEncountered=$Global:error[0].Exception
+            $CurrentDescription = "Disconnecting from EXO"
+            $CurrentStatus = "Failure"
+            LogError -CurrentStatus $CurrentStatus -Function "Disconnecting from EXO" -CurrentDescription $CurrentDescription
+            Write-Host "Error encountered during executing the script!"-ForegroundColor Red
+            Write-Host $ErrorEncountered -ForegroundColor Red
+            Write-Host "`nOutput was exported in the following location: $ExportPath" -ForegroundColor Yellow
+            Start-Sleep -Seconds 3
+            exit
+        }
+    }
 }
 #Intro
 $ts = Get-Date -Format yyyyMMdd_HHmmss
@@ -381,57 +447,29 @@ if ($null -eq $ExportPath -or $ExportPath -eq "") {
         mkdir $ExportPath -Force | Out-Null
     }
 }
-
 [string]$Description = "This script illustrates issues related to deleting public folder items or removing the public folder on PublicFolder $PFolder, BLOCKERS will be reported down, please ensure to mitigate them!`n"
 Write-Host $Description -ForegroundColor Cyan
 $Description | Out-File $ExportPath\$Script:ReportName -Append
-
 #Connect to EXO PS
 $SessionCheck = Get-PSSession | Where-Object { $_.Name -like "*ExchangeOnline*" -and $_.State -match "opened" }
 if ($null -eq $SessionCheck) {
     Connect2EXO
 }
-
 #Main Function
 $PublicFolderInfo=GetPublicFolderInfo($PFolder)
 #if the issue is related to a user who is not able to delete an item inside a public folder
 if (![string]::IsNullOrEmpty($AffectedUser)) {
     ValidatePublicFolderIssue -PublicFolderInfo $PublicFolderInfo -AffectedUser $AffectedUser
 }
+ValidateDumpsterFlag($PublicFolderInfo)
 ValidateContentMBXUniqueness($PublicFolderInfo)
 ValidateEntryIDMapping($PublicFolderInfo)
 ValidateContentMBXQuota($PublicFolderInfo)
 ValidatePublicFolderQuota($PublicFolderInfo)
-ValidateDumpsterFlag($PublicFolderInfo)
 ValidateDumpsterChildren($PublicFolderInfo)
-ValidateMEPfGuid($PublicFolderInfo)
+ValidateMePfGuid($PublicFolderInfo)
 ValidateParentPublicFolder($PublicFolderInfo)
-
-#Ask for feedback
-Write-Host "Please rate the script experience & tell us what you liked or what we can do better over https://aka.ms/PFDumpsterFeedback!" -ForegroundColor Cyan
-"Please rate the script experience & tell us what you liked or what we can do better over https://aka.ms/PFDumpsterFeedback!" | Out-File $ExportPath\$Script:ReportName -Append
-
-#Quit EXO session
-
-if ($null -eq $SessionCheck) {
-    try {
-        Write-Host "Quitting EXO PowerShell session..." -ForegroundColor Yellow
-        Disconnect-ExchangeOnline -ErrorAction Stop -Confirm:$false
-        $CurrentDescription= "Disconnecting from EXO V2"
-        $CurrentStatus = "Success"
-        LogError -CurrentStatus $CurrentStatus -Function "Disconnecting from EXO V2" -CurrentDescription $CurrentDescription
-    } catch {
-        $ErrorEncountered=$Global:error[0].Exception
-        $CurrentDescription = "Disconnecting from EXO V2"
-        $CurrentStatus = "Failure"
-        LogError -CurrentStatus $CurrentStatus -Function "Disconnecting from EXO V2" -CurrentDescription $CurrentDescription
-        Write-Host "Error encountered during executing the script!"-ForegroundColor Red
-        Write-Host $ErrorEncountered -ForegroundColor Red
-        Write-Host "`nOutput was exported in the following location: $ExportPath" -ForegroundColor Yellow
-        Start-Sleep -Seconds 3
-        break
-    }
-}
+AskForFeedback
+QuitEXOSession
 # End of the Diag
-Write-Host "`nLog file was exported in the following location: $ExportPath" -ForegroundColor Yellow
-Start-Sleep -Seconds 3
+
