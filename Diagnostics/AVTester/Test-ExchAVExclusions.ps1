@@ -384,7 +384,7 @@ foreach ($process in $ServerProcess) {
             $UnexpectedModuleFound++
             foreach ($module in $ProcessModules) {
                 $OutString = ("[FAIL] - PROCESS: $($process.ProcessName) MODULE: $($module.ModuleName) COMPANY: $($module.Company)")
-                Write-SimpleLogFile -string $outstring -Name $LogFile
+                Write-SimpleLogFile -string $OutString -Name $LogFile
                 $OutString | Out-File $OutputProcessPath -Append
             }
         }
