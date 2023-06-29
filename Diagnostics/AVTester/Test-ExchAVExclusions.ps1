@@ -38,6 +38,9 @@ $env:LOCALAPPDATA\ExchAvExclusions.log
 List of Scanned Folders:
 $env:LOCALAPPDATA\BadExclusions.txt
 
+List of Unknown Processes
+$env:LOCALAPPDATA UnknownModules.txt
+
 .EXAMPLE
 .\Test-ExchAVExclusions.ps1
 
@@ -368,6 +371,9 @@ foreach ($process in $ServerProcess) {
         # Remove Microsoft modules
         $ProcessModules = $ProcessModules | Where-Object { $_.FileVersionInfo.CompanyName -ne "Microsoft Corporation." -and $_.FileVersionInfo.CompanyName -ne "Microsoft" -and $_.FileVersionInfo.CompanyName -ne "Microsoft Corporation" }
 
+        # Generate and output path for an unknown modules file:
+        $OutputProcessPath = Join-Path $env:LOCALAPPDATA UnknownModules.txt
+
         # Clear out modules from the allow list
         foreach ($module in $ModuleAllowList) {
             $ProcessModules = $ProcessModules | Where-Object { $_.ModuleName -ne $module }
@@ -377,7 +383,9 @@ foreach ($process in $ServerProcess) {
             Write-Warning ("Possible AV Modules found in process $($process.ProcessName)")
             $UnexpectedModuleFound++
             foreach ($module in $ProcessModules) {
-                Write-SimpleLogFile -string ("[FAIL] - PROCESS: $($process.ProcessName) MODULE: $($module.ModuleName) COMPANY: $($module.Company)") -Name $LogFile
+                $OutString = ("[FAIL] - PROCESS: $($process.ProcessName) MODULE: $($module.ModuleName) COMPANY: $($module.Company)")
+                Write-SimpleLogFile -string $outstring -Name $LogFile
+                $OutString | Out-File $OutputProcessPath -Append
             }
         }
     }
@@ -386,8 +394,8 @@ foreach ($process in $ServerProcess) {
 # Final output for process detection
 if ($UnexpectedModuleFound -gt 0) {
     Write-SimpleLogFile -string ("Found $($UnexpectedModuleFound) processes with unexpected modules loaded") -Name $LogFile -OutHost
-    Write-Warning ("Review " + $OutputPath + " For more information.")
-    Write-Information ("If a module is labeled `"Unexpected`" in error please submit the log file to ExToolsFeedback@microsoft.com" )
+    Write-Warning ("Review " + $OutputProcessPath + " For more information.")
+    Write-SimpleLogFile ("If a module is labeled `"Unexpected`" in error please submit the log file to ExToolsFeedback@microsoft.com" ) -Name $LogFile -OutHost
 } else {
     Write-SimpleLogFile -string ("No Unexpected modules found loaded.") -Name $LogFile -OutHost
 }
