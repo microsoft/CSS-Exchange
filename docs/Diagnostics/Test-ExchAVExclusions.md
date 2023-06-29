@@ -16,6 +16,10 @@ IF the file is not removed then it should be properly excluded.
 
 Once the files are created it will wait 5 minutes for AV to "see" and remove the file.
 
+After finishing testing directories it will test Exchange Processes.
+We pull all Exchange processes and the modules loaded into them.
+Those are then compared to a list of known modules and anything "unknown" is reported.
+
 ...
 .\Test-ExchAVExclusions.ps1
 ...
@@ -35,3 +39,6 @@ $env:LOCALAPPDATA\ExchAvExclusions.log
 
 List of Folders and extensions Scanned by AV:
 $env:LOCALAPPDATA\BadExclusions.txt
+
+List of Unknown Processes:
+$env:LOCALAPPDATA UnknownModules.txt
