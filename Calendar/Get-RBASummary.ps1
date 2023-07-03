@@ -30,6 +30,8 @@ if (Test-ScriptVersion -AutoUpdate) {
     return
 }
 
+Write-Verbose "Script Versions: $BuildVersion"
+
 function ValidateMailbox {
     Write-Host -NoNewline "Running : "; Write-Host -ForegroundColor Cyan "Get-Mailbox -Identity $Identity"
     $script:Mailbox = Get-Mailbox -Identity $Identity
