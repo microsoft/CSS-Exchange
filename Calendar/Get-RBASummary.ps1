@@ -22,13 +22,14 @@ param (
 
 $BuildVersion = ""
 
-. $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
+. $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 
 if (Test-ScriptVersion -AutoUpdate) {
     # Update was downloaded, so stop here.
     Write-Host "Script was updated. Please rerun the command."  -ForegroundColor Yellow
     return
 }
+Read-Host -Prompt "Press Enter to continue"
 
 function ValidateMailbox {
     Write-Host -NoNewline "Running : "; Write-Host -ForegroundColor Cyan "Get-Mailbox -Identity $Identity"
