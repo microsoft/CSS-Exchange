@@ -334,7 +334,7 @@ This happens if the Public Folder for which you try to change the permissions, i
 
 **Status:**
 
-!!! bug "Fixed"
+!!! success "Fixed"
 
       The issue has been fixed with the [latest Exchange Server update](https://aka.ms/LatestExchangeServerUpdate).
       You'll need to create an override to enable the fix. Please follow the instructions as outlined in [this KB](https://support.microsoft.com/topic/bd2037b5-40e0-413a-b368-746b3f5439ee).

@@ -7,7 +7,10 @@
 * Have PowerShell 7 or later installed.
 * Open the root of the repository with VSCode.
 * Make the desired changes, using Shift-Alt-F to apply the repository formatting rules.
-* From PS7, run `.build\CodeFormatter.ps1 -Save` and fix any PSScriptAnalyzer issues.
+* From PS7, run `.build\CodeFormatter.ps1 -Save` and fix any PSScriptAnalyzer issues. To save time, you can add `-Branch main` to only format files that have changed in this PR.
+* From PS7, run `.build\SpellCheck.ps1` and fix any spelling errors.
+  * Most spelling issues can be fixed by using readable variable names and function names in camelCase or PascalCase. For example, `errorCode` or `ErrorCode` will pass, but in all-lowercase or all-uppercase they will not.
+  * Only add words to the dictionary if absolutely necessary.
 * From PS7, run `.build\Build.ps1`. Test the resulting script in `dist/`.
 * Commit the changes on your own branch and open a Pull Request.
 
