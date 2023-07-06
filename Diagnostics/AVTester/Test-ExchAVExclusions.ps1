@@ -7,9 +7,11 @@
 	Requires: Administrator rights
     Major Release History:
         06/16/2021 - Initial Release
+        06/26/2023 - Added ability to scan processes
 
 .SYNOPSIS
 Uses EICAR files to verify that all Exchange paths that should be excluded from AV scanning are excluded.
+Checks Exchange processes for "unknown" modules being loaded into them.
 
 .DESCRIPTION
 Writes an EICAR test file https://en.wikipedia.org/wiki/EICAR_test_file to all paths specified by
@@ -20,7 +22,10 @@ https://docs.microsoft.com/en-us/exchange/anti-virus-software-in-the-operating-s
 If the file is removed then the path is not properly excluded from AV Scanning.
 IF the file is not removed then it should be properly excluded.
 
-Once the files are created it will wait 60 seconds for AV to "see" and remove the file.
+Once the files are created it will wait 300 seconds for AV to "see" and remove the file.
+
+Pulls all Exchange processes and their modules.
+Excludes known modules and reports all unknown modules.
 
 .PARAMETER Recurse
 Will test not just the root folders but all SubFolders.
@@ -32,6 +37,9 @@ $env:LOCALAPPDATA\ExchAvExclusions.log
 
 List of Scanned Folders:
 $env:LOCALAPPDATA\BadExclusions.txt
+
+List of Unknown Processes
+$env:LOCALAPPDATA UnknownModules.txt
 
 .EXAMPLE
 .\Test-ExchAVExclusions.ps1
@@ -304,5 +312,90 @@ if ($BadFolderList.count -gt 0 -or $BadExtensionList.Count -gt 0 ) {
     }
     Write-Warning ("Review " + $OutputPath + " For the full list.")
 } else {
-    Write-SimpleLogFile -String "All EICAR files found; Exclusions appear to be set properly" -Name $LogFile -OutHost
+    Write-SimpleLogFile -String "All EICAR files found; File Exclusions appear to be set properly" -Name $LogFile -OutHost
+}
+
+Write-SimpleLogFile -string "Testing for AV loaded in processes" -name $LogFile -OutHost
+
+# Test Exchange Processes for unexpected modules
+$ProcessList = Get-ExchAVExclusionsProcess -ExchangePath $ExchangePath -MsiProductMinor ([byte]$serverExchangeInstallDirectory.MsiProductMinor)
+
+# Gather all processes on the computer
+$ServerProcess = Get-Process
+
+# Module allow list
+$ModuleAllowList = New-Object Collections.Generic.List[string]
+
+# cSpell:disable
+$ModuleAllowList.add("Google.Protobuf.ni.dll")
+$ModuleAllowList.add("Microsoft.RightsManagementServices.Core.ni.dll")
+$ModuleAllowList.add("Newtonsoft.Json.ni.dll")
+$ModuleAllowList.add("Microsoft.Cloud.InstrumentationFramework.Events.ni.dll")
+$ModuleAllowList.add("HealthServicePerformance.dll")
+$ModuleAllowList.add("InterceptCounters.dll")
+$ModuleAllowList.add("MOMConnectorPerformance.dll")
+$ModuleAllowList.add("ExDbFailureItemApi.dll")
+$ModuleAllowList.add("Microsoft.Cloud.InstrumentationFramework.Metrics.ni.dll")
+$ModuleAllowList.add("IfxMetrics.dll")
+$ModuleAllowList.add("ManagedBlingSigned.dll")
+# Oracle modules associated with 'Outside In® Technology'
+$ModuleAllowList.add("wvcore.dll")
+$ModuleAllowList.add("sccut.dll")
+$ModuleAllowList.add("sccfut.dll")
+$ModuleAllowList.add("sccfa.dll")
+$ModuleAllowList.add("sccfi.dll")
+$ModuleAllowList.add("sccch.dll")
+$ModuleAllowList.add("sccda.dll")
+$ModuleAllowList.add("sccfmt.dll")
+$ModuleAllowList.add("sccind.dll")
+$ModuleAllowList.add("sccca.dll")
+$ModuleAllowList.add("scclo.dll")
+$ModuleAllowList.add("SCCOLE2.DLL")
+$ModuleAllowList.add("SCCSD.DLL")
+$ModuleAllowList.add("SCCXT.DLL")
+# cSpell:enable
+
+Write-SimpleLogFile -string ("Allow List Module Count: " + $ModuleAllowList.count) -Name $LogFile
+
+$UnexpectedModuleFound = 0
+
+# Gather each process and work thru their module list to remove any known modules.
+foreach ($process in $ServerProcess) {
+
+    # Determine if it is a known exchange process
+    if ($ProcessList -contains $process.path ) {
+
+        # Gather all modules
+        [array]$ProcessModules = $process.modules
+
+        # Remove Microsoft modules
+        $ProcessModules = $ProcessModules | Where-Object { $_.FileVersionInfo.CompanyName -ne "Microsoft Corporation." -and $_.FileVersionInfo.CompanyName -ne "Microsoft" -and $_.FileVersionInfo.CompanyName -ne "Microsoft Corporation" }
+
+        # Generate and output path for an unknown modules file:
+        $OutputProcessPath = Join-Path $env:LOCALAPPDATA UnknownModules.txt
+
+        # Clear out modules from the allow list
+        foreach ($module in $ModuleAllowList) {
+            $ProcessModules = $ProcessModules | Where-Object { $_.ModuleName -ne $module }
+        }
+
+        if ($ProcessModules.count -gt 0) {
+            Write-Warning ("Possible AV Modules found in process $($process.ProcessName)")
+            $UnexpectedModuleFound++
+            foreach ($module in $ProcessModules) {
+                $OutString = ("[FAIL] - PROCESS: $($process.ProcessName) MODULE: $($module.ModuleName) COMPANY: $($module.Company)")
+                Write-SimpleLogFile -string $OutString -Name $LogFile
+                $OutString | Out-File $OutputProcessPath -Append
+            }
+        }
+    }
+}
+
+# Final output for process detection
+if ($UnexpectedModuleFound -gt 0) {
+    Write-SimpleLogFile -string ("Found $($UnexpectedModuleFound) processes with unexpected modules loaded") -Name $LogFile -OutHost
+    Write-Warning ("Review " + $OutputProcessPath + " For more information.")
+    Write-SimpleLogFile ("If a module is labeled `"Unexpected`" in error please submit the log file to ExToolsFeedback@microsoft.com" ) -Name $LogFile -OutHost
+} else {
+    Write-SimpleLogFile -string ("No Unexpected modules found loaded.") -Name $LogFile -OutHost
 }
