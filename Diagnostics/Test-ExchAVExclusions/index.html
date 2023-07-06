@@ -17,7 +17,7 @@
         <link rel="next" href="../../Hybrid/Test-HMAEAS/">
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.17">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.18">
     
     
       
@@ -2361,6 +2361,9 @@
 <p>If the file is removed then the path is not properly excluded from AV Scanning.
 IF the file is not removed then it should be properly excluded.</p>
 <p>Once the files are created it will wait 5 minutes for AV to "see" and remove the file.</p>
+<p>After finishing testing directories it will test Exchange Processes.
+We pull all Exchange processes and the modules loaded into them.
+Those are then compared to a list of known modules and anything "unknown" is reported.</p>
 <p>...
 .\Test-ExchAVExclusions.ps1
 ...</p>
@@ -2388,13 +2391,15 @@ IF the file is not removed then it should be properly excluded.</p>
 $env:LOCALAPPDATA\ExchAvExclusions.log</p>
 <p>List of Folders and extensions Scanned by AV:
 $env:LOCALAPPDATA\BadExclusions.txt</p>
+<p>List of Unknown Processes:
+$env:LOCALAPPDATA UnknownModules.txt</p>
 
   <hr>
 <div class="md-source-file">
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">January 13, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">July 5, 2023</span>
       
     
   </small>
@@ -2436,10 +2441,10 @@ $env:LOCALAPPDATA\BadExclusions.txt</p>
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.indexes", "content.action.edit"], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.indexes", "content.action.edit"], "search": "../../assets/javascripts/workers/search.74e28a9f.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.b425cdc4.min.js"></script>
+      <script src="../../assets/javascripts/bundle.220ee61c.min.js"></script>
       
     
   </body>
