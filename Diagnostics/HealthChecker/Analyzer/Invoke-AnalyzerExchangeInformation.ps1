@@ -248,7 +248,21 @@ function Invoke-AnalyzerExchangeInformation {
 
     $params = $baseParams + @{
         Name    = "Internet Web Proxy"
-        Details = $( if ([string]::IsNullOrEmpty($internetProxy)) { "Not Set" } else { $internetProxy } )
+        Details = $internetProxy
+    }
+
+    if ([string]::IsNullOrEmpty($internetProxy)) {
+        $params.Details = "Not Set"
+    } elseif ($internetProxy -notmatch "(http:\/\/)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]") {
+        <#
+        We use the WebProxy class WebProxy(Uri, Boolean, String[]) constructor when running Set-ExchangeServer -InternetWebProxy,
+        which throws an UriFormatException if the URI provided cannot be parsed.
+        This is the case if it doesn't follow the scheme as per RFC 2396 (https://datatracker.ietf.org/doc/html/rfc2396#section-3.1).
+        However, we sometimes see cases where customers have set an invalid proxy url that cannot be used by Exchange Server
+        (e.g., https://proxy.contoso.local, ftp://proxy.contoso.local or even proxy.contoso.local).
+        #>
+        $params.Details = "$internetProxy is invalid as it must start with http://"
+        $params.Add("DisplayWriteType", "Red")
     }
     Add-AnalyzedResultInformation @params
 

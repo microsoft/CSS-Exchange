@@ -16,6 +16,7 @@ nav:
     - Update-Engines: Admin/Update-Engines.md
   - Calendar:
     - Get-CalendarDiagnosticObjectsSummary: Calendar/Get-CalendarDiagnosticObjectsSummary.md
+    - Get-RBASummary: Calendar/Get-RBASummary.md
   - Databases:
     - Analyze-SpaceDump: Databases/Analyze-SpaceDump.md
     - Compare-MailboxStatistics: Databases/Compare-MailboxStatistics.md
