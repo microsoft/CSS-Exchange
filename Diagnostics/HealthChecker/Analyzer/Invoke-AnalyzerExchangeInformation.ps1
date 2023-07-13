@@ -253,7 +253,7 @@ function Invoke-AnalyzerExchangeInformation {
 
     if ([string]::IsNullOrEmpty($internetProxy)) {
         $params.Details = "Not Set"
-    } elseif ($internetProxy -notmatch "(http:\/\/)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]") {
+    } elseif ($internetProxy.Scheme -ne "http") {
         <#
         We use the WebProxy class WebProxy(Uri, Boolean, String[]) constructor when running Set-ExchangeServer -InternetWebProxy,
         which throws an UriFormatException if the URI provided cannot be parsed.
