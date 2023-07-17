@@ -37,9 +37,9 @@ Work with the AV Vendor to determine the best way to exclude these file paths ac
 [AV Exclusions Exchange 2016/2019](https://docs.microsoft.com/en-us/Exchange/antispam-and-antimalware/windows-antivirus-software?view=exchserver-2019)
 
 ### Process Output
-Review NonDefaultModules.txt to determine if any Non-Default modules are loaded into Exchange processes.  The output should have sufficient information to identity the souce of the flagged modules.
+Review NonDefaultModules.txt to determine if any Non-Default modules are loaded into Exchange processes.  The output should have sufficient information to identity the source of the flagged modules.
 
-```[FAIL] - PROCESS: msexchangerepl MODULE: scanner.dll COMPANY: Contoso Security LTT.```
+```[FAIL] - PROCESS: ExchangeTransport MODULE: scanner.dll COMPANY: Contoso Security LTT.```
 
 If the Module is from an AV or Security software vendor it is a strong indication that process exclusions are not properly configured on the Exchange server.  Please work with the security software vendor to ensure that they are properly configured according to:
 
