@@ -27,6 +27,9 @@ Once the files are created it will wait 300 seconds for AV to "see" and remove t
 Pulls all Exchange processes and their modules.
 Excludes known modules and reports all unknown modules.
 
+Unknown modules should be reviewed to ensure they are expected.
+AV Modules loaded into Exchange Processes indicate that AV Process Exclusions are NOT properly configured.
+
 .PARAMETER Recurse
 Will test not just the root folders but all SubFolders.
 Generally should not be needed unless all folders pass without -Recuse but AV is still suspected.
@@ -394,8 +397,10 @@ foreach ($process in $ServerProcess) {
 # Final output for process detection
 if ($UnexpectedModuleFound -gt 0) {
     Write-SimpleLogFile -string ("Found $($UnexpectedModuleFound) processes with unexpected modules loaded") -Name $LogFile -OutHost
+    Write-SimpleLogFile ("AV Modules loaded in Exchange processess generally indicates that exclusions are not set properly.") -Name $LogFile -OutHost
+    Write-SimpleLogFile ("Non AV Modules loaded into Exchange processes maybe expected depending on applications installed.") -Name $LogFile -OutHost
     Write-Warning ("Review " + $OutputProcessPath + " For more information.")
-    Write-SimpleLogFile ("If a module is labeled `"Unexpected`" in error please submit the log file to ExToolsFeedback@microsoft.com" ) -Name $LogFile -OutHost
+
 } else {
     Write-SimpleLogFile -string ("No Unexpected modules found loaded.") -Name $LogFile -OutHost
 }
