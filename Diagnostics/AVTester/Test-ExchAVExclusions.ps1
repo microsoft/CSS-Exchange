@@ -400,7 +400,6 @@ if ($UnexpectedModuleFound -gt 0) {
     Write-SimpleLogFile ("AV Modules loaded in Exchange processes generally indicates that exclusions are not set properly.") -Name $LogFile -OutHost
     Write-SimpleLogFile ("Non AV Modules loaded into Exchange processes maybe expected depending on applications installed.") -Name $LogFile -OutHost
     Write-Warning ("Review " + $OutputProcessPath + " For more information.")
-
 } else {
     Write-SimpleLogFile -string ("No Unexpected modules found loaded.") -Name $LogFile -OutHost
 }
