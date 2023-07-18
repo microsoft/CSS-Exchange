@@ -401,5 +401,5 @@ if ($UnexpectedModuleFound -gt 0) {
     Write-SimpleLogFile ("Non AV Modules loaded into Exchange processes may be expected depending on applications installed.") -Name $LogFile -OutHost
     Write-Warning ("Review " + $OutputProcessPath + " For more information.")
 } else {
-    Write-SimpleLogFile -string ("No Non-Default modules found loaded.") -Name $LogFile -OutHost
+    Write-SimpleLogFile -string ("Did not find any Non-Default modules loaded.") -Name $LogFile -OutHost
 }
