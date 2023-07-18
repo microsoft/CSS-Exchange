@@ -41,7 +41,7 @@ Review NonDefaultModules.txt to determine if any Non-Default modules are loaded 
 
 ```[FAIL] - PROCESS: ExchangeTransport MODULE: scanner.dll COMPANY: Contoso Security LTT.```
 
-If the Module is from an AV or Security software vendor it is a strong indication that process exclusions are not properly configured on the Exchange server.  Please work with the security software vendor to ensure that they are properly configured according to:
+If the Module is from an AV or Security software vendor it is a strong indication that process exclusions are not properly configured on the Exchange server.  Please work with the vendor to ensure that they are properly configured according to:
 
 [AV Exclusions Exchange 2016/2019](https://docs.microsoft.com/en-us/Exchange/antispam-and-antimalware/windows-antivirus-software?view=exchserver-2019)
 
