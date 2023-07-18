@@ -28,7 +28,7 @@ Pulls all Exchange processes and their modules.
 Excludes known modules and reports all Non-Default modules.
 
 Non-Default modules should be reviewed to ensure they are expected.
-AV Modules loaded into Exchange Processes indicate that AV Process Exclusions are NOT properly configured.
+AV Modules loaded into Exchange Processes may indicate that AV Process Exclusions are NOT properly configured.
 
 .PARAMETER Recurse
 Will test not just the root folders but all SubFolders.
@@ -397,8 +397,8 @@ foreach ($process in $ServerProcess) {
 # Final output for process detection
 if ($UnexpectedModuleFound -gt 0) {
     Write-SimpleLogFile -string ("Found $($UnexpectedModuleFound) processes with unexpected modules loaded") -Name $LogFile -OutHost
-    Write-SimpleLogFile ("AV Modules loaded in Exchange processes generally indicates that exclusions are not set properly.") -Name $LogFile -OutHost
-    Write-SimpleLogFile ("Non AV Modules loaded into Exchange processes maybe expected depending on applications installed.") -Name $LogFile -OutHost
+    Write-SimpleLogFile ("AV Modules loaded in Exchange processes may indicate that exclusions are not properly configured.") -Name $LogFile -OutHost
+    Write-SimpleLogFile ("Non AV Modules loaded into Exchange processes may be expected depending on applications installed.") -Name $LogFile -OutHost
     Write-Warning ("Review " + $OutputProcessPath + " For more information.")
 } else {
     Write-SimpleLogFile -string ("No Non-Default modules found loaded.") -Name $LogFile -OutHost
