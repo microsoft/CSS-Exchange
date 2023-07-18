@@ -11,7 +11,7 @@
 
 .SYNOPSIS
 Uses EICAR files to verify that all Exchange paths that should be excluded from AV scanning are excluded.
-Checks Exchange processes for "unknown" modules being loaded into them.
+Checks Exchange processes for Non-Default modules being loaded into them.
 
 .DESCRIPTION
 Writes an EICAR test file https://en.wikipedia.org/wiki/EICAR_test_file to all paths specified by
@@ -25,7 +25,10 @@ IF the file is not removed then it should be properly excluded.
 Once the files are created it will wait 300 seconds for AV to "see" and remove the file.
 
 Pulls all Exchange processes and their modules.
-Excludes known modules and reports all unknown modules.
+Excludes known modules and reports all Non-Default modules.
+
+Non-Default modules should be reviewed to ensure they are expected.
+AV Modules loaded into Exchange Processes may indicate that AV Process Exclusions are NOT properly configured.
 
 .PARAMETER Recurse
 Will test not just the root folders but all SubFolders.
@@ -38,8 +41,8 @@ $env:LOCALAPPDATA\ExchAvExclusions.log
 List of Scanned Folders:
 $env:LOCALAPPDATA\BadExclusions.txt
 
-List of Unknown Processes
-$env:LOCALAPPDATA UnknownModules.txt
+List of Non-Default Processes
+$env:LOCALAPPDATA NonDefaultModules.txt
 
 .EXAMPLE
 .\Test-ExchAVExclusions.ps1
@@ -373,8 +376,8 @@ foreach ($process in $ServerProcess) {
         # Remove Microsoft modules
         $ProcessModules = $ProcessModules | Where-Object { $_.FileVersionInfo.CompanyName -ne "Microsoft Corporation." -and $_.FileVersionInfo.CompanyName -ne "Microsoft" -and $_.FileVersionInfo.CompanyName -ne "Microsoft Corporation" }
 
-        # Generate and output path for an unknown modules file:
-        $OutputProcessPath = Join-Path $env:LOCALAPPDATA UnknownModules.txt
+        # Generate and output path for an Non-Default modules file:
+        $OutputProcessPath = Join-Path $env:LOCALAPPDATA NonDefaultModules.txt
 
         # Clear out modules from the allow list
         foreach ($module in $ModuleAllowList) {
@@ -396,8 +399,9 @@ foreach ($process in $ServerProcess) {
 # Final output for process detection
 if ($UnexpectedModuleFound -gt 0) {
     Write-SimpleLogFile -string ("Found $($UnexpectedModuleFound) processes with unexpected modules loaded") -Name $LogFile -OutHost
+    Write-SimpleLogFile ("AV Modules loaded in Exchange processes may indicate that exclusions are not properly configured.") -Name $LogFile -OutHost
+    Write-SimpleLogFile ("Non AV Modules loaded into Exchange processes may be expected depending on applications installed.") -Name $LogFile -OutHost
     Write-Warning ("Review " + $OutputProcessPath + " For more information.")
-    Write-SimpleLogFile ("If a module is labeled `"Unexpected`" in error please submit the log file to ExToolsFeedback@microsoft.com" ) -Name $LogFile -OutHost
 } else {
-    Write-SimpleLogFile -string ("No Unexpected modules found loaded.") -Name $LogFile -OutHost
+    Write-SimpleLogFile -string ("Did not find any Non-Default modules loaded.") -Name $LogFile -OutHost
 }
