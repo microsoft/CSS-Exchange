@@ -17,7 +17,7 @@
         <link rel="next" href="../../Hybrid/Test-HMAEAS/">
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.18">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.19">
     
     
       
@@ -25,7 +25,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.26e3688c.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.eebd395e.min.css">
       
       
   
@@ -1388,6 +1388,33 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#understanding-the-output" class="md-nav__link">
+    Understanding the Output
+  </a>
+  
+    <nav class="md-nav" aria-label="Understanding the Output">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#file-output" class="md-nav__link">
+    File Output
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#process-output" class="md-nav__link">
+    Process Output
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#parameters" class="md-nav__link">
     Parameters
   </a>
@@ -2331,6 +2358,33 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#understanding-the-output" class="md-nav__link">
+    Understanding the Output
+  </a>
+  
+    <nav class="md-nav" aria-label="Understanding the Output">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#file-output" class="md-nav__link">
+    File Output
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#process-output" class="md-nav__link">
+    Process Output
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#parameters" class="md-nav__link">
     Parameters
   </a>
@@ -2370,19 +2424,32 @@
 <h1 id="test-exchavexclusions">Test-ExchAVExclusions</h1>
 <p>Download the latest release: <a href="https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-ExchAVExclusions.ps1">Test-ExchAVExclusions.ps1</a></p>
 <p>Assists with testing Exchange Servers to determine if AV Exclusions have been properly set according to our documentation.</p>
-<p><a href="https://docs.microsoft.com/en-us/Exchange/antispam-and-antimalware/windows-antivirus-software?view=exchserver-2019">AV Exclusions Exchange 2016/2019</a>
-<a href="https://docs.microsoft.com/en-us/exchange/anti-virus-software-in-the-operating-system-on-exchange-servers-exchange-2013-help">AV Exclusions Exchange 2013</a></p>
+<p><a href="https://docs.microsoft.com/en-us/Exchange/antispam-and-antimalware/windows-antivirus-software?view=exchserver-2019">AV Exclusions Exchange 2016/2019</a></p>
+<p><a href="https://docs.microsoft.com/en-us/exchange/anti-virus-software-in-the-operating-system-on-exchange-servers-exchange-2013-help">AV Exclusions Exchange 2013</a></p>
 <h2 id="usage">Usage</h2>
 <p>Writes an <a href="https://en.wikipedia.org/wiki/EICAR_test_file">EICAR test file</a> to all paths specified in our AV Exclusions documentation and verifies all extensions in the documentation in a temporary folder.</p>
 <p>If the file is removed then the path is not properly excluded from AV Scanning.
 IF the file is not removed then it should be properly excluded.</p>
 <p>Once the files are created it will wait 5 minutes for AV to "see" and remove the file.</p>
 <p>After finishing testing directories it will test Exchange Processes.
-We pull all Exchange processes and the modules loaded into them.
-Those are then compared to a list of known modules and anything "unknown" is reported.</p>
+Pulls all Exchange processes and their modules.
+Excludes known modules and reports all Non-Default modules.</p>
+<p>Non-Default modules should be reviewed to ensure they are expected.
+AV Modules loaded into Exchange Processes indicate that AV Process Exclusions are NOT properly configured.</p>
 <p>...
 .\Test-ExchAVExclusions.ps1
 ...</p>
+<h2 id="understanding-the-output">Understanding the Output</h2>
+<h3 id="file-output">File Output</h3>
+<p>Review the BadExclusions.txt file to see any file paths were identified as being scanned by AV.
+Work with the AV Vendor to determine the best way to exclude these file paths according to our documentation:</p>
+<p><a href="https://docs.microsoft.com/en-us/Exchange/antispam-and-antimalware/windows-antivirus-software?view=exchserver-2019">AV Exclusions Exchange 2016/2019</a></p>
+<h3 id="process-output">Process Output</h3>
+<p>Review NonDefaultModules.txt to determine if any Non-Default modules are loaded into Exchange processes.  The output should have sufficient information to identity the source of the flagged modules.</p>
+<p><code>[FAIL] - PROCESS: ExchangeTransport MODULE: scanner.dll COMPANY: Contoso Security LTT.</code></p>
+<p>If the Module is from an AV or Security software vendor it is a strong indication that process exclusions are not properly configured on the Exchange server.  Please work with the vendor to ensure that they are properly configured according to:</p>
+<p><a href="https://docs.microsoft.com/en-us/Exchange/antispam-and-antimalware/windows-antivirus-software?view=exchserver-2019">AV Exclusions Exchange 2016/2019</a></p>
+<p><a href="https://techcommunity.microsoft.com/t5/exchange-team-blog/update-on-the-exchange-server-antivirus-exclusions/ba-p/3751464">AV Exclusions Update</a></p>
 <h2 id="parameters">Parameters</h2>
 <table>
 <thead>
@@ -2407,15 +2474,15 @@ Those are then compared to a list of known modules and anything "unknown" is rep
 $env:LOCALAPPDATA\ExchAvExclusions.log</p>
 <p>List of Folders and extensions Scanned by AV:
 $env:LOCALAPPDATA\BadExclusions.txt</p>
-<p>List of Unknown Processes:
-$env:LOCALAPPDATA UnknownModules.txt</p>
+<p>List of Non-Default Processes:
+$env:LOCALAPPDATA\NonDefaultModules.txt</p>
 
   <hr>
 <div class="md-source-file">
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">July 5, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">July 18, 2023</span>
       
     
   </small>
