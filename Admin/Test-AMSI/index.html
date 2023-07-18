@@ -461,15 +461,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#common-usage" class="md-nav__link">
-    Common Usage
+  <a href="#parameters" class="md-nav__link">
+    Parameters
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#more-to-come" class="md-nav__link">
-    More to come
+  <a href="#common-usage" class="md-nav__link">
+    Common Usage
   </a>
   
 </li>
@@ -2331,15 +2331,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#common-usage" class="md-nav__link">
-    Common Usage
+  <a href="#parameters" class="md-nav__link">
+    Parameters
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#more-to-come" class="md-nav__link">
-    More to come
+  <a href="#common-usage" class="md-nav__link">
+    Common Usage
   </a>
   
 </li>
@@ -2371,30 +2371,82 @@
 <p>The Windows AntiMalware Scan Interface (AMSI) is a versatile standard that allows applications and services to integrate with any AntiMalware product present on a machine. Seeing that Exchange administrators might not be familiar with AMSI, we wanted to provide a script that would make life a bit easier to test, enable, disable, or Check your AMSI Providers.</p>
 <h2 id="download">Download</h2>
 <p>Download the latest release: <a href="https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-AMSI.ps1">Test-AMSI.ps1</a></p>
+<h2 id="parameters">Parameters</h2>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TestAMSI</td>
+<td>If you want to test to see if AMSI integration is working. You can use a server, server list or FQDN of load balanced array of Client Access servers.</td>
+</tr>
+<tr>
+<td>IgnoreSSL</td>
+<td>If you need to test and ignoring the certificate check.</td>
+</tr>
+<tr>
+<td>CheckAMSIConfig</td>
+<td>If you want to see what AMSI Providers are installed. You can combine with ServerList, AllServers or Sites.</td>
+</tr>
+<tr>
+<td>EnableAMSI</td>
+<td>If you want to enable AMSI. Without any additional parameter it will apply at Organization Level. If combine with ServerList, AllServers or Sites it will apply at server level.</td>
+</tr>
+<tr>
+<td>DisableAMSI</td>
+<td>If you want to disable AMSI. Without any additional parameter it will apply at Organization Level. If combine with ServerList, AllServers or Sites it will apply at server level.</td>
+</tr>
+<tr>
+<td>RestartIIS</td>
+<td>If you want to restart the Internet Information Services (IIS). You can combine with ServerList, AllServers or Sites.</td>
+</tr>
+<tr>
+<td>Force</td>
+<td>If you want to restart the Internet Information Services (IIS) without confirmation.</td>
+</tr>
+<tr>
+<td>ServerList</td>
+<td>If you want to apply to some specific servers.</td>
+</tr>
+<tr>
+<td>AllServers</td>
+<td>If you want to apply to all server.</td>
+</tr>
+<tr>
+<td>Sites</td>
+<td>If you want to apply to all server on a sites or list of sites.</td>
+</tr>
+</tbody>
+</table>
 <h2 id="common-usage">Common Usage</h2>
 <p>After you download the script, you will need to run it within an elevated Exchange Management Shell Session</p>
-<p>If you want to test to see if AMSI integration is working you can run: <code>.\Test-AMSI.ps1 -ExchangeServerFQDN mail.contoso.com</code></p>
-<p>If you want to see what AMSI Providers are installed on the local machine you can run: <code>.\Test-AMSI.ps1 -CheckAMSIProviders</code></p>
-<p>If you want to enable AMSI on the Exchange Server, you can run: <code>.\Test-AMSI.ps1 -EnableAMSI</code></p>
+<p>If you want to test to see if AMSI integration is working in a LB Array, you can run: <code>.\Test-AMSI.ps1 mail.contoso.com</code></p>
+<p>If you want to test to see if AMSI integration is working in list of servers, you can run: <code>.\Test-AMSI.ps1 -ServerList server1, server2</code></p>
+<p>If you want to test to see if AMSI integration is working in all server, you can run: <code>.\Test-AMSI.ps1 -AllServers</code></p>
+<p>If you want to test to see if AMSI integration is working in all server in a list of sites, you can run: <code>.\Test-AMSI.ps1 -AllServers -Sites Site1, Site2</code></p>
+<p>If you need to test and ignoring the certificate check, you can run: <code>.\Test-AMSI.ps1 -IgnoreSSL</code></p>
+<p>If you want to see what AMSI Providers are installed on the local machine you can run: <code>.\Test-AMSI.ps1 -CheckAMSIConfig</code></p>
+<p>If you want to enable AMSI at organization level, you can run: <code>.\Test-AMSI.ps1 -EnableAMSI</code></p>
+<p>If you want to enable AMSI in an Exchange Server or Server List at server level, you can run: <code>.\Test-AMSI.ps1 -EnableAMSI -ServerList Exch1, Exch2</code></p>
+<p>If you want to enable AMSI in all Exchange Server at server level, you can run: <code>.\Test-AMSI.ps1 -EnableAMSI -AllServers</code></p>
+<p>If you want to enable AMSI in all Exchange Server in a site or sites at server level, you can run: <code>.\Test-AMSI.ps1 -EnableAMSI -AllServers -Sites Site1, Site2</code></p>
 <p>If you want to disable AMSI on the Exchange Server, you can run: <code>.\Test-AMSI.ps1 -DisableAMSI</code></p>
-<p>If you want to restart the Internet Information Services (IIS) you can run: <code>.\Test-AMSI.ps1 -RestartIIS</code></p>
-<p>If you need to test and ignoring the certificate check you can run: <code>.\Test-AMSI.ps1 -IgnoreSSL</code></p>
-<h2 id="more-to-come">More to come</h2>
-<ol>
-<li>
-<p>We will be adding the ability to review the web.config to make sure that the HttpRequestFilteringModule line is present</p>
-</li>
-<li>
-<p>We will be working on better output for PowerShell 7</p>
-</li>
-</ol>
+<p>If you want to disable AMSI in an Exchange Server or Server List at server level, you can run: <code>.\Test-AMSI.ps1 -DisableAMSI -ServerList Exch1, Exch2</code></p>
+<p>If you want to disable AMSI in all Exchange Server at server level, you can run: <code>.\Test-AMSI.ps1 -DisableAMSI -AllServers</code></p>
+<p>If you want to disable AMSI in all Exchange Server in a site or sites at server level, you can run: <code>.\Test-AMSI.ps1 -DisableAMSI -AllServers -Sites Site1, Site2</code></p>
+<p>If you want to restart the Internet Information Services (IIS), you can run: <code>.\Test-AMSI.ps1 -RestartIIS</code></p>
+<p>If you want to restart the Internet Information Services (IIS) without confirmation, you can run: <code>.\Test-AMSI.ps1 -RestartIIS -Force</code></p>
 
   <hr>
 <div class="md-source-file">
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">January 13, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">May 23, 2023</span>
       
     
   </small>
