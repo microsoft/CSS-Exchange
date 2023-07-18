@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Invoke-CatchActionError.ps1
+. $PSScriptRoot\Invoke-CatchActionErrorLoop.ps1
 
 # Common method used to handle Invoke-Command within a script.
 # Avoids using Invoke-Command when running locally on a server.
@@ -31,6 +32,7 @@ function Invoke-ScriptBlockHandler {
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $returnValue = $null
+        $currentErrors = $null
     }
     process {
 
@@ -62,6 +64,8 @@ function Invoke-ScriptBlockHandler {
 
                 $returnValue = Invoke-Command @params
             } else {
+                # Handle possible errors when executed locally.
+                $currentErrors = $Error.Count
 
                 if ($null -ne $ArgumentList) {
                     Write-Verbose "Running Script Block Locally with argument list"
@@ -76,10 +80,18 @@ function Invoke-ScriptBlockHandler {
                     Write-Verbose "Running Script Block Locally without argument list"
                     $returnValue = & $ScriptBlock
                 }
+
+                Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
             }
         } catch {
-            Write-Verbose "Failed to run $($MyInvocation.MyCommand)"
-            Invoke-CatchActionError $CatchActionFunction
+            Write-Verbose "Failed to run $($MyInvocation.MyCommand) - $ScriptBlockDescription"
+
+            # Possible that locally we hit multiple errors prior to bailing out.
+            if ($null -ne $currentErrors) {
+                Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
+            } else {
+                Invoke-CatchActionError $CatchActionFunction
+            }
         }
     }
     end {

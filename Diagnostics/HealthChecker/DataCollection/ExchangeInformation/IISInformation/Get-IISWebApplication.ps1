@@ -16,11 +16,27 @@ function Get-IISWebApplication {
             $configurationFilePath = [string]::Empty
             $siteName = $webApplication.ItemXPath | Select-String -Pattern "site\[\@name='(.+)'\s|\]"
             $friendlyName = "$($siteName.Matches.Groups[1].Value)$($webApplication.Path)"
-            $configurationFilePath = (Get-WebConfigFile "IIS:\Sites\$friendlyName").FullName
+            Write-Verbose "Working on Web Application: $friendlyName"
+            # Logic should be consistent for all ways we call Get-WebConfigFile
+            try {
+                $configurationFilePath = (Get-WebConfigFile "IIS:\Sites\$friendlyName").FullName
+            } catch {
+                $finder = "\\?\"
+                if (($_.Exception.ErrorCode -eq -2147024846 -or
+                        $_.Exception.ErrorCode -eq -2147024883) -and
+                    $_.Exception.Message.Contains($finder)) {
+                    $message = $_.Exception.Message
+                    $index = $message.IndexOf($finder) + $finder.Length
+                    $configurationFilePath = $message.Substring($index, ($message.IndexOf([System.Environment]::NewLine) - $index)).Trim()
+                    Write-Verbose "Found possible file path from exception: $configurationFilePath"
+                } else {
+                    Write-Verbose "Unable to find possible file path based off exception: $($_.Exception)"
+                }
+            }
             $webConfigExists = Test-Path $configurationFilePath
 
             if ($webConfigExists) {
-                $webConfigContent = Get-Content $configurationFilePath -Raw
+                $webConfigContent = (Get-Content $configurationFilePath -Raw).Trim()
 
                 try {
                     $linkedConfigurationLine = ([xml]$webConfigContent).configuration.assemblyBinding.linkedConfiguration.href

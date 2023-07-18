@@ -20,12 +20,13 @@ function Get-ExchangeAppPoolsInformation {
     $appPool |
         Where-Object { $_.add.name -like "MSExchange*" } |
         ForEach-Object {
+            Write-Verbose "Working on App Pool: $($_.add.name)"
             $configContent = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock {
                 param(
                     $FilePath
                 )
                 if (Test-Path $FilePath) {
-                    return (Get-Content $FilePath -Raw)
+                    return (Get-Content $FilePath -Raw).Trim()
                 }
                 return [string]::Empty
             } `

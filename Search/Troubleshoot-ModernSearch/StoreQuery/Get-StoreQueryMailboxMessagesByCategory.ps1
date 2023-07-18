@@ -29,8 +29,9 @@ function Get-StoreQueryMailboxMessagesByCategory {
         $messageList = New-Object 'System.Collections.Generic.List[object]'
     }
     process {
+        $storeQueryHandler = $storeQueryHandler | ResetQueryInstances
+        $storeQueryHandler.IsUnlimited = $true
         $conversationResults = $storeQueryHandler |
-            ResetQueryInstances |
             SetSelect -Value "FolderId" |
             SetFrom -Value "Folder" |
             SetWhere -Value "MailboxNumber = $mailboxNumber AND DisplayName = 'Conversations'" |

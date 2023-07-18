@@ -83,8 +83,9 @@ function Invoke-AnalyzerExchangeInformation {
             [System.Globalization.CultureInfo]::CreateSpecificCulture("en-US"))) - Please note of the End Of Life date and plan to migrate soon."
 
         if ($extendedSupportDate -le ([DateTime]::Now)) {
-            $displayValue = "$($exchangeInformation.BuildInformation.VersionInformation.ExtendedSupportDate.ToString("MMM dd, yyyy",
-            [System.Globalization.CultureInfo]::CreateSpecificCulture("en-US"))) - Error: You are past the End Of Life of Exchange."
+            $displayValue = "Error: Your Exchange server reached end of life on " +
+            "$($exchangeInformation.BuildInformation.VersionInformation.ExtendedSupportDate.ToString("MMM dd, yyyy",
+                [System.Globalization.CultureInfo]::CreateSpecificCulture("en-US"))), and is no longer supported."
         }
 
         $params = $baseParams + @{
@@ -125,17 +126,20 @@ function Invoke-AnalyzerExchangeInformation {
         }
     }
 
-    if ($exchangeInformation.BuildInformation.VersionInformation.LatestSU -eq $false) {
+    # Both must be true. We need to be out of extended support AND no longer consider the latest SU the latest SU for this version to be secure.
+    if ($extendedSupportDate -le ([DateTime]::Now) -and
+        $exchangeInformation.BuildInformation.VersionInformation.LatestSU -eq $false) {
         $params = $baseParams + @{
-            Details                = "Not on the latest SU. More Information: https://aka.ms/HC-ExBuilds"
-            DisplayWriteType       = "Yellow"
+            Details                = "Error: Your Exchange server is out of support and no longer receives SUs." +
+            "`n`t`tIt is now considered persistently vulnerable and it should be decommissioned ASAP."
+            DisplayWriteType       = "Red"
             DisplayCustomTabNumber = 2
         }
         Add-AnalyzedResultInformation @params
-    } elseif ($extendedSupportDate -le ([DateTime]::Now)) {
+    } elseif ($exchangeInformation.BuildInformation.VersionInformation.LatestSU -eq $false) {
         $params = $baseParams + @{
-            Details                = "Latest SU installed. Error: No new SUs available after End of Life. Server might be persistently vulnerable."
-            DisplayWriteType       = "Red"
+            Details                = "Not on the latest SU. More Information: https://aka.ms/HC-ExBuilds"
+            DisplayWriteType       = "Yellow"
             DisplayCustomTabNumber = 2
         }
         Add-AnalyzedResultInformation @params
@@ -244,7 +248,21 @@ function Invoke-AnalyzerExchangeInformation {
 
     $params = $baseParams + @{
         Name    = "Internet Web Proxy"
-        Details = $( if ([string]::IsNullOrEmpty($internetProxy)) { "Not Set" } else { $internetProxy } )
+        Details = $internetProxy
+    }
+
+    if ([string]::IsNullOrEmpty($internetProxy)) {
+        $params.Details = "Not Set"
+    } elseif ($internetProxy.Scheme -ne "http") {
+        <#
+        We use the WebProxy class WebProxy(Uri, Boolean, String[]) constructor when running Set-ExchangeServer -InternetWebProxy,
+        which throws an UriFormatException if the URI provided cannot be parsed.
+        This is the case if it doesn't follow the scheme as per RFC 2396 (https://datatracker.ietf.org/doc/html/rfc2396#section-3.1).
+        However, we sometimes see cases where customers have set an invalid proxy url that cannot be used by Exchange Server
+        (e.g., https://proxy.contoso.local, ftp://proxy.contoso.local or even proxy.contoso.local).
+        #>
+        $params.Details = "$internetProxy is invalid as it must start with http://"
+        $params.Add("DisplayWriteType", "Red")
     }
     Add-AnalyzedResultInformation @params
 
