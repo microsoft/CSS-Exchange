@@ -106,7 +106,7 @@ function ProcessingLogic {
 function RBACriteria {
     Write-Host "`r`n===================="
     Write-Host "Policy Configuration";
-    Write-Host "====================r`n";
+    Write-Host "====================`r`n";
 
     Write-Host " The following criteria are used to determine if a meeting request is in-policy or out-of-policy. ";
     Write-Host -ForegroundColor Cyan "`t Setting                          Value"
@@ -364,9 +364,9 @@ function RBAPostProcessing {
 
 # RBA Verbose PostProcessing Steps
 function VerbosePostProcessing {
-    Write-Verbose -ForegroundColor Cyan "`t AdditionalResponse:                   "$RbaSettings.AdditionalResponse
+    Write-Verbose "`t`r`n AdditionalResponse:                   `r`n$($RbaSettings.AdditionalResponse)`r`n`r`n"
 
-    $RbaFormattingString = ""
+    $RbaFormattingString = "Description of the RBA Post Processing Steps:`r`n"
     if ($RbaSettings.DeleteSubject -eq $true) {
         if ($RbaSettings.AddOrganizerToSubject -eq $true) {
             $RbaFormattingString += "The RBA will delete the subject and add the organizer to the subject. (Default)"
@@ -447,7 +447,7 @@ function RBAPostScript {
         see how the system proceed the meeting request.";
     Write-Host -ForegroundColor Yellow "`t Export-MailboxDiagnosticLogs $Identity -ComponentName RBA";
     Write-Host;
-    Write-Host "`n`rIf you found an error with this script or a misconfigured RBA cases that this should cover,
+    Write-Host "`n`rIf you found an error with this script or a misconfigured RBA case that this should cover,
          send mail to Shanefe@microsoft.com";
 }
 
