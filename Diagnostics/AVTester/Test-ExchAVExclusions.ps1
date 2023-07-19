@@ -341,6 +341,8 @@ $ModuleAllowList.add("ExDbFailureItemApi.dll")
 $ModuleAllowList.add("Microsoft.Cloud.InstrumentationFramework.Metrics.ni.dll")
 $ModuleAllowList.add("IfxMetrics.dll")
 $ModuleAllowList.add("ManagedBlingSigned.dll")
+$ModuleAllowList.add("l3codecp.acm")
+$ModuleAllowList.add("System.IdentityModel.Tokens.jwt.ni.dll")
 # Oracle modules associated with 'Outside In® Technology'
 $ModuleAllowList.add("wvcore.dll")
 $ModuleAllowList.add("sccut.dll")
