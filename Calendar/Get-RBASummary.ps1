@@ -1,5 +1,5 @@
 ﻿# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT License.exchange
+# Licensed under the MIT License
 
 #
 # .DESCRIPTION
@@ -109,93 +109,89 @@ function RBACriteria {
     Write-Host "====================`r`n";
 
     Write-Host " The following criteria are used to determine if a meeting request is in-policy or out-of-policy. ";
-    Write-Host -ForegroundColor Cyan "`t Setting                          Value"
-    Write-Host -ForegroundColor Cyan "`t -------------------------------  -----------------------------"
-    Write-Host -ForegroundColor Cyan "`t AllowConflicts:                 "$RbaSettings.AllowConflicts
-    Write-Host -ForegroundColor Cyan "`t AllowDistributionGroup:         "$RbaSettings.AllowDistributionGroup
-    Write-Host -ForegroundColor Cyan "`t AllowMultipleResources:         "$RbaSettings.AllowMultipleResources
-    Write-Host -ForegroundColor Cyan "`t MaximumDurationInMinutes:       "$RbaSettings.MaximumDurationInMinutes
-    Write-Host -ForegroundColor Cyan "`t MinimumDurationInMinutes:       "$RbaSettings.MinimumDurationInMinutes
-    Write-Host -ForegroundColor Cyan "`t AllowRecurringMeetings:         "$RbaSettings.AllowRecurringMeetings
-    Write-Host -ForegroundColor Cyan "`t ScheduleOnlyDuringWorkHours:    "$RbaSettings.ScheduleOnlyDuringWorkHours
-    Write-Host -ForegroundColor Cyan "`t ProcessExternalMeetingMessages: "$RbaSettings.ProcessExternalMeetingMessages
-    Write-Host -ForegroundColor Cyan "`t BookingWindowInDays:            "$RbaSettings.BookingWindowInDays
-    Write-Host -ForegroundColor Cyan "`t ConflictPercentageAllowed:      "$RbaSettings.ConflictPercentageAllowed
-    Write-Host -ForegroundColor Cyan "`t MaximumConflictInstances:       "$RbaSettings.MaximumConflictInstances
-    Write-Host -ForegroundColor Cyan "`t MaximumConflictPercentage:      "$RbaSettings.MaximumConflictPercentage
-    Write-Host -ForegroundColor Cyan "`t EnforceSchedulingHorizon:       "$RbaSettings.EnforceSchedulingHorizon
-    Write-Host -ForegroundColor Cyan "`t SchedulingHorizonInDays:        "$RbaSettings.SchedulingHorizonInDays
-
+    Write-Host -ForegroundColor Cyan @"
+    `t Setting                          Value
+    `t ------------------------------  -----------------------------
+    `t AllowConflicts:                 $($RbaSettings.AllowConflicts)
+    `t AllowDistributionGroup:         $($RbaSettings.AllowDistributionGroup)
+    `t AllowMultipleResources:         $($RbaSettings.AllowMultipleResources)
+    `t MaximumDurationInMinutes:       $($RbaSettings.MaximumDurationInMinutes)
+    `t MinimumDurationInMinutes:       $($RbaSettings.MinimumDurationInMinutes)
+    `t AllowRecurringMeetings:         $($RbaSettings.AllowRecurringMeetings)
+    `t ScheduleOnlyDuringWorkHours:    $($RbaSettings.ScheduleOnlyDuringWorkHours)
+    `t ProcessExternalMeetingMessages: $($RbaSettings.ProcessExternalMeetingMessages)
+    `t BookingWindowInDays:            $($RbaSettings.BookingWindowInDays)
+    `t ConflictPercentageAllowed:      $($RbaSettings.ConflictPercentageAllowed)
+    `t MaximumConflictInstances:       $($RbaSettings.MaximumConflictInstances)
+    `t MaximumConflictPercentage:      $($RbaSettings.MaximumConflictPercentage)
+    `t EnforceSchedulingHorizon:       $($RbaSettings.EnforceSchedulingHorizon)
+    `t SchedulingHorizonInDays:        $($RbaSettings.SchedulingHorizonInDays)
+"@;
     Write-Host -NoNewline "`r`nIf all the above criteria are met, the request is "
     Write-Host -ForegroundColor Yellow -NoNewline "In-Policy."
     Write-Host -NoNewline "`r`nIf any of the above criteria are not met, the request is "
     Write-Host -ForegroundColor DarkYellow -NoNewline  "Out-of-Policy.";
     Write-Host;
-}
 
-# RBA processing settings Verbose Output
-function RBACriteriaExtra {
-    if ($PSBoundParameters['Verbose']) {
+    # RBA processing settings Verbose Output
+    $RBACriteriaExtra = ""
 
-        $RBACriteriaExtra = ""
-
-        if ($RbaSettings.AllowConflicts -eq $true) {
-            $RBACriteriaExtra += "Unlimited conflicts are allowed. This is Required for Workspaces.`r`n"
-        } elseif ($RbaSettings.ConflictPercentageAllowed -eq 0 `
-                -and $RbaSettings.MaximumConflictInstances -eq 0) {
-            $RBACriteriaExtra += "No conflicts are allowed.`r`n"
-        } else {
-            $RBACriteriaExtra += "For Recurring meetings, conflicts are allowed as long as they are less than $($RbaSettings.ConflictPercentageAllowed)% or less than $($RbaSettings.MaximumConflictInstances) instances.`r`n"
-        }
-
-        if ($RbaSettings.AllowDistributionGroup -eq $true) {
-            $RBACriteriaExtra += "Distribution groups are allowed.`r`n"
-        } else {
-            $RBACriteriaExtra += "Distribution groups are not allowed.`r`n"
-        }
-
-        if ($RbaSettings.AllowMultipleResources -eq $true) {
-            $RBACriteriaExtra += "Multiple resources are allowed.`r`n"
-        } else {
-            $RBACriteriaExtra += "Multiple resources are not allowed.`r`n"
-        }
-
-        if ($RbaSettings.MaximumDurationInMinutes -gt 0) {
-            $RBACriteriaExtra += "Maximum meeting duration is $($RbaSettings.MaximumDurationInMinutes) minutes.`r`n"
-        }
-
-        if ($RbaSettings.MinimumDurationInMinutes -gt 0) {
-            $RBACriteriaExtra += "Minimum meeting duration is $($RbaSettings.MinimumDurationInMinutes) minutes.`r`n"
-        }
-
-        if ($RbaSettings.AllowRecurringMeetings -eq $true) {
-            $RBACriteriaExtra += "Recurring meetings are allowed.`r`n"
-        } else {
-            $RBACriteriaExtra += "Recurring meetings are not allowed.`r`n"
-        }
-
-        if ($RbaSettings.ScheduleOnlyDuringWorkHours -eq $true) {
-            $RBACriteriaExtra += "Meetings are only allowed during work hours.`r`n"
-        } else {
-            $RBACriteriaExtra += "Meetings are allowed at any time.`r`n"
-        }
-
-        if ($RbaSettings.EnforceSchedulingHorizon -eq $true -and $RbaSettings.BookingWindowInDays -gt 0) {
-            $RBACriteriaExtra += "Meetings are only allowed if it starts within $($RbaSettings.BookingWindowInDays) days.`r`n"
-        } else {
-            $RBACriteriaExtra += "SchedulingHorizon is not enforced.`r`n"
-        }
-
-        if ($RbaSettings.ProcessExternalMeetingMessages -eq $true) {
-            $RBACriteriaExtra += "External meeting requests will be evaluated.`r`n"
-        } else {
-            $RBACriteriaExtra += "RBA will reject all External meeting requests.`r`n"
-        }
-
-        $RBACriteriaExtra += "Meetings will only be accepted if within $($RbaSettings.BookingWindowInDays) days.`r`n";
-
-        Write-Verbose $RBACriteriaExtra
+    if ($RbaSettings.AllowConflicts -eq $true) {
+        $RBACriteriaExtra += "Unlimited conflicts are allowed. This is Required for Workspaces.`r`n"
+    } elseif ($RbaSettings.ConflictPercentageAllowed -eq 0 `
+            -and $RbaSettings.MaximumConflictInstances -eq 0) {
+        $RBACriteriaExtra += "No conflicts are allowed.`r`n"
+    } else {
+        $RBACriteriaExtra += "For Recurring meetings, conflicts are allowed as long as they are less than $($RbaSettings.ConflictPercentageAllowed)% or less than $($RbaSettings.MaximumConflictInstances) instances.`r`n"
     }
+
+    if ($RbaSettings.AllowDistributionGroup -eq $true) {
+        $RBACriteriaExtra += "Distribution groups are allowed.`r`n"
+    } else {
+        $RBACriteriaExtra += "Distribution groups are not allowed.`r`n"
+    }
+
+    if ($RbaSettings.AllowMultipleResources -eq $true) {
+        $RBACriteriaExtra += "Multiple resources are allowed.`r`n"
+    } else {
+        $RBACriteriaExtra += "Multiple resources are not allowed.`r`n"
+    }
+
+    if ($RbaSettings.MaximumDurationInMinutes -gt 0) {
+        $RBACriteriaExtra += "Maximum meeting duration is $($RbaSettings.MaximumDurationInMinutes) minutes.`r`n"
+    }
+
+    if ($RbaSettings.MinimumDurationInMinutes -gt 0) {
+        $RBACriteriaExtra += "Minimum meeting duration is $($RbaSettings.MinimumDurationInMinutes) minutes.`r`n"
+    }
+
+    if ($RbaSettings.AllowRecurringMeetings -eq $true) {
+        $RBACriteriaExtra += "Recurring meetings are allowed.`r`n"
+    } else {
+        $RBACriteriaExtra += "Recurring meetings are not allowed.`r`n"
+    }
+
+    if ($RbaSettings.ScheduleOnlyDuringWorkHours -eq $true) {
+        $RBACriteriaExtra += "Meetings are only allowed during work hours.`r`n"
+    } else {
+        $RBACriteriaExtra += "Meetings are allowed at any time.`r`n"
+    }
+
+    if ($RbaSettings.EnforceSchedulingHorizon -eq $true -and $RbaSettings.BookingWindowInDays -gt 0) {
+        $RBACriteriaExtra += "Meetings are only allowed if it starts within $($RbaSettings.BookingWindowInDays) days.`r`n"
+    } else {
+        $RBACriteriaExtra += "SchedulingHorizon is not enforced.`r`n"
+    }
+
+    if ($RbaSettings.ProcessExternalMeetingMessages -eq $true) {
+        $RBACriteriaExtra += "External meeting requests will be evaluated.`r`n"
+    } else {
+        $RBACriteriaExtra += "RBA will reject all External meeting requests.`r`n"
+    }
+
+    $RBACriteriaExtra += "Meetings will only be accepted if within $($RbaSettings.BookingWindowInDays) days.`r`n";
+
+    Write-Verbose $RBACriteriaExtra
 }
 
 # RBA processing settings
@@ -350,16 +346,19 @@ function RBAPostProcessing {
 
     #    Write-Host -ForegroundColor Cyan "`r`n`t RBA PostProcessing Steps";
     #    Write-Host -ForegroundColor Cyan "`t ------------------------------------   ---------------------------------";
-    Write-Host -ForegroundColor Cyan "`t AddOrganizerToSubject:                "$RbaSettings.AddOrganizerToSubject
-    Write-Host -ForegroundColor Cyan "`t DeleteSubject:                        "$RbaSettings.DeleteSubject
-    Write-Host -ForegroundColor Cyan "`t DeleteComments (Meeting body):        "$RbaSettings.DeleteComments
-    Write-Host -ForegroundColor Cyan "`t DeleteAttachments:                    "$RbaSettings.DeleteAttachments
-    Write-Host -ForegroundColor Cyan "`t RemovePrivateProperty:                "$RbaSettings.RemovePrivateProperty
-    Write-Host -ForegroundColor Cyan "`t DeleteNonCalendarItems:               "$RbaSettings.DeleteNonCalendarItems
-    Write-Host -ForegroundColor Cyan "`t RemoveForwardedMeetingNotifications:  "$RbaSettings.RemoveForwardedMeetingNotifications
-    Write-Host -ForegroundColor Cyan "`t RemoveCanceledMeetings:               "$RbaSettings.RemoveCanceledMeetings
-    Write-Host -ForegroundColor Cyan "`t EnableAutoRelease:                    "$RbaSettings.EnableAutoRelease
-    Write-Host -ForegroundColor Cyan "`t AddAdditionalResponse:                "$RbaSettings.AddAdditionalResponse
+    Write-Host -ForegroundColor Cyan @"
+    `t AddOrganizerToSubject:                $($RbaSettings.AddOrganizerToSubject)
+    `t DeleteSubject:                        $($RbaSettings.DeleteSubject)
+    `t DeleteComments (Meeting body):        $($RbaSettings.DeleteComments)
+    `t DeleteAttachments:                    $($RbaSettings.DeleteAttachments)
+    `t RemovePrivateProperty:                $($RbaSettings.RemovePrivateProperty)
+    `t DeleteNonCalendarItems:               $($RbaSettings.DeleteNonCalendarItems)
+    `t RemoveForwardedMeetingNotifications:  $($RbaSettings.RemoveForwardedMeetingNotifications)
+    `t RemoveCanceledMeetings:               $($RbaSettings.RemoveCanceledMeetings)
+    `t EnableAutoRelease:                    $($RbaSettings.EnableAutoRelease)
+    `t AddAdditionalResponse:                $($RbaSettings.AddAdditionalResponse)
+"@
+
 }
 
 # RBA Verbose PostProcessing Steps
@@ -457,7 +456,6 @@ GetCalendarProcessing
 EvaluateCalProcessing
 ProcessingLogic
 RBACriteria
-RBACriteriaExtra
 RBAProcessing
 InPolicyProcessing
 OutOfPolicyProcessing
