@@ -493,7 +493,7 @@ begin {
                     $counter = 0
                     $totalCount = $ExchangeServers.Count
                     $outlookAnywhereCount = 0
-                    $outlookAnywhereServers = $ExchangeServersPrerequisitesCheckSettingsCheck | Where-Object { $_.IsClientAccessServer -eq $true }
+                    $outlookAnywhereServers = @($ExchangeServersPrerequisitesCheckSettingsCheck | Where-Object { $_.IsClientAccessServer -eq $true })
                     $outlookAnywhereTotalCount = $outlookAnywhereServers.Count
 
                     $progressParams = @{
