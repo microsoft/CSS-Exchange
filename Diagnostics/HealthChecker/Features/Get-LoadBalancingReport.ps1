@@ -96,16 +96,27 @@ function Get-LoadBalancingReport {
     $totalStats = [ordered]@{}
     $totalBackendStats = [ordered]@{}
 
-    $currentErrors = $Error.Count
+    #TODO: Improve performance here #1770
+    #This is very slow loop against Each Server to collect this information.
+    #Should be able to improve the speed by running 1 or 2 script blocks against the servers.
     foreach ( $CASServer in $CASServers.Name) {
+        $currentErrors = $Error.Count
         $DefaultIdSite = Invoke-Command -ComputerName $CASServer -ScriptBlock { (Get-Website "Default Web Site").Id }
 
-        $FECounters = Get-LocalizedCounterSamples -MachineName $CASServer -Counter @(
-            "\ASP.NET Apps v4.0.30319(_lm_w3svc_$($DefaultIdSite)_*)\Requests Executing"
-        ) `
-            -CustomErrorAction "SilentlyContinue"
+        $params = @{
+            MachineName       = $CASServer
+            Counter           = "\ASP.NET Apps v4.0.30319(_lm_w3svc_$($DefaultIdSite)_*)\Requests Executing"
+            CustomErrorAction = "SilentlyContinue"
+        }
 
+        $FECounters = Get-LocalizedCounterSamples @params
         Invoke-CatchActionErrorLoop $currentErrors ${Function:Invoke-CatchActions}
+
+        if ($null -eq $FECounters -or
+            $FECounters.Count -eq 0) {
+            Write-Verbose "Didn't find any counters on the server that matched."
+            continue
+        }
 
         foreach ( $sample in $FECounters) {
             $sample.Path = $sample.Path.Replace("_$($DefaultIdSite)_", "_DefaultSite_")
@@ -142,14 +153,23 @@ function Get-LoadBalancingReport {
     $keyOrders = $displayKeys.Keys | Sort-Object
 
     foreach ( $MBXServer in $MBXServers.Name) {
+        $currentErrors = $Error.Count
         $BackendIdSite = Invoke-Command -ComputerName $MBXServer -ScriptBlock { (Get-Website "Exchange Back End").Id }
 
-        $BECounters = Get-LocalizedCounterSamples -MachineName $MBXServer -Counter @(
-            "\ASP.NET Apps v4.0.30319(_lm_w3svc_$($BackendIdSite)_*)\Requests Executing"
-        ) `
-            -CustomErrorAction "SilentlyContinue"
+        $params = @{
+            MachineName       = $MBXServer
+            Counter           = "\ASP.NET Apps v4.0.30319(_lm_w3svc_$($BackendIdSite)_*)\Requests Executing"
+            CustomErrorAction = "SilentlyContinue"
+        }
 
+        $BECounters = Get-LocalizedCounterSamples @params
         Invoke-CatchActionErrorLoop $currentErrors ${Function:Invoke-CatchActions}
+
+        if ($null -eq $BECounters -or
+            $BECounters.Count -eq 0) {
+            Write-Verbose "Didn't find any counters on the server that matched."
+            continue
+        }
 
         foreach ( $sample in $BECounters) {
             $sample.Path = $sample.Path.Replace("_$($BackendIdSite)_", "_BackendSite_")
