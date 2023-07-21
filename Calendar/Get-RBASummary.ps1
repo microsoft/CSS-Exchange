@@ -1,5 +1,5 @@
 ﻿# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT License
+# Licensed under the MIT License.
 
 #
 # .DESCRIPTION
@@ -221,7 +221,7 @@ function RBAProcessing {
     }
 }
 
-# ToDo check if workspace settings...
+# ToDo: Future Work: Check Workspace settings...
 
 function InPolicyProcessing {
     # In-policy request processing
@@ -358,7 +358,6 @@ function RBAPostProcessing {
     `t EnableAutoRelease:                    $($RbaSettings.EnableAutoRelease)
     `t AddAdditionalResponse:                $($RbaSettings.AddAdditionalResponse)
 "@
-
 }
 
 # RBA Verbose PostProcessing Steps
