@@ -268,6 +268,7 @@ begin {
         if ($LoadBalancingReport) {
             Invoke-SetOutputInstanceLocation -FileName "HealthChecker-LoadBalancingReport"
             Invoke-ConfirmExchangeShell
+            Write-Grey "Script Version: $BuildVersion"
             Write-Green("Load Balancing Report on " + $date)
             Get-LoadBalancingReport
             Write-Grey("Output file written to " + $Script:OutputFullPath)
