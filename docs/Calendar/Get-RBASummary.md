@@ -18,7 +18,7 @@ Example to display the setting of room mailbox.
 ```
 
 Here are the high-level steps for RBA processing:
-1. Determine in the Meeting Request is in policy or out of policy.
+1. Determine if the Meeting Request is in policy or out of policy.
 2. If the meeting request is Out of Policy, see if the user has rights to create out of policy request and if so, forward it to the Delegates.
 3. If it is In Policy, then either book it or forward it to the delegate based on the settings.
 4. Lastly the RBA does the configured Post Processes the meeting format (delete attachments, rename meeting, etc.)
