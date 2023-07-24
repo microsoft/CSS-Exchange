@@ -104,7 +104,7 @@ function ProcessingLogic {
 }
 
 function RBACriteria {
-    Write-DashLineBoxColor @("Policy Configuration") Cyan =
+    Write-DashLineBoxColor @("Policy Configuration") -Color Cyan -DashChar =
 
     Write-Host " The following criteria are used to determine if a meeting request is in-policy or out-of-policy. ";
     Write-Host -ForegroundColor Cyan @"
@@ -221,7 +221,7 @@ function RBAProcessingValidation {
 
 function InPolicyProcessing {
     # In-policy request processing
-    Write-DashLineBoxColor @("  In-Policy request processing:") Yellow
+    Write-DashLineBoxColor @("  In-Policy request processing:") -Color Yellow
 
     if ($RbaSettings.BookInPolicy.Count -eq 0) {
         Write-Host "`t BookInPolicy:                     {$($RbaSettings.BookInPolicy)}"
@@ -255,7 +255,7 @@ function InPolicyProcessing {
 
 # Out-of-policy request processing
 function OutOfPolicyProcessing {
-    Write-DashLineBoxColor @("  Out-of-Policy request processing:") DarkYellow
+    Write-DashLineBoxColor @("  Out-of-Policy request processing:") -Color DarkYellow
     if ($RbaSettings.RequestOutOfPolicy.Count -gt 0) {
         Write-Host "`t RequestOutOfPolicy:           These {$($RbaSettings.RequestOutOfPolicy.Count)} accounts are allowed to submit out-of-policy requests (that require approval by a resource delegate)."
         foreach ($OutOfPolicyUser in $RbaSettings.RequestOutOfPolicy) { Write-Host "`t `t $OutOfPolicyUser" }
@@ -281,7 +281,7 @@ function OutOfPolicyProcessing {
 
 # RBA Delegate Settings
 function RBADelegateSettings {
-    Write-DashLineBoxColor @("Resource Delegate Settings") White
+    Write-DashLineBoxColor @("Resource Delegate Settings") -Color White
 
     if ($RbaSettings.ResourceDelegates.Count -eq 0) {
         Write-Host "`t ResourceDelegates:               "$RbaSettings.ResourceDelegates
@@ -328,7 +328,7 @@ function RBADelegateSettings {
 
 # RBA PostProcessing Steps
 function RBAPostProcessing {
-    Write-DashLineBoxColor @("PostProcessing Setup") Cyan =
+    Write-DashLineBoxColor @("PostProcessing Setup") -Color Cyan -DashChar =
     Write-Host -ForegroundColor Cyan "The RBA will format the meeting based on the following settings."
 
     #    Write-Host -ForegroundColor Cyan "`r`n`t RBA PostProcessing Steps";
@@ -473,7 +473,6 @@ function Write-DashLineBoxColor {
     Write-Host -ForegroundColor $Color $dashLine
     Write-Host
 }
-
 
 # Call the Functions in this order:
 ValidateMailbox
