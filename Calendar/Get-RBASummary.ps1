@@ -11,13 +11,13 @@
 #
 # .EXAMPLE
 # .\Get-RBASummary.ps1 -Identity Room1@Contoso.com
-#
+# or
+# .\Get-RBASummary.ps1 -Identity Room1@Contoso.com -Verbose
 
 [CmdletBinding()]
 param (
     [Parameter(Mandatory = $true, Position = 0)]
-    [string]$Identity,
-    [bool]$VerbosePreference = $false
+    [string]$Identity
 )
 
 $BuildVersion = ""
@@ -51,7 +51,7 @@ function ValidateMailbox {
         Write-Host -ForegroundColor Green "The mailbox is valid for RBA will work with.";
     }
 
-    Write-Host -ForegroundColor Yellow "For more information see https://docs.microsoft.com/en-us/powershell/module/exchange/users-and-groups/get-mailbox?view=exchange-ps";
+    Write-Host -ForegroundColor Yellow "For more information see https://learn.microsoft.com/en-us/powershell/module/exchange/get-mailbox?view=exchange-ps";
     Write-Host ;
 }
 
@@ -90,114 +90,111 @@ function EvaluateCalProcessing {
 }
 
 # RBA processing logic
-function OutputProcessingLogic {
-    Write-Host "`r`nRBA Processing Logic`r`n";
+function ProcessingLogic {
+    Write-DashLineBoxColor @("RBA Processing Logic") -DashChar =
     @"
-        The RBA first evaluates a request against all the policy configuration constraints i.e.
-        AllowConflicts, MaximumDurationInMinutes, ConflictPercentageAllowed etc... assigned in the calendar
+        The RBA first evaluates a request against all the policy configuration constraints assigned in the calendar
         processing object for the resource mailbox.
 
         This will result in the request either being in-policy or out-of-policy. The RBA then reads the recipient well
         values to determine where to send or handle in-policy requests and out-of-policy requests.
+
+        Lastly if the Request is accepted, the PostProcessing steps will be performed.
 "@
 }
 
-function OutputRBACriteria {
-    Write-Host "`r`n==================";
-    Write-Host "Request Evaluation";
-    Write-Host "==================`r`n";
+function RBACriteria {
+    Write-DashLineBoxColor @("Policy Configuration") -Color Cyan -DashChar =
 
     Write-Host " The following criteria are used to determine if a meeting request is in-policy or out-of-policy. ";
-    Write-Host "`t -------------------------------  -----------------------------"
-    Write-Host "`t AllowConflicts:                 "$RbaSettings.AllowConflicts
-    Write-Host "`t AllowDistributionGroup:         "$RbaSettings.AllowDistributionGroup
-    Write-Host "`t AllowMultipleResources:         "$RbaSettings.AllowMultipleResources
-    Write-Host "`t MaximumDurationInMinutes:       "$RbaSettings.MaximumDurationInMinutes
-    Write-Host "`t MinimumDurationInMinutes:       "$RbaSettings.MinimumDurationInMinutes
-    Write-Host "`t AllowRecurringMeetings:         "$RbaSettings.AllowRecurringMeetings
-    Write-Host "`t ScheduleOnlyDuringWorkHours:    "$RbaSettings.ScheduleOnlyDuringWorkHours
-    Write-Host "`t ProcessExternalMeetingMessages: "$RbaSettings.ProcessExternalMeetingMessages
-    Write-Host "`t BookingWindowInDays:            "$RbaSettings.BookingWindowInDays
-    Write-Host "`t ConflictPercentageAllowed:      "$RbaSettings.ConflictPercentageAllowed
-    Write-Host "`t MaximumConflictInstances:       "$RbaSettings.MaximumConflictInstances
-    Write-Host "`t MaximumConflictPercentage:      "$RbaSettings.MaximumConflictPercentage
-    Write-Host "`t EnforceSchedulingHorizon:       "$RbaSettings.EnforceSchedulingHorizon
-    Write-Host "`t SchedulingHorizonInDays:        "$RbaSettings.SchedulingHorizonInDays
-
+    Write-Host -ForegroundColor Cyan @"
+    `t Setting                          Value
+    `t ------------------------------  -----------------------------
+    `t AllowConflicts:                 $($RbaSettings.AllowConflicts)
+    `t AllowDistributionGroup:         $($RbaSettings.AllowDistributionGroup)
+    `t AllowMultipleResources:         $($RbaSettings.AllowMultipleResources)
+    `t MaximumDurationInMinutes:       $($RbaSettings.MaximumDurationInMinutes)
+    `t MinimumDurationInMinutes:       $($RbaSettings.MinimumDurationInMinutes)
+    `t AllowRecurringMeetings:         $($RbaSettings.AllowRecurringMeetings)
+    `t ScheduleOnlyDuringWorkHours:    $($RbaSettings.ScheduleOnlyDuringWorkHours)
+    `t ProcessExternalMeetingMessages: $($RbaSettings.ProcessExternalMeetingMessages)
+    `t BookingWindowInDays:            $($RbaSettings.BookingWindowInDays)
+    `t ConflictPercentageAllowed:      $($RbaSettings.ConflictPercentageAllowed)
+    `t MaximumConflictInstances:       $($RbaSettings.MaximumConflictInstances)
+    `t MaximumConflictPercentage:      $($RbaSettings.MaximumConflictPercentage)
+    `t EnforceSchedulingHorizon:       $($RbaSettings.EnforceSchedulingHorizon)
+    `t SchedulingHorizonInDays:        $($RbaSettings.SchedulingHorizonInDays)
+"@;
     Write-Host -NoNewline "`r`nIf all the above criteria are met, the request is "
     Write-Host -ForegroundColor Yellow -NoNewline "In-Policy."
     Write-Host -NoNewline "`r`nIf any of the above criteria are not met, the request is "
     Write-Host -ForegroundColor DarkYellow -NoNewline  "Out-of-Policy.";
     Write-Host;
-}
-
-function OutputVerboseRBACriteria {
-    if ($VerbosePreference -ne $true) {
-        return
-    }
-    $VerboseRBACriteria = ""
 
     # RBA processing settings Verbose Output
+    $RBACriteriaExtra = ""
+
     if ($RbaSettings.AllowConflicts -eq $true) {
-        $VerboseRBACriteria += "Unlimited conflicts are allowed. This is Required for Workspaces.`r`n"
+        $RBACriteriaExtra += "Unlimited conflicts are allowed. This is Required for Workspaces.`r`n"
+    } elseif ($RbaSettings.ConflictPercentageAllowed -eq 0 `
+            -and $RbaSettings.MaximumConflictInstances -eq 0) {
+        $RBACriteriaExtra += "No conflicts are allowed.`r`n"
     } else {
-        $VerboseRBACriteria += "For Recurring meetings, conflicts are allowed as long as they are less than $($RbaSettings.ConflictPercentageAllowed)% or less than $($RbaSettings.MaximumConflictInstances) instances.`r`n"
+        $RBACriteriaExtra += "For Recurring meetings, conflicts are allowed as long as they are less than $($RbaSettings.ConflictPercentageAllowed)% or less than $($RbaSettings.MaximumConflictInstances) instances.`r`n"
     }
 
     if ($RbaSettings.AllowDistributionGroup -eq $true) {
-        $VerboseRBACriteria += "Distribution groups are allowed.`r`n"
+        $RBACriteriaExtra += "Distribution groups are allowed.`r`n"
     } else {
-        $VerboseRBACriteria += "Distribution groups are not allowed.`r`n"
+        $RBACriteriaExtra += "Distribution groups are not allowed.`r`n"
     }
 
     if ($RbaSettings.AllowMultipleResources -eq $true) {
-        $VerboseRBACriteria += "Multiple resources are allowed.`r`n"
+        $RBACriteriaExtra += "Multiple resources are allowed.`r`n"
     } else {
-        $VerboseRBACriteria += "Multiple resources are not allowed.`r`n"
+        $RBACriteriaExtra += "Multiple resources are not allowed.`r`n"
     }
 
     if ($RbaSettings.MaximumDurationInMinutes -gt 0) {
-        $VerboseRBACriteria += "Maximum meeting duration is $($RbaSettings.MaximumDurationInMinutes) minutes.`r`n"
+        $RBACriteriaExtra += "Maximum meeting duration is $($RbaSettings.MaximumDurationInMinutes) minutes.`r`n"
     }
 
     if ($RbaSettings.MinimumDurationInMinutes -gt 0) {
-        $VerboseRBACriteria += "Minimum meeting duration is $($RbaSettings.MinimumDurationInMinutes) minutes.`r`n"
+        $RBACriteriaExtra += "Minimum meeting duration is $($RbaSettings.MinimumDurationInMinutes) minutes.`r`n"
     }
 
     if ($RbaSettings.AllowRecurringMeetings -eq $true) {
-        $VerboseRBACriteria += "Recurring meetings are allowed.`r`n"
+        $RBACriteriaExtra += "Recurring meetings are allowed.`r`n"
     } else {
-        $VerboseRBACriteria += "Recurring meetings are not allowed.`r`n"
+        $RBACriteriaExtra += "Recurring meetings are not allowed.`r`n"
     }
 
     if ($RbaSettings.ScheduleOnlyDuringWorkHours -eq $true) {
-        $VerboseRBACriteria += "Meetings are only allowed during work hours.`r`n"
+        $RBACriteriaExtra += "Meetings are only allowed during work hours.`r`n"
     } else {
-        $VerboseRBACriteria += "Meetings are allowed at any time.`r`n"
+        $RBACriteriaExtra += "Meetings are allowed at any time.`r`n"
     }
 
-    if ($RbaSettings.EnforceSchedulingHorizon -eq $true -and $RbaSettings.SchedulingHorizonInDays -gt 0) {
-        $VerboseRBACriteria += "Meetings are only allowed within $($RbaSettings.SchedulingHorizonInDays) days.`r`n"
+    if ($RbaSettings.EnforceSchedulingHorizon -eq $true -and $RbaSettings.BookingWindowInDays -gt 0) {
+        $RBACriteriaExtra += "Meetings are only allowed if it starts within $($RbaSettings.BookingWindowInDays) days.`r`n"
     } else {
-        $VerboseRBACriteria += "SchedulingHorizon is not enforced.`r`n"
+        $RBACriteriaExtra += "SchedulingHorizon is not enforced.`r`n"
     }
 
     if ($RbaSettings.ProcessExternalMeetingMessages -eq $true) {
-        $VerboseRBACriteria += "External meeting requests will be evaluated.`r`n"
+        $RBACriteriaExtra += "External meeting requests will be evaluated.`r`n"
     } else {
-        $VerboseRBACriteria += "RBA will reject all External meeting requests.`r`n"
+        $RBACriteriaExtra += "RBA will reject all External meeting requests.`r`n"
     }
 
-    $VerboseRBACriteria += "Meetings will only be accepted if within $($RbaSettings.BookingWindowInDays) days.`r`n";
+    $RBACriteriaExtra += "Meetings will only be accepted if within $($RbaSettings.BookingWindowInDays) days.`r`n";
 
-    Write-Host $VerboseRBACriteria
+    Write-Verbose $RBACriteriaExtra
 }
 
 # RBA processing settings
-function OutputRBAProcessing {
-    Write-Host "`r`n==================";
-    Write-Host "Policy Evaluation:";
-    Write-Host "==================";
+function RBAProcessingValidation {
+    Write-DashLineBoxColor @("Policy Processing:") -DashChar =
 
     # check for False null False null False null - RBA is configured to do nothing.
     if ($RbaSettings.RequestOutOfPolicy.Count -eq 0 `
@@ -220,13 +217,11 @@ function OutputRBAProcessing {
     }
 }
 
-# ToDo check if workspace settings...
+# ToDo: Future Work: Check Workspace settings...
 
-function OutputInPolicyProcessing {
+function InPolicyProcessing {
     # In-policy request processing
-    Write-Host "`r`n-----------------------------"
-    Write-Host "In-Policy request processing:"
-    Write-Host "-----------------------------"
+    Write-DashLineBoxColor @("  In-Policy request processing:") -Color Yellow
 
     if ($RbaSettings.BookInPolicy.Count -eq 0) {
         Write-Host "`t BookInPolicy:                     {$($RbaSettings.BookInPolicy)}"
@@ -259,13 +254,10 @@ function OutputInPolicyProcessing {
 }
 
 # Out-of-policy request processing
-function OutputOutOfPolicyProcessing {
-    Write-Host "`r`n---------------------------------"
-    Write-Host "Out-of-Policy request processing:"
-    Write-Host "---------------------------------"
+function OutOfPolicyProcessing {
+    Write-DashLineBoxColor @("  Out-of-Policy request processing:") -Color DarkYellow
     if ($RbaSettings.RequestOutOfPolicy.Count -gt 0) {
-        Write-Host "`t RequestOutOfPolicy:           {$($RbaSettings.RequestOutOfPolicy.Count)}"
-        Write-Host "- These users are allowed to submit out-of-policy requests (that require approval by a resource delegate)."
+        Write-Host "`t RequestOutOfPolicy:           These {$($RbaSettings.RequestOutOfPolicy.Count)} accounts are allowed to submit out-of-policy requests (that require approval by a resource delegate)."
         foreach ($OutOfPolicyUser in $RbaSettings.RequestOutOfPolicy) { Write-Host "`t `t $OutOfPolicyUser" }
     } else {
         Write-Host "`t RequestOutOfPolicy:               {$($RbaSettings.RequestOutOfPolicy)}"
@@ -288,11 +280,8 @@ function OutputOutOfPolicyProcessing {
 }
 
 # RBA Delegate Settings
-function OutputRBADelegateSettings {
-    Write-Host "`r`n=========================";
-    Write-Host "Resource Delegate Settings";
-    Write-Host "`=========================";
-    # Write-Host "`r`n The Resource Delegates are able accept or reject the meeting requests forwarded to them by the RBA.";
+function RBADelegateSettings {
+    Write-DashLineBoxColor @("Resource Delegate Settings") -Color White
 
     if ($RbaSettings.ResourceDelegates.Count -eq 0) {
         Write-Host "`t ResourceDelegates:               "$RbaSettings.ResourceDelegates
@@ -338,33 +327,31 @@ function OutputRBADelegateSettings {
 }
 
 # RBA PostProcessing Steps
-function OutputRBAPostProcessing {
-    Write-Host -ForegroundColor Cyan "`r`n=====================";
-    Write-Host -ForegroundColor Cyan "PostProcessing Steps";
-    Write-Host -ForegroundColor Cyan "=====================`r`n";
+function RBAPostProcessing {
+    Write-DashLineBoxColor @("PostProcessing Setup") -Color Cyan -DashChar =
     Write-Host -ForegroundColor Cyan "The RBA will format the meeting based on the following settings."
 
     #    Write-Host -ForegroundColor Cyan "`r`n`t RBA PostProcessing Steps";
     #    Write-Host -ForegroundColor Cyan "`t ------------------------------------   ---------------------------------";
-    Write-Host -ForegroundColor Cyan "`t AddOrganizerToSubject:                "$RbaSettings.AddOrganizerToSubject
-    Write-Host -ForegroundColor Cyan "`t DeleteSubject:                        "$RbaSettings.DeleteSubject
-    Write-Host -ForegroundColor Cyan "`t DeleteComments (Meeting body):        "$RbaSettings.DeleteComments
-    Write-Host -ForegroundColor Cyan "`t DeleteAttachments:                    "$RbaSettings.DeleteAttachments
-    Write-Host -ForegroundColor Cyan "`t RemovePrivateProperty:                "$RbaSettings.RemovePrivateProperty
-    Write-Host -ForegroundColor Cyan "`t DeleteNonCalendarItems:               "$RbaSettings.DeleteNonCalendarItems
-    Write-Host -ForegroundColor Cyan "`t RemoveForwardedMeetingNotifications:  "$RbaSettings.RemoveForwardedMeetingNotifications
-    Write-Host -ForegroundColor Cyan "`t RemoveCanceledMeetings:               "$RbaSettings.RemoveCanceledMeetings
-    Write-Host -ForegroundColor Cyan "`t EnableAutoRelease:                    "$RbaSettings.EnableAutoRelease
-    Write-Host -ForegroundColor Cyan "`t AddAdditionalResponse:                "$RbaSettings.AddAdditionalResponse
+    Write-Host -ForegroundColor Cyan @"
+    `t AddOrganizerToSubject:                $($RbaSettings.AddOrganizerToSubject)
+    `t DeleteSubject:                        $($RbaSettings.DeleteSubject)
+    `t DeleteComments (Meeting body):        $($RbaSettings.DeleteComments)
+    `t DeleteAttachments:                    $($RbaSettings.DeleteAttachments)
+    `t RemovePrivateProperty:                $($RbaSettings.RemovePrivateProperty)
+    `t DeleteNonCalendarItems:               $($RbaSettings.DeleteNonCalendarItems)
+    `t RemoveForwardedMeetingNotifications:  $($RbaSettings.RemoveForwardedMeetingNotifications)
+    `t RemoveCanceledMeetings:               $($RbaSettings.RemoveCanceledMeetings)
+    `t EnableAutoRelease:                    $($RbaSettings.EnableAutoRelease)
+    `t AddAdditionalResponse:                $($RbaSettings.AddAdditionalResponse)
+"@
 }
 
 # RBA Verbose PostProcessing Steps
-function OutputVerbosePostProcessing {
-    if ($VerbosePreference) {
-        Write-Host -ForegroundColor Cyan "`t AdditionalResponse:                   "$RbaSettings.AdditionalResponse
-    }
+function VerbosePostProcessing {
+    Write-Verbose "`t`r`n AdditionalResponse:                   `r`n$($RbaSettings.AdditionalResponse)`r`n`r`n"
 
-    $RbaFormattingString = ""
+    $RbaFormattingString = "Description of the RBA Post Processing Steps:`r`n"
     if ($RbaSettings.DeleteSubject -eq $true) {
         if ($RbaSettings.AddOrganizerToSubject -eq $true) {
             $RbaFormattingString += "The RBA will delete the subject and add the organizer to the subject. (Default)"
@@ -435,33 +422,68 @@ function OutputVerbosePostProcessing {
     }
     $RbaFormattingString += [environment]::Newline
 
-    if ($VerbosePreference) {
-        Write-Host $RbaFormattingString
-    }
+    Write-Verbose $RbaFormattingString
 }
 
 #Add information about RBA logs.
-function OutputRBAPostScript {
+function RBAPostScript {
     Write-Host;
     Write-Host "If more information is needed about this resource mailbox, please look at the RBA logs to
         see how the system proceed the meeting request.";
-    Write-Host -ForegroundColor Yellow "`t Export-MailboxDiagnosticLogs <ResourceMailbox> -ComponentName RBA";
+    Write-Host -ForegroundColor Yellow "`t Export-MailboxDiagnosticLogs $Identity -ComponentName RBA";
     Write-Host;
-    Write-Host "`n`rIf you found an error with this script or a misconfigured RBA cases that this should cover,
+    Write-Host "`n`rIf you found an error with this script or a misconfigured RBA case that this should cover,
          send mail to Shanefe@microsoft.com";
+}
+
+function Get-DashLine {
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [int]$Length,
+        [char] $DashChar = "-"
+    )
+    $dashLine = [string]::Empty
+    1..$Length | ForEach-Object { $dashLine += $DashChar }
+    return $dashLine
+}
+
+function Write-DashLineBoxColor {
+    [CmdletBinding()]
+    param(
+        [string[]]$Line,
+        [string] $Color = "White",
+        [char] $DashChar = "-"
+    )
+    <#
+        This is to simply create a quick and easy display around a line
+        -------------------------------------
+        Line                           Length
+        Line                           Length
+        -------------------------------------
+        # Empty Line
+    #>
+    $highLineLength = 0
+    $Line | ForEach-Object { if ($_.Length -gt $highLineLength) { $highLineLength = $_.Length } }
+    $dashLine = Get-DashLine $highLineLength -DashChar $DashChar
+    Write-Host
+    Write-Host -ForegroundColor $Color $dashLine
+    $Line | ForEach-Object { Write-Host -ForegroundColor $Color $_ }
+    Write-Host -ForegroundColor $Color $dashLine
+    Write-Host
 }
 
 # Call the Functions in this order:
 ValidateMailbox
 GetCalendarProcessing
 EvaluateCalProcessing
-OutputProcessingLogic
-OutputRBACriteria
-OutputVerboseRBACriteria
-OutputRBAProcessing
-OutputInPolicyProcessing
-OutputOutOfPolicyProcessing
-OutputRBADelegateSettings
-OutputRBAPostProcessing
-OutputVerbosePostProcessing
-OutputRBAPostScript
+ProcessingLogic
+RBACriteria
+RBAProcessingValidation
+InPolicyProcessing
+OutOfPolicyProcessing
+RBADelegateSettings
+RBAPostProcessing
+VerbosePostProcessing
+RBAPostScript
