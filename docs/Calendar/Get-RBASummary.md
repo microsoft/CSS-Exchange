@@ -1,4 +1,4 @@
-﻿# Get-RBASummary
+# Get-RBASummary
 
 Download the latest release: [Get-RBASummary.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Get-RBASummary.ps1)
 
