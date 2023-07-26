@@ -65,7 +65,7 @@ function Get-NewOAuthToken {
     }
     process {
         try {
-            Write-Verbose "Now calling the Invoke-ResthMethod cmdlet to create an OAuth token"
+            Write-Verbose "Now calling the Invoke-RestMethod cmdlet to create an OAuth token"
             $oAuthToken = Invoke-RestMethod @invokeRestMethodParams
             Write-Verbose "Invoke-RestMethod call was successful"
             $oAuthTokenCallSuccess = $true
