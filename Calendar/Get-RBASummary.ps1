@@ -57,10 +57,15 @@ function ValidateMailbox {
 
 # Validate that there are not delegate rules that will block RBA functionality
 function ValidateInboxRules {
-    Write-Host "Checking for Delegate Rules that will block RBA functionality."
+    Write-Host "Checking for Delegate Rules that will block RBA functionality..."
+    Write-Host -NoNewline "Running : "; Write-Host -ForegroundColor Cyan "Get-InboxRule -mailbox $Identity -IncludeHidden"
     $rules = Get-InboxRule -mailbox $Identity -IncludeHidden
+    # Note as far as I can tell "Delegate Rule <GUID>" is not localized.
     if ($rules.Name -like "Delegate Rule*") {
-        Write-Host -ForegroundColor Red "There is a user style Delegate Rule setup on this resource mailbox. This will block RBA functionality. Please remove the rule via Remove-InboxRule cmdlet and re-run this script."
+        Write-Host -ForegroundColor Red "Error: There is a user style Delegate Rule setup on this resource mailbox. This will block RBA functionality. Please remove the rule via Remove-InboxRule cmdlet and re-run this script."
+        Write-Host -NoNewline "Rule to look into: "
+        Write-Host -ForegroundColor Red  "$($rules.Name -like "Delegate Rule*")"
+        Write-Host -ForegroundColor Red "Exiting script."
         exit;
     }
     Write-Host -ForegroundColor Green "Delegate Rules check passes."
@@ -461,8 +466,9 @@ function RBAPostScript {
 }
 
 # Call the Functions in this order:
-ValidateMailbox
 ValidateInboxRules
+ValidateMailbox
+
 GetCalendarProcessing
 EvaluateCalProcessing
 ProcessingLogic
