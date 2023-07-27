@@ -107,7 +107,7 @@ function EvaluateCalProcessing {
 
 # RBA processing logic
 function ProcessingLogic {
-    Write-Host "`r`nRBA Processing Logic`r`n";
+    Write-DashLineBoxColor @("RBA Processing Logic") -DashChar =
     @"
         The RBA first evaluates a request against all the policy configuration constraints assigned in the calendar
         processing object for the resource mailbox.
@@ -120,9 +120,7 @@ function ProcessingLogic {
 }
 
 function RBACriteria {
-    Write-Host "`r`n===================="
-    Write-Host "Policy Configuration";
-    Write-Host "====================`r`n";
+    Write-DashLineBoxColor @("Policy Configuration") -Color Cyan -DashChar =
 
     Write-Host " The following criteria are used to determine if a meeting request is in-policy or out-of-policy. ";
     Write-Host -ForegroundColor Cyan @"
@@ -211,10 +209,8 @@ function RBACriteria {
 }
 
 # RBA processing settings
-function RBAProcessing {
-    Write-Host "`r`n==================";
-    Write-Host "Policy Processing:";
-    Write-Host "==================";
+function RBAProcessingValidation {
+    Write-DashLineBoxColor @("Policy Processing:") -DashChar =
 
     # check for False null False null False null - RBA is configured to do nothing.
     if ($RbaSettings.RequestOutOfPolicy.Count -eq 0 `
@@ -241,9 +237,7 @@ function RBAProcessing {
 
 function InPolicyProcessing {
     # In-policy request processing
-    Write-Host -ForegroundColor Yellow "`r`n  -----------------------------"
-    Write-Host -ForegroundColor Yellow "  In-Policy request processing:"
-    Write-Host -ForegroundColor Yellow "  -----------------------------"
+    Write-DashLineBoxColor @("  In-Policy request processing:") -Color Yellow
 
     if ($RbaSettings.BookInPolicy.Count -eq 0) {
         Write-Host "`t BookInPolicy:                     {$($RbaSettings.BookInPolicy)}"
@@ -277,9 +271,7 @@ function InPolicyProcessing {
 
 # Out-of-policy request processing
 function OutOfPolicyProcessing {
-    Write-Host -ForegroundColor DarkYellow "`r`n  ---------------------------------"
-    Write-Host -ForegroundColor DarkYellow "  Out-of-Policy request processing:"
-    Write-Host -ForegroundColor DarkYellow "  ---------------------------------"
+    Write-DashLineBoxColor @("  Out-of-Policy request processing:") -Color DarkYellow
     if ($RbaSettings.RequestOutOfPolicy.Count -gt 0) {
         Write-Host "`t RequestOutOfPolicy:           These {$($RbaSettings.RequestOutOfPolicy.Count)} accounts are allowed to submit out-of-policy requests (that require approval by a resource delegate)."
         foreach ($OutOfPolicyUser in $RbaSettings.RequestOutOfPolicy) { Write-Host "`t `t $OutOfPolicyUser" }
@@ -305,10 +297,7 @@ function OutOfPolicyProcessing {
 
 # RBA Delegate Settings
 function RBADelegateSettings {
-    Write-Host "`r`n=========================";
-    Write-Host "Resource Delegate Settings";
-    Write-Host "`=========================";
-    # Write-Host "`r`n The Resource Delegates are able accept or reject the meeting requests forwarded to them by the RBA.";
+    Write-DashLineBoxColor @("Resource Delegate Settings") -Color White
 
     if ($RbaSettings.ResourceDelegates.Count -eq 0) {
         Write-Host "`t ResourceDelegates:               "$RbaSettings.ResourceDelegates
@@ -355,9 +344,7 @@ function RBADelegateSettings {
 
 # RBA PostProcessing Steps
 function RBAPostProcessing {
-    Write-Host -ForegroundColor Cyan "`r`n=====================";
-    Write-Host -ForegroundColor Cyan "PostProcessing Steps";
-    Write-Host -ForegroundColor Cyan "=====================`r`n";
+    Write-DashLineBoxColor @("PostProcessing Setup") -Color Cyan -DashChar =
     Write-Host -ForegroundColor Cyan "The RBA will format the meeting based on the following settings."
 
     #    Write-Host -ForegroundColor Cyan "`r`n`t RBA PostProcessing Steps";
@@ -465,6 +452,44 @@ function RBAPostScript {
          send mail to Shanefe@microsoft.com";
 }
 
+function Get-DashLine {
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [int]$Length,
+        [char] $DashChar = "-"
+    )
+    $dashLine = [string]::Empty
+    1..$Length | ForEach-Object { $dashLine += $DashChar }
+    return $dashLine
+}
+
+function Write-DashLineBoxColor {
+    [CmdletBinding()]
+    param(
+        [string[]]$Line,
+        [string] $Color = "White",
+        [char] $DashChar = "-"
+    )
+    <#
+        This is to simply create a quick and easy display around a line
+        -------------------------------------
+        Line                           Length
+        Line                           Length
+        -------------------------------------
+        # Empty Line
+    #>
+    $highLineLength = 0
+    $Line | ForEach-Object { if ($_.Length -gt $highLineLength) { $highLineLength = $_.Length } }
+    $dashLine = Get-DashLine $highLineLength -DashChar $DashChar
+    Write-Host
+    Write-Host -ForegroundColor $Color $dashLine
+    $Line | ForEach-Object { Write-Host -ForegroundColor $Color $_ }
+    Write-Host -ForegroundColor $Color $dashLine
+    Write-Host
+}
+
 # Call the Functions in this order:
 ValidateInboxRules
 ValidateMailbox
@@ -473,7 +498,7 @@ GetCalendarProcessing
 EvaluateCalProcessing
 ProcessingLogic
 RBACriteria
-RBAProcessing
+RBAProcessingValidation
 InPolicyProcessing
 OutOfPolicyProcessing
 RBADelegateSettings
