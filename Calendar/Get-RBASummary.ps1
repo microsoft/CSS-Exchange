@@ -466,9 +466,8 @@ function RBAPostScript {
 }
 
 # Call the Functions in this order:
-ValidateInboxRules
 ValidateMailbox
-
+ValidateInboxRules
 GetCalendarProcessing
 EvaluateCalProcessing
 ProcessingLogic
