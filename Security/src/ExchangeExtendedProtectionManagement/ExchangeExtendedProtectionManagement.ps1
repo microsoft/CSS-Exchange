@@ -491,7 +491,7 @@ begin {
                     $rpcNullServers = New-Object 'System.Collections.Generic.List[string]'
                     $canNotConfigure = "Therefore, we can not configure Extended Protection."
                     $counter = 0
-                    $totalCount = $ExchangeServers.Count
+                    $totalCount = @($ExchangeServers).Count
                     $outlookAnywhereCount = 0
                     $outlookAnywhereServers = @($ExchangeServersPrerequisitesCheckSettingsCheck | Where-Object { $_.IsClientAccessServer -eq $true })
                     $outlookAnywhereTotalCount = $outlookAnywhereServers.Count
