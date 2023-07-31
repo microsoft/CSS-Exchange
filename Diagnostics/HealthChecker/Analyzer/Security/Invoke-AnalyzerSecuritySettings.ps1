@@ -23,6 +23,7 @@ function Invoke-AnalyzerSecuritySettings {
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $osInformation = $HealthServerObject.OSInformation
+    $aes256CbcInformation = $HealthServerObject.ExchangeInformation.AES256CBCInformation
     $keySecuritySettings = (Get-DisplayResultsGroupingKey -Name "Security Settings"  -DisplayOrder $Order)
     $baseParams = @{
         AnalyzedInformation = $AnalyzeResults
@@ -328,6 +329,30 @@ function Invoke-AnalyzerSecuritySettings {
         Details                = $description
         DisplayCustomTabNumber = 2
         AddHtmlDetailRow       = $false
+    }
+    Add-AnalyzedResultInformation @params
+
+    # AES256-CBC encryption support check
+    $params = $baseParams + @{
+        Name             = "AES256-CBC Protected Content Support"
+        Details          = $true
+        DisplayWriteType = "Green"
+    }
+
+    if (($aes256CbcInformation.AES256CBCSupportedBuild) -and
+        ($aes256CbcInformation.ValidAESConfiguration -eq $false)) {
+        $params.Details = ("True" +
+            "`r`n`t`tThis build supports AES256-CBC protected content, but the configuration is not complete. Exchange Server is not able to decrypt" +
+            "`r`n`t`tprotected messages which could impact eDiscovery and Journaling tasks. If you use Rights Management Service (RMS) on-premises," +
+            "`r`n`t`tplease follow the instructions as outlined in the documentation: https://aka.ms/ExchangeCBCKB")
+        $params.DisplayWriteType = "Yellow"
+    } elseif ($aes256CbcInformation.AES256CBCSupportedBuild -eq $false) {
+        $params.Details = ("False" +
+            "`r`n`t`tThis could lead to scenarios where Exchange Server is no longer able to decrypt protected messages," +
+            "`r`n`t`tfor example, when sending rights management protected messages using AES256-CBC encryption algorithm," +
+            "`r`n`t`tor when performing eDiscovery and Journaling tasks." +
+            "`r`n`t`tMore Information: https://aka.ms/Purview/CBCDetails")
+        $params.DisplayWriteType = "Red"
     }
     Add-AnalyzedResultInformation @params
 

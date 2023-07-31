@@ -91,6 +91,7 @@ msdcs
 MSDTC
 MSERT
 msert
+msipc
 msrc
 Multiplexor
 nato
