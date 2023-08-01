@@ -88,7 +88,27 @@ param (
 . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\..\Shared\Confirm-ExchangeShell.ps1
 . $PSScriptRoot\..\..\Shared\Get-ExchAVExclusions.ps1
+. $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 . $PSScriptRoot\..\..\Diagnostics\AVTester\Write-SimpleLogFile.ps1
+
+$BuildVersion = ""
+
+Write-Host ("Set-ExchAVExclusions.ps1 script version $($BuildVersion)") -ForegroundColor Green
+
+if ($ScriptUpdateOnly) {
+    switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/Set-ExchAVExclusions-VersionsURL" -Confirm:$false) {
+    ($true) { Write-Host ("Script was successfully updated") -ForegroundColor Green }
+    ($false) { Write-Host ("No update of the script performed") -ForegroundColor Yellow }
+        default { Write-Host ("Unable to perform ScriptUpdateOnly operation") -ForegroundColor Red }
+    }
+    return
+}
+
+if ((-not($SkipVersionCheck)) -and
+    (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/Set-ExchAVExclusions-VersionsURL" -Confirm:$false)) {
+    Write-Host ("Script was updated. Please re-run the command") -ForegroundColor Yellow
+    return
+}
 
 # Log file name
 $LogFile = "SetExchAvExclusions.log"
@@ -188,7 +208,7 @@ foreach ($folder in $BaseFolders) {
 
 Write-Host "`r`nExclusions Extensions:" -ForegroundColor DarkGreen
 $extensionsList = New-Object Collections.Generic.List[string]
-$extensionsList = Get-ExchAVExclusionsExtensions -ExchangePath $ExchangePath -MsiProductMinor ([byte]$serverExchangeInstallDirectory.MsiProductMinor)
+$extensionsList = Get-ExchAVExclusionsExtensions -MsiProductMinor ([byte]$serverExchangeInstallDirectory.MsiProductMinor)
 if ($FileName) {
     "`r`n[Extensions]" | Out-File $FileName -Append
 }
