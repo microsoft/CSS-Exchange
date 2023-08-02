@@ -87,7 +87,7 @@ if (-not (Confirm-Administrator)) {
 }
 
 # AutoUpdate script
-if (Test-ScriptVersion -AutoUpdate) {
+if (Test-ScriptVersion -AutoUpdate -Confirm:$false) {
     # Update was downloaded, so stop here.
     Write-Host "Script was updated. Please rerun the command."
     return
