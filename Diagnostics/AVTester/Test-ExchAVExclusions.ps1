@@ -80,7 +80,7 @@ $LogFile = "ExchAvExclusions.log"
 # Open log file if switched
 if ($OpenLog) { Write-SimpleLogFile -OpenLog -String " " -Name $LogFile }
 
-# Autoupdate script
+# AutoUpdate script
 if (Test-ScriptVersion -AutoUpdate) {
     # Update was downloaded, so stop here.
     Write-Host "Script was updated. Please rerun the command."
