@@ -72,12 +72,20 @@ param (
 . $PSScriptRoot\..\..\Shared\Get-ExchAVExclusions.ps1
 . $PSScriptRoot\Write-SimpleLogFile.ps1
 . $PSScriptRoot\Start-SleepWithProgress.ps1
+. $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 
 # Log file name
 $LogFile = "ExchAvExclusions.log"
 
 # Open log file if switched
 if ($OpenLog) { Write-SimpleLogFile -OpenLog -String " " -Name $LogFile }
+
+# Autoupdate script
+if (Test-ScriptVersion -AutoUpdate) {
+    # Update was downloaded, so stop here.
+    Write-Host "Script was updated. Please rerun the command."
+    return
+}
 
 # Confirm that we are an administrator
 if (-not (Confirm-Administrator)) {
