@@ -361,6 +361,11 @@ function RBAPostProcessing {
     `t EnableAutoRelease:                    $($RbaSettings.EnableAutoRelease)
     `t AddAdditionalResponse:                $($RbaSettings.AddAdditionalResponse)
 "@
+
+# Warnings:
+    if ($RbaSettings.DeleteComments -eq $true) {
+        write-host -ForegroundColor Yellow "Warning: DeleteComments is set to true. This will remove the Teams information which is in the meeting body."
+    }
 }
 
 # RBA Verbose PostProcessing Steps
