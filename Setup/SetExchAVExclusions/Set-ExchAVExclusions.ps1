@@ -46,6 +46,12 @@ Show the full list of expected exclusions.
 .PARAMETER -FileName
 Export the full list of expected exclusions in the defined FileName.
 
+.PARAMETER SkipVersionCheck
+Skip script version verification.
+
+.PARAMETER ScriptUpdateOnly
+Just update script version to latest one.
+
 .INPUTS
 For Set Parameter Set Identifier(Switch):
 Optional Parameter   -FileName
@@ -82,7 +88,14 @@ param (
     [Parameter(ParameterSetName = 'Set')]
     [Parameter(ParameterSetName = 'List')]
     [string]
-    $FileName
+    $FileName,
+
+    [Parameter(ParameterSetName = 'Set')]
+    [Parameter(ParameterSetName = 'List')]
+    [switch]$SkipVersionCheck,
+
+    [Parameter(Mandatory = $true, ParameterSetName = "ScriptUpdateOnly")]
+    [switch]$ScriptUpdateOnly
 )
 
 . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1

@@ -34,6 +34,12 @@ AV Modules loaded into Exchange Processes may indicate that AV Process Exclusion
 Will test not just the root folders but all SubFolders.
 Generally should not be needed unless all folders pass without -Recuse but AV is still suspected.
 
+.PARAMETER SkipVersionCheck
+Skip script version verification.
+
+.PARAMETER ScriptUpdateOnly
+Just update script version to latest one.
+
 .OUTPUTS
 Log file:
 $env:LOCALAPPDATA\ExchAvExclusions.log
@@ -55,16 +61,20 @@ Puts and removes an EICAR file in all test paths.
 Puts and Remove an EICAR file in all test paths + all SubFolders.
 
 #>
-[CmdletBinding()]
+[CmdletBinding(DefaultParameterSetName = 'Test')]
 param (
 
-    [Parameter()]
-    [switch]
-    $Recurse,
+    [Parameter(ParameterSetName = "Test")]
+    [switch]$Recurse,
 
-    [Parameter()]
-    [switch]
-    $OpenLog
+    [Parameter(ParameterSetName = "Test")]
+    [switch]$OpenLog,
+
+    [Parameter(ParameterSetName = "Test")]
+    [switch]$SkipVersionCheck,
+
+    [Parameter(Mandatory = $true, ParameterSetName = "ScriptUpdateOnly")]
+    [switch]$ScriptUpdateOnly
 )
 
 . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
