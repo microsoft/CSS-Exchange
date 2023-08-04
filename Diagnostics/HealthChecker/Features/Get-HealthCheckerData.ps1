@@ -34,8 +34,8 @@ function Get-HealthCheckerData {
             }
 
             Invoke-Command -ComputerName $ComputerName -ScriptBlock { Get-Date } -ErrorAction Stop | Out-Null
-            $reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey(“LocalMachine”, $ComputerName)
-            $reg.OpenSubKey(“SOFTWARE\Microsoft\Windows NT\CurrentVersion”) | Out-Null
+            $reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey("LocalMachine", $ComputerName)
+            $reg.OpenSubKey("SOFTWARE\Microsoft\Windows NT\CurrentVersion") | Out-Null
             Write-Verbose "Returning true back"
             return $true
         } catch {
