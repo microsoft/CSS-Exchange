@@ -2098,7 +2098,14 @@
     How To Run
   </a>
   
-    <nav class="md-nav" aria-label="How To Run">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    Parameters
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2388,7 +2395,14 @@
     How To Run
   </a>
   
-    <nav class="md-nav" aria-label="How To Run">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    Parameters
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2452,6 +2466,33 @@
 <p>This script <strong>must</strong> be run as Administrator in Exchange Management Shell on an Exchange Server. You do not need to provide any parameters and the script will set the Windows Defender exclusions for the local Exchange server.</p>
 <p>If you want to get the full list of expected exclusions you should use the parameter <code>ListRecommendedExclusions</code></p>
 <p>You can export the Exclusion List with the parameter <code>FileName</code></p>
+<h2 id="parameters">Parameters</h2>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ListRecommendedExclusions</td>
+<td>Get the full list of expected exclusions without set.</td>
+</tr>
+<tr>
+<td>FileName</td>
+<td>Export the Exclusion List.</td>
+</tr>
+<tr>
+<td>SkipVersionCheck</td>
+<td>Skip script version verification.</td>
+</tr>
+<tr>
+<td>ScriptUpdateOnly</td>
+<td>Just update script version to latest one.</td>
+</tr>
+</tbody>
+</table>
 <h4 id="examples">Examples:</h4>
 <p>This will run Set-ExchAVExclusions Script against the local server.</p>
 <div class="highlight"><pre><span></span><code>.\Set-ExchAVExclusions.ps1
@@ -2476,7 +2517,7 @@ $env:LOCALAPPDATA\SetExchAvExclusions.log</p>
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">October 31, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 4, 2023</span>
       
     
   </small>
