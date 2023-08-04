@@ -29,6 +29,16 @@ If you want to get the full list of expected exclusions you should use the param
 
 You can export the Exclusion List with the parameter `FileName`
 
+## Parameters
+
+Parameter | Description |
+----------|-------------|
+ListRecommendedExclusions | Get the full list of expected exclusions without set.
+FileName | Export the Exclusion List.
+SkipVersionCheck | Skip script version verification.
+ScriptUpdateOnly | Just update script version to latest one.
+
+
 #### Examples:
 
 This will run Set-ExchAVExclusions Script against the local server.
