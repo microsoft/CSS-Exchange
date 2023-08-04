@@ -310,6 +310,7 @@ function RBADelegateSettings {
     Write-Host "`t ForwardRequestsToDelegates:      "$RbaSettings.ForwardRequestsToDelegates
     Write-Host
 
+    # Check for known configuration issues to warn about:
     if ($RbaSettings.ResourceDelegates.Count -gt 0) {
         if ($RbaSettings.AddNewRequestsTentatively -eq $true) {
             Write-Host "In-policy meetings will be marked tentative and the meeting request will be sent to the Resource Delegates to be accepted or rejected. Default"
@@ -361,6 +362,11 @@ function RBAPostProcessing {
     `t EnableAutoRelease:                    $($RbaSettings.EnableAutoRelease)
     `t AddAdditionalResponse:                $($RbaSettings.AddAdditionalResponse)
 "@
+
+    # Warning about the DeleteComments setting and Teams:
+    if ($RbaSettings.DeleteComments -eq $true) {
+        Write-Host -ForegroundColor Yellow "Warning: DeleteComments is set to true. This will remove the Teams information which is in the meeting body."
+    }
 }
 
 # RBA Verbose PostProcessing Steps

@@ -44,9 +44,7 @@ function Get-ExchAVExclusionsPaths {
             DataPath, MigrationLogFilePath, TransportSyncLogFilePath, TransportSyncMailboxHealthLogFilePath
         $mbxS.PSObject.Properties.Value.PathName | ForEach-Object {
             if ( $_ ) {
-                if ( Test-Path $_ -PathType Container ) {
-                    $BaseFolders.Add($_.ToLower())
-                }
+                $BaseFolders.Add($_.ToLower())
             }
         }
 
@@ -57,9 +55,7 @@ function Get-ExchAVExclusionsPaths {
 
             $mbDbLogs.PSObject.Properties.Value.PathName | ForEach-Object {
                 if ( $_ ) {
-                    if ( Test-Path $_ -PathType Container ) {
-                        $BaseFolders.Add($_.ToLower())
-                    }
+                    $BaseFolders.Add($_.ToLower())
                 }
             }
         }
@@ -70,23 +66,12 @@ function Get-ExchAVExclusionsPaths {
             MailboxDeliveryThrottlingLogPath, AgentGrayExceptionLogPath, PipelineTracingPath
         $mtsLogs.PSObject.Properties.Value.PathName | ForEach-Object {
             if ( $_ ) {
-                if ( Test-Path $_ -PathType Container ) {
-                    $BaseFolders.Add($_.ToLower())
-                }
+                $BaseFolders.Add($_.ToLower())
             }
         }
 
-        #'$env:SystemRoot\Temp\OICE_<GUID>'
-        $possibleOICEFolders = Get-ChildItem $env:SystemRoot\temp -Directory -Filter OICE_*.0
-        $possibleOICEFolders | ForEach-Object {
-            if ( $_.Name.Length -gt 41) {
-                $possibleGUID = $_.Name.Substring(5, 36)
-                $result = [System.Guid]::Empty
-                if ( [System.Guid]::TryParse($possibleGUID, [System.Management.Automation.PSReference]$result) ) {
-                    $BaseFolders.Add($_.FullName.ToLower())
-                }
-            }
-        }
+        $BaseFolders.Add("$($env:SystemRoot)\Temp\OICE_????????-????-????-????-????????????")
+        $BaseFolders.Add("$($env:SystemRoot)\Temp\OICE_????????-????-????-????-????????????.?")
     }
 
     if ((Get-ExchangeServer $env:COMPUTERNAME).IsUnifiedMessagingServer) {
@@ -104,9 +89,7 @@ function Get-ExchAVExclusionsPaths {
             RoutingTableLogPath, ProxyDestinationsLogPath, TopInboundIpSourcesLogPath
         $feTsLogs.PSObject.Properties.Value.PathName | ForEach-Object {
             if ( $_) {
-                if ( Test-Path $_ -PathType Container ) {
-                    $BaseFolders.Add($_.ToLower())
-                }
+                $BaseFolders.Add($_.ToLower())
             }
         }
 
@@ -135,9 +118,7 @@ function Get-ExchAVExclusionsPaths {
             RootDropDirectoryPath
         $tsLogs.PSObject.Properties.Value.PathName | ForEach-Object {
             if ( $_ ) {
-                if ( Test-Path $_ -PathType Container ) {
-                    $BaseFolders.Add($_.ToLower())
-                }
+                $BaseFolders.Add($_.ToLower())
             }
         }
 
@@ -178,12 +159,6 @@ function Get-ExchAVExclusionsExtensions {
     [CmdletBinding()]
     [OutputType([Collections.Generic.List[string]])]
     param (
-        [ValidateScript({
-                if (Test-Path $_ -PathType Container ) { $true }
-                else { throw "Path $_ is not valid" }
-            })]
-        [string]
-        $ExchangePath,
         [Parameter(Mandatory = $true)]
         [ValidateSet(0, 1, 2)]
         [byte]
@@ -269,124 +244,124 @@ function Get-ExchAVExclusionsProcess {
 
     if ( $MsiProductMinor -eq 0) {
         if ((Get-ExchangeServer $env:COMPUTERNAME).IsMailboxServer) {
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'FIP-FS\Bin\fms.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Microsoft.Exchange.EdgeSyncSvc.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'ClientAccess\PopImap\Microsoft.Exchange.Imap4service.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'ClientAccess\PopImap\Microsoft.Exchange.Pop3service.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Microsoft.Exchange.RPCClientAccess.Service.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Microsoft.Exchange.Search.Service.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Microsoft.Exchange.Store.Service.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Microsoft.Exchange.Store.Worker.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeDagMgmt.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeDelivery.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeMailboxAssistants.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeMailboxReplication.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeMigrationWorkflow.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeRepl.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeSubmission.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeThrottling.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Search\Ceres\Runtime\1.0\Noderunner.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\OleConverter.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Search\Ceres\ParserServer\ParserServer.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'FIP-FS\Bin\ScanEngineTest.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'FIP-FS\Bin\ScanningProcess.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'ClientAccess\Owa\Bin\DocumentViewing\TranscodingService.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\UmService.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\UmWorkerProcess.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'FIP-FS\Bin\UpdateService.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'FIP-FS\Bin\fms.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Microsoft.Exchange.EdgeSyncSvc.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'ClientAccess\PopImap\Microsoft.Exchange.Imap4service.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'ClientAccess\PopImap\Microsoft.Exchange.Pop3service.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Microsoft.Exchange.RPCClientAccess.Service.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Microsoft.Exchange.Search.Service.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Microsoft.Exchange.Store.Service.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Microsoft.Exchange.Store.Worker.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\MSExchangeDagMgmt.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\MSExchangeDelivery.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\MSExchangeMailboxAssistants.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\MSExchangeMailboxReplication.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\MSExchangeMigrationWorkflow.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\MSExchangeRepl.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\MSExchangeSubmission.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\MSExchangeThrottling.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Search\Ceres\Runtime\1.0\Noderunner.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\OleConverter.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Search\Ceres\ParserServer\ParserServer.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'FIP-FS\Bin\ScanEngineTest.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'FIP-FS\Bin\ScanningProcess.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'ClientAccess\Owa\Bin\DocumentViewing\TranscodingService.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\UmService.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\UmWorkerProcess.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'FIP-FS\Bin\UpdateService.exe'))
         }
 
         if ((Get-ExchangeServer $env:COMPUTERNAME).IsEdgeServer) {
             $ProcessList.Add((Join-Path $env:SystemRoot '\System32\Dsamain.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Microsoft.Exchange.EdgeCredentialSvc.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Microsoft.Exchange.EdgeCredentialSvc.exe'))
         }
 
         if ((Get-ExchangeServer $env:COMPUTERNAME).IsClientAccessServer) {
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'FrontEnd\PopImap\Microsoft.Exchange.Imap4.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'FrontEnd\PopImap\Microsoft.Exchange.Pop3.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'FrontEnd\CallRouter\Microsoft.Exchange.UM.CallRouter.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeFrontendTransport.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'FrontEnd\PopImap\Microsoft.Exchange.Imap4.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'FrontEnd\PopImap\Microsoft.Exchange.Pop3.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'FrontEnd\CallRouter\Microsoft.Exchange.UM.CallRouter.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\MSExchangeFrontendTransport.exe'))
         }
 
         if ((Get-ExchangeServer $env:COMPUTERNAME).IsClientAccessServer -or (Get-ExchangeServer $env:COMPUTERNAME).IsMailboxServer) {
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Search\Ceres\HostController\hostcontrollerservice.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Search\Ceres\HostController\hostcontrollerservice.exe'))
             $ProcessList.Add((Join-Path $env:SystemRoot '\System32\inetSrv\inetInfo.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Microsoft.Exchange.Directory.TopologyService.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Microsoft.Exchange.Directory.TopologyService.exe'))
         }
 
         if ((Get-ExchangeServer $env:COMPUTERNAME).IsClientAccessServer -or (Get-ExchangeServer $env:COMPUTERNAME).IsMailboxServer -or (Get-ExchangeServer $env:COMPUTERNAME).IsEdgeServer) {
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Microsoft.Exchange.Diagnostics.Service.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Microsoft.Exchange.ProtectedServiceHost.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Microsoft.Exchange.Servicehost.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeHMHost.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeHMWorker.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Microsoft.Exchange.Diagnostics.Service.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Microsoft.Exchange.ProtectedServiceHost.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Microsoft.Exchange.Servicehost.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\MSExchangeHMHost.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\MSExchangeHMWorker.exe'))
         }
 
         if ((Get-ExchangeServer $env:COMPUTERNAME).IsEdgeServer -or (Get-ExchangeServer $env:COMPUTERNAME).IsMailboxServer) {
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\EdgeTransport.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Microsoft.Exchange.AntispamUpdateSvc.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'TransportRoles\agents\Hygiene\Microsoft.Exchange.ContentFilter.Wrapper.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeTransport.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeTransportLogSearch.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\EdgeTransport.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Microsoft.Exchange.AntispamUpdateSvc.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'TransportRoles\agents\Hygiene\Microsoft.Exchange.ContentFilter.Wrapper.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\MSExchangeTransport.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\MSExchangeTransportLogSearch.exe'))
         }
     } else {
         if ((Get-ExchangeServer $env:COMPUTERNAME).IsMailboxServer) {
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\ComplianceAuditService.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'FIP-FS\Bin\fms.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Search\Ceres\HostController\hostcontrollerservice.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\ComplianceAuditService.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'FIP-FS\Bin\fms.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Search\Ceres\HostController\hostcontrollerservice.exe'))
             $ProcessList.Add((Join-Path $env:SystemRoot '\System32\inetSrv\inetInfo.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Microsoft.Exchange.Directory.TopologyService.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Microsoft.Exchange.EdgeSyncSvc.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'FrontEnd\PopImap\Microsoft.Exchange.Imap4.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'ClientAccess\PopImap\Microsoft.Exchange.Imap4service.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Microsoft.Exchange.Notifications.Broker.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'FrontEnd\PopImap\Microsoft.Exchange.Pop3.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'ClientAccess\PopImap\Microsoft.Exchange.Pop3service.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Microsoft.Exchange.RPCClientAccess.Service.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Microsoft.Exchange.Search.Service.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Microsoft.Exchange.Store.Service.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Microsoft.Exchange.Store.Worker.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeCompliance.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeDagMgmt.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeDelivery.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeFrontendTransport.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeMailboxAssistants.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeMailboxReplication.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeRepl.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeSubmission.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeThrottling.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Search\Ceres\Runtime\1.0\Noderunner.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\OleConverter.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Search\Ceres\ParserServer\ParserServer.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'FIP-FS\Bin\ScanEngineTest.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'FIP-FS\Bin\ScanningProcess.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'FIP-FS\Bin\UpdateService.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\wsbExchange.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Microsoft.Exchange.Directory.TopologyService.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Microsoft.Exchange.EdgeSyncSvc.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'FrontEnd\PopImap\Microsoft.Exchange.Imap4.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'ClientAccess\PopImap\Microsoft.Exchange.Imap4service.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Microsoft.Exchange.Notifications.Broker.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'FrontEnd\PopImap\Microsoft.Exchange.Pop3.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'ClientAccess\PopImap\Microsoft.Exchange.Pop3service.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Microsoft.Exchange.RPCClientAccess.Service.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Microsoft.Exchange.Search.Service.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Microsoft.Exchange.Store.Service.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Microsoft.Exchange.Store.Worker.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\MSExchangeCompliance.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\MSExchangeDagMgmt.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\MSExchangeDelivery.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\MSExchangeFrontendTransport.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\MSExchangeMailboxAssistants.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\MSExchangeMailboxReplication.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\MSExchangeRepl.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\MSExchangeSubmission.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\MSExchangeThrottling.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Search\Ceres\Runtime\1.0\Noderunner.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\OleConverter.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Search\Ceres\ParserServer\ParserServer.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'FIP-FS\Bin\ScanEngineTest.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'FIP-FS\Bin\ScanningProcess.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'FIP-FS\Bin\UpdateService.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\wsbExchange.exe'))
         }
 
         if ((Get-ExchangeServer $env:COMPUTERNAME).IsEdgeServer) {
             $ProcessList.Add((Join-Path $env:SystemRoot '\System32\Dsamain.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Microsoft.Exchange.EdgeCredentialSvc.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Microsoft.Exchange.EdgeCredentialSvc.exe'))
         }
 
         if ((Get-ExchangeServer $env:COMPUTERNAME).IsEdgeServer -or (Get-ExchangeServer $env:COMPUTERNAME).IsMailboxServer) {
 
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\EdgeTransport.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Microsoft.Exchange.AntispamUpdateSvc.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'TransportRoles\agents\Hygiene\Microsoft.Exchange.ContentFilter.Wrapper.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Microsoft.Exchange.Diagnostics.Service.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Microsoft.Exchange.ProtectedServiceHost.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\Microsoft.Exchange.Servicehost.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeHMHost.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeHMWorker.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeTransport.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\MSExchangeTransportLogSearch.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\EdgeTransport.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Microsoft.Exchange.AntispamUpdateSvc.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'TransportRoles\agents\Hygiene\Microsoft.Exchange.ContentFilter.Wrapper.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Microsoft.Exchange.Diagnostics.Service.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Microsoft.Exchange.ProtectedServiceHost.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\Microsoft.Exchange.Servicehost.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\MSExchangeHMHost.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\MSExchangeHMWorker.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\MSExchangeTransport.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\MSExchangeTransportLogSearch.exe'))
         }
 
         if ((Get-ExchangeServer $env:COMPUTERNAME).IsUnifiedMessagingServer) {
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'FrontEnd\CallRouter\Microsoft.Exchange.UM.CallRouter.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\UmService.exe'))
-            $ProcessList.Add((Join-Path $env:ExchangeInstallPath 'Bin\UmWorkerProcess.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'FrontEnd\CallRouter\Microsoft.Exchange.UM.CallRouter.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\UmService.exe'))
+            $ProcessList.Add((Join-Path $ExchangePath 'Bin\UmWorkerProcess.exe'))
         }
     }
     $ProcessList
