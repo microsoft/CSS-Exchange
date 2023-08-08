@@ -6,6 +6,7 @@
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-2021-1730.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-2021-34470.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-2022-21978.ps1
+. $PSScriptRoot\Invoke-AnalyzerSecurityCve-2023-21709.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-MarchSuSpecial.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityExtendedProtectionConfigState.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityIISModules.ps1
@@ -127,6 +128,7 @@ function Invoke-AnalyzerSecurityCveCheck {
         "Feb23SU" = (@(NewCveEntry @("CVE-2023-21529", "CVE-2023-21706", "CVE-2023-21707") $ex131619) + (NewCveEntry "CVE-2023-21710" @($ex2016, $ex2019)))
         "Mar23SU" = (@(NewCveEntry ("CVE-2023-21707") $ex131619))
         "Jun23SU" = (NewCveEntry @("CVE-2023-28310", "CVE-2023-32031") @($ex2016, $ex2019))
+        "Aug23SU" = (NewCveEntry @("CVE-2023-38181", "CVE-2023-38182", "CVE-2023-38185", "CVE-2023-35368", "CVE-2023-35388") @($ex2016, $ex2019))
     }
 
     # Need to organize the list so oldest CVEs come out first.
@@ -200,6 +202,7 @@ function Invoke-AnalyzerSecurityCveCheck {
     Invoke-AnalyzerSecurityCve-2021-1730 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     Invoke-AnalyzerSecurityCve-2021-34470 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     Invoke-AnalyzerSecurityCve-2022-21978 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
+    Invoke-AnalyzerSecurityCve-2023-21709 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     Invoke-AnalyzerSecurityCve-MarchSuSpecial -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     # Make sure that these stay as the last one to keep the output more readable
     Invoke-AnalyzerSecurityExtendedProtectionConfigState -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
