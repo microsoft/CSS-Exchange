@@ -61,6 +61,7 @@ hsts
 httperr
 ietf
 imap
+inetsrv
 Infoworker
 Inproc
 INSUFF
@@ -90,6 +91,7 @@ msdcs
 MSDTC
 MSERT
 msert
+msipc
 msrc
 Multiplexor
 nato

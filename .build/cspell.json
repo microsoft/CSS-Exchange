@@ -15,6 +15,13 @@
         ".vscode",
         "/cspell-words.txt"
     ],
+    "patterns": [
+        {
+            "name": "return-newline-tab-tab",
+            "pattern": "\\`r\\`n\\`t\\`t"
+        }
+    ],
+    "ignoreRegExpList": ["return-newline-tab-tab"],
     "caseSensitive": true,
     "overrides": [
      {
