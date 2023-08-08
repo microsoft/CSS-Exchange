@@ -60,7 +60,7 @@ function Get-ExchangeAES256CBCDetails {
                     ($_.PropagationFlags -eq $networkServiceAcl.PropagationFlags)
                         })
 
-                    if ($aclMatch.Count -ge 1) {
+                    if (@($aclMatch).Count -ge 1) {
                         Write-Verbose "Acl for NetworkService is as expected"
                         $msipcRegistryAclAsExpected = $true
                     } else {
