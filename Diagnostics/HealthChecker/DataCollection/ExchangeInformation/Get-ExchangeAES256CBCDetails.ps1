@@ -26,7 +26,7 @@ function Get-ExchangeAES256CBCDetails {
         # Translates to: "NetworkService", "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow"
         # See: https://learn.microsoft.com/dotnet/api/system.security.accesscontrol.registryaccessrule.-ctor?view=net-7.0#system-security-accesscontrol-registryaccessrule-ctor(system-security-principal-identityreference-system-security-accesscontrol-registryrights-system-security-accesscontrol-inheritanceflags-system-security-accesscontrol-propagationflags-system-security-accesscontrol-accesscontroltype)
         $networkServiceAcl = New-Object System.Security.AccessControl.RegistryAccessRule(
-            [System.Security.Principal.SecurityIdentifier]::new("S-1-5-20"), 983103, 3, 0, 0
+            (New-Object System.Security.Principal.SecurityIdentifier("S-1-5-20")), 983103, 3, 0, 0
         )
     } process {
         # First, check if the build running on the server supports AES256-CBC
