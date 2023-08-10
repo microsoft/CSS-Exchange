@@ -40,7 +40,14 @@ function Confirm-ExchangeShell {
 
             try {
                 $currentErrors = $Error.Count
-                $eventLogLevel = Get-EventLogLevel -ErrorAction Stop | Select-Object -First 1
+                $attempts = 0
+                do {
+                    $eventLogLevel = Get-EventLogLevel -ErrorAction Stop | Select-Object -First 1
+                    $attempts++
+                    if ($attempts -ge 5) {
+                        throw "Failed to run Get-EventLogLevel too many times."
+                    }
+                } while ($null -eq $eventLogLevel)
                 $getEventLogLevelCallSuccessful = $true
                 foreach ($e in $eventLogLevel) {
                     Write-Verbose "Type is: $($e.GetType().Name) BaseType is: $($e.GetType().BaseType)"
