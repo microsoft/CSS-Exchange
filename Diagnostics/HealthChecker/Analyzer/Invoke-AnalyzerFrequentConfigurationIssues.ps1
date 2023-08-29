@@ -236,6 +236,7 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
                     }
                 }
             }
+        $iisWebSitesWithHstsSettings = $iisWebSettings | Where-Object { $null -ne $_.hsts }
 
         if ($null -ne $missingWebApplicationConfigFile) {
             $params = $baseParams + @{
@@ -371,6 +372,124 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
                 DisplayCustomTabNumber = 2
             }
             Add-AnalyzedResultInformation @params
+        }
+
+        # TODO: Move this check to the new IIS section that we'll add to HC in near future - See issue: 1363
+        if (($iisWebSitesWithHstsSettings.Hsts.NativeHstsSettings.enabled -notcontains $true) -and
+            ($iisWebSitesWithHstsSettings.Hsts.HstsViaCustomHeader.enabled -notcontains $true)) {
+            $params = $baseParams + @{
+                Name    = "HSTS Enabled"
+                Details = $false
+            }
+            Add-AnalyzedResultInformation @params
+        } else {
+            $showAdditionalHstsInformation = $false
+            foreach ($webSite in $iisWebSitesWithHstsSettings) {
+                $hstsConfiguration = $null
+                $isExchangeBackEnd = $webSite.Name -eq "Exchange Back End"
+                $hstsMaxAgeWriteType = "Green"
+
+                if (($webSite.Hsts.NativeHstsSettings.enabled) -or
+                    ($webSite.Hsts.HstsViaCustomHeader.enabled)) {
+                    $params = $baseParams + @{
+                        Name                = "HSTS Enabled"
+                        Details             = "$($webSite.Name)"
+                        TestingName         = "hsts-Enabled-$($webSite.Name)"
+                        DisplayTestingValue = $true
+                        DisplayWriteType    = if ($isExchangeBackEnd) { "Red" } else { "Green" }
+                    }
+                    Add-AnalyzedResultInformation @params
+
+                    if ($isExchangeBackEnd) {
+                        $showAdditionalHstsInformation = $true
+                        $params = $baseParams + @{
+                            Details                = "HSTS on 'Exchange Back End' is not supported and can cause issues"
+                            DisplayWriteType       = "Red"
+                            TestingName            = "hsts-BackendNotSupported"
+                            DisplayTestingValue    = $true
+                            DisplayCustomTabNumber = 2
+                        }
+                        Add-AnalyzedResultInformation @params
+                    }
+
+                    if (($webSite.Hsts.NativeHstsSettings.enabled) -and
+                    ($webSite.Hsts.HstsViaCustomHeader.enabled)) {
+                        $showAdditionalHstsInformation = $true
+                        Write-Verbose "HSTS conflict detected"
+                        $params = $baseParams + @{
+                            Details                = ("HSTS configured via customHeader and native IIS control - please remove one configuration" +
+                                "`r`n`t`tHSTS native IIS control has a higher weight than the customHeader and will be used")
+                            DisplayWriteType       = "Yellow"
+                            TestingName            = "hsts-conflict"
+                            DisplayTestingValue    = $true
+                            DisplayCustomTabNumber = 2
+                        }
+                        Add-AnalyzedResultInformation @params
+                    }
+
+                    if ($webSite.Hsts.NativeHstsSettings.enabled) {
+                        Write-Verbose "HSTS configured via native IIS control"
+                        $hstsConfiguration = $webSite.Hsts.NativeHstsSettings
+                    } else {
+                        Write-Verbose "HSTS configured via customHeader"
+                        $hstsConfiguration = $webSite.Hsts.HstsViaCustomHeader
+                    }
+
+                    $maxAgeValue = $hstsConfiguration.'max-age'
+                    if ($maxAgeValue -lt 31536000) {
+                        $showAdditionalHstsInformation = $true
+                        $hstsMaxAgeWriteType = "Yellow"
+                    }
+                    $params = $baseParams + @{
+                        Details                = "max-age: $maxAgeValue"
+                        DisplayWriteType       = $hstsMaxAgeWriteType
+                        TestingName            = "hsts-max-age-$($webSite.Name)"
+                        DisplayTestingValue    = $maxAgeValue
+                        DisplayCustomTabNumber = 2
+                    }
+                    Add-AnalyzedResultInformation @params
+
+                    $params = $baseParams + @{
+                        Details                = "includeSubDomains: $($hstsConfiguration.includeSubDomains)"
+                        TestingName            = "hsts-includeSubDomains-$($webSite.Name)"
+                        DisplayTestingValue    = $hstsConfiguration.includeSubDomains
+                        DisplayCustomTabNumber = 2
+                    }
+                    Add-AnalyzedResultInformation @params
+
+                    $params = $baseParams + @{
+                        Details                = "preload: $($hstsConfiguration.preload)"
+                        TestingName            = "hsts-preload-$($webSite.Name)"
+                        DisplayTestingValue    = $hstsConfiguration.preload
+                        DisplayCustomTabNumber = 2
+                    }
+                    Add-AnalyzedResultInformation @params
+
+                    $redirectHttpToHttpsConfigured = $hstsConfiguration.redirectHttpToHttps
+                    $params = $baseParams + @{
+                        Details                = "redirectHttpToHttps: $redirectHttpToHttpsConfigured"
+                        TestingName            = "hsts-redirectHttpToHttps-$($webSite.Name)"
+                        DisplayTestingValue    = $redirectHttpToHttpsConfigured
+                        DisplayCustomTabNumber = 2
+                    }
+                    if ($redirectHttpToHttpsConfigured) {
+                        $showAdditionalHstsInformation = $true
+                        $params.Add("DisplayWriteType", "Red")
+                    }
+                    Add-AnalyzedResultInformation @params
+                }
+            }
+
+            if ($showAdditionalHstsInformation) {
+                $params = $baseParams + @{
+                    Details                = "`r`n`t`tMore Information about HSTS: https://aka.ms/HC-HSTS"
+                    DisplayWriteType       = "Yellow"
+                    TestingName            = 'hsts-MoreInfo'
+                    DisplayTestingValue    = $true
+                    DisplayCustomTabNumber = 2
+                }
+                Add-AnalyzedResultInformation @params
+            }
         }
     } elseif ($null -ne $exchangeInformation.IISSettings.ApplicationHostConfig) {
         Write-Verbose "Wasn't able find any other IIS settings, likely due to application host config file being messed up."

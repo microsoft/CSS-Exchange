@@ -35,6 +35,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-HttpProxySetting { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetHttpProxySetting1.xml" }
             Mock Get-AcceptedDomain { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAcceptedDomain_Problem.xml" }
             Mock Test-Path -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\FrontEnd\HttpProxy\SharedWebConfig.config" } -MockWith { return $false }
+            Mock Get-WebSite -ParameterFilter { $Name -eq "Default Web Site" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\IIS\GetWebSite_DefaultWebSite1.xml" }
+            Mock Get-WebSite -ParameterFilter { $Name -eq "Exchange Back End" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\IIS\GetWebSite_ExchangeBackEnd1.xml" }
             # Needs to be like this to match the filter
             Mock Get-WebConfigFile -ParameterFilter { $PSPath -eq "IIS:\Sites\Exchange Back End/ecp" } -MockWith { return [PSCustomObject]@{ FullName = "$Script:MockDataCollectionRoot\Exchange\IIS\ClientAccess\ecp\web.config" } }
             Mock Get-WebConfigFile -ParameterFilter { $PSPath -eq "IIS:\Sites\Default Web Site/ecp" } -MockWith { return [PSCustomObject]@{ FullName = "$Script:MockDataCollectionRoot\Exchange\IIS\DefaultWebSite_web.config" } }
@@ -107,6 +109,27 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "Testing Bin Search Folder Not Found" {
             TestObjectMatch "Bin Search Folder Not Found" $true -WriteType "Red"
+        }
+
+        It "Testing Native HSTS Default Web Site config" {
+            #Native Default Web Site
+            TestObjectMatch "hsts-Enabled-Default Web Site" $true -WriteType "Green"
+            TestObjectMatch "hsts-max-age-Default Web Site" 300 -WriteType "Yellow"
+            TestObjectMatch "hsts-includeSubDomains-Default Web Site" $false
+            TestObjectMatch "hsts-preload-Default Web Site" $false
+            TestObjectMatch "hsts-redirectHttpToHttps-Default Web Site" $false
+        }
+
+        It "Testing Native HSTS Default Web Site config" {
+            #Native Exchange Back End
+            TestObjectMatch "hsts-Enabled-Exchange Back End" $true -WriteType "Red"
+            TestObjectMatch "hsts-max-age-Exchange Back End" 31536000 -WriteType "Green" # Going to be green even on backend
+            TestObjectMatch "hsts-includeSubDomains-Exchange Back End" $false
+            TestObjectMatch "hsts-preload-Exchange Back End" $false
+            TestObjectMatch "hsts-redirectHttpToHttps-Exchange Back End" $true -WriteType "Red"
+            TestObjectMatch "hsts-BackendNotSupported" $true -WriteType "Red"
+
+            TestObjectMatch "hsts-MoreInfo" $true -WriteType "Yellow"
         }
 
         It "Server Pending Reboot" {
