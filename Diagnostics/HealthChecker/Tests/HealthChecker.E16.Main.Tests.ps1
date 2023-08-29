@@ -99,7 +99,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "RSS Enabled" "True" -WriteType "Green"
             TestObjectMatch "Link Speed" "10000 Mbps"
             TestObjectMatch "IPv6 Enabled" "True"
-            TestObjectMatch "Address" "192.168.5.11\24 Gateway: 192.168.5.1"
+            TestObjectMatch "Address" "192.168.5.11/24 Gateway: 192.168.5.1"
             TestObjectMatch "Registered In DNS" "True"
             TestObjectMatch "Packets Received Discarded" 0 -WriteType "Green"
 
@@ -116,8 +116,9 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "Credential Guard Enabled" $false
             TestObjectMatch "EdgeTransport.exe.config Present" "True" -WriteType "Green"
             TestObjectMatch "Open Relay Wild Card Domain" "Not Set"
+            TestObjectMatch "HSTS Enabled" "False"
 
-            $Script:ActiveGrouping.Count | Should -Be 9
+            $Script:ActiveGrouping.Count | Should -Be 10
         }
 
         It "Display Results - Security Settings" {

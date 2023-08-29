@@ -159,7 +159,7 @@ function Invoke-AnalyzerNicSettings {
         Add-AnalyzedResultInformation -Name "IPv4 Address" @baseParams
 
         foreach ($address in $adapter.IPv4Addresses) {
-            $displayValue = "{0}\{1}" -f $address.Address, $address.Subnet
+            $displayValue = "{0}/{1}" -f $address.Address, $address.Subnet
 
             if ($address.DefaultGateway -ne [string]::Empty) {
                 $displayValue += " Gateway: {0}" -f $address.DefaultGateway

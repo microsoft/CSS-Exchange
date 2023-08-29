@@ -99,7 +99,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "RSS Enabled" "True" -WriteType "Green"
             TestObjectMatch "Link Speed" "10000 Mbps"
             TestObjectMatch "IPv6 Enabled" "True"
-            TestObjectMatch "Address" "192.168.11.11\24 Gateway: 192.168.11.1"
+            TestObjectMatch "Address" "192.168.11.11/24 Gateway: 192.168.11.1"
             TestObjectMatch "Registered In DNS" "True"
             TestObjectMatch "Packets Received Discarded" 0 -WriteType "Green"
 
@@ -117,8 +117,9 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Credential Guard Enabled" $false
             TestObjectMatch "EdgeTransport.exe.config Present" "True" -WriteType "Green"
             TestObjectMatch "Open Relay Wild Card Domain" "Not Set"
+            TestObjectMatch "HSTS Enabled" "False"
 
-            $Script:ActiveGrouping.Count | Should -Be 9
+            $Script:ActiveGrouping.Count | Should -Be 10
         }
 
         It "Display Results - Security Settings" {
@@ -161,6 +162,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_Processor" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\Physical_Win32_Processor.xml" }
             Mock Get-ExSetupDetails { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup1.xml" }
+            Mock Get-WebSite -ParameterFilter { $Name -eq "Default Web Site" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\IIS\GetWebSite_DefaultWebSite1.xml" }
+            Mock Get-WebConfigFile -ParameterFilter { $PSPath -eq "IIS:\Sites\Default Web Site" } -MockWith { return [PSCustomObject]@{ FullName = "$Script:MockDataCollectionRoot\Exchange\IIS\DefaultWebSite_web2.config" } }
             Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost2.config" -Raw }
 
             SetDefaultRunOfHealthChecker "Debug_Physical_Results.xml"
@@ -202,6 +205,17 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Sleepy NIC Disabled" "True"
 
             $Script:ActiveGrouping.Count | Should -Be 18
+        }
+
+        It "Display Results - Frequent Configuration Issues" {
+            SetActiveDisplayGrouping "Frequent Configuration Issues"
+            TestObjectMatch "hsts-Enabled-Default Web Site" $true -WriteType "Green"
+            TestObjectMatch "hsts-max-age-Default Web Site" 300 -WriteType "Yellow"
+            TestObjectMatch "hsts-includeSubDomains-Default Web Site" $false
+            TestObjectMatch "hsts-preload-Default Web Site" $false
+            TestObjectMatch "hsts-redirectHttpToHttps-Default Web Site" $false
+            TestObjectMatch "hsts-conflict" $true -WriteType "Yellow"
+            TestObjectMatch "hsts-MoreInfo" $true -WriteType "Yellow"
         }
 
         It "Display Results - Security Settings" {
