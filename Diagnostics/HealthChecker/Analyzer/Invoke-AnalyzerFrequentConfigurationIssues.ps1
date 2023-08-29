@@ -392,8 +392,11 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
                 if (($webSite.Hsts.NativeHstsSettings.enabled) -or
                     ($webSite.Hsts.HstsViaCustomHeader.enabled)) {
                     $params = $baseParams + @{
-                        Details          = "HSTS Enabled: $($webSite.Name)"
-                        DisplayWriteType = if ($isExchangeBackEnd) { "Red" } else { "Green" }
+                        Name                = "HSTS Enabled"
+                        Details             = "$($webSite.Name)"
+                        TestingName         = "hsts-Enabled-$($webSite.Name)"
+                        DisplayTestingValue = $true
+                        DisplayWriteType    = if ($isExchangeBackEnd) { "Red" } else { "Green" }
                     }
                     Add-AnalyzedResultInformation @params
 
@@ -402,6 +405,8 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
                         $params = $baseParams + @{
                             Details                = "HSTS on 'Exchange Back End' is not supported and can cause issues"
                             DisplayWriteType       = "Red"
+                            TestingName            = "hsts-BackendNotSupported"
+                            DisplayTestingValue    = $true
                             DisplayCustomTabNumber = 2
                         }
                         Add-AnalyzedResultInformation @params
@@ -415,6 +420,8 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
                             Details                = ("HSTS configured via customHeader and native IIS control - please remove one configuration" +
                                 "`r`n`t`tHSTS native IIS control has a higher weight than the customHeader and will be used")
                             DisplayWriteType       = "Yellow"
+                            TestingName            = "hsts-conflict"
+                            DisplayTestingValue    = $true
                             DisplayCustomTabNumber = 2
                         }
                         Add-AnalyzedResultInformation @params
@@ -436,18 +443,24 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
                     $params = $baseParams + @{
                         Details                = "max-age: $maxAgeValue"
                         DisplayWriteType       = $hstsMaxAgeWriteType
+                        TestingName            = "hsts-max-age-$($webSite.Name)"
+                        DisplayTestingValue    = $maxAgeValue
                         DisplayCustomTabNumber = 2
                     }
                     Add-AnalyzedResultInformation @params
 
                     $params = $baseParams + @{
                         Details                = "includeSubDomains: $($hstsConfiguration.includeSubDomains)"
+                        TestingName            = "hsts-includeSubDomains-$($webSite.Name)"
+                        DisplayTestingValue    = $hstsConfiguration.includeSubDomains
                         DisplayCustomTabNumber = 2
                     }
                     Add-AnalyzedResultInformation @params
 
                     $params = $baseParams + @{
                         Details                = "preload: $($hstsConfiguration.preload)"
+                        TestingName            = "hsts-preload-$($webSite.Name)"
+                        DisplayTestingValue    = $hstsConfiguration.preload
                         DisplayCustomTabNumber = 2
                     }
                     Add-AnalyzedResultInformation @params
@@ -455,6 +468,8 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
                     $redirectHttpToHttpsConfigured = $hstsConfiguration.redirectHttpToHttps
                     $params = $baseParams + @{
                         Details                = "redirectHttpToHttps: $redirectHttpToHttpsConfigured"
+                        TestingName            = "hsts-redirectHttpToHttps-$($webSite.Name)"
+                        DisplayTestingValue    = $redirectHttpToHttpsConfigured
                         DisplayCustomTabNumber = 2
                     }
                     if ($redirectHttpToHttpsConfigured) {
@@ -469,6 +484,8 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
                 $params = $baseParams + @{
                     Details                = "`r`n`t`tMore Information about HSTS: https://aka.ms/HC-HSTS"
                     DisplayWriteType       = "Yellow"
+                    TestingName            = 'hsts-MoreInfo'
+                    DisplayTestingValue    = $true
                     DisplayCustomTabNumber = 2
                 }
                 Add-AnalyzedResultInformation @params
