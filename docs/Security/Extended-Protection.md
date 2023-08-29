@@ -165,7 +165,7 @@ Enabling Extended Protection involves making many changes on all Exchange server
 | Default Website  | EWS                         | Accept (UI) /Allow (Script)     | Ssl,Ssl128                  |
 | Default Website  | MAPI                        | Required                        | Ssl,Ssl128                  |
 | Default Website  | Microsoft-Server-ActiveSync | Accept (UI) /Allow (Script)     | Ssl,Ssl128                  |
-| Default Website  | OAB                         | Required                        | Ssl,Ssl128                  |
+| Default Website  | OAB                         | Accept (UI) /Allow (Script)     | Ssl,Ssl128                  |
 | Default Website  | OWA                         | Required                        | Ssl,Ssl128                  |
 | Default Website  | PowerShell                  | Required                        | SslNegotiateCert            |
 | Default Website  | RPC                         | Required                        | Ssl,Ssl128                  |
