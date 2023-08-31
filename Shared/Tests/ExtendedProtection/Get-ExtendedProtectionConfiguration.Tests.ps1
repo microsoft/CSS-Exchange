@@ -7,7 +7,7 @@ param()
 BeforeAll {
     $Script:parentPath = (Split-Path -Parent $PSScriptRoot)
     $Script:Server = $env:COMPUTERNAME
-    . $Script:parentPath\Get-ExtendedProtectionConfiguration.ps1
+    . $Script:parentPath\..\Get-ExtendedProtectionConfiguration.ps1
 
     function Invoke-CatchActions {
         param()
@@ -110,28 +110,28 @@ BeforeAll {
         }
     }
 
-    $Script:E15_NotConfigured_Both_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E15_NotConfigured_Both_ApplicationHost.config
-    $Script:E15_NotConfigured_Cas_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E15_NotConfigured_Cas_ApplicationHost.config
-    $Script:E15_NotConfigured_Mbx_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E15_NotConfigured_Mbx_ApplicationHost.config
-    $Script:E16_NotConfigured_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E16_NotConfigured_ApplicationHost.config
-    $Script:E19_NotConfigured_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E19_NotConfigured_ApplicationHost.config
+    $Script:E15_NotConfigured_Both_ApplicationHost = LoadApplicationHostConfig -Path $PSScriptRoot\Data\E15_NotConfigured_Both_ApplicationHost.config
+    $Script:E15_NotConfigured_Cas_ApplicationHost = LoadApplicationHostConfig -Path $PSScriptRoot\Data\E15_NotConfigured_Cas_ApplicationHost.config
+    $Script:E15_NotConfigured_Mbx_ApplicationHost = LoadApplicationHostConfig -Path $PSScriptRoot\Data\E15_NotConfigured_Mbx_ApplicationHost.config
+    $Script:E16_NotConfigured_ApplicationHost = LoadApplicationHostConfig -Path $PSScriptRoot\Data\E16_NotConfigured_ApplicationHost.config
+    $Script:E19_NotConfigured_ApplicationHost = LoadApplicationHostConfig -Path $PSScriptRoot\Data\E19_NotConfigured_ApplicationHost.config
 
-    $Script:E15_Configured_Both_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E15_Configured_Both_ApplicationHost.config
-    $Script:E15_Configured_Cas_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E15_Configured_Cas_ApplicationHost.config
-    $Script:E15_Configured_Mbx_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E15_Configured_Mbx_ApplicationHost.config
-    $Script:E16_Configured_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E16_Configured_ApplicationHost.config
-    $Script:E16_Configured_IPFilter_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E16_Configured_IPFilter_ApplicationHost.config
-    $Script:E19_Configured_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E19_Configured_ApplicationHost.config
-    $Script:E19_Configured_IPFilter_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E19_Configured_IPFilter_ApplicationHost.config
+    $Script:E15_Configured_Both_ApplicationHost = LoadApplicationHostConfig -Path $PSScriptRoot\Data\E15_Configured_Both_ApplicationHost.config
+    $Script:E15_Configured_Cas_ApplicationHost = LoadApplicationHostConfig -Path $PSScriptRoot\Data\E15_Configured_Cas_ApplicationHost.config
+    $Script:E15_Configured_Mbx_ApplicationHost = LoadApplicationHostConfig -Path $PSScriptRoot\Data\E15_Configured_Mbx_ApplicationHost.config
+    $Script:E16_Configured_ApplicationHost = LoadApplicationHostConfig -Path $PSScriptRoot\Data\E16_Configured_ApplicationHost.config
+    $Script:E16_Configured_IPFilter_ApplicationHost = LoadApplicationHostConfig -Path $PSScriptRoot\Data\E16_Configured_IPFilter_ApplicationHost.config
+    $Script:E19_Configured_ApplicationHost = LoadApplicationHostConfig -Path $PSScriptRoot\Data\E19_Configured_ApplicationHost.config
+    $Script:E19_Configured_IPFilter_ApplicationHost = LoadApplicationHostConfig -Path $PSScriptRoot\Data\E19_Configured_IPFilter_ApplicationHost.config
 
-    $Script:E19_MisConfigured_ApplicationHost = LoadApplicationHostConfig -Path $Script:parentPath\Tests\Data\E19_MisConfigured_ApplicationHost.config
+    $Script:E19_MisConfigured_ApplicationHost = LoadApplicationHostConfig -Path $PSScriptRoot\Data\E19_MisConfigured_ApplicationHost.config
 }
 
 Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
 
     Context "No ExSetupVersion Passed To The Function" {
         BeforeAll {
-            Mock Get-Command { return Import-Clixml -Path $Script:parentPath\Tests\Data\GetCommand.xml }
+            Mock Get-Command { return Import-Clixml -Path $PSScriptRoot\Data\GetCommand.xml }
 
             $mockParams = @{
                 ComputerName          = $Server
