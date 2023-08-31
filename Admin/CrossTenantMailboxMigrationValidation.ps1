@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 #Requires -Version 5.1
-#Requires -Modules AzureAD, ExchangeOnlineManagement
+#Requires -Modules ExchangeOnlineManagement, Microsoft.Graph.Applications
 
 <#
 .SYNOPSIS
@@ -35,9 +35,14 @@
 
     PRE-REQUISITES:
     -Please make sure you have at least the Exchange Online V2 Powershell module (https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2?view=exchange-ps#install-and-maintain-the-exo-v2-module)
-    -You would need the Azure AD Module (https://docs.microsoft.com/en-us/powershell/azure/active-directory/install-adv2?view=azureadps-2.0#installing-the-azure-ad-module)
+    -You would need the Microsoft Graph PowerShell SDK Module (https://learn.microsoft.com/en-us/powershell/microsoftgraph/installation?view=graph-powershell-1.0)
     -Also, depending on the parameters you specify, you will be prompted for the SourceTenantId and TargetTenantId (i.e.: if you choose to run the script with the "CheckOrgs" parameter). To obtain the tenant ID of a subscription, sign in to the Microsoft 365 admin center and go to https://aad.portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/Properties. Click the copy icon for the Tenant ID property to copy it to the clipboard.
 
+.PARAMETER SkipVersionCheck
+        This will allow you to skip the version check and run the existing local version of the script. This parameter is optional.
+
+.PARAMETER ScriptUpdateOnly
+        This will allow you to check if there's a newer version available on CSS-Exchange repository without performing any additional checks, and will download it if so. This parameter is optional.
 
 .PARAMETER CheckObjects
         This will allow you to perform the checks for the Source Mailbox and Target MailUser objects you provide. If used without the "-CSV" parameter, you will be prompted to type the identities.. If used with the '-SourceIsOffline' you also need to specify the '-PathForCollectedData' parameter
@@ -79,11 +84,11 @@
 
 .EXAMPLE
         .\CrossTenantMailboxMigrationValidation.ps1 -CheckOrgs -LogPath C:\Temp\LogFile.txt
-        This will prompt you for the sourceTenantId and TargetTenantId, establish 3 remote powershell sessions (one to the source EXO tenant, one to the target EXO tenant and another one to AAD target tenant), and will validate the migration endpoint on the target tenant, AAD applicationId on target tenant and the Organization relationship on both tenants.
+        This will establish 4 remote powershell sessions (source and target EXO tenants, and source and target AAD tenants), and will validate the migration endpoint on the target tenant, AAD applicationId on target tenant and the Organization relationship on both tenants.
 
 .EXAMPLE
-        .\CrossTenantMailboxMigrationValidation.ps1 -SDP -LogPath C:\Temp\LogFile.txt
-        This will prompt you for the sourceTenantId and TargetTenantId, establish 3 remote powershell sessions (one to the source EXO tenant, one to the target EXO tenant and another one to AAD target tenant), and will collect all the relevant information (config-wise) so it can be used for troubleshooting and send it to Microsoft Support if needed.
+        .\CrossTenantMailboxMigrationValidation.ps1 -SDP -LogPath C:\Temp\LogFile.txt -PathForCollectedData C:\temp
+        This will establish 4 remote powershell sessions (source and target EXO tenants, and source and target AAD tenants), and will collect all the relevant information (config-wise) so it can be used for troubleshooting and send it to Microsoft Support if needed.
 
 .EXAMPLE
         .\CrossTenantMailboxMigrationValidation.ps1 -SourceIsOffline -PathForCollectedData C:\temp\CTMMCollectedSourceData.zip -CheckObjects -LogPath C:\temp\CTMMTarget.log
@@ -106,7 +111,11 @@ param (
     [Parameter(Mandatory = $False, ParameterSetName = "ObjectsValidation", HelpMessage = "Path pointing to the CSV containing the identities to validate. CheckObjects parameter needs also to be specified")]
     [Parameter(Mandatory = $True, ParameterSetName = "CollectMode", HelpMessage = "Path pointing to the CSV containing the identities to validate. CheckObjects parameter needs also to be specified")]
     [System.String]$CSV,
-    [Parameter(Mandatory = $True, HelpMessage = "Path pointing to the log file")]
+    [Parameter(Mandatory = $True, ParameterSetName = "ObjectsValidation", HelpMessage = "Path pointing to the log file")]
+    [Parameter(Mandatory = $True, ParameterSetName = "OfflineMode", HelpMessage = "Path pointing to the log file")]
+    [Parameter(Mandatory = $True, ParameterSetName = "CollectMode", HelpMessage = "Path pointing to the log file")]
+    [Parameter(Mandatory = $True, ParameterSetName = "OrgsValidation", HelpMessage = "Path pointing to the log file")]
+    [Parameter(Mandatory = $True, ParameterSetName = "SDP", HelpMessage = "Path pointing to the log file")]
     [System.String]$LogPath,
     [Parameter(Mandatory = $True, ParameterSetName = "OrgsValidation", HelpMessage = "Validate the organizations settings like organization relationships, migration endpoint and AADApplication")]
     [Parameter(Mandatory = $False, ParameterSetName = "OfflineMode", HelpMessage = "Validate the organizations settings like organization relationships, migration endpoint and AADApplication")]
@@ -120,9 +129,18 @@ param (
     [Parameter(Mandatory = $True, ParameterSetName = "OfflineMode", HelpMessage = "Path that will be used to store the collected data, you should specify the path and the zip file name")]
     [System.String]$PathForCollectedData,
     [Parameter(Mandatory = $false, ParameterSetName = "OfflineMode", HelpMessage = "Do not connect to source EXO tenant, but specify a zip file gathered when running the script with the 'CollectSourceOnly' parameter.")]
-    [System.Management.Automation.SwitchParameter]$SourceIsOffline
+    [System.Management.Automation.SwitchParameter]$SourceIsOffline,
+    [Parameter(Mandatory = $False, ParameterSetName = "ObjectsValidation")]
+    [Parameter(Mandatory = $False, ParameterSetName = "OfflineMode")]
+    [Parameter(Mandatory = $False, ParameterSetName = "CollectMode")]
+    [Parameter(Mandatory = $False, ParameterSetName = "OrgsValidation")]
+    [Parameter(Mandatory = $False, ParameterSetName = "SDP")]
+    [switch]$SkipVersionCheck,
+    [Parameter(Mandatory = $true, ParameterSetName = "ScriptUpdateOnly")]
+    [switch]$ScriptUpdateOnly
 )
 
+. $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 . $PSScriptRoot\..\Shared\OutputOverrides\Write-Host.ps1
 $wsh = New-Object -ComObject WScript.Shell
 
@@ -151,9 +169,9 @@ function ConnectToTargetEXOTenant {
 }
 function CheckObjects {
 
-    Write-Host "Informational: Loading SOURCE object"$SourceIdentity
+    Write-Host "Informational: Loading SOURCE object $($SourceIdentity)"
     $SourceObject = Get-SourceMailbox $SourceIdentity -ErrorAction SilentlyContinue
-    Write-Host "Informational: Loading TARGET object"$TargetIdentity
+    Write-Host "Informational: Loading TARGET object $($TargetIdentity)"
     $TargetObject = Get-TargetMailUser $TargetIdentity -ErrorAction SilentlyContinue
 
     #Validate if SourceObject is present
@@ -238,7 +256,7 @@ function CheckObjects {
                 #Verify if SOURCE mailbox has an Archive, and if it does, check if there's any item within recoverable items SubstrateHolds folder.
                 if ($SourceObject.ArchiveGUID -notmatch "00000000-0000-0000-0000-000000000000") {
                     Write-Verbose -Message "Informational: SOURCE mailbox has an Archive enabled, checking if there's any SubstrateHold folder present"
-                    $ArchiveSubstrateHolds = (Get-MailboxFolderStatistics $SourceObject.ArchiveGuid -FolderScope RecoverableItems | Where-Object { $_.Name -eq 'SubstrateHolds' })
+                    $ArchiveSubstrateHolds = (Get-SourceMailboxFolderStatistics $SourceObject.ArchiveGuid -FolderScope RecoverableItems -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq 'SubstrateHolds' })
                     if ($ArchiveSubstrateHolds) {
                         Write-Verbose -Message "Informational: SubstrateHolds folder found in SOURCE Archive mailbox, checking if there's any content inside it"
                         if (($ArchiveSubstrateHolds).ItemsInFolder -gt 0) {
@@ -278,7 +296,7 @@ function CheckObjects {
                 } else {
                     Write-Host ">> Error: ExchangeGuid mismatch. Expected value: $($SourceObject.ExchangeGuid) ,Current value: $($TargetObject.ExchangeGuid)" -ForegroundColor Red
                     $ExchangeGuidSetOption = Read-Host "Would you like to set it? (Y/N)"
-                    Write-Host " Your input: "$ExchangeGuidSetOption
+                    Write-Host " Your input: $($ExchangeGuidSetOption)"
                     if ($ExchangeGuidSetOption.ToLower() -eq "y") {
                         Write-Verbose -Message "Informational: Setting correct ExchangeGUID on TARGET object"
                         Set-TargetMailUser $TargetIdentity -ExchangeGuid $SourceObject.ExchangeGuid
@@ -303,7 +321,7 @@ function CheckObjects {
                     } else {
                         Write-Host ">> Error: ArchiveGuid mismatch. Expected Value: $($SourceObject.ArchiveGuid) , Current value: $($TargetObject.ArchiveGuid)" -ForegroundColor Red
                         $ArchiveGuidSetOption = Read-Host "Would you like to set it? (Y/N)"
-                        Write-Host " Your input: "$ArchiveGuidSetOption
+                        Write-Host " Your input: $($ArchiveGuidSetOption)"
                         if ($ArchiveGuidSetOption.ToLower() -eq "y") {
                             Write-Verbose -Message "Informational: Setting correct ArchiveGUID on TARGET object"
                             Set-TargetMailUser $TargetIdentity -ArchiveGuid $SourceObject.ArchiveGuid
@@ -325,10 +343,10 @@ function CheckObjects {
                 if ($TargetObject.EmailAddresses -contains "X500:" + $SourceObject.LegacyExchangeDN) {
                     Write-Host ">> LegacyExchangeDN found as an X500 ProxyAddress on Target Object." -ForegroundColor Green
                 } else {
-                    Write-Host ">> Error: LegacyExchangeDN not found as an X500 ProxyAddress on Target Object. LegacyExchangeDN expected on target object:" $SourceObject.LegacyExchangeDN -ForegroundColor Red
+                    Write-Host ">> Error: LegacyExchangeDN not found as an X500 ProxyAddress on Target Object. LegacyExchangeDN expected on target object: $($SourceObject.LegacyExchangeDN)" -ForegroundColor Red
                     if (!$TargetObject.IsDirSynced) {
                         $LegDNAddOption = Read-Host "Would you like to add it? (Y/N)"
-                        Write-Host " Your input: "$LegDNAddOption
+                        Write-Host " Your input: $($LegDNAddOption)"
                         if ($LegDNAddOption.ToLower() -eq "y") {
                             Write-Verbose -Message "Informational: Adding LegacyExchangeDN as a proxyAddress on TARGET object"
                             Set-TargetMailUser $TargetIdentity -EmailAddresses @{Add = "X500:" + $SourceObject.LegacyExchangeDN }
@@ -350,7 +368,7 @@ function CheckObjects {
                     if (!$TargetObject.IsDirSynced) {
                         Write-Host ">> Error: The Primary SMTP address $($TargetObject.PrimarySmtpAddress) of the MailUser does not belong to an accepted domain on the target tenant, would you like to set it to $($TargetObject.UserPrincipalName) (Y/N): " -ForegroundColor Red -NoNewline
                         $PrimarySMTPAddressSetOption = Read-Host
-                        Write-Host " Your input: "$PrimarySMTPAddressSetOption
+                        Write-Host " Your input: $($PrimarySMTPAddressSetOption)"
                         if ($PrimarySMTPAddressSetOption.ToLower() -eq "y") {
                             Write-Verbose -Message "Informational: Setting the UserPrincipalName of TARGET object as the PrimarySMTPAddress"
                             Set-TargetMailUser $TargetIdentity -PrimarySmtpAddress $TargetObject.UserPrincipalName
@@ -370,17 +388,17 @@ function CheckObjects {
                     if ($Address.StartsWith("SMTP:") -or $Address.StartsWith("smtp:")) {
                         if ($TargetTenantAcceptedDomains.DomainName -notcontains $Address.Split("@")[1]) {
                             if (!$TargetObject.IsDirSynced) {
-                                Write-Host ">> Error:"$Address" is not part of your organization, would you like to remove it? (Y/N): " -ForegroundColor Red -NoNewline
+                                Write-Host ">> Error: $($Address) is not part of your organization, would you like to remove it? (Y/N): " -ForegroundColor Red -NoNewline
                                 $RemoveAddressOption = Read-Host
-                                Write-Host " Your input: "$RemoveAddressOption
+                                Write-Host " Your input: $($RemoveAddressOption)"
                                 if ($RemoveAddressOption.ToLower() -eq "y") {
-                                    Write-Host "Informational: Removing the EmailAddress"$Address" from the TARGET object"
+                                    Write-Host "Informational: Removing the EmailAddress $($Address) from the TARGET object"
                                     Set-TargetMailUser $TargetIdentity -EmailAddresses @{Remove = $Address }
                                     #Reload TARGET object into variable as it has been changed
                                     $TargetObject = Get-TargetMailUser $TargetIdentity
                                 }
                             } else {
-                                Write-Host ">> Error:"$Address" is not part of your organization. The object is DirSynced and this is not a change that can be done directly on EXO. Please do remove the address from on-premises and perform an AADConnect delta sync" -ForegroundColor Red
+                                Write-Host ">> Error: $($Address) is not part of your organization. The object is DirSynced and this is not a change that can be done directly on EXO. Please do remove the address from on-premises and perform an AADConnect delta sync" -ForegroundColor Red
                             }
                         }
                     } else {
@@ -395,17 +413,17 @@ function CheckObjects {
                     foreach ($Address in ($SourceObject.EmailAddresses | Where-Object { $_ -like '*500:*' })) {
                         if ($TargetObject.EmailAddresses -notcontains $Address) {
                             if (!$TargetObject.IsDirSynced) {
-                                Write-Host ">> Error:"$Address" is not present on the TARGET MailUser, would you like to add it? (Y/N): " -ForegroundColor Red -NoNewline
+                                Write-Host ">> Error: $($Address) is not present on the TARGET MailUser, would you like to add it? (Y/N): " -ForegroundColor Red -NoNewline
                                 $AddX500 = Read-Host
-                                Write-Host " Your input: "$AddX500
+                                Write-Host " Your input: $($AddX500)"
                                 if ($AddX500.ToLower() -eq "y") {
-                                    Write-Host "Informational: Adding the X500 Address"$Address" on the TARGET object"
+                                    Write-Host "Informational: Adding the X500 Address $($Address) on the TARGET object"
                                     Set-TargetMailUser $TargetIdentity -EmailAddresses @{Add = $Address }
                                     #Reload TARGET object into variable as it has been changed
                                     $TargetObject = Get-TargetMailUser $TargetIdentity
                                 }
                             } else {
-                                Write-Host ">> Error:"$Address" is not present on the TARGET MailUser and the object is DirSynced. This is not a change that can be done directly on EXO, please add the X500 address from on-premises and perform an AADConnect delta sync" -ForegroundColor Red
+                                Write-Host ">> Error: $($Address) is not present on the TARGET MailUser and the object is DirSynced. This is not a change that can be done directly on EXO, please add the X500 address from on-premises and perform an AADConnect delta sync" -ForegroundColor Red
                             }
                         } else {
                             Write-Host ">> Informational: The X500 address from SOURCE object is present on TARGET object" -ForegroundColor Green
@@ -423,9 +441,9 @@ function CheckObjects {
                     if (!$TargetObject.IsDirSynced) {
                         Write-Host ">> Error: TargetMailUser ExternalEmailAddress value $($TargetObject.ExternalEmailAddress) does not match the PrimarySMTPAddress of the SourceMailbox $($SourceObject.PrimarySmtpAddress) , would you like to set it? (Y/N): " -ForegroundColor Red -NoNewline
                         $RemoveAddressOption = Read-Host
-                        Write-Host " Your input: "$RemoveAddressOption
+                        Write-Host " Your input: $($RemoveAddressOption)"
                         if ($RemoveAddressOption.ToLower() -eq "y") {
-                            Write-Host "Informational: Setting the ExternalEmailAddress of SOURCE object to"$SourceObject.PrimarySmtpAddress
+                            Write-Host "Informational: Setting the ExternalEmailAddress of SOURCE object to $($SourceObject.PrimarySmtpAddress)"
                             Set-TargetMailUser $TargetIdentity -ExternalEmailAddress $SourceObject.PrimarySmtpAddress
                             #Reload TARGET object into variable as it has been changed
                             $TargetObject = Get-TargetMailUser $TargetIdentity
@@ -446,9 +464,9 @@ function CheckObjects {
 }
 function CheckObjectsSourceOffline {
 
-    Write-Host "Informational: Loading SOURCE object"$SourceIdentity
+    Write-Host "Informational: Loading SOURCE object $($SourceIdentity)"
     $SourceObject = Import-Clixml $OutputPath\SourceMailbox_$SourceIdentity.xml
-    Write-Host "Informational: Loading TARGET object"$TargetIdentity
+    Write-Host "Informational: Loading TARGET object $($TargetIdentity)"
     $TargetObject = Get-TargetMailUser $TargetIdentity -ErrorAction SilentlyContinue
 
     #Validate if SourceObject is present
@@ -519,15 +537,19 @@ function CheckObjectsSourceOffline {
                 #Verify if SOURCE mailbox has an Archive, and if it does, check if there's any item within recoverable items SubstrateHolds folder.
                 if ($SourceObject.ArchiveGUID -notmatch "00000000-0000-0000-0000-000000000000") {
                     Write-Verbose -Message "Informational: SOURCE mailbox has an Archive enabled, checking if there's any SubstrateHold folder present"
-                    $ArchiveMailboxFolderStatistics = Import-Clixml $OutputPath\ArchiveMailboxStatistics_$SourceIdentity.xml
-                    if ($ArchiveMailboxFolderStatistics.Name -eq 'SubstrateHolds') {
-                        if ($ArchiveMailboxFolderStatistics.ItemsInFolder -gt 0) {
-                            Write-Host ">> Error: SOURCE Archive mailbox has items within the SubstrateHolds folder and this will cause the migration to fail. Please work on removing those items with MFCMapi manually before creating the move for this mailbox" -ForegroundColor Red
+                    if (Test-Path $OutputPath\ArchiveMailboxStatistics_$SourceIdentity.xml) {
+                        $ArchiveMailboxFolderStatistics = Import-Clixml $OutputPath\ArchiveMailboxStatistics_$SourceIdentity.xml
+                        if ($ArchiveMailboxFolderStatistics.Name -eq 'SubstrateHolds') {
+                            if ($ArchiveMailboxFolderStatistics.ItemsInFolder -gt 0) {
+                                Write-Host ">> Error: SOURCE Archive mailbox has items within the SubstrateHolds folder and this will cause the migration to fail. Please work on removing those items with MFCMapi manually before creating the move for this mailbox" -ForegroundColor Red
+                            } else {
+                                Write-Verbose -Message "Informational: No items found within the Archive mailbox SubstrateHolds folder"
+                            }
                         } else {
-                            Write-Verbose -Message "Informational: No items found within the Archive mailbox SubstrateHolds folder"
+                            Write-Verbose -Message "Informational: No SubstrateHolds folder found in SOURCE Archive mailbox"
                         }
                     } else {
-                        Write-Verbose -Message "Informational: No SubstrateHolds folder found in SOURCE Archive mailbox"
+                        Write-Verbose -Message "Informational: SOURCE archive mailbox had no recoverable items"
                     }
                 } else {
                     Write-Verbose -Message "Informational: SOURCE mailbox has no Archive enabled. Skipping Archive mailbox SubstrateHolds folder check"
@@ -561,7 +583,7 @@ function CheckObjectsSourceOffline {
                 } else {
                     Write-Host ">> Error: ExchangeGuid mismatch. Expected value: $($SourceObject.ExchangeGuid) ,Current value: $($TargetObject.ExchangeGuid)" -ForegroundColor Red
                     $ExchangeGuidSetOption = Read-Host "Would you like to set it? (Y/N)"
-                    Write-Host " Your input: "$ExchangeGuidSetOption
+                    Write-Host " Your input: $($ExchangeGuidSetOption)"
                     if ($ExchangeGuidSetOption.ToLower() -eq "y") {
                         Write-Verbose -Message "Informational: Setting correct ExchangeGUID on TARGET object"
                         Set-TargetMailUser $TargetIdentity -ExchangeGuid $SourceObject.ExchangeGuid
@@ -586,7 +608,7 @@ function CheckObjectsSourceOffline {
                     } else {
                         Write-Host ">> Error: ArchiveGuid mismatch. Expected Value: $($SourceObject.ArchiveGuid) , Current value: $($TargetObject.ArchiveGuid)" -ForegroundColor Red
                         $ArchiveGuidSetOption = Read-Host "Would you like to set it? (Y/N)"
-                        Write-Host " Your input: "$ArchiveGuidSetOption
+                        Write-Host " Your input: $($ArchiveGuidSetOption)"
                         if ($ArchiveGuidSetOption.ToLower() -eq "y") {
                             Write-Verbose -Message "Informational: Setting correct ArchiveGUID on TARGET object"
                             Set-TargetMailUser $TargetIdentity -ArchiveGuid $SourceObject.ArchiveGuid
@@ -608,10 +630,10 @@ function CheckObjectsSourceOffline {
                 if ($TargetObject.EmailAddresses -contains "X500:" + $SourceObject.LegacyExchangeDN) {
                     Write-Host ">> LegacyExchangeDN found as an X500 ProxyAddress on Target Object." -ForegroundColor Green
                 } else {
-                    Write-Host ">> Error: LegacyExchangeDN not found as an X500 ProxyAddress on Target Object. LegacyExchangeDN expected on target object:" $SourceObject.LegacyExchangeDN -ForegroundColor Red
+                    Write-Host ">> Error: LegacyExchangeDN not found as an X500 ProxyAddress on Target Object. LegacyExchangeDN expected on target object: $($SourceObject.LegacyExchangeDN)" -ForegroundColor Red
                     if (!$TargetObject.IsDirSynced) {
                         $LegDNAddOption = Read-Host "Would you like to add it? (Y/N)"
-                        Write-Host " Your input: "$LegDNAddOption
+                        Write-Host " Your input: $($LegDNAddOption)"
                         if ($LegDNAddOption.ToLower() -eq "y") {
                             Write-Verbose -Message "Informational: Adding LegacyExchangeDN as a proxyAddress on TARGET object"
                             Set-TargetMailUser $TargetIdentity -EmailAddresses @{Add = "X500:" + $SourceObject.LegacyExchangeDN }
@@ -633,7 +655,7 @@ function CheckObjectsSourceOffline {
                     if (!$TargetObject.IsDirSynced) {
                         Write-Host ">> Error: The Primary SMTP address $($TargetObject.PrimarySmtpAddress) of the MailUser does not belong to an accepted domain on the target tenant, would you like to set it to $($TargetObject.UserPrincipalName) (Y/N): " -ForegroundColor Red -NoNewline
                         $PrimarySMTPAddressSetOption = Read-Host
-                        Write-Host " Your input: "$PrimarySMTPAddressSetOption
+                        Write-Host " Your input: $($PrimarySMTPAddressSetOption)"
                         if ($PrimarySMTPAddressSetOption.ToLower() -eq "y") {
                             Write-Verbose -Message "Informational: Setting the UserPrincipalName of TARGET object as the PrimarySMTPAddress"
                             Set-TargetMailUser $TargetIdentity -PrimarySmtpAddress $TargetObject.UserPrincipalName
@@ -653,17 +675,17 @@ function CheckObjectsSourceOffline {
                     if ($Address.StartsWith("SMTP:") -or $Address.StartsWith("smtp:")) {
                         if ($TargetTenantAcceptedDomains.DomainName -notcontains $Address.Split("@")[1]) {
                             if (!$TargetObject.IsDirSynced) {
-                                Write-Host ">> Error:"$Address" is not part of your organization, would you like to remove it? (Y/N): " -ForegroundColor Red -NoNewline
+                                Write-Host ">> Error: $($Address) is not part of your organization, would you like to remove it? (Y/N): " -ForegroundColor Red -NoNewline
                                 $RemoveAddressOption = Read-Host
-                                Write-Host " Your input: "$RemoveAddressOption
+                                Write-Host " Your input: $($RemoveAddressOption)"
                                 if ($RemoveAddressOption.ToLower() -eq "y") {
-                                    Write-Host "Informational: Removing the EmailAddress"$Address" from the TARGET object"
+                                    Write-Host "Informational: Removing the EmailAddress $($Address) from the TARGET object"
                                     Set-TargetMailUser $TargetIdentity -EmailAddresses @{Remove = $Address }
                                     #Reload TARGET object into variable as it has been changed
                                     $TargetObject = Get-TargetMailUser $TargetIdentity
                                 }
                             } else {
-                                Write-Host ">> Error:"$Address" is not part of your organization. The object is DirSynced and this is not a change that can be done directly on EXO, please remove the address from on-premises and perform an AADConnect delta sync" -ForegroundColor Red
+                                Write-Host ">> Error: $($Address) is not part of your organization. The object is DirSynced and this is not a change that can be done directly on EXO, please remove the address from on-premises and perform an AADConnect delta sync" -ForegroundColor Red
                             }
                         }
                     } else {
@@ -678,17 +700,17 @@ function CheckObjectsSourceOffline {
                     foreach ($Address in ($SourceObject.EmailAddresses | Where-Object { $_ -like '*500:*' })) {
                         if ($TargetObject.EmailAddresses -notcontains $Address) {
                             if (!$TargetObject.IsDirSynced) {
-                                Write-Host ">> Error:"$Address" is not present on the TARGET MailUser, would you like to add it? (Y/N): " -ForegroundColor Red -NoNewline
+                                Write-Host ">> Error: $($Address) is not present on the TARGET MailUser, would you like to add it? (Y/N): " -ForegroundColor Red -NoNewline
                                 $AddX500 = Read-Host
-                                Write-Host " Your input: "$AddX500
+                                Write-Host " Your input: $($AddX500)"
                                 if ($AddX500.ToLower() -eq "y") {
-                                    Write-Host "Informational: Adding the X500 Address"$Address" on the TARGET object"
+                                    Write-Host "Informational: Adding the X500 Address $($Address) on the TARGET object"
                                     Set-TargetMailUser $TargetIdentity -EmailAddresses @{Add = $Address }
                                     #Reload TARGET object into variable as it has been changed
                                     $TargetObject = Get-TargetMailUser $TargetIdentity
                                 }
                             } else {
-                                Write-Host ">> Error:"$Address" is not present on the TARGET MailUser. The object is DirSynced and this is not a change that can be done directly on EXO, please add the address on-premises and perform an AADConnect delta sync" -ForegroundColor Red
+                                Write-Host ">> Error: $($Address) is not present on the TARGET MailUser. The object is DirSynced and this is not a change that can be done directly on EXO, please add the address on-premises and perform an AADConnect delta sync" -ForegroundColor Red
                             }
                         } else {
                             Write-Host ">> Informational: The X500 address from SOURCE object is present on TARGET object" -ForegroundColor Green
@@ -706,9 +728,9 @@ function CheckObjectsSourceOffline {
                     if (!$TargetObject.IsDirSynced) {
                         Write-Host ">> Error: TargetMailUser ExternalEmailAddress value $($TargetObject.ExternalEmailAddress) does not match the PrimarySMTPAddress of the SourceMailbox $($SourceObject.PrimarySmtpAddress) , would you like to set it? (Y/N): " -ForegroundColor Red -NoNewline
                         $RemoveAddressOption = Read-Host
-                        Write-Host " Your input: "$RemoveAddressOption
+                        Write-Host " Your input: $($RemoveAddressOption)"
                         if ($RemoveAddressOption.ToLower() -eq "y") {
-                            Write-Host "Informational: Setting the ExternalEmailAddress of SOURCE object to"$SourceObject.PrimarySmtpAddress
+                            Write-Host "Informational: Setting the ExternalEmailAddress of SOURCE object to $($SourceObject.PrimarySmtpAddress)"
                             Set-TargetMailUser $TargetIdentity -ExternalEmailAddress $SourceObject.PrimarySmtpAddress
                             #Reload TARGET object into variable as it has been changed
                             $TargetObject = Get-TargetMailUser $TargetIdentity
@@ -731,13 +753,13 @@ function ConnectToSourceTenantAAD {
     #Connect to TargetTenant (AzureAD)
     Write-Verbose -Message "Informational: Connecting to AAD on SOURCE tenant"
     $wsh.Popup("You're about to connect to source tenant (AAD), please provide the SOURCE tenant admin credentials", 0, "SOURCE tenant") | Out-Null
-    Connect-AzureAD | Out-Null
+    Connect-MgGraph -Scopes 'Application.Read.All' | Out-Null
 }
 function ConnectToTargetTenantAAD {
     #Connect to TargetTenant (AzureAD)
     Write-Verbose -Message "Informational: Connecting to AAD on TARGET tenant"
     $wsh.Popup("You're about to connect to target tenant (AAD), please provide the TARGET tenant admin credentials", 0, "TARGET tenant") | Out-Null
-    Connect-AzureAD | Out-Null
+    Connect-MgGraph -Scopes 'Application.Read.All' | Out-Null
 }
 function CheckOrgs {
     #Check if there's an AAD app on the TARGET tenant as expected and load it onto a variable
@@ -754,7 +776,7 @@ function CheckOrgs {
     }
 
     # Check if there's an AAD app on the SOURCE tenant that matches the TargetTenantId
-    if (($SourceAADApp | Where-Object { $_.Appid -eq $TargetAADApp.Appid }).AppOwnerTenantId -eq $TargetTenantId) {
+    if (($SourceAADApp | Where-Object { $_.Appid -eq $TargetAADApp.Appid }).AppOwnerOrganizationId -eq $TargetTenantId) {
         Write-Host "AAD application for EXO has been found on SOURCE tenant matching TARGET tenant" -ForegroundColor Green
         Write-Verbose -Message "Informational: AAD Application matching SOURCE AppId has been found on TARGET tenant"
     } else {
@@ -778,7 +800,7 @@ function CheckOrgs {
         if ($TargetTenantOrgRelationship.MailboxMoveCapability -eq "Inbound") {
             Write-Host "Organization relationship on TARGET tenant MailboxMove is correctly set" -ForegroundColor Green
         } else {
-            Write-Host ">> Error: Organization relationship on TARGET tenant MailboxMove is not correctly set. The expected value is 'Inbound' and the current value is"$TargetTenantOrgRelationship.MailboxMoveCapability -ForegroundColor Red
+            Write-Host ">> Error: Organization relationship on TARGET tenant MailboxMove is not correctly set. The expected value is 'Inbound' and the current value is $($TargetTenantOrgRelationship.MailboxMoveCapability)" -ForegroundColor Red
         }
     } else {
         Write-Host ">> Error: No Organization relationship on TARGET tenant pointing to SourceTenantId has been found" -ForegroundColor Red
@@ -800,7 +822,7 @@ function CheckOrgs {
         }
 
         else {
-            Write-Host ">> Error: Organization relationship on SOURCE tenant MailboxMove is not correctly set. The expected value is 'RemoteOutbound' and the current value is"$TargetTenantOrgRelationship.MailboxMoveCapability -ForegroundColor Red
+            Write-Host ">> Error: Organization relationship on SOURCE tenant MailboxMove is not correctly set. The expected value is 'RemoteOutbound' and the current value is $($TargetTenantOrgRelationship.MailboxMoveCapability)" -ForegroundColor Red
         }
     } else {
         Write-Host ">> Error: Organization relationship on TARGET tenant mailbox is not enabled for moves" -ForegroundColor Red
@@ -822,7 +844,7 @@ function CheckOrgsSourceOffline {
     }
 
     # Check if there's an AAD app on the SOURCE tenant that matches the TargetTenantId
-    if (($SourceAADApp | Where-Object { $_.Appid -eq $TargetAADApp.Appid }).AppOwnerTenantId -eq $TargetTenantId) {
+    if (($SourceAADApp | Where-Object { $_.Appid -eq $TargetAADApp.Appid }).AppOwnerOrganizationId -eq $TargetTenantId) {
         Write-Host "AAD application for EXO has been found on SOURCE tenant matching TARGET tenant" -ForegroundColor Green
         Write-Verbose -Message "Informational: AAD Application matching SOURCE AppId has been found on TARGET tenant"
     } else {
@@ -832,7 +854,6 @@ function CheckOrgsSourceOffline {
     #Check orgRelationship flags on source and target orgs
     Write-Verbose -Message "Informational: Loading Organization Relationship on SOURCE tenant that meets the criteria"
     $SourceTenantOrgRelationship = (Import-Clixml $OutputPath\SourceOrgRelationship.xml)
-    $SourceTenantOrgRelationship | Where-Object { $_.OauthApplicationId -eq $TargetAADApp.AppId }
     Write-Verbose -Message "Informational: Loading Organization Relationship on TARGET tenant that meets the criteria"
     $TargetTenantOrgRelationship = Get-TargetOrganizationRelationship | Where-Object { $_.DomainNames -contains $SourceTenantId }
 
@@ -847,7 +868,7 @@ function CheckOrgsSourceOffline {
         if ($TargetTenantOrgRelationship.MailboxMoveCapability -eq "Inbound") {
             Write-Host "Organization relationship on TARGET tenant MailboxMove is correctly set" -ForegroundColor Green
         } else {
-            Write-Host ">> Error: Organization relationship on TARGET tenant MailboxMove is not correctly set. The expected value is 'Inbound' and the current value is"$TargetTenantOrgRelationship.MailboxMoveCapability -ForegroundColor Red
+            Write-Host ">> Error: Organization relationship on TARGET tenant MailboxMove is not correctly set. The expected value is 'Inbound' and the current value is $($TargetTenantOrgRelationship.MailboxMoveCapability)" -ForegroundColor Red
         }
     } else {
         Write-Host ">> Error: No Organization relationship on TARGET tenant pointing to SourceTenantId has been found" -ForegroundColor Red
@@ -869,7 +890,7 @@ function CheckOrgsSourceOffline {
         }
 
         else {
-            Write-Host ">> Error: Organization relationship on SOURCE tenant MailboxMove is not correctly set. The expected value is 'RemoteOutbound' and the current value is"$TargetTenantOrgRelationship.MailboxMoveCapability -ForegroundColor Red
+            Write-Host ">> Error: Organization relationship on SOURCE tenant MailboxMove is not correctly set. The expected value is 'RemoteOutbound' and the current value is $($TargetTenantOrgRelationship.MailboxMoveCapability)" -ForegroundColor Red
         }
     } else {
         Write-Host ">> Error: Organization relationship on TARGET tenant mailbox is not enabled for moves" -ForegroundColor Red
@@ -894,6 +915,8 @@ function CollectDataForSDP {
     "SourceTenantId: " + $SourceTenantId | Out-File $OutputPath\TenantIds.txt
     Write-Host "Informational: Saving TARGET tenant id to text file"  -ForegroundColor Yellow
     "TargetTenantId: " + $TargetTenantId | Out-File $OutputPath\TenantIds.txt -Append
+    Write-Host "Informational: Exporting the SOURCE tenant Azure AD service principals" -ForegroundColor Yellow
+    $SourceAADApp | Export-Clixml $OutputPath\SourceAADApps.xml
     Write-Host "Informational: Exporting the SOURCE tenant organization relationship"  -ForegroundColor Yellow
     Get-SourceOrganizationRelationship | Export-Clixml $OutputPath\SourceOrgRelationship.xml
     Write-Host "Informational: Exporting the TARGET tenant migration endpoint"  -ForegroundColor Yellow
@@ -903,7 +926,7 @@ function CollectDataForSDP {
     Write-Host "Informational: Exporting the TARGET tenant accepted domains"  -ForegroundColor Yellow
     Get-TargetAcceptedDomain | Export-Clixml $OutputPath\TargetAcceptedDomains.xml
     Write-Host "Informational: Exporting the TARGET tenant Azure AD applications" -ForegroundColor Yellow
-    Get-AzureADApplication | Export-Clixml $OutputPath\TargetAADApps.xml
+    Get-MgApplication | Where-Object { ($_.Web.RedirectUris -eq "https://office.com") -and ($_.RequiredResourceAccess.ResourceAppId -like "*00000002-0000-0ff1-ce00-000000000000*") } | Export-Clixml $OutputPath\TargetAADApps.xml
 
     #Compress folder contents into a zip file
     Write-Host "Informational: Data has been exported. Compressing it into a ZIP file"  -ForegroundColor Yellow
@@ -911,26 +934,32 @@ function CollectDataForSDP {
         try {
             Compress-Archive -Path $OutputPath\*.XML -DestinationPath $PathForCollectedData\CTMMCollectedData$currentDate.zip -Force
             Compress-Archive -Path $OutputPath\TenantIds.txt -DestinationPath $PathForCollectedData\CTMMCollectedData$currentDate.zip -Update
-            Write-Host "Informational: ZIP file has been generated with a total of $((Get-ChildItem $OutputPath).count) files, and can be found at"$PathForCollectedData\CTMMCollectedData$currentDate.zip" so it can be sent to Microsoft Support if needed, however you can still access the raw data at $($OutputPath)"  -ForegroundColor Yellow
+            Write-Host "Informational: ZIP file has been generated with a total of $((Get-ChildItem $OutputPath).count) files, and can be found at $($PathForCollectedData)\CTMMCollectedData$currentDate.zip so it can be sent to Microsoft Support if needed, however you can still access the raw data at $($OutputPath)"  -ForegroundColor Yellow
         } catch {
             Write-Host ">> Error: There was an issue trying to compress the exported data" -ForegroundColor Red
         }
     } else {
-        Write-Host ">> Error: No data has been detected at"$OutputPath", so there's nothing to compress" -ForegroundColor Red
+        Write-Host ">> Error: No data has been detected at $($OutputPath), so there's nothing to compress" -ForegroundColor Red
     }
 }
 function CollectSourceData {
     #Collect the source Exchange Online data of the provided mailboxes via CSV file and export it to an XML file including mailbox diagnostic logs and mailbox statistics
-    Write-Host "Informational: Exporting the SOURCE mailbox properties for" $SourceIdentity -ForegroundColor Yellow
-    Get-SourceMailbox $SourceIdentity | Export-Clixml $OutputPath\SourceMailbox_$SourceIdentity.xml
+    Write-Host "Informational: Exporting the SOURCE mailbox properties for $($SourceIdentity)" -ForegroundColor Yellow
+    $SourceObject = Get-SourceMailbox $SourceIdentity
+    $SourceObject | Export-Clixml $OutputPath\SourceMailbox_$SourceIdentity.xml
 
-    Write-Host "Informational: Exporting the SOURCE mailbox diagnostic logs for" $SourceIdentity -ForegroundColor Yellow
+    Write-Host "Informational: Exporting the SOURCE mailbox diagnostic logs for $($SourceIdentity)" -ForegroundColor Yellow
     Export-SourceMailboxDiagnosticLogs $SourceIdentity -ComponentName HoldTracking | Export-Clixml $OutputPath\MailboxDiagnosticLogs_$SourceIdentity.xml
 
-    Write-Host "Informational: Exporting the SOURCE mailbox statistics for" $SourceIdentity -ForegroundColor Yellow
+    Write-Host "Informational: Exporting the SOURCE mailbox statistics for $($SourceIdentity)" -ForegroundColor Yellow
     Get-SourceMailboxStatistics $SourceIdentity | Export-Clixml $OutputPath\MailboxStatistics_$SourceIdentity.xml
-    if (Get-SourceMailbox $SourceIdentity.ArchiveGuid -notmatch "00000000-0000-0000-0000-000000000000") {
-        Get-SourceMailboxFolderStatistics $SourceIdentity.ArchiveGuid -FolderScope RecoverableItems | Where-Object { $_.Name -eq 'SubstrateHolds' } | Export-Clixml $OutputPath\ArchiveMailboxStatistics_$SourceIdentity.xml
+    if ($SourceObject.ArchiveGuid -notmatch "00000000-0000-0000-0000-000000000000") {
+        $SourceArchiveRI = Get-SourceMailboxFolderStatistics $SourceObject.ArchiveGuid -FolderScope RecoverableItems -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq 'SubstrateHolds' }
+        if ($SourceArchiveRI) {
+            $SourceArchiveRI | Export-Clixml $OutputPath\ArchiveMailboxStatistics_$SourceIdentity.xml
+        } else {
+            Write-Host "Informational: The Archive mailbox is present but there are no recoverable items present. Bypassing the export" -ForegroundColor Yellow
+        }
     }
 }
 function ExpandCollectedData {
@@ -960,6 +989,21 @@ function LoggingOn {
 }
 function LoggingOff {
     Stop-Transcript
+}
+
+if ($ScriptUpdateOnly) {
+    switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/CrossTenantMailboxMigrationValidationScript-VersionsURL" -Confirm:$false) {
+    ($true) { Write-Host ("Script was successfully updated") -ForegroundColor Green }
+    ($false) { Write-Host ("No update of the script performed") -ForegroundColor Yellow }
+        default { Write-Host (">> Error: Unable to perform ScriptUpdateOnly operation") -ForegroundColor Red }
+    }
+    return
+}
+
+if ((-not($SkipVersionCheck)) -and
+    (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/CrossTenantMailboxMigrationValidationScript-VersionsURL" -Confirm:$false)) {
+    Write-Host ("Script was updated. Please re-run the script") -ForegroundColor Yellow
+    return
 }
 
 if ($CheckObjects -and !$NoConn -and !$SourceIsOffline) {
@@ -1001,15 +1045,17 @@ if ($CheckObjects -and !$NoConn -and !$SourceIsOffline) {
 if ($CheckOrgs -and !$SourceIsOffline) {
     LoggingOn
     ConnectToSourceTenantAAD
-    $SourceTenantId = (Get-AzureADTenantDetail).ObjectId
-    Write-Verbose -Message "Informational: SourceTenantId gathered from AzureADTenantDetail.ObjectId: $SourceTenantId"
-    $SourceAADApp = Get-AzureADServicePrincipal -All $true
-    Write-Verbose -Message "Informational: AAD apps gathered from AzureADServicePrincipal"
+    $SourceTenantId = (Get-MgOrganization).id
+    Write-Verbose -Message "Informational: SourceTenantId gathered from (Get-MgOrganization).id: $SourceTenantId"
+    $SourceAADApp = Get-MgServicePrincipal -All
+    Write-Verbose -Message "Informational: AAD apps gathered from MgServicePrincipal"
+    Disconnect-MgGraph | Out-Null
     ConnectToTargetTenantAAD
-    $TargetTenantId = (Get-AzureADTenantDetail).ObjectId
-    Write-Verbose -Message "Informational: TargetTenantId gathered from AzureADTenantDetail.ObjectId: $TargetTenantId"
+    $TargetTenantId = (Get-MgOrganization).id
+    Write-Verbose -Message "Informational: TargetTenantId gathered from (Get-MgOrganization).id: $TargetTenantId"
     Write-Verbose -Message "Informational: Checking if there's already an AAD Application on TARGET tenant that meets the criteria"
-    $TargetAADApp = Get-AzureADApplication | Where-Object { ($_.ReplyUrls -eq "https://office.com") -and ($_.RequiredResourceAccess -like "*ResourceAppId: 00000002-0000-0ff1-ce00-000000000000*") }
+    $TargetAADApp = Get-MgApplication | Where-Object { ($_.Web.RedirectUris -eq "https://office.com") -and ($_.RequiredResourceAccess.ResourceAppId -like "*00000002-0000-0ff1-ce00-000000000000*") }
+    Disconnect-MgGraph | Out-Null
     ConnectToEXOTenants
     CheckOrgs
     LoggingOff
@@ -1019,35 +1065,38 @@ if ($CheckOrgs -and !$SourceIsOffline) {
 if ($SDP) {
     LoggingOn
     ConnectToEXOTenants
+    ConnectToSourceTenantAAD
+    $SourceTenantId = (Get-MgOrganization).id
+    $SourceAADApp = Get-MgServicePrincipal -All
+    Disconnect-MgGraph | Out-Null
     ConnectToTargetTenantAAD
-    $SourceTenantId = Read-Host "Please specify the SOURCE TenantId"
-    $TargetTenantId = (Get-AzureADTenantDetail).ObjectId
+    $TargetTenantId = (Get-MgOrganization).id
     CollectDataForSDP
+    Disconnect-MgGraph | Out-Null
     LoggingOff
     KillSessions
 }
 
 if ($CollectSourceOnly -and $CSV) {
     LoggingOn
+    #Create the folders based on date and time to store the files
+    $currentDate = (Get-Date).ToString('ddMMyyHHMM')
+    if (Test-Path $PathForCollectedData -PathType Container) {
+        $OutputPath = New-Item -ItemType Directory -Path $PathForCollectedData -Name $currentDate | Out-Null
+        $OutputPath = $PathForCollectedData + '\' + $currentDate
+    } else {
+        Write-Host ">> Error: The specified folder at the PathForCollectedData parameter doesn't exist, please specify an existent one and make sure you only specify a path with no filename" -ForegroundColor Red
+        exit
+    }
     ConnectToSourceTenantAAD
-    $SourceTenantId = (Get-AzureADTenantDetail).ObjectId
-    Write-Verbose -Message "SourceTenantId gathered from AzureADTenantDetail.ObjectId: $SourceTenantId"
+    $SourceTenantId = (Get-MgOrganization).id
+    Write-Verbose -Message "SourceTenantId gathered from (Get-MgOrganization).id: $SourceTenantId"
     Write-Verbose -Message "Gathering AAD Service Principals"
-    Get-AzureADServicePrincipal -all $True | Where-Object { $_.ReplyUrls -eq 'https://office.com' } | Export-Clixml $OutputPath\SourceAADServicePrincipals.xml
+    Get-MgServicePrincipal -All | Where-Object { $_.ReplyUrls -eq 'https://office.com' } | Export-Clixml $OutputPath\SourceAADServicePrincipals.xml
     $Objects = Import-Csv $CSV
     if ($Objects.SourceUser) {
         Write-Verbose -Message "Informational: CSV file contains the SourceUser column, now we need to connect to the source EXO tenant"
         ConnectToSourceEXOTenant
-
-        #Create the folders based on date and time to store the files
-        $currentDate = (Get-Date).ToString('ddMMyyHHMM')
-        if (Test-Path $PathForCollectedData -PathType Container) {
-            $OutputPath = New-Item -ItemType Directory -Path $PathForCollectedData -Name $currentDate | Out-Null
-            $OutputPath = $PathForCollectedData + '\' + $currentDate
-        } else {
-            Write-Host ">> Error: The specified folder doesn't exist, please specify an existent one" -ForegroundColor Red
-            exit
-        }
 
         #Collect the TenantId and OrganizationConfig only once and leave the foreach only to mailboxes we need to collect data from
         Write-Host "Informational: Saving SOURCE tenant id to text file"  -ForegroundColor Yellow
@@ -1083,17 +1132,18 @@ if ($CollectSourceOnly -and $CSV) {
             try {
                 Copy-Item $CSV -Destination $OutputPath\UsersToProcess.csv
                 Compress-Archive -Path $OutputPath\*.* -DestinationPath $PathForCollectedData\CTMMCollectedSourceData.zip -Force
-                Write-Host "Informational: ZIP file has been generated with a total of $((Get-ChildItem $OutputPath).count) files, and can be found at"$PathForCollectedData\CTMMCollectedSourceData.zip" so it can be sent to the target tenant administrator, however you can still access the raw data at $($OutputPath)"  -ForegroundColor Yellow
+                Write-Host "Informational: ZIP file has been generated with a total of $((Get-ChildItem $OutputPath).count) files, and can be found at $($PathForCollectedData)\CTMMCollectedSourceData.zip so it can be sent to the target tenant administrator, however you can still access the raw data at $($OutputPath)"  -ForegroundColor Yellow
             } catch {
                 Write-Host ">> Error: There was an issue trying to compress the exported data" -ForegroundColor Red
             }
         } else {
-            Write-Host ">> Error: No data has been detected at"$OutputPath", so there's nothing to compress" -ForegroundColor Red
+            Write-Host ">> Error: No data has been detected at $($OutputPath), so there's nothing to compress" -ForegroundColor Red
         }
     } else {
         Write-Host ">> Error: Invalid CSV file, please make sure you specify a correct one with the 'SourceUser' column" -ForegroundColor Red
         exit
     }
+    Disconnect-MgGraph | Out-Null
     LoggingOff
     KillSessions
 }
@@ -1129,13 +1179,15 @@ if ($SourceIsOffline -and $PathForCollectedData -and $CheckOrgs) {
     ConnectToTargetTenantAAD
     $SourceTenantId = Get-Content $OutputPath\SourceTenantId.txt
     Write-Verbose -Message "SourceTenantId gathered from SourceTenantId.txt: $SourceTenantId"
-    $TargetTenantId = (Get-AzureADTenantDetail).ObjectId
-    Write-Verbose -Message "TargetTenantId gathered from AzureADTenantDetail.ObjectId: $TargetTenantId"
+    $TargetTenantId = (Get-MgOrganization).id
+    Write-Verbose -Message "TargetTenantId gathered from (Get-MgOrganization).id: $TargetTenantId"
     $SourceAADApp = (Import-Clixml $OutputPath\SourceAADServicePrincipals.xml)
     Write-Verbose -Message "Informational: Checking if there's already an AAD Application on TARGET tenant that meets the criteria"
-    $TargetAADApp = Get-AzureADApplication | Where-Object { ($_.ReplyUrls -eq "https://office.com") -and ($_.RequiredResourceAccess -like "*ResourceAppId: 00000002-0000-0ff1-ce00-000000000000*") }
+    $TargetAADApp = Get-MgApplication | Where-Object { ($_.Web.RedirectUris -eq "https://office.com") -and ($_.RequiredResourceAccess.ResourceAppId -like "*00000002-0000-0ff1-ce00-000000000000*") }
     ConnectToTargetEXOTenant
     CheckOrgsSourceOffline
+    Disconnect-MgGraph | Out-Null
     LoggingOff
     KillSessions
 }
+
