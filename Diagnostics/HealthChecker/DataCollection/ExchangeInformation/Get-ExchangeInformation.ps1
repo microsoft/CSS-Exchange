@@ -1,12 +1,13 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\..\..\..\..\Security\src\ExchangeExtendedProtectionManagement\DataCollection\Get-ExtendedProtectionConfiguration.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Get-ExtendedProtectionConfiguration.ps1
 . $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeBuildVersionInformation.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeSettingOverride.ps1
 . $PSScriptRoot\IISInformation\Get-ExchangeAppPoolsInformation.ps1
 . $PSScriptRoot\IISInformation\Get-ExchangeServerIISSettings.ps1
+. $PSScriptRoot\Get-ExchangeAES256CBCDetails.ps1
 . $PSScriptRoot\Get-ExchangeApplicationConfigurationFileValidation.ps1
 . $PSScriptRoot\Get-ExchangeConnectors.ps1
 . $PSScriptRoot\Get-ExchangeDependentServices.ps1
@@ -147,6 +148,13 @@ function Get-ExchangeInformation {
             }
         }
         $eemsEndpointResults = Invoke-ScriptBlockHandler @eemsEndpointParams
+
+        Write-Verbose "Checking AES256-CBC information protection readiness and configuration"
+        $aes256CbcParams = @{
+            Server             = $Server
+            VersionInformation = $versionInformation
+        }
+        $aes256CbcDetails = Get-ExchangeAES256CBCDetails @aes256CbcParams
     } end {
 
         Write-Verbose "Exiting: Get-ExchangeInformation"
@@ -169,6 +177,7 @@ function Get-ExchangeInformation {
             IISSettings                              = $iisSettings
             SettingOverrides                         = $settingOverrides
             FIPFSUpdateIssue                         = $FIPFSUpdateIssue
+            AES256CBCInformation                     = $aes256CbcDetails
         }
     }
 }

@@ -173,14 +173,24 @@ Describe "Testing Get-ExchangeBuildVersionInformation.ps1" {
                     ForEach-Object { [System.Version]$_ } |
                     Sort-Object -Descending |
                     Select-Object -First 2
+
+                # RegEx to find if the latest is a v* version. Then we assume what we have set is correct and we don't test them.
                 $latestSU = Get-ExchangeBuildVersionInformation -FileVersion $latest2SUs[0]
                 $latestSU.Supported | Should -Be $true
                 $latestSU.LatestSU | Should -Be $true
+                $notSecondVersionSU = $null -eq ($latestSU.FriendlyName | Select-String "\D{3}\d{2}SUv\d")
 
-                if ($latest2SUs.Count -eq 2) {
+                if ($latest2SUs.Count -eq 2 -and
+                    $notSecondVersionSU) {
                     $latestSU = Get-ExchangeBuildVersionInformation -FileVersion $latest2SUs[1]
                     $latestSU.Supported | Should -Be $true
                     $latestSU.LatestSU | Should -Be $false
+                } elseif ($latest2SUs.Count -eq 2) {
+                    $secondSU = Get-ExchangeBuildVersionInformation -FileVersion $latest2SUs[1]
+                    $secondSU.Supported | Should -Be $true
+                    $latestSU.FriendlyName.Substring(0, $latestSU.FriendlyName.Length - 2) | Should -Be $secondSU.FriendlyName
+                    # This test could change depending on the reason for the v2 release.
+                    $secondSU.LatestSU | Should -Be $true
                 }
             }
         }
@@ -201,11 +211,19 @@ Describe "Testing Get-ExchangeBuildVersionInformation.ps1" {
             $latestSupportedSU = Get-ExchangeBuildVersionInformation -FileVersion $latestSupportedSUs[0]
             $latestSupportedSU.Supported | Should -Be $true
             $latestSupportedSU.LatestSU | Should -Be $true
+            $notSecondVersionSU = $null -eq ($latestSupportedSU.FriendlyName | Select-String "\D{3}\d{2}SUv\d")
 
-            if ($latestSupportedSUs.Count -eq 2) {
+            if ($latestSupportedSUs.Count -eq 2 -and
+                $notSecondVersionSU) {
                 $latestSupportedSU = Get-ExchangeBuildVersionInformation -FileVersion $latestSupportedSUs[1]
                 $latestSupportedSU.Supported | Should -Be $true
                 $latestSupportedSU.LatestSU | Should -Be $false
+            } elseif ($latestSupportedSUs.Count -eq 2) {
+                $secondSU = Get-ExchangeBuildVersionInformation -FileVersion $latestSupportedSUs[1]
+                $secondSU.Supported | Should -Be $true
+                $latestSupportedSU.FriendlyName.Substring(0, $latestSupportedSU.FriendlyName.Length - 2) | Should -Be $secondSU.FriendlyName
+                # This test could change depending on the reason for the v2 release.
+                $secondSU.LatestSU | Should -Be $true
             }
 
             $latestUnsupportedSUs = (GetExchangeBuildDictionary)["Exchange2019"][$unSupportedCU.CU].SU.Values |
@@ -240,9 +258,19 @@ Describe "Testing Get-ExchangeBuildVersionInformation.ps1" {
             $latestSU.Supported | Should -Be $true
             $latestSU.LatestSU | Should -Be $true
 
-            $previousSU = Get-ExchangeBuildVersionInformation -FileVersion $latest2SUs[1]
-            $previousSU.Supported | Should -Be $true
-            $previousSU.LatestSU | Should -Be $false
+            $notSecondVersionSU = $null -eq ($latestSU.FriendlyName | Select-String "\D{3}\d{2}SUv\d")
+
+            if ($notSecondVersionSU) {
+                $previousSU = Get-ExchangeBuildVersionInformation -FileVersion $latest2SUs[1]
+                $previousSU.Supported | Should -Be $true
+                $previousSU.LatestSU | Should -Be $false
+            } else {
+                $previousSU = Get-ExchangeBuildVersionInformation -FileVersion $latest2SUs[1]
+                $previousSU.Supported | Should -Be $true
+                $latestSU.FriendlyName.Substring(0, $latestSU.FriendlyName.Length - 2) | Should -Be $previousSU.FriendlyName
+                # This test could change depending on the reason for the v2 release.
+                $previousSU.LatestSU | Should -Be $true
+            }
 
             (Get-ExchangeBuildVersionInformation -FileVersion $latest2CUs[1]).Supported | Should -Be $false
         }

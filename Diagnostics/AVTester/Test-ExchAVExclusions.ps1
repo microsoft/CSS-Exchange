@@ -34,6 +34,12 @@ AV Modules loaded into Exchange Processes may indicate that AV Process Exclusion
 Will test not just the root folders but all SubFolders.
 Generally should not be needed unless all folders pass without -Recuse but AV is still suspected.
 
+.PARAMETER SkipVersionCheck
+Skip script version verification.
+
+.PARAMETER ScriptUpdateOnly
+Just update script version to latest one.
+
 .OUTPUTS
 Log file:
 $env:LOCALAPPDATA\ExchAvExclusions.log
@@ -55,23 +61,47 @@ Puts and removes an EICAR file in all test paths.
 Puts and Remove an EICAR file in all test paths + all SubFolders.
 
 #>
-[CmdletBinding()]
+[CmdletBinding(DefaultParameterSetName = 'Test')]
 param (
 
-    [Parameter()]
-    [switch]
-    $Recurse,
+    [Parameter(ParameterSetName = "Test")]
+    [switch]$Recurse,
 
-    [Parameter()]
-    [switch]
-    $OpenLog
+    [Parameter(ParameterSetName = "Test")]
+    [switch]$OpenLog,
+
+    [Parameter(ParameterSetName = "Test")]
+    [switch]$SkipVersionCheck,
+
+    [Parameter(Mandatory = $true, ParameterSetName = "ScriptUpdateOnly")]
+    [switch]$ScriptUpdateOnly
 )
 
 . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\..\Shared\Confirm-ExchangeShell.ps1
 . $PSScriptRoot\..\..\Shared\Get-ExchAVExclusions.ps1
+. $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 . $PSScriptRoot\Write-SimpleLogFile.ps1
 . $PSScriptRoot\Start-SleepWithProgress.ps1
+
+$BuildVersion = ""
+
+Write-Host ("Test-ExchAVExclusions.ps1 script version $($BuildVersion)") -ForegroundColor Green
+
+if ($ScriptUpdateOnly) {
+    switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/Test-ExchAVExclusions-VersionsURL" -Confirm:$false) {
+    ($true) { Write-Host ("Script was successfully updated") -ForegroundColor Green }
+    ($false) { Write-Host ("No update of the script performed") -ForegroundColor Yellow }
+        default { Write-Host ("Unable to perform ScriptUpdateOnly operation") -ForegroundColor Red }
+    }
+    return
+}
+
+if ((-not($SkipVersionCheck)) -and
+    (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/Test-ExchAVExclusions-VersionsURL" -Confirm:$false)) {
+    Write-Host ("Script was updated. Please re-run the command") -ForegroundColor Yellow
+    return
+}
 
 # Log file name
 $LogFile = "ExchAvExclusions.log"
@@ -115,6 +145,11 @@ if (-not($exchangeShell.ShellLoaded)) {
     exit
 }
 
+Write-SimpleLogFile -String ("###########################################################################################") -name $LogFile
+Write-SimpleLogFile -String ("Starting AV Exclusions analysis at $((Get-Date).ToString())") -name $LogFile
+Write-SimpleLogFile -String ("###########################################################################################") -name $LogFile
+Write-SimpleLogFile -String ("You can find a detailed log on: $($Env:LocalAppData)\$LogFile") -name $LogFile -OutHost
+
 # Create the Array List
 $BaseFolders = Get-ExchAVExclusionsPaths -ExchangePath $ExchangePath -MsiProductMinor ([byte]$serverExchangeInstallDirectory.MsiProductMinor)
 
@@ -126,13 +161,25 @@ if ( $BaseFolders.count -eq 0 ) {
 # Create list object to hold all Folders we are going to test
 $FolderList = New-Object Collections.Generic.List[string]
 
-# Make sure each folders in our list resolve
+$randomCharForWildCard = (Get-Random -Maximum 16).ToString('x')
+$nonExistentFolder = New-Object Collections.Generic.List[string]
+
 foreach ($path in $BaseFolders) {
     try {
+        if ($path -match '\?') {
+            $path = $path -replace '\?', $randomCharForWildCard
+            $FolderList.Add($path.ToLower())
+            $nonExistentFolder.Add($path.ToLower())
+            New-Item -Path (Split-Path $path) -Name $path.split('\')[-1] -ItemType Directory -Force | Out-Null
+            Write-SimpleLogFile -string ("Created folder: " + $path) -Name $LogFile
+        }
         # Resolve path only returns a bool so we have to manually throw to catch
         if (!(Resolve-Path -Path $path -ErrorAction SilentlyContinue)) {
-            throw "Failed to resolve"
+            $nonExistentFolder.Add($path.ToLower())
+            New-Item -Path (Split-Path $path) -Name $path.split('\')[-1] -ItemType Directory -Force | Out-Null
+            Write-SimpleLogFile -string ("Created folder: " + $path) -Name $LogFile
         }
+
         # If -recurse then we need to find all SubFolders and Add them to the list to be tested
         if ($Recurse) {
 
@@ -143,7 +190,7 @@ foreach ($path in $BaseFolders) {
             Get-ChildItem $path -Recurse -Directory -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName | ForEach-Object { $FolderList.Add($_.ToLower()) }
         }
         # Just Add the root folder
-        else { $FolderList.Add($path.ToLower()) }
+        $FolderList.Add($path.ToLower())
     } catch { Write-SimpleLogFile -string ("[ERROR] - Failed to resolve folder " + $path) -Name $LogFile }
 }
 
@@ -177,9 +224,7 @@ foreach ($Folder in $FolderList) {
         catch {
             Write-Warning "$Folder $eicarFullFileName file couldn't be created. Either permissions or AV prevented file creation."
         }
-    }
-
-    else {
+    } else {
         Write-SimpleLogFile -string ("[WARNING] - $eicarFullFileName already exists!: " + $FilePath) -name $LogFile -OutHost
     }
 }
@@ -188,7 +233,7 @@ foreach ($Folder in $FolderList) {
 $randomString = -join ((65..90) + (97..122) | Get-Random -Count 10 | ForEach-Object { [char]$_ })
 $randomFolder = New-Item -Path (Join-Path (Join-Path $env:SystemDrive '\') "TestExchAVExclusions-$randomString") -ItemType Directory
 $extensionsList = New-Object Collections.Generic.List[string]
-$extensionsList = Get-ExchAVExclusionsExtensions -ExchangePath $ExchangePath -MsiProductMinor ([byte]$serverExchangeInstallDirectory.MsiProductMinor)
+$extensionsList = Get-ExchAVExclusionsExtensions -MsiProductMinor ([byte]$serverExchangeInstallDirectory.MsiProductMinor)
 
 if ($randomFolder) {
     foreach ($extension in $extensionsList) {
@@ -269,6 +314,11 @@ foreach ($Folder in $FolderList) {
     else {
         Write-SimpleLogFile -String ("[FAIL] - Possible AV Scanning on Path: " + $Folder) -name $LogFile -OutHost
         $BadFolderList.Add($Folder)
+    }
+
+    if ($nonExistentFolder -contains $Folder) {
+        Remove-Item $Folder -Confirm:$false -Force -Recurse
+        Write-SimpleLogFile -string ("Removed folder: " + $Folder) -Name $LogFile
     }
 }
 
