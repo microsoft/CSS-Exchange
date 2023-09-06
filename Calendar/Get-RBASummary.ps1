@@ -463,44 +463,41 @@ function RBALogSummary {
 
     $RBALog = (Export-MailboxDiagnosticLogs $Identity -ComponentName RBA).MailboxLog -split "`\n"
 
-    if($RBALog.count -gt 1) {
-    
+    if ($RBALog.count -gt 1) {
         $Starts = $RBALog | Select-String -Pattern "START -"
-    
-        if($starts.count -gt 1) {
+
+        if ($starts.count -gt 1) {
             $LastDate = ($Starts[0] -Split ",")[0].Trim()
             $FirstDate = ($starts[$($Starts.count) -1 ] -Split ",")[0].Trim();
             Write-Host "The RBA Log for $Identity shows the following:"
             Write-Host "`t $($starts.count) Processed events times between $FirstDate and $LastDate"
         }
-    
-       $AcceptLogs = $RBALog | Select-String -Pattern "Action:Accept"
-       $DeclineLogs = $RBALog | Select-String -Pattern "Action:Decline"
-       $TentativeLogs = $RBALog | Select-String -Pattern "Action:Tentative"
-    
-        if($AcceptLogs.count -ne 0){
+
+        $AcceptLogs = $RBALog | Select-String -Pattern "Action:Accept"
+        $DeclineLogs = $RBALog | Select-String -Pattern "Action:Decline"
+        $TentativeLogs = $RBALog | Select-String -Pattern "Action:Tentative"
+
+        if ($AcceptLogs.count -ne 0) {
             $LastAccept = ($AcceptLogs[0] -Split ",")[0].Trim()
             Write-Host "`t $($AcceptLogs.count) were Accepted between $FirstDate and $LastDate"
             Write-Host "`t`t with the last meeting Accepted on $LastAccept"
         }
-        
-        if($TentativeLogs.count -ne 0) {
+
+        if ($TentativeLogs.count -ne 0) {
             $LastTentative = ($TentativeLogs[0] -Split ",")[0].Trim()
             Write-Host "`t $($TentativeLogs.count) Tentatively Accepted meetings between $FirstDate and $LastDate"
             Write-Host "`t`t with the last meeting Tentatively Accepted on $LastTentative"
-        }	
-        
-        if($DeclineLogs.count -ne 0) {
-            $LastDecline = ($DeclineLogs[0] -Split ",")[0].Trim()             
+        }
+
+        if ($DeclineLogs.count -ne 0) {
+            $LastDecline = ($DeclineLogs[0] -Split ",")[0].Trim()
             Write-Host "`t $($DeclineLogs.count) Declined meetings between $FirstDate and $LastDate"
             Write-Host "`t`t with the last meeting Declined on $LastDecline"
         }
-    }
-    else {
+    } else {
         Write-Warning "No RBA Logs found.  Send a test meeting invite to the room and try again if this is a newly created room mailbox."
-    }    
+    }
 }
-
 
 function Get-DashLine {
     [CmdletBinding()]
