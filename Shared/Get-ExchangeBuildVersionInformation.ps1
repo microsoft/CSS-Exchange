@@ -127,14 +127,16 @@ function Get-ExchangeBuildVersionInformation {
                     $cuReleaseDate = "05/03/2023"
                     $supportedBuildNumber = $true
                 }
-                (GetBuildVersion $ex19 "CU13" -SU "Jun23SU") { $latestSUBuild = $true }
+                (GetBuildVersion $ex19 "CU13" -SU "Aug23SUv2") { $latestSUBuild = $true }
+                (GetBuildVersion $ex19 "CU13" -SU "Aug23SU") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex19 "CU13") } {
                     $cuLevel = "CU12"
                     $cuReleaseDate = "04/20/2022"
                     $supportedBuildNumber = $true
                     $orgValue = 16760
                 }
-                (GetBuildVersion $ex19 "CU12" -SU "Jun23SU") { $latestSUBuild = $true }
+                (GetBuildVersion $ex19 "CU12" -SU "Aug23SUv2") { $latestSUBuild = $true }
+                (GetBuildVersion $ex19 "CU12" -SU "Aug23SU") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex19 "CU12") } {
                     $cuLevel = "CU11"
                     $cuReleaseDate = "09/28/2021"
@@ -221,7 +223,8 @@ function Get-ExchangeBuildVersionInformation {
                     $cuReleaseDate = "04/20/2022"
                     $supportedBuildNumber = $true
                 }
-                (GetBuildVersion $ex16 "CU23" -SU "Jun23SU") { $latestSUBuild = $true }
+                (GetBuildVersion $ex16 "CU23" -SU "Aug23SUv2") { $latestSUBuild = $true }
+                (GetBuildVersion $ex16 "CU23" -SU "Aug23SU") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex16 "CU23") } {
                     $cuLevel = "CU22"
                     $cuReleaseDate = "09/28/2021"
@@ -693,14 +696,16 @@ function GetExchangeBuildDictionary {
                     "Nov22SU" = "15.1.2375.37"
                 })
             "CU23" = (NewCUAndSUObject "15.1.2507.6" @{
-                    "May22SU" = "15.1.2507.9"
-                    "Aug22SU" = "15.1.2507.12"
-                    "Oct22SU" = "15.1.2507.13"
-                    "Nov22SU" = "15.1.2507.16"
-                    "Jan23SU" = "15.1.2507.17"
-                    "Feb23SU" = "15.1.2507.21"
-                    "Mar23SU" = "15.1.2507.23"
-                    "Jun23SU" = "15.1.2507.27"
+                    "May22SU"   = "15.1.2507.9"
+                    "Aug22SU"   = "15.1.2507.12"
+                    "Oct22SU"   = "15.1.2507.13"
+                    "Nov22SU"   = "15.1.2507.16"
+                    "Jan23SU"   = "15.1.2507.17"
+                    "Feb23SU"   = "15.1.2507.21"
+                    "Mar23SU"   = "15.1.2507.23"
+                    "Jun23SU"   = "15.1.2507.27"
+                    "Aug23SU"   = "15.1.2507.31"
+                    "Aug23SUv2" = "15.1.2507.32"
                 })
         }
         "Exchange2019" = @{
@@ -779,17 +784,21 @@ function GetExchangeBuildDictionary {
                     "Mar23SU" = "15.2.986.42"
                 })
             "CU12" = (NewCUAndSUObject "15.2.1118.7" @{
-                    "May22SU" = "15.2.1118.9"
-                    "Aug22SU" = "15.2.1118.12"
-                    "Oct22SU" = "15.2.1118.15"
-                    "Nov22SU" = "15.2.1118.20"
-                    "Jan23SU" = "15.2.1118.21"
-                    "Feb23SU" = "15.2.1118.25"
-                    "Mar23SU" = "15.2.1118.26"
-                    "Jun23SU" = "15.2.1118.30"
+                    "May22SU"   = "15.2.1118.9"
+                    "Aug22SU"   = "15.2.1118.12"
+                    "Oct22SU"   = "15.2.1118.15"
+                    "Nov22SU"   = "15.2.1118.20"
+                    "Jan23SU"   = "15.2.1118.21"
+                    "Feb23SU"   = "15.2.1118.25"
+                    "Mar23SU"   = "15.2.1118.26"
+                    "Jun23SU"   = "15.2.1118.30"
+                    "Aug23SU"   = "15.2.1118.36"
+                    "Aug23SUv2" = "15.2.1118.37"
                 })
             "CU13" = (NewCUAndSUObject "15.2.1258.12" @{
-                    "Jun23SU" = "15.2.1258.16"
+                    "Jun23SU"   = "15.2.1258.16"
+                    "Aug23SU"   = "15.2.1258.23"
+                    "Aug23SUv2" = "15.2.1258.25"
                 })
         }
     }

@@ -54,6 +54,9 @@ Parameter | Description |
 ----------|-------------|
 Recurse | Places an EICAR file in all SubFolders as well as the root.
 OpenLog | Opens the script log file.
+SkipVersionCheck | Skip script version verification.
+ScriptUpdateOnly | Just update script version to latest one.
+
 
 ## Outputs
 

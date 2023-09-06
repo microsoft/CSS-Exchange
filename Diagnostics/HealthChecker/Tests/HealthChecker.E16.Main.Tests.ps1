@@ -99,7 +99,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "RSS Enabled" "True" -WriteType "Green"
             TestObjectMatch "Link Speed" "10000 Mbps"
             TestObjectMatch "IPv6 Enabled" "True"
-            TestObjectMatch "Address" "192.168.5.11\24 Gateway: 192.168.5.1"
+            TestObjectMatch "Address" "192.168.5.11/24 Gateway: 192.168.5.1"
             TestObjectMatch "Registered In DNS" "True"
             TestObjectMatch "Packets Received Discarded" 0 -WriteType "Green"
 
@@ -116,8 +116,9 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "Credential Guard Enabled" $false
             TestObjectMatch "EdgeTransport.exe.config Present" "True" -WriteType "Green"
             TestObjectMatch "Open Relay Wild Card Domain" "Not Set"
+            TestObjectMatch "HSTS Enabled" "False"
 
-            $Script:ActiveGrouping.Count | Should -Be 9
+            $Script:ActiveGrouping.Count | Should -Be 10
         }
 
         It "Display Results - Security Settings" {
@@ -130,7 +131,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "Pattern service" "Unreachable`r`n`t`tMore information: https://aka.ms/HelpConnectivityEEMS" -WriteType "Yellow"
             TestObjectMatch "Telemetry enabled" "False"
 
-            $Script:ActiveGrouping.Count | Should -Be 95
+            $Script:ActiveGrouping.Count | Should -Be 96
         }
 
         It "Display Results - Security Vulnerability" {
@@ -138,11 +139,11 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
 
             $cveTests = GetObject "Security Vulnerability"
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
-            $cveTests.Count | Should -Be 33
+            $cveTests.Count | Should -Be 39
             $downloadDomains = GetObject "CVE-2021-1730"
             $downloadDomains.DownloadDomainsEnabled | Should -Be "false"
 
-            $Script:ActiveGrouping.Count | Should -Be 40
+            $Script:ActiveGrouping.Count | Should -Be 46
         }
     }
 

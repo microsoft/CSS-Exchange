@@ -116,6 +116,8 @@ function Invoke-AnalyzerExchangeInformation {
 
     if ($null -ne $exchangeInformation.BuildInformation.KBsInstalled) {
         Add-AnalyzedResultInformation -Name "Exchange IU or Security Hotfix Detected" @baseParams
+        $problemKbFound = $false
+        $problemKbName = "KB5029388"
 
         foreach ($kb in $exchangeInformation.BuildInformation.KBsInstalled) {
             $params = $baseParams + @{
@@ -123,6 +125,32 @@ function Invoke-AnalyzerExchangeInformation {
                 DisplayCustomTabNumber = 2
             }
             Add-AnalyzedResultInformation @params
+
+            if ($kb.Contains($problemKbName)) {
+                $problemKbFound = $true
+            }
+        }
+
+        if ($problemKbFound) {
+            Write-Verbose "Found problem $problemKbName"
+            if ($null -ne $HealthServerObject.OSInformation.BuildInformation.OperatingSystem.OSLanguage) {
+                [int]$OSLanguageID = [int]($HealthServerObject.OSInformation.BuildInformation.OperatingSystem.OSLanguage)
+                # https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-operatingsystem
+                $englishLanguageIDs = @(9, 1033, 2057, 3081, 4105, 5129, 6153, 7177, 8201, 10249, 11273)
+                if ($englishLanguageIDs.Contains($OSLanguageID)) {
+                    Write-Verbose "OS is english language. No action required"
+                } else {
+                    Write-Verbose "Non english language code: $OSLanguageID"
+                    $params = $baseParams + @{
+                        Details                = "Error: August 2023 SU 1 Problem Detected. More Information: https://aka.ms/HC-Aug23SUIssue"
+                        DisplayWriteType       = "Red"
+                        DisplayCustomTabNumber = 2
+                    }
+                    Add-AnalyzedResultInformation @params
+                }
+            } else {
+                Write-Verbose "Language Code is null"
+            }
         }
     }
 

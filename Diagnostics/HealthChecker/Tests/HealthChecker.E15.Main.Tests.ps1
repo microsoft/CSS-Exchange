@@ -99,7 +99,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "RSS Enabled" $false -WriteType "Yellow"
             TestObjectMatch "Link Speed" "10000 Mbps"
             TestObjectMatch "IPv6 Enabled" "True"
-            TestObjectMatch "Address" "192.168.9.11\24 Gateway: 192.168.9.1"
+            TestObjectMatch "Address" "192.168.9.11/24 Gateway: 192.168.9.1"
             TestObjectMatch "Registered In DNS" "True"
             TestObjectMatch "Packets Received Discarded" 0 -WriteType "Green"
 
@@ -116,8 +116,9 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "Credential Guard Enabled" $false
             TestObjectMatch "EdgeTransport.exe.config Present" "True" -WriteType "Green"
             TestObjectMatch "Open Relay Wild Card Domain" "Not Set"
+            TestObjectMatch "HSTS Enabled" "False"
 
-            $Script:ActiveGrouping.Count | Should -Be 9
+            $Script:ActiveGrouping.Count | Should -Be 10
         }
 
         It "Display Results - Security Settings" {
@@ -127,7 +128,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "SMB1 Installed" "True" -WriteType "Red"
             TestObjectMatch "SMB1 Blocked" "False" -WriteType "Red"
 
-            $Script:ActiveGrouping.Count | Should -Be 82
+            $Script:ActiveGrouping.Count | Should -Be 83
         }
 
         It "Display Results - Security Vulnerability" {
@@ -135,7 +136,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
 
             $cveTests = $Script:ActiveGrouping.TestingValue | Where-Object { ($_.GetType().Name -eq "String") -and ($_.StartsWith("CVE")) }
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
-            $cveTests.Count | Should -Be 53
+            $cveTests.Count | Should -Be 54
         }
     }
 }

@@ -83,6 +83,7 @@ nav:
   - Search:
     - Troubleshoot-ModernSearch: Search/Troubleshoot-ModernSearch.md
   - Security:
+    - CVE-2023-21709: Security/CVE-2023-21709.md
     - CVE-2023-23397:
       - Security/CVE-2023-23397/index.md
       - FAQ: Security/CVE-2023-23397/FAQ.md
