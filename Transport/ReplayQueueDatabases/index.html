@@ -3076,8 +3076,10 @@ by a series of crashes.</p>
 </code></pre></div>
 <h2 id="usage">Usage</h2>
 <p>The script must be run from Exchange Management Shell locally on the server where queue databases
-are being replayed. Active mailbox databases should be moved off and the server placed in
-maintenance mode prior to running the script.</p>
+are being replayed. Preliminary steps before running this script:
+* Move all active Mailbox Databases to another DAG member
+* Run this command from Exchange Management Shell:
+<code>Set-MailboxServer $env:ComputerName -DatabaseCopyAutoActivationPolicy Blocked</code></p>
 <p>When the script is run, it takes the following actions.</p>
 <ul>
 <li>Read the QueueDatabasePath and QueueDatabaseLoggingPath from the EdgeTransport.exe.config file. If these do not match, the script exits. That type of configuration is not yet supported by this script.</li>
@@ -3131,7 +3133,7 @@ order to run the script again and/or return the environment to a normal state.</
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">December 27, 2022</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">September 22, 2023</span>
       
     
   </small>
