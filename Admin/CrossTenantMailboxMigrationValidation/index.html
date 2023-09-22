@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.5.2, mkdocs-material-9.3.1">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.1">
     
     
       
@@ -26,7 +26,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.046329b4.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.72749a73.min.css">
       
       
   
@@ -405,6 +405,20 @@
   
     <nav class="md-nav" aria-label="PARAMETERS">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#skipversioncheck" class="md-nav__link">
+    SkipVersionCheck
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scriptupdateonly" class="md-nav__link">
+    ScriptUpdateOnly
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#checkobjects" class="md-nav__link">
@@ -3148,6 +3162,20 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#skipversioncheck" class="md-nav__link">
+    SkipVersionCheck
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scriptupdateonly" class="md-nav__link">
+    ScriptUpdateOnly
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#checkobjects" class="md-nav__link">
     CheckObjects
   </a>
@@ -3322,13 +3350,17 @@
 </ul>
 <p>The script will prompt you to connect to your source and target tenants for EXO and AAD as needed
 You can decide to run the checks for the source mailbox and target MailUser (individually or by providing a CSV file), for the organization settings described above, collect the source information and compress it to a zip file that can be used by the target tenant admins, or use the collected zip file as a source to validate the target objects and configurations against it.</p>
+<p>Additionally, the script provides a version check feature that will check if there's a newer version available on CSS-Exchange repository and will download it if so. If for some reason the version cannot be checked, the build check will be skipped and the existing file will be used.</p>
 <h3 id="pre-requisites">PRE-REQUISITES:</h3>
 <ul>
 <li>Please make sure you have at least the Exchange Online V2 Powershell module (https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2?view=exchange-ps#install-and-maintain-the-exo-v2-module)</li>
-<li>You would need the Azure AD Module (https://docs.microsoft.com/en-us/powershell/azure/active-directory/install-adv2?view=azureadps-2.0#installing-the-azure-ad-module)</li>
-<li>Also, depending on the parameters you specify, you will be prompted for the SourceTenantId and TargetTenantId (i.e.: if you choose to run the script with the "CheckOrgs" parameter). To obtain the tenant ID of a subscription, sign in to the Microsoft 365 admin center and go to https://aad.portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/Properties. Click the copy icon for the Tenant ID property to copy it to the clipboard.</li>
+<li>You would need the Microsoft Graph Module (https://learn.microsoft.com/en-us/powershell/microsoftgraph/installation?view=graph-powershell-1.0)</li>
 </ul>
 <h2 id="parameters">PARAMETERS</h2>
+<h3 id="skipversioncheck">SkipVersionCheck</h3>
+<p>This will allow you to skip the version check and run the existing local version of the script. This parameter is optional.</p>
+<h3 id="scriptupdateonly">ScriptUpdateOnly</h3>
+<p>This will allow you to check if there's a newer version available on CSS-Exchange repository without performing any additional checks, and will download it if so. This parameter is optional.</p>
 <h3 id="checkobjects">CheckObjects</h3>
 <p>This will allow you to perform the checks for the Source Mailbox and Target MailUser objects you provide. If used without the "-CSV" parameter, you will be prompted to type the identities.. If used with the '-SourceIsOffline' you also need to specify the '-PathForCollectedData' parameter</p>
 <h3 id="csv">CSV</h3>
@@ -3363,11 +3395,11 @@ BSmith@contoso.com, BSmith@fabrikam.com
 <h3 id="example-3">EXAMPLE 3</h3>
 <div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">CrossTenantMailboxMigrationValidation</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-CheckOrgs</span> <span class="n">-LogPath</span> <span class="n">C</span><span class="p">:\</span><span class="n">Temp</span><span class="p">\</span><span class="n">LogFile</span><span class="p">.</span><span class="n">txt</span>
 </code></pre></div>
-<p>This will prompt you for the sourceTenantId and TargetTenantId, establish 3 remote powershell sessions (one to the source EXO tenant, one to the target EXO tenant and another one to AAD target tenant), and will validate the migration endpoint on the target tenant, AAD applicationId on target tenant and the Organization relationship on both tenants.</p>
+<p>This will establish 4 remote powershell sessions (source and target EXO tenants, and source and target AAD tenants), and will validate the migration endpoint on the target tenant, AAD applicationId on target tenant and the Organization relationship on both tenants.</p>
 <h3 id="example-4">EXAMPLE 4</h3>
-<div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">CrossTenantMailboxMigrationValidation</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SDP</span> <span class="n">-LogPath</span> <span class="n">C</span><span class="p">:\</span><span class="n">Temp</span><span class="p">\</span><span class="n">LogFile</span><span class="p">.</span><span class="n">txt</span>
+<div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">CrossTenantMailboxMigrationValidation</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SDP</span> <span class="n">-LogPath</span> <span class="n">C</span><span class="p">:\</span><span class="n">Temp</span><span class="p">\</span><span class="n">LogFile</span><span class="p">.</span><span class="n">txt</span> <span class="n">-PathForCollectedData</span> <span class="n">C</span><span class="p">:\</span><span class="n">temp</span>
 </code></pre></div>
-<p>This will prompt you for the sourceTenantId and TargetTenantId, establish 3 remote powershell sessions (one to the source EXO tenant, one to the target EXO tenant and another one to AAD target tenant), and will collect all the relevant information (config-wise) so it can be used for troubleshooting and send it to Microsoft Support if needed.</p>
+<p>This will establish 4 remote powershell sessions (source and target EXO tenants, and source and target AAD tenants), and will collect all the relevant information (config-wise) so it can be used for troubleshooting and send it to Microsoft Support if needed.</p>
 <h3 id="example-5">EXAMPLE 5</h3>
 <div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">CrossTenantMailboxMigrationValidation</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SourceIsOffline</span> <span class="n">-PathForCollectedData</span> <span class="n">C</span><span class="p">:\</span><span class="n">temp</span><span class="p">\</span><span class="n">CTMMCollectedSourceData</span><span class="p">.</span><span class="n">zip</span> <span class="n">-CheckObjects</span> <span class="n">-LogPath</span> <span class="n">C</span><span class="p">:\</span><span class="n">temp</span><span class="p">\</span><span class="n">CTMMTarget</span><span class="p">.</span><span class="n">log</span>
 </code></pre></div>
@@ -3386,7 +3418,7 @@ BSmith@contoso.com, BSmith@fabrikam.com
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">July 24, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 31, 2023</span>
       
     
   </small>
@@ -3428,10 +3460,10 @@ BSmith@contoso.com, BSmith@fabrikam.com
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.indexes", "content.action.edit"], "search": "../../assets/javascripts/workers/search.dfff1995.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.indexes", "content.action.edit"], "search": "../../assets/javascripts/workers/search.a264c092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.dff1b7c8.min.js"></script>
+      <script src="../../assets/javascripts/bundle.4e0fa4ba.min.js"></script>
       
     
   </body>
