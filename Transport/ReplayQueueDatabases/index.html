@@ -3076,10 +3076,12 @@ by a series of crashes.</p>
 </code></pre></div>
 <h2 id="usage">Usage</h2>
 <p>The script must be run from Exchange Management Shell locally on the server where queue databases
-are being replayed. Preliminary steps before running this script:
-* Move all active Mailbox Databases to another DAG member
-* Run this command from Exchange Management Shell:
-<code>Set-MailboxServer $env:ComputerName -DatabaseCopyAutoActivationPolicy Blocked</code></p>
+are being replayed. Preliminary steps before running this script:</p>
+<ul>
+<li>Move all active Mailbox Databases to another DAG member</li>
+<li>Run this command from Exchange Management Shell:
+<code>Set-MailboxServer $env:ComputerName -DatabaseCopyAutoActivationPolicy Blocked</code></li>
+</ul>
 <p>When the script is run, it takes the following actions.</p>
 <ul>
 <li>Read the QueueDatabasePath and QueueDatabaseLoggingPath from the EdgeTransport.exe.config file. If these do not match, the script exits. That type of configuration is not yet supported by this script.</li>
