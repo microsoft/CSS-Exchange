@@ -35,7 +35,7 @@ Write-Verbose "Script Versions: $BuildVersion"
 function ValidateMailbox {
     Write-Host -NoNewline "Running : "; Write-Host -ForegroundColor Cyan "Get-Mailbox -Identity $Identity"
     $script:Mailbox = Get-Mailbox -Identity $Identity
-    
+
     # check we get a response
     if ($null -eq $Mailbox) {
         Write-Host -ForegroundColor Red "Get-Mailbox returned null. Make sure you Import-Module ExchangeOnlineManagement and  Connect-ExchangeOnline. Exiting script.";
@@ -51,16 +51,15 @@ function ValidateMailbox {
         Write-Host -ForegroundColor Green "The mailbox is valid for RBA will work with.";
     }
 
-# Get-Place does not cross forest boundaries so we will get an error here if we are not in the right forest.
+    # Get-Place does not cross forest boundaries so we will get an error here if we are not in the right forest.
     Write-Host -NoNewline "Running : "; Write-Host -ForegroundColor Cyan "Get-Place -Identity $Identity"
     $script:Place = Get-Place $Identity
 
-    if ($null -eq $Place)
-    {
+    if ($null -eq $Place) {
         Write-Error "Error: Get-Place returned Null for $Identity."
         Write-Host -ForegroundColor Red "Make sure you are running from the Correct forest.  Get-Place does not cross forest boundaries."
         Write-Error "Exiting Script."
-        Exit
+        exit
     }
 
     Write-Host -ForegroundColor Yellow "For more information see https://learn.microsoft.com/en-us/powershell/module/exchange/get-mailbox?view=exchange-ps";
@@ -86,15 +85,13 @@ function ValidateInboxRules {
         Write-Host -ForegroundColor Yellow "Warning: Multiple rules have been found on this resource mailbox. Only the Default Junk Mail rule is expected.  Depending on the rules setup, this may block RBA functionality."
         Write-Host -ForegroundColor Yellow "Warning: Please remove the rule via Remove-InboxRule cmdlet and re-run this script."
         Write-Host -ForegroundColor Red " --- Inbox Rules needs to be checked manually for any Delegate Rules. --"
-    }
-    elseif ($rules.Name -like "REDACTED-*" -and $rules.count -eq 1) {
+    } elseif ($rules.Name -like "REDACTED-*" -and $rules.count -eq 1) {
         Write-Host -ForegroundColor Yellow "Warning: No PII Access to MB so cannot check for Delegate Rules."
         Write-Host -ForegroundColor Yellow "Warning: Only one rule has been found, which is likely the default Junk Mail rule."
         Write-Host -ForegroundColor Yellow "Warning: There may be a Delegate Rule setup on this resource mailbox. This will block RBA functionality. Please remove the rule via Remove-InboxRule cmdlet and re-run this script."
         Write-Host -ForegroundColor Yellow "To gain PII access, Mailbox is located on $($mailbox.Database) on server $($mailbox.ServerName)"
         Write-Host -ForegroundColor Yellow " --- Inbox Rules should to be checked manually to ensure that there are no Delegate Rules--"
-    }
-    else {
+    } else {
         Write-Host -ForegroundColor Green "Delegate Rules check passes."
     }
 }
@@ -526,9 +523,8 @@ function RBALogSummary {
         }
 
         if ($AcceptLogs.count -eq 0 -and $TentativeLogs.count -eq 0 -and $DeclineLogs.count -eq 0) {
-             Write-Host -ForegroundColor Red "`t No meetings were processed in the RBA Log."
+            Write-Host -ForegroundColor Red "`t No meetings were processed in the RBA Log."
         }
-
     } else {
         Write-Warning "No RBA Logs found.  Send a test meeting invite to the room and try again if this is a newly created room mailbox."
     }
@@ -539,28 +535,21 @@ function ValidateWorkspace {
     Write-DashLineBoxColor @("Workspace Settings") -Color White
     Write-Host "`tChecking Workspace settings for $Identity"
     write-host "`tWorkspace Setting : $script:Workspace"
-    if ($script:Workspace)
-    {
-        if ($Place.Capacity -lt 1)
-        {
-            if ($Place.Capacity -eq 0)
-            {
+    if ($script:Workspace) {
+        if ($Place.Capacity -lt 1) {
+            if ($Place.Capacity -eq 0) {
                 Write-Host -ForegroundColor Red "`tWarning: The Capacity is set 0."
                 Write-Host -ForegroundColor Yellow "`tWarning: The Capacity is set to Workspace is configured as an unlimited resource."
-            }
-            else {
+            } else {
                 Write-Host -ForegroundColor Red "`tWarning: The Capacity is set to [$($Place.Capacity)]."
             }
             Write-Host -ForegroundColor White "`tWarning: Run " -NoNewline
             Write-Host -ForegroundColor Yellow "Set-Place $Identity -Capacity <Value> " -NoNewline
             Write-Host -ForegroundColor White "to set the Capacity of the workspace."
-        }
-        else
-        {
+        } else {
             Write-Host -ForegroundColor Green "`tWorkspace Capacity is set to $($Place.Capacity)."
         }
-    }
-    else {
+    } else {
         write-host "`t Resource is not setup as a Workspace, Skipping Workspace Settings checks."
     }
 }
@@ -573,17 +562,15 @@ function ValidateRoomListSettings {
 
     Write-Host -ForegroundColor White "`t Learn more at https://learn.microsoft.com/en-us/outlook/troubleshoot/calendaring/configure-room-finder-rooms-workspaces";
 
-    if([string]::IsNullOrEmpty($Place.City))
-    {
+    if ([string]::IsNullOrEmpty($Place.City)) {
         Write-Host -ForegroundColor Red "`tError: Required Property 'City' is not set for $Identity."
         Write-Host -ForegroundColor White "`tRun " -NoNewline
         Write-Host -ForegroundColor Yellow "Set-Place $Identity -City <Value> " -NoNewline
-        Write-Host -ForegroundColor White "to set the City of the workspace." 
-    }
-    else {
+        Write-Host -ForegroundColor White "to set the City of the workspace."
+    } else {
         Write-Host -ForegroundColor Green "`tRequired Property [City] is set to $($Place.City)."
     }
-    
+
     Write-Host -ForegroundColor White "`r`n`t New Room List commonly populated information:";
     Write-Host -ForegroundColor White "`t ----------------------------------------- ";
     Write-Host -ForegroundColor White @"
@@ -600,11 +587,10 @@ function ValidateRoomListSettings {
     `t Tags:                $($Place.Tags)
 
     To update any of the above information, run 'Set-Place $Identity -<Property> <Value>'.
-    For more information on this command, see 
+    For more information on this command, see
 "@
-Write-Host -ForegroundColor Yellow "`thttps://learn.microsoft.com/en-us/powershell/module/exchange/set-place?view=exchange-ps";
-Write-Host
-
+    Write-Host -ForegroundColor Yellow "`thttps://learn.microsoft.com/en-us/powershell/module/exchange/set-place?view=exchange-ps";
+    Write-Host
 }
 
 function Get-DashLine {
