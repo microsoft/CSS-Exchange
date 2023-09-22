@@ -258,8 +258,6 @@ function RBAProcessingValidation {
     }
 }
 
-# ToDo: Future Work: Check Workspace settings...
-
 function InPolicyProcessing {
     # In-policy request processing
     Write-DashLineBoxColor @("  In-Policy request processing:") -Color Yellow
@@ -533,24 +531,38 @@ function RBALogSummary {
 #Validate Workspace settings
 function ValidateWorkspace {
     Write-DashLineBoxColor @("Workspace Settings") -Color White
-    Write-Host "`tChecking Workspace settings for $Identity"
-    write-host "`tWorkspace Setting : $script:Workspace"
+    Write-Host  -ForegroundColor White "`tIs Resource [$Identity] a Workspace: $(if ($script:Workspace) {"TRUE"} else {"False - Skipping additional Workspace Checks"})."
+
     if ($script:Workspace) {
-        if ($Place.Capacity -lt 1) {
-            if ($Place.Capacity -eq 0) {
-                Write-Host -ForegroundColor Red "`tWarning: The Capacity is set 0."
-                Write-Host -ForegroundColor Yellow "`tWarning: The Capacity is set to Workspace is configured as an unlimited resource."
-            } else {
-                Write-Host -ForegroundColor Red "`tWarning: The Capacity is set to [$($Place.Capacity)]."
-            }
-            Write-Host -ForegroundColor White "`tWarning: Run " -NoNewline
+        if ([string]::IsNullOrEmpty($Place.Capacity)) {
+            Write-Host -ForegroundColor Red "`tError: Required Property 'Capacity' is not set for [$Identity]."
+            Write-Host -ForegroundColor White "`tRun " -NoNewline
             Write-Host -ForegroundColor Yellow "Set-Place $Identity -Capacity <Value> " -NoNewline
-            Write-Host -ForegroundColor White "to set the Capacity of the workspace."
+            Write-Host -ForegroundColor White "to set the required properties on the resource."
         } else {
-            Write-Host -ForegroundColor Green "`tWorkspace Capacity is set to $($Place.Capacity)."
+            Write-Host -ForegroundColor Green "`tRequired Property 'Capacity' is set to $($Place.Capacity)."
         }
-    } else {
-        write-host "`t Resource is not setup as a Workspace, Skipping Workspace Settings checks."
+
+        $requiredWorkspaceSettings = @("EnforceCapacity", "AllowConflicts")
+
+        foreach ($prop in $requiredWorkspaceSettings) {
+            if ($RbaSettings.$prop -ne $true) {
+                $requiredWorkspaceSettingsMissing = $true
+                Write-Host -ForegroundColor Red "`tError: Required Property '$prop' is not set to '$true' for $Identity."
+                Write-Debug "[$Identity].[$prop] is set to: $($RbaSettings.$prop)."
+            } else {
+                Write-Host -ForegroundColor Green "`tRequired Property '$prop' is set to $($RbaSettings.$prop)."
+            }
+        }
+        if ($requiredWorkspaceSettingsMissing) {
+            Write-Host -ForegroundColor White "`tOne or more properties that are required to be true are not. Run the following cmdlet to set the required properties:"
+            Write-Host -ForegroundColor White "`tRun " -NoNewline
+            Write-Host -ForegroundColor Yellow "'Set-CalendarProcessing $Identity -EnforceCapacity `$True -AllowConflicts `$True' " -NoNewline
+            Write-Host -ForegroundColor White "to set the properties to true."
+        }
+
+        Write-Host -ForegroundColor White "`tLearn more about configuring Workspaces at: " -NoNewline
+        Write-Host -ForegroundColor Yellow "https://learn.microsoft.com/en-us/exchange/troubleshoot/outlook-issues/create-book-workspace-outlook"
     }
 }
 
@@ -560,15 +572,31 @@ function ValidateRoomListSettings {
     Write-Host -ForegroundColor White "`tThe new Room Finder uses the City and other properties to help users find the right room for their meeting."
     Write-Host -ForegroundColor White "`tTags can be used to list features of this room (i.e. Projector, etc.) so that users can narrow down their search for conference rooms."
 
-    Write-Host -ForegroundColor White "`t Learn more at https://learn.microsoft.com/en-us/outlook/troubleshoot/calendaring/configure-room-finder-rooms-workspaces";
+    Write-Host -ForegroundColor White "`tLearn more at " -NoNewline
+    Write-Host -ForegroundColor Yellow "https://learn.microsoft.com/en-us/outlook/troubleshoot/calendaring/configure-room-finder-rooms-workspaces`n";
 
-    if ([string]::IsNullOrEmpty($Place.City)) {
-        Write-Host -ForegroundColor Red "`tError: Required Property 'City' is not set for $Identity."
+    if ([string]::IsNullOrEmpty($places.Localities)) {
+        ## validate Localities
+        Write-Host -ForegroundColor Yellow "`tWarning: Resource [$Identity] is not part of any Room Lists."
+        Write-Host -ForegroundColor Yellow "`tWarning: Adding this resource to a Room Lists can take 24 hours to be fully propagated."
+    }
+
+    $requiredProperties = @("City", "Floor", "Capacity");
+
+    foreach ($prop in $requiredProperties) {
+        if ([string]::IsNullOrEmpty($Place.$prop)) {
+            $requiredPropertiesMissing = $true
+            Write-Host -ForegroundColor Red "`tError: Required Property '$prop' is not set for $Identity."
+        } else {
+            Write-Host -ForegroundColor Green "`tRequired Property '$prop' is set to $($Place.$prop)."
+        }
+    }
+
+    if ($requiredPropertiesMissing) {
+        Write-Host -ForegroundColor White "`tOne or more required properties are missing. Run the following cmdlet to set the required properties:"
         Write-Host -ForegroundColor White "`tRun " -NoNewline
-        Write-Host -ForegroundColor Yellow "Set-Place $Identity -City <Value> " -NoNewline
-        Write-Host -ForegroundColor White "to set the City of the workspace."
-    } else {
-        Write-Host -ForegroundColor Green "`tRequired Property [City] is set to $($Place.City)."
+        Write-Host -ForegroundColor Yellow "Set-Place $Identity -<prop> <Value> " -NoNewline
+        Write-Host -ForegroundColor White "to set the required properties on the resource."
     }
 
     Write-Host -ForegroundColor White "`r`n`t New Room List commonly populated information:";
@@ -586,8 +614,8 @@ function ValidateRoomListSettings {
     `t Tags describing features and equipment in the Room
     `t Tags:                $($Place.Tags)
 
-    To update any of the above information, run 'Set-Place $Identity -<Property> <Value>'.
-    For more information on this command, see
+    `tTo update any of the above information, run 'Set-Place $Identity -<Property> <Value>'.
+    `tFor more information on this command, see
 "@
     Write-Host -ForegroundColor Yellow "`thttps://learn.microsoft.com/en-us/powershell/module/exchange/set-place?view=exchange-ps";
     Write-Host
@@ -634,17 +662,17 @@ function Write-DashLineBoxColor {
 # Call the Functions in this order:
 ValidateMailbox
 ValidateInboxRules
+GetCalendarProcessing
 ValidateWorkspace
 ValidateRoomListSettings
-GetCalendarProcessing
-EvaluateCalProcessing
-ProcessingLogic
-RBACriteria
-RBAProcessingValidation
-InPolicyProcessing
-OutOfPolicyProcessing
-RBADelegateSettings
-RBAPostProcessing
-VerbosePostProcessing
-RBALogSummary
+# EvaluateCalProcessing
+# ProcessingLogic
+# RBACriteria
+# RBAProcessingValidation
+# InPolicyProcessing
+# OutOfPolicyProcessing
+# RBADelegateSettings
+# RBAPostProcessing
+# VerbosePostProcessing
+# RBALogSummary
 RBAPostScript
