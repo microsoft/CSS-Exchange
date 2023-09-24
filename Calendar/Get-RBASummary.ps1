@@ -37,15 +37,15 @@ function ValidateMailbox {
     $script:Mailbox = Get-Mailbox -Identity $Identity
 
     # check we get a response
-    if ($null -eq $Mailbox) {
+    if ($null -eq $script:Mailbox) {
         Write-Host -ForegroundColor Red "Get-Mailbox returned null. Make sure you Import-Module ExchangeOnlineManagement and  Connect-ExchangeOnline. Exiting script.";
         exit;
     } else {
-        if ($Mailbox.RecipientTypeDetails -ne "RoomMailbox" -and $Mailbox.RecipientTypeDetails -ne "EquipmentMailbox") {
+        if ($script:Mailbox.RecipientTypeDetails -ne "RoomMailbox" -and $script:Mailbox.RecipientTypeDetails -ne "EquipmentMailbox") {
             Write-Host -ForegroundColor Red "The mailbox is not a Room Mailbox / Equipment Mailbox. RBA will only work with these. Exiting script.";
             exit;
         }
-        if ($Mailbox.ResourceType -eq "Workspace") {
+        if ($script:Mailbox.ResourceType -eq "Workspace") {
             $script:Workspace = $true;
         }
         Write-Host -ForegroundColor Green "The mailbox is valid for RBA will work with.";
@@ -55,7 +55,7 @@ function ValidateMailbox {
     Write-Host -NoNewline "Running : "; Write-Host -ForegroundColor Cyan "Get-Place -Identity $Identity"
     $script:Place = Get-Place $Identity
 
-    if ($null -eq $Place) {
+    if ($null -eq $script:Place) {
         Write-Error "Error: Get-Place returned Null for $Identity."
         Write-Host -ForegroundColor Red "Make sure you are running from the Correct forest.  Get-Place does not cross forest boundaries."
         Write-Error "Exiting Script."
@@ -534,13 +534,13 @@ function ValidateWorkspace {
     Write-Host  -ForegroundColor White "`tIs Resource [$Identity] a Workspace: $(if ($script:Workspace) {"TRUE"} else {"False - Skipping additional Workspace Checks"})."
 
     if ($script:Workspace) {
-        if ([string]::IsNullOrEmpty($Place.Capacity)) {
+        if ([string]::IsNullOrEmpty($script:Place.Capacity)) {
             Write-Host -ForegroundColor Red "`tError: Required Property 'Capacity' is not set for [$Identity]."
             Write-Host -ForegroundColor White "`tRun " -NoNewline
             Write-Host -ForegroundColor Yellow "Set-Place $Identity -Capacity <Value> " -NoNewline
             Write-Host -ForegroundColor White "to set the required properties on the resource."
         } else {
-            Write-Host -ForegroundColor Green "`tRequired Property 'Capacity' is set to $($Place.Capacity)."
+            Write-Host -ForegroundColor Green "`tRequired Property 'Capacity' is set to $($script:Place.Capacity)."
         }
 
         $requiredWorkspaceSettings = @("EnforceCapacity", "AllowConflicts")
@@ -584,11 +584,11 @@ function ValidateRoomListSettings {
     $requiredProperties = @("City", "Floor", "Capacity");
 
     foreach ($prop in $requiredProperties) {
-        if ([string]::IsNullOrEmpty($Place.$prop)) {
+        if ([string]::IsNullOrEmpty($script:Place.$prop)) {
             $requiredPropertiesMissing = $true
             Write-Host -ForegroundColor Red "`tError: Required Property '$prop' is not set for $Identity."
         } else {
-            Write-Host -ForegroundColor Green "`tRequired Property '$prop' is set to $($Place.$prop)."
+            Write-Host -ForegroundColor Green "`tRequired Property '$prop' is set to $($script:Place.$prop)."
         }
     }
 
@@ -603,16 +603,16 @@ function ValidateRoomListSettings {
     Write-Host -ForegroundColor White "`t ----------------------------------------- ";
     Write-Host -ForegroundColor White @"
     `t Address Info
-    `t Street:              $($Place.Street)
-    `t City:                $($Place.City)
-    `t State:               $($Place.State)
-    `t PostalCode:          $($Place.PostalCode)
-    `t CountryOrRegion:     $($Place.CountryOrRegion)
+    `t Street:              $($script:Place.Street)
+    `t City:                $($script:Place.City)
+    `t State:               $($script:Place.State)
+    `t PostalCode:          $($script:Place.PostalCode)
+    `t CountryOrRegion:     $($script:Place.CountryOrRegion)
     `t Building Info
-    `t Building:            $($Place.Building)
-    `t Floor:               $($Place.Floor)
+    `t Building:            $($script:Place.Building)
+    `t Floor:               $($script:Place.Floor)
     `t Tags describing features and equipment in the Room
-    `t Tags:                $($Place.Tags)
+    `t Tags:                $($script:Place.Tags)
 
     `tTo update any of the above information, run 'Set-Place $Identity -<Property> <Value>'.
     `tFor more information on this command, see
