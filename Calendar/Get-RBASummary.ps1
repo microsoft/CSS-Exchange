@@ -80,18 +80,17 @@ function ValidateInboxRules {
         Write-Host -ForegroundColor Red "Exiting script."
         exit;
     }
-    if ($rules.Name -like "REDACTED-*" -and $rules.count -gt 1) {
+    if ($rules.Name -like "REDACTED-*") {
         Write-Host -ForegroundColor Yellow "Warning: No PII Access to MB so cannot check for Delegate Rules."
-        Write-Host -ForegroundColor Yellow "Warning: Multiple rules have been found on this resource mailbox. Only the Default Junk Mail rule is expected.  Depending on the rules setup, this may block RBA functionality."
-        Write-Host -ForegroundColor Yellow "Warning: Please remove the rule via Remove-InboxRule cmdlet and re-run this script."
         Write-Host -ForegroundColor Red " --- Inbox Rules needs to be checked manually for any Delegate Rules. --"
-    } elseif ($rules.Name -like "REDACTED-*" -and $rules.count -eq 1) {
-        Write-Host -ForegroundColor Yellow "Warning: No PII Access to MB so cannot check for Delegate Rules."
-        Write-Host -ForegroundColor Yellow "Warning: Only one rule has been found, which is likely the default Junk Mail rule."
-        Write-Host -ForegroundColor Yellow "Warning: There may be a Delegate Rule setup on this resource mailbox. This will block RBA functionality. Please remove the rule via Remove-InboxRule cmdlet and re-run this script."
         Write-Host -ForegroundColor Yellow "To gain PII access, Mailbox is located on $($mailbox.Database) on server $($mailbox.ServerName)"
-        Write-Host -ForegroundColor Yellow " --- Inbox Rules should to be checked manually to ensure that there are no Delegate Rules--"
-    } else {
+        if ($rules.count -eq 1) {
+            Write-Host -ForegroundColor Yellow "Warning: One rule has been found, which is likely the default Junk Mail rule."
+            Write-Host -ForegroundColor Yellow "Warning: You should verify that this is not a Delegate Rule setup on this resource mailbox. Delegate rules will block RBA functionality. Please remove the rule via Remove-InboxRule cmdlet and re-run this script."
+        } elseif ($rules.count -gt 1) {
+            Write-Host -ForegroundColor Yellow "Warning: Multiple rules have been found on this resource mailbox. Only the Default Junk Mail rule is expected.  Depending on the rules setup, this may block RBA functionality."
+            Write-Host -ForegroundColor Yellow "Warning: Please remove the rule(s) via Remove-InboxRule cmdlet and re-run this script."
+        }
         Write-Host -ForegroundColor Green "Delegate Rules check passes."
     }
 }
