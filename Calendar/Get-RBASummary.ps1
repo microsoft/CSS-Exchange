@@ -665,14 +665,14 @@ ValidateInboxRules
 GetCalendarProcessing
 ValidateWorkspace
 ValidateRoomListSettings
-# EvaluateCalProcessing
-# ProcessingLogic
-# RBACriteria
-# RBAProcessingValidation
-# InPolicyProcessing
-# OutOfPolicyProcessing
-# RBADelegateSettings
-# RBAPostProcessing
-# VerbosePostProcessing
-# RBALogSummary
+EvaluateCalProcessing
+ProcessingLogic
+RBACriteria
+RBAProcessingValidation
+InPolicyProcessing
+OutOfPolicyProcessing
+RBADelegateSettings
+RBAPostProcessing
+VerbosePostProcessing
+RBALogSummary
 RBAPostScript
