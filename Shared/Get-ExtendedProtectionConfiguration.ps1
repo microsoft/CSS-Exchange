@@ -357,12 +357,18 @@ function Get-ExtendedProtectionConfiguration {
                     $extendedProtectionList.Add([PSCustomObject]@{
                             VirtualDirectoryName          = $virtualDirectoryName
                             Configuration                 = $extendedConfiguration
+                            # The current Extended Protection configuration set on the server
                             ExtendedProtection            = $extendedConfiguration.ExtendedProtection
+                            # The Supported Extended Protection is to verify that we have set the current Extended Protection
+                            #   setting value to the Expected Extended Protection Value
                             SupportedExtendedProtection   = $expectedExtendedConfiguration -eq $extendedConfiguration.ExtendedProtection
+                            # The supported/expected Extended Protection Configuration value that we should be set to (based off the build of Exchange)
                             ExpectedExtendedConfiguration = $expectedExtendedConfiguration
+                            # Properly Secured is determined if we have a value equal to or greater than the ExpectedExtendedConfiguration value
+                            # However, if we have a value greater than the expected, this could mean that we might run into a known set of issues.
+                            ProperlySecuredConfiguration  = $properlySecuredConfiguration
                             MitigationEnabled             = ($extendedConfiguration.MitigationSettings.AllowUnlisted -eq "false")
                             MitigationSupported           = $mitigationSupportedVDirs.Contains($virtualDirectoryName.ToLower())
-                            ProperlySecuredConfiguration  = $properlySecuredConfiguration
                             ExpectedSslFlags              = $matchEntry.SslFlags
                             SslFlagsSetCorrectly          = $sslFlagsToSet.Split(",").Count -eq $currentSetFlags.Count
                             SslFlagsToSet                 = $sslFlagsToSet
