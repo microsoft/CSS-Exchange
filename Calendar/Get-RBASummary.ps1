@@ -37,18 +37,29 @@ function ValidateMailbox {
     $script:Mailbox = Get-Mailbox -Identity $Identity
 
     # check we get a response
-    if ($null -eq $Mailbox) {
+    if ($null -eq $script:Mailbox) {
         Write-Host -ForegroundColor Red "Get-Mailbox returned null. Make sure you Import-Module ExchangeOnlineManagement and  Connect-ExchangeOnline. Exiting script.";
         exit;
     } else {
-        if ($Mailbox.RecipientTypeDetails -ne "RoomMailbox" -and $Mailbox.RecipientTypeDetails -ne "EquipmentMailbox") {
+        if ($script:Mailbox.RecipientTypeDetails -ne "RoomMailbox" -and $script:Mailbox.RecipientTypeDetails -ne "EquipmentMailbox") {
             Write-Host -ForegroundColor Red "The mailbox is not a Room Mailbox / Equipment Mailbox. RBA will only work with these. Exiting script.";
             exit;
         }
-        if ($Mailbox.RecipientType -eq "Workspace") {
+        if ($script:Mailbox.ResourceType -eq "Workspace") {
             $script:Workspace = $true;
         }
         Write-Host -ForegroundColor Green "The mailbox is valid for RBA will work with.";
+    }
+
+    # Get-Place does not cross forest boundaries so we will get an error here if we are not in the right forest.
+    Write-Host -NoNewline "Running : "; Write-Host -ForegroundColor Cyan "Get-Place -Identity $Identity"
+    $script:Place = Get-Place $Identity
+
+    if ($null -eq $script:Place) {
+        Write-Error "Error: Get-Place returned Null for $Identity."
+        Write-Host -ForegroundColor Red "Make sure you are running from the Correct forest.  Get-Place does not cross forest boundaries."
+        Write-Error "Exiting Script."
+        exit
     }
 
     Write-Host -ForegroundColor Yellow "For more information see https://learn.microsoft.com/en-us/powershell/module/exchange/get-mailbox?view=exchange-ps";
@@ -56,6 +67,7 @@ function ValidateMailbox {
 }
 
 # Validate that there are not delegate rules that will block RBA functionality
+#TODO this fails if you do not have PII access to the mailbox
 function ValidateInboxRules {
     Write-Host "Checking for Delegate Rules that will block RBA functionality..."
     Write-Host -NoNewline "Running : "; Write-Host -ForegroundColor Cyan "Get-InboxRule -mailbox $Identity -IncludeHidden"
@@ -64,11 +76,23 @@ function ValidateInboxRules {
     if ($rules.Name -like "Delegate Rule*") {
         Write-Host -ForegroundColor Red "Error: There is a user style Delegate Rule setup on this resource mailbox. This will block RBA functionality. Please remove the rule via Remove-InboxRule cmdlet and re-run this script."
         Write-Host -NoNewline "Rule to look into: "
-        Write-Host -ForegroundColor Red  "$($rules.Name -like "Delegate Rule*")"
+        Write-Host -ForegroundColor Red "$($rules.Name -like "Delegate Rule*")"
         Write-Host -ForegroundColor Red "Exiting script."
         exit;
     }
-    Write-Host -ForegroundColor Green "Delegate Rules check passes."
+    if ($rules.Name -like "REDACTED-*") {
+        Write-Host -ForegroundColor Yellow "Warning: No PII Access to MB so cannot check for Delegate Rules."
+        Write-Host -ForegroundColor Red " --- Inbox Rules needs to be checked manually for any Delegate Rules. --"
+        Write-Host -ForegroundColor Yellow "To gain PII access, Mailbox is located on $($mailbox.Database) on server $($mailbox.ServerName)"
+        if ($rules.count -eq 1) {
+            Write-Host -ForegroundColor Yellow "Warning: One rule has been found, which is likely the default Junk Mail rule."
+            Write-Host -ForegroundColor Yellow "Warning: You should verify that this is not a Delegate Rule setup on this resource mailbox. Delegate rules will block RBA functionality. Please remove the rule via Remove-InboxRule cmdlet and re-run this script."
+        } elseif ($rules.count -gt 1) {
+            Write-Host -ForegroundColor Yellow "Warning: Multiple rules have been found on this resource mailbox. Only the Default Junk Mail rule is expected.  Depending on the rules setup, this may block RBA functionality."
+            Write-Host -ForegroundColor Yellow "Warning: Please remove the rule(s) via Remove-InboxRule cmdlet and re-run this script."
+        }
+        Write-Host -ForegroundColor Green "Delegate Rules check passes."
+    }
 }
 
 # Retrieve the CalendarProcessing information
@@ -232,8 +256,6 @@ function RBAProcessingValidation {
         exit
     }
 }
-
-# ToDo: Future Work: Check Workspace settings...
 
 function InPolicyProcessing {
     # In-policy request processing
@@ -452,16 +474,18 @@ function RBAPostScript {
     Write-Host;
     Write-Host "If more information is needed about this resource mailbox, please look at the RBA logs to
         see how the system proceed the meeting request.";
-    Write-Host -ForegroundColor Yellow "`t Export-MailboxDiagnosticLogs $Identity -ComponentName RBA";
+    Write-Host -ForegroundColor Yellow "`tExport-MailboxDiagnosticLogs $Identity -ComponentName RBA";
     Write-Host;
     Write-Host "`n`rIf you found an error with this script or a misconfigured RBA case that this should cover,
          send mail to Shanefe@microsoft.com";
 }
 
 function RBALogSummary {
-    Write-DashLineBoxColor @("RBA Log Summary") -Color blue -DashChar =
+    Write-DashLineBoxColor @("RBA Log Summary") -Color Blue -DashChar =
 
     $RBALog = (Export-MailboxDiagnosticLogs $Identity -ComponentName RBA).MailboxLog -split "`\n"
+
+    Write-Host "`tFound $($RBALog.count) RBA Log entries in RBALog.  Summarizing Accepts, Declines, and Tentative meetings."
 
     if ($RBALog.count -gt 1) {
         $Starts = $RBALog | Select-String -Pattern "START -"
@@ -494,9 +518,106 @@ function RBALogSummary {
             Write-Host "`t $($DeclineLogs.count) Declined meetings between $FirstDate and $LastDate"
             Write-Host "`t`t with the last meeting Declined on $LastDecline"
         }
+
+        if ($AcceptLogs.count -eq 0 -and $TentativeLogs.count -eq 0 -and $DeclineLogs.count -eq 0) {
+            Write-Host -ForegroundColor Red "`t No meetings were processed in the RBA Log."
+        }
     } else {
         Write-Warning "No RBA Logs found.  Send a test meeting invite to the room and try again if this is a newly created room mailbox."
     }
+}
+
+#Validate Workspace settings
+function ValidateWorkspace {
+    Write-DashLineBoxColor @("Workspace Settings") -Color White
+    Write-Host  -ForegroundColor White "`tIs Resource [$Identity] a Workspace: $(if ($script:Workspace) {"TRUE"} else {"False - Skipping additional Workspace Checks"})."
+
+    if ($script:Workspace) {
+        if ([string]::IsNullOrEmpty($script:Place.Capacity)) {
+            Write-Host -ForegroundColor Red "`tError: Required Property 'Capacity' is not set for [$Identity]."
+            Write-Host -ForegroundColor White "`tRun " -NoNewline
+            Write-Host -ForegroundColor Yellow "Set-Place $Identity -Capacity <Value> " -NoNewline
+            Write-Host -ForegroundColor White "to set the required properties on the resource."
+        } else {
+            Write-Host -ForegroundColor Green "`tRequired Property 'Capacity' is set to $($script:Place.Capacity)."
+        }
+
+        $requiredWorkspaceSettings = @("EnforceCapacity", "AllowConflicts")
+
+        foreach ($prop in $requiredWorkspaceSettings) {
+            if ($RbaSettings.$prop -ne $true) {
+                $requiredWorkspaceSettingsMissing = $true
+                Write-Host -ForegroundColor Red "`tError: Required Property '$prop' is not set to '$true' for $Identity."
+                Write-Debug "[$Identity].[$prop] is set to: $($RbaSettings.$prop)."
+            } else {
+                Write-Host -ForegroundColor Green "`tRequired Property '$prop' is set to $($RbaSettings.$prop)."
+            }
+        }
+        if ($requiredWorkspaceSettingsMissing) {
+            Write-Host -ForegroundColor White "`tOne or more properties that are required to be true are not. Run the following cmdlet to set the required properties:"
+            Write-Host -ForegroundColor White "`tRun " -NoNewline
+            Write-Host -ForegroundColor Yellow "'Set-CalendarProcessing $Identity -EnforceCapacity `$True -AllowConflicts `$True' " -NoNewline
+            Write-Host -ForegroundColor White "to set the properties to true."
+        }
+
+        Write-Host -ForegroundColor White "`tLearn more about configuring Workspaces at: " -NoNewline
+        Write-Host -ForegroundColor Yellow "https://learn.microsoft.com/en-us/exchange/troubleshoot/outlook-issues/create-book-workspace-outlook"
+    }
+}
+
+# Validate Setting for the New Room List functionality
+function ValidateRoomListSettings {
+    Write-DashLineBoxColor @("Room List Settings") -Color White
+    Write-Host -ForegroundColor White "`tThe new Room Finder uses the City and other properties to help users find the right room for their meeting."
+    Write-Host -ForegroundColor White "`tTags can be used to list features of this room (i.e. Projector, etc.) so that users can narrow down their search for conference rooms."
+
+    Write-Host -ForegroundColor White "`tLearn more at " -NoNewline
+    Write-Host -ForegroundColor Yellow "https://learn.microsoft.com/en-us/outlook/troubleshoot/calendaring/configure-room-finder-rooms-workspaces`n";
+
+    if ([string]::IsNullOrEmpty($places.Localities)) {
+        ## validate Localities
+        Write-Host -ForegroundColor Yellow "`tWarning: Resource [$Identity] is not part of any Room Lists."
+        Write-Host -ForegroundColor Yellow "`tWarning: Adding this resource to a Room Lists can take 24 hours to be fully propagated."
+    }
+
+    $requiredProperties = @("City", "Floor", "Capacity");
+
+    foreach ($prop in $requiredProperties) {
+        if ([string]::IsNullOrEmpty($script:Place.$prop)) {
+            $requiredPropertiesMissing = $true
+            Write-Host -ForegroundColor Red "`tError: Required Property '$prop' is not set for $Identity."
+        } else {
+            Write-Host -ForegroundColor Green "`tRequired Property '$prop' is set to $($script:Place.$prop)."
+        }
+    }
+
+    if ($requiredPropertiesMissing) {
+        Write-Host -ForegroundColor White "`tOne or more required properties are missing. Run the following cmdlet to set the required properties:"
+        Write-Host -ForegroundColor White "`tRun " -NoNewline
+        Write-Host -ForegroundColor Yellow "Set-Place $Identity -<prop> <Value> " -NoNewline
+        Write-Host -ForegroundColor White "to set the required properties on the resource."
+    }
+
+    Write-Host -ForegroundColor White "`r`n`t New Room List commonly populated information:";
+    Write-Host -ForegroundColor White "`t ----------------------------------------- ";
+    Write-Host -ForegroundColor White @"
+    `t Address Info
+    `t Street:              $($script:Place.Street)
+    `t City:                $($script:Place.City)
+    `t State:               $($script:Place.State)
+    `t PostalCode:          $($script:Place.PostalCode)
+    `t CountryOrRegion:     $($script:Place.CountryOrRegion)
+    `t Building Info
+    `t Building:            $($script:Place.Building)
+    `t Floor:               $($script:Place.Floor)
+    `t Tags describing features and equipment in the Room
+    `t Tags:                $($script:Place.Tags)
+
+    `tTo update any of the above information, run 'Set-Place $Identity -<Property> <Value>'.
+    `tFor more information on this command, see
+"@
+    Write-Host -ForegroundColor Yellow "`thttps://learn.microsoft.com/en-us/powershell/module/exchange/set-place?view=exchange-ps";
+    Write-Host
 }
 
 function Get-DashLine {
@@ -541,6 +662,8 @@ function Write-DashLineBoxColor {
 ValidateMailbox
 ValidateInboxRules
 GetCalendarProcessing
+ValidateWorkspace
+ValidateRoomListSettings
 EvaluateCalProcessing
 ProcessingLogic
 RBACriteria
