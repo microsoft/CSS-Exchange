@@ -312,7 +312,8 @@ begin {
                                 $vDirArray[0]     = $vDirArray[1]
                                 Value             = $entry.ExtendedProtection
                                 SupportedValue    = if ($entry.MitigationSupported -and $entry.MitigationEnabled) { "None" } else { $entry.ExpectedExtendedConfiguration }
-                                ConfigSupported   = $entry.ProperlySecuredConfiguration
+                                ConfigSupported   = $entry.SupportedExtendedProtection
+                                ConfigSecure      = $entry.ProperlySecuredConfiguration
                                 RequireSSL        = "$($ssl.RequireSSL) $(if($ssl.Ssl128Bit) { "(128-bit)" })".Trim()
                                 ClientCertificate = $ssl.ClientCertificate
                                 IPFilterEnabled   = $entry.MitigationEnabled

@@ -45,6 +45,9 @@ BeforeAll {
         $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
             Where-Object { $_.SupportedExtendedProtection -eq $false } |
             Should -Be $null
+        $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
+            Where-Object { $_.ProperlySecuredConfiguration -eq $false } |
+            Should -Be $null
     }
 
     function TestSupportedConfiguredExtendedProtection {
@@ -66,15 +69,12 @@ BeforeAll {
         ($TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
             Where-Object { $_.ExpectedExtendedConfiguration -ne "None" }).count |
                 Should -Be $ExpectedExtendedProtectionNoneCount
-        if ($IPFilterEnabled -eq $false) {
-            $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
-                Where-Object { $_.SupportedExtendedProtection -eq $false } |
-                Should -Be $null
-        } else {
-            ($TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
-                Where-Object { $_.SupportedExtendedProtection -eq $false }).Count |
-                    Should -Be 1
-        }
+        $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
+            Where-Object { $_.SupportedExtendedProtection -eq $false } |
+            Should -Be $null
+        $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
+            Where-Object { $_.ProperlySecuredConfiguration -eq $false } |
+            Should -Be $null
         # Special configs
         if (-not $SkipAllow) {
             $allow = $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
