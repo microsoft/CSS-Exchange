@@ -389,6 +389,8 @@ function Invoke-AnalyzerExchangeInformation {
                     Details                = "$($entry.VirtualDirectoryName) - Current Value: '$($entry.ExtendedProtection)'   Expected Value: '$expectedValue'"
                     DisplayWriteType       = "Yellow"
                     DisplayCustomTabNumber = 2
+                    TestingName            = "EP - $($entry.VirtualDirectoryName)"
+                    DisplayTestingValue    = ($entry.ExtendedProtection)
                 }
                 Add-AnalyzedResultInformation @params
             }

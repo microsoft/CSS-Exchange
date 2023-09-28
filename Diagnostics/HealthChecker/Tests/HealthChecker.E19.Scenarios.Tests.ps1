@@ -287,6 +287,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
         It "Extended Protection Enabled" {
             SetActiveDisplayGrouping "Exchange Information"
             TestObjectMatch "Extended Protection Enabled (Any VDir)" $true
+            TestObjectMatch "EP - Default Web Site/OAB" "Require" -WriteType "Yellow"
         }
 
         It "Number of Processors" {
