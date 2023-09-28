@@ -370,7 +370,6 @@ function BuildCSV {
             'CleanGlobalObjectId'          = $CalLog.CleanGlobalObjectId
             'MapiStartTime'                = $CalLog.MapiStartTime
             'MapiEndTime'                  = $CalLog.MapiEndTime
-            'NormalizedSubject'            = $CalLog.NormalizedSubject
             'AppointmentRecurring'         = $CalLog.AppointmentRecurring
             'HasAttachment'                = $CalLog.HasAttachment
             'IsCancelled'                  = $CalLog.IsCancelled
@@ -381,9 +380,7 @@ function BuildCSV {
             'IsException'                  = $CalLog.IsException
             'IsOrganizerProperty'          = $CalLog.IsOrganizerProperty
             'EventEmailReminderTimer'      = $CalLog.EventEmailReminderTimer
-            'EstimatedAcceptCount'         = $CalLog.EstimatedAcceptCount
-            'EstimatedTentativeCount'      = $CalLog.EstimatedTentativeCount
-            'EstimatedDeclineCount'        = $CalLog.EstimatedDeclineCount
+            'ExternalSharingMasterId'      = $CalLog.ExternalSharingMasterId
             'OnlineMeetingConfLink'        = $CalLog.OnlineMeetingConfLink
             'OnlineMeetingExternalLink'    = $CalLog.OnlineMeetingExternalLink
             'OnlineMeetingInternalLink'    = $CalLog.OnlineMeetingInternalLink
@@ -567,21 +564,6 @@ function BuildTimeline {
 
                     if ($CalLog.ResponseType -ne $PreviousCalLog.ResponseType) {
                         [Array]$TimeLineText = "The ResponseType changed from [$($PreviousCalLog.ResponseType)] to: [$($CalLog.ResponseType)]"
-                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
-                    }
-
-                    if ($CalLog.EstimatedAcceptCount -ne $PreviousCalLog.EstimatedAcceptCount) {
-                        [Array]$TimeLineText = "The Estimated Accept Count changed from [$($PreviousCalLog.EstimatedAcceptCount)] to: [$($CalLog.EstimatedAcceptCount)]"
-                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
-                    }
-
-                    if ($CalLog.EstimatedTentativeCount -ne $PreviousCalLog.EstimatedTentativeCount) {
-                        [Array]$TimeLineText = "The Estimated Tentative Count changed from [$($PreviousCalLog.EstimatedTentativeCount)] to: [$($CalLog.EstimatedTentativeCount)]"
-                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
-                    }
-
-                    if ($CalLog.EstimatedDeclineCount -ne $PreviousCalLog.EstimatedDeclineCount) {
-                        [Array]$TimeLineText = "The Estimated Declined Count changed from [$($PreviousCalLog.EstimatedDeclineCount)] to: [$($CalLog.EstimatedDeclineCount)]"
                         MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
