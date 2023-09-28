@@ -294,7 +294,7 @@ function Get-ExtendedProtectionConfiguration {
         # Add all vDirs for which the IP filtering mitigation is supported
         $mitigationSupportedVDirs = $MyInvocation.MyCommand.Parameters["SiteVDirLocations"].Attributes |
             Where-Object { $_ -is [System.Management.Automation.ValidateSetAttribute] } |
-            ForEach-Object { return $_.ValidValues.ToLower() }
+            ForEach-Object { return $_.ValidValues }
         Write-Verbose "Supported mitigated virtual directories: $([string]::Join(",", $mitigationSupportedVDirs))"
     }
     process {
@@ -368,7 +368,7 @@ function Get-ExtendedProtectionConfiguration {
                     } elseif ($expectedExtendedConfiguration -eq "Require") {
                         Write-Verbose "Checking to see if we have mitigations enabled for the supported vDirs"
                         # Only care about virtual directories that we allow mitigation for
-                        $properlySecuredConfiguration = $mitigationSupportedVDirs.Contains($virtualDirectoryName.ToLower()) -and
+                        $properlySecuredConfiguration = $mitigationSupportedVDirs -contains $virtualDirectoryName -and
                         $extendedConfiguration.MitigationSettings.AllowUnlisted -eq "false"
                     } elseif ($expectedExtendedConfiguration -eq "Allow") {
                         Write-Verbose "Checking to see if Extended Protection is set to 'Require' to still be considered secure"
@@ -397,7 +397,7 @@ function Get-ExtendedProtectionConfiguration {
                             # While this is not the best security setting, it is lower and shouldn't cause a connectivity issue and should still be supported.
                             SupportedExtendedProtection   = $supportedExtendedConfiguration
                             MitigationEnabled             = ($extendedConfiguration.MitigationSettings.AllowUnlisted -eq "false")
-                            MitigationSupported           = $mitigationSupportedVDirs.Contains($virtualDirectoryName.ToLower())
+                            MitigationSupported           = $mitigationSupportedVDirs -contains $virtualDirectoryName
                             ExpectedSslFlags              = $matchEntry.SslFlags
                             SslFlagsSetCorrectly          = $sslFlagsToSet.Split(",").Count -eq $currentSetFlags.Count
                             SslFlagsToSet                 = $sslFlagsToSet
