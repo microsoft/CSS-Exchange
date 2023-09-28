@@ -183,6 +183,10 @@ Enabling Extended Protection involves making many changes on all Exchange server
 | Exchange Backend | MAPI/emsmdb                 | Required                        | Ssl,Ssl128                  |
 | Exchange Backend | MAPI/nspi                   | Required                        | Ssl,Ssl128                  |
 
+!!! warning "Note"
+
+      After initial release, we have updated `Default Website/OAB` to be `Accept/Allow` instead of `Required`. This is because of Outlook for Mac clients not being able to download the OAB any longer with the `Required` setting.
+
 SSL offloading for Outlook Anywhere is enabled by default and must be disabled for extended protection by following the steps shown [here](https://docs.microsoft.com/powershell/module/exchange/set-outlookanywhere?view=exchange-ps#example-3).
 
 ### Enabling Extended Protection using the script
