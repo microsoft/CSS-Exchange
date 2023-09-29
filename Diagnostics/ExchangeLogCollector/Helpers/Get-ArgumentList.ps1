@@ -64,6 +64,7 @@ function Get-ArgumentList {
         MitigationService              = $MitigationService
         OABLogs                        = $OABLogs
         OWALogs                        = $OWALogs
+        PipelineTracingLogs            = $PipelineTracingLogs
         PopLogs                        = $PopLogs
         PowerShellLogs                 = $PowerShellLogs
         QueueInformation               = $QueueInformation

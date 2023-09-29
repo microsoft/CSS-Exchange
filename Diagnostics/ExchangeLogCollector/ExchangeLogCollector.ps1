@@ -43,6 +43,7 @@ param (
     [switch]$OABLogs,
     [switch]$OrganizationConfig,
     [switch]$OWALogs,
+    [switch]$PipelineTracingLogs,
     [switch]$PopLogs,
     [switch]$PowerShellLogs,
     [switch]$QueueInformation,
