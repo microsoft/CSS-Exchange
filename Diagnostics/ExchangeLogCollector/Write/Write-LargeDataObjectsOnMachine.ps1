@@ -184,6 +184,16 @@ function Write-LargeDataObjectsOnMachine {
                         }
                 }
             }
+
+            # list the app pools ids
+            $ids = & $appCmd list wp
+            $fileName = ("{0}\{1}_Web_App_IDs.txt" -f $webAppPoolsSaveRoot, $env:COMPUTERNAME)
+
+            if ($null -ne $ids) {
+                $ids > $fileName
+            } else {
+                "No Data" > $fileName
+            }
         }
     }
 
