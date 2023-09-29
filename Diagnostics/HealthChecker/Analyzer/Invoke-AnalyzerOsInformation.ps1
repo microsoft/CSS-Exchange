@@ -156,6 +156,20 @@ function Invoke-AnalyzerOsInformation {
             AddHtmlOverviewValues  = $true
         }
         Add-AnalyzedResultInformation @params
+
+        if ($osInformation.NETFramework.MajorVersion -gt $recommendedNetVersion) {
+            # Generic information stating we are looking into supporting this version of .NET
+            # But don't use it till we update the supportability matrix
+            $displayValue = "Microsoft is working on .NET $($osInformation.NETFramework.FriendlyName) validation with Exchange" +
+            " and the recommendation is to not use .NET $($osInformation.NETFramework.FriendlyName) until it is officially added to the supportability matrix."
+
+            $params = $baseParams + @{
+                Details                = $displayValue
+                DisplayWriteType       = "Yellow"
+                DisplayCustomTabNumber = 2
+            }
+            Add-AnalyzedResultInformation @params
+        }
     }
 
     $displayValue = [string]::Empty
