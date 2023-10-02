@@ -138,6 +138,62 @@ function Write-LargeDataObjectsOnMachine {
             if (Test-Path $machineConfig) {
                 Copy-Item $machineConfig -Destination ("{0}\{1}_machine.config" -f $webAppPoolsSaveRoot, $env:COMPUTERNAME)
             }
+
+            $siteConfigs = @{}
+            # always try to get the hardcoded default
+            $siteConfigs.Add("applicationHost.config", "$($env:WINDIR)\System32\inetSrv\config\applicationHost.config")
+
+            try {
+                # default location normally your applicationHost.config
+                try {
+                    $defaultLocation = Get-WebConfigFile
+
+                    if (-not $siteConfigs.ContainsKey($defaultLocation.Name)) {
+                        $siteConfigs.Add($defaultLocation.Name, $defaultLocation.FullName)
+                    }
+                } catch {
+                    Write-Verbose "Failed to get default web config file path. $_"
+                }
+
+                $sitesContent.Keys |
+                    ForEach-Object {
+                        try {
+                            $name = $_
+                            $siteWebFileConfig = Get-WebConfigFile "IIS:\Sites\$($name)"
+
+                            $keyName = if ($siteWebFileConfig.Name -eq "web.config") { "$name`_web.config" } else { $siteWebFileConfig.Name }
+
+                            if (-not $siteConfigs.ContainsKey($keyName)) {
+                                $siteConfigs.Add($keyName, $siteWebFileConfig.FullName)
+                            }
+                        } catch {
+                            Write-Verbose "Failed to get web config for $name. $_"
+                        }
+                    }
+            } catch {
+                Write-Verbose "Failed to get the web config file for the sites. $_"
+                # remote context, cant call catch actions
+            } finally {
+                if ($null -ne $siteConfigs -and
+                    $siteConfigs.Count -gt 0) {
+                    $siteConfigs.Keys |
+                        ForEach-Object {
+                            if ((Test-Path $siteConfigs[$_])) {
+                                Copy-Item $siteConfigs[$_] -Destination ("{0}\{1}_{2}" -f $webAppPoolsSaveRoot, $env:COMPUTERNAME, $_)
+                            }
+                        }
+                }
+            }
+
+            # list the app pools ids
+            $ids = & $appCmd list wp
+            $fileName = ("{0}\{1}_Web_App_IDs.txt" -f $webAppPoolsSaveRoot, $env:COMPUTERNAME)
+
+            if ($null -ne $ids) {
+                $ids > $fileName
+            } else {
+                "No Data" > $fileName
+            }
         }
     }
 

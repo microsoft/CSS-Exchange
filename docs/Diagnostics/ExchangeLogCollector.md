@@ -64,6 +64,7 @@ Parameter | Description |
 ----------|-------------|
 FilePath | The Location of where you would like the data to be copied over to. This location **must** be the same and accessible on all servers if you use the Servers parameter. Default value: C:\MS_Logs_Collection |
 Servers | An array of servers that you would like to collect data from.
+AcceptedRemoteDomain | Enable to collect `Get-AcceptedDomain` and `Get-RemoteDomain`.
 ADDriverLogs | Enable to collect AD Driver Logs. Location: `V15\Logging\ADDriver`
 AppSysLogs | Collects the Windows Event Application, System, and MSExchange Management Logs. Default value `$true`
 AppSysLogsToXml | Collects the Windows Event Application and System and saves them out to XML. The time range only is from the time the script run and the value set on `LogAge`. Default value: `$true`
@@ -71,7 +72,7 @@ AutoDLogs | Enable to collect AutoDiscover Logs. Location: `V15\Logging\Autodisc
 CollectFailoverMetrics | Enable to run the `CollectOverMetrics.ps1` script against the DAG. Only able to be run on an Exchange tools box or an Exchange Server.
 DAGInformation | Enable to collect the DAG Information from all different DAGs that are in the list of servers.
 DailyPerformanceLogs | Enable to collect Daily Performance Logs. Default Location: `V15\Logging\Diagnostics\DailyPerformanceLogs`
-DefaultTransportLogging | Enables the following switches and their logs to be collected. `FrontEndConnectivityLogs`, `FrontEndProtocolLogs`, `HubConnectivityLogs`, `MailboxConnectivityLogs`, `MailboxDeliveryThrottlingLogs`, `MessageTrackingLogs`, `QueueInformation`, `ReceiveConnectors`, `SendConnectors`, and `TransportConfig`
+DefaultTransportLogging | Enables the following switches and their logs to be collected. `AcceptedRemoteDomain`, `FrontEndConnectivityLogs`, `FrontEndProtocolLogs`, `HubConnectivityLogs`, `MailboxConnectivityLogs`, `MailboxDeliveryThrottlingLogs`, `MessageTrackingLogs`, `PipelineTracingLogs`, `QueueInformation`, `ReceiveConnectors`, `SendConnectors`, `TransportConfig`, `TransportRoutingTableLogs`, and `TransportRules`
 EASLogs | Enable to collect Exchange Active Sync Logging. Location: `V15\Logging\HttpProxy\Eas`
 ECPLogs | Enable to collect ECP Logs. Location: `V15\Logging\ECP` and `V15\Logging\HttpProxy\Ecp`
 EWSLogs | Enable to collect EWS Logs. Location: `V15\Logging\HttpProxy\Ews` and `V15\Logging\Ews`
@@ -97,6 +98,7 @@ MitigationService | Enable to collect the Mitigation Service logs. Location: `V1
 OABLogs | Enable to collect OAB Logs. Location: `V15\Logging\HttpProxy\OAB`, `V15\Logging\OABGeneratorLog`, `V15\Logging\OABGeneratorSimpleLog`, and `V15\Logging\MAPI AddressBook Service`
 OrganizationConfig | Enable to collect the Organization Configuration from the environment.
 OWALogs | Enable to collect OWA Logs. Location: `V15\Logging\OWA`, `Logging\HttpProxy\OwaCalendar`, and `V15\Logging\HttpProxy\Owa`
+PipelineTracingLogs | Enable to collect the Pipeline Tracing Logs. Location `(Get-TransportService $server).PipelineTracingPath`, and `(Get-MailboxTransportService $server).PipelineTracingPath`
 PopLogs | Enable to collect POP logging. Location: `(Get-PopSettings -Server $server).LogFileLocation`
 PowerShellLogs | Enable to collect the PowerShell Logs. Location: `V15\Logging\HttpProxy\PowerShell`
 QueueInformation | Enable to collect the historical queue information. Location: `(Get-TransportService $server).QueueLogPath`
@@ -108,6 +110,7 @@ ServerInformation | Enable to collect general server information.
 TransportAgentLogs | Enable to collect the Agent Logs. Location: `(Get-TransportService $server).AgentLogPath`, `(Get-FrontendTransportService $server).AgentLogPath`, `(Get-MailboxTransportService $server).MailboxSubmissionAgentLogPath`, and `(Get-MailboxTransportService $server).MailboxDeliveryAgentLogPath`
 TransportConfig | Enable to collect the Transport Configuration files from the Server and `Get-TransportConfig` from the org. Files: `EdgeTransport.exe.config`, `MSExchangeFrontEndTransport.exe.config`, `MSExchangeDelivery.exe.config`, and `MSExchangeSubmission.exe.config`
 TransportRoutingTableLogs | Enable to collect the Routing Table Logs. Location: `(Get-TransportService $server).RoutingTableLogPath`, `(Get-FrontendTransportService $server).RoutingTableLogPath`, and `(Get-MailboxTransportService $server).RoutingTableLogPath`
+TransportRules | Enable to collect `Get-TransportRule`.
 WindowsSecurityLogs | Enable to collect the Windows Security Logs. Default Location: `'C:\Windows\System32\WinEvt\Logs\Security.evtx'`
 AllPossibleLogs | Enables the collection of all default logging collection on the Server.
 CollectAllLogsBasedOnLogAge | Boolean to determine if you collect all the logs based off the log's age or all the logs in that directory. Default value `$true`

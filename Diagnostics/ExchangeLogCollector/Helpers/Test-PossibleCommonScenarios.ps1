@@ -50,6 +50,9 @@ function Test-PossibleCommonScenarios {
         $Script:MailboxConnectivityLogs = $true
         $Script:FrontEndProtocolLogs = $true
         $Script:MailboxDeliveryThrottlingLogs = $true
+        $Script:PipelineTracingLogs = $true
+        $Script:TransportRules = $true
+        $Script:AcceptedRemoteDomain = $true
     }
 
     if ($ConnectivityLogs) {
@@ -86,6 +89,8 @@ function Test-PossibleCommonScenarios {
         $Script:MessageTrackingLogs = $true
         $Script:QueueInformation = $true
         $Script:TransportConfig = $true
+        $Script:TransportRules = $true
+        $Script:AcceptedRemoteDomain = $true
     }
 
     if ($OutlookConnectivityIssues) {
@@ -121,7 +126,10 @@ function Test-PossibleCommonScenarios {
         $MailboxDeliveryThrottlingLogs -or
         $TransportAgentLogs -or
         $TransportRoutingTableLogs -or
-        $DefaultTransportLogging) {
+        $DefaultTransportLogging -or
+        $PipelineTracingLogs -or
+        $TransportRules -or
+        $AcceptedRemoteDomain) {
         $Script:AnyTransportSwitchesEnabled = $true
     }
 

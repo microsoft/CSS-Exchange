@@ -192,6 +192,18 @@ function Invoke-RemoteMain {
                 Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\MailboxAssistantsDatabaseSlaLog" "Mailbox_Assistants_Database_Sla_Logs"
             }
         }
+
+        if ($PassedInfo.PipelineTracingLogs) {
+
+            if ($Script:localServerObject.Hub -or
+                $Script:localServerObject.Edge) {
+                Add-LogCopyFullTaskAction $Script:localServerObject.TransportInfo.HubLoggingInfo.PipelineTracingPath "Hub_Pipeline_Tracing_Logs"
+            }
+
+            if ($Script:localServerObject.Mailbox) {
+                Add-LogCopyFullTaskAction $Script:localServerObject.TransportInfo.MBXLoggingInfo.PipelineTracingPath "Mailbox_Pipeline_Tracing_Logs"
+            }
+        }
     }
 
     ############################################
