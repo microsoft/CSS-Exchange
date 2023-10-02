@@ -8,6 +8,7 @@ param (
     [Parameter(Mandatory = $false, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
     [Alias('Fqdn')]
     [string[]]$Servers = @($env:COMPUTERNAME),
+    [switch]$AcceptedRemoteDomain,
     [switch]$ADDriverLogs,
     [bool]$AppSysLogs = $true,
     [bool]$AppSysLogsToXml = $true,
@@ -56,6 +57,7 @@ param (
     [switch]$TransportAgentLogs,
     [switch]$TransportConfig,
     [switch]$TransportRoutingTableLogs,
+    [switch]$TransportRules,
     [switch]$WindowsSecurityLogs,
     [switch]$AllPossibleLogs,
     [Alias("CollectAllLogsBasedOnDaysWorth")]
