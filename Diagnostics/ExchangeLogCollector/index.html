@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.2">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.3">
     
     
       
@@ -26,7 +26,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.d451bc0e.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.79e020e9.min.css">
       
       
   
@@ -3130,6 +3130,10 @@
 <td>An array of servers that you would like to collect data from.</td>
 </tr>
 <tr>
+<td>AcceptedRemoteDomain</td>
+<td>Enable to collect <code>Get-AcceptedDomain</code> and <code>Get-RemoteDomain</code>.</td>
+</tr>
+<tr>
 <td>ADDriverLogs</td>
 <td>Enable to collect AD Driver Logs. Location: <code>V15\Logging\ADDriver</code></td>
 </tr>
@@ -3159,7 +3163,7 @@
 </tr>
 <tr>
 <td>DefaultTransportLogging</td>
-<td>Enables the following switches and their logs to be collected. <code>FrontEndConnectivityLogs</code>, <code>FrontEndProtocolLogs</code>, <code>HubConnectivityLogs</code>, <code>MailboxConnectivityLogs</code>, <code>MailboxDeliveryThrottlingLogs</code>, <code>MessageTrackingLogs</code>, <code>QueueInformation</code>, <code>ReceiveConnectors</code>, <code>SendConnectors</code>, and <code>TransportConfig</code></td>
+<td>Enables the following switches and their logs to be collected. <code>AcceptedRemoteDomain</code>, <code>FrontEndConnectivityLogs</code>, <code>FrontEndProtocolLogs</code>, <code>HubConnectivityLogs</code>, <code>MailboxConnectivityLogs</code>, <code>MailboxDeliveryThrottlingLogs</code>, <code>MessageTrackingLogs</code>, <code>PipelineTracingLogs</code>, <code>QueueInformation</code>, <code>ReceiveConnectors</code>, <code>SendConnectors</code>, <code>TransportConfig</code>, <code>TransportRoutingTableLogs</code>, and <code>TransportRules</code></td>
 </tr>
 <tr>
 <td>EASLogs</td>
@@ -3262,6 +3266,10 @@
 <td>Enable to collect OWA Logs. Location: <code>V15\Logging\OWA</code>, <code>Logging\HttpProxy\OwaCalendar</code>, and <code>V15\Logging\HttpProxy\Owa</code></td>
 </tr>
 <tr>
+<td>PipelineTracingLogs</td>
+<td>Enable to collect the Pipeline Tracing Logs. Location <code>(Get-TransportService $server).PipelineTracingPath</code>, and <code>(Get-MailboxTransportService $server).PipelineTracingPath</code></td>
+</tr>
+<tr>
 <td>PopLogs</td>
 <td>Enable to collect POP logging. Location: <code>(Get-PopSettings -Server $server).LogFileLocation</code></td>
 </tr>
@@ -3304,6 +3312,10 @@
 <tr>
 <td>TransportRoutingTableLogs</td>
 <td>Enable to collect the Routing Table Logs. Location: <code>(Get-TransportService $server).RoutingTableLogPath</code>, <code>(Get-FrontendTransportService $server).RoutingTableLogPath</code>, and <code>(Get-MailboxTransportService $server).RoutingTableLogPath</code></td>
+</tr>
+<tr>
+<td>TransportRules</td>
+<td>Enable to collect <code>Get-TransportRule</code>.</td>
 </tr>
 <tr>
 <td>WindowsSecurityLogs</td>
@@ -3389,7 +3401,7 @@
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">February 8, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">October 2, 2023</span>
       
     
   </small>
@@ -3431,10 +3443,11 @@
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
+    
     <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.indexes", "content.action.edit"], "search": "../../assets/javascripts/workers/search.a264c092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.726fbb30.min.js"></script>
+      <script src="../../assets/javascripts/bundle.6eac0284.min.js"></script>
       
     
   </body>
