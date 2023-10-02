@@ -56,14 +56,6 @@ function Get-ExchangeInformation {
             Invoke-CatchActions
         }
 
-        try {
-            $getOwaVirtualDirectory = Get-OwaVirtualDirectory -Identity ("{0}\owa (Default Web Site)" -f $Server) -ADPropertiesOnly -ErrorAction Stop
-            $getWebServicesVirtualDirectory = Get-WebServicesVirtualDirectory -Server $Server -ErrorAction Stop
-        } catch {
-            Write-Verbose "Failed to get OWA or EWS virtual directory"
-            Invoke-CatchActions
-        }
-
         $getExchangeVirtualDirectories = Get-ExchangeVirtualDirectories -Server $Server
 
         $registryValues = Get-ExchangeRegistryValues -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
@@ -166,8 +158,6 @@ function Get-ExchangeInformation {
             GetExchangeServer                        = $getExchangeServer
             VirtualDirectories                       = $getExchangeVirtualDirectories
             GetMailboxServer                         = $getMailboxServer
-            GetOwaVirtualDirectory                   = $getOwaVirtualDirectory
-            GetWebServicesVirtualDirectory           = $getWebServicesVirtualDirectory
             ExtendedProtectionConfig                 = $extendedProtectionConfig
             ExchangeConnectors                       = $exchangeConnectors
             ExchangeServicesNotRunning               = [array]$exchangeServicesNotRunning

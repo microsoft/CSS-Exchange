@@ -21,6 +21,8 @@ function Invoke-AnalyzerExchangeInformation {
     $keyExchangeInformation = Get-DisplayResultsGroupingKey -Name "Exchange Information"  -DisplayOrder $Order
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $hardwareInformation = $HealthServerObject.HardwareInformation
+    $getWebServicesVirtualDirectory = $exchangeInformation.VirtualDirectories.GetWebServicesVirtualDirectory |
+        Where-Object { $_.Name -eq "EWS (Default Web Site)" }
 
     $baseParams = @{
         AnalyzedInformation = $AnalyzeResults
@@ -208,8 +210,8 @@ function Invoke-AnalyzerExchangeInformation {
     if ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false) {
 
         Write-Verbose "Working on MRS Proxy Settings"
-        $mrsProxyDetails = $exchangeInformation.GetWebServicesVirtualDirectory.MRSProxyEnabled
-        if ($exchangeInformation.GetWebServicesVirtualDirectory.MRSProxyEnabled) {
+        $mrsProxyDetails = $getWebServicesVirtualDirectory.MRSProxyEnabled
+        if ($getWebServicesVirtualDirectory.MRSProxyEnabled) {
             $mrsProxyDetails = "$mrsProxyDetails`n`r`t`tKeep MRS Proxy disabled if you do not plan to move mailboxes cross-forest or remote"
             $mrsProxyWriteType = "Yellow"
         } else {
@@ -294,10 +296,10 @@ function Invoke-AnalyzerExchangeInformation {
     }
     Add-AnalyzedResultInformation @params
 
-    if (-not ([string]::IsNullOrWhiteSpace($exchangeInformation.GetWebServicesVirtualDirectory.InternalNLBBypassUrl))) {
+    if (-not ([string]::IsNullOrWhiteSpace($getWebServicesVirtualDirectory.InternalNLBBypassUrl))) {
         $params = $baseParams + @{
             Name             = "EWS Internal Bypass URL Set"
-            Details          = "$($exchangeInformation.GetWebServicesVirtualDirectory.InternalNLBBypassUrl) - Can cause issues after KB 5001779"
+            Details          = "$($getWebServicesVirtualDirectory.InternalNLBBypassUrl) - Can cause issues after KB 5001779"
             DisplayWriteType = "Red"
         }
         Add-AnalyzedResultInformation @params
