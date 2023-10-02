@@ -15,6 +15,7 @@
 . $PSScriptRoot\Get-ExchangeServerCertificates.ps1
 . $PSScriptRoot\Get-ExchangeServerMaintenanceState.ps1
 . $PSScriptRoot\Get-ExchangeUpdates.ps1
+. $PSScriptRoot\Get-ExchangeVirtualDirectories.ps1
 . $PSScriptRoot\Get-ExSetupDetails.ps1
 . $PSScriptRoot\Get-FIPFSScanEngineVersionState.ps1
 . $PSScriptRoot\Get-ServerRole.ps1
@@ -62,6 +63,8 @@ function Get-ExchangeInformation {
             Write-Verbose "Failed to get OWA or EWS virtual directory"
             Invoke-CatchActions
         }
+
+        $getExchangeVirtualDirectories = Get-ExchangeVirtualDirectories -Server $Server
 
         $registryValues = Get-ExchangeRegistryValues -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
         $serverExchangeBinDirectory = [System.Io.Path]::Combine($registryValues.MsiInstallPath, "Bin\")
@@ -161,6 +164,7 @@ function Get-ExchangeInformation {
         return [PSCustomObject]@{
             BuildInformation                         = $buildInformation
             GetExchangeServer                        = $getExchangeServer
+            VirtualDirectories                       = $getExchangeVirtualDirectories
             GetMailboxServer                         = $getMailboxServer
             GetOwaVirtualDirectory                   = $getOwaVirtualDirectory
             GetWebServicesVirtualDirectory           = $getWebServicesVirtualDirectory
