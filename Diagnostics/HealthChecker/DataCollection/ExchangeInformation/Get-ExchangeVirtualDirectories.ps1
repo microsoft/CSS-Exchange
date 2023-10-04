@@ -22,8 +22,9 @@ function Get-ExchangeVirtualDirectories {
         $getPowerShellVirtualDirectory = $null
         $getWebServicesVirtualDirectory = $null
         $paramsNoShow = @{
-            Server      = $Server
-            ErrorAction = "Stop"
+            Server           = $Server
+            ErrorAction      = "Stop"
+            ADPropertiesOnly = $true
         }
         $params = $paramsNoShow + @{
             ShowMailboxVirtualDirectories = $true
