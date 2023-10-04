@@ -67,6 +67,13 @@ function Get-OrganizationInformation {
             $isSplitADPermissions = Get-ExchangeADSplitPermissionsEnabled -CatchActionFunction ${Function:Invoke-CatchActions}
 
             try {
+                $getDdgPublicFolders = @(Get-DynamicDistributionGroup "PublicFolderMailboxes*" -IncludeSystemObjects -ErrorAction "Stop")
+            } catch {
+                Write-Verbose "Failed to get the dynamic distribution group for public folder mailboxes."
+                Invoke-CatchActions
+            }
+
+            try {
                 $rootDSE = [ADSI]("LDAP://$([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Name)/RootDSE")
                 $directorySearcher = New-Object System.DirectoryServices.DirectorySearcher
                 $directorySearcher.SearchScope = "Subtree"
@@ -123,18 +130,19 @@ function Get-OrganizationInformation {
         }
     } end {
         return [PSCustomObject]@{
-            GetOrganizationConfig   = $organizationConfig
-            DomainsAclPermissions   = $domainsAclPermissions
-            WellKnownSecurityGroups = $wellKnownSecurityGroups
-            AdSchemaInformation     = $adSchemaInformation
-            GetHybridConfiguration  = $getHybridConfiguration
-            EnableDownloadDomains   = $enableDownloadDomains
-            GetAcceptedDomain       = $getAcceptedDomain
-            MapiHttpEnabled         = $mapiHttpEnabled
-            SecurityResults         = $securityResults
-            IsSplitADPermissions    = $isSplitADPermissions
-            ADSiteCount             = $adSiteCount
-            GetSettingOverride      = $getSettingOverride
+            GetOrganizationConfig             = $organizationConfig
+            DomainsAclPermissions             = $domainsAclPermissions
+            WellKnownSecurityGroups           = $wellKnownSecurityGroups
+            AdSchemaInformation               = $adSchemaInformation
+            GetHybridConfiguration            = $getHybridConfiguration
+            EnableDownloadDomains             = $enableDownloadDomains
+            GetAcceptedDomain                 = $getAcceptedDomain
+            MapiHttpEnabled                   = $mapiHttpEnabled
+            SecurityResults                   = $securityResults
+            IsSplitADPermissions              = $isSplitADPermissions
+            ADSiteCount                       = $adSiteCount
+            GetSettingOverride                = $getSettingOverride
+            GetDynamicDgPublicFolderMailboxes = $getDdgPublicFolders
         }
     }
 }
