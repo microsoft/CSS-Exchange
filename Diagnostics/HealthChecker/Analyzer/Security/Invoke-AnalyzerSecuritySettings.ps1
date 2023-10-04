@@ -339,14 +339,22 @@ function Invoke-AnalyzerSecuritySettings {
         DisplayWriteType = "Green"
     }
 
+    $irmConfig = $HealthServerObject.OrganizationInformation.GetIrmConfiguration
+
     if (($aes256CbcInformation.AES256CBCSupportedBuild) -and
         ($aes256CbcInformation.ValidAESConfiguration -eq $false) -and
-        ($HealthServerObject.OrganizationInformation.GetIrmConfiguration.InternalLicensingEnabled -eq $true)) {
+        ($irmConfig.InternalLicensingEnabled -eq $true -or
+        $irmConfig.ExternalLicensingEnabled -eq $true)) {
         $params.Details = ("True" +
             "`r`n`t`tThis build supports AES256-CBC protected content, but the configuration is not complete. Exchange Server is not able to decrypt" +
             "`r`n`t`tprotected messages which could impact eDiscovery and Journaling tasks. If you use Rights Management Service (RMS) on-premises," +
             "`r`n`t`tplease follow the instructions as outlined in the documentation: https://aka.ms/ExchangeCBCKB")
-        $params.DisplayWriteType = "Yellow"
+
+        if ($irmConfig.InternalLicensingEnabled -eq $true) {
+            $params.DisplayWriteType = "Red"
+        } else {
+            $params.DisplayWriteType = "Yellow"
+        }
     } elseif ($aes256CbcInformation.AES256CBCSupportedBuild -eq $false) {
         $params.Details = ("False" +
             "`r`n`t`tThis could lead to scenarios where Exchange Server is no longer able to decrypt protected messages," +
