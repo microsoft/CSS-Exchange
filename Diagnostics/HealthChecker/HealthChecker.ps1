@@ -172,6 +172,7 @@ begin {
     . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
     . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Host.ps1
     . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Verbose.ps1
+    . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Warning.ps1
     . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 
     $BuildVersion = ""
@@ -192,6 +193,7 @@ begin {
         -ErrorAction SilentlyContinue
     SetProperForegroundColor
     SetWriteVerboseAction ${Function:Write-DebugLog}
+    SetWriteWarningAction ${Function:Write-DebugLog}
 } process {
     $Server | ForEach-Object { $Script:ServerNameList.Add($_.ToUpper()) }
 } end {
