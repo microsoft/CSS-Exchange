@@ -40,6 +40,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-AcceptedDomain { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAcceptedDomain.xml" }
             Mock Get-ReceiveConnector { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetReceiveConnector.xml" }
             Mock Get-SendConnector { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetSendConnector.xml" }
+            Mock Get-DynamicDistributionGroup { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetDynamicDistributionGroupPfMailboxes.xml" }
 
             $Error.Clear()
             Get-OrganizationInformation -EdgeServer $false | Out-Null
@@ -90,6 +91,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-IISModules -Exactly 1
             Assert-MockCalled Get-ExchangeDiagnosticInfo -Exactly 1
             Assert-MockCalled Get-ExchangeADSplitPermissionsEnabled -Exactly 1
+            Assert-MockCalled Get-DynamicDistributionGroup -Exactly 1
         }
     }
 }

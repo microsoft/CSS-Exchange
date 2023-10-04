@@ -76,4 +76,33 @@ function Invoke-AnalyzerOrganizationInformation {
         }
         Add-AnalyzedResultInformation @params
     }
+
+    if ($null -ne $organizationInformation.GetDynamicDgPublicFolderMailboxes -and
+        $organizationInformation.GetDynamicDgPublicFolderMailboxes.Count -ne 0) {
+        $displayWriteType = "Green"
+
+        if ($organizationInformation.GetDynamicDgPublicFolderMailboxes.Count -gt 1) {
+            $displayWriteType = "Red"
+        }
+
+        $params = $baseParams + @{
+            Name             = "Dynamic Distribution Group Public Folder Mailboxes Count"
+            Details          = $organizationInformation.GetDynamicDgPublicFolderMailboxes.Count
+            DisplayWriteType = $displayWriteType
+        }
+
+        Add-AnalyzedResultInformation @params
+
+        if ($displayWriteType -ne "Green") {
+            $params = $baseParams + @{
+                Details                = "More Information: https://aka.ms/HC-DynamicDgPublicFolderMailboxes"
+                DisplayCustomTabNumber = 2
+                DisplayWriteType       = "Yellow"
+            }
+
+            Add-AnalyzedResultInformation @params
+        }
+    } else {
+        Write-Verbose "No Dynamic Distribution Group Public Folder Mailboxes found to review."
+    }
 }

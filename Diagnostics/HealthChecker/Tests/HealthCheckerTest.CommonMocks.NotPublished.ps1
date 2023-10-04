@@ -251,6 +251,10 @@ function Get-OrganizationConfig {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOrganizationConfig.xml"
 }
 
+function Get-DynamicDistributionGroup {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetDynamicDistributionGroupPfMailboxes.xml"
+}
+
 function Get-HybridConfiguration { return $null }
 
 # Needs to be a function as PS core doesn't have -ComputerName parameter
