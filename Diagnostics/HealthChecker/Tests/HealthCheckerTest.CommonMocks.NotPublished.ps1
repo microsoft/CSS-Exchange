@@ -254,6 +254,18 @@ function Get-OrganizationConfig {
 function Get-DynamicDistributionGroup {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetDynamicDistributionGroupPfMailboxes.xml"
 }
+# virtual directory cmdlets to return null till we do actual checks against the vDirs.
+function Get-ActiveSyncVirtualDirectory { return $null }
+
+function Get-AutodiscoverVirtualDirectory { return $null }
+
+function Get-EcpVirtualDirectory { return $null }
+
+function Get-MapiVirtualDirectory { return $null }
+
+function Get-OutlookAnywhere { return $null }
+
+function Get-PowerShellVirtualDirectory { return $null }
 
 function Get-HybridConfiguration { return $null }
 
