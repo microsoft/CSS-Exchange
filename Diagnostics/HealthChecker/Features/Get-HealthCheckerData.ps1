@@ -113,6 +113,8 @@ function Get-HealthCheckerData {
         } catch {
             Write-Red "Failed to Health Checker against $serverName"
             $failedServerList.Add($serverName)
+            # Try to handle the issue so we don't get a false positive report.
+            Invoke-CatchActions
             continue
         }
 
