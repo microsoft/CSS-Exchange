@@ -41,8 +41,9 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "MAPI/HTTP Enabled" "True"
             TestObjectMatch "Enable Download Domains" "False"
             TestObjectMatch "AD Split Permissions" "False"
+            TestObjectMatch "Dynamic Distribution Group Public Folder Mailboxes Count" 1 -WriteType "Green"
 
-            $Script:ActiveGrouping.Count | Should -Be 4
+            $Script:ActiveGrouping.Count | Should -Be 5
         }
 
         It "Display Results - Operating System Information" {
@@ -165,8 +166,14 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-WebSite -ParameterFilter { $Name -eq "Default Web Site" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\IIS\GetWebSite_DefaultWebSite1.xml" }
             Mock Get-WebConfigFile -ParameterFilter { $PSPath -eq "IIS:\Sites\Default Web Site" } -MockWith { return [PSCustomObject]@{ FullName = "$Script:MockDataCollectionRoot\Exchange\IIS\DefaultWebSite_web2.config" } }
             Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost2.config" -Raw }
+            Mock Get-DynamicDistributionGroup { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetDynamicDistributionGroupPfMailboxes1.xml" }
 
             SetDefaultRunOfHealthChecker "Debug_Physical_Results.xml"
+        }
+
+        It "Dynamic Public Folder Mailboxes" {
+            SetActiveDisplayGrouping "Organization Information"
+            TestObjectMatch "Dynamic Distribution Group Public Folder Mailboxes Count" 2 -WriteType "Red"
         }
 
         It "Extended Protection Enabled" {

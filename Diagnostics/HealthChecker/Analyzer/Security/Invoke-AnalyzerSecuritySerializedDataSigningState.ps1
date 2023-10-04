@@ -100,10 +100,18 @@ function Invoke-AnalyzerSecuritySerializedDataSigningState {
         }
         Add-AnalyzedResultInformation @params
 
-        if ($null -ne $additionalSerializedDataSigningDisplayValue) {
+        # Always display if not true
+        if (-not ($serializedDataSigningState -eq $true)) {
+            $addLine = "This may pose a security risk to your servers`r`n`t`tMore Information: https://aka.ms/HC-SerializedDataSigning"
+
+            if ($null -ne $additionalSerializedDataSigningDisplayValue) {
+                $details = "$additionalSerializedDataSigningDisplayValue`r`n`t`t$addLine"
+            } else {
+                $details = $addLine
+            }
+
             $params = $baseParams + @{
-                Details                = $additionalSerializedDataSigningDisplayValue +
-                "`r`n`t`tThis may pose a security risk to your servers`r`n`t`tMore Information: https://aka.ms/HC-SerializedDataSigning"
+                Details                = $details
                 DisplayWriteType       = $serializedDataSigningWriteType
                 DisplayCustomTabNumber = 2
             }
