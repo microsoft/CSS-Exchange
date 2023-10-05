@@ -48,7 +48,7 @@ function ValidateMailbox {
         if ($script:Mailbox.ResourceType -eq "Workspace") {
             $script:Workspace = $true;
         }
-        Write-Host -ForegroundColor Green "The mailbox is valid for RBA will work with.";
+        Write-Host -ForegroundColor Green "The mailbox is valid for RBA will work with."
     }
 
     # Get-Place does not cross forest boundaries so we will get an error here if we are not in the right forest.
@@ -57,17 +57,16 @@ function ValidateMailbox {
 
     if ($null -eq $script:Place) {
         Write-Error "Error: Get-Place returned Null for $Identity."
-        Write-Host -ForegroundColor Red "Make sure you are running from the Correct forest.  Get-Place does not cross forest boundaries."
+        Write-Host -ForegroundColor Red "Make sure you are running from the correct forest.  Get-Place does not cross forest boundaries."
         Write-Error "Exiting Script."
-        exit
+        exit;
     }
 
     Write-Host -ForegroundColor Yellow "For more information see https://learn.microsoft.com/en-us/powershell/module/exchange/get-mailbox?view=exchange-ps";
-    Write-Host ;
+    Write-Host;
 }
 
 # Validate that there are not delegate rules that will block RBA functionality
-#TODO this fails if you do not have PII access to the mailbox
 function ValidateInboxRules {
     Write-Host "Checking for Delegate Rules that will block RBA functionality..."
     Write-Host -NoNewline "Running : "; Write-Host -ForegroundColor Cyan "Get-InboxRule -mailbox $Identity -IncludeHidden"
@@ -80,7 +79,7 @@ function ValidateInboxRules {
         Write-Host -ForegroundColor Red "Exiting script."
         exit;
     }
-    if ($rules.Name -like "REDACTED-*") {
+    elseif ($rules.Name -like "REDACTED-*") {
         Write-Host -ForegroundColor Yellow "Warning: No PII Access to MB so cannot check for Delegate Rules."
         Write-Host -ForegroundColor Red " --- Inbox Rules needs to be checked manually for any Delegate Rules. --"
         Write-Host -ForegroundColor Yellow "To gain PII access, Mailbox is located on $($mailbox.Database) on server $($mailbox.ServerName)"
@@ -91,6 +90,8 @@ function ValidateInboxRules {
             Write-Host -ForegroundColor Yellow "Warning: Multiple rules have been found on this resource mailbox. Only the Default Junk Mail rule is expected.  Depending on the rules setup, this may block RBA functionality."
             Write-Host -ForegroundColor Yellow "Warning: Please remove the rule(s) via Remove-InboxRule cmdlet and re-run this script."
         }
+    }
+    else {
         Write-Host -ForegroundColor Green "Delegate Rules check passes."
     }
 }
@@ -109,21 +110,22 @@ function GetCalendarProcessing {
         exit;
     }
 
-    Write-Host -ForegroundColor Yellow "For more information see
-                https://learn.microsoft.com/en-us/powershell/module/exchange/set-calendarprocessing?view=exchange-ps";
-    Write-Host ;
-
     $RbaSettings | Format-List
+    
+    Write-Host -ForegroundColor Yellow "For more information on Set-CalendarProcessing see
+                https://learn.microsoft.com/en-us/powershell/module/exchange/set-calendarprocessing?view=exchange-ps";
+    Write-Host;
 }
 
 function EvaluateCalProcessing {
 
     if ($RbaSettings.AutomateProcessing -ne "AutoAccept") {
-        Write-Host -ForegroundColor Red "AutomateProcessing is not set to AutoAccept. RBA will not work as configured. "
-        Write-Host -ForegroundColor Red "AutomateProcessing is set to"$RbaSettings.AutomateProcessing
+        Write-Host -ForegroundColor Red "Error: AutomateProcessing is not set to AutoAccept. RBA will not work as configured."
+        Write-Host -ForegroundColor Red "Error: For RBA to do anything AutomateProcessing must be set to AutoAccept."
+        Write-Host -ForegroundColor Red "Error: AutomateProcessing is set to $($RbaSettings.AutomateProcessing)."
         Write-Host -ForegroundColor Yellow "Use 'Set-CalendarProcessing -Identity $Identity -AutomateProcessing AutoAccept' to set AutomateProcessing to AutoAccept."
         Write-Host -ForegroundColor Red "Exiting script."
-        exit
+        exit;
     } else {
         Write-Host -ForegroundColor Green "AutomateProcessing is set to AutoAccept. RBA will analyze the meeting request."
     }
@@ -662,9 +664,9 @@ function Write-DashLineBoxColor {
 ValidateMailbox
 ValidateInboxRules
 GetCalendarProcessing
+EvaluateCalProcessing
 ValidateWorkspace
 ValidateRoomListSettings
-EvaluateCalProcessing
 ProcessingLogic
 RBACriteria
 RBAProcessingValidation
