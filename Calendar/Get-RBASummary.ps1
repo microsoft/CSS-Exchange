@@ -78,8 +78,7 @@ function ValidateInboxRules {
         Write-Host -ForegroundColor Red "$($rules.Name -like "Delegate Rule*")"
         Write-Host -ForegroundColor Red "Exiting script."
         exit;
-    }
-    elseif ($rules.Name -like "REDACTED-*") {
+    } elseif ($rules.Name -like "REDACTED-*") {
         Write-Host -ForegroundColor Yellow "Warning: No PII Access to MB so cannot check for Delegate Rules."
         Write-Host -ForegroundColor Red " --- Inbox Rules needs to be checked manually for any Delegate Rules. --"
         Write-Host -ForegroundColor Yellow "To gain PII access, Mailbox is located on $($mailbox.Database) on server $($mailbox.ServerName)"
@@ -90,8 +89,7 @@ function ValidateInboxRules {
             Write-Host -ForegroundColor Yellow "Warning: Multiple rules have been found on this resource mailbox. Only the Default Junk Mail rule is expected.  Depending on the rules setup, this may block RBA functionality."
             Write-Host -ForegroundColor Yellow "Warning: Please remove the rule(s) via Remove-InboxRule cmdlet and re-run this script."
         }
-    }
-    else {
+    } else {
         Write-Host -ForegroundColor Green "Delegate Rules check passes."
     }
 }
@@ -111,7 +109,7 @@ function GetCalendarProcessing {
     }
 
     $RbaSettings | Format-List
-    
+
     Write-Host -ForegroundColor Yellow "For more information on Set-CalendarProcessing see
                 https://learn.microsoft.com/en-us/powershell/module/exchange/set-calendarprocessing?view=exchange-ps";
     Write-Host;
