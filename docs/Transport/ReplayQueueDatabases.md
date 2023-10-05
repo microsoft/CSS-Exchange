@@ -38,8 +38,11 @@ ReplayQueueDatabases.ps1
 ## Usage
 
 The script must be run from Exchange Management Shell locally on the server where queue databases
-are being replayed. Active mailbox databases should be moved off and the server placed in
-maintenance mode prior to running the script.
+are being replayed. Preliminary steps before running this script:
+
+* Move all active Mailbox Databases to another DAG member
+* Run this command from Exchange Management Shell:
+`Set-MailboxServer $env:ComputerName -DatabaseCopyAutoActivationPolicy Blocked`
 
 When the script is run, it takes the following actions.
 

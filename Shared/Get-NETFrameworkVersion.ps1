@@ -71,9 +71,12 @@ function Get-NETFrameworkVersion {
         } elseif ($NetVersionKey -lt $netVersionDictionary["Net4d8"]) {
             $friendlyName = "4.7.2"
             $minValue = $netVersionDictionary["Net4d7d2"]
-        } elseif ($NetVersionKey -ge $netVersionDictionary["Net4d8"]) {
+        } elseif ($NetVersionKey -lt $netVersionDictionary["Net4d8d1"]) {
             $friendlyName = "4.8"
             $minValue = $netVersionDictionary["Net4d8"]
+        } elseif ($NetVersionKey -ge $netVersionDictionary["Net4d8d1"]) {
+            $friendlyName = "4.8.1"
+            $minValue = $netVersionDictionary["Net4d8d1"]
         }
     }
     end {
@@ -100,6 +103,7 @@ function GetNetVersionDictionary {
         "Net4d7d1"     = 461308
         "Net4d7d2"     = 461808
         "Net4d8"       = 528040
+        "Net4d8d1"     = 533320
     }
 }
 
