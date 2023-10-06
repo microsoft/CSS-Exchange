@@ -1,0 +1,42 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Diagnostics.FileVersionInfo</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>File:             C:\windows\System32\inetsrv\cachtokn.dll_x000D__x000A_InternalName:     cachtokn.dll_x000D__x000A_OriginalFilename: cachtokn.dll_x000D__x000A_FileVersion:      10.0.17763.4968 (rs1_release.160715-1616)_x000D__x000A_FileDescription:  token cache provider_x000D__x000A_Product:          Internet Information Services_x000D__x000A_ProductVersion:   10.0.17763.4968_x000D__x000A_Debug:            False_x000D__x000A_Patched:          False_x000D__x000A_PreRelease:       False_x000D__x000A_PrivateBuild:     False_x000D__x000A_SpecialBuild:     False_x000D__x000A_Language:         Language Neutral_x000D__x000A_</ToString>
+    <Props>
+      <S N="Comments"></S>
+      <S N="CompanyName">Microsoft Corporation</S>
+      <I32 N="FileBuildPart">17763</I32>
+      <S N="FileDescription">token cache provider</S>
+      <I32 N="FileMajorPart">10</I32>
+      <I32 N="FileMinorPart">0</I32>
+      <S N="FileName">C:\windows\System32\inetsrv\cachtokn.dll</S>
+      <I32 N="FilePrivatePart">4968</I32>
+      <S N="FileVersion">10.0.17763.4968 (rs1_release.160715-1616)</S>
+      <S N="InternalName">cachtokn.dll</S>
+      <B N="IsDebug">false</B>
+      <B N="IsPatched">false</B>
+      <B N="IsPrivateBuild">false</B>
+      <B N="IsPreRelease">false</B>
+      <B N="IsSpecialBuild">false</B>
+      <S N="Language">Language Neutral</S>
+      <S N="LegalCopyright">© Microsoft Corporation. All rights reserved.</S>
+      <S N="LegalTrademarks"></S>
+      <S N="OriginalFilename">cachtokn.dll</S>
+      <S N="PrivateBuild"></S>
+      <I32 N="ProductBuildPart">17763</I32>
+      <I32 N="ProductMajorPart">10</I32>
+      <I32 N="ProductMinorPart">0</I32>
+      <S N="ProductName">Internet Information Services</S>
+      <I32 N="ProductPrivatePart">4968</I32>
+      <S N="ProductVersion">10.0.17763.4968</S>
+      <S N="SpecialBuild"></S>
+    </Props>
+    <MS>
+      <Version N="FileVersionRaw">10.0.17763.4968</Version>
+      <Version N="ProductVersionRaw">10.0.17763.4968</Version>
+    </MS>
+  </Obj>
+</Objs>

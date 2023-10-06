@@ -175,4 +175,55 @@ Describe "Exchange 2019 Scenarios testing 2" {
             $multiPageFileWarning | Should -Be $true
         }
     }
+
+    Context "Scenario 6" {
+
+        It "TokenCacheModule loaded and vulnerable to CVE-2023-36434 (previously CVE-2023-21709)" {
+
+            # We show the CVE entry as the system is vulnerable
+            SetActiveDisplayGrouping "Security Vulnerability"
+            $cveEntries = GetObject "Security Vulnerability"
+            $cveEntries.Contains("CVE-2023-36434") | Should -Be $true
+
+            # We don't show the TokenCacheModule warning as the module is loaded
+            SetActiveDisplayGrouping "Exchange IIS Information"
+            $tokenCacheModuleInformation = GetObject "TokenCacheModule loaded"
+            $tokenCacheModuleInformation | Should -Be $null
+        }
+
+        It "TokenCacheModule is loaded and cachtokn.dll is patched and not vulnerable to CVE-2023-36434 (previously CVE-2023-21709)" {
+            Mock Invoke-ScriptBlockHandler -ParameterFilter {
+                $ScriptBlockDescription -eq "Get TokenCacheModule version information"
+            } -MockWith {
+                return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\IIS\GetVersionInformationCachToknPatched.xml"
+            }
+            SetDefaultRunOfHealthChecker "Debug_TokenCacheModule_Loaded_And_Patched_Scenario6_Results.xml"
+
+            # We don't show the CVE entry as cachtokn.dll is not vulnerable (build equal or greater than what we expect)
+            SetActiveDisplayGrouping "Security Vulnerability"
+            $cveEntries = GetObject "Security Vulnerability"
+            $cveEntries.Contains("CVE-2023-36434") | Should -Be $false
+
+            # We don't show the TokenCacheModule warning as the module is loaded
+            SetActiveDisplayGrouping "Exchange IIS Information"
+            $tokenCacheModuleInformation = GetObject "TokenCacheModule loaded"
+            $tokenCacheModuleInformation | Should -Be $null
+        }
+
+        It "TokenCacheModule not loaded and as a result, not vulnerable to CVE-2023-36434 (previously CVE-2023-21709)" {
+            Mock Get-IISModules { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetIISModulesNoTokenCacheModule.xml" }
+            SetDefaultRunOfHealthChecker "Debug_TokenCacheModule_Not_Loaded_Scenario6_Results.xml"
+
+            # We don't show the CVE entry as the module is not loaded and so, the system is not vulnerable
+            SetActiveDisplayGrouping "Security Vulnerability"
+            $cveEntries = GetObject "Security Vulnerability"
+            $cveEntries.Contains("CVE-2023-36434") | Should -Be $false
+
+            # We show the TokenCacheModule warning as the recommendation is to install the Windows SU and afterwards, adding the module back
+            SetActiveDisplayGrouping "Exchange IIS Information"
+            $tokenCacheModuleInformation = GetObject "TokenCacheModule loaded"
+            $tokenCacheModuleInformation | Should -Not -Be $null
+            $tokenCacheModuleInformation.Contains("False") | Should -Be $true
+        }
+    }
 }
