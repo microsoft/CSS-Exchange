@@ -383,20 +383,19 @@ $ServerProcess = Get-Process | Sort-Object -Property ProcessName
 $ModuleAllowList = New-Object Collections.Generic.List[string]
 
 # cSpell:disable
-$ModuleAllowList.add("Google.Protobuf.ni.dll")
-$ModuleAllowList.add("Microsoft.RightsManagementServices.Core.ni.dll")
-$ModuleAllowList.add("Newtonsoft.Json.ni.dll")
-$ModuleAllowList.add("Microsoft.Cloud.InstrumentationFramework.Events.ni.dll")
+$ModuleAllowList.add("Google.Protobuf.dll")
+$ModuleAllowList.add("Microsoft.RightsManagementServices.Core.dll")
+$ModuleAllowList.add("Newtonsoft.Json.dll")
+$ModuleAllowList.add("Microsoft.Cloud.InstrumentationFramework.Events.dll")
 $ModuleAllowList.add("HealthServicePerformance.dll")
 $ModuleAllowList.add("InterceptCounters.dll")
 $ModuleAllowList.add("MOMConnectorPerformance.dll")
 $ModuleAllowList.add("ExDbFailureItemApi.dll")
-$ModuleAllowList.add("Microsoft.Cloud.InstrumentationFramework.Metrics.ni.dll")
+$ModuleAllowList.add("Microsoft.Cloud.InstrumentationFramework.Metrics.dll")
 $ModuleAllowList.add("IfxMetrics.dll")
 $ModuleAllowList.add("ManagedBlingSigned.dll")
-$ModuleAllowList.add("ManagedBlingSigned.ni.dll")
 $ModuleAllowList.add("l3codecp.acm")
-$ModuleAllowList.add("System.IdentityModel.Tokens.jwt.ni.dll")
+$ModuleAllowList.add("System.IdentityModel.Tokens.jwt.dll")
 # Oracle modules associated with 'Outside In® Technology'
 $ModuleAllowList.add("wvcore.dll")
 $ModuleAllowList.add("sccut.dll")
@@ -418,6 +417,10 @@ Write-SimpleLogFile -string ("Allow List Module Count: " + $ModuleAllowList.coun
 
 $UnexpectedModuleFound = 0
 
+"`n####################################################################################################" | Out-File $OutputProcessPath
+"$((Get-Date).ToString())" | Out-File $OutputProcessPath -Append
+"####################################################################################################" | Out-File $OutputProcessPath -Append
+
 $showWarning = $false
 # Gather each process and work thru their module list to remove any known modules.
 foreach ($process in $ServerProcess) {
@@ -436,7 +439,7 @@ foreach ($process in $ServerProcess) {
 
         # Clear out modules from the allow list
         foreach ($module in $ModuleAllowList) {
-            $ProcessModules = $ProcessModules | Where-Object { $_.ModuleName -ne $module }
+            $ProcessModules = $ProcessModules | Where-Object { $_.ModuleName -ne $module -and $_.ModuleName -ne $($module.Replace(".dll", ".ni.dll")) }
         }
 
         if ($ProcessModules.count -gt 0) {
