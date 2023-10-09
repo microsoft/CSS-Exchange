@@ -42,6 +42,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-WebConfigFile -ParameterFilter { $PSPath -eq "IIS:\Sites\Default Web Site/ecp" } -MockWith { return [PSCustomObject]@{ FullName = "$Script:MockDataCollectionRoot\Exchange\IIS\DefaultWebSite_web.config" } }
             Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost1.config" -Raw }
             Mock Get-ExchangeDiagnosticInfo { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo1.xml" }
+            Mock Get-IISModules { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetIISModulesNoTokenCacheModule.xml" }
             Mock Get-Service {
                 param(
                     [string]$ComputerName,
@@ -185,6 +186,14 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Windows service" "Running"
             TestObjectMatch "Pattern service" "200 - Reachable"
             TestObjectMatch "Telemetry enabled" "False"
+        }
+
+        It "CVE-2023-36434 Test - Module Not loaded" {
+            SetActiveDisplayGrouping "Security Vulnerability"
+            $cveEntries = GetObject "Security Vulnerability"
+            $cveEntries.Contains("CVE-2023-36434") | Should -Be $false # false because it isn't loaded.
+            SetActiveDisplayGrouping "Exchange IIS Information"
+            TestObjectMatch "TokenCacheModule loaded" $true -WriteType "Yellow"
         }
     }
 
