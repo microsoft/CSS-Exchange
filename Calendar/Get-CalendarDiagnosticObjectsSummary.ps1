@@ -565,21 +565,6 @@ function BuildTimeline {
                         MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
-                    if ($CalLog.OnlineMeetingConfLink -ne $PreviousCalLog.OnlineMeetingConfLink) {
-                        [Array]$TimeLineText = "The Online Meeting Conference Link changed from [$($PreviousCalLog.OnlineMeetingConfLink)] to: [$($CalLog.OnlineMeetingConfLink)]"
-                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
-                    }
-
-                    if ($CalLog.OnlineMeetingExternalLink -ne $PreviousCalLog.OnlineMeetingExternalLink) {
-                        [Array]$TimeLineText = "The Online Meeting External Link changed from [$($PreviousCalLog.OnlineMeetingExternalLink)] to: [$($CalLog.OnlineMeetingExternalLink)]"
-                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
-                    }
-
-                    if ($CalLog.OnlineMeetingInternalLink -ne $PreviousCalLog.OnlineMeetingInternalLink) {
-                        [Array]$TimeLineText = "The Online Meeting Internal Link changed from [$($PreviousCalLog.OnlineMeetingInternalLink)] to: [$($CalLog.OnlineMeetingInternalLink)]"
-                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
-                    }
-
                     if ($CalLog.SenderEmailAddress -ne $PreviousCalLog.SenderEmailAddress) {
                         [Array]$TimeLineText = "The Sender Email Address changed from [$($PreviousCalLog.SenderEmailAddress)] to: [$($CalLog.SenderEmailAddress)]"
                         MeetingSummary -Time " " -MeetingChanges $TimeLineText
@@ -884,7 +869,7 @@ $UniqueMeetingID = $GlobalObjectId | Select-Object -Unique;
 if ($UniqueMeetingID.count -gt 1) {
     $UniqueMeetingID | ForEach-Object {
         $MeetingID = $_;
-        $script:GCDO = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames AppointmentCounterProposal, AppointmentRecurring, CalendarItemType, CalendarProcessed, ClientIntent, DisplayAttendeesCc, DisplayAttendeesTo, EventEmailReminderTimer, ExternalSharingMasterId, FreeBusyStatus, From, HasAttachment, IsAllDayEvent, IsCancelled, IsMeeting, MapiEndTime, MapiStartTime, OnlineMeetingConfLink, OnlineMeetingExternalLink, OnlineMeetingInternalLink, SentRepresentingDisplayName, SentRepresentingEmailAddress -WarningAction Ignore -MaxResults 2000;
+        $script:GCDO = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames AppointmentCounterProposal, AppointmentRecurring, CalendarItemType, CalendarProcessed, ClientIntent, DisplayAttendeesCc, DisplayAttendeesTo, EventEmailReminderTimer, ExternalSharingMasterId, FreeBusyStatus, From, HasAttachment, IsAllDayEvent, IsCancelled, IsMeeting, MapiEndTime, MapiStartTime, NormalizedSubject, SentRepresentingDisplayName, SentRepresentingEmailAddress -WarningAction Ignore -MaxResults 2000;
         BuildCSV;
         BuildTimeline;
     }
