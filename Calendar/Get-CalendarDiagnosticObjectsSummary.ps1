@@ -29,7 +29,7 @@ param(
 )
 
 function GetCalendarDiagnosticObjects {
-    $CustomPropertyNameList = "AppointmentCounterProposal", "AppointmentRecurring", "CalendarItemType", "CalendarProcessed", "ClientIntent", "DisplayAttendeesCc", "DisplayAttendeesTo", "EventEmailReminderTimer", "ExternalSharingMasterId", "FreeBusyStatus", "From", "HasAttachment", "IsAllDayEvent", "IsCancelled", "IsMeeting", "MapiEndTime", "MapiStartTime", "OnlineMeetingConfLink", "OnlineMeetingExternalLink", "OnlineMeetingInternalLink", "SentRepresentingDisplayName", "SentRepresentingEmailAddress";
+    $CustomPropertyNameList = "AppointmentCounterProposal", "AppointmentRecurring", "CalendarItemType", "CalendarProcessed", "ClientIntent", "DisplayAttendeesCc", "DisplayAttendeesTo", "EventEmailReminderTimer", "ExternalSharingMasterId", "FreeBusyStatus", "From", "HasAttachment", "IsAllDayEvent", "IsCancelled", "IsMeeting", "MapiEndTime", "MapiStartTime", "NormalizedSubject", "SentRepresentingDisplayName", "SentRepresentingEmailAddress";
     if ($Identity -and $Subject -and $MeetingID) {
         $script:GetCDO = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults 2000;
     }
@@ -165,7 +165,7 @@ function BuildCSV {
         'IPM.Schedule.Meeting.Resp.Pos'                        = "RespPos"
     }
 
-    $SCN = @{
+    $ShortClientNameProcessor = @{
         'Client=Hub Transport'                       = "Transport"
         'Client=MSExchangeRPC'                       = "Outlook"
         'Lync for Mac'                               = "LyncMac"
@@ -187,7 +187,7 @@ function BuildCSV {
         'Client=OutlookService;Outlook-iOS'          = "OutlookiOS"
     }
 
-    $RT = @{
+    $ResponseTypeOptions = @{
         '0' = "None"
         "1" = "Organizer"
         '2' = "Tentative"
@@ -203,7 +203,7 @@ function BuildCSV {
         $ItemType = $CalendarItemTypes.($CalLog.ItemClass);
         $ShortClientName = @();
         $script:KeyInput = $CalLog.ClientInfoString;
-        $ResponseType = $RT.($CalLog.ResponseType.ToString());
+        $ResponseType = $ResponseTypeOptions.($CalLog.ResponseType.ToString());
 
         if (!$CalLog.ClientInfoString) {
             $ShortClientName = "NotFound";
@@ -249,7 +249,7 @@ function BuildCSV {
                 $ShortClientName = "Rest";
             }
         } else {
-            $ShortClientName = findMatch -PassedHash $SCN;
+            $ShortClientName = findMatch -PassedHash $ShortClientNameProcessor;
         }
 
         if ($CalLog.ClientInfoString -like "*InternalCalendarSharing*" -and $CalLog.ClientInfoString -like "*OWA*") {
@@ -370,6 +370,7 @@ function BuildCSV {
             'CleanGlobalObjectId'          = $CalLog.CleanGlobalObjectId
             'MapiStartTime'                = $CalLog.MapiStartTime
             'MapiEndTime'                  = $CalLog.MapiEndTime
+            'NormalizedSubject'            = $CalLog.NormalizedSubject
             'AppointmentRecurring'         = $CalLog.AppointmentRecurring
             'HasAttachment'                = $CalLog.HasAttachment
             'IsCancelled'                  = $CalLog.IsCancelled
@@ -381,9 +382,6 @@ function BuildCSV {
             'IsOrganizerProperty'          = $CalLog.IsOrganizerProperty
             'EventEmailReminderTimer'      = $CalLog.EventEmailReminderTimer
             'ExternalSharingMasterId'      = $CalLog.ExternalSharingMasterId
-            'OnlineMeetingConfLink'        = $CalLog.OnlineMeetingConfLink
-            'OnlineMeetingExternalLink'    = $CalLog.OnlineMeetingExternalLink
-            'OnlineMeetingInternalLink'    = $CalLog.OnlineMeetingInternalLink
         }
     }
     $script:Results = $GCDOResults;
