@@ -49,7 +49,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
         It "Display Results - Operating System Information" {
             SetActiveDisplayGrouping "Operating System Information"
 
-            TestObjectMatch "Version" "Microsoft Windows Server 2012 R2 Datacenter"
+            TestObjectMatch "Version" "Windows Server 2012 R2 Datacenter"
             TestObjectMatch "Time Zone" "Pacific Standard Time"
             TestObjectMatch "Dynamic Daylight Time Enabled" "True"
             TestObjectMatch ".NET Framework" "4.8" -WriteType "Green"
