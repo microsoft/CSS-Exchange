@@ -408,18 +408,15 @@ $ModuleAllowList.add("sccfmt.dll")
 $ModuleAllowList.add("sccind.dll")
 $ModuleAllowList.add("sccca.dll")
 $ModuleAllowList.add("scclo.dll")
-$ModuleAllowList.add("SCCOLE2.DLL")
-$ModuleAllowList.add("SCCSD.DLL")
-$ModuleAllowList.add("SCCXT.DLL")
+$ModuleAllowList.add("SCCOLE2.dll")
+$ModuleAllowList.add("SCCSD.dll")
+$ModuleAllowList.add("SCCXT.dll")
 # cSpell:enable
 
 Write-SimpleLogFile -string ("Allow List Module Count: " + $ModuleAllowList.count) -Name $LogFile
 
 $UnexpectedModuleFound = 0
 
-"`n####################################################################################################" | Out-File $OutputProcessPath
-"$((Get-Date).ToString())" | Out-File $OutputProcessPath -Append
-"####################################################################################################" | Out-File $OutputProcessPath -Append
 
 $showWarning = $false
 # Gather each process and work thru their module list to remove any known modules.
@@ -443,12 +440,19 @@ foreach ($process in $ServerProcess) {
         }
 
         if ($ProcessModules.count -gt 0) {
+
+            if ($UnexpectedModuleFound -eq 0) {
+                "`n####################################################################################################" | Out-File $OutputProcessPath  -Append
+                "$((Get-Date).ToString())" | Out-File $OutputProcessPath -Append
+                "####################################################################################################" | Out-File $OutputProcessPath -Append
+            }
+
             Write-Warning ("Possible AV Modules found in process $($process.ProcessName)")
             $UnexpectedModuleFound++
             foreach ($module in $ProcessModules) {
                 if ( $process.MainModule.ModuleName -eq "W3wp.exe" -and $showWarning -eq $false) {
-                    Write-Warning "W3wp.exe is not present in the recommended Exclusion list but we found 3rd Party modules on it and could affect Exchange performance."
-                    Write-SimpleLogFile -string "W3wp.exe is not present in the recommended Exclusion list but we found 3rd Party modules on it and could affect Exchange performance." -name $LogFile
+                    Write-Warning "W3wp.exe is not present in the recommended Exclusion list but we found 3rd Party modules on it and could affect Exchange performance or functionality."
+                    Write-SimpleLogFile -string "W3wp.exe is not present in the recommended Exclusion list but we found 3rd Party modules on it and could affect Exchange performance or functionality." -name $LogFile
                     $showWarning = $true
                 }
                 $OutString = ("[FAIL] - PROCESS: $($process.ProcessName) PID($($process.Id)) MODULE: $($module.ModuleName) COMPANY: $($module.Company)`n`t $($module.FileName)")
@@ -457,6 +461,10 @@ foreach ($process in $ServerProcess) {
             }
         }
     }
+}
+
+if ($UnexpectedModuleFound -gt 0) {
+    "`n####################################################################################################" | Out-File $OutputProcessPath  -Append
 }
 
 # Final output for process detection
