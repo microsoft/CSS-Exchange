@@ -373,26 +373,29 @@ Write-SimpleLogFile -string "Testing for AV loaded in processes" -name $LogFile 
 # Test Exchange Processes for unexpected modules
 $ProcessList = Get-ExchAVExclusionsProcess -ExchangePath $ExchangePath -MsiProductMinor ([byte]$serverExchangeInstallDirectory.MsiProductMinor)
 
+# Include w3wp process in the analysis
+$ProcessList += (Join-Path $env:SystemRoot '\System32\inetSrv\W3wp.exe')
+
 # Gather all processes on the computer
-$ServerProcess = Get-Process
+$ServerProcess = Get-Process | Sort-Object -Property ProcessName
 
 # Module allow list
 $ModuleAllowList = New-Object Collections.Generic.List[string]
 
 # cSpell:disable
-$ModuleAllowList.add("Google.Protobuf.ni.dll")
-$ModuleAllowList.add("Microsoft.RightsManagementServices.Core.ni.dll")
-$ModuleAllowList.add("Newtonsoft.Json.ni.dll")
-$ModuleAllowList.add("Microsoft.Cloud.InstrumentationFramework.Events.ni.dll")
+$ModuleAllowList.add("Google.Protobuf.dll")
+$ModuleAllowList.add("Microsoft.RightsManagementServices.Core.dll")
+$ModuleAllowList.add("Newtonsoft.Json.dll")
+$ModuleAllowList.add("Microsoft.Cloud.InstrumentationFramework.Events.dll")
 $ModuleAllowList.add("HealthServicePerformance.dll")
 $ModuleAllowList.add("InterceptCounters.dll")
 $ModuleAllowList.add("MOMConnectorPerformance.dll")
 $ModuleAllowList.add("ExDbFailureItemApi.dll")
-$ModuleAllowList.add("Microsoft.Cloud.InstrumentationFramework.Metrics.ni.dll")
+$ModuleAllowList.add("Microsoft.Cloud.InstrumentationFramework.Metrics.dll")
 $ModuleAllowList.add("IfxMetrics.dll")
 $ModuleAllowList.add("ManagedBlingSigned.dll")
 $ModuleAllowList.add("l3codecp.acm")
-$ModuleAllowList.add("System.IdentityModel.Tokens.jwt.ni.dll")
+$ModuleAllowList.add("System.IdentityModel.Tokens.jwt.dll")
 # Oracle modules associated with 'Outside In® Technology'
 $ModuleAllowList.add("wvcore.dll")
 $ModuleAllowList.add("sccut.dll")
@@ -405,14 +408,15 @@ $ModuleAllowList.add("sccfmt.dll")
 $ModuleAllowList.add("sccind.dll")
 $ModuleAllowList.add("sccca.dll")
 $ModuleAllowList.add("scclo.dll")
-$ModuleAllowList.add("SCCOLE2.DLL")
-$ModuleAllowList.add("SCCSD.DLL")
-$ModuleAllowList.add("SCCXT.DLL")
+$ModuleAllowList.add("SCCOLE2.dll")
+$ModuleAllowList.add("SCCSD.dll")
+$ModuleAllowList.add("SCCXT.dll")
 # cSpell:enable
 
 Write-SimpleLogFile -string ("Allow List Module Count: " + $ModuleAllowList.count) -Name $LogFile
 
 $UnexpectedModuleFound = 0
+$showWarning = $false
 
 # Gather each process and work thru their module list to remove any known modules.
 foreach ($process in $ServerProcess) {
@@ -431,19 +435,33 @@ foreach ($process in $ServerProcess) {
 
         # Clear out modules from the allow list
         foreach ($module in $ModuleAllowList) {
-            $ProcessModules = $ProcessModules | Where-Object { $_.ModuleName -ne $module }
+            $ProcessModules = $ProcessModules | Where-Object { $_.ModuleName -ne $module -and $_.ModuleName -ne $($module.Replace(".dll", ".ni.dll")) }
         }
 
         if ($ProcessModules.count -gt 0) {
+            if ($UnexpectedModuleFound -eq 0) {
+                "`n####################################################################################################" | Out-File $OutputProcessPath  -Append
+                "$((Get-Date).ToString())" | Out-File $OutputProcessPath -Append
+                "####################################################################################################" | Out-File $OutputProcessPath -Append
+            }
             Write-Warning ("Possible AV Modules found in process $($process.ProcessName)")
             $UnexpectedModuleFound++
             foreach ($module in $ProcessModules) {
-                $OutString = ("[FAIL] - PROCESS: $($process.ProcessName) MODULE: $($module.ModuleName) COMPANY: $($module.Company)")
-                Write-SimpleLogFile -string $OutString -Name $LogFile
+                if ( $process.MainModule.ModuleName -eq "W3wp.exe" -and $showWarning -eq $false) {
+                    Write-Warning "W3wp.exe is not present in the recommended Exclusion list but we found 3rd Party modules on it and could affect Exchange performance or functionality."
+                    Write-SimpleLogFile -string "W3wp.exe is not present in the recommended Exclusion list but we found 3rd Party modules on it and could affect Exchange performance or functionality." -name $LogFile
+                    $showWarning = $true
+                }
+                $OutString = ("[FAIL] - PROCESS: $($process.ProcessName) PID($($process.Id)) MODULE: $($module.ModuleName) COMPANY: $($module.Company)`n`t $($module.FileName)")
+                Write-SimpleLogFile -string $OutString -Name $LogFile -OutHost
                 $OutString | Out-File $OutputProcessPath -Append
             }
         }
     }
+}
+
+if ($UnexpectedModuleFound -gt 0) {
+    "`n####################################################################################################" | Out-File $OutputProcessPath  -Append
 }
 
 # Final output for process detection
