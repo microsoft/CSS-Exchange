@@ -416,9 +416,8 @@ $ModuleAllowList.add("SCCXT.dll")
 Write-SimpleLogFile -string ("Allow List Module Count: " + $ModuleAllowList.count) -Name $LogFile
 
 $UnexpectedModuleFound = 0
-
-
 $showWarning = $false
+
 # Gather each process and work thru their module list to remove any known modules.
 foreach ($process in $ServerProcess) {
 
@@ -440,13 +439,11 @@ foreach ($process in $ServerProcess) {
         }
 
         if ($ProcessModules.count -gt 0) {
-
             if ($UnexpectedModuleFound -eq 0) {
                 "`n####################################################################################################" | Out-File $OutputProcessPath  -Append
                 "$((Get-Date).ToString())" | Out-File $OutputProcessPath -Append
                 "####################################################################################################" | Out-File $OutputProcessPath -Append
             }
-
             Write-Warning ("Possible AV Modules found in process $($process.ProcessName)")
             $UnexpectedModuleFound++
             foreach ($module in $ProcessModules) {
