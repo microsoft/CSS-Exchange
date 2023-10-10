@@ -178,7 +178,7 @@ function Invoke-AnalyzerIISInformation {
 
     Write-Verbose "Working on IIS Module information"
 
-    # If TokenCacheModule is not loaded, we highlight that it could be added back again as Windows provided a fix to address CVE-2023-36434 (previously tracked as CVE-2023-21709)
+    # If TokenCacheModule is not loaded, we highlight that it could be added back again as Windows provided a fix to address CVE-2023-36434 (also tracked as CVE-2023-21709)
     if ($null -eq $exchangeInformation.IISSettings.IISModulesInformation.ModuleList.Name) {
         Write-Verbose "Module List is null, unable to provide accurate check for this."
     } elseif ($exchangeInformation.IISSettings.IISModulesInformation.ModuleList.Name -notcontains "TokenCacheModule") {
@@ -187,7 +187,7 @@ function Invoke-AnalyzerIISInformation {
         $params = $baseParams + @{
             Name                = "TokenCacheModule loaded"
             Details             = ("$false
-                `r`t`tThe module wasn't found and as a result, CVE-2023-36434 (previously tracked as CVE-2023-21709) is mitigated. Windows has released a Security Update that addresses the vulnerability.
+                `r`t`tThe module wasn't found and as a result, CVE-2023-21709 and CVE-2023-36434 are mitigated. Windows has released a Security Update that addresses the vulnerability.
                 `r`t`tIt should be installed on all Exchange servers and then, the TokenCacheModule can be added back to IIS (by running .\CVE-2023-21709.ps1 -Rollback).
                 `r`t`tMore Information: https://aka.ms/CVE-2023-21709ScriptDoc"
             )
