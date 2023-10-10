@@ -96,6 +96,8 @@ Mock Get-RemoteRegistryValue {
         "MinimumConnectionTimeout" { return 0 }
         "LmCompatibilityLevel" { return $null }
         "UBR" { return 720 }
+        "ProductName" { return Import-Clixml "$Script:MockDataCollectionRoot\OS\RemoteRegistryValueProductName.xml" }
+        "InstallationType" { return Import-Clixml "$Script:MockDataCollectionRoot\OS\RemoteRegistryValueInstallationType.xml" }
         "DisableCompression" { return 0 }
         "CtsProcessorAffinityPercentage" { return 0 }
         "Enabled" { return 0 }
@@ -254,6 +256,11 @@ function Get-OrganizationConfig {
 function Get-DynamicDistributionGroup {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetDynamicDistributionGroupPfMailboxes.xml"
 }
+
+function Get-IRMConfiguration {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetIrmConfiguration.xml"
+}
+
 # virtual directory cmdlets to return null till we do actual checks against the vDirs.
 function Get-ActiveSyncVirtualDirectory { return $null }
 

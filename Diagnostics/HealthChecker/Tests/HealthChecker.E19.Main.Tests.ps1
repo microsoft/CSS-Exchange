@@ -49,7 +49,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
         It "Display Results - Operating System Information" {
             SetActiveDisplayGrouping "Operating System Information"
 
-            TestObjectMatch "Version" "Microsoft Windows Server 2019 Datacenter"
+            TestObjectMatch "Version" "Windows Server 2019 Datacenter (Server Core)"
             TestObjectMatch "Time Zone" "Pacific Standard Time"
             TestObjectMatch "Dynamic Daylight Time Enabled" "True"
             TestObjectMatch ".NET Framework" "4.8" -WriteType "Green"
@@ -136,6 +136,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "AMSI Enabled" "True" -WriteType "Green"
             TestObjectMatch "Strict Mode disabled" "False" -WriteType "Green"
             TestObjectMatch "BaseTypeCheckForDeserialization disabled" "False" -WriteType "Green"
+            TestObjectMatch "AES256-CBC Protected Content Support" "Not Supported Build" -WriteType "Red"
 
             $Script:ActiveGrouping.Count | Should -Be 79
         }

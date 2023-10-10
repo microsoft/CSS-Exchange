@@ -67,6 +67,13 @@ function Get-OrganizationInformation {
             $isSplitADPermissions = Get-ExchangeADSplitPermissionsEnabled -CatchActionFunction ${Function:Invoke-CatchActions}
 
             try {
+                $getIrmConfiguration = Get-IRMConfiguration -ErrorAction Stop
+            } catch {
+                Write-Verbose "Failed to get the IRM Configuration"
+                Invoke-CatchActions
+            }
+
+            try {
                 $getDdgPublicFolders = @(Get-DynamicDistributionGroup "PublicFolderMailboxes*" -IncludeSystemObjects -ErrorAction "Stop")
             } catch {
                 Write-Verbose "Failed to get the dynamic distribution group for public folder mailboxes."
@@ -143,6 +150,7 @@ function Get-OrganizationInformation {
             ADSiteCount                       = $adSiteCount
             GetSettingOverride                = $getSettingOverride
             GetDynamicDgPublicFolderMailboxes = $getDdgPublicFolders
+            GetIrmConfiguration               = $getIrmConfiguration
         }
     }
 }
