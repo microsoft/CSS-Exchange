@@ -29,7 +29,7 @@ param(
 )
 
 function GetCalendarDiagnosticObjects {
-    $CustomPropertyNameList = "AppointmentCounterProposal", "AppointmentRecurring", "CalendarItemType", "CalendarProcessed", "ClientIntent", "DisplayAttendeesCc", "DisplayAttendeesTo", "EventEmailReminderTimer", "ExternalSharingMasterId", "FreeBusyStatus", "From", "HasAttachment", "IsAllDayEvent", "IsCancelled", "IsMeeting", "MapiEndTime", "MapiStartTime", "OnlineMeetingConfLink", "OnlineMeetingExternalLink", "OnlineMeetingInternalLink", "SentRepresentingDisplayName", "SentRepresentingEmailAddress";
+    $CustomPropertyNameList = "AppointmentCounterProposal", "AppointmentRecurring", "CalendarItemType", "CalendarProcessed", "ClientIntent", "DisplayAttendeesCc", "DisplayAttendeesTo", "EventEmailReminderTimer", "ExternalSharingMasterId", "FreeBusyStatus", "From", "HasAttachment", "IsAllDayEvent", "IsCancelled", "IsMeeting", "MapiEndTime", "MapiStartTime", "NormalizedSubject", "SentRepresentingDisplayName", "SentRepresentingEmailAddress";
     if ($Identity -and $Subject -and $MeetingID) {
         $script:GetCDO = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults 2000;
     }
@@ -165,7 +165,7 @@ function BuildCSV {
         'IPM.Schedule.Meeting.Resp.Pos'                        = "RespPos"
     }
 
-    $SCN = @{
+    $ShortClientNameProcessor = @{
         'Client=Hub Transport'                       = "Transport"
         'Client=MSExchangeRPC'                       = "Outlook"
         'Lync for Mac'                               = "LyncMac"
@@ -187,7 +187,7 @@ function BuildCSV {
         'Client=OutlookService;Outlook-iOS'          = "OutlookiOS"
     }
 
-    $RT = @{
+    $ResponseTypeOptions = @{
         '0' = "None"
         "1" = "Organizer"
         '2' = "Tentative"
@@ -203,7 +203,7 @@ function BuildCSV {
         $ItemType = $CalendarItemTypes.($CalLog.ItemClass);
         $ShortClientName = @();
         $script:KeyInput = $CalLog.ClientInfoString;
-        $ResponseType = $RT.($CalLog.ResponseType.ToString());
+        $ResponseType = $ResponseTypeOptions.($CalLog.ResponseType.ToString());
 
         if (!$CalLog.ClientInfoString) {
             $ShortClientName = "NotFound";
@@ -249,7 +249,7 @@ function BuildCSV {
                 $ShortClientName = "Rest";
             }
         } else {
-            $ShortClientName = findMatch -PassedHash $SCN;
+            $ShortClientName = findMatch -PassedHash $ShortClientNameProcessor;
         }
 
         if ($CalLog.ClientInfoString -like "*InternalCalendarSharing*" -and $CalLog.ClientInfoString -like "*OWA*") {
@@ -381,12 +381,7 @@ function BuildCSV {
             'IsException'                  = $CalLog.IsException
             'IsOrganizerProperty'          = $CalLog.IsOrganizerProperty
             'EventEmailReminderTimer'      = $CalLog.EventEmailReminderTimer
-            'EstimatedAcceptCount'         = $CalLog.EstimatedAcceptCount
-            'EstimatedTentativeCount'      = $CalLog.EstimatedTentativeCount
-            'EstimatedDeclineCount'        = $CalLog.EstimatedDeclineCount
-            'OnlineMeetingConfLink'        = $CalLog.OnlineMeetingConfLink
-            'OnlineMeetingExternalLink'    = $CalLog.OnlineMeetingExternalLink
-            'OnlineMeetingInternalLink'    = $CalLog.OnlineMeetingInternalLink
+            'ExternalSharingMasterId'      = $CalLog.ExternalSharingMasterId
         }
     }
     $script:Results = $GCDOResults;
@@ -567,36 +562,6 @@ function BuildTimeline {
 
                     if ($CalLog.ResponseType -ne $PreviousCalLog.ResponseType) {
                         [Array]$TimeLineText = "The ResponseType changed from [$($PreviousCalLog.ResponseType)] to: [$($CalLog.ResponseType)]"
-                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
-                    }
-
-                    if ($CalLog.EstimatedAcceptCount -ne $PreviousCalLog.EstimatedAcceptCount) {
-                        [Array]$TimeLineText = "The Estimated Accept Count changed from [$($PreviousCalLog.EstimatedAcceptCount)] to: [$($CalLog.EstimatedAcceptCount)]"
-                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
-                    }
-
-                    if ($CalLog.EstimatedTentativeCount -ne $PreviousCalLog.EstimatedTentativeCount) {
-                        [Array]$TimeLineText = "The Estimated Tentative Count changed from [$($PreviousCalLog.EstimatedTentativeCount)] to: [$($CalLog.EstimatedTentativeCount)]"
-                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
-                    }
-
-                    if ($CalLog.EstimatedDeclineCount -ne $PreviousCalLog.EstimatedDeclineCount) {
-                        [Array]$TimeLineText = "The Estimated Declined Count changed from [$($PreviousCalLog.EstimatedDeclineCount)] to: [$($CalLog.EstimatedDeclineCount)]"
-                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
-                    }
-
-                    if ($CalLog.OnlineMeetingConfLink -ne $PreviousCalLog.OnlineMeetingConfLink) {
-                        [Array]$TimeLineText = "The Online Meeting Conference Link changed from [$($PreviousCalLog.OnlineMeetingConfLink)] to: [$($CalLog.OnlineMeetingConfLink)]"
-                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
-                    }
-
-                    if ($CalLog.OnlineMeetingExternalLink -ne $PreviousCalLog.OnlineMeetingExternalLink) {
-                        [Array]$TimeLineText = "The Online Meeting External Link changed from [$($PreviousCalLog.OnlineMeetingExternalLink)] to: [$($CalLog.OnlineMeetingExternalLink)]"
-                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
-                    }
-
-                    if ($CalLog.OnlineMeetingInternalLink -ne $PreviousCalLog.OnlineMeetingInternalLink) {
-                        [Array]$TimeLineText = "The Online Meeting Internal Link changed from [$($PreviousCalLog.OnlineMeetingInternalLink)] to: [$($CalLog.OnlineMeetingInternalLink)]"
                         MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
@@ -904,7 +869,7 @@ $UniqueMeetingID = $GlobalObjectId | Select-Object -Unique;
 if ($UniqueMeetingID.count -gt 1) {
     $UniqueMeetingID | ForEach-Object {
         $MeetingID = $_;
-        $script:GCDO = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames AppointmentCounterProposal, AppointmentRecurring, CalendarItemType, CalendarProcessed, ClientIntent, DisplayAttendeesCc, DisplayAttendeesTo, EventEmailReminderTimer, ExternalSharingMasterId, FreeBusyStatus, From, HasAttachment, IsAllDayEvent, IsCancelled, IsMeeting, MapiEndTime, MapiStartTime, OnlineMeetingConfLink, OnlineMeetingExternalLink, OnlineMeetingInternalLink, SentRepresentingDisplayName, SentRepresentingEmailAddress -WarningAction Ignore -MaxResults 2000;
+        $script:GCDO = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames AppointmentCounterProposal, AppointmentRecurring, CalendarItemType, CalendarProcessed, ClientIntent, DisplayAttendeesCc, DisplayAttendeesTo, EventEmailReminderTimer, ExternalSharingMasterId, FreeBusyStatus, From, HasAttachment, IsAllDayEvent, IsCancelled, IsMeeting, MapiEndTime, MapiStartTime, NormalizedSubject, SentRepresentingDisplayName, SentRepresentingEmailAddress -WarningAction Ignore -MaxResults 2000;
         BuildCSV;
         BuildTimeline;
     }
