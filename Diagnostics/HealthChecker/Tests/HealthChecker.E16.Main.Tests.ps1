@@ -49,7 +49,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
         It "Display Results - Operating System Information" {
             SetActiveDisplayGrouping "Operating System Information"
 
-            TestObjectMatch "Version" "Microsoft Windows Server 2016 Datacenter"
+            TestObjectMatch "Version" "Windows Server 2016 Datacenter"
             TestObjectMatch "Time Zone" "Pacific Standard Time"
             TestObjectMatch "Dynamic Daylight Time Enabled" "True"
             TestObjectMatch ".NET Framework" "4.8" -WriteType "Green"
@@ -140,11 +140,11 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
 
             $cveTests = GetObject "Security Vulnerability"
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
-            $cveTests.Count | Should -Be 44
+            $cveTests.Count | Should -Be 45
             $downloadDomains = GetObject "CVE-2021-1730"
             $downloadDomains.DownloadDomainsEnabled | Should -Be "false"
 
-            $Script:ActiveGrouping.Count | Should -Be 51
+            $Script:ActiveGrouping.Count | Should -Be 52
         }
     }
 

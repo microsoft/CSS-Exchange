@@ -49,7 +49,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
         It "Display Results - Operating System Information" {
             SetActiveDisplayGrouping "Operating System Information"
 
-            TestObjectMatch "Version" "Microsoft Windows Server 2019 Datacenter"
+            TestObjectMatch "Version" "Windows Server 2019 Datacenter (Server Core)"
             TestObjectMatch "Time Zone" "Pacific Standard Time"
             TestObjectMatch "Dynamic Daylight Time Enabled" "True"
             TestObjectMatch ".NET Framework" "4.8" -WriteType "Green"
@@ -136,6 +136,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "AMSI Enabled" "True" -WriteType "Green"
             TestObjectMatch "Strict Mode disabled" "False" -WriteType "Green"
             TestObjectMatch "BaseTypeCheckForDeserialization disabled" "False" -WriteType "Green"
+            TestObjectMatch "AES256-CBC Protected Content Support" "Not Supported Build" -WriteType "Red"
 
             $Script:ActiveGrouping.Count | Should -Be 79
         }
@@ -145,11 +146,18 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
             $cveTests = GetObject "Security Vulnerability"
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
-            $cveTests.Count | Should -Be 44
+            $cveTests.Contains("CVE-2023-36434") | Should -Be $true
+            $cveTests.Count | Should -Be 45
             $downloadDomains = GetObject "CVE-2021-1730"
             $downloadDomains.DownloadDomainsEnabled | Should -Be "False"
             TestObjectMatch "Extended Protection Vulnerable" "True" -WriteType "Red"
             TestObjectMatch "Extended Protection Vulnerable Details" "Your Exchange server is at risk. Install the latest SU and enable Extended Protection" -WriteType "Red"
+        }
+
+        It "Display Results - Exchange IIS Information" {
+            SetActiveDisplayGrouping "Exchange IIS Information"
+            $tokenCacheModuleInformation = GetObject "TokenCacheModule loaded"
+            $tokenCacheModuleInformation | Should -Be $null # null because we are loaded and only display if we aren't loaded.
         }
     }
 
@@ -167,6 +175,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-WebConfigFile -ParameterFilter { $PSPath -eq "IIS:\Sites\Default Web Site" } -MockWith { return [PSCustomObject]@{ FullName = "$Script:MockDataCollectionRoot\Exchange\IIS\DefaultWebSite_web2.config" } }
             Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost2.config" -Raw }
             Mock Get-DynamicDistributionGroup { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetDynamicDistributionGroupPfMailboxes1.xml" }
+            Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Get TokenCacheModule version information" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\IIS\GetVersionInformationCachToknPatched.xml" }
 
             SetDefaultRunOfHealthChecker "Debug_Physical_Results.xml"
         }
@@ -231,10 +240,22 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "SerializedDataSigning Enabled" "False" -WriteType "Yellow"
         }
 
-        It "Extended Protection" {
+        It "Display Results - Security Vulnerability" {
             SetActiveDisplayGrouping "Security Vulnerability"
+
+            $cveEntries = GetObject "Security Vulnerability"
+            $cveEntries.Contains("CVE-2023-36434") | Should -Be $false # false because loaded module with greater than patch value.
+        }
+
+        It "Extended Protection" {
             TestObjectMatch "Extended Protection Vulnerable" "True" -WriteType "Red"
             TestObjectMatch "Extended Protection Vulnerable Details" "Extended Protection isn't configured as expected" -WriteType "Red"
+        }
+
+        It "Display Results - Exchange IIS Information" {
+            SetActiveDisplayGrouping "Exchange IIS Information"
+            $tokenCacheModuleInformation = GetObject "TokenCacheModule loaded"
+            $tokenCacheModuleInformation | Should -Be $null # null because we are loaded
         }
     }
 

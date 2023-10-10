@@ -376,6 +376,35 @@ function Invoke-AnalyzerExchangeInformation {
             Details = $exchangeInformation.ExtendedProtectionConfig.ExtendedProtectionConfigured
         }
         Add-AnalyzedResultInformation @params
+
+        # If any directory has a higher than expected configuration, we need to throw a warning
+        # This will be detected by SupportedExtendedProtection being set to false, as we are set higher than expected/recommended value you will likely run into issues of some kind
+        $notSupportedExtendedProtectionDirectories = $exchangeInformation.ExtendedProtectionConfig.ExtendedProtectionConfiguration |
+            Where-Object { $_.SupportedExtendedProtection -eq $false }
+
+        if ($null -ne $notSupportedExtendedProtectionDirectories) {
+            foreach ($entry in $notSupportedExtendedProtectionDirectories) {
+                $expectedValue = if ($entry.MitigationSupported -and $entry.MitigationEnabled) { "None" } else { $entry.ExpectedExtendedConfiguration }
+                $params = $baseParams + @{
+                    Details                = "$($entry.VirtualDirectoryName) - Current Value: '$($entry.ExtendedProtection)'   Expected Value: '$expectedValue'"
+                    DisplayWriteType       = "Yellow"
+                    DisplayCustomTabNumber = 2
+                    TestingName            = "EP - $($entry.VirtualDirectoryName)"
+                    DisplayTestingValue    = ($entry.ExtendedProtection)
+                }
+                Add-AnalyzedResultInformation @params
+            }
+
+            $params = $baseParams + @{
+                Details          = "`r`n`t`tThe current Extended Protection settings may cause issues with some clients types on $(if(@($notSupportedExtendedProtectionDirectories).Count -eq 1) { "this protocol."} else { "these protocols."})" +
+                "`r`n`t`tIt is recommended to set the EP setting to the recommended value if you are having issues with that protocol." +
+                "`r`n`t`tMore Information: https://aka.ms/ExchangeEPDoc"
+                DisplayWriteType = "Yellow"
+            }
+            Add-AnalyzedResultInformation @params
+        } else {
+            Write-Verbose "All virtual directories are supported for the Extended Protection value."
+        }
     }
 
     if ($null -ne $exchangeInformation.SettingOverrides) {
