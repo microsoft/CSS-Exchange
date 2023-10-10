@@ -13,14 +13,6 @@ function Get-ServerOperatingSystemVersion {
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $osReturnValue = [string]::Empty
-    }
-    process {
-        Write-Verbose "Getting the version build information for computer: $ComputerName"
-        $baseParams = @{
-            MachineName         = $ComputerName
-            CatchActionFunction = $CatchActionFunction
-        }
-
         # Get ProductName via registry call as this is more accurate when running on Server Core
         $productNameParams = $baseParams + @{
             SubKey   = "SOFTWARE\Microsoft\Windows NT\CurrentVersion"
@@ -31,6 +23,13 @@ function Get-ServerOperatingSystemVersion {
         $installationTypeParams = $baseParams + @{
             SubKey   = "SOFTWARE\Microsoft\Windows NT\CurrentVersion"
             GetValue = "InstallationType"
+        }
+    }
+    process {
+        Write-Verbose "Getting the version build information for computer: $ComputerName"
+        $baseParams = @{
+            MachineName         = $ComputerName
+            CatchActionFunction = $CatchActionFunction
         }
 
         $osCaption = Get-RemoteRegistryValue @productNameParams
