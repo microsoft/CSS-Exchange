@@ -192,7 +192,7 @@ function Invoke-AnalyzerIISInformation {
                 `r`t`tMore Information: https://aka.ms/CVE-2023-21709ScriptDoc"
             )
             DisplayWriteType    = "Yellow"
-            AddHtmlDetailRow    = $false
+            AddHtmlDetailRow    = $true
             DisplayTestingValue = $true
         }
         Add-AnalyzedResultInformation @params
