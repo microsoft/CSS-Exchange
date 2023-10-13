@@ -14,6 +14,7 @@ param(
 Set-StrictMode -Version Latest
 
 . $PSScriptRoot\Load-Module.ps1
+. $PSScriptRoot\CodeFormatterChecks\CheckContainsCurlyQuotes.ps1
 . $PSScriptRoot\CodeFormatterChecks\CheckFileHasNewlineAtEndOfFile.ps1
 . $PSScriptRoot\CodeFormatterChecks\CheckMarkdownFileHasNoBOM.ps1
 . $PSScriptRoot\CodeFormatterChecks\CheckMultipleEmptyLines.ps1
@@ -69,6 +70,7 @@ foreach ($fileInfo in $filesToCheck) {
     $errorCount += (CheckScriptFileHasComplianceHeader $fileInfo $Save) ? 1 : 0
     $errorCount += (CheckKeywordCasing $fileInfo $Save) ? 1 : 0
     $errorCount += (CheckMultipleEmptyLines $fileInfo $Save) ?  1 : 0
+    $errorCount += (CheckContainsCurlyQuotes $fileInfo $Save) ? 1 : 0
 
     # This one is tricky. It returns $true or $false like the others, but in the case
     # of an error, we also want to get the diff output. Piping to Out-Host from within
