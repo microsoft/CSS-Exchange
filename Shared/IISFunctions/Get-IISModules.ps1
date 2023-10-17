@@ -24,43 +24,6 @@ function Get-IISModules {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $modulesToCheckList = New-Object 'System.Collections.Generic.List[object]'
 
-        # Add all modules here which should be skipped on legacy OS (pre-Windows Server 2016)
-        $modulesToSkip = @(
-            "$env:windir\system32\inetSrv\cachUri.dll",
-            "$env:windir\system32\inetSrv\cachFile.dll",
-            "$env:windir\system32\inetSrv\cachtokn.dll",
-            "$env:windir\system32\inetSrv\cachHttp.dll",
-            "$env:windir\system32\inetSrv\compStat.dll",
-            "$env:windir\system32\inetSrv\defDoc.dll",
-            "$env:windir\system32\inetSrv\dirList.dll",
-            "$env:windir\system32\inetSrv\protsUp.dll",
-            "$env:windir\system32\inetSrv\redirect.dll",
-            "$env:windir\system32\inetSrv\static.dll",
-            "$env:windir\system32\inetSrv\authAnon.dll",
-            "$env:windir\system32\inetSrv\cusTerr.dll",
-            "$env:windir\system32\inetSrv\logHttp.dll",
-            "$env:windir\system32\inetSrv\iisEtw.dll",
-            "$env:windir\system32\inetSrv\iisFreb.dll",
-            "$env:windir\system32\inetSrv\iisReQs.dll",
-            "$env:windir\system32\inetSrv\isApi.dll",
-            "$env:windir\system32\inetSrv\compDyn.dll",
-            "$env:windir\system32\inetSrv\authCert.dll",
-            "$env:windir\system32\inetSrv\authBas.dll",
-            "$env:windir\system32\inetSrv\authsspi.dll",
-            "$env:windir\system32\inetSrv\authMd5.dll",
-            "$env:windir\system32\inetSrv\modRqFlt.dll",
-            "$env:windir\system32\inetSrv\filter.dll",
-            "$env:windir\system32\rpcProxy\rpcProxy.dll",
-            "$env:windir\system32\inetSrv\validCfg.dll",
-            "$env:windir\system32\wsmSvc.dll",
-            "$env:windir\system32\inetSrv\ipReStr.dll",
-            "$env:windir\system32\inetSrv\dipReStr.dll",
-            "$env:windir\system32\inetSrv\iis_ssi.dll",
-            "$env:windir\system32\inetSrv\cgi.dll",
-            "$env:windir\system32\inetSrv\iisFcGi.dll",
-            "$env:windir\system32\inetSrv\iisWSock.dll",
-            "$env:windir\system32\inetSrv\warmup.dll")
-
         function GetModulePath {
             [CmdletBinding()]
             [OutputType([System.String])]
@@ -99,14 +62,58 @@ function Get-IISModules {
                 [object[]]$Modules,
 
                 [Parameter(Mandatory = $false)]
+                [bool]$SkipLegacyOSModules = $false,
+
+                [Parameter(Mandatory = $false)]
                 [ScriptBlock]$CatchActionFunction
             )
+            begin {
+                # Add all modules here which should be skipped on legacy OS (pre-Windows Server 2016)
+                $modulesToSkip = @(
+                    "$env:windir\system32\inetSrv\cachUri.dll",
+                    "$env:windir\system32\inetSrv\cachFile.dll",
+                    "$env:windir\system32\inetSrv\cachtokn.dll",
+                    "$env:windir\system32\inetSrv\cachHttp.dll",
+                    "$env:windir\system32\inetSrv\compStat.dll",
+                    "$env:windir\system32\inetSrv\defDoc.dll",
+                    "$env:windir\system32\inetSrv\dirList.dll",
+                    "$env:windir\system32\inetSrv\protsUp.dll",
+                    "$env:windir\system32\inetSrv\redirect.dll",
+                    "$env:windir\system32\inetSrv\static.dll",
+                    "$env:windir\system32\inetSrv\authAnon.dll",
+                    "$env:windir\system32\inetSrv\cusTerr.dll",
+                    "$env:windir\system32\inetSrv\logHttp.dll",
+                    "$env:windir\system32\inetSrv\iisEtw.dll",
+                    "$env:windir\system32\inetSrv\iisFreb.dll",
+                    "$env:windir\system32\inetSrv\iisReQs.dll",
+                    "$env:windir\system32\inetSrv\isApi.dll",
+                    "$env:windir\system32\inetSrv\compDyn.dll",
+                    "$env:windir\system32\inetSrv\authCert.dll",
+                    "$env:windir\system32\inetSrv\authBas.dll",
+                    "$env:windir\system32\inetSrv\authsspi.dll",
+                    "$env:windir\system32\inetSrv\authMd5.dll",
+                    "$env:windir\system32\inetSrv\modRqFlt.dll",
+                    "$env:windir\system32\inetSrv\filter.dll",
+                    "$env:windir\system32\rpcProxy\rpcProxy.dll",
+                    "$env:windir\system32\inetSrv\validCfg.dll",
+                    "$env:windir\system32\wsmSvc.dll",
+                    "$env:windir\system32\inetSrv\ipReStr.dll",
+                    "$env:windir\system32\inetSrv\dipReStr.dll",
+                    "$env:windir\system32\inetSrv\iis_ssi.dll",
+                    "$env:windir\system32\inetSrv\cgi.dll",
+                    "$env:windir\system32\inetSrv\iisFcGi.dll",
+                    "$env:windir\system32\inetSrv\iisWSock.dll",
+                    "$env:windir\system32\inetSrv\warmup.dll")
+
+                $iisModulesList = New-Object 'System.Collections.Generic.List[object]'
+                $signerSubject = "O=Microsoft Corporation, L=Redmond, S=Washington"
+            }
             process {
                 try {
-                    $iisModulesList = New-Object 'System.Collections.Generic.List[object]'
                     $numberOfModulesFound = $Modules.Count
                     if ($numberOfModulesFound -ge 1) {
                         Write-Verbose "$numberOfModulesFound module(s) loaded by IIS"
+                        Write-Verbose "SkipLegacyOSModules enabled? $SkipLegacyOSModules"
                         Write-Verbose "Checking file signing information now..."
 
                         $signatureParams = @{
@@ -129,7 +136,12 @@ function Get-IISModules {
 
                             try {
                                 $signature = $allSignatures | Where-Object { $_.Path -eq $m.image } | Select-Object -First 1
-                                if ($null -ne $signature) {
+                                if (($SkipLegacyOSModules) -and
+                                    ($m.image -in $modulesToSkip)) {
+                                    Write-Verbose "Module was found in module skip list and will be skipped"
+                                    # set to $null as this will indicate that the module was on the skip list
+                                    $isModuleSigned = $null
+                                } elseif ($null -ne $signature) {
                                     Write-Verbose "Performing signature status validation. Status: $($signature.Status)"
                                     # Signature Status Enum Values:
                                     # <0> Valid, <1> UnknownError, <2> NotSigned, <3> HashMismatch,
@@ -147,11 +159,12 @@ function Get-IISModules {
                                         if ($null -ne $signature.SignerCertificate.Subject) {
                                             Write-Verbose "Signer information found. Subject: $($signature.SignerCertificate.Subject)"
                                             $signatureDetails.Signer = $signature.SignerCertificate.Subject.ToString()
-                                            $signatureDetails.IsMicrosoftSigned = $signature.SignerCertificate.Subject -cmatch "O=Microsoft Corporation, L=Redmond, S=Washington"
+                                            $signatureDetails.IsMicrosoftSigned = $signature.SignerCertificate.Subject -cmatch $signerSubject
                                         }
                                     }
                                 } else {
                                     Write-Verbose "No signature information found for module $($m.name)"
+                                    $isModuleSigned = $false
                                 }
 
                                 $iisModulesList.Add([PSCustomObject]@{
@@ -183,18 +196,13 @@ function Get-IISModules {
             $moduleFilePath = GetModulePath -Path $_.image
             # Replace the image path with the full path without environment variables
             $_.image = $moduleFilePath
-            if ($SkipLegacyOSModulesCheck) {
-                if ($moduleFilePath -notin $modulesToSkip) {
-                    $modulesToCheckList.Add($_)
-                }
-            } else {
-                $modulesToCheckList.Add($_)
-            }
+            $modulesToCheckList.Add($_)
         }
 
         $getIISModulesSignatureStatusParams = @{
             ComputerName        = $ComputerName
             Modules             = $modulesToCheckList
+            SkipLegacyOSModules = $SkipLegacyOSModulesCheck # now handled within the function as we need to return all modules which are loaded by IIS
             CatchActionFunction = $CatchActionFunction
         }
         $modules = GetIISModulesSignatureStatus @getIISModulesSignatureStatusParams
