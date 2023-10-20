@@ -89,7 +89,11 @@
 
         </div>
         <div class="row hidden" id="syntaxDiv">
-            <p>The trace can be created, started, and stopped from the command line or PowerShell.</p>
+            <p>The trace can be created, deleted, started, and stopped from the command line or PowerShell.</p>
+            <p>To delete a previously existing data collector set:</p>
+            <p class="black green-text code">
+                <code>logman delete ExchangeDebugTraces</code>
+            </p>
             <p>To create a data collector which is non-circular and stops at 1 GB:</p>
             <p class="black green-text code">
                 <code>logman create trace ExchangeDebugTraces -p "{79bb49e6-2a2c-46e4-9167-fa122525d540}" -o c:\tracing\trace.etl -ow -f bin -max 1024 -mode globalsequence</code>
