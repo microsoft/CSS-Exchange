@@ -243,7 +243,7 @@ function RBAProcessingValidation {
             -and $RbaSettings.AllBookInPolicy -eq $false `
             -and $RbaSettings.RequestInPolicy.Count -eq 0 `
             -and $RbaSettings.AllRequestInPolicy -eq $false ) {
-        Write-Host -ForegroundColor Red "`r`n Error: The RBA isn’t configured to process items. No RBA processing of Meeting Requests will occur."
+        Write-Host -ForegroundColor Red "`r`n Error: The RBA isn't configured to process items. No RBA processing of Meeting Requests will occur."
         Write-Host -ForegroundColor Red "Consider configuring the properties below to process all requests.  (Default is null, True, null, False, null, True)."
         Write-Host
         Write-Host "`t RequestOutOfPolicy:            {$($RbaSettings.RequestOutOfPolicy)}"
