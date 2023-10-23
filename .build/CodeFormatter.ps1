@@ -24,7 +24,7 @@ Set-StrictMode -Version Latest
 . $PSScriptRoot\CodeFormatterChecks\CheckScriptFormat.ps1
 . $PSScriptRoot\HelpFunctions\Get-CommitFilesOnBranch.ps1
 
-if (-not (Load-Module -Name PSScriptAnalyzer -MinimumVersion "1.20")) {
+if (-not (Load-Module -Name PSScriptAnalyzer -MinimumVersion "1.21")) {
     throw "PSScriptAnalyzer module could not be loaded"
 }
 
