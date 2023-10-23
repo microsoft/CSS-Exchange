@@ -8,7 +8,11 @@ param(
 . $PSScriptRoot\GetTagsFromFileContent.ps1
 
 function ShowCommandToHost {
-    Write-Host "The trace can be created, started, and stopped from the command line or PowerShell"
+    Write-Host "The trace can be created, deleted, started, and stopped from the command line or PowerShell"
+    Write-Host
+    Write-Host "To delete a previously created data collector set:"
+    Write-Host
+    Write-Host "logman delete ExchangeDebugTraces" -ForegroundColor Green
     Write-Host
     Write-Host "To create a data collector which is non-circular and stops at 1 GB:"
     Write-Host
