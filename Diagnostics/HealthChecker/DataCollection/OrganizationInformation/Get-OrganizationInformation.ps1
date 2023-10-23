@@ -7,6 +7,8 @@
 . $PSScriptRoot\Get-SecurityCve-2021-34470.ps1
 . $PSScriptRoot\Get-SecurityCve-2022-21978.ps1
 . $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ExchangeADSplitPermissionsEnabled.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Invoke-CatchActionErrorLoop.ps1
 function Get-OrganizationInformation {
     [CmdletBinding()]
     param(
@@ -74,7 +76,10 @@ function Get-OrganizationInformation {
             }
 
             try {
+                # It was reported that this isn't getting thrown to the catch action when failing. As a quick fix, handling this by looping over errors.
+                $currentErrors = $Error.Count
                 $getDdgPublicFolders = @(Get-DynamicDistributionGroup "PublicFolderMailboxes*" -IncludeSystemObjects -ErrorAction "Stop")
+                Invoke-CatchActionErrorLoop $currentErrors ${Function:Invoke-CatchActions}
             } catch {
                 Write-Verbose "Failed to get the dynamic distribution group for public folder mailboxes."
                 Invoke-CatchActions

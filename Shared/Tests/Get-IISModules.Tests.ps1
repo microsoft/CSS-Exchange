@@ -175,15 +175,27 @@ Describe "Testing Get-IISModules.ps1" {
             $iisModules.GetType() | Should -Be PSCustomObject
             $iisModules.ModuleList.GetType() | Should -Be System.Object[]
             $iisModules.Count | Should -Be 1
-            $iisModules.ModuleList.Count | Should -Be 4
+            $iisModules.ModuleList.Count | Should -Be 31
         }
 
-        It "Should Not Contain Default Modules Which Are Excluded" {
-            $iisModules.ModuleList.Path.Contains("C:\windows\system32\inetSrv\protSup.dll") | Should -Be $false
-            $iisModules.ModuleList.Path.Contains("C:\windows\system32\inetSrv\iisFreb.dll") | Should -Be $false
-            $iisModules.ModuleList.Path.Contains("C:\windows\system32\inetSrv\protSup.dll") | Should -Be $false
-            $iisModules.ModuleList.Path.Contains("C:\windows\system32\inetSrv\isApi.dll") | Should -Be $false
-            $iisModules.ModuleList.Path.Contains("C:\windows\system32\rpcProxy\rpcProxy.dll") | Should -Be $false
+        It "Should Contain Default Modules Which Are Excluded" {
+            $iisModules.ModuleList.Path -contains "C:\Windows\system32\inetSrv\protSup.dll" | Should -Be $true
+            $iisModules.ModuleList.Path -contains "C:\Windows\system32\inetSrv\iisFreb.dll" | Should -Be $true
+            $iisModules.ModuleList.Path -contains "C:\Windows\system32\inetSrv\isApi.dll" | Should -Be $true
+            $iisModules.ModuleList.Path -contains "C:\Windows\system32\rpcProxy\rpcProxy.dll" | Should -Be $true
+            $iisModules.ModuleList.Path -contains "C:\Windows\system32\inetSrv\cachtokn.dll" | Should -Be $true
+        }
+
+        It "Should Contain Default Signature Information For Modules That Are Skipped" {
+            foreach ($m in $iisModules.ModuleList) {
+                if (($m.Name -eq "TokenCacheModule") -or
+                    ($m.Name -eq "ProtocolSupportModule")) {
+                    $m.Signed | Should -Be $null
+                    $m.SignatureDetails.SignatureStatus | Should -Be -1
+                    $m.SignatureDetails.Signer | Should -Be $null
+                    $m.SignatureDetails.IsMicrosoftSigned | Should -Be $null
+                }
+            }
         }
     }
 }

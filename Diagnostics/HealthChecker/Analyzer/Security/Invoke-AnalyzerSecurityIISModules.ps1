@@ -42,7 +42,8 @@ function Invoke-AnalyzerSecurityIISModules {
                             Status = "Not signed"
                         })
                 } elseif (($m.SignatureDetails.IsMicrosoftSigned -eq $false) -or
-                    ($m.SignatureDetails.SignatureStatus -ne 0)) {
+                    ($m.SignatureDetails.SignatureStatus -ne 0) -and
+                    ($m.SignatureDetails.SignatureStatus -ne -1)) {
                     if ($modulesWriteType -ne "Red") {
                         $modulesWriteType = "Yellow"
                     }
