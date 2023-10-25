@@ -137,8 +137,9 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Strict Mode disabled" "False" -WriteType "Green"
             TestObjectMatch "BaseTypeCheckForDeserialization disabled" "False" -WriteType "Green"
             TestObjectMatch "AES256-CBC Protected Content Support" "Not Supported Build" -WriteType "Red"
+            TestObjectMatch "SerializedDataSigning Enabled" "Unsupported Version" -WriteType "Red"
 
-            $Script:ActiveGrouping.Count | Should -Be 79
+            $Script:ActiveGrouping.Count | Should -Be 81
         }
 
         It "Display Results - Security Vulnerability" {
@@ -237,7 +238,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
         It "Display Results - Security Settings" {
             SetActiveDisplayGrouping "Security Settings"
             TestObjectMatch "AMSI Enabled" "True" -WriteType "Green"
-            TestObjectMatch "SerializedDataSigning Enabled" "False" -WriteType "Yellow"
+            TestObjectMatch "SerializedDataSigning Enabled" "False" -WriteType "Red"
         }
 
         It "Display Results - Security Vulnerability" {
