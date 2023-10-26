@@ -8,7 +8,7 @@ function Get-IISLogDirectory {
 
     function Get-IISDirectoryFromGetWebSite {
         Write-Verbose("Get-WebSite command exists")
-        return Get-WebSite |
+        return Get-Website |
             ForEach-Object {
                 $logFile = "$($_.LogFile.Directory)\W3SVC$($_.id)".Replace("%SystemDrive%", $env:SystemDrive)
                 Write-Verbose("Found Directory: $logFile")
