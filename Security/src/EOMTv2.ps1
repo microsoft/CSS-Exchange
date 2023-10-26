@@ -351,10 +351,10 @@ function Run-Mitigate {
                 Clear-WebConfiguration -Filter $filter -PSPath $site
             }
 
-            Add-WebConfigurationProperty -PSPath $site -filter $root -name '.' -value @{name = $name; patternSyntax = 'Regular Expressions'; stopProcessing = 'True' }
-            Set-WebConfigurationProperty -PSPath $site -filter "$filter/match" -name 'url' -value $inbound
-            Set-WebConfigurationProperty -PSPath $site -filter "$filter/conditions" -name '.' -value @{input = $HttpRequestInput; matchType = '0'; pattern = $pattern; ignoreCase = 'True'; negate = 'False' }
-            Set-WebConfigurationProperty -PSPath $site -filter "$filter/action" -name 'type' -value 'AbortRequest'
+            Add-WebConfigurationProperty -PSPath $site -Filter $root -Name '.' -Value @{name = $name; patternSyntax = 'Regular Expressions'; stopProcessing = 'True' }
+            Set-WebConfigurationProperty -PSPath $site -Filter "$filter/match" -Name 'url' -Value $inbound
+            Set-WebConfigurationProperty -PSPath $site -Filter "$filter/conditions" -Name '.' -Value @{input = $HttpRequestInput; matchType = '0'; pattern = $pattern; ignoreCase = 'True'; negate = 'False' }
+            Set-WebConfigurationProperty -PSPath $site -Filter "$filter/action" -Name 'type' -Value 'AbortRequest'
 
             $Message = "Mitigation complete on $env:COMPUTERNAME :: $WebSiteName"
             $RegMessage = "Mitigation complete"

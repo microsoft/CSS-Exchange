@@ -62,7 +62,7 @@ function Invoke-ValidateMitigation {
 
                 $Filter = 'system.webServer/security/authentication/windowsAuthentication/extendedProtection'
 
-                $ExtendedProtection = Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name tokenChecking
+                $ExtendedProtection = Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -Name tokenChecking
                 return $ExtendedProtection
             }
 
@@ -87,7 +87,7 @@ function Invoke-ValidateMitigation {
                 $Filter = 'system.webServer/security/ipSecurity'
                 $IISPath = 'IIS:\'
 
-                $ExistingRules = @(Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name collection)
+                $ExistingRules = @(Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -Name collection)
 
                 foreach ($IpFilteringRule in $IpFilteringRules) {
                     $ExistingIPSubnetRule = $ExistingRules | Where-Object {
