@@ -14,36 +14,46 @@
 # The MeetingID of the meeting to query
 #
 # .EXAMPLE
-# Get-CalendarDiagnosticObjectsSummary.ps1 -Identity someuser@microsoft.com -MeetingID 0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901
+# Get-CalendarDiagnosticObjectsSummary.ps1 -Identity someuser@microsoft.com -MeetingID 040000008200E00074C5B7101A82E008000000008063B5677577D9010000000000000000100000002FCDF04279AF6940A5BFB94F9B9F73CD
 #
-# Get-CalendarDiagnosticObjectsSummary.ps1 -Identity someuser@microsoft.com -Subject Test_OneTime_Meeting_Subject
+# Get-CalendarDiagnosticObjectsSummary.ps1 -Identity someuser@microsoft.com -Subject "Test OneTime Meeting Subject"
 #
 #
 
 [CmdLetBinding()]
 param(
-    [Parameter(Mandatory)]
+	[Parameter(ValueFromPipeline=$true, Mandatory=$true)]
     [string] $Identity,
+    [Parameter(Mandatory=$false)]
     [string] $Subject,
+    [Parameter(Mandatory=$false)]
     [string] $MeetingID
 )
 
+# ===================================================================================================
+# Functions to support the script
+# ===================================================================================================
+
+$CustomPropertyNameList = "AppointmentCounterProposal", "AppointmentRecurring", "CalendarItemType", "CalendarProcessed", "ClientIntent", "DisplayAttendeesCc", "DisplayAttendeesTo", "EventEmailReminderTimer", "ExternalSharingMasterId", "FreeBusyStatus", "From", "HasAttachment", "IsAllDayEvent", "IsCancelled", "IsMeeting", "MapiEndTime", "MapiStartTime", "NormalizedSubject", "SentRepresentingDisplayName", "SentRepresentingEmailAddress";
+
+$LogLimit = 4000;
+
 function GetCalendarDiagnosticObjects {
-    $CustomPropertyNameList = "AppointmentCounterProposal", "AppointmentRecurring", "CalendarItemType", "CalendarProcessed", "ClientIntent", "DisplayAttendeesCc", "DisplayAttendeesTo", "EventEmailReminderTimer", "ExternalSharingMasterId", "FreeBusyStatus", "From", "HasAttachment", "IsAllDayEvent", "IsCancelled", "IsMeeting", "MapiEndTime", "MapiStartTime", "NormalizedSubject", "SentRepresentingDisplayName", "SentRepresentingEmailAddress";
-    if ($Identity -and $Subject -and $MeetingID) {
-        $script:GetCDO = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults 2000;
+ 
+    # Use MeetingID if we have it.
+    if ($Identity -and $MeetingID) {
+        Write-Debug "ID + MeetingID provided."
+        $script:InitialCDOs = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults $LogLimit -ResultSize $LogLimit -ShouldBindToItem $true;
     }
 
+    # Othewise do a deep search on the subject.
     if ($Identity -and $Subject -and !$MeetingID) {
-        $script:GetCDO = Get-CalendarDiagnosticObjects -Identity $Identity -Subject $Subject -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults 2000;
-    }
-
-    if ($Identity -and $MeetingID -and !$Subject) {
-        $script:GetCDO = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults 2000;
+        Write-Debug "ID + Subject provided."
+        $script:InitialCDOs = Get-CalendarDiagnosticObjects -Identity $Identity -Subject $Subject -ExactMatch $true -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults $LogLimit -ResultSize $LogLimit -ShouldBindToItem $true;
     }
 
     if ($Identity -and !$Subject -and !$MeetingID) {
-        Write-Warning "Can't run command with just Identity, Subject or MeetingID is also needed";
+        Write-Warning "Can't run command with just Identity, either Subject or MeetingID must be provided.";
         exit;
     }
 }
@@ -65,13 +75,21 @@ function GetMailbox {
         [string]$Organization
     )
 
-    if ($Identity -and $Organization) {
-        $script:GetMailboxOutput = Get-Mailbox -Identity $Identity -Organization $Organization  -ErrorAction stop;
-        return $GetMailboxOutput;
-    }
-    if ($Identity -and !$Organization) {
-        $script:GetMailboxOutput = Get-Mailbox -Identity $Identity;
-        return $GetMailboxOutput;
+    try {
+        if ($Identity -and $Organization) {
+            Write-Host -ForegroundColor DarkGreen "Searching Get-Mailbox with ORG for $Identity..."
+            $script:GetMailboxOutput = Get-Mailbox -Identity $Identity -Organization $Organization  -ErrorAction stop;
+            Write-Host -ForegroundColor DarkYellow "Found $($GetMailboxOutput.DisplayName)"
+            return $GetMailboxOutput;
+        }
+        if ($Identity -and !$Organization) {
+            Write-Host -ForegroundColor DarkGray "Searching Get-Mailbox for $Identity..."
+            $script:GetMailboxOutput = Get-Mailbox -Identity $Identity;
+            Write-Host -ForegroundColor Yellow "Found $($GetMailboxOutput.DisplayName)"
+            return $GetMailboxOutput;
+        }
+    } catch {
+        Write-Error "An error occurred while running Get-Mailbox: $_";
     }
 }
 
@@ -122,32 +140,108 @@ function GetDisplayName {
     return $DisplayName;
 }
 
+function GetSMPTAddress {
+    param(
+        $PassedCN
+    )
+    Write-Host -ForegroundColor DarkYellow "GetSMPTAddress:: $PassedCN..."
+
+    If($script:MailboxList.count -gt 0){
+        if($PassedCN -match "MICROSOFT SYSTEM ATTENDANT") {
+            return "Calendar Assistant"  
+        }
+        elseif ($null -ne $script:MailboxList[$PassedCN]) {
+            $SMTPAddress = $script:MailboxList[$PassedCN].PrimarySmtpAddress;
+                Write-Host -ForegroundColor DarkYellow "Found::$SMTPAddress"
+            return $SMTPAddress;
+        }
+        else {
+            Write-Host -ForegroundColor DarkYellow "NotFound::$PassedCN"
+        }
+    }
+    else {
+            Write-Host -ForegroundColor Red "$script:MailboxList is empty."
+    }
+}
+
+function GetDisplayName {
+    param (
+        $PassedCN
+        )
+
+    Write-Host -ForegroundColor White "GetDisplayName:: $PassedCN..."
+    If($script:MailboxList.count -gt 0){
+        if($PassedCN -match "MICROSOFT SYSTEM ATTENDANT") {
+            return "Calendar Assistant"  
+        }
+        elseif ($null -ne $script:MailboxList[$PassedCN]) {
+            $DisplayName = $script:MailboxList[$PassedCN].DisplayName;
+                Write-Host -ForegroundColor DarkYellow "Found::$DisplayName"
+            return $DisplayName;
+        }
+        else {
+            Write-Host -ForegroundColor Red "GetDisplayName:NotFound:$PassedCN"
+        }
+    }
+    else {
+            Write-Host -ForegroundColor Red "$script:MailboxList is empty."
+    }
+}
+
+function ValidateLogFolder{
+    # This function will validate that the log folder matches the correct ExternalMasterID
+}
+
 function BuildCSV {
     $GCDOResults = @();
-    $GlobalObjectId = @();
+   # $GlobalObjectId = @(); # what is this used for?
     $IsFromSharedCalendar = @();
     $IsIgnorable = @();
     $ShortClientName = @();
     $ResponsibleUser = @();
-    $MeetingID = @();
-    $MailboxList = @{};
+ #   $MeetingID = @();  #This was an input parameter, need to be careful about reusing it.
+    $script:MailboxList = @{};
 
     $TestUser = GetMailbox -Identity $Identity;
     $Org = $TestUser.OrganizationalUnit.split('/')[-1];
 
-    foreach ($ObjectId in $GCDO.CleanGlobalObjectId) {
-        if (![string]::IsNullOrEmpty($ObjectId) -and $ObjectId -ne "NotFound" -and $ObjectId -ne "InvalidSchemaPropertyName" -and $ObjectId.length -ge 90) {
-            $GlobalObjectId += $ObjectId;
+    # -- $script:GCDO - should only have 1 CleanGlobalObjectId
+    # foreach ($ObjectId in $script:GCDO.CleanGlobalObjectId) {
+    #     if (![string]::IsNullOrEmpty($ObjectId) -and $ObjectId -ne "NotFound" -and $ObjectId -ne "InvalidSchemaPropertyName" -and $ObjectId.length -ge 90) {
+    #         $GlobalObjectId += $ObjectId;
+    #     }
+    # }
+
+    #$MeetingID = $GlobalObjectId | Select-Object -Unique;
+    $ThisMeetingID = $script:GCDO.CleanGlobalObjectId | Select-Object -Unique;
+    $ShortMeetingID = $ThisMeetingID.Substring($ThisMeetingID.length - 6);
+
+    $CNEntries = @();
+    $CNEntries += ($script:GCDO.SentRepresentingEmailAddress.ToUpper() | Select-Object -Unique)  
+    Write-Debug " Have $($CNEntries.count) CNEntries from SentRepresentingEmailAddress"
+    $CNEntries += ($script:GCDO.ResponsibleUserName.ToUpper() | Select-Object -Unique)
+    Write-Debug " Have $($CNEntries.count) CNEntries from ResponsibleUserName"
+    $CNEntries += ($script:GCDO.SenderEmailAddress.ToUpper()| Select-Object -Unique)
+    Write-Debug " Have $($CNEntries.count) CNEntries from SenderEmailAddress"
+    $CNEntries = $CNEntries | Select-Object -Unique
+    Write-Debug " Have $($CNEntries.count) CNEntries to look for..."
+
+    # Creates a Dictionary of MB's
+    foreach ($CNEntry in $CNEntries) {
+        if ($CNEntry -match 'cn=([\w,\s.@-]*[^/])$') {
+            # this is very expensive and is currently not used...
+            if($CNEntry -match "MICROSOFT SYSTEM ATTENDANT"){
+                $MailboxList[$CNEntry] = "Calendar Assistant"  # need to work on this...
+            }
+            else {
+            $MailboxList[$CNEntry] = (GetMailbox -Identity $CNEntry -Organization $Org);
+            }
         }
     }
 
-    $MeetingID = $GlobalObjectId | Select-Object -Unique;
-    $ShortMeetingID = $MeetingID.Substring($MeetingID.length - 6);
-
-    foreach ($CNEntry in ($GCDO.SentRepresentingEmailAddress.ToUpper() | Select-Object -Unique)) {
-        if ($CNEntry -match 'cn=([\w,\s.@-]*[^/])$') {
-            $MailboxList[$CNEntry] = (GetMailbox -Identity $CNEntry -Organization $Org);
-        }
+    foreach ($key in $MailboxList.Keys) {
+        $value = $MailboxList[$key]
+        Write-host -ForegroundColor Cyan "$key : $($value.DisplayName)"
     }
 
     $script:CalendarItemTypes = @{
@@ -197,7 +291,7 @@ function BuildCSV {
     }
 
     $Index = 0;
-    foreach ($CalLog in $GCDO) {
+    foreach ($CalLog in $script:GCDO) {
         $CalLogACP = $CalLog.AppointmentCounterProposal.ToString();
         $Index++;
         $ItemType = $CalendarItemTypes.($CalLog.ItemClass);
@@ -279,6 +373,7 @@ function BuildCSV {
         }
 
         if ($CalLog.SenderEmailAddress -match 'cn=([\w,\s.@-]*[^/])$') {
+
             $cNameMatch = $CalLog.SenderEmailAddress -split "cn=";
 
             if ($cNameMatch[-1] -match "-[\w* -.]*") {
@@ -342,10 +437,13 @@ function BuildCSV {
             'From'                         = $CalLog.From.SmtpEmailAddress
             'FreeBusyStatus'               = $CalLog.FreeBusyStatus
             'ResponsibleUser'              = $ResponsibleUser
+            'ResponsibleUser1'             = GetDisplayName($CalLog.ResponsibleUserName)
             'Sender'                       = $SenderName
+            'Sender1'                      = GetDisplayName($CalLog.SenderEmailAddress)
             'LogFolder'                    = $CalLog.ParentDisplayName
             'OriginalLogFolder'            = $CalLog.OriginalParentDisplayName
             'IsFromSharedCalendar'         = $IsFromSharedCalendar
+            'ExternalSharingMasterId'      = $CalLog.ExternalSharingMasterId
             'ReceivedBy'                   = $CalLog.ReceivedBy.SmtpEmailAddress
             'ReceivedRepresenting'         = $CalLog.ReceivedRepresenting.SmtpEmailAddress
             'MeetingRequestType'           = $CalLog.MeetingRequestType
@@ -355,6 +453,7 @@ function BuildCSV {
             'Location'                     = $CalLog.Location
             'ItemType'                     = $ItemType
             'CalendarItemType'             = $CalLog.CalendarItemType
+            'IsException'                  = $CalLog.IsException
             'RecurrencePattern'            = $CalLog.RecurrencePattern
             'AppointmentAuxiliaryFlags'    = $CalLog.AppointmentAuxiliaryFlags.ToString()
             'DisplayAttendeesAll'          = $CalLog.DisplayAttendeesAll
@@ -362,12 +461,16 @@ function BuildCSV {
             'ResponseType'                 = $ResponseType
             'AppointmentCounterProposal'   = $CalLogACP
             'SentRepresentingEmailAddress' = $CalLog.SentRepresentingEmailAddress
+            'SentRepresentingSMTPAddress'  = GetSMPTAddress($CalLog.SentRepresentingEmailAddress)
+            'SentRepresentingDisplayName'  = $CalLog.SentRepresentingDisplayName
             'ResponsibleUserName'          = $CalLog.ResponsibleUserName
+            'ResponsibleSMTPAddress'       = GetSMPTAddress($CalLog.ResponsibleUserName)
+            'ResponsibleDisplayName'       = GetDisplayName($CalLog.ResponsibleUserName)
             'SenderEmailAddress'           = $CalLog.SenderEmailAddress
+            'SenderSMPTAddress'            = GetSMPTAddress($CalLog.SenderEmailAddress)
             'ClientInfoString'             = $CalLog.ClientInfoString
             'CalendarLogRequestId'         = $CalLog.CalendarLogRequestId.ToString()
             'ClientIntent'                 = $CalLog.ClientIntent.ToString()
-            'CleanGlobalObjectId'          = $CalLog.CleanGlobalObjectId
             'MapiStartTime'                = $CalLog.MapiStartTime
             'MapiEndTime'                  = $CalLog.MapiEndTime
             'NormalizedSubject'            = $CalLog.NormalizedSubject
@@ -377,11 +480,9 @@ function BuildCSV {
             'IsAllDayEvent'                = $CalLog.IsAllDayEvent
             'IsSeriesCancelled'            = $CalLog.IsSeriesCancelled
             'IsOrganizer'                  = $GetIsOrganizer
-            'SentRepresentingDisplayName'  = $CalLog.SentRepresentingDisplayName
-            'IsException'                  = $CalLog.IsException
             'IsOrganizerProperty'          = $CalLog.IsOrganizerProperty
             'EventEmailReminderTimer'      = $CalLog.EventEmailReminderTimer
-            'ExternalSharingMasterId'      = $CalLog.ExternalSharingMasterId
+            'CleanGlobalObjectId'          = $CalLog.CleanGlobalObjectId
         }
     }
     $script:Results = $GCDOResults;
@@ -391,7 +492,7 @@ function BuildCSV {
     $Filename = "$($Identity)_$ShortMeetingID.csv";
     $GCDOResults | Export-Csv -Path $Filename -NoTypeInformation
     $MeetingTimeLine = $Results | Where-Object { $_.IsIgnorable -eq "False" } ;
-    "`n`n`nThis is the meetingID $MeetingID`nThis is Short MeetingID $ShortMeetingID`nFound $($GCDO.count) Log entries, Only $($MeetingTimeLine.count) entries will be analyzed.";
+    "`n`n`nThis is the meetingID $ThisMeetingID`nThis is Short MeetingID $ShortMeetingID`nFound $($script:GCDO.count) Log entries, Only $($ThisMeetingID.count) entries will be analyzed.";
     return;
 }
 
@@ -429,8 +530,8 @@ function MeetingSummary {
 
     if ($longVersion -and $Entry.AppointmentRecurring) {
         $InitialRecurrencePattern = "RecurrencePattern: " + $Entry.RecurrencePattern;
-        $InitialSeriesStartTime = "Series StartTime: " + $Entry.ViewStartTime.ToString();
-        $InitialSeriesEndTime = "Series EndTime: " + $Entry.ViewStartTime.ToString();
+        $InitialSeriesStartTime = "Series StartTime: " + $Entry.StartTime.ToString() + "Z";
+        $InitialSeriesEndTime = "Series EndTime: " + $Entry.StartTime.ToString() + "Z";
         if (!$Entry.ViewEndTime) {
             $InitialEndDate = "Meeting Series does not have an End Date.";
         }
@@ -454,9 +555,9 @@ function MeetingSummary {
 }
 
 function BuildTimeline {
-    [Array]$Header = ("Subject: " + ($GCDO[0].NormalizedSubject) + " | Display Name: " + ($GCDO[0].SentRepresentingDisplayName) + " | MeetingID: "+ ($GCDO[0].CleanGlobalObjectId));
+    [Array]$Header = ("Subject: " + ($script:GCDO[0].NormalizedSubject) + " | Display Name: " + ($script:GCDO[0].SentRepresentingDisplayName) + " | MeetingID: "+ ($script:GCDO[0].CleanGlobalObjectId));
     MeetingSummary -Time "Calendar Logs for Meeting with" -MeetingChanges $Header;
-    MeetingSummary -Time "Initial Message Values" -Entry $GCDO[0] -LongVersion;
+    MeetingSummary -Time "Initial Message Values" -Entry $script:GCDO[0] -LongVersion;
     $MeetingTimeLine = $Results | Where-Object { $_.IsIgnorable -eq "False" };
 
     foreach ($CalLog in $MeetingTimeLine) {
@@ -854,28 +955,42 @@ function BuildTimeline {
     $Results = @();
 }
 
+# ===================================================================================================
+# Main
+# ===================================================================================================
+
+# Might want to check Identity for a valid mailbox
+
+# Get initial CalLogs (saved in $script:InitialCDOs)
 GetCalendarDiagnosticObjects;
 
-$GlobalObjectId = @();
+$GlobalObjectIds = @();
 
-foreach ($ObjectId in $GetCDO.CleanGlobalObjectId) {
-    if (![string]::IsNullOrEmpty($ObjectId) -and $ObjectId -ne "NotFound" -and $ObjectId -ne "InvalidSchemaPropertyName" -and $ObjectId.length -ge 90) {
-        $GlobalObjectId += $ObjectId;
-    }
+# Find all the unique Global Object IDs
+foreach ($ObjectId in $script:InitialCDOs.CleanGlobalObjectId) {
+    if (![string]::IsNullOrEmpty($ObjectId) -and 
+        $ObjectId -ne "NotFound" -and 
+        $ObjectId -ne "InvalidSchemaPropertyName" -and 
+        $ObjectId.Length -ge 90) {
+            $GlobalObjectIds += $ObjectId;
+        }
 }
 
-$UniqueMeetingID = $GlobalObjectId | Select-Object -Unique;
+$GlobalObjectIds = $GlobalObjectIds | Select-Object -Unique;
 
-if ($UniqueMeetingID.count -gt 1) {
-    $UniqueMeetingID | ForEach-Object {
-        $MeetingID = $_;
-        $script:GCDO = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames AppointmentCounterProposal, AppointmentRecurring, CalendarItemType, CalendarProcessed, ClientIntent, DisplayAttendeesCc, DisplayAttendeesTo, EventEmailReminderTimer, ExternalSharingMasterId, FreeBusyStatus, From, HasAttachment, IsAllDayEvent, IsCancelled, IsMeeting, MapiEndTime, MapiStartTime, NormalizedSubject, SentRepresentingDisplayName, SentRepresentingEmailAddress -WarningAction Ignore -MaxResults 2000;
+# Get the CalLogs for each MeetingID found.
+if ($GlobalObjectIds.count -gt 1) {
+    Write-Debug "Found GlobalObjectIds: $($GlobalObjectIds.Count)"
+    $GlobalObjectIds | ForEach-Object {
+        #$MeetingID = $_;
+        Write-Debug "Processing MeetingID: $_"
+        $script:GCDO = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $_ -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults $LogLimit -ResultSize $LogLimit -ShouldBindToItem $true;
         BuildCSV;
         BuildTimeline;
     }
-} elseif ($UniqueMeetingID.count -eq 1) {
-    $GCDO = $GetCDO;
-    $GetCDO = @();
+} elseif ($GlobalObjectIds.count -eq 1) {
+    $script:GCDO = $script:InitialCDOs; # use the CalLogs that we already have, since there is only one.
+    $script:InitialCDOs = @(); # clear the Initial CDOs. 
     BuildCSV;
     BuildTimeline;
 } else {
