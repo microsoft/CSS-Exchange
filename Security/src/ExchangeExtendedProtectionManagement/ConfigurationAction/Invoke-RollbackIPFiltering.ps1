@@ -100,7 +100,7 @@ function Invoke-RollbackIPFiltering {
                     [Parameter(Mandatory = $true)]
                     [string]$SiteVDirLocation
                 )
-                $ExtendedProtection = Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name "extendedProtection.tokenChecking"
+                $ExtendedProtection = Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -Name "extendedProtection.tokenChecking"
                 if ($ExtendedProtection -ne "Require") {
                     Set-WebConfigurationProperty -Filter $Filter -PSPath $IISPath -Location $SiteVDirLocation -Name "extendedProtection.tokenChecking" -Value "Require"
                 }
@@ -127,7 +127,7 @@ function Invoke-RollbackIPFiltering {
                     $state.TurnOnEPSuccessful = $true
 
                     $state.BackUpPath = "$($env:WINDIR)\System32\inetSrv\config\IpFilteringRules_" + $SiteVDirLocation.Replace('/', '-') + "_$([DateTime]::Now.ToString("yyyyMMddHHMMss")).bak"
-                    $ExistingRules = @(Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name collection)
+                    $ExistingRules = @(Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -Name collection)
                     $state.BackupCurrentSuccessful = BackupCurrentIPFilteringRules -BackupPath $state.BackUpPath -Filter $Filter -IISPath $IISPath -SiteVDirLocation $SiteVDirLocation -ExistingRules $ExistingRules
 
                     $originalIpFilteringConfigurations = (Get-Content $state.RestorePath | Out-String | ConvertFrom-Json)
