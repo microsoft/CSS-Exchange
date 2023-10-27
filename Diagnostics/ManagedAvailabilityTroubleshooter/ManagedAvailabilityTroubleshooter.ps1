@@ -564,7 +564,7 @@ function CheckIfThisCanBeAKnownIssueUsingMonitor {
         }
         if ($ServiceHealthMSExchangeReplEndpointPossibleDNSissue) {
             Write-Host -foreground yellow "ServiceHealthMSExchangeReplEndpointMonitor is failing due to missing DNS entry."
-            Write-Host -foreground yellow "Make sure that the 'Register this connection’s addresses in DNS' property is selected on the network adapter"
+            Write-Host -foreground yellow "Make sure that the 'Register this connection's addresses in DNS' property is selected on the network adapter"
             Write-Host -foreground yellow "https://support.microsoft.com/en-us/kb/2969070"
             $Script:foundIssue = $true; return;
         }

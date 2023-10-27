@@ -32,5 +32,7 @@
           "internal-terms": false // Disable the `internal-terms` dictionary
     },
     "cSpell.caseSensitive": true,
-    "editor.detectIndentation": false
+    "editor.detectIndentation": false,
+    "editor.unicodeHighlight.includeComments": true,
+    "editor.unicodeHighlight.nonBasicASCII": true
 }
