@@ -361,7 +361,7 @@ function RBADelegateSettings {
         }
     } elseif ($RbaSettings.ForwardRequestsToDelegates -eq $true `
             -and $RbaSettings.AllBookInPolicy -ne $true ) {
-                Write-Host -ForegroundColor Yellow "Information: ForwardRequestsToDelegates is true but there are no Delegates."
+        Write-Host -ForegroundColor Yellow "Information: ForwardRequestsToDelegates is true but there are no Delegates."
     }
 }
 
