@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.6">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.7">
     
     
       
@@ -26,7 +26,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.35e1ed30.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4b4a2bd9.min.css">
       
       
   
@@ -3686,7 +3686,7 @@
 <p class="admonition-title">Note</p>
 <p>This step is not required if you are using classic Hybrid configuration.</p>
 </div>
-<p>In case you don’t have a list of servers published via Hybrid Agent, you can use the following steps to identify them:</p>
+<p>In case you don't have a list of servers published via Hybrid Agent, you can use the following steps to identify them:</p>
 <ol>
 <li>Log into a machine where the Hybrid Agent is installed and running. Open the <a href="https://docs.microsoft.com/exchange/hybrid-deployment/hybrid-agent#hybrid-agent-powershell-module">PowerShell module</a> of the Hybrid Agent and run <em>Get-HybridApplication</em> to identify the <em>TargetUri</em> used by the Hybrid Agent.</li>
 <li>The <em>TargetUri</em> parameter gives you the FQDN of the Exchange Server that is configured to use Hybrid Agent.</li>
@@ -3890,7 +3890,7 @@ The same applies to the <em>SystemDefaultTlsVersions</em> registry value which m
 <h3 id="enabling-extended-protection-using-the-script">Enabling Extended Protection using the script</h3>
 <p>Before enabling Extended Protection in your Exchange environment, ensure you meet all the prerequisites listed in this document.</p>
 <p>To enable Extended Protection on all your Exchange Servers, you can use the <a href="https://aka.ms/ExchangeEPScript">ExchangeExtendedProtectionManagement.ps1</a> script, which is hosted on the Microsoft Exchange-CSS repository on GitHub.</p>
-<p>It’s not required to run the script directly on any specific Exchange Server in your environment. Just copy it to a machine that has the Exchange Management Shell (EMS) installed.</p>
+<p>It's not required to run the script directly on any specific Exchange Server in your environment. Just copy it to a machine that has the Exchange Management Shell (EMS) installed.</p>
 <div class="admonition warning">
 <p class="admonition-title">Note</p>
 <p>Over time, we will be updating the script and documentation. The script will attempt to auto-update when it is run. If the computer where the script is run is not connected to the Internet, this update check will fail. You should always check for the latest version of the script before running it.</p>
@@ -3981,7 +3981,7 @@ The same applies to the <em>SystemDefaultTlsVersions</em> registry value which m
 </li>
 <li>
 <p>Some Exchange servers are not reachable:</p>
-<p>The script performs multiple tests against all Exchange servers in scope. If one or more of these servers aren’t reachable, the script will exclude them and not configure Extended Protection on them.</p>
+<p>The script performs multiple tests against all Exchange servers in scope. If one or more of these servers aren't reachable, the script will exclude them and not configure Extended Protection on them.</p>
 <p><img alt="Text Description automatically generated" src="../attachments/3095edc994a8aa4bb79f90fe519a0e36.png" />
   If the server is offline, you should enable Extended Protection on it once it is back online. If the server was unreachable for other reasons, you should run the script directly on the servers to enable Extended Protection.</p>
 </li>
@@ -3991,7 +3991,7 @@ The same applies to the <em>SystemDefaultTlsVersions</em> registry value which m
 <p>The following command initiates a full rollback of <strong>Extended Protection settings</strong> and <strong>IP restriction rules</strong> on any Exchange server where it was enabled using the script:</p>
 <p><code>.\ExchangeExtendedProtectionManagement.ps1 –RollbackType RestoreIISAppConfig</code></p>
 <h4 id="rolling-back-ip-restriction-settings">Rolling back IP Restriction settings</h4>
-<p>You can use the script to <strong>only</strong> roll back <strong>Allow and Deny rules</strong> set in Backend EWS vDir’s IP Address and Domain Restriction module in the following way.</p>
+<p>You can use the script to <strong>only</strong> roll back <strong>Allow and Deny rules</strong> set in Backend EWS vDir's IP Address and Domain Restriction module in the following way.</p>
 <p><code>.\ExchangeExtendedProtectionManagement.ps1 -RollbackType RestrictTypeEWSBackend</code></p>
 <div class="admonition warning">
 <p class="admonition-title">Note</p>
@@ -4016,7 +4016,7 @@ The same applies to the <em>SystemDefaultTlsVersions</em> registry value which m
 </ol>
 <h4 id="set-require-ssl-settings-to-either-required-or-accept-for-an-exchange-virtual-directory">Set Require SSL settings to either Required or Accept for an Exchange Virtual Directory</h4>
 <ol>
-<li>Go to the Virtual Directory’s home page.
+<li>Go to the Virtual Directory's home page.
    <img alt="Graphical user interface, text, application, Word Description automatically generated" src="../attachments/0d05a67039245dde885522e84ca74bc3.png" /></li>
 <li>Go to <em>SSL Settings</em>.</li>
 <li>Check the <em>Require SSL</em> checkbox to make sure that Require SSL is enabled for this Virtual Directory.</li>
@@ -4107,7 +4107,7 @@ If you plan to stay on the CU without installing the SU immediately, you must di
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">September 28, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">October 23, 2023</span>
       
     
   </small>

@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.6">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.7">
     
     
       
@@ -26,7 +26,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.35e1ed30.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4b4a2bd9.min.css">
       
       
   
@@ -3130,7 +3130,7 @@
 <p>It's not recommended to replace the internal transport certificate with the newly created Auth Certificate. You should respond with 'N'.</p>
 <p><img alt="Example output" src="../MonitorExchangeAuthCertificate3.png" /></p>
 <p>The following syntax executes the script in renewal mode without user interaction. The required Auth Certificate renewal action will be performed. In unattended mode the internal SMTP certificate is replaced with the new Auth Certificate and then set back to the previous one. The script also restarts the <code>MSExchangeServiceHost</code> service and the <code>MSExchangeOWAAppPool</code> and <code>MSExchangeECPAppPool</code> WebApp Pools when the primary Auth Certificate has been replaced.</p>
-<p><strong>NOTE:</strong> The script creates a new internal transport certificate if the previously configured one wasn’t found on the machine where the script is run.</p>
+<p><strong>NOTE:</strong> The script creates a new internal transport certificate if the previously configured one wasn't found on the machine where the script is run.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">MonitorExchangeAuthCertificate</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ValidateAndRenewAuthCertificate</span> <span class="nv">$true</span> <span class="n">-Confirm</span><span class="p">:</span><span class="nv">$false</span>
 </code></pre></div>
 <p>The following syntax runs the script in renewal mode without user interaction. We only take the Exchange servers into account if they are reachable and will perform the renewal action if required.</p>
@@ -3242,7 +3242,7 @@
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">February 15, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">October 23, 2023</span>
       
     
   </small>
