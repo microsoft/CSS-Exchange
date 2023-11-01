@@ -2,10 +2,11 @@
 # Licensed under the MIT License.
 #
 # .DESCRIPTION
-# This script runs the Get-CalendarDiagnosticObjects script and returns a summarized timeline of actions in clear english
+# This Exchange Online script runs the Get-CalendarDiagnosticObjects script and returns a summarized timeline of actions in clear english
+# as well as the Calendar Diagnostic Objects in CSV format.
 #
 # .PARAMETER Identity
-# Address of User Mailbox to query
+# Address of EXO User Mailbox to query
 #
 # .PARAMETER Subject
 # Subject of the meeting to query
@@ -20,14 +21,16 @@
 #
 #
 
-[CmdLetBinding()]
-param(
-    [Parameter(Mandatory=$true)]
-    [string] $Identity,
-    [Parameter(Mandatory=$false)]
-    [string] $Subject,
-    [Parameter(Mandatory=$false)]
-    [string] $MeetingID
+[CmdletBinding(DefaultParameterSetName = 'Subject')]
+param (
+  [Parameter(Mandatory, Position = 0)]
+  [string]$Identity,
+
+  [Parameter(Mandatory, ParameterSetName = 'Subject', Position = 1)]
+  [string]$Subject,
+
+  [Parameter(Mandatory, ParameterSetName = 'MeetingID', Position = 1)]
+  [string]$MeetingID
 )
 
 # ===================================================================================================
@@ -170,7 +173,7 @@ function GetMailbox {
     )
 
     try {
-        Write-Output "Searching Get-Mailbox $(if ($Organization -ne `"`" ) {"with Org: $Organization"}) for $Identity."
+        Write-Verbose "Searching Get-Mailbox $(if ($Organization -ne `"`" ) {"with Org: $Organization"}) for $Identity."
 
         # See if it is a Customer Tenant running the cmdlet. (They will not have access to Organization parameter)
         $MSSupport = [Bool](Get-Help Get-Mailbox -Parameter Organization -ErrorAction SilentlyContinue)
@@ -189,7 +192,7 @@ function GetMailbox {
         }
 
         if (!$GetMailboxOutput) {
-            Write-Output "Unable to find $Identity in $Organization"
+            Write-Host "Unable to find [$Identity] in Oranization:[$Organization]"
             return $null
         } else {
             Write-Verbose "Found [$($GetMailboxOutput.DisplayName)]"
@@ -665,13 +668,9 @@ function BuildCSV {
         $IsFromSharedCalendar = ($null -ne $CalLog.externalSharingMasterId -and $CalLog.externalSharingMasterId -ne "NotFound");
 
         # Need to ask about this
-        if ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" `
-                -and $CalLog.IsOrganizerProperty -eq $True `
-                -and $CalLog.externalSharingMasterId -eq "NotFound") {
-            #     -or $CalendarItemTypes.($CalLog.ItemClass) -eq "MeetingRequest" `
-            #     -or $CalendarItemTypes.($CalLog.ItemClass) -eq "AttendeeList") {
-            [bool] $GetIsOrganizer = $True;
-        }
+        $GetIsOrganizer = ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -and 
+            $CalLog.IsOrganizerProperty -eq $True -and 
+            $CalLog.externalSharingMasterId -eq "NotFound")
 
         # Record one row
         $GCDOResults += [PSCustomObject]@{
@@ -1229,11 +1228,12 @@ if (Get-Command -Name Get-Mailbox -ErrorAction SilentlyContinue) {
 
 Write-Output "Checking for a valid mailbox..."
 $script:MB = GetMailbox -Identity $Identity
-if (!$script:MB) {
+if ($null -eq $script:MB) {
+    # -or $script:MB.GetType().FullName -ne "Microsoft.Exchange.Data.Directory.Management.Mailbox") {
     Write-Host "`n`n`n============================================================================"
-    Write-Error "Mailbox $Identity not found.  Please validate the mailbox name and try again."
-    Write-Host "============================================================================"
-    exit;
+    Write-Error "Mailbox [$Identity] not found on Exchange Online.  Please validate the mailbox name and try again."
+    Write-Host "======================================================================================="
+    #exit;
 }
 
 # Get initial CalLogs (saved in $script:InitialCDOs)
@@ -1275,5 +1275,6 @@ if ($GlobalObjectIds.count -gt 1) {
 
 Write-Host -ForegroundColor Yellow "`n`n`n============================================================================"
 Write-Host -ForegroundColor Yellow "Hope this script was helpful in getting (and understanding) the Calendar Logs."
-Write-Host -ForegroundColor Yellow "If you have issues or suggestion for this script, please send them to <callogformatterdevs@microsoft.com>"
+Write-Host -ForegroundColor Yellow "If you have issues or suggestion for this script,"
+Write-Host -ForegroundColor Yellow "`t please send them to <callogformatterdevs@microsoft.com>"
 Write-Host -ForegroundColor Yellow "============================================================================`n`n`n"
