@@ -483,9 +483,9 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "* 3. Open Powershell as Administrator and navigate to the folder C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Installer" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $Object -like "* 4. Now uninstall the Search Foundation with this command: .\InstallConfig.ps1 -action U -DataFolder `"C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\HostController\Data`”" }
+                -ParameterFilter { $Object -like "* 4. Now uninstall the Search Foundation with this command: .\InstallConfig.ps1 -action U -DataFolder `"C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\HostController\Data`"" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $Object -like "* 5. Now install the Search Foundation with this command: .\InstallConfig.ps1 -action I -DataFolder `"C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\HostController\Data`”" }
+                -ParameterFilter { $Object -like "* 5. Now install the Search Foundation with this command: .\InstallConfig.ps1 -action I -DataFolder `"C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\HostController\Data`"" }
         }
 
         It "Search Foundation Failure - Install" {
@@ -503,7 +503,7 @@ Describe "Testing SetupLogReviewer" {
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
                 -ParameterFilter { $Object -like "* 2. Open Powershell as Administrator and navigate to the folder C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Installer" }
             Assert-MockCalled -Exactly 1 -CommandName Write-Host `
-                -ParameterFilter { $Object -like "* 3. Now uninstall the Search Foundation with this command: .\InstallConfig.ps1 -action U -DataFolder `"C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\HostController\Data`”" }
+                -ParameterFilter { $Object -like "* 3. Now uninstall the Search Foundation with this command: .\InstallConfig.ps1 -action U -DataFolder `"C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\HostController\Data`"" }
         }
 
         It "Missing HomeMdb" {

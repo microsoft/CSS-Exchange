@@ -87,7 +87,7 @@ function Test-DiskSpace {
         foreach ($svr in $passedServers) {
             Write-Host $svr
         }
-        Enter-YesNoLoopAction -Question "Are yu sure you want to continue?" -YesAction {} -NoAction { exit }
+        Enter-YesNoLoopAction -Question "Collect data only from servers that passed the disk space check?" -YesAction {} -NoAction { exit }
     }
     Write-Verbose("Function Exit: Test-DiskSpace")
     return $passedServers

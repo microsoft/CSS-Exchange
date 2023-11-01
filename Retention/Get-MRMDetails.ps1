@@ -28,7 +28,7 @@ function funcRetentionProperties {
     $Tags = $Tags | Add-Member @{OctetRetentionIDAsSeenInMFCMAPI = "" } -PassThru
     foreach ($t in $Tags) {
         #Convert each GUID to the Octet version that is seen in MFCMAPI's Properties
-        $t.OctetRetentionIDAsSeenInMFCMAPI = [System.String]::Join("", ($t.RetentionId.ToByteArray() | ForEach-Object { $_.ToString(‘x2’) })).ToUpper()
+        $t.OctetRetentionIDAsSeenInMFCMAPI = [System.String]::Join("", ($t.RetentionId.ToByteArray() | ForEach-Object { $_.ToString('x2') })).ToUpper()
     }
     $Tags | Select-Object * | Export-Clixml "$Mailbox - MRM Retention Policies for entire Tenant.xml"
 

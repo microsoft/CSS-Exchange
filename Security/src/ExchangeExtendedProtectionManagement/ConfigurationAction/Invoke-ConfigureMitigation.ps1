@@ -97,7 +97,7 @@ function Invoke-ConfigureMitigation {
                 $backupPath = "$($env:WINDIR)\System32\inetSrv\config\IpFilteringRules_" + $SiteVDirLocation.Replace('/', '-') + "_$([DateTime]::Now.ToString("yyyyMMddHHMMss")).bak"
                 $Filter = 'system.webServer/security/ipSecurity'
                 $IISPath = 'IIS:\'
-                $ExistingRules = @(Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name collection)
+                $ExistingRules = @(Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -Name collection)
                 $state.IsBackUpSuccessful = BackupCurrentIPFilteringRules -BackupPath $backupPath -Filter $Filter -IISPath $IISPath -SiteVDirLocation $SiteVDirLocation -ExistingRules $ExistingRules
 
                 $RulesToBeAdded = @()

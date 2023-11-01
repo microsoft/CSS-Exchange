@@ -243,7 +243,7 @@ function RBAProcessingValidation {
             -and $RbaSettings.AllBookInPolicy -eq $false `
             -and $RbaSettings.RequestInPolicy.Count -eq 0 `
             -and $RbaSettings.AllRequestInPolicy -eq $false ) {
-        Write-Host -ForegroundColor Red "`r`n Error: The RBA isn’t configured to process items. No RBA processing of Meeting Requests will occur."
+        Write-Host -ForegroundColor Red "`r`n Error: The RBA isn't configured to process items. No RBA processing of Meeting Requests will occur."
         Write-Host -ForegroundColor Red "Consider configuring the properties below to process all requests.  (Default is null, True, null, False, null, True)."
         Write-Host
         Write-Host "`t RequestOutOfPolicy:            {$($RbaSettings.RequestOutOfPolicy)}"
@@ -574,7 +574,7 @@ function ValidateRoomListSettings {
     Write-Host -ForegroundColor White "`tLearn more at " -NoNewline
     Write-Host -ForegroundColor Yellow "https://learn.microsoft.com/en-us/outlook/troubleshoot/calendaring/configure-room-finder-rooms-workspaces`n";
 
-    if ([string]::IsNullOrEmpty($places.Localities)) {
+    if ([string]::IsNullOrEmpty($Place.Localities)) {
         ## validate Localities
         Write-Host -ForegroundColor Yellow "`tWarning: Resource [$Identity] is not part of any Room Lists."
         Write-Host -ForegroundColor Yellow "`tWarning: Adding this resource to a Room Lists can take 24 hours to be fully propagated."
@@ -610,13 +610,15 @@ function ValidateRoomListSettings {
     `t Building Info
     `t Building:            $($script:Place.Building)
     `t Floor:               $($script:Place.Floor)
-    `t Tags describing features and equipment in the Room
+    `t --Tags describing features and equipment in the Room
     `t Tags:                $($script:Place.Tags)
+    `t --This room belongs to the following Room Lists (Localities).
+    `t Localities:          $($Place.Localities)
 
-    `tTo update any of the above information, run 'Set-Place $Identity -<Property> <Value>'.
-    `tFor more information on this command, see
+    `t To update any of the above information, run 'Set-Place $Identity -<Property> <Value>'.
+    `t For more information on this command, see
 "@
-    Write-Host -ForegroundColor Yellow "`thttps://learn.microsoft.com/en-us/powershell/module/exchange/set-place?view=exchange-ps";
+    Write-Host -ForegroundColor Yellow "`t https://learn.microsoft.com/en-us/powershell/module/exchange/set-place?view=exchange-ps";
     Write-Host
 }
 
