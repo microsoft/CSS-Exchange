@@ -107,12 +107,25 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     }
     Add-AnalyzedResultInformation @params
 
-    $displayValue = $credentialGuardValue = $osInformation.RegistryValues.CredentialGuard -ne 0
+    $credGuardRunning = $false
+    $credGuardUnknown = $osInformation.CredentialGuardCimInstance -eq "Unknown"
+
+    if (-not ($credGuardUnknown)) {
+        # CredentialGuardCimInstance is an array type and not sure if we can have multiple here, so just going to loop thru and handle it this way.
+        $credGuardRunning = $null -ne ($osInformation.CredentialGuardCimInstance | Where-Object { $_ -ne 0 })
+    }
+
+    $displayValue = $credentialGuardValue = $osInformation.RegistryValues.CredentialGuard -ne 0 -or $credGuardRunning
     $displayWriteType = "Grey"
 
     if ($credentialGuardValue) {
         $displayValue = "{0} `r`n`t`tError: Credential Guard is not supported on an Exchange Server. This can cause a performance hit on the server." -f $credentialGuardValue
         $displayWriteType = "Red"
+    }
+
+    if ($credGuardUnknown -and (-not ($credentialGuardValue))) {
+        $displayValue = "Unknown `r`n`t`tWarning: Unable to determine Credential Guard status. If enabled, this can cause a performance hit on the server."
+        $displayWriteType = "Yellow"
     }
 
     $params = $baseParams + @{
