@@ -23,14 +23,14 @@
 
 [CmdletBinding(DefaultParameterSetName = 'Subject')]
 param (
-  [Parameter(Mandatory, Position = 0)]
-  [string]$Identity,
+    [Parameter(Mandatory, Position = 0)]
+    [string]$Identity,
 
-  [Parameter(Mandatory, ParameterSetName = 'Subject', Position = 1)]
-  [string]$Subject,
+    [Parameter(Mandatory, ParameterSetName = 'Subject', Position = 1)]
+    [string]$Subject,
 
-  [Parameter(Mandatory, ParameterSetName = 'MeetingID', Position = 1)]
-  [string]$MeetingID
+    [Parameter(Mandatory, ParameterSetName = 'MeetingID', Position = 1)]
+    [string]$MeetingID
 )
 
 # ===================================================================================================
@@ -192,7 +192,7 @@ function GetMailbox {
         }
 
         if (!$GetMailboxOutput) {
-            Write-Host "Unable to find [$Identity] in Oranization:[$Organization]"
+            Write-Host "Unable to find [$Identity] in Organization:[$Organization]"
             return $null
         } else {
             Write-Verbose "Found [$($GetMailboxOutput.DisplayName)]"
@@ -668,8 +668,8 @@ function BuildCSV {
         $IsFromSharedCalendar = ($null -ne $CalLog.externalSharingMasterId -and $CalLog.externalSharingMasterId -ne "NotFound");
 
         # Need to ask about this
-        $GetIsOrganizer = ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -and 
-            $CalLog.IsOrganizerProperty -eq $True -and 
+        $GetIsOrganizer = ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -and
+            $CalLog.IsOrganizerProperty -eq $True -and
             $CalLog.externalSharingMasterId -eq "NotFound")
 
         # Record one row
