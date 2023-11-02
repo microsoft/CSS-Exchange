@@ -34,6 +34,22 @@ param (
 )
 
 # ===================================================================================================
+# Auto update script
+# ===================================================================================================
+
+$BuildVersion = ""
+
+. $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
+
+if (Test-ScriptVersion -AutoUpdate) {
+    # Update was downloaded, so stop here.
+    Write-Host "Script was updated. Please rerun the command."  -ForegroundColor Yellow
+    return
+}
+
+Write-Verbose "Script Versions: $BuildVersion"
+
+# ===================================================================================================
 # Constants to support the script
 # ===================================================================================================
 
