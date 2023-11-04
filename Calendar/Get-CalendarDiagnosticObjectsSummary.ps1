@@ -85,7 +85,7 @@ $Transport = "Transport Service"
 
 $script:CalendarItemTypes = @{
     'IPM.Schedule.Meeting.Request.AttendeeListReplication' = "AttendeeList"
-    'IPM.Schedule.Meeting.Canceled'                        = "Canceled"
+    'IPM.Schedule.Meeting.Canceled'                        = "Cancellation"
     'IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}' = "ExceptionMsgClass"
     'IPM.Schedule.Meeting.Notification.Forward'            = "ForwardNotification"
     'IPM.Appointment'                                      = "IpmAppointment"
@@ -964,90 +964,78 @@ function BuildTimeline {
             }
         }
 
-        switch ($CalendarItemTypes.($CalLog.ItemClass)) {
+        switch -Wildcard ($CalendarItemTypes.($CalLog.ItemClass)) {
             MeetingRequest {
                 switch ($CalLog.TriggerAction) {
                     Create {
                         if ($CalLog.IsOrganizer) {
                             if ($CalLog.IsException) {
-                                $Output1 = "A new Exception $($CalLog.MeetingRequestType) Meeting Request was created with $($CalLog.Client)";
+                                $Output1 = "A new Exception $($CalLog.MeetingRequestType.Value) Meeting Request was created with $($CalLog.Client)";
                             } else {
                                 $Output1 = "A new $($CalLog.MeetingRequestType.Value) Meeting Request was created with $($CalLog.Client)";
                             }
 
                             if ($CalLog.SentRepresentingEmailAddress -eq $CalLog.SenderEmailAddress) {
-                                $Output2 = " by the Organizer $($CalLog.ResponsibleUser)";
+                                $Output2 = " by the Organizer $($CalLog.ResponsibleUser).";
                             } else {
-                                $Output2 = " by the Delegate";
+                                $Output2 = " by the Delegate.";
                             }
 
                             [array] $Output = $Output1+$Output2;
                             [bool] $MeetingSummaryNeeded = $True;
                         } else {
                             if ($CalLog.DisplayAttendeesTo -ne $PreviousCalLog.DisplayAttendeesTo -or $CalLog.DisplayAttendeesCc -ne $PreviousCalLog.DisplayAttendeesCc) {
-                                [array] $Output = "The user Forwarded a Meeting Request with $($CalLog.Client)";
+                                [array] $Output = "The user Forwarded a Meeting Request with $($CalLog.Client).";
                             } else {
                                 if ($CalLog.Client -eq "Transport") {
-                                    [array] $Output = "Transport delivered a new $($CalLog.MeetingRequestType) Meeting Request from $($CalLog.SentRepresentingDisplayName)";
+                                    [array] $Output = "Transport delivered a new Meeting Request from $($CalLog.SentRepresentingDisplayName).";
                                     [bool] $MeetingSummaryNeeded = $True;
                                 } else {
-                                    [array] $Output = "$($CalLog.ResponsibleUser) sent a $($CalLog.MeetingRequestType.Value) update for the Meeting Request and was processed by $($CalLog.Client)";
+                                    [array] $Output = "$($CalLog.ResponsibleUserName) sent a $($CalLog.MeetingRequestType.Value) update for the Meeting Request and was processed by $($CalLog.Client).";
                                 }
                             }
                         }
                     }
                     Update {
-                        [array] $Output = "$($CalLog.ResponsibleUser) updated on the $($CalLog.MeetingRequestType) Meeting Request with $($CalLog.Client)";
+                        [array] $Output = "$($CalLog.ResponsibleUserName) updated on the $($CalLog.MeetingRequestType) Meeting Request with $($CalLog.Client).";
                     }
                     MoveToDeletedItems {
-                        [array] $Output = "$($CalLog.ResponsibleUser) deleted the Meeting Request with $($CalLog.Client)";
+                        [array] $Output = "$($CalLog.ResponsibleUserName) deleted the Meeting Request with $($CalLog.Client).";
                     }
                     default {
-                        [array] $Output = "$($CalLog.TriggerAction) was performed on the $($CalLog.MeetingRequestType) Meeting Request by $($CalLog.ResponsibleUser) with $($CalLog.Client)";
+                        [array] $Output = "$($CalLog.TriggerAction) was performed on the $($CalLog.MeetingRequestType) Meeting Request by $($CalLog.ResponsibleUserName) with $($CalLog.Client).";
                     }
                 }
             }
-            RespTent {
-                $MeetingRespType = "Tentative";
+            Resp* {
+                switch ($CalLog.ItemClass) {
+                    "IPM.Schedule.Meeting.Resp.Tent" { $MeetingRespType = "Tentative" }
+                    "IPM.Schedule.Meeting.Resp.Neg" { $MeetingRespType = "DECLINE" }
+                    "IPM.Schedule.Meeting.Resp.Pos" { $MeetingRespType = "ACCEPT" }
+                }
+
                 if ($CalLog.AppointmentCounterProposal -eq "True") {
                     [array] $Output = "$($CalLog.SentRepresentingDisplayName) send a $($MeetingRespType) response message with a New Time Proposal: $($CalLog.MapiStartTime) to $($CalLog.MapiEndTime)";
                 } else {
-                    if ($CalLog.TriggerAction -eq "Update") {
-                        $Action = "updated";
-                    } else {
-                        $Action = "sent";
-                    }
-
-                    if ($CalLog.IsOrganizer) {
-                        [array] $Output = "$($CalLog.SentRepresentingDisplayName) $($Action) a $($MeetingRespType) Meeting Response message.";
-                    } else {
-                        switch ($CalLog.Client) {
-                            RBA {
-                                [array] $Output = "RBA $($Action) a $($MeetingRespType) Meeting Response message.";
-                            }
-                            Transport {
-                                [array] $Output = "$($CalLog.SentRepresentingDisplayName) $($Action) $($MeetingRespType) Meeting Response message.";
-                            }
-                            default {
-                                [array] $Output = "$($MeetingRespType) Meeting Response message was $($Action) by $($CalLog.SentRepresentingDisplayName) with $($CalLog.Client)";
-                            }
+                    switch -Wildcard ($CalLog.TriggerAction) {
+                        "Update" { $Action = "updated" }
+                        "Create" { $Action = "sent" }
+                        "*Delete*" { $Action = "deleted" }
+                        default {
+                            $Action = "update"
                         }
                     }
-                }
-            }
-            RespNeg {
-                $MeetingRespType = "DECLINE";
-                if ($CalLog.AppointmentCounterProposal -eq "True") {
-                    [array] $Output = "$($CalLog.SentRepresentingDisplayName) send a $($MeetingRespType) response message with a New Time Proposal: $($CalLog.MapiStartTime) to $($CalLog.MapiEndTime)";
-                } else {
-                    if ($CalLog.TriggerAction -eq "Update") {
-                        $Action = "updated"
-                    } else {
-                        $Action = "sent"
+
+                    if ($CalLog.IsException) {
+                        $Extra = " to the meeting starting $($CalLog.StartTime)"
+                        Write-Host -ForegroundColor Cyan "Extra: $Extra"
+                    } elseif ($CalLog.AppointmentRecurring) {
+                        $Extra = " to the meeting series"
+                        Write-Host -ForegroundColor Cyan "Extra: $Extra"
                     }
 
                     if ($CalLog.IsOrganizer) {
-                        [array] $Output = "$($CalLog.SentRepresentingDisplayName) $($Action) a $($MeetingRespType) Meeting Response message.";
+                        [array] $Output = "$($CalLog.SentRepresentingDisplayName) $($Action) a $($MeetingRespType) Meeting Response message$($Extra).";
                     } else {
                         switch ($CalLog.Client) {
                             RBA {
@@ -1057,42 +1045,14 @@ function BuildTimeline {
                                 [array] $Output = "$($CalLog.SentRepresentingDisplayName) $($Action) $($MeetingRespType) Meeting Response message.";
                             }
                             default {
-                                [array] $Output = "$($MeetingRespType) Meeting Response message was $($Action) by $($CalLog.SentRepresentingDisplayName) with $($CalLog.Client)";
-                            }
-                        }
-                    }
-                }
-            }
-            RespPos {
-                $MeetingRespType = "ACCEPT";
-                if ($CalLog.AppointmentCounterProposal -eq "True") {
-                    [array] $Output = "$($CalLog.SentRepresentingDisplayName) send a $($MeetingRespType) response message with a New Time Proposal: $($CalLog.MapiStartTime) to $($CalLog.MapiEndTime)";
-                } else {
-                    if ($CalLog.TriggerAction -eq "Update") {
-                        $Action = "updated";
-                    } else {
-                        $Action = "sent";
-                    }
-
-                    if ($CalLog.IsOrganizer) {
-                        [array] $Output = "$($CalLog.SentRepresentingDisplayName) $($Action) a $($MeetingRespType) Meeting Response message.";
-                    } else {
-                        switch ($CalLog.Client) {
-                            RBA {
-                                [array] $Output = "RBA $($Action) a $($MeetingRespType) Meeting Response message.";
-                            }
-                            Transport {
-                                [array] $Output = "$($CalLog.SentRepresentingDisplayName) $($Action) $($MeetingRespType) Meeting Response message.";
-                            }
-                            default {
-                                [array] $Output = "$($MeetingRespType) Meeting Response message was $($Action) by $($CalLog.SentRepresentingDisplayName) with $($CalLog.Client)";
+                                [array] $Output = "Meeting Response $($MeetingRespType) from [$($CalLog.SentRepresentingDisplayName)] was $($Action) by $($CalLog.ResponsibleUserName) with $($CalLog.Client).";
                             }
                         }
                     }
                 }
             }
             ForwardNotification {
-                [array] $Output = "The meeting was FORWARDED by $($CalLog.SentRepresentingDisplayName)";
+                [array] $Output = "The meeting was FORWARDED by $($CalLog.SentRepresentingDisplayName).";
             }
             ExceptionMsgClass {
                 if ($CalLog.TriggerAction -eq "Create") {
@@ -1102,7 +1062,7 @@ function BuildTimeline {
                 }
 
                 if ($CalLog.ResponsibleUser -ne "Calendar Assistant") {
-                    [array] $Output = "$($Action) Exception to the meeting series added by $($CalLog.ResponsibleUser) with $($CalLog.Client)";
+                    [array] $Output = "$($Action) Exception to the meeting series added by $($CalLog.ResponsibleUser) with $($CalLog.Client).";
                 }
             }
             IpmAppointment {
@@ -1112,7 +1072,7 @@ function BuildTimeline {
                             if ($CalLog.Client -eq "Transport") {
                                 [array] $Output = "Transport created a new meeting.";
                             } else {
-                                [array] $Output = "$($CalLog.SentRepresentingDisplayName) created a new Meeting with $($CalLog.Client)";
+                                [array] $Output = "$($CalLog.SentRepresentingDisplayName) created a new Meeting with $($CalLog.Client).";
                             }
                         } else {
                             switch ($CalLog.Client) {
@@ -1137,23 +1097,23 @@ function BuildTimeline {
                                 [array] $Output = "";
                             }
                             RBA {
-                                [array] $Output = "RBA $($CalLog.TriggerAction) the Meeting";
+                                [array] $Output = "RBA $($CalLog.TriggerAction) the Meeting.";
                             }
                             default {
                                 if ($CalLog.ResponsibleUser -eq "Calendar Assistant") {
-                                    [array] $Output = "The Exchange System $($CalLog.TriggerAction) the meeting";
+                                    [array] $Output = "The Exchange System $($CalLog.TriggerAction)d the meeting via the Calendar Assistant.";
                                 } else {
-                                    [array] $Output = "The Meeting was $($CalLog.TriggerAction) by [$($CalLog.ResponsibleUser)] with $($CalLog.Client).";
+                                    [array] $Output = "$($CalLog.TriggerAction) to the Meeting by [$($CalLog.ResponsibleUserName)] with $($CalLog.Client).";
                                     $AddChangedProperties = $True;
                                 }
                             }
                         }
 
                         if ($CalLog.FreeBusyStatus -eq 2 -and $PreviousCalLog.FreeBusyStatus -ne 2) {
-                            [array] $Output = "The $($CalLog.ResponsibleUser) accepted the Meeting with $($CalLog.Client)";
+                            [array] $Output = "$($CalLog.ResponsibleUserName) Accepted the meeting with $($CalLog.Client).";
                             $AddChangedProperties = $False;
                         } elseif ($CalLog.FreeBusyStatus -ne 2 -and $PreviousCalLog.FreeBusyStatus -eq 2) {
-                            [array] $Output = "The $($CalLog.ResponsibleUser) declined the Meeting with $($CalLog.Client)";
+                            [array] $Output = "$($CalLog.ResponsibleUserName) Declined the Meeting with $($CalLog.Client).";
                             $AddChangedProperties = $False;
                         }
                     }
@@ -1166,23 +1126,23 @@ function BuildTimeline {
                                 [array] $Output = "";
                             }
                             RBA {
-                                [array] $Output = "RBA $($CalLog.TriggerAction) the Meeting";
+                                [array] $Output = "RBA $($CalLog.TriggerAction) the Meeting.";
                             }
                             default {
                                 if ($CalLog.ResponsibleUser -eq "Calendar Assistant") {
-                                    [array] $Output = "The Exchange System $($CalLog.TriggerAction) the meeting";
+                                    [array] $Output = "The Exchange System $($CalLog.TriggerAction)s the meeting via the Calendar Assistant.";
                                 } else {
-                                    [array] $Output = "The Meeting was $($CalLog.TriggerAction) by [$($CalLog.ResponsibleUser)] with $($CalLog.Client).";
+                                    [array] $Output = "The Meeting was $($CalLog.TriggerAction) by [$($CalLog.ResponsibleUserName)] with $($CalLog.Client).";
                                     $AddChangedProperties = $True;
                                 }
                             }
                         }
 
                         if ($CalLog.FreeBusyStatus -eq 2 -and $PreviousCalLog.FreeBusyStatus -ne 2) {
-                            [array] $Output = "The $($CalLog.ResponsibleUser) accepted the Meeting with $($CalLog.Client)";
+                            [array] $Output = "The $($CalLog.ResponsibleUser) accepted the Meeting with $($CalLog.Client).";
                             $AddChangedProperties = $False;
                         } elseif ($CalLog.FreeBusyStatus -ne 2 -and $PreviousCalLog.FreeBusyStatus -eq 2) {
-                            [array] $Output = "The $($CalLog.ResponsibleUser) declined the Meeting with $($CalLog.Client)";
+                            [array] $Output = "The $($CalLog.ResponsibleUser) declined the Meeting with $($CalLog.Client).";
                             $AddChangedProperties = $False;
                         }
                     }
@@ -1195,8 +1155,15 @@ function BuildTimeline {
                     }
                 }
             }
-            Canceled {
-                [array] $Output = "$($CalLog.ResponsibleUser) Created a new Cancellation message for the $($CalendarItemTypes.($CalLog.ItemClass)) with $($CalLog.Client)";
+            Cancellation {
+                switch ($CalLog.Client) {
+                    Transport {
+                        [array] $Output = "Transport $($CalLog.TriggerAction)d the Meeting Cancellation from $($CalLog.SentRepresentingDisplayName).";
+                    }
+                    default {
+                        [array] $Output = "$($CalLog.ResponsibleUser) $($CalLog.TriggerAction) the Cancellation with $($CalLog.Client).";
+                    }
+                }
             }
             default {
                 if ($CalLog.TriggerAction -eq "Create") {
@@ -1204,7 +1171,7 @@ function BuildTimeline {
                 } else {
                     $Action = "$($CalLog.TriggerAction)";
                 }
-                [array] $Output = "$($Action) was performed on the $($CalLog.ItemClass) by $($CalLog.ResponsibleUser) with $($CalLog.Client)";
+                [array] $Output = "$($Action) was performed on the $($CalLog.ItemClass) by $($CalLog.ResponsibleUser) with $($CalLog.Client).";
             }
         }
 
