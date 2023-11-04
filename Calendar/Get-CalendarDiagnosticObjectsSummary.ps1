@@ -644,12 +644,12 @@ function MapSharedFolder {
 Builds the CSV output from the Calendar Diagnostic Objects
 #>
 function BuildCSV {
-    Write-Output "Starting to Process Calendar Logs..."
+    Write-Host "Starting to Process Calendar Logs..."
     $GCDOResults = @();
     $IsFromSharedCalendar = @();
     $IsIgnorable = @();
     $script:MailboxList = @{};
-    Write-Output "Creating Map of Mailboxes to CN's..."
+    Write-Host "Creating Map of Mailboxes to CN's..."
     CreateExternalMasterIDMap;
 
     $ThisMeetingID = $script:GCDO.CleanGlobalObjectId | Select-Object -Unique;
@@ -657,7 +657,7 @@ function BuildCSV {
 
     ConvertCNtoSMTP;
 
-    Write-Output "Making Calendar Logs more readable..."
+    Write-Host "Making Calendar Logs more readable..."
     $Index = 0;
     foreach ($CalLog in $script:GCDO) {
         $CalLogACP = $CalLog.AppointmentCounterProposal.ToString();
@@ -756,17 +756,17 @@ function BuildCSV {
     #$Filename = "$($Results[0].ReceivedBy)_$ShortMeetingID.csv";
     $Filename = "$($Identity)_$ShortMeetingID.csv";
     $GCDOResults | Export-Csv -Path $Filename -NoTypeInformation
-    Write-Output "Calendar Logs for $Identity have been saved to $Filename."
+    Write-Host "Calendar Logs for $Identity have been saved to $Filename."
     $GCDOResults | Export-Csv -Path $Filename -NoTypeInformation -Encoding UTF8
 
     $MeetingTimeLine = $Results | Where-Object { $_.IsIgnorable -eq "False" } ;
-    Write-Output "`n`n`nThis is the meetingID $ThisMeetingID`nThis is Short MeetingID $ShortMeetingID"
-    Write-Output "Found $($script:GCDO.count) Log entries, Only $($MeetingTimeLine.count) entries will be analyzed.";
+    Write-Host "`n`n`nThis is the meetingID $ThisMeetingID`nThis is Short MeetingID $ShortMeetingID"
+    Write-Host "Found $($script:GCDO.count) Log entries, Only $($MeetingTimeLine.count) entries will be analyzed.";
     return;
 }
 
 # ===================================================================================================
-# Create Meeting Summary
+# Write Out one line of the Meeting Summary (Time + Meeting Changes)
 # ===================================================================================================
 function MeetingSummary {
     param(
@@ -829,6 +829,29 @@ function MeetingSummary {
 # ===================================================================================================
 # BuildTimeline
 # ===================================================================================================
+
+<#
+.SYNOPSIS
+    Tries to builds a timeline of the history of the meeting based on the diagnostic objects.
+
+.DESCRIPTION
+    By using the time sorted diagnostic objects for one user on one meeting, we try to give a high level
+    overview of what happened to the meeting. This can be use to get a quick overview of the meeting and
+    then you can look into the CalLog in Excel to get more details.
+
+    The timeline will skip a lot of the noise (isIgnorable) in the CalLogs.  It skips EBA (Event Based Assistants),
+    and other EXO internal processes, which are (99% of the time) not interesting to the end user and just setting
+    hidden internal properties (i.e. things like HasBeenIndex, etc.)
+
+    It also skips items from Shared Calendars, which are calendars that have a Modern Sharing relationship setup,
+    which creates a replicated copy of another users. If you want to look at the actions this user took on
+    another users calendar, you can look at that users Calendar Logs.
+
+.NOTES
+    The timeline will never be perfect, but if you see a way to make it more understandable, readable, etc.,
+    please let me know or fix it yourself on GitHub.
+    I use a iterative approach to building this, so it will get better over time.
+#>
 function BuildTimeline {
     [Array]$Header = ("Subject: " + ($script:GCDO[0].NormalizedSubject) + " | Display Name: " + ($script:GCDO[0].SentRepresentingDisplayName) + " | MeetingID: "+ ($script:GCDO[0].CleanGlobalObjectId));
     MeetingSummary -Time "Calendar Logs for Meeting with" -MeetingChanges $Header;
@@ -839,6 +862,15 @@ function BuildTimeline {
         [bool] $MeetingSummaryNeeded = $False;
         [bool] $AddChangedProperties = $False;
 
+        <#
+        .SYNOPSIS
+            Determines if key properties of the calendar log have changed.
+        .DESCRIPTION
+            This function checks if the properties of the calendar log have changed by comparing the current
+            Calendar log to the Previous calendar log (where it was an IPM.Appointment - i.e. the meeting)
+
+            Changed properties will be added to the Timeline.
+        #>
         function ChangedProperties {
             if ($CalLog.Client -ne "LocationProcessor" -or $CalLog.Client -notlike "EBA:*" -or $CalLog.Client -notlike "TBA:*") {
                 if ($PreviousCalLog -and $AddChangedProperties) {
@@ -964,6 +996,10 @@ function BuildTimeline {
             }
         }
 
+        <#
+        .SYNOPSIS
+            This is the part that generates the heart of the timeline, a Giant Switch statement based on the ItemClass.
+        #>
         switch -Wildcard ($CalendarItemTypes.($CalLog.ItemClass)) {
             MeetingRequest {
                 switch ($CalLog.TriggerAction) {
@@ -1175,6 +1211,7 @@ function BuildTimeline {
             }
         }
 
+        # Create the Timeline by adding to Time to the generated Output
         $Time = "$($CalLog.LogRow) -- $($CalLog.LastModifiedTime)"
 
         if ($Output) {
@@ -1189,6 +1226,7 @@ function BuildTimeline {
             }
         }
 
+        # Setup Previous log (if current logs is an IPM.Appointment)
         if ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -or $CalendarItemTypes.($CalLog.ItemClass) -eq "ExceptionMsgClass") {
             $PreviousCalLog = $CalLog;
         }
@@ -1202,14 +1240,14 @@ function BuildTimeline {
 # ===================================================================================================
 
 if (Get-Command -Name Get-Mailbox -ErrorAction SilentlyContinue) {
-    Write-Verbose "Validated Get-Mailbox"
+    Write-Host "Validated Get-Mailbox"
 } else {
     Write-Error "Get-Mailbox not found.  Please validate that you are running this script from an Exchange Management Shell and try again."
     Write-Host "Look at Import-Module ExchangeOnlineManagement and Connect-ExchangeOnline."
     exit;
 }
 
-Write-Output "Checking for a valid mailbox..."
+Write-Host "Checking for a valid mailbox..."
 $script:MB = GetMailbox -Identity $Identity
 if ($null -eq $script:MB) {
     # -or $script:MB.GetType().FullName -ne "Microsoft.Exchange.Data.Directory.Management.Mailbox") {
@@ -1220,7 +1258,7 @@ if ($null -eq $script:MB) {
 }
 
 # Get initial CalLogs (saved in $script:InitialCDOs)
-Write-Output "Getting initial Calendar Logs..."
+Write-Host "Getting initial Calendar Logs..."
 GetCalendarDiagnosticObjects;
 
 $GlobalObjectIds = @();
@@ -1239,9 +1277,8 @@ $GlobalObjectIds = $GlobalObjectIds | Select-Object -Unique;
 
 # Get the CalLogs for each MeetingID found.
 if ($GlobalObjectIds.count -gt 1) {
-    Write-Verbose "Found GlobalObjectIds: $($GlobalObjectIds.Count)"
+    Write-Host "Found multiple GlobalObjectIds: $($GlobalObjectIds.Count)."
     $GlobalObjectIds | ForEach-Object {
-        #$MeetingID = $_;
         Write-Verbose "Processing MeetingID: $_"
         $script:GCDO = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $_ -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults $LogLimit -ResultSize $LogLimit -ShouldBindToItem $true;
         BuildCSV;
