@@ -2,10 +2,11 @@
 # Licensed under the MIT License.
 #
 # .DESCRIPTION
-# This script runs the Get-CalendarDiagnosticObjects script and returns a summarized timeline of actions in clear english
+# This Exchange Online script runs the Get-CalendarDiagnosticObjects script and returns a summarized timeline of actions in clear english
+# as well as the Calendar Diagnostic Objects in CSV format.
 #
 # .PARAMETER Identity
-# Address of User Mailbox to query
+# Address of EXO User Mailbox to query
 #
 # .PARAMETER Subject
 # Subject of the meeting to query
@@ -14,36 +15,133 @@
 # The MeetingID of the meeting to query
 #
 # .EXAMPLE
-# Get-CalendarDiagnosticObjectsSummary.ps1 -Identity someuser@microsoft.com -MeetingID 0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901
+# Get-CalendarDiagnosticObjectsSummary.ps1 -Identity someuser@microsoft.com -MeetingID 040000008200E00074C5B7101A82E008000000008063B5677577D9010000000000000000100000002FCDF04279AF6940A5BFB94F9B9F73CD
 #
-# Get-CalendarDiagnosticObjectsSummary.ps1 -Identity someuser@microsoft.com -Subject Test_OneTime_Meeting_Subject
+# Get-CalendarDiagnosticObjectsSummary.ps1 -Identity someuser@microsoft.com -Subject "Test OneTime Meeting Subject"
 #
 #
 
-[CmdLetBinding()]
-param(
-    [Parameter(Mandatory)]
-    [string] $Identity,
-    [string] $Subject,
-    [string] $MeetingID
+[CmdletBinding(DefaultParameterSetName = 'Subject')]
+param (
+    [Parameter(Mandatory, Position = 0)]
+    [string]$Identity,
+
+    [Parameter(Mandatory, ParameterSetName = 'Subject', Position = 1)]
+    [string]$Subject,
+
+    [Parameter(Mandatory, ParameterSetName = 'MeetingID', Position = 1)]
+    [string]$MeetingID
 )
 
+# ===================================================================================================
+# Constants to support the script
+# ===================================================================================================
+
+$CustomPropertyNameList =
+"AppointmentCounterProposal",
+"AppointmentLastSequenceNumber",
+"AppointmentRecurring",
+"CalendarItemType",
+"CalendarProcessed",
+"ClientIntent",
+"DisplayAttendeesCc",
+"DisplayAttendeesTo",
+"EventEmailReminderTimer",
+"ExternalSharingMasterId",
+"FreeBusyStatus",
+"From",
+"HasAttachment",
+"IsAllDayEvent",
+"IsCancelled",
+"IsMeeting",
+"MapiEndTime",
+"MapiStartTime",
+"NormalizedSubject",
+"SentRepresentingDisplayName",
+"SentRepresentingEmailAddress";
+
+$LogLimit = 2000;
+
+$WellKnownCN_CA = "MICROSOFT SYSTEM ATTENDANT"
+$CalAttendant = "Calendar Assistant"
+$WellKnownCN_Trans = "MicrosoftExchange"
+$Transport = "Transport Service"
+
+$script:CalendarItemTypes = @{
+    'IPM.Schedule.Meeting.Request.AttendeeListReplication' = "AttendeeList"
+    'IPM.Schedule.Meeting.Canceled'                        = "Canceled"
+    'IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}' = "ExceptionMsgClass"
+    'IPM.Schedule.Meeting.Notification.Forward'            = "ForwardNotification"
+    'IPM.Appointment'                                      = "IpmAppointment"
+    'IPM.Schedule.Meeting.Request'                         = "MeetingRequest"
+    'IPM.CalendarSharing.EventUpdate'                      = "SharingCFM"
+    'IPM.CalendarSharing.EventDelete'                      = "SharingDelete"
+    'IPM.Schedule.Meeting.Resp'                            = "RespAny"
+    'IPM.Schedule.Meeting.Resp.Neg'                        = "RespNeg"
+    'IPM.Schedule.Meeting.Resp.Tent'                       = "RespTent"
+    'IPM.Schedule.Meeting.Resp.Pos'                        = "RespPos"
+}
+
+$ShortClientNameProcessor = @{
+    'Client=Hub Transport'                       = "Transport"
+    'Client=MSExchangeRPC'                       = "Outlook-MAPI"
+    'Lync for Mac'                               = "LyncMac"
+    'AppId=00000004-0000-0ff1-ce00-000000000000' = "SkypeMMS"
+    'MicrosoftNinja'                             = "Teams"
+    'Remove-CalendarEvents'                      = "RemoveCalendarEvent"
+    'Client=POP3/IMAP4'                          = "PopImap"
+    'Client=OWA'                                 = "OWA"
+    'PublishedBookingCalendar'                   = "BookingAgent"
+    'LocationAssistantProcessor'                 = "LocationProcessor"
+    'AppId=6326e366-9d6d-4c70-b22a-34c7ea72d73d' = "CalendarReplication"
+    'AppId=1e3faf23-d2d2-456a-9e3e-55db63b869b0' = "CiscoWebex"
+    'AppId=1c3a76cc-470a-46d7-8ba9-713cfbb2c01f' = "Time Service"
+    'AppId=48af08dc-f6d2-435f-b2a7-069abd99c086' = "RestConnector"
+    'GriffinRestClient'                          = "GriffinRestClient"
+    'MacOutlook'                                 = "MacOutlookRest"
+    'Outlook-iOS-Android'                        = "OutlookMobile"
+    'Client=OutlookService;Outlook-Android'      = "OutlookAndroid"
+    'Client=OutlookService;Outlook-iOS'          = "OutlookiOS"
+}
+
+$ResponseTypeOptions = @{
+    '0' = "None"
+    "1" = "Organizer"
+    '2' = "Tentative"
+    '3' = "Accept"
+    '4' = "Decline"
+    '5' = "Not Responded"
+}
+
+# ===================================================================================================
+# Functions to support the script
+# ===================================================================================================
+
+<#
+.SYNOPSIS
+Run Get-CalendarDiagnosticObjects for passed in User with Subject or MeetingID.
+#>
 function GetCalendarDiagnosticObjects {
-    $CustomPropertyNameList = "AppointmentCounterProposal", "AppointmentRecurring", "CalendarItemType", "CalendarProcessed", "ClientIntent", "DisplayAttendeesCc", "DisplayAttendeesTo", "EventEmailReminderTimer", "ExternalSharingMasterId", "FreeBusyStatus", "From", "HasAttachment", "IsAllDayEvent", "IsCancelled", "IsMeeting", "MapiEndTime", "MapiStartTime", "NormalizedSubject", "SentRepresentingDisplayName", "SentRepresentingEmailAddress";
-    if ($Identity -and $Subject -and $MeetingID) {
-        $script:GetCDO = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults 2000;
+
+    # Use MeetingID if we have it.
+    if ($Identity -and $MeetingID) {
+        Write-Verbose "Getting CalLogs for [$Identity] with MeetingID [$MeetingID]."
+        $script:InitialCDOs = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults $LogLimit -ResultSize $LogLimit -ShouldBindToItem $true;
     }
 
+    # Otherwise do a search on the subject.
     if ($Identity -and $Subject -and !$MeetingID) {
-        $script:GetCDO = Get-CalendarDiagnosticObjects -Identity $Identity -Subject $Subject -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults 2000;
-    }
+        Write-Verbose "Getting CalLogs for [$Identity] with Subject [$Subject]."
+        $script:InitialCDOs = Get-CalendarDiagnosticObjects -Identity $Identity -Subject $Subject -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults $LogLimit -ResultSize $LogLimit -ShouldBindToItem $true;
 
-    if ($Identity -and $MeetingID -and !$Subject) {
-        $script:GetCDO = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults 2000;
+        # No Results, do a Deep search with ExactMatch.
+        if ($script:InitialCDOs.count -lt 1) {
+            $script:InitialCDOs = Get-CalendarDiagnosticObjects -Identity $Identity -Subject $Subject -ExactMatch $true -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults $LogLimit -ResultSize $LogLimit -ShouldBindToItem $true;
+        }
     }
 
     if ($Identity -and !$Subject -and !$MeetingID) {
-        Write-Warning "Can't run command with just Identity, Subject or MeetingID is also needed";
+        Write-Warning "Can't run command with just Identity, either Subject or MeetingID must be provided.";
         exit;
     }
 }
@@ -59,19 +157,55 @@ function FindMatch {
     }
 }
 
+<#
+.SYNOPSIS
+Get the Mailbox for the Passed in Identity.
+Might want to extend to do 'Get-MailUser' as well.
+.PARAMETER CN of the Mailbox
+    The mailbox for which to retrieve properties.
+.PARAMETER Organization
+    [Optional] Organization to search for the mailbox in.
+#>
 function GetMailbox {
     param(
         [string]$Identity,
         [string]$Organization
     )
 
-    if ($Identity -and $Organization) {
-        $script:GetMailboxOutput = Get-Mailbox -Identity $Identity -Organization $Organization  -ErrorAction stop;
+    try {
+        Write-Verbose "Searching Get-Mailbox $(if ($Organization -ne `"`" ) {"with Org: $Organization"}) for $Identity."
+
+        # See if it is a Customer Tenant running the cmdlet. (They will not have access to Organization parameter)
+        $MSSupport = [Bool](Get-Help Get-Mailbox -Parameter Organization -ErrorAction SilentlyContinue)
+        Write-Verbose "MSSupport: $MSSupport"
+
+        if ($Identity -and $Organization) {
+            if ($MSSupport) {
+                Write-Verbose  "Using Organization parameter"
+                $GetMailboxOutput = Get-Mailbox -Identity $Identity -Organization $Organization  -ErrorAction SilentlyContinue;
+            } else {
+                Write-Verbose  "Using -OrganizationalUnit parameter"
+                $GetMailboxOutput = Get-Mailbox -Identity $Identity -OrganizationalUnit $Organization  -ErrorAction SilentlyContinue;
+            }
+        } else {
+            $GetMailboxOutput = Get-Mailbox -Identity $Identity -ErrorAction SilentlyContinue;
+        }
+
+        if (!$GetMailboxOutput) {
+            Write-Host "Unable to find [$Identity] in Organization:[$Organization]"
+            return $null
+        } else {
+            Write-Verbose "Found [$($GetMailboxOutput.DisplayName)]"
+        }
+
+        if (CheckForNoPIIAccess($script:GetMailboxOutput.DisplayName)) {
+            Write-Host -ForegroundColor Magenta "No PII Access for [$Identity]"
+        } else {
+            Write-Verbose "Found [$($GetMailboxOutput.DisplayName)]"
+        }
         return $GetMailboxOutput;
-    }
-    if ($Identity -and !$Organization) {
-        $script:GetMailboxOutput = Get-Mailbox -Identity $Identity;
-        return $GetMailboxOutput;
+    } catch {
+        Write-Error "An error occurred while running Get-Mailbox: [$_]";
     }
 }
 
@@ -81,7 +215,8 @@ function Convert-Data {
         [string[]] $ArrayNames,
         [switch ] $NoWarnings = $False
     )
-    $ValidArrays, $ItemCounts = @(), @();
+    $ValidArrays = @();
+    $ItemCounts = @();
     $VariableLookup = @{};
     foreach ($Array in $ArrayNames) {
         try {
@@ -108,96 +243,407 @@ function Convert-Data {
     $FinalArray = @();
 }
 
-function GetDisplayName {
+<#
+.SYNOPSIS
+    Retrieves mailbox properties for a given mailbox.
+.DESCRIPTION
+    This function retrieves mailbox properties for a given mailbox using Exchange Web Services (EWS).
+.PARAMETER CN of the Mailbox
+    The mailbox for which to retrieve properties.
+.PARAMETER PropertySet
+    The set of properties to retrieve.
+#>
+function GetMailboxProp {
     param(
-        $PassedValue
+        $PassedCN,
+        $Prop
     )
-    if ($PassedValue -match 'cn=([\w,\s.@-]*[^/])$') {
-        $cNameMatch = $PassedValue -split "cn=";
 
-        if ($cNameMatch[-1] -match "-[\w* -.]*") {
-            $DisplayName = $cNameMatch.split('-')[-1];
-        }
+    Write-Verbose "GetMailboxProp: [$Prop]: Searching for:[$PassedCN]..."
+
+    if (($Prop -ne "PrimarySmtpAddress") -and ($Prop -ne "DisplayName")) {
+        Write-Error "GetMailboxProp:Invalid Property: [$Prop]"
+        return "Invalid Property"
     }
-    return $DisplayName;
+
+    if ($script:MailboxList.count -gt 0) {
+        switch -Regex ($PassedCN) {
+            $WellKnownCN_CA {
+                return $CalAttendant
+            }
+            $WellKnownCN_Trans {
+                return $Transport
+            }
+            default {
+                if ($null -ne $script:MailboxList[$PassedCN]) {
+                    $ReturnValue = $script:MailboxList[$PassedCN].$Prop;
+
+                    if ($null -eq $ReturnValue) {
+                        Write-Error "`t GetMailboxProp:$Prop :NotFound for ::[$PassedCN]"
+                        return BetterThanNothingCNConversion($PassedCN)
+                    }
+
+                    Write-Verbose "`t GetMailboxProp:[$Prop] :Found::[$ReturnValue]"
+                    if (CheckForNoPIIAccess($ReturnValue)) {
+                        Write-Verbose "No PII Access for [$ReturnValue]"
+                        return BetterThanNothingCNConversion($PassedCN)
+                    }
+                    return $ReturnValue;
+                } else {
+                    Write-Verbose "`t GetMailboxProp:$Prop :NotFound::$PassedCN"
+                    return BetterThanNothingCNConversion($PassedCN)
+                }
+            }
+        }
+    } else {
+        Write-Host -ForegroundColor Red "$script:MailboxList is empty, unable to do CN to SMTP mapping."
+        return BetterThanNothingCNConversion($PassedCN)
+    }
 }
 
+<#
+.SYNOPSIS
+    This function gets a more readable Name from a CN or the Calendar Assistant.
+.PARAMETER PassedCN
+    The common name (CN) of the mailbox user or the Calendar Assistant.
+.OUTPUTS
+    Returns the last part of the CN so that it is more readable
+#>
+function BetterThanNothingCNConversion {
+    param (
+        $PassedCN
+    )
+    if ($PassedCN -match $WellKnownCN_CA) {
+        return $CalAttendant
+    }
+
+    if ($PassedCN -match $WellKnownCN_Trans) {
+        return $Transport
+    }
+
+    if ($PassedCN -match 'cn=([\w,\s.@-]*[^/])$') {
+        $cNameMatch = $PassedCN -split "cn=";
+
+        # Normally a readable name is sectioned off with a "-" at the end.
+        # example /o=ExchangeLabs/ou=Exchange Administrative Group (FYDIBOHF23SPDLT)/cn=Recipients/cn=d61149258ba04404adda42f336b504ed-Delegate
+        if ($cNameMatch[-1] -match "-[\w* -.]*") {
+            Write-Verbose "BetterThanNothingCNConversion: Returning : [$($cNameMatch[-1])]"
+            return $cNameMatch.split('-')[-1];
+        }
+        # Sometimes we do not have the "-" in front of the Name.
+        # example: "/o=ExchangeLabs/ou=Exchange Administrative Group (FYDIBOHF23SPDLT)/cn=Recipients/cn=user123"
+        if ($cNameMatch[-1] -match "[\w* -.]*") {
+            Write-Verbose "BetterThanNothingCNConversion: Returning : [$($cNameMatch[-1])]"
+            return $cNameMatch.split('-')[-1];
+        }
+    }
+}
+
+<#
+.SYNOPSIS
+Gets SMTP Address from a passed in CN that matches an entry in the MailboxList
+#>
+function GetSMTPAddress {
+    param(
+        $PassedCN
+    )
+
+    if ($PassedCN -match 'cn=([\w,\s.@-]*[^/])$') {
+        return GetMailboxProp -PassedCN $PassedCN -Prop "PrimarySmtpAddress"
+    } else {
+        if ($PassedCN -match "@") {
+            Write-Verbose "Looks like we have an SMTP Address already: [$PassedCN]"
+            return $PassedCN
+        }
+        # We have a problem, we don't have a CN or an SMTP Address
+        Write-Error "GetSMTPAddress: Passed in Value does not look like a CN or SMTP Address: [$PassedCN]"
+        return $PassedCN
+    }
+}
+
+<#
+.SYNOPSIS
+Gets DisplayName from a passed in CN that matches an entry in the MailboxList
+#>
+function GetDisplayName {
+    param(
+        $PassedCN
+    )
+    return GetMailboxProp -PassedCN $PassedCN -Prop "DisplayName"
+}
+
+<#
+.SYNOPSIS
+Checks if an entries is Redacted to protect PII.
+#>
+function CheckForNoPIIAccess {
+    param(
+        $PassedString
+    )
+    if ($PassedString -match "REDACTED-") {
+        return $true
+    } else {
+        return $false
+    }
+}
+
+<#
+.SYNOPSIS
+Creates a Mapping of ExternalMasterID to FolderName
+#>
+function CreateExternalMasterIDMap {
+    # This function will create a Map of the log folder to ExternalMasterID
+    $script:SharedFolders = @{}
+    Write-Verbose "Starting CreateExternalMasterIDMap"
+
+    foreach ($ExternalID in $script:GCDO.ExternalSharingMasterId | Select-Object -Unique) {
+        if ($ExternalID -eq "NotFound") {
+            continue
+        }
+
+        $AllFolderNames = @($script:GCDO | Where-Object { $_.ExternalSharingMasterId -eq $ExternalID } | Select-Object -ExpandProperty OriginalParentDisplayName | Select-Object -Unique)
+
+        if ($AllFolderNames.count -gt 1) {
+            # We have 2+ FolderNames,  Need to find the best one. #remove Calendar
+            $AllFolderNames = $AllFolderNames | Where-Object { $_ -notmatch 'Calendar' }  # This will not work for non-english
+        }
+
+        if ($AllFolderNames.Count -eq 0) {
+            $SharedFolders[$ExternalID] = "UnknownSharedCalendarCopy"
+            Write-Host -ForegroundColor red "Found Zero to map to."
+        }
+
+        if ($AllFolderNames.Count -eq 1) {
+            $SharedFolders[$ExternalID] = $AllFolderNames
+            Write-Verbose "Found map: [$AllFolderNames] is for $ExternalID"
+        } else {
+            # we still have multiple possible Folder Names, need to chose one or combine
+            Write-Host -ForegroundColor Red "Unable to Get Exact Folder for $ExternalID"
+            Write-Host -ForegroundColor Red "Found $($AllFolderNames.count) possible folders"
+
+            if ($AllFolderNames.Count -eq 2) {
+                $SharedFolders[$ExternalID] =  $AllFolderNames[0] + $AllFolderNames[1]
+            } else {
+                $SharedFolders[$ExternalID] =  "UnknownSharedCalendarCopy"
+            }
+        }
+    }
+    Write-Verbose "Created the following Mapping :"
+    Write-Verbose $SharedFolders
+}
+
+<#
+.SYNOPSIS
+Creates a list of CN that are used in the Calendar Logs, Looks up the Mailboxes and stores them in the MailboxList.
+#>
+function ConvertCNtoSMTP {
+    # Creates a list of CN's that we will do MB look up on
+    $CNEntries = @();
+    $CNEntries += ($script:GCDO.SentRepresentingEmailAddress.ToUpper() | Select-Object -Unique)
+    $CNEntries += ($script:GCDO.ResponsibleUserName.ToUpper() | Select-Object -Unique)
+    $CNEntries += ($script:GCDO.SenderEmailAddress.ToUpper() | Select-Object -Unique)
+    $CNEntries = $CNEntries | Select-Object -Unique
+    Write-Verbose " Have $($CNEntries.count) CNEntries to look for..."
+    Write-Verbose "CNEntries: "; foreach ($CN in $CNEntries) { Write-Verbose $CN }
+
+    $Org = $script:MB.OrganizationalUnit.split('/')[-1];
+
+    # Creates a Dictionary of MB's that we will use to look up the CN's
+    Write-Verbose "Converting CN entries into SMTP Addresses..."
+    foreach ($CNEntry in $CNEntries) {
+        if ($CNEntry -match 'cn=([\w,\s.@-]*[^/])$') {
+            if ($CNEntry -match $WellKnownCN_CA) {
+                $MailboxList[$CNEntry] = $CalAttendant
+            } elseif ($CNEntry -match $WellKnownCN_Trans) {
+                $MailboxList[$CNEntry] = $Transport
+            } else {
+                $MailboxList[$CNEntry] = (GetMailbox -Identity $CNEntry -Organization $Org);
+            }
+        }
+    }
+
+    foreach ($key in $MailboxList.Keys) {
+        $value = $MailboxList[$key]
+        Write-Verbose "$key :: $($value.DisplayName)"
+    }
+}
+
+<#
+.SYNOPSIS
+Creates Friendly / short client names
+#>
+function CreateShortClientName {
+    param(
+        $ClientInfoString
+    )
+    $ShortClientName= @();
+
+    # Map ClientInfoString to ShortClientName
+    if (!$ClientInfoString) {
+        $ShortClientName = "NotFound";
+    }
+
+    if ($ClientInfoString -like "Client=EBA*" -or $ClientInfoString -like "Client=TBA*") {
+        if ($ClientInfoString -like "*ResourceBookingAssistant*") {
+            $ShortClientName = "ResourceBookingAssistant";
+        } elseif ($ClientInfoString -like "*CalendarRepairAssistant*") {
+            $ShortClientName = "CalendarRepairAssistant";
+        } else {
+            $client = $ClientInfoString.Split(';')[0].Split('=')[-1];
+            $Action = $ClientInfoString.Split(';')[1].Split('=')[-1];
+            $Data = $ClientInfoString.Split(';')[-1];
+            $ShortClientName = $client+":"+$Action+";"+$Data;
+        }
+    } elseif ($ClientInfoString -like "Client=ActiveSync*") {
+        if ($ClientInfoString -match 'UserAgent=(\w*-\w*)') {
+            $ShortClientName = ($ClientInfoString -split "UserAgent=")[-1].Split("/")[0]
+        } elseif ($ClientInfoString -like "*Outlook-iOS-Android*") {
+            $ShortClientName = "OutlookMobile"
+        } else {
+            $ShortClientName = "ActiveSyncUnknown"
+        }
+    } elseif ($ClientInfoString -like "Client=Rest*") {
+        if ($ClientInfoString -like "*LocationAssistantProcessor*") {
+            $ShortClientName = "LocationProcessor";
+        } elseif ($ClientInfoString -like "*AppId=6326e366-9d6d-4c70-b22a-34c7ea72d73d*") {
+            $ShortClientName = "CalendarReplication";
+        } elseif ($ClientInfoString -like "*AppId=1e3faf23-d2d2-456a-9e3e-55db63b869b0*") {
+            $ShortClientName = "CiscoWebex";
+        } elseif ($ClientInfoString -like "*AppId=1c3a76cc-470a-46d7-8ba9-713cfbb2c01f*") {
+            $ShortClientName = "TimeService";
+        } elseif ($ClientInfoString -like "*AppId=48af08dc-f6d2-435f-b2a7-069abd99c086*") {
+            $ShortClientName = "RestConnector";
+        } elseif ($ClientInfoString -like "*GriffinRestClient*") {
+            $ShortClientName = "GriffinRestClient";
+        } elseif ($ClientInfoString -like "*NoUserAgent*") {
+            $ShortClientName = "RestUnknown";
+        } elseif ($ClientInfoString -like "*MacOutlook*") {
+            $ShortClientName = "MacOutlookRest";
+        } elseif ($ClientInfoString -like "*Microsoft Outlook 16*") {
+            $ShortClientName = "Outlook-ModernCalendarSharing";
+        } else {
+            $ShortClientName = "Rest";
+        }
+    } else {
+        $ShortClientName = findMatch -PassedHash $ShortClientNameProcessor;
+    }
+
+    if ($ClientInfoString -like "*InternalCalendarSharing*" -and $ClientInfoString -like "*OWA*") {
+        $ShortClientName = "Owa-ModernCalendarSharing";
+    }
+    if ($ClientInfoString -like "*InternalCalendarSharing*" -and $ClientInfoString -like "*MacOutlook*") {
+        $ShortClientName = "MacOutlook-ModernCalendarSharing";
+    }
+    if ($ClientInfoString -like "*InternalCalendarSharing*" -and $ClientInfoString -like "*Outlook*") {
+        $ShortClientName = "Outlook-ModernCalendarSharing";
+    }
+    if ($ClientInfoString -like "Client=ActiveSync*" -and $ClientInfoString -like "*Outlook*") {
+        $ShortClientName = "Outlook-ModernCalendarSharing";
+    }
+
+    return $ShortClientName;
+}
+
+<#
+.SYNOPSIS
+Checks to see if the Calendar Log is Ignorable.
+Many updates are not interesting in the Calendar Log, marking these as ignorable.  99% of the time this is correct.
+#>
+function SetIsIgnorable {
+    param(
+        $CalLog
+    )
+
+    if ($ShortClientName -like "EBA*" `
+            -or $ShortClientName -like "TBA*" `
+            -or $ShortClientName -eq "LocationProcessor" `
+            -or $ShortClientName -eq "GriffinRestClient" `
+            -or $ShortClientName -eq "RestConnector" `
+            -or $ShortClientName -eq "CalendarReplication" `
+            -or $ShortClientName -eq "TimeService" `
+            -or $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingCFM" `
+            -or $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingDelete" `
+            -or $CalendarItemTypes.($CalLog.ItemClass) -eq "AttendeeList" `
+            -or $CalendarItemTypes.($CalLog.ItemClass) -eq "RespAny") {
+        return "True";
+    } else {
+        return "False";
+    }
+}
+
+<#
+.SYNOPSIS
+Replaces a value of NotFound with a blank string.
+#>
+function ReplaceNotFound {
+    param (
+        $Value
+    )
+    if ($Value -eq "NotFound") {
+        return ""
+    } else {
+        return $Value
+    }
+}
+
+<#
+.SYNOPSIS
+Gets the Best Address from the From Property
+#>
+function GetBestFromAddress {
+    param(
+        $From
+    )
+
+    if ($null -ne $($From.SmtpEmailAddress)) {
+        return $($From.SmtpEmailAddress)
+    } elseif ($($From.EmailAddress) -ne "none") {
+        return BetterThanNothingCNConversion($($From.EmailAddress))
+    } else {
+        Write-Verbose "GetBestFromAddress : Unable to Process From Address: [$From]"
+        return "NotFound"
+    }
+}
+
+<#
+.SYNOPSIS
+Looks to see if there is a Mapping of ExternalMasterID to FolderName
+#>
+function MapSharedFolder {
+    param(
+        $ExternalMasterID
+    )
+    if ($ExternalMasterID -eq "NotFound") {
+        return "Not Shared"
+    } else {
+        $SharedFolders[$ExternalMasterID]
+    }
+}
+
+# ===================================================================================================
+# Build CSV to output
+# ===================================================================================================
+<#
+.SYNOPSIS
+Builds the CSV output from the Calendar Diagnostic Objects
+#>
 function BuildCSV {
+    Write-Output "Starting to Process Calendar Logs..."
     $GCDOResults = @();
-    $GlobalObjectId = @();
     $IsFromSharedCalendar = @();
     $IsIgnorable = @();
-    $ShortClientName = @();
-    $ResponsibleUser = @();
-    $MeetingID = @();
-    $MailboxList = @{};
+    $script:MailboxList = @{};
+    Write-Output "Creating Map of Mailboxes to CN's..."
+    CreateExternalMasterIDMap;
 
-    $TestUser = GetMailbox -Identity $Identity;
-    $Org = $TestUser.OrganizationalUnit.split('/')[-1];
+    $ThisMeetingID = $script:GCDO.CleanGlobalObjectId | Select-Object -Unique;
+    $ShortMeetingID = $ThisMeetingID.Substring($ThisMeetingID.length - 6);
 
-    foreach ($ObjectId in $GCDO.CleanGlobalObjectId) {
-        if (![string]::IsNullOrEmpty($ObjectId) -and $ObjectId -ne "NotFound" -and $ObjectId -ne "InvalidSchemaPropertyName" -and $ObjectId.length -ge 90) {
-            $GlobalObjectId += $ObjectId;
-        }
-    }
+    ConvertCNtoSMTP;
 
-    $MeetingID = $GlobalObjectId | Select-Object -Unique;
-    $ShortMeetingID = $MeetingID.Substring($MeetingID.length - 6);
-
-    foreach ($CNEntry in ($GCDO.SentRepresentingEmailAddress.ToUpper() | Select-Object -Unique)) {
-        if ($CNEntry -match 'cn=([\w,\s.@-]*[^/])$') {
-            $MailboxList[$CNEntry] = (GetMailbox -Identity $CNEntry -Organization $Org);
-        }
-    }
-
-    $script:CalendarItemTypes = @{
-        'IPM.Schedule.Meeting.Request.AttendeeListReplication' = "AttendeeList"
-        'IPM.Schedule.Meeting.Canceled'                        = "Canceled"
-        'IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}' = "ExceptionMsgClass"
-        'IPM.Schedule.Meeting.Notification.Forward'            = "ForwardNotification"
-        'IPM.Appointment'                                      = "IpmAppointment"
-        'IPM.Schedule.Meeting.Request'                         = "MeetingRequest"
-        'IPM.CalendarSharing.EventUpdate'                      = "SharingCFM"
-        'IPM.CalendarSharing.EventDelete'                      = "SharingDelete"
-        'IPM.Schedule.Meeting.Resp'                            = "RespAny"
-        'IPM.Schedule.Meeting.Resp.Neg'                        = "RespNeg"
-        'IPM.Schedule.Meeting.Resp.Tent'                       = "RespTent"
-        'IPM.Schedule.Meeting.Resp.Pos'                        = "RespPos"
-    }
-
-    $ShortClientNameProcessor = @{
-        'Client=Hub Transport'                       = "Transport"
-        'Client=MSExchangeRPC'                       = "Outlook"
-        'Lync for Mac'                               = "LyncMac"
-        'AppId=00000004-0000-0ff1-ce00-000000000000' = "SkypeMMS"
-        'MicrosoftNinja'                             = "Teams"
-        'Remove-CalendarEvents'                      = "RemoveCalendarEvent"
-        'Client=POP3/IMAP4'                          = "PopImap"
-        'Client=OWA'                                 = "OWA"
-        'PublishedBookingCalendar'                   = "BookingAgent"
-        'LocationAssistantProcessor'                 = "LocationProcessor"
-        'AppId=6326e366-9d6d-4c70-b22a-34c7ea72d73d' = "CalendarReplication"
-        'AppId=1e3faf23-d2d2-456a-9e3e-55db63b869b0' = "CiscoWebex"
-        'AppId=1c3a76cc-470a-46d7-8ba9-713cfbb2c01f' = "Time Service"
-        'AppId=48af08dc-f6d2-435f-b2a7-069abd99c086' = "RestConnector"
-        'GriffinRestClient'                          = "GriffinRestClient"
-        'MacOutlook'                                 = "MacOutlookRest"
-        'Outlook-iOS-Android'                        = "OutlookMobile"
-        'Client=OutlookService;Outlook-Android'      = "OutlookAndroid"
-        'Client=OutlookService;Outlook-iOS'          = "OutlookiOS"
-    }
-
-    $ResponseTypeOptions = @{
-        '0' = "None"
-        "1" = "Organizer"
-        '2' = "Tentative"
-        '3' = "Accept"
-        '4' = "Decline"
-        '5' = "Not Responded"
-    }
-
+    Write-Output "Making Calendar Logs more readable..."
     $Index = 0;
-    foreach ($CalLog in $GCDO) {
+    foreach ($CalLog in $script:GCDO) {
         $CalLogACP = $CalLog.AppointmentCounterProposal.ToString();
         $Index++;
         $ItemType = $CalendarItemTypes.($CalLog.ItemClass);
@@ -205,183 +651,87 @@ function BuildCSV {
         $script:KeyInput = $CalLog.ClientInfoString;
         $ResponseType = $ResponseTypeOptions.($CalLog.ResponseType.ToString());
 
-        if (!$CalLog.ClientInfoString) {
-            $ShortClientName = "NotFound";
-        }
+        $ShortClientName = CreateShortClientName($CalLog.ClientInfoString);
 
-        if ($CalLog.ClientInfoString -like "Client=EBA*" -or $CalLog.ClientInfoString -like "Client=TBA*") {
-            if ($CalLog.ClientInfoString -like "*ResourceBookingAssistant*") {
-                $ShortClientName = "ResourceBookingAssistant";
-            } elseif ($CalLog.ClientInfoString -like "*CalendarRepairAssistant*") {
-                $ShortClientName = "CalendarRepairAssistant";
-            } else {
-                $client = $CalLog.ClientInfoString.Split(';')[0].Split('=')[-1];
-                $Action = $CalLog.ClientInfoString.Split(';')[1].Split('=')[-1];
-                $Data = $CalLog.ClientInfoString.Split(';')[-1];
-                $ShortClientName = $client+":"+$Action+";"+$Data;
-            }
-        } elseif ($CalLog.ClientInfoString -like "Client=ActiveSync*") {
-            if ($CalLog.ClientInfoString -match 'UserAgent=(\w*-\w*)') {
-                $ShortClientName = ($CalLog.ClientInfoString -split "UserAgent=")[-1].Split("/")[0]
-            } elseif ($CalLog.ClientInfoString -like "*Outlook-iOS-Android*") {
-                $ShortClientName = "OutlookMobile"
-            } else {
-                $ShortClientName = "ActiveSyncUnknown"
-            }
-        } elseif ($CalLog.ClientInfoString -like "Client=Rest*") {
-            if ($CalLog.ClientInfoString -like "*LocationAssistantProcessor*") {
-                $ShortClientName = "LocationProcessor";
-            } elseif ($CalLog.ClientInfoString -like "*AppId=6326e366-9d6d-4c70-b22a-34c7ea72d73d*") {
-                $ShortClientName = "CalendarReplication";
-            } elseif ($CalLog.ClientInfoString -like "*AppId=1e3faf23-d2d2-456a-9e3e-55db63b869b0*") {
-                $ShortClientName = "CiscoWebex";
-            } elseif ($CalLog.ClientInfoString -like "*AppId=1c3a76cc-470a-46d7-8ba9-713cfbb2c01f*") {
-                $ShortClientName = "TimeService";
-            } elseif ($CalLog.ClientInfoString -like "*AppId=48af08dc-f6d2-435f-b2a7-069abd99c086*") {
-                $ShortClientName = "RestConnector";
-            } elseif ($CalLog.ClientInfoString -like "*GriffinRestClient*") {
-                $ShortClientName = "GriffinRestClient";
-            } elseif ($CalLog.ClientInfoString -like "*NoUserAgent*") {
-                $ShortClientName = "RestUnknown";
-            } elseif ($CalLog.ClientInfoString -like "*MacOutlook*") {
-                $ShortClientName = "MacOutlookRest";
-            } else {
-                $ShortClientName = "Rest";
-            }
-        } else {
-            $ShortClientName = findMatch -PassedHash $ShortClientNameProcessor;
-        }
+        $IsIgnorable = SetIsIgnorable($CalLog)
 
-        if ($CalLog.ClientInfoString -like "*InternalCalendarSharing*" -and $CalLog.ClientInfoString -like "*OWA*") {
-            $ShortClientName = "OwaCalSharing";
-        }
-        if ($CalLog.ClientInfoString -like "*InternalCalendarSharing*" -and $CalLog.ClientInfoString -like "*Outlook*") {
-            $ShortClientName = "OutlookCalSharing";
-        }
-        if ($CalLog.ClientInfoString -like "Client=ActiveSync*" -and $CalLog.ClientInfoString -like "*Outlook*") {
-            $ShortClientName = "OutlookCalSharing";
-        }
-
-        if ($CalLog.ResponsibleUserName -match 'cn=([\w,\s.@-]*[^/])$') {
-            $cNameMatch = $CalLog.ResponsibleUserName -split "cn=";
-
-            if ($cNameMatch[-1] -match "-[\w* -.]*") {
-                $DisplayName = $cNameMatch.split('-')[-1];
-            } else {
-                $DisplayName = $cNameMatch[-1];
-            }
-        }
-
-        if ($DisplayName -match "Microsoft System Attendant") {
-            $ResponsibleUser = "Calendar Assistant";
-        } else {
-            $ResponsibleUser = $DisplayName;
-        }
-
-        if ($CalLog.SenderEmailAddress -match 'cn=([\w,\s.@-]*[^/])$') {
-            $cNameMatch = $CalLog.SenderEmailAddress -split "cn=";
-
-            if ($cNameMatch[-1] -match "-[\w* -.]*") {
-                $SenderName = $cNameMatch.split('-')[-1];
-            }
-        }
-
-        if ($ShortClientName -like "EBA*" `
-                -or $ShortClientName -like "TBA*" `
-                -or $ShortClientName -eq "LocationProcessor" `
-                -or $ShortClientName -eq "GriffinRestClient" `
-                -or $ShortClientName -eq "RestConnector" `
-                -or $ShortClientName -eq "CalendarReplication" `
-                -or $ShortClientName -eq "TimeService" `
-                -or $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingCFM" `
-                -or $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingDelete" `
-                -or $CalendarItemTypes.($CalLog.ItemClass) -eq "AttendeeList" `
-                -or $CalendarItemTypes.($CalLog.ItemClass) -eq "RespAny") {
-            $IsIgnorable = "True";
-        } else {
-            $IsIgnorable = "False";
-        }
-
-        if ($CalLog.FreeBusyStatus -eq "NotFound") {
-            $CalLog.FreeBusyStatus = '';
-        }
-
-        if ($CalLog.AppointmentAuxiliaryFlags.ToString() -eq "NotFound") {
-            $CalLog.AppointmentAuxiliaryFlags = '';
-        }
-
-        if ($CalLog.AppointmentCounterProposal -eq "NotFound") {
-            $CalLog.AppointmentCounterProposal = '';
+        # CleanNotFounds;
+        $PropsToClean = "FreeBusyStatus", "ClientIntent", "AppointmentLastSequenceNumber", "RecurrencePattern", "AppointmentAuxiliaryFlags", "IsOrganizerProperty", "EventEmailReminderTimer", "IsSeriesCancelled", "AppointmentCounterProposal", "MeetingRequestType"
+        foreach ($Prop in $PropsToClean) {
+            $CalLog.$Prop = ReplaceNotFound($CalLog.$Prop);
         }
 
         if ($CalLogACP -eq "NotFound") {
             $CalLogACP = '';
         }
 
-        if ($CalLog.ClientIntent.ToString() -eq "NotFound") {
-            $CalLog.ClientIntent = '';
-        }
-
         $IsFromSharedCalendar = ($null -ne $CalLog.externalSharingMasterId -and $CalLog.externalSharingMasterId -ne "NotFound");
 
-        if ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -and $CalLog.IsOrganizerProperty -eq $True -or $CalendarItemTypes.($CalLog.ItemClass) -eq "MeetingRequest" -or $CalendarItemTypes.($CalLog.ItemClass) -eq "AttendeeList") {
-            [bool] $GetIsOrganizer = $True;
-        }
+        # Need to ask about this
+        $GetIsOrganizer = ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -and
+            $CalLog.IsOrganizerProperty -eq $True -and
+            $CalLog.externalSharingMasterId -eq "NotFound")
 
+        # Record one row
         $GCDOResults += [PSCustomObject]@{
-            'LogRow'                       = $Index
-            'LastModifiedTime'             = $CalLog.OriginalLastModifiedTime
-            'IsIgnorable'                  = $IsIgnorable
-            'SubjectProperty'              = $CalLog.SubjectProperty
-            'Client'                       = $ShortClientName
-            'TriggerAction'                = $CalLog.CalendarLogTriggerAction
-            'ItemClass'                    = $CalLog.ItemClass
-            'ItemVersion'                  = $CalLog.ItemVersion
-            'AppointmentSequenceNumber'    = $CalLog.AppointmentSequenceNumber
-            'Organizer'                    = $CalLog.From.FriendlyDisplayName
-            'From'                         = $CalLog.From.SmtpEmailAddress
-            'FreeBusyStatus'               = $CalLog.FreeBusyStatus
-            'ResponsibleUser'              = $ResponsibleUser
-            'Sender'                       = $SenderName
-            'LogFolder'                    = $CalLog.ParentDisplayName
-            'OriginalLogFolder'            = $CalLog.OriginalParentDisplayName
-            'IsFromSharedCalendar'         = $IsFromSharedCalendar
-            'ReceivedBy'                   = $CalLog.ReceivedBy.SmtpEmailAddress
-            'ReceivedRepresenting'         = $CalLog.ReceivedRepresenting.SmtpEmailAddress
-            'MeetingRequestType'           = $CalLog.MeetingRequestType
-            'StartTime'                    = $CalLog.StartTime
-            'EndTime'                      = $CalLog.EndTime
-            'TimeZone'                     = $CalLog.TimeZone
-            'Location'                     = $CalLog.Location
-            'ItemType'                     = $ItemType
-            'CalendarItemType'             = $CalLog.CalendarItemType
-            'RecurrencePattern'            = $CalLog.RecurrencePattern
-            'AppointmentAuxiliaryFlags'    = $CalLog.AppointmentAuxiliaryFlags.ToString()
-            'DisplayAttendeesAll'          = $CalLog.DisplayAttendeesAll
-            'AppointmentState'             = $CalLog.AppointmentState.ToString()
-            'ResponseType'                 = $ResponseType
-            'AppointmentCounterProposal'   = $CalLogACP
-            'SentRepresentingEmailAddress' = $CalLog.SentRepresentingEmailAddress
-            'ResponsibleUserName'          = $CalLog.ResponsibleUserName
-            'SenderEmailAddress'           = $CalLog.SenderEmailAddress
-            'ClientInfoString'             = $CalLog.ClientInfoString
-            'CalendarLogRequestId'         = $CalLog.CalendarLogRequestId.ToString()
-            'ClientIntent'                 = $CalLog.ClientIntent.ToString()
-            'CleanGlobalObjectId'          = $CalLog.CleanGlobalObjectId
-            'MapiStartTime'                = $CalLog.MapiStartTime
-            'MapiEndTime'                  = $CalLog.MapiEndTime
-            'NormalizedSubject'            = $CalLog.NormalizedSubject
-            'AppointmentRecurring'         = $CalLog.AppointmentRecurring
-            'HasAttachment'                = $CalLog.HasAttachment
-            'IsCancelled'                  = $CalLog.IsCancelled
-            'IsAllDayEvent'                = $CalLog.IsAllDayEvent
-            'IsSeriesCancelled'            = $CalLog.IsSeriesCancelled
-            'IsOrganizer'                  = $GetIsOrganizer
-            'SentRepresentingDisplayName'  = $CalLog.SentRepresentingDisplayName
-            'IsException'                  = $CalLog.IsException
-            'IsOrganizerProperty'          = $CalLog.IsOrganizerProperty
-            'EventEmailReminderTimer'      = $CalLog.EventEmailReminderTimer
-            'ExternalSharingMasterId'      = $CalLog.ExternalSharingMasterId
+            'LogRow'                        = $Index
+            'LastModifiedTime'              = $CalLog.OriginalLastModifiedTime
+            'IsIgnorable'                   = $IsIgnorable
+            'SubjectProperty'               = $CalLog.SubjectProperty
+            'Client'                        = $ShortClientName
+            'ClientInfoString'              = $CalLog.ClientInfoString
+            'TriggerAction'                 = $CalLog.CalendarLogTriggerAction
+            'ItemClass'                     = $CalLog.ItemClass
+            'ItemVersion'                   = $CalLog.ItemVersion
+            'AppointmentSequenceNumber'     = $CalLog.AppointmentSequenceNumber
+            'AppointmentLastSequenceNumber' = $CalLog.AppointmentLastSequenceNumber   # Need to find out how we can combine these two...
+            'Organizer'                     = $CalLog.From.FriendlyDisplayName
+            'From'                          = GetBestFromAddress($CalLog.From)
+            'FreeBusyStatus'                = $CalLog.FreeBusyStatus
+            'ResponsibleUser'               = GetSMTPAddress($CalLog.ResponsibleUserName)
+            'Sender'                        = GetSMTPAddress($CalLog.SenderEmailAddress)
+            'LogFolder'                     = $CalLog.ParentDisplayName
+            'OriginalLogFolder'             = $CalLog.OriginalParentDisplayName
+            'SharedFolderName'              = MapSharedFolder($CalLog.ExternalSharingMasterId)
+            'IsFromSharedCalendar'          = $IsFromSharedCalendar
+            'ExternalSharingMasterId'       = $CalLog.ExternalSharingMasterId
+            'ReceivedBy'                    = $CalLog.ReceivedBy.SmtpEmailAddress
+            'ReceivedRepresenting'          = $CalLog.ReceivedRepresenting.SmtpEmailAddress
+            'MeetingRequestType'            = $CalLog.MeetingRequestType
+            'StartTime'                     = $CalLog.StartTime
+            'EndTime'                       = $CalLog.EndTime
+            'TimeZone'                      = $CalLog.TimeZone
+            'Location'                      = $CalLog.Location
+            'ItemType'                      = $ItemType
+            'CalendarItemType'              = $CalLog.CalendarItemType
+            'IsException'                   = $CalLog.IsException
+            'RecurrencePattern'             = $CalLog.RecurrencePattern
+            'AppointmentAuxiliaryFlags'     = $CalLog.AppointmentAuxiliaryFlags.ToString()
+            'DisplayAttendeesAll'           = $CalLog.DisplayAttendeesAll
+            'AppointmentState'              = $CalLog.AppointmentState.ToString()
+            'ResponseType'                  = $ResponseType
+            'AppointmentCounterProposal'    = $CalLogACP
+            'SentRepresentingEmailAddress'  = $CalLog.SentRepresentingEmailAddress
+            'SentRepresentingSMTPAddress'   = GetSMTPAddress($CalLog.SentRepresentingEmailAddress)
+            'SentRepresentingDisplayName'   = $CalLog.SentRepresentingDisplayName
+            'ResponsibleUserSMTPAddress'    = GetSMTPAddress($CalLog.ResponsibleUserName)
+            'ResponsibleUserName'           = GetDisplayName($CalLog.ResponsibleUserName)
+            'SenderEmailAddress'            = $CalLog.SenderEmailAddress
+            'SenderSMTPAddress'             = GetSMTPAddress($CalLog.SenderEmailAddress)
+            'CalendarLogRequestId'          = $CalLog.CalendarLogRequestId.ToString()
+            'ClientIntent'                  = $CalLog.ClientIntent.ToString()
+            'MapiStartTime'                 = $CalLog.MapiStartTime
+            'MapiEndTime'                   = $CalLog.MapiEndTime
+            'NormalizedSubject'             = $CalLog.NormalizedSubject
+            'AppointmentRecurring'          = $CalLog.AppointmentRecurring
+            'HasAttachment'                 = $CalLog.HasAttachment
+            'IsCancelled'                   = $CalLog.IsCancelled
+            'IsAllDayEvent'                 = $CalLog.IsAllDayEvent
+            'IsSeriesCancelled'             = $CalLog.IsSeriesCancelled
+            'IsOrganizer'                   = $GetIsOrganizer
+            'IsOrganizerProperty'           = $CalLog.IsOrganizerProperty
+            'EventEmailReminderTimer'       = $CalLog.EventEmailReminderTimer
+            'CleanGlobalObjectId'           = $CalLog.CleanGlobalObjectId
         }
     }
     $script:Results = $GCDOResults;
@@ -390,11 +740,18 @@ function BuildCSV {
     #$Filename = "$($Results[0].ReceivedBy)_$ShortMeetingID.csv";
     $Filename = "$($Identity)_$ShortMeetingID.csv";
     $GCDOResults | Export-Csv -Path $Filename -NoTypeInformation
+    Write-Output "Calendar Logs for $Identity have been saved to $Filename."
+    $GCDOResults | Export-Csv -Path $Filename -NoTypeInformation -Encoding UTF8
+
     $MeetingTimeLine = $Results | Where-Object { $_.IsIgnorable -eq "False" } ;
-    "`n`n`nThis is the meetingID $MeetingID`nThis is Short MeetingID $ShortMeetingID`nFound $($GCDO.count) Log entries, Only $($MeetingTimeLine.count) entries will be analyzed.";
+    Write-Output "`n`n`nThis is the meetingID $ThisMeetingID`nThis is Short MeetingID $ShortMeetingID"
+    Write-Output "Found $($script:GCDO.count) Log entries, Only $($MeetingTimeLine.count) entries will be analyzed.";
     return;
 }
 
+# ===================================================================================================
+# Create Meeting Summary
+# ===================================================================================================
 function MeetingSummary {
     param(
         [array] $Time,
@@ -429,8 +786,8 @@ function MeetingSummary {
 
     if ($longVersion -and $Entry.AppointmentRecurring) {
         $InitialRecurrencePattern = "RecurrencePattern: " + $Entry.RecurrencePattern;
-        $InitialSeriesStartTime = "Series StartTime: " + $Entry.ViewStartTime.ToString();
-        $InitialSeriesEndTime = "Series EndTime: " + $Entry.ViewStartTime.ToString();
+        $InitialSeriesStartTime = "Series StartTime: " + $Entry.StartTime.ToString() + "Z";
+        $InitialSeriesEndTime = "Series EndTime: " + $Entry.StartTime.ToString() + "Z";
         if (!$Entry.ViewEndTime) {
             $InitialEndDate = "Meeting Series does not have an End Date.";
         }
@@ -453,10 +810,13 @@ function MeetingSummary {
     Convert-Data -ArrayNames "Time", "MeetingChanges";
 }
 
+# ===================================================================================================
+# BuildTimeline
+# ===================================================================================================
 function BuildTimeline {
-    [Array]$Header = ("Subject: " + ($GCDO[0].NormalizedSubject) + " | Display Name: " + ($GCDO[0].SentRepresentingDisplayName) + " | MeetingID: "+ ($GCDO[0].CleanGlobalObjectId));
+    [Array]$Header = ("Subject: " + ($script:GCDO[0].NormalizedSubject) + " | Display Name: " + ($script:GCDO[0].SentRepresentingDisplayName) + " | MeetingID: "+ ($script:GCDO[0].CleanGlobalObjectId));
     MeetingSummary -Time "Calendar Logs for Meeting with" -MeetingChanges $Header;
-    MeetingSummary -Time "Initial Message Values" -Entry $GCDO[0] -LongVersion;
+    MeetingSummary -Time "Initial Message Values" -Entry $script:GCDO[0] -LongVersion;
     $MeetingTimeLine = $Results | Where-Object { $_.IsIgnorable -eq "False" };
 
     foreach ($CalLog in $MeetingTimeLine) {
@@ -565,8 +925,8 @@ function BuildTimeline {
                         MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
-                    if ($CalLog.SenderEmailAddress -ne $PreviousCalLog.SenderEmailAddress) {
-                        [Array]$TimeLineText = "The Sender Email Address changed from [$($PreviousCalLog.SenderEmailAddress)] to: [$($CalLog.SenderEmailAddress)]"
+                    if ($CalLog.SenderSMTPAddress -ne $PreviousCalLog.SenderSMTPAddress) {
+                        [Array]$TimeLineText = "The Sender Email Address changed from [$($PreviousCalLog.SenderSMTPAddress)] to: [$($CalLog.SenderSMTPAddress)]"
                         MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
@@ -854,30 +1214,67 @@ function BuildTimeline {
     $Results = @();
 }
 
+# ===================================================================================================
+# Main
+# ===================================================================================================
+
+if (Get-Command -Name Get-Mailbox -ErrorAction SilentlyContinue) {
+    Write-Verbose "Validated Get-Mailbox"
+} else {
+    Write-Error "Get-Mailbox not found.  Please validate that you are running this script from an Exchange Management Shell and try again."
+    Write-Host "Look at Import-Module ExchangeOnlineManagement and Connect-ExchangeOnline."
+    exit;
+}
+
+Write-Output "Checking for a valid mailbox..."
+$script:MB = GetMailbox -Identity $Identity
+if ($null -eq $script:MB) {
+    # -or $script:MB.GetType().FullName -ne "Microsoft.Exchange.Data.Directory.Management.Mailbox") {
+    Write-Host "`n`n`n============================================================================"
+    Write-Error "Mailbox [$Identity] not found on Exchange Online.  Please validate the mailbox name and try again."
+    Write-Host "======================================================================================="
+    #exit;
+}
+
+# Get initial CalLogs (saved in $script:InitialCDOs)
+Write-Output "Getting initial Calendar Logs..."
 GetCalendarDiagnosticObjects;
 
-$GlobalObjectId = @();
+$GlobalObjectIds = @();
 
-foreach ($ObjectId in $GetCDO.CleanGlobalObjectId) {
-    if (![string]::IsNullOrEmpty($ObjectId) -and $ObjectId -ne "NotFound" -and $ObjectId -ne "InvalidSchemaPropertyName" -and $ObjectId.length -ge 90) {
-        $GlobalObjectId += $ObjectId;
+# Find all the unique Global Object IDs
+foreach ($ObjectId in $script:InitialCDOs.CleanGlobalObjectId) {
+    if (![string]::IsNullOrEmpty($ObjectId) -and
+        $ObjectId -ne "NotFound" -and
+        $ObjectId -ne "InvalidSchemaPropertyName" -and
+        $ObjectId.Length -ge 90) {
+        $GlobalObjectIds += $ObjectId;
     }
 }
 
-$UniqueMeetingID = $GlobalObjectId | Select-Object -Unique;
+$GlobalObjectIds = $GlobalObjectIds | Select-Object -Unique;
 
-if ($UniqueMeetingID.count -gt 1) {
-    $UniqueMeetingID | ForEach-Object {
-        $MeetingID = $_;
-        $script:GCDO = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames AppointmentCounterProposal, AppointmentRecurring, CalendarItemType, CalendarProcessed, ClientIntent, DisplayAttendeesCc, DisplayAttendeesTo, EventEmailReminderTimer, ExternalSharingMasterId, FreeBusyStatus, From, HasAttachment, IsAllDayEvent, IsCancelled, IsMeeting, MapiEndTime, MapiStartTime, NormalizedSubject, SentRepresentingDisplayName, SentRepresentingEmailAddress -WarningAction Ignore -MaxResults 2000;
+# Get the CalLogs for each MeetingID found.
+if ($GlobalObjectIds.count -gt 1) {
+    Write-Verbose "Found GlobalObjectIds: $($GlobalObjectIds.Count)"
+    $GlobalObjectIds | ForEach-Object {
+        #$MeetingID = $_;
+        Write-Verbose "Processing MeetingID: $_"
+        $script:GCDO = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $_ -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults $LogLimit -ResultSize $LogLimit -ShouldBindToItem $true;
         BuildCSV;
         BuildTimeline;
     }
-} elseif ($UniqueMeetingID.count -eq 1) {
-    $GCDO = $GetCDO;
-    $GetCDO = @();
+} elseif ($GlobalObjectIds.count -eq 1) {
+    $script:GCDO = $script:InitialCDOs; # use the CalLogs that we already have, since there is only one.
+    $script:InitialCDOs = @(); # clear the Initial CDOs.
     BuildCSV;
     BuildTimeline;
 } else {
     Write-Warning "A valid meeting ID was not found, manually confirm the meetingID";
 }
+
+Write-Host -ForegroundColor Yellow "`n`n`n============================================================================"
+Write-Host -ForegroundColor Yellow "Hope this script was helpful in getting (and understanding) the Calendar Logs."
+Write-Host -ForegroundColor Yellow "If you have issues or suggestion for this script,"
+Write-Host -ForegroundColor Yellow "`t please send them to <callogformatterdevs@microsoft.com>"
+Write-Host -ForegroundColor Yellow "============================================================================`n`n`n"

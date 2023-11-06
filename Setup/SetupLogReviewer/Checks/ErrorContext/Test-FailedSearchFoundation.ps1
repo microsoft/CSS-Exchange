@@ -25,7 +25,7 @@ function Test-FailedSearchFoundation {
                 "- Uninstall the Search Foundation",
                 "       1. Remove all SubFolders under C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\HostController\Data\Nodes\Fsis",
                 "       2. Open Powershell as Administrator and navigate to the folder C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Installer",
-                "       3. Now uninstall the Search Foundation with this command: .\InstallConfig.ps1 -action U -DataFolder `"C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\HostController\Data`”"
+                "       3. Now uninstall the Search Foundation with this command: .\InstallConfig.ps1 -action U -DataFolder `"C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\HostController\Data`""
                 "       4. Run Setup again."
             )
             return
@@ -46,8 +46,8 @@ function Test-FailedSearchFoundation {
                 "     1. Stop the Microsoft Exchange Search and Microsoft Exchange Search Host Controller services.",
                 "     2. Remove all SubFolders under C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\HostController\Data\Nodes\Fsis",
                 "     3. Open Powershell as Administrator and navigate to the folder C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Installer",
-                "     4. Now uninstall the Search Foundation with this command: .\InstallConfig.ps1 -action U -DataFolder `"C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\HostController\Data`”"
-                "     5. Now install the Search Foundation with this command: .\InstallConfig.ps1 -action I -DataFolder `"C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\HostController\Data`”"
+                "     4. Now uninstall the Search Foundation with this command: .\InstallConfig.ps1 -action U -DataFolder `"C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\HostController\Data`""
+                "     5. Now install the Search Foundation with this command: .\InstallConfig.ps1 -action I -DataFolder `"C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\HostController\Data`""
             )
         }
     }

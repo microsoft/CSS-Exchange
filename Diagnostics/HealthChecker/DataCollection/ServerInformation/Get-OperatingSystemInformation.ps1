@@ -44,6 +44,21 @@ function Get-OperatingSystemInformation {
             Invoke-CatchActions
         }
 
+        $credentialGuardCimInstance = $false
+        try {
+            $params = @{
+                ClassName    = "Win32_DeviceGuard"
+                Namespace    = "root\Microsoft\Windows\DeviceGuard"
+                ErrorAction  = "Stop"
+                ComputerName = $Server
+            }
+            $credentialGuardCimInstance = (Get-CimInstance @params).SecurityServicesRunning
+        } catch {
+            Write-Verbose "Failed to run Get-CimInstance for Win32_DeviceGuard"
+            Invoke-CatchActions
+            $credentialGuardCimInstance = "Unknown"
+        }
+
         $serverPendingReboot = (Get-ServerRebootPending -ServerName $Server -CatchActionFunction ${Function:Invoke-CatchActions})
         $timeZoneInformation = Get-TimeZoneInformation -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
         $tlsSettings = Get-AllTlsSettings -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
@@ -54,19 +69,20 @@ function Get-OperatingSystemInformation {
     } end {
         Write-Verbose "Exiting: $($MyInvocation.MyCommand)"
         return [PSCustomObject]@{
-            BuildInformation    = $buildInformation
-            NetworkInformation  = $networkInformation
-            PowerPlan           = $powerPlan
-            PageFile            = $pageFile
-            ServerPendingReboot = $serverPendingReboot
-            TimeZone            = $timeZoneInformation
-            TLSSettings         = $tlsSettings
-            ServerBootUp        = $serverBootUp
-            VcRedistributable   = [array]$vcRedistributable
-            RegistryValues      = $registryValues
-            Smb1ServerSettings  = $smb1ServerSettings
-            HotFixes            = $hotFixes
-            NETFramework        = $netFrameworkInformation
+            BuildInformation           = $buildInformation
+            NetworkInformation         = $networkInformation
+            PowerPlan                  = $powerPlan
+            PageFile                   = $pageFile
+            ServerPendingReboot        = $serverPendingReboot
+            TimeZone                   = $timeZoneInformation
+            TLSSettings                = $tlsSettings
+            ServerBootUp               = $serverBootUp
+            VcRedistributable          = [array]$vcRedistributable
+            RegistryValues             = $registryValues
+            Smb1ServerSettings         = $smb1ServerSettings
+            HotFixes                   = $hotFixes
+            NETFramework               = $netFrameworkInformation
+            CredentialGuardCimInstance = $credentialGuardCimInstance
         }
     }
 }

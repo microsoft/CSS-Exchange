@@ -76,7 +76,7 @@ This will run the default mode which does the following:
 3. Applies the URL rewrite mitigation **(only if vulnerable)**.
 4. Runs the Microsoft Safety Scanner in "Quick Scan" mode **(vulnerable or not)**.
 
-**Question**:  What if I run a full scan and it’s affecting the resources of my servers?
+**Question**:  What if I run a full scan and it's affecting the resources of my servers?
 
 **Answer**:  You can terminate the process of the scan by running the following command in an Administrative PowerShell session.
 
@@ -92,7 +92,7 @@ This will run the default mode which does the following:
 * Malware scan of the Exchange Server via the Microsoft Safety Scanner
 * Attempt to reverse any changes made by identified threats.
 ### ExchangeMitigations.ps1:
-* Does mitigations for all 4 CVE’s - CVE-2021-26855, CVE-2021-26857, CVE-2021-27065 & CVE-2021-26858.
+* Does mitigations for all 4 CVE's - CVE-2021-26855, CVE-2021-26857, CVE-2021-27065 & CVE-2021-26858.
 * Some of the mitigation methods impact Exchange functionality.
 * Does not do any scanning for existing compromise or exploitation.
 * Does not take response actions to existing active identified threats.
