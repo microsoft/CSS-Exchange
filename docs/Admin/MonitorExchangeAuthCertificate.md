@@ -49,7 +49,7 @@ It's not recommended to replace the internal transport certificate with the newl
 
 The following syntax executes the script in renewal mode without user interaction. The required Auth Certificate renewal action will be performed. In unattended mode the internal SMTP certificate is replaced with the new Auth Certificate and then set back to the previous one. The script also restarts the `MSExchangeServiceHost` service and the `MSExchangeOWAAppPool` and `MSExchangeECPAppPool` WebApp Pools when the primary Auth Certificate has been replaced.
 
-**NOTE:** The script creates a new internal transport certificate if the previously configured one wasn’t found on the machine where the script is run.
+**NOTE:** The script creates a new internal transport certificate if the previously configured one wasn't found on the machine where the script is run.
 
 ```powershell
 PS C:\> .\MonitorExchangeAuthCertificate.ps1 -ValidateAndRenewAuthCertificate $true -Confirm:$false

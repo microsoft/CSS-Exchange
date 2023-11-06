@@ -34,6 +34,8 @@ Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "G
 # Handle IIS collection of files
 Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost.config" -Raw }
 
+Mock Get-CimInstance -ParameterFilter { $ClassName -eq "Win32_DeviceGuard" } -MockWith { return [PSCustomObject]@{ SecurityServicesRunning = @(0 , 0) } }
+
 # WebAdministration
 function Get-WebSite { param($Name) }
 Mock Get-WebSite -ParameterFilter { $null -eq $Name } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\IIS\GetWebSite.xml" }

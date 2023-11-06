@@ -89,7 +89,7 @@ Enabling Extended Protection on Hybrid servers using Modern Hybrid configuration
 
       This step is not required if you are using classic Hybrid configuration.
 
-In case you don’t have a list of servers published via Hybrid Agent, you can use the following steps to identify them:
+In case you don't have a list of servers published via Hybrid Agent, you can use the following steps to identify them:
 
 1. Log into a machine where the Hybrid Agent is installed and running. Open the [PowerShell module](https://docs.microsoft.com/exchange/hybrid-deployment/hybrid-agent#hybrid-agent-powershell-module) of the Hybrid Agent and run _Get-HybridApplication_ to identify the _TargetUri_ used by the Hybrid Agent.
 2. The _TargetUri_ parameter gives you the FQDN of the Exchange Server that is configured to use Hybrid Agent.
@@ -195,7 +195,7 @@ Before enabling Extended Protection in your Exchange environment, ensure you mee
 
 To enable Extended Protection on all your Exchange Servers, you can use the [ExchangeExtendedProtectionManagement.ps1](https://aka.ms/ExchangeEPScript) script, which is hosted on the Microsoft Exchange-CSS repository on GitHub.
 
-It’s not required to run the script directly on any specific Exchange Server in your environment. Just copy it to a machine that has the Exchange Management Shell (EMS) installed.
+It's not required to run the script directly on any specific Exchange Server in your environment. Just copy it to a machine that has the Exchange Management Shell (EMS) installed.
 
 !!! warning "Note"
 
@@ -273,7 +273,7 @@ Or
 
 3. Some Exchange servers are not reachable:
 
-      The script performs multiple tests against all Exchange servers in scope. If one or more of these servers aren’t reachable, the script will exclude them and not configure Extended Protection on them.
+      The script performs multiple tests against all Exchange servers in scope. If one or more of these servers aren't reachable, the script will exclude them and not configure Extended Protection on them.
 
       ![Text Description automatically generated](attachments/3095edc994a8aa4bb79f90fe519a0e36.png)
       If the server is offline, you should enable Extended Protection on it once it is back online. If the server was unreachable for other reasons, you should run the script directly on the servers to enable Extended Protection.
@@ -288,7 +288,7 @@ The following command initiates a full rollback of **Extended Protection setting
 
 #### Rolling back IP Restriction settings
 
-You can use the script to **only** roll back **Allow and Deny rules** set in Backend EWS vDir’s IP Address and Domain Restriction module in the following way.
+You can use the script to **only** roll back **Allow and Deny rules** set in Backend EWS vDir's IP Address and Domain Restriction module in the following way.
 
 `.\ExchangeExtendedProtectionManagement.ps1 -RollbackType RestrictTypeEWSBackend`
 
@@ -317,7 +317,7 @@ If you want to enable Extended Protection in your environment manually without u
 
 #### Set Require SSL settings to either Required or Accept for an Exchange Virtual Directory
 
-1. Go to the Virtual Directory’s home page.
+1. Go to the Virtual Directory's home page.
    ![Graphical user interface, text, application, Word Description automatically generated](attachments/0d05a67039245dde885522e84ca74bc3.png)
 2. Go to _SSL Settings_.
 3. Check the _Require SSL_ checkbox to make sure that Require SSL is enabled for this Virtual Directory.

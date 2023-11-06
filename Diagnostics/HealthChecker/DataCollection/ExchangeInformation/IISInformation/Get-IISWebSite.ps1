@@ -10,10 +10,10 @@ function Get-IISWebSite {
     $webSites = New-Object 'System.Collections.Generic.List[object]'
 
     if ($null -eq $WebSitesToProcess) {
-        $webSites.AddRange((Get-WebSite))
+        $webSites.AddRange((Get-Website))
     } else {
         foreach ($iisWebSite in $WebSitesToProcess) {
-            $webSites.Add((Get-WebSite -Name $($iisWebSite)))
+            $webSites.Add((Get-Website -Name $($iisWebSite)))
         }
     }
 
