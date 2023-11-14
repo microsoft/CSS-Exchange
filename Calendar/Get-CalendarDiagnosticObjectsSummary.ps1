@@ -760,7 +760,7 @@ function BuildCSV {
     $ShortName = $ShortName.Substring(0, [System.Math]::Min(20, $ShortName.Length))
     $Filename = "$($ShortName)_$ShortMeetingID.csv";
     Write-Host -ForegroundColor Cyan -NoNewline "Calendar Logs for [$Identity] have been saved to :"
-    Write-Host -ForegroundColor Yellow "$Filename" 
+    Write-Host -ForegroundColor Yellow "$Filename"
     $GCDOResults | Export-Csv -Path $Filename -NoTypeInformation -Encoding UTF8
 
     $MeetingTimeLine = $Results | Where-Object { $Results.IsIgnorable -eq "False" } ;
