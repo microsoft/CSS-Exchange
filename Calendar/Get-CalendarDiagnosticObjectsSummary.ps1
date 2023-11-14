@@ -6,25 +6,26 @@
 # as well as the Calendar Diagnostic Objects in CSV format.
 #
 # .PARAMETER Identity
-# Address of EXO User Mailbox to query
+# One or more SMTP Address of EXO User Mailbox to query.
 #
 # .PARAMETER Subject
-# Subject of the meeting to query
+# Subject of the meeting to query, only valid if Identity is a single user.
 #
 # .PARAMETER MeetingID
-# The MeetingID of the meeting to query
+# The MeetingID of the meeting to query.
 #
 # .EXAMPLE
 # Get-CalendarDiagnosticObjectsSummary.ps1 -Identity someuser@microsoft.com -MeetingID 040000008200E00074C5B7101A82E008000000008063B5677577D9010000000000000000100000002FCDF04279AF6940A5BFB94F9B9F73CD
 #
 # Get-CalendarDiagnosticObjectsSummary.ps1 -Identity someuser@microsoft.com -Subject "Test OneTime Meeting Subject"
 #
+# Get-CalendarDiagnosticObjectsSummary.ps1 -Identity User1, User2, Delegate -MeetingID $MeetingID
 #
 
 [CmdletBinding(DefaultParameterSetName = 'Subject')]
 param (
     [Parameter(Mandatory, Position = 0)]
-    [string]$Identity,
+    [string[]]$Identity,
 
     [Parameter(Mandatory, ParameterSetName = 'Subject', Position = 1)]
     [string]$Subject,
@@ -138,28 +139,30 @@ $ResponseTypeOptions = @{
 Run Get-CalendarDiagnosticObjects for passed in User with Subject or MeetingID.
 #>
 function GetCalendarDiagnosticObjects {
-
+    param(
+        [string]$Identity,
+        [string]$Subject,
+        [string]$MeetingID
+    )
     # Use MeetingID if we have it.
     if ($Identity -and $MeetingID) {
         Write-Verbose "Getting CalLogs for [$Identity] with MeetingID [$MeetingID]."
-        $script:InitialCDOs = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults $LogLimit -ResultSize $LogLimit -ShouldBindToItem $true;
+        $CalLogs = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults $LogLimit -ResultSize $LogLimit -ShouldBindToItem $true;
     }
 
     # Otherwise do a search on the subject.
-    if ($Identity -and $Subject -and !$MeetingID) {
+    if ($Identity -and $Subject) {
         Write-Verbose "Getting CalLogs for [$Identity] with Subject [$Subject]."
-        $script:InitialCDOs = Get-CalendarDiagnosticObjects -Identity $Identity -Subject $Subject -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults $LogLimit -ResultSize $LogLimit -ShouldBindToItem $true;
+        $CalLogs = Get-CalendarDiagnosticObjects -Identity $Identity -Subject $Subject -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults $LogLimit -ResultSize $LogLimit -ShouldBindToItem $true;
 
         # No Results, do a Deep search with ExactMatch.
-        if ($script:InitialCDOs.count -lt 1) {
-            $script:InitialCDOs = Get-CalendarDiagnosticObjects -Identity $Identity -Subject $Subject -ExactMatch $true -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults $LogLimit -ResultSize $LogLimit -ShouldBindToItem $true;
+        if ($CalLogs.count -lt 1) {
+            $CalLogs = Get-CalendarDiagnosticObjects -Identity $Identity -Subject $Subject -ExactMatch $true -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults $LogLimit -ResultSize $LogLimit -ShouldBindToItem $true;
         }
     }
 
-    if ($Identity -and !$Subject -and !$MeetingID) {
-        Write-Warning "Can't run command with just Identity, either Subject or MeetingID must be provided.";
-        exit;
-    }
+    Write-Host "Found $($CalLogs.count) Calendar Logs for [$Identity]"
+    return $CalLogs;
 }
 
 function FindMatch {
@@ -191,12 +194,8 @@ function GetMailbox {
     try {
         Write-Verbose "Searching Get-Mailbox $(if ($Organization -ne `"`" ) {"with Org: $Organization"}) for $Identity."
 
-        # See if it is a Customer Tenant running the cmdlet. (They will not have access to Organization parameter)
-        $MSSupport = [Bool](Get-Help Get-Mailbox -Parameter Organization -ErrorAction SilentlyContinue)
-        Write-Verbose "MSSupport: $MSSupport"
-
         if ($Identity -and $Organization) {
-            if ($MSSupport) {
+            if ($script:MSSupport) {
                 Write-Verbose  "Using Organization parameter"
                 $GetMailboxOutput = Get-Mailbox -Identity $Identity -Organization $Organization  -ErrorAction SilentlyContinue;
             } else {
@@ -208,7 +207,7 @@ function GetMailbox {
         }
 
         if (!$GetMailboxOutput) {
-            Write-Host "Unable to find [$Identity] in Organization:[$Organization]"
+            Write-Host "Unable to find [$Identity]$(if ($Organization -ne `"`" ) {" in Organization:[$Organization]"})."
             return $null
         } else {
             Write-Verbose "Found [$($GetMailboxOutput.DisplayName)]"
@@ -459,7 +458,7 @@ function ConvertCNtoSMTP {
     $CNEntries += ($script:GCDO.ResponsibleUserName.ToUpper() | Select-Object -Unique)
     $CNEntries += ($script:GCDO.SenderEmailAddress.ToUpper() | Select-Object -Unique)
     $CNEntries = $CNEntries | Select-Object -Unique
-    Write-Verbose " Have $($CNEntries.count) CNEntries to look for..."
+    Write-Verbose "`t Have $($CNEntries.count) CNEntries to look for..."
     Write-Verbose "CNEntries: "; foreach ($CN in $CNEntries) { Write-Verbose $CN }
 
     $Org = $script:MB.OrganizationalUnit.split('/')[-1];
@@ -486,7 +485,7 @@ function ConvertCNtoSMTP {
 
 <#
 .SYNOPSIS
-Creates Friendly / short client names
+Creates friendly / short client names from the ClientInfoString
 #>
 function CreateShortClientName {
     param(
@@ -754,15 +753,23 @@ function BuildCSV {
 
     # Automation won't have access to this file - will add code in next version to save contents to a variable
     #$Filename = "$($Results[0].ReceivedBy)_$ShortMeetingID.csv";
-    $Filename = "$($Identity)_$ShortMeetingID.csv";
-    $GCDOResults | Export-Csv -Path $Filename -NoTypeInformation
-    Write-Host "Calendar Logs for $Identity have been saved to $Filename."
+
+    if ($Identity -like "*@*") {
+        $ShortName = $Identity.Split('@')[0]
+    }
+    $ShortName = $ShortName.Substring(0, [System.Math]::Min(20, $ShortName.Length))
+    $Filename = "$($ShortName)_$ShortMeetingID.csv";
+    Write-Host -ForegroundColor Cyan -NoNewline "Calendar Logs for [$Identity] have been saved to :"
+    Write-Host -ForegroundColor Yellow "$Filename" 
     $GCDOResults | Export-Csv -Path $Filename -NoTypeInformation -Encoding UTF8
 
-    $MeetingTimeLine = $Results | Where-Object { $_.IsIgnorable -eq "False" } ;
+    $MeetingTimeLine = $Results | Where-Object { $Results.IsIgnorable -eq "False" } ;
     Write-Host "`n`n`nThis is the meetingID $ThisMeetingID`nThis is Short MeetingID $ShortMeetingID"
-    Write-Host "Found $($script:GCDO.count) Log entries, Only $($MeetingTimeLine.count) entries will be analyzed.";
-    return;
+    if ($MeetingTimeLine.count -eq 0) {
+        Write-Host "All CalLogs are Ignorable, nothing to create a timeline with, displaying initial values."
+    } else {
+        Write-Host "Found $($script:GCDO.count) Log entries, only the $($MeetingTimeLine.count) Non-Ignorable entries will be analyzed in the TimeLine.";
+    }
 }
 
 # ===================================================================================================
@@ -853,8 +860,12 @@ function MeetingSummary {
     I use a iterative approach to building this, so it will get better over time.
 #>
 function BuildTimeline {
-    [Array]$Header = ("Subject: " + ($script:GCDO[0].NormalizedSubject) + " | Display Name: " + ($script:GCDO[0].SentRepresentingDisplayName) + " | MeetingID: "+ ($script:GCDO[0].CleanGlobalObjectId));
-    MeetingSummary -Time "Calendar Logs for Meeting with" -MeetingChanges $Header;
+    Write-DashLineBoxColor "  TimeLine for [$ID]:",
+    "  Subject: $($script:GCDO[0].NormalizedSubject)",
+    "  Organizer: $($script:GCDO[0].SentRepresentingDisplayName)",
+    "  MeetingID: $($script:GCDO[0].CleanGlobalObjectId)"
+    [Array]$Header = ("Subject: " + ($script:GCDO[0].NormalizedSubject) + " | MeetingID: "+ ($script:GCDO[0].CleanGlobalObjectId));
+    MeetingSummary -Time "Calendar Log Timeline for Meeting with" -MeetingChanges $Header;
     MeetingSummary -Time "Initial Message Values" -Entry $script:GCDO[0] -LongVersion;
     $MeetingTimeLine = $Results | Where-Object { $_.IsIgnorable -eq "False" };
 
@@ -1062,12 +1073,11 @@ function BuildTimeline {
                         }
                     }
 
+                    $Extra = ""
                     if ($CalLog.IsException) {
                         $Extra = " to the meeting starting $($CalLog.StartTime)"
-                        Write-Host -ForegroundColor Cyan "Extra: $Extra"
                     } elseif ($CalLog.AppointmentRecurring) {
                         $Extra = " to the meeting series"
-                        Write-Host -ForegroundColor Cyan "Extra: $Extra"
                     }
 
                     if ($CalLog.IsOrganizer) {
@@ -1234,67 +1244,155 @@ function BuildTimeline {
 
     $Results = @();
 }
+function Write-DashLineBoxColor {
+    [CmdletBinding()]
+    param(
+        [string[]]$Line,
+        [string] $Color = "White",
+        [char] $DashChar = "-"
+    )
+    <#
+        This is to simply create a quick and easy display around a line
+        -------------------------------------
+        Line                           Length
+        Line                           Length
+        -------------------------------------
+        # Empty Line
+    #>
+    $highLineLength = 0
+    $Line | ForEach-Object { if ($_.Length -gt $highLineLength) { $highLineLength = $_.Length } }
+    $dashLine = [string]::Empty
+    1..$highLineLength | ForEach-Object { $dashLine += $DashChar }
+    Write-Host
+    Write-Host -ForegroundColor $Color $dashLine
+    $Line | ForEach-Object { Write-Host -ForegroundColor $Color $_ }
+    Write-Host -ForegroundColor $Color $dashLine
+    Write-Host
+}
+
+function CheckIdentities {
+    if (Get-Command -Name Get-Mailbox -ErrorAction SilentlyContinue) {
+        Write-Host "Validated connection to Exchange Online."
+    } else {
+        Write-Error "Get-Mailbox cmdlet not found.  Please validate that you are running this script from an Exchange Management Shell and try again."
+        Write-Host "Look at Import-Module ExchangeOnlineManagement and Connect-ExchangeOnline."
+        exit;
+    }
+
+    # See if it is a Customer Tenant running the cmdlet. (They will not have access to Organization parameter)
+    $script:MSSupport = [Bool](Get-Help Get-Mailbox -Parameter Organization -ErrorAction SilentlyContinue)
+    Write-Verbose "MSSupport: $script:MSSupport"
+
+    Write-Host "Checking for at least one valid mailbox..."
+    $IdentityList = @();
+
+    Write-Host "Preparing to check $($Identity.count) Mailbox(es)..."
+
+    foreach ($Id in $Identity) {
+        $Account = GetMailbox -Identity $Id
+        if ($null -eq $Account) {
+            # -or $script:MB.GetType().FullName -ne "Microsoft.Exchange.Data.Directory.Management.Mailbox") {
+            Write-DashLineBoxColor "`n Error: Mailbox [$Id] not found on Exchange Online.  Please validate the mailbox name and try again.`n" -Color Red
+            continue
+        }
+        if (CheckForNoPIIAccess $Account.DisplayName) {
+            Write-Host -ForegroundColor DarkRed "No PII access for Mailbox [$Id]. Falling back to SMTP Address."
+            $IdentityList += $ID;
+            if ($null -eq $script:MB) {
+                $script:MB = $Account
+            }
+        } else {
+            Write-Host "Mailbox [$Id] found as : $($Account.DisplayName)"
+            $IdentityList += $Account.PrimarySmtpAddress.ToString();
+            if ($null -eq $script:MB) {
+                $script:MB = $Account
+            }
+        }
+    }
+
+    Write-Verbose "IdentityList: $IdentityList"
+
+    if ($IdentityList.count -eq 0) {
+        Write-DashLineBoxColor "`n No valid mailboxes found.  Please validate the mailbox name and try again. `n" Red
+        exit;
+    }
+
+    return $IdentityList;
+}
+
+function GetCalLogsWithSubject {
+    param (
+        [string] $Identity,
+        [string] $Subject
+    )
+    Write-Host "Getting CalLogs based for [$Identity] with subject [$Subject]]"
+
+    $InitialCDOs = GetCalendarDiagnosticObjects -Identity $Identity -Subject $Subject;
+    $GlobalObjectIds = @();
+
+    # Find all the unique Global Object IDs
+    foreach ($ObjectId in $InitialCDOs.CleanGlobalObjectId) {
+        if (![string]::IsNullOrEmpty($ObjectId) -and
+            $ObjectId -ne "NotFound" -and
+            $ObjectId -ne "InvalidSchemaPropertyName" -and
+            $ObjectId.Length -ge 90) {
+            $GlobalObjectIds += $ObjectId;
+        }
+    }
+
+    $GlobalObjectIds = $GlobalObjectIds | Select-Object -Unique;
+    Write-Host "Found $($GlobalObjectIds.count) unique GlobalObjectIds."
+    Write-Host "Getting the set of CalLogs for each GlobalObjectID."
+
+    if ($GlobalObjectIds.count -eq 1) {
+        $script:GCDO = $InitialCDOs; # use the CalLogs that we already have, since there is only one.
+        BuildCSV;
+        BuildTimeline;
+    }
+    # Get the CalLogs for each MeetingID found.
+    if ($GlobalObjectIds.count -gt 1) {
+        Write-Host "Found multiple GlobalObjectIds: $($GlobalObjectIds.Count)."
+        foreach ($MID in $GlobalObjectIds) {
+            Write-DashLineBoxColor  "Processing MeetingID: [$MID]"
+            $script:GCDO = GetCalendarDiagnosticObjects -Identity $Identity -MeetingID $MID;
+            Write-Verbose "Found $($GCDO.count) CalLogs with MeetingID[$MID] ."
+            BuildCSV;
+            BuildTimeline;
+        }
+    } else {
+        Write-Warning "No CalLogs were found.";
+    }
+}
 
 # ===================================================================================================
 # Main
 # ===================================================================================================
 
-if (Get-Command -Name Get-Mailbox -ErrorAction SilentlyContinue) {
-    Write-Host "Validated Get-Mailbox"
-} else {
-    Write-Error "Get-Mailbox not found.  Please validate that you are running this script from an Exchange Management Shell and try again."
-    Write-Host "Look at Import-Module ExchangeOnlineManagement and Connect-ExchangeOnline."
-    exit;
-}
+$ValidatedIdentities = CheckIdentities -Identity $Identity
 
-Write-Host "Checking for a valid mailbox..."
-$script:MB = GetMailbox -Identity $Identity
-if ($null -eq $script:MB) {
-    # -or $script:MB.GetType().FullName -ne "Microsoft.Exchange.Data.Directory.Management.Mailbox") {
-    Write-Host "`n`n`n============================================================================"
-    Write-Error "Mailbox [$Identity] not found on Exchange Online.  Please validate the mailbox name and try again."
-    Write-Host "======================================================================================="
-    #exit;
-}
+if ($Subject -ne "") {
+    GetCalLogsWithSubject -Identity $ValidatedIdentities -Subject $Subject
+} elseif ($MeetingID -ne "") {
 
-# Get initial CalLogs (saved in $script:InitialCDOs)
-Write-Host "Getting initial Calendar Logs..."
-GetCalendarDiagnosticObjects;
+    foreach ($ID in $ValidatedIdentities) {
+        #$script:GCDO = $script:InitialCDOs; # use the CalLogs that we already have, since there is only one.
+        #    $script:InitialCDOs = @(); # clear the Initial CDOs.
+        Write-DashLineBoxColor "Looking for CalLogs from [$ID] with passed in MeetingID."
+        Write-Verbose "Running: Get-CalendarDiagnosticObjects -Identity [$ID] -MeetingID [$MeetingID] -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults $LogLimit -ResultSize $LogLimit -ShouldBindToItem $true;"
+        $script:GCDO = GetCalendarDiagnosticObjects -Identity $ID -MeetingID $MeetingID;
 
-$GlobalObjectIds = @();
-
-# Find all the unique Global Object IDs
-foreach ($ObjectId in $script:InitialCDOs.CleanGlobalObjectId) {
-    if (![string]::IsNullOrEmpty($ObjectId) -and
-        $ObjectId -ne "NotFound" -and
-        $ObjectId -ne "InvalidSchemaPropertyName" -and
-        $ObjectId.Length -ge 90) {
-        $GlobalObjectIds += $ObjectId;
+        if ($script:GCDO.count -gt 0) {
+            Write-Host "Found $($script:GCDO.count) CalLogs with MeetingID [$MeetingID]."
+            BuildCSV;
+            BuildTimeline;
+        } else {
+            Write-Warning "No CalLogs were found for [$ID] with MeetingID [$MeetingID]."
+        }
     }
-}
-
-$GlobalObjectIds = $GlobalObjectIds | Select-Object -Unique;
-
-# Get the CalLogs for each MeetingID found.
-if ($GlobalObjectIds.count -gt 1) {
-    Write-Host "Found multiple GlobalObjectIds: $($GlobalObjectIds.Count)."
-    $GlobalObjectIds | ForEach-Object {
-        Write-Verbose "Processing MeetingID: $_"
-        $script:GCDO = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $_ -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults $LogLimit -ResultSize $LogLimit -ShouldBindToItem $true;
-        BuildCSV;
-        BuildTimeline;
-    }
-} elseif ($GlobalObjectIds.count -eq 1) {
-    $script:GCDO = $script:InitialCDOs; # use the CalLogs that we already have, since there is only one.
-    $script:InitialCDOs = @(); # clear the Initial CDOs.
-    BuildCSV;
-    BuildTimeline;
 } else {
-    Write-Warning "A valid meeting ID was not found, manually confirm the meetingID";
+    Write-Warning "A valid MeetingID was not found, manually confirm the MeetingID";
 }
 
-Write-Host -ForegroundColor Yellow "`n`n`n============================================================================"
-Write-Host -ForegroundColor Yellow "Hope this script was helpful in getting (and understanding) the Calendar Logs."
-Write-Host -ForegroundColor Yellow "If you have issues or suggestion for this script,"
-Write-Host -ForegroundColor Yellow "`t please send them to <callogformatterdevs@microsoft.com>"
-Write-Host -ForegroundColor Yellow "============================================================================`n`n`n"
+Write-DashLineBoxColor  "Hope this script was helpful in getting and understanding the Calendar Logs.",
+"If you have issues or suggestion for this script, please send them to: ",
+"`t <Shanefe@Microsoft.com" -Color Yellow -DashChar =
