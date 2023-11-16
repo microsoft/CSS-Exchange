@@ -208,7 +208,15 @@ function GetMailbox {
 
         if (!$GetMailboxOutput) {
             Write-Host "Unable to find [$Identity]$(if ($Organization -ne `"`" ) {" in Organization:[$Organization]"})."
-            return $null
+            
+            write-host "Trying to find a Group Mailbox for [$Identity]..."
+            $GetMailboxOutput = Get-Mailbox -Identity $Identity -ErrorAction SilentlyContinue -GroupMailbox;
+            if (!$GetMailboxOutput){
+                Write-Host "Unable to find a Group Mailbox for [$Identity] either."
+                return $null
+            } else {
+                Write-Verbose "Found GroupMailbox [$($GetMailboxOutput.DisplayName)]"
+            }   
         } else {
             Write-Verbose "Found [$($GetMailboxOutput.DisplayName)]"
         }
