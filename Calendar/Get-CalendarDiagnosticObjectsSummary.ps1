@@ -643,6 +643,10 @@ function MapSharedFolder {
 Builds the CSV output from the Calendar Diagnostic Objects
 #>
 function BuildCSV {
+    param(
+        $Identity
+    )
+
     Write-Host "Starting to Process Calendar Logs..."
     $GCDOResults = @();
     $IsFromSharedCalendar = @();
@@ -1346,7 +1350,7 @@ function GetCalLogsWithSubject {
 
     if ($GlobalObjectIds.count -eq 1) {
         $script:GCDO = $InitialCDOs; # use the CalLogs that we already have, since there is only one.
-        BuildCSV;
+        BuildCSV  -Identity $Identity;
         BuildTimeline;
     }
     # Get the CalLogs for each MeetingID found.
@@ -1356,7 +1360,7 @@ function GetCalLogsWithSubject {
             Write-DashLineBoxColor  "Processing MeetingID: [$MID]"
             $script:GCDO = GetCalendarDiagnosticObjects -Identity $Identity -MeetingID $MID;
             Write-Verbose "Found $($GCDO.count) CalLogs with MeetingID[$MID] ."
-            BuildCSV;
+            BuildCSV -Identity $Identity;
             BuildTimeline;
         }
     } else {
@@ -1383,7 +1387,7 @@ if ($Subject -ne "") {
 
         if ($script:GCDO.count -gt 0) {
             Write-Host "Found $($script:GCDO.count) CalLogs with MeetingID [$MeetingID]."
-            BuildCSV;
+            BuildCSV -Identity $ID;
             BuildTimeline;
         } else {
             Write-Warning "No CalLogs were found for [$ID] with MeetingID [$MeetingID]."
