@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.8">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.9">
     
     
       
@@ -26,7 +26,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.4b4a2bd9.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.78cf6014.min.css">
       
       
   
@@ -761,15 +761,61 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Usage
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#trace-while-using-a-third-party-backup-solution" class="md-nav__link">
+    <span class="md-ellipsis">
+      Trace while using a third-party backup solution
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trace-a-snapshot-using-the-diskshadow-tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      Trace a snapshot using the DiskShadow tool
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trace-in-circular-mode-until-the-microsoft-exchange-writer-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      Trace in circular mode until the Microsoft Exchange Writer fails
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#more-information" class="md-nav__link">
-    More information
+    <span class="md-ellipsis">
+      More information
+    </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#com-security" class="md-nav__link">
-    COM+ Security
+    <span class="md-ellipsis">
+      COM+ Security
+    </span>
   </a>
   
 </li>
@@ -3015,15 +3061,61 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Usage
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#trace-while-using-a-third-party-backup-solution" class="md-nav__link">
+    <span class="md-ellipsis">
+      Trace while using a third-party backup solution
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trace-a-snapshot-using-the-diskshadow-tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      Trace a snapshot using the DiskShadow tool
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trace-in-circular-mode-until-the-microsoft-exchange-writer-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      Trace in circular mode until the Microsoft Exchange Writer fails
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#more-information" class="md-nav__link">
-    More information
+    <span class="md-ellipsis">
+      More information
+    </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#com-security" class="md-nav__link">
-    COM+ Security
+    <span class="md-ellipsis">
+      COM+ Security
+    </span>
   </a>
   
 </li>
@@ -3053,13 +3145,28 @@
 
 <h1 id="vsstester">VSSTester</h1>
 <p>Download the latest release: <a href="https://github.com/microsoft/CSS-Exchange/releases/latest/download/VSSTester.ps1">VSSTester.ps1</a></p>
-<p>The script is self-explanatory. You can test run DiskShadow on a single Exchange database to ensure backups are working properly (i.e. all the Microsoft components). If the issue only happens with a 3rd-party backup solution, you can utilize operation mode 2 to enable just the logging while you execute a backup with the 3rd-party solution.</p>
-<p><img alt="Start Screen" src="../start_screen.PNG" /></p>
+<h2 id="usage">Usage</h2>
+<h3 id="trace-while-using-a-third-party-backup-solution">Trace while using a third-party backup solution</h3>
+<p><code>.\VSSTester -TraceOnly -DatabaseName "Mailbox Database 1637196748"</code></p>
+<p>Enables tracing of the specified database. The user may then attempt a backup of that database
+and use Ctrl-C to stop data collection after the backup attempt completes.</p>
+<h3 id="trace-a-snapshot-using-the-diskshadow-tool">Trace a snapshot using the DiskShadow tool</h3>
+<p><code>.\VSSTester -DiskShadow -DatabaseName "Mailbox Database 1637196748" -DatabaseDriveLetter M -LogDriveLetter N</code></p>
+<p>Enables tracing and then uses DiskShadow to snapshot the specified database. If the database and logs
+are on the same drive, the snapshot is exposed as M: drive. If they are on separate drives, the snapshots are
+exposed as M: and N:. The user is prompted to stop data collection and should typically wait until
+log truncation has occurred before doing so, so that the truncation is traced.</p>
+<h3 id="trace-in-circular-mode-until-the-microsoft-exchange-writer-fails">Trace in circular mode until the Microsoft Exchange Writer fails</h3>
+<p><code>.\VSSTester -WaitForWriterFailure -DatabaseName "Mailbox Database 1637196748"</code></p>
+<p>Enables circular tracing of the specified database, and then polls "vssadmin list writers" once
+per minute. When the writer is no longer present, indicating a failure, tracing is stopped
+automatically.</p>
 <h2 id="more-information">More information</h2>
 <ul>
 <li>https://techcommunity.microsoft.com/t5/exchange-team-blog/troubleshoot-your-exchange-2010-database-backup-functionality/ba-p/594367</li>
 <li>https://techcommunity.microsoft.com/t5/exchange-team-blog/vsstester-script-updated-8211-troubleshoot-exchange-2013-and/ba-p/610976</li>
 </ul>
+<p>Note that script syntax and output has changed. Syntax and screenshots in the above articles are out of date.</p>
 <h2 id="com-security">COM+ Security</h2>
 <p>Here are the steps to verify that the local Administrators group is allowed to the COM+ Security on the computer. The script will detect if this is a possibility if we can not see the Exchange Writers and we have the registry settings set that determine this is a possibility.</p>
 <ol>
@@ -3096,7 +3203,7 @@
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">January 13, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">November 14, 2023</span>
       
     
   </small>
@@ -3142,7 +3249,7 @@
     <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.indexes", "content.action.edit"], "search": "../../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.81fa17fe.min.js"></script>
+      <script src="../../assets/javascripts/bundle.6c14ae12.min.js"></script>
       
     
   </body>
