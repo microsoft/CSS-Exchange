@@ -8,7 +8,7 @@ The Serialized Data Signing feature was introduced with the January 2023 Exchang
 
 The HealthChecker check validates that the feature is enabled on supported Exchange builds.
 
-!!! success "Fixed"
+!!! success "Documentation Moved"
 
       This documentation has been moved to Microsoft Learn. Please read [Configure certificate signing of PowerShell serialization payloads in Exchange Server](https://learn.microsoft.com/exchange/plan-and-deploy/post-installation-tasks/security-best-practices/exchange-serialization-payload-sign) for more information.
 
