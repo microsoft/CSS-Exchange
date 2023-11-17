@@ -1,25 +1,76 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#################################################################################
-# Purpose:
-# This script will allow you to test VSS functionality on Exchange server using DiskShadow.
-# The script will automatically detect active and passive database copies running on the server.
-# The general logic is:
-# - start a PowerShell transcript
-# - enable ExTRA tracing
-# - enable VSS tracing
-# - optionally: create the DiskShadow config file with shadow expose enabled,
-#               execute VSS backup using DiskShadow,
-#               delete the VSS snapshot post-backup
-# - stop PowerShell transcript
-#
-#################################################################################
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingEmptyCatchBlock', '', Justification = 'Allowing empty catch blocks for now as we need to be able to handle the exceptions.')]
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('CustomRules\AvoidUsingReadHost', '', Justification = 'Do not want to change logic of script as of now')]
+<#
+.SYNOPSIS
+    Test and/or trace VSS functionality on Exchange Server.
+.DESCRIPTION
+    Test and/or trace VSS functionality on Exchange Server.
+.LINK
+    https://microsoft.github.io/CSS-Exchange/Databases/VSSTester/
+.EXAMPLE
+    .\VSSTester -TraceOnly -DatabaseName "Mailbox Database 1637196748"
+    Enables tracing of the specified database. The user may then attempt a backup of that database
+    and use Ctrl-C to stop data collection after the backup attempt completes.
+.EXAMPLE
+    .\VSSTester -DiskShadow -DatabaseName "Mailbox Database 1637196748" -DatabaseDriveLetter M -LogDriveLetter N
+    Enables tracing and then uses DiskShadow to snapshot the specified database. If the database and logs
+    are on the same drive, the snapshot is exposed as M: drive. If they are on separate drives, the snapshots are
+    exposed as M: and N:. The user is prompted to stop data collection and should typically wait until
+    log truncation has occurred before doing so, so that the truncation is traced.
+.EXAMPLE
+    .\VSSTester -WaitForWriterFailure -DatabaseName "Mailbox Database 1637196748"
+    Enables circular tracing of the specified database, and then polls "vssadmin list writers" once
+    per minute. When the writer is no longer present, indicating a failure, tracing is stopped
+    automatically.
+#>
 [CmdletBinding()]
 param(
+    # Enable tracing and wait for the user to run a third-party backup solution.
+    [Parameter(Mandatory = $true, ParameterSetName = "TraceOnly")]
+    [switch]
+    $TraceOnly,
+
+    # Enable tracing and perform a database snapshot with DiskShadow.
+    [Parameter(Mandatory = $true, ParameterSetName = "DiskShadow")]
+    [switch]
+    $DiskShadow,
+
+    # Enable tracing and automatically stop when the Microsoft Exchange Writer fails.
+    [Parameter(Mandatory = $true, ParameterSetName = "WaitForWriterFailure")]
+    [switch]
+    $WaitForWriterFailure,
+
+    # Name of the database to focus tracing on.
+    [Parameter(Mandatory = $true, ParameterSetName = "TraceOnly")]
+    [Parameter(Mandatory = $true, ParameterSetName = "DiskShadow")]
+    [Parameter(Mandatory = $true, ParameterSetName = "WaitForWriterFailure")]
+    [string]
+    $DatabaseName,
+
+    # Drive letter on which to expose the database snapshot.
+    [Parameter(Mandatory = $true, ParameterSetName = "DiskShadow")]
+    [ValidateLength(1, 1)]
+    [string]
+    $DatabaseDriveLetter,
+
+    # Drive letter on which to expose the log snapshot. Only used when the log volume
+    # is different than the database volume.
+    [Parameter(Mandatory = $true, ParameterSetName = "DiskShadow")]
+    [ValidateLength(1, 1)]
+    [string]
+    $LogDriveLetter,
+
+    # Path in which to put the collected traces. A subfolder named with the time of
+    # the data collection is created in this path, and all files are put in that subfolder.
+    # Defaults to the folder the script is in.
+    [Parameter(Mandatory = $false, ParameterSetName = "TraceOnly")]
+    [Parameter(Mandatory = $false, ParameterSetName = "DiskShadow")]
+    [Parameter(Mandatory = $false, ParameterSetName = "WaitForWriterFailure")]
+    [string]
+    $LoggingPath = $PSScriptRoot
 )
+
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Get-ScriptUpdateAvailable.ps1
 . $PSScriptRoot\..\..\Shared\Confirm-ExchangeShell.ps1
 . .\DiskShadow\Invoke-CreateDiskShadowFile.ps1
@@ -27,7 +78,6 @@ param(
 . .\DiskShadow\Invoke-RemoveExposedDrives.ps1
 . .\ExchangeInformation\Get-CopyStatus.ps1
 . .\ExchangeInformation\Get-Databases.ps1
-. .\ExchangeInformation\Get-DbToBackup.ps1
 . .\ExchangeInformation\Get-ExchangeVersion.ps1
 . .\Logging\Get-WindowsEventLogs.ps1
 . .\Logging\Get-VSSWritersAfter.ps1
@@ -40,167 +90,127 @@ param(
 . .\Logging\Invoke-EnableExtraTracing.ps1
 . .\Logging\Invoke-EnableVSSTracing.ps1
 
-function Main {
-    $updateInfo = Get-ScriptUpdateAvailable
-    if ($updateInfo.UpdateFound) {
-        Write-Warning "An update is available for this script. Current: $($updateInfo.CurrentVersion) Latest: $($updateInfo.LatestVersion)"
-        Write-Warning "Please download the latest: https://microsoft.github.io/CSS-Exchange/Databases/VSSTester/"
-    }
-
-    # if a transcript is running, we need to stop it as this script will start its own
-    try {
-        Stop-Transcript | Out-Null
-    } catch [System.InvalidOperationException] { }
-
-    Write-Host "****************************************************************************************"
-    Write-Host "****************************************************************************************"
-    Write-Host "**                                                                                    **" -BackgroundColor DarkMagenta
-    Write-Host "**                 VSSTESTER SCRIPT (for Exchange 2013, 2016, 2019)                   **" -ForegroundColor Cyan -BackgroundColor DarkMagenta
-    Write-Host "**                                                                                    **" -BackgroundColor DarkMagenta
-    Write-Host "****************************************************************************************"
-    Write-Host "****************************************************************************************"
-
-    $Script:LocalExchangeShell = Confirm-ExchangeShell
-
-    if (!$Script:LocalExchangeShell.ShellLoaded) {
-        Write-Host "Failed to load Exchange Shell. Stopping the script."
-        exit
-    }
-
-    if ($Script:LocalExchangeShell.RemoteShell -or
-        $Script:LocalExchangeShell.ToolsOnly) {
-        Write-Host "Can't run this script from a non Exchange Server."
-        exit
-    }
-
-    #newLine shortcut
-    $script:nl = "`r`n"
-    $nl
-
-    $script:serverName = $env:COMPUTERNAME
-
-    #start time
-    $Script:startInfo = Get-Date
-    Get-Date
-
-    if ($DebugPreference -ne 'SilentlyContinue') {
-        $nl
-        Write-Host 'This script is running in DEBUG mode since $DebugPreference is not set to SilentlyContinue.' -ForegroundColor Red
-    }
-
-    $nl
-    Write-Host "Please select the operation you would like to perform from the following options:" -ForegroundColor Green
-    $nl
-    Write-Host "  1. " -ForegroundColor Yellow -NoNewline; Write-Host "Test backup using built-in DiskShadow"
-    Write-Host "  2. " -ForegroundColor Yellow -NoNewline; Write-Host "Enable logging to troubleshoot backup issues"
-    $nl
-
-    $matchCondition = "^[1|2]$"
-    Write-Debug "matchCondition: $matchCondition"
-    do {
-        Write-Host "Selection: " -ForegroundColor Yellow -NoNewline;
-        $Selection = Read-Host
-        if ($Selection -notmatch $matchCondition) {
-            Write-Host "Error! Please select a valid option!" -ForegroundColor Red
-        }
-    }
-    while ($Selection -notmatch $matchCondition)
-
-    try {
-
-        $nl
-        Write-Host "Please specify a directory other than root of a volume to save the configuration and output files." -ForegroundColor Green
-
-        $pathExists = $false
-
-        # get path, ensuring it exists
-        do {
-            Write-Host "Directory path (e.g. C:\temp): " -ForegroundColor Yellow -NoNewline
-            $script:path = Read-Host
-            Write-Debug "path: $path"
-            try {
-                $pathExists = Test-Path -Path "$path"
-            } catch { }
-            Write-Debug "pathExists: $pathExists"
-            if ($pathExists -ne $true) {
-                Write-Host "Error! The path does not exist. Please enter a valid path." -ForegroundColor red
-            }
-        } while ($pathExists -ne $true)
-
-        $nl
-        Get-Date
-        Write-Host "Starting transcript..." -ForegroundColor Green $nl
-        Write-Host "--------------------------------------------------------------------------------------------------------------"
-
-        Start-Transcript -Path "$($script:path)\vssTranscript.log"
-        $nl
-
-        if ($Selection -eq 1) {
-            Get-ExchangeVersion
-            Get-VSSWritersBefore
-            Get-Databases
-            Get-DBtoBackup
-            Get-CopyStatus
-            Invoke-CreateDiskShadowFile #---
-            Invoke-EnableDiagnosticsLogging
-            Invoke-EnableVSSTracing
-            Invoke-CreateExTRATracingConfig
-            Invoke-EnableExTRATracing
-            Invoke-DiskShadow #---
-            Get-VSSWritersAfter
-            Invoke-RemoveExposedDrives #---
-            Invoke-DisableExTRATracing
-            Invoke-DisableDiagnosticsLogging
-            Invoke-DisableVSSTracing
-            Get-WindowsEventLogs
-        } elseif ($Selection -eq 2) {
-            Get-ExchangeVersion
-            Get-VSSWritersBefore
-            Get-Databases
-            Get-DBtoBackup
-            Get-CopyStatus
-            Invoke-EnableDiagnosticsLogging
-            Invoke-EnableVSSTracing
-            Invoke-CreateExTRATracingConfig
-            Invoke-EnableExTRATracing
-
-            #Here is where we wait for the end user to perform the backup using the backup software and then come back to the script to press "Enter", thereby stopping data collection
-            Get-Date
-            Write-Host "Data Collection" -ForegroundColor green $nl
-            Write-Host "--------------------------------------------------------------------------------------------------------------"
-            " "
-            Write-Host "Data collection is now enabled." -ForegroundColor Yellow
-            Write-Host "Please start your backup using the third party software so the script can record the diagnostic data." -ForegroundColor Yellow
-            Write-Host "When the backup is COMPLETE, use the <Enter> key to terminate data collection..." -ForegroundColor Yellow -NoNewline
-            Read-Host
-
-            Invoke-DisableExTRATracing
-            Invoke-DisableDiagnosticsLogging
-            Invoke-DisableVSSTracing
-            Get-VSSWritersAfter
-            Get-WindowsEventLogs
-        }
-    } finally {
-        # always stop our transcript at end of script's execution
-        # we catch a failure here if we try to stop a transcript that's not running
-        try {
-            " " + $nl
-            Get-Date
-            Write-Host "Stopping transcript log..." -ForegroundColor Green $nl
-            Write-Host "--------------------------------------------------------------------------------------------------------------"
-            " "
-            Stop-Transcript
-            " " + $nl
-            do {
-                Write-Host
-                $continue = Read-Host "Please use the <Enter> key to exit..."
-            }
-            while ($null -notmatch $continue)
-            exit
-        } catch { }
-    }
+$updateInfo = Get-ScriptUpdateAvailable
+if ($updateInfo.UpdateFound) {
+    Write-Warning "An update is available for this script. Current: $($updateInfo.CurrentVersion) Latest: $($updateInfo.LatestVersion)"
+    Write-Warning "Please download the latest: https://microsoft.github.io/CSS-Exchange/Databases/VSSTester/"
 }
 
+$Script:LocalExchangeShell = Confirm-ExchangeShell
+
+if (!$Script:LocalExchangeShell.ShellLoaded) {
+    Write-Host "Failed to load Exchange Shell. Stopping the script."
+    exit
+}
+
+if ($Script:LocalExchangeShell.RemoteShell -or
+    $Script:LocalExchangeShell.ToolsOnly) {
+    Write-Host "Can't run this script from a non Exchange Server."
+    exit
+}
+
+$startTime = Get-Date
+$startTimeFolderName = $startTime.ToString("yyMMdd-HHmmss")
+$LoggingPath = Join-Path $LoggingPath $startTimeFolderName
+$serverName = $env:COMPUTERNAME
+
 try {
-    Main
-} catch { } finally { }
+    New-Item -ItemType Directory -Force -Path $LoggingPath | Out-Null
+    if (-not (Test-Path $LoggingPath)) {
+        Write-Host "The specified LoggingPath path does not exist. Please enter a valid path."
+        exit
+    }
+
+    try {
+        Start-Transcript -Path "$LoggingPath\vssTranscript.log"
+    } catch {
+        Write-Warning "Failed to start transcript. Stopping the script."
+        exit
+    }
+
+    Get-ExchangeVersion -ServerName $serverName
+    Get-VSSWritersBefore -OutputPath $LoggingPath
+    $databases = Get-Databases -ServerName $serverName
+    $dbForBackup = $databases | Where-Object { $_.Name -eq $DatabaseName }
+    if ($null -eq $dbForBackup) {
+        Write-Warning "The specified database $DatabaseName does not exist on this server. Please enter a valid database name."
+        exit
+    }
+
+    Get-CopyStatus -ServerName $serverName -Database $dbForBackup -OutputPath $LoggingPath
+
+    if ($DiskShadow) {
+        $p = @{
+            OutputPath          = $LoggingPath
+            ServerName          = $serverName
+            Databases           = $databases
+            DatabaseToBackup    = $dbForBackup
+            DatabaseDriveLetter = $DatabaseDriveLetter
+            LogDriveLetter      = $LogDriveLetter
+        }
+        Write-Host "$p"
+        $exposedDrives = Invoke-CreateDiskShadowFile @p
+    }
+
+    Invoke-EnableDiagnosticsLogging
+    Invoke-EnableVSSTracing -OutputPath $LoggingPath -Circular $WaitForWriterFailure
+    Invoke-CreateExTRATracingConfig
+    Invoke-EnableExTRATracing -ServerName $serverName -Database $dbForBackup -OutputPath $LoggingPath -Circular $WaitForWriterFailure
+
+    $collectEventLogs = $false
+
+    try {
+        if ($DiskShadow) {
+            # Always collect event logs for this scenario
+            $collectEventLogs = $true
+
+            Invoke-DiskShadow -OutputPath $LoggingPath -DatabaseToBackup $dbForBackup
+            Invoke-RemoveExposedDrives -OutputPath $LoggingPath -ExposedDrives $exposedDrives
+        } elseif ($TraceOnly) {
+            # Always collect event logs for this scenario
+            $collectEventLogs = $true
+
+            Write-Host "$(Get-Date) Data Collection"
+            Write-Host
+            Write-Host "Data collection is now enabled."
+            Write-Host "Please start your backup using the third party software so the script can record the diagnostic data."
+            Write-Host "When the backup is COMPLETE, use Ctrl-C to terminate data collection."
+            while ($true) {
+                Start-Sleep 1
+            }
+        } elseif ($WaitForWriterFailure) {
+            Write-Host "Waiting for Microsoft Exchange Writer failure. Use Ctrl-C to abort."
+            while ($true) {
+                if (vssadmin list writers | Select-String "Microsoft Exchange Writer") {
+                    Write-Host "$(Get-Date) Microsoft Exchange Writer is present."
+                } else {
+                    Write-Host "$(Get-Date) Microsoft Exchange Writer is missing. Stopping data collection."
+                    break
+                }
+
+                Start-Sleep 60
+            }
+
+            # Only collect event logs if we exited the loop gracefully
+            $collectEventLogs = $true
+        }
+    } finally {
+        Write-Host "$(Get-Date) Stopping traces..."
+        Invoke-DisableExTRATracing -ServerName $serverName -Database $dbForBackup -OutputPath $LoggingPath
+        Invoke-DisableDiagnosticsLogging
+        Invoke-DisableVSSTracing
+        Write-Host "$(Get-Date) Tracing stopped."
+
+        if ($collectEventLogs) {
+            Get-VSSWritersAfter -OutputPath $LoggingPath
+            Get-WindowsEventLogs -StartTime $startTime -ComputerName $ServerName -OutputPath $LoggingPath
+        } else {
+            Write-Host "Skipping event log collection, because WaitForWriterFailure was stopped before a writer failure was detected."
+        }
+    }
+} finally {
+    # always stop our transcript at end of script's execution
+    Write-Host "$(Get-Date) Stopping transcript log..."
+    Stop-Transcript -ErrorAction SilentlyContinue
+    Write-Host "Script completed."
+}
