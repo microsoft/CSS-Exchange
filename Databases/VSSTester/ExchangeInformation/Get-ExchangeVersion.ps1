@@ -2,42 +2,46 @@
 # Licensed under the MIT License.
 
 function Get-ExchangeVersion {
-    Get-Date
-    Write-Host "Verifying Exchange version..." -ForegroundColor Green $nl
-    Write-Host "--------------------------------------------------------------------------------------------------------------"
-    " "
-    $script:exchVer = (Get-ExchangeServer $serverName).AdminDisplayVersion
+    [OutputType([System.Void])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]
+        $ServerName
+    )
+
+    Write-Host "$(Get-Date) Verifying Exchange version..."
+    $exchVer = (Get-ExchangeServer $ServerName).AdminDisplayVersion
     $exchVerMajor = $exchVer.major
     $exchVerMinor = $exchVer.minor
 
     switch ($exchVerMajor) {
         "14" {
-            $script:exchVer = "2010"
+            $exchVer = "2010"
         }
         "15" {
             switch ($exchVerMinor) {
                 "0" {
-                    $script:exchVer = "2013"
+                    $exchVer = "2013"
                 }
                 "1" {
-                    $script:exchVer = "2016"
+                    $exchVer = "2016"
                 }
                 "2" {
-                    $script:exchVer = "2019"
+                    $exchVer = "2019"
                 }
             }
         }
 
         default {
-            Write-Host "This script is only for Exchange 2013, 2016, and 2019 servers." -ForegroundColor red $nl
+            Write-Host "  This script is only for Exchange 2013, 2016, and 2019 servers."
             exit
         }
     }
 
-    Write-Host "$serverName is an Exchange $exchVer server. $nl"
+    Write-Host "  $ServerName is an Exchange $exchVer server."
 
     if ($exchVer -eq "2010") {
-        Write-Host "This script no longer supports Exchange 2010."
+        Write-Host "  This script no longer supports Exchange 2010."
         exit
     }
 }
