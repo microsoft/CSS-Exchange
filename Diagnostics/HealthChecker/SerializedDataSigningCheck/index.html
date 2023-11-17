@@ -1512,48 +1512,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Description">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#important" class="md-nav__link">
-    <span class="md-ellipsis">
-      Important
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#exchange-server-2013" class="md-nav__link">
-    <span class="md-ellipsis">
-      Exchange Server 2013
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#exchange-server-20162019" class="md-nav__link">
-    <span class="md-ellipsis">
-      Exchange Server 2016/2019
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#required-on-exchange-2013-2016-and-2019-after-the-feature-was-enabled-via-registry-value-or-variantconfiguration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Required on Exchange 2013, 2016 and 2019 after the feature was enabled (via Registry Value or VariantConfiguration)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -3078,48 +3036,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Description">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#important" class="md-nav__link">
-    <span class="md-ellipsis">
-      Important
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#exchange-server-2013" class="md-nav__link">
-    <span class="md-ellipsis">
-      Exchange Server 2013
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#exchange-server-20162019" class="md-nav__link">
-    <span class="md-ellipsis">
-      Exchange Server 2016/2019
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#required-on-exchange-2013-2016-and-2019-after-the-feature-was-enabled-via-registry-value-or-variantconfiguration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Required on Exchange 2013, 2016 and 2019 after the feature was enabled (via Registry Value or VariantConfiguration)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -3165,38 +3081,18 @@
 
 <h1 id="powershell-serialization-payload-signing">PowerShell Serialization Payload Signing</h1>
 <h2 id="description">Description</h2>
-<p>Certificate-based signing of PowerShell Serialization Payload is a Defense-in-Depth security feature to prevent malicious manipulation of serialized data exchanged in Exchange Management Shell (EMS) sessions.</p>
-<p>The Serialized Data Signing feature was introduced with the January 2023 Exchange Server Security Update (SU). It's available on Exchange Server 2013, Exchange Server 2016 and Exchange Server 2019.</p>
-<p>In the first stage of rollout, this feature needs to be manually enabled by the Exchange Server administrator. This can be done by following the steps outlined below.</p>
-<p>The HealthChecker check validates that the feature is enabled on supported Exchange builds. It will also check if multiple <code>SettingOverrides</code> are available that collide with each other.</p>
-<h3 id="important">Important</h3>
-<p>Ensure all the Exchange Servers (Exchange Server 2019, 2016 and 2013) in the environment are running the January 2023 (or later) SU before turning the feature on. Enabling the feature before all servers are updated might lead to failures and errors when managing your organization.</p>
-<p>This features uses the <code>Exchange Server Auth Certificate</code> to sign the serialized data. Therefore, it's very important that the certificate which is configured as Auth Certificate is valid (not expired) and available on all Exchange Servers (except Edge Transport role and Exchange Management Tools role) within the organization.</p>
-<h3 id="exchange-server-2013">Exchange Server 2013</h3>
-<p>The feature must be enabled on a per-server base by creating the following <code>registry value</code>:</p>
-<p>Key: <code>HKLM\SOFTWARE\Microsoft\ExchangeServer\v15\Diagnostics\</code></p>
-<p>ValueType: <code>String</code></p>
-<p>Value: <code>EnableSerializationDataSigning</code></p>
-<p>Data: <code>1</code></p>
-<p>You can create the required string value by running the following PowerShell command:</p>
-<p><code>New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Diagnostics -Name "EnableSerializationDataSigning" -Value 1 -Type String</code></p>
-<h3 id="exchange-server-20162019">Exchange Server 2016/2019</h3>
-<p>The feature can be enabled on an organizational level (strongly recommended) or per-server base via <code>SettingOverride</code>:</p>
-<p>Organizational-wide: <code>New-SettingOverride -Name "EnableSigningVerification" -Component Data -Section EnableSerializationDataSigning -Parameters @("Enabled=true") -Reason "Enabling Signing Verification"</code></p>
-<p>Per-server base: <code>New-SettingOverride -Name "EnableSigningVerification" -Component Data -Section EnableSerializationDataSigning -Parameters @("Enabled=true") -Reason "Enabling Signing Verification" -Server &lt;ExchangeServerName&gt;</code></p>
-<p>Next, refresh the VariantConfiguration argument by running the following cmdlet:
-<code>Get-ExchangeDiagnosticInfo -Process Microsoft.Exchange.Directory.TopologyService -Component VariantConfiguration -Argument Refresh</code></p>
-<h3 id="required-on-exchange-2013-2016-and-2019-after-the-feature-was-enabled-via-registry-value-or-variantconfiguration">Required on Exchange 2013, 2016 and 2019 after the feature was enabled (via Registry Value or VariantConfiguration)</h3>
-<p>Restart the <code>World Wide Web Publishing service</code> and the <code>Windows Process Activation Service (WAS)</code> to apply the new settings. To do this, run the following cmdlet:
-<code>Restart-Service -Name W3SVC, WAS -Force</code></p>
-<p><strong>NOTE:</strong></p>
-<p>Exchange 2016/2019: It's sufficient to restart the services on the server where the change was made.</p>
-<p>Exchange 2013: It's required to restart these services on all Exchange 2013 servers whenever the registry value is updated.</p>
+<p>Certificate-based signing of PowerShell Serialization Payload is a defense-in-depth security feature to prevent malicious manipulation of serialized data exchanged in Exchange Management Shell (EMS) sessions.</p>
+<p>The Serialized Data Signing feature was introduced with the January 2023 Exchange Server Security Update (SU). It's available on Exchange Server 2013, Exchange Server 2016 and Exchange Server 2019 and enabled by default with the November 2023 Security Update.</p>
+<p>The HealthChecker check validates that the feature is enabled on supported Exchange builds.</p>
+<div class="admonition success">
+<p class="admonition-title">Documentation Moved</p>
+<p>This documentation has been moved to Microsoft Learn. Please read <a href="https://learn.microsoft.com/exchange/plan-and-deploy/post-installation-tasks/security-best-practices/exchange-serialization-payload-sign">Configure certificate signing of PowerShell serialization payloads in Exchange Server</a> for more information.</p>
+</div>
 <h2 id="included-in-html-report">Included in HTML Report?</h2>
 <p>Yes</p>
 <h2 id="additional-resources">Additional resources</h2>
 <p><a href="https://techcommunity.microsoft.com/t5/exchange-team-blog/released-january-2023-exchange-server-security-updates/ba-p/3711808">Released: January 2023 Exchange Server Security Updates</a></p>
-<p><a href="https://support.microsoft.com/kb/5022988">Certificate signing of PowerShell serialization payload in Exchange Server</a></p>
+<p><a href="https://techcommunity.microsoft.com/t5/exchange-team-blog/released-november-2023-exchange-server-security-updates/ba-p/3980209">Released: November 2023 Exchange Server Security Updates</a></p>
 <p><a href="https://aka.ms/MonitorExchangeAuthCertificate">MonitorExchangeAuthCertificate.ps1 script</a></p>
 
   <hr>
@@ -3204,7 +3100,7 @@
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">February 13, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">November 17, 2023</span>
       
     
   </small>
