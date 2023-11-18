@@ -20,18 +20,21 @@ function DoSpellCheck {
         exit 1
     }
 
-    $cspellModule = npm -g ls cspell | Select-String "cspell@"
-
-    if ([string]::IsNullOrEmpty($cspellModule)) {
+    $cspellPath = (npm -g ls cspell | Select-String "C:\\(\S+)$").Matches.Value
+    if ([string]::IsNullOrEmpty($cspellPath)) {
         Write-Host "Installing cspell..."
         npm install -g cspell
+
+        $cspellPath = (npm -g ls cspell | Select-String "C:\\(\S+)$").Matches.Value
+        if ([string]::IsNullOrEmpty($cspellPath)) {
+            Write-Host "Could not install cspell."
+            exit 1
+        }
     }
 
-    $cspellModule = npm -g ls cspell | Select-String "cspell@"
-
-    if ([string]::IsNullOrEmpty($cspellModule)) {
-        Write-Host "Could not install cspell. Please install cspell and try again."
-        exit 1
+    if (-not ($env:PATH | Select-String $cspellPath -SimpleMatch)) {
+        Write-Host "Adding cspell path to PATH..."
+        $env:PATH = "$env:PATH;$cspellPath"
     }
 
     $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".."))
