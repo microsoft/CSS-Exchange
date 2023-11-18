@@ -3,6 +3,9 @@
 
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
+. $PSScriptRoot\Get-IISAuthenticationType.ps1
+. $PSScriptRoot\Get-IPFilterSetting.ps1
+. $PSScriptRoot\Get-URLRewriteRule.ps1
 function Invoke-AnalyzerIISInformation {
     [CmdletBinding()]
     param(
@@ -333,15 +336,106 @@ function Invoke-AnalyzerIISInformation {
         Add-AnalyzedResultInformation @params
     }
 
-    ########################
-    # Virtual Directories
-    ########################
+    ########################################
+    # Virtual Directories - Standard display
+    ########################################
 
+    $applicationHostConfig = $exchangeInformation.IISSettings.ApplicationHostConfig
     $iisWebSettings = @($exchangeInformation.IISSettings.IISWebApplication)
     $iisWebSettings += @($exchangeInformation.IISSettings.IISWebSite)
     $iisConfigurationSettings = @($exchangeInformation.IISSettings.IISWebApplication.ConfigurationFileInfo)
     $iisConfigurationSettings += $iisWebSiteConfigs = @($exchangeInformation.IISSettings.IISWebSite.ConfigurationFileInfo)
     $iisConfigurationSettings += @($exchangeInformation.IISSettings.IISSharedWebConfig)
+    $extendedProtectionConfiguration = $exchangeInformation.ExtendedProtectionConfig.ExtendedProtectionConfiguration
+    $displayMainSitesList = @("Default Web Site", "API", "Autodiscover", "ecp", "EWS", "mapi", "Microsoft-Server-ActiveSync", "OAB", "owa",
+        "PowerShell", "Rpc", "Exchange Back End", "emsmdb", "nspi", "RpcWithCert")
+    $iisVirtualDirectoriesDisplay = New-Object 'System.Collections.Generic.List[System.Object]'
+    $iisWebConfigContent = @{}
+    $iisLocations = ([xml]$applicationHostConfig).configuration.Location | Sort-Object Path
+
+    $iisWebSettings | ForEach-Object {
+        $key = if ($null -ne $_.FriendlyName) { $_.FriendlyName } else { $_.Name }
+        $iisWebConfigContent.Add($key, $_.ConfigurationFileInfo.Content)
+    }
+
+    $ruleParams = @{
+        ApplicationHostConfig = [xml]$applicationHostConfig
+        WebConfigContent      = $iisWebConfigContent
+    }
+
+    $urlRewriteRules = Get-URLRewriteRule @ruleParams
+    $ipFilterSettings = Get-IPFilterSetting -ApplicationHostConfig ([xml]$applicationHostConfig)
+    $authTypeSettings = Get-IISAuthenticationType -ApplicationHostConfig ([xml]$applicationHostConfig)
+    $failedLocationsForAuth = @()
+    Write-Verbose "Evaluating the IIS Locations for display"
+
+    foreach ($location in $iisLocations) {
+
+        if ([string]::IsNullOrEmpty($location.Path)) { continue }
+
+        if ($displayMainSitesList -notcontains ($location.Path.Split("/")[-1])) { continue }
+
+        Write-Verbose "Working on IIS Path: $($location.Path)"
+        $sslFlag = [string]::Empty
+        $displayRewriteRules = [string]::Empty
+        $ipFilterEnabled = $ipFilterSettings[$location.Path].Count -ne 0
+        $epValue = "None"
+        $ep = $extendedProtectionConfiguration | Where-Object { $_.VirtualDirectoryName -eq $location.Path }
+        $currentRewriteRules = $urlRewriteRules[$location.Path]
+        $authentication = $authTypeSettings[$location.Path]
+
+        if ($currentRewriteRules.Count -ne 0) {
+            $displayRewriteRules = ($currentRewriteRules.rule | Where-Object { $_.enabled -ne "false" }).name
+        }
+
+        if ($null -ne $ep) {
+            Write-Verbose "Using EP settings to determine sslFlags"
+            $sslSettings = $ep.Configuration.SslSettings
+            $sslFlag = "$($sslSettings.RequireSSL) $(if($sslSettings.Ssl128Bit) { "(128-bit)" })".Trim()
+
+            if ($sslSettings.ClientCertificate -ne "Ignore") {
+                $sslFlag = @($sslFlag, "Cert($($sslSettings.ClientCertificate))")
+            }
+
+            $epValue = $ep.ExtendedProtection
+        } else {
+            Write-Verbose "Not using EP settings to determine sslFlags, skipping over cert auth logic."
+            $ssl = $location.'system.webServer'.security.access.SslFlags
+            $sslFlag = "$($ssl.ToLower().Contains("ssl")) $(if(($ssl.ToLower().Contains("ssl128"))) { "(128-bit)" })".Trim()
+        }
+
+        $iisVirtualDirectoriesDisplay.Add([PSCustomObject]@{
+                Name               = $location.Path
+                ExtendedProtection = $epValue
+                SslFlags           = $sslFlag
+                IPFilteringEnabled = $ipFilterEnabled
+                URLRewrite         = $displayRewriteRules
+                Authentication     = $authentication
+            })
+    }
+
+    $params = $baseParams + @{
+        OutColumns       = ([PSCustomObject]@{
+                DisplayObject = $iisVirtualDirectoriesDisplay
+                IndentSpaces  = 8
+            })
+        AddHtmlDetailRow = $false
+    }
+    Add-AnalyzedResultInformation @params
+
+    if ($failedLocationsForAuth.Count -gt 0) {
+        $params = $baseParams + @{
+            Name             = "Inaccurate display of authentication types"
+            Details          = $failedLocationsForAuth -join ","
+            DisplayWriteType = "Yellow"
+        }
+
+        Add-AnalyzedResultInformation @params
+    }
+
+    ###############################
+    # Virtual Directories - Issues
+    ###############################
 
     # Invalid configuration files are ones that we can't convert to xml.
     $invalidConfigurationFile = $iisConfigurationSettings | Where-Object { $_.Valid -eq $false -and $_.Exist -eq $true }
@@ -378,6 +472,56 @@ function Invoke-AnalyzerIISInformation {
                 }
             }
         }
+
+    # Display URL Rewrite Rules.
+    # To save on space, don't display rules that are on multiple vDirs by same name.
+    # Use 'DisplayKey' for the display results.
+    $alreadyDisplayedUrlRewriteRules = @{}
+    $alreadyDisplayedUrlKey = "DisplayKey"
+    $alreadyDisplayedUrlRewriteRules.Add($alreadyDisplayedUrlKey, (New-Object System.Collections.Generic.List[object]))
+
+    foreach ($key in $urlRewriteRules.Keys) {
+        $currentSection = $urlRewriteRules[$key]
+
+        if ($currentSection.Count -ne 0) {
+            foreach ($rule in $currentSection.rule) {
+
+                # skip over disabled rules.
+                if ($rule.enabled -eq "false") {
+                    Write-Verbose "skipping over disabled rule: $($rule.Name) for vDir '$key'"
+                    continue
+                }
+
+                #multiple match type possibilities, but should only be one per rule.
+                $propertyType = ($rule.match | Get-Member | Where-Object { $_.MemberType -eq "Property" }).Name
+                $matchProperty = "$propertyType - $($rule.match.$propertyType)"
+
+                $displayObject = [PSCustomObject]@{
+                    RewriteRuleName = $rule.name
+                    Pattern         = $rule.conditions.add.pattern
+                    MatchProperty   = $matchProperty
+                    ActionType      = $rule.action.type
+                }
+
+                #.ContainsValue() and .ContainsKey() doesn't find the complex object it seems. Need to find it by a key and a simple name.
+                if (-not ($alreadyDisplayedUrlRewriteRules.ContainsKey((($displayObject.RewriteRuleName))))) {
+                    $alreadyDisplayedUrlRewriteRules.Add($displayObject.RewriteRuleName, $displayObject)
+                    $alreadyDisplayedUrlRewriteRules[$alreadyDisplayedUrlKey].Add($displayObject)
+                }
+            }
+        }
+    }
+
+    if ($alreadyDisplayedUrlRewriteRules[$alreadyDisplayedUrlKey].Count -gt 0) {
+        $params = $baseParams + @{
+            OutColumns       = ([PSCustomObject]@{
+                    DisplayObject = $alreadyDisplayedUrlRewriteRules[$alreadyDisplayedUrlKey]
+                    IndentSpaces  = 8
+                })
+            AddHtmlDetailRow = $false
+        }
+        Add-AnalyzedResultInformation @params
+    }
 
     if ($null -ne $missingWebApplicationConfigFile) {
         $params = $baseParams + @{
