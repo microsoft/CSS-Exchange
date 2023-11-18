@@ -1,5 +1,4 @@
-pool:
-  vmImage: 'windows-latest'
+pool: default
 
 steps:
 - pwsh: |
