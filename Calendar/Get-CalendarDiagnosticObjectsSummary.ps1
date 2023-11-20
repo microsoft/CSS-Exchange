@@ -144,20 +144,26 @@ function GetCalendarDiagnosticObjects {
         [string]$Subject,
         [string]$MeetingID
     )
-    # Use MeetingID if we have it.
-    if ($Identity -and $MeetingID) {
-        Write-Verbose "Getting CalLogs for [$Identity] with MeetingID [$MeetingID]."
-        $CalLogs = Get-CalendarDiagnosticObjects -Identity $Identity -MeetingID $MeetingID -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults $LogLimit -ResultSize $LogLimit -ShouldBindToItem $true;
+
+    $params = @{
+        Identity           = $Identity
+        CustomPropertyName = $CustomPropertyNameList
+        WarningAction      = "Ignore"
+        MaxResults         = $LogLimit
+        ResultSize         = $LogLimit
+        ShouldBindToItem   = $true
     }
 
-    # Otherwise do a search on the subject.
-    if ($Identity -and $Subject) {
+    if ($Identity -and $MeetingID) {
+        Write-Verbose "Getting CalLogs for [$Identity] with MeetingID [$MeetingID]."
+        $CalLogs = Get-CalendarDiagnosticObjects @params -MeetingID $MeetingID
+    } elseif ($Identity -and $Subject ) {
         Write-Verbose "Getting CalLogs for [$Identity] with Subject [$Subject]."
-        $CalLogs = Get-CalendarDiagnosticObjects -Identity $Identity -Subject $Subject -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults $LogLimit -ResultSize $LogLimit -ShouldBindToItem $true;
+        $CalLogs = Get-CalendarDiagnosticObjects @params -Subject $Subject
 
         # No Results, do a Deep search with ExactMatch.
         if ($CalLogs.count -lt 1) {
-            $CalLogs = Get-CalendarDiagnosticObjects -Identity $Identity -Subject $Subject -ExactMatch $true -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults $LogLimit -ResultSize $LogLimit -ShouldBindToItem $true;
+            $CalLogs = Get-CalendarDiagnosticObjects @Params -Subject $Subject -ExactMatch $true;
         }
     }
 
@@ -192,7 +198,7 @@ function GetMailbox {
     )
 
     try {
-        Write-Verbose "Searching Get-Mailbox $(if ($Organization -ne `"`" ) {"with Org: $Organization"}) for $Identity."
+        Write-Verbose "Searching Get-Mailbox $(if (-not ([string]::IsNullOrEmpty($Organization))) {"with Org: $Organization"}) for $Identity."
 
         if ($Identity -and $Organization) {
             if ($script:MSSupport) {
@@ -1255,6 +1261,30 @@ function BuildTimeline {
 
     $Results = @();
 }
+
+<#
+.SYNOPSIS
+    Function to write a line of text surrounded by a dash line box.
+
+.DESCRIPTION
+    The Write-DashLineBoxColor function is used to create a quick and easy display around a line of text. It generates a box made of dash characters ("-") and displays the provided line of text inside the box.
+
+.PARAMETER Line
+    Specifies the line of text to be displayed inside the dash line box.
+
+.PARAMETER Color
+    Specifies the color of the dash line box and the text. The default value is "White".
+
+.PARAMETER DashChar
+    Specifies the character used to create the dash line. The default value is "-".
+
+.EXAMPLE
+    Write-DashLineBoxColor -Line "Hello, World!" -Color "Yellow" -DashChar "="
+    Displays:
+    ==============
+    Hello, World!
+    ==============
+#>
 function Write-DashLineBoxColor {
     [CmdletBinding()]
     param(
@@ -1262,14 +1292,6 @@ function Write-DashLineBoxColor {
         [string] $Color = "White",
         [char] $DashChar = "-"
     )
-    <#
-        This is to simply create a quick and easy display around a line
-        -------------------------------------
-        Line                           Length
-        Line                           Length
-        -------------------------------------
-        # Empty Line
-    #>
     $highLineLength = 0
     $Line | ForEach-Object { if ($_.Length -gt $highLineLength) { $highLineLength = $_.Length } }
     $dashLine = [string]::Empty
@@ -1281,6 +1303,10 @@ function Write-DashLineBoxColor {
     Write-Host
 }
 
+<#
+.SYNOPSIS
+Checks the identities are EXO Mailboxes.
+#>
 function CheckIdentities {
     if (Get-Command -Name Get-Mailbox -ErrorAction SilentlyContinue) {
         Write-Host "Validated connection to Exchange Online."
@@ -1331,6 +1357,14 @@ function CheckIdentities {
     return $IdentityList;
 }
 
+<#
+.SYNOPSIS
+This function retrieves calendar logs from the specified source with a subject that matches the provided criteria.
+.PARAMETER Identity
+The Identity of the mailbox to get calendar logs from.
+.PARAMETER Subject
+The subject of the calendar logs to retrieve.
+#>
 function GetCalLogsWithSubject {
     param (
         [string] $Identity,
@@ -1381,9 +1415,13 @@ function GetCalLogsWithSubject {
 
 $ValidatedIdentities = CheckIdentities -Identity $Identity
 
-if ($Subject -ne "") {
+if (-not ([string]::IsNullOrEmpty($Subject)) ) {
+    if ($ValidatedIdentities.count -gt 1) {
+        Write-Warning "Multiple mailboxes were found, but only one is supported for Subject searches.  Please specify a single mailbox."
+        exit;
+    }
     GetCalLogsWithSubject -Identity $ValidatedIdentities -Subject $Subject
-} elseif ($MeetingID -ne "") {
+} elseif (-not ([string]::IsNullOrEmpty($MeetingID))) {
 
     foreach ($ID in $ValidatedIdentities) {
         #$script:GCDO = $script:InitialCDOs; # use the CalLogs that we already have, since there is only one.
@@ -1401,9 +1439,9 @@ if ($Subject -ne "") {
         }
     }
 } else {
-    Write-Warning "A valid MeetingID was not found, manually confirm the MeetingID";
+    Write-Warning "A valid MeetingID was not found, nor Subject. Please confirm the MeetingID or Subject and try again.";
 }
 
 Write-DashLineBoxColor  "Hope this script was helpful in getting and understanding the Calendar Logs.",
 "If you have issues or suggestion for this script, please send them to: ",
-"`t <Shanefe@Microsoft.com" -Color Yellow -DashChar =
+"`t CalLogFormatterDevs@microsoft.com" -Color Yellow -DashChar =
