@@ -9,28 +9,28 @@
     )
 
     Rules               = @{
-        PSPlaceOpenBrace           = @{
+        PSPlaceOpenBrace                   = @{
             Enable             = $true
             OnSameLine         = $true
             NewLineAfter       = $true
             IgnoreOneLineBlock = $true
         }
 
-        PSPlaceCloseBrace          = @{
+        PSPlaceCloseBrace                  = @{
             Enable             = $true
             NewLineAfter       = $false
             IgnoreOneLineBlock = $true
             NoEmptyLineBefore  = $true
         }
 
-        PSUseConsistentIndentation = @{
+        PSUseConsistentIndentation         = @{
             Enable              = $true
             Kind                = 'space'
             PipelineIndentation = 'IncreaseIndentationForFirstPipeline'
             IndentationSize     = 4
         }
 
-        PSUseConsistentWhitespace  = @{
+        PSUseConsistentWhitespace          = @{
             Enable                                  = $true
             CheckInnerBrace                         = $true
             CheckOpenBrace                          = $true
@@ -43,12 +43,16 @@
             IgnoreAssignmentOperatorInsideHashTable = $true
         }
 
-        PSAlignAssignmentStatement = @{
+        PSAlignAssignmentStatement         = @{
             Enable         = $true
             CheckHashtable = $true
         }
 
-        PSUseCorrectCasing         = @{
+        PSUseCorrectCasing                 = @{
+            Enable = $true
+        }
+
+        PSAvoidSemicolonsAsLineTerminators = @{
             Enable = $true
         }
     }
