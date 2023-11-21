@@ -32,8 +32,9 @@ function Get-ExchangeAuthCertificateStatus {
         $configureNextAuthRequired = $false
         $importNextAuthCertificateRequired = $false
 
-        $currentAuthCertificateValidInDays = 0
-        $nextAuthCertificateValidInDays = 0
+        # Make sure to initialize this with -1 as this is needed to properly run the validation in case that we're unable to query this information
+        $currentAuthCertificateValidInDays = -1
+        $nextAuthCertificateValidInDays = -1
 
         $exchangeServersUnreachableList = New-Object 'System.Collections.Generic.List[string]'
         $exchangeServersReachableList = New-Object 'System.Collections.Generic.List[string]'
