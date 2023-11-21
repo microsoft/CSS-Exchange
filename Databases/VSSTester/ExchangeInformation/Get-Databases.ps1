@@ -2,25 +2,15 @@
 # Licensed under the MIT License.
 
 function Get-Databases {
-    Get-Date
-    Write-Host "Getting databases on server: $serverName" -ForegroundColor Green $nl
-    Write-Host "--------------------------------------------------------------------------------------------------------------"
-    " "
+    [OutputType([System.Array])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]
+        $ServerName
+    )
 
-    [array]$script:databases = Get-MailboxDatabase -server $serverName -status
-    if ($null -ne (Get-PublicFolderDatabase -Server $serverName)) {
-        $script:databases += Get-PublicFolderDatabase -server $serverName -status
-    }
-
-    #write-host "Database Name:`t`t Mounted: `t`t Mounted On Server:" -ForegroundColor Yellow $nl
-    $script:dbID = 0
-
-    foreach ($script:db in $databases) {
-        $script:db | Add-Member NoteProperty Number $dbID
-        $dbID++
-    }
-
-    $script:databases | Format-Table Number, Name, Mounted, Server -AutoSize | Out-String
-
-    Write-Host " " $nl
+    Write-Host "$(Get-Date) Getting databases on server: $ServerName"
+    [array]$databases = Get-MailboxDatabase -server $ServerName -status
+    $databases | Format-Table Name, Mounted, Server -AutoSize | Out-Host
+    return $databases
 }
