@@ -54,7 +54,7 @@ $CreateHourlyReport =
             if ($hourlyEvent.RecipientAddress -eq $_.RecipientAddress -and $hourlyEvent.Hour -eq $_.Received.Hour) {
                 $hourlyEvent.MessageCount +=1
             } else {
-                $eventObj = New-Object PSObject -Property @{ Hour=$_.Received.Hour; Date=$_.Received.Date.ToString("dd/mm/yyyy dd:hh tt"); MessageCount=1; RecipientAddress=$_.RecipientAddress };
+                $eventObj = New-Object PSObject -Property @{ Hour=$_.Received.Hour; Date=$_.Received.Date.ToString("dd/mm/yyyy dd:hh tt"); MessageCount=1; RecipientAddress=$_.RecipientAddress }
                 [void]$hourlyReport.Add($eventObj)
             }
         }
@@ -93,5 +93,5 @@ $props = [ordered]@{
     'HourlyReport'       = $hourlyReport
     'MessageTraceEvents' = $eventList
 }
-$results = New-Object -TypeName PSObject -Property $props;
+$results = New-Object -TypeName PSObject -Property $props
 return $results

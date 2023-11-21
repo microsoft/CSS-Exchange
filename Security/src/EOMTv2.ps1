@@ -572,7 +572,7 @@ try {
         Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -Notice
     }
 
-    $DisableAutoUpdateIfNeeded = "If you are getting this error even with updated EOMTv2, re-run with -DoNotAutoUpdateEOMTv2 parameter";
+    $DisableAutoUpdateIfNeeded = "If you are getting this error even with updated EOMTv2, re-run with -DoNotAutoUpdateEOMTv2 parameter"
 
     $Stage = "AutoUpdateEOMTv2"
     if ($latestEOMTv2Version -and ($BuildVersion -ne $latestEOMTv2Version)) {

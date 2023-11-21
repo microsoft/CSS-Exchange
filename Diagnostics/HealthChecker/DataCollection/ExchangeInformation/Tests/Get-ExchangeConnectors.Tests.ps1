@@ -244,9 +244,9 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
         It "Send Connector Configured As Expected For Relaying Via M365" {
             switch ($results) {
                 { ($_.SmartHosts -like "*.mail.protection.outlook.com") } {
-                    $smartHostsPointToExo = $true;
-                    $_.Name | Should -Be "My company to Office 365";
-                    $_.RequireTLS | Should -Be $true;
+                    $smartHostsPointToExo = $true
+                    $_.Name | Should -Be "My company to Office 365"
+                    $_.RequireTLS | Should -Be $true
                     # 1 = EncryptionOnly; 2 = CertificateValidation; 3 = DomainValidation
                     $_.TlsAuthLevel | Should -Be 2
                 }

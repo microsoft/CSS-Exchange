@@ -205,7 +205,7 @@ begin {
             -not $ScriptUpdateOnly)) {
             Write-Warning "The script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator."
             $Error.Clear()
-            Start-Sleep -Seconds 2;
+            Start-Sleep -Seconds 2
             exit
         }
 
@@ -232,7 +232,7 @@ begin {
                 exit
             }
             Get-HtmlServerReport -AnalyzedHtmlServerValues $importData.HtmlServerValues -HtmlOutFilePath $htmlOutFilePath
-            Start-Sleep 2;
+            Start-Sleep 2
             return
         }
 

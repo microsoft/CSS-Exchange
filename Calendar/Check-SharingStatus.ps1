@@ -49,7 +49,7 @@ function ProcessCalendarSharingInviteLogs {
 
     # Define the header row
     $header = "Timestamp", "Mailbox", "Entry MailboxOwner", "Recipient", "RecipientType", "SharingType", "DetailLevel"
-    $csvString = @();
+    $csvString = @()
     $csvString = $header -join ","
     $csvString += "`n"
 
@@ -74,7 +74,7 @@ function ProcessCalendarSharingInviteLogs {
         return
     }
 
-    $logLines =@();
+    $logLines =@()
     # Split the output into an array of lines
     $logLines = $logOutput.MailboxLog -split "`r`n"
 
@@ -125,7 +125,7 @@ function ProcessCalendarSharingAcceptLogs {
 
     # Define the header row
     $header = "Timestamp", "Mailbox", "SharedCalendarOwner", "FolderName"
-    $csvString = @();
+    $csvString = @()
     $csvString = $header -join ","
     $csvString += "`n"
 
@@ -150,7 +150,7 @@ function ProcessCalendarSharingAcceptLogs {
         return
     }
 
-    $logLines =@();
+    $logLines =@()
     # Split the output into an array of lines
     $logLines = $logOutput.MailboxLog -split "`r`n"
 
@@ -225,7 +225,7 @@ function GetOwnerInformation {
     if ($script:OwnerMB.DisplayName -like "Redacted*") {
         Write-Host -ForegroundColor Yellow "Do Not have PII information for the Owner."
         Write-Host -ForegroundColor Yellow "Get PII Access for $($script:OwnerMB.Database)."
-        $script:PIIAccess = $false;
+        $script:PIIAccess = $false
     }
 
     Write-Host  -ForegroundColor DarkYellow  "Owner Calendar Folder Statistics:"

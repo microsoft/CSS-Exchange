@@ -62,7 +62,7 @@ function Invoke-ExtendedProtectionTlsPrerequisitesCheck {
                         if ($null -ne $result) {
                             Write-Verbose "Found difference in TLS for $key"
                             $nextServer = $true
-                            break;
+                            break
                         }
                     }
 
