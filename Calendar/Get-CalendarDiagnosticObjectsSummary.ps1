@@ -44,7 +44,7 @@ $BuildVersion = ""
 
 if (Test-ScriptVersion -AutoUpdate -Confirm:$false) {
     # Update was downloaded, so stop here.
-    Write-Host "Script was updated. Please rerun the command."  -ForegroundColor Yellow
+    Write-Host "Script was updated. Please rerun the command." -ForegroundColor Yellow
     return
 }
 
@@ -202,11 +202,11 @@ function GetMailbox {
 
         if ($Identity -and $Organization) {
             if ($script:MSSupport) {
-                Write-Verbose  "Using Organization parameter"
-                $GetMailboxOutput = Get-Mailbox -Identity $Identity -Organization $Organization  -ErrorAction SilentlyContinue;
+                Write-Verbose "Using Organization parameter"
+                $GetMailboxOutput = Get-Mailbox -Identity $Identity -Organization $Organization -ErrorAction SilentlyContinue;
             } else {
-                Write-Verbose  "Using -OrganizationalUnit parameter"
-                $GetMailboxOutput = Get-Mailbox -Identity $Identity -OrganizationalUnit $Organization  -ErrorAction SilentlyContinue;
+                Write-Verbose "Using -OrganizationalUnit parameter"
+                $GetMailboxOutput = Get-Mailbox -Identity $Identity -OrganizationalUnit $Organization -ErrorAction SilentlyContinue;
             }
         } else {
             $GetMailboxOutput = Get-Mailbox -Identity $Identity -ErrorAction SilentlyContinue;
@@ -432,8 +432,8 @@ function CreateExternalMasterIDMap {
         $AllFolderNames = @($script:GCDO | Where-Object { $_.ExternalSharingMasterId -eq $ExternalID } | Select-Object -ExpandProperty OriginalParentDisplayName | Select-Object -Unique)
 
         if ($AllFolderNames.count -gt 1) {
-            # We have 2+ FolderNames,  Need to find the best one. #remove Calendar
-            $AllFolderNames = $AllFolderNames | Where-Object { $_ -notmatch 'Calendar' }  # This will not work for non-english
+            # We have 2+ FolderNames, Need to find the best one. #remove Calendar
+            $AllFolderNames = $AllFolderNames | Where-Object { $_ -notmatch 'Calendar' } # This will not work for non-english
         }
 
         if ($AllFolderNames.Count -eq 0) {
@@ -450,9 +450,9 @@ function CreateExternalMasterIDMap {
             Write-Host -ForegroundColor Red "Found $($AllFolderNames.count) possible folders"
 
             if ($AllFolderNames.Count -eq 2) {
-                $SharedFolders[$ExternalID] =  $AllFolderNames[0] + $AllFolderNames[1]
+                $SharedFolders[$ExternalID] = $AllFolderNames[0] + $AllFolderNames[1]
             } else {
-                $SharedFolders[$ExternalID] =  "UnknownSharedCalendarCopy"
+                $SharedFolders[$ExternalID] = "UnknownSharedCalendarCopy"
             }
         }
     }
@@ -575,7 +575,7 @@ function CreateShortClientName {
 <#
 .SYNOPSIS
 Checks to see if the Calendar Log is Ignorable.
-Many updates are not interesting in the Calendar Log, marking these as ignorable.  99% of the time this is correct.
+Many updates are not interesting in the Calendar Log, marking these as ignorable. 99% of the time this is correct.
 #>
 function SetIsIgnorable {
     param(
@@ -716,7 +716,7 @@ function BuildCSV {
             'ItemClass'                     = $CalLog.ItemClass
             'ItemVersion'                   = $CalLog.ItemVersion
             'AppointmentSequenceNumber'     = $CalLog.AppointmentSequenceNumber
-            'AppointmentLastSequenceNumber' = $CalLog.AppointmentLastSequenceNumber   # Need to find out how we can combine these two...
+            'AppointmentLastSequenceNumber' = $CalLog.AppointmentLastSequenceNumber  # Need to find out how we can combine these two...
             'Organizer'                     = $CalLog.From.FriendlyDisplayName
             'From'                          = GetBestFromAddress($CalLog.From)
             'FreeBusyStatus'                = $CalLog.FreeBusyStatus
@@ -780,7 +780,7 @@ function BuildCSV {
     Write-Host -ForegroundColor Yellow "$Filename"
     $GCDOResults | Export-Csv -Path $Filename -NoTypeInformation -Encoding UTF8
 
-    $MeetingTimeLine = $Results | Where-Object { $Results.IsIgnorable -eq "False" } ;
+    $MeetingTimeLine = $Results | Where-Object { $_.IsIgnorable -eq "False" } ;
     Write-Host "`n`n`nThis is the meetingID $ThisMeetingID`nThis is Short MeetingID $ShortMeetingID"
     if ($MeetingTimeLine.count -eq 0) {
         Write-Host "All CalLogs are Ignorable, nothing to create a timeline with, displaying initial values."
@@ -863,7 +863,7 @@ function MeetingSummary {
     overview of what happened to the meeting. This can be use to get a quick overview of the meeting and
     then you can look into the CalLog in Excel to get more details.
 
-    The timeline will skip a lot of the noise (isIgnorable) in the CalLogs.  It skips EBA (Event Based Assistants),
+    The timeline will skip a lot of the noise (isIgnorable) in the CalLogs. It skips EBA (Event Based Assistants),
     and other EXO internal processes, which are (99% of the time) not interesting to the end user and just setting
     hidden internal properties (i.e. things like HasBeenIndex, etc.)
 
@@ -877,7 +877,10 @@ function MeetingSummary {
     I use a iterative approach to building this, so it will get better over time.
 #>
 function BuildTimeline {
-    Write-DashLineBoxColor "  TimeLine for [$ID]:",
+    param (
+        [string] $Identity
+    )
+    Write-DashLineBoxColor " TimeLine for [$Identity]:",
     "  Subject: $($script:GCDO[0].NormalizedSubject)",
     "  Organizer: $($script:GCDO[0].SentRepresentingDisplayName)",
     "  MeetingID: $($script:GCDO[0].CleanGlobalObjectId)"
@@ -1391,18 +1394,18 @@ function GetCalLogsWithSubject {
 
     if ($GlobalObjectIds.count -eq 1) {
         $script:GCDO = $InitialCDOs; # use the CalLogs that we already have, since there is only one.
-        BuildCSV  -Identity $Identity;
-        BuildTimeline;
-    }
+        BuildCSV -Identity $Identity;
+        BuildTimeline -Identity $Identity; ;
+    }$ID
     # Get the CalLogs for each MeetingID found.
     if ($GlobalObjectIds.count -gt 1) {
         Write-Host "Found multiple GlobalObjectIds: $($GlobalObjectIds.Count)."
         foreach ($MID in $GlobalObjectIds) {
-            Write-DashLineBoxColor  "Processing MeetingID: [$MID]"
+            Write-DashLineBoxColor "Processing MeetingID: [$MID]"
             $script:GCDO = GetCalendarDiagnosticObjects -Identity $Identity -MeetingID $MID;
             Write-Verbose "Found $($GCDO.count) CalLogs with MeetingID[$MID] ."
             BuildCSV -Identity $Identity;
-            BuildTimeline;
+            BuildTimeline -Identity $Identity; ;
         }
     } else {
         Write-Warning "No CalLogs were found.";
@@ -1433,7 +1436,7 @@ if (-not ([string]::IsNullOrEmpty($Subject)) ) {
         if ($script:GCDO.count -gt 0) {
             Write-Host "Found $($script:GCDO.count) CalLogs with MeetingID [$MeetingID]."
             BuildCSV -Identity $ID;
-            BuildTimeline;
+            BuildTimeline -Identity $ID;
         } else {
             Write-Warning "No CalLogs were found for [$ID] with MeetingID [$MeetingID]."
         }
@@ -1442,6 +1445,6 @@ if (-not ([string]::IsNullOrEmpty($Subject)) ) {
     Write-Warning "A valid MeetingID was not found, nor Subject. Please confirm the MeetingID or Subject and try again.";
 }
 
-Write-DashLineBoxColor  "Hope this script was helpful in getting and understanding the Calendar Logs.",
+Write-DashLineBoxColor "Hope this script was helpful in getting and understanding the Calendar Logs.",
 "If you have issues or suggestion for this script, please send them to: ",
 "`t CalLogFormatterDevs@microsoft.com" -Color Yellow -DashChar =
