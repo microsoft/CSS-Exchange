@@ -2,24 +2,28 @@
 # Licensed under the MIT License.
 
 function Get-CopyStatus {
-    if ((($databases[$dbToBackup]).IsMailboxDatabase) -eq "True") {
-        Get-Date
-        Write-Host "Status of '$selDB' and its replicas (if any)" -ForegroundColor Green $nl
-        Write-Host "--------------------------------------------------------------------------------------------------------------"
-        " "
-        [array]$copyStatus = (Get-MailboxDatabaseCopyStatus -identity ($databases[$dbToBackup]).name)
-        ($copyStatus | Format-List) | Out-File -FilePath "$path\copyStatus.txt"
-        for ($i = 0; $i -lt ($copyStatus).length; $i++ ) {
-            if (($copyStatus[$i].status -eq "Healthy") -or ($copyStatus[$i].status -eq "Mounted")) {
-                Write-Host "$($copyStatus[$i].name) is $($copyStatus[$i].status)"
-            } else {
-                Write-Host "$($copyStatus[$i].name) is $($copyStatus[$i].status)"
-                Write-Host "One of the copies of the selected database is not healthy. Please run backup after ensuring that the database copy is healthy" -ForegroundColor Yellow
-                exit
-            }
-        }
-    } else {
-        Write-Host "Not checking database copy status since the selected database is a Public Folder Database..."
+    [OutputType([System.Void])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]
+        $ServerName,
+
+        [Parameter(Mandatory = $true)]
+        [object]
+        $Database,
+
+        [Parameter(Mandatory = $true)]
+        [string]
+        $OutputPath
+    )
+
+    Write-Host "$(Get-Date) Status of '$Database' and its replicas (if any)"
+    [array]$copyStatus = (Get-MailboxDatabaseCopyStatus -identity ($Database).name)
+    ($copyStatus | Format-List) | Out-File -FilePath "$OutputPath\copyStatus.txt"
+    $copyStatus | Format-Table Name, Status | Out-Host
+    $unhealthyCopies = $copyStatus | Where-Object { $_.Status -ne "Healthy" -and $_.Status -ne "Mounted" }
+    if ($null -ne $unhealthyCopies) {
+        Write-Warning "One of the copies of the selected database is not healthy. Please run backup after ensuring that the database copy is healthy"
+        exit
     }
-    " "
 }

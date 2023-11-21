@@ -42,7 +42,7 @@ function Start-SleepWithProgress {
 
     # Loop Number of seconds you want to sleep
     for ($i = 0; $i -le $SleepTime; $i++) {
-        $timeLeft = ($SleepTime - $i);
+        $timeLeft = ($SleepTime - $i)
 
         # Progress bar showing progress of the sleep
         Write-Progress -Activity $Message -CurrentOperation "$timeLeft More Seconds" -PercentComplete (($i / $SleepTime) * 100) -Status " "

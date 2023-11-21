@@ -847,7 +847,7 @@ try {
         Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -Notice
     }
 
-    $DisableAutoUpdateIfNeeded = "If you are getting this error even with updated EOMT, re-run with -DoNotAutoUpdateEOMT parameter";
+    $DisableAutoUpdateIfNeeded = "If you are getting this error even with updated EOMT, re-run with -DoNotAutoUpdateEOMT parameter"
 
     $Stage = "AutoUpdateEOMT"
     if ($latestEOMTVersion -and ($BuildVersion -ne $latestEOMTVersion)) {

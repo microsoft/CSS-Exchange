@@ -2,14 +2,37 @@
 
 Download the latest release: [VSSTester.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/VSSTester.ps1)
 
-The script is self-explanatory. You can test run DiskShadow on a single Exchange database to ensure backups are working properly (i.e. all the Microsoft components). If the issue only happens with a 3rd-party backup solution, you can utilize operation mode 2 to enable just the logging while you execute a backup with the 3rd-party solution.
+## Usage
 
-![Start Screen](start_screen.PNG)
+### Trace while using a third-party backup solution
+
+`.\VSSTester -TraceOnly -DatabaseName "Mailbox Database 1637196748"`
+
+Enables tracing of the specified database. The user may then attempt a backup of that database
+and use Ctrl-C to stop data collection after the backup attempt completes.
+
+### Trace a snapshot using the DiskShadow tool
+
+`.\VSSTester -DiskShadow -DatabaseName "Mailbox Database 1637196748" -DatabaseDriveLetter M -LogDriveLetter N`
+
+Enables tracing and then uses DiskShadow to snapshot the specified database. If the database and logs
+are on the same drive, the snapshot is exposed as M: drive. If they are on separate drives, the snapshots are
+exposed as M: and N:. The user is prompted to stop data collection and should typically wait until
+log truncation has occurred before doing so, so that the truncation is traced.
+
+### Trace in circular mode until the Microsoft Exchange Writer fails
+
+`.\VSSTester -WaitForWriterFailure -DatabaseName "Mailbox Database 1637196748"`
+
+Enables circular tracing of the specified database, and then polls "vssadmin list writers" once
+per minute. When the writer is no longer present, indicating a failure, tracing is stopped
+automatically.
 
 ## More information
 * https://techcommunity.microsoft.com/t5/exchange-team-blog/troubleshoot-your-exchange-2010-database-backup-functionality/ba-p/594367
 * https://techcommunity.microsoft.com/t5/exchange-team-blog/vsstester-script-updated-8211-troubleshoot-exchange-2013-and/ba-p/610976
 
+Note that script syntax and output has changed. Syntax and screenshots in the above articles are out of date.
 
 ## COM+ Security
 

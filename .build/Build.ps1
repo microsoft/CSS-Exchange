@@ -91,7 +91,7 @@ $unreferencedScriptFiles = @($allScriptFiles | Where-Object {
         }
 
         return $true
-    });
+    })
 
 $unreferencedSharedScriptFiles = @($unreferencedScriptFiles | Where-Object {
         $_.StartsWith("$repoRoot\Shared\")

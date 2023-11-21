@@ -15,6 +15,7 @@ nav:
     - Test-AMSI: Admin/Test-AMSI.md
     - Update-Engines: Admin/Update-Engines.md
   - Calendar:
+    - Check-SharingStatus: Calendar/Check-SharingStatus.md
     - Get-CalendarDiagnosticObjectsSummary: Calendar/Get-CalendarDiagnosticObjectsSummary.md
     - Get-RBASummary: Calendar/Get-RBASummary.md
   - Databases:

@@ -38,7 +38,7 @@ function CheckScriptFileHasBOM {
                     Write-Host "Added BOM: $($FileInfo.FullName)"
                     $false
                 } catch {
-                    Write-Warning "File has no BOM and couldn't be fixed automatically: $($FileInfo.FullName). Exception: $($_.Exception)";
+                    Write-Warning "File has no BOM and couldn't be fixed automatically: $($FileInfo.FullName). Exception: $($_.Exception)"
                     $true
                 }
             } else {

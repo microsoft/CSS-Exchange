@@ -61,8 +61,8 @@ begin {
     Write-Host "Using GC $GCName"
     $ldapConn = New-Object System.DirectoryServices.Protocols.LdapConnection("$($GCName):3268")
     $searchReq = New-Object System.DirectoryServices.Protocols.SearchRequest("", $filter, "Subtree", $null)
-    $prc = New-Object System.DirectoryServices.Protocols.PageResultRequestControl($pageSize);
-    [void]$searchReq.Controls.Add($prc);
+    $prc = New-Object System.DirectoryServices.Protocols.PageResultRequestControl($pageSize)
+    [void]$searchReq.Controls.Add($prc)
 
     $sidProperties = @("objectSid", "sidHistory", "msExchMasterAccountSid")
     $containersToIgnore = @(",CN=WellKnown Security Principals,", ",CN=Builtin,", ",CN=ForeignSecurityPrincipals,")
@@ -99,7 +99,7 @@ process {
 
             $objectsProcessed++
         }
-    } while ($prc.Cookie.Length -gt 0);
+    } while ($prc.Cookie.Length -gt 0)
 }
 
 end {

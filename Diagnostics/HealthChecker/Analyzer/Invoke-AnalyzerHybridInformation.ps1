@@ -298,11 +298,11 @@ function Invoke-AnalyzerHybridInformation {
 
                         switch ($connector.TlsAuthLevel) {
                             "EncryptionOnly" {
-                                $tlsAuthLevelM365RelayWriteType = "Yellow";
+                                $tlsAuthLevelM365RelayWriteType = "Yellow"
                                 break
                             }
                             "CertificateValidation" {
-                                $tlsAuthLevelM365RelayWriteType = "Green";
+                                $tlsAuthLevelM365RelayWriteType = "Green"
                                 break
                             }
                             "DomainValidation" {
@@ -310,7 +310,7 @@ function Invoke-AnalyzerHybridInformation {
                                     $tlsAuthLevelM365RelayWriteType = "Red"
                                 } else {
                                     $tlsAuthLevelM365RelayWriteType = "Green"
-                                };
+                                }
                                 break
                             }
                             default { $tlsAuthLevelM365RelayWriteType = "Red" }
