@@ -1,35 +1,51 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+<#
+.SYNOPSIS
+    Disable ExTRA tracing
+.NOTES
+    This function may be called within a finally block, so it MUST NOT write to the pipeline:
+    https://stackoverflow.com/questions/45104509/powershell-finally-block-skipped-with-ctrl-c
+#>
 function Invoke-DisableExTRATracing {
-    " "
-    Get-Date
-    Write-Host "Disabling ExTRA Tracing..." -ForegroundColor Green $nl
-    Write-Host "--------------------------------------------------------------------------------------------------------------"
-    " "
-    if ($dbMountedOn -eq "$serverName") {
+    [OutputType([System.Void])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]
+        $ServerName,
+
+        [Parameter(Mandatory = $true)]
+        [object]
+        $DatabaseToBackup,
+
+        [Parameter(Mandatory = $true)]
+        [string]
+        $OutputPath
+    )
+    Write-Host "$(Get-Date) Disabling ExTRA Tracing..."
+    $dbMountedOn = $DatabaseToBackup.Server.Name
+    if ($dbMountedOn -eq "$ServerName") {
         #stop active copy
-        Write-Host " "
-        "Stopping Exchange Trace data collector on $serverName..."
-        logman stop vssTester -s $serverName
-        "Deleting Exchange Trace data collector on $serverName..."
-        logman delete vssTester -s $serverName
-        " "
+        Write-Host
+        Write-Host "  Stopping Exchange Trace data collector on $ServerName..."
+        logman stop vssTester -s $ServerName
+        Write-Host "  Deleting Exchange Trace data collector on $ServerName..."
+        logman delete vssTester -s $ServerName
+        Write-Host
     } else {
         #stop passive copy
-        "Stopping Exchange Trace data collector on $serverName..."
-        logman stop vssTester-Passive -s $serverName
-        "Deleting Exchange Trace data collector on $serverName..."
-        logman delete vssTester-Passive -s $serverName
+        Write-Host "  Stopping Exchange Trace data collector on $ServerName..."
+        logman stop vssTester-Passive -s $ServerName
+        Write-Host "  Deleting Exchange Trace data collector on $ServerName..."
+        logman delete vssTester-Passive -s $ServerName
         #stop active copy
-        "Stopping Exchange Trace data collector on $dbMountedOn..."
+        Write-Host "  Stopping Exchange Trace data collector on $dbMountedOn..."
         logman stop vssTester-Active -s $dbMountedOn
-        "Deleting Exchange Trace data collector on $dbMountedOn..."
+        Write-Host "  Deleting Exchange Trace data collector on $dbMountedOn..."
         logman delete vssTester-Active -s $dbMountedOn
-        " "
-        "Moving ETL file from $dbMountedOn to $serverName..."
-        " "
-        $etlPath = $path -replace ":\\", "$\"
+        Write-Host "  Moving ETL file from $dbMountedOn to $serverName..."
+        $etlPath = $OutputPath -replace ":\\", "$\"
         Move-Item "\\$dbMountedOn\$etlPath\vsstester-active_000001.etl" "\\$ServerName\$etlPath\vsstester-active_000001.etl" -Force
     }
 }
