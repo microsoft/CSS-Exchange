@@ -72,7 +72,7 @@ function Get-ExtendedProtectionConfiguration {
                         if ($SiteVDirLocation -eq "$($WebSite[$i])/$virtualDirectory") {
                             Write-Verbose "Set Extended Protection to None because of restriction override '$($WebSite[$i])\$virtualDirectory'"
                             $ExtendedProtection[$i] = "None"
-                            break;
+                            break
                         }
                     }
                 }

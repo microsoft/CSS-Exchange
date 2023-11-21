@@ -180,7 +180,7 @@ function Invoke-ValidateMitigation {
             $progressParams.PercentComplete = ($counter / $totalCount * 100)
             $progressParams.Status = "$baseStatus Validating rules"
             Write-Progress @progressParams
-            $counter ++;
+            $counter ++
 
             Write-Verbose ("Calling Invoke-ScriptBlockHandler on Server {0} with arguments SiteVDirLocations: {1}, ipRangeAllowListRules: {2}" -f $Server, [string]::Join(", ", $SiteVDirLocations), $ipRangeAllowListString)
             $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock $ValidateMitigationScriptBlock -ArgumentList $ScriptBlockArgs

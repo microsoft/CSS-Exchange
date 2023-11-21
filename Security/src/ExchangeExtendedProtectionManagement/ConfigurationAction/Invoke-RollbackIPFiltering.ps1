@@ -159,7 +159,7 @@ function Invoke-RollbackIPFiltering {
             $progressParams.PercentComplete = ($exchangeServersProcessed / $totalExchangeServers * 100)
             $progressParams.Status = "$baseStatus Rolling back rules"
             Write-Progress @progressParams
-            $exchangeServersProcessed++;
+            $exchangeServersProcessed++
 
             Write-Verbose ("Calling Invoke-ScriptBlockHandler on Server {0} with Arguments Site: {1}, VDir: {2}" -f $Server.Name, $Site, $VDir)
             Write-Verbose ("Restoring previous state for Server {0}" -f $Server.Name)

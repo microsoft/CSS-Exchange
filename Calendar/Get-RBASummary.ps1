@@ -38,15 +38,15 @@ function ValidateMailbox {
 
     # check we get a response
     if ($null -eq $script:Mailbox) {
-        Write-Host -ForegroundColor Red "Get-Mailbox returned null. Make sure you Import-Module ExchangeOnlineManagement and  Connect-ExchangeOnline. Exiting script.";
-        exit;
+        Write-Host -ForegroundColor Red "Get-Mailbox returned null. Make sure you Import-Module ExchangeOnlineManagement and  Connect-ExchangeOnline. Exiting script."
+        exit
     } else {
         if ($script:Mailbox.RecipientTypeDetails -ne "RoomMailbox" -and $script:Mailbox.RecipientTypeDetails -ne "EquipmentMailbox") {
-            Write-Host -ForegroundColor Red "The mailbox is not a Room Mailbox / Equipment Mailbox. RBA will only work with these. Exiting script.";
-            exit;
+            Write-Host -ForegroundColor Red "The mailbox is not a Room Mailbox / Equipment Mailbox. RBA will only work with these. Exiting script."
+            exit
         }
         if ($script:Mailbox.ResourceType -eq "Workspace") {
-            $script:Workspace = $true;
+            $script:Workspace = $true
         }
         Write-Host -ForegroundColor Green "The mailbox is valid for RBA will work with."
     }
@@ -59,11 +59,11 @@ function ValidateMailbox {
         Write-Error "Error: Get-Place returned Null for $Identity."
         Write-Host -ForegroundColor Red "Make sure you are running from the correct forest.  Get-Place does not cross forest boundaries."
         Write-Error "Exiting Script."
-        exit;
+        exit
     }
 
-    Write-Host -ForegroundColor Yellow "For more information see https://learn.microsoft.com/en-us/powershell/module/exchange/get-mailbox?view=exchange-ps";
-    Write-Host;
+    Write-Host -ForegroundColor Yellow "For more information see https://learn.microsoft.com/en-us/powershell/module/exchange/get-mailbox?view=exchange-ps"
+    Write-Host
 }
 
 # Validate that there are not delegate rules that will block RBA functionality
@@ -77,7 +77,7 @@ function ValidateInboxRules {
         Write-Host -NoNewline "Rule to look into: "
         Write-Host -ForegroundColor Red "$($rules.Name -like "Delegate Rule*")"
         Write-Host -ForegroundColor Red "Exiting script."
-        exit;
+        exit
     } elseif ($rules.Name -like "REDACTED-*") {
         Write-Host -ForegroundColor Yellow "Warning: No PII Access to MB so cannot check for Delegate Rules."
         Write-Host -ForegroundColor Red " --- Inbox Rules needs to be checked manually for any Delegate Rules. --"
@@ -104,15 +104,15 @@ function GetCalendarProcessing {
         Write-Host -ForegroundColor Red "Get-CalendarProcessing returned null.
                 Make sure you Import-Module ExchangeOnlineManagement
                 and  Connect-ExchangeOnline
-                Exiting script.";
-        exit;
+                Exiting script."
+        exit
     }
 
     $RbaSettings | Format-List
 
     Write-Host -ForegroundColor Yellow "For more information on Set-CalendarProcessing see
-                https://learn.microsoft.com/en-us/powershell/module/exchange/set-calendarprocessing?view=exchange-ps";
-    Write-Host;
+                https://learn.microsoft.com/en-us/powershell/module/exchange/set-calendarprocessing?view=exchange-ps"
+    Write-Host
 }
 
 function EvaluateCalProcessing {
@@ -123,7 +123,7 @@ function EvaluateCalProcessing {
         Write-Host -ForegroundColor Red "Error: AutomateProcessing is set to $($RbaSettings.AutomateProcessing)."
         Write-Host -ForegroundColor Yellow "Use 'Set-CalendarProcessing -Identity $Identity -AutomateProcessing AutoAccept' to set AutomateProcessing to AutoAccept."
         Write-Host -ForegroundColor Red "Exiting script."
-        exit;
+        exit
     } else {
         Write-Host -ForegroundColor Green "AutomateProcessing is set to AutoAccept. RBA will analyze the meeting request."
     }
@@ -146,7 +146,7 @@ function ProcessingLogic {
 function RBACriteria {
     Write-DashLineBoxColor @("Policy Configuration") -Color Cyan -DashChar =
 
-    Write-Host " The following criteria are used to determine if a meeting request is in-policy or out-of-policy. ";
+    Write-Host " The following criteria are used to determine if a meeting request is in-policy or out-of-policy. "
     Write-Host -ForegroundColor Cyan @"
     `t Setting                          Value
     `t ------------------------------  -----------------------------
@@ -164,12 +164,12 @@ function RBACriteria {
     `t MaximumConflictPercentage:      $($RbaSettings.MaximumConflictPercentage)
     `t EnforceSchedulingHorizon:       $($RbaSettings.EnforceSchedulingHorizon)
     `t SchedulingHorizonInDays:        $($RbaSettings.SchedulingHorizonInDays)
-"@;
+"@
     Write-Host -NoNewline "`r`nIf all the above criteria are met, the request is "
     Write-Host -ForegroundColor Yellow -NoNewline "In-Policy."
     Write-Host -NoNewline "`r`nIf any of the above criteria are not met, the request is "
-    Write-Host -ForegroundColor DarkYellow -NoNewline  "Out-of-Policy.";
-    Write-Host;
+    Write-Host -ForegroundColor DarkYellow -NoNewline  "Out-of-Policy."
+    Write-Host
 
     # RBA processing settings Verbose Output
     $RBACriteriaExtra = ""
@@ -227,7 +227,7 @@ function RBACriteria {
         $RBACriteriaExtra += "RBA will reject all External meeting requests.`r`n"
     }
 
-    $RBACriteriaExtra += "Meetings will only be accepted if within $($RbaSettings.BookingWindowInDays) days.`r`n";
+    $RBACriteriaExtra += "Meetings will only be accepted if within $($RbaSettings.BookingWindowInDays) days.`r`n"
 
     Write-Verbose $RBACriteriaExtra
 }
@@ -252,7 +252,7 @@ function RBAProcessingValidation {
         Write-Host "`t AllBookInPolicy:              "$RbaSettings.AllBookInPolicy
         Write-Host "`t RequestInPolicy:               {$($RbaSettings.RequestInPolicy)}"
         Write-Host "`t AllRequestInPolicy:           "$RbaSettings.AllRequestInPolicy
-        Write-Host -ForegroundColor Red "Exiting script.";
+        Write-Host -ForegroundColor Red "Exiting script."
         exit
     }
 }
@@ -471,13 +471,13 @@ function VerbosePostProcessing {
 
 #Add information about RBA logs.
 function RBAPostScript {
-    Write-Host;
+    Write-Host
     Write-Host "If more information is needed about this resource mailbox, please look at the RBA logs to
-        see how the system proceed the meeting request.";
-    Write-Host -ForegroundColor Yellow "`tExport-MailboxDiagnosticLogs $Identity -ComponentName RBA";
-    Write-Host;
+        see how the system proceed the meeting request."
+    Write-Host -ForegroundColor Yellow "`tExport-MailboxDiagnosticLogs $Identity -ComponentName RBA"
+    Write-Host
     Write-Host "`n`rIf you found an error with this script or a misconfigured RBA case that this should cover,
-         send mail to Shanefe@microsoft.com";
+         send mail to Shanefe@microsoft.com"
 }
 
 function RBALogSummary {
@@ -492,7 +492,7 @@ function RBALogSummary {
 
         if ($starts.count -gt 1) {
             $LastDate = ($Starts[0] -Split ",")[0].Trim()
-            $FirstDate = ($starts[$($Starts.count) -1 ] -Split ",")[0].Trim();
+            $FirstDate = ($starts[$($Starts.count) -1 ] -Split ",")[0].Trim()
             Write-Host "The RBA Log for $Identity shows the following:"
             Write-Host "`t $($starts.count) Processed events times between $FirstDate and $LastDate"
         }
@@ -572,7 +572,7 @@ function ValidateRoomListSettings {
     Write-Host -ForegroundColor White "`tTags can be used to list features of this room (i.e. Projector, etc.) so that users can narrow down their search for conference rooms."
 
     Write-Host -ForegroundColor White "`tLearn more at " -NoNewline
-    Write-Host -ForegroundColor Yellow "https://learn.microsoft.com/en-us/outlook/troubleshoot/calendaring/configure-room-finder-rooms-workspaces`n";
+    Write-Host -ForegroundColor Yellow "https://learn.microsoft.com/en-us/outlook/troubleshoot/calendaring/configure-room-finder-rooms-workspaces`n"
 
     if ([string]::IsNullOrEmpty($Place.Localities)) {
         ## validate Localities
@@ -580,7 +580,7 @@ function ValidateRoomListSettings {
         Write-Host -ForegroundColor Yellow "`tWarning: Adding this resource to a Room Lists can take 24 hours to be fully propagated."
     }
 
-    $requiredProperties = @("City", "Floor", "Capacity");
+    $requiredProperties = @("City", "Floor", "Capacity")
 
     foreach ($prop in $requiredProperties) {
         if ([string]::IsNullOrEmpty($script:Place.$prop)) {
@@ -598,8 +598,8 @@ function ValidateRoomListSettings {
         Write-Host -ForegroundColor White "to set the required properties on the resource."
     }
 
-    Write-Host -ForegroundColor White "`r`n`t New Room List commonly populated information:";
-    Write-Host -ForegroundColor White "`t ----------------------------------------- ";
+    Write-Host -ForegroundColor White "`r`n`t New Room List commonly populated information:"
+    Write-Host -ForegroundColor White "`t ----------------------------------------- "
     Write-Host -ForegroundColor White @"
     `t Address Info
     `t Street:              $($script:Place.Street)
@@ -618,7 +618,7 @@ function ValidateRoomListSettings {
     `t To update any of the above information, run 'Set-Place $Identity -<Property> <Value>'.
     `t For more information on this command, see
 "@
-    Write-Host -ForegroundColor Yellow "`t https://learn.microsoft.com/en-us/powershell/module/exchange/set-place?view=exchange-ps";
+    Write-Host -ForegroundColor Yellow "`t https://learn.microsoft.com/en-us/powershell/module/exchange/set-place?view=exchange-ps"
     Write-Host
 }
 

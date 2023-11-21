@@ -761,14 +761,14 @@ function Convert-PerformanceCounterSampleObjectToServerPerformanceObjectWithQuic
                 $counterDataObj.DisplayOptions.FormatDivider = $xmlCounter.DisplayOptions.FormatDivider
                 $counterDataObj.DisplayOptions.FormatString = $xmlCounter.DisplayOptions.FormatString
                 #If we find it, we shouldn't need to loop through any longer and we can break out of the XML loop
-                break;
+                break
             }
         }
 
         #Now we need to quick Analyze the data sets while we are in here.
         # $measured = $counterObj.RawData | Measure-Object -Property CookedValue -Maximum -Minimum -Average   ## Bill Long removed this, checking with him to verify why this change was made.
-        $min = [Int64]::MaxValue;
-        $max = [Int64]::MinValue;
+        $min = [Int64]::MaxValue
+        $max = [Int64]::MinValue
         foreach ($sample in $counterDataObj.RawData) {
             if ($sample.CookedValue -lt $min) { $min = $sample.CookedValue }
             if ($sample.CookedValue -gt $max) { $max = $sample.CookedValue }
@@ -1020,7 +1020,7 @@ function Main {
                     break
                 }
             }
-            break;
+            break
         }
         "SingleFile" {
             if (-not (Test-Path $PerfmonFile)) {
