@@ -254,7 +254,7 @@ Describe "Testing Get-ExchangeAuthCertificateStatus.ps1" {
 
         It "Should Not Return That An Auth Certificate Renewal Action Is Required" {
             $results | Should -Not -BeNullOrEmpty
-            $results.CurrentAuthCertificateLifetimeInDays | Should -Be 0
+            $results.CurrentAuthCertificateLifetimeInDays | Should -Be -1
             $results.ReplaceRequired | Should -Be $false
             $results.ConfigureNextAuthRequired | Should -Be $false
         }

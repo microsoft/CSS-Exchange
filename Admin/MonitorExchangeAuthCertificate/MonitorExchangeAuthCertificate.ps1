@@ -673,8 +673,10 @@ function Main {
             }
             Write-Host ("")
             Write-Host ("Test result: $($renewalActionWording)") -ForegroundColor Cyan
-            if (($authCertStatus.AuthCertificateMissingOnServers.Count -gt 0) -or
-                ($authCertStatus.NextAuthCertificateMissingOnServers.Count -gt 0)) {
+            if ((($authCertStatus.AuthCertificateMissingOnServers.Count -gt 0) -and
+                ($authCertStatus.CurrentAuthCertificateImportRequired)) -or
+                (($authCertStatus.NextAuthCertificateMissingOnServers.Count -gt 0) -and
+                ($authCertStatus.NextAuthCertificateImportRequired))) {
                 Write-Host ("`rThe script will try to import the certificate to the missing servers automatically (as long as it's valid).") -ForegroundColor Cyan
             }
         }
