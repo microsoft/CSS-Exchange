@@ -366,7 +366,7 @@ function RBADelegateSettings {
             $RbaSettings.AllBookInPolicy -ne $true ) {
             Write-Host -ForegroundColor Yellow "Warning: ForwardRequestsToDelegates is true but there are no Delegates."
         } if ($RbaSettings.RequestOutOfPolicy.Count -gt 0) {
-            Write-Host -ForegroundColor Red "Error: RequestOutOfPolicy is set but there are no Delegates.- All Out of policy requests by these users will be Tentatively accepted."
+            Write-Host -ForegroundColor Red "Error: Users are listed in RequestOutOfPolicy but there are no Delegates. - All Out of policy requests by these users will be Tentatively accepted."
         } if ($RbaSettings.AllRequestOutOfPolicy -eq $true) {
             Write-Host -ForegroundColor Red "Error: AllRequestOutOfPolicy is set but there are no Delegates. - All Out of policy requests will be Tentatively accepted."
         }
