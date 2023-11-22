@@ -117,36 +117,40 @@ function Get-ExchangeAuthCertificateStatus {
                 ($IgnoreUnreachableServers))) {
 
                 if ($exchangeServersReachableList.Count -gt $currentAuthCertificateMissingOnServersList.Count) {
-                    $currentAuthCertificateValidInDays = (($currentAuthCertificate.NotAfter) - (Get-Date)).Days
+                    if ($null -ne $currentAuthCertificate.NotAfter) {
+                        $currentAuthCertificateValidInDays = (($currentAuthCertificate.NotAfter) - (Get-Date)).Days
 
-                    if (($currentAuthCertificate.NotAfter).Date -lt (Get-Date)) {
-                        if ($currentAuthCertificateValidInDays -eq 0) {
-                            Write-Verbose ("The current Auth Certificate has expired today")
-                            $currentAuthCertificateValidInDays = -1
-                        } elseif ($currentAuthCertificateValidInDays -ne -738845) {
-                            Write-Verbose ("The current Auth Certificate has already expired {0} days ago" -f [System.Math]::Abs($currentAuthCertificateValidInDays))
+                        if (($currentAuthCertificate.NotAfter).Date -lt (Get-Date)) {
+                            if ($currentAuthCertificateValidInDays -eq 0) {
+                                Write-Verbose ("The current Auth Certificate has expired today")
+                                $currentAuthCertificateValidInDays = -1
+                            } else {
+                                Write-Verbose ("The current Auth Certificate has already expired {0} days ago" -f [System.Math]::Abs($currentAuthCertificateValidInDays))
+                            }
                         } else {
-                            Write-Verbose ("There is no Auth Certificate configured")
+                            Write-Verbose ("The current Auth Certificate is still valid")
                         }
                     } else {
-                        Write-Verbose ("The current Auth Certificate is still valid")
+                        Write-Verbose ("There is no Auth Certificate configured")
                     }
                 }
 
                 if ($exchangeServersReachableList.Count -gt $nextAuthCertificateMissingOnServersList.Count) {
-                    $nextAuthCertificateValidInDays = (($nextAuthCertificate.NotAfter) - (Get-Date)).Days
+                    if ($null -ne $nextAuthCertificate.NotAfter) {
+                        $nextAuthCertificateValidInDays = (($nextAuthCertificate.NotAfter) - (Get-Date)).Days
 
-                    if (($nextAuthCertificate.NotAfter).Date -lt (Get-Date)) {
-                        if ($nextAuthCertificateValidInDays -eq 0) {
-                            Write-Verbose ("The next Auth Certificate has expired today")
-                            $nextAuthCertificateValidInDays = -1
-                        } elseif ($nextAuthCertificateValidInDays -ne -738845) {
-                            Write-Verbose ("The next Auth Certificate has already expired {0} days ago" -f [System.Math]::Abs($nextAuthCertificateValidInDays))
+                        if (($nextAuthCertificate.NotAfter).Date -lt (Get-Date)) {
+                            if ($nextAuthCertificateValidInDays -eq 0) {
+                                Write-Verbose ("The next Auth Certificate has expired today")
+                                $nextAuthCertificateValidInDays = -1
+                            } else {
+                                Write-Verbose ("The next Auth Certificate has already expired {0} days ago" -f [System.Math]::Abs($nextAuthCertificateValidInDays))
+                            }
                         } else {
-                            Write-Verbose ("There is no next Auth Certificate configured")
+                            Write-Verbose ("The next Auth Certificate is still valid")
                         }
                     } else {
-                        Write-Verbose ("The next Auth Certificate is still valid")
+                        Write-Verbose ("There is no next Auth Certificate configured")
                     }
                 }
 
