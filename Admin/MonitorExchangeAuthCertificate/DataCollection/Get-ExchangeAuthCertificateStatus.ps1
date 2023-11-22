@@ -35,8 +35,6 @@ function Get-ExchangeAuthCertificateStatus {
         # Make sure to initialize this with -1 as this is needed to properly run the validation in case that we're unable to query this information
         $currentAuthCertificateValidInDays = -1
         $nextAuthCertificateValidInDays = -1
-        $currentAuthCertificateTimeSpan = $null
-        $nextAuthCertificateTimeSpan = $null
 
         $exchangeServersUnreachableList = New-Object 'System.Collections.Generic.List[string]'
         $exchangeServersReachableList = New-Object 'System.Collections.Generic.List[string]'
@@ -119,22 +117,36 @@ function Get-ExchangeAuthCertificateStatus {
                 ($IgnoreUnreachableServers))) {
 
                 if ($exchangeServersReachableList.Count -gt $currentAuthCertificateMissingOnServersList.Count) {
-                    $currentAuthCertificateTimeSpan = ($currentAuthCertificate.NotAfter) - (Get-Date)
-                    if (($currentAuthCertificateTimeSpan.Days -ge 0) -and
-                        ($currentAuthCertificateTimeSpan.Minutes -gt 1)) {
-                        # Current Auth Certificate is still valid (for at least 1 minute) we still have time to ensure a smooth rotation
-                        Write-Verbose ("The current Auth Certificate is about to expire and must be replaced immediately")
-                        $currentAuthCertificateValidInDays = $currentAuthCertificateTimeSpan.Days
+                    $currentAuthCertificateValidInDays = (($currentAuthCertificate.NotAfter) - (Get-Date)).Days
+
+                    if (($currentAuthCertificate.NotAfter).Date -lt (Get-Date)) {
+                        if ($currentAuthCertificateValidInDays -eq 0) {
+                            Write-Verbose ("The current Auth Certificate has expired today")
+                            $currentAuthCertificateValidInDays = -1
+                        } elseif ($currentAuthCertificateValidInDays -ne -738845) {
+                            Write-Verbose ("The current Auth Certificate has already expired {0} days ago" -f [System.Math]::Abs($currentAuthCertificateValidInDays))
+                        } else {
+                            Write-Verbose ("There is no Auth Certificate configured")
+                        }
+                    } else {
+                        Write-Verbose ("The current Auth Certificate is still valid")
                     }
                 }
 
                 if ($exchangeServersReachableList.Count -gt $nextAuthCertificateMissingOnServersList.Count) {
-                    $nextAuthCertificateTimeSpan = ($nextAuthCertificate.NotAfter) - (Get-Date)
-                    if (($nextAuthCertificateTimeSpan.Days -ge 0) -and
-                        ($nextAuthCertificateTimeSpan.Minutes -gt 1)) {
-                        # Next Auth Certificate is still valid (for at least 1 minute) we still have time to create and assign a new next one
-                        Write-Verbose ("The next Auth Certificate is about to expire and must be replaced immediately")
-                        $nextAuthCertificateValidInDays = $nextAuthCertificateTimeSpan.Days
+                    $nextAuthCertificateValidInDays = (($nextAuthCertificate.NotAfter) - (Get-Date)).Days
+
+                    if (($nextAuthCertificate.NotAfter).Date -lt (Get-Date)) {
+                        if ($nextAuthCertificateValidInDays -eq 0) {
+                            Write-Verbose ("The next Auth Certificate has expired today")
+                            $nextAuthCertificateValidInDays = -1
+                        } elseif ($nextAuthCertificateValidInDays -ne -738845) {
+                            Write-Verbose ("The next Auth Certificate has already expired {0} days ago" -f [System.Math]::Abs($nextAuthCertificateValidInDays))
+                        } else {
+                            Write-Verbose ("There is no next Auth Certificate configured")
+                        }
+                    } else {
+                        Write-Verbose ("The next Auth Certificate is still valid")
                     }
                 }
 
