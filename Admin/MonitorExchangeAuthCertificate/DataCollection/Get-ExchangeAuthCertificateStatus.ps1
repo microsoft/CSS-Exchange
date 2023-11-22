@@ -35,6 +35,8 @@ function Get-ExchangeAuthCertificateStatus {
         # Make sure to initialize this with -1 as this is needed to properly run the validation in case that we're unable to query this information
         $currentAuthCertificateValidInDays = -1
         $nextAuthCertificateValidInDays = -1
+        $currentAuthCertificateTimeSpan = $null
+        $nextAuthCertificateTimeSpan = $null
 
         $exchangeServersUnreachableList = New-Object 'System.Collections.Generic.List[string]'
         $exchangeServersReachableList = New-Object 'System.Collections.Generic.List[string]'
@@ -117,11 +119,23 @@ function Get-ExchangeAuthCertificateStatus {
                 ($IgnoreUnreachableServers))) {
 
                 if ($exchangeServersReachableList.Count -gt $currentAuthCertificateMissingOnServersList.Count) {
-                    $currentAuthCertificateValidInDays = (($currentAuthCertificate.NotAfter) - (Get-Date)).Days
+                    $currentAuthCertificateTimeSpan = ($currentAuthCertificate.NotAfter) - (Get-Date)
+                    if (($currentAuthCertificateTimeSpan.Days -ge 0) -and
+                        ($currentAuthCertificateTimeSpan.Minutes -gt 1)) {
+                        # Current Auth Certificate is still valid (for at least 1 minute) we still have time to ensure a smooth rotation
+                        Write-Verbose ("The current Auth Certificate is about to expire and must be replaced immediately")
+                        $currentAuthCertificateValidInDays = $currentAuthCertificateTimeSpan.Days
+                    }
                 }
 
                 if ($exchangeServersReachableList.Count -gt $nextAuthCertificateMissingOnServersList.Count) {
-                    $nextAuthCertificateValidInDays = (($nextAuthCertificate.NotAfter) - (Get-Date)).Days
+                    $nextAuthCertificateTimeSpan = ($nextAuthCertificate.NotAfter) - (Get-Date)
+                    if (($nextAuthCertificateTimeSpan.Days -ge 0) -and
+                        ($nextAuthCertificateTimeSpan.Minutes -gt 1)) {
+                        # Next Auth Certificate is still valid (for at least 1 minute) we still have time to create and assign a new next one
+                        Write-Verbose ("The next Auth Certificate is about to expire and must be replaced immediately")
+                        $nextAuthCertificateValidInDays = $nextAuthCertificateTimeSpan.Days
+                    }
                 }
 
                 if (($currentAuthCertificateValidInDays -lt 0) -and

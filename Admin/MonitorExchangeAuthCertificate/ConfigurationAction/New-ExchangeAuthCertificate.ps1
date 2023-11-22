@@ -294,7 +294,13 @@ function New-ExchangeAuthCertificate {
                 try {
                     Write-Verbose ("[Required] Step 1: Set certificate: $($newAuthCertificateThumbprint) as the next Auth Certificate")
                     if ($PSCmdlet.ShouldProcess("Certificate: $newAuthCertificateThumbprint Date: $nextAuthCertificateActiveOn", "Set-AuthConfig")) {
-                        Set-AuthConfig -NewCertificateThumbprint $newAuthCertificateThumbprint -NewCertificateEffectiveDate $nextAuthCertificateActiveOn -Force -ErrorAction Stop
+                        $setAuthConfigParams = @{
+                            NewCertificateThumbprint    = $newAuthCertificateThumbprint
+                            NewCertificateEffectiveDate = if ($EnableDaysInFuture -eq 0) { Get-Date } else { $nextAuthCertificateActiveOn }
+                            Force                       = $true
+                            ErrorAction                 = "Stop"
+                        }
+                        Set-AuthConfig @setAuthConfigParams
                     }
 
                     if ($EnableDaysInFuture -eq 0) {
