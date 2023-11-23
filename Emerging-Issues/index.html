@@ -16,7 +16,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.10">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.11">
     
     
       
@@ -3160,6 +3160,12 @@
 </thead>
 <tbody>
 <tr>
+<td>11/23/2023</td>
+<td><a href="https://techcommunity.microsoft.com/t5/exchange-team-blog/released-november-2023-exchange-server-security-updates/ba-p/3980209">November 2023 Security Update</a> for Exchange 2016, Exchange 2019</td>
+<td>Some customers may find queue viewer crashing with error <BR><BR>"Failed to enable constraints. One or more rows contain values violating non-null, unique, or foreign-key constraints"</td>
+<td>The error can occur if the Exchange server auth certificate has expired. Solution is to renew the <a href="https://learn.microsoft.com/exchange/troubleshoot/administration/cannot-access-owa-or-ecp-if-oauth-expired">Exchange server auth certificate manually</a> or by using <a href="https://microsoft.github.io/CSS-Exchange/Admin/MonitorExchangeAuthCertificate/">this script</a></td>
+</tr>
+<tr>
 <td>10/12/2023</td>
 <td><a href="https://techcommunity.microsoft.com/t5/exchange-team-blog/released-august-2023-exchange-server-security-updates/ba-p/3892811">All versions of August 2023 Security Update</a> for Exchange 2016, Exchange 2019</td>
 <td>Users in account forest can't change expired password in OWA in multi-forest Exchange deployments after installing any version of <a href="https://techcommunity.microsoft.com/t5/exchange-team-blog/released-august-2023-exchange-server-security-updates/ba-p/3892811">August 2023 Security Update for Exchange servers</a> <BR><BR><strong>Note</strong><BR> The account forest user will be able to change the password after they sign in to Outlook on the web if their password is not yet expired. The issue affects only account forest users who have passwords that are already expired. This change does not affect users in organizations that don't use multiple forests.</td>
@@ -3393,7 +3399,7 @@
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">October 23, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">November 23, 2023</span>
       
     
   </small>
