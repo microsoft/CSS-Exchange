@@ -34,6 +34,12 @@ AV Modules loaded into Exchange Processes may indicate that AV Process Exclusion
 Will test not just the root folders but all SubFolders.
 Generally should not be needed unless all folders pass without -Recuse but AV is still suspected.
 
+.PARAMETER WaitingTimeForAVAnalysisInMinutes
+Set the waiting time for AV to analyze the EICAR files. Default is 5 minutes.
+
+.PARAMETER OpenLog
+Open the log file after the script finishes.
+
 .PARAMETER SkipVersionCheck
 Skip script version verification.
 
@@ -46,9 +52,6 @@ $env:LOCALAPPDATA\ExchAvExclusions.log
 
 List of Scanned Folders:
 $env:LOCALAPPDATA\BadExclusions.txt
-
-List of Non-Default Processes
-$env:LOCALAPPDATA NonDefaultModules.txt
 
 .EXAMPLE
 .\Test-ExchAVExclusions.ps1
@@ -63,6 +66,9 @@ Puts and Remove an EICAR file in all test paths + all SubFolders.
 #>
 [CmdletBinding(DefaultParameterSetName = 'Test')]
 param (
+
+    [Parameter(ParameterSetName = "Test")]
+    [int]$WaitingTimeForAVAnalysisInMinutes = 5,
 
     [Parameter(ParameterSetName = "Test")]
     [switch]$Recurse,
@@ -82,7 +88,6 @@ param (
 . $PSScriptRoot\..\..\Shared\Get-ExchAVExclusions.ps1
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 . $PSScriptRoot\Write-SimpleLogFile.ps1
-. $PSScriptRoot\Start-SleepWithProgress.ps1
 
 $BuildVersion = ""
 
@@ -285,8 +290,97 @@ foreach ($extension in $extensionsList) {
 
 Write-SimpleLogFile -String "Access EICAR Files Finished" -name $LogFile -OutHost
 
-# Sleeping 5 minutes for AV to "find" the files
-Start-SleepWithProgress -SleepTime 300 -message "Allowing time for AV to Scan"
+$StartDate = Get-Date
+[int]$initialDiff = (New-TimeSpan -End $StartDate.AddMinutes($WaitingTimeForAVAnalysisInMinutes) -Start $StartDate).TotalSeconds
+$currentDiff = $initialDiff
+$firstExecution = $true
+$SuspiciousProcessList = New-Object Collections.Generic.List[string]
+$SuspiciousW3wpProcessList = New-Object Collections.Generic.List[string]
+
+while ($currentDiff -gt 0) {
+    if ($firstExecution) {
+        # Test Exchange Processes for unexpected modules
+        $ProcessList = Get-ExchAVExclusionsProcess -ExchangePath $ExchangePath -MsiProductMinor ([byte]$serverExchangeInstallDirectory.MsiProductMinor)
+
+        # Include w3wp process in the analysis
+        $ProcessList += (Join-Path $env:SystemRoot '\System32\inetSrv\W3wp.exe')
+
+        # Gather all processes on the computer
+        $ServerProcess = Get-Process | Sort-Object -Property ProcessName
+
+        # Module allow list
+        $ModuleAllowList = New-Object Collections.Generic.List[string]
+
+        # cSpell:disable
+        $ModuleAllowList.add("Google.Protobuf.dll")
+        $ModuleAllowList.add("Microsoft.RightsManagementServices.Core.dll")
+        $ModuleAllowList.add("Newtonsoft.Json.dll")
+        $ModuleAllowList.add("Microsoft.Cloud.InstrumentationFramework.Events.dll")
+        $ModuleAllowList.add("HealthServicePerformance.dll")
+        $ModuleAllowList.add("InterceptCounters.dll")
+        $ModuleAllowList.add("MOMConnectorPerformance.dll")
+        $ModuleAllowList.add("ExDbFailureItemApi.dll")
+        $ModuleAllowList.add("Microsoft.Cloud.InstrumentationFramework.Metrics.dll")
+        $ModuleAllowList.add("IfxMetrics.dll")
+        $ModuleAllowList.add("ManagedBlingSigned.dll")
+        $ModuleAllowList.add("l3codecp.acm")
+        $ModuleAllowList.add("System.IdentityModel.Tokens.jwt.dll")
+        # Oracle modules associated with 'Outside In® Technology'
+        $ModuleAllowList.add("wvcore.dll")
+        $ModuleAllowList.add("sccut.dll")
+        $ModuleAllowList.add("sccfut.dll")
+        $ModuleAllowList.add("sccfa.dll")
+        $ModuleAllowList.add("sccfi.dll")
+        $ModuleAllowList.add("sccch.dll")
+        $ModuleAllowList.add("sccda.dll")
+        $ModuleAllowList.add("sccfmt.dll")
+        $ModuleAllowList.add("sccind.dll")
+        $ModuleAllowList.add("sccca.dll")
+        $ModuleAllowList.add("scclo.dll")
+        $ModuleAllowList.add("SCCOLE2.dll")
+        $ModuleAllowList.add("SCCSD.dll")
+        $ModuleAllowList.add("SCCXT.dll")
+        # cSpell:enable
+
+        Write-SimpleLogFile -string ("Allow List Module Count: " + $ModuleAllowList.count) -Name $LogFile
+
+        # Gather each process and work thru their module list to remove any known modules.
+        foreach ($process in $ServerProcess) {
+
+            # Determine if it is a known exchange process
+            if ($ProcessList -contains $process.path ) {
+
+                # Gather all modules
+                [array]$ProcessModules = $process.modules
+
+                # Remove Microsoft modules
+                $ProcessModules = $ProcessModules | Where-Object { $_.FileVersionInfo.CompanyName -ne "Microsoft Corporation." -and $_.FileVersionInfo.CompanyName -ne "Microsoft" -and $_.FileVersionInfo.CompanyName -ne "Microsoft Corporation" }
+
+                # Clear out modules from the allow list
+                foreach ($module in $ModuleAllowList) {
+                    $ProcessModules = $ProcessModules | Where-Object { $_.ModuleName -ne $module -and $_.ModuleName -ne $($module.Replace(".dll", ".ni.dll")) }
+                }
+
+                if ($ProcessModules.count -gt 0) {
+                    foreach ($module in $ProcessModules) {
+                        $OutString = ("PROCESS: $($process.ProcessName) PID($($process.Id)) UNEXPECTED MODULE: $($module.ModuleName) COMPANY: $($module.Company)`n`tPATH: $($module.FileName)")
+                        Write-SimpleLogFile -string "[FAIL] - $OutString" -Name $LogFile -OutHost
+                        if ($process.MainModule.ModuleName -eq "W3wp.exe") {
+                            $SuspiciousW3wpProcessList += $OutString
+                        } else {
+                            $SuspiciousProcessList += $OutString
+                        }
+                    }
+                }
+            }
+        }
+        $firstExecution = $false
+    } else {
+        Start-Sleep -Seconds 1
+        Write-Progress -Activity "Waiting for AV" -CurrentOperation "$currentDiff More Seconds" -PercentComplete ((($initialDiff - $currentDiff) / $initialDiff) * 100) -Status " "
+        [int]$currentDiff = (New-TimeSpan -End $StartDate.AddMinutes($WaitingTimeForAVAnalysisInMinutes) -Start (Get-Date)).TotalSeconds
+    }
+}
 
 # Create a list of folders that are probably being scanned by AV
 $BadFolderList = New-Object Collections.Generic.List[string]
@@ -350,126 +444,44 @@ foreach ($extension in $extensionsList) {
 #Delete Random Folder
 Remove-Item $randomFolder
 
+$OutputPath = Join-Path $env:LOCALAPPDATA BadExclusions.txt
+"###########################################################################################" | Out-File $OutputPath
+"Exclusions analysis at $((Get-Date).ToString())" | Out-File $OutputPath -Append
+"###########################################################################################" | Out-File $OutputPath -Append
+
 # Report what we found
-if ($BadFolderList.count -gt 0 -or $BadExtensionList.Count -gt 0 ) {
-    $OutputPath = Join-Path $env:LOCALAPPDATA BadExclusions.txt
-    $BadFolderList | Out-File $OutputPath
-    $BadExtensionList | Out-File $OutputPath -Append
+if ($BadFolderList.count -gt 0 -or $BadExtensionList.Count -gt 0 -or $SuspiciousProcessList.count -gt 0 -or $SuspiciousW3wpProcessList.count -gt 0) {
 
     Write-SimpleLogFile -String "Possible AV Scanning found" -name $LogFile
     if ($BadFolderList.count -gt 0 ) {
+        "`n[Missing Folder Exclusions]" | Out-File $OutputPath -Append
+        $BadFolderList | Out-File $OutputPath -Append
         Write-Warning ("Found $($BadFolderList.count) of $($FolderList.Count) folders that are possibly being scanned! ")
     }
     if ($BadExtensionList.count -gt 0 ) {
+        "`n[Missing Extension Exclusions]" | Out-File $OutputPath -Append
+        $BadExtensionList | Out-File $OutputPath -Append
         Write-Warning ("Found $($BadExtensionList.count) of $($extensionsList.Count) extensions that are possibly being scanned! ")
+    }
+    if ($SuspiciousProcessList.count -gt 0 ) {
+        "`n[Non-Default Modules Loaded]" | Out-File $OutputPath -Append
+        $SuspiciousProcessList | Out-File $OutputPath -Append
+        Write-Warning ("Found $($SuspiciousProcessList.count) UnExpected modules loaded into Exchange Processes ")
+    }
+    if ($SuspiciousW3wpProcessList.count -gt 0 ) {
+        $SuspiciousW3wpProcessListString = "`n[WARNING] - W3wp.exe is not present in the recommended Exclusion list but we found 3rd Party modules on it and could affect Exchange performance or functionality."
+        $SuspiciousW3wpProcessListString | Out-File $OutputPath -Append
+        Write-Warning $SuspiciousW3wpProcessListString
+        Write-SimpleLogFile -string $SuspiciousW3wpProcessListString -name $LogFile
+        "`n[Non-Default Modules Loaded on W3wp.exe]" | Out-File $OutputPath -Append
+        $SuspiciousW3wpProcessList | Out-File $OutputPath -Append
+        Write-Warning ("Found $($SuspiciousW3wpProcessList.count) UnExpected modules loaded into W3wp.exe ")
     }
     Write-Warning ("Review " + $OutputPath + " For the full list.")
 } else {
-    Write-SimpleLogFile -String "All EICAR files found; File Exclusions appear to be set properly" -Name $LogFile -OutHost
+    $CorrectExclusionsString = "All EICAR files found; File Exclusions, Extensions Exclusions and Processes Exclusions (Did not find Non-Default modules loaded) appear to be set properly"
+    $CorrectExclusionsString | Out-File $OutputPath
+    Write-SimpleLogFile -String $CorrectExclusionsString -Name $LogFile -OutHost
 }
 
 Write-SimpleLogFile -string "Testing for AV loaded in processes" -name $LogFile -OutHost
-
-# Test Exchange Processes for unexpected modules
-$ProcessList = Get-ExchAVExclusionsProcess -ExchangePath $ExchangePath -MsiProductMinor ([byte]$serverExchangeInstallDirectory.MsiProductMinor)
-
-# Include w3wp process in the analysis
-$ProcessList += (Join-Path $env:SystemRoot '\System32\inetSrv\W3wp.exe')
-
-# Gather all processes on the computer
-$ServerProcess = Get-Process | Sort-Object -Property ProcessName
-
-# Module allow list
-$ModuleAllowList = New-Object Collections.Generic.List[string]
-
-# cSpell:disable
-$ModuleAllowList.add("Google.Protobuf.dll")
-$ModuleAllowList.add("Microsoft.RightsManagementServices.Core.dll")
-$ModuleAllowList.add("Newtonsoft.Json.dll")
-$ModuleAllowList.add("Microsoft.Cloud.InstrumentationFramework.Events.dll")
-$ModuleAllowList.add("HealthServicePerformance.dll")
-$ModuleAllowList.add("InterceptCounters.dll")
-$ModuleAllowList.add("MOMConnectorPerformance.dll")
-$ModuleAllowList.add("ExDbFailureItemApi.dll")
-$ModuleAllowList.add("Microsoft.Cloud.InstrumentationFramework.Metrics.dll")
-$ModuleAllowList.add("IfxMetrics.dll")
-$ModuleAllowList.add("ManagedBlingSigned.dll")
-$ModuleAllowList.add("l3codecp.acm")
-$ModuleAllowList.add("System.IdentityModel.Tokens.jwt.dll")
-# Oracle modules associated with 'Outside In® Technology'
-$ModuleAllowList.add("wvcore.dll")
-$ModuleAllowList.add("sccut.dll")
-$ModuleAllowList.add("sccfut.dll")
-$ModuleAllowList.add("sccfa.dll")
-$ModuleAllowList.add("sccfi.dll")
-$ModuleAllowList.add("sccch.dll")
-$ModuleAllowList.add("sccda.dll")
-$ModuleAllowList.add("sccfmt.dll")
-$ModuleAllowList.add("sccind.dll")
-$ModuleAllowList.add("sccca.dll")
-$ModuleAllowList.add("scclo.dll")
-$ModuleAllowList.add("SCCOLE2.dll")
-$ModuleAllowList.add("SCCSD.dll")
-$ModuleAllowList.add("SCCXT.dll")
-# cSpell:enable
-
-Write-SimpleLogFile -string ("Allow List Module Count: " + $ModuleAllowList.count) -Name $LogFile
-
-$UnexpectedModuleFound = 0
-$showWarning = $false
-
-# Gather each process and work thru their module list to remove any known modules.
-foreach ($process in $ServerProcess) {
-
-    # Determine if it is a known exchange process
-    if ($ProcessList -contains $process.path ) {
-
-        # Gather all modules
-        [array]$ProcessModules = $process.modules
-
-        # Remove Microsoft modules
-        $ProcessModules = $ProcessModules | Where-Object { $_.FileVersionInfo.CompanyName -ne "Microsoft Corporation." -and $_.FileVersionInfo.CompanyName -ne "Microsoft" -and $_.FileVersionInfo.CompanyName -ne "Microsoft Corporation" }
-
-        # Generate and output path for an Non-Default modules file:
-        $OutputProcessPath = Join-Path $env:LOCALAPPDATA NonDefaultModules.txt
-
-        # Clear out modules from the allow list
-        foreach ($module in $ModuleAllowList) {
-            $ProcessModules = $ProcessModules | Where-Object { $_.ModuleName -ne $module -and $_.ModuleName -ne $($module.Replace(".dll", ".ni.dll")) }
-        }
-
-        if ($ProcessModules.count -gt 0) {
-            if ($UnexpectedModuleFound -eq 0) {
-                "`n####################################################################################################" | Out-File $OutputProcessPath  -Append
-                "$((Get-Date).ToString())" | Out-File $OutputProcessPath -Append
-                "####################################################################################################" | Out-File $OutputProcessPath -Append
-            }
-            Write-Warning ("Possible AV Modules found in process $($process.ProcessName)")
-            $UnexpectedModuleFound++
-            foreach ($module in $ProcessModules) {
-                if ( $process.MainModule.ModuleName -eq "W3wp.exe" -and $showWarning -eq $false) {
-                    Write-Warning "W3wp.exe is not present in the recommended Exclusion list but we found 3rd Party modules on it and could affect Exchange performance or functionality."
-                    Write-SimpleLogFile -string "W3wp.exe is not present in the recommended Exclusion list but we found 3rd Party modules on it and could affect Exchange performance or functionality." -name $LogFile
-                    $showWarning = $true
-                }
-                $OutString = ("[FAIL] - PROCESS: $($process.ProcessName) PID($($process.Id)) MODULE: $($module.ModuleName) COMPANY: $($module.Company)`n`t $($module.FileName)")
-                Write-SimpleLogFile -string $OutString -Name $LogFile -OutHost
-                $OutString | Out-File $OutputProcessPath -Append
-            }
-        }
-    }
-}
-
-if ($UnexpectedModuleFound -gt 0) {
-    "`n####################################################################################################" | Out-File $OutputProcessPath  -Append
-}
-
-# Final output for process detection
-if ($UnexpectedModuleFound -gt 0) {
-    Write-SimpleLogFile -string ("Found $($UnexpectedModuleFound) processes with unexpected modules loaded") -Name $LogFile -OutHost
-    Write-SimpleLogFile ("AV Modules loaded in Exchange processes may indicate that exclusions are not properly configured.") -Name $LogFile -OutHost
-    Write-SimpleLogFile ("Non AV Modules loaded into Exchange processes may be expected depending on applications installed.") -Name $LogFile -OutHost
-    Write-Warning ("Review " + $OutputProcessPath + " For more information.")
-} else {
-    Write-SimpleLogFile -string ("Did not find any Non-Default modules loaded.") -Name $LogFile -OutHost
-}
