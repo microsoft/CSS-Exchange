@@ -48,10 +48,10 @@ Just update script version to latest one.
 
 .OUTPUTS
 Log file:
-$env:LOCALAPPDATA\ExchAvExclusions.log
+$PSScriptRoot\ExchAvExclusions.log
 
 List of Scanned Folders:
-$env:LOCALAPPDATA\BadExclusions.txt
+$PSScriptRoot\BadExclusions.txt
 
 .EXAMPLE
 .\Test-ExchAVExclusions.ps1
@@ -109,10 +109,10 @@ if ((-not($SkipVersionCheck)) -and
 }
 
 # Log file name
-$LogFile = "ExchAvExclusions.log"
+$LogFileName = "ExchAvExclusions.log"
 
 # Open log file if switched
-if ($OpenLog) { Write-SimpleLogFile -OpenLog -String " " -Name $LogFile }
+if ($OpenLog) { Write-SimpleLogFile -OpenLog -String " " -FileName $LogFileName -Path $PSScriptRoot }
 
 # Confirm that we are an administrator
 if (-not (Confirm-Administrator)) {
@@ -150,10 +150,10 @@ if (-not($exchangeShell.ShellLoaded)) {
     exit
 }
 
-Write-SimpleLogFile -String ("###########################################################################################") -name $LogFile
-Write-SimpleLogFile -String ("Starting AV Exclusions analysis at $((Get-Date).ToString())") -name $LogFile
-Write-SimpleLogFile -String ("###########################################################################################") -name $LogFile
-Write-SimpleLogFile -String ("You can find a detailed log on: $($Env:LocalAppData)\$LogFile") -name $LogFile -OutHost
+Write-SimpleLogFile -String ("###########################################################################################") -FileName $LogFileName -Path $PSScriptRoot
+Write-SimpleLogFile -String ("Starting AV Exclusions analysis at $((Get-Date).ToString())") -FileName $LogFileName -Path $PSScriptRoot
+Write-SimpleLogFile -String ("###########################################################################################") -FileName $LogFileName -Path $PSScriptRoot
+Write-SimpleLogFile -String ("You can find a detailed log on: $LogFileName") -FileName $LogFileName -OutHost -Path $PSScriptRoot
 
 # Create the Array List
 $BaseFolders = Get-ExchAVExclusionsPaths -ExchangePath $ExchangePath -MsiProductMinor ([byte]$serverExchangeInstallDirectory.MsiProductMinor)
@@ -176,13 +176,13 @@ foreach ($path in $BaseFolders) {
             $FolderList.Add($path.ToLower())
             $nonExistentFolder.Add($path.ToLower())
             New-Item -Path (Split-Path $path) -Name $path.split('\')[-1] -ItemType Directory -Force | Out-Null
-            Write-SimpleLogFile -string ("Created folder: " + $path) -Name $LogFile
+            Write-SimpleLogFile -string ("Created folder: " + $path) -FileName $LogFileName -Path $PSScriptRoot
         }
         # Resolve path only returns a bool so we have to manually throw to catch
         if (!(Resolve-Path -Path $path -ErrorAction SilentlyContinue)) {
             $nonExistentFolder.Add($path.ToLower())
             New-Item -Path (Split-Path $path) -Name $path.split('\')[-1] -ItemType Directory -Force | Out-Null
-            Write-SimpleLogFile -string ("Created folder: " + $path) -Name $LogFile
+            Write-SimpleLogFile -string ("Created folder: " + $path) -FileName $LogFileName -Path $PSScriptRoot
         }
 
         # If -recurse then we need to find all SubFolders and Add them to the list to be tested
@@ -196,13 +196,13 @@ foreach ($path in $BaseFolders) {
         }
         # Just Add the root folder
         $FolderList.Add($path.ToLower())
-    } catch { Write-SimpleLogFile -string ("[ERROR] - Failed to resolve folder " + $path) -Name $LogFile }
+    } catch { Write-SimpleLogFile -string ("[ERROR] - Failed to resolve folder " + $path) -FileName $LogFileName -Path $PSScriptRoot }
 }
 
 # Remove any Duplicates
 $FolderList = $FolderList | Select-Object -Unique
 
-Write-SimpleLogFile -String "Creating EICAR Files" -name $LogFile -OutHost
+Write-SimpleLogFile -String "Creating EICAR Files" -FileName $LogFileName -OutHost -Path $PSScriptRoot
 
 # Create the EICAR file in each path
 $eicarFileName = "eicar"
@@ -215,7 +215,7 @@ $eicarFullFileName = "$eicarFileName.$eicarFileExt"
 foreach ($Folder in $FolderList) {
 
     [string] $FilePath = (Join-Path $Folder $eicarFullFileName)
-    Write-SimpleLogFile -String ("Creating $eicarFullFileName file " + $FilePath) -name $LogFile
+    Write-SimpleLogFile -String ("Creating $eicarFullFileName file " + $FilePath) -FileName $LogFileName -Path $PSScriptRoot
 
     if (!(Test-Path -Path $FilePath)) {
 
@@ -230,7 +230,7 @@ foreach ($Folder in $FolderList) {
             Write-Warning "$Folder $eicarFullFileName file couldn't be created. Either permissions or AV prevented file creation."
         }
     } else {
-        Write-SimpleLogFile -string ("[WARNING] - $eicarFullFileName already exists!: " + $FilePath) -name $LogFile -OutHost
+        Write-SimpleLogFile -string ("[WARNING] - $eicarFullFileName already exists!: " + $FilePath) -FileName $LogFileName -OutHost -Path $PSScriptRoot
     }
 }
 
@@ -243,7 +243,7 @@ $extensionsList = Get-ExchAVExclusionsExtensions -MsiProductMinor ([byte]$server
 if ($randomFolder) {
     foreach ($extension in $extensionsList) {
         $filepath = Join-Path $randomFolder "$eicarFileName.$extension"
-        Write-SimpleLogFile -String ("Creating $eicarFileName.$extension file " + $FilePath) -name $LogFile
+        Write-SimpleLogFile -String ("Creating $eicarFileName.$extension file " + $FilePath) -FileName $LogFileName -Path $PSScriptRoot
 
         if (!(Test-Path -Path $FilePath)) {
 
@@ -256,22 +256,22 @@ if ($randomFolder) {
                 Write-Warning "$randomFolder $eicarFileName.$extension file couldn't be created. Either permissions or AV prevented file creation."
             }
         } else {
-            Write-SimpleLogFile -string ("[WARNING] - $randomFolder $eicarFileName.$extension  already exists!: ") -name $LogFile -OutHost
+            Write-SimpleLogFile -string ("[WARNING] - $randomFolder $eicarFileName.$extension  already exists!: ") -FileName $LogFileName -OutHost -Path $PSScriptRoot
         }
     }
 } else {
     Write-Warning "We cannot create a folder in root path to test extension exclusions."
 }
 
-Write-SimpleLogFile -String "EICAR Files Created" -name $LogFile -OutHost
+Write-SimpleLogFile -String "EICAR Files Created" -FileName $LogFileName -OutHost -Path $PSScriptRoot
 
-Write-SimpleLogFile -String "Accessing EICAR Files" -name $LogFile -OutHost
+Write-SimpleLogFile -String "Accessing EICAR Files" -FileName $LogFileName -OutHost -Path $PSScriptRoot
 # Try to open each EICAR file to force detection in paths
 $i = 0
 foreach ($Folder in $FolderList) {
     $FilePath = (Join-Path $Folder $eicarFullFileName)
     if (Test-Path $FilePath -PathType Leaf) {
-        Write-SimpleLogFile -String ("Opening $eicarFullFileName file " + $FilePath) -name $LogFile
+        Write-SimpleLogFile -String ("Opening $eicarFullFileName file " + $FilePath) -FileName $LogFileName -Path $PSScriptRoot
         Start-Process -FilePath more -ArgumentList """$FilePath""" -ErrorAction SilentlyContinue -WindowStyle Hidden | Out-Null
     }
     $i++
@@ -282,13 +282,13 @@ $i = 0
 foreach ($extension in $extensionsList) {
     $FilePath = Join-Path $randomFolder "$eicarFileName.$extension"
     if (Test-Path $FilePath -PathType Leaf) {
-        Write-SimpleLogFile -String ("Opening $eicarFileName.$extension file " + $FilePath) -name $LogFile
+        Write-SimpleLogFile -String ("Opening $eicarFileName.$extension file " + $FilePath) -FileName $LogFileName -Path $PSScriptRoot
         Start-Process -FilePath more -ArgumentList """$FilePath""" -ErrorAction SilentlyContinue -WindowStyle Hidden | Out-Null
     }
     $i++
 }
 
-Write-SimpleLogFile -String "Access EICAR Files Finished" -name $LogFile -OutHost
+Write-SimpleLogFile -String "Access EICAR Files Finished" -FileName $LogFileName -OutHost -Path $PSScriptRoot
 
 $StartDate = Get-Date
 [int]$initialDiff = (New-TimeSpan -End $StartDate.AddMinutes($WaitingTimeForAVAnalysisInMinutes) -Start $StartDate).TotalSeconds
@@ -342,7 +342,7 @@ while ($currentDiff -gt 0) {
         $ModuleAllowList.add("SCCXT.dll")
         # cSpell:enable
 
-        Write-SimpleLogFile -string ("Allow List Module Count: " + $ModuleAllowList.count) -Name $LogFile
+        Write-SimpleLogFile -string ("Allow List Module Count: " + $ModuleAllowList.count) -FileName $LogFileName -Path $PSScriptRoot
 
         # Gather each process and work thru their module list to remove any known modules.
         foreach ($process in $ServerProcess) {
@@ -364,7 +364,7 @@ while ($currentDiff -gt 0) {
                 if ($ProcessModules.count -gt 0) {
                     foreach ($module in $ProcessModules) {
                         $OutString = ("PROCESS: $($process.ProcessName) PID($($process.Id)) UNEXPECTED MODULE: $($module.ModuleName) COMPANY: $($module.Company)`n`tPATH: $($module.FileName)")
-                        Write-SimpleLogFile -string "[FAIL] - $OutString" -Name $LogFile -OutHost
+                        Write-SimpleLogFile -string "[FAIL] - $OutString" -FileName $LogFileName -OutHost -Path $PSScriptRoot
                         if ($process.MainModule.ModuleName -eq "W3wp.exe") {
                             $SuspiciousW3wpProcessList += $OutString
                         } else {
@@ -385,7 +385,7 @@ while ($currentDiff -gt 0) {
 # Create a list of folders that are probably being scanned by AV
 $BadFolderList = New-Object Collections.Generic.List[string]
 
-Write-SimpleLogFile -string "Testing for EICAR files" -name $LogFile -OutHost
+Write-SimpleLogFile -string "Testing for EICAR files" -FileName $LogFileName -OutHost -Path $PSScriptRoot
 
 # Test each location for the EICAR file
 foreach ($Folder in $FolderList) {
@@ -397,22 +397,22 @@ foreach ($Folder in $FolderList) {
         #Get content to confirm that the file is not blocked by AV
         $output = Get-Content $FilePath -ErrorAction SilentlyContinue
         if ($output -eq $eicar) {
-            Write-SimpleLogFile -String ("Removing " + $FilePath) -name $LogFile
+            Write-SimpleLogFile -String ("Removing " + $FilePath) -FileName $LogFileName -Path $PSScriptRoot
             Remove-Item $FilePath -Confirm:$false -Force
         } else {
-            Write-SimpleLogFile -String ("[FAIL] - Possible AV Scanning on Path: " + $Folder) -name $LogFile -OutHost
+            Write-SimpleLogFile -String ("[FAIL] - Possible AV Scanning on Path: " + $Folder) -FileName $LogFileName -OutHost -Path $PSScriptRoot
             $BadFolderList.Add($Folder)
         }
     }
     # If the file doesn't exist Add that to the bad folder list -- means the folder is being scanned
     else {
-        Write-SimpleLogFile -String ("[FAIL] - Possible AV Scanning on Path: " + $Folder) -name $LogFile -OutHost
+        Write-SimpleLogFile -String ("[FAIL] - Possible AV Scanning on Path: " + $Folder) -FileName $LogFileName -OutHost -Path $PSScriptRoot
         $BadFolderList.Add($Folder)
     }
 
     if ($nonExistentFolder -contains $Folder) {
         Remove-Item $Folder -Confirm:$false -Force -Recurse
-        Write-SimpleLogFile -string ("Removed folder: " + $Folder) -Name $LogFile
+        Write-SimpleLogFile -string ("Removed folder: " + $Folder) -FileName $LogFileName -Path $PSScriptRoot
     }
 }
 
@@ -427,16 +427,16 @@ foreach ($extension in $extensionsList) {
         #Get content to confirm that the file is not blocked by AV
         $output = Get-Content $FilePath -ErrorAction SilentlyContinue
         if ($output -eq $eicar) {
-            Write-SimpleLogFile -String ("Removing " + $FilePath) -name $LogFile
+            Write-SimpleLogFile -String ("Removing " + $FilePath) -FileName $LogFileName -Path $PSScriptRoot
             Remove-Item $FilePath -Confirm:$false -Force
         } else {
-            Write-SimpleLogFile -String ("[FAIL] - Possible AV Scanning on Extension: " + $extension) -name $LogFile -OutHost
+            Write-SimpleLogFile -String ("[FAIL] - Possible AV Scanning on Extension: " + $extension) -FileName $LogFileName -OutHost -Path $PSScriptRoot
             $BadExtensionList.Add($extension)
         }
     }
     # If the file doesn't exist Add that to the bad extension list -- means the extension is being scanned
     else {
-        Write-SimpleLogFile -String ("[FAIL] - Possible AV Scanning on Extension: " + $extension) -name $LogFile -OutHost
+        Write-SimpleLogFile -String ("[FAIL] - Possible AV Scanning on Extension: " + $extension) -FileName $LogFileName -OutHost -Path $PSScriptRoot
         $BadExtensionList.Add($extension)
     }
 }
@@ -444,7 +444,7 @@ foreach ($extension in $extensionsList) {
 #Delete Random Folder
 Remove-Item $randomFolder
 
-$OutputPath = Join-Path $env:LOCALAPPDATA BadExclusions.txt
+$OutputPath = Join-Path $PSScriptRoot BadExclusions.txt
 "###########################################################################################" | Out-File $OutputPath
 "Exclusions analysis at $((Get-Date).ToString())" | Out-File $OutputPath -Append
 "###########################################################################################" | Out-File $OutputPath -Append
@@ -452,7 +452,7 @@ $OutputPath = Join-Path $env:LOCALAPPDATA BadExclusions.txt
 # Report what we found
 if ($BadFolderList.count -gt 0 -or $BadExtensionList.Count -gt 0 -or $SuspiciousProcessList.count -gt 0 -or $SuspiciousW3wpProcessList.count -gt 0) {
 
-    Write-SimpleLogFile -String "Possible AV Scanning found" -name $LogFile
+    Write-SimpleLogFile -String "Possible AV Scanning found" -FileName $LogFileName -Path $PSScriptRoot
     if ($BadFolderList.count -gt 0 ) {
         "`n[Missing Folder Exclusions]" | Out-File $OutputPath -Append
         $BadFolderList | Out-File $OutputPath -Append
@@ -472,16 +472,16 @@ if ($BadFolderList.count -gt 0 -or $BadExtensionList.Count -gt 0 -or $Suspicious
         $SuspiciousW3wpProcessListString = "`n[WARNING] - W3wp.exe is not present in the recommended Exclusion list but we found 3rd Party modules on it and could affect Exchange performance or functionality."
         $SuspiciousW3wpProcessListString | Out-File $OutputPath -Append
         Write-Warning $SuspiciousW3wpProcessListString
-        Write-SimpleLogFile -string $SuspiciousW3wpProcessListString -name $LogFile
+        Write-SimpleLogFile -string $SuspiciousW3wpProcessListString -FileName $LogFileName -Path $PSScriptRoot
         "`n[Non-Default Modules Loaded on W3wp.exe]" | Out-File $OutputPath -Append
         $SuspiciousW3wpProcessList | Out-File $OutputPath -Append
         Write-Warning ("Found $($SuspiciousW3wpProcessList.count) UnExpected modules loaded into W3wp.exe ")
     }
     Write-Warning ("Review " + $OutputPath + " For the full list.")
 } else {
-    $CorrectExclusionsString = "All EICAR files found; File Exclusions, Extensions Exclusions and Processes Exclusions (Did not find Non-Default modules loaded) appear to be set properly"
-    $CorrectExclusionsString | Out-File $OutputPath
-    Write-SimpleLogFile -String $CorrectExclusionsString -Name $LogFile -OutHost
+    $CorrectExclusionsString = "`nAll EICAR files found; File Exclusions, Extensions Exclusions and Processes Exclusions (Did not find Non-Default modules loaded) appear to be set properly"
+    $CorrectExclusionsString | Out-File $OutputPath -Append
+    Write-SimpleLogFile -String $CorrectExclusionsString -FileName $LogFileName -OutHost -Path $PSScriptRoot
 }
 
-Write-SimpleLogFile -string "Testing for AV loaded in processes" -name $LogFile -OutHost
+Write-SimpleLogFile -string "Testing for AV loaded in processes" -FileName $LogFileName -OutHost -Path $PSScriptRoot

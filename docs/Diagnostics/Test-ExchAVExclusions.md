@@ -62,10 +62,7 @@ ScriptUpdateOnly | Just update script version to latest one.
 ## Outputs
 
 Log file:
-$env:LOCALAPPDATA\ExchAvExclusions.log
+$PSScriptRoot\ExchAvExclusions.log
 
-List of Folders and extensions Scanned by AV:
-$env:LOCALAPPDATA\BadExclusions.txt
-
-List of Non-Default Processes:
-$env:LOCALAPPDATA\NonDefaultModules.txt
+List of Folders, extensions Scanned by AV and List of Non-Default Processes:
+$PSScriptRoot\BadExclusions.txt
