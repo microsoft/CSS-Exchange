@@ -56,13 +56,12 @@ function Write-SimpleLogFile {
 
         [parameter(Mandatory)]
         [ValidateScript({
-                if (Test-Path -Path $_ -PathType Container) { $true }
+                $filePath = Split-Path -Path $_ -Parent
+                if ($filePath -eq "") { $filePath = "." }
+                if ((Test-Path -Path $filePath -PathType Container) -and ((Test-Path -Path $_ -PathType Leaf) -or -not ((Test-Path -Path $_ -PathType Container)))) { $true }
                 else { throw "Path $_ is not valid" }
             })]
-        [String]$Path,
-
-        [Parameter(Mandatory = $true)]
-        [string]$FileName,
+        [string]$LogFile,
 
         [switch]$OutHost,
 
@@ -71,9 +70,6 @@ function Write-SimpleLogFile {
     )
 
     begin {
-        # Get our log file path
-        $LogFile = Join-Path $Path $FileName
-
         if ($OpenLog) {
             Notepad.exe $LogFile
             exit
