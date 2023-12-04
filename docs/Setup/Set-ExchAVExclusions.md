@@ -71,4 +71,4 @@ Exclusions List File:
 `FileName`
 
 Log file:
-$env:LOCALAPPDATA\SetExchAvExclusions.log
+$PSScriptRoot\SetExchAvExclusions.log
