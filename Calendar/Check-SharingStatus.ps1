@@ -404,7 +404,7 @@ function GetReceiverInformation {
     ProcessCalendarSharingAcceptLogs -Identity $Receiver
     ProcessInternetCalendarLogs -Identity $Receiver
 
-    if (($script:SharingType -like "InternalSharing") -or 
+    if (($script:SharingType -like "InternalSharing") -or
     ($script:SharingType -like "ExternalSharing")) {
         # Validate Modern Sharing Status
         if (Get-Command -Name Get-CalendarEntries -ErrorAction SilentlyContinue) {
@@ -419,12 +419,12 @@ function GetReceiverInformation {
 
             Write-Host -ForegroundColor Cyan "`r`r`r------------------------------------------------"
             Write-Host "New Model Calendar Sharing Entries:"
-            $ReceiverCalEntries | Where-Object SharingModelType -like New | Format-Table CalendarGroupName, CalendarName, OwnerEmailAddress, SharingModelType, IsOrphanedEntry
+            $ReceiverCalEntries | Where-Object SharingModelType -Like New | Format-Table CalendarGroupName, CalendarName, OwnerEmailAddress, SharingModelType, IsOrphanedEntry
 
             Write-Host -ForegroundColor Cyan "`r`r`r------------------------------------------------"
             Write-Host "Old Model Calendar Sharing Entries:"
             Write-Host "Consider upgrading these to the new model."
-            $ReceiverCalEntries | Where-Object SharingModelType -like Old |Format-Table CalendarGroupName, CalendarName, OwnerEmailAddress, SharingModelType, IsOrphanedEntry
+            $ReceiverCalEntries | Where-Object SharingModelType -Like Old | Format-Table CalendarGroupName, CalendarName, OwnerEmailAddress, SharingModelType, IsOrphanedEntry
 
             # need to check if Get-CalendarValidationResult in the PS Workspace
             if ((Get-Command -Name Get-CalendarValidationResult -ErrorAction SilentlyContinue) -and
