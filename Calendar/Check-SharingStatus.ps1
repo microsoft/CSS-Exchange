@@ -194,6 +194,7 @@ function ProcessInternetCalendarLogs {
 
     # Define the header row
     $header = "Timestamp", "Mailbox", "SyncDetails", "PublishingUrl", "RemoteFolderName", "LocalFolderId", "Folder"
+
     $csvString = @()
     $csvString = $header -join ","
     $csvString += "`n"
@@ -217,6 +218,7 @@ function ProcessInternetCalendarLogs {
     }
 
     $logLines =@()
+
     # Split the output into an array of lines
     $logLines = $logOutput.MailboxLog -split "`r`n"
 
@@ -318,6 +320,7 @@ function GetOwnerInformation {
 
     Write-Host -ForegroundColor DarkYellow "Owner Calendar Folder Information:"
     Write-Host -ForegroundColor DarkYellow "`t Running 'Get-MailboxCalendarFolder "${Owner}:\$OwnerCalendarName"'"
+
     $OwnerCalendarFolder = Get-MailboxCalendarFolder "${Owner}:\$OwnerCalendarName"
     if ($OwnerCalendarFolder.PublishEnabled) {
         Write-Host -ForegroundColor Green "Owner Calendar is Published."
@@ -401,7 +404,7 @@ function GetReceiverInformation {
     ProcessCalendarSharingAcceptLogs -Identity $Receiver
     ProcessInternetCalendarLogs -Identity $Receiver
 
-    if (($script:SharingType -like "InternalSharing") -or
+    if (($script:SharingType -like "InternalSharing") -or 
     ($script:SharingType -like "ExternalSharing")) {
         # Validate Modern Sharing Status
         if (Get-Command -Name Get-CalendarEntries -ErrorAction SilentlyContinue) {
@@ -416,12 +419,12 @@ function GetReceiverInformation {
 
             Write-Host -ForegroundColor Cyan "`r`r`r------------------------------------------------"
             Write-Host "New Model Calendar Sharing Entries:"
-            $ReceiverCalEntries | Where-Object SharingModelType -Like New | Format-Table CalendarGroupName, CalendarName, OwnerEmailAddress, SharingModelType, IsOrphanedEntry
+            $ReceiverCalEntries | Where-Object SharingModelType -like New | Format-Table CalendarGroupName, CalendarName, OwnerEmailAddress, SharingModelType, IsOrphanedEntry
 
             Write-Host -ForegroundColor Cyan "`r`r`r------------------------------------------------"
             Write-Host "Old Model Calendar Sharing Entries:"
             Write-Host "Consider upgrading these to the new model."
-            $ReceiverCalEntries |  Where-Object SharingModelType -Like Old | Format-Table CalendarGroupName, CalendarName, OwnerEmailAddress, SharingModelType, IsOrphanedEntry
+            $ReceiverCalEntries | Where-Object SharingModelType -like Old |Format-Table CalendarGroupName, CalendarName, OwnerEmailAddress, SharingModelType, IsOrphanedEntry
 
             # need to check if Get-CalendarValidationResult in the PS Workspace
             if ((Get-Command -Name Get-CalendarValidationResult -ErrorAction SilentlyContinue) -and
