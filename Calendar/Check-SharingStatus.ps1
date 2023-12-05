@@ -401,46 +401,51 @@ function GetReceiverInformation {
     ProcessCalendarSharingAcceptLogs -Identity $Receiver
     ProcessInternetCalendarLogs -Identity $Receiver
 
-    if (Get-Command -Name Get-CalendarEntries -ErrorAction SilentlyContinue) {
-        Write-Verbose "Found Get-CalendarEntries cmdlet. Running cmdlet: Get-CalendarEntries -Identity $Receiver"
-        # ToDo: Check each value for proper sharing permissions (i.e.  $X.CalendarSharingPermissionLevel -eq "ReadWrite" )
-        $ReceiverCalEntries = Get-CalendarEntries -Identity $Receiver
-        # Write-Host "CalendarGroupName : $($ReceiverCalEntries.CalendarGroupName)"
-        # Write-Host "CalendarName : $($ReceiverCalEntries.CalendarName)"
-        # Write-Host "OwnerEmailAddress : $($ReceiverCalEntries.OwnerEmailAddress)"
-        # Write-Host "SharingModelType: $($ReceiverCalEntries.SharingModelType)"
-        # Write-Host "IsOrphanedEntry: $($ReceiverCalEntries.IsOrphanedEntry)"
+    if (($script:SharingType -like "InternalSharing") -or 
+    ($script:SharingType -like "ExternalSharing")) {
+        # Validate Modern Sharing Status
+        if (Get-Command -Name Get-CalendarEntries -ErrorAction SilentlyContinue) {
+            Write-Verbose "Found Get-CalendarEntries cmdlet. Running cmdlet: Get-CalendarEntries -Identity $Receiver"
+            # ToDo: Check each value for proper sharing permissions (i.e.  $X.CalendarSharingPermissionLevel -eq "ReadWrite" )
+            $ReceiverCalEntries = Get-CalendarEntries -Identity $Receiver
+            # Write-Host "CalendarGroupName : $($ReceiverCalEntries.CalendarGroupName)"
+            # Write-Host "CalendarName : $($ReceiverCalEntries.CalendarName)"
+            # Write-Host "OwnerEmailAddress : $($ReceiverCalEntries.OwnerEmailAddress)"
+            # Write-Host "SharingModelType: $($ReceiverCalEntries.SharingModelType)"
+            # Write-Host "IsOrphanedEntry: $($ReceiverCalEntries.IsOrphanedEntry)"
 
-        Write-Host -ForegroundColor Cyan "`r`r`r------------------------------------------------"
-        Write-Host "New Model Calendar Sharing Entries:"
-        $ReceiverCalEntries | Where-Object SharingModelType -like New | Format-Table CalendarGroupName, CalendarName, OwnerEmailAddress, SharingModelType, IsOrphanedEntry
+            Write-Host -ForegroundColor Cyan "`r`r`r------------------------------------------------"
+            Write-Host "New Model Calendar Sharing Entries:"
+            $ReceiverCalEntries | Where-Object SharingModelType -like New | Format-Table CalendarGroupName, CalendarName, OwnerEmailAddress, SharingModelType, IsOrphanedEntry
 
-        Write-Host -ForegroundColor Cyan "`r`r`r------------------------------------------------"
-        Write-Host "Old Model Calendar Sharing Entries:"
-        Write-Host "Consider upgrading these to the new model."
-        $ReceiverCalEntries |  Where-Object SharingModelType -like Old |Format-Table CalendarGroupName, CalendarName, OwnerEmailAddress, SharingModelType, IsOrphanedEntry
+            Write-Host -ForegroundColor Cyan "`r`r`r------------------------------------------------"
+            Write-Host "Old Model Calendar Sharing Entries:"
+            Write-Host "Consider upgrading these to the new model."
+            $ReceiverCalEntries |  Where-Object SharingModelType -like Old |Format-Table CalendarGroupName, CalendarName, OwnerEmailAddress, SharingModelType, IsOrphanedEntry
 
-        # need to check if Get-CalendarValidationResult in the PS Workspace
-        if ((Get-Command -Name Get-CalendarValidationResult -ErrorAction SilentlyContinue) -and
-            $null -ne $ReceiverCalEntries) {
-            Write-Host "Running cmdlet: Get-CalendarValidationResult -Version V2 -Identity $Receiver -SourceCalendarId $($ReceiverCalEntries[0].LocalFolderId) -TargetUserId $Owner -IncludeAnalysis 1 -OnlyReportErrors 1"
-            $ewsId_del= $ReceiverCalEntries[0].LocalFolderId
-            Get-CalendarValidationResult -Version V2 -Identity $Receiver -SourceCalendarId $ewsId_del -TargetUserId $Owner -IncludeAnalysis 1 -OnlyReportErrors 1
+            # need to check if Get-CalendarValidationResult in the PS Workspace
+            if ((Get-Command -Name Get-CalendarValidationResult -ErrorAction SilentlyContinue) -and
+                $null -ne $ReceiverCalEntries) {
+                Write-Host "Running cmdlet: Get-CalendarValidationResult -Version V2 -Identity $Receiver -SourceCalendarId $($ReceiverCalEntries[0].LocalFolderId) -TargetUserId $Owner -IncludeAnalysis 1 -OnlyReportErrors 1"
+                $ewsId_del= $ReceiverCalEntries[0].LocalFolderId
+                Get-CalendarValidationResult -Version V2 -Identity $Receiver -SourceCalendarId $ewsId_del -TargetUserId $Owner -IncludeAnalysis 1 -OnlyReportErrors 1
+            }
         }
-    }
 
-    if (($script:PIIAccess) -and (-not ([string]::IsNullOrEmpty($script:OwnerMB)))) {
-        Write-Host "Checking for Owner copy Calendar in Receiver Calendar:"
-        Write-Host "Running cmdlet:"
-        Write-Host -NoNewline -ForegroundColor Yellow "Get-MailboxCalendarFolder -Identity ${Receiver}:\$ReceiverCalendarName\$($script:OwnerMB.DisplayName)"
-        try {
-            Get-MailboxCalendarFolder -Identity "${Receiver}:\$ReceiverCalendarName\$($script:OwnerMB.DisplayName)" | Format-List Identity, CreationTime, ExtendedFolderFlags, ExtendedFolderFlags2, CalendarSharingFolderFlags, CalendarSharingOwnerSmtpAddress, CalendarSharingPermissionLevel, SharingLevelOfDetails, SharingPermissionFlags, LastAttemptedSyncTime, LastSuccessfulSyncTime, SharedCalendarSyncStartDate
-        } catch {
-            Write-Error "Failed to get the Owner Calendar from the Receiver Mailbox.  This is fine if not using Modern Sharing."
+        #Output key Modern Sharing information
+        if (($script:PIIAccess) -and (-not ([string]::IsNullOrEmpty($script:OwnerMB)))) {
+            Write-Host "Checking for Owner copy Calendar in Receiver Calendar:"
+            Write-Host "Running cmdlet:"
+            Write-Host -NoNewline -ForegroundColor Yellow "Get-MailboxCalendarFolder -Identity ${Receiver}:\$ReceiverCalendarName\$($script:OwnerMB.DisplayName)"
+            try {
+                Get-MailboxCalendarFolder -Identity "${Receiver}:\$ReceiverCalendarName\$($script:OwnerMB.DisplayName)" | Format-List Identity, CreationTime, ExtendedFolderFlags, ExtendedFolderFlags2, CalendarSharingFolderFlags, CalendarSharingOwnerSmtpAddress, CalendarSharingPermissionLevel, SharingLevelOfDetails, SharingPermissionFlags, LastAttemptedSyncTime, LastSuccessfulSyncTime, SharedCalendarSyncStartDate
+            } catch {
+                Write-Error "Failed to get the Owner Calendar from the Receiver Mailbox.  This is fine if not using Modern Sharing."
+            }
+        } else {
+            Write-Host "Do Not have PII information for the Owner, so can not check the Receivers Copy of the Owner Calendar."
+            Write-Host "Get PII Access for both mailboxes and try again."
         }
-    } else {
-        Write-Host "Do Not have PII information for the Owner, so can not check the Receivers Copy of the Owner Calendar."
-        Write-Host "Get PII Access for both mailboxes and try again."
     }
 }
 
