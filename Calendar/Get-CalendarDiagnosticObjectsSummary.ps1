@@ -554,14 +554,16 @@ function CreateShortClientName {
             $ShortClientName = "[Unknown Rest Client]"
         }
         #    Client=WebServices;Mozilla/5.0 (ZoomPresence.Android 8.1.0 x86);
-    } elseif ($ClientInfoString -like "Client=WebServices*") {
+    } else {
+        $ShortClientName = findMatch -PassedHash $ShortClientNameProcessor
+    }
+
+    if ($ShortClientName -eq "" -And $ClientInfoString -like "Client=WebServices*") {
         if ($ClientInfoString -like "*ZoomPresence*") {
             $ShortClientName = "ZoomPresence"
         } else {
-            $ShortClientName = "EWS App"
+            $ShortClientName = "Unknown EWS App"
         }
-    } else {
-        $ShortClientName = findMatch -PassedHash $ShortClientNameProcessor
     }
 
     if ($ClientInfoString -like "*InternalCalendarSharing*" -and $ClientInfoString -like "*OWA*") {
