@@ -13,7 +13,7 @@
     Enables tracing of the specified database. The user may then attempt a backup of that database
     and use Ctrl-C to stop data collection after the backup attempt completes.
 .EXAMPLE
-    .\VSSTester -DiskShadow -DatabaseName "Mailbox Database 1637196748" -DatabaseDriveLetter M -LogDriveLetter N
+    .\VSSTester -DiskShadow -DatabaseName "Mailbox Database 1637196748" -ExposeSnapshotsOnDriveLetters M, N
     Enables tracing and then uses DiskShadow to snapshot the specified database. If the database and logs
     are on the same drive, the snapshot is exposed as M: drive. If they are on separate drives, the snapshots are
     exposed as M: and N:. The user is prompted to stop data collection and should typically wait until
@@ -32,7 +32,8 @@ param(
     $TraceOnly,
 
     # Enable tracing and perform a database snapshot with DiskShadow.
-    [Parameter(Mandatory = $true, ParameterSetName = "DiskShadow")]
+    [Parameter(Mandatory = $true, ParameterSetName = "DiskShadowByDatabase")]
+    [Parameter(Mandatory = $true, ParameterSetName = "DiskShadowByVolume")]
     [switch]
     $DiskShadow,
 
@@ -41,35 +42,51 @@ param(
     [switch]
     $WaitForWriterFailure,
 
-    # Name of the database to focus tracing on.
+    # Name of the database to focus tracing on and/or snapshot.
     [Parameter(Mandatory = $true, ParameterSetName = "TraceOnly")]
-    [Parameter(Mandatory = $true, ParameterSetName = "DiskShadow")]
+    [Parameter(Mandatory = $true, ParameterSetName = "DiskShadowByDatabase")]
     [Parameter(Mandatory = $true, ParameterSetName = "WaitForWriterFailure")]
     [string]
     $DatabaseName,
 
-    # Drive letter on which to expose the database snapshot.
-    [Parameter(Mandatory = $true, ParameterSetName = "DiskShadow")]
-    [ValidateLength(1, 1)]
-    [string]
-    $DatabaseDriveLetter,
+    # Names of the volumes to snapshot.
+    [Parameter(Mandatory = $true, ParameterSetName = "DiskShadowByVolume")]
+    [ValidateCount(1, 2)]
+    [ValidateScript({
+            $validVolumeNames = @((Get-CimInstance -Query "select name, DeviceId from win32_volume where DriveType=3" |
+                        Where-Object { $_.Name -match "^\w:" }).Name)
+            if ($validVolumeNames -contains $_) {
+                $true
+            } else {
+                throw "Invalid volume specified. Please specify one of the following values:`n$([string]::Join("`n", $validVolumeNames))"
+            }
+        })]
+    [string[]]
+    $VolumesToBackup,
 
-    # Drive letter on which to expose the log snapshot. Only used when the log volume
-    # is different than the database volume.
-    [Parameter(Mandatory = $true, ParameterSetName = "DiskShadow")]
+    # Drive letters on which to expose the snapshots.
+    [Parameter(Mandatory = $true, ParameterSetName = "DiskShadowByDatabase")]
+    [Parameter(Mandatory = $true, ParameterSetName = "DiskShadowByVolume")]
     [ValidateLength(1, 1)]
-    [string]
-    $LogDriveLetter,
+    [ValidateCount(1, 2)]
+    [string[]]
+    $ExposeSnapshotsOnDriveLetters,
 
     # Path in which to put the collected traces. A subfolder named with the time of
     # the data collection is created in this path, and all files are put in that subfolder.
     # Defaults to the folder the script is in.
     [Parameter(Mandatory = $false, ParameterSetName = "TraceOnly")]
-    [Parameter(Mandatory = $false, ParameterSetName = "DiskShadow")]
+    [Parameter(Mandatory = $false, ParameterSetName = "DiskShadowByDatabase")]
+    [Parameter(Mandatory = $false, ParameterSetName = "DiskShadowByVolume")]
     [Parameter(Mandatory = $false, ParameterSetName = "WaitForWriterFailure")]
     [string]
     $LoggingPath = $PSScriptRoot
 )
+
+if ($VolumesToBackup -and ($VolumesToBackup.Count -ne $ExposeSnapshotsOnDriveLetters.Count)) {
+    Write-Host "The count of VolumesToBackup must match the count of ExposeSnapshotsOnDriveLetters."
+    exit
+}
 
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Get-ScriptUpdateAvailable.ps1
 . $PSScriptRoot\..\..\Shared\Confirm-ExchangeShell.ps1
@@ -130,32 +147,43 @@ try {
 
     Get-ExchangeVersion -ServerName $serverName
     Get-VSSWritersBefore -OutputPath $LoggingPath
-    $databases = Get-Databases -ServerName $serverName
-    $dbForBackup = $databases | Where-Object { $_.Name -eq $DatabaseName }
-    if ($null -eq $dbForBackup) {
-        Write-Warning "The specified database $DatabaseName does not exist on this server. Please enter a valid database name."
-        exit
+
+    if ($DatabaseName) {
+        $databases = Get-Databases -ServerName $serverName
+        $dbForBackup = $databases | Where-Object { $_.Name -eq $DatabaseName }
+        if ($null -eq $dbForBackup) {
+            Write-Warning "The specified database $DatabaseName does not exist on this server. Please enter a valid database name."
+            exit
+        }
+
+        Get-CopyStatus -ServerName $serverName -Database $dbForBackup -OutputPath $LoggingPath
     }
 
-    Get-CopyStatus -ServerName $serverName -Database $dbForBackup -OutputPath $LoggingPath
-
     if ($DiskShadow) {
-        $p = @{
-            OutputPath          = $LoggingPath
-            ServerName          = $serverName
-            Databases           = $databases
-            DatabaseToBackup    = $dbForBackup
-            DatabaseDriveLetter = $DatabaseDriveLetter
-            LogDriveLetter      = $LogDriveLetter
+        if ($DatabaseName) {
+            $p = @{
+                OutputPath       = $LoggingPath
+                ServerName       = $serverName
+                Databases        = $databases
+                DatabaseToBackup = $dbForBackup
+                DriveLetters     = $ExposeSnapshotsOnDriveLetters
+            }
+        } else {
+            $p = @{
+                OutputPath      = $LoggingPath
+                ServerName      = $serverName
+                VolumesToBackup = $VolumesToBackup
+                DriveLetters    = $ExposeSnapshotsOnDriveLetters
+            }
         }
-        Write-Host "$p"
+        $p | Out-Host
         $exposedDrives = Invoke-CreateDiskShadowFile @p
     }
 
     Invoke-EnableDiagnosticsLogging
     Invoke-EnableVSSTracing -OutputPath $LoggingPath -Circular $WaitForWriterFailure
     Invoke-CreateExTRATracingConfig
-    Invoke-EnableExTRATracing -ServerName $serverName -Database $dbForBackup -OutputPath $LoggingPath -Circular $WaitForWriterFailure
+    Invoke-EnableExTRATracing -ServerName $serverName -DatabaseToBackup $dbForBackup -OutputPath $LoggingPath -Circular $WaitForWriterFailure
 
     $collectEventLogs = $false
 
@@ -164,7 +192,7 @@ try {
             # Always collect event logs for this scenario
             $collectEventLogs = $true
 
-            Invoke-DiskShadow -OutputPath $LoggingPath -DatabaseToBackup $dbForBackup
+            Invoke-DiskShadow -OutputPath $LoggingPath
             Invoke-RemoveExposedDrives -OutputPath $LoggingPath -ExposedDrives $exposedDrives
         } elseif ($TraceOnly) {
             # Always collect event logs for this scenario

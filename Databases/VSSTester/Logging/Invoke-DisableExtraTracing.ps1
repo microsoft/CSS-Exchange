@@ -15,7 +15,7 @@ function Invoke-DisableExTRATracing {
         [string]
         $ServerName,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [object]
         $DatabaseToBackup,
 
@@ -24,9 +24,8 @@ function Invoke-DisableExTRATracing {
         $OutputPath
     )
     Write-Host "$(Get-Date) Disabling ExTRA Tracing..."
-    $dbMountedOn = $DatabaseToBackup.Server.Name
-    if ($dbMountedOn -eq "$ServerName") {
-        #stop active copy
+    $traceLocalServerOnly = $null -eq $DatabaseToBackup -or $DatabaseToBackup.Server.Name -eq $ServerName
+    if ($traceLocalServerOnly) {
         Write-Host
         Write-Host "  Stopping Exchange Trace data collector on $ServerName..."
         logman stop vssTester -s $ServerName
@@ -35,6 +34,7 @@ function Invoke-DisableExTRATracing {
         Write-Host
     } else {
         #stop passive copy
+        $dbMountedOn = $DatabaseToBackup.Server.Name
         Write-Host "  Stopping Exchange Trace data collector on $ServerName..."
         logman stop vssTester-Passive -s $ServerName
         Write-Host "  Deleting Exchange Trace data collector on $ServerName..."

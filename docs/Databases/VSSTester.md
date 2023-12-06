@@ -13,12 +13,20 @@ and use Ctrl-C to stop data collection after the backup attempt completes.
 
 ### Trace a snapshot using the DiskShadow tool
 
-`.\VSSTester -DiskShadow -DatabaseName "Mailbox Database 1637196748" -DatabaseDriveLetter M -LogDriveLetter N`
+`.\VSSTester -DiskShadow -DatabaseName "Mailbox Database 1637196748" -ExposeSnapshotsOnDriveLetters M, N`
 
 Enables tracing and then uses DiskShadow to snapshot the specified database. If the database and logs
 are on the same drive, the snapshot is exposed as M: drive. If they are on separate drives, the snapshots are
 exposed as M: and N:. The user is prompted to stop data collection and should typically wait until
 log truncation has occurred before doing so, so that the truncation is traced.
+
+### Trace a snapshot using the DiskShadow tool by volume instead of by Database
+
+`.\VSSTester -DiskShadow -VolumesToBackup D:\, E:\ -ExposeSnapshotsOnDriveLetters M, N`
+
+Enables tracing and then uses DiskShadow to snapshot the specified volumes. To see a list of available
+volumes, including mount points, pass an invalid volume name, such as `-VolumesToBackup foo`. The error
+will show the available volumes. Volume names must be typed exactly as shown in that output.
 
 ### Trace in circular mode until the Microsoft Exchange Writer fails
 
