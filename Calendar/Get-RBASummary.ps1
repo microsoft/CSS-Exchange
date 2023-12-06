@@ -502,6 +502,8 @@ function RBALogSummary {
 
     if ($RBALog.count -gt 1) {
         $Starts = $RBALog | Select-String -Pattern "START -"
+        $FirstDate = "[Unknown]"
+        $LastDate = "[Unknown]"
 
         if ($starts.count -gt 1) {
             $LastDate = ($Starts[0] -Split ",")[0].Trim()
