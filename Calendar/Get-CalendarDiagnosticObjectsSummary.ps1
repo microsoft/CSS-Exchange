@@ -90,6 +90,7 @@ $script:CalendarItemTypes = @{
     'IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}' = "ExceptionMsgClass"
     'IPM.Schedule.Meeting.Notification.Forward'            = "ForwardNotification"
     'IPM.Appointment'                                      = "IpmAppointment"
+    'IPM.Appointment.MP'                                   = "IpmAppointment"
     'IPM.Schedule.Meeting.Request'                         = "MeetingRequest"
     'IPM.CalendarSharing.EventUpdate'                      = "SharingCFM"
     'IPM.CalendarSharing.EventDelete'                      = "SharingDelete"
@@ -552,6 +553,13 @@ function CreateShortClientName {
         } else {
             $ShortClientName = "[Unknown Rest Client]"
         }
+        #    Client=WebServices;Mozilla/5.0 (ZoomPresence.Android 8.1.0 x86);
+    } elseif ($ClientInfoString -like "Client=WebServices*") {
+        if ($ClientInfoString -like "*ZoomPresence*") {
+            $ShortClientName = "ZoomPresence"
+        } else {
+            $ShortClientName = "EWS App"
+        }
     } else {
         $ShortClientName = findMatch -PassedHash $ShortClientNameProcessor
     }
@@ -567,6 +575,10 @@ function CreateShortClientName {
     }
     if ($ClientInfoString -like "Client=ActiveSync*" -and $ClientInfoString -like "*Outlook*") {
         $ShortClientName = "Outlook-ModernCalendarSharing"
+    }
+
+    if ($ShortClientName -eq "") {
+        $ShortClientName = "[NoShortNameFound]"
     }
 
     return $ShortClientName
@@ -1167,7 +1179,7 @@ function BuildTimeline {
                                 [array] $Output = ""
                             }
                             ResourceBookingAssistant {
-                                [array] $Output = "ResourceBookingAssistant $($CalLog.TriggerAction) the Meeting."
+                                [array] $Output = "ResourceBookingAssistant $($CalLog.TriggerAction)d the Meeting."
                             }
                             default {
                                 if ($CalLog.ResponsibleUser -eq "Calendar Assistant") {
