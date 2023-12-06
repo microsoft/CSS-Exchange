@@ -34,6 +34,11 @@ automatically.
 
 Note that script syntax and output has changed. Syntax and screenshots in the above articles are out of date.
 
+## Missing Microsoft Exchange Writer
+We have seen a few cases where the Microsoft Exchange Writer will disappear after an unspecified amount of time and restarting the Microsoft Exchange Replication service. Steps on how to resolve this are linked here:
+
+* https://learn.microsoft.com/en-US/troubleshoot/windows-server/backup-and-storage/event-id-513-vss-windows-server
+
 ## COM+ Security
 
 Here are the steps to verify that the local Administrators group is allowed to the COM+ Security on the computer. The script will detect if this is a possibility if we can not see the Exchange Writers and we have the registry settings set that determine this is a possibility.
