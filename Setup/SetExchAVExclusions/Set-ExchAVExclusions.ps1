@@ -124,7 +124,7 @@ if ((-not($SkipVersionCheck)) -and
 }
 
 # Log file name
-$LogFile = "SetExchAvExclusions.log"
+$LogFile = "$PSScriptRoot\SetExchAvExclusions.log"
 
 # Confirm that we are an administrator
 if (-not (Confirm-Administrator)) {
@@ -211,7 +211,7 @@ foreach ($folder in $BaseFolders) {
     if ($ListRecommendedExclusions) {
         Write-Host ("$folder")
     } else {
-        Write-SimpleLogFile -String ("Adding $folder") -name $LogFile -OutHost
+        Write-SimpleLogFile -String ("Adding $folder") -LogFile $LogFile -OutHost
         Add-MpPreference -ExclusionPath $folder
     }
     if ($FileName) {
@@ -229,7 +229,7 @@ foreach ($extension in $extensionsList) {
     if ($ListRecommendedExclusions) {
         Write-Host ("$extension")
     } else {
-        Write-SimpleLogFile -String ("Adding $extension") -name $LogFile -OutHost
+        Write-SimpleLogFile -String ("Adding $extension") -LogFile $LogFile -OutHost
         Add-MpPreference -ExclusionExtension $extension
     }
     if ($FileName) {
@@ -247,7 +247,7 @@ foreach ($process in $processesList) {
     if ($ListRecommendedExclusions) {
         Write-Host ("$process")
     } else {
-        Write-SimpleLogFile -String ("Adding $process") -name $LogFile -OutHost
+        Write-SimpleLogFile -String ("Adding $process") -LogFile $LogFile -OutHost
         Add-MpPreference -ExclusionPath $process
         Add-MpPreference -ExclusionProcess $process
     }
@@ -260,4 +260,4 @@ if ($ListRecommendedExclusions) {
     Write-Host ('')
 }
 
-Write-SimpleLogFile -String ("Exclusions Completed") -name $LogFile -OutHost
+Write-SimpleLogFile -String ("Exclusions Completed") -LogFile $LogFile -OutHost
