@@ -3309,6 +3309,10 @@ Work with the AV Vendor to determine the best way to exclude these file paths ac
 </thead>
 <tbody>
 <tr>
+<td>WaitingTimeForAVAnalysisInMinutes</td>
+<td>Set the waiting time for AV to analyze the EICAR files. Default is 5 minutes.</td>
+</tr>
+<tr>
 <td>Recurse</td>
 <td>Places an EICAR file in all SubFolders as well as the root.</td>
 </tr>
@@ -3328,18 +3332,16 @@ Work with the AV Vendor to determine the best way to exclude these file paths ac
 </table>
 <h2 id="outputs">Outputs</h2>
 <p>Log file:
-$env:LOCALAPPDATA\ExchAvExclusions.log</p>
-<p>List of Folders and extensions Scanned by AV:
-$env:LOCALAPPDATA\BadExclusions.txt</p>
-<p>List of Non-Default Processes:
-$env:LOCALAPPDATA\NonDefaultModules.txt</p>
+$PSScriptRoot\ExchAvExclusions.log</p>
+<p>List of Folders, extensions Scanned by AV and List of Non-Default Processes:
+$PSScriptRoot\BadExclusions.txt</p>
 
   <hr>
 <div class="md-source-file">
   <small>
     
       Last update:
-      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 4, 2023</span>
+      <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">December 1, 2023</span>
       
     
   </small>
