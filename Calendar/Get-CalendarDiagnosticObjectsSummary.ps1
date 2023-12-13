@@ -1263,7 +1263,7 @@ function BuildTimeline {
                 } else {
                     $Action = "$($CalLog.TriggerAction)"
                 }
-                [array] $Output = "[$($CalLog.ResponsibleUser)] perfomed a $($Action) on the $($CalLog.ItemClass) with $($CalLog.Client)."
+                [array] $Output = "[$($CalLog.ResponsibleUser)] performed a $($Action) on the $($CalLog.ItemClass) with $($CalLog.Client)."
             }
         }
 
