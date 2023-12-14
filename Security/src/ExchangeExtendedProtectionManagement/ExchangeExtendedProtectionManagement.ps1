@@ -32,6 +32,7 @@ param(
     [Parameter (Mandatory = $false, ValueFromPipeline, ParameterSetName = 'Rollback', HelpMessage = "Using this parameter will allow you to rollback using the type you specified.")]
     [Parameter (Mandatory = $false, ValueFromPipeline, ParameterSetName = 'ConfigureEP', HelpMessage = "Enter the list of server names on which the script should execute on")]
     [Parameter (Mandatory = $false, ValueFromPipeline, ParameterSetName = 'ShowEP', HelpMessage = "Enter the list of server names on which the script should execute on")]
+    [Parameter (Mandatory = $false, ValueFromPipeline, ParameterSetName = 'DisableEP', HelpMessage = "Enter the list of server names on which the script should execute on")]
     [string[]]$ExchangeServerNames = $null,
 
     [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureMitigation', HelpMessage = "Enter the list of servers on which the script should not execute on")]
@@ -39,6 +40,7 @@ param(
     [Parameter (Mandatory = $false, ParameterSetName = 'Rollback', HelpMessage = "Using this parameter will allow you to rollback using the type you specified.")]
     [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureEP', HelpMessage = "Enter the list of servers on which the script should not execute on")]
     [Parameter (Mandatory = $false, ParameterSetName = 'ShowEP', HelpMessage = "Enter the list of servers on which the script should not execute on")]
+    [Parameter (Mandatory = $false, ParameterSetName = 'DisableEP', HelpMessage = "Enter the list of servers on which the script should not execute on")]
     [string[]]$SkipExchangeServerNames = $null,
 
     [Parameter (Mandatory = $true, ParameterSetName = 'ShowEP', HelpMessage = "Enable to provide a result of the configuration for Extended Protection")]
@@ -81,6 +83,9 @@ param(
     [ValidateSet('RestrictTypeEWSBackend', 'RestoreIISAppConfig')]
     [string[]]$RollbackType,
 
+    [Parameter (Mandatory = $true, ParameterSetName = "DisableEP", HelpMessage = "Using this parameter will disable extended protection only for the servers you specified.")]
+    [switch]$DisableExtendedProtection,
+
     [Parameter (Mandatory = $false, HelpMessage = "Using this switch will prevent the script from checking for an updated version.")]
     [switch]$SkipAutoUpdate
 )
@@ -88,6 +93,7 @@ param(
 begin {
     . $PSScriptRoot\WriteFunctions.ps1
     . $PSScriptRoot\ConfigurationAction\Invoke-ConfigureMitigation.ps1
+    . $PSScriptRoot\ConfigurationAction\Invoke-DisableExtendedProtection.ps1
     . $PSScriptRoot\ConfigurationAction\Invoke-ValidateMitigation.ps1
     . $PSScriptRoot\ConfigurationAction\Invoke-RollbackIPFiltering.ps1
     . $PSScriptRoot\ConfigurationAction\Invoke-ConfigureExtendedProtection.ps1
@@ -601,6 +607,9 @@ begin {
             }
 
             return
+        } elseif ($DisableExtendedProtection) {
+            # Disabling EP for all the servers provided in the list.
+            Invoke-DisableExtendedProtection -ExchangeServers $ExchangeServers
         }
     } finally {
         Write-Host "Do you have feedback regarding the script? Please email ExToolsFeedback@microsoft.com."
