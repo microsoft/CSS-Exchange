@@ -378,6 +378,8 @@ function Invoke-AnalyzerIISInformation {
         Write-Verbose "Working on IIS Path: $($location.Path)"
         $sslFlag = [string]::Empty
         $displayRewriteRules = [string]::Empty
+        #TODO: This is not 100% accurate because you can have a disabled rule here.
+        # However, not sure how common this is going to be so going to ignore this for now.
         $ipFilterEnabled = $ipFilterSettings[$location.Path].Count -ne 0
         $epValue = "None"
         $ep = $extendedProtectionConfiguration | Where-Object { $_.VirtualDirectoryName -eq $location.Path }
