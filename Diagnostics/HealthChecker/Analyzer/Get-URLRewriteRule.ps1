@@ -2,6 +2,9 @@
 # Licensed under the MIT License.
 
 <#
+.SYNOPSIS
+ Pulls out URL Rewrite Rules from the web.config and applicationHost.config file to return a Hashtable of those settings.
+.DESCRIPTION
  This is a function that is designed to pull out the URL Rewrite Rules that are set on a location of IIS.
  Because you can set it on an individual web.config file or the parent site(s), or the ApplicationHostConfig file for the location
  We need to check all locations to properly determine what is all set.
