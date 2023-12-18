@@ -401,7 +401,7 @@ function Invoke-AnalyzerIISInformation {
         } else {
             Write-Verbose "Not using EP settings to determine sslFlags, skipping over cert auth logic."
             $ssl = $location.'system.webServer'.security.access.SslFlags
-            $sslFlag = "$($ssl.ToLower().Contains("ssl")) $(if(($ssl.ToLower().Contains("ssl128"))) { "(128-bit)" })".Trim()
+            $sslFlag = "$($ssl -contains "ssl") $(if(($ssl -contains "ssl128")) { "(128-bit)" })".Trim()
         }
 
         $iisVirtualDirectoriesDisplay.Add([PSCustomObject]@{
@@ -444,11 +444,11 @@ function Invoke-AnalyzerIISInformation {
     # only collect the ones that are valid, if not valid we will assume that the child web apps will point to it and can be misleading.
     $siteConfigPaths = $iisWebSiteConfigs |
         Where-Object { $_.Valid -eq $true -and $_.Exist -eq $true } |
-        ForEach-Object { $_.Location.ToLower() }
+        ForEach-Object { $_.Location }
 
     if ($null -ne $siteConfigPaths) {
         $missingWebApplicationConfigFile = $exchangeInformation.IISSettings.IISWebApplication |
-            Where-Object { $siteConfigPaths.Contains($_.ConfigurationFileInfo.Location.ToLower()) }
+            Where-Object { $siteConfigPaths -contains "$($_.ConfigurationFileInfo.Location)" }
     }
 
     # Missing config file should really only occur for SharedWebConfig files, as the web application would go back to the parent site.
@@ -461,13 +461,13 @@ function Invoke-AnalyzerIISInformation {
             $binSearchFolders = (([xml]($_.Content)).configuration.appSettings.add | Where-Object {
                     $_.key -eq "BinSearchFolders"
                 }).value
-            $paths = $binSearchFolders.Split(";").Trim().ToLower()
+            $paths = $binSearchFolders.Split(";").Trim()
             $paths | ForEach-Object { Write-Verbose "BinSearchFolder: $($_)" }
             $installPath = $exchangeInformation.RegistryValues.MsiInstallPath
             foreach ($binTestPath in  @("bin", "bin\CmdletExtensionAgents", "ClientAccess\Owa\bin")) {
-                $testPath = [System.IO.Path]::Combine($installPath, $binTestPath).ToLower()
+                $testPath = [System.IO.Path]::Combine($installPath, $binTestPath)
                 Write-Verbose "Testing path: $testPath"
-                if (-not ($paths.Contains($testPath))) {
+                if (-not ($paths -contains $testPath)) {
                     return $_
                 }
             }
