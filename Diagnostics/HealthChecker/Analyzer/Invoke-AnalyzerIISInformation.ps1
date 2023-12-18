@@ -385,7 +385,19 @@ function Invoke-AnalyzerIISInformation {
         $authentication = $authTypeSettings[$location.Path]
 
         if ($currentRewriteRules.Count -ne 0) {
-            $displayRewriteRules = ($currentRewriteRules.rule | Where-Object { $_.enabled -ne "false" }).name
+            # Need to loop through all the rules first to find the excluded rules
+            # then find the rules to display
+            $excludeRules = @()
+            foreach ($rule in $currentRewriteRules) {
+                $remove = $rule.Remove
+
+                if ($null -ne $remove) {
+                    $excludeRules += $remove.Name
+                }
+            }
+
+            $displayRewriteRules = ($currentRewriteRules.rule | Where-Object { $_.enabled -ne "false" }).name |
+                Where-Object { $_ -notcontains $excludeRules }
         }
 
         if ($null -ne $ep) {
@@ -486,8 +498,11 @@ function Invoke-AnalyzerIISInformation {
         if ($currentSection.Count -ne 0) {
             foreach ($rule in $currentSection.rule) {
 
-                # skip over disabled rules.
-                if ($rule.enabled -eq "false") {
+                if ($null -eq $rule) {
+                    Write-Verbose "Rule is NULL skipping."
+                    continue
+                } elseif ($rule.enabled -eq "false") {
+                    # skip over disabled rules.
                     Write-Verbose "skipping over disabled rule: $($rule.Name) for vDir '$key'"
                     continue
                 }
