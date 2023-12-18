@@ -139,7 +139,14 @@ if ($nonUnique.Count -gt 0) {
 
 $scriptVersions = @()
 
-$disclaimer = [IO.File]::ReadAllLines("$PSScriptRoot\..\LICENSE")
+if ($IsMacOS -or
+    $IsLinux) {
+    Write-Host "We're running the build process on MacOS / Linux"
+    $disclaimer = [IO.File]::ReadAllLines("$((Get-Location).Path)/../LICENSE")
+} else {
+    Write-Host "We're running the build process on Windows"
+    $disclaimer = [IO.File]::ReadAllLines("$PSScriptRoot\..\LICENSE")
+}
 
 $documentedScriptFiles | ForEach-Object {
     $scriptName = [IO.Path]::GetFileName($_)
