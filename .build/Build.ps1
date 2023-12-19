@@ -17,6 +17,8 @@ Set-StrictMode -Version Latest
 . $PSScriptRoot\BuildFunctions\Get-ScriptDependencyTree.ps1
 . $PSScriptRoot\BuildFunctions\Show-ScriptDependencyTree.ps1
 
+Write-Host "Build process is running on: Windows? $IsWindows - MacOS? $IsMacOS - Linux? $IsLinux"
+
 $repoRoot = Get-Item "$PSScriptRoot\.."
 
 <#
