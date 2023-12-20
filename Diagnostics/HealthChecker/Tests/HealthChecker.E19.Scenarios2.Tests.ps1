@@ -41,7 +41,7 @@ Describe "Exchange 2019 Scenarios testing 2" {
         }
 
         It "Bad application host config file" {
-            SetActiveDisplayGrouping "Frequent Configuration Issues"
+            SetActiveDisplayGrouping "Exchange IIS Information"
             TestObjectMatch "Invalid Configuration File - Application Host Config File" $true -WriteType "Red"
             $m = GetObject "Missing Web Application Configuration File"
             $m | Should -Be $null
@@ -76,7 +76,7 @@ Describe "Exchange 2019 Scenarios testing 2" {
         }
 
         It "Bad Default Web Site web.config file" {
-            SetActiveDisplayGrouping "Frequent Configuration Issues"
+            SetActiveDisplayGrouping "Exchange IIS Information"
             TestObjectMatch "Invalid Configuration File" $true -WriteType "Red"
             TestObjectMatch "Invalid: $Script:MockDataCollectionRoot\Exchange\IIS\DefaultWebSite_web1.config" $true -WriteType "Red"
             TestObjectMatch "Missing Web Application Configuration File" $true -WriteType "Red"

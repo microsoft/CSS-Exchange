@@ -80,8 +80,6 @@ Describe "Testing Health Checker by Mock Data Imports" {
         It "TCP Keep Alive Time" {
             SetActiveDisplayGrouping "Frequent Configuration Issues"
             TestObjectMatch "TCP/IP Settings" 0 -WriteType "Red"
-            TestObjectMatch "Missing Web Application Configuration File" $true -WriteType "Red"
-            TestObjectMatch "Web Application: 'Default Web Site/ecp'" "$Script:MockDataCollectionRoot\Exchange\IIS\DefaultWebSite_web.config" -WriteType "Red"
         }
 
         It "CTS Processor Affinity Percentage" {
@@ -98,39 +96,6 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "Open Relay Wild Card Domain" {
             TestObjectMatch "Open Relay Wild Card Domain" "Error --- Accepted Domain `"Problem Accepted Domain`" is set to a Wild Card (*) Domain Name with a domain type of InternalRelay. This is not recommended as this is an open relay for the entire environment.`r`n`t`tMore Information: https://aka.ms/HC-OpenRelayDomain" -WriteType "Red"
-        }
-
-        It "Testing Missing Shared Configuration File" {
-            TestObjectMatch "Missing Shared Configuration File" $true -WriteType "Red"
-        }
-
-        It "Testing Default Variable Detected" {
-            TestObjectMatch "Default Variable Detected" $true -WriteType "Red"
-        }
-
-        It "Testing Bin Search Folder Not Found" {
-            TestObjectMatch "Bin Search Folder Not Found" $true -WriteType "Red"
-        }
-
-        It "Testing Native HSTS Default Web Site config" {
-            #Native Default Web Site
-            TestObjectMatch "hsts-Enabled-Default Web Site" $true -WriteType "Green"
-            TestObjectMatch "hsts-max-age-Default Web Site" 300 -WriteType "Yellow"
-            TestObjectMatch "hsts-includeSubDomains-Default Web Site" $false
-            TestObjectMatch "hsts-preload-Default Web Site" $false
-            TestObjectMatch "hsts-redirectHttpToHttps-Default Web Site" $false
-        }
-
-        It "Testing Native HSTS Default Web Site config" {
-            #Native Exchange Back End
-            TestObjectMatch "hsts-Enabled-Exchange Back End" $true -WriteType "Red"
-            TestObjectMatch "hsts-max-age-Exchange Back End" 31536000 -WriteType "Green" # Going to be green even on backend
-            TestObjectMatch "hsts-includeSubDomains-Exchange Back End" $false
-            TestObjectMatch "hsts-preload-Exchange Back End" $false
-            TestObjectMatch "hsts-redirectHttpToHttps-Exchange Back End" $true -WriteType "Red"
-            TestObjectMatch "hsts-BackendNotSupported" $true -WriteType "Red"
-
-            TestObjectMatch "hsts-MoreInfo" $true -WriteType "Yellow"
         }
 
         It "Server Pending Reboot" {
@@ -194,6 +159,45 @@ Describe "Testing Health Checker by Mock Data Imports" {
             $cveEntries.Contains("CVE-2023-36434") | Should -Be $false # false because it isn't loaded.
             SetActiveDisplayGrouping "Exchange IIS Information"
             TestObjectMatch "TokenCacheModule loaded" $true -WriteType "Yellow"
+        }
+
+        It "Missing Web Application Configuration File" {
+            SetActiveDisplayGrouping "Exchange IIS Information"
+            TestObjectMatch "Missing Web Application Configuration File" $true -WriteType "Red"
+            TestObjectMatch "Web Application: 'Default Web Site/ecp'" "$Script:MockDataCollectionRoot\Exchange\IIS\DefaultWebSite_web.config" -WriteType "Red"
+        }
+
+        It "Testing Missing Shared Configuration File" {
+            TestObjectMatch "Missing Shared Configuration File" $true -WriteType "Red"
+        }
+
+        It "Testing Default Variable Detected" {
+            TestObjectMatch "Default Variable Detected" $true -WriteType "Red"
+        }
+
+        It "Testing Bin Search Folder Not Found" {
+            TestObjectMatch "Bin Search Folder Not Found" $true -WriteType "Red"
+        }
+
+        It "Testing Native HSTS Default Web Site config" {
+            #Native Default Web Site
+            TestObjectMatch "hsts-Enabled-Default Web Site" $true -WriteType "Green"
+            TestObjectMatch "hsts-max-age-Default Web Site" 300 -WriteType "Yellow"
+            TestObjectMatch "hsts-includeSubDomains-Default Web Site" $false
+            TestObjectMatch "hsts-preload-Default Web Site" $false
+            TestObjectMatch "hsts-redirectHttpToHttps-Default Web Site" $false
+        }
+
+        It "Testing Native HSTS Default Web Site config" {
+            #Native Exchange Back End
+            TestObjectMatch "hsts-Enabled-Exchange Back End" $true -WriteType "Red"
+            TestObjectMatch "hsts-max-age-Exchange Back End" 31536000 -WriteType "Green" # Going to be green even on backend
+            TestObjectMatch "hsts-includeSubDomains-Exchange Back End" $false
+            TestObjectMatch "hsts-preload-Exchange Back End" $false
+            TestObjectMatch "hsts-redirectHttpToHttps-Exchange Back End" $true -WriteType "Red"
+            TestObjectMatch "hsts-BackendNotSupported" $true -WriteType "Red"
+
+            TestObjectMatch "hsts-MoreInfo" $true -WriteType "Yellow"
         }
     }
 
