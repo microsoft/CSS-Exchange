@@ -61,6 +61,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://microsoft.github.io/CSS-Exchange/Admin/Test-ExchangePropertyPermissions/</loc>
+         <lastmod>2023-12-20</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://microsoft.github.io/CSS-Exchange/Admin/Update-Engines/</loc>
          <lastmod>2023-12-20</lastmod>
          <changefreq>daily</changefreq>
