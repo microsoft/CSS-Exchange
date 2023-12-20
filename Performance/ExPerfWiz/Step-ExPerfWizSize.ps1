@@ -55,8 +55,8 @@ function global:Step-ExPerfWizSize {
     # If we find an error throw
     # Otherwise nothing
     if ($logman | Select-String "Error:") {
-        Write-SimpleLogFile -string "[ERROR] - Problem stepping PerfWiz size:" -Name "ExPerfWiz.log"
-        Write-SimpleLogFile -string $logman -Name "ExPerfWiz.log"
+        Write-SimpleLogFile -string "[ERROR] - Problem stepping PerfWiz size:" -LogFile "ExPerfWiz.log"
+        Write-SimpleLogFile -string $logman -LogFile "ExPerfWiz.log"
         throw $logman
     } else {}
 }

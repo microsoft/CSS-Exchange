@@ -48,7 +48,7 @@ function global:Remove-ExPerfWiz {
 
     process {
 
-        Write-SimpleLogFile -string ("Removing ExPerfWiz for: " + $server) -Name "ExPerfWiz.log"
+        Write-SimpleLogFile -string ("Removing ExPerfWiz for: " + $server) -LogFile "ExPerfWiz.log"
 
         # Remove the exPerfWiz counter set
         if ($PSCmdlet.ShouldProcess("$Server\$Name", "Removing Performance Monitor Data Collector")) {
@@ -57,10 +57,10 @@ function global:Remove-ExPerfWiz {
 
         # Check if we have an error and throw and error if needed.
         if ([string]::IsNullOrEmpty(($logman | Select-String "Error:"))) {
-            Write-SimpleLogFile "ExPerfWiz removed" -Name "ExPerfWiz.log"
+            Write-SimpleLogFile "ExPerfWiz removed" -LogFile "ExPerfWiz.log"
         } else {
-            Write-SimpleLogFile "[ERROR] - Unable to remove Collector" -Name "ExPerfWiz.log"
-            Write-SimpleLogFile $logman -Name "ExPerfWiz.log"
+            Write-SimpleLogFile "[ERROR] - Unable to remove Collector" -LogFile "ExPerfWiz.log"
+            Write-SimpleLogFile $logman -LogFile "ExPerfWiz.log"
             throw $logman
         }
     }

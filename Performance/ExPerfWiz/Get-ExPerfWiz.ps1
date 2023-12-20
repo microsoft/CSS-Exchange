@@ -52,7 +52,7 @@ function global:Get-ExPerfWiz {
 
     if ($ShowLog) { Notepad (Join-Path $env:LOCALAPPDATA ExPerfWiz.log); return }
 
-    Write-SimpleLogFile -string ("Getting ExPerfWiz: " + $server) -Name "ExPerfWiz.log"
+    Write-SimpleLogFile -string ("Getting ExPerfWiz: " + $server) -LogFile "ExPerfWiz.log"
 
     # If no name was provided then we need to return all collectors logman finds
     if ([string]::IsNullOrEmpty($Name)) {

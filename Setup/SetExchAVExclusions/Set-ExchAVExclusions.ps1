@@ -102,7 +102,7 @@ param (
 . $PSScriptRoot\..\..\Shared\Confirm-ExchangeShell.ps1
 . $PSScriptRoot\..\..\Shared\Get-ExchAVExclusions.ps1
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
-. $PSScriptRoot\..\..\Diagnostics\AVTester\Write-SimpleLogFile.ps1
+. $PSScriptRoot\..\..\Shared\Write-SimpleLogFile.ps1
 
 $BuildVersion = ""
 

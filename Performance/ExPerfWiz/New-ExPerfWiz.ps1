@@ -153,7 +153,7 @@ function global:New-ExPerfWiz {
 
         # If no template provided then we use the default one
         if ([string]::IsNullOrEmpty($Template)) {
-            Write-SimpleLogFile "Using default template" -Name "ExPerfWiz.log"
+            Write-SimpleLogFile "Using default template" -LogFile "ExPerfWiz.log"
 
             # Put the default xml into template
             $Template = Join-Path $env:LOCALAPPDATA "Exch_13_16_19_Full.xml"
@@ -161,7 +161,7 @@ function global:New-ExPerfWiz {
 
         # Test the template path and log it as good or throw an error
         if (Test-Path $Template) {
-            Write-SimpleLogFile -string ("Using Template:" + $Template) -Name "ExPerfWiz.log"
+            Write-SimpleLogFile -string ("Using Template:" + $Template) -LogFile "ExPerfWiz.log"
         } else {
             throw "Cannot find template xml file provided.  Please provide a valid PerfMon template file. $Template"
         }
@@ -223,7 +223,7 @@ function global:New-ExPerfWiz {
         # If -threads is specified we need to add it to the counter set
         if ($Threads) {
 
-            Write-SimpleLogFile -string "Adding threads to counter set" -Name "ExPerfWiz.log"
+            Write-SimpleLogFile -string "Adding threads to counter set" -LogFile "ExPerfWiz.log"
 
             # Create and set the XML element
             $threadCounter = $XML.CreateElement("Counter")
@@ -235,9 +235,9 @@ function global:New-ExPerfWiz {
 
         # Write the XML to disk
         $xmlFile = Join-Path $env:TEMP ExPerfWiz.xml
-        Write-SimpleLogFile -string ("Writing Configuration to: " + $xmlFile) -Name "ExPerfWiz.log"
+        Write-SimpleLogFile -string ("Writing Configuration to: " + $xmlFile) -LogFile "ExPerfWiz.log"
         $XML.Save($xmlFile)
-        Write-SimpleLogFile -string ("Importing Collector Set " + $xmlFile + " for " + $server) -Name "ExPerfWiz.log"
+        Write-SimpleLogFile -string ("Importing Collector Set " + $xmlFile + " for " + $server) -LogFile "ExPerfWiz.log"
 
         # Taking a proactive approach on possible conflicts with creating the collector
         $currentCollector = Get-ExPerfWiz -Name $Name -Server $Server -ErrorAction SilentlyContinue
@@ -245,18 +245,18 @@ function global:New-ExPerfWiz {
         # Check the status of the collectors and take the correct action
         switch ($currentCollector.status) {
             Running {
-                Write-SimpleLogFile "Running Duplicate Found" -Name "ExPerfWiz.log"
+                Write-SimpleLogFile "Running Duplicate Found" -LogFile "ExPerfWiz.log"
                 if ($PSCmdlet.ShouldProcess("$Server\$Name", "Stop Running Collector Set and Replace")) {
                     Stop-ExPerfWiz -Name $Name -Server $Server
                 }
                 Remove-ExPerfWiz -Name $Name -Server $server -Confirm:$false
             }
             Stopped {
-                Write-SimpleLogFile "Duplicate Found" -Name "ExPerfWiz.log"
+                Write-SimpleLogFile "Duplicate Found" -LogFile "ExPerfWiz.log"
                 #Remove-ExPerfWiz -Name $Name -Server $server -Confirm:$false
             }
             default {
-                Write-SimpleLogFile "No Conflicts Found" -Name "ExPerfWiz.log"
+                Write-SimpleLogFile "No Conflicts Found" -LogFile "ExPerfWiz.log"
             }
         }
 
@@ -265,7 +265,7 @@ function global:New-ExPerfWiz {
 
         # Check if we have an error and throw if needed
         if ($null -eq ($logman | Select-String "Error:")) {
-            Write-SimpleLogFile "Collector Successfully Created" -Name "ExPerfWiz.log"
+            Write-SimpleLogFile "Collector Successfully Created" -LogFile "ExPerfWiz.log"
         } else {
             throw $logman
         }
@@ -277,7 +277,7 @@ function global:New-ExPerfWiz {
         if ($PSBoundParameters.ContainsKey("StartTime".ToLower())) {
             Set-ExPerfWiz -Name $Name -Server $server -StartTime $startTime -Quiet
         } else {
-            Write-SimpleLogFile -string "No Start time provided" -Name "ExPerfWiz.log"
+            Write-SimpleLogFile -string "No Start time provided" -LogFile "ExPerfWiz.log"
         }
 
         # Need to start the counter set if asked to do so

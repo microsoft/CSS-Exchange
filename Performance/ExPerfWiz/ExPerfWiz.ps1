@@ -27,7 +27,7 @@ Testing Example
 . $PSScriptRoot\Start-ExPerfWiz.ps1
 . $PSScriptRoot\Step-ExPerfWizSize.ps1
 . $PSScriptRoot\Stop-ExPerfWiz.ps1
-. $PSScriptRoot\Write-SimpleLogFile.ps1
+. $PSScriptRoot\..\..\Shared\Write-SimpleLogFile.ps1
 
 ## Main ##
 

@@ -45,7 +45,7 @@ function global:Stop-ExPerfWiz {
     )
 
     process {
-        Write-SimpleLogFile -string ("Stopping ExPerfWiz: " + $server + "\" + $Name) -Name "ExPerfWiz.log"
+        Write-SimpleLogFile -string ("Stopping ExPerfWiz: " + $server + "\" + $Name) -LogFile "ExPerfWiz.log"
 
         # Remove the exPerfWiz counter set
         if ($PSCmdlet.ShouldProcess("$Server\$Name", "Stopping ExPerfWiz Data Collection")) {
@@ -56,14 +56,14 @@ function global:Stop-ExPerfWiz {
         if ($logman | Select-String "Error:") {
             # if we are not running already then just move on
             if ($logman | Select-String "is not running") {
-                Write-SimpleLogFile "Collector Not Running" -Name "ExPerfWiz.log"
+                Write-SimpleLogFile "Collector Not Running" -LogFile "ExPerfWiz.log"
             } else {
-                Write-SimpleLogFile "[ERROR] - Unable to Stop Collector" -Name "ExPerfWiz.log"
-                Write-SimpleLogFile $logman -Name "ExPerfWiz.log"
+                Write-SimpleLogFile "[ERROR] - Unable to Stop Collector" -LogFile "ExPerfWiz.log"
+                Write-SimpleLogFile $logman -LogFile "ExPerfWiz.log"
                 throw $logman
             }
         } else {
-            Write-SimpleLogFile "ExPerfWiz Stopped" -Name "ExPerfWiz.log"
+            Write-SimpleLogFile "ExPerfWiz Stopped" -LogFile "ExPerfWiz.log"
         }
     }
 }
