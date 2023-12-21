@@ -187,6 +187,15 @@ function Get-IISAuthenticationType {
                         }
                     } else {
                         Write-Verbose "authLocation was NULL, but shouldn't be a problem we just use the parent."
+                        $index = $currentKey.LastIndexOf("/")
+
+                        if ($index -eq -1) {
+                            $continue = $false
+                            Write-Verbose "No parent location. Need to determine how to address."
+                            $getIisAuthenticationType[$failedKey].Add($appKey)
+                        } else {
+                            $currentKey = $currentKey.Substring(0, $index)
+                        }
                     }
                 } elseif ($currentKey -ne $appKey) {
                     # If we are at a parent location we might not have all the locations in the config. So this could be okay.
@@ -196,6 +205,7 @@ function Get-IISAuthenticationType {
                     if ($index -eq -1) {
                         Write-Verbose "Didn't have root parent in the config file, this is odd."
                         $getIisAuthenticationType[$failedKey].Add($appKey)
+                        $continue = $false
                     } else {
                         $currentKey = $currentKey.Substring(0, $index)
                     }
