@@ -1,6 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\IISManagement\New-IISConfigurationAction.ps1
+. $PSScriptRoot\..\..\IISManagement\Invoke-IISConfigurationManagerAction.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Write-ErrorInformation.ps1
 
@@ -15,6 +17,7 @@ function Invoke-DisableExtendedProtection {
         $totalCount = $ExchangeServers.Count
         $failedServers = New-Object 'System.Collections.Generic.List[string]'
         $updatedServers = New-Object 'System.Collections.Generic.List[string]'
+        $iisConfigurationManagements = New-Object System.Collections.Generic.List[object]
         $progressParams = @{
             Id              = 1
             Activity        = "Disabling Extended Protection"
@@ -27,7 +30,7 @@ function Invoke-DisableExtendedProtection {
             We need to loop through each of the servers and set extended protection to None for each virtual directory for exchange that we did set.
             This list of virtual directories for exchange will be managed within Get-ExtendedProtectionConfiguration.
             To avoid a second list here of the names of vDirs, we will call Get-ExtendedProtectionConfiguration for each server prior to setting EP to none.
-            This will result in a double call to that server, but rather do that then have a double list of vDirs that we want to manage.
+            This will result in a few calls to that server, but rather do that then have a double list of vDirs that we want to manage.
         #>
 
         foreach ($server in $ExchangeServers) {
@@ -51,74 +54,28 @@ function Invoke-DisableExtendedProtection {
                 continue
             }
 
-            $commandParameter = [PSCustomObject]@{
-                TokenChecking = @{}
-            }
+            #$iisConfigurationManagement = New-IISConfigurationManager -ServerName $server
+            $actionList = New-Object System.Collections.Generic.List[object]
 
             foreach ($virtualDirectory in $serverExtendedProtection.ExtendedProtectionConfiguration) {
                 Write-Verbose "$($server): Virtual Directory Name: $($virtualDirectory.VirtualDirectoryName) Current Set Extended Protection: $($virtualDirectory.ExtendedProtection)"
-                $commandParameter.TokenChecking.Add($virtualDirectory.VirtualDirectoryName, "None")
+                $actionList.Add((New-IISConfigurationAction -Action ([PSCustomObject]@{
+                                Cmdlet     = "Set-WebConfigurationProperty"
+                                Parameters = @{
+                                    Filter   = "system.WebServer/security/authentication/windowsAuthentication"
+                                    Name     = "extendedProtection.tokenChecking"
+                                    Value    = "None"
+                                    PSPath   = "IIS:\"
+                                    Location = $virtualDirectory.VirtualDirectoryName
+                                }
+                            })))
             }
-
-            $progressParams.Status = "$baseStatus Executing Actions on Server"
-            Write-Progress @progressParams
-
-            $results = Invoke-ScriptBlockHandler -ComputerName $server -ScriptBlock {
-                param(
-                    [object]$Commands,
-                    [bool]$PassedWhatIf
-                )
-                $internalCounter = 0
-                $internalTotalCommands = $Commands.TokenChecking.Count
-                $internalProgressParams = @{
-                    ParentId        = 1
-                    Activity        = "Executing Actions on $env:ComputerName"
-                    PercentComplete = 0
-                }
-                Write-Progress @internalProgressParams
-                $errorContext = New-Object 'System.Collections.Generic.List[object]'
-                $setAllTokenChecking = $true
-                foreach ($siteKey in $Commands.TokenChecking.Keys) {
-                    $internalCounter++
-                    $internalProgressParams.Status = "Setting TokenChecking for $siteKey"
-                    $internalProgressParams.PercentComplete = ($internalCounter / $internalTotalCommands * 100)
-                    Write-Progress @internalProgressParams
-
-                    try {
-                        $params = @{
-                            Filter      = "system.WebServer/security/authentication/windowsAuthentication"
-                            Name        = "extendedProtection.tokenChecking"
-                            Value       = $Commands.TokenChecking[$siteKey]
-                            Location    = $siteKey
-                            PSPath      = "IIS:\"
-                            ErrorAction = "Stop"
-                            WhatIf      = $PassedWhatIf
-                        }
-                        Set-WebConfigurationProperty @params
-                    } catch {
-                        Write-Host "$($env:COMPUTERNAME): Failed to set tokenChecking for $siteKey with the value $($Commands.TokenChecking[$siteKey]). Inner Exception $_"
-                        $setAllTokenChecking = $false
-                        $errorContext.Add($_)
-                    }
-                }
-
-                Write-Progress @internalProgressParams -Completed
-                return [PSCustomObject]@{
-                    SetAllTokenChecking = $setAllTokenChecking
-                    ErrorContext        = $errorContext
-                }
-            } -ArgumentList $commandParameter, $WhatIfPreference
-
-            Write-Verbose "$($server): SetAllTokenChecking: $($results.SetAllTokenChecking)"
-
-            if ($results.SetAllTokenChecking) {
-                Write-Host "Successfully updated applicationHost.config"
-                $updatedServers.Add($server)
-            } else {
-                Write-Warning "$($server): Failed to set Extended Protection to None."
-                $failedServers.Add($server)
-            }
+            $iisConfigurationManagements.Add([PSCustomObject]@{
+                    ServerName = $server
+                    Actions    = $actionList
+                })
         }
+        Invoke-IISConfigurationManagerAction $iisConfigurationManagements
     }
     end {
         Write-Progress @progressParams -Completed
