@@ -118,9 +118,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Credential Guard Enabled" $false
             TestObjectMatch "EdgeTransport.exe.config Present" "True" -WriteType "Green"
             TestObjectMatch "Open Relay Wild Card Domain" "Not Set"
-            TestObjectMatch "HSTS Enabled" "False"
 
-            $Script:ActiveGrouping.Count | Should -Be 10
+            $Script:ActiveGrouping.Count | Should -Be 9
         }
 
         It "Display Results - Security Settings" {
@@ -225,17 +224,6 @@ Describe "Testing Health Checker by Mock Data Imports" {
             $Script:ActiveGrouping.Count | Should -Be 18
         }
 
-        It "Display Results - Frequent Configuration Issues" {
-            SetActiveDisplayGrouping "Frequent Configuration Issues"
-            TestObjectMatch "hsts-Enabled-Default Web Site" $true -WriteType "Green"
-            TestObjectMatch "hsts-max-age-Default Web Site" 300 -WriteType "Yellow"
-            TestObjectMatch "hsts-includeSubDomains-Default Web Site" $false
-            TestObjectMatch "hsts-preload-Default Web Site" $false
-            TestObjectMatch "hsts-redirectHttpToHttps-Default Web Site" $false
-            TestObjectMatch "hsts-conflict" $true -WriteType "Yellow"
-            TestObjectMatch "hsts-MoreInfo" $true -WriteType "Yellow"
-        }
-
         It "Display Results - Security Settings" {
             SetActiveDisplayGrouping "Security Settings"
             TestObjectMatch "AMSI Enabled" "True" -WriteType "Green"
@@ -258,6 +246,14 @@ Describe "Testing Health Checker by Mock Data Imports" {
             SetActiveDisplayGrouping "Exchange IIS Information"
             $tokenCacheModuleInformation = GetObject "TokenCacheModule loaded"
             $tokenCacheModuleInformation | Should -Be $null # null because we are loaded
+
+            TestObjectMatch "hsts-Enabled-Default Web Site" $true -WriteType "Green"
+            TestObjectMatch "hsts-max-age-Default Web Site" 300 -WriteType "Yellow"
+            TestObjectMatch "hsts-includeSubDomains-Default Web Site" $false
+            TestObjectMatch "hsts-preload-Default Web Site" $false
+            TestObjectMatch "hsts-redirectHttpToHttps-Default Web Site" $false
+            TestObjectMatch "hsts-conflict" $true -WriteType "Yellow"
+            TestObjectMatch "hsts-MoreInfo" $true -WriteType "Yellow"
         }
     }
 
