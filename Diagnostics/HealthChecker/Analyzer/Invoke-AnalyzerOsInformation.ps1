@@ -126,6 +126,9 @@ function Invoke-AnalyzerOsInformation {
     (Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU13") -or
     (Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2019 -CU "CU2")) {
         $recommendedNetVersion = $netVersionDictionary["Net4d7d2"]
+    } elseif ((Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2019 -CU "CU14") -and
+        ($osVersion -ne "Windows2019")) {
+        $recommendedNetVersion = $netVersionDictionary["Net4d8d1"]
     } else {
         $recommendedNetVersion = $netVersionDictionary["Net4d8"]
     }
