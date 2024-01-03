@@ -466,30 +466,51 @@ begin {
                         Write-Host "TLS prerequisites check successfully passed!" -ForegroundColor Green
                         Write-Host ""
                     } else {
-                        foreach ($entry in $tlsPrerequisites.ActionsRequired) {
-                            Write-Host "Test Failed: $($entry.Name)" -ForegroundColor Red
-                            if ($null -ne $entry.List) {
-                                foreach ($list in $entry.List) {
-                                    Write-Host "System affected: $list" -ForegroundColor Red
-                                }
-                            }
-                            Write-Host "Action required: $($entry.Action)" -ForegroundColor Red
-                            Write-Host ""
-                        }
+                        # before displaying an issue, make sure that the online supported servers & EP enabled server have the correct settings.
+                        $epEnabledServerList = New-Object 'System.Collections.Generic.List[string]'
+                        $epEnabledServers = $onlineSupportedServers | Where-Object { $_.ExtendedProtectionConfiguration.ExtendedProtectionConfigured -eq $true }
+                        $wantedCheckAgainst = $onlineSupportedServers | Where-Object { $_.ComputerName -in $serverNames }
                         $checkAgainst = $onlineSupportedServers |
                             Where-Object {
                                 $_.ExtendedProtectionConfiguration.ExtendedProtectionConfigured -eq $true -or
                                 $_.ComputerName -in $serverNames
                             }
 
-                        $results = Invoke-ExtendedProtectionTlsPrerequisitesCheck -TlsConfiguration $checkAgainst.TlsSettings
+                        $wantedResults = Invoke-ExtendedProtectionTlsPrerequisitesCheck -TlsConfiguration $wantedCheckAgainst.TlsSettings
+                        $checkResults = Invoke-ExtendedProtectionTlsPrerequisitesCheck -TlsConfiguration $checkAgainst.TlsSettings
 
-                        if ($results.CheckPassed) {
+                        if ($wantedResults.CheckPassed -eq $false -or
+                            $checkResults.CheckPassed -eq $false) {
+
+                            foreach ($entry in $checkResults.ActionsRequired) {
+                                Write-Host "Test Failed: $($entry.Name)" -ForegroundColor Red
+                                if ($null -ne $entry.List) {
+                                    foreach ($list in $entry.List) {
+                                        Write-Host "System affected: $list" -ForegroundColor Red
+
+                                        if ($list -in $epEnabledServers.ComputerName) {
+                                            $epEnabledServerList.Add($list)
+                                        }
+                                    }
+                                }
+                                Write-Host "Action required: $($entry.Action)" -ForegroundColor Red
+                                Write-Host ""
+                            }
+                            if ($wantedResults.CheckPassed -eq $false) {
+                                Write-Warning "Failed to pass the TLS prerequisites for the servers you are trying to enable Extended Protection. Unable to continue."
+                                Write-Host ""
+                                Write-Host "Servers trying to enable: $([string]::Join(", ", $serverNames))"
+                            } else {
+                                Write-Warning "Failed to pass the TLS prerequisites due to the TLS settings on servers that already have Extended Protection enabled. Unable to continue."
+                                Write-Host ""
+                                Write-Host "Extended Protection Enabled Servers: $([string]::Join(", ", $epEnabledServerList))"
+                                Write-Host ""
+                            }
+
+                            exit
+                        } else {
                             Write-Host "All servers attempting to enable Extended Protection or already enabled passed the TLS prerequisites."
                             Write-Host ""
-                        } else {
-                            Write-Warning "Failed to pass the TLS prerequisites. Unable to continue."
-                            exit
                         }
                     }
 
