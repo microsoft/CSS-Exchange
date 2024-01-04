@@ -104,7 +104,11 @@ function Invoke-IISConfigurationRemoteAction {
         foreach ($actionItem in $InputObject.Actions.Set) {
             $commandParameters = $actionItem.Parameters
 
-            $location = if ($null -ne $commandParameters["Location"]) { $commandParameters["Location"] } { $commandParameters["PSPath"] }
+            if ($null -ne $commandParameters["Location"]) {
+                $location = $commandParameters["Location"]
+            } else {
+                $location = $commandParameters["PSPath"]
+            }
             $progressCounter++
             $remoteActionProgressParams.Status = "Setting $($commandParameters["Name"]) at '$location'"
             $remoteActionProgressParams.PercentComplete = ($progressCounter / $totalActions * 100)
@@ -113,7 +117,6 @@ function Invoke-IISConfigurationRemoteAction {
             try {
                 & $actionItem.Cmdlet @commandParameters
             } catch {
-                $location = if ([string]::IsNullOrEmpty($commandParameters["Location"])) { $commandParameters["PSPath"] } else { $commandParameters["Location"] }
                 Write-Verbose "$($env:COMPUTERNAME): Failed to set '$($commandParameters["Name"])' for '$location' with the value '$($commandParameters["Value"])'. Inner Exception $_"
                 $allActionsPerformed = $false
                 $errorContext.Add($_)
@@ -130,8 +133,7 @@ function Invoke-IISConfigurationRemoteAction {
             GatheredAllRestoreActions = $gatheredAllRestoreActions
             RestoreActions            = $restoreActions
             RestoreActionsSaved       = $restoreActionsSaved
-            SuccessfulExecution       = $allActionsPerformed -and $gatheredAllRestoreActions -and $restoreActions -and
-            $restoreActionsSaved -and $errorContext.Count -eq 0
+            SuccessfulExecution       = $allActionsPerformed -and $gatheredAllRestoreActions -and $restoreActionsSaved -and $errorContext.Count -eq 0
             ErrorContext              = $errorContext
         }
     }
