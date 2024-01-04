@@ -368,6 +368,8 @@ function Invoke-AnalyzerIISInformation {
     ########################################
 
     $applicationHostConfig = $exchangeInformation.IISSettings.ApplicationHostConfig
+    $defaultWebSitePowerShellSslEnabled = $false
+    $defaultWebSitePowerShellAuthenticationEnabled = $false
     $iisWebSettings = @($exchangeInformation.IISSettings.IISWebApplication)
     $iisWebSettings += @($exchangeInformation.IISSettings.IISWebSite)
     $iisConfigurationSettings = @($exchangeInformation.IISSettings.IISWebApplication.ConfigurationFileInfo)
@@ -443,6 +445,11 @@ function Invoke-AnalyzerIISInformation {
             Write-Verbose "Not using EP settings to determine sslFlags, skipping over cert auth logic."
             $ssl = $location.'system.webServer'.security.access.SslFlags
             $sslFlag = "$($ssl -contains "ssl") $(if(($ssl -contains "ssl128")) { "(128-bit)" })".Trim()
+        }
+
+        if ($location.Path -eq "Default Web Site/PowerShell") {
+            $defaultWebSitePowerShellSslEnabled = $sslFlag -contains "true"
+            $defaultWebSitePowerShellAuthenticationEnabled = -not [string]::IsNullOrEmpty($authentication)
         }
 
         $iisVirtualDirectoriesDisplay.Add([PSCustomObject]@{
@@ -761,6 +768,24 @@ function Invoke-AnalyzerIISInformation {
             Details                = "More Information: https://aka.ms/HC-BinSearchFolder"
             DisplayWriteType       = "Yellow"
             DisplayCustomTabNumber = 2
+        }
+        Add-AnalyzedResultInformation @params
+    }
+
+    if ($defaultWebSitePowerShellSslEnabled) {
+        $params = $baseParams + @{
+            Details             = "Default Web Site/PowerShell has ssl enabled, which is unsupported."
+            DisplayWriteType    = "Red"
+            DisplayTestingValue = $true
+        }
+        Add-AnalyzedResultInformation @params
+    }
+
+    if ($defaultWebSitePowerShellAuthenticationEnabled) {
+        $params = $baseParams + @{
+            Details             = "Default Web Site/PowerShell has authentication set, which is unsupported."
+            DisplayWriteType    = "Red"
+            DisplayTestingValue = $true
         }
         Add-AnalyzedResultInformation @params
     }
