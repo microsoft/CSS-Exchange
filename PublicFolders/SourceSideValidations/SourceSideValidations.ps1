@@ -123,23 +123,38 @@ try {
         return
     }
 
-    $script:anyDatabaseDown = $false
-    Get-Mailbox -PublicFolder | ForEach-Object {
+    # Validate that all PF mailboxes are available
+    $anyPFMailboxUnavailable = $false
+    $pfMailboxes = Get-Mailbox -PublicFolder
+    foreach ($mailbox in $pfMailboxes) {
         try {
-            $db = Get-MailboxDatabase $_.Database -Status
+            $db = Get-MailboxDatabase $mailbox.Database -Status
             if ($db.Mounted) {
-                $folderData.MailboxToServerMap[$_.DisplayName] = $db.Server
+                $folderData.MailboxToServerMap[$mailbox.DisplayName] = $db.Server
             } else {
-                Write-Error "Database $db is not mounted. This database holds PF mailbox $_ and must be mounted."
-                $script:anyDatabaseDown = $true
+                Write-Warning "Database $db is not mounted. This database holds PF mailbox $mailbox and must be mounted."
+                $anyPFMailboxUnavailable = $true
             }
         } catch {
             Write-Error $_
-            $script:anyDatabaseDown = $true
+            $anyPFMailboxUnavailable = $true
         }
     }
 
-    if ($script:anyDatabaseDown) {
+    # Validate that all content mailboxes exist
+    $ipmSubtreeByMailboxGuid = $folderData.IpmSubtree | Group-Object ContentMailboxGuid
+    foreach ($group in $ipmSubtreeByMailboxGuid) {
+        if ([string]::IsNullOrEmpty($group.Name)) {
+            Write-Warning "$($group.Count) folders have no ContentMailboxGuid. "
+        }
+        $mailbox = Get-Mailbox -PublicFolder $group.Name -ErrorAction SilentlyContinue
+        if ($null -eq $mailbox) {
+            Write-Warning "Content Mailbox $($group.Name) not found. $($group.Count) folders point to this invalid mailbox."
+            $anyPFMailboxUnavailable = $true
+        }
+    }
+
+    if ($anyPFMailboxUnavailable) {
         Write-Host "One or more PF mailboxes cannot be reached. Unable to proceed."
         return
     }
@@ -192,6 +207,8 @@ try {
         $badPermissions = Test-Permission -FolderData $folderData
         $badPermissions | Export-Csv $ResultsFile -NoTypeInformation -Append
     }
+
+    Write-Progress @progressParams -Completed
 
     # Output the results
 

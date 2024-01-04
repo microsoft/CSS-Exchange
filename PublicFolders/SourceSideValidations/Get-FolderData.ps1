@@ -20,7 +20,8 @@ function Get-FolderData {
     begin {
         Write-Verbose "$($MyInvocation.MyCommand) called."
         $startTime = Get-Date
-        $serverName = (Get-MailboxDatabase (Get-Mailbox -PublicFolder (Get-OrganizationConfig).RootPublicFolderMailbox.HierarchyMailboxGuid.ToString()).Database).Server.Name
+        $hierarchyMailboxDatabase = (Get-Mailbox -PublicFolder (Get-OrganizationConfig).RootPublicFolderMailbox.HierarchyMailboxGuid.ToString()).Database
+        $serverName = (Get-MailboxDatabase $hierarchyMailboxDatabase).Server.ToString()
         $folderData = [PSCustomObject]@{
             IpmSubtree              = $null
             IpmSubtreeByMailbox     = $null
@@ -88,7 +89,7 @@ function Get-FolderData {
             }
         }
 
-        $folderData.IpmSubtreeByMailbox = $folderData.IpmSubtree | Group-Object ContentMailbox
+        $folderData.IpmSubtreeByMailbox = $folderData.IpmSubtree | Group-Object ContentMailboxName
         $folderData.IpmSubtree | ForEach-Object { $folderData.ParentEntryIdCounts[$_.ParentEntryId] += 1 }
         $folderData.NonIpmSubtree | ForEach-Object { $folderData.ParentEntryIdCounts[$_.ParentEntryId] += 1 }
         $folderData.IpmSubtree | ForEach-Object { $folderData.EntryIdDictionary[$_.EntryId] = $_ }

@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. .\Get-StatisticsJob.ps1
+. $PSScriptRoot\Get-StatisticsJob.ps1
 
 function Get-Statistics {
     <#
