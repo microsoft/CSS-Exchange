@@ -255,7 +255,7 @@ function Get-ExtendedProtectionConfiguration {
                 (NewVirtualDirMatchingEntry "Microsoft-Server-ActiveSync/Proxy" -WebSite $default, $backend -ExtendedProtection "Allow", "Require")
                 # This was changed due to Outlook for Mac not being able to do download the OAB.
                 (NewVirtualDirMatchingEntry "OAB" -WebSite $default, $backend -ExtendedProtection "Allow", "Require")
-                (NewVirtualDirMatchingEntry "Powershell" -WebSite $default, $backend -ExtendedProtection "Require", "Require" -SslFlags "SslNegotiateCert", "Ssl,Ssl128,SslNegotiateCert")
+                (NewVirtualDirMatchingEntry "Powershell" -WebSite $default, $backend -ExtendedProtection "None", "Require" -SslFlags "SslNegotiateCert", "Ssl,Ssl128,SslNegotiateCert")
                 (NewVirtualDirMatchingEntry "OWA" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
                 (NewVirtualDirMatchingEntry "RPC" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
                 (NewVirtualDirMatchingEntry "MAPI" -WebSite $default -ExtendedProtection "Require")
