@@ -374,7 +374,7 @@ function Invoke-AnalyzerIISInformation {
     $iisConfigurationSettings += $iisWebSiteConfigs = @($exchangeInformation.IISSettings.IISWebSite.ConfigurationFileInfo)
     $iisConfigurationSettings += @($exchangeInformation.IISSettings.IISSharedWebConfig)
     $extendedProtectionConfiguration = $exchangeInformation.ExtendedProtectionConfig.ExtendedProtectionConfiguration
-    $displayMainSitesList = @("Default Web Site", "API", "Autodiscover", "ecp", "EWS", "mapi", "Microsoft-Server-ActiveSync", "OAB", "owa",
+    $displayMainSitesList = @("Default Web Site", "API", "Autodiscover", "ecp", "EWS", "mapi", "Microsoft-Server-ActiveSync", "Proxy", "OAB", "owa",
         "PowerShell", "Rpc", "Exchange Back End", "emsmdb", "nspi", "RpcWithCert")
     $iisVirtualDirectoriesDisplay = New-Object 'System.Collections.Generic.List[System.Object]'
     $iisWebConfigContent = @{}
