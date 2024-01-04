@@ -114,6 +114,7 @@ function Get-ExtendedProtectionConfiguration {
                     $ipRestrictionsHashTable = @{}
                     $pathIndex = [array]::IndexOf(($Xml.configuration.location.path).ToLower(), $Path.ToLower())
                     $rootIndex = [array]::IndexOf(($Xml.configuration.location.path).ToLower(), ($Path.Split("/")[0]).ToLower())
+                    $parentIndex = [array]::IndexOf(($Xml.configuration.location.path).ToLower(), ($Path.Substring(0, $Path.LastIndexOf("/")).ToLower()))
 
                     if ($pathIndex -ne -1) {
                         $configNode = $Xml.configuration.location[$pathIndex]
@@ -125,7 +126,19 @@ function Get-ExtendedProtectionConfiguration {
                             Write-Verbose "Found tokenChecking: $ep"
                             $extendedProtection = $ep
                         } else {
-                            Write-Verbose "Failed to find tokenChecking. Using default value of None."
+                            if ($parentIndex -ne -1) {
+                                $parentConfigNode = $Xml.configuration.location[$parentIndex]
+                                $ep = $parentConfigNode.'system.webServer'.security.authentication.windowsAuthentication.extendedProtection.tokenChecking
+
+                                if (-not ([string]::IsNullOrEmpty($ep))) {
+                                    Write-Verbose "Found tokenChecking: $ep"
+                                    $extendedProtection = $ep
+                                } else {
+                                    Write-Verbose "Failed to find tokenChecking. Using default value of None."
+                                }
+                            } else {
+                                Write-Verbose "Failed to find tokenChecking. Using default value of None."
+                            }
                         }
 
                         [string]$sslSettings = $configNode.'system.webServer'.security.access.sslFlags
