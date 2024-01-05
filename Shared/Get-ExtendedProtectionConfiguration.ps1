@@ -413,7 +413,7 @@ function Get-ExtendedProtectionConfiguration {
                             MitigationEnabled             = ($extendedConfiguration.MitigationSettings.AllowUnlisted -eq "false")
                             MitigationSupported           = $mitigationSupportedVDirs -contains $virtualDirectoryName
                             ExpectedSslFlags              = $matchEntry.SslFlags
-                            SslFlagsSetCorrectly          = $sslFlagsToSet.Split(",").Count -eq $currentSetFlags.Count
+                            SslFlagsSetCorrectly          = $sslFlagsToSet.Split(",").Trim().Count -eq $currentSetFlags.Count
                             SslFlagsToSet                 = $sslFlagsToSet
                         })
                 } catch {
