@@ -3,6 +3,7 @@
 
 . $PSScriptRoot\Get-ParameterString.ps1
 . $PSScriptRoot\Invoke-IISConfigurationRemoteAction.ps1
+. $PSScriptRoot\..\..\..\Shared\Write-ErrorInformation.ps1
 
 <#
 .DESCRIPTION
