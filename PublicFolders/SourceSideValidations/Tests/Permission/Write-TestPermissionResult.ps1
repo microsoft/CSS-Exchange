@@ -16,7 +16,9 @@ function Write-TestPermissionResult {
     }
 
     process {
-        if ($TestResult.TestName -eq "Permission" -and $TestResult.ResultType -eq "BadPermission") {
+        if ($TestResult.TestName -eq "Permission" -and
+            ($TestResult.ResultType -eq "BadPermission" -or $TestResult.ResultType -eq "NonACLableRecipient")
+        ) {
             [void]$badPermissionResults.Add($TestResult)
         }
     }

@@ -27,6 +27,10 @@ function Test-BadPermissionJob {
         $progressParams = @{
             Activity = "Checking permissions in mailbox $Mailbox"
         }
+        $validACLableRecipientTypes = @(
+            "ACLableSyncedMailboxUser",
+            "ACLableMailboxUser",
+            "SecurityDistributionGroup")
     }
 
     process {
@@ -41,21 +45,45 @@ function Test-BadPermissionJob {
 
             $identity = $_.Identity.ToString()
             $entryId = $_.EntryId.ToString()
-            Get-PublicFolderClientPermission $entryId | ForEach-Object {
+            $permissions = Get-PublicFolderClientPermission $entryId
+            foreach ($permission in $permissions) {
                 if (
-                    ($_.User.DisplayName -ne "Default") -and
-                    ($_.User.DisplayName -ne "Anonymous") -and
-                    ($null -eq $_.User.ADRecipient) -and
-                    ($_.User.UserType.ToString() -eq "Unknown")
+                    ($permission.User.DisplayName -ne "Default") -and
+                    ($permission.User.DisplayName -ne "Anonymous")
                 ) {
-                    # We can't use New-TestResult here since we are inside a job
-                    [PSCustomObject]@{
-                        TestName       = "Permission"
-                        ResultType     = "BadPermission"
-                        Severity       = "Error"
-                        FolderIdentity = $identity
-                        FolderEntryId  = $entryId
-                        ResultData     = $_.User.DisplayName
+                    if (
+                        ($null -eq $permission.User.ADRecipient) -and
+                        ($permission.User.UserType.ToString() -eq "Unknown")
+                    ) {
+                        # We can't use New-TestResult here since we are inside a job
+                        [PSCustomObject]@{
+                            TestName       = "Permission"
+                            ResultType     = "BadPermission"
+                            Severity       = "Error"
+                            FolderIdentity = $identity
+                            FolderEntryId  = $entryId
+                            ResultData     = $permission.User.DisplayName
+                        }
+                    }
+
+                    if (
+                        ($null -ne $permission.User.ADRecipient) -and
+                        ($permission.User.ADRecipient.RecipientDisplayType.ToString() -notin $validACLableRecipientTypes)
+                    ) {
+                        $id = $permission.User.ADRecipient.PrimarySmtpAddress.ToString()
+                        if ($id -eq "") {
+                            $id = $permission.User.ADRecipient.Identity
+                        }
+
+                        # We can't use New-TestResult here since we are inside a job
+                        [PSCustomObject]@{
+                            TestName       = "Permission"
+                            ResultType     = "NonACLableRecipient"
+                            Severity       = "Error"
+                            FolderIdentity = $identity
+                            FolderEntryId  = $entryId
+                            ResultData     = $id
+                        }
                     }
                 }
             }

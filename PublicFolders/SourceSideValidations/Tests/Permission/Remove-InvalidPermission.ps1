@@ -17,13 +17,19 @@ function Remove-InvalidPermission {
         $progressCount = 0
         $entryIdsProcessed = New-Object 'System.Collections.Generic.HashSet[string]'
         $badPermissions = New-Object System.Collections.ArrayList
+        $validACLableRecipientTypes = @(
+            "ACLableSyncedMailboxUser",
+            "ACLableMailboxUser",
+            "SecurityDistributionGroup")
 
         $sw = New-Object System.Diagnostics.Stopwatch
         $sw.Start()
     }
 
     process {
-        if ($TestResult.TestName -eq "Permission" -and $TestResult.ResultType -eq "BadPermission") {
+        if ($TestResult.TestName -eq "Permission" -and
+            ($TestResult.ResultType -eq "BadPermission" -or $TestResult.ResultType -eq "NonACLableRecipient")
+        ) {
             [void]$badPermissions.Add($TestResult)
         }
     }
@@ -45,6 +51,16 @@ function Remove-InvalidPermission {
                         ($perm.User.DisplayName -ne "Anonymous") -and
                         ($null -eq $perm.User.ADRecipient) -and
                         ($perm.User.UserType -eq "Unknown")
+                    ) {
+                        if ($PSCmdlet.ShouldProcess("$($result.FolderIdentity)", "Remove $($perm.User.DisplayName)")) {
+                            Write-Host "Removing $($perm.User.DisplayName) from folder $($result.FolderIdentity)"
+                            $perm | Remove-PublicFolderClientPermission -Confirm:$false
+                        }
+                    }
+
+                    if (
+                        ($null -ne $permission.User.ADRecipient) -and
+                        ($permission.User.ADRecipient.RecipientDisplayType.ToString() -notin $validACLableRecipientTypes)
                     ) {
                         if ($PSCmdlet.ShouldProcess("$($result.FolderIdentity)", "Remove $($perm.User.DisplayName)")) {
                             Write-Host "Removing $($perm.User.DisplayName) from folder $($result.FolderIdentity)"
