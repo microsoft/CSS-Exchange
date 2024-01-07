@@ -117,11 +117,7 @@ try {
 
     Write-Progress @progressParams -Status "Step 1 of 6"
 
-    $folderData = Get-FolderData -StartFresh $StartFresh -SlowTraversal $SlowTraversal
-
-    if ($folderData.IpmSubtree.Count -lt 1) {
-        return
-    }
+    $mailboxToServerMap = @{}
 
     # Validate that all PF mailboxes are available
     $anyPFMailboxUnavailable = $false
@@ -130,7 +126,7 @@ try {
         try {
             $db = Get-MailboxDatabase $mailbox.Database -Status
             if ($db.Mounted) {
-                $folderData.MailboxToServerMap[$mailbox.DisplayName] = $db.Server
+                $mailboxToServerMap[$mailbox.DisplayName] = $db.Server
             } else {
                 Write-Warning "Database $db is not mounted. This database holds PF mailbox $mailbox and must be mounted."
                 $anyPFMailboxUnavailable = $true
@@ -140,6 +136,14 @@ try {
             $anyPFMailboxUnavailable = $true
         }
     }
+
+    $folderData = Get-FolderData -StartFresh $StartFresh -SlowTraversal $SlowTraversal
+
+    if ($folderData.IpmSubtree.Count -lt 1) {
+        return
+    }
+
+    $folderData.MailboxToServerMap = $mailboxToServerMap
 
     # Validate that all content mailboxes exist
     $ipmSubtreeByMailboxGuid = $folderData.IpmSubtree | Group-Object ContentMailboxGuid
