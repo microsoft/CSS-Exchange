@@ -80,7 +80,7 @@ param(
     [string[]]$ValidateType,
 
     [Parameter (Mandatory = $true, ParameterSetName = 'Rollback', HelpMessage = "Using this parameter will allow you to rollback using the type you specified.")]
-    [ValidateSet('RestrictTypeEWSBackend', 'RestoreIISAppConfig')]
+    [ValidateSet('RestrictTypeEWSBackend', 'RestoreIISAppConfig', 'RestoreConfiguration')]
     [string[]]$RollbackType,
 
     [Parameter (Mandatory = $true, ParameterSetName = "DisableEP", HelpMessage = "Using this parameter will disable extended protection only for the servers you specified.")]
@@ -154,7 +154,8 @@ begin {
     # The ParameterSetName options
     $RollbackSelected = $PsCmdlet.ParameterSetName -eq "Rollback"
     $RollbackRestoreIISAppConfig = $RollbackSelected -and $RollbackType.Contains("RestoreIISAppConfig")
-    $RollbackRestrictType = $RollbackSelected -and (-not $RollbackRestoreIISAppConfig)
+    $RollbackRestoreConfiguration = $RollbackSelected -and $RollbackType.Contains("RestoreConfiguration")
+    $RollbackRestrictType = $RollbackSelected -and (-not $RollbackRestoreIISAppConfig) -and (-not $RollbackRestoreConfiguration)
     $ConfigureMitigationSelected = $PsCmdlet.ParameterSetName -eq "ConfigureMitigation"
     $ConfigureEPSelected = $ConfigureMitigationSelected -or
         ($PsCmdlet.ParameterSetName -eq "ConfigureEP" -and -not $ShowExtendedProtection)
@@ -162,8 +163,13 @@ begin {
 
     $includeExchangeServerNames = New-Object 'System.Collections.Generic.List[string]'
 
-    if ($RollbackRestoreIISAppConfig -and $RollbackType.Length -gt 1) {
-        Write-Host "RestoreIISAppConfig Rollback type can only be used individually"
+    if ($RollbackType.Length -gt 1) {
+        if ($RollbackRestoreIISAppConfig) {
+            Write-Host "RestoreIISAppConfig Rollback type can only be used individually"
+        }
+        if ($RollbackRestoreConfiguration) {
+            Write-Host "RestoreConfiguration Rollback type can only be used individually"
+        }
         exit
     }
 
@@ -620,6 +626,20 @@ begin {
 
             if ($RollbackRestoreIISAppConfig) {
                 Invoke-RollbackExtendedProtection -ExchangeServers $ExchangeServers
+            }
+
+            if ($RollbackRestoreConfiguration) {
+
+                $inputList = New-Object System.Collections.Generic.List[object]
+                $ExchangeServers | ForEach-Object { $inputList.Add([PSCustomObject]@{
+                            ServerName = $_.Name
+                            Restore    = ([PSCustomObject]@{
+                                    FileName     = "ConfigureExtendedProtection"
+                                    PassedWhatIf = $WhatIfPreference
+                                })
+                        }) }
+
+                Invoke-IISConfigurationManagerAction -InputObject $inputList
             }
 
             if ($RollbackRestrictType) {
