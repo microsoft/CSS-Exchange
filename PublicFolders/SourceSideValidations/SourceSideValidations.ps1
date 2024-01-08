@@ -148,9 +148,6 @@ try {
     # Validate that all content mailboxes exist
     $ipmSubtreeByMailboxGuid = $folderData.IpmSubtree | Group-Object ContentMailboxGuid
     foreach ($group in $ipmSubtreeByMailboxGuid) {
-        if ([string]::IsNullOrEmpty($group.Name)) {
-            Write-Warning "$($group.Count) folders have no ContentMailboxGuid. "
-        }
         $mailbox = Get-Mailbox -PublicFolder $group.Name -ErrorAction SilentlyContinue
         if ($null -eq $mailbox) {
             Write-Warning "Content Mailbox $($group.Name) not found. $($group.Count) folders point to this invalid mailbox."
