@@ -57,6 +57,7 @@ function Invoke-IISConfigurationRemoteAction {
                 try {
                     $backupProgressCounter++
                     $progressCounter++
+                    $totalActions = $totalActions * 2 # Double to get the current value plus the setting.
                     $remoteActionProgressParams.Status = "Gathering current values. $backupProgressCounter of $backupActionsCount"
                     $remoteActionProgressParams.PercentComplete = ($progressCounter / $totalActions * 100)
                     Write-Progress @remoteActionProgressParams
@@ -89,7 +90,7 @@ function Invoke-IISConfigurationRemoteAction {
                     Write-Verbose "No Backup File Name Provided, so we aren't going to backup what we have on the server."
                 } else {
                     $outFilePath = "IISManagementRestoreCmdlets-$($InputObject.BackupFileName)"
-                    $outFilePath = [System.IO.Path]::Join("$($env:WINDIR)\System32\inetSrv\config\", $outFilePath)
+                    $outFilePath = [System.IO.Path]::Combine("$($env:WINDIR)\System32\inetSrv\config\", $outFilePath)
                     $restoreActions | ConvertTo-Json -ErrorAction Stop | Out-File $outFilePath -ErrorAction Stop
                     $restoreActionsSaved = $true
                 }
@@ -102,19 +103,19 @@ function Invoke-IISConfigurationRemoteAction {
 
         # Proceed to set the configuration
         foreach ($actionItem in $InputObject.Actions.Set) {
-            $commandParameters = $actionItem.Parameters
-
-            if ($null -ne $commandParameters["Location"]) {
-                $location = $commandParameters["Location"]
-            } else {
-                $location = $commandParameters["PSPath"]
-            }
-            $progressCounter++
-            $remoteActionProgressParams.Status = "Setting $($commandParameters["Name"]) at '$location'"
-            $remoteActionProgressParams.PercentComplete = ($progressCounter / $totalActions * 100)
-            Write-Progress @remoteActionProgressParams
-
             try {
+                $commandParameters = $actionItem.Parameters
+
+                if ($null -ne $commandParameters["Location"]) {
+                    $location = $commandParameters["Location"]
+                } else {
+                    $location = $commandParameters["PSPath"]
+                }
+                $progressCounter++
+                $remoteActionProgressParams.Status = "Setting $($commandParameters["Name"]) at '$location'"
+                $remoteActionProgressParams.PercentComplete = ($progressCounter / $totalActions * 100)
+
+                Write-Progress @remoteActionProgressParams
                 & $actionItem.Cmdlet @commandParameters
             } catch {
                 Write-Verbose "$($env:COMPUTERNAME): Failed to set '$($commandParameters["Name"])' for '$location' with the value '$($commandParameters["Value"])'. Inner Exception $_"
@@ -125,8 +126,12 @@ function Invoke-IISConfigurationRemoteAction {
     }
 
     end {
-        Write-Progress @remoteActionProgressParams -Completed
-
+        try {
+            Write-Progress @remoteActionProgressParams -Completed
+        } catch {
+            Write-Verbose "Failed to Write-Process with -Completed"
+            $errorContext.Add($_)
+        }
         return [PSCustomObject]@{
             ComputerName              = $env:COMPUTERNAME
             AllActionsPerformed       = $allActionsPerformed
