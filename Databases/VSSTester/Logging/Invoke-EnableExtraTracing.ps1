@@ -8,7 +8,7 @@ function Invoke-EnableExTRATracing {
         [string]
         $ServerName,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [object]
         $DatabaseToBackup,
 
@@ -53,10 +53,9 @@ function Invoke-EnableExTRATracing {
         }
     }
 
-    $dbMountedOn = $DatabaseToBackup.Server.Name
+    $traceLocalServerOnly = $null -eq $DatabaseToBackup -or $DatabaseToBackup.Server.Name -eq $ServerName
 
-    #active server, only get tracing from active node
-    if ($dbMountedOn -eq $ServerName) {
+    if ($traceLocalServerOnly) {
         Write-Host "Creating Exchange Trace data collector set..."
         Invoke-ExtraTracingCreate -ComputerName $ServerName -LogmanName "VSSTester" -OutputPath $OutputPath
         Write-Host "Starting Exchange Trace data collector..."
@@ -70,6 +69,7 @@ function Invoke-EnableExTRATracing {
         Write-Host
     } else {
         #passive server, get tracing from both active and passive nodes
+        $dbMountedOn = $DatabaseToBackup.Server.Name
         Write-Host "Copying the ExTRA config file 'EnabledTraces.config' file to $dbMountedOn..."
         #copy EnabledTraces.config from current passive copy to active copy server
         Copy-Item "c:\EnabledTraces.Config" "\\$dbMountedOn\c$\EnabledTraces.config" -Force

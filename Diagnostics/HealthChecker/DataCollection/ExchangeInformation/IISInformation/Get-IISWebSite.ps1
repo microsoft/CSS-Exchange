@@ -101,9 +101,13 @@ function Get-IISWebSite {
                     # add 8 to find the start index after 'max-age='
                     $maxAgeIndex = $maxAgeIndex + 8
 
-                    # subtract maxAgeIndex to get the length that we need to find the substring
-                    $maxAgeValueIndex = $maxAgeValueIndex - $maxAgeIndex
-                    $customHeaderHstsObj.'max-age' = $customHeaderHsts.Substring($maxAgeIndex, $maxAgeValueIndex)
+                    if ($maxAgeValueIndex -ne -1) {
+                        # subtract maxAgeIndex to get the length that we need to find the substring
+                        $maxAgeValueIndex = $maxAgeValueIndex - $maxAgeIndex
+                        $customHeaderHstsObj.'max-age' = $customHeaderHsts.Substring($maxAgeIndex, $maxAgeValueIndex)
+                    } else {
+                        $customHeaderHstsObj.'max-age' = $customHeaderHsts.Substring($maxAgeIndex)
+                    }
                 } else {
                     Write-Verbose "max-age directive not found"
                 }

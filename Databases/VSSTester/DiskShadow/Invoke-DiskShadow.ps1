@@ -8,14 +8,10 @@ function Invoke-DiskShadow {
     param(
         [Parameter(Mandatory = $true)]
         [string]
-        $OutputPath,
-
-        [Parameter(Mandatory = $true)]
-        [object]
-        $DatabaseToBackup
+        $OutputPath
     )
 
-    Write-Host "$(Get-Date) Starting DiskShadow copy of Exchange database: $Database"
+    Write-Host "$(Get-Date) Starting DiskShadow copy."
     Write-Host "  Running the following command:"
     Write-Host "  `"C:\Windows\System32\DiskShadow.exe /s $OutputPath\DiskShadow.dsh /l $OutputPath\DiskShadow.log`""
 

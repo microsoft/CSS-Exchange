@@ -13,6 +13,7 @@ nav:
     - Reset-ScanEngineVersion: Admin/Reset-ScanEngineVersion.md
     - SetUnifiedContentPath: Admin/SetUnifiedContentPath.md
     - Test-AMSI: Admin/Test-AMSI.md
+    - Test-ExchangePropertyPermissions: Admin/Test-ExchangePropertyPermissions.md
     - Update-Engines: Admin/Update-Engines.md
   - Calendar:
     - Check-SharingStatus: Calendar/Check-SharingStatus.md
