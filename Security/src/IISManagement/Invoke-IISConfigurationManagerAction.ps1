@@ -41,6 +41,7 @@ function Invoke-IISConfigurationManagerAction {
                 Write-Warning "Failed to execute request on '$($server.ServerName)'. NULL Result: $($null -eq $result)"
 
                 if ($result.ErrorContext.Count -gt 0) {
+                    Write-Warning "Error context written out to debug log."
                     $result.ErrorContext | ForEach-Object { Write-VerboseErrorInformation -CurrentError $_ }
                 } else {
                     Write-Verbose "No Error Context provided."
