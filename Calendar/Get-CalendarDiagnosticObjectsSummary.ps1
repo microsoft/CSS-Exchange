@@ -556,7 +556,7 @@ function CreateShortClientName {
         } elseif ($ClientInfoString -like "*SkypeSpaces*") {
             $ShortClientName = "Teams"
         } elseif ($ClientInfoString -like "*AppId=7b7fdad6-df9d-4cd5-a4f2-b5f749350419*") {
-            $ShortClientName = "Bookings B2 Service";
+            $ShortClientName = "Bookings B2 Service"
         } else {
             $ShortClientName = "[Unknown Rest Client]"
         }
@@ -604,13 +604,13 @@ function SetIsIgnorable {
     )
 
     if ($ShortClientName -like "TBA*SharingSyncAssistant" `
-        -or $ShortClientName -eq "CalendarReplication" `
-        -or $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingCFM" `
-        -or $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingDelete") {
-        return "Sharing" 
+            -or $ShortClientName -eq "CalendarReplication" `
+            -or $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingCFM" `
+            -or $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingDelete") {
+        return "Sharing"
     } elseif ($CalendarItemTypes.($CalLog.ItemClass) -eq "RespAny" `
-        -or $CalendarItemTypes.($CalLog.ItemClass) -eq "AttendeeList") {
-        return "Response"
+            -or $CalendarItemTypes.($CalLog.ItemClass) -eq "AttendeeList") {
+        return "Resp"
     } elseif ($ShortClientName -like "EBA*" `
             -or $ShortClientName -like "TBA*" `
             -or $ShortClientName -eq "LocationProcessor" `
@@ -815,7 +815,7 @@ function BuildCSV {
 
 # ===================================================================================================
 # Write Out one line of the Meeting Summary (Time + Meeting Changes)
-# ===================================================================================================`
+# ===================================================================================================
 function MeetingSummary {
     param(
         [array] $Time,
@@ -873,7 +873,7 @@ function MeetingSummary {
 
     # Convert-Data -ArrayNames "Time", "MeetingChanges" >> $Script:TimeLineFilename
     $TimeLineOutput = Convert-Data -ArrayNames "Time", "MeetingChanges"
-  
+
     $TimeLineOutput | Export-Csv -Path $Script:TimeLineFilename -NoTypeInformation -Encoding UTF8 -Append
     $TimeLineOutput
 }
