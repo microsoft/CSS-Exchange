@@ -106,6 +106,7 @@ $ShortClientNameProcessor = @{
     'Lync for Mac'                               = "LyncMac"
     'AppId=00000004-0000-0ff1-ce00-000000000000' = "SkypeMMS"
     'MicrosoftNinja'                             = "Teams"
+    'SkypeSpaces'                                = "Teams"
     'Remove-CalendarEvents'                      = "RemoveCalendarEvent"
     'Client=POP3/IMAP4'                          = "PopImap"
     'Client=OWA'                                 = "OWA"
@@ -115,6 +116,7 @@ $ShortClientNameProcessor = @{
     'AppId=1e3faf23-d2d2-456a-9e3e-55db63b869b0' = "CiscoWebex"
     'AppId=1c3a76cc-470a-46d7-8ba9-713cfbb2c01f' = "Time Service"
     'AppId=48af08dc-f6d2-435f-b2a7-069abd99c086' = "RestConnector"
+    'AppId=7b7fdad6-df9d-4cd5-a4f2-b5f749350419' = "Bookings B2 Service"
     'GriffinRestClient'                          = "GriffinRestClient"
     'MacOutlook'                                 = "MacOutlookRest"
     'Outlook-iOS-Android'                        = "OutlookMobile"
@@ -268,6 +270,7 @@ function Convert-Data {
         }
         $FinalArray += $FinalObj
     }
+
     return $FinalArray
     $FinalArray = @()
 }
@@ -550,6 +553,10 @@ function CreateShortClientName {
             $ShortClientName = "MacOutlookRest"
         } elseif ($ClientInfoString -like "*Microsoft Outlook 16*") {
             $ShortClientName = "Outlook-ModernCalendarSharing"
+        } elseif ($ClientInfoString -like "*SkypeSpaces*") {
+            $ShortClientName = "Teams"
+        } elseif ($ClientInfoString -like "*AppId=7b7fdad6-df9d-4cd5-a4f2-b5f749350419*") {
+            $ShortClientName = "Bookings B2 Service";
         } else {
             $ShortClientName = "[Unknown Rest Client]"
         }
@@ -596,17 +603,20 @@ function SetIsIgnorable {
         $CalLog
     )
 
-    if ($ShortClientName -like "EBA*" `
+    if ($ShortClientName -like "TBA*SharingSyncAssistant" `
+        -or $ShortClientName -eq "CalendarReplication" `
+        -or $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingCFM" `
+        -or $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingDelete") {
+        return "Sharing" 
+    } elseif ($CalendarItemTypes.($CalLog.ItemClass) -eq "RespAny" `
+        -or $CalendarItemTypes.($CalLog.ItemClass) -eq "AttendeeList") {
+        return "Response"
+    } elseif ($ShortClientName -like "EBA*" `
             -or $ShortClientName -like "TBA*" `
             -or $ShortClientName -eq "LocationProcessor" `
             -or $ShortClientName -eq "GriffinRestClient" `
             -or $ShortClientName -eq "RestConnector" `
-            -or $ShortClientName -eq "CalendarReplication" `
-            -or $ShortClientName -eq "TimeService" `
-            -or $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingCFM" `
-            -or $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingDelete" `
-            -or $CalendarItemTypes.($CalLog.ItemClass) -eq "AttendeeList" `
-            -or $CalendarItemTypes.($CalLog.ItemClass) -eq "RespAny") {
+            -or $ShortClientName -eq "TimeService" ) {
         return "True"
     } else {
         return "False"
@@ -805,7 +815,7 @@ function BuildCSV {
 
 # ===================================================================================================
 # Write Out one line of the Meeting Summary (Time + Meeting Changes)
-# ===================================================================================================
+# ===================================================================================================`
 function MeetingSummary {
     param(
         [array] $Time,
@@ -861,7 +871,11 @@ function MeetingSummary {
         $MeetingChanges += $InitialToList, $InitialLocation, $InitialStartTime, $InitialEndTime, $InitialRecurring
     }
 
-    Convert-Data -ArrayNames "Time", "MeetingChanges"
+    # Convert-Data -ArrayNames "Time", "MeetingChanges" >> $Script:TimeLineFilename
+    $TimeLineOutput = Convert-Data -ArrayNames "Time", "MeetingChanges"
+  
+    $TimeLineOutput | Export-Csv -Path $Script:TimeLineFilename -NoTypeInformation -Encoding UTF8 -Append
+    $TimeLineOutput
 }
 
 # ===================================================================================================
@@ -894,6 +908,14 @@ function BuildTimeline {
     param (
         [string] $Identity
     )
+    $ThisMeetingID = $script:GCDO.CleanGlobalObjectId | Select-Object -Unique
+    $ShortMeetingID = $ThisMeetingID.Substring($ThisMeetingID.length - 6)
+    if ($Identity -like "*@*") {
+        $ShortName = $Identity.Split('@')[0]
+    }
+    $ShortName = $ShortName.Substring(0, [System.Math]::Min(20, $ShortName.Length))
+    $Script:TimeLineFilename = "$($ShortName)_TimeLine_$ShortMeetingID.csv"
+
     Write-DashLineBoxColor " TimeLine for [$Identity]:",
     "  Subject: $($script:GCDO[0].NormalizedSubject)",
     "  Organizer: $($script:GCDO[0].SentRepresentingDisplayName)",
