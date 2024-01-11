@@ -91,10 +91,10 @@ function Invoke-ConfigureExtendedProtection {
             }
         }
     } end {
+        Write-Progress @progressParams -Completed
         if ($iisConfigurationManagements.Count -gt 0) {
             Invoke-IISConfigurationManagerAction $iisConfigurationManagements -ConfigurationDescription "Configure Extended Protection"
         }
-        Write-Progress @progressParams -Completed
         Write-Host ""
         if ($offlineServers.Count -gt 0) {
             Write-Warning "Servers determined to be offline. Failed to enable Extended Protection: $([string]::Join(", " ,$offlineServers))"
