@@ -75,7 +75,7 @@ function Invoke-DisableExtendedProtection {
                     Actions    = $actionList
                 })
         }
-        Invoke-IISConfigurationManagerAction $iisConfigurationManagements
+        Invoke-IISConfigurationManagerAction $iisConfigurationManagements -ConfigurationDescription "Disable Extended Protection"
     }
     end {
         Write-Progress @progressParams -Completed

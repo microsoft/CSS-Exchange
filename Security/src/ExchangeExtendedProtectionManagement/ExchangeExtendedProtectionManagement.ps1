@@ -639,7 +639,7 @@ begin {
                                 })
                         }) }
 
-                Invoke-IISConfigurationManagerAction -InputObject $inputList
+                Invoke-IISConfigurationManagerAction -InputObject $inputList -ConfigurationDescription "Rollback Extended Protection"
             }
 
             if ($RollbackRestrictType) {

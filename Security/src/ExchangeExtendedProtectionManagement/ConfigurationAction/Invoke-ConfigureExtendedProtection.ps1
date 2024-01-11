@@ -92,7 +92,7 @@ function Invoke-ConfigureExtendedProtection {
         }
     } end {
         if ($iisConfigurationManagements.Count -gt 0) {
-            Invoke-IISConfigurationManagerAction $iisConfigurationManagements
+            Invoke-IISConfigurationManagerAction $iisConfigurationManagements -ConfigurationDescription "Configure Extended Protection"
         }
         Write-Progress @progressParams -Completed
         Write-Host ""
