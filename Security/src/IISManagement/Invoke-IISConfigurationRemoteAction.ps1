@@ -275,9 +275,17 @@ function Invoke-IISConfigurationRemoteAction {
                         Write-VerboseAndLog "Successfully saved out restore actions."
                     }
                 } catch {
-                    Write-VerboseAndLog "Failed to Save Out the Restore Cmdlets. Inner Exception: $_"
-                    $errorContext.Add($_)
-                    throw "Failed to save out the Restore Cmdlets Inner Exception: $_"
+                    try {
+                        # Still want to support legacy OS versions just in case customers are still using that. The pretty version of ConvertTo-Json doesn't work.
+                        # Need to include the compress parameter.
+                        $restoreActions | ConvertTo-Json -ErrorAction Stop -Depth 5 -Compress | Out-File $backupRestoreFilePath -ErrorAction Stop
+                        $restoreActionsSaved = $true
+                        Write-VerboseAndLog "Successfully saved out restore actions."
+                    } catch {
+                        Write-VerboseAndLog "Failed to Save Out the Restore Cmdlets. Inner Exception: $_"
+                        $errorContext.Add($_)
+                        throw "Failed to save out the Restore Cmdlets Inner Exception: $_"
+                    }
                 }
             } else {
                 $restoreActionsSaved = $true # TODO: Improve logic here.
