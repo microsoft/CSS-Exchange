@@ -49,6 +49,10 @@ param(
     [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureEP', HelpMessage = "Used for internal options")]
     [string]$InternalOption,
 
+    [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureEP', HelpMessage = "Used to not enable Extended Protection on particular virtual directories")]
+    [ValidateSet("FrontEndEWS")]
+    [string[]]$ExcludeVirtualDirectories,
+
     [Parameter (Mandatory = $true, ParameterSetName = 'GetExchangeIPs', HelpMessage = "Using this parameter will allow you to get the list of IPs used by Exchange Servers.")]
     [switch]$FindExchangeServerIPAddresses,
 
@@ -171,6 +175,10 @@ begin {
             Write-Host "RestoreConfiguration Rollback type can only be used individually"
         }
         exit
+    }
+
+    if ($ExcludeVirtualDirectories.Count -gt 0) {
+        $ExcludeEWSFe = $null -ne ($ExcludeVirtualDirectories | Where-Object { $_ -eq "FrontEndEWS" })
     }
 
     if ($RollbackRestrictType) {
@@ -343,7 +351,13 @@ begin {
         }
 
         if ($ConfigureEPSelected) {
-            $prerequisitesCheck = Get-ExtendedProtectionPrerequisitesCheck -ExchangeServers $ExchangeServersPrerequisitesCheckSettingsCheck -SkipEWS $SkipEWS -SiteVDirLocations $SiteVDirLocations
+            $params = @{
+                ExchangeServers   = $ExchangeServersPrerequisitesCheckSettingsCheck
+                SkipEWS           = $SkipEWS
+                SkipEWSFe         = $ExcludeEWSFe
+                SiteVDirLocations = $SiteVDirLocations
+            }
+            $prerequisitesCheck = Get-ExtendedProtectionPrerequisitesCheck @params
 
             if ($null -ne $prerequisitesCheck) {
                 Write-Host ""

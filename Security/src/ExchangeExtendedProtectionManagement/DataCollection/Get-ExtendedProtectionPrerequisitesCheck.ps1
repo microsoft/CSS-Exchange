@@ -15,7 +15,10 @@ function Get-ExtendedProtectionPrerequisitesCheck {
         [string[]]$SiteVDirLocations,
 
         [Parameter(Mandatory = $false)]
-        [bool]$SkipEWS
+        [bool]$SkipEWS,
+
+        [Parameter(Mandatory = $false)]
+        [bool]$SkipEWSFe
     )
     begin {
         $results = New-Object 'System.Collections.Generic.List[object]'
@@ -43,6 +46,7 @@ function Get-ExtendedProtectionPrerequisitesCheck {
                 IsClientAccessServer = $server.IsClientAccessServer
                 IsMailboxServer      = $server.IsMailboxServer
                 ExcludeEWS           = $SkipEWS
+                ExcludeEWSFe         = $SkipEWSFe
             }
 
             if ($null -ne $SiteVDirLocations) {

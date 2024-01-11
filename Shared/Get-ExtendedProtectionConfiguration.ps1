@@ -27,6 +27,9 @@ function Get-ExtendedProtectionConfiguration {
         [bool]$ExcludeEWS = $false,
 
         [Parameter(Mandatory = $false)]
+        [bool]$ExcludeEWSFe,
+
+        [Parameter(Mandatory = $false)]
         [ValidateSet("Exchange Back End/EWS")]
         [string[]]$SiteVDirLocations,
 
@@ -65,6 +68,9 @@ function Get-ExtendedProtectionConfiguration {
                 }
                 # Set EWS VDir to None for known issues
                 if ($ExcludeEWS -and $virtualDirectory -eq "EWS") { $ExtendedProtection[$i] = "None" }
+
+                # EWS FE
+                if ($ExcludeEWSFe -and $VirtualDirectory -eq "EWS" -and $WebSite[$i] -eq "Default Web Site") { $ExtendedProtection[$i] = "None" }
 
                 if ($null -ne $SiteVDirLocations -and
                     $SiteVDirLocations.Count -gt 0) {
