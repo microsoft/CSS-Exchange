@@ -44,9 +44,16 @@ function Invoke-IISConfigurationRemoteAction {
         $rootSavePath = "$($env:WINDIR)\System32\inetSrv\config\"
         $logFilePath = [System.IO.Path]::Combine($rootSavePath, "IISManagementDebugLog.txt")
         $restoreFileName = "IISManagementRestoreCmdlets-{0}.json"
-        $loggingFailureCount = 0
         $loggingDisabled = $false
-        $Script:logFileExists = (Test-Path $logFilePath)
+
+        if (-not (Test-Path $rootSavePath)) {
+            try {
+                New-Item -Path $rootSavePath -ItemType Directory -ErrorAction Stop
+            } catch {
+                Write-Verbose "Failed to create the directory for logging."
+                $loggingDisabled = $true
+            }
+        }
 
         # To avoid duplicate code for log being written and keeping code in sync, just going to do the restore option here.
         # It is going to be a different property filled out on the InputObject
@@ -83,20 +90,11 @@ function Invoke-IISConfigurationRemoteAction {
 
                 if ($loggingDisabled) { return }
 
-                if ($Script:logFileExists -eq $false) {
-                    New-Item -Path $logFilePath -ItemType File -ErrorAction Stop
-                    $Script:logFileExists = $true
-                }
-
-                if ($Script:logFileExists) {
-                    $Message | Out-File $logFilePath -Append -ErrorAction Stop
-                }
+                $Message | Out-File $logFilePath -Append -ErrorAction Stop
             } catch {
-                $loggingFailureCount++
+                # Logging shouldn't provided that configuration wasn't successful.
+                # Therefore, do no add to errorContext
                 Write-Verbose "Failed to log out file. Inner Exception: $_"
-                $errorContext.Add($_)
-
-                $loggingDisabled = $loggingFailureCount -ge 3
             }
         }
 
