@@ -97,15 +97,15 @@ function Invoke-ConfigureExtendedProtection {
         }
         Write-Host ""
         if ($offlineServers.Count -gt 0) {
-            Write-Warning "Servers determined to be offline. Failed to enable Extended Protection: $([string]::Join(", " ,$offlineServers))"
+            Write-Warning "Failed to enable Extended Protection on the following servers, because they were offline: $([string]::Join(", " ,$offlineServers))"
         }
 
         if ($noEpConfigurationServer.Count -gt 0) {
-            Write-Warning "Servers weren't able to get Extended Protection configuration to determine action: $([string]::Join(",", $noEpConfigurationServer))"
+            Write-Warning "Failed to determine what actions to take on the following servers, because we couldn't retrieve the EP configuration: $([string]::Join(",", $noEpConfigurationServer))"
         }
 
         if ($noChangesMadeServers.Count -gt 0) {
-            Write-Host "No changes made: $([string]::Join(", " ,$noChangesMadeServers))"
+            Write-Host "No changes were needed on the following servers: $([string]::Join(", " ,$noChangesMadeServers))"
         }
     }
 }
