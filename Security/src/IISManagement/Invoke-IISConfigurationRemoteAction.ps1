@@ -127,7 +127,7 @@ function Invoke-IISConfigurationRemoteAction {
                     Write-VerboseAndLog "Backup file already exists, loading the current file."
 
                     try {
-                        $loadingJson = Get-Content $backupRestoreFilePath | ConvertFrom-Json
+                        $loadingJson = Get-Content $backupRestoreFilePath -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
 
                         if ($null -ne $loadingJson) {
                             $loadingJson | ForEach-Object {
@@ -141,8 +141,6 @@ function Invoke-IISConfigurationRemoteAction {
                                         Parameters = $hash
                                     })
                             }
-                        } else {
-                            # Should we handle this??? TODO: Please comment.
                         }
                     } catch {
                         Write-VerboseAndLog "Failed to load the current backup file: '$backupRestoreFilePath'"
