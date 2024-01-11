@@ -18,7 +18,6 @@
             Restore
                 [string]Cmdlet
                 [hashtable]Parameters
-        [Nullable][int]ProgressParentId
         [string]BackupFileName
         [object]Restore
             [string]FileName
@@ -66,7 +65,8 @@ function Invoke-IISConfigurationRemoteAction {
         }
 
         $remoteActionProgressParams = @{
-            ParentId        = if ($null -eq $InputObject.ProgressParentId) { 1 } else { $InputObject.ProgressParentId }
+            ParentId        = 0
+            Id              = 1
             Activity        = "Executing$(if($isRestoreOption){" Restore"}) Actions on $env:ComputerName"
             Status          = [string]::Empty
             PercentComplete = 0

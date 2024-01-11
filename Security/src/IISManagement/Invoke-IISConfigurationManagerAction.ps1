@@ -25,13 +25,27 @@ function Invoke-IISConfigurationManagerAction {
         $serverManagement = New-Object System.Collections.Generic.List[object]
         $failedServers = New-Object System.Collections.Generic.List[object]
         $successfulServers = New-Object System.Collections.Generic.List[object]
+        $managerActionProgressParams = @{
+            Id              = 0
+            Activity        = "Executing $ConfigurationDescription on Servers"
+            Status          = [string]::Empty
+            PercentComplete = 0
+        }
     }
     process {
         $InputObject | ForEach-Object { $serverManagement.Add($_) }
     } end {
+
+        $managerActionProgressCounter = 0
+        $managerActionTotalActions = $serverManagement.Count
+
         foreach ($server in $serverManagement) {
             # Currently, this function is synchronous when executing on each server. Which makes it slow in large environments.
             # Would like to make this multi-threaded to improve performance.
+            $managerActionProgressCounter++
+            $managerActionProgressParams.Status = "Working on $($server.ServerName)"
+            $managerActionProgressParams.PercentComplete = ($managerActionProgressCounter / $managerActionTotalActions * 100)
+            Write-Progress @managerActionProgressParams
             $result = Invoke-ScriptBlockHandler -ComputerName $server.ServerName -ArgumentList $server -ScriptBlock ${Function:Invoke-IISConfigurationRemoteAction}
 
             if ($null -eq $result -or
