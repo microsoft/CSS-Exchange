@@ -625,6 +625,15 @@ begin {
             Write-Host "Prerequisite check will be skipped due to Rollback"
 
             if ($RollbackRestoreIISAppConfig) {
+                $params = @{
+                    Message   = "Display warning about legacy option of RestoreIISAppConfig"
+                    Target    = "RestoreIISAppConfig is the legacy restore option of ExchangeExtendedProtectionManagement." +
+                    "`r`nIt will not work if there are no backup files present or if the file is older than 30 days." +
+                    "`r`nIt is recommended to use RestoreConfiguration or if you are trying to disable Extended Protection due to automatic configuration in Setup, use -DisableExtendedProtection"
+                    Operation = "Attempt to restore using legacy option."
+                }
+
+                Show-Disclaimer @params
                 Invoke-RollbackExtendedProtection -ExchangeServers $ExchangeServers
             }
 
