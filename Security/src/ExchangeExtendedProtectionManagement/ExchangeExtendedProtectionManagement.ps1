@@ -177,6 +177,7 @@ begin {
         exit
     }
 
+    $ExcludeEWSFe = $false
     if ($ExcludeVirtualDirectories.Count -gt 0) {
         $ExcludeEWSFe = $null -ne ($ExcludeVirtualDirectories | Where-Object { $_ -eq "EWSFrontEnd" })
     }
