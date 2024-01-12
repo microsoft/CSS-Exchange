@@ -187,6 +187,21 @@ function Invoke-IISConfigurationRemoteAction {
                         $errorContext.Add($_)
                     }
                 }
+
+                if ($allActionsPerformed) {
+                    # Remove the restore file so you can't restore again.
+                    try {
+                        Move-Item -Path $backupRestoreFilePath -Destination ($backupRestoreFilePath.Replace(".json", ".bak")) -Force -ErrorAction Stop
+                        Write-VerboseAndLog "Successfully removed the restore file."
+                    } catch {
+                        Write-VerboseAndLog "Failed to remove the current restore file. Inner Exception: $_"
+                        $errorContext.Add($_)
+                        $allActionsPerformed = $false
+                    }
+                } else {
+                    Write-VerboseAndLog "Not removing restore file because an issue was detected with the restore."
+                }
+
                 return
             }
 

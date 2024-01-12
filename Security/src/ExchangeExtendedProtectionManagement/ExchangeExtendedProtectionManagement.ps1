@@ -653,6 +653,16 @@ begin {
 
             if ($RollbackRestoreConfiguration) {
 
+                $params = @{
+                    Message   = "Display warning about doing a restore of Extended Protection configuration."
+                    Target    = "RestoreConfiguration is going to restore all the previous changed settings to the original value at the time the script was run when attempting to change the setting." +
+                    "`r`nIf no errors occurred during restore, it will then proceed to remove the restore file." +
+                    "`r`nThe removing of the file is to prevent a restore action to be taken again if the configuration action hasn't been taken again."
+                    Operation = "Continue to restore configuration for Extended Protection."
+                }
+
+                Show-Disclaimer @params
+
                 $inputList = New-Object System.Collections.Generic.List[object]
                 $ExchangeServers | ForEach-Object { $inputList.Add([PSCustomObject]@{
                             ServerName = $_.Name
