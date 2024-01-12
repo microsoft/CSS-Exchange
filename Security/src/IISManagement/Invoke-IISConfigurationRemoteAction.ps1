@@ -149,6 +149,7 @@ function Invoke-IISConfigurationRemoteAction {
                 } else {
                     Write-VerboseAndLog "No backup file exists at: '$backupRestoreFilePath'"
                     if ($isRestoreOption) {
+                        Write-Error "Unable to restore due to no restore file. '$backupRestoreFilePath'"
                         # Must throw since we need this in order to restore
                         throw "No restore file exists: $backupRestoreFilePath"
                     }
