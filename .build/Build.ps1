@@ -17,6 +17,8 @@ Set-StrictMode -Version Latest
 . $PSScriptRoot\BuildFunctions\Get-ScriptDependencyTree.ps1
 . $PSScriptRoot\BuildFunctions\Show-ScriptDependencyTree.ps1
 
+Write-Host "Build process is running on: Windows? $IsWindows - MacOS? $IsMacOS - Linux? $IsLinux"
+
 $repoRoot = Get-Item "$PSScriptRoot\.."
 
 <#
@@ -139,7 +141,7 @@ if ($nonUnique.Count -gt 0) {
 
 $scriptVersions = @()
 
-$disclaimer = [IO.File]::ReadAllLines("$PSScriptRoot\..\LICENSE")
+$disclaimer = [IO.File]::ReadAllLines([IO.Path]::Combine($PSScriptRoot, "..", "LICENSE"))
 
 $documentedScriptFiles | ForEach-Object {
     $scriptName = [IO.Path]::GetFileName($_)
