@@ -50,7 +50,7 @@ param(
     [string]$InternalOption,
 
     [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureEP', HelpMessage = "Used to not enable Extended Protection on particular virtual directories")]
-    [ValidateSet("FrontEndEWS")]
+    [ValidateSet("EWSFrontEnd")]
     [string[]]$ExcludeVirtualDirectories,
 
     [Parameter (Mandatory = $true, ParameterSetName = 'GetExchangeIPs', HelpMessage = "Using this parameter will allow you to get the list of IPs used by Exchange Servers.")]
@@ -178,7 +178,7 @@ begin {
     }
 
     if ($ExcludeVirtualDirectories.Count -gt 0) {
-        $ExcludeEWSFe = $null -ne ($ExcludeVirtualDirectories | Where-Object { $_ -eq "FrontEndEWS" })
+        $ExcludeEWSFe = $null -ne ($ExcludeVirtualDirectories | Where-Object { $_ -eq "EWSFrontEnd" })
     }
 
     if ($RollbackRestrictType) {
