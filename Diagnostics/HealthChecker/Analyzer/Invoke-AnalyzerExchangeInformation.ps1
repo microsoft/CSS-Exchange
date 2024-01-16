@@ -299,7 +299,9 @@ function Invoke-AnalyzerExchangeInformation {
     if (-not ([string]::IsNullOrWhiteSpace($getWebServicesVirtualDirectory.InternalNLBBypassUrl))) {
         $params = $baseParams + @{
             Name             = "EWS Internal Bypass URL Set"
-            Details          = "$($getWebServicesVirtualDirectory.InternalNLBBypassUrl) - Can cause issues after KB 5001779"
+            Details          = "$($getWebServicesVirtualDirectory.InternalNLBBypassUrl) - Can cause issues after KB 5001779" +
+            "`r`n`t`tThe Web Services Virtual Directory has a value set for InternalNLBBypassUrl which can cause problems with Exchange." +
+            "`r`n`t`tSet the InternalNLBBypassUrl to NULL to correct this."
             DisplayWriteType = "Red"
         }
         Add-AnalyzedResultInformation @params
