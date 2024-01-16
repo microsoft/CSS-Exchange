@@ -492,7 +492,9 @@ function Invoke-AnalyzerIISInformation {
     # Use 'DisplayKey' for the display results.
     $alreadyDisplayedUrlRewriteRules = @{}
     $alreadyDisplayedUrlKey = "DisplayKey"
+    $urlMatchProblem = "UrlMatchProblem"
     $alreadyDisplayedUrlRewriteRules.Add($alreadyDisplayedUrlKey, (New-Object System.Collections.Generic.List[object]))
+    $alreadyDisplayedUrlRewriteRules.Add($urlMatchProblem, (New-Object System.Collections.Generic.List[string]))
 
     foreach ($key in $urlRewriteRules.Keys) {
         $currentSection = $urlRewriteRules[$key]
@@ -511,6 +513,7 @@ function Invoke-AnalyzerIISInformation {
 
                 #multiple match type possibilities, but should only be one per rule.
                 $propertyType = ($rule.match | Get-Member | Where-Object { $_.MemberType -eq "Property" }).Name
+                $isUrlMatchProblem = $propertyType -eq "url" -and $rule.match.$propertyType -eq "*"
                 $matchProperty = "$propertyType - $($rule.match.$propertyType)"
 
                 $displayObject = [PSCustomObject]@{
@@ -524,6 +527,10 @@ function Invoke-AnalyzerIISInformation {
                 if (-not ($alreadyDisplayedUrlRewriteRules.ContainsKey((($displayObject.RewriteRuleName))))) {
                     $alreadyDisplayedUrlRewriteRules.Add($displayObject.RewriteRuleName, $displayObject)
                     $alreadyDisplayedUrlRewriteRules[$alreadyDisplayedUrlKey].Add($displayObject)
+
+                    if ($isUrlMatchProblem) {
+                        $alreadyDisplayedUrlRewriteRules[$urlMatchProblem].Add($rule.Name)
+                    }
                 }
             }
         }
@@ -538,6 +545,18 @@ function Invoke-AnalyzerIISInformation {
             AddHtmlDetailRow = $false
         }
         Add-AnalyzedResultInformation @params
+
+        if ($alreadyDisplayedUrlRewriteRules[$urlMatchProblem].Count -gt 0) {
+            $params = $baseParams + @{
+                Name             = "Misconfigured URL Rewrite Rule - URL Match Problem Rules"
+                Details          = "$([string]::Join(",", $alreadyDisplayedUrlRewriteRules[$urlMatchProblem]))" +
+                "`r`n`t`tURL Match is set only a wild card which will result in a HTTP 500." +
+                "`r`n`t`tIf the rule is required, the URL match should be '.*' to avoid issues."
+                DisplayWriteType = "Red"
+            }
+
+            Add-AnalyzedResultInformation @params
+        }
     }
 
     if ($null -ne $missingWebApplicationConfigFile) {
