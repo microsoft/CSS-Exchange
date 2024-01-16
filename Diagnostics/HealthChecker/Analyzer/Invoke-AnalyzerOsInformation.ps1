@@ -332,7 +332,9 @@ function Invoke-AnalyzerOsInformation {
 
     if (($osInformation.NetworkInformation.HttpProxy.ProxyAddress -ne "None") -and
         ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false) -and
-        ($osInformation.NetworkInformation.HttpProxy.ProxyAddress -ne $exchangeInformation.GetExchangeServer.InternetWebProxy.Authority)) {
+        ($null -ne $exchangeInformation.GetExchangeServer.InternetWebProxy) -and
+        ($osInformation.NetworkInformation.HttpProxy.ProxyAddress -ne
+        "$($exchangeInformation.GetExchangeServer.InternetWebProxy.Host):$($exchangeInformation.GetExchangeServer.InternetWebProxy.Port)")) {
         $params = $baseParams + @{
             Details                = "Error: Exchange Internet Web Proxy doesn't match OS Web Proxy."
             DisplayWriteType       = "Red"
