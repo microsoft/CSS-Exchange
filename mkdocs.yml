@@ -63,6 +63,7 @@ nav:
       - DownloadDomainCheck: Diagnostics/HealthChecker/DownloadDomainCheck.md
       - OpenRelayDomainCheck: Diagnostics/HealthChecker/OpenRelayDomain.md
       - FIPFSCheck: Diagnostics/HealthChecker/FIPFSCheck.md
+      - IISInformation: Diagnostics/HealthChecker/IISInformation.md
       - IISWebConfigCheck: Diagnostics/HealthChecker/IISWebConfigCheck.md
       - HCScheduledTask: Diagnostics/HealthChecker/RunHCViaSchedTask.md
       - ADSiteCount: Diagnostics/HealthChecker/ADSiteCount.md
