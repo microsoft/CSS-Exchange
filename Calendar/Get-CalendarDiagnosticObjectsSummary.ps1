@@ -170,7 +170,7 @@ function GetCalendarDiagnosticObjects {
 
     if ($TrackingLogs) {
         Write-Host -ForegroundColor Yellow "Including Tracking Logs in the output."
-        $script:CustomPropertyNameList += "AttendeeListDetails","AttendeeCollection"
+        $script:CustomPropertyNameList += "AttendeeListDetails", "AttendeeCollection"
         $params.Add("ShouldFetchAttendeeCollection", $true)
         $params.Remove("CustomPropertyName")
         $params.Add("CustomPropertyName", $script:CustomPropertyNameList)
