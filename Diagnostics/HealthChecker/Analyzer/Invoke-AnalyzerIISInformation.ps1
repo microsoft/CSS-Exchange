@@ -112,12 +112,13 @@ function Invoke-AnalyzerIISInformation {
     $sbStarted = { param($o, $p) if ($p -eq "State") { if ($o."$p" -eq "Started") { "Green" } else { "Red" } } }
 
     $params = $baseParams + @{
-        OutColumns       = ([PSCustomObject]@{
+        OutColumns           = ([PSCustomObject]@{
                 DisplayObject      = $outputObjectDisplayValue
                 ColorizerFunctions = @($sbStarted)
                 IndentSpaces       = 8
             })
-        AddHtmlDetailRow = $false
+        OutColumnsColorTests = @($sbStarted)
+        HtmlName             = "IIS Sites Information"
     }
     Add-AnalyzedResultInformation @params
 
@@ -270,12 +271,13 @@ function Invoke-AnalyzerIISInformation {
 
     $sbRestart = { param($o, $p) if ($p -eq "RestartConditionSet") { if ($o."$p") { "Red" } else { "Green" } } }
     $params = $baseParams + @{
-        OutColumns       = ([PSCustomObject]@{
+        OutColumns           = ([PSCustomObject]@{
                 DisplayObject      = $outputObjectDisplayValue
                 ColorizerFunctions = @($sbStarted, $sbRestart)
                 IndentSpaces       = 8
             })
-        AddHtmlDetailRow = $false
+        OutColumnsColorTests = @($sbStarted, $sbRestart)
+        HtmlName             = "Application Pool Information"
     }
     Add-AnalyzedResultInformation @params
 
@@ -319,19 +321,19 @@ function Invoke-AnalyzerIISInformation {
         }
 
         $params = $baseParams + @{
-            OutColumns       = ([PSCustomObject]@{
+            OutColumns           = ([PSCustomObject]@{
                     DisplayObject      = $outputObjectDisplayValue
                     ColorizerFunctions = @($sbColorizer)
                     IndentSpaces       = 8
                 })
-            AddHtmlDetailRow = $false
+            OutColumnsColorTests = @($sbColorizer)
+            HtmlName             = "Application Pools Restarts"
         }
         Add-AnalyzedResultInformation @params
 
         $params = $baseParams + @{
             Details          = "Error: The above app pools currently have the periodic restarts set. This restart will cause disruption to end users."
             DisplayWriteType = "Red"
-            AddHtmlDetailRow = $false
         }
         Add-AnalyzedResultInformation @params
     }
@@ -429,11 +431,11 @@ function Invoke-AnalyzerIISInformation {
     }
 
     $params = $baseParams + @{
-        OutColumns       = ([PSCustomObject]@{
+        OutColumns = ([PSCustomObject]@{
                 DisplayObject = $iisVirtualDirectoriesDisplay
                 IndentSpaces  = 8
             })
-        AddHtmlDetailRow = $false
+        HtmlName   = "Virtual Directory Locations"
     }
     Add-AnalyzedResultInformation @params
 
