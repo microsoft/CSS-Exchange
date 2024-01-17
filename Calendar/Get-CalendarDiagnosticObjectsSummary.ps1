@@ -14,6 +14,9 @@
 # .PARAMETER MeetingID
 # The MeetingID of the meeting to query.
 #
+# .PARAMETER TrackingLogs
+# Include specific tracking logs in the output.
+#
 # .EXAMPLE
 # Get-CalendarDiagnosticObjectsSummary.ps1 -Identity someuser@microsoft.com -MeetingID 040000008200E00074C5B7101A82E008000000008063B5677577D9010000000000000000100000002FCDF04279AF6940A5BFB94F9B9F73CD
 #
@@ -27,11 +30,12 @@ param (
     [Parameter(Mandatory, Position = 0)]
     [string[]]$Identity,
 
-    [Parameter(Mandatory, ParameterSetName = 'Subject', Position = 1)]
-    [string]$Subject,
-
     [Parameter(Mandatory, ParameterSetName = 'MeetingID', Position = 1)]
-    [string]$MeetingID
+    [string]$MeetingID,
+    [bool]$TrackingLogs,
+
+    [Parameter(Mandatory, ParameterSetName = 'Subject', Position = 1)]
+    [string]$Subject
 )
 
 # ===================================================================================================
@@ -54,7 +58,7 @@ Write-Verbose "Script Versions: $BuildVersion"
 # Constants to support the script
 # ===================================================================================================
 
-$CustomPropertyNameList =
+$script:CustomPropertyNameList =
 "AppointmentCounterProposal",
 "AppointmentLastSequenceNumber",
 "AppointmentRecurring",
@@ -148,14 +152,28 @@ function GetCalendarDiagnosticObjects {
         [string]$Subject,
         [string]$MeetingID
     )
+    # if ($TrackingLogs) {
+    #     Write-Host -ForegroundColor Yellow "Including Tracking Logs in the CustomPropertyNameList."
+    #     Write-Host -ForegroundColor Blue "Custom Prop Names Before $($script:CustomPropertyNameList.Count)"
+    #     $script:CustomPropertyNameList += "AttendeeListDetails","AttendeeCollection"
+    #     Write-Host -ForegroundColor Blue "Custom Prop Names $($script:CustomPropertyNameList.Count)"
+    # }
 
     $params = @{
         Identity           = $Identity
-        CustomPropertyName = $CustomPropertyNameList
+        CustomPropertyName = $script:CustomPropertyNameList
         WarningAction      = "Ignore"
         MaxResults         = $LogLimit
         ResultSize         = $LogLimit
         ShouldBindToItem   = $true
+    }
+
+    if ($TrackingLogs) {
+        Write-Host -ForegroundColor Yellow "Including Tracking Logs in the output."
+        $script:CustomPropertyNameList += "AttendeeListDetails","AttendeeCollection"
+        $params.Add("ShouldFetchAttendeeCollection", $true)
+        $params.Remove("CustomPropertyName")
+        $params.Add("CustomPropertyName", $script:CustomPropertyNameList)
     }
 
     if ($Identity -and $MeetingID) {
@@ -801,6 +819,8 @@ function BuildCSV {
             'IsOrganizer'                   = $GetIsOrganizer
             'IsOrganizerProperty'           = $CalLog.IsOrganizerProperty
             'EventEmailReminderTimer'       = $CalLog.EventEmailReminderTimer
+            'AttendeeListDetails'           = MultiLineFormat($CalLog.AttendeeListDetails)
+            'AttendeeCollection'            = MultiLineFormat($CalLog.AttendeeCollection)
             'CleanGlobalObjectId'           = $CalLog.CleanGlobalObjectId
         }
     }
@@ -825,6 +845,14 @@ function BuildCSV {
     } else {
         Write-Host "Found $($script:GCDO.count) Log entries, only the $($MeetingTimeLine.count) Non-Ignorable entries will be analyzed in the TimeLine."
     }
+}
+
+function MultiLineFormat {
+    param(
+        $PassedString
+    )
+    $PassedString = $PassedString -replace "},", "},`n"
+    return $PassedString
 }
 
 # ===================================================================================================
