@@ -32,7 +32,7 @@ param (
 
     [Parameter(Mandatory, ParameterSetName = 'MeetingID', Position = 1)]
     [string]$MeetingID,
-    [bool]$TrackingLogs,
+    [switch]$TrackingLogs,
 
     [Parameter(Mandatory, ParameterSetName = 'Subject', Position = 1)]
     [string]$Subject
@@ -152,12 +152,6 @@ function GetCalendarDiagnosticObjects {
         [string]$Subject,
         [string]$MeetingID
     )
-    # if ($TrackingLogs) {
-    #     Write-Host -ForegroundColor Yellow "Including Tracking Logs in the CustomPropertyNameList."
-    #     Write-Host -ForegroundColor Blue "Custom Prop Names Before $($script:CustomPropertyNameList.Count)"
-    #     $script:CustomPropertyNameList += "AttendeeListDetails","AttendeeCollection"
-    #     Write-Host -ForegroundColor Blue "Custom Prop Names $($script:CustomPropertyNameList.Count)"
-    # }
 
     $params = @{
         Identity           = $Identity
@@ -168,7 +162,7 @@ function GetCalendarDiagnosticObjects {
         ShouldBindToItem   = $true
     }
 
-    if ($TrackingLogs) {
+    if ($TrackingLogs.IsPresent) {
         Write-Host -ForegroundColor Yellow "Including Tracking Logs in the output."
         $script:CustomPropertyNameList += "AttendeeListDetails", "AttendeeCollection"
         $params.Add("ShouldFetchAttendeeCollection", $true)
