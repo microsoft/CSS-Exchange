@@ -6,7 +6,7 @@ The Exchange Extended Protection Management is a script to help automate the Ext
 
 !!! success "Tip"
 
-      The Exchange Server Extended Protection documentation can be found on the Microsoft Learn platform: [Configure Windows Extended Protection in Exchange Server](https://learn.microsoft.com/exchange/plan-and-deploy/post-installation-tasks/security-best-practices/exchange-extended-protection)
+      The Exchange Server Extended Protection documentation can be found on the Microsoft Learn platform: [Configure Windows Extended Protection in Exchange Server](https://aka.ms/ExchangeEPDoc)
 
 
 ## Requirements
