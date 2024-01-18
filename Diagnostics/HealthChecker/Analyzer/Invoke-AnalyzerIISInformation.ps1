@@ -596,7 +596,7 @@ function Invoke-AnalyzerIISInformation {
                 $params = $baseParams + @{
                     Name             = "Incorrect Virtual Directory Path"
                     Details          = "Error: '$($webApp.FriendlyName)' location for the virtual directory configuration is incorrect." +
-                    "`r`n`t`tCurrently pointing to '$($webApp.PhysicalPath)'. Which is incorrect for this protocol and will cause problems."
+                    "`r`n`t`tCurrently pointing to '$($webApp.PhysicalPath)', which is incorrect for this protocol and will cause problems."
                     DisplayWriteType = "Red"
                 }
                 Add-AnalyzedResultInformation @params
