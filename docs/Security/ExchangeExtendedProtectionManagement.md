@@ -4,6 +4,11 @@ Download the latest release: [ExchangeExtendedProtectionManagement.ps1](https://
 
 The Exchange Extended Protection Management is a script to help automate the Extended Protection feature on the Windows Authentication Module on Exchange Servers. Prior to configuration, it validates that all servers that we are trying to enable Extended Protection on and the servers that already have Extended Protection enabled have the same TLS settings and other prerequisites that are required for Extended Protection to be enabled successfully.
 
+!!! success "Documentation Moved"
+
+      The Exchange Server Extended Protection documentation can be found on the Microsoft Learn platform: [Configure Windows Extended Protection in Exchange Server](https://learn.microsoft.com/exchange/plan-and-deploy/post-installation-tasks/security-best-practices/exchange-extended-protection)
+
+
 ## Requirements
 
 The user must be in `Organization Management` and must run this script from an
