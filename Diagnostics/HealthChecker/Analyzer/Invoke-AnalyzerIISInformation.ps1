@@ -77,6 +77,7 @@ function Invoke-AnalyzerIISInformation {
 
     Write-Verbose "Working on IIS Web Sites"
     $outputObjectDisplayValue = New-Object System.Collections.Generic.List[object]
+    $problemCertList = New-Object System.Collections.Generic.List[string]
     $iisWebSites = $exchangeInformation.IISSettings.IISWebSite | Sort-Object ID
     $bindingsPropertyName = "Protocol - Bindings - Certificate"
 
@@ -92,9 +93,28 @@ function Invoke-AnalyzerIISInformation {
         $hstsEnabled = $webSite.Hsts.NativeHstsSettings.enabled -eq $true -or $webSite.Hsts.HstsViaCustomHeader.enabled -eq $true
 
         $value = @($webSite.Bindings | ForEach-Object {
-                $certHash = $(if ($null -ne $_.certificateHash) { $_.certificateHash } else { "NULL" })
                 $pSpace = [string]::Empty
                 $biSpace = [string]::Empty
+                $certHash = "NULL"
+
+                if (-not ([string]::IsNullOrEmpty($_.certificateHash))) {
+                    $certHash = $_.certificateHash
+                    $cert = $exchangeInformation.ExchangeCertificates | Where-Object { $_.Thumbprint -eq $certHash }
+
+                    if ($null -eq $cert) {
+                        $problemCertList.Add("'$certHash' Doesn't exist on the server and this will cause problems.")
+                    } elseif ($cert.LifetimeInDays -lt 0) {
+                        $problemCertList.Add("'$certHash' Has expired and will cause problems.")
+                    } elseif ($_.bindingInformation -eq "*:444:") {
+                        $namespaces = $cert.Namespaces | ForEach-Object { $_.ToString() }
+
+                        if ($namespaces -notcontains $exchangeInformation.GetExchangeServer.Fqdn -or
+                            $namespaces -notcontains $exchangeInformation.GetExchangeServer.Name) {
+                            $problemCertList.Add("'$certHash' Exchange Back End does not have hostname or FQDN for the namespaces. This can cause connectivity issues.")
+                        }
+                    }
+                }
+
                 1..(($protocolLength - $_.Protocol.Length) + 1) | ForEach-Object { $pSpace += " " }
                 1..(($bindingInformationLength - $_.bindingInformation.Length) + 1 ) | ForEach-Object { $biSpace += " " }
                 return "$($_.Protocol)$($pSpace)- $($_.bindingInformation)$($biSpace)- $certHash"
@@ -121,6 +141,18 @@ function Invoke-AnalyzerIISInformation {
         HtmlName             = "IIS Sites Information"
     }
     Add-AnalyzedResultInformation @params
+
+    if ($problemCertList.Count -gt 0) {
+
+        foreach ($details in $problemCertList) {
+            $params = $baseParams + @{
+                Name             = "Certificate Binding Issue Detected"
+                Details          = $details
+                DisplayWriteType = "Red"
+            }
+            Add-AnalyzedResultInformation @params
+        }
+    }
 
     ########################
     # IIS Web Sites - Issues
