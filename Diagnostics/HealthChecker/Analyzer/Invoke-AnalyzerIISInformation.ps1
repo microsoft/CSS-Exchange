@@ -77,6 +77,7 @@ function Invoke-AnalyzerIISInformation {
 
     Write-Verbose "Working on IIS Web Sites"
     $outputObjectDisplayValue = New-Object System.Collections.Generic.List[object]
+    $problemCertList = New-Object System.Collections.Generic.List[string]
     $iisWebSites = $exchangeInformation.IISSettings.IISWebSite | Sort-Object ID
     $bindingsPropertyName = "Protocol - Bindings - Certificate"
 
@@ -92,9 +93,28 @@ function Invoke-AnalyzerIISInformation {
         $hstsEnabled = $webSite.Hsts.NativeHstsSettings.enabled -eq $true -or $webSite.Hsts.HstsViaCustomHeader.enabled -eq $true
 
         $value = @($webSite.Bindings | ForEach-Object {
-                $certHash = $(if ($null -ne $_.certificateHash) { $_.certificateHash } else { "NULL" })
                 $pSpace = [string]::Empty
                 $biSpace = [string]::Empty
+                $certHash = "NULL"
+
+                if (-not ([string]::IsNullOrEmpty($_.certificateHash))) {
+                    $certHash = $_.certificateHash
+                    $cert = $exchangeInformation.ExchangeCertificates | Where-Object { $_.Thumbprint -eq $certHash }
+
+                    if ($null -eq $cert) {
+                        $problemCertList.Add("'$certHash' Doesn't exist on the server and this will cause problems.")
+                    } elseif ($cert.LifetimeInDays -lt 0) {
+                        $problemCertList.Add("'$certHash' Has expired and will cause problems.")
+                    } elseif ($_.bindingInformation -eq "*:444:") {
+                        $namespaces = $cert.Namespaces | ForEach-Object { $_.ToString() }
+
+                        if ($namespaces -notcontains $exchangeInformation.GetExchangeServer.Fqdn -or
+                            $namespaces -notcontains $exchangeInformation.GetExchangeServer.Name) {
+                            $problemCertList.Add("'$certHash' Exchange Back End does not have hostname or FQDN for the namespaces. This can cause connectivity issues.")
+                        }
+                    }
+                }
+
                 1..(($protocolLength - $_.Protocol.Length) + 1) | ForEach-Object { $pSpace += " " }
                 1..(($bindingInformationLength - $_.bindingInformation.Length) + 1 ) | ForEach-Object { $biSpace += " " }
                 return "$($_.Protocol)$($pSpace)- $($_.bindingInformation)$($biSpace)- $certHash"
@@ -121,6 +141,18 @@ function Invoke-AnalyzerIISInformation {
         HtmlName             = "IIS Sites Information"
     }
     Add-AnalyzedResultInformation @params
+
+    if ($problemCertList.Count -gt 0) {
+
+        foreach ($details in $problemCertList) {
+            $params = $baseParams + @{
+                Name             = "Certificate Binding Issue Detected"
+                Details          = $details
+                DisplayWriteType = "Red"
+            }
+            Add-AnalyzedResultInformation @params
+        }
+    }
 
     ########################
     # IIS Web Sites - Issues
@@ -462,9 +494,38 @@ function Invoke-AnalyzerIISInformation {
         Where-Object { $_.Valid -eq $true -and $_.Exist -eq $true } |
         ForEach-Object { $_.Location }
 
+    $iisWebApplications = $exchangeInformation.IISSettings.IISWebApplication
+
     if ($null -ne $siteConfigPaths) {
-        $missingWebApplicationConfigFile = $exchangeInformation.IISSettings.IISWebApplication |
+        $missingWebApplicationConfigFile = $iisWebApplications |
             Where-Object { $siteConfigPaths -contains "$($_.ConfigurationFileInfo.Location)" }
+    }
+
+    $correctLocations = @{
+        "Default Web Site/owa"                          = "FrontEnd\HttpProxy\owa"
+        "Default Web Site/ecp"                          = "FrontEnd\HttpProxy\ecp"
+        "Default Web Site/EWS"                          = "FrontEnd\HttpProxy\EWS"
+        "Default Web Site/API"                          = "FrontEnd\HttpProxy\Rest"
+        "Default Web Site/Autodiscover"                 = "FrontEnd\HttpProxy\Autodiscover"
+        "Default Web Site/Microsoft-Server-ActiveSync"  = "FrontEnd\HttpProxy\sync"
+        "Default Web Site/OAB"                          = "FrontEnd\HttpProxy\OAB"
+        "Default Web Site/PowerShell"                   = "FrontEnd\HttpProxy\PowerShell"
+        "Default Web Site/mapi"                         = "FrontEnd\HttpProxy\mapi"
+        "Default Web Site/Rpc"                          = "FrontEnd\HttpProxy\rpc"
+        "Exchange Back End/PowerShell"                  = "ClientAccess\PowerShell-Proxy"
+        "Exchange Back End/mapi/emsmdb"                 = "ClientAccess\mapi\emsmdb"
+        "Exchange Back End/mapi/nspi"                   = "ClientAccess\mapi\nspi"
+        "Exchange Back End/API"                         = "ClientAccess\rest"
+        "Exchange Back End/owa"                         = "ClientAccess\owa"
+        "Exchange Back End/OAB"                         = "ClientAccess\OAB"
+        "Exchange Back End/ecp"                         = "ClientAccess\ecp"
+        "Exchange Back End/Autodiscover"                = "ClientAccess\Autodiscover"
+        "Exchange Back End/Microsoft-Server-ActiveSync" = "ClientAccess\sync"
+        "Exchange Back End/EWS"                         = "ClientAccess\exchWeb\EWS"
+        "Exchange Back End/EWS/bin"                     = "ClientAccess\exchWeb\EWS\bin"
+        "Exchange Back End/Rpc"                         = "RpcProxy"
+        "Exchange Back End/RpcWithCert"                 = "RpcProxy"
+        "Exchange Back End/PushNotifications"           = "ClientAccess\PushNotifications"
     }
 
     # Missing config file should really only occur for SharedWebConfig files, as the web application would go back to the parent site.
@@ -558,6 +619,20 @@ function Invoke-AnalyzerIISInformation {
             }
 
             Add-AnalyzedResultInformation @params
+        }
+    }
+
+    foreach ($webApp in $iisWebApplications) {
+        if ($correctLocations.ContainsKey($webApp.FriendlyName)) {
+            if ($webApp.PhysicalPath -notlike "*$($correctLocations[$webApp.FriendlyName])") {
+                $params = $baseParams + @{
+                    Name             = "Incorrect Virtual Directory Path"
+                    Details          = "Error: '$($webApp.FriendlyName)' location for the virtual directory configuration is incorrect." +
+                    "`r`n`t`tCurrently pointing to '$($webApp.PhysicalPath)', which is incorrect for this protocol and will cause problems."
+                    DisplayWriteType = "Red"
+                }
+                Add-AnalyzedResultInformation @params
+            }
         }
     }
 
