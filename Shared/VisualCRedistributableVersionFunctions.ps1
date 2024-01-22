@@ -99,3 +99,24 @@ function Test-VisualCRedistributableUpToDate {
                 $_.DisplayName -like $desired.DisplayName -and $_.VersionIdentifier -eq $desired.VersionNumber
             }))
 }
+
+function Get-VisualCRedistributableLatest {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, Position = 0)]
+        [ValidateSet(2012, 2013)]
+        [int]
+        $Year,
+
+        [Parameter(Mandatory = $true, Position = 1)]
+        [object]
+        $Installed
+    )
+
+    $desired = Get-VisualCRedistributableInfo $Year
+
+    return $Installed |
+        Sort-Object VersionIdentifier -Descending |
+        Where-Object { $_.DisplayName -like $desired.DisplayName } |
+        Select-Object -First 1
+}
