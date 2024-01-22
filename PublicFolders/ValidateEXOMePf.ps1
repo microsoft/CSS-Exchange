@@ -95,10 +95,10 @@ function ValidateMePfMbx {
     param([String]$PublicFolderMbxGuid)
 
     try {
-        $Pfmbx=Get-mailbox -PublicFolder $PublicFolderMbxGuid -ErrorAction stop
-        return $Pfmbx
+        $PfMbx=Get-mailbox -PublicFolder $PublicFolderMbxGuid -ErrorAction stop
+        return $PfMbx
     } catch {
-        $DistinguishedName=(Get-Mailbox -PublicFolder -ResultSize unlimited -SoftDeletedMailbox $PublicFolderMbxGuid -ErrorAction silentlycontinue).DistinguishedName
+        $DistinguishedName=(Get-Mailbox -PublicFolder -ResultSize unlimited -SoftDeletedMailbox $PublicFolderMbxGuid -ErrorAction SilentlyContinue).DistinguishedName
         if ($null -ne $DistinguishedName -and $DistinguishedName.contains("OU=Soft Deleted Objects")) {
             $Fix= "FIX -->Please follow the following article https://learn.microsoft.com/en-us/exchange/collaboration-exo/public-folders/recover-deleted-public-folder-mailbox
             to validate if the content public folder mailbox:$PublicFolderMbxGuid was soft-deleted then restore it back"
@@ -111,7 +111,7 @@ function ValidateMePfMbx {
             $Fix= "FIX -->Please follow the below steps to create a new public folder using below steps:
                             1-Follow the following article https://aka.ms/disablempf to mail disable the affected public folder
                             2-Create public folder using following article https://aka.ms/newpf with same name $($MailPublicFolder.Name)
-                            3-Follow the following article https://aka.ms/EnableMPF to mail enable the newly created public folder with the same emailaddress $($MailPublicFolder.PrimarySmtpAddress)"
+                            3-Follow the following article https://aka.ms/EnableMPF to mail enable the newly created public folder with the same email address $($MailPublicFolder.PrimarySmtpAddress)"
             $Issue="Public folder mailbox $DistinguishedName is hard deleted(Purged) which is a blocker for receiving emails over the public folder"
             WriteToScreenAndLog -Issue $Issue -Fix $Fix
             AskForFeedback
@@ -157,7 +157,7 @@ function CheckMePfHealth {
             }
         }
     } catch {
-        #Orphaned MEPF, on-premises PF scenario
+        #Orphaned MePf, on-premises PF scenario
         $OrganizationConfig =Get-OrganizationConfig -ErrorAction stop
         if ($OrganizationConfig.PublicFoldersEnabled -like "Remote") {
             #on-premises PF scenario
@@ -167,11 +167,11 @@ function CheckMePfHealth {
             WriteToScreenAndLog -Issue $Issue -Fix $Fix
             QuitEXOSession
         } else {
-            #Orphaned MEPF
+            #Orphaned MePf
             $Fix= "FIX -->Please follow the following article https://aka.ms/RestorePfeither to validate if the public folder was soft-deleted then restore it back else create a new public folder using below steps:
                             1-Follow the following article https://aka.ms/disablempf to mail disable the affected public folder
                             2-Create public folder using following article https://aka.ms/newpf with same name $($MailPublicFolder.Name)
-                            3-Follow the following article https://aka.ms/EnableMPF to mail enable the newly created public folder with the same emailaddress $($MailPublicFolder.PrimarySmtpAddress)"
+                            3-Follow the following article https://aka.ms/EnableMPF to mail enable the newly created public folder with the same email  address $($MailPublicFolder.PrimarySmtpAddress)"
             $Issue="Public folder $($MailPublicFolder.Identity) is not existing or might have been purged which is a blocker for receiving emails over the public folder"
             WriteToScreenAndLog -Issue $Issue -Fix $Fix
             AskForFeedback
@@ -245,14 +245,14 @@ function ValidateMePfAddress {
     if ($OrganizationConfig.PublicFoldersEnabled -like "Remote") {
         $EmailAddresses=$PublicFolderInfo.MailPublicFolder.EmailAddresses
         foreach ($EmailAddress in $EmailAddresses) {
-            if ($EmailAddress.tolower().contains("mail.onmicrosoft.com")) {
+            if ($EmailAddress.ToLower().contains("mail.onmicrosoft.com")) {
                 $skip="Enabled"
                 break
             }
         }
         if ($skip -ne "Enabled") {
             $FIX="FIX --> Depending on your source on-premises exchange version please re-run mail public folder sync scripts then re-validate if the mail public folder was stamped
-            correctly with routing address(domain.mail.onmicrosoft.com) for more informtaion please check https://aka.ms/LegacyPFCoEx for legacy or https://aka.ms/ModernPFCoEx for modern public folders"
+            correctly with routing address(domain.mail.onmicrosoft.com) for more information please check https://aka.ms/LegacyPFCoEx for legacy or https://aka.ms/ModernPFCoEx for modern public folders"
             $Issue="Routing address (domain.mail.onmicrosoft.com) is missing from mail public folder $($PublicFolderInfo.PublicFolder.identity) EmailAddresses parameter"
             WriteToScreenAndLog -Issue $Issue -Fix $fix
         }
@@ -267,8 +267,8 @@ function ValidateContentMBXQuota {
             $article="https://techcommunity.microsoft.com/t5/exchange-team-blog/how-exchange-online-automatically-cares-for-your-public-folder/ba-p/2050019"
             $Fix="FIX --> To resolve a scenario where content public folder mailbox has reached its $PfMbxProhibitSendReceiveQuotaInGB quota value either check,
             1.If you have Giant public folders over that content mailbox
-            2.If MovedItemRetention is keeping the mailbox full while autospilt occurred successfully
-            3.If the Autosplit status is halted
+            2.If MovedItemRetention is keeping the mailbox full while AutoSplit occurred successfully
+            3.If the AutoSplit status is halted
             For more information on all the above scenarios & HowTo mitigate, please check the following article $article"
             $Issue="Public folder mailbox $($PublicFolderInfo.PfMbx.name) TotalItemSize value has reached its $PfMbxProhibitSendReceiveQuotaInB bytes quota value"
             WriteToScreenAndLog -Issue $Issue -Fix $Fix
@@ -313,7 +313,7 @@ function ValidateMePfQuota {
         }
     }
 }
-function ValidateDbebDomain {
+function ValidateDbEbDomain {
     param([PSCustomObject]$PublicFolderInfo)
     $MailPublicFolderDomain=$PublicFolderInfo.MailPublicFolder.PrimarySmtpAddress.split("@")[1]
     $AcceptedDomainType=(Get-AcceptedDomain -Identity $MailPublicFolderDomain -ErrorAction stop).DomainType
@@ -322,7 +322,7 @@ function ValidateDbebDomain {
         $DirectoryBasedEdgeBlockModeStatus=$HostedConnectionFilterPolicy.DirectoryBasedEdgeBlockMode
         if ($DirectoryBasedEdgeBlockModeStatus -eq "Default") {
             $article="https://learn.microsoft.com/en-us/exchange/mail-flow-best-practices/use-directory-based-edge-blocking"
-            $Fix="FIX --> Please file a support case for microsoft to disable DBEB on the whole tenant(Recommended) else please ensure that MEPF smtp domain $MailPublicFolderDomain DomainType is set to InternalRelay,for more information please check the following article $article"
+            $Fix="FIX --> Please file a support case for microsoft to disable DbEb on the whole tenant(Recommended) else please ensure that MePf smtp domain $MailPublicFolderDomain DomainType is set to InternalRelay,for more information please check the following article $article"
             $Issue="DirectoryBasedEdgeBlockMode is activated on the tenant"
             WriteToScreenAndLog -Issue $Issue -Fix $Fix
         }
@@ -350,7 +350,7 @@ function ValidateMePfExtRec {
     $AnonymousPermsUser=Get-PublicFolderClientPermission $PublicFolderInfo.PublicFolder.Identity -User Anonymous -ErrorAction SilentlyContinue
     $Result=GetUserPermissions($AnonymousPermsUser)
     if ($Result -like "user has no permission") {
-        $Fix= "FIX --> Please follow the following article https://aka.ms/addPFperm to grant Anonymous user the least approperiate permission e.g.CreateItems over the requested public folder"
+        $Fix= "FIX --> Please follow the following article https://aka.ms/addPFperm to grant Anonymous user the least sufficient permission e.g.CreateItems over the requested public folder"
         $Issue="Anonymous user has either no sufficient/existing permissions on Public folder $($PublicFolderInfo.PublicFolder.Identity)"
         WriteToScreenAndLog -Issue $Issue -Fix $Fix
     }
@@ -475,14 +475,14 @@ $PublicFolderInfo=GetPublicFolderInfo($PFolder)
 #if the issue is related to an internal user who is not able to create an item inside a public folder
 if (![string]::IsNullOrEmpty($AffectedUser)) {
     ValidateMePfPermSync -PublicFolderInfo $PublicFolderInfo -AffectedUser $AffectedUser
-    $Ignoreexternal="Enabled"
+    $IgnoreExternal="Enabled"
 }
 ValidateMePfMapping($PublicFolderInfo)
 ValidateMePfAddress($PublicFolderInfo)
 ValidateContentMBXQuota($PublicFolderInfo)
 ValidateMePfQuota($PublicFolderInfo)
-if ($Ignoreexternal -ne "Enabled") {
-    ValidateDbebDomain($PublicFolderInfo)
+if ($IgnoreExternal -ne "Enabled") {
+    ValidateDbEbDomain($PublicFolderInfo)
     ValidateMePfExtRec($PublicFolderInfo)
 }
 AskForFeedback
