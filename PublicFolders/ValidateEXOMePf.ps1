@@ -107,7 +107,7 @@ function ValidateMePfMbx {
             AskForFeedback
             QuitEXOSession
         } else {
-            #Pfmbx is hard deleted
+            #PfMbx is hard deleted
             $Fix= "FIX -->Please follow the below steps to create a new public folder using below steps:
                             1-Follow the following article https://aka.ms/disablempf to mail disable the affected public folder
                             2-Create public folder using following article https://aka.ms/newpf with same name $($MailPublicFolder.Name)
