@@ -222,6 +222,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-DnsClient { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetDnsClient1.xml" }
             Mock Get-ExSetupDetails { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup1.xml" }
             Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost1.config" -Raw }
+            Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Runtime\1.0\noderunner.exe.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\noderunner.exe1.config" -Raw }
+            Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\EdgeTransport.exe.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\EdgeTransport.exe1.config" -Raw }
 
             SetDefaultRunOfHealthChecker "Debug_Scenario2_Results.xml"
         }
@@ -247,6 +249,14 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "Disable Async Notification" {
             TestObjectMatch "Disable Async Notification" $true -WriteType "Yellow"
+        }
+
+        It "Noderunner.exe.config memory limit" {
+            TestObjectMatch "NodeRunner.exe memory limit" "1024 MB will limit the performance of search and can be more impactful than helpful if not configured correctly for your environment." -WriteType "Yellow"
+        }
+
+        It "EdgeTransport.exe.config invalid config" {
+            TestObjectMatch "EdgeTransport.exe.config Invalid Config Format" $true -WriteType "Red"
         }
 
         It "TLS Settings" {
