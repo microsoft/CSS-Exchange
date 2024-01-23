@@ -139,14 +139,18 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     if ($null -ne $exchangeInformation.ApplicationConfigFileStatus -and
         $exchangeInformation.ApplicationConfigFileStatus.Count -ge 1) {
 
+        # Only need to display a particular list all the time. Don't need every config that we want to possibly look at for issues.
+        $alwaysDisplayConfigs = @("EdgeTransport.exe.config")
+
         foreach ($configKey in $exchangeInformation.ApplicationConfigFileStatus.Keys) {
+
             $configStatus = $exchangeInformation.ApplicationConfigFileStatus[$configKey]
             $writeType = "Green"
-            $writeValue = $configStatus.Present
+            [string]$writeValue = $configStatus.Present
 
-            if (!$configStatus.Present) {
+            if (-not $configStatus.Present) {
                 $writeType = "Red"
-                $writeValue = "{0} --- Error" -f $writeValue
+                $writeValue += " --- Error"
             }
 
             $params = $baseParams + @{
@@ -154,7 +158,11 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
                 Details          = $writeValue
                 DisplayWriteType = $writeType
             }
-            Add-AnalyzedResultInformation @params
+
+            if ($alwaysDisplayConfigs -contains $configKey -or
+                -not $configStatus.Present) {
+                Add-AnalyzedResultInformation @params
+            }
         }
     }
 

@@ -13,16 +13,23 @@ function Get-ExchangeApplicationConfigurationFileValidation {
     $results = @{}
     $ConfigFileLocation |
         ForEach-Object {
-            $obj = Invoke-ScriptBlockHandler -ComputerName $ComputerName -ScriptBlockDescription "Getting Exchange Application Configuration File Validation" `
-                -CatchActionFunction ${Function:Invoke-CatchActions} `
-                -ScriptBlock {
-                param($Location)
-                return [PSCustomObject]@{
-                    Present  = ((Test-Path $Location))
-                    FileName = ([IO.Path]::GetFileName($Location))
-                    FilePath = $Location
+
+            $params = @{
+                ComputerName           = $ComputerName
+                ScriptBlockDescription = "Getting Exchange Application Configuration File Validation"
+                ArgumentList           = $_
+                ScriptBlock            = {
+                    param($Location)
+                    return [PSCustomObject]@{
+                        Present  = ((Test-Path $Location))
+                        FileName = ([IO.Path]::GetFileName($Location))
+                        FilePath = $Location
+                        Content  = (Get-Content $Location -Raw)
+                    }
                 }
-            } -ArgumentList $_
+            }
+
+            $obj = Invoke-ScriptBlockHandler @params
             $results.Add($obj.FileName, $obj)
         }
     return $results
