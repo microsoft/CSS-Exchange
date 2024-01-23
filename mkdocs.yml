@@ -45,6 +45,7 @@ nav:
       - RSSEnabledCheck: Diagnostics/HealthChecker/RSSEnabledCheck.md
       - SleepyNICCheck: Diagnostics/HealthChecker/SleepyNICCheck.md
       - NETFrameworkCheck: Diagnostics/HealthChecker/NETFrameworkSupportabilityCheck.md
+      - NodeRunnerMemoryLimitCheck: Diagnostics/HealthChecker/NodeRunnerMemoryLimitCheck.md
       - PagefileCheck: Diagnostics/HealthChecker/PagefileSizeCheck.md
       - VisualCCheck: Diagnostics/HealthChecker/VisualCRedistributableVersionCheck.md
       - LMCompatibilityLevelInformationCheck: Diagnostics/HealthChecker/LMCompatibilityLevelInformationCheck.md
