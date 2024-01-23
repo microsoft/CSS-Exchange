@@ -26,7 +26,10 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "KeepAliveTime" } -MockWith { return 0 }
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "CtsProcessorAffinityPercentage" } -MockWith { return 10 }
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "LsaCfgFlags" } -MockWith { return 1 }
-            Mock Get-ExchangeApplicationConfigurationFileValidation { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeApplicationConfigurationFileValidation1.xml" }
+            Mock Test-Path -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\EdgeTransport.exe.config" } -MockWith { return $false }
+            Mock Test-Path -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Runtime\1.0\noderunner.exe.config" } -MockWith { return $false }
+            Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\EdgeTransport.exe.config" } -MockWith { return $null }
+            Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Runtime\1.0\noderunner.exe.config" } -MockWith { return $null }
             Mock Get-ServerRebootPending { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetServerRebootPending1.xml" }
             Mock Get-AllTlsSettings { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetAllTlsSettings1.xml" }
             Mock Get-Smb1ServerSettings { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetSmb1ServerSettings1.xml" }
@@ -92,6 +95,10 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "EdgeTransport.exe.config Present" {
             TestObjectMatch "EdgeTransport.exe.config Present" "False --- Error" -WriteType "Red"
+        }
+
+        It "noderunner.exe.config Present" {
+            TestObjectMatch "noderunner.exe.config Present" "False --- Error" -WriteType "Red"
         }
 
         It "Open Relay Wild Card Domain" {
