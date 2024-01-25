@@ -7,6 +7,6 @@ ManagedStore.AdminInterface:MultiMailboxSearch
 ManagedStore.FullTextIndex:FullTextIndex
 ManagedStore.LogicalDataModel:SearchFolderAgeOut,SearchFolderPopulation,SearchFolderSearchCriteria
 ManagedStore.MultiMailboxSearch:FaultInjection,FullTextIndex,Search
-ManagedStore.StoreCommonServices:FullTextIndex
+ManagedStore.StoreCommonServices:FullTextIndex,QueryPlannerDetail,QueryPlannerSummary
 FilteredTracing:No
 InMemoryTracing:No
