@@ -23,6 +23,11 @@
 .EXAMPLE
     PS C:\> .\ExchangeExtendedProtectionManagement.ps1 -RollbackType "RestoreIISAppConfig"
     This will set the applicationHost.config file back to the original state prior to changes made with this script.
+    This is a legacy version of the restore process. The backup process will no longer attempt to copy out the applicationHost.config file.
+    It is recommended to use "RestoreConfiguration" moving forward.
+.EXAMPLE
+    PS C:\> .\ExchangeExtendedProtectionManagement.ps1 -RollbackType "RestoreConfiguration"
+    This will restore all the various configuration changes that did occur to the original setting when trying to configure Extended Protection without the mitigation with this script. A rollback can not occur if a configuration attempt was never done.
 #>
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
 
