@@ -1423,7 +1423,7 @@ function CheckIdentities {
     if (Get-Command -Name Get-Mailbox -ErrorAction SilentlyContinue) {
         Write-Host "Validated connection to Exchange Online."
     } else {
-        Write-Error "Get-Mailbox cmdlet not found.  Please validate that you are running this script from an Exchange Management Shell and try again."
+        Write-Error "Get-Mailbox cmdlet not found. Please validate that you are running this script from an Exchange Management Shell and try again."
         Write-Host "Look at Import-Module ExchangeOnlineManagement and Connect-ExchangeOnline."
         exit
     }
@@ -1537,8 +1537,6 @@ if (-not ([string]::IsNullOrEmpty($Subject)) ) {
 } elseif (-not ([string]::IsNullOrEmpty($MeetingID))) {
 
     foreach ($ID in $ValidatedIdentities) {
-        #$script:GCDO = $script:InitialCDOs; # use the CalLogs that we already have, since there is only one.
-        #    $script:InitialCDOs = @(); # clear the Initial CDOs.
         Write-DashLineBoxColor "Looking for CalLogs from [$ID] with passed in MeetingID."
         Write-Verbose "Running: Get-CalendarDiagnosticObjects -Identity [$ID] -MeetingID [$MeetingID] -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults $LogLimit -ResultSize $LogLimit -ShouldBindToItem $true;"
         $script:GCDO = GetCalendarDiagnosticObjects -Identity $ID -MeetingID $MeetingID
@@ -1549,15 +1547,23 @@ if (-not ([string]::IsNullOrEmpty($Subject)) ) {
                 Write-Host -ForegroundColor Cyan "Looking for Exception Logs..."
                 #collect Exception Logs
                 $ExceptionLogs = @()
+                $LogToExamine = @()
+                $LogToExamine = $script:GCDO | Where-Object { $_.ItemClass -like 'IPM.Appointment*' } | Sort-Object ItemVersion
 
-                $ExceptionLogs = $script:GCDO | Where-Object { $_.ItemClass -like 'IPM.Appointment.*' } | Sort-Object ItemVersion | ForEach-Object {
-                    Write-Host -ForegroundColor Cyan "Getting Exception Logs for [$($_.ItemId.ObjectId)]"
-                    Get-CalendarDiagnosticObjects -Identity $ID -ItemIds $_.ItemId.ObjectId -ShouldFetchRecurrenceExceptions $true -CustomPropertyNames $CustomPropertyNameList
+                Write-Host -ForegroundColor Cyan "Found $($LogToExamine.count) CalLogs to examine for Exception Logs."
+                Write-Host -ForegroundColor Cyan "`t Ignore the next [$($LogToExamine.count)] warnings..."
+
+                $ExceptionLogs = foreach ($Log in $LogToExamine) {
+                    Write-Verbose "Getting Exception Logs for [$($Log.ItemId.ObjectId)]"
+                    Get-CalendarDiagnosticObjects -Identity $ID -ItemIds $Log.ItemId.ObjectId -ShouldFetchRecurrenceExceptions $true -CustomPropertyNames $CustomPropertyNameList
                 }
-            }
+                $ExceptionLogs = $ExceptionLogs | Where-Object { $_.ItemClass -notlike "IPM.Appointment*" }
+                Write-Host -ForegroundColor Cyan "Found $($ExceptionLogs.count) Exception Logs, adding them into the CalLogs."
 
-            $TempLogs = $script:GCDO + ($ExceptionLogs | Where-Object { $_.ItemClass -notlike "IPM.Appointment*" }) | Select-Object *, @{n='OrgTime'; e= { [DateTime]::Parse($_.OriginalLastModifiedTime.ToString()) } } | Sort-Object OrgTime
-            $script:GCDO = $TempLogs
+                $script:GCDO = $script:GCDO + $ExceptionLogs | Select-Object *, @{n='OrgTime'; e= { [DateTime]::Parse($_.OriginalLastModifiedTime.ToString()) } } | Sort-Object OrgTime
+                $LogToExamine = $null
+                $ExceptionLogs = $null
+            }
 
             BuildCSV -Identity $ID
             BuildTimeline -Identity $ID
