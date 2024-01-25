@@ -326,6 +326,7 @@ while ($currentDiff -gt 0) {
         $ModuleAllowList.add("ManagedBlingSigned.dll")
         $ModuleAllowList.add("l3codecp.acm")
         $ModuleAllowList.add("System.IdentityModel.Tokens.jwt.dll")
+        $ModuleAllowList.add("prxyqry.DLL")
         # Oracle modules associated with 'Outside In® Technology'
         $ModuleAllowList.add("wvcore.dll")
         $ModuleAllowList.add("sccut.dll")
@@ -341,6 +342,7 @@ while ($currentDiff -gt 0) {
         $ModuleAllowList.add("SCCOLE2.dll")
         $ModuleAllowList.add("SCCSD.dll")
         $ModuleAllowList.add("SCCXT.dll")
+        $ModuleAllowList.add("vshtml.dll")
         # cSpell:enable
 
         Write-SimpleLogFile -string ("Allow List Module Count: " + $ModuleAllowList.count) -LogFile $LogFileName
