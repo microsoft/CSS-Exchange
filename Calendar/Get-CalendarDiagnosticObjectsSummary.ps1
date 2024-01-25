@@ -837,14 +837,6 @@ function BuildCSV {
     Write-Host -ForegroundColor Cyan -NoNewline "Calendar Logs for [$Identity] have been saved to :"
     Write-Host -ForegroundColor Yellow "$Filename"
     $GCDOResults | Export-Csv -Path $Filename -NoTypeInformation -Encoding UTF8
-
-    $MeetingTimeLine = $Results | Where-Object { $_.IsIgnorable -eq "False" }
-    Write-Host "`n`n`nThis is the meetingID $ThisMeetingID`nThis is Short MeetingID $ShortMeetingID"
-    if ($MeetingTimeLine.count -eq 0) {
-        Write-Host "All CalLogs are Ignorable, nothing to create a timeline with, displaying initial values."
-    } else {
-        Write-Host "Found $($script:GCDO.count) Log entries, only the $($MeetingTimeLine.count) Non-Ignorable entries will be analyzed in the TimeLine."
-    }
 }
 
 function MultiLineFormat {
@@ -967,6 +959,13 @@ function BuildTimeline {
     MeetingSummary -Time "Initial Message Values" -Entry $script:GCDO[0] -LongVersion
     # Ignorable and items from Shared Calendars are not included in the TimeLine.
     $MeetingTimeLine = $Results | Where-Object { $_.IsIgnorable -eq "False" -and $_.IsFromSharedCalendar -eq $False }
+
+    Write-Host "`n`n`nThis is the meetingID $ThisMeetingID`nThis is Short MeetingID $ShortMeetingID"
+    if ($MeetingTimeLine.count -eq 0) {
+        Write-Host "All CalLogs are Ignorable, nothing to create a timeline with, displaying initial values."
+    } else {
+        Write-Host "Found $($script:GCDO.count) Log entries, only the $($MeetingTimeLine.count) Non-Ignorable entries will be analyzed in the TimeLine."
+    }
 
     foreach ($CalLog in $MeetingTimeLine) {
         [bool] $MeetingSummaryNeeded = $False
