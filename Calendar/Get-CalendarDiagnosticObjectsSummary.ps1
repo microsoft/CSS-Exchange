@@ -562,6 +562,8 @@ function CreateShortClientName {
             $ShortClientName = "TimeService"
         } elseif ($ClientInfoString -like "*AppId=48af08dc-f6d2-435f-b2a7-069abd99c086*") {
             $ShortClientName = "RestConnector"
+        } elseif ($ClientInfoString -like "*Client=OutlookService;Outlook-Android*") {
+            $ShortClientName = "OutlookAndroid"
         } elseif ($ClientInfoString -like "*GriffinRestClient*") {
             $ShortClientName = "GriffinRestClient"
         } elseif ($ClientInfoString -like "*MacOutlook*") {
