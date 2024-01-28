@@ -1,11 +1,11 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-
+$ts = Get-Date -Format yyyyMMdd_HHmmss
 param(
-    [Parameter(Mandatory = $false)]
-    [String]$ExportPath,
+    [PSDefaultValue(Help='Current directory')]
+    [String]$ExportPath= $PWD.Path,
     [Parameter(Mandatory = $true)]
-    [String]$PFolder,
+    [String]$PublicFolder,
     [Parameter(Mandatory = $false)]
     [String]$AffectedUser)
 $Script:ReportName = "ValidateMePfREPORT.txt"
@@ -42,6 +42,7 @@ function WriteToScreenAndLog {
     $Fix+"`n" | Out-File $ExportPath\$Script:ReportName -Append
     Write-Host
 }
+
 function Connect2EXO {
     try {
 
@@ -52,12 +53,12 @@ function Connect2EXO {
         LogError -CurrentStatus $CurrentStatus -Function "Connecting to EXO" -CurrentDescription $CurrentDescription
         Write-Host "Connected to EXO successfully" -ForegroundColor Cyan
     } catch {
-        $ErrorEncountered=$Global:error[0].Exception
+        #$ErrorEncountered=$Global:error[0].Exception
         $CurrentDescription = "Connecting to EXO"
         $CurrentStatus = "Failure"
         LogError -CurrentStatus $CurrentStatus -Function "Connecting to EXO" -CurrentDescription $CurrentDescription
         Write-Host "Error encountered during executing the script!"-ForegroundColor Red
-        Write-Host $ErrorEncountered -ForegroundColor Red
+        Write-Host $_ -ForegroundColor Red
         Write-Host "`nOutput was exported in the following location: $ExportPath" -ForegroundColor Yellow
         Start-Sleep -Seconds 3
         break
@@ -75,12 +76,12 @@ function QuitEXOSession {
             Start-Sleep -Seconds 3
             break
         } catch {
-            $ErrorEncountered=$Global:error[0].Exception
+            #$ErrorEncountered=$Global:error[0].Exception
             $CurrentDescription = "Disconnecting from EXO"
             $CurrentStatus = "Failure"
             LogError -CurrentStatus $CurrentStatus -Function "Disconnecting from EXO" -CurrentDescription $CurrentDescription
             Write-Host "Error encountered during executing the script!"-ForegroundColor Red
-            Write-Host $ErrorEncountered -ForegroundColor Red
+            Write-Host $_ -ForegroundColor Red
             Write-Host "`nOutput was exported in the following location: $ExportPath" -ForegroundColor Yellow
             Start-Sleep -Seconds 3
             break
@@ -180,9 +181,9 @@ function CheckMePfHealth {
     }
 }
 function GetPublicFolderInfo {
-    param([String]$PFolder)
+    param([String]$PublicFolder)
     try {
-        $MailPublicFolder=Get-MailPublicFolder $PFolder -ErrorAction stop
+        $MailPublicFolder=Get-MailPublicFolder $PublicFolder -ErrorAction stop
         Write-Host "Retrieving PublicFolder $($MailPublicFolder.Identity) information for diagnosing!,please wait as this might take awhile...." -ForegroundColor Yellow
         $PublicFolder=CheckMePfHealth($MailPublicFolder)
         $PublicFolderStats=Get-PublicFolderStatistics $PublicFolder.EntryId -ErrorAction stop
@@ -210,12 +211,12 @@ function GetPublicFolderInfo {
     }
 
     catch {
-        $ErrorEncountered=$Global:error[0].Exception
+        #$ErrorEncountered=$Global:error[0].Exception
         $CurrentDescription = "Retrieving: $($PublicFolder.identity) whole information for diagnosing"
-        $CurrentStatus = "Failure with error: "+$ErrorEncountered
+        $CurrentStatus = "Failure with error: "+$_
         LogError -Function "Retrieve public folder whole information statistics" -CurrentStatus $CurrentStatus -CurrentDescription $CurrentDescription
         Write-Host "Error encountered during executing the script!"-ForegroundColor Red
-        Write-Host $ErrorEncountered -ForegroundColor Red
+        Write-Host $_ -ForegroundColor Red
         QuitEXOSession
     }
 }
@@ -335,21 +336,21 @@ function GetUserPermissions {
     if ($null -ne $Perms) {
         foreach ($perm in $Perms.AccessRights) {
             if ($WorkingPermissions.ToLower().Contains($($perm.ToLower()))) {
-                return "user has permission"
+                return $true
             }
         }
-        return "user has no permission"
+        return $false
     }
 
     else {
-        return "user has no permission"
+        return $false
     }
 }
 function ValidateMePfExtRec {
     param([PSCustomObject]$PublicFolderInfo)
     $AnonymousPermsUser=Get-PublicFolderClientPermission $PublicFolderInfo.PublicFolder.Identity -User Anonymous -ErrorAction SilentlyContinue
     $Result=GetUserPermissions($AnonymousPermsUser)
-    if ($Result -like "user has no permission") {
+    if ($Result -eq $false) {
         $Fix= "FIX --> Please follow the following article https://aka.ms/addPFperm to grant Anonymous user the least sufficient permission e.g.CreateItems over the requested public folder"
         $Issue="Anonymous user has either no sufficient/existing permissions on Public folder $($PublicFolderInfo.PublicFolder.Identity)"
         WriteToScreenAndLog -Issue $Issue -Fix $Fix
@@ -360,12 +361,12 @@ function ValidateUserPermissions {
     if ($Perms.AccessRights.count -eq $PermsUserPfMbx.AccessRights.count) {
         foreach ($Perm in $perms.AccessRights) {
             if (!$PermsUserPfMbx.AccessRights.contains($Perm)) {
-                return "sync issue exist"
+                return $true
             }
         }
-        return "no sync issue exist"
+        return $false
     }
-    return "sync issue exist"
+    return $true
 }
 function ValidateMePfPermSync {
     param([Parameter(Mandatory = $true)]
@@ -381,10 +382,10 @@ function ValidateMePfPermSync {
         $ExplicitPermsUserPfMbx=Get-PublicFolderClientPermission $PublicFolderInfo.PublicFolder.Identity -User $User.Guid.Guid.ToString() -ErrorAction SilentlyContinue -Mailbox $userPfMbx.ExchangeGuid.Guid
         $UserPermSyncIssue=ValidateUserPermissions -PermsUserPfMbx $ExplicitPermsUserPfMbx -Perms $ExplicitPerms
         $ExplicitPermsResult=GetUserPermissions($ExplicitPerms)
-        if ($UserPermSyncIssue -eq "sync issue exist") {
+        if ($UserPermSyncIssue -eq $true) {
             #ExplicitUser sync perm issue
             #validate that user has sufficient perms
-            if ($ExplicitPermsResult -match "user has no permission") {
+            if ($ExplicitPermsResult -eq $false) {
                 #user has no sufficient perm
                 $FIX="FIX --> Please ensure that user $($User.PrimarySmtpAddress) has sufficient permissions to delete, for more information please check the following article https://aka.ms/addPFperm"
                 $Issue="$($User.PrimarySmtpAddress) has no sufficient permissions to create items inside $($PublicFolderInfo.PublicFolder.identity)"
@@ -395,7 +396,7 @@ function ValidateMePfPermSync {
             $Issue="$($User.PrimarySmtpAddress) has permissions sync problems over EffectivePublicFolderMailbox $($User.EffectivePublicFolderMailbox)!"
             WriteToScreenAndLog -Issue $Issue -Fix $fix
         } else {
-            if ($ExplicitPermsResult -match "user has no permission") {
+            if ($ExplicitPermsResult -eq $false) {
                 #user has no sufficient perm
                 #Check if default has perm/sync issue
                 $DefaultPermsUserPfMbx=Get-PublicFolderClientPermission $PublicFolderInfo.PublicFolder.Identity -User Default -ErrorAction SilentlyContinue -Mailbox $userPfMbx.ExchangeGuid.Guid
@@ -404,14 +405,14 @@ function ValidateMePfPermSync {
                 $DefaultUserPermSyncIssue=ValidateUserPermissions -PermsUserPfMbx $DefaultPermsUserPfMbx -Perms $DefaultPerms
                 if ($null -ne $DefaultPerms) {
                     $DefaultPermsResult=GetUserPermissions($DefaultPerms)
-                    if ($DefaultPermsResult -like "user has no permission") {
+                    if ($DefaultPermsResult -like $false) {
                         #Default user has no sufficient perm
                         $FIX="FIX --> Please ensure that either Sender or Default user has sufficient permissions to create items on the public folder, for more information please check the following article https://aka.ms/addPFperm"
                         $Issue="Neither Sender nor Default user have sufficient permissions to create items inside $($PublicFolderInfo.PublicFolder.identity)"
                         WriteToScreenAndLog -Issue $Issue -Fix $fix
                     } else {
                         #check for sync issue for default
-                        if ($DefaultUserPermSyncIssue -eq "sync issue exist" ) {
+                        if ($DefaultUserPermSyncIssue -eq $true ) {
                             #DefaultUser sync perm issue
                             #Default user has sufficient perm
                             $FIX="FIX --> Please ensure that Default user permissions are synced properly over user EffectivePublicFolderMailbox $($User.EffectivePublicFolderMailbox), for more information please check the following article https://aka.ms/Fixpfpermissue"
@@ -436,12 +437,12 @@ function ValidateMePfPermSync {
         }
     } catch {
         #log the error and quit
-        $ErrorEncountered=$Global:error[0].Exception
+        #$ErrorEncountered=$Global:error[0].Exception
         $CurrentDescription = "Validating if user has sufficient permissions to create items"
-        $CurrentStatus = "Failure with error: "+$ErrorEncountered
+        $CurrentStatus = "Failure with error: "+$_
         LogError -Function "Validate user permissions" -CurrentStatus $CurrentStatus -CurrentDescription $CurrentDescription
         Write-Host "Error encountered during executing the script!"-ForegroundColor Red
-        Write-Host $ErrorEncountered -ForegroundColor Red
+        Write-Host $_ -ForegroundColor Red
         AskForFeedback
         QuitEXOSession
     }
@@ -449,20 +450,15 @@ function ValidateMePfPermSync {
 
 #Intro
 $ts = Get-Date -Format yyyyMMdd_HHmmss
-Write-Host $ExportPath
-if ($null -eq $ExportPath -or $ExportPath -eq "") {
-    $ExportPath = "$env:USERPROFILE\Desktop\ValidateEXOMePf\ValidateEXOMePf_$ts"
-    mkdir $ExportPath -Force | Out-Null
+if (!(Test-Path -Path $ExportPath)) {
+    Write-Host "The specified folder location $ExportPath is not existing, please re-run the script and ensure to enter a valid path or leave the ExportPath unassigned" -ForegroundColor Red
+    exit
 } else {
-    if (!(Test-Path -Path $ExportPath)) {
-        Write-Host "The specified folder location $ExportPath is not existing, please re-run the script and ensure to enter a valid path or leave the ExportPath unassigned" -ForegroundColor Red
-        exit
-    } else {
-        $ExportPath = "$ExportPath\ValidateEXOMePf\ValidateEXOMePf_$ts"
-        mkdir $ExportPath -Force | Out-Null
-    }
+    $ExportPath = "$ExportPath\ValidateEXOMePf\ValidateEXOMePf_$ts"
+    New-Item $ExportPath -Force -ItemType Directory | Out-Null
 }
-[string]$Description = "This script illustrates issues related to creating public folder items on PublicFolder $PFolder, BLOCKERS will be reported down, please ensure to mitigate them!`n"
+
+[string]$Description = "This script illustrates issues related to creating public folder items on PublicFolder $PublicFolder, BLOCKERS will be reported down, please ensure to mitigate them!`n"
 Write-Host $Description -ForegroundColor Cyan
 $Description | Out-File $ExportPath\$Script:ReportName -Append
 #Connect to EXO PS
@@ -471,7 +467,7 @@ if ($null -eq $SessionCheck) {
     Connect2EXO
 }
 #Main Function
-$PublicFolderInfo=GetPublicFolderInfo($PFolder)
+$PublicFolderInfo=GetPublicFolderInfo($PublicFolder)
 #if the issue is related to an internal user who is not able to create an item inside a public folder
 if (![string]::IsNullOrEmpty($AffectedUser)) {
     ValidateMePfPermSync -PublicFolderInfo $PublicFolderInfo -AffectedUser $AffectedUser
