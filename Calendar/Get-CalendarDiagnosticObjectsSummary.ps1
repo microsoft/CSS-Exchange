@@ -1554,10 +1554,11 @@ if (-not ([string]::IsNullOrEmpty($Subject)) ) {
                 Write-Host -ForegroundColor Cyan "Found $($LogToExamine.count) CalLogs to examine for Exception Logs."
                 Write-Host -ForegroundColor Cyan "`t Ignore the next [$($LogToExamine.count)] warnings..."
 
-                $ExceptionLogs = foreach ($Log in $LogToExamine) {
-                    Write-Verbose "Getting Exception Logs for [$($Log.ItemId.ObjectId)]"
-                    Get-CalendarDiagnosticObjects -Identity $ID -ItemIds $Log.ItemId.ObjectId -ShouldFetchRecurrenceExceptions $true -CustomPropertyNames $CustomPropertyNameList
+                $ExceptionLogs = $LogToExamine | ForEach-Object {
+                    Write-Verbose "Getting Exception Logs for [$($_.ItemId.ObjectId)]"
+                    Get-CalendarDiagnosticObjects -Identity $ID -ItemIds $_.ItemId.ObjectId -ShouldFetchRecurrenceExceptions $true -CustomPropertyNames $CustomPropertyNameList
                 }
+                # Remove the IPM.Appointment logs as they are already in the CalLogs.
                 $ExceptionLogs = $ExceptionLogs | Where-Object { $_.ItemClass -notlike "IPM.Appointment*" }
                 Write-Host -ForegroundColor Cyan "Found $($ExceptionLogs.count) Exception Logs, adding them into the CalLogs."
 
