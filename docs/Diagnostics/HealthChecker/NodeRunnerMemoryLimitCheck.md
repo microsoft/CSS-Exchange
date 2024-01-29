@@ -10,4 +10,4 @@ Yes
 
 ### Additional Resources
 
-[Users can't receive email messages or connect to their mailbox](https://support.microsoft.com/en-us/topic/users-can-t-receive-email-messages-or-connect-to-their-mailbox-62d26d75-ae37-4308-b11a-878e9dc16d55)
+[Users can't receive email messages or connect to their mailbox](https://support.microsoft.com/topic/users-can-t-receive-email-messages-or-connect-to-their-mailbox-62d26d75-ae37-4308-b11a-878e9dc16d55)
