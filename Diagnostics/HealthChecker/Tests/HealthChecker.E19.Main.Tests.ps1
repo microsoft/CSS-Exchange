@@ -117,9 +117,10 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Disable Async Notification" $false
             TestObjectMatch "Credential Guard Enabled" $false
             TestObjectMatch "EdgeTransport.exe.config Present" "True" -WriteType "Green"
+            TestObjectMatch "NodeRunner.exe memory limit" "0 MB" -WriteType "Green"
             TestObjectMatch "Open Relay Wild Card Domain" "Not Set"
 
-            $Script:ActiveGrouping.Count | Should -Be 9
+            $Script:ActiveGrouping.Count | Should -Be 10
         }
 
         It "Display Results - Security Settings" {

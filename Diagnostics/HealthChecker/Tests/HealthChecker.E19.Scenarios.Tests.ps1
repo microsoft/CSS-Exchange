@@ -26,7 +26,10 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "KeepAliveTime" } -MockWith { return 0 }
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "CtsProcessorAffinityPercentage" } -MockWith { return 10 }
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "LsaCfgFlags" } -MockWith { return 1 }
-            Mock Get-ExchangeApplicationConfigurationFileValidation { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeApplicationConfigurationFileValidation1.xml" }
+            Mock Test-Path -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\EdgeTransport.exe.config" } -MockWith { return $false }
+            Mock Test-Path -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Runtime\1.0\noderunner.exe.config" } -MockWith { return $false }
+            Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\EdgeTransport.exe.config" } -MockWith { return $null }
+            Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Runtime\1.0\noderunner.exe.config" } -MockWith { return $null }
             Mock Get-ServerRebootPending { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetServerRebootPending1.xml" }
             Mock Get-AllTlsSettings { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetAllTlsSettings1.xml" }
             Mock Get-Smb1ServerSettings { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetSmb1ServerSettings1.xml" }
@@ -92,6 +95,10 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "EdgeTransport.exe.config Present" {
             TestObjectMatch "EdgeTransport.exe.config Present" "False --- Error" -WriteType "Red"
+        }
+
+        It "noderunner.exe.config Present" {
+            TestObjectMatch "noderunner.exe.config Present" "False --- Error" -WriteType "Red"
         }
 
         It "Open Relay Wild Card Domain" {
@@ -215,6 +222,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-DnsClient { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetDnsClient1.xml" }
             Mock Get-ExSetupDetails { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup1.xml" }
             Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost1.config" -Raw }
+            Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Runtime\1.0\noderunner.exe.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\noderunner.exe1.config" -Raw }
+            Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\EdgeTransport.exe.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\EdgeTransport.exe1.config" -Raw }
 
             SetDefaultRunOfHealthChecker "Debug_Scenario2_Results.xml"
         }
@@ -240,6 +249,14 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "Disable Async Notification" {
             TestObjectMatch "Disable Async Notification" $true -WriteType "Yellow"
+        }
+
+        It "Noderunner.exe.config memory limit" {
+            TestObjectMatch "NodeRunner.exe memory limit" "1024 MB will limit the performance of search and can be more impactful than helpful if not configured correctly for your environment." -WriteType "Yellow"
+        }
+
+        It "EdgeTransport.exe.config invalid config" {
+            TestObjectMatch "EdgeTransport.exe.config Invalid Config Format" $true -WriteType "Red"
         }
 
         It "TLS Settings" {
