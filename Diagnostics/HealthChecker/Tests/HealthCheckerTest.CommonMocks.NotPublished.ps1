@@ -44,9 +44,13 @@ Mock Get-WebSite -ParameterFilter { $Name -eq "Exchange Back End" } -MockWith { 
 
 Mock Test-Path -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\FrontEnd\HttpProxy\SharedWebConfig.config" } -MockWith { return $true }
 Mock Test-Path -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\ClientAccess\SharedWebConfig.config" } -MockWith { return $true }
+Mock Test-Path -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\EdgeTransport.exe.config" } -MockWith { return $true }
+Mock Test-Path -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Runtime\1.0\noderunner.exe.config" } -MockWith { return $true }
 
 Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\FrontEnd\HttpProxy\SharedWebConfig.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\DefaultWebSite_SharedWebConfig.config" -Raw }
 Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\ClientAccess\SharedWebConfig.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\ExchangeBackEnd_SharedWebConfig.config" -Raw }
+Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\EdgeTransport.exe.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\EdgeTransport.exe.config" -Raw }
+Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Runtime\1.0\noderunner.exe.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\noderunner.exe.config" -Raw }
 
 function Get-WebApplication { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\IIS\GetWebApplication.xml" }
 
@@ -178,10 +182,6 @@ Mock Get-Smb1ServerSettings {
 
 Mock Get-ExchangeAppPoolsInformation {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeAppPoolsInformation.xml"
-}
-
-Mock Get-ExchangeApplicationConfigurationFileValidation {
-    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeApplicationConfigurationFileValidation.xml"
 }
 
 Mock Get-ExchangeUpdates {
