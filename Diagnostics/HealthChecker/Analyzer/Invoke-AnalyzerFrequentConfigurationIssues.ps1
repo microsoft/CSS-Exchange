@@ -139,14 +139,19 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     if ($null -ne $exchangeInformation.ApplicationConfigFileStatus -and
         $exchangeInformation.ApplicationConfigFileStatus.Count -ge 1) {
 
-        foreach ($configKey in $exchangeInformation.ApplicationConfigFileStatus.Keys) {
+        # Only need to display a particular list all the time. Don't need every config that we want to possibly look at for issues.
+        $alwaysDisplayConfigs = @("EdgeTransport.exe.config")
+        $keyList = $exchangeInformation.ApplicationConfigFileStatus.Keys | Sort-Object
+
+        foreach ($configKey in $keyList) {
+
             $configStatus = $exchangeInformation.ApplicationConfigFileStatus[$configKey]
             $writeType = "Green"
-            $writeValue = $configStatus.Present
+            [string]$writeValue = $configStatus.Present
 
-            if (!$configStatus.Present) {
+            if (-not $configStatus.Present) {
                 $writeType = "Red"
-                $writeValue = "{0} --- Error" -f $writeValue
+                $writeValue += " --- Error"
             }
 
             $params = $baseParams + @{
@@ -154,7 +159,60 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
                 Details          = $writeValue
                 DisplayWriteType = $writeType
             }
-            Add-AnalyzedResultInformation @params
+
+            if ($alwaysDisplayConfigs -contains $configKey -or
+                -not $configStatus.Present) {
+                Add-AnalyzedResultInformation @params
+            }
+
+            # if not a valid configuration file, provide that.
+            try {
+                if ($configStatus.Present) {
+                    $content = [xml]($configStatus.Content)
+
+                    # Additional checks of configuration files.
+                    if ($configKey -eq "noderunner.exe.config") {
+                        $memoryLimitMegabytes = $content.configuration.nodeRunnerSettings.memoryLimitMegabytes
+                        $writeValue = "$memoryLimitMegabytes MB"
+                        $writeType = "Green"
+
+                        if ($null -eq $memoryLimitMegabytes) {
+                            $writeType = "Yellow"
+                            $writeValue = "Unconfigured. This may cause problems."
+                        } elseif ($memoryLimitMegabytes -ne 0) {
+                            $writeType = "Yellow"
+                            $writeValue = "$memoryLimitMegabytes MB will limit the performance of search and can be more impactful than helpful if not configured correctly for your environment."
+                        }
+
+                        $params = $baseParams + @{
+                            Name             = "NodeRunner.exe memory limit"
+                            Details          = $writeValue
+                            DisplayWriteType = $writeType
+                        }
+
+                        Add-AnalyzedResultInformation @params
+
+                        if ($writeType -ne "Green") {
+                            $params = $baseParams + @{
+                                Details                = "More Information: https://aka.ms/HC-NodeRunnerMemoryCheck"
+                                DisplayWriteType       = "Yellow"
+                                DisplayCustomTabNumber = 2
+                            }
+
+                            Add-AnalyzedResultInformation @params
+                        }
+                    }
+                }
+            } catch {
+                $params = $baseParams + @{
+                    Name                = "$configKey Invalid Config Format"
+                    Details             = "True --- Error: Not able to convert to xml which means it is in an incorrect format that will cause problems with the process."
+                    DisplayTestingValue = $true
+                    DisplayWriteType    = "Red"
+                }
+
+                Add-AnalyzedResultInformation @params
+            }
         }
     }
 

@@ -45,6 +45,7 @@ nav:
       - RSSEnabledCheck: Diagnostics/HealthChecker/RSSEnabledCheck.md
       - SleepyNICCheck: Diagnostics/HealthChecker/SleepyNICCheck.md
       - NETFrameworkCheck: Diagnostics/HealthChecker/NETFrameworkSupportabilityCheck.md
+      - NodeRunnerMemoryLimitCheck: Diagnostics/HealthChecker/NodeRunnerMemoryLimitCheck.md
       - PagefileCheck: Diagnostics/HealthChecker/PagefileSizeCheck.md
       - VisualCCheck: Diagnostics/HealthChecker/VisualCRedistributableVersionCheck.md
       - LMCompatibilityLevelInformationCheck: Diagnostics/HealthChecker/LMCompatibilityLevelInformationCheck.md
@@ -63,6 +64,7 @@ nav:
       - DownloadDomainCheck: Diagnostics/HealthChecker/DownloadDomainCheck.md
       - OpenRelayDomainCheck: Diagnostics/HealthChecker/OpenRelayDomain.md
       - FIPFSCheck: Diagnostics/HealthChecker/FIPFSCheck.md
+      - IISInformation: Diagnostics/HealthChecker/IISInformation.md
       - IISWebConfigCheck: Diagnostics/HealthChecker/IISWebConfigCheck.md
       - HCScheduledTask: Diagnostics/HealthChecker/RunHCViaSchedTask.md
       - ADSiteCount: Diagnostics/HealthChecker/ADSiteCount.md
