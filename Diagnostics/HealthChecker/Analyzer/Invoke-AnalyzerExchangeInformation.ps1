@@ -23,6 +23,8 @@ function Invoke-AnalyzerExchangeInformation {
     $hardwareInformation = $HealthServerObject.HardwareInformation
     $getWebServicesVirtualDirectory = $exchangeInformation.VirtualDirectories.GetWebServicesVirtualDirectory |
         Where-Object { $_.Name -eq "EWS (Default Web Site)" }
+    $getWebServicesVirtualDirectoryBE = $exchangeInformation.VirtualDirectories.GetWebServicesVirtualDirectory |
+        Where-Object { $_.Name -eq "EWS (Exchange Back End)" }
 
     $baseParams = @{
         AnalyzedInformation = $AnalyzeResults
@@ -299,10 +301,29 @@ function Invoke-AnalyzerExchangeInformation {
     if (-not ([string]::IsNullOrWhiteSpace($getWebServicesVirtualDirectory.InternalNLBBypassUrl))) {
         $params = $baseParams + @{
             Name             = "EWS Internal Bypass URL Set"
-            Details          = "$($getWebServicesVirtualDirectory.InternalNLBBypassUrl) - Can cause issues after KB 5001779"
+            Details          = "$($getWebServicesVirtualDirectory.InternalNLBBypassUrl) - Can cause issues after KB 5001779" +
+            "`r`n`t`tThe Web Services Virtual Directory has a value set for InternalNLBBypassUrl which can cause problems with Exchange." +
+            "`r`n`t`tSet the InternalNLBBypassUrl to NULL to correct this."
             DisplayWriteType = "Red"
         }
         Add-AnalyzedResultInformation @params
+    }
+
+    if ($null -ne $getWebServicesVirtualDirectoryBE -and
+        $null -ne $getWebServicesVirtualDirectoryBE.InternalNLBBypassUrl) {
+        Write-Verbose "Checking EWS Internal NLB Bypass URL for the BE"
+        $expectedValue = "https://$($exchangeInformation.GetExchangeServer.Fqdn.ToString()):444/ews/exchange.asmx"
+
+        if ($getWebServicesVirtualDirectoryBE.InternalNLBBypassUrl.ToString() -ne $expectedValue) {
+            $params = $baseParams + @{
+                Name             = "EWS Internal Bypass URL Incorrectly Set on BE"
+                Details          = "Error: '$expectedValue' is the expected value for this." +
+                "`r`n`t`tAnything other than the expected value, will result in connectivity issues."
+                DisplayWriteType = "Red"
+            }
+
+            Add-AnalyzedResultInformation @params
+        }
     }
 
     Write-Verbose "Working on results from Test-ServiceHealth"
