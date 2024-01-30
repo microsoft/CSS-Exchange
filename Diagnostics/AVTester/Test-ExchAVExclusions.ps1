@@ -301,13 +301,13 @@ Write-SimpleLogFile -String "Analyzing Exchange Processes" -LogFile $LogFileName
 while ($currentDiff -gt 0) {
     if ($firstExecution) {
         # Test Exchange Processes for unexpected modules
-        $ProcessList = Get-ExchAVExclusionsProcess -ExchangePath $ExchangePath -MsiProductMinor ([byte]$serverExchangeInstallDirectory.MsiProductMinor)
+        $ExchangeProcessList = Get-ExchAVExclusionsProcess -ExchangePath $ExchangePath -MsiProductMinor ([byte]$serverExchangeInstallDirectory.MsiProductMinor)
 
         # Include w3wp process in the analysis
-        $ProcessList += (Join-Path $env:SystemRoot '\System32\inetSrv\W3wp.exe')
+        $ExchangeProcessList += (Join-Path $env:SystemRoot '\System32\inetSrv\W3wp.exe')
 
-        # Gather all processes on the computer
-        $ServerProcess = Get-Process | Sort-Object -Property ProcessName
+        # Gather all processes on the computer and filter by the Exchange Process List
+        $ServerProcess = Get-Process | Where-Object { $ExchangeProcessList -contains $_.path } | Sort-Object -Property ProcessName
 
         # Module allow list
         $ModuleAllowList = New-Object Collections.Generic.List[string]
@@ -337,32 +337,28 @@ while ($currentDiff -gt 0) {
             Write-Progress -Activity "Checking Exchange Processes" -CurrentOperation "$currentDiff More Seconds" -PercentComplete ((($initialDiff - $currentDiff) / $initialDiff) * 100) -Status " "
             [int]$currentDiff = (New-TimeSpan -End $StartDate.AddMinutes($WaitingTimeForAVAnalysisInMinutes) -Start (Get-Date)).TotalSeconds
 
-            # Determine if it is a known exchange process
-            if ($ProcessList -contains $process.path ) {
+            # Gather all modules
+            [array]$ProcessModules = $process.modules
 
-                # Gather all modules
-                [array]$ProcessModules = $process.modules
+            # Remove Microsoft modules
+            $ProcessModules = $ProcessModules | Where-Object { $_.FileVersionInfo.CompanyName -ne "Microsoft Corporation." -and $_.FileVersionInfo.CompanyName -ne "Microsoft" -and $_.FileVersionInfo.CompanyName -ne "Microsoft Corporation" }
 
-                # Remove Microsoft modules
-                $ProcessModules = $ProcessModules | Where-Object { $_.FileVersionInfo.CompanyName -ne "Microsoft Corporation." -and $_.FileVersionInfo.CompanyName -ne "Microsoft" -and $_.FileVersionInfo.CompanyName -ne "Microsoft Corporation" }
+            # Remove Oracle modules on FIPS
+            $ProcessModules = $ProcessModules | Where-Object { (-not($_.FileName -like "*\FIP-FS\Bin\*" -and $_.FileVersionInfo.CompanyName -eq "Oracle Corporation")) }
 
-                # Remove Oracle modules on FIPS
-                $ProcessModules = $ProcessModules | Where-Object { (-not($_.FileName -like "*\FIP-FS\Bin\*" -and $_.FileVersionInfo.CompanyName -eq "Oracle Corporation")) }
+            # Clear out modules from the allow list
+            foreach ($module in $ModuleAllowList) {
+                $ProcessModules = $ProcessModules | Where-Object { $_.ModuleName -ne $module -and $_.ModuleName -ne $($module.Replace(".dll", ".ni.dll")) }
+            }
 
-                # Clear out modules from the allow list
-                foreach ($module in $ModuleAllowList) {
-                    $ProcessModules = $ProcessModules | Where-Object { $_.ModuleName -ne $module -and $_.ModuleName -ne $($module.Replace(".dll", ".ni.dll")) }
-                }
-
-                if ($ProcessModules.count -gt 0) {
-                    foreach ($module in $ProcessModules) {
-                        $OutString = ("PROCESS: $($process.ProcessName) PID($($process.Id)) UNEXPECTED MODULE: $($module.ModuleName) COMPANY: $($module.Company)`n`tPATH: $($module.FileName)")
-                        Write-SimpleLogFile -string "[FAIL] - $OutString" -LogFile $LogFileName -OutHost
-                        if ($process.MainModule.ModuleName -eq "W3wp.exe") {
-                            $SuspiciousW3wpProcessList += $OutString
-                        } else {
-                            $SuspiciousProcessList += $OutString
-                        }
+            if ($ProcessModules.count -gt 0) {
+                foreach ($module in $ProcessModules) {
+                    $OutString = ("PROCESS: $($process.ProcessName) PID($($process.Id)) UNEXPECTED MODULE: $($module.ModuleName) COMPANY: $($module.Company)`n`tPATH: $($module.FileName)")
+                    Write-SimpleLogFile -string "[FAIL] - $OutString" -LogFile $LogFileName -OutHost
+                    if ($process.MainModule.ModuleName -eq "W3wp.exe") {
+                        $SuspiciousW3wpProcessList += $OutString
+                    } else {
+                        $SuspiciousProcessList += $OutString
                     }
                 }
             }
