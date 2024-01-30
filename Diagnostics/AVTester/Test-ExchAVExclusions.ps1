@@ -347,7 +347,7 @@ while ($currentDiff -gt 0) {
                 $ProcessModules = $ProcessModules | Where-Object { $_.FileVersionInfo.CompanyName -ne "Microsoft Corporation." -and $_.FileVersionInfo.CompanyName -ne "Microsoft" -and $_.FileVersionInfo.CompanyName -ne "Microsoft Corporation" }
 
                 # Remove Oracle modules on FIPS
-                $ProcessModules = $ProcessModules | Where-Object { (($_.FileName -notlike "*\FIP-FS\Bin\*" -and $_.FileVersionInfo.CompanyName -ne "Oracle Corporation")) }
+                $ProcessModules = $ProcessModules | Where-Object { (-not($_.FileName -like "*\FIP-FS\Bin\*" -and $_.FileVersionInfo.CompanyName -eq "Oracle Corporation")) }
 
                 # Clear out modules from the allow list
                 foreach ($module in $ModuleAllowList) {
