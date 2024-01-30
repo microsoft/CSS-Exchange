@@ -124,7 +124,7 @@ param(
     [switch]$BuildHtmlServersReport,
 
     [Parameter(Mandatory = $false, ParameterSetName = "HTMLReport", HelpMessage = "Provide the name of the Report to be created.")]
-    [string]$HtmlReportFile = "ExchangeAllServersReport.html",
+    [string]$HtmlReportFile = "ExchangeAllServersReport-$((Get-Date).ToString("yyyyMMddHHmmss")).html",
 
     [Parameter(Mandatory = $true, ParameterSetName = "DCCoreReport", HelpMessage = "Enable the DCCoreReport feature data collection against the current server's AD Site.")]
     [switch]$DCCoreRatio,
