@@ -326,21 +326,7 @@ while ($currentDiff -gt 0) {
         $ModuleAllowList.add("ManagedBlingSigned.dll")
         $ModuleAllowList.add("l3codecp.acm")
         $ModuleAllowList.add("System.IdentityModel.Tokens.jwt.dll")
-        # Oracle modules associated with 'Outside In® Technology'
-        $ModuleAllowList.add("wvcore.dll")
-        $ModuleAllowList.add("sccut.dll")
-        $ModuleAllowList.add("sccfut.dll")
-        $ModuleAllowList.add("sccfa.dll")
-        $ModuleAllowList.add("sccfi.dll")
-        $ModuleAllowList.add("sccch.dll")
-        $ModuleAllowList.add("sccda.dll")
-        $ModuleAllowList.add("sccfmt.dll")
-        $ModuleAllowList.add("sccind.dll")
-        $ModuleAllowList.add("sccca.dll")
-        $ModuleAllowList.add("scclo.dll")
-        $ModuleAllowList.add("SCCOLE2.dll")
-        $ModuleAllowList.add("SCCSD.dll")
-        $ModuleAllowList.add("SCCXT.dll")
+        $ModuleAllowList.add("prxyqry.DLL")
         # cSpell:enable
 
         Write-SimpleLogFile -string ("Allow List Module Count: " + $ModuleAllowList.count) -LogFile $LogFileName
@@ -359,6 +345,9 @@ while ($currentDiff -gt 0) {
 
                 # Remove Microsoft modules
                 $ProcessModules = $ProcessModules | Where-Object { $_.FileVersionInfo.CompanyName -ne "Microsoft Corporation." -and $_.FileVersionInfo.CompanyName -ne "Microsoft" -and $_.FileVersionInfo.CompanyName -ne "Microsoft Corporation" }
+
+                # Remove Oracle modules on FIPS
+                $ProcessModules = $ProcessModules | Where-Object { (-not($_.FileName -like "*\FIP-FS\Bin\*" -and $_.FileVersionInfo.CompanyName -eq "Oracle Corporation")) }
 
                 # Clear out modules from the allow list
                 foreach ($module in $ModuleAllowList) {
