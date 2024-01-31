@@ -100,4 +100,6 @@ function Get-HtmlServerReport {
     $htmlReport = $htmlHeader + $htmlOverviewTable + $htmlServerDetails + "</body>$([System.Environment]::NewLine)</html>"
 
     $htmlReport | Out-File $HtmlOutFilePath -Encoding UTF8
+
+    Write-Host "HTML Report Location: $HtmlOutFilePath"
 }
