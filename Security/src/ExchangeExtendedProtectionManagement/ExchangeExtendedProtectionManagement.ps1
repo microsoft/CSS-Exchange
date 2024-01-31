@@ -162,8 +162,8 @@ begin {
 
     # The ParameterSetName options
     $RollbackSelected = $PsCmdlet.ParameterSetName -eq "Rollback"
-    $RollbackRestoreIISAppConfig = $RollbackSelected -and $RollbackType.Contains("RestoreIISAppConfig")
-    $RollbackRestoreConfiguration = $RollbackSelected -and $RollbackType.Contains("RestoreConfiguration")
+    $RollbackRestoreIISAppConfig = $RollbackSelected -and $RollbackType -contains "RestoreIISAppConfig"
+    $RollbackRestoreConfiguration = $RollbackSelected -and $RollbackType -contains "RestoreConfiguration"
     $RollbackRestrictType = $RollbackSelected -and (-not $RollbackRestoreIISAppConfig) -and (-not $RollbackRestoreConfiguration)
     $ConfigureMitigationSelected = $PsCmdlet.ParameterSetName -eq "ConfigureMitigation"
     $ConfigureEPSelected = $ConfigureMitigationSelected -or
