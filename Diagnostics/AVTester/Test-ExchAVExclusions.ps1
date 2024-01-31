@@ -101,9 +101,10 @@ function Write-HostLog ($message) {
 }
 
 $LogFileName = "Test-ExchAvExclusions"
-$dateTime = (Get-Date).ToString("yyyyMMddhhmmss")
-$Script:DebugLogger = Get-NewLoggerInstance -LogName "$LogFileName-Debug-$dateTime" -LogDirectory $PSScriptRoot -AppendDateTimeToFileName $false -ErrorAction SilentlyContinue
-$Script:HostLogger = Get-NewLoggerInstance -LogName "$LogFileName-Results-$dateTime" -LogDirectory $PSScriptRoot -AppendDateTimeToFileName $false -ErrorAction SilentlyContinue
+$StartDate = Get-Date
+$StartDateFormatted = ($StartDate).ToString("yyyyMMddhhmmss")
+$Script:DebugLogger = Get-NewLoggerInstance -LogName "$LogFileName-Debug-$StartDateFormatted" -LogDirectory $PSScriptRoot -AppendDateTimeToFileName $false -ErrorAction SilentlyContinue
+$Script:HostLogger = Get-NewLoggerInstance -LogName "$LogFileName-Results-$StartDateFormatted" -LogDirectory $PSScriptRoot -AppendDateTimeToFileName $false -ErrorAction SilentlyContinue
 
 SetWriteHostAction ${Function:Write-HostLog}
 SetWriteProgressAction ${Function:Write-DebugLog}
@@ -166,9 +167,10 @@ if (-not($exchangeShell.ShellLoaded)) {
 }
 
 Write-Host "###########################################################################################"
-Write-Host "Starting AV Exclusions analysis at $((Get-Date).ToString())"
+Write-Host "Starting AV Exclusions analysis at $(($StartDate).ToString())"
 Write-Host "###########################################################################################"
-Write-Host "You can find a detailed log on: $LogFileName-Debug#DateTime#.txt"
+Write-Host "You can find a simple log on: $LogFileName-Results-$StartDateFormatted.txt"
+Write-Host "And a detailed log on: $LogFileName-Debug-$StartDateFormatted.txt"
 
 # Create the Array List
 $BaseFolders = Get-ExchAVExclusionsPaths -ExchangePath $ExchangePath -MsiProductMinor ([byte]$serverExchangeInstallDirectory.MsiProductMinor)
@@ -305,7 +307,6 @@ foreach ($extension in $extensionsList) {
 
 Write-Host "Access EICAR Files Finished"
 
-$StartDate = Get-Date
 [int]$initialDiff = (New-TimeSpan -End $StartDate.AddMinutes($WaitingTimeForAVAnalysisInMinutes) -Start $StartDate).TotalSeconds
 $currentDiff = $initialDiff
 $firstExecution = $true
@@ -453,7 +454,7 @@ foreach ($extension in $extensionsList) {
 #Delete Random Folder
 Remove-Item $randomFolder -Confirm:$false -Force -Recurse
 
-$OutputPath = Join-Path $PSScriptRoot BadExclusions-$dateTime.txt
+$OutputPath = Join-Path $PSScriptRoot BadExclusions-$StartDateFormatted.txt
 "###########################################################################################" | Out-File $OutputPath
 "Exclusions analysis at $((Get-Date).ToString())" | Out-File $OutputPath -Append
 "###########################################################################################" | Out-File $OutputPath -Append
