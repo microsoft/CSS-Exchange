@@ -275,4 +275,35 @@ function Invoke-AnalyzerHardwareInformation {
         AddHtmlOverviewValues = $true
     }
     Add-AnalyzedResultInformation @params
+
+    if ($hardwareInformation.ServerType -eq "HyperV" -or
+        $hardwareInformation.ServerType -eq "VMware") {
+        $params = $baseParams + @{
+            Name             = "Dynamic Memory Detected"
+            Details          = $false
+            DisplayWriteType = "Green"
+        }
+
+        if ($null -eq $osInformation.PerformanceCounters) {
+            $params.Details = "Unknown - No Performance Counters was able to be collected"
+            $params.DisplayWriteType = "Yellow"
+        } else {
+            if ($hardwareInformation.ServerType -eq "HyperV") {
+                $counterName = "\Hyper-V Dynamic Memory Integration Service\Maximum Memory, MBytes"
+            } else {
+                $counterName = "\VM Memory\Memory Reservation in MB"
+            }
+            $counter = $osInformation.PerformanceCounters | Where-Object { $_.OriginalCounterLookup -eq $counterName }
+
+            if ($null -eq $counter) {
+                $params.Details = "Unknown - Required Counter Not Loaded"
+                $params.DisplayWriteType = "Yellow"
+            } elseif (($counter.CookedValue / 1024) -ne $totalPhysicalMemory) {
+                $params.Details = "$true $($counter.CookedValue / 1024)GB is the allowed dynamic memory of the server. Not supported to have dynamic memory configured."
+                $params.DisplayWriteType = "Red"
+            }
+        }
+
+        Add-AnalyzedResultInformation @params
+    }
 }

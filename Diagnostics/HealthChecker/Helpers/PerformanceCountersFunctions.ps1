@@ -21,8 +21,7 @@ function Get-CounterSamples {
     try {
         return (Get-Counter -ComputerName $MachineName -Counter $Counter -ErrorAction $CustomErrorAction).CounterSamples
     } catch {
-        Write-Verbose "Failed ot get counter samples"
-        Invoke-CatchActions
+        Write-Verbose "Failed to get counter samples"
     }
 }
 
@@ -39,6 +38,7 @@ function Get-LocalizedCounterSamples {
     )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
+    $localizedCounterLookup = @{}
     $localizedCounters = @()
 
     foreach ($computer in $MachineName) {
@@ -51,11 +51,27 @@ function Get-LocalizedCounterSamples {
 
             if (-not ($localizedCounters.Contains($localizedFullCounterName))) {
                 $localizedCounters += $localizedFullCounterName
+                $localizedCounterLookup.Add($localizedCounterName, $counterObject.FullName)
             }
         }
     }
 
-    return (Get-CounterSamples -MachineName $MachineName -Counter $localizedCounters -CustomErrorAction $CustomErrorAction)
+    $currentErrorIndex = $Error.Count
+    # Store the localized counter sample information so we can reverse engineer back to the English counter name so other code can handle it.
+    $localizedCounterSamples = (Get-CounterSamples -MachineName $MachineName -Counter $localizedCounters -CustomErrorAction $CustomErrorAction)
+
+    foreach ($localSample in $localizedCounterSamples) {
+        foreach ($key in $localizedCounterLookup.Keys) {
+            if ($localSample.Path -like "\\*$key") {
+                # Found the localized Counter lookup, now we want to add a property to be able to find the counters in other areas of code by the English name.
+                $localSample | Add-Member -MemberType NoteProperty -Name "OriginalCounterLookup" -Value $localizedCounterLookup[$key]
+                break
+            }
+        }
+    }
+    Invoke-ErrorCatchActionLoopFromIndex $currentErrorIndex
+
+    return $localizedCounterSamples
 }
 
 function Get-LocalizedPerformanceCounterName {
