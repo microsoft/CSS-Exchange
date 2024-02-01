@@ -15,25 +15,28 @@ function Get-HttpProxySetting {
             [Parameter(Mandatory = $true)][string]$RegistryLocation
         )
         $connections = Get-ItemProperty -Path $RegistryLocation
+        $byteLength = 4
+        $proxyStartLocation = 16
+        $proxyLength = 0
         $proxyAddress = [string]::Empty
         $byPassList = [string]::Empty
 
         if (($null -ne $connections) -and
             ($Connections | Get-Member).Name -contains "WinHttpSettings") {
-            $onProxy = $true
+            try {
+                $bytes = $Connections.WinHttpSettings
+                $proxyLength = [System.BitConverter]::ToInt32($bytes, $proxyStartLocation - $byteLength)
 
-            foreach ($Byte in $Connections.WinHttpSettings) {
-                if ($onProxy -and
-                    $Byte -ge 42) {
-                    $proxyAddress += [CHAR]$Byte
-                } elseif (-not $onProxy -and
-                    $Byte -ge 42) {
-                    $byPassList += [CHAR]$Byte
-                } elseif (-not ([string]::IsNullOrEmpty($proxyAddress)) -and
-                    $onProxy -and
-                    $Byte -eq 0) {
-                    $onProxy = $false
+                if ($proxyLength -gt 0) {
+                    $proxyAddress = [System.Text.Encoding]::UTF8.GetString($bytes, $proxyStartLocation, $proxyLength)
+                    $byPassListLength = [System.BitConverter]::ToInt32($bytes, $proxyStartLocation + $proxyLength)
+
+                    if ($byPassListLength -gt 0) {
+                        $byPassList = [System.Text.Encoding]::UTF8.GetString($bytes, $byteLength + $proxyStartLocation + $proxyLength, $byPassListLength)
+                    }
                 }
+            } catch {
+                Write-Verbose "Failed to properly get HTTP Proxy information. Inner Exception: $_"
             }
         }
 

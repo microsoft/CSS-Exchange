@@ -97,7 +97,13 @@ function Get-ExchangeInformation {
             }
         }
 
-        $applicationConfigFileStatus = Get-ExchangeApplicationConfigurationFileValidation -ComputerName $Server -ConfigFileLocation ("{0}EdgeTransport.exe.config" -f $serverExchangeBinDirectory)
+        $configParams = @{
+            ComputerName       = $Server
+            ConfigFileLocation = @("$([System.IO.Path]::Combine($serverExchangeBinDirectory, "EdgeTransport.exe.config"))",
+                "$([System.IO.Path]::Combine($serverExchangeBinDirectory, "Search\Ceres\Runtime\1.0\noderunner.exe.config"))")
+        }
+
+        $applicationConfigFileStatus = Get-ExchangeApplicationConfigurationFileValidation @configParams
         $serverMaintenance = Get-ExchangeServerMaintenanceState -Server $Server -ComponentsToSkip "ForwardSyncDaemon", "ProvisioningRps"
         $settingOverrides = Get-ExchangeSettingOverride -Server $Server -CatchActionFunction ${Function:Invoke-CatchActions}
 

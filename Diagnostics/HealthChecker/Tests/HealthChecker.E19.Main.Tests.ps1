@@ -56,8 +56,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Power Plan" "Balanced --- Error" -WriteType "Red"
             $httpProxy = GetObject "Http Proxy Setting"
             $httpProxy.ProxyAddress | Should -Be "None"
-            TestObjectMatch "Visual C++ 2012" "184610406 Version is current" -WriteType "Green"
-            TestObjectMatch "Visual C++ 2013" "Redistributable is outdated" -WriteType "Yellow"
+            TestObjectMatch "Visual C++ 2012 x64" "11.0.61030 Version is current" -WriteType "Green"
+            TestObjectMatch "Visual C++ 2013 x64" "Redistributable (12.0.21005) is outdated" -WriteType "Yellow"
             TestObjectMatch "Server Pending Reboot" $false
 
             $pageFile = GetObject "PageFile Size 0"
@@ -117,9 +117,10 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Disable Async Notification" $false
             TestObjectMatch "Credential Guard Enabled" $false
             TestObjectMatch "EdgeTransport.exe.config Present" "True" -WriteType "Green"
+            TestObjectMatch "NodeRunner.exe memory limit" "0 MB" -WriteType "Green"
             TestObjectMatch "Open Relay Wild Card Domain" "Not Set"
 
-            $Script:ActiveGrouping.Count | Should -Be 9
+            $Script:ActiveGrouping.Count | Should -Be 10
         }
 
         It "Display Results - Security Settings" {

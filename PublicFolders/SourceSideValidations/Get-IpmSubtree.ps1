@@ -78,16 +78,17 @@ function Get-IpmSubtree {
                 }
 
                 $result = [PSCustomObject]@{
-                    Name              = $Folder.Name
-                    Identity          = $Folder.Identity.ToString()
-                    EntryId           = $Folder.EntryId.ToString()
-                    ParentEntryId     = $Folder.ParentFolder.ToString()
-                    DumpsterEntryId   = if ($Folder.DumpsterEntryId) { $Folder.DumpsterEntryId.ToString() } else { $null }
-                    FolderSize        = $Folder.FolderSize
-                    HasSubFolders     = $Folder.HasSubFolders
-                    ContentMailbox    = $Folder.ContentMailboxName
-                    MailEnabled       = $Folder.MailEnabled
-                    MailRecipientGuid = $Folder.MailRecipientGuid
+                    Name               = $Folder.Name
+                    Identity           = $Folder.Identity.ToString()
+                    EntryId            = $Folder.EntryId.ToString()
+                    ParentEntryId      = $Folder.ParentFolder.ToString()
+                    DumpsterEntryId    = if ($Folder.DumpsterEntryId) { $Folder.DumpsterEntryId.ToString() } else { $null }
+                    FolderSize         = $Folder.FolderSize
+                    HasSubFolders      = $Folder.HasSubFolders
+                    ContentMailboxName = $Folder.ContentMailboxName
+                    ContentMailboxGuid = $Folder.ContentMailboxGuid
+                    MailEnabled        = $Folder.MailEnabled
+                    MailRecipientGuid  = $Folder.MailRecipientGuid
                 }
 
                 [void]$ipmSubtree.Add($result)
