@@ -105,13 +105,6 @@ function Invoke-AnalyzerIISInformation {
                         $problemCertList.Add("'$certHash' Doesn't exist on the server and this will cause problems.")
                     } elseif ($cert.LifetimeInDays -lt 0) {
                         $problemCertList.Add("'$certHash' Has expired and will cause problems.")
-                    } elseif ($_.bindingInformation -eq "*:444:") {
-                        $namespaces = $cert.Namespaces | ForEach-Object { $_.ToString() }
-
-                        if ($namespaces -notcontains $exchangeInformation.GetExchangeServer.Fqdn -or
-                            $namespaces -notcontains $exchangeInformation.GetExchangeServer.Name) {
-                            $problemCertList.Add("'$certHash' Exchange Back End does not have hostname or FQDN for the namespaces. This can cause connectivity issues.")
-                        }
                     }
                 }
 
