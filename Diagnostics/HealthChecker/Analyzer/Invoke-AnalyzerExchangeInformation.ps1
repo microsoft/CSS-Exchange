@@ -118,6 +118,17 @@ function Invoke-AnalyzerExchangeInformation {
         }
     }
 
+    # If the ExSetup wasn't found, we need to report that.
+    if ($exchangeInformation.BuildInformation.ExchangeSetup.FailedGetExSetup -eq $true) {
+        $params = $baseParams + @{
+            Name                   = "Warning"
+            Details                = "Didn't detect ExSetup.exe on the server. This might mean that setup didn't complete correctly the last time it was run."
+            DisplayCustomTabNumber = 2
+            DisplayWriteType       = "Yellow"
+        }
+        Add-AnalyzedResultInformation @params
+    }
+
     if ($null -ne $exchangeInformation.BuildInformation.KBsInstalled) {
         Add-AnalyzedResultInformation -Name "Exchange IU or Security Hotfix Detected" @baseParams
         $problemKbFound = $false
