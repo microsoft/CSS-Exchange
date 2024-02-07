@@ -47,10 +47,13 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
                     # This combination means that EP is not configured and the Exchange build doesn't support it.
                     # Recommended action: Upgrade to a supported build (Aug 2022 SU+) and enable EP afterwards.
                     $epDetails = "Your Exchange server is at risk. Install the latest SU and enable Extended Protection"
-                } else {
+                } elseif ($extendedProtection.ExtendedProtectionConfigured) {
                     # This means that EP is supported but not configured for at least one vDir.
                     # Recommended action: Enable EP for each vDir on the system by using the script provided by us.
-                    $epDetails += "Extended Protection isn't configured as expected"
+                    $epDetails = "Extended Protection isn't configured as expected"
+                } else {
+                    # No Extended Protection is configured, provide a slightly different wording to avoid confusion of possible misconfigured EP.
+                    $epDetails = "Extended Protection is not configured"
                 }
 
                 $epCveParams = $baseParams + @{

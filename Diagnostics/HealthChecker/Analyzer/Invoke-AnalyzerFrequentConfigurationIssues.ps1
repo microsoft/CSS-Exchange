@@ -146,6 +146,7 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
         foreach ($configKey in $keyList) {
 
             $configStatus = $exchangeInformation.ApplicationConfigFileStatus[$configKey]
+            $fileName = $configStatus.FileName
             $writeType = "Green"
             [string]$writeValue = $configStatus.Present
 
@@ -155,12 +156,12 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
             }
 
             $params = $baseParams + @{
-                Name             = "$configKey Present"
+                Name             = "$fileName Present"
                 Details          = $writeValue
                 DisplayWriteType = $writeType
             }
 
-            if ($alwaysDisplayConfigs -contains $configKey -or
+            if ($alwaysDisplayConfigs -contains $fileName -or
                 -not $configStatus.Present) {
                 Add-AnalyzedResultInformation @params
             }
@@ -171,7 +172,7 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
                     $content = [xml]($configStatus.Content)
 
                     # Additional checks of configuration files.
-                    if ($configKey -eq "noderunner.exe.config") {
+                    if ($fileName -eq "noderunner.exe.config") {
                         $memoryLimitMegabytes = $content.configuration.nodeRunnerSettings.memoryLimitMegabytes
                         $writeValue = "$memoryLimitMegabytes MB"
                         $writeType = "Green"
@@ -205,7 +206,7 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
                 }
             } catch {
                 $params = $baseParams + @{
-                    Name                = "$configKey Invalid Config Format"
+                    Name                = "$fileName Invalid Config Format"
                     Details             = "True --- Error: Not able to convert to xml which means it is in an incorrect format that will cause problems with the process."
                     DisplayTestingValue = $true
                     DisplayWriteType    = "Red"
