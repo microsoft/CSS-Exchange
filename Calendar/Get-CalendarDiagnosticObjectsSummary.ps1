@@ -257,6 +257,46 @@ function GetMailbox {
     }
 }
 
+<# 
+.SYNOPSIS
+Checks if a set of Calendar Logs is from the Organizer.
+#>
+function SetIsOrganizer {
+    param(
+        $CalLogs
+    )
+    $IsOrganizer = $false
+
+    do {
+        foreach ($CalLog in $CalLogs) {
+            if ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -and
+                $CalLog.ExternalSharingMasterId -eq "NotFound" -and
+                $CalLog.ResponseType -eq "Organizer" ) {
+                $IsOrganizer =  "True"
+            }
+        }
+    } until ($IsOrganizer -eq "True")
+    return $IsOrganizer
+}
+
+function SetIsRoom {
+    param(
+        $CalLogs
+    )
+    $IsRoom = $false
+
+    do {
+        foreach ($CalLog in $CalLogs) {
+            if ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -and
+                $CalLog.ExternalSharingMasterId -eq "NotFound" -and
+                $CalLog.Client -eq "ResourceBookingAssistant" ) {
+                $IsRoom =  "True"
+            }
+        }
+    } until ($IsRoom -eq "True")
+    return $IsRoom
+}
+
 function Convert-Data {
     param(
         [Parameter(Mandatory = $True)]
