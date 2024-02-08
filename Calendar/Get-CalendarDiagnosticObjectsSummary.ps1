@@ -83,7 +83,7 @@ $script:CustomPropertyNameList =
 "SentRepresentingDisplayName",
 "SentRepresentingEmailAddress"
 
-$LogLimit = 200
+$LogLimit = 2000
 
 $WellKnownCN_CA = "MICROSOFT SYSTEM ATTENDANT"
 $CalAttendant = "Calendar Assistant"
@@ -270,7 +270,7 @@ function SetIsOrganizer {
         if ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -and
             $CalLog.ExternalSharingMasterId -eq "NotFound" -and
             ($CalLog.ResponseType -eq "1" -or $CalLogs.ResponseType -eq "Organizer")) {
-            $IsOrganizer = "True"    
+            $IsOrganizer = "True"
             Write-Verbose "IsOrganizer: [$IsOrganizer]"
             return $IsOrganizer
         }
@@ -413,21 +413,21 @@ function BetterThanNothingCNConversion {
         $cNameMatch = $PassedCN -split "cn="
 
         # Normally a readable name is sectioned off with a "-" at the end.
-        # example /o=ExchangeLabs/ou=Exchange Administrative Group (FYDIBOHF23SPDLT)/cn=Recipients/cn=d61149258ba04404adda42f336b504ed-Delegate
+        # Example /o=ExchangeLabs/ou=Exchange Administrative Group (FYDIBOHF23SPDLT)/cn=Recipients/cn=d61149258ba04404adda42f336b504ed-Delegate
         if ($cNameMatch[-1] -match "-[\w* -.]*") {
             Write-Verbose "BetterThanNothingCNConversion: Matched : [$($cNameMatch[-1])]"
             $cNameSplit = $cNameMatch.split('-')[-1]
-            #sometimes we have a more thatn one "-" in the name, so we end up with only 1-4 chars which is too little.
+            # Sometimes we have a more than one "-" in the name, so we end up with only 1-4 chars which is too little.
+            # Example: .../CN=RECIPIENTS/CN=83DAA772E6A94DA19402AA6B41770486-4DB5F0EB-4A
             if ($cNameSplit.length -lt 5) {
                 Write-Verbose "BetterThanNothingCNConversion: [$cNameSplit] is too short"
-                $temp = $cNameMatch.split('-')[-2] + '-' + $cNameMatch.split('-')[-1]
-                Write-Verbose "BetterThanNothingCNConversion: Returning Lengthened : [$temp]"
-                return $cNameMatch[-1]
+                $cNameSplit= $cNameMatch.split('-')[-2] + '-' + $cNameMatch.split('-')[-1]
+                Write-Verbose "BetterThanNothingCNConversion: Returning Lengthened : [$cNameSplit]"
             }
             return $cNameSplit
         }
         # Sometimes we do not have the "-" in front of the Name.
-        # example: "/o=ExchangeLabs/ou=Exchange Administrative Group (FYDIBOHF23SPDLT)/cn=Recipients/cn=user123"
+        # Example: "/o=ExchangeLabs/ou=Exchange Administrative Group (FYDIBOHF23SPDLT)/cn=Recipients/cn=user123"
         if ($cNameMatch[-1] -match "[\w* -.]*") {
             Write-Verbose "BetterThanNothingCNConversion: Returning : [$($cNameMatch[-1])]"
             return $cNameMatch.split('-')[-1]
