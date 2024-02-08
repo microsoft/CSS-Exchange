@@ -95,7 +95,7 @@ function Write-DebugLog ($message) {
 
 function Write-HostLog ($message) {
     if (![string]::IsNullOrEmpty($message)) {
-        $Script:WarningLogger = $Script:DebugLogger | Write-LoggerInstance $message
+        $Script:DebugLogger = $Script:DebugLogger | Write-LoggerInstance $message
         $Script:HostLogger = $Script:HostLogger | Write-LoggerInstance $message
     }
 }
@@ -193,8 +193,9 @@ foreach ($path in $BaseFolders) {
             $FolderList.Add($path.ToLower())
             $nonExistentFolder.Add($path.ToLower())
             New-Item -Path (Split-Path $path) -Name $path.split('\')[-1] -ItemType Directory -Force | Out-Null
-            Write-Debug "Created folder: $path"
+            Write-Verbose "Created folder: $path"
         }
+
         # Resolve path only returns a bool so we have to manually throw to catch
         if (!(Resolve-Path -Path $path -ErrorAction SilentlyContinue)) {
             $nonExistentFolder.Add($path.ToLower())
