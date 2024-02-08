@@ -79,13 +79,11 @@ $script:CustomPropertyNameList =
 "IsAllDayEvent",
 "IsCancelled",
 "IsMeeting",
-"MapiEndTime",
-"MapiStartTime",
 "NormalizedSubject",
 "SentRepresentingDisplayName",
 "SentRepresentingEmailAddress"
 
-$LogLimit = 2000
+$LogLimit = 200
 
 $WellKnownCN_CA = "MICROSOFT SYSTEM ATTENDANT"
 $CalAttendant = "Calendar Assistant"
@@ -188,6 +186,7 @@ function GetCalendarDiagnosticObjects {
     }
 
     Write-Host "Found $($CalLogs.count) Calendar Logs for [$Identity]"
+    $script:IsOrganizer = SetIsOrganizer($CalLogs)
     return $CalLogs
 }
 
@@ -257,7 +256,7 @@ function GetMailbox {
     }
 }
 
-<# 
+<#
 .SYNOPSIS
 Checks if a set of Calendar Logs is from the Organizer.
 #>
@@ -267,15 +266,16 @@ function SetIsOrganizer {
     )
     $IsOrganizer = $false
 
-    do {
-        foreach ($CalLog in $CalLogs) {
-            if ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -and
-                $CalLog.ExternalSharingMasterId -eq "NotFound" -and
-                $CalLog.ResponseType -eq "Organizer" ) {
-                $IsOrganizer =  "True"
-            }
+    foreach ($CalLog in $CalLogs) {
+        if ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -and
+            $CalLog.ExternalSharingMasterId -eq "NotFound" -and
+            ($CalLog.ResponseType -eq "1" -or $CalLogs.ResponseType -eq "Organizer")) {
+            $IsOrganizer = "True"    
+            Write-Verbose "IsOrganizer: [$IsOrganizer]"
+            return $IsOrganizer
         }
-    } until ($IsOrganizer -eq "True")
+    }
+    Write-Verbose "IsOrganizer: [$IsOrganizer]"
     return $IsOrganizer
 }
 
@@ -284,16 +284,15 @@ function SetIsRoom {
         $CalLogs
     )
     $IsRoom = $false
-
-    do {
-        foreach ($CalLog in $CalLogs) {
-            if ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -and
-                $CalLog.ExternalSharingMasterId -eq "NotFound" -and
-                $CalLog.Client -eq "ResourceBookingAssistant" ) {
-                $IsRoom =  "True"
-            }
+    # Simple logic is if RBA is running on the MB, it is a Room MB, otherwise it is not.
+    foreach ($CalLog in $CalLogs) {
+        if ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -and
+            $CalLog.ExternalSharingMasterId -eq "NotFound" -and
+            $CalLog.Client -eq "ResourceBookingAssistant" ) {
+            $IsRoom = "True"
+            return $IsRoom
         }
-    } until ($IsRoom -eq "True")
+    }
     return $IsRoom
 }
 
@@ -348,7 +347,7 @@ function GetMailboxProp {
         $Prop
     )
 
-    Write-Verbose "GetMailboxProp: [$Prop]: Searching for:[$PassedCN]..."
+    Write-Debug "GetMailboxProp: [$Prop]: Searching for:[$PassedCN]..."
 
     if (($Prop -ne "PrimarySmtpAddress") -and ($Prop -ne "DisplayName")) {
         Write-Error "GetMailboxProp:Invalid Property: [$Prop]"
@@ -416,8 +415,16 @@ function BetterThanNothingCNConversion {
         # Normally a readable name is sectioned off with a "-" at the end.
         # example /o=ExchangeLabs/ou=Exchange Administrative Group (FYDIBOHF23SPDLT)/cn=Recipients/cn=d61149258ba04404adda42f336b504ed-Delegate
         if ($cNameMatch[-1] -match "-[\w* -.]*") {
-            Write-Verbose "BetterThanNothingCNConversion: Returning : [$($cNameMatch[-1])]"
-            return $cNameMatch.split('-')[-1]
+            Write-Verbose "BetterThanNothingCNConversion: Matched : [$($cNameMatch[-1])]"
+            $cNameSplit = $cNameMatch.split('-')[-1]
+            #sometimes we have a more thatn one "-" in the name, so we end up with only 1-4 chars which is too little.
+            if ($cNameSplit.length -lt 5) {
+                Write-Verbose "BetterThanNothingCNConversion: [$cNameSplit] is too short"
+                $temp = $cNameMatch.split('-')[-2] + '-' + $cNameMatch.split('-')[-1]
+                Write-Verbose "BetterThanNothingCNConversion: Returning Lengthened : [$temp]"
+                return $cNameMatch[-1]
+            }
+            return $cNameSplit
         }
         # Sometimes we do not have the "-" in front of the Name.
         # example: "/o=ExchangeLabs/ou=Exchange Administrative Group (FYDIBOHF23SPDLT)/cn=Recipients/cn=user123"
@@ -542,17 +549,17 @@ function ConvertCNtoSMTP {
     foreach ($CNEntry in $CNEntries) {
         if ($CNEntry -match 'cn=([\w,\s.@-]*[^/])$') {
             if ($CNEntry -match $WellKnownCN_CA) {
-                $MailboxList[$CNEntry] = $CalAttendant
+                $script:MailboxList[$CNEntry] = $CalAttendant
             } elseif ($CNEntry -match $WellKnownCN_Trans) {
-                $MailboxList[$CNEntry] = $Transport
+                $script:MailboxList[$CNEntry] = $Transport
             } else {
-                $MailboxList[$CNEntry] = (GetMailbox -Identity $CNEntry -Organization $Org)
+                $script:MailboxList[$CNEntry] = (GetMailbox -Identity $CNEntry -Organization $Org)
             }
         }
     }
 
-    foreach ($key in $MailboxList.Keys) {
-        $value = $MailboxList[$key]
+    foreach ($key in $script:MailboxList.Keys) {
+        $value = $script:MailboxList[$key]
         Write-Verbose "$key :: $($value.DisplayName)"
     }
 }
@@ -783,7 +790,7 @@ function BuildCSV {
         $IsIgnorable = SetIsIgnorable($CalLog)
 
         # CleanNotFounds
-        $PropsToClean = "FreeBusyStatus", "ClientIntent", "AppointmentLastSequenceNumber", "RecurrencePattern", "AppointmentAuxiliaryFlags", "IsOrganizerProperty", "EventEmailReminderTimer", "IsSeriesCancelled", "AppointmentCounterProposal", "MeetingRequestType"
+        $PropsToClean = "FreeBusyStatus", "ClientIntent", "AppointmentLastSequenceNumber", "RecurrencePattern", "AppointmentAuxiliaryFlags", "EventEmailReminderTimer", "IsSeriesCancelled", "AppointmentCounterProposal", "MeetingRequestType"
         foreach ($Prop in $PropsToClean) {
             # Exception objects, etc. don't have these properties.
             if ($null -ne $CalLog.$Prop) {
@@ -796,11 +803,6 @@ function BuildCSV {
         }
 
         $IsFromSharedCalendar = ($null -ne $CalLog.externalSharingMasterId -and $CalLog.externalSharingMasterId -ne "NotFound")
-
-        # Need to ask about this
-        $GetIsOrganizer = ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -and
-            $CalLog.IsOrganizerProperty -eq $True -and
-            $CalLog.externalSharingMasterId -eq "NotFound")
 
         # Record one row
         $GCDOResults += [PSCustomObject]@{
@@ -850,16 +852,12 @@ function BuildCSV {
             'SenderSMTPAddress'             = GetSMTPAddress($CalLog.SenderEmailAddress)
             'CalendarLogRequestId'          = $CalLog.CalendarLogRequestId.ToString()
             'ClientIntent'                  = $CalLog.ClientIntent.ToString()
-            'MapiStartTime'                 = $CalLog.MapiStartTime
-            'MapiEndTime'                   = $CalLog.MapiEndTime
             'NormalizedSubject'             = $CalLog.NormalizedSubject
             'AppointmentRecurring'          = $CalLog.AppointmentRecurring
             'HasAttachment'                 = $CalLog.HasAttachment
             'IsCancelled'                   = $CalLog.IsCancelled
             'IsAllDayEvent'                 = $CalLog.IsAllDayEvent
             'IsSeriesCancelled'             = $CalLog.IsSeriesCancelled
-            'IsOrganizer'                   = $GetIsOrganizer
-            'IsOrganizerProperty'           = $CalLog.IsOrganizerProperty
             'EventEmailReminderTimer'       = $CalLog.EventEmailReminderTimer
             'AttendeeListDetails'           = MultiLineFormat($CalLog.AttendeeListDetails)
             'AttendeeCollection'            = MultiLineFormat($CalLog.AttendeeCollection)
@@ -1025,13 +1023,13 @@ function BuildTimeline {
         function ChangedProperties {
             if ($CalLog.Client -ne "LocationProcessor" -or $CalLog.Client -notlike "EBA:*" -or $CalLog.Client -notlike "TBA:*") {
                 if ($PreviousCalLog -and $AddChangedProperties) {
-                    if ($CalLog.MapiStartTime.ToString() -ne $PreviousCalLog.MapiStartTime.ToString()) {
-                        [Array]$TimeLineText = "The StartTime changed from [$($PreviousCalLog.MapiStartTime)] to: [$($CalLog.MapiStartTime)]"
+                    if ($CalLog.StartTime.ToString() -ne $PreviousCalLog.StartTime.ToString()) {
+                        [Array]$TimeLineText = "The StartTime changed from [$($PreviousCalLog.StartTime)] to: [$($CalLog.StartTime)]"
                         MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
-                    if ($CalLog.MapiEndTime.ToString() -ne $PreviousCalLog.MapiEndTime.ToString()) {
-                        [Array]$TimeLineText = "The EndTime changed from [$($PreviousCalLog.MapiEndTime)] to: [$($CalLog.MapiEndTime)]"
+                    if ($CalLog.EndTime.ToString() -ne $PreviousCalLog.EndTime.ToString()) {
+                        [Array]$TimeLineText = "The EndTime changed from [$($PreviousCalLog.EndTime)] to: [$($CalLog.EndTime)]"
                         MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
@@ -1086,11 +1084,6 @@ function BuildTimeline {
 
                     if ($CalLog.IsSeriesCancelled -ne $PreviousCalLog.IsSeriesCancelled) {
                         [Array]$TimeLineText = "The Is Series Cancelled changed from [$($PreviousCalLog.IsSeriesCancelled)] to: [$($CalLog.IsSeriesCancelled)]"
-                        MeetingSummary -Time " " -MeetingChanges $TimeLineText
-                    }
-
-                    if ($CalLog.IsOrganizerProperty -ne $PreviousCalLog.IsOrganizerProperty) {
-                        [Array]$TimeLineText = "The Is Organizer changed from [$($PreviousCalLog.IsOrganizerProperty)] to: [$($CalLog.IsOrganizerProperty)]"
                         MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
@@ -1221,7 +1214,7 @@ function BuildTimeline {
                 }
 
                 if ($CalLog.AppointmentCounterProposal -eq "True") {
-                    [array] $Output = "[$($CalLog.SentRepresentingDisplayName)] send a $($MeetingRespType) response message with a New Time Proposal: $($CalLog.MapiStartTime) to $($CalLog.MapiEndTime)"
+                    [array] $Output = "[$($CalLog.SentRepresentingDisplayName)] send a $($MeetingRespType) response message with a New Time Proposal: $($CalLog.StartTime) to $($CalLog.EndTime)"
                 } else {
                     switch -Wildcard ($CalLog.TriggerAction) {
                         "Update" { $Action = "Updated" }
