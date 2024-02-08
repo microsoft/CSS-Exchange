@@ -54,7 +54,6 @@ Parameter | Description |
 ----------|-------------|
 WaitingTimeForAVAnalysisInMinutes | Set the waiting time for AV to analyze the EICAR files. Default is 5 minutes.
 Recurse | Places an EICAR file in all SubFolders as well as the root.
-OpenLog | Opens the script log file.
 SkipVersionCheck | Skip script version verification.
 ScriptUpdateOnly | Just update script version to latest one.
 
@@ -62,7 +61,7 @@ ScriptUpdateOnly | Just update script version to latest one.
 ## Outputs
 
 Log file:
-$PSScriptRoot\ExchAvExclusions.log
+$PSScriptRoot\Test-ExchAvExclusions-#DateTime#.txt
 
 List of Folders, extensions Scanned by AV and List of Non-Default Processes:
-$PSScriptRoot\BadExclusions.txt
+$PSScriptRoot\BadExclusions-#DateTime#.txt
