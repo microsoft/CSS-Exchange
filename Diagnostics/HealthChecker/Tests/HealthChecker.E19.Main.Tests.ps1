@@ -119,8 +119,9 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "EdgeTransport.exe.config Present" "True" -WriteType "Green"
             TestObjectMatch "NodeRunner.exe memory limit" "0 MB" -WriteType "Green"
             TestObjectMatch "Open Relay Wild Card Domain" "Not Set"
+            TestObjectMatch "EXO Connector Present" "True" # Custom EXO Connector with no TlsDomain TlsAuthLevel
 
-            $Script:ActiveGrouping.Count | Should -Be 10
+            $Script:ActiveGrouping.Count | Should -Be 14
         }
 
         It "Display Results - Security Settings" {

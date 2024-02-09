@@ -263,4 +263,73 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
         Details = $exchangeInformation.RegistryValues.DisablePreservation
     }
     Add-AnalyzedResultInformation @params
+
+    # Detect Send Connector sending to EXO
+    $exoConnector = New-Object System.Collections.Generic.List[object]
+    $sendConnectors = $exchangeInformation.ExchangeConnectors | Where-Object { $_.ConnectorType -eq "Send" }
+
+    foreach ($sendConnector in $sendConnectors) {
+        $smartHostMatch = ($sendConnector.SmartHosts -like "*.mail.protection.outlook.com").Count -gt 0
+        $dnsMatch = $sendConnector.SmartHosts -eq 0 -and ($sendConnector.AddressSpaces.Address -like "*.mail.onmicrosoft.com").Count -gt 0
+
+        if ($dnsMatch -or $smartHostMatch) {
+            $exoConnector.Add($sendConnector)
+        }
+    }
+
+    $params = $baseParams + @{
+        Name    = "EXO Connector Present"
+        Details = ($exoConnector.Count -gt 0)
+    }
+    Add-AnalyzedResultInformation @params
+    $showMoreInfo = $false
+
+    foreach ($connector in $exoConnector) {
+        # Misconfigured connector is if TLSCertificateName is not set or CloudServicesMailEnabled not set to true
+        if ($connector.CloudEnabled -eq $false -or
+            $connector.CertificateDetails.TlsCertificateNameStatus -eq "TlsCertificateNameEmpty") {
+            $params = $baseParams + @{
+                Name                   = "Send Connector - $($connector.Identity.ToString())"
+                Details                = "Misconfigured to send authenticated internal mail to M365." +
+                "`r`n`t`t`tCloudServicesMailEnabled: $($connector.CloudEnabled)" +
+                "`r`n`t`t`tTLSCertificateName set: $($connector.CertificateDetails.TlsCertificateNameStatus -ne "TlsCertificateNameEmpty")"
+                DisplayCustomTabNumber = 2
+                DisplayWriteType       = "Red"
+            }
+            Add-AnalyzedResultInformation @params
+            $showMoreInfo = $true
+        }
+
+        if ($connector.TlsAuthLevel -ne "DomainValidation" -and
+            $connector.TlsAuthLevel -ne "CertificateValidation") {
+            $params = $baseParams + @{
+                Name                   = "Send Connector - $($connector.Identity.ToString())"
+                Details                = "TlsAuthLevel not set to CertificateValidation or DomainValidation"
+                DisplayCustomTabNumber = 2
+                DisplayWriteType       = "Yellow"
+            }
+            Add-AnalyzedResultInformation @params
+            $showMoreInfo = $true
+        }
+
+        if ($connector.TlsDomain -ne "mail.protection.outlook.com") {
+            $params = $baseParams + @{
+                Name                   = "Send Connector - $($connector.Identity.ToString())"
+                Details                = "TLSDomain  not set to mail.protection.outlook.com"
+                DisplayCustomTabNumber = 2
+                DisplayWriteType       = "Yellow"
+            }
+            Add-AnalyzedResultInformation @params
+            $showMoreInfo = $true
+        }
+    }
+
+    if ($showMoreInfo) {
+        $params = $baseParams + @{
+            Details                = "More Information: https://aka.ms/HC-ExoConnectorIssue"
+            DisplayWriteType       = "Yellow"
+            DisplayCustomTabNumber = 2
+        }
+        Add-AnalyzedResultInformation @params
+    }
 }
