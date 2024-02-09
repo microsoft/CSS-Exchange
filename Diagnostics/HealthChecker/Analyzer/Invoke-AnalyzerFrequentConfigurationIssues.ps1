@@ -290,7 +290,7 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
             $connector.CertificateDetails.TlsCertificateNameStatus -eq "TlsCertificateNameEmpty") {
             $params = $baseParams + @{
                 Name                   = "Send Connector - $($connector.Identity.ToString())"
-                Details                = "Misconfigured to to send authenticated internal mail to M365." +
+                Details                = "Misconfigured to send authenticated internal mail to M365." +
                 "`r`n`t`t`tCloudServicesMailEnabled: $($connector.CloudEnabled)" +
                 "`r`n`t`t`tTLSCertificateName set: $($connector.CertificateDetails.TlsCertificateNameStatus -ne "TlsCertificateNameEmpty")"
                 DisplayCustomTabNumber = 2
