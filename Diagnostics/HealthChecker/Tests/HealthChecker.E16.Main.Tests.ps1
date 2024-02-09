@@ -117,8 +117,9 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "Credential Guard Enabled" $false
             TestObjectMatch "EdgeTransport.exe.config Present" "True" -WriteType "Green"
             TestObjectMatch "Open Relay Wild Card Domain" "Not Set"
+            TestObjectMatch "EXO Connector Present" "False"
 
-            $Script:ActiveGrouping.Count | Should -Be 10
+            $Script:ActiveGrouping.Count | Should -Be 11
         }
 
         It "Display Results - Security Settings" {
