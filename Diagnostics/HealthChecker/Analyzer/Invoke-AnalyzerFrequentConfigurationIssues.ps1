@@ -300,10 +300,11 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
             $showMoreInfo = $true
         }
 
-        if ($connector.TlsAuthLevel -ne "DomainValidation") {
+        if ($connector.TlsAuthLevel -ne "DomainValidation" -and
+            $connector.TlsAuthLevel -ne "CertificateValidation") {
             $params = $baseParams + @{
                 Name                   = "Send Connector - $($connector.Identity.ToString())"
-                Details                = "TlsAuthLevel not set to DomainValidation"
+                Details                = "TlsAuthLevel not set to CertificateValidation or DomainValidation"
                 DisplayCustomTabNumber = 2
                 DisplayWriteType       = "Yellow"
             }

@@ -16,7 +16,7 @@ These are now being flagged as an issue due to some recent changes within Exchan
 
 Some additional configuration concerns are also warned about if one of the following is true:
 
-- TLSAuthLevel is not set to `DomainValidation`
+- TLSAuthLevel is not set to `CertificateValidation` or `DomainValidation`
 - TLSDomain is not set to `mail.protection.outlook.com`
 
 ## Included in HTML Report?
