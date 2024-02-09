@@ -181,6 +181,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://microsoft.github.io/CSS-Exchange/Diagnostics/HealthChecker/ExoConnectorCheck/</loc>
+         <lastmod>2024-02-09</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://microsoft.github.io/CSS-Exchange/Diagnostics/HealthChecker/FIPFSCheck/</loc>
          <lastmod>2024-02-09</lastmod>
          <changefreq>daily</changefreq>
