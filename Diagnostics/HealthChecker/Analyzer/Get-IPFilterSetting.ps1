@@ -16,7 +16,11 @@ function Get-IPFilterSetting {
     process {
         foreach ($appKey in $locationPaths) {
             Write-Verbose "Working on appKey: $appKey"
-            $ipFilterSettings.Add($appKey, (New-Object System.Collections.Generic.List[object]))
+
+            if (-not ($ipFilterSettings.ContainsKey($appKey))) {
+                $ipFilterSettings.Add($appKey, (New-Object System.Collections.Generic.List[object]))
+            }
+
             $currentKey = $appKey
             $continue = $true
 
