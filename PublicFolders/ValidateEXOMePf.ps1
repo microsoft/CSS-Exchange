@@ -1,14 +1,26 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-$ts = Get-Date -Format yyyyMMdd_HHmmss
 param(
-    [PSDefaultValue(Help='Current directory')]
-    [String]$ExportPath= $PWD.Path,
+    [ValidateScript({
+            if (-Not ($_ | Test-Path)) {
+                throw "The specified folder location $ExportPath is not existing, please re-run the script and ensure to enter a valid path or leave the ExportPath unassigned"
+            }
+            return $true
+        })]
+    [Parameter(Mandatory = $false)]
+    [String]$ExportPath = $PWD.Path,
     [Parameter(Mandatory = $true)]
     [String]$PublicFolder,
     [Parameter(Mandatory = $false)]
     [String]$AffectedUser)
+
 $Script:ReportName = "ValidateMePfREPORT.txt"
+$ts = Get-Date -Format yyyyMMdd_HHmmss
+$Script:Path = $ExportPath +"\ValidateEXOMePf\ValidateEXOMePf_$ts"
+New-Item $Script:Path -Force -ItemType Directory | Out-Null
+New-Item $Script:Path\ValidateMePfREPORT.txt -Force -ItemType File | Out-Null
+New-Item $Script:Path\ValidateMePfREPORTChecksLogging.csv -Force -ItemType File | Out-Null
+
 #Requires -Modules @{ModuleName="ExchangeOnlineManagement"; ModuleVersion="3.0.0" }
 function LogError {
     param(
@@ -26,8 +38,9 @@ function LogError {
         Function    = $Function
         Description = $CurrentDescription
         Status      = $CurrentStatus
-    } | Export-Csv $ExportPath\ValidateMePfREPORTChecksLogging.csv -NoTypeInformation -Append
+    } | Export-Csv $Script:Path\ValidateMePfREPORTChecksLogging.csv -NoTypeInformation -Append
 }
+
 function WriteToScreenAndLog {
     param(
         [Parameter(Mandatory = $true)]
@@ -37,9 +50,9 @@ function WriteToScreenAndLog {
         [String]$Fix
     )
     Write-Host $Issue -ForegroundColor Red
-    $Issue | Out-File $ExportPath\$Script:ReportName -Append
+    $Issue | Out-File $Script:Path\$Script:ReportName -Append
     Write-Host $Fix -ForegroundColor Green
-    $Fix+"`n" | Out-File $ExportPath\$Script:ReportName -Append
+    $Fix+"`n" | Out-File $Script:Path\$Script:ReportName -Append
     Write-Host
 }
 
@@ -59,7 +72,7 @@ function Connect2EXO {
         LogError -CurrentStatus $CurrentStatus -Function "Connecting to EXO" -CurrentDescription $CurrentDescription
         Write-Host "Error encountered during executing the script!"-ForegroundColor Red
         Write-Host $_ -ForegroundColor Red
-        Write-Host "`nOutput was exported in the following location: $ExportPath" -ForegroundColor Yellow
+        Write-Host "`nOutput was exported in the following location: $Script:Path" -ForegroundColor Yellow
         Start-Sleep -Seconds 3
         break
     }
@@ -72,7 +85,7 @@ function QuitEXOSession {
             $CurrentDescription= "Disconnecting from EXO"
             $CurrentStatus = "Success"
             LogError -CurrentStatus $CurrentStatus -Function "Disconnecting from EXO" -CurrentDescription $CurrentDescription
-            Write-Host "`nOutput was exported in the following location: $ExportPath" -ForegroundColor Yellow
+            Write-Host "`nOutput was exported in the following location: $Script:Path" -ForegroundColor Yellow
             Start-Sleep -Seconds 3
             break
         } catch {
@@ -82,7 +95,7 @@ function QuitEXOSession {
             LogError -CurrentStatus $CurrentStatus -Function "Disconnecting from EXO" -CurrentDescription $CurrentDescription
             Write-Host "Error encountered during executing the script!"-ForegroundColor Red
             Write-Host $_ -ForegroundColor Red
-            Write-Host "`nOutput was exported in the following location: $ExportPath" -ForegroundColor Yellow
+            Write-Host "`nOutput was exported in the following location: $Script:Path" -ForegroundColor Yellow
             Start-Sleep -Seconds 3
             break
         }
@@ -90,7 +103,7 @@ function QuitEXOSession {
 }
 function AskForFeedback {
     Write-Host "Please rate the script experience & tell us what you liked or what we can do better over https://aka.ms/MePfHealthFeedback" -ForegroundColor Cyan
-    "Please rate the script experience & tell us what you liked or what we can do better over https://aka.ms/MePfHealthFeedback" | Out-File $ExportPath\$Script:ReportName -Append
+    "Please rate the script experience & tell us what you liked or what we can do better over https://aka.ms/MePfHealthFeedback" | Out-File $Script:Path\$Script:ReportName -Append
 }
 function ValidateMePfMbx {
     param([String]$PublicFolderMbxGuid)
@@ -117,6 +130,7 @@ function ValidateMePfMbx {
             WriteToScreenAndLog -Issue $Issue -Fix $Fix
             AskForFeedback
             QuitEXOSession
+            Exit
         }
     }
 }
@@ -135,6 +149,7 @@ function CheckMePfHealth {
                 WriteToScreenAndLog -Issue $Issue -Fix $Fix
                 AskForFeedback
                 QuitEXOSession
+                Exit
             }
             if ($HasValue -notlike $MailPublicFolder.guid.guid) {
                 #Check if "MailRecipientGuid vs Guid" are not equal
@@ -143,6 +158,7 @@ function CheckMePfHealth {
                 WriteToScreenAndLog -Issue $Issue -Fix $Fix
                 AskForFeedback
                 QuitEXOSession
+                Exit
             }
             return $PublicFolder
         } else {
@@ -155,6 +171,7 @@ function CheckMePfHealth {
                 WriteToScreenAndLog -Issue $Issue -Fix $Fix
                 AskForFeedback
                 QuitEXOSession
+                Exit
             }
         }
     } catch {
@@ -167,6 +184,7 @@ function CheckMePfHealth {
             $Issue="Unfortunately public folder $($MailPublicFolder.Identity) is hosted on-premises which the script doesn't support diagnosing for the time being."
             WriteToScreenAndLog -Issue $Issue -Fix $Fix
             QuitEXOSession
+            Exit
         } else {
             #Orphaned MePf
             $Fix= "FIX -->Please follow the following article https://aka.ms/RestorePfeither to validate if the public folder was soft-deleted then restore it back else create a new public folder using below steps:
@@ -177,6 +195,7 @@ function CheckMePfHealth {
             WriteToScreenAndLog -Issue $Issue -Fix $Fix
             AskForFeedback
             QuitEXOSession
+            Exit
         }
     }
 }
@@ -218,6 +237,7 @@ function GetPublicFolderInfo {
         Write-Host "Error encountered during executing the script!"-ForegroundColor Red
         Write-Host $_ -ForegroundColor Red
         QuitEXOSession
+        Exit
     }
 }
 function ValidateMePfMapping {
@@ -445,22 +465,14 @@ function ValidateMePfPermSync {
         Write-Host $_ -ForegroundColor Red
         AskForFeedback
         QuitEXOSession
+        Exit
     }
 }
 
 #Intro
-$ts = Get-Date -Format yyyyMMdd_HHmmss
-if (!(Test-Path -Path $ExportPath)) {
-    Write-Host "The specified folder location $ExportPath is not existing, please re-run the script and ensure to enter a valid path or leave the ExportPath unassigned" -ForegroundColor Red
-    exit
-} else {
-    $ExportPath = "$ExportPath\ValidateEXOMePf\ValidateEXOMePf_$ts"
-    New-Item $ExportPath -Force -ItemType Directory | Out-Null
-}
-
 [string]$Description = "This script illustrates issues related to creating public folder items on PublicFolder $PublicFolder, BLOCKERS will be reported down, please ensure to mitigate them!`n"
 Write-Host $Description -ForegroundColor Cyan
-$Description | Out-File $ExportPath\$Script:ReportName -Append
+$Description | Out-File $Script:Path\$Script:ReportName -Append
 #Connect to EXO PS
 $SessionCheck = Get-PSSession | Where-Object { $_.Name -like "*ExchangeOnline*" -and $_.State -match "opened" }
 if ($null -eq $SessionCheck) {
