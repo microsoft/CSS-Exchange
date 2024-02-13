@@ -3333,7 +3333,17 @@ servers being enabled.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">ExchangeExtendedProtectionManagement</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ValidateType</span> <span class="s2">&quot;RestrictTypeEWSBackend&quot;</span> <span class="n">-IPRangeFilePath</span> <span class="s2">&quot;C:\temp\ExchangeIPs.txt&quot;</span>
 </code></pre></div>
 <p>This syntax rolls back the Extended Protection configuration for all the Exchange Servers that are online where Extended Protection was previously configured.</p>
-<p><strong>NOTE:</strong> This is done by restoring the applicationHost.config file back to the previous state before Extended Protection was configured. If other changes occurred after this configuration, those changes will be lost.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">ExchangeExtendedProtectionManagement</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-RollbackType</span> <span class="s2">&quot;RestoreConfiguration&quot;</span>
+</code></pre></div>
+<p>This syntax rolls back the Extended Protection configuration for all the Exchange Servers that are online where Extended Protection was previously configured.</p>
+<div class="admonition warning">
+<p class="admonition-title">NOTE</p>
+<p>This is done by restoring the applicationHost.config file back to the previous state before Extended Protection was configured. If other changes occurred after this configuration, those changes will be lost.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">NOTE</p>
+<p>This is a legacy version of the restore process and is no longer supported. You can still attempt to restore, if the configuration file is detected and is less than 30 days old if a configuration was done with a pervious version of the script. Moving forward, the applicationHost.config file is no longer being used as a backup to restore from. The <code>RestoreConfiguration</code> is the supported replacement.</p>
+</div>
 <div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">ExchangeExtendedProtectionManagement</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-RollbackType</span> <span class="s2">&quot;RestoreIISAppConfig&quot;</span>
 </code></pre></div>
 <p>This syntax rolls back the Extended Protection mitigation of IP restriction for the EWS Backend virtual directory of all the Exchange Server that are online where Extended Protection was previously configured.</p>
@@ -3341,6 +3351,9 @@ servers being enabled.</p>
 </code></pre></div>
 <p>This syntax displays the current Extended Protection configuration for all the Exchange Servers that are online.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">ExchangeExtendedProtectionManagement</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ShowExtendedProtection</span>
+</code></pre></div>
+<p>This syntax will disable Extended Protection configuration for all the Exchange Servers that are online by setting the value at all current configuring locations to <code>None</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">ExchangeExtendedProtectionManagement</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-DisableExtendedProtection</span>
 </code></pre></div>
 <h2 id="parameters">Parameters</h2>
 <table>
@@ -3362,6 +3375,10 @@ servers being enabled.</p>
 <tr>
 <td>ShowExtendedProtection</td>
 <td>Show the current configuration of Extended Protection for the passed server list.</td>
+</tr>
+<tr>
+<td>ExcludeVirtualDirectories</td>
+<td>Used to not enable Extended Protection on particular virtual directories. The following values are allowed: <code>EWSFrontEnd</code>.</td>
 </tr>
 <tr>
 <td>FindExchangeServerIPAddresses</td>
@@ -3386,6 +3403,10 @@ servers being enabled.</p>
 <tr>
 <td>RollbackType</td>
 <td>Using this parameter will allow you to rollback using the type you specified. The following values are allowed: <code>RestoreIISAppConfig</code>, <code>RestrictTypeEWSBackend</code></td>
+</tr>
+<tr>
+<td>DisableExtendedProtection</td>
+<td>Using this parameter will disable extended protection for the servers you specify. This is done by setting all the configured locations back to <code>None</code> regardless of what the original value was set to prior to configuration or if it was enabled by default.</td>
 </tr>
 <tr>
 <td>SkipAutoUpdate</td>
@@ -3413,7 +3434,7 @@ servers being enabled.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1-2.1-2M12.5 7v5.2l4 2.4-1 1L11 13V7h1.5M11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2v1.8Z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">January 18, 2024</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">January 25, 2024</span>
   </span>
 
     
