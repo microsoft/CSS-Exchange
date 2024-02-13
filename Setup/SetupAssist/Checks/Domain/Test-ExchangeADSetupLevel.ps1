@@ -98,6 +98,23 @@ function Test-ExchangeADSetupLevel {
             }
         }
 
+        # Test out to make sure you are running the correct version of the script that knows about this version of AD.
+        # This must be against 2019 as that would be the latest version that you can have.
+        $latestExchangeVersionBuild = Get-ExchangeBuildVersionInformation -FileVersion "15.2.9999.9"
+
+        if ($CurrentADLevel.Schema.Value -gt $latestExchangeVersionBuild.ADLevel.SchemaValue -or
+            $CurrentADLevel.MESO.Value -gt $latestExchangeVersionBuild.ADLevel.MESOValue -or
+            $CurrentADLevel.Org.Value -gt $latestExchangeVersionBuild.ADLevel.OrgValue) {
+            $referenceInfo = $params.ReferenceInfo
+            $params.ReferenceInfo = @(
+                "Unknown AD Version. Script is out of date. Please update prior to determining next steps.",
+                ""
+            )
+            $params.ReferenceInfo += $referenceInfo
+            New-TestResult @params -Result "Warning"
+            return
+        }
+
         if ($BuildLevelInformation.ADLevel.SchemaValue -gt $CurrentADLevel.Schema.Value) {
             # Trying to install a newer version of Exchange thus requires /PrepareAD with Schema Admin rights.
             Test-UserGroupMemberOf -PrepareAdRequired $true -PrepareSchemaRequired $true

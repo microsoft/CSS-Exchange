@@ -67,7 +67,7 @@ Describe "Testing Get-ExchangeBuildVersionInformation.ps1" {
             $results.CU | Should -Be "CU12"
             $results.ReleaseDate | Should -Be ([System.Convert]::ToDateTime([DateTime]"04/20/2022", [System.Globalization.DateTimeFormatInfo]::InvariantInfo))
             $results.ExtendedSupportDate | Should -Be ([System.Convert]::ToDateTime([DateTime]"10/14/2025", [System.Globalization.DateTimeFormatInfo]::InvariantInfo))
-            $results.Supported | Should -Be $true
+            $results.Supported | Should -Be $false
             $results.LatestSU | Should -Be $false
             $results.ADLevel.SchemaValue | Should -Be 17003
             $results.ADLevel.MESOValue | Should -Be 13243

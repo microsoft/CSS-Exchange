@@ -27,7 +27,13 @@ function Invoke-RollbackExtendedProtection {
                     $successBackupCurrent = $false
 
                     if ($null -eq $restoreFile) {
-                        throw "Failed to find applicationHost.cep.*.bak file."
+                        throw "Failed to find applicationHost.cep.*.bak file. Either file was moved or script was never run. Please use -DisableExtendedProtection to Disable Extended Protection."
+                    }
+
+                    $tooOld = (Get-ChildItem $restoreFile).CreationTime -lt [DateTime]::Now.AddDays(-30)
+
+                    if ($tooOld) {
+                        throw "Configuration file is too old to restore from. Please use -DisableExtendedProtection to Disable Extended Protection."
                     }
 
                     Copy-Item -Path $saveToPath -Destination $backupLocation -ErrorAction Stop -WhatIf:$PassedWhatIf

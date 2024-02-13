@@ -65,7 +65,21 @@ PS C:\> .\ExchangeExtendedProtectionManagement.ps1 -ValidateType "RestrictTypeEW
 
 This syntax rolls back the Extended Protection configuration for all the Exchange Servers that are online where Extended Protection was previously configured.
 
-**NOTE:** This is done by restoring the applicationHost.config file back to the previous state before Extended Protection was configured. If other changes occurred after this configuration, those changes will be lost.
+```powershell
+PS C:\> .\ExchangeExtendedProtectionManagement.ps1 -RollbackType "RestoreConfiguration"
+```
+
+This syntax rolls back the Extended Protection configuration for all the Exchange Servers that are online where Extended Protection was previously configured.
+
+!!! warning "NOTE"
+
+      This is done by restoring the applicationHost.config file back to the previous state before Extended Protection was configured. If other changes occurred after this configuration, those changes will be lost.
+
+
+!!! warning "NOTE"
+
+      This is a legacy version of the restore process and is no longer supported. You can still attempt to restore, if the configuration file is detected and is less than 30 days old if a configuration was done with a pervious version of the script. Moving forward, the applicationHost.config file is no longer being used as a backup to restore from. The `RestoreConfiguration` is the supported replacement.
+
 
 ```powershell
 PS C:\> .\ExchangeExtendedProtectionManagement.ps1 -RollbackType "RestoreIISAppConfig"
@@ -83,6 +97,12 @@ This syntax displays the current Extended Protection configuration for all the E
 PS C:\> .\ExchangeExtendedProtectionManagement.ps1 -ShowExtendedProtection
 ```
 
+This syntax will disable Extended Protection configuration for all the Exchange Servers that are online by setting the value at all current configuring locations to `None`.
+
+```powershell
+PS C:\> .\ExchangeExtendedProtectionManagement.ps1 -DisableExtendedProtection
+```
+
 ## Parameters
 
 Parameter | Description
@@ -90,10 +110,12 @@ Parameter | Description
 ExchangeServerNames | A list of servers to pass that you want to run the script against. This can be used for configuration or rollback.
 SkipExchangeServerNames | A list of server to pass that you don't want to execute the script for configuration or rollback.
 ShowExtendedProtection | Show the current configuration of Extended Protection for the passed server list.
+ExcludeVirtualDirectories | Used to not enable Extended Protection on particular virtual directories. The following values are allowed: `EWSFrontEnd`.
 FindExchangeServerIPAddresses | Use this to collect a list of the Exchange Server IPs that should be used for IP Restriction.
 OutputFilePath | Is a custom file path to be used to export the list of Exchange Server IPs collected from `FindExchangeServerIPAddresses`. Default value is the local location `IPList.txt`.
 IPRangeFilePath | Is the path to the file that contains all the IP Addresses or subnets that are needed to be in the IP Allow list for Mitigation.
 RestrictType | To enable a IP Restriction on a virtual directory. Must be used with `IPRangeFilePath`. The following values are allowed: `EWSBackend`
 ValidateType | To verify if the IP Restrictions have been applied correctly. Must be used with `IPRangeFilePath`. The following values are allowed: `RestrictTypeEWSBackend`
 RollbackType | Using this parameter will allow you to rollback using the type you specified. The following values are allowed: `RestoreIISAppConfig`, `RestrictTypeEWSBackend`
+DisableExtendedProtection | Using this parameter will disable extended protection for the servers you specify. This is done by setting all the configured locations back to `None` regardless of what the original value was set to prior to configuration or if it was enabled by default.
 SkipAutoUpdate | Skips over the Auto Update feature to download the latest version of the script.

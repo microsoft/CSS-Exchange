@@ -53,8 +53,8 @@ BeforeAll {
     function TestSupportedConfiguredExtendedProtection {
         param(
             [object]$TestingExtendedProtectionResults,
-            [int]$ExtendedProtectionNoneCount = 21,
-            [int]$ExpectedExtendedProtectionNoneCount = 21,
+            [int]$ExtendedProtectionNoneCount = 22,
+            [int]$ExpectedExtendedProtectionNoneCount = 22,
             [int]$NotSupportedExtendedProtectionCount = 0,
             [int]$NotProperlySecureConfigurationCount = 0,
             [bool]$SkipAllow = $false,
@@ -82,9 +82,10 @@ BeforeAll {
             $allow = $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
                 Where-Object { $_.ExtendedProtection -eq "Allow" }
             $null -ne $allow | Should -Be $true
-            $allow.Count | Should -Be 3 # Should be the below settings
+            $allow.Count | Should -Be 4 # Should be the below settings
             $allow.configuration.NodePath.Contains("Default Web Site/EWS") | Should -Be $true
             $allow.configuration.NodePath.Contains("Default Web Site/Microsoft-Server-ActiveSync") | Should -Be $true
+            $allow.configuration.NodePath.Contains("Default Web Site/Microsoft-Server-ActiveSync/Proxy") | Should -Be $true
             $allow.configuration.NodePath.Contains("Default Web Site/OAB") | Should -Be $true
         }
 
@@ -92,8 +93,9 @@ BeforeAll {
             $none = $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
                 Where-Object { $_.ExtendedProtection -eq "None" }
             $null -ne $none | Should -Be $true
-            $none.Count | Should -Be 2
+            $none.Count | Should -Be 3
             $none.Configuration.NodePath.Contains("Default Web Site/Autodiscover") | Should -Be $true
+            $none.Configuration.NodePath.Contains("Default Web Site/PowerShell") | Should -Be $true
             $none.Configuration.NodePath.Contains("Exchange Back End/Autodiscover") | Should -Be $true
         }
 
@@ -146,7 +148,7 @@ Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
 
         It "Should Return The Extended Protection Custom Object" {
             $extendedProtectionResults.Count | Should -Be 1
-            $extendedProtectionResults.ExtendedProtectionConfiguration.Count | Should -Be 23
+            $extendedProtectionResults.ExtendedProtectionConfiguration.Count | Should -Be 25
         }
 
         It "TestUnsupportedNotConfiguredExtendedProtection" {
@@ -211,7 +213,7 @@ Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
                 ExSetupVersion        = "15.00.1497.038"
                 ApplicationHostConfig = $E15_Configured_Both_ApplicationHost
             }
-            TestSupportedConfiguredExtendedProtection -TestingExtendedProtectionResults (Get-ExtendedProtectionConfiguration @mockParams) -ExtendedProtectionNoneCount 19 -ExpectedExtendedProtectionNoneCount 19
+            TestSupportedConfiguredExtendedProtection -TestingExtendedProtectionResults (Get-ExtendedProtectionConfiguration @mockParams) -ExtendedProtectionNoneCount 20 -ExpectedExtendedProtectionNoneCount 20
         }
 
         It "Exchange 2013 Cas" {
@@ -264,7 +266,7 @@ Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
 
             $mockParams = @{
                 TestingExtendedProtectionResults = $e16ExtendedProtectionResults
-                ExtendedProtectionNoneCount      = 20
+                ExtendedProtectionNoneCount      = 21
                 SkipAutoDiscover                 = $true
                 IPFilterEnabled                  = $true
                 IPFilteredVDir                   = "Exchange Back End/EWS"
@@ -283,7 +285,7 @@ Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
 
             $mockParams = @{
                 TestingExtendedProtectionResults = $e19ExtendedProtectionResults
-                ExtendedProtectionNoneCount      = 20
+                ExtendedProtectionNoneCount      = 21
                 SkipAutoDiscover                 = $true
                 IPFilterEnabled                  = $true
                 IPFilteredVDir                   = "Exchange Back End/EWS"
@@ -310,7 +312,7 @@ Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
             $params = @{
                 TestingExtendedProtectionResults    = $results
                 # Due to the lower settings on the insecure None Virtual Directories
-                ExtendedProtectionNoneCount         = (21 - $insecureNoneVirtualDirectories.Count)
+                ExtendedProtectionNoneCount         = (22 - $insecureNoneVirtualDirectories.Count)
                 # FE EAS set to Require and the old setting of FE OAB being set to Require
                 NotSupportedExtendedProtectionCount = $notSupportedVirtualDirectories.Count
                 # Lower settings of FE/BE ECP vDir and Exchange Back End/PowerShell
@@ -325,15 +327,16 @@ Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
             # manually review the differences
             $extendedProtectionNoneResults = $results.ExtendedProtectionConfiguration |
                 Where-Object { $_.ExtendedProtection -eq "None" }
-            $extendedProtectionNoneResults.Count | Should -Be ($insecureNoneVirtualDirectories.Count + 2)
+            $extendedProtectionNoneResults.Count | Should -Be ($insecureNoneVirtualDirectories.Count + 3)
             # All None EP values should be supported even though not secure for some
             $extendedProtectionNoneResults |
                 Where-Object { $_.SupportedExtendedProtection -eq $false } |
                 Should -Be $null
             ($extendedProtectionNoneResults |
                 Where-Object { $_.RecommendedExtendedProtection -eq $true }).Count |
-                    Should -Be 2 # two values for Autodiscover
+                    Should -Be 3 # two values for Autodiscover and one for PowerShell
             $extendedProtectionNoneResults.VirtualDirectoryName.Contains("Default Web Site/Autodiscover") | Should -Be $true
+            $extendedProtectionNoneResults.VirtualDirectoryName.Contains("Default Web Site/Powershell") | Should -Be $true
             $extendedProtectionNoneResults.VirtualDirectoryName.Contains("Exchange Back End/Autodiscover") | Should -Be $true
             $insecureNoneVirtualDirectories |
                 ForEach-Object { $extendedProtectionNoneResults.VirtualDirectoryName.Contains($_) | Should -Be $true }

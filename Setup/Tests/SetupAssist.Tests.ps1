@@ -66,7 +66,7 @@ Describe "Testing SetupAssist" {
         }
 
         It "Unknown Exchange 2013 Schema Value" {
-            SetGetExchangeADSetupLevel -OrgValue 15130 -SchemaValue 15130 -MESOValue 15130
+            SetGetExchangeADSetupLevel -OrgValue 15130 -SchemaValue 15130 -MESOValue 13243
             SetGetSetupLogReviewer "15.00.1473.003" "contoso\user"
             $results = Test-ExchangeADSetupLevel
             Assert-MockCalled -CommandName Test-UserGroupMemberOf -ParameterFilter { $PrepareAdRequired -eq $true -and $PrepareSchemaRequired -eq $true } -Exactly 1
