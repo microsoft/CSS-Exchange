@@ -411,8 +411,14 @@ function Invoke-AnalyzerExchangeInformation {
 
         # If any directory has a higher than expected configuration, we need to throw a warning
         # This will be detected by SupportedExtendedProtection being set to false, as we are set higher than expected/recommended value you will likely run into issues of some kind
+        # Skip over Default Web Site/Powershell if RequireSsl is not set.
         $notSupportedExtendedProtectionDirectories = $exchangeInformation.ExtendedProtectionConfig.ExtendedProtectionConfiguration |
-            Where-Object { $_.SupportedExtendedProtection -eq $false }
+            Where-Object { ($_.SupportedExtendedProtection -eq $false -and
+                    $_.VirtualDirectoryName -ne "Default Web Site/Powershell") -or
+                ($_.SupportedExtendedProtection -eq $false -and
+                $_.VirtualDirectoryName -eq "Default Web Site/Powershell" -and
+                $_.Configuration.SslSettings.RequireSsl -eq $true)
+            }
 
         if ($null -ne $notSupportedExtendedProtectionDirectories) {
             foreach ($entry in $notSupportedExtendedProtectionDirectories) {
