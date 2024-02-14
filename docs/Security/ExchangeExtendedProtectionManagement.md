@@ -103,12 +103,19 @@ This syntax will disable Extended Protection configuration for all the Exchange 
 PS C:\> .\ExchangeExtendedProtectionManagement.ps1 -DisableExtendedProtection
 ```
 
+This syntax will process the prerequisites check only against the servers that you provided. This will execute the same checks as if you were attempting to configure Extended Protection.
+
+```powershell
+PS C:\> .\ExchangeExtendedProtectionManagement.ps1 -PrerequisitesCheckOnly
+```
+
 ## Parameters
 
 Parameter | Description
 ----------|------------
 ExchangeServerNames | A list of servers to pass that you want to run the script against. This can be used for configuration or rollback.
 SkipExchangeServerNames | A list of server to pass that you don't want to execute the script for configuration or rollback.
+PrerequisitesCheckOnly | Run the required prerequisites check for the passed server list to know if configuration can be attempted.
 ShowExtendedProtection | Show the current configuration of Extended Protection for the passed server list.
 ExcludeVirtualDirectories | Used to not enable Extended Protection on particular virtual directories. The following values are allowed: `EWSFrontEnd`.
 FindExchangeServerIPAddresses | Use this to collect a list of the Exchange Server IPs that should be used for IP Restriction.
