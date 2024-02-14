@@ -29,11 +29,19 @@ function Get-FileContentInformation {
                 param($FileLocations)
                 $results = @{}
                 foreach ($fileLocation in $FileLocations) {
+                    $present = (Test-Path $fileLocation)
+
+                    if ($present) {
+                        $content = Get-Content $fileLocation -Raw
+                    } else {
+                        $content = $null
+                    }
+
                     $obj = [PSCustomObject]@{
-                        Present  = ((Test-Path $fileLocation))
+                        Present  = $present
                         FileName = ([IO.Path]::GetFileName($fileLocation))
                         FilePath = $fileLocation
-                        Content  = (Get-Content $fileLocation -Raw)
+                        Content  = $content
                     }
 
                     $results.Add($fileLocation, $obj)
