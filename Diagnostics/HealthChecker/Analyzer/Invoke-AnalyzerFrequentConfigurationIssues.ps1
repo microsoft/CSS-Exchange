@@ -141,6 +141,7 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
 
         # Only need to display a particular list all the time. Don't need every config that we want to possibly look at for issues.
         $alwaysDisplayConfigs = @("EdgeTransport.exe.config")
+        $skipEdgeOnlyConfigs = @("noderunner.exe.config")
         $keyList = $exchangeInformation.ApplicationConfigFileStatus.Keys | Sort-Object
 
         foreach ($configKey in $keyList) {
@@ -149,6 +150,11 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
             $fileName = $configStatus.FileName
             $writeType = "Green"
             [string]$writeValue = $configStatus.Present
+
+            if ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $true -and
+                $skipEdgeOnlyConfigs -contains $fileName) {
+                continue
+            }
 
             if (-not $configStatus.Present) {
                 $writeType = "Red"
