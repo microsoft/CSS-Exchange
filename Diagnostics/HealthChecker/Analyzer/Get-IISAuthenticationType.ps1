@@ -106,7 +106,11 @@ function Get-IISAuthenticationType {
         # for this configuration type, clear flag doesn't appear to be used at all.
         foreach ($appKey in $appHostConfigLocations) {
             Write-Verbose "Working on appKey: $appKey"
-            $getIisAuthenticationType.Add($appKey, [string]::Empty)
+
+            if (-not ($getIisAuthenticationType.ContainsKey($appKey))) {
+                $getIisAuthenticationType.Add($appKey, [string]::Empty)
+            }
+
             $currentKey = $appKey
             $authentication = @()
             $continue = $true

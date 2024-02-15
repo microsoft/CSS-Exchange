@@ -113,9 +113,9 @@ begin {
     }
 
     $serverNames = New-Object System.Collections.ArrayList
-    $SamAccountName = $SamAccountName | ForEach-Object { [Regex]::Escape($_) }
-    $samAccountRegexForFileMatch = [string]::Join('|', ($SamAccountName | ForEach-Object { "\\$_," }))
-    $samAccountRegexForFieldMatch = [string]::Join('|', ($SamAccountName | ForEach-Object { "\\$_$" }))
+    $escapedSamAccountNames = $SamAccountName | ForEach-Object { [Regex]::Escape($_) }
+    $samAccountRegexForFileMatch = [string]::Join('|', ($escapedSamAccountNames | ForEach-Object { "\\$_," }))
+    $samAccountRegexForFieldMatch = [string]::Join('|', ($escapedSamAccountNames | ForEach-Object { "\\$_$" }))
 }
 
 process {

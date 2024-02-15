@@ -36,7 +36,21 @@ function Get-ExchangeInformation {
         $getExchangeServer = (Get-ExchangeServer -Identity $Server -Status)
         $exchangeCertificates = Get-ExchangeServerCertificates -Server $Server
         $exSetupDetails = Get-ExSetupDetails -Server $Server
-        $versionInformation = (Get-ExchangeBuildVersionInformation -FileVersion ($exSetupDetails.FileVersion))
+
+        if ($null -eq $exSetupDetails) {
+            # couldn't find ExSetup.exe this should be rare so we are just going to handle this by displaying the AdminDisplayVersion from Get-ExchangeServer
+            $versionInformation = (Get-ExchangeBuildVersionInformation -AdminDisplayVersion $getExchangeServer.AdminDisplayVersion)
+            $exSetupDetails = [PSCustomObject]@{
+                FileVersion      = $versionInformation.BuildVersion.ToString()
+                FileBuildPart    = $versionInformation.BuildVersion.Build
+                FilePrivatePart  = $versionInformation.BuildVersion.Revision
+                FileMajorPart    = $versionInformation.BuildVersion.Major
+                FileMinorPart    = $versionInformation.BuildVersion.Minor
+                FailedGetExSetup = $true
+            }
+        } else {
+            $versionInformation = (Get-ExchangeBuildVersionInformation -FileVersion ($exSetupDetails.FileVersion))
+        }
 
         $buildInformation = [PSCustomObject]@{
             ServerRole         = (Get-ServerRole -ExchangeServerObj $getExchangeServer)
