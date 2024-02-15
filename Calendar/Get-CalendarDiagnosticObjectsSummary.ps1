@@ -80,6 +80,7 @@ $script:CustomPropertyNameList =
 "IsCancelled",
 "IsMeeting",
 "NormalizedSubject",
+"SendMeetingMessagesDiagnostics",
 "SentRepresentingDisplayName",
 "SentRepresentingEmailAddress"
 
@@ -295,6 +296,28 @@ function SetIsRoom {
     }
     return $IsRoom
 }
+
+function SetIsRecurring {
+    param(
+        $CalLogs
+    )
+    Write-Host -foregroundcolor Yellow "Looking for signs of a recurring meeting."
+    $IsRecurring = $false
+    # See if this is a recurring meeting
+    foreach ($CalLog in $CalLogs) {
+   
+        if ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -and
+            $CalLog.ExternalSharingMasterId -eq "NotFound" -and
+            $CalLog.CalendarItemType.ToString() -eq "RecurringMaster" ) {
+            $IsRecurring = "True"
+            Write-Verbose "Found recurring meeting."
+            return $IsRecurring
+        }
+    }
+    Write-Verbose "Did not find signs of recurring meeting."
+    return $IsRecurring
+}
+
 
 function Convert-Data {
     param(
@@ -682,11 +705,13 @@ function SetIsIgnorable {
         $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingCFM" -or
         $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingDelete") {
         return "Sharing"
-    } elseif (($CalendarItemTypes.($CalLog.ItemClass) -like "*Resp*" -and
-            $CalLog.CalendarLogTriggerAction -ne "Create" ) -or
-        $CalendarItemTypes.($CalLog.ItemClass) -eq "AttendeeList") {
-        return "Resp"
-    } elseif ($CalLog.ItemClass -eq "IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}") {
+    } elseif (($CalendarItemTypes.($CalLog.ItemClass) -like "*Resp*" -and $CalLog.CalendarLogTriggerAction -ne "Create" ) -or
+        $CalendarItemTypes.($CalLog.ItemClass) -eq "AttendeeList" -or
+        $CalLog.CalendarLogTriggerAction -eq "MoveToDeletedItems" -or
+        $CalLog.CalendarLogTriggerAction -eq "SoftDelete" ) {
+        return "Cleanup"
+    } elseif ($CalLog.ItemClass -eq "IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}" -or
+        $CalLog.ItemClass -eq "(Occurrence Deleted)") {
         return "Exception"
     } elseif ($ShortClientName -like "EBA*" -or
         $ShortClientName -like "TBA*" -or
@@ -840,6 +865,7 @@ function BuildCSV {
             'RecurrencePattern'             = $CalLog.RecurrencePattern
             'AppointmentAuxiliaryFlags'     = $CalLog.AppointmentAuxiliaryFlags.ToString()
             'DisplayAttendeesAll'           = $CalLog.DisplayAttendeesAll
+            'AttendeeCount'                 = ($CalLog.DisplayAttendeesAll -split ';').Count
             'AppointmentState'              = $CalLog.AppointmentState.ToString()
             'ResponseType'                  = $ResponseType
             'AppointmentCounterProposal'    = $CalLogACP
@@ -850,7 +876,6 @@ function BuildCSV {
             'ResponsibleUserName'           = GetDisplayName($CalLog.ResponsibleUserName)
             'SenderEmailAddress'            = $CalLog.SenderEmailAddress
             'SenderSMTPAddress'             = GetSMTPAddress($CalLog.SenderEmailAddress)
-            'CalendarLogRequestId'          = $CalLog.CalendarLogRequestId.ToString()
             'ClientIntent'                  = $CalLog.ClientIntent.ToString()
             'NormalizedSubject'             = $CalLog.NormalizedSubject
             'AppointmentRecurring'          = $CalLog.AppointmentRecurring
@@ -858,9 +883,12 @@ function BuildCSV {
             'IsCancelled'                   = $CalLog.IsCancelled
             'IsAllDayEvent'                 = $CalLog.IsAllDayEvent
             'IsSeriesCancelled'             = $CalLog.IsSeriesCancelled
+            'CreationTime'                  = $CalLog.CreationTime
+            'SendMeetingMessagesDiagnostics'= $CalLog.SendMeetingMessagesDiagnostics
             'EventEmailReminderTimer'       = $CalLog.EventEmailReminderTimer
             'AttendeeListDetails'           = MultiLineFormat($CalLog.AttendeeListDetails)
             'AttendeeCollection'            = MultiLineFormat($CalLog.AttendeeCollection)
+            'CalendarLogRequestId'          = $CalLog.CalendarLogRequestId.ToString()
             'CleanGlobalObjectId'           = $CalLog.CleanGlobalObjectId
         }
     }
@@ -1491,6 +1519,10 @@ function CheckIdentities {
                 $script:MB = $Account
             }
         }
+        if($Account.CalendarVersionStoreDisabled -eq $true) {
+            Write-Host -ForegroundColor DarkRed "Mailbox [$Id] has CalendarVersionStoreDisabled set to True.  This mailbox will not have Calendar Logs."
+            Write-Host -ForegroundColor DarkRed "Some logs will be available for Mailbox [$Id] but they will not be complete."
+        }
     }
 
     Write-Verbose "IdentityList: $IdentityList"
@@ -1569,35 +1601,49 @@ if (-not ([string]::IsNullOrEmpty($Subject)) ) {
     }
     GetCalLogsWithSubject -Identity $ValidatedIdentities -Subject $Subject
 } elseif (-not ([string]::IsNullOrEmpty($MeetingID))) {
-
+    # Process Logs based off Passed in MeetingID
     foreach ($ID in $ValidatedIdentities) {
         Write-DashLineBoxColor "Looking for CalLogs from [$ID] with passed in MeetingID."
         Write-Verbose "Running: Get-CalendarDiagnosticObjects -Identity [$ID] -MeetingID [$MeetingID] -CustomPropertyNames $CustomPropertyNameList -WarningAction Ignore -MaxResults $LogLimit -ResultSize $LogLimit -ShouldBindToItem $true;"
         $script:GCDO = GetCalendarDiagnosticObjects -Identity $ID -MeetingID $MeetingID
 
         if ($script:GCDO.count -gt 0) {
-            Write-Host "Found $($script:GCDO.count) CalLogs with MeetingID [$MeetingID]."
+            Write-Host -ForegroundColor Cyan "Found $($script:GCDO.count) CalLogs with MeetingID [$MeetingID]."
+            $isOrganizer = (SetIsOrganizer -CalLogs $script:GCDO)
+            Write-Host -ForegroundColor Cyan "The user [$ID] $(if ($isOrganizer) {"IS"} else {"is NOT"}) the Organizer of the meeting."
+            $isRoomMB = (SetIsRoom -CalLogs $script:GCDO)
+            if ($isRoomMB) {
+                Write-Host -ForegroundColor Cyan "The user [$ID] is a Room Mailbox."
+            }
+
             if ($Exceptions.IsPresent) {
-                Write-Host -ForegroundColor Cyan "Looking for Exception Logs..."
-                #collect Exception Logs
-                $ExceptionLogs = @()
-                $LogToExamine = @()
-                $LogToExamine = $script:GCDO | Where-Object { $_.ItemClass -like 'IPM.Appointment*' } | Sort-Object ItemVersion
+                Write-Verbose "Looking for Exception Logs..."
+                $IsRecurring = SetIsRecurring -CalLogs $script:GCDO
+                Write-Verbose "Meeting IsRecurring: $IsRecurring"
 
-                Write-Host -ForegroundColor Cyan "Found $($LogToExamine.count) CalLogs to examine for Exception Logs."
-                Write-Host -ForegroundColor Cyan "`t Ignore the next [$($LogToExamine.count)] warnings..."
+                if ($IsRecurring) {
+                    #collect Exception Logs
+                    $ExceptionLogs = @()
+                    $LogToExamine = @()
+                    $LogToExamine = $script:GCDO | Where-Object { $_.ItemClass -like 'IPM.Appointment*' } | Sort-Object ItemVersion
 
-                $ExceptionLogs = $LogToExamine | ForEach-Object {
-                    Write-Verbose "Getting Exception Logs for [$($_.ItemId.ObjectId)]"
-                    Get-CalendarDiagnosticObjects -Identity $ID -ItemIds $_.ItemId.ObjectId -ShouldFetchRecurrenceExceptions $true -CustomPropertyNames $CustomPropertyNameList
+                    Write-Host -ForegroundColor Cyan "Found $($LogToExamine.count) CalLogs to examine for Exception Logs."
+                    Write-Host -ForegroundColor Cyan "`t Ignore the next [$($LogToExamine.count)] warnings..."
+
+                    $ExceptionLogs = $LogToExamine | ForEach-Object {
+                        Write-Verbose "Getting Exception Logs for [$($_.ItemId.ObjectId)]"
+                        Get-CalendarDiagnosticObjects -Identity $ID -ItemIds $_.ItemId.ObjectId -ShouldFetchRecurrenceExceptions $true -CustomPropertyNames $CustomPropertyNameList
+                    }
+                    # Remove the IPM.Appointment logs as they are already in the CalLogs.
+                    $ExceptionLogs = $ExceptionLogs | Where-Object { $_.ItemClass -notlike "IPM.Appointment*" }
+                    Write-Host -ForegroundColor Cyan "Found $($ExceptionLogs.count) Exception Logs, adding them into the CalLogs."
+
+                    $script:GCDO = $script:GCDO + $ExceptionLogs | Select-Object *, @{n='OrgTime'; e= { [DateTime]::Parse($_.OriginalLastModifiedTime.ToString()) } } | Sort-Object OrgTime
+                    $LogToExamine = $null
+                    $ExceptionLogs = $null
+                } else {
+                    Write-Host -ForegroundColor Cyan "No Recurring Meetings found, no Exception Logs to collect."
                 }
-                # Remove the IPM.Appointment logs as they are already in the CalLogs.
-                $ExceptionLogs = $ExceptionLogs | Where-Object { $_.ItemClass -notlike "IPM.Appointment*" }
-                Write-Host -ForegroundColor Cyan "Found $($ExceptionLogs.count) Exception Logs, adding them into the CalLogs."
-
-                $script:GCDO = $script:GCDO + $ExceptionLogs | Select-Object *, @{n='OrgTime'; e= { [DateTime]::Parse($_.OriginalLastModifiedTime.ToString()) } } | Sort-Object OrgTime
-                $LogToExamine = $null
-                $ExceptionLogs = $null
             }
 
             BuildCSV -Identity $ID
