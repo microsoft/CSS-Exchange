@@ -384,7 +384,12 @@ function Invoke-AnalyzerIISInformation {
 
     $iisWebSettings | ForEach-Object {
         $key = if ($null -ne $_.FriendlyName) { $_.FriendlyName } else { $_.Name }
-        $iisWebConfigContent.Add($key, $_.ConfigurationFileInfo.Content)
+
+        if ($null -ne $key) {
+            $iisWebConfigContent.Add($key, $_.ConfigurationFileInfo.Content)
+        } else {
+            Write-Verbose "Failed to set Key for iisWebConfigContent hashtable because it was null."
+        }
     }
 
     $ruleParams = @{
