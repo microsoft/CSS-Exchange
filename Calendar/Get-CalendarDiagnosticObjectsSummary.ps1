@@ -301,11 +301,10 @@ function SetIsRecurring {
     param(
         $CalLogs
     )
-    Write-Host -foregroundcolor Yellow "Looking for signs of a recurring meeting."
+    Write-Host -ForegroundColor Yellow "Looking for signs of a recurring meeting."
     $IsRecurring = $false
     # See if this is a recurring meeting
     foreach ($CalLog in $CalLogs) {
-   
         if ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -and
             $CalLog.ExternalSharingMasterId -eq "NotFound" -and
             $CalLog.CalendarItemType.ToString() -eq "RecurringMaster" ) {
@@ -317,7 +316,6 @@ function SetIsRecurring {
     Write-Verbose "Did not find signs of recurring meeting."
     return $IsRecurring
 }
-
 
 function Convert-Data {
     param(
@@ -831,65 +829,65 @@ function BuildCSV {
 
         # Record one row
         $GCDOResults += [PSCustomObject]@{
-            'LogRow'                        = $Index
-            'LastModifiedTime'              = $CalLog.OriginalLastModifiedTime
-            'IsIgnorable'                   = $IsIgnorable
-            'SubjectProperty'               = $CalLog.SubjectProperty
-            'Client'                        = $ShortClientName
-            'ClientInfoString'              = $CalLog.ClientInfoString
-            'TriggerAction'                 = $CalLog.CalendarLogTriggerAction
-            'ItemClass'                     = $CalLog.ItemClass
-            'ItemVersion'                   = $CalLog.ItemVersion
-            'AppointmentSequenceNumber'     = $CalLog.AppointmentSequenceNumber
-            'AppointmentLastSequenceNumber' = $CalLog.AppointmentLastSequenceNumber  # Need to find out how we can combine these two...
-            'Organizer'                     = $CalLog.From.FriendlyDisplayName
-            'From'                          = GetBestFromAddress($CalLog.From)
-            'FreeBusyStatus'                = $CalLog.FreeBusyStatus
-            'ResponsibleUser'               = GetSMTPAddress($CalLog.ResponsibleUserName)
-            'Sender'                        = GetSMTPAddress($CalLog.SenderEmailAddress)
-            'LogFolder'                     = $CalLog.ParentDisplayName
-            'OriginalLogFolder'             = $CalLog.OriginalParentDisplayName
-            'SharedFolderName'              = MapSharedFolder($CalLog.ExternalSharingMasterId)
-            'IsFromSharedCalendar'          = $IsFromSharedCalendar
-            'ExternalSharingMasterId'       = $CalLog.ExternalSharingMasterId
-            'ReceivedBy'                    = $CalLog.ReceivedBy.SmtpEmailAddress
-            'ReceivedRepresenting'          = $CalLog.ReceivedRepresenting.SmtpEmailAddress
-            'MeetingRequestType'            = $CalLog.MeetingRequestType
-            'StartTime'                     = $CalLog.StartTime
-            'EndTime'                       = $CalLog.EndTime
-            'TimeZone'                      = $CalLog.TimeZone
-            'Location'                      = $CalLog.Location
-            'ItemType'                      = $ItemType
-            'CalendarItemType'              = $CalLog.CalendarItemType
-            'IsException'                   = $CalLog.IsException
-            'RecurrencePattern'             = $CalLog.RecurrencePattern
-            'AppointmentAuxiliaryFlags'     = $CalLog.AppointmentAuxiliaryFlags.ToString()
-            'DisplayAttendeesAll'           = $CalLog.DisplayAttendeesAll
-            'AttendeeCount'                 = ($CalLog.DisplayAttendeesAll -split ';').Count
-            'AppointmentState'              = $CalLog.AppointmentState.ToString()
-            'ResponseType'                  = $ResponseType
-            'AppointmentCounterProposal'    = $CalLogACP
-            'SentRepresentingEmailAddress'  = $CalLog.SentRepresentingEmailAddress
-            'SentRepresentingSMTPAddress'   = GetSMTPAddress($CalLog.SentRepresentingEmailAddress)
-            'SentRepresentingDisplayName'   = $CalLog.SentRepresentingDisplayName
-            'ResponsibleUserSMTPAddress'    = GetSMTPAddress($CalLog.ResponsibleUserName)
-            'ResponsibleUserName'           = GetDisplayName($CalLog.ResponsibleUserName)
-            'SenderEmailAddress'            = $CalLog.SenderEmailAddress
-            'SenderSMTPAddress'             = GetSMTPAddress($CalLog.SenderEmailAddress)
-            'ClientIntent'                  = $CalLog.ClientIntent.ToString()
-            'NormalizedSubject'             = $CalLog.NormalizedSubject
-            'AppointmentRecurring'          = $CalLog.AppointmentRecurring
-            'HasAttachment'                 = $CalLog.HasAttachment
-            'IsCancelled'                   = $CalLog.IsCancelled
-            'IsAllDayEvent'                 = $CalLog.IsAllDayEvent
-            'IsSeriesCancelled'             = $CalLog.IsSeriesCancelled
-            'CreationTime'                  = $CalLog.CreationTime
-            'SendMeetingMessagesDiagnostics'= $CalLog.SendMeetingMessagesDiagnostics
-            'EventEmailReminderTimer'       = $CalLog.EventEmailReminderTimer
-            'AttendeeListDetails'           = MultiLineFormat($CalLog.AttendeeListDetails)
-            'AttendeeCollection'            = MultiLineFormat($CalLog.AttendeeCollection)
-            'CalendarLogRequestId'          = $CalLog.CalendarLogRequestId.ToString()
-            'CleanGlobalObjectId'           = $CalLog.CleanGlobalObjectId
+            'LogRow'                         = $Index
+            'LastModifiedTime'               = $CalLog.OriginalLastModifiedTime
+            'IsIgnorable'                    = $IsIgnorable
+            'SubjectProperty'                = $CalLog.SubjectProperty
+            'Client'                         = $ShortClientName
+            'ClientInfoString'               = $CalLog.ClientInfoString
+            'TriggerAction'                  = $CalLog.CalendarLogTriggerAction
+            'ItemClass'                      = $CalLog.ItemClass
+            'ItemVersion'                    = $CalLog.ItemVersion
+            'AppointmentSequenceNumber'      = $CalLog.AppointmentSequenceNumber
+            'AppointmentLastSequenceNumber'  = $CalLog.AppointmentLastSequenceNumber  # Need to find out how we can combine these two...
+            'Organizer'                      = $CalLog.From.FriendlyDisplayName
+            'From'                           = GetBestFromAddress($CalLog.From)
+            'FreeBusyStatus'                 = $CalLog.FreeBusyStatus
+            'ResponsibleUser'                = GetSMTPAddress($CalLog.ResponsibleUserName)
+            'Sender'                         = GetSMTPAddress($CalLog.SenderEmailAddress)
+            'LogFolder'                      = $CalLog.ParentDisplayName
+            'OriginalLogFolder'              = $CalLog.OriginalParentDisplayName
+            'SharedFolderName'               = MapSharedFolder($CalLog.ExternalSharingMasterId)
+            'IsFromSharedCalendar'           = $IsFromSharedCalendar
+            'ExternalSharingMasterId'        = $CalLog.ExternalSharingMasterId
+            'ReceivedBy'                     = $CalLog.ReceivedBy.SmtpEmailAddress
+            'ReceivedRepresenting'           = $CalLog.ReceivedRepresenting.SmtpEmailAddress
+            'MeetingRequestType'             = $CalLog.MeetingRequestType
+            'StartTime'                      = $CalLog.StartTime
+            'EndTime'                        = $CalLog.EndTime
+            'TimeZone'                       = $CalLog.TimeZone
+            'Location'                       = $CalLog.Location
+            'ItemType'                       = $ItemType
+            'CalendarItemType'               = $CalLog.CalendarItemType
+            'IsException'                    = $CalLog.IsException
+            'RecurrencePattern'              = $CalLog.RecurrencePattern
+            'AppointmentAuxiliaryFlags'      = $CalLog.AppointmentAuxiliaryFlags.ToString()
+            'DisplayAttendeesAll'            = $CalLog.DisplayAttendeesAll
+            'AttendeeCount'                  = ($CalLog.DisplayAttendeesAll -split ';').Count
+            'AppointmentState'               = $CalLog.AppointmentState.ToString()
+            'ResponseType'                   = $ResponseType
+            'AppointmentCounterProposal'     = $CalLogACP
+            'SentRepresentingEmailAddress'   = $CalLog.SentRepresentingEmailAddress
+            'SentRepresentingSMTPAddress'    = GetSMTPAddress($CalLog.SentRepresentingEmailAddress)
+            'SentRepresentingDisplayName'    = $CalLog.SentRepresentingDisplayName
+            'ResponsibleUserSMTPAddress'     = GetSMTPAddress($CalLog.ResponsibleUserName)
+            'ResponsibleUserName'            = GetDisplayName($CalLog.ResponsibleUserName)
+            'SenderEmailAddress'             = $CalLog.SenderEmailAddress
+            'SenderSMTPAddress'              = GetSMTPAddress($CalLog.SenderEmailAddress)
+            'ClientIntent'                   = $CalLog.ClientIntent.ToString()
+            'NormalizedSubject'              = $CalLog.NormalizedSubject
+            'AppointmentRecurring'           = $CalLog.AppointmentRecurring
+            'HasAttachment'                  = $CalLog.HasAttachment
+            'IsCancelled'                    = $CalLog.IsCancelled
+            'IsAllDayEvent'                  = $CalLog.IsAllDayEvent
+            'IsSeriesCancelled'              = $CalLog.IsSeriesCancelled
+            'CreationTime'                   = $CalLog.CreationTime
+            'SendMeetingMessagesDiagnostics' = $CalLog.SendMeetingMessagesDiagnostics
+            'EventEmailReminderTimer'        = $CalLog.EventEmailReminderTimer
+            'AttendeeListDetails'            = MultiLineFormat($CalLog.AttendeeListDetails)
+            'AttendeeCollection'             = MultiLineFormat($CalLog.AttendeeCollection)
+            'CalendarLogRequestId'           = $CalLog.CalendarLogRequestId.ToString()
+            'CleanGlobalObjectId'            = $CalLog.CleanGlobalObjectId
         }
     }
     $script:Results = $GCDOResults
@@ -1519,7 +1517,7 @@ function CheckIdentities {
                 $script:MB = $Account
             }
         }
-        if($Account.CalendarVersionStoreDisabled -eq $true) {
+        if ($Account.CalendarVersionStoreDisabled -eq $true) {
             Write-Host -ForegroundColor DarkRed "Mailbox [$Id] has CalendarVersionStoreDisabled set to True.  This mailbox will not have Calendar Logs."
             Write-Host -ForegroundColor DarkRed "Some logs will be available for Mailbox [$Id] but they will not be complete."
         }
