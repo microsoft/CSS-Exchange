@@ -116,6 +116,6 @@ OutputFilePath | Is a custom file path to be used to export the list of Exchange
 IPRangeFilePath | Is the path to the file that contains all the IP Addresses or subnets that are needed to be in the IP Allow list for Mitigation.
 RestrictType | To enable a IP Restriction on a virtual directory. Must be used with `IPRangeFilePath`. The following values are allowed: `EWSBackend`
 ValidateType | To verify if the IP Restrictions have been applied correctly. Must be used with `IPRangeFilePath`. The following values are allowed: `RestrictTypeEWSBackend`
-RollbackType | Using this parameter will allow you to rollback using the type you specified. The following values are allowed: `RestoreIISAppConfig`, `RestrictTypeEWSBackend`
+RollbackType | Using this parameter will allow you to rollback using the type you specified. The following values are allowed: `RestoreIISAppConfig`, `RestrictTypeEWSBackend`, `RestoreConfiguration`
 DisableExtendedProtection | Using this parameter will disable extended protection for the servers you specify. This is done by setting all the configured locations back to `None` regardless of what the original value was set to prior to configuration or if it was enabled by default.
 SkipAutoUpdate | Skips over the Auto Update feature to download the latest version of the script.
