@@ -1587,20 +1587,6 @@ function GetCalLogsWithSubject {
     }
 }
 
-function Test-ShouldProcess {
-         [CmdletBinding(SupportsShouldProcess=$true)]
-         param(
-             [Parameter(Mandatory=$true)]
-             [string]$Target
-         )
-    
-         if ($PSCmdlet.ShouldProcess($Target, "Perform action")) {
-             # Code to perform action goes here
-             Write-Host "Performing action on $Target"
-         }
-     }
-
-
 # ===================================================================================================
 # Main
 # ===================================================================================================
