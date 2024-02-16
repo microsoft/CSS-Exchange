@@ -243,6 +243,7 @@ begin {
             exit
         } elseif (-not($exchangeShell.EMS)) {
             Write-Warning "This script requires to be run inside of Exchange Management Shell. Please run on an Exchange Management Server or an Exchange Server with Exchange Management Shell."
+            Write-Warning "If the script was already executed via Exchange Management Shell, check your Auth Certificate by using the following script: https://aka.ms/MonitorExchangeAuthCertificate"
             exit
         }
 
