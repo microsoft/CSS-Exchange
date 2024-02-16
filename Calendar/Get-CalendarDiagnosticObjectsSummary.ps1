@@ -467,11 +467,12 @@ function GetSMTPAddress {
 
     if ($PassedCN -match 'cn=([\w,\s.@-]*[^/])$') {
         return GetMailboxProp -PassedCN $PassedCN -Prop "PrimarySmtpAddress"
+    } elseif ($PassedCN -match "@") {
+        Write-Verbose "Looks like we have an SMTP Address already: [$PassedCN]"
+        return $PassedCN
+    } elseif ($PassedCN -match "NotFound") {
+        return $PassedCN
     } else {
-        if ($PassedCN -match "@") {
-            Write-Verbose "Looks like we have an SMTP Address already: [$PassedCN]"
-            return $PassedCN
-        }
         # We have a problem, we don't have a CN or an SMTP Address
         Write-Error "GetSMTPAddress: Passed in Value does not look like a CN or SMTP Address: [$PassedCN]"
         return $PassedCN
@@ -703,14 +704,6 @@ function SetIsIgnorable {
         $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingCFM" -or
         $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingDelete") {
         return "Sharing"
-    } elseif (($CalendarItemTypes.($CalLog.ItemClass) -like "*Resp*" -and $CalLog.CalendarLogTriggerAction -ne "Create" ) -or
-        $CalendarItemTypes.($CalLog.ItemClass) -eq "AttendeeList" -or
-        $CalLog.CalendarLogTriggerAction -eq "MoveToDeletedItems" -or
-        $CalLog.CalendarLogTriggerAction -eq "SoftDelete" ) {
-        return "Cleanup"
-    } elseif ($CalLog.ItemClass -eq "IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}" -or
-        $CalLog.ItemClass -eq "(Occurrence Deleted)") {
-        return "Exception"
     } elseif ($ShortClientName -like "EBA*" -or
         $ShortClientName -like "TBA*" -or
         $ShortClientName -eq "LocationProcessor" -or
@@ -719,6 +712,14 @@ function SetIsIgnorable {
         $ShortClientName -eq "ELC-B2" -or
         $ShortClientName -eq "TimeService" ) {
         return "Ignorable"
+    } elseif (($CalendarItemTypes.($CalLog.ItemClass) -like "*Resp*" -and $CalLog.CalendarLogTriggerAction -ne "Create" ) -or
+        $CalendarItemTypes.($CalLog.ItemClass) -eq "AttendeeList" -or
+        $CalLog.CalendarLogTriggerAction -eq "MoveToDeletedItems" -or
+        $CalLog.CalendarLogTriggerAction -eq "SoftDelete" ) {
+        return "Cleanup"
+    } elseif ($CalLog.ItemClass -eq "IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}" -or
+        $CalLog.ItemClass -eq "(Occurrence Deleted)") {
+        return "Exception"
     } else {
         return "False"
     }
@@ -813,7 +814,7 @@ function BuildCSV {
         $IsIgnorable = SetIsIgnorable($CalLog)
 
         # CleanNotFounds
-        $PropsToClean = "FreeBusyStatus", "ClientIntent", "AppointmentLastSequenceNumber", "RecurrencePattern", "AppointmentAuxiliaryFlags", "EventEmailReminderTimer", "IsSeriesCancelled", "AppointmentCounterProposal", "MeetingRequestType"
+        $PropsToClean = "FreeBusyStatus", "ClientIntent", "AppointmentLastSequenceNumber", "RecurrencePattern", "AppointmentAuxiliaryFlags", "EventEmailReminderTimer", "IsSeriesCancelled", "AppointmentCounterProposal", "MeetingRequestType", "SendMeetingMessagesDiagnostics"
         foreach ($Prop in $PropsToClean) {
             # Exception objects, etc. don't have these properties.
             if ($null -ne $CalLog.$Prop) {
@@ -910,7 +911,7 @@ function MultiLineFormat {
         $PassedString
     )
     $PassedString = $PassedString -replace "},", "},`n"
-    return $PassedString
+    return $PassedString.Trim()
 }
 
 # ===================================================================================================
@@ -1586,6 +1587,20 @@ function GetCalLogsWithSubject {
     }
 }
 
+function Test-ShouldProcess {
+         [CmdletBinding(SupportsShouldProcess=$true)]
+         param(
+             [Parameter(Mandatory=$true)]
+             [string]$Target
+         )
+    
+         if ($PSCmdlet.ShouldProcess($Target, "Perform action")) {
+             # Code to perform action goes here
+             Write-Host "Performing action on $Target"
+         }
+     }
+
+
 # ===================================================================================================
 # Main
 # ===================================================================================================
@@ -1626,11 +1641,25 @@ if (-not ([string]::IsNullOrEmpty($Subject)) ) {
                     $LogToExamine = $script:GCDO | Where-Object { $_.ItemClass -like 'IPM.Appointment*' } | Sort-Object ItemVersion
 
                     Write-Host -ForegroundColor Cyan "Found $($LogToExamine.count) CalLogs to examine for Exception Logs."
+                    if ($LogToExamine.count -gt 100) {
+                        Write-Host -ForegroundColor Cyan "`t This is a large number of logs to examine, this may take a while."
+                        Write-Host -ForegroundColor Blue "`Press Y to continue..."
+                        $Answer = [console]::ReadKey($true).Key
+                        if ($Answer -ne "Y") {
+                            Write-Host -ForegroundColor Cyan "User chose not to continue, skipping Exception Logs."
+                            $LogToExamine = $null
+                        }
+                    }
                     Write-Host -ForegroundColor Cyan "`t Ignore the next [$($LogToExamine.count)] warnings..."
+                    $logLeftCount = $LogToExamine.count
 
                     $ExceptionLogs = $LogToExamine | ForEach-Object {
+                        $logLeftCount -= 1
                         Write-Verbose "Getting Exception Logs for [$($_.ItemId.ObjectId)]"
                         Get-CalendarDiagnosticObjects -Identity $ID -ItemIds $_.ItemId.ObjectId -ShouldFetchRecurrenceExceptions $true -CustomPropertyNames $CustomPropertyNameList
+                        if ($logLeftCount % 50 -eq 0) {
+                            Write-Host -ForegroundColor Cyan "`t [$($logLeftCount)] logs left to examine..."
+                        }
                     }
                     # Remove the IPM.Appointment logs as they are already in the CalLogs.
                     $ExceptionLogs = $ExceptionLogs | Where-Object { $_.ItemClass -notlike "IPM.Appointment*" }
