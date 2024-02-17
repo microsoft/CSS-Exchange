@@ -131,6 +131,12 @@ function Get-IISWebSite {
             }
         }
 
+        $physicalPath = [string]::Empty
+
+        if (-not ([string]::IsNullOrEmpty($site.physicalPath))) {
+            $physicalPath = $site.physicalPath.Replace("%windir%", $env:windir).Replace("%SystemDrive%", $env:SystemDrive)
+        }
+
         $returnList.Add([PSCustomObject]@{
                 Name                       = $site.Name
                 Id                         = $site.Id
@@ -148,7 +154,7 @@ function Get-IISWebSite {
                 Collection                 = $site.collection
                 ApplicationPool            = $site.applicationPool
                 EnabledProtocols           = $site.enabledProtocols
-                PhysicalPath               = $site.physicalPath.Replace("%windir%", $env:windir).Replace("%SystemDrive%", $env:SystemDrive)
+                PhysicalPath               = $physicalPath
                 ConfigurationFileInfo      = [PSCustomObject]@{
                     Location = $configurationFilePath
                     Content  = $webConfigContent
