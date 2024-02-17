@@ -16,6 +16,8 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $extendedProtection = $SecurityObject.ExchangeInformation.ExtendedProtectionConfig
+    # Adding CVE-2024-21410 for the updated CVE for release with CU14
+    $cveList = "CVE-2022-24516, CVE-2022-21979, CVE-2022-21980, CVE-2022-24477, CVE-2022-30134, CVE-2024-21410"
 
     $baseParams = @{
         AnalyzedInformation = $AnalyzeResults
@@ -28,11 +30,11 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
         if ($null -ne $extendedProtection) {
             Write-Verbose "Exchange extended protection information found - performing vulnerability testing"
 
-            # Description: Check for CVE-2022-24516, CVE-2022-21979, CVE-2022-21980, CVE-2022-24477, CVE-2022-30134 vulnerability
+            # Description: Check for CVE-2022-24516, CVE-2022-21979, CVE-2022-21980, CVE-2022-24477, CVE-2022-30134, CVE-2024-21410 vulnerability
             # Affected Exchange versions: 2013, 2016, 2019
             # Fix: Install Aug 2022 SU & enable extended protection
             # Extended protection is available with IIS 7.5 or higher
-            Write-Verbose "Testing CVE: CVE-2022-24516, CVE-2022-21979, CVE-2022-21980, CVE-2022-24477, CVE-2022-30134"
+            Write-Verbose "Testing CVE: $cveList"
             if (($extendedProtection.ExtendedProtectionConfiguration.ProperlySecuredConfiguration.Contains($false)) -or
                 ($extendedProtection.SupportedVersionForExtendedProtection -eq $false)) {
                 Write-Verbose "At least one vDir is not configured properly and so, the system may be at risk"
@@ -58,10 +60,10 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
 
                 $epCveParams = $baseParams + @{
                     Name                = "Security Vulnerability"
-                    Details             = "CVE-2022-24516, CVE-2022-21979, CVE-2022-21980, CVE-2022-24477, CVE-2022-30134"
+                    Details             = $cveList
                     DisplayWriteType    = "Red"
                     TestingName         = "Extended Protection Vulnerable"
-                    CustomName          = "CVE-2022-24516, CVE-2022-21979, CVE-2022-21980, CVE-2022-24477, CVE-2022-30134"
+                    CustomName          = $cveList
                     DisplayTestingValue = $true
                 }
                 $epBasicParams = $baseParams + @{
@@ -133,7 +135,7 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
                             ColorizerFunctions = @($epConfig)
                             IndentSpaces       = 8
                         })
-                    DisplayTestingValue = "CVE-2022-24516, CVE-2022-21979, CVE-2022-21980, CVE-2022-24477, CVE-2022-30134"
+                    DisplayTestingValue = $cveList
                 }
 
                 $epBackEndParams = $baseParams + @{
@@ -143,7 +145,7 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
                             ColorizerFunctions = @($epConfig)
                             IndentSpaces       = 8
                         })
-                    DisplayTestingValue = "CVE-2022-24516, CVE-2022-21979, CVE-2022-21980, CVE-2022-24477, CVE-2022-30134"
+                    DisplayTestingValue = $cveList
                 }
 
                 Add-AnalyzedResultInformation @epFrontEndParams
@@ -167,7 +169,7 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
                 }
                 Add-AnalyzedResultInformation @moreInformationParams
             } else {
-                Write-Verbose "System NOT vulnerable to CVE-2022-24516, CVE-2022-21979, CVE-2022-21980, CVE-2022-24477, CVE-2022-30134"
+                Write-Verbose "System NOT vulnerable to $cveList"
             }
         } else {
             Write-Verbose "No Extended Protection configuration found - check will be skipped"

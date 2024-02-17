@@ -29,6 +29,7 @@ nav:
     - FindFrontEndActivity: Diagnostics/FindFrontEndActivity/FindFrontEndActivity.md
     - HealthChecker:
       - Diagnostics/HealthChecker/index.md
+      - ExoConnectorCheck: Diagnostics/HealthChecker/ExoConnectorCheck.md
       - MaintenanceCheck: Diagnostics/HealthChecker/ExchangeServerMaintenanceCheck.md
       - GCModeCheck: Diagnostics/HealthChecker/MAPIFrontEndAppPoolGCModeCheck.md
       - RebootPending: Diagnostics/HealthChecker/RebootPending.md

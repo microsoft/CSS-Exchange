@@ -118,6 +118,17 @@ function Invoke-AnalyzerExchangeInformation {
         }
     }
 
+    # If the ExSetup wasn't found, we need to report that.
+    if ($exchangeInformation.BuildInformation.ExchangeSetup.FailedGetExSetup -eq $true) {
+        $params = $baseParams + @{
+            Name                   = "Warning"
+            Details                = "Didn't detect ExSetup.exe on the server. This might mean that setup didn't complete correctly the last time it was run."
+            DisplayCustomTabNumber = 2
+            DisplayWriteType       = "Yellow"
+        }
+        Add-AnalyzedResultInformation @params
+    }
+
     if ($null -ne $exchangeInformation.BuildInformation.KBsInstalled) {
         Add-AnalyzedResultInformation -Name "Exchange IU or Security Hotfix Detected" @baseParams
         $problemKbFound = $false
@@ -400,8 +411,14 @@ function Invoke-AnalyzerExchangeInformation {
 
         # If any directory has a higher than expected configuration, we need to throw a warning
         # This will be detected by SupportedExtendedProtection being set to false, as we are set higher than expected/recommended value you will likely run into issues of some kind
+        # Skip over Default Web Site/Powershell if RequireSsl is not set.
         $notSupportedExtendedProtectionDirectories = $exchangeInformation.ExtendedProtectionConfig.ExtendedProtectionConfiguration |
-            Where-Object { $_.SupportedExtendedProtection -eq $false }
+            Where-Object { ($_.SupportedExtendedProtection -eq $false -and
+                    $_.VirtualDirectoryName -ne "Default Web Site/Powershell") -or
+                ($_.SupportedExtendedProtection -eq $false -and
+                $_.VirtualDirectoryName -eq "Default Web Site/Powershell" -and
+                $_.Configuration.SslSettings.RequireSsl -eq $true)
+            }
 
         if ($null -ne $notSupportedExtendedProtectionDirectories) {
             foreach ($entry in $notSupportedExtendedProtectionDirectories) {

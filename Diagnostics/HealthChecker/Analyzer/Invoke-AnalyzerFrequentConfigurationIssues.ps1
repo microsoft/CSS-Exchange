@@ -141,13 +141,20 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
 
         # Only need to display a particular list all the time. Don't need every config that we want to possibly look at for issues.
         $alwaysDisplayConfigs = @("EdgeTransport.exe.config")
+        $skipEdgeOnlyConfigs = @("noderunner.exe.config")
         $keyList = $exchangeInformation.ApplicationConfigFileStatus.Keys | Sort-Object
 
         foreach ($configKey in $keyList) {
 
             $configStatus = $exchangeInformation.ApplicationConfigFileStatus[$configKey]
+            $fileName = $configStatus.FileName
             $writeType = "Green"
             [string]$writeValue = $configStatus.Present
+
+            if ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $true -and
+                $skipEdgeOnlyConfigs -contains $fileName) {
+                continue
+            }
 
             if (-not $configStatus.Present) {
                 $writeType = "Red"
@@ -155,12 +162,12 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
             }
 
             $params = $baseParams + @{
-                Name             = "$configKey Present"
+                Name             = "$fileName Present"
                 Details          = $writeValue
                 DisplayWriteType = $writeType
             }
 
-            if ($alwaysDisplayConfigs -contains $configKey -or
+            if ($alwaysDisplayConfigs -contains $fileName -or
                 -not $configStatus.Present) {
                 Add-AnalyzedResultInformation @params
             }
@@ -171,7 +178,7 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
                     $content = [xml]($configStatus.Content)
 
                     # Additional checks of configuration files.
-                    if ($configKey -eq "noderunner.exe.config") {
+                    if ($fileName -eq "noderunner.exe.config") {
                         $memoryLimitMegabytes = $content.configuration.nodeRunnerSettings.memoryLimitMegabytes
                         $writeValue = "$memoryLimitMegabytes MB"
                         $writeType = "Green"
@@ -205,7 +212,7 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
                 }
             } catch {
                 $params = $baseParams + @{
-                    Name                = "$configKey Invalid Config Format"
+                    Name                = "$fileName Invalid Config Format"
                     Details             = "True --- Error: Not able to convert to xml which means it is in an incorrect format that will cause problems with the process."
                     DisplayTestingValue = $true
                     DisplayWriteType    = "Red"
@@ -262,4 +269,74 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
         Details = $exchangeInformation.RegistryValues.DisablePreservation
     }
     Add-AnalyzedResultInformation @params
+
+    # Detect Send Connector sending to EXO
+    $exoConnector = New-Object System.Collections.Generic.List[object]
+    $sendConnectors = $exchangeInformation.ExchangeConnectors | Where-Object { $_.ConnectorType -eq "Send" }
+
+    foreach ($sendConnector in $sendConnectors) {
+        $smartHostMatch = ($sendConnector.SmartHosts -like "*.mail.protection.outlook.com").Count -gt 0
+        $dnsMatch = $sendConnector.SmartHosts -eq 0 -and ($sendConnector.AddressSpaces.Address -like "*.mail.onmicrosoft.com").Count -gt 0
+
+        if ($dnsMatch -or $smartHostMatch) {
+            $exoConnector.Add($sendConnector)
+        }
+    }
+
+    $params = $baseParams + @{
+        Name    = "EXO Connector Present"
+        Details = ($exoConnector.Count -gt 0)
+    }
+    Add-AnalyzedResultInformation @params
+    $showMoreInfo = $false
+
+    foreach ($connector in $exoConnector) {
+        # Misconfigured connector is if TLSCertificateName is not set or CloudServicesMailEnabled not set to true
+        if ($connector.CloudEnabled -eq $false -or
+            $connector.CertificateDetails.TlsCertificateNameStatus -eq "TlsCertificateNameEmpty") {
+            $params = $baseParams + @{
+                Name                   = "Send Connector - $($connector.Identity.ToString())"
+                Details                = "Misconfigured to send authenticated internal mail to M365." +
+                "`r`n`t`t`tCloudServicesMailEnabled: $($connector.CloudEnabled)" +
+                "`r`n`t`t`tTLSCertificateName set: $($connector.CertificateDetails.TlsCertificateNameStatus -ne "TlsCertificateNameEmpty")"
+                DisplayCustomTabNumber = 2
+                DisplayWriteType       = "Red"
+            }
+            Add-AnalyzedResultInformation @params
+            $showMoreInfo = $true
+        }
+
+        if ($connector.TlsAuthLevel -ne "DomainValidation" -and
+            $connector.TlsAuthLevel -ne "CertificateValidation") {
+            $params = $baseParams + @{
+                Name                   = "Send Connector - $($connector.Identity.ToString())"
+                Details                = "TlsAuthLevel not set to CertificateValidation or DomainValidation"
+                DisplayCustomTabNumber = 2
+                DisplayWriteType       = "Yellow"
+            }
+            Add-AnalyzedResultInformation @params
+            $showMoreInfo = $true
+        }
+
+        if ($connector.TlsDomain -ne "mail.protection.outlook.com" -and
+            $connector.TlsAuthLevel -eq "DomainValidation") {
+            $params = $baseParams + @{
+                Name                   = "Send Connector - $($connector.Identity.ToString())"
+                Details                = "TLSDomain  not set to mail.protection.outlook.com"
+                DisplayCustomTabNumber = 2
+                DisplayWriteType       = "Yellow"
+            }
+            Add-AnalyzedResultInformation @params
+            $showMoreInfo = $true
+        }
+    }
+
+    if ($showMoreInfo) {
+        $params = $baseParams + @{
+            Details                = "More Information: https://aka.ms/HC-ExoConnectorIssue"
+            DisplayWriteType       = "Yellow"
+            DisplayCustomTabNumber = 2
+        }
+        Add-AnalyzedResultInformation @params
+    }
 }

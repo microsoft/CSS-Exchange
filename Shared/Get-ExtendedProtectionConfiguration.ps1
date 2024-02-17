@@ -27,6 +27,9 @@ function Get-ExtendedProtectionConfiguration {
         [bool]$ExcludeEWS = $false,
 
         [Parameter(Mandatory = $false)]
+        [bool]$ExcludeEWSFe,
+
+        [Parameter(Mandatory = $false)]
         [ValidateSet("Exchange Back End/EWS")]
         [string[]]$SiteVDirLocations,
 
@@ -65,6 +68,9 @@ function Get-ExtendedProtectionConfiguration {
                 }
                 # Set EWS VDir to None for known issues
                 if ($ExcludeEWS -and $virtualDirectory -eq "EWS") { $ExtendedProtection[$i] = "None" }
+
+                # EWS FE
+                if ($ExcludeEWSFe -and $VirtualDirectory -eq "EWS" -and $WebSite[$i] -eq "Default Web Site") { $ExtendedProtection[$i] = "None" }
 
                 if ($null -ne $SiteVDirLocations -and
                     $SiteVDirLocations.Count -gt 0) {
@@ -114,6 +120,7 @@ function Get-ExtendedProtectionConfiguration {
                     $ipRestrictionsHashTable = @{}
                     $pathIndex = [array]::IndexOf(($Xml.configuration.location.path).ToLower(), $Path.ToLower())
                     $rootIndex = [array]::IndexOf(($Xml.configuration.location.path).ToLower(), ($Path.Split("/")[0]).ToLower())
+                    $parentIndex = [array]::IndexOf(($Xml.configuration.location.path).ToLower(), ($Path.Substring(0, $Path.LastIndexOf("/")).ToLower()))
 
                     if ($pathIndex -ne -1) {
                         $configNode = $Xml.configuration.location[$pathIndex]
@@ -125,7 +132,19 @@ function Get-ExtendedProtectionConfiguration {
                             Write-Verbose "Found tokenChecking: $ep"
                             $extendedProtection = $ep
                         } else {
-                            Write-Verbose "Failed to find tokenChecking. Using default value of None."
+                            if ($parentIndex -ne -1) {
+                                $parentConfigNode = $Xml.configuration.location[$parentIndex]
+                                $ep = $parentConfigNode.'system.webServer'.security.authentication.windowsAuthentication.extendedProtection.tokenChecking
+
+                                if (-not ([string]::IsNullOrEmpty($ep))) {
+                                    Write-Verbose "Found tokenChecking: $ep"
+                                    $extendedProtection = $ep
+                                } else {
+                                    Write-Verbose "Failed to find tokenChecking. Using default value of None."
+                                }
+                            } else {
+                                Write-Verbose "Failed to find tokenChecking. Using default value of None."
+                            }
                         }
 
                         [string]$sslSettings = $configNode.'system.webServer'.security.access.sslFlags
@@ -252,9 +271,10 @@ function Get-ExtendedProtectionConfiguration {
                 (NewVirtualDirMatchingEntry "ECP" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
                 (NewVirtualDirMatchingEntry "EWS" -WebSite $default, $backend -ExtendedProtection "Allow", "Require")
                 (NewVirtualDirMatchingEntry "Microsoft-Server-ActiveSync" -WebSite $default, $backend -ExtendedProtection "Allow", "Require")
+                (NewVirtualDirMatchingEntry "Microsoft-Server-ActiveSync/Proxy" -WebSite $default, $backend -ExtendedProtection "Allow", "Require")
                 # This was changed due to Outlook for Mac not being able to do download the OAB.
                 (NewVirtualDirMatchingEntry "OAB" -WebSite $default, $backend -ExtendedProtection "Allow", "Require")
-                (NewVirtualDirMatchingEntry "Powershell" -WebSite $default, $backend -ExtendedProtection "Require", "Require" -SslFlags "SslNegotiateCert", "Ssl,Ssl128,SslNegotiateCert")
+                (NewVirtualDirMatchingEntry "Powershell" -WebSite $default, $backend -ExtendedProtection "None", "Require" -SslFlags "SslNegotiateCert", "Ssl,Ssl128,SslNegotiateCert")
                 (NewVirtualDirMatchingEntry "OWA" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
                 (NewVirtualDirMatchingEntry "RPC" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
                 (NewVirtualDirMatchingEntry "MAPI" -WebSite $default -ExtendedProtection "Require")
@@ -399,7 +419,7 @@ function Get-ExtendedProtectionConfiguration {
                             MitigationEnabled             = ($extendedConfiguration.MitigationSettings.AllowUnlisted -eq "false")
                             MitigationSupported           = $mitigationSupportedVDirs -contains $virtualDirectoryName
                             ExpectedSslFlags              = $matchEntry.SslFlags
-                            SslFlagsSetCorrectly          = $sslFlagsToSet.Split(",").Count -eq $currentSetFlags.Count
+                            SslFlagsSetCorrectly          = $sslFlagsToSet.Split(",").Trim().Count -eq $currentSetFlags.Count
                             SslFlagsToSet                 = $sslFlagsToSet
                         })
                 } catch {

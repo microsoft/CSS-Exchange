@@ -5,10 +5,10 @@
 . $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeBuildVersionInformation.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeSettingOverride.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Get-FileContentInformation.ps1
 . $PSScriptRoot\IISInformation\Get-ExchangeAppPoolsInformation.ps1
 . $PSScriptRoot\IISInformation\Get-ExchangeServerIISSettings.ps1
 . $PSScriptRoot\Get-ExchangeAES256CBCDetails.ps1
-. $PSScriptRoot\Get-ExchangeApplicationConfigurationFileValidation.ps1
 . $PSScriptRoot\Get-ExchangeConnectors.ps1
 . $PSScriptRoot\Get-ExchangeDependentServices.ps1
 . $PSScriptRoot\Get-ExchangeRegistryValues.ps1
@@ -36,7 +36,21 @@ function Get-ExchangeInformation {
         $getExchangeServer = (Get-ExchangeServer -Identity $Server -Status)
         $exchangeCertificates = Get-ExchangeServerCertificates -Server $Server
         $exSetupDetails = Get-ExSetupDetails -Server $Server
-        $versionInformation = (Get-ExchangeBuildVersionInformation -FileVersion ($exSetupDetails.FileVersion))
+
+        if ($null -eq $exSetupDetails) {
+            # couldn't find ExSetup.exe this should be rare so we are just going to handle this by displaying the AdminDisplayVersion from Get-ExchangeServer
+            $versionInformation = (Get-ExchangeBuildVersionInformation -AdminDisplayVersion $getExchangeServer.AdminDisplayVersion)
+            $exSetupDetails = [PSCustomObject]@{
+                FileVersion      = $versionInformation.BuildVersion.ToString()
+                FileBuildPart    = $versionInformation.BuildVersion.Build
+                FilePrivatePart  = $versionInformation.BuildVersion.Revision
+                FileMajorPart    = $versionInformation.BuildVersion.Major
+                FileMinorPart    = $versionInformation.BuildVersion.Minor
+                FailedGetExSetup = $true
+            }
+        } else {
+            $versionInformation = (Get-ExchangeBuildVersionInformation -FileVersion ($exSetupDetails.FileVersion))
+        }
 
         $buildInformation = [PSCustomObject]@{
             ServerRole         = (Get-ServerRole -ExchangeServerObj $getExchangeServer)
@@ -98,12 +112,12 @@ function Get-ExchangeInformation {
         }
 
         $configParams = @{
-            ComputerName       = $Server
-            ConfigFileLocation = @("$([System.IO.Path]::Combine($serverExchangeBinDirectory, "EdgeTransport.exe.config"))",
+            ComputerName = $Server
+            FileLocation = @("$([System.IO.Path]::Combine($serverExchangeBinDirectory, "EdgeTransport.exe.config"))",
                 "$([System.IO.Path]::Combine($serverExchangeBinDirectory, "Search\Ceres\Runtime\1.0\noderunner.exe.config"))")
         }
 
-        $applicationConfigFileStatus = Get-ExchangeApplicationConfigurationFileValidation @configParams
+        $applicationConfigFileStatus = Get-FileContentInformation @configParams
         $serverMaintenance = Get-ExchangeServerMaintenanceState -Server $Server -ComponentsToSkip "ForwardSyncDaemon", "ProvisioningRps"
         $settingOverrides = Get-ExchangeSettingOverride -Server $Server -CatchActionFunction ${Function:Invoke-CatchActions}
 

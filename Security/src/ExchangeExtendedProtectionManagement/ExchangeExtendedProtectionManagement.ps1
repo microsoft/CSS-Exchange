@@ -23,6 +23,11 @@
 .EXAMPLE
     PS C:\> .\ExchangeExtendedProtectionManagement.ps1 -RollbackType "RestoreIISAppConfig"
     This will set the applicationHost.config file back to the original state prior to changes made with this script.
+    This is a legacy version of the restore process. The backup process will no longer attempt to copy out the applicationHost.config file.
+    It is recommended to use "RestoreConfiguration" moving forward.
+.EXAMPLE
+    PS C:\> .\ExchangeExtendedProtectionManagement.ps1 -RollbackType "RestoreConfiguration"
+    This will restore all the various configuration changes that did occur to the original setting when trying to configure Extended Protection without the mitigation with this script. A rollback can not occur if a configuration attempt was never done.
 #>
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
 
@@ -32,6 +37,7 @@ param(
     [Parameter (Mandatory = $false, ValueFromPipeline, ParameterSetName = 'Rollback', HelpMessage = "Using this parameter will allow you to rollback using the type you specified.")]
     [Parameter (Mandatory = $false, ValueFromPipeline, ParameterSetName = 'ConfigureEP', HelpMessage = "Enter the list of server names on which the script should execute on")]
     [Parameter (Mandatory = $false, ValueFromPipeline, ParameterSetName = 'ShowEP', HelpMessage = "Enter the list of server names on which the script should execute on")]
+    [Parameter (Mandatory = $false, ValueFromPipeline, ParameterSetName = 'DisableEP', HelpMessage = "Enter the list of server names on which the script should execute on")]
     [string[]]$ExchangeServerNames = $null,
 
     [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureMitigation', HelpMessage = "Enter the list of servers on which the script should not execute on")]
@@ -39,6 +45,7 @@ param(
     [Parameter (Mandatory = $false, ParameterSetName = 'Rollback', HelpMessage = "Using this parameter will allow you to rollback using the type you specified.")]
     [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureEP', HelpMessage = "Enter the list of servers on which the script should not execute on")]
     [Parameter (Mandatory = $false, ParameterSetName = 'ShowEP', HelpMessage = "Enter the list of servers on which the script should not execute on")]
+    [Parameter (Mandatory = $false, ParameterSetName = 'DisableEP', HelpMessage = "Enter the list of servers on which the script should not execute on")]
     [string[]]$SkipExchangeServerNames = $null,
 
     [Parameter (Mandatory = $true, ParameterSetName = 'ShowEP', HelpMessage = "Enable to provide a result of the configuration for Extended Protection")]
@@ -46,6 +53,10 @@ param(
 
     [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureEP', HelpMessage = "Used for internal options")]
     [string]$InternalOption,
+
+    [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureEP', HelpMessage = "Used to not enable Extended Protection on particular virtual directories")]
+    [ValidateSet("EWSFrontEnd")]
+    [string[]]$ExcludeVirtualDirectories,
 
     [Parameter (Mandatory = $true, ParameterSetName = 'GetExchangeIPs', HelpMessage = "Using this parameter will allow you to get the list of IPs used by Exchange Servers.")]
     [switch]$FindExchangeServerIPAddresses,
@@ -78,8 +89,11 @@ param(
     [string[]]$ValidateType,
 
     [Parameter (Mandatory = $true, ParameterSetName = 'Rollback', HelpMessage = "Using this parameter will allow you to rollback using the type you specified.")]
-    [ValidateSet('RestrictTypeEWSBackend', 'RestoreIISAppConfig')]
+    [ValidateSet('RestrictTypeEWSBackend', 'RestoreIISAppConfig', 'RestoreConfiguration')]
     [string[]]$RollbackType,
+
+    [Parameter (Mandatory = $true, ParameterSetName = "DisableEP", HelpMessage = "Using this parameter will disable extended protection only for the servers you specified.")]
+    [switch]$DisableExtendedProtection,
 
     [Parameter (Mandatory = $false, HelpMessage = "Using this switch will prevent the script from checking for an updated version.")]
     [switch]$SkipAutoUpdate
@@ -88,6 +102,7 @@ param(
 begin {
     . $PSScriptRoot\WriteFunctions.ps1
     . $PSScriptRoot\ConfigurationAction\Invoke-ConfigureMitigation.ps1
+    . $PSScriptRoot\ConfigurationAction\Invoke-DisableExtendedProtection.ps1
     . $PSScriptRoot\ConfigurationAction\Invoke-ValidateMitigation.ps1
     . $PSScriptRoot\ConfigurationAction\Invoke-RollbackIPFiltering.ps1
     . $PSScriptRoot\ConfigurationAction\Invoke-ConfigureExtendedProtection.ps1
@@ -147,8 +162,9 @@ begin {
 
     # The ParameterSetName options
     $RollbackSelected = $PsCmdlet.ParameterSetName -eq "Rollback"
-    $RollbackRestoreIISAppConfig = $RollbackSelected -and $RollbackType.Contains("RestoreIISAppConfig")
-    $RollbackRestrictType = $RollbackSelected -and (-not $RollbackRestoreIISAppConfig)
+    $RollbackRestoreIISAppConfig = $RollbackSelected -and $RollbackType -contains "RestoreIISAppConfig"
+    $RollbackRestoreConfiguration = $RollbackSelected -and $RollbackType -contains "RestoreConfiguration"
+    $RollbackRestrictType = $RollbackSelected -and (-not $RollbackRestoreIISAppConfig) -and (-not $RollbackRestoreConfiguration)
     $ConfigureMitigationSelected = $PsCmdlet.ParameterSetName -eq "ConfigureMitigation"
     $ConfigureEPSelected = $ConfigureMitigationSelected -or
         ($PsCmdlet.ParameterSetName -eq "ConfigureEP" -and -not $ShowExtendedProtection)
@@ -156,9 +172,19 @@ begin {
 
     $includeExchangeServerNames = New-Object 'System.Collections.Generic.List[string]'
 
-    if ($RollbackRestoreIISAppConfig -and $RollbackType.Length -gt 1) {
-        Write-Host "RestoreIISAppConfig Rollback type can only be used individually"
+    if ($RollbackType.Length -gt 1) {
+        if ($RollbackRestoreIISAppConfig) {
+            Write-Host "RestoreIISAppConfig Rollback type can only be used individually"
+        }
+        if ($RollbackRestoreConfiguration) {
+            Write-Host "RestoreConfiguration Rollback type can only be used individually"
+        }
         exit
+    }
+
+    $ExcludeEWSFe = $false
+    if ($ExcludeVirtualDirectories.Count -gt 0) {
+        $ExcludeEWSFe = $null -ne ($ExcludeVirtualDirectories | Where-Object { $_ -eq "EWSFrontEnd" })
     }
 
     if ($RollbackRestrictType) {
@@ -217,6 +243,7 @@ begin {
             exit
         } elseif (-not($exchangeShell.EMS)) {
             Write-Warning "This script requires to be run inside of Exchange Management Shell. Please run on an Exchange Management Server or an Exchange Server with Exchange Management Shell."
+            Write-Warning "If the script was already executed via Exchange Management Shell, check your Auth Certificate by using the following script: https://aka.ms/MonitorExchangeAuthCertificate"
             exit
         }
 
@@ -331,7 +358,13 @@ begin {
         }
 
         if ($ConfigureEPSelected) {
-            $prerequisitesCheck = Get-ExtendedProtectionPrerequisitesCheck -ExchangeServers $ExchangeServersPrerequisitesCheckSettingsCheck -SkipEWS $SkipEWS -SiteVDirLocations $SiteVDirLocations
+            $params = @{
+                ExchangeServers   = $ExchangeServersPrerequisitesCheckSettingsCheck
+                SkipEWS           = $SkipEWS
+                SkipEWSFe         = $ExcludeEWSFe
+                SiteVDirLocations = $SiteVDirLocations
+            }
+            $prerequisitesCheck = Get-ExtendedProtectionPrerequisitesCheck @params
 
             if ($null -ne $prerequisitesCheck) {
                 Write-Host ""
@@ -460,30 +493,51 @@ begin {
                         Write-Host "TLS prerequisites check successfully passed!" -ForegroundColor Green
                         Write-Host ""
                     } else {
-                        foreach ($entry in $tlsPrerequisites.ActionsRequired) {
-                            Write-Host "Test Failed: $($entry.Name)" -ForegroundColor Red
-                            if ($null -ne $entry.List) {
-                                foreach ($list in $entry.List) {
-                                    Write-Host "System affected: $list" -ForegroundColor Red
-                                }
-                            }
-                            Write-Host "Action required: $($entry.Action)" -ForegroundColor Red
-                            Write-Host ""
-                        }
+                        # before displaying an issue, make sure that the online supported servers & EP enabled server have the correct settings.
+                        $epEnabledServerList = New-Object 'System.Collections.Generic.List[string]'
+                        $epEnabledServers = $onlineSupportedServers | Where-Object { $_.ExtendedProtectionConfiguration.ExtendedProtectionConfigured -eq $true }
+                        $wantedCheckAgainst = $onlineSupportedServers | Where-Object { $_.ComputerName -in $serverNames }
                         $checkAgainst = $onlineSupportedServers |
                             Where-Object {
                                 $_.ExtendedProtectionConfiguration.ExtendedProtectionConfigured -eq $true -or
                                 $_.ComputerName -in $serverNames
                             }
 
-                        $results = Invoke-ExtendedProtectionTlsPrerequisitesCheck -TlsConfiguration $checkAgainst.TlsSettings
+                        $wantedResults = Invoke-ExtendedProtectionTlsPrerequisitesCheck -TlsConfiguration $wantedCheckAgainst.TlsSettings
+                        $checkResults = Invoke-ExtendedProtectionTlsPrerequisitesCheck -TlsConfiguration $checkAgainst.TlsSettings
 
-                        if ($results.CheckPassed) {
+                        if ($wantedResults.CheckPassed -eq $false -or
+                            $checkResults.CheckPassed -eq $false) {
+
+                            foreach ($entry in $checkResults.ActionsRequired) {
+                                Write-Host "Test Failed: $($entry.Name)" -ForegroundColor Red
+                                if ($null -ne $entry.List) {
+                                    foreach ($list in $entry.List) {
+                                        Write-Host "System affected: $list" -ForegroundColor Red
+
+                                        if ($list -in $epEnabledServers.ComputerName) {
+                                            $epEnabledServerList.Add($list)
+                                        }
+                                    }
+                                }
+                                Write-Host "Action required: $($entry.Action)" -ForegroundColor Red
+                                Write-Host ""
+                            }
+                            if ($wantedResults.CheckPassed -eq $false) {
+                                Write-Warning "Failed to pass the TLS prerequisites for the servers you are trying to enable Extended Protection. Unable to continue."
+                                Write-Host ""
+                                Write-Host "Servers trying to enable: $([string]::Join(", ", $serverNames))"
+                            } else {
+                                Write-Warning "Failed to pass the TLS prerequisites due to the TLS settings on servers that already have Extended Protection enabled. Unable to continue."
+                                Write-Host ""
+                                Write-Host "Extended Protection Enabled Servers: $([string]::Join(", ", $epEnabledServerList))"
+                                Write-Host ""
+                            }
+
+                            exit
+                        } else {
                             Write-Host "All servers attempting to enable Extended Protection or already enabled passed the TLS prerequisites."
                             Write-Host ""
-                        } else {
-                            Write-Warning "Failed to pass the TLS prerequisites. Unable to continue."
-                            exit
                         }
                     }
 
@@ -592,7 +646,40 @@ begin {
             Write-Host "Prerequisite check will be skipped due to Rollback"
 
             if ($RollbackRestoreIISAppConfig) {
+                $params = @{
+                    Message   = "Display warning about legacy option of RestoreIISAppConfig"
+                    Target    = "RestoreIISAppConfig is the legacy restore option of ExchangeExtendedProtectionManagement." +
+                    "`r`nIt will not work if there are no backup files present or if the file is older than 30 days." +
+                    "`r`nIt is recommended to use RestoreConfiguration or if you are trying to disable Extended Protection due to automatic configuration in Setup, use -DisableExtendedProtection"
+                    Operation = "Attempt to restore using legacy option."
+                }
+
+                Show-Disclaimer @params
                 Invoke-RollbackExtendedProtection -ExchangeServers $ExchangeServers
+            }
+
+            if ($RollbackRestoreConfiguration) {
+
+                $params = @{
+                    Message   = "Display warning about doing a restore of Extended Protection configuration."
+                    Target    = "RestoreConfiguration is going to restore all the previous changed settings to the original value at the time the script was run when attempting to change the setting." +
+                    "`r`nIf no errors occurred during restore, it will then proceed to remove the restore file." +
+                    "`r`nThe removing of the file is to prevent a restore action to be taken again if the configuration action hasn't been taken again."
+                    Operation = "Continue to restore configuration for Extended Protection."
+                }
+
+                Show-Disclaimer @params
+
+                $inputList = New-Object System.Collections.Generic.List[object]
+                $ExchangeServers | ForEach-Object { $inputList.Add([PSCustomObject]@{
+                            ServerName = $_.Name
+                            Restore    = ([PSCustomObject]@{
+                                    FileName     = "ConfigureExtendedProtection"
+                                    PassedWhatIf = $WhatIfPreference
+                                })
+                        }) }
+
+                Invoke-IISConfigurationManagerAction -InputObject $inputList -ConfigurationDescription "Rollback Extended Protection"
             }
 
             if ($RollbackRestrictType) {
@@ -601,6 +688,9 @@ begin {
             }
 
             return
+        } elseif ($DisableExtendedProtection) {
+            # Disabling EP for all the servers provided in the list.
+            Invoke-DisableExtendedProtection -ExchangeServers $ExchangeServers
         }
     } finally {
         Write-Host "Do you have feedback regarding the script? Please email ExToolsFeedback@microsoft.com."
