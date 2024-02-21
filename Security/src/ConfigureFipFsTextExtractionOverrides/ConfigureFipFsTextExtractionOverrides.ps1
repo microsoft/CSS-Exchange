@@ -28,28 +28,16 @@
 .PARAMETER SkipVersionCheck
     This optional parameter allows you to skip the automatic version check and script update.
 .EXAMPLE
-    PS C:\> .\CVE-2024-xxxxx.ps1 -ConfigureMitigation ConfigureFileTypes -Action Block
-    It will block the vulnerable file types in the FIP-FS configuration file.
-.EXAMPLE
-    PS C:\> .\CVE-2024-xxxxx.ps1 -ConfigureMitigation ConfigureFileTypes -Action Allow
-    It will add the vulnerable file types back to the the FIP-FS configuration file.
-.EXAMPLE
-    PS C:\> .\CVE-2024-xxxxx.ps1 -ConfigureMitigation ConfigureOutsideIn -Action Block
-    It will disable the OutsideInModule in the FIP-FS configuration file.
-.EXAMPLE
-    PS C:\> .\CVE-2024-xxxxx.ps1 -ConfigureMitigation ConfigureOutsideIn -Action Allow
-    It will enable the OutsideInModule in the FIP-FS configuration file.
-.EXAMPLE
-    PS C:\> .\CVE-2024-xxxxx.ps1 -ConfigureOverride OutsideInVersionOverride -Action Allow
+    PS C:\> .\ConfigureFipFsTextExtractionOverrides.ps1 -ConfigureOverride OutsideInVersionOverride -Action Allow
     It will add the 'NO' override flag to the OutsideInModule.dll which is defined in the 'OutsideInOnly' module list.
 .EXAMPLE
-    PS C:\> .\CVE-2024-xxxxx.ps1 -ConfigureOverride OutsideInVersionOverride -Action Block
+    PS C:\> .\ConfigureFipFsTextExtractionOverrides.ps1 -ConfigureOverride OutsideInVersionOverride -Action Block
     It will remove the 'NO' override flag from the OutsideInModule.dll which is defined in the 'OutsideInOnly' module list.
 .EXAMPLE
-    PS C:\> .\CVE-2024-xxxxx.ps1 -ConfigureOverride FileTypesOverride -OutsideInEnabledFileTypes "ExcelStorage"
+    PS C:\> .\ConfigureFipFsTextExtractionOverrides.ps1 -ConfigureOverride FileTypesOverride -OutsideInEnabledFileTypes "ExcelStorage" -Action Allow
     It will add 'ExcelStorage' file type to the 'OutsideInOnly' file type list and will add the 'NO' flag to the file type.
 .EXAMPLE
-    PS C:\> .\CVE-2024-xxxxx.ps1 -RestoreFileTypeList
+    PS C:\> .\ConfigureFipFsTextExtractionOverrides.ps1 -RestoreFileTypeList
     It will restore the default file type to file type list mapping and removes any file type override.
 #>
 
