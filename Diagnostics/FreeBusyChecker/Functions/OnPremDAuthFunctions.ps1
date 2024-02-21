@@ -12,7 +12,7 @@ function OrgRelCheck($OrgRelParameter) {
     PrintDynamicWidthLine
     $OrgRelParameter
     PrintDynamicWidthLine
-    Write-Host -ForegroundColor Green " Summary - Get-OrganizatioanRelationship"
+    Write-Host -ForegroundColor Green " Summary - Get-OrganizationRelationship"
     PrintDynamicWidthLine
     $settingsList = New-Object System.Collections.ArrayList
     function AddSettingToList($list, $name, $value, $color) {
@@ -195,7 +195,7 @@ function FedInfoCheck {
     $FedInfoTokenIssuerUris = $FedInfo.TokenIssuerUris
     $FedInfoTarGetAutoDiscoverEpr = $FedInfo.TarGetAutoDiscoverEpr
     $FedInfoTarGetApplicationUri = $FedInfo.TarGetApplicationUri
-    fedinfoHtml
+    FedInfoHtml
 }
 function FedTrustCheck {
     Write-Host -ForegroundColor Green " Get-FederationTrust | fl ApplicationUri,TokenIssuerUri,OrgCertificate,TokenIssuerCertificate,
@@ -437,7 +437,7 @@ function EWSVirtualDirectoryCheck {
     PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " Summary - Get-WebServicesVirtualDirectory"
     PrintDynamicWidthLine
-    EWSVHeaderHtml
+    EWSVirtualDHeaderHtml
     Write-Host -ForegroundColor White "  WSSecurityAuthentication:"
     if ($Script:WebServicesVirtualDirectory.WSSecurityAuthentication -like "True") {
         foreach ( $EWS in $Script:WebServicesVirtualDirectory) {

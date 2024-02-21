@@ -134,7 +134,7 @@ function ExoOrgRelCheck () {
         $tdEXOOrgRelEnabled = "  False"
         $tdEXOOrgRelEnabledColor = "red"
     }
-    ExoOrgRelCheckhtml
+    ExoOrgRelCheckHtml
 }
 function EXOFedOrgIdCheck {
     Write-Host -ForegroundColor Green " Get-FederatedOrganizationIdentifier | select AccountNameSpace,Domains,Enabled"
@@ -298,6 +298,6 @@ function ExoTestOrgRelCheck {
     } elseif ((([string]::IsNullOrWhitespace($exoOrgRelTarGetApplicationUri)) )) {
         Write-Host -ForegroundColor Red "  Error: Exchange Online Test-OrganizationRelationship cannot be run if the Organization Relationship TarGetOwAUrl is not set"
     }
-    ExoTestOrgRelCheckhtml
+    ExoTestOrgRelCheckHtml
 }
 

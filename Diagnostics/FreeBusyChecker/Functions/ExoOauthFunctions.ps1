@@ -126,7 +126,7 @@ function EXOAuthServerCheck {
             $tdEXOAuthServerEnabledColor = "red"
         }
     }
-    EXOAuthServerCheckhtml
+    EXOAuthServerCheckHtml
 }
 function ExoTestOAuthCheck {
     Write-Host -ForegroundColor Green " Test-OAuthConnectivity -Service EWS -TarGetUri $Script:ExchangeOnPremEWS -Mailbox $UserOnline "

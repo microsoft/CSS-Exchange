@@ -208,12 +208,18 @@ begin {
         #do while not Y or N
         PrintDynamicWidthLine
         Write-Host " Are these values correct? Press Y for YES and N for NO"
-        $ParamOK = [System.Console]::ReadLine()
-        $ParamOK = $ParamOK.ToUpper()
+        $key = [System.Console]::ReadKey()
+        $ParamOK = $key.KeyChar.ToString().ToUpper()
     } while ($ParamOK -ne "Y" -AND $ParamOK -ne "N")
     PrintDynamicWidthLine
     if ($ParamOK -eq "N") {
-        Write-Host -ForegroundColor Red " Please call Script and Specify parameters"
+        Write-Host -ForegroundColor Blue " Please call Script and Specify parameters. Available Parameters:"
+        Write-Host -ForegroundColor Yellow " Example: .\FreeBusyChecker.ps1 -OnPremUser user@contoso.com "
+        Write-Host " -OnPremUser:  Specifies the Exchange On Premise User that will be used to test Free Busy Settings."
+        Write-Host " -OnlineUser: Specifies the Exchange Online User that will be used to test Free Busy Settings."
+        Write-Host " -OnPremDomain: Specifies the domain for on-premises Organization."
+        Write-Host " -OnPremEWSUrl_ Specifies the EWS (Exchange Web Services) URL for on-premises Exchange Server."
+        Write-Host " -OnPremLocalDomain Specifies the local AD domain for the on-premises Organization."
         exit
     }
     # Free busy Lookup methods

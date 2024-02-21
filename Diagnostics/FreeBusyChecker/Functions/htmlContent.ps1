@@ -173,7 +173,7 @@ function orgRelHtml() {
 "@
     $script:html | Out-File -FilePath $htmlFile
 }
-function fedInfoHtml() {
+function FedInfoHtml() {
     $script:html += "
   <tr>
   <th ColSpan='2' style='color:white;'>Summary - Get-FederationInformation</th>
@@ -265,7 +265,7 @@ function autoDVDHtmlNotOK() {
   "
     $html | Out-File -FilePath $htmlFile
 }
-function EWSVHeaderHtml() {
+function EWSVirtualDHeaderHtml() {
     $script:html += "
   <tr>
   <th ColSpan='2' style='color:white;'>Summary - Get-WebServicesVirtualDirectory</th>
@@ -648,7 +648,7 @@ function  EWSVirtualDirectoryCheckOAuthHtmlNotOk() {
     $html | Out-File -FilePath $htmlFile
 }
 #Exo HTML DAuth output
-function ExoOrgRelCheckhtml() {
+function ExoOrgRelCheckHtml() {
     $script:html += "
   <div class='Black'><p></p></div>
   <div class='Black'><p></p></div>
@@ -716,7 +716,7 @@ function SharingPolicyCheckHtml() {
   "
     $html | Out-File -FilePath $htmlFile
 }
-function ExoTestOrgRelCheckhtml() {
+function ExoTestOrgRelCheckHtml() {
     $exoIdentity = $ExoOrgRel.Identity
     $exoOrgRelTarGetApplicationUri = $exoOrgRel.TarGetApplicationUri
     $exoOrgRelTarGetOWAUrl = $ExoOrgRel.TarGetOwAUrl
@@ -822,7 +822,7 @@ function EXOIntraOrgConfigCheckHtml() {
   "
     $html | Out-File -FilePath $htmlFile
 }
-function EXOAuthServerCheckhtml() {
+function EXOAuthServerCheckHtml() {
     $script:html += "
 <tr>
   <th ColSpan='2' style='color:white;'>Summary - Get-AuthServer</th>
@@ -852,7 +852,7 @@ function ExoTestOAuthCheckHtml() {
   "
     $html | Out-File -FilePath $htmlFile
 }
-function lookupMethodDauthHtml() {
+function lookupMethodDAuthHtml() {
     $Script:html += "
                         <div  style = 'padding-left: 0%;'>
                           <h3>Intra Organization Connector Enabled: <b>True</b></h3>
@@ -945,7 +945,7 @@ function lookupMethodCheckAllHtml() {
 "
     $html | Out-File -FilePath $htmlFile
 }
-function lookupMethodDauthOauthDisabledHtml() {
+function lookupMethodDAuthOauthDisabledHtml() {
     $Script:html += "
                         <div  style = 'padding-left: 0%;'>
                           <h3>Intra Organization Connector Enabled: <b>False</b></h3>

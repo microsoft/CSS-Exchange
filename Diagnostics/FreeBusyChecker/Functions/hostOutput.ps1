@@ -113,7 +113,7 @@ function hostOutputIntraOrgConEnabled() {
             Write-Host -ForegroundColor White "           Organization Relationship Enabled True `n  "
         }
         Write-Host -ForegroundColor White "      This script can be Run using the -Auth All parameter to Check for both OAuth and DAuth configuration. `n `n         Example: ./FreeBusyChecker.ps1 -Auth All"
-        lookupMethodDauthHtml
+        lookupMethodDAuthHtml
     }
     if ($Auth -Like "") {
         $Auth = "OAuth"
@@ -121,7 +121,7 @@ function hostOutputIntraOrgConEnabled() {
         Write-Host -ForegroundColor White "    -> Running for OAuth only as OAuth takes precedence over DAuth;"
         Write-Host -ForegroundColor White "`n         This script can be Run using the -Auth All parameter to Check for both OAuth and DAuth configuration. `n `n         Example: ./FreeBusyChecker.ps1 -Auth All"
         Write-Host -ForegroundColor White "`n         This script can be Run using the -Auth DAuth parameter to Check for DAuth configuration only. `n `n         Example: ./FreeBusyChecker.ps1 -Auth DAuth"
-        lookupMethodDauthHtml
+        lookupMethodDAuthHtml
     }
     if ($Auth -Like "All") {
         lookupMethodCheckAllHtml
@@ -135,7 +135,7 @@ function hostOutputIntraOrgConNotEnabled() {
         Write-Host -ForegroundColor White "             Example: ./FreeBusyChecker.ps1 -Auth OAuth"
         Write-Host -ForegroundColor White "`n       This script can be Run using the '-Auth All' parameter to Check for both OAuth and DAuth configuration. `n"
         Write-Host -ForegroundColor White "             Example: ./FreeBusyChecker.ps1 -Auth All"
-        lookupMethodDauthOauthDisabledHtml
+        lookupMethodDAuthOauthDisabledHtml
     }
     if ($Auth -like "OAuth") {
         PrintDynamicWidthLine
