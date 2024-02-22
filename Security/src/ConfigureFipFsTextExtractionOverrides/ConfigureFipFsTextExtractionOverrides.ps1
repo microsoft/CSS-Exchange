@@ -41,49 +41,57 @@
     It will restore the default file type to file type list mapping and removes any file type override.
 #>
 
-[CmdletBinding(DefaultParameterSetName = "ConfigureMitigation", SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+[CmdletBinding(DefaultParameterSetName = "ConfigureOverride", SupportsShouldProcess = $true, ConfirmImpact = 'High')]
 param(
-    [Parameter(Mandatory = $true, ParameterSetName = "ConfigureMitigation")]
-    [ValidateSet("ConfigureOutsideIn", "ConfigureFileTypes")]
-    [string]$ConfigureMitigation,
-
-    [Parameter(Mandatory = $true, ParameterSetName = "ConfigureOverride")]
-    [ValidateSet("OutsideInVersionOverride", "FileTypesOverride")]
-    [string]$ConfigureOverride,
+    [Parameter(Mandatory = $false, ValueFromPipeline, ParameterSetName = "ConfigureOverride")]
+    [Parameter(Mandatory = $false, ValueFromPipeline, ParameterSetName = "Rollback")]
+    [string[]]$ExchangeServerNames,
 
     [Parameter(Mandatory = $false, ParameterSetName = "ConfigureOverride")]
-    [object]$OutsideInEnabledFileTypes,
+    [Parameter(Mandatory = $false, ParameterSetName = "Rollback")]
+    [string[]]$SkipExchangeServerNames,
 
-    [Parameter(Mandatory = $true, ParameterSetName = "RestoreFileTypeList")]
-    [switch]$RestoreFileTypeList,
+    [Parameter(Mandatory = $true, ParameterSetName = "ConfigureOverride")]
+    [ValidateSet("OutsideInModule", "XlsbOfficePackage", "XlsmOfficePackage", "XlsxOfficePackage", "ExcelStorage" , "DocmOfficePackage",
+        "DocxOfficePackage", "PptmOfficePackage", "PptxOfficePackage", "WordStorage", "PowerPointStorage", "VisioStorage", "Rtf",
+        "Xml", "OdfTextDocument", "OdfSpreadsheet", "OdfPresentation", "OneNote", "Pdf", "Html", "AutoCad", "Jpeg", "Tiff", IgnoreCase = $false)]
+    [string[]]$ConfigureOverride,
 
-    [Parameter(Mandatory = $false, ParameterSetName = "ConfigureMitigation")]
     [Parameter(Mandatory = $false, ParameterSetName = "ConfigureOverride")]
     [ValidateSet("Allow", "Block")]
     [string]$Action = "Block",
 
+    [Parameter(Mandatory = $true, ParameterSetName = "Rollback")]
+    [switch]$Rollback,
+
     [Parameter(Mandatory = $false, ParameterSetName = "ScriptUpdateOnly")]
     [switch]$ScriptUpdateOnly,
 
-    [Parameter(Mandatory = $false, ParameterSetName = "Default")]
     [switch]$SkipVersionCheck
 )
 
 begin {
-    . $PSScriptRoot\ConfigurationAction\Invoke-OutsideInModuleAction.ps1
+    . $PSScriptRoot\ConfigurationAction\Invoke-TextExtractionOverride.ps1
     . $PSScriptRoot\..\..\..\Shared\GenericScriptStartLogging.ps1
     . $PSScriptRoot\..\..\..\Shared\ScriptUpdateFunctions\GenericScriptUpdate.ps1
 
-    $fileTypesDictionary = New-Object 'System.Collections.Generic.Dictionary[string, array]'
+    if ($ConfigureOverride.Count -gt 1 -and $ConfigureOverride -contains "OutsideInModule") {
+        Write-Error "OutsideInModule ConfigureOverride can only be processed by itself."
+        exit
+    }
 
-    # Add all vulnerable file types here that should be removed from the allowed types list
-    $fileTypesDictionary.Add("Excel", @("ExcelStorage"))
-    $fileTypesDictionary.Add("PreferOutsideIn", @("Html", "Pdf"))
+    $includeExchangeServerNames = New-Object System.Collections.Generic.List[string]
+} process {
+    foreach ($server in $ExchangeServerNames) {
+        $includeExchangeServerNames.Add($server)
+    }
 } end {
     try {
         # TODO adjust the disclaimer wording to match the latest adjustment
         $exchangeServicesWording = "Note that each Exchange server's MSExchangeTransport and FMS service will be restarted to backup and apply the setting change action."
         $vulnerabilityMoreInformationWording = "More information about the vulnerability can be found here: https://portal.msrc.microsoft.com/security-guidance/advisory/CVE-2024-xxxxx."
+
+        # TODO: Update Disclaimer section.
 
         if ($Configuration -eq "ConfigureOutsideIn" -and
             $Action -eq "Block") {
@@ -158,7 +166,14 @@ begin {
             }
         }
 
-        Invoke-OutsideInModuleAction @invokeOutsideInModuleActionParams
+        $params = @{
+            ComputerName      = $includeExchangeServerNames
+            ConfigureOverride = $ConfigureOverride
+            Action            = $Action
+            Rollback          = $Rollback
+        }
+
+        Invoke-TextExtractionOverride @params
     } finally {
         Write-Host ""
         Write-Host "Do you have feedback regarding the script? Please let us know: ExToolsFeedback@microsoft.com."
