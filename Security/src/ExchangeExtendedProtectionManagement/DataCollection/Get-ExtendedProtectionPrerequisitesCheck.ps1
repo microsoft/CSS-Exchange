@@ -42,7 +42,7 @@ function Get-ExtendedProtectionPrerequisitesCheck {
             Write-Verbose "$($progressParams.Status)"
 
             $params = @{
-                ComputerName         = $server.ToString()
+                ComputerName         = $server.Fqdn
                 IsClientAccessServer = $server.IsClientAccessServer
                 IsMailboxServer      = $server.IsMailboxServer
                 ExcludeEWS           = $SkipEWS

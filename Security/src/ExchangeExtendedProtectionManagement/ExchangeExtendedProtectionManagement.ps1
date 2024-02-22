@@ -319,7 +319,7 @@ begin {
             $extendedProtectionConfigurations = New-Object 'System.Collections.Generic.List[object]'
             foreach ($server in $ExchangeServers) {
                 $params = @{
-                    ComputerName         = $server.ToString()
+                    ComputerName         = $server.Fqdn
                     IsClientAccessServer = $server.IsClientAccessServer
                     IsMailboxServer      = $server.IsMailboxServer
                     ExcludeEWS           = $SkipEWS
@@ -696,7 +696,7 @@ begin {
 
                 $inputList = New-Object System.Collections.Generic.List[object]
                 $ExchangeServers | ForEach-Object { $inputList.Add([PSCustomObject]@{
-                            ServerName = $_.Name
+                            ServerName = $_.Fqdn
                             Restore    = ([PSCustomObject]@{
                                     FileName     = "ConfigureExtendedProtection"
                                     PassedWhatIf = $WhatIfPreference
