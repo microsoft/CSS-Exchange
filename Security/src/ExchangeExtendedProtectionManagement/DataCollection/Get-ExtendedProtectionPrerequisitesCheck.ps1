@@ -59,7 +59,7 @@ function Get-ExtendedProtectionPrerequisitesCheck {
                 $progressParams.Status = "$baseStatus TLS Settings"
                 Write-Progress @progressParams
                 Write-Verbose "$($progressParams.Status)"
-                $tlsSettings = Get-AllTlsSettings -MachineName $server
+                $tlsSettings = Get-AllTlsSettings -MachineName $server.Fqdn
             } else {
                 Write-Verbose "Server doesn't appear to be online. Skipped over trying to get the TLS settings"
             }
