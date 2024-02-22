@@ -18,6 +18,12 @@ elevated Exchange Management Shell (EMS) command prompt.
 
 #### Examples:
 
+This syntax will process the prerequisites check only against the servers that you provided. This will execute the same checks as if you were attempting to configure Extended Protection.
+
+```powershell
+PS C:\> .\ExchangeExtendedProtectionManagement.ps1 -PrerequisitesCheckOnly
+```
+
 This syntax enables Extended Protection on all Exchange Servers that are online that we can reach.
 
 ```powershell
@@ -101,12 +107,6 @@ This syntax will disable Extended Protection configuration for all the Exchange 
 
 ```powershell
 PS C:\> .\ExchangeExtendedProtectionManagement.ps1 -DisableExtendedProtection
-```
-
-This syntax will process the prerequisites check only against the servers that you provided. This will execute the same checks as if you were attempting to configure Extended Protection.
-
-```powershell
-PS C:\> .\ExchangeExtendedProtectionManagement.ps1 -PrerequisitesCheckOnly
 ```
 
 ## Parameters
