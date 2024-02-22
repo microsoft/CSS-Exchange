@@ -1,6 +1,6 @@
 # Test-ExchangePropertyPermissions
 
-Download the latest release: [Update-Engines.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Update-Engines.ps1)
+Download the latest release: [Test-ExchangePropertyPermissions.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-ExchangePropertyPermissions.ps1)
 
 ## Syntax
 
