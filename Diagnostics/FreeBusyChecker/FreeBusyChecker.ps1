@@ -170,9 +170,6 @@ begin {
         $Script:ExchangeOnPremEWS = ($OnPremEWSUrl)
     }
 
-
-
-
     if (-not $OnPremDomain) {
         $ADDomain = Get-ADDomain
         $ExchangeOnPremLocalDomain = $ADDomain.forest
@@ -455,10 +452,7 @@ begin {
 
         Disconnect-ExchangeOnline  -Confirm:$False
         Write-Host -ForegroundColor Green $ThatIsAllForTheExchangeOnlineSide
-
         PrintDynamicWidthLine
     }
-
-
     Stop-Transcript
 }
