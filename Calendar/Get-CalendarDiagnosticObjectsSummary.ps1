@@ -187,7 +187,6 @@ function GetCalendarDiagnosticObjects {
     }
 
     Write-Host "Found $($CalLogs.count) Calendar Logs for [$Identity]"
-    $script:IsOrganizer = SetIsOrganizer($CalLogs)
     return $CalLogs
 }
 
