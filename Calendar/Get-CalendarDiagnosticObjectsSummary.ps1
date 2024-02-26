@@ -887,6 +887,8 @@ function BuildCSV {
             'AttendeeListDetails'            = MultiLineFormat($CalLog.AttendeeListDetails)
             'AttendeeCollection'             = MultiLineFormat($CalLog.AttendeeCollection)
             'CalendarLogRequestId'           = $CalLog.CalendarLogRequestId.ToString()
+            'AppointmentRecurrenceBlob'      = $CalLog.AppointmentRecurrenceBlob
+            'GlobalObjectId'                 = $CalLog.GlobalObjectId
             'CleanGlobalObjectId'            = $CalLog.CleanGlobalObjectId
         }
     }
