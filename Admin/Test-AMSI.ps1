@@ -197,8 +197,13 @@ begin {
             if ($IgnoreSSL -and ![System.Net.ServicePointManager]::ServerCertificateValidationCallback) {
                 Enable-TrustAnyCertificateCallback
             }
-            $StringDate = (Get-Date -Format yyyyMMddhhmmss)
-            Invoke-WebRequest https://$Server/ecp/CSS-Test-$StringDate.js -Method POST -Headers @{ "Host" = "$Server" } -WebSession $CookieContainer
+
+            $length = 10
+            $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.ToCharArray()
+            $randomString = -join ($characters | Get-Random -Count $length)
+            $UrlStem = "/ecp/Test-$randomString.js"
+            $urlRequest = "https://$Server$UrlStem"
+            Invoke-WebRequest -Uri $urlRequest -Method POST -Headers @{ "Host" = "$Server" } -WebSession $CookieContainer -DisableKeepAlive
         } catch [System.Net.WebException] {
             $Message = ($_.Exception.Message).ToString().Trim()
             $currentForegroundColor = $host.ui.RawUI.ForegroundColor
@@ -224,10 +229,10 @@ begin {
                     Write-Host "You can check your log files located in %ExchangeInstallPath%\Logging\HttpRequestFiltering\ in all server included in $Server endpoint"
                 }
                 $host.ui.RawUI.ForegroundColor = $currentForegroundColor
-                Write-Host  "You should find a request for CSS-Test-$StringDate.js in the HttpRequestFiltering logs"
+                Write-Host "You should find a request for $UrlStem in the HttpRequestFiltering logs"
                 if ($IsExchangeServer) {
                     Write-Host ""
-                    Write-Host "Looking for a request CSS-Test-$StringDate.js in the HttpRequestFiltering logs"
+                    Write-Host "Looking for a request $UrlStem in the HttpRequestFiltering logs"
                     $HttpRequestFilteringLogFolder = $null
 
                     if ($ExchangePath) {
@@ -246,7 +251,7 @@ begin {
                                 $file = Get-ChildItem $HttpRequestFilteringLogFolder -Filter "HttpRequestFiltering_*.log" | Sort-Object LastWriteTime -Descending | Select-Object -First 1 -Property *
                                 if ($file) {
                                     $found = $null
-                                    $found = $file | Get-Content | Select-String "/ecp/CSS-Test-$StringDate.js"
+                                    $found = $file | Get-Content | Select-String $UrlStem
                                     if ($found) {
                                         if ($found.Line -match "Detected") {
                                             Write-Host "We found the request Detected in HttpRequestFiltering logs: " -ForegroundColor Green
