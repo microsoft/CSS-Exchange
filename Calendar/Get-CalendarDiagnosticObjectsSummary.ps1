@@ -882,6 +882,7 @@ function BuildCSV {
             'IsAllDayEvent'                  = $CalLog.IsAllDayEvent
             'IsSeriesCancelled'              = $CalLog.IsSeriesCancelled
             'CreationTime'                   = $CalLog.CreationTime
+            'OriginalStartDate'              = $CalLog.OriginalStartDate
             'SendMeetingMessagesDiagnostics' = $CalLog.SendMeetingMessagesDiagnostics
             'EventEmailReminderTimer'        = $CalLog.EventEmailReminderTimer
             'AttendeeListDetails'            = MultiLineFormat($CalLog.AttendeeListDetails)
