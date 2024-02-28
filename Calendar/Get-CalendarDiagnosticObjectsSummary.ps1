@@ -701,6 +701,7 @@ function SetIsIgnorable {
     if ($ShortClientName -like "TBA*SharingSyncAssistant" -or
         $ShortClientName -eq "CalendarReplication" -or
         $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingCFM" -or
+        $CalLog.ItemClass -eq "(Occurrence Deleted)" -or
         $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingDelete") {
         return "Sharing"
     } elseif ($ShortClientName -like "EBA*" -or
@@ -709,6 +710,7 @@ function SetIsIgnorable {
         $ShortClientName -eq "GriffinRestClient" -or
         $ShortClientName -eq "RestConnector" -or
         $ShortClientName -eq "ELC-B2" -or
+
         $ShortClientName -eq "TimeService" ) {
         return "Ignorable"
     } elseif (($CalendarItemTypes.($CalLog.ItemClass) -like "*Resp*" -and $CalLog.CalendarLogTriggerAction -ne "Create" ) -or
@@ -716,8 +718,7 @@ function SetIsIgnorable {
         $CalLog.CalendarLogTriggerAction -eq "MoveToDeletedItems" -or
         $CalLog.CalendarLogTriggerAction -eq "SoftDelete" ) {
         return "Cleanup"
-    } elseif ($CalLog.ItemClass -eq "IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}" -or
-        $CalLog.ItemClass -eq "(Occurrence Deleted)") {
+    } elseif ($CalLog.ItemClass -eq "IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}" ) {
         return "Exception"
     } else {
         return "False"
