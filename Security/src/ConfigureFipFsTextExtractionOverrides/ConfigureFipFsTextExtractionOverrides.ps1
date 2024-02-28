@@ -72,6 +72,7 @@ param(
 
 begin {
     . $PSScriptRoot\ConfigurationAction\Invoke-TextExtractionOverride.ps1
+    . $PSScriptRoot\..\Shared\Get-ProcessedServerList.ps1
     . $PSScriptRoot\..\..\..\Shared\GenericScriptStartLogging.ps1
     . $PSScriptRoot\..\..\..\Shared\ScriptUpdateFunctions\GenericScriptUpdate.ps1
 
@@ -87,6 +88,13 @@ begin {
     }
 } end {
     try {
+
+        if ($includeExchangeServerNames.Count -eq 0 -and
+            ($null -eq $SkipExchangeServerNames -or $SkipExchangeServerNames.Count -eq 0)) {
+            Write-Host "Only going to attempt to run against the local server '$($env:COMPUTERNAME)' since no servers were provided."
+            $includeExchangeServerNames.Add($env:COMPUTERNAME)
+        }
+
         # TODO adjust the disclaimer wording to match the latest adjustment
         $exchangeServicesWording = "Note that each Exchange server's MSExchangeTransport and FMS service will be restarted to backup and apply the setting change action."
         $vulnerabilityMoreInformationWording = "More information about the vulnerability can be found here: https://portal.msrc.microsoft.com/security-guidance/advisory/CVE-2024-xxxxx."
@@ -128,51 +136,23 @@ begin {
 
         Show-Disclaimer @params
 
-        if (-not([string]::IsNullOrEmpty($ConfigureMitigation))) {
-            # Mitigation mode was selected. In this mode the script will:
-            # a) disable the OutsideInModule.dll for all file types
-            # or
-            # b) remove vulnerable file types from the file types lists that make use of OutsideInModule.dll
-            $invokeOutsideInModuleActionParams = @{
-                Configuration = $ConfigureMitigation
-                Action        = $Action
-            }
-
-            if ($ConfigureMitigation -eq "ConfigureFileTypes") {
-                $invokeOutsideInModuleActionParams.Add("FileTypesDictionary", $fileTypesDictionary)
-            }
-        } elseif (-not([string]::IsNullOrEmpty($ConfigureOverride))) {
-            # Configuration override mode was selected. In this mode the script will:
-            # a) allows you to add the override flag ('NO') to the OutsideInVersion.dll which is part of the OutsideInOnly module list
-            # or
-            # b) allows you to add the override flag to file types that are part of the file type list
-            # the file type will also moved to the OutsideInOnly file type list (if it's yet part of it)
-            $invokeOutsideInModuleActionParams = @{
-                Configuration = $ConfigureOverride
-                Action        = $Action
-            }
-
-            if (-not([string]::IsNullOrWhiteSpace($OutsideInEnabledFileTypes))) {
-                $invokeOutsideInModuleActionParams.Add("FileTypesDictionary", $OutsideInEnabledFileTypes)
-            }
-        } elseif ($RestoreFileTypeList) {
-            # File type list restore mode was selected. In this mode the script will:
-            # a) restore the file type to file type list mapping
-            # and
-            # b) remove the override from any file type that has an override ('NO') set
-            $invokeOutsideInModuleActionParams = @{
-                Configuration = "FileTypesOverride"
-                Action        = "Block"
-            }
+        $processParams = @{
+            ExchangeServerNames              = $includeExchangeServerNames
+            SkipExchangeServerNames          = $SkipExchangeServerNames
+            CheckOnline                      = $true
+            DisableGetExchangeServerFullList = $includeExchangeServerNames.Count -gt 0 # if we pass a list, we shouldn't need to get all the servers in the org.
         }
 
+        $processedExchangeServers = Get-ProcessedServerList @processParams
+
         $params = @{
-            ComputerName      = $includeExchangeServerNames
+            ComputerName      = $processedExchangeServers.OnlineExchangeServerFqdn
             ConfigureOverride = $ConfigureOverride
             Action            = $Action
             Rollback          = $Rollback
         }
 
+        Write-Host "Running the configuration change against the following server(s): $([string]::Join(", ", $params.ComputerName))"
         Invoke-TextExtractionOverride @params
     } finally {
         Write-Host ""
