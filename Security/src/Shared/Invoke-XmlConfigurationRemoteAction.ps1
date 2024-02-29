@@ -401,6 +401,11 @@ function Invoke-XmlConfigurationRemoteAction {
 
                             if ($action.OperationType -eq "AppendAttribute") {
                                 $currentValue = $node.($action.Operation.AttributeName)
+                                # If currentValue already has what we are trying to append with, don't do anything.
+                                if ($currentValue.EndsWith($action.Operation.Value)) {
+                                    Write-Verbose "Already have the appended value, skipping over action"
+                                    continue
+                                }
                                 $newAppendValue = $node.($action.Operation.AttributeName) + $action.Operation.Value
                                 # during restore process, we can run into issues with action type of AppendAttribute if the SelectNodesFilter contains
                                 # the attribute that you are appending a value for.
