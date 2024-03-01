@@ -193,6 +193,7 @@ function Invoke-XmlConfigurationRemoteAction {
             if ($isRestoreOption) {
                 # Don't need to worry about if the restore file wasn't there. This was already handled
                 Write-Verbose "Starting Restore Process"
+                $restoreActions.Reverse() # Reverse the order to make sure that the restore process should always work, unless manually modifying the files to where we can't find the nodes.
                 foreach ($action in $restoreActions) {
                     try {
                         Write-Verbose "Trying to find nodes based off filter: '$($action.SelectNodesFilter)'"
