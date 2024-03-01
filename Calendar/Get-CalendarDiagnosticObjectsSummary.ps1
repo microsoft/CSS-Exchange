@@ -701,7 +701,6 @@ function SetIsIgnorable {
     if ($ShortClientName -like "TBA*SharingSyncAssistant" -or
         $ShortClientName -eq "CalendarReplication" -or
         $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingCFM" -or
-        $CalLog.ItemClass -eq "(Occurrence Deleted)" -or
         $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingDelete") {
         return "Sharing"
     } elseif ($ShortClientName -like "EBA*" -or
@@ -710,7 +709,7 @@ function SetIsIgnorable {
         $ShortClientName -eq "GriffinRestClient" -or
         $ShortClientName -eq "RestConnector" -or
         $ShortClientName -eq "ELC-B2" -or
-
+        $CalLog.ItemClass -eq "(Occurrence Deleted)" -or
         $ShortClientName -eq "TimeService" ) {
         return "Ignorable"
     } elseif (($CalendarItemTypes.($CalLog.ItemClass) -like "*Resp*" -and $CalLog.CalendarLogTriggerAction -ne "Create" ) -or
