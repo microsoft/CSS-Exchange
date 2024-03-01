@@ -48,6 +48,42 @@ function Invoke-XmlConfigurationRemoteAction {
         [object]$InputObject
     )
     begin {
+
+        function TestLastChildNodeRestoreAction {
+            [CmdletBinding()]
+            param(
+                [Parameter(Mandatory)]
+                [string]$LastChildNode,
+
+                [Parameter(Mandatory)]
+                [string]$AttributeName,
+
+                [Parameter(Mandatory)]
+                [string]$CurrentValue,
+
+                [Parameter(Mandatory)]
+                [string]$NewValue,
+
+                [Parameter(Mandatory)]
+                [ref]$RestoreAction
+            )
+
+            # If the Current SelectNodesFilter that we are using to track down the Node contains a filter for an exact match for the attribute that we are manipulating
+            # We need to properly process the change for the restore process to work.
+            $splitResults = $LastChildNode.Split("[").Split("]")
+
+            if ($splitResults -contains "@$AttributeName='$CurrentValue'" -or
+                $splitResults -contains "@$AttributeName=`"$CurrentValue`"") {
+                if ($LastChildNode.IndexOf($CurrentValue) -ne $LastChildNode.LastIndexOf($CurrentValue)) {
+                    throw "Last child node contains multiple entries for the current value. Unable to determine new filter to use on restore."
+                }
+
+                $updatedReplaceChildNode = $LastChildNode.Replace($CurrentValue, $NewValue)
+                $RestoreAction.Value.SelectNodesFilter = $RestoreAction.Value.SelectNodesFilter.Replace($LastChildNode, $updatedReplaceChildNode)
+                Write-Verbose "Updated SelectNodesFilter to: $($RestoreAction.Value.SelectNodesFilter)"
+            }
+        }
+
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $isRestoreOption = $null -ne $InputObject.Restore
         $errorContext = New-Object System.Collections.Generic.List[object]
@@ -408,42 +444,28 @@ function Invoke-XmlConfigurationRemoteAction {
                                     continue
                                 }
                                 $newAppendValue = $node.($action.Operation.AttributeName) + $action.Operation.Value
-                                # during restore process, we can run into issues with action type of AppendAttribute if the SelectNodesFilter contains
-                                # the attribute that you are appending a value for.
-                                $lastChildNode = $action.SelectNodesFilter.Substring($action.SelectNodesFilter.LastIndexOf("/"))
-                                $splitResults = $lastChildNode.Split("[").Split("]")
-                                if ($splitResults -contains "@$($action.Operation.AttributeName)='$($currentValue)'" -or
-                                    $splitResults -contains "@$($action.Operation.AttributeName)=`"$($currentValue)`"") {
-
-                                    if ($lastChildNode.IndexOf($currentValue) -ne $lastChildNode.LastIndexOf($currentValue)) {
-                                        throw "Last child node contains multiple entries for the current value. Unable to determine new filter to use on restore."
-                                    }
-
-                                    $updatedReplaceChildNode = $lastChildNode.Replace($currentValue, $newAppendValue)
-                                    $currentRestoreAction.SelectNodesFilter = $currentRestoreAction.SelectNodesFilter.Replace($lastChildNode, $updatedReplaceChildNode)
-                                    Write-Verbose "Updated SelectNodesFilter to: $($currentRestoreAction.SelectNodesFilter)"
+                                $params = @{
+                                    LastChildNode = $action.SelectNodesFilter.Substring($action.SelectNodesFilter.LastIndexOf("/"))
+                                    AttributeName = $action.Operation.AttributeName
+                                    CurrentValue  = $currentValue
+                                    NewValue      = $newAppendValue
+                                    RestoreAction = [ref]$currentRestoreAction
                                 }
-
+                                TestLastChildNodeRestoreAction @params
                                 $node.($action.Operation.AttributeName) = $newAppendValue
                             } elseif ($action.OperationType -eq "ReplaceAttributeValue") {
                                 # With this operation, we need to treat this similar as AppendAttribute value with handling the restore process
                                 $currentValue = $node.($action.Operation.AttributeName)
                                 $newReplaceValue = $currentValue.Replace($action.Operation.Value, $action.Operation.ReplaceValue)
-                                # TODO: Replace current code with function
-                                $lastChildNode = $action.SelectNodesFilter.Substring($action.SelectNodesFilter.LastIndexOf("/"))
-                                $splitResults = $lastChildNode.Split("[").Split("]")
-                                if ($splitResults -contains "@$($action.Operation.AttributeName)='$($currentValue)'" -or
-                                    $splitResults -contains "@$($action.Operation.AttributeName)=`"$($currentValue)`"") {
 
-                                    if ($lastChildNode.IndexOf($currentValue) -ne $lastChildNode.LastIndexOf($currentValue)) {
-                                        throw "Last child node contains multiple entries for the current value. Unable to determine new filter to use on restore."
-                                    }
-
-                                    $updatedReplaceChildNode = $lastChildNode.Replace($currentValue, $newReplaceValue)
-                                    $currentRestoreAction.SelectNodesFilter = $currentRestoreAction.SelectNodesFilter.Replace($lastChildNode, $updatedReplaceChildNode)
-                                    Write-Verbose "Updated SelectNodesFilter to: $($currentRestoreAction.SelectNodesFilter)"
+                                $params = @{
+                                    LastChildNode = $action.SelectNodesFilter.Substring($action.SelectNodesFilter.LastIndexOf("/"))
+                                    AttributeName = $action.Operation.AttributeName
+                                    CurrentValue  = $currentValue
+                                    NewValue      = $newReplaceValue
+                                    RestoreAction = [ref]$currentRestoreAction
                                 }
-
+                                TestLastChildNodeRestoreAction @params
                                 $node.($action.Operation.AttributeName) = $newReplaceValue
                             } else {
                                 # Need to handle what if scenario here
