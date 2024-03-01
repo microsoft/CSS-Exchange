@@ -5,9 +5,11 @@ nav:
   - Admin:
     - Clear-MailboxPermission: Admin/Clear-MailboxPermission.md
     - Cross-TenantMailboxMigrationValidation: Admin/CrossTenantMailboxMigrationValidation.md
+    - EWS-SearchAndDelete: Admin/EWS-SearchAndDelete.md
     - Find-AmbiguousSids: Admin/Find-AmbiguousSids.md
     - Get-EASMailboxLogs: Admin/Get-EASMailboxLogs.md
     - Get-SimpleAuditLogReport: Admin/Get-SimpleAuditLogReport.md
+    - Graph-SearchAndDelete: Admin/Graph-SearchAndDelete.md
     - MonitorExchangeAuthCertificate: Admin/MonitorExchangeAuthCertificate.md
     - Remove-CertExpiryNotifications: Admin/Remove-CertExpiryNotifications.md
     - Reset-ScanEngineVersion: Admin/Reset-ScanEngineVersion.md
