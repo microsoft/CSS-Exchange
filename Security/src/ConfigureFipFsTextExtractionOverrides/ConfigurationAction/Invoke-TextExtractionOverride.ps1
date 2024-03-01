@@ -24,6 +24,11 @@ function Invoke-TextExtractionOverride {
             $VerbosePreference = $Using:VerbosePreference # To be able to write back to the host screen if -Verbose is used.
             $successfulExecution = $false
             $errorContext = New-Object System.Collections.Generic.List[object]
+            $activityBase = "[$env:COMPUTERNAME]"
+            $writeProgressParams = @{
+                Activity = "$activityBase Getting FIP FS Database Path"
+                Id       = [Math]::Abs(($env:COMPUTERNAME).GetHashCode())
+            }
 
             try {
 
@@ -65,6 +70,7 @@ function Invoke-TextExtractionOverride {
                 $typeListBaseXPathFilter = $baseXPathFilter + "/*[local-name()='TypeLists']/*[local-name()='TypeList'][@Name='{0}']"
                 $getTypeBaseTypeListXPathFilter = $baseXPathFilter +
                 "/*[local-name()='TypeLists']/*[local-name()='TypeList']/*[local-name()='Type'][contains(@Name, '{0}')]"
+                Write-Progress @writeProgressParams
 
                 $fipFsDatabaseParams = @{
                     MachineName = $env:COMPUTERNAME
@@ -86,6 +92,8 @@ function Invoke-TextExtractionOverride {
                     Actions        = (New-Object System.Collections.Generic.List[object])
                 }
 
+                $writeProgressParams.Activity = $activityBase + " Stopping MSExchangeTransport and FMS Services"
+                Write-Progress @writeProgressParams
                 # Always Stop the services first
                 # TODO: Determine if we need to stop the services or need to restart
                 $serviceResult = Invoke-StartStopService -ServiceName "MSExchangeTransport", "FMS" -Action "Stop"
@@ -169,6 +177,8 @@ function Invoke-TextExtractionOverride {
                     }
 
                     # Now that we have the list of actions, we need to execute the results then determine if we were successful or not.
+                    $writeProgressParams.Activity = $activityBase + " updating the Xml Configuration file"
+                    Write-Progress @writeProgressParams
                     $results = Invoke-XmlConfigurationRemoteAction -InputObject $xmlConfigurationRemoteAction
                     Write-Host ""
 
@@ -183,11 +193,14 @@ function Invoke-TextExtractionOverride {
                 }
 
                 # Attempt to start the service again, even if we failed to stop. One could have worked.
+                $writeProgressParams.Activity = $activityBase + " Starting MSExchangeTransport and FMS Services"
+                Write-Progress @writeProgressParams
                 $serviceResult = Invoke-StartStopService -ServiceName "MSExchangeTransport", "FMS" -Action "Start"
             } catch {
                 Write-Verbose "Caught an exception while trying to execute actions for Text EXtraction Override. Inner Exception: $_"
                 $errorContext.Add($_)
             } finally {
+                Write-Progress @writeProgressParams -Completed
                 [PSCustomObject]@{
                     ServerName          = $env:COMPUTERNAME
                     SuccessfulExecution = $successfulExecution
