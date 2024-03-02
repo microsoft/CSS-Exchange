@@ -5,40 +5,15 @@
 [CmdletBinding()]
 param (
     [Parameter(Mandatory = $false)]
-    $TestingDAuthConfiguration                            = "---------------------------------------Testing DAuth Configuration-----------------------------------------------",
-    $PressEnterToCheckFederationInfo                      = " Press Enter when ready to Check the Federation Information Details.",
-    $PressEnterToCheckFederationTrust                     = " Press Enter when ready to Check the Federation Trust configuration details. ",
-    $PressEnterToCheckAutoDiscoverVirtualDirectory        = " Press Enter when ready to Check the On-Prem AutoDiscover Virtual Directory configuration details. ",
-    $PressEnterToCheckEWSVirtualDirectory                 = " Press Enter when ready to Check the On-Prem Web Services Virtual Directory configuration details. ",
-    $PressEnterToCheckAvailabilityAddressSpace            = " Press Enter when ready to  Check the Availability Address Space configuration details. ",
-    $PressEnterToTestFederationTrust                      = " Press Enter when ready to test the Federation Trust. ",
-    $PressEnterToTestOrganizationRelationship             = " Press Enter when ready to Test the Organization Relationship. ",
-    $TestingOAuthConfiguration                            = " ---------------------------------------Testing OAuth Configuration----------------------------------------------- ",
-    $PressEnterToCheckOAuthConfiguration                  = " Press Enter when ready to Check the OAuth configuration details. ",
-    $PressEnterToCheckAuthServer                          = " Press Enter when ready to Check the Auth Server configuration details. ",
-    $PressEnterToCheckPartnerApplication                  = " Press Enter when ready to Check the Partner Application configuration details. ",
-    $PressAnyKeyToCheckExchangeOnlineApplicationAccount   = " Press any key when ready to Check the Exchange Online-ApplicationAccount configuration details. ",
-    $PressEnterToCheckManagementRoleAssignments           = " Press Enter when ready to Check the Management Role Assignments for the Exchange Online-ApplicationAccount. ",
-    $PressEnterToCheckAuthConfiguration                   = " Press Enter when ready to Check Auth configuration details. ",
-    $PressEnterToCheckAuthCertificate                     = " Press Enter when ready to Check the Auth Certificate configuration details. ",
-    $PressAnyKeyToCheckOnPremAutoDiscoverVirtualDirectory = " Press any key when ready to  Check the On Prem AutoDiscover Virtual Directory configuration details. ",
-    $PressAnyKeyToCheckOnPremWebServiceVirtualDirectory   = " Press any key when ready to Check the On-Prem Web Services Virtual Directory configuration details. ",
-    $PressAnyKeyToCheckAvailabilityAddressSpace           = " Press any key when ready to Check the AvailabilityAddressSpace configuration details. ",
-    $PressEnterToTestOAuthConnectivity                    = " Press Enter when ready to test the OAuthConnectivity configuration details. ",
-    $CollectingExoAvailabilityInformation                 = " Collecting Exchange Online Availability Information",
-    $ExchangeOnlinePowershellModuleMessage                = "`n Exchange Online Powershell Module is required to Check Free Busy Configuration on Exchange Online side. Installing Module",
-    $ExchangeOnlineModuleAvailableMessage                 = "`n ExchangeOnlineManagement module is available.",
-    $TestingExoDAuthConfiguration                         = " ---------------------------------------Testing DAuth Configuration----------------------------------------------- ",
-    $PressEnterToCheckFederationOrgIdentifier             = " Press Enter when ready to Check the Federation Organization Identifier configuration details. ",
-    $PressEnterToCheckOrgRelationship                     = " Press Enter when ready to Check the Organization Relationship configuration details. ",
-    $PressEnterToCheckSharingPolicy                       = " Press Enter when ready to Check the Sharing Policy configuration details. ",
-    $TestingExoOAuthConfiguration                         = " ---------------------------------------Testing OAuth Configuration----------------------------------------------- ",
-    $PressEnterToCheckOrgConfiguration                    = " Press Enter when ready to Check the OrganizationConfiguration details. ",
-    $PressEnterToCheckAuthServerAuthorizationDetails      = " Press Enter when ready to Check the Authentication Server Authorization Details.  ",
-    $PressEnterToTestOAuthConnectivityDetails             = " Press Enter when ready to test the OAuth Connectivity Details.  ",
-    $ThatIsAllForTheExchangeOnlineSide                    = " That is all for the Exchange Online Side"
+    $TestingDAuthConfiguration = "---------------------------------------Testing DAuth Configuration-----------------------------------------------",
+    $TestingOAuthConfiguration = " ---------------------------------------Testing OAuth Configuration----------------------------------------------- ",
+    $CollectingExoAvailabilityInformation = " Collecting Exchange Online Availability Information",
+    $ExchangeOnlinePowershellModuleMessage = "`n Exchange Online Powershell Module is required to Check Free Busy Configuration on Exchange Online side. Installing Module",
+    $ExchangeOnlineModuleAvailableMessage = "`n ExchangeOnlineManagement module is available.",
+    $TestingExoDAuthConfiguration = " ---------------------------------------Testing DAuth Configuration----------------------------------------------- ",
+    $TestingExoOAuthConfiguration = " ---------------------------------------Testing OAuth Configuration----------------------------------------------- ",
+    $ThatIsAllForTheExchangeOnlineSide = " That is all for the Exchange Online Side"
 )
-
 function PrintDynamicWidthLine {
     $screenWidth = $host.UI.RawUI.WindowSize.Width
     if ($screenWidth -gt 180) {
@@ -105,7 +80,7 @@ function ShowParameters() {
     Write-Host -ForegroundColor Green "  $UserOnline"
     showParametersHtml
 }
-function hostOutputIntraOrgConEnabled() {
+function hostOutputIntraOrgConEnabled($Auth) {
     PrintDynamicWidthLine
     if ($Auth -Like "DAuth") {
         Write-Host -ForegroundColor yellow "  Warning: Intra Organization Connector Enabled True -> Running for DAuth only as -Auth DAuth option was selected`n  "
@@ -126,6 +101,7 @@ function hostOutputIntraOrgConEnabled() {
     if ($Auth -Like "All") {
         lookupMethodCheckAllHtml
     }
+    return $Auth
 }
 function hostOutputIntraOrgConNotEnabled() {
     if ($Auth -like "" -or $Auth -like "DAuth") {
