@@ -698,7 +698,11 @@ function SetIsIgnorable {
         $CalLog
     )
 
-    if ($ShortClientName -like "TBA*SharingSyncAssistant" -or
+    if ($CalLog.ItemClass -eq "IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}" ) {
+        return "Exception" 
+    } elseif ($CalLog.ItemClass -eq "(Occurrence Deleted)") {
+        return "Ignorable"
+    } elseif ($ShortClientName -like "TBA*SharingSyncAssistant" -or
         $ShortClientName -eq "CalendarReplication" -or
         $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingCFM" -or
         $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingDelete") {
@@ -709,7 +713,6 @@ function SetIsIgnorable {
         $ShortClientName -eq "GriffinRestClient" -or
         $ShortClientName -eq "RestConnector" -or
         $ShortClientName -eq "ELC-B2" -or
-        $CalLog.ItemClass -eq "(Occurrence Deleted)" -or
         $ShortClientName -eq "TimeService" ) {
         return "Ignorable"
     } elseif (($CalendarItemTypes.($CalLog.ItemClass) -like "*Resp*" -and $CalLog.CalendarLogTriggerAction -ne "Create" ) -or
@@ -717,8 +720,6 @@ function SetIsIgnorable {
         $CalLog.CalendarLogTriggerAction -eq "MoveToDeletedItems" -or
         $CalLog.CalendarLogTriggerAction -eq "SoftDelete" ) {
         return "Cleanup"
-    } elseif ($CalLog.ItemClass -eq "IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}" ) {
-        return "Exception"
     } else {
         return "False"
     }
@@ -1198,10 +1199,10 @@ function BuildTimeline {
                             } else {
                                 if ($CalLog.Client -eq "Transport") {
                                     if ($CalLog.IsException -eq $True) {
-                                        [array] $Output = "[$($CalLog.SentRepresentingDisplayName)] send a new Meeting Request via Transport for an exception starting on [$($CalLog.StartTime)]."
+                                        [array] $Output = "Transport delievered a new Meeting Request based on changes by [$($CalLog.SentRepresentingDisplayName)] for an exception starting on [$($CalLog.StartTime)]."
                                         [bool] $MeetingSummaryNeeded = $True
                                     } else {
-                                        [array] $Output = "[$($CalLog.SentRepresentingDisplayName)] send a new Meeting Request via Transport."
+                                        [array] $Output = "Transport delievered a new Meeting Request based on changes by [$($CalLog.SentRepresentingDisplayName)]."
                                         [bool] $MeetingSummaryNeeded = $True
                                     }
                                 } elseif ($CalLog.Client -eq "CalendarRepairAssistant") {
@@ -1312,7 +1313,7 @@ function BuildTimeline {
                     Update {
                         switch ($CalLog.Client) {
                             Transport {
-                                [array] $Output = "[$($CalLog.SentRepresentingDisplayName)] made changed which caused Transport to $($CalLog.TriggerAction) the meeting."
+                                [array] $Output = "Transport $($CalLog.TriggerAction)d the meeting based on changes made by [$($CalLog.SentRepresentingDisplayName)]."
                             }
                             LocationProcessor {
                                 [array] $Output = ""
@@ -1348,7 +1349,7 @@ function BuildTimeline {
                     SoftDelete {
                         switch ($CalLog.Client) {
                             Transport {
-                                [array] $Output = "[$($CalLog.SentRepresentingDisplayName)] made changed which caused Transport to $($CalLog.TriggerAction) the Meeting."
+                                [array] $Output = "Transport $($CalLog.TriggerAction)d the meeting based on changes by [$($CalLog.SentRepresentingDisplayName)]."
                             }
                             LocationProcessor {
                                 [array] $Output = ""
@@ -1387,9 +1388,9 @@ function BuildTimeline {
                 switch ($CalLog.Client) {
                     Transport {
                         if ($CalLog.IsException -eq $True) {
-                            [array] $Output = "[$($CalLog.SentRepresentingDisplayName)] $($CalLog.TriggerAction)d a Meeting Cancellation delivered by Transport for the exception starting on [$($CalLog.StartTime)]"
+                            [array] $Output = "Transport $($CalLog.TriggerAction)d a Meeting Cancellation based on changes by [$($CalLog.SentRepresentingDisplayName)] for the exception starting on [$($CalLog.StartTime)]"
                         } else {
-                            [array] $Output = "[$($CalLog.SentRepresentingDisplayName)] $($CalLog.TriggerAction)d a Meeting Cancellation delivered by Transport."
+                            [array] $Output = "Transport $($CalLog.TriggerAction)d a Meeting Cancellation based on changes by [$($CalLog.SentRepresentingDisplayName)]."
                         }
                     }
                     default {
