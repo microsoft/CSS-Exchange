@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 . $PSScriptRoot\..\Get-FilteredSettingOverrideInformation.ps1
-. $PSScriptRoot\..\..\Helpers\CompareExchangeBuildLevel.ps1
+. $PSScriptRoot\..\..\..\..\Shared\CompareExchangeBuildLevel.ps1
 
 function Invoke-AnalyzerSecurityAMSIConfigState {
     [CmdletBinding()]
