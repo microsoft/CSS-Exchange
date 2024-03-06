@@ -1,10 +1,11 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\..\Shared\CompareExchangeBuildLevel.ps1
 . $PSScriptRoot\..\..\..\Shared\Get-ExchangeBuildVersionInformation.ps1
 . $PSScriptRoot\..\..\..\Shared\Get-ExSetupFileVersionInfo.ps1
 . $PSScriptRoot\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
-. $PSScriptRoot\..\..\..\Diagnostics\HealthChecker\Helpers\CompareExchangeBuildLevel.ps1 # TODO: Make this a shared function
+
 function Get-ProcessedServerList {
     [CmdletBinding()]
     param(

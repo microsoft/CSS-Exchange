@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\Add-AnalyzedResultInformation.ps1
-. $PSScriptRoot\..\..\Helpers\CompareExchangeBuildLevel.ps1 #This is moving in a different PR.
+. $PSScriptRoot\..\..\..\..\Shared\CompareExchangeBuildLevel.ps1
 
 <#
 .DESCRIPTION

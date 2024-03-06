@@ -13,7 +13,7 @@
 . $PSScriptRoot\Invoke-AnalyzerSecurityExtendedProtectionConfigState.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityIISModules.ps1
 . $PSScriptRoot\..\Add-AnalyzedResultInformation.ps1
-. $PSScriptRoot\..\..\Helpers\CompareExchangeBuildLevel.ps1
+. $PSScriptRoot\..\..\..\..\Shared\CompareExchangeBuildLevel.ps1
 function Invoke-AnalyzerSecurityCveCheck {
     [CmdletBinding()]
     param(
