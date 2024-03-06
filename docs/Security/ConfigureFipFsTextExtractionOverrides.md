@@ -10,9 +10,9 @@ The `ConfigureFipFsTextExtractionOverrides.ps1` script can be used to enable fil
 
 The script can also be used to override the version of the `OutsideInModule` that should be used. After installing the March 2024 Security Update, Exchange Server will use the latest version of the `OutsideInModule`, which is `8.5.7`, if processing for a file type was explicitly enabled by the help of this script.
 
-Details about the change that was done as part of the March 2024 security update can be found in [KB123456](https://support.microsoft.com/help/123456).
+Details about the change that was done as part of the March 2024 security update can be found in [KB5037191](https://support.microsoft.com/topic/5037191).
 
-Details about the security flaw can be found in the [MSRC security advisory](https://portal.msrc.microsoft.com/security-guidance/advisory/ADV123456).
+Details about the security flaw can be found in the [MSRC security advisory](https://portal.msrc.microsoft.com/security-guidance/advisory/ADV24199947).
 
 !!! warning "Warning"
 
