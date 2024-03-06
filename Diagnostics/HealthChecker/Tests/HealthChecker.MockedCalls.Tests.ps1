@@ -24,7 +24,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-ExchangeServer { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeServer.xml" }
             Mock Get-ExchangeCertificate { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeCertificate.xml" }
             Mock Get-AuthConfig { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAuthConfig.xml" }
-            Mock Get-ExSetupDetails { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup.xml" }
+            Mock Get-ExSetupFileVersionInfo { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup.xml" }
             Mock Get-MailboxServer { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetMailboxServer.xml" }
             Mock Get-OwaVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory.xml" }
             Mock Get-WebServicesVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetWebServicesVirtualDirectory.xml" }
@@ -79,7 +79,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-ExchangeServer -Exactly 1
             Assert-MockCalled Get-ExchangeCertificate -Exactly 1
             Assert-MockCalled Get-AuthConfig -Exactly 1
-            Assert-MockCalled Get-ExSetupDetails -Exactly 1
+            Assert-MockCalled Get-ExSetupFileVersionInfo -Exactly 1
             Assert-MockCalled Get-MailboxServer -Exactly 1
             Assert-MockCalled Get-OwaVirtualDirectory -Exactly 1
             Assert-MockCalled Get-WebServicesVirtualDirectory -Exactly 1
