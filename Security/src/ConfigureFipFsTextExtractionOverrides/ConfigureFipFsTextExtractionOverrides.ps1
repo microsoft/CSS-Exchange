@@ -168,10 +168,6 @@ begin {
             Rollback          = $Rollback
         }
 
-        if ($processedExchangeServers.OutdatedBuildExchangeServerFqdn.Count -ge 1) {
-            Write-Host "Excluded the following server(s) because build is too old: $([string]::Join(", ", $processedExchangeServers.OutdatedBuildExchangeServerFqdn))"
-        }
-
         if ($processedExchangeServers.OnlineExchangeServerFqdn.Count -ge 1) {
             Write-Host "Running the configuration change against the following server(s): $([string]::Join(", ", $params.ComputerName))"
             Invoke-TextExtractionOverride @params
