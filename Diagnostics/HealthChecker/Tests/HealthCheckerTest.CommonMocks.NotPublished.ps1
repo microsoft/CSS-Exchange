@@ -221,7 +221,7 @@ Mock Get-ExchangeADSplitPermissionsEnabled {
     return $false
 }
 
-Mock Get-ExSetupDetails {
+Mock Get-ExSetupFileVersionInfo {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup.xml"
 }
 

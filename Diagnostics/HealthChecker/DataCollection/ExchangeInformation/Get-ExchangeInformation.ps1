@@ -5,6 +5,7 @@
 . $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeBuildVersionInformation.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeSettingOverride.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Get-ExSetupFileVersionInfo.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-FileContentInformation.ps1
 . $PSScriptRoot\IISInformation\Get-ExchangeAppPoolsInformation.ps1
 . $PSScriptRoot\IISInformation\Get-ExchangeServerIISSettings.ps1
@@ -16,7 +17,6 @@
 . $PSScriptRoot\Get-ExchangeServerMaintenanceState.ps1
 . $PSScriptRoot\Get-ExchangeUpdates.ps1
 . $PSScriptRoot\Get-ExchangeVirtualDirectories.ps1
-. $PSScriptRoot\Get-ExSetupDetails.ps1
 . $PSScriptRoot\Get-FIPFSScanEngineVersionState.ps1
 . $PSScriptRoot\Get-ServerRole.ps1
 function Get-ExchangeInformation {
@@ -35,7 +35,7 @@ function Get-ExchangeInformation {
         $windows2016OrGreater = Invoke-ScriptBlockHandler @params
         $getExchangeServer = (Get-ExchangeServer -Identity $Server -Status)
         $exchangeCertificates = Get-ExchangeServerCertificates -Server $Server
-        $exSetupDetails = Get-ExSetupDetails -Server $Server
+        $exSetupDetails = Get-ExSetupFileVersionInfo -Server $Server -CatchActionFunction ${Function:Invoke-CatchActions}
 
         if ($null -eq $exSetupDetails) {
             # couldn't find ExSetup.exe this should be rare so we are just going to handle this by displaying the AdminDisplayVersion from Get-ExchangeServer

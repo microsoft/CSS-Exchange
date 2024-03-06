@@ -2,9 +2,9 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\Shared\Get-ExchangeBuildVersionInformation.ps1
+. $PSScriptRoot\..\..\..\Shared\Get-ExSetupFileVersionInfo.ps1
 . $PSScriptRoot\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 . $PSScriptRoot\..\..\..\Diagnostics\HealthChecker\Helpers\CompareExchangeBuildLevel.ps1 # TODO: Make this a shared function
-. $PSScriptRoot\..\..\..\Diagnostics\HealthChecker\DataCollection\ExchangeInformation\Get-ExSetupDetails.ps1 # TODO: Make this a shared function
 function Get-ProcessedServerList {
     [CmdletBinding()]
     param(
@@ -90,7 +90,7 @@ function Get-ProcessedServerList {
         if ($CheckOnline -or (-not ([string]::IsNullOrEmpty($MinimumSU)))) {
             Write-Verbose "Will check to see if the servers are online"
             foreach ($server in $possibleValidExchangeServer) {
-                $exSetupDetails = Get-ExSetupDetails -Server $server.FQDN
+                $exSetupDetails = Get-ExSetupFileVersionInfo -Server $server.FQDN
 
                 if ($null -ne $exSetupDetails -and
                     (-not ([string]::IsNullOrEmpty($exSetupDetails)))) {
