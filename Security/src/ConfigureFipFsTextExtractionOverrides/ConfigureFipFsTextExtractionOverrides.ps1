@@ -156,6 +156,7 @@ begin {
             SkipExchangeServerNames          = $SkipExchangeServerNames
             CheckOnline                      = $true
             DisableGetExchangeServerFullList = $includeExchangeServerNames.Count -gt 0 # if we pass a list, we shouldn't need to get all the servers in the org.
+            MinimumSU                        = "Mar24SU"
         }
 
         $processedExchangeServers = Get-ProcessedServerList @processParams
@@ -167,8 +168,16 @@ begin {
             Rollback          = $Rollback
         }
 
-        Write-Host "Running the configuration change against the following server(s): $([string]::Join(", ", $params.ComputerName))"
-        Invoke-TextExtractionOverride @params
+        if ($processedExchangeServers.OutdatedBuildExchangeServerFqdn.Count -ge 1) {
+            Write-Host "Excluded the following server(s) because build is too old: $([string]::Join(", ", $processedExchangeServers.OutdatedBuildExchangeServerFqdn))"
+        }
+
+        if ($processedExchangeServers.OnlineExchangeServerFqdn.Count -ge 1) {
+            Write-Host "Running the configuration change against the following server(s): $([string]::Join(", ", $params.ComputerName))"
+            Invoke-TextExtractionOverride @params
+        } else {
+            Write-Host "None of the server(s) passed to the script do support OutsideInModule overrides"
+        }
     } finally {
         Write-Host ""
         Write-Host "Do you have feedback regarding the script? Please let us know: ExToolsFeedback@microsoft.com."
