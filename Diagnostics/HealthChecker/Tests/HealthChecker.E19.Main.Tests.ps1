@@ -150,7 +150,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
             $cveTests.Contains("CVE-2023-36434") | Should -Be $true
             $cveTests.Contains("CVE-2023-36039") | Should -Be $true
-            $cveTests.Count | Should -Be 50
+            $cveTests.Contains("ADV24199947") | Should -Be $true
+            $cveTests.Count | Should -Be 51
             $downloadDomains = GetObject "CVE-2021-1730"
             $downloadDomains.DownloadDomainsEnabled | Should -Be "False"
             TestObjectMatch "Extended Protection Vulnerable" "True" -WriteType "Red"
