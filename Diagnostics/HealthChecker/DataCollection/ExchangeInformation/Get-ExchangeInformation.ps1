@@ -117,7 +117,23 @@ function Get-ExchangeInformation {
                 "$([System.IO.Path]::Combine($serverExchangeBinDirectory, "Search\Ceres\Runtime\1.0\noderunner.exe.config"))")
         }
 
-        $applicationConfigFileStatus = Get-FileContentInformation @configParams
+        if ($getExchangeServer.IsEdgeServer -eq $false -and
+            (-not ([string]::IsNullOrEmpty($registryValues.FipFsDatabasePath)))) {
+            $configParams.FileLocation += "$([System.IO.Path]::Combine($registryValues.FipFsDatabasePath, "Configuration.xml"))"
+        }
+
+        $getFileContentInformation = Get-FileContentInformation @configParams
+        $applicationConfigFileStatus = @{}
+        $fileContentInformation = @{}
+
+        foreach ($key in $getFileContentInformation.Keys) {
+            if ($key -like "*.exe.config") {
+                $applicationConfigFileStatus.Add($key, $getFileContentInformation[$key])
+            } else {
+                $fileContentInformation.Add($key, $getFileContentInformation[$key])
+            }
+        }
+
         $serverMaintenance = Get-ExchangeServerMaintenanceState -Server $Server -ComponentsToSkip "ForwardSyncDaemon", "ProvisioningRps"
         $settingOverrides = Get-ExchangeSettingOverride -Server $Server -CatchActionFunction ${Function:Invoke-CatchActions}
 
@@ -192,6 +208,7 @@ function Get-ExchangeInformation {
             SettingOverrides                         = $settingOverrides
             FIPFSUpdateIssue                         = $FIPFSUpdateIssue
             AES256CBCInformation                     = $aes256CbcDetails
+            FileContentInformation                   = $fileContentInformation
         }
     }
 }
