@@ -69,7 +69,7 @@ function Invoke-TextExtractionOverride {
                 "/*[local-name()='ModuleLists']/*[local-name()='ModuleList'][@TypeList='OutsideInOnly']/*[local-name()='Module'][contains(., 'OutsideInModule.dll')]"
                 $typeListBaseXPathFilter = $baseXPathFilter + "/*[local-name()='TypeLists']/*[local-name()='TypeList'][@Name='{0}']"
                 $getTypeBaseTypeListXPathFilter = $baseXPathFilter +
-                "/*[local-name()='TypeLists']/*[local-name()='TypeList']/*[local-name()='Type'][contains(@Name, '{0}')]"
+                "/*[local-name()='TypeLists']/*[local-name()='TypeList']/*[local-name()='Type'][starts-with(@Name, '{0}')]"
                 Write-Progress @writeProgressParams
 
                 $fipFsDatabaseParams = @{
