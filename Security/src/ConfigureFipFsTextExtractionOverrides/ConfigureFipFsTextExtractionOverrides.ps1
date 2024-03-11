@@ -168,7 +168,12 @@ begin {
             Rollback          = $Rollback
         }
 
-        if ($processedExchangeServers.ValidExchangeServerFqdn.Count -ge 1) {
+        if ($Rollback -and $processedExchangeServers.OutdatedBuildExchangeServerFqdn.Count -gt 0) {
+            Write-Host "Adding the Server(s) back into the list to process because we are attempting to rollback: $([string]::Join(", ", $processedExchangeServers.OutdatedBuildExchangeServerFqdn))"
+            $params.ComputerName = $processedExchangeServers.OnlineExchangeServerFqdn
+        }
+
+        if ($params.ComputerName.Count -ge 1) {
             Write-Host "Running the configuration change against the following server(s): $([string]::Join(", ", $params.ComputerName))"
             Invoke-TextExtractionOverride @params
         } else {
