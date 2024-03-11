@@ -4,19 +4,22 @@ Download the latest release: [ConfigureFipFsTextExtractionOverrides.ps1](https:/
 
 !!! warning "Note"
 
-      With the Exchange Server March 2024 security update we disable the use of the OutsideInModule in Microsoft Exchange Server due to multiple security flaws in the module. The OutsideInModule was used by the Microsoft Forefront Filtering Module to extract information from different file types, to perform content inspection as part of the Exchange Server Data Loss Prevention (DLP) feature.
+      Starting in the Exchange Server March 2024 security update we disable the use of the Oracle Outside In Technology (also known as OutsideInModule or OIT) in Microsoft Exchange Server due to multiple security vulnerabilities in the module. The OutsideInModule was used by the Microsoft Forefront Filtering Module to extract information from different file types, to perform content inspection as part of the Exchange Server Data Loss Prevention (DLP) or Exchange Transport Rules (ETR) features.
 
-The `ConfigureFipFsTextExtractionOverrides.ps1` script can be used to enable file types that should be processed by the help of the `Oracle Outside In Technology` (also known as `OutsideInModule`). The module is used by the `Microsoft Forefront Filtering Module` when Exchange Transport Rules (ETR) or Data Loss Prevention (DLP) rules are in place.
+The `ConfigureFipFsTextExtractionOverrides.ps1` script can be used to manipulate the usage of `OutsideInModule` that is disabled by default in the Exchange Server March 2024 security update.
 
-The script can also be used to override the version of the `OutsideInModule` that should be used. After installing the March 2024 Security Update, Exchange Server will use the latest version of the `OutsideInModule`, which is `8.5.7`, if processing for a file type was explicitly enabled by the help of this script.
+There are two scenarios in which the script could be used:
+
+- It can be used to explicitly enable file types that should be processed by the help of the `OutsideInModule`.
+- It can be used to override the version of the `OutsideInModule` that should be used for processing file types, which were explicitly enabled to be processed by the `OutsideInModule`. After installing the March 2024 security update, Exchange Server uses the latest version of the `OutsideInModule` version `8.5.7` by default. By activating this override, `OutsideInModule` version `8.5.3` will be used.
 
 Details about the change that was done as part of the March 2024 security update can be found in [KB5037191](https://support.microsoft.com/topic/5037191).
 
-Details about the security flaw can be found in the [MSRC security advisory](https://portal.msrc.microsoft.com/security-guidance/advisory/ADV24199947).
+Details about the security vulnerability can be found in the [MSRC security advisory](https://portal.msrc.microsoft.com/security-guidance/advisory/ADV24199947).
 
 !!! warning "Warning"
 
-      We strongly recommend to not override the OutsideInModule version as this could make the server vulnerable! Do not use this override unless explicitly advised by Microsoft to do so.
+      Microsoft strongly recommends not overriding the default behavior that was introduced with the March 2024 security update if there are no functional issues that affect your organization's mail flow.
 
 ## Requirements
 
@@ -62,7 +65,7 @@ Parameter | Description
 ----------|------------
 ExchangeServerNames | A list of Exchange servers that you want to run the script against.
 SkipExchangeServerNames | A list of Exchange servers that you don't want to execute the configuration action.
-ConfigureOverride | A list of file types that should be allowed to be processed by the `OutsideInModule`. It also allows you to override the version of the `OutsideInModule.dll` that should be used by Exchange Server. The following input can be used: `OutsideInModule`, `XlsbOfficePackage`, `XlsmOfficePackage`, `XlsxOfficePackage`, `ExcelStorage`, `DocmOfficePackage`, `DocxOfficePackage`, `PptmOfficePackage`, `PptxOfficePackage`, `WordStorage`, `PowerPointStorage`, `VisioStorage`, `Rtf`, `Xml`, `OdfTextDocument`, `OdfSpreadsheet`, `OdfPresentation`, `OneNote`, `Pdf`, `Html`, `AutoCad`, `Jpeg`, `Tiff`. `OutsideInModule` cannot be used together with other file types. The input is case-sensitive.
+ConfigureOverride | A list of file types that should be allowed to be processed by the `OutsideInModule`. The following input can be used: `XlsbOfficePackage`, `XlsmOfficePackage`, `XlsxOfficePackage`, `ExcelStorage`, `DocmOfficePackage`, `DocxOfficePackage`, `PptmOfficePackage`, `PptxOfficePackage`, `WordStorage`, `PowerPointStorage`, `VisioStorage`, `Rtf`, `Xml`, `OdfTextDocument`, `OdfSpreadsheet`, `OdfPresentation`, `OneNote`, `Pdf`, `Html`, `AutoCad`, `Jpeg`, `Tiff`.<br><br>If you want to enable the previous version of the `OutsideInModule` (`8.5.3`) to process file types, you must specify `OutsideInModule` as file type. Note that the `OutsideInModule` value cannot be used together with other file type values.<br><br>The input is case-sensitive.
 Action | String parameter to define the action that should be performed. Input can be `Allow` or `Block`. The default value is: `Block`
 Rollback | Switch parameter to restore the `configuration.xml` that was backed-up during a previous run of the script.
 ScriptUpdateOnly | Switch parameter to only update the script without performing any other actions.
