@@ -162,13 +162,13 @@ begin {
         $processedExchangeServers = Get-ProcessedServerList @processParams
 
         $params = @{
-            ComputerName      = $processedExchangeServers.OnlineExchangeServerFqdn
+            ComputerName      = $processedExchangeServers.ValidExchangeServerFqdn
             ConfigureOverride = $ConfigureOverride
             Action            = $Action
             Rollback          = $Rollback
         }
 
-        if ($processedExchangeServers.OnlineExchangeServerFqdn.Count -ge 1) {
+        if ($processedExchangeServers.ValidExchangeServerFqdn.Count -ge 1) {
             Write-Host "Running the configuration change against the following server(s): $([string]::Join(", ", $params.ComputerName))"
             Invoke-TextExtractionOverride @params
         } else {
