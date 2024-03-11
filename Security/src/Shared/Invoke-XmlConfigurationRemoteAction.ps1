@@ -236,7 +236,7 @@ function Invoke-XmlConfigurationRemoteAction {
                         $selectNodes = $contentXml.SelectNodes($action.SelectNodesFilter)
                         Write-Verbose "Found $($selectNodes.Count) node(s)"
 
-                        if ($null -eq $selectNodes) {
+                        if ($selectNodes.Count -eq 0) {
                             Write-Verbose "No nodes were found with the current filter. Unable to perform restore action. Filter: $($action.SelectNodesFilter)"
                             # TODO: Determine how to handle
                             continue
