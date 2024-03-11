@@ -279,7 +279,7 @@ function Invoke-XmlConfigurationRemoteAction {
                         } elseif ($action.RestoreType -eq "MoveNode") {
                             $moveToNodeLocation = $contentXml.SelectNodes($action.Operation.MoveToSelectNodesFilter)
 
-                            if ($null -eq $moveToNodeLocation) {
+                            if ($moveToNodeLocation.Count -eq 0) {
                                 throw "Failed to find node selection to move to"
                             }
 
@@ -330,7 +330,7 @@ function Invoke-XmlConfigurationRemoteAction {
                 Write-Verbose "Trying to find SelectNodes based off filter: '$($action.SelectNodesFilter)'"
                 $selectNodes = $contentXml.SelectNodes($action.SelectNodesFilter)
 
-                if ($null -eq $selectNodes) {
+                if ($selectNodes.Count -eq 0) {
                     # This shouldn't be treated as an error.
                     Write-Verbose "No nodes were found with the current filter. This could be the action was already taken or doesn't exist."
                     continue
@@ -370,6 +370,10 @@ function Invoke-XmlConfigurationRemoteAction {
                             $parentSelectNodesFilter = $action.SelectNodesFilter.Substring(0, $lastIndexOf)
                             $testSelectNodesResults = $contentXml.SelectNodes($parentSelectNodesFilter)
 
+                            if ($testSelectNodesResults.Count -eq 0) {
+                                throw "No parent nodes where found. This shouldn't occur. Unable to continue."
+                            }
+
                             if ($testSelectNodesResults.Count -gt 1) {
                                 throw "Multiple nodes returned for parent node which will result in restore process failure. Unable to continue."
                             }
@@ -388,7 +392,7 @@ function Invoke-XmlConfigurationRemoteAction {
                             $lastChildNode = $action.SelectNodesFilter.Substring($action.SelectNodesFilter.LastIndexOf("/"))
                             $moveToNodeLocation = $contentXml.SelectNodes($action.Operation.MoveToSelectNodesFilter)
 
-                            if ($null -eq $moveToNodeLocation) {
+                            if ($moveToNodeLocation.Count -eq 0) {
                                 throw "Failed to find node selection to move to"
                             }
 
@@ -413,8 +417,7 @@ function Invoke-XmlConfigurationRemoteAction {
                             Write-Verbose "Verifying possible restore process with filter: $($currentRestoreAction.Operation.MoveToSelectNodesFilter)"
                             $verifyMoveBack = $contentXml.SelectNodes($currentRestoreAction.Operation.MoveToSelectNodesFilter)
 
-                            if ($null -eq $verifyMoveBack -or
-                                $verifyMoveBack.Count -gt 1) {
+                            if ($verifyMoveBack.Count -ne 1) {
                                 throw "Found multiple node locations for the move back. Since we are unable to restore, preventing move from occurring."
                             }
 
