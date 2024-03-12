@@ -121,6 +121,7 @@ Mock Get-RemoteRegistryValue {
         "DaylightStart" { return @(0, 0, 3, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0) }
         "DisableBaseTypeCheckForDeserialization" { return $null }
         "DisablePreservation" { return 0 }
+        "DatabasePath" { return "$Script:MockDataCollectionRoot\Exchange" }
         default { throw "Failed to find GetValue: $GetValue" }
     }
 }
@@ -220,7 +221,7 @@ Mock Get-ExchangeADSplitPermissionsEnabled {
     return $false
 }
 
-Mock Get-ExSetupDetails {
+Mock Get-ExSetupFileVersionInfo {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup.xml"
 }
 

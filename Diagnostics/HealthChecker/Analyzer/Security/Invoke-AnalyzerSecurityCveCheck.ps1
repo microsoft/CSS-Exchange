@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Invoke-AnalyzerSecurityADV24199947.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-2020-0796.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-2020-1147.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-2021-1730.ps1
@@ -12,7 +13,7 @@
 . $PSScriptRoot\Invoke-AnalyzerSecurityExtendedProtectionConfigState.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityIISModules.ps1
 . $PSScriptRoot\..\Add-AnalyzedResultInformation.ps1
-. $PSScriptRoot\..\..\Helpers\CompareExchangeBuildLevel.ps1
+. $PSScriptRoot\..\..\..\..\Shared\CompareExchangeBuildLevel.ps1
 function Invoke-AnalyzerSecurityCveCheck {
     [CmdletBinding()]
     param(
@@ -132,6 +133,7 @@ function Invoke-AnalyzerSecurityCveCheck {
         "Aug23SU" = (NewCveEntry @("CVE-2023-38181", "CVE-2023-38182", "CVE-2023-38185", "CVE-2023-35368", "CVE-2023-35388", "CVE-2023-36777", "CVE-2023-36757", "CVE-2023-36756", "CVE-2023-36745", "CVE-2023-36744") @($ex2016, $ex2019))
         "Oct23SU" = (NewCveEntry @("CVE-2023-36778") @($ex2016, $ex2019))
         "Nov23SU" = (NewCveEntry @("CVE-2023-36050", "CVE-2023-36039", "CVE-2023-36035", "CVE-2023-36439") @($ex2016, $ex2019))
+        "Mar24SU" = (NewCveEntry @("CVE-2024-26198") @($ex2016, $ex2019))
     }
 
     # Need to organize the list so oldest CVEs come out first.
@@ -208,6 +210,7 @@ function Invoke-AnalyzerSecurityCveCheck {
     Invoke-AnalyzerSecurityCve-2023-36434 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     Invoke-AnalyzerSecurityCveAddressedBySerializedDataSigning -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     Invoke-AnalyzerSecurityCve-MarchSuSpecial -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
+    Invoke-AnalyzerSecurityADV24199947 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     # Make sure that these stay as the last one to keep the output more readable
     Invoke-AnalyzerSecurityExtendedProtectionConfigState -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
 }
