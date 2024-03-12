@@ -35,22 +35,10 @@ This syntax enables processing of `Jpeg` and `AutoCad` file types by the help of
 .\ConfigureFipFsTextExtractionOverrides.ps1 -ConfigureOverride "Jpeg", "AutoCad" -Action "Allow"
 ```
 
-This syntax disables processing of `Jpeg` and `AutoCad` file types by the help of the `OutsideInModule` on the server `ExchangeSrv01` and `ExchangeSrv02`.
-
-```powershell
-.\ConfigureFipFsTextExtractionOverrides.ps1 -ExchangeServerNames ExchangeSrv01, ExchangeSrv02 -ConfigureOverride "Jpeg", "AutoCad" -Action "Block"
-```
-
 This syntax causes Exchange Server to use the previous version of the `OutsideInModule`. The override will be enabled on the system on which the script was executed. Note that this can make your system vulnerable to known vulnerabilities in the previous version and should not be used unless explicitly advised by Microsoft.
 
 ```powershell
 .\ConfigureFipFsTextExtractionOverrides.ps1 -ConfigureOverride "OutsideInModule" -Action "Allow"
-```
-
-This syntax disables the override of the version of the `OutsideInModule` module on the server `ExchangeSrv01` and `ExchangeSrv02`.
-
-```powershell
-.\ConfigureFipFsTextExtractionOverrides.ps1 -ExchangeServerNames ExchangeSrv01, ExchangeSrv02 -ConfigureOverride "OutsideInModule" -Action "Block"
 ```
 
 This syntax restores the `configuration.xml` from the backup that was created by a previous run of the script on the Exchange server where the script was executed.
@@ -63,8 +51,6 @@ This syntax restores the `configuration.xml` from the backup that was created by
 
 Parameter | Description
 ----------|------------
-ExchangeServerNames | A list of Exchange servers that you want to run the script against.
-SkipExchangeServerNames | A list of Exchange servers that you don't want to execute the configuration action.
 ConfigureOverride | A list of file types that should be allowed to be processed by the `OutsideInModule`. The following input can be used: `XlsbOfficePackage`, `XlsmOfficePackage`, `XlsxOfficePackage`, `ExcelStorage`, `DocmOfficePackage`, `DocxOfficePackage`, `PptmOfficePackage`, `PptxOfficePackage`, `WordStorage`, `PowerPointStorage`, `VisioStorage`, `Rtf`, `Xml`, `OdfTextDocument`, `OdfSpreadsheet`, `OdfPresentation`, `OneNote`, `Pdf`, `Html`, `AutoCad`, `Jpeg`, `Tiff`.<br><br>If you want to enable the previous version of the `OutsideInModule` (`8.5.3`) to process file types, you must specify `OutsideInModule` as file type. Note that the `OutsideInModule` value cannot be used together with other file type values.<br><br>The input is case-sensitive.
 Action | String parameter to define the action that should be performed. Input can be `Allow` or `Block`. The default value is: `Block`
 Rollback | Switch parameter to restore the `configuration.xml` that was backed-up during a previous run of the script.
