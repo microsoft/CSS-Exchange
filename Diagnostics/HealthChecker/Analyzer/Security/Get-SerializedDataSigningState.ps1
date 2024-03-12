@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\Get-FilteredSettingOverrideInformation.ps1
-. $PSScriptRoot\..\..\Helpers\CompareExchangeBuildLevel.ps1
+. $PSScriptRoot\..\..\..\..\Shared\CompareExchangeBuildLevel.ps1
 # Used to determine the state of the Serialized Data Signing on the server.
 function Get-SerializedDataSigningState {
     [CmdletBinding()]

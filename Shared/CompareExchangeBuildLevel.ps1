@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\..\..\..\Shared\Get-ExchangeBuildVersionInformation.ps1
+. $PSScriptRoot\Get-ExchangeBuildVersionInformation.ps1
 function Test-ExchangeBuildGreaterOrEqualThanBuild {
     [CmdletBinding()]
     [OutputType([bool])]

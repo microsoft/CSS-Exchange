@@ -232,6 +232,20 @@ function Invoke-AnalyzerKnownBuildIssues {
             InformationUrl          = (GetKnownIssueInformation @infoParams)
         }
         TestForKnownBuildIssues @params
+
+        Write-Verbose "Work on March 2024 Security Updates"
+        $infoParams = @{
+            Name = "Known Issues with Mar 2024 Security Updates"
+            Url  = "https://support.microsoft.com/help/5037171"
+        }
+        $params = @{
+            CurrentVersion          = $currentVersion
+            KnownBuildIssuesToFixes = @((GetKnownIssueBuildInformation "15.2.1544.9" $null),
+                (GetKnownIssueBuildInformation "15.2.1258.32" $null),
+                (GetKnownIssueBuildInformation "15.1.2507.37", $null))
+            InformationUrl          = (GetKnownIssueInformation @infoParams)
+        }
+        TestForKnownBuildIssues @params
     } catch {
         Write-Verbose "Failed to run TestForKnownBuildIssues"
         Invoke-CatchActions
