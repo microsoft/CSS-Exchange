@@ -4,6 +4,10 @@ Download the latest release: [SourceSideValidations.ps1](https://github.com/micr
 
 This script performs pre-migration public folder checks for Exchange 2013, 2016, and 2019. For Exchange 2010, please use previous script found [here](https://www.microsoft.com/en-us/download/details.aspx?id=100414).
 
+## Requirements
+
+The script must be run from an elevated Exchange Management Shell (EMS) command prompt on an Exchange Server running the Mailbox role. The script cannot be run on an Exchange Management Tools-only machine when [Configure certificate signing of PowerShell serialization payloads in Exchange Server](https://learn.microsoft.com/exchange/plan-and-deploy/post-installation-tasks/security-best-practices/exchange-serialization-payload-sign?view=exchserver-2019) is used.
+
 ## Syntax
 
 ```powershell
