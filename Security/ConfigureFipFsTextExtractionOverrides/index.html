@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.13">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.14">
     
     
       
@@ -26,7 +26,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.7e359304.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.10ba22f1.min.css">
       
       
   
@@ -3342,8 +3342,14 @@
 <p>This syntax enables processing of <code>Jpeg</code> and <code>AutoCad</code> file types by the help of the <code>OutsideInModule</code> on the server where the command was executed.</p>
 <div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">ConfigureFipFsTextExtractionOverrides</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ConfigureOverride</span> <span class="s2">&quot;Jpeg&quot;</span><span class="p">,</span> <span class="s2">&quot;AutoCad&quot;</span> <span class="n">-Action</span> <span class="s2">&quot;Allow&quot;</span>
 </code></pre></div>
+<p>This syntax disables processing of <code>Jpeg</code> and <code>AutoCad</code> file types by the help of the <code>OutsideInModule</code> on the server <code>ExchangeSrv01</code> and <code>ExchangeSrv02</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">ConfigureFipFsTextExtractionOverrides</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ExchangeServerNames</span> <span class="n">ExchangeSrv01</span><span class="p">,</span> <span class="n">ExchangeSrv02</span> <span class="n">-ConfigureOverride</span> <span class="s2">&quot;Jpeg&quot;</span><span class="p">,</span> <span class="s2">&quot;AutoCad&quot;</span> <span class="n">-Action</span> <span class="s2">&quot;Block&quot;</span>
+</code></pre></div>
 <p>This syntax causes Exchange Server to use the previous version of the <code>OutsideInModule</code>. The override will be enabled on the system on which the script was executed. Note that this can make your system vulnerable to known vulnerabilities in the previous version and should not be used unless explicitly advised by Microsoft.</p>
 <div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">ConfigureFipFsTextExtractionOverrides</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ConfigureOverride</span> <span class="s2">&quot;OutsideInModule&quot;</span> <span class="n">-Action</span> <span class="s2">&quot;Allow&quot;</span>
+</code></pre></div>
+<p>This syntax disables the override of the version of the <code>OutsideInModule</code> module on the server <code>ExchangeSrv01</code> and <code>ExchangeSrv02</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">ConfigureFipFsTextExtractionOverrides</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ExchangeServerNames</span> <span class="n">ExchangeSrv01</span><span class="p">,</span> <span class="n">ExchangeSrv02</span> <span class="n">-ConfigureOverride</span> <span class="s2">&quot;OutsideInModule&quot;</span> <span class="n">-Action</span> <span class="s2">&quot;Block&quot;</span>
 </code></pre></div>
 <p>This syntax restores the <code>configuration.xml</code> from the backup that was created by a previous run of the script on the Exchange server where the script was executed.</p>
 <div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">ConfigureFipFsTextExtractionOverrides</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Rollback</span>
@@ -3357,6 +3363,14 @@
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>ExchangeServerNames</td>
+<td>A list of Exchange servers that you want to run the script against.</td>
+</tr>
+<tr>
+<td>SkipExchangeServerNames</td>
+<td>A list of Exchange servers that you don't want to execute the configuration action.</td>
+</tr>
 <tr>
 <td>ConfigureOverride</td>
 <td>A list of file types that should be allowed to be processed by the <code>OutsideInModule</code>. The following input can be used: <code>XlsbOfficePackage</code>, <code>XlsmOfficePackage</code>, <code>XlsxOfficePackage</code>, <code>ExcelStorage</code>, <code>DocmOfficePackage</code>, <code>DocxOfficePackage</code>, <code>PptmOfficePackage</code>, <code>PptxOfficePackage</code>, <code>WordStorage</code>, <code>PowerPointStorage</code>, <code>VisioStorage</code>, <code>Rtf</code>, <code>Xml</code>, <code>OdfTextDocument</code>, <code>OdfSpreadsheet</code>, <code>OdfPresentation</code>, <code>OneNote</code>, <code>Pdf</code>, <code>Html</code>, <code>AutoCad</code>, <code>Jpeg</code>, <code>Tiff</code>.<br><br>If you want to enable the previous version of the <code>OutsideInModule</code> (<code>8.5.3</code>) to process file types, you must specify <code>OutsideInModule</code> as file type. Note that the <code>OutsideInModule</code> value cannot be used together with other file type values.<br><br>The input is case-sensitive.</td>
@@ -3399,7 +3413,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1-2.1-2M12.5 7v5.2l4 2.4-1 1L11 13V7h1.5M11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2v1.8Z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">March 12, 2024</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">March 19, 2024</span>
   </span>
 
     
@@ -3449,7 +3463,7 @@
     <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.indexes", "content.action.edit"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.c8d2eff1.min.js"></script>
+      <script src="../../assets/javascripts/bundle.bd41221c.min.js"></script>
       
     
   </body>
