@@ -55,6 +55,14 @@
 
 [CmdletBinding(DefaultParameterSetName = "ConfigureOverride", SupportsShouldProcess = $true, ConfirmImpact = 'High')]
 param(
+    [Parameter(Mandatory = $false, ValueFromPipeline, ParameterSetName = "ConfigureOverride")]
+    [Parameter(Mandatory = $false, ValueFromPipeline, ParameterSetName = "Rollback")]
+    [string[]]$ExchangeServerNames,
+
+    [Parameter(Mandatory = $false, ParameterSetName = "ConfigureOverride")]
+    [Parameter(Mandatory = $false, ParameterSetName = "Rollback")]
+    [string[]]$SkipExchangeServerNames,
+
     [Parameter(Mandatory = $true, ParameterSetName = "ConfigureOverride")]
     [ValidateSet("OutsideInModule", "XlsbOfficePackage", "XlsmOfficePackage", "XlsxOfficePackage", "ExcelStorage" , "DocmOfficePackage",
         "DocxOfficePackage", "PptmOfficePackage", "PptxOfficePackage", "WordStorage", "PowerPointStorage", "VisioStorage", "Rtf",
