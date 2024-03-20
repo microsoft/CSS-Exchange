@@ -82,7 +82,13 @@ $script:CustomPropertyNameList =
 "NormalizedSubject",
 "SendMeetingMessagesDiagnostics",
 "SentRepresentingDisplayName",
-"SentRepresentingEmailAddress"
+"SentRepresentingEmailAddress",
+"OriginalLastModifiedTime",
+"ClientInfoString",
+"OriginalStartDate",
+"LastModifiedTime",
+"CreationTime",
+"TimeZone"
 
 $LogLimit = 2000
 
@@ -264,13 +270,13 @@ function SetIsOrganizer {
     param(
         $CalLogs
     )
-    $IsOrganizer = $false
+    [bool] $IsOrganizer = $false
 
     foreach ($CalLog in $CalLogs) {
         if ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -and
             $CalLog.ExternalSharingMasterId -eq "NotFound" -and
             ($CalLog.ResponseType -eq "1" -or $CalLogs.ResponseType -eq "Organizer")) {
-            $IsOrganizer = "True"
+            $IsOrganizer = $true
             Write-Verbose "IsOrganizer: [$IsOrganizer]"
             return $IsOrganizer
         }
@@ -283,13 +289,13 @@ function SetIsRoom {
     param(
         $CalLogs
     )
-    $IsRoom = $false
+    [bool] $IsRoom = $false
     # Simple logic is if RBA is running on the MB, it is a Room MB, otherwise it is not.
     foreach ($CalLog in $CalLogs) {
         if ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -and
             $CalLog.ExternalSharingMasterId -eq "NotFound" -and
             $CalLog.Client -eq "ResourceBookingAssistant" ) {
-            $IsRoom = "True"
+            $IsRoom = $true
             return $IsRoom
         }
     }
@@ -301,13 +307,14 @@ function SetIsRecurring {
         $CalLogs
     )
     Write-Host -ForegroundColor Yellow "Looking for signs of a recurring meeting."
-    $IsRecurring = $false
+    [bool] $IsRecurring = $false
     # See if this is a recurring meeting
     foreach ($CalLog in $CalLogs) {
         if ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -and
             $CalLog.ExternalSharingMasterId -eq "NotFound" -and
-            $CalLog.CalendarItemType.ToString() -eq "RecurringMaster" ) {
-            $IsRecurring = "True"
+            ($CalLog.CalendarItemType.ToString() -eq "RecurringMaster" -or
+            $CalLog.IsException -eq $true)) {
+            $IsRecurring = $true
             Write-Verbose "Found recurring meeting."
             return $IsRecurring
         }
@@ -698,9 +705,7 @@ function SetIsIgnorable {
         $CalLog
     )
 
-    if ($CalLog.ItemClass -eq "IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}" ) {
-        return "Exception" 
-    } elseif ($CalLog.ItemClass -eq "(Occurrence Deleted)") {
+    if ($CalLog.ItemClass -eq "(Occurrence Deleted)") {
         return "Ignorable"
     } elseif ($ShortClientName -like "TBA*SharingSyncAssistant" -or
         $ShortClientName -eq "CalendarReplication" -or
@@ -715,6 +720,8 @@ function SetIsIgnorable {
         $ShortClientName -eq "ELC-B2" -or
         $ShortClientName -eq "TimeService" ) {
         return "Ignorable"
+    } elseif ($CalLog.ItemClass -eq "IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}" ) {
+        return "Exception"
     } elseif (($CalendarItemTypes.($CalLog.ItemClass) -like "*Resp*" -and $CalLog.CalendarLogTriggerAction -ne "Create" ) -or
         $CalendarItemTypes.($CalLog.ItemClass) -eq "AttendeeList" -or
         $CalLog.CalendarLogTriggerAction -eq "MoveToDeletedItems" -or
@@ -872,7 +879,7 @@ function BuildCSV {
             'SentRepresentingSMTPAddress'    = GetSMTPAddress($CalLog.SentRepresentingEmailAddress)
             'SentRepresentingDisplayName'    = $CalLog.SentRepresentingDisplayName
             'ResponsibleUserSMTPAddress'     = GetSMTPAddress($CalLog.ResponsibleUserName)
-            'ResponsibleUserName'            = GetDisplayName($CalLog.ResponsibleUserName)
+            'ResponsibleUserName'            = $CalLog.ResponsibleUserName
             'SenderEmailAddress'             = $CalLog.SenderEmailAddress
             'SenderSMTPAddress'              = GetSMTPAddress($CalLog.SenderEmailAddress)
             'ClientIntent'                   = $CalLog.ClientIntent.ToString()
@@ -1199,10 +1206,10 @@ function BuildTimeline {
                             } else {
                                 if ($CalLog.Client -eq "Transport") {
                                     if ($CalLog.IsException -eq $True) {
-                                        [array] $Output = "Transport delievered a new Meeting Request based on changes by [$($CalLog.SentRepresentingDisplayName)] for an exception starting on [$($CalLog.StartTime)]."
+                                        [array] $Output = "Transport delivered a new Meeting Request based on changes by [$($CalLog.SentRepresentingDisplayName)] for an exception starting on [$($CalLog.StartTime)]."
                                         [bool] $MeetingSummaryNeeded = $True
                                     } else {
-                                        [array] $Output = "Transport delievered a new Meeting Request based on changes by [$($CalLog.SentRepresentingDisplayName)]."
+                                        [array] $Output = "Transport delivered a new Meeting Request based on changes by [$($CalLog.SentRepresentingDisplayName)]."
                                         [bool] $MeetingSummaryNeeded = $True
                                     }
                                 } elseif ($CalLog.Client -eq "CalendarRepairAssistant") {
@@ -1611,10 +1618,10 @@ if (-not ([string]::IsNullOrEmpty($Subject)) ) {
 
         if ($script:GCDO.count -gt 0) {
             Write-Host -ForegroundColor Cyan "Found $($script:GCDO.count) CalLogs with MeetingID [$MeetingID]."
-            $isOrganizer = (SetIsOrganizer -CalLogs $script:GCDO)
-            Write-Host -ForegroundColor Cyan "The user [$ID] $(if ($isOrganizer) {"IS"} else {"is NOT"}) the Organizer of the meeting."
-            $isRoomMB = (SetIsRoom -CalLogs $script:GCDO)
-            if ($isRoomMB) {
+            $IsOrganizer = (SetIsOrganizer -CalLogs $script:GCDO)
+            Write-Host -ForegroundColor Cyan "The user [$ID] $(if ($IsOrganizer) {"IS"} else {"is NOT"}) the Organizer of the meeting."
+            $IsRoomMB = (SetIsRoom -CalLogs $script:GCDO)
+            if ($IsRoomMB) {
                 Write-Host -ForegroundColor Cyan "The user [$ID] is a Room Mailbox."
             }
 
