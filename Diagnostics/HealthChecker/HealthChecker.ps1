@@ -124,7 +124,7 @@ param(
     [switch]$BuildHtmlServersReport,
 
     [Parameter(Mandatory = $false, ParameterSetName = "HTMLReport", HelpMessage = "Provide the name of the Report to be created.")]
-    [string]$HtmlReportFile = "ExchangeAllServersReport.html",
+    [string]$HtmlReportFile = "ExchangeAllServersReport-$((Get-Date).ToString("yyyyMMddHHmmss")).html",
 
     [Parameter(Mandatory = $true, ParameterSetName = "DCCoreReport", HelpMessage = "Enable the DCCoreReport feature data collection against the current server's AD Site.")]
     [switch]$DCCoreRatio,
@@ -172,6 +172,7 @@ begin {
     . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
     . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Host.ps1
     . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Verbose.ps1
+    . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Warning.ps1
     . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 
     $BuildVersion = ""
@@ -192,6 +193,7 @@ begin {
         -ErrorAction SilentlyContinue
     SetProperForegroundColor
     SetWriteVerboseAction ${Function:Write-DebugLog}
+    SetWriteWarningAction ${Function:Write-DebugLog}
 } process {
     $Server | ForEach-Object { $Script:ServerNameList.Add($_.ToUpper()) }
 } end {
@@ -203,7 +205,7 @@ begin {
             -not $ScriptUpdateOnly)) {
             Write-Warning "The script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator."
             $Error.Clear()
-            Start-Sleep -Seconds 2;
+            Start-Sleep -Seconds 2
             exit
         }
 
@@ -230,7 +232,7 @@ begin {
                 exit
             }
             Get-HtmlServerReport -AnalyzedHtmlServerValues $importData.HtmlServerValues -HtmlOutFilePath $htmlOutFilePath
-            Start-Sleep 2;
+            Start-Sleep 2
             return
         }
 

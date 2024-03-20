@@ -14,7 +14,7 @@ function Save-ServerInfoData {
     msInfo32.exe /nfo (Add-ServerNameToFileName -FilePath ("{0}\msInfo.nfo" -f $copyTo))
     Write-Host "Waiting for msInfo32.exe process to end before moving on..." -ForegroundColor "Yellow"
     while ((Get-Process | Where-Object { $_.ProcessName -eq "msInfo32" }).ProcessName -eq "msInfo32") {
-        Start-Sleep 5;
+        Start-Sleep 5
     }
 
     $tlsRegistrySettingsName = "TLS_RegistrySettings"

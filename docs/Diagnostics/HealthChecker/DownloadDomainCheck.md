@@ -10,11 +10,13 @@ If the feature is enabled, we validate if the URL configured to download attachm
 
 The `Download Domain` feature is available on Microsoft Exchange Server 2016 and Microsoft Exchange Server 2019.
 
+More details and configuration instructions can be found in the Microsoft Learn article, that is linked in the additional resource section.
+
 **Included in HTML Report?**
 
 Yes
 
 **Additional resources:**
 
-[How to configure the Download Domain feature (see FAQ section)](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-1730)
+[Configure Download Domains in Exchange Server](https://learn.microsoft.com/exchange/plan-and-deploy/post-installation-tasks/security-best-practices/exchange-download-domains)
 

@@ -29,9 +29,12 @@ Mock Get-WmiObjectHandler {
 Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Trying to get the System.Environment ProcessorCount" } -MockWith { return 4 }
 Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting Current Time Zone" } -MockWith { return "Pacific Standard Time" }
 Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Test EEMS pattern service connectivity" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\WebRequest_GetExchangeMitigations.xml" }
+Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Get TokenCacheModule version information" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\IIS\GetVersionInformationCachTokn.xml" }
 
 # Handle IIS collection of files
 Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost.config" -Raw }
+
+Mock Get-CimInstance -ParameterFilter { $ClassName -eq "Win32_DeviceGuard" } -MockWith { return [PSCustomObject]@{ SecurityServicesRunning = @(0 , 0) } }
 
 # WebAdministration
 function Get-WebSite { param($Name) }
@@ -41,9 +44,13 @@ Mock Get-WebSite -ParameterFilter { $Name -eq "Exchange Back End" } -MockWith { 
 
 Mock Test-Path -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\FrontEnd\HttpProxy\SharedWebConfig.config" } -MockWith { return $true }
 Mock Test-Path -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\ClientAccess\SharedWebConfig.config" } -MockWith { return $true }
+Mock Test-Path -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\EdgeTransport.exe.config" } -MockWith { return $true }
+Mock Test-Path -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Runtime\1.0\noderunner.exe.config" } -MockWith { return $true }
 
 Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\FrontEnd\HttpProxy\SharedWebConfig.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\DefaultWebSite_SharedWebConfig.config" -Raw }
 Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\ClientAccess\SharedWebConfig.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\ExchangeBackEnd_SharedWebConfig.config" -Raw }
+Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\EdgeTransport.exe.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\EdgeTransport.exe.config" -Raw }
+Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Runtime\1.0\noderunner.exe.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\noderunner.exe.config" -Raw }
 
 function Get-WebApplication { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\IIS\GetWebApplication.xml" }
 
@@ -96,6 +103,8 @@ Mock Get-RemoteRegistryValue {
         "MinimumConnectionTimeout" { return 0 }
         "LmCompatibilityLevel" { return $null }
         "UBR" { return 720 }
+        "ProductName" { return Import-Clixml "$Script:MockDataCollectionRoot\OS\RemoteRegistryValueProductName.xml" }
+        "InstallationType" { return Import-Clixml "$Script:MockDataCollectionRoot\OS\RemoteRegistryValueInstallationType.xml" }
         "DisableCompression" { return 0 }
         "CtsProcessorAffinityPercentage" { return 0 }
         "Enabled" { return 0 }
@@ -112,6 +121,7 @@ Mock Get-RemoteRegistryValue {
         "DaylightStart" { return @(0, 0, 3, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0) }
         "DisableBaseTypeCheckForDeserialization" { return $null }
         "DisablePreservation" { return 0 }
+        "DatabasePath" { return "$Script:MockDataCollectionRoot\Exchange" }
         default { throw "Failed to find GetValue: $GetValue" }
     }
 }
@@ -175,10 +185,6 @@ Mock Get-ExchangeAppPoolsInformation {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeAppPoolsInformation.xml"
 }
 
-Mock Get-ExchangeApplicationConfigurationFileValidation {
-    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeApplicationConfigurationFileValidation.xml"
-}
-
 Mock Get-ExchangeUpdates {
     return $null
 }
@@ -215,7 +221,7 @@ Mock Get-ExchangeADSplitPermissionsEnabled {
     return $false
 }
 
-Mock Get-ExSetupDetails {
+Mock Get-ExSetupFileVersionInfo {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup.xml"
 }
 
@@ -250,6 +256,27 @@ function Get-WebServicesVirtualDirectory {
 function Get-OrganizationConfig {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOrganizationConfig.xml"
 }
+
+function Get-DynamicDistributionGroup {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetDynamicDistributionGroupPfMailboxes.xml"
+}
+
+function Get-IRMConfiguration {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetIrmConfiguration.xml"
+}
+
+# virtual directory cmdlets to return null till we do actual checks against the vDirs.
+function Get-ActiveSyncVirtualDirectory { return $null }
+
+function Get-AutodiscoverVirtualDirectory { return $null }
+
+function Get-EcpVirtualDirectory { return $null }
+
+function Get-MapiVirtualDirectory { return $null }
+
+function Get-OutlookAnywhere { return $null }
+
+function Get-PowerShellVirtualDirectory { return $null }
 
 function Get-HybridConfiguration { return $null }
 

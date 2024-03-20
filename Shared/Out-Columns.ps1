@@ -271,9 +271,10 @@ function Out-Columns {
                     Write-Host (" " * $IndentSpaces) -NoNewline
                     [void]$stb.Append(" " * $IndentSpaces)
                     for ($i = 0; $i -lt $props.Count; $i++) {
-                        $val = $o."$($props[$i])"
-                        Write-Host ("{0,$(-1 * ($colWidths[$i] + $padding))}" -f $lineObj."$($props[$i])") -NoNewline -ForegroundColor $colColors[$i]
-                        [void]$stb.Append("{0,$(-1 * ($colWidths[$i] + $padding))}" -f $lineObj."$($props[$i])")
+                        $val = $lineObj."$($props[$i])"
+                        if ($val.Count -eq 0) { $val = "" }
+                        Write-Host ("{0,$(-1 * ($colWidths[$i] + $padding))}" -f $val) -NoNewline -ForegroundColor $colColors[$i]
+                        [void]$stb.Append("{0,$(-1 * ($colWidths[$i] + $padding))}" -f $val)
                     }
 
                     Write-Host

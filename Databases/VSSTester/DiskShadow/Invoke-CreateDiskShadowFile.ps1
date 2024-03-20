@@ -2,23 +2,41 @@
 # Licensed under the MIT License.
 
 function Invoke-CreateDiskShadowFile {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWMICmdlet', '', Justification = 'Required to get drives on old systems')]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('CustomRules\AvoidUsingReadHost', '', Justification = 'Do not want to change logic of script as of now')]
-    param()
+    [OutputType([string[]])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]
+        $OutputPath,
+
+        [string]
+        $ServerName,
+
+        [Parameter(Mandatory = $true, ParameterSetName = "BackupByDatabase")]
+        [object[]]
+        $Databases,
+
+        [Parameter(Mandatory = $true, ParameterSetName = "BackupByDatabase")]
+        [object]
+        $DatabaseToBackup,
+
+        [Parameter(Mandatory = $true, ParameterSetName = "BackupByVolume")]
+        [object[]]
+        $VolumesToBackup,
+
+        [Parameter(Mandatory = $true)]
+        [string[]]
+        $DriveLetters
+    )
 
     function Out-DHSFile {
         param ([string]$FileLine)
-        $FileLine | Out-File -FilePath "$path\DiskShadow.dsh" -Encoding ASCII -Append
+        $FileLine | Out-File -FilePath "$OutputPath\DiskShadow.dsh" -Encoding ASCII -Append
     }
 
     #	creates the DiskShadow.dsh file that will be written to below
     #	-------------------------------------------------------------
-    $nl
-    Get-Date
-    Write-Host "Creating DiskShadow config file..." -ForegroundColor Green $nl
-    Write-Host "--------------------------------------------------------------------------------------------------------------"
-    $nl
-    New-Item -Path $path\DiskShadow.dsh -type file -Force | Out-Null
+    Write-Host "$(Get-Date) Creating DiskShadow config file..."
+    New-Item -Path $OutputPath\DiskShadow.dsh -type file -Force | Out-Null
 
     #	beginning lines of file
     #	-----------------------
@@ -54,50 +72,30 @@ function Invoke-CreateDiskShadowFile {
     Out-DHSFile "writer exclude {a65faa63-5ea8-4ebc-9dbd-a0c4db26912a}"
     Out-DHSFile " "
 
-    #	add databases to exclude
-    #	------------------------
-    foreach ($db in $databases) {
-        $dbg = ($db.guid)
-
-        if (($db).guid -ne $dbGuid) {
-            if (($db.IsMailboxDatabase) -eq "True") {
-                $mountedOnServer = (Get-MailboxDatabase $db).server.name
-            } else {
-                $mountedOnServer = (Get-PublicFolderDatabase $db).server.name
-            }
-            if ($mountedOnServer -eq $serverName) {
-                $script:activeNode = $true
-
-                Out-DHSFile "writer exclude `"Microsoft Exchange Writer:\Microsoft Exchange Server\Microsoft Information Store\$serverName\$dbg`""
-            }
-            #if passive copy, add it with replica in the string
-            else {
-                $script:activeNode = $false
-                Out-DHSFile "writer exclude `"Microsoft Exchange Replica Writer:\Microsoft Exchange Server\Microsoft Information Store\Replica\$serverName\$dbg`""
-            }
-        }
-        #	add database to include
-        #	-----------------------
-        else {
-            if (($db.IsMailboxDatabase) -eq "True") {
-                $mountedOnServer = (Get-MailboxDatabase $db).server.name
-            } else {
-                $mountedOnServer = (Get-PublicFolderDatabase $db).server.name
+    if ($DatabaseToBackup) {
+        #	add databases to exclude
+        #	------------------------
+        foreach ($db in $Databases) {
+            if ($db.Identity -ne $DatabaseToBackup.Identity) {
+                if ($db.Server.Name -eq $ServerName) {
+                    Out-DHSFile "writer exclude `"Microsoft Exchange Writer:\Microsoft Exchange Server\Microsoft Information Store\$serverName\$($db.Guid)`""
+                } else {
+                    #if passive copy, add it with replica in the string
+                    Out-DHSFile "writer exclude `"Microsoft Exchange Replica Writer:\Microsoft Exchange Server\Microsoft Information Store\Replica\$serverName\$($db.Guid)`""
+                }
             }
         }
     }
+
     Out-DHSFile " "
     Out-DHSFile "Begin backup"
 
-    #	add the volumes for the included database
-    #	-----------------------------------------
-    #gets a list of mount points on local server
-    $mpVolumes = Get-WmiObject -Query "select name, DeviceId from win32_volume where DriveType=3 AND DriveLetter=NULL"
-    $deviceIDs = @()
-
-    #if selected database is a mailbox database, get mailbox paths
-    if ((($databases[$dbToBackup]).IsMailboxDatabase) -eq "True") {
-        $getDB = (Get-MailboxDatabase $selDB)
+    if ($DatabaseToBackup) {
+        #	add the volumes for the included database
+        #	-----------------------------------------
+        #gets a list of mount points on local server
+        $mpVolumes = Get-CimInstance -Query "select name, DeviceId from win32_volume where DriveType=3 AND DriveLetter=NULL"
+        $deviceIDs = @()
 
         $dbMP = $false
         $logMP = $false
@@ -107,14 +105,11 @@ function Invoke-CreateDiskShadowFile {
             foreach ($mp in $mpVolumes) {
                 $mpName = (($mp.name).substring(0, $mp.name.length - 1))
                 #if following mount point path exists in database path use deviceID in DiskShadow config file
-                if ($getDB.EdbFilePath.pathname.ToString().ToLower().StartsWith($mpName.ToString().ToLower())) {
-                    Write-Host " "
-                    Write-Host "Mount point:  $($mp.name) in use for database path: "
-                    #Write-host "Yes. I am a database in MountPoint"
-                    "The selected database path is: " + $getDB.EdbFilePath.pathname
-                    Write-Host "adding deviceID to file: "
+                if ($DatabaseToBackup.EdbFilePath.PathName.StartsWith($mpName, [System.StringComparison]::OrdinalIgnoreCase)) {
+                    Write-Host "  Mount point:  $($mp.name) in use for database path: "
+                    Write-Host "  The selected database path is: $($DatabaseToBackup.EdbFilePath.PathName)"
                     $dbEdbVol = $mp.DeviceId
-                    Write-Host $dbEdbVol
+                    Write-Host "  adding deviceID to file: $dbEdbVol"
 
                     #add device ID to array
                     $deviceID1 = $mp.DeviceID
@@ -122,202 +117,79 @@ function Invoke-CreateDiskShadowFile {
                 }
 
                 #if following mount point path exists in log path use deviceID in DiskShadow config file
-                if ($getDB.LogFolderPath.pathname.ToString().ToLower().contains($mpName.ToString().ToLower())) {
-                    Write-Host " "
-                    Write-Host "Mount point: $($mp.name) in use for log path: "
-                    #Write-host "Yes. My logs are in a MountPoint"
-                    "The log folder path of selected database is: " + $getDB.LogFolderPath.pathname
-                    Write-Host "adding deviceID to file: "
+                if ($DatabaseToBackup.LogFolderPath.PathName.ToLower().Contains($mpName.ToLower())) {
+                    Write-Host
+                    Write-Host "  Mount point: $($mp.name) in use for log path: "
+                    Write-Host "  The log folder path of selected database is: $($DatabaseToBackup.LogFolderPath.PathName)"
                     $dbLogVol = $mp.DeviceId
-                    Write-Host $dbLogVol
+                    Write-Host "  adding deviceID to file: $dbLogVol"
                     $deviceID2 = $mp.DeviceID
                     $logMP = $true
                 }
             }
-            $deviceIDs = $deviceID1, $deviceID2
         }
-    }
 
-    #if not a mailbox database, assume its a public folder database, get public folder paths
-    if ((($databases[$dbToBackup]).IsPublicFolderDatabase) -eq "True") {
-        $getDB = (Get-PublicFolderDatabase $selDB)
+        if ($dbMP -eq $false) {
+            $dbEdbVol = ($DatabaseToBackup.EdbFilePath.PathName).substring(0, 2)
+            Write-Host "  The selected database path is '$($DatabaseToBackup.EdbFilePath.PathName)' so adding volume $dbEdbVol to backup scope"
+            $deviceID1 = $dbEdbVol
+        }
 
-        $dbMP = $false
-        $logMP = $false
+        if ($logMP -eq $false) {
+            $dbLogVol = ($DatabaseToBackup.LogFolderPath.PathName).substring(0, 2)
+            Write-Host "  The selected database log folder path is '$($DatabaseToBackup.LogFolderPath.PathName)' so adding volume $dbLogVol to backup scope"
+            $deviceID2 = $dbLogVol
+        }
 
-        if ($null -ne $mpVolumes) {
-            foreach ($mp in $mpVolumes) {
-                $mpName = (($mp.name).substring(0, $mp.name.length - 1))
-                #if following mount point path exists in database path use deviceID in DiskShadow config file
-
-                if ($getDB.EdbFilePath.pathname.ToString().ToLower().StartsWith($mpName.ToString().ToLower())) {
-                    Write-Host " "
-                    Write-Host "Mount point: $($mp.name) in use for database path: "
-                    "The current database path is: " + $getDB.EdbFilePath.pathname
-                    Write-Host "adding deviceID to file: "
-                    $dbEdbVol = $mp.deviceId
-                    Write-Host $dbVol
-
-                    #add device ID to array
-                    $deviceID1 = $mp.DeviceID
-                    $dbMP = $true
-                }
-
-                #if following mount point path exists in log path use deviceID in DiskShadow config file
-                if ($getDB.LogFolderPath.pathname.ToString().ToLower().contains($mpName.ToString().ToLower())) {
-                    Write-Host " "
-                    Write-Host "Mount point: $($vol.name) in use for log path: "
-                    "The log folder path of selected database is: " + $getDB.LogFolderPath.pathname
-                    Write-Host "adding deviceID to file "
-                    $dbLogVol = $mp.deviceId
-                    Write-Host $dbLogVol
-
-                    $deviceID2 = $mp.DeviceID
-                    $logMP = $true
-                }
+        $deviceIDs = @($deviceID1)
+        if ($deviceID2 -ne $deviceID1) {
+            $deviceIDs += $deviceID2
+        }
+    } else {
+        $validVolumes = Get-CimInstance -Query "select name, DeviceId from win32_volume where DriveType=3" |
+            Where-Object { $_.Name -match "^\w:" } | Select-Object Name, DeviceID
+        $deviceIDs = @()
+        foreach ($v in $VolumesToBackup) {
+            $volToBackup = $validVolumes | Where-Object { $_.Name -eq $v }
+            if ($null -eq $volToBackup) {
+                Write-Warning "Failed to find volume by name: $v. Available volumes:`n$([string]::Join("`n", $validVolumes))"
+                exit
             }
-            $deviceIDs = $deviceID1, $deviceID2
+
+            $deviceIDs += $volToBackup.DeviceID
         }
-    }
-
-    if ($dbMP -eq $false) {
-
-        $dbEdbVol = ($getDB.EdbFilePath.pathname).substring(0, 2)
-        "The selected database path is '" + $getDB.EdbFilePath.pathname + "' so adding volume $dbEdbVol to backup scope"
-        $deviceID1 = $dbEdbVol
-    }
-
-    if ($logMP -eq $false) {
-        $dbLogVol = ($getDB.LogFolderPath.pathname).substring(0, 2)
-        $nl
-        "The selected database log folder path is '" + $getDB.LogFolderPath.pathname + "' so adding volume $dbLogVol to backup scope"
-        $deviceID2 = $dbLogVol
     }
 
     # Here is where we start adding the appropriate volumes or MountPoints to the DiskShadow config file
     # We make sure that we add only one Logical volume when we detect the EDB and log files
     # are on the same volume
 
-    $nl
-    $deviceIDs = $deviceID1, $deviceID2
-    $comp = [string]::Compare($deviceID1, $deviceID2, $True)
-    if ($comp -eq 0) {
-        $dID = $deviceIDs[0]
-        Write-Debug -Message ('$dID = ' + $dID.ToString())
-        Write-Debug "When the database and log files are on the same volume, we add the volume only once"
-        if ($dID.length -gt "2") {
-            $addVol = "add volume $dID alias vss_test_" + ($dID).ToString().substring(11, 8)
-            Write-Host $addVol
-            Out-DHSFile $addVol
-        } else {
-            $addVol = "add volume $dID alias vss_test_" + ($dID).ToString().substring(0, 1)
-            Write-Host $addVol
-            Out-DHSFile $addVol
-        }
-    } else {
-        Write-Host " "
-        foreach ($device in $deviceIDs) {
-            if ($device.length -gt "2") {
-                Write-Host "Adding the Mount Point for DSH file"
-                $addVol = "add volume $device alias vss_test_" + ($device).ToString().substring(11, 8)
-                Write-Host $addVol
-                Out-DHSFile $addVol
-            } else {
-                Write-Host "Adding the volume for DSH file"
-                $addVol = "add volume $device alias vss_test_" + ($device).ToString().substring(0, 1)
-                Write-Host $addVol
-                Out-DHSFile $addVol
-            }
-        }
+    for ($i = 0; $i -lt $deviceIDs.Count; $i++) {
+        $id = $deviceIDs[$i]
+        Write-Debug -Message ('$id = ' + $id.ToString())
+        $addVol = "add volume $id alias vss_test_$i"
+        Write-Host $addVol
+        Out-DHSFile $addVol
     }
+
     Out-DHSFile "create"
     Out-DHSFile " "
-    $nl
-    Get-Date
-    Write-Host "Getting drive letters for exposing backup snapshot" -ForegroundColor Green
-    Write-Host "--------------------------------------------------------------------------------------------------------------"
-
-    # check to see if the drives are the same for both database and logs
-    # if the same volume is used, only one drive letter is needed for exposure
-    # if two volumes are used, two drive letters are needed
-
-    $matchCondition = "^[a-z]:$"
-    Write-Debug $matchCondition
-
-    if ($dbEdbVol -eq $dbLogVol) {
-        $nl
-        "Since the same volume is used for this database's EDB and logs, we only need a single drive"
-        "letter to expose the backup snapshot."
-        $nl
-
-        do {
-            Write-Host "Enter an unused drive letter with colon (e.g. X:) to expose the snapshot" -ForegroundColor Yellow -NoNewline
-            $script:dbSnapVol = Read-Host " "
-            if ($dbSnapVol -notmatch $matchCondition) {
-                Write-Host "Your input was not acceptable. Please use a single letter and colon, e.g. X:" -ForegroundColor red
-            }
-        } while ($dbSnapVol -notmatch $matchCondition)
-    } else {
-        $nl
-        "Since different volumes are used for this database's EDB and logs, we need two drive"
-        "letters to expose the backup snapshot."
-        $nl
-
-        do {
-            Write-Host "Enter an unused drive letter with colon (e.g. X:) to expose the DATABASE volume" -ForegroundColor Yellow -NoNewline
-            $script:dbSnapVol = Read-Host " "
-            if ($dbSnapVol -notmatch $matchCondition) {
-                Write-Host "Your input was not acceptable. Please use a single letter and colon, e.g. X:" -ForegroundColor red
-            }
-        } while ($dbSnapVol -notmatch $matchCondition)
-
-        do {
-            Write-Host "Enter an unused drive letter with colon (e.g. Y:) to expose the LOG volume" -ForegroundColor Yellow -NoNewline
-            $script:logSnapVol = Read-Host " "
-            if ($logSnapVol -notmatch $matchCondition) {
-                Write-Host "Your input was not acceptable. Please use a single letter and colon, e.g. Y:" -ForegroundColor red
-            }
-            if ($logSnapVol -eq $dbSnapVol) {
-                Write-Host "You must choose a different drive letter than the one chosen to expose the DATABASE volume." -ForegroundColor red
-            }
-        } while (($logSnapVol -notmatch $matchCondition) -or ($logSnapVol -eq $dbSnapVol))
-
-        $nl
-    }
-
-    Write-Debug "dbSnapVol: $dbSnapVol | logSnapVol: $logSnapVol"
+    Write-Host "$(Get-Date) Getting drive letters for exposing backup snapshot"
 
     # expose the drives
-    # if volumes are the same only one entry is needed
-    if ($dbEdbVol -eq $dbLogVol) {
-        if ($dbEdbVol.length -gt "2") {
-            $dbVolStr = "expose %vss_test_" + ($dbEdbVol).substring(11, 8) + "% $dbSnapVol"
-            Out-DHSFile $dbVolStr
-        } else {
-            $dbVolStr = "expose %vss_test_" + ($dbEdbVol).substring(0, 1) + "% $dbSnapVol"
-            Out-DHSFile $dbVolStr
-        }
-    } else {
-        # volumes are different, getting both
-        # if MountPoint use first part of string, if not use first letter
-        if ($dbEdbVol.length -gt "2") {
-            $dbVolStr = "expose %vss_test_" + ($dbEdbVol).substring(11, 8) + "% $dbSnapVol"
-            Out-DHSFile $dbVolStr
-        } else {
-            $dbVolStr = "expose %vss_test_" + ($dbEdbVol).substring(0, 1) + "% $dbSnapVol"
-            Out-DHSFile $dbVolStr
-        }
+    if ($deviceIDs.Count -lt $DriveLetters.Count) {
+        Write-Warning "Determined that we need $($deviceIDs.Count) drive letters to expose the snapshots, but only $($DriveLetters.Count) were provided. Exiting."
+        exit
+    }
 
-        # if MountPoint use first part of string, if not use first letter
-        if ($dbLogVol.length -gt "2") {
-            $logVolStr = "expose %vss_test_" + ($dbLogVol).substring(11, 8) + "% $logSnapVol"
-            Out-DHSFile $logVolStr
-        } else {
-            $logVolStr = "expose %vss_test_" + ($dbLogVol).substring(0, 1) + "% $logSnapVol"
-            Out-DHSFile $logVolStr
-        }
+    for ($i = 0; $i -lt $deviceIDs.Count; $i++) {
+        $dbVolStr = "expose %vss_test_$($i)% $($DriveLetters[$i]):"
+        Out-DHSFile $dbVolStr
     }
 
     # ending data of file
     Out-DHSFile "end backup"
+
+    # return the drive letters we used
+    return $DriveLetters | Select-Object -First ($deviceIDs.Count)
 }

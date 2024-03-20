@@ -27,6 +27,9 @@ function Get-ExtendedProtectionConfiguration {
         [bool]$ExcludeEWS = $false,
 
         [Parameter(Mandatory = $false)]
+        [bool]$ExcludeEWSFe,
+
+        [Parameter(Mandatory = $false)]
         [ValidateSet("Exchange Back End/EWS")]
         [string[]]$SiteVDirLocations,
 
@@ -66,13 +69,16 @@ function Get-ExtendedProtectionConfiguration {
                 # Set EWS VDir to None for known issues
                 if ($ExcludeEWS -and $virtualDirectory -eq "EWS") { $ExtendedProtection[$i] = "None" }
 
+                # EWS FE
+                if ($ExcludeEWSFe -and $VirtualDirectory -eq "EWS" -and $WebSite[$i] -eq "Default Web Site") { $ExtendedProtection[$i] = "None" }
+
                 if ($null -ne $SiteVDirLocations -and
                     $SiteVDirLocations.Count -gt 0) {
                     foreach ($SiteVDirLocation in $SiteVDirLocations) {
                         if ($SiteVDirLocation -eq "$($WebSite[$i])/$virtualDirectory") {
                             Write-Verbose "Set Extended Protection to None because of restriction override '$($WebSite[$i])\$virtualDirectory'"
                             $ExtendedProtection[$i] = "None"
-                            break;
+                            break
                         }
                     }
                 }
@@ -114,6 +120,7 @@ function Get-ExtendedProtectionConfiguration {
                     $ipRestrictionsHashTable = @{}
                     $pathIndex = [array]::IndexOf(($Xml.configuration.location.path).ToLower(), $Path.ToLower())
                     $rootIndex = [array]::IndexOf(($Xml.configuration.location.path).ToLower(), ($Path.Split("/")[0]).ToLower())
+                    $parentIndex = [array]::IndexOf(($Xml.configuration.location.path).ToLower(), ($Path.Substring(0, $Path.LastIndexOf("/")).ToLower()))
 
                     if ($pathIndex -ne -1) {
                         $configNode = $Xml.configuration.location[$pathIndex]
@@ -125,7 +132,19 @@ function Get-ExtendedProtectionConfiguration {
                             Write-Verbose "Found tokenChecking: $ep"
                             $extendedProtection = $ep
                         } else {
-                            Write-Verbose "Failed to find tokenChecking. Using default value of None."
+                            if ($parentIndex -ne -1) {
+                                $parentConfigNode = $Xml.configuration.location[$parentIndex]
+                                $ep = $parentConfigNode.'system.webServer'.security.authentication.windowsAuthentication.extendedProtection.tokenChecking
+
+                                if (-not ([string]::IsNullOrEmpty($ep))) {
+                                    Write-Verbose "Found tokenChecking: $ep"
+                                    $extendedProtection = $ep
+                                } else {
+                                    Write-Verbose "Failed to find tokenChecking. Using default value of None."
+                                }
+                            } else {
+                                Write-Verbose "Failed to find tokenChecking. Using default value of None."
+                            }
                         }
 
                         [string]$sslSettings = $configNode.'system.webServer'.security.access.sslFlags
@@ -252,8 +271,10 @@ function Get-ExtendedProtectionConfiguration {
                 (NewVirtualDirMatchingEntry "ECP" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
                 (NewVirtualDirMatchingEntry "EWS" -WebSite $default, $backend -ExtendedProtection "Allow", "Require")
                 (NewVirtualDirMatchingEntry "Microsoft-Server-ActiveSync" -WebSite $default, $backend -ExtendedProtection "Allow", "Require")
-                (NewVirtualDirMatchingEntry "OAB" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
-                (NewVirtualDirMatchingEntry "Powershell" -WebSite $default, $backend -ExtendedProtection "Require", "Require" -SslFlags "SslNegotiateCert", "Ssl,Ssl128,SslNegotiateCert")
+                (NewVirtualDirMatchingEntry "Microsoft-Server-ActiveSync/Proxy" -WebSite $default, $backend -ExtendedProtection "Allow", "Require")
+                # This was changed due to Outlook for Mac not being able to do download the OAB.
+                (NewVirtualDirMatchingEntry "OAB" -WebSite $default, $backend -ExtendedProtection "Allow", "Require")
+                (NewVirtualDirMatchingEntry "Powershell" -WebSite $default, $backend -ExtendedProtection "None", "Require" -SslFlags "SslNegotiateCert", "Ssl,Ssl128,SslNegotiateCert")
                 (NewVirtualDirMatchingEntry "OWA" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
                 (NewVirtualDirMatchingEntry "RPC" -WebSite $default, $backend -ExtendedProtection "Require", "Require")
                 (NewVirtualDirMatchingEntry "MAPI" -WebSite $default -ExtendedProtection "Require")
@@ -293,7 +314,7 @@ function Get-ExtendedProtectionConfiguration {
         # Add all vDirs for which the IP filtering mitigation is supported
         $mitigationSupportedVDirs = $MyInvocation.MyCommand.Parameters["SiteVDirLocations"].Attributes |
             Where-Object { $_ -is [System.Management.Automation.ValidateSetAttribute] } |
-            ForEach-Object { return $_.ValidValues.ToLower() }
+            ForEach-Object { return $_.ValidValues }
         Write-Verbose "Supported mitigated virtual directories: $([string]::Join(",", $mitigationSupportedVDirs))"
     }
     process {
@@ -338,32 +359,67 @@ function Get-ExtendedProtectionConfiguration {
                     $expectedExtendedConfiguration = if ($supportedVersion) { $matchEntry.ExtendedProtection } else { "None" }
                     $virtualDirectoryName = "$($matchEntry.WebSite)/$($matchEntry.VirtualDirectory)"
 
-                    # Properly Secured Configuration is only a concern if Required is the Expected value
-                    # If the Expected value is None or Allow, you can have it configured however you would like and from a security standpoint, it shouldn't be a concern.
-                    # For a mitigation scenario, like EWS BE, Required is the Expected value. Therefore, on those directories, we need to verify that IP filtering is set if not set to Require.
-                    if ($expectedExtendedConfiguration -eq "Require") {
-                        $properlySecuredConfiguration = $expectedExtendedConfiguration -eq $extendedConfiguration.ExtendedProtection
+                    # Supported Configuration is when the current value of Extended Protection is less than our expected extended protection value.
+                    # While this isn't secure as we would like, it is still a supported state that should work.
+                    $supportedExtendedConfiguration = $expectedExtendedConfiguration -eq $extendedConfiguration.ExtendedProtection
 
-                        if ($properlySecuredConfiguration -eq $false) {
-                            # Only care about virtual directories that we allow mitigation for
-                            $properlySecuredConfiguration = $mitigationSupportedVDirs.Contains($virtualDirectoryName.ToLower()) -and
-                            $extendedConfiguration.MitigationSettings.AllowUnlisted -eq "false"
-                        }
+                    if ($supportedExtendedConfiguration) {
+                        Write-Verbose "The EP value set to the expected value."
                     } else {
+                        Write-Verbose "We are expecting a value of '$expectedExtendedConfiguration' but the current value is '$($extendedConfiguration.ExtendedProtection)'"
+
+                        if ($expectedExtendedConfiguration -eq "Require" -or
+                            ($expectedExtendedConfiguration -eq "Allow" -and
+                            $extendedConfiguration.ExtendedProtection -eq "None")) {
+                            $supportedExtendedConfiguration = $true
+                            Write-Verbose "This is still supported because it is lower than what we recommended."
+                        } else {
+                            Write-Verbose "This is not supported because you are higher than the recommended value and will likely cause problems."
+                        }
+                    }
+
+                    # Properly Secured Configuration is when the current Extended Protection value is equal to or greater than the Expected Extended Protection Configuration.
+                    # If the Expected value is Allow, you can have the value set to Allow or Required and it will not be a security risk. However, if set to None, that is a security concern.
+                    # For a mitigation scenario, like EWS BE, Required is the Expected value. Therefore, on those directories, we need to verify that IP filtering is set if not set to Require.
+                    $properlySecuredConfiguration = $expectedExtendedConfiguration -eq $extendedConfiguration.ExtendedProtection
+
+                    if ($properlySecuredConfiguration) {
+                        Write-Verbose "We are 'properly' secure because we have EP set to the expected EP configuration value: $($expectedExtendedConfiguration)"
+                    } elseif ($expectedExtendedConfiguration -eq "Require") {
+                        Write-Verbose "Checking to see if we have mitigations enabled for the supported vDirs"
+                        # Only care about virtual directories that we allow mitigation for
+                        $properlySecuredConfiguration = $mitigationSupportedVDirs -contains $virtualDirectoryName -and
+                        $extendedConfiguration.MitigationSettings.AllowUnlisted -eq "false"
+                    } elseif ($expectedExtendedConfiguration -eq "Allow") {
+                        Write-Verbose "Checking to see if Extended Protection is set to 'Require' to still be considered secure"
+                        $properlySecuredConfiguration = $extendedConfiguration.ExtendedProtection -eq "Require"
+                    } else {
+                        Write-Verbose "Recommended EP setting is 'None' means you can have it higher, but you might run into other issues. But you are 'secure'."
                         $properlySecuredConfiguration = $true
                     }
+
+                    Write-Verbose "Properly Secure Configuration value: $properlySecuredConfiguration"
 
                     $extendedProtectionList.Add([PSCustomObject]@{
                             VirtualDirectoryName          = $virtualDirectoryName
                             Configuration                 = $extendedConfiguration
+                            # The current Extended Protection configuration set on the server
                             ExtendedProtection            = $extendedConfiguration.ExtendedProtection
-                            SupportedExtendedProtection   = $expectedExtendedConfiguration -eq $extendedConfiguration.ExtendedProtection
+                            # The Recommended Extended Protection is to verify that we have set the current Extended Protection
+                            #   setting value to the Expected Extended Protection Value
+                            RecommendedExtendedProtection = $expectedExtendedConfiguration -eq $extendedConfiguration.ExtendedProtection
+                            # The supported/expected Extended Protection Configuration value that we should be set to (based off the build of Exchange)
                             ExpectedExtendedConfiguration = $expectedExtendedConfiguration
-                            MitigationEnabled             = ($extendedConfiguration.MitigationSettings.AllowUnlisted -eq "false")
-                            MitigationSupported           = $mitigationSupportedVDirs.Contains($virtualDirectoryName.ToLower())
+                            # Properly Secured is determined if we have a value equal to or greater than the ExpectedExtendedConfiguration value
+                            # However, if we have a value greater than the expected, this could mean that we might run into a known set of issues.
                             ProperlySecuredConfiguration  = $properlySecuredConfiguration
+                            # The Supported Extended Protection is a value that is equal to or lower than the Expected Extended Protection configuration.
+                            # While this is not the best security setting, it is lower and shouldn't cause a connectivity issue and should still be supported.
+                            SupportedExtendedProtection   = $supportedExtendedConfiguration
+                            MitigationEnabled             = ($extendedConfiguration.MitigationSettings.AllowUnlisted -eq "false")
+                            MitigationSupported           = $mitigationSupportedVDirs -contains $virtualDirectoryName
                             ExpectedSslFlags              = $matchEntry.SslFlags
-                            SslFlagsSetCorrectly          = $sslFlagsToSet.Split(",").Count -eq $currentSetFlags.Count
+                            SslFlagsSetCorrectly          = $sslFlagsToSet.Split(",").Trim().Count -eq $currentSetFlags.Count
                             SslFlagsToSet                 = $sslFlagsToSet
                         })
                 } catch {

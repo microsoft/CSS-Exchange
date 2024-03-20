@@ -98,6 +98,14 @@ Describe "Testing $scriptName" {
             $result.MinimumValue | Should -Be $value
             $result.RegistryValue | Should -Be ($value + 1)
         }
+
+        It ".NET 4.8.1" {
+            $value = 533320
+            $result = Get-NETFrameworkVersion -NetVersionKey ($value + 1)
+            $result.FriendlyName | Should -Be "4.8.1"
+            $result.MinimumValue | Should -Be $value
+            $result.RegistryValue | Should -Be ($value + 1)
+        }
     }
 
     Context "Get Local .NET Version and debug" {
@@ -188,6 +196,11 @@ Describe "Testing $scriptName" {
         It "NET 4.8" {
             $result = Get-NETFrameworkVersion -NetVersionShortName "Net4d8"
             $result.FriendlyName = "4.8"
+        }
+
+        It "NET 4.8.1" {
+            $result = Get-NETFrameworkVersion -NetVersionShortName "Net4d8d1"
+            $result.FriendlyName = "4.8.1"
         }
     }
 }

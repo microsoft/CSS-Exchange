@@ -62,7 +62,7 @@ function Invoke-ValidateMitigation {
 
                 $Filter = 'system.webServer/security/authentication/windowsAuthentication/extendedProtection'
 
-                $ExtendedProtection = Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name tokenChecking
+                $ExtendedProtection = Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -Name tokenChecking
                 return $ExtendedProtection
             }
 
@@ -87,7 +87,7 @@ function Invoke-ValidateMitigation {
                 $Filter = 'system.webServer/security/ipSecurity'
                 $IISPath = 'IIS:\'
 
-                $ExistingRules = @(Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name collection)
+                $ExistingRules = @(Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -Name collection)
 
                 foreach ($IpFilteringRule in $IpFilteringRules) {
                     $ExistingIPSubnetRule = $ExistingRules | Where-Object {
@@ -180,7 +180,7 @@ function Invoke-ValidateMitigation {
             $progressParams.PercentComplete = ($counter / $totalCount * 100)
             $progressParams.Status = "$baseStatus Validating rules"
             Write-Progress @progressParams
-            $counter ++;
+            $counter ++
 
             Write-Verbose ("Calling Invoke-ScriptBlockHandler on Server {0} with arguments SiteVDirLocations: {1}, ipRangeAllowListRules: {2}" -f $Server, [string]::Join(", ", $SiteVDirLocations), $ipRangeAllowListString)
             $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock $ValidateMitigationScriptBlock -ArgumentList $ScriptBlockArgs

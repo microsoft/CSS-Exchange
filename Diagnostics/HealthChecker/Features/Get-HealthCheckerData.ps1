@@ -113,6 +113,8 @@ function Get-HealthCheckerData {
         } catch {
             Write-Red "Failed to Health Checker against $serverName"
             $failedServerList.Add($serverName)
+            # Try to handle the issue so we don't get a false positive report.
+            Invoke-CatchActions
             continue
         }
 
@@ -121,19 +123,27 @@ function Get-HealthCheckerData {
         Write-Progress @paramWriteProgress
 
         try {
-            $analyzedResults | Export-Clixml -Path $Script:OutXmlFullPath -Encoding UTF8 -Depth 2 -ErrorAction SilentlyContinue
+            $analyzedResults | Export-Clixml -Path $Script:OutXmlFullPath -Encoding UTF8 -Depth 2 -ErrorAction Stop
+            Write-Verbose "Successfully export out the data"
         } catch {
-            Write-Verbose "Failed to Export-Clixml. Converting HealthCheckerExchangeServer to json"
-            $jsonHealthChecker = $analyzedResults.HealthCheckerExchangeServer | ConvertTo-Json
+            try {
+                Write-Verbose "Failed to Export-Clixml. Inner Exception: $_"
+                Write-Verbose "Converting HealthCheckerExchangeServer to json."
+                $jsonHealthChecker = $analyzedResults.HealthCheckerExchangeServer | ConvertTo-Json -Depth 6 -ErrorAction Stop
 
-            $testOutputXml = [PSCustomObject]@{
-                HealthCheckerExchangeServer = $jsonHealthChecker | ConvertFrom-Json
-                HtmlServerValues            = $analyzedResults.HtmlServerValues
-                DisplayResults              = $analyzedResults.DisplayResults
+                $testOutputXml = [PSCustomObject]@{
+                    HealthCheckerExchangeServer = $jsonHealthChecker | ConvertFrom-Json -ErrorAction Stop
+                    HtmlServerValues            = $analyzedResults.HtmlServerValues
+                    DisplayResults              = $analyzedResults.DisplayResults
+                }
+
+                $testOutputXml | Export-Clixml -Path $Script:OutXmlFullPath -Encoding UTF8 -Depth 2 -ErrorAction Stop
+                Write-Verbose "Successfully export out the data after the convert"
+            } catch {
+                Write-Red "Failed to Export-Clixml. Unable to export the data."
             }
-
-            $testOutputXml | Export-Clixml -Path $Script:OutXmlFullPath -Encoding UTF8 -Depth 2 -ErrorAction Stop
         } finally {
+            # This prevents the need to call Invoke-CatchActions
             Invoke-ErrorCatchActionLoopFromIndex $currentErrors
 
             # for now don't want to display that we output the information if ReturnDataCollectionOnly is false

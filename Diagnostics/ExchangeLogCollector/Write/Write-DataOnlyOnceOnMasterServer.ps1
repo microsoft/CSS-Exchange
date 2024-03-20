@@ -41,6 +41,28 @@ function Write-DataOnlyOnceOnMasterServer {
         Save-DataInfoToFile -dataIn $data -SaveToLocation $target -AddServerName $false
     }
 
+    if ($TransportRules) {
+        $target = $RootCopyToDirectory + "\TransportRules"
+        $data = Get-TransportRule
+
+        # If no rules found, we want to report that.
+        if ($null -ne $data) {
+            Save-DataInfoToFile -dataIn $data -SaveToLocation $target -AddServerName $false
+        } else {
+            Save-DataInfoToFile -dataIn "No Transport Rules Found" -SaveXMLFile $false -SaveToLocation $target -AddServerName $false
+        }
+    }
+
+    if ($AcceptedRemoteDomain) {
+        $target = $RootCopyToDirectory + "\AcceptedDomain"
+        $data = Get-AcceptedDomain
+        Save-DataInfoToFile -dataIn $data -SaveToLocation $target -AddServerName $false
+
+        $target = $RootCopyToDirectory + "\RemoteDomain"
+        $data = Get-RemoteDomain
+        Save-DataInfoToFile -dataIn $data -SaveToLocation $target -AddServerName $false
+    }
+
     if ($Error.Count -ne 0) {
         Save-DataInfoToFile -DataIn $Error -SaveToLocation ("$RootCopyToDirectory\AllErrors")
         Save-DataInfoToFile -DataIn (Get-UnhandledErrors) -SaveToLocation ("$RootCopyToDirectory\UnhandledErrors")

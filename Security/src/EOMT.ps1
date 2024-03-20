@@ -338,15 +338,15 @@ function Run-Mitigate {
                 Clear-WebConfiguration -Filter $filter2 -PSPath $site
             }
 
-            Add-WebConfigurationProperty -PSPath $site -filter $root -name '.' -value @{name = $name; patternSyntax = 'Regular Expressions'; stopProcessing = 'False' }
-            Set-WebConfigurationProperty -PSPath $site -filter "$filter/match" -name 'url' -value $inbound
-            Set-WebConfigurationProperty -PSPath $site -filter "$filter/conditions" -name '.' -value @{input = $HttpCookieInput; matchType = '0'; pattern = $pattern; ignoreCase = 'True'; negate = 'False' }
-            Set-WebConfigurationProperty -PSPath $site -filter "$filter/action" -name 'type' -value 'AbortRequest'
+            Add-WebConfigurationProperty -PSPath $site -Filter $root -Name '.' -Value @{name = $name; patternSyntax = 'Regular Expressions'; stopProcessing = 'False' }
+            Set-WebConfigurationProperty -PSPath $site -Filter "$filter/match" -Name 'url' -Value $inbound
+            Set-WebConfigurationProperty -PSPath $site -Filter "$filter/conditions" -Name '.' -Value @{input = $HttpCookieInput; matchType = '0'; pattern = $pattern; ignoreCase = 'True'; negate = 'False' }
+            Set-WebConfigurationProperty -PSPath $site -Filter "$filter/action" -Name 'type' -Value 'AbortRequest'
 
-            Add-WebConfigurationProperty -PSPath $site -filter $root -name '.' -value @{name = $name2; patternSyntax = 'Regular Expressions'; stopProcessing = 'True' }
-            Set-WebConfigurationProperty -PSPath $site -filter "$filter2/match" -name 'url' -value $inbound
-            Set-WebConfigurationProperty -PSPath $site -filter "$filter2/conditions" -name '.' -value @{input = $HttpCookieInput; matchType = '0'; pattern = $pattern2; ignoreCase = 'True'; negate = 'False' }
-            Set-WebConfigurationProperty -PSPath $site -filter "$filter2/action" -name 'type' -value 'AbortRequest'
+            Add-WebConfigurationProperty -PSPath $site -Filter $root -Name '.' -Value @{name = $name2; patternSyntax = 'Regular Expressions'; stopProcessing = 'True' }
+            Set-WebConfigurationProperty -PSPath $site -Filter "$filter2/match" -Name 'url' -Value $inbound
+            Set-WebConfigurationProperty -PSPath $site -Filter "$filter2/conditions" -Name '.' -Value @{input = $HttpCookieInput; matchType = '0'; pattern = $pattern2; ignoreCase = 'True'; negate = 'False' }
+            Set-WebConfigurationProperty -PSPath $site -Filter "$filter2/action" -Name 'type' -Value 'AbortRequest'
 
             $Message = "Mitigation complete on $env:COMPUTERNAME :: $WebSiteName"
             $RegMessage = "Mitigation complete"
@@ -847,7 +847,7 @@ try {
         Set-LogActivity -Stage $Stage -RegMessage $RegMessage -Message $Message -Notice
     }
 
-    $DisableAutoUpdateIfNeeded = "If you are getting this error even with updated EOMT, re-run with -DoNotAutoUpdateEOMT parameter";
+    $DisableAutoUpdateIfNeeded = "If you are getting this error even with updated EOMT, re-run with -DoNotAutoUpdateEOMT parameter"
 
     $Stage = "AutoUpdateEOMT"
     if ($latestEOMTVersion -and ($BuildVersion -ne $latestEOMTVersion)) {

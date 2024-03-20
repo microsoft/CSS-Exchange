@@ -152,7 +152,7 @@ ServerList | Used in combination with the LoadBalancingReport switch for letting
 SiteName | Used in combination with the LoadBalancingReport switch for letting the script to know which servers to run against in the site.
 XMLDirectoryPath | Used in combination with BuildHtmlServersReport switch for the location of the HealthChecker XML files for servers which you want to be included in the report. Default location is the current directory.
 BuildHtmlServersReport | Switch to enable the script to build the HTML report for all the servers XML results in the XMLDirectoryPath location.
-HtmlReportFile | Name of the HTML output file from the BuildHtmlServersReport. Default is ExchangeAllServersReport.html
+HtmlReportFile | Name of the HTML output file from the BuildHtmlServersReport. Default is ExchangeAllServersReport-yyyyMMddHHmmss.html
 DCCoreRatio | Gathers the Exchange to DC/GC Core ratio and displays the results in the current site that the script is running in.
 AnalyzeDataOnly | Switch to analyze the existing HealthChecker XML files. The results are displayed on the screen and an HTML report is generated.
 VulnerabilityReport | Switch to collect the Vulnerability Information for all the servers in the environment and export it out to json file.

@@ -21,8 +21,8 @@ function TestFileOrCmd {
     param( [String] $FileOrCmd )
 
     if ($FileOrCmd -like "File missing for this action*") {
-        Write-Host -ForegroundColor red $FileOrCmd;
-        exit;
+        Write-Host -ForegroundColor red $FileOrCmd
+        exit
     }
 }
 
@@ -30,7 +30,7 @@ function ParseProbeResult {
     [CmdletBinding()]
     param( [String] $FilterXpath , [String] $MonitorToInvestigate , [String] $ResponderToInvestigate)
 
-    TestFileOrCmd $ProbeResultEventCmd;
+    TestFileOrCmd $ProbeResultEventCmd
     ParseProbeResult2 -ProbeResultEventCompleteCmd ($ProbeResultEventCmd + " -MaxEvents 200" ) `
         -FilterXpath $FilterXpath `
         -WaitString "Parsing only last 200 probe events for quicker response time" `
@@ -49,7 +49,7 @@ function ParseProbeResult2 {
     [CmdletBinding()]
     param( [String] $ProbeResultEventCompleteCmd , [String] $FilterXpath , [String] $WaitString , [String] $MonitorToInvestigate , [String] $ResponderToInvestigate)
 
-    TestFileOrCmd $ProbeResultEventCmd;
+    TestFileOrCmd $ProbeResultEventCmd
     $ProbeEventsCmd = '(' + $ProbeResultEventCompleteCmd + ' -FilterXPath ("' + $FilterXpath + '") -ErrorAction SilentlyContinue | % {[XML]$_.toXml()}).event.userData.eventXml'
     Write-Verbose $ProbeEventsCmd
     $titleProbeEvents = "Probe events"
@@ -77,7 +77,7 @@ function ParseProbeResult2 {
             if ($ProbeEvt.ResultType -eq 4) {
                 $Script:lastProbeError = $ProbeEvt
                 if ($Script:KnownIssueDetectionAlreadyDone -eq $false) { KnownIssueDetection $MonitorToInvestigate $ResponderToInvestigate }
-                break;
+                break
             }
         }
         if ($Script:KnownIssueDetectionAlreadyDone -eq $false) { KnownIssueDetection $MonitorToInvestigate $ResponderToInvestigate }
@@ -90,7 +90,7 @@ function InvestigateProbe {
     [CmdletBinding()]
     param([String]$ProbeToInvestigate , [String]$MonitorToInvestigate , [String]$ResponderToInvestigate , [String]$ResourceNameToInvestigate , [String]$ResponderTargetResource )
 
-    TestFileOrCmd $ProbeDefinitionEventCmd;
+    TestFileOrCmd $ProbeDefinitionEventCmd
     if (-Not ($ResponderTargetResource) -and ($ProbeToInvestigate.split("/").Count -gt 1)) {
         $ResponderTargetResource = $ProbeToInvestigate.split("/")[1]
     }
@@ -183,10 +183,10 @@ function InvestigateMonitor {
         $MaintenanceFailureMonitor = $MonitorToInvestigate.split(".")[1]
         Write-Host ("`nThis is triggered by MaintenanceFailureMonitor " + $MaintenanceFailureMonitor)
         InvestigateMaintenanceMonitor $MaintenanceFailureMonitor $ResponderToInvestigate
-        break;
+        break
     }
 
-    TestFileOrCmd $MonitorDefinitionCmd;
+    TestFileOrCmd $MonitorDefinitionCmd
     $MonitorDetailsCmd = '(' + $MonitorDefinitionCmd + '| % {[XML]$_.toXml()}).event.userData.eventXml| ? {$_.Name -like "' + $MonitorToInvestigate.split("/")[0] + '*" }'
     Write-Verbose $MonitorDetailsCmd
     Write-Progress "Checking Monitor definition"
@@ -253,7 +253,7 @@ function InvestigateMaintenanceMonitor {
     [CmdletBinding()]
     param([String]$MaintenanceFailureMonitor , [String] $ResponderToInvestigate)
 
-    TestFileOrCmd $MaintenanceDefinitionCmd;
+    TestFileOrCmd $MaintenanceDefinitionCmd
     $MaintenanceDefinitionCmd = '(' + $MaintenanceDefinitionCmd + '| % {[XML]$_.toXml()}).event.userData.eventXml| ? {$_.ServiceName -like "' + $MaintenanceFailureMonitor + '*" }'
     Write-Verbose $MaintenanceDefinitionCmd
     Write-Progress "Checking Maintenance definition"
@@ -271,7 +271,7 @@ function InvestigateMaintenanceMonitor {
 
         $MaintenanceDetails | Format-List
 
-        TestFileOrCmd $MaintenanceResultCmd;
+        TestFileOrCmd $MaintenanceResultCmd
         $MaintenanceResultCmd = '(' + $MaintenanceResultCmd + ' -FilterXPath "*/System/Level<=3" | % {[XML]$_.toXml()}).event.userData.eventXml| ? {$_.ResultName -like "' + $MaintenanceDetails.Name + '*" }'
         Write-Verbose $MaintenanceResultCmd
         Write-Progress "Checking Maintenance Result warnings and errors"
@@ -312,7 +312,7 @@ function OverrideIfNeeded {
             $continueToCheckIfResponderIsEnabled = $true
             while ( $continueToCheckIfResponderIsEnabled) {
                 if ("yes", "YES", "Y", "y" -contains (Read-Host ("Do you like to check if " + $ResponderToInvestigate + " Responder is now disabled ? Y/N"))) {
-                    TestFileOrCmd $ResponderDefinitionCmd;
+                    TestFileOrCmd $ResponderDefinitionCmd
                     $ResponderDetailsCmd = '(' + $ResponderDefinitionCmd + '| % {[XML]$_.toXml()}).event.userData.eventXml| ? {$_.Name -eq "' + $ResponderToInvestigate + '" }'
                     Write-Verbose $ResponderDetailsCmd
                     Write-Progress "Checking Responder definition"
@@ -364,7 +364,7 @@ function InvestigateResponder {
         Write-Host "`nIn case it is a reboot , there can be related 1074 events in system log showing that a user forced a rebooted around that time."
         Write-Host "looking for 1074 events ..."
 
-        TestFileOrCmd $SystemCmd;
+        TestFileOrCmd $SystemCmd
         $SystemCmd = $SystemCmd + ' -FilterXPath ("*[System[(EventID=''1074'')]]")'
         Write-Verbose $SystemCmd
         trap [System.Exception] { continue }
@@ -376,7 +376,7 @@ function InvestigateResponder {
             $1074events | Format-List
         }
     } else {
-        TestFileOrCmd $ResponderDefinitionCmd;
+        TestFileOrCmd $ResponderDefinitionCmd
         $ResponderDetailsCmd = '(' + $ResponderDefinitionCmd + '| % {[XML]$_.toXml()}).event.userData.eventXml| ? {$_.Name -eq "' + $ResponderToInvestigate + '" }'
         Write-Verbose $ResponderDetailsCmd
         Write-Progress "Checking Responder definition"
@@ -462,25 +462,25 @@ function CheckIfThisCanBeAKnownIssueUsingResponder {
     if (($ResponderToInvestigate -eq "ActiveDirectoryConnectivityConfigDCServerReboot") -and ($MajorExchangeVersion -eq 15) -and ($MinorExchangeVersion -eq 0) -and ($BuildExchangeVersion -lt 775)) {
         Write-Host -foreground yellow ("There is a known issue with restarts initiated by the  ActiveDirectoryConnectivityConfigDCServerReboot prior to CU3 which appears to be your case" )
         Write-Host -foreground yellow ("Check https://support.microsoft.com/en-us/kb/2883203" )
-        $Script:foundIssue = $true; return;
+        $Script:foundIssue = $true; return
     }
 
     if ($ResponderToInvestigate -eq "ImapProxyTestCafeOffline") {
         Write-Host -foreground yellow ("ImapProxyTestCafeOffline can set ImapProxy component as inactive when 127.0.0.1 is blocked in IMAP bindings." )
         Write-Host -foreground yellow ("Check ImapSettings using Exchange Powershell command : Get-ImapSettings." )
         Write-Host ("Change the settings if needed with Set-ImapSettings - https://technet.microsoft.com/en-us/library/aa998252(v=exchg.150).aspx")
-        $Script:foundIssue = $true; return;
+        $Script:foundIssue = $true; return
     }
     if ($ResponderToInvestigate -eq "PopProxyTestCafeOffline") {
         Write-Host -foreground yellow ("PopProxyTestCafeOffline can set POPProxy component as inactive when 127.0.0.1 is blocked in POP bindings." )
         Write-Host -foreground yellow ("Check PopSettings using Exchange Powershell command : Get-POPSettings." )
         Write-Host -foreground yellow ("Change the settings if needed with Set-POPSettings - https://technet.microsoft.com/en-us/library/aa997154(v=exchg.150).aspx")
-        $Script:foundIssue = $true; return;
+        $Script:foundIssue = $true; return
     }
     if (($ResponderToInvestigate -eq "OutlookMapiHttpSelfTestRestart") -and ($MajorExchangeVersion -eq 15) -and ($MinorExchangeVersion -eq 0) -and ($BuildExchangeVersion -lt 1130)) {
         Write-Host -foreground yellow ("There is a known issue with OutlookMapiHttpSelfTestRestart prior to CU10 ( for reference OfficeMain: 1541090)" )
         Write-Host -foreground yellow ("You may plan to apply CU10 : https://support.microsoft.com/en-us/kb/3078678" )
-        $Script:foundIssue = $true; return;
+        $Script:foundIssue = $true; return
     }
 }
 
@@ -491,21 +491,21 @@ function CheckIfThisCanBeAKnownIssueUsingMonitor {
     $Script:checkForKnownIssue = $true
     if (($MonitorToInvestigate -like "*Mapi.Submit.Monitor") -and ($MajorExchangeVersion -eq 15) -and ($MinorExchangeVersion -eq 0)) {
         Write-Host -foreground yellow ("There is a known issue with Mapi.Submit.Monitor. This issue is fixed in CU11 ( OfficeMain: 1956332) " )
-        $Script:foundIssue = $true; return;
+        $Script:foundIssue = $true; return
     }
     if (($MonitorToInvestigate -like "MaintenanceFailureMonitor.Network") -and ($MajorExchangeVersion -eq 15) -and ($MinorExchangeVersion -eq 0) -and ($BuildExchangeVersion -lt 1130)) {
         Write-Host -foreground yellow ("There is a known issue with MaintenanceFailureMonitor.Network/IntraDagPingProbe is fixed in CU10.( for reference OfficeMain: 2080370)" )
         Write-Host -foreground yellow ("You may plan to apply CU10 : https://support.microsoft.com/en-us/kb/3078678" )
-        $Script:foundIssue = $true; return;
+        $Script:foundIssue = $true; return
     }
     if (($MonitorToInvestigate -like "MaintenanceFailureMonitor.ShadowService") -and ($MajorExchangeVersion -eq 15) -and ($MinorExchangeVersion -eq 1) ) {
         Write-Host -foreground yellow ("There is a known issue with MaintenanceFailureMonitor.ShadowService which fix will be included in Exchange 2016 CU5 and upper.( for reference OfficeMain: 142253)" )
-        $Script:foundIssue = $true; return;
+        $Script:foundIssue = $true; return
     }
 
     if (($MonitorToInvestigate -like "EacBackEndLogonMonitor") -and ($MajorExchangeVersion -eq 15) -and ($MinorExchangeVersion -eq 1) ) {
         Write-Host -foreground yellow ("EacBackEndLogonMonitor has been seen unhealthy linked uninitialized culture on test mailboxes. You may run this command and check if this helps : get-mailbox -Monitoring -server $env:COMPUTERNAME | Set-MailboxRegionalConfiguration -Language En-US -TimeZone ""Pacific Standard Time""" )
-        $Script:foundIssue = $true; return;
+        $Script:foundIssue = $true; return
     }
 
     if ($MonitorToInvestigate -like "ActiveSyncCTPMonitor") {
@@ -518,7 +518,7 @@ function CheckIfThisCanBeAKnownIssueUsingMonitor {
             Write-Host ("ActiveSyncCTPMonitor can fail with error 401 when BasicAuthEnabled setting in get-ActiveSyncVirtualDirectory has been changed and set to `$false.  - KB 3125818" )
             Write-Host("If this is your case , Enable Basic Authentication again if possible using the command :`nSet-ActiveSyncVirtualDirectory -basicAuthEnabled `$true." )
             Write-Host("Or disable this monitor using an override :`nAdd-GlobalMonitoringOverride -Identity ActiveSync\ActiveSyncCTPMonitor  -ItemType Monitor -PropertyName Enabled -PropertyValue 0" )
-            $Script:foundIssue = $true; return;
+            $Script:foundIssue = $true; return
         }
     }
 
@@ -534,7 +534,7 @@ function CheckIfThisCanBeAKnownIssueUsingMonitor {
             Write-Host ("ActiveSyncDeepTestMonitor can fail with Index was out of range error when no active database are found on the server" )
             Write-Host("If this is your case , disable this monitor with this command : " )
             Write-Host("Add-GlobalMonitoringOverride -Identity ActiveSync\ActiveSyncDeepTestMonitor  -ItemType Monitor -PropertyName Enabled -PropertyValue 0" )
-            $Script:foundIssue = $true; return;
+            $Script:foundIssue = $true; return
         }
     }
 
@@ -551,7 +551,7 @@ function CheckIfThisCanBeAKnownIssueUsingMonitor {
             Write-Host -foreground yellow "WMI request failing should be : SELECT LastBootUpTime FROM Win32_OperatingSystem WHERE Primary='true'"
             Write-Host -foreground yellow "This may be investigated at WMI level looking for this request"
             Write-Host  -foreground yellow "This WMI request is planned to be replaced in future version higher than 15.00.1187.000 likely CU13 by direct Windows native call without going through WMI layer.( for reference OfficeMain:2908185)"
-            $Script:foundIssue = $true; return;
+            $Script:foundIssue = $true; return
         }
     }
     if ($MonitorToInvestigate -like "ServiceHealthMSExchangeReplEndpointMonitor*") {
@@ -564,14 +564,14 @@ function CheckIfThisCanBeAKnownIssueUsingMonitor {
         }
         if ($ServiceHealthMSExchangeReplEndpointPossibleDNSissue) {
             Write-Host -foreground yellow "ServiceHealthMSExchangeReplEndpointMonitor is failing due to missing DNS entry."
-            Write-Host -foreground yellow "Make sure that the 'Register this connection’s addresses in DNS' property is selected on the network adapter"
+            Write-Host -foreground yellow "Make sure that the 'Register this connection's addresses in DNS' property is selected on the network adapter"
             Write-Host -foreground yellow "https://support.microsoft.com/en-us/kb/2969070"
-            $Script:foundIssue = $true; return;
+            $Script:foundIssue = $true; return
         }
     }
     if ($MonitorToInvestigate -like "DiscoveryErrorReportMonitor*") {
         Write-Host -foreground yellow "DiscoveryErrorReportMonitor is Disabled by default and should not be enabled"
-        $Script:foundIssue = $true; return;
+        $Script:foundIssue = $true; return
     }
     if ($Script:lastProbeError) {
         if ($Script:lastProbeError.Exception -like "*The underlying connection was closed*") {
@@ -580,7 +580,7 @@ function CheckIfThisCanBeAKnownIssueUsingMonitor {
             Write-Host -foreground yellow "This has been seen when blocking some TLS version using SecureProtocols registry key or through GPO.`n"
             Write-Host -foreground yellow "You can check if some TLS version are disabled under HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols (https://techcommunity.microsoft.com/t5/exchange-team-blog/exchange-server-tls-guidance-part-2-enabling-tls-1-2-and/ba-p/607761).`n"
             Write-Host -foreground yellow "You may also check if this is linked with antivirus or local firewall rules.`n"
-            $Script:foundIssue = $true; return;
+            $Script:foundIssue = $true; return
         }
     }
 }
@@ -591,7 +591,7 @@ function InvestigateUnhealthyMonitor {
 
     Write-Progress "Checking MonitorHealth"
     if ($pathForLogsSpecified) {
-        TestFileOrCmd $ServerHealthFile;
+        TestFileOrCmd $ServerHealthFile
         if ( -not (Test-Path $ServerHealthFile))
         { Write-Host -ForegroundColor red ("Path to ServerHealth file is invalid : $ServerHealthFile"); exit }
 
@@ -599,7 +599,7 @@ function InvestigateUnhealthyMonitor {
         $currentHealthEntry = New-Object -TypeName PSObject
         $firstLine = $true
         foreach ($line in (Get-Content $ServerHealthFile)) {
-            $propName = $line.split(" ")[0];
+            $propName = $line.split(" ")[0]
             if ( -not $propName) { continue; }
             if ($propName -eq "SerializationData" -or $propName -eq "Result" -or $propName -eq "PSComputerName" -or $propName -eq "PSShowComputerName") { continue; }
             $newMonitor = $false
@@ -622,11 +622,11 @@ function InvestigateUnhealthyMonitor {
             }
             if ($propName -eq "RunSpaceId")
             { continue }
-            $propValue = ($line.split(":")[1]).split(" ")[1];
+            $propValue = ($line.split(":")[1]).split(" ")[1]
             if ($propValue) { $currentHealthEntry | Add-Member -Name $propName -Value $propValue -MemberType NoteProperty }
         }
     } else {
-        TestFileOrCmd $ServerHealthCmd;
+        TestFileOrCmd $ServerHealthCmd
         $ServerHealthCmd = $ServerHealthCmd + '|?{$_.AlertValue -ne "Healthy"}'
         Write-Verbose $ServerHealthCmd
         $myHealthEntryList = Invoke-Expression $ServerHealthCmd
@@ -849,17 +849,17 @@ if ($pathForLogs) {
         $RecoveryActionResultsLog = ($Dir | Where-Object { $_.Name -like "*RecoveryActionResults.evtx" })
         if ( $RecoveryActionResultsLog.Count -ne 1) {
             if ($RecoveryActionResultsLog.Count -eq 0) {
-                $errorMsg = "Can't find RecoveryActionResults evtx file in " + $pathForLogs + " directory. Check the directory";
+                $errorMsg = "Can't find RecoveryActionResults evtx file in " + $pathForLogs + " directory. Check the directory"
                 if ($usingLocalPath) {
                     Write-Host -ForegroundColor yellow "Exchange Powershell not loaded.`nIn case you like to analyze directly on the Exchange server , run this script in Exchange Powershell"
                     Write-Host ("No path for logs specified , using local path " + $pathForLogs)
                 }
             } else {
-                $errorMsg = "Too much RecoveryActionResults evtx files in " + $pathForLogs + " directory.";
+                $errorMsg = "Too much RecoveryActionResults evtx files in " + $pathForLogs + " directory."
                 foreach ($RecoveryActionResultsLogFile in $RecoveryActionResultsLog)
                 { $errorMsg += "`n" + $RecoveryActionResultsLogFile.FullName }
             }
-            Write-Host -ForegroundColor red ($errorMsg) ;
+            Write-Host -ForegroundColor red ($errorMsg)
             $RecoveryActionResultsCmd = "File missing for this action.`n" + $errorMsg
         } else {
             Write-Host ("Found file " + $RecoveryActionResultsLog.FullName)
@@ -871,11 +871,11 @@ if ($pathForLogs) {
             if ($ResponderDefinitionLog.Count -eq 0)
             { $errorMsg = "Can't find ResponderDefinition evtx file in " + $pathForLogs + " directory. Check the directory"; }
             else {
-                $errorMsg = "Too much ResponderDefinition evtx files in " + $pathForLogs + " directory.";
+                $errorMsg = "Too much ResponderDefinition evtx files in " + $pathForLogs + " directory."
                 foreach ($ResponderDefinitionLogFile in $ResponderDefinitionLog)
                 { $errorMsg += "`n" + $ResponderDefinitionLogFile.FullName }
             }
-            Write-Host -ForegroundColor red ($errorMsg) ;
+            Write-Host -ForegroundColor red ($errorMsg)
             $ResponderDefinitionCmd = "File missing for this action.`n" + $errorMsg
         } else {
             Write-Host ("Found file " + $ResponderDefinitionLog.FullName)
@@ -887,11 +887,11 @@ if ($pathForLogs) {
             if ($MaintenanceDefinitionLog.Count -eq 0)
             { $errorMsg = "Can't find MaintenanceDefinition evtx file in " + $pathForLogs + " directory. Check the directory"; }
             else {
-                $errorMsg = "Too much MaintenanceDefinition evtx files in " + $pathForLogs + " directory.";
+                $errorMsg = "Too much MaintenanceDefinition evtx files in " + $pathForLogs + " directory."
                 foreach ($MaintenanceDefinitionLogFile in $MaintenanceDefinitionLog)
                 { $errorMsg += "`n" + $MaintenanceDefinitionLogFile.FullName }
             }
-            Write-Host -ForegroundColor red ($errorMsg) ;
+            Write-Host -ForegroundColor red ($errorMsg)
             $MaintenanceDefinitionCmd = "File missing for this action.`n" + $errorMsg
         } else {
             Write-Host ("Found file " + $MaintenanceDefinitionLog.FullName)
@@ -903,11 +903,11 @@ if ($pathForLogs) {
             if ($MaintenanceResultLog.Count -eq 0)
             { $errorMsg = "Can't find MaintenanceResult evtx file in " + $pathForLogs + " directory. Check the directory"; }
             else {
-                $errorMsg = "Too much MaintenanceResult evtx files in " + $pathForLogs + " directory.";
+                $errorMsg = "Too much MaintenanceResult evtx files in " + $pathForLogs + " directory."
                 foreach ($MaintenanceResultLogFile in $MaintenanceResultLog)
                 { $errorMsg += "`n" + $MaintenanceResultLogFile.FullName }
             }
-            Write-Host -ForegroundColor red ($errorMsg) ;
+            Write-Host -ForegroundColor red ($errorMsg)
             $MaintenanceResultCmd = "File missing for this action.`n" + $errorMsg
         } else {
             Write-Host ("Found file " + $MaintenanceResultLog.FullName)
@@ -919,11 +919,11 @@ if ($pathForLogs) {
             if ($MonitorDefinitionLog.Count -eq 0)
             { $errorMsg = "Can't find MonitorDefinition evtx file in " + $pathForLogs + " directory. Check the directory"; }
             else {
-                $errorMsg = "Too much MonitorDefinition evtx files in " + $pathForLogs + " directory.";
+                $errorMsg = "Too much MonitorDefinition evtx files in " + $pathForLogs + " directory."
                 foreach ($MonitorDefinitionLogFile in $MonitorDefinitionLog)
                 { $errorMsg += "`n" + $MonitorDefinitionLogFile.FullName }
             }
-            Write-Host -ForegroundColor red ($errorMsg) ;
+            Write-Host -ForegroundColor red ($errorMsg)
             $MonitorDefinitionCmd = "File missing for this action.`n" + $errorMsg
         } else {
             Write-Host ("Found file " + $MonitorDefinitionLog.FullName)
@@ -935,11 +935,11 @@ if ($pathForLogs) {
             if ($ProbeDefinitionLog.Count -eq 0)
             { $errorMsg = "Can't find ProbeDefinition evtx file in " + $pathForLogs + " directory. Check the directory"; }
             else {
-                $errorMsg = "Too much ProbeDefinition evtx files in " + $pathForLogs + " directory.";
+                $errorMsg = "Too much ProbeDefinition evtx files in " + $pathForLogs + " directory."
                 foreach ($ProbeDefinitionLogFile in $ProbeDefinitionLog)
                 { $errorMsg += "`n" + $ProbeDefinitionLogFile.FullName }
             }
-            Write-Host -ForegroundColor red ($errorMsg) ;
+            Write-Host -ForegroundColor red ($errorMsg)
             $ProbeDefinitionEventCmd = "File missing for this action.`n" + $errorMsg
         } else {
             Write-Host ("Found file " + $ProbeDefinitionLog.FullName)
@@ -951,11 +951,11 @@ if ($pathForLogs) {
             if ($ProbeResultLog.Count -eq 0)
             { $errorMsg = "Can't find ProbeResult evtx file in " + $pathForLogs + " directory. Check the directory"; }
             else {
-                $errorMsg = "Too much ProbeResult evtx files in " + $pathForLogs + " directory.";
+                $errorMsg = "Too much ProbeResult evtx files in " + $pathForLogs + " directory."
                 foreach ($ProbeResultLogFile in $ProbeResultLog)
                 { $errorMsg += "`n" + $ProbeResultLogFile.FullName }
             }
-            Write-Host -ForegroundColor red ($errorMsg) ;
+            Write-Host -ForegroundColor red ($errorMsg)
             $ProbeResultEventCmd = "File missing for this action.`n" + $errorMsg
         } else {
             Write-Host ("Found file " + $ProbeResultLog.FullName)
@@ -967,11 +967,11 @@ if ($pathForLogs) {
             if ($ManagedAvailabilityMonitoringLog.Count -eq 0)
             { $errorMsg = "Can't find ManagedAvailability Monitoring evtx file in " + $pathForLogs + " directory. Check the directory"; }
             else {
-                $errorMsg = "Too much ManagedAvailability Monitoring evtx files in " + $pathForLogs + " directory.";
+                $errorMsg = "Too much ManagedAvailability Monitoring evtx files in " + $pathForLogs + " directory."
                 foreach ($ManagedAvailabilityMonitoringLogFile in $ManagedAvailabilityMonitoringLog)
                 { $errorMsg += "`n" + $ManagedAvailabilityMonitoringLogFile.FullName }
             }
-            Write-Host -ForegroundColor red ($errorMsg) ;
+            Write-Host -ForegroundColor red ($errorMsg)
             $ManagedAvailabilityMonitoringCmd = "File missing for this action.`n" + $errorMsg
         } else {
             Write-Host ("Found file " + $ManagedAvailabilityMonitoringLog.FullName)
@@ -983,42 +983,42 @@ if ($pathForLogs) {
             if ($SystemLog.Count -eq 0)
             { $errorMsg = "Can't find System evtx file in " + $pathForLogs + " directory. Check the directory"; }
             else {
-                $errorMsg = "Too much System evtx files in " + $pathForLogs + " directory.";
+                $errorMsg = "Too much System evtx files in " + $pathForLogs + " directory."
                 foreach ($SystemLogFile in $SystemLog)
                 { $errorMsg += "`n" + $SystemLogFile.FullName }
             }
-            Write-Host -ForegroundColor red ($errorMsg) ;
+            Write-Host -ForegroundColor red ($errorMsg)
             $SystemCmd = "File missing for this action.`n" + $errorMsg
         } else {
             Write-Host ("Found file " + $SystemLog.FullName)
             $SystemCmd = "Get-WinEvent -path ""$SystemLog"""
             $foundNoLogToAnalyze = $false
         }
-        $ServerHealthFile = Get-ChildItem ($pathForLogs + "*ServerHealth_FL.TXT");
+        $ServerHealthFile = Get-ChildItem ($pathForLogs + "*ServerHealth_FL.TXT")
         if ( $ServerHealthFile.Count -ne 1) {
             if ($ServerHealthFile.Count -eq 0)
             { $errorMsg = "Can't find ServerHealth_FL TXT file in " + $pathForLogs + " directory. Check the directory"; }
             else {
-                $errorMsg = "Too much ServerHealth_FL TXT files in " + $pathForLogs + " directory.";
+                $errorMsg = "Too much ServerHealth_FL TXT files in " + $pathForLogs + " directory."
                 foreach ($ServerHealthFileInstance in $ServerHealthFile)
                 { $errorMsg += "`n" + $ServerHealthFileInstance.FullName }
             }
-            Write-Host -ForegroundColor red ($errorMsg) ;
+            Write-Host -ForegroundColor red ($errorMsg)
             $ServerHealthFile = "File missing for this action.`n" + $errorMsg
         } else {
             Write-Host ("Found file " + $ServerHealthFile)
             $foundNoLogToAnalyze = $false
         }
-        $GetExchangeServerFile = Get-ChildItem ($pathForLogs + "*_ExchangeServer_FL.TXT");
+        $GetExchangeServerFile = Get-ChildItem ($pathForLogs + "*_ExchangeServer_FL.TXT")
         if ( $GetExchangeServerFile.Count -ne 1) {
             if ($GetExchangeServerFile.Count -eq 0)
             { $errorMsg = "Can't find ExchangeServer_FL TXT file in " + $pathForLogs + " directory. Check the directory"; }
             else {
-                $errorMsg = "Too much ExchangeServer_FL TXT files in " + $pathForLogs + " directory.";
+                $errorMsg = "Too much ExchangeServer_FL TXT files in " + $pathForLogs + " directory."
                 foreach ($GetExchangeServerFileInstance in $GetExchangeServerFile)
                 { $errorMsg += "`n" + $GetExchangeServerFileInstance.FullName }
             }
-            Write-Host -ForegroundColor red ($errorMsg) ;
+            Write-Host -ForegroundColor red ($errorMsg)
             $GetExchangeServerFile = "File missing for this action.`n" + $errorMsg
         } else {
             Write-Host ("Found file " + $GetExchangeServerFile)
@@ -1026,11 +1026,11 @@ if ($pathForLogs) {
             { Write-Host -ForegroundColor red ("Path to ServerHealth file is invalid : $GetExchangeServerFile") }
             else {
                 foreach ($line in (Get-Content $GetExchangeServerFile)) {
-                    $propName = $line.split(" ")[0];
+                    $propName = $line.split(" ")[0]
                     if ( -not $propName) { continue; }
                     if ($propName -eq "AdminDisplayVersion") {
-                        $exchangeVersion = $line.split(":")[1];
-                        break;
+                        $exchangeVersion = $line.split(":")[1]
+                        break
                     }
                 }
             }
@@ -1146,7 +1146,7 @@ if ($InvestigationChoose -eq 0 -or $InvestigationChoose -eq 1) {
                 if ([string]::Compare($RecoveryActionToInvestigate.MachineName, $env:COMPUTERNAME, $true) -ne 0) {
                     Write-Host -ForegroundColor yellow ("`nThe RecoveryAction you select is regarding a different server : " + $RecoveryActionToInvestigate.MachineName + " .")
                     Write-Host -ForegroundColor yellow ("Run this script on this server directly to analyze this RecoveryAction further." )
-                    exit;
+                    exit
                 }
             }
             InvestigateResponder $RecoveryActionToInvestigate.RequestorName $RecoveryActionToInvestigate.ResourceName

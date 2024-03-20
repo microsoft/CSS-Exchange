@@ -24,6 +24,7 @@ function Get-ArgumentList {
     }
 
     return [PSCustomObject]@{
+        AcceptedRemoteDomain           = $AcceptedRemoteDomain
         ADDriverLogs                   = $ADDriverLogs
         AnyTransportSwitchesEnabled    = $Script:AnyTransportSwitchesEnabled
         AppSysLogs                     = $AppSysLogs
@@ -64,6 +65,7 @@ function Get-ArgumentList {
         MitigationService              = $MitigationService
         OABLogs                        = $OABLogs
         OWALogs                        = $OWALogs
+        PipelineTracingLogs            = $PipelineTracingLogs
         PopLogs                        = $PopLogs
         PowerShellLogs                 = $PowerShellLogs
         QueueInformation               = $QueueInformation
@@ -78,6 +80,7 @@ function Get-ArgumentList {
         TransportAgentLogs             = $TransportAgentLogs
         TransportConfig                = $TransportConfig
         TransportRoutingTableLogs      = $TransportRoutingTableLogs
+        TransportRules                 = $TransportRules
         WindowsSecurityLogs            = $WindowsSecurityLogs
     }
 }

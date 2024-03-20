@@ -21,6 +21,10 @@ function Invoke-AnalyzerExchangeInformation {
     $keyExchangeInformation = Get-DisplayResultsGroupingKey -Name "Exchange Information"  -DisplayOrder $Order
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $hardwareInformation = $HealthServerObject.HardwareInformation
+    $getWebServicesVirtualDirectory = $exchangeInformation.VirtualDirectories.GetWebServicesVirtualDirectory |
+        Where-Object { $_.Name -eq "EWS (Default Web Site)" }
+    $getWebServicesVirtualDirectoryBE = $exchangeInformation.VirtualDirectories.GetWebServicesVirtualDirectory |
+        Where-Object { $_.Name -eq "EWS (Exchange Back End)" }
 
     $baseParams = @{
         AnalyzedInformation = $AnalyzeResults
@@ -112,6 +116,17 @@ function Invoke-AnalyzerExchangeInformation {
             }
             Add-AnalyzedResultInformation @params
         }
+    }
+
+    # If the ExSetup wasn't found, we need to report that.
+    if ($exchangeInformation.BuildInformation.ExchangeSetup.FailedGetExSetup -eq $true) {
+        $params = $baseParams + @{
+            Name                   = "Warning"
+            Details                = "Didn't detect ExSetup.exe on the server. This might mean that setup didn't complete correctly the last time it was run."
+            DisplayCustomTabNumber = 2
+            DisplayWriteType       = "Yellow"
+        }
+        Add-AnalyzedResultInformation @params
     }
 
     if ($null -ne $exchangeInformation.BuildInformation.KBsInstalled) {
@@ -208,8 +223,8 @@ function Invoke-AnalyzerExchangeInformation {
     if ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false) {
 
         Write-Verbose "Working on MRS Proxy Settings"
-        $mrsProxyDetails = $exchangeInformation.GetWebServicesVirtualDirectory.MRSProxyEnabled
-        if ($exchangeInformation.GetWebServicesVirtualDirectory.MRSProxyEnabled) {
+        $mrsProxyDetails = $getWebServicesVirtualDirectory.MRSProxyEnabled
+        if ($getWebServicesVirtualDirectory.MRSProxyEnabled) {
             $mrsProxyDetails = "$mrsProxyDetails`n`r`t`tKeep MRS Proxy disabled if you do not plan to move mailboxes cross-forest or remote"
             $mrsProxyWriteType = "Yellow"
         } else {
@@ -294,13 +309,32 @@ function Invoke-AnalyzerExchangeInformation {
     }
     Add-AnalyzedResultInformation @params
 
-    if (-not ([string]::IsNullOrWhiteSpace($exchangeInformation.GetWebServicesVirtualDirectory.InternalNLBBypassUrl))) {
+    if (-not ([string]::IsNullOrWhiteSpace($getWebServicesVirtualDirectory.InternalNLBBypassUrl))) {
         $params = $baseParams + @{
             Name             = "EWS Internal Bypass URL Set"
-            Details          = "$($exchangeInformation.GetWebServicesVirtualDirectory.InternalNLBBypassUrl) - Can cause issues after KB 5001779"
+            Details          = "$($getWebServicesVirtualDirectory.InternalNLBBypassUrl) - Can cause issues after KB 5001779" +
+            "`r`n`t`tThe Web Services Virtual Directory has a value set for InternalNLBBypassUrl which can cause problems with Exchange." +
+            "`r`n`t`tSet the InternalNLBBypassUrl to NULL to correct this."
             DisplayWriteType = "Red"
         }
         Add-AnalyzedResultInformation @params
+    }
+
+    if ($null -ne $getWebServicesVirtualDirectoryBE -and
+        $null -ne $getWebServicesVirtualDirectoryBE.InternalNLBBypassUrl) {
+        Write-Verbose "Checking EWS Internal NLB Bypass URL for the BE"
+        $expectedValue = "https://$($exchangeInformation.GetExchangeServer.Fqdn.ToString()):444/ews/exchange.asmx"
+
+        if ($getWebServicesVirtualDirectoryBE.InternalNLBBypassUrl.ToString() -ne $expectedValue) {
+            $params = $baseParams + @{
+                Name             = "EWS Internal Bypass URL Incorrectly Set on BE"
+                Details          = "Error: '$expectedValue' is the expected value for this." +
+                "`r`n`t`tAnything other than the expected value, will result in connectivity issues."
+                DisplayWriteType = "Red"
+            }
+
+            Add-AnalyzedResultInformation @params
+        }
     }
 
     Write-Verbose "Working on results from Test-ServiceHealth"
@@ -374,6 +408,41 @@ function Invoke-AnalyzerExchangeInformation {
             Details = $exchangeInformation.ExtendedProtectionConfig.ExtendedProtectionConfigured
         }
         Add-AnalyzedResultInformation @params
+
+        # If any directory has a higher than expected configuration, we need to throw a warning
+        # This will be detected by SupportedExtendedProtection being set to false, as we are set higher than expected/recommended value you will likely run into issues of some kind
+        # Skip over Default Web Site/Powershell if RequireSsl is not set.
+        $notSupportedExtendedProtectionDirectories = $exchangeInformation.ExtendedProtectionConfig.ExtendedProtectionConfiguration |
+            Where-Object { ($_.SupportedExtendedProtection -eq $false -and
+                    $_.VirtualDirectoryName -ne "Default Web Site/Powershell") -or
+                ($_.SupportedExtendedProtection -eq $false -and
+                $_.VirtualDirectoryName -eq "Default Web Site/Powershell" -and
+                $_.Configuration.SslSettings.RequireSsl -eq $true)
+            }
+
+        if ($null -ne $notSupportedExtendedProtectionDirectories) {
+            foreach ($entry in $notSupportedExtendedProtectionDirectories) {
+                $expectedValue = if ($entry.MitigationSupported -and $entry.MitigationEnabled) { "None" } else { $entry.ExpectedExtendedConfiguration }
+                $params = $baseParams + @{
+                    Details                = "$($entry.VirtualDirectoryName) - Current Value: '$($entry.ExtendedProtection)'   Expected Value: '$expectedValue'"
+                    DisplayWriteType       = "Yellow"
+                    DisplayCustomTabNumber = 2
+                    TestingName            = "EP - $($entry.VirtualDirectoryName)"
+                    DisplayTestingValue    = ($entry.ExtendedProtection)
+                }
+                Add-AnalyzedResultInformation @params
+            }
+
+            $params = $baseParams + @{
+                Details          = "`r`n`t`tThe current Extended Protection settings may cause issues with some clients types on $(if(@($notSupportedExtendedProtectionDirectories).Count -eq 1) { "this protocol."} else { "these protocols."})" +
+                "`r`n`t`tIt is recommended to set the EP setting to the recommended value if you are having issues with that protocol." +
+                "`r`n`t`tMore Information: https://aka.ms/ExchangeEPDoc"
+                DisplayWriteType = "Yellow"
+            }
+            Add-AnalyzedResultInformation @params
+        } else {
+            Write-Verbose "All virtual directories are supported for the Extended Protection value."
+        }
     }
 
     if ($null -ne $exchangeInformation.SettingOverrides) {

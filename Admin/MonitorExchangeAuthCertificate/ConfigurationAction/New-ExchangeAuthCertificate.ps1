@@ -120,7 +120,14 @@ function New-ExchangeAuthCertificate {
 
                                 if (($null -ne $internalTransportCertificate.Services) -and
                                     ($internalTransportCertificate.Services -ne 0)) {
-                                    $servicesToEnableList.AddRange(($internalTransportCertificate.Services).ToString().ToUpper().Split(",").Trim())
+                                    $transportCertificateServices = ($internalTransportCertificate.Services).ToString().ToUpper().Split(",").Trim()
+                                    if ($transportCertificateServices.Count -eq 1) {
+                                        # Use the Add() method if only one service is bound to the transport certificate
+                                        $servicesToEnableList.Add($transportCertificateServices)
+                                    } else {
+                                        # Use the AddRange() method otherwise
+                                        $servicesToEnableList.AddRange($transportCertificateServices)
+                                    }
 
                                     # Make sure to remove IIS from list if the certificate was not bound to Front End Website before
                                     if (($isInternalTransportBoundToIisFe -eq $false) -and
@@ -287,7 +294,13 @@ function New-ExchangeAuthCertificate {
                 try {
                     Write-Verbose ("[Required] Step 1: Set certificate: $($newAuthCertificateThumbprint) as the next Auth Certificate")
                     if ($PSCmdlet.ShouldProcess("Certificate: $newAuthCertificateThumbprint Date: $nextAuthCertificateActiveOn", "Set-AuthConfig")) {
-                        Set-AuthConfig -NewCertificateThumbprint $newAuthCertificateThumbprint -NewCertificateEffectiveDate $nextAuthCertificateActiveOn -Force -ErrorAction Stop
+                        $setAuthConfigParams = @{
+                            NewCertificateThumbprint    = $newAuthCertificateThumbprint
+                            NewCertificateEffectiveDate = if ($EnableDaysInFuture -eq 0) { Get-Date } else { $nextAuthCertificateActiveOn }
+                            Force                       = $true
+                            ErrorAction                 = "Stop"
+                        }
+                        Set-AuthConfig @setAuthConfigParams
                     }
 
                     if ($EnableDaysInFuture -eq 0) {
@@ -329,7 +342,7 @@ function New-ExchangeAuthCertificate {
             #>
 
             Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-            $newAuthCertificateActiveOn = (Get-Date)
+            $newAuthCertificateActiveOn = $null
             $renewalSuccessful = $false
             $newAuthCertificateObject = GenerateNewAuthCertificate
 
@@ -339,8 +352,15 @@ function New-ExchangeAuthCertificate {
                 Write-Verbose ("New Auth Certificate with thumbprint: $($newAuthCertificateThumbprint) generated - the existing one will be replaced immediately with the new one")
                 try {
                     Write-Verbose ("[Required] Step 1: Set certificate: $($newAuthCertificateThumbprint) as new Auth Certificate")
-                    if ($PSCmdlet.ShouldProcess("Certificate: $newAuthCertificateThumbprint Date: $newAuthCertificateActiveOn", "Set-AuthConfig")) {
-                        Set-AuthConfig -NewCertificateThumbprint $newAuthCertificateThumbprint -NewCertificateEffectiveDate $newAuthCertificateActiveOn -Force -ErrorAction Stop
+                    if ($PSCmdlet.ShouldProcess("Certificate: $newAuthCertificateThumbprint Date: immediately", "Set-AuthConfig")) {
+                        # We must use Get-Date here to ensure that the date which is passed to NewCertificateEffectiveDate parameter is a valid one
+                        $setAuthConfigParams = @{
+                            NewCertificateThumbprint    = $newAuthCertificateThumbprint
+                            NewCertificateEffectiveDate = ($newAuthCertificateActiveOn = Get-Date)
+                            Force                       = $true
+                            ErrorAction                 = "Stop"
+                        }
+                        Set-AuthConfig @setAuthConfigParams
                     }
 
                     Write-Verbose ("[Required] Step 2: Publish the new Auth Certificate")

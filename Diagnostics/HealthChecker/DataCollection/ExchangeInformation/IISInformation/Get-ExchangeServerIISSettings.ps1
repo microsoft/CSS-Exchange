@@ -39,6 +39,16 @@ function Get-ExchangeServerIISSettings {
         $webSite = Invoke-ScriptBlockHandler @params -ScriptBlock ${Function:Get-IISWebSite} -ArgumentList (, $exchangeWebSites) -ScriptBlockDescription "Get-IISWebSite"
         $webApplication = Invoke-ScriptBlockHandler @params -ScriptBlock ${Function:Get-IISWebApplication} -ScriptBlockDescription "Get-IISWebApplication"
 
+        # Get the TokenCacheModule build information as we need it to perform version testing
+        Write-Verbose "Trying to query TokenCacheModule version information"
+        $tokenCacheModuleParams = @{
+            ComputerName           = $Server
+            ScriptBlockDescription = "Get TokenCacheModule version information"
+            ScriptBlock            = { [System.Diagnostics.FileVersionInfo]::GetVersionInfo("$env:windir\System32\inetsrv\cachtokn.dll") }
+            CatchActionFunction    = ${Function:Invoke-CatchActions}
+        }
+        $tokenCacheModuleVersionInformation = Invoke-ScriptBlockHandler @tokenCacheModuleParams
+
         # Get the shared web configuration files
         $sharedWebConfigPaths = @($webApplication.ConfigurationFileInfo.LinkedConfigurationFilePath | Select-Object -Unique)
         $sharedWebConfig = $null
@@ -97,12 +107,13 @@ function Get-ExchangeServerIISSettings {
         }
     } end {
         return [PSCustomObject]@{
-            ApplicationHostConfig    = $applicationHostConfig
-            IISModulesInformation    = $iisModulesInformation
-            IISConfigurationSettings = $iisConfigurationSettings
-            IISWebSite               = $webSite
-            IISWebApplication        = $webApplication
-            IISSharedWebConfig       = $sharedWebConfig
+            ApplicationHostConfig          = $applicationHostConfig
+            IISModulesInformation          = $iisModulesInformation
+            IISTokenCacheModuleInformation = $tokenCacheModuleVersionInformation
+            IISConfigurationSettings       = $iisConfigurationSettings
+            IISWebSite                     = $webSite
+            IISWebApplication              = $webApplication
+            IISSharedWebConfig             = $sharedWebConfig
         }
     }
 }

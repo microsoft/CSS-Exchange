@@ -96,7 +96,7 @@ $piTablesPerMailbox = New-Object 'System.Collections.Generic.Dictionary[string, 
 while ($null -ne ($buffer = $fileReader.ReadLine())) {
     if (!($buffer.StartsWith("    ")) -and $buffer -ne "") {
         if ($buffer.StartsWith("-----")) {
-            break;
+            break
         }
 
         if ($isCSV) {

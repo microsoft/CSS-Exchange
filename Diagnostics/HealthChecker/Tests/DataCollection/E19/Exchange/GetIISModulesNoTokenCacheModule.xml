@@ -1,0 +1,667 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.Automation.PSCustomObject</T>
+      <T>System.Object</T>
+    </TN>
+    <MS>
+      <B N="AllSignedModulesSignedByMSFT">true</B>
+      <B N="AllSignaturesValid">true</B>
+      <B N="AllModulesSigned">true</B>
+      <Obj N="ModuleList" RefId="1">
+        <TN RefId="1">
+          <T>System.Object[]</T>
+          <T>System.Array</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <Obj RefId="2">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">HttpLoggingModule</S>
+              <S N="Path">C:\Windows\System32\inetsrv\loghttp.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="3">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="4">
+                    <TN RefId="2">
+                      <T>System.Management.Automation.SignatureStatus</T>
+                      <T>System.Enum</T>
+                      <T>System.ValueType</T>
+                      <T>System.Object</T>
+                    </TN>
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="5">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">UriCacheModule</S>
+              <S N="Path">C:\Windows\System32\inetsrv\cachuri.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="6">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="7">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="8">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">FileCacheModule</S>
+              <S N="Path">C:\Windows\System32\inetsrv\cachfile.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="9">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="10">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="14">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">HttpCacheModule</S>
+              <S N="Path">C:\Windows\System32\inetsrv\cachhttp.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="15">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="16">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="17">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">StaticCompressionModule</S>
+              <S N="Path">C:\Windows\System32\inetsrv\compstat.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="18">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="19">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="20">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">DefaultDocumentModule</S>
+              <S N="Path">C:\Windows\System32\inetsrv\defdoc.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="21">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="22">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="23">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">DirectoryListingModule</S>
+              <S N="Path">C:\Windows\System32\inetsrv\dirlist.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="24">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="25">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="26">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">ProtocolSupportModule</S>
+              <S N="Path">C:\Windows\System32\inetsrv\protsup.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="27">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="28">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="29">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">HttpRedirectionModule</S>
+              <S N="Path">C:\Windows\System32\inetsrv\redirect.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="30">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="31">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="32">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">StaticFileModule</S>
+              <S N="Path">C:\Windows\System32\inetsrv\static.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="33">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="34">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="35">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">AnonymousAuthenticationModule</S>
+              <S N="Path">C:\Windows\System32\inetsrv\authanon.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="36">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="37">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="38">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">CustomErrorModule</S>
+              <S N="Path">C:\Windows\System32\inetsrv\custerr.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="39">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="40">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="41">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">TracingModule</S>
+              <S N="Path">C:\Windows\System32\inetsrv\iisetw.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="42">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="43">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="44">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">FailedRequestsTracingModule</S>
+              <S N="Path">C:\Windows\System32\inetsrv\iisfreb.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="45">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="46">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="47">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">RequestMonitorModule</S>
+              <S N="Path">C:\Windows\System32\inetsrv\iisreqs.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="48">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="49">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="50">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">IsapiModule</S>
+              <S N="Path">C:\Windows\System32\inetsrv\isapi.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="51">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="52">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="53">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">RequestFilteringModule</S>
+              <S N="Path">C:\Windows\System32\inetsrv\modrqflt.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="54">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="55">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="56">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">IsapiFilterModule</S>
+              <S N="Path">C:\Windows\System32\inetsrv\filter.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="57">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="58">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="59">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">ManagedEngineV4.0_32bit</S>
+              <S N="Path">C:\Windows\Microsoft.NET\Framework\v4.0.30319\webengine4.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="60">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="61">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="62">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">ManagedEngineV4.0_64bit</S>
+              <S N="Path">C:\Windows\Microsoft.NET\Framework64\v4.0.30319\webengine4.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="63">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="64">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="65">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">ConfigurationValidationModule</S>
+              <S N="Path">C:\Windows\System32\inetsrv\validcfg.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="66">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="67">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="68">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">BasicAuthenticationModule</S>
+              <S N="Path">C:\Windows\System32\inetsrv\authbas.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="69">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="70">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="71">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">WindowsAuthenticationModule</S>
+              <S N="Path">C:\Windows\System32\inetsrv\authsspi.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="72">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="73">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="74">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">DynamicCompressionModule</S>
+              <S N="Path">C:\Windows\System32\inetsrv\compdyn.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="75">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="76">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="77">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">CertificateMappingAuthenticationModule</S>
+              <S N="Path">C:\Windows\System32\inetsrv\authcert.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="78">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="79">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="80">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">DigestAuthenticationModule</S>
+              <S N="Path">C:\Windows\System32\inetsrv\authmd5.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="81">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="82">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="83">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">PasswordExpiryModule</S>
+              <S N="Path">C:\Windows\system32\rpcproxy\rpcproxy.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="84">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="85">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="86">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">kerbauth</S>
+              <S N="Path">F:\Program Files\Microsoft\Exchange\Bin\kerbauth.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="87">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="88">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="89">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">WSMan</S>
+              <S N="Path">C:\Windows\system32\wsmsvc.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="90">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="91">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="92">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">exppw</S>
+              <S N="Path">F:\Program Files\Microsoft\Exchange\ClientAccess\Owa\auth\exppw.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="93">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="94">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="95">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">cafe_exppw</S>
+              <S N="Path">F:\Program Files\Microsoft\Exchange\FrontEnd\HttpProxy\bin\exppw.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="96">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="97">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="98">
+            <TNRef RefId="0" />
+            <MS>
+              <S N="Name">RewriteModule</S>
+              <S N="Path">C:\Windows\system32\inetsrv\rewrite.dll</S>
+              <B N="Signed">true</B>
+              <Obj N="SignatureDetails" RefId="99">
+                <TNRef RefId="0" />
+                <MS>
+                  <S N="Signer">CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</S>
+                  <Obj N="SignatureStatus" RefId="100">
+                    <TNRef RefId="2" />
+                    <ToString>Valid</ToString>
+                    <I32>0</I32>
+                  </Obj>
+                  <B N="IsMicrosoftSigned">true</B>
+                </MS>
+              </Obj>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+</Objs>

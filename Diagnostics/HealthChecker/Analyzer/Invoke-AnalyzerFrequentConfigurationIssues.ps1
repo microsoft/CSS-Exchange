@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
-. $PSScriptRoot\..\Helpers\CompareExchangeBuildLevel.ps1
+. $PSScriptRoot\..\..\..\Shared\CompareExchangeBuildLevel.ps1
 function Invoke-AnalyzerFrequentConfigurationIssues {
     [CmdletBinding()]
     param(
@@ -107,12 +107,25 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     }
     Add-AnalyzedResultInformation @params
 
-    $displayValue = $credentialGuardValue = $osInformation.RegistryValues.CredentialGuard -ne 0
+    $credGuardRunning = $false
+    $credGuardUnknown = $osInformation.CredentialGuardCimInstance -eq "Unknown"
+
+    if (-not ($credGuardUnknown)) {
+        # CredentialGuardCimInstance is an array type and not sure if we can have multiple here, so just going to loop thru and handle it this way.
+        $credGuardRunning = $null -ne ($osInformation.CredentialGuardCimInstance | Where-Object { $_ -ne 0 })
+    }
+
+    $displayValue = $credentialGuardValue = $osInformation.RegistryValues.CredentialGuard -ne 0 -or $credGuardRunning
     $displayWriteType = "Grey"
 
     if ($credentialGuardValue) {
         $displayValue = "{0} `r`n`t`tError: Credential Guard is not supported on an Exchange Server. This can cause a performance hit on the server." -f $credentialGuardValue
         $displayWriteType = "Red"
+    }
+
+    if ($credGuardUnknown -and (-not ($credentialGuardValue))) {
+        $displayValue = "Unknown `r`n`t`tWarning: Unable to determine Credential Guard status. If enabled, this can cause a performance hit on the server."
+        $displayWriteType = "Yellow"
     }
 
     $params = $baseParams + @{
@@ -126,22 +139,87 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     if ($null -ne $exchangeInformation.ApplicationConfigFileStatus -and
         $exchangeInformation.ApplicationConfigFileStatus.Count -ge 1) {
 
-        foreach ($configKey in $exchangeInformation.ApplicationConfigFileStatus.Keys) {
-            $configStatus = $exchangeInformation.ApplicationConfigFileStatus[$configKey]
-            $writeType = "Green"
-            $writeValue = $configStatus.Present
+        # Only need to display a particular list all the time. Don't need every config that we want to possibly look at for issues.
+        $alwaysDisplayConfigs = @("EdgeTransport.exe.config")
+        $skipEdgeOnlyConfigs = @("noderunner.exe.config")
+        $keyList = $exchangeInformation.ApplicationConfigFileStatus.Keys | Sort-Object
 
-            if (!$configStatus.Present) {
+        foreach ($configKey in $keyList) {
+
+            $configStatus = $exchangeInformation.ApplicationConfigFileStatus[$configKey]
+            $fileName = $configStatus.FileName
+            $writeType = "Green"
+            [string]$writeValue = $configStatus.Present
+
+            if ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $true -and
+                $skipEdgeOnlyConfigs -contains $fileName) {
+                continue
+            }
+
+            if (-not $configStatus.Present) {
                 $writeType = "Red"
-                $writeValue = "{0} --- Error" -f $writeValue
+                $writeValue += " --- Error"
             }
 
             $params = $baseParams + @{
-                Name             = "$configKey Present"
+                Name             = "$fileName Present"
                 Details          = $writeValue
                 DisplayWriteType = $writeType
             }
-            Add-AnalyzedResultInformation @params
+
+            if ($alwaysDisplayConfigs -contains $fileName -or
+                -not $configStatus.Present) {
+                Add-AnalyzedResultInformation @params
+            }
+
+            # if not a valid configuration file, provide that.
+            try {
+                if ($configStatus.Present) {
+                    $content = [xml]($configStatus.Content)
+
+                    # Additional checks of configuration files.
+                    if ($fileName -eq "noderunner.exe.config") {
+                        $memoryLimitMegabytes = $content.configuration.nodeRunnerSettings.memoryLimitMegabytes
+                        $writeValue = "$memoryLimitMegabytes MB"
+                        $writeType = "Green"
+
+                        if ($null -eq $memoryLimitMegabytes) {
+                            $writeType = "Yellow"
+                            $writeValue = "Unconfigured. This may cause problems."
+                        } elseif ($memoryLimitMegabytes -ne 0) {
+                            $writeType = "Yellow"
+                            $writeValue = "$memoryLimitMegabytes MB will limit the performance of search and can be more impactful than helpful if not configured correctly for your environment."
+                        }
+
+                        $params = $baseParams + @{
+                            Name             = "NodeRunner.exe memory limit"
+                            Details          = $writeValue
+                            DisplayWriteType = $writeType
+                        }
+
+                        Add-AnalyzedResultInformation @params
+
+                        if ($writeType -ne "Green") {
+                            $params = $baseParams + @{
+                                Details                = "More Information: https://aka.ms/HC-NodeRunnerMemoryCheck"
+                                DisplayWriteType       = "Yellow"
+                                DisplayCustomTabNumber = 2
+                            }
+
+                            Add-AnalyzedResultInformation @params
+                        }
+                    }
+                }
+            } catch {
+                $params = $baseParams + @{
+                    Name                = "$fileName Invalid Config Format"
+                    Details             = "True --- Error: Not able to convert to xml which means it is in an incorrect format that will cause problems with the process."
+                    DisplayTestingValue = $true
+                    DisplayWriteType    = "Red"
+                }
+
+                Add-AnalyzedResultInformation @params
+            }
         }
     }
 
@@ -192,202 +270,73 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     }
     Add-AnalyzedResultInformation @params
 
-    if ($null -ne $exchangeInformation.IISSettings.IISWebApplication -or
-        $null -ne $exchangeInformation.IISSettings.IISWebSite -or
-        $null -ne $exchangeInformation.IISSettings.IISSharedWebConfig) {
-        $iisWebSettings = @($exchangeInformation.IISSettings.IISWebApplication)
-        $iisWebSettings += @($exchangeInformation.IISSettings.IISWebSite)
-        $iisConfigurationSettings = @($exchangeInformation.IISSettings.IISWebApplication.ConfigurationFileInfo)
-        $iisConfigurationSettings += $iisWebSiteConfigs = @($exchangeInformation.IISSettings.IISWebSite.ConfigurationFileInfo)
-        $iisConfigurationSettings += @($exchangeInformation.IISSettings.IISSharedWebConfig)
+    # Detect Send Connector sending to EXO
+    $exoConnector = New-Object System.Collections.Generic.List[object]
+    $sendConnectors = $exchangeInformation.ExchangeConnectors | Where-Object { $_.ConnectorType -eq "Send" }
 
-        # Invalid configuration files are ones that we can't convert to xml.
-        $invalidConfigurationFile = $iisConfigurationSettings | Where-Object { $_.Valid -eq $false -and $_.Exist -eq $true }
-        # If a web application config file doesn't truly exists, we end up using the parent web.config file
-        # If any of the web application config file paths match a parent path, that is a problem.
-        # only collect the ones that are valid, if not valid we will assume that the child web apps will point to it and can be misleading.
-        $siteConfigPaths = $iisWebSiteConfigs |
-            Where-Object { $_.Valid -eq $true -and $_.Exist -eq $true } |
-            ForEach-Object { $_.Location.ToLower() }
+    foreach ($sendConnector in $sendConnectors) {
+        $smartHostMatch = ($sendConnector.SmartHosts -like "*.mail.protection.outlook.com").Count -gt 0
+        $dnsMatch = $sendConnector.SmartHosts -eq 0 -and ($sendConnector.AddressSpaces.Address -like "*.mail.onmicrosoft.com").Count -gt 0
 
-        if ($null -ne $siteConfigPaths) {
-            $missingWebApplicationConfigFile = $exchangeInformation.IISSettings.IISWebApplication |
-                Where-Object { $siteConfigPaths.Contains($_.ConfigurationFileInfo.Location.ToLower()) }
+        if ($dnsMatch -or $smartHostMatch) {
+            $exoConnector.Add($sendConnector)
         }
+    }
 
-        # Missing config file should really only occur for SharedWebConfig files, as the web application would go back to the parent site.
-        $missingSharedConfigFile = @($exchangeInformation.IISSettings.IISSharedWebConfig) | Where-Object { $_.Exist -eq $false }
-        $missingConfigFiles = $iisWebSettings | Where-Object { $_.ConfigurationFileInfo.Exist -eq $false }
-        $defaultVariableDetected = $iisConfigurationSettings | Where-Object { $null -ne ($_.Content | Select-String "%ExchangeInstallDir%") }
-        $binSearchFoldersNotFound = $iisConfigurationSettings |
-            Where-Object { $_.Location -like "*\ClientAccess\ecp\web.config" -and $_.Exist -eq $true -and $_.Valid -eq $true } |
-            Where-Object {
-                $binSearchFolders = (([xml]($_.Content)).configuration.appSettings.add | Where-Object {
-                        $_.key -eq "BinSearchFolders"
-                    }).value
-                $paths = $binSearchFolders.Split(";").Trim().ToLower()
-                $paths | ForEach-Object { Write-Verbose "BinSearchFolder: $($_)" }
-                $installPath = $exchangeInformation.RegistryValues.MsiInstallPath
-                foreach ($binTestPath in  @("bin", "bin\CmdletExtensionAgents", "ClientAccess\Owa\bin")) {
-                    $testPath = [System.IO.Path]::Combine($installPath, $binTestPath).ToLower()
-                    Write-Verbose "Testing path: $testPath"
-                    if (-not ($paths.Contains($testPath))) {
-                        return $_
-                    }
-                }
-            }
+    $params = $baseParams + @{
+        Name    = "EXO Connector Present"
+        Details = ($exoConnector.Count -gt 0)
+    }
+    Add-AnalyzedResultInformation @params
+    $showMoreInfo = $false
 
-        if ($null -ne $missingWebApplicationConfigFile) {
+    foreach ($connector in $exoConnector) {
+        # Misconfigured connector is if TLSCertificateName is not set or CloudServicesMailEnabled not set to true
+        if ($connector.CloudEnabled -eq $false -or
+            $connector.CertificateDetails.TlsCertificateNameStatus -eq "TlsCertificateNameEmpty") {
             $params = $baseParams + @{
-                Name                = "Missing Web Application Configuration File"
-                DisplayWriteType    = "Red"
-                DisplayTestingValue = $true
-            }
-            Add-AnalyzedResultInformation @params
-
-            foreach ($webApp in $missingWebApplicationConfigFile) {
-                $params = $baseParams + @{
-                    Details                = "Web Application: '$($webApp.FriendlyName)' Attempting to use config: '$($webApp.ConfigurationFileInfo.Location)'"
-                    DisplayWriteType       = "Red"
-                    DisplayCustomTabNumber = 2
-                    TestingName            = "Web Application: '$($webApp.FriendlyName)'"
-                    DisplayTestingValue    = $($webApp.ConfigurationFileInfo.Location)
-                }
-                Add-AnalyzedResultInformation @params
-            }
-        }
-
-        if ($null -ne $invalidConfigurationFile) {
-            $params = $baseParams + @{
-                Name                = "Invalid Configuration File"
-                DisplayWriteType    = "Red"
-                DisplayTestingValue = $true
-            }
-            Add-AnalyzedResultInformation @params
-
-            $alreadyDisplayConfigs = New-Object 'System.Collections.Generic.HashSet[string]'
-            foreach ($configFile in $invalidConfigurationFile) {
-                if ($alreadyDisplayConfigs.Add($configFile.Location)) {
-                    $params = $baseParams + @{
-                        Details                = "Invalid: $($configFile.Location)"
-                        DisplayWriteType       = "Red"
-                        DisplayCustomTabNumber = 2
-                        TestingName            = "Invalid: $($configFile.Location)"
-                        DisplayTestingValue    = $true
-                    }
-                    Add-AnalyzedResultInformation @params
-                }
-            }
-        }
-
-        if ($null -ne $missingSharedConfigFile) {
-            $params = $baseParams + @{
-                Name                = "Missing Shared Configuration File"
-                DisplayWriteType    = "Red"
-                DisplayTestingValue = $true
-            }
-            Add-AnalyzedResultInformation @params
-
-            foreach ($file in $missingSharedConfigFile) {
-                $params = $baseParams + @{
-                    Details                = "Missing: $($file.Location)"
-                    DisplayWriteType       = "Red"
-                    DisplayCustomTabNumber = 2
-                }
-                Add-AnalyzedResultInformation @params
-            }
-
-            $params = $baseParams + @{
-                Details                = "More Information: https://aka.ms/HC-MissingConfig"
-                DisplayWriteType       = "Yellow"
+                Name                   = "Send Connector - $($connector.Identity.ToString())"
+                Details                = "Misconfigured to send authenticated internal mail to M365." +
+                "`r`n`t`t`tCloudServicesMailEnabled: $($connector.CloudEnabled)" +
+                "`r`n`t`t`tTLSCertificateName set: $($connector.CertificateDetails.TlsCertificateNameStatus -ne "TlsCertificateNameEmpty")"
                 DisplayCustomTabNumber = 2
+                DisplayWriteType       = "Red"
             }
             Add-AnalyzedResultInformation @params
+            $showMoreInfo = $true
         }
 
-        if ($null -ne $missingConfigFiles) {
+        if ($connector.TlsAuthLevel -ne "DomainValidation" -and
+            $connector.TlsAuthLevel -ne "CertificateValidation") {
             $params = $baseParams + @{
-                Name                = "Couldn't Find Config File"
-                DisplayWriteType    = "Red"
-                DisplayTestingValue = $true
-            }
-            Add-AnalyzedResultInformation @params
-
-            foreach ($file in $missingConfigFiles) {
-                $params = $baseParams + @{
-                    Details                = "Friendly Name: $($file.FriendlyName)"
-                    DisplayWriteType       = "Red"
-                    DisplayCustomTabNumber = 2
-                }
-                Add-AnalyzedResultInformation @params
-            }
-        }
-
-        if ($null -ne $defaultVariableDetected) {
-            $params = $baseParams + @{
-                Name                = "Default Variable Detected"
-                DisplayWriteType    = "Red"
-                DisplayTestingValue = $true
-            }
-            Add-AnalyzedResultInformation @params
-
-            foreach ($file in $defaultVariableDetected) {
-                $params = $baseParams + @{
-                    Details                = "$($file.Location)"
-                    DisplayWriteType       = "Red"
-                    DisplayCustomTabNumber = 2
-                }
-                Add-AnalyzedResultInformation @params
-            }
-
-            $params = $baseParams + @{
-                Details                = "More Information: https://aka.ms/HC-DefaultVariableDetected"
-                DisplayWriteType       = "Yellow"
+                Name                   = "Send Connector - $($connector.Identity.ToString())"
+                Details                = "TlsAuthLevel not set to CertificateValidation or DomainValidation"
                 DisplayCustomTabNumber = 2
-            }
-            Add-AnalyzedResultInformation @params
-        }
-
-        if ($null -ne $binSearchFoldersNotFound) {
-            $params = $baseParams + @{
-                Name                = "Bin Search Folder Not Found"
-                DisplayWriteType    = "Red"
-                DisplayTestingValue = $true
-            }
-            Add-AnalyzedResultInformation @params
-
-            foreach ($file in $binSearchFoldersNotFound) {
-                $params = $baseParams + @{
-                    Details                = "$($file.Location)"
-                    DisplayWriteType       = "Red"
-                    DisplayCustomTabNumber = 2
-                }
-                Add-AnalyzedResultInformation @params
-            }
-
-            $params = $baseParams + @{
-                Details                = "More Information: https://aka.ms/HC-BinSearchFolder"
                 DisplayWriteType       = "Yellow"
-                DisplayCustomTabNumber = 2
             }
             Add-AnalyzedResultInformation @params
+            $showMoreInfo = $true
         }
-    } elseif ($null -ne $exchangeInformation.IISSettings.ApplicationHostConfig) {
-        Write-Verbose "Wasn't able find any other IIS settings, likely due to application host config file being messed up."
-        try {
-            [xml]$exchangeInformation.IISSettings.ApplicationHostConfig | Out-Null
-            Write-Verbose "Application Host Config file is in a readable file, not sure how we got here."
-        } catch {
-            Invoke-CatchActions
-            Write-Verbose "Confirmed Application Host Config file isn't in a readable xml format."
+
+        if ($connector.TlsDomain -ne "mail.protection.outlook.com" -and
+            $connector.TlsAuthLevel -eq "DomainValidation") {
             $params = $baseParams + @{
-                Name                = "Invalid Configuration File"
-                Details             = "Application Host Config File: '$($env:WINDIR)\System32\inetSrv\config\applicationHost.config'"
-                DisplayWriteType    = "Red"
-                TestingName         = "Invalid Configuration File - Application Host Config File"
-                DisplayTestingValue = $true
+                Name                   = "Send Connector - $($connector.Identity.ToString())"
+                Details                = "TLSDomain  not set to mail.protection.outlook.com"
+                DisplayCustomTabNumber = 2
+                DisplayWriteType       = "Yellow"
             }
             Add-AnalyzedResultInformation @params
+            $showMoreInfo = $true
         }
+    }
+
+    if ($showMoreInfo) {
+        $params = $baseParams + @{
+            Details                = "More Information: https://aka.ms/HC-ExoConnectorIssue"
+            DisplayWriteType       = "Yellow"
+            DisplayCustomTabNumber = 2
+        }
+        Add-AnalyzedResultInformation @params
     }
 }

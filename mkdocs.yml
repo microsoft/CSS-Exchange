@@ -13,8 +13,10 @@ nav:
     - Reset-ScanEngineVersion: Admin/Reset-ScanEngineVersion.md
     - SetUnifiedContentPath: Admin/SetUnifiedContentPath.md
     - Test-AMSI: Admin/Test-AMSI.md
+    - Test-ExchangePropertyPermissions: Admin/Test-ExchangePropertyPermissions.md
     - Update-Engines: Admin/Update-Engines.md
   - Calendar:
+    - Check-SharingStatus: Calendar/Check-SharingStatus.md
     - Get-CalendarDiagnosticObjectsSummary: Calendar/Get-CalendarDiagnosticObjectsSummary.md
     - Get-RBASummary: Calendar/Get-RBASummary.md
   - Databases:
@@ -27,6 +29,7 @@ nav:
     - FindFrontEndActivity: Diagnostics/FindFrontEndActivity/FindFrontEndActivity.md
     - HealthChecker:
       - Diagnostics/HealthChecker/index.md
+      - ExoConnectorCheck: Diagnostics/HealthChecker/ExoConnectorCheck.md
       - MaintenanceCheck: Diagnostics/HealthChecker/ExchangeServerMaintenanceCheck.md
       - GCModeCheck: Diagnostics/HealthChecker/MAPIFrontEndAppPoolGCModeCheck.md
       - RebootPending: Diagnostics/HealthChecker/RebootPending.md
@@ -43,6 +46,7 @@ nav:
       - RSSEnabledCheck: Diagnostics/HealthChecker/RSSEnabledCheck.md
       - SleepyNICCheck: Diagnostics/HealthChecker/SleepyNICCheck.md
       - NETFrameworkCheck: Diagnostics/HealthChecker/NETFrameworkSupportabilityCheck.md
+      - NodeRunnerMemoryLimitCheck: Diagnostics/HealthChecker/NodeRunnerMemoryLimitCheck.md
       - PagefileCheck: Diagnostics/HealthChecker/PagefileSizeCheck.md
       - VisualCCheck: Diagnostics/HealthChecker/VisualCRedistributableVersionCheck.md
       - LMCompatibilityLevelInformationCheck: Diagnostics/HealthChecker/LMCompatibilityLevelInformationCheck.md
@@ -61,6 +65,7 @@ nav:
       - DownloadDomainCheck: Diagnostics/HealthChecker/DownloadDomainCheck.md
       - OpenRelayDomainCheck: Diagnostics/HealthChecker/OpenRelayDomain.md
       - FIPFSCheck: Diagnostics/HealthChecker/FIPFSCheck.md
+      - IISInformation: Diagnostics/HealthChecker/IISInformation.md
       - IISWebConfigCheck: Diagnostics/HealthChecker/IISWebConfigCheck.md
       - HCScheduledTask: Diagnostics/HealthChecker/RunHCViaSchedTask.md
       - ADSiteCount: Diagnostics/HealthChecker/ADSiteCount.md
@@ -87,6 +92,7 @@ nav:
     - CVE-2023-23397:
       - Security/CVE-2023-23397/index.md
       - FAQ: Security/CVE-2023-23397/FAQ.md
+    - ConfigureFipFsTextExtractionOverrides: Security/ConfigureFipFsTextExtractionOverrides.md
     - EOMT: Security/EOMT.md
     - EOMTv2: Security/EOMTv2.md
     - Extended Protection: Security/Extended-Protection.md

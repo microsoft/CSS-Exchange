@@ -24,7 +24,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-ExchangeServer { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeServer.xml" }
             Mock Get-ExchangeCertificate { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeCertificate.xml" }
             Mock Get-AuthConfig { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAuthConfig.xml" }
-            Mock Get-ExSetupDetails { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup.xml" }
+            Mock Get-ExSetupFileVersionInfo { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup.xml" }
             Mock Get-MailboxServer { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetMailboxServer.xml" }
             Mock Get-OwaVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory.xml" }
             Mock Get-WebServicesVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetWebServicesVirtualDirectory.xml" }
@@ -40,6 +40,13 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-AcceptedDomain { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAcceptedDomain.xml" }
             Mock Get-ReceiveConnector { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetReceiveConnector.xml" }
             Mock Get-SendConnector { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetSendConnector.xml" }
+            Mock Get-DynamicDistributionGroup { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetDynamicDistributionGroupPfMailboxes.xml" }
+            Mock Get-ActiveSyncVirtualDirectory { return $null }
+            Mock Get-AutodiscoverVirtualDirectory { return $null }
+            Mock Get-EcpVirtualDirectory { return $null }
+            Mock Get-MapiVirtualDirectory { return $null }
+            Mock Get-OutlookAnywhere { return $null }
+            Mock Get-PowerShellVirtualDirectory { return $null }
 
             $Error.Clear()
             Get-OrganizationInformation -EdgeServer $false | Out-Null
@@ -52,8 +59,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             # Assert-MockCalled Invoke-CatchActions -Exactly 1
 
             Assert-MockCalled Get-WmiObjectHandler -Exactly 6
-            Assert-MockCalled Invoke-ScriptBlockHandler -Exactly 4
-            Assert-MockCalled Get-RemoteRegistryValue -Exactly 21
+            Assert-MockCalled Invoke-ScriptBlockHandler -Exactly 5
+            Assert-MockCalled Get-RemoteRegistryValue -Exactly 24
             Assert-MockCalled Get-NETFrameworkVersion -Exactly 1
             Assert-MockCalled Get-DotNetDllFileVersions -Exactly 1
             Assert-MockCalled Get-NicPnpCapabilitiesSetting -Exactly 1
@@ -66,14 +73,13 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-AllTlsSettings -Exactly 1
             Assert-MockCalled Get-Smb1ServerSettings -Exactly 1
             Assert-MockCalled Get-ExchangeAppPoolsInformation -Exactly 1
-            Assert-MockCalled Get-ExchangeApplicationConfigurationFileValidation -Exactly 1
             Assert-MockCalled Get-ExchangeUpdates -Exactly 1
             Assert-MockCalled Get-ExchangeDomainsAclPermissions -Exactly 1
             Assert-MockCalled Get-ExchangeAdSchemaClass -Exactly 2
             Assert-MockCalled Get-ExchangeServer -Exactly 1
             Assert-MockCalled Get-ExchangeCertificate -Exactly 1
             Assert-MockCalled Get-AuthConfig -Exactly 1
-            Assert-MockCalled Get-ExSetupDetails -Exactly 1
+            Assert-MockCalled Get-ExSetupFileVersionInfo -Exactly 1
             Assert-MockCalled Get-MailboxServer -Exactly 1
             Assert-MockCalled Get-OwaVirtualDirectory -Exactly 1
             Assert-MockCalled Get-WebServicesVirtualDirectory -Exactly 1
@@ -90,6 +96,13 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-IISModules -Exactly 1
             Assert-MockCalled Get-ExchangeDiagnosticInfo -Exactly 1
             Assert-MockCalled Get-ExchangeADSplitPermissionsEnabled -Exactly 1
+            Assert-MockCalled Get-DynamicDistributionGroup -Exactly 1
+            Assert-MockCalled Get-ActiveSyncVirtualDirectory -Exactly 1
+            Assert-MockCalled Get-AutodiscoverVirtualDirectory -Exactly 1
+            Assert-MockCalled Get-EcpVirtualDirectory -Exactly 1
+            Assert-MockCalled Get-MapiVirtualDirectory -Exactly 1
+            Assert-MockCalled Get-OutlookAnywhere -Exactly 1
+            Assert-MockCalled Get-PowerShellVirtualDirectory -Exactly 1
         }
     }
 }

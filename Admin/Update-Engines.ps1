@@ -108,7 +108,7 @@ function ExtractCab($sourceCabPath, $destinationDirectory) {
         # Process each item in the cab. Determine if the destination
         # is a sub directory and create if necessary.
         for ($i=0; $i -lt $itemCount; $i++) {
-            $lastPathIndex = $source.item($i).Path.LastIndexOf("\");
+            $lastPathIndex = $source.item($i).Path.LastIndexOf("\")
 
             # If the file inside the zip file should be extracted
             # to a subfolder, then we need to reset the destination

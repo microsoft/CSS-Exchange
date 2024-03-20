@@ -45,13 +45,18 @@ BeforeAll {
         $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
             Where-Object { $_.SupportedExtendedProtection -eq $false } |
             Should -Be $null
+        $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
+            Where-Object { $_.ProperlySecuredConfiguration -eq $false } |
+            Should -Be $null
     }
 
     function TestSupportedConfiguredExtendedProtection {
         param(
             [object]$TestingExtendedProtectionResults,
-            [int]$ExtendedProtectionNoneCount = 21,
-            [int]$ExpectedExtendedProtectionNoneCount = 21,
+            [int]$ExtendedProtectionNoneCount = 22,
+            [int]$ExpectedExtendedProtectionNoneCount = 22,
+            [int]$NotSupportedExtendedProtectionCount = 0,
+            [int]$NotProperlySecureConfigurationCount = 0,
             [bool]$SkipAllow = $false,
             [bool]$SkipAutoDiscover = $false,
             [bool]$IPFilterEnabled = $false,
@@ -66,31 +71,31 @@ BeforeAll {
         ($TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
             Where-Object { $_.ExpectedExtendedConfiguration -ne "None" }).count |
                 Should -Be $ExpectedExtendedProtectionNoneCount
-        if ($IPFilterEnabled -eq $false) {
-            $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
-                Where-Object { $_.SupportedExtendedProtection -eq $false } |
-                Should -Be $null
-        } else {
-            ($TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
-                Where-Object { $_.SupportedExtendedProtection -eq $false }).Count |
-                    Should -Be 1
-        }
+        ($TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
+            Where-Object { $_.SupportedExtendedProtection -eq $false }).Count |
+                Should -Be $NotSupportedExtendedProtectionCount
+        ($TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
+            Where-Object { $_.ProperlySecuredConfiguration -eq $false }).Count |
+                Should -Be $NotProperlySecureConfigurationCount
         # Special configs
         if (-not $SkipAllow) {
             $allow = $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
                 Where-Object { $_.ExtendedProtection -eq "Allow" }
             $null -ne $allow | Should -Be $true
-            $allow.Count | Should -Be 2
+            $allow.Count | Should -Be 4 # Should be the below settings
             $allow.configuration.NodePath.Contains("Default Web Site/EWS") | Should -Be $true
             $allow.configuration.NodePath.Contains("Default Web Site/Microsoft-Server-ActiveSync") | Should -Be $true
+            $allow.configuration.NodePath.Contains("Default Web Site/Microsoft-Server-ActiveSync/Proxy") | Should -Be $true
+            $allow.configuration.NodePath.Contains("Default Web Site/OAB") | Should -Be $true
         }
 
         if (-not $SkipAutoDiscover) {
             $none = $TestingExtendedProtectionResults.ExtendedProtectionConfiguration |
                 Where-Object { $_.ExtendedProtection -eq "None" }
             $null -ne $none | Should -Be $true
-            $none.Count | Should -Be 2
+            $none.Count | Should -Be 3
             $none.Configuration.NodePath.Contains("Default Web Site/Autodiscover") | Should -Be $true
+            $none.Configuration.NodePath.Contains("Default Web Site/PowerShell") | Should -Be $true
             $none.Configuration.NodePath.Contains("Exchange Back End/Autodiscover") | Should -Be $true
         }
 
@@ -143,7 +148,7 @@ Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
 
         It "Should Return The Extended Protection Custom Object" {
             $extendedProtectionResults.Count | Should -Be 1
-            $extendedProtectionResults.ExtendedProtectionConfiguration.Count | Should -Be 23
+            $extendedProtectionResults.ExtendedProtectionConfiguration.Count | Should -Be 25
         }
 
         It "TestUnsupportedNotConfiguredExtendedProtection" {
@@ -208,7 +213,7 @@ Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
                 ExSetupVersion        = "15.00.1497.038"
                 ApplicationHostConfig = $E15_Configured_Both_ApplicationHost
             }
-            TestSupportedConfiguredExtendedProtection -TestingExtendedProtectionResults (Get-ExtendedProtectionConfiguration @mockParams) -ExtendedProtectionNoneCount 19 -ExpectedExtendedProtectionNoneCount 19
+            TestSupportedConfiguredExtendedProtection -TestingExtendedProtectionResults (Get-ExtendedProtectionConfiguration @mockParams) -ExtendedProtectionNoneCount 20 -ExpectedExtendedProtectionNoneCount 20
         }
 
         It "Exchange 2013 Cas" {
@@ -261,7 +266,7 @@ Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
 
             $mockParams = @{
                 TestingExtendedProtectionResults = $e16ExtendedProtectionResults
-                ExtendedProtectionNoneCount      = 20
+                ExtendedProtectionNoneCount      = 21
                 SkipAutoDiscover                 = $true
                 IPFilterEnabled                  = $true
                 IPFilteredVDir                   = "Exchange Back End/EWS"
@@ -280,13 +285,83 @@ Describe "Testing Get-ExtendedProtectionConfiguration.ps1" {
 
             $mockParams = @{
                 TestingExtendedProtectionResults = $e19ExtendedProtectionResults
-                ExtendedProtectionNoneCount      = 20
+                ExtendedProtectionNoneCount      = 21
                 SkipAutoDiscover                 = $true
                 IPFilterEnabled                  = $true
                 IPFilteredVDir                   = "Exchange Back End/EWS"
                 AllowedIpAddresses               = "192.168.100.5", "fe80::de2:4f45:21dc:6c5a%14", "::1", "127.0.0.1"
             }
             TestSupportedConfiguredExtendedProtection @mockParams
+        }
+    }
+
+    Context "Mix of Extended Protection Settings" {
+        It "Exchange 2019 Misconfigured" {
+            $mockParams = @{
+                ComputerName          = $Server
+                ExSetupVersion        = "15.2.1118.29"
+                ApplicationHostConfig = $E19_MisConfigured_ApplicationHost
+            }
+            $results = (Get-ExtendedProtectionConfiguration @mockParams)
+
+            $insecureNoneVirtualDirectories = @("Default Web Site/ECP", "Exchange Back End/ECP", "Exchange Back End/Powershell")
+            # OAB is not supported due to recent changes because of Outlook for Mac. However, if you don't have OL for Mac, you can have it set to require and be fine.
+            $notSupportedVirtualDirectories = @("Default Web Site/Microsoft-Server-ActiveSync", "Default Web Site/OAB")
+            $insecureConfigurationVirtualDirectories = $insecureNoneVirtualDirectories + @("Default Web Site/OWA")
+
+            $params = @{
+                TestingExtendedProtectionResults    = $results
+                # Due to the lower settings on the insecure None Virtual Directories
+                ExtendedProtectionNoneCount         = (22 - $insecureNoneVirtualDirectories.Count)
+                # FE EAS set to Require and the old setting of FE OAB being set to Require
+                NotSupportedExtendedProtectionCount = $notSupportedVirtualDirectories.Count
+                # Lower settings of FE/BE ECP vDir and Exchange Back End/PowerShell
+                NotProperlySecureConfigurationCount = $insecureConfigurationVirtualDirectories.Count
+                # skip checking over the allow sections because we don't have all the default value there in this configuration
+                SkipAllow                           = $true
+                # skip over AutoD because we have more None values in this configuration
+                SkipAutoDiscover                    = $true
+            }
+            TestSupportedConfiguredExtendedProtection @params
+
+            # manually review the differences
+            $extendedProtectionNoneResults = $results.ExtendedProtectionConfiguration |
+                Where-Object { $_.ExtendedProtection -eq "None" }
+            $extendedProtectionNoneResults.Count | Should -Be ($insecureNoneVirtualDirectories.Count + 3)
+            # All None EP values should be supported even though not secure for some
+            $extendedProtectionNoneResults |
+                Where-Object { $_.SupportedExtendedProtection -eq $false } |
+                Should -Be $null
+            ($extendedProtectionNoneResults |
+                Where-Object { $_.RecommendedExtendedProtection -eq $true }).Count |
+                    Should -Be 3 # two values for Autodiscover and one for PowerShell
+            $extendedProtectionNoneResults.VirtualDirectoryName.Contains("Default Web Site/Autodiscover") | Should -Be $true
+            $extendedProtectionNoneResults.VirtualDirectoryName.Contains("Default Web Site/Powershell") | Should -Be $true
+            $extendedProtectionNoneResults.VirtualDirectoryName.Contains("Exchange Back End/Autodiscover") | Should -Be $true
+            $insecureNoneVirtualDirectories |
+                ForEach-Object { $extendedProtectionNoneResults.VirtualDirectoryName.Contains($_) | Should -Be $true }
+
+            $notSupportedResults = $results.ExtendedProtectionConfiguration |
+                Where-Object { $_.SupportedExtendedProtection -eq $false }
+            $notSupportedResults.Count | Should -Be $notSupportedVirtualDirectories.Count
+            # even though we don't support these configuration, they are secure (overly secure)
+            $notSupportedResults |
+                Where-Object { $_.ProperlySecuredConfiguration -eq $false } |
+                Should -Be $null
+            $notSupportedResults |
+                Where-Object { $_.RecommendedExtendedProtection -eq $true } |
+                Should -Be $null
+            $notSupportedVirtualDirectories |
+                ForEach-Object { $notSupportedResults.VirtualDirectoryName.Contains($_) | Should -Be $true }
+
+            $notProperlySecureResults = $results.ExtendedProtectionConfiguration |
+                Where-Object { $_.ProperlySecuredConfiguration -eq $false }
+            $notProperlySecureResults |
+                Where-Object { $_.RecommendedExtendedProtection -eq $true } |
+                Should -Be $null
+            $notProperlySecureResults.Count | Should -Be $insecureConfigurationVirtualDirectories.Count
+            $insecureConfigurationVirtualDirectories |
+                ForEach-Object { $notProperlySecureResults.VirtualDirectoryName.Contains($_) | Should -Be $true }
         }
     }
 

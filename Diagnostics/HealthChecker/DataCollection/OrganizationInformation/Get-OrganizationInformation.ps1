@@ -7,6 +7,8 @@
 . $PSScriptRoot\Get-SecurityCve-2021-34470.ps1
 . $PSScriptRoot\Get-SecurityCve-2022-21978.ps1
 . $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ExchangeADSplitPermissionsEnabled.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Invoke-CatchActionErrorLoop.ps1
 function Get-OrganizationInformation {
     [CmdletBinding()]
     param(
@@ -67,6 +69,23 @@ function Get-OrganizationInformation {
             $isSplitADPermissions = Get-ExchangeADSplitPermissionsEnabled -CatchActionFunction ${Function:Invoke-CatchActions}
 
             try {
+                $getIrmConfiguration = Get-IRMConfiguration -ErrorAction Stop
+            } catch {
+                Write-Verbose "Failed to get the IRM Configuration"
+                Invoke-CatchActions
+            }
+
+            try {
+                # It was reported that this isn't getting thrown to the catch action when failing. As a quick fix, handling this by looping over errors.
+                $currentErrors = $Error.Count
+                $getDdgPublicFolders = @(Get-DynamicDistributionGroup "PublicFolderMailboxes*" -IncludeSystemObjects -ErrorAction "Stop")
+                Invoke-CatchActionErrorLoop $currentErrors ${Function:Invoke-CatchActions}
+            } catch {
+                Write-Verbose "Failed to get the dynamic distribution group for public folder mailboxes."
+                Invoke-CatchActions
+            }
+
+            try {
                 $rootDSE = [ADSI]("LDAP://$([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Name)/RootDSE")
                 $directorySearcher = New-Object System.DirectoryServices.DirectorySearcher
                 $directorySearcher.SearchScope = "Subtree"
@@ -123,18 +142,20 @@ function Get-OrganizationInformation {
         }
     } end {
         return [PSCustomObject]@{
-            GetOrganizationConfig   = $organizationConfig
-            DomainsAclPermissions   = $domainsAclPermissions
-            WellKnownSecurityGroups = $wellKnownSecurityGroups
-            AdSchemaInformation     = $adSchemaInformation
-            GetHybridConfiguration  = $getHybridConfiguration
-            EnableDownloadDomains   = $enableDownloadDomains
-            GetAcceptedDomain       = $getAcceptedDomain
-            MapiHttpEnabled         = $mapiHttpEnabled
-            SecurityResults         = $securityResults
-            IsSplitADPermissions    = $isSplitADPermissions
-            ADSiteCount             = $adSiteCount
-            GetSettingOverride      = $getSettingOverride
+            GetOrganizationConfig             = $organizationConfig
+            DomainsAclPermissions             = $domainsAclPermissions
+            WellKnownSecurityGroups           = $wellKnownSecurityGroups
+            AdSchemaInformation               = $adSchemaInformation
+            GetHybridConfiguration            = $getHybridConfiguration
+            EnableDownloadDomains             = $enableDownloadDomains
+            GetAcceptedDomain                 = $getAcceptedDomain
+            MapiHttpEnabled                   = $mapiHttpEnabled
+            SecurityResults                   = $securityResults
+            IsSplitADPermissions              = $isSplitADPermissions
+            ADSiteCount                       = $adSiteCount
+            GetSettingOverride                = $getSettingOverride
+            GetDynamicDgPublicFolderMailboxes = $getDdgPublicFolders
+            GetIrmConfiguration               = $getIrmConfiguration
         }
     }
 }

@@ -41,22 +41,23 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "MAPI/HTTP Enabled" "True"
             TestObjectMatch "Enable Download Domains" "Unknown"
             TestObjectMatch "AD Split Permissions" "False"
+            TestObjectMatch "Dynamic Distribution Group Public Folder Mailboxes Count" 1 -WriteType "Green"
 
-            $Script:ActiveGrouping.Count | Should -Be 5
+            $Script:ActiveGrouping.Count | Should -Be 6
         }
 
         It "Display Results - Operating System Information" {
             SetActiveDisplayGrouping "Operating System Information"
 
-            TestObjectMatch "Version" "Microsoft Windows Server 2012 R2 Datacenter"
+            TestObjectMatch "Version" "Windows Server 2012 R2 Datacenter"
             TestObjectMatch "Time Zone" "Pacific Standard Time"
             TestObjectMatch "Dynamic Daylight Time Enabled" "True"
             TestObjectMatch ".NET Framework" "4.8" -WriteType "Green"
             TestObjectMatch "Power Plan" "Balanced --- Error" -WriteType "Red"
             $httpProxy = GetObject "Http Proxy Setting"
             $httpProxy.ProxyAddress | Should -Be "None"
-            TestObjectMatch "Visual C++ 2012" "184610406 Version is current" -WriteType "Green"
-            TestObjectMatch "Visual C++ 2013" "Redistributable is outdated" -WriteType "Yellow"
+            TestObjectMatch "Visual C++ 2012 x64" "11.0.61030 Version is current" -WriteType "Green"
+            TestObjectMatch "Visual C++ 2013 x64" "Redistributable (12.0.21005) is outdated" -WriteType "Yellow"
             TestObjectMatch "Server Pending Reboot" $false
 
             $pageFile = GetObject "PageFile Size 0"
@@ -116,8 +117,9 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "Credential Guard Enabled" $false
             TestObjectMatch "EdgeTransport.exe.config Present" "True" -WriteType "Green"
             TestObjectMatch "Open Relay Wild Card Domain" "Not Set"
+            TestObjectMatch "EXO Connector Present" "False"
 
-            $Script:ActiveGrouping.Count | Should -Be 9
+            $Script:ActiveGrouping.Count | Should -Be 11
         }
 
         It "Display Results - Security Settings" {
@@ -127,7 +129,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "SMB1 Installed" "True" -WriteType "Red"
             TestObjectMatch "SMB1 Blocked" "False" -WriteType "Red"
 
-            $Script:ActiveGrouping.Count | Should -Be 83
+            $Script:ActiveGrouping.Count | Should -Be 85
         }
 
         It "Display Results - Security Vulnerability" {
@@ -135,7 +137,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
 
             $cveTests = $Script:ActiveGrouping.TestingValue | Where-Object { ($_.GetType().Name -eq "String") -and ($_.StartsWith("CVE")) }
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
-            $cveTests.Count | Should -Be 54
+            $cveTests.Count | Should -Be 58
         }
     }
 }

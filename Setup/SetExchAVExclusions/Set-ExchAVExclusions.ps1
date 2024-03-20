@@ -40,10 +40,10 @@ If you want to get the full list of expected exclusions you should use the param
 You can export the Exclusion List with the parameter FileName
 
 
-.PARAMETER -ListRecommendedExclusions
+.PARAMETER ListRecommendedExclusions
 Show the full list of expected exclusions.
 
-.PARAMETER -FileName
+.PARAMETER FileName
 Export the full list of expected exclusions in the defined FileName.
 
 .PARAMETER SkipVersionCheck
@@ -51,15 +51,6 @@ Skip script version verification.
 
 .PARAMETER ScriptUpdateOnly
 Just update script version to latest one.
-
-.INPUTS
-For Set Parameter Set Identifier(Switch):
-Optional Parameter   -FileName
-
-For List Parameter Set Identifier(Switch):
-Required Parameter   -ListRecommendedExclusions
-Optional Parameter   -FileName
-
 
 .EXAMPLE
 .\Set-ExchAVExclusions.ps1
@@ -102,7 +93,19 @@ param (
 . $PSScriptRoot\..\..\Shared\Confirm-ExchangeShell.ps1
 . $PSScriptRoot\..\..\Shared\Get-ExchAVExclusions.ps1
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
-. $PSScriptRoot\..\..\Diagnostics\AVTester\Write-SimpleLogFile.ps1
+. $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
+. $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Host.ps1
+. $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Warning.ps1
+
+function Write-HostLog ($message) {
+    if (![string]::IsNullOrEmpty($message)) {
+        $Script:HostLogger = $Script:HostLogger | Write-LoggerInstance $message
+    }
+}
+
+$Script:HostLogger = Get-NewLoggerInstance -LogName "SetExchAvExclusions" -LogDirectory $PSScriptRoot
+SetWriteHostAction ${Function:Write-HostLog}
+SetWriteWarningAction ${Function:Write-HostLog}
 
 $BuildVersion = ""
 
@@ -123,34 +126,31 @@ if ((-not($SkipVersionCheck)) -and
     return
 }
 
-# Log file name
-$LogFile = "SetExchAvExclusions.log"
-
 # Confirm that we are an administrator
 if (-not (Confirm-Administrator)) {
-    Write-Error "Please run as Administrator"
+    Write-Host "[ERROR]: Please run as Administrator" -ForegroundColor Red
     exit
 }
 
 if (-not $ListRecommendedExclusions) {
     if ( $($host.Version.Major) -lt 5 -or ( $($host.Version.Major) -eq 5 -and $($host.Version.Minor) -lt 1) ) {
-        Write-Error "This version of Windows do not have Microsoft Defender"
+        Write-Host "[ERROR]: This version of Windows do not have Microsoft Defender" -ForegroundColor Red
         exit
     }
 
     $checkCmdLet = $null
     $checkCmdLet = Get-Command Get-MpComputerStatus -ErrorAction SilentlyContinue
     if ($null -eq $checkCmdLet) {
-        Write-Host "Get-MpComputerStatus cmdLet is not available" -ForegroundColor Red
-        Write-Host "This script only sets Exclusions on Microsoft Defender" -ForegroundColor Red
+        Write-Host "[ERROR]: Get-MpComputerStatus cmdLet is not available" -ForegroundColor Red
+        Write-Host "[ERROR]: This script only sets Exclusions on Microsoft Defender" -ForegroundColor Red
         Write-Host "If you have any other Antivirus you can use -ListRecommendedExclusions parameter to get the Recommended Exclusion List"
         exit
     } else {
         $mpStatus = $null
         $mpStatus = Get-MpComputerStatus -ErrorAction SilentlyContinue
         if ($null -eq $mpStatus) {
-            Write-Host "We cannot get Microsoft Defender information" -ForegroundColor Red
-            Write-Host "This script only sets Exclusions on Microsoft Defender" -ForegroundColor Red
+            Write-Host "[ERROR]: We cannot get Microsoft Defender information" -ForegroundColor Red
+            Write-Host "[ERROR]: This script only sets Exclusions on Microsoft Defender" -ForegroundColor Red
             Write-Host "If you have any other Antivirus you can use -ListRecommendedExclusions parameter to get the Recommended Exclusion List"
             exit
         } else {
@@ -158,6 +158,12 @@ if (-not $ListRecommendedExclusions) {
                 Write-Warning "Microsoft Defender is not enabled."
                 Write-Warning "We will apply the exclusions but they do not take effect until you Enabled Microsoft Defender."
                 Write-Host "If you have any other Antivirus you can use -ListRecommendedExclusions parameter to get the Recommended Exclusion List"
+            } else {
+                if (-not $mpStatus.RealTimeProtectionEnabled) {
+                    Write-Warning "RealTime protection is not enabled."
+                    Write-Warning "We will apply the exclusions but they do not take effect until you Enabled RealTime Protection."
+                    Write-Host "If you have any other Antivirus you can use -ListRecommendedExclusions parameter to get the Recommended Exclusion List"
+                }
             }
         }
     }
@@ -167,41 +173,43 @@ $serverExchangeInstallDirectory = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Exch
 
 # Check Exchange registry key
 if (-not  $serverExchangeInstallDirectory ) {
-    Write-Warning "Failed to find the Exchange installation Path registry key"
+    Write-Host "[ERROR]: Failed to find the Exchange installation Path registry key" -ForegroundColor Red
     exit
 }
 
 # Check the installation path
 if (-not ( Test-Path $($serverExchangeInstallDirectory.MsiInstallPath) -PathType Container) ) {
-    Write-Warning "Failed to find the Exchange installation Path"
+    Write-Host "[ERROR]: Failed to find the Exchange installation Path" -ForegroundColor Red
     exit
 }
 
 # Check Exchange is 2013, 2016 or 2019
 if ( -not ( $($serverExchangeInstallDirectory.MsiProductMajor) -eq 15 -and `
         ($($serverExchangeInstallDirectory.MsiProductMinor) -eq 0 -or $($serverExchangeInstallDirectory.MsiProductMinor) -eq 1 -or $($serverExchangeInstallDirectory.MsiProductMinor) -eq 2 ) ) ) {
-    Write-Warning "This script is designed for Exchange 2013, 2016 or 2019"
+    Write-Host "[ERROR]: This script is designed for Exchange 2013, 2016 or 2019" -ForegroundColor Red
     exit
-}
-
-if ($FileName -like '*\*') {
-    if (-not (Test-Path $FileName.Substring(0, $FileName.LastIndexOf("\")))) {
-        Write-Warning "FilePath does not exists"
-        exit
-    }
 }
 
 $ExchangePath = $serverExchangeInstallDirectory.MsiInstallPath
 
+#Check if the file path exists
+if ($FileName -like '*\*') {
+    if (-not (Test-Path $FileName.Substring(0, $FileName.LastIndexOf("\")))) {
+        Write-Host "[ERROR]: FilePath does not exists" -ForegroundColor Red
+        exit
+    }
+}
+
 # Check Exchange Shell and Exchange installation
 $exchangeShell = Confirm-ExchangeShell
 if (-not($exchangeShell.ShellLoaded)) {
-    Write-Warning "Failed to load Exchange Shell Module..."
+    Write-Host "[ERROR]: Failed to load Exchange Shell Module..." -ForegroundColor Red
     exit
 }
 
+Write-Host " "
+Write-Host "Exclusions Paths:" -ForegroundColor DarkGreen
 # Create the Array List
-Write-Host "`r`nExclusions Paths:" -ForegroundColor DarkGreen
 $BaseFolders = New-Object Collections.Generic.List[string]
 $BaseFolders = Get-ExchAVExclusionsPaths -ExchangePath $ExchangePath -MsiProductMinor ([byte]$serverExchangeInstallDirectory.MsiProductMinor)
 if ($FileName) {
@@ -209,9 +217,9 @@ if ($FileName) {
 }
 foreach ($folder in $BaseFolders) {
     if ($ListRecommendedExclusions) {
-        Write-Host ("$folder")
+        Write-Host "$folder"
     } else {
-        Write-SimpleLogFile -String ("Adding $folder") -name $LogFile -OutHost
+        Write-Host "Adding: $folder"
         Add-MpPreference -ExclusionPath $folder
     }
     if ($FileName) {
@@ -219,7 +227,8 @@ foreach ($folder in $BaseFolders) {
     }
 }
 
-Write-Host "`r`nExclusions Extensions:" -ForegroundColor DarkGreen
+Write-Host " "
+Write-Host "Exclusions Extensions:" -ForegroundColor DarkGreen
 $extensionsList = New-Object Collections.Generic.List[string]
 $extensionsList = Get-ExchAVExclusionsExtensions -MsiProductMinor ([byte]$serverExchangeInstallDirectory.MsiProductMinor)
 if ($FileName) {
@@ -227,9 +236,9 @@ if ($FileName) {
 }
 foreach ($extension in $extensionsList) {
     if ($ListRecommendedExclusions) {
-        Write-Host ("$extension")
+        Write-Host "$extension"
     } else {
-        Write-SimpleLogFile -String ("Adding $extension") -name $LogFile -OutHost
+        Write-Host "Adding: $extension"
         Add-MpPreference -ExclusionExtension $extension
     }
     if ($FileName) {
@@ -237,7 +246,8 @@ foreach ($extension in $extensionsList) {
     }
 }
 
-Write-Host "`r`nExclusions Processes:" -ForegroundColor DarkGreen
+Write-Host " "
+Write-Host "Exclusions Processes:" -ForegroundColor DarkGreen
 $processesList = New-Object Collections.Generic.List[string]
 $processesList = Get-ExchAVExclusionsProcess -ExchangePath $ExchangePath -MsiProductMinor ([byte]$serverExchangeInstallDirectory.MsiProductMinor)
 if ($FileName) {
@@ -245,9 +255,9 @@ if ($FileName) {
 }
 foreach ($process in $processesList) {
     if ($ListRecommendedExclusions) {
-        Write-Host ("$process")
+        Write-Host "$process"
     } else {
-        Write-SimpleLogFile -String ("Adding $process") -name $LogFile -OutHost
+        Write-Host "Adding: $process"
         Add-MpPreference -ExclusionPath $process
         Add-MpPreference -ExclusionProcess $process
     }
@@ -256,8 +266,10 @@ foreach ($process in $processesList) {
     }
 }
 
+Write-Host " "
 if ($ListRecommendedExclusions) {
-    Write-Host ('')
+    Write-Host "Exclusions Detection Completed" -ForegroundColor Green
+} else {
+    Write-Host "Exclusions Applied" -ForegroundColor Green
 }
-
-Write-SimpleLogFile -String ("Exclusions Completed") -name $LogFile -OutHost
+Write-Host " "

@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
-. $PSScriptRoot\..\Helpers\CompareExchangeBuildLevel.ps1
+. $PSScriptRoot\..\..\..\Shared\CompareExchangeBuildLevel.ps1
 . $PSScriptRoot\..\..\..\Shared\VisualCRedistributableVersionFunctions.ps1
 . $PSScriptRoot\..\..\..\Shared\Get-NETFrameworkVersion.ps1
 function Invoke-AnalyzerOsInformation {
@@ -126,6 +126,9 @@ function Invoke-AnalyzerOsInformation {
     (Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU13") -or
     (Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2019 -CU "CU2")) {
         $recommendedNetVersion = $netVersionDictionary["Net4d7d2"]
+    } elseif ((Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2019 -CU "CU14") -and
+        ($osVersion -ne "Windows2019")) {
+        $recommendedNetVersion = $netVersionDictionary["Net4d8d1"]
     } else {
         $recommendedNetVersion = $netVersionDictionary["Net4d8"]
     }
@@ -156,6 +159,20 @@ function Invoke-AnalyzerOsInformation {
             AddHtmlOverviewValues  = $true
         }
         Add-AnalyzedResultInformation @params
+
+        if ($osInformation.NETFramework.MajorVersion -gt $recommendedNetVersion) {
+            # Generic information stating we are looking into supporting this version of .NET
+            # But don't use it till we update the supportability matrix
+            $displayValue = "Microsoft is working on .NET $($osInformation.NETFramework.FriendlyName) validation with Exchange" +
+            " and the recommendation is to not use .NET $($osInformation.NETFramework.FriendlyName) until it is officially added to the supportability matrix."
+
+            $params = $baseParams + @{
+                Details                = $displayValue
+                DisplayWriteType       = "Yellow"
+                DisplayCustomTabNumber = 2
+            }
+            Add-AnalyzedResultInformation @params
+        }
     }
 
     $displayValue = [string]::Empty
@@ -318,7 +335,9 @@ function Invoke-AnalyzerOsInformation {
 
     if (($osInformation.NetworkInformation.HttpProxy.ProxyAddress -ne "None") -and
         ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false) -and
-        ($osInformation.NetworkInformation.HttpProxy.ProxyAddress -ne $exchangeInformation.GetExchangeServer.InternetWebProxy.Authority)) {
+        ($null -ne $exchangeInformation.GetExchangeServer.InternetWebProxy) -and
+        ($osInformation.NetworkInformation.HttpProxy.ProxyAddress -ne
+        "$($exchangeInformation.GetExchangeServer.InternetWebProxy.Host):$($exchangeInformation.GetExchangeServer.InternetWebProxy.Port)")) {
         $params = $baseParams + @{
             Details                = "Error: Exchange Internet Web Proxy doesn't match OS Web Proxy."
             DisplayWriteType       = "Red"
@@ -333,25 +352,28 @@ function Invoke-AnalyzerOsInformation {
 
     if ($null -ne $osInformation.VcRedistributable) {
 
+        $installed2012 = Get-VisualCRedistributableLatest 2012 $osInformation.VcRedistributable
+        $installed2013 = Get-VisualCRedistributableLatest 2013 $osInformation.VcRedistributable
+
         if (Test-VisualCRedistributableUpToDate -Year 2012 -Installed $osInformation.VcRedistributable) {
             $displayWriteType2012 = "Green"
-            $displayValue2012 = "$((Get-VisualCRedistributableInfo 2012).VersionNumber) Version is current"
+            $displayValue2012 = "$($installed2012.DisplayVersion) Version is current"
         } elseif (Test-VisualCRedistributableInstalled -Year 2012 -Installed $osInformation.VcRedistributable) {
-            $displayValue2012 = "Redistributable is outdated"
+            $displayValue2012 = "Redistributable ($($installed2012.DisplayVersion)) is outdated"
             $displayWriteType2012 = "Yellow"
         }
 
         if (Test-VisualCRedistributableUpToDate -Year 2013 -Installed $osInformation.VcRedistributable) {
             $displayWriteType2013 = "Green"
-            $displayValue2013 = "$((Get-VisualCRedistributableInfo 2013).VersionNumber) Version is current"
+            $displayValue2013 = "$($installed2013.DisplayVersion) Version is current"
         } elseif (Test-VisualCRedistributableInstalled -Year 2013 -Installed $osInformation.VcRedistributable) {
-            $displayValue2013 = "Redistributable is outdated"
+            $displayValue2013 = "Redistributable ($($installed2013.DisplayVersion)) is outdated"
             $displayWriteType2013 = "Yellow"
         }
     }
 
     $params = $baseParams + @{
-        Name             = "Visual C++ 2012"
+        Name             = "Visual C++ 2012 x64"
         Details          = $displayValue2012
         DisplayWriteType = $displayWriteType2012
     }
@@ -359,7 +381,7 @@ function Invoke-AnalyzerOsInformation {
 
     if ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false) {
         $params = $baseParams + @{
-            Name             = "Visual C++ 2013"
+            Name             = "Visual C++ 2013 x64"
             Details          = $displayValue2013
             DisplayWriteType = $displayWriteType2013
         }

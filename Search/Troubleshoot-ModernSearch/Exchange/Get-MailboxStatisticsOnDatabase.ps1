@@ -38,7 +38,11 @@ function Get-MailboxStatisticsOnDatabase {
 
                         if ($totalBigFunnelSearchableItems -ne 0) {
                             $fullIndexPercentage = [Math]::Round((($_.BigFunnelIndexedCount / $totalBigFunnelSearchableItems) * 100), 2)
-                            $notPartIndexPercentage = [Math]::Round((($_.BigFunnelIndexedCount / ($totalBigFunnelSearchableItems - $_.BigFunnelPartiallyIndexedCount)) * 100), 2)
+                            $divideBy = $totalBigFunnelSearchableItems - $_.BigFunnelPartiallyIndexedCount
+
+                            if ($divideBy -ne 0) {
+                                $notPartIndexPercentage = [Math]::Round((($_.BigFunnelIndexedCount / $divideBy) * 100), 2)
+                            }
                         }
 
                         $mailboxStatisticsList.Add([PSCustomObject]@{

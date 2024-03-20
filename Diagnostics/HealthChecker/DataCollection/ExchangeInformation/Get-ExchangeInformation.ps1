@@ -5,17 +5,18 @@
 . $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeBuildVersionInformation.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeSettingOverride.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Get-ExSetupFileVersionInfo.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Get-FileContentInformation.ps1
 . $PSScriptRoot\IISInformation\Get-ExchangeAppPoolsInformation.ps1
 . $PSScriptRoot\IISInformation\Get-ExchangeServerIISSettings.ps1
 . $PSScriptRoot\Get-ExchangeAES256CBCDetails.ps1
-. $PSScriptRoot\Get-ExchangeApplicationConfigurationFileValidation.ps1
 . $PSScriptRoot\Get-ExchangeConnectors.ps1
 . $PSScriptRoot\Get-ExchangeDependentServices.ps1
 . $PSScriptRoot\Get-ExchangeRegistryValues.ps1
 . $PSScriptRoot\Get-ExchangeServerCertificates.ps1
 . $PSScriptRoot\Get-ExchangeServerMaintenanceState.ps1
 . $PSScriptRoot\Get-ExchangeUpdates.ps1
-. $PSScriptRoot\Get-ExSetupDetails.ps1
+. $PSScriptRoot\Get-ExchangeVirtualDirectories.ps1
 . $PSScriptRoot\Get-FIPFSScanEngineVersionState.ps1
 . $PSScriptRoot\Get-ServerRole.ps1
 function Get-ExchangeInformation {
@@ -34,8 +35,22 @@ function Get-ExchangeInformation {
         $windows2016OrGreater = Invoke-ScriptBlockHandler @params
         $getExchangeServer = (Get-ExchangeServer -Identity $Server -Status)
         $exchangeCertificates = Get-ExchangeServerCertificates -Server $Server
-        $exSetupDetails = Get-ExSetupDetails -Server $Server
-        $versionInformation = (Get-ExchangeBuildVersionInformation -FileVersion ($exSetupDetails.FileVersion))
+        $exSetupDetails = Get-ExSetupFileVersionInfo -Server $Server -CatchActionFunction ${Function:Invoke-CatchActions}
+
+        if ($null -eq $exSetupDetails) {
+            # couldn't find ExSetup.exe this should be rare so we are just going to handle this by displaying the AdminDisplayVersion from Get-ExchangeServer
+            $versionInformation = (Get-ExchangeBuildVersionInformation -AdminDisplayVersion $getExchangeServer.AdminDisplayVersion)
+            $exSetupDetails = [PSCustomObject]@{
+                FileVersion      = $versionInformation.BuildVersion.ToString()
+                FileBuildPart    = $versionInformation.BuildVersion.Build
+                FilePrivatePart  = $versionInformation.BuildVersion.Revision
+                FileMajorPart    = $versionInformation.BuildVersion.Major
+                FileMinorPart    = $versionInformation.BuildVersion.Minor
+                FailedGetExSetup = $true
+            }
+        } else {
+            $versionInformation = (Get-ExchangeBuildVersionInformation -FileVersion ($exSetupDetails.FileVersion))
+        }
 
         $buildInformation = [PSCustomObject]@{
             ServerRole         = (Get-ServerRole -ExchangeServerObj $getExchangeServer)
@@ -55,13 +70,7 @@ function Get-ExchangeInformation {
             Invoke-CatchActions
         }
 
-        try {
-            $getOwaVirtualDirectory = Get-OwaVirtualDirectory -Identity ("{0}\owa (Default Web Site)" -f $Server) -ADPropertiesOnly -ErrorAction Stop
-            $getWebServicesVirtualDirectory = Get-WebServicesVirtualDirectory -Server $Server -ErrorAction Stop
-        } catch {
-            Write-Verbose "Failed to get OWA or EWS virtual directory"
-            Invoke-CatchActions
-        }
+        $getExchangeVirtualDirectories = Get-ExchangeVirtualDirectories -Server $Server
 
         $registryValues = Get-ExchangeRegistryValues -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
         $serverExchangeBinDirectory = [System.Io.Path]::Combine($registryValues.MsiInstallPath, "Bin\")
@@ -102,7 +111,29 @@ function Get-ExchangeInformation {
             }
         }
 
-        $applicationConfigFileStatus = Get-ExchangeApplicationConfigurationFileValidation -ComputerName $Server -ConfigFileLocation ("{0}EdgeTransport.exe.config" -f $serverExchangeBinDirectory)
+        $configParams = @{
+            ComputerName = $Server
+            FileLocation = @("$([System.IO.Path]::Combine($serverExchangeBinDirectory, "EdgeTransport.exe.config"))",
+                "$([System.IO.Path]::Combine($serverExchangeBinDirectory, "Search\Ceres\Runtime\1.0\noderunner.exe.config"))")
+        }
+
+        if ($getExchangeServer.IsEdgeServer -eq $false -and
+            (-not ([string]::IsNullOrEmpty($registryValues.FipFsDatabasePath)))) {
+            $configParams.FileLocation += "$([System.IO.Path]::Combine($registryValues.FipFsDatabasePath, "Configuration.xml"))"
+        }
+
+        $getFileContentInformation = Get-FileContentInformation @configParams
+        $applicationConfigFileStatus = @{}
+        $fileContentInformation = @{}
+
+        foreach ($key in $getFileContentInformation.Keys) {
+            if ($key -like "*.exe.config") {
+                $applicationConfigFileStatus.Add($key, $getFileContentInformation[$key])
+            } else {
+                $fileContentInformation.Add($key, $getFileContentInformation[$key])
+            }
+        }
+
         $serverMaintenance = Get-ExchangeServerMaintenanceState -Server $Server -ComponentsToSkip "ForwardSyncDaemon", "ProvisioningRps"
         $settingOverrides = Get-ExchangeSettingOverride -Server $Server -CatchActionFunction ${Function:Invoke-CatchActions}
 
@@ -161,9 +192,8 @@ function Get-ExchangeInformation {
         return [PSCustomObject]@{
             BuildInformation                         = $buildInformation
             GetExchangeServer                        = $getExchangeServer
+            VirtualDirectories                       = $getExchangeVirtualDirectories
             GetMailboxServer                         = $getMailboxServer
-            GetOwaVirtualDirectory                   = $getOwaVirtualDirectory
-            GetWebServicesVirtualDirectory           = $getWebServicesVirtualDirectory
             ExtendedProtectionConfig                 = $extendedProtectionConfig
             ExchangeConnectors                       = $exchangeConnectors
             ExchangeServicesNotRunning               = [array]$exchangeServicesNotRunning
@@ -178,6 +208,7 @@ function Get-ExchangeInformation {
             SettingOverrides                         = $settingOverrides
             FIPFSUpdateIssue                         = $FIPFSUpdateIssue
             AES256CBCInformation                     = $aes256CbcDetails
+            FileContentInformation                   = $fileContentInformation
         }
     }
 }

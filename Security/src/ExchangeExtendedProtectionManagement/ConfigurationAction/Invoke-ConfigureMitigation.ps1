@@ -97,7 +97,7 @@ function Invoke-ConfigureMitigation {
                 $backupPath = "$($env:WINDIR)\System32\inetSrv\config\IpFilteringRules_" + $SiteVDirLocation.Replace('/', '-') + "_$([DateTime]::Now.ToString("yyyyMMddHHMMss")).bak"
                 $Filter = 'system.webServer/security/ipSecurity'
                 $IISPath = 'IIS:\'
-                $ExistingRules = @(Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -name collection)
+                $ExistingRules = @(Get-WebConfigurationProperty -Filter $Filter -Location $SiteVDirLocation -Name collection)
                 $state.IsBackUpSuccessful = BackupCurrentIPFilteringRules -BackupPath $backupPath -Filter $Filter -IISPath $IISPath -SiteVDirLocation $SiteVDirLocation -ExistingRules $ExistingRules
 
                 $RulesToBeAdded = @()
@@ -224,7 +224,7 @@ function Invoke-ConfigureMitigation {
             $progressParams.PercentComplete = ($counter / $totalCount * 100)
             $progressParams.Status = "$baseStatus Applying rules"
             Write-Progress @progressParams
-            $counter ++;
+            $counter ++
 
             Write-Verbose ("Calling Invoke-ScriptBlockHandler on Server {0} with arguments SiteVDirLocation: {1}, IPRangeAllowListRules : {2}" -f $Server, $SiteVDirLocation, $IPRangeAllowListString)
             $resultsInvoke = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock $ConfigureMitigation -ArgumentList $ScriptBlockArgs

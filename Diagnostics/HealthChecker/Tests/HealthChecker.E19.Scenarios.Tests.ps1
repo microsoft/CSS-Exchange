@@ -26,7 +26,10 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "KeepAliveTime" } -MockWith { return 0 }
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "CtsProcessorAffinityPercentage" } -MockWith { return 10 }
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "LsaCfgFlags" } -MockWith { return 1 }
-            Mock Get-ExchangeApplicationConfigurationFileValidation { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeApplicationConfigurationFileValidation1.xml" }
+            Mock Test-Path -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\EdgeTransport.exe.config" } -MockWith { return $false }
+            Mock Test-Path -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Runtime\1.0\noderunner.exe.config" } -MockWith { return $false }
+            Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\EdgeTransport.exe.config" } -MockWith { return $null }
+            Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Runtime\1.0\noderunner.exe.config" } -MockWith { return $null }
             Mock Get-ServerRebootPending { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetServerRebootPending1.xml" }
             Mock Get-AllTlsSettings { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetAllTlsSettings1.xml" }
             Mock Get-Smb1ServerSettings { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetSmb1ServerSettings1.xml" }
@@ -35,11 +38,14 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-HttpProxySetting { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetHttpProxySetting1.xml" }
             Mock Get-AcceptedDomain { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAcceptedDomain_Problem.xml" }
             Mock Test-Path -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\FrontEnd\HttpProxy\SharedWebConfig.config" } -MockWith { return $false }
+            Mock Get-WebSite -ParameterFilter { $Name -eq "Default Web Site" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\IIS\GetWebSite_DefaultWebSite1.xml" }
+            Mock Get-WebSite -ParameterFilter { $Name -eq "Exchange Back End" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\IIS\GetWebSite_ExchangeBackEnd1.xml" }
             # Needs to be like this to match the filter
             Mock Get-WebConfigFile -ParameterFilter { $PSPath -eq "IIS:\Sites\Exchange Back End/ecp" } -MockWith { return [PSCustomObject]@{ FullName = "$Script:MockDataCollectionRoot\Exchange\IIS\ClientAccess\ecp\web.config" } }
             Mock Get-WebConfigFile -ParameterFilter { $PSPath -eq "IIS:\Sites\Default Web Site/ecp" } -MockWith { return [PSCustomObject]@{ FullName = "$Script:MockDataCollectionRoot\Exchange\IIS\DefaultWebSite_web.config" } }
             Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost1.config" -Raw }
             Mock Get-ExchangeDiagnosticInfo { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo1.xml" }
+            Mock Get-IISModules { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetIISModulesNoTokenCacheModule.xml" }
             Mock Get-Service {
                 param(
                     [string]$ComputerName,
@@ -77,8 +83,6 @@ Describe "Testing Health Checker by Mock Data Imports" {
         It "TCP Keep Alive Time" {
             SetActiveDisplayGrouping "Frequent Configuration Issues"
             TestObjectMatch "TCP/IP Settings" 0 -WriteType "Red"
-            TestObjectMatch "Missing Web Application Configuration File" $true -WriteType "Red"
-            TestObjectMatch "Web Application: 'Default Web Site/ecp'" "$Script:MockDataCollectionRoot\Exchange\IIS\DefaultWebSite_web.config" -WriteType "Red"
         }
 
         It "CTS Processor Affinity Percentage" {
@@ -93,20 +97,12 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "EdgeTransport.exe.config Present" "False --- Error" -WriteType "Red"
         }
 
+        It "noderunner.exe.config Present" {
+            TestObjectMatch "noderunner.exe.config Present" "False --- Error" -WriteType "Red"
+        }
+
         It "Open Relay Wild Card Domain" {
             TestObjectMatch "Open Relay Wild Card Domain" "Error --- Accepted Domain `"Problem Accepted Domain`" is set to a Wild Card (*) Domain Name with a domain type of InternalRelay. This is not recommended as this is an open relay for the entire environment.`r`n`t`tMore Information: https://aka.ms/HC-OpenRelayDomain" -WriteType "Red"
-        }
-
-        It "Testing Missing Shared Configuration File" {
-            TestObjectMatch "Missing Shared Configuration File" $true -WriteType "Red"
-        }
-
-        It "Testing Default Variable Detected" {
-            TestObjectMatch "Default Variable Detected" $true -WriteType "Red"
-        }
-
-        It "Testing Bin Search Folder Not Found" {
-            TestObjectMatch "Bin Search Folder Not Found" $true -WriteType "Red"
         }
 
         It "Server Pending Reboot" {
@@ -163,6 +159,53 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Pattern service" "200 - Reachable"
             TestObjectMatch "Telemetry enabled" "False"
         }
+
+        It "CVE-2023-36434 Test - Module Not loaded" {
+            SetActiveDisplayGrouping "Security Vulnerability"
+            $cveEntries = GetObject "Security Vulnerability"
+            $cveEntries.Contains("CVE-2023-36434") | Should -Be $false # false because it isn't loaded.
+            SetActiveDisplayGrouping "Exchange IIS Information"
+            TestObjectMatch "TokenCacheModule loaded" $true -WriteType "Yellow"
+        }
+
+        It "Missing Web Application Configuration File" {
+            SetActiveDisplayGrouping "Exchange IIS Information"
+            TestObjectMatch "Missing Web Application Configuration File" $true -WriteType "Red"
+            TestObjectMatch "Web Application: 'Default Web Site/ecp'" "$Script:MockDataCollectionRoot\Exchange\IIS\DefaultWebSite_web.config" -WriteType "Red"
+        }
+
+        It "Testing Missing Shared Configuration File" {
+            TestObjectMatch "Missing Shared Configuration File" $true -WriteType "Red"
+        }
+
+        It "Testing Default Variable Detected" {
+            TestObjectMatch "Default Variable Detected" $true -WriteType "Red"
+        }
+
+        It "Testing Bin Search Folder Not Found" {
+            TestObjectMatch "Bin Search Folder Not Found" $true -WriteType "Red"
+        }
+
+        It "Testing Native HSTS Default Web Site config" {
+            #Native Default Web Site
+            TestObjectMatch "hsts-Enabled-Default Web Site" $true -WriteType "Green"
+            TestObjectMatch "hsts-max-age-Default Web Site" 300 -WriteType "Yellow"
+            TestObjectMatch "hsts-includeSubDomains-Default Web Site" $false
+            TestObjectMatch "hsts-preload-Default Web Site" $false
+            TestObjectMatch "hsts-redirectHttpToHttps-Default Web Site" $false
+        }
+
+        It "Testing Native HSTS Default Web Site config" {
+            #Native Exchange Back End
+            TestObjectMatch "hsts-Enabled-Exchange Back End" $true -WriteType "Red"
+            TestObjectMatch "hsts-max-age-Exchange Back End" 31536000 -WriteType "Green" # Going to be green even on backend
+            TestObjectMatch "hsts-includeSubDomains-Exchange Back End" $false
+            TestObjectMatch "hsts-preload-Exchange Back End" $false
+            TestObjectMatch "hsts-redirectHttpToHttps-Exchange Back End" $true -WriteType "Red"
+            TestObjectMatch "hsts-BackendNotSupported" $true -WriteType "Red"
+
+            TestObjectMatch "hsts-MoreInfo" $true -WriteType "Yellow"
+        }
     }
 
     Context "Checking Scenarios 2" {
@@ -177,8 +220,10 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-OwaVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory2.xml" }
             Mock Get-AcceptedDomain { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAcceptedDomain_Bad.xml" }
             Mock Get-DnsClient { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetDnsClient1.xml" }
-            Mock Get-ExSetupDetails { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup1.xml" }
+            Mock Get-ExSetupFileVersionInfo { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup1.xml" }
             Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost1.config" -Raw }
+            Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Runtime\1.0\noderunner.exe.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\noderunner.exe1.config" -Raw }
+            Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\EdgeTransport.exe.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\EdgeTransport.exe1.config" -Raw }
 
             SetDefaultRunOfHealthChecker "Debug_Scenario2_Results.xml"
         }
@@ -204,6 +249,14 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "Disable Async Notification" {
             TestObjectMatch "Disable Async Notification" $true -WriteType "Yellow"
+        }
+
+        It "Noderunner.exe.config memory limit" {
+            TestObjectMatch "NodeRunner.exe memory limit" "1024 MB will limit the performance of search and can be more impactful than helpful if not configured correctly for your environment." -WriteType "Yellow"
+        }
+
+        It "EdgeTransport.exe.config invalid config" {
+            TestObjectMatch "EdgeTransport.exe.config Invalid Config Format" $true -WriteType "Red"
         }
 
         It "TLS Settings" {
@@ -255,7 +308,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\Physical_Win32_PhysicalMemory.xml" }
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_Processor" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\Physical_Win32_Processor1.xml" }
-            Mock Get-ExSetupDetails { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup1.xml" }
+            Mock Get-ExSetupFileVersionInfo { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup1.xml" }
             Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost2.config" -Raw }
 
             SetDefaultRunOfHealthChecker "Debug_Scenario3_Physical_Results.xml"
@@ -264,6 +317,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
         It "Extended Protection Enabled" {
             SetActiveDisplayGrouping "Exchange Information"
             TestObjectMatch "Extended Protection Enabled (Any VDir)" $true
+            TestObjectMatch "EP - Default Web Site/OAB" "Require" -WriteType "Yellow"
         }
 
         It "Number of Processors" {
