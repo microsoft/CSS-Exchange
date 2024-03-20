@@ -42,7 +42,7 @@ function Get-ExtendedProtectionPrerequisitesCheck {
             Write-Verbose "$($progressParams.Status)"
 
             $params = @{
-                ComputerName         = $server.ToString()
+                ComputerName         = $server.Fqdn
                 IsClientAccessServer = $server.IsClientAccessServer
                 IsMailboxServer      = $server.IsMailboxServer
                 ExcludeEWS           = $SkipEWS
@@ -59,7 +59,7 @@ function Get-ExtendedProtectionPrerequisitesCheck {
                 $progressParams.Status = "$baseStatus TLS Settings"
                 Write-Progress @progressParams
                 Write-Verbose "$($progressParams.Status)"
-                $tlsSettings = Get-AllTlsSettings -MachineName $server
+                $tlsSettings = Get-AllTlsSettings -MachineName $server.Fqdn
             } else {
                 Write-Verbose "Server doesn't appear to be online. Skipped over trying to get the TLS settings"
             }
