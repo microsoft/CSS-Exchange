@@ -226,63 +226,73 @@ begin {
                 "$resolvedPath\w3svc$($webSite.id)"
             }
 
+            $OriginalLogFolder = $null
             $OriginalLogFolder = Invoke-ScriptBlockHandler -ComputerName $server -ScriptBlock $getIISLogPath
-            if ($server.Equals($env:COMPUTERNAME, [System.StringComparison]::OrdinalIgnoreCase)) {
-                $LogFolder = $OriginalLogFolder
-            } else {
-                $LogFolder = "\\$server\$($OriginalLogFolder.Replace(':','$'))"
-            }
+            if ($OriginalLogFolder) {
+                if ($server.Equals($env:COMPUTERNAME, [System.StringComparison]::OrdinalIgnoreCase)) {
+                    $LogFolder = $OriginalLogFolder
+                } else {
+                    $LogFolder = "\\$server\$($OriginalLogFolder.Replace(':','$'))"
+                }
 
-            $getIISLogDisabled = { (Get-WebConfigurationProperty -PSPath "IIS:\Sites\Default Web Site\ecp" -Filter "system.webServer/httpLogging" -Name donTLog).Value }
-            $isDisabled = (Invoke-ScriptBlockHandler -ComputerName $server -ScriptBlock $getIISLogDisabled)
-            if ($isDisabled) {
-                Write-Host "We could not get IIS log for $Server because it is disabled" -ForegroundColor Yellow
+                $getIISLogDisabled = { (Get-WebConfigurationProperty -PSPath "IIS:\Sites\Default Web Site\ecp" -Filter "system.webServer/httpLogging" -Name donTLog).Value }
+                $isDisabled = (Invoke-ScriptBlockHandler -ComputerName $server -ScriptBlock $getIISLogDisabled)
+                if ($isDisabled) {
+                    Write-Host "We could not get IIS log for $Server because it is disabled" -ForegroundColor Yellow
+                    return
+                }
+            } else {
+                Write-Host "We could not get IIS log for $Server" -ForegroundColor Red
                 return
             }
         }
 
-        if ($null -eq $LogFolder) {
-            Write-Host "We could not get log folder for $Server" -ForegroundColor Yellow
-        } else {
-            Write-Host "Looking for request $UrlStem on server $Server" -ForegroundColor Yellow
-            if ($SearchIIS) {
-                Write-Host "IIS logs on Folder $OriginalLogFolder ..."
-            } else {
-                Write-Host "HttpRequestFiltering logs on Folder $OriginalLogFolder ..."
-            }
+        if ($LogFolder) {
+            if (Test-Path -Path $LogFolder -PathType Container) {
+                Write-Host "Looking for request $UrlStem on server $Server" -ForegroundColor Yellow
+                if ($SearchIIS) {
+                    Write-Host "IIS logs on Folder $OriginalLogFolder ..."
+                } else {
+                    Write-Host "HttpRequestFiltering logs on Folder $OriginalLogFolder ..."
+                }
 
-            if (Test-Path $LogFolder -PathType Container) {
-                $timeout1min = (Get-Date).AddMinutes(1)
-                $foundRequest = $false
-                do {
-                    Start-Sleep -Seconds 1
-                    $remainSeconds = ($timeout1min - (Get-Date)).Seconds
-                    Write-Progress -Activity "Searching on logs ..." -Status "Max seconds Remaining" -SecondsRemaining $remainSeconds
-                    $file = $null
-                    $file = Get-ChildItem $LogFolder -Filter "*.log" | Sort-Object LastWriteTime -Descending | Select-Object -First 1 -Property *
-                    $found = $file | Get-Content | Select-String $UrlStem
-                    if ($found) {
-                        Write-Host "We found the request on logs: " -ForegroundColor Green
-                        Write-Host "$($found.Line)"
-                        $foundRequest = $true
-                        if ($SearchHttpRequestFiltering) {
-                            Write-Host " "
-                            Write-Host "Request blocked by server: $Server from AMSI" -ForegroundColor Green
-                            Write-Host " "
+                if (Test-Path $LogFolder -PathType Container) {
+                    $timeout1min = (Get-Date).AddMinutes(1)
+                    $foundRequest = $false
+                    do {
+                        Start-Sleep -Seconds 1
+                        $remainSeconds = ($timeout1min - (Get-Date)).Seconds
+                        Write-Progress -Activity "Searching on logs ..." -Status "Max seconds Remaining" -SecondsRemaining $remainSeconds
+                        $file = $null
+                        $file = Get-ChildItem $LogFolder -Filter "*.log" | Sort-Object LastWriteTime -Descending | Select-Object -First 1 -Property *
+                        $found = $file | Get-Content | Select-String $UrlStem
+                        if ($found) {
+                            Write-Host "We found the request on logs: " -ForegroundColor Green
+                            Write-Host "$($found.Line)"
+                            $foundRequest = $true
+                            if ($SearchHttpRequestFiltering) {
+                                Write-Host " "
+                                Write-Host "Request blocked by server: $Server from AMSI" -ForegroundColor Green
+                                Write-Host " "
+                            }
                         }
+                    } while ((-not $foundRequest) -and ($remainSeconds -gt 0))
+                    Write-Progress -Activity "Searching on logs ..." -Completed
+                    if (-not $foundRequest) {
+                        Write-Warning "We have not found the request on FrontEnd server: $Server." -ForegroundColor Red
+                        if ($SearchHttpRequestFiltering) {
+                            Write-Host "Server: $Server has not record on HttpRequestFiltering log" -ForegroundColor Red
+                        }
+                        Write-Host " "
                     }
-                } while ((-not $foundRequest) -and ($remainSeconds -gt 0))
-                Write-Progress -Activity "Searching on logs ..." -Completed
-                if (-not $foundRequest) {
-                    Write-Warning "We have not found the request on FrontEnd server: $Server." -ForegroundColor Red
-                    if ($SearchHttpRequestFiltering) {
-                        Write-Host "Server: $Server has not record on HttpRequestFiltering log" -ForegroundColor Red
-                    }
-                    Write-Host " "
+                } else {
+                    Write-Host "Error accessing $LogFolder on $Server" -ForegroundColor Red
                 }
             } else {
                 Write-Host "We could not access Logs folder on $Server" -ForegroundColor Red
             }
+        } else {
+            Write-Host "We could not get log folder for $Server" -ForegroundColor Yellow
         }
     }
 
@@ -351,10 +361,15 @@ begin {
                 Write-Host " "
                 if ($FEServer) {
                     if ($fullList -contains $FEServer) {
-                        SearchOnLogs -SearchIIS -server $FEServer -UrlStem $UrlStem
+                        SearchOnLogs -SearchIIS -Server $FEServer -UrlStem $UrlStem
                         $getMSIInstallPathSB = { (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction SilentlyContinue).MsiInstallPath }
+                        $ExchangePath = $null
                         $ExchangePath = Invoke-ScriptBlockHandler -ComputerName $FEServer -ScriptBlock $getMSIInstallPathSB
-                        SearchOnLogs -SearchHttpRequestFiltering -server $FEServer -ExchangePath $ExchangePath -UrlStem $UrlStem
+                        if ($ExchangePath) {
+                            SearchOnLogs -SearchHttpRequestFiltering -Server $FEServer -ExchangePath $ExchangePath -UrlStem $UrlStem
+                        } else {
+                            Write-Host "We could not get Exchange installation path on $FEServer" -ForegroundColor Red
+                        }
                         Write-Host " "
                     } else {
                         Write-Host "FrontEnd server is not an Exchange Server" -ForegroundColor Red
@@ -371,7 +386,7 @@ begin {
                 Write-Host $Message -ForegroundColor Red
                 Write-Host " "
                 if ($fullList -contains $FEServer) {
-                    SearchOnLogs -SearchIIS -server $FEServer -UrlStem $UrlStem
+                    SearchOnLogs -SearchIIS -Server $FEServer -UrlStem $UrlStem
                     Write-Host " "
                     Write-Host "Server: $FEServer do not detect bad Request, it has not triggered AMSI" -ForegroundColor Red
                     Write-Host " "
