@@ -48,6 +48,7 @@ function Invoke-SetupLogReviewer {
     $ranDate = $setupLogReviewer.SetupRunDate
 
     if ($ranDate -lt ([DateTime]::Now.AddDays(-14))) { $color = "Yellow" }
+    Write-Host "Setup Mode: $($setupLogReviewer.SetupMode)"
     Write-Host "Setup.exe Run Date: $ranDate" -ForegroundColor $color
     Write-Host "Setup.exe Build Number: $($setupLogReviewer.SetupBuildNumber)"
 
@@ -58,9 +59,10 @@ function Invoke-SetupLogReviewer {
             $localBuild = New-Object System.Version $setupLogReviewer.LocalBuildNumber -ErrorAction Stop
             $setupBuild = New-Object System.Version $setupLogReviewer.SetupBuildNumber -ErrorAction Stop
 
-            if ($localBuild -eq $setupBuild -or
+            if (($localBuild -eq $setupBuild -or
                 ($localBuild.Minor -eq $setupBuild.Minor -and
-                $localBuild.Build -eq $setupBuild.Build)) {
+                    $localBuild.Build -eq $setupBuild.Build)) -and
+                ($setupLogReviewer.SetupMode -ne "Install")) {
                 Write-Host "Same build number detected..... if using powershell.exe to start setup. Make sure you do '.\setup.exe'" -ForegroundColor "Red"
             }
         } catch {
