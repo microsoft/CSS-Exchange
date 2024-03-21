@@ -11,6 +11,7 @@
 . $PSScriptRoot\..\SetupLogReviewer\Checks\FindContext\Test-KnownMsiIssuesCheck.ps1
 . $PSScriptRoot\..\SetupLogReviewer\Checks\FindContext\Test-OtherWellKnownObjects.ps1
 . $PSScriptRoot\..\SetupLogReviewer\Checks\FindContext\Test-PrerequisiteCheck.ps1
+. $PSScriptRoot\..\SetupLogReviewer\Checks\FindContext\Test-SharedConfigDc.ps1
 . $PSScriptRoot\..\SetupLogReviewer\Checks\FindContext\Write-LastErrorInformation.ps1
 . $PSScriptRoot\..\SetupLogReviewer\Checks\Write-Result.ps1
 function Invoke-SetupLogReviewer {
@@ -93,6 +94,7 @@ function Invoke-SetupLogReviewer {
         "Test-OtherWellKnownObjects",
         "Test-IsHybridObjectFoundOnPremises",
         "Test-InvalidWKObjectTargetException",
+        "Test-SharedConfigDc",
         "Write-LastErrorInformation"
     )
 }

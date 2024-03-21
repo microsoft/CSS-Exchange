@@ -1,0 +1,554 @@
+[03/21/2024 16:23:15.0265] [0] **********************************************
+[03/21/2024 16:23:15.0281] [0] Starting Microsoft Exchange Server 2019 Setup
+[03/21/2024 16:23:15.0281] [0] **********************************************
+[03/21/2024 16:23:15.0281] [0] Local time zone: (UTC-05:00) Eastern Time (US & Canada).
+[03/21/2024 16:23:15.0281] [0] Operating system version: Microsoft Windows NT 6.2.9200.0.
+[03/21/2024 16:23:15.0281] [0] Setup version: 15.2.1544.4.
+[03/21/2024 16:23:15.0281] [0] Logged on user: SOLO\Han.
+[03/21/2024 16:23:15.0328] [0] Command Line Parameter Name='sourcedir', Value='D:\'.
+[03/21/2024 16:23:15.0328] [0] Command Line Parameter Name='mode', Value='Install'.
+[03/21/2024 16:23:15.0328] [0] RuntimeAssembly was started with the following command: '/sourcedir:D: /mode:Install'.
+[03/21/2024 16:23:15.0856] [0] The following roles are installed: AdminToolsRole 
+[03/21/2024 16:23:17.0939] [0] Setup is choosing the domain controller to use
+[03/21/2024 16:23:18.0183] [0] Setup is choosing a local domain controller...
+[03/21/2024 16:23:19.0138] [0] Setup has chosen the local domain controller DC1.Solo.local for initial queries
+[03/21/2024 16:23:19.0216] [0] PrepareAD has been run, and has replicated to this domain controller; so setup will use DC1.Solo.local
+[03/21/2024 16:23:19.0216] [0] Setup is choosing a global catalog...
+[03/21/2024 16:23:19.0232] [0] Setup has chosen the global catalog server DC1.Solo.local.
+[03/21/2024 16:23:19.0232] [0] Setup will use the domain controller 'DC1.Solo.local'.
+[03/21/2024 16:23:19.0232] [0] Setup will use the global catalog 'DC1.Solo.local'.
+[03/21/2024 16:23:19.0247] [0] Exchange configuration container for the organization is 'CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/21/2024 16:23:19.0247] [0] Exchange organization container for the organization is 'CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/21/2024 16:23:19.0263] [0] Setup will search for an Exchange Server object for the local machine with name 'ExSvr1'.
+[03/21/2024 16:23:19.0482] [0] Exchange Server object found : 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/21/2024 16:23:19.0482] [0] The following roles have been unpacked: BridgeheadRole ClientAccessRole MailboxRole FrontendTransportRole AdminToolsRole CafeRole 
+[03/21/2024 16:23:19.0482] [0] The following datacenter roles are unpacked: 
+[03/21/2024 16:23:19.0482] [0] The following roles are installed: AdminToolsRole 
+[03/21/2024 16:23:19.0482] [0] The local server has some Exchange files installed.
+[03/21/2024 16:23:19.0497] [0] Server Name=ExSvr1
+[03/21/2024 16:23:19.0497] [0] Setup will use the path 'D:\' for installing Exchange.
+[03/21/2024 16:23:19.0497] [0] Setup will discover the installed roles from server object 'CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/21/2024 16:23:19.0497] [0] 'BridgeheadRole' is installed on the server object.
+[03/21/2024 16:23:19.0497] [0] The installation mode is set to: 'Install'.
+[03/21/2024 16:23:24.0055] [0] An Exchange organization with name 'SoloORG' was found in this forest.
+[03/21/2024 16:23:24.0055] [0] Active Directory Initialization status : 'True'.
+[03/21/2024 16:23:24.0055] [0] Schema Update Required Status : 'False'.
+[03/21/2024 16:23:24.0055] [0] Organization Configuration Update Required Status : 'False'.
+[03/21/2024 16:23:24.0055] [0] Domain Configuration Update Required Status : 'False'.
+[03/21/2024 16:23:24.0055] [0] The locally installed version is 15.2.1544.4.
+[03/21/2024 16:23:24.0055] [0] Exchange Installation Directory : 'C:\Program Files\Microsoft\Exchange Server\V15'.
+[03/21/2024 16:23:24.0086] [0] Applying default role selection state
+[03/21/2024 16:23:24.0117] [0] Setup is determining what organization-level operations to perform.
+[03/21/2024 16:23:24.0117] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[03/21/2024 16:23:24.0117] [0] Setup will run from path 'C:\Program Files\Microsoft\Exchange Server\V15\'.
+[03/21/2024 16:23:24.0149] [0] InstallModeDataHandler has 12 DataHandlers
+[03/21/2024 16:23:24.0149] [0] RootDataHandler has 1 DataHandlers
+[03/21/2024 16:23:24.0305] [0] CurrentResult launcherbase.maincore:90: 0
+[03/21/2024 16:23:24.0524] [0] Finished loading screen IncompleteInstallationDetectedPage.
+[03/21/2024 16:23:26.0540] [0] Setup is determining what organization-level operations to perform.
+[03/21/2024 16:23:26.0540] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[03/21/2024 16:23:26.0540] [0] Setup will run from path 'C:\Program Files\Microsoft\Exchange Server\V15\'.
+[03/21/2024 16:23:26.0540] [0] InstallModeDataHandler has 12 DataHandlers
+[03/21/2024 16:23:26.0540] [0] RootDataHandler has 1 DataHandlers
+[03/21/2024 16:23:26.0571] [0] **************
+[03/20/2024 20:44:39.0120] [1] Evaluated [Setting:ComputerNameDnsFullyQualified] [HasException:False] [Value:"ExSvr1.Solo.local"] [ParentValue:"<NULL>"] [Thread:109] [Duration:00:00:00]
+[03/21/2024 16:26:25.0271] [1] Updating performance counter strings for SharedmailboxSentItemsAgentPerformanceCounters.ini
+[03/21/2024 16:26:25.0271] [1] Updating performance counter strings for SmsDeliveryAgentDeliveryPerfCounters.ini
+[03/21/2024 16:26:25.0287] [1] Updating performance counter strings for SmtpAvailabilityPerfCounters.ini
+[03/21/2024 16:26:25.0302] [1] Updating performance counter strings for SmtpConnectionPoolPerfCounters.ini
+[03/21/2024 16:26:25.0302] [1] Updating performance counter strings for SmtpErrorsPerfCounters.ini
+[03/21/2024 16:26:25.0302] [1] Updating performance counter strings for SmtpProxyPerfCounters.ini
+[03/21/2024 16:26:25.0318] [1] Updating performance counter strings for SmtpReceivePerfCounters.ini
+[03/21/2024 16:26:25.0349] [1] Updating performance counter strings for SmtpReceivePerformancePerfCounters.ini
+[03/21/2024 16:26:25.0349] [1] Updating performance counter strings for SmtpResponseCodePerfCounters.ini
+[03/21/2024 16:26:25.0349] [1] Updating performance counter strings for SmtpResponseSubCodePerfCounters.ini
+[03/21/2024 16:26:25.0349] [1] Updating performance counter strings for SmtpSendPerfCounters.ini
+[03/21/2024 16:26:25.0365] [1] Updating performance counter strings for SourceDatabasePerfmon.ini
+[03/21/2024 16:26:25.0380] [1] Updating performance counter strings for StatefulComponentPerformanceCounters.ini
+[03/21/2024 16:26:25.0380] [1] Updating performance counter strings for StorageRESTApiPerfCounters.ini
+[03/21/2024 16:26:25.0380] [1] Updating performance counter strings for StoreDriverDeliveryAgentPerfCounters.ini
+[03/21/2024 16:26:25.0396] [1] Updating performance counter strings for StoreDriverDeliveryDatabasePerfCounters.ini
+[03/21/2024 16:26:25.0412] [1] Updating performance counter strings for StoreDriverDeliveryPerfCounters.ini
+[03/21/2024 16:26:25.0427] [1] Updating performance counter strings for StoreDriverSubmissionAgentPerfCounters.ini
+[03/21/2024 16:26:25.0443] [1] Updating performance counter strings for StoreDriverSubmissionDatabasePerfCounters.ini
+[03/21/2024 16:26:25.0458] [1] Updating performance counter strings for StoreDriverSubmissionDirectDeliveryPerfCounters.ini
+[03/21/2024 16:26:25.0458] [1] Updating performance counter strings for StoreDriverSubmissionPerfCounters.ini
+[03/21/2024 16:26:25.0474] [1] Updating performance counter strings for StoreObjectsServicePerformanceCounters.ini
+[03/21/2024 16:26:25.0474] [1] Updating performance counter strings for StsUpdatePerfCounters.ini
+[03/21/2024 16:26:25.0490] [1] Updating performance counter strings for SubmitHelperPerfCounters.ini
+[03/21/2024 16:26:25.0505] [1] Updating performance counter strings for SupervisoryReviewAgentPerfCounters.ini
+[03/21/2024 16:26:25.0505] [1] Updating performance counter strings for SupervisoryReviewTimeBasedAssistantPerfCounters.ini
+[03/21/2024 16:26:25.0505] [1] Updating performance counter strings for SyncDeliveryPerfCounters.ini
+[03/21/2024 16:26:25.0521] [1] Updating performance counter strings for ThrottlingPerformanceCounters.ini
+[03/21/2024 16:26:25.0521] [1] Updating performance counter strings for ThrottlingServiceClientPerformanceCounters.ini
+[03/21/2024 16:26:25.0537] [1] Updating performance counter strings for TopologyServicePerfCounters.ini
+[03/21/2024 16:26:25.0552] [1] Updating performance counter strings for TransportApprovalDeliveryPerfCounters.ini
+[03/21/2024 16:26:25.0568] [1] Updating performance counter strings for TransportConfigurationPerfCounters.ini
+[03/21/2024 16:26:25.0568] [1] Updating performance counter strings for TransportCTSFlowPerformanceCounters.ini
+[03/21/2024 16:26:25.0583] [1] Updating performance counter strings for TransportGrayExceptionCounters.ini
+[03/21/2024 16:26:25.0583] [1] Updating performance counter strings for TransportHttpPerfCounters.ini
+[03/21/2024 16:26:25.0599] [1] Updating performance counter strings for TransportServerAlivePerfCounters.ini
+[03/21/2024 16:26:25.0615] [1] Updating performance counter strings for TransportStreamingOpticsServerAlivePerfCounters.ini
+[03/21/2024 16:26:25.0615] [1] Updating performance counter strings for TransportSyncManagerByDatabasePerfCounters.ini
+[03/21/2024 16:26:25.0615] [1] Updating performance counter strings for TransportSyncManagerByProtocolPerfCounters.ini
+[03/21/2024 16:26:25.0615] [1] Updating performance counter strings for TransportSyncManagerBySlaPerfCounters.ini
+[03/21/2024 16:26:25.0615] [1] Updating performance counter strings for TransportSyncManagerPerfCounters.ini
+[03/21/2024 16:26:25.0615] [1] Updating performance counter strings for TransportSyncWorkerCorePerfCounters.ini
+[03/21/2024 16:26:25.0615] [1] Updating performance counter strings for TransportSyncWorkerFrameworkPerfCounters.ini
+[03/21/2024 16:26:25.0615] [1] Updating performance counter strings for UnifiedAuditLogUploaderPerfCounters.ini
+[03/21/2024 16:26:25.0615] [1] Updating performance counter strings for UnifiedGroupPostSentItemAgentPerformanceCounters.ini
+[03/21/2024 16:26:25.0630] [1] Updating performance counter strings for UnifiedPolicySyncPerfCounters.ini
+[03/21/2024 16:26:25.0630] [1] Updating performance counter strings for UnJournalingPerfCounters.ini
+[03/21/2024 16:26:25.0646] [1] Updating performance counter strings for UserMailboxSentItemsAgentPerformanceCounters.ini
+[03/21/2024 16:26:25.0646] [1] Updating performance counter strings for UserThrottlingPerformanceCounters.ini
+[03/21/2024 16:26:25.0662] [1] Updating performance counter strings for UserWorkloadManagerPerformanceCounters.ini
+[03/21/2024 16:26:25.0677] [1] Updating performance counter strings for WeveMessageAssistantPerformanceCounters.ini
+[03/21/2024 16:26:25.0693] [1] Updating performance counter strings for WorkerTaskFrameworkPerfCounters.ini
+[03/21/2024 16:26:25.0708] [1] Updating performance counter strings for WorkloadManagementPerformanceCounters.ini
+[03/21/2024 16:26:25.0708] [1] Updating performance counter strings for WorkloadPerformanceCounters.ini
+[03/21/2024 16:26:25.0724] [1] Updating performance counter strings for WsPerformanceCounters.ini
+[03/21/2024 16:26:26.0115] [1] Finished updating performance counter strings
+[03/21/2024 16:27:34.0548] [1] Beginning to update performance counter strings
+[03/21/2024 16:27:34.0548] [1] Updating performance counter strings for dscperf.ini
+[03/21/2024 16:27:34.0595] [1] Updating performance counter strings for eseperf.ini
+[03/21/2024 16:27:34.0853] [1] Finished updating performance counter strings
+[03/21/2024 16:27:40.0540] [1] Setup has started to update MFL files.
+[03/21/2024 16:27:40.0572] [1] Changing LCID: ms_009 to ms_409 in C:\Program Files\Microsoft\Exchange Server\V15\Bin\en\Exchange.mfl.
+[03/21/2024 16:27:40.0964] [1] Setup has finished updating MFL files.
+[03/21/2024 16:27:40.0964] [1] Setup has started to copy the OWA language pack files.
+[03/21/2024 16:27:40.0964] [1] The version of the language packs matches the version of the install; no need to copy OWA langauge pack files.
+[03/21/2024 16:27:40.0964] [1] Setup has finished copying the OWA langauge pack files.
+[03/21/2024 16:27:40.0964] [1] Ending processing install-Languages
+[03/21/2024 16:27:40.0980] [0] **************
+[03/21/2024 16:27:40.0980] [0] Setup will run the task 'Install-BridgeheadRole'
+[03/21/2024 16:27:40.0980] [1] Setup launched task 'Install-BridgeheadRole -DomainController 'DC1.Solo.local' -updatesdir $null -LanguagePacksPath 'D:\\' -StartTransportService $true -DisableAMFiltering $false'  
+[03/21/2024 16:27:40.0985] [1] Active Directory session settings for 'Install-BridgeheadRole' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC1.Solo.local', Preferred Global Catalog: 'DC1.Solo.local', Preferred Domain Controllers: '{ DC1.Solo.local }'
+[03/21/2024 16:27:40.0985] [1] User specified parameters:  -DomainController:'DC1.Solo.local' -UpdatesDir:$null -LanguagePacksPath:'D:\\' -StartTransportService:'True' -DisableAMFiltering:'False'
+[03/21/2024 16:27:40.0985] [1] Beginning processing Install-BridgeheadRole
+[03/21/2024 16:27:41.0001] [1] Attempting Install for BridgeheadRole.
+[03/21/2024 16:27:41.0001] [1] The following roles are installed: AdminToolsRole 
+[03/21/2024 16:27:41.0001] [1] The following roles are current: AdminToolsRole 
+[03/21/2024 16:27:41.0017] [1] Reading components for the role 'AdminToolsRole' from 'res://AdminToolsRoleDefinition.xml'
+[03/21/2024 16:27:41.0017] [1] Found 6 components
+[03/21/2024 16:27:41.0017] [1] Loaded component 'All Roles Common First - Run Once' with 3 task information blocks from 'res://AllRolesCommonFirst_RunOnce.xml'
+[03/21/2024 16:27:41.0032] [1] Loaded component 'All Roles Common First' with 8 task information blocks from 'res://AllRolesCommonFirst.xml'
+[03/21/2024 16:27:41.0032] [1] Loaded component 'Admin Tools Configuration' with 1 task information blocks from 'res://AdminToolsComponent.xml'
+[03/21/2024 16:27:41.0032] [1] Loaded component 'Datacenter File Copy Component' with 1 task information blocks from 'res://DatacenterFileCopyComponent.xml'
+[03/21/2024 16:27:41.0032] [1] Loaded component 'Datacenter Admin Tools Component' with 1 task information blocks from 'res://DatacenterAdminToolsComponent.xml'
+[03/21/2024 16:27:41.0032] [1] Loaded component 'All Roles Common Last' with 6 task information blocks from 'res://AllRolesCommonLast.xml'
+[03/21/2024 16:27:41.0032] [1] Reading components for the role 'BridgeheadRole' from 'res://BridgeheadRoleDefinition.xml'
+[03/21/2024 16:27:41.0048] [1] Found 57 components
+[03/21/2024 16:27:41.0048] [1] Loaded component 'All Roles Common First - Run Once' with 3 task information blocks from 'res://AllRolesCommonFirst_RunOnce.xml'
+[03/21/2024 16:27:41.0048] [1] Loaded component 'All Roles Common First' with 8 task information blocks from 'res://AllRolesCommonFirst.xml'
+[03/21/2024 16:27:41.0048] [1] Loaded component 'All Roles Precompile Management Binaries' with 44 task information blocks from 'res://AllRolesPrecompileManagementBinaries.xml'
+[03/21/2024 16:27:41.0048] [1] Loaded component 'Bridgehead Permissions Configuration' with 1 task information blocks from 'res://BridgeheadLocalPermissionsComponent.xml'
+[03/21/2024 16:27:41.0064] [1] Loaded component 'Common Perf Counters ' with 1 task information blocks from 'res://CommonPerfCountersComponent.xml'
+[03/21/2024 16:27:41.0064] [1] Loaded component 'Datacenter Exchange Streaming Optics component' with 1 task information blocks from 'res://DatacenterMSExchangeStreamingOptics.xml'
+[03/21/2024 16:27:41.0064] [1] Loaded component 'Datacenter MSExchange Transport Streaming Optics' with 1 task information blocks from 'res://DatacenterMSExchangeTransportStreamingOptics.xml'
+[03/21/2024 16:27:41.0064] [1] Loaded component 'Provision Server' with 12 task information blocks from 'res://ProvisionServerComponent.xml'
+[03/21/2024 16:27:41.0064] [1] Loaded component 'All Active-Directory Roles Common' with 14 task information blocks from 'res://AllADRolesCommon.xml'
+[03/21/2024 16:27:41.0064] [1] Loaded component 'Health Manager' with 12 task information blocks from 'res://HealthManagerComponent.xml'
+[03/21/2024 16:27:41.0079] [1] Loaded component 'Exchange 2003 Pseudo-MTA Configuration' with 1 task information blocks from 'res://LegacyMTAComponent.xml'
+[03/21/2024 16:27:41.0079] [1] Loaded component 'Exchange 2003 SMTP VSI Configuration' with 1 task information blocks from 'res://LegacySMTPComponent.xml'
+[03/21/2024 16:27:41.0079] [1] Loaded component 'Transport Perf Counters' with 1 task information blocks from 'res://TransportPerfCountersComponent.xml'
+[03/21/2024 16:27:41.0079] [1] Loaded component 'Enable RPC-EPMAP firewall exception' with 1 task information blocks from 'res://RpcEpmapFirewallException.xml'
+[03/21/2024 16:27:41.0079] [1] Loaded component 'Enable Remote IIS Admin RPC firewall exception' with 1 task information blocks from 'res://RemoteIISAdminFirewallException.xml'
+[03/21/2024 16:27:41.0079] [1] Loaded component 'Bridgehead Role Setter' with 3 task information blocks from 'res://BridgeheadRoleSetterComponent.xml'
+[03/21/2024 16:27:41.0095] [1] Loaded component 'Transport Common Configuration' with 23 task information blocks from 'res://TransportCommonComponent.xml'
+[03/21/2024 16:27:41.0095] [1] Loaded component 'Transport Common Configuration' with 0 task information blocks from 'res://BridgeHeadAndGatewayTransportCommonComponent.xml'
+[03/21/2024 16:27:41.0095] [1] Loaded component 'Datacenter Bridgehead AMService component' with 5 task information blocks from 'res://DatacenterBridgeheadAMServiceComponent.xml'
+[03/21/2024 16:27:41.0095] [1] Loaded component 'Datacenter Bridgehead Dedicated AMService component' with 4 task information blocks from 'res://DatacenterBridgeheadDedicatedAMServiceComponent.xml'
+[03/21/2024 16:27:41.0095] [1] Loaded component 'Bridgehead Perf Counters' with 1 task information blocks from 'res://BridgeheadPerfCountersComponent.xml'
+[03/21/2024 16:27:41.0111] [1] Loaded component 'Bridgehead Configuration' with 56 task information blocks from 'res://BridgeheadComponent.xml'
+[03/21/2024 16:27:41.0111] [1] Loaded component 'Transport Log Search Service' with 2 task information blocks from 'res://TransportLogSearchServiceComponent.xml'
+[03/21/2024 16:27:41.0111] [1] Loaded component 'Data Storage Configuration' with 1 task information blocks from 'res://DataStorageComponent.xml'
+[03/21/2024 16:27:41.0111] [1] Loaded component 'Monitoring Service Configuration' with 3 task information blocks from 'res://MonitoringComponent.xml'
+[03/21/2024 16:27:41.0111] [1] Loaded component 'Search Foundation Service Configuration' with 2 task information blocks from 'res://SearchFoundationComponent.xml'
+[03/21/2024 16:27:41.0111] [1] Loaded component 'Service Host Configuration' with 3 task information blocks from 'res://ServiceHostComponent.xml'
+[03/21/2024 16:27:41.0126] [1] Loaded component 'Protected Service Host Configuration' with 4 task information blocks from 'res://ProtectedServiceHostComponent.xml'
+[03/21/2024 16:27:41.0126] [1] Loaded component 'BridgeheadExchangeCertificate' with 1 task information blocks from 'res://BridgeheadExchangeCertificate.xml'
+[03/21/2024 16:27:41.0126] [1] Loaded component 'PowerShell Configuration' with 6 task information blocks from 'res://PowerShellComponent.xml'
+[03/21/2024 16:27:41.0126] [1] Loaded component 'WSMan IIS Hosting Configuration' with 1 task information blocks from 'res://WSManIISHostingConfigurationComponent.xml'
+[03/21/2024 16:27:41.0126] [1] Loaded component 'Active Directory Topology Service Configuration' with 3 task information blocks from 'res://AllADRolesCommonServiceControl.xml'
+[03/21/2024 16:27:41.0126] [1] Loaded component 'Malware Filtering Configuration' with 1 task information blocks from 'res://MalwareFilteringComponent.xml'
+[03/21/2024 16:27:41.0126] [1] Loaded component 'Datacenter Bridgehead Antimalware component' with 6 task information blocks from 'res://DatacenterBridgeheadAntimalwareComponent.xml'
+[03/21/2024 16:27:41.0126] [1] Loaded component 'Transport Common Service Control' with 1 task information blocks from 'res://TransportCommonServiceControl.xml'
+[03/21/2024 16:27:41.0126] [1] Loaded component 'Service Host Service Control' with 1 task information blocks from 'res://ServiceHostServiceControl.xml'
+[03/21/2024 16:27:41.0142] [1] Loaded component 'Protected Service Host Service Control' with 1 task information blocks from 'res://ProtectedServiceHostServiceControl.xml'
+[03/21/2024 16:27:41.0142] [1] Loaded component 'Datacenter Common Configuration' with 8 task information blocks from 'res://DatacenterAllRolesCommonFirst.xml'
+[03/21/2024 16:27:41.0142] [1] Loaded component 'Ffo Datacenter Common Configuration First' with 1 task information blocks from 'res://FfoDatacenterAllRolesCommonFirst.xml'
+[03/21/2024 16:27:41.0142] [1] Loaded component 'Datacenter ServiceHost Configuration' with 2 task information blocks from 'res://DatacenterServiceHostComponent.xml'
+[03/21/2024 16:27:41.0142] [1] Loaded component 'Datacenter Live ID perf Counters' with 1 task information blocks from 'res://DatacenterLiveIDPerfCountersComponent.xml'
+[03/21/2024 16:27:41.0142] [1] Loaded component 'Datacenter Bridgehead Configuration' with 22 task information blocks from 'res://DatacenterBridgeheadComponent.xml'
+[03/21/2024 16:27:41.0157] [1] Loaded component 'Datacenter Bridgehead Atp Configuration' with 1 task information blocks from 'res://DatacenterBridgeheadAtpComponent.xml'
+[03/21/2024 16:27:41.0157] [1] Loaded component 'AntiSpam Spam Filter Configuration' with 8 task information blocks from 'res://DatacenterBridgeheadAntispamComponent.xml'
+[03/21/2024 16:27:41.0157] [1] Loaded component 'HubTransport Ffo only component' with 37 task information blocks from 'res://FfoDatacenterBridgeheadComponent.xml'
+[03/21/2024 16:27:41.0157] [1] Loaded component 'HubTransport ExO only component' with 28 task information blocks from 'res://ExODatacenterBridgeheadComponent.xml'
+[03/21/2024 16:27:41.0157] [1] Loaded component 'Datacenter Bridgehead Perf Counters' with 1 task information blocks from 'res://DatacenterBridgeheadPerfCountersComponent.xml'
+[03/21/2024 16:27:41.0157] [1] Loaded component 'Datacenter Bridgehead Perf Counters Exo Only Component' with 3 task information blocks from 'res://ExoDatacenterBridgeheadPerfCountersComponent.xml'
+[03/21/2024 16:27:41.0173] [1] Loaded component 'Datacenter All Roles LiveID RPS Configuration' with 4 task information blocks from 'res://DatacenterLiveIdRpsComponent.xml'
+[03/21/2024 16:27:41.0173] [1] Loaded component 'Datacenter Diagnostics Component' with 1 task information blocks from 'res://DatacenterDiagnosticsComponent.xml'
+[03/21/2024 16:27:41.0173] [1] Loaded component 'Diagnostics Component' with 3 task information blocks from 'res://DiagnosticsComponent.xml'
+[03/21/2024 16:27:41.0173] [1] Loaded component 'Datacenter Optics Configuration' with 1 task information blocks from 'res://DatacenterOpticsComponent.xml'
+[03/21/2024 16:27:41.0173] [1] Loaded component 'ProcessUtilizationManager Component' with 2 task information blocks from 'res://DatacenterProcessUtilizationManagerComponent.xml'
+[03/21/2024 16:27:41.0173] [1] Loaded component 'Ffo datacenter monitoring component' with 1 task information blocks from 'res://FfoDatacenterMonitoringComponent.xml'
+[03/21/2024 16:27:41.0173] [1] Loaded component 'Datacenter Common Configuration Last' with 13 task information blocks from 'res://DatacenterAllRolesCommonLast.xml'
+[03/21/2024 16:27:41.0173] [1] Loaded component 'Ffo Datacenter Common Configuration Last' with 3 task information blocks from 'res://FfoDatacenterAllRolesCommonLast.xml'
+[03/21/2024 16:27:41.0173] [1] Loaded component 'All Roles Common Last' with 6 task information blocks from 'res://AllRolesCommonLast.xml'
+[03/21/2024 16:27:41.0189] [1] The component 'All Roles Common First - Run Once' is shared with a role that's already configured.
+[03/21/2024 16:27:41.0189] [1] Adding 'All Roles Common First' because it's marked AlwaysExecute.
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'All Roles Precompile Management Binaries'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Bridgehead Permissions Configuration'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Common Perf Counters '
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Datacenter Exchange Streaming Optics component'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Datacenter MSExchange Transport Streaming Optics'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Provision Server'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'All Active-Directory Roles Common'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Health Manager'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Exchange 2003 Pseudo-MTA Configuration'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Exchange 2003 SMTP VSI Configuration'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Transport Perf Counters'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Enable RPC-EPMAP firewall exception'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Enable Remote IIS Admin RPC firewall exception'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Bridgehead Role Setter'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Transport Common Configuration'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Transport Common Configuration'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Datacenter Bridgehead AMService component'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Datacenter Bridgehead Dedicated AMService component'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Bridgehead Perf Counters'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Bridgehead Configuration'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Transport Log Search Service'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Data Storage Configuration'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Monitoring Service Configuration'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Search Foundation Service Configuration'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Service Host Configuration'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Protected Service Host Configuration'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'BridgeheadExchangeCertificate'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'PowerShell Configuration'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'WSMan IIS Hosting Configuration'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Active Directory Topology Service Configuration'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Malware Filtering Configuration'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Datacenter Bridgehead Antimalware component'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Transport Common Service Control'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Service Host Service Control'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Protected Service Host Service Control'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Datacenter Common Configuration'
+[03/21/2024 16:27:41.0189] [1] Adding 'Ffo Datacenter Common Configuration First' because it's marked AlwaysExecute.
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Datacenter ServiceHost Configuration'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Datacenter Live ID perf Counters'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Datacenter Bridgehead Configuration'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Datacenter Bridgehead Atp Configuration'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'AntiSpam Spam Filter Configuration'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'HubTransport Ffo only component'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'HubTransport ExO only component'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Datacenter Bridgehead Perf Counters'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Datacenter Bridgehead Perf Counters Exo Only Component'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Datacenter All Roles LiveID RPS Configuration'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Datacenter Diagnostics Component'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Diagnostics Component'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Datacenter Optics Configuration'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'ProcessUtilizationManager Component'
+[03/21/2024 16:27:41.0189] [1] Adding unique component 'Ffo datacenter monitoring component'
+[03/21/2024 16:27:41.0189] [1] Adding 'Datacenter Common Configuration Last' because it's marked AlwaysExecute.
+[03/21/2024 16:27:41.0189] [1] Adding 'Ffo Datacenter Common Configuration Last' because it's marked AlwaysExecute.
+[03/21/2024 16:27:41.0189] [1] Adding 'All Roles Common Last' because it's marked AlwaysExecute.
+[03/21/2024 16:27:41.0189] [1] The following roles are installed: AdminToolsRole 
+[03/21/2024 16:27:41.0189] [1] Loaded 7 parameters from the configuration file "C:\Program Files\Microsoft\Exchange Server\V15\bin\EnterpriseServiceEndpointsConfig.xml".
+[03/21/2024 16:27:41.0189] [1] Writing informational script to 'C:\ExchangeSetupLogs\Install-BridgeheadRole-20240321-1227410189690167871.ps1'
+[03/21/2024 16:27:41.0189] [1] Executing: $RoleAllRoles = 'BridgeheadRole,GatewayRole,ClientAccessRole,MailboxRole,UnifiedMessagingRole,FrontendTransportRole,AdminToolsRole,MonitoringRole,CentralAdminRole,CentralAdminDatabaseRole,CentralAdminFrontEndRole,LanguagePacksRole,CafeRole,FfoWebServiceRole,OSPRole'
+[03/21/2024 16:27:41.0204] [1] Executing: $RoleBinPath = 'C:\Program Files\Microsoft\Exchange Server\V15\Bin'
+[03/21/2024 16:27:41.0204] [1] Executing: $RoleCustomerFeedbackEnabled = $null
+[03/21/2024 16:27:41.0204] [1] Executing: $RoleDatacenterPath = 'C:\Program Files\Microsoft\Exchange Server\V15\Datacenter'
+[03/21/2024 16:27:41.0204] [1] Executing: $RoleDatacenterServiceEndpointABCHContactService = '<ServiceEndpoint><Url>http://pvt-contacts.msn.com/abservice/abservice.asmx</Url></ServiceEndpoint>'
+[03/21/2024 16:27:41.0204] [1] Executing: $RoleDatacenterServiceEndpointDomainPartnerManageDelegation = '<ServiceEndpoint><Url>https://domains.live.com/service/managedelegation.asmx</Url></ServiceEndpoint>'
+[03/21/2024 16:27:41.0204] [1] Executing: $RoleDatacenterServiceEndpointDomainPartnerManageDelegation2 = '<ServiceEndpoint><Url>https://domains.live.com/service/managedelegation2.asmx</Url></ServiceEndpoint>'
+[03/21/2024 16:27:41.0204] [1] Executing: $RoleDatacenterServiceEndpointLiveFederationMetadata = '<ServiceEndpoint><Url>https://nexus.passport.com/FederationMetadata/2006-12/FederationMetadata.xml</Url></ServiceEndpoint>'
+[03/21/2024 16:27:41.0204] [1] Executing: $RoleDatacenterServiceEndpointLiveGetUserRealm = '<ServiceEndpoint><Url>https://login.live.com/GetUserRealm.srf</Url></ServiceEndpoint>'
+[03/21/2024 16:27:41.0204] [1] Executing: $RoleDatacenterServiceEndpointLiveServiceLogin2 = '<ServiceEndpoint><Url>https://login.live.com/RST2.srf</Url></ServiceEndpoint>'
+[03/21/2024 16:27:41.0204] [1] Executing: $RoleDatacenterServiceEndpointMsoFederationMetadata = '<ServiceEndpoint><Url>https://nexus.microsoftonline-p.com/FederationMetadata/2006-12/FederationMetadata.xml</Url></ServiceEndpoint>'
+[03/21/2024 16:27:41.0204] [1] Executing: $RoleDisableAMFiltering = $False
+[03/21/2024 16:27:41.0204] [1] Executing: $RoleDomainController = 'DC1.Solo.local'
+[03/21/2024 16:27:41.0220] [1] Executing: $RoleFqdnOrName = 'ExSvr1.Solo.local'
+[03/21/2024 16:27:41.0220] [1] Executing: $RoleInstallationMode = 'Install'
+[03/21/2024 16:27:41.0220] [1] Executing: $RoleInstallPath = 'C:\Program Files\Microsoft\Exchange Server\V15\'
+[03/21/2024 16:27:41.0220] [1] Executing: $RoleInvocationID = '20240321-1227410189690167871'
+[03/21/2024 16:27:41.0220] [1] Executing: $RoleIsAdminToolsRoleInstalled = $True
+[03/21/2024 16:27:41.0220] [1] Executing: $RoleIsDatacenter = $False
+[03/21/2024 16:27:41.0220] [1] Executing: $RoleIsDatacenterDedicated = $False
+[03/21/2024 16:27:41.0220] [1] Executing: $RoleIsFfo = $False
+[03/21/2024 16:27:41.0220] [1] Executing: $RoleIsPartnerHosted = $False
+[03/21/2024 16:27:41.0220] [1] Executing: $RoleLanguagePacksPath = 'D:\\'
+[03/21/2024 16:27:41.0220] [1] Executing: $RoleLoggedOnUser = 'SOLO\Han'
+[03/21/2024 16:27:41.0220] [1] Executing: $RoleLoggingPath = 'C:\Program Files\Microsoft\Exchange Server\V15\Logging'
+[03/21/2024 16:27:41.0220] [1] Executing: $RoleNetBIOSName = 'ExSvr1'
+[03/21/2024 16:27:41.0236] [1] Executing: $RolePreviousVersion = $null
+[03/21/2024 16:27:41.0236] [1] Executing: $RoleProductPlatform = 'amd64'
+[03/21/2024 16:27:41.0236] [1] Executing: $RoleRoleName = 'BridgeheadRole'
+[03/21/2024 16:27:41.0236] [1] Executing: $RoleRoles = 'AdminToolsRole'
+[03/21/2024 16:27:41.0236] [1] Executing: $RoleSetupLoggingPath = 'C:\ExchangeSetupLogs'
+[03/21/2024 16:27:41.0236] [1] Executing: $RoleStartTransportService = $True
+[03/21/2024 16:27:41.0236] [1] Executing: $RoleTargetVersion = '15.02.1544.004'
+[03/21/2024 16:27:41.0236] [1] Executing: $RoleUpdatesDir = $null
+[03/21/2024 16:27:41.0236] [1] Setup failed previously while performing the action Install.  Looking for the failed task with ID AllADRolesCommonServiceControl___ee47ab1c06fb47919398e2e95ed99c6c.
+[03/21/2024 16:27:41.0236] [1] 194 tasks were found to run.
+[03/21/2024 16:27:41.0236] [1] Processing component 'Active Directory Topology Service Configuration' (Configuring Microsoft Exchange Active Directory Topology service).
+[03/21/2024 16:27:41.0236] [1] Executing: 
+          $maxWait = New-TimeSpan -Minutes 8
+          $timeout = Get-Date;
+          $timeout = $timeout.Add($maxWait);
+          $currTime = Get-Date;
+          $successfullySetConfigDC = $false;
+
+          while($currTime -le $timeout)
+          {
+            $setSharedCDCErrors = @();
+            try
+            {
+              Set-SharedConfigDC -DomainController $RoleDomainController -ErrorVariable setSharedCDCErrors -ErrorAction SilentlyContinue;
+              $successfullySetConfigDC = ($setSharedCDCErrors.Count -eq 0);
+
+              if($successfullySetConfigDC)
+              {
+                break;
+              }
+              Write-ExchangeSetupLog -Info ("An error ocurred while setting shared config DC. Error: " + $setSharedCDCErrors[0]);
+            }
+            catch
+            {
+              Write-ExchangeSetupLog -Info ("An exception ocurred while setting shared config DC. Exception: " + $_.Exception.Message);
+            }
+
+            Write-ExchangeSetupLog -Info ("Waiting 30 seconds before attempting again.");
+            Start-Sleep -Seconds 30;
+            $currTime = Get-Date;
+          }
+
+          if( -not $successfullySetConfigDC)
+          {
+            Write-ExchangeSetupLog -Error "Unable to set shared config DC.";
+          }
+        
+[03/21/2024 16:27:41.0267] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC1.Solo.local', Preferred Global Catalog: 'DC1.Solo.local', Preferred Domain Controllers: '{ DC1.Solo.local }'
+[03/21/2024 16:27:41.0267] [2] User specified parameters:  -DomainController:'DC1.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/21/2024 16:27:41.0267] [2] Beginning processing Set-SharedConfigDC
+[03/21/2024 16:27:47.0572] [2] Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:27:47.0572] [2] Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:27:47.0589] [2] Ending processing Set-SharedConfigDC
+[03/21/2024 16:27:47.0589] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:27:47.0589] [2] An error ocurred while setting shared config DC. Error: Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:27:47.0589] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:27:47.0589] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:27:47.0589] [2] Waiting 30 seconds before attempting again.
+[03/21/2024 16:27:47.0589] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:28:17.0611] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC1.Solo.local', Preferred Global Catalog: 'DC1.Solo.local', Preferred Domain Controllers: '{ DC1.Solo.local }'
+[03/21/2024 16:28:17.0611] [2] User specified parameters:  -DomainController:'DC1.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/21/2024 16:28:17.0611] [2] Beginning processing Set-SharedConfigDC
+[03/21/2024 16:28:23.0728] [2] Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:28:23.0728] [2] Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:28:23.0728] [2] Ending processing Set-SharedConfigDC
+[03/21/2024 16:28:23.0728] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:28:23.0728] [2] An error ocurred while setting shared config DC. Error: Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:28:23.0728] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:28:23.0728] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:28:23.0728] [2] Waiting 30 seconds before attempting again.
+[03/21/2024 16:28:23.0728] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:28:53.0737] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC1.Solo.local', Preferred Global Catalog: 'DC1.Solo.local', Preferred Domain Controllers: '{ DC1.Solo.local }'
+[03/21/2024 16:28:53.0737] [2] User specified parameters:  -DomainController:'DC1.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/21/2024 16:28:53.0737] [2] Beginning processing Set-SharedConfigDC
+[03/21/2024 16:28:59.0836] [2] Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:28:59.0836] [2] Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:28:59.0836] [2] Ending processing Set-SharedConfigDC
+[03/21/2024 16:28:59.0836] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:28:59.0836] [2] An error ocurred while setting shared config DC. Error: Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:28:59.0836] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:28:59.0852] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:28:59.0852] [2] Waiting 30 seconds before attempting again.
+[03/21/2024 16:28:59.0852] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:29:29.0862] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC1.Solo.local', Preferred Global Catalog: 'DC1.Solo.local', Preferred Domain Controllers: '{ DC1.Solo.local }'
+[03/21/2024 16:29:29.0862] [2] User specified parameters:  -DomainController:'DC1.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/21/2024 16:29:29.0862] [2] Beginning processing Set-SharedConfigDC
+[03/21/2024 16:29:36.0001] [2] Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:29:36.0001] [2] Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:29:36.0001] [2] Ending processing Set-SharedConfigDC
+[03/21/2024 16:29:36.0001] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:29:36.0001] [2] An error ocurred while setting shared config DC. Error: Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:29:36.0001] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:29:36.0001] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:29:36.0001] [2] Waiting 30 seconds before attempting again.
+[03/21/2024 16:29:36.0001] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:30:06.0009] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC1.Solo.local', Preferred Global Catalog: 'DC1.Solo.local', Preferred Domain Controllers: '{ DC1.Solo.local }'
+[03/21/2024 16:30:06.0009] [2] User specified parameters:  -DomainController:'DC1.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/21/2024 16:30:06.0009] [2] Beginning processing Set-SharedConfigDC
+[03/21/2024 16:30:12.0133] [2] Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:30:12.0133] [2] Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:30:12.0133] [2] Ending processing Set-SharedConfigDC
+[03/21/2024 16:30:12.0133] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:30:12.0133] [2] An error ocurred while setting shared config DC. Error: Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:30:12.0133] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:30:12.0133] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:30:12.0133] [2] Waiting 30 seconds before attempting again.
+[03/21/2024 16:30:12.0133] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:30:42.0138] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC1.Solo.local', Preferred Global Catalog: 'DC1.Solo.local', Preferred Domain Controllers: '{ DC1.Solo.local }'
+[03/21/2024 16:30:42.0138] [2] User specified parameters:  -DomainController:'DC1.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/21/2024 16:30:42.0138] [2] Beginning processing Set-SharedConfigDC
+[03/21/2024 16:30:48.0267] [2] Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:30:48.0267] [2] Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:30:48.0267] [2] Ending processing Set-SharedConfigDC
+[03/21/2024 16:30:48.0267] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:30:48.0267] [2] An error ocurred while setting shared config DC. Error: Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:30:48.0267] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:30:48.0267] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:30:48.0267] [2] Waiting 30 seconds before attempting again.
+[03/21/2024 16:30:48.0267] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:31:18.0275] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC1.Solo.local', Preferred Global Catalog: 'DC1.Solo.local', Preferred Domain Controllers: '{ DC1.Solo.local }'
+[03/21/2024 16:31:18.0275] [2] User specified parameters:  -DomainController:'DC1.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/21/2024 16:31:18.0275] [2] Beginning processing Set-SharedConfigDC
+[03/21/2024 16:31:24.0416] [2] Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:31:24.0416] [2] Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:31:24.0416] [2] Ending processing Set-SharedConfigDC
+[03/21/2024 16:31:24.0416] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:31:24.0416] [2] An error ocurred while setting shared config DC. Error: Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:31:24.0416] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:31:24.0416] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:31:24.0416] [2] Waiting 30 seconds before attempting again.
+[03/21/2024 16:31:24.0432] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:31:54.0440] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC1.Solo.local', Preferred Global Catalog: 'DC1.Solo.local', Preferred Domain Controllers: '{ DC1.Solo.local }'
+[03/21/2024 16:31:54.0440] [2] User specified parameters:  -DomainController:'DC1.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/21/2024 16:31:54.0440] [2] Beginning processing Set-SharedConfigDC
+[03/21/2024 16:32:00.0581] [2] Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:32:00.0581] [2] Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:32:00.0581] [2] Ending processing Set-SharedConfigDC
+[03/21/2024 16:32:00.0581] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:32:00.0581] [2] An error ocurred while setting shared config DC. Error: Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:32:00.0581] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:32:00.0581] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:32:00.0581] [2] Waiting 30 seconds before attempting again.
+[03/21/2024 16:32:00.0581] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:32:30.0591] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC1.Solo.local', Preferred Global Catalog: 'DC1.Solo.local', Preferred Domain Controllers: '{ DC1.Solo.local }'
+[03/21/2024 16:32:30.0591] [2] User specified parameters:  -DomainController:'DC1.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/21/2024 16:32:30.0591] [2] Beginning processing Set-SharedConfigDC
+[03/21/2024 16:32:36.0730] [2] Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:32:36.0730] [2] Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:32:36.0730] [2] Ending processing Set-SharedConfigDC
+[03/21/2024 16:32:36.0730] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:32:36.0730] [2] An error ocurred while setting shared config DC. Error: Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:32:36.0730] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:32:36.0730] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:32:36.0730] [2] Waiting 30 seconds before attempting again.
+[03/21/2024 16:32:36.0730] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:33:06.0739] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC1.Solo.local', Preferred Global Catalog: 'DC1.Solo.local', Preferred Domain Controllers: '{ DC1.Solo.local }'
+[03/21/2024 16:33:06.0739] [2] User specified parameters:  -DomainController:'DC1.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/21/2024 16:33:06.0739] [2] Beginning processing Set-SharedConfigDC
+[03/21/2024 16:33:12.0826] [2] Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:33:12.0826] [2] Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:33:12.0830] [2] Ending processing Set-SharedConfigDC
+[03/21/2024 16:33:12.0830] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:33:12.0830] [2] An error ocurred while setting shared config DC. Error: Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:33:12.0830] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:33:12.0830] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:33:12.0830] [2] Waiting 30 seconds before attempting again.
+[03/21/2024 16:33:12.0830] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:33:42.0833] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC1.Solo.local', Preferred Global Catalog: 'DC1.Solo.local', Preferred Domain Controllers: '{ DC1.Solo.local }'
+[03/21/2024 16:33:42.0833] [2] User specified parameters:  -DomainController:'DC1.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/21/2024 16:33:42.0833] [2] Beginning processing Set-SharedConfigDC
+[03/21/2024 16:33:48.0948] [2] Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:33:48.0948] [2] Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:33:48.0948] [2] Ending processing Set-SharedConfigDC
+[03/21/2024 16:33:48.0948] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:33:48.0948] [2] An error ocurred while setting shared config DC. Error: Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:33:48.0948] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:33:48.0948] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:33:48.0948] [2] Waiting 30 seconds before attempting again.
+[03/21/2024 16:33:48.0948] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:34:18.0954] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC1.Solo.local', Preferred Global Catalog: 'DC1.Solo.local', Preferred Domain Controllers: '{ DC1.Solo.local }'
+[03/21/2024 16:34:18.0954] [2] User specified parameters:  -DomainController:'DC1.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/21/2024 16:34:18.0954] [2] Beginning processing Set-SharedConfigDC
+[03/21/2024 16:34:25.0068] [2] Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:34:25.0068] [2] Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:34:25.0068] [2] Ending processing Set-SharedConfigDC
+[03/21/2024 16:34:25.0068] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:34:25.0068] [2] An error ocurred while setting shared config DC. Error: Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:34:25.0068] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:34:25.0068] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:34:25.0068] [2] Waiting 30 seconds before attempting again.
+[03/21/2024 16:34:25.0068] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:34:55.0070] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC1.Solo.local', Preferred Global Catalog: 'DC1.Solo.local', Preferred Domain Controllers: '{ DC1.Solo.local }'
+[03/21/2024 16:34:55.0070] [2] User specified parameters:  -DomainController:'DC1.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/21/2024 16:34:55.0070] [2] Beginning processing Set-SharedConfigDC
+[03/21/2024 16:35:01.0214] [2] Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:35:01.0214] [2] Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:35:01.0214] [2] Ending processing Set-SharedConfigDC
+[03/21/2024 16:35:01.0214] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:35:01.0214] [2] An error ocurred while setting shared config DC. Error: Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:35:01.0214] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:35:01.0214] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:35:01.0214] [2] Waiting 30 seconds before attempting again.
+[03/21/2024 16:35:01.0214] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:35:31.0227] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC1.Solo.local', Preferred Global Catalog: 'DC1.Solo.local', Preferred Domain Controllers: '{ DC1.Solo.local }'
+[03/21/2024 16:35:31.0227] [2] User specified parameters:  -DomainController:'DC1.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/21/2024 16:35:31.0227] [2] Beginning processing Set-SharedConfigDC
+[03/21/2024 16:35:37.0355] [2] Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:35:37.0355] [2] Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:35:37.0355] [2] Ending processing Set-SharedConfigDC
+[03/21/2024 16:35:37.0355] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:35:37.0355] [2] An error ocurred while setting shared config DC. Error: Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'.
+[03/21/2024 16:35:37.0355] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:35:37.0355] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:35:37.0355] [2] Waiting 30 seconds before attempting again.
+[03/21/2024 16:35:37.0355] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:36:07.0357] [2] Beginning processing Write-ExchangeSetupLog
+[03/21/2024 16:36:07.0357] [2] [ERROR] Unable to set shared config DC.
+[03/21/2024 16:36:07.0357] [2] [ERROR] Unable to set shared config DC.
+[03/21/2024 16:36:07.0373] [2] Ending processing Write-ExchangeSetupLog
+[03/21/2024 16:36:07.0373] [1] The following 1 error(s) occurred during task execution:
+[03/21/2024 16:36:07.0373] [1] 0.  ErrorRecord: Unable to set shared config DC.
+[03/21/2024 16:36:07.0373] [1] 0.  ErrorRecord: System.Exception: Unable to set shared config DC.
+   at Microsoft.Exchange.Configuration.Tasks.Task.ThrowError(Exception exception, ErrorCategory errorCategory, Object target, String helpUrl)
+   at Microsoft.Exchange.Management.Deployment.WriteExchangeSetupLog.InternalProcessRecord()
+   at Microsoft.Exchange.Configuration.Tasks.Task.<ProcessRecord>b__91_1()
+   at Microsoft.Exchange.Configuration.Tasks.Task.InvokeRetryableFunc(String funcName, Action func, Boolean terminatePipelineIfFailed)
+[03/21/2024 16:36:07.0373] [1] [ERROR] The following error was generated when "$error.Clear(); 
+          $maxWait = New-TimeSpan -Minutes 8
+          $timeout = Get-Date;
+          $timeout = $timeout.Add($maxWait);
+          $currTime = Get-Date;
+          $successfullySetConfigDC = $false;
+
+          while($currTime -le $timeout)
+          {
+            $setSharedCDCErrors = @();
+            try
+            {
+              Set-SharedConfigDC -DomainController $RoleDomainController -ErrorVariable setSharedCDCErrors -ErrorAction SilentlyContinue;
+              $successfullySetConfigDC = ($setSharedCDCErrors.Count -eq 0);
+
+              if($successfullySetConfigDC)
+              {
+                break;
+              }
+              Write-ExchangeSetupLog -Info ("An error ocurred while setting shared config DC. Error: " + $setSharedCDCErrors[0]);
+            }
+            catch
+            {
+              Write-ExchangeSetupLog -Info ("An exception ocurred while setting shared config DC. Exception: " + $_.Exception.Message);
+            }
+
+            Write-ExchangeSetupLog -Info ("Waiting 30 seconds before attempting again.");
+            Start-Sleep -Seconds 30;
+            $currTime = Get-Date;
+          }
+
+          if( -not $successfullySetConfigDC)
+          {
+            Write-ExchangeSetupLog -Error "Unable to set shared config DC.";
+          }
+        " was run: "System.Exception: Unable to set shared config DC.
+   at Microsoft.Exchange.Configuration.Tasks.Task.ThrowError(Exception exception, ErrorCategory errorCategory, Object target, String helpUrl)
+   at Microsoft.Exchange.Management.Deployment.WriteExchangeSetupLog.InternalProcessRecord()
+   at Microsoft.Exchange.Configuration.Tasks.Task.<ProcessRecord>b__91_1()
+   at Microsoft.Exchange.Configuration.Tasks.Task.InvokeRetryableFunc(String funcName, Action func, Boolean terminatePipelineIfFailed)".
+[03/21/2024 16:36:07.0373] [1] [ERROR] Unable to set shared config DC.
+[03/21/2024 16:36:07.0373] [1] [ERROR-REFERENCE] Id=AllADRolesCommonServiceControl___ee47ab1c06fb47919398e2e95ed99c6c Component=EXCHANGE14:\Current\Release\Shared\Datacenter\Setup
+[03/21/2024 16:36:07.0373] [1] Setup is stopping now because of one or more critical errors.
+[03/21/2024 16:36:07.0373] [1] Finished executing component tasks.
+[03/21/2024 16:36:07.0436] [1] Ending processing Install-BridgeheadRole
