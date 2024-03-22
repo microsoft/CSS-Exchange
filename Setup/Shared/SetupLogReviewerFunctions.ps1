@@ -238,6 +238,7 @@ function Get-SetupLogReviewer {
         LastSetupRunLine = $validSetupLog.LineNumber
         User             = $currentLogOnUser.Matches.Groups[1].Value
         SetupRunDate     = $runDate
+        SetupMode        = "Unknown"
         LocalBuildNumber = [string]::Empty
         SetupBuildNumber = $setupBuildNumber
     }
@@ -252,6 +253,12 @@ function Get-SetupLogReviewer {
 
     if ($null -ne $backupLocalInstall) {
         $logReviewer.LocalBuildNumber = $backupLocalInstall.Matches.Groups[1].Value
+    }
+
+    $setupMode = $logReviewer | SelectStringLastRunOfExchangeSetup -Pattern "Command Line Parameter Name='mode', Value='(.+)'\."
+
+    if ($null -ne $setupMode) {
+        $logReviewer.SetupMode = $setupMode.Matches.Groups[1].Value
     }
 
     return $logReviewer
