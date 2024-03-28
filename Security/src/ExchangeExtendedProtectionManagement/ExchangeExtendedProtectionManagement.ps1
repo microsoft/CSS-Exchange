@@ -38,6 +38,7 @@ param(
     [Parameter (Mandatory = $false, ValueFromPipeline, ParameterSetName = 'ConfigureEP', HelpMessage = "Enter the list of server names on which the script should execute on")]
     [Parameter (Mandatory = $false, ValueFromPipeline, ParameterSetName = 'ShowEP', HelpMessage = "Enter the list of server names on which the script should execute on")]
     [Parameter (Mandatory = $false, ValueFromPipeline, ParameterSetName = 'DisableEP', HelpMessage = "Enter the list of server names on which the script should execute on")]
+    [Parameter (Mandatory = $false, ValueFromPipeline, ParameterSetName = 'PrerequisitesCheckOnly', HelpMessage = "Enter the list of server names on which the script should execute on")]
     [string[]]$ExchangeServerNames = $null,
 
     [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureMitigation', HelpMessage = "Enter the list of servers on which the script should not execute on")]
@@ -46,10 +47,14 @@ param(
     [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureEP', HelpMessage = "Enter the list of servers on which the script should not execute on")]
     [Parameter (Mandatory = $false, ParameterSetName = 'ShowEP', HelpMessage = "Enter the list of servers on which the script should not execute on")]
     [Parameter (Mandatory = $false, ParameterSetName = 'DisableEP', HelpMessage = "Enter the list of servers on which the script should not execute on")]
+    [Parameter (Mandatory = $false, ParameterSetName = 'PrerequisitesCheckOnly', HelpMessage = "Enter the list of servers on which the script should not execute on")]
     [string[]]$SkipExchangeServerNames = $null,
 
     [Parameter (Mandatory = $true, ParameterSetName = 'ShowEP', HelpMessage = "Enable to provide a result of the configuration for Extended Protection")]
     [switch]$ShowExtendedProtection,
+
+    [Parameter (Mandatory = $true, ParameterSetName = "PrerequisitesCheckOnly", HelpMessage = "Enable to check if the set of servers that you have provided will pass the prerequisites check.")]
+    [switch]$PrerequisitesCheckOnly,
 
     [Parameter (Mandatory = $false, ParameterSetName = 'ConfigureEP', HelpMessage = "Used for internal options")]
     [string]$InternalOption,
@@ -243,6 +248,7 @@ begin {
             exit
         } elseif (-not($exchangeShell.EMS)) {
             Write-Warning "This script requires to be run inside of Exchange Management Shell. Please run on an Exchange Management Server or an Exchange Server with Exchange Management Shell."
+            Write-Warning "If the script was already executed via Exchange Management Shell, check your Auth Certificate by using the following script: https://aka.ms/MonitorExchangeAuthCertificate"
             exit
         }
 
@@ -356,7 +362,8 @@ begin {
             return
         }
 
-        if ($ConfigureEPSelected) {
+        if ($ConfigureEPSelected -or $PrerequisitesCheckOnly) {
+            $prerequisitesCheckFailed = $false
             $params = @{
                 ExchangeServers   = $ExchangeServersPrerequisitesCheckSettingsCheck
                 SkipEWS           = $SkipEWS
@@ -533,7 +540,7 @@ begin {
                                 Write-Host ""
                             }
 
-                            exit
+                            $prerequisitesCheckFailed = $true
                         } else {
                             Write-Host "All servers attempting to enable Extended Protection or already enabled passed the TLS prerequisites."
                             Write-Host ""
@@ -608,11 +615,11 @@ begin {
                     if ($rpcFailedServers.Count -gt 0) {
                         Write-Warning "Please address the following server regarding RPC (Default Web Site) and SSL Offloading: $([string]::Join(", " ,$rpcFailedServers))"
                         Write-Warning "The following cmdlet should be run against each of the servers: Set-OutlookAnywhere 'SERVERNAME\RPC (Default Web Site)' -SSLOffloading `$false -InternalClientsRequireSsl `$true -ExternalClientsRequireSsl `$true"
-                        exit
+                        $prerequisitesCheckFailed = $true
                     } elseif ($rpcNullServers.Count -gt 0) {
                         Write-Warning "Failed to find the following servers RPC (Default Web Site) for SSL Offloading: $([string]::Join(", " ,$rpcFailedServers))"
                         Write-Warning $canNotConfigure
-                        exit
+                        $prerequisitesCheckFailed = $true
                     }
                     Write-Host "All servers that we are trying to currently configure for Extended Protection have RPC (Default Web Site) set to false for SSLOffloading."
                 } else {
@@ -620,6 +627,24 @@ begin {
                 }
             } else {
                 Write-Warning "Failed to get Extended Protection Prerequisites Information to be able to continue"
+                exit
+            }
+
+            Write-Host ""
+            Write-Host ""
+
+            if ($prerequisitesCheckFailed) {
+                Write-Warning "Unable to continue due to the required prerequisites to enable Extended Protection in the environment. Please address the above issues."
+                Write-Host ""
+                exit
+            } elseif ($PrerequisitesCheckOnly) {
+                Write-Host "Successfully passed the Prerequisites Check for the server: $([string]::Join(", ", $onlineSupportedServers.ComputerName ))" -ForegroundColor Green
+
+                if ($onlineSupportedServers.Count -ne $ExchangeServersPrerequisitesCheckSettingsCheck.Count) {
+                    Write-Host ""
+                    Write-Warning "Not all Exchange Servers were included in this Prerequisites Check. This could be caused by servers being down, or being excluded from the list to check against."
+                }
+                Write-Host ""
                 exit
             }
 

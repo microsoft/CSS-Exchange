@@ -330,20 +330,112 @@ while ($currentDiff -gt 0) {
         $ModuleAllowList = New-Object Collections.Generic.List[string]
 
         # cSpell:disable
-        $ModuleAllowList.add("Google.Protobuf.dll")
+
+        # No company name
+
+        #Exchange 2013
+        # Bin\Search\Ceres\HostController\Data\Repository\Journal\
+        $ModuleAllowList.add("Microsoft.Exchange.TransportFlow.50.dll")
+        $ModuleAllowList.add("Microsoft.ClientResourceView.FlowService.dll")
+        $ModuleAllowList.add("Microsoft.Exchange.TransportFlowMdm.50.dll")
+        $ModuleAllowList.add("Microsoft.Exchange.Search.Writer.50.dll")
+
+        $ModuleAllowList.add("FUSE.Paxos.Network.dll")
+        $ModuleAllowList.add("FUSE.Weld.Base.Portable.dll")
+        $ModuleAllowList.add("ParallelExtensionsExtras.dll")
+        $ModuleAllowList.add("Google.ProtocolBuffers.dll")
+
+        #Exchange 2016
+        # Bin\Search\Ceres\HostController\Data\Repository\Journal\
+        $ModuleAllowList.add("Microsoft.Exchange.TransportFlowMdm.105.dll")
+        $ModuleAllowList.add("Microsoft.Exchange.TransportFlow.105.dll")
+        $ModuleAllowList.add("Microsoft.Exchange.Search.Writer.109.dll")
+        $ModuleAllowList.add("Microsoft.Exchange.WatermarkCtsFlow.100.dll")
+
+        $ModuleAllowList.add("Bond.Precompiler.dll")
+        $ModuleAllowList.add("Microsoft.Applications.Telemetry.dll")
+        $ModuleAllowList.add("Microsoft.Applications.Telemetry.Server.dll")
         $ModuleAllowList.add("Microsoft.RightsManagementServices.Core.dll")
-        $ModuleAllowList.add("Newtonsoft.Json.dll")
-        $ModuleAllowList.add("Microsoft.Cloud.InstrumentationFramework.Events.dll")
-        $ModuleAllowList.add("HealthServicePerformance.dll")
-        $ModuleAllowList.add("InterceptCounters.dll")
-        $ModuleAllowList.add("MOMConnectorPerformance.dll")
+        $ModuleAllowList.add("Microsoft.Search.ObjectStore.Client.dll")
+        $ModuleAllowList.add("ParallelExtensionsExtras.dll")
+        $ModuleAllowList.add("System.IdentityModel.Tokens.Jwt.dll")
+        $ModuleAllowList.add("Owin.dll")
+        $ModuleAllowList.add("Google.ProtocolBuffers.dll")
+
+        $ModuleAllowList.add("DiskLockerApi.dll")
         $ModuleAllowList.add("ExDbFailureItemApi.dll")
-        $ModuleAllowList.add("Microsoft.Cloud.InstrumentationFramework.Metrics.dll")
-        $ModuleAllowList.add("IfxMetrics.dll")
         $ModuleAllowList.add("ManagedBlingSigned.dll")
-        $ModuleAllowList.add("l3codecp.acm")
-        $ModuleAllowList.add("System.IdentityModel.Tokens.jwt.dll")
+        $ModuleAllowList.add("Microsoft.DSSMNativeSSELib.dll")
+
+        #Exchange 2019
+        $ModuleAllowList.add("Microsoft.Exchange.BigFunnelFlow.28.dll")
+        $ModuleAllowList.add("BigFunnel.NeuralTree.dll")
+
+        #.NET Foundation
+        $ModuleAllowList.add("Microsoft.AspNet.SignalR.Core.dll")
+        $ModuleAllowList.add("Microsoft.AspNet.SignalR.SystemWeb.dll")
+
+        #Microsoft Research Limited
+        $ModuleAllowList.add("Infer.Compiler.dll")
+        $ModuleAllowList.add("Infer.Runtime.dll")
+
+        #The Legion of the Bouncy Castle
+        $ModuleAllowList.add("BouncyCastle.Crypto.dll")
+
+        #Google Inc.
+        $ModuleAllowList.add("Google.Protobuf.dll")
+
+        #Newtonsoft
+        $ModuleAllowList.add("Newtonsoft.Json.dll")
+        $ModuleAllowList.add("Newtonsoft.Json.Bson.dll")
+
+        #Marc Gravell
+        $ModuleAllowList.add("protobuf-net.dll")
+        $ModuleAllowList.add("protobuf-net.Core.dll")
+
+        #Matthew Manela
+        $ModuleAllowList.add("DiffPlex.dll")
+
+        #The Apache Software Foundation
+        $ModuleAllowList.add("log4net.dll")
+
+        #http://system.data.sqlite.org/
+        $ModuleAllowList.add("System.Data.SQLite.dll")
+
+        #Robert Simpson, et al.
+        $ModuleAllowList.add("SQLite.Interop.dll")
+
+        #Microsoft.Cloud.InstrumentationFramework.*
+        $ModuleAllowList.add("Microsoft.Cloud.InstrumentationFramework.Events.dll")
+        $ModuleAllowList.add("Microsoft.Cloud.InstrumentationFramework.Health.dll")
+        $ModuleAllowList.add("Microsoft.Cloud.InstrumentationFramework.Metrics.dll")
+
+        #Windows
         $ModuleAllowList.add("prxyqry.DLL")
+        #Windows Fraunhofer IIS MPEG Audio Layer-3 ACM codec - MPEG Audio Layer-3 Codec for MSACM
+        $ModuleAllowList.add("l3codecp.acm")
+
+        # CompanyName allow list
+        $CompanyNameAllowList = New-Object Collections.Generic.List[string]
+        $CompanyNameAllowList.Add("Microsoft Corporation")
+        $CompanyNameAllowList.Add("Microsoft Corporation.")
+        $CompanyNameAllowList.Add("Microsoft")
+        $CompanyNameAllowList.Add("Microsoft Corp.")
+        $CompanyNameAllowList.Add("Microsoft CoreXT")
+        #$CompanyNameAllowList.Add("Microsoft Research Limited") #Only 2 modules
+
+        $CompanyNameAllowList.Add("Корпорация Майкрософт")
+        $CompanyNameAllowList.Add("Корпорація Майкрософт")
+        $CompanyNameAllowList.Add("Корпорація Майкрософт (Microsoft Corporation)")
+        $CompanyNameAllowList.Add("Корпорація Майкрософт (Microsoft Corporation)")
+        $CompanyNameAllowList.Add("Microsoft  корпорациясы")
+        $CompanyNameAllowList.Add("Корпорация Майкрософт.")
+
+        # CompanyName allow list
+        $FIPCompanyNameAllowList = New-Object Collections.Generic.List[string]
+        $FIPCompanyNameAllowList.Add("Oracle Corporation")
+        $FIPCompanyNameAllowList.Add("Oracle Corp.")
+
         # cSpell:enable
 
         Write-Verbose "Allow List Module Count: $($ModuleAllowList.count)"
@@ -360,11 +452,11 @@ while ($currentDiff -gt 0) {
 
             # Remove Microsoft modules
             Write-Verbose "Removing Microsoft Modules"
-            $ProcessModules = $ProcessModules | Where-Object { $_.FileVersionInfo.CompanyName -ne "Microsoft Corporation." -and $_.FileVersionInfo.CompanyName -ne "Microsoft" -and $_.FileVersionInfo.CompanyName -ne "Microsoft Corporation" }
+            $ProcessModules = $ProcessModules | Where-Object { $_.FileVersionInfo.CompanyName -notin $CompanyNameAllowList }
 
             # Remove Oracle modules on FIPS
             Write-Verbose "Removing Oracle Modules"
-            $ProcessModules = $ProcessModules | Where-Object { (-not($_.FileName -like "*\FIP-FS\Bin\*" -and $_.FileVersionInfo.CompanyName -eq "Oracle Corporation")) }
+            $ProcessModules = $ProcessModules | Where-Object { (-not($_.FileName -like "*\FIP-FS\Bin\*" -and ($_.FileVersionInfo.CompanyName -in $FIPCompanyNameAllowList))) }
 
             # Clear out modules from the allow list
             Write-Verbose "Removing Allow Modules"

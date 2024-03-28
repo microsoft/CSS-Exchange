@@ -18,6 +18,12 @@ elevated Exchange Management Shell (EMS) command prompt.
 
 #### Examples:
 
+This syntax will process the prerequisites check only against the servers that you provided. This will execute the same checks as if you were attempting to configure Extended Protection.
+
+```powershell
+PS C:\> .\ExchangeExtendedProtectionManagement.ps1 -PrerequisitesCheckOnly
+```
+
 This syntax enables Extended Protection on all Exchange Servers that are online that we can reach.
 
 ```powershell
@@ -109,6 +115,7 @@ Parameter | Description
 ----------|------------
 ExchangeServerNames | A list of servers to pass that you want to run the script against. This can be used for configuration or rollback.
 SkipExchangeServerNames | A list of server to pass that you don't want to execute the script for configuration or rollback.
+PrerequisitesCheckOnly | Run the required prerequisites check for the passed server list to know if configuration can be attempted.
 ShowExtendedProtection | Show the current configuration of Extended Protection for the passed server list.
 ExcludeVirtualDirectories | Used to not enable Extended Protection on particular virtual directories. The following values are allowed: `EWSFrontEnd`.
 FindExchangeServerIPAddresses | Use this to collect a list of the Exchange Server IPs that should be used for IP Restriction.
@@ -116,6 +123,6 @@ OutputFilePath | Is a custom file path to be used to export the list of Exchange
 IPRangeFilePath | Is the path to the file that contains all the IP Addresses or subnets that are needed to be in the IP Allow list for Mitigation.
 RestrictType | To enable a IP Restriction on a virtual directory. Must be used with `IPRangeFilePath`. The following values are allowed: `EWSBackend`
 ValidateType | To verify if the IP Restrictions have been applied correctly. Must be used with `IPRangeFilePath`. The following values are allowed: `RestrictTypeEWSBackend`
-RollbackType | Using this parameter will allow you to rollback using the type you specified. The following values are allowed: `RestoreIISAppConfig`, `RestrictTypeEWSBackend`
+RollbackType | Using this parameter will allow you to rollback using the type you specified. The following values are allowed: `RestoreIISAppConfig`, `RestrictTypeEWSBackend`, `RestoreConfiguration`
 DisableExtendedProtection | Using this parameter will disable extended protection for the servers you specify. This is done by setting all the configured locations back to `None` regardless of what the original value was set to prior to configuration or if it was enabled by default.
 SkipAutoUpdate | Skips over the Auto Update feature to download the latest version of the script.

@@ -92,6 +92,7 @@ nav:
     - CVE-2023-23397:
       - Security/CVE-2023-23397/index.md
       - FAQ: Security/CVE-2023-23397/FAQ.md
+    - ConfigureFipFsTextExtractionOverrides: Security/ConfigureFipFsTextExtractionOverrides.md
     - EOMT: Security/EOMT.md
     - EOMTv2: Security/EOMTv2.md
     - Extended Protection: Security/Extended-Protection.md

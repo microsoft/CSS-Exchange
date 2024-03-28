@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
-. $PSScriptRoot\..\Helpers\CompareExchangeBuildLevel.ps1
+. $PSScriptRoot\..\..\..\Shared\CompareExchangeBuildLevel.ps1
 function Invoke-AnalyzerFrequentConfigurationIssues {
     [CmdletBinding()]
     param(
@@ -318,7 +318,8 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
             $showMoreInfo = $true
         }
 
-        if ($connector.TlsDomain -ne "mail.protection.outlook.com") {
+        if ($connector.TlsDomain -ne "mail.protection.outlook.com" -and
+            $connector.TlsAuthLevel -eq "DomainValidation") {
             $params = $baseParams + @{
                 Name                   = "Send Connector - $($connector.Identity.ToString())"
                 Details                = "TLSDomain  not set to mail.protection.outlook.com"
