@@ -41,7 +41,7 @@ function Get-TransportLoggingInformationPerServer {
             if (($Version -eq 15 -and (-not ($MailboxOnly))) -or $Version -ge 16) {
                 $data = Get-FrontendTransportService -Identity $Server
 
-                if ($Version -ne 15) {
+                if ($Version -ne 15 -and (-not([string]::IsNullOrEmpty($data.RoutingTableLogPath)))) {
                     $routingTableLogPath = $data.RoutingTableLogPath.ToString()
                 }
 
@@ -59,7 +59,7 @@ function Get-TransportLoggingInformationPerServer {
                 #Mailbox Transport Layer
                 $data = Get-MailboxTransportService -Identity $Server
 
-                if ($Version -ne 15) {
+                if ($Version -ne 15 -and (-not([string]::IsNullOrEmpty($data.RoutingTableLogPath)))) {
                     $routingTableLogPath = $data.RoutingTableLogPath.ToString()
                 }
 
