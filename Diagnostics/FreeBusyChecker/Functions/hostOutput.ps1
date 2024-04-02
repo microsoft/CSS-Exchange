@@ -2,7 +2,6 @@
 # Licensed under the MIT License.
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Variables are being used in functions')]
-[CmdletBinding()]
 param (
     [Parameter(Mandatory = $false)]
     $TestingDAuthConfiguration = "---------------------------------------Testing DAuth Configuration-----------------------------------------------",
@@ -78,6 +77,8 @@ function ShowParameters() {
     Write-Host -ForegroundColor Green "  $UserOnPrem"
     Write-Host -ForegroundColor White " Exchange Online Mailbox:"
     Write-Host -ForegroundColor Green "  $UserOnline"
+    Write-Host -ForegroundColor White " Server:"
+    Write-Host -ForegroundColor Green "  $Server"
     showParametersHtml
 }
 function hostOutputIntraOrgConEnabled($Auth) {

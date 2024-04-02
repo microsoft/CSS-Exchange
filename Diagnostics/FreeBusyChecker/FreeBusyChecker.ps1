@@ -106,6 +106,17 @@ begin {
         }
     }
 
+    function CheckIfExchangeServer {
+        param (
+            [string]$Server
+        )
+        $exchangeServer = Get-ExchangeServer -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $Server }
+        if (!$exchangeServer) {
+            Write-Output "$Server is not an Exchange Server. This script need to be run in an Exchange Server 2013, 2016 or 2019"
+            break
+        }
+    }
+
     InstallRequiredModules
     $countOrgRelIssues = (0)
     $Script:FedTrust = $null
@@ -123,7 +134,7 @@ begin {
     $htmlFile = "$PSScriptRoot\FBCheckerOutput_$($startingDate).html"
 
     loadingParameters
-
+    CheckIfExchangeServer($Server)
     #Parameter input
 
     if (-not $OnlineUser) {

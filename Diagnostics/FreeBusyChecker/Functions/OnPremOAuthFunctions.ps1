@@ -1,7 +1,6 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Variables are being used in functions')]
-[CmdletBinding()]
 param (
     [Parameter(Mandatory = $false)]
     [String] $tdIntraOrgTarGetAddressDomain
