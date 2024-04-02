@@ -141,11 +141,12 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             $cveTests = GetObject "Security Vulnerability"
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
             $cveTests.Contains("CVE-2023-36039") | Should -Be $true
-            $cveTests.Count | Should -Be 49
+            $cveTests.Contains("ADV24199947") | Should -Be $true
+            $cveTests.Count | Should -Be 51
             $downloadDomains = GetObject "CVE-2021-1730"
             $downloadDomains.DownloadDomainsEnabled | Should -Be "false"
 
-            $Script:ActiveGrouping.Count | Should -Be 56
+            $Script:ActiveGrouping.Count | Should -Be 58
         }
     }
 

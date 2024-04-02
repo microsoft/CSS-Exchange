@@ -56,6 +56,12 @@ function Get-ExchangeRegistryValues {
         ValueType = "String"
     }
 
+    $fipFsDatabasePathParams = $baseParams + @{
+        SubKey    = "SOFTWARE\Microsoft\ExchangeServer\v15\FIP-FS"
+        GetValue  = "DatabasePath"
+        ValueType = "String"
+    }
+
     return [PSCustomObject]@{
         DisableBaseTypeCheckForDeserialization = [int](Get-RemoteRegistryValue @baseTypeCheckForDeserializationParams)
         CtsProcessorAffinityPercentage         = [int](Get-RemoteRegistryValue @ctsParams)
@@ -65,5 +71,6 @@ function Get-ExchangeRegistryValues {
         SerializedDataSigning                  = [int](Get-RemoteRegistryValue @serializedDataSigningParams)
         MsiInstallPath                         = [string](Get-RemoteRegistryValue @installDirectoryParams)
         DisablePreservation                    = [string](Get-RemoteRegistryValue @disablePreservationParams)
+        FipFsDatabasePath                      = [string](Get-RemoteRegistryValue @fipFsDatabasePathParams)
     }
 }

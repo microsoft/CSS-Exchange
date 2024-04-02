@@ -151,12 +151,15 @@ unconfigured
 unrequired
 USERDNSDOMAIN
 Vianet
+Visio
 vmxnet
 vssadmin
 vsstester
+Vssx
 vuln
 wbxml
 Webex
 Weve
 wevtutil
 windir
+Xlsb

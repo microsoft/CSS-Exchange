@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
-. $PSScriptRoot\..\Helpers\CompareExchangeBuildLevel.ps1
+. $PSScriptRoot\..\..\..\Shared\CompareExchangeBuildLevel.ps1
 function Invoke-AnalyzerFrequentConfigurationIssues {
     [CmdletBinding()]
     param(

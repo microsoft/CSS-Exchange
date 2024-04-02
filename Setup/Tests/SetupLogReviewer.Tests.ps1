@@ -522,4 +522,36 @@ Describe "Testing SetupLogReviewer" {
                 -ParameterFilter { $Object -like "*Run Setup again, but when using powershell.exe you MUST USE '.\' prior to setup.exe." }
         }
     }
+
+    Context "Unable to set Shared Config DC" {
+        BeforeEach {
+            Mock Write-Host {}
+            Mock Write-Warning {}
+        }
+
+        It "No Suitable Directory Services Found" {
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\ExchangeSetup_NoSuitableDC.log"
+
+            # splat doesn't work for pester for some reason.
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*Unable to set shared config DC*'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found*" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*It appears that the Microsoft Exchange Active Directory Topology service was started on the server and we ran into a different inner exception." }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*NOTE: It is common that the service will not stay started after the initial failure, make sure you keep the Microsoft Exchange Active Directory Topology service running during the entire setup process" }
+        }
+
+        It "AD Topology Service Not Started" {
+            & $sr -SetupLog "$PSScriptRoot\KnownIssues\ExchangeSetup_ADServiceNotStarted.log"
+
+            # cspell:disable
+            $serviceStopLine = "Unable to set shared config DC.*Topology Provider coundn't find the Microsoft Exchange Active Directory Topology service on end point 'TopologyClientTcpEndpoint (localhost)'."
+            # cspell:enable
+
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*$serviceStopLine" }
+            Assert-MockCalled -Exactly 1 -CommandName Write-Host `
+                -ParameterFilter { $Object -like "*MAKE SURE IT IS RUNNING DURING THE WHOLE SETUP AFTER COPYING FILES" }
+        }
+    }
 }
