@@ -39,7 +39,7 @@ function Invoke-ExtendedProtectionTlsPrerequisitesCheck {
             $netKeys = @("NETv4") # Only think we care about v4
 
             foreach ($serverTls in $TlsSettingsList) {
-                $currentServer = $serverTls.ComputerName
+                $currentServer = $serverTls.FQDN
                 $tlsSettings = $serverTls.Settings
                 # Removing TLS 1.3 here to avoid it being displayed
                 $tlsSettings.Registry.TLS.Remove("1.3")
