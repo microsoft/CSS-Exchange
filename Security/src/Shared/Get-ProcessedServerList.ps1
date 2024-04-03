@@ -17,6 +17,8 @@ function Get-ProcessedServerList {
 
         [bool]$DisableGetExchangeServerFullList,
 
+        [bool]$ViewEntireForest = $true,
+
         [string]$MinimumSU
     )
     begin {
@@ -33,10 +35,19 @@ function Get-ProcessedServerList {
         $onlineExchangeServer = New-Object System.Collections.Generic.List[object]
         # The FQDN of the servers that are in the onlineExchangeServer list
         $onlineExchangeServerFqdn = New-Object System.Collections.Generic.List[string]
+        # Servers that are not reachable and therefore classified as offline
+        $offlineExchangeServer = New-Object System.Collections.Generic.List[string]
+        # The FQDN of the servers that are not reachable and therefore classified as offline
+        $offlineExchangeServerFqdn = New-Object System.Collections.Generic.List[string]
         # The list of servers that are outside min required SU
         $outdatedBuildExchangeServerFqdn = New-Object System.Collections.Generic.List[string]
     }
     process {
+        if ($ViewEntireForest) {
+            Write-Verbose "ViewEntireForest set to true"
+            Set-ADServerSettings -ViewEntireForest $true
+        }
+
         if ($DisableGetExchangeServerFullList) {
             # If we don't want to get all the Exchange Servers, then we need to make sure the list of Servers are Exchange Server
             if ($null -eq $ExchangeServerNames -or
@@ -97,7 +108,7 @@ function Get-ProcessedServerList {
                     (-not ([string]::IsNullOrEmpty($exSetupDetails)))) {
                     # Got some results back, they are online.
                     $onlineExchangeServer.Add($server)
-                    $onlineExchangeServerFqdn.Add($Server.FQDN)
+                    $onlineExchangeServerFqdn.Add($server.FQDN)
 
                     if (-not ([string]::IsNullOrEmpty($MinimumSU))) {
                         $params = @{
@@ -115,6 +126,8 @@ function Get-ProcessedServerList {
                     }
                 } else {
                     Write-Verbose "Server $($server.Name) not online"
+                    $offlineExchangeServer.Add($server)
+                    $offlineExchangeServerFqdn.Add($server.FQDN)
                 }
             }
         } else {
@@ -137,6 +150,8 @@ function Get-ProcessedServerList {
             GetExchangeServer               = $getExchangeServer
             OnlineExchangeServer            = $onlineExchangeServer
             OnlineExchangeServerFqdn        = $onlineExchangeServerFqdn
+            OfflineExchangeServer           = $offlineExchangeServer
+            OfflineExchangeServerFqdn       = $offlineExchangeServerFqdn
             OutdatedBuildExchangeServerFqdn = $outdatedBuildExchangeServerFqdn
         }
     }
