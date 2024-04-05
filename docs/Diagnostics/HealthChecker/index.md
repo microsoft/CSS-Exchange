@@ -8,7 +8,6 @@ The Exchange Server Health Checker script helps detect common configuration issu
 ## Requirements
 #### Supported Exchange Server Versions:
 The script can be used to validate the configuration of the following Exchange Server versions:
-- Exchange Server 2013
 - Exchange Server 2016
 - Exchange Server 2019
 
@@ -104,7 +103,7 @@ This cmdlet will build the HTML report for all the XML files located in the dire
 PS C:\> .\HealthChecker.ps1 -BuildHtmlServersReport -XMLDirectoryPath C:\Location
 ```
 
-This cmdlet will run the Health Checker Load Balancing Report for all the Exchange 2013+ CAS (Front End connections only) and MBX servers (BackEnd connections) in the Organization.
+This cmdlet will run the Health Checker Load Balancing Report for all the Exchange CAS (Front End connections only) and MBX servers (BackEnd connections) in the Organization.
 
 ```powershell
 PS C:\> .\HealthChecker.ps1 -LoadBalancingReport
@@ -116,7 +115,7 @@ This cmdlet will run the Health Checker Load Balancing Report for these Servers 
 PS C:\> .\HealthChecker.ps1 -LoadBalancingReport -ServerList EXCH1,EXCH2,EXCH3
 ```
 
-This cmdlet will run the Health Checker Load Balancing Report for the Exchange 2013+ servers in the site SiteA.
+This cmdlet will run the Health Checker Load Balancing Report for the Exchange servers in the site SiteA.
 
 ```powershell
 PS C:\> .\HealthChecker.ps1 -LoadBalancingReport -SiteName SiteA
@@ -131,7 +130,7 @@ PS C:\> .\HealthChecker.ps1 -MailboxReport -Server EXCH1
 This cmdlet will run the Health Checker against all your Exchange Servers, then run the HTML report and open it.
 
 ```powershell
-PS C:\> Get-ExchangeServer | ?{$_.AdminDisplayVersion -Match "^Version 15"} | .\HealthChecker.ps1; .\HealthChecker.ps1 -BuildHtmlServersReport; .\ExchangeAllServersReport.html
+PS C:\> Get-ExchangeServer | ?{$_.AdminDisplayVersion -Match "^Version 15"} | .\HealthChecker.ps1; .\HealthChecker.ps1 -BuildHtmlServersReport -HtmlReportFile "ExchangeAllServersReport.html"; .\ExchangeAllServersReport.html
 ```
 
 This cmdlet will run Health Checker Vulnerability Report feature against all your Exchange Servers. Then Export out the data to a json file.
