@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.15">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.17">
     
     
       
@@ -26,7 +26,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.7e359304.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.bcfcd587.min.css">
       
       
   
@@ -3234,7 +3234,6 @@
 <h2 id="requirements">Requirements</h2>
 <h4 id="supported-exchange-server-versions">Supported Exchange Server Versions:</h4>
 <p>The script can be used to validate the configuration of the following Exchange Server versions:
-- Exchange Server 2013
 - Exchange Server 2016
 - Exchange Server 2019</p>
 <h4 id="required-permissions">Required Permissions:</h4>
@@ -3309,20 +3308,20 @@
 <p>This cmdlet will build the HTML report for all the XML files located in the directory specified in the XMLDirectoryPath Parameter.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-BuildHtmlServersReport</span> <span class="n">-XMLDirectoryPath</span> <span class="n">C</span><span class="p">:\</span><span class="n">Location</span>
 </code></pre></div>
-<p>This cmdlet will run the Health Checker Load Balancing Report for all the Exchange 2013+ CAS (Front End connections only) and MBX servers (BackEnd connections) in the Organization.</p>
+<p>This cmdlet will run the Health Checker Load Balancing Report for all the Exchange CAS (Front End connections only) and MBX servers (BackEnd connections) in the Organization.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-LoadBalancingReport</span>
 </code></pre></div>
 <p>This cmdlet will run the Health Checker Load Balancing Report for these Servers EXCH1, EXCH2, and EXCH3 CAS (Front End connections) and MBX  (BackEnd Connections)</p>
 <div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-LoadBalancingReport</span> <span class="n">-ServerList</span> <span class="n">EXCH1</span><span class="p">,</span><span class="n">EXCH2</span><span class="p">,</span><span class="n">EXCH3</span>
 </code></pre></div>
-<p>This cmdlet will run the Health Checker Load Balancing Report for the Exchange 2013+ servers in the site SiteA.</p>
+<p>This cmdlet will run the Health Checker Load Balancing Report for the Exchange servers in the site SiteA.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-LoadBalancingReport</span> <span class="n">-SiteName</span> <span class="n">SiteA</span>
 </code></pre></div>
 <p>This cmdlet will run the Health Checker Mailbox Report against the Server EXCH1</p>
 <div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-MailboxReport</span> <span class="n">-Server</span> <span class="n">EXCH1</span>
 </code></pre></div>
 <p>This cmdlet will run the Health Checker against all your Exchange Servers, then run the HTML report and open it.</p>
-<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">?{</span><span class="nv">$_</span><span class="p">.</span><span class="n">AdminDisplayVersion</span> <span class="o">-Match</span> <span class="s2">&quot;^Version 15&quot;</span><span class="p">}</span> <span class="p">|</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span><span class="p">;</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-BuildHtmlServersReport</span><span class="p">;</span> <span class="p">.\</span><span class="n">ExchangeAllServersReport</span><span class="p">.</span><span class="n">html</span>
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">?{</span><span class="nv">$_</span><span class="p">.</span><span class="n">AdminDisplayVersion</span> <span class="o">-Match</span> <span class="s2">&quot;^Version 15&quot;</span><span class="p">}</span> <span class="p">|</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span><span class="p">;</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-BuildHtmlServersReport</span> <span class="n">-HtmlReportFile</span> <span class="s2">&quot;ExchangeAllServersReport.html&quot;</span><span class="p">;</span> <span class="p">.\</span><span class="n">ExchangeAllServersReport</span><span class="p">.</span><span class="n">html</span>
 </code></pre></div>
 <p>This cmdlet will run Health Checker Vulnerability Report feature against all your Exchange Servers. Then Export out the data to a json file.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">HealthChecker</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-VulnerabilityReport</span>
@@ -3418,7 +3417,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1-2.1-2M12.5 7v5.2l4 2.4-1 1L11 13V7h1.5M11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2v1.8Z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">January 30, 2024</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">April 5, 2024</span>
   </span>
 
     
@@ -3468,7 +3467,7 @@
     <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.indexes", "content.action.edit"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.bd41221c.min.js"></script>
+      <script src="../../assets/javascripts/bundle.1e8ae164.min.js"></script>
       
     
   </body>
