@@ -17,8 +17,6 @@ function Get-ProcessedServerList {
 
         [bool]$DisableGetExchangeServerFullList,
 
-        [bool]$ViewEntireForest = $true,
-
         [string]$MinimumSU
     )
     begin {
@@ -43,11 +41,6 @@ function Get-ProcessedServerList {
         $outdatedBuildExchangeServerFqdn = New-Object System.Collections.Generic.List[string]
     }
     process {
-        if ($ViewEntireForest) {
-            Write-Verbose "ViewEntireForest set to true"
-            Set-ADServerSettings -ViewEntireForest $true
-        }
-
         if ($DisableGetExchangeServerFullList) {
             # If we don't want to get all the Exchange Servers, then we need to make sure the list of Servers are Exchange Server
             if ($null -eq $ExchangeServerNames -or
