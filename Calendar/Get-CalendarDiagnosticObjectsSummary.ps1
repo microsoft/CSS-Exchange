@@ -910,7 +910,7 @@ function BuildCSV {
     $ShortName = $ShortName.Substring(0, [System.Math]::Min(20, $ShortName.Length))
     $Filename = "$($ShortName)_$ShortMeetingID.csv"
     $FilenameRaw = "$($ShortName)_RAW_$($ShortMeetingID).csv"
-    
+
     Write-Host -ForegroundColor Cyan -NoNewline "Enhanced Calendar Logs for [$Identity] have been saved to : "
     Write-Host -ForegroundColor Yellow "$Filename"
 
@@ -919,7 +919,6 @@ function BuildCSV {
 
     $GCDOResults | Export-Csv -Path $Filename -NoTypeInformation -Encoding UTF8
     $script:GCDO | Export-Csv -Path $FilenameRaw -NoTypeInformation -Encoding UTF8
-
 }
 
 function MultiLineFormat {
@@ -1206,7 +1205,9 @@ function BuildTimeline {
                                         [array] $Output = "Transport delivered a new Meeting Request from [$($CalLog.SentRepresentingDisplayName)] for an exception starting on [$($CalLog.StartTime)]" + $(if ($null -ne $($CalLog.ReceivedRepresenting)) { " for user [$($CalLog.ReceivedRepresenting)]" })  + "."
                                         $MeetingSummaryNeeded = $True
                                     } else {
-                                        [Array]$Output = "Transport delivered a new Meeting Request from [$($CalLog.SentRepresentingDisplayName)]" + $(if ($null -ne $($CalLog.ReceivedRepresenting)) { " for user [$($CalLog.ReceivedRepresenting)]" }) + "."
+                                        [Array]$Output = "Transport delivered a new Meeting Request from [$($CalLog.SentRepresentingDisplayName)]" +
+                                        $(if ($null -ne $($CalLog.ReceivedRepresenting) -and $CalLog.ReceivedRepresenting -ne $CalLog.ReceivedBy)
+                                            { " for user [$($CalLog.ReceivedRepresenting)]" }) + "."
                                     }
                                 } elseif ($CalLog.Client -eq "CalendarRepairAssistant") {
                                     if ($CalLog.IsException -eq $True) {
@@ -1349,14 +1350,14 @@ function BuildTimeline {
                             }
                             $AddChangedProperties = $False
                         } elseif ($CalLog.FreeBusyStatus -ne 2 -and $PreviousCalLog.FreeBusyStatus -eq 2) {
-                            if ($IsOrganizer) { 
+                            if ($IsOrganizer) {
                                 [array] $Output = "[$($CalLog.ResponsibleUser)] Cancelled the Meeting with $($CalLog.Client)."
                             } else {
                                 if ($CalLog.ResponsibleUser -ne "Calendar Assistant") {
                                     [array] $Output = "[$($CalLog.ResponsibleUser)] Declined the meeting with $($CalLog.Client)."
                                 }
                             }
-                            $AddChangedProperties = $False                            
+                            $AddChangedProperties = $False
                         }
                     }
                     SoftDelete {
