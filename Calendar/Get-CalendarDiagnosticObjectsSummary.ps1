@@ -1076,14 +1076,15 @@ function BuildTimeline {
                     }
 
                     if ($CalLog.SubjectProperty -ne $PreviousCalLog.SubjectProperty) {
-                        [Array]$TimeLineText = "The EndTime changed from [$($PreviousCalLog.SubjectProperty)] to: [$($CalLog.SubjectProperty)]"
+                        [Array]$TimeLineText = "The SubjectProperty changed from [$($PreviousCalLog.SubjectProperty)] to: [$($CalLog.SubjectProperty)]"
                         MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
                     if ($CalLog.NormalizedSubject -ne $PreviousCalLog.NormalizedSubject) {
-                        [Array]$TimeLineText = "The EndTime changed from [$($PreviousCalLog.NormalizedSubject)] to: [$($CalLog.NormalizedSubject)]"
+                        [Array]$TimeLineText = "The NormalizedSubject changed from [$($PreviousCalLog.NormalizedSubject)] to: [$($CalLog.NormalizedSubject)]"
                         MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
+
                     if ($CalLog.Location -ne $PreviousCalLog.Location) {
                         [Array]$TimeLineText = "The Location changed from [$($PreviousCalLog.Location)] to: [$($CalLog.Location)]"
                         MeetingSummary -Time " " -MeetingChanges $TimeLineText
