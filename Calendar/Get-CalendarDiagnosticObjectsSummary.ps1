@@ -723,9 +723,7 @@ function SetIsIgnorable {
     } elseif ($CalLog.ItemClass -eq "IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}" ) {
         return "Exception"
     } elseif (($CalendarItemTypes.($CalLog.ItemClass) -like "*Resp*" -and $CalLog.CalendarLogTriggerAction -ne "Create" ) -or
-        $CalendarItemTypes.($CalLog.ItemClass) -eq "AttendeeList" -or
-        $CalLog.CalendarLogTriggerAction -eq "MoveToDeletedItems" -or
-        $CalLog.CalendarLogTriggerAction -eq "SoftDelete" ) {
+        $CalendarItemTypes.($CalLog.ItemClass) -eq "AttendeeList" ) {
         return "Cleanup"
     } else {
         return "False"
@@ -911,9 +909,16 @@ function BuildCSV {
     }
     $ShortName = $ShortName.Substring(0, [System.Math]::Min(20, $ShortName.Length))
     $Filename = "$($ShortName)_$ShortMeetingID.csv"
-    Write-Host -ForegroundColor Cyan -NoNewline "Calendar Logs for [$Identity] have been saved to :"
+    $FilenameRaw = "$($ShortName)_RAW_$($ShortMeetingID).csv"
+
+    Write-Host -ForegroundColor Cyan -NoNewline "Enhanced Calendar Logs for [$Identity] have been saved to : "
     Write-Host -ForegroundColor Yellow "$Filename"
+
+    Write-Host -ForegroundColor Cyan -NoNewline "Raw Calendar Logs for [$Identity] have been saved to : "
+    Write-Host -ForegroundColor Yellow "$FilenameRaw"
+
     $GCDOResults | Export-Csv -Path $Filename -NoTypeInformation -Encoding UTF8
+    $script:GCDO | Export-Csv -Path $FilenameRaw -NoTypeInformation -Encoding UTF8
 }
 
 function MultiLineFormat {
@@ -1071,14 +1076,15 @@ function BuildTimeline {
                     }
 
                     if ($CalLog.SubjectProperty -ne $PreviousCalLog.SubjectProperty) {
-                        [Array]$TimeLineText = "The EndTime changed from [$($PreviousCalLog.SubjectProperty)] to: [$($CalLog.SubjectProperty)]"
+                        [Array]$TimeLineText = "The SubjectProperty changed from [$($PreviousCalLog.SubjectProperty)] to: [$($CalLog.SubjectProperty)]"
                         MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
 
                     if ($CalLog.NormalizedSubject -ne $PreviousCalLog.NormalizedSubject) {
-                        [Array]$TimeLineText = "The EndTime changed from [$($PreviousCalLog.NormalizedSubject)] to: [$($CalLog.NormalizedSubject)]"
+                        [Array]$TimeLineText = "The NormalizedSubject changed from [$($PreviousCalLog.NormalizedSubject)] to: [$($CalLog.NormalizedSubject)]"
                         MeetingSummary -Time " " -MeetingChanges $TimeLineText
                     }
+
                     if ($CalLog.Location -ne $PreviousCalLog.Location) {
                         [Array]$TimeLineText = "The Location changed from [$($PreviousCalLog.Location)] to: [$($CalLog.Location)]"
                         MeetingSummary -Time " " -MeetingChanges $TimeLineText
@@ -1185,32 +1191,24 @@ function BuildTimeline {
             MeetingRequest {
                 switch ($CalLog.TriggerAction) {
                     Create {
-                        if ($CalLog.IsOrganizer) {
+                        if ($IsOrganizer) {
                             if ($CalLog.IsException -eq $True) {
-                                $Output1 = "A new Exception $($CalLog.MeetingRequestType.Value) Meeting Request was created with $($CalLog.Client) for [$($CalLog.StartTime)]."
+                                [array] $Output = "[$($CalLog.ResponsibleUser)] Created an Exception Meeting Request with $($CalLog.Client) for [$($CalLog.StartTime)]."
                             } else {
-                                $Output1 = "A new $($CalLog.MeetingRequestType.Value) Meeting Request was created with $($CalLog.Client)"
+                                [array] $Output  = "[$($CalLog.ResponsibleUser)] Created a Meeting Request was with $($CalLog.Client)"
                             }
-
-                            if ($CalLog.SentRepresentingEmailAddress -eq $CalLog.SenderEmailAddress) {
-                                $Output2 = " by the Organizer [$($CalLog.ResponsibleUser)]."
-                            } else {
-                                $Output2 = " by the Delegate."
-                            }
-
-                            [array] $Output = $Output1+$Output2
-                            [bool] $MeetingSummaryNeeded = $True
                         } else {
                             if ($CalLog.DisplayAttendeesTo -ne $PreviousCalLog.DisplayAttendeesTo -or $CalLog.DisplayAttendeesCc -ne $PreviousCalLog.DisplayAttendeesCc) {
                                 [array] $Output = "The user Forwarded a Meeting Request with $($CalLog.Client)."
                             } else {
                                 if ($CalLog.Client -eq "Transport") {
                                     if ($CalLog.IsException -eq $True) {
-                                        [array] $Output = "Transport delivered a new Meeting Request based on changes by [$($CalLog.SentRepresentingDisplayName)] for an exception starting on [$($CalLog.StartTime)]."
-                                        [bool] $MeetingSummaryNeeded = $True
+                                        [array] $Output = "Transport delivered a new Meeting Request from [$($CalLog.SentRepresentingDisplayName)] for an exception starting on [$($CalLog.StartTime)]" + $(if ($null -ne $($CalLog.ReceivedRepresenting)) { " for user [$($CalLog.ReceivedRepresenting)]" })  + "."
+                                        $MeetingSummaryNeeded = $True
                                     } else {
-                                        [array] $Output = "Transport delivered a new Meeting Request based on changes by [$($CalLog.SentRepresentingDisplayName)]."
-                                        [bool] $MeetingSummaryNeeded = $True
+                                        [Array]$Output = "Transport delivered a new Meeting Request from [$($CalLog.SentRepresentingDisplayName)]" +
+                                        $(if ($null -ne $($CalLog.ReceivedRepresenting) -and $CalLog.ReceivedRepresenting -ne $CalLog.ReceivedBy)
+                                            { " for user [$($CalLog.ReceivedRepresenting)]" }) + "."
                                     }
                                 } elseif ($CalLog.Client -eq "CalendarRepairAssistant") {
                                     if ($CalLog.IsException -eq $True) {
@@ -1269,7 +1267,7 @@ function BuildTimeline {
                         $Extra = " to the meeting series"
                     }
 
-                    if ($CalLog.IsOrganizer) {
+                    if ($IsOrganizer) {
                         [array] $Output = "[$($CalLog.SentRepresentingDisplayName)] $($Action) a $($MeetingRespType) Meeting Response message$($Extra)."
                     } else {
                         switch ($CalLog.Client) {
@@ -1297,22 +1295,22 @@ function BuildTimeline {
             IpmAppointment {
                 switch ($CalLog.TriggerAction) {
                     Create {
-                        if ($CalLog.IsOrganizer) {
+                        if ($IsOrganizer) {
                             if ($CalLog.Client -eq "Transport") {
-                                [array] $Output = "Transport created a new meeting."
+                                [array] $Output = "Transport Created a new meeting."
                             } else {
-                                [array] $Output = "[$($CalLog.SentRepresentingDisplayName)] created a new Meeting with $($CalLog.Client)."
+                                [array] $Output = "[$($CalLog.ResponsibleUser)] Created a new Meeting with $($CalLog.Client)."
                             }
                         } else {
                             switch ($CalLog.Client) {
                                 Transport {
-                                    [array] $Output = "Transport added a new Tentative Meeting from [$($CalLog.SentRepresentingDisplayName)] to the Calendar."
+                                    [array] $Output = "Transport Created a new Meeting on the calendar from [$($CalLog.SentRepresentingDisplayName)] and marked it Tentative."
                                 }
                                 ResourceBookingAssistant {
-                                    [array] $Output = "ResourceBookingAssistant added a new Tentative Meeting from [$($CalLog.SentRepresentingDisplayName)] to the Calendar."
+                                    [array] $Output = "ResourceBookingAssistant Created a new Meeting on the calendar from [$($CalLog.SentRepresentingDisplayName)] and marked it Tentative."
                                 }
                                 default {
-                                    [array] $Output = "[$($CalLog.ResponsibleUser)] created the Meeting with $($CalLog.Client)."
+                                    [array] $Output = "[$($CalLog.ResponsibleUser)] Created the Meeting with $($CalLog.Client)."
                                 }
                             }
                         }
@@ -1320,7 +1318,11 @@ function BuildTimeline {
                     Update {
                         switch ($CalLog.Client) {
                             Transport {
-                                [array] $Output = "Transport $($CalLog.TriggerAction)d the meeting based on changes made by [$($CalLog.SentRepresentingDisplayName)]."
+                                if ($CalLog.ResponsibleUser -eq "Calendar Assistant") {
+                                    [array] $Output = "Transport Updated the meeting based on changes made to the meeting on [$($CalLog.Sender)] calendar."
+                                } else {
+                                    [array] $Output = "Transport $($CalLog.TriggerAction)d the meeting based on changes made by [$($CalLog.ResponsibleUser)]."
+                                }
                             }
                             LocationProcessor {
                                 [array] $Output = ""
@@ -1349,7 +1351,13 @@ function BuildTimeline {
                             }
                             $AddChangedProperties = $False
                         } elseif ($CalLog.FreeBusyStatus -ne 2 -and $PreviousCalLog.FreeBusyStatus -eq 2) {
-                            [array] $Output = "[$($CalLog.ResponsibleUser)] Declined the Meeting with $($CalLog.Client)."
+                            if ($IsOrganizer) {
+                                [array] $Output = "[$($CalLog.ResponsibleUser)] Cancelled the Meeting with $($CalLog.Client)."
+                            } else {
+                                if ($CalLog.ResponsibleUser -ne "Calendar Assistant") {
+                                    [array] $Output = "[$($CalLog.ResponsibleUser)] Declined the meeting with $($CalLog.Client)."
+                                }
+                            }
                             $AddChangedProperties = $False
                         }
                     }
@@ -1387,7 +1395,7 @@ function BuildTimeline {
                     }
                     default {
                         [array] $Output = "[$($CalLog.ResponsibleUser)] $($CalLog.TriggerAction) the Meeting with $($CalLog.Client)."
-                        [bool] $MeetingSummaryNeeded = $False
+                        $MeetingSummaryNeeded = $False
                     }
                 }
             }
@@ -1395,9 +1403,9 @@ function BuildTimeline {
                 switch ($CalLog.Client) {
                     Transport {
                         if ($CalLog.IsException -eq $True) {
-                            [array] $Output = "Transport $($CalLog.TriggerAction)d a Meeting Cancellation based on changes by [$($CalLog.SentRepresentingDisplayName)] for the exception starting on [$($CalLog.StartTime)]"
+                            [array] $Output = "Transport $($CalLog.TriggerAction)d a Meeting Cancellation based on changes by [$($CalLog.SenderSMTPAddress)] for the exception starting on [$($CalLog.StartTime)]"
                         } else {
-                            [array] $Output = "Transport $($CalLog.TriggerAction)d a Meeting Cancellation based on changes by [$($CalLog.SentRepresentingDisplayName)]."
+                            [array] $Output = "Transport $($CalLog.TriggerAction)d a Meeting Cancellation based on changes by [$($CalLog.SenderSMTPAddress)]."
                         }
                     }
                     default {
@@ -1618,7 +1626,7 @@ if (-not ([string]::IsNullOrEmpty($Subject)) ) {
 
         if ($script:GCDO.count -gt 0) {
             Write-Host -ForegroundColor Cyan "Found $($script:GCDO.count) CalLogs with MeetingID [$MeetingID]."
-            $IsOrganizer = (SetIsOrganizer -CalLogs $script:GCDO)
+            $script:IsOrganizer = (SetIsOrganizer -CalLogs $script:GCDO)
             Write-Host -ForegroundColor Cyan "The user [$ID] $(if ($IsOrganizer) {"IS"} else {"is NOT"}) the Organizer of the meeting."
             $IsRoomMB = (SetIsRoom -CalLogs $script:GCDO)
             if ($IsRoomMB) {
