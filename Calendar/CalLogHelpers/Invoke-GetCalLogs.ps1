@@ -1,4 +1,4 @@
-# Copyright (c) Microsoft Corporation.
+﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 # Invoke-GetCalLogs.ps1
 # This script is used to support the Get-CalendarDiagnosticObjectsSummary.ps1 script.
@@ -82,8 +82,6 @@ function GetCalendarDiagnosticObjects {
     Write-Host "Found $($CalLogs.count) Calendar Logs for [$Identity]"
     return $CalLogs
 }
-
-
 
 <#
 .SYNOPSIS

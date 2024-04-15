@@ -1,4 +1,4 @@
-# Copyright (c) Microsoft Corporation.
+﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 # Get-CalLogInfo.ps1
 # This script is used to support the Get-CalendarDiagnosticObjectsSummary.ps1 script.
