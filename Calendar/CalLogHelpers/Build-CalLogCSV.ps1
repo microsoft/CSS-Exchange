@@ -7,7 +7,6 @@
 # Constants to support the script
 # ===================================================================================================
 
-
 $script:CalendarItemTypes = @{
     'IPM.Schedule.Meeting.Request.AttendeeListReplication' = "AttendeeList"
     'IPM.Schedule.Meeting.Canceled'                        = "Cancellation"
@@ -111,7 +110,6 @@ function CreateExternalMasterIDMap {
     Write-Verbose $SharedFolders
 }
 
-
 <#
 .SYNOPSIS
 Convert a csv value to multiLine.
@@ -142,7 +140,7 @@ function BuildCSV {
     $IsFromSharedCalendar = @()
     $IsIgnorable = @()
     $script:MailboxList = @{}
-    Write-Host "Creating Map of Mailboxes to CN's..."
+    Write-Host "Creating Map of Mailboxes to CNs..."
     CreateExternalMasterIDMap
 
     $ThisMeetingID = $script:GCDO.CleanGlobalObjectId | Select-Object -Unique
