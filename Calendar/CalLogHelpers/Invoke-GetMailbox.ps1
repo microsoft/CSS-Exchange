@@ -1,7 +1,5 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-# Invoke-Mailbox.ps1
-# This script is used to support the Get-CalendarDiagnosticObjectsSummary.ps1 script.
 
 $WellKnownCN_CA = "MICROSOFT SYSTEM ATTENDANT"
 $CalAttendant = "Calendar Assistant"
