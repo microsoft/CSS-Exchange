@@ -58,13 +58,13 @@ Write-Verbose "Script Versions: $BuildVersion"
 # ===================================================================================================
 # Support scripts
 # ===================================================================================================
-. $PSScriptRoot\CalLogHelpers\Build-CalLogCSV.ps1
-. $PSScriptRoot\CalLogHelpers\Build-Timeline.ps1
-. $PSScriptRoot\CalLogHelpers\Build-MeetingSummary.ps1
+. $PSScriptRoot\CalLogHelpers\CalLogCSVFunctions.ps1
+. $PSScriptRoot\CalLogHelpers\TimelineFunctions.ps1
+. $PSScriptRoot\CalLogHelpers\MeetingSummaryFunctions.ps1
 . $PSScriptRoot\CalLogHelpers\Invoke-GetMailbox.ps1
 . $PSScriptRoot\CalLogHelpers\Invoke-GetCalLogs.ps1
-. $PSScriptRoot\CalLogHelpers\Get-ShortClientName.ps1
-. $PSScriptRoot\CalLogHelpers\Get-CalLogInfo.ps1
+. $PSScriptRoot\CalLogHelpers\ShortClientNameFunctions.ps1
+. $PSScriptRoot\CalLogHelpers\CalLogInfoFunctions.ps1
 . $PSScriptRoot\CalLogHelpers\Write-DashLineBoxColor.ps1
 
 # ===================================================================================================
