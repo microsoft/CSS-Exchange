@@ -1,7 +1,5 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-# Build-MeetingSummary.ps1
-# This script is used to support the Get-CalendarDiagnosticObjectsSummary.ps1 script.
 
 function Convert-Data {
     param(
