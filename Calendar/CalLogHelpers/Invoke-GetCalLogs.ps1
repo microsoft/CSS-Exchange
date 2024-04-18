@@ -19,6 +19,7 @@ $script:CustomPropertyNameList =
 "FreeBusyStatus",
 "From",
 "HasAttachment",
+"ItemID",
 "IsAllDayEvent",
 "IsCancelled",
 "IsMeeting",
