@@ -574,7 +574,7 @@ begin {
                     $rpcNullServers = New-Object 'System.Collections.Generic.List[string]'
                     $canNotConfigure = "Therefore, we can not configure Extended Protection."
                     $counter = 0
-                    $totalCount = @($ExchangeServers).Count
+                    $totalCount = @($ExchangeServersPrerequisitesCheckSettingsCheck).Count
                     $outlookAnywhereCount = 0
                     $outlookAnywhereServers = @($ExchangeServersPrerequisitesCheckSettingsCheck | Where-Object { $_.IsClientAccessServer -eq $true })
                     $outlookAnywhereTotalCount = $outlookAnywhereServers.Count
@@ -608,7 +608,7 @@ begin {
                         exit
                     }
 
-                    foreach ($server in $ExchangeServers) {
+                    foreach ($server in $ExchangeServersPrerequisitesCheckSettingsCheck) {
                         $counter++
                         $progressParams.Status = "Checking RPC FE SSLOffloading - $($server.Name)"
                         $progressParams.PercentComplete = ($counter / $totalCount * 100)
@@ -617,6 +617,16 @@ begin {
                             Write-Verbose "Server $($server.Name) is not a CAS. Skipping over the RPC FE Check."
                             continue
                         }
+                        $skipServer = $null -eq ($onlineSupportedServers |
+                                Where-Object {
+                                    $_.FQDN -eq $server.FQDN -and
+                                    ($_.ExtendedProtectionConfiguration.ExtendedProtectionConfigured -eq $true -or $server.FQDN -in $ExchangeServers.FQDN )
+                                })
+                        if ($skipServer) {
+                            Write-Verbose "Server $($server.Name) is being skipped because EP is not enabled there or not in our list of servers that we care about."
+                            continue
+                        }
+
                         # Get-OutlookAnywhere doesn't return the FQDN so we must compare the ComputerName instead
                         $rpcSettings = $outlookAnywhere | Where-Object { $_.ServerName -eq $server.Name }
 
@@ -643,8 +653,9 @@ begin {
                         Write-Warning "Failed to find the following servers RPC (Default Web Site) for SSL Offloading: $([string]::Join(", " ,$rpcNullServers))"
                         Write-Warning $canNotConfigure
                         $prerequisitesCheckFailed = $true
+                    } else {
+                        Write-Host "All servers that we are trying to currently configure for Extended Protection have RPC (Default Web Site) set to false for SSLOffloading."
                     }
-                    Write-Host "All servers that we are trying to currently configure for Extended Protection have RPC (Default Web Site) set to false for SSLOffloading."
                 } else {
                     Write-Verbose "No online servers that are in a supported state. Skipping over TLS Check."
                 }
