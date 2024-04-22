@@ -270,6 +270,15 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     }
     Add-AnalyzedResultInformation @params
 
+    if ($osInformation.RegistryValues.SuppressExtendedProtection -ne 0) {
+        $params = $baseParams + @{
+            Name             = "SuppressExtendedProtection"
+            Details          = "Value set to $($osInformation.RegistryValues.SuppressExtendedProtection), which disables EP resulting it to not work correctly and causes problems. --- ERROR"
+            DisplayWriteType = "Red"
+        }
+        Add-AnalyzedResultInformation @params
+    }
+
     # Detect Send Connector sending to EXO
     $exoConnector = New-Object System.Collections.Generic.List[object]
     $sendConnectors = $exchangeInformation.ExchangeConnectors | Where-Object { $_.ConnectorType -eq "Send" }
