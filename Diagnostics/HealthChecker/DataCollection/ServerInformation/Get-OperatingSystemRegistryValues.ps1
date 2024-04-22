@@ -64,6 +64,11 @@ function Get-OperatingSystemRegistryValues {
         GetValue = "LsaCfgFlags"
     }
 
+    $suppressEpParams = $baseParams + @{
+        SubKey   = "SYSTEM\CurrentControlSet\Control\LSA"
+        GetValue = "SuppressExtendedProtection"
+    }
+
     $lmCompParams = $baseParams + @{
         SubKey    = "SYSTEM\CurrentControlSet\Control\Lsa"
         GetValue  = "LmCompatibilityLevel"
@@ -74,6 +79,7 @@ function Get-OperatingSystemRegistryValues {
     if ($null -eq $lmValue) { $lmValue = 3 }
 
     return [PSCustomObject]@{
+        SuppressExtendedProtection      = [int](Get-RemoteRegistryValue @suppressEpParams)
         LmCompatibilityLevel            = $lmValue
         CurrentVersionUbr               = [int](Get-RemoteRegistryValue @ubrParams)
         LanManServerDisabledCompression = [int](Get-RemoteRegistryValue @lanManParams)
