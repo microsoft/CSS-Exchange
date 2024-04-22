@@ -42,15 +42,16 @@ param(
 )
 
 try {
-    $null = [mailaddress]$EmailAddress
+    $null = [MailAddress]$EmailAddress
 } catch {
     Write-Error "Invalid email address"
     exit
 }
 
-. $PSScriptRoot\..\..\Shared\Connect-M365.ps1
-
 Write-Host ("AllEOP-AppliedTo-User-Options.ps1 script version $($BuildVersion)") -ForegroundColor Green
+
+. $PSScriptRoot\..\Shared\Confirm-Administrator.ps1
+. $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 
 if ($ScriptUpdateOnly) {
     switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/AllEOP-AppliedTo-User-Options-VersionsURL" -Confirm:$false) {
@@ -66,6 +67,14 @@ if ((-not($SkipVersionCheck)) -and
     Write-Host ("Script was updated. Please re-run the command") -ForegroundColor Yellow
     return
 }
+
+# Confirm that we are an administrator
+if (-not (Confirm-Administrator)) {
+    Write-Host "[ERROR]: Please run as Administrator" -ForegroundColor Red
+    exit
+}
+
+. $PSScriptRoot\..\Shared\Connect-M365.ps1
 
 Write-Output "`n"
 Write-Host "Disclaimer:

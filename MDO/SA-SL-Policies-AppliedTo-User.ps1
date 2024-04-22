@@ -19,8 +19,6 @@
 Make sure to connect to both AzureAD and Exchange Online before running this script.
 #>
 
-. $PSScriptRoot\..\..\Shared\Connect-M365.ps1
-
 param(
     [Parameter(Mandatory = $true, ParameterSetName = 'Applied')]
     [string]$emailAddress,
@@ -33,11 +31,14 @@ param(
 )
 
 try {
-    $null = [mailaddress]$EmailAddress
+    $null = [MailAddress]$EmailAddress
 } catch {
     Write-Error "Invalid email address"
     exit
 }
+
+. $PSScriptRoot\..\Shared\Confirm-Administrator.ps1
+. $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 
 Write-Host ("SA-SL-Policies-AppliedTo-User.ps1 script version $($BuildVersion)") -ForegroundColor Green
 
@@ -55,6 +56,14 @@ if ((-not($SkipVersionCheck)) -and
     Write-Host ("Script was updated. Please re-run the command") -ForegroundColor Yellow
     return
 }
+
+# Confirm that we are an administrator
+if (-not (Confirm-Administrator)) {
+    Write-Host "[ERROR]: Please run as Administrator" -ForegroundColor Red
+    exit
+}
+
+. $PSScriptRoot\..\Shared\Connect-M365.ps1
 
 Write-Output "`n"
 Write-Host "Disclaimer:

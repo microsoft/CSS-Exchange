@@ -1,5 +1,24 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
+function log {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$CurrentStatus,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Function,
+
+        [Parameter(Mandatory = $true)]
+        [string]$CurrentDescription
+
+    )
+
+    $PSobject = New-Object PSObject
+    $PSobject | Add-Member -NotePropertyName "Function" -NotePropertyValue $Function
+    $PSobject | Add-Member -NotePropertyName "Description" -NotePropertyValue $CurrentDescription
+    $PSobject | Add-Member -NotePropertyName "Status" -NotePropertyValue $CurrentStatus
+    $PSobject | Export-Csv $ExportPath\DlToO365GroupUpgradeChecksLogging.csv -NoTypeInformation -Append
+}
 
 function Connect2EXO {
     try {

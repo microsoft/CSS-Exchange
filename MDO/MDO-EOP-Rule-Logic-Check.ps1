@@ -22,8 +22,6 @@ The checks performed are as follows:
 Make sure to connect to Exchange Online before running this script.
 #>
 
-. $PSScriptRoot\..\..\Shared\Connect-M365.ps1
-
 param(
     [Parameter(Mandatory = $true, ParameterSetName = 'Applied')]
     [string]$emailAddress,
@@ -34,6 +32,9 @@ param(
     [Parameter(Mandatory = $true, ParameterSetName = "ScriptUpdateOnly")]
     [switch]$ScriptUpdateOnly
 )
+
+. $PSScriptRoot\..\Shared\Confirm-Administrator.ps1
+. $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 
 Write-Host ("MDO-EOP-Rule-Logic-Check.ps1 script version $($BuildVersion)") -ForegroundColor Green
 
@@ -51,6 +52,14 @@ if ((-not($SkipVersionCheck)) -and
     Write-Host ("Script was updated. Please re-run the command") -ForegroundColor Yellow
     return
 }
+
+# Confirm that we are an administrator
+if (-not (Confirm-Administrator)) {
+    Write-Host "[ERROR]: Please run as Administrator" -ForegroundColor Red
+    exit
+}
+
+. $PSScriptRoot\..\Shared\Connect-M365.ps1
 
 Write-Output "`n"
 Write-Host "Disclaimer:
