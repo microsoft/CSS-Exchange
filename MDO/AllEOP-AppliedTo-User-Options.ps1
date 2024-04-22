@@ -42,7 +42,7 @@ param(
 )
 
 try {
-    $null = [mailaddress]$EmailAddress
+    $null = [MailAddress]$EmailAddress
 } catch {
     Write-Error "Invalid email address"
     exit
