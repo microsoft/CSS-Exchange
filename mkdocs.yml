@@ -73,6 +73,11 @@ nav:
     - Test-ExchAVExclusions: Diagnostics/Test-ExchAVExclusions.md
   - Hybrid:
     - Test-HMAEAS: Hybrid/Test-HMAEAS.md
+  - MDO:
+    - AllEOP-AppliedTo-User-Options: MDO/AllEOP-AppliedTo-User-Options.md
+    - AllEOP-AppliedTo-User: MDO/AllEOP-AppliedTo-User.md
+    - MDO-EOP-Rule-Logic-Check: MDO/MDO-EOP-Rule-Logic-Check.md
+    - SA-SL-Policies-AppliedTo-User: MDO/SA-SL-Policies-AppliedTo-User.md
   - M365:
     - DLT365Groupsupgrade: M365/DLT365Groupsupgrade.md
   - Performance:
