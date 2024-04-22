@@ -27,10 +27,10 @@ function Get-AllTlsSettingsFromRegistry {
             Write-Verbose "KeyValue is null: '$($null -eq $KeyValue)' | KeyValue: '$KeyValue' | GetKeyType: $GetKeyType | NullIsEnabled: $NullIsEnabled"
             switch ($GetKeyType) {
                 "Enabled" {
-                    return ($null -eq $KeyValue -and $NullIsEnabled) -or $KeyValue -eq 1
+                    return ($null -eq $KeyValue -and $NullIsEnabled) -or ($KeyValue -ne 0 -and $null -ne $KeyValue)
                 }
                 "DisabledByDefault" {
-                    return $null -ne $KeyValue -and $KeyValue -eq 1
+                    return $null -ne $KeyValue -and $KeyValue -ne 0
                 }
             }
         }
@@ -56,10 +56,8 @@ function Get-AllTlsSettingsFromRegistry {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         Write-Verbose "Passed - MachineName: '$MachineName'"
         $registryBase = "SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS {0}\{1}"
-        $tlsVersions = @("1.0", "1.1", "1.2", "1.3")
         $enabledKey = "Enabled"
         $disabledKey = "DisabledByDefault"
-        $netVersions = @("v2.0.50727", "v4.0.30319")
         $netRegistryBase = "SOFTWARE\{0}\.NETFramework\{1}"
         $allTlsObjects = [PSCustomObject]@{
             "TLS" = @{}
@@ -67,32 +65,19 @@ function Get-AllTlsSettingsFromRegistry {
         }
     }
     process {
-        foreach ($tlsVersion in $tlsVersions) {
+        foreach ($tlsVersion in @("1.0", "1.1", "1.2", "1.3")) {
             $registryServer = $registryBase -f $tlsVersion, "Server"
             $registryClient = $registryBase -f $tlsVersion, "Client"
+            $baseParams = @{
+                MachineName         = $MachineName
+                CatchActionFunction = $CatchActionFunction
+            }
 
             # Get the Enabled and DisabledByDefault values
-            $serverEnabledValue = Get-RemoteRegistryValue `
-                -MachineName $MachineName `
-                -SubKey $registryServer `
-                -GetValue $enabledKey `
-                -CatchActionFunction $CatchActionFunction
-            $serverDisabledByDefaultValue = Get-RemoteRegistryValue `
-                -MachineName $MachineName `
-                -SubKey $registryServer `
-                -GetValue $disabledKey `
-                -CatchActionFunction $CatchActionFunction
-            $clientEnabledValue = Get-RemoteRegistryValue `
-                -MachineName $MachineName `
-                -SubKey $registryClient `
-                -GetValue $enabledKey `
-                -CatchActionFunction $CatchActionFunction
-            $clientDisabledByDefaultValue = Get-RemoteRegistryValue `
-                -MachineName $MachineName `
-                -SubKey $registryClient `
-                -GetValue $disabledKey `
-                -CatchActionFunction $CatchActionFunction
-
+            $serverEnabledValue = Get-RemoteRegistryValue @baseParams -SubKey $registryServer -GetValue $enabledKey
+            $serverDisabledByDefaultValue = Get-RemoteRegistryValue @baseParams -SubKey $registryServer -GetValue $disabledKey
+            $clientEnabledValue = Get-RemoteRegistryValue @baseParams -SubKey $registryClient -GetValue $enabledKey
+            $clientDisabledByDefaultValue = Get-RemoteRegistryValue @baseParams -SubKey $registryClient -GetValue $disabledKey
             $serverEnabled = (Get-TLSMemberValue -GetKeyType $enabledKey -KeyValue $serverEnabledValue -NullIsEnabled ($tlsVersion -ne "1.3"))
             $serverDisabledByDefault = (Get-TLSMemberValue -GetKeyType $disabledKey -KeyValue $serverDisabledByDefaultValue)
             $clientEnabled = (Get-TLSMemberValue -GetKeyType $enabledKey -KeyValue $clientEnabledValue -NullIsEnabled ($tlsVersion -ne "1.3"))
@@ -142,7 +127,7 @@ function Get-AllTlsSettingsFromRegistry {
             $allTlsObjects.TLS.Add($TlsVersion, $currentTLSObject)
         }
 
-        foreach ($netVersion in $netVersions) {
+        foreach ($netVersion in @("v2.0.50727", "v4.0.30319")) {
 
             $msRegistryKey = $netRegistryBase -f "Microsoft", $netVersion
             $wowMsRegistryKey = $netRegistryBase -f "Wow6432Node\Microsoft", $netVersion

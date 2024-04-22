@@ -6,13 +6,39 @@
 # ===================================================================================================
 function FindMatch {
     param(
-        [HashTable] $PassedHash
+        #  [HashTable] $ShortClientNameProcessor,
+        [string] $KeyInput
     )
-    foreach ($Val in $PassedHash.keys) {
+    foreach ($Val in $ShortClientNameProcessor.keys) {
         if ($KeyInput -like "*$Val*") {
-            return $PassedHash[$Val]
+            return $ShortClientNameProcessor[$Val]
         }
     }
+}
+
+$ShortClientNameProcessor = @{
+    'Client=Hub Transport'                       = "Transport"
+    'Client=MSExchangeRPC'                       = "Outlook : Desktop : MAPI"
+    'OneOutlook'                                 = "OneOutlook"
+    'Lync for Mac'                               = "LyncMac"
+    'AppId=00000004-0000-0ff1-ce00-000000000000' = "SkypeMMS"
+    'MicrosoftNinja'                             = "Teams"
+    'SkypeSpaces'                                = "Teams"
+    'Remove-CalendarEvents'                      = "RemoveCalendarEvent"
+    'Client=POP3/IMAP4'                          = "PopImap"
+    'Client=OWA'                                 = "OWA"
+    'PublishedBookingCalendar'                   = "BookingAgent"
+    'LocationAssistantProcessor'                 = "LocationProcessor"
+    'AppId=6326e366-9d6d-4c70-b22a-34c7ea72d73d' = "CalendarReplication"
+    'AppId=1e3faf23-d2d2-456a-9e3e-55db63b869b0' = "CiscoWebex"
+    'AppId=1c3a76cc-470a-46d7-8ba9-713cfbb2c01f' = "Time Service"
+    'AppId=48af08dc-f6d2-435f-b2a7-069abd99c086' = "RestConnector"
+    'AppId=7b7fdad6-df9d-4cd5-a4f2-b5f749350419' = "Bookings B2 Service"
+    'GriffinRestClient'                          = "GriffinRestClient"
+    'MacOutlook'                                 = "MacOutlookRest"
+    'Outlook-iOS-Android'                        = "OutlookMobile"
+    'Client=OutlookService;Outlook-Android'      = "OutlookAndroid"
+    'Client=OutlookService;Outlook-iOS'          = "OutlookiOS"
 }
 
 <#
@@ -23,11 +49,12 @@ function CreateShortClientName {
     param(
         $ClientInfoString
     )
-    $ShortClientName= @()
+    $ShortClientName= ""
 
     # Map ClientInfoString to ShortClientName
-    if (!$ClientInfoString) {
+    if ([string]::IsNullOrEmpty($ClientInfoString)) {
         $ShortClientName = "NotFound"
+        return $ShortClientName
     }
 
     if ($ClientInfoString -like "Client=EBA*" -or $ClientInfoString -like "Client=TBA*") {
@@ -82,8 +109,8 @@ function CreateShortClientName {
             $ShortClientName = "[Unknown Rest Client]"
         }
         #    Client=WebServices;Mozilla/5.0 (ZoomPresence.Android 8.1.0 x86);
-    } else {
-        $ShortClientName = findMatch -PassedHash $ShortClientNameProcessor
+    } elseif ($ShortClientName -eq "") {
+        $ShortClientName = findMatch -KeyInput $ClientInfoString
     }
 
     if ($ShortClientName -eq "" -And $ClientInfoString -like "Client=WebServices*") {
@@ -97,16 +124,16 @@ function CreateShortClientName {
     if ($ClientInfoString -like "*InternalCalendarSharing*" -and
         $ClientInfoString -like "*OWA*" -and
         $ClientInfoString -notlike "*OneOutlook*") {
-        $ShortClientName = "Owa-ModernCalendarSharing"
+        $ShortClientName = "OWA : REST"
     }
     if ($ClientInfoString -like "*InternalCalendarSharing*" -and $ClientInfoString -like "*MacOutlook*") {
-        $ShortClientName = "MacOutlook-ModernCalendarSharing"
+        $ShortClientName = "MacOutlook : REST"
     }
     if ($ClientInfoString -like "*InternalCalendarSharing*" -and $ClientInfoString -like "*Outlook*") {
-        $ShortClientName = "Outlook-ModernCalendarSharing"
+        $ShortClientName = "Outlook : Desktop : REST"
     }
     if ($ClientInfoString -like "Client=ActiveSync*" -and $ClientInfoString -like "*Outlook*") {
-        $ShortClientName = "Outlook-ModernCalendarSharing"
+        $ShortClientName = "Outlook : ActiveSync"
     }
     if ($ClientInfoString -like "*OneOutlook*") {
         $ShortClientName = "OneOutlook"
@@ -116,29 +143,4 @@ function CreateShortClientName {
     }
 
     return $ShortClientName
-}
-
-$ShortClientNameProcessor = @{
-    'Client=Hub Transport'                       = "Transport"
-    'Client=MSExchangeRPC'                       = "Outlook-MAPI"
-    'OneOutlook'                                 = "OneOutlook"
-    'Lync for Mac'                               = "LyncMac"
-    'AppId=00000004-0000-0ff1-ce00-000000000000' = "SkypeMMS"
-    'MicrosoftNinja'                             = "Teams"
-    'SkypeSpaces'                                = "Teams"
-    'Remove-CalendarEvents'                      = "RemoveCalendarEvent"
-    'Client=POP3/IMAP4'                          = "PopImap"
-    'Client=OWA'                                 = "OWA"
-    'PublishedBookingCalendar'                   = "BookingAgent"
-    'LocationAssistantProcessor'                 = "LocationProcessor"
-    'AppId=6326e366-9d6d-4c70-b22a-34c7ea72d73d' = "CalendarReplication"
-    'AppId=1e3faf23-d2d2-456a-9e3e-55db63b869b0' = "CiscoWebex"
-    'AppId=1c3a76cc-470a-46d7-8ba9-713cfbb2c01f' = "Time Service"
-    'AppId=48af08dc-f6d2-435f-b2a7-069abd99c086' = "RestConnector"
-    'AppId=7b7fdad6-df9d-4cd5-a4f2-b5f749350419' = "Bookings B2 Service"
-    'GriffinRestClient'                          = "GriffinRestClient"
-    'MacOutlook'                                 = "MacOutlookRest"
-    'Outlook-iOS-Android'                        = "OutlookMobile"
-    'Client=OutlookService;Outlook-Android'      = "OutlookAndroid"
-    'Client=OutlookService;Outlook-iOS'          = "OutlookiOS"
 }

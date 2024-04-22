@@ -54,7 +54,7 @@ function Get-IISWebSite {
         $customHeaderHsts = $null
 
         if ($webConfigExists) {
-            $webConfigContent = (Get-Content $configurationFilePath -Raw).Trim()
+            $webConfigContent = (Get-Content $configurationFilePath -Raw -Encoding UTF8).Trim()
 
             try {
                 $webConfigContentXml = [xml]$webConfigContent

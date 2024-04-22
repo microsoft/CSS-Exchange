@@ -182,6 +182,7 @@ function BuildCSV {
             'IsIgnorable'                    = $IsIgnorable
             'SubjectProperty'                = $CalLog.SubjectProperty
             'Client'                         = $ShortClientName
+            'ShortClientInfoString'          = $CalLog.ShortClientInfoString
             'ClientInfoString'               = $CalLog.ClientInfoString
             'TriggerAction'                  = $CalLog.CalendarLogTriggerAction
             'ItemClass'                      = $CalLog.ItemClass

@@ -173,6 +173,13 @@ function Invoke-AnalyzerOsInformation {
             }
             Add-AnalyzedResultInformation @params
         }
+
+        $params = $baseParams + @{
+            Details                = "More Information: https://aka.ms/HC-NetFrameworkSupport"
+            DisplayWriteType       = "Yellow"
+            DisplayCustomTabNumber = 2
+        }
+        Add-AnalyzedResultInformation @params
     }
 
     $displayValue = [string]::Empty
