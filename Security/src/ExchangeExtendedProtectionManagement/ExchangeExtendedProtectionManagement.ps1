@@ -549,6 +549,26 @@ begin {
                         }
                     }
 
+                    # SuppressExtendedProtection Check
+                    $suppressExtendedProtectionSet = $onlineSupportedServers |
+                        Where-Object { $_.RegistryValue.SuppressExtendedProtection -ne 0 }
+
+                    if ($null -ne $suppressExtendedProtectionSet) {
+                        Write-Verbose "Some Online Server have the Suppress Extended Protection Set"
+                        $requiredServers = $suppressExtendedProtectionSet | Where-Object { $_.ComputerName -in $serverNames -or $_.ExtendedProtectionConfiguration.ExtendedProtectionConfigured -eq $true }
+                        Write-Host "SYSTEM\CurrentControlSet\Control\Lsa\SuppressExtendedProtection is set on the the following servers: $([string]::Join(", ", $suppressExtendedProtectionSet.ComputerName))" -ForegroundColor Red
+
+                        if ($null -ne $requiredServers) {
+                            Write-Host "At least one server is trying to enable Extended Protection or already has Extended Protection Enabled." -ForegroundColor Red
+                            Write-Host "Having this key set to anything other than 0 will break Extended Protection functionality" -ForegroundColor Red
+                            $prerequisitesCheckFailed = $true
+                        } else {
+                            Write-Host "None of the servers that have this key set has Extended Protection enabled or trying to configure it." -ForegroundColor Yellow
+                            Write-Host "This may cause issues with Extended Protection server to server communication, therefore it is recommended to address as soon as possible." -ForegroundColor Yellow
+                            # Don't believe this should be a scenario where we need to block configuration from occurring
+                        }
+                    }
+
                     # now that we passed the TLS PrerequisitesCheck, now we need to do the RPC VDir check for SSLOffloading.
                     $rpcFailedServers = New-Object 'System.Collections.Generic.List[string]'
                     $rpcNullServers = New-Object 'System.Collections.Generic.List[string]'
