@@ -72,7 +72,6 @@ arising out of the use of or inability to use the sample scripts or documentatio
 
 Write-Output "`n"
 Write-Host "This script retrieves all Threat policies and checks for logical inconsistencies in their configuration." -ForegroundColor Yellow
-Write-Host "Make sure you connect to Exchange Online before running it." -ForegroundColor Yellow
 
 #Connect to EXO PS
 $SessionCheck = Get-PSSession | Where-Object { $_.Name -like "*ExchangeOnline*" -and $_.State -match "opened" }

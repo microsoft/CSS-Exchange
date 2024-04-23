@@ -92,7 +92,6 @@ if ($null -eq $SessionCheck) {
 # Get the email address from the user
 Write-Output "`n"
 Write-Host "This script checks to see which threat policies apply to a user. Only one policy applies for each type. It takes into account policy priorities and exclusions but doesn't check user or tenant overrides." -ForegroundColor Blue
-Write-Host "Make sure you connect to Exchange Online and Azure AD before running it.`n" -ForegroundColor Blue
 
 # Extract the domain from the email address
 $domain = $emailAddress.Split("@")[1]
