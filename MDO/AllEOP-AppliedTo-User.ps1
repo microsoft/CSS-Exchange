@@ -16,7 +16,8 @@
        https://learn.microsoft.com/en-us/microsoft-365/security/office-365-security/preset-security-policies?view=o365-worldwide#policy-settings-in-preset-security-policies
 
 .NOTES
-Make sure to connect to both AzureAD and Exchange Online before running this script.
+The script checks for connection to AzureAD and Exchange Online, and, if not connected, connects you before running this script.
+Only read-only permissions are needed as the script only reads from policies.
 #>
 
 param(

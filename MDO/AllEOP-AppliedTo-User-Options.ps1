@@ -17,7 +17,8 @@
        https://learn.microsoft.com/en-us/microsoft-365/security/office-365-security/preset-security-policies?view=o365-worldwide#policy-settings-in-preset-security-policies
 
 .NOTES
-Make sure to connect to both AzureAD and Exchange Online before running this script.
+The script checks for connection to AzureAD and Exchange Online, and, if not connected, connects you before running this script.
+Only read-only permissions are needed as the script only reads from policies.
 #>
 
 param(
@@ -41,12 +42,13 @@ param(
     [switch]$ScriptUpdateOnly
 )
 
-try {
+<#try {
     $null = [MailAddress]$EmailAddress
 } catch {
     Write-Error "Invalid email address"
     exit
 }
+#>
 
 Write-Host ("AllEOP-AppliedTo-User-Options.ps1 script version $($BuildVersion)") -ForegroundColor Green
 
@@ -85,7 +87,7 @@ Microsoft further disclaims all implied warranties including, without limitation
 The entire risk arising out of the use or performance of the sample scripts and documentation remains with you.
 In no event shall Microsoft, its authors, or anyone else involved in the creation, production, or delivery of the scripts be liable for any damages whatsoever
 (including, without limitation, damages for loss of business profits, business interruption, loss of business information, or other pecuniary loss)
-arising out of the use of or inability to use the sample scripts or documentation, even if Microsoft has been advised of the possibility of such damages.`n" -ForegroundColor DarkYellow
+arising out of the use of or inability to use the sample scripts or documentation, even if Microsoft has been advised of the possibility of such damages.`n" -ForegroundColor Yellow
 
 #Connect to AzureAD PS
 $SessionCheck = Get-PSSession | Where-Object { $_.Name -like "*AzureAD*" -and $_.State -match "opened" }
@@ -199,7 +201,7 @@ foreach ($email in $emailAddresses) {
         if ($OutputFilePath) {
             $allPolicyDetails | Out-File -FilePath $OutputFilePath -Append
         } else {
-            Write-Host $allPolicyDetails -ForegroundColor DarkBlue
+            Write-Host $allPolicyDetails -ForegroundColor Green
         }
         Write-Output "`n"
         continue
@@ -224,7 +226,7 @@ foreach ($email in $emailAddresses) {
     if ($OutputFilePath) {
         $allPolicyDetails | Out-File -FilePath $OutputFilePath -Append
     } else {
-        Write-Host $allPolicyDetails -ForegroundColor DarkBlue
+        Write-Host $allPolicyDetails -ForegroundColor Yellow
     }
 }
 #   $policyDetails = Get-Policy $matchedRule "PolicyType"
