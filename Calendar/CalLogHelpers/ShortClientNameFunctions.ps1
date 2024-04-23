@@ -6,7 +6,7 @@
 # ===================================================================================================
 function FindMatch {
     param(
-      #  [HashTable] $ShortClientNameProcessor,
+        #  [HashTable] $ShortClientNameProcessor,
         [string] $KeyInput
     )
     foreach ($Val in $ShortClientNameProcessor.keys) {
@@ -40,7 +40,6 @@ $ShortClientNameProcessor = @{
     'Client=OutlookService;Outlook-Android'      = "OutlookAndroid"
     'Client=OutlookService;Outlook-iOS'          = "OutlookiOS"
 }
-
 
 <#
 .SYNOPSIS

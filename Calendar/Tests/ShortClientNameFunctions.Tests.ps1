@@ -1,14 +1,14 @@
-# Copyright (c) Microsoft Corporation.
+﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
 [CmdletBinding()]
 param()
 
 #Load the functions to be tested from ShortClientNameFunctions.ps1 file
-   # . ".\$PSScriptRoot\CalLogHelpers\ShortClientNameFunctions.ps1"
-    # . "D:\src\CSS-Exchange\Calendar\CalLogHelpers\ShortClientNameFunctions.Tests.ps1"
-   #  Import-Module "$PSScriptRoot\CalLogHelpers\ShortClientNameFunctions.ps1"
-   #  Import-Module  D:\src\CSS-Exchange\Calendar\CalLogHelpers\ShortClientNameFunctions.ps1
+# . ".\$PSScriptRoot\CalLogHelpers\ShortClientNameFunctions.ps1"
+# . "D:\src\CSS-Exchange\Calendar\CalLogHelpers\ShortClientNameFunctions.Tests.ps1"
+#  Import-Module "$PSScriptRoot\CalLogHelpers\ShortClientNameFunctions.ps1"
+#  Import-Module  D:\src\CSS-Exchange\Calendar\CalLogHelpers\ShortClientNameFunctions.ps1
 
 Describe "CreateShortClientName" {
     BeforeAll {
@@ -62,7 +62,7 @@ Describe "CreateShortClientName" {
 
     Context "When ClientInfoString FileContentMatch 'Client=ActiveSync'" {
         It "Should return the user agent if ClientInfoString FileContentMatch 'UserAgent='" {
-            $result = CreateShortClientName  "Client=ActiveSync;UserAgent=Apple-iPhone9C1/1402.100;Version=160;Action=/Microsoft-Server-ActiveSync/Proxy/default.eas?User=test@Contoso.com&DeviceId=LEDDJVC7GT7886JH9N4T9LR1Q0&DeviceType=iPhone&Cmd=Sync"
+            $result = CreateShortClientName  "Client=ActiveSync;UserAgent=Apple-iPhone9C1/1402.100;Version=160;Action=/Microsoft-Server-ActiveSync/Proxy/default.eas?User=test@Contoso.com&DeviceId=MyTestDevice&DeviceType=iPhone&Cmd=Sync"
             $result | Should -Be "Apple-iPhone9C1"
         }
 
@@ -155,11 +155,11 @@ Describe "FindMatch" {
         . $PSScriptRoot\..\CalLogHelpers\ShortClientNameFunctions.ps1
     }
 
-    Context 'Test FindMatch fuction' -ForEach @( 
+    Context 'Test FindMatch function' -ForEach @(
         @{ KeyInput = 'Client=Hub Transport'; Expected = "Transport" },
         @{ KeyInput = 'Client=MSExchangeRPC'; Expected = "Outlook : Desktop" },
         @{ KeyInput = 'OneOutlook'; Expected = "OneOutlook" },
-        @{ KeyInput = 'Lync for Mac'; Expected = "LyncMac"},
+        @{ KeyInput = 'Lync for Mac'; Expected = "LyncMac" },
         @{ KeyInput = 'AppId=00000004-0000-0ff1-ce00-000000000000'; Expected = "SkypeMMS" },
         @{ KeyInput = 'MicrosoftNinja'; Expected = "Teams" },
         @{ KeyInput = 'SkypeSpaces'; Expected = "Teams" },
@@ -178,12 +178,11 @@ Describe "FindMatch" {
         @{ KeyInput = 'Outlook-iOS-Android'; Expected = "OutlookMobile" },
         @{ KeyInput = 'Client=OutlookService;Outlook-Android'; Expected = "OutlookAndroid" },
         @{ KeyInput = 'Client=OutlookService;Outlook-iOS'; Expected = "OutlookiOS" }
-        
+
     ) {
         It 'Should return the expected value' {
             $result = FindMatch -KeyInput $KeyInput
             $result | Should -Be $Expected
-
         }
     }
 }
