@@ -122,6 +122,7 @@ Mock Get-RemoteRegistryValue {
         "DisableBaseTypeCheckForDeserialization" { return $null }
         "DisablePreservation" { return 0 }
         "DatabasePath" { return "$Script:MockDataCollectionRoot\Exchange" }
+        "SuppressExtendedProtection" { return 0 }
         default { throw "Failed to find GetValue: $GetValue" }
     }
 }
