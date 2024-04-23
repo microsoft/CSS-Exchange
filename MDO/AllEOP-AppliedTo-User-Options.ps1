@@ -229,6 +229,5 @@ foreach ($email in $emailAddresses) {
         Write-Host $allPolicyDetails -ForegroundColor Yellow
     }
 }
-#   $policyDetails = Get-Policy $matchedRule "PolicyType"
 
 Write-Output "`n"
