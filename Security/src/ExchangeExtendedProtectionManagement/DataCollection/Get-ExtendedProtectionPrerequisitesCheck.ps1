@@ -75,6 +75,7 @@ function Get-ExtendedProtectionPrerequisitesCheck {
 
                 if ($null -eq $lmValue) { $lmValue = 3 }
 
+                Write-Verbose "Server $($server.FQDN) LmCompatibilityLevel set to $lmValue"
                 $registryValues.SuppressExtendedProtection = $epValue
                 $registryValues.LmCompatibilityLevel = $lmValue
             } else {
