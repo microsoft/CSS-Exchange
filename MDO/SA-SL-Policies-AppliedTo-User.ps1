@@ -74,7 +74,11 @@ Microsoft further disclaims all implied warranties including, without limitation
 The entire risk arising out of the use or performance of the sample scripts and documentation remains with you.
 In no event shall Microsoft, its authors, or anyone else involved in the creation, production, or delivery of the scripts be liable for any damages whatsoever
 (including, without limitation, damages for loss of business profits, business interruption, loss of business information, or other pecuniary loss)
-arising out of the use of or inability to use the sample scripts or documentation, even if Microsoft has been advised of the possibility of such damages." -ForegroundColor DarkBlue
+arising out of the use of or inability to use the sample scripts or documentation, even if Microsoft has been advised of the possibility of such damages." -ForegroundColor Blue
+
+Write-Output "`n"
+Write-Host "This script checks to see which Safe Attachments policy applies to a user. Only one policy applies. It takes into account policy priorities and exclusions but doesn't check user or tenant overrides." -ForegroundColor Blue
+Write-Host "Make sure you connect to Exchange Online and Azure AD before running it.`n" -ForegroundColor Blue
 
 #Connect to AzureAD PS
 $SessionCheck = Get-PSSession | Where-Object { $_.Name -like "*AzureAD*" -and $_.State -match "opened" }
@@ -88,10 +92,6 @@ if ($null -eq $SessionCheck) {
     Connect2EXO
 }
 
-# Get the email address from the user
-Write-Output "`n"
-Write-Host "This script checks to see which Safe Attachments policy applies to a user. Only one policy applies. It takes into account policy priorities and exclusions but doesn't check user or tenant overrides." -ForegroundColor Blue
-Write-Host "Make sure you connect to Exchange Online and Azure AD before running it.`n" -ForegroundColor Blue
 
 # Extract the domain from the email address
 $domain = $emailAddress.Split("@")[1]

@@ -61,12 +61,12 @@ function Connect2AzureAD {
     try {
         #Validate AzureAD is installed
         if ((Get-Module | Where-Object { $_.Name -like "AzureAD" }).count -eq 1) {
-            Import-Module ExchangeOnlineManagement -ErrorAction stop -Force
+            Import-Module AzureAd -ErrorAction stop -Force
             $CurrentDescription = "Importing AzureAD Module"
             $CurrentStatus = "Success"
             log -CurrentStatus $CurrentStatus -Function "Importing AzureAD Module" -CurrentDescription $CurrentDescription
             Write-Warning "Connecting to AzureAD, please enter Global administrator credentials when prompted!"
-            Connect-ExchangeOnline -ErrorAction Stop
+            Connect-AzureAD -ErrorAction Stop
             $CurrentDescription = "Connecting to AzureAD"
             $CurrentStatus = "Success"
             log -CurrentStatus $CurrentStatus -Function "Connecting to AzureAD" -CurrentDescription $CurrentDescription
@@ -80,7 +80,7 @@ function Connect2AzureAD {
             $CurrentStatus = "Success"
             log -CurrentStatus $CurrentStatus -Function "Installing & Importing AzureAD powershell module" -CurrentDescription $CurrentDescription
             Write-Warning "Connecting to AzureAD, please enter Global administrator credentials when prompted!"
-            Connect-ExchangeOnline -ErrorAction Stop
+            Connect-AzureAD -ErrorAction Stop
             $CurrentDescription = "Connecting to AzureAD"
             $CurrentStatus = "Success"
             log -CurrentStatus $CurrentStatus -Function "Connecting to AzureAD" -CurrentDescription $CurrentDescription

@@ -23,9 +23,6 @@ Make sure to connect to Exchange Online before running this script.
 #>
 
 param(
-    [Parameter(Mandatory = $true, ParameterSetName = 'Applied')]
-    [string]$emailAddress,
-
     [Parameter(ParameterSetName = 'Applied')]
     [switch]$SkipVersionCheck,
 
