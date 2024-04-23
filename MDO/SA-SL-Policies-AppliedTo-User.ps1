@@ -173,7 +173,7 @@ Write-Output "`n"
 $matchedRule = CheckRules -rules $ATPProtectionPolicyRules -email $emailAddress -domain $domain
 
 if ($null -ne $matchedRule -and $ATPProtectionPolicyRules -contains $matchedRule) {
-    Write-Host ("The preset security policy applies to the user for both Safe Attachments and Safe Links: `n   Name: {0}`n   Priority: {1}`n   The policy actions are not configurable.`n" -f $matchedRule.Name, $matchedRule.Priority) -ForegroundColor DarkMagenta
+    Write-Host ("The preset security policy applies to the user for both Safe Attachments and Safe Links: `n   Name: {0}`n   Priority: {1}`n   The policy actions are not configurable.`n" -f $matchedRule.Name, $matchedRule.Priority) -ForegroundColor Magenta
     return
 }
 
@@ -211,12 +211,12 @@ if ($null -eq $SAmatchedRule) {
         $domain -in $builtInProtectionRule.ExceptIfRecipientDomainIs) {
         Write-Host "The user is excluded from all Safe Attachment protection because they are excluded from Built-in Protection and they are not explicitly included in any other policy." -ForegroundColor Red
     } else {
-        Write-Host "If your organization has at least one A5/E5, or MDO license, the user is included in the Built-in policy for Safe Attachments. This policy is not configurable." -ForegroundColor DarkYellow
+        Write-Host "If your organization has at least one A5/E5, or MDO license, the user is included in the Built-in policy for Safe Attachments. This policy is not configurable." -ForegroundColor Yellow
     }
     $policy = $null
 } else {
     $policy = Get-SafeAttachmentPolicy -Identity $SAmatchedRule.Name
-    Write-Host ("The Safe Attachments policy that applies to the user: `n   Name: {0}`n   Priority: {1}`n   Policy: {2}" -f $SAmatchedRule.Name, $SAmatchedRule.Priority, $policy) -ForegroundColor DarkGreen
+    Write-Host ("The Safe Attachments policy that applies to the user: `n   Name: {0}`n   Priority: {1}`n   Policy: {2}" -f $SAmatchedRule.Name, $SAmatchedRule.Priority, $policy) -ForegroundColor Green
 }
 
 if ($null -eq $SLmatchedRule) {
@@ -241,12 +241,12 @@ if ($null -eq $SLmatchedRule) {
         $domain -in $builtInProtectionRule.ExceptIfRecipientDomainIs) {
         Write-Host "The user is excluded from all Safe Links protection because they are excluded from Built-in Protection and they are not explicitly included in any other policy." -ForegroundColor Red
     } else {
-        Write-Host "If your organization has at least one A5/E5, or MDO license, the user is included in the Built-in policy for Safe Links. This policy is not configurable." -ForegroundColor DarkYellow
+        Write-Host "If your organization has at least one A5/E5, or MDO license, the user is included in the Built-in policy for Safe Links. This policy is not configurable." -ForegroundColor Yellow
     }
     $policy = $null
 } else {
     $policy = Get-SafeLinksPolicy -Identity $SLmatchedRule.Name
-    Write-Host ("`nThe Safe Links policy that applies to the user: `n   Name: {0}`n   Priority: {1}`n   Policy: {2}" -f $SLmatchedRule.Name, $SLmatchedRule.Priority, $policy) -ForegroundColor DarkGreen
+    Write-Host ("`nThe Safe Links policy that applies to the user: `n   Name: {0}`n   Priority: {1}`n   Policy: {2}" -f $SLmatchedRule.Name, $SLmatchedRule.Priority, $policy) -ForegroundColor Green
 }
 
 Write-Host "`n"

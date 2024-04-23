@@ -75,7 +75,7 @@ Microsoft further disclaims all implied warranties including, without limitation
 The entire risk arising out of the use or performance of the sample scripts and documentation remains with you.
 In no event shall Microsoft, its authors, or anyone else involved in the creation, production, or delivery of the scripts be liable for any damages whatsoever
 (including, without limitation, damages for loss of business profits, business interruption, loss of business information, or other pecuniary loss)
-arising out of the use of or inability to use the sample scripts or documentation, even if Microsoft has been advised of the possibility of such damages." -ForegroundColor DarkBlue
+arising out of the use of or inability to use the sample scripts or documentation, even if Microsoft has been advised of the possibility of such damages." -ForegroundColor Yellow
 
 #Connect to AzureAD PS
 $SessionCheck = Get-PSSession | Where-Object { $_.Name -like "*AzureAD*" -and $_.State -match "opened" }
@@ -196,9 +196,9 @@ function CheckRulesAlternative($rules, $email, $domain) {
 # Function to get the policy
 function Get-Policy($rule, $policyType) {
     if ($null -eq $rule) {
-        Write-Host "`nThe $policyType policy that applies to User: `n   The Default policy." -ForegroundColor DarkYellow
+        Write-Host "`nThe $policyType policy that applies to User: `n   The Default policy." -ForegroundColor Yellow
     } else {
-        Write-Host ("`nThe $policyType policy that applies to User: `n   Name: {0}`n   Priority: {1}" -f $rule.Name, $rule.Priority) -ForegroundColor DarkGreen
+        Write-Host ("`nThe $policyType policy that applies to User: `n   Name: {0}`n   Priority: {1}" -f $rule.Name, $rule.Priority) -ForegroundColor Green
     }
 }
 
@@ -206,7 +206,7 @@ function Get-Policy($rule, $policyType) {
 $matchedRule = CheckRules -rules $eopProtectionPolicyRules -email $emailAddress -domain $domain
 
 if ($null -ne $matchedRule -and $eopProtectionPolicyRules -contains $matchedRule) {
-    Write-Host ("`nThe policy that covers the user for malware, spam, and phishing: `n   Name: {0}`n   Priority: {1}`n   The policy actions are not configurable.`n" -f $matchedRule.Name, $matchedRule.Priority) -ForegroundColor DarkMagenta
+    Write-Host ("`nThe policy that covers the user for malware, spam, and phishing: `n   Name: {0}`n   Priority: {1}`n   The policy actions are not configurable.`n" -f $matchedRule.Name, $matchedRule.Priority) -ForegroundColor Magenta
     $outboundSpamMatchedRule = CheckRulesAlternative -rules $hostedOutboundSpamFilterRules -email $emailAddress -domain $domain
     Get-Policy $outboundSpamMatchedRule "Outbound Spam"
     Write-Host "`n"
