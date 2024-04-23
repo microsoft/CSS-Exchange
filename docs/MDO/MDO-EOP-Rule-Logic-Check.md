@@ -16,4 +16,5 @@ The checks performed are as follows:
 6. This script is backed by documentation about script priorities and behavior at the time of writing.
 
 ## NOTES
-Make sure to connect to Exchange Online before running this script.
+The script checks for connection to AzureAD and Exchange Online, and, if not connected, connects you before running this script.
+Only read-only permissions are needed as the script only reads from policies.
