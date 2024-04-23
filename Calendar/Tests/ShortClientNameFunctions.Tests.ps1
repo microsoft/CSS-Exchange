@@ -4,12 +4,6 @@
 [CmdletBinding()]
 param()
 
-#Load the functions to be tested from ShortClientNameFunctions.ps1 file
-# . ".\$PSScriptRoot\CalLogHelpers\ShortClientNameFunctions.ps1"
-# . "D:\src\CSS-Exchange\Calendar\CalLogHelpers\ShortClientNameFunctions.Tests.ps1"
-#  Import-Module "$PSScriptRoot\CalLogHelpers\ShortClientNameFunctions.ps1"
-#  Import-Module  D:\src\CSS-Exchange\Calendar\CalLogHelpers\ShortClientNameFunctions.ps1
-
 Describe "CreateShortClientName" {
     BeforeAll {
         . $PSScriptRoot\..\CalLogHelpers\ShortClientNameFunctions.ps1
@@ -150,39 +144,40 @@ Describe "CreateShortClientName" {
     }
 }
 
-Describe "FindMatch" {
+Describe "CreateShortClientName-FindMatch" {
     BeforeAll {
         . $PSScriptRoot\..\CalLogHelpers\ShortClientNameFunctions.ps1
     }
 
-    Context 'Test FindMatch function' -ForEach @(
-        @{ KeyInput = 'Client=Hub Transport'; Expected = "Transport" },
-        @{ KeyInput = 'Client=MSExchangeRPC'; Expected = "Outlook : Desktop" },
-        @{ KeyInput = 'OneOutlook'; Expected = "OneOutlook" },
-        @{ KeyInput = 'Lync for Mac'; Expected = "LyncMac" },
-        @{ KeyInput = 'AppId=00000004-0000-0ff1-ce00-000000000000'; Expected = "SkypeMMS" },
-        @{ KeyInput = 'MicrosoftNinja'; Expected = "Teams" },
-        @{ KeyInput = 'SkypeSpaces'; Expected = "Teams" },
-        @{ KeyInput = 'Remove-CalendarEvents'; Expected = "RemoveCalendarEvent" },
-        @{ KeyInput = 'Client=POP3/IMAP4'; Expected = "PopImap" },
-        @{ KeyInput = 'Client=OWA'; Expected = "OWA" },
-        @{ KeyInput = 'PublishedBookingCalendar'; Expected = "BookingAgent" },
-        @{ KeyInput = 'LocationAssistantProcessor'; Expected = "LocationProcessor" },
-        @{ KeyInput = 'AppId=6326e366-9d6d-4c70-b22a-34c7ea72d73d'; Expected = "CalendarReplication" },
-        @{ KeyInput = 'AppId=1e3faf23-d2d2-456a-9e3e-55db63b869b0'; Expected = "CiscoWebex" },
-        @{ KeyInput = 'AppId=1c3a76cc-470a-46d7-8ba9-713cfbb2c01f'; Expected = "Time Service" },
-        @{ KeyInput = 'AppId=48af08dc-f6d2-435f-b2a7-069abd99c086'; Expected = "RestConnector" },
-        @{ KeyInput = 'AppId=7b7fdad6-df9d-4cd5-a4f2-b5f749350419'; Expected = "Bookings B2 Service" },
-        @{ KeyInput = 'GriffinRestClient'; Expected = "GriffinRestClient" },
-        @{ KeyInput = 'MacOutlook'; Expected = "MacOutlookRest" },
-        @{ KeyInput = 'Outlook-iOS-Android'; Expected = "OutlookMobile" },
-        @{ KeyInput = 'Client=OutlookService;Outlook-Android'; Expected = "OutlookAndroid" },
-        @{ KeyInput = 'Client=OutlookService;Outlook-iOS'; Expected = "OutlookiOS" }
+    Context 'Test CreateShortClientName focusing on the FindMatch function' -ForEach @(
+        @{ ClientInfoString = 'Client=Hub Transport'; Expected = "Transport" },
+        @{ ClientInfoString = 'Client=MSExchangeRPC'; Expected = "Outlook : Desktop" },
+        @{ ClientInfoString = 'OneOutlook'; Expected = "OneOutlook" },
+        @{ ClientInfoString = 'Lync for Mac'; Expected = "LyncMac" },
+        @{ ClientInfoString = 'AppId=00000004-0000-0ff1-ce00-000000000000'; Expected = "SkypeMMS" },
+        @{ ClientInfoString = 'MicrosoftNinja'; Expected = "Teams" },
+        @{ ClientInfoString = 'SkypeSpaces'; Expected = "Teams" },
+        @{ ClientInfoString = 'Remove-CalendarEvents'; Expected = "RemoveCalendarEvent" },
+        @{ ClientInfoString = 'Client=POP3/IMAP4'; Expected = "PopImap" },
+        @{ ClientInfoString = 'Client=OWA'; Expected = "OWA" },
+        @{ ClientInfoString = 'PublishedBookingCalendar'; Expected = "BookingAgent" },
+        @{ ClientInfoString = 'LocationAssistantProcessor'; Expected = "LocationProcessor" },
+        @{ ClientInfoString = 'AppId=6326e366-9d6d-4c70-b22a-34c7ea72d73d'; Expected = "CalendarReplication" },
+        @{ ClientInfoString = 'AppId=1e3faf23-d2d2-456a-9e3e-55db63b869b0'; Expected = "CiscoWebex" },
+        @{ ClientInfoString = 'AppId=1c3a76cc-470a-46d7-8ba9-713cfbb2c01f'; Expected = "Time Service" },
+        @{ ClientInfoString = 'AppId=48af08dc-f6d2-435f-b2a7-069abd99c086'; Expected = "RestConnector" },
+        @{ ClientInfoString = 'AppId=7b7fdad6-df9d-4cd5-a4f2-b5f749350419'; Expected = "Bookings B2 Service" },
+        @{ ClientInfoString = 'GriffinRestClient'; Expected = "GriffinRestClient" },
+        @{ ClientInfoString = 'MacOutlook'; Expected = "MacOutlookRest" },
+        @{ ClientInfoString = 'Outlook-iOS-Android'; Expected = "OutlookMobile" },
+        @{ ClientInfoString = 'Client=OutlookService;Outlook-Android'; Expected = "OutlookAndroid" },
+        @{ ClientInfoString = 'Client=OutlookService;Outlook-iOS'; Expected = "OutlookiOS" }
 
     ) {
         It 'Should return the expected value' {
-            $result = FindMatch -KeyInput $KeyInput
+            $result = CreateShortClientName -ClientInfoString $ClientInfoString
             $result | Should -Be $Expected
         }
     }
 }
+
