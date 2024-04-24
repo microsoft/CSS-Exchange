@@ -22,11 +22,12 @@ Only read-only permissions are needed as the script only reads from policies.
 #>
 
 param(
+    [ValidateScript({ Test-Path $_ -PathType Leaf })]
     [Parameter(Mandatory = $true, ParameterSetName = 'AppliedCsv')]
     [string]$CsvFilePath,
 
     [Parameter(Mandatory = $true, ParameterSetName = 'AppliedEmail')]
-    [string]$EmailAddress,
+    [string[]]$EmailAddresses,
 
     [Parameter(ParameterSetName = 'AppliedCsv')]
     [Parameter(ParameterSetName = 'AppliedEmail')]
@@ -61,14 +62,25 @@ if ((-not($SkipVersionCheck)) -and
     return
 }
 
-if ($EmailAddress) {
+[MailAddress[]]$ValidEmailAddresses = $null
+
+if ($CsvFilePath ) {
+    $EmailAddresses = Import-Csv -Path $CsvFilePath | Select-Object -ExpandProperty Email
+}
+
+$foundError = $false
+foreach ($EmailAddress in $EmailAddresses) {
     try {
-        $null = [MailAddress]$EmailAddress
+        $ValidEmailAddresses += [MailAddress]$EmailAddress
     } catch {
         Write-Host "The EmailAddress $EmailAddress cannot be validated. Please provide a valid email address." -ForegroundColor Red
-        exit
+        $foundError = $true
     }
 }
+if ($foundError) {
+    exit
+}
+
 
 . $PSScriptRoot\..\Shared\Connect-M365.ps1
 
@@ -88,6 +100,22 @@ Connect2AzureAD
 
 #Connect to EXO PS
 Connect2EXO
+
+$AcceptedDomains = Get-AcceptedDomain
+
+if ($AcceptedDomains.count -gt 0) {
+    $foundError = $false
+    foreach ( $EmailAddress in $ValidEmailAddresses ) {
+        $Domain = $EmailAddress.Host
+        if ($AcceptedDomains.DomainName -notcontains $Domain) {
+            Write-Host "The domain $Domain is not an accepted domain in your organization. Please provide a valid email address." -ForegroundColor Red
+            $foundError = $true
+        }
+    }
+    if ($foundError) {
+        exit
+    }
+}
 
 $malwareFilterRules = Get-MalwareFilterRule | Where-Object { $_.State -ne 'Disabled' }
 $antiPhishRules = Get-AntiPhishRule | Where-Object { $_.State -ne 'Disabled' }
@@ -162,16 +190,10 @@ function Get-UserDetails($emailAddress) {
     return $userDetails
 }
 
-# Prompt the administrator for input method
-if ($CsvFilePath ) {
-    $emailAddresses = Import-Csv -Path $CsvFilePath | Select-Object -ExpandProperty Email
-} else {
-    $emailAddresses = @($EmailAddress)
-}
 
 foreach ($email in $emailAddresses) {
-    $emailAddress = $email
-    $domain = $emailAddress.Split('@')
+    $emailAddress = $email.ToString()
+    $domain = $emailAddress.Host
     $isInGroup = $false
     $isInExceptGroup = $false
     # Initialize a variable to capture all policy details
