@@ -31,7 +31,6 @@ param(
     [switch]$ScriptUpdateOnly
 )
 
-. $PSScriptRoot\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 
 Write-Host ("SA-SL-Policies-AppliedTo-User.ps1 script version $($BuildVersion)") -ForegroundColor Green
@@ -58,12 +57,6 @@ if ($EmailAddress) {
         Write-Host "The EmailAddress $EmailAddress cannot be validated. Please provide a valid email address." -ForegroundColor Red
         exit
     }
-}
-
-# Confirm that we are an administrator
-if (-not (Confirm-Administrator)) {
-    Write-Host "[ERROR]: Please run as Administrator" -ForegroundColor Red
-    exit
 }
 
 . $PSScriptRoot\..\Shared\Connect-M365.ps1

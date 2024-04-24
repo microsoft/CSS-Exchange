@@ -31,7 +31,6 @@ param(
     [switch]$ScriptUpdateOnly
 )
 
-. $PSScriptRoot\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 
 Write-Host ("MDO-EOP-Rule-Logic-Check.ps1 script version $($BuildVersion)") -ForegroundColor Green
@@ -49,12 +48,6 @@ if ((-not($SkipVersionCheck)) -and
     (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/MDO-EOP-Rule-Logic-Check-VersionsURL" -Confirm:$false)) {
     Write-Host ("Script was updated. Please re-run the command") -ForegroundColor Yellow
     return
-}
-
-# Confirm that we are an administrator
-if (-not (Confirm-Administrator)) {
-    Write-Host "[ERROR]: Please run as Administrator" -ForegroundColor Red
-    exit
 }
 
 . $PSScriptRoot\..\Shared\Connect-M365.ps1

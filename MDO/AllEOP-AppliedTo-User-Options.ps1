@@ -44,7 +44,6 @@ param(
 
 Write-Host ("AllEOP-AppliedTo-User-Options.ps1 script version $($BuildVersion)") -ForegroundColor Green
 
-. $PSScriptRoot\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 
 if ($ScriptUpdateOnly) {
@@ -69,12 +68,6 @@ if ($EmailAddress) {
         Write-Host "The EmailAddress $EmailAddress cannot be validated. Please provide a valid email address." -ForegroundColor Red
         exit
     }
-}
-
-# Confirm that we are an administrator
-if (-not (Confirm-Administrator)) {
-    Write-Host "[ERROR]: Please run as Administrator" -ForegroundColor Red
-    exit
 }
 
 . $PSScriptRoot\..\Shared\Connect-M365.ps1
