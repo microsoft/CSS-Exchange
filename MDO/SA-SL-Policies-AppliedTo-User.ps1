@@ -22,7 +22,7 @@ Only read-only permissions are needed as the script only reads from policies.
 
 param(
     [Parameter(Mandatory = $true, ParameterSetName = 'Applied')]
-    [string]$emailAddress,
+    [string]$EmailAddress,
 
     [Parameter(ParameterSetName = 'Applied')]
     [switch]$SkipVersionCheck,
@@ -30,13 +30,6 @@ param(
     [Parameter(Mandatory = $true, ParameterSetName = "ScriptUpdateOnly")]
     [switch]$ScriptUpdateOnly
 )
-
-try {
-    $null = [MailAddress]$EmailAddress
-} catch {
-    Write-Error "Invalid email address"
-    exit
-}
 
 . $PSScriptRoot\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
@@ -56,6 +49,15 @@ if ((-not($SkipVersionCheck)) -and
     (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/SA-SL-Policies-AppliedTo-User-VersionsURL" -Confirm:$false)) {
     Write-Host ("Script was updated. Please re-run the command") -ForegroundColor Yellow
     return
+}
+
+if ($EmailAddress) {
+    try {
+        $null = [MailAddress]$EmailAddress
+    } catch {
+        Write-Host "The EmailAddress $EmailAddress cannot be validated. Please provide a valid email address." -ForegroundColor Red
+        exit
+    }
 }
 
 # Confirm that we are an administrator
@@ -91,7 +93,6 @@ $SessionCheck = Get-PSSession | Where-Object { $_.Name -like "*ExchangeOnline*" 
 if ($null -eq $SessionCheck) {
     Connect2EXO
 }
-
 
 # Extract the domain from the email address
 $domain = $emailAddress.Split("@")[1]

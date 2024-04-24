@@ -26,7 +26,7 @@ param(
     [string]$CsvFilePath,
 
     [Parameter(Mandatory = $true, ParameterSetName = 'AppliedEmail')]
-    [string]$emailAddress,
+    [string]$EmailAddress,
 
     [Parameter(ParameterSetName = 'AppliedCsv')]
     [Parameter(ParameterSetName = 'AppliedEmail')]
@@ -41,14 +41,6 @@ param(
     [Parameter(Mandatory = $true, ParameterSetName = "ScriptUpdateOnly")]
     [switch]$ScriptUpdateOnly
 )
-
-<#try {
-    $null = [MailAddress]$EmailAddress
-} catch {
-    Write-Error "Invalid email address"
-    exit
-}
-#>
 
 Write-Host ("AllEOP-AppliedTo-User-Options.ps1 script version $($BuildVersion)") -ForegroundColor Green
 
@@ -68,6 +60,15 @@ if ((-not($SkipVersionCheck)) -and
     (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/AllEOP-AppliedTo-User-Options-VersionsURL" -Confirm:$false)) {
     Write-Host ("Script was updated. Please re-run the command") -ForegroundColor Yellow
     return
+}
+
+if ($EmailAddress) {
+    try {
+        $null = [MailAddress]$EmailAddress
+    } catch {
+        Write-Host "The EmailAddress $EmailAddress cannot be validated. Please provide a valid email address." -ForegroundColor Red
+        exit
+    }
 }
 
 # Confirm that we are an administrator
@@ -90,16 +91,10 @@ In no event shall Microsoft, its authors, or anyone else involved in the creatio
 arising out of the use of or inability to use the sample scripts or documentation, even if Microsoft has been advised of the possibility of such damages.`n" -ForegroundColor Yellow
 
 #Connect to AzureAD PS
-$SessionCheck = Get-PSSession | Where-Object { $_.Name -like "*AzureAD*" -and $_.State -match "opened" }
-if ($null -eq $SessionCheck) {
-    Connect2AzureAD
-}
+Connect2AzureAD
 
 #Connect to EXO PS
-$SessionCheck = Get-PSSession | Where-Object { $_.Name -like "*ExchangeOnline*" -and $_.State -match "opened" }
-if ($null -eq $SessionCheck) {
-    Connect2EXO
-}
+Connect2EXO
 
 $malwareFilterRules = Get-MalwareFilterRule | Where-Object { $_.State -ne 'Disabled' }
 $antiPhishRules = Get-AntiPhishRule | Where-Object { $_.State -ne 'Disabled' }
