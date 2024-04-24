@@ -165,6 +165,8 @@ function Get-UserDetails($emailAddress) {
 # Prompt the administrator for input method
 if ($CsvFilePath ) {
     $emailAddresses = Import-Csv -Path $CsvFilePath | Select-Object -ExpandProperty Email
+} else {
+    $emailAddresses = @($EmailAddress)
 }
 
 foreach ($email in $emailAddresses) {

@@ -33,7 +33,7 @@ function Connect2EXO {
             Write-Host "Already connected to EXO V2" -ForegroundColor Cyan
         } else {
             Write-Host "Connecting to EXO V2, please enter Global administrator credentials when prompted!" -ForegroundColor Yellow
-            Connect-ExchangeOnline -ErrorAction Stop
+            Connect-ExchangeOnline -ErrorAction Stop | Out-Null
             if ( Get-ConnectionInformation ) {
                 Write-Host "Connected to EXO V2 successfully" -ForegroundColor Cyan
             } else {
@@ -81,7 +81,7 @@ function Connect2AzureAD {
             Write-Host "Already connected to AzureAD" -ForegroundColor Cyan
         } catch {
             Write-Host "Connecting to AzureAD, please enter Global administrator credentials when prompted!" -ForegroundColor Yellow
-            Connect-AzureAD -ErrorAction Stop
+            Connect-AzureAD -ErrorAction Stop | Out-Null
             if ( Get-AzureADCurrentSessionInfo ) {
                 Write-Host "Connected to AzureAD successfully" -ForegroundColor Cyan
             } else {
