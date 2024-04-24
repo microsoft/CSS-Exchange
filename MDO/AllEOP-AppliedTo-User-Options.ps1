@@ -81,7 +81,6 @@ if ($foundError) {
     exit
 }
 
-
 . $PSScriptRoot\..\Shared\Connect-M365.ps1
 
 Write-Output "`n"

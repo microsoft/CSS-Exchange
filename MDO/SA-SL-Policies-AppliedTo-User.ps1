@@ -21,9 +21,20 @@ Only read-only permissions are needed as the script only reads from policies.
 #>
 
 param(
-    [Parameter(Mandatory = $true, ParameterSetName = 'Applied')]
-    [string]$EmailAddress,
+    [ValidateScript({ Test-Path $_ -PathType Leaf })]
+    [Parameter(Mandatory = $true, ParameterSetName = 'AppliedCsv')]
+    [string]$CsvFilePath,
 
+    [Parameter(Mandatory = $true, ParameterSetName = 'AppliedEmail')]
+    [string[]]$EmailAddresses,
+
+    [Parameter(ParameterSetName = 'AppliedCsv')]
+    [Parameter(ParameterSetName = 'AppliedEmail')]
+    [Parameter(ParameterSetName = 'Applied')]
+    [string]$OutputFilePath,
+
+    [Parameter(ParameterSetName = 'AppliedCsv')]
+    [Parameter(ParameterSetName = 'AppliedEmail')]
     [Parameter(ParameterSetName = 'Applied')]
     [switch]$SkipVersionCheck,
 
@@ -50,13 +61,23 @@ if ((-not($SkipVersionCheck)) -and
     return
 }
 
-if ($EmailAddress) {
+[MailAddress[]]$ValidEmailAddresses = $null
+
+if ($CsvFilePath ) {
+    $EmailAddresses = Import-Csv -Path $CsvFilePath | Select-Object -ExpandProperty Email
+}
+
+$foundError = $false
+foreach ($EmailAddress in $EmailAddresses) {
     try {
-        $null = [MailAddress]$EmailAddress
+        $ValidEmailAddresses += [MailAddress]$EmailAddress
     } catch {
         Write-Host "The EmailAddress $EmailAddress cannot be validated. Please provide a valid email address." -ForegroundColor Red
-        exit
+        $foundError = $true
     }
+}
+if ($foundError) {
+    exit
 }
 
 . $PSScriptRoot\..\Shared\Connect-M365.ps1
@@ -76,19 +97,26 @@ Write-Output "`n"
 Write-Host "This script checks to see which Safe Attachments policy applies to a user. Only one policy applies. It takes into account policy priorities and exclusions but doesn't check user or tenant overrides." -ForegroundColor Yellow
 
 #Connect to AzureAD PS
-$SessionCheck = Get-PSSession | Where-Object { $_.Name -like "*AzureAD*" -and $_.State -match "opened" }
-if ($null -eq $SessionCheck) {
-    Connect2AzureAD
-}
+Connect2AzureAD
 
 #Connect to EXO PS
-$SessionCheck = Get-PSSession | Where-Object { $_.Name -like "*ExchangeOnline*" -and $_.State -match "opened" }
-if ($null -eq $SessionCheck) {
-    Connect2EXO
-}
+Connect2EXO
 
-# Extract the domain from the email address
-$domain = $emailAddress.Split("@")[1]
+$AcceptedDomains = Get-AcceptedDomain
+
+if ($AcceptedDomains.count -gt 0) {
+    $foundError = $false
+    foreach ( $EmailAddress in $ValidEmailAddresses ) {
+        $Domain = $EmailAddress.Host
+        if ($AcceptedDomains.DomainName -notcontains $Domain) {
+            Write-Host "The domain $Domain is not an accepted domain in your organization. Please provide a valid email address." -ForegroundColor Red
+            $foundError = $true
+        }
+    }
+    if ($foundError) {
+        exit
+    }
+}
 
 # Get the rules from Get-SafeAttachmentRule and Get-ATPProtectionPolicyRule
 $SafeAttachmentRules = Get-SafeAttachmentRule | Where-Object { $_.State -ne 'Disabled' }
@@ -163,84 +191,93 @@ function CheckRules($rules, $email, $domain) {
 
 Write-Output "`n"
 
-# Check the ATPProtectionPolicyRules first as they have higher precedence
-$matchedRule = CheckRules -rules $ATPProtectionPolicyRules -email $emailAddress -domain $domain
+foreach ($email in $emailAddresses) {
+    $emailAddress = $email.ToString()
+    $domain = $emailAddress.Host
 
-if ($null -ne $matchedRule -and $ATPProtectionPolicyRules -contains $matchedRule) {
-    Write-Host ("The preset security policy applies to the user for both Safe Attachments and Safe Links: `n   Name: {0}`n   Priority: {1}`n   The policy actions are not configurable.`n" -f $matchedRule.Name, $matchedRule.Priority) -ForegroundColor Magenta
-    return
-}
+    Write-Host "`nChecking user $emailAddress..."
 
-# ALL THE SAME FOR SA + SL TO HERE...
+    # Check the ATPProtectionPolicyRules first as they have higher precedence
+    $matchedRule = CheckRules -rules $ATPProtectionPolicyRules -email $emailAddress -domain $domain
 
-if ($null -eq $matchedRule) {
-    # No match in preset ATPProtectionPolicyRules, check custom SafeAttachmentRules
-    $SAmatchedRule = CheckRules -rules $SafeAttachmentRules -email $emailAddress -domain $domain
-}
+    if ($null -ne $matchedRule -and $ATPProtectionPolicyRules -contains $matchedRule) {
+        Write-Host ("The preset security policy applies to the user for both Safe Attachments and Safe Links: `n   Name: {0}`n   Priority: {1}`n   The policy actions are not configurable.`n" -f $matchedRule.Name, $matchedRule.Priority) -ForegroundColor Magenta
+        return
+    }
 
-if ($null -eq $matchedRule) {
-    # No match in preset ATPProtectionPolicyRules, check custom SafeLinksRules
-    $SLmatchedRule = CheckRules -rules $SafeLinksRules -email $emailAddress -domain $domain
-}
+    # ALL THE SAME FOR SA + SL TO HERE...
 
-if ($null -eq $SAmatchedRule) {
-    # Get the Built-in Protection Rule
-    $builtInProtectionRule = Get-ATPBuiltInProtectionRule
+    if ($null -eq $matchedRule) {
+        # No match in preset ATPProtectionPolicyRules, check custom SafeAttachmentRules
+        $SAmatchedRule = CheckRules -rules $SafeAttachmentRules -email $emailAddress -domain $domain
+    }
 
-    # Initialize a variable to track if the user is a member of any excluded group
-    $isInExcludedGroup = $false
+    if ($null -eq $matchedRule) {
+        # No match in preset ATPProtectionPolicyRules, check custom SafeLinksRules
+        $SLmatchedRule = CheckRules -rules $SafeLinksRules -email $emailAddress -domain $domain
+    }
 
-    # Check if the user is a member of any group in ExceptIfSentToMemberOf
-    foreach ($groupEmail in $builtInProtectionRule.ExceptIfSentToMemberOf) {
-        $groupObjectId = Get-GroupObjectId -groupEmail $groupEmail
-        if (![string]::IsNullOrEmpty($groupObjectId) -and (IsInGroup $emailAddress $groupObjectId)) {
-            $isInExcludedGroup = $true
-            break
+
+
+    if ($null -eq $SAmatchedRule) {
+        # Get the Built-in Protection Rule
+        $builtInProtectionRule = Get-ATPBuiltInProtectionRule
+
+        # Initialize a variable to track if the user is a member of any excluded group
+        $isInExcludedGroup = $false
+
+        # Check if the user is a member of any group in ExceptIfSentToMemberOf
+        foreach ($groupEmail in $builtInProtectionRule.ExceptIfSentToMemberOf) {
+            $groupObjectId = Get-GroupObjectId -groupEmail $groupEmail
+            if (![string]::IsNullOrEmpty($groupObjectId) -and (IsInGroup $emailAddress $groupObjectId)) {
+                $isInExcludedGroup = $true
+                break
+            }
         }
-    }
 
-    # Check if the user is returned by ExceptIfSentTo, isInExcludedGroup, or ExceptIfRecipientDomainIs in the Built-in Protection Rule
-    if ($emailAddress -in $builtInProtectionRule.ExceptIfSentTo -or
-        $isInExcludedGroup -or
-        $domain -in $builtInProtectionRule.ExceptIfRecipientDomainIs) {
-        Write-Host "The user is excluded from all Safe Attachment protection because they are excluded from Built-in Protection and they are not explicitly included in any other policy." -ForegroundColor Red
-    } else {
-        Write-Host "If your organization has at least one A5/E5, or MDO license, the user is included in the Built-in policy for Safe Attachments. This policy is not configurable." -ForegroundColor Yellow
-    }
-    $policy = $null
-} else {
-    $policy = Get-SafeAttachmentPolicy -Identity $SAmatchedRule.Name
-    Write-Host ("The Safe Attachments policy that applies to the user: `n   Name: {0}`n   Priority: {1}`n   Policy: {2}" -f $SAmatchedRule.Name, $SAmatchedRule.Priority, $policy) -ForegroundColor Green
-}
-
-if ($null -eq $SLmatchedRule) {
-    # Get the Built-in Protection Rule
-    $builtInProtectionRule = Get-ATPBuiltInProtectionRule
-
-    # Initialize a variable to track if the user is a member of any excluded group
-    $isInExcludedGroup = $false
-
-    # Check if the user is a member of any group in ExceptIfSentToMemberOf
-    foreach ($groupEmail in $builtInProtectionRule.ExceptIfSentToMemberOf) {
-        $groupObjectId = Get-GroupObjectId -groupEmail $groupEmail
-        if (![string]::IsNullOrEmpty($groupObjectId) -and (IsInGroup $emailAddress $groupObjectId)) {
-            $isInExcludedGroup = $true
-            break
+        # Check if the user is returned by ExceptIfSentTo, isInExcludedGroup, or ExceptIfRecipientDomainIs in the Built-in Protection Rule
+        if ($emailAddress -in $builtInProtectionRule.ExceptIfSentTo -or
+            $isInExcludedGroup -or
+            $domain -in $builtInProtectionRule.ExceptIfRecipientDomainIs) {
+            Write-Host "The user is excluded from all Safe Attachment protection because they are excluded from Built-in Protection and they are not explicitly included in any other policy." -ForegroundColor Red
+        } else {
+            Write-Host "If your organization has at least one A5/E5, or MDO license, the user is included in the Built-in policy for Safe Attachments. This policy is not configurable." -ForegroundColor Yellow
         }
+        $policy = $null
+    } else {
+        $policy = Get-SafeAttachmentPolicy -Identity $SAmatchedRule.Name
+        Write-Host ("The Safe Attachments policy that applies to the user: `n   Name: {0}`n   Priority: {1}`n   Policy: {2}" -f $SAmatchedRule.Name, $SAmatchedRule.Priority, $policy) -ForegroundColor Green
     }
 
-    # Check if the user is returned by ExceptIfSentTo, isInExcludedGroup, or ExceptIfRecipientDomainIs in the Built-in Protection Rule
-    if ($emailAddress -in $builtInProtectionRule.ExceptIfSentTo -or
-        $isInExcludedGroup -or
-        $domain -in $builtInProtectionRule.ExceptIfRecipientDomainIs) {
-        Write-Host "The user is excluded from all Safe Links protection because they are excluded from Built-in Protection and they are not explicitly included in any other policy." -ForegroundColor Red
+    if ($null -eq $SLmatchedRule) {
+        # Get the Built-in Protection Rule
+        $builtInProtectionRule = Get-ATPBuiltInProtectionRule
+
+        # Initialize a variable to track if the user is a member of any excluded group
+        $isInExcludedGroup = $false
+
+        # Check if the user is a member of any group in ExceptIfSentToMemberOf
+        foreach ($groupEmail in $builtInProtectionRule.ExceptIfSentToMemberOf) {
+            $groupObjectId = Get-GroupObjectId -groupEmail $groupEmail
+            if (![string]::IsNullOrEmpty($groupObjectId) -and (IsInGroup $emailAddress $groupObjectId)) {
+                $isInExcludedGroup = $true
+                break
+            }
+        }
+
+        # Check if the user is returned by ExceptIfSentTo, isInExcludedGroup, or ExceptIfRecipientDomainIs in the Built-in Protection Rule
+        if ($emailAddress -in $builtInProtectionRule.ExceptIfSentTo -or
+            $isInExcludedGroup -or
+            $domain -in $builtInProtectionRule.ExceptIfRecipientDomainIs) {
+            Write-Host "The user is excluded from all Safe Links protection because they are excluded from Built-in Protection and they are not explicitly included in any other policy." -ForegroundColor Red
+        } else {
+            Write-Host "If your organization has at least one A5/E5, or MDO license, the user is included in the Built-in policy for Safe Links. This policy is not configurable." -ForegroundColor Yellow
+        }
+        $policy = $null
     } else {
-        Write-Host "If your organization has at least one A5/E5, or MDO license, the user is included in the Built-in policy for Safe Links. This policy is not configurable." -ForegroundColor Yellow
+        $policy = Get-SafeLinksPolicy -Identity $SLmatchedRule.Name
+        Write-Host ("`nThe Safe Links policy that applies to the user: `n   Name: {0}`n   Priority: {1}`n   Policy: {2}" -f $SLmatchedRule.Name, $SLmatchedRule.Priority, $policy) -ForegroundColor Green
     }
-    $policy = $null
-} else {
-    $policy = Get-SafeLinksPolicy -Identity $SLmatchedRule.Name
-    Write-Host ("`nThe Safe Links policy that applies to the user: `n   Name: {0}`n   Priority: {1}`n   Policy: {2}" -f $SLmatchedRule.Name, $SLmatchedRule.Priority, $policy) -ForegroundColor Green
 }
 
 Write-Host "`n"
