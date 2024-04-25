@@ -37,6 +37,11 @@ param(
     [Parameter(ParameterSetName = 'AppliedCsv')]
     [Parameter(ParameterSetName = 'AppliedEmail')]
     [Parameter(ParameterSetName = 'Applied')]
+    [switch]$SkipConnectionCheck,
+
+    [Parameter(ParameterSetName = 'AppliedCsv')]
+    [Parameter(ParameterSetName = 'AppliedEmail')]
+    [Parameter(ParameterSetName = 'Applied')]
     [switch]$SkipVersionCheck,
 
     [Parameter(Mandatory = $true, ParameterSetName = "ScriptUpdateOnly")]
@@ -94,11 +99,13 @@ In no event shall Microsoft, its authors, or anyone else involved in the creatio
 (including, without limitation, damages for loss of business profits, business interruption, loss of business information, or other pecuniary loss)
 arising out of the use of or inability to use the sample scripts or documentation, even if Microsoft has been advised of the possibility of such damages.`n" -ForegroundColor Yellow
 
-#Connect to AzureAD PS
-Connect2AzureAD
+if (-not $SkipConnectionCheck) {
+    #Connect to AzureAD PS
+    Connect2AzureAD
 
-#Connect to EXO PS
-Connect2EXO
+    #Connect to EXO PS
+    Connect2EXO
+}
 
 $AcceptedDomains = Get-AcceptedDomain
 
@@ -190,7 +197,7 @@ function Get-UserDetails($emailAddress) {
 }
 
 
-foreach ($email in $emailAddresses) {
+foreach ($email in $ValidEmailAddresses) {
     $emailAddress = $email.ToString()
     $domain = $emailAddress.Host
     $isInGroup = $false

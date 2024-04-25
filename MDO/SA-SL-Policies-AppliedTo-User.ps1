@@ -36,6 +36,11 @@ param(
     [Parameter(ParameterSetName = 'AppliedCsv')]
     [Parameter(ParameterSetName = 'AppliedEmail')]
     [Parameter(ParameterSetName = 'Applied')]
+    [switch]$SkipConnectionCheck,
+
+    [Parameter(ParameterSetName = 'AppliedCsv')]
+    [Parameter(ParameterSetName = 'AppliedEmail')]
+    [Parameter(ParameterSetName = 'Applied')]
     [switch]$SkipVersionCheck,
 
     [Parameter(Mandatory = $true, ParameterSetName = "ScriptUpdateOnly")]
@@ -96,11 +101,13 @@ arising out of the use of or inability to use the sample scripts or documentatio
 Write-Output "`n"
 Write-Host "This script checks to see which Safe Attachments policy applies to a user. Only one policy applies. It takes into account policy priorities and exclusions but doesn't check user or tenant overrides." -ForegroundColor Yellow
 
-#Connect to AzureAD PS
-Connect2AzureAD
+if (-not $SkipConnectionCheck) {
+    #Connect to AzureAD PS
+    Connect2AzureAD
 
-#Connect to EXO PS
-Connect2EXO
+    #Connect to EXO PS
+    Connect2EXO
+}
 
 $AcceptedDomains = Get-AcceptedDomain
 
@@ -191,9 +198,9 @@ function CheckRules($rules, $email, $domain) {
 
 Write-Output "`n"
 
-foreach ($email in $emailAddresses) {
+foreach ($email in $ValidEmailAddresses) {
     $emailAddress = $email.ToString()
-    $domain = $emailAddress.Host
+    $domain = $email.Host
 
     Write-Host "`nChecking user $emailAddress..."
 
