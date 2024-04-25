@@ -75,7 +75,15 @@ if ($CsvFilePath ) {
 $foundError = $false
 foreach ($EmailAddress in $EmailAddresses) {
     try {
-        $ValidEmailAddresses += [MailAddress]$EmailAddress
+        $tempAddress = $null
+        $tempAddress = [MailAddress]$EmailAddress
+        $recipient = $null
+        $recipient = Get-Recipient $tempAddress.ToString() -ErrorAction SilentlyContinue
+        if ($null -eq $recipient) {
+            Write-Host "$EmailAddress is not a mailbox in this tenant" -ForegroundColor Red
+        } else {
+            $ValidEmailAddresses += $tempAddress
+        }
     } catch {
         Write-Host "The EmailAddress $EmailAddress cannot be validated. Please provide a valid email address." -ForegroundColor Red
         $foundError = $true
