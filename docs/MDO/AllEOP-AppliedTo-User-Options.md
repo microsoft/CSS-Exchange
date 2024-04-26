@@ -1,17 +1,50 @@
-# AllEOP-AppliedTo-User-Options.ps1
+# AllEOP-AppliedTo-User.ps1
 
-## Checks which MDO/EOP threat policies cover a particular user.
+Download the latest release: [AllEOP-AppliedTo-User.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/AllEOP-AppliedTo-User.ps1)
+
+ This script checks which Exchange Online threat policies cover a particular user according to our documentation, including anti-malware, anti-phishing, inbound anti-spam and outbound anti-spam:
+
+ [Order and Precedence of Email Protection](https://learn.microsoft.com/en-us/defender-office-365/how-policies-and-protections-are-combined?view=o365-worldwide)
+
+[Policy Setting in Preset Security Policies](https://learn.microsoft.com/en-us/defender-office-365/preset-security-policies#appendix)
 
 ## Which policy applies to USER?
-1. Ignores disabled policies and accounts for inclusions/exclusions within enabled policies.
-2. Input can be an individual's email address or a CSV file.
-3. Prints rule priority and policy/rule that applies. If none, prints Default policy. Priority property 0 is highest.
-4. Option to print to screen or to an output file.
-5. Checks any existing groups in AAD to get groups and members.
-6. This script is backed by documentation about script priorities and behavior at the time of writing.
-- CONSIDERATIONS: Preset rules have no configurable or visible properties. Their set values documented here:
-       https://learn.microsoft.com/en-us/microsoft-365/security/office-365-security/preset-security-policies?view=o365-worldwide#policy-settings-in-preset-security-policies
+1. Ignores disabled policies, invalid inclusions, and accounts for exclusions to find which policy applies to USER.
+2. As documented, the script uses AND logic between different types of **inclusion** conditions (Users, Groups, Domains).
+3. Different types of **exceptions** use OR logic (Users, Groups, Domains).
+4. Checks group membership of USER in Microsoft 365 Groups for inclusion or exclusion in a policy.
 
-## Notes
-The script checks for connection to AzureAD and Exchange Online, and, if not connected, connects you before running this script.
-Only read-only permissions needed as the script only reads from the policies.
+## Additional Notes
+Just read-only permissions are needed as the script only reads policies.
+
+Preset rules, if applied to USER, have no configurable or visible properties. Their set values documented in link above.
+
+## How To Run
+This script requires permissions in Microsoft Defender XDR RBAC, Exchange Online, or Microsoft Entra, as explained here:
+
+[Permissions to Configure EOP](https://learn.microsoft.com/en-us/defender-office-365/anti-malware-policies-configure#what-do-you-need-to-know-before-you-begin)
+
+## Parameters
+
+Parameter | Description |
+----------|-------------|
+CsvFilePath | Path and file name with list of email addresses.
+EmailAddresses | Email address or multiple addresses separated by commas.
+OutputFilePath | File with users and policies applied.
+SkipVersionCheck | Skip script version verification.
+ScriptUpdateOnly | Just update script version to latest one.
+SkipConnectionCheck | Skip connection check for AzureAD and ExchangeOnline
+
+#### Examples:
+
+This will take 2 recipient mailboxes and print the anti-malware, anti-phishing, inbound anti-spam, and outbound anti-spam policies that apply to them on screen:
+
+```
+.\AllEOP-AppliedTo-User.ps1 -EmailAddresses john@domain1.com,sue@domain2.com
+```
+This will take a CSV input file with email addresses and print them to a file:
+
+```
+.\AllEOP-AppliedTo-User.ps1 -CsvFilePath C:\Scripts\Input\Addresses.txt -OutputFilePath C:\Scripts\Output\PoliciesApplied.txt
+```
+
