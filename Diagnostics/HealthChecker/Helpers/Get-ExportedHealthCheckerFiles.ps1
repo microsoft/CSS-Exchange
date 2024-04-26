@@ -38,17 +38,27 @@ function Get-ExportedHealthCheckerFiles {
 
         $groupResults |
             ForEach-Object {
-                if ($_.Count -gt 1) {
-                    $groupData = $_.Group
-                    $fileName = ($groupData | Sort-Object FileName -Descending | Select-Object -First 1).FileObject.VersionInfo.FileName
-                } else {
-                    $fileName = ($_.Group).FileObject.VersionInfo.FileName
-                }
+                $sortedGroup = $_.Group | Sort-Object FileName -Descending
+                $index = 0
+                $continueLoop = $true
 
-                $data = Import-Clixml -Path $fileName
-                if ($null -ne $data) {
-                    $importedItems.Add($data)
-                }
+                do {
+                    $fileName = $sortedGroup[$index].FileObject.VersionInfo.FileName
+                    $data = Import-Clixml -Path $fileName
+
+                    if ($null -ne $data -and
+                        $null -ne $data.HealthCheckerExchangeServer) {
+                        Write-Verbose "For Server $($_.Group[0].ServerName) using file: $fileName"
+                        $importedItems.Add($data)
+                        $continueLoop = $false
+                    } else {
+                        $index++
+                        if ($index -ge $_.Count) {
+                            $continueLoop = $false
+                            Write-Red "Failed to find proper Health Checker data to import for server $($_.Group[0].ServerName)"
+                        }
+                    }
+                } while ($continueLoop)
             }
     }
     end {
