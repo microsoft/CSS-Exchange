@@ -92,14 +92,14 @@ function ValidateInboxRules {
         exit
     } elseif ($rules.Name -like "REDACTED-*") {
         Write-Host -ForegroundColor Yellow "Warning: No PII Access to MB so cannot check for Delegate Rules."
-        Write-Host -ForegroundColor Red " --- Inbox Rules needs to be checked manually for any Delegate Rules. --"
         Write-Host -ForegroundColor Yellow "To gain PII access, Mailbox is located on $($mailbox.Database) on server $($mailbox.ServerName)"
-        if ($rules.count -eq 1) {
+        if ($null -eq $rules.count) {
             Write-Host -ForegroundColor Yellow "Warning: One rule has been found, which is likely the default Junk Mail rule."
             Write-Host -ForegroundColor Yellow "Warning: You should verify that this is not a Delegate Rule setup on this resource mailbox. Delegate rules will block RBA functionality. Please remove the rule via Remove-InboxRule cmdlet and re-run this script."
         } elseif ($rules.count -gt 1) {
-            Write-Host -ForegroundColor Yellow "Warning: Multiple rules have been found on this resource mailbox. Only the Default Junk Mail rule is expected.  Depending on the rules setup, this may block RBA functionality."
-            Write-Host -ForegroundColor Yellow "Warning: Please remove the rule(s) via Remove-InboxRule cmdlet and re-run this script."
+            Write-Host -ForegroundColor Red " --- Inbox Rules needs to be checked manually for any Delegate Rules. --"
+            Write-Host -ForegroundColor Red "Warning: Multiple rules have been found on this resource mailbox. Only the Default Junk Mail rule is expected.  Depending on the rules setup, this may block RBA functionality."
+            Write-Host -ForegroundColor Red "Warning: Please remove the rule(s) via Remove-InboxRule cmdlet and re-run this script."
         }
     } else {
         Write-Host -ForegroundColor Green "Delegate Rules check passes."
@@ -330,7 +330,7 @@ function OutOfPolicyProcessing {
         Write-Host -ForegroundColor Yellow "Information: - All users are allowed to submit out-of-policy requests to the resource mailbox. Out-of-policy requests require approval by a resource mailbox delegate."
 
         if ($RbaSettings.RequestOutOfPolicy.count -gt 0) {
-            Write-Host -ForegroundColor Red "Warning: The users that are listed in RequestOutOfPolicy are overridden by the AllRequestOutOfPolicy as everyone can submit out of policy requests."
+            Write-Host -ForegroundColor Magenta "Warning: The users that are listed in RequestOutOfPolicy are overridden by the AllRequestOutOfPolicy as everyone can submit out of policy requests."
         }
     } else {
         if ($RbaSettings.RequestOutOfPolicy.count -eq 0) {
@@ -683,7 +683,7 @@ function ValidateRoomListSettings {
     foreach ($prop in $requiredProperties) {
         if ([string]::IsNullOrEmpty($script:Place.$prop)) {
             $requiredPropertiesMissing = $true
-            Write-Host -ForegroundColor Red "`tError: Required Property '$prop' is not set for $Identity."
+            Write-Host -ForegroundColor Magenta "`tWarning: Required Property '$prop' is not set for $Identity. RoomList functionality may not work as expected."
         } else {
             Write-Host -ForegroundColor Green "`tRequired Property '$prop' is set to $($script:Place.$prop)."
         }
