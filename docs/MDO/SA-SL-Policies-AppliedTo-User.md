@@ -1,17 +1,25 @@
-# SA+SL-Policies-AppliedTo-User.ps1
+# SA-SL-Policies-AppliedTo-User.ps1
 
- Checks which Safe Attachment and Safe Links policies cover a particular user.
+Download the latest release: [SA-SL-Policies-AppliedTo-User.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/SA-SL-Policies-AppliedTo-User.ps1)
 
-## Description
- Which Safe Attachment policy applies to USER? This info is included in the RULES of SafeAttachmentRule and ATPProtectionPolicyRule
-1. Checks only for enabled policies; accounts for exclusions of enabled policies too.
-2. Input is individual's email address.
-3. Prints rule priority and policy/rule that applies. If none, prints Default policy. Print if excluded by group, domain, or individually. Rules have the Priority property. 0 is highest.
-4. Checks any existing groups in AAD to get members.
-5. This script is backed by documentation about script priorities and behavior at the time of writing.
-6. CONSIDERATIONS: Preset rules have no configurable or visible properties. Their set values documented here:
-       https://learn.microsoft.com/en-us/microsoft-365/security/office-365-security/preset-security-policies?view=o365-worldwide#policy-settings-in-preset-security-policies
+ This script checks which Defender for Office 365 threat policies cover a particular user according to our documentation, including Safe Links and Safe Attachments:
 
-## NOTES
-The script checks for connection to AzureAD and Exchange Online, and, if not connected, connects you before running this script.
-Only read-only permissions are needed as the script only reads from policies.
+ [Order and Precedence of Email Protection](https://learn.microsoft.com/en-us/defender-office-365/how-policies-and-protections-are-combined?view=o365-worldwide)
+
+[Policy Setting in Preset Security Policies](https://learn.microsoft.com/en-us/defender-office-365/preset-security-policies#appendix)
+
+## Which policy applies to USER?
+1. Ignores disabled policies, invalid inclusions, and accounts for exclusions to find which policy applies to USER.
+2. As documented, the script uses AND logic between different types of **inclusion** conditions (Users, Groups, Domains).
+3. Different types of **exceptions** use OR logic (Users, Groups, Domains).
+4. Checks group membership of USER in Microsoft 365 Groups for inclusion or exclusion in a policy.
+
+## Additional Notes
+Just read-only permissions are needed as the script only reads policies.
+
+Preset rules, if applied to USER, have no configurable or visible properties. Their set values documented in link above.
+
+## How To Run
+This script requires permissions in Microsoft Defender XDR RBAC, Exchange Online, or Microsoft Entra, as explained here:
+
+[Permissions to Configure MDO](https://learn.microsoft.com/en-us/defender-office-365/safe-links-policies-configure?view=o365-worldwide#what-do-you-need-to-know-before-you-begin)
