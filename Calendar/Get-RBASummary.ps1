@@ -46,10 +46,12 @@ function ValidateMailbox {
     # check we get a response
     if ($null -eq $script:Mailbox) {
         Write-Host -ForegroundColor Red "Get-Mailbox returned null. Make sure you Import-Module ExchangeOnlineManagement and  Connect-ExchangeOnline. Exiting script."
+        Stop-Transcript
         exit
     } else {
         if ($script:Mailbox.RecipientTypeDetails -ne "RoomMailbox" -and $script:Mailbox.RecipientTypeDetails -ne "EquipmentMailbox") {
             Write-Host -ForegroundColor Red "The mailbox is not a Room Mailbox / Equipment Mailbox. RBA will only work with these. Exiting script."
+            Stop-Transcript
             exit
         }
         if ($script:Mailbox.ResourceType -eq "Workspace") {
@@ -67,6 +69,7 @@ function ValidateMailbox {
         Write-Host -ForegroundColor Red "Make sure you are running from the correct forest.  Get-Place does not cross forest boundaries."
         Write-Host "Hint Forest is likely something like: [$($script:Mailbox.Database.split("DG")[0])]."
         Write-Error "Exiting Script."
+        Stop-Transcript
         exit
     }
 
@@ -85,6 +88,7 @@ function ValidateInboxRules {
         Write-Host -NoNewline "Rule to look into: "
         Write-Host -ForegroundColor Red "$($rules.Name -like "Delegate Rule*")"
         Write-Host -ForegroundColor Red "Exiting script."
+        Stop-Transcript
         exit
     } elseif ($rules.Name -like "REDACTED-*") {
         Write-Host -ForegroundColor Yellow "Warning: No PII Access to MB so cannot check for Delegate Rules."
@@ -113,6 +117,7 @@ function GetCalendarProcessing {
                 Make sure you Import-Module ExchangeOnlineManagement
                 and  Connect-ExchangeOnline
                 Exiting script."
+        Stop-Transcript
         exit
     }
 
@@ -131,6 +136,7 @@ function EvaluateCalProcessing {
         Write-Host -ForegroundColor Red "Error: AutomateProcessing is set to $($RbaSettings.AutomateProcessing)."
         Write-Host -ForegroundColor Yellow "Use 'Set-CalendarProcessing -Identity $Identity -AutomateProcessing AutoAccept' to set AutomateProcessing to AutoAccept."
         Write-Host -ForegroundColor Red "Exiting script."
+        Stop-Transcript
         exit
     } else {
         Write-Host -ForegroundColor Green "AutomateProcessing is set to AutoAccept. RBA will analyze the meeting request."
@@ -261,6 +267,7 @@ function RBAProcessingValidation {
         Write-Host "`t RequestInPolicy:               {$($RbaSettings.RequestInPolicy)}"
         Write-Host "`t AllRequestInPolicy:           "$RbaSettings.AllRequestInPolicy
         Write-Host -ForegroundColor Red "Exiting script."
+        Stop-Transcript
         exit
     }
 }
