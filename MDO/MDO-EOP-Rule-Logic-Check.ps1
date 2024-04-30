@@ -31,7 +31,25 @@ param(
     [switch]$ScriptUpdateOnly
 )
 
+. $PSScriptRoot\..\Shared\LoggerFunctions.ps1
+. $PSScriptRoot\..\Shared\OutputOverrides\Write-Host.ps1
+
+function Write-HostLog ($message) {
+    if (![string]::IsNullOrEmpty($message)) {
+        $Script:HostLogger = $Script:HostLogger | Write-LoggerInstance $message
+    }
+}
+
+SetWriteHostAction ${Function:Write-HostLog}
+
+$LogFileName = "MDO-EOP-Rule-Logic-Check"
+$StartDate = Get-Date
+$StartDateFormatted = ($StartDate).ToString("yyyyMMddhhmmss")
+$Script:HostLogger = Get-NewLoggerInstance -LogName "$LogFileName-Results-$StartDateFormatted" -LogDirectory $PSScriptRoot -AppendDateTimeToFileName $false -ErrorAction SilentlyContinue
+
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
+
+$BuildVersion = ""
 
 Write-Host ("MDO-EOP-Rule-Logic-Check.ps1 script version $($BuildVersion)") -ForegroundColor Green
 

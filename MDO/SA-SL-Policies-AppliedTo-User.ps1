@@ -31,11 +31,6 @@ param(
     [Parameter(ParameterSetName = 'AppliedCsv')]
     [Parameter(ParameterSetName = 'AppliedEmail')]
     [Parameter(ParameterSetName = 'Applied')]
-    [string]$OutputFilePath,
-
-    [Parameter(ParameterSetName = 'AppliedCsv')]
-    [Parameter(ParameterSetName = 'AppliedEmail')]
-    [Parameter(ParameterSetName = 'Applied')]
     [switch]$SkipConnectionCheck,
 
     [Parameter(ParameterSetName = 'AppliedCsv')]
@@ -48,6 +43,23 @@ param(
 )
 
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
+. $PSScriptRoot\..\Shared\LoggerFunctions.ps1
+. $PSScriptRoot\..\Shared\OutputOverrides\Write-Host.ps1
+
+function Write-HostLog ($message) {
+    if (![string]::IsNullOrEmpty($message)) {
+        $Script:HostLogger = $Script:HostLogger | Write-LoggerInstance $message
+    }
+}
+
+SetWriteHostAction ${Function:Write-HostLog}
+
+$LogFileName = "SA-SL-Policies-AppliedTo-User"
+$StartDate = Get-Date
+$StartDateFormatted = ($StartDate).ToString("yyyyMMddhhmmss")
+$Script:HostLogger = Get-NewLoggerInstance -LogName "$LogFileName-Results-$StartDateFormatted" -LogDirectory $PSScriptRoot -AppendDateTimeToFileName $false -ErrorAction SilentlyContinue
+
+$BuildVersion = ""
 
 Write-Host ("SA-SL-Policies-AppliedTo-User.ps1 script version $($BuildVersion)") -ForegroundColor Green
 
@@ -231,8 +243,6 @@ foreach ($email in $ValidEmailAddresses) {
         # No match in preset ATPProtectionPolicyRules, check custom SafeLinksRules
         $SLmatchedRule = CheckRules -rules $SafeLinksRules -email $emailAddress -domain $domain
     }
-
-
 
     if ($null -eq $SAmatchedRule) {
         # Get the Built-in Protection Rule

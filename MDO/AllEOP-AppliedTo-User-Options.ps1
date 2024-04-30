@@ -32,11 +32,6 @@ param(
     [Parameter(ParameterSetName = 'AppliedCsv')]
     [Parameter(ParameterSetName = 'AppliedEmail')]
     [Parameter(ParameterSetName = 'Applied')]
-    [string]$OutputFilePath,
-
-    [Parameter(ParameterSetName = 'AppliedCsv')]
-    [Parameter(ParameterSetName = 'AppliedEmail')]
-    [Parameter(ParameterSetName = 'Applied')]
     [switch]$SkipConnectionCheck,
 
     [Parameter(ParameterSetName = 'AppliedCsv')]
@@ -48,9 +43,26 @@ param(
     [switch]$ScriptUpdateOnly
 )
 
-Write-Host ("AllEOP-AppliedTo-User-Options.ps1 script version $($BuildVersion)") -ForegroundColor Green
-
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
+. $PSScriptRoot\..\Shared\LoggerFunctions.ps1
+. $PSScriptRoot\..\Shared\OutputOverrides\Write-Host.ps1
+
+function Write-HostLog ($message) {
+    if (![string]::IsNullOrEmpty($message)) {
+        $Script:HostLogger = $Script:HostLogger | Write-LoggerInstance $message
+    }
+}
+
+SetWriteHostAction ${Function:Write-HostLog}
+
+$LogFileName = "AllEOP-AppliedTo-User-Options"
+$StartDate = Get-Date
+$StartDateFormatted = ($StartDate).ToString("yyyyMMddhhmmss")
+$Script:HostLogger = Get-NewLoggerInstance -LogName "$LogFileName-Results-$StartDateFormatted" -LogDirectory $PSScriptRoot -AppendDateTimeToFileName $false -ErrorAction SilentlyContinue
+
+$BuildVersion = ""
+
+Write-Host ("AllEOP-AppliedTo-User-Options.ps1 script version $($BuildVersion)") -ForegroundColor Green
 
 if ($ScriptUpdateOnly) {
     switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/AllEOP-AppliedTo-User-Options-VersionsURL" -Confirm:$false) {
@@ -204,7 +216,6 @@ function Get-UserDetails($emailAddress) {
     return $userDetails
 }
 
-
 foreach ($email in $ValidEmailAddresses) {
     $emailAddress = $email.ToString()
     $domain = $emailAddress.Host
@@ -224,11 +235,7 @@ foreach ($email in $ValidEmailAddresses) {
         $outboundSpamMatchedRule = CheckRulesAlternative -rules $hostedOutboundSpamFilterRules -email $emailAddress -domain $domain
         $allPolicyDetails += Get-Policy $outboundSpamMatchedRule "Outbound Spam"
         $allPolicyDetails = $userDetails + "`n" + $allPolicyDetails
-        if ($OutputFilePath) {
-            $allPolicyDetails | Out-File -FilePath $OutputFilePath -Append
-        } else {
-            Write-Host $allPolicyDetails -ForegroundColor Green
-        }
+        Write-Host $allPolicyDetails -ForegroundColor Green
         Write-Output "`n"
         continue
     }
@@ -249,11 +256,7 @@ foreach ($email in $ValidEmailAddresses) {
 
     $allPolicyDetails = $userDetails + "`n" + $allPolicyDetails
 
-    if ($OutputFilePath) {
-        $allPolicyDetails | Out-File -FilePath $OutputFilePath -Append
-    } else {
-        Write-Host $allPolicyDetails -ForegroundColor Yellow
-    }
+    Write-Host $allPolicyDetails -ForegroundColor Yellow
 }
 
 Write-Output "`n"
