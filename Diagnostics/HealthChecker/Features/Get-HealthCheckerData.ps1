@@ -96,7 +96,12 @@ function Get-HealthCheckerData {
 
         try {
             Invoke-SetOutputInstanceLocation -Server $serverName -FileName "HealthChecker" -IncludeServerName $true
-            Write-HostLog "Exchange Health Checker version $BuildVersion"
+
+            if (-not $Script:VulnerabilityReport) {
+                # avoid having vulnerability report having a txt file with nothing in it besides the Exchange Health Checker Version
+                Write-HostLog "Exchange Health Checker version $BuildVersion"
+            }
+
             $HealthObject = Get-HealthCheckerExchangeServer -ServerName $serverNameParam
             $HealthObject.OrganizationInformation = $organizationInformation
 
