@@ -55,17 +55,17 @@ function Write-HostLog ($message) {
 
 SetWriteHostAction ${Function:Write-HostLog}
 
-$LogFileName = "AllEOP-AppliedTo-User-Options"
+$LogFileName = "AllEOP-AppliedTo-User"
 $StartDate = Get-Date
 $StartDateFormatted = ($StartDate).ToString("yyyyMMddhhmmss")
 $Script:HostLogger = Get-NewLoggerInstance -LogName "$LogFileName-Results-$StartDateFormatted" -LogDirectory $PSScriptRoot -AppendDateTimeToFileName $false -ErrorAction SilentlyContinue
 
 $BuildVersion = ""
 
-Write-Host ("AllEOP-AppliedTo-User-Options.ps1 script version $($BuildVersion)") -ForegroundColor Green
+Write-Host ("AllEOP-AppliedTo-User.ps1 script version $($BuildVersion)") -ForegroundColor Green
 
 if ($ScriptUpdateOnly) {
-    switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/AllEOP-AppliedTo-User-Options-VersionsURL" -Confirm:$false) {
+    switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/AllEOP-AppliedTo-User-VersionsURL" -Confirm:$false) {
     ($true) { Write-Host ("Script was successfully updated") -ForegroundColor Green }
     ($false) { Write-Host ("No update of the script performed") -ForegroundColor Yellow }
         default { Write-Host ("Unable to perform ScriptUpdateOnly operation") -ForegroundColor Red }
@@ -74,7 +74,7 @@ if ($ScriptUpdateOnly) {
 }
 
 if ((-not($SkipVersionCheck)) -and
-    (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/AllEOP-AppliedTo-User-Options-VersionsURL" -Confirm:$false)) {
+    (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/AllEOP-AppliedTo-User-VersionsURL" -Confirm:$false)) {
     Write-Host ("Script was updated. Please re-run the command") -ForegroundColor Yellow
     return
 }
