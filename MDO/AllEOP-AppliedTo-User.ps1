@@ -193,7 +193,7 @@ function Get-UserDetails($emailAddress) {
 
 foreach ($email in $ValidEmailAddresses) {
     $emailAddress = $email.ToString()
-    $domain = $emailAddress.Host
+    $domain = $email.Host
     $isInGroup = $false
     $isInExceptGroup = $false
     # Initialize a variable to capture all policy details
