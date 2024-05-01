@@ -81,7 +81,7 @@ function ValidateMailbox {
 function ValidateInboxRules {
     Write-Host "Checking for Delegate Rules that will block RBA functionality..."
     Write-Host -NoNewline "Running : "; Write-Host -ForegroundColor Cyan "Get-InboxRule -mailbox $Identity -IncludeHidden"
-    $rules = Get-InboxRule -mailbox $Identity -IncludeHidden
+    [array]$rules = Get-InboxRule -mailbox $Identity -IncludeHidden
     # Note as far as I can tell "Delegate Rule <GUID>" is not localized.
     if ($rules.Name -like "Delegate Rule*") {
         Write-Host -ForegroundColor Red "Error: There is a user style Delegate Rule setup on this resource mailbox. This will block RBA functionality. Please remove the rule via Remove-InboxRule cmdlet and re-run this script."
