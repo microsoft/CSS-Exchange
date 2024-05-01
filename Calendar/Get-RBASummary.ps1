@@ -32,6 +32,13 @@ if (Test-ScriptVersion -AutoUpdate) {
 
 Write-Verbose "Script Versions: $BuildVersion"
 
+$SummaryFilename = "RBA-Summary-For_$($Identity.Split('@')[0])_$((Get-Date).ToString('yyyy-MM-dd_HH-mm-ss')).txt"
+Write-Host "`r`nRBA Summary Output saved as [" -NoNewline
+Write-Host -ForegroundColor Cyan $SummaryFilename -NoNewline
+Write-Host "] in the current directory."
+Start-Transcript -Path $SummaryFilename
+Write-Host "`r`n"
+
 function ValidateMailbox {
     Write-Host -NoNewline "Running : "; Write-Host -ForegroundColor Cyan "Get-Mailbox -Identity $Identity"
     $script:Mailbox = Get-Mailbox -Identity $Identity
@@ -39,10 +46,12 @@ function ValidateMailbox {
     # check we get a response
     if ($null -eq $script:Mailbox) {
         Write-Host -ForegroundColor Red "Get-Mailbox returned null. Make sure you Import-Module ExchangeOnlineManagement and  Connect-ExchangeOnline. Exiting script."
+        Stop-Transcript
         exit
     } else {
         if ($script:Mailbox.RecipientTypeDetails -ne "RoomMailbox" -and $script:Mailbox.RecipientTypeDetails -ne "EquipmentMailbox") {
             Write-Host -ForegroundColor Red "The mailbox is not a Room Mailbox / Equipment Mailbox. RBA will only work with these. Exiting script."
+            Stop-Transcript
             exit
         }
         if ($script:Mailbox.ResourceType -eq "Workspace") {
@@ -60,6 +69,7 @@ function ValidateMailbox {
         Write-Host -ForegroundColor Red "Make sure you are running from the correct forest.  Get-Place does not cross forest boundaries."
         Write-Host "Hint Forest is likely something like: [$($script:Mailbox.Database.split("DG")[0])]."
         Write-Error "Exiting Script."
+        Stop-Transcript
         exit
     }
 
@@ -71,24 +81,25 @@ function ValidateMailbox {
 function ValidateInboxRules {
     Write-Host "Checking for Delegate Rules that will block RBA functionality..."
     Write-Host -NoNewline "Running : "; Write-Host -ForegroundColor Cyan "Get-InboxRule -mailbox $Identity -IncludeHidden"
-    $rules = Get-InboxRule -mailbox $Identity -IncludeHidden
+    [array]$rules = Get-InboxRule -mailbox $Identity -IncludeHidden
     # Note as far as I can tell "Delegate Rule <GUID>" is not localized.
     if ($rules.Name -like "Delegate Rule*") {
         Write-Host -ForegroundColor Red "Error: There is a user style Delegate Rule setup on this resource mailbox. This will block RBA functionality. Please remove the rule via Remove-InboxRule cmdlet and re-run this script."
         Write-Host -NoNewline "Rule to look into: "
         Write-Host -ForegroundColor Red "$($rules.Name -like "Delegate Rule*")"
         Write-Host -ForegroundColor Red "Exiting script."
+        Stop-Transcript
         exit
     } elseif ($rules.Name -like "REDACTED-*") {
         Write-Host -ForegroundColor Yellow "Warning: No PII Access to MB so cannot check for Delegate Rules."
-        Write-Host -ForegroundColor Red " --- Inbox Rules needs to be checked manually for any Delegate Rules. --"
         Write-Host -ForegroundColor Yellow "To gain PII access, Mailbox is located on $($mailbox.Database) on server $($mailbox.ServerName)"
-        if ($rules.count -eq 1) {
+        if ($null -eq $rules.count -or $rules.count -eq 1) {
             Write-Host -ForegroundColor Yellow "Warning: One rule has been found, which is likely the default Junk Mail rule."
             Write-Host -ForegroundColor Yellow "Warning: You should verify that this is not a Delegate Rule setup on this resource mailbox. Delegate rules will block RBA functionality. Please remove the rule via Remove-InboxRule cmdlet and re-run this script."
         } elseif ($rules.count -gt 1) {
-            Write-Host -ForegroundColor Yellow "Warning: Multiple rules have been found on this resource mailbox. Only the Default Junk Mail rule is expected.  Depending on the rules setup, this may block RBA functionality."
-            Write-Host -ForegroundColor Yellow "Warning: Please remove the rule(s) via Remove-InboxRule cmdlet and re-run this script."
+            Write-Host -ForegroundColor Red " --- Inbox Rules needs to be checked manually for any Delegate Rules. --"
+            Write-Host -ForegroundColor Red "Warning: Multiple rules have been found on this resource mailbox. Only the Default Junk Mail rule is expected.  Depending on the rules setup, this may block RBA functionality."
+            Write-Host -ForegroundColor Red "Warning: Please remove the rule(s) via Remove-InboxRule cmdlet and re-run this script."
         }
     } else {
         Write-Host -ForegroundColor Green "Delegate Rules check passes."
@@ -106,6 +117,7 @@ function GetCalendarProcessing {
                 Make sure you Import-Module ExchangeOnlineManagement
                 and  Connect-ExchangeOnline
                 Exiting script."
+        Stop-Transcript
         exit
     }
 
@@ -124,6 +136,7 @@ function EvaluateCalProcessing {
         Write-Host -ForegroundColor Red "Error: AutomateProcessing is set to $($RbaSettings.AutomateProcessing)."
         Write-Host -ForegroundColor Yellow "Use 'Set-CalendarProcessing -Identity $Identity -AutomateProcessing AutoAccept' to set AutomateProcessing to AutoAccept."
         Write-Host -ForegroundColor Red "Exiting script."
+        Stop-Transcript
         exit
     } else {
         Write-Host -ForegroundColor Green "AutomateProcessing is set to AutoAccept. RBA will analyze the meeting request."
@@ -254,7 +267,20 @@ function RBAProcessingValidation {
         Write-Host "`t RequestInPolicy:               {$($RbaSettings.RequestInPolicy)}"
         Write-Host "`t AllRequestInPolicy:           "$RbaSettings.AllRequestInPolicy
         Write-Host -ForegroundColor Red "Exiting script."
+        Stop-Transcript
         exit
+    }
+}
+
+# Write out a list of Mailboxes
+function OutputMBList {
+    param (
+        [Parameter(Mandatory)]
+        [string[]]$MBList
+    )
+    foreach ($User in $MBList) {
+        $User = Get-Mailbox -Identity $User
+        Write-Host " `t `t [$($User.DisplayName)] -- $($User.PrimarySmtpAddress)"
     }
 }
 
@@ -266,7 +292,7 @@ function InPolicyProcessing {
         Write-Host "`t BookInPolicy:                     {$($RbaSettings.BookInPolicy)}"
     } else {
         Write-Host "`t BookInPolicy:                     These $($RbaSettings.BookInPolicy.count) accounts do not require the delegate approval."
-        foreach ($BIPUser in $RbaSettings.BookInPolicy) { Write-Host " `t `t $BIPUser " }
+        OutputMBList($RbaSettings.BookInPolicy)
     }
     Write-Host "`t AllBookInPolicy:                 "$RbaSettings.AllBookInPolicy
     Write-Host "`t RequestInPolicy:                  {$($RbaSettings.RequestInPolicy)}"
@@ -279,7 +305,7 @@ function InPolicyProcessing {
     } else {
         if ($RbaSettings.BookInPolicy.Count -gt 0) {
             Write-Host "- The RBA will process (auto-book / accept) in-policy requests from this list of Users:"
-            foreach ($BIPUser in $RbaSettings.BookInPolicy) { Write-Host " `t `t $BIPUser" }
+            OutputMBList($RbaSettings.BookInPolicy)
         }
 
         Write-Host "- RBA will forward all in-policy meetings to the resource delegates."
@@ -297,7 +323,7 @@ function OutOfPolicyProcessing {
     Write-DashLineBoxColor @("  Out-of-Policy request processing:") -Color DarkYellow
     if ($RbaSettings.RequestOutOfPolicy.Count -gt 0) {
         Write-Host "`t RequestOutOfPolicy:           These {$($RbaSettings.RequestOutOfPolicy.Count)} accounts are allowed to submit out-of-policy requests (that require approval by a resource delegate)."
-        foreach ($OutOfPolicyUser in $RbaSettings.RequestOutOfPolicy) { Write-Host "`t `t $OutOfPolicyUser" }
+        OutputMBList($RbaSettings.RequestOutOfPolicy)
     } else {
         Write-Host "`t RequestOutOfPolicy:               {$($RbaSettings.RequestOutOfPolicy)}"
     }
@@ -307,7 +333,7 @@ function OutOfPolicyProcessing {
         Write-Host -ForegroundColor Yellow "Information: - All users are allowed to submit out-of-policy requests to the resource mailbox. Out-of-policy requests require approval by a resource mailbox delegate."
 
         if ($RbaSettings.RequestOutOfPolicy.count -gt 0) {
-            Write-Host -ForegroundColor Red "Warning: The users that are listed in RequestOutOfPolicy are overridden by the AllRequestOutOfPolicy as everyone can submit out of policy requests."
+            Write-Host -ForegroundColor Magenta "Warning: The users that are listed in RequestOutOfPolicy are overridden by the AllRequestOutOfPolicy as everyone can submit out of policy requests."
         }
     } else {
         if ($RbaSettings.RequestOutOfPolicy.count -eq 0) {
@@ -326,7 +352,7 @@ function RBADelegateSettings {
         Write-Host "`t ResourceDelegates:               "$RbaSettings.ResourceDelegates
     } else {
         Write-Host "`t ResourceDelegates:               $($RbaSettings.ResourceDelegates.Count) Resource Delegate`(s`) have been configured."
-        foreach ($RDUser in $RbaSettings.ResourceDelegates) { Write-Host " `t `t $RDUser" }
+        OutputMBList($RbaSettings.ResourceDelegates)
     }
 
     Write-Host "`t AddNewRequestsTentatively:       "$RbaSettings.AddNewRequestsTentatively
@@ -346,7 +372,7 @@ function RBADelegateSettings {
                 Write-Host -ForegroundColor White "Information: Delegate(s) will not receive any In Policy requests as they will be AutoApproved."
             } elseif ($RbaSettings.BookInPolicy.Count -gt 0 ) {
                 Write-Host -ForegroundColor White "Information: Delegate(s) will not receive requests from users in the BookInPolicy as they will be AutoApproved."
-                foreach ($BIPUser in $RbaSettings.BookInPolicy) { Write-Host  -ForegroundColor Yellow " `t `t $BIPUser " }
+                OutputMBList($RbaSettings.BookInPolicy)
             }
 
             if ($RbaSettings.AllRequestOutOfPolicy -eq $false) {
@@ -354,7 +380,7 @@ function RBADelegateSettings {
                     Write-Host -ForegroundColor Yellow "Warning: Delegate(s) will not receive any Out of Policy requests as they will all be AutoDenied."
                 } else {
                     Write-Host -ForegroundColor Yellow "Warning: Delegate(s) will only receive any Out of Policy requests from the below list of users."
-                    foreach ($OutOfPolicyUser in $RbaSettings.RequestOutOfPolicy) { Write-Host "`t `t $OutOfPolicyUser" }
+                    OutputMBList($RbaSettings.RequestOutOfPolicy)
                 }
             } else {
                 Write-Host -ForegroundColor Yellow "Warning: All users can send Out of Policy requests to be approved by the Resource Delegates."
@@ -496,7 +522,7 @@ function RBAPostScript {
 function RBALogSummary {
     Write-DashLineBoxColor @("RBA Log Summary") -Color Blue -DashChar =
 
-    $RBALog = (Export-MailboxDiagnosticLogs $Identity -ComponentName RBA).MailboxLog -split "`\n"
+    $RBALog = ((Export-MailboxDiagnosticLogs $Identity -ComponentName RBA).MailboxLog -split "`\n`\r").Trim()
 
     Write-Host "`tFound $($RBALog.count) RBA Log entries in RBALog.  Summarizing Accepts, Declines, and Tentative meetings."
 
@@ -651,7 +677,7 @@ function ValidateRoomListSettings {
     foreach ($prop in $requiredProperties) {
         if ([string]::IsNullOrEmpty($script:Place.$prop)) {
             $requiredPropertiesMissing = $true
-            Write-Host -ForegroundColor Red "`tError: Required Property '$prop' is not set for $Identity."
+            Write-Host -ForegroundColor Magenta "`tWarning: Required Property '$prop' is not set for $Identity. RoomList functionality may not work as expected."
         } else {
             Write-Host -ForegroundColor Green "`tRequired Property '$prop' is set to $($script:Place.$prop)."
         }
@@ -731,3 +757,4 @@ RBAPostProcessing
 VerbosePostProcessing
 RBALogSummary
 RBAPostScript
+Stop-Transcript
