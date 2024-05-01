@@ -6,10 +6,10 @@ Download the latest release: [Get-CalendarDiagnosticObjectsSummary.ps1](https://
 This script runs the Get-CalendarDiagnosticObjects script and returns a summarized timeline of actions into clear english.
 To run the script, you will need a valid SMTP Address for a user and a meeting Subject or MeetingID.
 
-The script will display summarized timeline of actions and save the logs returned into a csv file in current directory.
+The script will display summarized timeline of actions and save the logs returned is csv format in the current directory.
 
 
-Syntax:
+#### Syntax:
 
 Example to return timeline for a user with MeetingID
 ```PowerShell
@@ -21,3 +21,4 @@ Example to return timeline for a user with Subject
 ```PowerShell
 .\Get-CalendarDiagnosticObjectsSummary.ps1 -Identity user@contoso.com -Subject Test_OneTime_Meeting_Subject
 ```
+
