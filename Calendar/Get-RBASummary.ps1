@@ -93,7 +93,7 @@ function ValidateInboxRules {
     } elseif ($rules.Name -like "REDACTED-*") {
         Write-Host -ForegroundColor Yellow "Warning: No PII Access to MB so cannot check for Delegate Rules."
         Write-Host -ForegroundColor Yellow "To gain PII access, Mailbox is located on $($mailbox.Database) on server $($mailbox.ServerName)"
-        if ($null -eq $rules.count) {
+        if ($null -eq $rules.count -or $rules.count -eq 1) {
             Write-Host -ForegroundColor Yellow "Warning: One rule has been found, which is likely the default Junk Mail rule."
             Write-Host -ForegroundColor Yellow "Warning: You should verify that this is not a Delegate Rule setup on this resource mailbox. Delegate rules will block RBA functionality. Please remove the rule via Remove-InboxRule cmdlet and re-run this script."
         } elseif ($rules.count -gt 1) {
