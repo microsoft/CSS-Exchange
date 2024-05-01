@@ -18,7 +18,7 @@ function FindMatch {
 
 $ShortClientNameProcessor = @{
     'Client=Hub Transport'                       = "Transport"
-    'Client=MSExchangeRPC'                       = "Outlook : Desktop"
+    'Client=MSExchangeRPC'                       = "Outlook : Desktop : MAPI"
     'OneOutlook'                                 = "OneOutlook"
     'Lync for Mac'                               = "LyncMac"
     'AppId=00000004-0000-0ff1-ce00-000000000000' = "SkypeMMS"
@@ -124,16 +124,16 @@ function CreateShortClientName {
     if ($ClientInfoString -like "*InternalCalendarSharing*" -and
         $ClientInfoString -like "*OWA*" -and
         $ClientInfoString -notlike "*OneOutlook*") {
-        $ShortClientName = "Owa-ModernCalendarSharing"
+        $ShortClientName = "OWA : REST"
     }
     if ($ClientInfoString -like "*InternalCalendarSharing*" -and $ClientInfoString -like "*MacOutlook*") {
-        $ShortClientName = "MacOutlook-ModernCalendarSharing"
+        $ShortClientName = "MacOutlook : REST"
     }
     if ($ClientInfoString -like "*InternalCalendarSharing*" -and $ClientInfoString -like "*Outlook*") {
-        $ShortClientName = "Outlook-ModernCalendarSharing"
+        $ShortClientName = "Outlook : Desktop : REST"
     }
     if ($ClientInfoString -like "Client=ActiveSync*" -and $ClientInfoString -like "*Outlook*") {
-        $ShortClientName = "Outlook-ModernCalendarSharing"
+        $ShortClientName = "Outlook : ActiveSync"
     }
     if ($ClientInfoString -like "*OneOutlook*") {
         $ShortClientName = "OneOutlook"
