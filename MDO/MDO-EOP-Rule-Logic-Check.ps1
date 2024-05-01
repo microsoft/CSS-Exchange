@@ -87,7 +87,7 @@ Write-Host "This script retrieves all Threat policies and checks for logical inc
 #Connect to EXO PS
 $SessionCheck = Get-PSSession | Where-Object { $_.Name -like "*ExchangeOnline*" -and $_.State -match "opened" }
 if ($null -eq $SessionCheck) {
-    Connect2EXO
+    Connect-EXO
 }
 
 # Define the cmdlets to retrieve policies from and their corresponding policy types

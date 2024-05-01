@@ -1,6 +1,6 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-function Connect2EXO {
+function Connect-EXO {
     try {
         #Validate EXO V2 is installed
         if ((Get-Module -ListAvailable | Where-Object { $_.Name -like "ExchangeOnlineManagement" }).count -ge 1) {
@@ -47,7 +47,7 @@ function Connect2EXO {
     }
 }
 
-function Connect2AzureAD {
+function Connect-AAD {
     try {
         #Validate AzureAD is installed
         if ((Get-Module -ListAvailable | Where-Object { $_.Name -like "AzureAD" }).count -ge 1) {

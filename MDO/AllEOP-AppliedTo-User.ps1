@@ -107,6 +107,7 @@ if ($foundError) {
 }
 
 . $PSScriptRoot\..\Shared\Connect-M365.ps1
+. $PSScriptRoot\Shared\MDO-Functions.ps1
 
 Write-Output "`n"
 Write-Host "Disclaimer:
@@ -121,10 +122,10 @@ arising out of the use of or inability to use the sample scripts or documentatio
 
 if (-not $SkipConnectionCheck) {
     #Connect to AzureAD PS
-    Connect2AzureAD
+    Connect-AAD
 
     #Connect to EXO PS
-    Connect2EXO
+    Connect-EXO
 }
 
 $AcceptedDomains = Get-AcceptedDomain
@@ -148,45 +149,19 @@ $antiPhishRules = Get-AntiPhishRule | Where-Object { $_.State -ne 'Disabled' }
 $hostedContentFilterRules = Get-HostedContentFilterRule | Where-Object { $_.State -ne 'Disabled' }
 $hostedOutboundSpamFilterRules = Get-HostedOutboundSpamFilterRule | Where-Object { $_.State -ne 'Disabled' }
 $eopProtectionPolicyRules = Get-EOPProtectionPolicyRule | Where-Object { $_.State -ne 'Disabled' }
-function CheckRules($rules, $email, $domain) {
-    foreach ($rule in $rules) {
-        $isInGroup = $false
-        if ($rule.SentToMemberOf) {
-            $groupObjectId = Get-GroupObjectId -groupEmail $rule.SentToMemberOf
-            $isInGroup = IsInGroup $email $groupObjectId
-        }
-
-        $isInExceptGroup = $false
-        if ($rule.ExceptIfSentToMemberOf) {
-            $groupObjectId = Get-GroupObjectId -groupEmail $rule.ExceptIfSentToMemberOf
-            $isInExceptGroup = IsInGroup $email $groupObjectId
-        }
-
-        if (($email -in $rule.SentTo -or !$rule.SentTo) -and
-            ($domain -in $rule.RecipientDomainIs -or !$rule.RecipientDomainIs) -and
-            ($isInGroup -or !$rule.SentToMemberOf)) {
-            if (($email -notin $rule.ExceptIfSentTo -or !$rule.ExceptIfSentTo) -and
-                ($domain -notin $rule.ExceptIfRecipientDomainIs -or !$rule.ExceptIfRecipientDomainIs) -and
-                (!$isInExceptGroup -or !$rule.ExceptIfSentToMemberOf)) {
-                return $rule
-            }
-        }
-    }
-    return $null
-}
 
 function CheckRulesAlternative($rules, $email, $domain) {
     foreach ($rule in $rules) {
         $isInGroup = $false
         if ($rule.FromMemberOf) {
             $groupObjectId = Get-GroupObjectId -groupEmail $rule.FromMemberOf
-            $isInGroup = IsInGroup $email $groupObjectId
+            $isInGroup = Test-IsInGroup $email $groupObjectId
         }
 
         $isInExceptGroup = $false
         if ($rule.ExceptIfFrom) {
             $groupObjectId = Get-GroupObjectId -groupEmail $rule.ExceptIfFrom
-            $isInExceptGroup = IsInGroup $email $groupObjectId
+            $isInExceptGroup = Test-IsInGroup $email $groupObjectId
         }
 
         if (($email -in $rule.From -or !$rule.From) -and
@@ -226,7 +201,7 @@ foreach ($email in $ValidEmailAddresses) {
     $userDetails = Get-UserDetails -emailAddress $emailAddress
 
     # Check the EOPProtectionPolicyRules first as they have higher precedence
-    $matchedRule = CheckRules -rules $eopProtectionPolicyRules -email $emailAddress -domain $domain
+    $matchedRule = Test-Rules -rules $eopProtectionPolicyRules -email $emailAddress -domain $domain
 
     if ($null -ne $matchedRule -and $eopProtectionPolicyRules -contains $matchedRule) {
         $allPolicyDetails += "`nThe policy that covers the user for malware, spam, and phishing: `n   Name: {0}`n   Priority: {1}`n   The policy actions are not configurable.`n" -f $matchedRule.Name, $matchedRule.Priority
@@ -242,9 +217,9 @@ foreach ($email in $ValidEmailAddresses) {
 
     if ($null -eq $matchedRule) {
         # If no match in EOPProtectionPolicyRules, check MalwareFilterRules, AntiPhishRules, outboundSpam, and HostedContentFilterRules
-        $malwareMatchedRule = CheckRules -rules $malwareFilterRules -email $emailAddress -domain $domain
-        $antiPhishMatchedRule = CheckRules -rules $antiPhishRules -email $emailAddress -domain $domain
-        $spamMatchedRule = CheckRules -rules $hostedContentFilterRules -email $emailAddress -domain $domain
+        $malwareMatchedRule = Test-Rules -rules $malwareFilterRules -email $emailAddress -domain $domain
+        $antiPhishMatchedRule = Test-Rules -rules $antiPhishRules -email $emailAddress -domain $domain
+        $spamMatchedRule = Test-Rules -rules $hostedContentFilterRules -email $emailAddress -domain $domain
         $outboundSpamMatchedRule = CheckRulesAlternative -rules $hostedOutboundSpamFilterRules -email $emailAddress -domain $domain
     }
 

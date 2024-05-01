@@ -106,6 +106,7 @@ if ($foundError) {
 }
 
 . $PSScriptRoot\..\Shared\Connect-M365.ps1
+. $PSScriptRoot\Shared\MDO-Functions.ps1
 
 Write-Output "`n"
 Write-Host "Disclaimer:
@@ -123,10 +124,10 @@ Write-Host "This script checks to see which Safe Attachments policy applies to a
 
 if (-not $SkipConnectionCheck) {
     #Connect to AzureAD PS
-    Connect2AzureAD
+    Connect-AAD
 
     #Connect to EXO PS
-    Connect2EXO
+    Connect-EXO
 }
 
 $AcceptedDomains = Get-AcceptedDomain
@@ -150,72 +151,6 @@ $SafeAttachmentRules = Get-SafeAttachmentRule | Where-Object { $_.State -ne 'Dis
 $SafeLinksRules = Get-SafeLinksRule | Where-Object { $_.State -ne 'Disabled' }
 $ATPProtectionPolicyRules = Get-ATPProtectionPolicyRule | Where-Object { $_.State -ne 'Disabled' }
 
-function Get-GroupObjectId {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$groupEmail
-    )
-
-    # Get the group
-    $group = Get-AzureADGroup -SearchString $groupEmail
-
-    # Return the Object ID of the group
-    return $group.ObjectId
-}
-
-# Function to check if an email is in a group
-function IsInGroup {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$email,
-
-        [Parameter(Mandatory = $true)]
-        [string]$groupObjectId
-    )
-
-    # Get the group members
-    $groupMembers = Get-AzureADGroupMember -ObjectId $groupObjectId
-
-    # Check if the email address is in the group
-    foreach ($member in $groupMembers) {
-        if ($member.Mail -eq $email)
-        { return $true }
-    }
-    return $false
-}
-
-# Function to check rules
-function CheckRules($rules, $email, $domain) {
-    foreach ($rule in $rules) {
-        $isInGroup = $false
-        if ($rule.SentToMemberOf) {
-            $groupObjectId = Get-GroupObjectId -groupEmail $rule.SentToMemberOf
-            if (![string]::IsNullOrEmpty($groupObjectId)) {
-                $isInGroup = IsInGroup $email $groupObjectId
-            }
-        }
-
-        $isInExceptGroup = $false
-        if ($rule.ExceptIfSentToMemberOf) {
-            $groupObjectId = Get-GroupObjectId -groupEmail $rule.ExceptIfSentToMemberOf
-            if (![string]::IsNullOrEmpty($groupObjectId)) {
-                $isInExceptGroup = IsInGroup $email $groupObjectId
-            }
-        }
-
-        if (($email -in $rule.SentTo -or !$rule.SentTo) -and
-            ($domain -in $rule.RecipientDomainIs -or !$rule.RecipientDomainIs) -and
-            ($isInGroup -or !$rule.SentToMemberOf)) {
-            if (($email -notin $rule.ExceptIfSentTo -or !$rule.ExceptIfSentTo) -and
-                ($domain -notin $rule.ExceptIfRecipientDomainIs -or !$rule.ExceptIfRecipientDomainIs) -and
-                (!$isInExceptGroup -or !$rule.ExceptIfSentToMemberOf)) {
-                return $rule
-            }
-        }
-    }
-    return $null
-}
-
 Write-Output "`n"
 
 foreach ($email in $ValidEmailAddresses) {
@@ -225,7 +160,7 @@ foreach ($email in $ValidEmailAddresses) {
     Write-Host "`nChecking user $emailAddress..."
 
     # Check the ATPProtectionPolicyRules first as they have higher precedence
-    $matchedRule = CheckRules -rules $ATPProtectionPolicyRules -email $emailAddress -domain $domain
+    $matchedRule = Test-Rules -rules $ATPProtectionPolicyRules -email $emailAddress -domain $domain
 
     if ($null -ne $matchedRule -and $ATPProtectionPolicyRules -contains $matchedRule) {
         Write-Host ("The preset security policy applies to the user for both Safe Attachments and Safe Links: `n   Name: {0}`n   Priority: {1}`n   The policy actions are not configurable.`n" -f $matchedRule.Name, $matchedRule.Priority) -ForegroundColor Magenta
@@ -236,12 +171,12 @@ foreach ($email in $ValidEmailAddresses) {
 
     if ($null -eq $matchedRule) {
         # No match in preset ATPProtectionPolicyRules, check custom SafeAttachmentRules
-        $SAmatchedRule = CheckRules -rules $SafeAttachmentRules -email $emailAddress -domain $domain
+        $SAmatchedRule = Test-Rules -rules $SafeAttachmentRules -email $emailAddress -domain $domain
     }
 
     if ($null -eq $matchedRule) {
         # No match in preset ATPProtectionPolicyRules, check custom SafeLinksRules
-        $SLmatchedRule = CheckRules -rules $SafeLinksRules -email $emailAddress -domain $domain
+        $SLmatchedRule = Test-Rules -rules $SafeLinksRules -email $emailAddress -domain $domain
     }
 
     if ($null -eq $SAmatchedRule) {
@@ -254,7 +189,7 @@ foreach ($email in $ValidEmailAddresses) {
         # Check if the user is a member of any group in ExceptIfSentToMemberOf
         foreach ($groupEmail in $builtInProtectionRule.ExceptIfSentToMemberOf) {
             $groupObjectId = Get-GroupObjectId -groupEmail $groupEmail
-            if (![string]::IsNullOrEmpty($groupObjectId) -and (IsInGroup $emailAddress $groupObjectId)) {
+            if (![string]::IsNullOrEmpty($groupObjectId) -and (Test-IsInGroup $emailAddress $groupObjectId)) {
                 $isInExcludedGroup = $true
                 break
             }
@@ -284,7 +219,7 @@ foreach ($email in $ValidEmailAddresses) {
         # Check if the user is a member of any group in ExceptIfSentToMemberOf
         foreach ($groupEmail in $builtInProtectionRule.ExceptIfSentToMemberOf) {
             $groupObjectId = Get-GroupObjectId -groupEmail $groupEmail
-            if (![string]::IsNullOrEmpty($groupObjectId) -and (IsInGroup $emailAddress $groupObjectId)) {
+            if (![string]::IsNullOrEmpty($groupObjectId) -and (Test-IsInGroup $emailAddress $groupObjectId)) {
                 $isInExcludedGroup = $true
                 break
             }
