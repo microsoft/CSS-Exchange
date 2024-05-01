@@ -1,4 +1,7 @@
-﻿function Get-GroupObjectId {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Get-GroupObjectId {
     param(
         [Parameter(Mandatory = $true)]
         [string]$groupEmail

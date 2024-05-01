@@ -20,7 +20,7 @@ Just read-only permissions are needed as the script only reads policies.
 Preset rules, if applied to USER, have no configurable or visible properties. Their set values documented in link above.
 
 ## How To Run
-This script requires permissions in Microsoft Defender XDR RBAC, Exchange Online, or Microsoft Entra, as explained here:
+This script requires permissions in Microsoft Defender XDR RBAC, Exchange Online, or Microsoft Entra ID, as explained here:
 
 [Permissions to Configure EOP](https://learn.microsoft.com/en-us/defender-office-365/anti-malware-policies-configure#what-do-you-need-to-know-before-you-begin)
 
