@@ -42,7 +42,7 @@ function Test-Rules($rules, $email, $domain) {
         if ($rule.SentToMemberOf) {
             $groupObjectId = Get-GroupObjectId -groupEmail $rule.SentToMemberOf
             if (![string]::IsNullOrEmpty($groupObjectId)) {
-                $isInGroup = IsInGroup $email $groupObjectId
+                $isInGroup = Test-IsInGroup $email $groupObjectId
             }
         }
 
@@ -50,7 +50,7 @@ function Test-Rules($rules, $email, $domain) {
         if ($rule.ExceptIfSentToMemberOf) {
             $groupObjectId = Get-GroupObjectId -groupEmail $rule.ExceptIfSentToMemberOf
             if (![string]::IsNullOrEmpty($groupObjectId)) {
-                $isInExceptGroup = IsInGroup $email $groupObjectId
+                $isInExceptGroup = Test-IsInGroup $email $groupObjectId
             }
         }
 
