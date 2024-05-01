@@ -8,7 +8,11 @@ function Get-GroupObjectId {
     )
 
     # Get the group
-    $group = Get-AzureADGroup -SearchString $groupEmail
+    if ($groupEmail -notlike "*@*") {
+        $group = Get-AzureADGroup -SearchString $groupEmail
+    } else {
+        $group = Get-AzureADGroup -SearchString $groupEmail.Substring(0, $groupEmail.IndexOf("@"))
+    }
 
     # Return the Object ID of the group
     return $group.ObjectId
