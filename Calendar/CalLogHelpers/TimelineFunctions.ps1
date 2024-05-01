@@ -29,24 +29,15 @@
 #>
 
 function FindOrganizer {
-    $Script:Organizer = ""
-    # find the first IPM.Appointment in the CalLogs and set the Organizer
-    foreach ($CalLog in $script:GCDO){
-        if ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -and
-            $CalLog.ExternalSharingMasterId -eq "NotFound" -and
-            $null -ne $CalLog.From) { 
-                Write-Host "Found Organizer of meeting as : [$($CalLog.From)]"
-
-            if ($null -ne $CalLog.From.SMTP) {
-                $Script:Organizer = $($CalLog.From.SMTP)
-            }
-            elseif ($null -ne $CalLog.From.DisplayName) {
-                $Script:Organizer = $($CalLog.From.DisplayName)
-            }
-            else {
+    $Script:Organizer = "Unknown"
+    $CalLog = FindFirstMeeting
+    if ($null -ne $CalLog.From) {
+        if ($null -ne $CalLog.From.SmtpEmailAddress) {
+            $Script:Organizer = $($CalLog.From.SmtpEmailAddress)
+        } elseif ($null -ne $CalLog.From.DisplayName) {
+            $Script:Organizer = $($CalLog.From.DisplayName)
+        } else {
             $Script:Organizer = $($CalLog.From)
-            }
-            break
         }
     }
     Write-Host "Setting Organizer to : [$Script:Organizer]"
@@ -195,72 +186,11 @@ function FindChangedProperties {
         }
     }
 }
-function BuildTimeline {
-    param (
-        [string] $Identity
-    )
-    $ThisMeetingID = $script:GCDO.CleanGlobalObjectId | Select-Object -Unique
-    $ShortMeetingID = $ThisMeetingID.Substring($ThisMeetingID.length - 6)
-    if ($Identity -like "*@*") {
-        $ShortName = $Identity.Split('@')[0]
-    }
-    $ShortName = $ShortName.Substring(0, [System.Math]::Min(20, $ShortName.Length))
-    $Script:TimeLineFilename = "$($ShortName)_TimeLine_$ShortMeetingID.csv"
 
-    FindOrganizer
-
-    Write-DashLineBoxColor " TimeLine for [$Identity]:",
-    "  Subject: $($script:GCDO[0].NormalizedSubject)",
-    "  Organizer: $Script:Organizer",
-    "  MeetingID: $($script:GCDO[0].CleanGlobalObjectId)"
-    [Array]$Header = ("Subject: " + ($script:GCDO[0].NormalizedSubject) + " | MeetingID: "+ ($script:GCDO[0].CleanGlobalObjectId))
-    MeetingSummary -Time "Calendar Log Timeline for Meeting with" -MeetingChanges $Header
-
-    MeetingSummary -Time "Initial Message Values" -Entry $(FindFirstMeeting)  -LongVersion
-
-    # Ignorable and items from Shared Calendars are not included in the TimeLine.
-    $MeetingTimeLine = $Results | Where-Object { $_.IsIgnorable -eq "False" -and $_.IsFromSharedCalendar -eq $False }
-
-    Write-Host "`n`n`nThis is the meetingID $ThisMeetingID`nThis is Short MeetingID $ShortMeetingID"
-    if ($MeetingTimeLine.count -eq 0) {
-        Write-Host "All CalLogs are Ignorable, nothing to create a timeline with, displaying initial values."
-    } else {
-        Write-Host "Found $($script:GCDO.count) Log entries, only the $($MeetingTimeLine.count) Non-Ignorable entries will be analyzed in the TimeLine."
-    }
-
-    foreach ($CalLog in $MeetingTimeLine) {
-        [bool] $script:MeetingSummaryNeeded = $False
-        [bool] $script:AddChangedProperties = $False
-
-        [array] $Output = TimelineRow
-        # Create the Timeline by adding to Time to the generated Output
-        $Time = "$($CalLog.LogRow) -- $($CalLog.LastModifiedTime)"
-
-        if ($Output) {
-            if ($script:MeetingSummaryNeeded) {
-                MeetingSummary -Time $Time -MeetingChanges $Output
-                MeetingSummary -Time " " -ShortVersion -Entry $CalLog
-            } else {
-                MeetingSummary -Time $Time -MeetingChanges $Output
-                if ($script:AddChangedProperties) {
-                    FindChangedProperties
-                }
-            }
-        }
-
-        # Setup Previous log (if current logs is an IPM.Appointment)
-        if ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -or $CalendarItemTypes.($CalLog.ItemClass) -eq "ExceptionMsgClass") {
-            $script:PreviousCalLog = $CalLog
-        }
-    }
-
-    $Results = @()
-}
-
-    <#
-    .SYNOPSIS
-        This is the part that generates the heart of the timeline, a Giant Switch statement based on the ItemClass.
-    #>
+<#
+.SYNOPSIS
+    This is the part that generates the heart of the timeline, a Giant Switch statement based on the ItemClass.
+#>
 function TimelineRow {
     switch -Wildcard ($CalendarItemTypes.($CalLog.ItemClass)) {
         MeetingRequest {
@@ -505,4 +435,66 @@ function TimelineRow {
     }
 
     return $Output
+}
+
+function BuildTimeline {
+    param (
+        [string] $Identity
+    )
+    $ThisMeetingID = $script:GCDO.CleanGlobalObjectId | Select-Object -Unique
+    $ShortMeetingID = $ThisMeetingID.Substring($ThisMeetingID.length - 6)
+    if ($Identity -like "*@*") {
+        $ShortName = $Identity.Split('@')[0]
+    }
+    $ShortName = $ShortName.Substring(0, [System.Math]::Min(20, $ShortName.Length))
+    $Script:TimeLineFilename = "$($ShortName)_TimeLine_$ShortMeetingID.csv"
+
+    FindOrganizer
+
+    Write-DashLineBoxColor " TimeLine for [$Identity]:",
+    "  Subject: $($script:GCDO[0].NormalizedSubject)",
+    "  Organizer: $Script:Organizer",
+    "  MeetingID: $($script:GCDO[0].CleanGlobalObjectId)"
+    [Array]$Header = ("Subject: " + ($script:GCDO[0].NormalizedSubject) + " | MeetingID: "+ ($script:GCDO[0].CleanGlobalObjectId))
+    MeetingSummary -Time "Calendar Log Timeline for Meeting with" -MeetingChanges $Header
+
+    MeetingSummary -Time "Initial Message Values" -Entry $(FindFirstMeeting)  -LongVersion
+
+    # Ignorable and items from Shared Calendars are not included in the TimeLine.
+    $MeetingTimeLine = $Results | Where-Object { $_.IsIgnorable -eq "False" -and $_.IsFromSharedCalendar -eq $False }
+
+    Write-Host "`n`n`nThis is the meetingID $ThisMeetingID`nThis is Short MeetingID $ShortMeetingID"
+    if ($MeetingTimeLine.count -eq 0) {
+        Write-Host "All CalLogs are Ignorable, nothing to create a timeline with, displaying initial values."
+    } else {
+        Write-Host "Found $($script:GCDO.count) Log entries, only the $($MeetingTimeLine.count) Non-Ignorable entries will be analyzed in the TimeLine."
+    }
+
+    foreach ($CalLog in $MeetingTimeLine) {
+        [bool] $script:MeetingSummaryNeeded = $False
+        [bool] $script:AddChangedProperties = $False
+
+        [array] $Output = TimelineRow
+        # Create the Timeline by adding to Time to the generated Output
+        $Time = "$($CalLog.LogRow) -- $($CalLog.LastModifiedTime)"
+
+        if ($Output) {
+            if ($script:MeetingSummaryNeeded) {
+                MeetingSummary -Time $Time -MeetingChanges $Output
+                MeetingSummary -Time " " -ShortVersion -Entry $CalLog
+            } else {
+                MeetingSummary -Time $Time -MeetingChanges $Output
+                if ($script:AddChangedProperties) {
+                    FindChangedProperties
+                }
+            }
+        }
+
+        # Setup Previous log (if current logs is an IPM.Appointment)
+        if ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -or $CalendarItemTypes.($CalLog.ItemClass) -eq "ExceptionMsgClass") {
+            $script:PreviousCalLog = $CalLog
+        }
+    }
+
+    $Results = @()
 }
