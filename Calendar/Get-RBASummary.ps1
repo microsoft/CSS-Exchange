@@ -272,6 +272,18 @@ function RBAProcessingValidation {
     }
 }
 
+# Write out a list of Mailboxes
+function OutputMBList {
+    param (
+        [Parameter(Mandatory)]
+        [string[]]$MBList
+    )
+    foreach ($User in $MBList) {
+        $User = Get-Mailbox -Identity $User
+        Write-Host " `t `t [$($User.DisplayName)] -- $($User.PrimarySmtpAddress)"
+    }
+}
+
 function InPolicyProcessing {
     # In-policy request processing
     Write-DashLineBoxColor @("  In-Policy request processing:") -Color Yellow
@@ -280,10 +292,7 @@ function InPolicyProcessing {
         Write-Host "`t BookInPolicy:                     {$($RbaSettings.BookInPolicy)}"
     } else {
         Write-Host "`t BookInPolicy:                     These $($RbaSettings.BookInPolicy.count) accounts do not require the delegate approval."
-        foreach ($BIPUser in $RbaSettings.BookInPolicy) {
-            $BIPUserMB = Get-Mailbox -Identity $BIPUser
-            Write-Host " `t `t [$($BIPUserMB.DisplayName)] -- $($BIPUserMB.PrimarySmtpAddress)"
-        }
+        OutputMBList($RbaSettings.BookInPolicy)
     }
     Write-Host "`t AllBookInPolicy:                 "$RbaSettings.AllBookInPolicy
     Write-Host "`t RequestInPolicy:                  {$($RbaSettings.RequestInPolicy)}"
@@ -296,10 +305,7 @@ function InPolicyProcessing {
     } else {
         if ($RbaSettings.BookInPolicy.Count -gt 0) {
             Write-Host "- The RBA will process (auto-book / accept) in-policy requests from this list of Users:"
-            foreach ($BIPUser in $RbaSettings.BookInPolicy) {
-                $BIPUserMB = Get-Mailbox -Identity $BIPUser
-                Write-Host " `t `t [$($BIPUserMB.DisplayName)] -- $($BIPUserMB.PrimarySmtpAddress)"
-            }
+            OutputMBList($RbaSettings.BookInPolicy)
         }
 
         Write-Host "- RBA will forward all in-policy meetings to the resource delegates."
@@ -317,10 +323,7 @@ function OutOfPolicyProcessing {
     Write-DashLineBoxColor @("  Out-of-Policy request processing:") -Color DarkYellow
     if ($RbaSettings.RequestOutOfPolicy.Count -gt 0) {
         Write-Host "`t RequestOutOfPolicy:           These {$($RbaSettings.RequestOutOfPolicy.Count)} accounts are allowed to submit out-of-policy requests (that require approval by a resource delegate)."
-        foreach ($OutOfPolicyUser in $RbaSettings.RequestOutOfPolicy) {
-            $OutOfPolicyUserMB = Get-Mailbox -Identity $OutOfPolicyUser
-            Write-Host "`t `t [$($OutOfPolicyUserMB.DisplayName)] -- $($OutOfPolicyUserMB.PrimarySmtpAddress)"
-        }
+        OutputMBList($RbaSettings.RequestOutOfPolicy)
     } else {
         Write-Host "`t RequestOutOfPolicy:               {$($RbaSettings.RequestOutOfPolicy)}"
     }
@@ -349,10 +352,7 @@ function RBADelegateSettings {
         Write-Host "`t ResourceDelegates:               "$RbaSettings.ResourceDelegates
     } else {
         Write-Host "`t ResourceDelegates:               $($RbaSettings.ResourceDelegates.Count) Resource Delegate`(s`) have been configured."
-        foreach ($RDUser in $RbaSettings.ResourceDelegates) {
-            $RDUserMB = Get-Mailbox $RDUser
-            Write-Host "`t `t [$($RDUserMB.DisplayName)] -- $($RDUserMB.PrimarySmtpAddress)"
-        }
+        OutputMBList($RbaSettings.ResourceDelegates)
     }
 
     Write-Host "`t AddNewRequestsTentatively:       "$RbaSettings.AddNewRequestsTentatively
@@ -372,10 +372,7 @@ function RBADelegateSettings {
                 Write-Host -ForegroundColor White "Information: Delegate(s) will not receive any In Policy requests as they will be AutoApproved."
             } elseif ($RbaSettings.BookInPolicy.Count -gt 0 ) {
                 Write-Host -ForegroundColor White "Information: Delegate(s) will not receive requests from users in the BookInPolicy as they will be AutoApproved."
-                foreach ($BIPUser in $RbaSettings.BookInPolicy) {
-                    $BIPUserMB = Get-Mailbox -Identity $BIPUser
-                    Write-Host  -ForegroundColor Yellow " `t `t [$($BIPUserMB.DisplayName)] -- $($BIPUserMB.PrimarySmtpAddress)"
-                }
+                OutputMBList($RbaSettings.BookInPolicy)
             }
 
             if ($RbaSettings.AllRequestOutOfPolicy -eq $false) {
@@ -383,10 +380,7 @@ function RBADelegateSettings {
                     Write-Host -ForegroundColor Yellow "Warning: Delegate(s) will not receive any Out of Policy requests as they will all be AutoDenied."
                 } else {
                     Write-Host -ForegroundColor Yellow "Warning: Delegate(s) will only receive any Out of Policy requests from the below list of users."
-                    foreach ($OutOfPolicyUser in $RbaSettings.RequestOutOfPolicy) {
-                        $OutOfPolicyUserMB = Get-Mailbox -Identity $OutOfPolicyUser
-                        Write-Host "`t `t [$($OutOfPolicyUserMB.DisplayName)] -- $($OutOfPolicyUserMB.PrimarySmtpAddress)"
-                    }
+                    OutputMBList($RbaSettings.RequestOutOfPolicy)
                 }
             } else {
                 Write-Host -ForegroundColor Yellow "Warning: All users can send Out of Policy requests to be approved by the Resource Delegates."
