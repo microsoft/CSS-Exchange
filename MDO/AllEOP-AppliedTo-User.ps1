@@ -46,6 +46,7 @@ param(
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 . $PSScriptRoot\..\Shared\LoggerFunctions.ps1
 . $PSScriptRoot\..\Shared\OutputOverrides\Write-Host.ps1
+. $PSScriptRoot\..\Shared\Connect-M365.ps1
 
 function Write-HostLog ($message) {
     if (![string]::IsNullOrEmpty($message)) {
@@ -79,6 +80,14 @@ if ((-not($SkipVersionCheck)) -and
     return
 }
 
+if (-not $SkipConnectionCheck) {
+    #Connect to AzureAD PS
+    Connect-AAD
+
+    #Connect to EXO PS
+    Connect-EXO
+}
+
 [MailAddress[]]$ValidEmailAddresses = $null
 
 if ($CsvFilePath ) {
@@ -106,7 +115,6 @@ if ($foundError) {
     exit
 }
 
-. $PSScriptRoot\..\Shared\Connect-M365.ps1
 . $PSScriptRoot\Shared\MDO-Functions.ps1
 
 Write-Output "`n"
@@ -119,14 +127,6 @@ The entire risk arising out of the use or performance of the sample scripts and 
 In no event shall Microsoft, its authors, or anyone else involved in the creation, production, or delivery of the scripts be liable for any damages whatsoever
 (including, without limitation, damages for loss of business profits, business interruption, loss of business information, or other pecuniary loss)
 arising out of the use of or inability to use the sample scripts or documentation, even if Microsoft has been advised of the possibility of such damages.`n" -ForegroundColor Yellow
-
-if (-not $SkipConnectionCheck) {
-    #Connect to AzureAD PS
-    Connect-AAD
-
-    #Connect to EXO PS
-    Connect-EXO
-}
 
 $AcceptedDomains = Get-AcceptedDomain
 

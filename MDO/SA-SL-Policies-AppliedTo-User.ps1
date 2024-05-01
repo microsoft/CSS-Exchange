@@ -45,6 +45,7 @@ param(
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 . $PSScriptRoot\..\Shared\LoggerFunctions.ps1
 . $PSScriptRoot\..\Shared\OutputOverrides\Write-Host.ps1
+. $PSScriptRoot\..\Shared\Connect-M365.ps1
 
 function Write-HostLog ($message) {
     if (![string]::IsNullOrEmpty($message)) {
@@ -78,6 +79,14 @@ if ((-not($SkipVersionCheck)) -and
     return
 }
 
+if (-not $SkipConnectionCheck) {
+    #Connect to AzureAD PS
+    Connect-AAD
+
+    #Connect to EXO PS
+    Connect-EXO
+}
+
 [MailAddress[]]$ValidEmailAddresses = $null
 
 if ($CsvFilePath ) {
@@ -105,7 +114,6 @@ if ($foundError) {
     exit
 }
 
-. $PSScriptRoot\..\Shared\Connect-M365.ps1
 . $PSScriptRoot\Shared\MDO-Functions.ps1
 
 Write-Output "`n"
@@ -121,14 +129,6 @@ arising out of the use of or inability to use the sample scripts or documentatio
 
 Write-Output "`n"
 Write-Host "This script checks to see which Safe Attachments policy applies to a user. Only one policy applies. It takes into account policy priorities and exclusions but doesn't check user or tenant overrides." -ForegroundColor Yellow
-
-if (-not $SkipConnectionCheck) {
-    #Connect to AzureAD PS
-    Connect-AAD
-
-    #Connect to EXO PS
-    Connect-EXO
-}
 
 $AcceptedDomains = Get-AcceptedDomain
 
