@@ -111,12 +111,6 @@ if (-not ([string]::IsNullOrEmpty($Subject)) ) {
                     Write-Host -ForegroundColor Cyan "Found $($LogToExamine.count) CalLogs to examine for Exception Logs."
                     if ($LogToExamine.count -gt 100) {
                         Write-Host -ForegroundColor Cyan "`t This is a large number of logs to examine, this may take a while."
-                        # Write-Host -ForegroundColor Blue "`Press Y to continue..."
-                        # $Answer = [console]::ReadKey($true).Key
-                        # if ($Answer -ne "Y") {
-                        #     Write-Host -ForegroundColor Cyan "User chose not to continue, skipping Exception Logs."
-                        #     $LogToExamine = $null
-                        # }
                     }
                     Write-Host -ForegroundColor Cyan "`t Ignore the next [$($LogToExamine.count)] warnings..."
                     $logLeftCount = $LogToExamine.count
