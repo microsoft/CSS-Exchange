@@ -45,6 +45,58 @@ function Get-HealthCheckerData {
         return $false
     }
 
+    function ExportHealthCheckerXml {
+        [CmdletBinding()]
+        [OutputType([bool])]
+        param(
+            [Parameter(Mandatory = $true)]
+            [object]$SaveDataObject,
+
+            [Parameter(Mandatory = $true)]
+            [hashtable]$ProgressParams
+        )
+        Write-Verbose "Calling: $($MyInvocation.MyCommand)"
+        $dataExported = $false
+
+        try {
+            $currentErrors = $Error.Count
+            $ProgressParams.Status = "Exporting Data"
+            Write-Progress @ProgressParams
+            $SaveDataObject | Export-Clixml -Path $Script:OutXmlFullPath -Encoding UTF8 -Depth 2 -ErrorAction Stop -Force
+            Write-Verbose "Successfully export out the data"
+            $dataExported = $true
+        } catch {
+            try {
+                Write-Verbose "Failed to Export-Clixml. Inner Exception: $_"
+                Write-Verbose "Converting HealthCheckerExchangeServer to json."
+                $outputXml = [PSCustomObject]@{
+                    HealthCheckerExchangeServer = $null
+                    HtmlServerValues            = $null
+                    DisplayResults              = $null
+                }
+
+                if ($null -ne $SaveDataObject.HealthCheckerExchangeServer) {
+                    $jsonHealthChecker = $SaveDataObject.HealthCheckerExchangeServer | ConvertTo-Json -Depth 6 -ErrorAction Stop
+                    $outputXml.HtmlServerValues = $SaveDataObject.HtmlServerValues
+                    $outputXml.DisplayResults = $SaveDataObject.DisplayResults
+                } else {
+                    $jsonHealthChecker = $SaveDataObject | ConvertTo-Json -Depth 6 -ErrorAction Stop
+                }
+
+                $outputXml.HealthCheckerExchangeServer = $jsonHealthChecker | ConvertFrom-Json -ErrorAction Stop
+                $outputXml | Export-Clixml -Path $Script:OutXmlFullPath -Encoding UTF8 -Depth 2 -ErrorAction Stop -Force
+                Write-Verbose "Successfully export out the data after the convert"
+                $dataExported = $true
+            } catch {
+                Write-Red "Failed to Export-Clixml. Unable to export the data."
+            }
+        } finally {
+            # This prevents the need to call Invoke-CatchActions
+            Invoke-ErrorCatchActionLoopFromIndex $currentErrors
+        }
+        return $dataExported
+    }
+
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $paramWriteProgress = @{
         Id       = 1
@@ -102,9 +154,14 @@ function Get-HealthCheckerData {
                 Write-HostLog "Exchange Health Checker version $BuildVersion"
             }
 
+            $HealthObject = $null
             $HealthObject = Get-HealthCheckerExchangeServer -ServerName $serverNameParam
             $HealthObject.OrganizationInformation = $organizationInformation
 
+            # If we successfully got the data, we want to export it out right away.
+            # This then allows if an exception does occur in the analysis stage,
+            # we then have the data output that is reproducing a problem in that section of code that we can debug.
+            $dataExported = ExportHealthCheckerXml -SaveDataObject $HealthObject -ProgressParams $paramWriteProgress
             $paramWriteProgress.Status = "Analyzing Data"
             Write-Progress @paramWriteProgress
             $analyzedResults = Invoke-AnalyzerEngine -HealthServerObject $HealthObject
@@ -118,41 +175,21 @@ function Get-HealthCheckerData {
         } catch {
             Write-Red "Failed to Health Checker against $serverName"
             $failedServerList.Add($serverName)
-            # Try to handle the issue so we don't get a false positive report.
-            Invoke-CatchActions
-            continue
-        }
 
-        $currentErrors = $Error.Count
-        $paramWriteProgress.Status = "Exporting Data"
-        Write-Progress @paramWriteProgress
-
-        try {
-            $analyzedResults | Export-Clixml -Path $Script:OutXmlFullPath -Encoding UTF8 -Depth 2 -ErrorAction Stop
-            Write-Verbose "Successfully export out the data"
-        } catch {
-            try {
-                Write-Verbose "Failed to Export-Clixml. Inner Exception: $_"
-                Write-Verbose "Converting HealthCheckerExchangeServer to json."
-                $jsonHealthChecker = $analyzedResults.HealthCheckerExchangeServer | ConvertTo-Json -Depth 6 -ErrorAction Stop
-
-                $testOutputXml = [PSCustomObject]@{
-                    HealthCheckerExchangeServer = $jsonHealthChecker | ConvertFrom-Json -ErrorAction Stop
-                    HtmlServerValues            = $analyzedResults.HtmlServerValues
-                    DisplayResults              = $analyzedResults.DisplayResults
-                }
-
-                $testOutputXml | Export-Clixml -Path $Script:OutXmlFullPath -Encoding UTF8 -Depth 2 -ErrorAction Stop
-                Write-Verbose "Successfully export out the data after the convert"
-            } catch {
-                Write-Red "Failed to Export-Clixml. Unable to export the data."
+            if ($null -eq $HealthObject) {
+                # Try to handle the issue so we don't get a false positive report.
+                Invoke-CatchActions
             }
+            continue
         } finally {
-            # This prevents the need to call Invoke-CatchActions
-            Invoke-ErrorCatchActionLoopFromIndex $currentErrors
+
+            if ($null -ne $analyzedResults) {
+                # Export out the analyzed data, as this is needed for Build HTML Report.
+                $dataExported = ExportHealthCheckerXml -SaveDataObject $analyzedResults -ProgressParams $paramWriteProgress
+            }
 
             # for now don't want to display that we output the information if ReturnDataCollectionOnly is false
-            if (-not $ReturnDataCollectionOnly) {
+            if ($dataExported -and -not $ReturnDataCollectionOnly) {
                 Write-Grey("Output file written to {0}" -f $Script:OutputFullPath)
                 Write-Grey("Exported Data Object Written to {0} " -f $Script:OutXmlFullPath)
             }
