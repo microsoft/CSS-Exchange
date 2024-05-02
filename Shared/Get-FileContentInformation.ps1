@@ -32,7 +32,7 @@ function Get-FileContentInformation {
                     $present = (Test-Path $fileLocation)
 
                     if ($present) {
-                        $content = Get-Content $fileLocation -Raw
+                        $content = Get-Content $fileLocation -Raw -Encoding UTF8
                     } else {
                         $content = $null
                     }
