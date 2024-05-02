@@ -76,10 +76,9 @@ function Get-NewOAuthToken {
     }
     end {
         return [PSCustomObject]@{
-            OAuthToken           = $oAuthToken
-            Successful           = $oAuthTokenCallSuccess
-            ExceptionMessage     = $exceptionMessage
-            LastTokenRefreshTime = (Get-Date)
+            OAuthToken       = $oAuthToken
+            Successful       = $oAuthTokenCallSuccess
+            ExceptionMessage = $exceptionMessage
         }
     }
 }

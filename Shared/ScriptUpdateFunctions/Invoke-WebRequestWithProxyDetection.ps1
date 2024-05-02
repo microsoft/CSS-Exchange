@@ -38,8 +38,11 @@ function Invoke-WebRequestWithProxyDetection {
 
     if ($null -eq $ParametersObject) {
         $params = @{
-            Uri     = $Uri
-            OutFile = $OutFile
+            Uri = $Uri
+        }
+
+        if (-not [string]::IsNullOrEmpty($OutFile)) {
+            $params.OutFile = $OutFile
         }
 
         if ($UseBasicParsing) {
