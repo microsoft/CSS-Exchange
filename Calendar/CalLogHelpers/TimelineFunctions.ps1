@@ -50,7 +50,7 @@ function FindFirstMeeting {
         $FirstMeeting = $script:GCDO | Where-Object { $_.ItemClass -eq "IPM.Appointment" }
     }
     if ($FirstMeeting.count -eq 0) {
-        Write-Error "Cannot find any IPM.Apptointments, if this is the Organizer, check for the Outlook Bifurcation issue."
+        Write-Error "Cannot find any IPM.Appointment, if this is the Organizer, check for the Outlook Bifurcation issue."
         Write-Error "No IPM.Appointment found, cannot set initial values."
     } else {
         Write-Host "Found $($script:GCDO.count) Log entries, looking at the first IPM.Appointment."
