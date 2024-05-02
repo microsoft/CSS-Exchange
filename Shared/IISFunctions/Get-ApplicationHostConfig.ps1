@@ -14,7 +14,7 @@ function Get-ApplicationHostConfig {
     $params = @{
         ComputerName           = $ComputerName
         ScriptBlockDescription = "Getting applicationHost.config"
-        ScriptBlock            = { (Get-Content "$($env:WINDIR)\System32\inetSrv\config\applicationHost.config" -Raw).Trim() }
+        ScriptBlock            = { (Get-Content "$($env:WINDIR)\System32\inetSrv\config\applicationHost.config" -Raw -Encoding UTF8).Trim() }
         CatchActionFunction    = $CatchActionFunction
     }
 

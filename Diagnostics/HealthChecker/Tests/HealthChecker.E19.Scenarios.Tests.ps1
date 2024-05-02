@@ -43,7 +43,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             # Needs to be like this to match the filter
             Mock Get-WebConfigFile -ParameterFilter { $PSPath -eq "IIS:\Sites\Exchange Back End/ecp" } -MockWith { return [PSCustomObject]@{ FullName = "$Script:MockDataCollectionRoot\Exchange\IIS\ClientAccess\ecp\web.config" } }
             Mock Get-WebConfigFile -ParameterFilter { $PSPath -eq "IIS:\Sites\Default Web Site/ecp" } -MockWith { return [PSCustomObject]@{ FullName = "$Script:MockDataCollectionRoot\Exchange\IIS\DefaultWebSite_web.config" } }
-            Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost1.config" -Raw }
+            Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost1.config" -Raw -Encoding UTF8 }
             Mock Get-ExchangeDiagnosticInfo { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo1.xml" }
             Mock Get-IISModules { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetIISModulesNoTokenCacheModule.xml" }
             Mock Get-Service {
@@ -221,9 +221,9 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-AcceptedDomain { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAcceptedDomain_Bad.xml" }
             Mock Get-DnsClient { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetDnsClient1.xml" }
             Mock Get-ExSetupFileVersionInfo { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup1.xml" }
-            Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost1.config" -Raw }
-            Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Runtime\1.0\noderunner.exe.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\noderunner.exe1.config" -Raw }
-            Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\EdgeTransport.exe.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\EdgeTransport.exe1.config" -Raw }
+            Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost1.config" -Raw -Encoding UTF8 }
+            Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Runtime\1.0\noderunner.exe.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\noderunner.exe1.config" -Raw -Encoding UTF8 }
+            Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\EdgeTransport.exe.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\EdgeTransport.exe1.config" -Raw -Encoding UTF8 }
 
             SetDefaultRunOfHealthChecker "Debug_Scenario2_Results.xml"
         }
@@ -309,7 +309,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_Processor" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\Physical_Win32_Processor1.xml" }
             Mock Get-ExSetupFileVersionInfo { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup1.xml" }
-            Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost2.config" -Raw }
+            Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost2.config" -Raw -Encoding UTF8 }
 
             SetDefaultRunOfHealthChecker "Debug_Scenario3_Physical_Results.xml"
         }

@@ -177,7 +177,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-ExSetupFileVersionInfo { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup1.xml" }
             Mock Get-WebSite -ParameterFilter { $Name -eq "Default Web Site" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\IIS\GetWebSite_DefaultWebSite1.xml" }
             Mock Get-WebConfigFile -ParameterFilter { $PSPath -eq "IIS:\Sites\Default Web Site" } -MockWith { return [PSCustomObject]@{ FullName = "$Script:MockDataCollectionRoot\Exchange\IIS\DefaultWebSite_web2.config" } }
-            Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost2.config" -Raw }
+            Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost2.config" -Raw -Encoding UTF8 }
             Mock Get-DynamicDistributionGroup { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetDynamicDistributionGroupPfMailboxes1.xml" }
             Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Get TokenCacheModule version information" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\IIS\GetVersionInformationCachToknPatched.xml" }
 
