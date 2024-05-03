@@ -17,14 +17,14 @@ Describe "CreateShortClientName" {
     }
 
     Context "When ClientInfoString is Client=MSExchangeRPC" {
-        It "Should return 'Outlook : Desktop'" {
+        It "Should return 'Outlook : Desktop : MAPI'" {
             $result = CreateShortClientName -ClientInfoString "Client=MSExchangeRPC"
-            $result | Should -Be "Outlook : Desktop"
+            $result | Should -Be "Outlook : Desktop : MAPI"
         }
     }
 
     Context "When ClientInfoString is Client=Hub Transport" {
-        It "Should return 'Outlook : Desktop'" {
+        It "Should return 'Transport'" {
             $result = CreateShortClientName -ClientInfoString "Client=Hub Transport"
             $result | Should -Be "Transport"
         }
@@ -70,9 +70,9 @@ Describe "CreateShortClientName" {
             $result | Should -Be "ActiveSyncUnknown"
         }
 
-        It "Should return 'Outlook-ModernCalendarSharing' if ClientInfoString FileContentMatch 'Outlook-iOS-Android'" {
+        It "Should return 'Outlook : ActiveSync' if ClientInfoString FileContentMatch 'Outlook-iOS-Android'" {
             $result = CreateShortClientName "Client=ActiveSync;UserAgent=Outlook-iOS-Android/1.0;Action=/Microsoft-Server-ActiveSync/Proxy/default.eas?User=test%40microsoft.com&DeviceId=BF36923991ADFBA9&DeviceType=Outlook&Cmd=SendMail"
-            $result | Should -Be "Outlook-ModernCalendarSharing"
+            $result | Should -Be "Outlook : ActiveSync"
         }
 
         It "Should return 'ActiveSyncUnknown' if ClientInfoString does not match any conditions" {
@@ -151,7 +151,7 @@ Describe "CreateShortClientName-FindMatch" {
 
     Context 'Test CreateShortClientName focusing on the FindMatch function' -ForEach @(
         @{ ClientInfoString = 'Client=Hub Transport'; Expected = "Transport" },
-        @{ ClientInfoString = 'Client=MSExchangeRPC'; Expected = "Outlook : Desktop" },
+        @{ ClientInfoString = 'Client=MSExchangeRPC'; Expected = "Outlook : Desktop : MAPI" },
         @{ ClientInfoString = 'OneOutlook'; Expected = "OneOutlook" },
         @{ ClientInfoString = 'Lync for Mac'; Expected = "LyncMac" },
         @{ ClientInfoString = 'AppId=00000004-0000-0ff1-ce00-000000000000'; Expected = "SkypeMMS" },

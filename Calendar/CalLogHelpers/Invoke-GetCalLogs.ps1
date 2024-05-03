@@ -23,6 +23,7 @@ $script:CustomPropertyNameList =
 "IsAllDayEvent",
 "IsCancelled",
 "IsMeeting",
+"IsOrganizerProperty",
 "NormalizedSubject",
 "SendMeetingMessagesDiagnostics",
 "SentRepresentingDisplayName",
