@@ -195,6 +195,21 @@ function Get-ExchangeInformation {
             Component = "ResourceThrottling"
         }
         $edgeTransportResourceThrottling = Get-ExchangeDiagnosticInformation @params
+
+        if ($getExchangeServer.IsEdgeServer -eq $false) {
+            $params = @{
+                ComputerName           = $Server
+                ScriptBlockDescription = "Getting Exchange Server Members"
+                CatchActionFunction    = ${Function:Invoke-CatchActions}
+                ScriptBlock            = {
+                    [PSCustomObject]@{
+                        LocalGroupMember  = (Get-LocalGroupMember -SID "S-1-5-32-544")
+                        ADGroupMembership = (Get-ADPrincipalGroupMembership (Get-ADComputer $env:COMPUTERNAME).DistinguishedName)
+                    }
+                }
+            }
+            $computerMembership = Invoke-ScriptBlockHandler @params
+        }
     } end {
 
         Write-Verbose "Exiting: Get-ExchangeInformation"
@@ -219,6 +234,7 @@ function Get-ExchangeInformation {
             FIPFSUpdateIssue                         = $FIPFSUpdateIssue
             AES256CBCInformation                     = $aes256CbcDetails
             FileContentInformation                   = $fileContentInformation
+            ComputerMembership                       = $computerMembership
         }
     }
 }
