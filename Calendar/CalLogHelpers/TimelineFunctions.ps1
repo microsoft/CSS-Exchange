@@ -29,8 +29,10 @@
 #>
 
 function FindOrganizer {
+    param (
+        $CalLog
+    )
     $Script:Organizer = "Unknown"
-    $CalLog = FindFirstMeeting
     if ($null -ne $CalLog.From) {
         if ($null -ne $CalLog.From.SmtpEmailAddress) {
             $Script:Organizer = $($CalLog.From.SmtpEmailAddress)
@@ -44,19 +46,20 @@ function FindOrganizer {
 }
 
 function FindFirstMeeting {
-    [array]$FirstMeeting = $script:GCDO | Where-Object { $_.ItemClass -eq "IPM.Appointment" -and $_.IsFromSharedCalendar -eq $False }
-    if ($FirstMeeting.count -eq 0) {
-        Write-Host "All CalLogs are from shared Calendar, getting values from first IPM.Appointment."
-        $FirstMeeting = $script:GCDO | Where-Object { $_.ItemClass -eq "IPM.Appointment" }
+    [array]$IpmAppointments = $script:GCDO | Where-Object { $_.ItemClass -eq "IPM.Appointment" -and $_.ExternalSharingMasterId -eq "NotFound" }
+    if ($IpmAppointments.count -eq 0) {
+        Write-Host "All CalLogs are from Shared Calendar, getting values from first IPM.Appointment."
+        $IpmAppointments = $script:GCDO | Where-Object { $_.ItemClass -eq "IPM.Appointment" }
     }
-    if ($FirstMeeting.count -eq 0) {
-        Write-Error "Cannot find any IPM.Appointment, if this is the Organizer, check for the Outlook Bifurcation issue."
-        Write-Error "No IPM.Appointment found, cannot set initial values."
+    if ($IpmAppointments.count -eq 0) {
+        Write-Host -ForegroundColor Red "Warning: Cannot find any IPM.Appointments, if this is the Organizer, check for the Outlook Bifurcation issue."
+        Write-Host -ForegroundColor Red "Warning: No IPM.Appointment found. CalLogs start to expire after 31 days."
+        return $null
     } else {
-        Write-Host "Found $($script:GCDO.count) Log entries, looking at the first IPM.Appointment."
-        return $FirstMeeting[0]
+        return $IpmAppointments[0]
     }
 }
+
 <#
 .SYNOPSIS
     Determines if key properties of the calendar log have changed.
@@ -215,6 +218,8 @@ function TimelineRow {
                                     $(if ($null -ne $($CalLog.ReceivedRepresenting) -and $CalLog.ReceivedRepresenting -ne $CalLog.ReceivedBy)
                                         { " for user [$($CalLog.ReceivedRepresenting)]" }) + "."
                                 }
+                            } elseif ($calLog.client -eq "ResourceBookingAssistant") {
+                                [array] $Output  = "ResourceBookingAssistant Forwarded a Meeting Request to a Resource Delegate."
                             } elseif ($CalLog.Client -eq "CalendarRepairAssistant") {
                                 if ($CalLog.IsException -eq $True) {
                                     [array] $Output = "CalendarRepairAssistant Created a new Meeting Request to repair an inconsistency with an exception starting on [$($CalLog.StartTime)]."
@@ -232,7 +237,11 @@ function TimelineRow {
                     }
                 }
                 Update {
-                    [array] $Output = "[$($CalLog.ResponsibleUser)] Updated on the $($CalLog.MeetingRequestType.Value) Meeting Request with $($CalLog.Client)."
+                    if ($calLog.client -eq "ResourceBookingAssistant") {
+                        [array] $Output  = "ResourceBookingAssistant Updated the Meeting Request."
+                    } else {
+                        [array] $Output = "[$($CalLog.ResponsibleUser)] Updated the $($CalLog.MeetingRequestType.Value) Meeting Request with $($CalLog.Client)."
+                    }
                 }
                 MoveToDeletedItems {
                     if ($CalLog.ResponsibleUser -eq "Calendar Assistant") {
@@ -413,6 +422,13 @@ function TimelineRow {
                         [array] $Output = "Transport $($CalLog.TriggerAction)d a Meeting Cancellation based on changes by [$($CalLog.SenderSMTPAddress)]."
                     }
                 }
+                ResourceBookingAssistant {
+                    if ($callog.TriggerAction -eq "MoveToDeletedItems") {
+                        [array] $Output = "ResourceBookingAssistant Deleted the Cancellation."
+                    } else {
+                        [array] $Output = "ResourceBookingAssistant $($CalLog.TriggerAction)d the Cancellation."
+                    }
+                }
                 default {
                     if ($CalLog.IsException -eq $True) {
                         [array] $Output = "[$($CalLog.ResponsibleUser)] $($CalLog.TriggerAction)d a Cancellation with $($CalLog.Client) for the exception starting on [$($CalLog.StartTime)]."
@@ -426,7 +442,7 @@ function TimelineRow {
         }
         default {
             if ($CalLog.TriggerAction -eq "Create") {
-                $Action = "New"
+                $Action = "New "
             } else {
                 $Action = "$($CalLog.TriggerAction)"
             }
@@ -449,25 +465,27 @@ function BuildTimeline {
     $ShortName = $ShortName.Substring(0, [System.Math]::Min(20, $ShortName.Length))
     $Script:TimeLineFilename = "$($ShortName)_TimeLine_$ShortMeetingID.csv"
 
-    FindOrganizer
-
-    Write-DashLineBoxColor " TimeLine for [$Identity]:",
-    "  Subject: $($script:GCDO[0].NormalizedSubject)",
-    "  Organizer: $Script:Organizer",
-    "  MeetingID: $($script:GCDO[0].CleanGlobalObjectId)"
-    [Array]$Header = ("Subject: " + ($script:GCDO[0].NormalizedSubject) + " | MeetingID: "+ ($script:GCDO[0].CleanGlobalObjectId))
-    MeetingSummary -Time "Calendar Log Timeline for Meeting with" -MeetingChanges $Header
-
-    MeetingSummary -Time "Initial Message Values" -Entry $(FindFirstMeeting)  -LongVersion
+    $script:FirstLog = FindFirstMeeting
+    FindOrganizer($script:FirstLog)
 
     # Ignorable and items from Shared Calendars are not included in the TimeLine.
     $MeetingTimeLine = $Results | Where-Object { $_.IsIgnorable -eq "False" -and $_.IsFromSharedCalendar -eq $False }
 
-    Write-Host "`n`n`nThis is the meetingID $ThisMeetingID`nThis is Short MeetingID $ShortMeetingID"
     if ($MeetingTimeLine.count -eq 0) {
         Write-Host "All CalLogs are Ignorable, nothing to create a timeline with, displaying initial values."
     } else {
-        Write-Host "Found $($script:GCDO.count) Log entries, only the $($MeetingTimeLine.count) Non-Ignorable entries will be analyzed in the TimeLine."
+        Write-Host "Found $($script:GCDO.count) Log entries, only the $($MeetingTimeLine.count) Non-Ignorable entries will be analyzed in the TimeLine. `n"
+    }
+
+    Write-DashLineBoxColor "  TimeLine for: [$Identity]",
+    "  Subject: $($script:GCDO[0].NormalizedSubject)",
+    "  Organizer: $Script:Organizer",
+    "  MeetingID: $($script:GCDO[0].CleanGlobalObjectId)"
+    [Array]$Header = "MeetingID: "+ ($script:GCDO[0].CleanGlobalObjectId)
+
+    MeetingSummary -Time "Calendar Timeline for Meeting" -MeetingChanges $Header
+    if ($null -ne $FirstLog) {
+        MeetingSummary -Time "Initial Message Values" -Entry $script:FirstLog -LongVersion
     }
 
     foreach ($CalLog in $MeetingTimeLine) {
