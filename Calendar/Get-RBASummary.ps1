@@ -610,8 +610,8 @@ function RBALogSummary {
         }
 
         # Making RBA Log more readable.
-        $RBALog = $RBALog.replace(", Entry Action: Message, LogComment","")
-        $RBALog = $RBALog.replace("Mailbox: ","")
+        $RBALog = $RBALog.replace(", Entry Action: Message, LogComment", "")
+        $RBALog = $RBALog.replace("Mailbox: ", "")
 
         $Filename = "RBA-Logs_$($Identity.Split('@')[0])_$((Get-Date).ToString('yyyy-MM-dd_HH-mm-ss')).txt"
         Write-Host "`r`n`t RBA Logs saved as [" -NoNewline

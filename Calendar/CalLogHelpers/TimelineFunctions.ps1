@@ -423,7 +423,7 @@ function TimelineRow {
                     }
                 }
                 ResourceBookingAssistant {
-                    if ($callog.TriggerAction -eq "MoveToDeletedItems") {
+                    if ($CalLog.TriggerAction -eq "MoveToDeletedItems") {
                         [array] $Output = "ResourceBookingAssistant Deleted the Cancellation."
                     } else {
                         [array] $Output = "ResourceBookingAssistant $($CalLog.TriggerAction)d the Cancellation."
