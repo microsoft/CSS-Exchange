@@ -511,8 +511,8 @@ function RBAPostScript {
     Write-Host "To get new RBA Logs, run the following command:"
     Write-Host -ForegroundColor Yellow "`tExport-MailboxDiagnosticLogs $Identity -ComponentName RBA"
     Write-Host
-    Write-Host "To continue troubleshooting further, suggestion is to create a Test Meeting in this room (in the future, RBA does not process meeting in the past)."
-    Write-Host "and then pull the RBA Logs as well as the Calendar Diagnostic Objects to see how the system processed the meeting request."
+    Write-Host "To continue troubleshooting further, suggestion is to create a Test Meeting and send it to this room, making sure that the meeting is in the future, as the RBA does not process meeting in the past)."
+    Write-Host "Then pull the RBA Logs as well as the Calendar Diagnostic Objects for the Meeting Organizer and the Room to see how the system processed the meeting request."
     Write-Host "For Calendar Diagnostic Objects, try [CalLogSummaryScript](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Get-CalendarDiagnosticObjectsSummary.ps1)"
 
     Write-Host "`n`rIf you found an error with this script or a misconfigured RBA case that this should cover,
@@ -608,6 +608,10 @@ function RBALogSummary {
                 Write-Host -ForegroundColor Red "`t`t Validate that Internal Meetings are not getting marked as External."
             }
         }
+
+        # Making RBA Log more readable.
+        $RBALog = $RBALog.replace(", Entry Action: Message, LogComment", "")
+        $RBALog = $RBALog.replace("Mailbox: ", "")
 
         $Filename = "RBA-Logs_$($Identity.Split('@')[0])_$((Get-Date).ToString('yyyy-MM-dd_HH-mm-ss')).txt"
         Write-Host "`r`n`t RBA Logs saved as [" -NoNewline
