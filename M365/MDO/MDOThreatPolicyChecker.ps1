@@ -47,13 +47,6 @@ param(
     [Parameter(ParameterSetName = 'AppliedTenant')]
     [switch]$SkipConnectionCheck,
 
-    [Parameter(ParameterSetName = 'AppliedCsv')]
-    [Parameter(ParameterSetName = 'AppliedEmail')]
-    [Parameter(ParameterSetName = 'AppliedTenant')]
-    [Parameter(ParameterSetName = 'AppliedMDOCsv')]
-    [Parameter(ParameterSetName = 'AppliedMDOEmail')]
-    [switch]$SkipVersionCheck,
-
     [Parameter(Mandatory = $true, ParameterSetName = "ScriptUpdateOnly")]
     [switch]$ScriptUpdateOnly
 )
@@ -340,4 +333,4 @@ if ($PSCmdlet.ParameterSetName -eq "AppliedTenant") {
     }
 }
 
-Write-Output "`n"
+Write-Host "`n"

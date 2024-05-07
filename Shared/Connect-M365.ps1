@@ -2,7 +2,6 @@
 # Licensed under the MIT License.
 
 function Test-EXOConnection {
-    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
     param ()
     #Validate EXO V2 is installed
     if ((Get-Module -ListAvailable | Where-Object { $_.Name -like "ExchangeOnlineManagement" }).count -ge 1) {
@@ -39,17 +38,7 @@ function Test-EXOConnection {
         Write-Host "You need a connection To Exchange Online, you can use:" -ForegroundColor Yellow
         Write-Host "Connect-ExchangeOnline" -ForegroundColor Yellow
         Write-Host "Please use Global administrator credentials when prompted!" -ForegroundColor Yellow
-        if ($PSCmdlet.ShouldProcess("Connection to Exchange Online", "Do you want to connect?")) {
-            Connect-ExchangeOnline -ErrorAction Stop | Out-Null
-            if ( Get-ConnectionInformation ) {
-                Write-Host "Connected to EXO V2 successfully" -ForegroundColor Cyan
-            } else {
-                Write-Host "Failed to connect to EXO V2" -ForegroundColor Red
-                break
-            }
-        } else {
-            break
-        }
+        break
     } elseif ($connection.count -eq 1) {
         Write-Host "Connected to EXO V2" -ForegroundColor Cyan
         Write-Host "Session details" -ForegroundColor Cyan
@@ -62,7 +51,6 @@ function Test-EXOConnection {
 }
 
 function Test-AADConnection {
-    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
     param ()
 
     #Validate AzureAD is installed
@@ -108,16 +96,6 @@ function Test-AADConnection {
         Write-Host "You need a connection to AzureAD, you can use:" -ForegroundColor Yellow
         Write-Host "Connect-AzureAD " -ForegroundColor Yellow
         Write-Host "Please use Global administrator credentials when prompted!" -ForegroundColor Yellow
-        if ($PSCmdlet.ShouldProcess("Connection to Azure AD", "Do you want to connect?")) {
-            Connect-AzureAD -ErrorAction Stop | Out-Null
-            if ( Get-AzureADCurrentSessionInfo ) {
-                Write-Host "Connected to AzureAD successfully" -ForegroundColor Cyan
-            } else {
-                Write-Host "Failed to connect to AzureAD" -ForegroundColor Red
-                break
-            }
-        } else {
-            break
-        }
+        break
     }
 }

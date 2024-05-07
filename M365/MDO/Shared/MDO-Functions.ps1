@@ -90,12 +90,7 @@ function Test-IsInGroup {
 # Function to check rules
 function Test-Rules {
     param(
-        #[Parameter(Mandatory = $true)]
-        #[ValidateNotNullOrEmpty()]
-        [string]$rules,
-
-        #[Parameter(Mandatory = $true)]
-        #[ValidateNotNullOrEmpty()]
+        $rules,
         [MailAddress]$email
     )
     foreach ($rule in $rules) {
@@ -134,13 +129,8 @@ function Test-Rules {
 
 function Test-RulesAlternative {
     param(
-        #[Parameter(Mandatory = $true)]
-        #[ValidateNotNullOrEmpty()]
-        [string]$rules,
-
-        #[Parameter(Mandatory = $true)]
-        #[ValidateNotNullOrEmpty()]
-        [string]$email
+        $rules,
+        [MailAddress]$email
     )
     foreach ($rule in $rules) {
         $isInGroup = $false
