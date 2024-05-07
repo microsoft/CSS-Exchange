@@ -145,7 +145,7 @@ function Test-RulesAlternative {
 
         $isInExceptGroup = $false
         if ($rule.ExceptIfFrom) {
-            $groupObjectId = Get-GroupObjectId -groupEmail $rule.ExceptIfFrom
+            $groupObjectId = Get-GroupObjectId -groupEmail $rule.ExceptIfFromMemberOf
             if ([string]::IsNullOrEmpty($groupObjectId)) {
                 Write-Host "The group in $($rule.Name) with email $($rule.ExceptIfFrom) does not exist." -ForegroundColor Yellow
             } else {
