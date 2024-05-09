@@ -2,100 +2,158 @@
 # Licensed under the MIT License.
 
 function Test-EXOConnection {
-    param ()
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
+    [OutputType([bool])]
+    param (
+        [Switch]$Force
+    )
     #Validate EXO V2 is installed
     if ((Get-Module -ListAvailable | Where-Object { $_.Name -like "ExchangeOnlineManagement" }).count -ge 1) {
-        Write-Host "ExchangeOnlineManagement Powershell Module installed" -ForegroundColor Green
+        Write-Host "ExchangeOnlineManagement Powershell Module installed"
     } else {
-        Write-Host "ExchangeOnlineManagement Powershell Module is missing `n Trying to install the module" -ForegroundColor Yellow
-        Install-Module -Name ExchangeOnlineManagement -Force -ErrorAction Stop -Scope CurrentUser
-        if ((Get-Module -ListAvailable | Where-Object { $_.Name -like "ExchangeOnlineManagement" }).count -ge 1) {
-            Write-Host "ExchangeOnlineManagement Powershell Module installed" -ForegroundColor Green
+        if ($Force -or $PSCmdlet.ShouldContinue("Do you want to install the module?", "ExchangeOnlineManagement Powershell Module not installed")) {
+            Install-Module -Name ExchangeOnlineManagement -Force -ErrorAction SilentlyContinue -Scope CurrentUser
+            if ((Get-Module -ListAvailable | Where-Object { $_.Name -like "ExchangeOnlineManagement" }).count -ge 1) {
+                Write-Host "ExchangeOnlineManagement Powershell Module installed"
+            } else {
+                Write-Host "ExchangeOnlineManagement Powershell Module installation failed" -ForegroundColor Red
+                return $false
+            }
         } else {
-            Write-Host "ExchangeOnlineManagement Powershell Module installation failed" -ForegroundColor Red
-            break
+            Write-Host "We cannot continue without ExchangeOnlineManagement Powershell module" -ForegroundColor Red
+            return $false
         }
     }
 
+    #Validate EXO V2 is loaded
     if ((Get-Module | Where-Object { $_.Name -like "ExchangeOnlineManagement" }).count -ge 1) {
-        Write-Host "ExchangeOnlineManagement Powershell Module loaded" -ForegroundColor Green
+        Write-Host "ExchangeOnlineManagement Powershell Module loaded"
     } else {
-        Import-Module ExchangeOnlineManagement -ErrorAction stop -Force
-        Write-Host "ExchangeOnlineManagement Powershell Module loading" -ForegroundColor Yellow
+        Import-Module ExchangeOnlineManagement -ErrorAction SilentlyContinue -Force
         if ((Get-Module | Where-Object { $_.Name -like "ExchangeOnlineManagement" }).count -ge 1) {
-            Write-Host "ExchangeOnlineManagement Powershell Module Loaded" -ForegroundColor Green
+            Write-Host "ExchangeOnlineManagement Powershell Module Imported"
         } else {
-            Write-Host "ExchangeOnlineManagement Powershell Module load failed" -ForegroundColor Red
-            break
+            Write-Host "ExchangeOnlineManagement Powershell Module Import failed" -ForegroundColor Red
+            return $false
         }
     }
 
+    #Validate EXO V2 is connected or try to connect
     $connection = $null
     $connection = Get-ConnectionInformation -ErrorAction SilentlyContinue
-
     if ($null -eq $connection) {
-        Write-Host "Not connected to EXO V2" -ForegroundColor Red
-        Write-Host "You need a connection To Exchange Online, you can use:" -ForegroundColor Yellow
-        Write-Host "Connect-ExchangeOnline" -ForegroundColor Yellow
-        Write-Host "Please use Global administrator credentials when prompted!" -ForegroundColor Yellow
-        break
+        Write-Host "Please use Global administrator credentials" -ForegroundColor Yellow
+        if ($Force -or $PSCmdlet.ShouldContinue("Do you want to connect?", "We need a ExchangeOnlineManagement connection")) {
+            Connect-ExchangeOnline -ErrorAction SilentlyContinue
+            $connection = Get-ConnectionInformation -ErrorAction SilentlyContinue
+            if ($null -eq $connection) {
+                Write-Host "Connection could not be established" -ForegroundColor Red
+                Write-Host "We cannot continue without ExchangeOnlineManagement Powershell session" -ForegroundColor Red
+                return $false
+            } else {
+                Write-Host "Connected to EXO V2"
+                Write-Host "Session details"
+                Write-Host "Tenant Id: $($connection.TenantId)"
+                Write-Host "User: $($connection.UserPrincipalName)"
+                return $true
+            }
+        } else {
+            Write-Host "We cannot continue without ExchangeOnlineManagement Powershell session" -ForegroundColor Red
+            return $false
+        }
     } elseif ($connection.count -eq 1) {
-        Write-Host "Connected to EXO V2" -ForegroundColor Cyan
-        Write-Host "Session details" -ForegroundColor Cyan
-        Write-Host "Tenant Id: $($connection.TenantId)" -ForegroundColor Cyan
-        Write-Host "User: $($connection.UserPrincipalName)" -ForegroundColor Cyan
+        Write-Host "Connected to EXO V2"
+        Write-Host "Session details"
+        Write-Host "Tenant Id: $($connection.TenantId)"
+        Write-Host "User: $($connection.UserPrincipalName)"
+        return $true
     } else {
         Write-Host "You have more than one EXO sessions please use just one session" -ForegroundColor Red
-        break
+        return $false
     }
 }
 
 function Test-AADConnection {
-    param ()
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
+    [OutputType([bool])]
+    param (
+        [Switch]$Force
+    )
 
     #Validate AzureAD is installed
     if ((Get-Module -ListAvailable | Where-Object { $_.Name -like "AzureAD" }).count -ge 1) {
-        Write-Host "AzureAD Powershell Module installed" -ForegroundColor Green
+        Write-Host "AzureAD Powershell Module installed"
     } else {
-        Write-Host "AzureAD Powershell Module is missing `n Trying to install the module" -ForegroundColor Red
-        Install-Module -Name AzureAD -Repository PSGallery -AllowClobber -Force -ErrorAction Stop -Scope CurrentUser
-        if ((Get-Module -ListAvailable | Where-Object { $_.Name -like "AzureAD" }).count -ge 1) {
-            Write-Host "AzureAD Powershell Module installed" -ForegroundColor Green
+        if ($Force -or $PSCmdlet.ShouldContinue("Do you want to install the module?", "AzureAD Powershell Module not installed")) {
+            Install-Module -Name AzureAD -Repository PSGallery -AllowClobber -Force -ErrorAction SilentlyContinue -Scope CurrentUser
+            if ((Get-Module -ListAvailable | Where-Object { $_.Name -like "AzureAD" }).count -ge 1) {
+                Write-Host "AzureAD Powershell Module installed"
+            } else {
+                Write-Host "AzureAD Powershell Module installation failed" -ForegroundColor Red
+                return $false
+            }
         } else {
-            Write-Host "AzureAD Powershell Module installation failed" -ForegroundColor Red
-            break
+            Write-Host "We cannot continue without AzureAD Powershell module" -ForegroundColor Red
+            return $false
         }
     }
 
+    #Validate AzureAD is loaded
     if ((Get-Module | Where-Object { $_.Name -like "AzureAD" }).count -ge 1) {
-        Write-Host "AzureAD Powershell Module loaded" -ForegroundColor Green
+        Write-Host "AzureAD Powershell Module loaded"
     } else {
-        Import-Module AzureAD -ErrorAction stop -Force
-        Write-Host "AzureAD Powershell Module loading" -ForegroundColor Yellow
+        Import-Module AzureAD -ErrorAction SilentlyContinue -Force
         if ((Get-Module | Where-Object { $_.Name -like "AzureAD" }).count -ge 1) {
-            Write-Host "AzureAD Powershell Module Loaded" -ForegroundColor Green
+            Write-Host "AzureAD Powershell Module Imported"
         } else {
-            Write-Host "AzureAD Powershell Module load failed" -ForegroundColor Red
-            break
+            Write-Host "AzureAD Powershell Module Import failed" -ForegroundColor Red
+            return $false
         }
     }
 
+    #Validate AzureAD is connected or try to connect
     try {
         $connection = $null
         $connection = Get-AzureADTenantDetail -ErrorAction SilentlyContinue
-        if ($connection.count -eq 1) {
-            Write-Host "Connected to AzureAD" -ForegroundColor Cyan
-            Write-Host "Session details" -ForegroundColor Cyan
-            Write-Host "Tenant: $($connection.DisplayName)" -ForegroundColor Cyan
+        if ($null -eq $connection) {
+            Write-Host "Not connected to AzureAD" -ForegroundColor Red
+            Write-Host "We cannot continue without AzureAD Powershell session" -ForegroundColor Red
+            return $false
         } else {
-            Write-Host "You have more than one AzureAD sessions please use just one session" -ForegroundColor Red
-            break
+            if ($connection.count -eq 1) {
+                Write-Host "Connected to AzureAD"
+                Write-Host "Session details"
+                Write-Host "Tenant: $($connection.DisplayName)"
+                return $true
+            } else {
+                Write-Host "You have more than one AzureAD sessions please use just one session" -ForegroundColor Red
+                return $false
+            }
         }
     } catch [Microsoft.Open.Azure.AD.CommonLibrary.AadNeedAuthenticationException] {
-        Write-Host "Not connected to AzureAD" -ForegroundColor Red
-        Write-Host "You need a connection to AzureAD, you can use:" -ForegroundColor Yellow
-        Write-Host "Connect-AzureAD " -ForegroundColor Yellow
-        Write-Host "Please use Global administrator credentials when prompted!" -ForegroundColor Yellow
-        break
+        Write-Host "Please use Global administrator credentials" -ForegroundColor Yellow
+        if ($Force -or $PSCmdlet.ShouldContinue("Do you want to connect?", "We need a AzureAD connection")) {
+            Connect-AzureAD -ErrorAction SilentlyContinue
+            try {
+                $connection = Get-AzureADTenantDetail -ErrorAction SilentlyContinue
+                if ($null -eq $connection) {
+                    Write-Host "Connection could not be established" -ForegroundColor Red
+                    Write-Host "We cannot continue without AzureAD Powershell session" -ForegroundColor Red
+                    return $false
+                } else {
+                    Write-Host "Connected to AzureAD"
+                    Write-Host "Session details"
+                    Write-Host "Tenant: $($connection.DisplayName)"
+                    return $true
+                }
+            } catch [Microsoft.Open.Azure.AD.CommonLibrary.AadNeedAuthenticationException] {
+                Write-Host "Connection could not be established" -ForegroundColor Red
+                Write-Host "We cannot continue without AzureAD Powershell session" -ForegroundColor Red
+                return $false
+            }
+        } else {
+            Write-Host "We cannot continue without AzureAD Powershell session" -ForegroundColor Red
+            return $false
+        }
     }
 }
