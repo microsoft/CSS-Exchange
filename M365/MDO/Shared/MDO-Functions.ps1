@@ -114,8 +114,17 @@ function Test-Rules {
             }
         }
 
+        $temp = $email.Host
+        $DomainIncluded = $false
+        while ($temp.IndexOf(".") -gt 0) {
+            if ($temp -in $rule.RecipientDomainIs) {
+                $DomainIncluded = $true
+            }
+            $temp = $temp.Substring($temp.IndexOf(".") + 1)
+        }
+
         if (($email -in $rule.SentTo -or !$rule.SentTo) -and
-            ($email.Host -in $rule.RecipientDomainIs -or !$rule.RecipientDomainIs) -and
+            ($email.Host -in $DomainIncluded -or !$rule.RecipientDomainIs) -and
             ($isInGroup -or !$rule.SentToMemberOf)) {
             if (($email -notin $rule.ExceptIfSentTo -or !$rule.ExceptIfSentTo) -and
                 ($email.Host -notin $rule.ExceptIfRecipientDomainIs -or !$rule.ExceptIfRecipientDomainIs) -and
