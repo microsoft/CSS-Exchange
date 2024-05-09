@@ -106,7 +106,10 @@ function Invoke-AnalyzerSecurityExchangeCertificates {
             Add-AnalyzedResultInformation @params
         }
 
-        if ($certificate.PublicKeySize -lt 2048) {
+        # We show the 'Key Size' if a certificate is RSA or DSA based but not for ECC certificates where it would be displayed with a value of 0
+        # More information: https://stackoverflow.com/questions/32873851/load-a-certificate-using-x509certificate2-with-ecc-public-key
+        if ($certificate.PublicKeySize -lt 2048 -and
+            -not($certificate.IsEccCertificate)) {
             $params = $baseParams + @{
                 Name                   = "Key size"
                 Details                = $certificate.PublicKeySize
@@ -121,7 +124,7 @@ function Invoke-AnalyzerSecurityExchangeCertificates {
                 DisplayCustomTabNumber = 2
             }
             Add-AnalyzedResultInformation @params
-        } else {
+        } elseif (-not($certificate.IsEccCertificate)) {
             $params = $baseParams + @{
                 Name                   = "Key size"
                 Details                = $certificate.PublicKeySize
@@ -129,6 +132,13 @@ function Invoke-AnalyzerSecurityExchangeCertificates {
             }
             Add-AnalyzedResultInformation @params
         }
+
+        $params = $baseParams + @{
+            Name                   = "ECC Certificate"
+            Details                = $certificate.IsEccCertificate
+            DisplayCustomTabNumber = 2
+        }
+        Add-AnalyzedResultInformation @params
 
         if ($certificate.SignatureHashAlgorithmSecure -eq 1) {
             $shaDisplayWriteType = "Yellow"

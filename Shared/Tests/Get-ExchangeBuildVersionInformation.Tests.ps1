@@ -179,16 +179,20 @@ Describe "Testing Get-ExchangeBuildVersionInformation.ps1" {
                 $latestSU.Supported | Should -Be $true
                 $latestSU.LatestSU | Should -Be $true
                 $notSecondVersionSU = $null -eq ($latestSU.FriendlyName | Select-String "\D{3}\d{2}SUv\d")
+                $notHotfixUpdate = $null -eq ($latestSU.FriendlyName | Select-String "\D{3}\d{2}HU") # Hotfix updates are cumulative and contain the latest security improvements
 
                 if ($latest2SUs.Count -eq 2 -and
-                    $notSecondVersionSU) {
+                    $notSecondVersionSU -and
+                    $notHotfixUpdate) {
                     $latestSU = Get-ExchangeBuildVersionInformation -FileVersion $latest2SUs[1]
                     $latestSU.Supported | Should -Be $true
                     $latestSU.LatestSU | Should -Be $false
                 } elseif ($latest2SUs.Count -eq 2) {
                     $secondSU = Get-ExchangeBuildVersionInformation -FileVersion $latest2SUs[1]
                     $secondSU.Supported | Should -Be $true
-                    $latestSU.FriendlyName.Substring(0, $latestSU.FriendlyName.Length - 2) | Should -Be $secondSU.FriendlyName
+                    if ($notHotfixUpdate) {
+                        $latestSU.FriendlyName.Substring(0, $latestSU.FriendlyName.Length - 2) | Should -Be $secondSU.FriendlyName
+                    }
                     # This test could change depending on the reason for the v2 release.
                     $secondSU.LatestSU | Should -Be $true
                 }
@@ -212,16 +216,20 @@ Describe "Testing Get-ExchangeBuildVersionInformation.ps1" {
             $latestSupportedSU.Supported | Should -Be $true
             $latestSupportedSU.LatestSU | Should -Be $true
             $notSecondVersionSU = $null -eq ($latestSupportedSU.FriendlyName | Select-String "\D{3}\d{2}SUv\d")
+            $notHotfixUpdate = $null -eq ($latestSupportedSU.FriendlyName | Select-String "\D{3}\d{2}HU") # Hotfix updates are cumulative and contain the latest security improvements
 
             if ($latestSupportedSUs.Count -eq 2 -and
-                $notSecondVersionSU) {
+                $notSecondVersionSU -and
+                $notHotfixUpdate) {
                 $latestSupportedSU = Get-ExchangeBuildVersionInformation -FileVersion $latestSupportedSUs[1]
                 $latestSupportedSU.Supported | Should -Be $true
                 $latestSupportedSU.LatestSU | Should -Be $false
             } elseif ($latestSupportedSUs.Count -eq 2) {
                 $secondSU = Get-ExchangeBuildVersionInformation -FileVersion $latestSupportedSUs[1]
                 $secondSU.Supported | Should -Be $true
-                $latestSupportedSU.FriendlyName.Substring(0, $latestSupportedSU.FriendlyName.Length - 2) | Should -Be $secondSU.FriendlyName
+                if ($notHotfixUpdate) {
+                    $latestSupportedSU.FriendlyName.Substring(0, $latestSupportedSU.FriendlyName.Length - 2) | Should -Be $secondSU.FriendlyName
+                }
                 # This test could change depending on the reason for the v2 release.
                 $secondSU.LatestSU | Should -Be $true
             }
@@ -259,15 +267,19 @@ Describe "Testing Get-ExchangeBuildVersionInformation.ps1" {
             $latestSU.LatestSU | Should -Be $true
 
             $notSecondVersionSU = $null -eq ($latestSU.FriendlyName | Select-String "\D{3}\d{2}SUv\d")
+            $notHotfixUpdate = $null -eq ($latestSU.FriendlyName | Select-String "\D{3}\d{2}HU") # Hotfix updates are cumulative and contain the latest security improvements
 
-            if ($notSecondVersionSU) {
+            if ($notSecondVersionSU -and
+                $notHotfixUpdate) {
                 $previousSU = Get-ExchangeBuildVersionInformation -FileVersion $latest2SUs[1]
                 $previousSU.Supported | Should -Be $true
                 $previousSU.LatestSU | Should -Be $false
             } else {
                 $previousSU = Get-ExchangeBuildVersionInformation -FileVersion $latest2SUs[1]
                 $previousSU.Supported | Should -Be $true
-                $latestSU.FriendlyName.Substring(0, $latestSU.FriendlyName.Length - 2) | Should -Be $previousSU.FriendlyName
+                if ($notHotfixUpdate) {
+                    $latestSU.FriendlyName.Substring(0, $latestSU.FriendlyName.Length - 2) | Should -Be $previousSU.FriendlyName
+                }
                 # This test could change depending on the reason for the v2 release.
                 $previousSU.LatestSU | Should -Be $true
             }

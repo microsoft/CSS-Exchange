@@ -240,9 +240,9 @@ function Invoke-AnalyzerKnownBuildIssues {
         }
         $params = @{
             CurrentVersion          = $currentVersion
-            KnownBuildIssuesToFixes = @((GetKnownIssueBuildInformation "15.2.1544.9" $null),
-                (GetKnownIssueBuildInformation "15.2.1258.32" $null),
-                (GetKnownIssueBuildInformation "15.1.2507.37", $null))
+            KnownBuildIssuesToFixes = @((GetKnownIssueBuildInformation "15.2.1544.9" "15.2.1544.11"),
+                (GetKnownIssueBuildInformation "15.2.1258.32" "15.2.1258.34"),
+                (GetKnownIssueBuildInformation "15.1.2507.37", "15.1.2507.39"))
             InformationUrl          = (GetKnownIssueInformation @infoParams)
         }
         TestForKnownBuildIssues @params

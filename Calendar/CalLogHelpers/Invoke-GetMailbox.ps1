@@ -67,7 +67,7 @@ Checks the identities are EXO Mailboxes.
 #>
 function CheckIdentities {
     if (Get-Command -Name Get-Mailbox -ErrorAction SilentlyContinue) {
-        Write-Host "Validated connection to Exchange Online."
+        Write-Host "Validated connection to Exchange Online..."
     } else {
         Write-Error "Get-Mailbox cmdlet not found. Please validate that you are running this script from an Exchange Management Shell and try again."
         Write-Host "Look at Import-Module ExchangeOnlineManagement and Connect-ExchangeOnline."

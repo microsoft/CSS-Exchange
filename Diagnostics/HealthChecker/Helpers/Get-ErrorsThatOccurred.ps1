@@ -14,7 +14,8 @@ function Get-ErrorsThatOccurred {
     }
 
     if ($Error.Count -gt 0) {
-        Write-Grey(" "); Write-Grey(" ")
+        Write-Host ""
+        Write-Host ""
         function Write-Errors {
             Write-Verbose "`r`n`r`nErrors that occurred that wasn't handled"
 
