@@ -210,6 +210,7 @@ function Get-ExchangeServerCertificates {
                                 FriendlyName                   = $certFriendlyName
                                 Thumbprint                     = $cert.Thumbprint
                                 PublicKeySize                  = $cert.PublicKey.Key.KeySize
+                                IsEccCertificate               = $cert.PublicKey.Oid.Value -eq "1.2.840.10045.2.1" # WellKnownOid for ECC
                                 SignatureAlgorithm             = $certSignatureAlgorithm
                                 SignatureHashAlgorithm         = $certSignatureHashAlgorithm
                                 SignatureHashAlgorithmSecure   = $certSignatureHashAlgorithmSecure

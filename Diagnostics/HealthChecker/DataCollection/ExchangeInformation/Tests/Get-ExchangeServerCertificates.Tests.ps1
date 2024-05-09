@@ -49,6 +49,7 @@ Describe "Testing Get-ExchangeServerCertificates.ps1" {
             $results[0].SignatureHashAlgorithmSecure | Should -Be 1
             $results[0].IsSanCertificate | Should -Be $false
             $results[0].PublicKeySize | Should -Be 2048
+            $results[0].IsEccCertificate | Should -Be $false
         }
 
         It "Valid SAN Certificate (using weak SHA1 Hash Algorithm) Detected" {
@@ -61,12 +62,14 @@ Describe "Testing Get-ExchangeServerCertificates.ps1" {
             $results[1].IsSanCertificate | Should -Be $true
             ($results[1].Namespaces).Count | Should -Be 2
             $results[1].PublicKeySize | Should -Be 2048
+            $results[1].IsEccCertificate | Should -Be $false
         }
 
         It "Valid Certificate (using strong SHA256 Hash Algorithm) Detected" {
             $results[3].FriendlyName | Should -Be "WMSvc-SHA2-WIN-CTD3L0RGen4"
             $results[3].Thumbprint | Should -Be "3341CEAF3DF4D3A9527EC98BDD53C54ECC3E0620"
             $results[3].PublicKeySize | Should -Be 2048
+            $results[3].IsEccCertificate | Should -Be $false
             $results[3].SignatureAlgorithm | Should -Be "sha256RSA"
             $results[3].SignatureHashAlgorithm | Should -Be "sha256"
             $results[3].SignatureHashAlgorithmSecure | Should -Be 2

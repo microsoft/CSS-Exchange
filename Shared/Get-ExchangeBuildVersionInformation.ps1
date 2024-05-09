@@ -127,6 +127,7 @@ function Get-ExchangeBuildVersionInformation {
                     $cuReleaseDate = "02/13/2024"
                     $supportedBuildNumber = $true
                 }
+                (GetBuildVersion $ex19 "CU14" -SU "Apr24HU") { $latestSUBuild = $true }
                 (GetBuildVersion $ex19 "CU14" -SU "Mar24SU") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex19 "CU14") } {
                     $cuLevel = "CU13"
@@ -134,6 +135,7 @@ function Get-ExchangeBuildVersionInformation {
                     $supportedBuildNumber = $true
                     $orgValue = 16761
                 }
+                (GetBuildVersion $ex19 "CU13" -SU "Apr24HU") { $latestSUBuild = $true }
                 (GetBuildVersion $ex19 "CU13" -SU "Mar24SU") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex19 "CU13") } {
                     $cuLevel = "CU12"
@@ -226,6 +228,7 @@ function Get-ExchangeBuildVersionInformation {
                     $cuReleaseDate = "04/20/2022"
                     $supportedBuildNumber = $true
                 }
+                (GetBuildVersion $ex16 "CU23" -SU "Apr24HU") { $latestSUBuild = $true }
                 (GetBuildVersion $ex16 "CU23" -SU "Mar24SU") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex16 "CU23") } {
                     $cuLevel = "CU22"
@@ -711,6 +714,7 @@ function GetExchangeBuildDictionary {
                     "Oct23SU"   = "15.1.2507.34"
                     "Nov23SU"   = "15.1.2507.35"
                     "Mar24SU"   = "15.1.2507.37"
+                    "Apr24HU"   = "15.1.2507.39"
                 })
         }
         "Exchange2019" = @{
@@ -809,9 +813,11 @@ function GetExchangeBuildDictionary {
                     "Oct23SU"   = "15.2.1258.27"
                     "Nov23SU"   = "15.2.1258.28"
                     "Mar24SU"   = "15.2.1258.32"
+                    "Apr24HU"   = "15.2.1258.34"
                 })
             "CU14" = (NewCUAndSUObject "15.2.1544.4" @{
                     "Mar24SU" = "15.2.1544.9"
+                    "Apr24HU" = "15.2.1544.11"
                 })
         }
     }

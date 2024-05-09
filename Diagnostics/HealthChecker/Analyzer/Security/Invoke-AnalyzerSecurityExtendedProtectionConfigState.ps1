@@ -168,6 +168,17 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
                     Details          = "For more information about Extended Protection and how to configure, please read this article:`n`thttps://aka.ms/HC-ExchangeEPDoc"
                 }
                 Add-AnalyzedResultInformation @moreInformationParams
+            } elseif ($SecurityObject.OsInformation.RegistryValues.SuppressExtendedProtection -ne 0) {
+                # If this key is set, we need to flag it as the server being vulnerable.
+                $params = $baseParams + @{
+                    Name                = "Security Vulnerability"
+                    Details             = $cveList
+                    DisplayWriteType    = "Red"
+                    TestingName         = "Extended Protection Vulnerable"
+                    CustomName          = $cveList
+                    DisplayTestingValue = $true
+                }
+                Add-AnalyzedResultInformation @params
             } else {
                 Write-Verbose "System NOT vulnerable to $cveList"
             }

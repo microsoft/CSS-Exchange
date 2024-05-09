@@ -27,6 +27,8 @@
 #
 # Get-CalendarDiagnosticObjectsSummary.ps1 -Identity User1, User2, Delegate -MeetingID $MeetingID
 #
+# Get-CalendarDiagnosticObjectsSummary.ps1 -Identity $Users -MeetingID $MeetingID -TrackingLogs -Exceptions
+#
 
 [CmdletBinding(DefaultParameterSetName = 'Subject')]
 param (
@@ -109,12 +111,6 @@ if (-not ([string]::IsNullOrEmpty($Subject)) ) {
                     Write-Host -ForegroundColor Cyan "Found $($LogToExamine.count) CalLogs to examine for Exception Logs."
                     if ($LogToExamine.count -gt 100) {
                         Write-Host -ForegroundColor Cyan "`t This is a large number of logs to examine, this may take a while."
-                        Write-Host -ForegroundColor Blue "`Press Y to continue..."
-                        $Answer = [console]::ReadKey($true).Key
-                        if ($Answer -ne "Y") {
-                            Write-Host -ForegroundColor Cyan "User chose not to continue, skipping Exception Logs."
-                            $LogToExamine = $null
-                        }
                     }
                     Write-Host -ForegroundColor Cyan "`t Ignore the next [$($LogToExamine.count)] warnings..."
                     $logLeftCount = $LogToExamine.count
@@ -123,7 +119,7 @@ if (-not ([string]::IsNullOrEmpty($Subject)) ) {
                         $logLeftCount -= 1
                         Write-Verbose "Getting Exception Logs for [$($_.ItemId.ObjectId)]"
                         Get-CalendarDiagnosticObjects -Identity $ID -ItemIds $_.ItemId.ObjectId -ShouldFetchRecurrenceExceptions $true -CustomPropertyNames $CustomPropertyNameList
-                        if ($logLeftCount % 50 -eq 0) {
+                        if ($logLeftCount % 20 -eq 0) {
                             Write-Host -ForegroundColor Cyan "`t [$($logLeftCount)] logs left to examine..."
                         }
                     }
