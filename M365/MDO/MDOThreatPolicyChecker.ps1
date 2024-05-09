@@ -103,11 +103,44 @@ arising out of the use of or inability to use the sample scripts or documentatio
 if (-not $SkipConnectionCheck) {
     if ($PSCmdlet.ParameterSetName -ne "AppliedTenant") {
         #Connect to AzureAD PS
-        Test-AADConnection
+        try {
+            $connection = $null
+            $connection = Get-AzureADTenantDetail -ErrorAction SilentlyContinue
+            if ($connection.count -eq 1) {
+                Write-Host "Connected to AzureAD"
+                Write-Host "Session details"
+                Write-Host "Tenant: $($connection.DisplayName)"
+            } else {
+                Write-Host "You have more than one AzureAD sessions please use just one session" -ForegroundColor Red
+                break
+            }
+        } catch [Microsoft.Open.Azure.AD.CommonLibrary.AadNeedAuthenticationException] {
+            Write-Host "Not connected to AzureAD" -ForegroundColor Red
+            Write-Host "You need a connection to AzureAD, you can use:" -ForegroundColor Yellow
+            Write-Host "Connect-AzureAD " -ForegroundColor Yellow
+            break
+        }
     }
 
     #Connect to EXO PS
-    Test-EXOConnection
+    $connection = $null
+    $connection = Get-ConnectionInformation -ErrorAction SilentlyContinue
+    if ($null -eq $connection) {
+        Write-Host "Not connected to EXO V2" -ForegroundColor Red
+        Write-Host "You need a connection To Exchange Online, you can use:" -ForegroundColor Yellow
+        Write-Host "Connect-ExchangeOnline" -ForegroundColor Yellow
+        Write-Host "Please use Global administrator credentials when prompted!" -ForegroundColor Yellow
+        Write-Host "Exchange Online Powershell Module is required" -ForegroundColor Red
+        break
+    } elseif ($connection.count -eq 1) {
+        Write-Host "Connected to EXO V2"
+        Write-Host "Session details"
+        Write-Host "Tenant Id: $($connection.TenantId)"
+        Write-Host "User: $($connection.UserPrincipalName)"
+    } else {
+        Write-Host "You have more than one EXO sessions please use just one session" -ForegroundColor Red
+        break
+    }
 }
 
 if ($PSCmdlet.ParameterSetName -eq "AppliedTenant") {
@@ -256,7 +289,6 @@ if ($PSCmdlet.ParameterSetName -eq "AppliedTenant") {
             if ($null -ne $matchedRule -and $ATPProtectionPolicyRules -contains $matchedRule) {
                 Write-Host ("The preset security policy applies to the user for both Safe Attachments and Safe Links: `n   Name: {0}`n   Priority: {1}`n   The policy actions are not configurable.`n" -f $matchedRule.Name, $matchedRule.Priority) -ForegroundColor Magenta
             } else {
-
 
                 if ($null -eq $matchedRule) {
                     # No match in preset ATPProtectionPolicyRules, check custom SafeAttachmentRules
