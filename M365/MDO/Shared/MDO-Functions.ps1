@@ -153,7 +153,7 @@ function Test-RulesAlternative {
         }
 
         $isInExceptGroup = $false
-        if ($rule.ExceptIfFrom) {
+        if ($rule.ExceptIfFromMemberOf) {
             $groupObjectId = Get-GroupObjectId -groupEmail $rule.ExceptIfFromMemberOf
             if ([string]::IsNullOrEmpty($groupObjectId)) {
                 Write-Host "The group in $($rule.Name) with email $($rule.ExceptIfFrom) does not exist." -ForegroundColor Yellow
@@ -177,9 +177,21 @@ function Test-RulesAlternative {
 
 function Get-Policy($rule, $policyType) {
     if ($null -eq $rule) {
-        $policyDetails = "`nThe $policyType policy: `n   The Default policy."
+        if ($policyType -eq "Anti-phish") {
+            $policyDetails = "`n$policyType policy features User & Domain Impersonation, Mailbox & Spoof Intelligence, and Honor DMARC: `n  The Default policy."
+        } elseif ($policyType -eq "Anti-spam") {
+            $policyDetails = "`n$policyType policy features, plus phish and high-confidence phish detections: `n  The Default policy."
+        } else {
+            $policyDetails = "`n$policyType policy: `n  The Default policy."
+        }
     } else {
-        $policyDetails = "`nThe $policyType policy: `n   Name: {0}`n   Priority: {1}" -f $rule.Name, $rule.Priority
+        if ($policyType -eq "Anti-phish") {
+            $policyDetails = "`n$policyType policy features User & Domain Impersonation, Mailbox & Spoof Intelligence, and Honor DMARC: `n  Name: {0}  `n  Priority: {1}" -f $rule.Name, $rule.Priority
+        } elseif ($policyType -eq "Anti-spam") {
+            $policyDetails = "`n$policyType policy features, plus phish and high-confidence phish detections: `n  Name: {0}`n  Priority: {1}" -f $rule.Name, $rule.Priority
+        } else {
+            $policyDetails = "`n$policyType policy: `n  Name: {0}`n  Priority: {1}" -f $rule.Name, $rule.Priority
+        }
     }
     return $policyDetails
 }

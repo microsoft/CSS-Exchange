@@ -269,7 +269,7 @@ if ($PSCmdlet.ParameterSetName -eq "AppliedTenant") {
 
     if ($IncludeMDOPolicies -or $OnlyMDOPolicies) {
         Write-Output "`n"
-        Write-Host "This script checks to see which Safe Attachments policy applies to a user. Only one policy applies. It takes into account policy priorities and exclusions but doesn't check user or tenant overrides." -ForegroundColor Yellow
+        Write-Host "This script checks to see which Safe Attachments and Safe Links policies apply to a user." -ForegroundColor Yellow
         # Get the rules from Get-SafeAttachmentRule and Get-ATPProtectionPolicyRule
         $SafeAttachmentRules = Get-SafeAttachmentRule | Where-Object { $_.State -ne 'Disabled' }
         $SafeLinksRules = Get-SafeLinksRule | Where-Object { $_.State -ne 'Disabled' }
