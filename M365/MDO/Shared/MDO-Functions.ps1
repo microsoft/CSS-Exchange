@@ -157,24 +157,32 @@ function Test-RulesAlternative {
     foreach ($rule in $rules) {
         $isInGroup = $false
         if ($rule.FromMemberOf) {
-            $groupObjectId = Get-GroupObjectId -groupEmail $rule.FromMemberOf
-            if ([string]::IsNullOrEmpty($groupObjectId)) {
-                Write-Host "The group in $($rule.Name)  with email $($rule.FromMemberOf) does not exist." -ForegroundColor Yellow
-            } else {
-                $isInGroup = Test-IsInGroup -email $email -groupObjectId $groupObjectId
+            foreach ($groupEmail in $rule.FromMemberOf) {
+                $groupObjectId = Get-GroupObjectId -groupEmail $rule.FromMemberOf
+                if ([string]::IsNullOrEmpty($groupObjectId)) {
+                    Write-Host "The group in $($rule.Name)  with email $($rule.FromMemberOf) does not exist." -ForegroundColor Yellow
+                } else {
+                    $isInGroup = Test-IsInGroup -email $email -groupObjectId $groupObjectId
+                    if ($isInGroup) {
+                        break
+                    }
+                }
             }
         }
-
         $isInExceptGroup = $false
         if ($rule.ExceptIfFromMemberOf) {
-            $groupObjectId = Get-GroupObjectId -groupEmail $rule.ExceptIfFromMemberOf
-            if ([string]::IsNullOrEmpty($groupObjectId)) {
-                Write-Host "The group in $($rule.Name) with email $($rule.ExceptIfFrom) does not exist." -ForegroundColor Yellow
-            } else {
-                $isInExceptGroup = Test-IsInGroup -email $email -groupObjectId $groupObjectId
+            foreach ($groupEmail in $rule.ExceptIfFromMemberOf) {
+                $groupObjectId = Get-GroupObjectId -groupEmail $rule.ExceptIfFromMemberOf
+                if ([string]::IsNullOrEmpty($groupObjectId)) {
+                    Write-Host "The group in $($rule.Name) with email $($rule.ExceptIfFrom) does not exist." -ForegroundColor Yellow
+                } else {
+                    $isInExceptGroup = Test-IsInGroup -email $email -groupObjectId $groupObjectId
+                    if ($isInExceptGroup) {
+                        break
+                    }
+                }
             }
         }
-
         if (($email -in $rule.From -or !$rule.From) -and
         ($email.Host -in $rule.SenderDomainIs -or !$rule.SenderDomainIs) -and
         ($isInGroup -or !$rule.FromMemberOf)) {
