@@ -149,6 +149,7 @@ function Test-Rules {
     }
     return $null
 }
+
 function Test-RulesAlternative {
     param(
         $rules,
