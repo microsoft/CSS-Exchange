@@ -15,7 +15,7 @@ function Get-GroupObjectId {
         $group = Get-MgGroup -Filter "MailNickname eq '$($tempAddress.User)'"
 
         # Return the Object ID of the group
-        return $group.ObjectId
+        return $group.Id
     } catch {
         Write-Host "The EmailAddress of group $groupEmail cannot be validated. Please provide a valid email address." -ForegroundColor Red
         return $null
