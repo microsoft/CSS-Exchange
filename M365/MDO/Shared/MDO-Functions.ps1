@@ -72,14 +72,17 @@ function Test-IsInGroup {
     )
 
     # Get the group members
-    $groupMembers = $null
-    $groupMembers = Get-AzureADGroupMember -ObjectId $groupObjectId
+    $groupMembers = Get-MgGroupMember -GroupId $groupObjectId
 
     # Check if the email address is in the group
     if ($null -ne $groupMembers) {
         foreach ($member in $groupMembers) {
-            if ($member.Mail -eq $email)
-            { return $true }
+            # Get the user object by Id
+            $user = Get-MgUser -UserId $member.Id
+            # Compare the user's email address with the $email parameter
+            if ($user.Mail -eq $email) {
+                return $true
+            }
         }
     } else {
         Write-Host "The group with Object ID $groupObjectId does not have any members." -ForegroundColor Red
@@ -96,21 +99,31 @@ function Test-Rules {
     foreach ($rule in $rules) {
         $isInGroup = $false
         if ($rule.SentToMemberOf) {
-            $groupObjectId = Get-GroupObjectId -groupEmail $rule.SentToMemberOf
-            if ([string]::IsNullOrEmpty($groupObjectId)) {
-                Write-Host "The group in $($rule.Name) with email address $($rule.SentToMemberOf) does not exist." -ForegroundColor Yellow
-            } else {
-                $isInGroup = Test-IsInGroup $email $groupObjectId
+            foreach ($groupEmail in $rule.SentToMemberOf) {
+                $groupObjectId = Get-GroupObjectId -groupEmail $groupEmail
+                if ([string]::IsNullOrEmpty($groupObjectId)) {
+                    Write-Host "The group in $($rule.Name) with email address $groupEmail does not exist." -ForegroundColor Yellow
+                } else {
+                    $isInGroup = Test-IsInGroup $email.Address $groupObjectId
+                    if ($isInGroup) {
+                        break
+                    }
+                }
             }
         }
 
         $isInExceptGroup = $false
         if ($rule.ExceptIfSentToMemberOf) {
-            $groupObjectId = Get-GroupObjectId -groupEmail $rule.ExceptIfSentToMemberOf
-            if ([string]::IsNullOrEmpty($groupObjectId)) {
-                Write-Host "The group in $($rule.Name) with email address $($rule.ExceptIfSentToMemberOf) does not exist." -ForegroundColor Yellow
-            } else {
-                $isInExceptGroup = Test-IsInGroup $email $groupObjectId
+            foreach ($groupEmail in $rule.ExceptIfSentToMemberOf) {
+                $groupObjectId = Get-GroupObjectId -groupEmail $groupEmail
+                if ([string]::IsNullOrEmpty($groupObjectId)) {
+                    Write-Host "The group in $($rule.Name) with email address $groupEmail does not exist." -ForegroundColor Yellow
+                } else {
+                    $isInExceptGroup = Test-IsInGroup $email.Address $groupObjectId
+                    if ($isInExceptGroup) {
+                        break
+                    }
+                }
             }
         }
 
@@ -119,15 +132,16 @@ function Test-Rules {
         while ($temp.IndexOf(".") -gt 0) {
             if ($temp -in $rule.RecipientDomainIs) {
                 $DomainIncluded = $true
+                break
             }
             $temp = $temp.Substring($temp.IndexOf(".") + 1)
         }
 
         if (($email -in $rule.SentTo -or !$rule.SentTo) -and
-            ($email.Host -in $DomainIncluded -or !$rule.RecipientDomainIs) -and
+            ($DomainIncluded -or !$rule.RecipientDomainIs) -and
             ($isInGroup -or !$rule.SentToMemberOf)) {
             if (($email -notin $rule.ExceptIfSentTo -or !$rule.ExceptIfSentTo) -and
-                ($email.Host -notin $rule.ExceptIfRecipientDomainIs -or !$rule.ExceptIfRecipientDomainIs) -and
+                (!$DomainIncluded -or !$rule.ExceptIfRecipientDomainIs) -and
                 (!$isInExceptGroup -or !$rule.ExceptIfSentToMemberOf)) {
                 return $rule
             }
@@ -135,7 +149,6 @@ function Test-Rules {
     }
     return $null
 }
-
 function Test-RulesAlternative {
     param(
         $rules,
