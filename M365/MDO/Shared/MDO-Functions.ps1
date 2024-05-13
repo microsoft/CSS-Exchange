@@ -12,7 +12,7 @@ function Get-GroupObjectId {
         $tempAddress = $null
         $tempAddress = [MailAddress]$groupEmail
         # Get the group
-        $group = Get-AzureADGroup -SearchString $tempAddress.User
+        $group = Get-MgGroup -Filter "MailNickname eq '$($tempAddress.User)'"
 
         # Return the Object ID of the group
         return $group.ObjectId
