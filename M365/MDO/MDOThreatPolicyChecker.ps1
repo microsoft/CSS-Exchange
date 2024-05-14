@@ -100,24 +100,50 @@ In no event shall Microsoft, its authors, or anyone else involved in the creatio
 (including, without limitation, damages for loss of business profits, business interruption, loss of business information, or other pecuniary loss)
 arising out of the use of or inability to use the sample scripts or documentation, even if Microsoft has been advised of the possibility of such damages.`n" -ForegroundColor Yellow
 
+function Test-GraphContext {
+    [OutputType([bool])]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string[]]$Scopes,
+        [Parameter(Mandatory = $true)]
+        [string[]]$ExpectedScopes
+    )
+
+    $ValidScope = $true
+    foreach ($ExpectedScope in $ExpectedScopes) {
+        if ($Scopes -contains $ExpectedScope) {
+            Write-Verbose "Scopes $ExpectedScope is present."
+        } else {
+            Write-Host "The following scope is missing: $ExpectedScope" -ForegroundColor Red
+            $ValidScope = $false
+        }
+    }
+
+    return $ValidScope
+}
+
 if (-not $SkipConnectionCheck) {
     if ($PSCmdlet.ParameterSetName -ne "AppliedTenant") {
-        #Connect to AzureAD PS
-        try {
-            $connection = $null
-            $connection = Get-AzureADTenantDetail -ErrorAction SilentlyContinue
-            if ($connection.count -eq 1) {
-                Write-Host "Connected to AzureAD"
+        #Validate Graph is connected or try to connect
+        $connection = $null
+        $connection = Get-MgContext -ErrorAction SilentlyContinue
+        if ($null -eq $connection) {
+            Write-Host "Not connected to Graph" -ForegroundColor Red
+            Write-Host "Please use Global administrator credentials" -ForegroundColor Yellow
+            Write-Host "Connect-MgGraph -Scopes 'Group.Read.All','User.Read.All'" -ForegroundColor Yellow
+            break
+        } elseif ($connection.count -eq 1) {
+            $ExpectedScopes = "GroupMember.Read.All", 'User.Read.All'
+            if (Test-GraphContext -Scopes $connection.Scopes -ExpectedScopes $ExpectedScopes) {
+                Write-Host "Connected to Graph"
                 Write-Host "Session details"
-                Write-Host "Tenant: $($connection.DisplayName)"
+                Write-Host "Tenant: $((Get-MgOrganization).DisplayName)"
             } else {
-                Write-Host "You have more than one AzureAD sessions please use just one session" -ForegroundColor Red
+                Write-Host "We cannot continue without Graph Powershell session non Expected Scopes found" -ForegroundColor Red
                 break
             }
-        } catch [Microsoft.Open.Azure.AD.CommonLibrary.AadNeedAuthenticationException] {
-            Write-Host "Not connected to AzureAD" -ForegroundColor Red
-            Write-Host "You need a connection to AzureAD, you can use:" -ForegroundColor Yellow
-            Write-Host "Connect-AzureAD " -ForegroundColor Yellow
+        } else {
+            Write-Host "You have more than one Graph sessions please use just one session" -ForegroundColor Red
             break
         }
     }
