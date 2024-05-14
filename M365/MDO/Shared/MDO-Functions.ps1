@@ -129,10 +129,13 @@ function Test-Rules {
 
         $temp = $email.Host
         $DomainIncluded = $false
+        $DomainExcluded = $false
         while ($temp.IndexOf(".") -gt 0) {
             if ($temp -in $rule.RecipientDomainIs) {
                 $DomainIncluded = $true
-                break
+            }
+            if ($temp -in $rule.ExceptIfRecipientDomainIs) {
+                $DomainExcluded = $true
             }
             $temp = $temp.Substring($temp.IndexOf(".") + 1)
         }
@@ -141,7 +144,7 @@ function Test-Rules {
             ($DomainIncluded -or !$rule.RecipientDomainIs) -and
             ($isInGroup -or !$rule.SentToMemberOf)) {
             if (($email -notin $rule.ExceptIfSentTo -or !$rule.ExceptIfSentTo) -and
-                (!$DomainIncluded -or !$rule.ExceptIfRecipientDomainIs) -and
+                (!$DomainExcluded -or !$rule.ExceptIfRecipientDomainIs) -and
                 (!$isInExceptGroup -or !$rule.ExceptIfSentToMemberOf)) {
                 return $rule
             }
@@ -158,29 +161,52 @@ function Test-RulesAlternative {
     foreach ($rule in $rules) {
         $isInGroup = $false
         if ($rule.FromMemberOf) {
-            $groupObjectId = Get-GroupObjectId -groupEmail $rule.FromMemberOf
-            if ([string]::IsNullOrEmpty($groupObjectId)) {
-                Write-Host "The group in $($rule.Name)  with email $($rule.FromMemberOf) does not exist." -ForegroundColor Yellow
-            } else {
-                $isInGroup = Test-IsInGroup -email $email -groupObjectId $groupObjectId
+            foreach ($groupEmail in $rule.FromMemberOf) {
+                $groupObjectId = Get-GroupObjectId -groupEmail $groupEmail
+                if ([string]::IsNullOrEmpty($groupObjectId)) {
+                    Write-Host "The group in $($rule.Name)  with email $groupEmail does not exist." -ForegroundColor Yellow
+                } else {
+                    $isInGroup = Test-IsInGroup -email $email.Address -groupObjectId $groupObjectId
+                    if ($isInGroup) {
+                        break
+                    }
+                }
             }
         }
 
         $isInExceptGroup = $false
         if ($rule.ExceptIfFromMemberOf) {
-            $groupObjectId = Get-GroupObjectId -groupEmail $rule.ExceptIfFromMemberOf
-            if ([string]::IsNullOrEmpty($groupObjectId)) {
-                Write-Host "The group in $($rule.Name) with email $($rule.ExceptIfFrom) does not exist." -ForegroundColor Yellow
-            } else {
-                $isInExceptGroup = Test-IsInGroup -email $email -groupObjectId $groupObjectId
+            foreach ($groupEmail in $rule.ExceptIfFromMemberOf) {
+                $groupObjectId = Get-GroupObjectId -groupEmail $groupEmail
+                if ([string]::IsNullOrEmpty($groupObjectId)) {
+                    Write-Host "The group in $($rule.Name) with email $groupEmail does not exist." -ForegroundColor Yellow
+                } else {
+                    $isInExceptGroup = Test-IsInGroup -email $email.Address -groupObjectId $groupObjectId
+                    if ($isInExceptGroup) {
+                        break
+                    }
+                }
             }
         }
 
+        $temp = $email.Host
+        $DomainIncluded = $false
+        $DomainExcluded = $false
+        while ($temp.IndexOf(".") -gt 0) {
+            if ($temp -in $rule.SenderDomainIs) {
+                $DomainIncluded = $true
+            }
+            if ($temp -in $rule.ExceptIfRecipientDomainIs) {
+                $DomainExcluded = $true
+            }
+            $temp = $temp.Substring($temp.IndexOf(".") + 1)
+        }
+
         if (($email -in $rule.From -or !$rule.From) -and
-        ($email.Host -in $rule.SenderDomainIs -or !$rule.SenderDomainIs) -and
+        ($DomainIncluded -or !$rule.SenderDomainIs) -and
         ($isInGroup -or !$rule.FromMemberOf)) {
             if (($email -notin $rule.ExceptIfFrom -or !$rule.ExceptIfFrom) -and
-            ($email.Host -notin $rule.ExceptIfSenderDomainIs -or !$rule.ExceptIfSenderDomainIs) -and
+            (!$DomainExcluded -or !$rule.ExceptIfSenderDomainIs) -and
             (!$isInExceptGroup -or !$rule.ExceptIfFromMemberOf)) {
                 return $rule
             }
