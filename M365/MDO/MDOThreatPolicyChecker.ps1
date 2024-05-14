@@ -257,7 +257,6 @@ if ($PSCmdlet.ParameterSetName -eq "AppliedTenant") {
                 Write-Host ("The preset security policy applies to the user for both Safe Attachments and Safe Links: `n   Name: {0}`n   Priority: {1}`n   The policy actions are not configurable.`n" -f $matchedRule.Name, $matchedRule.Priority) -ForegroundColor Magenta
             } else {
 
-
                 if ($null -eq $matchedRule) {
                     # No match in preset ATPProtectionPolicyRules, check custom SafeAttachmentRules
                     $SAmatchedRule = Test-Rules -rules $SafeAttachmentRules -email $emailAddress -domain $domain
