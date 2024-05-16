@@ -3,22 +3,44 @@
 
 <#
 .SYNOPSIS
- Checks which MDO/EOP threat policies cover a particular user.
+ This script checks which Microsoft Defender for Office 365 and Exchange Online Protection threat policies cover a particular user, including anti-malware, anti-phishing, inbound and outbound anti-spam, as well as Safe Attachments and Safe Links policies in case these are licensed for your tenant. In addition, the script can check for threat policies that have inclusion and/or exclusion settings that may be redundant or confusing and lead to missed coverage of users or coverage by an unexpected threat policy.
 
-.Description
- Which policy applies to USER?
-	a. Checks only for enabled policies and accounts for inclusions/exclusions within enabled policies.
-	b. Input can be an individual's email address or a CSV file.
-	c. Prints rule priority and policy/rule that applies. If none, prints Default policy. Priority property 0 is highest.
-    d. Option to print to screen or to an output file.
-	e. Checks any existing groups in AAD to get members.
-	f. This script is backed by documentation about script priorities and behavior at the time of writing.
-	g. CONSIDERATIONS: Preset rules have no configurable or visible properties. Their set values documented here:
-       https://learn.microsoft.com/en-us/microsoft-365/security/office-365-security/preset-security-policies?view=o365-worldwide#policy-settings-in-preset-security-policies
+.DESCRIPTION
+ This script checks which Microsoft Defender for Office 365 and Exchange Online Protection threat policies cover a particular user, including anti-malware, anti-phishing, inbound and outbound anti-spam, as well as Safe Attachments and Safe Links policies in case these are licensed for your tenant. In addition, the script can check for threat policies that have inclusion and/or exclusion settings that may be redundant or confusing and lead to missed coverage of users or coverage by an unexpected threat policy.
 
-.NOTES
-The script checks for connection to AzureAD and Exchange Online, and, if not connected, connects you before running this script.
-Only read-only permissions are needed as the script only reads from policies.
+.PARAMETER CsvFilePath
+  Allows you to specify a CSV file with a list of email addresses to check.
+.PARAMETER EmailAddresses
+  Allows you to specify email address or multiple addresses separated by commas.
+.PARAMETER IncludeMDOPolicies
+  Checks both EOP and MDO (Safe Attachment and Safe Links) policies for user(s) specified in the CSV file or EmailAddresses parameter.
+.PARAMETER OnlyMDOPolicies
+  Checks only MDO (Safe Attachment and Safe Links) policies for user(s) specified in the CSV file or EmailAddresses parameter.
+.PARAMETER SkipConnectionCheck
+  Skips connection check for Graph and Exchange Online.
+.PARAMETER ScriptUpdateOnly
+  Just updates script version to latest one.
+
+
+.EXAMPLE
+	.\MDOThreatPolicyChecker.ps1
+	To check all threat policies for potentially confusing user inclusion and/or exclusion conditions and print them out for review.
+
+.EXAMPLE
+	.\MDOThreatPolicyChecker.ps1 -CsvFilePath [Path\filename.csv]
+	To provide a CSV input file with email addresses and see only EOP policies.
+
+.EXAMPLE
+	.\MDOThreatPolicyChecker.ps1 -EmailAddresses user1@domainX.com,user2@domainY.com
+	To provide multiple email addresses by command line and see only EOP policies.
+
+.EXAMPLE
+	.\MDOThreatPolicyChecker.ps1 -CsvFilePath [Path\filename.csv] -IncludeMDOPolicies
+	To provide a CSV input file with email addresses and see both EOP and MDO policies.
+
+.EXAMPLE
+	.\MDOThreatPolicyChecker.ps1 -EmailAddresses user1@domainX.com -OnlyMDOPolicies
+	To provide an email address and see only MDO (Safe Attachment and Safe Links) policies.
 #>
 
 [CmdletBinding(DefaultParameterSetName = 'AppliedTenant')]
