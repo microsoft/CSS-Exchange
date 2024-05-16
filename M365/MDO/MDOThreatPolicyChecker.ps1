@@ -100,31 +100,9 @@ In no event shall Microsoft, its authors, or anyone else involved in the creatio
 (including, without limitation, damages for loss of business profits, business interruption, loss of business information, or other pecuniary loss)
 arising out of the use of or inability to use the sample scripts or documentation, even if Microsoft has been advised of the possibility of such damages.`n" -ForegroundColor Yellow
 
-function Test-GraphContext {
-    [OutputType([bool])]
-    param (
-        [Parameter(Mandatory = $true)]
-        [string[]]$Scopes,
-        [Parameter(Mandatory = $true)]
-        [string[]]$ExpectedScopes
-    )
-
-    $ValidScope = $true
-    foreach ($ExpectedScope in $ExpectedScopes) {
-        if ($Scopes -contains $ExpectedScope) {
-            Write-Verbose "Scopes $ExpectedScope is present."
-        } else {
-            Write-Host "The following scope is missing: $ExpectedScope" -ForegroundColor Red
-            $ValidScope = $false
-        }
-    }
-
-    return $ValidScope
-}
-
 if (-not $SkipConnectionCheck) {
     if ($PSCmdlet.ParameterSetName -ne "AppliedTenant") {
-        #Validate Graph is connected or try to connect
+        #Validate Graph is connected
         $connection = $null
         $connection = Get-MgContext -ErrorAction SilentlyContinue
         if ($null -eq $connection) {
@@ -148,7 +126,7 @@ if (-not $SkipConnectionCheck) {
         }
     }
 
-    #Connect to EXO PS
+    #Validate EXO PS Connection
     $connection = $null
     $connection = Get-ConnectionInformation -ErrorAction SilentlyContinue
     if ($null -eq $connection) {
@@ -229,11 +207,24 @@ if ($PSCmdlet.ParameterSetName -eq "AppliedTenant") {
         $EmailAddresses = Import-Csv -Path $CsvFilePath | Select-Object -ExpandProperty Email
     }
 
+    $AcceptedDomains = $null
+    $AcceptedDomains = Get-AcceptedDomain
+
+    if ($null -eq $AcceptedDomains) {
+        Write-Host "We do not get accepted domains." -ForegroundColor Red
+        exit
+    }
+
+    if ($AcceptedDomains.count -eq 0) {
+        Write-Host "No accepted domains found." -ForegroundColor Red
+        exit
+    }
+
     $foundError = $false
     [MailAddress[]]$ValidEmailAddresses = $null
     foreach ($EmailAddress in $EmailAddresses) {
         $tempAddress = $null
-        $tempAddress = Test-EmailAddress -EmailAddress $EmailAddress
+        $tempAddress = Test-EmailAddress -EmailAddress $EmailAddress -AcceptedDomains $AcceptedDomains
         if ($null -eq $tempAddress) {
             $foundError = $true
         } else {
@@ -250,13 +241,25 @@ if ($PSCmdlet.ParameterSetName -eq "AppliedTenant") {
         $hostedContentFilterRules = Get-HostedContentFilterRule | Where-Object { $_.State -ne 'Disabled' }
         $hostedOutboundSpamFilterRules = Get-HostedOutboundSpamFilterRule | Where-Object { $_.State -ne 'Disabled' }
         $eopProtectionPolicyRules = Get-EOPProtectionPolicyRule | Where-Object { $_.State -ne 'Disabled' }
+    }
 
-        foreach ($email in $ValidEmailAddresses) {
-            $emailAddress = $email.ToString()
-            # Initialize a variable to capture all policy details
-            $allPolicyDetails = ""
-            $userDetails = Get-UserDetails -emailAddress $emailAddress
+    if ($IncludeMDOPolicies -or $OnlyMDOPolicies) {
+        #Write-Output "`n"
+        #Write-Host "This script checks to see which Safe Attachments and Safe Links policies apply to a user." -ForegroundColor Yellow
+        # Get the rules from Get-SafeAttachmentRule and Get-ATPProtectionPolicyRule
+        $SafeAttachmentRules = Get-SafeAttachmentRule | Where-Object { $_.State -ne 'Disabled' }
+        $SafeLinksRules = Get-SafeLinksRule | Where-Object { $_.State -ne 'Disabled' }
+        $ATPProtectionPolicyRules = Get-ATPProtectionPolicyRule | Where-Object { $_.State -ne 'Disabled' }
+        #Write-Output "`n"
+    }
 
+    foreach ($email in $ValidEmailAddresses) {
+        $emailAddress = $email.ToString()
+        # Initialize a variable to capture all policy details
+        $allPolicyDetails = ""
+        $userDetails = "`nPolicies applied to $emailAddress : "
+
+        if ( -not $OnlyMDOPolicies) {
             # Check the EOPProtectionPolicyRules first as they have higher precedence
             $matchedRule = $null
             $matchedRule = Test-Rules -rules $eopProtectionPolicyRules -email $emailAddress
@@ -291,23 +294,11 @@ if ($PSCmdlet.ParameterSetName -eq "AppliedTenant") {
 
             Write-Host $allPolicyDetails -ForegroundColor Yellow
         }
-    }
 
-    if ($IncludeMDOPolicies -or $OnlyMDOPolicies) {
-        Write-Output "`n"
-        Write-Host "This script checks to see which Safe Attachments and Safe Links policies apply to a user." -ForegroundColor Yellow
-        # Get the rules from Get-SafeAttachmentRule and Get-ATPProtectionPolicyRule
-        $SafeAttachmentRules = Get-SafeAttachmentRule | Where-Object { $_.State -ne 'Disabled' }
-        $SafeLinksRules = Get-SafeLinksRule | Where-Object { $_.State -ne 'Disabled' }
-        $ATPProtectionPolicyRules = Get-ATPProtectionPolicyRule | Where-Object { $_.State -ne 'Disabled' }
-
-        Write-Output "`n"
-
-        foreach ($email in $ValidEmailAddresses) {
-            $emailAddress = $email.ToString()
+        if ($IncludeMDOPolicies -or $OnlyMDOPolicies) {
             $domain = $email.Host
 
-            Write-Host "`nChecking user $emailAddress..."
+            Write-Host "`nChecking MDO for $emailAddress..."
 
             # Check the ATPProtectionPolicyRules first as they have higher precedence
             $matchedRule = Test-Rules -rules $ATPProtectionPolicyRules -email $emailAddress -domain $domain
@@ -336,7 +327,7 @@ if ($PSCmdlet.ParameterSetName -eq "AppliedTenant") {
                     # Check if the user is a member of any group in ExceptIfSentToMemberOf
                     foreach ($groupEmail in $builtInProtectionRule.ExceptIfSentToMemberOf) {
                         $groupObjectId = Get-GroupObjectId -groupEmail $groupEmail
-                        if (![string]::IsNullOrEmpty($groupObjectId) -and (Test-IsInGroup $emailAddress $groupObjectId)) {
+                        if (![string]::IsNullOrEmpty($groupObjectId) -and (Test-IsInGroup -email $emailAddress -groupObjectId $groupObjectId)) {
                             $isInExcludedGroup = $true
                             break
                         }
@@ -366,7 +357,7 @@ if ($PSCmdlet.ParameterSetName -eq "AppliedTenant") {
                     # Check if the user is a member of any group in ExceptIfSentToMemberOf
                     foreach ($groupEmail in $builtInProtectionRule.ExceptIfSentToMemberOf) {
                         $groupObjectId = Get-GroupObjectId -groupEmail $groupEmail
-                        if (![string]::IsNullOrEmpty($groupObjectId) -and (Test-IsInGroup $emailAddress $groupObjectId)) {
+                        if (![string]::IsNullOrEmpty($groupObjectId) -and (Test-IsInGroup -email $emailAddress -groupObjectId $groupObjectId)) {
                             $isInExcludedGroup = $true
                             break
                         }

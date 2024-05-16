@@ -2,76 +2,74 @@
 # Licensed under the MIT License.
 
 function Get-GroupObjectId {
+    [OutputType([string])]
     param(
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string]$groupEmail
+        [MailAddress]$groupEmail
     )
 
-    try {
-        $tempAddress = $null
-        $tempAddress = [MailAddress]$groupEmail
-        # Get the group
-        $group = Get-MgGroup -Filter "MailNickname eq '$($tempAddress.User)'"
+    # Get the group
+    $group = $null
+    $group = Get-MgGroup -Filter "mail eq '$($groupEmail)'" -ErrorAction SilentlyContinue
 
+    if ($group) {
         # Return the Object ID of the group
         return $group.Id
-    } catch {
-        Write-Host "The EmailAddress of group $groupEmail cannot be validated. Please provide a valid email address." -ForegroundColor Red
+    } else {
+        Write-Host "The EmailAddress of group $groupEmail vas not found" -ForegroundColor Red
         return $null
     }
 }
 
 function Test-EmailAddress {
+    [OutputType([MailAddress])]
     param(
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string]$EmailAddress
+        [string]$EmailAddress,
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        $AcceptedDomains
     )
 
     try {
         $tempAddress = $null
         $tempAddress = [MailAddress]$EmailAddress
-        $recipient = $null
-        $recipient = Get-Recipient $tempAddress.ToString() -ErrorAction SilentlyContinue
-        if ($null -eq $recipient) {
-            Write-Host "$EmailAddress is not a recipient in this tenant" -ForegroundColor Red
-            return $null
-        } else {
-            $AcceptedDomains = $null
-            $AcceptedDomains = Get-AcceptedDomain
-            if ($AcceptedDomains.count -gt 0) {
-                $Domain = $tempAddress.Host
-                if ($AcceptedDomains.DomainName -contains $Domain) {
-                    return $tempAddress
-                } else {
-                    Write-Host "The domain $Domain is not an accepted domain in your organization. Please provide a valid email address." -ForegroundColor Red
-                    return $null
-                }
-            } else {
-                Write-Host "The accepted domains is empty" -ForegroundColor Red
-                return $null
-            }
-        }
     } catch {
         Write-Host "The EmailAddress $EmailAddress cannot be validated. Please provide a valid email address." -ForegroundColor Red
         return $null
+    }
+    $recipient = $null
+    $recipient = Get-Recipient $EmailAddress -ErrorAction SilentlyContinue
+    if ($null -eq $recipient) {
+        Write-Host "$EmailAddress is not a recipient in this tenant" -ForegroundColor Red
+        return $null
+    } else {
+        $Domain = $tempAddress.Host
+        if ($AcceptedDomains.DomainName -contains $Domain) {
+            return $tempAddress
+        } else {
+            Write-Host "The domain $Domain is not an accepted domain in your organization. Please provide a valid email address." -ForegroundColor Red
+            return $null
+        }
     }
 }
 
 # Function to check if an email is in a group
 function Test-IsInGroup {
+    [OutputType([bool])]
     param(
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string]$email,
-
+        [MailAddress]$email,
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [string]$groupObjectId
     )
 
     # Get the group members
+    $groupMembers = $null
     $groupMembers = Get-MgGroupMember -GroupId $groupObjectId
 
     # Check if the email address is in the group
@@ -80,7 +78,7 @@ function Test-IsInGroup {
             # Get the user object by Id
             $user = Get-MgUser -UserId $member.Id
             # Compare the user's email address with the $email parameter
-            if ($user.Mail -eq $email) {
+            if ($user.Mail -eq $email.ToString()) {
                 return $true
             }
         }
@@ -104,7 +102,7 @@ function Test-Rules {
                 if ([string]::IsNullOrEmpty($groupObjectId)) {
                     Write-Host "The group in $($rule.Name) with email address $groupEmail does not exist." -ForegroundColor Yellow
                 } else {
-                    $isInGroup = Test-IsInGroup $email.Address $groupObjectId
+                    $isInGroup = Test-IsInGroup -email $email -groupObjectId $groupObjectId
                     if ($isInGroup) {
                         break
                     }
@@ -119,7 +117,7 @@ function Test-Rules {
                 if ([string]::IsNullOrEmpty($groupObjectId)) {
                     Write-Host "The group in $($rule.Name) with email address $groupEmail does not exist." -ForegroundColor Yellow
                 } else {
-                    $isInExceptGroup = Test-IsInGroup $email.Address $groupObjectId
+                    $isInExceptGroup = Test-IsInGroup -email $email -groupObjectId $groupObjectId
                     if ($isInExceptGroup) {
                         break
                     }
@@ -164,7 +162,7 @@ function Test-RulesAlternative {
             foreach ($groupEmail in $rule.FromMemberOf) {
                 $groupObjectId = Get-GroupObjectId -groupEmail $groupEmail
                 if ([string]::IsNullOrEmpty($groupObjectId)) {
-                    Write-Host "The group in $($rule.Name)  with email $groupEmail does not exist." -ForegroundColor Yellow
+                    Write-Host "The group in $($rule.Name) with email $groupEmail does not exist." -ForegroundColor Yellow
                 } else {
                     $isInGroup = Test-IsInGroup -email $email.Address -groupObjectId $groupObjectId
                     if ($isInGroup) {
@@ -215,7 +213,12 @@ function Test-RulesAlternative {
     return $null
 }
 
-function Get-Policy($rule, $policyType) {
+function Get-Policy {
+    param(
+        $rule = $null,
+        $policyType = $null
+    )
+
     if ($null -eq $rule) {
         if ($policyType -eq "Anti-phish") {
             $policyDetails = "`n$policyType policy features User & Domain Impersonation, Mailbox & Spoof Intelligence, and Honor DMARC: `n  The Default policy."
@@ -236,7 +239,24 @@ function Get-Policy($rule, $policyType) {
     return $policyDetails
 }
 
-function Get-UserDetails($emailAddress) {
-    $userDetails = "`nPolicies applied to $emailAddress : "
-    return $userDetails
+function Test-GraphContext {
+    [OutputType([bool])]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string[]]$Scopes,
+        [Parameter(Mandatory = $true)]
+        [string[]]$ExpectedScopes
+    )
+
+    $ValidScope = $true
+    foreach ($ExpectedScope in $ExpectedScopes) {
+        if ($Scopes -contains $ExpectedScope) {
+            Write-Verbose "Scopes $ExpectedScope is present."
+        } else {
+            Write-Host "The following scope is missing: $ExpectedScope" -ForegroundColor Red
+            $ValidScope = $false
+        }
+    }
+
+    return $ValidScope
 }
