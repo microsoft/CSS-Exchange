@@ -195,26 +195,26 @@ if ($PSCmdlet.ParameterSetName -eq "AppliedTenant") {
 
             # Check the logic of the policy and add issues to the list
             if ($Policy.SentTo -and $Policy.ExceptIfSentTo) {
-                $Issues += "User inclusions and exclusions. Excluding and including Users individually is redundant and confusing as only the included Users could possibly be included.`nSuggestion: excluding individual Users should be used to exclude from group or domain inclusions, if needed."
+                $Issues += "User inclusions and exclusions. Excluding and including Users individually is redundant and confusing as only the included Users could possibly be included."
             }
             if ($Policy.RecipientDomainIs -and $Policy.ExceptIfRecipientDomainIs) {
                 $Issues += "Domain inclusions and exclusions. Excluding and including Domains is redundant and confusing as only the included Domains could possibly be included."
             }
             if ($Policy.SentTo -and $Policy.SentToMemberOf) {
-                $Issues += "Illogical inclusions of Users and Groups. The policy will only apply to Users who are also members of any Groups you have specified. This makes the Group inclusion redundant and confusing.`nSuggestion: use one or the other type of inclusion."
+                $Issues += "Illogical inclusions of Users and Groups. The policy will only apply to Users who are also members of any Groups you have specified. This makes the Group inclusion redundant and confusing.`n    Suggestion: use one or the other type of inclusion."
             }
             if ($Policy.SentTo -and $Policy.RecipientDomainIs) {
-                $Issues += "Illogical inclusions of Users and Domains. The policy will only apply to Users whose email domains also match any Domains you have specified. This makes the Domain inclusion redundant and confusing.`nSuggestion: use one or the other type of inclusion."
+                $Issues += "Illogical inclusions of Users and Domains. The policy will only apply to Users whose email domains also match any Domains you have specified. This makes the Domain inclusion redundant and confusing.`n    Suggestion: use one or the other type of inclusion."
             }
 
             # If there are any issues, print the policy details once and then list all the issues
             if ($Issues.Count -gt 0) {
                 Write-Host ("`nPolicy '" + $Policy.Name + "':") -ForegroundColor Yellow
-                Write-Host ("   - Type: '" + $Cmdlets[$Cmdlet] + "'.") -ForegroundColor DarkCyan
-                Write-Host ("   - State: " + $Policy.State + ".") -ForegroundColor DarkCyan
+                Write-Host ("   - Type: '" + $Cmdlets[$Cmdlet] + "'.") -ForegroundColor Yellow
+                Write-Host ("   - State: " + $Policy.State + ".") -ForegroundColor Yellow
                 Write-Host ("   - Issues: ") -ForegroundColor Red
                 foreach ($Issue in $Issues) {
-                    Write-Host ("      -> " + $Issue) -ForegroundColor DarkCyan
+                    Write-Host ("      -> " + $Issue)
                     $IssueCounter += 1
                 }
             }
