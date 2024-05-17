@@ -555,7 +555,7 @@ begin {
 
                     if ($null -ne $suppressExtendedProtectionSet) {
                         Write-Verbose "Some Online Server have the Suppress Extended Protection Set"
-                        $requiredServers = $suppressExtendedProtectionSet | Where-Object { $_.ComputerName -in $serverNames -or $_.ExtendedProtectionConfiguration.ExtendedProtectionConfigured -eq $true }
+                        $requiredServers = $suppressExtendedProtectionSet | Where-Object { $_.FQDN -in $serverNames -or $_.ExtendedProtectionConfiguration.ExtendedProtectionConfigured -eq $true }
                         Write-Host "SYSTEM\CurrentControlSet\Control\Lsa\SuppressExtendedProtection is set on the following servers: $([string]::Join(", ", $suppressExtendedProtectionSet.ComputerName))" -ForegroundColor Red
 
                         if ($null -ne $requiredServers) {
