@@ -292,9 +292,9 @@ process {
                 $matchedRule = Test-Rules -rules $eopProtectionPolicyRules -email $emailAddress
 
                 if ($null -ne $matchedRule -and $eopProtectionPolicyRules -contains $matchedRule) {
-                    $allPolicyDetails += "`nThe policy that covers the user for malware, spam, and phishing: `n   Name: {0}`n   Priority: {1}`n   The policy actions are not configurable.`n" -f $matchedRule.Name, $matchedRule.Priority
+                    $allPolicyDetails += "`nFor malware, spam, and phishing: `n   Name: {0}`n   Priority: {1}`n   The policy actions are not configurable.`n" -f $matchedRule.Name, $matchedRule.Priority
 
-                    #    write-output ("`nThe policy that covers the user for malware, spam, and phishing: `n   Name: {0}`n   Priority: {1}`n   The policy actions are not configurable.`n" -f $matchedRule.Name, $matchedRule.Priority)
+                    #    write-output ("`nFor malware, spam, and phishing: `n   Name: {0}`n   Priority: {1}`n   The policy actions are not configurable.`n" -f $matchedRule.Name, $matchedRule.Priority)
                     $outboundSpamMatchedRule = Test-RulesAlternative -rules $hostedOutboundSpamFilterRules -email $emailAddress
                     $allPolicyDetails += Get-Policy $outboundSpamMatchedRule "Outbound Spam"
                     $allPolicyDetails = $userDetails + "`n" + $allPolicyDetails
@@ -329,7 +329,7 @@ process {
                 $matchedRule = Test-Rules -rules $ATPProtectionPolicyRules -email $emailAddress -domain $domain
 
                 if ($null -ne $matchedRule -and $ATPProtectionPolicyRules -contains $matchedRule) {
-                    Write-Host ("The preset security policy applies to the user for both Safe Attachments and Safe Links: `n   Name: {0}`n   Priority: {1}`n   The policy actions are not configurable.`n" -f $matchedRule.Name, $matchedRule.Priority) -ForegroundColor Magenta
+                    Write-Host ("For both Safe Attachments and Safe Links: `n   Name: {0}`n   Priority: {1}`n   The policy actions are not configurable.`n" -f $matchedRule.Name, $matchedRule.Priority) -ForegroundColor Magenta
                 } else {
 
                     if ($null -eq $matchedRule) {
@@ -364,7 +364,7 @@ process {
                             $domain -in $builtInProtectionRule.ExceptIfRecipientDomainIs) {
                             Write-Host "The user is excluded from all Safe Attachment protection because they are excluded from Built-in Protection and they are not explicitly included in any other policy." -ForegroundColor Red
                         } else {
-                            Write-Host "Safe Attachments: `n  If your organization has at least one A5/E5, or MDO license, the user is included in the Built-in policy. This policy is not configurable." -ForegroundColor Yellow
+                            Write-Host "`nSafe Attachments: `n  If your organization has at least one A5/E5, or MDO license, the user is included in the Built-in policy. This policy is not configurable." -ForegroundColor Yellow
                         }
                         $policy = $null
                     } else {
@@ -394,7 +394,7 @@ process {
                             $domain -in $builtInProtectionRule.ExceptIfRecipientDomainIs) {
                             Write-Host "The user is excluded from all Safe Links protection because they are excluded from Built-in Protection and they are not explicitly included in any other policy." -ForegroundColor Red
                         } else {
-                            Write-Host "Safe Links: `n  If your organization has at least one A5/E5, or MDO license, the user is included in the Built-in policy. This policy is not configurable." -ForegroundColor Yellow
+                            Write-Host "`nSafe Links: `n  If your organization has at least one A5/E5, or MDO license, the user is included in the Built-in policy. This policy is not configurable." -ForegroundColor Yellow
                         }
                         $policy = $null
                     } else {
