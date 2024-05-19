@@ -271,13 +271,11 @@ process {
         }
 
         if ($IncludeMDOPolicies -or $OnlyMDOPolicies) {
-            #Write-Output "`n"
             #Write-Host "This script checks to see which Safe Attachments and Safe Links policies apply to a user." -ForegroundColor Yellow
             # Get the rules from Get-SafeAttachmentRule and Get-ATPProtectionPolicyRule
             $SafeAttachmentRules = Get-SafeAttachmentRule | Where-Object { $_.State -ne 'Disabled' }
             $SafeLinksRules = Get-SafeLinksRule | Where-Object { $_.State -ne 'Disabled' }
             $ATPProtectionPolicyRules = Get-ATPProtectionPolicyRule | Where-Object { $_.State -ne 'Disabled' }
-            #Write-Output "`n"
         }
 
         foreach ($email in $ValidEmailAddresses) {
@@ -293,12 +291,11 @@ process {
 
                 if ($null -ne $matchedRule -and $eopProtectionPolicyRules -contains $matchedRule) {
                     $allPolicyDetails += "`nFor malware, spam, and phishing: `n   Name: {0}`n   Priority: {1}`n   The policy actions are not configurable.`n" -f $matchedRule.Name, $matchedRule.Priority
-
-                    #    write-output ("`nFor malware, spam, and phishing: `n   Name: {0}`n   Priority: {1}`n   The policy actions are not configurable.`n" -f $matchedRule.Name, $matchedRule.Priority)
-                    $outboundSpamMatchedRule = Test-RulesAlternative -rules $hostedOutboundSpamFilterRules -email $emailAddress
-                    $allPolicyDetails += Get-Policy $outboundSpamMatchedRule "Outbound Spam"
-                    $allPolicyDetails = $userDetails + "`n" + $allPolicyDetails
                     Write-Host $allPolicyDetails -ForegroundColor Green
+
+                    $outboundSpamMatchedRule = Test-RulesAlternative -rules $hostedOutboundSpamFilterRules -email $emailAddress
+                    $allPolicyDetails = Get-Policy $outboundSpamMatchedRule "Outbound Spam"
+                    Write-Host $allPolicyDetails -ForegroundColor Yellow
                     Write-Output "`n"
                     continue
                 }
@@ -329,7 +326,7 @@ process {
                 $matchedRule = Test-Rules -rules $ATPProtectionPolicyRules -email $emailAddress -domain $domain
 
                 if ($null -ne $matchedRule -and $ATPProtectionPolicyRules -contains $matchedRule) {
-                    Write-Host ("For both Safe Attachments and Safe Links: `n   Name: {0}`n   Priority: {1}`n   The policy actions are not configurable.`n" -f $matchedRule.Name, $matchedRule.Priority) -ForegroundColor Magenta
+                    Write-Host ("`nFor both Safe Attachments and Safe Links: `n   Name: {0}`n   Priority: {1}`n   The policy actions are not configurable.`n" -f $matchedRule.Name, $matchedRule.Priority) -ForegroundColor Green
                 } else {
 
                     if ($null -eq $matchedRule) {
@@ -362,14 +359,14 @@ process {
                         if ($emailAddress -in $builtInProtectionRule.ExceptIfSentTo -or
                             $isInExcludedGroup -or
                             $domain -in $builtInProtectionRule.ExceptIfRecipientDomainIs) {
-                            Write-Host "The user is excluded from all Safe Attachment protection because they are excluded from Built-in Protection and they are not explicitly included in any other policy." -ForegroundColor Red
+                            Write-Host "`nSafe Attachments: `n  The user is excluded from all Safe Attachment protection because they are excluded from Built-in Protection, and they are not explicitly included in any other policy." -ForegroundColor Red
                         } else {
                             Write-Host "`nSafe Attachments: `n  If your organization has at least one A5/E5, or MDO license, the user is included in the Built-in policy. This policy is not configurable." -ForegroundColor Yellow
                         }
                         $policy = $null
                     } else {
                         $policy = Get-SafeAttachmentPolicy -Identity $SAmatchedRule.Name
-                        Write-Host ("`nSafe Attachments: `n   Name: {0}`n   Priority: {1}" -f $SAmatchedRule.Name, $SAmatchedRule.Priority) -ForegroundColor Green
+                        Write-Host ("`nSafe Attachments: `n   Name: {0}`n   Priority: {1}" -f $SAmatchedRule.Name, $SAmatchedRule.Priority) -ForegroundColor Yellow
                     }
 
                     if ($null -eq $SLmatchedRule) {
@@ -392,14 +389,14 @@ process {
                         if ($emailAddress -in $builtInProtectionRule.ExceptIfSentTo -or
                             $isInExcludedGroup -or
                             $domain -in $builtInProtectionRule.ExceptIfRecipientDomainIs) {
-                            Write-Host "The user is excluded from all Safe Links protection because they are excluded from Built-in Protection and they are not explicitly included in any other policy." -ForegroundColor Red
+                            Write-Host "`nSafe Links: `n  The user is excluded from all Safe Links protection because they are excluded from Built-in Protection, and they are not explicitly included in any other policy." -ForegroundColor Red
                         } else {
                             Write-Host "`nSafe Links: `n  If your organization has at least one A5/E5, or MDO license, the user is included in the Built-in policy. This policy is not configurable." -ForegroundColor Yellow
                         }
                         $policy = $null
                     } else {
                         $policy = Get-SafeLinksPolicy -Identity $SLmatchedRule.Name
-                        Write-Host ("Safe Links: `n  Name: {0}`n   Priority: {1}" -f $SLmatchedRule.Name, $SLmatchedRule.Priority) -ForegroundColor Green
+                        Write-Host ("Safe Links: `n  Name: {0}`n   Priority: {1}" -f $SLmatchedRule.Name, $SLmatchedRule.Priority) -ForegroundColor Yellow
                     }
                 }
             }

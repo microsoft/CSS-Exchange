@@ -221,19 +221,19 @@ function Get-Policy {
 
     if ($null -eq $rule) {
         if ($policyType -eq "Anti-phish") {
-            $policyDetails = "`n$policyType - User/Domain Impersonation, Mailbox/Spoof Intelligence, and Honor DMARC: `n  The Default policy."
+            $policyDetails = "`n$policyType (Impersonation, Mailbox/Spoof Intelligence, Honor DMARC): `n  The Default policy."
         } elseif ($policyType -eq "Anti-spam") {
-            $policyDetails = "`n$policyType - plus phish detection actions: `n  The Default policy."
+            $policyDetails = "`n$policyType (includes phish & bulk actions): `n  The Default policy."
         } else {
-            $policyDetails = "`n$policyType : `n  The Default policy."
+            $policyDetails = "`n${policyType}: `n  The Default policy."
         }
     } else {
         if ($policyType -eq "Anti-phish") {
-            $policyDetails = "`n$policyType - User/Domain Impersonation, Mailbox/Spoof Intelligence, and Honor DMARC: `n  Name: {0}  `n  Priority: {1}" -f $rule.Name, $rule.Priority
+            $policyDetails = "`n$policyType (Impersonation, Mailbox/Spoof Intelligence, Honor DMARC): `n  Name: {0}  `n  Priority: {1}" -f $rule.Name, $rule.Priority
         } elseif ($policyType -eq "Anti-spam") {
-            $policyDetails = "`n$policyType - plus phish detection actions: `n  Name: {0}`n  Priority: {1}" -f $rule.Name, $rule.Priority
+            $policyDetails = "`n$policyType (includes phish & bulk actions): `n  Name: {0}`n  Priority: {1}" -f $rule.Name, $rule.Priority
         } else {
-            $policyDetails = "`n$policyType : `n  Name: {0}`n  Priority: {1}" -f $rule.Name, $rule.Priority
+            $policyDetails = "`n${policyType}: `n  Name: {0}`n  Priority: {1}" -f $rule.Name, $rule.Priority
         }
     }
     return $policyDetails
