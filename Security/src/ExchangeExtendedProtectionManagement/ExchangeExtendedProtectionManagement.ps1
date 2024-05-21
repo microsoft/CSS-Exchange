@@ -120,6 +120,7 @@ begin {
     . $PSScriptRoot\..\..\..\Shared\OutputOverrides\Write-Progress.ps1
     . $PSScriptRoot\..\..\..\Shared\OutputOverrides\Write-Verbose.ps1
     . $PSScriptRoot\..\..\..\Shared\OutputOverrides\Write-Warning.ps1
+    . $PSScriptRoot\..\..\..\Security\src\Shared\Get-ProcessedServerList.ps1
     . $PSScriptRoot\..\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
     . $PSScriptRoot\..\..\..\Shared\Confirm-Administrator.ps1
     . $PSScriptRoot\..\..\..\Shared\Confirm-ExchangeShell.ps1
@@ -276,9 +277,20 @@ begin {
             Show-Disclaimer @params
         }
 
-        Write-Verbose ("Running Get-ExchangeServer to get list of all exchange servers")
-        Set-ADServerSettings -ViewEntireForest $true
-        $ExchangeServers = Get-ExchangeServer | Where-Object { $_.AdminDisplayVersion -like "Version 15*" -and $_.ServerRole -ne "Edge" }
+        $processParams = @{
+            ExchangeServerNames              = $includeExchangeServerNames
+            SkipExchangeServerNames          = $SkipExchangeServerNames
+            CheckOnline                      = $true
+            DisableGetExchangeServerFullList = $false # We want a list of all Exchange Servers as we need to run the prerequisites check against them
+        }
+
+        $processedExchangeServers = Get-ProcessedServerList @processParams
+
+        Write-Verbose "Get a list of all Exchange servers to perform prerequisites check against"
+        $ExchangeServersPrerequisitesCheckSettingsCheck = $processedExchangeServers.GetExchangeServer | Where-Object { $_.AdminDisplayVersion -like "Version 15*" -and $_.ServerRole -ne "Edge" }
+
+        Write-Verbose "Get a list of all Exchange servers which are online and not skipped"
+        $ExchangeServers = $processedExchangeServers.ValidExchangeServer | Where-Object { $_.AdminDisplayVersion -like "Version 15*" -and $_.ServerRole -ne "Edge" }
 
         if ($FindExchangeServerIPAddresses) {
             Get-ExchangeServerIPs -OutputFilePath $OutputFilePath -ExchangeServers $ExchangeServers
@@ -289,18 +301,12 @@ begin {
             return
         }
 
-        $ExchangeServersPrerequisitesCheckSettingsCheck = $ExchangeServers
-
         if ($null -ne $includeExchangeServerNames -and $includeExchangeServerNames.Count -gt 0) {
-            Write-Verbose "Running only on servers: $([string]::Join(", " ,$includeExchangeServerNames))"
-            $ExchangeServers = $ExchangeServers | Where-Object { ($_.Name -in $includeExchangeServerNames) -or ($_.FQDN -in $includeExchangeServerNames) }
+            Write-Verbose "Running only on servers: $([string]::Join(", " ,$processedExchangeServers.ValidExchangeServer))"
         }
 
         if ($null -ne $SkipExchangeServerNames -and $SkipExchangeServerNames.Count -gt 0) {
             Write-Verbose "Skipping servers: $([string]::Join(", ", $SkipExchangeServerNames))"
-
-            # Remove all the servers present in the SkipExchangeServerNames list
-            $ExchangeServers = $ExchangeServers | Where-Object { ($_.Name -notin $SkipExchangeServerNames) -and ($_.FQDN -notin $SkipExchangeServerNames) }
         }
 
         if ($null -eq $ExchangeServers) {
@@ -311,7 +317,7 @@ begin {
         if ($ValidateTypeSelected) {
             # Validate mitigation
             $ExchangeServers = $ExchangeServers | Where-Object { -not ((Get-ExchangeBuildVersionInformation -AdminDisplayVersion $_.AdminDisplayVersion).BuildVersion.Major -eq 15 -and (Get-ExchangeBuildVersionInformation -AdminDisplayVersion $_.AdminDisplayVersion).BuildVersion.Minor -eq 0 -and $_.IsClientAccessServer) }
-            Invoke-ValidateMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $ipRangeAllowListRules -SiteVDirLocations $SiteVDirLocations
+            Invoke-ValidateMitigation -ExchangeServers $ExchangeServers.FQDN -ipRangeAllowListRules $ipRangeAllowListRules -SiteVDirLocations $SiteVDirLocations
         }
 
         if ($ShowExtendedProtection) {
@@ -319,7 +325,7 @@ begin {
             $extendedProtectionConfigurations = New-Object 'System.Collections.Generic.List[object]'
             foreach ($server in $ExchangeServers) {
                 $params = @{
-                    ComputerName         = $server.ToString()
+                    ComputerName         = $server.FQDN
                     IsClientAccessServer = $server.IsClientAccessServer
                     IsMailboxServer      = $server.IsMailboxServer
                     ExcludeEWS           = $SkipEWS
@@ -374,8 +380,6 @@ begin {
 
             if ($null -ne $prerequisitesCheck) {
                 Write-Host ""
-                # Remove the down servers from $ExchangeServers list.
-                $downServerName = New-Object 'System.Collections.Generic.List[string]'
                 $onlineSupportedServers = New-Object 'System.Collections.Generic.List[object]'
                 $unsupportedServers = New-Object 'System.Collections.Generic.List[string]'
                 $unsupportedAndConfiguredServers = New-Object 'System.Collections.Generic.List[object]'
@@ -384,11 +388,10 @@ begin {
                         $_.ExtendedProtectionConfiguration.SupportedVersionForExtendedProtection -eq $false) {
                         $unsupportedAndConfiguredServers.Add($_)
                     } elseif ($_.ExtendedProtectionConfiguration.SupportedVersionForExtendedProtection -eq $false) {
-                        $unsupportedServers.Add($_.ComputerName)
+                        $unsupportedServers.Add($_.FQDN)
                     } elseif ($_.ServerOnline) {
+                        # For now, keep this as a failsafe
                         $onlineSupportedServers.Add($_)
-                    } else {
-                        $downServerName.Add($_.ComputerName)
                     }
                 }
 
@@ -397,7 +400,7 @@ begin {
                 # However, if there is an unsupported version of Exchange that does have EP enabled,
                 # We need to prompt to the admin stating that we are going to revert the change to get back to a supported state.
                 Write-Verbose ("Found the following servers configured for EP and Unsupported: " +
-                    "$(if ($unsupportedAndConfiguredServers.Count -eq 0) { 'None' } else {[string]::Join(", " ,$unsupportedAndConfiguredServers.ComputerName)})")
+                    "$(if ($unsupportedAndConfiguredServers.Count -eq 0) { 'None' } else {[string]::Join(", " ,$unsupportedAndConfiguredServers.FQDN)})")
 
                 Write-Verbose ("Found the following servers that not supported to configure EP and not enabled: " +
                     "$(if ($unsupportedServers.Count -eq 0) { 'None' } else {[string]::Join(", " ,$unsupportedServers)})")
@@ -417,7 +420,7 @@ begin {
 
                 if ($unsupportedServers.Count -gt 0) {
 
-                    $serversInList = @($ExchangeServers | Where-Object { $($_.Name -in $unsupportedServers) })
+                    $serversInList = @($ExchangeServers | Where-Object { $($_.FQDN -in $unsupportedServers) })
 
                     if ($serversInList.Count -gt 0) {
                         $line = "The following servers are not the minimum required version to support Extended Protection. Please update them, or re-run the script without including them in the list: $($serversInList -Join " ")"
@@ -429,23 +432,22 @@ begin {
                     Write-Verbose "The following servers are unsupported but not included in the list to configure: $([string]::Join(", " ,$unsupportedServers))"
                 }
 
-                if ($downServerName.Count -gt 0) {
-                    $line = "Removing the following servers from the list to configure because we weren't able to reach them: $([string]::Join(", " ,$downServerName))"
+                if (($processedExchangeServers.OfflineExchangeServer).Count -gt 0) {
+                    $line = "Removing the following servers from the list to configure because we weren't able to reach them: $([string]::Join(", " ,$processedExchangeServers.OfflineExchangeServerFqdn))"
                     Write-Verbose $line
                     Write-Warning $line
-                    $ExchangeServers = $ExchangeServers | Where-Object { $($_.Name -notin $downServerName) }
                     Write-Host ""
                 }
 
                 # Only need to set the server names for the ones we are trying to configure and the ones that are up.
                 # Also need to add Unsupported Configured EP servers to the list.
                 $serverNames = New-Object 'System.Collections.Generic.List[string]'
-                $ExchangeServers | ForEach-Object { $serverNames.Add($_.Name) }
+                $ExchangeServers | ForEach-Object { $serverNames.Add($_.FQDN) }
 
                 if ($unsupportedAndConfiguredServers.Count -gt 0) {
                     $unsupportedAndConfiguredServers |
-                        Where-Object { $_.ComputerName -notin $serverNames } |
-                        ForEach-Object { $serverNames.Add($_.ComputerName) }
+                        Where-Object { $_.FQDN -notin $serverNames } |
+                        ForEach-Object { $serverNames.Add($_.FQDN) }
                 }
 
                 # If there aren't any servers to check against for TLS settings, bypass this check.
@@ -502,11 +504,11 @@ begin {
                         # before displaying an issue, make sure that the online supported servers & EP enabled server have the correct settings.
                         $epEnabledServerList = New-Object 'System.Collections.Generic.List[string]'
                         $epEnabledServers = $onlineSupportedServers | Where-Object { $_.ExtendedProtectionConfiguration.ExtendedProtectionConfigured -eq $true }
-                        $wantedCheckAgainst = $onlineSupportedServers | Where-Object { $_.ComputerName -in $serverNames }
+                        $wantedCheckAgainst = $onlineSupportedServers | Where-Object { $_.FQDN -in $serverNames }
                         $checkAgainst = $onlineSupportedServers |
                             Where-Object {
                                 $_.ExtendedProtectionConfiguration.ExtendedProtectionConfigured -eq $true -or
-                                $_.ComputerName -in $serverNames
+                                $_.FQDN -in $serverNames
                             }
 
                         $wantedResults = Invoke-ExtendedProtectionTlsPrerequisitesCheck -TlsConfiguration $wantedCheckAgainst.TlsSettings
@@ -521,7 +523,7 @@ begin {
                                     foreach ($list in $entry.List) {
                                         Write-Host "System affected: $list" -ForegroundColor Red
 
-                                        if ($list -in $epEnabledServers.ComputerName) {
+                                        if ($list -in $epEnabledServers.FQDN) {
                                             $epEnabledServerList.Add($list)
                                         }
                                     }
@@ -547,12 +549,32 @@ begin {
                         }
                     }
 
+                    # SuppressExtendedProtection Check
+                    $suppressExtendedProtectionSet = $onlineSupportedServers |
+                        Where-Object { $_.RegistryValue.SuppressExtendedProtection -ne 0 }
+
+                    if ($null -ne $suppressExtendedProtectionSet) {
+                        Write-Verbose "Some Online Server have the Suppress Extended Protection Set"
+                        $requiredServers = $suppressExtendedProtectionSet | Where-Object { $_.FQDN -in $serverNames -or $_.ExtendedProtectionConfiguration.ExtendedProtectionConfigured -eq $true }
+                        Write-Host "SYSTEM\CurrentControlSet\Control\Lsa\SuppressExtendedProtection is set on the following servers: $([string]::Join(", ", $suppressExtendedProtectionSet.ComputerName))" -ForegroundColor Red
+
+                        if ($null -ne $requiredServers) {
+                            Write-Host "At least one server is trying to enable Extended Protection or already has Extended Protection Enabled." -ForegroundColor Red
+                            Write-Host "Having this key set to anything other than 0 will break Extended Protection functionality" -ForegroundColor Red
+                            $prerequisitesCheckFailed = $true
+                        } else {
+                            Write-Host "None of the servers that have this key set has Extended Protection enabled or trying to configure it." -ForegroundColor Yellow
+                            Write-Host "This may cause issues with Extended Protection server to server communication, therefore it is recommended to address as soon as possible." -ForegroundColor Yellow
+                            # Don't believe this should be a scenario where we need to block configuration from occurring
+                        }
+                    }
+
                     # now that we passed the TLS PrerequisitesCheck, now we need to do the RPC VDir check for SSLOffloading.
                     $rpcFailedServers = New-Object 'System.Collections.Generic.List[string]'
                     $rpcNullServers = New-Object 'System.Collections.Generic.List[string]'
                     $canNotConfigure = "Therefore, we can not configure Extended Protection."
                     $counter = 0
-                    $totalCount = @($ExchangeServers).Count
+                    $totalCount = @($ExchangeServersPrerequisitesCheckSettingsCheck).Count
                     $outlookAnywhereCount = 0
                     $outlookAnywhereServers = @($ExchangeServersPrerequisitesCheckSettingsCheck | Where-Object { $_.IsClientAccessServer -eq $true })
                     $outlookAnywhereTotalCount = $outlookAnywhereServers.Count
@@ -586,7 +608,7 @@ begin {
                         exit
                     }
 
-                    foreach ($server in $ExchangeServers) {
+                    foreach ($server in $ExchangeServersPrerequisitesCheckSettingsCheck) {
                         $counter++
                         $progressParams.Status = "Checking RPC FE SSLOffloading - $($server.Name)"
                         $progressParams.PercentComplete = ($counter / $totalCount * 100)
@@ -595,6 +617,17 @@ begin {
                             Write-Verbose "Server $($server.Name) is not a CAS. Skipping over the RPC FE Check."
                             continue
                         }
+                        $skipServer = $null -eq ($onlineSupportedServers |
+                                Where-Object {
+                                    $_.FQDN -eq $server.FQDN -and
+                                    ($_.ExtendedProtectionConfiguration.ExtendedProtectionConfigured -eq $true -or $server.FQDN -in $ExchangeServers.FQDN )
+                                })
+                        if ($skipServer) {
+                            Write-Verbose "Server $($server.Name) is being skipped because EP is not enabled there or not in our list of servers that we care about."
+                            continue
+                        }
+
+                        # Get-OutlookAnywhere doesn't return the FQDN so we must compare the ComputerName instead
                         $rpcSettings = $outlookAnywhere | Where-Object { $_.ServerName -eq $server.Name }
 
                         if ($null -eq $rpcSettings) {
@@ -617,11 +650,12 @@ begin {
                         Write-Warning "The following cmdlet should be run against each of the servers: Set-OutlookAnywhere 'SERVERNAME\RPC (Default Web Site)' -SSLOffloading `$false -InternalClientsRequireSsl `$true -ExternalClientsRequireSsl `$true"
                         $prerequisitesCheckFailed = $true
                     } elseif ($rpcNullServers.Count -gt 0) {
-                        Write-Warning "Failed to find the following servers RPC (Default Web Site) for SSL Offloading: $([string]::Join(", " ,$rpcFailedServers))"
+                        Write-Warning "Failed to find the following servers RPC (Default Web Site) for SSL Offloading: $([string]::Join(", " ,$rpcNullServers))"
                         Write-Warning $canNotConfigure
                         $prerequisitesCheckFailed = $true
+                    } else {
+                        Write-Host "All servers that we are trying to currently configure for Extended Protection have RPC (Default Web Site) set to false for SSLOffloading."
                     }
-                    Write-Host "All servers that we are trying to currently configure for Extended Protection have RPC (Default Web Site) set to false for SSLOffloading."
                 } else {
                     Write-Verbose "No online servers that are in a supported state. Skipping over TLS Check."
                 }
@@ -653,7 +687,7 @@ begin {
             # for onlineSupportedServers, because the are online and we want to revert them.
             $unsupportedAndConfiguredServers | ForEach-Object { $onlineSupportedServers.Add($_) }
             $extendedProtectionConfigurations = ($onlineSupportedServers |
-                    Where-Object { $_.ComputerName -in $serverNames }).ExtendedProtectionConfiguration
+                    Where-Object { $_.FQDN -in $serverNames }).ExtendedProtectionConfiguration
 
             if ($null -ne $extendedProtectionConfigurations) {
                 Invoke-ConfigureExtendedProtection -ExtendedProtectionConfigurations $extendedProtectionConfigurations
@@ -664,7 +698,7 @@ begin {
             if ($ConfigureMitigationSelected) {
                 # Apply rules
                 $ExchangeServers = $ExchangeServers | Where-Object { -not ((Get-ExchangeBuildVersionInformation -AdminDisplayVersion $_.AdminDisplayVersion).BuildVersion.Major -eq 15 -and (Get-ExchangeBuildVersionInformation -AdminDisplayVersion $_.AdminDisplayVersion).BuildVersion.Minor -eq 0 -and $_.IsClientAccessServer) }
-                Invoke-ConfigureMitigation -ExchangeServers $ExchangeServers.Name -ipRangeAllowListRules $ipRangeAllowListRules -SiteVDirLocations $SiteVDirLocations
+                Invoke-ConfigureMitigation -ExchangeServers $ExchangeServers.FQDN -ipRangeAllowListRules $ipRangeAllowListRules -SiteVDirLocations $SiteVDirLocations
             }
         } elseif ($RollbackSelected) {
             Write-Host "Prerequisite check will be skipped due to Rollback"
@@ -679,7 +713,7 @@ begin {
                 }
 
                 Show-Disclaimer @params
-                Invoke-RollbackExtendedProtection -ExchangeServers $ExchangeServers
+                Invoke-RollbackExtendedProtection -ExchangeServers $ExchangeServers.FQDN
             }
 
             if ($RollbackRestoreConfiguration) {
@@ -696,7 +730,7 @@ begin {
 
                 $inputList = New-Object System.Collections.Generic.List[object]
                 $ExchangeServers | ForEach-Object { $inputList.Add([PSCustomObject]@{
-                            ServerName = $_.Name
+                            ServerName = $_.FQDN
                             Restore    = ([PSCustomObject]@{
                                     FileName     = "ConfigureExtendedProtection"
                                     PassedWhatIf = $WhatIfPreference
@@ -714,7 +748,7 @@ begin {
             return
         } elseif ($DisableExtendedProtection) {
             # Disabling EP for all the servers provided in the list.
-            Invoke-DisableExtendedProtection -ExchangeServers $ExchangeServers
+            Invoke-DisableExtendedProtection -ExchangeServers $ExchangeServers.FQDN
         }
     } finally {
         Write-Host "Do you have feedback regarding the script? Please email ExToolsFeedback@microsoft.com."
