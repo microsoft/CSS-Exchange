@@ -96,7 +96,7 @@ function GetCalLogsWithSubject {
         [string] $Identity,
         [string] $Subject
     )
-    Write-Host "Getting CalLogs based for [$Identity] with subject [$Subject]]"
+    Write-Host "Getting CalLogs from [$Identity] with subject [$Subject]]"
 
     $InitialCDOs = GetCalendarDiagnosticObjects -Identity $Identity -Subject $Subject
     $GlobalObjectIds = @()
@@ -117,19 +117,16 @@ function GetCalLogsWithSubject {
 
     if ($GlobalObjectIds.count -eq 1) {
         $script:GCDO = $InitialCDOs; # use the CalLogs that we already have, since there is only one.
-        BuildCSV -Identity $Identity
-        BuildTimeline -Identity $Identity
-    }
-
-    # Get the CalLogs for each MeetingID found.
-    if ($GlobalObjectIds.count -gt 1) {
+        BuildCSV
+        BuildTimeline
+    } elseif ($GlobalObjectIds.count -gt 1) {
         Write-Host "Found multiple GlobalObjectIds: $($GlobalObjectIds.Count)."
         foreach ($MID in $GlobalObjectIds) {
             Write-DashLineBoxColor "Processing MeetingID: [$MID]"
             $script:GCDO = GetCalendarDiagnosticObjects -Identity $Identity -MeetingID $MID
             Write-Verbose "Found $($GCDO.count) CalLogs with MeetingID[$MID] ."
-            BuildCSV -Identity $Identity
-            BuildTimeline -Identity $Identity
+            BuildCSV
+            BuildTimeline
         }
     } else {
         Write-Warning "No CalLogs were found."

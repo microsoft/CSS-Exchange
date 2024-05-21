@@ -67,7 +67,7 @@ Checks the identities are EXO Mailboxes.
 #>
 function CheckIdentities {
     if (Get-Command -Name Get-Mailbox -ErrorAction SilentlyContinue) {
-        Write-Host "Validated connection to Exchange Online."
+        Write-Host "Validated connection to Exchange Online..."
     } else {
         Write-Error "Get-Mailbox cmdlet not found. Please validate that you are running this script from an Exchange Management Shell and try again."
         Write-Host "Look at Import-Module ExchangeOnlineManagement and Connect-ExchangeOnline."
@@ -106,6 +106,10 @@ function CheckIdentities {
         if ($Account.CalendarVersionStoreDisabled -eq $true) {
             Write-Host -ForegroundColor DarkRed "Mailbox [$Id] has CalendarVersionStoreDisabled set to True.  This mailbox will not have Calendar Logs."
             Write-Host -ForegroundColor DarkRed "Some logs will be available for Mailbox [$Id] but they will not be complete."
+        }
+        if ($Account.RecipientTypeDetails -eq "RoomMailbox" -or $Account.RecipientTypeDetails -eq "EquipmentMailbox") {
+            $script:Rooms += $Account.PrimarySmtpAddress.ToString()
+            Write-Host -ForegroundColor Green "[$Id] is a Room / Equipment Mailbox."
         }
     }
 
