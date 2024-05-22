@@ -39,40 +39,69 @@ Generates the report from the MyMtl.csv file.
 #>
 
 Function Measure-EmailDelayInMTL {
-
+    [CmdletBinding()]
+    param (
+        [Parameter()]
+        [string]
+        $MTLFile
+    )
 
     $output = $Null
-    $mtl = Import-Csv '.\MTDetail_Informe de seguimiento de mensajes (_2024-05-01T005824.161Z_)_a6d21a9d-9c5b-4529-ad67-3546f9089874.csv' -Encoding Unicode
+    if (Test-Path $MTLFile) {
+        Write-Output "Loading MTL file."
+        $mtl = Import-Csv $MTLFile -Encoding Unicode
+    } else {
+        Write-Error "Unable to find specified file"
+    }
 
-    $uniqueMessageIDs = $mtl | Select-Object -Property message_id -Unique
+    # get all of the unique message IDs in the file.
+    $uniqueMessageIDs = $mtl | Select-Object -ExpandProperty message_id | Sort-Object | Get-Unique
 
+    # Carve out data up into smaller collections to make searching faster.
+    $SMTPRecieve = $mtl | Where-Object { ($_.event_id -eq 'RECEIVE') -and ($_.source -eq 'SMTP') }
+    $StoreDeliver = $mtl | Where-Object { ($_.event_id -eq 'DELIVER') -and ($_.source -eq 'STOREDRIVER') }
+    $SMTPDeliver = $mtl | Where-Object { ($_.event_id -eq 'SENDEXTERNAL') -and ($_.source -eq 'SMTP') }
+
+    # look at each one for the needed data.
     foreach ($id in $uniqueMessageIDs) {
 
+        # make sure we aren't carrying anyting over from the previous foreach.
         $localdeliver = $Null
         $remotedeliver = $Null
         $timerecieved = $Null
 
-        $timesent = Get-Date ($mtl | Where-Object { ($_.message_id -eq $id.message_id) -and ($_.event_id -eq 'RECEIVE') -and ($_.source -eq 'SMTP') }).date_time_utc
+        # extract the times for a message ID ... there can be more than one of each of these.
+        [array]$AllSentTimes = ($SMTPRecieve | Where-Object { ($_.message_id -eq $id) }).date_time_utc
+        [array]$AllStoreDeliverTimes = ($StoreDeliver | Where-Object { ($_.message_id -eq $id) }).date_time_utc
+        [array]$AllRemoteDeliverTimes = ($SMTPDeliver | Where-Object { ($_.message_id -eq $id.message_id) }).date_time_utc
 
-        [array]$localdeliver = ($mtl | Where-Object { ($_.message_id -eq $id.message_id) -and ($_.event_id -eq 'DELIVER') -and ($_.source -eq 'STOREDRIVER') }).date_time_utc
-        [array]$remotedeliver = ($mtl | Where-Object { ($_.message_id -eq $id.message_id) -and ($_.event_id -eq 'SENDEXTERNAL') -and ($_.source -eq 'SMTP') }).date_time_utc
-
-
-        if ($localdeliver.count -eq 0 -and $remotedeliver.count -eq 0) {
-            Write-Warning ($id.message_id.tostring() + "not able to find delivery time in MTL.")
+        # Process the time sent
+        if ($AllSentTimes.count -eq 0) {
+            Write-Warning ($id.message_id.tostring() + "unable to find sent time. Discarding messageID")
+            quit
         } else {
+            $TimeSent = Get-Date ($AllSentTimes | Sort-Object | Select-Object -First 1)
+        }
 
-            if ($localdeliver.count -eq 0) {
-                $timerecieved = Get-Date ($remotedeliver | Sort-Object | Select-Object -First 1)
-            } else {
-                $timerecieved = Get-Date ($localdeliver | Sort-Object | Select-Object -First 1)
-            }
+        # If we didn't find any delivery information then drop the message ID
+        if ($AllStoreDeliverTimes.count -eq 0 -and $AllRemoteDeliverTimes.count -eq 0) {
+            Write-Warning ($id.message_id.tostring() + "not able to find delivery time in MTL. Discarding messageID")
+            quit
+        }
+
+        # Process the message information
+        else {
+
+            # Combine all of the delivery times.
+            $AllDeliveries = ($AllStoreDeliverTimes + $AllRemoteDeliverTimes) | Sort-Object
 
             $report = [PSCustomObject]@{
-                ID       = $id.message_id
-                Sent     = $TimeSent
-                Recieved = $timerecieved
-                Delay    = $timerecieved - $timesent
+                ID                   = $id.message_id
+                Sent                 = $TimeSent
+                FirstRecieved        = $AllDeliveries[0]
+                LastRecieved         = $AllDeliveries[-1]
+                RecievedDifferential = $AllDeliveries[-1] - $AllDeliveries[0]
+                MessageDelay         = $AllDeliveries[0] - $timesent
             }
 
             [array]$output = [array]$output + $report
