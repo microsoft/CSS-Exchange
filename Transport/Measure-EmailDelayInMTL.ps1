@@ -18,21 +18,28 @@ Recommend using start-historicalsearch in EXO.
 The script will provide an output of all unique message ids with the following information:
 MessageID
 Time Sent
-Time Recieved
-Total Time in transit.
+First Time the Message was Delivered
+Last Time the Message was Delivered
+Total Time in transit
 
 Useful for determining if a "slow" message was a one off or a pattern.
 
 .PARAMETER MTLFile
-Will test not just the root folders but all SubFolders.
-Generally should not be needed unless all folders pass without -Recuse but AV is still suspected.
+MTL File to process
 
 .OUTPUTS
-CSV with messageID and times.
-$PSScriptRoot\MTLReport-#DataTime#.csv
+CSV File with the following informaiton.
+    ID                      messageID
+    Sent                    Time the Message was sent.
+    FirstRecieved           When a Recipient first Recieved the message.
+    LastRecieved            When the last recipient recieved the message. (This will match first Recieved if the message was sent to one recipient.)
+    RecievedDifferential    Difference between First and Last Recieved (how long it took to deliver to all recipients)
+    MessageDelay            Difference between First Recieved and Time Sent
+
+$PSScriptRoot\MTLReport-#DateTime#.csv
 
 .EXAMPLE
-.\Get-EmailDelay -MTLPath C:\temp\MyMtl.csv
+.\Measure-EmailDelayInMTL -MTLPath C:\temp\MyMtl.csv
 
 Generates the report from the MyMtl.csv file.
 
@@ -69,12 +76,13 @@ Function Measure-EmailDelayInMTL {
     # get all of the unique message IDs in the file.
     $uniqueMessageIDs = $mtl | Select-Object -ExpandProperty message_id | Sort-Object | Get-Unique
 
-    # Carve out data up into smaller collections to make searching faster.
+    # Carve the data up into smaller collections to make searching faster.
+    # Most of what is in the MTL we don't need for this.
     $SMTPRecieve = $mtl | Where-Object { ($_.event_id -eq 'RECEIVE') -and ($_.source -eq 'SMTP') }
     $StoreDeliver = $mtl | Where-Object { ($_.event_id -eq 'DELIVER') -and ($_.source -eq 'STOREDRIVER') }
     $SMTPDeliver = $mtl | Where-Object { ($_.event_id -eq 'SENDEXTERNAL') -and ($_.source -eq 'SMTP') }
 
-    # look at each one for the needed data.
+    # Loop thru each unique messageID
     foreach ($id in $uniqueMessageIDs) {
 
         # make sure we aren't carrying anyting over from the previous foreach.
