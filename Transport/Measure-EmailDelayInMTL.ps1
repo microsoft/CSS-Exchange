@@ -46,7 +46,19 @@ Function Measure-EmailDelayInMTL {
         $MTLFile
     )
 
+    . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
+
+    # Autoupdate
+    if (Test-ScriptVersion -AutoUpdate) {
+        # Update was downloaded, so stop here.
+        Write-Host "Script was updated. Please rerun the command."
+        return
+    }
+
+    # make sure out output variable is null
     $output = $Null
+
+    # Test for the provided file and load it.
     if (Test-Path $MTLFile) {
         Write-Output "Loading MTL file."
         $mtl = Import-Csv $MTLFile -Encoding Unicode
