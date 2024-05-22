@@ -66,9 +66,9 @@ Function Measure-EmailDelayInMTL {
     foreach ($id in $uniqueMessageIDs) {
 
         # make sure we aren't carrying anyting over from the previous foreach.
-        $localdeliver = $Null
-        $remotedeliver = $Null
-        $timerecieved = $Null
+        $AllSentTimes = $Null
+        $AllStoreDeliverTimes = $Null
+        $AllRemoteDeliverTimes = $Null
 
         # extract the times for a message ID ... there can be more than one of each of these.
         [array]$AllSentTimes = ($SMTPRecieve | Where-Object { ($_.message_id -eq $id) }).date_time_utc
