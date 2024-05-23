@@ -46,6 +46,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost1.config" -Raw -Encoding UTF8 }
             Mock Get-ExchangeDiagnosticInfo -ParameterFilter { $Process -eq "Microsoft.Exchange.Directory.TopologyService" -and $Component -eq "VariantConfiguration" -and $Argument -eq "Overrides" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo_ADTopVariantConfiguration1.xml" }
+            Mock Get-ExchangeDiagnosticInfo -ParameterFilter { $Process -eq "EdgeTransport" -and $Component -eq "ResourceThrottling" } `
+                -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo_EdgeTransportResourceThrottling1.xml" }
             Mock Get-IISModules { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetIISModulesNoTokenCacheModule.xml" }
             Mock Get-Service {
                 param(
@@ -63,6 +65,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             SetActiveDisplayGrouping "Exchange Information"
             TestObjectMatch "Setting Overrides Detected" $true
             TestObjectMatch "Extended Protection Enabled (Any VDir)" $true
+            TestObjectMatch "Transport Back Pressure" "--ERROR-- The following resources are causing back pressure: DatabaseUsedSpace" -WriteType "Red"
         }
 
         It "Dependent Services" {

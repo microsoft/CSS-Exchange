@@ -95,7 +95,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-ReceiveConnector -Exactly 1
             Assert-MockCalled Get-SendConnector -Exactly 1
             Assert-MockCalled Get-IISModules -Exactly 1
-            Assert-MockCalled Get-ExchangeDiagnosticInfo -Exactly 1
+            Assert-MockCalled Get-ExchangeDiagnosticInfo -Exactly 2
             Assert-MockCalled Get-ExchangeADSplitPermissionsEnabled -Exactly 1
             Assert-MockCalled Get-DynamicDistributionGroup -Exactly 1
             Assert-MockCalled Get-ActiveSyncVirtualDirectory -Exactly 1
