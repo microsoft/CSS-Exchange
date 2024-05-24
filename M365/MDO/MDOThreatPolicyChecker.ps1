@@ -54,7 +54,8 @@ param(
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
 . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Host.ps1
-. $PSScriptRoot\..\..\Shared\Connect-M365.ps1
+. $PSScriptRoot\..\..\Shared\M365\EXOConnection.ps1
+. $PSScriptRoot\..\..\Shared\M365\GraphConnection.ps1
 . $PSScriptRoot\Shared\MDO-Functions.ps1
 
 function Write-HostLog ($message) {

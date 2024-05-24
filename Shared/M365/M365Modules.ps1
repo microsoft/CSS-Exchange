@@ -57,10 +57,10 @@ function Test-M365ModuleLoaded {
                 Write-Host "$ModuleName Powershell Module version loaded but do not reach minimum version: $MinModuleVersion" -ForegroundColor Red
                 return $false
             }
+        } else {
+            Write-Verbose "$ModuleName Powershell Module version loaded $MinModuleVersion. No minimum version specified"
+            return $true
         }
-    } else {
-        Write-Verbose "$ModuleName Powershell Module version loaded $MinModuleVersion. No minimum version specified"
-        return $true
     }
 }
 
@@ -92,7 +92,9 @@ function Test-M365ModuleInstalled {
                 return $false
             }
         } else {
-            Write-Verbose "$ModuleName Powershell Module version installed $MinModuleVersion. No minimum version specified"
+            foreach ($module in $module) {
+                Write-Verbose "$ModuleName Powershell Module version installed $($module.Version). No minimum version specified"
+            }
             return $true
         }
     }
@@ -105,9 +107,9 @@ function Install-M365Module {
         [Parameter(Mandatory = $true)]
         [string]$ModuleName,
         [Parameter(Mandatory = $false)]
-        [System.Version]$MinModuleVersion = $null,
-        [Parameter(Mandatory = $false)]
-        [Switch]$Force
+        [System.Version]$MinModuleVersion = $null
+        #[Parameter(Mandatory = $false)]
+        #[Switch]$Force
     )
 
     if ($MinModuleVersion) {
@@ -116,7 +118,8 @@ function Install-M365Module {
         $message = "Do you want to install?"
     }
 
-    if ($Force -or $PSCmdlet.ShouldContinue($message, "Module $ModuleName")) {
+    #if ($Force -or $PSCmdlet.ShouldContinue($message, "Module $ModuleName")) {
+    if ($PSCmdlet.ShouldContinue($message, "Module $ModuleName")) {
         if ($MinModuleVersion) {
             Install-Module -Name $ModuleName -Force -ErrorAction SilentlyContinue -Scope CurrentUser -MinimumVersion $MinModuleVersion
             if (Test-M365ModuleInstalled -ModuleName $ModuleName -MinModuleVersion $MinModuleVersion) {

@@ -51,7 +51,7 @@ function Test-AADConnection {
                     Write-Host "Tenant: $((Get-MgOrganization).DisplayName)"
                     return $true
                 } else {
-                    Write-Host "We cannot continue without Graph Powershell session non Expeced Scopes found" -ForegroundColor Red
+                    Write-Host "We cannot continue without Graph Powershell session non Expected Scopes found" -ForegroundColor Red
                     return $false
                 }
             }
@@ -66,7 +66,7 @@ function Test-AADConnection {
             Write-Host "Tenant: $((Get-MgOrganization).DisplayName)"
             return $true
         } else {
-            Write-Host "We cannot continue without Graph Powershell session non Expeced Scopes found" -ForegroundColor Red
+            Write-Host "We cannot continue without Graph Powershell session non Expected Scopes found" -ForegroundColor Red
             return $false
         }
     } else {
