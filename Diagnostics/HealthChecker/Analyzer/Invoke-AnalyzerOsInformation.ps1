@@ -482,4 +482,20 @@ function Invoke-AnalyzerOsInformation {
         Write-Verbose "No Windows Features where collected. Unable to process."
     }
     # cSpell:enable
+
+    if ($null -ne $osInformation.EventLogInformation) {
+        $days = 7
+        $testDate = (Get-Date).AddDays(-$days)
+        foreach ($logType in $osInformation.EventLogInformation.Keys) {
+            if ($osInformation.EventLogInformation[$logType].LastLogEntry -gt $testDate) {
+                $params = $baseParams + @{
+                    Name             = "Event Log - $logType"
+                    Details          = "--ERROR-- Not enough logs to cover $days days. Last log entry is at $($osInformation.EventLogInformation[$logType].LastLogEntry)." +
+                    " This could cause issues with determining Root Cause Analysis."
+                    DisplayWriteType = "Red"
+                }
+                Add-AnalyzedResultInformation @params
+            }
+        }
+    }
 }
