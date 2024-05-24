@@ -17,7 +17,7 @@ function Get-GroupObjectId {
         # Return the Object ID of the group
         return $group.Id
     } else {
-        Write-Host "The EmailAddress of group $groupEmail vas not found" -ForegroundColor Red
+        Write-Host "The EmailAddress of group $groupEmail was not found" -ForegroundColor Red
         return $null
     }
 }
@@ -91,8 +91,12 @@ function Test-IsInGroup {
 # Function to check rules
 function Test-Rules {
     param(
+        [Parameter(Mandatory = $true)]
         $rules,
-        [MailAddress]$email
+        [Parameter(Mandatory = $true)]
+        [MailAddress]$email,
+        [Parameter(Mandatory = $false)]
+        [bool]$ShowDetailedRules = $false
     )
     foreach ($rule in $rules) {
         $isInGroup = $false
@@ -138,12 +142,15 @@ function Test-Rules {
             $temp = $temp.Substring($temp.IndexOf(".") + 1)
         }
 
-        if (($email -in $rule.SentTo -or !$rule.SentTo) -and
-            ($DomainIncluded -or !$rule.RecipientDomainIs) -and
-            ($isInGroup -or !$rule.SentToMemberOf)) {
-            if (($email -notin $rule.ExceptIfSentTo -or !$rule.ExceptIfSentTo) -and
-                (!$DomainExcluded -or !$rule.ExceptIfRecipientDomainIs) -and
-                (!$isInExceptGroup -or !$rule.ExceptIfSentToMemberOf)) {
+        if (($email -in $rule.SentTo) -or
+            $DomainIncluded -or
+            $isInGroup) {
+            if (($email -notin $rule.ExceptIfSentTo) -or
+                !$DomainExcluded -or
+                !$isInExceptGroup) {
+                if ($ShowDetailedRules) {
+                    Show-DetailedRule -rule $rule
+                }
                 return $rule
             }
         }
@@ -153,8 +160,12 @@ function Test-Rules {
 
 function Test-RulesAlternative {
     param(
+        [Parameter(Mandatory = $true)]
         $rules,
-        [MailAddress]$email
+        [Parameter(Mandatory = $true)]
+        [MailAddress]$email,
+        [Parameter(Mandatory = $false)]
+        [bool]$ShowDetailedRules = $false
     )
     foreach ($rule in $rules) {
         $isInGroup = $false
@@ -200,12 +211,15 @@ function Test-RulesAlternative {
             $temp = $temp.Substring($temp.IndexOf(".") + 1)
         }
 
-        if (($email -in $rule.From -or !$rule.From) -and
-        ($DomainIncluded -or !$rule.SenderDomainIs) -and
-        ($isInGroup -or !$rule.FromMemberOf)) {
-            if (($email -notin $rule.ExceptIfFrom -or !$rule.ExceptIfFrom) -and
-            (!$DomainExcluded -or !$rule.ExceptIfSenderDomainIs) -and
-            (!$isInExceptGroup -or !$rule.ExceptIfFromMemberOf)) {
+        if (($email -in $rule.From) -or
+            $DomainIncluded -or
+            $isInGroup) {
+            if (($email -notin $rule.ExceptIfFrom) -or
+                !$DomainExcluded -or
+                !$isInExceptGroup) {
+                if ($ShowDetailedRules) {
+                    Show-DetailedRule -rule $rule
+                }
                 return $rule
             }
         }
@@ -215,8 +229,10 @@ function Test-RulesAlternative {
 
 function Get-Policy {
     param(
-        $rule = $null,
-        $policyType = $null
+        [Parameter(Mandatory = $true)]
+        $rules,
+        [Parameter(Mandatory = $true)]
+        $policyType
     )
 
     if ($null -eq $rule) {
@@ -259,4 +275,21 @@ function Test-GraphContext {
     }
 
     return $ValidScope
+}
+
+function Show-DetailedRule {
+    param (
+        [Parameter(Mandatory = $true)]
+        $rule
+    )
+
+    Write-Host "`nThese are all properties of the policy that are True, On, or not blank:`n" -ForegroundColor Cyan
+    #$excludedProperties = 'Identity', 'Id', 'ExchangeVersion', 'Name', 'DistinguishedName', 'ObjectCategory', 'ObjectClass', 'WhenChanged', 'WhenCreated', 'WhenChangedUTC', 'WhenCreatedUTC', 'ExchangeObjectId', 'OrganizationalUnitRoot', 'OrganizationId', 'Guid', 'OriginatingServer', 'ObjectState'
+    $excludedProperties = 'Id', 'ExchangeVersion', 'Name', 'DistinguishedName', 'ObjectCategory', 'ObjectClass', 'WhenChanged', 'WhenCreated', 'WhenChangedUTC', 'WhenCreatedUTC', 'ExchangeObjectId', 'OrganizationalUnitRoot', 'OrganizationId', 'Guid', 'OriginatingServer', 'ObjectState'
+
+    $rule.PSObject.Properties | ForEach-Object {
+        if ($null -ne $_.Value -and $_.Value -ne '{}' -and $_.Value -ne 'Off' -and $_.Value -ne 'False' -and $_.Value -ne '' -and $excludedProperties -notcontains $_.Name) {
+            Write-Host "$($_.Name): $($_.Value)" -ForegroundColor Yellow
+        }
+    }
 }
