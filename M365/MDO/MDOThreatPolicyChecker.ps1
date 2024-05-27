@@ -684,7 +684,7 @@ process {
                     Write-Host ("`nFor both Safe Attachments and Safe Links: `n   Name: {0}`n   Priority: {1}`n" -f $matchedRule.Name, $matchedRule.Priority) -ForegroundColor Green
                 } else {
                     # Check the Standard MDO rules secondly
-                    matchedRule = $null
+                    $matchedRule = $null
                     $matchedRule = Test-Rules -rules $MdoStandardPresetRules -email $emailAddress
 
                     if ($MdoStandardPresetRules -contains $matchedRule) {
