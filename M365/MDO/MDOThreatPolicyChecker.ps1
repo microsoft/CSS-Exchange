@@ -752,7 +752,7 @@ process {
                             $policy = $null
                         } else {
                             $policy = Get-SafeLinksPolicy -Identity $SLmatchedRule.Name
-                            Write-Host ("Safe Links: `n  Name: {0}`n   Priority: {1}" -f $SLmatchedRule.Name, $SLmatchedRule.Priority) -ForegroundColor Yellow
+                            Write-Host ("`nSafe Links: `n  Name: {0}`n   Priority: {1}" -f $SLmatchedRule.Name, $SLmatchedRule.Priority) -ForegroundColor Yellow
                             if ($SLmatchedRule -and $ShowDetailedPolicies) {
                                 Show-DetailedPolicy -Policy (Get-SafeLinksPolicy $SLmatchedRule.Identity)
                             }
