@@ -327,7 +327,7 @@ begin {
             [Parameter(Mandatory = $true)]
             $policy
         )
-        Write-Host "`nProperties of the policy that are True, On, or not blank:`n"
+        Write-Host "Properties of the policy that are True, On, or not blank:`n"
         $excludedProperties = 'Identity', 'Id', 'Name', 'ExchangeVersion', 'DistinguishedName', 'ObjectCategory', 'ObjectClass', 'WhenChanged', 'WhenCreated', 'WhenChangedUTC', 'WhenCreatedUTC', 'ExchangeObjectId', 'OrganizationalUnitRoot', 'OrganizationId', 'OriginatingServer', 'ObjectState'
 
         $policy.PSObject.Properties | ForEach-Object {
@@ -335,6 +335,7 @@ begin {
                 Write-Host "`t$($_.Name): $($_.Value)"
             }
         }
+        Write-Host " "
     }
 
     function Get-Policy {
@@ -620,7 +621,6 @@ process {
                     $outboundSpamMatchedRule = Test-RulesAlternative -rules $hostedOutboundSpamFilterRules -email $emailAddress
                     $allPolicyDetails = Get-Policy $outboundSpamMatchedRule "Outbound Spam"
                     Write-Host $allPolicyDetails -ForegroundColor Yellow
-                    Write-Host "`n"
                 } else {
                     # Check the Standard EOP rules secondly
                     $matchedRule = $null
