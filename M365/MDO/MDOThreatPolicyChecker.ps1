@@ -323,21 +323,21 @@ begin {
     }
 
     function Show-DetailedPolicy {
-        [OutputType([string])]
+        #[OutputType([string])]
         param (
             [Parameter(Mandatory = $true)]
             $policy
         )
-        $outString = "`nThese are all properties of the policy that are True, On, or not blank:`n"
+        Write-Host "`nProperties of the policy that are True, On, or not blank:`n"
         $excludedProperties = 'Identity', 'Id', 'Name', 'ExchangeVersion', 'DistinguishedName', 'ObjectCategory', 'ObjectClass', 'WhenChanged', 'WhenCreated', 'WhenChangedUTC', 'WhenCreatedUTC', 'ExchangeObjectId', 'OrganizationalUnitRoot', 'OrganizationId', 'OriginatingServer', 'ObjectState'
 
         $policy.PSObject.Properties | ForEach-Object {
             if ($null -ne $_.Value -and $_.Value -ne '{}' -and $_.Value -ne 'Off' -and $_.Value -ne 'False' -and $_.Value -ne '' -and $excludedProperties -notcontains $_.Name) {
-                #Write-Host "$($_.Name): $($_.Value)" -ForegroundColor Yellow
-                $outString += "$($_.Name): $($_.Value)`n"
+                Write-Host "`t$($_.Name): $($_.Value)" -ForegroundColor Yellow
+                #$outString += "$($_.Name): $($_.Value)`n"
             }
         }
-        return $outString
+        #return $outString
     }
 
     function Get-Policy {
@@ -453,7 +453,7 @@ process {
                     break
                 }
             } else {
-                Write-Host "You have more than one Graph sessions please use just one session" -ForegroundColor Red
+                Write-Host "You have more than one Graph sessions. Please use just one session" -ForegroundColor Red
                 break
             }
         }
@@ -474,7 +474,7 @@ process {
             Write-Host "Tenant Id: $($connection.TenantId)"
             Write-Host "User: $($connection.UserPrincipalName)"
         } else {
-            Write-Host "You have more than one EXO sessions please use just one session" -ForegroundColor Red
+            Write-Host "You have more than one EXO sessions. Please use just one session" -ForegroundColor Red
             break
         }
     }
@@ -526,11 +526,11 @@ process {
                 # If there are any issues, print the policy details once and then list all the issues
                 if ($Issues.Count -gt 0) {
                     Write-Host ("`nPolicy '" + $Policy.Name + "':") -ForegroundColor Yellow
-                    Write-Host ("   - Type: '" + $Cmdlets[$Cmdlet] + "'.") -ForegroundColor Yellow
-                    Write-Host ("   - State: " + $Policy.State + ".") -ForegroundColor Yellow
-                    Write-Host ("   - Issues: ") -ForegroundColor Red
+                    Write-Host ("`t- Type: '" + $Cmdlets[$Cmdlet] + "'.") -ForegroundColor Yellow
+                    Write-Host ("`t- State: " + $Policy.State + ".") -ForegroundColor Yellow
+                    Write-Host ("`t- Issues: ") -ForegroundColor Red
                     foreach ($Issue in $Issues) {
-                        Write-Host ("      -> " + $Issue)
+                        Write-Host ("`t`t-> " + $Issue)
                         $IssueCounter += 1
                     }
                 }
@@ -609,7 +609,7 @@ process {
             $emailAddress = $email.ToString()
             # Initialize a variable to capture all policy details
             $allPolicyDetails = ""
-            Write-Host "`nPolicies applied to $emailAddress..."
+            Write-Host "`n`nPolicies applied to $emailAddress..."
 
             if ( -not $OnlyMDOPolicies) {
                 # Check the Strict EOP rules first as they have higher precedence
@@ -623,8 +623,7 @@ process {
                     $outboundSpamMatchedRule = Test-RulesAlternative -rules $hostedOutboundSpamFilterRules -email $emailAddress
                     $allPolicyDetails = Get-Policy $outboundSpamMatchedRule "Outbound Spam"
                     Write-Host $allPolicyDetails -ForegroundColor Yellow
-                    Write-Output "`n"
-                    #  continue
+                    Write-Host "`n"
                 } else {
                     # Check the Standard EOP rules secondly
                     $matchedRule = $null
@@ -638,34 +637,33 @@ process {
                         $outboundSpamMatchedRule = Test-RulesAlternative -rules $hostedOutboundSpamFilterRules -email $emailAddress
                         $allPolicyDetails = Get-Policy $outboundSpamMatchedRule "Outbound Spam"
                         Write-Host $allPolicyDetails -ForegroundColor Yellow
-                        Write-Output "`n"
-                        # continue
+                        Write-Host "`n"
                     } else {
                         # If no match in EOPProtectionPolicyRules, check MalwareFilterRules, AntiPhishRules, outboundSpam, and HostedContentFilterRules
                         $malwareMatchedRule = $null
                         $malwareMatchedRule = Test-Rules -rules $malwareFilterRules -email $emailAddress
-                        $allPolicyDetails = "`n`n"
-                        $allPolicyDetails += Get-Policy $malwareMatchedRule "Malware"
+                        $allPolicyDetails = "`n"
+                        Write-Host (Get-Policy $malwareMatchedRule "Malware") -ForegroundColor Yellow
                         if ($malwareMatchedRule -and $ShowDetailedPolicies) {
-                            $allPolicyDetails += Show-DetailedPolicy -Policy (Get-MalwareFilterPolicy $malwareMatchedRule.Identity)
+                            Show-DetailedPolicy -Policy (Get-MalwareFilterPolicy $malwareMatchedRule.Identity)
                         }
                         $antiPhishMatchedRule = $null
                         $antiPhishMatchedRule = Test-Rules -rules $antiPhishRules -email $emailAddress
-                        $allPolicyDetails += Get-Policy $antiPhishMatchedRule "Anti-phish"
+                        Write-Host (Get-Policy $antiPhishMatchedRule "Anti-phish") -ForegroundColor Yellow
                         if ($antiPhishMatchedRule -and $ShowDetailedPolicies) {
-                            $allPolicyDetails += Show-DetailedPolicy -Policy (Get-AntiPhishPolicy $antiPhishMatchedRule.Identity)
+                            Show-DetailedPolicy -Policy (Get-AntiPhishPolicy $antiPhishMatchedRule.Identity)
                         }
                         $spamMatchedRule = $null
                         $spamMatchedRule = Test-Rules -rules $hostedContentFilterRules -email $emailAddress
-                        $allPolicyDetails += Get-Policy $spamMatchedRule "Anti-spam"
+                        Write-Host (Get-Policy $spamMatchedRule "Anti-spam") -ForegroundColor Yellow
                         if ($spamMatchedRule -and $ShowDetailedPolicies) {
-                            $allPolicyDetails += Show-DetailedPolicy -Policy (Get-HostedContentFilterPolicy $spamMatchedRule.Identity)
+                            Show-DetailedPolicy -Policy (Get-HostedContentFilterPolicy $spamMatchedRule.Identity)
                         }
                         $outboundSpamMatchedRule = $null
                         $outboundSpamMatchedRule = Test-RulesAlternative -rules $hostedOutboundSpamFilterRules -email $emailAddress
-                        $allPolicyDetails += Get-Policy $outboundSpamMatchedRule "Outbound Spam"
+                        Write-Host (Get-Policy $outboundSpamMatchedRule "Outbound Spam") -ForegroundColor Yellow
                         if ($outboundSpamMatchedRule -and $ShowDetailedPolicies) {
-                            $allPolicyDetails += Show-DetailedPolicy -Policy (Get-HostedOutboundSpamFilterPolicy $outboundSpamMatchedRule.Identity)
+                            Show-DetailedPolicy -Policy (Get-HostedOutboundSpamFilterPolicy $outboundSpamMatchedRule.Identity)
                         }
                         $allPolicyDetails = $userDetails + "`n" + $allPolicyDetails
                         Write-Host $allPolicyDetails -ForegroundColor Yellow
@@ -693,14 +691,10 @@ process {
                         # No match in preset ATPProtectionPolicyRules, check custom SA/SL rules
                         $SAmatchedRule = $null
                         $SAmatchedRule = Test-Rules -rules $SafeAttachmentRules -email $emailAddress
-                        if ($SAmatchedRule -and $ShowDetailedPolicies) {
-                            Show-DetailedPolicy -Policy (Get-SafeAttachmentPolicy $SAmatchedRule.Identity)
-                        }
+
                         $SLmatchedRule = $null
                         $SLmatchedRule = Test-Rules -rules $SafeLinksRules -email $emailAddress
-                        if ($SLmatchedRule -and $ShowDetailedPolicies) {
-                            Show-DetailedPolicy -Policy (Get-SafeLinksPolicy $SLmatchedRule.Identity)
-                        }
+
                         if ($null -eq $SAmatchedRule) {
                             # Get the Built-in Protection Rule
                             $builtInProtectionRule = Get-ATPBuiltInProtectionRule
@@ -726,6 +720,9 @@ process {
                         } else {
                             $policy = Get-SafeAttachmentPolicy -Identity $SAmatchedRule.Name
                             Write-Host ("`nSafe Attachments: `n   Name: {0}`n   Priority: {1}" -f $SAmatchedRule.Name, $SAmatchedRule.Priority) -ForegroundColor Yellow
+                            if ($SAmatchedRule -and $ShowDetailedPolicies) {
+                                Show-DetailedPolicy -Policy (Get-SafeAttachmentPolicy $SAmatchedRule.Identity)
+                            }
                         }
 
                         if ($null -eq $SLmatchedRule) {
@@ -756,6 +753,9 @@ process {
                         } else {
                             $policy = Get-SafeLinksPolicy -Identity $SLmatchedRule.Name
                             Write-Host ("Safe Links: `n  Name: {0}`n   Priority: {1}" -f $SLmatchedRule.Name, $SLmatchedRule.Priority) -ForegroundColor Yellow
+                            if ($SLmatchedRule -and $ShowDetailedPolicies) {
+                                Show-DetailedPolicy -Policy (Get-SafeLinksPolicy $SLmatchedRule.Identity)
+                            }
                         }
                     }
                 }
