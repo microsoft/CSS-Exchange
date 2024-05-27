@@ -323,7 +323,6 @@ begin {
     }
 
     function Show-DetailedPolicy {
-        #[OutputType([string])]
         param (
             [Parameter(Mandatory = $true)]
             $policy
@@ -333,11 +332,9 @@ begin {
 
         $policy.PSObject.Properties | ForEach-Object {
             if ($null -ne $_.Value -and $_.Value -ne '{}' -and $_.Value -ne 'Off' -and $_.Value -ne 'False' -and $_.Value -ne '' -and $excludedProperties -notcontains $_.Name) {
-                Write-Host "`t$($_.Name): $($_.Value)" -ForegroundColor Yellow
-                #$outString += "$($_.Name): $($_.Value)`n"
+                Write-Host "`t$($_.Name): $($_.Value)"
             }
         }
-        #return $outString
     }
 
     function Get-Policy {
@@ -617,7 +614,7 @@ process {
                 # $matchedRule = Test-Rules -rules $eopProtectionPolicyRules -email $emailAddress
                 $matchedRule = Test-Rules -rules $EopStrictPresetRules -email $emailAddress
                 if ($EopStrictPresetRules -contains $matchedRule) {
-                    $allPolicyDetails += "`nFor malware, spam, and phishing: `n   Name: {0}`n   Priority: {1}`n   The policy actions are not configurable.`n" -f $matchedRule.Name, $matchedRule.Priority
+                    $allPolicyDetails += "`nFor malware, spam, and phishing:`n`tName: {0}`n`tPriority: {1}`n`tThe policy actions are not configurable.`n" -f $matchedRule.Name, $matchedRule.Priority
                     Write-Host $allPolicyDetails -ForegroundColor Green
                     $outboundSpamMatchedRule = $null
                     $outboundSpamMatchedRule = Test-RulesAlternative -rules $hostedOutboundSpamFilterRules -email $emailAddress
@@ -630,14 +627,13 @@ process {
                     $matchedRule = Test-Rules -rules $EopStandardPresetRules -email $emailAddress
 
                     if ($EopStandardPresetRules -contains $matchedRule) {
-                        $allPolicyDetails += "`nFor malware, spam, and phishing: `n   Name: {0}`n   Priority: {1}`n   The policy actions are not configurable.`n" -f $matchedRule.Name, $matchedRule.Priority
+                        $allPolicyDetails += "`nFor malware, spam, and phishing:`n`tName: {0}`n`tPriority: {1}`n`tThe policy actions are not configurable.`n" -f $matchedRule.Name, $matchedRule.Priority
                         Write-Host $allPolicyDetails -ForegroundColor Green
 
                         $outboundSpamMatchedRule = $null
                         $outboundSpamMatchedRule = Test-RulesAlternative -rules $hostedOutboundSpamFilterRules -email $emailAddress
                         $allPolicyDetails = Get-Policy $outboundSpamMatchedRule "Outbound Spam"
                         Write-Host $allPolicyDetails -ForegroundColor Yellow
-                        Write-Host "`n"
                     } else {
                         # If no match in EOPProtectionPolicyRules, check MalwareFilterRules, AntiPhishRules, outboundSpam, and HostedContentFilterRules
                         $malwareMatchedRule = $null
@@ -679,14 +675,14 @@ process {
                 $matchedRule = Test-Rules -rules $MdoStrictPresetRules -email $emailAddress
 
                 if ($MdoStrictPresetRules -contains $matchedRule) {
-                    Write-Host ("`nFor both Safe Attachments and Safe Links: `n   Name: {0}`n   Priority: {1}`n" -f $matchedRule.Name, $matchedRule.Priority) -ForegroundColor Green
+                    Write-Host ("`nFor both Safe Attachments and Safe Links:`n`tName: {0}`n`tPriority: {1}`n" -f $matchedRule.Name, $matchedRule.Priority) -ForegroundColor Green
                 } else {
                     # Check the Standard MDO rules secondly
                     $matchedRule = $null
                     $matchedRule = Test-Rules -rules $MdoStandardPresetRules -email $emailAddress
 
                     if ($MdoStandardPresetRules -contains $matchedRule) {
-                        Write-Host ("`nFor both Safe Attachments and Safe Links: `n   Name: {0}`n   Priority: {1}`n" -f $matchedRule.Name, $matchedRule.Priority) -ForegroundColor Green
+                        Write-Host ("`nFor both Safe Attachments and Safe Links:`n`tName: {0}`n`tPriority: {1}`n" -f $matchedRule.Name, $matchedRule.Priority) -ForegroundColor Green
                     } else {
                         # No match in preset ATPProtectionPolicyRules, check custom SA/SL rules
                         $SAmatchedRule = $null
@@ -712,14 +708,14 @@ process {
                             if ($emailAddress -in $builtInProtectionRule.ExceptIfSentTo -or
                                 $isInExcludedGroup -or
                                 $domain -in $builtInProtectionRule.ExceptIfRecipientDomainIs) {
-                                Write-Host "`nSafe Attachments: `n  The user is excluded from all Safe Attachment protection because they are excluded from Built-in Protection, and they are not explicitly included in any other policy." -ForegroundColor Red
+                                Write-Host "`nSafe Attachments:`n`tThe user is excluded from all Safe Attachment protection because they are excluded from Built-in Protection, and they are not explicitly included in any other policy." -ForegroundColor Red
                             } else {
-                                Write-Host "`nSafe Attachments: `n  If your organization has at least one A5/E5, or MDO license, the user is included in the Built-in policy." -ForegroundColor Yellow
+                                Write-Host "`nSafe Attachments:`n`tIf your organization has at least one A5/E5, or MDO license, the user is included in the Built-in policy." -ForegroundColor Yellow
                             }
                             $policy = $null
                         } else {
                             $policy = Get-SafeAttachmentPolicy -Identity $SAmatchedRule.Name
-                            Write-Host ("`nSafe Attachments: `n   Name: {0}`n   Priority: {1}" -f $SAmatchedRule.Name, $SAmatchedRule.Priority) -ForegroundColor Yellow
+                            Write-Host ("`nSafe Attachments:`n`tName: {0}`n`tPriority: {1}" -f $SAmatchedRule.Name, $SAmatchedRule.Priority) -ForegroundColor Yellow
                             if ($SAmatchedRule -and $ShowDetailedPolicies) {
                                 Show-DetailedPolicy -Policy (Get-SafeAttachmentPolicy $SAmatchedRule.Identity)
                             }
@@ -745,14 +741,14 @@ process {
                             if ($emailAddress -in $builtInProtectionRule.ExceptIfSentTo -or
                                 $isInExcludedGroup -or
                                 $domain -in $builtInProtectionRule.ExceptIfRecipientDomainIs) {
-                                Write-Host "`nSafe Links: `n  The user is excluded from all Safe Links protection because they are excluded from Built-in Protection, and they are not explicitly included in any other policy." -ForegroundColor Red
+                                Write-Host "`nSafe Links:`n`tThe user is excluded from all Safe Links protection because they are excluded from Built-in Protection, and they are not explicitly included in any other policy." -ForegroundColor Red
                             } else {
-                                Write-Host "`nSafe Links: `n  If your organization has at least one A5/E5, or MDO license, the user is included in the Built-in policy." -ForegroundColor Yellow
+                                Write-Host "`nSafe Links:`n`tIf your organization has at least one A5/E5, or MDO license, the user is included in the Built-in policy." -ForegroundColor Yellow
                             }
                             $policy = $null
                         } else {
                             $policy = Get-SafeLinksPolicy -Identity $SLmatchedRule.Name
-                            Write-Host ("`nSafe Links: `n  Name: {0}`n   Priority: {1}" -f $SLmatchedRule.Name, $SLmatchedRule.Priority) -ForegroundColor Yellow
+                            Write-Host ("`nSafe Links:`n`tName: {0}`n`tPriority: {1}" -f $SLmatchedRule.Name, $SLmatchedRule.Priority) -ForegroundColor Yellow
                             if ($SLmatchedRule -and $ShowDetailedPolicies) {
                                 Show-DetailedPolicy -Policy (Get-SafeLinksPolicy $SLmatchedRule.Identity)
                             }
