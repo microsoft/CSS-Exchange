@@ -329,7 +329,7 @@ begin {
             $policy
         )
         $outString = "`nThese are all properties of the policy that are True, On, or not blank:`n"
-        $excludedProperties = 'Id', 'ExchangeVersion', , 'DistinguishedName', 'ObjectCategory', 'ObjectClass', 'WhenChanged', 'WhenCreated', 'WhenChangedUTC', 'WhenCreatedUTC', 'ExchangeObjectId', 'OrganizationalUnitRoot', 'OrganizationId', 'OriginatingServer', 'ObjectState'
+        $excludedProperties = 'Identity', 'Id', 'Name', 'ExchangeVersion', 'DistinguishedName', 'ObjectCategory', 'ObjectClass', 'WhenChanged', 'WhenCreated', 'WhenChangedUTC', 'WhenCreatedUTC', 'ExchangeObjectId', 'OrganizationalUnitRoot', 'OrganizationId', 'OriginatingServer', 'ObjectState'
 
         $policy.PSObject.Properties | ForEach-Object {
             if ($null -ne $_.Value -and $_.Value -ne '{}' -and $_.Value -ne 'Off' -and $_.Value -ne 'False' -and $_.Value -ne '' -and $excludedProperties -notcontains $_.Name) {
@@ -659,7 +659,7 @@ process {
                         $spamMatchedRule = Test-Rules -rules $hostedContentFilterRules -email $emailAddress
                         $allPolicyDetails += Get-Policy $spamMatchedRule "Anti-spam"
                         if ($spamMatchedRule -and $ShowDetailedPolicies) {
-                            $allPolicyDetails += Show-DetailedPolicy -Policy (Get-HostedContentFilterRule $spamMatchedRule.Identity)
+                            $allPolicyDetails += Show-DetailedPolicy -Policy (Get-HostedContentFilterPolicy $spamMatchedRule.Identity)
                         }
                         $outboundSpamMatchedRule = $null
                         $outboundSpamMatchedRule = Test-RulesAlternative -rules $hostedOutboundSpamFilterRules -email $emailAddress
