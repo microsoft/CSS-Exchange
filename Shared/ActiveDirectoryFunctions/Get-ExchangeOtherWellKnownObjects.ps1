@@ -8,7 +8,7 @@ function Get-ExchangeOtherWellKnownObjects {
     param ()
 
     $otherWellKnownObjectIds = @{
-        "C2F9A9F9D6A1B74A9E068728F8F842EA" = "Organization Management"
+        "C262A929D691B74A9E068728F8F842EA" = "Organization Management"
         "DB72C41D49580A4DB304FE6981E56297" = "Recipient Management"
         "1A9E39D35ABE5747B979FFC0C6E5EA26" = "View-Only Organization Management"
         "45FA417B3574DC4E929BC4B059699792" = "Public Folder Management"

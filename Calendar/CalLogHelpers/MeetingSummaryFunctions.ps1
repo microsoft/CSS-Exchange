@@ -1,6 +1,5 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-
 function Convert-Data {
     param(
         [Parameter(Mandatory = $True)]
@@ -39,10 +38,10 @@ function Convert-Data {
 # ===================================================================================================
 # Write Out one line of the Meeting Summary (Time + Meeting Changes)
 # ===================================================================================================
-function MeetingSummary {
+function CreateMeetingSummary {
     param(
         [array] $Time,
-        $MeetingChanges,
+        [array] $MeetingChanges,
         $Entry,
         [switch] $LongVersion,
         [switch] $ShortVersion
@@ -81,7 +80,7 @@ function MeetingSummary {
     }
 
     if (!$Time) {
-        $Time = $CalLog.LastModifiedTime.ToString()
+        $Time = $Entry.LogTimestamp
     }
 
     if (!$MeetingChanges) {
@@ -94,10 +93,5 @@ function MeetingSummary {
         $MeetingChanges += $InitialToList, $InitialLocation, $InitialStartTime, $InitialEndTime, $InitialRecurring
     }
 
-    # Convert-Data -ArrayNames "Time", "MeetingChanges" >> $Script:TimeLineFilename
-    $TimeLineOutput = Convert-Data -ArrayNames "Time", "MeetingChanges"
-
-    $TimeLineOutput | Export-Csv -Path $Script:TimeLineFilename -NoTypeInformation -Encoding UTF8 -Append
-    $TimeLineOutput
+    $script:TimeLineOutput += Convert-Data -ArrayNames "Time", "MeetingChanges"
 }
-

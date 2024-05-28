@@ -69,15 +69,14 @@ nav:
       - IISWebConfigCheck: Diagnostics/HealthChecker/IISWebConfigCheck.md
       - HCScheduledTask: Diagnostics/HealthChecker/RunHCViaSchedTask.md
       - ADSiteCount: Diagnostics/HealthChecker/ADSiteCount.md
+      - ExchangeComputerMembership: Diagnostics/HealthChecker/ExchangeComputerMembership.md
     - ManagedAvailabilityTroubleshooter: Diagnostics/ManagedAvailabilityTroubleshooter.md
     - Test-ExchAVExclusions: Diagnostics/Test-ExchAVExclusions.md
   - Hybrid:
     - Test-HMAEAS: Hybrid/Test-HMAEAS.md
-  - MDO:
-    - MDOThreatPolicyChecker: MDO/MDOThreatPolicyChecker.md
-    - MDO-EOP-Rule-Logic-Check: MDO/MDO-EOP-Rule-Logic-Check.md
-    - SA-SL-Policies-AppliedTo-User: MDO/SA-SL-Policies-AppliedTo-User.md
   - M365:
+    - MDO:
+      - MDOThreatPolicyChecker: M365/MDO/MDOThreatPolicyChecker.md
     - DLT365Groupsupgrade: M365/DLT365Groupsupgrade.md
   - Performance:
     - ExPerfWiz: Performance/ExPerfWiz.md

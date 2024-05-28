@@ -12,6 +12,8 @@ $script:CustomPropertyNameList =
 "CalendarItemType",
 "CalendarProcessed",
 "ClientIntent",
+"ChangeList",
+"CalendarLogTriggerAction",
 "DisplayAttendeesCc",
 "DisplayAttendeesTo",
 "EventEmailReminderTimer",
@@ -28,10 +30,9 @@ $script:CustomPropertyNameList =
 "SendMeetingMessagesDiagnostics",
 "SentRepresentingDisplayName",
 "SentRepresentingEmailAddress",
-"OriginalLastModifiedTime",
-"ClientInfoString",
+"LogTimestamp",
+"LogClientInfoString",
 "OriginalStartDate",
-"LastModifiedTime",
 "CreationTime",
 "TimeZone"
 
@@ -117,16 +118,16 @@ function GetCalLogsWithSubject {
 
     if ($GlobalObjectIds.count -eq 1) {
         $script:GCDO = $InitialCDOs; # use the CalLogs that we already have, since there is only one.
-        BuildCSV -Identity $Identity
-        BuildTimeline -Identity $Identity
+        BuildCSV
+        BuildTimeline
     } elseif ($GlobalObjectIds.count -gt 1) {
         Write-Host "Found multiple GlobalObjectIds: $($GlobalObjectIds.Count)."
         foreach ($MID in $GlobalObjectIds) {
             Write-DashLineBoxColor "Processing MeetingID: [$MID]"
             $script:GCDO = GetCalendarDiagnosticObjects -Identity $Identity -MeetingID $MID
             Write-Verbose "Found $($GCDO.count) CalLogs with MeetingID[$MID] ."
-            BuildCSV -Identity $Identity
-            BuildTimeline -Identity $Identity
+            BuildCSV
+            BuildTimeline
         }
     } else {
         Write-Warning "No CalLogs were found."
