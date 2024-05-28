@@ -327,7 +327,7 @@ begin {
             [Parameter(Mandatory = $true)]
             $policy
         )
-        Write-Host "`nProperties of the policy that are True, On, or not blank:"
+        Write-Host "`tProperties of the policy that are True, On, or not blank:"
         $excludedProperties = 'Identity', 'Id', 'Name', 'ExchangeVersion', 'DistinguishedName', 'ObjectCategory', 'ObjectClass', 'WhenChanged', 'WhenCreated', 'WhenChangedUTC', 'WhenCreatedUTC', 'ExchangeObjectId', 'OrganizationalUnitRoot', 'OrganizationId', 'OriginatingServer', 'ObjectState'
 
         $policy.PSObject.Properties | ForEach-Object {
