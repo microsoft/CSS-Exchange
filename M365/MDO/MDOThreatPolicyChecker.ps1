@@ -327,7 +327,7 @@ begin {
             [Parameter(Mandatory = $true)]
             $policy
         )
-        Write-Host "Properties of the policy that are True, On, or not blank:`n"
+        Write-Host "`nProperties of the policy that are True, On, or not blank:"
         $excludedProperties = 'Identity', 'Id', 'Name', 'ExchangeVersion', 'DistinguishedName', 'ObjectCategory', 'ObjectClass', 'WhenChanged', 'WhenCreated', 'WhenChangedUTC', 'WhenCreatedUTC', 'ExchangeObjectId', 'OrganizationalUnitRoot', 'OrganizationId', 'OriginatingServer', 'ObjectState'
 
         $policy.PSObject.Properties | ForEach-Object {
@@ -346,19 +346,19 @@ begin {
 
         if ($null -eq $rule) {
             if ($policyType -eq "Anti-phish") {
-                $policyDetails = "`n$policyType (Impersonation, Mailbox/Spoof Intelligence, Honor DMARC): `n  The Default policy.`n"
+                $policyDetails = "`n$policyType (Impersonation, Mailbox/Spoof Intelligence, Honor DMARC):`n`tThe Default policy."
             } elseif ($policyType -eq "Anti-spam") {
-                $policyDetails = "`n$policyType (includes phish & bulk actions): `n  The Default policy.`n"
+                $policyDetails = "`n$policyType (includes phish & bulk actions):`n`tThe Default policy."
             } else {
-                $policyDetails = "`n${policyType}: `n  The Default policy.`n"
+                $policyDetails = "`n${policyType}:`n`tThe Default policy."
             }
         } else {
             if ($policyType -eq "Anti-phish") {
-                $policyDetails = "`n$policyType (Impersonation, Mailbox/Spoof Intelligence, Honor DMARC): `n  Name: {0}  `n  Priority: {1}`n" -f $rule.Name, $rule.Priority
+                $policyDetails = "`n$policyType (Impersonation, Mailbox/Spoof Intelligence, Honor DMARC):`n`tName: {0}`n`tPriority: {1}" -f $rule.Name, $rule.Priority
             } elseif ($policyType -eq "Anti-spam") {
-                $policyDetails = "`n$policyType (includes phish & bulk actions): `n  Name: {0}`n  Priority: {1}`n" -f $rule.Name, $rule.Priority
+                $policyDetails = "`n$policyType (includes phish & bulk actions):`n`tName: {0}`n`tPriority: {1}" -f $rule.Name, $rule.Priority
             } else {
-                $policyDetails = "`n${policyType}: `n  Name: {0}`n  Priority: {1}`n" -f $rule.Name, $rule.Priority
+                $policyDetails = "`n${policyType}:`n`tName: {0}`n`tPriority: {1}" -f $rule.Name, $rule.Priority
             }
         }
         return $policyDetails
@@ -417,7 +417,7 @@ begin {
         return
     }
 
-    Write-Host "`n"
+    Write-Host " "
     Write-Host "Disclaimer:
 
 The sample scripts are not supported under any Microsoft standard support program or service.
@@ -426,7 +426,7 @@ Microsoft further disclaims all implied warranties including, without limitation
 The entire risk arising out of the use or performance of the sample scripts and documentation remains with you.
 In no event shall Microsoft, its authors, or anyone else involved in the creation, production, or delivery of the scripts be liable for any damages whatsoever
 (including, without limitation, damages for loss of business profits, business interruption, loss of business information, or other pecuniary loss)
-arising out of the use of or inability to use the sample scripts or documentation, even if Microsoft has been advised of the possibility of such damages.`n" -ForegroundColor Yellow
+arising out of the use of or inability to use the sample scripts or documentation, even if Microsoft has been advised of the possibility of such damages." -ForegroundColor Yellow
 }
 
 process {
@@ -615,7 +615,7 @@ process {
                 # $matchedRule = Test-Rules -rules $eopProtectionPolicyRules -email $emailAddress
                 $matchedRule = Test-Rules -rules $EopStrictPresetRules -email $emailAddress
                 if ($EopStrictPresetRules -contains $matchedRule) {
-                    $allPolicyDetails += "`nFor malware, spam, and phishing:`n`tName: {0}`n`tPriority: {1}`n`tThe policy actions are not configurable.`n" -f $matchedRule.Name, $matchedRule.Priority
+                    $allPolicyDetails += "`nFor malware, spam, and phishing:`n`tName: {0}`n`tPriority: {1}`n`tThe policy actions are not configurable." -f $matchedRule.Name, $matchedRule.Priority
                     Write-Host $allPolicyDetails -ForegroundColor Green
                     $outboundSpamMatchedRule = $null
                     $outboundSpamMatchedRule = Test-RulesAlternative -rules $hostedOutboundSpamFilterRules -email $emailAddress
@@ -627,7 +627,7 @@ process {
                     $matchedRule = Test-Rules -rules $EopStandardPresetRules -email $emailAddress
 
                     if ($EopStandardPresetRules -contains $matchedRule) {
-                        $allPolicyDetails += "`nFor malware, spam, and phishing:`n`tName: {0}`n`tPriority: {1}`n`tThe policy actions are not configurable.`n" -f $matchedRule.Name, $matchedRule.Priority
+                        $allPolicyDetails += "`nFor malware, spam, and phishing:`n`tName: {0}`n`tPriority: {1}`n`tThe policy actions are not configurable." -f $matchedRule.Name, $matchedRule.Priority
                         Write-Host $allPolicyDetails -ForegroundColor Green
 
                         $outboundSpamMatchedRule = $null
@@ -638,7 +638,7 @@ process {
                         # If no match in EOPProtectionPolicyRules, check MalwareFilterRules, AntiPhishRules, outboundSpam, and HostedContentFilterRules
                         $malwareMatchedRule = $null
                         $malwareMatchedRule = Test-Rules -rules $malwareFilterRules -email $emailAddress
-                        $allPolicyDetails = "`n"
+                        $allPolicyDetails = " "
                         Write-Host (Get-Policy $malwareMatchedRule "Malware") -ForegroundColor Yellow
                         if ($malwareMatchedRule -and $ShowDetailedPolicies) {
                             Show-DetailedPolicy -Policy (Get-MalwareFilterPolicy $malwareMatchedRule.Identity)
@@ -675,14 +675,14 @@ process {
                 $matchedRule = Test-Rules -rules $MdoStrictPresetRules -email $emailAddress
 
                 if ($MdoStrictPresetRules -contains $matchedRule) {
-                    Write-Host ("`nFor both Safe Attachments and Safe Links:`n`tName: {0}`n`tPriority: {1}`n" -f $matchedRule.Name, $matchedRule.Priority) -ForegroundColor Green
+                    Write-Host ("`nFor both Safe Attachments and Safe Links:`n`tName: {0}`n`tPriority: {1}" -f $matchedRule.Name, $matchedRule.Priority) -ForegroundColor Green
                 } else {
                     # Check the Standard MDO rules secondly
                     $matchedRule = $null
                     $matchedRule = Test-Rules -rules $MdoStandardPresetRules -email $emailAddress
 
                     if ($MdoStandardPresetRules -contains $matchedRule) {
-                        Write-Host ("`nFor both Safe Attachments and Safe Links:`n`tName: {0}`n`tPriority: {1}`n" -f $matchedRule.Name, $matchedRule.Priority) -ForegroundColor Green
+                        Write-Host ("`nFor both Safe Attachments and Safe Links:`n`tName: {0}`n`tPriority: {1}" -f $matchedRule.Name, $matchedRule.Priority) -ForegroundColor Green
                     } else {
                         # No match in preset ATPProtectionPolicyRules, check custom SA/SL rules
                         $SAmatchedRule = $null
@@ -758,5 +758,5 @@ process {
             }
         }
     }
-    Write-Host "`n"
+    Write-Host " "
 }
