@@ -8,7 +8,7 @@ Download the latest release: [MDOThreatPolicyChecker.ps1](https://github.com/mic
 
 Parameter | Description |
 ----------|-------------|
-CsvFilePath | Allows you to specify a CSV file with a list of email addresses to check.
+CsvFilePath | Allows you to specify a CSV file with a list of email addresses to check. Csv file must include a first line with header Email.
 EmailAddresses | Allows you to specify email address or multiple addresses separated by commas.
 IncludeMDOPolicies | Checks both EOP and MDO (Safe Attachment and Safe Links) policies for user(s) specified in the CSV file or EmailAddresses parameter.
 OnlyMDOPolicies | Checks only MDO (Safe Attachment and Safe Links) policies for user(s) specified in the CSV file or EmailAddresses parameter.

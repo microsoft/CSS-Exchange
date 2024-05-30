@@ -327,11 +327,7 @@ begin {
             [Parameter(Mandatory = $true)]
             $policy
         )
-        # <<<<<<< HEAD
-        Write-Host "`tProperties of the policy that are True, On, or not blank:" -ForegroundColor Yellow
-        =======
         Write-Host "`n`tProperties of the policy that are True, On, or not blank:"
-        # >>>>>>> 2f66cc78cfb5f40b6f4a0dedf3e2951397c548ba
         $excludedProperties = 'Identity', 'Id', 'Name', 'ExchangeVersion', 'DistinguishedName', 'ObjectCategory', 'ObjectClass', 'WhenChanged', 'WhenCreated', 'WhenChangedUTC', 'WhenCreatedUTC', 'ExchangeObjectId', 'OrganizationalUnitRoot', 'OrganizationId', 'OriginatingServer', 'ObjectState'
 
         $policy.PSObject.Properties | ForEach-Object {
@@ -438,12 +434,20 @@ process {
         if ($PSCmdlet.ParameterSetName -ne "AppliedTenant") {
             #Validate Graph is connected
             $connection = $null
-            $connection = Get-MgContext -ErrorAction SilentlyContinue
+            try {
+                $connection = Get-MgContext -ErrorAction SilentlyContinue
+            } catch {
+                Write-Host "Error checking Graph connection" -ForegroundColor Red
+                Write-Host "Verify that you have Microsoft.Graph module installed" -ForegroundColor Yellow
+                Write-Host "Please use Global administrator credentials" -ForegroundColor Yellow
+                Write-Host "Connect-MgGraph -Scopes 'Group.Read.All','User.Read.All'" -ForegroundColor Yellow
+                exit
+            }
             if ($null -eq $connection) {
                 Write-Host "Not connected to Graph" -ForegroundColor Red
                 Write-Host "Please use Global administrator credentials" -ForegroundColor Yellow
                 Write-Host "Connect-MgGraph -Scopes 'Group.Read.All','User.Read.All'" -ForegroundColor Yellow
-                break
+                exit
             } elseif ($connection.count -eq 1) {
                 $ExpectedScopes = "GroupMember.Read.All", 'User.Read.All'
                 if (Test-GraphContext -Scopes $connection.Scopes -ExpectedScopes $ExpectedScopes) {
@@ -452,32 +456,43 @@ process {
                     Write-Host "Tenant: $((Get-MgOrganization).DisplayName)"
                 } else {
                     Write-Host "We cannot continue without Graph Powershell session without Expected Scopes" -ForegroundColor Red
-                    break
+                    exit
                 }
             } else {
                 Write-Host "You have more than one Graph sessions. Please use just one session" -ForegroundColor Red
-                break
+                exit
             }
         }
 
         #Validate EXO PS Connection
         $connection = $null
-        $connection = Get-ConnectionInformation -ErrorAction SilentlyContinue
-        if ($null -eq $connection) {
-            Write-Host "Not connected to EXO V2" -ForegroundColor Red
+        try {
+            $connection = Get-ConnectionInformation -ErrorAction SilentlyContinue
+        } catch {
+            Write-Host "Error checking EXO connection" -ForegroundColor Red
+            Write-Host "Verify that you have ExchangeOnlineManagement module installed" -ForegroundColor Yellow
             Write-Host "You need a connection To Exchange Online, you can use:" -ForegroundColor Yellow
             Write-Host "Connect-ExchangeOnline" -ForegroundColor Yellow
             Write-Host "Please use Global administrator credentials when prompted!" -ForegroundColor Yellow
             Write-Host "Exchange Online Powershell Module is required" -ForegroundColor Red
-            break
+            exit
+        }
+        if ($null -eq $connection) {
+            Write-Host "Not connected to EXO" -ForegroundColor Red
+            Write-Host "You need a connection To Exchange Online, you can use:" -ForegroundColor Yellow
+            Write-Host "Connect-ExchangeOnline" -ForegroundColor Yellow
+            Write-Host "Please use Global administrator credentials when prompted!" -ForegroundColor Yellow
+            Write-Host "Exchange Online Powershell Module is required" -ForegroundColor Red
+            exit
         } elseif ($connection.count -eq 1) {
-            Write-Host "Connected to EXO V2"
+            Write-Host " "
+            Write-Host "Connected to EXO"
             Write-Host "Session details"
             Write-Host "Tenant Id: $($connection.TenantId)"
             Write-Host "User: $($connection.UserPrincipalName)"
         } else {
             Write-Host "You have more than one EXO sessions. Please use just one session" -ForegroundColor Red
-            break
+            exit
         }
     }
 
@@ -499,7 +514,9 @@ process {
             { Get-ATPProtectionPolicyRule -Identity 'Strict Preset Security Policy' }   = "MDO (Safe Links / Safe Attachments)"
             { Get-ATPProtectionPolicyRule -Identity 'Standard Preset Security Policy' } = "MDO (Safe Links / Safe Attachments)"
         }
-        $IssueCounter = 0
+        $FoundIssues = $false
+
+        Write-Host " "
 
         # Loop through each cmdlet
         foreach ($Cmdlet in $Cmdlets.Keys) {
@@ -509,43 +526,53 @@ process {
             # Loop through each policy
             foreach ($Policy in $Policies) {
                 # Initialize an empty list to store issues
-                $Issues = @()
+                $Issues = $null
 
                 # Check the logic of the policy and add issues to the list
                 if ($Policy.SentTo -and $Policy.ExceptIfSentTo) {
-                    $Issues += "`n`t`t-> User inclusions and exclusions. `n`t`tExcluding and including Users individually is redundant and confusing as only the included Users could possibly be included.`n"
+                    $Issues += "`t`t-> User inclusions and exclusions. `n`t`t`tExcluding and including Users individually is redundant and confusing as only the included Users could possibly be included.`n"
                 }
                 if ($Policy.RecipientDomainIs -and $Policy.ExceptIfRecipientDomainIs) {
-                    $Issues += "`n`t`t-> Domain inclusions and exclusions. `n`t`tExcluding and including Domains is redundant and confusing as only the included Domains could possibly be included.`n"
+                    $Issues += "`t`t-> Domain inclusions and exclusions. `n`t`t`tExcluding and including Domains is redundant and confusing as only the included Domains could possibly be included.`n"
                 }
                 if ($Policy.SentTo -and $Policy.SentToMemberOf) {
-                    $Issues += "`n`t`t-> Illogical inclusions of Users and Groups. `n`t`tThe policy will only apply to Users who are also members of any Groups you have specified. `n`t`tThis makes the Group inclusion redundant and confusing.`n`t`tSuggestion: use one or the other type of inclusion.`n"
+                    $Issues += "`t`t-> Illogical inclusions of Users and Groups. `n`t`t`tThe policy will only apply to Users who are also members of any Groups you have specified. `n`t`t`tThis makes the Group inclusion redundant and confusing.`n`t`t`tSuggestion: use one or the other type of inclusion.`n"
                 }
                 if ($Policy.SentTo -and $Policy.RecipientDomainIs) {
-                    $Issues += "`n`t`t-> Illogical inclusions of Users and Domains. `n`t`tThe policy will only apply to Users whose email domains also match any Domains you have specified. `n`t`tThis makes the Domain inclusion redundant and confusing.`n`t`tSuggestion: use one or the other type of inclusion.`n"
+                    $Issues += "`t`t-> Illogical inclusions of Users and Domains. `n`t`t`tThe policy will only apply to Users whose email domains also match any Domains you have specified. `n`t`t`tThis makes the Domain inclusion redundant and confusing.`n`t`t`tSuggestion: use one or the other type of inclusion.`n"
                 }
 
                 # If there are any issues, print the policy details once and then list all the issues
-                if ($Issues.Count -gt 0) {
-                    Write-Host ("`nPolicy '" + $Policy.Name + "':") -ForegroundColor Yellow
+                if ($Issues) {
+                    Write-Host ("Policy '" + $Policy.Name + "':") -ForegroundColor Yellow
                     Write-Host ("`tType: '" + $Cmdlets[$Cmdlet] + "'.") -ForegroundColor Yellow
                     Write-Host ("`tState: " + $Policy.State + ".") -ForegroundColor Yellow
                     Write-Host ("`tIssues: ") -ForegroundColor Red
-                    foreach ($Issue in $Issues) {
-                        Write-Host ("`t`t" + $Issue) -NoNewline
-                        $IssueCounter += 1
-                    }
+                    Write-Host $Issues
+                    $FoundIssues= $true
                 }
             }
         }
-        if ($IssueCounter -eq 0) {
-            Write-Host ("`nNo logical inconsistencies found!") -ForegroundColor DarkGreen
+        if (-not $FoundIssues) {
+            Write-Host ("No logical inconsistencies found!") -ForegroundColor DarkGreen
         }
     } else {
 
         if ($CsvFilePath) {
-            #Handle csv control to expected content
-            $EmailAddresses = Import-Csv -Path $CsvFilePath | Select-Object -ExpandProperty Email
+            try {
+                # Import CSV file
+                $csvFile = Import-Csv -Path $CsvFilePath
+                # checking 'email' header
+                if ($emails.PSObject.Properties.Name -contains 'Email') {
+                    $EmailAddresses = $csvFile | Select-Object -ExpandProperty Email
+                } else {
+                    Write-Host "CSV does not contain 'Email' header." -ForegroundColor Red
+                    exit
+                }
+            } catch {
+                Write-Host "Error importing CSV file: $_" -ForegroundColor Red
+                exit
+            }
         }
 
         $AcceptedDomains = $null
