@@ -104,11 +104,17 @@ arising out of the use of or inability to use the sample scripts or documentatio
 if (-not $SkipConnectionCheck) {
     if ($PSCmdlet.ParameterSetName -ne "AppliedTenant") {
         #Connect to AzureAD PS
-        Test-AADConnection
+        if (-not (Test-GraphConnection -Scopes "GroupMember.Read.All", 'User.Read.All')) {
+            Write-Host "Unable to connect to AzureAD. Exiting script." -ForegroundColor Red
+            return
+        }
     }
 
     #Connect to EXO PS
-    Test-EXOConnection
+    if (-not (Test-EXOConnection)) {
+        Write-Host "Unable to connect to Exchange Online. Exiting script." -ForegroundColor Red
+        return
+    }
 }
 
 if ($PSCmdlet.ParameterSetName -eq "AppliedTenant") {

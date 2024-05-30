@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-function Test-AADConnection {
+function Test-GraphConnection {
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     [OutputType([bool])]
     param (
@@ -12,23 +12,16 @@ function Test-AADConnection {
     )
 
     #Validate Graph is installed and loaded
-    $loadedInstalled = $false
-    $loadedInstalled = Test-M365ModuleLoaded -ModuleName "Microsoft.Graph" -MinModuleVersion 3.2.0
-    if (-not $loadedInstalled) {
-        $loadedInstalled = Test-M365ModuleInstalled -ModuleName "Microsoft.Graph" -MinModuleVersion 3.2.0
-        if (-not $loadedInstalled) {
-            $loadedInstalled = Install-M365Module -ModuleName "Microsoft.Graph" -MinModuleVersion 3.2.0
-        }
-        if ($loadedInstalled) {
-            $loadedInstalled = Import-M365Module Microsoft.Graph -ErrorAction SilentlyContinue -Force -MinModuleVersion 3.2.0
-            if (-not $loadedInstalled) {
-                Write-Host "We cannot continue without Microsoft.Graph Powershell module" -ForegroundColor Red
-                break
-            }
-        } else {
-            Write-Host "We cannot continue without Microsoft.Graph Powershell module" -ForegroundColor Red
-            break
-        }
+    $loadModule = $false
+    if ($ModuleVersion) {
+        $loadModule = Import-M365Module -ModuleName "Microsoft.Graph" -MinModuleVersion $ModuleVersion
+    } else {
+        $loadModule = Import-M365Module -ModuleName "Microsoft.Graph"
+    }
+
+    if (-not $loadModule) {
+        Write-Host "We cannot continue without Microsoft.Graph Powershell module" -ForegroundColor Red
+        return $false
     }
 
     #Validate Graph is connected or try to connect
@@ -37,7 +30,7 @@ function Test-AADConnection {
     if ($null -eq $connection) {
         Write-Host "Not connected to Graph" -ForegroundColor Red
         Write-Host "Please use Global administrator credentials" -ForegroundColor Yellow
-        if ($Force -or $PSCmdlet.ShouldContinue("Do you want to connect?", "We need a AzureAD connection")) {
+        if ($PSCmdlet.ShouldContinue("Do you want to connect?", "We need a AzureAD connection")) {
             Connect-MgGraph -Scopes $Scopes -ErrorAction SilentlyContinue
             $connection = Get-MgContext -ErrorAction SilentlyContinue
             if ($null -eq $connection) {
