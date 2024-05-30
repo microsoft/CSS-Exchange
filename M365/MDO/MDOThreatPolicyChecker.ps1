@@ -513,16 +513,16 @@ process {
 
                 # Check the logic of the policy and add issues to the list
                 if ($Policy.SentTo -and $Policy.ExceptIfSentTo) {
-                    $Issues += "`n-> User inclusions and exclusions. `n`t`tExcluding and including Users individually is redundant and confusing as only the included Users could possibly be included.`n"
+                    $Issues += "`n`t`t-> User inclusions and exclusions. `n`t`tExcluding and including Users individually is redundant and confusing as only the included Users could possibly be included.`n"
                 }
                 if ($Policy.RecipientDomainIs -and $Policy.ExceptIfRecipientDomainIs) {
-                    $Issues += "`n-> Domain inclusions and exclusions. `n`t`tExcluding and including Domains is redundant and confusing as only the included Domains could possibly be included.`n"
+                    $Issues += "`n`t`t-> Domain inclusions and exclusions. `n`t`tExcluding and including Domains is redundant and confusing as only the included Domains could possibly be included.`n"
                 }
                 if ($Policy.SentTo -and $Policy.SentToMemberOf) {
-                    $Issues += "`n-> Illogical inclusions of Users and Groups. `n`t`tThe policy will only apply to Users who are also members of any Groups you have specified. `n`t`tThis makes the Group inclusion redundant and confusing.`n`t`tSuggestion: use one or the other type of inclusion.`n"
+                    $Issues += "`n`t`t-> Illogical inclusions of Users and Groups. `n`t`tThe policy will only apply to Users who are also members of any Groups you have specified. `n`t`tThis makes the Group inclusion redundant and confusing.`n`t`tSuggestion: use one or the other type of inclusion.`n"
                 }
                 if ($Policy.SentTo -and $Policy.RecipientDomainIs) {
-                    $Issues += "`n-> Illogical inclusions of Users and Domains. `n`t`tThe policy will only apply to Users whose email domains also match any Domains you have specified. `n`t`tThis makes the Domain inclusion redundant and confusing.`n`t`tSuggestion: use one or the other type of inclusion.`n"
+                    $Issues += "`n`t`t-> Illogical inclusions of Users and Domains. `n`t`tThe policy will only apply to Users whose email domains also match any Domains you have specified. `n`t`tThis makes the Domain inclusion redundant and confusing.`n`t`tSuggestion: use one or the other type of inclusion.`n"
                 }
 
                 # If there are any issues, print the policy details once and then list all the issues
