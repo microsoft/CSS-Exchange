@@ -327,11 +327,11 @@ begin {
             [Parameter(Mandatory = $true)]
             $policy
         )
-        <<<<<<< HEAD
+        # <<<<<<< HEAD
         Write-Host "`tProperties of the policy that are True, On, or not blank:" -ForegroundColor Yellow
         =======
         Write-Host "`n`tProperties of the policy that are True, On, or not blank:"
-        >>>>>>> 2f66cc78cfb5f40b6f4a0dedf3e2951397c548ba
+        # >>>>>>> 2f66cc78cfb5f40b6f4a0dedf3e2951397c548ba
         $excludedProperties = 'Identity', 'Id', 'Name', 'ExchangeVersion', 'DistinguishedName', 'ObjectCategory', 'ObjectClass', 'WhenChanged', 'WhenCreated', 'WhenChangedUTC', 'WhenCreatedUTC', 'ExchangeObjectId', 'OrganizationalUnitRoot', 'OrganizationId', 'OriginatingServer', 'ObjectState'
 
         $policy.PSObject.Properties | ForEach-Object {
@@ -513,26 +513,26 @@ process {
 
                 # Check the logic of the policy and add issues to the list
                 if ($Policy.SentTo -and $Policy.ExceptIfSentTo) {
-                    $Issues += "User inclusions and exclusions. Excluding and including Users individually is redundant and confusing as only the included Users could possibly be included."
+                    $Issues += "-> User inclusions and exclusions. `n`t`tExcluding and including Users individually is redundant and confusing as only the included Users could possibly be included.`n"
                 }
                 if ($Policy.RecipientDomainIs -and $Policy.ExceptIfRecipientDomainIs) {
-                    $Issues += "Domain inclusions and exclusions. Excluding and including Domains is redundant and confusing as only the included Domains could possibly be included."
+                    $Issues += "-> Domain inclusions and exclusions. `n`t`tExcluding and including Domains is redundant and confusing as only the included Domains could possibly be included.`n"
                 }
                 if ($Policy.SentTo -and $Policy.SentToMemberOf) {
-                    $Issues += "Illogical inclusions of Users and Groups. The policy will only apply to Users who are also members of any Groups you have specified. This makes the Group inclusion redundant and confusing.`n    Suggestion: use one or the other type of inclusion."
+                    $Issues += "-> Illogical inclusions of Users and Groups. `n`t`tThe policy will only apply to Users who are also members of any Groups you have specified. This makes the Group inclusion redundant and confusing.`n`t`tSuggestion: use one or the other type of inclusion.`n"
                 }
                 if ($Policy.SentTo -and $Policy.RecipientDomainIs) {
-                    $Issues += "Illogical inclusions of Users and Domains. The policy will only apply to Users whose email domains also match any Domains you have specified. This makes the Domain inclusion redundant and confusing.`n    Suggestion: use one or the other type of inclusion."
+                    $Issues += "-> Illogical inclusions of Users and Domains. `n`t`tThe policy will only apply to Users whose email domains also match any Domains you have specified. This makes the Domain inclusion redundant and confusing.`n`t`tSuggestion: use one or the other type of inclusion.`n"
                 }
 
                 # If there are any issues, print the policy details once and then list all the issues
                 if ($Issues.Count -gt 0) {
                     Write-Host ("`nPolicy '" + $Policy.Name + "':") -ForegroundColor Yellow
-                    Write-Host ("`t- Type: '" + $Cmdlets[$Cmdlet] + "'.") -ForegroundColor Yellow
-                    Write-Host ("`t- State: " + $Policy.State + ".") -ForegroundColor Yellow
-                    Write-Host ("`t- Issues: ") -ForegroundColor Red
+                    Write-Host ("`tType: '" + $Cmdlets[$Cmdlet] + "'.") -ForegroundColor Yellow
+                    Write-Host ("`tState: " + $Policy.State + ".") -ForegroundColor Yellow
+                    Write-Host ("`tIssues: ") -ForegroundColor Red
                     foreach ($Issue in $Issues) {
-                        Write-Host ("`t`t-> " + $Issue)
+                        Write-Host ("`t`t" + $Issue) -NoNewline
                         $IssueCounter += 1
                     }
                 }
