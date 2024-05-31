@@ -544,12 +544,17 @@ process {
 
                 # If there are any issues, print the policy details once and then list all the issues
                 if ($Issues) {
-                    Write-Host ("Policy '" + $Policy.Name + "':") -ForegroundColor Yellow
-                    Write-Host ("`tType: '" + $Cmdlets[$Cmdlet] + "'.") -ForegroundColor Yellow
-                    Write-Host ("`tState: " + $Policy.State + ".") -ForegroundColor Yellow
+                    if ($Policy.State -eq "Enabled") {
+                        $color = $null
+                    } else {
+                        $color = "Yellow"
+                    }
+                    Write-Host ("Policy '" + $Policy.Name + "':")
+                    Write-Host ("`tType: '" + $Cmdlets[$Cmdlet] + "'.")
+                    Write-Host ("`tState: " + $Policy.State + ".") -ForegroundColor $color
                     Write-Host ("`tIssues: ") -ForegroundColor Red
                     Write-Host $Issues
-                    $FoundIssues= $true
+                    $FoundIssues = $true
                 }
             }
         }
