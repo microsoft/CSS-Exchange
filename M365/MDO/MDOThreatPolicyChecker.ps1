@@ -563,7 +563,7 @@ process {
                 # Import CSV file
                 $csvFile = Import-Csv -Path $CsvFilePath
                 # checking 'email' header
-                if ($emails.PSObject.Properties.Name -contains 'Email') {
+                if ($csvFile[0].PSObject.Properties.Name -contains 'Email') {
                     $EmailAddresses = $csvFile | Select-Object -ExpandProperty Email
                 } else {
                     Write-Host "CSV does not contain 'Email' header." -ForegroundColor Red
