@@ -427,15 +427,16 @@ The entire risk arising out of the use or performance of the sample scripts and 
 In no event shall Microsoft, its authors, or anyone else involved in the creation, production, or delivery of the scripts be liable for any damages whatsoever
 (including, without limitation, damages for loss of business profits, business interruption, loss of business information, or other pecuniary loss)
 arising out of the use of or inability to use the sample scripts or documentation, even if Microsoft has been advised of the possibility of such damages." -ForegroundColor Yellow
+    Write-Host " "
 }
 
 process {
     if (-not $SkipConnectionCheck) {
         if ($PSCmdlet.ParameterSetName -ne "AppliedTenant") {
             #Validate Graph is connected
-            $connection = $null
+            $graphConnection = $null
             try {
-                $connection = Get-MgContext -ErrorAction SilentlyContinue
+                $graphConnection = Get-MgContext -ErrorAction SilentlyContinue
             } catch {
                 Write-Host "Error checking Graph connection" -ForegroundColor Red
                 Write-Host "Verify that you have Microsoft.Graph module installed" -ForegroundColor Yellow
@@ -443,16 +444,17 @@ process {
                 Write-Host "Connect-MgGraph -Scopes 'Group.Read.All','User.Read.All'" -ForegroundColor Yellow
                 exit
             }
-            if ($null -eq $connection) {
+            if ($null -eq $graphConnection) {
                 Write-Host "Not connected to Graph" -ForegroundColor Red
                 Write-Host "You could use:" -ForegroundColor Yellow
                 Write-Host "Connect-MgGraph -Scopes 'Group.Read.All','User.Read.All'" -ForegroundColor Yellow
                 exit
-            } elseif ($connection.count -eq 1) {
+            } elseif ($graphConnection.count -eq 1) {
                 $ExpectedScopes = "GroupMember.Read.All", 'User.Read.All'
-                if (Test-GraphContext -Scopes $connection.Scopes -ExpectedScopes $ExpectedScopes) {
+                if (Test-GraphContext -Scopes $graphConnection.Scopes -ExpectedScopes $ExpectedScopes) {
                     Write-Host "Connected to Graph"
                     Write-Host "Session details"
+                    Write-Host "TenantID: $(($graphConnection).TenantId)"
                     Write-Host "Tenant: $((Get-MgOrganization).DisplayName)"
                 } else {
                     Write-Host "We cannot continue without Graph Powershell session without Expected Scopes" -ForegroundColor Red
@@ -465,9 +467,9 @@ process {
         }
 
         #Validate EXO PS Connection
-        $connection = $null
+        $exoConnection = $null
         try {
-            $connection = Get-ConnectionInformation -ErrorAction SilentlyContinue
+            $exoConnection = Get-ConnectionInformation -ErrorAction SilentlyContinue
         } catch {
             Write-Host "Error checking EXO connection" -ForegroundColor Red
             Write-Host "Verify that you have ExchangeOnlineManagement module installed" -ForegroundColor Yellow
@@ -476,20 +478,25 @@ process {
             Write-Host "Exchange Online Powershell Module is required" -ForegroundColor Red
             exit
         }
-        if ($null -eq $connection) {
+        if ($null -eq $exoConnection) {
             Write-Host "Not connected to EXO" -ForegroundColor Red
             Write-Host "You need a connection To Exchange Online, you can use:" -ForegroundColor Yellow
             Write-Host "Connect-ExchangeOnline" -ForegroundColor Yellow
             Write-Host "Exchange Online Powershell Module is required" -ForegroundColor Red
             exit
-        } elseif ($connection.count -eq 1) {
+        } elseif ($exoConnection.count -eq 1) {
             Write-Host " "
             Write-Host "Connected to EXO"
             Write-Host "Session details"
-            Write-Host "Tenant Id: $($connection.TenantId)"
-            Write-Host "User: $($connection.UserPrincipalName)"
+            Write-Host "Tenant Id: $($exoConnection.TenantId)"
+            Write-Host "User: $($exoConnection.UserPrincipalName)"
         } else {
             Write-Host "You have more than one EXO sessions. Please use just one session" -ForegroundColor Red
+            exit
+        }
+
+        if (($graphConnection.TenantId) -ne ($exoConnection.TenantId) ) {
+            Write-Host "`nThe Tenant Id from Graph and EXO are different. Please use the same tenant" -ForegroundColor Red
             exit
         }
     }
