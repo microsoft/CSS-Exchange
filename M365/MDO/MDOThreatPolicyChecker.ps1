@@ -21,7 +21,6 @@
 .PARAMETER ScriptUpdateOnly
   Just updates script version to latest one.
 
-
 .EXAMPLE
 	.\MDOThreatPolicyChecker.ps1
 	To check all threat policies for potentially confusing user inclusion and/or exclusion conditions and print them out for review.
@@ -92,7 +91,6 @@ begin {
     . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
     . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Host.ps1
 
-
     # Cache to reduce calls to Get-MgGroup
     $groupCache = @{}
 
@@ -124,7 +122,6 @@ begin {
             return $null
         }
     }
-
 
     function Test-EmailAddress {
         [OutputType([MailAddress])]
@@ -205,7 +202,6 @@ begin {
         $memberCache[$cacheKey] = $false
         return $false
     }
-
 
     # Function to check rules
     function Test-Rules {
