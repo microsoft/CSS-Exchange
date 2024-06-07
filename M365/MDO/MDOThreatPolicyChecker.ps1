@@ -92,6 +92,10 @@ begin {
     . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
     . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Host.ps1
 
+
+    # Cache to reduce calls to Get-MgGroup
+    $groupCache = @{}
+
     function Get-GroupObjectId {
         [OutputType([string])]
         param(
@@ -100,11 +104,19 @@ begin {
             [MailAddress]$groupEmail
         )
 
+        # Check the cache first
+        if ($groupCache.ContainsKey($groupEmail)) {
+            return $groupCache[$groupEmail]
+        }
+
         # Get the group
         $group = $null
         $group = Get-MgGroup -Filter "mail eq '$($groupEmail)'" -ErrorAction SilentlyContinue
 
         if ($group) {
+            # Cache the result
+            $groupCache[$groupEmail] = $group.Id
+
             # Return the Object ID of the group
             return $group.Id
         } else {
@@ -112,6 +124,7 @@ begin {
             return $null
         }
     }
+
 
     function Test-EmailAddress {
         [OutputType([MailAddress])]
@@ -148,6 +161,9 @@ begin {
     }
 
     # Function to check if an email is in a group
+    # Cache of members to reduce number of calls to Get-MgGroupMember
+    $memberCache = @{}
+
     function Test-IsInGroup {
         [OutputType([bool])]
         param(
@@ -158,6 +174,12 @@ begin {
             [ValidateNotNullOrEmpty()]
             [string]$groupObjectId
         )
+
+        # Check the cache first
+        $cacheKey = "$email|$groupObjectId"
+        if ($memberCache.ContainsKey($cacheKey)) {
+            return $memberCache[$cacheKey]
+        }
 
         # Get the group members
         $groupMembers = $null
@@ -170,14 +192,20 @@ begin {
                 $user = Get-MgUser -UserId $member.Id
                 # Compare the user's email address with the $email parameter
                 if ($user.Mail -eq $email.ToString()) {
+                    # Cache the result
+                    $memberCache[$cacheKey] = $true
                     return $true
                 }
             }
         } else {
             Write-Host "The group with Object ID $groupObjectId does not have any members." -ForegroundColor Red
         }
+
+        # Cache the result
+        $memberCache[$cacheKey] = $false
         return $false
     }
+
 
     # Function to check rules
     function Test-Rules {
@@ -512,8 +540,6 @@ process {
             "Get-SafeLinksRule"                                                         = "Safe Links Policy"
             "Get-SafeAttachmentRule"                                                    = "Safe Attachment Policy"
             "Get-ATPBuiltInProtectionRule"                                              = "Built-in protection preset security Policy"
-            # "Get-EOPProtectionPolicyRule"      = "Preset security policies Policy"
-            # "Get-ATPProtectionPolicyRule"      = "MDO (SafeLinks/SafeAttachments) Policy in preset security policies"
             { Get-EOPProtectionPolicyRule -Identity 'Strict Preset Security Policy' }   = "EOP"
             { Get-EOPProtectionPolicyRule -Identity 'Standard Preset Security Policy' } = "EOP"
             { Get-ATPProtectionPolicyRule -Identity 'Strict Preset Security Policy' }   = "MDO (Safe Links / Safe Attachments)"
@@ -625,7 +651,6 @@ process {
             $antiPhishRules = Get-AntiPhishRule | Where-Object { $_.State -ne 'Disabled' }
             $hostedContentFilterRules = Get-HostedContentFilterRule | Where-Object { $_.State -ne 'Disabled' }
             $hostedOutboundSpamFilterRules = Get-HostedOutboundSpamFilterRule | Where-Object { $_.State -ne 'Disabled' }
-            # $eopProtectionPolicyRules = Get-EOPProtectionPolicyRule | Where-Object { $_.State -ne 'Disabled' }
             $EopStrictPresetRules = Get-EOPProtectionPolicyRule -Identity 'Strict Preset Security Policy' | Where-Object { $_.State -ne 'Disabled' }
             $EopStandardPresetRules = Get-EOPProtectionPolicyRule -Identity 'Standard Preset Security Policy' | Where-Object { $_.State -ne 'Disabled' }
         }
@@ -639,7 +664,6 @@ process {
             # Get the custom and preset rules for Safe Attachments/Links
             $SafeAttachmentRules = Get-SafeAttachmentRule | Where-Object { $_.State -ne 'Disabled' }
             $SafeLinksRules = Get-SafeLinksRule | Where-Object { $_.State -ne 'Disabled' }
-            # $ATPProtectionPolicyRules = Get-ATPProtectionPolicyRule | Where-Object { $_.State -ne 'Disabled' }
             $MdoStrictPresetRules = Get-ATPProtectionPolicyRule -Identity 'Strict Preset Security Policy' | Where-Object { $_.State -ne 'Disabled' }
             $MdoStandardPresetRules = Get-ATPProtectionPolicyRule -Identity 'Standard Preset Security Policy' | Where-Object { $_.State -ne 'Disabled' }
         }
