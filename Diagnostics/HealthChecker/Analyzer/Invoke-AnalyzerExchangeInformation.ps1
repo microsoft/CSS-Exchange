@@ -239,6 +239,68 @@ function Invoke-AnalyzerExchangeInformation {
         Add-AnalyzedResultInformation @params
     }
 
+    if ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false) {
+        Write-Verbose "Determining Server Group Membership"
+
+        $params = $baseParams + @{
+            Name             = "Exchange Server Membership"
+            Details          = "Passed"
+            DisplayWriteType = "Grey"
+        }
+
+        if ($null -ne $exchangeInformation.ComputerMembership -and
+            $null -ne $HealthServerObject.OrganizationInformation.WellKnownSecurityGroups) {
+            $localGroupList = $HealthServerObject.OrganizationInformation.WellKnownSecurityGroups |
+                Where-Object { $_.WellKnownName -eq "Exchange Trusted Subsystem" }
+            # By Default, I also have Managed Availability Servers and Exchange Install Domain Servers.
+            # But not sure what issue they would cause if we don't have the server as a member, leaving out for now
+            $adGroupList = $HealthServerObject.OrganizationInformation.WellKnownSecurityGroups |
+                Where-Object { $_.WellKnownName -in @("Exchange Trusted Subsystem", "Exchange Servers") }
+            $displayMissingGroups = New-Object System.Collections.Generic.List[string]
+
+            foreach ($localGroup in $localGroupList) {
+                if (($null -eq ($exchangeInformation.ComputerMembership.LocalGroupMember.SID | Where-Object { $_.ToString() -eq $localGroup.SID } ))) {
+                    $displayMissingGroups.Add("$($localGroup.WellKnownName) - Local System Membership")
+                }
+            }
+
+            foreach ($adGroup in $adGroupList) {
+                if (($null -eq ($exchangeInformation.ComputerMembership.ADGroupMembership.SID | Where-Object { $_.ToString() -eq $adGroup.SID }))) {
+                    $displayMissingGroups.Add("$($adGroup.WellKnownName) - AD Group Membership")
+                }
+            }
+
+            if ($displayMissingGroups.Count -ge 1) {
+                $params.DisplayWriteType = "Red"
+                $params.Details = "Failed"
+                Add-AnalyzedResultInformation @params
+
+                foreach ($group in $displayMissingGroups) {
+                    $params = $baseParams + @{
+                        Details                = $group
+                        TestingName            = $group
+                        DisplayWriteType       = "Red"
+                        DisplayCustomTabNumber = 2
+                    }
+                    Add-AnalyzedResultInformation @params
+                }
+
+                $params = $baseParams + @{
+                    Details                = "More Information: https://aka.ms/HC-ServerMembership"
+                    DisplayWriteType       = "Yellow"
+                    DisplayCustomTabNumber = 2
+                }
+                Add-AnalyzedResultInformation @params
+            } else {
+                Add-AnalyzedResultInformation @params
+            }
+        } else {
+            $params.DisplayWriteType = "Yellow"
+            $params.Details = "Unknown - Wasn't able to get the Computer Membership information"
+            Add-AnalyzedResultInformation @params
+        }
+    }
+
     if ($exchangeInformation.BuildInformation.MajorVersion -eq "Exchange2013" -and
         $exchangeInformation.GetExchangeServer.IsClientAccessServer -eq $true) {
 
@@ -461,6 +523,34 @@ function Invoke-AnalyzerExchangeInformation {
                         IndentSpaces  = 12
                     })
                 HtmlName   = "Setting Overrides"
+            }
+            Add-AnalyzedResultInformation @params
+        }
+    }
+
+    if ($null -ne $exchangeInformation.EdgeTransportResourceThrottling) {
+        try {
+            # SystemMemory does not block mail flow.
+            $resourceThrottling = ([xml]$exchangeInformation.EdgeTransportResourceThrottling).Diagnostics.Components.ResourceThrottling.ResourceTracker.ResourceMeter |
+                Where-Object { $_.Resource -ne "SystemMemory" -and $_.CurrentResourceUse -ne "Low" }
+        } catch {
+            Invoke-CatchActions
+        }
+
+        if ($null -ne $resourceThrottling) {
+            $resourceThrottlingList = @($resourceThrottling.Resource |
+                    ForEach-Object {
+                        $index = $_.IndexOf("[")
+                        if ($index -eq -1) {
+                            $_
+                        } else {
+                            $_.Substring(0, $index)
+                        }
+                    })
+            $params = $baseParams + @{
+                Name             = "Transport Back Pressure"
+                Details          = "--ERROR-- The following resources are causing back pressure: $([string]::Join(", ", $resourceThrottlingList))"
+                DisplayWriteType = "Red"
             }
             Add-AnalyzedResultInformation @params
         }

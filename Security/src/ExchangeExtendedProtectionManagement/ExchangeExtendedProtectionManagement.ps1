@@ -481,9 +481,9 @@ begin {
 
                         $tlsSettings.TlsSettings.Registry.Net.Values |
                             ForEach-Object {
-                                $displayObject += NewDisplayObject "SystemTlsVersions" -Location $_.MicrosoftRegistryLocation -Value $_.SystemDefaultTlsVersionsValue
+                                $displayObject += NewDisplayObject "SystemDefaultTlsVersions" -Location $_.MicrosoftRegistryLocation -Value $_.SystemDefaultTlsVersionsValue
                                 $displayObject += NewDisplayObject "SchUseStrongCrypto" -Location $_.MicrosoftRegistryLocation -Value $_.SchUseStrongCryptoValue
-                                $displayObject += NewDisplayObject "SystemTlsVersions" -Location $_.WowRegistryLocation -Value $_.WowSystemDefaultTlsVersionsValue
+                                $displayObject += NewDisplayObject "SystemDefaultTlsVersions" -Location $_.WowRegistryLocation -Value $_.WowSystemDefaultTlsVersionsValue
                                 $displayObject += NewDisplayObject "SchUseStrongCrypto" -Location $_.WowRegistryLocation -Value $_.WowSchUseStrongCryptoValue
                             }
                         $stringOutput = [string]::Empty
