@@ -203,7 +203,7 @@ function Get-ExchangeInformation {
                 CatchActionFunction    = ${Function:Invoke-CatchActions}
                 ScriptBlock            = {
                     [PSCustomObject]@{
-                        LocalGroupMember  = (Get-LocalGroupMember -SID "S-1-5-32-544")
+                        LocalGroupMember  =  (Get-LocalGroupMember -SID "S-1-5-32-544" -ErrorAction Stop)
                         ADGroupMembership = (Get-ADPrincipalGroupMembership (Get-ADComputer $env:COMPUTERNAME).DistinguishedName)
                     }
                 }
