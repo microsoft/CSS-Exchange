@@ -466,6 +466,34 @@ function Invoke-AnalyzerExchangeInformation {
         }
     }
 
+    if ($null -ne $exchangeInformation.EdgeTransportResourceThrottling) {
+        try {
+            # SystemMemory does not block mail flow.
+            $resourceThrottling = ([xml]$exchangeInformation.EdgeTransportResourceThrottling).Diagnostics.Components.ResourceThrottling.ResourceTracker.ResourceMeter |
+                Where-Object { $_.Resource -ne "SystemMemory" -and $_.CurrentResourceUse -ne "Low" }
+        } catch {
+            Invoke-CatchActions
+        }
+
+        if ($null -ne $resourceThrottling) {
+            $resourceThrottlingList = @($resourceThrottling.Resource |
+                    ForEach-Object {
+                        $index = $_.IndexOf("[")
+                        if ($index -eq -1) {
+                            $_
+                        } else {
+                            $_.Substring(0, $index)
+                        }
+                    })
+            $params = $baseParams + @{
+                Name             = "Transport Back Pressure"
+                Details          = "--ERROR-- The following resources are causing back pressure: $([string]::Join(", ", $resourceThrottlingList))"
+                DisplayWriteType = "Red"
+            }
+            Add-AnalyzedResultInformation @params
+        }
+    }
+
     Write-Verbose "Working on Exchange Server Maintenance"
     $serverMaintenance = $exchangeInformation.ServerMaintenance
     $getMailboxServer = $exchangeInformation.GetMailboxServer

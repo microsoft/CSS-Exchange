@@ -229,6 +229,13 @@ Mock Get-ExSetupFileVersionInfo {
 # Do nothing
 Mock Invoke-CatchActions { }
 
+function Get-ExchangeDiagnosticInfo { param($Argument, $Component, $Process, $Server) }
+
+Mock Get-ExchangeDiagnosticInfo -ParameterFilter { $Process -eq "Microsoft.Exchange.Directory.TopologyService" -and $Component -eq "VariantConfiguration" -and $Argument -eq "Overrides" } `
+    -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo_ADTopVariantConfiguration.xml" }
+Mock Get-ExchangeDiagnosticInfo -ParameterFilter { $Process -eq "EdgeTransport" -and $Component -eq "ResourceThrottling" } `
+    -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo_EdgeTransportResourceThrottling.xml" }
+
 # Need to use function instead of Mock for Exchange cmdlets
 function Get-ExchangeServer {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeServer.xml"
@@ -321,8 +328,4 @@ function Get-ExchangeProtocolContainer {
 }
 function Get-ExchangeWebSitesFromAd {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeWebSitesFromAd.xml"
-}
-
-function Get-ExchangeDiagnosticInfo {
-    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo.xml"
 }
