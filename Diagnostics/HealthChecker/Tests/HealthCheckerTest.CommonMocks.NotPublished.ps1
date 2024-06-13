@@ -226,6 +226,10 @@ Mock Get-ExSetupFileVersionInfo {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup.xml"
 }
 
+Mock Get-LocalGroupMember {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetLocalGroupMember.xml"
+}
+
 # Do nothing
 Mock Invoke-CatchActions { }
 
@@ -272,6 +276,12 @@ function Get-DynamicDistributionGroup {
 function Get-IRMConfiguration {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetIrmConfiguration.xml"
 }
+
+function Get-ADPrincipalGroupMembership {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetADPrincipalGroupMembership.xml"
+}
+
+function Get-ADComputer { return $null }
 
 # virtual directory cmdlets to return null till we do actual checks against the vDirs.
 function Get-ActiveSyncVirtualDirectory { return $null }

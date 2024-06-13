@@ -49,6 +49,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-ExchangeDiagnosticInfo -ParameterFilter { $Process -eq "EdgeTransport" -and $Component -eq "ResourceThrottling" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo_EdgeTransportResourceThrottling1.xml" }
             Mock Get-IISModules { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetIISModulesNoTokenCacheModule.xml" }
+            Mock Get-ADPrincipalGroupMembership { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetADPrincipalGroupMembership2.xml" }
+            Mock Get-LocalGroupMember { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetLocalGroupMember2.xml" }
             Mock Get-Service {
                 param(
                     [string]$ComputerName,
@@ -66,6 +68,9 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Setting Overrides Detected" $true
             TestObjectMatch "Extended Protection Enabled (Any VDir)" $true
             TestObjectMatch "Transport Back Pressure" "--ERROR-- The following resources are causing back pressure: DatabaseUsedSpace" -WriteType "Red"
+            TestObjectMatch "Exchange Server Membership" "Failed" -WriteType "Red"
+            TestObjectMatch "Exchange Trusted Subsystem - Local System Membership" "Exchange Trusted Subsystem - Local System Membership" -WriteType "Red"
+            TestObjectMatch "Exchange Trusted Subsystem - AD Group Membership" "Exchange Trusted Subsystem - AD Group Membership" -WriteType "Red"
         }
 
         It "Dependent Services" {
