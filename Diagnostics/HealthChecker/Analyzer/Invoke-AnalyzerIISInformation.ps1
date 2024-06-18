@@ -103,6 +103,7 @@ function Invoke-AnalyzerIISInformation {
 
                     if ($null -eq $cert) {
                         $problemCertList.Add("'$certHash' Doesn't exist on the server and this will cause problems.")
+                        $certHash = 'NULL'
                     } elseif ($cert.LifetimeInDays -lt 0) {
                         $problemCertList.Add("'$certHash' Has expired and will cause problems.")
                     }
