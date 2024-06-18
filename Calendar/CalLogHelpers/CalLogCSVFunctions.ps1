@@ -129,9 +129,6 @@ function MultiLineFormat {
 Builds the CSV output from the Calendar Diagnostic Objects
 #>
 function BuildCSV {
-    param(
-        $Identity
-    )
 
     Write-Host "Starting to Process Calendar Logs..."
     $GCDOResults = @()
@@ -141,15 +138,11 @@ function BuildCSV {
     Write-Host "Creating Map of Mailboxes to CNs..."
     CreateExternalMasterIDMap
 
-    $ThisMeetingID = $script:GCDO.CleanGlobalObjectId | Select-Object -Unique
-    $ShortMeetingID = $ThisMeetingID.Substring($ThisMeetingID.length - 6)
-
     ConvertCNtoSMTP
 
     Write-Host "Making Calendar Logs more readable..."
     $Index = 0
     foreach ($CalLog in $script:GCDO) {
-        $CalLogACP = $CalLog.AppointmentCounterProposal.ToString()
         $Index++
         $ItemType = $CalendarItemTypes.($CalLog.ItemClass)
         $ShortClientName = @()
@@ -169,16 +162,12 @@ function BuildCSV {
             }
         }
 
-        if ($CalLogACP -eq "NotFound") {
-            $CalLogACP = ''
-        }
-
         $IsFromSharedCalendar = ($null -ne $CalLog.externalSharingMasterId -and $CalLog.externalSharingMasterId -ne "NotFound")
 
         # Record one row
         $GCDOResults += [PSCustomObject]@{
             'LogRow'                         = $Index
-            'LastModifiedTime'               = $CalLog.OriginalLastModifiedTime
+            'LastModifiedTime'               = ConvertDateTime($CalLog.OriginalLastModifiedTime)
             'IsIgnorable'                    = $IsIgnorable
             'SubjectProperty'                = $CalLog.SubjectProperty
             'Client'                         = $ShortClientName
@@ -191,7 +180,7 @@ function BuildCSV {
             'AppointmentLastSequenceNumber'  = $CalLog.AppointmentLastSequenceNumber  # Need to find out how we can combine these two...
             'Organizer'                      = $CalLog.From.FriendlyDisplayName
             'From'                           = GetBestFromAddress($CalLog.From)
-            'FreeBusyStatus'                 = $CalLog.FreeBusyStatus
+            'FreeBusyStatus'                 = $CalLog.FreeBusyStatus.ToString()
             'ResponsibleUser'                = GetSMTPAddress($CalLog.ResponsibleUserName)
             'Sender'                         = GetSMTPAddress($CalLog.SenderEmailAddress)
             'LogFolder'                      = $CalLog.ParentDisplayName
@@ -201,13 +190,13 @@ function BuildCSV {
             'ExternalSharingMasterId'        = $CalLog.ExternalSharingMasterId
             'ReceivedBy'                     = $CalLog.ReceivedBy.SmtpEmailAddress
             'ReceivedRepresenting'           = $CalLog.ReceivedRepresenting.SmtpEmailAddress
-            'MeetingRequestType'             = $CalLog.MeetingRequestType
-            'StartTime'                      = $CalLog.StartTime
-            'EndTime'                        = $CalLog.EndTime
+            'MeetingRequestType'             = $CalLog.MeetingRequestType.ToString()
+            'StartTime'                      = ConvertDateTime($CalLog.StartTime)
+            'EndTime'                        = ConvertDateTime($CalLog.EndTime)
             'TimeZone'                       = $CalLog.TimeZone
             'Location'                       = $CalLog.Location
             'ItemType'                       = $ItemType
-            'CalendarItemType'               = $CalLog.CalendarItemType
+            'CalendarItemType'               = $CalLog.CalendarItemType.ToString()
             'IsException'                    = $CalLog.IsException
             'RecurrencePattern'              = $CalLog.RecurrencePattern
             'AppointmentAuxiliaryFlags'      = $CalLog.AppointmentAuxiliaryFlags.ToString()
@@ -215,7 +204,6 @@ function BuildCSV {
             'AttendeeCount'                  = ($CalLog.DisplayAttendeesAll -split ';').Count
             'AppointmentState'               = $CalLog.AppointmentState.ToString()
             'ResponseType'                   = $ResponseType
-            'AppointmentCounterProposal'     = $CalLogACP
             'SentRepresentingEmailAddress'   = $CalLog.SentRepresentingEmailAddress
             'SentRepresentingSMTPAddress'    = GetSMTPAddress($CalLog.SentRepresentingEmailAddress)
             'SentRepresentingDisplayName'    = $CalLog.SentRepresentingDisplayName
@@ -230,36 +218,29 @@ function BuildCSV {
             'IsCancelled'                    = $CalLog.IsCancelled
             'IsAllDayEvent'                  = $CalLog.IsAllDayEvent
             'IsSeriesCancelled'              = $CalLog.IsSeriesCancelled
-            'CreationTime'                   = $CalLog.CreationTime
-            'OriginalStartDate'              = $CalLog.OriginalStartDate
+            'CreationTime'                   = ConvertDateTime($CalLog.CreationTime)
+            'OriginalStartDate'              = ConvertDateTime($CalLog.OriginalStartDate)
             'SendMeetingMessagesDiagnostics' = $CalLog.SendMeetingMessagesDiagnostics
-            'EventEmailReminderTimer'        = $CalLog.EventEmailReminderTimer
             'AttendeeListDetails'            = MultiLineFormat($CalLog.AttendeeListDetails)
             'AttendeeCollection'             = MultiLineFormat($CalLog.AttendeeCollection)
             'CalendarLogRequestId'           = $CalLog.CalendarLogRequestId.ToString()
-            'AppointmentRecurrenceBlob'      = $CalLog.AppointmentRecurrenceBlob
-            'GlobalObjectId'                 = $CalLog.GlobalObjectId
             'CleanGlobalObjectId'            = $CalLog.CleanGlobalObjectId
         }
     }
-    $script:Results = $GCDOResults
+    $script:EnhancedCalLogs = $GCDOResults
 
-    # Automation won't have access to this file - will add code in next version to save contents to a variable
-    #$Filename = "$($Results[0].ReceivedBy)_$ShortMeetingID.csv";
+    Write-Host -ForegroundColor Green "Calendar Logs have been processed, Exporting logs to file..."
+    Export-CalLog
+}
 
-    if ($Identity -like "*@*") {
-        $ShortName = $Identity.Split('@')[0]
+function ConvertDateTime {
+    param(
+        [string] $DateTime
+    )
+    if ([string]::IsNullOrEmpty($DateTime) -or
+        $DateTime -eq "N/A" -or
+        $DateTime -eq "NotFound") {
+        return ""
     }
-    $ShortName = $ShortName.Substring(0, [System.Math]::Min(20, $ShortName.Length))
-    $Filename = "$($ShortName)_$ShortMeetingID.csv"
-    $FilenameRaw = "$($ShortName)_RAW_$($ShortMeetingID).csv"
-
-    Write-Host -ForegroundColor Cyan -NoNewline "Enhanced Calendar Logs for [$Identity] have been saved to : "
-    Write-Host -ForegroundColor Yellow "$Filename"
-
-    Write-Host -ForegroundColor Cyan -NoNewline "Raw Calendar Logs for [$Identity] have been saved to : "
-    Write-Host -ForegroundColor Yellow "$FilenameRaw"
-
-    $GCDOResults | Export-Csv -Path $Filename -NoTypeInformation -Encoding UTF8
-    $script:GCDO | Export-Csv -Path $FilenameRaw -NoTypeInformation -Encoding UTF8
+    return [DateTime]$DateTime
 }

@@ -44,8 +44,13 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-WebConfigFile -ParameterFilter { $PSPath -eq "IIS:\Sites\Exchange Back End/ecp" } -MockWith { return [PSCustomObject]@{ FullName = "$Script:MockDataCollectionRoot\Exchange\IIS\ClientAccess\ecp\web.config" } }
             Mock Get-WebConfigFile -ParameterFilter { $PSPath -eq "IIS:\Sites\Default Web Site/ecp" } -MockWith { return [PSCustomObject]@{ FullName = "$Script:MockDataCollectionRoot\Exchange\IIS\DefaultWebSite_web.config" } }
             Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost1.config" -Raw -Encoding UTF8 }
-            Mock Get-ExchangeDiagnosticInfo { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo1.xml" }
+            Mock Get-ExchangeDiagnosticInfo -ParameterFilter { $Process -eq "Microsoft.Exchange.Directory.TopologyService" -and $Component -eq "VariantConfiguration" -and $Argument -eq "Overrides" } `
+                -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo_ADTopVariantConfiguration1.xml" }
+            Mock Get-ExchangeDiagnosticInfo -ParameterFilter { $Process -eq "EdgeTransport" -and $Component -eq "ResourceThrottling" } `
+                -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo_EdgeTransportResourceThrottling1.xml" }
             Mock Get-IISModules { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetIISModulesNoTokenCacheModule.xml" }
+            Mock Get-ADPrincipalGroupMembership { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetADPrincipalGroupMembership2.xml" }
+            Mock Get-LocalGroupMember { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetLocalGroupMember2.xml" }
             Mock Get-Service {
                 param(
                     [string]$ComputerName,
@@ -62,6 +67,10 @@ Describe "Testing Health Checker by Mock Data Imports" {
             SetActiveDisplayGrouping "Exchange Information"
             TestObjectMatch "Setting Overrides Detected" $true
             TestObjectMatch "Extended Protection Enabled (Any VDir)" $true
+            TestObjectMatch "Transport Back Pressure" "--ERROR-- The following resources are causing back pressure: DatabaseUsedSpace" -WriteType "Red"
+            TestObjectMatch "Exchange Server Membership" "Failed" -WriteType "Red"
+            TestObjectMatch "Exchange Trusted Subsystem - Local System Membership" "Exchange Trusted Subsystem - Local System Membership" -WriteType "Red"
+            TestObjectMatch "Exchange Trusted Subsystem - AD Group Membership" "Exchange Trusted Subsystem - AD Group Membership" -WriteType "Red"
         }
 
         It "Dependent Services" {
@@ -211,7 +220,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
     Context "Checking Scenarios 2" {
         BeforeAll {
             Mock Get-SettingOverride { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetSettingOverride1.xml" }
-            Mock Get-ExchangeDiagnosticInfo { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo1.xml" }
+            Mock Get-ExchangeDiagnosticInfo -ParameterFilter { $Process -eq "Microsoft.Exchange.Directory.TopologyService" -and $Component -eq "VariantConfiguration" -and $Argument -eq "Overrides" } `
+                -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo_ADTopVariantConfiguration1.xml" }
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "KeepAliveTime" } -MockWith { return 1800000 }
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "DisableGranularReplication" } -MockWith { return 1 }
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "DisableAsyncNotification" } -MockWith { return 1 }

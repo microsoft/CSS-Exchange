@@ -3,6 +3,7 @@
 
 . $PSScriptRoot\..\..\..\..\Shared\TLS\Get-AllTlsSettings.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExtendedProtectionConfiguration.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
 
 # This function is used to collect the required information needed to determine if a server is ready for Extended Protection
 function Get-ExtendedProtectionPrerequisitesCheck {
@@ -39,10 +40,14 @@ function Get-ExtendedProtectionPrerequisitesCheck {
             $progressParams.Status = "$baseStatus Extended Protection Configuration"
             Write-Progress @progressParams
             $tlsSettings = $null
+            $registryValues = @{
+                SuppressExtendedProtection = 0
+                LmCompatibilityLevel       = $null
+            }
             Write-Verbose "$($progressParams.Status)"
 
             $params = @{
-                ComputerName         = $server.ToString()
+                ComputerName         = $server.FQDN
                 IsClientAccessServer = $server.IsClientAccessServer
                 IsMailboxServer      = $server.IsMailboxServer
                 ExcludeEWS           = $SkipEWS
@@ -59,18 +64,34 @@ function Get-ExtendedProtectionPrerequisitesCheck {
                 $progressParams.Status = "$baseStatus TLS Settings"
                 Write-Progress @progressParams
                 Write-Verbose "$($progressParams.Status)"
-                $tlsSettings = Get-AllTlsSettings -MachineName $server
+                $tlsSettings = Get-AllTlsSettings -MachineName $server.FQDN
+                $params = @{
+                    MachineName = $server.FQDN
+                    SubKey      = "SYSTEM\CurrentControlSet\Control\Lsa"
+                }
+
+                $lmValue = Get-RemoteRegistryValue @params -GetValue "LmCompatibilityLevel" -ValueType "DWord"
+                [int]$epValue = Get-RemoteRegistryValue @params -GetValue "SuppressExtendedProtection"
+
+                if ($null -eq $lmValue) { $lmValue = 3 }
+
+                Write-Verbose "Server $($server.FQDN) LmCompatibilityLevel set to $lmValue"
+                $registryValues.SuppressExtendedProtection = $epValue
+                $registryValues.LmCompatibilityLevel = $lmValue
             } else {
                 Write-Verbose "Server doesn't appear to be online. Skipped over trying to get the TLS settings"
             }
 
             $results.Add([PSCustomObject]@{
-                    ComputerName                    = $server.ToString()
+                    ComputerName                    = $server.Name
+                    FQDN                            = $server.FQDN
                     ExtendedProtectionConfiguration = $extendedProtectionConfiguration
                     TlsSettings                     = [PSCustomObject]@{
-                        ComputerName = $server.ToString()
+                        ComputerName = $server.Name
+                        FQDN         = $server.FQDN
                         Settings     = $tlsSettings
                     }
+                    RegistryValue                   = $registryValues
                     ServerOnline                    = $extendedProtectionConfiguration.ServerConnected
                 })
         }

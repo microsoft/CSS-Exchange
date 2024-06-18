@@ -37,7 +37,8 @@ function Get-ExchangeServerIPs {
             Write-Progress @progressParams
 
             $IpsFound = $false
-            $HostNetworkInfo = Get-AllNicInformation -ComputerName $Server.Name -ComputerFQDN $Server.FQDN
+            # TODO: Refactor Get-AllNicInformation function to get rid of the duplicate ComputerName / FQDN logic
+            $HostNetworkInfo = Get-AllNicInformation -ComputerName $Server.FQDN
             if ($null -ne $HostNetworkInfo) {
                 if ($null -ne $HostNetworkInfo.IPv4Addresses) {
                     foreach ($address in $HostNetworkInfo.IPv4Addresses) {

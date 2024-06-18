@@ -107,6 +107,10 @@ function CheckIdentities {
             Write-Host -ForegroundColor DarkRed "Mailbox [$Id] has CalendarVersionStoreDisabled set to True.  This mailbox will not have Calendar Logs."
             Write-Host -ForegroundColor DarkRed "Some logs will be available for Mailbox [$Id] but they will not be complete."
         }
+        if ($Account.RecipientTypeDetails -eq "RoomMailbox" -or $Account.RecipientTypeDetails -eq "EquipmentMailbox") {
+            $script:Rooms += $Account.PrimarySmtpAddress.ToString()
+            Write-Host -ForegroundColor Green "[$Id] is a Room / Equipment Mailbox."
+        }
     }
 
     Write-Verbose "IdentityList: $IdentityList"

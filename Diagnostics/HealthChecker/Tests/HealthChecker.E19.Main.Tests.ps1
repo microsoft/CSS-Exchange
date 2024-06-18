@@ -32,7 +32,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Extended Protection Enabled (Any VDir)" $false
             TestObjectMatch "Setting Overrides Detected" $false
             TestObjectMatch "Out of Date" $true -WriteType "Red"
-            $Script:ActiveGrouping.Count | Should -Be 14
+            TestObjectMatch "Exchange Server Membership" "Passed"
+            $Script:ActiveGrouping.Count | Should -Be 15
         }
 
         It "Display Results - Organization Information" {

@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Get-ExchangeDiagnosticInformation.ps1
 . $PSScriptRoot\Invoke-CatchActionError.ps1
 
 function Get-ExchangeSettingOverride {
@@ -21,33 +22,38 @@ function Get-ExchangeSettingOverride {
     process {
         try {
             $params = @{
-                Process     = "Microsoft.Exchange.Directory.TopologyService"
-                Component   = "VariantConfiguration"
-                Argument    = "Overrides"
-                Server      = $Server
-                ErrorAction = "Stop"
+                Process             = "Microsoft.Exchange.Directory.TopologyService"
+                Component           = "VariantConfiguration"
+                Argument            = "Overrides"
+                Server              = $Server
+                CatchActionFunction = $CatchActionFunction
             }
-            $diagnosticInfo = Get-ExchangeDiagnosticInfo @params
-            Write-Verbose "Successfully got the Exchange Diagnostic Information"
-            $xml = [xml]$diagnosticInfo.Result
-            $overrides = $xml.Diagnostics.Components.VariantConfiguration.Overrides
-            $updatedTime = $overrides.Updated
-            $settingOverrides = $overrides.SettingOverride
+            $diagnosticInfo = Get-ExchangeDiagnosticInformation @params
 
-            foreach ($override in $settingOverrides) {
-                Write-Verbose "Working on $($override.Name)"
-                $simpleSettingOverrides.Add([PSCustomObject]@{
-                        Name          = $override.Name
-                        ModifiedBy    = $override.ModifiedBy
-                        Reason        = $override.Reason
-                        ComponentName = $override.ComponentName
-                        SectionName   = $override.SectionName
-                        Status        = $override.Status
-                        Parameters    = $override.Parameters.Parameter
-                    })
+            if ($null -ne $diagnosticInfo) {
+                Write-Verbose "Successfully got the Exchange Diagnostic Information"
+                $xml = [xml]$diagnosticInfo.Result
+                $overrides = $xml.Diagnostics.Components.VariantConfiguration.Overrides
+                $updatedTime = $overrides.Updated
+                $settingOverrides = $overrides.SettingOverride
+
+                foreach ($override in $settingOverrides) {
+                    Write-Verbose "Working on $($override.Name)"
+                    $simpleSettingOverrides.Add([PSCustomObject]@{
+                            Name          = $override.Name
+                            ModifiedBy    = $override.ModifiedBy
+                            Reason        = $override.Reason
+                            ComponentName = $override.ComponentName
+                            SectionName   = $override.SectionName
+                            Status        = $override.Status
+                            Parameters    = $override.Parameters.Parameter
+                        })
+                }
+            } else {
+                Write-Verbose "Failed to get Exchange Diagnostic Information"
             }
         } catch {
-            Write-Verbose "Failed to get the Exchange setting override"
+            Write-Verbose "Failed to get the Exchange setting override. Inner Exception: $_"
             Invoke-CatchActionError $CatchActionFunction
         }
     }

@@ -1,0 +1,102 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>Microsoft.PowerShell.Commands.LocalPrincipal</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>SOLO\Domain Admins</ToString>
+    <Props>
+      <S N="Name">SOLO\Domain Admins</S>
+      <Obj N="SID" RefId="1">
+        <TN RefId="1">
+          <T>System.Security.Principal.SecurityIdentifier</T>
+          <T>System.Security.Principal.IdentityReference</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>S-1-5-21-3966804624-2143408355-627260183-512</ToString>
+        <Props>
+          <I32 N="BinaryLength">28</I32>
+          <S N="AccountDomainSid">S-1-5-21-3966804624-2143408355-627260183</S>
+          <S N="Value">S-1-5-21-3966804624-2143408355-627260183-512</S>
+        </Props>
+      </Obj>
+      <Obj N="PrincipalSource" RefId="2">
+        <TN RefId="2">
+          <T>Microsoft.PowerShell.Commands.PrincipalSource</T>
+          <T>System.Enum</T>
+          <T>System.ValueType</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>ActiveDirectory</ToString>
+        <I32>2</I32>
+      </Obj>
+      <S N="ObjectClass">Group</S>
+    </Props>
+  </Obj>
+  <Obj RefId="3">
+    <TNRef RefId="0" />
+    <ToString>SOLO\Exchange Trusted Subsystem</ToString>
+    <Props>
+      <S N="Name">SOLO\Exchange Trusted Subsystem</S>
+      <Obj N="SID" RefId="4">
+        <TNRef RefId="1" />
+        <ToString>S-1-5-21-3966804624-2143408355-627260183-1120</ToString>
+        <Props>
+          <I32 N="BinaryLength">28</I32>
+          <S N="AccountDomainSid">S-1-5-21-3966804624-2143408355-627260183</S>
+          <S N="Value">S-1-5-21-3966804624-2143408355-627260183-1120</S>
+        </Props>
+      </Obj>
+      <Obj N="PrincipalSource" RefId="5">
+        <TNRef RefId="2" />
+        <ToString>ActiveDirectory</ToString>
+        <I32>2</I32>
+      </Obj>
+      <S N="ObjectClass">Group</S>
+    </Props>
+  </Obj>
+  <Obj RefId="6">
+    <TNRef RefId="0" />
+    <ToString>SOLO\Organization Management</ToString>
+    <Props>
+      <S N="Name">SOLO\Organization Management</S>
+      <Obj N="SID" RefId="7">
+        <TNRef RefId="1" />
+        <ToString>S-1-5-21-3966804624-2143408355-627260183-1105</ToString>
+        <Props>
+          <I32 N="BinaryLength">28</I32>
+          <S N="AccountDomainSid">S-1-5-21-3966804624-2143408355-627260183</S>
+          <S N="Value">S-1-5-21-3966804624-2143408355-627260183-1105</S>
+        </Props>
+      </Obj>
+      <Obj N="PrincipalSource" RefId="8">
+        <TNRef RefId="2" />
+        <ToString>ActiveDirectory</ToString>
+        <I32>2</I32>
+      </Obj>
+      <S N="ObjectClass">Group</S>
+    </Props>
+  </Obj>
+  <Obj RefId="9">
+    <TNRef RefId="0" />
+    <ToString>SOLO-E16A\Administrator</ToString>
+    <Props>
+      <S N="Name">SOLO-E16A\Administrator</S>
+      <Obj N="SID" RefId="10">
+        <TNRef RefId="1" />
+        <ToString>S-1-5-21-2158029244-1591623683-1362856639-500</ToString>
+        <Props>
+          <I32 N="BinaryLength">28</I32>
+          <S N="AccountDomainSid">S-1-5-21-2158029244-1591623683-1362856639</S>
+          <S N="Value">S-1-5-21-2158029244-1591623683-1362856639-500</S>
+        </Props>
+      </Obj>
+      <Obj N="PrincipalSource" RefId="11">
+        <TNRef RefId="2" />
+        <ToString>Local</ToString>
+        <I32>1</I32>
+      </Obj>
+      <S N="ObjectClass">User</S>
+    </Props>
+  </Obj>
+</Objs>

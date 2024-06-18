@@ -1,0 +1,173 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>Microsoft.ActiveDirectory.Management.ADGroup</T>
+      <T>Microsoft.ActiveDirectory.Management.ADPrincipal</T>
+      <T>Microsoft.ActiveDirectory.Management.ADObject</T>
+      <T>Microsoft.ActiveDirectory.Management.ADEntity</T>
+      <T>Microsoft.ActiveDirectory.Management.ADPropertyCollection</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>CN=Domain Computers,CN=Users,DC=Solo,DC=local</ToString>
+    <Props>
+      <S N="distinguishedName">CN=Domain Computers,CN=Users,DC=Solo,DC=local</S>
+      <Obj N="GroupCategory" RefId="1">
+        <TN RefId="1">
+          <T>Microsoft.ActiveDirectory.Management.ADGroupCategory</T>
+          <T>System.Enum</T>
+          <T>System.ValueType</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>Security</ToString>
+        <I32>1</I32>
+      </Obj>
+      <Obj N="GroupScope" RefId="2">
+        <TN RefId="2">
+          <T>Microsoft.ActiveDirectory.Management.ADGroupScope</T>
+          <T>System.Enum</T>
+          <T>System.ValueType</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>Global</ToString>
+        <I32>1</I32>
+      </Obj>
+      <S N="name">Domain Computers</S>
+      <S N="objectClass">group</S>
+      <G N="objectGUID">5917534d-4588-4ff6-bcb4-21cf859365d3</G>
+      <S N="SamAccountName">Domain Computers</S>
+      <Obj N="SID" RefId="3">
+        <TN RefId="3">
+          <T>System.Security.Principal.SecurityIdentifier</T>
+          <T>System.Security.Principal.IdentityReference</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>S-1-5-21-3966804624-2143408355-627260183-515</ToString>
+        <Props>
+          <I32 N="BinaryLength">28</I32>
+          <S N="AccountDomainSid">S-1-5-21-3966804624-2143408355-627260183</S>
+          <S N="Value">S-1-5-21-3966804624-2143408355-627260183-515</S>
+        </Props>
+      </Obj>
+    </Props>
+  </Obj>
+  <Obj RefId="4">
+    <TNRef RefId="0" />
+    <ToString>CN=Exchange Servers,OU=Microsoft Exchange Security Groups,DC=Solo,DC=local</ToString>
+    <Props>
+      <S N="distinguishedName">CN=Exchange Servers,OU=Microsoft Exchange Security Groups,DC=Solo,DC=local</S>
+      <Obj N="GroupCategory" RefId="5">
+        <TNRef RefId="1" />
+        <ToString>Security</ToString>
+        <I32>1</I32>
+      </Obj>
+      <Obj N="GroupScope" RefId="6">
+        <TNRef RefId="2" />
+        <ToString>Universal</ToString>
+        <I32>2</I32>
+      </Obj>
+      <S N="name">Exchange Servers</S>
+      <S N="objectClass">group</S>
+      <G N="objectGUID">88c1b02a-889e-4e68-9144-35c7bf16cc62</G>
+      <S N="SamAccountName">Exchange Servers</S>
+      <Obj N="SID" RefId="7">
+        <TNRef RefId="3" />
+        <ToString>S-1-5-21-3966804624-2143408355-627260183-1119</ToString>
+        <Props>
+          <I32 N="BinaryLength">28</I32>
+          <S N="AccountDomainSid">S-1-5-21-3966804624-2143408355-627260183</S>
+          <S N="Value">S-1-5-21-3966804624-2143408355-627260183-1119</S>
+        </Props>
+      </Obj>
+    </Props>
+  </Obj>
+  <Obj RefId="8">
+    <TNRef RefId="0" />
+    <ToString>CN=Exchange Trusted Subsystem,OU=Microsoft Exchange Security Groups,DC=Solo,DC=local</ToString>
+    <Props>
+      <S N="distinguishedName">CN=Exchange Trusted Subsystem,OU=Microsoft Exchange Security Groups,DC=Solo,DC=local</S>
+      <Obj N="GroupCategory" RefId="9">
+        <TNRef RefId="1" />
+        <ToString>Security</ToString>
+        <I32>1</I32>
+      </Obj>
+      <Obj N="GroupScope" RefId="10">
+        <TNRef RefId="2" />
+        <ToString>Universal</ToString>
+        <I32>2</I32>
+      </Obj>
+      <S N="name">Exchange Trusted Subsystem</S>
+      <S N="objectClass">group</S>
+      <G N="objectGUID">7e140c1d-73eb-420e-89b0-aab50d68792f</G>
+      <S N="SamAccountName">Exchange Trusted Subsystem</S>
+      <Obj N="SID" RefId="11">
+        <TNRef RefId="3" />
+        <ToString>S-1-5-21-3966804624-2143408355-627260183-1120</ToString>
+        <Props>
+          <I32 N="BinaryLength">28</I32>
+          <S N="AccountDomainSid">S-1-5-21-3966804624-2143408355-627260183</S>
+          <S N="Value">S-1-5-21-3966804624-2143408355-627260183-1120</S>
+        </Props>
+      </Obj>
+    </Props>
+  </Obj>
+  <Obj RefId="12">
+    <TNRef RefId="0" />
+    <ToString>CN=Managed Availability Servers,OU=Microsoft Exchange Security Groups,DC=Solo,DC=local</ToString>
+    <Props>
+      <S N="distinguishedName">CN=Managed Availability Servers,OU=Microsoft Exchange Security Groups,DC=Solo,DC=local</S>
+      <Obj N="GroupCategory" RefId="13">
+        <TNRef RefId="1" />
+        <ToString>Security</ToString>
+        <I32>1</I32>
+      </Obj>
+      <Obj N="GroupScope" RefId="14">
+        <TNRef RefId="2" />
+        <ToString>Universal</ToString>
+        <I32>2</I32>
+      </Obj>
+      <S N="name">Managed Availability Servers</S>
+      <S N="objectClass">group</S>
+      <G N="objectGUID">e8dd8191-c1d1-4ff1-bcab-3e60f64b9dd0</G>
+      <S N="SamAccountName">Managed Availability Servers</S>
+      <Obj N="SID" RefId="15">
+        <TNRef RefId="3" />
+        <ToString>S-1-5-21-3966804624-2143408355-627260183-1121</ToString>
+        <Props>
+          <I32 N="BinaryLength">28</I32>
+          <S N="AccountDomainSid">S-1-5-21-3966804624-2143408355-627260183</S>
+          <S N="Value">S-1-5-21-3966804624-2143408355-627260183-1121</S>
+        </Props>
+      </Obj>
+    </Props>
+  </Obj>
+  <Obj RefId="16">
+    <TNRef RefId="0" />
+    <ToString>CN=Exchange Install Domain Servers,CN=Microsoft Exchange System Objects,DC=Solo,DC=local</ToString>
+    <Props>
+      <S N="distinguishedName">CN=Exchange Install Domain Servers,CN=Microsoft Exchange System Objects,DC=Solo,DC=local</S>
+      <Obj N="GroupCategory" RefId="17">
+        <TNRef RefId="1" />
+        <ToString>Security</ToString>
+        <I32>1</I32>
+      </Obj>
+      <Obj N="GroupScope" RefId="18">
+        <TNRef RefId="2" />
+        <ToString>Global</ToString>
+        <I32>1</I32>
+      </Obj>
+      <S N="name">Exchange Install Domain Servers</S>
+      <S N="objectClass">group</S>
+      <G N="objectGUID">a0b88da6-d349-4f56-ab3f-f84eb1be5026</G>
+      <S N="SamAccountName">$E31000-7TOIPJH3L7D0</S>
+      <Obj N="SID" RefId="19">
+        <TNRef RefId="3" />
+        <ToString>S-1-5-21-3966804624-2143408355-627260183-1134</ToString>
+        <Props>
+          <I32 N="BinaryLength">28</I32>
+          <S N="AccountDomainSid">S-1-5-21-3966804624-2143408355-627260183</S>
+          <S N="Value">S-1-5-21-3966804624-2143408355-627260183-1134</S>
+        </Props>
+      </Obj>
+    </Props>
+  </Obj>
+</Objs>
