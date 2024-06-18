@@ -21,7 +21,6 @@ $ShortClientNameProcessor = @{
     'Client=MSExchangeRPC'                       = "Outlook : Desktop : MAPI"
     'OneOutlook'                                 = "OneOutlook"
     'Lync for Mac'                               = "LyncMac"
-    'AppId=00000004-0000-0ff1-ce00-000000000000' = "SkypeMMS"
     'MicrosoftNinja'                             = "Teams"
     'SkypeSpaces'                                = "Teams"
     'Remove-CalendarEvents'                      = "RemoveCalendarEvent"
@@ -34,6 +33,8 @@ $ShortClientNameProcessor = @{
     'AppId=1c3a76cc-470a-46d7-8ba9-713cfbb2c01f' = "Time Service"
     'AppId=48af08dc-f6d2-435f-b2a7-069abd99c086' = "RestConnector"
     'AppId=7b7fdad6-df9d-4cd5-a4f2-b5f749350419' = "Bookings B2 Service"
+    'AppId=82f45fb0-18b4-4d68-8bed-9e44909e3890' = "SkypeMMS"
+    'AppId=00000004-0000-0ff1-ce00-000000000000' = "SkypeMMS"
     'GriffinRestClient'                          = "GriffinRestClient"
     'MacOutlook'                                 = "MacOutlookRest"
     'Outlook-iOS-Android'                        = "OutlookMobile"
@@ -62,11 +63,14 @@ function CreateShortClientName {
             $ShortClientName = "ResourceBookingAssistant"
         } elseif ($ClientInfoString -like "*CalendarRepairAssistant*") {
             $ShortClientName = "CalendarRepairAssistant"
+        } elseif ($ClientInfoString -like "*SharingSyncAssistant*") {
+            $ShortClientName = "CalendarSyncAssistant"
         } else {
-            $client = $ClientInfoString.Split(';')[0].Split('=')[-1]
-            $Action = $ClientInfoString.Split(';')[1].Split('=')[-1]
-            $Data = $ClientInfoString.Split(';')[-1]
-            $ShortClientName = $client+":"+$Action+";"+$Data
+            if ($ClientInfoString -like "*EBA*") {
+                $ShortClientName = "Other EBA"
+            } else {
+                $ShortClientName = "Other TBA"
+            }
         }
     } elseif ($ClientInfoString -like "Client=ActiveSync*") {
         if ($ClientInfoString -match 'UserAgent=(\w*-\w*)') {
@@ -121,17 +125,20 @@ function CreateShortClientName {
         }
     }
 
-    if ($ClientInfoString -like "*InternalCalendarSharing*" -and
-        $ClientInfoString -like "*OWA*" -and
-        $ClientInfoString -notlike "*OneOutlook*") {
-        $ShortClientName = "OWA : REST"
+    if ($ClientInfoString -like "*InternalCalendarSharing*" ) {
+        if ($ClientInfoString -like "*OWA*" -and
+            $ClientInfoString -notlike "*OneOutlook*") {
+            $ShortClientName = "OWA : REST"
+        } elseif ($ClientInfoString -like "*Outlook*" -and
+            $ClientInfoString -notlike "*OneOutlook*" -and
+            $ClientInfoString -notlike "*Outlook-Android*" -and
+            $ClientInfoString -notlike "*Outlook-iOS*") {
+            $ShortClientName = "Outlook : Desktop : REST"
+        } elseif ($ClientInfoString -like "*OneOutlook*") {
+            $ShortClientName = "OneOutlook"
+        }
     }
-    if ($ClientInfoString -like "*InternalCalendarSharing*" -and $ClientInfoString -like "*MacOutlook*") {
-        $ShortClientName = "MacOutlook : REST"
-    }
-    if ($ClientInfoString -like "*InternalCalendarSharing*" -and $ClientInfoString -like "*Outlook*") {
-        $ShortClientName = "Outlook : Desktop : REST"
-    }
+
     if ($ClientInfoString -like "Client=ActiveSync*" -and $ClientInfoString -like "*Outlook*") {
         $ShortClientName = "Outlook : ActiveSync"
     }

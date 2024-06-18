@@ -11,7 +11,19 @@ function Get-VSSWriter {
         throw "Unable to list vss writers"
     }
 
-    for ($lineNumber = 3; $lineNumber -lt $writersText.Count; $lineNumber += 6) {
+    $startIndex = 3
+
+    if (-not ($writersText[$startIndex] -like "Writer name*")) {
+        Write-Host "Finding the first writer..."
+        for ($lineNumber = $startIndex; $lineNumber -lt $writersText.Count; $lineNumber++) {
+            if ($writersText[$lineNumber] -like "Writer name*") {
+                $startIndex = $lineNumber
+                break
+            }
+        }
+    }
+
+    for ($lineNumber = $startIndex; $lineNumber -lt $writersText.Count; $lineNumber += 6) {
         [PSCustomObject]@{
             Name       = $writersText[$lineNumber].Substring($writersText[$lineNumber].IndexOf("'") + 1).TrimEnd("'")
             Id         = $writersText[$lineNumber + 1].Substring($writersText[$lineNumber + 1].IndexOf("{") + 1).TrimEnd("}")

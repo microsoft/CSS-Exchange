@@ -33,11 +33,18 @@ function SetIsRoom {
         $CalLogs
     )
     [bool] $IsRoom = $false
+
+    if ($script:Rooms -contains $Identity) {
+        $IsRoom = $true
+        return $IsRoom
+    }
+
     # Simple logic is if RBA is running on the MB, it is a Room MB, otherwise it is not.
     foreach ($CalLog in $CalLogs) {
-        if ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -and
+        Write-Verbose "Checking if this is a Room Mailbox. [$($CalLog.ItemClass)] [$($CalLog.ExternalSharingMasterId)] [$($CalLog.ClientInfoString)]"
+        if ($CalLog.ItemClass -eq "IPM.Appointment" -and
             $CalLog.ExternalSharingMasterId -eq "NotFound" -and
-            $CalLog.Client -eq "ResourceBookingAssistant" ) {
+            $CalLog.ClientInfoString -like "*ResourceBookingAssistant*" ) {
             $IsRoom = $true
             return $IsRoom
         }
@@ -82,13 +89,13 @@ function SetIsIgnorable {
 
     if ($CalLog.ItemClass -eq "(Occurrence Deleted)") {
         return "Ignorable"
-    } elseif ($ShortClientName -like "TBA*SharingSyncAssistant" -or
+    } elseif ($ShortClientName -like "CalendarSyncAssistant" -or
         $ShortClientName -eq "CalendarReplication" -or
         $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingCFM" -or
         $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingDelete") {
         return "Sharing"
-    } elseif ($ShortClientName -like "EBA*" -or
-        $ShortClientName -like "TBA*" -or
+    } elseif ($ShortClientName -eq "Other EBA" -or
+        $ShortClientName -eq "Other TBA" -or
         $ShortClientName -eq "LocationProcessor" -or
         $ShortClientName -eq "GriffinRestClient" -or
         $ShortClientName -eq "RestConnector" -or
