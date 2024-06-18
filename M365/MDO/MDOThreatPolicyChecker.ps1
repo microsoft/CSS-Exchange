@@ -30,7 +30,7 @@ This script checks which Microsoft Defender for Office 365 and Exchange Online P
 	To provide a CSV input file with email addresses and see only EOP policies.
 
 .EXAMPLE
-	.\MDOThreatPolicyChecker.ps1 -EmailAddresses user1@domainX.com,user2@domainY.com
+	.\MDOThreatPolicyChecker.ps1 -EmailAddresses user1@contoso.com,user2@fabrikam.com
 	To provide multiple email addresses by command line and see only EOP policies.
 
 .EXAMPLE
@@ -38,7 +38,7 @@ This script checks which Microsoft Defender for Office 365 and Exchange Online P
 	To provide a CSV input file with email addresses and see both EOP and MDO policies.
 
 .EXAMPLE
-	.\MDOThreatPolicyChecker.ps1 -EmailAddresses user1@domainX.com -OnlyMDOPolicies
+	.\MDOThreatPolicyChecker.ps1 -EmailAddresses user1@contoso.com -OnlyMDOPolicies
 	To provide an email address and see only MDO (Safe Attachment and Safe Links) policies.
 #>
 
