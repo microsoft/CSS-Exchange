@@ -31,7 +31,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-OrganizationConfig { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOrganizationConfig.xml" }
             Mock Get-InternalTransportCertificateFromServer { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetInternalTransportCertificateFromServer.xml" }
             Mock Get-HybridConfiguration { return $null }
-            Mock Get-ExchangeDiagnosticInfo { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo.xml" }
+            Mock Get-ExchangeDiagnosticInfo -ParameterFilter { $Process -eq "Microsoft.Exchange.Directory.TopologyService" -and $Component -eq "VariantConfiguration" -and $Argument -eq "Overrides" } `
+                -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo_ADTopVariantConfiguration.xml" }
             # do not need to match the function. Only needed really to test the Assert-MockCalled
             Mock Get-Service { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetServiceMitigation.xml" }
             Mock Get-SettingOverride { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetSettingOverride.xml" }
@@ -94,7 +95,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-ReceiveConnector -Exactly 1
             Assert-MockCalled Get-SendConnector -Exactly 1
             Assert-MockCalled Get-IISModules -Exactly 1
-            Assert-MockCalled Get-ExchangeDiagnosticInfo -Exactly 1
+            Assert-MockCalled Get-ExchangeDiagnosticInfo -Exactly 2
             Assert-MockCalled Get-ExchangeADSplitPermissionsEnabled -Exactly 1
             Assert-MockCalled Get-DynamicDistributionGroup -Exactly 1
             Assert-MockCalled Get-ActiveSyncVirtualDirectory -Exactly 1
