@@ -112,7 +112,7 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
 
     if (-not ($credGuardUnknown)) {
         # CredentialGuardCimInstance is an array type and not sure if we can have multiple here, so just going to loop thru and handle it this way.
-        $credGuardRunning = $null -ne ($osInformation.CredentialGuardCimInstance | Where-Object { $_ -ne 0 })
+        $credGuardRunning = $null -ne ($osInformation.CredentialGuardCimInstance | Where-Object { $_ -eq 1 })
     }
 
     $displayValue = $credentialGuardValue = $osInformation.RegistryValues.CredentialGuard -ne 0 -or $credGuardRunning
@@ -269,6 +269,15 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
         Details = $exchangeInformation.RegistryValues.DisablePreservation
     }
     Add-AnalyzedResultInformation @params
+
+    if ($osInformation.RegistryValues.SuppressExtendedProtection -ne 0) {
+        $params = $baseParams + @{
+            Name             = "SuppressExtendedProtection"
+            Details          = "Value set to $($osInformation.RegistryValues.SuppressExtendedProtection), which disables EP resulting it to not work correctly and causes problems. --- ERROR"
+            DisplayWriteType = "Red"
+        }
+        Add-AnalyzedResultInformation @params
+    }
 
     # Detect Send Connector sending to EXO
     $exoConnector = New-Object System.Collections.Generic.List[object]

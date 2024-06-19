@@ -63,7 +63,7 @@ function Get-ExchangeServerIISSettings {
                     $content = $null
                     try {
                         if ($exist) {
-                            $content = (Get-Content $_ -Raw).Trim()
+                            $content = (Get-Content $_ -Raw -Encoding UTF8).Trim()
                             [xml]$content | Out-Null # test to make sure it is valid
                             $validWebConfig = $true
                         }

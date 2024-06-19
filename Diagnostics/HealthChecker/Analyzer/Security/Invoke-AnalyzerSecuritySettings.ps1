@@ -62,10 +62,6 @@ function Invoke-AnalyzerSecuritySettings {
         if ($p -eq "Value") {
             if ($o.$p -eq "NULL" -and -not $o.Location.Contains("1.3")) {
                 "Red"
-            } elseif ($o.$p -ne "NULL" -and
-                $o.$p -ne 1 -and
-                $o.$p -ne 0) {
-                "Red"
             }
         }
     }
@@ -147,20 +143,6 @@ function Invoke-AnalyzerSecuritySettings {
     $testValues = @("ServerEnabledValue", "ClientEnabledValue", "ServerDisabledByDefaultValue", "ClientDisabledByDefaultValue")
 
     foreach ($testValue in $testValues) {
-        # If value not set to a 0 or a 1.
-        $results = $tlsSettings.Values | Where-Object { $null -ne $_."$testValue" -and $_."$testValue" -ne 0 -and $_."$testValue" -ne 1 }
-
-        if ($null -ne $results) {
-            $displayLinkToDocsPage = $true
-            foreach ($result in $results) {
-                $params = $baseParams + @{
-                    Name             = "$($result.TLSVersion) $testValue"
-                    Details          = "$($result."$testValue") --- Error: Must be a value of 1 or 0."
-                    DisplayWriteType = "Red"
-                }
-                Add-AnalyzedResultInformation @params
-            }
-        }
 
         # if value not defined, we should call that out.
         $results = $tlsSettings.Values | Where-Object { $null -eq $_."$testValue" -and $_.TLSVersion -ne "1.3" }
@@ -447,7 +429,7 @@ function Invoke-AnalyzerSecuritySettings {
             Write-Verbose "The Exchange server runs a role which is not affected by the FIP-FS issue"
         } elseif (($fipFsInfoObject.FIPFSFixedBuild -eq $false) -and
             ($fipFsInfoObject.BadVersionNumberDirDetected)) {
-            # Exchange doesn't run a build which is resistent against the problematic pattern
+            # Exchange doesn't run a build which is resistant against the problematic pattern
             # and a folder with the problematic version number was detected on the computer.
             $params = $baseParams + $fipFsIssueBaseParams
             Add-AnalyzedResultInformation @params

@@ -32,7 +32,7 @@ Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "T
 Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Get TokenCacheModule version information" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\IIS\GetVersionInformationCachTokn.xml" }
 
 # Handle IIS collection of files
-Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost.config" -Raw }
+Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost.config" -Raw -Encoding UTF8 }
 
 Mock Get-CimInstance -ParameterFilter { $ClassName -eq "Win32_DeviceGuard" } -MockWith { return [PSCustomObject]@{ SecurityServicesRunning = @(0 , 0) } }
 
@@ -47,10 +47,10 @@ Mock Test-Path -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange
 Mock Test-Path -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\EdgeTransport.exe.config" } -MockWith { return $true }
 Mock Test-Path -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Runtime\1.0\noderunner.exe.config" } -MockWith { return $true }
 
-Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\FrontEnd\HttpProxy\SharedWebConfig.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\DefaultWebSite_SharedWebConfig.config" -Raw }
-Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\ClientAccess\SharedWebConfig.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\ExchangeBackEnd_SharedWebConfig.config" -Raw }
-Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\EdgeTransport.exe.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\EdgeTransport.exe.config" -Raw }
-Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Runtime\1.0\noderunner.exe.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\noderunner.exe.config" -Raw }
+Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\FrontEnd\HttpProxy\SharedWebConfig.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\DefaultWebSite_SharedWebConfig.config" -Raw -Encoding UTF8 }
+Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\ClientAccess\SharedWebConfig.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\ExchangeBackEnd_SharedWebConfig.config" -Raw -Encoding UTF8 }
+Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\EdgeTransport.exe.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\EdgeTransport.exe.config" -Raw -Encoding UTF8 }
+Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Runtime\1.0\noderunner.exe.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\noderunner.exe.config" -Raw -Encoding UTF8 }
 
 function Get-WebApplication { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\IIS\GetWebApplication.xml" }
 
@@ -122,6 +122,7 @@ Mock Get-RemoteRegistryValue {
         "DisableBaseTypeCheckForDeserialization" { return $null }
         "DisablePreservation" { return 0 }
         "DatabasePath" { return "$Script:MockDataCollectionRoot\Exchange" }
+        "SuppressExtendedProtection" { return 0 }
         default { throw "Failed to find GetValue: $GetValue" }
     }
 }
@@ -225,8 +226,19 @@ Mock Get-ExSetupFileVersionInfo {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup.xml"
 }
 
+Mock Get-LocalGroupMember {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetLocalGroupMember.xml"
+}
+
 # Do nothing
 Mock Invoke-CatchActions { }
+
+function Get-ExchangeDiagnosticInfo { param($Argument, $Component, $Process, $Server) }
+
+Mock Get-ExchangeDiagnosticInfo -ParameterFilter { $Process -eq "Microsoft.Exchange.Directory.TopologyService" -and $Component -eq "VariantConfiguration" -and $Argument -eq "Overrides" } `
+    -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo_ADTopVariantConfiguration.xml" }
+Mock Get-ExchangeDiagnosticInfo -ParameterFilter { $Process -eq "EdgeTransport" -and $Component -eq "ResourceThrottling" } `
+    -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo_EdgeTransportResourceThrottling.xml" }
 
 # Need to use function instead of Mock for Exchange cmdlets
 function Get-ExchangeServer {
@@ -264,6 +276,12 @@ function Get-DynamicDistributionGroup {
 function Get-IRMConfiguration {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetIrmConfiguration.xml"
 }
+
+function Get-ADPrincipalGroupMembership {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetADPrincipalGroupMembership.xml"
+}
+
+function Get-ADComputer { return $null }
 
 # virtual directory cmdlets to return null till we do actual checks against the vDirs.
 function Get-ActiveSyncVirtualDirectory { return $null }
@@ -320,8 +338,4 @@ function Get-ExchangeProtocolContainer {
 }
 function Get-ExchangeWebSitesFromAd {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeWebSitesFromAd.xml"
-}
-
-function Get-ExchangeDiagnosticInfo {
-    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo.xml"
 }

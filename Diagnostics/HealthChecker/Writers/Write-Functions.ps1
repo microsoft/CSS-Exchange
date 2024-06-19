@@ -40,14 +40,23 @@ function Write-HostLog ($message) {
 
 function Write-OutColumns($OutColumns) {
     if ($null -ne $OutColumns) {
-        $stringOutput = $null
-        $OutColumns.DisplayObject |
-            Out-Columns -Properties $OutColumns.SelectProperties `
-                -ColorizerFunctions $OutColumns.ColorizerFunctions `
-                -IndentSpaces $OutColumns.IndentSpaces `
-                -StringOutput ([ref]$stringOutput)
-        $stringOutput | Out-File ($Script:OutputFullPath) -Append
-        Write-DebugLog $stringOutput
+        try {
+            $stringOutput = $null
+            $params = @{
+                Properties         = $OutColumns.SelectProperties
+                ColorizerFunctions = $OutColumns.ColorizerFunctions
+                IndentSpaces       = $OutColumns.IndentSpaces
+                StringOutput       = ([ref]$stringOutput)
+            }
+            $OutColumns.DisplayObject | Out-Columns @params
+            $stringOutput | Out-File ($Script:OutputFullPath) -Append
+            Write-DebugLog $stringOutput
+        } catch {
+            # We do not want to call Invoke-CatchActions here because we want the issues reported.
+            Write-Verbose "Failed to export Out-Columns. Inner Exception: $_"
+            $s = $OutColumns.DisplayObject | Out-String
+            Write-DebugLog $s
+        }
     }
 }
 

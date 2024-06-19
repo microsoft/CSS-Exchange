@@ -32,7 +32,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "Internet Web Proxy" "Not Set"
             TestObjectMatch "Extended Protection Enabled (Any VDir)" $false
             TestObjectMatch "Setting Overrides Detected" $false
-            $Script:ActiveGrouping.Count | Should -Be 16
+            $Script:ActiveGrouping.Count | Should -Be 17
         }
 
         It "Display Results - Organization Information" {
@@ -129,7 +129,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "SMB1 Installed" "True" -WriteType "Red"
             TestObjectMatch "SMB1 Blocked" "False" -WriteType "Red"
 
-            $Script:ActiveGrouping.Count | Should -Be 85
+            $Script:ActiveGrouping.Count | Should -Be 88
         }
 
         It "Display Results - Security Vulnerability" {
