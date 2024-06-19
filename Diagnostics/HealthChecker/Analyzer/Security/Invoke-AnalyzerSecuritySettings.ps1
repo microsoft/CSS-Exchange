@@ -429,7 +429,7 @@ function Invoke-AnalyzerSecuritySettings {
             Write-Verbose "The Exchange server runs a role which is not affected by the FIP-FS issue"
         } elseif (($fipFsInfoObject.FIPFSFixedBuild -eq $false) -and
             ($fipFsInfoObject.BadVersionNumberDirDetected)) {
-            # Exchange doesn't run a build which is resistent against the problematic pattern
+            # Exchange doesn't run a build which is resistant against the problematic pattern
             # and a folder with the problematic version number was detected on the computer.
             $params = $baseParams + $fipFsIssueBaseParams
             Add-AnalyzedResultInformation @params
