@@ -10,6 +10,7 @@ bincirc
 BSTR
 cach
 cachtokn
+Calendrier
 Clixml
 cmatch
 comparables
@@ -45,6 +46,7 @@ FYDIBOHF
 GCDO
 Get-AuthenticodeSignature
 globalsequence
+Kalender
 Hashtable
 HHMM
 HKCR

@@ -80,7 +80,7 @@ function CreateMeetingSummary {
     }
 
     if (!$Time) {
-        $Time = $CalLog.LastModifiedTime.ToString()
+        $Time = $Entry.LogTimestamp
     }
 
     if (!$MeetingChanges) {
@@ -94,7 +94,4 @@ function CreateMeetingSummary {
     }
 
     $script:TimeLineOutput += Convert-Data -ArrayNames "Time", "MeetingChanges"
-
-    # $TimeLineData  = Convert-Data -ArrayNames "Time", "MeetingChanges"
-    # $script:TimeLineOutput += $TimeLineData
 }
