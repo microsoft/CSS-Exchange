@@ -144,7 +144,7 @@ begin {
             return $null
         }
         $recipient = $null
-        $recipient = Get-Recipient $EmailAddress -ErrorAction SilentlyContinue
+        $recipient = Get-EXORecipient $EmailAddress -ErrorAction SilentlyContinue
         if ($null -eq $recipient) {
             Write-Host "$EmailAddress is not a recipient in this tenant" -ForegroundColor Red
             return $null
