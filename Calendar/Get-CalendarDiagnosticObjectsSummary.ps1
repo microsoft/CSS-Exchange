@@ -177,6 +177,6 @@ Write-DashLineBoxColor "Hope this script was helpful in getting and understandin
 if ($ExportToExcel.IsPresent) {
     Write-Host
     Write-Host -ForegroundColor Blue -NoNewline "All Calendar Logs are saved to: "
-    Write-Host -ForegroundColor Yellow "$Filename"
+    Write-Host -ForegroundColor Yellow ".\$Filename"
     Write-Host
 }

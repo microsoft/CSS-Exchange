@@ -12,7 +12,7 @@ function SetIsOrganizer {
     [bool] $IsOrganizer = $false
 
     foreach ($CalLog in $CalLogs) {
-        if ($CalLog.ItemType -eq "Ipm.Appointment" -and
+        if ($CalLog.ItemClass -eq "Ipm.Appointment" -and
             $CalLog.ExternalSharingMasterId -eq "NotFound" -and
             ($CalLog.ResponseType -eq "1" -or $CalLog.ResponseType -eq "Organizer")) {
             $IsOrganizer = $true
