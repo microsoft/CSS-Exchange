@@ -286,8 +286,7 @@ function OutputMBList {
         if ($null -ne $Org) {
             $User = Get-Mailbox -Identity $User -organization $Org
             Write-Host " `t `t [$($User.DisplayName)] -- $($User.PrimarySmtpAddress)"
-        }
-        else {
+        } else {
             $User = Get-Mailbox -Identity $User
             Write-Host " `t `t [$($User.DisplayName)] -- $($User.PrimarySmtpAddress)"
         }
