@@ -6,15 +6,15 @@
     This is the part that generates the heart of the timeline, a Giant Switch statement based on the ItemClass.
 #>
 function CreateTimelineRow {
-    switch -Wildcard ($CalendarItemTypes.($CalLog.ItemClass)) {
-        MeetingRequest {
+    switch -Wildcard ($CalLog.ItemClass) {
+        Meeting.Request {
             switch ($CalLog.TriggerAction) {
                 Create {
                     if ($IsOrganizer) {
                         if ($CalLog.IsException -eq $True) {
                             [array] $Output = "[$($CalLog.ResponsibleUser)] Created an Exception Meeting Request with $($CalLog.Client) for [$($CalLog.StartTime)]."
                         } else {
-                            [array] $Output  = "[$($CalLog.ResponsibleUser)] Created a Meeting Request was with $($CalLog.Client)"
+                            [array] $Output  = "[$($CalLog.ResponsibleUser)] Created a Meeting Request with $($CalLog.Client)"
                         }
                     } else {
                         if ($CalLog.DisplayAttendeesTo -ne $script:PreviousCalLog.DisplayAttendeesTo -or $CalLog.DisplayAttendeesCc -ne $script:PreviousCalLog.DisplayAttendeesCc) {
@@ -22,10 +22,10 @@ function CreateTimelineRow {
                         } else {
                             if ($CalLog.Client -eq "Transport") {
                                 if ($CalLog.IsException -eq $True) {
-                                    [array] $Output = "Transport delivered a new Meeting Request from [$($CalLog.SentRepresentingDisplayName)] for an exception starting on [$($CalLog.StartTime)]" + $(if ($null -ne $($CalLog.ReceivedRepresenting)) { " for user [$($CalLog.ReceivedRepresenting)]" })  + "."
+                                    [array] $Output = "Transport delivered a new Meeting Request from [$($CalLog.From)] for an exception starting on [$($CalLog.StartTime)]" + $(if ($null -ne $($CalLog.ReceivedRepresenting)) { " for user [$($CalLog.ReceivedRepresenting)]" }) + "."
                                     $script:MeetingSummaryNeeded = $True
                                 } else {
-                                    [Array] $Output = "Transport delivered a new Meeting Request from [$($CalLog.SentRepresentingDisplayName)]" +
+                                    [Array] $Output = "Transport delivered a new Meeting Request from [$($CalLog.From)]" +
                                     $(if ($null -ne $($CalLog.ReceivedRepresenting) -and $CalLog.ReceivedRepresenting -ne $CalLog.ReceivedBy)
                                         { " for user [$($CalLog.ReceivedRepresenting)]" }) + "."
                                 }
@@ -68,13 +68,13 @@ function CreateTimelineRow {
         }
         Resp* {
             switch ($CalLog.ItemClass) {
-                "IPM.Schedule.Meeting.Resp.Tent" { $MeetingRespType = "Tentative" }
-                "IPM.Schedule.Meeting.Resp.Neg" { $MeetingRespType = "DECLINE" }
-                "IPM.Schedule.Meeting.Resp.Pos" { $MeetingRespType = "ACCEPT" }
+                "Resp.Tent" { $MeetingRespType = "Tentative" }
+                "Resp.Neg" { $MeetingRespType = "DECLINE" }
+                "Resp.Pos" { $MeetingRespType = "ACCEPT" }
             }
 
             if ($CalLog.AppointmentCounterProposal -eq "True") {
-                [array] $Output = "[$($CalLog.SentRepresentingDisplayName)] send a $($MeetingRespType) response message with a New Time Proposal: $($CalLog.StartTime) to $($CalLog.EndTime)"
+                [array] $Output = "[$($CalLog.Organizer)] send a $($MeetingRespType) response message with a New Time Proposal: $($CalLog.StartTime) to $($CalLog.EndTime)"
             } else {
                 switch -Wildcard ($CalLog.TriggerAction) {
                     "Update" { $Action = "Updated" }
@@ -93,7 +93,7 @@ function CreateTimelineRow {
                 }
 
                 if ($IsOrganizer) {
-                    [array] $Output = "[$($CalLog.SentRepresentingDisplayName)] $($Action) a $($MeetingRespType) Meeting Response message$($Extra)."
+                    [array] $Output = "[$($CalLog.Organizer)] $($Action) a $($MeetingRespType) meeting Response message$($Extra)."
                 } else {
                     switch ($CalLog.Client) {
                         ResourceBookingAssistant {
@@ -103,21 +103,21 @@ function CreateTimelineRow {
                             [array] $Output = "[$($CalLog.From)] $($Action) $($MeetingRespType) Meeting Response message."
                         }
                         default {
-                            [array] $Output = "[$($CalLog.ResponsibleUser)] $($Action) [$($CalLog.SentRepresentingDisplayName)]'s $($MeetingRespType) Meeting Response with $($CalLog.Client)."
+                            [array] $Output = "[$($CalLog.ResponsibleUser)] $($Action) [$($CalLog.Organizer)]'s $($MeetingRespType) Meeting Response with $($CalLog.Client)."
                         }
                     }
                 }
             }
         }
-        ForwardNotification {
-            [array] $Output = "The meeting was FORWARDED by [$($CalLog.SentRepresentingDisplayName)]."
+        Forward.Notification {
+            [array] $Output = "The meeting was FORWARDED by [$($CalLog.Organizer)]."
         }
-        ExceptionMsgClass {
+        Exception {
             if ($CalLog.ResponsibleUser -ne "Calendar Assistant") {
                 [array] $Output = "[$($CalLog.ResponsibleUser)] $($CalLog.TriggerAction)d Exception to the meeting series with $($CalLog.Client)."
             }
         }
-        IpmAppointment {
+        Ipm.Appointment {
             switch ($CalLog.TriggerAction) {
                 Create {
                     if ($IsOrganizer) {
@@ -129,10 +129,10 @@ function CreateTimelineRow {
                     } else {
                         switch ($CalLog.Client) {
                             Transport {
-                                [array] $Output = "Transport Created a new Meeting on the calendar from [$($CalLog.SentRepresentingDisplayName)] and marked it Tentative."
+                                [array] $Output = "Transport Created a new Meeting on the calendar from [$($CalLog.Organizer)] and marked it Tentative."
                             }
                             ResourceBookingAssistant {
-                                [array] $Output = "ResourceBookingAssistant Created a new Meeting on the calendar from [$($CalLog.SentRepresentingDisplayName)] and marked it Tentative."
+                                [array] $Output = "ResourceBookingAssistant Created a new Meeting on the calendar from [$($CalLog.Organizer)] and marked it Tentative."
                             }
                             default {
                                 [array] $Output = "[$($CalLog.ResponsibleUser)] Created the Meeting with $($CalLog.Client)."
@@ -189,7 +189,7 @@ function CreateTimelineRow {
                 SoftDelete {
                     switch ($CalLog.Client) {
                         Transport {
-                            [array] $Output = "Transport $($CalLog.TriggerAction)d the meeting based on changes by [$($CalLog.SentRepresentingDisplayName)]."
+                            [array] $Output = "Transport $($CalLog.TriggerAction)d the meeting based on changes by [$($CalLog.Organizer)]."
                         }
                         LocationProcessor {
                             [array] $Output = ""
