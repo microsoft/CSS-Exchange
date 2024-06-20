@@ -19,6 +19,7 @@ function Get-EventLogInformation {
                 $results.Add($log, ([PSCustomObject]@{
                             LastLogEntry = $lastLogEntry.TimeCreated
                             MaxSize      = $listLog.MaximumSizeInBytes
+                            FileSize     = $listLog.FileSize
                             LogMode      = $listLog.LogMode.ToString()
                             IsEnabled    = $listLog.IsEnabled
                             LogFilePath  = $listLog.LogFilePath
