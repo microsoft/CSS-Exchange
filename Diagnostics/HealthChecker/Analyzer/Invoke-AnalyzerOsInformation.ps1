@@ -487,10 +487,13 @@ function Invoke-AnalyzerOsInformation {
         $days = 7
         $testDate = (Get-Date).AddDays(-$days)
         foreach ($logType in $osInformation.EventLogInformation.Keys) {
-            if ($osInformation.EventLogInformation[$logType].LastLogEntry -gt $testDate) {
+            $logInfo = $osInformation.EventLogInformation[$logType]
+            # If the log isn't at the max limit, it is possible that they just cleared the logs or on a new server. This should be rare scenario.
+            if ($logInfo.LastLogEntry -gt $testDate -and
+                $logInfo.FileSize -ge $logInfo.MaxSize) {
                 $params = $baseParams + @{
                     Name             = "Event Log - $logType"
-                    Details          = "--ERROR-- Not enough logs to cover $days days. Last log entry is at $($osInformation.EventLogInformation[$logType].LastLogEntry)." +
+                    Details          = "--ERROR-- Not enough logs to cover $days days. Last log entry is at $($logInfo.LastLogEntry)." +
                     " This could cause issues with determining Root Cause Analysis."
                     DisplayWriteType = "Red"
                 }
