@@ -1,0 +1,86 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Diagnostics.Eventing.Reader.EventLogRecord</T>
+      <T>System.Diagnostics.Eventing.Reader.EventRecord</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>System.Diagnostics.Eventing.Reader.EventLogRecord</ToString>
+    <Props>
+      <I32 N="Id">16384</I32>
+      <By N="Version">0</By>
+      <I32 N="Qualifiers">16384</I32>
+      <By N="Level">4</By>
+      <I32 N="Task">0</I32>
+      <I16 N="Opcode">0</I16>
+      <I64 N="Keywords">36028797018963968</I64>
+      <I64 N="RecordId">1271</I64>
+      <S N="ProviderName">Microsoft-Windows-Security-SPP</S>
+      <G N="ProviderId">e23b33b0-c8c9-472c-a5f9-f2bdfea0f156</G>
+      <S N="LogName">Application</S>
+      <I32 N="ProcessId">0</I32>
+      <I32 N="ThreadId">0</I32>
+      <S N="MachineName">WIN-AUPR2S24E9U</S>
+      <Nil N="UserId" />
+      <DT N="TimeCreated">2021-10-06T10:42:01-07:00</DT>
+      <Nil N="ActivityId" />
+      <Nil N="RelatedActivityId" />
+      <S N="ContainerLog">application</S>
+      <Obj N="MatchedQueryIds" RefId="1">
+        <TN RefId="1">
+          <T>System.UInt32[]</T>
+          <T>System.Array</T>
+          <T>System.Object</T>
+        </TN>
+        <LST />
+      </Obj>
+      <Obj N="Bookmark" RefId="2">
+        <TN RefId="2">
+          <T>System.Diagnostics.Eventing.Reader.EventBookmark</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>System.Diagnostics.Eventing.Reader.EventBookmark</ToString>
+      </Obj>
+      <S N="LevelDisplayName">Information</S>
+      <Nil N="OpcodeDisplayName" />
+      <Nil N="TaskDisplayName" />
+      <Obj N="KeywordsDisplayNames" RefId="3">
+        <TN RefId="3">
+          <T>System.Collections.ObjectModel.ReadOnlyCollection`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <S>Classic</S>
+        </LST>
+      </Obj>
+      <Obj N="Properties" RefId="4">
+        <TN RefId="4">
+          <T>System.Collections.Generic.List`1[[System.Diagnostics.Eventing.Reader.EventProperty, System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <Obj RefId="5">
+            <TN RefId="5">
+              <T>System.Diagnostics.Eventing.Reader.EventProperty</T>
+              <T>System.Object</T>
+            </TN>
+            <ToString>System.Diagnostics.Eventing.Reader.EventProperty</ToString>
+            <Props>
+              <S N="Value">2121-09-12T17:42:01Z</S>
+            </Props>
+          </Obj>
+          <Obj RefId="6">
+            <TNRef RefId="5" />
+            <ToString>System.Diagnostics.Eventing.Reader.EventProperty</ToString>
+            <Props>
+              <S N="Value">RulesEngine</S>
+            </Props>
+          </Obj>
+        </LST>
+      </Obj>
+    </Props>
+    <MS>
+      <S N="Message">Successfully scheduled Software Protection service for re-start at 2121-09-12T17:42:01Z. Reason: RulesEngine.</S>
+    </MS>
+  </Obj>
+</Objs>
