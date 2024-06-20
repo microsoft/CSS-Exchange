@@ -73,11 +73,7 @@ function CreateExternalMasterIDMap {
 
         if ($AllFolderNames.count -gt 1) {
             # We have 2+ FolderNames, Need to find the best one. Remove 'Calendar' from possible names
-            $AllFolderNames = $AllFolderNames | Where-Object {
-                $_ -notmatch 'Calendar' -and
-                $_ -notmatch 'Calendrier' -and
-                $_ -notmatch 'Kalender'
-            } # Need a better way to do this for other languages...
+            $AllFolderNames = $AllFolderNames | Where-Object { $_ -notmatch 'Calendar' } # Need a better way to do this for other languages...
         }
 
         if ($AllFolderNames.Count -eq 0) {
