@@ -1,0 +1,343 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Diagnostics.Eventing.Reader.EventLogConfiguration</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>System.Diagnostics.Eventing.Reader.EventLogConfiguration</ToString>
+    <Props>
+      <S N="LogName">System</S>
+      <Obj N="LogType" RefId="1">
+        <TN RefId="1">
+          <T>System.Diagnostics.Eventing.Reader.EventLogType</T>
+          <T>System.Enum</T>
+          <T>System.ValueType</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>Administrative</ToString>
+        <I32>0</I32>
+      </Obj>
+      <Obj N="LogIsolation" RefId="2">
+        <TN RefId="2">
+          <T>System.Diagnostics.Eventing.Reader.EventLogIsolation</T>
+          <T>System.Enum</T>
+          <T>System.ValueType</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>System</ToString>
+        <I32>1</I32>
+      </Obj>
+      <B N="IsEnabled">true</B>
+      <B N="IsClassicLog">true</B>
+      <S N="SecurityDescriptor">O:BAG:SYD:(A;;0xf0007;;;SY)(A;;0x7;;;BA)(A;;0x3;;;BO)(A;;0x5;;;SO)(A;;0x1;;;IU)(A;;0x3;;;SU)(A;;0x1;;;S-1-5-3)(A;;0x2;;;S-1-5-33)(A;;0x1;;;S-1-5-32-573)</S>
+      <S N="LogFilePath">%SystemRoot%\System32\Winevt\Logs\System.evtx</S>
+      <I64 N="MaximumSizeInBytes">20971520</I64>
+      <Obj N="LogMode" RefId="3">
+        <TN RefId="3">
+          <T>System.Diagnostics.Eventing.Reader.EventLogMode</T>
+          <T>System.Enum</T>
+          <T>System.ValueType</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>Circular</ToString>
+        <I32>0</I32>
+      </Obj>
+      <S N="OwningProviderName"></S>
+      <Obj N="ProviderNames" RefId="4">
+        <TN RefId="4">
+          <T>System.String[]</T>
+          <T>System.Array</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <S>3ware</S>
+          <S>ACPI</S>
+          <S>ADP80XX</S>
+          <S>AFD</S>
+          <S>AmdK8</S>
+          <S>AmdPPM</S>
+          <S>amdsata</S>
+          <S>amdsbs</S>
+          <S>amdxata</S>
+          <S>Application Management Group Policy</S>
+          <S>arcsas</S>
+          <S>AsyncMac</S>
+          <S>atapi</S>
+          <S>b06bdrv</S>
+          <S>BasicRender</S>
+          <S>beep</S>
+          <S>bfadfcoei</S>
+          <S>bfadi</S>
+          <S>Bowser</S>
+          <S>Browser</S>
+          <S>bxfcoe</S>
+          <S>bxois</S>
+          <S>cdrom</S>
+          <S>cht4iscsi</S>
+          <S>cht4vbd</S>
+          <S>disk</S>
+          <S>Display</S>
+          <S>Dnsapi</S>
+          <S>Dnscache</S>
+          <S>ebdrv</S>
+          <S>elxfcoe</S>
+          <S>elxstor</S>
+          <S>eventlog</S>
+          <S>exFAT</S>
+          <S>EXIFS</S>
+          <S>FltMgr</S>
+          <S>HidBth</S>
+          <S>HpSAMD</S>
+          <S>i8042prt</S>
+          <S>iaStorAV</S>
+          <S>iaStorV</S>
+          <S>ibbus</S>
+          <S>IIS Config</S>
+          <S>IISLOG</S>
+          <S>IISWMI</S>
+          <S>intelppm</S>
+          <S>IPMIDRV</S>
+          <S>isapnp</S>
+          <S>iScsiPrt</S>
+          <S>kbdclass</S>
+          <S>kbdhid</S>
+          <S>kdnic</S>
+          <S>Lfsvc</S>
+          <S>lltdio</S>
+          <S>LmHosts</S>
+          <S>LSI_SAS</S>
+          <S>LSI_SAS2i</S>
+          <S>LSI_SAS3i</S>
+          <S>LSI_SSS</S>
+          <S>megasas</S>
+          <S>megasas2i</S>
+          <S>megasr</S>
+          <S>mlx4_bus</S>
+          <S>mouclass</S>
+          <S>mouhid</S>
+          <S>mrxsmb</S>
+          <S>MsBridge</S>
+          <S>MSExchange Server</S>
+          <S>mshidumdf</S>
+          <S>MSiSCSI</S>
+          <S>MTConfig</S>
+          <S>Mup</S>
+          <S>mvumis</S>
+          <S>NdisImPlatform</S>
+          <S>NdisWan</S>
+          <S>ndiswanlegacy</S>
+          <S>NetBIOS</S>
+          <S>NetBT</S>
+          <S>Netlogon</S>
+          <S>netvscvfpp</S>
+          <S>Ntfs</S>
+          <S>nvstor</S>
+          <S>Parport</S>
+          <S>partmgr</S>
+          <S>pcmcia</S>
+          <S>percsas2i</S>
+          <S>percsas3i</S>
+          <S>Power</S>
+          <S>PptpMiniport</S>
+          <S>Processor</S>
+          <S>ql2300i</S>
+          <S>ql40xx2i</S>
+          <S>qlfcoei</S>
+          <S>RasAuto</S>
+          <S>RasCfg</S>
+          <S>Rasman</S>
+          <S>rdbss</S>
+          <S>RemoteAccess</S>
+          <S>rspndr</S>
+          <S>sbp2port</S>
+          <S>scmbus</S>
+          <S>scmdisk0101</S>
+          <S>sercx</S>
+          <S>sercx2</S>
+          <S>Serial</S>
+          <S>sermouse</S>
+          <S>Server</S>
+          <S>SiSRaid2</S>
+          <S>SiSRaid4</S>
+          <S>SMSvcHost 4.0.0.0</S>
+          <S>SNMPTRAP</S>
+          <S>spaceport</S>
+          <S>spbcx</S>
+          <S>Srv</S>
+          <S>stexstor</S>
+          <S>StillImage</S>
+          <S>storahci</S>
+          <S>stornvme</S>
+          <S>System</S>
+          <S>Tcpip</S>
+          <S>Tcpip6</S>
+          <S>TCPMon</S>
+          <S>tunnel</S>
+          <S>UASPStor</S>
+          <S>UEFI</S>
+          <S>usbehci</S>
+          <S>usbser</S>
+          <S>VDS Basic Provider</S>
+          <S>VDS Dynamic Provider</S>
+          <S>VDS Virtual Disk Provider</S>
+          <S>Virtual Disk Service</S>
+          <S>volmgr</S>
+          <S>vpci</S>
+          <S>vsmraid</S>
+          <S>VSTXRAID</S>
+          <S>WacomPen</S>
+          <S>wdf01000</S>
+          <S>wecsvc</S>
+          <S>Win32k</S>
+          <S>Windows Disk Diagnostic</S>
+          <S>Windows Script Host</S>
+          <S>WinNat</S>
+          <S>WMIxWDM</S>
+          <S>Workstation</S>
+          <S>Microsoft-Windows-IIS-W3SVC</S>
+          <S>Microsoft-Windows-ReFS-v1</S>
+          <S>Microsoft-Windows-Time-Service</S>
+          <S>Microsoft-Windows-Directory-Services-SAM</S>
+          <S>Microsoft-Windows-Kernel-Processor-Power</S>
+          <S>Microsoft-Windows-Windows Defender</S>
+          <S>Microsoft-Windows-Hyper-V-Netvsc</S>
+          <S>Microsoft-Windows-Dhcp-Client</S>
+          <S>Microsoft-Windows-Kernel-Boot</S>
+          <S>LsaSrv</S>
+          <S>Microsoft-Windows-DistributedCOM</S>
+          <S>TPM</S>
+          <S>Microsoft-Windows-DNS-Client</S>
+          <S>Schannel</S>
+          <S>Microsoft-Windows-Wininit</S>
+          <S>Microsoft-Windows-TerminalServices-SessionBroker-Client</S>
+          <S>Microsoft-Windows-RasServer</S>
+          <S>Microsoft-Windows-DriverFrameworks-UserMode</S>
+          <S>Microsoft-Windows-WindowsToGo-StartupOptions</S>
+          <S>Microsoft-Windows-Power-Meter-Polling</S>
+          <S>Microsoft-Windows-USB-USBXHCI</S>
+          <S>Microsoft-Windows-Kernel-Power</S>
+          <S>Microsoft-Windows-CoreSystem-NetProvision-JoinProviderOnline</S>
+          <S>Microsoft-Windows-Diagnostics-Networking</S>
+          <S>Microsoft-Windows-MsLbfoSysEvtProvider</S>
+          <S>Microsoft-Windows-Fat-SQM</S>
+          <S>Microsoft-Windows-Ntfs</S>
+          <S>Microsoft-Windows-Subsys-SMSS</S>
+          <S>Microsoft-Windows-OverlayFilter</S>
+          <S>Microsoft-Windows-Serial-ClassExtension</S>
+          <S>Application Popup</S>
+          <S>Microsoft-Windows-exFAT-SQM</S>
+          <S>Microsoft-Windows-Bluetooth-BthLEPrepairing</S>
+          <S>Microsoft-Windows-Kernel-Tm</S>
+          <S>Microsoft-Windows-Smartcard-Server</S>
+          <S>Microsoft-Windows-WAS</S>
+          <S>Microsoft-Windows-SetupPlatform</S>
+          <S>Microsoft-Windows-FunctionDiscoveryHost</S>
+          <S>Service Control Manager</S>
+          <S>Microsoft-Windows-GPIO-ClassExtension</S>
+          <S>Microsoft-Windows-TerminalServices-LocalSessionManager</S>
+          <S>Microsoft-Windows-MemoryDiagnostics-Results</S>
+          <S>Microsoft-Windows-NdisImPlatformSysEvtProvider</S>
+          <S>Microsoft-Windows-HAL</S>
+          <S>Microsoft-Windows-Devices-Background</S>
+          <S>Microsoft-Windows-Iphlpsvc</S>
+          <S>Microsoft-Windows-DHCPv6-Client</S>
+          <S>Microsoft-Windows-Fault-Tolerant-Heap</S>
+          <S>Microsoft-Windows-RasSstp</S>
+          <S>Microsoft-Windows-ServerManager-ConfigureSMRemoting</S>
+          <S>Microsoft-Windows-TerminalServices-ClientUSBDevices</S>
+          <S>Microsoft-Windows-Wallet</S>
+          <S>Microsoft-Windows-LanguagePackSetup</S>
+          <S>Microsoft-Windows-SPB-ClassExtension</S>
+          <S>Microsoft-Windows-IsolatedUserMode</S>
+          <S>Microsoft-Windows-MemoryDiagnostics-Schedule</S>
+          <S>Microsoft-Windows-PrintService</S>
+          <S>Microsoft-Windows-ResourcePublication</S>
+          <S>Microsoft-Windows-Setup</S>
+          <S>Microsoft-Windows-Kernel-WHEA</S>
+          <S>Microsoft-Windows-HttpEvent</S>
+          <S>Microsoft-Windows-WinHttp</S>
+          <S>Microsoft-Windows-TPM-WMI</S>
+          <S>Microsoft-Windows-DfsSvc</S>
+          <S>Microsoft-Windows-SDDC-Management</S>
+          <S>Microsoft-Windows-Audit-CVE</S>
+          <S>Microsoft-Windows-Ntfs-UBPM</S>
+          <S>Microsoft-Windows-WindowsUpdateClient</S>
+          <S>Microsoft-Windows-Kernel-Interrupt-Steering</S>
+          <S>Microsoft-Windows-TerminalServices-Printers</S>
+          <S>Microsoft-Windows-OfflineFiles</S>
+          <S>Microsoft-Windows-UserPnp</S>
+          <S>NetJoin</S>
+          <S>Microsoft-Windows-Security-Kerberos</S>
+          <S>Microsoft-Windows-SPB-HIDI2C</S>
+          <S>Microsoft-Windows-Resource-Exhaustion-Detector</S>
+          <S>Microsoft-Windows-Kernel-PnP</S>
+          <S>Microsoft-Windows-SCPNP</S>
+          <S>Microsoft-Windows-ResetEng</S>
+          <S>Microsoft-Windows-NetworkBridge</S>
+          <S>Microsoft-Windows-Kernel-General</S>
+          <S>Microsoft-Windows-SharedAccess_NAT</S>
+          <S>Microsoft-Windows-WinRM</S>
+          <S>Microsoft-Windows-EnhancedStorage-EhStorTcgDrv</S>
+          <S>Microsoft-Windows-WER-SystemErrorReporting</S>
+          <S>Microsoft-Windows-Kernel-IO</S>
+          <S>Microsoft-Windows-WPDClassInstaller</S>
+          <S>Microsoft-Windows-GroupPolicy</S>
+          <S>User32</S>
+          <S>Microsoft-Windows-SpellChecker</S>
+          <S>Microsoft-Windows-EventCollector</S>
+          <S>Microsoft-Windows-CorruptedFileRecovery-Client</S>
+          <S>Microsoft-Windows-Memory-Diagnostic-Task-Handler</S>
+          <S>Microsoft-Windows-IIS-IisMetabaseAudit</S>
+          <S>Microsoft-Windows-Servicing</S>
+          <S>Microsoft-Pef-WFP-MessageProvider</S>
+          <S>Microsoft-Windows-WHEA-Logger</S>
+          <S>Microsoft-Windows-TerminalServices-RemoteConnectionManager</S>
+          <S>Microsoft-Windows-StartupRepair</S>
+          <S>Microsoft-Windows-IIS-APPHOSTSVC</S>
+          <S>Volsnap</S>
+          <S>Microsoft-Windows-ReFS</S>
+          <S>Microsoft-Windows-Power-Troubleshooter</S>
+          <S>Microsoft-Windows-NDIS</S>
+          <S>Microsoft-Windows-UserModePowerService</S>
+          <S>Microsoft-Windows-Spell-Checking</S>
+          <S>Intel-iaLPSS-GPIO</S>
+          <S>Intel-iaLPSS-I2C</S>
+          <S>Microsoft-Windows-CorruptedFileRecovery-Server</S>
+          <S>Microsoft-Windows-IIS-IISReset</S>
+          <S>Microsoft-Windows-ScmDisk0101</S>
+          <S>Microsoft-Windows-Winlogon</S>
+          <S>Microsoft-Windows-TerminalServices-ServerUSBDevices</S>
+          <S>Ntfs</S>
+          <S>Microsoft-Windows-TaskScheduler</S>
+          <S>Microsoft-Windows-FMS</S>
+          <S>Microsoft-Windows-MountMgr</S>
+          <S>Microsoft-Windows-Firewall</S>
+          <S>Microsoft-Windows-DiskDiagnostic</S>
+          <S>Microsoft-Windows-Serial-ClassExtension-V2</S>
+          <S>Microsoft-Windows-Bits-Client</S>
+          <S>Microsoft-Windows-Kernel-XDV</S>
+          <S>Microsoft-Windows-AppReadiness</S>
+          <S>Microsoft-Windows-MPRMSG</S>
+          <S>Microsoft-Windows-FilterManager</S>
+          <S>Microsoft-Windows-Eventlog</S>
+          <S>Microsoft-Windows-W3LOGSVC</S>
+        </LST>
+      </Obj>
+      <Nil N="ProviderLevel" />
+      <Nil N="ProviderKeywords" />
+      <I32 N="ProviderBufferSize">64</I32>
+      <I32 N="ProviderMinimumNumberOfBuffers">0</I32>
+      <I32 N="ProviderMaximumNumberOfBuffers">16</I32>
+      <I32 N="ProviderLatency">1000</I32>
+      <Nil N="ProviderControlGuid" />
+    </Props>
+    <MS>
+      <I64 N="FileSize">3215360</I64>
+      <B N="IsLogFull">false</B>
+      <DT N="LastAccessTime">2020-10-30T08:24:46.7190661-07:00</DT>
+      <DT N="LastWriteTime">2024-06-20T08:53:28.3234159-07:00</DT>
+      <I64 N="OldestRecordNumber">1</I64>
+      <I64 N="RecordCount">5864</I64>
+    </MS>
+  </Obj>
+</Objs>

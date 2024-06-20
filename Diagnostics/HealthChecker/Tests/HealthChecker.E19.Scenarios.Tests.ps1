@@ -51,6 +51,16 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-IISModules { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetIISModulesNoTokenCacheModule.xml" }
             Mock Get-ADPrincipalGroupMembership { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetADPrincipalGroupMembership2.xml" }
             Mock Get-LocalGroupMember { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetLocalGroupMember2.xml" }
+            Mock Get-WinEvent -ParameterFilter { $LogName -eq "Application" -and $Oldest -eq $true -and $MaxEvents -eq 1 } -MockWith {
+                $r = Import-Clixml "$Script:MockDataCollectionRoot\OS\GetWinEventOldestApplication.xml"
+                $r.TimeCreated = ((Get-Date).AddDays(-1))
+                return $r
+            }
+            Mock Get-WinEvent -ParameterFilter { $LogName -eq "System" -and $Oldest -eq $true -and $MaxEvents -eq 1 } -MockWith {
+                $r = Import-Clixml "$Script:MockDataCollectionRoot\OS\GetWinEventOldestSystem.xml"
+                $r.TimeCreated = ((Get-Date).AddDays(-1))
+                return $r
+            }
             Mock Get-Service {
                 param(
                     [string]$ComputerName,
@@ -87,6 +97,13 @@ Describe "Testing Health Checker by Mock Data Imports" {
             $httpProxy.ByPassList | Should -Be "localhost;*.contoso.com;*microsoft.com"
             $httpProxy.HttpProxyDifference | Should -Be "False"
             $httpProxy.HttpByPassDifference | Should -Be "False"
+        }
+
+        It "Event Log Size Test" {
+            GetObject "Event Log - Application" |
+                Should -BeLike "--ERROR-- Not enough logs to cover 7 days. Last log entry is at *. This could cause issues with determining Root Cause Analysis."
+            GetObject "Event Log - System" |
+                Should -BeLike "--ERROR-- Not enough logs to cover 7 days. Last log entry is at *. This could cause issues with determining Root Cause Analysis."
         }
 
         It "TCP Keep Alive Time" {
