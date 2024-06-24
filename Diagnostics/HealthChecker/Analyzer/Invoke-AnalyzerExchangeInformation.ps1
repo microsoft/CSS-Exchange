@@ -466,7 +466,7 @@ function Invoke-AnalyzerExchangeInformation {
             $exchangeInformation.DependentServices.Common.Count -gt 0 -or
             $exchangeInformation.DependentServices.Misconfigured.Count -gt 0) {
             $params = $baseParams + @{
-                Details                = "To determine what the display name of the service that is not properly configured or running, run 'Get-Service <Name>' to get more information."
+                Details                = "To determine the display name of the service that is not properly configured or running, run 'Get-Service <Name>' to get more information."
                 DisplayCustomTabNumber = 2
                 DisplayWriteType       = "Yellow"
             }
