@@ -23,7 +23,13 @@ function Connect-GraphAdvanced {
 
     #Validate Graph is connected or try to connect
     $connection = $null
-    $connection = Get-MgContext -ErrorAction SilentlyContinue
+    try {
+        $connection = Get-MgContext -ErrorAction Stop
+    } catch {
+        Write-Host "We cannot check context. Error:`n$_" -ForegroundColor Red
+        return $null
+    }
+
     if ($null -eq $connection) {
         Write-Host "Not connected to Graph" -ForegroundColor Yellow
         $connection = Add-GraphConnection -Scopes $Scopes
@@ -51,9 +57,19 @@ function Add-GraphConnection {
 
     if ($PSCmdlet.ShouldProcess("Do you want to connect?", "We need a Graph connection with scopes $Scopes")) {
         Write-Verbose "Connecting to Microsoft Graph API using scopes $Scopes"
-        Connect-MgGraph -Scopes $Scopes -NoWelcome -ErrorAction SilentlyContinue
+        try {
+            Connect-MgGraph -Scopes $Scopes -NoWelcome -ErrorAction Stop
+        } catch {
+            Write-Host "We cannot connect to Graph. Error:`n$_" -ForegroundColor Red
+            return $null
+        }
         $connection = $null
-        $connection = Get-MgContext -ErrorAction SilentlyContinue
+        try {
+            $connection = Get-MgContext -ErrorAction Stop
+        } catch {
+            Write-Host "We cannot check context. Error:`n$_" -ForegroundColor Red
+            return $null
+        }
         Write-Verbose "Checking scopes"
         if (-not $connection) {
             Write-Host "We cannot continue without Graph Powershell session" -ForegroundColor Red

@@ -22,25 +22,30 @@ function Request-Module {
 
     $foundError = $false
     foreach ($module in $Modules) {
-        if ($null-eq $installed -or $installed.Name -notcontains $module) {
+        if ($null -eq $installed -or $installed.Name -notcontains $module) {
             Write-Host "The following module is missing: $module" -ForegroundColor Yellow
             $confirmed = $null
-            if ($MinModuleVersion) {
-                Write-Verbose "Installing $module with minimum version $minModuleVersion"
-                Install-Module -Name $module -Scope CurrentUser -MinimumVersion $MinModuleVersion
-                $confirmed = Get-InstalledModule -Name $module -MinimumVersion $MinModuleVersion -ErrorAction SilentlyContinue
-                if (-not $confirmed) {
-                    Write-Host "We could not install module: $module with minimum version $minModuleVersion" -ForegroundColor Red
-                    $foundError = $true
+            try {
+                if ($MinModuleVersion) {
+                    Write-Verbose "Installing $module with minimum version $minModuleVersion"
+                    Install-Module -Name $module -Scope CurrentUser -MinimumVersion $MinModuleVersion
+                    $confirmed = Get-InstalledModule -Name $module -MinimumVersion $MinModuleVersion -ErrorAction Stop
+                    if (-not $confirmed) {
+                        Write-Host "We could not install module: $module with minimum version $minModuleVersion" -ForegroundColor Red
+                        $foundError = $true
+                    }
+                } else {
+                    Write-Verbose "Installing $module"
+                    Install-Module -Name $module -Scope CurrentUser
+                    $confirmed = Get-InstalledModule -Name $module -ErrorAction Stop
+                    if (-not $confirmed) {
+                        Write-Host "We could not install module: $module" -ForegroundColor Red
+                        $confirmed = $true
+                    }
                 }
-            } else {
-                Write-Verbose "Installing $module"
-                Install-Module -Name $module -Scope CurrentUser
-                $confirmed = Get-InstalledModule -Name $module -ErrorAction SilentlyContinue
-                if (-not $confirmed) {
-                    Write-Host "We could not install module: $module" -ForegroundColor Red
-                    $confirmed = $true
-                }
+            } catch {
+                Write-Host "Installation process fails. Error: `n$_" -ForegroundColor Red
+                return $false
             }
         }
     }

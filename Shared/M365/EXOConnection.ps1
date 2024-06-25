@@ -27,7 +27,12 @@ function Connect-EXOAdvanced {
     #Validate EXO is connected or try to connect
     $connections = $null
     $newConnection = $null
-    $connections = Get-ConnectionInformation -ErrorAction SilentlyContinue | Where-Object { $_.State -eq 'Connected' }
+    try {
+        $connections = Get-ConnectionInformation -ErrorAction Stop | Where-Object { $_.State -eq 'Connected' }
+    } catch {
+        Write-Host "We cannot check connections. Error:`n$_" -ForegroundColor Red
+        return $null
+    }
 
     if ($null -eq $connections -or $AllowMultipleSessions) {
         if ($connections.ModulePrefix -contains $Prefix) {
@@ -38,8 +43,18 @@ function Connect-EXOAdvanced {
             if ($Prefix) { Write-Host "with Prefix $Prefix" }
             if ($PSCmdlet.ShouldProcess("Do you want to add it?", "Adding an Exchange Online Session")) {
                 Write-Verbose "Connecting to Exchange Online session"
-                Connect-ExchangeOnline -ShowBanner:$false -ErrorAction SilentlyContinue -Prefix $Prefix
-                $newConnections = Get-ConnectionInformation -ErrorAction SilentlyContinue
+                try {
+                    Connect-ExchangeOnline -ShowBanner:$false -Prefix $Prefix -ErrorAction Stop
+                } catch {
+                    Write-Host "We cannot connect to Exchange Online. Error:`n$_" -ForegroundColor Red
+                    return $null
+                }
+                try {
+                    $newConnections = Get-ConnectionInformation -ErrorAction Stop
+                } catch {
+                    Write-Host "We cannot check connections. Error:`n$_" -ForegroundColor Red
+                    return $null
+                }
                 foreach ($testConnection in $newConnections) {
                     if ($connections -notcontains $testConnection) {
                         $newConnection = $testConnection
