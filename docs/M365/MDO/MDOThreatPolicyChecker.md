@@ -64,3 +64,6 @@ To provide an email address and see only MDO (Safe Attachment and Safe Links) po
 
 To see the details of the policies applied to mailbox in a CSV file for both EOP and MDO, run the following:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;`.\MDOThreatPolicyChecker.ps1 -CsvFilePath [Path\filename.csv] -IncludeMDOPolicies -ShowDetailedPolicies`
+
+To get all mailboxes in your tenant and print out their EOP and MDO policies, run the following:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;`.\MDOThreatPolicyChecker.ps1 -IncludeMDOPolicies -EmailAddresses @(Get-ExOMailbox -ResultSize unlimited | Select-Object -ExpandProperty PrimarySmtpAddress)`
