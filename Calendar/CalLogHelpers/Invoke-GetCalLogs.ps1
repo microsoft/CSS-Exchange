@@ -12,6 +12,8 @@ $script:CustomPropertyNameList =
 "CalendarItemType",
 "CalendarProcessed",
 "ClientIntent",
+"ChangeList",
+"CalendarLogTriggerAction",
 "DisplayAttendeesCc",
 "DisplayAttendeesTo",
 "EventEmailReminderTimer",
@@ -28,10 +30,9 @@ $script:CustomPropertyNameList =
 "SendMeetingMessagesDiagnostics",
 "SentRepresentingDisplayName",
 "SentRepresentingEmailAddress",
-"OriginalLastModifiedTime",
-"ClientInfoString",
+"LogTimestamp",
+"LogClientInfoString",
 "OriginalStartDate",
-"LastModifiedTime",
 "CreationTime",
 "TimeZone"
 
