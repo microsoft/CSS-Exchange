@@ -1,6 +1,11 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+#Requires -Modules Microsoft.Graph.Authentication
+#Requires -Modules Microsoft.Graph.Users
+#Requires -Modules Microsoft.Graph.Groups
+#Requires -Modules ExchangeOnlineManagement -Version 3.0.0
+
 <#
 .SYNOPSIS
 Evaluates user coverage and potential redundancies in Microsoft Defender for Office 365 and Exchange Online Protection threat policies, including anti-malware, anti-phishing, and anti-spam policies, as well as Safe Attachments and Safe Links policies if licensed.
@@ -67,18 +72,10 @@ param(
     [Parameter(Mandatory = $false, ParameterSetName = 'AppliedMDOEmail')]
     [switch]$ShowDetailedPolicies,
 
-    [Parameter(ParameterSetName = 'AppliedCsv', Mandatory = $false)]
-    [Parameter(ParameterSetName = 'AppliedEmail', Mandatory = $false)]
-    [Parameter(ParameterSetName = 'AppliedMDOCsv', Mandatory = $false)]
-    [Parameter(ParameterSetName = 'AppliedMDOEmail', Mandatory = $false)]
-    [Parameter(ParameterSetName = 'AppliedTenant', Mandatory = $false)]
+    [Parameter(Mandatory = $false)]
     [switch]$SkipConnectionCheck,
 
-    [Parameter(ParameterSetName = 'AppliedCsv')]
-    [Parameter(ParameterSetName = 'AppliedEmail')]
-    [Parameter(ParameterSetName = 'AppliedMDOCsv')]
-    [Parameter(ParameterSetName = 'AppliedMDOEmail')]
-    [Parameter(ParameterSetName = 'AppliedTenant')]
+    [Parameter(Mandatory = $false)]
     [switch]$SkipVersionCheck,
 
     [Parameter(Mandatory = $true, ParameterSetName = "ScriptUpdateOnly")]
@@ -89,6 +86,8 @@ begin {
 
     . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
     . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
+    . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Verbose.ps1
+    . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Warning.ps1
     . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Host.ps1
 
     # Cache to reduce calls to Get-MgGroup
@@ -104,58 +103,39 @@ begin {
             [MailAddress]$GroupEmail
         )
 
+        $stGroupEmail = $GroupEmail.ToString()
         # Check the cache first
-        if ($groupCache.ContainsKey($GroupEmail)) {
-            return $groupCache[$GroupEmail]
+        Write-Verbose "Looking Group $stGroupEmail in cache"
+        if ($groupCache.ContainsKey($stGroupEmail)) {
+            Write-Verbose "Group $stGroupEmail found in cache"
+            return $groupCache[$stGroupEmail]
         }
 
         # Get the group
         $group = $null
-        $group = Get-MgGroup -Filter "mail eq '$($GroupEmail)'" -ErrorAction SilentlyContinue
-
-        if ($group) {
-            # Cache the result
-            $groupCache[$GroupEmail] = $group.Id
-
-            # Return the Object ID of the group
-            return $group.Id
-        } else {
-            Write-Host "The EmailAddress of group $GroupEmail was not found" -ForegroundColor Red
-            return $null
-        }
-    }
-
-    function Test-EmailAddress {
-        [OutputType([MailAddress])]
-        param(
-            [Parameter(Mandatory = $true)]
-            [ValidateNotNullOrEmpty()]
-            [string]$EmailAddress,
-            [Parameter(Mandatory = $true)]
-            [ValidateNotNullOrEmpty()]
-            $AcceptedDomains
-        )
-
+        Write-Verbose "Getting $stGroupEmail"
         try {
-            $tempAddress = $null
-            $tempAddress = [MailAddress]$EmailAddress
+            $group = Get-MgGroup -Filter "mail eq '$stGroupEmail'" -ErrorAction Stop
         } catch {
-            Write-Host "The EmailAddress $EmailAddress cannot be validated. Please provide a valid email address." -ForegroundColor Red
+            Write-Host "Error getting group $stGroupEmail`: $_" -ForegroundColor Red
             return $null
         }
-        $recipient = $null
-        $recipient = Get-EXORecipient $EmailAddress -ErrorAction SilentlyContinue
-        if ($null -eq $recipient) {
-            Write-Host "$EmailAddress is not a recipient in this tenant" -ForegroundColor Red
-            return $null
-        } else {
-            $domain = $tempAddress.Host
-            if ($AcceptedDomains.DomainName -contains $domain) {
-                return $tempAddress
+
+        if ($group -and $group.id) {
+            if ($group.Id.GetType() -eq [string]) {
+                # Cache the result
+                Write-Verbose "Added to cache Group $stGroupEmail with Id $($group.Id)"
+                $groupCache[$stGroupEmail] = $group.Id
+
+                # Return the Object ID of the group
+                return $group.Id
             } else {
-                Write-Host "The domain $domain is not an accepted domain in your organization. Please provide a valid email address." -ForegroundColor Red
+                Write-Host "Wrong type for $($group.ToString()): $group.Id.GetType().Name" -ForegroundColor Red
                 return $null
             }
+        } else {
+            Write-Host "The EmailAddress of group $stGroupEmail was not found" -ForegroundColor Red
+            return $null
         }
     }
 
@@ -172,34 +152,112 @@ begin {
         )
 
         # Check the cache first
-        $cacheKey = "$Email|$GroupObjectId"
+        $stEmail = $Email.ToString()
+        $cacheKey = "$stEmail|$GroupObjectId"
+        Write-Verbose "Looking for $stEmail|$GroupObjectId in cache"
         if ($memberCache.ContainsKey($cacheKey)) {
+            Write-Verbose "Found $stEmail|$GroupObjectId in cache"
             return $memberCache[$cacheKey]
         }
 
         # Get the group members
         $groupMembers = $null
-        $groupMembers = Get-MgGroupMember -GroupId $GroupObjectId
+        Write-Verbose "Getting $GroupObjectId"
+        try {
+            $groupMembers = Get-MgGroupMember -GroupId $GroupObjectId -ErrorAction Stop
+        } catch {
+            Write-Host "Error getting group members for $GroupObjectId`: $_" -ForegroundColor Red
+            return $null
+        }
 
         # Check if the email address is in the group
         if ($null -ne $groupMembers) {
             foreach ($member in $groupMembers) {
-                # Get the user object by Id
-                $user = Get-MgUser -UserId $member.Id
-                # Compare the user's email address with the $email parameter
-                if ($user.Mail -eq $Email.ToString()) {
-                    # Cache the result
-                    $memberCache[$cacheKey] = $true
-                    return $true
+                # Check if the member is a user
+                if ($member['@odata.type'] -eq '#microsoft.graph.user') {
+                    if ($member.Id) {
+                        # Get the user object by Id
+                        Write-Verbose "Getting user with Id $($member.Id)"
+                        try {
+                            $user = Get-MgUser -UserId $member.Id -ErrorAction Stop
+                        } catch {
+                            Write-Host "Error getting user with Id $($member.Id): $_" -ForegroundColor Red
+                            return $null
+                        }
+                        # Compare the user's email address with the $email parameter
+                        if ($user.Mail -eq $Email.ToString()) {
+                            # Cache the result
+                            $memberCache[$cacheKey] = $true
+                            return $true
+                        }
+                    } else {
+                        Write-Host "The user with Id $($member.Id) does not have an email address." -ForegroundColor Red
+                    }
+                }
+                # Check if the member is a group
+                elseif ($member['@odata.type'] -eq '#microsoft.graph.group') {
+                    Write-Verbose "Nested group $($member.Id)"
+                    # Recursive call to check nested groups
+                    $isInNestedGroup = Test-IsInGroup -Email $Email -GroupObjectId $member.Id
+                    if ($isInNestedGroup) {
+                        # Cache the result
+                        Write-Verbose "Cache group $cacheKey"
+                        $memberCache[$cacheKey] = $true
+                        return $true
+                    }
                 }
             }
         } else {
-            Write-Host "The group with Object ID $GroupObjectId does not have any members." -ForegroundColor Red
+            Write-Verbose "The group with Object ID $GroupObjectId does not have any members."
         }
 
         # Cache the result
         $memberCache[$cacheKey] = $false
         return $false
+    }
+
+    function Test-EmailAddress {
+        [OutputType([MailAddress])]
+        param(
+            [Parameter(Mandatory = $true)]
+            [ValidateNotNullOrEmpty()]
+            [string]$EmailAddress,
+            [Parameter(Mandatory = $true)]
+            [ValidateNotNullOrEmpty()]
+            [string[]]$AcceptedDomains
+        )
+
+        try {
+            $tempAddress = $null
+            Write-Verbose "Casting $EmailAddress"
+            $tempAddress = [MailAddress]$EmailAddress
+        } catch {
+            Write-Host "The EmailAddress $EmailAddress cannot be validated. Please provide a valid email address." -ForegroundColor Red
+            return $null
+        }
+        $recipient = $null
+        Write-Verbose "Getting $EmailAddress"
+        try {
+            $recipient = Get-EXORecipient $EmailAddress -ErrorAction Stop
+        } catch {
+            Write-Host "Error getting recipient $EmailAddress`: $_" -ForegroundColor Red
+            exit
+        }
+
+        if ($null -eq $recipient) {
+            Write-Host "$EmailAddress is not a recipient in this tenant" -ForegroundColor Red
+            return $null
+        } else {
+            $domain = $tempAddress.Host
+            Write-Verbose "Checking domain $domain"
+            if ($AcceptedDomains -contains $domain) {
+                Write-Verbose "Verified domain $domain for $tempAddress"
+                return $tempAddress
+            } else {
+                Write-Host "The domain $domain is not an accepted domain in your organization. Please provide a valid email address: $tempAddress " -ForegroundColor Red
+                return $null
+            }
+        }
     }
 
     # Function to check rules
@@ -208,33 +266,77 @@ begin {
             [Parameter(Mandatory = $true)]
             $Rules,
             [Parameter(Mandatory = $true)]
-            [MailAddress]$Email
+            [MailAddress]$Email,
+            [Parameter(Mandatory = $false)]
+            [switch]$Outbound
         )
+
         foreach ($rule in $Rules) {
-            $isInGroup = $false
-            if ($rule.SentToMemberOf) {
-                foreach ($groupEmail in $rule.SentToMemberOf) {
+            $senderOrReceiver = $exceptSenderOrReceiver = $memberOf = $exceptMemberOf = $domainsIs = $exceptIfDomainsIs = $null
+            $emailInRule = $emailExceptionInRule = $groupInRule = $groupExceptionInRule = $domainInRule = $domainExceptionInRule = $false
+
+            if ($Outbound) {
+                Write-Verbose "Checking outbound rule $($rule.Name)"
+                $requestedProperties = 'From', 'ExceptIfFrom', 'FromMemberOf', 'ExceptIfFromMemberOf', 'SenderDomainIs', 'ExceptIfSenderDomainIs'
+                $senderOrReceiver = $rule.From
+                $exceptSenderOrReceiver = $rule.ExceptIfFrom
+                $memberOf = $rule.FromMemberOf
+                $exceptMemberOf = $rule.ExceptIfFromMemberOf
+                $domainsIs = $rule.SenderDomainIs
+                $exceptIfDomainsIs = $rule.ExceptIfSenderDomainIs
+            } else {
+                Write-Verbose "Checking inbound rule $($rule.Name)"
+                $requestedProperties = 'SentTo', 'ExceptIfSentTo', 'SentToMemberOf', 'ExceptIfSentToMemberOf', 'RecipientDomainIs', 'ExceptIfRecipientDomainIs'
+                $senderOrReceiver = $rule.SentTo
+                $exceptSenderOrReceiver = $rule.ExceptIfSentTo
+                $memberOf = $rule.SentToMemberOf
+                $exceptMemberOf = $rule.ExceptIfSentToMemberOf
+                $domainsIs = $rule.RecipientDomainIs
+                $exceptIfDomainsIs = $rule.ExceptIfRecipientDomainIs
+            }
+
+            $Policy.PSObject.Properties | ForEach-Object {
+                if ($requestedProperties -contains $_.Name) {
+                    Write-Host "`t`t$($_.Name): $($_.Value)"
+                }
+            }
+            Write-Verbose " "
+
+            if ($senderOrReceiver -and $Email -in $senderOrReceiver) {
+                Write-Verbose "emailInRule"
+                $emailInRule = $true
+            }
+            if ($exceptSenderOrReceiver -and $Email -in $exceptSenderOrReceiver) {
+                Write-Verbose "emailExceptionInRule"
+                $emailExceptionInRule = $true
+            }
+
+            if ($memberOf) {
+                foreach ($groupEmail in $memberOf) {
+                    Write-Verbose "Checking member in $groupEmail"
                     $groupObjectId = Get-GroupObjectId -GroupEmail $groupEmail
                     if ([string]::IsNullOrEmpty($groupObjectId)) {
                         Write-Host "The group in $($rule.Name) with email address $groupEmail does not exist." -ForegroundColor Yellow
                     } else {
-                        $isInGroup = Test-IsInGroup -Email $Email -GroupObjectId $groupObjectId
-                        if ($isInGroup) {
+                        $groupInRule = Test-IsInGroup -Email $Email -GroupObjectId $groupObjectId
+                        if ($groupInRule) {
+                            Write-Verbose "groupInRule $($Email.ToString()) - $($groupObjectId)"
                             break
                         }
                     }
                 }
             }
 
-            $isInExceptGroup = $false
-            if ($rule.ExceptIfSentToMemberOf) {
-                foreach ($groupEmail in $rule.ExceptIfSentToMemberOf) {
+            if ($exceptMemberOf) {
+                foreach ($groupEmail in $exceptMemberOf) {
+                    Write-Verbose "Checking member in exception $groupEmail"
                     $groupObjectId = Get-GroupObjectId -GroupEmail $groupEmail
                     if ([string]::IsNullOrEmpty($groupObjectId)) {
                         Write-Host "The group in $($rule.Name) with email address $groupEmail does not exist." -ForegroundColor Yellow
                     } else {
-                        $isInExceptGroup = Test-IsInGroup -Email $Email -GroupObjectId $groupObjectId
-                        if ($isInExceptGroup) {
+                        $groupExceptionInRule = Test-IsInGroup -Email $Email -GroupObjectId $groupObjectId
+                        if ($groupExceptionInRule) {
+                            Write-Verbose "groupExceptionInRule $($Email.ToString()) - $($groupObjectId)"
                             break
                         }
                     }
@@ -242,103 +344,46 @@ begin {
             }
 
             $temp = $Email.Host
-            $domainIncluded = $false
-            $domainExcluded = $false
+
             while ($temp.IndexOf(".") -gt 0) {
-                if ($temp -in $rule.RecipientDomainIs) {
-                    $domainIncluded = $true
+                if ($temp -in $domainsIs) {
+                    Write-Verbose "domainInRule: $temp"
+                    $domainInRule = $true
                 }
-                if ($temp -in $rule.ExceptIfRecipientDomainIs) {
-                    $domainExcluded = $true
+                if ($temp -in $exceptIfDomainsIs) {
+                    Write-Verbose "domainExceptionInRule: $temp"
+                    $domainExceptionInRule = $true
                 }
                 $temp = $temp.Substring($temp.IndexOf(".") + 1)
             }
 
             # Check for explicit inclusion in any user, group, or domain that are not empty, and account for 3 empty inclusions
             # Also check for any exclusions as user, group, or domain. Nulls don't need to be accounted for and this is an OR condition for exclusions
-            if ((($Email -in $rule.SentTo -or (-not $rule.SentTo)) -and
-                ($domainIncluded -or (-not $rule.RecipientDomainIs)) -and
-                ($isInGroup -or (-not $rule.SentToMemberOf))) -and
-                ($DomainIncluded -or $isInGroup -or $Email -in $rule.SentTo)) {
-                if (($Email -notin $rule.ExceptIfSentTo) -and
-                    (-not $isInExceptGroup) -and
-                    (-not $domainExcluded)) {
+            if ((($emailInRule -or (-not $senderOrReceiver)) -and
+                ($domainInRule -or (-not $domainsIs)) -and
+                ($groupInRule -or (-not $memberOf))) -and
+                ($emailInRule -or $domainInRule -or $groupInRule)) {
+                if ((-not $emailExceptionInRule) -and
+                    (-not $groupExceptionInRule) -and
+                    (-not $domainExceptionInRule)) {
+                    Write-Verbose "Return Rule $($rule.Name)"
+                    Write-Verbose "emailInRule: $emailInRule domainInRule: $domainInRule groupInRule: $groupInRule  "
+                    Write-Verbose "emailExceptionInRule: $emailExceptionInRule groupExceptionInRule: $groupExceptionInRule domainExceptionInRule: $domainExceptionInRule  "
                     return $rule
                 }
             }
-            # Check for implicit inclusion (no mailboxes included at all), which is possible for Presets and SA/SL. They are included if not explicitly excluded.
-            if ((-not $rule.SentTo) -and (-not $rule.RecipientDomainIs) -and (-not $rule.SentToMemberOf)) {
-                if (($Email -notin $rule.ExceptIfSentTo) -and
-                    (-not $isInExceptGroup) -and
-                    (-not $domainExcluded)) {
-                    return $rule
-                }
-            }
-        }
-        return $null
-    }
 
-    function Test-RulesAlternative {
-        param(
-            [Parameter(Mandatory = $true)]
-            $Rules,
-            [Parameter(Mandatory = $true)]
-            [MailAddress]$Email
-        )
-        foreach ($rule in $Rules) {
-            $isInGroup = $false
-            if ($rule.FromMemberOf) {
-                foreach ($groupEmail in $rule.FromMemberOf) {
-                    $groupObjectId = Get-GroupObjectId -groupEmail $groupEmail
-                    if ([string]::IsNullOrEmpty($groupObjectId)) {
-                        Write-Host "The group in $($rule.Name) with email $groupEmail does not exist." -ForegroundColor Yellow
-                    } else {
-                        $isInGroup = Test-IsInGroup -Email $Email.Address -GroupObjectId $groupObjectId
-                        if ($isInGroup) {
-                            break
-                        }
+            if (-not $Outbound) {
+                # Check for implicit inclusion (no mailboxes included at all), which is possible for Presets and SA/SL. They are included if not explicitly excluded.
+                if ((-not $senderOrReceiver) -and (-not $domainsIs) -and (-not $memberOf)) {
+                    if ((-not $emailExceptionInRule) -and
+                    (-not $groupExceptionInRule) -and
+                    (-not $domainExceptionInRule)) {
+                        Write-Verbose "Return Rule $($rule.Name)"
+                        Write-Verbose "senderOrReceiver: $senderOrReceiver domainsIs: $domainsIs memberOf: $memberOf  "
+                        Write-Verbose "emailExceptionInRule: $emailExceptionInRule groupExceptionInRule: $groupExceptionInRule domainExceptionInRule: $domainExceptionInRule  "
+                        return $rule
                     }
-                }
-            }
-
-            $isInExceptGroup = $false
-            if ($rule.ExceptIfFromMemberOf) {
-                foreach ($groupEmail in $rule.ExceptIfFromMemberOf) {
-                    $groupObjectId = Get-GroupObjectId -groupEmail $groupEmail
-                    if ([string]::IsNullOrEmpty($groupObjectId)) {
-                        Write-Host "The group in $($rule.Name) with email $groupEmail does not exist." -ForegroundColor Yellow
-                    } else {
-                        $isInExceptGroup = Test-IsInGroup -Email $Email.Address -GroupObjectId $groupObjectId
-                        if ($isInExceptGroup) {
-                            break
-                        }
-                    }
-                }
-            }
-
-            $temp = $Email.Host
-            $domainIncluded = $false
-            $domainExcluded = $false
-            while ($temp.IndexOf(".") -gt 0) {
-                if ($temp -in $rule.SenderDomainIs) {
-                    $domainIncluded = $true
-                }
-                if ($temp -in $rule.ExceptIfRecipientDomainIs) {
-                    $domainExcluded = $true
-                }
-                $temp = $temp.Substring($temp.IndexOf(".") + 1)
-            }
-
-            # Check for explicit inclusion in any user, group, or domain that are not empty, and they need to be included in at least 1 inclusion condition
-            # Then check for any exclusions as user, group, or domain. Nulls don't need to be accounted for in the exclusions
-            if ((($Email -in $rule.From -or (-not $rule.From)) -and
-            ($domainIncluded -or (-not $rule.SenderDomainIs)) -and
-            ($isInGroup -or (-not $rule.FromMemberOf))) -and
-            ($isInGroup -or $domainIncluded -or $Email -in $rule.From)) {
-                if (($Email -notin $rule.ExceptIfFrom) -and
-                    (-not $domainExcluded) -and
-                    (-not $isInExceptGroup)) {
-                    return $rule
                 }
             }
         }
@@ -351,7 +396,8 @@ begin {
             $Policy
         )
         Write-Host "`n`tProperties of the policy that are True, On, or not blank:"
-        $excludedProperties = 'Identity', 'Id', 'Name', 'ExchangeVersion', 'DistinguishedName', 'ObjectCategory', 'ObjectClass', 'WhenChanged', 'WhenCreated', 'WhenChangedUTC', 'WhenCreatedUTC', 'ExchangeObjectId', 'OrganizationalUnitRoot', 'OrganizationId', 'OriginatingServer', 'ObjectState'
+        $excludedProperties = 'Identity', 'Id', 'Name', 'ExchangeVersion', 'DistinguishedName', 'ObjectCategory', 'ObjectClass', 'WhenChanged', 'WhenCreated', `
+            'WhenChangedUTC', 'WhenCreatedUTC', 'ExchangeObjectId', 'OrganizationalUnitRoot', 'OrganizationId', 'OriginatingServer', 'ObjectState'
 
         $Policy.PSObject.Properties | ForEach-Object {
             if ($null -ne $_.Value -and $_.Value -ne '{}' -and $_.Value -ne 'Off' -and $_.Value -ne 'False' -and $_.Value -ne '' -and $excludedProperties -notcontains $_.Name) {
@@ -408,18 +454,28 @@ begin {
         return $validScope
     }
 
-    function Write-HostLog ($Message) {
-        if (-not [string]::IsNullOrEmpty($Message)) {
-            $Script:HostLogger = $Script:HostLogger | Write-LoggerInstance $Message
+    function Write-DebugLog ($message) {
+        if (![string]::IsNullOrEmpty($message)) {
+            $Script:DebugLogger = $Script:DebugLogger | Write-LoggerInstance $message
         }
     }
 
-    SetWriteHostAction ${Function:Write-HostLog}
+    function Write-HostLog ($message) {
+        if (![string]::IsNullOrEmpty($message)) {
+            $Script:HostLogger = $Script:HostLogger | Write-LoggerInstance $message
+        }
+        # all write-host should be logged in the debug log as well.
+        Write-DebugLog $message
+    }
 
     $LogFileName = "MDOThreatPolicyChecker"
     $StartDate = Get-Date
     $StartDateFormatted = ($StartDate).ToString("yyyyMMddhhmmss")
+    $Script:DebugLogger = Get-NewLoggerInstance -LogName "$LogFileName-Debug-$StartDateFormatted" -LogDirectory $PSScriptRoot -AppendDateTimeToFileName $false -ErrorAction SilentlyContinue
     $Script:HostLogger = Get-NewLoggerInstance -LogName "$LogFileName-Results-$StartDateFormatted" -LogDirectory $PSScriptRoot -AppendDateTimeToFileName $false -ErrorAction SilentlyContinue
+    SetWriteHostAction ${Function:Write-HostLog}
+    SetWriteVerboseAction ${Function:Write-DebugLog}
+    SetWriteWarningAction ${Function:Write-HostLog}
 
     $BuildVersion = ""
 
@@ -445,9 +501,9 @@ process {
         #Validate EXO PS Connection
         $exoConnection = $null
         try {
-            $exoConnection = Get-ConnectionInformation -ErrorAction SilentlyContinue
+            $exoConnection = Get-ConnectionInformation -ErrorAction Stop
         } catch {
-            Write-Host "Error checking EXO connection" -ForegroundColor Red
+            Write-Host "Error checking EXO connection: $_" -ForegroundColor Red
             Write-Host "Verify that you have ExchangeOnlineManagement module installed" -ForegroundColor Yellow
             Write-Host "You need a connection To Exchange Online, you can use:" -ForegroundColor Yellow
             Write-Host "Connect-ExchangeOnline" -ForegroundColor Yellow
@@ -476,9 +532,9 @@ process {
             $graphConnection = $null
             Write-Host " "
             try {
-                $graphConnection = Get-MgContext -ErrorAction SilentlyContinue
+                $graphConnection = Get-MgContext -ErrorAction Stop
             } catch {
-                Write-Host "Error checking Graph connection" -ForegroundColor Red
+                Write-Host "Error checking Graph connection: $_" -ForegroundColor Red
                 Write-Host "Verify that you have Microsoft.Graph.Users and Microsoft.Graph.Groups modules installed and loaded" -ForegroundColor Yellow
                 Write-Host "You could use:" -ForegroundColor Yellow
                 Write-Host "Connect-MgGraph -Scopes 'Group.Read.All','User.Read.All'" -ForegroundColor Yellow
@@ -561,7 +617,7 @@ process {
                 # If there are any issues, print the policy details once and then list all the issues
                 if ($issues.Count -gt 0) {
                     if ($policy.State -eq "Enabled") {
-                        $color = $null
+                        $color = [console]::ForegroundColor
                     } else {
                         $color = "Yellow"
                     }
@@ -598,7 +654,12 @@ process {
         }
 
         $acceptedDomains = $null
-        $acceptedDomains = Get-AcceptedDomain -ErrorAction SilentlyContinue
+        try {
+            $acceptedDomains = Get-AcceptedDomain -ErrorAction Stop
+        } catch {
+            Write-Host "Error getting Accepted Domains: $_" -ForegroundColor Red
+            exit
+        }
 
         if ($null -eq $acceptedDomains) {
             Write-Host "We do not get accepted domains." -ForegroundColor Red
@@ -608,17 +669,20 @@ process {
         if ($acceptedDomains.count -eq 0) {
             Write-Host "No accepted domains found." -ForegroundColor Red
             exit
+        } else {
+            $acceptedDomainList = New-Object System.Collections.Generic.List[string]
+            $acceptedDomains | ForEach-Object { $acceptedDomainList.Add($_.DomainName.ToString()) }
         }
 
         $foundError = $false
-        [MailAddress[]]$validEmailAddresses = $null
+        $validEmailAddresses = New-Object System.Collections.Generic.List[MailAddress]
         foreach ($emailAddress in $EmailAddresses) {
             $tempAddress = $null
-            $tempAddress = Test-EmailAddress -EmailAddress $emailAddress -AcceptedDomains $acceptedDomains
+            $tempAddress = Test-EmailAddress -EmailAddress $emailAddress -AcceptedDomains $acceptedDomainList
             if ($null -eq $tempAddress) {
                 $foundError = $true
             } else {
-                $validEmailAddresses += $tempAddress
+                $validEmailAddresses.Add($tempAddress)
             }
         }
         if ($foundError) {
@@ -671,7 +735,7 @@ process {
                     Write-Host $allPolicyDetails -ForegroundColor Green
                     $outboundSpamMatchedRule = $null
                     if ($hostedOutboundSpamFilterRules) {
-                        $outboundSpamMatchedRule = Test-RulesAlternative -Rules $hostedOutboundSpamFilterRules -email $emailAddress
+                        $outboundSpamMatchedRule = Test-Rules -Rules $hostedOutboundSpamFilterRules -email $emailAddress -Outbound
                         $allPolicyDetails = Get-Policy $outboundSpamMatchedRule "Outbound Spam"
                         Write-Host $allPolicyDetails -ForegroundColor Yellow
                     }
@@ -686,7 +750,7 @@ process {
                         Write-Host $allPolicyDetails -ForegroundColor Green
                         $outboundSpamMatchedRule = $null
                         if ($hostedOutboundSpamFilterRules) {
-                            $outboundSpamMatchedRule = Test-RulesAlternative -Rules $hostedOutboundSpamFilterRules -Email $emailAddress
+                            $outboundSpamMatchedRule = Test-Rules -Rules $hostedOutboundSpamFilterRules -Email $emailAddress -Outbound
                             $allPolicyDetails = Get-Policy $outboundSpamMatchedRule "Outbound Spam"
                             Write-Host $allPolicyDetails -ForegroundColor Yellow
                         }
@@ -698,7 +762,7 @@ process {
                             $malwareMatchedRule = Test-Rules -Rules $malwareFilterRules -Email $emailAddress
                             Write-Host (Get-Policy $malwareMatchedRule "Malware") -ForegroundColor Yellow
                             if ($malwareMatchedRule -and $ShowDetailedPolicies) {
-                                Show-DetailedPolicy -Policy (Get-MalwareFilterPolicy $malwareMatchedRule.Identity)
+                                Show-DetailedPolicy -Policy $malwareMatchedRule
                             }
                         }
                         $antiPhishMatchedRule = $null
@@ -706,7 +770,7 @@ process {
                             $antiPhishMatchedRule = Test-Rules -Rules $antiPhishRules -Email $emailAddress
                             Write-Host (Get-Policy $antiPhishMatchedRule "Anti-phish") -ForegroundColor Yellow
                             if ($antiPhishMatchedRule -and $ShowDetailedPolicies) {
-                                Show-DetailedPolicy -Policy (Get-AntiPhishPolicy $antiPhishMatchedRule.Identity)
+                                Show-DetailedPolicy -Policy $antiPhishMatchedRule
                             }
                         }
                         $spamMatchedRule = $null
@@ -714,15 +778,15 @@ process {
                             $spamMatchedRule = Test-Rules -Rules $hostedContentFilterRules -Email $emailAddress
                             Write-Host (Get-Policy $spamMatchedRule "Anti-spam") -ForegroundColor Yellow
                             if ($spamMatchedRule -and $ShowDetailedPolicies) {
-                                Show-DetailedPolicy -Policy (Get-HostedContentFilterPolicy $spamMatchedRule.Identity)
+                                Show-DetailedPolicy -Policy $spamMatchedRule
                             }
                         }
                         $outboundSpamMatchedRule = $null
                         if ($hostedOutboundSpamFilterRules) {
-                            $outboundSpamMatchedRule = Test-RulesAlternative -Rules $hostedOutboundSpamFilterRules -Email $emailAddress
+                            $outboundSpamMatchedRule = Test-Rules -Rules $hostedOutboundSpamFilterRules -Email $emailAddress -Outbound
                             Write-Host (Get-Policy $outboundSpamMatchedRule "Outbound Spam") -ForegroundColor Yellow
                             if ($outboundSpamMatchedRule -and $ShowDetailedPolicies) {
-                                Show-DetailedPolicy -Policy (Get-HostedOutboundSpamFilterPolicy $outboundSpamMatchedRule.Identity)
+                                Show-DetailedPolicy -Policy $outboundSpamMatchedRule
                             }
                         }
                         $allPolicyDetails = $userDetails + "`n" + $allPolicyDetails
@@ -785,7 +849,7 @@ process {
                             $policy = Get-SafeAttachmentPolicy -Identity $SAmatchedRule.Name
                             Write-Host "`nSafe Attachments:`n`tName: $($SAmatchedRule.Name)`n`tPriority: $($SAmatchedRule.Priority)"  -ForegroundColor Yellow
                             if ($SAmatchedRule -and $ShowDetailedPolicies) {
-                                Show-DetailedPolicy -Policy (Get-SafeAttachmentPolicy $SAmatchedRule.Identity)
+                                Show-DetailedPolicy -Policy $policy
                             }
                         }
 
@@ -818,7 +882,7 @@ process {
                             $policy = Get-SafeLinksPolicy -Identity $SLmatchedRule.Name
                             Write-Host "`nSafe Links:`n`tName: $($SLmatchedRule.Name)`n`tPriority: $($SLmatchedRule.Priority)" -ForegroundColor Yellow
                             if ($SLmatchedRule -and $ShowDetailedPolicies) {
-                                Show-DetailedPolicy -Policy (Get-SafeLinksPolicy $SLmatchedRule.Identity)
+                                Show-DetailedPolicy -Policy $policy
                             }
                         }
                     }
