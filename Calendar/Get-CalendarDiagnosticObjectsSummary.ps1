@@ -60,7 +60,7 @@ param (
 # ===================================================================================================
 $BuildVersion = ""
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
-if (Test-ScriptVersion -AutoUpdate -Confirm:$false) {
+if (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/CL-VersionsUrl" -Confirm:$false) {
     # Update was downloaded, so stop here.
     Write-Host "Script was updated. Please rerun the command." -ForegroundColor Yellow
     return
@@ -118,6 +118,10 @@ if (-not ([string]::IsNullOrEmpty($Subject)) ) {
                 Write-Host -ForegroundColor Cyan "The user [$ID] is a Room Mailbox."
             }
 
+            if (CheckForBifurcation($script:GCDO) -ne false) {
+                Write-Host -ForegroundColor Red "Warning: No IPM.Appointment found. CalLogs start to expire after 31 days."
+            }
+
             if ($Exceptions.IsPresent) {
                 Write-Verbose "Looking for Exception Logs..."
                 $IsRecurring = SetIsRecurring -CalLogs $script:GCDO
@@ -148,7 +152,7 @@ if (-not ([string]::IsNullOrEmpty($Subject)) ) {
                     $ExceptionLogs = $ExceptionLogs | Where-Object { $_.ItemClass -notlike "IPM.Appointment*" }
                     Write-Host -ForegroundColor Cyan "Found $($ExceptionLogs.count) Exception Logs, adding them into the CalLogs."
 
-                    $script:GCDO = $script:GCDO + $ExceptionLogs | Select-Object *, @{n='OrgTime'; e= { [DateTime]::Parse($_.OriginalLastModifiedTime.ToString()) } } | Sort-Object OrgTime
+                    $script:GCDO = $script:GCDO + $ExceptionLogs | Select-Object *, @{n='OrgTime'; e= { [DateTime]::Parse($_.LogTimestamp.ToString()) } } | Sort-Object OrgTime
                     $LogToExamine = $null
                     $ExceptionLogs = $null
                 } else {
@@ -169,3 +173,10 @@ if (-not ([string]::IsNullOrEmpty($Subject)) ) {
 Write-DashLineBoxColor "Hope this script was helpful in getting and understanding the Calendar Logs.",
 "If you have issues or suggestion for this script, please send them to: ",
 "`t CalLogFormatterDevs@microsoft.com" -Color Yellow -DashChar =
+
+if ($ExportToExcel.IsPresent) {
+    Write-Host
+    Write-Host -ForegroundColor Blue -NoNewline "All Calendar Logs are saved to: "
+    Write-Host -ForegroundColor Yellow ".\$Filename"
+    Write-Host
+}

@@ -44,105 +44,116 @@ $ShortClientNameProcessor = @{
 
 <#
 .SYNOPSIS
-Creates friendly / short client names from the ClientInfoString
+Creates friendly / short client names from the LogClientInfoString
 #>
 function CreateShortClientName {
     param(
-        $ClientInfoString
+        $LogClientInfoString
     )
     $ShortClientName= ""
 
-    # Map ClientInfoString to ShortClientName
-    if ([string]::IsNullOrEmpty($ClientInfoString)) {
+    # Map LogClientInfoString to ShortClientName
+    if ([string]::IsNullOrEmpty($LogClientInfoString)) {
         $ShortClientName = "NotFound"
         return $ShortClientName
     }
 
-    if ($ClientInfoString -like "Client=EBA*" -or $ClientInfoString -like "Client=TBA*") {
-        if ($ClientInfoString -like "*ResourceBookingAssistant*") {
+    if ($LogClientInfoString -like "Client=EBA*" -or $LogClientInfoString -like "Client=TBA*") {
+        if ($LogClientInfoString -like "*ResourceBookingAssistant*") {
             $ShortClientName = "ResourceBookingAssistant"
-        } elseif ($ClientInfoString -like "*CalendarRepairAssistant*") {
+        } elseif ($LogClientInfoString -like "*CalendarRepairAssistant*") {
             $ShortClientName = "CalendarRepairAssistant"
-        } elseif ($ClientInfoString -like "*SharingSyncAssistant*") {
+        } elseif ($LogClientInfoString -like "*SharingSyncAssistant*") {
             $ShortClientName = "CalendarSyncAssistant"
         } else {
-            if ($ClientInfoString -like "*EBA*") {
+            if ($LogClientInfoString -like "*EBA*") {
                 $ShortClientName = "Other EBA"
             } else {
                 $ShortClientName = "Other TBA"
             }
         }
-    } elseif ($ClientInfoString -like "Client=ActiveSync*") {
-        if ($ClientInfoString -match 'UserAgent=(\w*-\w*)') {
-            $ShortClientName = ($ClientInfoString -split "UserAgent=")[-1].Split("/")[0]
-        } elseif ($ClientInfoString -like "*Outlook-iOS-Android*") {
+    } elseif ($LogClientInfoString -like "Client=ActiveSync*") {
+        if ($LogClientInfoString -match 'UserAgent=(\w*-\w*)') {
+            $ShortClientName = ($LogClientInfoString -split "UserAgent=")[-1].Split("/")[0]
+        } elseif ($LogClientInfoString -like "*Outlook-iOS-Android*") {
             $ShortClientName = "OutlookMobile"
         } else {
             $ShortClientName = "ActiveSyncUnknown"
         }
-    } elseif ($ClientInfoString -like "Client=Rest*") {
-        if ($ClientInfoString -like "*LocationAssistantProcessor*") {
+    } elseif ($LogClientInfoString -like "Client=Rest*") {
+        if ($LogClientInfoString -like "*LocationAssistantProcessor*") {
             $ShortClientName = "LocationProcessor"
-        } elseif ($ClientInfoString -like "*AppId=6326e366-9d6d-4c70-b22a-34c7ea72d73d*") {
+        } elseif ($LogClientInfoString -like "*AppId=6326e366-9d6d-4c70-b22a-34c7ea72d73d*") {
             $ShortClientName = "CalendarReplication"
-        } elseif ($ClientInfoString -like "*AppId=1e3faf23-d2d2-456a-9e3e-55db63b869b0*") {
+        } elseif ($LogClientInfoString -like "*AppId=1e3faf23-d2d2-456a-9e3e-55db63b869b0*") {
             $ShortClientName = "CiscoWebex"
-        } elseif ($ClientInfoString -like "*AppId=1c3a76cc-470a-46d7-8ba9-713cfbb2c01f*") {
+        } elseif ($LogClientInfoString -like "*AppId=1c3a76cc-470a-46d7-8ba9-713cfbb2c01f*") {
             $ShortClientName = "TimeService"
-        } elseif ($ClientInfoString -like "*AppId=48af08dc-f6d2-435f-b2a7-069abd99c086*") {
+        } elseif ($LogClientInfoString -like "*AppId=48af08dc-f6d2-435f-b2a7-069abd99c086*") {
             $ShortClientName = "RestConnector"
-        } elseif ($ClientInfoString -like "*Client=OutlookService;Outlook-Android*") {
+        } elseif ($LogClientInfoString -like "*Client=OutlookService;Outlook-Android*") {
             $ShortClientName = "OutlookAndroid"
-        } elseif ($ClientInfoString -like "*GriffinRestClient*") {
+        } elseif ($LogClientInfoString -like "*GriffinRestClient*") {
             $ShortClientName = "GriffinRestClient"
-        } elseif ($ClientInfoString -like "*MacOutlook*") {
+        } elseif ($LogClientInfoString -like "*MacOutlook*") {
             $ShortClientName = "MacOutlookRest"
-        } elseif ($ClientInfoString -like "*Microsoft Outlook 16*") {
+        } elseif ($LogClientInfoString -like "*Microsoft Outlook 16*") {
             $ShortClientName = "Outlook-ModernCalendarSharing"
-        } elseif ($ClientInfoString -like "*SkypeSpaces*") {
+        } elseif ($LogClientInfoString -like "*SkypeSpaces*") {
             $ShortClientName = "Teams"
-        } elseif ($ClientInfoString -like "*AppId=7b7fdad6-df9d-4cd5-a4f2-b5f749350419*") {
+        } elseif ($LogClientInfoString -like "*AppId=7b7fdad6-df9d-4cd5-a4f2-b5f749350419*") {
             $ShortClientName = "Bookings B2 Service"
-        } elseif ($ClientInfoString -like "*bcad1a65-78eb-4725-9bce-ce1a8ed30b95*" -or
-            $ClientInfoString -like "*43375d74-c6a5-4d4e-a0a3-de139860ea75*" -or
-            $ClientInfoString -like "*af9fc99a-5ae5-46e1-bbd7-fa25088e16c9*") {
+        } elseif ($LogClientInfoString -like "*bcad1a65-78eb-4725-9bce-ce1a8ed30b95*" -or
+            $LogClientInfoString -like "*43375d74-c6a5-4d4e-a0a3-de139860ea75*" -or
+            $LogClientInfoString -like "*af9fc99a-5ae5-46e1-bbd7-fa25088e16c9*") {
             $ShortClientName = "ELC-B2"
-        } elseif ($ClientInfoString -like "*NoUserAgent*") {
+        } elseif ($LogClientInfoString -like "*Outlook-iOS*") {
+            $ShortClientName = "OutlookiOS"
+        } elseif ($LogClientInfoString -like "*Outlook-Android*") {
+            $ShortClientName = "OutlookAndroid"
+        } elseif ($LogClientInfoString -like "*NoUserAgent*") {
             $ShortClientName = "RestUnknown"
         } else {
             $ShortClientName = "[Unknown Rest Client]"
         }
         #    Client=WebServices;Mozilla/5.0 (ZoomPresence.Android 8.1.0 x86);
     } elseif ($ShortClientName -eq "") {
-        $ShortClientName = findMatch -KeyInput $ClientInfoString
+        $ShortClientName = findMatch -KeyInput $LogClientInfoString
     }
 
-    if ($ShortClientName -eq "" -And $ClientInfoString -like "Client=WebServices*") {
-        if ($ClientInfoString -like "*ZoomPresence*") {
+    # if ($ShortClientName -eq "" -And $LogClientInfoString -like "Client=WebServices*") {
+    if ($LogClientInfoString -like "Client=WebServices*") {
+        if ($LogClientInfoString -like "*ZoomPresence*") {
             $ShortClientName = "ZoomPresence"
+        } elseif ($LogClientInfoString -like "*MacOutlook*") {
+            $ShortClientName = "Outlook : Mac : EWS"
+        } elseif ($LogClientInfoString -like "*Outlook*") {
+            $ShortClientName = "Outlook : Desktop"
+        } elseif ($LogClientInfoString -like "*Ninja*") {
+            $ShortClientName = "Teams"
         } else {
             $ShortClientName = "Unknown EWS App"
         }
     }
 
-    if ($ClientInfoString -like "*InternalCalendarSharing*" ) {
-        if ($ClientInfoString -like "*OWA*" -and
-            $ClientInfoString -notlike "*OneOutlook*") {
+    if ($LogClientInfoString -like "*InternalCalendarSharing*" ) {
+        if ($LogClientInfoString -like "*OWA*" -and
+            $LogClientInfoString -notlike "*OneOutlook*") {
             $ShortClientName = "OWA : REST"
-        } elseif ($ClientInfoString -like "*Outlook*" -and
-            $ClientInfoString -notlike "*OneOutlook*" -and
-            $ClientInfoString -notlike "*Outlook-Android*" -and
-            $ClientInfoString -notlike "*Outlook-iOS*") {
+        } elseif ($LogClientInfoString -like "*Outlook*" -and
+            $LogClientInfoString -notlike "*OneOutlook*" -and
+            $LogClientInfoString -notlike "*Outlook-Android*" -and
+            $LogClientInfoString -notlike "*Outlook-iOS*") {
             $ShortClientName = "Outlook : Desktop : REST"
-        } elseif ($ClientInfoString -like "*OneOutlook*") {
+        } elseif ($LogClientInfoString -like "*OneOutlook*") {
             $ShortClientName = "OneOutlook"
         }
     }
 
-    if ($ClientInfoString -like "Client=ActiveSync*" -and $ClientInfoString -like "*Outlook*") {
+    if ($LogClientInfoString -like "Client=ActiveSync*" -and $LogClientInfoString -like "*Outlook*") {
         $ShortClientName = "Outlook : ActiveSync"
     }
-    if ($ClientInfoString -like "*OneOutlook*") {
+    if ($LogClientInfoString -like "*OneOutlook*") {
         $ShortClientName = "OneOutlook"
     }
     if ($ShortClientName -eq "") {

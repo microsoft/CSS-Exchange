@@ -67,7 +67,7 @@ function BuildTimeline {
     FindOrganizer($script:FirstLog)
 
     # Ignorable and items from Shared Calendars are not included in the TimeLine.
-    [array]$InterestingCalLogs = $script:EnhancedCalLogs | Where-Object { $_.IsIgnorable -eq "False" -and $_.IsFromSharedCalendar -eq $False }
+    [array]$InterestingCalLogs = $script:EnhancedCalLogs | Where-Object { $_.LogType -eq "Core" -and $_.IsFromSharedCalendar -eq $False }
 
     if ($InterestingCalLogs.count -eq 0) {
         Write-Host "All CalLogs are Ignorable, nothing to create a timeline with, displaying initial values."
@@ -93,7 +93,7 @@ function BuildTimeline {
 
         $MeetingChanges = CreateTimelineRow
         # Create the Timeline by adding to Time to the generated MeetingChanges
-        $Time = "$($CalLog.LogRow) -- $($CalLog.LastModifiedTime)"
+        $Time = "$($($CalLog.LogRow).toString().PadRight(5)) -- $(ConvertDateTime($CalLog.LogTimestamp))"
 
         if ($MeetingChanges) {
             if ($script:MeetingSummaryNeeded) {
@@ -108,7 +108,7 @@ function BuildTimeline {
         }
 
         # Setup Previous log (if current logs is an IPM.Appointment)
-        if ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -or $CalendarItemTypes.($CalLog.ItemClass) -eq "ExceptionMsgClass") {
+        if ($CalendarItemTypes.($CalLog.ItemClass) -eq "Ipm.Appointment" -or $CalendarItemTypes.($CalLog.ItemClass) -eq "Exception") {
             $script:PreviousCalLog = $CalLog
         }
     }
