@@ -50,7 +50,7 @@ Describe "CreateShortClientName" {
 
         It "Should return the concatenated client, action, and data if ClientInfoString does not contain 'ResourceBookingAssistant' or 'CalendarRepairAssistant'" {
             $result = CreateShortClientName "Client=EBA;Action=Delete;Data=789"
-            $result | Should -Be "EBA:Delete;Data=789"
+            $result | Should -Be "Other EBA"
         }
     }
 
@@ -171,6 +171,7 @@ Describe "CreateShortClientName-FindMatch" {
         @{ ClientInfoString = 'MacOutlook'; Expected = "MacOutlookRest" },
         @{ ClientInfoString = 'Outlook-iOS-Android'; Expected = "OutlookMobile" },
         @{ ClientInfoString = 'Client=OutlookService;Outlook-Android'; Expected = "OutlookAndroid" },
+        @{ ClientInfoString = 'Client=REST;;;Client=REST;InternalCalendarSharing (Client=OutlookService;Outlook-Android/2.0;)[AppId=1c06531d-b56d-4cfb-8ad0-53c87d70093e];'; Expected = "OutlookAndroid" },
         @{ ClientInfoString = 'Client=OutlookService;Outlook-iOS'; Expected = "OutlookiOS" }
 
     ) {

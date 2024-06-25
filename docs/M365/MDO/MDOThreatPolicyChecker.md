@@ -54,13 +54,13 @@ To provide a CSV input file with email addresses and see only EOP policies, run 
 &nbsp;&nbsp;&nbsp;&nbsp;`.\MDOThreatPolicyChecker.ps1 -CsvFilePath [Path\filename.csv]`
 
 To provide multiple email addresses by command line and see only EOP policies, run the following:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;`.\MDOThreatPolicyChecker.ps1 -EmailAddresses user1@domainX.com,user2@domainY.com`
+&nbsp;&nbsp;&nbsp;&nbsp;`.\MDOThreatPolicyChecker.ps1 -EmailAddresses user1@contoso.com,user2@fabrikam.com`
 
 To provide a CSV input file with email addresses and see both EOP and MDO policies, run the following:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;`.\MDOThreatPolicyChecker.ps1 -CsvFilePath [Path\filename.csv] -IncludeMDOPolicies`
 
 To provide an email address and see only MDO (Safe Attachment and Safe Links) policies, run the following:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;`.\MDOThreatPolicyChecker.ps1 -EmailAddresses user1@domainX.com -OnlyMDOPolicies`
+&nbsp;&nbsp;&nbsp;&nbsp;`.\MDOThreatPolicyChecker.ps1 -EmailAddresses user1@contoso.com -OnlyMDOPolicies`
 
 To see the details of the policies applied to mailbox in a CSV file for both EOP and MDO, run the following:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;`.\MDOThreatPolicyChecker.ps1 -CsvFilePath [Path\filename.csv] -IncludeMDOPolicies -ShowDetailedPolicies`
