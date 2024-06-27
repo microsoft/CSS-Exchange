@@ -51,6 +51,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-IISModules { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetIISModulesNoTokenCacheModule.xml" }
             Mock Get-ADPrincipalGroupMembership { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetADPrincipalGroupMembership2.xml" }
             Mock Get-LocalGroupMember { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetLocalGroupMember2.xml" }
+            Mock Get-WindowsFeature { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetWindowsFeature1.xml" }
             Mock Get-Service {
                 param(
                     [string]$ComputerName,
@@ -87,6 +88,10 @@ Describe "Testing Health Checker by Mock Data Imports" {
             $httpProxy.ByPassList | Should -Be "localhost;*.contoso.com;*microsoft.com"
             $httpProxy.HttpProxyDifference | Should -Be "False"
             $httpProxy.HttpByPassDifference | Should -Be "False"
+        }
+
+        It "Message Queuing Feature" {
+            TestObjectMatch "Messaging Queuing Feature" $true -WriteType "Yellow"
         }
 
         It "TCP Keep Alive Time" {

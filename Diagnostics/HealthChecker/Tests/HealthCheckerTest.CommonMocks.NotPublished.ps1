@@ -339,3 +339,7 @@ function Get-ExchangeProtocolContainer {
 function Get-ExchangeWebSitesFromAd {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeWebSitesFromAd.xml"
 }
+
+function Get-WindowsFeature {
+    return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetWindowsFeature.xml"
+}

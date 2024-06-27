@@ -59,6 +59,13 @@ function Get-OperatingSystemInformation {
             $credentialGuardCimInstance = "Unknown"
         }
 
+        try {
+            $windowsFeature = Get-WindowsFeature -ComputerName $Server -ErrorAction Stop
+        } catch {
+            Write-Verbose "Failed to run Get-WindowsFeature for the server $server. Inner Exception: $_"
+            Invoke-CatchActions
+        }
+
         $serverPendingReboot = (Get-ServerRebootPending -ServerName $Server -CatchActionFunction ${Function:Invoke-CatchActions})
         $timeZoneInformation = Get-TimeZoneInformation -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
         $tlsSettings = Get-AllTlsSettings -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
@@ -83,6 +90,7 @@ function Get-OperatingSystemInformation {
             HotFixes                   = $hotFixes
             NETFramework               = $netFrameworkInformation
             CredentialGuardCimInstance = $credentialGuardCimInstance
+            WindowsFeature             = $windowsFeature
         }
     }
 }
