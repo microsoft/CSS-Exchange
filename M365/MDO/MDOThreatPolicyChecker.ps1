@@ -14,17 +14,21 @@ Evaluates user coverage and potential redundancies in Microsoft Defender for Off
 This script checks which Microsoft Defender for Office 365 and Exchange Online Protection threat policies cover a particular user, including anti-malware, anti-phishing, inbound and outbound anti-spam, as well as Safe Attachments and Safe Links policies in case these are licensed for your tenant. In addition, the script can check for threat policies that have inclusion and/or exclusion settings that may be redundant or confusing and lead to missed coverage of users or coverage by an unexpected threat policy.
 
 .PARAMETER CsvFilePath
-  Allows you to specify a CSV file with a list of email addresses to check.
-.PARAMETER EmailAddresses
-  Allows you to specify email address or multiple addresses separated by commas.
+    Allows you to specify a CSV file with a list of email addresses to check.
+.PARAMETER EmailAddress
+    Allows you to specify email address or multiple addresses separated by commas.
 .PARAMETER IncludeMDOPolicies
-  Checks both EOP and MDO (Safe Attachment and Safe Links) policies for user(s) specified in the CSV file or EmailAddresses parameter.
+    Checks both EOP and MDO (Safe Attachment and Safe Links) policies for user(s) specified in the CSV file or EmailAddress parameter.
 .PARAMETER OnlyMDOPolicies
-  Checks only MDO (Safe Attachment and Safe Links) policies for user(s) specified in the CSV file or EmailAddresses parameter.
+    Checks only MDO (Safe Attachment and Safe Links) policies for user(s) specified in the CSV file or EmailAddress parameter.
+.PARAMETER ShowDetailedPolicies
+    In addition to the policy applied, show any policy details that are set to True, On, or not blank.
 .PARAMETER SkipConnectionCheck
-  Skips connection check for Graph and Exchange Online.
+    Skips connection check for Graph and Exchange Online.
+.PARAMETER SkipVersionCheck
+    Skips the version check of the script.
 .PARAMETER ScriptUpdateOnly
-  Just updates script version to latest one.
+    Just updates script version to latest one.
 
 .EXAMPLE
 	.\MDOThreatPolicyChecker.ps1
@@ -35,7 +39,7 @@ This script checks which Microsoft Defender for Office 365 and Exchange Online P
 	To provide a CSV input file with email addresses and see only EOP policies.
 
 .EXAMPLE
-	.\MDOThreatPolicyChecker.ps1 -EmailAddresses user1@contoso.com,user2@fabrikam.com
+	.\MDOThreatPolicyChecker.ps1 -EmailAddress user1@contoso.com,user2@fabrikam.com
 	To provide multiple email addresses by command line and see only EOP policies.
 
 .EXAMPLE
@@ -43,7 +47,7 @@ This script checks which Microsoft Defender for Office 365 and Exchange Online P
 	To provide a CSV input file with email addresses and see both EOP and MDO policies.
 
 .EXAMPLE
-	.\MDOThreatPolicyChecker.ps1 -EmailAddresses user1@contoso.com -OnlyMDOPolicies
+	.\MDOThreatPolicyChecker.ps1 -EmailAddress user1@contoso.com -OnlyMDOPolicies
 	To provide an email address and see only MDO (Safe Attachment and Safe Links) policies.
 #>
 
@@ -56,7 +60,7 @@ param(
 
     [Parameter(ValueFromPipeline = $true, Mandatory = $true, ParameterSetName = 'AppliedEmail')]
     [Parameter(ValueFromPipeline = $true, Mandatory = $true, ParameterSetName = 'AppliedMDOEmail')]
-    [string[]]$EmailAddresses,
+    [string[]]$EmailAddress,
 
     [Parameter(Mandatory = $false, ParameterSetName = 'AppliedCsv')]
     [Parameter(Mandatory = $false, ParameterSetName = 'AppliedEmail')]
@@ -241,7 +245,7 @@ begin {
             $recipient = Get-EXORecipient $EmailAddress -ErrorAction Stop
         } catch {
             Write-Host "Error getting recipient $EmailAddress`: $_" -ForegroundColor Red
-            exit
+            return $null
         }
 
         if ($null -eq $recipient) {
@@ -468,6 +472,9 @@ begin {
         Write-DebugLog $message
     }
 
+    Import-Module Microsoft.Graph.Authentication
+    Import-Module ExchangeOnlineManagement
+
     $LogFileName = "MDOThreatPolicyChecker"
     $StartDate = Get-Date
     $StartDateFormatted = ($StartDate).ToString("yyyyMMddhhmmss")
@@ -642,7 +649,7 @@ process {
                 $csvFile = Import-Csv -Path $CsvFilePath
                 # checking 'email' header
                 if ($csvFile[0].PSObject.Properties.Name -contains 'Email') {
-                    $EmailAddresses = $csvFile | Select-Object -ExpandProperty Email
+                    $EmailAddress = $csvFile | Select-Object -ExpandProperty Email
                 } else {
                     Write-Host "CSV does not contain 'Email' header." -ForegroundColor Red
                     exit
@@ -675,14 +682,14 @@ process {
         }
 
         $foundError = $false
-        $validEmailAddresses = New-Object System.Collections.Generic.List[MailAddress]
-        foreach ($emailAddress in $EmailAddresses) {
+        $validEmailAddress = New-Object System.Collections.Generic.List[MailAddress]
+        foreach ($email in $EmailAddress) {
             $tempAddress = $null
-            $tempAddress = Test-EmailAddress -EmailAddress $emailAddress -AcceptedDomains $acceptedDomainList
+            $tempAddress = Test-EmailAddress -EmailAddress $email -AcceptedDomains $acceptedDomainList
             if ($null -eq $tempAddress) {
                 $foundError = $true
             } else {
-                $validEmailAddresses.Add($tempAddress)
+                $validEmailAddress.Add($tempAddress)
             }
         }
         if ($foundError) {
@@ -718,24 +725,24 @@ process {
             $mdoStandardPresetRules = Get-ATPProtectionPolicyRule -Identity 'Standard Preset Security Policy' | Where-Object { $_.State -ne 'Disabled' }
         }
 
-        foreach ($email in $validEmailAddresses) {
-            $emailAddress = $email.ToString()
+        foreach ($email in $validEmailAddress) {
+            $stEmailAddress = $email.ToString()
             # Initialize a variable to capture all policy details
             $allPolicyDetails = ""
-            Write-Host "`n`nPolicies applied to $emailAddress..."
+            Write-Host "`n`nPolicies applied to $stEmailAddress..."
 
             if ( -not $OnlyMDOPolicies) {
                 # Check the Strict EOP rules first as they have higher precedence
                 $matchedRule = $null
                 if ($eopStrictPresetRules) {
-                    $matchedRule = Test-Rules -Rules $eopStrictPresetRules -email $emailAddress
+                    $matchedRule = Test-Rules -Rules $eopStrictPresetRules -email $stEmailAddress
                 }
                 if ($eopStrictPresetRules -contains $matchedRule) {
                     $allPolicyDetails += "`nFor malware, spam, and phishing:`n`tName: {0}`n`tPriority: {1}`n`tThe policy actions are not configurable." -f $matchedRule.Name, $matchedRule.Priority
                     Write-Host $allPolicyDetails -ForegroundColor Green
                     $outboundSpamMatchedRule = $null
                     if ($hostedOutboundSpamFilterRules) {
-                        $outboundSpamMatchedRule = Test-Rules -Rules $hostedOutboundSpamFilterRules -email $emailAddress -Outbound
+                        $outboundSpamMatchedRule = Test-Rules -Rules $hostedOutboundSpamFilterRules -email $stEmailAddress -Outbound
                         $allPolicyDetails = Get-Policy $outboundSpamMatchedRule "Outbound Spam"
                         Write-Host $allPolicyDetails -ForegroundColor Yellow
                     }
@@ -743,14 +750,14 @@ process {
                     # Check the Standard EOP rules secondly
                     $matchedRule = $null
                     if ($eopStandardPresetRules) {
-                        $matchedRule = Test-Rules -Rules $eopStandardPresetRules -email $emailAddress
+                        $matchedRule = Test-Rules -Rules $eopStandardPresetRules -email $stEmailAddress
                     }
                     if ($eopStandardPresetRules -contains $matchedRule) {
                         $allPolicyDetails += "`nFor malware, spam, and phishing:`n`tName: {0}`n`tPriority: {1}`n`tThe policy actions are not configurable." -f $matchedRule.Name, $matchedRule.Priority
                         Write-Host $allPolicyDetails -ForegroundColor Green
                         $outboundSpamMatchedRule = $null
                         if ($hostedOutboundSpamFilterRules) {
-                            $outboundSpamMatchedRule = Test-Rules -Rules $hostedOutboundSpamFilterRules -Email $emailAddress -Outbound
+                            $outboundSpamMatchedRule = Test-Rules -Rules $hostedOutboundSpamFilterRules -Email $stEmailAddress -Outbound
                             $allPolicyDetails = Get-Policy $outboundSpamMatchedRule "Outbound Spam"
                             Write-Host $allPolicyDetails -ForegroundColor Yellow
                         }
@@ -759,7 +766,7 @@ process {
                         $allPolicyDetails = " "
                         $malwareMatchedRule = $null
                         if ($malwareFilterRules) {
-                            $malwareMatchedRule = Test-Rules -Rules $malwareFilterRules -Email $emailAddress
+                            $malwareMatchedRule = Test-Rules -Rules $malwareFilterRules -Email $stEmailAddress
                             Write-Host (Get-Policy $malwareMatchedRule "Malware") -ForegroundColor Yellow
                             if ($malwareMatchedRule -and $ShowDetailedPolicies) {
                                 Show-DetailedPolicy -Policy $malwareMatchedRule
@@ -767,7 +774,7 @@ process {
                         }
                         $antiPhishMatchedRule = $null
                         if ($antiPhishRules) {
-                            $antiPhishMatchedRule = Test-Rules -Rules $antiPhishRules -Email $emailAddress
+                            $antiPhishMatchedRule = Test-Rules -Rules $antiPhishRules -Email $stEmailAddress
                             Write-Host (Get-Policy $antiPhishMatchedRule "Anti-phish") -ForegroundColor Yellow
                             if ($antiPhishMatchedRule -and $ShowDetailedPolicies) {
                                 Show-DetailedPolicy -Policy $antiPhishMatchedRule
@@ -775,7 +782,7 @@ process {
                         }
                         $spamMatchedRule = $null
                         if ($hostedContentFilterRules) {
-                            $spamMatchedRule = Test-Rules -Rules $hostedContentFilterRules -Email $emailAddress
+                            $spamMatchedRule = Test-Rules -Rules $hostedContentFilterRules -Email $stEmailAddress
                             Write-Host (Get-Policy $spamMatchedRule "Anti-spam") -ForegroundColor Yellow
                             if ($spamMatchedRule -and $ShowDetailedPolicies) {
                                 Show-DetailedPolicy -Policy $spamMatchedRule
@@ -783,7 +790,7 @@ process {
                         }
                         $outboundSpamMatchedRule = $null
                         if ($hostedOutboundSpamFilterRules) {
-                            $outboundSpamMatchedRule = Test-Rules -Rules $hostedOutboundSpamFilterRules -Email $emailAddress -Outbound
+                            $outboundSpamMatchedRule = Test-Rules -Rules $hostedOutboundSpamFilterRules -Email $stEmailAddress -Outbound
                             Write-Host (Get-Policy $outboundSpamMatchedRule "Outbound Spam") -ForegroundColor Yellow
                             if ($outboundSpamMatchedRule -and $ShowDetailedPolicies) {
                                 Show-DetailedPolicy -Policy $outboundSpamMatchedRule
@@ -801,7 +808,7 @@ process {
 
                 # Check the MDO Strict Preset rules first as they have higher precedence
                 if ($mdoStrictPresetRules) {
-                    $matchedRule = Test-Rules -Rules $mdoStrictPresetRules -Email $emailAddress
+                    $matchedRule = Test-Rules -Rules $mdoStrictPresetRules -Email $stEmailAddress
                 }
                 if ($mdoStrictPresetRules -contains $matchedRule) {
                     Write-Host ("`nFor both Safe Attachments and Safe Links:`n`tName: {0}`n`tPriority: {1}" -f $matchedRule.Name, $matchedRule.Priority) -ForegroundColor Green
@@ -809,7 +816,7 @@ process {
                     # Check the Standard MDO rules secondly
                     $matchedRule = $null
                     if ($mdoStandardPresetRules) {
-                        $matchedRule = Test-Rules -Rules $mdoStandardPresetRules -Email $emailAddress
+                        $matchedRule = Test-Rules -Rules $mdoStandardPresetRules -Email $stEmailAddress
                     }
                     if ($mdoStandardPresetRules -contains $matchedRule) {
                         Write-Host ("`nFor both Safe Attachments and Safe Links:`n`tName: {0}`n`tPriority: {1}" -f $matchedRule.Name, $matchedRule.Priority) -ForegroundColor Green
@@ -817,11 +824,11 @@ process {
                         # No match in preset ATPProtectionPolicyRules, check custom SA/SL rules
                         $SAmatchedRule = $null
                         if ($safeAttachmentRules) {
-                            $SAmatchedRule = Test-Rules -Rules $safeAttachmentRules -Email $emailAddress
+                            $SAmatchedRule = Test-Rules -Rules $safeAttachmentRules -Email $stEmailAddress
                         }
                         $SLmatchedRule = $null
                         if ($safeLinksRules) {
-                            $SLmatchedRule = Test-Rules -Rules $safeLinksRules -Email $emailAddress
+                            $SLmatchedRule = Test-Rules -Rules $safeLinksRules -Email $stEmailAddress
                         }
                         if ($null -eq $SAmatchedRule) {
                             # Get the Built-in Protection Rule
@@ -831,13 +838,13 @@ process {
                             # Check if the user is a member of any group in ExceptIfSentToMemberOf
                             foreach ($groupEmail in $builtInProtectionRule.ExceptIfSentToMemberOf) {
                                 $groupObjectId = Get-GroupObjectId -GroupEmail $groupEmail
-                                if ((-not [string]::IsNullOrEmpty($groupObjectId)) -and (Test-IsInGroup -Email $emailAddress -GroupObjectId $groupObjectId)) {
+                                if ((-not [string]::IsNullOrEmpty($groupObjectId)) -and (Test-IsInGroup -Email $stEmailAddress -GroupObjectId $groupObjectId)) {
                                     $isInExcludedGroup = $true
                                     break
                                 }
                             }
                             # Check if the user is returned by ExceptIfSentTo, isInExcludedGroup, or ExceptIfRecipientDomainIs in the Built-in Protection Rule
-                            if ($emailAddress -in $builtInProtectionRule.ExceptIfSentTo -or
+                            if ($stEmailAddress -in $builtInProtectionRule.ExceptIfSentTo -or
                                 $isInExcludedGroup -or
                                 $domain -in $builtInProtectionRule.ExceptIfRecipientDomainIs) {
                                 Write-Host "`nSafe Attachments:`n`tThe user is excluded from all Safe Attachment protection because they are excluded from Built-in Protection, and they are not explicitly included in any other policy." -ForegroundColor Red
@@ -863,14 +870,14 @@ process {
                             # Check if the user is a member of any group in ExceptIfSentToMemberOf
                             foreach ($groupEmail in $builtInProtectionRule.ExceptIfSentToMemberOf) {
                                 $groupObjectId = Get-GroupObjectId -GroupEmail $groupEmail
-                                if ((-not [string]::IsNullOrEmpty($groupObjectId)) -and (Test-IsInGroup -Email $emailAddress -GroupObjectId $groupObjectId)) {
+                                if ((-not [string]::IsNullOrEmpty($groupObjectId)) -and (Test-IsInGroup -Email $stEmailAddress -GroupObjectId $groupObjectId)) {
                                     $isInExcludedGroup = $true
                                     break
                                 }
                             }
 
                             # Check if the user is returned by ExceptIfSentTo, isInExcludedGroup, or ExceptIfRecipientDomainIs in the Built-in Protection Rule
-                            if ($emailAddress -in $builtInProtectionRule.ExceptIfSentTo -or
+                            if ($stEmailAddress -in $builtInProtectionRule.ExceptIfSentTo -or
                                 $isInExcludedGroup -or
                                 $domain -in $builtInProtectionRule.ExceptIfRecipientDomainIs) {
                                 Write-Host "`nSafe Links:`n`tThe user is excluded from all Safe Links protection because they are excluded from Built-in Protection, and they are not explicitly included in any other policy." -ForegroundColor Red

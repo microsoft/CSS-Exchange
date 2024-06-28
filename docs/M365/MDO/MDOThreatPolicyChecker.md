@@ -57,7 +57,7 @@ To provide a CSV input file with email addresses and see only EOP policies, run 
 
 To provide multiple email addresses by command line and see only EOP policies, run the following:<br>
 ```powershell
-.\MDOThreatPolicyChecker.ps1 -EmailAddresses user1@contoso.com,user2@fabrikam.com
+.\MDOThreatPolicyChecker.ps1 -EmailAddress user1@contoso.com,user2@fabrikam.com
 ```
 
 To provide a CSV input file with email addresses and see both EOP and MDO policies, run the following:<br>
@@ -67,7 +67,7 @@ To provide a CSV input file with email addresses and see both EOP and MDO polici
 
 To provide an email address and see only MDO (Safe Attachment and Safe Links) policies, run the following:<br>
 ```powershell
-.\MDOThreatPolicyChecker.ps1 -EmailAddresses user1@contoso.com -OnlyMDOPolicies
+.\MDOThreatPolicyChecker.ps1 -EmailAddress user1@contoso.com -OnlyMDOPolicies
 ```
 
 To see the details of the policies applied to mailbox in a CSV file for both EOP and MDO, run the following:<br>
@@ -77,7 +77,7 @@ To see the details of the policies applied to mailbox in a CSV file for both EOP
 
 To get all mailboxes in your tenant and print out their EOP and MDO policies, run the following:<br>
 ```powershell
-.\MDOThreatPolicyChecker.ps1 -IncludeMDOPolicies -EmailAddresses @(Get-ExOMailbox -ResultSize unlimited | Select-Object -ExpandProperty PrimarySmtpAddress)
+.\MDOThreatPolicyChecker.ps1 -IncludeMDOPolicies -EmailAddress @(Get-ExOMailbox -ResultSize unlimited | Select-Object -ExpandProperty PrimarySmtpAddress)
 ```
 
 ## Parameters
@@ -85,9 +85,10 @@ To get all mailboxes in your tenant and print out their EOP and MDO policies, ru
 Parameter | Description |
 ----------|-------------|
 CsvFilePath | Allows you to specify a CSV file with a list of email addresses to check. Csv file must include a first line with header Email.
-EmailAddresses | Allows you to specify email address or multiple addresses separated by commas.
-IncludeMDOPolicies | Checks both EOP and MDO (Safe Attachment and Safe Links) policies for user(s) specified in the CSV file or EmailAddresses parameter.
-OnlyMDOPolicies | Checks only MDO (Safe Attachment and Safe Links) policies for user(s) specified in the CSV file or EmailAddresses parameter.
+EmailAddress | Allows you to specify email address or multiple addresses separated by commas.
+IncludeMDOPolicies | Checks both EOP and MDO (Safe Attachment and Safe Links) policies for user(s) specified in the CSV file or EmailAddress parameter.
+OnlyMDOPolicies | Checks only MDO (Safe Attachment and Safe Links) policies for user(s) specified in the CSV file or EmailAddress parameter.
 ShowDetailedPolicies | In addition to the policy applied, show any policy details that are set to True, On, or not blank.
 SkipConnectionCheck | Skips connection check for Graph and Exchange Online.
+SkipVersionCheck | Skips the version check of the script.
 ScriptUpdateOnly | Just updates script version to latest one.
