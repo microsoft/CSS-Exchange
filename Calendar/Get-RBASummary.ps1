@@ -280,9 +280,8 @@ function OutputMBList {
     )
     foreach ($User in $MBList) {
         # MS Support will error as we need the Organization to process from CN
-        if ($Identity -like "*@*") {
-            $Org = $Identity.Split('@')[1]
-        }
+        $Org = $Identity.Split('@')[1]
+
         if ($null -ne $Org) {
             $User = Get-Mailbox -Identity $User -organization $Org
             Write-Host " `t `t [$($User.DisplayName)] -- $($User.PrimarySmtpAddress)"
