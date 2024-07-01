@@ -177,7 +177,6 @@ function RBACriteria {
     `t MaximumConflictInstances:       $($RbaSettings.MaximumConflictInstances)
     `t MaximumConflictPercentage:      $($RbaSettings.MaximumConflictPercentage)
     `t EnforceSchedulingHorizon:       $($RbaSettings.EnforceSchedulingHorizon)
-    `t SchedulingHorizonInDays:        $($RbaSettings.SchedulingHorizonInDays)
 "@
     Write-Host -NoNewline "`r`nIf all the above criteria are met, the request is "
     Write-Host -ForegroundColor Yellow -NoNewline "In-Policy."
@@ -273,14 +272,23 @@ function RBAProcessingValidation {
 }
 
 # Write out a list of Mailboxes
+# We get CN from the cmdlet and want Display Name and Primary SMTP Address
 function OutputMBList {
     param (
         [Parameter(Mandatory)]
         [string[]]$MBList
     )
     foreach ($User in $MBList) {
-        $User = Get-Mailbox -Identity $User
-        Write-Host " `t `t [$($User.DisplayName)] -- $($User.PrimarySmtpAddress)"
+        # MS Support will error as we need the Organization to process from CN
+        $Org = $Identity.Split('@')[1]
+
+        if ($null -ne $Org) {
+            $User = Get-Mailbox -Identity $User -organization $Org
+            Write-Host " `t `t [$($User.DisplayName)] -- $($User.PrimarySmtpAddress)"
+        } else {
+            $User = Get-Mailbox -Identity $User
+            Write-Host " `t `t [$($User.DisplayName)] -- $($User.PrimarySmtpAddress)"
+        }
     }
 }
 
