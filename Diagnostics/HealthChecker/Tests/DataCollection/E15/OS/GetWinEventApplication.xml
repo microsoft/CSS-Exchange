@@ -1,0 +1,369 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Diagnostics.Eventing.Reader.EventLogConfiguration</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>System.Diagnostics.Eventing.Reader.EventLogConfiguration</ToString>
+    <Props>
+      <S N="LogName">Application</S>
+      <Obj N="LogType" RefId="1">
+        <TN RefId="1">
+          <T>System.Diagnostics.Eventing.Reader.EventLogType</T>
+          <T>System.Enum</T>
+          <T>System.ValueType</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>Administrative</ToString>
+        <I32>0</I32>
+      </Obj>
+      <Obj N="LogIsolation" RefId="2">
+        <TN RefId="2">
+          <T>System.Diagnostics.Eventing.Reader.EventLogIsolation</T>
+          <T>System.Enum</T>
+          <T>System.ValueType</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>Application</ToString>
+        <I32>0</I32>
+      </Obj>
+      <B N="IsEnabled">true</B>
+      <B N="IsClassicLog">true</B>
+      <S N="SecurityDescriptor">O:BAG:SYD:(A;;0x2;;;S-1-15-2-1)(A;;0xf0007;;;SY)(A;;0x7;;;BA)(A;;0x7;;;SO)(A;;0x3;;;IU)(A;;0x3;;;SU)(A;;0x3;;;S-1-5-3)(A;;0x3;;;S-1-5-33)(A;;0x1;;;S-1-5-32-573)</S>
+      <S N="LogFilePath">%SystemRoot%\System32\Winevt\Logs\Application.evtx</S>
+      <I64 N="MaximumSizeInBytes">20971520</I64>
+      <Obj N="LogMode" RefId="3">
+        <TN RefId="3">
+          <T>System.Diagnostics.Eventing.Reader.EventLogMode</T>
+          <T>System.Enum</T>
+          <T>System.ValueType</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>Circular</ToString>
+        <I32>0</I32>
+      </Obj>
+      <S N="OwningProviderName"></S>
+      <Obj N="ProviderNames" RefId="4">
+        <TN RefId="4">
+          <T>System.String[]</T>
+          <T>System.Array</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <S>.NET Runtime</S>
+          <S>.NET Runtime Optimization Service</S>
+          <S>Active Monitoring</S>
+          <S>Application</S>
+          <S>Application Error</S>
+          <S>Application Hang</S>
+          <S>Application Management</S>
+          <S>ASP.NET 4.0.30319.0</S>
+          <S>CardSpace 4.0.0.0</S>
+          <S>Chkdsk</S>
+          <S>Chrome</S>
+          <S>Desktop Window Manager</S>
+          <S>DiskQuota</S>
+          <S>ESE</S>
+          <S>ESE BACKUP</S>
+          <S>ESENT</S>
+          <S>ExchangeStoreDB</S>
+          <S>FfoSyncLog</S>
+          <S>FfoSystemProbe</S>
+          <S>Filtering ADConnector</S>
+          <S>FMS</S>
+          <S>Group Policy Applications</S>
+          <S>Group Policy Client</S>
+          <S>Group Policy Data Sources</S>
+          <S>Group Policy Device Settings</S>
+          <S>Group Policy Drive Maps</S>
+          <S>Group Policy Environment</S>
+          <S>Group Policy Files</S>
+          <S>Group Policy Folder Options</S>
+          <S>Group Policy Folders</S>
+          <S>Group Policy Ini Files</S>
+          <S>Group Policy Internet Settings</S>
+          <S>Group Policy Local Users and Groups</S>
+          <S>Group Policy Mail Profiles</S>
+          <S>Group Policy Network Options</S>
+          <S>Group Policy Network Shares</S>
+          <S>Group Policy Power Options</S>
+          <S>Group Policy Printers</S>
+          <S>Group Policy Regional Options</S>
+          <S>Group Policy Registry</S>
+          <S>Group Policy Scheduled Tasks</S>
+          <S>Group Policy Services</S>
+          <S>Group Policy Shortcuts</S>
+          <S>Group Policy Standard Edition</S>
+          <S>Group Policy Start Menu Settings</S>
+          <S>GroupPolicy</S>
+          <S>Handwriting Recognition</S>
+          <S>HostableWebCore</S>
+          <S>IISADMIN</S>
+          <S>IISInfoCtrs</S>
+          <S>InferenceTrainingAssistant</S>
+          <S>Interactive Services detection</S>
+          <S>Microsoft Exchange Server</S>
+          <S>Microsoft-Windows-Defrag</S>
+          <S>Microsoft-Windows-IIS-IISManager</S>
+          <S>Microsoft.Transactions.Bridge 4.0.0.0</S>
+          <S>MSExchange ActiveSync</S>
+          <S>MSExchange ADAccess</S>
+          <S>MSExchange Anchor Service</S>
+          <S>MSExchange Anti-spam Update</S>
+          <S>MSExchange Antimalware</S>
+          <S>MSExchange Antispam</S>
+          <S>MSExchange Assistants</S>
+          <S>MSExchange AuditLogSearch</S>
+          <S>MSExchange AuthAdmin</S>
+          <S>MSExchange Autodiscover</S>
+          <S>MSExchange Availability</S>
+          <S>MSExchange BackEndRehydration</S>
+          <S>MSExchange Bulk User Provisioning</S>
+          <S>MSExchange Certificate</S>
+          <S>MSExchange Certificate Authentication Module</S>
+          <S>MSExchange Certificate Deployment</S>
+          <S>MSExchange Certificate Notification</S>
+          <S>MSExchange ClassificationDefinitions</S>
+          <S>MSExchange Cluster</S>
+          <S>MSExchange Common</S>
+          <S>MSExchange Configuration Core</S>
+          <S>MSExchange Control Panel</S>
+          <S>MSExchange Delegated Authentication Module</S>
+          <S>MSExchange DiagnosticsAggregation</S>
+          <S>MSExchange EdgeSync</S>
+          <S>MSExchange Extensibility</S>
+          <S>MSExchange FailFast Module</S>
+          <S>MSExchange Front End HTTP Proxy</S>
+          <S>MSExchange IMAP4 backend service</S>
+          <S>MSExchange IMAP4 service</S>
+          <S>MSExchange Internet Proxy</S>
+          <S>MSExchange JobQueue</S>
+          <S>MSExchange LiveId Redirection Module</S>
+          <S>MSExchange LiveIdBasicAuthentication</S>
+          <S>MSExchange Mailbox Replication</S>
+          <S>MSExchange MailTips</S>
+          <S>MSExchange Management Application</S>
+          <S>MSExchange Messaging Policies</S>
+          <S>MSExchange Mid-Tier Storage</S>
+          <S>MSExchange Migration</S>
+          <S>MSExchange Migration Workflow</S>
+          <S>MSExchange Net</S>
+          <S>MSExchange Notifications Broker</S>
+          <S>MSExchange OABRequestHandler</S>
+          <S>MSExchange OAuth</S>
+          <S>MSExchange Organization Redirection Module</S>
+          <S>MSExchange OrganizationConfiguration</S>
+          <S>MSExchange OutlookPolicyNudgeRules</S>
+          <S>MSExchange OutlookProtectionRules</S>
+          <S>MSExchange OWA</S>
+          <S>MSExchange POP3 backend service</S>
+          <S>MSExchange POP3 service</S>
+          <S>MSExchange Provisioning MailboxAssistant</S>
+          <S>MSExchange RBAC</S>
+          <S>MSExchange RemotePowershell BackendCmdletProxy Module</S>
+          <S>MSExchange ReportingWebService</S>
+          <S>MSExchange RPC Over HTTP Autoconfig</S>
+          <S>MSExchange SACL Watcher</S>
+          <S>MSExchange Shared Cache</S>
+          <S>MSExchange Store Driver Delivery</S>
+          <S>MSExchange Store Driver Submission</S>
+          <S>MSExchange Topology</S>
+          <S>MSExchange TransportService</S>
+          <S>MSExchange Unified Messaging</S>
+          <S>MSExchange Web Services</S>
+          <S>MSExchange WorkloadManagement</S>
+          <S>MSExchange X400 Proxy</S>
+          <S>MSExchangeAB</S>
+          <S>MSExchangeADTopology</S>
+          <S>MSExchangeAL</S>
+          <S>MSExchangeAntispamUpdate</S>
+          <S>MSExchangeApplicationLogic</S>
+          <S>MSExchangeCluster</S>
+          <S>MSExchangeDagMgmt</S>
+          <S>MSExchangeDelivery</S>
+          <S>MSExchangeDiagnostics</S>
+          <S>MSExchangeEdgeSync</S>
+          <S>MSExchangeEHALogSearchComponent</S>
+          <S>MSExchangeFastSearch</S>
+          <S>MSExchangeFrontEndTransport</S>
+          <S>MSExchangeGlobalLocatorCache</S>
+          <S>MSExchangeHM</S>
+          <S>MSExchangeHMHost</S>
+          <S>MSExchangeIMAP4</S>
+          <S>MSExchangeIMAP4BE</S>
+          <S>MSExchangeInference</S>
+          <S>MSExchangeIS</S>
+          <S>MSExchangeIS Mailbox Store</S>
+          <S>MSExchangeIS Public Store</S>
+          <S>MSExchangeMailboxAssistants</S>
+          <S>MSExchangeMailboxReplication</S>
+          <S>MSExchangeMapiAddressBookAppPool</S>
+          <S>MSExchangeMapiMailboxAppPool</S>
+          <S>MSExchangeMig</S>
+          <S>MSExchangeMigDS</S>
+          <S>MSExchangeMU</S>
+          <S>MSExchangePOP3</S>
+          <S>MSExchangePOP3BE</S>
+          <S>MSExchangeRepl</S>
+          <S>MSExchangeRPC</S>
+          <S>MSExchangeSA</S>
+          <S>MSExchangeServiceHost</S>
+          <S>MSExchangeSetup</S>
+          <S>MSExchangeSubmission</S>
+          <S>MSExchangeThrottling</S>
+          <S>MSExchangeThrottlingClient</S>
+          <S>MSExchangeTransport</S>
+          <S>MSExchangeTransportDelivery</S>
+          <S>MSExchangeTransportLogSearch</S>
+          <S>MSExchangeTransportMailboxAssistants</S>
+          <S>MSExchangeTransportMailSubmission</S>
+          <S>MSExchangeTransportSearch</S>
+          <S>MSExchangeTransportSubmission</S>
+          <S>MSExchangeTransportSyncCommon</S>
+          <S>MSExchangeTransportSyncManager</S>
+          <S>MSExchangeTransportSyncWorker</S>
+          <S>MSExchangeTransportSyncWorkerFramework</S>
+          <S>MSExchangeUM</S>
+          <S>MSExchangeUMCR</S>
+          <S>MSExchangeWEB</S>
+          <S>MsiInstaller</S>
+          <S>RasClient</S>
+          <S>RPC Proxy</S>
+          <S>RPC/HTTP LB Service</S>
+          <S>SceCli</S>
+          <S>SceSrv</S>
+          <S>SCW</S>
+          <S>SCW Analysis</S>
+          <S>Search HostController</S>
+          <S>ServiceModel Audit 4.0.0.0</S>
+          <S>SideBySide</S>
+          <S>Software Installation</S>
+          <S>SrmSvc</S>
+          <S>System.IdentityModel 4.0.0.0</S>
+          <S>System.IO.Log 4.0.0.0</S>
+          <S>System.Runtime.Serialization 4.0.0.0</S>
+          <S>System.ServiceModel 4.0.0.0</S>
+          <S>usbperf</S>
+          <S>VBRuntime</S>
+          <S>vmicguestinterface</S>
+          <S>vmicheartbeat</S>
+          <S>vmickvpexchange</S>
+          <S>vmicrdv</S>
+          <S>vmicshutdown</S>
+          <S>vmictimesync</S>
+          <S>vmicvss</S>
+          <S>VSS</S>
+          <S>VSSetup</S>
+          <S>WerSvc</S>
+          <S>Windows Error Reporting</S>
+          <S>WMI.NET Provider Extension</S>
+          <S>Wow64 Emulation Layer</S>
+          <S>WSH</S>
+          <S>Microsoft-Windows-PDH</S>
+          <S>Microsoft-Windows-LiveId</S>
+          <S>Microsoft-Windows-RestartManager</S>
+          <S>Microsoft-Windows-Complus</S>
+          <S>Microsoft-Windows-LoadPerf</S>
+          <S>Microsoft-Windows-Perflib</S>
+          <S>Microsoft-Windows-Crypto-RSAEnh</S>
+          <S>Microsoft-Windows-MSDTC Client 2</S>
+          <S>Microsoft-Windows-RemoteApp and Desktop Connections</S>
+          <S>Microsoft-Windows-Spellchecking-Host</S>
+          <S>Microsoft-Filtering-FIPFS</S>
+          <S>Microsoft-Windows-Backup</S>
+          <S>Microsoft-Windows-WMI</S>
+          <S>Microsoft-Windows-Wininit</S>
+          <S>Microsoft-Windows-IIS-WMSVC</S>
+          <S>Microsoft-Windows-TerminalServices-ClientActiveXCore</S>
+          <S>Microsoft-Windows-IPMIProvider</S>
+          <S>Microsoft-Windows-Security-EnterpriseData-FileRevocationManager</S>
+          <S>Microsoft-Windows-Immersive-Shell</S>
+          <S>Microsoft-Windows-EFS</S>
+          <S>Microsoft-Windows-DirectShow-KernelSupport</S>
+          <S>Microsoft-Windows-Crypto-DSSEnh</S>
+          <S>Microsoft-Windows-GenericRoaming</S>
+          <S>Microsoft-Windows-BestPractices</S>
+          <S>Microsoft-Windows-CertificateServicesClient-CertEnroll</S>
+          <S>Microsoft-Windows-Crypto-RNG</S>
+          <S>Microsoft-Windows-CAPI2</S>
+          <S>Microsoft-Windows-MSDTC 2</S>
+          <S>Microsoft-Windows-ApplicationExperienceInfrastructure</S>
+          <S>Microsoft-Windows-IIS-W3SVC-WP</S>
+          <S>Microsoft-Office Server-Search</S>
+          <S>Microsoft-Windows-EapHost</S>
+          <S>Microsoft-Windows-Video-For-Windows</S>
+          <S>Microsoft-Windows-MSDTC</S>
+          <S>Microsoft-Windows-DirectoryServices-Deployment</S>
+          <S>Microsoft-Windows-PerfProc</S>
+          <S>Microsoft-Windows-CertificateServicesClient</S>
+          <S>Microsoft-Windows-XWizards</S>
+          <S>Microsoft-Windows-FileServices-ServerManager-EventProvider</S>
+          <S>Microsoft-Windows-MSDTC Client</S>
+          <S>Microsoft-Windows-SoftwareRestrictionPolicies</S>
+          <S>Microsoft-Windows-Folder Redirection</S>
+          <S>Microsoft-Windows-PerfDisk</S>
+          <S>Microsoft-Windows-FileShareShadowCopyProvider</S>
+          <S>Microsoft-Windows-EventSystem</S>
+          <S>Microsoft-Windows-CertificateServicesClient-CredentialRoaming</S>
+          <S>Microsoft-Windows-User Profiles Service</S>
+          <S>Microsoft-Windows-Crypto-DPAPI</S>
+          <S>Microsoft-Windows-IIS-W3SVC-PerfCounters</S>
+          <S>Microsoft-Windows-propsys</S>
+          <S>Microsoft-Windows-DirectShow-Core</S>
+          <S>Microsoft-Windows-PerfCtrs</S>
+          <S>Microsoft-Windows-CertificationAuthorityClient-CertCli</S>
+          <S>Microsoft-Windows-Management-UI</S>
+          <S>Microsoft-Windows-Winsrv</S>
+          <S>Microsoft-Windows-CEIP</S>
+          <S>Application-Addon-Event-Provider</S>
+          <S>Microsoft-Windows-SmartCard-DeviceEnum</S>
+          <S>Microsoft-Windows-Audio</S>
+          <S>Microsoft-Windows-User-Loader</S>
+          <S>Microsoft-Windows-SpellChecker</S>
+          <S>Microsoft-Windows-EventCollector</S>
+          <S>Microsoft-Windows-COMRuntime</S>
+          <S>Microsoft-Windows-AppModel-State</S>
+          <S>Microsoft-Windows-FederationServices-Deployment</S>
+          <S>Microsoft-Windows-EnrollmentWebService</S>
+          <S>Microsoft-Windows-Crypto-BCrypt</S>
+          <S>Microsoft-Windows-PerfNet</S>
+          <S>Error Instrument</S>
+          <S>Microsoft-Windows-MSMQ</S>
+          <S>Microsoft-Windows-Spell-Checking</S>
+          <S>Microsoft-Windows-WAS-ListenerAdapter</S>
+          <S>Microsoft-Windows-ServerManager-MultiMachine</S>
+          <S>Microsoft-Windows-ASN1</S>
+          <S>Microsoft-Windows-AxInstallService</S>
+          <S>Microsoft-Windows-User Profiles General</S>
+          <S>Microsoft-Windows-Winlogon</S>
+          <S>Microsoft-Windows-Security-SPP</S>
+          <S>Microsoft-Windows-Crypto-CNG</S>
+          <S>Microsoft-Windows-Security-Netlogon</S>
+          <S>Microsoft-Windows-Crypto-NCrypt</S>
+          <S>Microsoft-Windows-CertificateServicesClient-AutoEnrollment</S>
+          <S>Microsoft-Windows-AppModel-Runtime</S>
+          <S>Microsoft-Windows-RPC-Events</S>
+          <S>Microsoft-Windows-EnrollmentPolicyWebService</S>
+          <S>Microsoft-Windows-PerfOS</S>
+          <S>Microsoft-Windows-Rdms-UI</S>
+          <S>Microsoft-Windows-ProcessExitMonitor</S>
+        </LST>
+      </Obj>
+      <Nil N="ProviderLevel" />
+      <Nil N="ProviderKeywords" />
+      <I32 N="ProviderBufferSize">64</I32>
+      <I32 N="ProviderMinimumNumberOfBuffers">0</I32>
+      <I32 N="ProviderMaximumNumberOfBuffers">64</I32>
+      <I32 N="ProviderLatency">1000</I32>
+      <Nil N="ProviderControlGuid" />
+    </Props>
+    <MS>
+      <I64 N="FileSize">6361088</I64>
+      <B N="IsLogFull">false</B>
+      <DT N="LastAccessTime">2020-11-01T12:43:48.9189123-08:00</DT>
+      <DT N="LastWriteTime">2024-06-20T08:51:36.9154299-07:00</DT>
+      <I64 N="OldestRecordNumber">1</I64>
+      <I64 N="RecordCount">7324</I64>
+    </MS>
+  </Obj>
+</Objs>

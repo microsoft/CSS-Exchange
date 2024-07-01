@@ -1,0 +1,79 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Diagnostics.Eventing.Reader.EventLogRecord</T>
+      <T>System.Diagnostics.Eventing.Reader.EventRecord</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>System.Diagnostics.Eventing.Reader.EventLogRecord</ToString>
+    <Props>
+      <I32 N="Id">4111</I32>
+      <By N="Version">0</By>
+      <I32 N="Qualifiers">16384</I32>
+      <By N="Level">4</By>
+      <I32 N="Task">1</I32>
+      <I16 N="Opcode">0</I16>
+      <I64 N="Keywords">36028797018963968</I64>
+      <I64 N="RecordId">1250</I64>
+      <S N="ProviderName">Microsoft-Windows-MSDTC</S>
+      <G N="ProviderId">719be4ed-e9bc-4dd8-a7cf-c85ce8e4975d</G>
+      <S N="LogName">Application</S>
+      <I32 N="ProcessId">0</I32>
+      <I32 N="ThreadId">0</I32>
+      <S N="MachineName">WIN-S9MI90B3JAK</S>
+      <Nil N="UserId" />
+      <DT N="TimeCreated">2021-10-06T15:44:43.5360963-07:00</DT>
+      <Nil N="ActivityId" />
+      <Nil N="RelatedActivityId" />
+      <S N="ContainerLog">application</S>
+      <Obj N="MatchedQueryIds" RefId="1">
+        <TN RefId="1">
+          <T>System.UInt32[]</T>
+          <T>System.Array</T>
+          <T>System.Object</T>
+        </TN>
+        <LST />
+      </Obj>
+      <Obj N="Bookmark" RefId="2">
+        <TN RefId="2">
+          <T>System.Diagnostics.Eventing.Reader.EventBookmark</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>System.Diagnostics.Eventing.Reader.EventBookmark</ToString>
+      </Obj>
+      <S N="LevelDisplayName">Information</S>
+      <Nil N="OpcodeDisplayName" />
+      <S N="TaskDisplayName">SVC</S>
+      <Obj N="KeywordsDisplayNames" RefId="3">
+        <TN RefId="3">
+          <T>System.Collections.ObjectModel.ReadOnlyCollection`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <S>Classic</S>
+        </LST>
+      </Obj>
+      <Obj N="Properties" RefId="4">
+        <TN RefId="4">
+          <T>System.Collections.Generic.List`1[[System.Diagnostics.Eventing.Reader.EventProperty, System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <Obj RefId="5">
+            <TN RefId="5">
+              <T>System.Diagnostics.Eventing.Reader.EventProperty</T>
+              <T>System.Object</T>
+            </TN>
+            <ToString>System.Diagnostics.Eventing.Reader.EventProperty</ToString>
+            <Props>
+              <BA N="Value">TQBTAEQAVABDAA==</BA>
+            </Props>
+          </Obj>
+        </LST>
+      </Obj>
+    </Props>
+    <MS>
+      <S N="Message">The MS DTC service is stopping.</S>
+    </MS>
+  </Obj>
+</Objs>
