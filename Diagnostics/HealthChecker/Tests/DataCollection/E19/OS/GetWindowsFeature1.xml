@@ -23867,7 +23867,7 @@
       <S N="Name">FS-SMB1</S>
       <S N="DisplayName">SMB 1.0/CIFS File Sharing Support</S>
       <S N="Description">Support for the SMB 1.0/CIFS file sharing protocol, and the Computer Browser protocol.</S>
-      <B N="Installed">false</B>
+      <B N="Installed">true</B>
       <Obj N="InstallState" RefId="2713">
         <TNRef RefId="1" />
         <ToString>Available</ToString>
