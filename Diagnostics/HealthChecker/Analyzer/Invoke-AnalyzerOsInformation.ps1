@@ -458,4 +458,28 @@ function Invoke-AnalyzerOsInformation {
         }
         Add-AnalyzedResultInformation @params
     }
+
+    # cSpell:disable
+    # Check and display if MSMQ is installed only
+    if ($null -ne $osInformation.WindowsFeature) {
+        $installedFeatures = New-Object System.Collections.Generic.List[string]
+
+        $osInformation.WindowsFeature |
+            Where-Object { @("NET-WCF-MSMQ-Activation45", "MSMQ") -contains $_.Name -and $_.Installed -eq $true } |
+            ForEach-Object { $installedFeatures.Add($_.Name) }
+
+        if ($installedFeatures.Count -gt 0) {
+            $params = $baseParams + @{
+                Name                = "MSMQ Windows Feature Installed"
+                Details             = "$true - This feature is no longer required and can be removed."
+                DisplayWriteType    = "Yellow"
+                DisplayTestingValue = $true
+                TestingName         = "Messaging Queuing Feature"
+            }
+            Add-AnalyzedResultInformation @params
+        }
+    } else {
+        Write-Verbose "No Windows Features where collected. Unable to process."
+    }
+    # cSpell:enable
 }
