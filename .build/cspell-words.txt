@@ -19,6 +19,7 @@ contoso
 CTMM
 Datacenter
 dcom
+DMARC
 Dsamain
 DTLS
 dumptidset
@@ -29,6 +30,7 @@ EICAR
 eicar
 Emotet
 emsmdb
+Entra
 EOMT
 Eseback
 Eventlog
