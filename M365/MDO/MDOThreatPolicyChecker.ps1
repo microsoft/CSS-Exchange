@@ -466,9 +466,6 @@ begin {
         Write-DebugLog $message
     }
 
-    Import-Module Microsoft.Graph.Authentication
-    Import-Module ExchangeOnlineManagement
-
     $LogFileName = "MDOThreatPolicyChecker"
     $StartDate = Get-Date
     $StartDateFormatted = ($StartDate).ToString("yyyyMMddhhmmss")
