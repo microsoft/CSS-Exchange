@@ -121,7 +121,7 @@ begin {
         try {
             $group = Get-MgGroup -Filter "mail eq '$stGroupEmail'" -ErrorAction Stop
         } catch {
-            Write-Host "Error getting group $stGroupEmail`: $_" -ForegroundColor Red
+            Write-Host "Error getting group $stGroupEmail`:`n$_" -ForegroundColor Red
             return $null
         }
 
@@ -134,7 +134,7 @@ begin {
                 # Return the Object ID of the group
                 return $group.Id
             } else {
-                Write-Host "Wrong type for $($group.ToString()): $group.Id.GetType().Name" -ForegroundColor Red
+                Write-Host "Wrong type for $($group.ToString()): $($group.Id.GetType().Name)" -ForegroundColor Red
                 return $null
             }
         } else {
@@ -170,7 +170,7 @@ begin {
         try {
             $groupMembers = Get-MgGroupMember -GroupId $GroupObjectId -ErrorAction Stop
         } catch {
-            Write-Host "Error getting group members for $GroupObjectId`: $_" -ForegroundColor Red
+            Write-Host "Error getting group members for $GroupObjectId`:`n$_" -ForegroundColor Red
             return $null
         }
 
@@ -185,7 +185,7 @@ begin {
                         try {
                             $user = Get-MgUser -UserId $member.Id -ErrorAction Stop
                         } catch {
-                            Write-Host "Error getting user with Id $($member.Id): $_" -ForegroundColor Red
+                            Write-Host "Error getting user with Id $($member.Id):`n$_" -ForegroundColor Red
                             return $null
                         }
                         # Compare the user's email address with the $email parameter
@@ -237,31 +237,30 @@ begin {
             $tempAddress = [MailAddress]$EmailAddress
         } catch {
             Write-Host "The EmailAddress $EmailAddress cannot be validated. Please provide a valid email address." -ForegroundColor Red
-            return $null
-        }
-        $recipient = $null
-        Write-Verbose "Getting $EmailAddress"
-        try {
-            $recipient = Get-EXORecipient $EmailAddress -ErrorAction Stop
-        } catch {
-            Write-Host "Error getting recipient $EmailAddress`: $_" -ForegroundColor Red
+            Write-Host "Error details:`n$_" -ForegroundColor Red
             return $null
         }
 
-        if ($null -eq $recipient) {
-            Write-Host "$EmailAddress is not a recipient in this tenant" -ForegroundColor Red
-            return $null
-        } else {
-            $domain = $tempAddress.Host
-            Write-Verbose "Checking domain $domain"
-            if ($AcceptedDomains -contains $domain) {
-                Write-Verbose "Verified domain $domain for $tempAddress"
-                return $tempAddress
-            } else {
-                Write-Host "The domain $domain is not an accepted domain in your organization. Please provide a valid email address: $tempAddress " -ForegroundColor Red
-                return $null
+        $domain = $tempAddress.Host
+        Write-Verbose "Checking domain $domain"
+        if ($AcceptedDomains -contains $domain) {
+            Write-Verbose "Verified domain $domain for $tempAddress"
+            $recipient = $null
+            Write-Verbose "Getting $EmailAddress"
+            try {
+                $recipient = Get-EXORecipient $EmailAddress -ErrorAction Stop
+                if ($null -eq $recipient) {
+                    Write-Host "$EmailAddress is not a recipient in this tenant" -ForegroundColor Red
+                } else {
+                    return $tempAddress
+                }
+            } catch {
+                Write-Host "Error getting recipient $EmailAddress`:`n$_" -ForegroundColor Red
             }
+        } else {
+            Write-Host "The domain $domain is not an accepted domain in your organization. Please provide a valid email address: $tempAddress " -ForegroundColor Red
         }
+        return $null
     }
 
     # Function to check rules
@@ -348,7 +347,6 @@ begin {
             }
 
             $temp = $Email.Host
-
             while ($temp.IndexOf(".") -gt 0) {
                 if ($temp -in $domainsIs) {
                     Write-Verbose "domainInRule: $temp"
@@ -363,32 +361,23 @@ begin {
 
             # Check for explicit inclusion in any user, group, or domain that are not empty, and account for 3 empty inclusions
             # Also check for any exclusions as user, group, or domain. Nulls don't need to be accounted for and this is an OR condition for exclusions
-            if ((($emailInRule -or (-not $senderOrReceiver)) -and
-                ($domainInRule -or (-not $domainsIs)) -and
-                ($groupInRule -or (-not $memberOf))) -and
-                ($emailInRule -or $domainInRule -or $groupInRule)) {
-                if ((-not $emailExceptionInRule) -and
-                    (-not $groupExceptionInRule) -and
-                    (-not $domainExceptionInRule)) {
-                    Write-Verbose "Return Rule $($rule.Name)"
-                    Write-Verbose "emailInRule: $emailInRule domainInRule: $domainInRule groupInRule: $groupInRule  "
-                    Write-Verbose "emailExceptionInRule: $emailExceptionInRule groupExceptionInRule: $groupExceptionInRule domainExceptionInRule: $domainExceptionInRule  "
-                    return $rule
-                }
+            if (((($emailInRule -or (-not $senderOrReceiver)) -and ($domainInRule -or (-not $domainsIs)) -and ($groupInRule -or (-not $memberOf))) -and
+                 ($emailInRule -or $domainInRule -or $groupInRule)) -and
+                ((-not $emailExceptionInRule) -and (-not $groupExceptionInRule) -and (-not $domainExceptionInRule))) {
+                Write-Verbose "Return Rule $($rule.Name)"
+                Write-Verbose "emailInRule: $emailInRule domainInRule: $domainInRule groupInRule: $groupInRule  "
+                Write-Verbose "emailExceptionInRule: $emailExceptionInRule groupExceptionInRule: $groupExceptionInRule domainExceptionInRule: $domainExceptionInRule  "
+                return $rule
             }
 
-            if (-not $Outbound) {
-                # Check for implicit inclusion (no mailboxes included at all), which is possible for Presets and SA/SL. They are included if not explicitly excluded.
-                if ((-not $senderOrReceiver) -and (-not $domainsIs) -and (-not $memberOf)) {
-                    if ((-not $emailExceptionInRule) -and
-                    (-not $groupExceptionInRule) -and
-                    (-not $domainExceptionInRule)) {
-                        Write-Verbose "Return Rule $($rule.Name)"
-                        Write-Verbose "senderOrReceiver: $senderOrReceiver domainsIs: $domainsIs memberOf: $memberOf  "
-                        Write-Verbose "emailExceptionInRule: $emailExceptionInRule groupExceptionInRule: $groupExceptionInRule domainExceptionInRule: $domainExceptionInRule  "
-                        return $rule
-                    }
-                }
+            # Check for implicit inclusion (no mailboxes included at all), which is possible for Presets and SA/SL. They are included if not explicitly excluded. Only inbound
+            if ((-not $Outbound) -and
+                (((-not $senderOrReceiver) -and (-not $domainsIs) -and (-not $memberOf)) -and
+                 ((-not $emailExceptionInRule) -and (-not $groupExceptionInRule) -and (-not $domainExceptionInRule)))) {
+                Write-Verbose "Return Rule $($rule.Name)"
+                Write-Verbose "senderOrReceiver: $senderOrReceiver domainsIs: $domainsIs memberOf: $memberOf  "
+                Write-Verbose "emailExceptionInRule: $emailExceptionInRule groupExceptionInRule: $groupExceptionInRule domainExceptionInRule: $domainExceptionInRule  "
+                return $rule
             }
         }
         return $null
@@ -400,14 +389,14 @@ begin {
             $Policy
         )
         Write-Host "`n`tProperties of the policy that are True, On, or not blank:"
-        $excludedProperties = 'Identity', 'Id', 'Name', 'ExchangeVersion', 'DistinguishedName', 'ObjectCategory', 'ObjectClass', 'WhenChanged', 'WhenCreated', `
-            'WhenChangedUTC', 'WhenCreatedUTC', 'ExchangeObjectId', 'OrganizationalUnitRoot', 'OrganizationId', 'OriginatingServer', 'ObjectState', 'Priority', 'ImmutableId', `
-            'Description', 'HostedContentFilterPolicy', 'AntiPhishPolicy', 'MalwareFilterPolicy', 'SafeAttachmentPolicy', 'SafeLinksPolicy', 'HostedOutboundSpamFilterPolicy'
+        $excludedProperties = 'Identity', 'Id', 'Name', 'ExchangeVersion', 'DistinguishedName', 'ObjectCategory', 'ObjectClass', 'WhenChanged', 'WhenCreated',
+        'WhenChangedUTC', 'WhenCreatedUTC', 'ExchangeObjectId', 'OrganizationalUnitRoot', 'OrganizationId', 'OriginatingServer', 'ObjectState', 'Priority', 'ImmutableId',
+        'Description', 'HostedContentFilterPolicy', 'AntiPhishPolicy', 'MalwareFilterPolicy', 'SafeAttachmentPolicy', 'SafeLinksPolicy', 'HostedOutboundSpamFilterPolicy'
 
         $Policy.PSObject.Properties | ForEach-Object {
-            if ($null -ne $_.Value -and `
-                (($_.Value.GetType() -eq [Boolean] -and $_.Value -eq $true) `
-                        -or ($_.Value -ne '{}' -and $_.Value -ne 'Off' -and $_.Value -ne $true -and $_.Value -ne '' -and $excludedProperties -notcontains $_.Name))) {
+            if ($null -ne $_.Value -and
+                (($_.Value.GetType() -eq [Boolean] -and $_.Value -eq $true) -or
+                    ($_.Value -ne '{}' -and $_.Value -ne 'Off' -and $_.Value -ne $true -and $_.Value -ne '' -and $excludedProperties -notcontains $_.Name))) {
                 Write-Host "`t`t$($_.Name): $($_.Value)"
             } else {
                 Write-Verbose "`t`tExcluded property:$($_.Name): $($_.Value)"
@@ -515,7 +504,7 @@ process {
         try {
             $exoConnection = Get-ConnectionInformation -ErrorAction Stop
         } catch {
-            Write-Host "Error checking EXO connection: $_" -ForegroundColor Red
+            Write-Host "Error checking EXO connection:`n$_" -ForegroundColor Red
             Write-Host "Verify that you have ExchangeOnlineManagement module installed" -ForegroundColor Yellow
             Write-Host "You need a connection To Exchange Online, you can use:" -ForegroundColor Yellow
             Write-Host "Connect-ExchangeOnline" -ForegroundColor Yellow
@@ -546,7 +535,7 @@ process {
             try {
                 $graphConnection = Get-MgContext -ErrorAction Stop
             } catch {
-                Write-Host "Error checking Graph connection: $_" -ForegroundColor Red
+                Write-Host "Error checking Graph connection:`n$_" -ForegroundColor Red
                 Write-Host "Verify that you have Microsoft.Graph.Users and Microsoft.Graph.Groups modules installed and loaded" -ForegroundColor Yellow
                 Write-Host "You could use:" -ForegroundColor Yellow
                 Write-Host "Connect-MgGraph -Scopes 'Group.Read.All','User.Read.All'" -ForegroundColor Yellow
@@ -660,7 +649,7 @@ process {
                     exit
                 }
             } catch {
-                Write-Host "Error importing CSV file: $_" -ForegroundColor Red
+                Write-Host "Error importing CSV file:`n$_" -ForegroundColor Red
                 exit
             }
         }
@@ -669,7 +658,7 @@ process {
         try {
             $acceptedDomains = Get-AcceptedDomain -ErrorAction Stop
         } catch {
-            Write-Host "Error getting Accepted Domains: $_" -ForegroundColor Red
+            Write-Host "Error getting Accepted Domains:`n$_" -ForegroundColor Red
             exit
         }
 
