@@ -5,7 +5,6 @@ $WellKnownCN_CA = "MICROSOFT SYSTEM ATTENDANT"
 $CalAttendant = "Calendar Assistant"
 $WellKnownCN_Trans = "MicrosoftExchange"
 $Transport = "Transport Service"
-
 <#
 .SYNOPSIS
 Get the Mailbox for the Passed in Identity.
@@ -18,46 +17,59 @@ Might want to extend to do 'Get-MailUser' as well.
 function GetMailbox {
     param(
         [string]$Identity,
-        [string]$Organization
+        [string]$Organization,
+        [bool]$UseGetMailbox
     )
 
-    try {
-        Write-Verbose "Searching Get-Mailbox $(if (-not ([string]::IsNullOrEmpty($Organization))) {"with Org: $Organization"}) for $Identity."
+    if ($UseGetMailbox) {
+        $Cmdlet = "Get-Mailbox"
+    } else {
+        $Cmdlet = "Get-Recipient"
+    }
+    $params = @{Identity = $Identity
+        ErrorAction      = "SilentlyContinue"
+    }
 
-        if ($Identity -and $Organization) {
-            if ($script:MSSupport) {
-                Write-Verbose "Using Organization parameter"
-                $GetMailboxOutput = Get-Mailbox -Identity $Identity -Organization $Organization -ErrorAction SilentlyContinue
-            } else {
-                Write-Verbose "Using -OrganizationalUnit parameter"
-                $GetMailboxOutput = Get-Mailbox -Identity $Identity -OrganizationalUnit $Organization -ErrorAction SilentlyContinue
-            }
-        } else {
-            $GetMailboxOutput = Get-Mailbox -Identity $Identity -ErrorAction SilentlyContinue
+    try {
+        Write-Verbose "Searching $Cmdlet $(if (-not ([string]::IsNullOrEmpty($Organization))) {"with Org: $Organization"}) for $Identity."
+
+        if (-not ([string]::IsNullOrEmpty($Organization)) -and $script:MSSupport) {
+            Write-Verbose "Using Organization parameter"
+            $params.Add("Organization", $Organization)
+        } elseif (-not ([string]::IsNullOrEmpty($Organization))) {
+            Write-Verbose "Using -OrganizationalUnit parameter with $Organization."
+            $params.Add("Organization", $Organization)
         }
 
-        if (!$GetMailboxOutput) {
+        Write-Verbose "Running $Cmdlet with params: $($params.Values)"
+        $RecipientOutput = & $Cmdlet @params
+        Write-Verbose "RecipientOutput: $RecipientOutput"
+
+        if (!$RecipientOutput) {
             Write-Host "Unable to find [$Identity]$(if ($Organization -ne `"`" ) {" in Organization:[$Organization]"})."
             Write-Host "Trying to find a Group Mailbox for [$Identity]..."
-            $GetMailboxOutput = Get-Mailbox -Identity $Identity -ErrorAction SilentlyContinue -GroupMailbox
-            if (!$GetMailboxOutput) {
+            $RecipientOutput = Get-Mailbox -Identity $Identity -ErrorAction SilentlyContinue -GroupMailbox
+            if (!$RecipientOutput) {
                 Write-Host "Unable to find a Group Mailbox for [$Identity] either."
                 return $null
             } else {
-                Write-Verbose "Found GroupMailbox [$($GetMailboxOutput.DisplayName)]"
+                Write-Verbose "Found GroupMailbox [$($RecipientOutput.DisplayName)]"
             }
-        } else {
-            Write-Verbose "Found [$($GetMailboxOutput.DisplayName)]"
         }
 
-        if (CheckForNoPIIAccess($script:GetMailboxOutput.DisplayName)) {
-            Write-Host -ForegroundColor Magenta "No PII Access for [$Identity]"
-        } else {
-            Write-Verbose "Found [$($GetMailboxOutput.DisplayName)]"
+        if ($null -eq $script:PIIAccess) {
+            [bool]$script:PIIAccess = CheckForPIIAccess($RecipientOutput.DisplayName)
         }
-        return $GetMailboxOutput
+
+        if ($script:PIIAccess) {
+            Write-Verbose "Found [$($RecipientOutput.DisplayName)]"
+        } else {
+            Write-Host -ForegroundColor Magenta "No PII Access for [$Identity]"
+        }
+
+        return $RecipientOutput
     } catch {
-        Write-Error "An error occurred while running Get-Mailbox: [$_]"
+        Write-Error "An error occurred while running ${Cmdlet}: [$_]"
     }
 }
 
@@ -84,13 +96,13 @@ function CheckIdentities {
     Write-Host "Preparing to check $($Identity.count) Mailbox(es)..."
 
     foreach ($Id in $Identity) {
-        $Account = GetMailbox -Identity $Id
+        $Account = GetMailbox -Identity $Id -UseGetMailbox $true
         if ($null -eq $Account) {
             # -or $script:MB.GetType().FullName -ne "Microsoft.Exchange.Data.Directory.Management.Mailbox") {
             Write-DashLineBoxColor "`n Error: Mailbox [$Id] not found on Exchange Online.  Please validate the mailbox name and try again.`n" -Color Red
             continue
         }
-        if (CheckForNoPIIAccess $Account.DisplayName) {
+        if (-not (CheckForPIIAccess($Account.DisplayName))) {
             Write-Host -ForegroundColor DarkRed "No PII access for Mailbox [$Id]. Falling back to SMTP Address."
             $IdentityList += $ID
             if ($null -eq $script:MB) {
@@ -104,11 +116,16 @@ function CheckIdentities {
             }
         }
         if ($Account.CalendarVersionStoreDisabled -eq $true) {
+            [bool]$script:CalLogsDisabled = $true
             Write-Host -ForegroundColor DarkRed "Mailbox [$Id] has CalendarVersionStoreDisabled set to True.  This mailbox will not have Calendar Logs."
             Write-Host -ForegroundColor DarkRed "Some logs will be available for Mailbox [$Id] but they will not be complete."
         }
         if ($Account.RecipientTypeDetails -eq "RoomMailbox" -or $Account.RecipientTypeDetails -eq "EquipmentMailbox") {
-            $script:Rooms += $Account.PrimarySmtpAddress.ToString()
+            if ($script:PIIAccess -eq $true) {
+                $script:Rooms += $Account.PrimarySmtpAddress.ToString()
+            } else {
+                $script:Rooms += $Id
+            }
             Write-Host -ForegroundColor Green "[$Id] is a Room / Equipment Mailbox."
         }
     }
@@ -262,14 +279,14 @@ function BetterThanNothingCNConversion {
 .SYNOPSIS
 Checks if an entries is Redacted to protect PII.
 #>
-function CheckForNoPIIAccess {
+function CheckForPIIAccess {
     param(
         $PassedString
     )
     if ($PassedString -match "REDACTED-") {
-        return $true
-    } else {
         return $false
+    } else {
+        return $true
     }
 }
 
@@ -314,7 +331,7 @@ function GetMailboxProp {
                     }
 
                     Write-Verbose "`t GetMailboxProp:[$Prop] :Found::[$ReturnValue]"
-                    if (CheckForNoPIIAccess($ReturnValue)) {
+                    if (-not (CheckForPIIAccess($ReturnValue))) {
                         Write-Verbose "No PII Access for [$ReturnValue]"
                         return BetterThanNothingCNConversion($PassedCN)
                     }
