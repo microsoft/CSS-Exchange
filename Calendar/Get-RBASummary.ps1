@@ -283,10 +283,10 @@ function OutputMBList {
         $Org = $Identity.Split('@')[1]
 
         if ($null -ne $Org) {
-            $User = Get-Mailbox -Identity $User -organization $Org
+            $User = Get-Recipient -Identity $User -organization $Org
             Write-Host " `t `t [$($User.DisplayName)] -- $($User.PrimarySmtpAddress)"
         } else {
-            $User = Get-Mailbox -Identity $User
+            $User = Get-Recipient -Identity $User
             Write-Host " `t `t [$($User.DisplayName)] -- $($User.PrimarySmtpAddress)"
         }
     }
