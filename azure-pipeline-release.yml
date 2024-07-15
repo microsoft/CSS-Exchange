@@ -50,7 +50,7 @@ extends:
           displayName: 'Create GitHub Release - Draft'
           condition: and(succeeded(), ne (variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/release'))
           inputs:
-            gitHubConnection: 'GitHub Release'
+            gitHubConnection: 'github.com_bill-long'
             repositoryName: microsoft/CSS-Exchange
             action: create
             tagSource: manual
@@ -71,7 +71,7 @@ extends:
           displayName: 'Publish GitHub Release'
           condition: and(succeeded(), ne (variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/release'))
           inputs:
-            gitHubConnection: 'GitHub Release'
+            gitHubConnection: 'github.com_bill-long'
             repositoryName: microsoft/CSS-Exchange
             action: edit
             tagSource: manual
