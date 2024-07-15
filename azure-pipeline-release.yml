@@ -2,25 +2,25 @@ trigger:
   branches:
     include:
     - release
+variables:
+  WindowsContainerImage: 'onebranch.azurecr.io/windows/ltsc2022/vse2022:latest'
 resources:
   repositories:
-  - repository: 1ESPipelineTemplates
+  - repository: templates
     type: git
-    name: 1ESPipelineTemplates/1ESPipelineTemplates
-    ref: refs/tags/release
+    name: OneBranch.Pipelines/GovernedTemplates
+    ref: refs/heads/main
 extends:
-  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
+  template: v2/OneBranch.Official.CrossPlat.yml@templates
   parameters:
-    pool:
-      name: MSSecurity-1ES-Build-Agents-Pool
-      image: MSSecurity-1ES-Windows-2022
-      os: windows
-    customBuildTags:
-    - ES365AIMigrationTooling
+    featureFlags:
+      WindowsHostVersion: 1ESWindows2022
     stages:
-    - stage: stage
+    - stage: build
       jobs:
-      - job: job
+      - job: main
+        pool:
+          type: windows
         steps:
         - pwsh: |
             cd .\.build
