@@ -7,6 +7,8 @@ resources:
 extends:
   template: v1/1ES.Unofficial.PipelineTemplate.yml@1ESPipelineTemplates
   parameters:
+    settings:
+      skipBuildTagsForGitHubPullRequests: true
     pool:
       name: MSSecurity-1ES-Build-Agents-Pool
       image: MSSecurity-1ES-Windows-2022
@@ -26,7 +28,7 @@ extends:
           displayName: "Spell Check"
         - pwsh: |
             cd .\.build
-            .\CodeFormatter.ps1 -Branch $env:TargetBranchName
+            .\CodeFormatter.ps1 -Branch main
           displayName: "Code Formatting Script"
           condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/release'))
           env:
@@ -37,13 +39,13 @@ extends:
           displayName: "Build Script"
         - pwsh: |
             cd .\.build
-            .\Pester.ps1 -NoProgress -Branch $env:TargetBranchName
+            .\Pester.ps1 -NoProgress -Branch main
           displayName: "Running Invoke-Pester"
           env:
             TargetBranchName: $(System.PullRequest.TargetBranch)
         - pwsh: |
             cd .\.build
-            .\ValidateMerge.ps1 -Branch $env:TargetBranchName
+            .\ValidateMerge.ps1 -Branch main
           displayName: "Validate commit times"
           env:
             TargetBranchName: $(System.PullRequest.TargetBranch)
