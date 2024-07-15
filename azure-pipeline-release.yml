@@ -21,6 +21,8 @@ extends:
       - job: main
         pool:
           type: windows
+        variables:
+          ob_outputDirectory: 'dist'
         steps:
         - pwsh: |
             cd .\.build
