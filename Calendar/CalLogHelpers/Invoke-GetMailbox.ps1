@@ -64,7 +64,7 @@ function GetMailbox {
         if ($script:PIIAccess) {
             Write-Verbose "Found [$($RecipientOutput.DisplayName)]"
         } else {
-            Write-Host -ForegroundColor Magenta "No PII Access for [$Identity]"
+            Write-Verbose "No PII Access for [$Identity]"
         }
 
         return $RecipientOutput
