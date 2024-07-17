@@ -346,6 +346,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://microsoft.github.io/CSS-Exchange/M365/MDO/MDOThreatPolicyChecker/</loc>
+         <lastmod>2024-07-17</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://microsoft.github.io/CSS-Exchange/NewUserGuide/</loc>
          <lastmod>2024-07-17</lastmod>
          <changefreq>daily</changefreq>
