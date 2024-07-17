@@ -26,6 +26,9 @@
 # .PARAMETER CaseNumber
 # Case Number to include in the Filename of the output.
 #
+# .PARAMETER ShortLogs
+# Limit Logs to 500 instead of the default 2000, in case the server has trouble responding with the full logs.
+#
 # .EXAMPLE
 # Get-CalendarDiagnosticObjectsSummary.ps1 -Identity someuser@microsoft.com -MeetingID 040000008200E00074C5B7101A82E008000000008063B5677577D9010000000000000000100000002FCDF04279AF6940A5BFB94F9B9F73CD
 #
@@ -45,6 +48,7 @@ param (
     [string[]]$Identity,
     [switch]$ExportToExcel,
     [string]$CaseNumber,
+    [switch]$ShortLogs,
 
     [Parameter(Mandatory, ParameterSetName = 'MeetingID', Position = 1)]
     [string]$MeetingID,
@@ -79,10 +83,14 @@ Write-Verbose "Script Versions: $BuildVersion"
 . $PSScriptRoot\CalLogHelpers\ShortClientNameFunctions.ps1
 . $PSScriptRoot\CalLogHelpers\CalLogInfoFunctions.ps1
 . $PSScriptRoot\CalLogHelpers\CalLogExportFunctions.ps1
-. $PSScriptRoot\CalLogHelpers\ExcelModuleInstaller.ps1
 . $PSScriptRoot\CalLogHelpers\CreateTimelineRow.ps1
 . $PSScriptRoot\CalLogHelpers\FindChangedPropFunctions.ps1
 . $PSScriptRoot\CalLogHelpers\Write-DashLineBoxColor.ps1
+
+if ($ExportToExcel.IsPresent) {
+    . $PSScriptRoot\CalLogHelpers\ExcelModuleInstaller.ps1
+    . $PSScriptRoot\CalLogHelpers\ExportToExcelFunctions.ps1
+}
 
 # ===================================================================================================
 # Main
