@@ -3348,7 +3348,8 @@
 <p>Download the latest release: <a href="https://github.com/microsoft/CSS-Exchange/releases/latest/download/Get-CalendarDiagnosticObjectsSummary.ps1">Get-CalendarDiagnosticObjectsSummary.ps1</a></p>
 <p>This script runs the Get-CalendarDiagnosticObjects cmdlet and returns a summarized timeline of actions into clear English. It will also output an easier to read version of the CalLogs (enhanced) as well as a Raw copy of the logs for Developers. </p>
 <p>To run the script, you will need a valid SMTP Address for a user and a meeting Subject or MeetingID.</p>
-<p>The script will display summarized timeline of actions and save the logs returned in csv format in the current directory.</p>
+<p>The script will display summarized timeline of actions and save the logs returned in csv format in the current directory.
+New <strong>-ExportToExcel</strong> highly recommended for ease of use (all logs in one file, color coding, etc.). First time use will request installing the ImportExcel module. See https://github.com/dfinke/ImportExcel for more information on the ImportExcel module.</p>
 <table>
 <thead>
 <tr>
@@ -3379,15 +3380,22 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>-ExportToExcel</strong></td>
-<td style="text-align: left;">- <code>[Beta Feature]</code> Export the output to an Excel file with formatting.  <BR> - Running the script for multiple users will create three tabs in the Excel file for each user. <BR> If you want to add more users to the Excel file, close the file and rerun with new user. <BR>        - one tab for Enhanced CalLog         <BR>  - one tab for the TimeLine        <BR>  - Tab one for Raw CalLog</td>
+<td style="text-align: left;">- <code>[NEW Feature]</code> Export the output to an Excel file with formatting.  <BR> - Running the script for multiple users will create three tabs in the Excel file for each user. <BR> If you want to add more users to the Excel file, close the file and rerun with new user. <BR>        - one tab for Enhanced CalLog         <BR>  - one tab for the TimeLine        <BR>  - Tab one for Raw CalLog</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>-CaseNumber</strong></td>
 <td style="text-align: left;">Case Number to include in the Filename of the output. <BR> - PrePend <code>&lt;CaseNumber&gt;_</code> to filename.</td>
 </tr>
+<tr>
+<td style="text-align: left;"><strong>-ShortLogs</strong></td>
+<td style="text-align: left;">Limit Logs to 500 instead of the default 2000, in case the server has trouble responding with the full logs.</td>
+</tr>
+<tr>
+<td style="text-align: left;">---</td>
+<td style="text-align: left;"></td>
+</tr>
 </tbody>
 </table>
-<hr />
 <h4 id="syntax">Syntax:</h4>
 <p>Example to return timeline for a user with MeetingID:
 <div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="nb">Get-CalendarDiagnosticObjectsSummary</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Identity</span> <span class="n">user</span><span class="nv">@contoso</span><span class="p">.</span><span class="n">com</span> <span class="n">-MeetingID</span> <span class="n">040000008200E00074C5B7101A82E0080000000010E4301F9312D801000000000000000010000000996102014F1D484A8123C16DDBF8603E</span>
@@ -3425,7 +3433,7 @@ Will create file like  <code>.\123456_CalLogSummary_&lt;MeetingID&gt;.xlsx</code
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1-2.1-2M12.5 7v5.2l4 2.4-1 1L11 13V7h1.5M11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2v1.8Z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">May 7, 2024</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">July 17, 2024</span>
   </span>
 
     
