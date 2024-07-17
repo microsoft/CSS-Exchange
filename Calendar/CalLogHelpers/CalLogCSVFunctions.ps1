@@ -19,6 +19,7 @@ $script:CalendarItemTypes = @{
     'IPM.Schedule.Meeting.Resp.Neg'                        = "Resp.Neg"
     'IPM.Schedule.Meeting.Resp.Tent'                       = "Resp.Tent"
     'IPM.Schedule.Meeting.Resp.Pos'                        = "Resp.Pos"
+    '(Occurrence Deleted)'                                 = "Exception.Deleted"
 }
 
 # ===================================================================================================
