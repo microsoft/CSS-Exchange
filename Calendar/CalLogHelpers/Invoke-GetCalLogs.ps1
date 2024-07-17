@@ -30,6 +30,7 @@ $script:CustomPropertyNameList =
 "SendMeetingMessagesDiagnostics",
 "SentRepresentingDisplayName",
 "SentRepresentingEmailAddress",
+"Sensitivity",
 "LogTimestamp",
 "LogClientInfoString",
 "OriginalStartDate",

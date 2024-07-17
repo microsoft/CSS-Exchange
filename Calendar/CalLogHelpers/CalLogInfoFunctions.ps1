@@ -32,24 +32,22 @@ function SetIsRoom {
     param(
         $CalLogs
     )
-    [bool] $IsRoom = $false
 
+    # See if we have already determined this is a Room MB.
     if ($script:Rooms -contains $Identity) {
-        $IsRoom = $true
-        return $IsRoom
+        return $true
     }
 
     # Simple logic is if RBA is running on the MB, it is a Room MB, otherwise it is not.
     foreach ($CalLog in $CalLogs) {
-        Write-Verbose "Checking if this is a Room Mailbox. [$($CalLog.ItemType)] [$($CalLog.ExternalSharingMasterId)] [$($CalLog.LogClientInfoString)]"
-        if ($CalLog.ItemType -eq "IPM.Appointment" -and
+        Write-Verbose "Checking if this is a Room Mailbox. [$($CalLog.ItemClass)] [$($CalLog.ExternalSharingMasterId)] [$($CalLog.LogClientInfoString)]"
+        if ($CalLog.ItemClass -eq "IPM.Appointment" -and
             $CalLog.ExternalSharingMasterId -eq "NotFound" -and
             $CalLog.LogClientInfoString -like "*ResourceBookingAssistant*" ) {
-            $IsRoom = $true
-            return $IsRoom
+            return $true
         }
     }
-    return $IsRoom
+    return $false
 }
 
 <#
