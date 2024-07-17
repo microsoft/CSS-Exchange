@@ -8,6 +8,7 @@ This script runs the Get-CalendarDiagnosticObjects cmdlet and returns a summariz
 To run the script, you will need a valid SMTP Address for a user and a meeting Subject or MeetingID.
 
 The script will display summarized timeline of actions and save the logs returned in csv format in the current directory.
+New **-ExportToExcel** highly recommended for ease of use (all logs in one file, color coding, etc.). First time use will request installing the ImportExcel module. See https://github.com/dfinke/ImportExcel for more information on the ImportExcel module.
 
 | Parameters:    | Explanation: |
 |:-------------- | :-----|
@@ -16,9 +17,9 @@ The script will display summarized timeline of actions and save the logs returne
 | **-MeetingID** | MeetingID of the meeting to query. <BR> - Preferred way to get CalLogs.
 | **-TrackingLogs** | Populate attendee tracking columns in the output. <BR> - Only useable with the MeetingID parameter.
 | **-Exceptions** | Include Exception objects in the output. <br> - Only useable with the MeetingID parameter. <br> 
-|**-ExportToExcel**|   - `[Beta Feature]` Export the output to an Excel file with formatting.  <BR> - Running the script for multiple users will create three tabs in the Excel file for each user. <BR> If you want to add more users to the Excel file, close the file and rerun with new user. <BR>        - one tab for Enhanced CalLog         <BR>  - one tab for the TimeLine        <BR>  - Tab one for Raw CalLog 
+| **-ExportToExcel**|   - `[NEW Feature]` Export the output to an Excel file with formatting.  <BR> - Running the script for multiple users will create three tabs in the Excel file for each user. <BR> If you want to add more users to the Excel file, close the file and rerun with new user. <BR>        - one tab for Enhanced CalLog         <BR>  - one tab for the TimeLine        <BR>  - Tab one for Raw CalLog 
 | **-CaseNumber** | Case Number to include in the Filename of the output. <BR> - PrePend `<CaseNumber>_` to filename.
-
+| **-ShortLogs**| Limit Logs to 500 instead of the default 2000, in case the server has trouble responding with the full logs.
 ---
 
 #### Syntax:
