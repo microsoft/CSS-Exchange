@@ -75,6 +75,11 @@ function BuildTimeline {
         Write-Host "Found $($script:EnhancedCalLogs.count) Log entries, only the $($InterestingCalLogs.count) Non-Ignorable entries will be analyzed in the TimeLine. `n"
     }
 
+    if ($script:CalLogsDisabled) {
+        Write-Host -ForegroundColor Red "Warning: CalLogs are disabled for this user, Timeline / CalLogs will be incomplete."
+        return
+    }
+
     Write-DashLineBoxColor "  TimeLine for: [$Identity]",
     "  Subject: $($script:GCDO[0].NormalizedSubject)",
     "  Organizer: $Script:Organizer",

@@ -429,9 +429,9 @@ function GetReceiverInformation {
             # need to check if Get-CalendarValidationResult in the PS Workspace
             if ((Get-Command -Name Get-CalendarValidationResult -ErrorAction SilentlyContinue) -and
                 $null -ne $ReceiverCalEntries) {
-                Write-Host "Running cmdlet: Get-CalendarValidationResult -Version V2 -Identity $Receiver -SourceCalendarId $($ReceiverCalEntries[0].LocalFolderId) -TargetUserId $Owner -IncludeAnalysis 1 -OnlyReportErrors 1"
                 $ewsId_del= $ReceiverCalEntries[0].LocalFolderId
-                Get-CalendarValidationResult -Version V2 -Identity $Receiver -SourceCalendarId $ewsId_del -TargetUserId $Owner -IncludeAnalysis 1 -OnlyReportErrors 1
+                Write-Host "Running cmdlet: Get-CalendarValidationResult -Version V2 -Identity $Receiver -SourceCalendarId $ewsId_del -TargetUserId $Owner -IncludeAnalysis 1 -OnlyReportErrors 1 | FT -a GlobalObjectId, EventValidationResult  "
+                Get-CalendarValidationResult -Version V2 -Identity $Receiver -SourceCalendarId $ewsId_del -TargetUserId $Owner -IncludeAnalysis 1 -OnlyReportErrors 1 | Format-List UserPrimarySMTPAddress, Subject, GlobalObjectId, EventValidationResult, EventComparisonResult
             }
         }
 
