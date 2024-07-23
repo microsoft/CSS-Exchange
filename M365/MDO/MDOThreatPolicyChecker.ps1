@@ -250,7 +250,7 @@ begin {
             try {
                 $recipient = Get-EXORecipient $EmailAddress -ErrorAction Stop
                 if ($null -eq $recipient) {
-                    Write-Host "$EmailAddress is not a recipient in this tenant" -ForegroundColor Red
+                    Write-Host "$EmailAddress is not a recipient in this tenant." -ForegroundColor Red
                 } else {
                     return $tempAddress
                 }
