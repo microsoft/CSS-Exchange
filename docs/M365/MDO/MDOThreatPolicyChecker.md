@@ -4,6 +4,8 @@ Download the latest release: [MDOThreatPolicyChecker.ps1](https://github.com/mic
 
 This script checks which Microsoft Defender for Office 365 and Exchange Online Protection threat policies cover a particular user, including anti-malware, anti-phishing, inbound and outbound anti-spam, as well as Safe Attachments and Safe Links policies in case these are licensed for your tenant. In addition, the script can check for threat policies that have inclusion and/or exclusion settings that may be redundant or confusing and lead to missed coverage of users or coverage by an unexpected threat policy.
 
+It also includes an option to show all the actions and settings of the policies that apply to a user.
+
 ## Common Usage
 The script uses Exchange Online cmdlets from Exchange Online module and Microsoft.Graph cmdLets from Microsoft.Graph.Authentication, Microsoft.Graph.Groups and Microsoft.Graph.Users modules.
 

@@ -11,7 +11,7 @@
 Evaluates user coverage and potential redundancies in Microsoft Defender for Office 365 and Exchange Online Protection threat policies, including anti-malware, anti-phishing, and anti-spam policies, as well as Safe Attachments and Safe Links policies if licensed.
 
 .DESCRIPTION
-This script checks which Microsoft Defender for Office 365 and Exchange Online Protection threat policies cover a particular user, including anti-malware, anti-phishing, inbound and outbound anti-spam, as well as Safe Attachments and Safe Links policies in case these are licensed for your tenant. In addition, the script can check for threat policies that have inclusion and/or exclusion settings that may be redundant or confusing and lead to missed coverage of users or coverage by an unexpected threat policy.
+This script checks which Microsoft Defender for Office 365 and Exchange Online Protection threat policies cover a particular user, including anti-malware, anti-phishing, inbound and outbound anti-spam, as well as Safe Attachments and Safe Links policies in case these are licensed for your tenant. In addition, the script can check for threat policies that have inclusion and/or exclusion settings that may be redundant or confusing and lead to missed coverage of users or coverage by an unexpected threat policy. It also includes an option to show all the actions and settings of the policies that apply to a user.
 
 .PARAMETER CsvFilePath
     Allows you to specify a CSV file with a list of email addresses to check.
@@ -535,14 +535,14 @@ process {
                 Write-Host "Error checking Graph connection:`n$_" -ForegroundColor Red
                 Write-Host "Verify that you have Microsoft.Graph.Users and Microsoft.Graph.Groups modules installed and loaded" -ForegroundColor Yellow
                 Write-Host "You could use:" -ForegroundColor Yellow
-                Write-Host "Connect-MgGraph -Scopes 'Group.Read.All','User.Read.All'" -ForegroundColor Yellow
+                Write-Host "`tConnect-MgGraph -Scopes 'Group.Read.All','User.Read.All' -TenantId $($exoConnection.TenantId)" -ForegroundColor Yellow
                 exit
             }
             if ($null -eq $graphConnection) {
                 Write-Host "Not connected to Graph" -ForegroundColor Red
                 Write-Host "Verify that you have Microsoft.Graph.Users and Microsoft.Graph.Groups modules installed and loaded" -ForegroundColor Yellow
                 Write-Host "You could use:" -ForegroundColor Yellow
-                Write-Host "Connect-MgGraph -Scopes 'Group.Read.All','User.Read.All'" -ForegroundColor Yellow
+                Write-Host "`tConnect-MgGraph -Scopes 'Group.Read.All','User.Read.All' -TenantId $($exoConnection.TenantId)" -ForegroundColor Yellow
                 exit
             } elseif ($graphConnection.count -eq 1) {
                 $expectedScopes = "Group.Read.All", 'User.Read.All'
@@ -555,7 +555,7 @@ process {
                     Write-Host "We cannot continue without Graph Powershell session without Expected Scopes" -ForegroundColor Red
                     Write-Host "Verify that you have Microsoft.Graph.Users and Microsoft.Graph.Groups modules installed and loaded" -ForegroundColor Yellow
                     Write-Host "You could use:" -ForegroundColor Yellow
-                    Write-Host "Connect-MgGraph -Scopes 'Group.Read.All','User.Read.All'" -ForegroundColor Yellow
+                    Write-Host "`tConnect-MgGraph -Scopes 'Group.Read.All','User.Read.All' -TenantId $($exoConnection.TenantId)" -ForegroundColor Yellow
                     exit
                 }
             } else {
