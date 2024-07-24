@@ -279,7 +279,7 @@ begin {
                     } while ((-not $foundRequest) -and ($remainSeconds -gt 0))
                     Write-Progress -Activity "Searching on logs ..." -Completed
                     if (-not $foundRequest) {
-                        Write-Warning "We have not found the request on FrontEnd server: $Server." -ForegroundColor Red
+                        Write-Host "We have not found the request on FrontEnd server: $Server." -ForegroundColor Red
                         if ($SearchHttpRequestFiltering) {
                             Write-Host "Server: $Server has not record on HttpRequestFiltering log" -ForegroundColor Red
                         }
@@ -648,11 +648,7 @@ process {
     }
 
     $uniqueSites = $null
-    if ($localServer) {
-        $uniqueSites = $SupportedExchangeServers.Site.Name | Get-Unique
-    } else {
-        $uniqueSites = $SupportedExchangeServers.Site | Get-Unique | ForEach-Object { $_.split('/')[-1] }
-    }
+    $uniqueSites = $SupportedExchangeServers.Site.Name | Sort-Object | Get-Unique
     $sitesCounter = $uniqueSites.count
 
     if ($Sites) {
@@ -661,11 +657,7 @@ process {
                 Write-Warning "We did not find site $site"
             }
         }
-        if ($localServer) {
-            $fullList = ($SupportedExchangeServers | Where-Object { $Sites -contains $_.Site.Name } | Select-Object Name).Name
-        } else {
-            $fullList = ($SupportedExchangeServers | Where-Object { $Sites -contains $_.Site.split('/')[-1] } | Select-Object Name).Name
-        }
+        $fullList = ($SupportedExchangeServers | Where-Object { $Sites -contains $_.Site.Name } | Select-Object Name).Name
     } else {
         $fullList = ($SupportedExchangeServers | Select-Object Name).Name
     }
