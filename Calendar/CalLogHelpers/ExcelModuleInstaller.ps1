@@ -2,7 +2,8 @@
 # Licensed under the MIT License.
 
 # ===================================================================================================
-# Excel Functions
+# ImportExcel Functions
+# see https://github.com/dfinke/ImportExcel for information on the module.
 # ===================================================================================================
 function CheckExcelModuleInstalled {
     [CmdletBinding(SupportsShouldProcess=$true)]

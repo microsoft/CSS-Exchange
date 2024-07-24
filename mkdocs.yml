@@ -75,6 +75,8 @@ nav:
   - Hybrid:
     - Test-HMAEAS: Hybrid/Test-HMAEAS.md
   - M365:
+    - MDO:
+      - MDOThreatPolicyChecker: M365/MDO/MDOThreatPolicyChecker.md
     - DLT365Groupsupgrade: M365/DLT365Groupsupgrade.md
   - Performance:
     - ExPerfWiz: Performance/ExPerfWiz.md

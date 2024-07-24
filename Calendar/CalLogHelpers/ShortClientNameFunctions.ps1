@@ -58,6 +58,11 @@ function CreateShortClientName {
         return $ShortClientName
     }
 
+    if ($LogClientInfoString -like "*EDiscoverySearch*") {
+        $ShortClientName = "EDiscoverySearch"
+        return $ShortClientName
+    }
+
     if ($LogClientInfoString -like "Client=EBA*" -or $LogClientInfoString -like "Client=TBA*") {
         if ($LogClientInfoString -like "*ResourceBookingAssistant*") {
             $ShortClientName = "ResourceBookingAssistant"

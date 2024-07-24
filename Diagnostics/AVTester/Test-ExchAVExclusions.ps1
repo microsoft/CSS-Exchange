@@ -466,7 +466,7 @@ while ($currentDiff -gt 0) {
 
             if ($ProcessModules.count -gt 0) {
                 foreach ($module in $ProcessModules) {
-                    $OutString = ("PROCESS: $($process.ProcessName) PID($($process.Id)) UNEXPECTED MODULE: $($module.ModuleName) COMPANY: $($module.Company)`n`tPATH: $($module.FileName)")
+                    $OutString = ("PROCESS: $($process.ProcessName) PID($($process.Id)) UNEXPECTED MODULE: $($module.ModuleName) COMPANY: $($module.Company)`n`tPATH: $($module.FileName)`n`tFileVersion: $($module.FileVersion)")
                     Write-Host "[FAIL] - $OutString" -ForegroundColor Red
                     if ($process.MainModule.ModuleName -eq "W3wp.exe") {
                         $SuspiciousW3wpProcessList += $OutString
