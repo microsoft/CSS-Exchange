@@ -116,17 +116,17 @@ foreach ($id in $uniqueMessageIDs) {
         [array]$AllDeliveries = ($AllStoreDeliverTimes + $AllRemoteDeliverTimes) | Sort-Object
 
         $report = [PSCustomObject]@{
-            ID                   = $id
-            Sent                 = $TimeSent
-            FirstRecieved        = (Get-Date $AllDeliveries[0])
-            LastRecieved         = (Get-Date $AllDeliveries[-1])
-            RecievedDifferential = (Get-Date $AllDeliveries[-1]) - (Get-Date $AllDeliveries[0])
-            MessageDelay         = (Get-Date $AllDeliveries[0]) - $timesent
+            MessageID    = $id
+            TimeSent     = $TimeSent
+            TimeRecieved = (Get-Date $AllDeliveries[-1])
+            MessageDelay = (Get-Date $AllDeliveries[0]) - $timesent
         }
 
         [array]$output = [array]$output + $report
     }
 }
+
+$output | Export-Csv c:\temp\out.csv
 
 $Stats = ($output.MessageDelay.TotalMilliseconds | Measure-Object -Average -Maximum -Minimum)
 
