@@ -49,11 +49,36 @@ Generates the report from the MyMtl.csv file.
 param (
     [Parameter()]
     [string]
-    $MTLFile
+    $MTLFile,
+    [Parameter()]
+    [string]
+    $Path = $PSScriptRoot
 )
 
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
-. $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
+
+Function Test-CSVData {
+    param(
+    [array]$CSV,
+    [array]$ColumnsToCheck
+    )
+
+    $ColumnHeaders = ($CSV | Get-Member -MemberType NoteProperty).Name
+    $MissingColumnHeaders = @()
+    ForEach( $ColumnToCheck in $ColumnsToCheck)
+        {
+        If ($ColumnHeaders.Contains($ColumnToCheck) )
+            {
+            # Nothing to do.
+            }
+        Else
+            {
+            Return $false
+            }
+        }
+    Return $true
+}
+
 
 # Autoupdate
 if (Test-ScriptVersion -AutoUpdate) {
@@ -72,6 +97,11 @@ if (Test-Path $MTLFile) {
 } else {
     Write-Error "Unable to find specified file"
 }
+
+# Validate the MTL
+if (Test-CSVData -CSV $mtl -ColumnsToCheck "event_id","source","message_id","date_time_utc"){}
+Else { Write-Error "MTL is missing one or more required fields: `"event_id`",`"source`",`"message_id`",`"date_time_utc`""}
+
 
 # get all of the unique message IDs in the file.
 $uniqueMessageIDs = $mtl | Select-Object -ExpandProperty message_id | Sort-Object | Get-Unique
@@ -126,8 +156,7 @@ foreach ($id in $uniqueMessageIDs) {
     }
 }
 
-$output | Export-Csv c:\temp\out.csv
-
+# Gather general statistical data and output to the screen
 $Stats = ($output.MessageDelay.TotalMilliseconds | Measure-Object -Average -Maximum -Minimum)
 
 $GeneralData = [PSCustomObject]@{
