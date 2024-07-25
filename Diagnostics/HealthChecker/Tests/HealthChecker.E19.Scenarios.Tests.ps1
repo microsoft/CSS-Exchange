@@ -32,7 +32,6 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Runtime\1.0\noderunner.exe.config" } -MockWith { return $null }
             Mock Get-ServerRebootPending { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetServerRebootPending1.xml" }
             Mock Get-AllTlsSettings { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetAllTlsSettings1.xml" }
-            Mock Get-Smb1ServerSettings { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetSmb1ServerSettings1.xml" }
             Mock Get-OrganizationConfig { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOrganizationConfig1.xml" }
             Mock Get-OwaVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory1.xml" }
             Mock Get-HttpProxySetting { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetHttpProxySetting1.xml" }
@@ -51,6 +50,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-IISModules { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetIISModulesNoTokenCacheModule.xml" }
             Mock Get-ADPrincipalGroupMembership { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetADPrincipalGroupMembership2.xml" }
             Mock Get-LocalGroupMember { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetLocalGroupMember2.xml" }
+            Mock Get-WindowsFeature { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetWindowsFeature1.xml" }
+            Mock Get-SmbServerConfiguration { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetSmbServerConfiguration1.xml" }
             Mock Get-Service {
                 param(
                     [string]$ComputerName,
@@ -87,6 +88,10 @@ Describe "Testing Health Checker by Mock Data Imports" {
             $httpProxy.ByPassList | Should -Be "localhost;*.contoso.com;*microsoft.com"
             $httpProxy.HttpProxyDifference | Should -Be "False"
             $httpProxy.HttpByPassDifference | Should -Be "False"
+        }
+
+        It "Message Queuing Feature" {
+            TestObjectMatch "Messaging Queuing Feature" $true -WriteType "Yellow"
         }
 
         It "TCP Keep Alive Time" {
