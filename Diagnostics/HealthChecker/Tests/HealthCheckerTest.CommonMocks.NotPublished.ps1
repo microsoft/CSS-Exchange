@@ -178,8 +178,8 @@ Mock Get-VisualCRedistributableInstalledVersion {
     return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetVisualCRedistributableInstalledVersion.xml"
 }
 
-Mock Get-Smb1ServerSettings {
-    return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetSmb1ServerSettings.xml"
+Mock Get-SmbServerConfiguration {
+    return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetSmbServerConfiguration.xml"
 }
 
 Mock Get-ExchangeAppPoolsInformation {
@@ -338,4 +338,8 @@ function Get-ExchangeProtocolContainer {
 }
 function Get-ExchangeWebSitesFromAd {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeWebSitesFromAd.xml"
+}
+
+function Get-WindowsFeature {
+    return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetWindowsFeature.xml"
 }
