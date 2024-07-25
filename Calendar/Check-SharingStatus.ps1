@@ -383,17 +383,17 @@ function GetReceiverInformation {
 
     # Note $Owner has a * at the end in case we have had multiple setup for the same user, they will be appended with a " 1", etc.
     if (($CalStats | Where-Object Name -Like $owner*) -or ($CalStats | Where-Object Name -Like "$($ownerMB.DisplayName)*" )) {
-        Write-Host -ForegroundColor Green "Looks like we might have found a copy of the Owner Calendar in the Receiver Calendar."
+        Write-Host -ForegroundColor Green "Looks like we might have found a copy of the Owner Calendar in the Receiver Mailbox."
         Write-Host -ForegroundColor Green "This is a good indication the there is a Modern Sharing Relationship between these users."
         Write-Host -ForegroundColor Green "If the clients use the Modern Sharing or not is a up to the client."
         $script:ModernSharing = $true
 
         $CalStats | Where-Object Name -Like $owner* | Format-Table -a FolderPath, ItemsInFolder, FolderAndSubfolderSize
         if (($CalStats | Where-Object Name -Like $owner*).count -gt 1) {
-            Write-Host -ForegroundColor Yellow "Warning: Might have found more than one copy of the Owner Calendar in the Receiver Calendar."
+            Write-Host -ForegroundColor Yellow "Warning: Might have found more than one copy of the Owner Calendar in the Receiver Mailbox."
         }
     } else {
-        Write-Host -ForegroundColor Yellow "Warning: Could not Identify the Owner's [$Owner] Calendar in the Receiver Calendar collection."
+        Write-Host -ForegroundColor Yellow "Warning: Could not Identify the Owner's [$Owner] Calendar in the Receiver Mailbox."
     }
 
     if ($ReceiverCalendarName -like "REDACTED-*" ) {
@@ -429,9 +429,9 @@ function GetReceiverInformation {
             # need to check if Get-CalendarValidationResult in the PS Workspace
             if ((Get-Command -Name Get-CalendarValidationResult -ErrorAction SilentlyContinue) -and
                 $null -ne $ReceiverCalEntries) {
-                Write-Host "Running cmdlet: Get-CalendarValidationResult -Version V2 -Identity $Receiver -SourceCalendarId $($ReceiverCalEntries[0].LocalFolderId) -TargetUserId $Owner -IncludeAnalysis 1 -OnlyReportErrors 1"
                 $ewsId_del= $ReceiverCalEntries[0].LocalFolderId
-                Get-CalendarValidationResult -Version V2 -Identity $Receiver -SourceCalendarId $ewsId_del -TargetUserId $Owner -IncludeAnalysis 1 -OnlyReportErrors 1
+                Write-Host "Running cmdlet: Get-CalendarValidationResult -Version V2 -Identity $Receiver -SourceCalendarId $ewsId_del -TargetUserId $Owner -IncludeAnalysis 1 -OnlyReportErrors 1 | FT -a GlobalObjectId, EventValidationResult  "
+                Get-CalendarValidationResult -Version V2 -Identity $Receiver -SourceCalendarId $ewsId_del -TargetUserId $Owner -IncludeAnalysis 1 -OnlyReportErrors 1 | Format-List UserPrimarySMTPAddress, Subject, GlobalObjectId, EventValidationResult, EventComparisonResult
             }
         }
 

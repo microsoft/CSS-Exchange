@@ -12,11 +12,11 @@ function SetIsOrganizer {
     [bool] $IsOrganizer = $false
 
     foreach ($CalLog in $CalLogs) {
-        if ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -and
+        if ($CalLog.ItemClass -eq "Ipm.Appointment" -and
             $CalLog.ExternalSharingMasterId -eq "NotFound" -and
-            ($CalLog.ResponseType -eq "1" -or $CalLogs.ResponseType -eq "Organizer")) {
+            ($CalLog.ResponseType -eq "1" -or $CalLog.ResponseType -eq "Organizer")) {
             $IsOrganizer = $true
-            Write-Verbose "IsOrganizer: [$IsOrganizer]"
+            Write-Host -ForegroundColor Green "IsOrganizer: [$IsOrganizer]"
             return $IsOrganizer
         }
     }
@@ -32,17 +32,22 @@ function SetIsRoom {
     param(
         $CalLogs
     )
-    [bool] $IsRoom = $false
+
+    # See if we have already determined this is a Room MB.
+    if ($script:Rooms -contains $Identity) {
+        return $true
+    }
+
     # Simple logic is if RBA is running on the MB, it is a Room MB, otherwise it is not.
     foreach ($CalLog in $CalLogs) {
-        if ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -and
+        Write-Verbose "Checking if this is a Room Mailbox. [$($CalLog.ItemClass)] [$($CalLog.ExternalSharingMasterId)] [$($CalLog.LogClientInfoString)]"
+        if ($CalLog.ItemClass -eq "IPM.Appointment" -and
             $CalLog.ExternalSharingMasterId -eq "NotFound" -and
-            $CalLog.Client -eq "ResourceBookingAssistant" ) {
-            $IsRoom = $true
-            return $IsRoom
+            $CalLog.LogClientInfoString -like "*ResourceBookingAssistant*" ) {
+            return $true
         }
     }
-    return $IsRoom
+    return $false
 }
 
 <#
@@ -57,7 +62,7 @@ function SetIsRecurring {
     [bool] $IsRecurring = $false
     # See if this is a recurring meeting
     foreach ($CalLog in $CalLogs) {
-        if ($CalendarItemTypes.($CalLog.ItemClass) -eq "IpmAppointment" -and
+        if ($CalendarItemTypes.($CalLog.ItemClass) -eq "Ipm.Appointment" -and
             $CalLog.ExternalSharingMasterId -eq "NotFound" -and
             ($CalLog.CalendarItemType.ToString() -eq "RecurringMaster" -or
             $CalLog.IsException -eq $true)) {
@@ -72,23 +77,48 @@ function SetIsRecurring {
 
 <#
 .SYNOPSIS
-Checks to see if the Calendar Log is Ignorable.
+Check for Bifurcation issue
+#>
+function CheckForBifurcation {
+    param (
+        $CalLogs
+    )
+    Write-Verbose  "Looking for signs of the Bifurcation Issue."
+    [bool] $IsBifurcated = $false
+    # See if there is an IPM.Appointment in the CalLogs.
+    foreach ($CalLog in $CalLogs) {
+        if ($CalLog.ItemClass -eq "IPM.Appointment" -and
+            $CalLog.ExternalSharingMasterId -eq "NotFound") {
+            $IsBifurcated = $false
+            Write-Verbose "Found Ipm.Appointment, likely not a bifurcation issue."
+            return $IsBifurcated
+        }
+    }
+    Write-Host -ForegroundColor Red "Did not find any Ipm.Appointments in the CalLogs. If this is the Organizer of the meeting, this could the the Outlook Bifurcation issue."
+    Write-Host -ForegroundColor Yellow "`t This could be the Outlook Bifurcation issue, where Outlook saves to the Organizers Mailbox on one thread and send to the attendee via transport on another thread.  If the save to Organizers mailbox failed, we get into the Bifurcated State, where the Organizer does not have the meeting but the Attendees do."
+    Write-Host -ForegroundColor Yellow "`t See https://support.microsoft.com/en-us/office/meeting-request-is-missing-from-organizers-calendar-c13c47cd-18f9-4ef0-b9d0-d9e174912c4a"
+    return $IsBifurcated
+}
+
+<#
+.SYNOPSIS
+Sets the Calendar Log Type.
 Many updates are not interesting in the Calendar Log, marking these as ignorable. 99% of the time this is correct.
 #>
-function SetIsIgnorable {
+function SetLogType {
     param(
         $CalLog
     )
 
     if ($CalLog.ItemClass -eq "(Occurrence Deleted)") {
         return "Ignorable"
-    } elseif ($ShortClientName -like "TBA*SharingSyncAssistant" -or
+    } elseif ($ShortClientName -like "CalendarSyncAssistant" -or
         $ShortClientName -eq "CalendarReplication" -or
         $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingCFM" -or
         $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingDelete") {
         return "Sharing"
-    } elseif ($ShortClientName -like "EBA*" -or
-        $ShortClientName -like "TBA*" -or
+    } elseif ($ShortClientName -eq "Other EBA" -or
+        $ShortClientName -eq "Other TBA" -or
         $ShortClientName -eq "LocationProcessor" -or
         $ShortClientName -eq "GriffinRestClient" -or
         $ShortClientName -eq "RestConnector" -or
@@ -98,9 +128,10 @@ function SetIsIgnorable {
     } elseif ($CalLog.ItemClass -eq "IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}" ) {
         return "Exception"
     } elseif (($CalendarItemTypes.($CalLog.ItemClass) -like "*Resp*" -and $CalLog.CalendarLogTriggerAction -ne "Create" ) -or
-        $CalendarItemTypes.($CalLog.ItemClass) -eq "AttendeeList" ) {
+        $CalendarItemTypes.($CalLog.ItemClass) -eq "AttendeeList" -or
+        ($CalLog.ItemClass -eq "IPM.Schedule.Meeting.Request" -and $CalLog.CalendarLogTriggerAction -like "*move*" ) ) {
         return "Cleanup"
     } else {
-        return "False"
+        return "Core"
     }
 }

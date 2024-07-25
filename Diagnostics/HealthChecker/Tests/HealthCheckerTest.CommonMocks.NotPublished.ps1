@@ -178,8 +178,8 @@ Mock Get-VisualCRedistributableInstalledVersion {
     return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetVisualCRedistributableInstalledVersion.xml"
 }
 
-Mock Get-Smb1ServerSettings {
-    return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetSmb1ServerSettings.xml"
+Mock Get-SmbServerConfiguration {
+    return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetSmbServerConfiguration.xml"
 }
 
 Mock Get-ExchangeAppPoolsInformation {
@@ -226,8 +226,19 @@ Mock Get-ExSetupFileVersionInfo {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup.xml"
 }
 
+Mock Get-LocalGroupMember {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetLocalGroupMember.xml"
+}
+
 # Do nothing
 Mock Invoke-CatchActions { }
+
+function Get-ExchangeDiagnosticInfo { param($Argument, $Component, $Process, $Server) }
+
+Mock Get-ExchangeDiagnosticInfo -ParameterFilter { $Process -eq "Microsoft.Exchange.Directory.TopologyService" -and $Component -eq "VariantConfiguration" -and $Argument -eq "Overrides" } `
+    -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo_ADTopVariantConfiguration.xml" }
+Mock Get-ExchangeDiagnosticInfo -ParameterFilter { $Process -eq "EdgeTransport" -and $Component -eq "ResourceThrottling" } `
+    -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo_EdgeTransportResourceThrottling.xml" }
 
 # Need to use function instead of Mock for Exchange cmdlets
 function Get-ExchangeServer {
@@ -265,6 +276,12 @@ function Get-DynamicDistributionGroup {
 function Get-IRMConfiguration {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetIrmConfiguration.xml"
 }
+
+function Get-ADPrincipalGroupMembership {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetADPrincipalGroupMembership.xml"
+}
+
+function Get-ADComputer { return $null }
 
 # virtual directory cmdlets to return null till we do actual checks against the vDirs.
 function Get-ActiveSyncVirtualDirectory { return $null }
@@ -323,6 +340,6 @@ function Get-ExchangeWebSitesFromAd {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeWebSitesFromAd.xml"
 }
 
-function Get-ExchangeDiagnosticInfo {
-    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo.xml"
+function Get-WindowsFeature {
+    return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetWindowsFeature.xml"
 }
