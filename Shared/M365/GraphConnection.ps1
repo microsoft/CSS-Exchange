@@ -10,6 +10,8 @@ function Connect-GraphAdvanced {
         [Parameter(Mandatory = $true)]
         [string[]]$Modules,
         [Parameter(Mandatory = $false)]
+        [string[]]$TenantId = $null,
+        [Parameter(Mandatory = $false)]
         [switch]$DoNotShowConnectionDetails
     )
 
@@ -39,11 +41,26 @@ function Connect-GraphAdvanced {
         if (-not (Test-GraphContext -Scopes $connection.Scopes -ExpectedScopes $Scopes)) {
             Write-Host "Not connected to Graph with expected scopes" -ForegroundColor Yellow
             $connection = Add-GraphConnection -Scopes $Scopes
+        } else {
+            Write-Verbose "All scopes are present"
         }
     }
-    if ($null -ne $connection -and -not $DoNotShowConnectionDetails) {
-        $connection.PSObject.Properties | ForEach-Object { Write-Verbose "$($_.Name): $($_.Value)" }
-        Show-GraphContext -Context $connection
+
+    if ($connection) {
+        Write-Verbose "Checking TenantId"
+        if ($TenantId) {
+            if ($connection.TenantId -ne $TenantId) {
+                Write-Host "Connected to $($connection.TenantId). Not expected tenant: $TenantId" -ForegroundColor Red
+                return $null
+            } else {
+                Write-Verbose "TenantId is correct"
+            }
+        }
+
+        if (-not $DoNotShowConnectionDetails) {
+            $connection.PSObject.Properties | ForEach-Object { Write-Verbose "$($_.Name): $($_.Value)" }
+            Show-GraphContext -Context $connection
+        }
     }
     return $connection
 }

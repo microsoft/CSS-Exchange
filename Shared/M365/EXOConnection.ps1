@@ -39,8 +39,10 @@ function Connect-EXOAdvanced {
             Write-Host "You already have a session with the prefix $Prefix" -ForegroundColor Red
             return $null
         } else {
-            Write-Host "Not connected to Exchange Online" -ForegroundColor Yellow -NoNewline
-            if ($Prefix) { Write-Host "with Prefix $Prefix" }
+            $prefixString = "."
+            if ($Prefix) { $prefixString = " with Prefix $Prefix." }
+            Write-Host "Not connected to Exchange Online$prefixString" -ForegroundColor Yellow
+
             if ($PSCmdlet.ShouldProcess("Do you want to add it?", "Adding an Exchange Online Session")) {
                 Write-Verbose "Connecting to Exchange Online session"
                 try {
