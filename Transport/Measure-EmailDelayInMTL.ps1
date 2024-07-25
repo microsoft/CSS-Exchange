@@ -59,23 +59,19 @@ param (
 
 Function Test-CSVData {
     param(
-    [array]$CSV,
-    [array]$ColumnsToCheck
+        [array]$CSV,
+        [array]$ColumnsToCheck
     )
 
     $ColumnHeaders = ($CSV | Get-Member -MemberType NoteProperty).Name
     $MissingColumnHeaders = @()
-    ForEach( $ColumnToCheck in $ColumnsToCheck)
-        {
-        If ($ColumnHeaders.Contains($ColumnToCheck) )
-            {
+    ForEach ( $ColumnToCheck in $ColumnsToCheck) {
+        If ($ColumnHeaders.Contains($ColumnToCheck) ) {
             # Nothing to do.
-            }
-        Else
-            {
+        } Else {
             Return $false
-            }
         }
+    }
     Return $true
 }
 
@@ -99,12 +95,17 @@ if (Test-Path $MTLFile) {
 }
 
 # Validate the MTL
-if (Test-CSVData -CSV $mtl -ColumnsToCheck "event_id","source","message_id","date_time_utc"){}
-Else { Write-Error "MTL is missing one or more required fields: `"event_id`",`"source`",`"message_id`",`"date_time_utc`""}
-
+if (Test-CSVData -CSV $mtl -ColumnsToCheck "event_id", "source", "message_id", "date_time_utc") {}
+else {
+    Write-Error "MTL is missing one or more required fields: `"event_id`",`"source`",`"message_id`",`"date_time_utc`""
+}
 
 # get all of the unique message IDs in the file.
-$uniqueMessageIDs = $mtl | Select-Object -ExpandProperty message_id | Sort-Object | Get-Unique
+[array]$uniqueMessageIDs = $mtl | Select-Object -ExpandProperty message_id | Sort-Object | Get-Unique
+
+if ($uniqueMessageIDs.count -eq 0) {
+    Write-Error "No Unique MessageIDs found in data."
+}
 
 # Carve the data up into smaller collections to make searching faster.
 # Most of what is in the MTL we don't need for this.
@@ -123,7 +124,7 @@ foreach ($id in $uniqueMessageIDs) {
     # extract the times for a message ID ... there can be more than one of each of these.
     [array]$AllSentTimes = ($SMTPRecieve | Where-Object { ($_.message_id -eq $id) }).date_time_utc
     [array]$AllStoreDeliverTimes = ($StoreDeliver | Where-Object { ($_.message_id -eq $id) }).date_time_utc
-    [array]$AllRemoteDeliverTimes = ($SMTPDeliver | Where-Object { ($_.message_id -eq $id.message_id) }).date_time_utc
+    [array]$AllRemoteDeliverTimes = ($SMTPDeliver | Where-Object { ($_.message_id -eq $id) }).date_time_utc
 
     # Process the time sent
     if ($AllSentTimes.count -eq 0) {
@@ -135,10 +136,8 @@ foreach ($id in $uniqueMessageIDs) {
 
     # If we didn't find any delivery information then drop the message ID
     if ($AllStoreDeliverTimes.count -eq 0 -and $AllRemoteDeliverTimes.count -eq 0) {
-        Write-Warning ($id.message_id.tostring() + "not able to find delivery time in MTL. Discarding messageID")
-        quit
+        Write-Warning ($id + "not able to find delivery time in MTL. Discarding messageID")
     }
-
     # Process the message information
     else {
 
@@ -156,6 +155,9 @@ foreach ($id in $uniqueMessageIDs) {
     }
 }
 
+# Export the data to the output file
+$output | Export-Csv -IncludeTypeInformation:$false -Path (Join-Path -Path $Path -ChildPath "mtl_report.csv")
+
 # Gather general statistical data and output to the screen
 $Stats = ($output.MessageDelay.TotalMilliseconds | Measure-Object -Average -Maximum -Minimum)
 
@@ -167,3 +169,4 @@ $GeneralData = [PSCustomObject]@{
 }
 
 Write-Output $GeneralData
+
