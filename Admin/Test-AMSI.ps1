@@ -648,6 +648,12 @@ process {
     }
 
     $uniqueSites = $null
+    if ((($SupportedExchangeServers.Site)[0]).PSObject.Properties.Name -contains 'Name') {
+        $uniqueSites = $SupportedExchangeServers.Site.Name | Get-Unique
+    } else {
+        $uniqueSites = $SupportedExchangeServers.Site | Get-Unique | ForEach-Object { $_.split('/')[-1] }
+    }
+
     $uniqueSites = $SupportedExchangeServers.Site.Name | Sort-Object | Get-Unique
     $sitesCounter = $uniqueSites.count
 
