@@ -761,12 +761,13 @@ process {
                         }
                         if ($null -eq $malwareMatchedRule) {
                             Write-Host "`nMalware:`n`tDefault policy"  -ForegroundColor Yellow
+                            $malwareFilterPolicy = Get-MalwareFilterPolicy "Default"
                         } else {
                             $malwareFilterPolicy = Get-MalwareFilterPolicy $malwareMatchedRule.Name
                             Write-Host "`nMalware:`n`tName: $($malwareMatchedRule.Name)`n`tPriority: $($malwareMatchedRule.Priority)"  -ForegroundColor Yellow
-                            if ($malwareFilterPolicy -and $ShowDetailedPolicies) {
-                                Show-DetailedPolicy -Policy $malwareFilterPolicy
-                            }
+                        }
+                        if ($malwareFilterPolicy -and $ShowDetailedPolicies) {
+                            Show-DetailedPolicy -Policy $malwareFilterPolicy
                         }
 
                         $antiPhishMatchedRule = $antiPhishPolicy = $null
@@ -775,12 +776,13 @@ process {
                         }
                         if ($null -eq $antiPhishMatchedRule) {
                             Write-Host "`nAnti-phish:`n`tDefault policy"  -ForegroundColor Yellow
+                            $antiPhishPolicy = Get-AntiPhishPolicy "Office365 AntiPhish Default"
                         } else {
                             $antiPhishPolicy = Get-AntiPhishPolicy $antiPhishMatchedRule.Name
                             Write-Host "`nAnti-phish:`n`tName: $($antiPhishMatchedRule.Name)`n`tPriority: $($antiPhishMatchedRule.Priority)"  -ForegroundColor Yellow
-                            if ($antiPhishPolicy -and $ShowDetailedPolicies) {
-                                Show-DetailedPolicy -Policy $antiPhishPolicy
-                            }
+                        }
+                        if ($antiPhishPolicy -and $ShowDetailedPolicies) {
+                            Show-DetailedPolicy -Policy $antiPhishPolicy
                         }
 
                         $spamMatchedRule = $hostedContentFilterPolicy = $null
@@ -789,12 +791,13 @@ process {
                         }
                         if ($null -eq $spamMatchedRule) {
                             Write-Host "`nAnti-spam::`n`tDefault policy"  -ForegroundColor Yellow
+                            $hostedContentFilterPolicy = Get-HostedContentFilterPolicy "Default"
                         } else {
                             $hostedContentFilterPolicy = Get-HostedContentFilterPolicy $spamMatchedRule.Name
                             Write-Host "`nAnti-spam:`n`tName: $($spamMatchedRule.Name)`n`tPriority: $($spamMatchedRule.Priority)"  -ForegroundColor Yellow
-                            if ($hostedContentFilterPolicy -and $ShowDetailedPolicies) {
-                                Show-DetailedPolicy -Policy $hostedContentFilterPolicy
-                            }
+                        }
+                        if ($hostedContentFilterPolicy -and $ShowDetailedPolicies) {
+                            Show-DetailedPolicy -Policy $hostedContentFilterPolicy
                         }
 
                         $outboundSpamMatchedRule = $hostedOutboundSpamFilterPolicy = $null
@@ -803,12 +806,13 @@ process {
                         }
                         if ($null -eq $outboundSpamMatchedRule) {
                             Write-Host "`nOutbound Spam:`n`tDefault policy"  -ForegroundColor Yellow
+                            $hostedOutboundSpamFilterPolicy = Get-HostedOutboundSpamFilterPolicy "Default"
                         } else {
                             $hostedOutboundSpamFilterPolicy = Get-HostedOutboundSpamFilterPolicy $outboundSpamMatchedRule.Name
                             Write-Host "`nOutbound Spam:`n`tName: $($outboundSpamMatchedRule.Name)`n`tPriority: $($outboundSpamMatchedRule.Priority)"  -ForegroundColor Yellow
-                            if ($hostedOutboundSpamFilterPolicy -and $ShowDetailedPolicies) {
-                                Show-DetailedPolicy -Policy $hostedOutboundSpamFilterPolicy
-                            }
+                        }
+                        if ($hostedOutboundSpamFilterPolicy -and $ShowDetailedPolicies) {
+                            Show-DetailedPolicy -Policy $hostedOutboundSpamFilterPolicy
                         }
 
                         $allPolicyDetails = $userDetails + "`n" + $allPolicyDetails
