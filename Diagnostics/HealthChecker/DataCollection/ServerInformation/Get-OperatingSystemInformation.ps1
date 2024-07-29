@@ -5,6 +5,7 @@
 . $PSScriptRoot\..\..\..\..\Shared\VisualCRedistributableVersionFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\TLS\Get-AllTlsSettings.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-AllNicInformation.ps1
+. $PSScriptRoot\Get-EventLogInformation.ps1
 . $PSScriptRoot\Get-NETFrameworkInformation.ps1
 . $PSScriptRoot\Get-NetworkingInformation.ps1
 . $PSScriptRoot\Get-OperatingSystemBuildInformation.ps1
@@ -59,12 +60,20 @@ function Get-OperatingSystemInformation {
             $credentialGuardCimInstance = "Unknown"
         }
 
+        try {
+            $windowsFeature = Get-WindowsFeature -ComputerName $Server -ErrorAction Stop
+        } catch {
+            Write-Verbose "Failed to run Get-WindowsFeature for the server $server. Inner Exception: $_"
+            Invoke-CatchActions
+        }
+
         $serverPendingReboot = (Get-ServerRebootPending -ServerName $Server -CatchActionFunction ${Function:Invoke-CatchActions})
         $timeZoneInformation = Get-TimeZoneInformation -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
         $tlsSettings = Get-AllTlsSettings -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
         $vcRedistributable = Get-VisualCRedistributableInstalledVersion -ComputerName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
-        $smb1ServerSettings = Get-Smb1ServerSettings -ServerName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
+        $smb1ServerSettings = Get-Smb1ServerSettings -ServerName $Server -GetWindowsFeature $windowsFeature -CatchActionFunction ${Function:Invoke-CatchActions}
         $registryValues = Get-OperatingSystemRegistryValues -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
+        $eventLogInformation = Get-EventLogInformation -Server $Server -CatchActionFunction ${Function:Invoke-CatchActions}
         $netFrameworkInformation = Get-NETFrameworkInformation -Server $Server
     } end {
         Write-Verbose "Exiting: $($MyInvocation.MyCommand)"
@@ -83,6 +92,8 @@ function Get-OperatingSystemInformation {
             HotFixes                   = $hotFixes
             NETFramework               = $netFrameworkInformation
             CredentialGuardCimInstance = $credentialGuardCimInstance
+            WindowsFeature             = $windowsFeature
+            EventLogInformation        = $eventLogInformation
         }
     }
 }

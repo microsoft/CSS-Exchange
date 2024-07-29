@@ -1,0 +1,110 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Diagnostics.Eventing.Reader.EventLogRecord</T>
+      <T>System.Diagnostics.Eventing.Reader.EventRecord</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>System.Diagnostics.Eventing.Reader.EventLogRecord</ToString>
+    <Props>
+      <I32 N="Id">104</I32>
+      <By N="Version">0</By>
+      <Nil N="Qualifiers" />
+      <By N="Level">4</By>
+      <I32 N="Task">104</I32>
+      <I16 N="Opcode">0</I16>
+      <I64 N="Keywords">-9223372036854775808</I64>
+      <I64 N="RecordId">4030</I64>
+      <S N="ProviderName">Microsoft-Windows-Eventlog</S>
+      <G N="ProviderId">fc65ddd8-d6ef-4962-83d5-6e5cfe9ce148</G>
+      <S N="LogName">System</S>
+      <I32 N="ProcessId">784</I32>
+      <I32 N="ThreadId">2948</I32>
+      <S N="MachineName">WIN-AUPR2S24E9U</S>
+      <Obj N="UserId" RefId="1">
+        <TN RefId="1">
+          <T>System.Security.Principal.SecurityIdentifier</T>
+          <T>System.Security.Principal.IdentityReference</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>S-1-5-21-406381025-241472036-1068998058-500</ToString>
+        <Props>
+          <I32 N="BinaryLength">28</I32>
+          <S N="AccountDomainSid">S-1-5-21-406381025-241472036-1068998058</S>
+          <S N="Value">S-1-5-21-406381025-241472036-1068998058-500</S>
+        </Props>
+      </Obj>
+      <DT N="TimeCreated">2021-10-06T10:41:42.7509975-07:00</DT>
+      <Nil N="ActivityId" />
+      <Nil N="RelatedActivityId" />
+      <S N="ContainerLog">system</S>
+      <Obj N="MatchedQueryIds" RefId="2">
+        <TN RefId="2">
+          <T>System.UInt32[]</T>
+          <T>System.Array</T>
+          <T>System.Object</T>
+        </TN>
+        <LST />
+      </Obj>
+      <Obj N="Bookmark" RefId="3">
+        <TN RefId="3">
+          <T>System.Diagnostics.Eventing.Reader.EventBookmark</T>
+          <T>System.Object</T>
+        </TN>
+        <ToString>System.Diagnostics.Eventing.Reader.EventBookmark</ToString>
+      </Obj>
+      <S N="LevelDisplayName">Information</S>
+      <S N="OpcodeDisplayName">Info</S>
+      <S N="TaskDisplayName">Log clear</S>
+      <Obj N="KeywordsDisplayNames" RefId="4">
+        <TN RefId="4">
+          <T>System.Collections.ObjectModel.ReadOnlyCollection`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]</T>
+          <T>System.Object</T>
+        </TN>
+        <LST />
+      </Obj>
+      <Obj N="Properties" RefId="5">
+        <TN RefId="5">
+          <T>System.Collections.Generic.List`1[[System.Diagnostics.Eventing.Reader.EventProperty, System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <Obj RefId="6">
+            <TN RefId="6">
+              <T>System.Diagnostics.Eventing.Reader.EventProperty</T>
+              <T>System.Object</T>
+            </TN>
+            <ToString>System.Diagnostics.Eventing.Reader.EventProperty</ToString>
+            <Props>
+              <S N="Value">Administrator</S>
+            </Props>
+          </Obj>
+          <Obj RefId="7">
+            <TNRef RefId="6" />
+            <ToString>System.Diagnostics.Eventing.Reader.EventProperty</ToString>
+            <Props>
+              <S N="Value">WIN-AUPR2S24E9U</S>
+            </Props>
+          </Obj>
+          <Obj RefId="8">
+            <TNRef RefId="6" />
+            <ToString>System.Diagnostics.Eventing.Reader.EventProperty</ToString>
+            <Props>
+              <S N="Value">System</S>
+            </Props>
+          </Obj>
+          <Obj RefId="9">
+            <TNRef RefId="6" />
+            <ToString>System.Diagnostics.Eventing.Reader.EventProperty</ToString>
+            <Props>
+              <S N="Value"></S>
+            </Props>
+          </Obj>
+        </LST>
+      </Obj>
+    </Props>
+    <MS>
+      <S N="Message">The System log file was cleared.</S>
+    </MS>
+  </Obj>
+</Objs>

@@ -31,6 +31,19 @@ Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "G
 Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Test EEMS pattern service connectivity" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\WebRequest_GetExchangeMitigations.xml" }
 Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Get TokenCacheModule version information" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\IIS\GetVersionInformationCachTokn.xml" }
 
+Mock Get-WinEvent -ParameterFilter { $LogName -eq "Application" -and $Oldest -eq $true -and $MaxEvents -eq 1 } -MockWith {
+    $r = Import-Clixml "$Script:MockDataCollectionRoot\OS\GetWinEventOldestApplication.xml"
+    $r.TimeCreated = ((Get-Date).AddDays(-8))
+    return $r
+}
+Mock Get-WinEvent -ParameterFilter { $LogName -eq "System" -and $Oldest -eq $true -and $MaxEvents -eq 1 } -MockWith {
+    $r = Import-Clixml "$Script:MockDataCollectionRoot\OS\GetWinEventOldestSystem.xml"
+    $r.TimeCreated = ((Get-Date).AddDays(-8))
+    return $r
+}
+Mock Get-WinEvent -ParameterFilter { $ListLog -eq "Application" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetWinEventApplication.xml" }
+Mock Get-WinEvent -ParameterFilter { $ListLog -eq "System" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetWinEventSystem.xml" }
+
 # Handle IIS collection of files
 Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost.config" -Raw -Encoding UTF8 }
 
@@ -178,8 +191,8 @@ Mock Get-VisualCRedistributableInstalledVersion {
     return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetVisualCRedistributableInstalledVersion.xml"
 }
 
-Mock Get-Smb1ServerSettings {
-    return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetSmb1ServerSettings.xml"
+Mock Get-SmbServerConfiguration {
+    return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetSmbServerConfiguration.xml"
 }
 
 Mock Get-ExchangeAppPoolsInformation {
@@ -338,4 +351,8 @@ function Get-ExchangeProtocolContainer {
 }
 function Get-ExchangeWebSitesFromAd {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeWebSitesFromAd.xml"
+}
+
+function Get-WindowsFeature {
+    return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetWindowsFeature.xml"
 }

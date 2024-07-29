@@ -48,6 +48,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-MapiVirtualDirectory { return $null }
             Mock Get-OutlookAnywhere { return $null }
             Mock Get-PowerShellVirtualDirectory { return $null }
+            Mock Get-WindowsFeature { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetWindowsFeature.xml" }
 
             $Error.Clear()
             Get-OrganizationInformation -EdgeServer $false | Out-Null
@@ -72,7 +73,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-LocalizedCounterSamples -Exactly 1
             Assert-MockCalled Get-ServerRebootPending -Exactly 1
             Assert-MockCalled Get-AllTlsSettings -Exactly 1
-            Assert-MockCalled Get-Smb1ServerSettings -Exactly 1
+            Assert-MockCalled Get-SmbServerConfiguration -Exactly 1
             Assert-MockCalled Get-ExchangeAppPoolsInformation -Exactly 1
             Assert-MockCalled Get-ExchangeUpdates -Exactly 1
             Assert-MockCalled Get-ExchangeDomainsAclPermissions -Exactly 1
@@ -104,6 +105,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-MapiVirtualDirectory -Exactly 1
             Assert-MockCalled Get-OutlookAnywhere -Exactly 1
             Assert-MockCalled Get-PowerShellVirtualDirectory -Exactly 1
+            Assert-MockCalled Get-WindowsFeature -Exactly 1
         }
     }
 }
