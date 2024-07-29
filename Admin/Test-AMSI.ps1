@@ -654,7 +654,6 @@ process {
         $uniqueSites = $SupportedExchangeServers.Site | Get-Unique | ForEach-Object { $_.split('/')[-1] }
     }
 
-    $uniqueSites = $SupportedExchangeServers.Site.Name | Sort-Object | Get-Unique
     $sitesCounter = $uniqueSites.count
 
     if ($Sites) {
@@ -663,7 +662,11 @@ process {
                 Write-Warning "We did not find site $site"
             }
         }
-        $fullList = ($SupportedExchangeServers | Where-Object { $Sites -contains $_.Site.Name } | Select-Object Name).Name
+        if ((($SupportedExchangeServers.Site)[0]).PSObject.Properties.Name -contains 'Name') {
+            $fullList = ($SupportedExchangeServers | Where-Object { $Sites -contains $_.Site.Name } | Select-Object Name).Name
+        } else {
+            $fullList = ($SupportedExchangeServers | Where-Object { $Sites -contains $_.Site.split('/')[-1] } | Select-Object Name).Name
+        }
     } else {
         $fullList = ($SupportedExchangeServers | Select-Object Name).Name
     }
