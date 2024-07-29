@@ -52,6 +52,16 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-LocalGroupMember { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetLocalGroupMember2.xml" }
             Mock Get-WindowsFeature { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetWindowsFeature1.xml" }
             Mock Get-SmbServerConfiguration { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetSmbServerConfiguration1.xml" }
+            Mock Get-WinEvent -ParameterFilter { $LogName -eq "Application" -and $Oldest -eq $true -and $MaxEvents -eq 1 } -MockWith {
+                $r = Import-Clixml "$Script:MockDataCollectionRoot\OS\GetWinEventOldestApplication.xml"
+                $r.TimeCreated = ((Get-Date).AddDays(-1))
+                return $r
+            }
+            Mock Get-WinEvent -ParameterFilter { $LogName -eq "System" -and $Oldest -eq $true -and $MaxEvents -eq 1 } -MockWith {
+                $r = Import-Clixml "$Script:MockDataCollectionRoot\OS\GetWinEventOldestSystem.xml"
+                $r.TimeCreated = ((Get-Date).AddDays(-1))
+                return $r
+            }
             Mock Get-Service {
                 param(
                     [string]$ComputerName,
@@ -92,6 +102,11 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "Message Queuing Feature" {
             TestObjectMatch "Messaging Queuing Feature" $true -WriteType "Yellow"
+        }
+
+        It "Event Log Size Test" {
+            GetObject "Event Log - Application" |
+                Should -BeLike "--ERROR-- Not enough logs to cover 7 days. Last log entry is at *. This could cause issues with determining Root Cause Analysis."
         }
 
         It "TCP Keep Alive Time" {

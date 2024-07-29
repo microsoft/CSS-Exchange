@@ -5,6 +5,7 @@
 . $PSScriptRoot\..\..\..\..\Shared\VisualCRedistributableVersionFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\TLS\Get-AllTlsSettings.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-AllNicInformation.ps1
+. $PSScriptRoot\Get-EventLogInformation.ps1
 . $PSScriptRoot\Get-NETFrameworkInformation.ps1
 . $PSScriptRoot\Get-NetworkingInformation.ps1
 . $PSScriptRoot\Get-OperatingSystemBuildInformation.ps1
@@ -72,6 +73,7 @@ function Get-OperatingSystemInformation {
         $vcRedistributable = Get-VisualCRedistributableInstalledVersion -ComputerName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
         $smb1ServerSettings = Get-Smb1ServerSettings -ServerName $Server -GetWindowsFeature $windowsFeature -CatchActionFunction ${Function:Invoke-CatchActions}
         $registryValues = Get-OperatingSystemRegistryValues -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
+        $eventLogInformation = Get-EventLogInformation -Server $Server -CatchActionFunction ${Function:Invoke-CatchActions}
         $netFrameworkInformation = Get-NETFrameworkInformation -Server $Server
     } end {
         Write-Verbose "Exiting: $($MyInvocation.MyCommand)"
@@ -91,6 +93,7 @@ function Get-OperatingSystemInformation {
             NETFramework               = $netFrameworkInformation
             CredentialGuardCimInstance = $credentialGuardCimInstance
             WindowsFeature             = $windowsFeature
+            EventLogInformation        = $eventLogInformation
         }
     }
 }
