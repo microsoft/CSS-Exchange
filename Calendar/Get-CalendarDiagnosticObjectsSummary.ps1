@@ -43,6 +43,9 @@ Get-CalendarDiagnosticObjectsSummary.ps1 -Identity $Users -MeetingID $MeetingID 
 
 .SYNOPSIS
 Used to collect easy to read Calendar Logs.
+
+.LINK
+    https://aka.ms/callogformatter
 #>
 
 [CmdletBinding(DefaultParameterSetName = 'Subject',
