@@ -19,7 +19,7 @@ function FindMatch {
 $ShortClientNameProcessor = @{
     'Client=Hub Transport'                       = "Transport"
     'Client=MSExchangeRPC'                       = "Outlook : Desktop : MAPI"
-    'OneOutlook'                                 = "OneOutlook"
+    'OneOutlook'                                 = "NewOutlook"
     'Lync for Mac'                               = "LyncMac"
     'MicrosoftNinja'                             = "Teams"
     'SkypeSpaces'                                = "Teams"
@@ -60,6 +60,11 @@ function CreateShortClientName {
 
     if ($LogClientInfoString -like "*EDiscoverySearch*") {
         $ShortClientName = "EDiscoverySearch"
+        return $ShortClientName
+    }
+
+    if ($LogClientInfoString -like "*AppId=00000007-0000-0000-c000-000000000000*") {
+        $ShortClientName = "CRM"
         return $ShortClientName
     }
 
@@ -151,7 +156,7 @@ function CreateShortClientName {
             $LogClientInfoString -notlike "*Outlook-iOS*") {
             $ShortClientName = "Outlook : Desktop : REST"
         } elseif ($LogClientInfoString -like "*OneOutlook*") {
-            $ShortClientName = "OneOutlook"
+            $ShortClientName = "NewOutlook"
         }
     }
 
@@ -159,7 +164,7 @@ function CreateShortClientName {
         $ShortClientName = "Outlook : ActiveSync"
     }
     if ($LogClientInfoString -like "*OneOutlook*") {
-        $ShortClientName = "OneOutlook"
+        $ShortClientName = "NewOutlook"
     }
     if ($ShortClientName -eq "") {
         $ShortClientName = "[NoShortNameFound]"
