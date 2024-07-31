@@ -66,19 +66,29 @@
 #   The users will be granted "Owner" access rights. These actions will be performed without requesting confirmation to the user.
 #############################################################################################################
 
+[CmdletBinding(SupportsShouldProcess)]
 param (
-    [Parameter(Mandatory=$True)]
+    [Parameter(Mandatory=$True, ParameterSetName='Default')]
+    [Parameter(Mandatory=$True, ParameterSetName='PropagateAll')]
     [string[]]$IncludeFolders,
-    [Parameter(Mandatory=$True)]
+    [Parameter(Mandatory=$True, ParameterSetName='Default')]
     [string[]]$Users,
-    [Parameter(Mandatory=$True)]
+    [Parameter(Mandatory=$True, ParameterSetName='Default')]
     [string[]]$AccessRights,
+    [Parameter(Mandatory=$True, ParameterSetName='PropagateAll')]
+    [switch]$PropagateAll,
+    [Parameter(Mandatory=$False, ParameterSetName='Default')]
+    [Parameter(Mandatory=$False, ParameterSetName='PropagateAll')]
     [switch]$Recurse,
+    [Parameter(Mandatory=$False, ParameterSetName='Default')]
+    [Parameter(Mandatory=$False, ParameterSetName='PropagateAll')]
     [string[]]$ExcludeFolderEntryIds = @(),
+    [Parameter(Mandatory=$False, ParameterSetName='Default')]
+    [Parameter(Mandatory=$False, ParameterSetName='PropagateAll')]
     [switch]$SkipCurrentAccessCheck,
-    [string]$ProgressLogFile = ".\UpdatePublicFolderPermission.$((Get-Date).ToString('yyyyMMdd_HHmm')).log",
-    [switch]$confirm,
-    [switch]$whatIf
+    [Parameter(Mandatory=$False, ParameterSetName='Default')]
+    [Parameter(Mandatory=$False, ParameterSetName='PropagateAll')]
+    [string]$ProgressLogFile = ".\UpdatePublicFolderPermission.$((Get-Date).ToString('yyyyMMdd_HHmm')).log"
 )
 
 #############################################################################################################
@@ -86,6 +96,12 @@ param (
 #############################################################################################################
 function FindFoldersToUpdate([string[]]$includeFolders, [bool]$recurseOnFolders, [string[]]$excludeFolderEntryIds)
 {
+    Write-Verbose "$($MyInvocation.MyCommand): excludeFolderEntryIds.Count $($excludeFolderEntryIds.Count)"
+    if ($excludeFolderEntryIds.Count -gt 0)
+    {
+        $excludeFolderEntryIds | ForEach-Object { Write-Verbose "$($MyInvocation.MyCommand): excluded EntryID $_" }
+    }
+
     $folderToSkip = new-object 'System.Collections.Generic.HashSet[string]' -ArgumentList @(,$excludeFolderEntryIds)
     $currentIncludeFolder=0;
     foreach($includeFolder in $includeFolders)
@@ -93,7 +109,7 @@ function FindFoldersToUpdate([string[]]$includeFolders, [bool]$recurseOnFolders,
         $progress = 100 * $currentIncludeFolder / $includeFolders.Count;
         Write-Progress -Activity "Retrieving folders to update" -Status $includeFolder -PercentComplete $progress
 
-        $foldersFound = Get-PublicFolder -Recurse:$recurseOnFolders $includeFolder -ResultSize Unlimited
+        $foldersFound = @(Get-PublicFolder -Recurse:$recurseOnFolders $includeFolder -ResultSize Unlimited @script:CommonParams | Sort-Object Identity)
 
         if ($foldersFound -eq $null)
         {
@@ -109,8 +125,13 @@ function FindFoldersToUpdate([string[]]$includeFolders, [bool]$recurseOnFolders,
 
             if ($folderToSkip -notContains $foundFolder.EntryId)
             {
+                Write-Verbose "$($MyInvocation.MyCommand): Returning found folder $($foundFolder.Identity) with EntryId $($foundFolder.EntryID)"
                 #Return found folder
                 $foundFolder;
+            }
+            else
+            {
+                Write-Verbose "$($MyInvocation.MyCommand): Skipping excluded folder $($foundFolder.Identity) with EntryId $($foundFolder.EntryID)"
             }
 
             $folderToSkip.Add($foundFolder.EntryId) > $null;
@@ -131,7 +152,7 @@ function GetUserIdentities([string[]]$Users)
     {
         $progress = 100 * $currentUserNumber / $Users.Count;
         Write-Progress -Activity "Retrieving users" -Status $user -PercentComplete $progress
-        $id = (Get-Recipient $user).Identity
+        $id = (Get-Recipient $user).PrimarySmtpAddress
 
         if ($id -ne $null)
         {
@@ -172,13 +193,28 @@ function IsUpdateRequired ($currentAccessRights, $desiredAccessRights)
 }
 
 #############################################################################################################
+#   Gets the value we should use as the user's identity, which may be Default or Anonymous
+#############################################################################################################
+function GetPermissionUserIdentity($permissionUser)
+{
+    if ($permissionUser.UserType.ToString() -eq 'Default' -or $permissionUser.UserType.ToString() -eq 'Anonymous')
+    {
+        $permissionUser.UserType.ToString();
+    }
+    else
+    {
+        $permissionUser.RecipientPrincipal.PrimarySmtpAddress;
+    }
+}
+
+#############################################################################################################
 #   Gets the list of users whose access right to a folder don't match the desired ones.
 #############################################################################################################
-function GetUsersToUpdate($currentFolder, [Array]$usersToUpdate, [string[]]$accessRights)
+function GetUsersToUpdate($currentFolder, [Array]$permissionsToPropagate)
 {
     Write-Progress -Id 1 -Activity "Querying current permissions" -Status "Processing";
 
-    $existingPermissions = [Array](Get-PublicFolderClientPermission $currentFolder.Identity);
+    $existingPermissions = [Array](Get-PublicFolderClientPermission $currentFolder.Identity @script:CommonParams);
     $existingPermissionsPerUser = @{}
 
     $permissionCount = 0;
@@ -187,29 +223,29 @@ function GetUsersToUpdate($currentFolder, [Array]$usersToUpdate, [string[]]$acce
         $progress = 100 * $permissionCount / $existingPermissions.Count;
         Write-Progress -Id 1 -Activity "Processing current permissions" -PercentComplete $progress -Status "Processing";
 
-        $adIdentity = $permission.User.ADRecipient.Identity;
+        $principalIdentity = GetPermissionUserIdentity $permission.User;
 
-        if ($adIdentity -ne $null)
+        if ($null -ne $principalIdentity)
         {
-            $existingPermissionsPerUser[$adIdentity] = $permission;
+            $existingPermissionsPerUser[$principalIdentity] = $permission;
         }
     }
 
     $permissionCount = 0;
-    foreach($user in $usersToUpdate)
+    foreach($permission in $permissionsToPropagate)
     {
-        $progress = 100 * $permissionCount / $usersToUpdate.Count;
+        $progress = 100 * $permissionCount / $permissionsToPropagate.Count;
         Write-Progress -Id 1 -Activity "Comparing permissions" -PercentComplete $progress -Status "Processing";
 
-        if (-not $existingPermissionsPerUser.ContainsKey($user))
+        if (-not $existingPermissionsPerUser.ContainsKey($permission.User))
         {
-            $user;
+            $permission;
         }
         else
         {
-            if (IsUpdateRequired $existingPermissionsPerUser[$user].AccessRights $AccessRights)
+            if (IsUpdateRequired $existingPermissionsPerUser[$permission.User].AccessRights $permission.AccessRights)
             {
-                $user;
+                $permission;
             }
         }
 
@@ -221,8 +257,73 @@ function GetUsersToUpdate($currentFolder, [Array]$usersToUpdate, [string[]]$acce
 #   Script logic.
 #############################################################################################################
 
+if ($PropagateAll -and $IncludeFolders.Count -gt 1)
+{
+    Write-Host "When -PropagateAll is used, -IncludeFolders is limited to one folder.";
+    return;
+}
+
+$permissionsToPropagate = @();
+if ($PropagateAll)
+{
+    $topLevelPermissions = Get-PublicFolderClientPermission $IncludeFolders[0] @script:CommonParams;
+    if ($null -eq $topLevelPermissions)
+    {
+        Write-Host "Unable to retrieve permissions from folder $($IncludeFolders[0])";
+        return;
+    }
+
+    foreach ($permission in $topLevelPermissions)
+    {
+        $principal = GetPermissionUserIdentity $permission.User;
+        if ($null -eq $principal)
+        {
+            Write-Warning "Permission exists for $($permission.User), but this user appears to be invalid. Permissions cannot be propagated.";
+            exit;
+        }
+
+        $permissionsToPropagate += [PSCustomObject]@{
+            User = $principal;
+            AccessRights = $permission.AccessRights;
+        }
+    }
+}
+else
+{
+    $usersToUpdate=[Array](GetUserIdentities $Users)
+    foreach ($principal in $usersToUpdate)
+    {
+        $permissionsToPropagate += [PSCustomObject]@{
+            User = $principal;
+            AccessRights = $AccessRights;
+        }
+    }
+}
+
+$script:CommonParams = @{}
+foreach ($p in "Confirm", "WhatIf", "Verbose")
+{
+    if ($null -ne $PSBoundParameters[$p])
+    {
+        $script:CommonParams[$p] = $PSBoundParameters[$p].IsPresent
+    }
+}
+
+Write-Host "The following permissions will be set:"
+$permissionsToPropagate | Out-Host
+
+Write-Host "The following folders will be included. Recurse: $Recurse"
+$IncludeFolders | Out-Host
+Write-Host
+
 $foldersToUpdate=[Array](FindFoldersToUpdate $IncludeFolders $Recurse $ExcludeFolderEntryIds);
-$usersToUpdate=[Array](GetUserIdentities $Users)
+
+if ($PropagateAll)
+{
+    $foldersToUpdate = @($foldersToUpdate | Select-Object -Skip 1)
+}
+
+Write-Host "Found $($foldersToUpdate.Count) folders to update."
 
 $foldersProcessed=0;
 foreach($currentFolder in $foldersToUpdate)
@@ -230,37 +331,38 @@ foreach($currentFolder in $foldersToUpdate)
     $percentFoldersProcessed = 100 * $foldersProcessed/($foldersToUpdate.Count);
     Write-Progress -Activity "Processing folders" -Status $currentFolder.Identity -PercentComplete $percentFoldersProcessed
 
-    $usersToUpdateForFolder = @()
+    $permissionsToUpdateForFolder = @()
     if (-not $SkipCurrentAccessCheck)
     {
-        $usersToUpdateForFolder =  [Array](GetUsersToUpdate $currentFolder $usersToUpdate $AccessRights)
+        $permissionsToUpdateForFolder =  [Array](GetUsersToUpdate $currentFolder $permissionsToPropagate)
     }
     else
     {
-        $usersToUpdateForFolder = $usersToUpdate;
+        $permissionsToUpdateForFolder = $permissionsToPropagate;
     }
 
     $folderOperationFailed=$false;
     $usersProcessed=0;
 
-    if (($usersToUpdateForFolder -eq $null) -or ($usersToUpdateForFolder.Count -eq 0))
+    if (($null -eq $permissionsToUpdateForFolder) -or ($permissionsToUpdateForFolder.Count -eq 0))
     {
         Write-Warning "Couldn't find any changes to perform for folder $($currentFolder.Identity)"
+        $foldersProcessed++;
         continue;
     }
 
-    foreach($user in $usersToUpdateForFolder)
+    foreach($permission in $permissionsToUpdateForFolder)
     {
-        $percentUsersProcessed = 100 * $usersProcessed/($usersToUpdateForFolder.Count)
+        $percentUsersProcessed = 100 * $usersProcessed/($permissionsToUpdateForFolder.Count)
 
-        Write-Progress -Id 1 -Activity "Processing User" -Status $user -CurrentOperation "Removing exisitng permission" -PercentComplete $percentUsersProcessed
-        Remove-PublicFolderClientPermission -User $user $currentFolder.Identity -ErrorAction SilentlyContinue -Confirm:$confirm -WhatIf:$whatIf
+        Write-Progress -Id 1 -Activity "Processing User" -Status $permission.User -CurrentOperation "Removing exisitng permission" -PercentComplete $percentUsersProcessed
+        Remove-PublicFolderClientPermission -User $permission.User $currentFolder.Identity -ErrorAction SilentlyContinue @script:CommonParams
 
-        Write-Progress -Id 1 -Activity "Processing User" -Status $user -CurrentOperation "Adding permission" -PercentComplete $percentUsersProcessed
+        Write-Progress -Id 1 -Activity "Processing User" -Status $permission.User -CurrentOperation "Adding permission" -PercentComplete $percentUsersProcessed
 
         try
         {
-            Add-PublicFolderClientPermission -AccessRights $accessRights -User $user $currentFolder.Identity -ErrorAction Stop -Confirm:$confirm -WhatIf:$whatIf
+            Add-PublicFolderClientPermission -AccessRights $permission.AccessRights -User $permission.User $currentFolder.Identity -ErrorAction Stop @script:CommonParams
         }
         catch
         {
@@ -273,7 +375,7 @@ foreach($currentFolder in $foldersToUpdate)
 
     if (-not $folderOperationFailed)
     {
-        Add-Content $ProgressLogFile "$($currentFolder.EntryId)`n" -Confirm:$confirm -WhatIf:$whatIf
+        Add-Content $ProgressLogFile "$($currentFolder.EntryId)`n"
     }
 
     $foldersProcessed++;
