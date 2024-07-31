@@ -1,61 +1,70 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-#
-# .DESCRIPTION
-# This Exchange Online script runs the Get-CalendarDiagnosticObjects script and returns a summarized timeline of actions in clear english
-# as well as the Calendar Diagnostic Objects in CSV format.
-#
-# .PARAMETER Identity
-# One or more SMTP Address of EXO User Mailbox to query.
-#
-# .PARAMETER Subject
-# Subject of the meeting to query, only valid if Identity is a single user.
-#
-# .PARAMETER MeetingID
-# The MeetingID of the meeting to query.
-#
-# .PARAMETER TrackingLogs
-# Include specific tracking logs in the output. Only useable with the MeetingID parameter.
-#
-# .PARAMETER Exceptions
-# Include Exception objects in the output. Only useable with the MeetingID parameter.
-#
-# .PARAMETER ExportToExcel
-# [Beta Feature] Export the output to an Excel file with formatting.  Running the scrip for multiple users will create multiple tabs in the Excel file.
-#
-# .PARAMETER CaseNumber
-# Case Number to include in the Filename of the output.
-#
-# .PARAMETER ShortLogs
-# Limit Logs to 500 instead of the default 2000, in case the server has trouble responding with the full logs.
-#
-# .EXAMPLE
-# Get-CalendarDiagnosticObjectsSummary.ps1 -Identity someuser@microsoft.com -MeetingID 040000008200E00074C5B7101A82E008000000008063B5677577D9010000000000000000100000002FCDF04279AF6940A5BFB94F9B9F73CD
-#
-# Get-CalendarDiagnosticObjectsSummary.ps1 -Identity someuser@microsoft.com -Subject "Test One Meeting Subject"
-#
-# Get-CalendarDiagnosticObjectsSummary.ps1 -Identity User1, User2, Delegate -MeetingID $MeetingID
-#
-# Get-CalendarDiagnosticObjectsSummary.ps1 -Identity $Users -MeetingID $MeetingID -TrackingLogs -Exceptions
-#
-# Get-CalendarDiagnosticObjectsSummary.ps1 -Identity $Users -MeetingID $MeetingID -TrackingLogs -Exceptions -ExportToExcel -CaseNumber 123456
-#
+
+<#
+.DESCRIPTION
+This Exchange Online script runs the Get-CalendarDiagnosticObjects script and returns a summarized timeline of actions in clear english
+as well as the Calendar Diagnostic Objects in CSV format.
+
+.PARAMETER Identity
+One or more SMTP Address of EXO User Mailbox to query.
+
+.PARAMETER Subject
+Subject of the meeting to query, only valid if Identity is a single user.
+
+.PARAMETER MeetingID
+The MeetingID of the meeting to query.
+
+.PARAMETER TrackingLogs
+Include specific tracking logs in the output. Only useable with the MeetingID parameter.
+
+.PARAMETER Exceptions
+Include Exception objects in the output. Only useable with the MeetingID parameter.
+
+.PARAMETER ExportToExcel
+[Beta Feature] Export the output to an Excel file with formatting.  Running the scrip for multiple users will create multiple tabs in the Excel file.
+
+.PARAMETER CaseNumber
+Case Number to include in the Filename of the output.
+
+.PARAMETER ShortLogs
+Limit Logs to 500 instead of the default 2000, in case the server has trouble responding with the full logs.
+
+.EXAMPLE
+Get-CalendarDiagnosticObjectsSummary.ps1 -Identity someuser@microsoft.com -MeetingID 040000008200E00074C5B7101A82E008000000008063B5677577D9010000000000000000100000002FCDF04279AF6940A5BFB94F9B9F73CD
+.EXAMPLE
+Get-CalendarDiagnosticObjectsSummary.ps1 -Identity someuser@microsoft.com -Subject "Test One Meeting Subject"
+.EXAMPLE
+Get-CalendarDiagnosticObjectsSummary.ps1 -Identity User1, User2, Delegate -MeetingID $MeetingID
+.EXAMPLE
+Get-CalendarDiagnosticObjectsSummary.ps1 -Identity $Users -MeetingID $MeetingID -TrackingLogs -Exceptions
+.EXAMPLE
+Get-CalendarDiagnosticObjectsSummary.ps1 -Identity $Users -MeetingID $MeetingID -TrackingLogs -Exceptions -ExportToExcel -CaseNumber 123456
+
+.SYNOPSIS
+Used to collect easy to read Calendar Logs.
+#>
 
 [CmdletBinding(DefaultParameterSetName = 'Subject',
     SupportsShouldProcess = $true)]
 param (
-    [Parameter(Mandatory, Position = 0)]
+    [Parameter(Mandatory, Position = 0, HelpMessage = "Enter the Identity of the mailbox(es) to query. Press <Enter> again when done.")]
     [string[]]$Identity,
+    [Parameter(HelpMessage = "Export all Logs to Excel.")]
     [switch]$ExportToExcel,
+    [Parameter(HelpMessage = "Case Number to include in the Filename of the output.")]
     [string]$CaseNumber,
+    [Parameter(HelpMessage = "Limit Logs to 500 instead of the default 2000, in case the server has trouble responding with the full logs.")]
     [switch]$ShortLogs,
 
-    [Parameter(Mandatory, ParameterSetName = 'MeetingID', Position = 1)]
+    [Parameter(Mandatory, ParameterSetName = 'MeetingID', Position = 1, HelpMessage = "Enter the MeetingID of the meeting to query. Recommended way to search for CalLogs.")]
     [string]$MeetingID,
+    [Parameter(HelpMessage = "Include specific tracking logs in the output. Only useable with the MeetingID parameter.")]
     [switch]$TrackingLogs,
+    [Parameter(HelpMessage = "Include Exception objects in the output. Only useable with the MeetingID parameter.")]
     [switch]$Exceptions,
 
-    [Parameter(Mandatory, ParameterSetName = 'Subject', Position = 1)]
+    [Parameter(Mandatory, ParameterSetName = 'Subject', Position = 1, HelpMessage = "Enter the Subject of the meeting. Do not include the RE:, FW:, etc..")]
     [string]$Subject
 )
 
