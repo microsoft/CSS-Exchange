@@ -6,7 +6,7 @@ function Export-CalLogExcel {
     Write-Host -ForegroundColor Cyan "Exporting Enhanced CalLogs to Excel Tab [$ShortId]..."
     $ExcelParamsArray = GetExcelParams -path $FileName -tabName $ShortId
 
-    $excel = $GCDOResults | Export-Excel @ExcelParamsArray -PassThru 
+    $excel = $GCDOResults | Export-Excel @ExcelParamsArray -PassThru
 
     FormatHeader ($excel)
 

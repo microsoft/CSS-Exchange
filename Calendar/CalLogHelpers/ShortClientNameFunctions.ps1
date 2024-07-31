@@ -62,7 +62,7 @@ function CreateShortClientName {
         $ShortClientName = "EDiscoverySearch"
         return $ShortClientName
     }
-    
+
     if ($LogClientInfoString -like "*AppId=00000007-0000-0000-c000-000000000000*") {
         $ShortClientName = "CRM"
         return $ShortClientName
