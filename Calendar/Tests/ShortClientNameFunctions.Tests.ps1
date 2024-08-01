@@ -170,7 +170,7 @@ Describe "CreateShortClientName-FindMatch" {
     Context 'Test CreateShortClientName focusing on the FindMatch function' -ForEach @(
         @{ LogClientInfoString = 'Client=Hub Transport'; Expected = "Transport" },
         @{ LogClientInfoString = 'Client=MSExchangeRPC'; Expected = "Outlook : Desktop : MAPI" },
-        @{ LogClientInfoString = 'OneOutlook'; Expected = "OneOutlook" },
+        @{ LogClientInfoString = 'OneOutlook'; Expected = "NewOutlook" },
         @{ LogClientInfoString = 'Lync for Mac'; Expected = "LyncMac" },
         @{ LogClientInfoString = 'AppId=00000004-0000-0ff1-ce00-000000000000'; Expected = "SkypeMMS" },
         @{ LogClientInfoString = 'MicrosoftNinja'; Expected = "Teams" },
