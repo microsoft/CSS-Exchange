@@ -31,8 +31,8 @@ function Test-PossibleCommonScenarios {
         $Script:PowerShellLogs = $true
         $Script:WindowsSecurityLogs = $true
         $Script:CollectFailoverMetrics = $true
-        $Script:ConnectivityLogs = $true
-        $Script:ProtocolLogs = $true
+        $Script:TransportConnectivityLogs = $true
+        $Script:TransportProtocolLogs = $true
         $Script:MitigationService = $true
         $Script:MailboxAssistantsLogs = $true
     }
@@ -55,13 +55,13 @@ function Test-PossibleCommonScenarios {
         $Script:AcceptedRemoteDomain = $true
     }
 
-    if ($ConnectivityLogs) {
+    if ($TransportConnectivityLogs) {
         $Script:FrontEndConnectivityLogs = $true
         $Script:HubConnectivityLogs = $true
         $Script:MailboxConnectivityLogs = $true
     }
 
-    if ($ProtocolLogs) {
+    if ($TransportProtocolLogs) {
         $Script:FrontEndProtocolLogs = $true
         $Script:HubProtocolLogs = $true
         $Script:MailboxProtocolLogs = $true

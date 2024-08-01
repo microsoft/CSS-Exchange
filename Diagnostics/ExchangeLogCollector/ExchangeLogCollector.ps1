@@ -24,18 +24,12 @@ param (
     [switch]$ExchangeServerInformation,
     [switch]$ExMon,
     [switch]$ExPerfWiz,
-    [switch]$FrontEndConnectivityLogs,
-    [switch]$FrontEndProtocolLogs,
     [switch]$GetVDirs,
     [switch]$HighAvailabilityLogs,
-    [switch]$HubConnectivityLogs,
-    [switch]$HubProtocolLogs,
     [switch]$IISLogs,
     [switch]$ImapLogs,
     [switch]$MailboxAssistantsLogs,
-    [switch]$MailboxConnectivityLogs,
     [switch]$MailboxDeliveryThrottlingLogs,
-    [switch]$MailboxProtocolLogs,
     [Alias("ManagedAvailability")]
     [switch]$ManagedAvailabilityLogs,
     [switch]$MapiLogs,
@@ -56,13 +50,16 @@ param (
     [switch]$ServerInformation,
     [switch]$TransportAgentLogs,
     [switch]$TransportConfig,
+    [Alias("ConnectivityLogs", "FrontEndConnectivityLogs", "HubConnectivityLogs", "MailboxConnectivityLogs")]
+    [switch]$TransportConnectivityLogs,
+    [Alias("ProtocolLogs", "FrontEndProtocolLogs", "HubProtocolLogs", "MailboxProtocolLogs")]
+    [switch]$TransportProtocolLogs,
     [switch]$TransportRoutingTableLogs,
     [switch]$TransportRules,
     [switch]$WindowsSecurityLogs,
     [switch]$AllPossibleLogs,
     [Alias("CollectAllLogsBasedOnDaysWorth")]
     [bool]$CollectAllLogsBasedOnLogAge = $true,
-    [switch]$ConnectivityLogs,
     [switch]$DatabaseFailoverIssue,
     [Parameter(ParameterSetName = "Worth")]
     [int]$DaysWorth = 3,
@@ -80,7 +77,6 @@ param (
     [switch]$OutlookConnectivityIssues,
     [switch]$PerformanceIssues,
     [switch]$PerformanceMailFlowIssues,
-    [switch]$ProtocolLogs,
     [switch]$ScriptDebug,
     [bool]$SkipEndCopyOver
 )
