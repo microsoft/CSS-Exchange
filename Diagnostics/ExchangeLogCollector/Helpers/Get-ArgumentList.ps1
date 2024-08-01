@@ -33,7 +33,7 @@ function Get-ArgumentList {
         CollectAllLogsBasedOnLogAge    = $CollectAllLogsBasedOnLogAge
         DAGInformation                 = $DAGInformation
         DailyPerformanceLogs           = $DailyPerformanceLogs
-        DefaultTransportLogging        = $DefaultTransportLogging
+        TransportLogging               = $TransportLogging
         EASLogs                        = $EASLogs
         ECPLogs                        = $ECPLogs
         EWSLogs                        = $EWSLogs

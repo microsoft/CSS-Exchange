@@ -19,7 +19,7 @@ function Test-PossibleCommonScenarios {
         $Script:ServerInformation = $true
         $Script:GetVDirs = $true
         $Script:DAGInformation = $true
-        $Script:DefaultTransportLogging = $true
+        $Script:TransportLogging = $true
         $Script:MapiLogs = $true
         $Script:OrganizationConfig = $true
         $Script:ECPLogs = $true
@@ -37,8 +37,9 @@ function Test-PossibleCommonScenarios {
         $Script:MailboxAssistantsLogs = $true
     }
 
-    if ($DefaultTransportLogging) {
-        $Script:HubConnectivityLogs = $true
+    if ($TransportLogging) {
+        $Script:TransportConnectivityLogs = $true
+        $Script:TransportProtocolLogs = $true
         $Script:MessageTrackingLogs = $true
         $Script:QueueInformation = $true
         $Script:SendConnectors = $true
@@ -46,9 +47,6 @@ function Test-PossibleCommonScenarios {
         $Script:TransportAgentLogs = $true
         $Script:TransportConfig = $true
         $Script:TransportRoutingTableLogs = $true
-        $Script:FrontEndConnectivityLogs = $true
-        $Script:MailboxConnectivityLogs = $true
-        $Script:FrontEndProtocolLogs = $true
         $Script:MailboxDeliveryThrottlingLogs = $true
         $Script:PipelineTracingLogs = $true
         $Script:TransportRules = $true
@@ -126,7 +124,7 @@ function Test-PossibleCommonScenarios {
         $MailboxDeliveryThrottlingLogs -or
         $TransportAgentLogs -or
         $TransportRoutingTableLogs -or
-        $DefaultTransportLogging -or
+        $TransportLogging -or
         $PipelineTracingLogs -or
         $TransportRules -or
         $AcceptedRemoteDomain) {

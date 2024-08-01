@@ -16,7 +16,6 @@ param (
     [switch]$CollectFailoverMetrics,
     [switch]$DAGInformation,
     [switch]$DailyPerformanceLogs,
-    [switch]$DefaultTransportLogging,
     [switch]$EASLogs,
     [switch]$ECPLogs,
     [switch]$EWSLogs,
@@ -52,6 +51,8 @@ param (
     [switch]$TransportConfig,
     [Alias("ConnectivityLogs", "FrontEndConnectivityLogs", "HubConnectivityLogs", "MailboxConnectivityLogs")]
     [switch]$TransportConnectivityLogs,
+    [Alias("DefaultTransportLogging")]
+    [switch]$TransportLogging,
     [Alias("ProtocolLogs", "FrontEndProtocolLogs", "HubProtocolLogs", "MailboxProtocolLogs")]
     [switch]$TransportProtocolLogs,
     [switch]$TransportRoutingTableLogs,
