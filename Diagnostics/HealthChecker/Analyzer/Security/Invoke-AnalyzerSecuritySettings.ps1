@@ -49,6 +49,7 @@ function Invoke-AnalyzerSecuritySettings {
     }
 
     $tlsVersions = @("1.0", "1.1", "1.2", "1.3")
+    $oSVersions = @("Windows2012", "Windows2012R2", "Windows2016", "Windows2019")
     $currentNetVersion = $osInformation.TLSSettings.Registry.NET["NETv4"]
 
     $tlsSettings = $osInformation.TLSSettings.Registry.TLS
@@ -77,12 +78,14 @@ function Invoke-AnalyzerSecuritySettings {
 
         # Any TLS version is Misconfigured or Half Disabled is Red
         # Only TLS 1.2 being Disabled is Red
-        # Currently TLS 1.3 being Enabled is Red
+        # TLS 1.3 being Enabled on OS versions older than Windows 2022 is Red
+        # TLS 1.3 being Disabled on OS versions Windows 2022 or up is Red
         # TLS 1.0 or 1.1 being Enabled is Yellow as we recommend to disable this weak protocol versions
         if (($currentTlsVersion.TLSConfiguration -eq "Misconfigured" -or
                 $currentTlsVersion.TLSConfiguration -eq "Half Disabled") -or
                 ($tlsKey -eq "1.2" -and $currentTlsVersion.TLSConfiguration -eq "Disabled") -or
-                ($tlsKey -eq "1.3" -and $currentTlsVersion.TLSConfiguration -eq "Enabled")) {
+                ($tlsKey -eq "1.3" -and $currentTlsVersion.TLSConfiguration -eq "Enabled" -and $oSVersions -Contains $osInformation.BuildInformation.MajorVersion) -or
+		        ($tlsKey -eq "1.3" -and $currentTlsVersion.TLSConfiguration -eq "Disabled" -and $oSVersions -NotContains $osInformation.BuildInformation.MajorVersion)) {
             $displayWriteType = "Red"
         } elseif ($currentTlsVersion.TLSConfiguration -eq "Enabled" -and
             ($tlsKey -eq "1.1" -or $tlsKey -eq "1.0")) {
@@ -94,7 +97,9 @@ function Invoke-AnalyzerSecuritySettings {
             Details          = $currentTlsVersion.TLSConfiguration
             DisplayWriteType = $displayWriteType
         }
-        Add-AnalyzedResultInformation @params
+        if ($tlsKey -ne "1.3" -or ($tlsKey -eq "1.3" -and ($oSVersions -notcontains $osInformation.BuildInformation.MajorVersion) -or ($currentTlsVersion.TLSConfiguration -ne "Disabled"))) {
+            Add-AnalyzedResultInformation @params
+        }
 
         $params = $baseParams + @{
             OutColumns           = ([PSCustomObject]@{
@@ -106,7 +111,9 @@ function Invoke-AnalyzerSecuritySettings {
             HtmlName             = "TLS Settings $tlsKey"
             TestingName          = "TLS Settings Group $tlsKey"
         }
-        Add-AnalyzedResultInformation @params
+        if ($tlsKey -ne "1.3" -or ($tlsKey -eq "1.3" -and ($oSVersions -notcontains $osInformation.BuildInformation.MajorVersion) -or ($currentTlsVersion.TLSConfiguration -ne "Disabled"))) {
+            Add-AnalyzedResultInformation @params
+        }
     }
 
     $netVersions = @("NETv4", "NETv2")
@@ -429,7 +436,7 @@ function Invoke-AnalyzerSecuritySettings {
             Write-Verbose "The Exchange server runs a role which is not affected by the FIP-FS issue"
         } elseif (($fipFsInfoObject.FIPFSFixedBuild -eq $false) -and
             ($fipFsInfoObject.BadVersionNumberDirDetected)) {
-            # Exchange doesn't run a build which is resistant against the problematic pattern
+            # Exchange doesn't run a build which is resistent against the problematic pattern
             # and a folder with the problematic version number was detected on the computer.
             $params = $baseParams + $fipFsIssueBaseParams
             Add-AnalyzedResultInformation @params
