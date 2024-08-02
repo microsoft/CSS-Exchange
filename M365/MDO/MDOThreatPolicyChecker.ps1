@@ -405,32 +405,6 @@ begin {
         Write-Host " "
     }
 
-    function Get-Policy {
-        param(
-            $Rule = $null,
-            $PolicyType = $null
-        )
-
-        if ($null -eq $Rule) {
-            if ($PolicyType -eq "Anti-phish") {
-                $policyDetails = "`n$PolicyType (Impersonation, Mailbox/Spoof Intelligence, Honor DMARC):`n`tThe Default policy."
-            } elseif ($PolicyType -eq "Anti-spam") {
-                $policyDetails = "`n$PolicyType (includes phish & bulk actions):`n`tThe Default policy."
-            } else {
-                $policyDetails = "`n${PolicyType}:`n`tThe Default policy."
-            }
-        } else {
-            if ($PolicyType -eq "Anti-phish") {
-                $policyDetails = "`n$PolicyType (Impersonation, Mailbox/Spoof Intelligence, Honor DMARC):`n`tName: {0}`n`tPriority: {1}" -f $Rule.Name, $Rule.Priority
-            } elseif ($PolicyType -eq "Anti-spam") {
-                $policyDetails = "`n$PolicyType (includes phish & bulk actions):`n`tName: {0}`n`tPriority: {1}" -f $Rule.Name, $Rule.Priority
-            } else {
-                $policyDetails = "`n${PolicyType}:`n`tName: {0}`n`tPriority: {1}" -f $Rule.Name, $Rule.Priority
-            }
-        }
-        return $policyDetails
-    }
-
     function Test-GraphContext {
         [OutputType([bool])]
         param (
@@ -737,8 +711,16 @@ process {
                     $outboundSpamMatchedRule = $null
                     if ($hostedOutboundSpamFilterRules) {
                         $outboundSpamMatchedRule = Test-Rules -Rules $hostedOutboundSpamFilterRules -email $stEmailAddress -Outbound
-                        $allPolicyDetails = Get-Policy $outboundSpamMatchedRule "Outbound Spam"
-                        Write-Host $allPolicyDetails -ForegroundColor Yellow
+                        if ($null -eq $outboundSpamMatchedRule) {
+                            Write-Host "`nOutbound Spam:`n`tDefault policy"  -ForegroundColor Yellow
+                            $hostedOutboundSpamFilterPolicy = Get-HostedOutboundSpamFilterPolicy "Default"
+                        } else {
+                            $hostedOutboundSpamFilterPolicy = Get-HostedOutboundSpamFilterPolicy $outboundSpamMatchedRule.Name
+                            Write-Host "`nOutbound Spam:`n`tName: $($outboundSpamMatchedRule.Name)`n`tPriority: $($outboundSpamMatchedRule.Priority)"  -ForegroundColor Yellow
+                        }
+                        if ($hostedOutboundSpamFilterPolicy -and $ShowDetailedPolicies) {
+                            Show-DetailedPolicy -Policy $hostedOutboundSpamFilterPolicy
+                        }
                     }
                 } else {
                     # Check the Standard EOP rules secondly
@@ -755,8 +737,16 @@ process {
                         $outboundSpamMatchedRule = $allPolicyDetails = $null
                         if ($hostedOutboundSpamFilterRules) {
                             $outboundSpamMatchedRule = Test-Rules -Rules $hostedOutboundSpamFilterRules -Email $stEmailAddress -Outbound
-                            $allPolicyDetails = Get-Policy $outboundSpamMatchedRule "Outbound Spam"
-                            Write-Host $allPolicyDetails -ForegroundColor Yellow
+                            if ($null -eq $outboundSpamMatchedRule) {
+                                Write-Host "`nOutbound Spam:`n`tDefault policy"  -ForegroundColor Yellow
+                                $hostedOutboundSpamFilterPolicy = Get-HostedOutboundSpamFilterPolicy "Default"
+                            } else {
+                                $hostedOutboundSpamFilterPolicy = Get-HostedOutboundSpamFilterPolicy $outboundSpamMatchedRule.Name
+                                Write-Host "`nOutbound Spam:`n`tName: $($outboundSpamMatchedRule.Name)`n`tPriority: $($outboundSpamMatchedRule.Priority)"  -ForegroundColor Yellow
+                            }
+                            if ($hostedOutboundSpamFilterPolicy -and $ShowDetailedPolicies) {
+                                Show-DetailedPolicy -Policy $hostedOutboundSpamFilterPolicy
+                            }
                         }
                     } else {
                         # If no match in EOPProtectionPolicyRules, check MalwareFilterRules, AntiPhishRules, outboundSpam, and HostedContentFilterRules
