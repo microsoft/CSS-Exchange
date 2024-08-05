@@ -140,6 +140,20 @@ Mock Get-RemoteRegistryValue {
     }
 }
 
+Mock Get-RemoteRegistrySubKey {
+    param(
+        [string]$MachineName,
+        [string]$SubKey
+    )
+
+    switch ($SubKey) {
+        "SOFTWARE\Microsoft\Updates\Exchange 2013" { return $null }
+        "SOFTWARE\Microsoft\Updates\Exchange 2016" { return $null }
+        "SOFTWARE\Microsoft\Updates\Exchange 2019" { return $null }
+        default { throw "Failed to find SubKey: $SubKey" }
+    }
+}
+
 Mock Get-NETFrameworkVersion {
     return [PSCustomObject]@{
         FriendlyName  = "4.8"
@@ -197,10 +211,6 @@ Mock Get-SmbServerConfiguration {
 
 Mock Get-ExchangeAppPoolsInformation {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeAppPoolsInformation.xml"
-}
-
-Mock Get-ExchangeUpdates {
-    return $null
 }
 
 Mock Get-ExchangeAdSchemaClass -ParameterFilter { $SchemaClassName -eq "ms-Exch-Storage-Group" } {

@@ -129,19 +129,20 @@ function Invoke-AnalyzerExchangeInformation {
         Add-AnalyzedResultInformation @params
     }
 
-    if ($null -ne $exchangeInformation.BuildInformation.KBsInstalled) {
+    if ($null -ne $exchangeInformation.BuildInformation.KBsInstalledInfo.PackageName) {
         Add-AnalyzedResultInformation -Name "Exchange IU or Security Hotfix Detected" @baseParams
         $problemKbFound = $false
         $problemKbName = "KB5029388"
 
-        foreach ($kb in $exchangeInformation.BuildInformation.KBsInstalled) {
+        foreach ($kbInfo in $exchangeInformation.BuildInformation.KBsInstalledInfo) {
+            $kbName = $kbInfo.PackageName
             $params = $baseParams + @{
-                Details                = $kb
+                Details                = "$kbName - Installed on $($kbInfo.InstalledDate)"
                 DisplayCustomTabNumber = 2
             }
             Add-AnalyzedResultInformation @params
 
-            if ($kb.Contains($problemKbName)) {
+            if ($kbName.Contains($problemKbName)) {
                 $problemKbFound = $true
             }
         }
