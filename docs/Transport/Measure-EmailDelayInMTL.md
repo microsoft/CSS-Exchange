@@ -1,43 +1,58 @@
-# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT License.
+# Measure-EmailDelayinMTL
+Generates a report of the maximum message delay for all messages in an Message Tracking Log.
 
-.NOTES
-	Name: Test-ExchAVExclusions.ps1
-	Requires: Administrator rights
-    Major Release History:
-        05/07/2024 - Initial Release
+## DESCRIPTION
+Gather message tracking log details of all message to / from a given recipient for a given time range. Useful for determining if a "slow" message was a one off or a pattern.
 
-.SYNOPSIS
-Generates a report of the minimum message delay for all messages in an Message Tracking Log.
+Recommend using [Start-HistoricalSearch](https://learn.microsoft.com/en-us/powershell/module/exchange/start-historicalsearch?view=exchange-ps) in EXO to gather an detailed MTL for processing.
 
-.DESCRIPTION
-Gather message tracking log details of all message to / from a given recipient for a given time range.
-Recommend using start-historicalsearch in EXO.
+``` PowerShell
+Start-HistoricalSearch -ReportTitle "Fabrikam Search" -StartDate 8/10/2024 -EndDate 8/12/2024 -ReportType MessageTraceDetail -SenderAddress michelle@fabrikam.com -NotifyAddress chris@contoso.com
+```
 
-The script will provide an output of all unique message ids with the following information:
-MessageID
-Time Sent
-First Time the Message was Delivered
-Last Time the Message was Delivered
-Total Time in transit
+## PARAMETER
 
-Useful for determining if a "slow" message was a one off or a pattern.
+**-MTLFile**
 
-.PARAMETER MTLFile
-MTL File to process
+MTL File to process.
 
-.OUTPUTS
-CSV File with the following informaiton.
-    ID                      messageID
-    Sent                    Time the Message was sent.
-    FirstRecieved           When a Recipient first Recieved the message.
-    LastRecieved            When the last recipient recieved the message. (This will match first Recieved if the message was sent to one recipient.)
-    RecievedDifferential    Difference between First and Last Recieved (how long it took to deliver to all recipients)
-    MessageDelay            Difference between First Recieved and Time Sent
+**-ReportPath**
 
-$PSScriptRoot\MTLReport-#DateTime#.csv
+Folder path for the output file.
 
-.EXAMPLE
+
+## Outputs
+
+### CSV File
+
+| Header | Description |
+| ------ | ----------- |
+| MessageID | ID of the Message |
+| TimeSent |  First time we see the message in the MTL |
+| TimeRecieved | Last delivery time in the MTL |
+| MessageDelay | How long before the message was delivered |
+
+### Statistical Summary
+
+| Statistic | Description |
+| --------- | ----------- |
+| EmailCount | Number of email found in the MTL |
+| MaximumDelay | Longest delivery delay found in the MTL |
+| MinimumDelay | Shortest delivery delay found in the MTL |
+| AverageDelay | Average of all delivery delays across all email in the MTL |
+
+### Default Output File:
+``` PowerShell
+$PSScriptRoot\MTL_report.csv
+```
+
+## EXAMPLE
+``` PowerShell
 .\Measure-EmailDelayInMTL -MTLPath C:\temp\MyMtl.csv
+```
+Generates a report to the default path from the file C:\Temp\MyMtl.csv.
 
-Generates the report from the MyMtl.csv file.
+``` PowerShell
+.\Measure-EmailDelayInMTL -MTLPath C:\temp\LargeMTL.csv -ReportPath C:\output
+```
+Generates a report to the c:\output directory from the file C:\Temp\LargeMTL.csv.

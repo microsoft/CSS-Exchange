@@ -42,7 +42,7 @@ $PSScriptRoot\MTL_report.csv
 .EXAMPLE
 .\Measure-EmailDelayInMTL -MTLPath C:\temp\MyMtl.csv
 
-Generates the report from the MyMtl.csv file.
+Generates a report from the MyMtl.csv file.
 
 #>
 
