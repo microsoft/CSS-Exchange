@@ -3,13 +3,13 @@
 
 <#
 .NOTES
-	Name: Test-ExchAVExclusions.ps1
-	Requires: Administrator rights
+	Name: Measure-EmailDelayInMTL.ps1
+	Requires: User Rights
     Major Release History:
-        05/07/2024 - Initial Release
+        08/05/2024 - Initial Release
 
 .SYNOPSIS
-Generates a report of the minimum message delay for all messages in an Message Tracking Log.
+Generates a report of the maximum message delay for all messages in an Message Tracking Log.
 
 .DESCRIPTION
 Gather message tracking log details of all message to / from a given recipient for a given time range.
@@ -18,25 +18,26 @@ Recommend using start-historicalsearch in EXO.
 The script will provide an output of all unique message ids with the following information:
 MessageID
 Time Sent
-First Time the Message was Delivered
-Last Time the Message was Delivered
 Total Time in transit
 
 Useful for determining if a "slow" message was a one off or a pattern.
 
 .PARAMETER MTLFile
-MTL File to process
+MTL File to process.
+
+.PARAMETER ReportPath
+Folder path for the output file.
+
 
 .OUTPUTS
 CSV File with the following informaiton.
-    ID                      messageID
-    Sent                    Time the Message was sent.
-    FirstRecieved           When a Recipient first Recieved the message.
-    LastRecieved            When the last recipient recieved the message. (This will match first Recieved if the message was sent to one recipient.)
-    RecievedDifferential    Difference between First and Last Recieved (how long it took to deliver to all recipients)
-    MessageDelay            Difference between First Recieved and Time Sent
+    MessageID               ID of the Message
+    TimeSent                First time we see the message in the MTL
+    TimeRecieved            Last delivery time in the MTL
+    MessageDelay            How long before the message was delivered
 
-$PSScriptRoot\MTLReport-#DateTime#.csv
+Default Output File:
+$PSScriptRoot\MTL_report.csv
 
 .EXAMPLE
 .\Measure-EmailDelayInMTL -MTLPath C:\temp\MyMtl.csv
@@ -52,7 +53,7 @@ param (
     $MTLFile,
     [Parameter()]
     [string]
-    $Path = $PSScriptRoot
+    $ReportPath = $PSScriptRoot
 )
 
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
@@ -154,7 +155,9 @@ foreach ($id in $uniqueMessageIDs) {
 }
 
 # Export the data to the output file
-$output | Export-Csv -IncludeTypeInformation:$false -Path (Join-Path -Path $Path -ChildPath "mtl_report.csv")
+$outputFile = (Join-Path -Path $ReportPath -ChildPath "MTL_report.csv")
+$output | Export-Csv -IncludeTypeInformation:$false -Path $outputFile
+Write-Output ("Report written to file " + $outputFile)
 
 # Gather general statistical data and output to the screen
 $Stats = ($output.MessageDelay.TotalMilliseconds | Measure-Object -Average -Maximum -Minimum)
