@@ -55,7 +55,7 @@ param (
     $Path = $PSScriptRoot
 )
 
-. $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
+. $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 
 Function Test-CSVData {
     param(
@@ -75,8 +75,6 @@ Function Test-CSVData {
     Return $true
 }
 
-
-# Autoupdate
 if (Test-ScriptVersion -AutoUpdate) {
     # Update was downloaded, so stop here.
     Write-Host "Script was updated. Please rerun the command."
