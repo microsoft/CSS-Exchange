@@ -60,6 +60,14 @@ function Invoke-AnalyzerExchangeInformation {
     }
     Add-AnalyzedResultInformation @params
 
+    if ($null -ne $exchangeInformation.BuildInformation.ExchangeSetup.InstallTime) {
+        $params = $baseParams + @{
+            Name    = "Latest Install Time (SU/CU)"
+            Details = $exchangeInformation.BuildInformation.ExchangeSetup.InstallTime
+        }
+        Add-AnalyzedResultInformation @params
+    }
+
     if ($exchangeInformation.BuildInformation.VersionInformation.Supported -eq $false) {
         $daysOld = ($date - $exchangeInformation.BuildInformation.VersionInformation.ReleaseDate).Days
 
