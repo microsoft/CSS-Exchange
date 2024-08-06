@@ -55,6 +55,18 @@ function Invoke-AnalyzerHardwareInformation {
     }
     Add-AnalyzedResultInformation @params
 
+    if ($null -ne $osInformation.PerformanceCounters) {
+        $counter = $osInformation.PerformanceCounters | Where-Object { $_.OriginalCounterLookup -eq "\Processor(_Total)\% Processor Time" }
+
+        if ($null -ne $counter) {
+            $params = $baseParams + @{
+                Name    = "Current Total Processor Usage"
+                Details = [System.Math]::Round($counter.CookedValue, 2)
+            }
+            Add-AnalyzedResultInformation @params
+        }
+    }
+
     $numberOfProcessors = $hardwareInformation.Processor.NumberOfProcessors
     $displayWriteType = "Green"
     $displayValue = $numberOfProcessors
