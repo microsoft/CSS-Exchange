@@ -70,6 +70,33 @@ Describe "Testing Health Checker by Mock Data Imports" {
                 if ($Name -eq "MSExchangeMitigation") { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetServiceMitigation.xml" }
                 return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetService1.xml"
             }
+            Mock Get-RemoteRegistrySubKey -ParameterFilter { $SubKey -eq "SOFTWARE\Microsoft\Updates\Exchange 2019" } -MockWith {
+                $obj = New-Object System.Collections.Generic.List[object]
+                $suObject = [PSCustomObject]@{
+                    Name = "Empty"
+                }
+                $suObject | Add-Member -MemberType ScriptMethod -Name GetSubKeyNames -Value { return @("KB5029388", "KB5030877") }
+                $suObject | Add-Member -MemberType ScriptMethod -Name OpenSubKey -Value { param($id) if ($id -eq "KB5029388") {
+                        $o = [PSCustomObject]@{
+                            Name = "Empty"
+                        }
+                        $o | Add-Member -MemberType ScriptMethod -Name GetValue -Value { param ($name) if ($name -eq "PackageName") {
+                                return "Security Update for Exchange Server 2019 Cumulative Update 12 (KB5029388)"
+                            } elseif ( $name -eq "InstalledDate") { return "9/20/2023" } }
+                        return $o
+                    } elseif ($id -eq "KB5030877") {
+                        $o = [PSCustomObject]@{
+                            Name = "Empty"
+                        }
+                        $o | Add-Member -MemberType ScriptMethod -Name GetValue -Value { param ($name) if ($name -eq "PackageName") {
+                                return "Security Update for Exchange Server 2019 Cumulative Update 12 (KB5030877)"
+                            } elseif ( $name -eq "InstalledDate") { return "10/20/2023" } }
+                        return $o
+                    }
+                }
+                $obj.Add($suObject)
+                return $obj
+            }
 
             SetDefaultRunOfHealthChecker "Debug_Scenario1_Results.xml"
         }
@@ -82,6 +109,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Exchange Server Membership" "Failed" -WriteType "Red"
             TestObjectMatch "Exchange Trusted Subsystem - Local System Membership" "Exchange Trusted Subsystem - Local System Membership" -WriteType "Red"
             TestObjectMatch "Exchange Trusted Subsystem - AD Group Membership" "Exchange Trusted Subsystem - AD Group Membership" -WriteType "Red"
+            $hotfixInstalled = GetObject "Exchange IU"
+            $hotfixInstalled.Count | Should -Be 2
         }
 
         It "Dependent Services" {

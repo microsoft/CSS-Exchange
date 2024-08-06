@@ -139,6 +139,7 @@ function Invoke-AnalyzerExchangeInformation {
             $params = $baseParams + @{
                 Details                = "$kbName - Installed on $($kbInfo.InstalledDate)"
                 DisplayCustomTabNumber = 2
+                TestingName            = "Exchange IU"
             }
             Add-AnalyzedResultInformation @params
 
