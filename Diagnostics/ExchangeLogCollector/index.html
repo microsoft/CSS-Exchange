@@ -3425,7 +3425,7 @@
 <div class="highlight"><pre><span></span><code>.\ExchangeLogCollector.ps1 -Servers EXCH1,EXCH2 -IISLogs -RPCLogs
 </code></pre></div>
 <p>This cmdlet will collect all relevant data regarding Message Tracking Logs and Protocol Logs for the past 3 hours from the servers EXCH1 and EXCH2 and store them at the default location of "C:\MS_Logs_Collection"</p>
-<div class="highlight"><pre><span></span><code>.\ExchangeLogCollector.ps1 -Servers EXCH1,EXCH2 -MessageTrackingLogs -ProtocolLogs -LogAge &quot;03:00:00&quot;
+<div class="highlight"><pre><span></span><code>.\ExchangeLogCollector.ps1 -Servers EXCH1,EXCH2 -MessageTrackingLogs -TransportProtocolLogs -LogAge &quot;03:00:00&quot;
 </code></pre></div>
 <h2 id="parameters">Parameters</h2>
 <table>
@@ -3477,10 +3477,6 @@
 <td>Enable to collect Daily Performance Logs. Default Location: <code>V15\Logging\Diagnostics\DailyPerformanceLogs</code></td>
 </tr>
 <tr>
-<td>DefaultTransportLogging</td>
-<td>Enables the following switches and their logs to be collected. <code>AcceptedRemoteDomain</code>, <code>FrontEndConnectivityLogs</code>, <code>FrontEndProtocolLogs</code>, <code>HubConnectivityLogs</code>, <code>MailboxConnectivityLogs</code>, <code>MailboxDeliveryThrottlingLogs</code>, <code>MessageTrackingLogs</code>, <code>PipelineTracingLogs</code>, <code>QueueInformation</code>, <code>ReceiveConnectors</code>, <code>SendConnectors</code>, <code>TransportConfig</code>, <code>TransportRoutingTableLogs</code>, and <code>TransportRules</code></td>
-</tr>
-<tr>
 <td>EASLogs</td>
 <td>Enable to collect Exchange Active Sync Logging. Location: <code>V15\Logging\HttpProxy\Eas</code></td>
 </tr>
@@ -3505,28 +3501,12 @@
 <td>Enable to collect ExPerfWiz data if found.</td>
 </tr>
 <tr>
-<td>FrontEndConnectivityLogs</td>
-<td>Enable to collect the connectivity logging on the FE. Location: <code>(Get-FrontendTransportService $server).ConnectivityLogPath</code></td>
-</tr>
-<tr>
-<td>FrontEndProtocolLogs</td>
-<td>Enable to collect the protocol logging on the FE. Location: <code>(Get-FrontendTransportService $server).ReceiveProtocolLogPath</code> and <code>(Get-FrontendTransportService $server).SendProtocolLogPath</code></td>
-</tr>
-<tr>
 <td>GetVDirs</td>
 <td>Enable to collect the Virtual Directories of the environment.</td>
 </tr>
 <tr>
 <td>HighAvailabilityLogs</td>
 <td>Enable to collect High Availability Logs. Windows Event Logs like: <code>Microsoft-Exchange-HighAvailability</code>, <code>Microsoft-Exchange-MailboxDatabaseFailureItems</code>, and <code>Microsoft-Windows-FailoverClustering</code></td>
-</tr>
-<tr>
-<td>HubConnectivityLogs</td>
-<td>Enable to collect the Hub connectivity logging. Location: <code>(Get-TransportService $server).ConnectivityLogPath</code></td>
-</tr>
-<tr>
-<td>HubProtocolLogs</td>
-<td>Enable to collect the protocol logging. Location: <code>(Get-TransportService $server).ReceiveProtocolLogPath</code> and <code>(Get-TransportService $server).SendProtocolLogPath</code></td>
 </tr>
 <tr>
 <td>IISLogs</td>
@@ -3541,16 +3521,8 @@
 <td>Enable to collect Mailbox Assistants logging. Location: <code>V15\Logging\MailboxAssistantsLog</code>, <code>V15\Logging\MailboxAssistantsSlaReportLog</code>, and <code>V15\Logging\MailboxAssistantsDatabaseSlaLog</code></td>
 </tr>
 <tr>
-<td>MailboxConnectivityLogs</td>
-<td>Enable to collect the connectivity logging on the mailbox server. Location: <code>(Get-MailboxTransportService $server).ConnectivityLogPath</code></td>
-</tr>
-<tr>
 <td>MailboxDeliveryThrottlingLogs</td>
 <td>Enable to collect the mailbox delivery throttling logs on the server. Location: <code>(Get-MailboxTransportService $server).MailboxDeliveryThrottlingLogPath</code></td>
-</tr>
-<tr>
-<td>MailboxProtocolLogs</td>
-<td>Enable to collect protocol logging on the mailbox server. Location: <code>(Get-MailboxTransportService $server).ReceiveProtocolLogPath</code> and <code>(Get-MailboxTransportService $server).SendProtocolLogPath</code></td>
 </tr>
 <tr>
 <td>ManagedAvailabilityLogs</td>
@@ -3625,6 +3597,18 @@
 <td>Enable to collect the Transport Configuration files from the Server and <code>Get-TransportConfig</code> from the org. Files: <code>EdgeTransport.exe.config</code>, <code>MSExchangeFrontEndTransport.exe.config</code>, <code>MSExchangeDelivery.exe.config</code>, and <code>MSExchangeSubmission.exe.config</code></td>
 </tr>
 <tr>
+<td>TransportConnectivityLogs</td>
+<td>Aliases <code>ConnectivityLogs</code>, <code>FrontEndConnectivityLogs</code>, <code>HubConnectivityLogs</code>, and <code>MailboxConnectivityLogs</code>. Enable to collect the logs that was set at the following locations: <code>(Get-FrontendTransportService $server).ConnectivityLogPath</code>, <code>(Get-TransportService $server).ConnectivityLogPath</code>, and <code>(Get-MailboxTransportService $server).ConnectivityLogPath</code></td>
+</tr>
+<tr>
+<td>TransportLogging</td>
+<td>Enables the following switches and their logs to be collected. <code>AcceptedRemoteDomain</code>, <code>TransportConnectivityLogs</code>, <code>TransportProtocolLogs</code>, <code>MailboxDeliveryThrottlingLogs</code>, <code>MessageTrackingLogs</code>, <code>PipelineTracingLogs</code>, <code>QueueInformation</code>, <code>ReceiveConnectors</code>, <code>SendConnectors</code>, <code>TransportConfig</code>, <code>TransportRoutingTableLogs</code>, and <code>TransportRules</code></td>
+</tr>
+<tr>
+<td>TransportProtocolLogs</td>
+<td>Aliases <code>ProtocolLogs</code>, <code>FrontEndProtocolLogs</code>, <code>HubProtocolLogs</code>, and <code>MailboxProtocolLogs</code>. Enable to collect the logs that was set at the following locations: <code>(Get-FrontendTransportService $server).ReceiveProtocolLogPath</code>, <code>(Get-FrontendTransportService $server).SendProtocolLogPath</code>, <code>(Get-TransportService $server).ReceiveProtocolLogPath</code>, <code>(Get-TransportService $server).SendProtocolLogPath</code>, <code>(Get-MailboxTransportService $server).ReceiveProtocolLogPath</code>, and <code>(Get-MailboxTransportService $server).SendProtocolLogPath</code></td>
+</tr>
+<tr>
 <td>TransportRoutingTableLogs</td>
 <td>Enable to collect the Routing Table Logs. Location: <code>(Get-TransportService $server).RoutingTableLogPath</code>, <code>(Get-FrontendTransportService $server).RoutingTableLogPath</code>, and <code>(Get-MailboxTransportService $server).RoutingTableLogPath</code></td>
 </tr>
@@ -3643,10 +3627,6 @@
 <tr>
 <td>CollectAllLogsBasedOnLogAge</td>
 <td>Boolean to determine if you collect all the logs based off the log's age or all the logs in that directory. Default value <code>$true</code></td>
-</tr>
-<tr>
-<td>ConnectivityLogs</td>
-<td>Enables the following switches and their logs to be collected: <code>FrontEndConnectivityLogs</code>, <code>HubConnectivityLogs</code>, and <code>MailboxConnectivityLogs</code></td>
 </tr>
 <tr>
 <td>DatabaseFailoverIssue</td>
@@ -3697,10 +3677,6 @@
 <td>Enables the following switches and their logs to be collected: <code>DailyPerformanceLogs</code>, <code>ExPerfWiz</code>, <code>MessageTrackingLogs</code>, <code>QueueInformation</code>, and <code>TransportConfig</code></td>
 </tr>
 <tr>
-<td>ProtocolLogs</td>
-<td>Enables the following switches and their logs to be collected: <code>FrontEndProtocolLogs</code>, <code>HubProtocolLogs</code>, and <code>MailboxProtocolLogs</code></td>
-</tr>
-<tr>
 <td>ScriptDebug</td>
 <td>Enable to display all the verbose lines in the script.</td>
 </tr>
@@ -3730,7 +3706,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1-2.1-2M12.5 7v5.2l4 2.4-1 1L11 13V7h1.5M11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2v1.8Z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">October 2, 2023</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 1, 2024</span>
   </span>
 
     
