@@ -86,7 +86,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "Max Processor Speed" 2200
             TestObjectMatch "Physical Memory" 6
 
-            $Script:ActiveGrouping.Count | Should -Be 10
+            $Script:ActiveGrouping.Count | Should -Be 12
         }
 
         It "Display Results - NIC Settings" {

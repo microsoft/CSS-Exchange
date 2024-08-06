@@ -85,8 +85,9 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "All Processor Cores Visible" "Passed" -WriteType "Green"
             TestObjectMatch "Max Processor Speed" 2200
             TestObjectMatch "Physical Memory" 6 -WriteType "Yellow"
+            TestObjectMatch "Dynamic Memory Detected" $false -WriteType "Green"
 
-            $Script:ActiveGrouping.Count | Should -Be 9
+            $Script:ActiveGrouping.Count | Should -Be 11
         }
 
         It "Display Results - NIC Settings" {
@@ -218,7 +219,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Manufacturer" "My Custom PC"
             TestObjectMatch "Model" "CHG-GG"
 
-            $Script:ActiveGrouping.Count | Should -Be 12
+            $Script:ActiveGrouping.Count | Should -Be 13
         }
 
         It "Display Results - NIC Settings" {

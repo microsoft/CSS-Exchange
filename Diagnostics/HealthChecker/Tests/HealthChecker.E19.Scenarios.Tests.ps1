@@ -97,6 +97,18 @@ Describe "Testing Health Checker by Mock Data Imports" {
                 $obj.Add($suObject)
                 return $obj
             }
+            Mock Get-LocalizedCounterSamples {
+                $objList = New-Object System.Collections.Generic.List[object]
+                $objList.Add(([PSCustomObject]@{
+                            OriginalCounterLookup = "\Processor(_Total)\% Processor Time"
+                            CookedValue           = 55.55555
+                        }))
+                $objList.Add(([PSCustomObject]@{
+                            OriginalCounterLookup = "\Hyper-V Dynamic Memory Integration Service\Maximum Memory, MBytes"
+                            CookedValue           = 24576
+                        }))
+                return $objList
+            }
 
             SetDefaultRunOfHealthChecker "Debug_Scenario1_Results.xml"
         }
@@ -118,6 +130,11 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Critical Pla" ($displayFormat -f "pla", "Stopped", "Manual") -WriteType "Red"
             TestObjectMatch "Critical HostControllerService" ($displayFormat -f "HostControllerService", "Stopped", "Disabled") -WriteType "Red"
             TestObjectMatch "Common MSExchangeDagMgmt" ($displayFormat -f "MSExchangeDagMgmt", "Stopped", "Automatic") -WriteType "Yellow"
+        }
+
+        It "Dynamic Memory Set" {
+            SetActiveDisplayGrouping "Processor/Hardware Information"
+            TestObjectMatch "Dynamic Memory Detected" "True 24GB is the allowed dynamic memory of the server. Not supported to have dynamic memory configured." -WriteType "Red"
         }
 
         It "Http Proxy Settings" {
