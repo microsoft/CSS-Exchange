@@ -318,6 +318,10 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "EdgeTransport.exe.config Invalid Config Format" $true -WriteType "Red"
         }
 
+        It "EdgeTransport.exe.config invalid config for UnifiedContent" {
+            TestObjectMatch "UnifiedContent Auto Cleanup Configured" "Error - EdgeTransport.exe.config Invalid Config Format" -WriteType "Red"
+        }
+
         It "TLS Settings" {
             SetActiveDisplayGrouping "Security Settings"
             TestObjectMatch "TLS 1.0" "Misconfigured" -WriteType "Red"
@@ -369,6 +373,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\Physical_Win32_Processor1.xml" }
             Mock Get-ExSetupFileVersionInfo { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup1.xml" }
             Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost2.config" -Raw -Encoding UTF8 }
+            Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Monitoring\Config\AntiMalware.xml" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\AntiMalware1.xml" -Raw -Encoding UTF8 }
 
             SetDefaultRunOfHealthChecker "Debug_Scenario3_Physical_Results.xml"
         }
@@ -406,6 +411,11 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "HighPerformanceSet" {
             TestObjectMatch "HighPerformanceSet" $false -WriteType "Red"
+        }
+
+        It "UnifiedContent Auto Update" {
+            SetActiveDisplayGrouping "Frequent Configuration Issues"
+            TestObjectMatch "UnifiedContent Auto Cleanup Configured" $false -WriteType "Red"
         }
 
         It "Extended Protection" {
