@@ -118,8 +118,10 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "EdgeTransport.exe.config Present" "True" -WriteType "Green"
             TestObjectMatch "Open Relay Wild Card Domain" "Not Set"
             TestObjectMatch "EXO Connector Present" "False"
+            # For some reason by default Exchange 2013 doesn't have this setting. not going to look into it just going to make a not of it and move on.
+            TestObjectMatch "UnifiedContent Auto Cleanup Configured" $false -WriteType "Red"
 
-            $Script:ActiveGrouping.Count | Should -Be 12
+            $Script:ActiveGrouping.Count | Should -Be 13
         }
 
         It "Display Results - Security Settings" {
