@@ -70,6 +70,7 @@ nav:
       - HCScheduledTask: Diagnostics/HealthChecker/RunHCViaSchedTask.md
       - ADSiteCount: Diagnostics/HealthChecker/ADSiteCount.md
       - ExchangeComputerMembership: Diagnostics/HealthChecker/ExchangeComputerMembership.md
+      - UnifiedContentCleanup: Diagnostics/HealthChecker/UnifiedContentCleanup.md
     - ManagedAvailabilityTroubleshooter: Diagnostics/ManagedAvailabilityTroubleshooter.md
     - Test-ExchAVExclusions: Diagnostics/Test-ExchAVExclusions.md
   - Hybrid:
