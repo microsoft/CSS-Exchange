@@ -59,7 +59,7 @@ function Get-ExchangeInformation {
             CU                 = $versionInformation.CU
             ExchangeSetup      = $exSetupDetails
             VersionInformation = $versionInformation
-            KBsInstalled       = [array](Get-ExchangeUpdates -Server $Server -ExchangeMajorVersion $versionInformation.MajorVersion)
+            KBsInstalledInfo   = [array](Get-ExchangeUpdates -Server $Server -ExchangeMajorVersion $versionInformation.MajorVersion)
         }
 
         $dependentServices = (Get-ExchangeDependentServices -MachineName $Server)
