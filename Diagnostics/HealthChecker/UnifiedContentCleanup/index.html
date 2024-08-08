@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://microsoft.github.io/CSS-Exchange/Diagnostics/HealthChecker/IPv6EnabledCheck/">
+        <link rel="canonical" href="https://microsoft.github.io/CSS-Exchange/Diagnostics/HealthChecker/UnifiedContentCleanup/">
       
       
-        <link rel="prev" href="../ProcessorCheck/">
+        <link rel="prev" href="../ExchangeComputerMembership/">
       
       
-        <link rel="next" href="../PacketsLossCheck/">
+        <link rel="next" href="../../ManagedAvailabilityTroubleshooter/">
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>IPv6EnabledCheck - Microsoft - CSS-Exchange</title>
+        <title>UnifiedContentCleanup - Microsoft - CSS-Exchange</title>
       
     
     
@@ -84,7 +84,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#ipv6-enabled-check" class="md-skip">
+        <a href="#unifiedcontent-automatic-cleanup" class="md-skip">
           Skip to content
         </a>
       
@@ -119,7 +119,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              IPv6EnabledCheck
+              UnifiedContentCleanup
             
           </span>
         </div>
@@ -1301,19 +1301,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../IPv6EnabledCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1322,7 +1313,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -1920,10 +1910,19 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../UnifiedContentCleanup/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -1932,6 +1931,7 @@
   
 
       </a>
+      
     </li>
   
 
@@ -3305,7 +3305,7 @@
                   
 
   
-    <a href="https://github.com/microsoft/CSS-Exchange/edit/main/docs/Diagnostics/HealthChecker/IPv6EnabledCheck.md" title="Edit this page" class="md-content__button md-icon">
+    <a href="https://github.com/microsoft/CSS-Exchange/edit/main/docs/Diagnostics/HealthChecker/UnifiedContentCleanup.md" title="Edit this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4v-2m10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1 2.1 2.1Z"/></svg>
     </a>
@@ -3313,15 +3313,13 @@
   
 
 
-<h1 id="ipv6-enabled-check">IPv6 Enabled Check</h1>
-<p><strong>Description:</strong></p>
-<p>We check if IPv6 is enabled or not. If we determine that IPv6 has been disabled, we check to see if it's fully disabled as recommended. We determine if the IPv6 is fully disabled by checking to see if we have an IPv6 Address available on the NIC and that it matches what is found in the registry at <code>SYSTEM\CurrentControlSet\Services\TcpIp6\Parameters\DisabledComponents</code>.</p>
-<p>If both places don't have IPv6 enabled/disabled properly a warning is thrown. This can cause communication issues if not properly disabled.</p>
+<h1 id="unifiedcontent-automatic-cleanup">UnifiedContent Automatic Cleanup</h1>
+<p>Within Exchange Monitoring, we have a probe that will attempt to clear out the old temp data that is generated from EdgeTransport.exe process. However, this probe definition is defined in the <code>%ExchangeInstallPath%\Bin\Monitoring\Config\AntiMalware.xml</code> with a hardcoded path options to look. By default, we are only looking at <code>"D:\ExchangeTemp\TransportCts\UnifiedContent;C:\Windows\Temp\UnifiedContent;C:\Program Files\Microsoft\Exchange Server\V15\TransportRoles\data\Temp\UnifiedContent"</code>. Therefore, if Exchange is not installed in at <code>C:\Program Files\Microsoft\Exchange Server\V15\</code> or if the <code>TemporaryStoragePath</code> of the <code>EdgeTransport.exe.config</code> value is anything other than <code>C:\Program Files\Microsoft\Exchange Server\V15\TransportRoles\data\Temp</code> the probe will not work as intended to clean up the data files.</p>
+<p>The only way to get the probe to automatically clean up the temp files is to add the correct location to the <code>%ExchangeInstallPath%\Bin\Monitoring\Config\AntiMalware.xml</code> file.</p>
 <p><strong>Included in HTML Report?</strong></p>
 <p>Yes</p>
 <p><strong>Additional resources:</strong></p>
-<p><a href="https://blog.rmilne.ca/2014/10/29/disabling-ipv6-and-exchange-going-all-the-way/">Disabling IPv6 And Exchange – Going All The Way</a></p>
-<p><a href="https://support.microsoft.com/help/929852/guidance-for-configuring-ipv6-in-windows-for-advanced-users">Guidance for configuring IPv6 in Windows for advanced users</a></p>
+<p><a href="https://learn.microsoft.com/en-us/exchange/troubleshoot/administration/unifiedcontent-folder-fills-up-drive">Exchange UnifiedContent folder fills up the drive</a></p>
 
 
 
@@ -3342,7 +3340,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1-2.1-2M12.5 7v5.2l4 2.4-1 1L11 13V7h1.5M11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2v1.8Z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">January 13, 2023</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 7, 2024</span>
   </span>
 
     

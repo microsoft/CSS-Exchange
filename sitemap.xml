@@ -326,6 +326,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://microsoft.github.io/CSS-Exchange/Diagnostics/HealthChecker/UnifiedContentCleanup/</loc>
+         <lastmod>2024-08-08</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://microsoft.github.io/CSS-Exchange/Diagnostics/HealthChecker/VisualCRedistributableVersionCheck/</loc>
          <lastmod>2024-08-08</lastmod>
          <changefreq>daily</changefreq>
