@@ -191,10 +191,6 @@ Mock Get-HotFix {
     return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetHotFix.xml"
 }
 
-Mock Get-LocalizedCounterSamples {
-    return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetCounterSamples.xml"
-}
-
 Mock Get-ServerRebootPending {
     return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetServerRebootPending.xml"
 }
@@ -264,6 +260,21 @@ Mock Get-ExchangeDiagnosticInfo -ParameterFilter { $Process -eq "Microsoft.Excha
     -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo_ADTopVariantConfiguration.xml" }
 Mock Get-ExchangeDiagnosticInfo -ParameterFilter { $Process -eq "EdgeTransport" -and $Component -eq "ResourceThrottling" } `
     -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo_EdgeTransportResourceThrottling.xml" }
+
+Mock Get-LocalizedCounterSamples -ParameterFilter { $Counter -eq "\Network Interface(*)\Packets Received Discarded" } `
+    -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetCounterSamples.xml" }
+Mock Get-LocalizedCounterSamples {
+    $objList = New-Object System.Collections.Generic.List[object]
+    $objList.Add(([PSCustomObject]@{
+                OriginalCounterLookup = "\Processor(_Total)\% Processor Time"
+                CookedValue           = 55.55555
+            }))
+    $objList.Add(([PSCustomObject]@{
+                OriginalCounterLookup = "\Hyper-V Dynamic Memory Integration Service\Maximum Memory, MBytes"
+                CookedValue           = 6144
+            }))
+    return $objList
+}
 
 # Need to use function instead of Mock for Exchange cmdlets
 function Get-ExchangeServer {

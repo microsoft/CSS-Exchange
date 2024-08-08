@@ -67,6 +67,17 @@ function Get-OperatingSystemInformation {
             Invoke-CatchActions
         }
 
+        $params = @{
+            MachineName       = $Server
+            Counter           = @(
+                "\Hyper-V Dynamic Memory Integration Service\Maximum Memory, MBytes", # This is used to determine if dynamic memory is set on the Hyper-V machine.
+                "\Processor(_Total)\% Processor Time",
+                "\VM Memory\Memory Reservation in MB" # used to determine if dynamic memory is set on the VMware machine.
+            )
+            CustomErrorAction = "SilentlyContinue" # Required because not all counters would be there.
+        }
+
+        $counters = Get-LocalizedCounterSamples @params
         $serverPendingReboot = (Get-ServerRebootPending -ServerName $Server -CatchActionFunction ${Function:Invoke-CatchActions})
         $timeZoneInformation = Get-TimeZoneInformation -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
         $tlsSettings = Get-AllTlsSettings -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
@@ -94,6 +105,7 @@ function Get-OperatingSystemInformation {
             CredentialGuardCimInstance = $credentialGuardCimInstance
             WindowsFeature             = $windowsFeature
             EventLogInformation        = $eventLogInformation
+            PerformanceCounters        = $counters
         }
     }
 }
