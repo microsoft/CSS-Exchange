@@ -4,7 +4,9 @@
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExtendedProtectionConfiguration.ps1
 . $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeBuildVersionInformation.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeDiagnosticInformation.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeSettingOverride.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Get-ExSetupFileVersionInfo.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-FileContentInformation.ps1
 . $PSScriptRoot\IISInformation\Get-ExchangeAppPoolsInformation.ps1
 . $PSScriptRoot\IISInformation\Get-ExchangeServerIISSettings.ps1
@@ -16,7 +18,6 @@
 . $PSScriptRoot\Get-ExchangeServerMaintenanceState.ps1
 . $PSScriptRoot\Get-ExchangeUpdates.ps1
 . $PSScriptRoot\Get-ExchangeVirtualDirectories.ps1
-. $PSScriptRoot\Get-ExSetupDetails.ps1
 . $PSScriptRoot\Get-FIPFSScanEngineVersionState.ps1
 . $PSScriptRoot\Get-ServerRole.ps1
 function Get-ExchangeInformation {
@@ -35,7 +36,7 @@ function Get-ExchangeInformation {
         $windows2016OrGreater = Invoke-ScriptBlockHandler @params
         $getExchangeServer = (Get-ExchangeServer -Identity $Server -Status)
         $exchangeCertificates = Get-ExchangeServerCertificates -Server $Server
-        $exSetupDetails = Get-ExSetupDetails -Server $Server
+        $exSetupDetails = Get-ExSetupFileVersionInfo -Server $Server -CatchActionFunction ${Function:Invoke-CatchActions}
 
         if ($null -eq $exSetupDetails) {
             # couldn't find ExSetup.exe this should be rare so we are just going to handle this by displaying the AdminDisplayVersion from Get-ExchangeServer
@@ -58,7 +59,7 @@ function Get-ExchangeInformation {
             CU                 = $versionInformation.CU
             ExchangeSetup      = $exSetupDetails
             VersionInformation = $versionInformation
-            KBsInstalled       = [array](Get-ExchangeUpdates -Server $Server -ExchangeMajorVersion $versionInformation.MajorVersion)
+            KBsInstalledInfo   = [array](Get-ExchangeUpdates -Server $Server -ExchangeMajorVersion $versionInformation.MajorVersion)
         }
 
         $dependentServices = (Get-ExchangeDependentServices -MachineName $Server)
@@ -114,10 +115,27 @@ function Get-ExchangeInformation {
         $configParams = @{
             ComputerName = $Server
             FileLocation = @("$([System.IO.Path]::Combine($serverExchangeBinDirectory, "EdgeTransport.exe.config"))",
-                "$([System.IO.Path]::Combine($serverExchangeBinDirectory, "Search\Ceres\Runtime\1.0\noderunner.exe.config"))")
+                "$([System.IO.Path]::Combine($serverExchangeBinDirectory, "Search\Ceres\Runtime\1.0\noderunner.exe.config"))",
+                "$([System.IO.Path]::Combine($serverExchangeBinDirectory, "Monitoring\Config\AntiMalware.xml"))")
         }
 
-        $applicationConfigFileStatus = Get-FileContentInformation @configParams
+        if ($getExchangeServer.IsEdgeServer -eq $false -and
+            (-not ([string]::IsNullOrEmpty($registryValues.FipFsDatabasePath)))) {
+            $configParams.FileLocation += "$([System.IO.Path]::Combine($registryValues.FipFsDatabasePath, "Configuration.xml"))"
+        }
+
+        $getFileContentInformation = Get-FileContentInformation @configParams
+        $applicationConfigFileStatus = @{}
+        $fileContentInformation = @{}
+
+        foreach ($key in $getFileContentInformation.Keys) {
+            if ($key -like "*.exe.config") {
+                $applicationConfigFileStatus.Add($key, $getFileContentInformation[$key])
+            } else {
+                $fileContentInformation.Add($key, $getFileContentInformation[$key])
+            }
+        }
+
         $serverMaintenance = Get-ExchangeServerMaintenanceState -Server $Server -ComponentsToSkip "ForwardSyncDaemon", "ProvisioningRps"
         $settingOverrides = Get-ExchangeSettingOverride -Server $Server -CatchActionFunction ${Function:Invoke-CatchActions}
 
@@ -170,6 +188,29 @@ function Get-ExchangeInformation {
             VersionInformation = $versionInformation
         }
         $aes256CbcDetails = Get-ExchangeAES256CBCDetails @aes256CbcParams
+
+        Write-Verbose "Getting Exchange Diagnostic Information"
+        $params = @{
+            Server    = $Server
+            Process   = "EdgeTransport"
+            Component = "ResourceThrottling"
+        }
+        $edgeTransportResourceThrottling = Get-ExchangeDiagnosticInformation @params
+
+        if ($getExchangeServer.IsEdgeServer -eq $false) {
+            $params = @{
+                ComputerName           = $Server
+                ScriptBlockDescription = "Getting Exchange Server Members"
+                CatchActionFunction    = ${Function:Invoke-CatchActions}
+                ScriptBlock            = {
+                    [PSCustomObject]@{
+                        LocalGroupMember  = (Get-LocalGroupMember -SID "S-1-5-32-544" -ErrorAction Stop)
+                        ADGroupMembership = (Get-ADPrincipalGroupMembership (Get-ADComputer $env:COMPUTERNAME).DistinguishedName)
+                    }
+                }
+            }
+            $computerMembership = Invoke-ScriptBlockHandler @params
+        }
     } end {
 
         Write-Verbose "Exiting: Get-ExchangeInformation"
@@ -186,12 +227,15 @@ function Get-ExchangeInformation {
             ServerMaintenance                        = $serverMaintenance
             ExchangeCertificates                     = [array]$exchangeCertificates
             ExchangeEmergencyMitigationServiceResult = $eemsEndpointResults
+            EdgeTransportResourceThrottling          = $edgeTransportResourceThrottling # If we want to checkout other diagnosticInfo, we should create a new object here.
             ApplicationConfigFileStatus              = $applicationConfigFileStatus
             DependentServices                        = $dependentServices
             IISSettings                              = $iisSettings
             SettingOverrides                         = $settingOverrides
             FIPFSUpdateIssue                         = $FIPFSUpdateIssue
             AES256CBCInformation                     = $aes256CbcDetails
+            FileContentInformation                   = $fileContentInformation
+            ComputerMembership                       = $computerMembership
         }
     }
 }

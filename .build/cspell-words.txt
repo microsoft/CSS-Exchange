@@ -19,6 +19,7 @@ contoso
 CTMM
 Datacenter
 dcom
+DMARC
 Dsamain
 DTLS
 dumptidset
@@ -29,6 +30,7 @@ EICAR
 eicar
 Emotet
 emsmdb
+Entra
 EOMT
 Eseback
 Eventlog
@@ -151,12 +153,15 @@ unconfigured
 unrequired
 USERDNSDOMAIN
 Vianet
+Visio
 vmxnet
 vssadmin
 vsstester
+Vssx
 vuln
 wbxml
 Webex
 Weve
 wevtutil
 windir
+Xlsb

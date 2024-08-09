@@ -32,7 +32,6 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Runtime\1.0\noderunner.exe.config" } -MockWith { return $null }
             Mock Get-ServerRebootPending { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetServerRebootPending1.xml" }
             Mock Get-AllTlsSettings { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetAllTlsSettings1.xml" }
-            Mock Get-Smb1ServerSettings { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetSmb1ServerSettings1.xml" }
             Mock Get-OrganizationConfig { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOrganizationConfig1.xml" }
             Mock Get-OwaVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory1.xml" }
             Mock Get-HttpProxySetting { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetHttpProxySetting1.xml" }
@@ -43,9 +42,26 @@ Describe "Testing Health Checker by Mock Data Imports" {
             # Needs to be like this to match the filter
             Mock Get-WebConfigFile -ParameterFilter { $PSPath -eq "IIS:\Sites\Exchange Back End/ecp" } -MockWith { return [PSCustomObject]@{ FullName = "$Script:MockDataCollectionRoot\Exchange\IIS\ClientAccess\ecp\web.config" } }
             Mock Get-WebConfigFile -ParameterFilter { $PSPath -eq "IIS:\Sites\Default Web Site/ecp" } -MockWith { return [PSCustomObject]@{ FullName = "$Script:MockDataCollectionRoot\Exchange\IIS\DefaultWebSite_web.config" } }
-            Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost1.config" -Raw }
-            Mock Get-ExchangeDiagnosticInfo { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo1.xml" }
+            Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost1.config" -Raw -Encoding UTF8 }
+            Mock Get-ExchangeDiagnosticInfo -ParameterFilter { $Process -eq "Microsoft.Exchange.Directory.TopologyService" -and $Component -eq "VariantConfiguration" -and $Argument -eq "Overrides" } `
+                -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo_ADTopVariantConfiguration1.xml" }
+            Mock Get-ExchangeDiagnosticInfo -ParameterFilter { $Process -eq "EdgeTransport" -and $Component -eq "ResourceThrottling" } `
+                -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo_EdgeTransportResourceThrottling1.xml" }
             Mock Get-IISModules { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetIISModulesNoTokenCacheModule.xml" }
+            Mock Get-ADPrincipalGroupMembership { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetADPrincipalGroupMembership2.xml" }
+            Mock Get-LocalGroupMember { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetLocalGroupMember2.xml" }
+            Mock Get-WindowsFeature { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetWindowsFeature1.xml" }
+            Mock Get-SmbServerConfiguration { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetSmbServerConfiguration1.xml" }
+            Mock Get-WinEvent -ParameterFilter { $LogName -eq "Application" -and $Oldest -eq $true -and $MaxEvents -eq 1 } -MockWith {
+                $r = Import-Clixml "$Script:MockDataCollectionRoot\OS\GetWinEventOldestApplication.xml"
+                $r.TimeCreated = ((Get-Date).AddDays(-1))
+                return $r
+            }
+            Mock Get-WinEvent -ParameterFilter { $LogName -eq "System" -and $Oldest -eq $true -and $MaxEvents -eq 1 } -MockWith {
+                $r = Import-Clixml "$Script:MockDataCollectionRoot\OS\GetWinEventOldestSystem.xml"
+                $r.TimeCreated = ((Get-Date).AddDays(-1))
+                return $r
+            }
             Mock Get-Service {
                 param(
                     [string]$ComputerName,
@@ -53,6 +69,45 @@ Describe "Testing Health Checker by Mock Data Imports" {
                 )
                 if ($Name -eq "MSExchangeMitigation") { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetServiceMitigation.xml" }
                 return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetService1.xml"
+            }
+            Mock Get-RemoteRegistrySubKey -ParameterFilter { $SubKey -eq "SOFTWARE\Microsoft\Updates\Exchange 2019" } -MockWith {
+                $obj = New-Object System.Collections.Generic.List[object]
+                $suObject = [PSCustomObject]@{
+                    Name = "Empty"
+                }
+                $suObject | Add-Member -MemberType ScriptMethod -Name GetSubKeyNames -Value { return @("KB5029388", "KB5030877") }
+                $suObject | Add-Member -MemberType ScriptMethod -Name OpenSubKey -Value { param($id) if ($id -eq "KB5029388") {
+                        $o = [PSCustomObject]@{
+                            Name = "Empty"
+                        }
+                        $o | Add-Member -MemberType ScriptMethod -Name GetValue -Value { param ($name) if ($name -eq "PackageName") {
+                                return "Security Update for Exchange Server 2019 Cumulative Update 12 (KB5029388)"
+                            } elseif ( $name -eq "InstalledDate") { return "9/20/2023" } }
+                        return $o
+                    } elseif ($id -eq "KB5030877") {
+                        $o = [PSCustomObject]@{
+                            Name = "Empty"
+                        }
+                        $o | Add-Member -MemberType ScriptMethod -Name GetValue -Value { param ($name) if ($name -eq "PackageName") {
+                                return "Security Update for Exchange Server 2019 Cumulative Update 12 (KB5030877)"
+                            } elseif ( $name -eq "InstalledDate") { return "10/20/2023" } }
+                        return $o
+                    }
+                }
+                $obj.Add($suObject)
+                return $obj
+            }
+            Mock Get-LocalizedCounterSamples {
+                $objList = New-Object System.Collections.Generic.List[object]
+                $objList.Add(([PSCustomObject]@{
+                            OriginalCounterLookup = "\Processor(_Total)\% Processor Time"
+                            CookedValue           = 55.55555
+                        }))
+                $objList.Add(([PSCustomObject]@{
+                            OriginalCounterLookup = "\Hyper-V Dynamic Memory Integration Service\Maximum Memory, MBytes"
+                            CookedValue           = 24576
+                        }))
+                return $objList
             }
 
             SetDefaultRunOfHealthChecker "Debug_Scenario1_Results.xml"
@@ -62,6 +117,12 @@ Describe "Testing Health Checker by Mock Data Imports" {
             SetActiveDisplayGrouping "Exchange Information"
             TestObjectMatch "Setting Overrides Detected" $true
             TestObjectMatch "Extended Protection Enabled (Any VDir)" $true
+            TestObjectMatch "Transport Back Pressure" "--ERROR-- The following resources are causing back pressure: DatabaseUsedSpace" -WriteType "Red"
+            TestObjectMatch "Exchange Server Membership" "Failed" -WriteType "Red"
+            TestObjectMatch "Exchange Trusted Subsystem - Local System Membership" "Exchange Trusted Subsystem - Local System Membership" -WriteType "Red"
+            TestObjectMatch "Exchange Trusted Subsystem - AD Group Membership" "Exchange Trusted Subsystem - AD Group Membership" -WriteType "Red"
+            $hotfixInstalled = GetObject "Exchange IU"
+            $hotfixInstalled.Count | Should -Be 2
         }
 
         It "Dependent Services" {
@@ -71,6 +132,11 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Common MSExchangeDagMgmt" ($displayFormat -f "MSExchangeDagMgmt", "Stopped", "Automatic") -WriteType "Yellow"
         }
 
+        It "Dynamic Memory Set" {
+            SetActiveDisplayGrouping "Processor/Hardware Information"
+            TestObjectMatch "Dynamic Memory Detected" "True 24GB is the allowed dynamic memory of the server. Not supported to have dynamic memory configured." -WriteType "Red"
+        }
+
         It "Http Proxy Settings" {
             SetActiveDisplayGrouping "Operating System Information"
             $httpProxy = GetObject "Http Proxy Setting"
@@ -78,6 +144,15 @@ Describe "Testing Health Checker by Mock Data Imports" {
             $httpProxy.ByPassList | Should -Be "localhost;*.contoso.com;*microsoft.com"
             $httpProxy.HttpProxyDifference | Should -Be "False"
             $httpProxy.HttpByPassDifference | Should -Be "False"
+        }
+
+        It "Message Queuing Feature" {
+            TestObjectMatch "Messaging Queuing Feature" $true -WriteType "Yellow"
+        }
+
+        It "Event Log Size Test" {
+            GetObject "Event Log - Application" |
+                Should -BeLike "--ERROR-- Not enough logs to cover 7 days. Last log entry is at *. This could cause issues with determining Root Cause Analysis."
         }
 
         It "TCP Keep Alive Time" {
@@ -211,7 +286,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
     Context "Checking Scenarios 2" {
         BeforeAll {
             Mock Get-SettingOverride { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetSettingOverride1.xml" }
-            Mock Get-ExchangeDiagnosticInfo { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo1.xml" }
+            Mock Get-ExchangeDiagnosticInfo -ParameterFilter { $Process -eq "Microsoft.Exchange.Directory.TopologyService" -and $Component -eq "VariantConfiguration" -and $Argument -eq "Overrides" } `
+                -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo_ADTopVariantConfiguration1.xml" }
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "KeepAliveTime" } -MockWith { return 1800000 }
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "DisableGranularReplication" } -MockWith { return 1 }
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "DisableAsyncNotification" } -MockWith { return 1 }
@@ -220,10 +296,10 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-OwaVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory2.xml" }
             Mock Get-AcceptedDomain { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetAcceptedDomain_Bad.xml" }
             Mock Get-DnsClient { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetDnsClient1.xml" }
-            Mock Get-ExSetupDetails { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup1.xml" }
-            Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost1.config" -Raw }
-            Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Runtime\1.0\noderunner.exe.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\noderunner.exe1.config" -Raw }
-            Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\EdgeTransport.exe.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\EdgeTransport.exe1.config" -Raw }
+            Mock Get-ExSetupFileVersionInfo { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup1.xml" }
+            Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost1.config" -Raw -Encoding UTF8 }
+            Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Runtime\1.0\noderunner.exe.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\noderunner.exe1.config" -Raw -Encoding UTF8 }
+            Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\EdgeTransport.exe.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\EdgeTransport.exe1.config" -Raw -Encoding UTF8 }
 
             SetDefaultRunOfHealthChecker "Debug_Scenario2_Results.xml"
         }
@@ -257,6 +333,10 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "EdgeTransport.exe.config invalid config" {
             TestObjectMatch "EdgeTransport.exe.config Invalid Config Format" $true -WriteType "Red"
+        }
+
+        It "EdgeTransport.exe.config invalid config for UnifiedContent" {
+            TestObjectMatch "UnifiedContent Auto Cleanup Configured" "Error - EdgeTransport.exe.config Invalid Config Format" -WriteType "Red"
         }
 
         It "TLS Settings" {
@@ -308,8 +388,9 @@ Describe "Testing Health Checker by Mock Data Imports" {
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\Physical_Win32_PhysicalMemory.xml" }
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_Processor" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\Physical_Win32_Processor1.xml" }
-            Mock Get-ExSetupDetails { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup1.xml" }
-            Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost2.config" -Raw }
+            Mock Get-ExSetupFileVersionInfo { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup1.xml" }
+            Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost2.config" -Raw -Encoding UTF8 }
+            Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Monitoring\Config\AntiMalware.xml" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\AntiMalware1.xml" -Raw -Encoding UTF8 }
 
             SetDefaultRunOfHealthChecker "Debug_Scenario3_Physical_Results.xml"
         }
@@ -347,6 +428,11 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "HighPerformanceSet" {
             TestObjectMatch "HighPerformanceSet" $false -WriteType "Red"
+        }
+
+        It "UnifiedContent Auto Update" {
+            SetActiveDisplayGrouping "Frequent Configuration Issues"
+            TestObjectMatch "UnifiedContent Auto Cleanup Configured" $false -WriteType "Red"
         }
 
         It "Extended Protection" {

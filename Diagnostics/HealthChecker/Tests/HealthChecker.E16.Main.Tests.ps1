@@ -32,7 +32,8 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "Internet Web Proxy" "Not Set"
             TestObjectMatch "Extended Protection Enabled (Any VDir)" $false
             TestObjectMatch "Setting Overrides Detected" $false
-            $Script:ActiveGrouping.Count | Should -Be 14
+            TestObjectMatch "Exchange Server Membership" "Passed"
+            $Script:ActiveGrouping.Count | Should -Be 15
         }
 
         It "Display Results - Organization Information" {
@@ -85,7 +86,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "Max Processor Speed" 2200
             TestObjectMatch "Physical Memory" 6
 
-            $Script:ActiveGrouping.Count | Should -Be 10
+            $Script:ActiveGrouping.Count | Should -Be 12
         }
 
         It "Display Results - NIC Settings" {
@@ -119,7 +120,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "Open Relay Wild Card Domain" "Not Set"
             TestObjectMatch "EXO Connector Present" "False"
 
-            $Script:ActiveGrouping.Count | Should -Be 11
+            $Script:ActiveGrouping.Count | Should -Be 12
         }
 
         It "Display Results - Security Settings" {
@@ -132,7 +133,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "Pattern service" "Unreachable`r`n`t`tMore information: https://aka.ms/HelpConnectivityEEMS" -WriteType "Yellow"
             TestObjectMatch "Telemetry enabled" "False"
 
-            $Script:ActiveGrouping.Count | Should -Be 99
+            $Script:ActiveGrouping.Count | Should -Be 102
         }
 
         It "Display Results - Security Vulnerability" {
@@ -141,11 +142,12 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             $cveTests = GetObject "Security Vulnerability"
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
             $cveTests.Contains("CVE-2023-36039") | Should -Be $true
-            $cveTests.Count | Should -Be 49
+            $cveTests.Contains("ADV24199947") | Should -Be $true
+            $cveTests.Count | Should -Be 51
             $downloadDomains = GetObject "CVE-2021-1730"
             $downloadDomains.DownloadDomainsEnabled | Should -Be "false"
 
-            $Script:ActiveGrouping.Count | Should -Be 56
+            $Script:ActiveGrouping.Count | Should -Be 58
         }
     }
 

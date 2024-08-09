@@ -19,7 +19,7 @@ function Test-PossibleCommonScenarios {
         $Script:ServerInformation = $true
         $Script:GetVDirs = $true
         $Script:DAGInformation = $true
-        $Script:DefaultTransportLogging = $true
+        $Script:TransportLogging = $true
         $Script:MapiLogs = $true
         $Script:OrganizationConfig = $true
         $Script:ECPLogs = $true
@@ -31,14 +31,15 @@ function Test-PossibleCommonScenarios {
         $Script:PowerShellLogs = $true
         $Script:WindowsSecurityLogs = $true
         $Script:CollectFailoverMetrics = $true
-        $Script:ConnectivityLogs = $true
-        $Script:ProtocolLogs = $true
+        $Script:TransportConnectivityLogs = $true
+        $Script:TransportProtocolLogs = $true
         $Script:MitigationService = $true
         $Script:MailboxAssistantsLogs = $true
     }
 
-    if ($DefaultTransportLogging) {
-        $Script:HubConnectivityLogs = $true
+    if ($TransportLogging) {
+        $Script:TransportConnectivityLogs = $true
+        $Script:TransportProtocolLogs = $true
         $Script:MessageTrackingLogs = $true
         $Script:QueueInformation = $true
         $Script:SendConnectors = $true
@@ -46,22 +47,19 @@ function Test-PossibleCommonScenarios {
         $Script:TransportAgentLogs = $true
         $Script:TransportConfig = $true
         $Script:TransportRoutingTableLogs = $true
-        $Script:FrontEndConnectivityLogs = $true
-        $Script:MailboxConnectivityLogs = $true
-        $Script:FrontEndProtocolLogs = $true
         $Script:MailboxDeliveryThrottlingLogs = $true
         $Script:PipelineTracingLogs = $true
         $Script:TransportRules = $true
         $Script:AcceptedRemoteDomain = $true
     }
 
-    if ($ConnectivityLogs) {
+    if ($TransportConnectivityLogs) {
         $Script:FrontEndConnectivityLogs = $true
         $Script:HubConnectivityLogs = $true
         $Script:MailboxConnectivityLogs = $true
     }
 
-    if ($ProtocolLogs) {
+    if ($TransportProtocolLogs) {
         $Script:FrontEndProtocolLogs = $true
         $Script:HubProtocolLogs = $true
         $Script:MailboxProtocolLogs = $true
@@ -126,7 +124,7 @@ function Test-PossibleCommonScenarios {
         $MailboxDeliveryThrottlingLogs -or
         $TransportAgentLogs -or
         $TransportRoutingTableLogs -or
-        $DefaultTransportLogging -or
+        $TransportLogging -or
         $PipelineTracingLogs -or
         $TransportRules -or
         $AcceptedRemoteDomain) {

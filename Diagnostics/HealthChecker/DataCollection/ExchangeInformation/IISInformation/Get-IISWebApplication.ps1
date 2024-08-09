@@ -36,7 +36,7 @@ function Get-IISWebApplication {
             $webConfigExists = Test-Path $configurationFilePath
 
             if ($webConfigExists) {
-                $webConfigContent = (Get-Content $configurationFilePath -Raw).Trim()
+                $webConfigContent = (Get-Content $configurationFilePath -Raw -Encoding UTF8).Trim()
 
                 try {
                     $linkedConfigurationLine = ([xml]$webConfigContent).configuration.assemblyBinding.linkedConfiguration.href

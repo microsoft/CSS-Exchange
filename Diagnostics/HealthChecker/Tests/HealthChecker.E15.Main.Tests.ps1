@@ -32,7 +32,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "Internet Web Proxy" "Not Set"
             TestObjectMatch "Extended Protection Enabled (Any VDir)" $false
             TestObjectMatch "Setting Overrides Detected" $false
-            $Script:ActiveGrouping.Count | Should -Be 16
+            $Script:ActiveGrouping.Count | Should -Be 17
         }
 
         It "Display Results - Organization Information" {
@@ -85,7 +85,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "Max Processor Speed" 2200
             TestObjectMatch "Physical Memory" 6
 
-            $Script:ActiveGrouping.Count | Should -Be 9
+            $Script:ActiveGrouping.Count | Should -Be 11
         }
 
         It "Display Results - NIC Settings" {
@@ -118,8 +118,10 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "EdgeTransport.exe.config Present" "True" -WriteType "Green"
             TestObjectMatch "Open Relay Wild Card Domain" "Not Set"
             TestObjectMatch "EXO Connector Present" "False"
+            # For some reason by default Exchange 2013 doesn't have this setting. not going to look into it just going to make a not of it and move on.
+            TestObjectMatch "UnifiedContent Auto Cleanup Configured" $false -WriteType "Red"
 
-            $Script:ActiveGrouping.Count | Should -Be 11
+            $Script:ActiveGrouping.Count | Should -Be 13
         }
 
         It "Display Results - Security Settings" {
@@ -129,7 +131,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "SMB1 Installed" "True" -WriteType "Red"
             TestObjectMatch "SMB1 Blocked" "False" -WriteType "Red"
 
-            $Script:ActiveGrouping.Count | Should -Be 85
+            $Script:ActiveGrouping.Count | Should -Be 88
         }
 
         It "Display Results - Security Vulnerability" {

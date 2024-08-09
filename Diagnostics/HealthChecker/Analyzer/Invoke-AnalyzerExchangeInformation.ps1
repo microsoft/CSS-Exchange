@@ -60,6 +60,14 @@ function Invoke-AnalyzerExchangeInformation {
     }
     Add-AnalyzedResultInformation @params
 
+    if ($null -ne $exchangeInformation.BuildInformation.ExchangeSetup.InstallTime) {
+        $params = $baseParams + @{
+            Name    = "Latest Install Time (SU/CU)"
+            Details = $exchangeInformation.BuildInformation.ExchangeSetup.InstallTime
+        }
+        Add-AnalyzedResultInformation @params
+    }
+
     if ($exchangeInformation.BuildInformation.VersionInformation.Supported -eq $false) {
         $daysOld = ($date - $exchangeInformation.BuildInformation.VersionInformation.ReleaseDate).Days
 
@@ -129,19 +137,21 @@ function Invoke-AnalyzerExchangeInformation {
         Add-AnalyzedResultInformation @params
     }
 
-    if ($null -ne $exchangeInformation.BuildInformation.KBsInstalled) {
+    if ($null -ne $exchangeInformation.BuildInformation.KBsInstalledInfo.PackageName) {
         Add-AnalyzedResultInformation -Name "Exchange IU or Security Hotfix Detected" @baseParams
         $problemKbFound = $false
         $problemKbName = "KB5029388"
 
-        foreach ($kb in $exchangeInformation.BuildInformation.KBsInstalled) {
+        foreach ($kbInfo in $exchangeInformation.BuildInformation.KBsInstalledInfo) {
+            $kbName = $kbInfo.PackageName
             $params = $baseParams + @{
-                Details                = $kb
+                Details                = "$kbName - Installed on $($kbInfo.InstalledDate)"
                 DisplayCustomTabNumber = 2
+                TestingName            = "Exchange IU"
             }
             Add-AnalyzedResultInformation @params
 
-            if ($kb.Contains($problemKbName)) {
+            if ($kbName.Contains($problemKbName)) {
                 $problemKbFound = $true
             }
         }
@@ -237,6 +247,68 @@ function Invoke-AnalyzerExchangeInformation {
             DisplayWriteType = $mrsProxyWriteType
         }
         Add-AnalyzedResultInformation @params
+    }
+
+    if ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false) {
+        Write-Verbose "Determining Server Group Membership"
+
+        $params = $baseParams + @{
+            Name             = "Exchange Server Membership"
+            Details          = "Passed"
+            DisplayWriteType = "Grey"
+        }
+
+        if ($null -ne $exchangeInformation.ComputerMembership -and
+            $null -ne $HealthServerObject.OrganizationInformation.WellKnownSecurityGroups) {
+            $localGroupList = $HealthServerObject.OrganizationInformation.WellKnownSecurityGroups |
+                Where-Object { $_.WellKnownName -eq "Exchange Trusted Subsystem" }
+            # By Default, I also have Managed Availability Servers and Exchange Install Domain Servers.
+            # But not sure what issue they would cause if we don't have the server as a member, leaving out for now
+            $adGroupList = $HealthServerObject.OrganizationInformation.WellKnownSecurityGroups |
+                Where-Object { $_.WellKnownName -in @("Exchange Trusted Subsystem", "Exchange Servers") }
+            $displayMissingGroups = New-Object System.Collections.Generic.List[string]
+
+            foreach ($localGroup in $localGroupList) {
+                if (($null -eq ($exchangeInformation.ComputerMembership.LocalGroupMember.SID | Where-Object { $_.ToString() -eq $localGroup.SID } ))) {
+                    $displayMissingGroups.Add("$($localGroup.WellKnownName) - Local System Membership")
+                }
+            }
+
+            foreach ($adGroup in $adGroupList) {
+                if (($null -eq ($exchangeInformation.ComputerMembership.ADGroupMembership.SID | Where-Object { $_.ToString() -eq $adGroup.SID }))) {
+                    $displayMissingGroups.Add("$($adGroup.WellKnownName) - AD Group Membership")
+                }
+            }
+
+            if ($displayMissingGroups.Count -ge 1) {
+                $params.DisplayWriteType = "Red"
+                $params.Details = "Failed"
+                Add-AnalyzedResultInformation @params
+
+                foreach ($group in $displayMissingGroups) {
+                    $params = $baseParams + @{
+                        Details                = $group
+                        TestingName            = $group
+                        DisplayWriteType       = "Red"
+                        DisplayCustomTabNumber = 2
+                    }
+                    Add-AnalyzedResultInformation @params
+                }
+
+                $params = $baseParams + @{
+                    Details                = "More Information: https://aka.ms/HC-ServerMembership"
+                    DisplayWriteType       = "Yellow"
+                    DisplayCustomTabNumber = 2
+                }
+                Add-AnalyzedResultInformation @params
+            } else {
+                Add-AnalyzedResultInformation @params
+            }
+        } else {
+            $params.DisplayWriteType = "Yellow"
+            $params.Details = "Unknown - Wasn't able to get the Computer Membership information"
+            Add-AnalyzedResultInformation @params
+        }
     }
 
     if ($exchangeInformation.BuildInformation.MajorVersion -eq "Exchange2013" -and
@@ -399,6 +471,17 @@ function Invoke-AnalyzerExchangeInformation {
                 Add-AnalyzedResultInformation @params
             }
         }
+
+        if ($exchangeInformation.DependentServices.Critical.Count -gt 0 -or
+            $exchangeInformation.DependentServices.Common.Count -gt 0 -or
+            $exchangeInformation.DependentServices.Misconfigured.Count -gt 0) {
+            $params = $baseParams + @{
+                Details                = "To determine the display name of the service that is not properly configured or running, run 'Get-Service <Name>' to get more information."
+                DisplayCustomTabNumber = 2
+                DisplayWriteType       = "Yellow"
+            }
+            Add-AnalyzedResultInformation @params
+        }
     }
 
     if ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false -and
@@ -461,6 +544,34 @@ function Invoke-AnalyzerExchangeInformation {
                         IndentSpaces  = 12
                     })
                 HtmlName   = "Setting Overrides"
+            }
+            Add-AnalyzedResultInformation @params
+        }
+    }
+
+    if ($null -ne $exchangeInformation.EdgeTransportResourceThrottling) {
+        try {
+            # SystemMemory does not block mail flow.
+            $resourceThrottling = ([xml]$exchangeInformation.EdgeTransportResourceThrottling).Diagnostics.Components.ResourceThrottling.ResourceTracker.ResourceMeter |
+                Where-Object { $_.Resource -ne "SystemMemory" -and $_.CurrentResourceUse -ne "Low" }
+        } catch {
+            Invoke-CatchActions
+        }
+
+        if ($null -ne $resourceThrottling) {
+            $resourceThrottlingList = @($resourceThrottling.Resource |
+                    ForEach-Object {
+                        $index = $_.IndexOf("[")
+                        if ($index -eq -1) {
+                            $_
+                        } else {
+                            $_.Substring(0, $index)
+                        }
+                    })
+            $params = $baseParams + @{
+                Name             = "Transport Back Pressure"
+                Details          = "--ERROR-- The following resources are causing back pressure: $([string]::Join(", ", $resourceThrottlingList))"
+                DisplayWriteType = "Red"
             }
             Add-AnalyzedResultInformation @params
         }

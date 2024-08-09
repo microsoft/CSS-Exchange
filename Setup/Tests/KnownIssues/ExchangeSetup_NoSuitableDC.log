@@ -1,0 +1,580 @@
+[03/20/2024 20:42:29.0184] [0] **********************************************
+[03/20/2024 20:42:29.0184] [0] Starting Microsoft Exchange Server 2019 Setup
+[03/20/2024 20:42:29.0184] [0] **********************************************
+[03/20/2024 20:42:29.0184] [0] Local time zone: (UTC-05:00) Eastern Time (US & Canada).
+[03/20/2024 20:42:29.0184] [0] Operating system version: Microsoft Windows NT 6.2.9200.0.
+[03/20/2024 20:42:29.0184] [0] Setup version: 15.2.1544.4.
+[03/20/2024 20:42:29.0184] [0] Logged on user: SOLO\Han.
+[03/20/2024 20:42:29.0200] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\V15\Setup, wasn't found.
+[03/20/2024 20:42:29.0215] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\V15\Setup, wasn't found.
+[03/20/2024 20:42:29.0231] [0] Command Line Parameter Name='sourcedir', Value='D:\'.
+[03/20/2024 20:42:29.0231] [0] Command Line Parameter Name='mode', Value='Install'.
+[03/20/2024 20:42:29.0246] [0] RuntimeAssembly was started with the following command: '/sourcedir:D: /mode:Install'.
+[03/20/2024 20:42:29.0246] [0] The registry key, HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ExchangeServer\V15\Setup, wasn't found.
+[03/20/2024 20:42:29.0856] [0] Finished loading screen CheckForUpdatesPage.
+[03/20/2024 20:42:32.0442] [0] Starting file's copying...
+[03/20/2024 20:42:32.0442] [0] Setup copy files from 'D:\Setup\ServerRoles\Common' to 'C:\Windows\Temp\ExchangeSetup'
+[03/20/2024 20:42:32.0539] [0] Disk space required: 2133919635 bytes.
+[03/20/2024 20:42:32.0539] [0] Disk space available: 182941855744 bytes.
+[03/20/2024 20:42:32.0648] [0] Finished loading screen CopyFilesPage.
+[03/20/2024 20:42:52.0161] [0] File's copying finished.
+[03/20/2024 20:42:52.0364] [0] Finished loading screen InitializingSetupPage.
+[03/20/2024 20:42:57.0095] [0] Setup is choosing the domain controller to use
+[03/20/2024 20:43:03.0769] [0] Setup is choosing a local domain controller...
+[03/20/2024 20:43:07.0337] [0] Setup has chosen the local domain controller DC2.Solo.local for initial queries
+[03/20/2024 20:43:07.0790] [0] PrepareAD has been run, and has replicated to this domain controller; so setup will use DC2.Solo.local
+[03/20/2024 20:43:07.0790] [0] Setup is choosing a global catalog...
+[03/20/2024 20:43:07.0821] [0] Setup has chosen the global catalog server DC2.Solo.local.
+[03/20/2024 20:43:07.0837] [0] Setup will use the domain controller 'DC2.Solo.local'.
+[03/20/2024 20:43:07.0837] [0] Setup will use the global catalog 'DC2.Solo.local'.
+[03/20/2024 20:43:07.0853] [0] Exchange configuration container for the organization is 'CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/20/2024 20:43:07.0853] [0] Exchange organization container for the organization is 'CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local'.
+[03/20/2024 20:43:07.0900] [0] Setup will search for an Exchange Server object for the local machine with name 'ExSvr1'.
+[03/20/2024 20:43:07.0931] [0] No Exchange Server with identity 'ExSvr1' was found.
+[03/20/2024 20:43:08.0040] [0] The following roles have been unpacked: 
+[03/20/2024 20:43:08.0056] [0] The following datacenter roles are unpacked: 
+[03/20/2024 20:43:08.0056] [0] The following roles are installed: 
+[03/20/2024 20:43:08.0072] [0] The local server does not have any Exchange files installed.
+[03/20/2024 20:43:08.0431] [0] Server Name=ExSvr1
+[03/20/2024 20:43:08.0446] [0] Setup will use the path 'D:\' for installing Exchange.
+[03/20/2024 20:43:08.0446] [0] The installation mode is set to: 'Install'.
+[03/20/2024 20:43:14.0506] [0] An Exchange organization with name 'SoloORG' was found in this forest.
+[03/20/2024 20:43:14.0506] [0] Active Directory Initialization status : 'True'.
+[03/20/2024 20:43:14.0506] [0] Schema Update Required Status : 'False'.
+[03/20/2024 20:43:14.0506] [0] Organization Configuration Update Required Status : 'False'.
+[03/20/2024 20:43:14.0506] [0] Domain Configuration Update Required Status : 'False'.
+[03/20/2024 20:43:14.0913] [0] Applying default role selection state
+[03/20/2024 20:43:14.0928] [0] Setup is determining what organization-level operations to perform.
+[03/20/2024 20:43:14.0928] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[03/20/2024 20:43:14.0928] [0] Setup will run from path 'C:\Windows\Temp\ExchangeSetup'.
+[03/20/2024 20:43:14.0944] [0] InstallModeDataHandler has 0 DataHandlers
+[03/20/2024 20:43:14.0944] [0] RootDataHandler has 1 DataHandlers
+[03/20/2024 20:43:15.0258] [0] CurrentResult launcherbase.maincore:90: 0
+[03/20/2024 20:43:15.0477] [0] Finished loading screen WelcomePage.
+[03/20/2024 20:43:23.0968] [0] Finished loading screen EULAPage.
+[03/20/2024 20:43:25.0357] [0] Finished loading screen RecommendedSettingsPage.
+[03/20/2024 20:43:26.0796] [0] Finished loading screen RoleSelectionPage.
+[03/20/2024 20:43:28.0517] [0] Setup is determining what organization-level operations to perform.
+[03/20/2024 20:43:28.0517] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[03/20/2024 20:43:28.0517] [0] Setup will run from path 'C:\Windows\Temp\ExchangeSetup'.
+[03/20/2024 20:43:28.0533] [0] InstallModeDataHandler has 9 DataHandlers
+[03/20/2024 20:43:28.0533] [0] Setup is determining what organization-level operations to perform.
+[03/20/2024 20:43:28.0533] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[03/20/2024 20:43:28.0533] [0] Setup will run from path 'C:\Windows\Temp\ExchangeSetup'.
+[03/20/2024 20:43:28.0548] [0] InstallModeDataHandler has 10 DataHandlers
+[03/20/2024 20:43:28.0548] [0] Setup is determining what organization-level operations to perform.
+[03/20/2024 20:43:28.0548] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[03/20/2024 20:43:28.0548] [0] Setup will run from path 'C:\Windows\Temp\ExchangeSetup'.
+[03/20/2024 20:43:28.0548] [0] InstallModeDataHandler has 11 DataHandlers
+[03/20/2024 20:43:28.0548] [0] Setup is determining what organization-level operations to perform.
+[03/20/2024 20:43:28.0548] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[03/20/2024 20:43:28.0548] [0] Setup will run from path 'C:\Windows\Temp\ExchangeSetup'.
+[03/20/2024 20:43:28.0548] [0] InstallModeDataHandler has 12 DataHandlers
+[03/20/2024 20:43:28.0548] [0] Setup is determining what organization-level operations to perform.
+[03/20/2024 20:43:28.0548] [0] Because the value was specified, setup is setting the argument OrganizationName to the value SoloORG.
+[03/20/2024 20:43:28.0548] [0] Setup will run from path 'C:\Windows\Temp\ExchangeSetup'.
+[03/20/2024 20:43:28.0548] [0] InstallModeDataHandler has 13 DataHandlers
+[03/20/2024 20:43:30.0231] [0] Finished loading screen InstallationSpaceAndLocationPage.
+[03/20/2024 20:43:31.0609] [0] Finished loading screen ProtectionSettingsPage.
+[03/20/2024 20:43:32.0704] [0] **************
+[03/20/2024 20:44:39.0120] [1] Evaluated [Setting:ComputerNameDnsFullyQualified] [HasException:False] [Value:"ExSvr1.Solo.local"] [ParentValue:"<NULL>"] [Thread:109] [Duration:00:00:00]
+            update-PowerShellVirtualDirectoryVersion -DomainController $RoleDomainController;
+          }
+        
+[03/20/2024 20:56:44.0445] [2] Active Directory session settings for 'Get-PowerShellVirtualDirectory' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/20/2024 20:56:44.0445] [2] User specified parameters:  -ShowMailboxVirtualDirectories:'True' -Server:'ExSvr1.Solo.local' -DomainController:'DC2.Solo.local'
+[03/20/2024 20:56:44.0445] [2] Beginning processing get-PowerShellVirtualDirectory
+[03/20/2024 20:56:44.0445] [2] Searching objects "ExSvr1.Solo.local" of type "Server" under the root "$null".
+[03/20/2024 20:56:44.0523] [2] Previous operation run on domain controller 'DC2.Solo.local'.
+[03/20/2024 20:56:44.0539] [2] Searching objects of type "ADPowerShellVirtualDirectory" with filter "$null", scope "SubTree" under the root "ExSvr1".
+[03/20/2024 20:56:44.0539] [2] Request filter in Get Task: (&(objectCategory=msExchPowerShellVirtualDirectory)(|(&(msExchVersion<=1125899906842624)(!(msExchVersion=1125899906842624)))(!(msExchVersion=*)))).
+[03/20/2024 20:56:44.0539] [2] Previous operation run on domain controller 'DC2.Solo.local'.
+[03/20/2024 20:56:44.0539] [2] Preparing to output objects. The maximum size of the result set is "Unlimited".
+[03/20/2024 20:56:44.0539] [2] Ending processing get-PowerShellVirtualDirectory
+[03/20/2024 20:56:44.0570] [2] Active Directory session settings for 'New-PowerShellVirtualDirectory' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/20/2024 20:56:44.0570] [2] User specified parameters:  -Role:'Mailbox' -DomainController:'DC2.Solo.local' -BasicAuthentication:'False' -WindowsAuthentication:'True' -RequireSSL:'True' -WebSiteName:'Exchange Back End' -Path:'C:\Program Files\Microsoft\Exchange Server\V15\ClientAccess\PowerShell-Proxy' -Name:'PowerShell'
+[03/20/2024 20:56:44.0570] [2] Beginning processing new-PowerShellVirtualDirectory
+[03/20/2024 20:56:44.0601] [2] Searching objects "ExSvr1.Solo.local" of type "Server" under the root "$null".
+[03/20/2024 20:56:44.0711] [2] Previous operation run on domain controller 'DC2.Solo.local'.
+[03/20/2024 20:56:44.0757] [2] Processing object "ExSvr1\PowerShell".
+[03/20/2024 20:56:59.0632] [2] The properties changed on the object '' (CN=PowerShell (Exchange Back End),CN=HTTP,CN=Protocols,CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local) are: "{ MetabasePath[msExchMetabasePath]='IIS://ExSvr1.Solo.local/W3SVC/2/ROOT/PowerShell', AuthenticationMethodFlags[msExchInternalAuthenticationMethods]='Ntlm, WindowsIntegrated', AuthenticationMethodFlags[msExchExternalAuthenticationMethods]='Ntlm, WindowsIntegrated', Id[distinguishedName]='ExSvr1\PowerShell (Exchange Back End)', InternalAuthenticationMethods[msExchInternalAuthenticationMethods]={ 'Ntlm', 'WindowsIntegrated' }, ExternalAuthenticationMethods[msExchExternalAuthenticationMethods]={ 'Ntlm', 'WindowsIntegrated' }, OrganizationId[msExchOURoot, msExchCU]='' }".
+[03/20/2024 20:56:59.0632] [2] Saving object "ExSvr1\PowerShell (Exchange Back End)" of type "ADPowerShellVirtualDirectory" and state "New".
+[03/20/2024 20:56:59.0648] [2] Previous operation run on domain controller 'DC2.Solo.local'.
+[03/20/2024 20:57:01.0023] [2] Searching objects "ExSvr1\PowerShell (Exchange Back End)" of type "ADPowerShellVirtualDirectory" under the root "$null".
+[03/20/2024 20:57:01.0054] [2] Previous operation run on domain controller 'DC2.Solo.local'.
+[03/20/2024 20:57:01.0054] [2] Ending processing new-PowerShellVirtualDirectory
+[03/20/2024 20:57:01.0070] [2] Active Directory session settings for 'Get-PowerShellVirtualDirectory' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/20/2024 20:57:01.0070] [2] User specified parameters:  -ShowMailboxVirtualDirectories:'True' -Server:'ExSvr1.Solo.local' -DomainController:'DC2.Solo.local'
+[03/20/2024 20:57:01.0070] [2] Beginning processing get-PowerShellVirtualDirectory
+[03/20/2024 20:57:01.0070] [2] Searching objects "ExSvr1.Solo.local" of type "Server" under the root "$null".
+[03/20/2024 20:57:01.0117] [2] Previous operation run on domain controller 'DC2.Solo.local'.
+[03/20/2024 20:57:01.0117] [2] Searching objects of type "ADPowerShellVirtualDirectory" with filter "$null", scope "SubTree" under the root "ExSvr1".
+[03/20/2024 20:57:01.0117] [2] Request filter in Get Task: (&(objectCategory=msExchPowerShellVirtualDirectory)(|(&(msExchVersion<=1125899906842624)(!(msExchVersion=1125899906842624)))(!(msExchVersion=*)))).
+[03/20/2024 20:57:01.0117] [2] Previous operation run on domain controller 'DC2.Solo.local'.
+[03/20/2024 20:57:01.0117] [2] Preparing to output objects. The maximum size of the result set is "Unlimited".
+[03/20/2024 20:57:02.0773] [2] Ending processing get-PowerShellVirtualDirectory
+[03/20/2024 20:57:02.0773] [2] Active Directory session settings for 'New-PowerShellVirtualDirectory' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/20/2024 20:57:02.0773] [2] User specified parameters:  -Name:'PowerShell' -DomainController:'DC2.Solo.local' -Role:'Mailbox' -InternalUrl:'http://ExSvr1.Solo.local/powershell' -WebSiteName:'Default Web Site' -WindowsAuthentication:'False' -AppPoolId:'MSExchangePowerShellFrontEndAppPool' -BasicAuthentication:'False' -RequireSSL:'False'
+[03/20/2024 20:57:02.0773] [2] Beginning processing new-PowerShellVirtualDirectory
+[03/20/2024 20:57:02.0773] [2] Searching objects "ExSvr1.Solo.local" of type "Server" under the root "$null".
+[03/20/2024 20:57:02.0820] [2] Previous operation run on domain controller 'DC2.Solo.local'.
+[03/20/2024 20:57:02.0820] [2] Processing object "ExSvr1\PowerShell".
+[03/20/2024 20:57:08.0773] [2] The properties changed on the object '' (CN=PowerShell (Default Web Site),CN=HTTP,CN=Protocols,CN=ExSvr1,CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups,CN=SoloORG,CN=Microsoft Exchange,CN=Services,CN=Configuration,DC=Solo,DC=local) are: "{ MetabasePath[msExchMetabasePath]='IIS://ExSvr1.Solo.local/W3SVC/1/ROOT/PowerShell', InternalUrl[msExchInternalHostName]='http://ExSvr1.Solo.local/powershell', Id[distinguishedName]='ExSvr1\PowerShell (Default Web Site)', InternalAuthenticationMethods[msExchInternalAuthenticationMethods]={  }, ExternalAuthenticationMethods[msExchExternalAuthenticationMethods]={  }, OrganizationId[msExchOURoot, msExchCU]='' }".
+[03/20/2024 20:57:08.0773] [2] Saving object "ExSvr1\PowerShell (Default Web Site)" of type "ADPowerShellVirtualDirectory" and state "New".
+[03/20/2024 20:57:08.0773] [2] Previous operation run on domain controller 'DC2.Solo.local'.
+[03/20/2024 20:57:10.0335] [2] Searching objects "ExSvr1\PowerShell (Default Web Site)" of type "ADPowerShellVirtualDirectory" under the root "$null".
+[03/20/2024 20:57:10.0335] [2] Previous operation run on domain controller 'DC2.Solo.local'.
+[03/20/2024 20:57:10.0351] [2] Ending processing new-PowerShellVirtualDirectory
+[03/20/2024 20:57:10.0351] [1] Executing: 
+          $file = 'web.config';
+          $relPath = "ClientAccess\PowerShell";
+          $dirPath = [System.IO.Path]::Combine($RoleInstallPath, $relPath);
+
+          Set-InstallPathInAppConfig -ConfigFileRelativePath $relPath -ConfigFileName $file;
+          Preserve-AppSettings -RoleInstallPath $dirPath -ConfigFileName $file;
+        
+[03/20/2024 20:57:10.0351] [2] Active Directory session settings for 'Set-InstallPathInAppConfig' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/20/2024 20:57:10.0351] [2] User specified parameters:  -ConfigFileRelativePath:'ClientAccess\PowerShell' -ConfigFileName:'web.config'
+[03/20/2024 20:57:10.0351] [2] Beginning processing Set-InstallPathInAppConfig
+[03/20/2024 20:57:10.0367] [2] Ending processing Set-InstallPathInAppConfig
+[03/20/2024 20:57:10.0367] [2] Active Directory session settings for 'Preserve-AppSettings' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/20/2024 20:57:10.0367] [2] User specified parameters:  -RoleInstallPath:'C:\Program Files\Microsoft\Exchange Server\V15\ClientAccess\PowerShell' -ConfigFileName:'web.config'
+[03/20/2024 20:57:10.0367] [2] Beginning processing Preserve-AppSettings
+[03/20/2024 20:57:10.0367] [2] Backup config file does not exist at: C:\Program Files\Microsoft\Exchange Server\V15\ConfigBackup\ClientAccess\PowerShell\web.config. Skipping preservation.
+[03/20/2024 20:57:10.0367] [2] Ending processing Preserve-AppSettings
+[03/20/2024 20:57:10.0367] [1] Executing: 
+          $file = 'web.config';
+          $relPath = "ClientAccess\PowerShell-Proxy";
+          $dirPath = [System.IO.Path]::Combine($RoleInstallPath, $relPath);
+
+          Set-InstallPathInAppConfig -ConfigFileRelativePath $relPath -ConfigFileName $file;
+          Preserve-AppSettings -RoleInstallPath $dirPath -ConfigFileName $file;
+        
+[03/20/2024 20:57:10.0367] [2] Active Directory session settings for 'Set-InstallPathInAppConfig' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/20/2024 20:57:10.0367] [2] User specified parameters:  -ConfigFileRelativePath:'ClientAccess\PowerShell-Proxy' -ConfigFileName:'web.config'
+[03/20/2024 20:57:10.0367] [2] Beginning processing Set-InstallPathInAppConfig
+[03/20/2024 20:57:10.0382] [2] Ending processing Set-InstallPathInAppConfig
+[03/20/2024 20:57:10.0398] [2] Active Directory session settings for 'Preserve-AppSettings' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/20/2024 20:57:10.0398] [2] User specified parameters:  -RoleInstallPath:'C:\Program Files\Microsoft\Exchange Server\V15\ClientAccess\PowerShell-Proxy' -ConfigFileName:'web.config'
+[03/20/2024 20:57:10.0398] [2] Beginning processing Preserve-AppSettings
+[03/20/2024 20:57:10.0398] [2] Backup config file does not exist at: C:\Program Files\Microsoft\Exchange Server\V15\ConfigBackup\ClientAccess\PowerShell-Proxy\web.config. Skipping preservation.
+[03/20/2024 20:57:10.0398] [2] Ending processing Preserve-AppSettings
+[03/20/2024 20:57:10.0398] [1] Processing component 'WSMan IIS Hosting Configuration' (WSMan IIS Hosting Configuration Component).
+[03/20/2024 20:57:10.0398] [1] Executing: 
+					configure-WSManIISHosting -EnableKerberosModule;
+				
+[03/20/2024 20:57:10.0413] [2] Active Directory session settings for 'Configure-WSManIISHosting' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/20/2024 20:57:10.0413] [2] User specified parameters:  -EnableKerberosModule:'True'
+[03/20/2024 20:57:10.0413] [2] Beginning processing configure-WSManIISHosting
+[03/20/2024 20:57:10.0413] [2] Changing the start type of WINRM service to Automatic Delayed...
+[03/20/2024 20:57:10.0413] [2] Starting WINRM service...
+[03/20/2024 20:57:10.0413] [2] Checking required files...
+[03/20/2024 20:57:10.0538] [2] Installing Kerberos authentication global module 'C:\Program Files\Microsoft\Exchange Server\V15\Bin\kerbauth.dll'...
+[03/20/2024 20:57:10.0726] [2] Successfully ran the command: 
+C:\Windows\system32\inetsrv\appcmd.exe install module /name:kerbauth /image:"C:\Program Files\Microsoft\Exchange Server\V15\Bin\kerbauth.dll" /add:false
+Output: GLOBAL MODULE object "kerbauth" added
+
+[03/20/2024 20:57:10.0742] [2] Checking required registry keys...
+[03/20/2024 20:57:10.0742] [2] Restarting WSMan service...
+[03/20/2024 20:57:13.0351] [2] Successfully ran the command: 
+C:\Windows\system32\net.exe stop winrm
+Output: The Windows Remote Management (WS-Management) service is stopping.
+The Windows Remote Management (WS-Management) service was stopped successfully.
+
+[03/20/2024 20:57:15.0445] [2] Successfully ran the command: 
+C:\Windows\system32\net.exe start winrm
+Output: The Windows Remote Management (WS-Management) service is starting.
+The Windows Remote Management (WS-Management) service was started successfully.
+
+[03/20/2024 20:57:15.0445] [2] Rebuilding WSMan registry...
+[03/20/2024 20:57:16.0007] [2] Successfully ran the command: 
+C:\Windows\system32\winrm.cmd i restore winrm/config
+Output: Restore_OUTPUT
+
+[03/20/2024 20:57:16.0023] [2] Checking current IIS configuration...
+[03/20/2024 20:57:16.0070] [2] Backing up current IIS configuration to 'IISBackup133554418360700417'.
+[03/20/2024 20:57:16.0273] [2] Successfully ran the command: 
+C:\Windows\system32\inetsrv\appcmd.exe add backup IISBackup133554418360700417
+Output: BACKUP object "IISBackup133554418360700417" added
+
+[03/20/2024 20:57:16.0273] [2] Adding WSMan configuration section in 'C:\Windows\system32\inetsrv\config\ApplicationHost.Config'...
+[03/20/2024 20:57:16.0288] [2] Unlocking the 'system.webServer/modules' section...
+[03/20/2024 20:57:16.0554] [2] Successfully ran the command: 
+C:\Windows\system32\inetsrv\appcmd.exe unlock config -section:system.webServer/modules
+Output: Unlocked section "system.webServer/modules" at configuration path "MACHINE/WEBROOT/APPHOST".
+
+[03/20/2024 20:57:16.0570] [2] Installing WSMan global module 'WSMan'...
+[03/20/2024 20:57:16.0788] [2] Successfully ran the command: 
+C:\Windows\system32\inetsrv\appcmd.exe install module /name:WSMan /image:C:\Windows\system32\wsmsvc.dll /add:false
+Output: GLOBAL MODULE object "WSMan" added
+
+[03/20/2024 20:57:16.0788] [2] Restarting WSMan service...
+[03/20/2024 20:57:19.0382] [2] Successfully ran the command: 
+C:\Windows\system32\net.exe stop winrm
+Output: The Windows Remote Management (WS-Management) service is stopping.
+The Windows Remote Management (WS-Management) service was stopped successfully.
+
+[03/20/2024 20:57:21.0476] [2] Successfully ran the command: 
+C:\Windows\system32\net.exe start winrm
+Output: The Windows Remote Management (WS-Management) service is starting.
+The Windows Remote Management (WS-Management) service was started successfully.
+
+[03/20/2024 20:57:21.0491] [2] Opening port 80 for HTTP in firewall...
+[03/20/2024 20:57:22.0569] [2] Successfully ran the command: 
+C:\Windows\system32\netsh.exe firewall set portopening TCP 80 HTTP
+Output: IMPORTANT: Command executed successfully.
+However, "netsh firewall" is deprecated;
+use "netsh advfirewall firewall" instead.
+For more information on using "netsh advfirewall firewall" commands
+instead of "netsh firewall", see KB article 947709
+at https://go.microsoft.com/fwlink/?linkid=121488 .
+Ok.
+
+[03/20/2024 20:57:22.0569] [2] Opening port 443 for HTTPS in firewall...
+[03/20/2024 20:57:23.0366] [2] Successfully ran the command: 
+C:\Windows\system32\netsh.exe firewall set portopening TCP 443 HTTPS
+Output: IMPORTANT: Command executed successfully.
+However, "netsh firewall" is deprecated;
+use "netsh advfirewall firewall" instead.
+For more information on using "netsh advfirewall firewall" commands
+instead of "netsh firewall", see KB article 947709
+at https://go.microsoft.com/fwlink/?linkid=121488 .
+Ok.
+
+[03/20/2024 20:57:23.0366] [2] Ending processing configure-WSManIISHosting
+[03/20/2024 20:57:23.0382] [1] Processing component 'Active Directory Topology Service Configuration' (Configuring Microsoft Exchange Active Directory Topology service).
+[03/20/2024 20:57:23.0382] [1] Executing: 
+          if ($exsSid -eq $null -or $exsSid -eq "")
+          {
+            $exsSid = get-ExchangeServerGroupSID -DomainController $RoleDomainController
+          }
+          start-setupservice -ServiceName MSExchangeADTopology -ServiceParameters $exsSid,$RoleDomainController
+        
+[03/20/2024 20:57:23.0382] [2] Active Directory session settings for 'start-SetupService' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/20/2024 20:57:23.0382] [2] User specified parameters:  -ServiceName:'MSExchangeADTopology' -ServiceParameters:'S-1-5-21-1281225956-1072373970-2205875210-1119','DC2.Solo.local'
+[03/20/2024 20:57:23.0382] [2] Beginning processing start-setupservice
+[03/20/2024 20:57:25.0460] [2] [WARNING] Service checkpoint has not progressed. Previous checkpoint='0'- Current checkpoint='0'.
+[03/20/2024 20:57:25.0460] [2] Previous service status query time is '3/20/2024 4:57:25 PM'.
+[03/20/2024 20:57:25.0460] [2] Current service status query time is '3/20/2024 4:57:25 PM'.
+[03/20/2024 20:57:25.0460] [2] Will wait '25000' milliseconds for the service 'MSExchangeADTopology' to reach status 'Running'.
+[03/20/2024 20:57:30.0241] [2] Service 'MSExchangeADTopology' successfully reached status 'Running on this server while waiting for status change.
+[03/20/2024 20:57:30.0241] [2] Ending processing start-setupservice
+[03/20/2024 20:57:30.0241] [1] Executing: 
+          $maxWait = New-TimeSpan -Minutes 8
+          $timeout = Get-Date;
+          $timeout = $timeout.Add($maxWait);
+          $currTime = Get-Date;
+          $successfullySetConfigDC = $false;
+
+          while($currTime -le $timeout)
+          {
+            $setSharedCDCErrors = @();
+            try
+            {
+              Set-SharedConfigDC -DomainController $RoleDomainController -ErrorVariable setSharedCDCErrors -ErrorAction SilentlyContinue;
+              $successfullySetConfigDC = ($setSharedCDCErrors.Count -eq 0);
+
+              if($successfullySetConfigDC)
+              {
+                break;
+              }
+              Write-ExchangeSetupLog -Info ("An error ocurred while setting shared config DC. Error: " + $setSharedCDCErrors[0]);
+            }
+            catch
+            {
+              Write-ExchangeSetupLog -Info ("An exception ocurred while setting shared config DC. Exception: " + $_.Exception.Message);
+            }
+
+            Write-ExchangeSetupLog -Info ("Waiting 30 seconds before attempting again.");
+            Start-Sleep -Seconds 30;
+            $currTime = Get-Date;
+          }
+
+          if( -not $successfullySetConfigDC)
+          {
+            Write-ExchangeSetupLog -Error "Unable to set shared config DC.";
+          }
+        
+[03/20/2024 20:57:30.0272] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/20/2024 20:57:30.0272] [2] User specified parameters:  -DomainController:'DC2.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/20/2024 20:57:30.0272] [2] Beginning processing Set-SharedConfigDC
+[03/20/2024 20:57:30.0554] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 20:57:30.0554] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 20:57:30.0554] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 20:57:30.0554] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 20:57:30.0554] [2] Ending processing Set-SharedConfigDC
+[03/20/2024 20:57:30.0569] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 20:57:30.0569] [2] An error ocurred while setting shared config DC. Error: The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 20:57:30.0569] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 20:57:30.0569] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 20:57:30.0569] [2] Waiting 30 seconds before attempting again.
+[03/20/2024 20:57:30.0569] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 20:58:00.0571] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/20/2024 20:58:00.0571] [2] User specified parameters:  -DomainController:'DC2.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/20/2024 20:58:00.0571] [2] Beginning processing Set-SharedConfigDC
+[03/20/2024 20:58:00.0696] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 20:58:00.0696] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 20:58:00.0696] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 20:58:00.0696] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 20:58:00.0696] [2] Ending processing Set-SharedConfigDC
+[03/20/2024 20:58:00.0696] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 20:58:00.0711] [2] An error ocurred while setting shared config DC. Error: The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 20:58:00.0711] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 20:58:00.0711] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 20:58:00.0711] [2] Waiting 30 seconds before attempting again.
+[03/20/2024 20:58:00.0711] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 20:58:30.0711] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/20/2024 20:58:30.0711] [2] User specified parameters:  -DomainController:'DC2.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/20/2024 20:58:30.0711] [2] Beginning processing Set-SharedConfigDC
+[03/20/2024 20:58:30.0852] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 20:58:30.0852] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 20:58:30.0852] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 20:58:30.0852] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 20:58:30.0852] [2] Ending processing Set-SharedConfigDC
+[03/20/2024 20:58:30.0852] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 20:58:30.0852] [2] An error ocurred while setting shared config DC. Error: The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 20:58:30.0852] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 20:58:30.0852] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 20:58:30.0868] [2] Waiting 30 seconds before attempting again.
+[03/20/2024 20:58:30.0868] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 20:59:00.0868] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/20/2024 20:59:00.0868] [2] User specified parameters:  -DomainController:'DC2.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/20/2024 20:59:00.0868] [2] Beginning processing Set-SharedConfigDC
+[03/20/2024 20:59:00.0977] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 20:59:00.0977] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 20:59:00.0977] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 20:59:00.0977] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 20:59:00.0977] [2] Ending processing Set-SharedConfigDC
+[03/20/2024 20:59:00.0977] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 20:59:00.0977] [2] An error ocurred while setting shared config DC. Error: The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 20:59:00.0977] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 20:59:00.0977] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 20:59:00.0993] [2] Waiting 30 seconds before attempting again.
+[03/20/2024 20:59:00.0993] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 20:59:31.0008] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/20/2024 20:59:31.0008] [2] User specified parameters:  -DomainController:'DC2.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/20/2024 20:59:31.0008] [2] Beginning processing Set-SharedConfigDC
+[03/20/2024 20:59:31.0134] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 20:59:31.0134] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 20:59:31.0134] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 20:59:31.0134] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 20:59:31.0134] [2] Ending processing Set-SharedConfigDC
+[03/20/2024 20:59:31.0134] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 20:59:31.0149] [2] An error ocurred while setting shared config DC. Error: The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 20:59:31.0149] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 20:59:31.0149] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 20:59:31.0149] [2] Waiting 30 seconds before attempting again.
+[03/20/2024 20:59:31.0149] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 21:00:01.0154] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/20/2024 21:00:01.0154] [2] User specified parameters:  -DomainController:'DC2.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/20/2024 21:00:01.0154] [2] Beginning processing Set-SharedConfigDC
+[03/20/2024 21:00:01.0248] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:00:01.0248] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 21:00:01.0248] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:00:01.0248] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 21:00:01.0248] [2] Ending processing Set-SharedConfigDC
+[03/20/2024 21:00:01.0263] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 21:00:01.0263] [2] An error ocurred while setting shared config DC. Error: The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:00:01.0263] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 21:00:01.0263] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 21:00:01.0280] [2] Waiting 30 seconds before attempting again.
+[03/20/2024 21:00:01.0280] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 21:00:31.0294] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/20/2024 21:00:31.0294] [2] User specified parameters:  -DomainController:'DC2.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/20/2024 21:00:31.0294] [2] Beginning processing Set-SharedConfigDC
+[03/20/2024 21:00:31.0388] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:00:31.0388] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 21:00:31.0403] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:00:31.0403] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 21:00:31.0403] [2] Ending processing Set-SharedConfigDC
+[03/20/2024 21:00:31.0403] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 21:00:31.0403] [2] An error ocurred while setting shared config DC. Error: The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:00:31.0403] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 21:00:31.0403] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 21:00:31.0403] [2] Waiting 30 seconds before attempting again.
+[03/20/2024 21:00:31.0403] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 21:01:01.0418] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/20/2024 21:01:01.0418] [2] User specified parameters:  -DomainController:'DC2.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/20/2024 21:01:01.0418] [2] Beginning processing Set-SharedConfigDC
+[03/20/2024 21:01:01.0554] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:01:01.0554] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 21:01:01.0554] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:01:01.0554] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 21:01:01.0554] [2] Ending processing Set-SharedConfigDC
+[03/20/2024 21:01:01.0554] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 21:01:01.0570] [2] An error ocurred while setting shared config DC. Error: The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:01:01.0570] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 21:01:01.0570] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 21:01:01.0570] [2] Waiting 30 seconds before attempting again.
+[03/20/2024 21:01:01.0570] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 21:01:31.0570] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/20/2024 21:01:31.0570] [2] User specified parameters:  -DomainController:'DC2.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/20/2024 21:01:31.0570] [2] Beginning processing Set-SharedConfigDC
+[03/20/2024 21:01:31.0663] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:01:31.0663] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 21:01:31.0663] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:01:31.0663] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 21:01:31.0663] [2] Ending processing Set-SharedConfigDC
+[03/20/2024 21:01:31.0663] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 21:01:31.0679] [2] An error ocurred while setting shared config DC. Error: The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:01:31.0679] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 21:01:31.0679] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 21:01:31.0679] [2] Waiting 30 seconds before attempting again.
+[03/20/2024 21:01:31.0679] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 21:02:01.0679] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/20/2024 21:02:01.0679] [2] User specified parameters:  -DomainController:'DC2.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/20/2024 21:02:01.0679] [2] Beginning processing Set-SharedConfigDC
+[03/20/2024 21:02:01.0773] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:02:01.0773] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 21:02:01.0773] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:02:01.0773] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 21:02:01.0773] [2] Ending processing Set-SharedConfigDC
+[03/20/2024 21:02:01.0773] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 21:02:01.0789] [2] An error ocurred while setting shared config DC. Error: The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:02:01.0789] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 21:02:01.0789] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 21:02:01.0789] [2] Waiting 30 seconds before attempting again.
+[03/20/2024 21:02:01.0789] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 21:02:31.0794] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/20/2024 21:02:31.0794] [2] User specified parameters:  -DomainController:'DC2.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/20/2024 21:02:31.0794] [2] Beginning processing Set-SharedConfigDC
+[03/20/2024 21:02:32.0013] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:02:32.0013] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 21:02:32.0013] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:02:32.0013] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 21:02:32.0013] [2] Ending processing Set-SharedConfigDC
+[03/20/2024 21:02:32.0013] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 21:02:32.0013] [2] An error ocurred while setting shared config DC. Error: The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:02:32.0013] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 21:02:32.0013] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 21:02:32.0013] [2] Waiting 30 seconds before attempting again.
+[03/20/2024 21:02:32.0013] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 21:03:02.0013] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/20/2024 21:03:02.0013] [2] User specified parameters:  -DomainController:'DC2.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/20/2024 21:03:02.0013] [2] Beginning processing Set-SharedConfigDC
+[03/20/2024 21:03:02.0107] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:03:02.0107] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 21:03:02.0107] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:03:02.0107] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 21:03:02.0107] [2] Ending processing Set-SharedConfigDC
+[03/20/2024 21:03:02.0107] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 21:03:02.0107] [2] An error ocurred while setting shared config DC. Error: The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:03:02.0107] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 21:03:02.0123] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 21:03:02.0123] [2] Waiting 30 seconds before attempting again.
+[03/20/2024 21:03:02.0123] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 21:03:32.0123] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/20/2024 21:03:32.0123] [2] User specified parameters:  -DomainController:'DC2.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/20/2024 21:03:32.0123] [2] Beginning processing Set-SharedConfigDC
+[03/20/2024 21:03:32.0264] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:03:32.0264] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 21:03:32.0264] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:03:32.0264] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 21:03:32.0264] [2] Ending processing Set-SharedConfigDC
+[03/20/2024 21:03:32.0264] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 21:03:32.0264] [2] An error ocurred while setting shared config DC. Error: The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:03:32.0264] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 21:03:32.0264] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 21:03:32.0264] [2] Waiting 30 seconds before attempting again.
+[03/20/2024 21:03:32.0279] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 21:04:02.0286] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/20/2024 21:04:02.0286] [2] User specified parameters:  -DomainController:'DC2.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/20/2024 21:04:02.0286] [2] Beginning processing Set-SharedConfigDC
+[03/20/2024 21:04:02.0379] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:04:02.0379] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 21:04:02.0379] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:04:02.0379] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 21:04:02.0395] [2] Ending processing Set-SharedConfigDC
+[03/20/2024 21:04:02.0395] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 21:04:02.0395] [2] An error ocurred while setting shared config DC. Error: The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:04:02.0395] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 21:04:02.0395] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 21:04:02.0395] [2] Waiting 30 seconds before attempting again.
+[03/20/2024 21:04:02.0395] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 21:04:32.0397] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/20/2024 21:04:32.0397] [2] User specified parameters:  -DomainController:'DC2.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/20/2024 21:04:32.0397] [2] Beginning processing Set-SharedConfigDC
+[03/20/2024 21:04:32.0491] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:04:32.0491] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 21:04:32.0491] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:04:32.0491] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 21:04:32.0491] [2] Ending processing Set-SharedConfigDC
+[03/20/2024 21:04:32.0491] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 21:04:32.0507] [2] An error ocurred while setting shared config DC. Error: The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:04:32.0507] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 21:04:32.0507] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 21:04:32.0507] [2] Waiting 30 seconds before attempting again.
+[03/20/2024 21:04:32.0507] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 21:05:02.0511] [2] Active Directory session settings for 'Set-SharedConfigDC' are: View Entire Forest: 'True', Configuration Domain Controller: 'DC2.Solo.local', Preferred Global Catalog: 'DC2.Solo.local', Preferred Domain Controllers: '{ DC2.Solo.local }'
+[03/20/2024 21:05:02.0511] [2] User specified parameters:  -DomainController:'DC2.Solo.local' -ErrorVariable:'setSharedCDCErrors' -ErrorAction:'SilentlyContinue'
+[03/20/2024 21:05:02.0511] [2] Beginning processing Set-SharedConfigDC
+[03/20/2024 21:05:02.0605] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:05:02.0605] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 21:05:02.0605] [2] The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:05:02.0605] [2] No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites.
+[03/20/2024 21:05:02.0605] [2] Ending processing Set-SharedConfigDC
+[03/20/2024 21:05:02.0605] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 21:05:02.0605] [2] An error ocurred while setting shared config DC. Error: The call to Microsoft Exchange Active Directory Topology service on server 'TopologyClientTcpEndpoint (localhost)' returned an error. Error details No Suitable Directory Servers Found in Forest Solo.com Site Default-First-Site-Name and connected Sites..
+[03/20/2024 21:05:02.0605] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 21:05:02.0605] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 21:05:02.0621] [2] Waiting 30 seconds before attempting again.
+[03/20/2024 21:05:02.0621] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 21:05:32.0636] [2] Beginning processing Write-ExchangeSetupLog
+[03/20/2024 21:05:32.0636] [2] [ERROR] Unable to set shared config DC.
+[03/20/2024 21:05:32.0636] [2] [ERROR] Unable to set shared config DC.
+[03/20/2024 21:05:32.0636] [2] Ending processing Write-ExchangeSetupLog
+[03/20/2024 21:05:32.0652] [1] The following 1 error(s) occurred during task execution:
+[03/20/2024 21:05:32.0652] [1] 0.  ErrorRecord: Unable to set shared config DC.
+[03/20/2024 21:05:32.0652] [1] 0.  ErrorRecord: System.Exception: Unable to set shared config DC.
+   at Microsoft.Exchange.Configuration.Tasks.Task.ThrowError(Exception exception, ErrorCategory errorCategory, Object target, String helpUrl)
+   at Microsoft.Exchange.Management.Deployment.WriteExchangeSetupLog.InternalProcessRecord()
+   at Microsoft.Exchange.Configuration.Tasks.Task.<ProcessRecord>b__91_1()
+   at Microsoft.Exchange.Configuration.Tasks.Task.InvokeRetryableFunc(String funcName, Action func, Boolean terminatePipelineIfFailed)
+[03/20/2024 21:05:32.0652] [1] [ERROR] The following error was generated when "$error.Clear(); 
+          $maxWait = New-TimeSpan -Minutes 8
+          $timeout = Get-Date;
+          $timeout = $timeout.Add($maxWait);
+          $currTime = Get-Date;
+          $successfullySetConfigDC = $false;
+
+          while($currTime -le $timeout)
+          {
+            $setSharedCDCErrors = @();
+            try
+            {
+              Set-SharedConfigDC -DomainController $RoleDomainController -ErrorVariable setSharedCDCErrors -ErrorAction SilentlyContinue;
+              $successfullySetConfigDC = ($setSharedCDCErrors.Count -eq 0);
+
+              if($successfullySetConfigDC)
+              {
+                break;
+              }
+              Write-ExchangeSetupLog -Info ("An error ocurred while setting shared config DC. Error: " + $setSharedCDCErrors[0]);
+            }
+            catch
+            {
+              Write-ExchangeSetupLog -Info ("An exception ocurred while setting shared config DC. Exception: " + $_.Exception.Message);
+            }
+
+            Write-ExchangeSetupLog -Info ("Waiting 30 seconds before attempting again.");
+            Start-Sleep -Seconds 30;
+            $currTime = Get-Date;
+          }
+
+          if( -not $successfullySetConfigDC)
+          {
+            Write-ExchangeSetupLog -Error "Unable to set shared config DC.";
+          }
+        " was run: "System.Exception: Unable to set shared config DC.
+   at Microsoft.Exchange.Configuration.Tasks.Task.ThrowError(Exception exception, ErrorCategory errorCategory, Object target, String helpUrl)
+   at Microsoft.Exchange.Management.Deployment.WriteExchangeSetupLog.InternalProcessRecord()
+   at Microsoft.Exchange.Configuration.Tasks.Task.<ProcessRecord>b__91_1()
+   at Microsoft.Exchange.Configuration.Tasks.Task.InvokeRetryableFunc(String funcName, Action func, Boolean terminatePipelineIfFailed)".
+[03/20/2024 21:05:32.0652] [1] [ERROR] Unable to set shared config DC.
+[03/20/2024 21:05:32.0652] [1] [ERROR-REFERENCE] Id=AllADRolesCommonServiceControl___ee47ab1c06fb47919398e2e95ed99c6c Component=EXCHANGE14:\Current\Release\Shared\Datacenter\Setup
+[03/20/2024 21:05:32.0652] [1] Setup is stopping now because of one or more critical errors.
+[03/20/2024 21:05:32.0652] [1] Finished executing component tasks.
+[03/20/2024 21:05:32.0667] [1] Ending processing Install-BridgeheadRole
+[03/20/2024 21:08:47.0464] [0] CurrentResult setupbase.maincore:396: 0
+[03/20/2024 21:08:47.0464] [0] End of Setup
+[03/20/2024 21:08:47.0464] [0] **********************************************

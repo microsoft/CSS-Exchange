@@ -32,7 +32,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Extended Protection Enabled (Any VDir)" $false
             TestObjectMatch "Setting Overrides Detected" $false
             TestObjectMatch "Out of Date" $true -WriteType "Red"
-            $Script:ActiveGrouping.Count | Should -Be 14
+            TestObjectMatch "Exchange Server Membership" "Passed"
+            $Script:ActiveGrouping.Count | Should -Be 15
         }
 
         It "Display Results - Organization Information" {
@@ -84,8 +85,9 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "All Processor Cores Visible" "Passed" -WriteType "Green"
             TestObjectMatch "Max Processor Speed" 2200
             TestObjectMatch "Physical Memory" 6 -WriteType "Yellow"
+            TestObjectMatch "Dynamic Memory Detected" $false -WriteType "Green"
 
-            $Script:ActiveGrouping.Count | Should -Be 9
+            $Script:ActiveGrouping.Count | Should -Be 11
         }
 
         It "Display Results - NIC Settings" {
@@ -120,8 +122,9 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "NodeRunner.exe memory limit" "0 MB" -WriteType "Green"
             TestObjectMatch "Open Relay Wild Card Domain" "Not Set"
             TestObjectMatch "EXO Connector Present" "True" # Custom EXO Connector with no TlsDomain TlsAuthLevel
+            TestObjectMatch "UnifiedContent Auto Cleanup Configured" $true -WriteType "Green"
 
-            $Script:ActiveGrouping.Count | Should -Be 13
+            $Script:ActiveGrouping.Count | Should -Be 14
         }
 
         It "Display Results - Security Settings" {
@@ -140,7 +143,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "AES256-CBC Protected Content Support" "Not Supported Build" -WriteType "Red"
             TestObjectMatch "SerializedDataSigning Enabled" "Unsupported Version" -WriteType "Red"
 
-            $Script:ActiveGrouping.Count | Should -Be 81
+            $Script:ActiveGrouping.Count | Should -Be 84
         }
 
         It "Display Results - Security Vulnerability" {
@@ -150,7 +153,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
             $cveTests.Contains("CVE-2023-36434") | Should -Be $true
             $cveTests.Contains("CVE-2023-36039") | Should -Be $true
-            $cveTests.Count | Should -Be 49
+            $cveTests.Contains("ADV24199947") | Should -Be $true
+            $cveTests.Count | Should -Be 51
             $downloadDomains = GetObject "CVE-2021-1730"
             $downloadDomains.DownloadDomainsEnabled | Should -Be "False"
             TestObjectMatch "Extended Protection Vulnerable" "True" -WriteType "Red"
@@ -173,10 +177,10 @@ Describe "Testing Health Checker by Mock Data Imports" {
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\Physical_Win32_PhysicalMemory.xml" }
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_Processor" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Hardware\Physical_Win32_Processor.xml" }
-            Mock Get-ExSetupDetails { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup1.xml" }
+            Mock Get-ExSetupFileVersionInfo { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\ExSetup1.xml" }
             Mock Get-WebSite -ParameterFilter { $Name -eq "Default Web Site" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\IIS\GetWebSite_DefaultWebSite1.xml" }
             Mock Get-WebConfigFile -ParameterFilter { $PSPath -eq "IIS:\Sites\Default Web Site" } -MockWith { return [PSCustomObject]@{ FullName = "$Script:MockDataCollectionRoot\Exchange\IIS\DefaultWebSite_web2.config" } }
-            Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost2.config" -Raw }
+            Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost2.config" -Raw -Encoding UTF8 }
             Mock Get-DynamicDistributionGroup { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetDynamicDistributionGroupPfMailboxes1.xml" }
             Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Get TokenCacheModule version information" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\IIS\GetVersionInformationCachToknPatched.xml" }
 
@@ -215,7 +219,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Manufacturer" "My Custom PC"
             TestObjectMatch "Model" "CHG-GG"
 
-            $Script:ActiveGrouping.Count | Should -Be 12
+            $Script:ActiveGrouping.Count | Should -Be 13
         }
 
         It "Display Results - NIC Settings" {

@@ -8,7 +8,7 @@ This script runs the Get-CalendarProcessing cmdlet and returns the output with m
 The script will also validate the mailbox is the correct type for RBA to interact with (via the Get-Mailbox cmdlet) as well as check for any Delegate rules that would interfere with RBA functionality (via the Get-InboxRules cmdlet).
 
 
-Syntax:
+#### Syntax:
 
 Example to display the setting of room mailbox.
 ```PowerShell
@@ -17,7 +17,7 @@ Example to display the setting of room mailbox.
 .\Get-RBASummary.ps1 -Identity Room1 -Verbose
 ```
 
-High-level steps for RBA processing: <br>
+##### High-level steps for RBA processing: <br>
 
 1. Determine if the Meeting Request is in policy or out of policy.<br>
 2. If the meeting request is Out of Policy, see if the user has rights to create an Out of Policy request and if so, forward it to the Delegates.<br>
@@ -30,3 +30,4 @@ When the RBA receives a Meeting Request, the first thing that it will do is to d
 Whether the meeting is in or out of policy, the RBA will look up the configuration that will tell it what to do with the meeting. By default, all out of policy meetings are rejected, and all in policy meetings are accepted, but there is a larger range of customization that you can do to get the RBA to treat this resource the way you want it to.
 
 If the meeting is accepted, the RBA will Post Process it based on the Post Processing configuration. 
+

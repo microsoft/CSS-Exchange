@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
-. $PSScriptRoot\..\Helpers\CompareExchangeBuildLevel.ps1
+. $PSScriptRoot\..\..\..\Shared\CompareExchangeBuildLevel.ps1
 function Invoke-AnalyzerFrequentConfigurationIssues {
     [CmdletBinding()]
     param(
@@ -112,7 +112,7 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
 
     if (-not ($credGuardUnknown)) {
         # CredentialGuardCimInstance is an array type and not sure if we can have multiple here, so just going to loop thru and handle it this way.
-        $credGuardRunning = $null -ne ($osInformation.CredentialGuardCimInstance | Where-Object { $_ -ne 0 })
+        $credGuardRunning = $null -ne ($osInformation.CredentialGuardCimInstance | Where-Object { $_ -eq 1 })
     }
 
     $displayValue = $credentialGuardValue = $osInformation.RegistryValues.CredentialGuard -ne 0 -or $credGuardRunning
@@ -270,6 +270,15 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     }
     Add-AnalyzedResultInformation @params
 
+    if ($osInformation.RegistryValues.SuppressExtendedProtection -ne 0) {
+        $params = $baseParams + @{
+            Name             = "SuppressExtendedProtection"
+            Details          = "Value set to $($osInformation.RegistryValues.SuppressExtendedProtection), which disables EP resulting it to not work correctly and causes problems. --- ERROR"
+            DisplayWriteType = "Red"
+        }
+        Add-AnalyzedResultInformation @params
+    }
+
     # Detect Send Connector sending to EXO
     $exoConnector = New-Object System.Collections.Generic.List[object]
     $sendConnectors = $exchangeInformation.ExchangeConnectors | Where-Object { $_.ConnectorType -eq "Send" }
@@ -338,5 +347,49 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
             DisplayCustomTabNumber = 2
         }
         Add-AnalyzedResultInformation @params
+    }
+
+    $edgeKey = $exchangeInformation.ApplicationConfigFileStatus.Keys | Where-Object { $_ -like "*\EdgeTransport.exe.config" }
+    $antiMalwareKey = $exchangeInformation.FileContentInformation.Keys | Where-Object { $_ -like "*\Monitoring\Config\AntiMalware.xml" }
+
+    if ($null -ne $edgeKey -and
+        $null -ne $antiMalwareKey -and
+        $exchangeInformation.ApplicationConfigFileStatus[$edgeKey].Present -and
+        $exchangeInformation.FileContentInformation[$antiMalwareKey].Present) {
+        $params = $baseParams + @{
+            Name             = "UnifiedContent Auto Cleanup Configured"
+            Details          = "Unknown"
+            DisplayWriteType = "Red"
+        }
+        try {
+            $temporaryStoragePath = (([xml]$exchangeInformation.ApplicationConfigFileStatus[$edgeKey].Content).configuration.appSettings.add |
+                    Where-Object { $_.key -eq "TemporaryStoragePath" }).value
+            $edgeKeySuccessful = $true
+            $cleanupFolderResponderFolderPaths = (([xml]$exchangeInformation.FileContentInformation[$antiMalwareKey].Content).Definition.MaintenanceDefinition.ExtensionAttributes.CleanupFolderResponderFolderPaths)
+            $cleanupPathsExists = $cleanupFolderResponderFolderPaths -like "*$temporaryStoragePath\UnifiedContent*"
+
+            if ($cleanupPathsExists) {
+                $params.DisplayWriteType = "Green"
+            }
+
+            $params.Details = $cleanupPathsExists
+            Add-AnalyzedResultInformation @params
+
+            if ($cleanupPathsExists -eq $false) {
+                $params = $baseParams + @{
+                    Details                = "More Information: https://aka.ms/HC-UnifiedContentCleanup"
+                    DisplayWriteType       = "Yellow"
+                    DisplayCustomTabNumber = 2
+                }
+                Add-AnalyzedResultInformation @params
+            }
+        } catch {
+            if ($edgeKeySuccessful) {
+                $params.Details = "AntiMalware.xml Invalid Config Format"
+            } else {
+                $params.Details = "Error - EdgeTransport.exe.config Invalid Config Format"
+            }
+            Add-AnalyzedResultInformation @params
+        }
     }
 }

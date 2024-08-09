@@ -1,38 +1,51 @@
-pool:
-  vmImage: 'windows-latest'
-
-steps:
-- pwsh: |
-    cd .\.build
-    .\docs.ps1
-  displayName: "Docs Check"
-
-- pwsh: .\.build\SpellCheck.ps1
-  displayName: "Spell Check"
-
-- pwsh: |
-    cd .\.build
-    .\CodeFormatter.ps1 -Branch $env:TargetBranchName
-  displayName: "Code Formatting Script"
-  condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/release'))
-  env:
-    TargetBranchName: $(System.PullRequest.TargetBranch)
-
-- pwsh: |
-    cd .\.build
-    .\Build.ps1
-  displayName: "Build Script"
-
-- pwsh: |
-    cd .\.build
-    .\Pester.ps1 -NoProgress -Branch $env:TargetBranchName
-  displayName: "Running Invoke-Pester"
-  env:
-    TargetBranchName: $(System.PullRequest.TargetBranch)
-
-- pwsh: |
-    cd .\.build
-    .\ValidateMerge.ps1 -Branch $env:TargetBranchName
-  displayName: "Validate commit times"
-  env:
-    TargetBranchName: $(System.PullRequest.TargetBranch)
+resources:
+  repositories:
+  - repository: 1ESPipelineTemplates
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+extends:
+  template: v1/1ES.Unofficial.PipelineTemplate.yml@1ESPipelineTemplates
+  parameters:
+    settings:
+      skipBuildTagsForGitHubPullRequests: true
+    pool:
+      name: MSSecurity-1ES-Build-Agents-Pool
+      image: MSSecurity-1ES-Windows-2022
+      os: windows
+    customBuildTags:
+    - ES365AIMigrationTooling
+    stages:
+    - stage: stage
+      jobs:
+      - job: job
+        steps:
+        - pwsh: |
+            cd .\.build
+            .\docs.ps1
+          displayName: "Docs Check"
+        - pwsh: .\.build\SpellCheck.ps1
+          displayName: "Spell Check"
+        - pwsh: |
+            cd .\.build
+            .\CodeFormatter.ps1 -Branch main
+          displayName: "Code Formatting Script"
+          condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/release'))
+          env:
+            TargetBranchName: $(System.PullRequest.TargetBranch)
+        - pwsh: |
+            cd .\.build
+            .\Build.ps1
+          displayName: "Build Script"
+        - pwsh: |
+            cd .\.build
+            .\Pester.ps1 -NoProgress -Branch main
+          displayName: "Running Invoke-Pester"
+          env:
+            TargetBranchName: $(System.PullRequest.TargetBranch)
+        - pwsh: |
+            cd .\.build
+            .\ValidateMerge.ps1 -Branch main
+          displayName: "Validate commit times"
+          env:
+            TargetBranchName: $(System.PullRequest.TargetBranch)
