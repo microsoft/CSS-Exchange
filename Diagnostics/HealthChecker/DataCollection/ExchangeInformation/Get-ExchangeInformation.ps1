@@ -59,7 +59,7 @@ function Get-ExchangeInformation {
             CU                 = $versionInformation.CU
             ExchangeSetup      = $exSetupDetails
             VersionInformation = $versionInformation
-            KBsInstalled       = [array](Get-ExchangeUpdates -Server $Server -ExchangeMajorVersion $versionInformation.MajorVersion)
+            KBsInstalledInfo   = [array](Get-ExchangeUpdates -Server $Server -ExchangeMajorVersion $versionInformation.MajorVersion)
         }
 
         $dependentServices = (Get-ExchangeDependentServices -MachineName $Server)
@@ -115,7 +115,8 @@ function Get-ExchangeInformation {
         $configParams = @{
             ComputerName = $Server
             FileLocation = @("$([System.IO.Path]::Combine($serverExchangeBinDirectory, "EdgeTransport.exe.config"))",
-                "$([System.IO.Path]::Combine($serverExchangeBinDirectory, "Search\Ceres\Runtime\1.0\noderunner.exe.config"))")
+                "$([System.IO.Path]::Combine($serverExchangeBinDirectory, "Search\Ceres\Runtime\1.0\noderunner.exe.config"))",
+                "$([System.IO.Path]::Combine($serverExchangeBinDirectory, "Monitoring\Config\AntiMalware.xml"))")
         }
 
         if ($getExchangeServer.IsEdgeServer -eq $false -and
@@ -203,7 +204,7 @@ function Get-ExchangeInformation {
                 CatchActionFunction    = ${Function:Invoke-CatchActions}
                 ScriptBlock            = {
                     [PSCustomObject]@{
-                        LocalGroupMember  =  (Get-LocalGroupMember -SID "S-1-5-32-544" -ErrorAction Stop)
+                        LocalGroupMember  = (Get-LocalGroupMember -SID "S-1-5-32-544" -ErrorAction Stop)
                         ADGroupMembership = (Get-ADPrincipalGroupMembership (Get-ADComputer $env:COMPUTERNAME).DistinguishedName)
                     }
                 }

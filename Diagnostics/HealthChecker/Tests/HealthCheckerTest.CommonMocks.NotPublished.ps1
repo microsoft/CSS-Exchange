@@ -31,6 +31,19 @@ Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "G
 Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Test EEMS pattern service connectivity" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\WebRequest_GetExchangeMitigations.xml" }
 Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Get TokenCacheModule version information" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\IIS\GetVersionInformationCachTokn.xml" }
 
+Mock Get-WinEvent -ParameterFilter { $LogName -eq "Application" -and $Oldest -eq $true -and $MaxEvents -eq 1 } -MockWith {
+    $r = Import-Clixml "$Script:MockDataCollectionRoot\OS\GetWinEventOldestApplication.xml"
+    $r.TimeCreated = ((Get-Date).AddDays(-8))
+    return $r
+}
+Mock Get-WinEvent -ParameterFilter { $LogName -eq "System" -and $Oldest -eq $true -and $MaxEvents -eq 1 } -MockWith {
+    $r = Import-Clixml "$Script:MockDataCollectionRoot\OS\GetWinEventOldestSystem.xml"
+    $r.TimeCreated = ((Get-Date).AddDays(-8))
+    return $r
+}
+Mock Get-WinEvent -ParameterFilter { $ListLog -eq "Application" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetWinEventApplication.xml" }
+Mock Get-WinEvent -ParameterFilter { $ListLog -eq "System" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetWinEventSystem.xml" }
+
 # Handle IIS collection of files
 Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost.config" -Raw -Encoding UTF8 }
 
@@ -46,11 +59,13 @@ Mock Test-Path -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange
 Mock Test-Path -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\ClientAccess\SharedWebConfig.config" } -MockWith { return $true }
 Mock Test-Path -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\EdgeTransport.exe.config" } -MockWith { return $true }
 Mock Test-Path -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Runtime\1.0\noderunner.exe.config" } -MockWith { return $true }
+Mock Test-Path -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Monitoring\Config\AntiMalware.xml" } -MockWith { return $true }
 
 Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\FrontEnd\HttpProxy\SharedWebConfig.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\DefaultWebSite_SharedWebConfig.config" -Raw -Encoding UTF8 }
 Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\ClientAccess\SharedWebConfig.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\ExchangeBackEnd_SharedWebConfig.config" -Raw -Encoding UTF8 }
 Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\EdgeTransport.exe.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\EdgeTransport.exe.config" -Raw -Encoding UTF8 }
 Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Runtime\1.0\noderunner.exe.config" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\noderunner.exe.config" -Raw -Encoding UTF8 }
+Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Monitoring\Config\AntiMalware.xml" } -MockWith { Get-Content "$Script:MockDataCollectionRoot\Exchange\AntiMalware.xml" -Raw -Encoding UTF8 }
 
 function Get-WebApplication { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\IIS\GetWebApplication.xml" }
 
@@ -127,6 +142,20 @@ Mock Get-RemoteRegistryValue {
     }
 }
 
+Mock Get-RemoteRegistrySubKey {
+    param(
+        [string]$MachineName,
+        [string]$SubKey
+    )
+
+    switch ($SubKey) {
+        "SOFTWARE\Microsoft\Updates\Exchange 2013" { return $null }
+        "SOFTWARE\Microsoft\Updates\Exchange 2016" { return $null }
+        "SOFTWARE\Microsoft\Updates\Exchange 2019" { return $null }
+        default { throw "Failed to find SubKey: $SubKey" }
+    }
+}
+
 Mock Get-NETFrameworkVersion {
     return [PSCustomObject]@{
         FriendlyName  = "4.8"
@@ -162,10 +191,6 @@ Mock Get-HotFix {
     return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetHotFix.xml"
 }
 
-Mock Get-LocalizedCounterSamples {
-    return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetCounterSamples.xml"
-}
-
 Mock Get-ServerRebootPending {
     return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetServerRebootPending.xml"
 }
@@ -184,10 +209,6 @@ Mock Get-SmbServerConfiguration {
 
 Mock Get-ExchangeAppPoolsInformation {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeAppPoolsInformation.xml"
-}
-
-Mock Get-ExchangeUpdates {
-    return $null
 }
 
 Mock Get-ExchangeAdSchemaClass -ParameterFilter { $SchemaClassName -eq "ms-Exch-Storage-Group" } {
@@ -239,6 +260,21 @@ Mock Get-ExchangeDiagnosticInfo -ParameterFilter { $Process -eq "Microsoft.Excha
     -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo_ADTopVariantConfiguration.xml" }
 Mock Get-ExchangeDiagnosticInfo -ParameterFilter { $Process -eq "EdgeTransport" -and $Component -eq "ResourceThrottling" } `
     -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo_EdgeTransportResourceThrottling.xml" }
+
+Mock Get-LocalizedCounterSamples -ParameterFilter { $Counter -eq "\Network Interface(*)\Packets Received Discarded" } `
+    -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetCounterSamples.xml" }
+Mock Get-LocalizedCounterSamples {
+    $objList = New-Object System.Collections.Generic.List[object]
+    $objList.Add(([PSCustomObject]@{
+                OriginalCounterLookup = "\Processor(_Total)\% Processor Time"
+                CookedValue           = 55.55555
+            }))
+    $objList.Add(([PSCustomObject]@{
+                OriginalCounterLookup = "\Hyper-V Dynamic Memory Integration Service\Maximum Memory, MBytes"
+                CookedValue           = 6144
+            }))
+    return $objList
+}
 
 # Need to use function instead of Mock for Exchange cmdlets
 function Get-ExchangeServer {

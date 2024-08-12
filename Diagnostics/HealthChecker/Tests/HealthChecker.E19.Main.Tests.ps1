@@ -85,8 +85,9 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "All Processor Cores Visible" "Passed" -WriteType "Green"
             TestObjectMatch "Max Processor Speed" 2200
             TestObjectMatch "Physical Memory" 6 -WriteType "Yellow"
+            TestObjectMatch "Dynamic Memory Detected" $false -WriteType "Green"
 
-            $Script:ActiveGrouping.Count | Should -Be 9
+            $Script:ActiveGrouping.Count | Should -Be 11
         }
 
         It "Display Results - NIC Settings" {
@@ -121,8 +122,9 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "NodeRunner.exe memory limit" "0 MB" -WriteType "Green"
             TestObjectMatch "Open Relay Wild Card Domain" "Not Set"
             TestObjectMatch "EXO Connector Present" "True" # Custom EXO Connector with no TlsDomain TlsAuthLevel
+            TestObjectMatch "UnifiedContent Auto Cleanup Configured" $true -WriteType "Green"
 
-            $Script:ActiveGrouping.Count | Should -Be 13
+            $Script:ActiveGrouping.Count | Should -Be 14
         }
 
         It "Display Results - Security Settings" {
@@ -217,7 +219,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Manufacturer" "My Custom PC"
             TestObjectMatch "Model" "CHG-GG"
 
-            $Script:ActiveGrouping.Count | Should -Be 12
+            $Script:ActiveGrouping.Count | Should -Be 13
         }
 
         It "Display Results - NIC Settings" {

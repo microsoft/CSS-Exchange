@@ -30,14 +30,18 @@ function Get-ExchangeUpdates {
         $IU = $RegKey.GetSubKeyNames()
         if ($null -ne $IU) {
             Write-Verbose "Detected fixes installed on the server"
-            $fixes = @()
+            $installedUpdates = New-Object System.Collections.Generic.List[object]
             foreach ($key in $IU) {
                 $IUKey = $RegKey.OpenSubKey($key)
                 $IUName = $IUKey.GetValue("PackageName")
                 Write-Verbose "Found: $IUName"
-                $fixes += $IUName
+                $IUInstalledDate = $IUKey.GetValue("InstalledDate")
+                $installedUpdates.Add(([PSCustomObject]@{
+                            PackageName   = $IUName
+                            InstalledDate = $IUInstalledDate
+                        }))
             }
-            return $fixes
+            return $installedUpdates
         } else {
             Write-Verbose "No IUs found in the registry"
         }

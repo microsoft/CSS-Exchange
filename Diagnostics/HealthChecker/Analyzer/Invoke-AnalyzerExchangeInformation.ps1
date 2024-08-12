@@ -60,6 +60,14 @@ function Invoke-AnalyzerExchangeInformation {
     }
     Add-AnalyzedResultInformation @params
 
+    if ($null -ne $exchangeInformation.BuildInformation.ExchangeSetup.InstallTime) {
+        $params = $baseParams + @{
+            Name    = "Latest Install Time (SU/CU)"
+            Details = $exchangeInformation.BuildInformation.ExchangeSetup.InstallTime
+        }
+        Add-AnalyzedResultInformation @params
+    }
+
     if ($exchangeInformation.BuildInformation.VersionInformation.Supported -eq $false) {
         $daysOld = ($date - $exchangeInformation.BuildInformation.VersionInformation.ReleaseDate).Days
 
@@ -129,19 +137,21 @@ function Invoke-AnalyzerExchangeInformation {
         Add-AnalyzedResultInformation @params
     }
 
-    if ($null -ne $exchangeInformation.BuildInformation.KBsInstalled) {
+    if ($null -ne $exchangeInformation.BuildInformation.KBsInstalledInfo.PackageName) {
         Add-AnalyzedResultInformation -Name "Exchange IU or Security Hotfix Detected" @baseParams
         $problemKbFound = $false
         $problemKbName = "KB5029388"
 
-        foreach ($kb in $exchangeInformation.BuildInformation.KBsInstalled) {
+        foreach ($kbInfo in $exchangeInformation.BuildInformation.KBsInstalledInfo) {
+            $kbName = $kbInfo.PackageName
             $params = $baseParams + @{
-                Details                = $kb
+                Details                = "$kbName - Installed on $($kbInfo.InstalledDate)"
                 DisplayCustomTabNumber = 2
+                TestingName            = "Exchange IU"
             }
             Add-AnalyzedResultInformation @params
 
-            if ($kb.Contains($problemKbName)) {
+            if ($kbName.Contains($problemKbName)) {
                 $problemKbFound = $true
             }
         }

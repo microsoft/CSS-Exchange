@@ -5,6 +5,7 @@
 . $PSScriptRoot\..\..\..\..\Shared\VisualCRedistributableVersionFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\TLS\Get-AllTlsSettings.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-AllNicInformation.ps1
+. $PSScriptRoot\Get-EventLogInformation.ps1
 . $PSScriptRoot\Get-NETFrameworkInformation.ps1
 . $PSScriptRoot\Get-NetworkingInformation.ps1
 . $PSScriptRoot\Get-OperatingSystemBuildInformation.ps1
@@ -66,12 +67,24 @@ function Get-OperatingSystemInformation {
             Invoke-CatchActions
         }
 
+        $params = @{
+            MachineName       = $Server
+            Counter           = @(
+                "\Hyper-V Dynamic Memory Integration Service\Maximum Memory, MBytes", # This is used to determine if dynamic memory is set on the Hyper-V machine.
+                "\Processor(_Total)\% Processor Time",
+                "\VM Memory\Memory Reservation in MB" # used to determine if dynamic memory is set on the VMware machine.
+            )
+            CustomErrorAction = "SilentlyContinue" # Required because not all counters would be there.
+        }
+
+        $counters = Get-LocalizedCounterSamples @params
         $serverPendingReboot = (Get-ServerRebootPending -ServerName $Server -CatchActionFunction ${Function:Invoke-CatchActions})
         $timeZoneInformation = Get-TimeZoneInformation -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
         $tlsSettings = Get-AllTlsSettings -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
         $vcRedistributable = Get-VisualCRedistributableInstalledVersion -ComputerName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
         $smb1ServerSettings = Get-Smb1ServerSettings -ServerName $Server -GetWindowsFeature $windowsFeature -CatchActionFunction ${Function:Invoke-CatchActions}
         $registryValues = Get-OperatingSystemRegistryValues -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
+        $eventLogInformation = Get-EventLogInformation -Server $Server -CatchActionFunction ${Function:Invoke-CatchActions}
         $netFrameworkInformation = Get-NETFrameworkInformation -Server $Server
     } end {
         Write-Verbose "Exiting: $($MyInvocation.MyCommand)"
@@ -91,6 +104,8 @@ function Get-OperatingSystemInformation {
             NETFramework               = $netFrameworkInformation
             CredentialGuardCimInstance = $credentialGuardCimInstance
             WindowsFeature             = $windowsFeature
+            EventLogInformation        = $eventLogInformation
+            PerformanceCounters        = $counters
         }
     }
 }
