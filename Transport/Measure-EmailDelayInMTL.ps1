@@ -108,7 +108,7 @@ if ($uniqueMessageIDs.count -eq 0) {
 # Carve the data up into smaller collections to make searching faster.
 # Most of what is in the MTL we don't need for this.
 $SMTPReceive = $mtl | Where-Object { ($_.event_id -eq 'Receive') -and ($_.source -eq 'SMTP') }
-$StoreDeliver = $mtl | Where-Object { ($_.event_id -eq 'Deliver') -and ($_.source -eq 'StoreDrive') }
+$StoreDeliver = $mtl | Where-Object { ($_.event_id -eq 'Deliver') -and ($_.source -eq 'StoreDriver') }
 $SMTPDeliver = $mtl | Where-Object { ($_.event_id -eq 'SendExternal') -and ($_.source -eq 'SMTP') }
 
 # Loop thru each unique messageID
