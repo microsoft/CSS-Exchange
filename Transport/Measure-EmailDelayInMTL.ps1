@@ -58,21 +58,21 @@ param (
 
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 
-Function Test-CSVData {
+function Test-CSVData {
     param(
         [array]$CSV,
         [array]$ColumnsToCheck
     )
 
     $ColumnHeaders = ($CSV | Get-Member -MemberType NoteProperty).Name
-    ForEach ( $ColumnToCheck in $ColumnsToCheck) {
-        If ($ColumnHeaders.Contains($ColumnToCheck) ) {
+    foreach ( $ColumnToCheck in $ColumnsToCheck) {
+        if ($ColumnHeaders.Contains($ColumnToCheck) ) {
             # Nothing to do.
-        } Else {
-            Return $false
+        } else {
+            return $false
         }
     }
-    Return $true
+    return $true
 }
 
 if (Test-ScriptVersion -AutoUpdate) {
@@ -169,4 +169,3 @@ $GeneralData = [PSCustomObject]@{
 }
 
 Write-Output $GeneralData
-
