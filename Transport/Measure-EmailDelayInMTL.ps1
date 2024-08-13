@@ -100,10 +100,10 @@ if (Test-Path $MTLFile) {
 }
 
 # Validate the MTL
-if (Test-CSVData -CSV $mtl -ColumnsToCheck "event_id", "source", "message_id", "date_time_utc") {}
-else {
+if (!(Test-CSVData -CSV $mtl -ColumnsToCheck "event_id", "source", "message_id", "date_time_utc")) {
     Write-Error "MTL is missing one or more required fields: `"event_id`",`"source`",`"message_id`",`"date_time_utc`"" -ErrorAction Stop
 }
+
 
 # get all of the unique message IDs in the file.
 [array]$uniqueMessageIDs = $mtl | Select-Object -ExpandProperty message_id | Sort-Object | Get-Unique
