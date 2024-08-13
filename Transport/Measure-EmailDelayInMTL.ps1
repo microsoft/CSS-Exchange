@@ -66,7 +66,7 @@ function Test-CSVData {
 
     # Check to make sure we have data in the CSV
     if (($null -eq $CSV) -or !($CSV.count -gt 0)) {
-        Write-Host "Provided CSV null or empty"
+        Write-Error "Provided CSV null or empty" -ErrorAction Stop
         return $false
     }
 
@@ -92,11 +92,26 @@ if (Test-ScriptVersion -AutoUpdate) {
 $output = $Null
 
 # Test for the provided file and load it.
-if (Test-Path $MTLFile) {
-    Write-Output "Loading MTL file."
-    $mtl = Import-Csv $MTLFile -Encoding Unicode
+# Need to make sure the MTL file is there and if so load it.
+# Straight from EXO it will be in unicode ... but if it is modified it might not be.
+# First verify the file
+if (!(Test-Path $MTLFile)) {
+    Write-Error "Unable to find the specified file" -ErrorAction Stop
+}
+
+# Try to load the file with unicode since this should be the most common
+$mtl = Import-Csv $MTLFile -Encoding Unicode
+
+# If it is null then we need to try without unicode
+if ($null -eq $mtl) {
+    Write-Host "Failed to Load as Unicode trying normal load"
+    $mtl = Import-Csv $MTLFile
+    # If we still have nothing the log and error and fail
+    if ($null -eq $mtl) {
+        Write-Error "Failed to load CSV" -ErrorAction Stop
+    }
 } else {
-    Write-Error "Unable to find specified file"
+    Write-Host "Loaded MTL"
 }
 
 # Validate the MTL
@@ -112,7 +127,7 @@ if ($uniqueMessageIDs.count -eq 0) {
     Write-Error "No Unique MessageIDs found in data."
 }
 
-# Carve the data up into smaller collections to make searching faster.
+# Carve the data up into smaller collections
 # Most of what is in the MTL we don't need for this.
 $SMTPReceive = $mtl | Where-Object { ($_.event_id -eq 'Receive') -and ($_.source -eq 'SMTP') }
 $StoreDeliver = $mtl | Where-Object { ($_.event_id -eq 'Deliver') -and ($_.source -eq 'StoreDriver') }
@@ -134,9 +149,7 @@ foreach ($id in $uniqueMessageIDs) {
     # Process the time sent
     if ($AllSentTimes.count -eq 0) {
         Write-Warning ($id.message_id.ToString() + "unable to find sent time. Discarding messageID")
-        quit
-    } else {
-        $TimeSent = Get-Date ($AllSentTimes | Sort-Object | Select-Object -First 1)
+        continue
     }
 
     # If we didn't find any delivery information then drop the message ID
@@ -146,33 +159,45 @@ foreach ($id in $uniqueMessageIDs) {
     # Process the message information
     else {
 
-        # Combine all of the delivery times.
-        [array]$AllDeliveries = ($AllStoreDeliverTimes + $AllRemoteDeliverTimes) | Sort-Object
+        # Get the newest time sent that we found
+        $SortedTimeSent = Get-Date ($AllSentTimes | Sort-Object | Select-Object -First 1)
 
+        # Combine all of the delivery times and grab the newest one
+        $SortedTimeDelivered = (($AllStoreDeliverTimes + $AllRemoteDeliverTimes) | Sort-Object | Select-Object -Last 1)
+
+        # Build report object
         $report = [PSCustomObject]@{
             MessageID    = $id
             TimeSent     = $TimeSent
-            TimeReceived = (Get-Date $AllDeliveries[-1])
-            MessageDelay = (Get-Date $AllDeliveries[0]) - $TimeSent
+            TimeReceived = $SortedTimeSent
+            MessageDelay = $SortedTimeDelivered - $SortedTimeSent
         }
 
+        # Build output object
         [array]$output = [array]$output + $report
     }
 }
 
-# Export the data to the output file
-$outputFile = (Join-Path -Path $ReportPath -ChildPath "MTL_report.csv")
-$output | Export-Csv -IncludeTypeInformation:$false -Path $outputFile
-Write-Output ("Report written to file " + $outputFile)
-
-# Gather general statistical data and output to the screen
-$Stats = ($output.MessageDelay.TotalMilliseconds | Measure-Object -Average -Maximum -Minimum)
-
-$GeneralData = [PSCustomObject]@{
-    EmailCount   = $Stats.Count
-    MaximumDelay = [TimeSpan]::FromMilliseconds($Stats.Maximum)
-    MinimumDelay = [TimeSpan]::FromMilliseconds($Stats.Minimum)
-    AverageDelay = [TimeSpan]::FromMilliseconds($Stats.Average)
+# Make sure we have something to output
+if ($null -eq $output) {
+    Write-Error "No output generated" -ErrorAction Stop
 }
+else {
 
-Write-Output $GeneralData
+    # Export the data to the output file
+    $outputFile = (Join-Path -Path $ReportPath -ChildPath "MTL_report.csv")
+    $output | Export-Csv -IncludeTypeInformation:$false -Path $outputFile
+    Write-Output ("Report written to file " + $outputFile)
+
+    # Gather general statistical data and output to the screen
+    $Stats = ($output.MessageDelay.TotalMilliseconds | Measure-Object -Average -Maximum -Minimum)
+
+    $GeneralData = [PSCustomObject]@{
+        EmailCount   = $Stats.Count
+        MaximumDelay = [TimeSpan]::FromMilliseconds($Stats.Maximum)
+        MinimumDelay = [TimeSpan]::FromMilliseconds($Stats.Minimum)
+        AverageDelay = [TimeSpan]::FromMilliseconds($Stats.Average)
+    }
+
+    Write-Output $GeneralData
+}
