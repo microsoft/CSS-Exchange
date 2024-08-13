@@ -104,7 +104,7 @@ $mtl = Import-Csv $MTLFile -Encoding Unicode
 
 # If it is null then we need to try without unicode
 if ($null -eq $mtl) {
-    Write-Host "Failed to Load as Unicode trying normal load"
+    Write-Host "Failed to Load as Unicode; trying normal load"
     $mtl = Import-Csv $MTLFile
     # If we still have nothing the log and error and fail
     if ($null -eq $mtl) {
@@ -127,6 +127,7 @@ if (!(Test-CSVData -CSV $mtl -ColumnsToCheck "event_id", "source", "message_id",
 
 # If we did a non-unicode load then we need to fixup date_time_utc from string object to [DateTime] objects
 if (!($unicode)) {
+    Write-Host "Fixing up date_time_utc values"
     for ($i = 0; $i -lt $mtl.Count; $i++) {
         $mtl[$i].date_time_utc = Get-Date($mtl[$i].date_time_utc)
     }
@@ -160,13 +161,13 @@ foreach ($id in $uniqueMessageIDs) {
 
     # Process the time sent
     if ($AllSentTimes.count -eq 0) {
-        Write-Warning ($id.message_id.ToString() + "unable to find sent time. Discarding messageID")
+        Write-Warning ($id.ToString() + " unable to find sent time. Discarding messageID")
         continue
     }
 
     # If we didn't find any delivery information then drop the message ID
     if ($AllStoreDeliverTimes.count -eq 0 -and $AllRemoteDeliverTimes.count -eq 0) {
-        Write-Warning ($id + "not able to find delivery time in MTL. Discarding messageID")
+        Write-Warning ($id + " not able to find delivery time in MTL. Discarding messageID")
     }
     # Process the message information
     else {
