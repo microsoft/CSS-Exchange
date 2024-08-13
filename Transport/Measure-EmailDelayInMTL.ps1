@@ -64,6 +64,13 @@ function Test-CSVData {
         [array]$ColumnsToCheck
     )
 
+    # Check to make sure we have data in the CSV
+    if (($null -eq $CSV) -or !($CSV.count -gt 0)) {
+        Write-Host "Provided CSV null or empty"
+        return $false
+    }
+
+    # Read thru the data and make sure we have the needed columns
     $ColumnHeaders = ($CSV | Get-Member -MemberType NoteProperty).Name
     foreach ( $ColumnToCheck in $ColumnsToCheck) {
         if ($ColumnHeaders.Contains($ColumnToCheck) ) {
