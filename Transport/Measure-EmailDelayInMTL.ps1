@@ -13,7 +13,7 @@ Generates a report of the maximum message delay for all messages in an Message T
 
 .DESCRIPTION
 Gather message tracking log details of all message to / from a given recipient for a given time range.
-Recommend using start-historicalsearch in EXO.
+Recommend using Start-HistoricalSearch in EXO.
 
 The script will provide an output of all unique message ids with the following information:
 MessageID
@@ -30,10 +30,10 @@ Folder path for the output file.
 
 
 .OUTPUTS
-CSV File with the following informaiton.
+CSV File with the following information.
     MessageID               ID of the Message
     TimeSent                First time we see the message in the MTL
-    TimeRecieved            Last delivery time in the MTL
+    TimeReceived            Last delivery time in the MTL
     MessageDelay            How long before the message was delivered
 
 Default Output File:
@@ -65,7 +65,6 @@ Function Test-CSVData {
     )
 
     $ColumnHeaders = ($CSV | Get-Member -MemberType NoteProperty).Name
-    $MissingColumnHeaders = @()
     ForEach ( $ColumnToCheck in $ColumnsToCheck) {
         If ($ColumnHeaders.Contains($ColumnToCheck) ) {
             # Nothing to do.
@@ -108,26 +107,26 @@ if ($uniqueMessageIDs.count -eq 0) {
 
 # Carve the data up into smaller collections to make searching faster.
 # Most of what is in the MTL we don't need for this.
-$SMTPRecieve = $mtl | Where-Object { ($_.event_id -eq 'RECEIVE') -and ($_.source -eq 'SMTP') }
+$SMTPReceive = $mtl | Where-Object { ($_.event_id -eq 'RECEIVE') -and ($_.source -eq 'SMTP') }
 $StoreDeliver = $mtl | Where-Object { ($_.event_id -eq 'DELIVER') -and ($_.source -eq 'STOREDRIVER') }
 $SMTPDeliver = $mtl | Where-Object { ($_.event_id -eq 'SENDEXTERNAL') -and ($_.source -eq 'SMTP') }
 
 # Loop thru each unique messageID
 foreach ($id in $uniqueMessageIDs) {
 
-    # make sure we aren't carrying anyting over from the previous foreach.
+    # make sure we aren't carrying anything over from the previous foreach.
     $AllSentTimes = $Null
     $AllStoreDeliverTimes = $Null
     $AllRemoteDeliverTimes = $Null
 
     # extract the times for a message ID ... there can be more than one of each of these.
-    [array]$AllSentTimes = ($SMTPRecieve | Where-Object { ($_.message_id -eq $id) }).date_time_utc
+    [array]$AllSentTimes = ($SMTPReceive | Where-Object { ($_.message_id -eq $id) }).date_time_utc
     [array]$AllStoreDeliverTimes = ($StoreDeliver | Where-Object { ($_.message_id -eq $id) }).date_time_utc
     [array]$AllRemoteDeliverTimes = ($SMTPDeliver | Where-Object { ($_.message_id -eq $id) }).date_time_utc
 
     # Process the time sent
     if ($AllSentTimes.count -eq 0) {
-        Write-Warning ($id.message_id.tostring() + "unable to find sent time. Discarding messageID")
+        Write-Warning ($id.message_id.ToString() + "unable to find sent time. Discarding messageID")
         quit
     } else {
         $TimeSent = Get-Date ($AllSentTimes | Sort-Object | Select-Object -First 1)
@@ -146,8 +145,8 @@ foreach ($id in $uniqueMessageIDs) {
         $report = [PSCustomObject]@{
             MessageID    = $id
             TimeSent     = $TimeSent
-            TimeRecieved = (Get-Date $AllDeliveries[-1])
-            MessageDelay = (Get-Date $AllDeliveries[0]) - $timesent
+            TimeReceived = (Get-Date $AllDeliveries[-1])
+            MessageDelay = (Get-Date $AllDeliveries[0]) - $TimeSent
         }
 
         [array]$output = [array]$output + $report

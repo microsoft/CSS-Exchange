@@ -1,4 +1,4 @@
-# Measure-EmailDelayinMTL
+# Measure-EmailDelayInMTL
 Generates a report of the maximum message delay for all messages in an Message Tracking Log.
 
 ## DESCRIPTION
@@ -29,7 +29,7 @@ Folder path for the output file.
 | ------ | ----------- |
 | MessageID | ID of the Message |
 | TimeSent |  First time we see the message in the MTL |
-| TimeRecieved | Last delivery time in the MTL |
+| TimeReceived | Last delivery time in the MTL |
 | MessageDelay | How long before the message was delivered |
 
 ### Statistical Summary
