@@ -116,6 +116,7 @@ nav:
       - InstallWatermark: Setup/SetupAssist/InstallWatermark.md
     - SetupLogReviewer: Setup/SetupLogReviewer.md
   - Transport:
+    - Measure-EmailDelayInMTL: Transport/Measure-EmailDelayInMTL.md
     - Compute-TopExoRecipientsFromMessageTrace: Transport/Compute-TopExoRecipientsFromMessageTrace.md
     - ReplayQueueDatabases: Transport/ReplayQueueDatabases.md
 theme:
