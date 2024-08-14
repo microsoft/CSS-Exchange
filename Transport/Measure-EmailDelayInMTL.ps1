@@ -73,9 +73,7 @@ function Test-CSVData {
     # Read thru the data and make sure we have the needed columns
     $ColumnHeaders = ($CSV | Get-Member -MemberType NoteProperty).Name
     foreach ( $ColumnToCheck in $ColumnsToCheck) {
-        if ($ColumnHeaders.ToLower().Contains($ColumnToCheck) ) {
-            # Nothing to do.
-        } else {
+        if (!($ColumnHeaders.ToLower().Contains($ColumnToCheck.ToLowerower())) ) {
             return $false
         }
     }
@@ -119,8 +117,8 @@ if ($null -eq $mtl) {
 }
 
 # Detecting if this is an onprem MTL
-if (Test-CSVData -CSV $mtl -ColumnsToCheck "eventid", "source", "messageid", "timestamp") {
-    Write-Host "On Prem message trace detected; Converting headers"
+if (Test-CSVData -CSV $mtl -ColumnsToCheck "eventid", "source", "messageId", "timestamp") {
+    Write-Host "On Prem message trace detected; Updating property names"
     $mtl = $mtl | Select-Object -Property @{N = "date_time_utc"; E = { $_.timestamp } }, @{N = "message_id"; E = { $_.messageID } }, source, @{N = "event_id"; E = { $_.EventId } }
 }
 
