@@ -73,7 +73,7 @@ function Test-CSVData {
     # Read thru the data and make sure we have the needed columns
     $ColumnHeaders = ($CSV | Get-Member -MemberType NoteProperty).Name
     foreach ( $ColumnToCheck in $ColumnsToCheck) {
-        if (!($ColumnHeaders.ToLower().Contains($ColumnToCheck.ToLowerower())) ) {
+        if (!($ColumnHeaders.ToLower().Contains($ColumnToCheck.ToLower())) ) {
             return $false
         }
     }
