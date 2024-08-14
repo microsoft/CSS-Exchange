@@ -113,11 +113,9 @@ if ($null -eq $mtl) {
     # need to know that we loaded without unicode.
     else {
         Write-Host "Loaded CSV without unicode"
-        $unicode = $false
     }
 } else {
     Write-Host "Loaded MTL with unicode"
-    $unicode = $true
 }
 
 # Validate the MTL
@@ -125,12 +123,10 @@ if (!(Test-CSVData -CSV $mtl -ColumnsToCheck "event_id", "source", "message_id",
     Write-Error "MTL is missing one or more required fields: `"event_id`",`"source`",`"message_id`",`"date_time_utc`"" -ErrorAction Stop
 }
 
-# If we did a non-unicode load then we need to fixup date_time_utc from string object to [DateTime] objects
-if (!($unicode)) {
-    Write-Host "Fixing up date_time_utc values"
-    for ($i = 0; $i -lt $mtl.Count; $i++) {
-        $mtl[$i].date_time_utc = Get-Date($mtl[$i].date_time_utc)
-    }
+# Converting our strings into [DateTime]
+Write-Host "Converting date_time_utc values"
+for ($i = 0; $i -lt $mtl.Count; $i++) {
+    $mtl[$i].date_time_utc = Get-Date($mtl[$i].date_time_utc)
 }
 
 # get all of the unique message IDs in the file.
