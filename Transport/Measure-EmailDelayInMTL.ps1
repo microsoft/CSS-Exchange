@@ -91,24 +91,29 @@ $output = $Null
 
 # Test for the provided file and load it.
 # Need to make sure the MTL file is there and if so load it.
-# Straight from EXO it will be in Unicode ... but if it is modified it might not be.
+# Straight from EXO it will be in Unicode. Onprem and modified files are not.
 # First verify the file
 if (!(Test-Path $MTLFile)) {
     Write-Error "Unable to find the specified file" -ErrorAction Stop
 }
 
-# Try to load the file with Unicode since this should be the most common
+# Make sure the path for the output is good
+if (!(Test-Path $ReportPath)){
+    Write-Error ("Unable to find report path " + $ReportPath)
+}
+
+# Try to load the file with Unicode since we need to start somewhere.
 $mtl = Import-Csv $MTLFile -Encoding Unicode
 
 # If it is null then we need to try without Unicode
 if ($null -eq $mtl) {
     Write-Host "Failed to Load as Unicode; trying normal load"
     $mtl = Import-Csv $MTLFile
-    # If we still have nothing the log and error and fail
+    # If we still have nothing then log an error and fail
     if ($null -eq $mtl) {
         Write-Error "Failed to load CSV" -ErrorAction Stop
     }
-    # need to know that we loaded without Unicode.
+    # Need to know that we loaded without Unicode.
     else {
         Write-Host "Loaded CSV without Unicode"
     }
@@ -122,7 +127,7 @@ if (Test-CSVData -CSV $mtl -ColumnsToCheck "eventid", "source", "messageId", "ti
     $mtl = $mtl | Select-Object -Property @{N = "date_time_utc"; E = { $_.timestamp } }, @{N = "message_id"; E = { $_.messageID } }, source, @{N = "event_id"; E = { $_.EventId } }
 }
 
-# Making sure the MTL contains only the fields we want. (Cloud MTL)
+# Making sure the MTL contains the fields we want.
 if (!(Test-CSVData -CSV $mtl -ColumnsToCheck "event_id", "source", "message_id", "date_time_utc")) {
     Write-Error "MTL is missing one or more required fields." -ErrorAction Stop
 }
@@ -141,7 +146,7 @@ if ($uniqueMessageIDs.count -eq 0) {
 }
 
 # Carve the data up into smaller collections
-# Most of what is in the MTL we don't need for this.
+# Most of what is in the MTL we don't need
 $SMTPReceive = $mtl | Where-Object { ($_.event_id -eq 'Receive') -and ($_.source -eq 'SMTP') }
 $StoreDeliver = $mtl | Where-Object { ($_.event_id -eq 'Deliver') -and ($_.source -eq 'StoreDriver') }
 $SMTPDeliver = $mtl | Where-Object { ($_.event_id -eq 'SendExternal') -and ($_.source -eq 'SMTP') }
@@ -159,32 +164,31 @@ foreach ($id in $uniqueMessageIDs) {
     [array]$AllStoreDeliverTimes = ($StoreDeliver | Where-Object { ($_.message_id -eq $id) }).date_time_utc
     [array]$AllRemoteDeliverTimes = ($SMTPDeliver | Where-Object { ($_.message_id -eq $id) }).date_time_utc
 
-    # Process the time sent
+    # If we didn't find any sent information then drop the messageID
     if ($AllSentTimes.count -eq 0) {
         Write-Warning ($id.ToString() + " unable to find sent time. Discarding messageID")
         continue
     }
 
-    # If we didn't find any delivery information then drop the message ID
+    # If we didn't find any delivery information then drop the messageID
     if ($AllStoreDeliverTimes.count -eq 0 -and $AllRemoteDeliverTimes.count -eq 0) {
         Write-Warning ($id + " not able to find delivery time in MTL. Discarding messageID")
+        continue
     }
-    # Process the message information
-    else {
 
-        # Get the newest time sent that we found
-        $SortedTimeSent = Get-Date ($AllSentTimes | Sort-Object | Select-Object -First 1)
+    # Get the newest time sent that we found
+    $SortedTimeSent = Get-Date ($AllSentTimes | Sort-Object | Select-Object -First 1)
 
-        # Combine all of the delivery times and grab the newest one
-        $SortedTimeDelivered = (($AllStoreDeliverTimes + $AllRemoteDeliverTimes) | Sort-Object | Select-Object -Last 1)
+    # Combine all of the delivery times and grab the newest one
+    $SortedTimeDelivered = (($AllStoreDeliverTimes + $AllRemoteDeliverTimes) | Sort-Object | Select-Object -Last 1)
 
-        # Build report object
-        $report = [PSCustomObject]@{
-            MessageID    = $id
-            TimeSent     = $TimeSent
-            TimeReceived = $SortedTimeSent
-            MessageDelay = $SortedTimeDelivered - $SortedTimeSent
-        }
+    # Build report object
+    $report = [PSCustomObject]@{
+        MessageID      = $id
+        TimeSent       = $TimeSent
+        TimeReceived   = $SortedTimeSent
+        MessageDelay   = $SortedTimeDelivered - $SortedTimeSent
+
 
         # Build output object
         [array]$output = [array]$output + $report
@@ -197,7 +201,7 @@ if ($null -eq $output) {
 } else {
 
     # Export the data to the output file
-    $outputFile = (Join-Path -Path $ReportPath -ChildPath "MTL_report.csv")
+    $outputFile = (Join-Path -Path $ReportPath -ChildPath ("MTL_Latency_Report_" + (Get-Date -Format FileDateTime).ToString() + ".csv"))
     $output | Export-Csv -IncludeTypeInformation:$false -Path $outputFile
     Write-Output ("Report written to file " + $outputFile)
 
