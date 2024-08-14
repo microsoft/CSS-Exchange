@@ -93,16 +93,16 @@ $output = $Null
 
 # Test for the provided file and load it.
 # Need to make sure the MTL file is there and if so load it.
-# Straight from EXO it will be in unicode ... but if it is modified it might not be.
+# Straight from EXO it will be in Unicode ... but if it is modified it might not be.
 # First verify the file
 if (!(Test-Path $MTLFile)) {
     Write-Error "Unable to find the specified file" -ErrorAction Stop
 }
 
-# Try to load the file with unicode since this should be the most common
+# Try to load the file with Unicode since this should be the most common
 $mtl = Import-Csv $MTLFile -Encoding Unicode
 
-# If it is null then we need to try without unicode
+# If it is null then we need to try without Unicode
 if ($null -eq $mtl) {
     Write-Host "Failed to Load as Unicode; trying normal load"
     $mtl = Import-Csv $MTLFile
@@ -110,12 +110,12 @@ if ($null -eq $mtl) {
     if ($null -eq $mtl) {
         Write-Error "Failed to load CSV" -ErrorAction Stop
     }
-    # need to know that we loaded without unicode.
+    # need to know that we loaded without Unicode.
     else {
-        Write-Host "Loaded CSV without unicode"
+        Write-Host "Loaded CSV without Unicode"
     }
 } else {
-    Write-Host "Loaded MTL with unicode"
+    Write-Host "Loaded MTL with Unicode"
 }
 
 # Detecting if this is an onprem MTL or a cloud MTL
