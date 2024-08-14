@@ -118,15 +118,15 @@ if ($null -eq $mtl) {
     Write-Host "Loaded MTL with Unicode"
 }
 
-# Detecting if this is an onprem MTL or a cloud MTL
-if (($mtl | Get-Member -MemberType NoteProperty).Name -contains "EventId") {
+# Detecting if this is an onprem MTL
+if (Test-CSVData -CSV $mtl -ColumnsToCheck "eventid", "source", "messageid", "timestamp") {
     Write-Host "On Prem message trace detected; Converting headers"
-    $mtl = $mtl | Select-Object -Property @{N = "date_time_utc"; E = { $_.timestamp } },@{N = "message_id"; E = { $_.messageID } }, source, @{N = "event_id"; E = { $_.EventId } }
+    $mtl = $mtl | Select-Object -Property @{N = "date_time_utc"; E = { $_.timestamp } }, @{N = "message_id"; E = { $_.messageID } }, source, @{N = "event_id"; E = { $_.EventId } }
 }
 
-# Validate the MTL
+# Making sure the MTL contains only the fields we want. (Cloud MTL)
 if (!(Test-CSVData -CSV $mtl -ColumnsToCheck "event_id", "source", "message_id", "date_time_utc")) {
-    Write-Error "MTL is missing one or more required fields: `"event_id`",`"source`",`"message_id`",`"date_time_utc`"" -ErrorAction Stop
+    Write-Error "MTL is missing one or more required fields." -ErrorAction Stop
 }
 
 # Converting our strings into [DateTime]
