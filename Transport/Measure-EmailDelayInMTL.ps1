@@ -73,7 +73,7 @@ function Test-CSVData {
     # Read thru the data and make sure we have the needed columns
     $ColumnHeaders = ($CSV | Get-Member -MemberType NoteProperty).Name
     foreach ( $ColumnToCheck in $ColumnsToCheck) {
-        if ($ColumnHeaders.Contains($ColumnToCheck) ) {
+        if ($ColumnHeaders.ToLower().Contains($ColumnToCheck) ) {
             # Nothing to do.
         } else {
             return $false
@@ -116,6 +116,12 @@ if ($null -eq $mtl) {
     }
 } else {
     Write-Host "Loaded MTL with unicode"
+}
+
+# Detecting if this is an onprem MTL or a cloud MTL
+if (($mtl | Get-Member -MemberType NoteProperty).Name -contains "EventId") {
+    Write-Host "On Prem message trace detected; Converting headers"
+    $mtl = $mtl | Select-Object -Property @{N = "date_time_utc"; E = { $_.timestamp } },@{N = "message_id"; E = { $_.messageID } }, source, @{N = "event_id"; E = { $_.EventId } }
 }
 
 # Validate the MTL
