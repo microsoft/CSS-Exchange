@@ -98,7 +98,7 @@ if (!(Test-Path $MTLFile)) {
 }
 
 # Make sure the path for the output is good
-if (!(Test-Path $ReportPath)){
+if (!(Test-Path $ReportPath)) {
     Write-Error ("Unable to find report path " + $ReportPath)
 }
 
@@ -188,7 +188,6 @@ foreach ($id in $uniqueMessageIDs) {
         TimeSent       = $TimeSent
         TimeReceived   = $SortedTimeSent
         MessageDelay   = $SortedTimeDelivered - $SortedTimeSent
-
 
         # Build output object
         [array]$output = [array]$output + $report
