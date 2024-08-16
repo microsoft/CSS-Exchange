@@ -21,13 +21,15 @@ function GetMailbox {
         [bool]$UseGetMailbox
     )
 
+    $params = @{Identity       = $Identity
+        ErrorAction            = "SilentlyContinue"
+    }
+
     if ($UseGetMailbox) {
         $Cmdlet = "Get-Mailbox"
+        $params.Add("IncludeInactiveMailbox", $true)
     } else {
         $Cmdlet = "Get-Recipient"
-    }
-    $params = @{Identity = $Identity
-        ErrorAction      = "SilentlyContinue"
     }
 
     try {
