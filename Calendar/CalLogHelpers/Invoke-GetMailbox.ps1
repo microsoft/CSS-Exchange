@@ -21,8 +21,8 @@ function GetMailbox {
         [bool]$UseGetMailbox
     )
 
-    $params = @{Identity       = $Identity
-        ErrorAction            = "SilentlyContinue"
+    $params = @{Identity = $Identity
+        ErrorAction      = "SilentlyContinue"
     }
 
     if ($UseGetMailbox) {
