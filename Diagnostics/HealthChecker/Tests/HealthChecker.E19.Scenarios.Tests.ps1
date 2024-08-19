@@ -194,7 +194,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "TLS 1.0" "Misconfigured" -WriteType "Red"
             TestObjectMatch "TLS 1.1" "Misconfigured" -WriteType "Red"
             TestObjectMatch "TLS 1.2" "Enabled" -WriteType "Green"
-            TestObjectMatch "TLS 1.3" "Disabled" -WriteType "Green"
+            #TestObjectMatch "TLS 1.3" "Disabled" -WriteType "Green"
 
             TestObjectMatch "Display Link to Docs Page" "True" -WriteType "Yellow"
 

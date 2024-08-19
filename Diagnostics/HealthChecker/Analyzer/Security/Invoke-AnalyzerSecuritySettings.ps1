@@ -49,6 +49,7 @@ function Invoke-AnalyzerSecuritySettings {
     }
 
     $tlsVersions = @("1.0", "1.1", "1.2", "1.3")
+    $tls13SupportedOS = @("Windows2012", "Windows2012R2", "Windows2016", "Windows2019") -notcontains $osInformation.BuildInformation.MajorVersion
     $currentNetVersion = $osInformation.TLSSettings.Registry.NET["NETv4"]
 
     $tlsSettings = $osInformation.TLSSettings.Registry.TLS
@@ -73,6 +74,7 @@ function Invoke-AnalyzerSecuritySettings {
         $outputObjectDisplayValue.Add((NewDisplayObject "DisabledByDefault" -Location $currentTlsVersion.ServerRegistryPath -Value $currentTlsVersion.ServerDisabledByDefaultValue))
         $outputObjectDisplayValue.Add((NewDisplayObject "Enabled" -Location $currentTlsVersion.ClientRegistryPath -Value $currentTlsVersion.ClientEnabledValue))
         $outputObjectDisplayValue.Add((NewDisplayObject "DisabledByDefault" -Location $currentTlsVersion.ClientRegistryPath -Value $currentTlsVersion.ClientDisabledByDefaultValue))
+        $displayTlsSettings = $tlsKey -ne "1.3" -or ($tlsKey -eq "1.3" -and ($tls13SupportedOS  -or ($currentTlsVersion.TLSConfiguration -ne "Disabled")))
         $displayWriteType = "Green"
 
         # Any TLS version is Misconfigured or Half Disabled is Red
@@ -94,7 +96,9 @@ function Invoke-AnalyzerSecuritySettings {
             Details          = $currentTlsVersion.TLSConfiguration
             DisplayWriteType = $displayWriteType
         }
-        Add-AnalyzedResultInformation @params
+        if ($displayTlsSettings) {
+            Add-AnalyzedResultInformation @params
+        }
 
         $params = $baseParams + @{
             OutColumns           = ([PSCustomObject]@{
@@ -106,7 +110,9 @@ function Invoke-AnalyzerSecuritySettings {
             HtmlName             = "TLS Settings $tlsKey"
             TestingName          = "TLS Settings Group $tlsKey"
         }
-        Add-AnalyzedResultInformation @params
+        if ($displayTlsSettings) {
+            Add-AnalyzedResultInformation @params
+        }
     }
 
     $netVersions = @("NETv4", "NETv2")
