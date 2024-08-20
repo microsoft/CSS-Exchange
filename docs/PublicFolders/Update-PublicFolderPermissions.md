@@ -1,8 +1,13 @@
-# ValidateExoPfDumpster
+# Update-PublicFolderPermissions
 
 Download the latest release: [Update-PublicFolderPermissions.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Update-PublicFolderPermissions.ps1)
 
 This script can be used to set specific permissions on public folders in bulk or to propagate the full set of permissions from a parent folder to its entire subtree.
+
+Environment|Support
+-|-
+Exchange Online|Supported
+Exchange 2019|Not Supported
 
 ## Syntax
 
