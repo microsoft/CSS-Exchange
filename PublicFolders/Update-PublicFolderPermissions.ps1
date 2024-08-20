@@ -1,6 +1,9 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+#Requires -Version 5.1
+#Requires -Modules ExchangeOnlineManagement
+
 #############################################################################################################
 #.SYNOPSIS
 #   Updates client permissions of several users to a public folder
