@@ -14,7 +14,7 @@
 #   Identities of the Public Folders that will be updated
 #
 #.PARAMETER  Users
-#   List of users whose current access rights to the folder will be overriten
+#   List of users whose current access rights to the folder will be overwritten
 #
 #.PARAMETER  AccessRights
 #   List of permissions to assign to the users
@@ -60,7 +60,7 @@
 #    .\Update-PublicFolderPermissions.ps1 -IncludeFolders "\MyFolder" -AccessRights "Owner" -Users "John", "Administrator" -Recurse -ExcludeFolderEntryIds $foldersProcessed -Confirm:$false
 #
 #	These commands replace the current client permissions for users "John" and "Administrator" on the "\MyFolder"
-#   Public Folder and all its children but skips those folders that were completd in the execution of Oct 30th 2014 at 6:20 pm.
+#   Public Folder and all its children but skips those folders that were completed in the execution of Oct 30th 2014 at 6:20 pm.
 #   The users will be granted "Owner" access rights. These actions will be performed without requesting confirmation to the user.
 #############################################################################################################
 
@@ -317,7 +317,7 @@ foreach ($currentFolder in $foldersToUpdate) {
     foreach ($permission in $permissionsToUpdateForFolder) {
         $percentUsersProcessed = 100 * $usersProcessed/($permissionsToUpdateForFolder.Count)
 
-        Write-Progress -Id 1 -Activity "Processing User" -Status $permission.User -CurrentOperation "Removing exisitng permission" -PercentComplete $percentUsersProcessed
+        Write-Progress -Id 1 -Activity "Processing User" -Status $permission.User -CurrentOperation "Removing existing permission" -PercentComplete $percentUsersProcessed
         Remove-PublicFolderClientPermission -User $permission.User $currentFolder.Identity -ErrorAction SilentlyContinue @script:CommonParams
 
         Write-Progress -Id 1 -Activity "Processing User" -Status $permission.User -CurrentOperation "Adding permission" -PercentComplete $percentUsersProcessed

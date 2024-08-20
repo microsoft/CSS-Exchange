@@ -34,16 +34,16 @@ Update-PublicFolderPermissions.ps1
 ## Usage
 
 ```powershell
-❯ .\Update-PublicFolderPermissions.ps1 -Users userone -AccessRights Owner -IncludeFolders "\FolderA" -Recurse -Confirm:$false
+❯ .\Update-PublicFolderPermissions.ps1 -Users UserOne -AccessRights Owner -IncludeFolders "\FolderA" -Recurse -Confirm:$false
 ```
 
-This syntax grants "userone" the Owner role on \FolderA and its entire subtree.
+This syntax grants "UserOne" the Owner role on \FolderA and its entire subtree.
 
 ```powershell
-❯ .\Update-PublicFolderPermissions.ps1 -Users userone, usertwo -AccessRights Owner -IncludeFolders "\FolderA" -Recurse -Confirm:$false
+❯ .\Update-PublicFolderPermissions.ps1 -Users UserOne, UserTwo -AccessRights Owner -IncludeFolders "\FolderA" -Recurse -Confirm:$false
 ```
 
-This syntax grants both "userone" and "usertwo" the Owner role on \FolderA and its entire subtree.
+This syntax grants both "UserOne" and "UserTwo" the Owner role on \FolderA and its entire subtree.
 
 ```powershell
 ❯ .\Update-PublicFolderPermissions.ps1 -PropagateAll -IncludeFolders "\FolderA" -Recurse -Confirm:$false
@@ -51,7 +51,7 @@ This syntax grants both "userone" and "usertwo" the Owner role on \FolderA and i
 
 This syntax propagates all permissions from \FolderA to its entire subtree, including Default and Anonymous permissions.
 Note that this option simply ensures that all the permission entries that exist on \FolderA also exist on all folders
-underneath it. It does not remove permissions from subfolders when those permissions do not exist on \FolderA.
+underneath it. It does not remove permissions from child folders when those permissions do not exist on \FolderA.
 
 ## Notes about rights and roles
 
