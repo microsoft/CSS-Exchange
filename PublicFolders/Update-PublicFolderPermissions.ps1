@@ -104,7 +104,7 @@ function FindFoldersToUpdate([string[]]$includeFolders, [bool]$recurseOnFolders,
         $progress = 100 * $currentIncludeFolder / $includeFolders.Count
         Write-Progress -Activity "Retrieving folders to update" -Status $includeFolder -PercentComplete $progress
 
-        $foldersFound = @(Get-PublicFolder -Recurse:$recurseOnFolders $includeFolder -ResultSize Unlimited @script:CommonParams | Sort-Object Identity)
+        $foldersFound = @(Get-PublicFolder -Recurse:$recurseOnFolders $includeFolder -ResultSize Unlimited | Sort-Object Identity)
 
         if ($null -eq $foldersFound) {
             continue
@@ -191,7 +191,9 @@ function GetPermissionUserIdentity($permissionUser) {
 function GetUsersToUpdate($currentFolder, [Array]$permissionsToPropagate) {
     Write-Progress -Id 1 -Activity "Querying current permissions" -Status "Processing"
 
-    $existingPermissions = [Array](Get-PublicFolderClientPermission $currentFolder.Identity @script:CommonParams)
+    $existingPermissions = [Array](Get-PublicFolderClientPermission $currentFolder.Identity)
+    Write-Verbose "$($MyInvocation.MyCommand): Found $($existingPermissions.Count) existing permissions"
+    Write-Verbose ($existingPermissions | Format-Table Identity, User, AccessRights | Out-String)
     $existingPermissionsPerUser = @{}
 
     $permissionCount = 0
@@ -212,10 +214,14 @@ function GetUsersToUpdate($currentFolder, [Array]$permissionsToPropagate) {
         Write-Progress -Id 1 -Activity "Comparing permissions" -PercentComplete $progress -Status "Processing"
 
         if (-not $existingPermissionsPerUser.ContainsKey($permission.User)) {
+            Write-Verbose "$($MyInvocation.MyCommand): No existing permission for $($permission.User)"
             $permission
         } else {
             if (IsUpdateRequired $existingPermissionsPerUser[$permission.User].AccessRights $permission.AccessRights) {
+                Write-Verbose "$($MyInvocation.MyCommand): Existing permission for $($permission.User) doesn't match desired permissions"
                 $permission
+            } else {
+                Write-Verbose "$($MyInvocation.MyCommand): Existing permission for $($permission.User) matches desired permissions"
             }
         }
 
@@ -242,7 +248,7 @@ foreach ($p in "Confirm", "WhatIf", "Verbose") {
 
 $permissionsToPropagate = @()
 if ($PropagateAll) {
-    $topLevelPermissions = Get-PublicFolderClientPermission $IncludeFolders[0] @script:CommonParams
+    $topLevelPermissions = Get-PublicFolderClientPermission $IncludeFolders[0]
     if ($null -eq $topLevelPermissions) {
         Write-Host "Unable to retrieve permissions from folder $($IncludeFolders[0])"
         return
@@ -296,6 +302,8 @@ foreach ($currentFolder in $foldersToUpdate) {
     } else {
         $permissionsToUpdateForFolder = $permissionsToPropagate
     }
+
+    Write-Verbose "$($MyInvocation.MyCommand): $($permissionsToUpdateForFolder.Count) permissions to apply for folder $($currentFolder.Identity)"
 
     $folderOperationFailed=$false
     $usersProcessed=0
