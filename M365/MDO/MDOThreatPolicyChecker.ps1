@@ -138,7 +138,7 @@ begin {
                 return $null
             }
         } else {
-            Write-Host "The EmailAddress of group $stGroupEmail was not found" -ForegroundColor Red
+            Write-Host "The EmailAddress of group $stGroupEmail was not found." -ForegroundColor Red
             return $null
         }
     }
@@ -405,32 +405,6 @@ begin {
         Write-Host " "
     }
 
-    function Get-Policy {
-        param(
-            $Rule = $null,
-            $PolicyType = $null
-        )
-
-        if ($null -eq $Rule) {
-            if ($PolicyType -eq "Anti-phish") {
-                $policyDetails = "`n$PolicyType (Impersonation, Mailbox/Spoof Intelligence, Honor DMARC):`n`tThe Default policy."
-            } elseif ($PolicyType -eq "Anti-spam") {
-                $policyDetails = "`n$PolicyType (includes phish & bulk actions):`n`tThe Default policy."
-            } else {
-                $policyDetails = "`n${PolicyType}:`n`tThe Default policy."
-            }
-        } else {
-            if ($PolicyType -eq "Anti-phish") {
-                $policyDetails = "`n$PolicyType (Impersonation, Mailbox/Spoof Intelligence, Honor DMARC):`n`tName: {0}`n`tPriority: {1}" -f $Rule.Name, $Rule.Priority
-            } elseif ($PolicyType -eq "Anti-spam") {
-                $policyDetails = "`n$PolicyType (includes phish & bulk actions):`n`tName: {0}`n`tPriority: {1}" -f $Rule.Name, $Rule.Priority
-            } else {
-                $policyDetails = "`n${PolicyType}:`n`tName: {0}`n`tPriority: {1}" -f $Rule.Name, $Rule.Priority
-            }
-        }
-        return $policyDetails
-    }
-
     function Test-GraphContext {
         [OutputType([bool])]
         param (
@@ -481,15 +455,15 @@ begin {
 
     if ($ScriptUpdateOnly) {
         switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/MDOThreatPolicyChecker-VersionsURL" -Confirm:$false) {
-            ($true) { Write-Host ("Script was successfully updated") -ForegroundColor Green }
-            ($false) { Write-Host ("No update of the script performed") -ForegroundColor Yellow }
-            default { Write-Host ("Unable to perform ScriptUpdateOnly operation") -ForegroundColor Red }
+            ($true) { Write-Host ("Script was successfully updated.") -ForegroundColor Green }
+            ($false) { Write-Host ("No update of the script performed.") -ForegroundColor Yellow }
+            default { Write-Host ("Unable to perform ScriptUpdateOnly operation.") -ForegroundColor Red }
         }
         return
     }
 
     if ((-not($SkipVersionCheck)) -and (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/MDOThreatPolicyChecker-VersionsURL" -Confirm:$false)) {
-        Write-Host ("Script was updated. Please re-run the command") -ForegroundColor Yellow
+        Write-Host ("Script was updated. Please re-run the command.") -ForegroundColor Yellow
         return
     }
 }
@@ -502,17 +476,17 @@ process {
             $exoConnection = Get-ConnectionInformation -ErrorAction Stop
         } catch {
             Write-Host "Error checking EXO connection:`n$_" -ForegroundColor Red
-            Write-Host "Verify that you have ExchangeOnlineManagement module installed" -ForegroundColor Yellow
-            Write-Host "You need a connection To Exchange Online, you can use:" -ForegroundColor Yellow
+            Write-Host "Verify that you have ExchangeOnlineManagement module installed." -ForegroundColor Yellow
+            Write-Host "You need a connection to Exchange Online; you can use:" -ForegroundColor Yellow
             Write-Host "Connect-ExchangeOnline" -ForegroundColor Yellow
-            Write-Host "Exchange Online Powershell Module is required" -ForegroundColor Red
+            Write-Host "Exchange Online Powershell Module is required." -ForegroundColor Red
             exit
         }
         if ($null -eq $exoConnection) {
             Write-Host "Not connected to EXO" -ForegroundColor Red
-            Write-Host "You need a connection To Exchange Online, you can use:" -ForegroundColor Yellow
+            Write-Host "You need a connection to Exchange Online; you can use:" -ForegroundColor Yellow
             Write-Host "Connect-ExchangeOnline" -ForegroundColor Yellow
-            Write-Host "Exchange Online Powershell Module is required" -ForegroundColor Red
+            Write-Host "Exchange Online Powershell Module is required." -ForegroundColor Red
             exit
         } elseif ($exoConnection.count -eq 1) {
             Write-Host " "
@@ -521,7 +495,7 @@ process {
             Write-Host "Tenant Id: $($exoConnection.TenantId)"
             Write-Host "User: $($exoConnection.UserPrincipalName)"
         } else {
-            Write-Host "You have more than one EXO sessions. Please use just one session" -ForegroundColor Red
+            Write-Host "You have more than one EXO session. Please use just one session." -ForegroundColor Red
             exit
         }
 
@@ -533,14 +507,14 @@ process {
                 $graphConnection = Get-MgContext -ErrorAction Stop
             } catch {
                 Write-Host "Error checking Graph connection:`n$_" -ForegroundColor Red
-                Write-Host "Verify that you have Microsoft.Graph.Users and Microsoft.Graph.Groups modules installed and loaded" -ForegroundColor Yellow
+                Write-Host "Verify that you have Microsoft.Graph.Users and Microsoft.Graph.Groups modules installed and loaded." -ForegroundColor Yellow
                 Write-Host "You could use:" -ForegroundColor Yellow
                 Write-Host "`tConnect-MgGraph -Scopes 'Group.Read.All','User.Read.All' -TenantId $($exoConnection.TenantId)" -ForegroundColor Yellow
                 exit
             }
             if ($null -eq $graphConnection) {
                 Write-Host "Not connected to Graph" -ForegroundColor Red
-                Write-Host "Verify that you have Microsoft.Graph.Users and Microsoft.Graph.Groups modules installed and loaded" -ForegroundColor Yellow
+                Write-Host "Verify that you have Microsoft.Graph.Users and Microsoft.Graph.Groups modules installed and loaded." -ForegroundColor Yellow
                 Write-Host "You could use:" -ForegroundColor Yellow
                 Write-Host "`tConnect-MgGraph -Scopes 'Group.Read.All','User.Read.All' -TenantId $($exoConnection.TenantId)" -ForegroundColor Yellow
                 exit
@@ -552,18 +526,18 @@ process {
                     Write-Host "TenantID: $(($graphConnection).TenantId)"
                     Write-Host "Account: $(($graphConnection).Account)"
                 } else {
-                    Write-Host "We cannot continue without Graph Powershell session without Expected Scopes" -ForegroundColor Red
-                    Write-Host "Verify that you have Microsoft.Graph.Users and Microsoft.Graph.Groups modules installed and loaded" -ForegroundColor Yellow
+                    Write-Host "We cannot continue without Graph Powershell session without Expected Scopes." -ForegroundColor Red
+                    Write-Host "Verify that you have Microsoft.Graph.Users and Microsoft.Graph.Groups modules installed and loaded." -ForegroundColor Yellow
                     Write-Host "You could use:" -ForegroundColor Yellow
                     Write-Host "`tConnect-MgGraph -Scopes 'Group.Read.All','User.Read.All' -TenantId $($exoConnection.TenantId)" -ForegroundColor Yellow
                     exit
                 }
             } else {
-                Write-Host "You have more than one Graph sessions. Please use just one session" -ForegroundColor Red
+                Write-Host "You have more than one Graph sessions. Please use just one session." -ForegroundColor Red
                 exit
             }
             if (($graphConnection.TenantId) -ne ($exoConnection.TenantId) ) {
-                Write-Host "`nThe Tenant Id from Graph and EXO are different. Please use the same tenant" -ForegroundColor Red
+                Write-Host "`nThe Tenant Id from Graph and EXO are different. Please use the same tenant." -ForegroundColor Red
                 exit
             }
         }
@@ -729,13 +703,24 @@ process {
                     $matchedRule = Test-Rules -Rules $eopStrictPresetRules -email $stEmailAddress
                 }
                 if ($eopStrictPresetRules -contains $matchedRule) {
-                    $allPolicyDetails += "`nFor malware, spam, and phishing:`n`tName: {0}`n`tPriority: {1}`n`tThe policy actions are not configurable." -f $matchedRule.Name, $matchedRule.Priority
+                    $allPolicyDetails += "`nFor malware, spam, and phishing:`n`tName: {0}`n`tPriority: {1}" -f $matchedRule.Name, $matchedRule.Priority
+                    if ($ShowDetailedPolicies) {
+                        $allPolicyDetails += "`n`tPreset policy settings are not configurable but documented here:`n`t`thttps://learn.microsoft.com/en-us/defender-office-365/recommended-settings-for-eop-and-office365#anti-spam-anti-malware-and-anti-phishing-protection-in-eop"
+                    }
                     Write-Host $allPolicyDetails -ForegroundColor Green
                     $outboundSpamMatchedRule = $null
                     if ($hostedOutboundSpamFilterRules) {
                         $outboundSpamMatchedRule = Test-Rules -Rules $hostedOutboundSpamFilterRules -email $stEmailAddress -Outbound
-                        $allPolicyDetails = Get-Policy $outboundSpamMatchedRule "Outbound Spam"
-                        Write-Host $allPolicyDetails -ForegroundColor Yellow
+                        if ($null -eq $outboundSpamMatchedRule) {
+                            Write-Host "`nOutbound Spam:`n`tDefault policy"  -ForegroundColor Yellow
+                            $hostedOutboundSpamFilterPolicy = Get-HostedOutboundSpamFilterPolicy "Default"
+                        } else {
+                            $hostedOutboundSpamFilterPolicy = Get-HostedOutboundSpamFilterPolicy $outboundSpamMatchedRule.Name
+                            Write-Host "`nOutbound Spam:`n`tName: $($outboundSpamMatchedRule.Name)`n`tPriority: $($outboundSpamMatchedRule.Priority)"  -ForegroundColor Yellow
+                        }
+                        if ($hostedOutboundSpamFilterPolicy -and $ShowDetailedPolicies) {
+                            Show-DetailedPolicy -Policy $hostedOutboundSpamFilterPolicy
+                        }
                     }
                 } else {
                     # Check the Standard EOP rules secondly
@@ -744,13 +729,24 @@ process {
                         $matchedRule = Test-Rules -Rules $eopStandardPresetRules -email $stEmailAddress
                     }
                     if ($eopStandardPresetRules -contains $matchedRule) {
-                        $allPolicyDetails += "`nFor malware, spam, and phishing:`n`tName: {0}`n`tPriority: {1}`n`tThe policy actions are not configurable." -f $matchedRule.Name, $matchedRule.Priority
+                        $allPolicyDetails += "`nFor malware, spam, and phishing:`n`tName: {0}`n`tPriority: {1}" -f $matchedRule.Name, $matchedRule.Priority
+                        if ($ShowDetailedPolicies) {
+                            $allPolicyDetails += "`n`tPreset policy settings are not configurable but documented here:`n`t`thttps://learn.microsoft.com/en-us/defender-office-365/recommended-settings-for-eop-and-office365#anti-spam-anti-malware-and-anti-phishing-protection-in-eop"
+                        }
                         Write-Host $allPolicyDetails -ForegroundColor Green
                         $outboundSpamMatchedRule = $allPolicyDetails = $null
                         if ($hostedOutboundSpamFilterRules) {
                             $outboundSpamMatchedRule = Test-Rules -Rules $hostedOutboundSpamFilterRules -Email $stEmailAddress -Outbound
-                            $allPolicyDetails = Get-Policy $outboundSpamMatchedRule "Outbound Spam"
-                            Write-Host $allPolicyDetails -ForegroundColor Yellow
+                            if ($null -eq $outboundSpamMatchedRule) {
+                                Write-Host "`nOutbound Spam:`n`tDefault policy"  -ForegroundColor Yellow
+                                $hostedOutboundSpamFilterPolicy = Get-HostedOutboundSpamFilterPolicy "Default"
+                            } else {
+                                $hostedOutboundSpamFilterPolicy = Get-HostedOutboundSpamFilterPolicy $outboundSpamMatchedRule.Name
+                                Write-Host "`nOutbound Spam:`n`tName: $($outboundSpamMatchedRule.Name)`n`tPriority: $($outboundSpamMatchedRule.Priority)"  -ForegroundColor Yellow
+                            }
+                            if ($hostedOutboundSpamFilterPolicy -and $ShowDetailedPolicies) {
+                                Show-DetailedPolicy -Policy $hostedOutboundSpamFilterPolicy
+                            }
                         }
                     } else {
                         # If no match in EOPProtectionPolicyRules, check MalwareFilterRules, AntiPhishRules, outboundSpam, and HostedContentFilterRules
@@ -831,6 +827,9 @@ process {
                 }
                 if ($mdoStrictPresetRules -contains $matchedRule) {
                     Write-Host ("`nFor both Safe Attachments and Safe Links:`n`tName: {0}`n`tPriority: {1}" -f $matchedRule.Name, $matchedRule.Priority) -ForegroundColor Green
+                    if ($ShowDetailedPolicies) {
+                        Write-Host ("`tPreset policy settings are not configurable but documented here:`n`t`thttps://learn.microsoft.com/en-us/defender-office-365/recommended-settings-for-eop-and-office365#microsoft-defender-for-office-365-security") -ForegroundColor Green
+                    }
                 } else {
                     # Check the Standard MDO rules secondly
                     $matchedRule = $null
@@ -839,6 +838,9 @@ process {
                     }
                     if ($mdoStandardPresetRules -contains $matchedRule) {
                         Write-Host ("`nFor both Safe Attachments and Safe Links:`n`tName: {0}`n`tPriority: {1}" -f $matchedRule.Name, $matchedRule.Priority) -ForegroundColor Green
+                        if ($ShowDetailedPolicies) {
+                            Write-Host ("`tPreset policy settings are not configurable but documented here:`n`t`thttps://learn.microsoft.com/en-us/defender-office-365/recommended-settings-for-eop-and-office365#microsoft-defender-for-office-365-security") -ForegroundColor Green
+                        }
                     } else {
                         # No match in preset ATPProtectionPolicyRules, check custom SA/SL rules
                         $SAmatchedRule = $null

@@ -28,7 +28,7 @@ extends:
           displayName: "Spell Check"
         - pwsh: |
             cd .\.build
-            .\CodeFormatter.ps1 -Branch main
+            .\CodeFormatter.ps1 -Branch $env:TargetBranchName
           displayName: "Code Formatting Script"
           condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/release'))
           env:
@@ -39,13 +39,13 @@ extends:
           displayName: "Build Script"
         - pwsh: |
             cd .\.build
-            .\Pester.ps1 -NoProgress -Branch main
+            .\Pester.ps1 -NoProgress -Branch $env:TargetBranchName
           displayName: "Running Invoke-Pester"
           env:
             TargetBranchName: $(System.PullRequest.TargetBranch)
         - pwsh: |
             cd .\.build
-            .\ValidateMerge.ps1 -Branch main
+            .\ValidateMerge.ps1 -Branch $env:TargetBranchName
           displayName: "Validate commit times"
           env:
             TargetBranchName: $(System.PullRequest.TargetBranch)

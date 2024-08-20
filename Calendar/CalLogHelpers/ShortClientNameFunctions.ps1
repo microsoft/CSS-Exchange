@@ -19,7 +19,7 @@ function FindMatch {
 $ShortClientNameProcessor = @{
     'Client=Hub Transport'                       = "Transport"
     'Client=MSExchangeRPC'                       = "Outlook : Desktop : MAPI"
-    'OneOutlook'                                 = "OneOutlook"
+    'OneOutlook'                                 = "NewOutlook"
     'Lync for Mac'                               = "LyncMac"
     'MicrosoftNinja'                             = "Teams"
     'SkypeSpaces'                                = "Teams"
@@ -60,6 +60,11 @@ function CreateShortClientName {
 
     if ($LogClientInfoString -like "*EDiscoverySearch*") {
         $ShortClientName = "EDiscoverySearch"
+        return $ShortClientName
+    }
+
+    if ($LogClientInfoString -like "*AppId=00000007-0000-0000-c000-000000000000*") {
+        $ShortClientName = "CRM"
         return $ShortClientName
     }
 
@@ -106,6 +111,8 @@ function CreateShortClientName {
             $ShortClientName = "Outlook-ModernCalendarSharing"
         } elseif ($LogClientInfoString -like "*SkypeSpaces*") {
             $ShortClientName = "Teams"
+        } elseif ($LogClientInfoString -like "*AppId=82f45fb0-18b4-4d68-8bed-9e44909e3890*") {
+            $ShortClientName = "Teams MMS Service"
         } elseif ($LogClientInfoString -like "*AppId=7b7fdad6-df9d-4cd5-a4f2-b5f749350419*") {
             $ShortClientName = "Bookings B2 Service"
         } elseif ($LogClientInfoString -like "*bcad1a65-78eb-4725-9bce-ce1a8ed30b95*" -or
@@ -151,7 +158,7 @@ function CreateShortClientName {
             $LogClientInfoString -notlike "*Outlook-iOS*") {
             $ShortClientName = "Outlook : Desktop : REST"
         } elseif ($LogClientInfoString -like "*OneOutlook*") {
-            $ShortClientName = "OneOutlook"
+            $ShortClientName = "NewOutlook"
         }
     }
 
@@ -159,7 +166,7 @@ function CreateShortClientName {
         $ShortClientName = "Outlook : ActiveSync"
     }
     if ($LogClientInfoString -like "*OneOutlook*") {
-        $ShortClientName = "OneOutlook"
+        $ShortClientName = "NewOutlook"
     }
     if ($ShortClientName -eq "") {
         $ShortClientName = "[NoShortNameFound]"
