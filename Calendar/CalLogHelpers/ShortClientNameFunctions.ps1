@@ -111,6 +111,8 @@ function CreateShortClientName {
             $ShortClientName = "Outlook-ModernCalendarSharing"
         } elseif ($LogClientInfoString -like "*SkypeSpaces*") {
             $ShortClientName = "Teams"
+        } elseif ($LogClientInfoString -like "*AppId=82f45fb0-18b4-4d68-8bed-9e44909e3890*") {
+            $ShortClientName = "Teams MMS Service"
         } elseif ($LogClientInfoString -like "*AppId=7b7fdad6-df9d-4cd5-a4f2-b5f749350419*") {
             $ShortClientName = "Bookings B2 Service"
         } elseif ($LogClientInfoString -like "*bcad1a65-78eb-4725-9bce-ce1a8ed30b95*" -or
