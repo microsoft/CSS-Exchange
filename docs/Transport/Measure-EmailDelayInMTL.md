@@ -1,27 +1,32 @@
 # Measure-EmailDelayInMTL
-Generates a report of the maximum message delay for all messages in an Message Tracking Log.
+Parse Message Tracking log output to provide information about message delivery delays.
 
-## DESCRIPTION
-Gather message tracking log details of all message to / from a given recipient for a given time range. Useful for determining if a "slow" message was a one off or a pattern.
-
-Recommend using [Start-HistoricalSearch](https://learn.microsoft.com/en-us/powershell/module/exchange/start-historicalsearch?view=exchange-ps) in EXO to gather an detailed MTL for processing.
+## Exchange Online
+For Exchange online it is recommended to use the output from [Start-HistoricalSearch](https://learn.microsoft.com/en-us/powershell/module/exchange/start-historicalsearch?view=exchange-ps).
 
 ``` PowerShell
 Start-HistoricalSearch -ReportTitle "Fabrikam Search" -StartDate 8/10/2024 -EndDate 8/12/2024 -ReportType MessageTraceDetail -SenderAddress michelle@fabrikam.com -NotifyAddress chris@contoso.com
 ```
 
-## PARAMETER
+## Exchange On Prem
+For Exchange On Prem we recommend using the output from [Get-MessageTrackingLog](https://learn.microsoft.com/en-us/powershell/module/exchange/get-messagetrackinglog?view=exchange-ps).
 
-**-MTLFile**
+``` PowerShell
+Get-TransportService | Get-MessageTrackingLog -Start 08/10/2024 -End 08/12/2024 -Sender user1@contoso.com | Export-csv c:\temp\MyMTL.csv -NoTypeInformation
+```
 
-MTL File to process.
+** **Note:** The script will work with a RAW message tracking log from a server, but in a multiple server environment most messagesIDs will fail since receive and deliver events are generally not recorded on the same server.
 
-**-ReportPath**
+## Syntax
 
-Folder path for the output file.
-
-
+```powershell
+Measure-EmailDelayinMTL.ps1
+  [-MTLFile <string>]
+  [-ReportPath <string>]
+```
 ## Outputs
+The script will generate a MTL_Latency_Report_date.csv file, in the specified output directory or in the folder where the script is run if no directory is specified.
+The statistical summary will be provided only to the screen to allow a general overview of what was found.
 
 ### CSV File
 
@@ -41,12 +46,8 @@ Folder path for the output file.
 | MinimumDelay | Shortest delivery delay found in the MTL |
 | AverageDelay | Average of all delivery delays across all email in the MTL |
 
-### Default Output File:
-``` PowerShell
-$PSScriptRoot\MTL_report.csv
-```
+## Usage
 
-## EXAMPLE
 ``` PowerShell
 .\Measure-EmailDelayInMTL -MTLPath C:\temp\MyMtl.csv
 ```
