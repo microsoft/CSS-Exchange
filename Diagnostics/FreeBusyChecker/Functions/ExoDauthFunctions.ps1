@@ -1,13 +1,9 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Variables are being used in functions')]
-param (
-    [Parameter(Mandatory = $false)]
-    [String] $tdEXOOrgRelDomainNamesColor
-)
+
 function ExoOrgRelCheck () {
     PrintDynamicWidthLine
-    Write-Host -ForegroundColor Green " Get-OrganizationRelationship  | Where{($_.DomainNames -like $ExchangeOnPremDomain )} | Select Identity,DomainNames,FreeBusy*,TarGet*,Enabled"
+    Write-Host -ForegroundColor Green " Get-EOOrganizationRelationship  | Where{($_.DomainNames -like $ExchangeOnPremDomain )} | Select Identity,DomainNames,FreeBusy*,TarGet*,Enabled"
     PrintDynamicWidthLine
     $ExoOrgRel
     PrintDynamicWidthLine
@@ -16,41 +12,45 @@ function ExoOrgRelCheck () {
     Write-Host  " Domain Names:"
     if ($exoOrgRel.DomainNames -like $ExchangeOnPremDomain) {
         Write-Host -ForegroundColor Green "  Domain Names Include the $ExchangeOnPremDomain Domain"
-        $tdEXOOrgRelDomainNames = $exoOrgRel.DomainNames
-        $tdEXOOrgRelDomainNamesColor = "green"
+        $Script:tdEXOOrgRelDomainNames = $exoOrgRel.DomainNames
+        $Script:tdEXOOrgRelDomainNamesColor = "green"
+        if ($tdEXOOrgRelDomainNames -or $Script:tdEXOOrgRelDomainNamesColor) {
+        }
     } else {
         Write-Host -ForegroundColor Red "  Domain Names do Not Include the $ExchangeOnPremDomain Domain"
         $exoOrgRel.DomainNames
-        $tdEXOOrgRelDomainNames = "$($exoOrgRel.DomainNames) - Domain Names do Not Include the $ExchangeOnPremDomain Domain"
-        $tdEXOOrgRelDomainNamesColor = "green"
+        $Script:tdEXOOrgRelDomainNames = "$($exoOrgRel.DomainNames) - Domain Names do Not Include the $ExchangeOnPremDomain Domain"
+        $Script:tdEXOOrgRelDomainNamesColor = "green"
     }
     #FreeBusyAccessEnabled
     Write-Host  " FreeBusyAccessEnabled:"
     if ($exoOrgRel.FreeBusyAccessEnabled -like "True" ) {
         Write-Host -ForegroundColor Green "  FreeBusyAccessEnabled is set to True"
-        $tdEXOOrgRelFreeBusyAccessEnabled = "$($exoOrgRel.FreeBusyAccessEnabled)"
-        $tdEXOOrgRelFreeBusyAccessEnabledColor = "green"
+        $Script:tdEXOOrgRelFreeBusyAccessEnabled = "$($exoOrgRel.FreeBusyAccessEnabled)"
+        $Script:tdEXOOrgRelFreeBusyAccessEnabledColor = "green"
+        if ($tdEXOOrgRelFreeBusyAccessEnabled -or $Script:tdEXOOrgRelFreeBusyAccessEnabledColor) {
+        }
     } else {
         Write-Host -ForegroundColor Red "  FreeBusyAccessEnabled : False"
-        $tdEXOOrgRelFreeBusyAccessEnabled = "$($exoOrgRel.FreeBusyAccessEnabled). Free busy access is not enabled for the organization Relationship"
-        $tdEXOOrgRelFreeBusyAccessEnabledColor = "Red"
+        $Script:tdEXOOrgRelFreeBusyAccessEnabled = "$($exoOrgRel.FreeBusyAccessEnabled). Free busy access is not enabled for the organization Relationship"
+        $Script:tdEXOOrgRelFreeBusyAccessEnabledColor = "Red"
     }
     #FreeBusyAccessLevel
     Write-Host  " FreeBusyAccessLevel:"
     if ($exoOrgRel.FreeBusyAccessLevel -like "AvailabilityOnly" ) {
         Write-Host -ForegroundColor Green "  FreeBusyAccessLevel is set to AvailabilityOnly"
-        $tdEXOOrgRelFreeBusyAccessLevel = "$($exoOrgRel.FreeBusyAccessLevel)"
-        $tdEXOOrgRelFreeBusyAccessLevelColor = "green"
+        $Script:tdEXOOrgRelFreeBusyAccessLevel = "$($exoOrgRel.FreeBusyAccessLevel)"
+        $Script:tdEXOOrgRelFreeBusyAccessLevelColor = "green"
     }
     if ($exoOrgRel.FreeBusyAccessLevel -like "LimitedDetails" ) {
         Write-Host -ForegroundColor Green "  FreeBusyAccessLevel is set to LimitedDetails"
-        $tdEXOOrgRelFreeBusyAccessLevel = "$($exoOrgRel.FreeBusyAccessLevel)"
-        $tdEXOOrgRelFreeBusyAccessLevelColor = "green"
+        $Script:tdEXOOrgRelFreeBusyAccessLevel = "$($exoOrgRel.FreeBusyAccessLevel)"
+        $Script:tdEXOOrgRelFreeBusyAccessLevelColor = "green"
     }
     if ($exoOrgRel.FreeBusyAccessLevel -NE "AvailabilityOnly" -AND $exoOrgRel.FreeBusyAccessLevel -NE "LimitedDetails") {
         Write-Host -ForegroundColor Red "  FreeBusyAccessEnabled : False"
-        $tdEXOOrgRelFreeBusyAccessLevel = "$($exoOrgRel.FreeBusyAccessLevel)"
-        $tdEXOOrgRelFreeBusyAccessLevelColor = "red"
+        $Script:tdEXOOrgRelFreeBusyAccessLevel = "$($exoOrgRel.FreeBusyAccessLevel)"
+        $Script:tdEXOOrgRelFreeBusyAccessLevelColor = "red"
     }
     #TarGetApplicationUri
     Write-Host  " TarGetApplicationUri:"
@@ -60,39 +60,39 @@ function ExoOrgRelCheck () {
     if ($exoOrgRel.TarGetSharingEpr -like "*resource.mailboxMigration.his.MSAppProxy.net/EWS/Exchange.asmx") {
         if ($exoOrgRel.TarGetApplicationUri -like $HybridAgentTargetSharingEpr) {
             Write-Host -ForegroundColor Green "  TarGetApplicationUri is $($exoOrgRel.TarGetSharingEpr) . This is correct when Hybrid Agent is in use"
-            $tdEXOOrgRelTarGetApplicationUri = "  TarGetApplicationUri is $($exoOrgRel.TarGetSharingEpr) . This is correct when Hybrid Agent is in use"
-            $tdEXOOrgRelTarGetApplicationUriColor = "green"
+            $Script:tdEXOOrgRelTarGetApplicationUri = "  TarGetApplicationUri is $($exoOrgRel.TarGetSharingEpr) . This is correct when Hybrid Agent is in use"
+            $Script:tdEXOOrgRelTarGetApplicationUriColor = "green"
         } else {
             Write-Host -ForegroundColor Red "  TarGetApplicationUri should be  $HybridAgentTargetSharingEpr when Hybrid Agent is used"
-            $tdEXOOrgRelTarGetApplicationUri = "  TarGetApplicationUri should be $HybridAgentTargetSharingEpr when Hybrid Agent is used. Please Check if Exchange On Premise Federation is correctly configured."
-            $tdEXOOrgRelTarGetApplicationUriColor = "red"
+            $Script:tdEXOOrgRelTarGetApplicationUri = "  TarGetApplicationUri should be $HybridAgentTargetSharingEpr when Hybrid Agent is used. Please Check if Exchange On Premise Federation is correctly configured."
+            $Script:tdEXOOrgRelTarGetApplicationUriColor = "red"
         }
     } else {
         if ($exoOrgRel.TarGetApplicationUri -like $FedTrust.ApplicationUri) {
             Write-Host -ForegroundColor Green "  TarGetApplicationUri is" $FedTrust.ApplicationUri.OriginalString
-            $tdEXOOrgRelTarGetApplicationUri = "  TarGetApplicationUri is $($FedTrust.ApplicationUri.OriginalString)"
-            $tdEXOOrgRelTarGetApplicationUriColor = "green"
+            $Script:tdEXOOrgRelTarGetApplicationUri = "  TarGetApplicationUri is $($FedTrust.ApplicationUri.OriginalString)"
+            $Script:tdEXOOrgRelTarGetApplicationUriColor = "green"
         } else {
             Write-Host -ForegroundColor Red "  TarGetApplicationUri should be " $a
-            $tdEXOOrgRelTarGetApplicationUri = "  TarGetApplicationUri should be $a. Please Check if Exchange On Premise Federation is correctly configured."
-            $tdEXOOrgRelTarGetApplicationUriColor = "red"
+            $Script:tdEXOOrgRelTarGetApplicationUri = "  TarGetApplicationUri should be $a. Please Check if Exchange On Premise Federation is correctly configured."
+            $Script:tdEXOOrgRelTarGetApplicationUriColor = "red"
         }
     }
     #TarGetSharingEpr
     Write-Host  " TarGetSharingEpr:"
     if ($exoOrgRel.TarGetSharingEpr -like "*resource.mailboxMigration.his.MsAppProxy.net/EWS/Exchange.asmx") {
         Write-Host -ForegroundColor Green "  TarGetSharingEpr is points to resource.mailboxMigration.his.MsAppProxy.net/EWS/Exchange.asmx. This means Hybrid Agent is in use."
-        $tdEXOOrgRelTarGetSharingEpr = "TarGetSharingEpr is points to resource.mailboxMigration.his.MsAppProxy.net/EWS/Exchange.asmx. This means Hybrid Agent is in use."
-        $tdEXOOrgRelTarGetSharingEprColor = "green"
+        $Script:tdEXOOrgRelTarGetSharingEpr = "TarGetSharingEpr is points to resource.mailboxMigration.his.MsAppProxy.net/EWS/Exchange.asmx. This means Hybrid Agent is in use."
+        $Script:tdEXOOrgRelTarGetSharingEprColor = "green"
     } else {
         if ([string]::IsNullOrWhitespace($exoOrgRel.TarGetSharingEpr)) {
             Write-Host -ForegroundColor Green "  TarGetSharingEpr is blank. This is the standard Value."
-            $tdEXOOrgRelTarGetSharingEpr = "TarGetSharingEpr is blank. This is the standard Value."
-            $tdEXOOrgRelTarGetSharingEprColor = "green"
+            $Script:tdEXOOrgRelTarGetSharingEpr = "TarGetSharingEpr is blank. This is the standard Value."
+            $Script:tdEXOOrgRelTarGetSharingEprColor = "green"
         } else {
             Write-Host -ForegroundColor Red "  TarGetSharingEpr should be blank. If it is set, it should be the On-Premises Exchange Servers EWS ExternalUrl endpoint."
-            $tdEXOOrgRelTarGetSharingEpr = "  TarGetSharingEpr should be blank. If it is set, it should be the On-Premises Exchange Servers EWS ExternalUrl endpoint."
-            $tdEXOOrgRelTarGetSharingEprColor = "red"
+            $Script:tdEXOOrgRelTarGetSharingEpr = "  TarGetSharingEpr should be blank. If it is set, it should be the On-Premises Exchange Servers EWS ExternalUrl endpoint."
+            $Script:tdEXOOrgRelTarGetSharingEprColor = "red"
         }
     }
     Write-Host  " TarGetAutoDiscoverEpr:"
@@ -101,12 +101,12 @@ function ExoOrgRelCheck () {
         if ($exoOrgRel.TarGetAutoDiscoverEpr -like $HATargetAutodiscoverEpr) {
             Write-Host -ForegroundColor Green "  TarGetAutoDiscoverEpr is $($exoOrgRel.TarGetAutoDiscoverEpr) . This is correct when Hybrid Agent is in use"
 
-            $tdEXOOrgRelTarGetAutoDiscoverEpr = "TarGetAutoDiscoverEpr is $($exoOrgRel.TarGetAutoDiscoverEpr) . This is correct when Hybrid Agent is in use"
-            $tdEXOOrgRelTarGetAutoDiscoverEprColor = "green"
+            $Script:tdEXOOrgRelTarGetAutoDiscoverEpr = "TarGetAutoDiscoverEpr is $($exoOrgRel.TarGetAutoDiscoverEpr) . This is correct when Hybrid Agent is in use"
+            $Script:tdEXOOrgRelTarGetAutoDiscoverEprColor = "green"
         } else {
             Write-Host -ForegroundColor Red "  TarGetAutoDiscoverEpr is not $HATargetAutodiscoverEpr . This is the correct  value when Hybrid Agent is in use."
-            $tdEXOOrgRelTarGetAutoDiscoverEpr = "  TarGetAutoDiscoverEpr is not $HATargetAutodiscoverEpr. This is the correct  value when Hybrid Agent is in use."
-            $tdEXOOrgRelTarGetAutoDiscoverEprColor = "red"
+            $Script:tdEXOOrgRelTarGetAutoDiscoverEpr = "  TarGetAutoDiscoverEpr is not $HATargetAutodiscoverEpr. This is the correct  value when Hybrid Agent is in use."
+            $Script:tdEXOOrgRelTarGetAutoDiscoverEprColor = "red"
         }
     }
 
@@ -114,31 +114,31 @@ function ExoOrgRelCheck () {
 
         if ($exoOrgRel.TarGetAutoDiscoverEpr -like $FedInfoEOP.TarGetAutoDiscoverEpr) {
             Write-Host -ForegroundColor Green "  TarGetAutoDiscoverEpr is" $exoOrgRel.TarGetAutoDiscoverEpr
-            $tdEXOOrgRelTarGetAutoDiscoverEpr = $exoOrgRel.TarGetAutoDiscoverEpr
-            $tdEXOOrgRelTarGetAutoDiscoverEprColor = "green"
+            $Script:tdEXOOrgRelTarGetAutoDiscoverEpr = $exoOrgRel.TarGetAutoDiscoverEpr
+            $Script:tdEXOOrgRelTarGetAutoDiscoverEprColor = "green"
         } else {
             Write-Host -ForegroundColor Red "  TarGetAutoDiscoverEpr is not" $FedInfoEOP.TarGetAutoDiscoverEpr
-            $tdEXOOrgRelTarGetAutoDiscoverEpr = "  TarGetAutoDiscoverEpr is not $($FedInfoEOP.TarGetAutoDiscoverEpr)"
-            $tdEXOOrgRelTarGetAutoDiscoverEprColor = "red"
+            $Script:tdEXOOrgRelTarGetAutoDiscoverEpr = "  TarGetAutoDiscoverEpr is not $($FedInfoEOP.TarGetAutoDiscoverEpr)"
+            $Script:tdEXOOrgRelTarGetAutoDiscoverEprColor = "red"
         }
     }
     #Enabled
     Write-Host  " Enabled:"
     if ($exoOrgRel.enabled -like "True" ) {
         Write-Host -ForegroundColor Green "  Enabled is set to True"
-        $tdEXOOrgRelEnabled = "  True"
-        $tdEXOOrgRelEnabledColor = "green"
+        $Script:tdEXOOrgRelEnabled = "  True"
+        $Script:tdEXOOrgRelEnabledColor = "green"
     } else {
         Write-Host -ForegroundColor Red "  Enabled is set to False."
-        $tdEXOOrgRelEnabled = "  False"
-        $tdEXOOrgRelEnabledColor = "red"
+        $Script:tdEXOOrgRelEnabled = "  False"
+        $Script:tdEXOOrgRelEnabledColor = "red"
     }
     ExoOrgRelCheckHtml
 }
 function EXOFedOrgIdCheck {
     Write-Host -ForegroundColor Green " Get-FederatedOrganizationIdentifier | select AccountNameSpace,Domains,Enabled"
     PrintDynamicWidthLine
-    $exoFedOrgId = Get-FederatedOrganizationIdentifier | Select-Object AccountNameSpace, Domains, Enabled
+    $exoFedOrgId = Get-EOFederatedOrganizationIdentifier | Select-Object AccountNameSpace, Domains, Enabled
     $eFedOrgID = $exoFedOrgId | Format-List
     $eFedOrgID
     PrintDynamicWidthLine
@@ -147,24 +147,24 @@ function EXOFedOrgIdCheck {
     Write-Host -ForegroundColor White " Domains: "
     if ($exoFedOrgId.Domains -like "*$ExchangeOnlineDomain*") {
         Write-Host -ForegroundColor Green " " $exoFedOrgId.Domains
-        $tdEXOFedOrgIdDomains = $exoFedOrgId.Domains
-        $tdEXOFedOrgIdDomainsColor = "green"
+        $Script:tdEXOFedOrgIdDomains = $exoFedOrgId.Domains
+        $Script:tdEXOFedOrgIdDomainsColor = "green"
     } else {
         Write-Host -ForegroundColor Red " Domains are NOT correct."
         Write-Host -ForegroundColor White " Should contain the $ExchangeOnlineMDomain"
-        $tdEXOFedOrgIdDomains = "$($exoFedOrgId.Domains) . Domains Should contain the $ExchangeOnlineMDomain"
-        $tdEXOFedOrgIdDomainsColor = "red"
+        $Script:tdEXOFedOrgIdDomains = "$($exoFedOrgId.Domains) . Domains Should contain the $ExchangeOnlineMDomain"
+        $Script:tdEXOFedOrgIdDomainsColor = "red"
     }
     Write-Host -ForegroundColor White " Enabled: "
     if ($exoFedOrgId.Enabled -like "True") {
         Write-Host -ForegroundColor Green "  True "
-        $tdEXOFedOrgIdEnabled = $exoFedOrgId.Enabled
-        $tdEXOFedOrgIdEnabledColor = "green"
+        $Script:tdEXOFedOrgIdEnabled = $exoFedOrgId.Enabled
+        $Script:tdEXOFedOrgIdEnabledColor = "green"
     } else {
         Write-Host -ForegroundColor Red "  Enabled is NOT correct."
         Write-Host -ForegroundColor White " Should be True"
-        $tdEXOFedOrgIdEnabled = $exoFedOrgId.Enabled
-        $tdEXOFedOrgIdEnabledColor = "green"
+        $Script:tdEXOFedOrgIdEnabled = $exoFedOrgId.Enabled
+        $Script:tdEXOFedOrgIdEnabledColor = "green"
     }
     EXOFedOrgIdCheckHtml
 }
@@ -172,7 +172,7 @@ function SharingPolicyCheck {
     PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " Get-SharingPolicy | select Domains,Enabled,Name,Identity"
     PrintDynamicWidthLine
-    $Script:SPOnline = Get-SharingPolicy | Select-Object  Domains, Enabled, Name, Identity
+    $Script:SPOnline = Get-EOSharingPolicy | Select-Object  Domains, Enabled, Name, Identity
     $SPOnline | Format-List
     $domain1 = (($SPOnline.domains[0] -split ":") -split " ")
     $domain2 = (($SPOnline.domains[1] -split ":") -split " ")
@@ -210,34 +210,34 @@ function SharingPolicyCheck {
     if ($SPOnpremDomain1 -eq $SPOnlineDomain1 -and $SPOnpremAction1 -eq $SPOnlineAction1) {
         if ($SPOnpremDomain2 -eq $SPOnlineDomain2 -and $SPOnpremAction2 -eq $SPOnlineAction2) {
             Write-Host -ForegroundColor Green "`n  Exchange Online Sharing Policy Domains match Exchange On Premise Sharing Policy Domains"
-            $tdSharpingPolicyCheck = "`n  Exchange Online Sharing Policy matches Exchange On Premise Sharing Policy Domain"
-            $tdSharpingPolicyCheckColor = "green"
+            $Script:tdSharpingPolicyCheck = "`n  Exchange Online Sharing Policy matches Exchange On Premise Sharing Policy Domain"
+            $Script:tdSharpingPolicyCheckColor = "green"
         }
 
         else {
             Write-Host -ForegroundColor Red "`n   Sharing Domains appear not to be correct."
             Write-Host -ForegroundColor White "   Exchange Online Sharing Policy Domains appear not to match Exchange On Premise Sharing Policy Domains"
-            $tdSharpingPolicyCheck = "`n  Exchange Online Sharing Policy Domains not match Exchange On Premise Sharing Policy Domains"
-            $tdSharpingPolicyCheckColor = "red"
+            $Script:tdSharpingPolicyCheck = "`n  Exchange Online Sharing Policy Domains not match Exchange On Premise Sharing Policy Domains"
+            $Script:tdSharpingPolicyCheckColor = "red"
         }
     } elseif ($SPOnpremDomain1 -eq $SPOnlineDomain2 -and $SPOnpremAction1 -eq $SPOnlineAction2) {
         if ($SPOnpremDomain2 -eq $SPOnlineDomain1 -and $SPOnpremAction2 -eq $SPOnlineAction1) {
             Write-Host -ForegroundColor Green "`n  Exchange Online Sharing Policy Domains match Exchange On Premise Sharing Policy Domains"
-            $tdSharpingPolicyCheck = "`n  Exchange Online Sharing Policy matches Exchange On Premise Sharing Policy Domain"
-            $tdSharpingPolicyCheckColor = "green"
+            $Script:tdSharpingPolicyCheck = "`n  Exchange Online Sharing Policy matches Exchange On Premise Sharing Policy Domain"
+            $Script:tdSharpingPolicyCheckColor = "green"
         }
 
         else {
             Write-Host -ForegroundColor Red "`n   Sharing Domains appear not to be correct."
             Write-Host -ForegroundColor White "   Exchange Online Sharing Policy Domains appear not to match Exchange On Premise Sharing Policy Domains"
-            $tdSharpingPolicyCheck = "`n  Exchange Online Sharing Policy Domains not match Exchange On Premise Sharing Policy Domains"
-            $tdSharpingPolicyCheckColor = "red"
+            $Script:tdSharpingPolicyCheck = "`n  Exchange Online Sharing Policy Domains not match Exchange On Premise Sharing Policy Domains"
+            $Script:tdSharpingPolicyCheckColor = "red"
         }
     } else {
         Write-Host -ForegroundColor Red "`n   Sharing Domains appear not to be correct."
         Write-Host -ForegroundColor White "   Exchange Online Sharing Policy Domains appear not to match Exchange On Premise Sharing Policy Domains"
-        $tdSharpingPolicyCheck = "`n  Exchange Online Sharing Policy Domains not match Exchange On Premise Sharing Policy Domains"
-        $tdSharpingPolicyCheckColor = "red"
+        $Script:tdSharpingPolicyCheck = "`n  Exchange Online Sharing Policy Domains not match Exchange On Premise Sharing Policy Domains"
+        $Script:tdSharpingPolicyCheckColor = "red"
     }
     PrintDynamicWidthLine
     SharingPolicyCheckHtml
@@ -249,7 +249,7 @@ function ExoTestOrgRelCheck {
     Write-Host -ForegroundColor Green " Test-OrganizationRelationship -Identity $exoIdentity -UserIdentity $UserOnline"
     PrintDynamicWidthLine
     if ((![string]::IsNullOrWhitespace($exoOrgRelTarGetApplicationUri)) -and (![string]::IsNullOrWhitespace($exoOrgRelTarGetOWAUrl))) {
-        $ExoTestOrgRel = Test-OrganizationRelationship -Identity $exoIdentity -UserIdentity $UserOnline -WarningAction SilentlyContinue
+        $ExoTestOrgRel = Test-EOOrganizationRelationship -Identity $exoIdentity -UserIdentity $UserOnline -WarningAction SilentlyContinue
         $i = 2
         while ($i -lt $ExoTestOrgRel.Length) {
             $element = $ExoTestOrgRel[$i]

@@ -1,20 +1,14 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Variables are being used in functions')]
-param (
-    [Parameter(Mandatory = $false)]
-    [String] $tdIntraOrgTarGetAddressDomain
-)
-
 function IntraOrgConCheck {
     PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " Get-IntraOrganizationConnector | Select Name,TarGetAddressDomains,DiscoveryEndpoint,Enabled"
     PrintDynamicWidthLine
     $IOC = $IntraOrgCon | Format-List
     $IOC
-    $tdIntraOrgTarGetAddressDomain = $IntraOrgCon.TarGetAddressDomains
-    $tdDiscoveryEndpoint = $IntraOrgCon.DiscoveryEndpoint
-    $tdEnabled = $IntraOrgCon.Enabled
+    $Script:tdIntraOrgTarGetAddressDomain = $IntraOrgCon.TarGetAddressDomains
+    $Script:tdDiscoveryEndpoint = $IntraOrgCon.DiscoveryEndpoint
+    $Script:tdEnabled = $IntraOrgCon.Enabled
 
     PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " Summary - Get-IntraOrganizationConnector"
@@ -24,31 +18,31 @@ function IntraOrgConCheck {
     Write-Host -ForegroundColor White " TarGet Address Domains: "
     if ($IntraOrgCon.TarGetAddressDomains -like "*$ExchangeOnlineDomain*" -Or $IntraOrgCon.TarGetAddressDomains -like "*$ExchangeOnlineAltDomain*" ) {
         Write-Host -ForegroundColor Green " " $IntraOrgCon.TarGetAddressDomains
-        $tdIntraOrgTarGetAddressDomainColor = "green"
+        $Script:tdIntraOrgTarGetAddressDomainColor = "green"
     } else {
         Write-Host -ForegroundColor Red " TarGet Address Domains appears not to be correct."
         Write-Host -ForegroundColor White " Should contain the $ExchangeOnlineDomain domain or the $ExchangeOnlineAltDomain domain."
-        $tdIntraOrgTarGetAddressDomainColor = "red"
+        $Script:tdIntraOrgTarGetAddressDomainColor = "red"
     }
     Write-Host -ForegroundColor White " DiscoveryEndpoint: "
     if ($IntraOrgCon.DiscoveryEndpoint -like "https://AutoDiscover-s.outlook.com/AutoDiscover/AutoDiscover.svc") {
         Write-Host -ForegroundColor Green "  https://AutoDiscover-s.outlook.com/AutoDiscover/AutoDiscover.svc"
-        $tdDiscoveryEndpointColor = "green"
+        $Script:tdDiscoveryEndpointColor = "green"
     } else {
         Write-Host -ForegroundColor Red "  The DiscoveryEndpoint appears not to be correct. "
         Write-Host -ForegroundColor White "  It should represent the address of EXO AutoDiscover endpoint."
         Write-Host  "  Examples: https://AutoDiscover-s.outlook.com/AutoDiscover/AutoDiscover.svc; https://outlook.office365.com/AutoDiscover/AutoDiscover.svc "
-        $tdDiscoveryEndpointColor = "red"
+        $Script:tdDiscoveryEndpointColor = "red"
     }
     Write-Host -ForegroundColor White " Enabled: "
     if ($IntraOrgCon.Enabled -like "True") {
         Write-Host -ForegroundColor Green "  True "
-        $tdEnabledColor = "green"
+        $Script:tdEnabledColor = "green"
     } else {
         Write-Host -ForegroundColor Red "  On-Prem Intra Organization Connector is not Enabled"
         Write-Host -ForegroundColor White "  In order to use OAuth it Should be True."
         Write-Host "  If it is set to False, the Organization Relationship (DAuth) , if enabled, is used for the Hybrid Availability Sharing"
-        $tdEnabledColor = "red"
+        $Script:tdEnabledColor = "red"
     }
     Write-Host -ForegroundColor Yellow "https://techcommunity.microsoft.com/t5/exchange-team-blog/demystifying-hybrid-free-busy-what-are-the-moving-parts/ba-p/607704"
     IntraOrgConCheckHtml
@@ -59,48 +53,48 @@ function AuthServerCheck {
     PrintDynamicWidthLine
     $AuthServer = Get-AuthServer | Where-Object { $_.Name -like "ACS*" } | Select-Object Name, IssuerIdentifier, TokenIssuingEndpoint, AuthMetadatAUrl, Enabled
     $AuthServer
-    $tDAuthServerIssuerIdentifier = $AuthServer.IssuerIdentifier
-    $tDAuthServerTokenIssuingEndpoint = $AuthServer.TokenIssuingEndpoint
-    $tDAuthServerAuthMetadatAUrl = $AuthServer.AuthMetadatAUrl
-    $tDAuthServerEnabled = $AuthServer.Enabled
+    $Script:tDAuthServerIssuerIdentifier = $AuthServer.IssuerIdentifier
+    $Script:tDAuthServerTokenIssuingEndpoint = $AuthServer.TokenIssuingEndpoint
+    $Script:tDAuthServerAuthMetadatAUrl = $AuthServer.AuthMetadatAUrl
+    $Script:tDAuthServerEnabled = $AuthServer.Enabled
     PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " Summary - Auth Server"
     PrintDynamicWidthLine
     Write-Host -ForegroundColor White " IssuerIdentifier: "
     if ($AuthServer.IssuerIdentifier -like "00000001-0000-0000-c000-000000000000" ) {
         Write-Host -ForegroundColor Green " " $AuthServer.IssuerIdentifier
-        $tDAuthServerIssuerIdentifierColor = "green"
+        $Script:tDAuthServerIssuerIdentifierColor = "green"
     } else {
         Write-Host -ForegroundColor Red " IssuerIdentifier appears not to be correct."
         Write-Host -ForegroundColor White " Should be 00000001-0000-0000-c000-000000000000"
-        $tDAuthServerIssuerIdentifierColor = "red"
+        $Script:tDAuthServerIssuerIdentifierColor = "red"
     }
     Write-Host -ForegroundColor White " TokenIssuingEndpoint: "
     if ($AuthServer.TokenIssuingEndpoint -like "https://accounts.accesscontrol.windows.net/*" -and $AuthServer.TokenIssuingEndpoint -like "*/tokens/OAuth/2" ) {
         Write-Host -ForegroundColor Green " " $AuthServer.TokenIssuingEndpoint
-        $tDAuthServerTokenIssuingEndpointColor = "green"
+        $Script:tDAuthServerTokenIssuingEndpointColor = "green"
     } else {
         Write-Host -ForegroundColor Red " TokenIssuingEndpoint appears not to be correct."
         Write-Host -ForegroundColor White " Should be  https://accounts.accesscontrol.windows.net/<Cloud Tenant ID>/tokens/OAuth/2"
-        $tDAuthServerTokenIssuingEndpointColor = "red"
+        $Script:tDAuthServerTokenIssuingEndpointColor = "red"
     }
     Write-Host -ForegroundColor White " AuthMetadatAUrl: "
     if ($AuthServer.AuthMetadatAUrl -like "https://accounts.accesscontrol.windows.net/*" -and $AuthServer.TokenIssuingEndpoint -like "*/tokens/OAuth/2" ) {
         Write-Host -ForegroundColor Green " " $AuthServer.AuthMetadatAUrl
-        $tDAuthServerAuthMetadatAUrlColor = "green"
+        $Script:tDAuthServerAuthMetadatAUrlColor = "green"
     } else {
         Write-Host -ForegroundColor Red " AuthMetadatAUrl appears not to be correct."
         Write-Host -ForegroundColor White " Should be  https://accounts.accesscontrol.windows.net/<Cloud Tenant ID>/metadata/json/1"
-        $tDAuthServerAuthMetadatAUrlColor = "red"
+        $Script:tDAuthServerAuthMetadatAUrlColor = "red"
     }
     Write-Host -ForegroundColor White " Enabled: "
     if ($AuthServer.Enabled -like "True" ) {
         Write-Host -ForegroundColor Green " " $AuthServer.Enabled
-        $tDAuthServerEnabledColor = "green"
+        $Script:tDAuthServerEnabledColor = "green"
     } else {
         Write-Host -ForegroundColor Red " Enabled: False "
         Write-Host -ForegroundColor White " Should be True"
-        $tDAuthServerEnabledColor = "red"
+        $Script:tDAuthServerEnabledColor = "red"
     }
     AuthServerCheckHtml
 }
@@ -112,72 +106,72 @@ function PartnerApplicationCheck {
     PrintDynamicWidthLine
     $PartnerApplication = Get-PartnerApplication | Where-Object { $_.ApplicationIdentifier -eq '00000002-0000-0ff1-ce00-000000000000' -and $_.Realm -eq '' } | Select-Object Enabled, ApplicationIdentifier, CertificateStrings, AuthMetadatAUrl, Realm, UseAuthServer, AcceptSecurityIdentifierInformation, LinkedAccount, IssuerIdentifier, AppOnlyPermissions, ActAsPermissions, Name
     $PartnerApplication
-    $tdPartnerApplicationEnabled = $PartnerApplication.Enabled
-    $tdPartnerApplicationApplicationIdentifier = $PartnerApplication.ApplicationIdentifier
-    $tdPartnerApplicationCertificateStrings = $PartnerApplication.CertificateStrings
-    $tdPartnerApplicationAuthMetadatAUrl = $PartnerApplication.AuthMetadatAUrl
-    $tdPartnerApplicationRealm = $PartnerApplication.Realm
-    $tdPartnerApplicationUseAuthServer = $PartnerApplication.UseAuthServer
-    $tdPartnerApplicationAcceptSecurityIdentifierInformation = $PartnerApplication.AcceptSecurityIdentifierInformation
-    $tdPartnerApplicationLinkedAccount = $PartnerApplication.LinkedAccount
-    $tdPartnerApplicationIssuerIdentifier = $PartnerApplication.IssuerIdentifier
-    $tdPartnerApplicationAppOnlyPermissions = $PartnerApplication.AppOnlyPermissions
-    $tdPartnerApplicationActAsPermissions = $PartnerApplication.ActAsPermissions
-    $tdPartnerApplicationName = $PartnerApplication.Name
+    $Script:tdPartnerApplicationEnabled = $PartnerApplication.Enabled
+    $Script:tdPartnerApplicationApplicationIdentifier = $PartnerApplication.ApplicationIdentifier
+    $Script:tdPartnerApplicationCertificateStrings = $PartnerApplication.CertificateStrings
+    $Script:tdPartnerApplicationAuthMetadatAUrl = $PartnerApplication.AuthMetadatAUrl
+    $Script:tdPartnerApplicationRealm = $PartnerApplication.Realm
+    $Script:tdPartnerApplicationUseAuthServer = $PartnerApplication.UseAuthServer
+    $Script:tdPartnerApplicationAcceptSecurityIdentifierInformation = $PartnerApplication.AcceptSecurityIdentifierInformation
+    $Script:tdPartnerApplicationLinkedAccount = $PartnerApplication.LinkedAccount
+    $Script:tdPartnerApplicationIssuerIdentifier = $PartnerApplication.IssuerIdentifier
+    $Script:tdPartnerApplicationAppOnlyPermissions = $PartnerApplication.AppOnlyPermissions
+    $Script:tdPartnerApplicationActAsPermissions = $PartnerApplication.ActAsPermissions
+    $Script:tdPartnerApplicationName = $PartnerApplication.Name
     PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " Summary - Partner Application"
     PrintDynamicWidthLine
     Write-Host -ForegroundColor White " Enabled: "
     if ($PartnerApplication.Enabled -like "True" ) {
         Write-Host -ForegroundColor Green " " $PartnerApplication.Enabled
-        $tdPartnerApplicationEnabledColor = "green"
+        $Script:tdPartnerApplicationEnabledColor = "green"
     } else {
         Write-Host -ForegroundColor Red " Enabled: False "
         Write-Host -ForegroundColor White " Should be True"
-        $tdPartnerApplicationEnabledColor = "red"
+        $Script:tdPartnerApplicationEnabledColor = "red"
     }
     Write-Host -ForegroundColor White " ApplicationIdentifier: "
     if ($PartnerApplication.ApplicationIdentifier -like "00000002-0000-0ff1-ce00-000000000000" ) {
         Write-Host -ForegroundColor Green " " $PartnerApplication.ApplicationIdentifier
-        $tdPartnerApplicationApplicationIdentifierColor = "green"
+        $Script:tdPartnerApplicationApplicationIdentifierColor = "green"
     } else {
         Write-Host -ForegroundColor Red " ApplicationIdentifier does not appear to be correct"
         Write-Host -ForegroundColor White " Should be 00000002-0000-0ff1-ce00-000000000000"
-        $tdPartnerApplicationApplicationIdentifierColor = "red"
+        $Script:tdPartnerApplicationApplicationIdentifierColor = "red"
     }
     Write-Host -ForegroundColor White " AuthMetadatAUrl: "
     if ([string]::IsNullOrWhitespace( $PartnerApplication.AuthMetadatAUrl)) {
         Write-Host -ForegroundColor Green "  Blank"
-        $tdPartnerApplicationAuthMetadatAUrlColor = "green"
-        $tdPartnerApplicationAuthMetadatAUrl = "Blank"
+        $Script:tdPartnerApplicationAuthMetadatAUrlColor = "green"
+        $Script:tdPartnerApplicationAuthMetadatAUrl = "Blank"
     } else {
         Write-Host -ForegroundColor Red " AuthMetadatAUrl does not seem to be correct"
         Write-Host -ForegroundColor White " Should be Blank"
-        $tdPartnerApplicationAuthMetadatAUrlColor = "red"
-        $tdPartnerApplicationAuthMetadatAUrl = " Should be Blank"
+        $Script:tdPartnerApplicationAuthMetadatAUrlColor = "red"
+        $Script:tdPartnerApplicationAuthMetadatAUrl = " Should be Blank"
     }
     Write-Host -ForegroundColor White " Realm: "
     if ([string]::IsNullOrWhitespace( $PartnerApplication.Realm)) {
         Write-Host -ForegroundColor Green "  Blank"
-        $tdPartnerApplicationRealmColor = "green"
-        $tdPartnerApplicationRealm = "Blank"
+        $Script:tdPartnerApplicationRealmColor = "green"
+        $Script:tdPartnerApplicationRealm = "Blank"
     } else {
         Write-Host -ForegroundColor Red "  Realm does not seem to be correct"
         Write-Host -ForegroundColor White " Should be Blank"
-        $tdPartnerApplicationRealmColor = "Red"
-        $tdPartnerApplicationRealm = "Should be Blank"
+        $Script:tdPartnerApplicationRealmColor = "Red"
+        $Script:tdPartnerApplicationRealm = "Should be Blank"
     }
     Write-Host -ForegroundColor White " LinkedAccount: "
     if ($PartnerApplication.LinkedAccount -like "$exchangeOnPremDomain/Users/Exchange Online-ApplicationAccount" -or $PartnerApplication.LinkedAccount -like "$exchangeOnPremLocalDomain/Users/Exchange Online-ApplicationAccount"  ) {
         Write-Host -ForegroundColor Green " " $PartnerApplication.LinkedAccount
-        $tdPartnerApplicationLinkedAccountColor = "green"
+        $Script:tdPartnerApplicationLinkedAccountColor = "green"
     } else {
         Write-Host -ForegroundColor Red "  LinkedAccount value does not appear to be correct"
         Write-Host -ForegroundColor White "  Should be $exchangeOnPremLocalDomain/Users/Exchange Online-ApplicationAccount"
         Write-Host "  If you value is empty, set it to correspond to the Exchange Online-ApplicationAccount which is located at the root of Users container in AD. After you make the change, reboot the Servers."
         Write-Host "  Example: contoso.com/Users/Exchange Online-ApplicationAccount"
-        $tdPartnerApplicationLinkedAccountColor = "red"
-        $tdPartnerApplicationLinkedAccount
+        $Script:tdPartnerApplicationLinkedAccountColor = "red"
+        $Script:tdPartnerApplicationLinkedAccount
     }
     PartnerApplicationCheckHtml
 }
@@ -187,38 +181,38 @@ function ApplicationAccountCheck {
     PrintDynamicWidthLine
     $ApplicationAccount = Get-user "$exchangeOnPremLocalDomain/Users/Exchange Online-ApplicationAccount" | Select-Object Name, RecipientType, RecipientTypeDetails, UserAccountControl
     $ApplicationAccount
-    $tdApplicationAccountRecipientType = $ApplicationAccount.RecipientType
-    $tdApplicationAccountRecipientTypeDetails = $ApplicationAccount.RecipientTypeDetails
-    $tdApplicationAccountUserAccountControl = $ApplicationAccount.UserAccountControl
+    $Script:tdApplicationAccountRecipientType = $ApplicationAccount.RecipientType
+    $Script:tdApplicationAccountRecipientTypeDetails = $ApplicationAccount.RecipientTypeDetails
+    $Script:tdApplicationAccountUserAccountControl = $ApplicationAccount.UserAccountControl
     PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " Summary - Application Account"
     PrintDynamicWidthLine
     Write-Host -ForegroundColor White " RecipientType: "
     if ($ApplicationAccount.RecipientType -like "User" ) {
         Write-Host -ForegroundColor Green " " $ApplicationAccount.RecipientType
-        $tdApplicationAccountRecipientTypeColor = "green"
+        $Script:tdApplicationAccountRecipientTypeColor = "green"
     } else {
         Write-Host -ForegroundColor Red " RecipientType value is $ApplicationAccount.RecipientType "
         Write-Host -ForegroundColor White " Should be User"
-        $tdApplicationAccountRecipientTypeColor = "red"
+        $Script:tdApplicationAccountRecipientTypeColor = "red"
     }
     Write-Host -ForegroundColor White " RecipientTypeDetails: "
     if ($ApplicationAccount.RecipientTypeDetails -like "LinkedUser" ) {
         Write-Host -ForegroundColor Green " " $ApplicationAccount.RecipientTypeDetails
-        $tdApplicationAccountRecipientTypeDetailsColor = "green"
+        $Script:tdApplicationAccountRecipientTypeDetailsColor = "green"
     } else {
         Write-Host -ForegroundColor Red " RecipientTypeDetails value is $ApplicationAccount.RecipientTypeDetails"
         Write-Host -ForegroundColor White " Should be LinkedUser"
-        $tdApplicationAccountRecipientTypeDetailsColor = "red"
+        $Script:tdApplicationAccountRecipientTypeDetailsColor = "red"
     }
     Write-Host -ForegroundColor White " UserAccountControl: "
     if ($ApplicationAccount.UserAccountControl -like "AccountDisabled, PasswordNotRequired, NormalAccount" ) {
         Write-Host -ForegroundColor Green " " $ApplicationAccount.UserAccountControl
-        $tdApplicationAccountUserAccountControlColor = "green"
+        $Script:tdApplicationAccountUserAccountControlColor = "green"
     } else {
         Write-Host -ForegroundColor Red " UserAccountControl value does not seem correct"
         Write-Host -ForegroundColor White " Should be AccountDisabled, PasswordNotRequired, NormalAccount"
-        $tdApplicationAccountUserAccountControlColor = "red"
+        $Script:tdApplicationAccountUserAccountControlColor = "red"
     }
     ApplicationAccountCheckHtml
 }
@@ -234,69 +228,69 @@ function ManagementRoleAssignmentCheck {
     Write-Host -ForegroundColor White " Role: "
     if ($ManagementRoleAssignment.Role -like "*UserApplication*" ) {
         Write-Host -ForegroundColor Green "  UserApplication Role Assigned"
-        $tdManagementRoleAssignmentUserApplication = " UserApplication Role Assigned"
-        $tdManagementRoleAssignmentUserApplicationColor = "green"
+        $Script:tdManagementRoleAssignmentUserApplication = " UserApplication Role Assigned"
+        $Script:tdManagementRoleAssignmentUserApplicationColor = "green"
     } else {
         Write-Host -ForegroundColor Red "  UserApplication Role not present for the Exchange Online-ApplicationAccount"
-        $tdManagementRoleAssignmentUserApplication = " UserApplication Role not present"
-        $tdManagementRoleAssignmentUserApplicationColor = "red"
+        $Script:tdManagementRoleAssignmentUserApplication = " UserApplication Role not present"
+        $Script:tdManagementRoleAssignmentUserApplicationColor = "red"
     }
     if ($ManagementRoleAssignment.Role -like "*ArchiveApplication*" ) {
         Write-Host -ForegroundColor Green "  ArchiveApplication Role Assigned"
-        $tdManagementRoleAssignmentArchiveApplication = " ArchiveApplication Role Assigned"
-        $tdManagementRoleAssignmentArchiveApplicationColor = "green"
+        $Script:tdManagementRoleAssignmentArchiveApplication = " ArchiveApplication Role Assigned"
+        $Script:tdManagementRoleAssignmentArchiveApplicationColor = "green"
     } else {
         Write-Host -ForegroundColor Red "  ArchiveApplication Role not present for the Exchange Online-ApplicationAccount"
-        $tdManagementRoleAssignmentArchiveApplication = " ArchiveApplication Role not Assigned"
-        $tdManagementRoleAssignmentArchiveApplicationColor = "red"
+        $Script:tdManagementRoleAssignmentArchiveApplication = " ArchiveApplication Role not Assigned"
+        $Script:tdManagementRoleAssignmentArchiveApplicationColor = "red"
     }
     if ($ManagementRoleAssignment.Role -like "*LegalHoldApplication*" ) {
         Write-Host -ForegroundColor Green "  LegalHoldApplication Role Assigned"
-        $tdManagementRoleAssignmentLegalHoldApplication = " LegalHoldApplication Role Assigned"
-        $tdManagementRoleAssignmentLegalHoldApplicationColor = "green"
+        $Script:tdManagementRoleAssignmentLegalHoldApplication = " LegalHoldApplication Role Assigned"
+        $Script:tdManagementRoleAssignmentLegalHoldApplicationColor = "green"
     } else {
         Write-Host -ForegroundColor Red "  LegalHoldApplication Role not present for the Exchange Online-ApplicationAccount"
-        $tdManagementRoleAssignmentLegalHoldApplication = " LegalHoldApplication Role Assigned"
-        $tdManagementRoleAssignmentLegalHoldApplicationColor = "green"
+        $Script:tdManagementRoleAssignmentLegalHoldApplication = " LegalHoldApplication Role Assigned"
+        $Script:tdManagementRoleAssignmentLegalHoldApplicationColor = "green"
     }
     if ($ManagementRoleAssignment.Role -like "*Mailbox Search*" ) {
         Write-Host -ForegroundColor Green "  Mailbox Search Role Assigned"
-        $tdManagementRoleAssignmentMailboxSearch = " Mailbox Search Role Assigned"
-        $tdManagementRoleAssignmentMailboxSearchColor = "green"
+        $Script:tdManagementRoleAssignmentMailboxSearch = " Mailbox Search Role Assigned"
+        $Script:tdManagementRoleAssignmentMailboxSearchColor = "green"
     } else {
         Write-Host -ForegroundColor Red "  Mailbox Search Role not present for the Exchange Online-ApplicationAccount"
-        $tdManagementRoleAssignmentMailboxSearch = " Mailbox Search Role Not Assigned"
-        $tdManagementRoleAssignmentMailboxSearchColor = "red"
+        $Script:tdManagementRoleAssignmentMailboxSearch = " Mailbox Search Role Not Assigned"
+        $Script:tdManagementRoleAssignmentMailboxSearchColor = "red"
     }
     if ($ManagementRoleAssignment.Role -like "*TeamMailboxLifecycleApplication*" ) {
         Write-Host -ForegroundColor Green "  TeamMailboxLifecycleApplication Role Assigned"
-        $tdManagementRoleAssignmentTeamMailboxLifecycleApplication = " TeamMailboxLifecycleApplication Role Assigned"
-        $tdManagementRoleAssignmentTeamMailboxLifecycleApplicationColor = "green"
+        $Script:tdManagementRoleAssignmentTeamMailboxLifecycleApplication = " TeamMailboxLifecycleApplication Role Assigned"
+        $Script:tdManagementRoleAssignmentTeamMailboxLifecycleApplicationColor = "green"
     } else {
         Write-Host -ForegroundColor Red "  TeamMailboxLifecycleApplication Role not present for the Exchange Online-ApplicationAccount"
-        $tdManagementRoleAssignmentTeamMailboxLifecycleApplication = " TeamMailboxLifecycleApplication Role Not Assigned"
-        $tdManagementRoleAssignmentTeamMailboxLifecycleApplicationColor = "red"
+        $Script:tdManagementRoleAssignmentTeamMailboxLifecycleApplication = " TeamMailboxLifecycleApplication Role Not Assigned"
+        $Script:tdManagementRoleAssignmentTeamMailboxLifecycleApplicationColor = "red"
     }
     if ($ManagementRoleAssignment.Role -like "*MailboxSearchApplication*" ) {
         Write-Host -ForegroundColor Green "  MailboxSearchApplication Role Assigned"
-        $tdManagementRoleMailboxSearchApplication = " MailboxSearchApplication Role Assigned"
-        $tdManagementRoleMailboxSearchApplicationColor = "green"
+        $Script:tdManagementRoleMailboxSearchApplication = " MailboxSearchApplication Role Assigned"
+        $Script:tdManagementRoleMailboxSearchApplicationColor = "green"
     } else {
         Write-Host -ForegroundColor Red "  MailboxSearchApplication Role not present for the Exchange Online-ApplicationAccount"
-        $tdManagementRoleMailboxSearchApplication = " MailboxSearchApplication Role Not Assigned"
-        $tdManagementRoleMailboxSearchApplicationColor = "red"
+        $Script:tdManagementRoleMailboxSearchApplication = " MailboxSearchApplication Role Not Assigned"
+        $Script:tdManagementRoleMailboxSearchApplicationColor = "red"
     }
     if ($ManagementRoleAssignment.Role -like "*MeetingGraphApplication*" ) {
         Write-Host -ForegroundColor Green "  MeetingGraphApplication Role Assigned"
-        $tdManagementRoleMeetingGraphApplication = " MeetingGraphApplication Role Assigned"
-        $tdManagementRoleMeetingGraphApplicationColor = "green"
+        $Script:tdManagementRoleMeetingGraphApplication = " MeetingGraphApplication Role Assigned"
+        $Script:tdManagementRoleMeetingGraphApplicationColor = "green"
     } else {
         Write-Host -ForegroundColor Red "  MeetingGraphApplication Role not present for the Exchange Online-ApplicationAccount"
-        $tdManagementRoleMeetingGraphApplication = " MeetingGraphApplication Role Not Assigned"
-        $tdManagementRoleMeetingGraphApplicationColor = "red"
+        $Script:tdManagementRoleMeetingGraphApplication = " MeetingGraphApplication Role Not Assigned"
+        $Script:tdManagementRoleMeetingGraphApplicationColor = "red"
     }
-    $tdManagementRoleMeetingGraphApplication = " MailboxSearchApplication Role Assigned"
-    $tdManagementRoleMeetingGraphApplicationColor = "green"
+    $Script:tdManagementRoleMeetingGraphApplication = " MailboxSearchApplication Role Assigned"
+    $Script:tdManagementRoleMeetingGraphApplicationColor = "green"
     ManagementRoleAssignmentCheckHtml
 }
 function AuthConfigCheck {
@@ -305,42 +299,42 @@ function AuthConfigCheck {
     $AuthConfig = Get-AuthConfig | Select-Object *Thumbprint, ServiceName, Realm, Name
     $AC = $AuthConfig | Format-List
     $AC
-    $tDAuthConfigName = $AuthConfig.Name
+    $Script:tDAuthConfigName = $AuthConfig.Name
     PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " Summary - Auth Config"
     PrintDynamicWidthLine
     if (![string]::IsNullOrWhitespace($AuthConfig.CurrentCertificateThumbprint)) {
         Write-Host " Thumbprint: "$AuthConfig.CurrentCertificateThumbprint
         Write-Host -ForegroundColor Green " Certificate is Assigned"
-        $tDAuthConfigCurrentCertificateThumbprint = $AuthConfig.CurrentCertificateThumbprint
-        $tDAuthConfigCurrentCertificateThumbprintColor = "green"
+        $Script:tDAuthConfigCurrentCertificateThumbprint = $AuthConfig.CurrentCertificateThumbprint
+        $Script:tDAuthConfigCurrentCertificateThumbprintColor = "green"
     } else {
         Write-Host " Thumbprint: "$AuthConfig.CurrentCertificateThumbprint
         Write-Host -ForegroundColor Red " No valid certificate Assigned "
-        $tDAuthConfigCurrentCertificateThumbprintColor = "red"
-        $tDAuthConfigCurrentCertificateThumbprint = "$AuthConfig.CurrentCertificateThumbprint - No valid certificate Assigned "
+        $Script:tDAuthConfigCurrentCertificateThumbprintColor = "red"
+        $Script:tDAuthConfigCurrentCertificateThumbprint = "$AuthConfig.CurrentCertificateThumbprint - No valid certificate Assigned "
     }
     if ($AuthConfig.ServiceName -like "00000002-0000-0ff1-ce00-000000000000" ) {
         Write-Host " ServiceName: "$AuthConfig.ServiceName
         Write-Host -ForegroundColor Green " Service Name Seems correct"
-        $tDAuthConfigServiceNameColor = "green"
-        $tDAuthConfigServiceName = $AuthConfig.ServiceName
+        $Script:tDAuthConfigServiceNameColor = "green"
+        $Script:tDAuthConfigServiceName = $AuthConfig.ServiceName
     } else {
         Write-Host " ServiceName: "$AuthConfig.ServiceName
         Write-Host -ForegroundColor Red " Service Name does not Seems correct. Should be 00000002-0000-0ff1-ce00-000000000000"
-        $tDAuthConfigServiceNameColor = "red"
-        $tDAuthConfigServiceName = "$AuthConfig.ServiceName  Should be 00000002-0000-0ff1-ce00-000000000000"
+        $Script:tDAuthConfigServiceNameColor = "red"
+        $Script:tDAuthConfigServiceName = "$AuthConfig.ServiceName  Should be 00000002-0000-0ff1-ce00-000000000000"
     }
     if ([string]::IsNullOrWhitespace($AuthConfig.Realm)) {
         Write-Host " Realm: "
         Write-Host -ForegroundColor Green " Realm is Blank"
-        $tDAuthConfigRealmColor = "green"
-        $tDAuthConfigRealm = " Realm is Blank"
+        $Script:tDAuthConfigRealmColor = "green"
+        $Script:tDAuthConfigRealm = " Realm is Blank"
     } else {
         Write-Host " Realm: "$AuthConfig.Realm
         Write-Host -ForegroundColor Red " Realm should be Blank"
-        $tDAuthConfigRealmColor = "red"
-        $tDAuthConfigRealm = "$tDAuthConfig.Realm - Realm should be Blank"
+        $Script:tDAuthConfigRealmColor = "red"
+        $Script:tDAuthConfigRealm = "$Script:tDAuthConfig.Realm - Realm should be Blank"
     }
     AuthConfigCheckHtml
 }
@@ -360,42 +354,42 @@ function CurrentCertificateThumbprintCheck {
     if ($CurrentCertificate.Issuer -like "CN=Microsoft Exchange Server Auth Certificate" ) {
         Write-Host " Issuer: " $CurrentCertificate.Issuer
         Write-Host -ForegroundColor Green " Issuer is CN=Microsoft Exchange Server Auth Certificate"
-        $tdCurrentCertificateIssuer = "   $($CurrentCertificate.Issuer) - Issuer is CN=Microsoft Exchange Server Auth Certificate"
-        $tdCurrentCertificateIssuerColor = "green"
+        $Script:tdCurrentCertificateIssuer = "   $($CurrentCertificate.Issuer) - Issuer is CN=Microsoft Exchange Server Auth Certificate"
+        $Script:tdCurrentCertificateIssuerColor = "green"
     } else {
         Write-Host -ForegroundColor Red "  Issuer is not CN=Microsoft Exchange Server Auth Certificate"
-        $tdCurrentCertificateIssuer = "   $($CurrentCertificate.Issuer) - Issuer is Not CN=Microsoft Exchange Server Auth Certificate"
-        $tdCurrentCertificateIssuerColor = "red"
+        $Script:tdCurrentCertificateIssuer = "   $($CurrentCertificate.Issuer) - Issuer is Not CN=Microsoft Exchange Server Auth Certificate"
+        $Script:tdCurrentCertificateIssuerColor = "red"
     }
     if ($CurrentCertificate.Services -like "SMTP" ) {
         Write-Host " Services: " $CurrentCertificate.Services
         Write-Host -ForegroundColor Green "  Certificate enabled for SMTP"
-        $tdCurrentCertificateServices = "  $($tdCurrentCertificate.Services) - Certificate enabled for SMTP"
-        $tdCurrentCertificateServicesColor = "green"
+        $Script:tdCurrentCertificateServices = "  $($tdCurrentCertificate.Services) - Certificate enabled for SMTP"
+        $Script:tdCurrentCertificateServicesColor = "green"
     } else {
         Write-Host -ForegroundColor Red "  Certificate Not enabled for SMTP"
-        $tdCurrentCertificateServices = "  $($tdCurrentCertificate.Services) - Certificate Not enabled for SMTP"
-        $tdCurrentCertificateServicesColor = "red"
+        $Script:tdCurrentCertificateServices = "  $($tdCurrentCertificate.Services) - Certificate Not enabled for SMTP"
+        $Script:tdCurrentCertificateServicesColor = "red"
     }
     if ($CurrentCertificate.Status -like "Valid" ) {
         Write-Host " Status: " $CurrentCertificate.Status
         Write-Host -ForegroundColor Green "  Certificate is valid"
-        $tdCurrentCertificateStatus = "  Certificate is valid"
-        $tdCurrentCertificateStatusColor = "green"
+        $Script:tdCurrentCertificateStatus = "  Certificate is valid"
+        $Script:tdCurrentCertificateStatusColor = "green"
     } else {
         Write-Host -ForegroundColor Red "  Certificate is not Valid"
-        $tdCurrentCertificateStatus = "  Certificate is Not Valid"
-        $tdCurrentCertificateStatusColor = "red"
+        $Script:tdCurrentCertificateStatus = "  Certificate is Not Valid"
+        $Script:tdCurrentCertificateStatusColor = "red"
     }
     if ($CurrentCertificate.Subject -like "CN=Microsoft Exchange Server Auth Certificate" ) {
         Write-Host " Subject: " $CurrentCertificate.Subject
         Write-Host -ForegroundColor Green "  Subject is CN=Microsoft Exchange Server Auth Certificate"
-        $tdCurrentCertificateSubject = "  Subject is CN=Microsoft Exchange Server Auth Certificate"
-        $tdCurrentCertificateSubjectColor = "green"
+        $Script:tdCurrentCertificateSubject = "  Subject is CN=Microsoft Exchange Server Auth Certificate"
+        $Script:tdCurrentCertificateSubjectColor = "green"
     } else {
         Write-Host -ForegroundColor Red "  Subject is not CN=Microsoft Exchange Server Auth Certificate"
-        $tdCurrentCertificateSubject = "  $($CurrentCertificate.Subject) - Subject should be CN=Microsoft Exchange Server Auth Certificate"
-        $tdCurrentCertificateSubjectColor = "red"
+        $Script:tdCurrentCertificateSubject = "  $($CurrentCertificate.Subject) - Subject should be CN=Microsoft Exchange Server Auth Certificate"
+        $Script:tdCurrentCertificateSubjectColor = "red"
     }
     Write-Host -ForegroundColor White "`n Checking Exchange Auth Certificate Distribution `n"
     $CheckAuthCertDistribution = foreach ($name in (Get-ExchangeServer).name) { Get-ExchangeCertificate -Thumbprint (Get-AuthConfig).CurrentCertificateThumbprint -Server $name -ErrorAction SilentlyContinue | Select-Object Identity, thumbprint, Services, subject }
@@ -407,13 +401,13 @@ function CurrentCertificateThumbprintCheck {
             Write-Host  "   Thumbprint: "$Server.Thumbprint
             Write-Host  "   Subject: "$Server.Subject
             $ServerIdentity = $Server.Identity
-            $tdCheckAuthCertDistribution = "   <div>Certificate with Thumbprint: $($Server.Thumbprint) Subject: $($Server.Subject) is present in Server $ServerIdentity</div>"
-            $tdCheckAuthCertDistributionColor = "green"
+            $Script:tdCheckAuthCertDistribution = "   <div>Certificate with Thumbprint: $($Server.Thumbprint) Subject: $($Server.Subject) is present in Server $ServerIdentity</div>"
+            $Script:tdCheckAuthCertDistributionColor = "green"
         }
         if ($Server.Thumbprint -ne $thumbprint) {
             Write-Host -ForegroundColor Red "  Auth Certificate seems Not to be present in $ServerName"
-            $tdCheckAuthCertDistribution = "   Auth Certificate seems Not to be present in $ServerName"
-            $tdCheckAuthCertDistributionColor = "Red"
+            $Script:tdCheckAuthCertDistribution = "   Auth Certificate seems Not to be present in $ServerName"
+            $Script:tdCheckAuthCertDistributionColor = "Red"
         }
     }
     CurrentCertificateThumbprintCheckHtml
@@ -421,30 +415,30 @@ function CurrentCertificateThumbprintCheck {
 function OAuthConnectivityCheck {
     Write-Host -ForegroundColor Green " Test-OAuthConnectivity -Service EWS -TarGetUri https://outlook.office365.com/EWS/Exchange.asmx -Mailbox $UserOnPrem"
     PrintDynamicWidthLine
-    $OAuthConnectivity = Test-OAuthConnectivity -Service EWS -TarGetUri https://outlook.office365.com/EWS/Exchange.asmx -Mailbox $UserOnPrem
-    if ($OAuthConnectivity.ResultType -eq 'Success' ) {
-        #$OAuthConnectivity.ResultType
+    $Script:OAuthConnectivity = Test-OAuthConnectivity -Service EWS -TarGetUri https://outlook.office365.com/EWS/Exchange.asmx -Mailbox $UserOnPrem
+    if ($Script:OAuthConnectivity.ResultType -eq 'Success' ) {
+        #$Script:OAuthConnectivity.ResultType
     } else {
-        $OAuthConnectivity
+        $Script:OAuthConnectivity
     }
-    if ($OAuthConnectivity.Detail.FullId -like '*(401) Unauthorized*') {
+    if ($Script:OAuthConnectivity.Detail.FullId -like '*(401) Unauthorized*') {
         Write-Host -ForegroundColor Red "Error: The remote Server returned an error: (401) Unauthorized"
-        if ($OAuthConnectivity.Detail.FullId -like '*The user specified by the user-context in the token does not exist*') {
+        if ($Script:OAuthConnectivity.Detail.FullId -like '*The user specified by the user-context in the token does not exist*') {
             Write-Host -ForegroundColor Yellow "The user specified by the user-context in the token does not exist"
             Write-Host "Please run Test-OAuthConnectivity with a different Exchange On Premises Mailbox"
         }
     }
     Write-Host -ForegroundColor Green " Summary - Test OAuth Connectivity"
     PrintDynamicWidthLine
-    if ($OAuthConnectivity.ResultType -like "Success") {
-        Write-Host -ForegroundColor Green "$($OAuthConnectivity.ResultType). OAuth Test was completed successfully "
-        $OAuthConnectivityResultType = " OAuth Test was completed successfully "
-        $OAuthConnectivityResultTypeColor = "green"
+    if ($Script:OAuthConnectivity.ResultType -like "Success") {
+        Write-Host -ForegroundColor Green "$($Script:OAuthConnectivity.ResultType). OAuth Test was completed successfully "
+        $Script:OAuthConnectivityResultType = " OAuth Test was completed successfully "
+        $Script:OAuthConnectivityResultTypeColor = "green"
     } else {
-        Write-Host -ForegroundColor Red " $OAuthConnectivity.ResultType - OAuth Test was completed with Error. "
+        Write-Host -ForegroundColor Red " $Script:OAuthConnectivity.ResultType - OAuth Test was completed with Error. "
         Write-Host -ForegroundColor White " Please rerun Test-OAuthConnectivity -Service EWS -TarGetUri https://outlook.office365.com/EWS/Exchange.asmx -Mailbox <On Premises Mailbox> | fl to confirm the test failure"
-        $OAuthConnectivityResultType = " <div>OAuth Test was completed with Error.</div><div>Please rerun Test-OAuthConnectivity -Service EWS -TarGetUri https://outlook.office365.com/EWS/Exchange.asmx -Mailbox <On Premises Mailbox> | fl to confirm the test failure</div>"
-        $OAuthConnectivityResultTypeColor = "red"
+        $Script:OAuthConnectivityResultType = " <div>OAuth Test was completed with Error.</div><div>Please rerun Test-OAuthConnectivity -Service EWS -TarGetUri https://outlook.office365.com/EWS/Exchange.asmx -Mailbox <On Premises Mailbox> | fl to confirm the test failure</div>"
+        $Script:OAuthConnectivityResultTypeColor = "red"
     }
     Write-Host -ForegroundColor Green " Reference: "
     Write-Host -ForegroundColor White " Configure OAuth authentication between Exchange and Exchange Online organizations"
@@ -454,7 +448,7 @@ function OAuthConnectivityCheck {
 function AutoDVirtualDCheckOauth {
     Write-Host -ForegroundColor Green " Get-AutoDiscoverVirtualDirectory -Server $($server) | Select Identity, Name,ExchangeVersion,*authentication*"
     PrintDynamicWidthLine
-    $AutoDiscoveryVirtualDirectoryOAuth = Get-AutoDiscoverVirtualDirectory -Server $server | Select-Object Identity, Name, ExchangeVersion, *authentication* -ErrorAction SilentlyContinue
+    FetchAutoDiscoverInformation
     $AD = $AutoDiscoveryVirtualDirectoryOAuth | Format-List
     $AD
     AutoDVirtualDCheckOauthHtmlHead
@@ -468,47 +462,47 @@ function AutoDVirtualDCheckOauth {
         foreach ( $EWS in $AutoDiscoveryVirtualDirectoryOAuth) {
             Write-Host " $($EWS.Identity) "
             Write-Host -ForegroundColor Green "  InternalAuthenticationMethods Include OAuth Authentication Method "
-            $AutoD_VD_Identity = $EWS.Identity
-            $AutoD_VD_Name = $EWS.Name
-            $AutoD_VD_InternalAuthenticationMethods = $EWS.InternalAuthenticationMethods
-            $AutoD_VD_ExternalAuthenticationMethods = $EWS.ExternalAuthenticationMethods
-            $AutoD_VD_WSAuthentication = $EWS.WSSecurityAuthentication
-            $AutoD_VD_WSAuthenticationColor = "green"
-            $AutoD_VD_WindowsAuthentication = $EWS.WindowsAuthentication
-            $AutoD_VD_OAuthAuthentication = $EWS.OAuthAuthentication
-            if ($AutoD_VD_WindowsAuthentication -eq "True") {
-                $AutoD_VD_WindowsAuthenticationColor = "green"
+            $Script:AutoD_VD_Identity = $EWS.Identity
+            $Script:AutoD_VD_Name = $EWS.Name
+            $Script:AutoD_VD_InternalAuthenticationMethods = $EWS.InternalAuthenticationMethods
+            $Script:AutoD_VD_ExternalAuthenticationMethods = $EWS.ExternalAuthenticationMethods
+            $Script:AutoD_VD_WSAuthentication = $EWS.WSSecurityAuthentication
+            $Script:AutoD_VD_WSAuthenticationColor = "green"
+            $Script:AutoD_VD_WindowsAuthentication = $EWS.WindowsAuthentication
+            $Script:AutoD_VD_OAuthAuthentication = $EWS.OAuthAuthentication
+            if ($Script:AutoD_VD_WindowsAuthentication -eq "True") {
+                $Script:AutoD_VD_WindowsAuthenticationColor = "green"
             } else {
-                $AutoD_VD_WindowsAuthenticationColor = "red"
+                $Script:AutoD_VD_WindowsAuthenticationColor = "red"
             }
-            if ($AutoD_VD_OAuthAuthentication -eq "True") {
-                $AutoD_VD_OAuthAuthenticationColor = "green"
+            if ($Script:AutoD_VD_OAuthAuthentication -eq "True") {
+                $Script:AutoD_VD_OAuthAuthenticationColor = "green"
             } else {
-                $AutoD_VD_OAuthAuthenticationColor = "red"
+                $Script:AutoD_VD_OAuthAuthenticationColor = "red"
             }
-            $AutoD_VD_InternalNblBypassUrl = $EWS.InternalNblBypassUrl
-            $AutoD_VD_InternalUrl = $EWS.InternalUrl
-            $AutoD_VD_ExternalUrl = $EWS.ExternalUrl
+            $Script:AutoD_VD_InternalNblBypassUrl = $EWS.InternalNblBypassUrl
+            $Script:AutoD_VD_InternalUrl = $EWS.InternalUrl
+            $Script:AutoD_VD_ExternalUrl = $EWS.ExternalUrl
             AutoDVirtualDCheckOauthHtmlOk
         }
     } else {
         Write-Host -ForegroundColor Red "  InternalAuthenticationMethods seems not to include OAuth Authentication Method."
-        $AutoD_VD_Identity = $EWS.Identity
-        $AutoD_VD_Name = $EWS.Name
-        $AutoD_VD_InternalAuthenticationMethods = $EWS.InternalAuthenticationMethods
-        $AutoD_VD_ExternalAuthenticationMethods = $EWS.ExternalAuthenticationMethods
-        $AutoD_VD_WSAuthentication = $EWS.WSSecurityAuthentication
-        $AutoD_VD_WSAuthenticationColor = "green"
-        $AutoD_VD_OAuthAuthentication = $EWS.OAuthAuthentication
-        $AutoD_VD_WindowsAuthentication = $EWS.WindowsAuthentication
-        if ($AutoD_VD_WindowsAuthentication -eq "True") {
-            $AutoD_VD_WindowsAuthenticationColor = "green"
+        $Script:AutoD_VD_Identity = $EWS.Identity
+        $Script:AutoD_VD_Name = $EWS.Name
+        $Script:AutoD_VD_InternalAuthenticationMethods = $EWS.InternalAuthenticationMethods
+        $Script:AutoD_VD_ExternalAuthenticationMethods = $EWS.ExternalAuthenticationMethods
+        $Script:AutoD_VD_WSAuthentication = $EWS.WSSecurityAuthentication
+        $Script:AutoD_VD_WSAuthenticationColor = "green"
+        $Script:AutoD_VD_OAuthAuthentication = $EWS.OAuthAuthentication
+        $Script:AutoD_VD_WindowsAuthentication = $EWS.WindowsAuthentication
+        if ($Script:AutoD_VD_WindowsAuthentication -eq "True") {
+            $Script:AutoD_VD_WindowsAuthenticationColor = "green"
         } else {
-            $AutoD_VD_WindowsAuthenticationColor = "red"
+            $Script:AutoD_VD_WindowsAuthenticationColor = "red"
         }
-        $AutoD_VD_InternalNblBypassUrl = $EWS.InternalNblBypassUrl
-        $AutoD_VD_InternalUrl = $EWS.InternalUrl
-        $AutoD_VD_ExternalUrl = $EWS.ExternalUrl
+        $Script:AutoD_VD_InternalNblBypassUrl = $EWS.InternalNblBypassUrl
+        $Script:AutoD_VD_InternalUrl = $EWS.InternalUrl
+        $Script:AutoD_VD_ExternalUrl = $EWS.ExternalUrl
     }
     Write-Host -ForegroundColor White "`n  ExternalAuthenticationMethods"
     if ($AutoDiscoveryVirtualDirectoryOAuth.ExternalAuthenticationMethods -like "*OAuth*") {
@@ -551,7 +545,7 @@ function AutoDVirtualDCheckOauth {
 function EWSVirtualDirectoryCheckOAuth {
     Write-Host -ForegroundColor Green " Get-WebServicesVirtualDirectory  -Server $($server)| Select Identity,Name,ExchangeVersion,*Authentication*,*url"
     PrintDynamicWidthLine
-    $WebServicesVirtualDirectoryOAuth = Get-WebServicesVirtualDirectory -Server $server | Select-Object Identity, Name, ExchangeVersion, *Authentication*, *url
+    FetchEWSInformation
     $W = $WebServicesVirtualDirectoryOAuth | Format-List
     $W
     EWSVirtualDirectoryCheckOAuthHtmlHead
@@ -565,52 +559,52 @@ function EWSVirtualDirectoryCheckOAuth {
         foreach ( $EWS in $WebServicesVirtualDirectoryOAuth) {
             Write-Host " $($EWS.Identity) "
             Write-Host -ForegroundColor Green "  InternalAuthenticationMethods Include OAuth Authentication Method "
-            $EwsVDIdentity = $EWS.Identity
-            $EwsVDName = $EWS.Name
-            $EwsVDInternalAuthenticationMethods = $EWS.InternalAuthenticationMethods
-            $EwsVDExternalAuthenticationMethods = $EWS.ExternalAuthenticationMethods
-            $EwsVD_WSAuthentication = $EWS.WSSecurityAuthentication
-            $EwsVD_WSAuthenticationColor = "green"
-            $EwsVDWindowsAuthentication = $EWS.WindowsAuthentication
-            $EwsVDOAuthAuthentication = $EWS.OAuthAuthentication
-            if ($EwsVDWindowsAuthentication -eq "True") {
-                $EwsVDWindowsAuthenticationColor = "green"
+            $Script:EwsVDIdentity = $EWS.Identity
+            $Script:EwsVDName = $EWS.Name
+            $Script:EwsVDInternalAuthenticationMethods = $EWS.InternalAuthenticationMethods
+            $Script:EwsVDExternalAuthenticationMethods = $EWS.ExternalAuthenticationMethods
+            $Script:EwsVD_WSAuthentication = $EWS.WSSecurityAuthentication
+            $Script:EwsVD_WSAuthenticationColor = "green"
+            $Script:EwsVDWindowsAuthentication = $EWS.WindowsAuthentication
+            $Script:EwsVDOAuthAuthentication = $EWS.OAuthAuthentication
+            if ($Script:EwsVDWindowsAuthentication -eq "True") {
+                $Script:EwsVDWindowsAuthenticationColor = "green"
             } else {
-                $EWS_DWindowsAuthenticationColor = "red"
+                $Script:EWS_VDWindowsAuthenticationColor = "red"
             }
             if ($EwsVDOAuthAuthentication -eq "True") {
-                $EwsVDW_OAuthAuthenticationColor = "green"
+                $Script:EwsVDW_OAuthAuthenticationColor = "green"
             } else {
-                $EWS_DOAuthAuthenticationColor = "red"
+                $Script:EWS_DOAuthAuthenticationColor = "red"
             }
-            $EwsVDInternalNblBypassUrl = $EWS.InternalNblBypassUrl
-            $EwsVDInternalUrl = $EWS.InternalUrl
-            $EwsVDExternalUrl = $EWS.ExternalUrl
+            $Script:EwsVDInternalNblBypassUrl = $EWS.InternalNblBypassUrl
+            $Script:EwsVDInternalUrl = $EWS.InternalUrl
+            $Script:EwsVDExternalUrl = $EWS.ExternalUrl
             EWSVirtualDirectoryCheckOAuthHtmlOk
         }
     } else {
         Write-Host -ForegroundColor Red "  InternalAuthenticationMethods seems not to include OAuth Authentication Method."
-        $EwsVDIdentity = $EWS.Identity
-        $EwsVDName = $EWS.Name
-        $EwsVDInternalAuthenticationMethods = $EWS.InternalAuthenticationMethods
-        $EwsVDExternalAuthenticationMethods = $EWS.ExternalAuthenticationMethods
-        $EwsVD_WSAuthentication = $EWS.WSSecurityAuthentication
-        $EwsVD_WSAuthenticationColor = "green"
-        $EwsVDWindowsAuthentication = $EWS.WindowsAuthentication
-        $EwsVDOAuthAuthentication = $EWS.OAuthAuthentication
-        if ($EwsVDWindowsAuthentication -eq "True") {
-            $EwsVDWindowsAuthenticationColor = "green"
+        $Script:EwsVDIdentity = $EWS.Identity
+        $Script:EwsVDName = $EWS.Name
+        $Script:EwsVDInternalAuthenticationMethods = $EWS.InternalAuthenticationMethods
+        $Script:EwsVDExternalAuthenticationMethods = $EWS.ExternalAuthenticationMethods
+        $Script:EwsVD_WSAuthentication = $EWS.WSSecurityAuthentication
+        $Script:EwsVD_WSAuthenticationColor = "green"
+        $Script:EwsVDWindowsAuthentication = $EWS.WindowsAuthentication
+        $Script:EwsVDOAuthAuthentication = $EWS.OAuthAuthentication
+        if ($Script:EwsVDWindowsAuthentication -eq "True") {
+            $Script:EwsVDWindowsAuthenticationColor = "green"
         } else {
-            $EWS_DWindowsAuthenticationColor = "red"
+            $Script:EWS_DWindowsAuthenticationColor = "red"
         }
         if ($EwsVDOAuthAuthentication -eq "True") {
-            $EwsVDW_OAuthAuthenticationColor = "green"
+            $Script:EwsVDW_OAuthAuthenticationColor = "green"
         } else {
-            $EWS_DOAuthAuthenticationColor = "red"
+            $Script:EWS_DOAuthAuthenticationColor = "red"
         }
-        $EwsVDInternalNblBypassUrl = $EWS.InternalNblBypassUrl
-        $EwsVDInternalUrl = $EWS.InternalUrl
-        $EwsVDExternalUrl = $EWS.ExternalUrl
+        $Script:EwsVDInternalNblBypassUrl = $EWS.InternalNblBypassUrl
+        $Script:EwsVDInternalUrl = $EWS.InternalUrl
+        $Script:EwsVDExternalUrl = $EWS.ExternalUrl
         EWSVirtualDirectoryCheckOAuthHtmlNotOk
     }
     Write-Host -ForegroundColor White "`n  ExternalAuthenticationMethods"

@@ -1,18 +1,5 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Variables are being used in functions')]
-param (
-    [Parameter(Mandatory = $false)]
-    $TestingDAuthConfiguration = "---------------------------------------Testing DAuth Configuration-----------------------------------------------",
-    $TestingOAuthConfiguration = " ---------------------------------------Testing OAuth Configuration----------------------------------------------- ",
-    $CollectingExoAvailabilityInformation = " Collecting Exchange Online Availability Information",
-    $ExchangeOnlinePowershellModuleMessage = "`n Exchange Online Powershell Module is required to Check Free Busy Configuration on Exchange Online side. Installing Module",
-    $ExchangeOnlineModuleAvailableMessage = "`n ExchangeOnlineManagement module is available.",
-    $TestingExoDAuthConfiguration = " ---------------------------------------Testing DAuth Configuration----------------------------------------------- ",
-    $TestingExoOAuthConfiguration = " ---------------------------------------Testing OAuth Configuration----------------------------------------------- ",
-    $ThatIsAllForTheExchangeOnlineSide = " That is all for the Exchange Online Side"
-)
 function PrintDynamicWidthLine {
     $screenWidth = $host.UI.RawUI.WindowSize.Width
     if ($screenWidth -gt 180) {
@@ -77,8 +64,6 @@ function ShowParameters() {
     Write-Host -ForegroundColor Green "  $UserOnPrem"
     Write-Host -ForegroundColor White " Exchange Online Mailbox:"
     Write-Host -ForegroundColor Green "  $UserOnline"
-    Write-Host -ForegroundColor White " Server:"
-    Write-Host -ForegroundColor Green "  $Server"
     showParametersHtml
 }
 function hostOutputIntraOrgConEnabled($Auth) {

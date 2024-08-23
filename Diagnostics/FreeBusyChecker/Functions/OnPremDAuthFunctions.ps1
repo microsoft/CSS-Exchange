@@ -1,10 +1,5 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Variables are being used in functions')]
-param (
-    [Parameter(Mandatory = $false)]
-    [String] $OrgRelTarGetAutoDiscoverEpr
-)
 function OrgRelCheck($OrgRelParameter) {
     PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " Get-OrganizationRelationship  | Where{($_.DomainNames -like $ExchangeOnlineDomain )} | Select Identity,DomainNames,FreeBusy*,TarGet*,Enabled, ArchiveAccessEnabled"
@@ -109,46 +104,46 @@ function FedInfoCheck {
     Write-Host -ForegroundColor White   "  Domain Names: "
     if ($FedInfo.DomainNames -like "*$ExchangeOnlineDomain*") {
         Write-Host -ForegroundColor Green "   Domain Names include the Exchange Online Domain "$ExchangeOnlineDomain
-        $tdDomainNamesColor = "green"
-        $tdDomainNamesFL = "Domain Names include the Exchange Online Domain $ExchangeOnlineDomain"
+        $Script:tdDomainNamesColor = "green"
+        $Script:tdDomainNamesFL = "Domain Names include the Exchange Online Domain $ExchangeOnlineDomain"
     } else {
         Write-Host -ForegroundColor Red "   Domain Names seem not to include the Exchange Online Domain "$ExchangeOnlineDomain
         Write-Host  "   Domain Names: "$FedInfo.DomainNames
-        $tdDomainNamesColor = "Red"
-        $tdDomainNamesFL = "Domain Names seem not to include the Exchange Online Domain: $ExchangeOnlineDomain"
+        $Script:tdDomainNamesColor = "Red"
+        $Script:tdDomainNamesFL = "Domain Names seem not to include the Exchange Online Domain: $ExchangeOnlineDomain"
     }
     Write-Host  -ForegroundColor White  "  TokenIssuerUris: "
     if ($FedInfo.TokenIssuerUris -like "*urn:federation:MicrosoftOnline*") {
         Write-Host -ForegroundColor Green "  "  $FedInfo.TokenIssuerUris
-        $tdTokenIssuerUrisColor = "green"
-        $tdTokenIssuerUrisFL = $FedInfo.TokenIssuerUris
+        $Script:tdTokenIssuerUrisColor = "green"
+        $Script:tdTokenIssuerUrisFL = $FedInfo.TokenIssuerUris
     } else {
         Write-Host "   " $FedInfo.TokenIssuerUris
         Write-Host  -ForegroundColor Red "   TokenIssuerUris should be urn:federation:MicrosoftOnline"
-        $tdTokenIssuerUrisColor = "red"
-        $tdTokenIssuerUrisFL = "   TokenIssuerUris should be urn:federation:MicrosoftOnline"
+        $Script:tdTokenIssuerUrisColor = "red"
+        $Script:tdTokenIssuerUrisFL = "   TokenIssuerUris should be urn:federation:MicrosoftOnline"
     }
     Write-Host -ForegroundColor White   "  TarGetApplicationUri:"
     if ($FedInfo.TarGetApplicationUri -like "Outlook.com") {
         Write-Host -ForegroundColor Green "  "$FedInfo.TarGetApplicationUri
-        $tdTarGetApplicationUriColor = "green"
-        $tdTarGetApplicationUriFL = $FedInfo.TarGetApplicationUri
+        $Script:tdTarGetApplicationUriColor = "green"
+        $Script:tdTarGetApplicationUriFL = $FedInfo.TarGetApplicationUri
     } else {
         Write-Host -ForegroundColor Red "   "$FedInfo.TarGetApplicationUri
         Write-Host -ForegroundColor Red   "   TarGetApplicationUri should be Outlook.com"
-        $tdTarGetApplicationUriColor = "red"
-        $tdTarGetApplicationUriFL = "   TarGetApplicationUri should be Outlook.com"
+        $Script:tdTarGetApplicationUriColor = "red"
+        $Script:tdTarGetApplicationUriFL = "   TarGetApplicationUri should be Outlook.com"
     }
     Write-Host -ForegroundColor White   "  TarGetAutoDiscoverEpr:"
     if ($FedInfo.TarGetAutoDiscoverEpr -like "https://AutoDiscover-s.outlook.com/AutoDiscover/AutoDiscover.svc/WSSecurity") {
         Write-Host -ForegroundColor Green "   "$FedInfo.TarGetAutoDiscoverEpr
-        $tdTarGetAutoDiscoverEprColor = "green"
-        $tdTarGetAutoDiscoverEprFL = $FedInfo.TarGetAutoDiscoverEpr
+        $Script:tdTarGetAutoDiscoverEprColor = "green"
+        $Script:tdTarGetAutoDiscoverEprFL = $FedInfo.TarGetAutoDiscoverEpr
     } else {
         Write-Host -ForegroundColor Red "   "$FedInfo.TarGetAutoDiscoverEpr
         Write-Host -ForegroundColor Red   " TarGetAutoDiscoverEpr should be https://AutoDiscover-s.outlook.com/AutoDiscover/AutoDiscover.svc/WSSecurity"
-        $tdTarGetAutoDiscoverEprColor = "red"
-        $tdTarGetAutoDiscoverEprFL = "   TarGetAutoDiscoverEpr should be https://AutoDiscover-s.outlook.com/AutoDiscover/AutoDiscover.svc/WSSecurity"
+        $Script:tdTarGetAutoDiscoverEprColor = "red"
+        $Script:tdTarGetAutoDiscoverEprFL = "   TarGetAutoDiscoverEpr should be https://AutoDiscover-s.outlook.com/AutoDiscover/AutoDiscover.svc/WSSecurity"
     }
     Write-Host -ForegroundColor White "  Federation Information TarGetApplicationUri vs Organization Relationship TarGetApplicationUri "
     if ($FedInfo.TarGetApplicationUri -like "Outlook.com") {
@@ -156,14 +151,14 @@ function FedInfoCheck {
             Write-Host -ForegroundColor Green "   => Federation Information TarGetApplicationUri matches the Organization Relationship TarGetApplicationUri "
             Write-Host  "       Organization Relationship TarGetApplicationUri:"  $OrgRel.TarGetApplicationUri
             Write-Host  "       Federation Information TarGetApplicationUri:   "  $FedInfo.TarGetApplicationUri
-            $tdFederationInformationTAColor = "green"
-            $tdFederationInformationTA_FL = " => Federation Information TarGetApplicationUri matches the Organization Relationship TarGetApplicationUri"
+            $Script:tdFederationInformationTAColor = "green"
+            $Script:tdFederationInformationTA_FL = " => Federation Information TarGetApplicationUri matches the Organization Relationship TarGetApplicationUri"
         } else {
             Write-Host -ForegroundColor Red "   => Federation Information TarGetApplicationUri should be Outlook.com and match the Organization Relationship TarGetApplicationUri "
             Write-Host  "       Organization Relationship TarGetApplicationUri:"  $OrgRel.TarGetApplicationUri
             Write-Host  "       Federation Information TarGetApplicationUri:   "  $FedInfo.TarGetApplicationUri
-            $tdFederationInformationTAColor = "red"
-            $tdFederationInformationTA_FL = " => Federation Information TarGetApplicationUri should be Outlook.com and match the Organization Relationship TarGetApplicationUri"
+            $Script:tdFederationInformationTAColor = "red"
+            $Script:tdFederationInformationTA_FL = " => Federation Information TarGetApplicationUri should be Outlook.com and match the Organization Relationship TarGetApplicationUri"
         }
     }
     Write-Host -ForegroundColor White  "  Federation Information TarGetAutoDiscoverEpr vs Organization Relationship TarGetAutoDiscoverEpr "
@@ -171,14 +166,14 @@ function FedInfoCheck {
         Write-Host -ForegroundColor Green "   => Federation Information TarGetAutoDiscoverEpr matches the Organization Relationship TarGetAutoDiscoverEpr "
         Write-Host  "       Organization Relationship TarGetAutoDiscoverEpr:"  $OrgRel.TarGetAutoDiscoverEpr
         Write-Host  "       Federation Information TarGetAutoDiscoverEpr:   "  $FedInfo.TarGetAutoDiscoverEpr
-        $tdTarGetAutoDiscoverEprVSColor = "green"
-        $tdTarGetAutoDiscoverEprVS_FL = "=> Federation Information TarGetAutoDiscoverEpr matches the Organization Relationship TarGetAutoDiscoverEpr"
+        $Script:tdTarGetAutoDiscoverEprVSColor = "green"
+        $Script:tdTarGetAutoDiscoverEprVS_FL = "=> Federation Information TarGetAutoDiscoverEpr matches the Organization Relationship TarGetAutoDiscoverEpr"
     } else {
         Write-Host -ForegroundColor Red "   => Federation Information TarGetAutoDiscoverEpr should match the Organization Relationship TarGetAutoDiscoverEpr"
         Write-Host  "       Organization Relationship TarGetAutoDiscoverEpr:"  $OrgRel.TarGetAutoDiscoverEpr
         Write-Host  "       Federation Information TarGetAutoDiscoverEpr:   "  $FedInfo.TarGetAutoDiscoverEpr
-        $tdTarGetAutoDiscoverEprVSColor = "red"
-        $tdTarGetAutoDiscoverEprVS_FL = "=> Federation Information TarGetAutoDiscoverEpr should match the Organization Relationship TarGetAutoDiscoverEpr"
+        $Script:tdTarGetAutoDiscoverEprVSColor = "red"
+        $Script:tdTarGetAutoDiscoverEprVS_FL = "=> Federation Information TarGetAutoDiscoverEpr should match the Organization Relationship TarGetAutoDiscoverEpr"
     }
     Write-Host -ForegroundColor Yellow "`n  Reference: https://learn.microsoft.com/en-us/exchange/configure-a-federation-trust-exchange-2013-help#what-do-you-need-to-know-before-you-begin"
     PrintDynamicWidthLine
@@ -190,10 +185,10 @@ function FedInfoCheck {
         }
         $FedInfoDomainNames += $domain
     }
-    $aux = $FedInfo.DomainNames
-    $FedInfoTokenIssuerUris = $FedInfo.TokenIssuerUris
-    $FedInfoTarGetAutoDiscoverEpr = $FedInfo.TarGetAutoDiscoverEpr
-    $FedInfoTarGetApplicationUri = $FedInfo.TarGetApplicationUri
+    $Script:aux = $FedInfo.DomainNames
+    $Script:FedInfoTokenIssuerUris = $FedInfo.TokenIssuerUris
+    $Script:FedInfoTarGetAutoDiscoverEpr = $FedInfo.TarGetAutoDiscoverEpr
+    $Script:FedInfoTarGetApplicationUri = $FedInfo.TarGetApplicationUri
     FedInfoHtml
 }
 function FedTrustCheck {
@@ -209,71 +204,71 @@ function FedTrustCheck {
     Write-Host -ForegroundColor White " Federation Trust Application Uri:"
     if ($FedTrust.ApplicationUri -like "FYDIBOHF25SPDLT.$ExchangeOnpremDomain") {
         Write-Host -ForegroundColor Green " " $FedTrust.ApplicationUri
-        $tdFedTrustApplicationUriColor = "green"
-        $tdFedTrustApplicationUriFL = $FedTrust.ApplicationUri
+        $Script:tdFedTrustApplicationUriColor = "green"
+        $Script:tdFedTrustApplicationUriFL = $FedTrust.ApplicationUri
     } else {
         Write-Host -ForegroundColor Red "  Federation Trust Application Uri Should be "$FedTrust.ApplicationUri
-        $tdFedTrustApplicationUriColor = "red"
-        $tdFedTrustApplicationUriFL = "  Federation Trust Application Uri Should be $FedTrust.ApplicationUri"
+        $Script:tdFedTrustApplicationUriColor = "red"
+        $Script:tdFedTrustApplicationUriFL = "  Federation Trust Application Uri Should be $FedTrust.ApplicationUri"
     }
     Write-Host -ForegroundColor White " TokenIssuerUri:"
     if ($FedTrust.TokenIssuerUri.AbsoluteUri -like "urn:federation:MicrosoftOnline") {
         Write-Host -ForegroundColor Green " "$FedTrust.TokenIssuerUri.AbsoluteUri
-        $tdFedTrustTokenIssuerUriColor = "green"
-        $tdFedTrustTokenIssuerUriFL = $FedTrust.TokenIssuerUri.AbsoluteUri
+        $Script:tdFedTrustTokenIssuerUriColor = "green"
+        $Script:tdFedTrustTokenIssuerUriFL = $FedTrust.TokenIssuerUri.AbsoluteUri
     } else {
         Write-Host -ForegroundColor Red " Federation Trust TokenIssuerUri should be urn:federation:MicrosoftOnline"
-        $tdFedTrustTokenIssuerUriColor = "red"
-        $tdFedTrustTokenIssuerFL = " Federation Trust TokenIssuerUri is currently $FedTrust.TokenIssuerUri.AbsoluteUri but should be urn:federation:MicrosoftOnline"
+        $Script:tdFedTrustTokenIssuerUriColor = "red"
+        $Script:tdFedTrustTokenIssuerFL = " Federation Trust TokenIssuerUri is currently $FedTrust.TokenIssuerUri.AbsoluteUri but should be urn:federation:MicrosoftOnline"
     }
     Write-Host -ForegroundColor White " Federation Trust Certificate Expiry:"
     if ($FedTrust.OrgCertificate.NotAfter.Date -gt $CurrentTime) {
         Write-Host -ForegroundColor Green "  Not Expired"
         Write-Host  "   - Expires on " $FedTrust.OrgCertificate.NotAfter.DateTime
-        $tdFedTrustOrgCertificateNotAfterDateColor = "green"
-        $tdFedTrustOrgCertificateNotAfterDateFL = $FedTrust.OrgCertificate.NotAfter.DateTime
+        $Script:tdFedTrustOrgCertificateNotAfterDateColor = "green"
+        $Script:tdFedTrustOrgCertificateNotAfterDateFL = $FedTrust.OrgCertificate.NotAfter.DateTime
     } else {
         Write-Host -ForegroundColor Red " Federation Trust Certificate is Expired on " $FedTrust.OrgCertificate.NotAfter.DateTime
-        $tdFedTrustOrgCertificateNotAfterDateColor = "red"
-        $tdFedTrustOrgCertificateNotAfterDateFL = $FedTrust.OrgCertificate.NotAfter.DateTime
+        $Script:tdFedTrustOrgCertificateNotAfterDateColor = "red"
+        $Script:tdFedTrustOrgCertificateNotAfterDateFL = $FedTrust.OrgCertificate.NotAfter.DateTime
     }
     Write-Host -ForegroundColor White " `Federation Trust Token Issuer Certificate Expiry:"
     if ($FedTrust.TokenIssuerCertificate.NotAfter.DateTime -gt $CurrentTime) {
         Write-Host -ForegroundColor Green "  Not Expired"
         Write-Host  "   - Expires on " $FedTrust.TokenIssuerCertificate.NotAfter.DateTime
-        $tdFedTrustTokenIssuerCertificateNotAfterDateTimeColor = "green"
-        $tdFedTrustTokenIssuerCertificateNotAfterDateTimeFL = $FedTrust.TokenIssuerCertificate.NotAfter.DateTime
+        $Script:tdFedTrustTokenIssuerCertificateNotAfterDateTimeColor = "green"
+        $Script:tdFedTrustTokenIssuerCertificateNotAfterDateTimeFL = $FedTrust.TokenIssuerCertificate.NotAfter.DateTime
     } else {
         Write-Host -ForegroundColor Red "  Federation Trust TokenIssuerCertificate Expired on " $FedTrust.TokenIssuerCertificate.NotAfter.DateTime
-        $tdFedTrustTokenIssuerCertificateNotAfterDateTimeColor = "red"
-        $tdFedTrustTokenIssuerCertificateNotAfterDateTimeFL = $FedTrust.TokenIssuerCertificate.NotAfter.DateTime
+        $Script:tdFedTrustTokenIssuerCertificateNotAfterDateTimeColor = "red"
+        $Script:tdFedTrustTokenIssuerCertificateNotAfterDateTimeFL = $FedTrust.TokenIssuerCertificate.NotAfter.DateTime
     }
     $FedTrustTokenIssuerMetadataEpr = "https://nexus.microsoftonline-p.com/FederationMetadata/2006-12/FederationMetadata.xml"
     Write-Host -ForegroundColor White " `Token Issuer Metadata EPR:"
     if ($FedTrust.TokenIssuerMetadataEpr.AbsoluteUri -like $FedTrustTokenIssuerMetadataEpr) {
         Write-Host -ForegroundColor Green "  Token Issuer Metadata EPR is " $FedTrust.TokenIssuerMetadataEpr.AbsoluteUri
         #test if it can be reached
-        $tdFedTrustTokenIssuerMetadataEprAbsoluteUriColor = "green"
-        $tdFedTrustTokenIssuerMetadataEprAbsoluteUriFL = $FedTrust.TokenIssuerMetadataEpr.AbsoluteUri
+        $Script:tdFedTrustTokenIssuerMetadataEprAbsoluteUriColor = "green"
+        $Script:tdFedTrustTokenIssuerMetadataEprAbsoluteUriFL = $FedTrust.TokenIssuerMetadataEpr.AbsoluteUri
     } else {
         Write-Host -ForegroundColor Red " Token Issuer Metadata EPR is Not " $FedTrust.TokenIssuerMetadataEpr.AbsoluteUri
-        $tdFedTrustTokenIssuerMetadataEprAbsoluteUriColor = "red"
-        $tdFedTrustTokenIssuerMetadataEprAbsoluteUriFL = $FedTrust.TokenIssuerMetadataEpr.AbsoluteUri
+        $Script:tdFedTrustTokenIssuerMetadataEprAbsoluteUriColor = "red"
+        $Script:tdFedTrustTokenIssuerMetadataEprAbsoluteUriFL = $FedTrust.TokenIssuerMetadataEpr.AbsoluteUri
     }
     $FedTrustTokenIssuerEpr = "https://login.microsoftonline.com/extSTS.srf"
     Write-Host -ForegroundColor White " Token Issuer EPR:"
     if ($FedTrust.TokenIssuerEpr.AbsoluteUri -like $FedTrustTokenIssuerEpr) {
         Write-Host -ForegroundColor Green "  Token Issuer EPR is:" $FedTrust.TokenIssuerEpr.AbsoluteUri
         #test if it can be reached
-        $tdFedTrustTokenIssuerEprAbsoluteUriColor = "green"
-        $tdFedTrustTokenIssuerEprAbsoluteUriFL = $FedTrust.TokenIssuerEpr.AbsoluteUri
+        $Script:tdFedTrustTokenIssuerEprAbsoluteUriColor = "green"
+        $Script:tdFedTrustTokenIssuerEprAbsoluteUriFL = $FedTrust.TokenIssuerEpr.AbsoluteUri
     } else {
         Write-Host -ForegroundColor Red "  Token Issuer EPR is Not:" $FedTrust.TokenIssuerEpr.AbsoluteUri
-        $tdFedTrustTokenIssuerEprAbsoluteUriColor = "red"
-        $tdFedTrustTokenIssuerEprAbsoluteUriFL = $FedTrust.TokenIssuerEpr.AbsoluteUri
+        $Script:tdFedTrustTokenIssuerEprAbsoluteUriColor = "red"
+        $Script:tdFedTrustTokenIssuerEprAbsoluteUriFL = $FedTrust.TokenIssuerEpr.AbsoluteUri
     }
-    $FedInfoTokenIssuerUris = $FedInfo.TokenIssuerUris
-    $FedInfoTarGetApplicationUri = $FedInfo.TarGetApplicationUri
+    $Script:FedInfoTokenIssuerUris = $FedInfo.TokenIssuerUris
+    $Script:FedInfoTarGetApplicationUri = $FedInfo.TarGetApplicationUri
     $script:FedInfoTarGetAutoDiscoverEpr = $FedInfo.TarGetAutoDiscoverEpr
     fedTrustHtml
     Write-Host -ForegroundColor Yellow "`n  Reference: https://learn.microsoft.com/en-us/exchange/configure-a-federation-trust-exchange-2013-help"
@@ -287,65 +282,65 @@ function AvailabilityAddressSpaceCheck {
         $AvailabilityAddressSpace = Get-AvailabilityAddressSpace $ExchangeOnlineDomain -ErrorAction SilentlyContinue | Select-Object ForestName, UserName, UseServiceAccount, AccessMethod, ProxyUrl, Name
     }
     $AvailabilityAddressSpace
-    $tdAvailabilityAddressSpaceName = $AvailabilityAddressSpace.Name
+    $Script:tdAvailabilityAddressSpaceName = $AvailabilityAddressSpace.Name
     PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " Summary - On-Prem Availability Address Space Check"
     PrintDynamicWidthLine
     Write-Host -ForegroundColor White " ForestName: "
     if ($AvailabilityAddressSpace.ForestName -like $ExchangeOnlineDomain) {
         Write-Host -ForegroundColor Green " " $AvailabilityAddressSpace.ForestName
-        $tdAvailabilityAddressSpaceForestName = $AvailabilityAddressSpace.ForestName
-        $tdAvailabilityAddressSpaceForestColor = "green"
+        $Script:tdAvailabilityAddressSpaceForestName = $AvailabilityAddressSpace.ForestName
+        $Script:tdAvailabilityAddressSpaceForestColor = "green"
     } else {
         Write-Host -ForegroundColor Red "  ForestName appears not to be correct."
         Write-Host -ForegroundColor White " Should contain the " $ExchangeOnlineDomain
-        $tdAvailabilityAddressSpaceForestName = $AvailabilityAddressSpace.ForestName
-        $tdAvailabilityAddressSpaceForestColor = "red"
+        $Script:tdAvailabilityAddressSpaceForestName = $AvailabilityAddressSpace.ForestName
+        $Script:tdAvailabilityAddressSpaceForestColor = "red"
     }
     Write-Host -ForegroundColor White " UserName: "
     if ($AvailabilityAddressSpace.UserName -like "") {
         Write-Host -ForegroundColor Green "  Blank"
-        $tdAvailabilityAddressSpaceUserName = " Blank"
-        $tdAvailabilityAddressSpaceUserNameColor = "green"
+        $Script:tdAvailabilityAddressSpaceUserName = " Blank"
+        $Script:tdAvailabilityAddressSpaceUserNameColor = "green"
     } else {
         Write-Host -ForegroundColor Red " UserName is NOT correct. "
         Write-Host -ForegroundColor White "  Normally it should be blank"
-        $tdAvailabilityAddressSpaceUserName = $AvailabilityAddressSpace.UserName
-        $tdAvailabilityAddressSpaceUserNameColor = "red"
+        $Script:tdAvailabilityAddressSpaceUserName = $AvailabilityAddressSpace.UserName
+        $Script:tdAvailabilityAddressSpaceUserNameColor = "red"
     }
     Write-Host -ForegroundColor White " UseServiceAccount: "
     if ($AvailabilityAddressSpace.UseServiceAccount -like "True") {
         Write-Host -ForegroundColor Green "  True"
-        $tdAvailabilityAddressSpaceUseServiceAccount = $AvailabilityAddressSpace.UseServiceAccount
-        $tAvailabilityAddressSpaceUseServiceAccountColor = "green"
+        $Script:tdAvailabilityAddressSpaceUseServiceAccount = $AvailabilityAddressSpace.UseServiceAccount
+        $Script:tdAvailabilityAddressSpaceUseServiceAccountColor = "green"
     } else {
         Write-Host -ForegroundColor Red "  UseServiceAccount appears not to be correct."
         Write-Host -ForegroundColor White "  Should be True"
-        $tdAvailabilityAddressSpaceUseServiceAccount = $AvailabilityAddressSpace.UseServiceAccount
-        $tAvailabilityAddressSpaceUseServiceAccountColor = "red"
+        $Script:tdAvailabilityAddressSpaceUseServiceAccount = $AvailabilityAddressSpace.UseServiceAccount
+        $Script:tdAvailabilityAddressSpaceUseServiceAccountColor = "red"
     }
     Write-Host -ForegroundColor White " AccessMethod:"
     if ($AvailabilityAddressSpace.AccessMethod -like "InternalProxy") {
         Write-Host -ForegroundColor Green "  InternalProxy"
-        $tdAvailabilityAddressSpaceAccessMethod = $AvailabilityAddressSpace.AccessMethod
-        $tdAvailabilityAddressSpaceAccessMethodColor = "green"
+        $Script:tdAvailabilityAddressSpaceAccessMethod = $AvailabilityAddressSpace.AccessMethod
+        $Script:tdAvailabilityAddressSpaceAccessMethodColor = "green"
     } else {
         Write-Host -ForegroundColor Red " AccessMethod appears not to be correct."
         Write-Host -ForegroundColor White " Should be InternalProxy"
-        $tdAvailabilityAddressSpaceAccessMethod = $AvailabilityAddressSpace.AccessMethod
-        $tdAvailabilityAddressSpaceAccessMethodColor = "red"
+        $Script:tdAvailabilityAddressSpaceAccessMethod = $AvailabilityAddressSpace.AccessMethod
+        $Script:tdAvailabilityAddressSpaceAccessMethodColor = "red"
     }
     Write-Host -ForegroundColor White " ProxyUrl: "
-    $tdAvailabilityAddressSpaceProxyUrl = $AvailabilityAddressSpace.ProxyUrl
-    if ([String]::Equals($tdAvailabilityAddressSpaceProxyUrl, $Script:ExchangeOnPremEWS, [StringComparison]::OrdinalIgnoreCase)) {
+    $Script:tdAvailabilityAddressSpaceProxyUrl = $AvailabilityAddressSpace.ProxyUrl
+    if ([String]::Equals($Script:tdAvailabilityAddressSpaceProxyUrl, $Script:ExchangeOnPremEWS, [StringComparison]::OrdinalIgnoreCase)) {
         Write-Host -ForegroundColor Green " "$AvailabilityAddressSpace.ProxyUrl
-        #$tdAvailabilityAddressSpaceProxyUrl = $AvailabilityAddressSpace.ProxyUrl
-        $tdAvailabilityAddressSpaceProxyUrlColor = "green"
+        #$Script:tdAvailabilityAddressSpaceProxyUrl = $AvailabilityAddressSpace.ProxyUrl
+        $Script:tdAvailabilityAddressSpaceProxyUrlColor = "green"
     } else {
         Write-Host -ForegroundColor Red "  ProxyUrl appears not to be correct."
-        Write-Host -ForegroundColor White "  Should be $Script:ExchangeOnPremEWS[0] and not $tdAvailabilityAddressSpaceProxyUrl"
-        #$tdAvailabilityAddressSpaceProxyUrl = $AvailabilityAddressSpace.ProxyUrl
-        $tdAvailabilityAddressSpaceProxyUrlColor = "red"
+        Write-Host -ForegroundColor White "  Should be $Script:ExchangeOnPremEWS[0] and not $Script:tdAvailabilityAddressSpaceProxyUrl"
+        #$Script:tdAvailabilityAddressSpaceProxyUrl = $AvailabilityAddressSpace.ProxyUrl
+        $Script:tdAvailabilityAddressSpaceProxyUrlColor = "red"
     }
     Write-Host -ForegroundColor Yellow "`n  Reference: https://learn.microsoft.com/en-us/powershell/module/exchange/Get-availabilityaddressspace?view=exchange-ps"
     AvailabilityAddressSpaceHtml
@@ -354,7 +349,7 @@ function AutoDVirtualDCheck {
     PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " Get-AutoDiscoverVirtualDirectory -Server $($server) | Select Identity,Name,ExchangeVersion,*authentication*"
     PrintDynamicWidthLine
-    $Script:AutoDiscoveryVirtualDirectory = Get-AutoDiscoverVirtualDirectory -Server $server | Select-Object Identity, Name, ExchangeVersion, *authentication* -ErrorAction SilentlyContinue
+    FetchAutoDiscoverInformation
     $Script:AutoDiscoveryVirtualDirectory
     #$AutoDFL = $Script:AutoDiscoveryVirtualDirectory | Format-List
     $script:html += ""
@@ -366,49 +361,49 @@ function AutoDVirtualDCheck {
         foreach ( $ser in $Script:AutoDiscoveryVirtualDirectory) {
             Write-Host " $($ser.Identity) "
             Write-Host -ForegroundColor Green "  WSSecurityAuthentication: $($ser.WSSecurityAuthentication)"
-            $AutoD_VD_Identity = $ser.Identity
-            $AutoD_VD_Name = $ser.Name
-            $AutoD_VD_InternalAuthenticationMethods = $ser.InternalAuthenticationMethods
-            $AutoD_VD_ExternalAuthenticationMethods = $ser.ExternalAuthenticationMethods
-            $AutoD_VD_WSAuthentication = $ser.WSSecurityAuthentication
-            $AutoD_VD_WSAuthenticationColor = "green"
-            $AutoD_VD_WindowsAuthentication = $ser.WindowsAuthentication
-            if ($AutoD_VD_WindowsAuthentication -eq "True") {
-                $AutoD_VD_WindowsAuthenticationColor = "green"
+            $Script:AutoD_VD_Identity = $ser.Identity
+            $Script:AutoD_VD_Name = $ser.Name
+            $Script:AutoD_VD_InternalAuthenticationMethods = $ser.InternalAuthenticationMethods
+            $Script:AutoD_VD_ExternalAuthenticationMethods = $ser.ExternalAuthenticationMethods
+            $Script:AutoD_VD_WSAuthentication = $ser.WSSecurityAuthentication
+            $Script:AutoD_VD_WSAuthenticationColor = "green"
+            $Script:AutoD_VD_WindowsAuthentication = $ser.WindowsAuthentication
+            if ($Script:AutoD_VD_WindowsAuthentication -eq "True") {
+                $Script:AutoD_VD_WindowsAuthenticationColor = "green"
             } else {
-                $AutoD_VD_WindowsAuthenticationColor = "red"
+                $Script:AutoD_VD_WindowsAuthenticationColor = "red"
             }
-            $AutoD_VD_InternalNblBypassUrl = $ser.InternalNblBypassUrl
-            $AutoD_VD_InternalUrl = $ser.InternalUrl
-            $AutoD_VD_ExternalUrl = $ser.ExternalUrl
+            $Script:AutoD_VD_InternalNblBypassUrl = $ser.InternalNblBypassUrl
+            $Script:AutoD_VD_InternalUrl = $ser.InternalUrl
+            $Script:AutoD_VD_ExternalUrl = $ser.ExternalUrl
             autoDVDHtmlOK
-            $serWSSecurityAuthenticationColor = "Green"
+            $Script:serWSSecurityAuthenticationColor = "Green"
         }
     } else {
         Write-Host -ForegroundColor Red " WSSecurityAuthentication is NOT correct."
         foreach ( $ser in $Script:AutoDiscoveryVirtualDirectory) {
             Write-Host " $($ser.Identity)"
             Write-Host -ForegroundColor Red "  WSSecurityAuthentication: $($ser.WSSecurityAuthentication)"
-            $serWSSecurityAuthenticationColor = "Red"
+            $Script:serWSSecurityAuthenticationColor = "Red"
             Write-Host " $($ser.Identity) "
-            $AutoD_VD_Identity = $ser.Identity
-            $AutoD_VD_Name = $ser.Name
-            $AutoD_VD_InternalAuthenticationMethods = $ser.InternalAuthenticationMethods
-            $AutoD_VD_ExternalAuthenticationMethods = $ser.ExternalAuthenticationMethods
-            $AutoD_VD_WSAuthentication = $ser.WSSecurityAuthentication
-            $AutoD_VD_WSAuthenticationColor = "green"
-            $AutoD_VD_WindowsAuthentication = $ser.WindowsAuthentication
-            if ($AutoD_VD_WindowsAuthentication -eq "True") {
-                $AutoD_VD_WindowsAuthenticationColor = "green"
+            $Script:AutoD_VD_Identity = $ser.Identity
+            $Script:AutoD_VD_Name = $ser.Name
+            $Script:AutoD_VD_InternalAuthenticationMethods = $ser.InternalAuthenticationMethods
+            $Script:AutoD_VD_ExternalAuthenticationMethods = $ser.ExternalAuthenticationMethods
+            $Script:AutoD_VD_WSAuthentication = $ser.WSSecurityAuthentication
+            $Script:AutoD_VD_WSAuthenticationColor = "green"
+            $Script:AutoD_VD_WindowsAuthentication = $ser.WindowsAuthentication
+            if ($Script:AutoD_VD_WindowsAuthentication -eq "True") {
+                $Script:AutoD_VD_WindowsAuthenticationColor = "green"
             } else {
-                $AutoD_VD_WindowsAuthenticationColor = "red"
+                $Script:AutoD_VD_WindowsAuthenticationColor = "red"
             }
-            $AutoD_VD_InternalNblBypassUrl = $ser.InternalNblBypassUrl
-            $AutoD_VD_InternalUrl = $ser.InternalUrl
-            $AutoD_VD_ExternalUrl = $ser.ExternalUrl
+            $Script:AutoD_VD_InternalNblBypassUrl = $ser.InternalNblBypassUrl
+            $Script:AutoD_VD_InternalUrl = $ser.InternalUrl
+            $Script:AutoD_VD_ExternalUrl = $ser.ExternalUrl
             autoDVDHtmlNotOK
             Write-Host -ForegroundColor Green "  WSSecurityAuthentication: $($ser.WSSecurityAuthentication)"
-            $serWSSecurityAuthenticationColor = "Red"
+            $Script:serWSSecurityAuthenticationColor = "Red"
         }
         Write-Host -ForegroundColor White "  Should be True "
     }
@@ -431,7 +426,7 @@ function AutoDVirtualDCheck {
 function EWSVirtualDirectoryCheck {
     Write-Host -ForegroundColor Green " Get-WebServicesVirtualDirectory -Server $($server)| Select Identity,Name,ExchangeVersion,*Authentication*,*url"
     PrintDynamicWidthLine
-    $Script:WebServicesVirtualDirectory = Get-WebServicesVirtualDirectory -Server $server | Select-Object Identity, Name, ExchangeVersion, *Authentication*, *url -ErrorAction SilentlyContinue
+    FetchEWSInformation
     $Script:WebServicesVirtualDirectory
     PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " Summary - Get-WebServicesVirtualDirectory"
@@ -442,21 +437,21 @@ function EWSVirtualDirectoryCheck {
         foreach ( $EWS in $Script:WebServicesVirtualDirectory) {
             Write-Host " $($EWS.Identity)"
             Write-Host -ForegroundColor Green "  WSSecurityAuthentication: $($EWS.WSSecurityAuthentication) "
-            $EwsVDIdentity = $EWS.Identity
-            $EwsVDName = $EWS.Name
-            $EwsVDInternalAuthenticationMethods = $EWS.InternalAuthenticationMethods
-            $EwsVDExternalAuthenticationMethods = $EWS.ExternalAuthenticationMethods
-            $EwsVD_WSAuthentication = $EWS.WSSecurityAuthentication
-            $EwsVD_WSAuthenticationColor = "green"
-            $EwsVDWindowsAuthentication = $EWS.WindowsAuthentication
-            if ($EwsVDWindowsAuthentication -eq "True") {
-                $EwsVDWindowsAuthenticationColor = "green"
+            $Script:EwsVDIdentity = $EWS.Identity
+            $Script:EwsVDName = $EWS.Name
+            $Script:EwsVDInternalAuthenticationMethods = $EWS.InternalAuthenticationMethods
+            $Script:EwsVDExternalAuthenticationMethods = $EWS.ExternalAuthenticationMethods
+            $Script:EwsVD_WSAuthentication = $EWS.WSSecurityAuthentication
+            $Script:EwsVD_WSAuthenticationColor = "green"
+            $Script:EwsVDWindowsAuthentication = $EWS.WindowsAuthentication
+            if ($Script:EwsVDWindowsAuthentication -eq "True") {
+                $Script:EwsVDWindowsAuthenticationColor = "green"
             } else {
-                $EWS_DWindowsAuthenticationColor = "red"
+                $Script:EWS_DWindowsAuthenticationColor = "red"
             }
-            $EwsVDInternalNblBypassUrl = $EWS.InternalNblBypassUrl
-            $EwsVDInternalUrl = $EWS.InternalUrl
-            $EwsVDExternalUrl = $EWS.ExternalUrl
+            $Script:EwsVDInternalNblBypassUrl = $EWS.InternalNblBypassUrl
+            $Script:EwsVDInternalUrl = $EWS.InternalUrl
+            $Script:EwsVDExternalUrl = $EWS.ExternalUrl
             EwsVDHtmlOK
         }
     } else {
@@ -464,21 +459,21 @@ function EWSVirtualDirectoryCheck {
         foreach ( $EWS in $Script:AutoDiscoveryVirtualDirectory) {
             Write-Host " $($EWS.Identity) "
             Write-Host -ForegroundColor Red "  WSSecurityAuthentication: $($ser.WSSecurityAuthentication) "
-            $EwsVDIdentity = $EWS.Identity
-            $EwsVDName = $EWS.Name
-            $EwsVDInternalAuthenticationMethods = $EWS.InternalAuthenticationMethods
-            $EwsVDExternalAuthenticationMethods = $EWS.ExternalAuthenticationMethods
-            $EwsVD_WSAuthentication = $EWS.WSSecurityAuthentication
-            $EwsVD_WSAuthenticationColor = "green"
-            $EwsVDWindowsAuthentication = $EWS.WindowsAuthentication
-            if ($EwsVDWindowsAuthentication -eq "True") {
-                $EwsVDWindowsAuthenticationColor = "green"
+            $Script:EwsVDIdentity = $EWS.Identity
+            $Script:EwsVDName = $EWS.Name
+            $Script:EwsVDInternalAuthenticationMethods = $EWS.InternalAuthenticationMethods
+            $Script:EwsVDExternalAuthenticationMethods = $EWS.ExternalAuthenticationMethods
+            $Script:EwsVD_WSAuthentication = $EWS.WSSecurityAuthentication
+            $Script:EwsVD_WSAuthenticationColor = "green"
+            $Script:EwsVDWindowsAuthentication = $EWS.WindowsAuthentication
+            if ($Script:EwsVDWindowsAuthentication -eq "True") {
+                $Script:EwsVDWindowsAuthenticationColor = "green"
             } else {
-                $EWS_DWindowsAuthenticationColor = "red"
+                $Script:EWS_DWindowsAuthenticationColor = "red"
             }
-            $EwsVDInternalNblBypassUrl = $EWS.InternalNblBypassUrl
-            $EwsVDInternalUrl = $EWS.InternalUrl
-            $EwsVDExternalUrl = $EWS.ExternalUrl
+            $Script:EwsVDInternalNblBypassUrl = $EWS.InternalNblBypassUrl
+            $Script:EwsVDInternalUrl = $EWS.InternalUrl
+            $Script:EwsVDExternalUrl = $EWS.ExternalUrl
         }
         Write-Host -ForegroundColor White "  Should be True"
     }
@@ -500,7 +495,7 @@ function EWSVirtualDirectoryCheck {
 }
 function TestOrgRel {
     PrintDynamicWidthLine
-    $TestFail = 0
+    #$Script:TestFail = 0
     $OrgRelIdentity = $OrgRel.Identity
     $OrgRelTarGetApplicationUri = $OrgRel.TarGetApplicationUri
     if ( $OrgRelTarGetApplicationUri -like "Outlook.com" -OR $OrgRelTarGetApplicationUri -like "outlook.com") {
@@ -562,6 +557,9 @@ function TestFedTrust {
     PrintDynamicWidthLine
     $TestFedTrustFail = 0
     $a = Test-FederationTrust -UserIdentity $UserOnPrem -verbose -ErrorAction SilentlyContinue #fails the first time on multiple occasions so we have a ghost FedTrustCheck
+    if ($a) {
+        #Using to suppress waring for unused variable
+    }
     Write-Host -ForegroundColor Green  " Test-FederationTrust -UserIdentity $UserOnPrem -verbose"
     PrintDynamicWidthLine
     $TestFedTrust = Test-FederationTrust -UserIdentity $UserOnPrem -verbose -ErrorAction SilentlyContinue

@@ -22,6 +22,12 @@ How To Run:
 This script must be run as Administrator in Exchange Management Shell on an Exchange Server. You can provide no parameters, and the script will just run against Exchange On-Premises and Exchange Online to query for OAuth and DAuth configuration settings. It will compare existing values with standard values and provide details of what may not be correct.
 Please take note that though this script may output that a specific setting is not a standard setting, it does not mean that your configurations are incorrect. For example, DNS may be configured with specific mappings that this script cannot evaluate.
 
+To collect information for Exchange Online a connection to Exchange Online must be established before running the script using Connection Prefix "EO".
+
+Example:
+
+PS C:\scripts\FreeBusyChecker> Connect-ExchangeOnline -Prefix EO
+
 .PARAMETER Auth
 Allows you to choose the authentication type to validate.
 .PARAMETER Org
@@ -44,24 +50,30 @@ Show help for this script.
 This cmdlet will run the Free Busy Checker script and Check Availability OAuth and DAuth Configurations both for Exchange On-Premises and Exchange Online.
 .EXAMPLE
 .\FreeBusyChecker.ps1 -Auth OAuth
-This cmdlet will run the Free Busy Checker Script against OAuth Availability Configurations only.
+This cmdlet will run the Free Busy Checker Script against OAuth Availability Configurations.
 .EXAMPLE
 .\FreeBusyChecker.ps1 -Auth DAuth
-This cmdlet will run the Free Busy Checker Script against DAuth Availability Configurations only.
+This cmdlet will run the Free Busy Checker Script against DAuth Availability Configurations.
 .EXAMPLE
 .\FreeBusyChecker.ps1 -Org ExchangeOnline
-This cmdlet will run the Free Busy Checker Script for Exchange Online Availability Configurations only.
+This cmdlet will run the Free Busy Checker Script for Exchange Online Availability Configurations.
 .EXAMPLE
 .\FreeBusyChecker.ps1 -Org ExchangeOnPremise
-This cmdlet will run the Free Busy Checker Script for Exchange On-Premises OAuth and DAuth Availability Configurations only.
+This cmdlet will run the Free Busy Checker Script for Exchange On-Premises OAuth or DAuth Availability Configurations.
 .EXAMPLE
-.\FreeBusyChecker.ps1 -Org ExchangeOnPremise -Auth OAuth -Pause
-This cmdlet will run the Free Busy Checker Script for Exchange On-Premises Availability OAuth Configurations, pausing after each test is done.
+.\FreeBusyChecker.ps1 -Org All
+This cmdlet will run the Free Busy Checker Script for Exchange On-Premises and Exchange Online OAuth or DAuth Availability Configurations.
+.EXAMPLE
+.\FreeBusyChecker.ps1 -Org ExchangeOnPremise -Auth OAuth
+This cmdlet will run the Free Busy Checker Script for Exchange On-Premises Availability OAuth Configurations
 #>
 
 # Exchange On-Premises
 #>
 #region Properties and Parameters
+
+#Requires -Module ExchangeOnlineManagement
+#Requires -Module ActiveDirectory
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Variables are being used')]
 [CmdletBinding(DefaultParameterSetName = "FreeBusyInfo_OP", SupportsShouldProcess)]
@@ -93,36 +105,13 @@ begin {
     . $PSScriptRoot\Functions\ExoOAuthFunctions.ps1
     . $PSScriptRoot\Functions\htmlContent.ps1
     . $PSScriptRoot\Functions\hostOutput.ps1
+    . $PSScriptRoot\Functions\CommonFunctions.ps1
 } end {
-    function InstallRequiredModules {
-        try {
-            Get-Command -Module ActiveDirectory -ErrorAction Stop >$null
-        } catch {
-            Import-Module ActiveDirectory
-        }
-
-        if (-not (Get-Module -Name ExchangeOnlineManagement -ListAvailable)) {
-            Disconnect-ExchangeOnline -Confirm:$False
-        }
-    }
-
-    function CheckIfExchangeServer {
-        param (
-            [string]$Server
-        )
-        $exchangeServer = Get-ExchangeServer -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $Server }
-        if (!$exchangeServer) {
-            Write-Output "$Server is not an Exchange Server. This script need to be run in an Exchange Server 2013, 2016 or 2019"
-            break
-        }
-    }
-
-    InstallRequiredModules
     $countOrgRelIssues = (0)
     $Script:FedTrust = $null
     $Script:AutoDiscoveryVirtualDirectory = $null
-    $Script:OrgRel
-    $Script:SPDomainsOnprem
+    $Script:OrgRel = $null
+    $Script:SPDomainsOnprem = $null
     $AvailabilityAddressSpace = $null
     $Script:WebServicesVirtualDirectory = $null
     $ConsoleWidth = $Host.UI.RawUI.WindowSize.Width
@@ -133,15 +122,15 @@ begin {
     $LogFileName = [System.IO.Path]::GetFileNameWithoutExtension($LogFile) + "_" + $startingDate + ([System.IO.Path]::GetExtension($LogFile))
     $htmlFile = "$PSScriptRoot\FBCheckerOutput_$($startingDate).html"
 
-    loadingParameters
     CheckIfExchangeServer($Server)
+    loadingParameters
     #Parameter input
 
     if (-not $OnlineUser) {
         $UserOnline = Get-RemoteMailbox -ResultSize 1 -WarningAction SilentlyContinue
         $UserOnline = $UserOnline.RemoteRoutingAddress.SmtpAddress
     } else {
-        $UserOnline = Get-RemoteMailbox $OnlineUser -ResultSize 1 -WarningAction SilentlyContinue
+        $UserOnline = Get-RemoteMailbox $OnlineUser -ResultSize 1 -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
         $UserOnline = $UserOnline.RemoteRoutingAddress.SmtpAddress
     }
 
@@ -149,18 +138,18 @@ begin {
 
     if ($ExchangeOnlineDomain -like "*.mail.onmicrosoft.com") {
         $ExchangeOnlineAltDomain = (($ExchangeOnlineDomain.Split(".")))[0] + ".onmicrosoft.com"
-    }
-
-    else {
+    } else {
         $ExchangeOnlineAltDomain = (($ExchangeOnlineDomain.Split(".")))[0] + ".mail.onmicrosoft.com"
     }
     $temp = "*" + $ExchangeOnlineDomain
     $UserOnPrem = ""
     if (-not  $OnPremisesUser) {
-        $UserOnPrem = Get-mailbox -ResultSize 2 -WarningAction SilentlyContinue -Filter 'EmailAddresses -like $temp -and HiddenFromAddressListsEnabled -eq $false'
-        $UserOnPrem = $UserOnPrem[1].PrimarySmtpAddress.Address
+        $UserOnPrem = Get-mailbox -ResultSize 2 -WarningAction SilentlyContinue -Filter 'EmailAddresses -like $temp -and HiddenFromAddressListsEnabled -eq $false' -ErrorAction SilentlyContinue
+        if ($UserOnPrem) {
+            $UserOnPrem = $UserOnPrem[1].PrimarySmtpAddress.Address
+        }
     } else {
-        $UserOnPrem = Get-mailbox $OnPremisesUser -WarningAction SilentlyContinue -Filter 'EmailAddresses -like $temp -and HiddenFromAddressListsEnabled -eq $false'
+        $UserOnPrem = Get-mailbox $OnPremisesUser -WarningAction SilentlyContinue -Filter 'EmailAddresses -like $temp -and HiddenFromAddressListsEnabled -eq $false' -ErrorAction SilentlyContinue
         $UserOnPrem = $UserOnPrem.PrimarySmtpAddress.Address
     }
     $Script:ExchangeOnPremDomain = ($UserOnPrem -split "@")[1]
@@ -188,7 +177,10 @@ begin {
     if ([string]::IsNullOrWhitespace($ADDomain)) {
         $ExchangeOnPremLocalDomain = $exchangeOnPremDomain
     }
-    $Script:FedInfoEOP = Get-federationInformation -DomainName $ExchangeOnPremDomain  -BypassAdditionalDomainValidation -ErrorAction SilentlyContinue | Select-Object *
+
+    if ($ExchangeOnPremDomain) {
+        $Script:FedInfoEOP = Get-federationInformation -DomainName $ExchangeOnPremDomain  -BypassAdditionalDomainValidation -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Select-Object *
+    }
     #endregion
 
     if ($Help) {
@@ -200,6 +192,7 @@ begin {
     #region Show Parameters
     $IntraOrgCon = Get-IntraOrganizationConnector -WarningAction SilentlyContinue -ErrorAction SilentlyContinue | Select-Object Name, TarGetAddressDomains, DiscoveryEndpoint, Enabled
     ShowParameters
+    CheckParameters
     if ($IntraOrgCon.enabled -Like "True") {
         $Auth = hostOutputIntraOrgConEnabled($Auth)
     }
@@ -208,7 +201,7 @@ begin {
     }
     # Free busy Lookup methods
     PrintDynamicWidthLine
-    $OrgRel = Get-OrganizationRelationship | Where-Object { ($_.DomainNames -like $ExchangeOnlineDomain) } | Select-Object Enabled, Identity, DomainNames, FreeBusy*, TarGet*
+    $OrgRel = Get-OrganizationRelationship | Where-Object { ($_.DomainNames -like $ExchangeOnlineDomain) }  -WarningAction SilentlyContinue -ErrorAction SilentlyContinue  | Select-Object Enabled, Identity, DomainNames, FreeBusy*, TarGet*
     $EDiscoveryEndpoint = Get-IntraOrganizationConfiguration -WarningAction SilentlyContinue -ErrorAction SilentlyContinue | Select-Object OnPremiseDiscoveryEndpoint
     $SPDomainsOnprem = Get-SharingPolicy -WarningAction SilentlyContinue -ErrorAction SilentlyContinue | Format-List Domains
     $SPOnprem = Get-SharingPolicy  -WarningAction SilentlyContinue -ErrorAction SilentlyContinue | Select-Object *
@@ -264,23 +257,18 @@ begin {
         #region ConnectExo
 
         Write-Host -ForegroundColor Green $CollectingExoAvailabilityInformation
-        # Check if the ExchangeOnlineManagement module is already installed
-        if (-not (Get-Module -Name ExchangeOnlineManagement -ListAvailable)) {
-            # If not installed, then install the module
-            Write-Host -ForegroundColor Yellow $ExchangeOnlinePowershellModuleMessage
-            Install-Module -Name ExchangeOnlineManagement -Force
-            PrintDynamicWidthLine
-        } else {
-            Write-Host $ExchangeOnlineModuleAvailableMessage
-            $ExoModuleVersion = Get-Module -Name ExchangeOnlineManagement -ListAvailable | Format-List name, Version
-            $ExoModuleVersion
-            PrintDynamicWidthLine
+        Write-Host " Testing Connection to Exchange Online with EO Prefix."
+        $Exo = Test-ExchangeOnlineConnection
+        if (-not ($Exo)) {
+            Write-Host -ForegroundColor Red "`n Please connect to Exchange Online Using the EXO V3 module using EO as connection Prefix to collect Exchange OnLine Free Busy configuration Information."
+            Write-Host -ForegroundColor Cyan "`n`n   Example: PS C:\Connect-ExchangeOnline -Prefix EO"
+            Write-Host -ForegroundColor Cyan "`n   Example: PS C:\Connect-ExchangeOnline -Prefix EO -Org ExchangeOnline"
+            Write-Host -ForegroundColor Yellow "`n   More Info at:https://learn.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2?view=exchange-ps"
+            exit
         }
-
-        Connect-ExchangeOnline -ShowBanner:$false
-
-        $Script:ExoOrgRel = Get-OrganizationRelationship | Where-Object { ($_.DomainNames -like $ExchangeOnPremDomain ) } | Select-Object Enabled, Identity, DomainNames, FreeBusy*, TarGet*
-        $ExoIntraOrgCon = Get-IntraOrganizationConnector | Select-Object Name, TarGetAddressDomains, DiscoveryEndpoint, Enabled
+        Write-Host " Connected to Exchange Online."
+        $Script:ExoOrgRel = Get-EOOrganizationRelationship | Where-Object { ($_.DomainNames -like $ExchangeOnPremDomain ) } | Select-Object Enabled, Identity, DomainNames, FreeBusy*, TarGet*
+        $ExoIntraOrgCon = Get-EOIntraOrganizationConnector | Select-Object Name, TarGetAddressDomains, DiscoveryEndpoint, Enabled
         $tarGetAddressPr1 = ("https://AutoDiscover." + $ExchangeOnPremDomain + "/AutoDiscover/AutoDiscover.svc/WSSecurity")
         $tarGetAddressPr2 = ("https://" + $ExchangeOnPremDomain + "/AutoDiscover/AutoDiscover.svc/WSSecurity")
         exoHeaderHtml
@@ -291,7 +279,6 @@ begin {
         if ($Auth -like "DAuth" -or -not $Auth -or $Auth -like "All") {
             PrintDynamicWidthLine
             Write-Host $TestingExoDAuthConfiguration
-
             ExoOrgRelCheck
             PrintDynamicWidthLine
             EXOFedOrgIdCheck
@@ -304,7 +291,6 @@ begin {
         #region ExoOauthCheck
         if ($Auth -like "OAuth" -or -not $Auth -or $Auth -like "All") {
             Write-Host $TestingExoOAuthConfiguration
-
             ExoIntraOrgConCheck
             PrintDynamicWidthLine
             EXOIntraOrgConfigCheck
@@ -316,7 +302,6 @@ begin {
         }
         #endregion
 
-        Disconnect-ExchangeOnline  -Confirm:$False
         Write-Host -ForegroundColor Green $ThatIsAllForTheExchangeOnlineSide
 
         PrintDynamicWidthLine
