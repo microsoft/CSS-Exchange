@@ -381,6 +381,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://microsoft.github.io/CSS-Exchange/PublicFolders/Update-PublicFolderPermissions/</loc>
+         <lastmod>2024-08-26</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://microsoft.github.io/CSS-Exchange/PublicFolders/ValidateEXOPFDumpster/</loc>
          <lastmod>2024-08-26</lastmod>
          <changefreq>daily</changefreq>
