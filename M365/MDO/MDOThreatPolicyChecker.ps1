@@ -786,7 +786,7 @@ process {
                             $spamMatchedRule = Test-Rules -Rules $hostedContentFilterRules -Email $stEmailAddress
                         }
                         if ($null -eq $spamMatchedRule) {
-                            Write-Host "`nAnti-spam::`n`tDefault policy"  -ForegroundColor Yellow
+                            Write-Host "`nAnti-spam:`n`tDefault policy"  -ForegroundColor Yellow
                             $hostedContentFilterPolicy = Get-HostedContentFilterPolicy "Default"
                         } else {
                             $hostedContentFilterPolicy = Get-HostedContentFilterPolicy $spamMatchedRule.Name
