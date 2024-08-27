@@ -109,7 +109,7 @@ function PartnerApplicationCheck {
     $Script:tdPartnerApplicationEnabled = $PartnerApplication.Enabled
     $Script:tdPartnerApplicationApplicationIdentifier = $PartnerApplication.ApplicationIdentifier
     $Script:tdPartnerApplicationCertificateStrings = $PartnerApplication.CertificateStrings
-    $Script:tdPartnerApplicationAuthMetadatAUrl = $PartnerApplication.AuthMetadatAUrl
+    $Script:tdPartnerApplicationAuthMetadataUrl = $PartnerApplication.AuthMetadatAUrl
     $Script:tdPartnerApplicationRealm = $PartnerApplication.Realm
     $Script:tdPartnerApplicationUseAuthServer = $PartnerApplication.UseAuthServer
     $Script:tdPartnerApplicationAcceptSecurityIdentifierInformation = $PartnerApplication.AcceptSecurityIdentifierInformation
@@ -142,13 +142,13 @@ function PartnerApplicationCheck {
     Write-Host -ForegroundColor White " AuthMetadatAUrl: "
     if ([string]::IsNullOrWhitespace( $PartnerApplication.AuthMetadatAUrl)) {
         Write-Host -ForegroundColor Green "  Blank"
-        $Script:tdPartnerApplicationAuthMetadatAUrlColor = "green"
-        $Script:tdPartnerApplicationAuthMetadatAUrl = "Blank"
+        $Script:tdPartnerApplicationAuthMetadataUrlColor = "green"
+        $Script:tdPartnerApplicationAuthMetadataUrl = "Blank"
     } else {
         Write-Host -ForegroundColor Red " AuthMetadatAUrl does not seem to be correct"
         Write-Host -ForegroundColor White " Should be Blank"
-        $Script:tdPartnerApplicationAuthMetadatAUrlColor = "red"
-        $Script:tdPartnerApplicationAuthMetadatAUrl = " Should be Blank"
+        $Script:tdPartnerApplicationAuthMetadataUrlColor = "red"
+        $Script:tdPartnerApplicationAuthMetadataUrl = " Should be Blank"
     }
     Write-Host -ForegroundColor White " Realm: "
     if ([string]::IsNullOrWhitespace( $PartnerApplication.Realm)) {

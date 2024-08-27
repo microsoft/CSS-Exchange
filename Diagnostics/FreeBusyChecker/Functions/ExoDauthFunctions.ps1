@@ -135,38 +135,38 @@ function ExoOrgRelCheck () {
     }
     ExoOrgRelCheckHtml
 }
-function EXOFedOrgIdCheck {
+function ExoFedOrgIdCheck {
     Write-Host -ForegroundColor Green " Get-FederatedOrganizationIdentifier | select AccountNameSpace,Domains,Enabled"
     PrintDynamicWidthLine
-    $exoFedOrgId = Get-EOFederatedOrganizationIdentifier | Select-Object AccountNameSpace, Domains, Enabled
-    $eFedOrgID = $exoFedOrgId | Format-List
+    $ExoFedOrgId = Get-EOFederatedOrganizationIdentifier | Select-Object AccountNameSpace, Domains, Enabled
+    $eFedOrgID = $ExoFedOrgId | Format-List
     $eFedOrgID
     PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " Summary - Online Federated Organization Identifier"
     PrintDynamicWidthLine
     Write-Host -ForegroundColor White " Domains: "
-    if ($exoFedOrgId.Domains -like "*$ExchangeOnlineDomain*") {
-        Write-Host -ForegroundColor Green " " $exoFedOrgId.Domains
-        $Script:tdEXOFedOrgIdDomains = $exoFedOrgId.Domains
-        $Script:tdEXOFedOrgIdDomainsColor = "green"
+    if ($ExoFedOrgId.Domains -like "*$ExchangeOnlineDomain*") {
+        Write-Host -ForegroundColor Green " " $ExoFedOrgId.Domains
+        $Script:tdExoFedOrgIdDomains = $ExoFedOrgId.Domains
+        $Script:tdExoFedOrgIdDomainsColor = "green"
     } else {
         Write-Host -ForegroundColor Red " Domains are NOT correct."
         Write-Host -ForegroundColor White " Should contain the $ExchangeOnlineMDomain"
-        $Script:tdEXOFedOrgIdDomains = "$($exoFedOrgId.Domains) . Domains Should contain the $ExchangeOnlineMDomain"
-        $Script:tdEXOFedOrgIdDomainsColor = "red"
+        $Script:tdExoFedOrgIdDomains = "$($ExoFedOrgId.Domains) . Domains Should contain the $ExchangeOnlineMDomain"
+        $Script:tdExoFedOrgIdDomainsColor = "red"
     }
     Write-Host -ForegroundColor White " Enabled: "
-    if ($exoFedOrgId.Enabled -like "True") {
+    if ($ExoFedOrgId.Enabled -like "True") {
         Write-Host -ForegroundColor Green "  True "
-        $Script:tdEXOFedOrgIdEnabled = $exoFedOrgId.Enabled
-        $Script:tdEXOFedOrgIdEnabledColor = "green"
+        $Script:tdExoFedOrgIdEnabled = $ExoFedOrgId.Enabled
+        $Script:tdExoFedOrgIdEnabledColor = "green"
     } else {
         Write-Host -ForegroundColor Red "  Enabled is NOT correct."
         Write-Host -ForegroundColor White " Should be True"
-        $Script:tdEXOFedOrgIdEnabled = $exoFedOrgId.Enabled
-        $Script:tdEXOFedOrgIdEnabledColor = "green"
+        $Script:tdExoFedOrgIdEnabled = $ExoFedOrgId.Enabled
+        $Script:tdExoFedOrgIdEnabledColor = "green"
     }
-    EXOFedOrgIdCheckHtml
+    ExoFedOrgIdCheckHtml
 }
 function SharingPolicyCheck {
     PrintDynamicWidthLine

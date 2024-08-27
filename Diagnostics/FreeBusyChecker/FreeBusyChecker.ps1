@@ -241,7 +241,7 @@ begin {
             CurrentCertificateThumbprintCheck
             PrintDynamicWidthLine
             AutoDVirtualDCheckOAuth
-            $AutoDiscoveryVirtualDirectoryOAuth
+            #AutoDiscoveryVirtualDirectoryOAuth
             PrintDynamicWidthLine
             EWSVirtualDirectoryCheckOAuth
             PrintDynamicWidthLine
@@ -281,7 +281,7 @@ begin {
             Write-Host $TestingExoDAuthConfiguration
             ExoOrgRelCheck
             PrintDynamicWidthLine
-            EXOFedOrgIdCheck
+            ExoFedOrgIdCheck
             PrintDynamicWidthLine
             ExoTestOrgRelCheck
             SharingPolicyCheck
