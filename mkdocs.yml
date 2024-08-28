@@ -86,6 +86,7 @@ nav:
     - SimplePerf: Performance/SimplePerf.md
   - PublicFolders:
     - SourceSideValidations: PublicFolders/SourceSideValidations.md
+    - Update-PublicFolderPermissions: PublicFolders/Update-PublicFolderPermissions.md
     - ValidateMailEnabledPublicFolders: PublicFolders/ValidateMailEnabledPublicFolders.md
     - ValidateEXOPFDumpster: PublicFolders/ValidateEXOPFDumpster.md
   - Retention:

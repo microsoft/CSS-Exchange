@@ -12,3 +12,7 @@
 # MDO script owners
 /M365/MDO/                              @iserrano76 @rosspa05 @microsoft/css-exchange-admins
 /docs/M365/MDO/                         @iserrano76 @rosspa05 @microsoft/css-exchange-admins
+
+# EXO PF Team
+/PublicFolders/Update-PublicFolderPermissions.ps1       @vishmittal @microsoft/css-exchange-admins
+/docs/PublicFolders/Update-PublicFolderPermissions.md   @vishmittal @microsoft/css-exchange-admins
