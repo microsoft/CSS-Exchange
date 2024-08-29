@@ -66,7 +66,8 @@ param(
     [Parameter(Mandatory = $true, ParameterSetName = "ConfigureOverride")]
     [ValidateSet("OutsideInModule", "XlsbOfficePackage", "XlsmOfficePackage", "XlsxOfficePackage", "ExcelStorage" , "DocmOfficePackage",
         "DocxOfficePackage", "PptmOfficePackage", "PptxOfficePackage", "WordStorage", "PowerPointStorage", "VisioStorage", "Rtf",
-        "Xml", "OdfTextDocument", "OdfSpreadsheet", "OdfPresentation", "OneNote", "Pdf", "Html", "AutoCad", "Jpeg", "Tiff", IgnoreCase = $false)]
+        "Xml", "OdfTextDocument", "OdfSpreadsheet", "OdfPresentation", "OneNote", "VsdmOfficePackage", "VsdxOfficePackage", "VssmOfficePackage",
+        "VssxOfficePackage", "VstmOfficePackage", "VstxOfficePackage", "VisioXml", "PublisherStorage", "Pdf", "Html", "AutoCad", "Jpeg", "Tiff", IgnoreCase = $false)]
     [string[]]$ConfigureOverride,
 
     [Parameter(Mandatory = $false, ParameterSetName = "ConfigureOverride")]

@@ -57,6 +57,14 @@ function Invoke-TextExtractionOverride {
                     "OdfSpreadsheet"    = "PreferIFilters"
                     "OdfPresentation"   = "PreferIFilters"
                     "OneNote"           = "PreferIFilters"
+                    "VsdmOfficePackage" = "IFiltersOnly"
+                    "VsdxOfficePackage" = "IFiltersOnly"
+                    "VssmOfficePackage" = "IFiltersOnly"
+                    "VssxOfficePackage" = "IFiltersOnly"
+                    "VstmOfficePackage" = "IFiltersOnly"
+                    "VstxOfficePackage" = "IFiltersOnly"
+                    "VisioXml"          = "IFiltersOnly"
+                    "PublisherStorage"  = "IFiltersOnly"
                     "Pdf"               = "PreferOutsideIn"
                     "Html"              = "PreferOutsideIn"
                     "AutoCad"           = "OutsideInOnly"
@@ -64,6 +72,7 @@ function Invoke-TextExtractionOverride {
                     "Tiff"              = "OutsideInOnly"
                 }
 
+                $cu15OnlyTypeList = @("VsdmOfficePackage", "VsdxOfficePackage", "VssmOfficePackage", "VssxOfficePackage", "VstmOfficePackage", "VstxOfficePackage", "VisioXml", "PublisherStorage")
                 $baseXPathFilter = "//*[local-name()='Configuration']/*[local-name()='System']/*[local-name()='TextExtractionSettings']"
                 $outsideInOnlyModuleXPathFilter = $baseXPathFilter +
                 "/*[local-name()='ModuleLists']/*[local-name()='ModuleList'][@TypeList='OutsideInOnly']/*[local-name()='Module'][contains(., 'OutsideInModule.dll')]"
@@ -196,6 +205,8 @@ function Invoke-TextExtractionOverride {
                                         $actionOperation.OperationType = "ReplaceAttributeValue"
                                         $xmlConfigurationRemoteAction.Actions.Add($actionOperation)
                                     }
+                                } elseif ($cu15OnlyTypeList -contains $configureActionOverride) {
+                                    Write-Host "The configuration action of '$configureActionOverride' is not supported with this version of Exchange."
                                 } else {
                                     # Now everything else is attempting to do the following on the Type:
                                     # Either set or remove the |NO flag
