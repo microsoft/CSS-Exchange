@@ -153,7 +153,7 @@ function Invoke-TextExtractionOverride {
                                                     Operation         = [PSCustomObject]@{
                                                         AttributeName                  = "Name"
                                                         Value                          = $configureActionOverride
-                                                        SelectSingleNodeFilterForClone = (($typeListBaseXPathFilter -f "PreferDocParser") + "/*[local-name()='Type']")
+                                                        SelectSingleNodeFilterForClone = ($baseXPathFilter + "/*[local-name()='TypeLists']/*[local-name()='TypeList']/*[local-name()='Type']")
                                                     }
                                                 }))
                                     } elseif ($ArgumentList.Action -eq "Block") {
