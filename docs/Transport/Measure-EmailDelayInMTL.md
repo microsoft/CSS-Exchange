@@ -44,7 +44,7 @@ Folder path for the output file.
 | TimeReceived | Last delivery time in the MTL |
 | MessageDelay | How long before the message was delivered |
 
-#### Note: When loading the CSV in Excel the Message Delay coloum will need to be formatted as a time span.
+#### Note: When loading the CSV in Excel the Message Delay column will need to be formatted as a time span.
 
 ### Statistical Summary
 
