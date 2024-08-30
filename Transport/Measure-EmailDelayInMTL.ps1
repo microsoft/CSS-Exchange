@@ -183,14 +183,11 @@ foreach ($id in $uniqueMessageIDs) {
     $SortedTimeDelivered = (($AllStoreDeliverTimes + $AllRemoteDeliverTimes) | Sort-Object | Select-Object -Last 1)
 
     # Build report object
-    $report = [PSCustomObject]@{
-        MessageID      = $id
-        TimeSent       = $TimeSent
-        TimeReceived   = $SortedTimeSent
-        MessageDelay   = $SortedTimeDelivered - $SortedTimeSent
-
-        # Build output object
-        [array]$output = [array]$output + $report
+    [array]$output += [PSCustomObject]@{
+        MessageID    = $id
+        TimeSent     = $SortedTimeSent
+        TimeReceived = $SortedTimeDelivered
+        MessageDelay = $SortedTimeDelivered - $SortedTimeSent
     }
 }
 
@@ -201,7 +198,7 @@ if ($null -eq $output) {
 
     # Export the data to the output file
     $outputFile = (Join-Path -Path $ReportPath -ChildPath ("MTL_Latency_Report_" + (Get-Date -Format FileDateTime).ToString() + ".csv"))
-    $output | Export-Csv -IncludeTypeInformation:$false -Path $outputFile
+    $output | Sort-Object -Property MessageDelay -Descending | Export-Csv -IncludeTypeInformation:$false -Path $outputFile
     Write-Output ("Report written to file " + $outputFile)
 
     # Gather general statistical data and output to the screen
