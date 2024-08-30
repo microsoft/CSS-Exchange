@@ -1,4 +1,6 @@
 # Measure-EmailDelayInMTL
+Download the latest release: [Measure-EmailDelayInMTL.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Measure-EmailDelayInMTL.ps1)
+
 Generates a report of the maximum message delay for all messages in an Message Tracking Log output.
 
 ## DESCRIPTION
@@ -41,6 +43,8 @@ Folder path for the output file.
 | TimeSent |  First time we see the message in the MTL |
 | TimeReceived | Last delivery time in the MTL |
 | MessageDelay | How long before the message was delivered |
+
+#### Note: When loading the CSV in Excel the Message Delay coloum will need to be formatted as a time span.
 
 ### Statistical Summary
 
