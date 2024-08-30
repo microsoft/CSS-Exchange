@@ -241,7 +241,7 @@ begin {
             CurrentCertificateThumbprintCheck
             PrintDynamicWidthLine
             AutoDVirtualDCheckOAuth
-            #AutoDiscoveryVirtualDirectoryOAuth
+            #$AutoDiscoveryVirtualDirectoryOAuth
             PrintDynamicWidthLine
             EWSVirtualDirectoryCheckOAuth
             PrintDynamicWidthLine

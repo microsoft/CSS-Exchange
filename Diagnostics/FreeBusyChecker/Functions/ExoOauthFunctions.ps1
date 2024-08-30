@@ -14,42 +14,42 @@ function EXOIntraOrgConCheck {
     Write-Host -ForegroundColor White " TarGet Address Domains: "
     if ($exoIntraOrgCon.TarGetAddressDomains -like "*$ExchangeOnpremDomain*") {
         Write-Host -ForegroundColor Green " " $exoIntraOrgCon.TarGetAddressDomains
-        $Script:tdEXOIntraOrgConTarGetAddressDomains = $exoIntraOrgCon.TarGetAddressDomains
-        $Script:tdEXOIntraOrgConTarGetAddressDomainsColor = "green"
+        $Script:tdExoIntraOrgConTarGetAddressDomains = $exoIntraOrgCon.TarGetAddressDomains
+        $Script:tdExoIntraOrgConTarGetAddressDomainsColor = "green"
     } else {
         Write-Host -ForegroundColor Red " TarGet Address Domains is NOT correct."
         Write-Host -ForegroundColor White " Should contain the $ExchangeOnpremDomain"
-        $Script:tdEXOIntraOrgConTarGetAddressDomains = " $($exoIntraOrgCon.TarGetAddressDomains) . Should contain the $ExchangeOnpremDomain"
-        $Script:tdEXOIntraOrgConTarGetAddressDomainsColor = "red"
+        $Script:tdExoIntraOrgConTarGetAddressDomains = " $($exoIntraOrgCon.TarGetAddressDomains) . Should contain the $ExchangeOnpremDomain"
+        $Script:tdExoIntraOrgConTarGetAddressDomainsColor = "red"
     }
     Write-Host -ForegroundColor White " DiscoveryEndpoint: "
     if ($exoIntraOrgCon.DiscoveryEndpoint -like $EDiscoveryEndpoint.OnPremiseDiscoveryEndpoint) {
         Write-Host -ForegroundColor Green $exoIntraOrgCon.DiscoveryEndpoint
-        $Script:tdEXOIntraOrgConDiscoveryEndpoints = $exoIntraOrgCon.DiscoveryEndpoint
-        $Script:tdEXOIntraOrgConDiscoveryEndpointsColor = "green"
+        $Script:tdExoIntraOrgConDiscoveryEndpoints = $exoIntraOrgCon.DiscoveryEndpoint
+        $Script:tdExoIntraOrgConDiscoveryEndpointsColor = "green"
     } else {
         if ($exoIntraOrgCon.DiscoveryEndpoint -like "*resource.mailboxMigration.his.MSAppProxy.net*") {
             Write-Host -ForegroundColor Green " " $exoIntraOrgCon.DiscoveryEndpoint
             Write-Host -ForegroundColor Yellow " Discovery Endpoint includes resource.mailboxMigration.his.MSAppProxy.net. Hybrid configuration is implemented using Hybrid Agent "
-            $Script:tdEXOIntraOrgConDiscoveryEndpoints = $exoIntraOrgCon.DiscoveryEndpoint
-            $Script:tdEXOIntraOrgConDiscoveryEndpointsColor = "green"
+            $Script:tdExoIntraOrgConDiscoveryEndpoints = $exoIntraOrgCon.DiscoveryEndpoint
+            $Script:tdExoIntraOrgConDiscoveryEndpointsColor = "green"
         } else {
             Write-Host -ForegroundColor Red " DiscoveryEndpoint is NOT correct. "
             Write-Host -ForegroundColor White "  Should be " $EDiscoveryEndpoint.OnPremiseDiscoveryEndpoint
-            $Script:tdEXOIntraOrgConDiscoveryEndpoints = "$($exoIntraOrgCon.DiscoveryEndpoint) . Should be $($EDiscoveryEndpoint.OnPremiseDiscoveryEndpoint)"
-            $Script:tdEXOIntraOrgConDiscoveryEndpointsColor = "red"
+            $Script:tdExoIntraOrgConDiscoveryEndpoints = "$($exoIntraOrgCon.DiscoveryEndpoint) . Should be $($EDiscoveryEndpoint.OnPremiseDiscoveryEndpoint)"
+            $Script:tdExoIntraOrgConDiscoveryEndpointsColor = "red"
         }
     }
     Write-Host -ForegroundColor White " Enabled: "
     if ($exoIntraOrgCon.Enabled -like "True") {
         Write-Host -ForegroundColor Green "  True "
-        $Script:tdEXOIntraOrgConEnabled = "True"
-        $Script:tdEXOIntraOrgConEnabledColor = "green"
+        $Script:tdExoIntraOrgConEnabled = "True"
+        $Script:tdExoIntraOrgConEnabledColor = "green"
     } else {
         Write-Host -ForegroundColor Red "  False."
         Write-Host -ForegroundColor White " Should be True"
-        $Script:tdEXOIntraOrgConEnabled = "False . Should be True"
-        $Script:tdEXOIntraOrgConEnabledColor = "red"
+        $Script:tdExoIntraOrgConEnabled = "False . Should be True"
+        $Script:tdExoIntraOrgConEnabledColor = "red"
     }
     EXOIntraOrgConCheckHtml
 }
@@ -65,13 +65,13 @@ function EXOIntraOrgConfigCheck {
     Write-Host -ForegroundColor White " OnPremiseTarGetAddresses: "
     if ($exoIntraOrgConfig.OnPremiseTarGetAddresses -like "*$ExchangeOnpremDomain*") {
         Write-Host -ForegroundColor Green " " $exoIntraOrgConfig.OnPremiseTarGetAddresses
-        $Script:tdEXOIntraOrgConfigOnPremiseTarGetAddresses = $exoIntraOrgConfig.OnPremiseTarGetAddresses
-        $Script:tdEXOIntraOrgConfigOnPremiseTarGetAddressesColor = "green"
+        $Script:tdExoIntraOrgConfigOnPremiseTarGetAddresses = $exoIntraOrgConfig.OnPremiseTarGetAddresses
+        $Script:tdExoIntraOrgConfigOnPremiseTarGetAddressesColor = "green"
     } else {
         Write-Host -ForegroundColor Red " OnPremise TarGet Addresses are NOT correct."
         Write-Host -ForegroundColor White " Should contain the $ExchangeOnpremDomain"
-        $Script:tdEXOIntraOrgConfigOnPremiseTarGetAddresses = $exoIntraOrgConfig.OnPremiseTarGetAddresses
-        $Script:tdEXOIntraOrgConfigOnPremiseTarGetAddressesColor = "red"
+        $Script:tdExoIntraOrgConfigOnPremiseTarGetAddresses = $exoIntraOrgConfig.OnPremiseTarGetAddresses
+        $Script:tdExoIntraOrgConfigOnPremiseTarGetAddressesColor = "red"
     }
     EXOIntraOrgConfigCheckHtml
 }
@@ -81,40 +81,40 @@ function EXOAuthServerCheck {
     $exoAuthServer = Get-EOAuthServer -Identity 00000001-0000-0000-c000-000000000000 | Select-Object name, IssuerIdentifier, enabled
     $AuthServer = $exoAuthServer | Format-List
     $AuthServer
-    $Script:tdEXOAuthServerName = $exoAuthServer.Name
+    $Script:tdExoAuthServerName = $exoAuthServer.Name
     PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " Summary - Exchange Online Authorization Server"
     PrintDynamicWidthLine
     Write-Host -ForegroundColor White " IssuerIdentifier: "
     if ($exoAuthServer.IssuerIdentifier -like "00000001-0000-0000-c000-000000000000") {
         Write-Host -ForegroundColor Green " " $exoAuthServer.IssuerIdentifier
-        $Script:tdEXOAuthServerIssuerIdentifier = $exoAuthServer.IssuerIdentifier
-        $Script:tdEXOAuthServerIssuerIdentifierColor = "green"
+        $Script:tdExoAuthServerIssuerIdentifier = $exoAuthServer.IssuerIdentifier
+        $Script:tdExoAuthServerIssuerIdentifierColor = "green"
         if ($exoAuthServer.Enabled -like "True") {
             Write-Host -ForegroundColor Green "  True "
-            $Script:tdEXOAuthServerEnabled = $exoAuthServer.Enabled
-            $Script:tdEXOAuthServerEnabledColor = "green"
+            $Script:tdExoAuthServerEnabled = $exoAuthServer.Enabled
+            $Script:tdExoAuthServerEnabledColor = "green"
         } else {
             Write-Host -ForegroundColor Red "  Enabled is NOT correct."
             Write-Host -ForegroundColor White " Should be True"
-            $Script:tdEXOAuthServerEnabled = "$($exoAuthServer.Enabled) . Should be True"
-            $Script:tdEXOAuthServerEnabledColor = "red"
+            $Script:tdExoAuthServerEnabled = "$($exoAuthServer.Enabled) . Should be True"
+            $Script:tdExoAuthServerEnabledColor = "red"
         }
     } else {
         Write-Host -ForegroundColor Red " Authorization Server object is NOT correct."
         Write-Host -ForegroundColor White " Enabled: "
-        $Script:tdEXOAuthServerIssuerIdentifier = "$($exoAuthServer.IssuerIdentifier) - Authorization Server object should be 00000001-0000-0000-c000-000000000000"
-        $Script:tdEXOAuthServerIssuerIdentifierColor = "red"
+        $Script:tdExoAuthServerIssuerIdentifier = "$($exoAuthServer.IssuerIdentifier) - Authorization Server object should be 00000001-0000-0000-c000-000000000000"
+        $Script:tdExoAuthServerIssuerIdentifierColor = "red"
 
         if ($exoAuthServer.Enabled -like "True") {
             Write-Host -ForegroundColor Green "  True "
-            $Script:tdEXOAuthServerEnabled = $exoAuthServer.Enabled
-            $Script:tdEXOAuthServerEnabledColor = "green"
+            $Script:tdExoAuthServerEnabled = $exoAuthServer.Enabled
+            $Script:tdExoAuthServerEnabledColor = "green"
         } else {
             Write-Host -ForegroundColor Red "  Enabled is NOT correct."
             Write-Host -ForegroundColor White " Should be True"
-            $Script:tdEXOAuthServerEnabled = "$($exoAuthServer.Enabled) . Should be True"
-            $Script:tdEXOAuthServerEnabledColor = "red"
+            $Script:tdExoAuthServerEnabled = "$($exoAuthServer.Enabled) . Should be True"
+            $Script:tdExoAuthServerEnabledColor = "red"
         }
     }
     EXOAuthServerCheckHtml

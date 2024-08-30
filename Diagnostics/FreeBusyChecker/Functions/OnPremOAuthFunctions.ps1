@@ -49,13 +49,13 @@ function IntraOrgConCheck {
 }
 function AuthServerCheck {
     #PrintDynamicWidthLine
-    Write-Host -ForegroundColor Green " Get-AuthServer | Select Name,IssuerIdentifier,TokenIssuingEndpoint,AuthMetadatAUrl,Enabled"
+    Write-Host -ForegroundColor Green " Get-AuthServer | Select Name,IssuerIdentifier,TokenIssuingEndpoint,AuthMetadataUrl,Enabled"
     PrintDynamicWidthLine
-    $AuthServer = Get-AuthServer | Where-Object { $_.Name -like "ACS*" } | Select-Object Name, IssuerIdentifier, TokenIssuingEndpoint, AuthMetadatAUrl, Enabled
+    $AuthServer = Get-AuthServer | Where-Object { $_.Name -like "ACS*" } | Select-Object Name, IssuerIdentifier, TokenIssuingEndpoint, AuthMetadataUrl, Enabled
     $AuthServer
     $Script:tDAuthServerIssuerIdentifier = $AuthServer.IssuerIdentifier
     $Script:tDAuthServerTokenIssuingEndpoint = $AuthServer.TokenIssuingEndpoint
-    $Script:tDAuthServerAuthMetadatAUrl = $AuthServer.AuthMetadatAUrl
+    $Script:tDAuthServerAuthMetadataUrl = $AuthServer.AuthMetadataUrl
     $Script:tDAuthServerEnabled = $AuthServer.Enabled
     PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " Summary - Auth Server"
@@ -78,14 +78,14 @@ function AuthServerCheck {
         Write-Host -ForegroundColor White " Should be  https://accounts.accesscontrol.windows.net/<Cloud Tenant ID>/tokens/OAuth/2"
         $Script:tDAuthServerTokenIssuingEndpointColor = "red"
     }
-    Write-Host -ForegroundColor White " AuthMetadatAUrl: "
-    if ($AuthServer.AuthMetadatAUrl -like "https://accounts.accesscontrol.windows.net/*" -and $AuthServer.TokenIssuingEndpoint -like "*/tokens/OAuth/2" ) {
-        Write-Host -ForegroundColor Green " " $AuthServer.AuthMetadatAUrl
-        $Script:tDAuthServerAuthMetadatAUrlColor = "green"
+    Write-Host -ForegroundColor White " AuthMetadataUrl: "
+    if ($AuthServer.AuthMetadataUrl -like "https://accounts.accesscontrol.windows.net/*" -and $AuthServer.TokenIssuingEndpoint -like "*/tokens/OAuth/2" ) {
+        Write-Host -ForegroundColor Green " " $AuthServer.AuthMetadataUrl
+        $Script:tDAuthServerAuthMetadataUrlColor = "green"
     } else {
-        Write-Host -ForegroundColor Red " AuthMetadatAUrl appears not to be correct."
-        Write-Host -ForegroundColor White " Should be  https://accounts.accesscontrol.windows.net/<Cloud Tenant ID>/metadata/json/1"
-        $Script:tDAuthServerAuthMetadatAUrlColor = "red"
+        Write-Host -ForegroundColor Red " AuthMetadataUrl appears not to be correct."
+        Write-Host -ForegroundColor White " Should be  https://accounts.accesscontrol.windows.net/<Cloud Tenant ID>/Metadata/json/1"
+        $Script:tDAuthServerAuthMetadataUrlColor = "red"
     }
     Write-Host -ForegroundColor White " Enabled: "
     if ($AuthServer.Enabled -like "True" ) {
@@ -101,15 +101,15 @@ function AuthServerCheck {
 function PartnerApplicationCheck {
     #PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " Get-PartnerApplication |  ?{`$_.ApplicationIdentifier -eq '00000002-0000-0ff1-ce00-000000000000'
-    -and `$_.Realm -eq ''} | Select Enabled, ApplicationIdentifier, CertificateStrings, AuthMetadatAUrl, Realm, UseAuthServer,
+    -and `$_.Realm -eq ''} | Select Enabled, ApplicationIdentifier, CertificateStrings, AuthMetadataUrl, Realm, UseAuthServer,
     AcceptSecurityIdentifierInformation, LinkedAccount, IssuerIdentifier, AppOnlyPermissions, ActAsPermissions, Name"
     PrintDynamicWidthLine
-    $PartnerApplication = Get-PartnerApplication | Where-Object { $_.ApplicationIdentifier -eq '00000002-0000-0ff1-ce00-000000000000' -and $_.Realm -eq '' } | Select-Object Enabled, ApplicationIdentifier, CertificateStrings, AuthMetadatAUrl, Realm, UseAuthServer, AcceptSecurityIdentifierInformation, LinkedAccount, IssuerIdentifier, AppOnlyPermissions, ActAsPermissions, Name
+    $PartnerApplication = Get-PartnerApplication | Where-Object { $_.ApplicationIdentifier -eq '00000002-0000-0ff1-ce00-000000000000' -and $_.Realm -eq '' } | Select-Object Enabled, ApplicationIdentifier, CertificateStrings, AuthMetadataUrl, Realm, UseAuthServer, AcceptSecurityIdentifierInformation, LinkedAccount, IssuerIdentifier, AppOnlyPermissions, ActAsPermissions, Name
     $PartnerApplication
     $Script:tdPartnerApplicationEnabled = $PartnerApplication.Enabled
     $Script:tdPartnerApplicationApplicationIdentifier = $PartnerApplication.ApplicationIdentifier
     $Script:tdPartnerApplicationCertificateStrings = $PartnerApplication.CertificateStrings
-    $Script:tdPartnerApplicationAuthMetadataUrl = $PartnerApplication.AuthMetadatAUrl
+    $Script:tdPartnerApplicationAuthMetadataUrl = $PartnerApplication.AuthMetadataUrl
     $Script:tdPartnerApplicationRealm = $PartnerApplication.Realm
     $Script:tdPartnerApplicationUseAuthServer = $PartnerApplication.UseAuthServer
     $Script:tdPartnerApplicationAcceptSecurityIdentifierInformation = $PartnerApplication.AcceptSecurityIdentifierInformation
@@ -139,13 +139,13 @@ function PartnerApplicationCheck {
         Write-Host -ForegroundColor White " Should be 00000002-0000-0ff1-ce00-000000000000"
         $Script:tdPartnerApplicationApplicationIdentifierColor = "red"
     }
-    Write-Host -ForegroundColor White " AuthMetadatAUrl: "
-    if ([string]::IsNullOrWhitespace( $PartnerApplication.AuthMetadatAUrl)) {
+    Write-Host -ForegroundColor White " AuthMetadataUrl: "
+    if ([string]::IsNullOrWhitespace( $PartnerApplication.AuthMetadataUrl)) {
         Write-Host -ForegroundColor Green "  Blank"
         $Script:tdPartnerApplicationAuthMetadataUrlColor = "green"
         $Script:tdPartnerApplicationAuthMetadataUrl = "Blank"
     } else {
-        Write-Host -ForegroundColor Red " AuthMetadatAUrl does not seem to be correct"
+        Write-Host -ForegroundColor Red " AuthMetadataUrl does not seem to be correct"
         Write-Host -ForegroundColor White " Should be Blank"
         $Script:tdPartnerApplicationAuthMetadataUrlColor = "red"
         $Script:tdPartnerApplicationAuthMetadataUrl = " Should be Blank"

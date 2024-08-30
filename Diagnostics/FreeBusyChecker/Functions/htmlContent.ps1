@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 #On Prem DAuth
 function showParametersHtml() {
-  $script:html = "<!DOCTYPE html>
+    $script:html = "<!DOCTYPE html>
 <!DOCTYPE html>
 <html>
 <head>
@@ -134,10 +134,10 @@ function showParametersHtml() {
               <li><a href='https://techcommunity.microsoft.com/legacyfs/online/media/2019/01/FB_Errors.FixesV6.pdf'>Free Busy Errors and Fixes</a></li>
             </ul>
             "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function orgRelHtml() {
-  $script:html += @"
+    $script:html += @"
    <div class='Black'><p></p></div>
    <div class='Black'><h2><b>`n Exchange On Premise Free Busy Configuration: `n</b></h2></div>
    <div class='Black'><p></p></div>
@@ -152,23 +152,23 @@ function orgRelHtml() {
   <td><b>Get-OrganizationRelationship</b></td>
   <td>
 "@
-  foreach ($setting in $settingsList) {
-    $color = $setting.Color
-    if ($color -eq 'yellow') {
-      $color = 'red'
-    }
-    $script:html += @"
+    foreach ($setting in $settingsList) {
+        $color = $setting.Color
+        if ($color -eq 'yellow') {
+            $color = 'red'
+        }
+        $script:html += @"
       <div> <b>$($setting.Name): </b> <span style='color: $($color)'>$($setting.Value)</span></div>
 "@
-  }
-  $script:html += @"
+    }
+    $script:html += @"
   </td>
   </tr>
 "@
-  $script:html | Out-File -FilePath $htmlFile
+    $script:html | Out-File -FilePath $htmlFile
 }
 function FedInfoHtml() {
-  $script:html += "
+    $script:html += "
 <tr>
 <th ColSpan='2' style='color:white;'>Summary - Get-FederationInformation</th>
 </tr>
@@ -184,10 +184,10 @@ function FedInfoHtml() {
 </td>
 </tr>
 "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function fedTrustHtml() {
-  $script:html += "
+    $script:html += "
 <tr>
 <th ColSpan='2' style='color:white;'>Summary - Test-FederationTrust</th>
 </tr>
@@ -204,10 +204,10 @@ function fedTrustHtml() {
 </td>
 </tr>
 "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function AvailabilityAddressSpaceHtml() {
-  $script:html += "
+    $script:html += "
 <tr>
 <th ColSpan='2' style='color:white;'>Summary - On-Premise Get-AvailabilityAddressSpace</th>
 </tr>
@@ -221,11 +221,11 @@ function AvailabilityAddressSpaceHtml() {
 <div> <b>ProxyUrl: </b> <span style='color:$Script:tdAvailabilityAddressSpaceProxyUrlColor'>$Script:tdAvailabilityAddressSpaceProxyUrl</span></div>
 </td>
 </tr>"
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function autoDVDHtmlOK() {
-  $script:html +=
-  "<tr>
+    $script:html +=
+    "<tr>
 <th ColSpan='2' style='color:white;'>Summary - Get-AutoDiscoverVirtualDirectory</th>
 </tr>
 <tr>
@@ -239,11 +239,11 @@ function autoDVDHtmlOK() {
 <div><b>WSAuthentication:</b> <span style='color:green'>$Script:AutoD_VD_WSAuthentication</span></div>
 <div><b>WindowsAuthentication:</b> <span style='color:green'>$Script:AutoD_VD_WindowsAuthentication</span></div>
 "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function autoDVDHtmlNotOK() {
-  $script:html +=
-  "<tr>
+    $script:html +=
+    "<tr>
 <th ColSpan='2' style='color:white;'>Summary - Get-AutoDiscoverVirtualDirectory</th>
 </tr>
 <tr>
@@ -257,10 +257,10 @@ function autoDVDHtmlNotOK() {
 <div><b>WSAuthentication:</b> <span style='color:green'>$Script:AutoD_VD_WSAuthentication</span></div>
 <div><b>WindowsAuthentication:</b> <span style='color:green'>$Script:AutoD_VD_WindowsAuthentication</span></div>
 "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function EWSVirtualDHeaderHtml() {
-  $script:html += "
+    $script:html += "
 <tr>
 <th ColSpan='2' style='color:white;'>Summary - Get-WebServicesVirtualDirectory</th>
 </tr>
@@ -269,8 +269,8 @@ function EWSVirtualDHeaderHtml() {
 <td >"
 }
 function EwsVDHtmlOK() {
-  $script:html +=
-  " <div><b>============================</b></div>
+    $script:html +=
+    " <div><b>============================</b></div>
 <div><b>Identity:</b>$Script:EwsVDIdentity</div>
 <div><b>Name:</b>$Script:EwsVDName </div>
 <div><b>InternalAuthenticationMethods:</b>$Script:EwsVDInternalAuthenticationMethods </div>
@@ -281,11 +281,11 @@ function EwsVDHtmlOK() {
 <div><b>ExternalUrl:</b>$Script:EwsVDExternalUrl </div>
 </td>
 </tr>  "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function EwsVDHtmlNotOK() {
-  $script:html +=
-  " <div><b>============================</b></div>
+    $script:html +=
+    " <div><b>============================</b></div>
   <div><b>Identity:</b>$Script:EwsVDIdentity</div>
   <div><b>Name:</b>$Script:EwsVDName </div>
   <div><b>InternalAuthenticationMethods:</b>$Script:EwsVDInternalAuthenticationMethods </div>
@@ -296,10 +296,10 @@ function EwsVDHtmlNotOK() {
   <div><b>ExternalUrl:</b>$Script:EwsVDExternalUrl </div>
   </td>
   </tr>  "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function TestOrgRelHtmlOK() {
-  $Script:html += "<tr>
+    $Script:html += "<tr>
 <th ColSpan='2' style='color:white;'><b>Summary - Test-OrganizationRelationship</b></th>
 </tr>
 <tr>
@@ -308,7 +308,7 @@ function TestOrgRelHtmlOK() {
 <div class='green'> <b>No Significant Issues to Report</b><div>"
 }
 function TestOrgRelHtmlNotOK() {
-  $Script:html += "<tr>
+    $Script:html += "<tr>
 <th ColSpan='2' style='color:white;'><b>Summary - Test-OrganizationRelationship</b></th>
 </tr>
 <tr>
@@ -317,7 +317,7 @@ function TestOrgRelHtmlNotOK() {
 <div class='red'> <b>Test Organization Relationship Completed with errors</b><div>"
 }
 function TestOrgRelHtmlNoUri() {
-  $Script:html += "
+    $Script:html += "
 <tr>
 <th ColSpan='2' style='color:white;'><b>Summary - Test-OrganizationRelationship</b></th>
 </tr>
@@ -328,14 +328,14 @@ function TestOrgRelHtmlNoUri() {
 }
 #On Prem OAuth
 function IntraOrgConCheckHtml() {
-  # Build HTML table row
-  if ($Auth -like "OAuth") {
-    $Script:html += "
+    # Build HTML table row
+    if ($Auth -like "OAuth") {
+        $Script:html += "
     <div class='Black'><p></p></div>
     <div class='Black'><h2><b>`n Exchange On Premise Free Busy Configuration: `n</b></h2></div>
     <div class='Black'><p></p></div>"
-  }
-  $Script:html += "
+    }
+    $Script:html += "
   <table style='width:100%'>
   <tr>
   <th ColSpan='2' style='text-align:center; color:white;'>Exchange On Premise OAuth Configuration</th>
@@ -352,52 +352,52 @@ function IntraOrgConCheckHtml() {
   </td>
   </tr>
   "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function AuthServerCheckHtml() {
-  $Script:html += "
+    $Script:html += "
   <tr>
     <th ColSpan='2' style='color:white;'>Summary - Get-AuthServer</th>
   </tr>
   <tr>
-    <td><b> Get-AuthServer | Select Name,IssuerIdentifier,TokenIssuingEndpoint,AuthMetadatAUrl,Enabled</b></td>
+    <td><b> Get-AuthServer | Select Name,IssuerIdentifier,TokenIssuingEndpoint,AuthMetadataUrl,Enabled</b></td>
     <td>
       <div><b>IssuerIdentifier:</b><span style='color: $Script:tDAuthServerIssuerIdentifierColor'>$($Script:tDAuthServerIssuerIdentifier)</span></div>
       <div><b>TokenIssuingEndpoint:</b><span style='color: $Script:tDAuthServerTokenIssuingEndpointColor;'>$($Script:tDAuthServerTokenIssuingEndpoint)</span></div>
-      <div><b>AuthMetadatAUrl:</b><span style='color: $Script:tDAuthServerAuthMetadatAUrlColor;'>$($Script:tDAuthServerAuthMetadatAUrl)</span></div>
+      <div><b>AuthMetadataUrl:</b><span style='color: $Script:tDAuthServerAuthMetadataUrlColor;'>$($Script:tDAuthServerAuthMetadataUrl)</span></div>
       <div><b>Enabled:</b><span style='color: $Script:tDAuthServerEnabledColor;'>$($Script:tDAuthServerEnabled)</span></div>
     </td>
   </tr>
 "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function PartnerApplicationCheckHtml() {
-  $Script:html += "
+    $Script:html += "
   <tr>
     <th ColSpan='2' style='color:white;'>Summary - Get-PartnerApplication</th>
   </tr>
   <tr>
     <td><b> Get-PartnerApplication |  ?{`$_.ApplicationIdentifier -eq '00000002-0000-0ff1-ce00-000000000000'
-  -and `$_.Realm -eq ''} | Select Enabled, ApplicationIdentifier, CertificateStrings, AuthMetadatAUrl, Realm, UseAuthServer,
+  -and `$_.Realm -eq ''} | Select Enabled, ApplicationIdentifier, CertificateStrings, AuthMetadataUrl, Realm, UseAuthServer,
   AcceptSecurityIdentifierInformation, LinkedAccount, IssuerIdentifier, AppOnlyPermissions, ActAsPermissions, Name</b></td>
     <td>
       <div><b>Enabled:</b><span style='color:$Script:tdPartnerApplicationEnabledColor'>$($tdPartnerApplicationEnabled)</span></div>
       <div><b>ApplicationIdentifier:</b><span style='color:$Script:tdPartnerApplicationApplicationIdentifierColor;'>$($tdPartnerApplicationApplicationIdentifier)</span></div>
       <div><b>CertificateStrings:</b><span style='color:$Script:tdPartnerApplicationCertificateStringsColor;'>$($tdPartnerApplicationCertificateStrings)</span></div>
-      <div><b>AuthMetadatAUrl:</b><span style='color:$Script:tdPartnerApplicationAuthMetadatAUrlColor;'>$($tdPartnerApplicationAuthMetadatAUrl)</span></div>
+      <div><b>AuthMetadataUrl:</b><span style='color:$Script:tdPartnerApplicationAuthMetadataUrlColor;'>$($tdPartnerApplicationAuthMetadataUrl)</span></div>
       <div><b>Realm:</b><span style='color:$Script:tdPartnerApplicationRealmColor'>$($tdPartnerApplicationRealm)</span></div>
       <div><b>LinkedAccount:</b><span style='color:$Script:tdPartnerApplicationLinkedAccountColor;'>$($tdPartnerApplicationLinkedAccount)</span></div>
       <div><b>IssuerIdentifier:</b><span style='color:$Script:tdPartnerApplicationEnabledColor'>$($tdPartnerApplicationEnabled)</span></div>
       <div><b>AppOnlyPermissions:</b><span style='color:$Script:tdPartnerApplicationApplicationIdentifierColor;'>$($tdPartnerApplicationApplicationIdentifier)</span></div>
       <div><b>ActAsPermissions:</b><span style='color:$Script:tdPartnerApplicationCertificateStringsColor;'>$($tdPartnerApplicationCertificateStrings)</span></div>
-      <div><b>Name:</b><span style='color:$Script:tdPartnerApplicationAuthMetadatAUrlColor;'>$($tdPartnerApplicationAuthMetadatAUrl)</span></div>
+      <div><b>Name:</b><span style='color:$Script:tdPartnerApplicationAuthMetadataUrlColor;'>$($tdPartnerApplicationAuthMetadataUrl)</span></div>
     </td>
   </tr>
 "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function ApplicationAccountCheckHtml() {
-  $Script:html += "
+    $Script:html += "
     <tr>
     <th ColSpan='2' style='color:white;'>Summary - Get-User ApplicationAccount</th>
   </tr>
@@ -411,10 +411,10 @@ function ApplicationAccountCheckHtml() {
     </td>
   </tr>
 "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function ManagementRoleAssignmentCheckHtml() {
-  $Script:html += "
+    $Script:html += "
   <tr>
   <th ColSpan='2' style='color:white;'>Summary - Get-ManagementRoleAssignment</th>
 </tr>
@@ -431,10 +431,10 @@ function ManagementRoleAssignmentCheckHtml() {
   </td>
 </tr>
 "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function AuthConfigCheckHtml() {
-  $Script:html += "
+    $Script:html += "
     <tr>
     <th ColSpan='2' style='color:white;'>Summary - Get-AuthConfig</th>
   </tr>
@@ -448,10 +448,10 @@ function AuthConfigCheckHtml() {
     </td>
   </tr>
 "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function CurrentCertificateThumbprintCheckHtml() {
-  $Script:html += "
+    $Script:html += "
   <tr>
   <th ColSpan='2' style='color:white;'>Summary - Get-ExchangeCertificate AuthCertificate</th>
 </tr>
@@ -466,10 +466,10 @@ function CurrentCertificateThumbprintCheckHtml() {
   </td>
 </tr>
 "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function OAuthConnectivityCheckHtml() {
-  $Script:html += "
+    $Script:html += "
     <tr>
     <th ColSpan='2' style='color:white;'>Summary - Test-OAuthConnectivity</th>
   </tr>
@@ -480,83 +480,78 @@ function OAuthConnectivityCheckHtml() {
     </td>
   </tr>
 "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function AvailabilityAddressSpaceCheckOAuth() {
-  Write-Host -ForegroundColor Green " Get-AvailabilityAddressSpace $ExchangeOnlineDomain | Select ForestName, UserName, UseServiceAccount, AccessMethod, ProxyUrl, Name"
-  PrintDynamicWidthLine
-  $AvailabilityAddressSpace = Get-AvailabilityAddressSpace $ExchangeOnlineDomain | Select-Object ForestName, UserName, UseServiceAccount, AccessMethod, ProxyUrl, Name
-  $AAS = $AvailabilityAddressSpace | Format-List
-  $AAS
-  if ($Auth -contains "OAuth") {
-  }
-  PrintDynamicWidthLine
-  Write-Host -ForegroundColor Green " Summary - On-Prem Availability Address Space"
-  PrintDynamicWidthLine
-  Write-Host -ForegroundColor White " ForestName: "
-  if ($AvailabilityAddressSpace.ForestName -like $ExchangeOnlineDomain) {
-    Write-Host -ForegroundColor Green " "$AvailabilityAddressSpace.ForestName
-    $Script:tdAvailabilityAddressSpaceForestName = $AvailabilityAddressSpace.ForestName
-    $Script:tdAvailabilityAddressSpaceForestNameColor = "green"
-  }
-  else {
-    Write-Host -ForegroundColor Red " ForestName is NOT correct. "
-    Write-Host -ForegroundColor White " Should be $ExchangeOnlineDomain "
-    $Script:tdAvailabilityAddressSpaceForestName = $AvailabilityAddressSpace.ForestName
-    $Script:tdAvailabilityAddressSpaceForestNameColor = "red"
-  }
-  Write-Host -ForegroundColor White " UserName: "
-  if ($AvailabilityAddressSpace.UserName -like "") {
-    Write-Host -ForegroundColor Green "  Blank "
-    $Script:tdAvailabilityAddressSpaceUserName = "  Blank. This is the correct value. "
-    $Script:tdAvailabilityAddressSpaceUserNameColor = "green"
-  }
-  else {
-    Write-Host -ForegroundColor Red "  UserName is NOT correct. "
-    Write-Host -ForegroundColor White "  Should be blank "
-    $Script:tdAvailabilityAddressSpaceUserName = "  Blank. This is the correct value. "
-    $Script:tdAvailabilityAddressSpaceUserNameColor = "red"
-  }
-  Write-Host -ForegroundColor White " UseServiceAccount: "
-  if ($AvailabilityAddressSpace.UseServiceAccount -like "True") {
-    Write-Host -ForegroundColor Green "  True "
-    $Script:tdAvailabilityAddressSpaceUseServiceAccount = $AvailabilityAddressSpace.UseServiceAccount
-    $Script:tdAvailabilityAddressSpaceUseServiceAccountColor = "green"
-  }
-  else {
-    Write-Host -ForegroundColor Red "  UseServiceAccount is NOT correct."
-    Write-Host -ForegroundColor White "  Should be True "
-    $Script:tdAvailabilityAddressSpaceUseServiceAccount = "$($tAvailabilityAddressSpace.UseServiceAccount). Should be True"
-    $Script:tdAvailabilityAddressSpaceUseServiceAccountColor = "red"
-  }
-  Write-Host -ForegroundColor White " AccessMethod: "
-  if ($AvailabilityAddressSpace.AccessMethod -like "InternalProxy") {
-    Write-Host -ForegroundColor Green "  InternalProxy "
-    $Script:tdAvailabilityAddressSpaceAccessMethod = $AvailabilityAddressSpace.AccessMethod
-    $Script:tdAvailabilityAddressSpaceAccessMethodColor = "green"
-  }
-  else {
-    Write-Host -ForegroundColor Red "  AccessMethod is NOT correct. "
-    Write-Host -ForegroundColor White "  Should be InternalProxy "
-    $Script:tdAvailabilityAddressSpaceAccessMethod = $AvailabilityAddressSpace.AccessMethod
-    $Script:tdAvailabilityAddressSpaceAccessMethodColor = "red"
-  }
-  Write-Host -ForegroundColor White " ProxyUrl: "
-  if ($AvailabilityAddressSpace.ProxyUrl -like $exchangeOnPremEWS) {
-    Write-Host -ForegroundColor Green " "$AvailabilityAddressSpace.ProxyUrl
-    $Script:tdAvailabilityAddressSpaceProxyUrl = $AvailabilityAddressSpace.ProxyUrl
-    $Script:tdAvailabilityAddressSpaceProxyUrlColor = "green"
-  }
-  else {
-    Write-Host -ForegroundColor Red "  ProxyUrl is NOT correct. "
-    Write-Host -ForegroundColor White "  Should be $exchangeOnPremEWS"
-    $Script:tdAvailabilityAddressSpaceProxyUrl = $AvailabilityAddressSpace.ProxyUrl
-    $Script:tdAvailabilityAddressSpaceProxyUrlColor = "red"
-  }
-  AvailabilityAddressSpaceCheckOAuthHtml
+    Write-Host -ForegroundColor Green " Get-AvailabilityAddressSpace $ExchangeOnlineDomain | Select ForestName, UserName, UseServiceAccount, AccessMethod, ProxyUrl, Name"
+    PrintDynamicWidthLine
+    $AvailabilityAddressSpace = Get-AvailabilityAddressSpace $ExchangeOnlineDomain | Select-Object ForestName, UserName, UseServiceAccount, AccessMethod, ProxyUrl, Name
+    $AAS = $AvailabilityAddressSpace | Format-List
+    $AAS
+    if ($Auth -contains "OAuth") {
+    }
+    PrintDynamicWidthLine
+    Write-Host -ForegroundColor Green " Summary - On-Prem Availability Address Space"
+    PrintDynamicWidthLine
+    Write-Host -ForegroundColor White " ForestName: "
+    if ($AvailabilityAddressSpace.ForestName -like $ExchangeOnlineDomain) {
+        Write-Host -ForegroundColor Green " "$AvailabilityAddressSpace.ForestName
+        $Script:tdAvailabilityAddressSpaceForestName = $AvailabilityAddressSpace.ForestName
+        $Script:tdAvailabilityAddressSpaceForestNameColor = "green"
+    } else {
+        Write-Host -ForegroundColor Red " ForestName is NOT correct. "
+        Write-Host -ForegroundColor White " Should be $ExchangeOnlineDomain "
+        $Script:tdAvailabilityAddressSpaceForestName = $AvailabilityAddressSpace.ForestName
+        $Script:tdAvailabilityAddressSpaceForestNameColor = "red"
+    }
+    Write-Host -ForegroundColor White " UserName: "
+    if ($AvailabilityAddressSpace.UserName -like "") {
+        Write-Host -ForegroundColor Green "  Blank "
+        $Script:tdAvailabilityAddressSpaceUserName = "  Blank. This is the correct value. "
+        $Script:tdAvailabilityAddressSpaceUserNameColor = "green"
+    } else {
+        Write-Host -ForegroundColor Red "  UserName is NOT correct. "
+        Write-Host -ForegroundColor White "  Should be blank "
+        $Script:tdAvailabilityAddressSpaceUserName = "  Blank. This is the correct value. "
+        $Script:tdAvailabilityAddressSpaceUserNameColor = "red"
+    }
+    Write-Host -ForegroundColor White " UseServiceAccount: "
+    if ($AvailabilityAddressSpace.UseServiceAccount -like "True") {
+        Write-Host -ForegroundColor Green "  True "
+        $Script:tdAvailabilityAddressSpaceUseServiceAccount = $AvailabilityAddressSpace.UseServiceAccount
+        $Script:tdAvailabilityAddressSpaceUseServiceAccountColor = "green"
+    } else {
+        Write-Host -ForegroundColor Red "  UseServiceAccount is NOT correct."
+        Write-Host -ForegroundColor White "  Should be True "
+        $Script:tdAvailabilityAddressSpaceUseServiceAccount = "$($tAvailabilityAddressSpace.UseServiceAccount). Should be True"
+        $Script:tdAvailabilityAddressSpaceUseServiceAccountColor = "red"
+    }
+    Write-Host -ForegroundColor White " AccessMethod: "
+    if ($AvailabilityAddressSpace.AccessMethod -like "InternalProxy") {
+        Write-Host -ForegroundColor Green "  InternalProxy "
+        $Script:tdAvailabilityAddressSpaceAccessMethod = $AvailabilityAddressSpace.AccessMethod
+        $Script:tdAvailabilityAddressSpaceAccessMethodColor = "green"
+    } else {
+        Write-Host -ForegroundColor Red "  AccessMethod is NOT correct. "
+        Write-Host -ForegroundColor White "  Should be InternalProxy "
+        $Script:tdAvailabilityAddressSpaceAccessMethod = $AvailabilityAddressSpace.AccessMethod
+        $Script:tdAvailabilityAddressSpaceAccessMethodColor = "red"
+    }
+    Write-Host -ForegroundColor White " ProxyUrl: "
+    if ($AvailabilityAddressSpace.ProxyUrl -like $exchangeOnPremEWS) {
+        Write-Host -ForegroundColor Green " "$AvailabilityAddressSpace.ProxyUrl
+        $Script:tdAvailabilityAddressSpaceProxyUrl = $AvailabilityAddressSpace.ProxyUrl
+        $Script:tdAvailabilityAddressSpaceProxyUrlColor = "green"
+    } else {
+        Write-Host -ForegroundColor Red "  ProxyUrl is NOT correct. "
+        Write-Host -ForegroundColor White "  Should be $exchangeOnPremEWS"
+        $Script:tdAvailabilityAddressSpaceProxyUrl = $AvailabilityAddressSpace.ProxyUrl
+        $Script:tdAvailabilityAddressSpaceProxyUrlColor = "red"
+    }
+    AvailabilityAddressSpaceCheckOAuthHtml
 }
 function  AvailabilityAddressSpaceCheckOAuthHtml() {
-  $Script:html += "
+    $Script:html += "
   <tr>
   <th ColSpan='2' style='color:white;'>Summary - Get-AvailabilityAddressSpace</th>
 </tr>
@@ -571,20 +566,20 @@ function  AvailabilityAddressSpaceCheckOAuthHtml() {
   </td>
 </tr>
 "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function AutoDVirtualDCheckOauthHtmlHead() {
-  $script:html += "<tr>
+    $script:html += "<tr>
   <th ColSpan='2' style='color:white;'>Summary - Get-AutoDiscoverVirtualDirectory</th>
   </tr>
   <tr>
   <td><b>Get-AutoDiscoverVirtualDirectory:</b></td>
   <td>"
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function  AutoDVirtualDCheckOauthHtmlOk() {
-  $script:html +=
-  " <div><b>============================</b></div>
+    $script:html +=
+    " <div><b>============================</b></div>
           <div><b>Identity:</b> $Script:AutoD_VD_Identity</div>
           <div><b>Name:</b> $Script:AutoD_VD_Name </div>
           <div><b>InternalAuthenticationMethods:</b> $Script:AutoD_VD_InternalAuthenticationMethods </div>
@@ -593,11 +588,11 @@ function  AutoDVirtualDCheckOauthHtmlOk() {
           <div><b>WindowsAuthentication:</b> <span style='color:green'>$Script:AutoD_VD_WindowsAuthentication</span></div>
           <div><b>OAuthAuthentication:</b> <span style='color:$Script:AutoD_VD_OAuthAuthenticationColor'>$Script:AutoD_VD_OAuthAuthentication</span></div>
           "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function  AutoDVirtualDCheckOauthHtmlNotOk() {
-  $script:html +=
-  " <div><b>============================</b></div>
+    $script:html +=
+    " <div><b>============================</b></div>
           <div><b>Identity:</b> $Script:AutoD_VD_Identity</div>
           <div><b>Name:</b> $Script:AutoD_VD_Name </div>
           <div><b>InternalAuthenticationMethods:</b> $Script:AutoD_VD_InternalAuthenticationMethods </div>
@@ -606,21 +601,21 @@ function  AutoDVirtualDCheckOauthHtmlNotOk() {
           <div><b>WindowsAuthentication:</b> <span style='color:$Script:AutoD_VD_WindowsAuthenticationColor'>$Script:AutoD_VD_WindowsAuthentication</span></div>
           <div><b>OAuthAuthentication:</b> <span style='color:$Script:AutoD_VD_OAuthAuthenticationColor'>$Script:AutoD_VD_OAuthAuthentication</span></div>
           "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function EWSVirtualDirectoryCheckOAuthHtmlHead() {
-  $script:html += "
+    $script:html += "
   <tr>
   <th ColSpan='2' style='color:white;'>Summary - Get-WebServicesVirtualDirectory</th>
   </tr>
   <tr>
   <td><b>Get-WebServicesVirtualDirectory | Select Identity,Name,ExchangeVersion,*Authentication*,*url</b></td>
   <td >"
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function  EWSVirtualDirectoryCheckOAuthHtmlOk() {
-  $script:html +=
-  " <div><b>============================</b></div>
+    $script:html +=
+    " <div><b>============================</b></div>
           <div><b>Identity:</b>$Script:EwsVDIdentity</div>
           <div><b>Name:</b>$Script:EwsVDName </div>
           <div><b>InternalAuthenticationMethods:</b>$Script:EwsVDInternalAuthenticationMethods </div>
@@ -630,11 +625,11 @@ function  EWSVirtualDirectoryCheckOAuthHtmlOk() {
           <div><b>OAuthAuthentication:</b> <span style='color:$EwsVDW_OAuthAuthenticationColor'>$EwsVDOAuthAuthentication</span></div>
           <div><b>InternalUrl:</b>$Script:EwsVDInternalUrl </div>
           <div><b>ExternalUrl:</b>$Script:EwsVDExternalUrl </div>  "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function  EWSVirtualDirectoryCheckOAuthHtmlNotOk() {
-  $script:html +=
-  " <div><b>============================</b></div>
+    $script:html +=
+    " <div><b>============================</b></div>
           <div><b>Identity:</b>$Script:EwsVDIdentity</div>
           <div><b>Name:</b>$Script:EwsVDName </div>
           <div><b>InternalAuthenticationMethods:</b>$Script:EwsVDInternalAuthenticationMethods </div>
@@ -644,11 +639,11 @@ function  EWSVirtualDirectoryCheckOAuthHtmlNotOk() {
           <div><b>OAuthAuthentication:</b> <span style='color:$EwsVDW_OAuthAuthenticationColor'>$EwsVDOAuthAuthentication</span></div>
           <div><b>InternalUrl:</b>$Script:EwsVDInternalUrl </div>
           <div><b>ExternalUrl:</b>$Script:EwsVDExternalUrl </div>  "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 #Exo HTML DAuth output
 function ExoOrgRelCheckHtml() {
-  $script:html += "
+    $script:html += "
 <div class='Black'><p></p></div>
 <div class='Black'><p></p></div>
  <tr>
@@ -660,36 +655,36 @@ function ExoOrgRelCheckHtml() {
 <tr>
   <td><b>  Get-OrganizationRelationship  | Where{($_.DomainNames -like $ExchangeOnPremDomain )} | Select Identity,DomainNames,FreeBusy*,TarGet*,Enabled</b></td>
   <td>
-    <div><b>Domain Names:</b><span >$($tdEXOOrgRelDomainNames)</span></div>
-    <div><b>FreeBusyAccessEnabled:</b><span style='color:$Script:tdEXOOrgRelFreeBusyAccessEnabledColor'>$($tdEXOOrgRelFreeBusyAccessEnabled)</span></div>
-    <div><b>FreeBusyAccessLevel::</b><span style='color:$Script:tdEXOOrgRelFreeBusyAccessLevelColor;'>$( $Script:tdEXOOrgRelFreeBusyAccessLevel)</span></div>
-    <div><b>TarGetApplicationUri:</b><span style='color: $Script:tdEXOOrgRelTarGetApplicationUriColor;'>$($Script:tdEXOOrgRelTarGetApplicationUri)</span></div>
-    <div><b>TarGetOwAUrl:</b><span >$($tdEXOOrgRelTarGetOwAUrl)</span></div>
-    <div><b>TarGetSharingEpr:</b><span style='color: $Script:tdEXOOrgRelTarGetSharingEprColor'>$($Script:tdEXOOrgRelTarGetSharingEpr)</span></div>
-    <div><b>TarGetAutoDiscoverEpr:</b><span style='color:$tdEXOOrgRelFreeBusyAccessScopeColor;'>$($Script:tdEXOOrgRelFreeBusyAccessScope)</span></div>
-    <div><b>Enabled:</b><span style='color: $Script:tdEXOOrgRelEnabledColor;'>$($Script:tdEXOOrgRelEnabled)</span></div>
+    <div><b>Domain Names:</b><span >$($Script:tdExoOrgRelDomainNamesData)</span></div>
+    <div><b>FreeBusyAccessEnabled:</b><span style='color:$Script:tdExoOrgRelFreeBusyAccessEnabledColor'>$($Script:tdExoOrgRelFreeBusyAccessEnabled)</span></div>
+    <div><b>FreeBusyAccessLevel::</b><span style='color:$Script:tdExoOrgRelFreeBusyAccessLevelColor;'>$( $Script:tdExoOrgRelFreeBusyAccessLevel)</span></div>
+    <div><b>TarGetApplicationUri:</b><span style='color: $Script:tdExoOrgRelTarGetApplicationUriColor;'>$($Script:tdExoOrgRelTarGetApplicationUri)</span></div>
+    <div><b>TarGetOwAUrl:</b><span >$($tdExoOrgRelTarGetOwAUrl)</span></div>
+    <div><b>TarGetSharingEpr:</b><span style='color: $Script:tdExoOrgRelTarGetSharingEprColor'>$($Script:tdExoOrgRelTarGetSharingEpr)</span></div>
+    <div><b>TarGetAutoDiscoverEpr:</b><span style='color:$tdExoOrgRelFreeBusyAccessScopeColor;'>$($Script:tdExoOrgRelFreeBusyAccessScope)</span></div>
+    <div><b>Enabled:</b><span style='color: $Script:tdExoOrgRelEnabledColor;'>$($Script:tdExoOrgRelEnabled)</span></div>
   </td>
 </tr>
 "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
-function EXOFedOrgIdCheckHtml() {
-  $script:html += "
+function ExoFedOrgIdCheckHtml() {
+    $script:html += "
 <tr>
 <th ColSpan='2' style='color:white;'>Summary - Get-FederatedOrganizationIdentifier</th>
 </tr>
 <tr>
 <td><b>  Get-FederatedOrganizationIdentifier | select AccountNameSpace,Domains,Enabled</b></td>
 <td>
-  <div><b>Domains:</b><span style='color: $Script:tdEXOFedOrgIdDomainsColor;'>$($Script:tdEXOFedOrgIdDomains)</span></div>
-  <div><b>Enabled:</b><span style='color: $Script:tdEXOFedOrgIdEnabledColor;'>$($Script:tdEXOFedOrgIdEnabled)</span></div>
+  <div><b>Domains:</b><span style='color: $Script:tdExoFedOrgIdDomainsColor;'>$($Script:tdExoFedOrgIdDomains)</span></div>
+  <div><b>Enabled:</b><span style='color: $Script:tdExoFedOrgIdEnabledColor;'>$($Script:tdExoFedOrgIdEnabled)</span></div>
 </td>
 </tr>
 "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function SharingPolicyCheckHtml() {
-  $script:html += "
+    $script:html += "
   <tr>
     <th ColSpan='2' style='color:white;'>Summary - Get-SharingPolicy</th>
   </tr>
@@ -713,88 +708,83 @@ function SharingPolicyCheckHtml() {
     </td>
   </tr>
 "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function ExoTestOrgRelCheckHtml() {
-  $exoIdentity = $ExoOrgRel.Identity
-  $exoOrgRelTarGetApplicationUri = $exoOrgRel.TarGetApplicationUri
-  $exoOrgRelTarGetOWAUrl = $ExoOrgRel.TarGetOwAUrl
-  $script:html += "
+    $exoIdentity = $ExoOrgRel.Identity
+    $exoOrgRelTarGetApplicationUri = $exoOrgRel.TarGetApplicationUri
+    $exoOrgRelTarGetOWAUrl = $ExoOrgRel.TarGetOwAUrl
+    $script:html += "
     <tr>
         <th ColSpan='2' style='color:white;'>Summary - Test-OrganizationRelationship</th>
     </tr>
     <tr>
         <td><b>  Test-OrganizationRelationship -Identity $exoIdentity -UserIdentity $UserOnline</b></td>
     <td>"
-  if ((![string]::IsNullOrWhitespace($exoOrgRelTarGetApplicationUri)) -and (![string]::IsNullOrWhitespace($exoOrgRelTarGetOWAUrl))) {
-    $i = 2
-    while ($i -lt $ExoTestOrgRel.Length) {
-      $element = $ExoTestOrgRel[$i]
-      $aux = "0"
-      if ($element -like "*RESULT:*" -and $aux -like "0") {
-        $el = $element.TrimStart()
-        if ($element -like "*Success.*") {
-          $Script:html += "
+    if ((![string]::IsNullOrWhitespace($exoOrgRelTarGetApplicationUri)) -and (![string]::IsNullOrWhitespace($exoOrgRelTarGetOWAUrl))) {
+        $i = 2
+        while ($i -lt $ExoTestOrgRel.Length) {
+            $element = $ExoTestOrgRel[$i]
+            $aux = "0"
+            if ($element -like "*RESULT:*" -and $aux -like "0") {
+                $el = $element.TrimStart()
+                if ($element -like "*Success.*") {
+                    $Script:html += "
                 <div> <b> $ExoTestOrgRelStep </b> <span style='color:green'> $el</span>"
-          $aux = "1"
-        }
-        elseif ($element -like "*Error*" -or $element -like "*Unable*") {
-          $Script:html += "
+                    $aux = "1"
+                } elseif ($element -like "*Error*" -or $element -like "*Unable*") {
+                    $Script:html += "
                 <div> <b> $ExoTestOrgRelStep </b> <span style='color:red'> $el</span>"
-          $aux = "1"
-        }
-      }
-      elseif ($aux -like "0" ) {
-        if ($element -like "*STEP*" -or $element -like "*Complete*") {
-          $Script:html += "
+                    $aux = "1"
+                }
+            } elseif ($aux -like "0" ) {
+                if ($element -like "*STEP*" -or $element -like "*Complete*") {
+                    $Script:html += "
                 <p></p>
                 <div> <b> $ExoTestOrgRelStep </b> <span style='color:black'> $element</span></div>"
-          $aux = "1"
-        }
-        else {
-          $ID = $element.ID
-          $Status = $element.Status
-          $Description = $element.Description
-          if (![string]::IsNullOrWhitespace($ID)) {
-            $Script:html += "<div> <b>ID: </b> <span style='color:black'> $ID</span></div>"
-            if ($Status -like "*Success*") {
-              $Script:html += "<div> <b>Status:</b> <span style='color:green'> $Status</span></div>"
-            }
+                    $aux = "1"
+                } else {
+                    $ID = $element.ID
+                    $Status = $element.Status
+                    $Description = $element.Description
+                    if (![string]::IsNullOrWhitespace($ID)) {
+                        $Script:html += "<div> <b>ID: </b> <span style='color:black'> $ID</span></div>"
+                        if ($Status -like "*Success*") {
+                            $Script:html += "<div> <b>Status:</b> <span style='color:green'> $Status</span></div>"
+                        }
 
-            if ($status -like "*error*") {
-              $Script:html += "<div> <b>Status:</b> <span style='color:red'> $Status</span></div>"
-            }
+                        if ($status -like "*error*") {
+                            $Script:html += "<div> <b>Status:</b> <span style='color:red'> $Status</span></div>"
+                        }
 
-            $Script:html += "<div> <b>Description: </b> <span style='color:black'> $Description</span></div>
+                        $Script:html += "<div> <b>Description: </b> <span style='color:black'> $Description</span></div>
                     <div><span style='color:blue'>Note: Test-Organization Relationship fails on Step 3 with error MismatchedFederation if Hybrid Agent is in use</span></div>"
-          }
-          #$element
-          $aux = "1"
+                    }
+                    #$element
+                    $aux = "1"
+                }
+            }
+            $i++
         }
-      }
-      $i++
     }
-  }
 
-  elseif ((([string]::IsNullOrWhitespace($exoOrgRelTarGetApplicationUri)) -and ([string]::IsNullOrWhitespace($exoOrgRelTarGetOWAUrl)))) {
-    $Script:html += "
+    elseif ((([string]::IsNullOrWhitespace($exoOrgRelTarGetApplicationUri)) -and ([string]::IsNullOrWhitespace($exoOrgRelTarGetOWAUrl)))) {
+        $Script:html += "
     <div> <span style='color:red'> Exchange Online Test-OrganizationRelationship cannot be run if the Organization Relationship TarGetApplicationUri and TarGetOwAUrl are not set</span>"
-  }
-  elseif ((([string]::IsNullOrWhitespace($exoOrgRelTarGetApplicationUri)) )) {
-    $Script:html += "
+    } elseif ((([string]::IsNullOrWhitespace($exoOrgRelTarGetApplicationUri)) )) {
+        $Script:html += "
     <div> <span style='color:red'> Exchange Online Test-OrganizationRelationship cannot be run if the Organization Relationship TarGetApplicationUri is not set</span>"
-  }
-  elseif ((([string]::IsNullOrWhitespace($exoOrgRelTarGetApplicationUri)) )) {
-    $Script:html += "
+    } elseif ((([string]::IsNullOrWhitespace($exoOrgRelTarGetApplicationUri)) )) {
+        $Script:html += "
     <div> <span style='color:red'> Exchange Online Test-OrganizationRelationship cannot be run if the Organization Relationship TarGetApplicationUri is not set</span>"
-  }
-  $Script:html += "</td>
+    }
+    $Script:html += "</td>
 </tr>"
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 #Exo Oauth Functions
 function EXOIntraOrgConCheckHtml() {
-  $script:html += "
+    $script:html += "
 <tr>
   <th ColSpan='2' style='text-align:center; color:white;'><b>Exchange Online OAuth Configuration</b></th>
 </tr>
@@ -804,46 +794,46 @@ function EXOIntraOrgConCheckHtml() {
 <tr>
   <td><b>  Get-IntraOrganizationConnector | Select-Object TarGetAddressDomains, DiscoveryEndpoint, Enabled</b></td>
   <td>
-    <div><b>TarGet Address Domains:</b><span style='color:$Script:tdEXOIntraOrgConTarGetAddressDomainsColor;'>' $($tdEXOIntraOrgConTarGetAddressDomains)'</span></div>
-    <div><b>DiscoveryEndpoint:</b><span style='color: $Script:tdEXOIntraOrgConDiscoveryEndpointsColor;'>' $($Script:tdEXOIntraOrgConDiscoveryEndpoints)'</span></div>
-    <div><b>Enabled:</b><span style='color:$Script:tdEXOIntraOrgConEnabledColor;'> $($Script:tdEXOIntraOrgConEnabled)</span></div>
+    <div><b>TarGet Address Domains:</b><span style='color:$Script:tdExoIntraOrgConTarGetAddressDomainsColor;'>' $($tdExoIntraOrgConTarGetAddressDomains)'</span></div>
+    <div><b>DiscoveryEndpoint:</b><span style='color: $Script:tdExoIntraOrgConDiscoveryEndpointsColor;'>' $($Script:tdExoIntraOrgConDiscoveryEndpoints)'</span></div>
+    <div><b>Enabled:</b><span style='color:$Script:tdExoIntraOrgConEnabledColor;'> $($Script:tdExoIntraOrgConEnabled)</span></div>
   </td>
 </tr>
 "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function EXOIntraOrgConfigCheckHtml() {
-  $script:html += "
+    $script:html += "
   <tr>
     <th ColSpan='2' style=color:white;'><b>Summary - Get-IntraOrganizationConfiguration</b></th>
   </tr>
   <tr>
     <td><b>  Get-IntraOrganizationConfiguration | Select OnPremiseTarGetAddresses</b></td>
     <td>
-      <div><b>OnPremiseTarGetAddresses:</b><span style='color: $Script:tdEXOIntraOrgConfigOnPremiseTarGetAddressesColor;'>$($Script:tdEXOIntraOrgConfigOnPremiseTarGetAddresses)</span></div>
+      <div><b>OnPremiseTarGetAddresses:</b><span style='color: $Script:tdExoIntraOrgConfigOnPremiseTarGetAddressesColor;'>$($Script:tdExoIntraOrgConfigOnPremiseTarGetAddresses)</span></div>
     </td>
   </tr>
 "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function EXOAuthServerCheckHtml() {
-  $script:html += "
+    $script:html += "
 <tr>
 <th ColSpan='2' style='color:white;'>Summary - Get-AuthServer</th>
 </tr>
 <tr>
 <td><b>  Get-AuthServer -Identity 00000001-0000-0000-c000-000000000000 | select name,IssuerIdentifier,enabled</b></td>
 <td>
-  <div><b>Name:</b><span style='color: $Script:tdEXOAuthServerNameColor;'>$($Script:tdEXOAuthServerName)</span></div>
-  <div><b>IssuerIdentifier:</b><span style='color: $Script:tdEXOAuthServerIssuerIdentifierColor;'>$($Script:tdEXOAuthServerIssuerIdentifier)</span></div>
-  <div><b>Enabled:</b><span style='color: $Script:tdEXOAuthServerEnabledColor;'>$($Script:tdEXOAuthServerEnabled)</span></div>
+  <div><b>Name:</b><span style='color: $Script:tdExoAuthServerNameColor;'>$($Script:tdExoAuthServerName)</span></div>
+  <div><b>IssuerIdentifier:</b><span style='color: $Script:tdExoAuthServerIssuerIdentifierColor;'>$($Script:tdExoAuthServerIssuerIdentifier)</span></div>
+  <div><b>Enabled:</b><span style='color: $Script:tdExoAuthServerEnabledColor;'>$($Script:tdExoAuthServerEnabled)</span></div>
 </td>
 </tr>
 "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function ExoTestOAuthCheckHtml() {
-  $script:html += "
+    $script:html += "
   <tr>
     <th ColSpan='2' style='color:white;'><b>Summary - Test-OAuthConnectivity</b></th>
   </tr>
@@ -854,10 +844,10 @@ function ExoTestOAuthCheckHtml() {
     </td>
   </tr>
 "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function lookupMethodDAuthHtml() {
-  $Script:html += "
+    $Script:html += "
                       <div  style = 'padding-left: 0%;'>
                         <h3>Intra Organization Connector Enabled: <b>True</b></h3>
                         <p> <span style='color: green; font-wight: 550; padding-left:2%; '>Checking DAuth only as -Auth DAuth option was selected</span></p>
@@ -884,10 +874,10 @@ function lookupMethodDAuthHtml() {
                         </ul>
                       </div>
   "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function lookupMethodOauthHtml() {
-  $Script:html += "
+    $Script:html += "
     <div  style = 'padding-left: 0%;'>
       <h3>Intra Organization Connector Enabled: <b>True</b></h3>
       <p> <span style='color: green; font-wight: 550; padding-left:2%; '>Checking OAuth only as Free Busy Lookup is done using OAuth when the Intra Organization Connector is Enabled</span></p>
@@ -914,13 +904,13 @@ function lookupMethodOauthHtml() {
       </ul>
     </div>
 "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function lookupMethodCheckAllHtml() {
-  $Script:Auth = ""
-  Write-Host -ForegroundColor White "    -> Free Busy Lookup is done using OAuth when the Intra Organization Connector is Enabled"
-  Write-Host -ForegroundColor White "    -> Checking both OAuth and DAuth as -Auth All option was selected"
-  $Script:html += "
+    $Script:Auth = ""
+    Write-Host -ForegroundColor White "    -> Free Busy Lookup is done using OAuth when the Intra Organization Connector is Enabled"
+    Write-Host -ForegroundColor White "    -> Checking both OAuth and DAuth as -Auth All option was selected"
+    $Script:html += "
                 <div  style = 'padding-left: 0%;'>
                   <h3>Intra Organization Connector Enabled: <b>True</b></h3>
                   <p> <span style='color: green; font-wight: 550; padding-left:2%; '>Checking both OAuth and DAuth as -Auth All option was selected</span></p>
@@ -947,10 +937,10 @@ function lookupMethodCheckAllHtml() {
                   </ul>
                 </div>
 "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function lookupMethodDAuthOauthDisabledHtml() {
-  $Script:html += "
+    $Script:html += "
                       <div  style = 'padding-left: 0%;'>
                         <h3>Intra Organization Connector Enabled: <b>False</b></h3>
                         <p> <span style='color: green; font-wight: 550; padding-left:2%; '>Checking DAuth as OAuth is not Enabled</span></p>
@@ -977,10 +967,10 @@ function lookupMethodDAuthOauthDisabledHtml() {
                         </ul>
                       </div>
   "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function lookupMethodOauthOauthDisabledHtml() {
-  $Script:html += "
+    $Script:html += "
                     <div  style = 'padding-left: 0%;'>
                       <h3>Intra Organization Connector Enabled: <b>False</b></h3>
                       <p> <span style='color: green; font-wight: 550; padding-left:2%; '>Checking OAuth as -Auth OAuth parameter was selected</span></p>
@@ -998,10 +988,10 @@ function lookupMethodOauthOauthDisabledHtml() {
                       </ul>
                     </div>
 "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function lookupMethodAllOauthDisabledHtml() {
-  $Script:html += "
+    $Script:html += "
                 <div  style = 'padding-left: 0%;'>
                   <h3>Intra Organization Connector Enabled: <b>False</b></h3>
                   <p> <span style='color: green; font-wight: 550; padding-left:2%; '>Checking both for OAuth and DAuth as -Auth All parameter was selected</span></p>
@@ -1019,10 +1009,10 @@ function lookupMethodAllOauthDisabledHtml() {
                   </ul>
                 </div>
 "
-  $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $htmlFile
 }
 function exoHeaderHtml() {
-  $Script:html += "
+    $Script:html += "
    </table>
     <div class='Black'><p></p></div>
     <div class='Black'><p></p></div>
