@@ -62,16 +62,19 @@ $ConditionalFormatting = $(
     # Client, ShortClientInfoString and LogClientInfoString
     New-ConditionalText "Outlook" -ConditionalTextColor Green -BackgroundColor $null
     New-ConditionalText "OWA" -ConditionalTextColor DarkGreen -BackgroundColor $null
+    New-ConditionalText "Teams" -ConditionalTextColor DarkGreen -BackgroundColor $null
     New-ConditionalText "Transport" -ConditionalTextColor Blue -BackgroundColor $null
     New-ConditionalText "Repair" -ConditionalTextColor DarkRed -BackgroundColor LightPink
     New-ConditionalText "Other ?BA" -ConditionalTextColor Orange -BackgroundColor $null
+    New-ConditionalText "TimeService" -ConditionalTextColor Orange -BackgroundColor $null
     New-ConditionalText "Other REST" -ConditionalTextColor DarkRed -BackgroundColor $null
+    New-ConditionalText "[Unknown Rest Client]" -ConditionalTextColor DarkRed -BackgroundColor $null
     New-ConditionalText "ResourceBookingAssistant" -ConditionalTextColor Blue -BackgroundColor $null
 
     #LogType
     New-ConditionalText -Range "C3:C9999" -ConditionalType ContainsText -Text "Ignorable" -ConditionalTextColor DarkRed -BackgroundColor $null
     New-ConditionalText -Range "C:C" -ConditionalType ContainsText -Text "Cleanup" -ConditionalTextColor DarkRed -BackgroundColor $null
-    New-ConditionalText -Range "C:C" -ConditionalType ContainsText -Text "Sharing" -ConditionalTextColor Blue -BackgroundColor $null
+    New-ConditionalText -Range "C:C" -ConditionalType ContainsText -Text "Sync" -ConditionalTextColor Blue -BackgroundColor $null
 
     # TriggerAction
     New-ConditionalText -Range "G:G" -ConditionalType ContainsText -Text "Create" -ConditionalTextColor Green -BackgroundColor $null
@@ -98,6 +101,7 @@ $ConditionalFormatting = $(
 
     #AppointmentAuxiliaryFlags
     New-ConditionalText -Range "AE3:AE9999" -ConditionalType ContainsText -Text "Copied" -ConditionalTextColor DarkRed -BackgroundColor LightPink
+    New-ConditionalText -Range "AE3:AE9999" -ConditionalType ContainsText -Text "ForwardedAppointment" -ConditionalTextColor DarkRed -BackgroundColor $null
 
     #ResponseType
     New-ConditionalText -Range "AI3:AI9999" -ConditionalType ContainsText -Text "Organizer" -ConditionalTextColor Orange -BackgroundColor $null
