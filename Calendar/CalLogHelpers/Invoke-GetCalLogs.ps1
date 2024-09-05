@@ -40,7 +40,7 @@ $script:CustomPropertyNameList =
 
 $LogLimit = 2000
 
-if($ShortLogs.IsPresent) {
+if ($ShortLogs.IsPresent) {
     $LogLimit = 500
 }
 

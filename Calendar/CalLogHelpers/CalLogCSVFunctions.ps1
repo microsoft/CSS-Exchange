@@ -205,7 +205,6 @@ function BuildCSV {
             'SendMeetingMessagesDiagnostics' = $CalLog.SendMeetingMessagesDiagnostics
             'AttendeeCollection'             = MultiLineFormat($CalLog.AttendeeCollection)
             'CalendarLogRequestId'           = $CalLog.CalendarLogRequestId.ToString()    # Move to front.../ Format in groups???
-            'CleanGlobalObjectId'            = $CalLog.CleanGlobalObjectId
         }
     }
     $script:EnhancedCalLogs = $GCDOResults

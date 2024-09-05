@@ -204,8 +204,6 @@ function FormatHeader {
     Set-CellComment -Text "AttendeeCollection: The Attendee Collection of the Meeting, use -TrackingLogs to get values." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 40 -HorizontalAlignment Center         # CalendarLogRequestId
     Set-CellComment -Text "CalendarLogRequestId: The Calendar Log Request ID of the Meeting." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 120 -HorizontalAlignment Left         # CleanGlobalObjectId
-    Set-CellComment -Text "CleanGlobalObjectId: The Clean Global Object ID of the Meeting." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
 
     # Update header rows after all the others have been set.
     # Title Row
