@@ -179,7 +179,6 @@ function BuildCSV {
             'OriginalLogFolder'              = $CalLog.OriginalParentDisplayName
             'SharedFolderName'               = MapSharedFolder($CalLog.ExternalSharingMasterId)
             'IsFromSharedCalendar'           = $IsFromSharedCalendar
-            'ExternalSharingMasterId'        = $CalLog.ExternalSharingMasterId
             'ReceivedBy'                     = $CalLog.ReceivedBy.SmtpEmailAddress
             'ReceivedRepresenting'           = $CalLog.ReceivedRepresenting.SmtpEmailAddress
             'MeetingRequestType'             = $CalLog.MeetingRequestType.ToString()

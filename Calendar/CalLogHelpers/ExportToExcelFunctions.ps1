@@ -94,17 +94,16 @@ $ConditionalFormatting = $(
     #Shared Calendar information
     New-ConditionalText -Range "Q3:Q9999" -ConditionalType NotEqual -Text "Not Shared" -ConditionalTextColor Blue -BackgroundColor $null
     New-ConditionalText -Range "R:R" -ConditionalType ContainsText -Text "TRUE" -ConditionalTextColor Blue -BackgroundColor $null
-    New-ConditionalText -Range "S:S" -ConditionalType NotEqual -Text "NotFound" -ConditionalTextColor Blue -BackgroundColor $null
 
     #MeetingRequestType
-    New-ConditionalText -Range "V:V" -ConditionalType ContainsText -Text "Outdated" -ConditionalTextColor DarkRed -BackgroundColor LightPink
+    New-ConditionalText -Range "U:U" -ConditionalType ContainsText -Text "Outdated" -ConditionalTextColor DarkRed -BackgroundColor LightPink
 
     #AppointmentAuxiliaryFlags
-    New-ConditionalText -Range "AE3:AE9999" -ConditionalType ContainsText -Text "Copied" -ConditionalTextColor DarkRed -BackgroundColor LightPink
-    New-ConditionalText -Range "AE3:AE9999" -ConditionalType ContainsText -Text "ForwardedAppointment" -ConditionalTextColor DarkRed -BackgroundColor $null
+    New-ConditionalText -Range "AD3:AD9999" -ConditionalType ContainsText -Text "Copied" -ConditionalTextColor DarkRed -BackgroundColor LightPink
+    New-ConditionalText -Range "AD3:AD9999" -ConditionalType ContainsText -Text "ForwardedAppointment" -ConditionalTextColor DarkRed -BackgroundColor $null
 
     #ResponseType
-    New-ConditionalText -Range "AI3:AI9999" -ConditionalType ContainsText -Text "Organizer" -ConditionalTextColor Orange -BackgroundColor $null
+    New-ConditionalText -Range "AH3:AH9999" -ConditionalType ContainsText -Text "Organizer" -ConditionalTextColor Orange -BackgroundColor $null
 )
 
 function FormatHeader {
@@ -152,8 +151,6 @@ function FormatHeader {
     Set-CellComment -Text "SharedFolderName: Was this from a Modern Sharing, and if so what Folder." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment center         # IsFromSharedCalendar
     Set-CellComment -Text "IsFromSharedCalendar: Is this CalLog from a Modern Sharing relationship?" -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 20 -HorizontalAlignment Left         # ExternalSharingMasterId
-    Set-CellComment -Text "ExternalSharingMasterId: If this is not [NotFound], then it is from a Modern Sharing relationship." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment Left         # ReceivedBy
     Set-CellComment -Text "ReceivedBy: The Receiver of the Calendar Item. Should always be the owner of the Mailbox." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment Left         # ReceivedRepresenting
