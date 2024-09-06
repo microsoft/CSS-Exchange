@@ -67,7 +67,7 @@ function BuildTimeline {
     FindOrganizer($script:FirstLog)
 
     # Ignorable and items from Shared Calendars are not included in the TimeLine.
-    [array]$InterestingCalLogs = $script:EnhancedCalLogs | Where-Object { $_.LogType -eq "Core" -and $_.IsFromSharedCalendar -eq $False }
+    [array]$InterestingCalLogs = $script:EnhancedCalLogs | Where-Object { $_.LogType -eq "Core" -and $_.SharedFolderName -eq "Not Shared"  }
 
     if ($InterestingCalLogs.count -eq 0) {
         Write-Host "All CalLogs are Ignorable, nothing to create a timeline with, displaying initial values."
