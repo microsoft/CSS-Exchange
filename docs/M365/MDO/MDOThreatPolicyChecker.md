@@ -14,7 +14,7 @@ The script can help with such questions as:
 
 - Which actions would be taken on an email for each policy matched?
 
-The script runs only in “Read” mode from Exchange Online and Microsoft Graph PowerShell. It does not modify any policies, and only provides actionable guidance for administrators for remediation.
+The script runs only in Read mode from Exchange Online and Microsoft Graph PowerShell. It does not modify any policies, and only provides actionable guidance for administrators for remediation.
 
 ## Prerequisites
 The script uses Exchange Online cmdlets from Exchange Online module and Microsoft.Graph cmdLets from Microsoft.Graph.Authentication, Microsoft.Graph.Groups and Microsoft.Graph.Users modules.
