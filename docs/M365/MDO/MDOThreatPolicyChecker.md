@@ -59,11 +59,11 @@ You can find the Exchange module and information in the following links:<br>
 ## Parameters and Use Cases:
 Run the script without any parameters to review all threat protection policies and to find inconsistencies with user inclusion and/or exclusion conditions:
 
-!['No Logical inconsistencies found'](img\No-Logical-Inconsistencies.png)
+!['No Logical inconsistencies found'](img/No-Logical-Inconsistencies.png)
 
 **Script Output 1: No logical inconsistencies found** message if the policies are configured correctly, and no further corrections are required.
 
-![Potentially illogical inclusions found.](img\Logical-Inconsistency-Found.png)
+![Potentially illogical inclusions found.](img/Logical-Inconsistency-Found.png)
 
 **Script Output 2: Logical inconsistencies found**. Inconsistencies found in the antispam policy named 'Custom antispam policy', and consequent recommendations shown -- illogical inclusions as both users and groups are specified. This policy will only apply to the users who are also members of the specified group.
 
@@ -71,7 +71,7 @@ Run the script without any parameters to review all threat protection policies a
 
 Add the parameter -IncludeMDOPolicies to view Microsoft Defender for Office 365 Safe Links and Safe Attachments policies:
 
-![Policies, including MDO.](img\Show-Policies-Including-MDO.png)
+![Policies, including MDO.](img/Show-Policies-Including-MDO.png)
 
 **Script Output 3: Parameters -EmailAddress and -IncludeMDOPoliciesEOP** specified to validate Microsoft Defender for Office 365 Safe Attachments and Safe Links policies, on top of Exchange Online Protection policies.
 
@@ -79,13 +79,13 @@ Add the parameter -IncludeMDOPolicies to view Microsoft Defender for Office 365 
 
 To see policy details, run the script with the -ShowDetailedPolicies parameter:
 
-![Show policy actions.](img\Show-Detailed-Policies-1.png)
+![Show policy actions.](img/Show-Detailed-Policies-1.png)
 
-![Show policy actions.](img\Show-Detailed-Policies-2.png)
+![Show policy actions.](img/Show-Detailed-Policies-2.png)
 
-![Show policy actions.](img\Show-Detailed-Policies-3.png)
+![Show policy actions.](img/Show-Detailed-Policies-3.png)
 
-![Show policy actions.](img\Show-Detailed-Policies-4.png)
+![Show policy actions.](img/Show-Detailed-Policies-4.png)
 
 **Script Output 4: Policy actions**. Use -ShowDetailedPolicies to see the details and actions for each policy.
 
