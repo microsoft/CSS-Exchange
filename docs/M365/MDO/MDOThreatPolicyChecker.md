@@ -80,9 +80,13 @@ Add the parameter -IncludeMDOPolicies to view Microsoft Defender for Office 365 
 To see policy details, run the script with the -ShowDetailedPolicies parameter:
 
 ![Show policy actions.](img\Show-Detailed-Policies-1.png)
+
 ![Show policy actions.](img\Show-Detailed-Policies-2.png)
+
 ![Show policy actions.](img\Show-Detailed-Policies-3.png)
+
 ![Show policy actions.](img\Show-Detailed-Policies-4.png)
+
 **Script Output 4: Policy actions**. Use -ShowDetailedPolicies to see the details and actions for each policy.
 
 ## Additional examples
