@@ -17,16 +17,21 @@ The script can help with such questions as:
 The script runs only in Read mode from Exchange Online and Microsoft Graph PowerShell. It does not modify any policies, and only provides actionable guidance for administrators for remediation.
 
 ## Prerequisites
-The script uses Exchange Online cmdlets from Exchange Online module and Microsoft.Graph cmdLets from Microsoft.Graph.Authentication, Microsoft.Graph.Groups and Microsoft.Graph.Users modules.
+The script uses Powershell cmdlets from the Exchange Online module and from the Microsoft.Graph.Authentication, Microsoft.Graph.Groups, and Microsoft.Graph.Users modules.
 
-To run the PowerShell Graph cmdlets used in this script, you need only the following modules from the Microsoft.Graph PowerShell SDK:
-- Microsoft.Graph.Groups: Contains cmdlets for managing groups, including `Get-MgGroup` and `Get-MgGroupMember`.
-- Microsoft.Graph.Users: Includes cmdlets for managing users, such as `Get-MgUser`.
-- Microsoft.Graph.Authentication: Required for authentication purposes and to run any cmdlet that interacts with Microsoft Graph.
+To run the Graph cmdlets used in this script, you only need the following modules from the Microsoft.Graph PowerShell SDK:
+
+- Microsoft.Graph.Groups: for managing groups, including `Get-MgGroup` and `Get-MgGroupMember`.
+
+- Microsoft.Graph.Users: for managing users, such as `Get-MgUser`.
+
+- Microsoft.Graph.Authentication: for authentication purposes and to run any cmdlet that interacts with Microsoft Graph.
 
 You can find the Microsoft Graph modules in the following link:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;https://www.powershellgallery.com/packages/Microsoft.Graph/<br>
+
 &nbsp;&nbsp;&nbsp;&nbsp;https://learn.microsoft.com/en-us/powershell/microsoftgraph/installation?view=graph-powershell-1.0#installation
+
 
 Here's how you can install the required submodules for the PowerShell Graph SDK cmdlets:
 
