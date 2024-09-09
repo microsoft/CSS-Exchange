@@ -3516,24 +3516,24 @@ You also need an Exchange Online session.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;https://www.powershellgallery.com/packages/ExchangeOnlineManagement</p>
 <h2 id="parameters-and-use-cases">Parameters and Use Cases:</h2>
 <p>Run the script without any parameters to review all threat protection policies and to find inconsistencies with user inclusion and/or exclusion conditions:</p>
-<p><img alt="'No Logical inconsistencies found'" src="img\No-Logical-Inconsistencies.png" /></p>
+<p><img alt="'No Logical inconsistencies found'" src="../img/No-Logical-Inconsistencies.png" /></p>
 <p><strong>Script Output 1: No logical inconsistencies found</strong> message if the policies are configured correctly, and no further corrections are required.</p>
-<p><img alt="Potentially illogical inclusions found." src="img\Logical-Inconsistency-Found.png" /></p>
+<p><img alt="Potentially illogical inclusions found." src="../img/Logical-Inconsistency-Found.png" /></p>
 <p><strong>Script Output 2: Logical inconsistencies found</strong>. Inconsistencies found in the antispam policy named 'Custom antispam policy', and consequent recommendations shown -- illogical inclusions as both users and groups are specified. This policy will only apply to the users who are also members of the specified group.</p>
 <ul>
 <li>IncludeMDOPolicies</li>
 </ul>
 <p>Add the parameter -IncludeMDOPolicies to view Microsoft Defender for Office 365 Safe Links and Safe Attachments policies:</p>
-<p><img alt="Policies, including MDO." src="img\Show-Policies-Including-MDO.png" /></p>
+<p><img alt="Policies, including MDO." src="../img/Show-Policies-Including-MDO.png" /></p>
 <p><strong>Script Output 3: Parameters -EmailAddress and -IncludeMDOPoliciesEOP</strong> specified to validate Microsoft Defender for Office 365 Safe Attachments and Safe Links policies, on top of Exchange Online Protection policies.</p>
 <ul>
 <li>ShowDetailedPolicies</li>
 </ul>
 <p>To see policy details, run the script with the -ShowDetailedPolicies parameter:</p>
-<p><img alt="Show policy actions." src="img\Show-Detailed-Policies-1.png" /></p>
-<p><img alt="Show policy actions." src="img\Show-Detailed-Policies-2.png" /></p>
-<p><img alt="Show policy actions." src="img\Show-Detailed-Policies-3.png" /></p>
-<p><img alt="Show policy actions." src="img\Show-Detailed-Policies-4.png" /></p>
+<p><img alt="Show policy actions." src="../img/Show-Detailed-Policies-1.png" /></p>
+<p><img alt="Show policy actions." src="../img/Show-Detailed-Policies-2.png" /></p>
+<p><img alt="Show policy actions." src="../img/Show-Detailed-Policies-3.png" /></p>
+<p><img alt="Show policy actions." src="../img/Show-Detailed-Policies-4.png" /></p>
 <p><strong>Script Output 4: Policy actions</strong>. Use -ShowDetailedPolicies to see the details and actions for each policy.</p>
 <h2 id="additional-examples">Additional examples</h2>
 <p>To provide multiple email addresses by command line and see only EOP policies, run the following:<br>
