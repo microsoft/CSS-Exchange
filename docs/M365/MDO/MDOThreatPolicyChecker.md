@@ -2,21 +2,36 @@
 
 Download the latest release: [MDOThreatPolicyChecker.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/MDOThreatPolicyChecker.ps1)
 
-This script checks which Microsoft Defender for Office 365 and Exchange Online Protection threat policies cover a particular user, including anti-malware, anti-phishing, inbound and outbound anti-spam, as well as Safe Attachments and Safe Links policies in case these are licensed for your tenant. In addition, the script can check for threat policies that have inclusion and/or exclusion settings that may be redundant or confusing and lead to missed coverage of users or coverage by an unexpected threat policy.
+Use this script to find inconsistencies or redundancies in user membership and policy application of Microsoft Defender for Office 365 and Exchange Online Protection threat policies that lead to missed or unexpected coverage of users by the policy. If issues are found, the script provides guidance on how to resolve them.
 
-It also includes an option to show all the actions and settings of the policies that apply to a user.
+The script also helps you identify which threat policies cover a particular user, including anti-malware, anti-phishing, inbound and outbound anti-spam, as well as Safe Attachments and Safe Links policies in case these are licensed for your tenant.
 
-## Common Usage
-The script uses Exchange Online cmdlets from Exchange Online module and Microsoft.Graph cmdLets from Microsoft.Graph.Authentication, Microsoft.Graph.Groups and Microsoft.Graph.Users modules.
+The script can help with such questions as:
 
-To run the PowerShell Graph cmdlets used in this script, you need only the following modules from the Microsoft.Graph PowerShell SDK:
-- Microsoft.Graph.Groups: Contains cmdlets for managing groups, including `Get-MgGroup` and `Get-MgGroupMember`.
-- Microsoft.Graph.Users: Includes cmdlets for managing users, such as `Get-MgUser`.
-- Microsoft.Graph.Authentication: Required for authentication purposes and to run any cmdlet that interacts with Microsoft Graph.
+- Are there confusing policies with conditions that lead to unexpected coverage or coverage gaps?
+
+- Which threat policies apply to a recipient, **or should have applied** but did not? **No actual detection or Network Message ID needed.**
+
+- Which actions would be taken on an email for each policy matched?
+
+The script runs only in Read mode from Exchange Online and Microsoft Graph PowerShell. It does not modify any policies, and only provides actionable guidance for administrators for remediation.
+
+## Prerequisites
+The script uses Powershell cmdlets from the Exchange Online module and from the Microsoft.Graph.Authentication, Microsoft.Graph.Groups, and Microsoft.Graph.Users modules.
+
+To run the Graph cmdlets used in this script, you only need the following modules from the Microsoft.Graph PowerShell SDK:
+
+- Microsoft.Graph.Groups: for managing groups, including `Get-MgGroup` and `Get-MgGroupMember`.
+
+- Microsoft.Graph.Users: for managing users, such as `Get-MgUser`.
+
+- Microsoft.Graph.Authentication: for authentication purposes and to run any cmdlet that interacts with Microsoft Graph.
 
 You can find the Microsoft Graph modules in the following link:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;https://www.powershellgallery.com/packages/Microsoft.Graph/<br>
+
 &nbsp;&nbsp;&nbsp;&nbsp;https://learn.microsoft.com/en-us/powershell/microsoftgraph/installation?view=graph-powershell-1.0#installation
+
 
 Here's how you can install the required submodules for the PowerShell Graph SDK cmdlets:
 
@@ -31,12 +46,12 @@ Install-Module -Name Microsoft.Graph.Users -Scope CurrentUser
     Remember to run these commands in a PowerShell session with the appropriate permissions. The -Scope CurrentUser parameter installs the modules for the current user only, which doesn't require administrative privileges.
 
 
-In the Graph connection you will need the following scopes 'Group.Read.All','User.Read.All'<br>
+In the Graph connection, you will need the following scopes 'Group.Read.All','User.Read.All'<br>
 ```powershell
 Connect-MgGraph -Scopes 'Group.Read.All','User.Read.All'
 ```
 <br><br>
-You need as well an Exchange Online session.<br>
+You also need an Exchange Online session.<br>
 ```powershell
 Connect-ExchangeOnline
 ```
@@ -46,16 +61,40 @@ You can find the Exchange module and information in the following links:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;https://www.powershellgallery.com/packages/ExchangeOnlineManagement
 
 
-## Examples:
-To check all threat policies for potentially confusing user inclusion and/or exclusion conditions and print them out for review, run the following:<br>
-```powershell
-.\MDOThreatPolicyChecker.ps1
-```
+## Parameters and Use Cases:
+Run the script without any parameters to review all threat protection policies and to find inconsistencies with user inclusion and/or exclusion conditions:
 
-To provide a CSV input file with email addresses and see only EOP policies, run the following:<br>
-```powershell
-.\MDOThreatPolicyChecker.ps1 -CsvFilePath [Path\filename.csv]
-```
+!['No Logical inconsistencies found'](img/No-Logical-Inconsistencies.png)
+
+**Script Output 1: No logical inconsistencies found** message if the policies are configured correctly, and no further corrections are required.
+
+![Potentially illogical inclusions found.](img/Logical-Inconsistency-Found.png)
+
+**Script Output 2: Logical inconsistencies found**. Inconsistencies found in the antispam policy named 'Custom antispam policy', and consequent recommendations shown -- illogical inclusions as both users and groups are specified. This policy will only apply to the users who are also members of the specified group.
+
+- IncludeMDOPolicies
+
+Add the parameter -IncludeMDOPolicies to view Microsoft Defender for Office 365 Safe Links and Safe Attachments policies:
+
+![Policies, including MDO.](img/Show-Policies-Including-MDO.png)
+
+**Script Output 3: Parameters -EmailAddress and -IncludeMDOPoliciesEOP** specified to validate Microsoft Defender for Office 365 Safe Attachments and Safe Links policies, on top of Exchange Online Protection policies.
+
+- ShowDetailedPolicies
+
+To see policy details, run the script with the -ShowDetailedPolicies parameter:
+
+![Show policy actions.](img/Show-Detailed-Policies-1.png)
+
+![Show policy actions.](img/Show-Detailed-Policies-2.png)
+
+![Show policy actions.](img/Show-Detailed-Policies-3.png)
+
+![Show policy actions.](img/Show-Detailed-Policies-4.png)
+
+**Script Output 4: Policy actions**. Use -ShowDetailedPolicies to see the details and actions for each policy.
+
+## Additional examples
 
 To provide multiple email addresses by command line and see only EOP policies, run the following:<br>
 ```powershell
@@ -70,11 +109,6 @@ To provide a CSV input file with email addresses and see both EOP and MDO polici
 To provide an email address and see only MDO (Safe Attachment and Safe Links) policies, run the following:<br>
 ```powershell
 .\MDOThreatPolicyChecker.ps1 -EmailAddress user1@contoso.com -OnlyMDOPolicies
-```
-
-To see the details of the policies applied to mailbox in a CSV file for both EOP and MDO, run the following:<br>
-```powershell
-.\MDOThreatPolicyChecker.ps1 -CsvFilePath [Path\filename.csv] -IncludeMDOPolicies -ShowDetailedPolicies
 ```
 
 To get all mailboxes in your tenant and print out their EOP and MDO policies, run the following:<br>

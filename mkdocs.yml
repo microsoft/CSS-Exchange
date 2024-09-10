@@ -85,6 +85,7 @@ nav:
     - SimplePerf: Performance/SimplePerf.md
   - PublicFolders:
     - SourceSideValidations: PublicFolders/SourceSideValidations.md
+    - Update-PublicFolderPermissions: PublicFolders/Update-PublicFolderPermissions.md
     - ValidateMailEnabledPublicFolders: PublicFolders/ValidateMailEnabledPublicFolders.md
     - ValidateEXOPFDumpster: PublicFolders/ValidateEXOPFDumpster.md
   - Retention:
@@ -118,6 +119,7 @@ nav:
   - Transport:
     - Compute-TopExoRecipientsFromMessageTrace: Transport/Compute-TopExoRecipientsFromMessageTrace.md
     - ReplayQueueDatabases: Transport/ReplayQueueDatabases.md
+    - Measure-EmailDelayInMTL: Transport/Measure-EmailDelayInMTL.md
 theme:
   name: 'material'
   features:
