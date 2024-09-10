@@ -179,7 +179,6 @@ function BuildCSV {
             'OriginalLogFolder'              = $CalLog.OriginalParentDisplayName
             'SharedFolderName'               = MapSharedFolder($CalLog.ExternalSharingMasterId)
             'IsFromSharedCalendar'           = $IsFromSharedCalendar
-            'ExternalSharingMasterId'        = $CalLog.ExternalSharingMasterId
             'ReceivedBy'                     = $CalLog.ReceivedBy.SmtpEmailAddress
             'ReceivedRepresenting'           = $CalLog.ReceivedRepresenting.SmtpEmailAddress
             'MeetingRequestType'             = $CalLog.MeetingRequestType.ToString()
@@ -205,7 +204,6 @@ function BuildCSV {
             'SendMeetingMessagesDiagnostics' = $CalLog.SendMeetingMessagesDiagnostics
             'AttendeeCollection'             = MultiLineFormat($CalLog.AttendeeCollection)
             'CalendarLogRequestId'           = $CalLog.CalendarLogRequestId.ToString()    # Move to front.../ Format in groups???
-            'CleanGlobalObjectId'            = $CalLog.CleanGlobalObjectId
         }
     }
     $script:EnhancedCalLogs = $GCDOResults

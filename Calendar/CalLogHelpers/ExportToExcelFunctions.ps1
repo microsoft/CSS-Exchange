@@ -62,16 +62,19 @@ $ConditionalFormatting = $(
     # Client, ShortClientInfoString and LogClientInfoString
     New-ConditionalText "Outlook" -ConditionalTextColor Green -BackgroundColor $null
     New-ConditionalText "OWA" -ConditionalTextColor DarkGreen -BackgroundColor $null
+    New-ConditionalText "Teams" -ConditionalTextColor DarkGreen -BackgroundColor $null
     New-ConditionalText "Transport" -ConditionalTextColor Blue -BackgroundColor $null
     New-ConditionalText "Repair" -ConditionalTextColor DarkRed -BackgroundColor LightPink
     New-ConditionalText "Other ?BA" -ConditionalTextColor Orange -BackgroundColor $null
+    New-ConditionalText "TimeService" -ConditionalTextColor Orange -BackgroundColor $null
     New-ConditionalText "Other REST" -ConditionalTextColor DarkRed -BackgroundColor $null
+    New-ConditionalText "[Unknown Rest Client]" -ConditionalTextColor DarkRed -BackgroundColor $null
     New-ConditionalText "ResourceBookingAssistant" -ConditionalTextColor Blue -BackgroundColor $null
 
     #LogType
     New-ConditionalText -Range "C3:C9999" -ConditionalType ContainsText -Text "Ignorable" -ConditionalTextColor DarkRed -BackgroundColor $null
     New-ConditionalText -Range "C:C" -ConditionalType ContainsText -Text "Cleanup" -ConditionalTextColor DarkRed -BackgroundColor $null
-    New-ConditionalText -Range "C:C" -ConditionalType ContainsText -Text "Sharing" -ConditionalTextColor Blue -BackgroundColor $null
+    New-ConditionalText -Range "C:C" -ConditionalType ContainsText -Text "Sync" -ConditionalTextColor Blue -BackgroundColor $null
 
     # TriggerAction
     New-ConditionalText -Range "G:G" -ConditionalType ContainsText -Text "Create" -ConditionalTextColor Green -BackgroundColor $null
@@ -90,17 +93,16 @@ $ConditionalFormatting = $(
 
     #Shared Calendar information
     New-ConditionalText -Range "Q3:Q9999" -ConditionalType NotEqual -Text "Not Shared" -ConditionalTextColor Blue -BackgroundColor $null
-    New-ConditionalText -Range "R:R" -ConditionalType ContainsText -Text "TRUE" -ConditionalTextColor Blue -BackgroundColor $null
-    New-ConditionalText -Range "S:S" -ConditionalType NotEqual -Text "NotFound" -ConditionalTextColor Blue -BackgroundColor $null
 
     #MeetingRequestType
-    New-ConditionalText -Range "V:V" -ConditionalType ContainsText -Text "Outdated" -ConditionalTextColor DarkRed -BackgroundColor LightPink
+    New-ConditionalText -Range "T:T" -ConditionalType ContainsText -Text "Outdated" -ConditionalTextColor DarkRed -BackgroundColor LightPink
 
     #AppointmentAuxiliaryFlags
-    New-ConditionalText -Range "AE3:AE9999" -ConditionalType ContainsText -Text "Copied" -ConditionalTextColor DarkRed -BackgroundColor LightPink
+    New-ConditionalText -Range "AC3:AC9999" -ConditionalType ContainsText -Text "Copied" -ConditionalTextColor DarkRed -BackgroundColor LightPink
+    New-ConditionalText -Range "AC3:AC9999" -ConditionalType ContainsText -Text "ForwardedAppointment" -ConditionalTextColor DarkRed -BackgroundColor $null
 
     #ResponseType
-    New-ConditionalText -Range "AI3:AI9999" -ConditionalType ContainsText -Text "Organizer" -ConditionalTextColor Orange -BackgroundColor $null
+    New-ConditionalText -Range "AG3:AG9999" -ConditionalType ContainsText -Text "Organizer" -ConditionalTextColor Orange -BackgroundColor $null
 )
 
 function FormatHeader {
@@ -146,10 +148,6 @@ function FormatHeader {
     Set-CellComment -Text "OriginalLogFolder (OriginalParentDisplayName): The Original Log Folder that the item was in / delivered to." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 15 -HorizontalAlignment Right         # SharedFolderName
     Set-CellComment -Text "SharedFolderName: Was this from a Modern Sharing, and if so what Folder." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment center         # IsFromSharedCalendar
-    Set-CellComment -Text "IsFromSharedCalendar: Is this CalLog from a Modern Sharing relationship?" -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 20 -HorizontalAlignment Left         # ExternalSharingMasterId
-    Set-CellComment -Text "ExternalSharingMasterId: If this is not [NotFound], then it is from a Modern Sharing relationship." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment Left         # ReceivedBy
     Set-CellComment -Text "ReceivedBy: The Receiver of the Calendar Item. Should always be the owner of the Mailbox." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment Left         # ReceivedRepresenting
@@ -200,8 +198,6 @@ function FormatHeader {
     Set-CellComment -Text "AttendeeCollection: The Attendee Collection of the Meeting, use -TrackingLogs to get values." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 40 -HorizontalAlignment Center         # CalendarLogRequestId
     Set-CellComment -Text "CalendarLogRequestId: The Calendar Log Request ID of the Meeting." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 120 -HorizontalAlignment Left         # CleanGlobalObjectId
-    Set-CellComment -Text "CleanGlobalObjectId: The Clean Global Object ID of the Meeting." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
 
     # Update header rows after all the others have been set.
     # Title Row

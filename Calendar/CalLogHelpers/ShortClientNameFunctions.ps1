@@ -18,7 +18,7 @@ function FindMatch {
 
 $ShortClientNameProcessor = @{
     'Client=Hub Transport'                       = "Transport"
-    'Client=MSExchangeRPC'                       = "Outlook : Desktop : MAPI"
+    'Client=MSExchangeRPC'                       = "Outlook:Desktop:MAPI"
     'OneOutlook'                                 = "NewOutlook"
     'Lync for Mac'                               = "LyncMac"
     'MicrosoftNinja'                             = "Teams"
@@ -119,6 +119,8 @@ function CreateShortClientName {
             $LogClientInfoString -like "*43375d74-c6a5-4d4e-a0a3-de139860ea75*" -or
             $LogClientInfoString -like "*af9fc99a-5ae5-46e1-bbd7-fa25088e16c9*") {
             $ShortClientName = "ELC-B2"
+        } elseif ($LogClientInfoString -like "*AppId=de8bc8b5-d9f9-48b1-a8ad-b748da725064*") {
+            $ShortClientName = "GraphExplorer"
         } elseif ($LogClientInfoString -like "*Outlook-iOS*") {
             $ShortClientName = "OutlookiOS"
         } elseif ($LogClientInfoString -like "*Outlook-Android*") {
