@@ -549,6 +549,33 @@ function Invoke-AnalyzerExchangeInformation {
         }
     }
 
+    $monitoringOverrides = New-Object System.Collections.Generic.List[object]
+    foreach ($monitoringOverride in $HealthServerObject.OrganizationInformation.GetGlobalMonitoringOverride.SimpleView) {
+        $monitoringOverrides.Add($monitoringOverride)
+    }
+    foreach ($monitoringOverride in $exchangeInformation.GetServerMonitoringOverride.SimpleView) {
+        $monitoringOverrides.Add($monitoringOverride)
+    }
+
+    $monitoringOverridesDetected = $monitoringOverrides.Count -gt 0
+    $params = $baseParams + @{
+        Name    = "Monitoring Overrides Detected"
+        Details = $monitoringOverridesDetected
+    }
+
+    Add-AnalyzedResultInformation @params
+
+    if ($monitoringOverridesDetected) {
+        $params = $baseParams + @{
+            OutColumns = ([PSCustomObject]@{
+                    DisplayObject = $monitoringOverrides
+                    IndentSpaces  = 12
+                })
+            HtmlName   = "Monitoring Overrides"
+        }
+        Add-AnalyzedResultInformation @params
+    }
+
     if ($null -ne $exchangeInformation.EdgeTransportResourceThrottling) {
         try {
             # SystemMemory does not block mail flow.

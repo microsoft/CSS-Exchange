@@ -8,6 +8,7 @@
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeSettingOverride.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExSetupFileVersionInfo.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-FileContentInformation.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Get-MonitoringOverride.ps1
 . $PSScriptRoot\IISInformation\Get-ExchangeAppPoolsInformation.ps1
 . $PSScriptRoot\IISInformation\Get-ExchangeServerIISSettings.ps1
 . $PSScriptRoot\Get-ExchangeAES256CBCDetails.ps1
@@ -211,6 +212,8 @@ function Get-ExchangeInformation {
             }
             $computerMembership = Invoke-ScriptBlockHandler @params
         }
+
+        [array]$serverMonitoringOverride = Get-MonitoringOverride -Server $Server
     } end {
 
         Write-Verbose "Exiting: Get-ExchangeInformation"
@@ -236,6 +239,7 @@ function Get-ExchangeInformation {
             AES256CBCInformation                     = $aes256CbcDetails
             FileContentInformation                   = $fileContentInformation
             ComputerMembership                       = $computerMembership
+            GetServerMonitoringOverride              = $serverMonitoringOverride
         }
     }
 }
