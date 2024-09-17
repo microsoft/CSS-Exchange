@@ -28,7 +28,7 @@ function Invoke-ScriptUpdate {
 
     $oldName = [IO.Path]::GetFileNameWithoutExtension($scriptName) + ".old"
     $oldFullName = (Join-Path $scriptPath $oldName)
-    $tempFullName = (Join-Path $env:TEMP $scriptName)
+    $tempFullName = (Join-Path ((Get-Item $env:TEMP).FullName) $scriptName)
 
     if ($PSCmdlet.ShouldProcess("$scriptName", "Update script to latest version")) {
         try {
