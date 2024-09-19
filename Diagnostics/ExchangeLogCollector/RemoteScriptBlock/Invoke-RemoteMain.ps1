@@ -204,6 +204,11 @@ function Invoke-RemoteMain {
                 Add-LogCopyFullTaskAction $Script:localServerObject.TransportInfo.MBXLoggingInfo.PipelineTracingPath "Mailbox_Pipeline_Tracing_Logs"
             }
         }
+
+        if ($PassedInfo.EventBasedAssistantsLogs -and $Script:localServerObject.Mailbox) {
+            Add-LogCopyFullTaskAction "$Script:localExInstall`Logging\EventBasedAssistants" "Event_Based_Assistants_Logs"
+            Add-LogCopyFullTaskAction "$Script:localExInstall`Logging\EventBasedAssistantsCollection" "Event_Based_Assistants_Collection_Logs"
+        }
     }
 
     ############################################
