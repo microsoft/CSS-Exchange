@@ -74,6 +74,7 @@ DAGInformation | Enable to collect the DAG Information from all different DAGs t
 DailyPerformanceLogs | Enable to collect Daily Performance Logs. Default Location: `V15\Logging\Diagnostics\DailyPerformanceLogs`
 EASLogs | Enable to collect Exchange Active Sync Logging. Location: `V15\Logging\HttpProxy\Eas`
 ECPLogs | Enable to collect ECP Logs. Location: `V15\Logging\ECP` and `V15\Logging\HttpProxy\Ecp`
+EventBasedAssistantsLogs | Enable to collect Event Based Assistants Logs. Location: `V15\Logging\EventBasedAssistants` and `V15\Logging\EventBasedAssistantsCollection`
 EWSLogs | Enable to collect EWS Logs. Location: `V15\Logging\HttpProxy\Ews` and `V15\Logging\Ews`
 ExchangeServerInformation | Enable to collect Exchange Information like Get-ExchangeServer, Get-MailboxServer, etc... This is also collected when `-ServerInformation` is also enabled.
 ExMon | Enable to collect ExMon data from the server.

@@ -36,6 +36,7 @@ function Get-ArgumentList {
         TransportLogging               = $TransportLogging
         EASLogs                        = $EASLogs
         ECPLogs                        = $ECPLogs
+        EventBasedAssistantsLogs       = $EventBasedAssistantsLogs
         EWSLogs                        = $EWSLogs
         ExchangeServerInformation      = $ExchangeServerInformation
         ExMon                          = $ExMon

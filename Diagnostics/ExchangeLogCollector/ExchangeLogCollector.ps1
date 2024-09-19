@@ -18,6 +18,7 @@ param (
     [switch]$DailyPerformanceLogs,
     [switch]$EASLogs,
     [switch]$ECPLogs,
+    [switch]$EventBasedAssistantsLogs,
     [switch]$EWSLogs,
     [Alias("ExchangeServerInfo")]
     [switch]$ExchangeServerInformation,
