@@ -209,6 +209,11 @@ function Invoke-RemoteMain {
             Add-LogCopyFullTaskAction "$Script:localExInstall`Logging\EventBasedAssistants" "Event_Based_Assistants_Logs"
             Add-LogCopyFullTaskAction "$Script:localExInstall`Logging\EventBasedAssistantsCollection" "Event_Based_Assistants_Collection_Logs"
         }
+
+        if ($PassedInfo.ConversationLogs -and $Script:localServerObject.Mailbox) {
+            Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\ConversationAggregationLog" "Conversation_Aggregation_Logs"
+            Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\ConversationProcessingLog" "Conversation_Processing_Logs"
+        }
     }
 
     ############################################

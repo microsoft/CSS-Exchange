@@ -70,6 +70,7 @@ AppSysLogs | Collects the Windows Event Application, System, and MSExchange Mana
 AppSysLogsToXml | Collects the Windows Event Application and System and saves them out to XML. The time range only is from the time the script run and the value set on `LogAge`. Default value: `$true`
 AutoDLogs | Enable to collect AutoDiscover Logs. Location: `V15\Logging\Autodiscover` and `V15\Logging\HttpProxy\Autodiscover`
 CollectFailoverMetrics | Enable to run the `CollectOverMetrics.ps1` script against the DAG. Only able to be run on an Exchange tools box or an Exchange Server.
+ConversationLogs | Enable to collect the Conversation Logs. Location: `V15\Logging\ConversationAggregationLog` and `V15\Logging\ConversationProcessingLog`
 DAGInformation | Enable to collect the DAG Information from all different DAGs that are in the list of servers.
 DailyPerformanceLogs | Enable to collect Daily Performance Logs. Default Location: `V15\Logging\Diagnostics\DailyPerformanceLogs`
 EASLogs | Enable to collect Exchange Active Sync Logging. Location: `V15\Logging\HttpProxy\Eas`

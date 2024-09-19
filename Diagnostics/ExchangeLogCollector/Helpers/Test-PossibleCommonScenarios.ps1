@@ -36,6 +36,7 @@ function Test-PossibleCommonScenarios {
         $Script:MitigationService = $true
         $Script:MailboxAssistantsLogs = $true
         $Script:EventBasedAssistantsLogs = $true
+        $Script:ConversationLogs = $true
     }
 
     if ($TransportLogging) {
