@@ -4,6 +4,7 @@ nav:
   - Emerging Issues: Emerging-Issues.md
   - Admin:
     - Clear-MailboxPermission: Admin/Clear-MailboxPermission.md
+    - ConfigureExchangeHybridApplication: Hybrid/ConfigureExchangeHybridApplication.md
     - Cross-TenantMailboxMigrationValidation: Admin/CrossTenantMailboxMigrationValidation.md
     - Find-AmbiguousSids: Admin/Find-AmbiguousSids.md
     - Get-EASMailboxLogs: Admin/Get-EASMailboxLogs.md
