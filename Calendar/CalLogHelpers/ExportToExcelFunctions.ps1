@@ -15,6 +15,32 @@ function Export-CalLogExcel {
     # Export Raw Logs for Developer Analysis
     Write-Host -ForegroundColor Cyan "Exporting Raw CalLogs to Excel Tab [$($ShortId + "_Raw")]..."
     $script:GCDO | Export-Excel -Path  $FileName -WorksheetName $($ShortId + "_Raw") -AutoFilter -FreezeTopRow -BoldTopRow -MoveToEnd
+    LogScriptInfo
+}
+
+function LogScriptInfo {
+# Only need to run once per script.
+    if ($null -eq $script:CollectedCmdLine) {
+        $commandLine = $MyInvocation.Line
+        Write-Output "The script was started with the following command line:"
+        Write-Output $commandLine
+
+        $RunInfo += [PSCustomObject]@{
+            "Script"             = $MyInvocation.MyCommand.Name
+            "RunTime"            = Get-Date
+            "Command"            = $commandLine
+            "version"            = $script:Version
+            "User"               = whoami.exe
+            "PowerShell Version" = $PSVersionTable.PSVersion
+            "OS"                 = $(Get-WmiObject -Class Win32_OperatingSystem).Version
+            "More Info:"         = "https://learn.microsoft.com/en-us/exchange/troubleshoot/calendars/get-calendar-diagnostic-logs#use-the-get-calendardiagnosticobjectssummaryps1-script."
+        }
+
+        $RunInfo | Export-Excel -Path $FileName -WorksheetName "ScriptInfo" -MoveToEnd
+        $script:CollectedCmdLine = $true
+    }
+# If someone runs the script the script again, will need to see what happens.
+# The script will update the information, i.e. add a new users logs, but what happenes with ScriptInfo?
 }
 
 function Export-TimelineExcel {
@@ -71,9 +97,9 @@ $ConditionalFormatting = $(
     New-ConditionalText "[Unknown Rest Client]" -ConditionalTextColor DarkRed -BackgroundColor $null
     New-ConditionalText "ResourceBookingAssistant" -ConditionalTextColor Blue -BackgroundColor $null
 
-    #LogType
-    New-ConditionalText -Range "C3:C9999" -ConditionalType ContainsText -Text "Ignorable" -ConditionalTextColor DarkRed -BackgroundColor $null
-    New-ConditionalText -Range "C:C" -ConditionalType ContainsText -Text "Cleanup" -ConditionalTextColor DarkRed -BackgroundColor $null
+    #LogType -Would like to Hide "Ignorable" and "Cleanup" rows by default.
+    New-ConditionalText -Range "C3:C9999" -ConditionalType ContainsText -Text "Ignorable" -ConditionalTextColor Orange -BackgroundColor $null
+    New-ConditionalText -Range "C:C" -ConditionalType ContainsText -Text "Cleanup" -ConditionalTextColor Orange -BackgroundColor $null
     New-ConditionalText -Range "C:C" -ConditionalType ContainsText -Text "Sync" -ConditionalTextColor Blue -BackgroundColor $null
 
     # TriggerAction
@@ -92,13 +118,17 @@ $ConditionalFormatting = $(
     New-ConditionalText -Range "L3:L9999" -ConditionalType ContainsText -Text "Busy" -ConditionalTextColor Green -BackgroundColor $null
 
     #Shared Calendar information
-    New-ConditionalText -Range "Q3:Q9999" -ConditionalType NotEqual -Text "Not Shared" -ConditionalTextColor Blue -BackgroundColor $null
+    New-ConditionalText -Range "Q3:Q9999" -ConditionalType Equal -Text "Not Shared" -ConditionalTextColor Blue -BackgroundColor $null
+    New-ConditionalText -Range "Q3:Q9999" -ConditionalType Equal -Text "TRUE" -ConditionalTextColor Blue -BackgroundColor Orange
 
     #MeetingRequestType
     New-ConditionalText -Range "T:T" -ConditionalType ContainsText -Text "Outdated" -ConditionalTextColor DarkRed -BackgroundColor LightPink
 
+    #CalendarItemType
+    New-ConditionalText -Range "AA3:AA9999" -ConditionalType ContainsText -Text "RecurringMaster" -ConditionalTextColor $null -BackgroundColor Plum
+
     #AppointmentAuxiliaryFlags
-    New-ConditionalText -Range "AC3:AC9999" -ConditionalType ContainsText -Text "Copied" -ConditionalTextColor DarkRed -BackgroundColor LightPink
+    New-ConditionalText -Range "AD3:AD9999" -ConditionalType ContainsText -Text "Copied" -ConditionalTextColor DarkRed -BackgroundColor LightPink
     New-ConditionalText -Range "AC3:AC9999" -ConditionalType ContainsText -Text "ForwardedAppointment" -ConditionalTextColor DarkRed -BackgroundColor $null
 
     #ResponseType
@@ -110,6 +140,7 @@ function FormatHeader {
         [object] $excel
     )
     $sheet = $excel.Workbook.Worksheets[$ShortId]
+#    Set-CellComment -Text "For more information see: https://learn.microsoft.com/en-us/exchange/troubleshoot/calendars/get-calendar-diagnostic-logs#use-the-get-calendardiagnosticobjectssummaryps1-script."  -Row 1 -ColumnNumber 1  -Worksheet $sheet  
     $HeaderRow = 2
     $n = 0
 
@@ -146,7 +177,7 @@ function FormatHeader {
     Set-CellComment -Text "LogFolder (ParentDisplayName): The Log Folder that the CalLog was in." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 16 -HorizontalAlignment Left         # OriginalLogFolder
     Set-CellComment -Text "OriginalLogFolder (OriginalParentDisplayName): The Original Log Folder that the item was in / delivered to." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 15 -HorizontalAlignment Right         # SharedFolderName
+    $sheet.Column(++$n) | Set-ExcelRange -Width 15 -HorizontalAlignment Left         # SharedFolderName
     Set-CellComment -Text "SharedFolderName: Was this from a Modern Sharing, and if so what Folder." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment Left         # ReceivedBy
     Set-CellComment -Text "ReceivedBy: The Receiver of the Calendar Item. Should always be the owner of the Mailbox." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
@@ -202,7 +233,8 @@ function FormatHeader {
     # Update header rows after all the others have been set.
     # Title Row
     $sheet.Row(1) | Set-ExcelRange -HorizontalAlignment Left
-
+    Set-CellComment -Text "For more information see: https://learn.microsoft.com/en-us/exchange/troubleshoot/calendars/analyze-calendar-diagnostic-logs."  -Row 1 -ColumnNumber 1  -Worksheet $sheet  
+ 
     # Set the Header row to be bold and left aligned
     $sheet.Row($HeaderRow) | Set-ExcelRange -Bold -HorizontalAlignment Left
 }
