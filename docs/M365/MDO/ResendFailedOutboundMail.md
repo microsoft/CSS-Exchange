@@ -2,60 +2,61 @@
 
 Download the latest release: [ResendFailedOutboundMail.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/ResendFailedOutboundMail.ps1)
 
-### Need to be included ####
-Use this script to find inconsistencies or redundancies in user membership and policy application of Microsoft Defender for Office 365 and Exchange Online Protection threat policies that lead to missed or unexpected coverage of users by the policy. If issues are found, the script provides guidance on how to resolve them.
+Use this script to identify and resend failed emails from Exchange Online. It leverages the Microsoft Exchange Online and Graph Powershell modules to retrieve message IDs, message bodies, and attachments, and resend them using PowerShell. It provides filtering options like sender, recipient, subject, and message ID so you can target the failed emails you want to resend.
 
-The script also helps you identify which threat policies cover a particular user, including anti-malware, anti-phishing, inbound and outbound anti-spam, as well as Safe Attachments and Safe Links policies in case these are licensed for your tenant.
+The script can help in this type of scenario:
 
-The script can help with such questions as:
+- A user has exceeded the sending limits for Exchange Online, for example, or for sending excessive spam, and becomes blocked from sending.
 
-- Are there confusing policies with conditions that lead to unexpected coverage or coverage gaps?
+- After the problem is mitigated and the sender unblocked, you need to resend some legitimate outbound or internal emails.
 
-- Which threat policies apply to a recipient, **or should have applied** but did not? **No actual detection or Network Message ID needed.**
-
-- Which actions would be taken on an email for each policy matched?
-
-The script runs only in Read mode from Exchange Online and Microsoft Graph PowerShell. It does not modify any policies, and only provides actionable guidance for administrators for remediation.
+- Exchange Online will not do this automatically nor has any tools to do it that do not require scripting. This script will help you do that easily.
 
 ## Prerequisites
-The script uses Powershell cmdlets from the Exchange Online module and from the Microsoft.Graph.Authentication, Microsoft.Graph.Groups, and Microsoft.Graph.Users modules.
+Before running this script, ensure you meet the following prerequisites:
 
-To run the Graph cmdlets used in this script, you only need the following modules from the Microsoft.Graph PowerShell SDK:
+1. The Exchange Online Powershell module is installed to retrieve the failed message IDs.
 
-- Microsoft.Graph.Groups: for managing groups, including `Get-MgGroup` and `Get-MgGroupMember`.
+2. The `Microsoft.Graph.Authentication`, `Microsoft.Graph.Mail`, and `Microsoft.Graph.Users.Actions` modules are installed to read and send emails.
 
-- Microsoft.Graph.Users: for managing users, such as `Get-MgUser`.
+  - Here's how you can install the required modules/submodules:
 
-- Microsoft.Graph.Authentication: for authentication purposes and to run any cmdlet that interacts with Microsoft Graph.
+```powershell
+Install-Module -Name ExchangeOnlineManagement
+Install-Module -Name Microsoft.Graph.Authentication
+Install-Module -Name Microsoft.Graph.Users.Actions
+Install-Module -Name Microsoft.Graph.Mail
+```
+
+3. An App is registered in Azure Active Directory to interact with the Microsoft Graph API specifically to run this script.
+
+    - Register a Microsoft Azure app in your tenant here: <br>https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade
+    - Within your newly created app registration, grant the following API permissions:
+      - **Mail.Read** (Application)
+      - **Mail.Send** (Application)
+    - Also grant admin consent for your tenant for both the permissions.
+
+    - When created, the API permissions should look like this:
+    !['No Logical inconsistencies found'](img/API-perms.png)
+    - Under `Manage | Certificates & secrets`, create a new client secret for the app.
+      > [!IMPORTANT] Save the Value field of the secret **immediately** after creating it; you can't retrieve it later.
+
+      > [!TIP] Customize the duration of the secret to expire soon if you don't expect to use the app for an extended period.
+    - Use the `client_id`, `tenant_id`, and `client_secret` obtained during app registration to authenticate with Microsoft Graph in the script (connection instructions below).
+
+4. After completion of the above steps, you must be connected to Exchange Online and Graph API with Powershell, as follows:
+
+```powershell
+Connect-ExchangeOnline -ShowBanner:$false
+
+Connect-MgGraph -TenantId "[YOUR TENANT ID HERE]" -ClientSecretCredential (New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList "[YOUR APP ID HERE]", (ConvertTo-SecureString -String "[VALUE FIELD OF YOUR SECRET HERE]" -AsPlainText -Force)) -NoWelcome
+```
 
 You can find the Microsoft Graph modules in the following link:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;https://www.powershellgallery.com/packages/Microsoft.Graph/<br>
 
 &nbsp;&nbsp;&nbsp;&nbsp;https://learn.microsoft.com/en-us/powershell/microsoftgraph/installation?view=graph-powershell-1.0#installation
 
-
-Here's how you can install the required submodules for the PowerShell Graph SDK cmdlets:
-
-```powershell
-Install-Module -Name Microsoft.Graph.Authentication -Scope CurrentUser
-Install-Module -Name Microsoft.Graph.Groups -Scope CurrentUser
-Install-Module -Name Microsoft.Graph.Users -Scope CurrentUser
-```
-
-!!! warning "NOTE"
-
-    Remember to run these commands in a PowerShell session with the appropriate permissions. The -Scope CurrentUser parameter installs the modules for the current user only, which doesn't require administrative privileges.
-
-
-In the Graph connection, you will need the following scopes 'Group.Read.All','User.Read.All'<br>
-```powershell
-Connect-MgGraph -Scopes 'Group.Read.All','User.Read.All'
-```
-<br><br>
-You also need an Exchange Online session.<br>
-```powershell
-Connect-ExchangeOnline
-```
 
 You can find the Exchange module and information in the following links:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;https://learn.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2?view=exchange-ps<br>
