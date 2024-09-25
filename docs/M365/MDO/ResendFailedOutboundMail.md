@@ -74,27 +74,6 @@ Run the script without any parameters to review all threat protection policies a
 
 **Script Output 2: Logical inconsistencies found**. Inconsistencies found in the antispam policy named 'Custom antispam policy', and consequent recommendations shown -- illogical inclusions as both users and groups are specified. This policy will only apply to the users who are also members of the specified group.
 
-- IncludeMDOPolicies
-
-Add the parameter -IncludeMDOPolicies to view Microsoft Defender for Office 365 Safe Links and Safe Attachments policies:
-
-![Policies, including MDO.](img/Show-Policies-Including-MDO.png)
-
-**Script Output 3: Parameters -EmailAddress and -IncludeMDOPoliciesEOP** specified to validate Microsoft Defender for Office 365 Safe Attachments and Safe Links policies, on top of Exchange Online Protection policies.
-
-- ShowDetailedPolicies
-
-To see policy details, run the script with the -ShowDetailedPolicies parameter:
-
-![Show policy actions.](img/Show-Detailed-Policies-1.png)
-
-![Show policy actions.](img/Show-Detailed-Policies-2.png)
-
-![Show policy actions.](img/Show-Detailed-Policies-3.png)
-
-![Show policy actions.](img/Show-Detailed-Policies-4.png)
-
-**Script Output 4: Policy actions**. Use -ShowDetailedPolicies to see the details and actions for each policy.
 
 ## Additional examples
 
