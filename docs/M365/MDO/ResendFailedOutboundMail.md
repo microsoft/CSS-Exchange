@@ -44,7 +44,7 @@ Install-Module -Name Microsoft.Graph.Mail
       > [!TIP] Customize the duration of the secret to expire soon if you don't expect to use the app for an extended period.
     - Use the `client_id`, `tenant_id`, and `client_secret` obtained during app registration to authenticate with Microsoft Graph in the script (connection instructions below).
 
-4. After completion of the above steps, you must be connected to Exchange Online and Graph API with Powershell, as follows:
+4. After completion of the above steps, you must be connected to Exchange Online and Graph API with Powershell, as follows - make sure to insert your values into the connection string for Graph:
 
 ```powershell
 Connect-ExchangeOnline -ShowBanner:$false
@@ -118,15 +118,17 @@ To get all mailboxes in your tenant and print out their EOP and MDO policies, ru
 .\MDOThreatPolicyChecker.ps1 -IncludeMDOPolicies -EmailAddress @(Get-ExOMailbox -ResultSize unlimited | Select-Object -ExpandProperty PrimarySmtpAddress)
 ```
 
-## Parameters
+## Parameters - all parameters are optional
 
 Parameter | Description |
 ----------|-------------|
-CsvFilePath | Allows you to specify a CSV file with a list of email addresses to check. Csv file must include a first line with header Email.
-EmailAddress | Allows you to specify email address or multiple addresses separated by commas.
-IncludeMDOPolicies | Checks both EOP and MDO (Safe Attachment and Safe Links) policies for user(s) specified in the CSV file or EmailAddress parameter.
-OnlyMDOPolicies | Checks only MDO (Safe Attachment and Safe Links) policies for user(s) specified in the CSV file or EmailAddress parameter.
-ShowDetailedPolicies | In addition to the policy applied, show any policy details that are set to True, On, or not blank.
+Sender | Filter emails based on the sender's address.
+Recipient | Filter emails based on the recipient's address.
+Subject | Filter emails based on the email Subject.
+MessageId | Filter emails based on the MessageId address. **You must put the MessageId in double quotes**
+Days | Resend emails that failed within the past X number of days. Default is 1 day.
+Force | Sends emails without confirmation prompt.
+IncludeDuplicate | Will resend all emails with the same Message Id.
 SkipConnectionCheck | Skips connection check for Graph and Exchange Online.
 SkipVersionCheck | Skips the version check of the script.
 ScriptUpdateOnly | Just updates script version to latest one.
