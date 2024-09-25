@@ -31,15 +31,25 @@ Install-Module -Name Microsoft.Graph.Mail
 3. An App is registered in Azure Active Directory to interact with the Microsoft Graph API specifically to run this script.
 
     - Register a Microsoft Azure app in your tenant here: <br>https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade
-    - Within your newly created app registration, grant the following API permissions:
-      - **Mail.Read** (Application)
-      - **Mail.Send** (Application)
+
+      - Click **New registration**
+      - Provide a name and account type.
+      - **Redirect URI** can be left blank
+
+    - Assign permissions:
+      - Under **Manage | API permissions** for the app, click **Add a permission**.
+      - Select Microsoft Graph.
+      - Select the `Application permission` type.
+      - Search for and select the following permissions:
+         - **Mail.Read** (Application)
+         - **Mail.Send** (Application)
     - Also grant admin consent for your tenant for both the permissions.
 
     - When created, the API permissions should look like this:<br>
 
     !['No Logical inconsistencies found'](img/API-perms.png)
-    - Under `Manage | Certificates & secrets`, create a new client secret for the app.
+
+    - Under `Manage | Certificates & secrets` for the app, click "New client secret".
       > [!IMPORTANT] Save the Value field of the secret **immediately** after creating it; you can't retrieve it later.
 
       > [!TIP] Customize the duration of the secret to expire soon if you don't expect to use the app for an extended period.
