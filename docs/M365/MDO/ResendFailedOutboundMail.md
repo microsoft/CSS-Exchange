@@ -36,7 +36,8 @@ Install-Module -Name Microsoft.Graph.Mail
       - **Mail.Send** (Application)
     - Also grant admin consent for your tenant for both the permissions.
 
-    - When created, the API permissions should look like this:
+    - When created, the API permissions should look like this:<br>
+
     !['No Logical inconsistencies found'](img/API-perms.png)
     - Under `Manage | Certificates & secrets`, create a new client secret for the app.
       > [!IMPORTANT] Save the Value field of the secret **immediately** after creating it; you can't retrieve it later.
@@ -85,16 +86,6 @@ To provide multiple email addresses by command line and see only EOP policies, r
 To provide a CSV input file with email addresses and see both EOP and MDO policies, run the following:<br>
 ```powershell
 .\MDOThreatPolicyChecker.ps1 -CsvFilePath [Path\filename.csv] -IncludeMDOPolicies
-```
-
-To provide an email address and see only MDO (Safe Attachment and Safe Links) policies, run the following:<br>
-```powershell
-.\MDOThreatPolicyChecker.ps1 -EmailAddress user1@contoso.com -OnlyMDOPolicies
-```
-
-To get all mailboxes in your tenant and print out their EOP and MDO policies, run the following:<br>
-```powershell
-.\MDOThreatPolicyChecker.ps1 -IncludeMDOPolicies -EmailAddress @(Get-ExOMailbox -ResultSize unlimited | Select-Object -ExpandProperty PrimarySmtpAddress)
 ```
 
 ## Parameters - all parameters are optional
