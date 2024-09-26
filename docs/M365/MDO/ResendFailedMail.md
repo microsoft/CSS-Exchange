@@ -94,6 +94,7 @@ Run the script with the Days parameter to specify the number of days in the past
 
 **Script Output 1: Resending Last 3 Days of Failed Email from Specific Sender**
 
+Run the script with no parameters to resend all Failed email from the past day.
 
 !['No Logical inconsistencies found'](img/No-Logical-Inconsistencies.png)
 
