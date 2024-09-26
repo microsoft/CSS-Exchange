@@ -53,11 +53,12 @@ Install-Module -Name Microsoft.Graph.Mail
     !['No Logical inconsistencies found'](img/API-perms.png)
 
     - Under `Manage | Certificates & secrets` for the app, click **New client secret**.
-      > [!IMPORTANT]
-      > Save the Value field of the secret **immediately** after creating it; you can't retrieve it later.
 
-      > [!TIP]
-      > Customize the duration of the secret to expire soon if you don't expect to use the app for an extended period.
+> [!IMPORTANT]
+> Save the Value field of the secret **immediately** after creating it; you can't retrieve it later.
+
+> [!TIP]
+> Customize the duration of the secret to expire soon if you don't expect to use the app for an extended period.
 
     - Use the `client_id`, `tenant_id`, and `client_secret` obtained during app registration to authenticate with Microsoft Graph in the script (connection instructions below).
 
