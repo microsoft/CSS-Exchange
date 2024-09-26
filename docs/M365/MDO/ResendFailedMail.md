@@ -107,7 +107,7 @@ To resend email from specific sender, recipient, and number of days, run the fol
 .\ResendFailedMail.ps1 -Sender gary@contoso.com -Recipient ahmad@fabrikam.com -Days 7
 ```
 
-To , run the following:<br>
+To resend email from a specific sender for the past 5 days without a confirmation prompt, run the following:<br>
 ```powershell
 .\ResendFailedMail.ps1 -Force -Sender gary@contsoso.com -Days 5
 ```
