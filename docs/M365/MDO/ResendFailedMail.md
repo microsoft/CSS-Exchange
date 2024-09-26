@@ -97,19 +97,19 @@ Run the script with the Days parameter to specify the number of days in the past
 
 !['No Logical inconsistencies found'](img/No-Logical-Inconsistencies.png)
 
-**Script Output 2: No logical inconsistencies found** message if the policies are configured correctly, and no further corrections are required.
+**Script Output 2: Default Execution of Script with No Parameters**
 
 
 ## Additional examples
 
-To provide multiple email addresses by command line and see only EOP policies, run the following:<br>
+To resend email from specific sender, recipient, and number of days, run the following:<br>
 ```powershell
-.\MDOThreatPolicyChecker.ps1 -EmailAddress user1@contoso.com,user2@fabrikam.com
+.\ResendFailedMail.ps1 -Sender gary@contoso.com -Recipient ahmad@fabrikam.com -Days 7
 ```
 
-To provide a CSV input file with email addresses and see both EOP and MDO policies, run the following:<br>
+To , run the following:<br>
 ```powershell
-.\MDOThreatPolicyChecker.ps1 -CsvFilePath [Path\filename.csv] -IncludeMDOPolicies
+.\ResendFailedMail.ps1 -Force -Sender gary@contsoso.com -Days 5
 ```
 
 ## Parameters - all parameters are optional
