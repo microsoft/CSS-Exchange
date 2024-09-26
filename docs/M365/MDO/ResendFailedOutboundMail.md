@@ -6,7 +6,9 @@ Use this script to identify and resend failed emails from Exchange Online. It le
 
 The script can help in this type of scenario:
 
-- A user has exceeded the sending limits for Exchange Online, for example, or for sending excessive spam, and becomes blocked from sending.
+- Your entire tenant has been blocked due to exceeding sending threshold limits, and you have legitimate email that still needs to go out.
+
+- A user has exceeded the sending limits for Exchange Online, for example, and becomes blocked from sending.
 
 - After the problem is mitigated and the sender unblocked, you need to resend some legitimate outbound or internal emails.
 
