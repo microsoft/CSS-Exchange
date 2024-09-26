@@ -10,7 +10,7 @@ The script can help in this type of scenario:
 
 - A user has exceeded the sending limits for Exchange Online, for example, and becomes blocked from sending.
 
-- After the problem is mitigated and the sender unblocked, you need to resend some legitimate outbound or internal emails.
+- After the problem is mitigated and the sender or tenant unblocked, you need to resend some legitimate outbound or internal emails.
 
 - Exchange Online will not do this automatically nor has any tools to do it that do not require scripting. This script will help you do that easily.
 
