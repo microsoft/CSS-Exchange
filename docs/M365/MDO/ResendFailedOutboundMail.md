@@ -12,6 +12,9 @@ The script can help in this type of scenario:
 
 - Exchange Online will not do this automatically nor has any tools to do it that do not require scripting. This script will help you do that easily.
 
+> [!IMPORTANT]
+> The script can only be used to send email that is currently in a mailbox to the originally intended recipients, and it cannot be used to redirect email to a different recipient.
+
 ## Prerequisites
 Before running this script, ensure you meet the following prerequisites:
 
@@ -50,9 +53,12 @@ Install-Module -Name Microsoft.Graph.Mail
     !['No Logical inconsistencies found'](img/API-perms.png)
 
     - Under `Manage | Certificates & secrets` for the app, click **New client secret**.
-      > [!IMPORTANT] Save the Value field of the secret **immediately** after creating it; you can't retrieve it later.
+      > [!IMPORTANT]
+      > Save the Value field of the secret **immediately** after creating it; you can't retrieve it later.
 
-      > [!TIP] Customize the duration of the secret to expire soon if you don't expect to use the app for an extended period.
+      > [!TIP]
+      > Customize the duration of the secret to expire soon if you don't expect to use the app for an extended period.
+
     - Use the `client_id`, `tenant_id`, and `client_secret` obtained during app registration to authenticate with Microsoft Graph in the script (connection instructions below).
 
 4. After completion of the above steps, and before running the script, connect to Exchange Online and Graph API with Powershell, as follows - make sure to insert your values into the connection string for Graph:
@@ -75,15 +81,15 @@ You can find the Exchange module and information in the following links:<br>
 
 
 ## Parameters and Use Cases:
-Run the script without any parameters to review all threat protection policies and to find inconsistencies with user inclusion and/or exclusion conditions:
+Run the script without any parameters to send all email with a **Failed** status from the past day. You will be prompted before executing this command.
+
+> [!IMPORTANT]
+> Make sure the original cause of the failed sending is fixed, or the script will also fail send it.
 
 !['No Logical inconsistencies found'](img/No-Logical-Inconsistencies.png)
 
 **Script Output 1: No logical inconsistencies found** message if the policies are configured correctly, and no further corrections are required.
 
-![Potentially illogical inclusions found.](img/Logical-Inconsistency-Found.png)
-
-**Script Output 2: Logical inconsistencies found**. Inconsistencies found in the antispam policy named 'Custom antispam policy', and consequent recommendations shown -- illogical inclusions as both users and groups are specified. This policy will only apply to the users who are also members of the specified group.
 
 
 ## Additional examples
