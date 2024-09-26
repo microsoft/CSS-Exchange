@@ -85,15 +85,19 @@ You can find the Exchange module and information in the following links:<br>
 
 
 ## Parameters and Use Cases:
-Run the script without any parameters to send all email with a **Failed** status from the past day. You will be prompted before executing this command.
+Run the script with the Days parameter to specify the number of days in the past to retrieve email with a **Failed** status as well as with the Sender parameter. You will be prompted before executing this command.
 
 > [!IMPORTANT]
-> Make sure the original cause of the failed sending is fixed, or the script will also fail send it.
+> Make sure the original cause of the failed sending is fixed, or the script will also fail to send it.
+
+!['No Logical inconsistencies found'](img/Example-3Days+Sender.png)
+
+**Script Output 1: Resending Last 3 Days of Failed Email from Specific Sender**
+
 
 !['No Logical inconsistencies found'](img/No-Logical-Inconsistencies.png)
 
-**Script Output 1: No logical inconsistencies found** message if the policies are configured correctly, and no further corrections are required.
-
+**Script Output 2: No logical inconsistencies found** message if the policies are configured correctly, and no further corrections are required.
 
 
 ## Additional examples
