@@ -78,7 +78,7 @@ nav:
   - M365:
     - MDO:
       - MDOThreatPolicyChecker: M365/MDO/MDOThreatPolicyChecker.md
-      - ResendFailedOutboundMail: M365/MDO/ResendFailedOutboundMail.md
+      - ResendFailedMail: M365/MDO/ResendFailedMail.md
     - DLT365Groupsupgrade: M365/DLT365Groupsupgrade.md
   - Performance:
     - ExPerfWiz: Performance/ExPerfWiz.md

@@ -1,6 +1,6 @@
-# ResendFailedOutboundMail
+# ResendFailedMail
 
-Download the latest release: [ResendFailedOutboundMail.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/ResendFailedOutboundMail.ps1)
+Download the latest release: [ResendFailedMail.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/ResendFailedMail.ps1)
 
 Use this script to identify and resend failed emails from Exchange Online. It leverages the Microsoft Exchange Online and Graph Powershell modules to retrieve message IDs, message bodies, and attachments, and resend them using PowerShell. It provides filtering options like sender, recipient, subject, and message ID so you can target the failed emails you want to resend.
 

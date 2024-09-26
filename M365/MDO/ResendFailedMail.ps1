@@ -60,7 +60,7 @@ function Write-HostLog ($message) {
     Write-DebugLog $message
 }
 
-$LogFileName = "ResendFailedOutboundMail"
+$LogFileName = "ResendFailedMail"
 $StartDate = Get-Date
 $StartDateFormatted = ($StartDate).ToString("yyyyMMddhhmmss")
 $Script:DebugLogger = Get-NewLoggerInstance -LogName "$LogFileName-Debug-$StartDateFormatted" -LogDirectory $PSScriptRoot -AppendDateTimeToFileName $false -ErrorAction SilentlyContinue
@@ -72,10 +72,10 @@ SetWriteWarningAction ${Function:Write-HostLog}
 
 $BuildVersion = ""
 
-Write-Host ("ResendFailedOutboundMail.ps1 script version $($BuildVersion)") -ForegroundColor Green
+Write-Host ("ResendFailedMail.ps1 script version $($BuildVersion)") -ForegroundColor Green
 
 if ($ScriptUpdateOnly) {
-    switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/ResendFailedOutboundMail-VersionsURL" -Confirm:$false) {
+    switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/ResendFailedMail-VersionsURL" -Confirm:$false) {
         ($true) { Write-Host ("Script was successfully updated.") -ForegroundColor Green }
         ($false) { Write-Host ("No update of the script performed.") -ForegroundColor Yellow }
         default { Write-Host ("Unable to perform ScriptUpdateOnly operation.") -ForegroundColor Red }
@@ -83,7 +83,7 @@ if ($ScriptUpdateOnly) {
     return
 }
 
-if ((-not($SkipVersionCheck)) -and (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/ResendFailedOutboundMail-VersionsURL" -Confirm:$false)) {
+if ((-not($SkipVersionCheck)) -and (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/ResendFailedMail-VersionsURL" -Confirm:$false)) {
     Write-Host ("Script was updated. Please re-run the command.") -ForegroundColor Yellow
     return
 }
