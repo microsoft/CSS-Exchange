@@ -60,7 +60,7 @@ Install-Module -Name Microsoft.Graph.Mail
 > [!TIP]
 > Customize the duration of the secret to expire soon if you don't expect to use the app for an extended period.
 
-    - Use the `client_id`, `tenant_id`, and `client_secret` obtained during app registration to authenticate with Microsoft Graph in the script (connection instructions below).
+- Use the `client_id`, `tenant_id`, and `client_secret` obtained during app registration to authenticate with Microsoft Graph in the script (connection instructions below).
 
 4. After completion of the above steps, and before running the script, connect to Exchange Online and Graph API with Powershell, as follows - make sure to insert your values into the connection string for Graph:
 
