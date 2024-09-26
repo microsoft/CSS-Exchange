@@ -32,9 +32,9 @@ Install-Module -Name Microsoft.Graph.Mail
 
     - Register a Microsoft Azure app in your tenant here: <br>https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade
 
-      - Click **New registration**
+      - Click **New registration**.
       - Provide a name and account type.
-      - **Redirect URI** can be left blank
+      - **Redirect URI** can be left blank.
 
     - Assign permissions:
       - Under **Manage | API permissions** for the app, click **Add a permission**.
@@ -49,7 +49,7 @@ Install-Module -Name Microsoft.Graph.Mail
 
     !['No Logical inconsistencies found'](img/API-perms.png)
 
-    - Under `Manage | Certificates & secrets` for the app, click "New client secret".
+    - Under `Manage | Certificates & secrets` for the app, click **New client secret**.
       > [!IMPORTANT] Save the Value field of the secret **immediately** after creating it; you can't retrieve it later.
 
       > [!TIP] Customize the duration of the secret to expire soon if you don't expect to use the app for an extended period.
