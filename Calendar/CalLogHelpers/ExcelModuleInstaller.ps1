@@ -35,7 +35,7 @@ function CheckExcelModuleInstalled {
                 Install-Module -Name ImportExcel -Force -AllowClobber
 
                 Write-Host -ForegroundColor Green "Done. ImportExcel module is now installed."
-                Write-Host -ForegroundColor Yellow "Please restart the Script to use the ImportExcel module."
+                Write-Host -ForegroundColor Yellow "Please rerun the Script to get your Calendar Logs."
                 exit
             }
         }
