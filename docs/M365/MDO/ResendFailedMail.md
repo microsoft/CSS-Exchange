@@ -2,7 +2,7 @@
 
 Download the latest release: [ResendFailedMail.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/ResendFailedMail.ps1)
 
-Use this script to identify and resend failed emails from Exchange Online. It leverages the Microsoft Exchange Online and Graph Powershell modules to retrieve message IDs, message bodies, and attachments, and resend them using PowerShell. It provides filtering options like sender, recipient, subject, and message ID so you can target the failed emails you want to resend.
+Use this script to identify and resend failed emails from Exchange Online. It leverages the Microsoft Exchange Online and Graph Powershell modules to retrieve message IDs, message bodies, and attachments, and resend them using PowerShell. It provides filtering options like sender, recipient, subject, and message ID so you can target only the failed emails you want to resend.
 
 The script can help in this type of scenario:
 
@@ -10,7 +10,7 @@ The script can help in this type of scenario:
 
 - A user has exceeded the sending limits for Exchange Online, for example, and becomes blocked from sending.
 
-- After the problem is mitigated and the sender or tenant unblocked, you need to resend some legitimate outbound or internal emails.
+- After the problem is mitigated and the sender or tenant is unblocked, you need to resend some legitimate outbound or internal emails.
 
 - Exchange Online will not do this automatically nor has any tools to do it that do not require scripting. This script will help you do that easily.
 
@@ -20,9 +20,9 @@ The script can help in this type of scenario:
 ## Prerequisites
 Before running this script, ensure you meet the following prerequisites:
 
-1. The Exchange Online Powershell module is installed to retrieve the failed message IDs.
+1. The Exchange Online Powershell module must be installed to retrieve the failed message IDs.
 
-2. The `Microsoft.Graph.Authentication`, `Microsoft.Graph.Mail`, and `Microsoft.Graph.Users.Actions` modules are installed to read and send emails.
+2. The `Microsoft.Graph.Authentication`, `Microsoft.Graph.Mail`, and `Microsoft.Graph.Users.Actions` modules must be installed to read and send emails.
 
   - Here's how you can install the required modules/submodules:
 
@@ -33,9 +33,9 @@ Install-Module -Name Microsoft.Graph.Users.Actions
 Install-Module -Name Microsoft.Graph.Mail
 ```
 
-3. An App is registered in Azure Active Directory to interact with the Microsoft Graph API specifically to run this script.
+3. An App must be registered in Azure Active Directory to interact with the Microsoft Graph API specifically to run this script.
 
-    - Register a Microsoft Azure app in your tenant here: <br>https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade
+    - You can register a Microsoft Azure app in your tenant here: <br>https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade
 
       - Click **New registration**.
       - Provide a name and account type.
@@ -43,18 +43,18 @@ Install-Module -Name Microsoft.Graph.Mail
 
     - Assign permissions:
       - Under **Manage | API permissions** for the app, click **Add a permission**.
-      - Select Microsoft Graph.
-      - Select the `Application permission` type.
+      - Select **Microsoft Graph**.
+      - Select the **Application permission** type.
       - Search for and select the following permissions:
          - **Mail.Read** (Application)
          - **Mail.Send** (Application)
-    - Also grant admin consent for your tenant for both the permissions.
+      - Grant admin consent for your tenant for both the permissions.
 
-    - When created, the API permissions should look like this:<br>
+      - When created, the API permissions should look like this:<br>
 
-    !['No Logical inconsistencies found'](img/API-perms.png)
+        !['No Logical inconsistencies found'](img/API-perms.png)
 
-    - Under `Manage | Certificates & secrets` for the app, click **New client secret**.
+    - Create a new client secret for the app under `Manage | Certificates & secrets`.
 
 > [!IMPORTANT]
 > Save the Value field of the secret **immediately** after creating it; you can't retrieve it later.
@@ -90,13 +90,14 @@ Run the script with the Days parameter to specify the number of days in the past
 > [!IMPORTANT]
 > Make sure the original cause of the failed sending is fixed, or the script will also fail to send it.
 
-!['No Logical inconsistencies found'](img/Example-3Days+Sender.png)
+!['No Logical inconsistencies found'](img/ResendFailedMail-4Days+Sender.png)
 
-**Script Output 1: Resending Last 3 Days of Failed Email from Specific Sender**
+**Script Output 1: Resending Last 4 Days of Failed Email from Specific Sender**
 
+<br><br>
 Run the script with no parameters to resend all Failed email from the past day.
 
-!['No Logical inconsistencies found'](img/No-Logical-Inconsistencies.png)
+!['No Logical inconsistencies found'](img/ResendFailedMail-No_Params.png)
 
 **Script Output 2: Default Execution of Script with No Parameters**
 
