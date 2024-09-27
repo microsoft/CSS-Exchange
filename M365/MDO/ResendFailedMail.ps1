@@ -13,6 +13,49 @@
 # Connect-MgGraph -TenantId "[YOUR TENANT ID HERE]" -ClientSecretCredential (New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList "[YOUR APP ID HERE]", (ConvertTo-SecureString -String "[VALUE FIELD OF YOUR SECRET HERE]" -AsPlainText -Force)) -NoWelcome
 # Connect-ExchangeOnline -ShowBanner:$false
 
+<#
+.SYNOPSIS
+Resends email in Failed state from Exchange Online to the originally intended recipients with parameters to target the emails to resend.
+
+.DESCRIPTION
+This script resends all Failed email from the past day, by default, or allows you to use the following parameters to target which emails to resend.
+
+.PARAMETER Sender
+    Filter emails based on the sender's address.
+.PARAMETER Recipient
+    Filter emails based on the recipient's address.
+.PARAMETER Subject
+    Filter emails based on the email Subject.
+.PARAMETER MessageID
+    Filter emails based on the MessageId address. You must put the MessageId in double quotes.
+.PARAMETER Days
+    Resend emails that failed within the past X number of days. Default is 1 day.
+.PARAMETER Force
+    Sends emails without confirmation prompt.
+.PARAMETER IncludeDuplicate
+    Will resend all emails with the same Message Id.
+.PARAMETER ShowDetailedPolicies
+    In addition to the policy applied, show any policy details that are set to True, On, or not blank.
+.PARAMETER SkipConnectionCheck
+    Skips connection check for Graph and Exchange Online.
+.PARAMETER SkipVersionCheck
+    Skips the version check of the script.
+.PARAMETER ScriptUpdateOnly
+    Just updates script version to latest one.
+
+.EXAMPLE
+	.\ResendFailedMail.ps1
+	To resend all Failed email from the past day.
+
+.EXAMPLE
+	.\ResendFailedMail.ps1 -Sender gary@contoso.com -Recipient ahmad@fabrikam.com -Days 7
+	To resend Failed email from specific sender, recipient, and specified number of days.
+
+.EXAMPLE
+	.\ResendFailedMail.ps1 -Force -Sender gary@contsoso.com -Days 5
+	To resend Failed email from a specific sender for the past 5 days without a confirmation prompt.
+#>
+
 [CmdletBinding(DefaultParameterSetName = 'ResendCopyFailed', SupportsShouldProcess = $true, ConfirmImpact = 'High')]
 param(
     [Parameter(Mandatory = $false, ParameterSetName = "ResendCopyFailed")]
