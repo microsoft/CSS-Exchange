@@ -82,7 +82,7 @@ You can find the Microsoft Graph modules in the following link:<br>
 You can find the Exchange module and information in the following links:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;https://learn.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2?view=exchange-ps<br>
 &nbsp;&nbsp;&nbsp;&nbsp;https://www.powershellgallery.com/packages/ExchangeOnlineManagement
-
+<br><br>
 
 ## Parameters and Use Cases:
 Run the script with the Days parameter to specify the number of days in the past to retrieve email with a **Failed** status as well as with the Sender parameter. You will be prompted before executing this command.
