@@ -19,28 +19,46 @@ function Export-CalLogExcel {
 }
 
 function LogScriptInfo {
-# Only need to run once per script.
+    # Only need to run once per script.
     if ($null -eq $script:CollectedCmdLine) {
-        $commandLine = $MyInvocation.Line
-        Write-Output "The script was started with the following command line:"
-        Write-Output $commandLine
-
+        $RunInfo = @()
         $RunInfo += [PSCustomObject]@{
-            "Script"             = $MyInvocation.MyCommand.Name
-            "RunTime"            = Get-Date
-            "Command"            = $commandLine
-            "version"            = $script:Version
-            "User"               = whoami.exe
-            "PowerShell Version" = $PSVersionTable.PSVersion
-            "OS"                 = $(Get-WmiObject -Class Win32_OperatingSystem).Version
-            "More Info:"         = "https://learn.microsoft.com/en-us/exchange/troubleshoot/calendars/get-calendar-diagnostic-logs#use-the-get-calendardiagnosticobjectssummaryps1-script."
+            Key   = "Script Name"
+            Value = $($script:command.MyCommand.Name)
+        }
+        $RunInfo += [PSCustomObject]@{
+            Key   ="RunTime"
+            Value = Get-Date
+        }
+        $RunInfo += [PSCustomObject]@{
+            Key   = "Command Line"
+            Value = $($script:command.Line)
+        }
+        $RunInfo += [PSCustomObject]@{
+            Key   = "Script Version"
+            Value =  $script:Version
+        }
+        $RunInfo += [PSCustomObject]@{
+            Key   = "User"
+            Value =  whoami.exe
+        }
+        $RunInfo += [PSCustomObject]@{
+            Key   = "PowerShell Version"
+            Value = $PSVersionTable.PSVersion
+        }
+        $RunInfo += [PSCustomObject]@{
+            Key   = "OS Version"
+            Value = $(Get-CimInstance -ClassName Win32_OperatingSystem).Version
+        }
+        $RunInfo += [PSCustomObject]@{
+            Key   = "More Info"
+            Value = "https://learn.microsoft.com/en-us/exchange/troubleshoot/calendars/analyze-calendar-diagnostic-logs"
         }
 
-        $RunInfo | Export-Excel -Path $FileName -WorksheetName "ScriptInfo" -MoveToEnd
+        $RunInfo | Export-Excel -Path $FileName -WorksheetName "Script Info" -MoveToEnd
         $script:CollectedCmdLine = $true
     }
-# If someone runs the script the script again, will need to see what happens.
-# The script will update the information, i.e. add a new users logs, but what happenes with ScriptInfo?
+    # If someone runs the script the script again logs will update, but ScriptInfo done not update. Need to add new table for each run.
 }
 
 function Export-TimelineExcel {
@@ -94,13 +112,14 @@ $ConditionalFormatting = $(
     New-ConditionalText "Other ?BA" -ConditionalTextColor Orange -BackgroundColor $null
     New-ConditionalText "TimeService" -ConditionalTextColor Orange -BackgroundColor $null
     New-ConditionalText "Other REST" -ConditionalTextColor DarkRed -BackgroundColor $null
-    New-ConditionalText "[Unknown Rest Client]" -ConditionalTextColor DarkRed -BackgroundColor $null
+    New-ConditionalText "Unknown" -ConditionalTextColor DarkRed -BackgroundColor $null
     New-ConditionalText "ResourceBookingAssistant" -ConditionalTextColor Blue -BackgroundColor $null
 
     #LogType -Would like to Hide "Ignorable" and "Cleanup" rows by default.
     New-ConditionalText -Range "C3:C9999" -ConditionalType ContainsText -Text "Ignorable" -ConditionalTextColor Orange -BackgroundColor $null
     New-ConditionalText -Range "C:C" -ConditionalType ContainsText -Text "Cleanup" -ConditionalTextColor Orange -BackgroundColor $null
     New-ConditionalText -Range "C:C" -ConditionalType ContainsText -Text "Sync" -ConditionalTextColor Blue -BackgroundColor $null
+    New-ConditionalText -Range "C:C" -ConditionalType ContainsText -Text "Core" -ConditionalTextColor Green -BackgroundColor $null
 
     # TriggerAction
     New-ConditionalText -Range "G:G" -ConditionalType ContainsText -Text "Create" -ConditionalTextColor Green -BackgroundColor $null
@@ -140,7 +159,6 @@ function FormatHeader {
         [object] $excel
     )
     $sheet = $excel.Workbook.Worksheets[$ShortId]
-#    Set-CellComment -Text "For more information see: https://learn.microsoft.com/en-us/exchange/troubleshoot/calendars/get-calendar-diagnostic-logs#use-the-get-calendardiagnosticobjectssummaryps1-script."  -Row 1 -ColumnNumber 1  -Worksheet $sheet  
     $HeaderRow = 2
     $n = 0
 
@@ -149,8 +167,8 @@ function FormatHeader {
     Set-CellComment -Text "This is the Enhanced Calendar Logs for [$Identity] for MeetingID `n [$($script:GCDO[0].CleanGlobalObjectId)]." -Row $HeaderRow -ColumnNumber $n -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 20 -NumberFormat "m/d/yyyy h:mm:ss" -HorizontalAlignment center #LogTimestamp
     Set-CellComment -Text "LogTimestamp: Time when the change was recorded in the CalLogs. This and all Times are in UTC." -Row $HeaderRow -ColumnNumber $n -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 11 -HorizontalAlignment center         # LogType
-    Set-CellComment -Text "LogType: Grouping of logs so ignorable ones can be quickly filtered?" -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
+    $sheet.Column(++$n) | Set-ExcelRange -Width 11 -HorizontalAlignment center        # LogType
+    Set-CellComment -Text "LogType: Core logs are what to focus on, to start with, filter all the others out." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 20 -HorizontalAlignment Left         # SubjectProperty
     Set-CellComment -Text "SubjectProperty: The Subject of the Meeting." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 20 -HorizontalAlignment Left         # Client
@@ -233,8 +251,8 @@ function FormatHeader {
     # Update header rows after all the others have been set.
     # Title Row
     $sheet.Row(1) | Set-ExcelRange -HorizontalAlignment Left
-    Set-CellComment -Text "For more information see: https://learn.microsoft.com/en-us/exchange/troubleshoot/calendars/analyze-calendar-diagnostic-logs."  -Row 1 -ColumnNumber 1  -Worksheet $sheet  
- 
+    Set-CellComment -Text "For more information see: https://learn.microsoft.com/en-us/exchange/troubleshoot/calendars/analyze-calendar-diagnostic-logs."  -Row 1 -ColumnNumber 1  -Worksheet $sheet
+
     # Set the Header row to be bold and left aligned
     $sheet.Row($HeaderRow) | Set-ExcelRange -Bold -HorizontalAlignment Left
 }

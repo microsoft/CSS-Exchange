@@ -231,28 +231,22 @@ function GetAttendeeCount {
     }
 }
 
-function CompressedVersion
-{
+function CompressedVersion {
     [string] $CompressedString = ""
-    if ($CalLog.AppointmentSequenceNumber -eq "NotFound" -or [string]::IsNullOrEmpty($CalLog.AppointmentSequenceNumber))
-    {
+    if ($CalLog.AppointmentSequenceNumber -eq "NotFound" -or [string]::IsNullOrEmpty($CalLog.AppointmentSequenceNumber)) {
         $CompressedString = "-:"
     } else {
-        $CompressedString = $CalLog.AppointmentSequenceNumber.ToString() + ":" 
+        $CompressedString = $CalLog.AppointmentSequenceNumber.ToString() + ":"
     }
-if ($CalLog.AppointmentLastSequenceNumber -eq "NotFound" -or [string]::IsNullOrEmpty($CalLog.AppointmentLastSequenceNumber))
-    {
+    if ($CalLog.AppointmentLastSequenceNumber -eq "NotFound" -or [string]::IsNullOrEmpty($CalLog.AppointmentLastSequenceNumber)) {
         $CompressedString += "-:"
-    } else {    
-
+    } else {
         $CompressedString += $CalLog.AppointmentLastSequenceNumber.ToString() + ":"
     }
-if ($CalLog.ItemVersion -eq "NotFound" -or [string]::IsNullOrEmpty($CalLog.ItemVersion))
-    {
+    if ($CalLog.ItemVersion -eq "NotFound" -or [string]::IsNullOrEmpty($CalLog.ItemVersion)) {
         $CompressedString += "-"
     } else {
-        $CompressedString += $CalLog.ItemVersion.ToString() 
-        
+        $CompressedString += $CalLog.ItemVersion.ToString()
     }
 
     return $CompressedString
