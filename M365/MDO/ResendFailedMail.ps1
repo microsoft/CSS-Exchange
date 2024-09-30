@@ -15,10 +15,10 @@
 
 <#
 .SYNOPSIS
-Resends email in Failed state from Exchange Online to the originally intended recipients with parameters to target the emails to resend.
+Re-sends email in Failed state from Exchange Online to the originally intended recipients with parameters to target the emails to resend.
 
 .DESCRIPTION
-This script resends all Failed email from the past day, by default, or allows you to use the following parameters to target which emails to resend.
+This script re-sends all Failed email from the past day, by default, or allows you to use the following parameters to target which emails to resend.
 
 .PARAMETER Sender
     Filter emails based on the sender's address.
