@@ -5,24 +5,23 @@
 #Requires -Modules Microsoft.Graph.Authentication
 # Get-MgUserMessage
 #Requires -Modules Microsoft.Graph.Mail
-# Send-MgUserMail Send-MgUserMessage
-#Requires -Modules Microsoft.Graph.Users.Actions
+# Get-EXOMailbox Get-ConnectionInformation Get-MessageTrace
 #Requires -Modules ExchangeOnlineManagement -Version 3.0.0
 
 # How to connect:
-# Connect-MgGraph -TenantId "[YOUR TENANT ID HERE]" -ClientSecretCredential (New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList "[YOUR APP ID HERE]", (ConvertTo-SecureString -String "[VALUE FIELD OF YOUR SECRET HERE]" -AsPlainText -Force)) -NoWelcome
-# Connect-ExchangeOnline -ShowBanner:$false
+# $ClientSecretCredential = Get-Credential -Credential "[YOUR APP ID HERE]"
+# Connect-MgGraph -TenantId ""[YOUR TENANT ID HERE]"" -ClientSecretCredential $ClientSecretCredential -NoWelcome
 
 <#
 .SYNOPSIS
-Resends email in Failed state from Exchange Online to the originally intended recipients with parameters to target the emails to resend.
+Re-sends email in Failed state from Exchange Online to the originally intended recipients with parameters to target the emails to resend.
 
 .DESCRIPTION
-This script resends all Failed email from the past day, by default, or allows you to use the following parameters to target which emails to resend.
+This script re-sends all Failed email from the past day, by default, or allows you to use the following parameters to target which emails to resend.
 
-.PARAMETER Sender
+.PARAMETER SenderAddress
     Filter emails based on the sender's address.
-.PARAMETER Recipient
+.PARAMETER RecipientAddress
     Filter emails based on the recipient's address.
 .PARAMETER Subject
     Filter emails based on the email Subject.
@@ -32,10 +31,8 @@ This script resends all Failed email from the past day, by default, or allows yo
     Resend emails that failed within the past X number of days. Default is 1 day.
 .PARAMETER Force
     Sends emails without confirmation prompt.
-.PARAMETER IncludeDuplicate
+.PARAMETER IncludeDuplicates
     Will resend all emails with the same Message Id.
-.PARAMETER ShowDetailedPolicies
-    In addition to the policy applied, show any policy details that are set to True, On, or not blank.
 .PARAMETER SkipConnectionCheck
     Skips connection check for Graph and Exchange Online.
 .PARAMETER SkipVersionCheck
@@ -48,88 +45,60 @@ This script resends all Failed email from the past day, by default, or allows yo
 	To resend all Failed email from the past day.
 
 .EXAMPLE
-	.\ResendFailedMail.ps1 -Sender gary@contoso.com -Recipient ahmad@fabrikam.com -Days 7
+	.\ResendFailedMail.ps1 -SenderAddress gary@contoso.com -RecipientAddress  ahmad@fabrikam.com -Days 7
 	To resend Failed email from specific sender, recipient, and specified number of days.
 
 .EXAMPLE
-	.\ResendFailedMail.ps1 -Force -Sender gary@contsoso.com -Days 5
+	.\ResendFailedMail.ps1 -Force -SenderAddress gary@contsoso.com -Days 5
 	To resend Failed email from a specific sender for the past 5 days without a confirmation prompt.
 #>
 
 [CmdletBinding(DefaultParameterSetName = 'ResendCopyFailed', SupportsShouldProcess = $true, ConfirmImpact = 'High')]
 param(
     [Parameter(Mandatory = $false, ParameterSetName = "ResendCopyFailed")]
-    [string[]]$Sender,
+    [Parameter(Mandatory = $false, ParameterSetName = "ResendCopyFailedDays")]
+    [string[]]$SenderAddress,
     [Parameter(Mandatory = $false, ParameterSetName = "ResendCopyFailed")]
+    [Parameter(Mandatory = $false, ParameterSetName = "ResendCopyFailedDays")]
     [string[]]$Subject,
     [Parameter(Mandatory = $false, ParameterSetName = "ResendCopyFailed")]
-    [string[]]$Recipient,
+    [Parameter(Mandatory = $false, ParameterSetName = "ResendCopyFailedDays")]
+    [string[]]$RecipientAddress ,
     [Parameter(Mandatory = $false, ParameterSetName = "ResendCopyFailed")]
+    [Parameter(Mandatory = $false, ParameterSetName = "ResendCopyFailedDays")]
     [string[]]$MessageId,
     [Parameter(Mandatory = $false, ParameterSetName = "ResendCopyFailed")]
+    [Parameter(Mandatory = $false, ParameterSetName = "ResendCopyFailedDays")]
     [switch]$IncludeDuplicates,
     [Parameter(Mandatory = $false, ParameterSetName = "ResendCopyFailed")]
+    [Parameter(Mandatory = $false, ParameterSetName = "ResendCopyFailedDays")]
     [switch]$Force,
     [Parameter(Mandatory = $false, ParameterSetName = "ResendCopyFailed")]
-    [int]$Days = 1,
+    [DateTime]$StartDate,
     [Parameter(Mandatory = $false, ParameterSetName = "ResendCopyFailed")]
+    [DateTime]$EndDate,
+    [Parameter(Mandatory = $false, ParameterSetName = "ResendCopyFailedDays")]
+    [ValidateRange(1, 10)]
+    [Int16]$Days,
+    [Parameter(Mandatory = $false, ParameterSetName = "ResendCopyFailed")]
+    [Parameter(Mandatory = $false, ParameterSetName = "ResendCopyFailedDays")]
     [switch]$SkipConnectionCheck,
     [Parameter(Mandatory = $false, ParameterSetName = "ResendCopyFailed")]
+    [Parameter(Mandatory = $false, ParameterSetName = "ResendCopyFailedDays")]
     [switch]$SkipVersionCheck,
     [Parameter(Mandatory = $true, ParameterSetName = "ScriptUpdateOnly")]
     [switch]$ScriptUpdateOnly
 )
 
-. $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
-. $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
-. $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Host.ps1
-. $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Progress.ps1
-. $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Verbose.ps1
-. $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Warning.ps1
+$Script:DualLoggingEnabled = $true
+. $PSScriptRoot\..\..\Shared\GenericScriptStartLogging.ps1
+
+$versionsUrl = "https://aka.ms/ResendFailedMail-VersionsURL"
+. $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\GenericScriptUpdate.ps1
 
 $recipientCache = @{}
 
-function Write-DebugLog ($message) {
-    if (![string]::IsNullOrEmpty($message)) {
-        $Script:DebugLogger = $Script:DebugLogger | Write-LoggerInstance $message
-    }
-}
-
-function Write-HostLog ($message) {
-    if (![string]::IsNullOrEmpty($message)) {
-        $Script:HostLogger = $Script:HostLogger | Write-LoggerInstance $message
-    }
-    # all write-host should be logged in the debug log as well.
-    Write-DebugLog $message
-}
-
-$LogFileName = "ResendFailedMail"
-$StartDate = Get-Date
-$StartDateFormatted = ($StartDate).ToString("yyyyMMddhhmmss")
-$Script:DebugLogger = Get-NewLoggerInstance -LogName "$LogFileName-Debug-$StartDateFormatted" -LogDirectory $PSScriptRoot -AppendDateTimeToFileName $false -ErrorAction SilentlyContinue
-$Script:HostLogger = Get-NewLoggerInstance -LogName "$LogFileName-Results-$StartDateFormatted" -LogDirectory $PSScriptRoot -AppendDateTimeToFileName $false -ErrorAction SilentlyContinue
-SetWriteHostAction ${Function:Write-HostLog}
-SetWriteProgressAction ${Function:Write-DebugLog}
-SetWriteVerboseAction ${Function:Write-DebugLog}
-SetWriteWarningAction ${Function:Write-HostLog}
-
-$BuildVersion = ""
-
-Write-Host ("ResendFailedMail.ps1 script version $($BuildVersion)") -ForegroundColor Green
-
-if ($ScriptUpdateOnly) {
-    switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/ResendFailedMail-VersionsURL" -Confirm:$false) {
-        ($true) { Write-Host ("Script was successfully updated.") -ForegroundColor Green }
-        ($false) { Write-Host ("No update of the script performed.") -ForegroundColor Yellow }
-        default { Write-Host ("Unable to perform ScriptUpdateOnly operation.") -ForegroundColor Red }
-    }
-    return
-}
-
-if ((-not($SkipVersionCheck)) -and (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/ResendFailedMail-VersionsURL" -Confirm:$false)) {
-    Write-Host ("Script was updated. Please re-run the command.") -ForegroundColor Yellow
-    return
-}
+Write-Verbose "Url to check for new versions of the script is: $versionsUrl"
 
 function Test-GraphContext {
     [OutputType([bool])]
@@ -192,7 +161,9 @@ if (-not $SkipConnectionCheck) {
         Write-Host "Error checking Graph connection:`n$_" -ForegroundColor Red
         Write-Host "Verify that you have Microsoft.Graph.Mail and Microsoft.Graph.Users.Actions modules installed and loaded." -ForegroundColor Yellow
         Write-Host "You could use:" -ForegroundColor Yellow
-        Write-Host "`tConnect-MgGraph -TenantId ""[YOUR TENANT ID HERE]"" -ClientSecretCredential (New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ""[YOUR APP ID HERE]"", (ConvertTo-SecureString -String ""[VALUE FIELD OF YOUR SECRET HERE]"" -AsPlainText -Force)) -NoWelcome" -ForegroundColor Yellow
+        Write-Host "`t`$ClientSecretCredential = Get-Credential -Credential ""[YOUR APP ID HERE]""" -ForegroundColor Yellow
+        Write-Host "`t# Enter client_secret in the password prompt." -ForegroundColor Yellow
+        Write-Host "`tConnect-MgGraph -TenantId ""[YOUR TENANT ID HERE]"" -ClientSecretCredential `$ClientSecretCredential -NoWelcome" -ForegroundColor Yellow
         Write-Verbose "$_"
         exit
     }
@@ -200,7 +171,9 @@ if (-not $SkipConnectionCheck) {
         Write-Host "Not connected to Graph" -ForegroundColor Red
         Write-Host "Verify that you have Microsoft.Graph.Mail and Microsoft.Graph.Users.Actions modules installed and loaded." -ForegroundColor Yellow
         Write-Host "You could use:" -ForegroundColor Yellow
-        Write-Host "`tConnect-MgGraph -TenantId ""[YOUR TENANT ID HERE]"" -ClientSecretCredential (New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ""[YOUR APP ID HERE]"", (ConvertTo-SecureString -String ""[VALUE FIELD OF YOUR SECRET HERE]"" -AsPlainText -Force)) -NoWelcome" -ForegroundColor Yellow
+        Write-Host "`t`$ClientSecretCredential = Get-Credential -Credential ""[YOUR APP ID HERE]""" -ForegroundColor Yellow
+        Write-Host "`t# Enter client_secret in the password prompt." -ForegroundColor Yellow
+        Write-Host "`tConnect-MgGraph -TenantId ""[YOUR TENANT ID HERE]"" -ClientSecretCredential `$ClientSecretCredential -NoWelcome" -ForegroundColor Yellow
         exit
     } elseif ($graphConnection.count -eq 1) {
         $expectedScopes = 'Mail.Read', 'Mail.Send'
@@ -213,7 +186,9 @@ if (-not $SkipConnectionCheck) {
             Write-Host "We cannot continue without Graph Powershell session without Expected Scopes." -ForegroundColor Red
             Write-Host "Verify that you have Microsoft.Graph.Mail and Microsoft.Graph.Users.Actions modules installed and loaded." -ForegroundColor Yellow
             Write-Host "You could use:" -ForegroundColor Yellow
-            Write-Host "`tConnect-MgGraph -TenantId ""[YOUR TENANT ID HERE]"" -ClientSecretCredential (New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ""[YOUR APP ID HERE]"", (ConvertTo-SecureString -String ""[VALUE FIELD OF YOUR SECRET HERE]"" -AsPlainText -Force)) -NoWelcome" -ForegroundColor Yellow
+            Write-Host "`t`$ClientSecretCredential = Get-Credential -Credential ""[YOUR APP ID HERE]""" -ForegroundColor Yellow
+            Write-Host "`t# Enter client_secret in the password prompt." -ForegroundColor Yellow
+            Write-Host "`tConnect-MgGraph -TenantId ""[YOUR TENANT ID HERE]"" -ClientSecretCredential `$ClientSecretCredential -NoWelcome" -ForegroundColor Yellow
             exit
         }
     } else {
@@ -226,72 +201,79 @@ if (-not $SkipConnectionCheck) {
     }
 }
 
-$acceptedDomains = $null
+if ($PsCmdlet.ParameterSetName -eq 'ResendCopyFailedDays') {
+    $StartDate = (Get-Date).AddDays(-$Days)
+    Write-Verbose "StartDate: $StartDate"
+    $EndDate = Get-Date
+    Write-Verbose "EndDate: $EndDate"
+}
+
+$traceParams = @{
+    Status = "Failed"
+}
+
+if ($StartDate) { $traceParams["StartDate"] = $StartDate }
+if ($EndDate) { $traceParams["EndDate"] = $EndDate }
+if ($RecipientAddress ) { $traceParams["RecipientAddress"] = $RecipientAddress }
+if ($SenderAddress) { $traceParams["SenderAddress"] = $SenderAddress }
+if ($MessageId) { $traceParams["MessageId"] = $MessageId }
+
 try {
-    $acceptedDomains = Get-AcceptedDomain -ErrorAction Stop
+    [array]$failedMessages = Get-MessageTrace @traceParams -ErrorAction Stop
 } catch {
-    Write-Host "Error getting Accepted Domains:`n$_" -ForegroundColor Red
+    Write-Host "Error: $_.Exception.Message" -ForegroundColor Red
     exit
 }
 
-if ($null -eq $acceptedDomains) {
-    Write-Host "We do not get accepted domains." -ForegroundColor Red
+if ($failedMessages.count -ge 1000) {
+    Write-Host "We get more than 1000 messages, please limit your search." -ForegroundColor Red
     exit
 }
 
-if ($acceptedDomains.count -eq 0) {
-    Write-Host "No accepted domains found." -ForegroundColor Red
-    exit
-} else {
-    $acceptedDomainList = New-Object System.Collections.Generic.List[string]
-    $acceptedDomains | ForEach-Object { $acceptedDomainList.Add($_.DomainName.ToString()) }
+if (-not $IncludeDuplicates) {
+    [array]$failedMessages = $failedMessages | Sort-Object MessageId -Unique
 }
 
-$failedMessages = $null
-$failedMessages = Get-MessageTrace -StartDate (Get-Date).AddDays(-$Days) -EndDate (Get-Date) | Where-Object { $_.Status -eq "Failed" }
-
-if ($Sender) { $failedMessages = $failedMessages | Where-Object { $Sender -contains $_.SenderAddress } }
-if ($Subject) { $failedMessages = $failedMessages | Where-Object { $Subject -contains $_.Subject } }
-if ($Recipient) { $failedMessages = $failedMessages | Where-Object { $Recipient -contains $_.RecipientAddress } }
-if ($MessageId) { $failedMessages = $failedMessages | Where-Object { $MessageId -contains $_.MessageId } }
-if (-not $IncludeDuplicates) { $failedMessages = $failedMessages | Sort-Object MessageId -Unique }
-
-$failedMessages = $failedMessages | Where-Object { $acceptedDomainList -contains $_.SenderAddress.Split("@")[1] }
-
-$verifiedAcceptedSenderMessages = @()
+$verifiedAcceptedSenderMessages = New-Object System.Collections.Generic.List[object]
+$count = 0
+$totalMessages = $failedMessages.Count
 foreach ($failedMessage in $failedMessages) {
+    $count++
+    Write-Progress -Activity "Checking Progress" -Status "$count of $totalMessages" -PercentComplete ($count / $totalMessages * 100) -CurrentOperation "Checking message $($failedMessage.MessageId) - Subject: $($failedMessage.Subject)"
     Write-Verbose "Checking $($failedMessage.SenderAddress)"
     $tempAddress = $null
     if ($recipientCache.ContainsKey($failedMessage.SenderAddress)) {
-        Write-Verbose "Recipient $($failedMessage.SenderAddress) found in cache"
-        $verifiedAcceptedSenderMessages += $failedMessage
+        Write-Verbose "RecipientAddress  $($failedMessage.SenderAddress) found in cache"
+        if ($recipientCache[$failedMessage.SenderAddress]) {
+            $verifiedAcceptedSenderMessages.Add($failedMessage)
+        } else {
+            Write-Verbose "Sender $($failedMessage.SenderAddress) is not a recipient in this tenant."
+            Write-Verbose "Discarded $($failedMessage.MessageId) - Subject: $($failedMessage.Subject)"
+        }
     } else {
         try {
-            $tempAddress = Get-EXORecipient $failedMessage.SenderAddress -ErrorAction Stop
+            $tempAddress = Get-EXOMailbox $failedMessage.SenderAddress -ErrorAction Stop
             if ($null -eq $tempAddress) {
-                Write-Host "Sender $($failedMessage.RecipientAddress) is not a recipient in this tenant." -ForegroundColor Yellow
-                Write-Host "Discarded $($failedMessage.MessageId) - Subject: $($failedMessage.Subject)" -ForegroundColor Yellow
+                Write-Verbose "Sender $($failedMessage.SenderAddress) is not a recipient in this tenant."
+                Write-Verbose "Discarded $($failedMessage.MessageId) - Subject: $($failedMessage.Subject)"
+                $recipientCache[$failedMessage.SenderAddress] = $false
             } else {
                 Write-Verbose "Added to cache Recipient $($failedMessage.SenderAddress) with Id $($failedMessage.SenderAddress)"
-                $recipientCache[$failedMessage.SenderAddress] = $failedMessage.SenderAddress
+                $recipientCache[$failedMessage.SenderAddress] = $true
                 Write-Verbose "Verified $($failedMessage.SenderAddress)"
-                $verifiedAcceptedSenderMessages += $failedMessage
+                $verifiedAcceptedSenderMessages.Add($failedMessage)
             }
         } catch {
-            Write-Host "Error getting Sender $($failedMessage.SenderAddress)" -ForegroundColor Yellow
-            Write-Host "Discarded $($failedMessage.MessageId) - Subject: $($failedMessage.Subject)" -ForegroundColor Yellow
+            Write-Verbose "Error getting Sender Address $($failedMessage.SenderAddress)"
+            Write-Verbose "Discarded $($failedMessage.MessageId) - Subject: $($failedMessage.Subject)"
+            $recipientCache[$failedMessage.SenderAddress] = $false
             Write-Verbose "$_"
         }
     }
 }
 
-if ( $verifiedAcceptedSenderMessages ) {
-    if ($verifiedAcceptedSenderMessages.Count) {
-        $totalMessages = $verifiedAcceptedSenderMessages.Count
-    } else {
-        $totalMessages = 1
-    }
-
+$totalMessages = $verifiedAcceptedSenderMessages.Count
+if ($totalMessages -gt 0) {
     if (-not $Force) {
         Write-Host "`nWe are going to resend the following messages:"
         Write-Host ($verifiedAcceptedSenderMessages | Format-Table -AutoSize Received, MessageId, SenderAddress, RecipientAddress, Subject | Out-String)
@@ -300,6 +282,7 @@ if ( $verifiedAcceptedSenderMessages ) {
 
     if ($Force -or $PSCmdlet.ShouldContinue("Are you sure you want to do it?", "Resend messages")) {
         $count = 0
+        $resendCount = 0
         foreach ( $failedMessage in $verifiedAcceptedSenderMessages ) {
             $count++
             Write-Progress -Activity "Resending Progress" -Status "$count of $totalMessages" -PercentComplete ($count / $totalMessages * 100) -CurrentOperation "Resending message $($failedMessage.MessageId) - Subject: $($failedMessage.Subject)"
@@ -309,20 +292,26 @@ if ( $verifiedAcceptedSenderMessages ) {
             } catch {
                 Write-Host "Error getting message $($failedMessage.MessageId) - Subject: $($failedMessage.Subject)" -ForegroundColor Red
                 Write-Verbose "$_"
+                continue
             }
             if ($fullMessage.Count -eq 0) {
                 Write-Host "Message not found for $($failedMessage.MessageId)" -ForegroundColor Yellow
             } else {
                 Write-Verbose "Resending message $($failedMessage.MessageId) - Subject: $($fullMessage.Subject)"
                 try {
-                    #Send-MgUserMail -UserId $failedMessage.SenderAddress -Message $fullMessage -ErrorAction Stop
-                    Send-MgUserMessage -UserId $failedMessage.SenderAddress -MessageId $fullMessage.Id -ErrorAction Stop
+                    Send-MgUserMessage -UserId $failedMessage.SenderAddress -MessageId $fullMessage.Id
                     Write-Host "Resent Message: $($failedMessage.MessageId) - Subject: $($fullMessage.Subject)"
+                    $resendCount++
                 } catch {
                     Write-Host "Error resending message $($failedMessage.MessageId) - Subject: $($fullMessage.Subject)" -ForegroundColor Red
                     Write-Verbose "$_"
                 }
             }
+        }
+        Write-Host "Summary"
+        Write-Host "Total Successful Resent: $resendCount"
+        if ($totalMessages - $resendCount -gt 0) {
+            Write-Host "Total Unsuccessful Resent: $($totalMessages-$resendCount)" -ForegroundColor Yellow
         }
     }
 } else {
