@@ -83,10 +83,9 @@ if (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/CL-VersionsUrl" 
 }
 
 $script:command = $MyInvocation
-# $script:commandLine = $MyInvocation.Line
 Write-Host -ForegroundColor Blue "The script was started with the following command line:"
 Write-Host -ForegroundColor Blue "Name:" $command.MyCommand.name
-Write-Host -ForegroundColor Blue  "Command Line:" $command.line
+Write-Host -ForegroundColor Blue "Command Line:" $command.line
 
 Write-Verbose "Script Versions: $BuildVersion"
 
@@ -194,6 +193,10 @@ if (-not ([string]::IsNullOrEmpty($Subject)) ) {
     }
 } else {
     Write-Warning "A valid MeetingID was not found, nor Subject. Please confirm the MeetingID or Subject and try again."
+}
+
+if($ExportToExcel.IsPresent) {
+    Close-ExcelPackage $excel -Password "Test"
 }
 
 Write-DashLineBoxColor "Hope this script was helpful in getting and understanding the Calendar Logs.",

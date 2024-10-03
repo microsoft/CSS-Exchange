@@ -166,7 +166,7 @@ function BuildCSV {
             'LogClientInfoString'            = $CalLog.LogClientInfoString
             'TriggerAction'                  = $CalLog.CalendarLogTriggerAction
             'ItemClass'                      = $ItemType
-            'Seq:Exp:ItemVersion'            = CompressedVersion
+            'Seq:Exp:ItemVersion'            = CompressVersionInfo($CalLog)
             'Organizer'                      = $CalLog.From.FriendlyDisplayName
             'From'                           = GetBestFromAddress($CalLog.From)
             'FreeBusy'                       = $CalLog.FreeBusyStatus.ToString()
@@ -231,7 +231,10 @@ function GetAttendeeCount {
     }
 }
 
-function CompressedVersion {
+function CompressVersionInfo {
+    param(
+        $CalLog
+    )
     [string] $CompressedString = ""
     if ($CalLog.AppointmentSequenceNumber -eq "NotFound" -or [string]::IsNullOrEmpty($CalLog.AppointmentSequenceNumber)) {
         $CompressedString = "-:"

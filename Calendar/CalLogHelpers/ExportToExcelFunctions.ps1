@@ -88,6 +88,8 @@ function GetExcelParams($path, $tabName) {
         FreezeTopRow            = $true
         #  BoldTopRow              = $true
         Verbose                 = $false
+        Password                = "TEST"
+#        Password                = $script:Password
         TableStyle              = $TableStyle
         WorksheetName           = $tabName
         TableName               = $tabName
