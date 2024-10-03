@@ -195,10 +195,6 @@ if (-not ([string]::IsNullOrEmpty($Subject)) ) {
     Write-Warning "A valid MeetingID was not found, nor Subject. Please confirm the MeetingID or Subject and try again."
 }
 
-if($ExportToExcel.IsPresent) {
-    Close-ExcelPackage $excel -Password "Test"
-}
-
 Write-DashLineBoxColor "Hope this script was helpful in getting and understanding the Calendar Logs.",
 "More Info on Getting the logs: https://learn.microsoft.com/en-us/exchange/troubleshoot/calendars/get-calendar-diagnostic-logs",
 "and on Analyzing the logs: https://learn.microsoft.com/en-us/exchange/troubleshoot/calendars/analyze-calendar-diagnostic-logs",
@@ -209,5 +205,4 @@ if ($ExportToExcel.IsPresent) {
     Write-Host
     Write-Host -ForegroundColor Blue -NoNewline "All Calendar Logs are saved to: "
     Write-Host -ForegroundColor Yellow ".\$Filename"
-    Write-Host
 }
