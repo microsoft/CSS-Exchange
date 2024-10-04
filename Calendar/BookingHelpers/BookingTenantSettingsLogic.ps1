@@ -39,17 +39,17 @@ function CheckAcceptedDomainIsManaged {
     Write-Verbose "Checking if accepted domain is managed"
     $acceptedDomains = $script:TenantSettings.AcceptedDomains
     if ($null -eq $acceptedDomains) {
-        $errorMessage.Value = "Accepted domains is null"
+        $errorMessage.Value = "Accepted domains is null."
         return $false
     }
 
     if (@($acceptedDomains | Where-Object { $_.AuthenticationType -EQ "Managed" -and $_.DomainName -EQ $script:Domain -and $_.Default -EQ $true } ).Count -EQ 0 ) {
-        $errorMessage.Value = "There is no Default Accepted domain, with Authentication type Managed "
+        $errorMessage.Value = "There is no Default Accepted domain, with Authentication type Managed. "
         return $false
     }
 
     if (@($acceptedDomains | Where-Object { $_.Default -EQ $true } ).Count -gt 1 ) {
-        $errorMessage.Value = "There is more than 1 Default Domain,  make sure there is only one and AuthenticationType is Managed"
+        $errorMessage.Value = "There is more than 1 Default Domain,  make sure there is only one and AuthenticationType is Managed."
         return $false
     }
     return $true
@@ -60,7 +60,7 @@ function CheckBookingsEnabled {
 
     Write-Verbose "Checking if Bookings is enabled for the tenant"
     if ($script:TenantSettings.BookingsSettings.BookingsEnabled -ne $true) {
-        $errorMessage.Value = "Bookings is not enabled for the Tenant - Check Get-OrganizationConfig"
+        $errorMessage.Value = "Bookings is not enabled for the Tenant - Check Get-OrganizationConfig."
         return $false
     }
     return $true
@@ -71,7 +71,7 @@ function CheckEWSEnabled {
 
     Write-Verbose "Checking if EWS is enabled for the tenant"
     if ($script:TenantSettings.EwsEnabled -ne $true -and $null -ne $script:TenantSettings.EwsEnabled) {
-        $errorMessage.Value = "EWS is not enabled for the Tenant - Check Get-OrganizationConfig"
+        $errorMessage.Value = "EWS is not enabled for the Tenant - Check Get-OrganizationConfig."
         return $false
     }
     return $true
@@ -83,7 +83,7 @@ function CheckEWSAccessPolicy {
     Write-Verbose "Checking if EWS Access Policy is set"
 
     if ($null -eq $script:TenantSettings.EwsApplicationAccessPolicy) {
-        $errorMessage.Value = "EWS Application Access Policy is not set"
+        $errorMessage.Value = "EWS Application Access Policy is not set."
         $writeMessageAlways.Value = $true
         return $true
     }
@@ -139,7 +139,7 @@ function CheckDomainSuffix {
         $errorMessage.Value = "OWAMBPolicy Bookings DomainSuffix may have invalid chars " + $script:OWAMBPolicy.DomainSuffix
         return $false
     }
-    $errorMessage.Value="No invalid characters were found"
+    $errorMessage.Value="No invalid characters were found."
     $writeMessageAlways.Value = $true
     return $true
 }
@@ -149,7 +149,7 @@ function CheckSharingPolicy {
 
     Write-Verbose "Checking if Sharing Policy is set"
     if ($null -eq $script:TenantSettings.BookingsSettings.BookingsSocialSharingRestricted) {
-        $errorMessage.Value = "Bookings Social Sharing Policy is not set"
+        $errorMessage.Value = "Bookings Social Sharing Policy is not set."
         return $false
     }
     return $true

@@ -1,57 +1,45 @@
-<#
-    MIT License
 
-    Copyright (c) Microsoft Corporation.
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in all
-    copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-    SOFTWARE
-#>
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 
 # Version 0.00.00.1
 
 #
 # .DESCRIPTION
-# This Exchange Online script runs the Get-CalendarDiagnosticObjects script and returns a summarized timeline of actions in clear english
-# as well as the Calendar Diagnostic Objects in CSV format.
+# This Exchange Online script runs the Get-BookingsDiagnosticSummary script and returns a summary of basic bookings tests on
+# a selected Bookings mailbox. The script will return the Bookings Mailbox, Staff, Services, Availability, Custom Questions,
+# as well as MessageTrace logs for the past 5 days. The script will also return the Staff Membership Log for the Bookings mailbox.
 #
 # .PARAMETER Identity
-# One or more SMTP Address of EXO User Mailbox to query.
+# The Bookings mailbox SMTP address to query.
 #
-# .PARAMETER Subject
-# Subject of the meeting to query, only valid if Identity is a single user.
+# .PARAMETER Staff
+# Verify Staff permissions for the Bookings mailbox.
 #
-# .PARAMETER MeetingID
-# The MeetingID of the meeting to query.
+# .PARAMETER StaffMembershipLog
+# Get the Staff Membership Log for the Bookings mailbox.
 #
-# .PARAMETER TrackingLogs
-# Include specific tracking logs in the output. Only useable with the MeetingID parameter.
+# .PARAMETER Graph
+# Use Graph API to get the Bookings mailbox, Staff, Services and Availiability.
 #
-# .PARAMETER Exceptions
-# Include Exception objects in the output. Only useable with the MeetingID parameter.
+# .PARAMETER GetMessageTrace
+# Get MessageTrace logs for the Bookings mailbox(Past 5 days).
+#
+# .PARAMETER ExportExcel
+# Export all data to Excel.
 #
 # .EXAMPLE
-# Get-CalendarDiagnosticObjectsSummary.ps1 -Identity someuser@microsoft.com -MeetingID 040000008200E00074C5B7101A82E008000000008063B5677577D9010000000000000000100000002FCDF04279AF6940A5BFB94F9B9F73CD
+# Get-BookingsDiagnosticSummary.ps1 -Identity fooBooking@microsoft.com
 #
-# Get-CalendarDiagnosticObjectsSummary.ps1 -Identity someuser@microsoft.com -Subject "Test OneTime Meeting Subject"
+# Get-BookingsDiagnosticSummary.ps1 -Identity fooBooking@microsoft.com -Staff
 #
-# Get-CalendarDiagnosticObjectsSummary.ps1 -Identity User1, User2, Delegate -MeetingID $MeetingID
+# Get-BookingsDiagnosticSummary.ps1 -Identity fooBooking@microsoft.com -StaffMembershipLog
 #
-# Get-CalendarDiagnosticObjectsSummary.ps1 -Identity $Users -MeetingID $MeetingID -TrackingLogs -Exceptions
+# Get-BookingsDiagnosticSummary.ps1 -Identity fooBooking@microsoft.com -Graph
+#
+# Get-BookingsDiagnosticSummary.ps1 -Identity fooBooking@microsoft.com -GetMessageTrace
+#
+# Get-BookingsDiagnosticSummary.ps1 -Identity fooBooking@microsoft.com -ExportExcel
 #
 param
 (
@@ -60,19 +48,22 @@ param
     [string]$identity,
 
     [Parameter(Position=1, Mandatory=$False, HelpMessage="Verify Staff permissions for the Bookings mailbox.")]
-    [switch]$Staff,
+    [bool]$Staff=$true,
 
     [Parameter(Position=2, Mandatory=$False, HelpMessage="Get the Staff Membership Log for the Bookings mailbox.")]
-    [switch]$StaffMembershipLog,
+    [bool]$StaffMembershipLog = $true,
 
     [Parameter(Position=3, Mandatory=$False, HelpMessage="Use Graph API to get the Bookings mailbox, Staff, Services and Availiability.")]
-    [switch]$Graph,
+    [bool]$Graph = $true,
 
     [Parameter(Position=4, Mandatory=$False, HelpMessage="Get MessageTrace logs for the Bookings mailbox(Past 5 days).")]
-    [switch]$GetMessageTrace,
+    [bool]$MessageTrace = $true,
 
-    [Parameter(Position=5, Mandatory=$False, HelpMessage="Export all data to Excel.")]
-    [switch]$ExportExcel
+    [Parameter(Position=5, Mandatory=$False, HelpMessage="Export all data to CSV.")]
+    [bool]$ExportToCSV = $true,
+
+    [Parameter(Position=6, Mandatory=$False, HelpMessage="Export all data to Excel.")]
+    [bool]$ExportToExcel = $true
 
 )
 
@@ -128,12 +119,15 @@ $script:Domain = SplitDomainFromEmail $identity -errorAction SilentlyContinue
 $script:OrgConfig=""
 $script:OWAMBPolicy = ""
 $script:AcceptedDomains = ""
-$script:TenantSettings = Get-BookingTenantSettings -Domain $script:Domain -ErrorAction SilentlyContinue
+$script:TenantSettings = GetBookingTenantSettings -Domain $script:Domain -ErrorAction SilentlyContinue
 
 #removed BMB variable, is unused
 #$script:BMB =""
-$script:bookingMBData = Get-BookingMBData -Identity $identity -ErrorAction SilentlyContinue
-$script:BookingStaffMembershipLog = GetStaffMembershipLogs -Identity $identity
+$script:bookingMBData = GetBookingMBData -Identity $identity -ErrorAction SilentlyContinue
+if ($StaffMembershipLog -eq $true) {
+    $script:BookingStaffMembershipLog = GetStaffMembershipLogs -Identity $identity
+}
+
 $script:BookingStaffMembershipLogArray = GetMembershipLogArray  -Identity $identity
 $script:MessageTrackingLogs = Get-MessageTrackingLogs -identity $identity -ErrorAction SilentlyContinue
 
@@ -142,23 +136,26 @@ $script:MBRecipientPermissions = Get-MBRecipientPermissions -Identity $identity 
 $script:StaffData = Get-StaffData | Format-Table
 
 
-
-
-$script:TenantSettings
-$script:bookingMBData
-$script:StaffData
-$script:MessageTrackingLogs
-#$script:BMB
-
 #start verifications
 RunTenantTests
 RunMBTests
-RunMBStaffLogChecks
-RunMessageTrackingLogTests
+if ($StaffMembershipLog -eq $true) {
+    RunMBStaffLogValidation
+}
 
-saveDataAsCSV -Identity $identity
+If ($MessageTrace -eq $true) {
+    RunMessageTrackingLogValidation
+}
 
-ExcelWrite -identity $identity
+#start data collection
+if ($ExportToCSV -eq $true) {
+    saveDataAsCSV -Identity $identity
+}
+
+if ($ExportToExcel -eq $true) {
+    ExcelWrite -identity $identity
+}
+
 
 
 

@@ -1,9 +1,9 @@
-﻿function RunMessageTrackingLogTests {
+﻿function RunMessageTrackingLogValidation {
     [ref]$errorMessage = $null
     [ref]$writeMessageAlways = $false
     $testResult = $true
 
-    Write-DashLineBoxColor "Running MessageTracking Log tests" -Color Blue
+    Write-DashLineBoxColor "Running Message Tracking Log Validation" -Color Blue
 
     $errorMessage = ""
     $testResult = CheckMessageTrackingLogs -errorMessage $errorMessage -writeMessageAlways $writeMessageAlways

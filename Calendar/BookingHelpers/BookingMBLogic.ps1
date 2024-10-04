@@ -15,13 +15,7 @@
     $testResult = CheckBookingsMBEmailAddresses -errorMessage $errorMessage
     WriteTestTitle "Check MB Email Addresses" -success $testResult -errorMessage $errorMessage -writeMessageAlways $writeMessageAlways
     writeBookingsMBEmailAddresses
-
-
-
 }
-
-
-
 
 function CheckIdentityIsBookingsMB {
     param([ref]$errorMessage)
@@ -35,7 +29,7 @@ function CheckIdentityIsBookingsMB {
 function CheckIfMBIsHiddenInGAL {
     Write-Verbose "Checking if a MB is Hidden in the GAL"
     if ($script:bookingMBData.HiddenFromAddressListsEnabled -eq $true) {
-        $errorMessage.Value = "Mailbox $Identity is Hidden in the GAL"
+        $errorMessage.Value = "Mailbox $Identity is Hidden in the GAL."
         return $false
     }
     return $true

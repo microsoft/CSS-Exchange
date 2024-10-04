@@ -1,4 +1,4 @@
-﻿function Get-BookingTenantSettings {
+﻿function GetBookingTenantSettings {
     param([string] $domain)
 
     if ($Script:MSSupport) {
@@ -10,10 +10,10 @@
         $script:OWAMBPolicy = Get-OwaMailboxPolicy
         $script:AcceptedDomains = Get-AcceptedDomain
     }
-    $ewsSettings = Get-EWSSettings $script:OrgConfig
-    $bookingsSettings = Get-BookingsSettings $script:OrgConfig
-    $OWAMBPolicy = Get-OwaMBPolicy $script:OWAMBPolicy
-    $acceptedDomains = Get-AcceptedDomains $script:AcceptedDomains
+    $ewsSettings = GetEWSSettings $script:OrgConfig
+    $bookingsSettings =  $script:OrgConfig
+    $OWAMBPolicy =  $script:OWAMBPolicy
+    $acceptedDomains = GetAcceptedDomains $script:AcceptedDomains
     # Define the structure of the tenant settings
     $tenantSettings = [PSCustomObject]@{
         Identity         = $org.Identity
@@ -30,7 +30,7 @@
     return $tenantSettings
 }
 
-function Get-EWSSettings {
+function GetEWSSettings {
     param($org)
     # Define the structure of the EWS settings
     $EwsSettings = [PSCustomObject]@{
@@ -44,53 +44,53 @@ function Get-EWSSettings {
     return $EwsSettings
 }
 
-function Get-BookingsSettings {
-    param($org)
+function GetBookingsSettings {
+    param($orgConfig)
     # Define the structure of the Bookings settings
     $BookingsSettings = [PSCustomObject]@{
-        BookingsEnabled                             =$org.BookingsEnabled
-        BookingsEnabledLastUpdateTime               =$org.BookingsEnabledLastUpdateTime
-        BookingsPaymentsEnabled                     =$org.BookingsPaymentsEnabled
-        BookingsSocialSharingRestricted             =$org.BookingsSocialSharingRestricted
-        BookingsAddressEntryRestricted              =$org.BookingsAddressEntryRestricted
-        BookingsAuthEnabled                         =$org.BookingsAuthEnabled
-        BookingsCreationOfCustomQuestionsRestricted =$org.BookingsCreationOfCustomQuestionsRestricted
-        BookingsExposureOfStaffDetailsRestricted    =$org.BookingsExposureOfStaffDetailsRestricted
-        BookingsNotesEntryRestricted                =$org.BookingsNotesEntryRestricted
-        BookingsPhoneNumberEntryRestricted          =$org.BookingsPhoneNumberEntryRestricted
-        BookingsMembershipApprovalRequired          =$org.BookingsMembershipApprovalRequired
-        BookingsSmsMicrosoftEnabled                 =$org.BookingsSmsMicrosoftEnabled
-        BookingsNamingPolicyEnabled                 =$org.BookingsNamingPolicyEnabled
-        BookingsBlockedWordsEnabled                 =$org.BookingsBlockedWordsEnabled
-        BookingsNamingPolicyPrefixEnabled           =$org.BookingsNamingPolicyPrefixEnabled
-        BookingsNamingPolicyPrefix                  =$org.BookingsNamingPolicyPrefix
-        BookingsNamingPolicySuffixEnabled           =$org.BookingsNamingPolicySuffixEnabled
-        BookingsNamingPolicySuffix                  =$org.BookingsNamingPolicySuffix
-        BookingsSearchEngineIndexDisabled           =$org.BookingsSearchEngineIndexDisabled
-        IsTenantInGracePeriod                       =$org.IsTenantInGracePeriod
-        IsTenantAccessBlocked                       =$org.IsTenantAccessBlocked
-        IsDehydrated                                =$org.IsDehydrated
-        ServicePlan                                 =$org.ServicePlan #check doc for serviceplans accepting Bookings4
+        BookingsEnabled                             =$orgConfig.BookingsEnabled
+        BookingsEnabledLastUpdateTime               =$orgConfig.BookingsEnabledLastUpdateTime
+        BookingsPaymentsEnabled                     =$orgConfig.BookingsPaymentsEnabled
+        BookingsSocialSharingRestricted             =$orgConfig.BookingsSocialSharingRestricted
+        BookingsAddressEntryRestricted              =$orgConfig.BookingsAddressEntryRestricted
+        BookingsAuthEnabled                         =$orgConfig.BookingsAuthEnabled
+        BookingsCreationOfCustomQuestionsRestricted =$orgConfig.BookingsCreationOfCustomQuestionsRestricted
+        BookingsExposureOfStaffDetailsRestricted    =$orgConfig.BookingsExposureOfStaffDetailsRestricted
+        BookingsNotesEntryRestricted                =$orgConfig.BookingsNotesEntryRestricted
+        BookingsPhoneNumberEntryRestricted          =$orgConfig.BookingsPhoneNumberEntryRestricted
+        BookingsMembershipApprovalRequired          =$orgConfig.BookingsMembershipApprovalRequired
+        BookingsSmsMicrosoftEnabled                 =$orgConfig.BookingsSmsMicrosoftEnabled
+        BookingsNamingPolicyEnabled                 =$orgConfig.BookingsNamingPolicyEnabled
+        BookingsBlockedWordsEnabled                 =$orgConfig.BookingsBlockedWordsEnabled
+        BookingsNamingPolicyPrefixEnabled           =$orgConfig.BookingsNamingPolicyPrefixEnabled
+        BookingsNamingPolicyPrefix                  =$orgConfig.BookingsNamingPolicyPrefix
+        BookingsNamingPolicySuffixEnabled           =$orgConfig.BookingsNamingPolicySuffixEnabled
+        BookingsNamingPolicySuffix                  =$orgConfig.BookingsNamingPolicySuffix
+        BookingsSearchEngineIndexDisabled           =$orgConfig.BookingsSearchEngineIndexDisabled
+        IsTenantInGracePeriod                       =$orgConfig.IsTenantInGracePeriod
+        IsTenantAccessBlocked                       =$orgConfig.IsTenantAccessBlocked
+        IsDehydrated                                =$orgConfig.IsDehydrated
+        ServicePlan                                 =$orgConfig.ServicePlan #check doc for serviceplans accepting Bookings4
     }
 
     # Return the Bookings settings
     return $BookingsSettings
 }
 
-function Get-OwaMBPolicy {
+function GetOWAMBPolicy {
     param($policy)
     # Define the structure of the OWA mailbox policy
-    $OwaMBPolicy = [PSCustomObject]@{
+    $OWAMBPolicy = [PSCustomObject]@{
         BookingsMailboxCreationEnabled = $policy.BookingsMailboxCreationEnabled
         BookingsMailboxDomain          = $policy.BookingsMailboxDomain
     }
 
     # Return the OWA mailbox policy
-    return $OwaMBPolicy
+    return $OWAMBPolicy
 }
 
 
-function Get-AcceptedDomains{
+function GetAcceptedDomains {
     param($domains)
 
 

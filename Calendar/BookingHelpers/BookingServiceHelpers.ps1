@@ -4,10 +4,10 @@ function Get-GraphBookingsServices {
         [Parameter(Mandatory = $true)]
         [string]$identity
     )
-    $MBservices = Get-MgBookingBusinessService -BookingBusinessId $identity
+    $GraphBookingBusiness = Get-MgBookingBusinessService -BookingBusinessId $identity
     $MBStaff = Get-MgBookingBusinessStaffMember -BookingBusinessId $identity
     $services = @()
-    foreach ($service in $MBservices) {
+    foreach ($service in $GraphBookingBusiness) {
         #determine serviceType
         $serviceType = ""
         if ($service.StaffMemberIds.Count -gt 1) {
@@ -48,9 +48,9 @@ function Get-GraphBookingsServices {
         $services += [PSCustomObject]@{
             Id                    = $service.Id
             ServiceType           = $serviceType
-            displayName           = $service.DisplayName
-            description           = $service.Description
-            duration              = $service.DefaultDuration
+            DisplayName           = $service.DisplayName
+            Description           = $service.Description
+            Duration              = $service.DefaultDuration
             PreBuffer             = $service.PreBuffer
             PostBuffer            = $service.PostBuffer
             SchedulingPolicy      = $service.SchedulingPolicy | ConvertTo-Json -Depth 10
@@ -68,8 +68,8 @@ function Get-GraphBookingsServices {
             DefaultLocation       = $service.DefaultLocation | ConvertTo-Json -Depth 10
             Notes                 = $service.Notes
             LanguageTag           = $service.LanguageTag
-            createdDateTime       = $service.AdditionalProperties["createdDateTime"]
-            lastUpdatedDateTime   = $service.AdditionalProperties["lastUpdatedDateTime"]
+            CreatedDateTime       = $service.AdditionalProperties["createdDateTime"]
+            LastUpdatedDateTime   = $service.AdditionalProperties["lastUpdatedDateTime"]
             Price                 = $service.AdditionalProperties["price"]
             Currency              = $service.AdditionalProperties["currency"]
         }

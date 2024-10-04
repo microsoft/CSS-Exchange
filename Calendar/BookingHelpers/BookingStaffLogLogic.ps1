@@ -1,4 +1,4 @@
-﻿function RunMBStaffLogChecks {
+﻿function RunMBStaffLogValidation {
     [ref]$errorMessage = $null
     [ref]$writeMessageAlways = $true
     $testResult = $true
@@ -14,7 +14,7 @@ function CheckBMBStaffMemberShipLog {
     param([ref]$errorMessage)
     Write-Verbose "Checking Membership Staff Log for $identity"
     if ($null -eq $script:BookingStaffMembershipLog) {
-        $errorMessage.Value = "Staff Membership log not found"
+        $errorMessage.Value = "Staff Membership log not found."
         return $false
     }
 

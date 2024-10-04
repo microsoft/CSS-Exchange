@@ -1,4 +1,4 @@
-﻿function Get-BookingMBData {
+﻿function GetBookingMBData {
     param (
         [string]$Identity
     )
@@ -37,32 +37,30 @@ function Get-GraphBusiness {
         [string]$Identity
     )
 
-    $MB = Get-MgBookingBusiness -BookingBusinessId $Identity
+    $GraphBookingBusiness = Get-MgBookingBusiness -BookingBusinessId $Identity
 
-    Write-Host "Exporting Working Hours"
-
-    $a=$null
-    $a=@()
-    $a+= [PSCustomObject]@{
-        DisplayName         = $MB.DisplayName
-        OwnerEmail          = $MB.Email
-        IsPublished         = $MB.IsPublished
-        DefaultCurrencyIso  = $MB.DefaultCurrencyIso
-        DefaultTimeZone     = $MB.DefaultTimeZone
-        LanguageTag         = $MB.LanguageTag
-        Phone               = $MB.Phone
-        PublicUrl           = $MB.PublicUrl
-        WebSiteUrl          = $MB.WebSiteUrl
-        CreatedDateTime     = $MB.AdditionalProperties["createdDateTime"]
-        lastUpdatedDateTime = $MB.AdditionalProperties["lastUpdatedDateTime"]
-        Address             = "City= " + $MB.Address.City + ", `r`n" +
-        "CountryOrRegion= " + $MB.Address.CountryOrRegion + ", `r`n" +
-        "PostalCode= " + $MB.Address.PostalCode + ", `r`n" +
-        "State= " + $MB.Address.State + ", `r`n" +
-        "Street= " + $MB.Address.Street
+    $BookingBusinessArray =$null
+    $BookingBusinessArray =@()
+    $BookingBusinessArray += [PSCustomObject]@{
+        DisplayName         = $GraphBookingBusiness.DisplayName
+        OwnerEmail          = $GraphBookingBusiness.Email
+        IsPublished         = $GraphBookingBusiness.IsPublished
+        DefaultCurrencyIso  = $GraphBookingBusiness.DefaultCurrencyIso
+        DefaultTimeZone     = $GraphBookingBusiness.DefaultTimeZone
+        LanguageTag         = $GraphBookingBusiness.LanguageTag
+        Phone               = $GraphBookingBusiness.Phone
+        PublicUrl           = $GraphBookingBusiness.PublicUrl
+        WebSiteUrl          = $GraphBookingBusiness.WebSiteUrl
+        CreatedDateTime     = $GraphBookingBusiness.AdditionalProperties["createdDateTime"]
+        lastUpdatedDateTime = $GraphBookingBusiness.AdditionalProperties["lastUpdatedDateTime"]
+        Address             = "City= " + $GraphBookingBusiness.Address.City + ", `r`n" +
+        "CountryOrRegion= " + $GraphBookingBusiness.Address.CountryOrRegion + ", `r`n" +
+        "PostalCode= " + $GraphBookingBusiness.Address.PostalCode + ", `r`n" +
+        "State= " + $GraphBookingBusiness.Address.State + ", `r`n" +
+        "Street= " + $GraphBookingBusiness.Address.Street
     }
 
-    return $a
+    return $BookingBusinessArray
 }
 
 
@@ -71,20 +69,18 @@ function Get-GraphBusinessPage {
         [string]$Identity
     )
 
-    $MB = Get-MgBookingBusiness -BookingBusinessId $Identity
+    $GraphBookingBusiness = Get-MgBookingBusiness -BookingBusinessId $Identity
 
-    Write-Host "Exporting Page Settings"
-
-    $a=$null
-    $a = @()
-    foreach ( $pageSetting in $MB.AdditionalProperties.bookingPageSettings.Keys) {
-        $a += [PSCustomObject]@{
+    $BookingBusinessArray =$null
+    $BookingBusinessArray  = @()
+    foreach ( $pageSetting in $GraphBookingBusiness.AdditionalProperties.bookingPageSettings.Keys) {
+        $BookingBusinessArray  += [PSCustomObject]@{
             Key   = $pageSetting
-            Value = $MB.AdditionalProperties.bookingPageSettings[$pageSetting]
+            Value = $GraphBookingBusiness.AdditionalProperties.bookingPageSettings[$pageSetting]
         }
     }
 
-    return $a
+    return $BookingBusinessArray
 }
 
 
@@ -93,39 +89,37 @@ function Get-GraphBusinessBookingPolicy {
         [string]$Identity
     )
 
-    $MB = Get-MgBookingBusiness -BookingBusinessId $Identity
+    $GraphBookingBusiness = Get-MgBookingBusiness -BookingBusinessId $Identity
 
-    Write-Host "Exporting Booking Policy"
+    $BookingBusinessArray =$null
+    $BookingBusinessArray  = @()
 
-    $a=$null
-    $a = @()
-
-    $a += [PSCustomObject]@{
+    $BookingBusinessArray  += [PSCustomObject]@{
         Key   = "AllowStaffSelection"
-        Value = $MB.SchedulingPolicy.AllowStaffSelection
+        Value = $GraphBookingBusiness.SchedulingPolicy.AllowStaffSelection
     }
-    $a += [PSCustomObject]@{
+    $BookingBusinessArray  += [PSCustomObject]@{
         Key   = "MaximumAdvance"
-        Value = "$($MB.SchedulingPolicy.MaximumAdvance.Days) days, $($MB.SchedulingPolicy.MaximumAdvance.Hours) hours and $($MB.SchedulingPolicy.MaximumAdvance.Minutes) minutes"
+        Value = "$($GraphBookingBusiness.SchedulingPolicy.MaximumAdvance.Days) days, $($GraphBookingBusiness.SchedulingPolicy.MaximumAdvance.Hours) hours and $($GraphBookingBusiness.SchedulingPolicy.MaximumAdvance.Minutes) minutes"
     }
-    $a += [PSCustomObject]@{
+    $BookingBusinessArray  += [PSCustomObject]@{
         Key   = "MinimumLeadTime"
-        Value = "$($MB.SchedulingPolicy.MinimumLeadTime.Days) days, $($MB.SchedulingPolicy.MinimumLeadTime.Hours) hours and $($MB.SchedulingPolicy.MinimumLeadTime.Minutes) minutes"
+        Value = "$($GraphBookingBusiness.SchedulingPolicy.MinimumLeadTime.Days) days, $($GraphBookingBusiness.SchedulingPolicy.MinimumLeadTime.Hours) hours and $($GraphBookingBusiness.SchedulingPolicy.MinimumLeadTime.Minutes) minutes"
     }
-    $a += [PSCustomObject]@{
+    $BookingBusinessArray  += [PSCustomObject]@{
         Key   = "SendConfirmationsToOwner"
-        Value = $MB.SchedulingPolicy.SendConfirmationsToOwner
+        Value = $GraphBookingBusiness.SchedulingPolicy.SendConfirmationsToOwner
     }
-    $a += [PSCustomObject]@{
+    $BookingBusinessArray  += [PSCustomObject]@{
         Key   = "TimeSlotInterval"
-        Value = "$($MB.SchedulingPolicy.TimeSlotInterval.Hour) hours and $($MB.SchedulingPolicy.TimeSlotInterval.Minute) minutes"
+        Value = "$($GraphBookingBusiness.SchedulingPolicy.TimeSlotInterval.Hour) hours and $($GraphBookingBusiness.SchedulingPolicy.TimeSlotInterval.Minute) minutes"
     }
-    $a += [PSCustomObject]@{
+    $BookingBusinessArray  += [PSCustomObject]@{
         Key   = "isMeetingInviteToCustomersEnabled"
-        Value = $MB.SchedulingPolicy.AdditionalProperties["isMeetingInviteToCustomersEnabled"]
+        Value = $GraphBookingBusiness.SchedulingPolicy.AdditionalProperties["isMeetingInviteToCustomersEnabled"]
     }
 
-    return $a
+    return $BookingBusinessArray
 }
 
 
@@ -134,13 +128,11 @@ function Get-GraphBusinessWorkingHours {
         [string]$Identity
     )
 
-    $MB = Get-MgBookingBusiness -BookingBusinessId $Identity
+    $GraphBookingBusiness = Get-MgBookingBusiness -BookingBusinessId $Identity
 
-    Write-Host "Exporting Working Hours"
-
-    $a=$null
-    $a = @()
-    $a += [PSCustomObject]@{
+    $BookingBusinessArray =$null
+    $BookingBusinessArray  = @()
+    $BookingBusinessArray  += [PSCustomObject]@{
         Monday    = ""
         Tuesday   = ""
         Wednesday = ""
@@ -152,7 +144,7 @@ function Get-GraphBusinessWorkingHours {
     #need to run iteractive loop so that I get a 2Dimensional data array at the end with the string values usable by Excel Export Module
     $max = 0
     for ($i = 0; $i -le 7; $i++) {
-        $max = [System.Math]::Max($max, $MB.BusinessHours[0].TimeSlots.Count )
+        $max = [System.Math]::Max($max, $GraphBookingBusiness.BusinessHours[0].TimeSlots.Count )
     }
 
     for ($i = 0; $i -le $max; $i++) {
@@ -164,66 +156,66 @@ function Get-GraphBusinessWorkingHours {
         $saturday = ""
         $sunday = ""
 
-        if ($MB.BusinessHours[0].TimeSlots) {
+        if ($GraphBookingBusiness.BusinessHours[0].TimeSlots) {
             #ternary operator ? : only works on PS 7
-            #$monday = $i -ge $MB.BusinessHours[0].TimeSlots.Count ? "": $MB.BusinessHours[0].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $MB.BusinessHours[0].TimeSlots[$i].EndTime.Substring(0, 8)
-            if ($i -ge $MB.BusinessHours[0].TimeSlots.Count) {
+            #$monday = $i -ge $GraphBookingBusiness.BusinessHours[0].TimeSlots.Count ? "": $GraphBookingBusiness.BusinessHours[0].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[0].TimeSlots[$i].EndTime.Substring(0, 8)
+            if ($i -ge $GraphBookingBusiness.BusinessHours[0].TimeSlots.Count) {
                 $monday = ""
             } else {
-                $monday = $MB.BusinessHours[0].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $MB.BusinessHours[0].TimeSlots[$i].EndTime.Substring(0, 8)
+                $monday = $GraphBookingBusiness.BusinessHours[0].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[0].TimeSlots[$i].EndTime.Substring(0, 8)
             }
 
         }
-        if ($MB.BusinessHours[1].TimeSlots) {
-            #$tuesday = $i -ge $MB.BusinessHours[1].TimeSlots.Count  ? "": $MB.BusinessHours[1].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $MB.BusinessHours[1].TimeSlots[$i].EndTime.Substring(0, 8)
-            if ($i -ge $MB.BusinessHours[1].TimeSlots.Count) {
+        if ($GraphBookingBusiness.BusinessHours[1].TimeSlots) {
+            #$tuesday = $i -ge $GraphBookingBusiness.BusinessHours[1].TimeSlots.Count  ? "": $GraphBookingBusiness.BusinessHours[1].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[1].TimeSlots[$i].EndTime.Substring(0, 8)
+            if ($i -ge $GraphBookingBusiness.BusinessHours[1].TimeSlots.Count) {
                 $tuesday = ""
             } else {
-                $tuesday = $MB.BusinessHours[1].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $MB.BusinessHours[1].TimeSlots[$i].EndTime.Substring(0, 8)
+                $tuesday = $GraphBookingBusiness.BusinessHours[1].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[1].TimeSlots[$i].EndTime.Substring(0, 8)
             }
         }
-        if ($MB.BusinessHours[2].TimeSlots) {
-            #$wednesday = $i -ge $MB.BusinessHours[2].TimeSlots.Count  ? "": $MB.BusinessHours[2].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $MB.BusinessHours[2].TimeSlots[$i].EndTime.Substring(0, 8)
-            if ($i -ge $MB.BusinessHours[2].TimeSlots.Count) {
+        if ($GraphBookingBusiness.BusinessHours[2].TimeSlots) {
+            #$wednesday = $i -ge $GraphBookingBusiness.BusinessHours[2].TimeSlots.Count  ? "": $GraphBookingBusiness.BusinessHours[2].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[2].TimeSlots[$i].EndTime.Substring(0, 8)
+            if ($i -ge $GraphBookingBusiness.BusinessHours[2].TimeSlots.Count) {
                 $wednesday = ""
             } else {
-                $wednesday = $MB.BusinessHours[2].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $MB.BusinessHours[2].TimeSlots[$i].EndTime.Substring(0, 8)
+                $wednesday = $GraphBookingBusiness.BusinessHours[2].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[2].TimeSlots[$i].EndTime.Substring(0, 8)
             }
         }
-        if ($MB.BusinessHours[3].TimeSlots) {
-            #$thursday = $i -ge $MB.BusinessHours[3].TimeSlots.Count  ? "": $MB.BusinessHours[3].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $MB.BusinessHours[3].TimeSlots[$i].EndTime.Substring(0, 8)
-            if ($i -ge $MB.BusinessHours[3].TimeSlots.Count) {
+        if ($GraphBookingBusiness.BusinessHours[3].TimeSlots) {
+            #$thursday = $i -ge $GraphBookingBusiness.BusinessHours[3].TimeSlots.Count  ? "": $GraphBookingBusiness.BusinessHours[3].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[3].TimeSlots[$i].EndTime.Substring(0, 8)
+            if ($i -ge $GraphBookingBusiness.BusinessHours[3].TimeSlots.Count) {
                 $thursday = ""
             } else {
-                $thursday = $MB.BusinessHours[3].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $MB.BusinessHours[3].TimeSlots[$i].EndTime.Substring(0, 8)
+                $thursday = $GraphBookingBusiness.BusinessHours[3].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[3].TimeSlots[$i].EndTime.Substring(0, 8)
             }
         }
-        if ($MB.BusinessHours[4].TimeSlots) {
-            #$friday = $i -ge $MB.BusinessHours[4].TimeSlots.Count ? "": $MB.BusinessHours[4].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $MB.BusinessHours[4].TimeSlots[$i].EndTime.Substring(0, 8)
-            if ($i -ge $MB.BusinessHours[4].TimeSlots.Count) {
+        if ($GraphBookingBusiness.BusinessHours[4].TimeSlots) {
+            #$friday = $i -ge $GraphBookingBusiness.BusinessHours[4].TimeSlots.Count ? "": $GraphBookingBusiness.BusinessHours[4].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[4].TimeSlots[$i].EndTime.Substring(0, 8)
+            if ($i -ge $GraphBookingBusiness.BusinessHours[4].TimeSlots.Count) {
                 $friday = ""
             } else {
-                $friday = $MB.BusinessHours[4].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $MB.BusinessHours[4].TimeSlots[$i].EndTime.Substring(0, 8)
+                $friday = $GraphBookingBusiness.BusinessHours[4].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[4].TimeSlots[$i].EndTime.Substring(0, 8)
             }
         }
-        if ($MB.BusinessHours[5].TimeSlots) {
-            #$saturday = $i -ge $MB.BusinessHours[5].TimeSlots.Count ? "": $MB.BusinessHours[5].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $MB.BusinessHours[5].TimeSlots[$i].EndTime.Substring(0, 8)
-            if ($i -ge $MB.BusinessHours[5].TimeSlots.Count) {
+        if ($GraphBookingBusiness.BusinessHours[5].TimeSlots) {
+            #$saturday = $i -ge $GraphBookingBusiness.BusinessHours[5].TimeSlots.Count ? "": $GraphBookingBusiness.BusinessHours[5].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[5].TimeSlots[$i].EndTime.Substring(0, 8)
+            if ($i -ge $GraphBookingBusiness.BusinessHours[5].TimeSlots.Count) {
                 $saturday = ""
             } else {
-                $saturday = $MB.BusinessHours[5].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $MB.BusinessHours[5].TimeSlots[$i].EndTime.Substring(0, 8)
+                $saturday = $GraphBookingBusiness.BusinessHours[5].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[5].TimeSlots[$i].EndTime.Substring(0, 8)
             }
         }
-        if ($MB.BusinessHours[6].TimeSlots) {
-            #$sunday = $i -ge $MB.BusinessHours[6].TimeSlots.Count ? "": $MB.BusinessHours[6].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $MB.BusinessHours[6].TimeSlots[$i].EndTime.Substring(0, 8)
-            if ($i -ge $MB.BusinessHours[6].TimeSlots.Count) {
+        if ($GraphBookingBusiness.BusinessHours[6].TimeSlots) {
+            #$sunday = $i -ge $GraphBookingBusiness.BusinessHours[6].TimeSlots.Count ? "": $GraphBookingBusiness.BusinessHours[6].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[6].TimeSlots[$i].EndTime.Substring(0, 8)
+            if ($i -ge $GraphBookingBusiness.BusinessHours[6].TimeSlots.Count) {
                 $sunday = ""
             } else {
-                $sunday = $MB.BusinessHours[6].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $MB.BusinessHours[6].TimeSlots[$i].EndTime.Substring(0, 8)
+                $sunday = $GraphBookingBusiness.BusinessHours[6].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[6].TimeSlots[$i].EndTime.Substring(0, 8)
             }
         }
 
-        $a += [PSCustomObject]@{
+        $BookingBusinessArray  += [PSCustomObject]@{
             Monday    = $monday
             Tuesday   = $tuesday
             Wednesday = $wednesday
@@ -234,5 +226,5 @@ function Get-GraphBusinessWorkingHours {
         }
     }
 
-    return $a
+    return $BookingBusinessArray
 }
