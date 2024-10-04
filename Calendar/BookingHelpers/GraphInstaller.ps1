@@ -82,8 +82,6 @@ function CheckGraphAuthModuleInstalled {
 
 function CheckGraphModulesInstalled {
 
-    $returnValue = $true
-
     $ModuleAuthInstalled = ($null -ne (Get-Command -Module Microsoft.Graph.Authentication))
     $ModuleBookingsInstalled = ($null -ne (Get-Command -Module Microsoft.Graph.Bookings))
 
