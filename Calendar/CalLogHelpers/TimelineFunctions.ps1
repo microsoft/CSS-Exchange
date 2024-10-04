@@ -81,6 +81,8 @@ function BuildTimeline {
     }
 
     Write-DashLineBoxColor "  TimeLine for: [$Identity]",
+    "CollectionDate: $($(Get-Date).ToString("yyyy-MM-dd HH:mm:ss"))",
+    "ScriptVersion: $ScriptVersion",
     "  Subject: $($script:GCDO[0].NormalizedSubject)",
     "  Organizer: $Script:Organizer",
     "  MeetingID: $($script:GCDO[0].CleanGlobalObjectId)"

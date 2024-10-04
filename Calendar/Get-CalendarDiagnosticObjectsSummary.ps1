@@ -82,6 +82,11 @@ if (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/CL-VersionsUrl" 
     return
 }
 
+$script:command = $MyInvocation
+Write-Host -ForegroundColor Blue "The script was started with the following command line:"
+Write-Host -ForegroundColor Blue "Name:" $command.MyCommand.name
+Write-Host -ForegroundColor Blue "Command Line:" $command.line
+
 Write-Verbose "Script Versions: $BuildVersion"
 
 # ===================================================================================================
@@ -191,12 +196,13 @@ if (-not ([string]::IsNullOrEmpty($Subject)) ) {
 }
 
 Write-DashLineBoxColor "Hope this script was helpful in getting and understanding the Calendar Logs.",
+"More Info on Getting the logs: https://learn.microsoft.com/en-us/exchange/troubleshoot/calendars/get-calendar-diagnostic-logs",
+"and on Analyzing the logs: https://learn.microsoft.com/en-us/exchange/troubleshoot/calendars/analyze-calendar-diagnostic-logs",
 "If you have issues or suggestion for this script, please send them to: ",
-"`t CalLogFormatterDevs@microsoft.com" -Color Yellow -DashChar =
+"`t CalLogFormatterDevs@microsoft.com" -Color Yellow -DashChar "="
 
 if ($ExportToExcel.IsPresent) {
     Write-Host
     Write-Host -ForegroundColor Blue -NoNewline "All Calendar Logs are saved to: "
     Write-Host -ForegroundColor Yellow ".\$Filename"
-    Write-Host
 }
