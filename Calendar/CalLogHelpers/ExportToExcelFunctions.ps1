@@ -58,7 +58,7 @@ function LogScriptInfo {
         $RunInfo | Export-Excel -Path $FileName -WorksheetName "Script Info" -MoveToEnd
         $script:CollectedCmdLine = $true
     }
-    # If someone runs the script the script again logs will update, but ScriptInfo done not update. Need to add new table for each run.
+    # If someone runs the script the script again logs will update, but ScriptInfo does not update. Need to add new table for each run.
 }
 
 function Export-TimelineExcel {
