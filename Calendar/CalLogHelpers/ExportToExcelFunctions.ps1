@@ -19,7 +19,7 @@ function Export-CalLogExcel {
 }
 
 function LogScriptInfo {
-    # Only need to run once per script.
+    # Only need to run once per script exicution.
     if ($null -eq $script:CollectedCmdLine) {
         $RunInfo = @()
         $RunInfo += [PSCustomObject]@{
@@ -36,7 +36,7 @@ function LogScriptInfo {
         }
         $RunInfo += [PSCustomObject]@{
             Key   = "Script Version"
-            Value =  $script:Version
+            Value =  $script:BuildVersion
         }
         $RunInfo += [PSCustomObject]@{
             Key   = "User"
