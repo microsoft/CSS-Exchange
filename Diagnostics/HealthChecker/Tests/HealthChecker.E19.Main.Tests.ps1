@@ -31,9 +31,10 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Internet Web Proxy" "Not Set"
             TestObjectMatch "Extended Protection Enabled (Any VDir)" $false
             TestObjectMatch "Setting Overrides Detected" $false
+            TestObjectMatch "Monitoring Overrides Detected" $false
             TestObjectMatch "Out of Date" $true -WriteType "Red"
             TestObjectMatch "Exchange Server Membership" "Passed"
-            $Script:ActiveGrouping.Count | Should -Be 15
+            $Script:ActiveGrouping.Count | Should -Be 16
         }
 
         It "Display Results - Organization Information" {

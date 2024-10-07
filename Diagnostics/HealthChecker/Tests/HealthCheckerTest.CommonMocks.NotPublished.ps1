@@ -379,3 +379,11 @@ function Get-ExchangeWebSitesFromAd {
 function Get-WindowsFeature {
     return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetWindowsFeature.xml"
 }
+
+function Get-GlobalMonitoringOverride {
+    return $null
+}
+
+function Get-ServerMonitoringOverride {
+    return $null
+}

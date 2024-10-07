@@ -17,14 +17,14 @@ Describe "CreateShortClientName" {
     }
 
     Context "When LogClientInfoString is Client=MSExchangeRPC" {
-        It "Should return 'Outlook : Desktop : MAPI'" {
+        It "Should return 'Outlook:Desktop:MAPI'" {
             $result = CreateShortClientName -LogClientInfoString "Client=MSExchangeRPC"
-            $result | Should -Be "Outlook : Desktop : MAPI"
+            $result | Should -Be "Outlook:Desktop:MAPI"
         }
     }
 
     Context "When LogClientInfoString is Client=WebServices;Microsoft Office/16.0 (Windows NT 10.0; Microsoft Outlook 16.0.17328; Pro);;Client=WebServices;ExchangeServicesClient/0.9.248.0;" {
-        It "Should return 'Outlook : Desktop : MAPI' if LogClientInfoString FileContentMatch 'AppId=bcad1a65-78eb-4725-9bce-ce1a8ed30b95'" {
+        It "Should return 'Outlook:Desktop:MAPI' if LogClientInfoString FileContentMatch 'AppId=bcad1a65-78eb-4725-9bce-ce1a8ed30b95'" {
             $result = CreateShortClientName "Client=WebServices;Microsoft Office/16.0 (Windows NT 10.0; Microsoft Outlook 16.0.17328; Pro);;Client=WebServices;ExchangeServicesClient/0.9.248.0;"
             $result | Should -Be "Outlook : Desktop"
         }
@@ -169,7 +169,7 @@ Describe "CreateShortClientName-FindMatch" {
 
     Context 'Test CreateShortClientName focusing on the FindMatch function' -ForEach @(
         @{ LogClientInfoString = 'Client=Hub Transport'; Expected = "Transport" },
-        @{ LogClientInfoString = 'Client=MSExchangeRPC'; Expected = "Outlook : Desktop : MAPI" },
+        @{ LogClientInfoString = 'Client=MSExchangeRPC'; Expected = "Outlook:Desktop:MAPI" },
         @{ LogClientInfoString = 'OneOutlook'; Expected = "NewOutlook" },
         @{ LogClientInfoString = 'Lync for Mac'; Expected = "LyncMac" },
         @{ LogClientInfoString = 'AppId=00000004-0000-0ff1-ce00-000000000000'; Expected = "SkypeMMS" },

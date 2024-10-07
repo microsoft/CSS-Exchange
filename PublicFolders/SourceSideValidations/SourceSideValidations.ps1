@@ -44,6 +44,7 @@ param (
 . $PSScriptRoot\JobQueue.ps1
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 . $PSScriptRoot\..\..\Shared\Out-Columns.ps1
+. $PSScriptRoot\..\..\Shared\Confirm-ExchangeShell.ps1
 
 # For HashSet support
 Add-Type -AssemblyName System.Core -ErrorAction Stop
@@ -92,6 +93,15 @@ try {
     }
 
     if ($RemoveInvalidPermissions) {
+        $shell = Confirm-ExchangeShell
+
+        if (-not $shell.EMS) {
+            Write-Host "The -RemoveInvalidPermissions switch must be used from Exchange Management Shell. If you are using EMS,"
+            Write-Host "then there may be an issue with the Auth Certificate or some other issue preventing PowerShell serialization."
+            Write-Host "Cannot continue."
+            return
+        }
+
         if (-not (Test-Path $ResultsFile)) {
             Write-Error "File not found: $ResultsFile. Please specify -ResultsFile or run without -RemoveInvalidPermissions to generate a results file."
         } else {

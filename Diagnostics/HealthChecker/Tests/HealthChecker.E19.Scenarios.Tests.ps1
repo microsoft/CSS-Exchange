@@ -52,6 +52,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-LocalGroupMember { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetLocalGroupMember2.xml" }
             Mock Get-WindowsFeature { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetWindowsFeature1.xml" }
             Mock Get-SmbServerConfiguration { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetSmbServerConfiguration1.xml" }
+            Mock Get-GlobalMonitoringOverride { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetGlobalMonitoringOverride.xml" }
+            Mock Get-ServerMonitoringOverride { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetServerMonitoringOverride.xml" }
             Mock Get-WinEvent -ParameterFilter { $LogName -eq "Application" -and $Oldest -eq $true -and $MaxEvents -eq 1 } -MockWith {
                 $r = Import-Clixml "$Script:MockDataCollectionRoot\OS\GetWinEventOldestApplication.xml"
                 $r.TimeCreated = ((Get-Date).AddDays(-1))
@@ -121,6 +123,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Exchange Server Membership" "Failed" -WriteType "Red"
             TestObjectMatch "Exchange Trusted Subsystem - Local System Membership" "Exchange Trusted Subsystem - Local System Membership" -WriteType "Red"
             TestObjectMatch "Exchange Trusted Subsystem - AD Group Membership" "Exchange Trusted Subsystem - AD Group Membership" -WriteType "Red"
+            TestObjectMatch "Monitoring Overrides Detected" $true
             $hotfixInstalled = GetObject "Exchange IU"
             $hotfixInstalled.Count | Should -Be 2
         }

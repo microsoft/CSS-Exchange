@@ -35,6 +35,8 @@ function Test-PossibleCommonScenarios {
         $Script:TransportProtocolLogs = $true
         $Script:MitigationService = $true
         $Script:MailboxAssistantsLogs = $true
+        $Script:EventBasedAssistantsLogs = $true
+        $Script:ConversationLogs = $true
     }
 
     if ($TransportLogging) {
@@ -51,6 +53,7 @@ function Test-PossibleCommonScenarios {
         $Script:PipelineTracingLogs = $true
         $Script:TransportRules = $true
         $Script:AcceptedRemoteDomain = $true
+        $Script:EventBasedAssistantsLogs = $true
     }
 
     if ($TransportConnectivityLogs) {
