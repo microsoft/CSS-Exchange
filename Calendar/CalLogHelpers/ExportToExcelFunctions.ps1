@@ -19,7 +19,7 @@ function Export-CalLogExcel {
 }
 
 function LogScriptInfo {
-    # Only need to run once per script.
+    # Only need to run once per script execution.
     if ($null -eq $script:CollectedCmdLine) {
         $RunInfo = @()
         $RunInfo += [PSCustomObject]@{
@@ -36,7 +36,7 @@ function LogScriptInfo {
         }
         $RunInfo += [PSCustomObject]@{
             Key   = "Script Version"
-            Value =  $script:Version
+            Value =  $script:BuildVersion
         }
         $RunInfo += [PSCustomObject]@{
             Key   = "User"
@@ -58,7 +58,7 @@ function LogScriptInfo {
         $RunInfo | Export-Excel -Path $FileName -WorksheetName "Script Info" -MoveToEnd
         $script:CollectedCmdLine = $true
     }
-    # If someone runs the script the script again logs will update, but ScriptInfo done not update. Need to add new table for each run.
+    # If someone runs the script the script again logs will update, but ScriptInfo does not update. Need to add new table for each run.
 }
 
 function Export-TimelineExcel {
