@@ -105,6 +105,7 @@ function Invoke-AnalyzerExchangeInformation {
             Details                = $displayValue
             DisplayWriteType       = $displayWriteType
             DisplayCustomTabNumber = 2
+            DisplayTestingValue    = $true
             AddHtmlDetailRow       = $false
         }
         Add-AnalyzedResultInformation @params
