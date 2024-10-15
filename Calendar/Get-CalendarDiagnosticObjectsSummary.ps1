@@ -196,8 +196,8 @@ if (-not ([string]::IsNullOrEmpty($Subject)) ) {
 }
 
 Write-DashLineBoxColor "Hope this script was helpful in getting and understanding the Calendar Logs.",
-"More Info on Getting the logs: https://learn.microsoft.com/en-us/exchange/troubleshoot/calendars/get-calendar-diagnostic-logs",
-"and on Analyzing the logs: https://learn.microsoft.com/en-us/exchange/troubleshoot/calendars/analyze-calendar-diagnostic-logs",
+"More Info on Getting the logs: https://aka.ms/GetCalLogs",
+"and on Analyzing the logs: https://aka.ms/AnalyzeCalLogs",
 "If you have issues or suggestion for this script, please send them to: ",
 "`t CalLogFormatterDevs@microsoft.com" -Color Yellow -DashChar "="
 
