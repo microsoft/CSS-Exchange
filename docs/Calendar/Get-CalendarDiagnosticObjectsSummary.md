@@ -50,5 +50,5 @@ Will create file like  `.\123456_CalLogSummary_<MeetingID>.xlsx` in current dire
 
 
 More Documentation on collecting CalLogs and Analyzing them:
-https://learn.microsoft.com/en-us/exchange/troubleshoot/calendars/get-calendar-diagnostic-logs 
-https://learn.microsoft.com/en-us/exchange/troubleshoot/calendars/analyze-calendar-diagnostic-logs
+ [How to Get Calendar Logs](https://aka.ms/GetCalLogs)
+ [How to Analyse Calendar Logs](https://aka.ms/AnalyzeCalLogs)
