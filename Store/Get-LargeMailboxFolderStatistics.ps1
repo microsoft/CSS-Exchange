@@ -36,7 +36,7 @@ param(
     [Parameter(Mandatory = $false, Position = 2)]
     $BatchSize = 5000,
     [Parameter(Mandatory = $false, Position = 3)]
-    $Properties = "Name, FolderPath, ItemsInFolder, FolderSize, FolderAndSubfolderSize"
+    [string[]]$Properties = @("Name", "FolderPath", "ItemsInFolder", "FolderSize", "FolderAndSubfolderSize")
 )
 
 Process {
