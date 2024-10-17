@@ -41,7 +41,7 @@ param(
     [string[]]$Properties = @("Name", "FolderPath", "ItemsInFolder", "FolderSize", "FolderAndSubfolderSize")
 )
 
-Process {
+process {
     $allContentFolders = New-Object System.Collections.Generic.List[System.Management.Automation.PSCustomObject]
     $start = Get-Date
     Write-Host "$start Running Get-MailboxFolderStatistics for $Identity $MailboxType locations, in batches of $BatchSize"

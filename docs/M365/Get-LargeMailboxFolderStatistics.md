@@ -1,4 +1,4 @@
-﻿# Get-LargeMailboxFolderStatistics
+# Get-LargeMailboxFolderStatistics
 
 Download the latest release: [Get-LargeMailboxFolderStatistics.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Get-LargeMailboxFolderStatistics.ps1)
 
