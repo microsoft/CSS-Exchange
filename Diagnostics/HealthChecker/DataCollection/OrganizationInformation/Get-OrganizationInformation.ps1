@@ -7,6 +7,7 @@
 . $PSScriptRoot\Get-SecurityCve-2021-34470.ps1
 . $PSScriptRoot\Get-SecurityCve-2022-21978.ps1
 . $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ExchangeADSplitPermissionsEnabled.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Get-MonitoringOverride.ps1
 . $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-CatchActionErrorLoop.ps1
 function Get-OrganizationInformation {
@@ -139,6 +140,8 @@ function Get-OrganizationInformation {
                 $getSettingOverride = "Unknown"
                 Invoke-CatchActions
             }
+
+            [array]$globalMonitoringOverride = Get-MonitoringOverride
         }
     } end {
         return [PSCustomObject]@{
@@ -156,6 +159,7 @@ function Get-OrganizationInformation {
             GetSettingOverride                = $getSettingOverride
             GetDynamicDgPublicFolderMailboxes = $getDdgPublicFolders
             GetIrmConfiguration               = $getIrmConfiguration
+            GetGlobalMonitoringOverride       = $globalMonitoringOverride
         }
     }
 }

@@ -7,6 +7,8 @@ function Test-NoSwitchesProvided {
         $IISLogs -or
         $DailyPerformanceLogs -or
         $ManagedAvailabilityLogs -or
+        $ConversationLogs -or
+        $EventBasedAssistantsLogs -or
         $ExPerfWiz -or
         $RPCLogs -or
         $EASLogs -or

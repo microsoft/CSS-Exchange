@@ -31,11 +31,13 @@ function Get-ArgumentList {
         AppSysLogsToXml                = $AppSysLogsToXml
         AutoDLogs                      = $AutoDLogs
         CollectAllLogsBasedOnLogAge    = $CollectAllLogsBasedOnLogAge
+        ConversationLogs               = $ConversationLogs
         DAGInformation                 = $DAGInformation
         DailyPerformanceLogs           = $DailyPerformanceLogs
         TransportLogging               = $TransportLogging
         EASLogs                        = $EASLogs
         ECPLogs                        = $ECPLogs
+        EventBasedAssistantsLogs       = $EventBasedAssistantsLogs
         EWSLogs                        = $EWSLogs
         ExchangeServerInformation      = $ExchangeServerInformation
         ExMon                          = $ExMon

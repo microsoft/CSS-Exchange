@@ -14,10 +14,12 @@ param (
     [bool]$AppSysLogsToXml = $true,
     [switch]$AutoDLogs,
     [switch]$CollectFailoverMetrics,
+    [switch]$ConversationLogs,
     [switch]$DAGInformation,
     [switch]$DailyPerformanceLogs,
     [switch]$EASLogs,
     [switch]$ECPLogs,
+    [switch]$EventBasedAssistantsLogs,
     [switch]$EWSLogs,
     [Alias("ExchangeServerInfo")]
     [switch]$ExchangeServerInformation,

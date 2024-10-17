@@ -226,7 +226,7 @@ function GetSMTPAddress {
         return $PassedCN
     } else {
         # We have a problem, we don't have a CN or an SMTP Address
-        Write-Error "GetSMTPAddress: Passed in Value does not look like a CN or SMTP Address: [$PassedCN]"
+        Write-Warning "GetSMTPAddress: Passed in Value does not look like a CN or SMTP Address: [$PassedCN]"
         return $PassedCN
     }
 }
