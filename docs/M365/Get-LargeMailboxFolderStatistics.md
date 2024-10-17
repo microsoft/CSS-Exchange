@@ -23,7 +23,7 @@ $folderStats = .\Get-LargeMailboxFolderStatistics.ps1 -Identity fred@contoso.com
 
 Example to get the mailbox folder statistics for a Archive mailbox, in batches of 5000 and just the folder properties Name and FolderPath
 ```PowerShell
-$folderStats = .\Get-LargeMailboxFolderStatistics.ps1 -Identity fred@contoso.com -MailboxType Archive -BatchSize 5000 -Properties "Name, FolderPath"
+$folderStats = .\Get-LargeMailboxFolderStatistics.ps1 -Identity fred@contoso.com -MailboxType Archive -BatchSize 5000 -Properties @("Name", "FolderPath")
 ```
 
 

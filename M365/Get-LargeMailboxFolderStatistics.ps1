@@ -1,6 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+#Requires -Modules @{ ModuleName="ExchangeOnlineManagement"; RequiredVersion="3.4.0" }
+
 <#
 .SYNOPSIS
     Retrieves folder statistics for mailboxes with large numbers of folders.
@@ -25,7 +27,7 @@
 .EXAMPLE
     $folderStats = .\Get-LargeMailboxFolderStatistics.ps1 -Identity fred@contoso.com
     $folderStats = .\Get-LargeMailboxFolderStatistics.ps1 -Identity fred@contoso.com -MailboxType Primary
-    $folderStats = .\Get-LargeMailboxFolderStatistics.ps1 -Identity fred@contoso.com -MailboxType Archive -BatchSize 5000 -Properties "Name, FolderPath"
+    $folderStats = .\Get-LargeMailboxFolderStatistics.ps1 -Identity fred@contoso.com -MailboxType Archive -BatchSize 5000 -Properties @("Name", "FolderPath")
 #>
 param(
     [Parameter(Mandatory = $true, Position = 0)]
@@ -40,8 +42,7 @@ param(
 )
 
 Process {
-    $allContentFolders = $null
-    $propertyArray = $Properties -split ',' | ForEach-Object { $_.Trim() }
+    $allContentFolders = New-Object System.Collections.Generic.List[System.Management.Automation.PSCustomObject]
     $start = Get-Date
     Write-Host "$start Running Get-MailboxFolderStatistics for $Identity $MailboxType locations, in batches of $BatchSize"
 
@@ -53,7 +54,7 @@ Process {
             do {
                 $skipCount = $BatchSize * $loopCount
                 $batch = Get-MailboxFolderStatistics -Identity $($location.Identity) -ResultSize $batchSize -SkipCount $skipCount
-                $allContentFolders += $batch | Where-Object { $_.ContentFolder -eq "TRUE" } | Select-Object -Property $propertyArray
+                $allContentFolders += $batch | Where-Object { $_.ContentFolder -eq "TRUE" } | Select-Object -Property $Properties
                 Write-Host "$(Get-Date):$loopCount Found $($batch.Count) content folders from $($location.MailboxLocationType):$($location.MailboxGuid)"
                 $loopCount += 1
             }
