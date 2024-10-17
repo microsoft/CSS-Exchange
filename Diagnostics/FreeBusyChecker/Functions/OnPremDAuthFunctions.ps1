@@ -1,10 +1,11 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-function OrgRelCheck($OrgRelParameter) {
+function OrgRelCheck($Script:OrgRelParameter) {
     PrintDynamicWidthLine
-    Write-Host -ForegroundColor Green " Get-OrganizationRelationship  | Where{($_.DomainNames -like $ExchangeOnlineDomain )} | Select Identity,DomainNames,FreeBusy*,TarGet*,Enabled, ArchiveAccessEnabled"
+    Write-Host -ForegroundColor Green " Get-OrganizationRelationship  | Where{($_.DomainNames -like $Script:ExchangeOnlineDomain )} | Select Identity,DomainNames,FreeBusy*,TarGet*,Enabled, ArchiveAccessEnabled"
     PrintDynamicWidthLine
-    $OrgRelParameter
+    $Script:OrgRelParameter
+    $countOrgRelIssues = (0)
     PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " Summary - Get-OrganizationRelationship"
     PrintDynamicWidthLine
@@ -17,61 +18,61 @@ function OrgRelCheck($OrgRelParameter) {
             }) | Out-Null
     }
     # Domain Names
-    if ($OrgRelParameter.DomainNames -like $ExchangeOnlineDomain) {
-        AddSettingToList -list $settingsList -name "Domain Names" -value "Domain Names include the $ExchangeOnlineDomain Domain" -color "green"
+    if ($Script:OrgRelParameter.DomainNames -like $Script:ExchangeOnlineDomain) {
+        AddSettingToList -list $settingsList -name "Domain Names" -value "Domain Names include the $Script:ExchangeOnlineDomain Domain" -color "green"
     } else {
-        AddSettingToList -list $settingsList -name "Domain Names" -value "Domain Names do Not Include the $ExchangeOnlineDomain Domain" -color "red"
+        AddSettingToList -list $settingsList -name "Domain Names" -value "Domain Names do Not Include the $Script:ExchangeOnlineDomain Domain" -color "red"
     }
     # FreeBusyAccessEnabled
-    if ($OrgRelParameter.FreeBusyAccessEnabled -like "True") {
+    if ($Script:OrgRelParameter.FreeBusyAccessEnabled -like "True") {
         AddSettingToList -list $settingsList -name "FreeBusyAccessEnabled" -value "FreeBusyAccessEnabled is set to True" -color "green"
     } else {
         AddSettingToList -list $settingsList -name "FreeBusyAccessEnabled" -value "FreeBusyAccessEnabled is set to False" -color "red"
         $countOrgRelIssues++
     }
     # TarGetOwAUrl
-    $standardValues = @("http://outlook.com/owa/$($ExchangeOnlineDomain).", "https://outlook.office.com/mail.")
-    if ([string]::IsNullOrWhiteSpace($OrgRelParameter.TarGetOwAUrl)) {
+    $standardValues = @("http://outlook.com/owa/$($Script:ExchangeOnlineDomain).", "https://outlook.office.com/mail.")
+    if ([string]::IsNullOrWhiteSpace($Script:OrgRelParameter.TarGetOwAUrl)) {
         AddSettingToList -list $settingsList -name "TarGetOwAUrl" -value "TarGetOwAUrl Is Blank. Can also be configured to be $($standardValues[0]) or $($standardValues[1])" -color "green"
-    } elseif ($OrgRelParameter.TarGetOwAUrl -in $standardValues) {
-        AddSettingToList -list $settingsList -name "TarGetOwAUrl" -value "TarGetOwAUrl Is $($OrgRelParameter.TarGetOwAUrl). This is a possible standard value." -color "green"
+    } elseif ($Script:OrgRelParameter.TarGetOwAUrl -in $standardValues) {
+        AddSettingToList -list $settingsList -name "TarGetOwAUrl" -value "TarGetOwAUrl Is $($Script:OrgRelParameter.TarGetOwAUrl). This is a possible standard value." -color "green"
     } else {
         $countOrgRelIssues++
     }
     # TarGetSharingEpr
-    if ([string]::IsNullOrWhitespace($OrgRelParameter.TarGetSharingEpr) -or $OrgRelParameter.TarGetSharingEpr -eq "https://outlook.office365.com/EWS/Exchange.asmx") {
+    if ([string]::IsNullOrWhitespace($Script:OrgRelParameter.TarGetSharingEpr) -or $Script:OrgRelParameter.TarGetSharingEpr -eq "https://outlook.office365.com/EWS/Exchange.asmx") {
         AddSettingToList -list $settingsList -name "TarGetSharingEpr" -value "TarGetSharingEpr Is ideally blank. If set, should be Office 365 EWS endpoint. Example: https://outlook.office365.com/EWS/Exchange.asmx" -color "green"
     } else {
         AddSettingToList -list $settingsList -name "TarGetSharingEpr" -value "TarGetSharingEpr Should be blank or https://outlook.office365.com/EWS/Exchange.asmx. If set, should be Office 365 EWS endpoint." -color "red"
         $countOrgRelIssues++
     }
     # FreeBusyAccessScope
-    if ([string]::IsNullOrWhitespace($OrgRelParameter.FreeBusyAccessScope)) {
+    if ([string]::IsNullOrWhitespace($Script:OrgRelParameter.FreeBusyAccessScope)) {
         AddSettingToList -list $settingsList -name "FreeBusyAccessScope" -value "FreeBusyAccessScope Is blank, this is the standard Value." -color "green"
     } else {
         AddSettingToList -list $settingsList -name "FreeBusyAccessScope" -value "FreeBusyAccessScope Should be Blank, that is the standard Value." -color "red"
         $countOrgRelIssues++
     }
     # TarGetAutoDiscoverEpr
-    $OrgRelTarGetAutoDiscoverEpr = $OrgRelParameter.TarGetAutoDiscoverEpr
-    if ([string]::IsNullOrWhitespace($OrgRelTarGetAutoDiscoverEpr)) {
-        $OrgRelTarGetAutoDiscoverEpr = "Blank"
+    $Script:OrgRelTarGetAutoDiscoverEpr = $Script:OrgRelParameter.TarGetAutoDiscoverEpr
+    if ([string]::IsNullOrWhitespace($Script:OrgRelTarGetAutoDiscoverEpr)) {
+        $Script:OrgRelTarGetAutoDiscoverEpr = "Blank"
     }
-    if ($OrgRelParameter.TarGetAutoDiscoverEpr -like "https://AutoDiscover-s.outlook.com/AutoDiscover/AutoDiscover.svc/WSSecurity") {
+    if ($Script:OrgRelParameter.TarGetAutoDiscoverEpr -like "https://AutoDiscover-s.outlook.com/AutoDiscover/AutoDiscover.svc/WSSecurity") {
         AddSettingToList -list $settingsList -name "TarGetAutoDiscoverEpr" -value "TarGetAutoDiscoverEpr Is correct" -color "green"
     } else {
         AddSettingToList -list $settingsList -name "TarGetAutoDiscoverEpr" -value "TarGetAutoDiscoverEpr Is not correct. Should be https://AutoDiscover-s.outlook.com/AutoDiscover/AutoDiscover.svc/WSSecurity" -color "red"
         $countOrgRelIssues++
     }
     # Enabled
-    if ($OrgRelParameter.enabled -like "True") {
+    if ($Script:OrgRelParameter.enabled -like "True") {
         AddSettingToList -list $settingsList -name "Enabled" -value "Enabled is set to True" -color "green"
     } else {
         AddSettingToList -list $settingsList -name "Enabled" -value "Enabled is set to False. This may be intentional if Hybrid Free Busy lookups are done with OAuth and Intra Organization Connector." -color "yellow"
         $countOrgRelIssues++
     }
     # Display the settings list
-    if ($countOrgRelIssues -eq '0') {
+    if ($countOrgRelIssues -eq 0) {
         Write-Host -ForegroundColor Green " Configurations Seem Correct"
     } else {
         Write-Host -ForegroundColor Red "  Configurations may not be Correct"
@@ -80,37 +81,37 @@ function OrgRelCheck($OrgRelParameter) {
         Write-Host -ForegroundColor White " $($setting.Name):"
         Write-Host -ForegroundColor $setting.Color " $($setting.Value)"
     }
-    $OrgRelDomainNames = ""
-    foreach ($domain in $OrgRelParameter.DomainNames.Domain) {
-        if ($OrgRelDomainNames -ne "") {
-            $OrgRelDomainNames += "; "
+    $Script:OrgRelDomainNames = ""
+    foreach ($domain in $Script:OrgRelParameter.DomainNames.Domain) {
+        if ($Script:OrgRelDomainNames -ne "") {
+            $Script:OrgRelDomainNames += "; "
         }
-        $OrgRelDomainNames += $domain
+        $Script:OrgRelDomainNames += $domain
     }
     orgRelHtml
     Write-Host -ForegroundColor Yellow "`n  Reference: https://learn.microsoft.com/en-us/exchange/create-an-organization-relationship-exchange-2013-help"
 }
 function FedInfoCheck {
-    Write-Host -ForegroundColor Green " Get-FederationInformation -DomainName $ExchangeOnlineDomain  -BypassAdditionalDomainValidation | fl"
+    Write-Host -ForegroundColor Green " Get-FederationInformation -DomainName $Script:ExchangeOnlineDomain  -BypassAdditionalDomainValidation | fl"
     PrintDynamicWidthLine
-    $FedInfo = Get-federationInformation -DomainName $ExchangeOnlineDomain  -BypassAdditionalDomainValidation -ErrorAction SilentlyContinue | Select-Object *
+    $FedInfo = Get-federationInformation -DomainName $Script:ExchangeOnlineDomain  -BypassAdditionalDomainValidation -ErrorAction SilentlyContinue | Select-Object *
     if (!$FedInfo) {
-        $FedInfo = Get-federationInformation -DomainName $ExchangeOnlineDomain  -BypassAdditionalDomainValidation -ErrorAction SilentlyContinue | Select-Object *
+        $FedInfo = Get-federationInformation -DomainName $Script:ExchangeOnlineDomain  -BypassAdditionalDomainValidation -ErrorAction SilentlyContinue | Select-Object *
     }
     $FedInfo
     PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " Summary - Federation Information"
     PrintDynamicWidthLine
     Write-Host -ForegroundColor White   "  Domain Names: "
-    if ($FedInfo.DomainNames -like "*$ExchangeOnlineDomain*") {
-        Write-Host -ForegroundColor Green "   Domain Names include the Exchange Online Domain "$ExchangeOnlineDomain
+    if ($FedInfo.DomainNames -like "*$Script:ExchangeOnlineDomain*") {
+        Write-Host -ForegroundColor Green "   Domain Names include the Exchange Online Domain "$Script:ExchangeOnlineDomain
         $Script:tdDomainNamesColor = "green"
-        $Script:tdDomainNamesFL = "Domain Names include the Exchange Online Domain $ExchangeOnlineDomain"
+        $Script:tdDomainNamesFL = "Domain Names include the Exchange Online Domain $Script:ExchangeOnlineDomain"
     } else {
-        Write-Host -ForegroundColor Red "   Domain Names seem not to include the Exchange Online Domain "$ExchangeOnlineDomain
+        Write-Host -ForegroundColor Red "   Domain Names seem not to include the Exchange Online Domain "$Script:ExchangeOnlineDomain
         Write-Host  "   Domain Names: "$FedInfo.DomainNames
         $Script:tdDomainNamesColor = "Red"
-        $Script:tdDomainNamesFL = "Domain Names seem not to include the Exchange Online Domain: $ExchangeOnlineDomain"
+        $Script:tdDomainNamesFL = "Domain Names seem not to include the Exchange Online Domain: $Script:ExchangeOnlineDomain"
     }
     Write-Host  -ForegroundColor White  "  TokenIssuerUris: "
     if ($FedInfo.TokenIssuerUris -like "*urn:federation:MicrosoftOnline*") {
@@ -147,30 +148,30 @@ function FedInfoCheck {
     }
     Write-Host -ForegroundColor White "  Federation Information TarGetApplicationUri vs Organization Relationship TarGetApplicationUri "
     if ($FedInfo.TarGetApplicationUri -like "Outlook.com") {
-        if ($OrgRel.TarGetApplicationUri -like $FedInfo.TarGetApplicationUri) {
+        if ($Script:OrgRel.TarGetApplicationUri -like $FedInfo.TarGetApplicationUri) {
             Write-Host -ForegroundColor Green "   => Federation Information TarGetApplicationUri matches the Organization Relationship TarGetApplicationUri "
-            Write-Host  "       Organization Relationship TarGetApplicationUri:"  $OrgRel.TarGetApplicationUri
+            Write-Host  "       Organization Relationship TarGetApplicationUri:"  $Script:OrgRel.TarGetApplicationUri
             Write-Host  "       Federation Information TarGetApplicationUri:   "  $FedInfo.TarGetApplicationUri
             $Script:tdFederationInformationTAColor = "green"
             $Script:tdFederationInformationTA_FL = " => Federation Information TarGetApplicationUri matches the Organization Relationship TarGetApplicationUri"
         } else {
             Write-Host -ForegroundColor Red "   => Federation Information TarGetApplicationUri should be Outlook.com and match the Organization Relationship TarGetApplicationUri "
-            Write-Host  "       Organization Relationship TarGetApplicationUri:"  $OrgRel.TarGetApplicationUri
+            Write-Host  "       Organization Relationship TarGetApplicationUri:"  $Script:OrgRel.TarGetApplicationUri
             Write-Host  "       Federation Information TarGetApplicationUri:   "  $FedInfo.TarGetApplicationUri
             $Script:tdFederationInformationTAColor = "red"
             $Script:tdFederationInformationTA_FL = " => Federation Information TarGetApplicationUri should be Outlook.com and match the Organization Relationship TarGetApplicationUri"
         }
     }
     Write-Host -ForegroundColor White  "  Federation Information TarGetAutoDiscoverEpr vs Organization Relationship TarGetAutoDiscoverEpr "
-    if ($OrgRel.TarGetAutoDiscoverEpr -like $FedInfo.TarGetAutoDiscoverEpr) {
+    if ($Script:OrgRel.TarGetAutoDiscoverEpr -like $FedInfo.TarGetAutoDiscoverEpr) {
         Write-Host -ForegroundColor Green "   => Federation Information TarGetAutoDiscoverEpr matches the Organization Relationship TarGetAutoDiscoverEpr "
-        Write-Host  "       Organization Relationship TarGetAutoDiscoverEpr:"  $OrgRel.TarGetAutoDiscoverEpr
+        Write-Host  "       Organization Relationship TarGetAutoDiscoverEpr:"  $Script:OrgRel.TarGetAutoDiscoverEpr
         Write-Host  "       Federation Information TarGetAutoDiscoverEpr:   "  $FedInfo.TarGetAutoDiscoverEpr
         $Script:tdTarGetAutoDiscoverEprVSColor = "green"
         $Script:tdTarGetAutoDiscoverEprVS_FL = "=> Federation Information TarGetAutoDiscoverEpr matches the Organization Relationship TarGetAutoDiscoverEpr"
     } else {
         Write-Host -ForegroundColor Red "   => Federation Information TarGetAutoDiscoverEpr should match the Organization Relationship TarGetAutoDiscoverEpr"
-        Write-Host  "       Organization Relationship TarGetAutoDiscoverEpr:"  $OrgRel.TarGetAutoDiscoverEpr
+        Write-Host  "       Organization Relationship TarGetAutoDiscoverEpr:"  $Script:OrgRel.TarGetAutoDiscoverEpr
         Write-Host  "       Federation Information TarGetAutoDiscoverEpr:   "  $FedInfo.TarGetAutoDiscoverEpr
         $Script:tdTarGetAutoDiscoverEprVSColor = "red"
         $Script:tdTarGetAutoDiscoverEprVS_FL = "=> Federation Information TarGetAutoDiscoverEpr should match the Organization Relationship TarGetAutoDiscoverEpr"
@@ -192,6 +193,7 @@ function FedInfoCheck {
     FedInfoHtml
 }
 function FedTrustCheck {
+    $Script:FedTrust = $null
     Write-Host -ForegroundColor Green " Get-FederationTrust | fl ApplicationUri,TokenIssuerUri,OrgCertificate,TokenIssuerCertificate,
     TokenIssuerPrevCertificate, TokenIssuerMetadataEpr,TokenIssuerEpr"
     PrintDynamicWidthLine
@@ -275,11 +277,11 @@ function FedTrustCheck {
 }
 function AvailabilityAddressSpaceCheck {
     PrintDynamicWidthLine
-    Write-Host -ForegroundColor Green " Get-AvailabilityAddressSpace $ExchangeOnlineDomain | fl ForestName, UserName, UseServiceAccount, AccessMethod, ProxyUrl, Name"
+    Write-Host -ForegroundColor Green " Get-AvailabilityAddressSpace $Script:ExchangeOnlineDomain | fl ForestName, UserName, UseServiceAccount, AccessMethod, ProxyUrl, Name"
     PrintDynamicWidthLine
-    $AvailabilityAddressSpace = Get-AvailabilityAddressSpace $ExchangeOnlineDomain -ErrorAction SilentlyContinue | Select-Object ForestName, UserName, UseServiceAccount, AccessMethod, ProxyUrl, Name
+    $AvailabilityAddressSpace = Get-AvailabilityAddressSpace $Script:ExchangeOnlineDomain -ErrorAction SilentlyContinue | Select-Object ForestName, UserName, UseServiceAccount, AccessMethod, ProxyUrl, Name
     if (!$AvailabilityAddressSpace) {
-        $AvailabilityAddressSpace = Get-AvailabilityAddressSpace $ExchangeOnlineDomain -ErrorAction SilentlyContinue | Select-Object ForestName, UserName, UseServiceAccount, AccessMethod, ProxyUrl, Name
+        $AvailabilityAddressSpace = Get-AvailabilityAddressSpace $Script:ExchangeOnlineDomain -ErrorAction SilentlyContinue | Select-Object ForestName, UserName, UseServiceAccount, AccessMethod, ProxyUrl, Name
     }
     $AvailabilityAddressSpace
     $Script:tdAvailabilityAddressSpaceName = $AvailabilityAddressSpace.Name
@@ -287,13 +289,13 @@ function AvailabilityAddressSpaceCheck {
     Write-Host -ForegroundColor Green " Summary - On-Prem Availability Address Space Check"
     PrintDynamicWidthLine
     Write-Host -ForegroundColor White " ForestName: "
-    if ($AvailabilityAddressSpace.ForestName -like $ExchangeOnlineDomain) {
+    if ($AvailabilityAddressSpace.ForestName -like $Script:ExchangeOnlineDomain) {
         Write-Host -ForegroundColor Green " " $AvailabilityAddressSpace.ForestName
         $Script:tdAvailabilityAddressSpaceForestName = $AvailabilityAddressSpace.ForestName
         $Script:tdAvailabilityAddressSpaceForestColor = "green"
     } else {
         Write-Host -ForegroundColor Red "  ForestName appears not to be correct."
-        Write-Host -ForegroundColor White " Should contain the " $ExchangeOnlineDomain
+        Write-Host -ForegroundColor White " Should contain the " $Script:ExchangeOnlineDomain
         $Script:tdAvailabilityAddressSpaceForestName = $AvailabilityAddressSpace.ForestName
         $Script:tdAvailabilityAddressSpaceForestColor = "red"
     }
@@ -491,18 +493,18 @@ function EWSVirtualDirectoryCheck {
         }
         Write-Host -ForegroundColor White "  Should be True"
     }
-    $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $Script:htmlFile
 }
 function TestOrgRel {
     PrintDynamicWidthLine
     #$Script:TestFail = 0
-    $OrgRelIdentity = $OrgRel.Identity
-    $OrgRelTarGetApplicationUri = $OrgRel.TarGetApplicationUri
-    if ( $OrgRelTarGetApplicationUri -like "Outlook.com" -OR $OrgRelTarGetApplicationUri -like "outlook.com") {
-        Write-Host -ForegroundColor Green "Test-OrganizationRelationship -Identity $OrgRelIdentity  -UserIdentity $UserOnPrem"
+    $Script:OrgRelIdentity = $Script:OrgRel.Identity
+    $Script:OrgRelTarGetApplicationUri = $Script:OrgRel.TarGetApplicationUri
+    if ( $Script:OrgRelTarGetApplicationUri -like "Outlook.com" -OR $Script:OrgRelTarGetApplicationUri -like "outlook.com") {
+        Write-Host -ForegroundColor Green "Test-OrganizationRelationship -Identity $Script:OrgRelIdentity  -UserIdentity $Script:UserOnPrem"
         #need to grab errors and provide alerts in error case
         PrintDynamicWidthLine
-        $TestOrgRel = Test-OrganizationRelationship -Identity "$($OrgRelIdentity)"  -UserIdentity $UserOnPrem -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+        $TestOrgRel = Test-OrganizationRelationship -Identity "$($Script:OrgRelIdentity)"  -UserIdentity $Script:UserOnPrem -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
         #$TestOrgRel
         if ($TestOrgRel[16] -like "No Significant Issues to Report") {
             Write-Host -ForegroundColor Green "`n No Significant Issues to Report"
@@ -541,7 +543,7 @@ function TestOrgRel {
             $i++
         }
     } else {
-        Write-Host -ForegroundColor Green " Test-OrganizationRelationship -Identity $OrgRelIdentity  -UserIdentity $UserOnPrem"
+        Write-Host -ForegroundColor Green " Test-OrganizationRelationship -Identity $Script:OrgRelIdentity  -UserIdentity $Script:UserOnPrem"
         #need to grab errors and provide alerts in error case
         PrintDynamicWidthLine
         Write-Host -ForegroundColor Red "`n Test-OrganizationRelationship can't be run if the Organization Relationship TarGet Application uri is not correct. Organization Relationship TarGet Application Uri should be Outlook.com"
@@ -551,24 +553,24 @@ function TestOrgRel {
     PrintDynamicWidthLine
     $Script:html += "</td>
     </tr>"
-    $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $Script:htmlFile
 }
 function TestFedTrust {
     PrintDynamicWidthLine
     $TestFedTrustFail = 0
-    $a = Test-FederationTrust -UserIdentity $UserOnPrem -verbose -ErrorAction SilentlyContinue #fails the first time on multiple occasions so we have a ghost FedTrustCheck
+    $a = Test-FederationTrust -UserIdentity $Script:UserOnPrem -verbose -ErrorAction SilentlyContinue #fails the first time on multiple occasions so we have a ghost FedTrustCheck
     if ($a) {
         #Using to suppress waring for unused variable
     }
-    Write-Host -ForegroundColor Green  " Test-FederationTrust -UserIdentity $UserOnPrem -verbose"
+    Write-Host -ForegroundColor Green  " Test-FederationTrust -UserIdentity $Script:UserOnPrem -verbose"
     PrintDynamicWidthLine
-    $TestFedTrust = Test-FederationTrust -UserIdentity $UserOnPrem -verbose -ErrorAction SilentlyContinue
+    $TestFedTrust = Test-FederationTrust -UserIdentity $Script:UserOnPrem -verbose -ErrorAction SilentlyContinue
     $TestFedTrust
     $Script:html += "<tr>
     <th ColSpan='2' style='color:white;'><b>Summary - On Premise Test-FederationTrust</b></th>
     </tr>
     <tr>
-    <td><b> Test-FederationTrust -UserIdentity $UserOnPrem</b></td>
+    <td><b> Test-FederationTrust -UserIdentity $Script:UserOnPrem</b></td>
     <td>"
     $i = 0
     while ($i -lt $TestFedTrust.type.Count) {
@@ -625,5 +627,5 @@ function TestFedTrust {
         }
         $Script:html += "</td>"
     }
-    $html | Out-File -FilePath $htmlFile
+    $html | Out-File -FilePath $Script:htmlFile
 }

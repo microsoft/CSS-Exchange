@@ -30,6 +30,9 @@ function ShowHelp() {
 }
 
 function loadingParameters() {
+    $Script:LogFile = "$PSScriptRoot\FreeBusyChecker.txt"
+    $BuildVersion = ""
+    $LogFileName = [System.IO.Path]::GetFileNameWithoutExtension($LogFile) + "_" + $Script:startingDate + ([System.IO.Path]::GetExtension($Script:LogFile))
     Write-Host " `n`n "
     Write-Host " `n`n "
     Start-Transcript -Path $LogFileName -Append
@@ -51,26 +54,26 @@ function ShowParameters() {
     Write-Host   "  Parameters:"
     PrintDynamicWidthLine
     Write-Host  -ForegroundColor White " Log File Path:"
-    Write-Host -ForegroundColor Green "  $LogFile"
+    Write-Host -ForegroundColor Green "  $Script:LogFile"
     Write-Host  -ForegroundColor White " Office 365 Domain:"
-    Write-Host -ForegroundColor Green "  $ExchangeOnlineDomain"
+    Write-Host -ForegroundColor Green "  $Script:ExchangeOnlineDomain"
     Write-Host  -ForegroundColor White " AD root Domain"
-    Write-Host -ForegroundColor Green "  $exchangeOnPremLocalDomain"
+    Write-Host -ForegroundColor Green "  $Script:ExchangeOnPremLocalDomain"
     Write-Host -ForegroundColor White " Exchange On Premises Domain:  "
     Write-Host -ForegroundColor Green "  $exchangeOnPremDomain"
     Write-Host -ForegroundColor White " Exchange On Premises External EWS url:"
     Write-Host -ForegroundColor Green "  $exchangeOnPremEWS"
     Write-Host -ForegroundColor White " On Premises Hybrid Mailbox:"
-    Write-Host -ForegroundColor Green "  $UserOnPrem"
+    Write-Host -ForegroundColor Green "  $Script:UserOnPrem"
     Write-Host -ForegroundColor White " Exchange Online Mailbox:"
-    Write-Host -ForegroundColor Green "  $UserOnline"
+    Write-Host -ForegroundColor Green "  $Script:UserOnline"
     showParametersHtml
 }
 function hostOutputIntraOrgConEnabled($Auth) {
     PrintDynamicWidthLine
     if ($Auth -Like "DAuth") {
         Write-Host -ForegroundColor yellow "  Warning: Intra Organization Connector Enabled True -> Running for DAuth only as -Auth DAuth option was selected`n  "
-        if ($OrgRel.enabled -Like "True") {
+        if ($Script:OrgRel.enabled -Like "True") {
             Write-Host -ForegroundColor White "           Organization Relationship Enabled True `n  "
         }
         Write-Host -ForegroundColor White "      This script can be Run using the -Auth All parameter to Check for both OAuth and DAuth configuration. `n `n         Example: ./FreeBusyChecker.ps1 -Auth All"

@@ -27,7 +27,10 @@ Example HTML Output
 
 Supported Exchange Server Versions:
 
-The script can be used to validate the Availability configuration of the following Exchange Server Versions: - Exchange Server 2013 - Exchange Server 2016 - Exchange Server 2019 - Exchange Online
+The script can be used to validate the Availability configuration for:
+
+- Exchange Server
+- Exchange Online
 
 Required Permissions:
 
@@ -42,17 +45,20 @@ AD management Tools:
 
 If not available, they can be installed with the following command:
 
+```powershell
   Install-WindowsFeature -name AD-Domain-Services -IncludeManagementTools
-
+```
 Imports and Installs the following Modules (if not available):
 
 PSSnapin: microsoft.exchange.management.powershell.snapin
+
 Module  : ActiveDirectory Module
 Module  : ExchangeOnlineManagement Module
 
 
-Syntax:
+## Syntax:
 
+```powershell
     FreeBusyChecker.ps1
         [-Auth <string>]
         [-Org <string>]
@@ -62,9 +68,17 @@ Syntax:
         [-OnPremEWSUrl <string>]
         [-OnPremLocalDomain <string>]
         [-Help <string>]
+```
+
+## Output
+
+The script will generate the following files on the folder that contains the script file:
+
+- Html File Output with Script Results, example: FreeBusyChecker_timestamp.html;
+- txt File Output with Script Results, example: FreeBusyChecker_timestamp.txt;
 
 
-How To Run:
+## Usage:
 
 - This script must be run as Administrator in Exchange Management Shell on an Exchange Server. You can provide no parameters and the script will just run against Exchange On Premises and Exchange Online to query for OAuth and DAuth configuration setting. It will compare existing values with standard values and provide detail of what may not be correct.
 
@@ -114,32 +128,46 @@ Valid Input Option Parameters:
         OnPremLocalDomain : Use OnPremLocalDomain parameter to run script specifying the Exchange On Premises local Domain
 
 
-Examples:
+## Examples:
 
 - This cmdlet will run Free Busy Checker script and check Availability for Exchange On Premises and Exchange Online for the currently used method, OAuth or DAuth. If OAuth is enabled OAUth is checked. If OAUth is not enabled, DAuth Configurations are collected.
 
+```powershell
             PS C:\> .\FreeBusyChecker.ps1
+```
 
 - This cmdlet will run Free Busy Checker script and check Availability OAuth and DAuth Configurations both for Exchange On Premises and Exchange Online.
 
+```powershell
             PS C:\> .\FreeBusyChecker.ps1 -Auth All
+```
 
 - This cmdlet will run the Free Busy Checker Script against for OAuth Availability Configurations only.
 
+```powershell
             PS C:\> .\FreeBusyChecker.ps1 -Auth OAuth
+```
 
 - This cmdlet will run the Free Busy Checker Script against for DAuth Availability Configurations only.
 
+```powershell
             PS C:\> .\FreeBusyChecker.ps1 -Auth DAuth
+```
 
 - This cmdlet will run the Free Busy Checker Script for Exchange Online Availability Configurations only.
 
+```powershell
             PS C:\> .\FreeBusyChecker.ps1 -Org ExchangeOnline
+```
 
 - This cmdlet will run the Free Busy Checker Script for Exchange On Premises OAuth and DAuth Availability Configurations only.
 
+```powershell
             PS C:\> .\FreeBusyChecker.ps1 -Org ExchangeOnPremise
+```
 
 - This cmdlet will run the Free Busy Checker Script for Exchange On Premises Availability OAuth Configurations using a specific On Premises mailbox
 
+```powershell
             PS C:\> .\FreeBusyChecker.ps1 -Org ExchangeOnPremise -Auth OAuth -OnPremUser John.OnPrem@Contoso.com
+```

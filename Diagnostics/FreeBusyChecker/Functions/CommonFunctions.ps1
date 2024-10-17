@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 function Test-ExchangeOnlineConnection {
     try {
-        $CheckExoMailbox = get-EOMailbox $UserOnline -ErrorAction Stop
+        $CheckExoMailbox = get-EOMailbox $Script:UserOnline -ErrorAction Stop
         if ($null -ne $CheckExoMailbox) {
             return $true
         } else {
@@ -14,13 +14,13 @@ function Test-ExchangeOnlineConnection {
 }
 function FetchAutoDiscoverInformation {
     if (-not $Script:AutoDiscoveryVirtualDirectory -or -not $Script:AutoDiscoveryVirtualDirectoryOAuth) {
-        $Script:AutoDiscoveryVirtualDirectory = Get-AutoDiscoverVirtualDirectory -Server $server | Select-Object Identity, Name, ExchangeVersion, *authentication* -ErrorAction SilentlyContinue
+        $Script:AutoDiscoveryVirtualDirectory = Get-AutoDiscoverVirtualDirectory -Server $Script:Server | Select-Object Identity, Name, ExchangeVersion, *authentication* -ErrorAction SilentlyContinue
         $Script:AutoDiscoveryVirtualDirectoryOAuth = $Script:AutoDiscoveryVirtualDirectory
     }
 }
 function FetchEWSInformation {
     if (-not $Script:WebServicesVirtualDirectory -or -not $Script:WebServicesVirtualDirectoryOAuth) {
-        $Script:WebServicesVirtualDirectory = Get-WebServicesVirtualDirectory -Server $server | Select-Object Identity, Name, ExchangeVersion, *Authentication*, *url -ErrorAction SilentlyContinue
+        $Script:WebServicesVirtualDirectory = Get-WebServicesVirtualDirectory -Server $Script:Server | Select-Object Identity, Name, ExchangeVersion, *Authentication*, *url -ErrorAction SilentlyContinue
         $Script:WebServicesVirtualDirectoryOAuth = $Script:WebServicesVirtualDirectory
     }
 }
@@ -28,18 +28,18 @@ function CheckIfExchangeServer {
     param (
         [string]$Server
     )
-    $exchangeServer = Get-ExchangeServer $server -ErrorAction SilentlyContinue
+    $exchangeServer = Get-ExchangeServer $Script:Server -ErrorAction SilentlyContinue
     if (!$exchangeServer) {
-        Write-Output "$Server is not an Exchange Server. This script need to be run in an Exchange Server version 2013, 2016 or 2019"
-        return
+        Write-Output "$Server is not an Exchange Server. This script should be run in Exchange Server Management Shell"
+        exit
     }
 }
 function CheckParameters {
     $MissingParameters = @()
-    if ([string]::IsNullOrWhiteSpace($ExchangeOnlineDomain)) {
+    if ([string]::IsNullOrWhiteSpace($Script:ExchangeOnlineDomain)) {
         $MissingParameters += "Exchange Online Domain. Example: "
     }
-    if ([string]::IsNullOrWhiteSpace($exchangeOnPremLocalDomain)) {
+    if ([string]::IsNullOrWhiteSpace($Script:ExchangeOnPremLocalDomain)) {
         $MissingParameters += "Exchange On Premises Local Domain.  Example: . 'C:\scripts\FreeBusyChecker\FreeBusyChecker.ps1' -OnPremisesUser John@Contoso.com"
     }
     if ([string]::IsNullOrWhiteSpace($exchangeOnPremDomain)) {
@@ -48,10 +48,10 @@ function CheckParameters {
     if ([string]::IsNullOrWhiteSpace($exchangeOnPremEWS)) {
         $MissingParameters += "Exchange On Premises EWS Virtual Directory External URL.  Example:  'C:\FreeBusyChecker.ps1' -OnPremEWSUrl https://mail.contoso.com/EWS/Exchange.asmx"
     }
-    if ([string]::IsNullOrWhiteSpace($UserOnPrem)) {
+    if ([string]::IsNullOrWhiteSpace($Script:UserOnPrem)) {
         $MissingParameters += "On Premises User Mailbox.  Example: 'C:\FreeBusyChecker.ps1' -OnPremisesUser John@Contoso.com"
     }
-    if ([string]::IsNullOrWhiteSpace($UserOnline)) {
+    if ([string]::IsNullOrWhiteSpace($Script:UserOnline)) {
         $MissingParameters += "Exchange Online Mailbox.  Example: 'C:\FreeBusyChecker.ps1' -OnlineUser John@Contoso.onmicrosoft.com"
     }
 

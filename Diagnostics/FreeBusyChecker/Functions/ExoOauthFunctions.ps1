@@ -5,43 +5,43 @@ function EXOIntraOrgConCheck {
     PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " Get-IntraOrganizationConnector | Select TarGetAddressDomains,DiscoveryEndpoint,Enabled"
     PrintDynamicWidthLine
-    $exoIntraOrgCon = Get-EOIntraOrganizationConnector | Select-Object TarGetAddressDomains, DiscoveryEndpoint, Enabled
-    $IOC = $exoIntraOrgCon | Format-List
+    $Script:ExoIntraOrgCon = Get-EOIntraOrganizationConnector | Select-Object TarGetAddressDomains, DiscoveryEndpoint, Enabled
+    $IOC = $Script:ExoIntraOrgCon | Format-List
     $IOC
     PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " Summary - Online Intra Organization Connector"
     PrintDynamicWidthLine
     Write-Host -ForegroundColor White " TarGet Address Domains: "
-    if ($exoIntraOrgCon.TarGetAddressDomains -like "*$ExchangeOnpremDomain*") {
-        Write-Host -ForegroundColor Green " " $exoIntraOrgCon.TarGetAddressDomains
-        $Script:tdExoIntraOrgConTarGetAddressDomains = $exoIntraOrgCon.TarGetAddressDomains
+    if ($Script:ExoIntraOrgCon.TarGetAddressDomains -like "*$ExchangeOnpremDomain*") {
+        Write-Host -ForegroundColor Green " " $Script:ExoIntraOrgCon.TarGetAddressDomains
+        $Script:tdExoIntraOrgConTarGetAddressDomains = $Script:ExoIntraOrgCon.TarGetAddressDomains
         $Script:tdExoIntraOrgConTarGetAddressDomainsColor = "green"
     } else {
         Write-Host -ForegroundColor Red " TarGet Address Domains is NOT correct."
         Write-Host -ForegroundColor White " Should contain the $ExchangeOnpremDomain"
-        $Script:tdExoIntraOrgConTarGetAddressDomains = " $($exoIntraOrgCon.TarGetAddressDomains) . Should contain the $ExchangeOnpremDomain"
+        $Script:tdExoIntraOrgConTarGetAddressDomains = " $($Script:ExoIntraOrgCon.TarGetAddressDomains) . Should contain the $ExchangeOnpremDomain"
         $Script:tdExoIntraOrgConTarGetAddressDomainsColor = "red"
     }
     Write-Host -ForegroundColor White " DiscoveryEndpoint: "
-    if ($exoIntraOrgCon.DiscoveryEndpoint -like $EDiscoveryEndpoint.OnPremiseDiscoveryEndpoint) {
-        Write-Host -ForegroundColor Green $exoIntraOrgCon.DiscoveryEndpoint
-        $Script:tdExoIntraOrgConDiscoveryEndpoints = $exoIntraOrgCon.DiscoveryEndpoint
+    if ($Script:ExoIntraOrgCon.DiscoveryEndpoint -like $Script:EDiscoveryEndpoint.OnPremiseDiscoveryEndpoint) {
+        Write-Host -ForegroundColor Green $Script:ExoIntraOrgCon.DiscoveryEndpoint
+        $Script:tdExoIntraOrgConDiscoveryEndpoints = $Script:ExoIntraOrgCon.DiscoveryEndpoint
         $Script:tdExoIntraOrgConDiscoveryEndpointsColor = "green"
     } else {
-        if ($exoIntraOrgCon.DiscoveryEndpoint -like "*resource.mailboxMigration.his.MSAppProxy.net*") {
-            Write-Host -ForegroundColor Green " " $exoIntraOrgCon.DiscoveryEndpoint
+        if ($Script:ExoIntraOrgCon.DiscoveryEndpoint -like "*resource.mailboxMigration.his.MSAppProxy.net*") {
+            Write-Host -ForegroundColor Green " " $Script:ExoIntraOrgCon.DiscoveryEndpoint
             Write-Host -ForegroundColor Yellow " Discovery Endpoint includes resource.mailboxMigration.his.MSAppProxy.net. Hybrid configuration is implemented using Hybrid Agent "
-            $Script:tdExoIntraOrgConDiscoveryEndpoints = $exoIntraOrgCon.DiscoveryEndpoint
+            $Script:tdExoIntraOrgConDiscoveryEndpoints = $Script:ExoIntraOrgCon.DiscoveryEndpoint
             $Script:tdExoIntraOrgConDiscoveryEndpointsColor = "green"
         } else {
             Write-Host -ForegroundColor Red " DiscoveryEndpoint is NOT correct. "
-            Write-Host -ForegroundColor White "  Should be " $EDiscoveryEndpoint.OnPremiseDiscoveryEndpoint
-            $Script:tdExoIntraOrgConDiscoveryEndpoints = "$($exoIntraOrgCon.DiscoveryEndpoint) . Should be $($EDiscoveryEndpoint.OnPremiseDiscoveryEndpoint)"
+            Write-Host -ForegroundColor White "  Should be " $Script:EDiscoveryEndpoint.OnPremiseDiscoveryEndpoint
+            $Script:tdExoIntraOrgConDiscoveryEndpoints = "$($Script:ExoIntraOrgCon.DiscoveryEndpoint) . Should be $($Script:EDiscoveryEndpoint.OnPremiseDiscoveryEndpoint)"
             $Script:tdExoIntraOrgConDiscoveryEndpointsColor = "red"
         }
     }
     Write-Host -ForegroundColor White " Enabled: "
-    if ($exoIntraOrgCon.Enabled -like "True") {
+    if ($Script:ExoIntraOrgCon.Enabled -like "True") {
         Write-Host -ForegroundColor Green "  True "
         $Script:tdExoIntraOrgConEnabled = "True"
         $Script:tdExoIntraOrgConEnabledColor = "green"
@@ -56,21 +56,21 @@ function EXOIntraOrgConCheck {
 function EXOIntraOrgConfigCheck {
     Write-Host -ForegroundColor Green " Get-IntraOrganizationConfiguration | Select OnPremiseTarGetAddresses"
     PrintDynamicWidthLine
-    $exoIntraOrgConfig = Get-EOOnPremisesOrganization | Select-Object OrganizationGuid | Get-EOIntraOrganizationConfiguration | Select-Object * | Where-Object { $_.OnPremiseTarGetAddresses -like "*$ExchangeOnPremDomain*" }
-    $IOConfig = $exoIntraOrgConfig | Format-List
+    $Script:ExoIntraOrgConfig = Get-EOOnPremisesOrganization | Select-Object OrganizationGuid | Get-EOIntraOrganizationConfiguration | Select-Object * | Where-Object { $_.OnPremiseTarGetAddresses -like "*$ExchangeOnPremDomain*" }
+    $IOConfig = $Script:ExoIntraOrgConfig | Format-List
     $IOConfig
     PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " Summary - Exchange Online Intra Organization Configuration"
     PrintDynamicWidthLine
     Write-Host -ForegroundColor White " OnPremiseTarGetAddresses: "
-    if ($exoIntraOrgConfig.OnPremiseTarGetAddresses -like "*$ExchangeOnpremDomain*") {
-        Write-Host -ForegroundColor Green " " $exoIntraOrgConfig.OnPremiseTarGetAddresses
-        $Script:tdExoIntraOrgConfigOnPremiseTarGetAddresses = $exoIntraOrgConfig.OnPremiseTarGetAddresses
+    if ($Script:ExoIntraOrgConfig.OnPremiseTarGetAddresses -like "*$ExchangeOnpremDomain*") {
+        Write-Host -ForegroundColor Green " " $Script:ExoIntraOrgConfig.OnPremiseTarGetAddresses
+        $Script:tdExoIntraOrgConfigOnPremiseTarGetAddresses = $Script:ExoIntraOrgConfig.OnPremiseTarGetAddresses
         $Script:tdExoIntraOrgConfigOnPremiseTarGetAddressesColor = "green"
     } else {
         Write-Host -ForegroundColor Red " OnPremise TarGet Addresses are NOT correct."
         Write-Host -ForegroundColor White " Should contain the $ExchangeOnpremDomain"
-        $Script:tdExoIntraOrgConfigOnPremiseTarGetAddresses = $exoIntraOrgConfig.OnPremiseTarGetAddresses
+        $Script:tdExoIntraOrgConfigOnPremiseTarGetAddresses = $Script:ExoIntraOrgConfig.OnPremiseTarGetAddresses
         $Script:tdExoIntraOrgConfigOnPremiseTarGetAddressesColor = "red"
     }
     EXOIntraOrgConfigCheckHtml
@@ -120,9 +120,9 @@ function EXOAuthServerCheck {
     EXOAuthServerCheckHtml
 }
 function ExoTestOAuthCheck {
-    Write-Host -ForegroundColor Green " Test-OAuthConnectivity -Service EWS -TarGetUri $Script:ExchangeOnPremEWS -Mailbox $UserOnline "
+    Write-Host -ForegroundColor Green " Test-OAuthConnectivity -Service EWS -TarGetUri $Script:ExchangeOnPremEWS -Mailbox $Script:UserOnline "
     PrintDynamicWidthLine
-    $ExoTestOAuth = Test-EOOAuthConnectivity -Service EWS -TarGetUri $Script:ExchangeOnPremEWS -Mailbox $UserOnline -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+    $ExoTestOAuth = Test-EOOAuthConnectivity -Service EWS -TarGetUri $Script:ExchangeOnPremEWS -Mailbox $Script:UserOnline -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
     if ($ExoTestOAuth.ResultType.Value -like 'Success' ) {
         $Script:tdOAuthConnectivityResultType = "$($ExoTestOAuth.ResultType.Value) - OAuth Test was completed successfully"
         $Script:tdOAuthConnectivityResultTypeColor = "green"

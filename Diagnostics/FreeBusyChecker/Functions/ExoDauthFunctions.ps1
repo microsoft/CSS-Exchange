@@ -145,7 +145,7 @@ function ExoFedOrgIdCheck {
     Write-Host -ForegroundColor Green " Summary - Online Federated Organization Identifier"
     PrintDynamicWidthLine
     Write-Host -ForegroundColor White " Domains: "
-    if ($ExoFedOrgId.Domains -like "*$ExchangeOnlineDomain*") {
+    if ($ExoFedOrgId.Domains -like "*$Script:ExchangeOnlineDomain*") {
         Write-Host -ForegroundColor Green " " $ExoFedOrgId.Domains
         $Script:tdExoFedOrgIdDomains = $ExoFedOrgId.Domains
         $Script:tdExoFedOrgIdDomainsColor = "green"
@@ -176,10 +176,10 @@ function SharingPolicyCheck {
     $SPOnline | Format-List
     $domain1 = (($SPOnline.domains[0] -split ":") -split " ")
     $domain2 = (($SPOnline.domains[1] -split ":") -split " ")
-    $SPOnpremDomain1 = $SPOnprem.Domains.Domain[0]
-    $SPOnpremAction1 = $SPOnprem.Domains.Actions[0]
-    $SPOnpremDomain2 = $SPOnprem.Domains.Domain[1]
-    $SPOnpremAction2 = $SPOnprem.Domains.Actions[1]
+    $Script:SPOnpremDomain1 = $Script:SPOnprem.Domains.Domain[0]
+    $Script:SPOnpremAction1 = $Script:SPOnprem.Domains.Actions[0]
+    $Script:SPOnpremDomain2 = $Script:SPOnprem.Domains.Domain[1]
+    $Script:SPOnpremAction2 = $Script:SPOnprem.Domains.Actions[1]
     $SPOnlineDomain1 = $domain1[0]
     $SPOnlineAction1 = $domain1[1]
     $SPOnlineDomain2 = $domain2[0]
@@ -189,13 +189,13 @@ function SharingPolicyCheck {
     PrintDynamicWidthLine
     Write-Host -ForegroundColor White " Exchange On Premises Sharing domains:`n"
     Write-Host -ForegroundColor White "  Domain:"
-    Write-Host "   " $SPOnpremDomain1
+    Write-Host "   " $Script:SPOnpremDomain1
     Write-Host -ForegroundColor White "  Action:"
-    Write-Host "   " $SPOnpremAction1
+    Write-Host "   " $Script:SPOnpremAction1
     Write-Host -ForegroundColor White "  Domain:"
-    Write-Host "   " $SPOnpremDomain2
+    Write-Host "   " $Script:SPOnpremDomain2
     Write-Host -ForegroundColor White "  Action:"
-    Write-Host "   " $SPOnpremAction2
+    Write-Host "   " $Script:SPOnpremAction2
     Write-Host -ForegroundColor White "`n  Exchange Online Sharing Domains: `n"
     Write-Host -ForegroundColor White "  Domain:"
     Write-Host "   " $SPOnlineDomain1
@@ -207,8 +207,8 @@ function SharingPolicyCheck {
     Write-Host "   " $SPOnlineAction2
     #PrintDynamicWidthLine
 
-    if ($SPOnpremDomain1 -eq $SPOnlineDomain1 -and $SPOnpremAction1 -eq $SPOnlineAction1) {
-        if ($SPOnpremDomain2 -eq $SPOnlineDomain2 -and $SPOnpremAction2 -eq $SPOnlineAction2) {
+    if ($Script:SPOnpremDomain1 -eq $SPOnlineDomain1 -and $Script:SPOnpremAction1 -eq $SPOnlineAction1) {
+        if ($Script:SPOnpremDomain2 -eq $SPOnlineDomain2 -and $Script:SPOnpremAction2 -eq $SPOnlineAction2) {
             Write-Host -ForegroundColor Green "`n  Exchange Online Sharing Policy Domains match Exchange On Premise Sharing Policy Domains"
             $Script:tdSharpingPolicyCheck = "`n  Exchange Online Sharing Policy matches Exchange On Premise Sharing Policy Domain"
             $Script:tdSharpingPolicyCheckColor = "green"
@@ -220,8 +220,8 @@ function SharingPolicyCheck {
             $Script:tdSharpingPolicyCheck = "`n  Exchange Online Sharing Policy Domains not match Exchange On Premise Sharing Policy Domains"
             $Script:tdSharpingPolicyCheckColor = "red"
         }
-    } elseif ($SPOnpremDomain1 -eq $SPOnlineDomain2 -and $SPOnpremAction1 -eq $SPOnlineAction2) {
-        if ($SPOnpremDomain2 -eq $SPOnlineDomain1 -and $SPOnpremAction2 -eq $SPOnlineAction1) {
+    } elseif ($Script:SPOnpremDomain1 -eq $SPOnlineDomain2 -and $Script:SPOnpremAction1 -eq $SPOnlineAction2) {
+        if ($Script:SPOnpremDomain2 -eq $SPOnlineDomain1 -and $Script:SPOnpremAction2 -eq $SPOnlineAction1) {
             Write-Host -ForegroundColor Green "`n  Exchange Online Sharing Policy Domains match Exchange On Premise Sharing Policy Domains"
             $Script:tdSharpingPolicyCheck = "`n  Exchange Online Sharing Policy matches Exchange On Premise Sharing Policy Domain"
             $Script:tdSharpingPolicyCheckColor = "green"
@@ -246,10 +246,10 @@ function ExoTestOrgRelCheck {
     $exoIdentity = $ExoOrgRel.Identity
     $exoOrgRelTarGetApplicationUri = $exoOrgRel.TarGetApplicationUri
     $exoOrgRelTarGetOWAUrl = $ExoOrgRel.TarGetOwAUrl
-    Write-Host -ForegroundColor Green " Test-OrganizationRelationship -Identity $exoIdentity -UserIdentity $UserOnline"
+    Write-Host -ForegroundColor Green " Test-OrganizationRelationship -Identity $exoIdentity -UserIdentity $Script:UserOnline"
     PrintDynamicWidthLine
     if ((![string]::IsNullOrWhitespace($exoOrgRelTarGetApplicationUri)) -and (![string]::IsNullOrWhitespace($exoOrgRelTarGetOWAUrl))) {
-        $ExoTestOrgRel = Test-EOOrganizationRelationship -Identity $exoIdentity -UserIdentity $UserOnline -WarningAction SilentlyContinue
+        $ExoTestOrgRel = Test-EOOrganizationRelationship -Identity $exoIdentity -UserIdentity $Script:UserOnline -WarningAction SilentlyContinue
         $i = 2
         while ($i -lt $ExoTestOrgRel.Length) {
             $element = $ExoTestOrgRel[$i]

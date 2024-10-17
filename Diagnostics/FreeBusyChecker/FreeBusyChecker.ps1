@@ -2,16 +2,18 @@
 # Licensed under the MIT License.
 <#
 .SYNOPSIS
+
 .\FreeBusyChecker.ps1
 
 .DESCRIPTION
+
 This script can be used to validate the Availability configuration of the following Exchange Server Versions:
-- Exchange Server 2013
-- Exchange Server 2016
-- Exchange Server 2019
+
+- Exchange Server
 - Exchange Online
 
 Required Permissions:
+
     - Organization Management
     - Domain Admin
 
@@ -75,7 +77,6 @@ This cmdlet will run the Free Busy Checker Script for Exchange On-Premises Avail
 #Requires -Module ExchangeOnlineManagement
 #Requires -Module ActiveDirectory
 
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Variables are being used')]
 [CmdletBinding(DefaultParameterSetName = "FreeBusyInfo_OP", SupportsShouldProcess)]
 
 param(
@@ -107,56 +108,47 @@ begin {
     . $PSScriptRoot\Functions\hostOutput.ps1
     . $PSScriptRoot\Functions\CommonFunctions.ps1
 } end {
-    $countOrgRelIssues = (0)
-    $Script:FedTrust = $null
-    $Script:AutoDiscoveryVirtualDirectory = $null
-    $Script:OrgRel = $null
-    $Script:SPDomainsOnprem = $null
-    $AvailabilityAddressSpace = $null
+    $Script:countOrgRelIssues = (0)
     $Script:WebServicesVirtualDirectory = $null
-    $ConsoleWidth = $Host.UI.RawUI.WindowSize.Width
-    $BuildVersion = ""
-    $Server = hostname
-    $LogFile = "$PSScriptRoot\FreeBusyChecker.txt"
-    $startingDate = (Get-Date -Format yyyyMMdd_HHmmss)
-    $LogFileName = [System.IO.Path]::GetFileNameWithoutExtension($LogFile) + "_" + $startingDate + ([System.IO.Path]::GetExtension($LogFile))
-    $htmlFile = "$PSScriptRoot\FBCheckerOutput_$($startingDate).html"
+    $Script:Server = hostname
+    $Script:startingDate = (Get-Date -Format yyyyMMdd_HHmmss)
+    $Script:htmlFile = "$PSScriptRoot\FBCheckerOutput_$($Script:startingDate).html"
 
-    CheckIfExchangeServer($Server)
+    CheckIfExchangeServer($Script:Server)
     loadingParameters
     #Parameter input
 
     if (-not $OnlineUser) {
-        $UserOnline = Get-RemoteMailbox -ResultSize 1 -WarningAction SilentlyContinue
-        $UserOnline = $UserOnline.RemoteRoutingAddress.SmtpAddress
+        $Script:UserOnline = Get-RemoteMailbox -ResultSize 1 -WarningAction SilentlyContinue
+        $Script:UserOnline = $Script:UserOnline.RemoteRoutingAddress.SmtpAddress
     } else {
-        $UserOnline = Get-RemoteMailbox $OnlineUser -ResultSize 1 -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
-        $UserOnline = $UserOnline.RemoteRoutingAddress.SmtpAddress
+        $Script:UserOnline = Get-RemoteMailbox $OnlineUser -ResultSize 1 -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
+        $Script:UserOnline = $Script:UserOnline.RemoteRoutingAddress.SmtpAddress
     }
 
-    $ExchangeOnlineDomain = ($UserOnline -split "@")[1]
+    $Script:ExchangeOnlineDomain = ($Script:UserOnline -split "@")[1]
 
-    if ($ExchangeOnlineDomain -like "*.mail.onmicrosoft.com") {
-        $ExchangeOnlineAltDomain = (($ExchangeOnlineDomain.Split(".")))[0] + ".onmicrosoft.com"
+    if ($Script:ExchangeOnlineDomain -like "*.mail.onmicrosoft.com") {
+        $Script:ExchangeOnlineAltDomain = (($Script:ExchangeOnlineDomain.Split(".")))[0] + ".onmicrosoft.com"
     } else {
-        $ExchangeOnlineAltDomain = (($ExchangeOnlineDomain.Split(".")))[0] + ".mail.onmicrosoft.com"
+        $Script:ExchangeOnlineAltDomain = (($Script:ExchangeOnlineDomain.Split(".")))[0] + ".mail.onmicrosoft.com"
     }
-    $temp = "*" + $ExchangeOnlineDomain
-    $UserOnPrem = ""
+    $Script:temp = "*" + $Script:ExchangeOnlineDomain
+    $Script:UserOnPrem = ""
     if (-not  $OnPremisesUser) {
-        $UserOnPrem = Get-mailbox -ResultSize 2 -WarningAction SilentlyContinue -Filter 'EmailAddresses -like $temp -and HiddenFromAddressListsEnabled -eq $false' -ErrorAction SilentlyContinue
-        if ($UserOnPrem) {
-            $UserOnPrem = $UserOnPrem[1].PrimarySmtpAddress.Address
+        $Script:UserOnPrem = Get-mailbox -ResultSize 2 -WarningAction SilentlyContinue -Filter 'EmailAddresses -like $temp -and HiddenFromAddressListsEnabled -eq $false' -ErrorAction SilentlyContinue
+        if ($Script:UserOnPrem) {
+            $Script:UserOnPrem = $Script:UserOnPrem[1].PrimarySmtpAddress.Address
         }
     } else {
-        $UserOnPrem = Get-mailbox $OnPremisesUser -WarningAction SilentlyContinue -Filter 'EmailAddresses -like $temp -and HiddenFromAddressListsEnabled -eq $false' -ErrorAction SilentlyContinue
-        $UserOnPrem = $UserOnPrem.PrimarySmtpAddress.Address
+        $Script:UserOnPrem = Get-mailbox $OnPremisesUser -WarningAction SilentlyContinue -Filter 'EmailAddresses -like $temp -and HiddenFromAddressListsEnabled -eq $false' -ErrorAction SilentlyContinue
+        $Script:UserOnPrem = $Script:UserOnPrem.PrimarySmtpAddress.Address
     }
-    $Script:ExchangeOnPremDomain = ($UserOnPrem -split "@")[1]
+    $Script:ExchangeOnPremDomain = ($Script:UserOnPrem -split "@")[1]
 
     if (-not $OnPremEWSUrl) {
 
-        $EWSVirtualDirectory = Get-WebServicesVirtualDirectory -server $Server -ErrorAction SilentlyContinue
+        $EWSVirtualDirectory = Get-WebServicesVirtualDirectory -server $Script:Server -ErrorAction SilentlyContinue
         if ($EWSVirtualDirectory.externalURL.AbsoluteUri.Count -gt 1) {
             $Script:ExchangeOnPremEWS = ($EWSVirtualDirectory.externalURL.AbsoluteUri)[0]
         } else {
@@ -168,14 +160,14 @@ begin {
 
     if (-not $OnPremDomain) {
         $ADDomain = Get-ADDomain
-        $ExchangeOnPremLocalDomain = $ADDomain.forest
+        $Script:ExchangeOnPremLocalDomain = $ADDomain.forest
     } else {
-        $ExchangeOnPremLocalDomain = $OnPremDomain
+        $Script:ExchangeOnPremLocalDomain = $OnPremDomain
     }
 
-    $ExchangeOnPremLocalDomain = $ADDomain.forest
+    $Script:ExchangeOnPremLocalDomain = $ADDomain.forest
     if ([string]::IsNullOrWhitespace($ADDomain)) {
-        $ExchangeOnPremLocalDomain = $exchangeOnPremDomain
+        $Script:ExchangeOnPremLocalDomain = $exchangeOnPremDomain
     }
 
     if ($ExchangeOnPremDomain) {
@@ -190,27 +182,27 @@ begin {
         exit
     }
     #region Show Parameters
-    $IntraOrgCon = Get-IntraOrganizationConnector -WarningAction SilentlyContinue -ErrorAction SilentlyContinue | Select-Object Name, TarGetAddressDomains, DiscoveryEndpoint, Enabled
+    $Script:IntraOrgCon = Get-IntraOrganizationConnector -WarningAction SilentlyContinue -ErrorAction SilentlyContinue | Select-Object Name, TarGetAddressDomains, DiscoveryEndpoint, Enabled
     ShowParameters
     CheckParameters
-    if ($IntraOrgCon.enabled -Like "True") {
+    if ($Script:IntraOrgCon.enabled -Like "True") {
         $Auth = hostOutputIntraOrgConEnabled($Auth)
     }
-    if ($IntraOrgCon.enabled -Like "False") {
+    if ($Script:IntraOrgCon.enabled -Like "False") {
         hostOutputIntraOrgConNotEnabled
     }
     # Free busy Lookup methods
     PrintDynamicWidthLine
-    $OrgRel = Get-OrganizationRelationship | Where-Object { ($_.DomainNames -like $ExchangeOnlineDomain) }  -WarningAction SilentlyContinue -ErrorAction SilentlyContinue  | Select-Object Enabled, Identity, DomainNames, FreeBusy*, TarGet*
-    $EDiscoveryEndpoint = Get-IntraOrganizationConfiguration -WarningAction SilentlyContinue -ErrorAction SilentlyContinue | Select-Object OnPremiseDiscoveryEndpoint
-    $SPDomainsOnprem = Get-SharingPolicy -WarningAction SilentlyContinue -ErrorAction SilentlyContinue | Format-List Domains
-    $SPOnprem = Get-SharingPolicy  -WarningAction SilentlyContinue -ErrorAction SilentlyContinue | Select-Object *
+    $Script:OrgRel = Get-OrganizationRelationship | Where-Object { ($_.DomainNames -like $Script:ExchangeOnlineDomain) }  -WarningAction SilentlyContinue -ErrorAction SilentlyContinue  | Select-Object Enabled, Identity, DomainNames, FreeBusy*, TarGet*
+    $Script:EDiscoveryEndpoint = Get-IntraOrganizationConfiguration -WarningAction SilentlyContinue -ErrorAction SilentlyContinue | Select-Object OnPremiseDiscoveryEndpoint
+    $Script:SPDomainsOnprem = Get-SharingPolicy -WarningAction SilentlyContinue -ErrorAction SilentlyContinue | Format-List Domains
+    $Script:SPOnprem = Get-SharingPolicy  -WarningAction SilentlyContinue -ErrorAction SilentlyContinue | Select-Object *
 
     if ($Org -contains 'ExchangeOnPremise' -or -not $Org) {
         #region DAuth Checks
         if ($Auth -like "DAuth" -OR -not $Auth -or $Auth -like "All") {
             Write-Host $TestingDAuthConfiguration
-            OrgRelCheck -OrgRelParameter $OrgRel
+            OrgRelCheck -OrgRelParameter $Script:OrgRel
             PrintDynamicWidthLine
             FedInfoCheck
             FedTrustCheck
@@ -268,9 +260,9 @@ begin {
         }
         Write-Host " Connected to Exchange Online."
         $Script:ExoOrgRel = Get-EOOrganizationRelationship | Where-Object { ($_.DomainNames -like $ExchangeOnPremDomain ) } | Select-Object Enabled, Identity, DomainNames, FreeBusy*, TarGet*
-        $ExoIntraOrgCon = Get-EOIntraOrganizationConnector | Select-Object Name, TarGetAddressDomains, DiscoveryEndpoint, Enabled
-        $tarGetAddressPr1 = ("https://AutoDiscover." + $ExchangeOnPremDomain + "/AutoDiscover/AutoDiscover.svc/WSSecurity")
-        $tarGetAddressPr2 = ("https://" + $ExchangeOnPremDomain + "/AutoDiscover/AutoDiscover.svc/WSSecurity")
+        $Script:ExoIntraOrgCon = Get-EOIntraOrganizationConnector | Select-Object Name, TarGetAddressDomains, DiscoveryEndpoint, Enabled
+        $Script:tarGetAddressPr1 = ("https://AutoDiscover." + $ExchangeOnPremDomain + "/AutoDiscover/AutoDiscover.svc/WSSecurity")
+        $Script:tarGetAddressPr2 = ("https://" + $ExchangeOnPremDomain + "/AutoDiscover/AutoDiscover.svc/WSSecurity")
         exoHeaderHtml
 
         #endregion

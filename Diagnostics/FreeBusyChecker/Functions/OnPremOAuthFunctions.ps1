@@ -4,28 +4,28 @@ function IntraOrgConCheck {
     PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " Get-IntraOrganizationConnector | Select Name,TarGetAddressDomains,DiscoveryEndpoint,Enabled"
     PrintDynamicWidthLine
-    $IOC = $IntraOrgCon | Format-List
+    $IOC =$Script:IntraOrgCon | Format-List
     $IOC
-    $Script:tdIntraOrgTarGetAddressDomain = $IntraOrgCon.TarGetAddressDomains
-    $Script:tdDiscoveryEndpoint = $IntraOrgCon.DiscoveryEndpoint
-    $Script:tdEnabled = $IntraOrgCon.Enabled
+    $Script:tdIntraOrgTarGetAddressDomain =$Script:IntraOrgCon.TarGetAddressDomains
+    $Script:tdDiscoveryEndpoint =$Script:IntraOrgCon.DiscoveryEndpoint
+    $Script:tdEnabled =$Script:IntraOrgCon.Enabled
 
     PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " Summary - Get-IntraOrganizationConnector"
     PrintDynamicWidthLine
-    $IntraOrgTarGetAddressDomain = $IntraOrgCon.TarGetAddressDomains.Domain
+    $IntraOrgTarGetAddressDomain =$Script:IntraOrgCon.TarGetAddressDomains.Domain
     $IntraOrgTarGetAddressDomain = $IntraOrgTarGetAddressDomain.ToLower()
     Write-Host -ForegroundColor White " TarGet Address Domains: "
-    if ($IntraOrgCon.TarGetAddressDomains -like "*$ExchangeOnlineDomain*" -Or $IntraOrgCon.TarGetAddressDomains -like "*$ExchangeOnlineAltDomain*" ) {
-        Write-Host -ForegroundColor Green " " $IntraOrgCon.TarGetAddressDomains
+    if ($Script:IntraOrgCon.TarGetAddressDomains -like "*$Script:ExchangeOnlineDomain*" -Or$Script:IntraOrgCon.TarGetAddressDomains -like "*$Script:ExchangeOnlineAltDomain*" ) {
+        Write-Host -ForegroundColor Green " "$Script:IntraOrgCon.TarGetAddressDomains
         $Script:tdIntraOrgTarGetAddressDomainColor = "green"
     } else {
         Write-Host -ForegroundColor Red " TarGet Address Domains appears not to be correct."
-        Write-Host -ForegroundColor White " Should contain the $ExchangeOnlineDomain domain or the $ExchangeOnlineAltDomain domain."
+        Write-Host -ForegroundColor White " Should contain the $Script:ExchangeOnlineDomain domain or the $Script:ExchangeOnlineAltDomain domain."
         $Script:tdIntraOrgTarGetAddressDomainColor = "red"
     }
     Write-Host -ForegroundColor White " DiscoveryEndpoint: "
-    if ($IntraOrgCon.DiscoveryEndpoint -like "https://AutoDiscover-s.outlook.com/AutoDiscover/AutoDiscover.svc") {
+    if ($Script:IntraOrgCon.DiscoveryEndpoint -like "https://AutoDiscover-s.outlook.com/AutoDiscover/AutoDiscover.svc") {
         Write-Host -ForegroundColor Green "  https://AutoDiscover-s.outlook.com/AutoDiscover/AutoDiscover.svc"
         $Script:tdDiscoveryEndpointColor = "green"
     } else {
@@ -35,7 +35,7 @@ function IntraOrgConCheck {
         $Script:tdDiscoveryEndpointColor = "red"
     }
     Write-Host -ForegroundColor White " Enabled: "
-    if ($IntraOrgCon.Enabled -like "True") {
+    if ($Script:IntraOrgCon.Enabled -like "True") {
         Write-Host -ForegroundColor Green "  True "
         $Script:tdEnabledColor = "green"
     } else {
@@ -162,12 +162,12 @@ function PartnerApplicationCheck {
         $Script:tdPartnerApplicationRealm = "Should be Blank"
     }
     Write-Host -ForegroundColor White " LinkedAccount: "
-    if ($PartnerApplication.LinkedAccount -like "$exchangeOnPremDomain/Users/Exchange Online-ApplicationAccount" -or $PartnerApplication.LinkedAccount -like "$exchangeOnPremLocalDomain/Users/Exchange Online-ApplicationAccount"  ) {
+    if ($PartnerApplication.LinkedAccount -like "$exchangeOnPremDomain/Users/Exchange Online-ApplicationAccount" -or $PartnerApplication.LinkedAccount -like "$Script:ExchangeOnPremLocalDomain/Users/Exchange Online-ApplicationAccount"  ) {
         Write-Host -ForegroundColor Green " " $PartnerApplication.LinkedAccount
         $Script:tdPartnerApplicationLinkedAccountColor = "green"
     } else {
         Write-Host -ForegroundColor Red "  LinkedAccount value does not appear to be correct"
-        Write-Host -ForegroundColor White "  Should be $exchangeOnPremLocalDomain/Users/Exchange Online-ApplicationAccount"
+        Write-Host -ForegroundColor White "  Should be $Script:ExchangeOnPremLocalDomain/Users/Exchange Online-ApplicationAccount"
         Write-Host "  If you value is empty, set it to correspond to the Exchange Online-ApplicationAccount which is located at the root of Users container in AD. After you make the change, reboot the Servers."
         Write-Host "  Example: contoso.com/Users/Exchange Online-ApplicationAccount"
         $Script:tdPartnerApplicationLinkedAccountColor = "red"
@@ -177,9 +177,9 @@ function PartnerApplicationCheck {
 }
 function ApplicationAccountCheck {
     #PrintDynamicWidthLine
-    Write-Host -ForegroundColor Green " Get-user '$exchangeOnPremLocalDomain/Users/Exchange Online-ApplicationAccount' | Select Name, RecipientType, RecipientTypeDetails, UserAccountControl"
+    Write-Host -ForegroundColor Green " Get-user '$Script:ExchangeOnPremLocalDomain/Users/Exchange Online-ApplicationAccount' | Select Name, RecipientType, RecipientTypeDetails, UserAccountControl"
     PrintDynamicWidthLine
-    $ApplicationAccount = Get-user "$exchangeOnPremLocalDomain/Users/Exchange Online-ApplicationAccount" | Select-Object Name, RecipientType, RecipientTypeDetails, UserAccountControl
+    $ApplicationAccount = Get-user "$Script:ExchangeOnPremLocalDomain/Users/Exchange Online-ApplicationAccount" | Select-Object Name, RecipientType, RecipientTypeDetails, UserAccountControl
     $ApplicationAccount
     $Script:tdApplicationAccountRecipientType = $ApplicationAccount.RecipientType
     $Script:tdApplicationAccountRecipientTypeDetails = $ApplicationAccount.RecipientTypeDetails
@@ -413,9 +413,9 @@ function CurrentCertificateThumbprintCheck {
     CurrentCertificateThumbprintCheckHtml
 }
 function OAuthConnectivityCheck {
-    Write-Host -ForegroundColor Green " Test-OAuthConnectivity -Service EWS -TarGetUri https://outlook.office365.com/EWS/Exchange.asmx -Mailbox $UserOnPrem"
+    Write-Host -ForegroundColor Green " Test-OAuthConnectivity -Service EWS -TarGetUri https://outlook.office365.com/EWS/Exchange.asmx -Mailbox $Script:UserOnPrem"
     PrintDynamicWidthLine
-    $Script:OAuthConnectivity = Test-OAuthConnectivity -Service EWS -TarGetUri https://outlook.office365.com/EWS/Exchange.asmx -Mailbox $UserOnPrem
+    $Script:OAuthConnectivity = Test-OAuthConnectivity -Service EWS -TarGetUri https://outlook.office365.com/EWS/Exchange.asmx -Mailbox $Script:UserOnPrem
     if ($Script:OAuthConnectivity.ResultType -eq 'Success' ) {
         #$Script:OAuthConnectivity.ResultType
     } else {
