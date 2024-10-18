@@ -42,7 +42,7 @@ param(
 )
 
 process {
-    $allContentFolders = New-Object System.Collections.Generic.List[System.Management.Automation.PSCustomObject]
+    $allContentFolders = New-Object System.Collections.Generic.List[object]
     $start = Get-Date
     Write-Host "$start Running Get-MailboxFolderStatistics for $Identity $MailboxType locations, in batches of $BatchSize"
 
@@ -54,7 +54,10 @@ process {
             do {
                 $skipCount = $BatchSize * $loopCount
                 $batch = Get-MailboxFolderStatistics -Identity $($location.Identity) -ResultSize $batchSize -SkipCount $skipCount
-                $allContentFolders += $batch | Where-Object { $_.ContentFolder -eq "TRUE" } | Select-Object -Property $Properties
+                [System.Array]$contentFolders = $batch | Where-Object { $_.ContentFolder -eq "TRUE" } | Select-Object -Property $Properties
+                if ($contentFolders.Count -gt 0) {
+                    $allContentFolders.AddRange($contentFolders)
+                }
                 Write-Host "$(Get-Date):$loopCount Found $($batch.Count) content folders from $($location.MailboxLocationType):$($location.MailboxGuid)"
                 $loopCount += 1
             }
