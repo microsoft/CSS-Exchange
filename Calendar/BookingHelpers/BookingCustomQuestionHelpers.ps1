@@ -1,19 +1,21 @@
-﻿
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 function Get-GraphBookingsCustomQuestions {
     param(
         [Parameter(Mandatory = $true)]
-        [string]$identity
+        [string]$Identity
     )
-    $MBcustomQuestions = Get-MgBookingBusinessCustomQuestion -BookingBusinessId $identity
+    $MBcustomQuestions = Get-MgBookingBusinessCustomQuestion -BookingBusinessId $Identity
     $customQuestions = @()
     foreach ($customQuestion in $MBcustomQuestions) {
         $customQuestions += [PSCustomObject]@{
             Id                  = $customQuestion.Id
-            displayName         = $customQuestion.DisplayName
+            DisplayName         = $customQuestion.DisplayName
             AnswerInputType     = $customQuestion.AnswerInputType
-            options             = $customQuestion.AnswerOptions | ConvertTo-Json -Depth 10
-            createdDateTime     = $customQuestion.AdditionalProperties["createdDateTime"]
-            lastUpdatedDateTime = $customQuestion.AdditionalProperties["lastUpdatedDateTime"]
+            Options             = $customQuestion.AnswerOptions | ConvertTo-Json -Depth 10
+            CreatedDateTime     = $customQuestion.AdditionalProperties["createdDateTime"]
+            LastUpdatedDateTime = $customQuestion.AdditionalProperties["lastUpdatedDateTime"]
         }
     }
     return $customQuestions

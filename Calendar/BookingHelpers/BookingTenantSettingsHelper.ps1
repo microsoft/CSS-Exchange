@@ -1,4 +1,7 @@
-﻿function GetBookingTenantSettings {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function GetBookingTenantSettings {
     param([string] $domain)
 
     if ($Script:MSSupport) {
@@ -89,10 +92,8 @@ function GetOWAMBPolicy {
     return $OWAMBPolicy
 }
 
-
 function GetAcceptedDomains {
     param($domains)
-
 
     # Define the structure of the accepted domains
     $acceptedDomains = [PSCustomObject]@{

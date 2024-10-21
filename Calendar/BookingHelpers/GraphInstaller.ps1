@@ -1,6 +1,9 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 # ===================================================================================================
 # Graph Modules installer Functions
 # ===================================================================================================
@@ -39,10 +42,6 @@ function CheckGraphBookingsModuleInstalled {
     }
 }
 
-
-
-
-
 function CheckGraphAuthModuleInstalled {
     [CmdletBinding(SupportsShouldProcess=$true)]
     param ()
@@ -77,8 +76,6 @@ function CheckGraphAuthModuleInstalled {
         }
     }
 }
-
-
 
 function CheckGraphModulesInstalled {
 

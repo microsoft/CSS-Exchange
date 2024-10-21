@@ -1,4 +1,6 @@
-﻿
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 function RunTenantTests {
     [ref]$errorMessage = $null
     [ref]$writeMessageAlways = $false
@@ -8,28 +10,28 @@ function RunTenantTests {
 
     $errorMessage = ""
     $testResult = CheckBookingsEnabled -errorMessage $errorMessage
-    WriteTestTitle "Bookings is enabled" -success $testResult -errorMessage $errorMessage
+    WriteTestResult "Bookings is enabled" -success $testResult -errorMessage $errorMessage
 
     $testResult = CheckAcceptedDomainIsManaged -errorMessage $errorMessage
-    WriteTestTitle "Is Default domain Managed" -success $testResult -errorMessage $errorMessage
+    WriteTestResult "Is Default domain Managed" -success $testResult -errorMessage $errorMessage
 
     $testResult = CheckEWSEnabled -errorMessage $errorMessage
-    WriteTestTitle -title "Check EWS Enabled" -success $testResult -errorMessage $errorMessage -writeMessageAlways $writeMessageAlways
+    WriteTestResult -title "Check EWS Enabled" -success $testResult -errorMessage $errorMessage -writeMessageAlways $writeMessageAlways
 
     $testResult = CheckEWSAccessPolicy -errorMessage $errorMessage -writeMessageAlways $writeMessageAlways
-    WriteTestTitle -title "Check EWS Access Policy" -success $testResult -errorMessage $errorMessage -writeMessageAlways $true
+    WriteTestResult -title "Check EWS Access Policy" -success $testResult -errorMessage $errorMessage -writeMessageAlways $true
     #dump allow/block list data below, indented
     writeEWSAllowList
     writeEWSBlockList
 
     $testResult = CheckOWAMailboxPolicyMailboxCreationEnabled -errorMessage $errorMessage
-    WriteTestTitle "Mailbox Creation is enabled" -success $testResult -errorMessage $errorMessage
+    WriteTestResult "Mailbox Creation is enabled" -success $testResult -errorMessage $errorMessage
 
     $testResult = CheckBookingsMBDomain -errorMessage $errorMessage
-    WriteTestTitle "BookingsMailboxDomain in the correct domain" -success $testResult -errorMessage $errorMessage
+    WriteTestResult "BookingsMailboxDomain in the correct domain" -success $testResult -errorMessage $errorMessage
 
     $testResult = CheckDomainSuffix -errorMessage $errorMessage -writeMessageAlways $writeMessageAlways
-    WriteTestTitle "DomainSuffix test for invalid chars" -success $testResult -errorMessage $errorMessage -writeMessageAlways $writeMessageAlways
+    WriteTestResult "DomainSuffix test for invalid chars" -success $testResult -errorMessage $errorMessage -writeMessageAlways $writeMessageAlways
     return
 }
 

@@ -1,4 +1,7 @@
-﻿function BaseFileName([string]$identity, [string]$suffix) {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function BaseFileName([string]$identity, [string]$suffix) {
     $smtp = $identity.Split('@')[0]
     $smtp = $smtp -replace '[\\/:*?"<>|]', ''
     $date = Get-Date -Format "yyyyMMdd"
@@ -17,7 +20,6 @@ function CSVFilename([string]$identity, [string]$suffix) {
 function XLSXFilename([string]$identity) {
     return (BaseFileName $identity $suffix) + ".xlsx"
 }
-
 
 function SaveDataAsCSV([string]$identity) {
     $filename = CSVFilename -Identity $identity -suffix "TenantSettings"

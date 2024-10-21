@@ -1,4 +1,7 @@
-﻿function Get-StaffData {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Get-StaffData {
     $staffData = @()
 
     foreach ($staffMember in $script:MBPermissions) {

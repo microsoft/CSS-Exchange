@@ -1,4 +1,7 @@
-﻿function GetStaffMembershipLogs {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function GetStaffMembershipLogs {
     param(
         [Parameter(Mandatory=$true)]
         [string]$identity
@@ -7,7 +10,6 @@
     $log = Export-MailboxDiagnosticLogs  -Identity $identity  -ComponentName BookingStaffMembershipLog -ErrorAction SilentlyContinue
     return $log
 }
-
 
 function GetMembershipLogArray {
     Write-Verbose "Reading Membership logs for $identity and converting as array"
@@ -38,8 +40,6 @@ function createArrayFromStaffLog {
     }
     return $aRetVal
 }
-
-
 
 function export-BookingStaffMembershipLog {
     param(

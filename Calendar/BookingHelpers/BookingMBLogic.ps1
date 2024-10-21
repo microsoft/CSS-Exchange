@@ -1,4 +1,7 @@
-﻿function RunMBTests {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function RunMBTests {
     [ref]$errorMessage = $null
     [ref]$writeMessageAlways = $true
     $testResult = $true
@@ -7,13 +10,13 @@
 
     $errorMessage = ""
     $testResult = CheckIdentityIsBookingsMB -errorMessage $errorMessage
-    WriteTestTitle "Mailbox is Scheduling type " -success $testResult -errorMessage $errorMessage
+    WriteTestResult "Mailbox is Scheduling type " -success $testResult -errorMessage $errorMessage
 
     $testResult = CheckIfMBIsHiddenInGAL
-    WriteTestTitle "Is MB Hidden in GAL" -success $testResult -errorMessage $errorMessage
+    WriteTestResult "Is MB Hidden in GAL" -success $testResult -errorMessage $errorMessage
 
     $testResult = CheckBookingsMBEmailAddresses -errorMessage $errorMessage
-    WriteTestTitle "Check MB Email Addresses" -success $testResult -errorMessage $errorMessage -writeMessageAlways $writeMessageAlways
+    WriteTestResult "Check MB Email Addresses" -success $testResult -errorMessage $errorMessage -writeMessageAlways $writeMessageAlways
     writeBookingsMBEmailAddresses
 }
 
@@ -34,7 +37,6 @@ function CheckIfMBIsHiddenInGAL {
     }
     return $true
 }
-
 
 function CheckBookingsMBEmailAddresses {
     param([ref]$errorMessage)

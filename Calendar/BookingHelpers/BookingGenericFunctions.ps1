@@ -1,4 +1,7 @@
-﻿function SplitDomainFromEmail {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function SplitDomainFromEmail {
     param([string] $email)
     return [string]$email.Split("@")[1]
 }
@@ -19,7 +22,7 @@ function IsConsumerMailbox {
     }
 }
 
-function IsGetMailboxAvailable {
+function CheckEXOConnection {
     if (Get-Command -Name Get-Mailbox -ErrorAction SilentlyContinue) {
         Write-Host "Validated connection to Exchange Online..." -ForegroundColor Green
     } else {
@@ -29,7 +32,7 @@ function IsGetMailboxAvailable {
     }
 }
 
-function WriteTestTitle {
+function WriteTestResult {
     param([string]$title, [System.Boolean]$Success, [string]$errorMessage, [bool]$writeMessageAlways = $false)
     Write-Host  ($title.PadRight($script:PadCharsMessage) + " : ") -NoNewline
     if ($Success) {
@@ -71,9 +74,6 @@ function WriteRedX {
     }
     Write-Host @redX
 }
-
-
-
 
 function Convert-ArrayToMultilineString {
     param (

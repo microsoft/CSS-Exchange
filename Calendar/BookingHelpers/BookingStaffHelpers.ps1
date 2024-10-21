@@ -1,4 +1,7 @@
-﻿function Get-MBPermissions {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function Get-MBPermissions {
     param($identity)
     # Get the Mailbox Permissions
     $MBPermissions = Get-MailboxPermission -Identity $identity -ErrorAction SilentlyContinue
@@ -12,7 +15,6 @@ function Get-MBRecipientPermissions {
     return $MBRecipientPermissions
 }
 
-
 function CheckMyBaseOptionsRBACRole($identity) {
     $RBACRole = Get-ManagementRoleAssignment -RoleAssignee $identity -Role "MyBaseOptions" | Select-Object -Property RoleAssignee, Role
     return $RBACRole
@@ -22,8 +24,6 @@ function CheckPersistedCapabilities($identity) {
     $PC = Get-Mailbox -Identity $identity | Select-Object -ExpandProperty PersistedCapabilities
     return $PC
 }
-
-
 
 function Get-GraphBookingsStaff {
     param (
@@ -49,7 +49,6 @@ function Get-GraphBookingsStaff {
             workingHours                             = $staffMember.AdditionalProperties["workingHours"]  | ConvertTo-Json -Depth 10
         }
     }
-
 
     return $staff
 }

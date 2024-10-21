@@ -1,4 +1,7 @@
-﻿function GetBookingMBData {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function GetBookingMBData {
     param (
         [string]$Identity
     )
@@ -29,10 +32,7 @@
     return $bookingMBData
 }
 
-
-
-
-function Get-GraphBusiness {
+function GetGraphBookingBusiness {
     param (
         [string]$Identity
     )
@@ -63,8 +63,7 @@ function Get-GraphBusiness {
     return $BookingBusinessArray
 }
 
-
-function Get-GraphBusinessPage {
+function GetGraphBookingBusinessPage {
     param (
         [string]$Identity
     )
@@ -83,8 +82,7 @@ function Get-GraphBusinessPage {
     return $BookingBusinessArray
 }
 
-
-function Get-GraphBusinessBookingPolicy {
+function GetGraphBookingBusinessBookingPolicy {
     param (
         [string]$Identity
     )
@@ -122,8 +120,7 @@ function Get-GraphBusinessBookingPolicy {
     return $BookingBusinessArray
 }
 
-
-function Get-GraphBusinessWorkingHours {
+function GetGraphBookingBusinessWorkingHours {
     param (
         [string]$Identity
     )
@@ -164,7 +161,6 @@ function Get-GraphBusinessWorkingHours {
             } else {
                 $monday = $GraphBookingBusiness.BusinessHours[0].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[0].TimeSlots[$i].EndTime.Substring(0, 8)
             }
-
         }
         if ($GraphBookingBusiness.BusinessHours[1].TimeSlots) {
             #$tuesday = $i -ge $GraphBookingBusiness.BusinessHours[1].TimeSlots.Count  ? "": $GraphBookingBusiness.BusinessHours[1].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[1].TimeSlots[$i].EndTime.Substring(0, 8)

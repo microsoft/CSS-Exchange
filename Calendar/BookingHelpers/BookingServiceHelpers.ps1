@@ -1,4 +1,6 @@
-﻿
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 function Get-GraphBookingsServices {
     param(
         [Parameter(Mandatory = $true)]

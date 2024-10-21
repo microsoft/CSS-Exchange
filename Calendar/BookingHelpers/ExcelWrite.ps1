@@ -1,7 +1,9 @@
-﻿#========================
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+#========================
 #Excel needs Scriptlets helper functions to be loaded, in order to have access to graph and install Export-Excel module
 #========================
-
 
 . $PSScriptRoot\GraphInstaller.ps1
 . $PSScriptRoot\BookingGenericFunctions.ps1
@@ -58,23 +60,21 @@ function ExcelWrite {
     $ExcelParamsArray = GetExcelParams -path $path -tabName "Business"
 
     Write-Host "Exporting Booking Business"
-    $BusinessData = Get-GraphBusiness -Identity $identity
+    $BusinessData = GetGraphBookingBusiness -Identity $identity
     $excel = $BusinessData | Export-Excel @ExcelParamsArray -PassThru
     Export-Excel -ExcelPackage $excel -WorksheetName "Business" -MoveToStart
 
     Write-Host "Exporting Bookings Page Settings"
-    $BusinessPage = Get-GraphBusinessPage -Identity $identity
+    $BusinessPage = GetGraphBookingBusinessPage -Identity $identity
     $BusinessPage | Export-Excel -Path  $path -WorksheetName "Business" -StartRow 10 -Title "Page Settings" -TableStyle Medium3 -AutoSize
 
-
     Write-Host "Exporting Booking Policy"
-    $BookingPolicy = Get-GraphBusinessBookingPolicy -Identity $identity
+    $BookingPolicy = GetGraphBookingBusinessBookingPolicy -Identity $identity
     $BookingPolicy | Export-Excel -Path  $path -WorksheetName "Business" -BoldTopRow  -StartRow 10 -StartColumn 10 -Title "Scheduling Policy" -TableStyle Medium3 -AutoSize
 
     Write-Host "Exporting Working Hours"
-    $WorkingHours = Get-GraphBusinessWorkingHours -Identity $identity
+    $WorkingHours = GetGraphBookingBusinessWorkingHours -Identity $identity
     $WorkingHours | Export-Excel -Path  $path -WorksheetName "Business" -BoldTopRow  -StartRow 25  -Title "Working Hours" -TableStyle Medium24 -AutoSize
-
 
     Write-Host "Exporting Staff"
     $Staff = Get-GraphBookingsStaff -Identity $identity
@@ -84,12 +84,10 @@ function ExcelWrite {
     $Services = Get-GraphBookingsServices -Identity $identity
     $Services | Export-Excel -Path  $path -WorksheetName "Services" -TableStyle Medium3 -AutoFilter -FreezeTopRow -BoldTopRow -MoveToEnd -AutoSize -Title "Services"
 
-
     Write-Host "Exporting Custom Questions"
     #Get-MgBookingBusinessCustomQuestion -BookingBusinessId $identity | Export-Excel -Path  $path -WorksheetName "Custom Questions" -AutoFilter -FreezeTopRow -BoldTopRow -MoveToEnd
     $CustomQuestions = Get-GraphBookingsCustomQuestions -Identity $identity
     $CustomQuestions | Export-Excel -Path  $path -WorksheetName "Custom Questions" -TableStyle Medium3 -AutoFilter -FreezeTopRow -BoldTopRow -MoveToEnd -AutoSize -Title "Custom Questions"
-
 
     Write-Host "Exporting MessageTrace for the past $($script:MessageTrackingDays) days"
     $script:MessageTrackingLogs | Export-Excel -Path  $path -WorksheetName "Message Traces" -AutoFilter -FreezeTopRow -BoldTopRow -MoveToEnd -AutoSize -TableStyle Medium3
@@ -123,4 +121,3 @@ function ExcelWrite {
 
     Write-Host -ForegroundColor Green "Exporting to Excel Completed. File saved at $path"
 }
-

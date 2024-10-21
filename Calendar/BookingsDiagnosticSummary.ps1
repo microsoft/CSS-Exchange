@@ -1,3 +1,5 @@
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
@@ -7,11 +9,12 @@
 #
 # .DESCRIPTION
 # This Exchange Online script runs the Get-BookingsDiagnosticSummary script and returns a summary of basic bookings tests on
-# a selected Bookings mailbox. The script will return the Bookings Mailbox, Staff, Services, Availability, Custom Questions,
-# as well as MessageTrace logs for the past 5 days. The script will also return the Staff Membership Log for the Bookings mailbox.
+# a selected Bookings mailbox. The script will return the Bookings Mailbox, Staff, Services, Custom Questions,
+# as well as MessageTrace logs for the past 5 days.
+# The script will also return the Staff Membership Log for the Bookings mailbox.
 #
 # .PARAMETER Identity
-# The Bookings mailbox SMTP address to query.
+# The Bookings mailbox SMTP address to query. (Mandatory)
 #
 # .PARAMETER Staff
 # Verify Staff permissions for the Bookings mailbox.
@@ -21,25 +24,21 @@
 #
 # .PARAMETER Graph
 # Use Graph API to get the Bookings mailbox, Staff, Services and Availiability.
+# This will require the Microsoft.Graph.Bookings and Microsoft.Graph.Authentication modules to be installed.
+# (For the rist run, the script will install the modules if they are not already installed,
+#  for this you need to run the script as an administrator)
 #
 # .PARAMETER GetMessageTrace
 # Get MessageTrace logs for the Bookings mailbox(Past 5 days).
 #
 # .PARAMETER ExportExcel
 # Export all data to Excel.
+# This will require the ImportExcel module to be installed.
+# (For the rist run, the script will install the module if not already installed,
+#  for this you need to run the script as an administrator)
 #
 # .EXAMPLE
 # Get-BookingsDiagnosticSummary.ps1 -Identity fooBooking@microsoft.com
-#
-# Get-BookingsDiagnosticSummary.ps1 -Identity fooBooking@microsoft.com -Staff
-#
-# Get-BookingsDiagnosticSummary.ps1 -Identity fooBooking@microsoft.com -StaffMembershipLog
-#
-# Get-BookingsDiagnosticSummary.ps1 -Identity fooBooking@microsoft.com -Graph
-#
-# Get-BookingsDiagnosticSummary.ps1 -Identity fooBooking@microsoft.com -GetMessageTrace
-#
-# Get-BookingsDiagnosticSummary.ps1 -Identity fooBooking@microsoft.com -ExportExcel
 #
 param
 (
@@ -66,7 +65,6 @@ param
     [bool]$ExportToExcel = $true
 
 )
-
 
 # ===================================================================================================
 # Auto update script
@@ -100,9 +98,6 @@ Write-Verbose "Script Versions: $BuildVersion"
 . $PSScriptRoot\CalLogHelpers\Write-DashLineBoxColor.ps1
 . $PSScriptRoot\CalLogHelpers\ExcelModuleInstaller.ps1
 
-
-
-
 # Populating Global Variables and getting general data
 
 # See if it is a Customer Tenant running the cmdlet. (They will not have access to Organization parameter)
@@ -113,7 +108,7 @@ $script:PadCharsMessage = 40
 $script:indent = "         "
 $script:MessageTrackingDays = 5
 
-IsGetMailboxAvailable
+CheckEXOConnection
 
 $script:Domain = SplitDomainFromEmail $identity -errorAction SilentlyContinue
 $script:OrgConfig=""
@@ -121,20 +116,17 @@ $script:OWAMBPolicy = ""
 $script:AcceptedDomains = ""
 $script:TenantSettings = GetBookingTenantSettings -Domain $script:Domain -ErrorAction SilentlyContinue
 
-#removed BMB variable, is unused
-#$script:BMB =""
 $script:bookingMBData = GetBookingMBData -Identity $identity -ErrorAction SilentlyContinue
 if ($StaffMembershipLog -eq $true) {
     $script:BookingStaffMembershipLog = GetStaffMembershipLogs -Identity $identity
 }
 
 $script:BookingStaffMembershipLogArray = GetMembershipLogArray  -Identity $identity
-$script:MessageTrackingLogs = Get-MessageTrackingLogs -identity $identity -ErrorAction SilentlyContinue
+$script:MessageTrackingLogs = GetMessageTrackingLog -identity $identity -ErrorAction SilentlyContinue
 
 $script:MBPermissions = Get-MBPermissions -Identity $identity -ErrorAction SilentlyContinue
 $script:MBRecipientPermissions = Get-MBRecipientPermissions -Identity $identity -ErrorAction SilentlyContinue
 $script:StaffData = Get-StaffData | Format-Table
-
 
 #start verifications
 RunTenantTests
@@ -143,7 +135,7 @@ if ($StaffMembershipLog -eq $true) {
     RunMBStaffLogValidation
 }
 
-If ($MessageTrace -eq $true) {
+if ($MessageTrace -eq $true) {
     RunMessageTrackingLogValidation
 }
 
@@ -155,13 +147,3 @@ if ($ExportToCSV -eq $true) {
 if ($ExportToExcel -eq $true) {
     ExcelWrite -identity $identity
 }
-
-
-
-
-
-
-
-
-
-

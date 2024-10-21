@@ -1,4 +1,7 @@
-﻿function Get-MessageTrackingLogs {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function GetMessageTrackingLog {
     param($identity)
     # Get the Message Tracking Log
     $dateNow = Get-Date

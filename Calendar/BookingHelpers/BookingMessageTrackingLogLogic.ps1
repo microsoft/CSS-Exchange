@@ -1,4 +1,7 @@
-﻿function RunMessageTrackingLogValidation {
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+function RunMessageTrackingLogValidation {
     [ref]$errorMessage = $null
     [ref]$writeMessageAlways = $false
     $testResult = $true
@@ -7,9 +10,8 @@
 
     $errorMessage = ""
     $testResult = CheckMessageTrackingLogs -errorMessage $errorMessage -writeMessageAlways $writeMessageAlways
-    WriteTestTitle "Collecting Message tracing logs " -success $testResult -errorMessage $errorMessage -writeMessageAlways $writeMessageAlways
+    WriteTestResult "Collecting Message tracing logs " -success $testResult -errorMessage $errorMessage -writeMessageAlways $writeMessageAlways
 }
-
 
 function CheckMessageTrackingLogs {
     param([ref]$errorMessage)
