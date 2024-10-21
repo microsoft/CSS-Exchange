@@ -48,3 +48,7 @@ Get-CalendarDiagnosticObjectsSummary.ps1 -Identity $Users -MeetingID $MeetingID 
 ```
 Will create file like  `.\123456_CalLogSummary_<MeetingID>.xlsx` in current directory.
 
+
+More Documentation on collecting CalLogs and Analyzing them:
+ [How to Get Calendar Logs](https://aka.ms/GetCalLogs)
+ [How to Analyze Calendar Logs](https://aka.ms/AnalyzeCalLogs)

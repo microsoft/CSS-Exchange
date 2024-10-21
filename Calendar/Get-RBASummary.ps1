@@ -532,9 +532,8 @@ function RBALogSummary {
 
     $RBALog = ((Export-MailboxDiagnosticLogs $Identity -ComponentName RBA).MailboxLog -split "`\n`\r").Trim()
 
-    Write-Host "`tFound $($RBALog.count) RBA Log entries in RBALog.  Summarizing Accepts, Declines, and Tentative meetings."
-
     if ($RBALog.count -gt 1) {
+        Write-Host "`tFound $($RBALog.count) RBA Log entries in RBALog.  Summarizing Accepts, Declines, and Tentative meetings."
         $Starts = $RBALog | Select-String -Pattern "START -"
         $FirstDate = "[Unknown]"
         $LastDate = "[Unknown]"
@@ -626,6 +625,8 @@ function RBALogSummary {
         Write-Host -ForegroundColor Cyan $Filename -NoNewline
         Write-Host "] in the current directory."
         $RBALog | Out-File $Filename
+
+        RBAPostScript
     } else {
         Write-Warning "No RBA Logs found.  Send a test meeting invite to the room and try again if this is a newly created room mailbox."
     }
@@ -768,5 +769,4 @@ RBADelegateSettings
 RBAPostProcessing
 VerbosePostProcessing
 RBALogSummary
-RBAPostScript
 Stop-Transcript

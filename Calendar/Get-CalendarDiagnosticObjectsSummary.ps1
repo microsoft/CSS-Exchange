@@ -83,11 +83,11 @@ if (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/CL-VersionsUrl" 
 }
 
 $script:command = $MyInvocation
-Write-Host -ForegroundColor Blue "The script was started with the following command line:"
-Write-Host -ForegroundColor Blue "Name:" $command.MyCommand.name
-Write-Host -ForegroundColor Blue "Command Line:" $command.line
-
-Write-Verbose "Script Versions: $BuildVersion"
+Write-Verbose "The script was started with the following command line:"
+Write-Verbose "Name: " $command.MyCommand.name
+Write-Verbose "Command Line: " $command.line
+Write-Verbose "Script Version: $BuildVersion"
+$script:BuildVersion = $BuildVersion
 
 # ===================================================================================================
 # Support scripts
@@ -168,7 +168,7 @@ if (-not ([string]::IsNullOrEmpty($Subject)) ) {
                     $ExceptionLogs = $LogToExamine | ForEach-Object {
                         $logLeftCount -= 1
                         Write-Verbose "Getting Exception Logs for [$($_.ItemId.ObjectId)]"
-                        Get-CalendarDiagnosticObjects -Identity $ID -ItemIds $_.ItemId.ObjectId -ShouldFetchRecurrenceExceptions $true -CustomPropertyNames $CustomPropertyNameList
+                        Get-CalendarDiagnosticObjects -Identity $ID -ItemIds $_.ItemId.ObjectId -ShouldFetchRecurrenceExceptions $true -CustomPropertyNames $CustomPropertyNameList -ShouldBindToItem $true
                         if ($logLeftCount % 20 -eq 0) {
                             Write-Host -ForegroundColor Cyan "`t [$($logLeftCount)] logs left to examine..."
                         }
@@ -196,8 +196,8 @@ if (-not ([string]::IsNullOrEmpty($Subject)) ) {
 }
 
 Write-DashLineBoxColor "Hope this script was helpful in getting and understanding the Calendar Logs.",
-"More Info on Getting the logs: https://learn.microsoft.com/en-us/exchange/troubleshoot/calendars/get-calendar-diagnostic-logs",
-"and on Analyzing the logs: https://learn.microsoft.com/en-us/exchange/troubleshoot/calendars/analyze-calendar-diagnostic-logs",
+"More Info on Getting the logs: https://aka.ms/GetCalLogs",
+"and on Analyzing the logs: https://aka.ms/AnalyzeCalLogs",
 "If you have issues or suggestion for this script, please send them to: ",
 "`t CalLogFormatterDevs@microsoft.com" -Color Yellow -DashChar "="
 
