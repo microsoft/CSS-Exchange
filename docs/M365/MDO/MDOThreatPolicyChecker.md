@@ -78,7 +78,7 @@ Add the parameter -IncludeMDOPolicies to view Microsoft Defender for Office 365 
 
 ![Policies, including MDO.](img/Show-Policies-Including-MDO.png)
 
-**Script Output 3: Parameters -EmailAddress and -IncludeMDOPoliciesEOP** specified to validate Microsoft Defender for Office 365 Safe Attachments and Safe Links policies, on top of Exchange Online Protection policies.
+**Script Output 3: Parameters -EmailAddress and -IncludeMDOPolicies** specified to validate Microsoft Defender for Office 365 Safe Attachments and Safe Links policies, on top of Exchange Online Protection policies.
 
 - ShowDetailedPolicies
 
