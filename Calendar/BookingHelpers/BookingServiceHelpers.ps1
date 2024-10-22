@@ -4,39 +4,39 @@
 function Get-GraphBookingsServices {
     param(
         [Parameter(Mandatory = $true)]
-        [string]$identity
+        [string]$Identity
     )
-    $GraphBookingBusiness = Get-MgBookingBusinessService -BookingBusinessId $identity
-    $MBStaff = Get-MgBookingBusinessStaffMember -BookingBusinessId $identity
+    $GraphBookingBusiness = Get-MgBookingBusinessService -BookingBusinessId $Identity
+    $MBStaff = Get-MgBookingBusinessStaffMember -BookingBusinessId $Identity
     $Services = @()
-    foreach ($service in $GraphBookingBusiness) {
+    foreach ($Service in $GraphBookingBusiness) {
         #determine serviceType
-        $serviceType = ""
-        if ($service.StaffMemberIds.Count -gt 1) {
-            $serviceType = "N"
+        $ServiceType = ""
+        if ($Service.StaffMemberIds.Count -gt 1) {
+            $ServiceType = "N"
         } else {
-            $serviceType = "1"
+            $ServiceType = "1"
         }
-        $serviceType+= ":"
-        if ($service.MaximumAttendeesCount -gt 1) {
-            $serviceType += "N"
+        $ServiceType+= ":"
+        if ($Service.MaximumAttendeesCount -gt 1) {
+            $ServiceType += "N"
         } else {
-            $serviceType += "1"
+            $ServiceType += "1"
         }
         #compose ServiceStaffIds
-        $ServicestaffIds = ""
-        foreach ($staffId in $service.StaffMemberIds) {
-            $ServicestaffIds += $staffId + "`r`n"
+        $ServiceStaffIds = ""
+        foreach ($StaffId in $Service.StaffMemberIds) {
+            $ServiceStaffIds += $StaffId + "`r`n"
         }
         $StaffName1 = ""
         $StaffName2 = ""
         $StaffName3 = ""
         $StaffName4 = ""
         $StaffName5 = ""
-        for ($i = 0; $i -lt $service.StaffMemberIds.Count; $i++) {
+        for ($I = 0; $I -lt $Service.StaffMemberIds.Count; $I++) {
             foreach ($StaffName in $MBStaff) {
-                if ($StaffName.Id -eq $service.StaffMemberIds[$i]) {
-                    switch ($i) {
+                if ($StaffName.Id -eq $Service.StaffMemberIds[$I]) {
+                    switch ($I) {
                         0 { $StaffName1 = $StaffName.AdditionalProperties["displayName"] }
                         1 { $StaffName2 = $StaffName.AdditionalProperties["displayName"] }
                         2 { $StaffName3 = $StaffName.AdditionalProperties["displayName"] }
@@ -48,32 +48,32 @@ function Get-GraphBookingsServices {
         }
 
         $Services += [PSCustomObject]@{
-            Id                    = $service.Id
-            ServiceType           = $serviceType
-            DisplayName           = $service.DisplayName
-            Description           = $service.Description
-            Duration              = $service.DefaultDuration
-            PreBuffer             = $service.PreBuffer
-            PostBuffer            = $service.PostBuffer
-            SchedulingPolicy      = $service.SchedulingPolicy | ConvertTo-Json -Depth 10
-            StaffMemberIds        = $ServicestaffIds
+            Id                    = $Service.Id
+            ServiceType           = $ServiceType
+            DisplayName           = $Service.DisplayName
+            Description           = $Service.Description
+            Duration              = $Service.DefaultDuration
+            PreBuffer             = $Service.PreBuffer
+            PostBuffer            = $Service.PostBuffer
+            SchedulingPolicy      = $Service.SchedulingPolicy | ConvertTo-Json -Depth 10
+            StaffMemberIds        = $ServiceStaffIds
             StaffName1            = $StaffName1
             StaffName2            = $StaffName2
             StaffName3            = $StaffName3
             StaffName4            = $StaffName4
             StaffName5            = $StaffName5
-            MaximumAttendeesCount = $service.MaximumAttendeesCount
-            CustomQuestions       = $service.CustomQuestions | ConvertTo-Json -Depth 10
-            DefaultReminders      = $service.DefaultReminders | ConvertTo-Json -Depth 10
-            IsHiddenFromCustomers = $service.IsHiddenFromCustomers
-            IsLocationOnline      = $service.IsLocationOnline
-            DefaultLocation       = $service.DefaultLocation | ConvertTo-Json -Depth 10
-            Notes                 = $service.Notes
-            LanguageTag           = $service.LanguageTag
-            CreatedDateTime       = $service.AdditionalProperties["createdDateTime"]
-            LastUpdatedDateTime   = $service.AdditionalProperties["lastUpdatedDateTime"]
-            Price                 = $service.AdditionalProperties["price"]
-            Currency              = $service.AdditionalProperties["currency"]
+            MaximumAttendeesCount = $Service.MaximumAttendeesCount
+            CustomQuestions       = $Service.CustomQuestions | ConvertTo-Json -Depth 10
+            DefaultReminders      = $Service.DefaultReminders | ConvertTo-Json -Depth 10
+            IsHiddenFromCustomers = $Service.IsHiddenFromCustomers
+            IsLocationOnline      = $Service.IsLocationOnline
+            DefaultLocation       = $Service.DefaultLocation | ConvertTo-Json -Depth 10
+            Notes                 = $Service.Notes
+            LanguageTag           = $Service.LanguageTag
+            CreatedDateTime       = $Service.AdditionalProperties["createdDateTime"]
+            LastUpdatedDateTime   = $Service.AdditionalProperties["lastUpdatedDateTime"]
+            Price                 = $Service.AdditionalProperties["price"]
+            Currency              = $Service.AdditionalProperties["currency"]
         }
     }
     return $Services

@@ -7,16 +7,16 @@ function Get-GraphBookingsCustomQuestions {
         [string]$Identity
     )
     $MBcustomQuestions = Get-MgBookingBusinessCustomQuestion -BookingBusinessId $Identity
-    $customQuestions = @()
-    foreach ($customQuestion in $MBcustomQuestions) {
-        $customQuestions += [PSCustomObject]@{
-            Id                  = $customQuestion.Id
-            DisplayName         = $customQuestion.DisplayName
-            AnswerInputType     = $customQuestion.AnswerInputType
-            Options             = $customQuestion.AnswerOptions | ConvertTo-Json -Depth 10
-            CreatedDateTime     = $customQuestion.AdditionalProperties["createdDateTime"]
-            LastUpdatedDateTime = $customQuestion.AdditionalProperties["lastUpdatedDateTime"]
+    $CustomQuestions = @()
+    foreach ($CustomQuestion in $MBcustomQuestions) {
+        $CustomQuestions += [PSCustomObject]@{
+            Id                  = $CustomQuestion.Id
+            DisplayName         = $CustomQuestion.DisplayName
+            AnswerInputType     = $CustomQuestion.AnswerInputType
+            Options             = $CustomQuestion.AnswerOptions | ConvertTo-Json -Depth 10
+            CreatedDateTime     = $CustomQuestion.AdditionalProperties["createdDateTime"]
+            LastUpdatedDateTime = $CustomQuestion.AdditionalProperties["lastUpdatedDateTime"]
         }
     }
-    return $customQuestions
+    return $CustomQuestions
 }

@@ -2,26 +2,26 @@
 # Licensed under the MIT License.
 
 function RunMessageTrackingLogValidation {
-    [ref]$errorMessage = $null
-    [ref]$writeMessageAlways = $false
-    $testResult = $true
+    [ref]$ErrorMessage = $null
+    [ref]$WriteMessageAlways = $false
+    $TestResult = $true
 
     Write-DashLineBoxColor "Running Message Tracking Log Validation" -Color Blue
 
-    $errorMessage = ""
-    $testResult = CheckMessageTrackingLogs -errorMessage $errorMessage -writeMessageAlways $writeMessageAlways
-    WriteTestResult "Collecting Message tracing logs " -success $testResult -errorMessage $errorMessage -writeMessageAlways $writeMessageAlways
+    $ErrorMessage = ""
+    $TestResult = CheckMessageTrackingLogs -errorMessage $ErrorMessage -writeMessageAlways $WriteMessageAlways
+    WriteTestResult "Collecting Message tracing logs " -success $TestResult -errorMessage $ErrorMessage -writeMessageAlways $WriteMessageAlways
 }
 
 function CheckMessageTrackingLogs {
-    param([ref]$errorMessage)
+    param([ref]$ErrorMessage)
     Write-Verbose "Collect Message tracking logs for Booking MB"
     if ($null -eq $script:MessageTrackingLogs) {
-        $errorMessage.Value ="Message Tracking Logs are null "
+        $ErrorMessage.Value ="Message Tracking Logs are null "
         return $false
     }
 
-    $errorMessage.Value ="Message Tracking Logs contains " + $script:MessageTrackingLogs.Count + " entries"
-    $writeMessageAlways.Value = $true
+    $ErrorMessage.Value ="Message Tracking Logs contains " + $script:MessageTrackingLogs.Count + " entries"
+    $WriteMessageAlways.Value = $true
     return $true
 }

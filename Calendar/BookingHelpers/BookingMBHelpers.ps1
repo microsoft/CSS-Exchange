@@ -12,7 +12,7 @@ function GetBookingMBData {
         return $null
     }
 
-    $bookingMBData = [PSCustomObject]@{
+    $BookingMBData = [PSCustomObject]@{
         DisplayName                   = $script:BMB.DisplayName
         Identity                      = $script:BMB.Identity
         RecipientType                 = $script:BMB.RecipientType  #: UserMailbox
@@ -29,7 +29,7 @@ function GetBookingMBData {
         Guid                          = $script:BMB.Guid
         OriginatingServer             = $script:BMB.OriginatingServer
     }
-    return $bookingMBData
+    return $BookingMBData
 }
 
 function GetGraphBookingBusiness {
@@ -72,10 +72,10 @@ function GetGraphBookingBusinessPage {
 
     $BookingBusinessArray =$null
     $BookingBusinessArray  = @()
-    foreach ( $pageSetting in $GraphBookingBusiness.AdditionalProperties.bookingPageSettings.Keys) {
+    foreach ( $PageSetting in $GraphBookingBusiness.AdditionalProperties.bookingPageSettings.Keys) {
         $BookingBusinessArray  += [PSCustomObject]@{
-            Key   = $pageSetting
-            Value = $GraphBookingBusiness.AdditionalProperties.bookingPageSettings[$pageSetting]
+            Key   = $PageSetting
+            Value = $GraphBookingBusiness.AdditionalProperties.bookingPageSettings[$PageSetting]
         }
     }
 
@@ -138,13 +138,13 @@ function GetGraphBookingBusinessWorkingHours {
         Saturday  = ""
         Sunday    = ""
     }
-    #need to run iteractive loop so that I get a 2Dimensional data array at the end with the string values usable by Excel Export Module
-    $max = 0
-    for ($i = 0; $i -le 7; $i++) {
-        $max = [System.Math]::Max($max, $GraphBookingBusiness.BusinessHours[0].TimeSlots.Count )
+    # need to run loop so that I get a 2Dimensional data array at the end with the string values usable by Excel Export Module
+    $Max = 0
+    for ($I = 0; $I -le 7; $I++) {
+        $Max = [System.Math]::Max($Max, $GraphBookingBusiness.BusinessHours[0].TimeSlots.Count )
     }
 
-    for ($i = 0; $i -le $max; $i++) {
+    for ($I = 0; $I -le $Max; $I++) {
         $Monday = ""
         $Tuesday = ""
         $Wednesday = ""
@@ -154,60 +154,60 @@ function GetGraphBookingBusinessWorkingHours {
         $Sunday = ""
 
         if ($GraphBookingBusiness.BusinessHours[0].TimeSlots) {
-            #ternary operator ? : only works on PS 7
-            #$Monday = $i -ge $GraphBookingBusiness.BusinessHours[0].TimeSlots.Count ? "": $GraphBookingBusiness.BusinessHours[0].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[0].TimeSlots[$i].EndTime.Substring(0, 8)
-            if ($i -ge $GraphBookingBusiness.BusinessHours[0].TimeSlots.Count) {
+            # ternary operator ? : only works on PS 7
+            # $Monday = $I -ge $GraphBookingBusiness.BusinessHours[0].TimeSlots.Count ? "": $GraphBookingBusiness.BusinessHours[0].TimeSlots[$I].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[0].TimeSlots[$I].EndTime.Substring(0, 8)
+            if ($I -ge $GraphBookingBusiness.BusinessHours[0].TimeSlots.Count) {
                 $Monday = ""
             } else {
-                $Monday = $GraphBookingBusiness.BusinessHours[0].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[0].TimeSlots[$i].EndTime.Substring(0, 8)
+                $Monday = $GraphBookingBusiness.BusinessHours[0].TimeSlots[$I].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[0].TimeSlots[$I].EndTime.Substring(0, 8)
             }
         }
         if ($GraphBookingBusiness.BusinessHours[1].TimeSlots) {
-            #$Tuesday = $i -ge $GraphBookingBusiness.BusinessHours[1].TimeSlots.Count  ? "": $GraphBookingBusiness.BusinessHours[1].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[1].TimeSlots[$i].EndTime.Substring(0, 8)
-            if ($i -ge $GraphBookingBusiness.BusinessHours[1].TimeSlots.Count) {
+            # $Tuesday = $I -ge $GraphBookingBusiness.BusinessHours[1].TimeSlots.Count  ? "": $GraphBookingBusiness.BusinessHours[1].TimeSlots[$I].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[1].TimeSlots[$I].EndTime.Substring(0, 8)
+            if ($I -ge $GraphBookingBusiness.BusinessHours[1].TimeSlots.Count) {
                 $Tuesday = ""
             } else {
-                $Tuesday = $GraphBookingBusiness.BusinessHours[1].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[1].TimeSlots[$i].EndTime.Substring(0, 8)
+                $Tuesday = $GraphBookingBusiness.BusinessHours[1].TimeSlots[$I].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[1].TimeSlots[$I].EndTime.Substring(0, 8)
             }
         }
         if ($GraphBookingBusiness.BusinessHours[2].TimeSlots) {
-            #$Wednesday = $i -ge $GraphBookingBusiness.BusinessHours[2].TimeSlots.Count  ? "": $GraphBookingBusiness.BusinessHours[2].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[2].TimeSlots[$i].EndTime.Substring(0, 8)
-            if ($i -ge $GraphBookingBusiness.BusinessHours[2].TimeSlots.Count) {
+            # $Wednesday = $I -ge $GraphBookingBusiness.BusinessHours[2].TimeSlots.Count  ? "": $GraphBookingBusiness.BusinessHours[2].TimeSlots[$I].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[2].TimeSlots[$I].EndTime.Substring(0, 8)
+            if ($I -ge $GraphBookingBusiness.BusinessHours[2].TimeSlots.Count) {
                 $Wednesday = ""
             } else {
-                $Wednesday = $GraphBookingBusiness.BusinessHours[2].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[2].TimeSlots[$i].EndTime.Substring(0, 8)
+                $Wednesday = $GraphBookingBusiness.BusinessHours[2].TimeSlots[$I].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[2].TimeSlots[$I].EndTime.Substring(0, 8)
             }
         }
         if ($GraphBookingBusiness.BusinessHours[3].TimeSlots) {
-            #$Thursday = $i -ge $GraphBookingBusiness.BusinessHours[3].TimeSlots.Count  ? "": $GraphBookingBusiness.BusinessHours[3].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[3].TimeSlots[$i].EndTime.Substring(0, 8)
-            if ($i -ge $GraphBookingBusiness.BusinessHours[3].TimeSlots.Count) {
+            # $Thursday = $I -ge $GraphBookingBusiness.BusinessHours[3].TimeSlots.Count  ? "": $GraphBookingBusiness.BusinessHours[3].TimeSlots[$I].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[3].TimeSlots[$I].EndTime.Substring(0, 8)
+            if ($I -ge $GraphBookingBusiness.BusinessHours[3].TimeSlots.Count) {
                 $Thursday = ""
             } else {
-                $Thursday = $GraphBookingBusiness.BusinessHours[3].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[3].TimeSlots[$i].EndTime.Substring(0, 8)
+                $Thursday = $GraphBookingBusiness.BusinessHours[3].TimeSlots[$I].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[3].TimeSlots[$I].EndTime.Substring(0, 8)
             }
         }
         if ($GraphBookingBusiness.BusinessHours[4].TimeSlots) {
-            #$Friday = $i -ge $GraphBookingBusiness.BusinessHours[4].TimeSlots.Count ? "": $GraphBookingBusiness.BusinessHours[4].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[4].TimeSlots[$i].EndTime.Substring(0, 8)
-            if ($i -ge $GraphBookingBusiness.BusinessHours[4].TimeSlots.Count) {
+            # $Friday = $I -ge $GraphBookingBusiness.BusinessHours[4].TimeSlots.Count ? "": $GraphBookingBusiness.BusinessHours[4].TimeSlots[$I].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[4].TimeSlots[$I].EndTime.Substring(0, 8)
+            if ($I -ge $GraphBookingBusiness.BusinessHours[4].TimeSlots.Count) {
                 $Friday = ""
             } else {
-                $Friday = $GraphBookingBusiness.BusinessHours[4].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[4].TimeSlots[$i].EndTime.Substring(0, 8)
+                $Friday = $GraphBookingBusiness.BusinessHours[4].TimeSlots[$I].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[4].TimeSlots[$I].EndTime.Substring(0, 8)
             }
         }
         if ($GraphBookingBusiness.BusinessHours[5].TimeSlots) {
-            #$Saturday = $i -ge $GraphBookingBusiness.BusinessHours[5].TimeSlots.Count ? "": $GraphBookingBusiness.BusinessHours[5].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[5].TimeSlots[$i].EndTime.Substring(0, 8)
-            if ($i -ge $GraphBookingBusiness.BusinessHours[5].TimeSlots.Count) {
+            # $Saturday = $I -ge $GraphBookingBusiness.BusinessHours[5].TimeSlots.Count ? "": $GraphBookingBusiness.BusinessHours[5].TimeSlots[$I].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[5].TimeSlots[$I].EndTime.Substring(0, 8)
+            if ($I -ge $GraphBookingBusiness.BusinessHours[5].TimeSlots.Count) {
                 $Saturday = ""
             } else {
-                $Saturday = $GraphBookingBusiness.BusinessHours[5].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[5].TimeSlots[$i].EndTime.Substring(0, 8)
+                $Saturday = $GraphBookingBusiness.BusinessHours[5].TimeSlots[$I].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[5].TimeSlots[$I].EndTime.Substring(0, 8)
             }
         }
         if ($GraphBookingBusiness.BusinessHours[6].TimeSlots) {
-            #$Sunday = $i -ge $GraphBookingBusiness.BusinessHours[6].TimeSlots.Count ? "": $GraphBookingBusiness.BusinessHours[6].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[6].TimeSlots[$i].EndTime.Substring(0, 8)
-            if ($i -ge $GraphBookingBusiness.BusinessHours[6].TimeSlots.Count) {
+            # $Sunday = $I -ge $GraphBookingBusiness.BusinessHours[6].TimeSlots.Count ? "": $GraphBookingBusiness.BusinessHours[6].TimeSlots[$I].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[6].TimeSlots[$I].EndTime.Substring(0, 8)
+            if ($I -ge $GraphBookingBusiness.BusinessHours[6].TimeSlots.Count) {
                 $Sunday = ""
             } else {
-                $Sunday = $GraphBookingBusiness.BusinessHours[6].TimeSlots[$i].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[6].TimeSlots[$i].EndTime.Substring(0, 8)
+                $Sunday = $GraphBookingBusiness.BusinessHours[6].TimeSlots[$I].StartTime.Substring(0, 8) + " to " + $GraphBookingBusiness.BusinessHours[6].TimeSlots[$I].EndTime.Substring(0, 8)
             }
         }
 

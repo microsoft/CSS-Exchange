@@ -13,15 +13,15 @@ function CheckGraphBookingsModuleInstalled {
     } else {
         # This is slow, to the tune of ~10 seconds, but much more complete.
         # Check if Microsoft.Graph.Bookings module is installed
-        $moduleInstalled = Get-Module -ListAvailable | Where-Object { $_.Name -eq 'Microsoft.Graph.Bookings' }
+        $ModuleInstalled = Get-Module -ListAvailable | Where-Object { $_.Name -eq 'Microsoft.Graph.Bookings' }
 
-        if ($moduleInstalled) {
+        if ($ModuleInstalled) {
             Write-Host "Microsoft.Graph.Bookings module is already installed."
         } else {
             # Check if running with administrator rights
-            $isAdministrator = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+            $IsAdministrator = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 
-            if (-not $isAdministrator) {
+            if (-not $IsAdministrator) {
                 Write-Host "Please run the script as an administrator to install the Microsoft.Graph.Bookings module."
                 exit
             }
@@ -48,15 +48,15 @@ function CheckGraphAuthModuleInstalled {
     } else {
         # This is slow, to the tune of ~10 seconds, but much more complete.
         # Check if Microsoft.Graph.Authentication module is installed
-        $moduleInstalled = Get-Module -ListAvailable | Where-Object { $_.Name -eq 'Microsoft.Graph.Authentication' }
+        $ModuleInstalled = Get-Module -ListAvailable | Where-Object { $_.Name -eq 'Microsoft.Graph.Authentication' }
 
-        if ($moduleInstalled) {
+        if ($ModuleInstalled) {
             Write-Host "Microsoft.Graph.Authentication module is already installed."
         } else {
             # Check if running with administrator rights
-            $isAdministrator = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+            $IsAdministrator = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 
-            if (-not $isAdministrator) {
+            if (-not $IsAdministrator) {
                 Write-Host "Please run the script as an administrator to install the Microsoft.Graph.Authentication module."
                 exit
             }

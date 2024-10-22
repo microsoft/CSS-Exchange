@@ -2,26 +2,26 @@
 # Licensed under the MIT License.
 
 function Get-MBPermissions {
-    param($identity)
+    param($Identity)
     # Get the Mailbox Permissions
-    $MBPermissions = Get-MailboxPermission -Identity $identity -ErrorAction SilentlyContinue
+    $MBPermissions = Get-MailboxPermission -Identity $Identity -ErrorAction SilentlyContinue
     return $MBPermissions
 }
 
 function Get-MBRecipientPermissions {
-    param($identity)
+    param($Identity)
     # Get the Mailbox Recipient Permissions
-    $MBRecipientPermissions = Get-RecipientPermission -Identity $identity -ErrorAction SilentlyContinue
+    $MBRecipientPermissions = Get-RecipientPermission -Identity $Identity -ErrorAction SilentlyContinue
     return $MBRecipientPermissions
 }
 
-function CheckMyBaseOptionsRBACRole($identity) {
-    $RBACRole = Get-ManagementRoleAssignment -RoleAssignee $identity -Role "MyBaseOptions" | Select-Object -Property RoleAssignee, Role
+function CheckMyBaseOptionsRBACRole($Identity) {
+    $RBACRole = Get-ManagementRoleAssignment -RoleAssignee $Identity -Role "MyBaseOptions" | Select-Object -Property RoleAssignee, Role
     return $RBACRole
 }
 
-function CheckPersistedCapabilities($identity) {
-    $PC = Get-Mailbox -Identity $identity | Select-Object -ExpandProperty PersistedCapabilities
+function CheckPersistedCapabilities($Identity) {
+    $PC = Get-Mailbox -Identity $Identity | Select-Object -ExpandProperty PersistedCapabilities
     return $PC
 }
 
@@ -30,25 +30,25 @@ function Get-GraphBookingsStaff {
         [string]$Identity
     )
 
-    $MBstaff = Get-MgBookingBusinessStaffMember -BookingBusinessId $identity
-    $staff = @()
-    foreach ($staffMember in $MBstaff) {
-        $staff += [PSCustomObject]@{
-            Id                                       = $staffMember.Id
-            displayName                              = $staffMember.AdditionalProperties["displayName"]
-            emailAddress                             = $staffMember.AdditionalProperties["emailAddress"]
-            availabilityIsAffectedByPersonalCalendar = $staffMember.AdditionalProperties["availabilityIsAffectedByPersonalCalendar"]
-            role                                     = $staffMember.AdditionalProperties["role"]
-            useBusinessHours                         = $staffMember.AdditionalProperties["useBusinessHours"]
-            isEmailNotificationEnabled               = $staffMember.AdditionalProperties["isEmailNotificationEnabled"]
-            membershipStatus                         = $staffMember.AdditionalProperties["membershipStatus"]
-            timeZone                                 = $staffMember.AdditionalProperties["timeZone"]
-            createdDateTime                          = $staffMember.AdditionalProperties["createdDateTime"]
-            lastUpdatedDateTime                      = $staffMember.AdditionalProperties["lastUpdatedDateTime"]
-            #workingHours is a complexobject type to write to excel, so, storing as JSON for easier visualization
-            workingHours                             = $staffMember.AdditionalProperties["workingHours"]  | ConvertTo-Json -Depth 10
+    $MBstaff = Get-MgBookingBusinessStaffMember -BookingBusinessId $Identity
+    $Staff = @()
+    foreach ($StaffMember in $MBstaff) {
+        $Staff += [PSCustomObject]@{
+            Id                                       = $StaffMember.Id
+            displayName                              = $StaffMember.AdditionalProperties["displayName"]
+            emailAddress                             = $StaffMember.AdditionalProperties["emailAddress"]
+            availabilityIsAffectedByPersonalCalendar = $StaffMember.AdditionalProperties["availabilityIsAffectedByPersonalCalendar"]
+            role                                     = $StaffMember.AdditionalProperties["role"]
+            useBusinessHours                         = $StaffMember.AdditionalProperties["useBusinessHours"]
+            isEmailNotificationEnabled               = $StaffMember.AdditionalProperties["isEmailNotificationEnabled"]
+            membershipStatus                         = $StaffMember.AdditionalProperties["membershipStatus"]
+            timeZone                                 = $StaffMember.AdditionalProperties["timeZone"]
+            createdDateTime                          = $StaffMember.AdditionalProperties["createdDateTime"]
+            lastUpdatedDateTime                      = $StaffMember.AdditionalProperties["lastUpdatedDateTime"]
+            # workingHours is a complex object type to write to excel, so, storing as JSON for easier visualization
+            workingHours                             = $StaffMember.AdditionalProperties["workingHours"]  | ConvertTo-Json -Depth 10
         }
     }
 
-    return $staff
+    return $Staff
 }

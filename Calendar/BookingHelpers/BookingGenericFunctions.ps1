@@ -2,21 +2,21 @@
 # Licensed under the MIT License.
 
 function SplitDomainFromEmail {
-    param([string] $email)
-    return [string]$email.Split("@")[1]
+    param([string] $Email)
+    return [string]$Email.Split("@")[1]
 }
 
 function SplitIdentityFromEmail {
-    param([string] $email)
-    return [string]$email.Split("@")[0]
+    param([string] $Email)
+    return [string]$Email.Split("@")[0]
 }
 
 function IsConsumerMailbox {
-    param([string]$identity)
+    param([string]$Identity)
 
     try {
-        $consumerMb = Get-ConsumerMailbox  $identity -ErrorAction Ignore
-        return [boolean]$consumerMb.IsProsumerConsumerMailbox -or $consumerMb.IsMigratedConsumerMailbox -or $consumerMb.IsPremiumConsumerMailbox
+        $ConsumerMb = Get-ConsumerMailbox  $Identity -ErrorAction Ignore
+        return [boolean]$ConsumerMb.IsProsumerConsumerMailbox -or $ConsumerMb.IsMigratedConsumerMailbox -or $ConsumerMb.IsPremiumConsumerMailbox
     } catch {
         return $false #consumer mailbox throws error if domain mailbox
     }
@@ -34,22 +34,22 @@ function CheckEXOConnection {
 
 function WriteTestResult {
     param(
-        [string]$title,
+        [string]$Title,
         [System.Boolean]$Success,
-        [string]$errorMessage,
-        [bool]$writeMessageAlways = $false
+        [string]$ErrorMessage,
+        [bool]$WriteMessageAlways = $false
     )
-    Write-Host  ($title.PadRight($script:PadCharsMessage) + " : ") -NoNewline
+    Write-Host  ($Title.PadRight($script:PadCharsMessage) + " : ") -NoNewline
     if ($Success) {
-        if ($writeMessageAlways) {
+        if ($WriteMessageAlways) {
             WriteGreenCheck
-            Write-Host (" (" + $errorMessage + " )") -ForegroundColor Yellow
+            Write-Host (" (" + $ErrorMessage + " )") -ForegroundColor Yellow
         } else {
             WriteGreenCheck -NewLine
         }
     } else {
         WriteRedX
-        Write-Host (" (" + $errorMessage + " )") -ForegroundColor Red
+        Write-Host (" (" + $ErrorMessage + " )") -ForegroundColor Red
     }
 }
 
@@ -58,7 +58,7 @@ function WriteGreenCheck {
         [parameter()]
         [switch]$NewLine
     )
-    $greenCheck = @{
+    $GreenCheck = @{
         Object          = [Char]8730
         ForegroundColor = 'Green'
         NoNewLine       = if ($NewLine.IsPresent) { $false } else { $true }
@@ -72,7 +72,7 @@ function WriteRedX {
         [switch]$NewLine
     )
 
-    $redX = @{
+    $RedX = @{
         Object          = [Char]10060
         ForegroundColor = 'Red'
         NoNewLine       = if ($NewLine.IsPresent) { $false } else { $true }
@@ -86,19 +86,19 @@ function Convert-ArrayToMultilineString {
     )
 
     # Initialize an empty string
-    $outputString = ""
+    $OutputString = ""
 
     # Loop through each row (key-value pair) of the array
-    foreach ($pair in $Array2D) {
+    foreach ($Pair in $Array2D) {
         # Ensure the array has exactly two elements (key and value)
-        if ($pair.Count -eq 2) {
+        if ($Pair.Count -eq 2) {
             # Append the key and value to the output string in "key: value" format
-            $outputString += "$($pair[0]): $($pair[1])`n"
+            $OutputString += "$($Pair[0]): $($Pair[1])`n"
         } else {
-            Write-Warning "Array row does not have exactly 2 elements: $pair"
+            Write-Warning "Array row does not have exactly 2 elements: $Pair"
         }
     }
 
     # Return the multi-line string
-    return $outputString.TrimEnd("`n")
+    return $OutputString.TrimEnd("`n")
 }

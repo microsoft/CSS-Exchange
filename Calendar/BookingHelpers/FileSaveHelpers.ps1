@@ -1,40 +1,40 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-function BaseFileName([string]$identity, [string]$suffix) {
-    $smtp = $identity.Split('@')[0]
-    $smtp = $smtp -replace '[\\/:*?"<>|]', ''
-    $date = Get-Date -Format "yyyyMMdd"
-    $hour = Get-Date -Format "HHmm"
-    if ([string]::IsNullOrEmpty($suffix)) {
-        $file = $date + "_" + $hour + "_" + $smtp
+function BaseFileName([string]$Identity, [string]$Suffix) {
+    $Smtp = $Identity.Split('@')[0]
+    $Smtp = $Smtp -replace '[\\/:*?"<>|]', ''
+    $Date = Get-Date -Format "yyyyMMdd"
+    $Hour = Get-Date -Format "HHmm"
+    if ([string]::IsNullOrEmpty($Suffix)) {
+        $File = $Date + "_" + $Hour + "_" + $Smtp
     } else {
-        $file = $date + "_" + $hour + "_" + $smtp + "_" + $suffix
+        $File = $Date + "_" + $Hour + "_" + $Smtp + "_" + $Suffix
     }
-    return $file
+    return $File
 }
 
-function CSVFilename([string]$identity, [string]$suffix) {
-    return (BaseFileName $identity $suffix) + ".csv"
+function CSVFilename([string]$Identity, [string]$Suffix) {
+    return (BaseFileName $Identity $Suffix) + ".csv"
 }
 
-function XLSXFilename([string]$identity) {
-    return (BaseFileName $identity $suffix) + ".xlsx"
+function XLSXFilename([string]$Identity) {
+    return (BaseFileName $Identity $Suffix) + ".xlsx"
 }
 
-function SaveDataAsCSV([string]$identity) {
-    $filename = CSVFilename -Identity $identity -suffix "TenantSettings"
-    $script:TenantSettings | Export-Csv -Path $filename -NoTypeInformation -ErrorAction SilentlyContinue
+function SaveDataAsCSV([string]$Identity) {
+    $Filename = CSVFilename -Identity $Identity -suffix "TenantSettings"
+    $script:TenantSettings | Export-Csv -Path $Filename -NoTypeInformation -ErrorAction SilentlyContinue
 
-    $filename = CSVFilename -identity $identity -suffix "MBData"
-    $script:bookingMBData | Export-Csv -Path $filename -NoTypeInformation -ErrorAction SilentlyContinue
+    $Filename = CSVFilename -identity $Identity -suffix "MBData"
+    $script:BookingMBData | Export-Csv -Path $Filename -NoTypeInformation -ErrorAction SilentlyContinue
 
-    $filename = CSVFilename -identity $identity -suffix "StaffMembershipLog"
-    $script:BookingStaffMembershipLogArray | Export-Csv -Path $filename -NoTypeInformation -ErrorAction SilentlyContinue
+    $Filename = CSVFilename -identity $Identity -suffix "StaffMembershipLog"
+    $script:BookingStaffMembershipLogArray | Export-Csv -Path $Filename -NoTypeInformation -ErrorAction SilentlyContinue
 
-    $filename = CSVFilename -identity $identity -suffix "MTLogs"
-    $script:MessageTrackingLogs | Export-Csv -Path $filename -NoTypeInformation -ErrorAction SilentlyContinue
+    $Filename = CSVFilename -identity $Identity -suffix "MTLogs"
+    $script:MessageTrackingLogs | Export-Csv -Path $Filename -NoTypeInformation -ErrorAction SilentlyContinue
 
-    $filename = CSVFilename -identity $identity -suffix "StaffData"
-    $script:StaffData | Export-Csv -Path $filename -NoTypeInformation -ErrorAction SilentlyContinue
+    $Filename = CSVFilename -identity $Identity -suffix "StaffData"
+    $script:StaffData | Export-Csv -Path $Filename -NoTypeInformation -ErrorAction SilentlyContinue
 }

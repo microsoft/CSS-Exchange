@@ -20,9 +20,9 @@
 # Get the Staff Membership Log for the Bookings mailbox.
 #
 # .PARAMETER Graph
-# Use Graph API to get the Bookings mailbox, Staff, Services and Availiability.
+# Use Graph API to get the Bookings mailbox, Staff, Services and Availability.
 # This will require the Microsoft.Graph.Bookings and Microsoft.Graph.Authentication modules to be installed.
-# (For the rist run, the script will install the modules if they are not already installed,
+# (For the first run, the script will install the modules if they are not already installed,
 #  for this you need to run the script as an administrator)
 #
 # .PARAMETER GetMessageTrace
@@ -31,7 +31,7 @@
 # .PARAMETER ExportExcel
 # Export all data to Excel.
 # This will require the ImportExcel module to be installed.
-# (For the rist run, the script will install the module if not already installed,
+# (For the first run, the script will install the module if not already installed,
 #  for this you need to run the script as an administrator)
 #
 # .EXAMPLE
@@ -41,7 +41,7 @@ param
 (
     [Parameter(Position=0, Mandatory=$False, HelpMessage="Specifies the Bookings mailbox to be accessed.")]
     [ValidateNotNullOrEmpty()]
-    [string]$identity,
+    [string]$Identity,
 
     [Parameter(Position=1, Mandatory=$False, HelpMessage="Verify Staff permissions for the Bookings mailbox.")]
     [bool]$Staff=$true,
@@ -49,7 +49,7 @@ param
     [Parameter(Position=2, Mandatory=$False, HelpMessage="Get the Staff Membership Log for the Bookings mailbox.")]
     [bool]$StaffMembershipLog = $true,
 
-    [Parameter(Position=3, Mandatory=$False, HelpMessage="Use Graph API to get the Bookings mailbox, Staff, Services and Availiability.")]
+    [Parameter(Position=3, Mandatory=$False, HelpMessage="Use Graph API to get the Bookings mailbox, Staff, Services and Availability.")]
     [bool]$Graph = $true,
 
     [Parameter(Position=4, Mandatory=$False, HelpMessage="Get MessageTrace logs for the Bookings mailbox(Past 5 days).")]
@@ -107,22 +107,22 @@ $script:MessageTrackingDays = 5
 
 CheckEXOConnection
 
-$script:Domain = SplitDomainFromEmail $identity -errorAction SilentlyContinue
+$script:Domain = SplitDomainFromEmail $Identity -errorAction SilentlyContinue
 $script:OrgConfig=""
-$script:OWAMBPolicy = ""
+$script:OwaMailboxPolicy = ""
 $script:AcceptedDomains = ""
 $script:TenantSettings = GetBookingTenantSettings -Domain $script:Domain -ErrorAction SilentlyContinue
 
-$script:bookingMBData = GetBookingMBData -Identity $identity -ErrorAction SilentlyContinue
+$script:BookingMBData = GetBookingMBData -Identity $Identity -ErrorAction SilentlyContinue
 if ($StaffMembershipLog -eq $true) {
-    $script:BookingStaffMembershipLog = GetStaffMembershipLogs -Identity $identity
+    $script:BookingStaffMembershipLog = GetStaffMembershipLogs -Identity $Identity
 }
 
-$script:BookingStaffMembershipLogArray = GetMembershipLogArray  -Identity $identity
-$script:MessageTrackingLogs = GetMessageTrackingLog -identity $identity -ErrorAction SilentlyContinue
+$script:BookingStaffMembershipLogArray = GetMembershipLogArray  -Identity $Identity
+$script:MessageTrackingLogs = GetMessageTrackingLog -identity $Identity -ErrorAction SilentlyContinue
 
-$script:MBPermissions = Get-MBPermissions -Identity $identity -ErrorAction SilentlyContinue
-$script:MBRecipientPermissions = Get-MBRecipientPermissions -Identity $identity -ErrorAction SilentlyContinue
+$script:MBPermissions = Get-MBPermissions -Identity $Identity -ErrorAction SilentlyContinue
+$script:MBRecipientPermissions = Get-MBRecipientPermissions -Identity $Identity -ErrorAction SilentlyContinue
 $script:StaffData = Get-StaffData | Format-Table
 
 # ===================================================================================================
@@ -140,9 +140,9 @@ if ($MessageTrace -eq $true) {
 
 # Start data collection
 if ($ExportToCSV -eq $true) {
-    saveDataAsCSV -Identity $identity
+    saveDataAsCSV -Identity $Identity
 }
 
 if ($ExportToExcel -eq $true) {
-    ExcelWrite -identity $identity
+    ExcelWrite -identity $Identity
 }

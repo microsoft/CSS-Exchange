@@ -2,31 +2,31 @@
 # Licensed under the MIT License.
 
 function GetBookingTenantSettings {
-    param([string] $domain)
+    param([string] $Domain)
 
     if ($script:MSSupport) {
-        $script:OrgConfig = Get-OrganizationConfig -Organization $domain
-        $script:OWAMBPolicy = Get-OwaMailboxPolicy -Organization $domain
-        $script:AcceptedDomains = Get-AcceptedDomain -Organization $domain
+        $script:OrgConfig = Get-OrganizationConfig -Organization $Domain
+        $script:OwaMailboxPolicy = Get-OwaMailboxPolicy -Organization $Domain
+        $script:AcceptedDomains = Get-AcceptedDomain -Organization $Domain
     } else {
         $script:OrgConfig = Get-OrganizationConfig
-        $script:OWAMBPolicy = Get-OwaMailboxPolicy
+        $script:OwaMailboxPolicy = Get-OwaMailboxPolicy
         $script:AcceptedDomains = Get-AcceptedDomain
     }
-    $ewsSettings = GetEWSSettings $script:OrgConfig
-    $bookingsSettings =  $script:OrgConfig
-    $OWAMBPolicy =  $script:OWAMBPolicy
-    $acceptedDomains = GetAcceptedDomains $script:AcceptedDomains
+    $EwsSettings = GetEWSSettings $script:OrgConfig
+    $BookingsSettings =  $script:OrgConfig
+    $OwaMailboxPolicy =  $script:OwaMailboxPolicy
+    $AcceptedDomains = GetAcceptedDomains $script:AcceptedDomains
     # Define the structure of the tenant settings
     $TenantSettings = [PSCustomObject]@{
-        Identity         = $org.Identity
-        Guid             = $org.Guid
-        DisplayName      = $org.DisplayName
-        IsDeHydrated     = $org.IsDeHydrated
-        EWSSettings      = $ewsSettings
-        BookingsSettings = $bookingsSettings
-        OWAMBPolicy      = $OWAMBPolicy
-        AcceptedDomains  = $acceptedDomains
+        Identity         = $Org.Identity
+        Guid             = $Org.Guid
+        DisplayName      = $Org.DisplayName
+        IsDeHydrated     = $Org.IsDeHydrated
+        EWSSettings      = $EwsSettings
+        BookingsSettings = $BookingsSettings
+        OwaMailboxPolicy = $OwaMailboxPolicy
+        AcceptedDomains  = $AcceptedDomains
     }
 
     # Return the tenant settings
@@ -34,13 +34,13 @@ function GetBookingTenantSettings {
 }
 
 function GetEWSSettings {
-    param($org)
+    param($Org)
     # Define the structure of the EWS settings
     $EwsSettings = [PSCustomObject]@{
-        EwsAllowList               =$org.EwsAllowList
-        EwsApplicationAccessPolicy =$org.EwsApplicationAccessPolicy
-        EwsBlockList               =$org.EwsBlockList
-        EwsEnabled                 =$org.EwsEnabled
+        EwsAllowList               =$Org.EwsAllowList
+        EwsApplicationAccessPolicy =$Org.EwsApplicationAccessPolicy
+        EwsBlockList               =$Org.EwsBlockList
+        EwsEnabled                 =$Org.EwsEnabled
     }
 
     # Return the EWS settings
@@ -73,33 +73,33 @@ function GetBookingsSettings {
         IsTenantInGracePeriod                       =$OrgConfig.IsTenantInGracePeriod
         IsTenantAccessBlocked                       =$OrgConfig.IsTenantAccessBlocked
         IsDehydrated                                =$OrgConfig.IsDehydrated
-        ServicePlan                                 =$OrgConfig.ServicePlan #check doc for serviceplans accepting Bookings4
+        ServicePlan                                 =$OrgConfig.ServicePlan #check doc for service plans accepting Bookings4
     }
 
     # Return the Bookings settings
     return $BookingsSettings
 }
 
-function GetOWAMBPolicy {
-    param($policy)
+function GetOwaMailboxPolicy {
+    param($Policy)
     # Define the structure of the OWA mailbox policy
-    $OWAMBPolicy = [PSCustomObject]@{
-        BookingsMailboxCreationEnabled = $policy.BookingsMailboxCreationEnabled
-        BookingsMailboxDomain          = $policy.BookingsMailboxDomain
+    $OwaMailboxPolicy = [PSCustomObject]@{
+        BookingsMailboxCreationEnabled = $Policy.BookingsMailboxCreationEnabled
+        BookingsMailboxDomain          = $Policy.BookingsMailboxDomain
     }
 
     # Return the OWA mailbox policy
-    return $OWAMBPolicy
+    return $OwaMailboxPolicy
 }
 
 function GetAcceptedDomains {
-    param($domains)
+    param($Domains)
 
     # Define the structure of the accepted domains
     $AcceptedDomains = [PSCustomObject]@{
-        DomainName         = $domains.DomainName
-        Default            = $domains.Default
-        AuthenticationType = $domains.AuthenticationType
+        DomainName         = $Domains.DomainName
+        Default            = $Domains.Default
+        AuthenticationType = $Domains.AuthenticationType
     }
 
     # Return the accepted domains
