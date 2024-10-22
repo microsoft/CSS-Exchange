@@ -80,6 +80,7 @@ nav:
     - MDO:
       - MDOThreatPolicyChecker: M365/MDO/MDOThreatPolicyChecker.md
     - DLT365Groupsupgrade: M365/DLT365Groupsupgrade.md
+    - Get-LargeMailboxFolderStatistics: M365/Get-LargeMailboxFolderStatistics.md
   - Performance:
     - ExPerfWiz: Performance/ExPerfWiz.md
     - ExPerfAnalyzer: Performance/ExPerfAnalyzer.md
