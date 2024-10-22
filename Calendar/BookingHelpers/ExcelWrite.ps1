@@ -1,9 +1,9 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#========================
-#Excel needs Scriptlets helper functions to be loaded, in order to have access to graph and install Export-Excel module
-#========================
+# ========================
+# Excel needs Scriptlets helper functions to be loaded, in order to have access to graph and install Export-Excel module.
+# ========================
 
 . $PSScriptRoot\GraphInstaller.ps1
 . $PSScriptRoot\BookingGenericFunctions.ps1

@@ -8,7 +8,7 @@ function Get-GraphBookingsServices {
     )
     $GraphBookingBusiness = Get-MgBookingBusinessService -BookingBusinessId $identity
     $MBStaff = Get-MgBookingBusinessStaffMember -BookingBusinessId $identity
-    $services = @()
+    $Services = @()
     foreach ($service in $GraphBookingBusiness) {
         #determine serviceType
         $serviceType = ""
@@ -24,30 +24,30 @@ function Get-GraphBookingsServices {
             $serviceType += "1"
         }
         #compose ServiceStaffIds
-        $serviceStaffIds = ""
+        $ServicestaffIds = ""
         foreach ($staffId in $service.StaffMemberIds) {
-            $serviceStaffIds += $staffId + "`r`n"
+            $ServicestaffIds += $staffId + "`r`n"
         }
-        $staffName1 = ""
-        $staffName2 = ""
-        $staffName3 = ""
-        $staffName4 = ""
-        $staffName5 = ""
+        $StaffName1 = ""
+        $StaffName2 = ""
+        $StaffName3 = ""
+        $StaffName4 = ""
+        $StaffName5 = ""
         for ($i = 0; $i -lt $service.StaffMemberIds.Count; $i++) {
-            foreach ($staffName in $MBStaff) {
-                if ($staffName.Id -eq $service.StaffMemberIds[$i]) {
+            foreach ($StaffName in $MBStaff) {
+                if ($StaffName.Id -eq $service.StaffMemberIds[$i]) {
                     switch ($i) {
-                        0 { $staffName1 = $staffName.AdditionalProperties["displayName"] }
-                        1 { $staffName2 = $staffName.AdditionalProperties["displayName"] }
-                        2 { $staffName3 = $staffName.AdditionalProperties["displayName"] }
-                        3 { $staffName4 = $staffName.AdditionalProperties["displayName"] }
-                        4 { $staffName5 = $staffName.AdditionalProperties["displayName"] }
+                        0 { $StaffName1 = $StaffName.AdditionalProperties["displayName"] }
+                        1 { $StaffName2 = $StaffName.AdditionalProperties["displayName"] }
+                        2 { $StaffName3 = $StaffName.AdditionalProperties["displayName"] }
+                        3 { $StaffName4 = $StaffName.AdditionalProperties["displayName"] }
+                        4 { $StaffName5 = $StaffName.AdditionalProperties["displayName"] }
                     }
                 }
             }
         }
 
-        $services += [PSCustomObject]@{
+        $Services += [PSCustomObject]@{
             Id                    = $service.Id
             ServiceType           = $serviceType
             DisplayName           = $service.DisplayName
@@ -56,12 +56,12 @@ function Get-GraphBookingsServices {
             PreBuffer             = $service.PreBuffer
             PostBuffer            = $service.PostBuffer
             SchedulingPolicy      = $service.SchedulingPolicy | ConvertTo-Json -Depth 10
-            StaffMemberIds        = $serviceStaffIds
-            StaffName1            = $staffName1
-            StaffName2            = $staffName2
-            StaffName3            = $staffName3
-            StaffName4            = $staffName4
-            StaffName5            = $staffName5
+            StaffMemberIds        = $ServicestaffIds
+            StaffName1            = $StaffName1
+            StaffName2            = $StaffName2
+            StaffName3            = $StaffName3
+            StaffName4            = $StaffName4
+            StaffName5            = $StaffName5
             MaximumAttendeesCount = $service.MaximumAttendeesCount
             CustomQuestions       = $service.CustomQuestions | ConvertTo-Json -Depth 10
             DefaultReminders      = $service.DefaultReminders | ConvertTo-Json -Depth 10
@@ -76,5 +76,5 @@ function Get-GraphBookingsServices {
             Currency              = $service.AdditionalProperties["currency"]
         }
     }
-    return $services
+    return $Services
 }

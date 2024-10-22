@@ -88,9 +88,9 @@ Write-Verbose "Script Versions: $BuildVersion"
 . $PSScriptRoot\BookingHelpers\BookingMessageTrackingLogLogic.ps1
 . $PSScriptRoot\BookingHelpers\BookingStaffHelpers.ps1
 . $PSScriptRoot\BookingHelpers\BookingStaffLogic.ps1
-. $PSScriptRoot\BookingHelpers\bookingStaffLogHelper.ps1
-. $PSScriptRoot\BookingHelpers\bookingStaffLogLogic.ps1
-. $PSScriptRoot\BookingHelpers\fileSaveHelpers.ps1
+. $PSScriptRoot\BookingHelpers\BookingStaffLogHelper.ps1
+. $PSScriptRoot\BookingHelpers\BookingStaffLogLogic.ps1
+. $PSScriptRoot\BookingHelpers\FileSaveHelpers.ps1
 . $PSScriptRoot\BookingHelpers\ExcelWrite.ps1
 . $PSScriptRoot\CalLogHelpers\Write-DashLineBoxColor.ps1
 . $PSScriptRoot\CalLogHelpers\ExcelModuleInstaller.ps1
@@ -125,7 +125,9 @@ $script:MBPermissions = Get-MBPermissions -Identity $identity -ErrorAction Silen
 $script:MBRecipientPermissions = Get-MBRecipientPermissions -Identity $identity -ErrorAction SilentlyContinue
 $script:StaffData = Get-StaffData | Format-Table
 
-#start verifications
+# ===================================================================================================
+# Start verifications
+# ===================================================================================================
 RunTenantTests
 RunMBTests
 if ($StaffMembershipLog -eq $true) {
@@ -136,7 +138,7 @@ if ($MessageTrace -eq $true) {
     RunMessageTrackingLogValidation
 }
 
-#start data collection
+# Start data collection
 if ($ExportToCSV -eq $true) {
     saveDataAsCSV -Identity $identity
 }

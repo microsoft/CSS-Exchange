@@ -40,11 +40,11 @@ Example to perform tests without collecting Message Traces:
 BookingsDiagnosticSummary.ps1 -Identity booking@contoso.com -MessageTrace $false
 ```
 
-Export CalLogs to Excel, but skip CSV files creation:
+Export test results to Excel, but skip CSV files creation:
 
 ```PowerShell
 BookingsDiagnosticSummary.ps1 -Identity booking@contoso.com -ExportCSV $false
 ```
 
-Will create file like  `.\BookingsSummary_<BookingSMTP>_yyy-MM-dd_HHmm.xlsx` in current directory.
+Will create file like  `.\BookingsSummary_<BookingSMTP>_yyyy-MM-dd_HHmm.xlsx` in current directory.
 `<BookingSMTP>` will be the left part of the @ from the email. I.e. booking@contoso.com returns booking.

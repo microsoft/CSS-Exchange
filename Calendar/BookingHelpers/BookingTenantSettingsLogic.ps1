@@ -21,8 +21,8 @@ function RunTenantTests {
     $testResult = CheckEWSAccessPolicy -errorMessage $errorMessage -writeMessageAlways $writeMessageAlways
     WriteTestResult -title "Check EWS Access Policy" -success $testResult -errorMessage $errorMessage -writeMessageAlways $true
     #dump allow/block list data below, indented
-    writeEWSAllowList
-    writeEWSBlockList
+    WriteEWSAllowList
+    WriteEWSBlockList
 
     $testResult = CheckOWAMailboxPolicyMailboxCreationEnabled -errorMessage $errorMessage
     WriteTestResult "Mailbox Creation is enabled" -success $testResult -errorMessage $errorMessage
@@ -97,14 +97,14 @@ function CheckEWSAccessPolicy {
     return $true
 }
 
-function writeEWSAllowList {
+function WriteEWSAllowList {
     $indent = "         "
     if ($script:TenantSettings.EwsApplicationAccessPolicy -eq "EnforceAllowList") {
         $script:TenantSettings.EwsAllowList | ForEach-Object { Write-Output "$indent$_" }
     }
 }
 
-function writeEWSBlockList {
+function WriteEWSBlockList {
     $indent = "         "
     if ($script:TenantSettings.EwsApplicationAccessPolicy -eq "EnforceBlockList") {
         $script:TenantSettings.EwsBlockList | ForEach-Object { Write-Output "$indent$_" }

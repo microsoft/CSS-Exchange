@@ -33,7 +33,12 @@ function CheckEXOConnection {
 }
 
 function WriteTestResult {
-    param([string]$title, [System.Boolean]$Success, [string]$errorMessage, [bool]$writeMessageAlways = $false)
+    param(
+        [string]$title,
+        [System.Boolean]$Success,
+        [string]$errorMessage,
+        [bool]$writeMessageAlways = $false
+    )
     Write-Host  ($title.PadRight($script:PadCharsMessage) + " : ") -NoNewline
     if ($Success) {
         if ($writeMessageAlways) {
