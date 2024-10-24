@@ -47,7 +47,7 @@ function Get-ExchangeAuthCertificateStatus {
         $allMailboxServers = Get-ExchangeServer | Where-Object {
             ((($_.IsMailboxServer) -or
             ($_.IsClientAccessServer)) -and
-            ($_.AdminDisplayVersion -Match "^Version 15"))
+            ($_.AdminDisplayVersion -match "^Version 15"))
         }
 
         $multipleExchangeSites = (($allMailboxServers.Site.Name | Sort-Object -Unique).Count -gt 1)

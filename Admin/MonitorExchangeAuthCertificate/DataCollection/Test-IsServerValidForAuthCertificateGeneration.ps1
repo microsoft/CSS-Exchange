@@ -22,7 +22,7 @@ function Test-IsServerValidForAuthCertificateGeneration {
         $exchangeServerDetails = Get-ExchangeServer -Identity $ComputerName -ErrorAction Stop
 
         if (($exchangeServerDetails.IsMailboxServer) -and
-            (($exchangeServerDetails.AdminDisplayVersion -Match "^Version 15"))) {
+            (($exchangeServerDetails.AdminDisplayVersion -match "^Version 15"))) {
             Write-Verbose ("Exchange Server role and version is VALID to renew the Auth Certificate")
             $isValid = $true
         } else {

@@ -20,11 +20,11 @@ Set-StrictMode -Version Latest
 . $PSScriptRoot\CodeFormatterChecks\CheckMultipleEmptyLines.ps1
 . $PSScriptRoot\CodeFormatterChecks\CheckScriptFileHasBOM.ps1
 . $PSScriptRoot\CodeFormatterChecks\CheckScriptFileHasComplianceHeader.ps1
-. $PSScriptRoot\CodeFormatterChecks\CheckKeywordCasing.ps1
 . $PSScriptRoot\CodeFormatterChecks\CheckScriptFormat.ps1
+. $PSScriptRoot\CodeFormatterChecks\CheckTokenTypeCasing.ps1
 . $PSScriptRoot\HelpFunctions\Get-CommitFilesOnBranch.ps1
 
-if (-not (Load-Module -Name PSScriptAnalyzer -MinimumVersion "1.21")) {
+if (-not (Load-Module -Name PSScriptAnalyzer -MinimumVersion "1.23")) {
     throw "PSScriptAnalyzer module could not be loaded"
 }
 
@@ -68,7 +68,8 @@ foreach ($fileInfo in $filesToCheck) {
     $errorCount += (CheckMarkdownFileHasNoBOM $fileInfo $Save) ? 1 : 0
     $errorCount += (CheckScriptFileHasBOM $fileInfo $Save) ? 1 : 0
     $errorCount += (CheckScriptFileHasComplianceHeader $fileInfo $Save) ? 1 : 0
-    $errorCount += (CheckKeywordCasing $fileInfo $Save) ? 1 : 0
+    $errorCount += (CheckTokenTypeCasing $fileInfo $Save "Keyword") ? 1 : 0
+    $errorCount += (CheckTokenTypeCasing $fileInfo $Save "Operator") ? 1 : 0
     $errorCount += (CheckMultipleEmptyLines $fileInfo $Save) ?  1 : 0
     $errorCount += (CheckContainsCurlyQuotes $fileInfo $Save) ? 1 : 0
 
