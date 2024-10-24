@@ -539,8 +539,8 @@ function RBALogSummary {
         $LastDate = "[Unknown]"
 
         if ($starts.count -gt 1) {
-            $LastDate = ($Starts[0] -Split ",")[0].Trim()
-            $FirstDate = ($starts[$($Starts.count) -1 ] -Split ",")[0].Trim()
+            $LastDate = ($Starts[0] -split ",")[0].Trim()
+            $FirstDate = ($starts[$($Starts.count) -1 ] -split ",")[0].Trim()
             Write-Host "`tThe RBA Log for [$Identity] shows the following:"
             Write-Host "`t $($starts.count) Processed events times between $FirstDate and $LastDate"
         }
@@ -555,19 +555,19 @@ function RBALogSummary {
         $Cancellations = $RBALog | Select-String -Pattern "It's a meeting cancellation."
 
         if ($AcceptLogs.count -ne 0) {
-            $LastAccept = ($AcceptLogs[0] -Split ",")[0].Trim()
+            $LastAccept = ($AcceptLogs[0] -split ",")[0].Trim()
             Write-Host "`t $($AcceptLogs.count) were Accepted between $FirstDate and $LastDate"
             Write-Host "`t`t with the last meeting Accepted on $LastAccept"
         }
 
         if ($TentativeLogs.count -ne 0) {
-            $LastTentative = ($TentativeLogs[0] -Split ",")[0].Trim()
+            $LastTentative = ($TentativeLogs[0] -split ",")[0].Trim()
             Write-Host "`t $($TentativeLogs.count) Tentatively Accepted meetings between $FirstDate and $LastDate"
             Write-Host "`t`t with the last meeting Tentatively Accepted on $LastTentative"
         }
 
         if ($DeclineLogs.count -ne 0) {
-            $LastDecline = ($DeclineLogs[0] -Split ",")[0].Trim()
+            $LastDecline = ($DeclineLogs[0] -split ",")[0].Trim()
             Write-Host "`t $($DeclineLogs.count) Declined meetings between $FirstDate and $LastDate"
             Write-Host "`t`t with the last meeting Declined on $LastDecline"
         }
@@ -577,7 +577,7 @@ function RBALogSummary {
         }
 
         if ($UpdatedLogs.count -ne 0) {
-            $LastUpdated = ($UpdatedLogs[0] -Split ",")[0].Trim()
+            $LastUpdated = ($UpdatedLogs[0] -split ",")[0].Trim()
             Write-Host "`t $($UpdatedLogs.count) Updates to meetings between $FirstDate and $LastDate"
             Write-Host "`t`t with the last meeting updated on $LastUpdated"
         } else {
@@ -591,7 +591,7 @@ function RBALogSummary {
         }
 
         if ($DelegateReferrals.count -ne 0) {
-            $LastDelegateReferral = ($DelegateReferrals[0] -Split ",")[0].Trim()
+            $LastDelegateReferral = ($DelegateReferrals[0] -split ",")[0].Trim()
             Write-Host "`t $($DelegateReferrals.count) Delegate Referrals were sent between $FirstDate and $LastDate"
             Write-Host "`t`t with the last Delegate Referral sent on $LastDelegateReferral"
         } else {
@@ -599,7 +599,7 @@ function RBALogSummary {
         }
 
         if ($NonMeetingRequests.count -ne 0) {
-            $LastNonMeetingRequest = ($NonMeetingRequests[0] -Split ",")[0].Trim()
+            $LastNonMeetingRequest = ($NonMeetingRequests[0] -split ",")[0].Trim()
             Write-Host "`t $($NonMeetingRequests.count) Non Meeting Requests were skipped between $FirstDate and $LastDate"
             Write-Host "`t`t with the last Non Meeting Request skipped on $LastNonMeetingRequest"
         } else {
