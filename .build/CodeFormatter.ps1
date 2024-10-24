@@ -24,7 +24,7 @@ Set-StrictMode -Version Latest
 . $PSScriptRoot\CodeFormatterChecks\CheckTokenTypeCasing.ps1
 . $PSScriptRoot\HelpFunctions\Get-CommitFilesOnBranch.ps1
 
-if (-not (Load-Module -Name PSScriptAnalyzer -MinimumVersion "1.21")) {
+if (-not (Load-Module -Name PSScriptAnalyzer -MinimumVersion "1.23")) {
     throw "PSScriptAnalyzer module could not be loaded"
 }
 
