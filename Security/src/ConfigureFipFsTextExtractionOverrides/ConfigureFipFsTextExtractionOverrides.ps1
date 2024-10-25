@@ -88,8 +88,15 @@ begin {
     . $PSScriptRoot\ConfigurationAction\Invoke-TextExtractionOverride.ps1
     . $PSScriptRoot\..\Shared\Get-ProcessedServerList.ps1
     . $PSScriptRoot\..\..\..\Shared\Confirm-ExchangeManagementShell.ps1
+    . $PSScriptRoot\..\..\..\Shared\Confirm-Administrator.ps1
     . $PSScriptRoot\..\..\..\Shared\GenericScriptStartLogging.ps1
+    . $PSScriptRoot\..\..\..\Shared\Show-Disclaimer.ps1
     . $PSScriptRoot\..\..\..\Shared\ScriptUpdateFunctions\GenericScriptUpdate.ps1
+
+    if (-not(Confirm-Administrator)) {
+        Write-Host "The script needs to be executed in elevated mode. Start the PowerShell as an administrator." -ForegroundColor Yellow
+        exit
+    }
 
     $includeExchangeServerNames = New-Object System.Collections.Generic.List[string]
 } process {
