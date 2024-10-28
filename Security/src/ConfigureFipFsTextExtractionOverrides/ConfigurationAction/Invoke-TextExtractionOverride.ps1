@@ -142,7 +142,7 @@ function Invoke-TextExtractionOverride {
 
                             if ($cu15OrNewer) {
                                 if ($configureActionOverride -eq "OutsideInModule") {
-                                    Write-Host "OutsideInModule is no longer required with the version of Exchange that you are on."
+                                    Write-Warning "OutsideInModule is no longer required with the version of Exchange that you are on."
                                 } elseif (@("AutoCad", "Jpeg", "Tiff") -contains $configureActionOverride) {
                                     $baseFilter = $typeListBaseXPathFilter -f "OutsideInOnly"
 
