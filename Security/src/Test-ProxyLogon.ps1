@@ -136,7 +136,7 @@ begin {
                             [Void]$allResults.FileList.Add( $files[$i] )
 
                             Import-Csv -Path $files[$i] -ErrorAction SilentlyContinue |
-                                Where-Object { $_.AnchorMailbox -Like 'ServerInfo~*/*' -and $_.AnchorMailbox -notlike 'ServerInfo~*/autodiscover*' -and $_.AnchorMailbox -notlike 'ServerInfo~localhost*/*' } |
+                                Where-Object { $_.AnchorMailbox -like 'ServerInfo~*/*' -and $_.AnchorMailbox -notlike 'ServerInfo~*/autodiscover*' -and $_.AnchorMailbox -notlike 'ServerInfo~localhost*/*' } |
                                 Select-Object -Property $outProps |
                                 ForEach-Object {
                                     [Void]$allResults.Hits.Add( $_ )
@@ -219,7 +219,7 @@ begin {
 
                         if ((Get-ChildItem $files[$i] -ErrorAction SilentlyContinue | Select-String -Pattern "ServerInfo~").Count -gt 0) {
 
-                            $hits = @(Import-Csv -Path $files[$i] -ErrorAction SilentlyContinue | Where-Object { $_.AnchorMailbox -Like 'ServerInfo~*/*Reset*VirtualDirectory#' -and $_.HttpStatus -eq 200 } |
+                            $hits = @(Import-Csv -Path $files[$i] -ErrorAction SilentlyContinue | Where-Object { $_.AnchorMailbox -like 'ServerInfo~*/*Reset*VirtualDirectory#' -and $_.HttpStatus -eq 200 } |
                                     Select-Object -Property $outProps)
                             if ($hits.Count -gt 0) {
                                 $hits | ForEach-Object {

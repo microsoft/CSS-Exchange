@@ -118,7 +118,7 @@ function FindFoldersToUpdate([string[]]$includeFolders, [bool]$recurseOnFolders,
                 continue
             }
 
-            if ($folderToSkip -notContains $foundFolder.EntryId) {
+            if ($folderToSkip -notcontains $foundFolder.EntryId) {
                 Write-Verbose "$($MyInvocation.MyCommand): Returning found folder $($foundFolder.Identity) with EntryId $($foundFolder.EntryID)"
                 #Return found folder
                 $foundFolder
