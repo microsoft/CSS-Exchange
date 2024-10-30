@@ -4,6 +4,7 @@
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
 . $PSScriptRoot\Invoke-AnalyzerKnownBuildIssues.ps1
+. $PSScriptRoot\..\..\..\Shared\CompareExchangeBuildLevel.ps1
 function Invoke-AnalyzerExchangeInformation {
     [CmdletBinding()]
     param(
@@ -578,6 +579,84 @@ function Invoke-AnalyzerExchangeInformation {
             Add-AnalyzedResultInformation @params
         } else {
             Write-Verbose "All virtual directories are supported for the Extended Protection value."
+        }
+    }
+
+    if ((Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2019" -CU "CU15") -and
+        $exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false) {
+        # This feature only needs to be displayed if we are on Exchange 2019 CU15+
+        if ($null -eq $exchangeInformation.GetExchangeServer.RingLevel) {
+            $params = $baseParams + @{
+                Name             = "Feature Flighting"
+                Details          = "Unknown - No data on Get-ExchangeServer related to this feature. Likely due to connecting to an Exchange Server for shell not on supported build."
+                DisplayWriteType = "Yellow"
+            }
+            Add-AnalyzedResultInformation @params
+        } else {
+            Add-AnalyzedResultInformation @baseParams -Name "Feature Flighting"
+
+            $getExchangeServer = $exchangeInformation.GetExchangeServer
+            $flightingBaseParams = $baseParams + @{ DisplayCustomTabNumber = 2 }
+            $params = $flightingBaseParams + @{
+                Name    = "Ring Level"
+                Details = $getExchangeServer.RingLevel
+            }
+            Add-AnalyzedResultInformation @params
+
+            $endpointDisplayWriteType = "Grey"
+            $endpointDetails = "200 - Reachable"
+            if ($exchangeInformation.ExchangeFeatureFlightingServiceResult.StatusCode -ne 200) {
+                $endpointDisplayWriteType = "Yellow"
+                $endpointDetails = "Unreachable - More Information: https://aka.ms/HC-ExchangeServerFeatureFlighting"
+            }
+            $params = $flightingBaseParams + @{
+                Name             = "Endpoint Service Status"
+                Details          = $endpointDetails
+                DisplayWriteType = $endpointDisplayWriteType
+            }
+            Add-AnalyzedResultInformation @params
+
+            $params = $flightingBaseParams + @{
+                Name    = "Last Service Run Time"
+                Details = $getExchangeServer.LastFlightingServiceRunTime
+            }
+            Add-AnalyzedResultInformation @params
+
+            $params = $flightingBaseParams + @{
+                Name    = "Features Enabled"
+                Details = ([string]::Join(", ", $getExchangeServer.FeaturesEnabled))
+            }
+            Add-AnalyzedResultInformation @params
+
+            # The rest of the settings, only display if we have something there.
+            if ($getExchangeServer.FeaturesApproved.Count -gt 0) {
+                $params = $flightingBaseParams + @{
+                    Name    = "Features Approved"
+                    Details = ([string]::Join(", ", $getExchangeServer.FeaturesApproved))
+                }
+                Add-AnalyzedResultInformation @params
+            }
+            if ($getExchangeServer.FeaturesAwaitingAdminApproval.Count -gt 0) {
+                $params = $flightingBaseParams + @{
+                    Name    = "Features Awaiting Admin Approval"
+                    Details = ([string]::Join(", ", $getExchangeServer.FeaturesAwaitingAdminApproval))
+                }
+                Add-AnalyzedResultInformation @params
+            }
+            if ($getExchangeServer.FeaturesBlocked.Count -gt 0) {
+                $params = $flightingBaseParams + @{
+                    Name    = "Features Blocked"
+                    Details = ([string]::Join(", ", $getExchangeServer.FeaturesBlocked))
+                }
+                Add-AnalyzedResultInformation @params
+            }
+            if ($getExchangeServer.FeaturesDisabled.Count -gt 0) {
+                $params = $flightingBaseParams + @{
+                    Name    = "Features Disabled"
+                    Details = ([string]::Join(", ", $getExchangeServer.FeaturesDisabled))
+                }
+                Add-AnalyzedResultInformation @params
+            }
         }
     }
 
