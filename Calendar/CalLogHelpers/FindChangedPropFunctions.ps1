@@ -11,7 +11,7 @@
     Changed properties will be added to the Timeline.
 #>
 function FindChangedProperties {
-    if ($CalLog.Client -ne "LocationProcessor" -or $CalLog.Client -notlike "EBA:*" -or $CalLog.Client -notlike "TBA:*") {
+    if ($CalLog.Client -ne "LocationProcessor" -or $CalLog.Client -notlike "*EBA*" -or $CalLog.Client -notlike "*TBA*") {
         if ($script:PreviousCalLog -and $script:AddChangedProperties) {
             if ($CalLog.StartTime.ToString() -ne $script:PreviousCalLog.StartTime.ToString()) {
                 [Array]$TimeLineText = "The StartTime changed from [$($script:PreviousCalLog.StartTime)] to: [$($CalLog.StartTime)]"
