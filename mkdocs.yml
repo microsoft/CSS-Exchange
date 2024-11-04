@@ -72,6 +72,7 @@ nav:
       - ADSiteCount: Diagnostics/HealthChecker/ADSiteCount.md
       - ExchangeComputerMembership: Diagnostics/HealthChecker/ExchangeComputerMembership.md
       - UnifiedContentCleanup: Diagnostics/HealthChecker/UnifiedContentCleanup.md
+      - TransportRetryConfigCheck: Diagnostics/HealthChecker/TransportRetryConfigCheck.md
     - ManagedAvailabilityTroubleshooter: Diagnostics/ManagedAvailabilityTroubleshooter.md
     - Test-ExchAVExclusions: Diagnostics/Test-ExchAVExclusions.md
   - Hybrid:
