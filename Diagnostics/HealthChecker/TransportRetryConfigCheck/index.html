@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://microsoft.github.io/CSS-Exchange/Diagnostics/HealthChecker/PagefileSizeCheck/">
+        <link rel="canonical" href="https://microsoft.github.io/CSS-Exchange/Diagnostics/HealthChecker/TransportRetryConfigCheck/">
       
       
-        <link rel="prev" href="../NodeRunnerMemoryLimitCheck/">
+        <link rel="prev" href="../UnifiedContentCleanup/">
       
       
-        <link rel="next" href="../VisualCRedistributableVersionCheck/">
+        <link rel="next" href="../../ManagedAvailabilityTroubleshooter/">
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>PagefileCheck - Microsoft - CSS-Exchange</title>
+        <title>TransportRetryConfigCheck - Microsoft - CSS-Exchange</title>
       
     
     
@@ -84,7 +84,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#pagefile-size-check" class="md-skip">
+        <a href="#transport-retry-configuration-check" class="md-skip">
           Skip to content
         </a>
       
@@ -119,7 +119,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              PagefileCheck
+              TransportRetryConfigCheck
             
           </span>
         </div>
@@ -1429,30 +1429,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    PagefileCheck
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../PagefileSizeCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1461,53 +1441,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#exchange-2019" class="md-nav__link">
-    <span class="md-ellipsis">
-      Exchange 2019
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#exchange-20132016" class="md-nav__link">
-    <span class="md-ellipsis">
-      Exchange 2013/2016
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#how-to-set-the-pagefile-to-a-static-value" class="md-nav__link">
-    <span class="md-ellipsis">
-      How to set the pagefile to a static value?
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2000,10 +1933,30 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../TransportRetryConfigCheck/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    TransportRetryConfigCheck
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -2012,6 +1965,62 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#maxperdomainoutboundconnections" class="md-nav__link">
+    <span class="md-ellipsis">
+      MaxPerDomainOutboundConnections
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#messageretryinterval" class="md-nav__link">
+    <span class="md-ellipsis">
+      MessageRetryInterval
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#included-in-html-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      Included in HTML Report?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      Additional resources
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -3448,27 +3457,36 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#exchange-2019" class="md-nav__link">
+  <a href="#maxperdomainoutboundconnections" class="md-nav__link">
     <span class="md-ellipsis">
-      Exchange 2019
+      MaxPerDomainOutboundConnections
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#exchange-20132016" class="md-nav__link">
+  <a href="#messageretryinterval" class="md-nav__link">
     <span class="md-ellipsis">
-      Exchange 2013/2016
+      MessageRetryInterval
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#how-to-set-the-pagefile-to-a-static-value" class="md-nav__link">
+  <a href="#included-in-html-report" class="md-nav__link">
     <span class="md-ellipsis">
-      How to set the pagefile to a static value?
+      Included in HTML Report?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      Additional resources
     </span>
   </a>
   
@@ -3489,7 +3507,7 @@
                   
 
   
-    <a href="https://github.com/microsoft/CSS-Exchange/edit/main/docs/Diagnostics/HealthChecker/PagefileSizeCheck.md" title="Edit this page" class="md-content__button md-icon">
+    <a href="https://github.com/microsoft/CSS-Exchange/edit/main/docs/Diagnostics/HealthChecker/TransportRetryConfigCheck.md" title="Edit this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -3497,34 +3515,21 @@
   
 
 
-<h1 id="pagefile-size-check">Pagefile Size Check</h1>
-<p><strong>Description:</strong></p>
-<p>We check if the Pagefile is configured as recommended and that there is only 1 PageFile configured (multiple PageFiles can cause performance issues on Exchange server).</p>
-<h4 id="exchange-2019">Exchange 2019</h4>
+<h1 id="transport-retry-configuration-check">Transport Retry Configuration Check</h1>
+<p>This check verifies that the Transport Service retry configuration and max outbound connections per domain are set to the recommended values. When these values are not set to the recommended values, it can cause mail queueing or longer than expected delivery time when a transient failure occurs.</p>
+<p>This check validates the following settings in the <code>Get-TransportService</code> configuration:</p>
 <ul>
-<li>Set the paging file minimum and maximum value to the same size: 25% of installed memory</li>
+<li><code>MaxPerDomainOutboundConnections</code> is set to 40 or greater</li>
+<li><code>MessageRetryInterval</code> is set to 5 minutes or less</li>
 </ul>
-<h4 id="exchange-20132016">Exchange 2013/2016</h4>
-<p>Set the paging file minimum and maximum value to the same size:</p>
-<ul>
-<li>
-<p>Less than 32 GB of RAM installed: Physical RAM plus 10MB, up to a maximum value of 32GB (32,778MB)</p>
-</li>
-<li>
-<p>32 GB of RAM or more installed: 32GB</p>
-</li>
-</ul>
-<h4 id="how-to-set-the-pagefile-to-a-static-value">How to set the pagefile to a static value?</h4>
-<p>You can set the pagefile to a static size via <code>wmic</code> whereas <code>InitialSize</code> and <code>MaximumSize</code> is the size in megabytes calculated based on the Exchange Server version and memory installed in the server:</p>
-<div class="highlight"><pre><span></span><code>wmic ComputerSystem set AutomaticManagedPagefile=False
-wmic PageFileSet set InitialSize=1024,MaximumSize=1024
-</code></pre></div>
-<p><strong>Included in HTML Report?</strong></p>
+<h2 id="maxperdomainoutboundconnections">MaxPerDomainOutboundConnections</h2>
+<p>This setting controls the number of outbound connections that can be open for a single destination domain at one time. When this setting is too low and connections are exhausted, it will cause mail to queue up in the transport service and cause delays in mail delivery. This is most noticeable when mail is sent to a single destination such as in an Office 365 hybrid environment.</p>
+<h2 id="messageretryinterval">MessageRetryInterval</h2>
+<p>This setting controls the interval at which the transport service will retry sending a message that has failed to send due to a transient error. When this setting is too high, it can cause mail to queue up unnecessarily. Retrying sooner in most cases will allow the message to be delivered in a timely manner.</p>
+<h2 id="included-in-html-report">Included in HTML Report?</h2>
 <p>Yes</p>
-<p><strong>Additional resources:</strong></p>
-<p><a href="https://docs.microsoft.com/exchange/plan-and-deploy/system-requirements?view=exchserver-2019#hardware-requirements-for-exchange-2019">PageFile requirements for Exchange 2019</a></p>
-<p><a href="https://docs.microsoft.com/exchange/plan-and-deploy/system-requirements?view=exchserver-2016#hardware-requirements-for-exchange-2016">PageFile requirements for Exchange 2016</a></p>
-<p><a href="https://docs.microsoft.com/exchange/exchange-2013-system-requirements-exchange-2013-help#hardware">PageFile requirements for Exchange 2013</a></p>
+<h2 id="additional-resources">Additional resources</h2>
+<p><a href="https://aka.ms/TransportRetryConfig">Email messages are stuck in Exchange Server queues for several minutes</a></p>
 
 
 
@@ -3545,7 +3550,7 @@ wmic PageFileSet set InitialSize=1024,MaximumSize=1024
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">January 13, 2023</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">October 29, 2024</span>
   </span>
 
     
