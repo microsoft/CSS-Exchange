@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-function CheckKeywordCasing {
+function CheckTokenTypeCasing {
     [CmdletBinding()]
     [OutputType([boolean])]
     param (
@@ -11,7 +11,12 @@ function CheckKeywordCasing {
 
         [Parameter()]
         [boolean]
-        $Save
+        $Save,
+
+        [Parameter()]
+        [ValidateSet("Operator", "Keyword")]
+        [string]
+        $Type
     )
 
     if ($FileInfo.Extension -eq ".ps1" -or $FileInfo.Extension -eq ".psm1") {
@@ -25,15 +30,15 @@ function CheckKeywordCasing {
 
         $keywordWrongCase = @()
         foreach ($t in $tokens) {
-            if ($t.Type -eq "Keyword") {
+            if ($t.Type -eq $Type) {
                 if (-not $t.Content.Equals($t.Content.ToLower(), "Ordinal")) {
                     $keywordWrongCase += $t
 
                     if ($Save) {
                         $content = $content.Remove($t.Start, $t.Length).Insert($t.Start, $t.Content.ToLower())
-                        Write-Host "Corrected case of keyword: $($t.Content) at position $($t.Start) in $($FileInfo.FullName)"
+                        Write-Host "Corrected case of $Type`: $($t.Content) at position $($t.Start) in $($FileInfo.FullName)"
                     } else {
-                        Write-Warning "Keyword $($t.Content) at position $($t.Start) in $($FileInfo.FullName) is not lowercase."
+                        Write-Warning "$Type $($t.Content) at position $($t.Start) in $($FileInfo.FullName) is not lowercase."
                     }
                 }
             }

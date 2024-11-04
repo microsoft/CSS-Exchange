@@ -40,7 +40,7 @@ function Get-CommitFilesOnBranch {
     $m = $gitStatus | Select-String "M (.*)"
     foreach ($match in $m) {
         $file = $match.Matches.Groups[1].Value.Trim()
-        $fullPath = Join-Path $PSScriptRoot $file
+        $fullPath = Join-Path $repoRoot $file
 
         Write-Verbose "Adding modified file to list: $fullPath"
         [void]$filesFullPath.Add($fullPath)

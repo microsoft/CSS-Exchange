@@ -18,8 +18,8 @@ function FindMatch {
 
 $ShortClientNameProcessor = @{
     'Client=Hub Transport'                       = "Transport"
-    'Client=MSExchangeRPC'                       = "Outlook : Desktop : MAPI"
-    'OneOutlook'                                 = "OneOutlook"
+    'Client=MSExchangeRPC'                       = "Outlook:Desktop:MAPI"
+    'OneOutlook'                                 = "NewOutlook"
     'Lync for Mac'                               = "LyncMac"
     'MicrosoftNinja'                             = "Teams"
     'SkypeSpaces'                                = "Teams"
@@ -60,6 +60,11 @@ function CreateShortClientName {
 
     if ($LogClientInfoString -like "*EDiscoverySearch*") {
         $ShortClientName = "EDiscoverySearch"
+        return $ShortClientName
+    }
+
+    if ($LogClientInfoString -like "*AppId=00000007-0000-0000-c000-000000000000*") {
+        $ShortClientName = "CRM"
         return $ShortClientName
     }
 
@@ -106,12 +111,16 @@ function CreateShortClientName {
             $ShortClientName = "Outlook-ModernCalendarSharing"
         } elseif ($LogClientInfoString -like "*SkypeSpaces*") {
             $ShortClientName = "Teams"
+        } elseif ($LogClientInfoString -like "*AppId=82f45fb0-18b4-4d68-8bed-9e44909e3890*") {
+            $ShortClientName = "Teams MMS Service"
         } elseif ($LogClientInfoString -like "*AppId=7b7fdad6-df9d-4cd5-a4f2-b5f749350419*") {
             $ShortClientName = "Bookings B2 Service"
         } elseif ($LogClientInfoString -like "*bcad1a65-78eb-4725-9bce-ce1a8ed30b95*" -or
             $LogClientInfoString -like "*43375d74-c6a5-4d4e-a0a3-de139860ea75*" -or
             $LogClientInfoString -like "*af9fc99a-5ae5-46e1-bbd7-fa25088e16c9*") {
             $ShortClientName = "ELC-B2"
+        } elseif ($LogClientInfoString -like "*AppId=de8bc8b5-d9f9-48b1-a8ad-b748da725064*") {
+            $ShortClientName = "GraphExplorer"
         } elseif ($LogClientInfoString -like "*Outlook-iOS*") {
             $ShortClientName = "OutlookiOS"
         } elseif ($LogClientInfoString -like "*Outlook-Android*") {
@@ -151,7 +160,7 @@ function CreateShortClientName {
             $LogClientInfoString -notlike "*Outlook-iOS*") {
             $ShortClientName = "Outlook : Desktop : REST"
         } elseif ($LogClientInfoString -like "*OneOutlook*") {
-            $ShortClientName = "OneOutlook"
+            $ShortClientName = "NewOutlook"
         }
     }
 
@@ -159,7 +168,7 @@ function CreateShortClientName {
         $ShortClientName = "Outlook : ActiveSync"
     }
     if ($LogClientInfoString -like "*OneOutlook*") {
-        $ShortClientName = "OneOutlook"
+        $ShortClientName = "NewOutlook"
     }
     if ($ShortClientName -eq "") {
         $ShortClientName = "[NoShortNameFound]"

@@ -48,7 +48,7 @@ function Remove-InvalidPermission {
                     ) {
                         if ($PSCmdlet.ShouldProcess("$($result.FolderIdentity)", "Remove $($perm.User.DisplayName)")) {
                             Write-Host "Removing $($perm.User.DisplayName) from folder $($result.FolderIdentity)"
-                            Remove-PublicFolderClientPermission $result.FolderEntryId -User $perm.User.DisplayName -Confirm:$false
+                            $perm | Remove-PublicFolderClientPermission -Confirm:$false
                         }
                     }
                 }

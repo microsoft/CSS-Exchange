@@ -21,6 +21,7 @@ $script:CustomPropertyNameList =
 "FreeBusyStatus",
 "From",
 "HasAttachment",
+"InternetMessageId",
 "ItemID",
 "IsAllDayEvent",
 "IsCancelled",
@@ -38,6 +39,10 @@ $script:CustomPropertyNameList =
 "TimeZone"
 
 $LogLimit = 2000
+
+if ($ShortLogs.IsPresent) {
+    $LogLimit = 500
+}
 
 <#
 .SYNOPSIS

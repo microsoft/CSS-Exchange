@@ -116,7 +116,7 @@ function SetLogType {
         $ShortClientName -eq "CalendarReplication" -or
         $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingCFM" -or
         $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingDelete") {
-        return "Sharing"
+        return "Sync"
     } elseif ($ShortClientName -eq "Other EBA" -or
         $ShortClientName -eq "Other TBA" -or
         $ShortClientName -eq "LocationProcessor" -or
@@ -129,6 +129,7 @@ function SetLogType {
         return "Exception"
     } elseif (($CalendarItemTypes.($CalLog.ItemClass) -like "*Resp*" -and $CalLog.CalendarLogTriggerAction -ne "Create" ) -or
         $CalendarItemTypes.($CalLog.ItemClass) -eq "AttendeeList" -or
+        ($CalendarItemTypes.($CalLog.ItemClass) -eq "Forward.Notification" -and ($CalLog.CalendarLogTriggerAction -eq "SoftDelete") -or $CalLog.CalendarLogTriggerAction -like "*move*") -or
         ($CalLog.ItemClass -eq "IPM.Schedule.Meeting.Request" -and $CalLog.CalendarLogTriggerAction -like "*move*" ) ) {
         return "Cleanup"
     } else {

@@ -91,7 +91,7 @@ function InvestigateProbe {
     param([String]$ProbeToInvestigate , [String]$MonitorToInvestigate , [String]$ResponderToInvestigate , [String]$ResourceNameToInvestigate , [String]$ResponderTargetResource )
 
     TestFileOrCmd $ProbeDefinitionEventCmd
-    if (-Not ($ResponderTargetResource) -and ($ProbeToInvestigate.split("/").Count -gt 1)) {
+    if (-not ($ResponderTargetResource) -and ($ProbeToInvestigate.split("/").Count -gt 1)) {
         $ResponderTargetResource = $ProbeToInvestigate.split("/")[1]
     }
     $ProbeDetailsCmd = '(' + $ProbeDefinitionEventCmd + '| % {[XML]$_.toXml()}).event.userData.eventXml| ? {$_.Name -like "' + $ProbeToInvestigate.split("/")[0] + '*" }'

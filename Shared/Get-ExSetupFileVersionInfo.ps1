@@ -15,14 +15,20 @@ function Get-ExSetupFileVersionInfo {
     $exSetupDetails = [string]::Empty
     function Get-ExSetupDetailsScriptBlock {
         try {
-            Get-Command ExSetup -ErrorAction Stop | ForEach-Object { $_.FileVersionInfo }
+            $getCommand = Get-Command ExSetup -ErrorAction Stop | ForEach-Object { $_.FileVersionInfo }
+            $getItem = Get-Item -ErrorAction SilentlyContinue $getCommand[0].FileName
+            $getCommand | Add-Member -MemberType NoteProperty -Name InstallTime -Value ($getItem.LastAccessTime)
+            $getCommand
         } catch {
             try {
                 Write-Verbose "Failed to find ExSetup by environment path locations. Attempting manual lookup."
                 $installDirectory = (Get-ItemProperty HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup -ErrorAction Stop).MsiInstallPath
 
                 if ($null -ne $installDirectory) {
-                    Get-Command ([System.IO.Path]::Combine($installDirectory, "bin\ExSetup.exe")) -ErrorAction Stop | ForEach-Object { $_.FileVersionInfo }
+                    $getCommand = Get-Command ([System.IO.Path]::Combine($installDirectory, "bin\ExSetup.exe")) -ErrorAction Stop | ForEach-Object { $_.FileVersionInfo }
+                    $getItem = Get-Item -ErrorAction SilentlyContinue $getCommand[0].FileName
+                    $getCommand | Add-Member -MemberType NoteProperty -Name InstallTime -Value ($getItem.LastAccessTime)
+                    $getCommand
                 }
             } catch {
                 Write-Verbose "Failed to find ExSetup, need to fallback."

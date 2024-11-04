@@ -458,4 +458,47 @@ function Invoke-AnalyzerOsInformation {
         }
         Add-AnalyzedResultInformation @params
     }
+
+    # cSpell:disable
+    # Check and display if MSMQ is installed only
+    if ($null -ne $osInformation.WindowsFeature) {
+        $installedFeatures = New-Object System.Collections.Generic.List[string]
+
+        $osInformation.WindowsFeature |
+            Where-Object { @("NET-WCF-MSMQ-Activation45", "MSMQ") -contains $_.Name -and $_.Installed -eq $true } |
+            ForEach-Object { $installedFeatures.Add($_.Name) }
+
+        if ($installedFeatures.Count -gt 0) {
+            $params = $baseParams + @{
+                Name                = "MSMQ Windows Feature Installed"
+                Details             = "$true - This feature is no longer required and can be removed."
+                DisplayWriteType    = "Yellow"
+                DisplayTestingValue = $true
+                TestingName         = "Messaging Queuing Feature"
+            }
+            Add-AnalyzedResultInformation @params
+        }
+    } else {
+        Write-Verbose "No Windows Features where collected. Unable to process."
+    }
+    # cSpell:enable
+
+    if ($null -ne $osInformation.EventLogInformation) {
+        $days = 7
+        $testDate = (Get-Date).AddDays(-$days)
+        foreach ($logType in $osInformation.EventLogInformation.Keys) {
+            $logInfo = $osInformation.EventLogInformation[$logType]
+            # If the log isn't at the max limit, it is possible that they just cleared the logs or on a new server. This should be rare scenario.
+            if ($logInfo.LastLogEntry -gt $testDate -and
+                $logInfo.FileSize -ge $logInfo.MaxSize) {
+                $params = $baseParams + @{
+                    Name             = "Event Log - $logType"
+                    Details          = "--ERROR-- Not enough logs to cover $days days. Last log entry is at $($logInfo.LastLogEntry)." +
+                    " This could cause issues with determining Root Cause Analysis."
+                    DisplayWriteType = "Red"
+                }
+                Add-AnalyzedResultInformation @params
+            }
+        }
+    }
 }

@@ -14,28 +14,23 @@ param (
     [bool]$AppSysLogsToXml = $true,
     [switch]$AutoDLogs,
     [switch]$CollectFailoverMetrics,
+    [switch]$ConversationLogs,
     [switch]$DAGInformation,
     [switch]$DailyPerformanceLogs,
-    [switch]$DefaultTransportLogging,
     [switch]$EASLogs,
     [switch]$ECPLogs,
+    [switch]$EventBasedAssistantsLogs,
     [switch]$EWSLogs,
     [Alias("ExchangeServerInfo")]
     [switch]$ExchangeServerInformation,
     [switch]$ExMon,
     [switch]$ExPerfWiz,
-    [switch]$FrontEndConnectivityLogs,
-    [switch]$FrontEndProtocolLogs,
     [switch]$GetVDirs,
     [switch]$HighAvailabilityLogs,
-    [switch]$HubConnectivityLogs,
-    [switch]$HubProtocolLogs,
     [switch]$IISLogs,
     [switch]$ImapLogs,
     [switch]$MailboxAssistantsLogs,
-    [switch]$MailboxConnectivityLogs,
     [switch]$MailboxDeliveryThrottlingLogs,
-    [switch]$MailboxProtocolLogs,
     [Alias("ManagedAvailability")]
     [switch]$ManagedAvailabilityLogs,
     [switch]$MapiLogs,
@@ -56,13 +51,18 @@ param (
     [switch]$ServerInformation,
     [switch]$TransportAgentLogs,
     [switch]$TransportConfig,
+    [Alias("ConnectivityLogs", "FrontEndConnectivityLogs", "HubConnectivityLogs", "MailboxConnectivityLogs")]
+    [switch]$TransportConnectivityLogs,
+    [Alias("DefaultTransportLogging")]
+    [switch]$TransportLogging,
+    [Alias("ProtocolLogs", "FrontEndProtocolLogs", "HubProtocolLogs", "MailboxProtocolLogs")]
+    [switch]$TransportProtocolLogs,
     [switch]$TransportRoutingTableLogs,
     [switch]$TransportRules,
     [switch]$WindowsSecurityLogs,
     [switch]$AllPossibleLogs,
     [Alias("CollectAllLogsBasedOnDaysWorth")]
     [bool]$CollectAllLogsBasedOnLogAge = $true,
-    [switch]$ConnectivityLogs,
     [switch]$DatabaseFailoverIssue,
     [Parameter(ParameterSetName = "Worth")]
     [int]$DaysWorth = 3,
@@ -80,7 +80,6 @@ param (
     [switch]$OutlookConnectivityIssues,
     [switch]$PerformanceIssues,
     [switch]$PerformanceMailFlowIssues,
-    [switch]$ProtocolLogs,
     [switch]$ScriptDebug,
     [bool]$SkipEndCopyOver
 )

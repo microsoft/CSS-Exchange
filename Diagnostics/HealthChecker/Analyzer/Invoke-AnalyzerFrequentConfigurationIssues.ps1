@@ -348,4 +348,48 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
         }
         Add-AnalyzedResultInformation @params
     }
+
+    $edgeKey = $exchangeInformation.ApplicationConfigFileStatus.Keys | Where-Object { $_ -like "*\EdgeTransport.exe.config" }
+    $antiMalwareKey = $exchangeInformation.FileContentInformation.Keys | Where-Object { $_ -like "*\Monitoring\Config\AntiMalware.xml" }
+
+    if ($null -ne $edgeKey -and
+        $null -ne $antiMalwareKey -and
+        $exchangeInformation.ApplicationConfigFileStatus[$edgeKey].Present -and
+        $exchangeInformation.FileContentInformation[$antiMalwareKey].Present) {
+        $params = $baseParams + @{
+            Name             = "UnifiedContent Auto Cleanup Configured"
+            Details          = "Unknown"
+            DisplayWriteType = "Red"
+        }
+        try {
+            $temporaryStoragePath = (([xml]$exchangeInformation.ApplicationConfigFileStatus[$edgeKey].Content).configuration.appSettings.add |
+                    Where-Object { $_.key -eq "TemporaryStoragePath" }).value
+            $edgeKeySuccessful = $true
+            $cleanupFolderResponderFolderPaths = (([xml]$exchangeInformation.FileContentInformation[$antiMalwareKey].Content).Definition.MaintenanceDefinition.ExtensionAttributes.CleanupFolderResponderFolderPaths)
+            $cleanupPathsExists = $cleanupFolderResponderFolderPaths -like "*$temporaryStoragePath\UnifiedContent*"
+
+            if ($cleanupPathsExists) {
+                $params.DisplayWriteType = "Green"
+            }
+
+            $params.Details = $cleanupPathsExists
+            Add-AnalyzedResultInformation @params
+
+            if ($cleanupPathsExists -eq $false) {
+                $params = $baseParams + @{
+                    Details                = "More Information: https://aka.ms/HC-UnifiedContentCleanup"
+                    DisplayWriteType       = "Yellow"
+                    DisplayCustomTabNumber = 2
+                }
+                Add-AnalyzedResultInformation @params
+            }
+        } catch {
+            if ($edgeKeySuccessful) {
+                $params.Details = "AntiMalware.xml Invalid Config Format"
+            } else {
+                $params.Details = "Error - EdgeTransport.exe.config Invalid Config Format"
+            }
+            Add-AnalyzedResultInformation @params
+        }
+    }
 }

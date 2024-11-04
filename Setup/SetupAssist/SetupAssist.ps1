@@ -16,7 +16,7 @@ param(
 . $PSScriptRoot\Checks\Domain\Test-DomainMultiActiveSyncVirtualDirectories.ps1
 . $PSScriptRoot\Checks\Domain\Test-ExchangeADSetupLevel.ps1
 . $PSScriptRoot\Checks\Domain\Test-DomainOtherWellKnownObjects.ps1
-. $PSScriptRoot\Checks\Domain\Test-ValidHomeMdb.ps1
+. $PSScriptRoot\Checks\Domain\Test-ValidMailboxProperties.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-ExecutionPolicy.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-ExchangeServices.ps1
 . $PSScriptRoot\Checks\LocalServer\Test-InstallWatermark.ps1
@@ -56,7 +56,7 @@ function RunAllTests {
         "Test-PrerequisiteInstalled",
         "Test-DomainOtherWellKnownObjects",
         "Test-PendingReboot",
-        "Test-ValidHomeMDB",
+        "Test-ValidMailboxProperties",
         "Test-VirtualDirectoryConfiguration")
 
     foreach ($test in $tests) {

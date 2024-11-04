@@ -9,9 +9,7 @@
 . $PSScriptRoot\OutputOverrides\Write-Progress.ps1
 . $PSScriptRoot\OutputOverrides\Write-Verbose.ps1
 . $PSScriptRoot\OutputOverrides\Write-Warning.ps1
-. $PSScriptRoot\Confirm-Administrator.ps1
 . $PSScriptRoot\LoggerFunctions.ps1
-. $PSScriptRoot\Show-Disclaimer.ps1
 
 function Write-DebugLog ($Message) {
     $Script:DebugLogger = $Script:DebugLogger | Write-LoggerInstance $Message
@@ -40,9 +38,4 @@ if ($Script:DualLoggingEnabled) {
     SetWriteHostAction ${Function:Write-HostLogAndDebugLog}
 } else {
     SetWriteHostAction ${Write-DebugLog}
-}
-
-if (-not(Confirm-Administrator)) {
-    Write-Host "The script needs to be executed in elevated mode. Start the PowerShell as an administrator." -ForegroundColor Yellow
-    exit
 }

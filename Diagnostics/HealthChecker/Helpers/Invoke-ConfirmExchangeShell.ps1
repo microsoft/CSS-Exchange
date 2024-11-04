@@ -22,7 +22,8 @@ function Invoke-ConfirmExchangeShell {
 
     if ($Script:ExchangeShellComputer.ToolsOnly -and
         $Script:ServerNameList.ToLower().Contains($env:COMPUTERNAME.ToLower()) -and
-        -not ($LoadBalancingReport)) {
+        ($PSCmdlet.ParameterSetName -eq "HealthChecker" -or
+        $PSCmdlet.ParameterSetName -eq "MailboxReport")) {
         Write-Warning "Can't run Exchange Health Checker Against a Tools Server. Use the -Server Parameter and provide the server you want to run the script against."
         $Script:Logger.PreventLogCleanup = $true
         exit

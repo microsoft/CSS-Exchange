@@ -97,13 +97,13 @@ function CreateTimelineRow {
                 } else {
                     switch ($CalLog.Client) {
                         ResourceBookingAssistant {
-                            [array] $Output = "ResourceBookingAssistant $($Action) a $($MeetingRespType) Meeting Response message."
+                            [array] $Output = "ResourceBookingAssistant $($Action) a $($MeetingRespType) Meeting Response message$($Extra)."
                         }
                         Transport {
-                            [array] $Output = "[$($CalLog.From)] $($Action) $($MeetingRespType) Meeting Response message."
+                            [array] $Output = "[$($CalLog.From)] $($Action) $($MeetingRespType) Meeting Response message$($Extra)."
                         }
                         default {
-                            [array] $Output = "[$($CalLog.ResponsibleUser)] $($Action) [$($CalLog.Organizer)]'s $($MeetingRespType) Meeting Response with $($CalLog.Client)."
+                            [array] $Output = "[$($CalLog.ResponsibleUser)] $($Action) [$($CalLog.Organizer)]'s $($MeetingRespType) Meeting Response with $($CalLog.Client)$($Extra)."
                         }
                     }
                 }
@@ -114,7 +114,7 @@ function CreateTimelineRow {
         }
         Exception {
             if ($CalLog.ResponsibleUser -ne "Calendar Assistant") {
-                [array] $Output = "[$($CalLog.ResponsibleUser)] $($CalLog.TriggerAction)d Exception to the meeting series with $($CalLog.Client)."
+                [array] $Output = "[$($CalLog.ResponsibleUser)] $($CalLog.TriggerAction)d Exception starting $($CalLog.StartTime) to the meeting series with $($CalLog.Client)."
             }
         }
         Ipm.Appointment {

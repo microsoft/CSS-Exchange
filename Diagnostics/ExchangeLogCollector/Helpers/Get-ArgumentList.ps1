@@ -23,7 +23,7 @@ function Get-ArgumentList {
         $Script:MasterServer = $Servers[0]
     }
 
-    return [PSCustomObject]@{
+    $argumentList = [PSCustomObject]@{
         AcceptedRemoteDomain           = $AcceptedRemoteDomain
         ADDriverLogs                   = $ADDriverLogs
         AnyTransportSwitchesEnabled    = $Script:AnyTransportSwitchesEnabled
@@ -31,11 +31,13 @@ function Get-ArgumentList {
         AppSysLogsToXml                = $AppSysLogsToXml
         AutoDLogs                      = $AutoDLogs
         CollectAllLogsBasedOnLogAge    = $CollectAllLogsBasedOnLogAge
+        ConversationLogs               = $ConversationLogs
         DAGInformation                 = $DAGInformation
         DailyPerformanceLogs           = $DailyPerformanceLogs
-        DefaultTransportLogging        = $DefaultTransportLogging
+        TransportLogging               = $TransportLogging
         EASLogs                        = $EASLogs
         ECPLogs                        = $ECPLogs
+        EventBasedAssistantsLogs       = $EventBasedAssistantsLogs
         EWSLogs                        = $EWSLogs
         ExchangeServerInformation      = $ExchangeServerInformation
         ExMon                          = $ExMon
@@ -83,4 +85,21 @@ function Get-ArgumentList {
         TransportRules                 = $TransportRules
         WindowsSecurityLogs            = $WindowsSecurityLogs
     }
+
+    Write-Verbose "Passed arguments"
+    $argumentList | Format-List | Out-String | Write-Verbose
+    Write-Verbose "Server Object Results"
+    $argumentList.ServerObjects | ForEach-Object {
+        $currentServer = $_
+        $currentServer | Format-List | Out-String | Write-Verbose
+        if ($Script:AnyTransportSwitchesEnabled) {
+            $currentServer.TransportInfo.FELoggingInfo | Format-List | Out-String | Write-Verbose
+            $currentServer.TransportInfo.HubLoggingInfo | Format-List | Out-String | Write-Verbose
+            $currentServer.TransportInfo.MbxLoggingInfo | Format-List | Out-String | Write-Verbose
+        }
+
+        Write-Verbose "End Server Object Results for $($currentServer.ServerName)"
+    }
+
+    return $argumentList
 }
