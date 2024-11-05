@@ -80,6 +80,7 @@ nav:
   - M365:
     - MDO:
       - MDOThreatPolicyChecker: M365/MDO/MDOThreatPolicyChecker.md
+      - ResendFailedMail: M365/MDO/ResendFailedMail.md
     - DLT365Groupsupgrade: M365/DLT365Groupsupgrade.md
     - Get-LargeMailboxFolderStatistics: M365/Get-LargeMailboxFolderStatistics.md
   - Performance:
