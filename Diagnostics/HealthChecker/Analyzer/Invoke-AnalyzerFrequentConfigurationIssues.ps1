@@ -349,6 +349,26 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
         Add-AnalyzedResultInformation @params
     }
 
+    if ($null -ne $exchangeInformation.GetTransportService) {
+        if ($exchangeInformation.GetTransportService.MaxPerDomainOutboundConnections -lt 40) {
+            $params = $baseParams + @{
+                Name             = "MaxPerDomainOutboundConnections"
+                Details          = "Value set to $($exchangeInformation.GetTransportService.MaxPerDomainOutboundConnections), which is less than the recommended value of 40. `r`n`t`tMore details: https://aka.ms/HC-TransportRetryConfigCheck"
+                DisplayWriteType = "Yellow"
+            }
+            Add-AnalyzedResultInformation @params
+        }
+
+        if ($exchangeInformation.GetTransportService.MessageRetryInterval -gt [System.TimeSpan]::FromMinutes(5)) {
+            $params = $baseParams + @{
+                Name             = "MessageRetryInterval"
+                Details          = "Value set to $($exchangeInformation.GetTransportService.MessageRetryInterval), which is greater than the recommended value of 5 minutes. `r`n`t`tMore details: https://aka.ms/HC-TransportRetryConfigCheck"
+                DisplayWriteType = "Yellow"
+            }
+            Add-AnalyzedResultInformation @params
+        }
+    }
+
     $edgeKey = $exchangeInformation.ApplicationConfigFileStatus.Keys | Where-Object { $_ -like "*\EdgeTransport.exe.config" }
     $antiMalwareKey = $exchangeInformation.FileContentInformation.Keys | Where-Object { $_ -like "*\Monitoring\Config\AntiMalware.xml" }
 

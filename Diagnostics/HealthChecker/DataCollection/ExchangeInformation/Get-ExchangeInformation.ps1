@@ -154,6 +154,13 @@ function Get-ExchangeInformation {
                 Write-Verbose "Failed to run Test-ServiceHealth"
                 Invoke-CatchActions
             }
+
+            try {
+                $getTransportService = Get-TransportService -Identity $Server -ErrorAction Stop
+            } catch {
+                Write-Verbose "Failed to run Get-TransportService"
+                Invoke-CatchActions
+            }
         }
 
         Write-Verbose "Checking if FIP-FS is affected by the pattern issue"
@@ -225,6 +232,7 @@ function Get-ExchangeInformation {
             ExtendedProtectionConfig                 = $extendedProtectionConfig
             ExchangeConnectors                       = $exchangeConnectors
             ExchangeServicesNotRunning               = [array]$exchangeServicesNotRunning
+            GetTransportService                      = $getTransportService
             ApplicationPools                         = $applicationPools
             RegistryValues                           = $registryValues
             ServerMaintenance                        = $serverMaintenance
