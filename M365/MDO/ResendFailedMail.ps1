@@ -231,7 +231,7 @@ if ($failedMessages.count -ge 1000) {
 }
 
 if (-not $IncludeDuplicates) {
-    [array]$failedMessages = $failedMessages | Sort-Object MessageId -Unique
+    [array]$failedMessages = $failedMessages | Group-Object -Property MessageId | ForEach-Object { $_.Group | Sort-Object -Property Received | Select-Object -First 1 }
 }
 
 $verifiedAcceptedSenderMessages = New-Object System.Collections.Generic.List[object]

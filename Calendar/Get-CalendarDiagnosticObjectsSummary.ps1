@@ -84,8 +84,8 @@ if (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/CL-VersionsUrl" 
 
 $script:command = $MyInvocation
 Write-Verbose "The script was started with the following command line:"
-Write-Verbose "Name: " $command.MyCommand.name
-Write-Verbose "Command Line: " $command.line
+Write-Verbose "Name:  $($script:command.MyCommand.name)"
+Write-Verbose "Command Line:  $($script:command.line)"
 Write-Verbose "Script Version: $BuildVersion"
 $script:BuildVersion = $BuildVersion
 
@@ -97,7 +97,6 @@ $script:BuildVersion = $BuildVersion
 . $PSScriptRoot\CalLogHelpers\MeetingSummaryFunctions.ps1
 . $PSScriptRoot\CalLogHelpers\Invoke-GetMailbox.ps1
 . $PSScriptRoot\CalLogHelpers\Invoke-GetCalLogs.ps1
-. $PSScriptRoot\CalLogHelpers\ShortClientNameFunctions.ps1
 . $PSScriptRoot\CalLogHelpers\CalLogInfoFunctions.ps1
 . $PSScriptRoot\CalLogHelpers\CalLogExportFunctions.ps1
 . $PSScriptRoot\CalLogHelpers\CreateTimelineRow.ps1
@@ -105,6 +104,8 @@ $script:BuildVersion = $BuildVersion
 . $PSScriptRoot\CalLogHelpers\Write-DashLineBoxColor.ps1
 
 if ($ExportToExcel.IsPresent) {
+    . $PSScriptRoot\..\Shared\Confirm-Administrator.ps1
+    $script:IsAdministrator = Confirm-Administrator
     . $PSScriptRoot\CalLogHelpers\ExcelModuleInstaller.ps1
     . $PSScriptRoot\CalLogHelpers\ExportToExcelFunctions.ps1
 }
@@ -162,14 +163,13 @@ if (-not ([string]::IsNullOrEmpty($Subject)) ) {
                     if ($LogToExamine.count -gt 100) {
                         Write-Host -ForegroundColor Cyan "`t This is a large number of logs to examine, this may take a while."
                     }
-                    Write-Host -ForegroundColor Cyan "`t Ignore the next [$($LogToExamine.count)] warnings..."
                     $logLeftCount = $LogToExamine.count
 
                     $ExceptionLogs = $LogToExamine | ForEach-Object {
                         $logLeftCount -= 1
                         Write-Verbose "Getting Exception Logs for [$($_.ItemId.ObjectId)]"
-                        Get-CalendarDiagnosticObjects -Identity $ID -ItemIds $_.ItemId.ObjectId -ShouldFetchRecurrenceExceptions $true -CustomPropertyNames $CustomPropertyNameList -ShouldBindToItem $true
-                        if ($logLeftCount % 20 -eq 0) {
+                        Get-CalendarDiagnosticObjects -Identity $ID -ItemIds $_.ItemId.ObjectId -ShouldFetchRecurrenceExceptions $true -CustomPropertyNames $CustomPropertyNameList -ShouldBindToItem $true -WarningAction SilentlyContinue
+                        if (($logLeftCount % 10 -eq 0) -and ($logLeftCount -gt 0)) {
                             Write-Host -ForegroundColor Cyan "`t [$($logLeftCount)] logs left to examine..."
                         }
                     }

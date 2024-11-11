@@ -100,39 +100,3 @@ function CheckForBifurcation {
     return $IsBifurcated
 }
 
-<#
-.SYNOPSIS
-Sets the Calendar Log Type.
-Many updates are not interesting in the Calendar Log, marking these as ignorable. 99% of the time this is correct.
-#>
-function SetLogType {
-    param(
-        $CalLog
-    )
-
-    if ($CalLog.ItemClass -eq "(Occurrence Deleted)") {
-        return "Ignorable"
-    } elseif ($ShortClientName -like "CalendarSyncAssistant" -or
-        $ShortClientName -eq "CalendarReplication" -or
-        $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingCFM" -or
-        $CalendarItemTypes.($CalLog.ItemClass) -eq "SharingDelete") {
-        return "Sync"
-    } elseif ($ShortClientName -eq "Other EBA" -or
-        $ShortClientName -eq "Other TBA" -or
-        $ShortClientName -eq "LocationProcessor" -or
-        $ShortClientName -eq "GriffinRestClient" -or
-        $ShortClientName -eq "RestConnector" -or
-        $ShortClientName -eq "ELC-B2" -or
-        $ShortClientName -eq "TimeService" ) {
-        return "Ignorable"
-    } elseif ($CalLog.ItemClass -eq "IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}" ) {
-        return "Exception"
-    } elseif (($CalendarItemTypes.($CalLog.ItemClass) -like "*Resp*" -and $CalLog.CalendarLogTriggerAction -ne "Create" ) -or
-        $CalendarItemTypes.($CalLog.ItemClass) -eq "AttendeeList" -or
-        ($CalendarItemTypes.($CalLog.ItemClass) -eq "Forward.Notification" -and ($CalLog.CalendarLogTriggerAction -eq "SoftDelete") -or $CalLog.CalendarLogTriggerAction -like "*move*") -or
-        ($CalLog.ItemClass -eq "IPM.Schedule.Meeting.Request" -and $CalLog.CalendarLogTriggerAction -like "*move*" ) ) {
-        return "Cleanup"
-    } else {
-        return "Core"
-    }
-}
