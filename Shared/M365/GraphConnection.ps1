@@ -16,7 +16,6 @@ function Connect-GraphAdvanced {
     )
 
     #Validate Graph is installed and loaded
-    $requestModule = $false
     $requestModule = Request-Module -Modules $Modules
     if (-not $requestModule) {
         Write-Host "We cannot continue without $Modules Powershell module" -ForegroundColor Red
@@ -38,7 +37,7 @@ function Connect-GraphAdvanced {
     } else {
         Write-Verbose "You have a Graph sessions"
         Write-Verbose "Checking scopes"
-        if (-not (Test-GraphContext -Scopes $connection.Scopes -ExpectedScopes $Scopes)) {
+        if (-not (Test-GraphScopeContext -Scopes $connection.Scopes -ExpectedScopes $Scopes)) {
             Write-Host "Not connected to Graph with expected scopes" -ForegroundColor Yellow
             $connection = Add-GraphConnection -Scopes $Scopes
         } else {
@@ -92,7 +91,7 @@ function Add-GraphConnection {
             Write-Host "We cannot continue without Graph Powershell session" -ForegroundColor Red
             return $null
         }
-        if (-not (Test-GraphContext -Scopes $connection.Scopes -ExpectedScopes $Scopes)) {
+        if (-not (Test-GraphScopeContext -Scopes $connection.Scopes -ExpectedScopes $Scopes)) {
             Write-Host "We cannot continue without Graph Powershell session without Expected Scopes" -ForegroundColor Red
             return $null
         }
@@ -100,7 +99,7 @@ function Add-GraphConnection {
     }
 }
 
-function Test-GraphContext {
+function Test-GraphScopeContext {
     [OutputType([bool])]
     param (
         [Parameter(Mandatory = $true)]
@@ -133,5 +132,10 @@ function Show-GraphContext {
     Write-Host "`nConnected to Graph"
     Write-Host "Session details"
     Write-Host "Tenant Id: $($Context.TenantId)"
-    Write-Host "Account: $($Context.Account)"
+    if ($graphConnection.AuthType) {
+        Write-Host "AuthType: $($graphConnection.AuthType)"
+    }
+    if ($Context.Account) {
+        Write-Host "Account: $($Context.Account)"
+    }
 }
