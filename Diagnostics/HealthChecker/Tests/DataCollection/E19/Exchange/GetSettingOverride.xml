@@ -28,7 +28,7 @@
           <T>System.Object</T>
         </TN>
         <LST>
-          <S>Enabled=False</S>
+          <S>Enabled=True</S>
         </LST>
       </Obj>
       <Obj N="Status" RefId="2">
@@ -41,7 +41,7 @@
         <ToString>Accepted</ToString>
         <I32>3</I32>
       </Obj>
-      <S N="XmlRaw">&lt;S CN="Cafe" SN="HttpRequestFiltering" MB="exlab.dom/Users/Administrator" R="Testing"&gt;&lt;Ps&gt;&lt;P&gt;Enabled=False&lt;/P&gt;&lt;/Ps&gt;&lt;/S&gt;</S>
+      <S N="XmlRaw">&lt;S CN="Cafe" SN="HttpRequestFiltering" MB="exlab.dom/Users/Administrator" R="Testing"&gt;&lt;Ps&gt;&lt;P&gt;Enabled=True&lt;/P&gt;&lt;/Ps&gt;&lt;/S&gt;</S>
       <S N="AdminDisplayName"></S>
       <Obj N="ExchangeVersion" RefId="3">
         <TN RefId="3">

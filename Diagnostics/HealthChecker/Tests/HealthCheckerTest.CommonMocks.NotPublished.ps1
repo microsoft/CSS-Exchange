@@ -138,6 +138,7 @@ Mock Get-RemoteRegistryValue {
         "DisablePreservation" { return 0 }
         "DatabasePath" { return "$Script:MockDataCollectionRoot\Exchange" }
         "SuppressExtendedProtection" { return 0 }
+        "EnableEccCertificateSupport" { return $null }
         default { throw "Failed to find GetValue: $GetValue" }
     }
 }

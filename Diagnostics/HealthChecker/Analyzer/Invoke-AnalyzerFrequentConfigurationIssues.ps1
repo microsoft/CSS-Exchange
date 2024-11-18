@@ -74,6 +74,21 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     }
     Add-AnalyzedResultInformation @params
 
+    $detailsValue = $exchangeInformation.RegistryValues.EnableEccCertificateSupport
+    $displayWriteType = "Grey"
+
+    if (-not (Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -SUName "Nov24SU") -and $detailsValue -eq "1") {
+        $detailsValue = "1 --- Warning: On a build that doesn't support this configuration yet.`r`n`t`tMore Information: https://aka.ms/HC-EccCertificateChange"
+        $displayWriteType = "Yellow"
+    }
+
+    $params = $baseParams + @{
+        Name             = "EnableEccCertificateSupport Registry Value"
+        Details          = $detailsValue
+        DisplayWriteType = $displayWriteType
+    }
+    Add-AnalyzedResultInformation @params
+
     $displayValue = $exchangeInformation.RegistryValues.CtsProcessorAffinityPercentage
     $displayWriteType = "Green"
 
