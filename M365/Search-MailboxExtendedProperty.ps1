@@ -24,6 +24,13 @@
 #>
 param(
     [Parameter(Mandatory = $true, Position = 0)]
+    [ValidateScript({
+            if ($_.GetType().FullName -eq 'System.Management.Automation.PSObject' -or $_.GetType().FullName -eq 'System.Object[]') {
+                $true
+            } else {
+                throw "The parameter MailboxExtendedProperty doesn't appear to be the result from running 'Get-MailboxExtendedProperty'."
+            }
+        })]
     $MailboxExtendedProperty
 )
 

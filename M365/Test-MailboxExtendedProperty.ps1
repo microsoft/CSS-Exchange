@@ -20,16 +20,17 @@
     The number of sorted descending results to select, when checking any namepace or same name prefix quota. Default is 10.
 
 .EXAMPLE
-    .\Check-MailboxExtendedProperty.ps1 -Identity fred@contoso.com
-    .\Check-MailboxExtendedProperty.ps1 -Identity fred@contoso.com -Threshold 0.95
-    .\Check-MailboxExtendedProperty.ps1 -Identity fred@contoso.com -Threshold 0.7 -SelectFirst 20
+    .\Test-MailboxExtendedProperty.ps1 -Identity fred@contoso.com
+    .\Test-MailboxExtendedProperty.ps1 -Identity fred@contoso.com -Threshold 0.95
+    .\Test-MailboxExtendedProperty.ps1 -Identity fred@contoso.com -Threshold 0.7 -SelectFirst 20
 
 #>
 param(
     [Parameter(Mandatory = $true, Position = 0)]
     $Identity,
     [Parameter(Mandatory = $false, Position = 1)]
-    $Threshold = 0.9,
+    [ValidateRange(0.0, 1.0)]
+    [double]$Threshold = 0.9,
     [Parameter(Mandatory = $false, Position = 2)]
     $SelectFirst = 10
 )

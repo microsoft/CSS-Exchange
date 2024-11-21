@@ -1,6 +1,6 @@
-# Check-MailboxExtendedProperty
+# Test-MailboxExtendedProperty
 
-Download the latest release: [Check-MailboxExtendedProperty.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Check-MailboxExtendedProperty.ps1)
+Download the latest release: [Test-MailboxExtendedProperty.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Test-MailboxExtendedProperty.ps1)
 
 ## Description
 
@@ -17,17 +17,17 @@ The following scenarios are checked:
 
 Example to check the mailbox named property usage.
 ```PowerShell
-.\Check-MailboxExtendedProperty.ps1 -Identity fred@contoso.com
+.\Test-MailboxExtendedProperty.ps1 -Identity fred@contoso.com
 ```
 
 Example to check the mailbox named property usage and alter the threshold from the default 0.9 to 0.95 (95% of the allowed named properties for the scenario).
 ```PowerShell
-.\Check-MailboxExtendedProperty.ps1 -Identity fred@contoso.com -Threshold 0.95
+.\Test-MailboxExtendedProperty.ps1 -Identity fred@contoso.com -Threshold 0.95
 ```
 
 Example to check the mailbox named property usage and reduce the threshold to 0.7 (70%) and select the 20 (the default is 10) most used namespaces and named property prefixes.
 ```PowerShell
-.\Check-MailboxExtendedProperty.ps1 -Identity fred@contoso.com -Threshold 0.7 -SelectFirst 20
+.\Test-MailboxExtendedProperty.ps1 -Identity fred@contoso.com -Threshold 0.7 -SelectFirst 20
 ```
 
 ## Prerequisites

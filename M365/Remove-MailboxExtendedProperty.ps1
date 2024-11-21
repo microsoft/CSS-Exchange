@@ -21,8 +21,16 @@
     .\Remove-MailboxExtendedProperty.ps1 -MessagesWithExtendedProperty $messagesWithExtendedProperty
 
 #>
+[CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
 param(
-    [Parameter(Mandatory = $true, Position = 0)]
+[Parameter(Mandatory = $true, Position = 0)]
+    [ValidateScript({
+            if ($_.GetType().FullName -eq 'System.Management.Automation.PSCustomObject' -or $_.GetType().FullName -eq 'System.Object[]') {
+                $true
+            } else {
+                throw "The parameter MailboxExtendedProperty doesn't appear to be the result from running 'Search-MailboxExtendedProperty'."
+            }
+        })]
     $MessagesWithExtendedProperty
 )
 
@@ -51,10 +59,12 @@ process {
             # Construct the URL to remove the extended property from the message
             $url = "https://graph.microsoft.com/v1.0/users/$($user.UserPrincipalName)/messages/$($message.ID)/singleValueExtendedProperties/$extendedProperty"
 
-            # Remove the extended property from the message (fire and forget)
-            Invoke-MgGraphRequest -Method DELETE -Uri $url -Headers @{ Authorization = "Bearer $($context.AccessToken)" }
+            if ($PSCmdlet.ShouldProcess("Extended property '$($message.SingleValueExtendedProperties.Id)' on the message '$($message.Subject)'.", "Remove")) {
+                # Remove the extended property from the message (fire and forget)
+                Invoke-MgGraphRequest -Method DELETE -Uri $url -Headers @{ Authorization = "Bearer $($context.AccessToken)" }
 
-            Write-Host -ForegroundColor Green "Removed the extended property $($message.SingleValueExtendedProperties.Id) from the message '$($message.Subject)'."
+                Write-Host -ForegroundColor Green "Removed the extended property '$($message.SingleValueExtendedProperties.Id)' on the message '$($message.Subject)'."
+            }
         } else {
             Write-Host -ForegroundColor Red "Invalid extended property format: $($message.SingleValueExtendedProperties)."
         }
