@@ -293,6 +293,7 @@ end {
         $Script:Logger = Get-NewLoggerInstance -LogName "ExchangeLogCollector-Main-Debug" -LogDirectory ("$RootFilePath$env:COMPUTERNAME")
         SetWriteVerboseAction ${Function:Write-DebugLog}
         SetWriteHostAction ${Function:Write-DebugLog}
+        Write-Verbose "Script Execution Line: $($script:MyInvocation.Line)"
 
         Main
     } finally {

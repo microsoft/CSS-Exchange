@@ -62,6 +62,12 @@ function Get-ExchangeRegistryValues {
         ValueType = "String"
     }
 
+    $eccCertificateSupportParams = $baseParams + @{
+        SubKey    = "SOFTWARE\Microsoft\ExchangeServer\v15\Diagnostics"
+        GetValue  = "EnableEccCertificateSupport"
+        ValueType = "String"
+    }
+
     return [PSCustomObject]@{
         DisableBaseTypeCheckForDeserialization = [int](Get-RemoteRegistryValue @baseTypeCheckForDeserializationParams)
         CtsProcessorAffinityPercentage         = [int](Get-RemoteRegistryValue @ctsParams)
@@ -72,5 +78,6 @@ function Get-ExchangeRegistryValues {
         MsiInstallPath                         = [string](Get-RemoteRegistryValue @installDirectoryParams)
         DisablePreservation                    = [string](Get-RemoteRegistryValue @disablePreservationParams)
         FipFsDatabasePath                      = [string](Get-RemoteRegistryValue @fipFsDatabasePathParams)
+        EnableEccCertificateSupport            = [string](Get-RemoteRegistryValue @eccCertificateSupportParams)
     }
 }

@@ -89,4 +89,30 @@ function Invoke-AnalyzerSecurityOverrides {
         }
         Add-AnalyzedResultInformation @params
     }
+
+    if ((Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -SUName "Nov24SU")) {
+        Write-Verbose "ECCCertificateSupport Check for after changes"
+        $params = @{
+            ExchangeSettingOverride = $exchangeInformation.SettingOverrides
+            GetSettingOverride      = $HealthServerObject.OrganizationInformation.GetSettingOverride
+            FilterServer            = $HealthServerObject.ServerName
+            FilterServerVersion     = $exchangeBuild
+            FilterComponentName     = "Global"
+            FilterSectionName       = "ECCCertificateSupport"
+            FilterParameterName     = "Enabled"
+        }
+
+        [array]$eccCertificateSupportOverride = Get-FilteredSettingOverrideInformation @params
+        $overrideIsEnabled = ($null -ne ($eccCertificateSupportOverride | Where-Object { $_.ParameterValue -eq "true" }))
+
+        if ($overrideIsEnabled -and $exchangeInformation.RegistryValues.EnableEccCertificateSupport -ne "1") {
+            $params = $baseParams + @{
+                Name                = "ECCCertificateSupport"
+                Details             = "Error - No longer fully enabled`r`n`t`tMore Information: https://aka.ms/HC-EccCertificateChange"
+                DisplayWriteType    = "Red"
+                DisplayTestingValue = $true
+            }
+            Add-AnalyzedResultInformation @params
+        }
+    }
 }
