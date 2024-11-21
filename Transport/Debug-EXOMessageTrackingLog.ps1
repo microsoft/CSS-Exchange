@@ -51,3 +51,29 @@ Function Import-MTL {
     return $initial_mtl
 
 }
+
+Function Group-ByMessageID {
+    [CmdletBinding()]
+    param (
+        # MTL array to process
+        [Parameter(Mandatory = $true)]
+        [array]
+        $MTL,
+        # MessageID to group by
+        [Parameter(Mandatory = $true)]
+        [string]
+        $MessageID
+    )
+
+    # Filter the MTL by our messageID
+    [array]$Output = $MTL | Where-Object { $_.message_id -eq $MessageID }
+
+    # Make sure we found the messageID
+    If ($null -eq $Output) {
+        Write-Error ("MessageID " + $MessageID + " not found in provide MTL.") -ErrorAction Stop
+    }
+
+    ### Do we want to search the reference coloum here as well??
+
+    Return $Output
+}
