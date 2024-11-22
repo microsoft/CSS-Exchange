@@ -71,14 +71,42 @@ Function Group-ByMessageID {
         Write-Error ("MessageID " + $MessageID + " not found in provide MTL.") -ErrorAction Stop
     }
 
-    ### Do we want to search the reference coloum here as well??
+    ### Do we want to search the reference Colum here as well??
 
     Return $Output
 }
 
+# Gather up all of the entries by recipient
+Function Group-ByRecipient {
+    [CmdletBinding()]
+    [OutputType([array])]
+    param (
+        # MTL array to process
+        [Parameter(Mandatory = $true)]
+        [array]
+        $MTL,
+        # MessageID to group by
+        [Parameter(Mandatory = $true)]
+        [string]
+        $Recipient
+    )
+
+    # Filter the MTL by the provided recipient
+    [array]$Output = $MTL | Where-Object { $_.recipient_address -like ('*' + $Recipient + '*')}
+
+    # Make sure we found the recipient
+    If ($null -eq $Output) {
+        Write-Error ("Recipient " + $Recipient + " not found in provide MTL.") -ErrorAction Stop
+    }
+
+    ### Do we want to search the reference Colum here as well??
+
+    Return $Output
+
+}
+
 # Test if we have only a single MessageID provided in the MTL
 Function Test-UniqueMessageID {
-
     [CmdletBinding()]
     [OutputType([bool])]
     param (
@@ -88,13 +116,28 @@ Function Test-UniqueMessageID {
         $MTL
     )
 
-    if ((Select-Object -Property message_id -Unique).count -gt 1){
+    if ((Select-Object -Property message_id -Unique).count -gt 1) {
         Return $false
-    }
-    else {
+    } else {
         Return $true
     }
 }
 
+# Determine if we have a unique recipient in the MTL
+Function Test-UniqueRecipient {
+    [CmdletBinding()]
+    [OutputType([bool])]
+    param (
+        # Parameter help description
+        [Parameter(Mandatory = $true)]
+        [array]
+        $MTL
+    )
 
+    if ((Select-Object -Property recipient_address -Unique).count -gt 1) {
+        Return $false
+    } else {
+        Return $true
+    }
 
+}
