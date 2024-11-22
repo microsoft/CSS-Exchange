@@ -1,11 +1,7 @@
-﻿
-
-
-
-
-
-
+﻿# Import and validate the MTL file.
 Function Import-MTL {
+    [CmdletBinding()]
+    [OutputType([array])]
     Param(
         # File path for MTL to import
         [Parameter(Mandatory = $true)]
@@ -52,8 +48,10 @@ Function Import-MTL {
 
 }
 
+# Gather up all of the entries related to a single MessageID
 Function Group-ByMessageID {
     [CmdletBinding()]
+    [OutputType([array])]
     param (
         # MTL array to process
         [Parameter(Mandatory = $true)]
@@ -77,3 +75,26 @@ Function Group-ByMessageID {
 
     Return $Output
 }
+
+# Test if we have only a single MessageID provided in the MTL
+Function Test-UniqueMessageID {
+
+    [CmdletBinding()]
+    [OutputType([bool])]
+    param (
+        # Parameter help description
+        [Parameter(Mandatory = $true)]
+        [array]
+        $MTL
+    )
+
+    if ((Select-Object -Property message_id -Unique).count -gt 1){
+        Return $false
+    }
+    else {
+        Return $true
+    }
+}
+
+
+
