@@ -92,7 +92,7 @@ Function Group-ByRecipient {
     )
 
     # Filter the MTL by the provided recipient
-    [array]$Output = $MTL | Where-Object { $_.recipient_address -like ('*' + $Recipient + '*')}
+    [array]$Output = $MTL | Where-Object { $_.recipient_address -like ('*' + $Recipient + '*') }
 
     # Make sure we found the recipient
     If ($null -eq $Output) {
@@ -116,7 +116,7 @@ Function Test-UniqueMessageID {
         $MTL
     )
 
-    if ((Select-Object -Property message_id -Unique).count -gt 1) {
+    if (($MTL | Select-Object -Property message_id -Unique).count -gt 1) {
         Return $false
     } else {
         Return $true
@@ -134,10 +134,49 @@ Function Test-UniqueRecipient {
         $MTL
     )
 
-    if ((Select-Object -Property recipient_address -Unique).count -gt 1) {
+    if (($MTL | Select-Object -Property recipient_address -Unique).count -gt 1) {
         Return $false
     } else {
         Return $true
     }
+
+}
+
+function Test-CSVData {
+    param(
+        [array]$CSV,
+        [array]$ColumnsToCheck
+    )
+
+    # Check to make sure we have data in the CSV
+    if (($null -eq $CSV) -or !($CSV.count -gt 0)) {
+        Write-Error "Provided CSV null or empty" -ErrorAction Stop
+        return $false
+    }
+
+    # Read thru the data and make sure we have the needed columns
+    $ColumnHeaders = ($CSV | Get-Member -MemberType NoteProperty).Name
+    foreach ( $ColumnToCheck in $ColumnsToCheck) {
+        if (!($ColumnHeaders.ToLower().Contains($ColumnToCheck.ToLower())) ) {
+            return $false
+        }
+    }
+    return $true
+}
+
+# Take a StorDriver Receive event and format the output into HTML with all critical data
+function Format-StoreDriverReceive {
+    [CmdletBinding()]
+    param (
+        # Parameter help description
+        [Parameter(Mandatory = $true)]
+        [array]
+        $Entry
+    )
+
+    # Make sure our return object is null
+    $object = $null
+
+    #### Need to add all of the data we want to a PSCustomobject
 
 }
