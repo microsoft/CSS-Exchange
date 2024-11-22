@@ -45,7 +45,7 @@ This script uses [Microsoft Graph PowerShell modules](#install-microsoft-graph-p
 To connect to Graph, using delegated access, and you know the credentials of the mailbox you want to search.
 
 ```PowerShell
-    Connect-MgGraph -TenantId 2bbb42ba-e564-4f7b-9765-e19bc80c6123 -ClientId 8af900d8-db73-4918-81ef-3d35a873b6b2 -Scopes "user.read mail.readwrite"
+    Connect-MgGraph -TenantId 2bbb42ba-e564-4f7b-9765-e19bc80c6123 -ClientId 8af900d8-db73-4918-81ef-3d35a873b6b2 -Scopes "User.Read Mail.ReadWrite"
 ```
 
     TenantId is that of the tenant.
@@ -55,7 +55,7 @@ To connect to Graph, using delegated access, and you know the credentials of the
 To connect to Graph, using delegated access, and you don't know the credentials of the mailbox you want to search. This generates a Url and device code, which is given to the end user and the end user performs the login on your behalf.
 
 ```PowerShell
-    Connect-MgGraph -TenantId 2bbb42ba-e564-4f7b-9765-e19bc80c6123 -ClientId 8af900d8-db73-4918-81ef-3d35a873b6b2 -Scopes "user.read mail.readwrite" -UseDeviceCode
+    Connect-MgGraph -TenantId 2bbb42ba-e564-4f7b-9765-e19bc80c6123 -ClientId 8af900d8-db73-4918-81ef-3d35a873b6b2 -Scopes "User.Read Mail.ReadWrite" -UseDeviceCode
 ```
 
 ### Install ExchangeOnlineManagement PowerShell module
