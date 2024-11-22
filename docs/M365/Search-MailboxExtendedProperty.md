@@ -20,7 +20,7 @@ The information about each message includes:
 5. The Id of the folder containing the message
 6. The folder path expressed in \Inbox\Subfolder syntax
 
-This message information is sufficent to attempt to remove the named property from the message using the `Remove-MailboxExtendedProperty.ps1` script.
+This message information is sufficient to attempt to remove the named property from the message using the `Remove-MailboxExtendedProperty.ps1` script.
 
 There are some limitations: the search is limited to messages (extended properties can exist on folder, contact, calendar instances etc), single value extended properties (not multi-value), and the property value must be a non-null string.
 
@@ -73,7 +73,7 @@ To connect to Graph, using delegated access, and you don't know the credentials 
 
 ### Azure App registration
 
-For an overiew of permissions and consent in the Microsoft identity platform see: https://learn.microsoft.com/entra/identity-platform/permissions-consent-overview.
+For an overview of permissions and consent in the Microsoft identity platform see: https://learn.microsoft.com/entra/identity-platform/permissions-consent-overview.
 
 An example of Azure App registration to allow use of this script, using delegated access, is as follows:
 

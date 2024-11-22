@@ -17,7 +17,7 @@
     The quota threshold to check for having exceeded. Default is 0.9, which is 90% of the allowed quota.
 
 .PARAMETER SelectFirst
-    The number of sorted descending results to select, when checking any namepace or same name prefix quota. Default is 10.
+    The number of sorted descending results to select, when checking any namespace or same name prefix quota. Default is 10.
 
 .EXAMPLE
     .\Test-MailboxExtendedProperty.ps1 -Identity fred@contoso.com
@@ -41,7 +41,7 @@ process {
     # Flag to indicate if the mailbox has exceeded the threshold of a named properties quota.
     $exceededThresholdQuota = $false
     # The Guid of the PublicStrings namespace.
-    $publicStringsNamepsace = "00020329-0000-0000-c000-000000000046"
+    $publicStringsNamespace = "00020329-0000-0000-c000-000000000046"
     # The Guid of the InternetHeaders namespace.
     $internetHeadersNamespace = "00020386-0000-0000-C000-000000000046"
     # The length of the prefix to check for named properties with the same name.
@@ -75,7 +75,7 @@ process {
         Write-Host -ForegroundColor Green "The mailbox is under quota with $($namedProps.Count) named properties."
     }
 
-    $namedPropsPublicStrings = $namedProps | Where-Object { $_.PropertyNamespace -eq $publicStringsNamepsace }
+    $namedPropsPublicStrings = $namedProps | Where-Object { $_.PropertyNamespace -eq $publicStringsNamespace }
     $namedPropsInternetHeaders = $namedProps | Where-Object { $_.PropertyNamespace -eq $internetHeadersNamespace }
 
     Write-Host -ForegroundColor Blue "Checking if the mailbox has exceeded the threshold of PublicStrings namespace named properties quota."
@@ -95,7 +95,7 @@ process {
     }
 
     Write-Host -ForegroundColor Blue "Checking if the mailbox has exceeded the threshold of any other namespace named properties quota."
-    $namespaces = $namedProps | Where-Object { $_.PropertyNamespace -ne $publicStringsNamepsace -or $_.PropertyNamespace -ne $internetHeadersNamespace } | Group-Object PropertyNamespace -NoElement | Sort-Object Count -Descending | Select-Object -First $SelectFirst
+    $namespaces = $namedProps | Where-Object { $_.PropertyNamespace -ne $publicStringsNamespace -or $_.PropertyNamespace -ne $internetHeadersNamespace } | Group-Object PropertyNamespace -NoElement | Sort-Object Count -Descending | Select-Object -First $SelectFirst
     foreach ($namespace in $namespaces) {
         if ($namespace.Count -ge [int]($Threshold * $anyNamespaceQuota)) {
             Write-Host -ForegroundColor Yellow "The $($namespace.Name) namespace has $($namespace.Count) named properties. The quota is $anyNamespaceQuota."
