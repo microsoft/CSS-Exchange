@@ -23,7 +23,7 @@
 #>
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
 param(
-[Parameter(Mandatory = $true, Position = 0)]
+    [Parameter(Mandatory = $true, Position = 0)]
     [ValidateScript({
             if ($_.GetType().FullName -eq 'System.Management.Automation.PSCustomObject' -or $_.GetType().FullName -eq 'System.Object[]') {
                 $true
