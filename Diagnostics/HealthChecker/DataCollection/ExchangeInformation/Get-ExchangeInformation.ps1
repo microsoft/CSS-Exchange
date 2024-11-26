@@ -208,16 +208,31 @@ function Get-ExchangeInformation {
         if ($getExchangeServer.IsEdgeServer -eq $false) {
             $params = @{
                 ComputerName           = $Server
-                ScriptBlockDescription = "Getting Exchange Server Members"
+                ScriptBlockDescription = "Getting Exchange Server Local Group Members"
                 CatchActionFunction    = ${Function:Invoke-CatchActions}
                 ScriptBlock            = {
-                    [PSCustomObject]@{
-                        LocalGroupMember  = (Get-LocalGroupMember -SID "S-1-5-32-544" -ErrorAction Stop)
-                        ADGroupMembership = (Get-ADPrincipalGroupMembership (Get-ADComputer $env:COMPUTERNAME).DistinguishedName)
+                    try {
+                        $localGroupMember = Get-LocalGroupMember -SID "S-1-5-32-544" -ErrorAction Stop
+                    } catch {
+                        Write-Verbose "Failed to run Get-LocalGroupMember. Inner Exception: $_"
                     }
+                    $localGroupMember
                 }
             }
-            $computerMembership = Invoke-ScriptBlockHandler @params
+            $localGroupMember = Invoke-ScriptBlockHandler @params
+
+            # AD Module cmdlets don't appear to work in remote context with Invoke-Command, this is why it is now moved outside of the Invoke-ScriptBlockHandler.
+            try {
+                $adPrincipalGroupMembership = (Get-ADPrincipalGroupMembership (Get-ADComputer ($Server.Split(".")[0]) -ErrorAction Stop).DistinguishedName -ErrorAction Stop)
+            } catch {
+                # Current do not add Invoke-CatchActions as we want to be aware if this doesn't fix some things.
+                Write-Verbose "Failed to get the AD Principal Group Membership. Inner Exception: $_"
+            }
+
+            $computerMembership = [PSCustomObject]@{
+                LocalGroupMember  = $localGroupMember
+                ADGroupMembership = $adPrincipalGroupMembership
+            }
         }
 
         [array]$serverMonitoringOverride = Get-MonitoringOverride -Server $Server
