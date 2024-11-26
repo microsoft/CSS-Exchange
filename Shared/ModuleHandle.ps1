@@ -1,6 +1,22 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+<#
+.SYNOPSIS
+This script defines a function `Request-Module` that checks for the presence of specified PowerShell modules.
+If a module is not found, it attempts to install it on current user scope.
+The function accepts a list of module names and an optional minimum version for the modules.
+It returns a boolean indicating whether all specified modules are installed successfully.
+
+.PARAMETER Modules
+ Mandatory array of strings specifying the names of the modules to check and install if necessary.
+.PARAMETER MinModuleVersion
+ Optional parameter to specify the minimum version of the modules (default is null).
+
+.OUTPUTS
+bool. A boolean indicating whether all specified modules are installed successfully.
+#>
+
 function Request-Module {
     [OutputType([bool])]
     param (

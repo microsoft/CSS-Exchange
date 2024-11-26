@@ -1,6 +1,27 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+<#
+.SYNOPSIS
+This script defines a function `Connect-EXOAdvanced` that establishes a connection to Exchange Online.
+It ensures that the required ExchangeOnlineManagement module (version 3.0.0 or higher by default) is installed and loaded.
+The function supports single and multiple session connections, with optional parameters to control the connection details display and session prefix.
+If the required module is not found, the script attempts to install it.
+The function returns the connection information or null if the connection fails.
+
+.PARAMETER DoNotShowConnectionDetails
+ Optional switch to hide connection details.
+.PARAMETER AllowMultipleSessions
+ Optional switch to allow multiple sessions.
+.PARAMETER Prefix
+ Optional string to specify a prefix for the session.
+.PARAMETER MinModuleVersion
+ Optional parameter to specify the minimum version of the ExchangeOnlineManagement module (default is 3.0.0).
+
+.OUTPUTS
+Microsoft.Exchange.Management.ExoPowershellSnapin.ConnectionInformation. The connection information object for the Exchange Online session.
+#>
+
 . $PSScriptRoot\..\ModuleHandle.ps1
 
 function Connect-EXOAdvanced {
@@ -12,11 +33,14 @@ function Connect-EXOAdvanced {
         [Parameter(Mandatory = $true, ParameterSetName = 'AllowMultipleSessions')]
         [switch]$AllowMultipleSessions,
         [Parameter(Mandatory = $false, ParameterSetName = 'AllowMultipleSessions')]
-        [string]$Prefix = $null
+        [string]$Prefix = $null,
+        [Parameter(Mandatory = $false, ParameterSetName = 'SingleSession')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'AllowMultipleSessions')]
+        [System.Version]$MinModuleVersion = 3.0.0
     )
 
     #Validate EXO 3.0 is installed and loaded
-    $requestModule = Request-Module -Modules "ExchangeOnlineManagement" -MinModuleVersion 3.0.0
+    $requestModule = Request-Module -Modules "ExchangeOnlineManagement" -MinModuleVersion $MinModuleVersion
 
     if (-not $requestModule) {
         Write-Host "We cannot continue without ExchangeOnlineManagement Powershell module" -ForegroundColor Red
