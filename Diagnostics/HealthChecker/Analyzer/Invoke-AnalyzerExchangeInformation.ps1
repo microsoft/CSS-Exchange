@@ -213,6 +213,42 @@ function Invoke-AnalyzerExchangeInformation {
     }
     Add-AnalyzedResultInformation @params
 
+    $displayWriteType = "Grey"
+    $details = $exchangeInformation.GetExchangeServer.Edition.ToString()
+
+    if ($exchangeInformation.GetExchangeServer.IsExchangeTrialEdition) {
+        $displayWriteType = "Yellow"
+        $details = "Warning - $details"
+    }
+
+    $params = $baseParams + @{
+        Name             = "Edition"
+        Details          = $details
+        DisplayWriteType = $displayWriteType
+    }
+    Add-AnalyzedResultInformation @params
+
+    if ($exchangeInformation.GetExchangeServer.IsExchangeTrialEdition) {
+        $displayWriteType = "Grey"
+        $details = $exchangeInformation.GetExchangeServer.RemainingTrialPeriod.ToString()
+
+        if ($exchangeInformation.GetExchangeServer.IsExpiredExchangeTrialEdition) {
+            $displayWriteType = "Red"
+            $details = "Error - $($exchangeInformation.GetExchangeServer.RemainingTrialPeriod)"
+        } elseif ([TimeSpan]$exchangeInformation.GetExchangeServer.RemainingTrialPeriod.ToString() -lt [TimeSpan]"7.00:00:00") {
+            $displayWriteType = "Yellow"
+            $details = "Warning - $($exchangeInformation.GetExchangeServer.RemainingTrialPeriod)"
+        }
+
+        $params = $baseParams + @{
+            Name                   = "Remaining Trail Period"
+            Details                = $details
+            DisplayWriteType       = $displayWriteType
+            DisplayCustomTabNumber = 2
+        }
+        Add-AnalyzedResultInformation @params
+    }
+
     if ($exchangeInformation.GetExchangeServer.IsMailboxServer -eq $true) {
         $dagName = [System.Convert]::ToString($exchangeInformation.GetMailboxServer.DatabaseAvailabilityGroup)
         if ([System.String]::IsNullOrWhiteSpace($dagName)) {

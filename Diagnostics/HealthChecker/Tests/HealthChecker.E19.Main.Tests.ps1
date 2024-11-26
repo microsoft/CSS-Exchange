@@ -25,6 +25,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Build Number" "15.02.0986.005"
             TestObjectMatch "End Of Life" $true -WriteType "Yellow" # This is going to change to red once we get 178 out
             TestObjectMatch "Server Role" "Mailbox"
+            TestObjectMatch "Edition" "Warning - StandardEvaluation" -WriteType "Yellow"
+            TestObjectMatch "Remaining Trail Period" "Error - 00:00:00" -WriteType "Red"
             TestObjectMatch "DAG Name" "Standalone Server"
             TestObjectMatch "AD Site" "Default-First-Site-Name"
             TestObjectMatch "MRS Proxy Enabled" "False"
@@ -35,7 +37,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Monitoring Overrides Detected" $false
             TestObjectMatch "Out of Date" $true -WriteType "Red"
             TestObjectMatch "Exchange Server Membership" "Passed"
-            $Script:ActiveGrouping.Count | Should -Be 17
+            $Script:ActiveGrouping.Count | Should -Be 19
         }
 
         It "Display Results - Organization Information" {

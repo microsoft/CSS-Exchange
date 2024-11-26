@@ -128,6 +128,12 @@ function Save-ServerInfoData {
         Write-Verbose("Get-Partition isn't a valid command")
     }
 
+    if (Test-CommandExists -command "Get-PhysicalDisk") {
+        Save-DataInfoToFile -DataIn (Get-PhysicalDisk) -SaveToLocation ("{0}\PhysicalDisk" -f $copyTo)
+    } else {
+        Write-Verbose("Get-PhysicalDisk isn't a valid command")
+    }
+
     Invoke-ZipFolder -Folder $copyTo
     Write-Verbose("Function Exit: Save-ServerInfoData")
 }
