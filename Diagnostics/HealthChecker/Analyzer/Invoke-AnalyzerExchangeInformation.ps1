@@ -305,16 +305,24 @@ function Invoke-AnalyzerExchangeInformation {
                 Where-Object { $_.WellKnownName -in @("Exchange Trusted Subsystem", "Exchange Servers") }
             $displayMissingGroups = New-Object System.Collections.Generic.List[string]
 
-            foreach ($localGroup in $localGroupList) {
-                if (($null -eq ($exchangeInformation.ComputerMembership.LocalGroupMember.SID | Where-Object { $_.ToString() -eq $localGroup.SID } ))) {
-                    $displayMissingGroups.Add("$($localGroup.WellKnownName) - Local System Membership")
+            if ($null -ne $exchangeInformation.ComputerMembership.LocalGroupMember) {
+                foreach ($localGroup in $localGroupList) {
+                    if (($null -eq ($exchangeInformation.ComputerMembership.LocalGroupMember.SID | Where-Object { $_.ToString() -eq $localGroup.SID } ))) {
+                        $displayMissingGroups.Add("$($localGroup.WellKnownName) - Local System Membership")
+                    }
                 }
+            } else {
+                $displayMissingGroups.Add("Unable to determine Local System Membership as the results were blank.")
             }
 
-            foreach ($adGroup in $adGroupList) {
-                if (($null -eq ($exchangeInformation.ComputerMembership.ADGroupMembership.SID | Where-Object { $_.ToString() -eq $adGroup.SID }))) {
-                    $displayMissingGroups.Add("$($adGroup.WellKnownName) - AD Group Membership")
+            if ($null -ne $exchangeInformation.ComputerMembership.ADGroupMembership) {
+                foreach ($adGroup in $adGroupList) {
+                    if (($null -eq ($exchangeInformation.ComputerMembership.ADGroupMembership.SID | Where-Object { $_.ToString() -eq $adGroup.SID }))) {
+                        $displayMissingGroups.Add("$($adGroup.WellKnownName) - AD Group Membership")
+                    }
                 }
+            } else {
+                $displayMissingGroups.Add("Unable to determine AD Group Membership as the results were blank.")
             }
 
             if ($displayMissingGroups.Count -ge 1) {
