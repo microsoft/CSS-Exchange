@@ -15,6 +15,14 @@ It returns a boolean indicating whether all specified modules are installed succ
 
 .OUTPUTS
 bool. A boolean indicating whether all specified modules are installed successfully.
+
+.EXAMPLE
+$requestModule = Request-Module -Modules "ExchangeOnlineManagement"
+This example checks if the "ExchangeOnlineManagement" module is installed. If it is not found, the script attempts to install it.
+
+.EXAMPLE
+$requestModule = Request-Module -Modules "ExchangeOnlineManagement" -MinModuleVersion $MinModuleVersion
+This example checks if the "ExchangeOnlineManagement" module with a specified minimum version is installed. If it is not found, the script attempts to install it.
 #>
 
 function Request-Module {
@@ -58,7 +66,7 @@ function Request-Module {
                 } else {
                     Write-Verbose "without minimum version"
                 }
-                Install-Module @installParams
+                Install-Module @installParams -Force
 
                 Write-Verbose "Checking $module"
                 $confirmed = Get-InstalledModule @getParams

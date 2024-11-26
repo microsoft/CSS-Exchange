@@ -17,9 +17,23 @@ The function returns the connection information or null if the connection fails.
  Optional array of strings specifying the tenant ID(s) for the connection.
 .PARAMETER DoNotShowConnectionDetails
  Optional switch to hide connection details.
+.PARAMETER MinModuleVersion
+ Optional parameter to specify the minimum version of the Graph modules (default is 2.0.0).
 
 .OUTPUTS
 Microsoft.Graph.PowerShell.Authentication.AuthContext. The connection information object for the Microsoft Graph session.
+
+.EXAMPLE
+$graphConnection = Connect-GraphAdvanced -Scopes User.Read, Mail.Read -Modules Microsoft.Graph
+This example establishes a connection to Microsoft Graph with the scopes "User.Read" and "Mail.Read" using the "Microsoft.Graph" module.
+
+.EXAMPLE
+$graphConnection = Connect-GraphAdvanced -Scopes Group.Read.All, User.Read.All -Modules Microsoft.Graph.Users, Microsoft.Graph.Groups
+This example establishes a connection to Microsoft Graph with the scopes "Group.Read.All" and "User.Read.All" using the "Microsoft.Graph.Users" and "Microsoft.Graph.Groups" modules.
+
+.EXAMPLE
+$graphConnection = Connect-GraphAdvanced -Scopes Group.Read.All, User.Read.All -Modules Microsoft.Graph.Users, Microsoft.Graph.Groups -minModuleVersion 2.25.0
+This example establishes a connection to Microsoft Graph with the scopes "Group.Read.All" and "User.Read.All" using the "Microsoft.Graph.Users" and "Microsoft.Graph.Groups" modules, and specifies a minimum module version of 2.25.0.
 #>
 
 . $PSScriptRoot\..\ModuleHandle.ps1
@@ -33,11 +47,13 @@ function Connect-GraphAdvanced {
         [Parameter(Mandatory = $false)]
         [string[]]$TenantId = $null,
         [Parameter(Mandatory = $false)]
-        [switch]$DoNotShowConnectionDetails
+        [switch]$DoNotShowConnectionDetails,
+        [Parameter(Mandatory = $false)]
+        [System.Version]$MinModuleVersion = 2.0.0.0
     )
 
     #Validate Graph is installed and loaded
-    $requestModule = Request-Module -Modules $Modules
+    $requestModule = Request-Module -Modules $Modules -MinModuleVersion $MinModuleVersion
     if (-not $requestModule) {
         Write-Host "We cannot continue without $Modules Powershell module" -ForegroundColor Red
         return $null

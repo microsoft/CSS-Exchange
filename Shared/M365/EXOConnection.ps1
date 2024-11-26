@@ -20,6 +20,22 @@ The function returns the connection information or null if the connection fails.
 
 .OUTPUTS
 Microsoft.Exchange.Management.ExoPowershellSnapin.ConnectionInformation. The connection information object for the Exchange Online session.
+
+.EXAMPLE
+$exoConnection = Connect-EXOAdvanced
+This example establishes a connection to Exchange Online using the default settings.
+
+.EXAMPLE
+$exoConnection = Connect-EXOAdvanced -AllowMultipleSessions
+This example establishes a connection to Exchange Online and allows multiple sessions.
+
+.EXAMPLE
+$exoConnection = Connect-EXOAdvanced -AllowMultipleSessions -Prefix Con2
+This example establishes a connection to Exchange Online, allows multiple sessions, and specifies a prefix "Con2" for the session.
+
+.EXAMPLE
+$exoConnection2 = Connect-EXOAdvanced -minModuleVersion 3.5.0
+This example establishes a connection to Exchange Online and specifies a minimum module version of 3.5.0.
 #>
 
 . $PSScriptRoot\..\ModuleHandle.ps1
@@ -36,7 +52,7 @@ function Connect-EXOAdvanced {
         [string]$Prefix = $null,
         [Parameter(Mandatory = $false, ParameterSetName = 'SingleSession')]
         [Parameter(Mandatory = $false, ParameterSetName = 'AllowMultipleSessions')]
-        [System.Version]$MinModuleVersion = 3.0.0
+        [System.Version]$MinModuleVersion = 3.0.0.0
     )
 
     #Validate EXO 3.0 is installed and loaded
