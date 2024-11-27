@@ -18,7 +18,7 @@ The function returns the connection information or null if the connection fails.
 .PARAMETER DoNotShowConnectionDetails
  Optional switch to hide connection details.
 .PARAMETER MinModuleVersion
- Optional parameter to specify the minimum version of the Graph modules (default and minimun supported version 2.0.0).
+ Optional parameter to specify the minimum version of the Graph modules (default and minimum supported version 2.0.0).
 
 .OUTPUTS
 Microsoft.Graph.PowerShell.Authentication.AuthContext. The connection information object for the Microsoft Graph session.
@@ -50,7 +50,7 @@ function Connect-GraphAdvanced {
         [switch]$DoNotShowConnectionDetails,
         [ValidateScript({
                 if ($_ -lt [System.Version]'2.0.0.0') {
-                    throw "Minimun supported version: 2.0.0.0"
+                    throw "Minimum supported version: 2.0.0.0"
                 }
                 $true
             })]

@@ -16,7 +16,7 @@ The function returns the connection information or null if the connection fails.
 .PARAMETER Prefix
  Optional string to specify a prefix for the session.
 .PARAMETER MinModuleVersion
- Optional parameter to specify the minimum version of the ExchangeOnlineManagement module (default and minimun supported version is 3.0.0).
+ Optional parameter to specify the minimum version of the ExchangeOnlineManagement module (default and minimum supported version is 3.0.0).
 
 .OUTPUTS
 Microsoft.Exchange.Management.ExoPowershellSnapin.ConnectionInformation. The connection information object for the Exchange Online session.
@@ -52,7 +52,7 @@ function Connect-EXOAdvanced {
         [string]$Prefix = $null,
         [ValidateScript({
                 if ($_ -lt [System.Version]'3.0.0.0') {
-                    throw "Minimun supported version: 3.0.0.0"
+                    throw "Minimum supported version: 3.0.0.0"
                 }
                 $true
             })]
