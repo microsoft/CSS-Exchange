@@ -354,6 +354,13 @@ function Invoke-AnalyzerHybridInformation {
                         }
                     } else {
                         $cloudConnectorTlsCertificateName = "Not set"
+
+                        # Check if the server is configured as sending or receiving transport server - if it is, the certificate used for hybrid mail flow must exist on the machine
+                        $certificateShouldExistOnServer = $getHybridConfiguration.SendingTransportServers.DistinguishedName -contains $exchangeInformation.GetExchangeServer.DistinguishedName -or
+                        $getHybridConfiguration.ReceivingTransportServers.DistinguishedName -contains $exchangeInformation.GetExchangeServer.DistinguishedName
+
+                        Write-Verbose "Server is configured for hybrid mailflow and the transport certificate should exist on this server? $certificateShouldExistOnServer"
+
                         if ($null -ne $connector.CertificateDetails.TlsCertificateName) {
                             $cloudConnectorTlsCertificateName = $connector.CertificateDetails.TlsCertificateName
                         }
@@ -365,87 +372,90 @@ function Invoke-AnalyzerHybridInformation {
                         }
                         Add-AnalyzedResultInformation @params
 
-                        $params = $baseParams + @{
-                            Name             = "Certificate Found On Server"
-                            Details          = $connector.CertificateDetails.CertificateMatchDetected
-                            DisplayWriteType = $cloudConnectorWriteType
-                        }
-                        Add-AnalyzedResultInformation @params
-
-                        if ($connector.CertificateDetails.TlsCertificateNameStatus -eq "TlsCertificateNameEmpty") {
+                        # Don't perform the following checks if the server is not a sending or receiving transport server configured for hybrid mail flow (there is a high chance that the certificate didn't exist which is by design)
+                        if ($certificateShouldExistOnServer) {
                             $params = $baseParams + @{
-                                Details                = "There is no 'TlsCertificateName' configured for this cloud mail enabled connector.`r`n`t`tThis will cause mail flow issues in hybrid scenarios. More information: https://aka.ms/HC-HybridConnector"
-                                DisplayWriteType       = $cloudConnectorWriteType
-                                DisplayCustomTabNumber = 2
-                            }
-                            Add-AnalyzedResultInformation @params
-                        } elseif ($connector.CertificateDetails.CertificateMatchDetected -eq $false) {
-                            $params = $baseParams + @{
-                                Details                = "The configured 'TlsCertificateName' was not found on the server.`r`n`t`tThis may cause mail flow issues. More information: https://aka.ms/HC-HybridConnector"
-                                DisplayWriteType       = $cloudConnectorWriteType
-                                DisplayCustomTabNumber = 2
-                            }
-                            Add-AnalyzedResultInformation @params
-                        } else {
-                            Add-AnalyzedResultInformation -Name "Certificate Thumbprint(s)" @baseParams
-
-                            foreach ($thumbprint in $($connector.CertificateDetails.CertificateLifetimeInfo).keys) {
-                                $params = $baseParams + @{
-                                    Details                = $thumbprint
-                                    DisplayCustomTabNumber = 2
-                                }
-                                Add-AnalyzedResultInformation @params
-                            }
-
-                            Add-AnalyzedResultInformation -Name "Lifetime In Days" @baseParams
-
-                            foreach ($thumbprint in $($connector.CertificateDetails.CertificateLifetimeInfo).keys) {
-                                switch ($($connector.CertificateDetails.CertificateLifetimeInfo)[$thumbprint]) {
-                                    { ($_ -ge 60) } { $certificateLifetimeWriteType = "Green"; break }
-                                    { ($_ -ge 30) } { $certificateLifetimeWriteType = "Yellow"; break }
-                                    default { $certificateLifetimeWriteType = "Red" }
-                                }
-
-                                $params = $baseParams + @{
-                                    Details                = ($connector.CertificateDetails.CertificateLifetimeInfo)[$thumbprint]
-                                    DisplayWriteType       = $certificateLifetimeWriteType
-                                    DisplayCustomTabNumber = 2
-                                }
-                                Add-AnalyzedResultInformation @params
-                            }
-
-                            $connectorCertificateMatchesHybridCertificate = $false
-                            $connectorCertificateMatchesHybridCertificateWritingType = "Yellow"
-                            if (($connector.CertificateDetails.TlsCertificateSet) -and
-                                (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.TlsCertificateName))) -and
-                                ($connector.CertificateDetails.TlsCertificateName -eq $getHybridConfiguration.TlsCertificateName)) {
-                                $connectorCertificateMatchesHybridCertificate = $true
-                                $connectorCertificateMatchesHybridCertificateWritingType = "Green"
-                            }
-
-                            $params = $baseParams + @{
-                                Name             = "Certificate Matches Hybrid Certificate"
-                                Details          = $connectorCertificateMatchesHybridCertificate
-                                DisplayWriteType = $connectorCertificateMatchesHybridCertificateWritingType
+                                Name             = "Certificate Found On Server"
+                                Details          = $connector.CertificateDetails.CertificateMatchDetected
+                                DisplayWriteType = $cloudConnectorWriteType
                             }
                             Add-AnalyzedResultInformation @params
 
-                            if (($connector.CertificateDetails.TlsCertificateNameStatus -eq "TlsCertificateNameSyntaxInvalid") -or
-                                (($connector.CertificateDetails.GoodTlsCertificateSyntax -eq $false) -and
-                                    ($null -ne $connector.CertificateDetails.TlsCertificateName))) {
+                            if ($connector.CertificateDetails.TlsCertificateNameStatus -eq "TlsCertificateNameEmpty") {
                                 $params = $baseParams + @{
-                                    Name             = "TlsCertificateName Syntax Invalid"
-                                    Details          = "True"
-                                    DisplayWriteType = $cloudConnectorWriteType
-                                }
-                                Add-AnalyzedResultInformation @params
-
-                                $params = $baseParams + @{
-                                    Details                = "The correct syntax is: '<I>X.500Issuer<S>X.500Subject'"
+                                    Details                = "There is no 'TlsCertificateName' configured for this cloud mail enabled connector.`r`n`t`tThis will cause mail flow issues in hybrid scenarios. More information: https://aka.ms/HC-HybridConnector"
                                     DisplayWriteType       = $cloudConnectorWriteType
                                     DisplayCustomTabNumber = 2
                                 }
                                 Add-AnalyzedResultInformation @params
+                            } elseif ($connector.CertificateDetails.CertificateMatchDetected -eq $false) {
+                                $params = $baseParams + @{
+                                    Details                = "The configured 'TlsCertificateName' was not found on the server.`r`n`t`tThis may cause mail flow issues. More information: https://aka.ms/HC-HybridConnector"
+                                    DisplayWriteType       = $cloudConnectorWriteType
+                                    DisplayCustomTabNumber = 2
+                                }
+                                Add-AnalyzedResultInformation @params
+                            } else {
+                                Add-AnalyzedResultInformation -Name "Certificate Thumbprint(s)" @baseParams
+
+                                foreach ($thumbprint in $($connector.CertificateDetails.CertificateLifetimeInfo).keys) {
+                                    $params = $baseParams + @{
+                                        Details                = $thumbprint
+                                        DisplayCustomTabNumber = 2
+                                    }
+                                    Add-AnalyzedResultInformation @params
+                                }
+
+                                Add-AnalyzedResultInformation -Name "Lifetime In Days" @baseParams
+
+                                foreach ($thumbprint in $($connector.CertificateDetails.CertificateLifetimeInfo).keys) {
+                                    switch ($($connector.CertificateDetails.CertificateLifetimeInfo)[$thumbprint]) {
+                                        { ($_ -ge 60) } { $certificateLifetimeWriteType = "Green"; break }
+                                        { ($_ -ge 30) } { $certificateLifetimeWriteType = "Yellow"; break }
+                                        default { $certificateLifetimeWriteType = "Red" }
+                                    }
+
+                                    $params = $baseParams + @{
+                                        Details                = ($connector.CertificateDetails.CertificateLifetimeInfo)[$thumbprint]
+                                        DisplayWriteType       = $certificateLifetimeWriteType
+                                        DisplayCustomTabNumber = 2
+                                    }
+                                    Add-AnalyzedResultInformation @params
+                                }
+
+                                $connectorCertificateMatchesHybridCertificate = $false
+                                $connectorCertificateMatchesHybridCertificateWritingType = "Yellow"
+                                if (($connector.CertificateDetails.TlsCertificateSet) -and
+                                    (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.TlsCertificateName))) -and
+                                    ($connector.CertificateDetails.TlsCertificateName -eq $getHybridConfiguration.TlsCertificateName)) {
+                                    $connectorCertificateMatchesHybridCertificate = $true
+                                    $connectorCertificateMatchesHybridCertificateWritingType = "Green"
+                                }
+
+                                $params = $baseParams + @{
+                                    Name             = "Certificate Matches Hybrid Certificate"
+                                    Details          = $connectorCertificateMatchesHybridCertificate
+                                    DisplayWriteType = $connectorCertificateMatchesHybridCertificateWritingType
+                                }
+                                Add-AnalyzedResultInformation @params
+
+                                if (($connector.CertificateDetails.TlsCertificateNameStatus -eq "TlsCertificateNameSyntaxInvalid") -or
+                                    (($connector.CertificateDetails.GoodTlsCertificateSyntax -eq $false) -and
+                                        ($null -ne $connector.CertificateDetails.TlsCertificateName))) {
+                                    $params = $baseParams + @{
+                                        Name             = "TlsCertificateName Syntax Invalid"
+                                        Details          = "True"
+                                        DisplayWriteType = $cloudConnectorWriteType
+                                    }
+                                    Add-AnalyzedResultInformation @params
+
+                                    $params = $baseParams + @{
+                                        Details                = "The correct syntax is: '<I>X.500Issuer<S>X.500Subject'"
+                                        DisplayWriteType       = $cloudConnectorWriteType
+                                        DisplayCustomTabNumber = 2
+                                    }
+                                    Add-AnalyzedResultInformation @params
+                                }
                             }
                         }
                     }
