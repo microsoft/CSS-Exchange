@@ -1,9 +1,9 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#Requires -Modules @{ ModuleName="ExchangeOnlineManagement"; RequiredVersion="3.4.0" }
-#Requires -Modules @{ ModuleName="Microsoft.Graph.Users"; RequiredVersion="2.24.0" }
-#Requires -Modules @{ ModuleName="Microsoft.Graph.Mail"; RequiredVersion="2.24.0" }
+#Requires -Modules @{ ModuleName="ExchangeOnlineManagement"; ModuleVersion="3.4.0" }
+#Requires -Modules @{ ModuleName="Microsoft.Graph.Users"; ModuleVersion="2.24.0" }
+#Requires -Modules @{ ModuleName="Microsoft.Graph.Mail"; ModuleVersion="2.24.0" }
 
 <#
 .SYNOPSIS
