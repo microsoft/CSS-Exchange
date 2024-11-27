@@ -18,7 +18,7 @@ The function returns the connection information or null if the connection fails.
 .PARAMETER DoNotShowConnectionDetails
  Optional switch to hide connection details.
 .PARAMETER MinModuleVersion
- Optional parameter to specify the minimum version of the Graph modules (default is 2.0.0).
+ Optional parameter to specify the minimum version of the Graph modules (default and minimun supported version 2.0.0).
 
 .OUTPUTS
 Microsoft.Graph.PowerShell.Authentication.AuthContext. The connection information object for the Microsoft Graph session.
@@ -48,8 +48,14 @@ function Connect-GraphAdvanced {
         [string[]]$TenantId = $null,
         [Parameter(Mandatory = $false)]
         [switch]$DoNotShowConnectionDetails,
+        [ValidateScript({
+                if ($_ -lt [System.Version]'2.0.0.0') {
+                    throw "Minimun supported version: 2.0.0.0"
+                }
+                $true
+            })]
         [Parameter(Mandatory = $false)]
-        [System.Version]$MinModuleVersion = 2.0.0.0
+        [System.Version]$MinModuleVersion = '2.0.0.0'
     )
 
     #Validate Graph is installed and loaded
@@ -93,8 +99,8 @@ function Connect-GraphAdvanced {
             }
         }
 
+        $connection.PSObject.Properties | ForEach-Object { Write-Verbose "$($_.Name): $($_.Value)" }
         if (-not $DoNotShowConnectionDetails) {
-            $connection.PSObject.Properties | ForEach-Object { Write-Verbose "$($_.Name): $($_.Value)" }
             Show-GraphContext -Context $connection
         }
     }
@@ -153,12 +159,8 @@ function Test-GraphScopeContext {
         }
     }
 
-    if ($foundError) {
-        return $false
-    } else {
-        Write-Verbose "All expected scopes are present."
-        return $true
-    }
+    Write-Verbose "All expected scopes are $(if($foundError){ "NOT "})present."
+    return (-not $foundError)
 }
 
 function Show-GraphContext {
