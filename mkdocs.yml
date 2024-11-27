@@ -83,6 +83,9 @@ nav:
       - ResendFailedMail: M365/MDO/ResendFailedMail.md
     - DLT365Groupsupgrade: M365/DLT365Groupsupgrade.md
     - Get-LargeMailboxFolderStatistics: M365/Get-LargeMailboxFolderStatistics.md
+    - Test-MailboxExtendedProperty: M365/Test-MailboxExtendedProperty.md
+    - Search-MailboxExtendedProperty: M365/Search-MailboxExtendedProperty.md
+    - Remove-MailboxExtendedProperty: M365/Remove-MailboxExtendedProperty.md
   - Performance:
     - ExPerfWiz: Performance/ExPerfWiz.md
     - ExPerfAnalyzer: Performance/ExPerfAnalyzer.md
