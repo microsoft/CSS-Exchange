@@ -24,6 +24,10 @@ function Invoke-AnalyzerHybridInformation {
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $getHybridConfiguration = $HealthServerObject.OrganizationInformation.GetHybridConfiguration
 
+    # Check if the server is configured as sending or receiving transport server - if it is, the certificate used for hybrid mail flow must exist on the machine
+    $certificateShouldExistOnServer = $getHybridConfiguration.SendingTransportServers.DistinguishedName -contains $exchangeInformation.GetExchangeServer.DistinguishedName -or
+    $getHybridConfiguration.ReceivingTransportServers.DistinguishedName -contains $exchangeInformation.GetExchangeServer.DistinguishedName
+
     if ($exchangeInformation.BuildInformation.VersionInformation.BuildVersion -ge "15.0.0.0" -and
         $null -ne $getHybridConfiguration) {
 
@@ -354,10 +358,6 @@ function Invoke-AnalyzerHybridInformation {
                         }
                     } else {
                         $cloudConnectorTlsCertificateName = "Not set"
-
-                        # Check if the server is configured as sending or receiving transport server - if it is, the certificate used for hybrid mail flow must exist on the machine
-                        $certificateShouldExistOnServer = $getHybridConfiguration.SendingTransportServers.DistinguishedName -contains $exchangeInformation.GetExchangeServer.DistinguishedName -or
-                        $getHybridConfiguration.ReceivingTransportServers.DistinguishedName -contains $exchangeInformation.GetExchangeServer.DistinguishedName
 
                         Write-Verbose "Server is configured for hybrid mailflow and the transport certificate should exist on this server? $certificateShouldExistOnServer"
 

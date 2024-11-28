@@ -115,7 +115,6 @@ nupkg
 odata
 onmicrosoft
 onprem
-onmschina
 OutlookiOS
 Perflib
 perfmon

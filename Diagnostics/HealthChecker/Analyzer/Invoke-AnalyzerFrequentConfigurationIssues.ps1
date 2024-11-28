@@ -23,6 +23,12 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     $tcpKeepAlive = $osInformation.RegistryValues.TCPKeepAlive
     $organizationInformation = $HealthServerObject.OrganizationInformation
 
+    # cSpell:disable
+    $eopDomainRegExPattern = "^[^.]+\.mail\.protection\.(outlook\.com|partner\.outlook\.cn|office365\.us)$"
+    $remoteRoutingDomainRegExPattern = "^[^.]+\.mail\.(onmicrosoft\.com|partner\.onmschina\.cn|onmicrosoft\.us)$"
+    $serviceDomainRegExPattern = "^mail\.protection\.(outlook\.com|partner\.outlook\.cn|office365\.us)$"
+    # cSpell:enable
+
     $baseParams = @{
         AnalyzedInformation = $AnalyzeResults
         DisplayGroupingKey  = (Get-DisplayResultsGroupingKey -Name "Frequent Configuration Issues"  -DisplayOrder $Order)
@@ -299,8 +305,8 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     $sendConnectors = $exchangeInformation.ExchangeConnectors | Where-Object { $_.ConnectorType -eq "Send" }
 
     foreach ($sendConnector in $sendConnectors) {
-        $smartHostMatch = ($sendConnector.SmartHosts -match "^[^.]+\.mail\.protection\.(outlook\.com|partner\.outlook\.cn|office365\.us)$").Count -gt 0
-        $dnsMatch = $sendConnector.SmartHosts -eq 0 -and ($sendConnector.AddressSpaces.Address -match "^[^.]+\.mail\.(onmicrosoft\.com|partner\.onmschina\.cn|onmicrosoft\.us)$").Count -gt 0
+        $smartHostMatch = ($sendConnector.SmartHosts -match $eopDomainRegExPattern).Count -gt 0
+        $dnsMatch = $sendConnector.SmartHosts -eq 0 -and ($sendConnector.AddressSpaces.Address -match $remoteRoutingDomainRegExPattern).Count -gt 0
 
         if ($dnsMatch -or $smartHostMatch) {
             $exoConnector.Add($sendConnector)
@@ -347,11 +353,11 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
             $showMoreInfo = $true
         }
 
-        if ($connector.TlsDomain -notmatch "^mail\.protection\.(outlook\.com|partner\.outlook\.cn|office365\.us)$" -and
+        if ($connector.TlsDomain -notmatch $serviceDomainRegExPattern -and
             $connector.TlsAuthLevel -eq "DomainValidation") {
             $params = $baseParams + @{
                 Name                   = "Send Connector - $($connector.Identity.ToString())"
-                Details                = "TLSDomain  not set to service domain (e.g.,mail.protection.outlook.com)"
+                Details                = "TLSDomain not set to service domain (e.g.,mail.protection.outlook.com)"
                 DisplayCustomTabNumber = 2
                 DisplayWriteType       = "Yellow"
             }
