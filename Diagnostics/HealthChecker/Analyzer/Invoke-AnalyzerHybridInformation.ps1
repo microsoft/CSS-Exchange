@@ -359,7 +359,7 @@ function Invoke-AnalyzerHybridInformation {
                     } else {
                         $cloudConnectorTlsCertificateName = "Not set"
 
-                        Write-Verbose "Server is configured for hybrid mailflow and the transport certificate should exist on this server? $certificateShouldExistOnServer"
+                        Write-Verbose "Server is configured for hybrid mail flow and the transport certificate should exist on this server? $certificateShouldExistOnServer"
 
                         if ($null -ne $connector.CertificateDetails.TlsCertificateName) {
                             $cloudConnectorTlsCertificateName = $connector.CertificateDetails.TlsCertificateName
