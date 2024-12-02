@@ -61,6 +61,7 @@ hostnames
 HRESULT
 hsts
 httperr
+iana
 ietf
 imap
 inetsrv
