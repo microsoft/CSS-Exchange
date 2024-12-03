@@ -23,6 +23,12 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     $tcpKeepAlive = $osInformation.RegistryValues.TCPKeepAlive
     $organizationInformation = $HealthServerObject.OrganizationInformation
 
+    # cSpell:disable
+    $eopDomainRegExPattern = "^[^.]+\.mail\.protection\.(outlook\.com|partner\.outlook\.cn|office365\.us)$"
+    $remoteRoutingDomainRegExPattern = "^[^.]+\.mail\.(onmicrosoft\.com|partner\.onmschina\.cn|onmicrosoft\.us)$"
+    $serviceDomainRegExPattern = "^mail\.protection\.(outlook\.com|partner\.outlook\.cn|office365\.us)$"
+    # cSpell:enable
+
     $baseParams = @{
         AnalyzedInformation = $AnalyzeResults
         DisplayGroupingKey  = (Get-DisplayResultsGroupingKey -Name "Frequent Configuration Issues"  -DisplayOrder $Order)
@@ -299,8 +305,8 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     $sendConnectors = $exchangeInformation.ExchangeConnectors | Where-Object { $_.ConnectorType -eq "Send" }
 
     foreach ($sendConnector in $sendConnectors) {
-        $smartHostMatch = ($sendConnector.SmartHosts -like "*.mail.protection.outlook.com").Count -gt 0
-        $dnsMatch = $sendConnector.SmartHosts -eq 0 -and ($sendConnector.AddressSpaces.Address -like "*.mail.onmicrosoft.com").Count -gt 0
+        $smartHostMatch = ($sendConnector.SmartHosts -match $eopDomainRegExPattern).Count -gt 0
+        $dnsMatch = $sendConnector.SmartHosts -eq 0 -and ($sendConnector.AddressSpaces.Address -match $remoteRoutingDomainRegExPattern).Count -gt 0
 
         if ($dnsMatch -or $smartHostMatch) {
             $exoConnector.Add($sendConnector)
@@ -315,12 +321,17 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     $showMoreInfo = $false
 
     foreach ($connector in $exoConnector) {
-        # Misconfigured connector is if TLSCertificateName is not set or CloudServicesMailEnabled not set to true
-        if ($connector.CloudEnabled -eq $false -or
-            $connector.CertificateDetails.TlsCertificateNameStatus -eq "TlsCertificateNameEmpty") {
+
+        # If CloudServiceMailEnabled is not set to true it means the connector is misconfigured
+        # If no Fqdn is set on the connector, the Fqdn of the computer is used to perform best matching certificate selection
+        # There is a risk that the Fqdn is an internal one (e.g., server.contoso.local) which will lead to a broken hybrid mail flow in case that TlsCertificateName is not set
+        if (($connector.CloudEnabled -eq $false) -or
+            ($null -eq $connector.Fqdn -and
+            $connector.CertificateDetails.TlsCertificateNameStatus -eq "TlsCertificateNameEmpty")) {
             $params = $baseParams + @{
                 Name                   = "Send Connector - $($connector.Identity.ToString())"
-                Details                = "Misconfigured to send authenticated internal mail to M365." +
+                Details                = "Misconfigured to send authenticated internal mail to M365" +
+                "`r`n`t`t`tFqdn set: $($null -ne $connector.Fqdn)" +
                 "`r`n`t`t`tCloudServicesMailEnabled: $($connector.CloudEnabled)" +
                 "`r`n`t`t`tTLSCertificateName set: $($connector.CertificateDetails.TlsCertificateNameStatus -ne "TlsCertificateNameEmpty")"
                 DisplayCustomTabNumber = 2
@@ -342,11 +353,11 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
             $showMoreInfo = $true
         }
 
-        if ($connector.TlsDomain -ne "mail.protection.outlook.com" -and
+        if ($connector.TlsDomain -notmatch $serviceDomainRegExPattern -and
             $connector.TlsAuthLevel -eq "DomainValidation") {
             $params = $baseParams + @{
                 Name                   = "Send Connector - $($connector.Identity.ToString())"
-                Details                = "TLSDomain  not set to mail.protection.outlook.com"
+                Details                = "TLSDomain not set to service domain (e.g.,mail.protection.outlook.com)"
                 DisplayCustomTabNumber = 2
                 DisplayWriteType       = "Yellow"
             }
