@@ -231,7 +231,18 @@ function Get-ExchangeInformation {
 
             # AD Module cmdlets don't appear to work in remote context with Invoke-Command, this is why it is now moved outside of the Invoke-ScriptBlockHandler.
             try {
-                $adPrincipalGroupMembership = (Get-ADPrincipalGroupMembership (Get-ADComputer ($Server.Split(".")[0]) -ErrorAction Stop).DistinguishedName -ErrorAction Stop)
+                Write-Verbose "Trying to get the computer DN"
+                $computerDN = (Get-ADComputer ($Server.Split(".")[0]) -ErrorAction Stop).DistinguishedName
+                Write-Verbose "Computer DN: $computerDN"
+                $adPrincipalGroupMembership = (Get-ADPrincipalGroupMembership $computerDN -ErrorAction Stop)
+            } catch [System.Management.Automation.CommandNotFoundException] {
+                if ($_.TargetObject -eq "Get-ADComputer") {
+                    $adPrincipalGroupMembership = "NoAdModule"
+                    Invoke-CatchActions
+                } else {
+                    # If this occurs, do not run Invoke-CatchActions to let us know what is wrong here.
+                    Write-Verbose "CommandNotFoundException thrown, but not for Get-ADComputer. Inner Exception: $_"
+                }
             } catch {
                 # Current do not add Invoke-CatchActions as we want to be aware if this doesn't fix some things.
                 Write-Verbose "Failed to get the AD Principal Group Membership. Inner Exception: $_"
