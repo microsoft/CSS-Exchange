@@ -117,7 +117,8 @@ function Get-ExchangeInformation {
             ComputerName = $Server
             FileLocation = @("$([System.IO.Path]::Combine($serverExchangeBinDirectory, "EdgeTransport.exe.config"))",
                 "$([System.IO.Path]::Combine($serverExchangeBinDirectory, "Search\Ceres\Runtime\1.0\noderunner.exe.config"))",
-                "$([System.IO.Path]::Combine($serverExchangeBinDirectory, "Monitoring\Config\AntiMalware.xml"))")
+                "$([System.IO.Path]::Combine($serverExchangeBinDirectory, "Monitoring\Config\AntiMalware.xml"))",
+                "$([System.IO.Path]::Combine($serverExchangeBinDirectory, "IanaTimeZoneMappings.xml"))")
         }
 
         if ($getExchangeServer.IsEdgeServer -eq $false -and
@@ -132,6 +133,13 @@ function Get-ExchangeInformation {
         foreach ($key in $getFileContentInformation.Keys) {
             if ($key -like "*.exe.config") {
                 $applicationConfigFileStatus.Add($key, $getFileContentInformation[$key])
+            } elseif ($key -like "*IanaTimeZoneMappings.xml") {
+                if (($getFileContentInformation[$key]).Present) {
+                    Write-Verbose "IanaTimeZoneMappings.xml file exists"
+                    $ianaTimeZoneMappingContent = ($getFileContentInformation[$key]).Content
+                } else {
+                    Write-Verbose "IanaTimeZoneMappings.xml doesn't exist"
+                }
             } else {
                 $fileContentInformation.Add($key, $getFileContentInformation[$key])
             }
@@ -260,6 +268,7 @@ function Get-ExchangeInformation {
             SettingOverrides                         = $settingOverrides
             FIPFSUpdateIssue                         = $FIPFSUpdateIssue
             AES256CBCInformation                     = $aes256CbcDetails
+            IanaTimeZoneMappingsRaw                  = $ianaTimeZoneMappingContent
             FileContentInformation                   = $fileContentInformation
             ComputerMembership                       = $computerMembership
             GetServerMonitoringOverride              = $serverMonitoringOverride

@@ -3,7 +3,9 @@
 
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
+. $PSScriptRoot\Test-IanaTimeZoneMapping.ps1
 . $PSScriptRoot\..\..\..\Shared\CompareExchangeBuildLevel.ps1
+. $PSScriptRoot\..\..\..\Shared\ErrorMonitorFunctions.ps1
 function Invoke-AnalyzerFrequentConfigurationIssues {
     [CmdletBinding()]
     param(
@@ -241,6 +243,41 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
 
                 Add-AnalyzedResultInformation @params
             }
+        }
+    }
+
+    if ($null -ne $exchangeInformation.IanaTimeZoneMappingsRaw) {
+
+        try {
+            [xml]$ianaTimeZoneMappingXml = $exchangeInformation.IanaTimeZoneMappingsRaw
+
+            # Test IanaTimeZoneMapping.xml content to ensure it doesn't contain invalid or duplicate entries
+            $ianaTimeZoneMappingStatus = Test-IanaTimeZoneMapping -IanaMappingFile $ianaTimeZoneMappingXml
+
+            $ianaTimeZoneStatusMissingAttributes = $ianaTimeZoneMappingStatus.NodeMissingAttributes
+            $ianaTimeZoneStatusDuplicateEntries = $ianaTimeZoneMappingStatus.DuplicateEntries
+
+            $ianaTimeZoneInvalidEntriesList = New-Object System.Collections.Generic.List[string]
+
+            foreach ($invalid in $ianaTimeZoneStatusMissingAttributes) {
+                $ianaTimeZoneInvalidEntriesList.Add("Invalid entry - IANA: $($invalid.IANA) Win: $($invalid.Win)")
+            }
+
+            foreach ($dupe in $ianaTimeZoneStatusDuplicateEntries) {
+                $ianaTimeZoneInvalidEntriesList.Add("Duplicate entry - IANA: $($dupe.IANA) Win: $($dupe.Win)")
+            }
+
+            if ($ianaTimeZoneInvalidEntriesList.Count -ge 1) {
+                $params = $baseParams + @{
+                    Name             = "IanaTimeZoneMappings.xml invalid"
+                    Details          = "`r`n`t`t$([System.String]::Join("`r`n`t`t", $ianaTimeZoneInvalidEntriesList))`r`n`t`tMore information: https://aka.ms/ExchangeIanaTimeZoneIssue"
+                    DisplayWriteType = "Red"
+                }
+                Add-AnalyzedResultInformation @params
+            }
+        } catch {
+            Write-Verbose "Unable to convert IanaTimeZoneMappings.xml to Xml - Exception: $_"
+            Invoke-CatchActions
         }
     }
 
