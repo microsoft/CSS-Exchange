@@ -232,7 +232,8 @@ function Get-ExchangeInformation {
             # AD Module cmdlets don't appear to work in remote context with Invoke-Command, this is why it is now moved outside of the Invoke-ScriptBlockHandler.
             try {
                 Write-Verbose "Trying to get the computer DN"
-                $computerDN = (Get-ADComputer ($Server.Split(".")[0]) -ErrorAction Stop).DistinguishedName
+                $adComputer = (Get-ADComputer ($Server.Split(".")[0]) -ErrorAction Stop -Properties MemberOf)
+                $computerDN = $adComputer.DistinguishedName
                 Write-Verbose "Computer DN: $computerDN"
                 $adPrincipalGroupMembership = (Get-ADPrincipalGroupMembership $computerDN -ErrorAction Stop)
             } catch [System.Management.Automation.CommandNotFoundException] {
@@ -244,8 +245,29 @@ function Get-ExchangeInformation {
                     Write-Verbose "CommandNotFoundException thrown, but not for Get-ADComputer. Inner Exception: $_"
                 }
             } catch {
-                # Current do not add Invoke-CatchActions as we want to be aware if this doesn't fix some things.
                 Write-Verbose "Failed to get the AD Principal Group Membership. Inner Exception: $_"
+                Invoke-CatchActions
+                if ($null -eq $adComputer -or
+                    $null -eq $adComputer.MemberOf -or
+                    $adComputer.MemberOf.Count -eq 0) {
+                    Write-Verbose "Failed to get the ADComputer information to be able to find the MemberOf with Get-ADObject"
+                } else {
+                    $adPrincipalGroupMembership = New-Object System.Collections.Generic.List[object]
+                    foreach ($memberDN in $adComputer.MemberOf) {
+                        try {
+                            $adObject = Get-ADObject $memberDN -ErrorAction Stop -Properties "objectSid"
+                            $adPrincipalGroupMembership.Add([PSCustomObject]@{
+                                    Name              = $adObject.Name
+                                    DistinguishedName = $adObject.DistinguishedName
+                                    ObjectGuid        = $adObject.ObjectGuid
+                                    SID               = $adObject.objectSid
+                                })
+                        } catch {
+                            # Currently do not add Invoke-CatchActions as we want to be aware if this doesn't fix some things.
+                            Write-Verbose "Failed to run Get-ADObject against '$memberDN'. Inner Exception: $_"
+                        }
+                    }
+                }
             }
 
             $computerMembership = [PSCustomObject]@{
