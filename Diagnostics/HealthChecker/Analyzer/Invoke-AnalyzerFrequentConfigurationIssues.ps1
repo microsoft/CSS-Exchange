@@ -260,11 +260,11 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
             $ianaTimeZoneInvalidEntriesList = New-Object System.Collections.Generic.List[string]
 
             foreach ($invalid in $ianaTimeZoneStatusMissingAttributes) {
-                $ianaTimeZoneInvalidEntriesList.Add("Invalid entry - IANA: $($invalid.IANA) Win: $($invalid.Win)")
+                $ianaTimeZoneInvalidEntriesList.Add("[Invalid entry] - IANA: $($invalid.IANA) Win: $($invalid.Win)")
             }
 
             foreach ($dupe in $ianaTimeZoneStatusDuplicateEntries) {
-                $ianaTimeZoneInvalidEntriesList.Add("Duplicate entry - IANA: $($dupe.IANA) Win: $($dupe.Win)")
+                $ianaTimeZoneInvalidEntriesList.Add("[Duplicate entry] - IANA: $($dupe.IANA) Win: $($dupe.Win)")
             }
 
             if ($ianaTimeZoneInvalidEntriesList.Count -ge 1) {

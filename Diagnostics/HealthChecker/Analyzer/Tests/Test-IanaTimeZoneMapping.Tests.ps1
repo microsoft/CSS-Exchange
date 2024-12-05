@@ -23,10 +23,10 @@ Describe "Testing Test-IanaTimeZoneMapping" {
             $results.DuplicateEntries | Should -HaveCount 2
         }
 
-        It "Should add duplicates as XmlElement type" {
+        It "Should return duplicates as PSCustomObject" {
             $results = Test-IanaTimeZoneMapping -FilePath $brokenIanaTimeZoneMappingsPath
             foreach ($entry in $results.DuplicateEntries) {
-                $entry | Should -BeOfType System.Xml.XmlLinkedNode
+                $entry | Should -BeOfType PSCustomObject
             }
         }
 
