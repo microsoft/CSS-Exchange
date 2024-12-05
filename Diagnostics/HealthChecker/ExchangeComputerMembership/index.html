@@ -3581,6 +3581,7 @@
 <p>Checks for the computer object to be members of the <code>Exchange Trusted Subsystem</code> and <code>Exchange Servers</code> security groups by default. It will also make sure the default local system account has the <code>Exchange Trusted Subsystem</code> a member of it as well in order to have the correct access to local system files.</p>
 <p>This check is done by using the ADModule with using the cmdlets <code>Get-LocalGroupMember -SID "S-1-5-32-544"</code> and running <code>Get-ADPrincipalGroupMembership (Get-ADComputer $env:COMPUTERNAME).DistinguishedName</code></p>
 <p>If an issue is detected, the group will display with where the problem is located. Either <code>Local System Membership</code> if the group isn't part of the local system account or <code>AD Group Membership</code> if the computer object isn't a member of the group provided.</p>
+<p>If the script is run from a computer that doesn't have Active Directory PowerShell module installed on it, <code>Get-ADComputer</code> will fail with the exception <code>CommandNotFoundException</code>. The output will then display that you should run <code>Install-WindowsFeature RSat-AD-PowerShell</code> on the computer to get the module installed. This is how you get this feature to then start reporting correctly.</p>
 <p><strong>Included in HTML Report?</strong></p>
 <p>Yes</p>
 
@@ -3603,7 +3604,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">May 6, 2024</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">December 4, 2024</span>
   </span>
 
     
