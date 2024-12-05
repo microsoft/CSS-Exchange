@@ -231,10 +231,70 @@ function Get-ExchangeInformation {
 
             # AD Module cmdlets don't appear to work in remote context with Invoke-Command, this is why it is now moved outside of the Invoke-ScriptBlockHandler.
             try {
-                $adPrincipalGroupMembership = (Get-ADPrincipalGroupMembership (Get-ADComputer ($Server.Split(".")[0]) -ErrorAction Stop).DistinguishedName -ErrorAction Stop)
+                Write-Verbose "Trying to get the computer DN"
+                $adComputer = (Get-ADComputer ($Server.Split(".")[0]) -ErrorAction Stop -Properties MemberOf)
+                $computerDN = $adComputer.DistinguishedName
+                Write-Verbose "Computer DN: $computerDN"
+                $params = @{
+                    Identity    = $computerDN
+                    ErrorAction = "Stop"
+                }
+                try {
+                    $serverId = ([ADSI]("GC://$([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Name)/RootDSE")).dnsHostName.ToString()
+                    Write-Verbose "Adding ServerId '$serverId' to the Get-AD* cmdlets"
+                    $params["Server"] = $serverId
+                } catch {
+                    Write-Verbose "Failed to find the root DSE. Inner Exception: $_"
+                    Invoke-CatchActions
+                }
+                $adPrincipalGroupMembership = (Get-ADPrincipalGroupMembership @params)
+            } catch [System.Management.Automation.CommandNotFoundException] {
+                if ($_.TargetObject -eq "Get-ADComputer") {
+                    $adPrincipalGroupMembership = "NoAdModule"
+                    Invoke-CatchActions
+                } else {
+                    # If this occurs, do not run Invoke-CatchActions to let us know what is wrong here.
+                    Write-Verbose "CommandNotFoundException thrown, but not for Get-ADComputer. Inner Exception: $_"
+                }
             } catch {
-                # Current do not add Invoke-CatchActions as we want to be aware if this doesn't fix some things.
                 Write-Verbose "Failed to get the AD Principal Group Membership. Inner Exception: $_"
+                Invoke-CatchActions
+                if ($null -eq $adComputer -or
+                    $null -eq $adComputer.MemberOf -or
+                    $adComputer.MemberOf.Count -eq 0) {
+                    Write-Verbose "Failed to get the ADComputer information to be able to find the MemberOf with Get-ADObject"
+                } else {
+                    $adPrincipalGroupMembership = New-Object System.Collections.Generic.List[object]
+                    foreach ($memberDN in $adComputer.MemberOf) {
+                        try {
+                            $params = @{
+                                Filter      = "distinguishedName -eq `"$memberDN`""
+                                Properties  = "objectSid"
+                                ErrorAction = "Stop"
+                            }
+
+                            if (-not([string]::IsNullOrEmpty($serverId))) {
+                                $params["Server"] = "$($serverId):3268" # Needs to be a GC port incase we are looking for a group outside of this domain.
+                            }
+                            $adObject = Get-ADObject @params
+
+                            if ($null -eq $adObject) {
+                                Write-Verbose "Failed to find AD Object with filter '$($params.Filter)' on server '$($params.Server)'"
+                                continue
+                            }
+
+                            $adPrincipalGroupMembership.Add([PSCustomObject]@{
+                                    Name              = $adObject.Name
+                                    DistinguishedName = $adObject.DistinguishedName
+                                    ObjectGuid        = $adObject.ObjectGuid
+                                    SID               = $adObject.objectSid
+                                })
+                        } catch {
+                            # Currently do not add Invoke-CatchActions as we want to be aware if this doesn't fix some things.
+                            Write-Verbose "Failed to run Get-ADObject against '$memberDN'. Inner Exception: $_"
+                        }
+                    }
+                }
             }
 
             $computerMembership = [PSCustomObject]@{
