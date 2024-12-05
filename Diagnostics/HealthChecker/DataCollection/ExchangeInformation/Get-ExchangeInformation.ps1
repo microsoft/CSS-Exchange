@@ -235,7 +235,19 @@ function Get-ExchangeInformation {
                 $adComputer = (Get-ADComputer ($Server.Split(".")[0]) -ErrorAction Stop -Properties MemberOf)
                 $computerDN = $adComputer.DistinguishedName
                 Write-Verbose "Computer DN: $computerDN"
-                $adPrincipalGroupMembership = (Get-ADPrincipalGroupMembership $computerDN -ErrorAction Stop)
+                $params = @{
+                    Identity    = $computerDN
+                    ErrorAction = "Stop"
+                }
+                try {
+                    $serverId = ([ADSI]("GC://$([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Name)/RootDSE")).dnsHostName.ToString()
+                    Write-Verbose "Adding ServerId '$serverId' to the Get-AD* cmdlets"
+                    $params["Server"] = $serverId
+                } catch {
+                    Write-Verbose "Failed to find the root DSE. Inner Exception: $_"
+                    Invoke-CatchActions
+                }
+                $adPrincipalGroupMembership = (Get-ADPrincipalGroupMembership @params)
             } catch [System.Management.Automation.CommandNotFoundException] {
                 if ($_.TargetObject -eq "Get-ADComputer") {
                     $adPrincipalGroupMembership = "NoAdModule"
@@ -255,7 +267,22 @@ function Get-ExchangeInformation {
                     $adPrincipalGroupMembership = New-Object System.Collections.Generic.List[object]
                     foreach ($memberDN in $adComputer.MemberOf) {
                         try {
-                            $adObject = Get-ADObject $memberDN -ErrorAction Stop -Properties "objectSid"
+                            $params = @{
+                                Filter      = "distinguishedName -eq `"$memberDN`""
+                                Properties  = "objectSid"
+                                ErrorAction = "Stop"
+                            }
+
+                            if (-not([string]::IsNullOrEmpty($serverId))) {
+                                $params["Server"] = "$($serverId):3268" # Needs to be a GC port incase we are looking for a group outside of this domain.
+                            }
+                            $adObject = Get-ADObject @params
+
+                            if ($null -eq $adObject) {
+                                Write-Verbose "Failed to find AD Object with filter '$($params.Filter)' on server '$($params.Server)'"
+                                continue
+                            }
+
                             $adPrincipalGroupMembership.Add([PSCustomObject]@{
                                     Name              = $adObject.Name
                                     DistinguishedName = $adObject.DistinguishedName
