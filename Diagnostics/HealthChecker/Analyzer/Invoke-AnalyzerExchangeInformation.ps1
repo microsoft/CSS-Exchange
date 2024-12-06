@@ -317,7 +317,8 @@ function Invoke-AnalyzerExchangeInformation {
 
             if ($exchangeInformation.ComputerMembership.ADGroupMembership -eq "NoAdModule") {
                 $displayMissingGroups.Add("Missing Active Directory Module. Run 'Install-WindowsFeature RSat-AD-PowerShell'")
-            } elseif ($null -ne $exchangeInformation.ComputerMembership.ADGroupMembership) {
+            } elseif ($null -ne $exchangeInformation.ComputerMembership.ADGroupMembership -and
+                $exchangeInformation.ComputerMembership.ADGroupMembership.Count -gt 0) {
                 foreach ($adGroup in $adGroupList) {
                     if (($null -eq ($exchangeInformation.ComputerMembership.ADGroupMembership.SID | Where-Object { $_.ToString() -eq $adGroup.SID }))) {
                         $displayMissingGroups.Add("$($adGroup.WellKnownName) - AD Group Membership")
