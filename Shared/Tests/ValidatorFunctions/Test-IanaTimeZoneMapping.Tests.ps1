@@ -5,10 +5,10 @@ BeforeAll {
     $parent = Split-Path -Parent $PSScriptRoot
     $scriptName = "Test-IanaTimeZoneMapping.ps1"
 
-    . "$parent\$scriptName"
+    . "$parent\..\ValidatorFunctions\$scriptName"
 
-    $script:brokenIanaTimeZoneMappingsPath = "$parent\Tests\DataCollection\IanaTimeZoneMappings_broken.xml"
-    $script:workingIanaTimeZoneMappingsPath = "$parent\Tests\DataCollection\IanaTimeZoneMappings.xml"
+    $script:brokenIanaTimeZoneMappingsPath = "$parent\ValidatorFunctions\Data\IanaTimeZoneMappings_broken.xml"
+    $script:workingIanaTimeZoneMappingsPath = "$parent\ValidatorFunctions\Data\IanaTimeZoneMappings.xml"
 
     [xml]$script:brokenIanaTimeZoneMappingsXml = Get-Content $brokenIanaTimeZoneMappingsPath -Raw -Encoding UTF8
     [xml]$script:workingIanaTimeZoneMappingsXml = Get-Content $workingIanaTimeZoneMappingsPath -Raw -Encoding UTF8

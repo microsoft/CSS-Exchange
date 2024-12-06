@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\..\..\..\Shared\ErrorMonitorFunctions.ps1
+. $PSScriptRoot\..\ErrorMonitorFunctions.ps1
 
 function Test-IanaTimeZoneMapping {
     [CmdletBinding(DefaultParameterSetName = "FilePath")]

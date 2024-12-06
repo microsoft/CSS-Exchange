@@ -3,9 +3,9 @@
 
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
-. $PSScriptRoot\Test-IanaTimeZoneMapping.ps1
 . $PSScriptRoot\..\..\..\Shared\CompareExchangeBuildLevel.ps1
 . $PSScriptRoot\..\..\..\Shared\ErrorMonitorFunctions.ps1
+. $PSScriptRoot\..\..\..\Shared\ValidatorFunctions\Test-IanaTimeZoneMapping.ps1
 function Invoke-AnalyzerFrequentConfigurationIssues {
     [CmdletBinding()]
     param(
