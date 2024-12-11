@@ -37,7 +37,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Monitoring Overrides Detected" $false
             TestObjectMatch "Out of Date" $true -WriteType "Red"
             TestObjectMatch "Exchange Server Membership" "Passed"
-            $Script:ActiveGrouping.Count | Should -Be 19
+            $Script:ActiveGrouping.Count | Should -Be 22
         }
 
         It "Display Results - Organization Information" {
