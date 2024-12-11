@@ -39,7 +39,6 @@
 #>
 function Add-ScriptBlockInjection {
     [CmdletBinding()]
-    [OutputType([string])]
     param(
         [Parameter(Mandatory = $true)]
         [ScriptBlock]$PrimaryScriptBlock,
@@ -166,8 +165,7 @@ function Add-ScriptBlockInjection {
                 $scriptBlockFinalized += $_.ToString() + [System.Environment]::NewLine
             }
 
-            #Need to return a string type otherwise run into issues.
-            return $scriptBlockFinalized
+            return ([ScriptBlock]::Create($scriptBlockFinalized))
         } catch {
             Write-Verbose "Failed to add to the script block"
             Invoke-CatchActionError $CatchActionFunction
