@@ -252,6 +252,7 @@ function Invoke-AnalyzerHardwareInformation {
     }
 
     $totalPhysicalMemory = [System.Math]::Round($hardwareInformation.TotalMemory / 1024 / 1024 / 1024)
+    $totalPhysicalMemoryNotRounded = $hardwareInformation.TotalMemory / 1GB
     $displayWriteType = "Yellow"
     $displayDetails = [string]::Empty
 
@@ -310,7 +311,8 @@ function Invoke-AnalyzerHardwareInformation {
             if ($null -eq $counter) {
                 $params.Details = "Unknown - Required Counter Not Loaded"
                 $params.DisplayWriteType = "Yellow"
-            } elseif (($counter.CookedValue / 1024) -ne $totalPhysicalMemory) {
+            } elseif (($counter.CookedValue / 1024) -ne $totalPhysicalMemory -and
+            ($counter.CookedValue / 1024) -ne $totalPhysicalMemoryNotRounded) {
                 $params.Details = "$true $($counter.CookedValue / 1024)GB is the allowed dynamic memory of the server. Not supported to have dynamic memory configured."
                 $params.DisplayWriteType = "Red"
             }

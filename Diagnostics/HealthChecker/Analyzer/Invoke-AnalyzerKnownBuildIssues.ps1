@@ -246,6 +246,34 @@ function Invoke-AnalyzerKnownBuildIssues {
             InformationUrl          = (GetKnownIssueInformation @infoParams)
         }
         TestForKnownBuildIssues @params
+
+        Write-Verbose "Work on Nov 2024 Security Updates"
+        $infoParams = @{
+            Name = "Pulled Nov 2024 Security Update"
+            Url  = "https://techcommunity.microsoft.com/blog/exchange/released-november-2024-exchange-server-security-updates/4293125"
+        }
+        $params = @{
+            CurrentVersion          = $currentVersion
+            KnownBuildIssuesToFixes = @((GetKnownIssueBuildInformation "15.2.1544.13" "15.2.1544.14"),
+                (GetKnownIssueBuildInformation "15.2.1258.38" "15.2.1258.39"),
+                (GetKnownIssueBuildInformation "15.1.2507.43" "15.1.2507.44"))
+            InformationUrl          = (GetKnownIssueInformation @infoParams)
+        }
+        TestForKnownBuildIssues @params
+
+        Write-Verbose "Test for known transport pickup issue for version number."
+        $infoParams = @{
+            Name = "Known Issue when sending email with Pickup Folder is using Admin Display Version vs Installed Version"
+            Url  = "https://support.microsoft.com/topic/email-sent-through-pickup-folder-displays-admin-version-068ae880-5bbf-43f0-a1fa-24a78f31635f"
+        }
+        $params = @{
+            CurrentVersion          = $currentVersion
+            KnownBuildIssuesToFixes = @((GetKnownIssueBuildInformation "15.2.1544.0" "15.2.1544.14"),
+                (GetKnownIssueBuildInformation "15.2.000.000" "15.2.1258.39" -BuildBound $false),
+                (GetKnownIssueBuildInformation "15.1.000.000" "15.1.2507.44" -BuildBound $false))
+            InformationUrl          = (GetKnownIssueInformation @infoParams)
+        }
+        TestForKnownBuildIssues @params
     } catch {
         Write-Verbose "Failed to run TestForKnownBuildIssues"
         Invoke-CatchActions

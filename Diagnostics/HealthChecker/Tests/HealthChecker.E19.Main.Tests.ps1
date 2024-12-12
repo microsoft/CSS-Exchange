@@ -25,6 +25,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Build Number" "15.02.0986.005"
             TestObjectMatch "End Of Life" $true -WriteType "Yellow" # This is going to change to red once we get 178 out
             TestObjectMatch "Server Role" "Mailbox"
+            TestObjectMatch "Edition" "Warning - StandardEvaluation" -WriteType "Yellow"
+            TestObjectMatch "Remaining Trial Period" "Error - 00:00:00" -WriteType "Red"
             TestObjectMatch "DAG Name" "Standalone Server"
             TestObjectMatch "AD Site" "Default-First-Site-Name"
             TestObjectMatch "MRS Proxy Enabled" "False"
@@ -35,7 +37,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Monitoring Overrides Detected" $false
             TestObjectMatch "Out of Date" $true -WriteType "Red"
             TestObjectMatch "Exchange Server Membership" "Passed"
-            $Script:ActiveGrouping.Count | Should -Be 17
+            $Script:ActiveGrouping.Count | Should -Be 22
         }
 
         It "Display Results - Organization Information" {
@@ -125,8 +127,9 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Open Relay Wild Card Domain" "Not Set"
             TestObjectMatch "EXO Connector Present" "True" # Custom EXO Connector with no TlsDomain TlsAuthLevel
             TestObjectMatch "UnifiedContent Auto Cleanup Configured" $true -WriteType "Green"
+            TestObjectMatch "EnableEccCertificateSupport Registry Value" $false
 
-            $Script:ActiveGrouping.Count | Should -Be 14
+            $Script:ActiveGrouping.Count | Should -Be 15
         }
 
         It "Display Results - Security Settings" {
@@ -145,7 +148,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "AES256-CBC Protected Content Support" "Not Supported Build" -WriteType "Red"
             TestObjectMatch "SerializedDataSigning Enabled" "Unsupported Version" -WriteType "Red"
 
-            $Script:ActiveGrouping.Count | Should -Be 84
+            $Script:ActiveGrouping.Count | Should -Be 87
         }
 
         It "Display Results - Security Vulnerability" {
@@ -156,7 +159,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             $cveTests.Contains("CVE-2023-36434") | Should -Be $true
             $cveTests.Contains("CVE-2023-36039") | Should -Be $true
             $cveTests.Contains("ADV24199947") | Should -Be $true
-            $cveTests.Count | Should -Be 51
+            $cveTests.Count | Should -Be 52
             $downloadDomains = GetObject "CVE-2021-1730"
             $downloadDomains.DownloadDomainsEnabled | Should -Be "False"
             TestObjectMatch "Extended Protection Vulnerable" "True" -WriteType "Red"

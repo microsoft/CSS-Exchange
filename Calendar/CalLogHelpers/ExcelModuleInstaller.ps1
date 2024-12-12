@@ -20,9 +20,7 @@ function CheckExcelModuleInstalled {
             Write-Host "ImportExcel module is already installed."
         } else {
             # Check if running with administrator rights
-            $isAdministrator = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-
-            if (-not $isAdministrator) {
+            if (-not $script:IsAdministrator) {
                 Write-Host "Please run the script as an administrator to install the ImportExcel module."
                 exit
             }

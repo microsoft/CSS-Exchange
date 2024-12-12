@@ -127,16 +127,14 @@ function Get-ExchangeBuildVersionInformation {
                     $cuReleaseDate = "02/13/2024"
                     $supportedBuildNumber = $true
                 }
-                (GetBuildVersion $ex19 "CU14" -SU "Apr24HU") { $latestSUBuild = $true }
-                (GetBuildVersion $ex19 "CU14" -SU "Mar24SU") { $latestSUBuild = $true }
+                (GetBuildVersion $ex19 "CU14" -SU "Nov24SUv2") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex19 "CU14") } {
                     $cuLevel = "CU13"
                     $cuReleaseDate = "05/03/2023"
                     $supportedBuildNumber = $true
                     $orgValue = 16761
                 }
-                (GetBuildVersion $ex19 "CU13" -SU "Apr24HU") { $latestSUBuild = $true }
-                (GetBuildVersion $ex19 "CU13" -SU "Mar24SU") { $latestSUBuild = $true }
+                (GetBuildVersion $ex19 "CU13" -SU "Nov24SUv2") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex19 "CU13") } {
                     $cuLevel = "CU12"
                     $cuReleaseDate = "04/20/2022"
@@ -228,8 +226,7 @@ function Get-ExchangeBuildVersionInformation {
                     $cuReleaseDate = "04/20/2022"
                     $supportedBuildNumber = $true
                 }
-                (GetBuildVersion $ex16 "CU23" -SU "Apr24HU") { $latestSUBuild = $true }
-                (GetBuildVersion $ex16 "CU23" -SU "Mar24SU") { $latestSUBuild = $true }
+                (GetBuildVersion $ex16 "CU23" -SU "Nov24SUv2") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex16 "CU23") } {
                     $cuLevel = "CU22"
                     $cuReleaseDate = "09/28/2021"
@@ -715,6 +712,8 @@ function GetExchangeBuildDictionary {
                     "Nov23SU"   = "15.1.2507.35"
                     "Mar24SU"   = "15.1.2507.37"
                     "Apr24HU"   = "15.1.2507.39"
+                    "Nov24SU"   = "15.1.2507.43"
+                    "Nov24SUv2" = "15.1.2507.44"
                 })
         }
         "Exchange2019" = @{
@@ -814,10 +813,14 @@ function GetExchangeBuildDictionary {
                     "Nov23SU"   = "15.2.1258.28"
                     "Mar24SU"   = "15.2.1258.32"
                     "Apr24HU"   = "15.2.1258.34"
+                    "Nov24SU"   = "15.2.1258.38"
+                    "Nov24SUv2" = "15.2.1258.39"
                 })
             "CU14" = (NewCUAndSUObject "15.2.1544.4" @{
-                    "Mar24SU" = "15.2.1544.9"
-                    "Apr24HU" = "15.2.1544.11"
+                    "Mar24SU"   = "15.2.1544.9"
+                    "Apr24HU"   = "15.2.1544.11"
+                    "Nov24SU"   = "15.2.1544.13"
+                    "Nov24SUv2" = "15.2.1544.14"
                 })
         }
     }

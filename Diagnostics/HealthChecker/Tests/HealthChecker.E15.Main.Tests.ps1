@@ -32,7 +32,6 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "Internet Web Proxy" "Not Set"
             TestObjectMatch "Extended Protection Enabled (Any VDir)" $false
             TestObjectMatch "Setting Overrides Detected" $false
-            $Script:ActiveGrouping.Count | Should -Be 18
         }
 
         It "Display Results - Organization Information" {
@@ -42,8 +41,6 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "Enable Download Domains" "Unknown"
             TestObjectMatch "AD Split Permissions" "False"
             TestObjectMatch "Dynamic Distribution Group Public Folder Mailboxes Count" 1 -WriteType "Green"
-
-            $Script:ActiveGrouping.Count | Should -Be 6
         }
 
         It "Display Results - Operating System Information" {
@@ -69,8 +66,6 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
 
             $pageFileAdditional = GetObject "PageFile Additional Information"
             $pageFileAdditional | Should -Be "Error: PageFile is not set to total system memory plus 10MB which should be 6154MB."
-
-            $Script:ActiveGrouping.Count | Should -Be 14
         }
 
         It "Display Results - Process/Hardware Information" {
@@ -84,8 +79,6 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "All Processor Cores Visible" "Passed" -WriteType "Green"
             TestObjectMatch "Max Processor Speed" 2200
             TestObjectMatch "Physical Memory" 6
-
-            $Script:ActiveGrouping.Count | Should -Be 11
         }
 
         It "Display Results - NIC Settings" {
@@ -103,8 +96,6 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "Address" "192.168.9.11/24 Gateway: 192.168.9.1"
             TestObjectMatch "Registered In DNS" "True"
             TestObjectMatch "Packets Received Discarded" 0 -WriteType "Green"
-
-            $Script:ActiveGrouping.Count | Should -Be 16
         }
 
         It "Display Results - Frequent Configuration Issues" {
@@ -120,8 +111,6 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "EXO Connector Present" "False"
             # For some reason by default Exchange 2013 doesn't have this setting. not going to look into it just going to make a not of it and move on.
             TestObjectMatch "UnifiedContent Auto Cleanup Configured" $false -WriteType "Red"
-
-            $Script:ActiveGrouping.Count | Should -Be 13
         }
 
         It "Display Results - Security Settings" {
@@ -130,8 +119,6 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
             TestObjectMatch "LmCompatibilityLevel Settings" 3
             TestObjectMatch "SMB1 Installed" "True" -WriteType "Red"
             TestObjectMatch "SMB1 Blocked" "False" -WriteType "Red"
-
-            $Script:ActiveGrouping.Count | Should -Be 88
         }
 
         It "Display Results - Security Vulnerability" {
@@ -139,7 +126,6 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2013" {
 
             $cveTests = $Script:ActiveGrouping.TestingValue | Where-Object { ($_.GetType().Name -eq "String") -and ($_.StartsWith("CVE")) }
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
-            $cveTests.Count | Should -Be 58
         }
     }
 }

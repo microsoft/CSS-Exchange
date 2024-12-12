@@ -213,6 +213,42 @@ function Invoke-AnalyzerExchangeInformation {
     }
     Add-AnalyzedResultInformation @params
 
+    $displayWriteType = "Grey"
+    $details = $exchangeInformation.GetExchangeServer.Edition.ToString()
+
+    if ($exchangeInformation.GetExchangeServer.IsExchangeTrialEdition) {
+        $displayWriteType = "Yellow"
+        $details = "Warning - $details"
+    }
+
+    $params = $baseParams + @{
+        Name             = "Edition"
+        Details          = $details
+        DisplayWriteType = $displayWriteType
+    }
+    Add-AnalyzedResultInformation @params
+
+    if ($exchangeInformation.GetExchangeServer.IsExchangeTrialEdition) {
+        $displayWriteType = "Grey"
+        $details = $exchangeInformation.GetExchangeServer.RemainingTrialPeriod.ToString()
+
+        if ($exchangeInformation.GetExchangeServer.IsExpiredExchangeTrialEdition) {
+            $displayWriteType = "Red"
+            $details = "Error - $($exchangeInformation.GetExchangeServer.RemainingTrialPeriod)"
+        } elseif ([TimeSpan]$exchangeInformation.GetExchangeServer.RemainingTrialPeriod.ToString() -lt [TimeSpan]"7.00:00:00") {
+            $displayWriteType = "Yellow"
+            $details = "Warning - $($exchangeInformation.GetExchangeServer.RemainingTrialPeriod)"
+        }
+
+        $params = $baseParams + @{
+            Name                   = "Remaining Trial Period"
+            Details                = $details
+            DisplayWriteType       = $displayWriteType
+            DisplayCustomTabNumber = 2
+        }
+        Add-AnalyzedResultInformation @params
+    }
+
     if ($exchangeInformation.GetExchangeServer.IsMailboxServer -eq $true) {
         $dagName = [System.Convert]::ToString($exchangeInformation.GetMailboxServer.DatabaseAvailabilityGroup)
         if ([System.String]::IsNullOrWhiteSpace($dagName)) {
@@ -269,16 +305,27 @@ function Invoke-AnalyzerExchangeInformation {
                 Where-Object { $_.WellKnownName -in @("Exchange Trusted Subsystem", "Exchange Servers") }
             $displayMissingGroups = New-Object System.Collections.Generic.List[string]
 
-            foreach ($localGroup in $localGroupList) {
-                if (($null -eq ($exchangeInformation.ComputerMembership.LocalGroupMember.SID | Where-Object { $_.ToString() -eq $localGroup.SID } ))) {
-                    $displayMissingGroups.Add("$($localGroup.WellKnownName) - Local System Membership")
+            if ($null -ne $exchangeInformation.ComputerMembership.LocalGroupMember) {
+                foreach ($localGroup in $localGroupList) {
+                    if (($null -eq ($exchangeInformation.ComputerMembership.LocalGroupMember.SID | Where-Object { $_.ToString() -eq $localGroup.SID } ))) {
+                        $displayMissingGroups.Add("$($localGroup.WellKnownName) - Local System Membership")
+                    }
                 }
+            } else {
+                $displayMissingGroups.Add("Unable to determine Local System Membership as the results were blank.")
             }
 
-            foreach ($adGroup in $adGroupList) {
-                if (($null -eq ($exchangeInformation.ComputerMembership.ADGroupMembership.SID | Where-Object { $_.ToString() -eq $adGroup.SID }))) {
-                    $displayMissingGroups.Add("$($adGroup.WellKnownName) - AD Group Membership")
+            if ($exchangeInformation.ComputerMembership.ADGroupMembership -eq "NoAdModule") {
+                $displayMissingGroups.Add("Missing Active Directory Module. Run 'Install-WindowsFeature RSat-AD-PowerShell'")
+            } elseif ($null -ne $exchangeInformation.ComputerMembership.ADGroupMembership -and
+                $exchangeInformation.ComputerMembership.ADGroupMembership.Count -gt 0) {
+                foreach ($adGroup in $adGroupList) {
+                    if (($null -eq ($exchangeInformation.ComputerMembership.ADGroupMembership.SID | Where-Object { $_.ToString() -eq $adGroup.SID }))) {
+                        $displayMissingGroups.Add("$($adGroup.WellKnownName) - AD Group Membership")
+                    }
                 }
+            } else {
+                $displayMissingGroups.Add("Unable to determine AD Group Membership as the results were blank.")
             }
 
             if ($displayMissingGroups.Count -ge 1) {
