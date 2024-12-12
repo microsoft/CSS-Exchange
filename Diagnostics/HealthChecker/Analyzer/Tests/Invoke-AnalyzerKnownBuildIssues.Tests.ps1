@@ -71,5 +71,25 @@ Describe "Testing Known Build Issue Main Logic" {
             } `
                 -KnownIssue (GetKnownIssueBuildInformation -BuildNumber "15.2.2375.17" -FixBuildNumber $null)
         }
+
+        It "Testing Issue always been there" {
+            TestPesterResults -TestGroup @{
+                "15.2.1544.14" = $false
+                "15.2.1544.13" = $false # This is false, but the next test it should be true
+                "15.2.1258.39" = $false
+                "15.2.1258.38" = $true
+                "15.2.1118.40" = $true
+            } `
+                -KnownIssue (GetKnownIssueBuildInformation -BuildNumber "15.2.0.0" -FixBuildNumber "15.2.1258.39" -BuildBound $false)
+
+            TestPesterResults -TestGroup @{
+                "15.2.1544.14" = $false
+                "15.2.1544.13" = $true
+                "15.2.1258.39" = $false
+                "15.2.1258.38" = $false
+                "15.2.1118.40" = $false
+            } `
+                -KnownIssue (GetKnownIssueBuildInformation -BuildNumber "15.2.1544.0" -FixBuildNumber "15.2.1544.14" -BuildBound $true)
+        }
     }
 }
