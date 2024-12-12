@@ -428,15 +428,13 @@ function Write-LargeDataObjectsOnMachine {
             $scriptBlockInjectParams = @{
                 IncludeScriptBlock    = @(${Function:Write-Verbose}, ${Function:New-PipelineObject}, ${Function:New-VerbosePipelineObject})
                 IncludeUsingParameter = "WriteRemoteVerboseDebugAction"
+                PrimaryScriptBlock    = ${Function:Get-ExchangeInstallDirectory}
+                CatchActionFunction   = ${Function:Invoke-CatchActions}
             }
             #Setup all the Script blocks that we are going to use.
             Write-Verbose("Getting Get-ExchangeInstallDirectory string to create Script Block")
-            $getExchangeInstallDirectoryString = Add-ScriptBlockInjection @scriptBlockInjectParams `
-                -PrimaryScriptBlock ${Function:Get-ExchangeInstallDirectory} `
-                -CatchActionFunction ${Function:Invoke-CatchActions}
-            Write-Verbose("Creating Script Block")
-            $getExchangeInstallDirectoryScriptBlock = [ScriptBlock]::Create($getExchangeInstallDirectoryString)
-
+            $getExchangeInstallDirectoryScriptBlock = Add-ScriptBlockInjection @scriptBlockInjectParams
+            Write-Verbose("Successfully Created Script Block")
             Write-Verbose("New-Item create Script Block")
             $newFolderScriptBlock = { param($path) New-Item -ItemType Directory -Path $path -Force | Out-Null }
 

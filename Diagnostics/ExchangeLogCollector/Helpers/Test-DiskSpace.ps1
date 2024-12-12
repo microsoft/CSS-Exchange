@@ -58,12 +58,14 @@ function Test-DiskSpace {
 
     Write-Verbose("Getting Get-FreeSpace string to create Script Block")
     SetWriteRemoteVerboseAction "New-VerbosePipelineObject"
-    $getFreeSpaceString = Add-ScriptBlockInjection -PrimaryScriptBlock ${Function:Get-FreeSpace} `
-        -IncludeScriptBlock @(${Function:Write-Verbose}, ${Function:New-PipelineObject}, ${Function:New-VerbosePipelineObject}) `
-        -IncludeUsingParameter "WriteRemoteVerboseDebugAction" `
-        -CatchActionFunction ${Function:Invoke-CatchActions}
-    Write-Verbose("Creating Script Block")
-    $getFreeSpaceScriptBlock = [ScriptBlock]::Create($getFreeSpaceString)
+    $scriptBlockInjectParams = @{
+        PrimaryScriptBlock    = ${Function:Get-FreeSpace}
+        IncludeScriptBlock    = @(${Function:Write-Verbose}, ${Function:New-PipelineObject}, ${Function:New-VerbosePipelineObject})
+        IncludeUsingParameter = "WriteRemoteVerboseDebugAction"
+        CatchActionFunction   = ${Function:Invoke-CatchActions}
+    }
+    $getFreeSpaceScriptBlock = Add-ScriptBlockInjection @scriptBlockInjectParams
+    Write-Verbose("Successfully Created Script Block")
     $serversData = Start-JobManager -ServersWithArguments $serverArgs -ScriptBlock $getFreeSpaceScriptBlock `
         -NeedReturnData $true `
         -JobBatchName "Getting the free space for test disk space" `
