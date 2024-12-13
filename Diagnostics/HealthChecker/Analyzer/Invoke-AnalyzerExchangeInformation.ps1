@@ -241,7 +241,7 @@ function Invoke-AnalyzerExchangeInformation {
         }
 
         $params = $baseParams + @{
-            Name                   = "Remaining Trail Period"
+            Name                   = "Remaining Trial Period"
             Details                = $details
             DisplayWriteType       = $displayWriteType
             DisplayCustomTabNumber = 2
