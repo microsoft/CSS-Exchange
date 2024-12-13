@@ -61,6 +61,7 @@ hostnames
 HRESULT
 hsts
 httperr
+iana
 ietf
 imap
 inetsrv
@@ -122,6 +123,7 @@ PKCE
 Pkcs
 Prelicensing
 PROCMON
+Prosumer
 QWORD
 Redistributable
 regedit
