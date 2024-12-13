@@ -3,7 +3,9 @@
 
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
+. $PSScriptRoot\Test-IanaTimeZoneMapping.ps1
 . $PSScriptRoot\..\..\..\Shared\CompareExchangeBuildLevel.ps1
+. $PSScriptRoot\..\..\..\Shared\ErrorMonitorFunctions.ps1
 function Invoke-AnalyzerFrequentConfigurationIssues {
     [CmdletBinding()]
     param(
@@ -22,6 +24,12 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     $osInformation = $HealthServerObject.OSInformation
     $tcpKeepAlive = $osInformation.RegistryValues.TCPKeepAlive
     $organizationInformation = $HealthServerObject.OrganizationInformation
+
+    # cSpell:disable
+    $eopDomainRegExPattern = "^[^.]+\.mail\.protection\.(outlook\.com|partner\.outlook\.cn|office365\.us)$"
+    $remoteRoutingDomainRegExPattern = "^[^.]+\.mail\.(onmicrosoft\.com|partner\.onmschina\.cn|onmicrosoft\.us)$"
+    $serviceDomainRegExPattern = "^mail\.protection\.(outlook\.com|partner\.outlook\.cn|office365\.us)$"
+    # cSpell:enable
 
     $baseParams = @{
         AnalyzedInformation = $AnalyzeResults
@@ -71,6 +79,21 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
         Name     = "FIPS Algorithm Policy Enabled"
         Details  = $exchangeInformation.RegistryValues.FipsAlgorithmPolicyEnabled
         HtmlName = "FipsAlgorithmPolicy-Enabled"
+    }
+    Add-AnalyzedResultInformation @params
+
+    $detailsValue = $exchangeInformation.RegistryValues.EnableEccCertificateSupport
+    $displayWriteType = "Grey"
+
+    if (-not (Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -SUName "Nov24SU") -and $detailsValue -eq "1") {
+        $detailsValue = "1 --- Warning: On a build that doesn't support this configuration yet.`r`n`t`tMore Information: https://aka.ms/HC-EccCertificateChange"
+        $displayWriteType = "Yellow"
+    }
+
+    $params = $baseParams + @{
+        Name             = "EnableEccCertificateSupport Registry Value"
+        Details          = $detailsValue
+        DisplayWriteType = $displayWriteType
     }
     Add-AnalyzedResultInformation @params
 
@@ -223,6 +246,41 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
         }
     }
 
+    if ($null -ne $exchangeInformation.IanaTimeZoneMappingsRaw) {
+
+        try {
+            [xml]$ianaTimeZoneMappingXml = $exchangeInformation.IanaTimeZoneMappingsRaw
+
+            # Test IanaTimeZoneMapping.xml content to ensure it doesn't contain invalid or duplicate entries
+            $ianaTimeZoneMappingStatus = Test-IanaTimeZoneMapping -IanaMappingFile $ianaTimeZoneMappingXml
+
+            $ianaTimeZoneStatusMissingAttributes = $ianaTimeZoneMappingStatus.NodeMissingAttributes
+            $ianaTimeZoneStatusDuplicateEntries = $ianaTimeZoneMappingStatus.DuplicateEntries
+
+            $ianaTimeZoneInvalidEntriesList = New-Object System.Collections.Generic.List[string]
+
+            foreach ($invalid in $ianaTimeZoneStatusMissingAttributes) {
+                $ianaTimeZoneInvalidEntriesList.Add("Invalid entry - IANA: $($invalid.IANA) Win: $($invalid.Win)")
+            }
+
+            foreach ($dupe in $ianaTimeZoneStatusDuplicateEntries) {
+                $ianaTimeZoneInvalidEntriesList.Add("Duplicate entry - IANA: $($dupe.IANA) Win: $($dupe.Win)")
+            }
+
+            if ($ianaTimeZoneInvalidEntriesList.Count -ge 1) {
+                $params = $baseParams + @{
+                    Name             = "IanaTimeZoneMappings.xml invalid"
+                    Details          = "`r`n`t`t$([System.String]::Join("`r`n`t`t", $ianaTimeZoneInvalidEntriesList))`r`n`t`tMore information: https://aka.ms/ExchangeIanaTimeZoneIssue"
+                    DisplayWriteType = "Red"
+                }
+                Add-AnalyzedResultInformation @params
+            }
+        } catch {
+            Write-Verbose "Unable to convert IanaTimeZoneMappings.xml to Xml - Exception: $_"
+            Invoke-CatchActions
+        }
+    }
+
     $displayWriteType = "Yellow"
     $displayValue = "Unknown - Unable to run Get-AcceptedDomain"
     $additionalDisplayValue = [string]::Empty
@@ -284,8 +342,8 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     $sendConnectors = $exchangeInformation.ExchangeConnectors | Where-Object { $_.ConnectorType -eq "Send" }
 
     foreach ($sendConnector in $sendConnectors) {
-        $smartHostMatch = ($sendConnector.SmartHosts -like "*.mail.protection.outlook.com").Count -gt 0
-        $dnsMatch = $sendConnector.SmartHosts -eq 0 -and ($sendConnector.AddressSpaces.Address -like "*.mail.onmicrosoft.com").Count -gt 0
+        $smartHostMatch = ($sendConnector.SmartHosts -match $eopDomainRegExPattern).Count -gt 0
+        $dnsMatch = $sendConnector.SmartHosts -eq 0 -and ($sendConnector.AddressSpaces.Address -match $remoteRoutingDomainRegExPattern).Count -gt 0
 
         if ($dnsMatch -or $smartHostMatch) {
             $exoConnector.Add($sendConnector)
@@ -300,12 +358,17 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     $showMoreInfo = $false
 
     foreach ($connector in $exoConnector) {
-        # Misconfigured connector is if TLSCertificateName is not set or CloudServicesMailEnabled not set to true
-        if ($connector.CloudEnabled -eq $false -or
-            $connector.CertificateDetails.TlsCertificateNameStatus -eq "TlsCertificateNameEmpty") {
+
+        # If CloudServiceMailEnabled is not set to true it means the connector is misconfigured
+        # If no Fqdn is set on the connector, the Fqdn of the computer is used to perform best matching certificate selection
+        # There is a risk that the Fqdn is an internal one (e.g., server.contoso.local) which will lead to a broken hybrid mail flow in case that TlsCertificateName is not set
+        if (($connector.CloudEnabled -eq $false) -or
+            ($null -eq $connector.Fqdn -and
+            $connector.CertificateDetails.TlsCertificateNameStatus -eq "TlsCertificateNameEmpty")) {
             $params = $baseParams + @{
                 Name                   = "Send Connector - $($connector.Identity.ToString())"
-                Details                = "Misconfigured to send authenticated internal mail to M365." +
+                Details                = "Misconfigured to send authenticated internal mail to M365" +
+                "`r`n`t`t`tFqdn set: $($null -ne $connector.Fqdn)" +
                 "`r`n`t`t`tCloudServicesMailEnabled: $($connector.CloudEnabled)" +
                 "`r`n`t`t`tTLSCertificateName set: $($connector.CertificateDetails.TlsCertificateNameStatus -ne "TlsCertificateNameEmpty")"
                 DisplayCustomTabNumber = 2
@@ -327,11 +390,11 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
             $showMoreInfo = $true
         }
 
-        if ($connector.TlsDomain -ne "mail.protection.outlook.com" -and
+        if ($connector.TlsDomain -notmatch $serviceDomainRegExPattern -and
             $connector.TlsAuthLevel -eq "DomainValidation") {
             $params = $baseParams + @{
                 Name                   = "Send Connector - $($connector.Identity.ToString())"
-                Details                = "TLSDomain  not set to mail.protection.outlook.com"
+                Details                = "TLSDomain not set to service domain (e.g.,mail.protection.outlook.com)"
                 DisplayCustomTabNumber = 2
                 DisplayWriteType       = "Yellow"
             }
@@ -347,6 +410,26 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
             DisplayCustomTabNumber = 2
         }
         Add-AnalyzedResultInformation @params
+    }
+
+    if ($null -ne $exchangeInformation.GetTransportService) {
+        if ($exchangeInformation.GetTransportService.MaxPerDomainOutboundConnections -lt 40) {
+            $params = $baseParams + @{
+                Name             = "MaxPerDomainOutboundConnections"
+                Details          = "Value set to $($exchangeInformation.GetTransportService.MaxPerDomainOutboundConnections), which is less than the recommended value of 40. `r`n`t`tMore details: https://aka.ms/HC-TransportRetryConfigCheck"
+                DisplayWriteType = "Yellow"
+            }
+            Add-AnalyzedResultInformation @params
+        }
+
+        if ($exchangeInformation.GetTransportService.MessageRetryInterval -gt [System.TimeSpan]::FromMinutes(5)) {
+            $params = $baseParams + @{
+                Name             = "MessageRetryInterval"
+                Details          = "Value set to $($exchangeInformation.GetTransportService.MessageRetryInterval), which is greater than the recommended value of 5 minutes. `r`n`t`tMore details: https://aka.ms/HC-TransportRetryConfigCheck"
+                DisplayWriteType = "Yellow"
+            }
+            Add-AnalyzedResultInformation @params
+        }
     }
 
     $edgeKey = $exchangeInformation.ApplicationConfigFileStatus.Keys | Where-Object { $_ -like "*\EdgeTransport.exe.config" }

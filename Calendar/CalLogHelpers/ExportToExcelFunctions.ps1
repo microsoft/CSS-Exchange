@@ -114,16 +114,20 @@ $ConditionalFormatting = $(
     New-ConditionalText "Other REST" -ConditionalTextColor DarkRed -BackgroundColor $null
     New-ConditionalText "Unknown" -ConditionalTextColor DarkRed -BackgroundColor $null
     New-ConditionalText "ResourceBookingAssistant" -ConditionalTextColor Blue -BackgroundColor $null
+    New-ConditionalText "Calendar Replication" -ConditionalTextColor Blue -BackgroundColor $null
 
-    #LogType -Would like to Hide "Ignorable" and "Cleanup" rows by default.
-    New-ConditionalText -Range "C3:C9999" -ConditionalType ContainsText -Text "Ignorable" -ConditionalTextColor Orange -BackgroundColor $null
-    New-ConditionalText -Range "C:C" -ConditionalType ContainsText -Text "Cleanup" -ConditionalTextColor Orange -BackgroundColor $null
-    New-ConditionalText -Range "C:C" -ConditionalType ContainsText -Text "Sync" -ConditionalTextColor Blue -BackgroundColor $null
-    New-ConditionalText -Range "C:C" -ConditionalType ContainsText -Text "Core" -ConditionalTextColor Green -BackgroundColor $null
+    # LogRowType
+    New-ConditionalText -Range "C:C" -ConditionalType ContainsText -Text "Interesting" -ConditionalTextColor Green -BackgroundColor $null
+    New-ConditionalText -Range "C:C" -ConditionalType ContainsText -Text "SeriesException" -ConditionalTextColor Green -BackgroundColor $null
+    New-ConditionalText -Range "C:C" -ConditionalType ContainsText -Text "DeletedSeriesException" -ConditionalTextColor Orange -BackgroundColor $null
+    New-ConditionalText -Range "C:C" -ConditionalType ContainsText -Text "MeetingMessageChange" -ConditionalTextColor Orange -BackgroundColor $null
+    New-ConditionalText -Range "C:C" -ConditionalType ContainsText -Text "SyncOrReplication" -ConditionalTextColor Blue -BackgroundColor $null
+    New-ConditionalText -Range "C:C" -ConditionalType ContainsText -Text "OtherAssistant" -ConditionalTextColor Orange -BackgroundColor $null
 
     # TriggerAction
     New-ConditionalText -Range "G:G" -ConditionalType ContainsText -Text "Create" -ConditionalTextColor Green -BackgroundColor $null
     New-ConditionalText -Range "G:G" -ConditionalType ContainsText -Text "Delete" -ConditionalTextColor Red -BackgroundColor $null
+
     # ItemClass
     New-ConditionalText -Range "H:H" -ConditionalType ContainsText -Text "IPM.Appointment" -ConditionalTextColor Blue -BackgroundColor $null
     New-ConditionalText -Range "H:H" -ConditionalType ContainsText -Text "Cancellation" -ConditionalTextColor Black -BackgroundColor Orange
@@ -131,26 +135,26 @@ $ConditionalFormatting = $(
     New-ConditionalText -Range "H:H" -ConditionalType ContainsText -Text ".Resp." -ConditionalTextColor Orange -BackgroundColor $null
     New-ConditionalText -Range "H:H" -ConditionalType ContainsText -Text "IPM.OLE.CLASS" -ConditionalTextColor Plum -BackgroundColor $null
 
-    #FreeBusyStatus
+    # FreeBusyStatus
     New-ConditionalText -Range "L3:L9999" -ConditionalType ContainsText -Text "Free" -ConditionalTextColor Red -BackgroundColor $null
     New-ConditionalText -Range "L3:L9999" -ConditionalType ContainsText -Text "Tentative" -ConditionalTextColor Orange -BackgroundColor $null
     New-ConditionalText -Range "L3:L9999" -ConditionalType ContainsText -Text "Busy" -ConditionalTextColor Green -BackgroundColor $null
 
-    #Shared Calendar information
+    # Shared Calendar information
     New-ConditionalText -Range "Q3:Q9999" -ConditionalType Equal -Text "Not Shared" -ConditionalTextColor Blue -BackgroundColor $null
     New-ConditionalText -Range "Q3:Q9999" -ConditionalType Equal -Text "TRUE" -ConditionalTextColor Blue -BackgroundColor Orange
 
-    #MeetingRequestType
+    # MeetingRequestType
     New-ConditionalText -Range "T:T" -ConditionalType ContainsText -Text "Outdated" -ConditionalTextColor DarkRed -BackgroundColor LightPink
 
-    #CalendarItemType
+    # CalendarItemType
     New-ConditionalText -Range "AA3:AA9999" -ConditionalType ContainsText -Text "RecurringMaster" -ConditionalTextColor $null -BackgroundColor Plum
 
-    #AppointmentAuxiliaryFlags
+    # AppointmentAuxiliaryFlags
     New-ConditionalText -Range "AD3:AD9999" -ConditionalType ContainsText -Text "Copied" -ConditionalTextColor DarkRed -BackgroundColor LightPink
     New-ConditionalText -Range "AC3:AC9999" -ConditionalType ContainsText -Text "ForwardedAppointment" -ConditionalTextColor DarkRed -BackgroundColor $null
 
-    #ResponseType
+    # ResponseType
     New-ConditionalText -Range "AG3:AG9999" -ConditionalType ContainsText -Text "Organizer" -ConditionalTextColor Orange -BackgroundColor $null
 )
 
@@ -163,29 +167,29 @@ function FormatHeader {
     $n = 0
 
     # Static List of Columns for now...
-    $sheet.Column(++$n) | Set-ExcelRange -Width 6 -HorizontalAlignment center         # LogRow
+    $sheet.Column(++$n) | Set-ExcelRange -Width 6 -HorizontalAlignment Center         # LogRow
     Set-CellComment -Text "This is the Enhanced Calendar Logs for [$Identity] for MeetingID `n [$($script:GCDO[0].CleanGlobalObjectId)]." -Row $HeaderRow -ColumnNumber $n -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 20 -NumberFormat "m/d/yyyy h:mm:ss" -HorizontalAlignment center #LogTimestamp
+    $sheet.Column(++$n) | Set-ExcelRange -Width 20 -NumberFormat "m/d/yyyy h:mm:ss" -HorizontalAlignment Center #LogTimestamp
     Set-CellComment -Text "LogTimestamp: Time when the change was recorded in the CalLogs. This and all Times are in UTC." -Row $HeaderRow -ColumnNumber $n -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 11 -HorizontalAlignment center        # LogType
-    Set-CellComment -Text "LogType: Core logs are what to focus on, to start with, filter all the others out." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
+    $sheet.Column(++$n) | Set-ExcelRange -Width 20 -HorizontalAlignment Left         # LogRowType
+    Set-CellComment -Text "LogRowType: Interesting logs are what to focus on, filter all the others out to start with." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 20 -HorizontalAlignment Left         # SubjectProperty
     Set-CellComment -Text "SubjectProperty: The Subject of the Meeting." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 20 -HorizontalAlignment Left         # Client
     Set-CellComment -Text "Client (ShortClientInfoString): The 'friendly' Client name of the client that made the change." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 5 -HorizontalAlignment Left         # LogClientInfoString
+    $sheet.Column(++$n) | Set-ExcelRange -Width 5 -HorizontalAlignment Left          # LogClientInfoString
     Set-CellComment -Text "LogClientInfoString: Full Client Info String of client that made the change." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 12 -HorizontalAlignment Center         # TriggerAction
+    $sheet.Column(++$n) | Set-ExcelRange -Width 12 -HorizontalAlignment Center       # TriggerAction
     Set-CellComment -Text "TriggerAction (CalendarLogTriggerAction): The type of action that caused the change." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 18 -HorizontalAlignment Left         # ItemClass
     Set-CellComment -Text "ItemClass: The Class of the Calendar Item" -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment center         # Seq:Exp:ItemVersion
+    $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment Center        # Seq:Exp:ItemVersion
     Set-CellComment -Text "Seq:Exp:ItemVersion (AppointmentLastSequenceNumber:AppointmentSequenceNumber:ItemVersion): The Sequence Version, the Exception Version, and the Item Version.  Each type of item has its own count." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 20 -HorizontalAlignment Left         # Organizer
     Set-CellComment -Text "Organizer (From.FriendlyDisplayName): The Organizer of the Calendar Item." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 20 -HorizontalAlignment Left         # From
     Set-CellComment -Text "From: The SMTP address of the Organizer of the Calendar Item." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 12 -HorizontalAlignment center         # FreeBusyStatus
+    $sheet.Column(++$n) | Set-ExcelRange -Width 12 -HorizontalAlignment Center         # FreeBusyStatus
     Set-CellComment -Text "FreeBusy (FreeBusyStatus): The FreeBusy Status of the Calendar Item." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 20 -HorizontalAlignment Left         # ResponsibleUser
     Set-CellComment -Text "ResponsibleUser(ResponsibleUserName): The Responsible User of the change." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
@@ -201,11 +205,11 @@ function FormatHeader {
     Set-CellComment -Text "ReceivedBy: The Receiver of the Calendar Item. Should always be the owner of the Mailbox." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment Left         # ReceivedRepresenting
     Set-CellComment -Text "ReceivedRepresenting: Who the item was Received for, of then the Delegate." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment center         # MeetingRequestType
+    $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment Center         # MeetingRequestType
     Set-CellComment -Text "MeetingRequestType: The Meeting Request Type of the Meeting." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 23 -NumberFormat "m/d/yyyy h:mm:ss" -HorizontalAlignment center         # StartTime
+    $sheet.Column(++$n) | Set-ExcelRange -Width 23 -NumberFormat "m/d/yyyy h:mm:ss" -HorizontalAlignment Center         # StartTime
     Set-CellComment -Text "StartTime: The Start Time of the Meeting. This and all Times are in UTC." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 23 -NumberFormat "m/d/yyyy h:mm:ss" -HorizontalAlignment center         # EndTime
+    $sheet.Column(++$n) | Set-ExcelRange -Width 23 -NumberFormat "m/d/yyyy h:mm:ss" -HorizontalAlignment Center         # EndTime
     Set-CellComment -Text "EndTime: The End Time of the Meeting. This and all Times are in UTC." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 17 -NumberFormat "m/d/yyyy h:mm:ss"  -HorizontalAlignment Left         # OriginalStartDate
     Set-CellComment -Text "OriginalStartDate: The Original Start Date of the Meeting." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
@@ -213,9 +217,9 @@ function FormatHeader {
     Set-CellComment -Text "TimeZone: The Time Zone of the Meeting." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment Left         # Location
     Set-CellComment -Text "Location: The Location of the Meeting." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment center         # CalendarItemType
+    $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment Center         # CalendarItemType
     Set-CellComment -Text "CalendarItemType: The Calendar Item Type of the Meeting." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment center         # IsException
+    $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment Center         # IsException
     Set-CellComment -Text "IsException: Is this an Exception?" -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 20 -HorizontalAlignment Left         # RecurrencePattern
     Set-CellComment -Text "RecurrencePattern: The Recurrence Pattern of the Meeting." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
@@ -223,23 +227,23 @@ function FormatHeader {
     Set-CellComment -Text "AppointmentAuxiliaryFlags: The Appointment Auxiliary Flags of the Meeting." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 30 -HorizontalAlignment Left         # DisplayAttendeesAll
     Set-CellComment -Text "DisplayAttendeesAll: List of the Attendees of the Meeting." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment center        # AttendeeCount
+    $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment Center        # AttendeeCount
     Set-CellComment -Text "AttendeeCount: The Attendee Count." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 20 -HorizontalAlignment Left          # AppointmentState
     Set-CellComment -Text "AppointmentState: The Appointment State of the Meeting." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment center         # ResponseType
+    $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment Center         # ResponseType
     Set-CellComment -Text "ResponseType: The Response Type of the Meeting." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 20 -HorizontalAlignment center         # ClientIntent
+    $sheet.Column(++$n) | Set-ExcelRange -Width 20 -HorizontalAlignment Center         # ClientIntent
     Set-CellComment -Text "ClientIntent: The Client Intent of the Meeting." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment center         # AppointmentRecurring
+    $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment Center         # AppointmentRecurring
     Set-CellComment -Text "AppointmentRecurring: Is this a Recurring Meeting?" -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment center         # HasAttachment
+    $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment Center         # HasAttachment
     Set-CellComment -Text "HasAttachment: Does this Meeting have an Attachment?" -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment center         # IsCancelled
+    $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment Center         # IsCancelled
     Set-CellComment -Text "IsCancelled: Is this Meeting Cancelled?" -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment center         # IsAllDayEvent
+    $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment Center         # IsAllDayEvent
     Set-CellComment -Text "IsAllDayEvent: Is this an All Day Event?" -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment center         # IsSeriesCancelled
+    $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment Center         # IsSeriesCancelled
     Set-CellComment -Text "IsSeriesCancelled: Is this a Series Cancelled Meeting?" -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 30 -HorizontalAlignment Left           # SendMeetingMessagesDiagnostics
     Set-CellComment -Text "SendMeetingMessagesDiagnostics: Compound Property to describe why meeting was or was not sent to everyone." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
@@ -251,7 +255,7 @@ function FormatHeader {
     # Update header rows after all the others have been set.
     # Title Row
     $sheet.Row(1) | Set-ExcelRange -HorizontalAlignment Left
-    Set-CellComment -Text "For more information see: https://learn.microsoft.com/en-us/exchange/troubleshoot/calendars/analyze-calendar-diagnostic-logs."  -Row 1 -ColumnNumber 1  -Worksheet $sheet
+    Set-CellComment -Text "For more information see: Https:\\aka.ms\AnalyzeCalLogs"  -Row 1 -ColumnNumber 1  -Worksheet $sheet
 
     # Set the Header row to be bold and left aligned
     $sheet.Row($HeaderRow) | Set-ExcelRange -Bold -HorizontalAlignment Left

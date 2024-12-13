@@ -33,7 +33,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "Extended Protection Enabled (Any VDir)" $false
             TestObjectMatch "Setting Overrides Detected" $false
             TestObjectMatch "Exchange Server Membership" "Passed"
-            $Script:ActiveGrouping.Count | Should -Be 17
+            $Script:ActiveGrouping.Count | Should -Be 22
         }
 
         It "Display Results - Organization Information" {
@@ -119,8 +119,9 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "EdgeTransport.exe.config Present" "True" -WriteType "Green"
             TestObjectMatch "Open Relay Wild Card Domain" "Not Set"
             TestObjectMatch "EXO Connector Present" "False"
+            TestObjectMatch "EnableEccCertificateSupport Registry Value" $false
 
-            $Script:ActiveGrouping.Count | Should -Be 12
+            $Script:ActiveGrouping.Count | Should -Be 13
         }
 
         It "Display Results - Security Settings" {
@@ -133,7 +134,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             TestObjectMatch "Pattern service" "Unreachable`r`n`t`tMore information: https://aka.ms/HelpConnectivityEEMS" -WriteType "Yellow"
             TestObjectMatch "Telemetry enabled" "False"
 
-            $Script:ActiveGrouping.Count | Should -Be 102
+            $Script:ActiveGrouping.Count | Should -Be 104
         }
 
         It "Display Results - Security Vulnerability" {
@@ -143,11 +144,11 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             $cveTests.Contains("CVE-2020-1147") | Should -Be $true
             $cveTests.Contains("CVE-2023-36039") | Should -Be $true
             $cveTests.Contains("ADV24199947") | Should -Be $true
-            $cveTests.Count | Should -Be 51
+            $cveTests.Count | Should -Be 52
             $downloadDomains = GetObject "CVE-2021-1730"
             $downloadDomains.DownloadDomainsEnabled | Should -Be "false"
 
-            $Script:ActiveGrouping.Count | Should -Be 58
+            $Script:ActiveGrouping.Count | Should -Be 59
         }
     }
 

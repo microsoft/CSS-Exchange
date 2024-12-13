@@ -258,11 +258,23 @@ begin {
 
         if ($ScriptUpdateOnly) {
             Invoke-SetOutputInstanceLocation -FileName "HealthChecker-ScriptUpdateOnly"
+            $currentErrors = $Error.Count
             switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/HC-VersionsUrl" -Confirm:$false) {
                 ($true) { Write-Green("Script was successfully updated.") }
                 ($false) { Write-Yellow("No update of the script performed.") }
                 default { Write-Red("Unable to perform ScriptUpdateOnly operation.") }
             }
+
+            if ($currentErrors -ne $Error.Count) {
+                Write-Host ""
+                Write-Warning "Failed to get latest version of script details. Failing with this inner exception:"
+                Write-Host ""
+                $Error[$Error.Count - $currentErrors - 1] | Out-String | Write-Host -ForegroundColor Red
+                Write-Host ""
+                Write-Host "Address the above exception in order to get the script to auto update."
+            }
+
+            Invoke-ErrorCatchActionLoopFromIndex $currentErrors
             return
         }
 

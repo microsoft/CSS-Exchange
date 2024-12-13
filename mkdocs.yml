@@ -19,6 +19,7 @@ nav:
     - Check-SharingStatus: Calendar/Check-SharingStatus.md
     - Get-CalendarDiagnosticObjectsSummary: Calendar/Get-CalendarDiagnosticObjectsSummary.md
     - Get-RBASummary: Calendar/Get-RBASummary.md
+    - BookingsDiagnosticSummary: Calendar/BookingsDiagnosticSummary.md
   - Databases:
     - Analyze-SpaceDump: Databases/Analyze-SpaceDump.md
     - Compare-MailboxStatistics: Databases/Compare-MailboxStatistics.md
@@ -71,6 +72,7 @@ nav:
       - ADSiteCount: Diagnostics/HealthChecker/ADSiteCount.md
       - ExchangeComputerMembership: Diagnostics/HealthChecker/ExchangeComputerMembership.md
       - UnifiedContentCleanup: Diagnostics/HealthChecker/UnifiedContentCleanup.md
+      - TransportRetryConfigCheck: Diagnostics/HealthChecker/TransportRetryConfigCheck.md
     - ManagedAvailabilityTroubleshooter: Diagnostics/ManagedAvailabilityTroubleshooter.md
     - Test-ExchAVExclusions: Diagnostics/Test-ExchAVExclusions.md
     - FreeBusyChecker: Diagnostics/FreeBusyChecker/FreeBusyChecker.md
@@ -79,8 +81,12 @@ nav:
   - M365:
     - MDO:
       - MDOThreatPolicyChecker: M365/MDO/MDOThreatPolicyChecker.md
+      - ResendFailedMail: M365/MDO/ResendFailedMail.md
     - DLT365Groupsupgrade: M365/DLT365Groupsupgrade.md
     - Get-LargeMailboxFolderStatistics: M365/Get-LargeMailboxFolderStatistics.md
+    - Test-MailboxExtendedProperty: M365/Test-MailboxExtendedProperty.md
+    - Search-MailboxExtendedProperty: M365/Search-MailboxExtendedProperty.md
+    - Remove-MailboxExtendedProperty: M365/Remove-MailboxExtendedProperty.md
   - Performance:
     - ExPerfWiz: Performance/ExPerfWiz.md
     - ExPerfAnalyzer: Performance/ExPerfAnalyzer.md

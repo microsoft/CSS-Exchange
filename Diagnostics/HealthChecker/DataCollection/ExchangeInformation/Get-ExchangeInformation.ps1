@@ -117,7 +117,8 @@ function Get-ExchangeInformation {
             ComputerName = $Server
             FileLocation = @("$([System.IO.Path]::Combine($serverExchangeBinDirectory, "EdgeTransport.exe.config"))",
                 "$([System.IO.Path]::Combine($serverExchangeBinDirectory, "Search\Ceres\Runtime\1.0\noderunner.exe.config"))",
-                "$([System.IO.Path]::Combine($serverExchangeBinDirectory, "Monitoring\Config\AntiMalware.xml"))")
+                "$([System.IO.Path]::Combine($serverExchangeBinDirectory, "Monitoring\Config\AntiMalware.xml"))",
+                "$([System.IO.Path]::Combine($serverExchangeBinDirectory, "IanaTimeZoneMappings.xml"))")
         }
 
         if ($getExchangeServer.IsEdgeServer -eq $false -and
@@ -132,6 +133,13 @@ function Get-ExchangeInformation {
         foreach ($key in $getFileContentInformation.Keys) {
             if ($key -like "*.exe.config") {
                 $applicationConfigFileStatus.Add($key, $getFileContentInformation[$key])
+            } elseif ($key -like "*IanaTimeZoneMappings.xml") {
+                if (($getFileContentInformation[$key]).Present) {
+                    Write-Verbose "IanaTimeZoneMappings.xml file exists"
+                    $ianaTimeZoneMappingContent = ($getFileContentInformation[$key]).Content
+                } else {
+                    Write-Verbose "IanaTimeZoneMappings.xml doesn't exist"
+                }
             } else {
                 $fileContentInformation.Add($key, $getFileContentInformation[$key])
             }
@@ -152,6 +160,13 @@ function Get-ExchangeInformation {
                 }
             } catch {
                 Write-Verbose "Failed to run Test-ServiceHealth"
+                Invoke-CatchActions
+            }
+
+            try {
+                $getTransportService = Get-TransportService -Identity $Server -ErrorAction Stop
+            } catch {
+                Write-Verbose "Failed to run Get-TransportService"
                 Invoke-CatchActions
             }
         }
@@ -201,16 +216,91 @@ function Get-ExchangeInformation {
         if ($getExchangeServer.IsEdgeServer -eq $false) {
             $params = @{
                 ComputerName           = $Server
-                ScriptBlockDescription = "Getting Exchange Server Members"
+                ScriptBlockDescription = "Getting Exchange Server Local Group Members"
                 CatchActionFunction    = ${Function:Invoke-CatchActions}
                 ScriptBlock            = {
-                    [PSCustomObject]@{
-                        LocalGroupMember  = (Get-LocalGroupMember -SID "S-1-5-32-544" -ErrorAction Stop)
-                        ADGroupMembership = (Get-ADPrincipalGroupMembership (Get-ADComputer $env:COMPUTERNAME).DistinguishedName)
+                    try {
+                        $localGroupMember = Get-LocalGroupMember -SID "S-1-5-32-544" -ErrorAction Stop
+                    } catch {
+                        Write-Verbose "Failed to run Get-LocalGroupMember. Inner Exception: $_"
+                    }
+                    $localGroupMember
+                }
+            }
+            $localGroupMember = Invoke-ScriptBlockHandler @params
+
+            # AD Module cmdlets don't appear to work in remote context with Invoke-Command, this is why it is now moved outside of the Invoke-ScriptBlockHandler.
+            try {
+                Write-Verbose "Trying to get the computer DN"
+                $adComputer = (Get-ADComputer ($Server.Split(".")[0]) -ErrorAction Stop -Properties MemberOf)
+                $computerDN = $adComputer.DistinguishedName
+                Write-Verbose "Computer DN: $computerDN"
+                $params = @{
+                    Identity    = $computerDN
+                    ErrorAction = "Stop"
+                }
+                try {
+                    $serverId = ([ADSI]("GC://$([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Name)/RootDSE")).dnsHostName.ToString()
+                    Write-Verbose "Adding ServerId '$serverId' to the Get-AD* cmdlets"
+                    $params["Server"] = $serverId
+                } catch {
+                    Write-Verbose "Failed to find the root DSE. Inner Exception: $_"
+                    Invoke-CatchActions
+                }
+                $adPrincipalGroupMembership = (Get-ADPrincipalGroupMembership @params)
+            } catch [System.Management.Automation.CommandNotFoundException] {
+                if ($_.TargetObject -eq "Get-ADComputer") {
+                    $adPrincipalGroupMembership = "NoAdModule"
+                    Invoke-CatchActions
+                } else {
+                    # If this occurs, do not run Invoke-CatchActions to let us know what is wrong here.
+                    Write-Verbose "CommandNotFoundException thrown, but not for Get-ADComputer. Inner Exception: $_"
+                }
+            } catch {
+                Write-Verbose "Failed to get the AD Principal Group Membership. Inner Exception: $_"
+                Invoke-CatchActions
+                if ($null -eq $adComputer -or
+                    $null -eq $adComputer.MemberOf -or
+                    $adComputer.MemberOf.Count -eq 0) {
+                    Write-Verbose "Failed to get the ADComputer information to be able to find the MemberOf with Get-ADObject"
+                } else {
+                    $adPrincipalGroupMembership = New-Object System.Collections.Generic.List[object]
+                    foreach ($memberDN in $adComputer.MemberOf) {
+                        try {
+                            $params = @{
+                                Filter      = "distinguishedName -eq `"$memberDN`""
+                                Properties  = "objectSid"
+                                ErrorAction = "Stop"
+                            }
+
+                            if (-not([string]::IsNullOrEmpty($serverId))) {
+                                $params["Server"] = "$($serverId):3268" # Needs to be a GC port incase we are looking for a group outside of this domain.
+                            }
+                            $adObject = Get-ADObject @params
+
+                            if ($null -eq $adObject) {
+                                Write-Verbose "Failed to find AD Object with filter '$($params.Filter)' on server '$($params.Server)'"
+                                continue
+                            }
+
+                            $adPrincipalGroupMembership.Add([PSCustomObject]@{
+                                    Name              = $adObject.Name
+                                    DistinguishedName = $adObject.DistinguishedName
+                                    ObjectGuid        = $adObject.ObjectGuid
+                                    SID               = $adObject.objectSid
+                                })
+                        } catch {
+                            # Currently do not add Invoke-CatchActions as we want to be aware if this doesn't fix some things.
+                            Write-Verbose "Failed to run Get-ADObject against '$memberDN'. Inner Exception: $_"
+                        }
                     }
                 }
             }
-            $computerMembership = Invoke-ScriptBlockHandler @params
+
+            $computerMembership = [PSCustomObject]@{
+                LocalGroupMember  = $localGroupMember
+                ADGroupMembership = $adPrincipalGroupMembership
+            }
         }
 
         [array]$serverMonitoringOverride = Get-MonitoringOverride -Server $Server
@@ -225,6 +315,7 @@ function Get-ExchangeInformation {
             ExtendedProtectionConfig                 = $extendedProtectionConfig
             ExchangeConnectors                       = $exchangeConnectors
             ExchangeServicesNotRunning               = [array]$exchangeServicesNotRunning
+            GetTransportService                      = $getTransportService
             ApplicationPools                         = $applicationPools
             RegistryValues                           = $registryValues
             ServerMaintenance                        = $serverMaintenance
@@ -237,6 +328,7 @@ function Get-ExchangeInformation {
             SettingOverrides                         = $settingOverrides
             FIPFSUpdateIssue                         = $FIPFSUpdateIssue
             AES256CBCInformation                     = $aes256CbcDetails
+            IanaTimeZoneMappingsRaw                  = $ianaTimeZoneMappingContent
             FileContentInformation                   = $fileContentInformation
             ComputerMembership                       = $computerMembership
             GetServerMonitoringOverride              = $serverMonitoringOverride

@@ -17,6 +17,12 @@ This check verifies if an override exists which disables the AMSI integration wi
 
 `Get-SettingOverride | Where-Object { ($_.ComponentName -eq "Cafe") -and ($_.SectionName -eq "HttpRequestFiltering") }`
 
+AMSI Body Scanning Feature, was introduced in Exchange Server November 2024 Security Update. This is disabled by default and can be enabled with a New-SettingOverride cmdlet. In order to properly function, it does require that AMSI is enabled as well. There will be a configuration issue/warning for the following scenarios:
+- Body Scanning is enabled, but AMSI is disabled
+- Block Request Greater than Max scan size is configured
+- Body Scanning is enabled, but not on the correct version to have the setting applicable
+
+
 **Included in HTML Report?**
 
 Yes
@@ -27,3 +33,4 @@ Yes
 
 [More about AMSI integration with Exchange Server](https://techcommunity.microsoft.com/t5/exchange-team-blog/more-about-amsi-integration-with-exchange-server/ba-p/2572371)
 
+[Exchange Server AMSI Integration](https://learn.microsoft.com/Exchange/antispam-and-antimalware/amsi-integration-with-exchange)

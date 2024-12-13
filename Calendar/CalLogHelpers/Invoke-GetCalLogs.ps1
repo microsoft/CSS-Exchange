@@ -10,10 +10,11 @@ $script:CustomPropertyNameList =
 "AppointmentLastSequenceNumber",
 "AppointmentRecurring",
 "CalendarItemType",
-"CalendarProcessed",
-"ClientIntent",
-"ChangeList",
 "CalendarLogTriggerAction",
+"CalendarProcessed",
+"ChangeList",
+"ClientIntent",
+"CreationTime",
 "DisplayAttendeesCc",
 "DisplayAttendeesTo",
 "EventEmailReminderTimer",
@@ -22,20 +23,22 @@ $script:CustomPropertyNameList =
 "From",
 "HasAttachment",
 "InternetMessageId",
-"ItemID",
 "IsAllDayEvent",
 "IsCancelled",
 "IsMeeting",
 "IsOrganizerProperty",
+"IsSharedInEvent",
+"ItemID",
+"LogClientInfoString",
+"LogRowType",
+"LogTimestamp",
 "NormalizedSubject",
+"OriginalStartDate",
 "SendMeetingMessagesDiagnostics",
+"Sensitivity",
 "SentRepresentingDisplayName",
 "SentRepresentingEmailAddress",
-"Sensitivity",
-"LogTimestamp",
-"LogClientInfoString",
-"OriginalStartDate",
-"CreationTime",
+"ShortClientInfoString",
 "TimeZone"
 
 $LogLimit = 2000
@@ -63,6 +66,7 @@ function GetCalendarDiagnosticObjects {
         MaxResults         = $LogLimit
         ResultSize         = $LogLimit
         ShouldBindToItem   = $true
+        ShouldDecodeEnums  = $true
     }
 
     if ($TrackingLogs.IsPresent) {

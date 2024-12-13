@@ -102,7 +102,7 @@ function CreateExternalMasterIDMap {
     foreach ($Key in $SharedFolders.Keys) {
         Write-Host -ForegroundColor Green "$Key : $($SharedFolders[$Key])"
     }
-    # ToDo: Need to check for multiple ExternalMasterIDs pointing to the same FolderName
+    # ToDo: Need to check for multiple ExternalSharingMasterId pointing to the same FolderName
     Write-Verbose "Created the following Mapping :"
     Write-Verbose $SharedFolders
 }
@@ -131,7 +131,6 @@ function BuildCSV {
 
     Write-Host "Starting to Process Calendar Logs..."
     $GCDOResults = @()
-    $LogType = @()
     $script:MailboxList = @{}
     Write-Host "Creating Map of Mailboxes to CNs..."
     CreateExternalMasterIDMap
@@ -143,9 +142,6 @@ function BuildCSV {
     foreach ($CalLog in $script:GCDO) {
         $Index++
         $ItemType = $CalendarItemTypes.($CalLog.ItemClass)
-
-        $ShortClientName = CreateShortClientName($CalLog.LogClientInfoString)
-        $LogType = SetLogType($CalLog)
 
         # CleanNotFounds
         $PropsToClean = "FreeBusyStatus", "ClientIntent", "AppointmentSequenceNumber", "AppointmentLastSequenceNumber", "RecurrencePattern", "AppointmentAuxiliaryFlags", "EventEmailReminderTimer", "IsSeriesCancelled", "AppointmentCounterProposal", "MeetingRequestType", "SendMeetingMessagesDiagnostics"
@@ -160,9 +156,9 @@ function BuildCSV {
         $GCDOResults += [PSCustomObject]@{
             'LogRow'                         = $Index
             'LogTimestamp'                   = ConvertDateTime($CalLog.LogTimestamp)
-            'LogType'                        = $LogType
+            'LogRowType'                     = $CalLog.LogRowType.ToString()
             'SubjectProperty'                = $CalLog.SubjectProperty
-            'Client'                         = $ShortClientName
+            'Client'                         = $CalLog.ShortClientInfoString
             'LogClientInfoString'            = $CalLog.LogClientInfoString
             'TriggerAction'                  = $CalLog.CalendarLogTriggerAction
             'ItemClass'                      = $ItemType
