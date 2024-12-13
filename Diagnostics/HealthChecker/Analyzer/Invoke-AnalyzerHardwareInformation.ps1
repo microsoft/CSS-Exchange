@@ -309,7 +309,7 @@ function Invoke-AnalyzerHardwareInformation {
             $counter = $osInformation.PerformanceCounters | Where-Object { $_.OriginalCounterLookup -eq $counterName }
 
             if ($null -eq $counter) {
-                $params.Details = "Unknown - Required Counter Not Loaded"
+                $params.Details = "Unknown - Required Counter Not Loaded. Missing Counter: $($counterName)"
                 $params.DisplayWriteType = "Yellow"
             } elseif (($counter.CookedValue / 1024) -ne $totalPhysicalMemory -and
             ($counter.CookedValue / 1024) -ne $totalPhysicalMemoryNotRounded) {
