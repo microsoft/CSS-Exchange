@@ -1,6 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 function Test-ExchangeOnlineConnection {
+    Write-Host -ForegroundColor Green " Checking Exchange Online Configuration"
+    Write-Host " Testing Connection to Exchange Online with EO Prefix."
     try {
         $CheckExoMailbox = get-EOMailbox $Script:UserOnline -ErrorAction Stop
         if ($null -ne $CheckExoMailbox) {
@@ -28,16 +30,16 @@ function CheckIfExchangeServer {
     param (
         [string]$Server
     )
-    $exchangeServer = Get-ExchangeServer $Script:Server -ErrorAction SilentlyContinue
+    $exchangeServer = Get-ExchangeServer $Server -ErrorAction SilentlyContinue
     if (!$exchangeServer) {
-        Write-Output "$Server is not an Exchange Server. This script should be run in Exchange Server Management Shell"
+        Write-Host "$Server is not an Exchange Server. This script should be run in Exchange Server Management Shell"
         exit
     }
 }
 function CheckParameters {
     $MissingParameters = @()
     if ([string]::IsNullOrWhiteSpace($Script:ExchangeOnlineDomain)) {
-        $MissingParameters += "Exchange Online Domain. Example: "
+        $MissingParameters += "Exchange Online Domain. Example: contoso.mail.onmicrosoft.com"
     }
     if ([string]::IsNullOrWhiteSpace($Script:ExchangeOnPremLocalDomain)) {
         $MissingParameters += "Exchange On Premises Local Domain.  Example: . 'C:\scripts\FreeBusyChecker\FreeBusyChecker.ps1' -OnPremisesUser John@Contoso.com"

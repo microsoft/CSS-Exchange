@@ -416,11 +416,10 @@ function OAuthConnectivityCheck {
     Write-Host -ForegroundColor Green " Test-OAuthConnectivity -Service EWS -TarGetUri https://outlook.office365.com/EWS/Exchange.asmx -Mailbox $Script:UserOnPrem"
     PrintDynamicWidthLine
     $Script:OAuthConnectivity = Test-OAuthConnectivity -Service EWS -TarGetUri https://outlook.office365.com/EWS/Exchange.asmx -Mailbox $Script:UserOnPrem
-    if ($Script:OAuthConnectivity.ResultType -eq 'Success' ) {
-        #$Script:OAuthConnectivity.ResultType
-    } else {
+    if ($Script:OAuthConnectivity.ResultType -ne 'Success') {
         $Script:OAuthConnectivity
     }
+    
     if ($Script:OAuthConnectivity.Detail.FullId -like '*(401) Unauthorized*') {
         Write-Host -ForegroundColor Red "Error: The remote Server returned an error: (401) Unauthorized"
         if ($Script:OAuthConnectivity.Detail.FullId -like '*The user specified by the user-context in the token does not exist*') {
@@ -452,8 +451,6 @@ function AutoDVirtualDCheckOauth {
     $AD = $AutoDiscoveryVirtualDirectoryOAuth | Format-List
     $AD
     AutoDVirtualDCheckOauthHtmlHead
-    if ($Auth -contains "OAuth") {
-    }
     PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " Summary - Get-AutoDiscoverVirtualDirectory"
     PrintDynamicWidthLine
@@ -549,8 +546,6 @@ function EWSVirtualDirectoryCheckOAuth {
     $W = $WebServicesVirtualDirectoryOAuth | Format-List
     $W
     EWSVirtualDirectoryCheckOAuthHtmlHead
-    if ($Auth -contains "OAuth") {
-    }
     PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " Summary - On-Prem Get-WebServicesVirtualDirectory"
     PrintDynamicWidthLine

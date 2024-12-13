@@ -14,8 +14,6 @@ function ExoOrgRelCheck () {
         Write-Host -ForegroundColor Green "  Domain Names Include the $ExchangeOnPremDomain Domain"
         $Script:tdExoOrgRelDomainNames = $exoOrgRel.DomainNames
         $Script:tdExoOrgRelDomainNamesColor = "green"
-        if ($Script:tdExoOrgRelDomainNamesData -or $Script:tdExoOrgRelDomainNamesColor) {
-        }
     } else {
         Write-Host -ForegroundColor Red "  Domain Names do Not Include the $ExchangeOnPremDomain Domain"
         $exoOrgRel.DomainNames
@@ -28,8 +26,6 @@ function ExoOrgRelCheck () {
         Write-Host -ForegroundColor Green "  FreeBusyAccessEnabled is set to True"
         $Script:tdExoOrgRelFreeBusyAccessEnabled = "$($exoOrgRel.FreeBusyAccessEnabled)"
         $Script:tdExoOrgRelFreeBusyAccessEnabledColor = "green"
-        if ($Script:tdExoOrgRelFreeBusyAccessEnabled -or $Script:tdExoOrgRelFreeBusyAccessEnabledColor) {
-        }
     } else {
         Write-Host -ForegroundColor Red "  FreeBusyAccessEnabled : False"
         $Script:tdExoOrgRelFreeBusyAccessEnabled = "$($exoOrgRel.FreeBusyAccessEnabled). Free busy access is not enabled for the organization Relationship"
@@ -205,7 +201,6 @@ function SharingPolicyCheck {
     Write-Host "   " $SPOnlineDomain2
     Write-Host -ForegroundColor White "  Action:"
     Write-Host "   " $SPOnlineAction2
-    #PrintDynamicWidthLine
 
     if ($Script:SPOnpremDomain1 -eq $SPOnlineDomain1 -and $Script:SPOnpremAction1 -eq $SPOnlineAction1) {
         if ($Script:SPOnpremDomain2 -eq $SPOnlineDomain2 -and $Script:SPOnpremAction2 -eq $SPOnlineAction2) {

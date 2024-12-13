@@ -1,8 +1,8 @@
 # Hybrid-Free-Busy-Configuration-Checker
 
-To View this Project at GitHub! [GitHub Repository](https://github.com/MarcoLFrancisco/Hybrid-Free-Busy-Configuration-Checker)
+View this Project at GitHub! [GitHub Repository](https://github.com/microsoft/CSS-Exchange/Diagnostics/FreeBusyChecker)
 
-To Download the latest release: [FreeBusyChecker.ps1](https://github.com/MarcoLFrancisco/Hybrid-Free-Busy-Configuration-Checker/releases/download/Version1/FreeBusyChecker.ps1)
+Download the latest release: [FreeBusyChecker.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/FreeBusyChecker.ps1)
 
 To Provide Feedback about this tool: [Feedback Form](https://forms.office.com/pages/responsepage.aspx?id=v4j5cvGGr0GRqy180BHbR2LVru-UswhJmHot_XEUrVVURFVMRkE5VUg4QUU0MEpNRjgxUExPVlBVOS4u)
 
@@ -11,7 +11,7 @@ To Provide Feedback about this tool: [Feedback Form](https://forms.office.com/pa
 
 - This is a Beta Version. Please double check on any information provided by this script before proceeding to address any changes to your Environment. Be advised that there may be incorrect content in the provided output.
 
-Use: Collects OAuth and DAuth Hybrid Availability Configuration Settings Both for Exchange On Premises and Exchange Online
+Use: Collects OAuth and DAuth Hybrid Availability Configuration Settings Both for Exchange On Premises and Exchange Online if connected to Exchange Online using -Prefix EO before executing this script (see Usage bellow).
 
 Example Screen Output:
 
@@ -80,7 +80,13 @@ The script will generate the following files on the folder that contains the scr
 
 ## Usage:
 
-- This script must be run as Administrator in Exchange Management Shell on an Exchange Server. You can provide no parameters and the script will just run against Exchange On Premises and Exchange Online to query for OAuth and DAuth configuration setting. It will compare existing values with standard values and provide detail of what may not be correct.
+- This script must be run as Administrator in Exchange Management Shell on an Exchange Server. You can provide no parameters and the script will just run against Exchange On Premises and Exchange Online (if connected to Exchange Online using -Prefix EO before executing this script) to query for OAuth and DAuth configuration setting. It will compare existing values with standard values and provide detail of what may not be correct.
+
+- To connect to Exchange Online:
+
+```powershell
+          Connect-ExchangeOnline -Prefix EO
+```
 
 - Please take note that though this script may output that a specific setting is not a standard setting, it does not mean that your configurations are incorrect. For example, DNS may be configured with specific mappings that this script can not evaluate.
 
@@ -129,6 +135,12 @@ Valid Input Option Parameters:
 
 
 ## Examples:
+
+- This cmdlet will establish connection to Exchange Online using a Prefix to assure cmdlet independence between Exchange On Premises and Exchange Online. If connection to Exchange online is not established with "EO" Prefix script will collect Exchange On Premises Information only-
+
+```powershell
+          Connect-ExchangeOnline -Prefix EO
+```
 
 - This cmdlet will run Free Busy Checker script and check Availability for Exchange On Premises and Exchange Online for the currently used method, OAuth or DAuth. If OAuth is enabled OAUth is checked. If OAUth is not enabled, DAuth Configurations are collected.
 

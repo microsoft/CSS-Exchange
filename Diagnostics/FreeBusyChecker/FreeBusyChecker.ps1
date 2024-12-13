@@ -201,7 +201,7 @@ begin {
     if ($Org -contains 'ExchangeOnPremise' -or -not $Org) {
         #region DAuth Checks
         if ($Auth -like "DAuth" -OR -not $Auth -or $Auth -like "All") {
-            Write-Host $TestingDAuthConfiguration
+            Write-Host "  Testing DAuth Configuration"
             OrgRelCheck -OrgRelParameter $Script:OrgRel
             PrintDynamicWidthLine
             FedInfoCheck
@@ -216,8 +216,7 @@ begin {
         #endregion
         #region OAuth Check
         if ($Auth -like "OAuth" -or -not $Auth -or $Auth -like "All") {
-            Write-Host $TestingOAuthConfiguration
-            # PrintDynamicWidthLine
+            Write-Host "  Testing OAuth Configuration"
             IntraOrgConCheck
             PrintDynamicWidthLine
             AuthServerCheck
@@ -233,7 +232,6 @@ begin {
             CurrentCertificateThumbprintCheck
             PrintDynamicWidthLine
             AutoDVirtualDCheckOAuth
-            #$AutoDiscoveryVirtualDirectoryOAuth
             PrintDynamicWidthLine
             EWSVirtualDirectoryCheckOAuth
             PrintDynamicWidthLine
@@ -247,9 +245,6 @@ begin {
     # EXO Part
     if ($Org -contains 'ExchangeOnline' -OR -not $Org) {
         #region ConnectExo
-
-        Write-Host -ForegroundColor Green $CollectingExoAvailabilityInformation
-        Write-Host " Testing Connection to Exchange Online with EO Prefix."
         $Exo = Test-ExchangeOnlineConnection
         if (-not ($Exo)) {
             Write-Host -ForegroundColor Red "`n Please connect to Exchange Online Using the EXO V3 module using EO as connection Prefix to collect Exchange OnLine Free Busy configuration Information."

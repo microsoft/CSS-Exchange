@@ -33,8 +33,6 @@ function loadingParameters() {
     $Script:LogFile = "$PSScriptRoot\FreeBusyChecker.txt"
     $BuildVersion = ""
     $LogFileName = [System.IO.Path]::GetFileNameWithoutExtension($LogFile) + "_" + $Script:startingDate + ([System.IO.Path]::GetExtension($Script:LogFile))
-    Write-Host " `n`n "
-    Write-Host " `n`n "
     Start-Transcript -Path $LogFileName -Append
     PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " `n  Free Busy Configuration Information Checker `n "
