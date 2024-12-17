@@ -176,7 +176,41 @@ function Format-StoreDriverReceive {
 
     # Make sure our return object is null
     $object = $null
+    $hash = $null
 
     #### Need to add all of the data we want to a PSCustomobject
+    $hash = @{
+        DateTime    = $Entry.date_time
+        Source      = $Entry.source
+        event_id    = $Entry.event_id
+        client_type = (Get-SubmissionClientType -Data $Entry.source_context)
 
+
+
+    }
+
+
+
+    # Convert the hash table to an object
+    $object = [pscustomobject]$hash
 }
+
+Function Get-SubmissionClientType {
+    [CmdletBinding()]
+    [OutputType([String])]
+    param (
+        # Parameter help description
+        [Parameter(Mandatory = $true)]
+        [array]
+        $Data
+    )
+
+    $hash = ConvertFrom-StringData ($Data -replace ",", " `n") -Delimiter ":"
+
+    switch ($hash.ClientType) {
+        MoMT { Return "Outlook Client" }
+        Default { Return $hash.ClientType }
+    }
+}
+
+
