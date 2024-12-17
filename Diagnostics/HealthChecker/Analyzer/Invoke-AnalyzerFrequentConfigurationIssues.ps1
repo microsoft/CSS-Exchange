@@ -372,7 +372,7 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
                 "`r`n`t`t`tCloudServicesMailEnabled: $($connector.CloudEnabled)" +
                 "`r`n`t`t`tTLSCertificateName set: $($connector.CertificateDetails.TlsCertificateNameStatus -ne "TlsCertificateNameEmpty")"
                 DisplayCustomTabNumber = 2
-                DisplayWriteType       = "Red"
+                DisplayWriteType       = "Yellow"
             }
             Add-AnalyzedResultInformation @params
             $showMoreInfo = $true
