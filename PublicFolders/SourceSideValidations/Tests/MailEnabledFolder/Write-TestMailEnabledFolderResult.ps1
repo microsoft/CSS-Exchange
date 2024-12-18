@@ -49,7 +49,7 @@ function Write-TestMailEnabledFolderResult {
                 "After confirming the accuracy of the results, you can mail-disable them with the following command:`n`n" +
                 "Import-Csv .\ValidationResults.csv | `n" +
                 " ? ResultType -eq MailEnabledWithNoADObject |`n" +
-                " % { Disable-MailPublicFolder `$_.FolderIdentity }")
+                " % { Set-PublicFolder `$_.FolderIdentity -MailEnabled `$false }")
         }
 
         if ($mailDisabledWithProxyGuidResults.Count -gt 0) {
