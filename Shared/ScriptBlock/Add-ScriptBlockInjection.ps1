@@ -57,7 +57,6 @@ function Add-ScriptBlockInjection {
             $scriptBlockFinalized = [string]::Empty
             $adjustedScriptBlock = $PrimaryScriptBlock
             $injectedLinesHandledInBeginBlock = $false
-            $adjustInject = $false
 
             if ($null -ne $IncludeUsingParameter) {
                 $lines = @()
@@ -91,17 +90,20 @@ function Add-ScriptBlockInjection {
             # Here you need to find the ParamBlock and add it to the inject lines to be at the top of the script block.
             # Then you need to recreate the adjustedScriptBlock to be where the ParamBlock ended.
 
-            if ($null -ne $PrimaryScriptBlock.Ast.ParamBlock) {
-                Write-Verbose "Ast ParamBlock detected"
-                $adjustLocation = $PrimaryScriptBlock.Ast
-            } elseif ($null -ne $PrimaryScriptBlock.Ast.Body.ParamBlock) {
-                Write-Verbose "Ast Body ParamBlock detected"
-                $adjustLocation = $PrimaryScriptBlock.Ast.Body
-            }
+            # adjust the location of the adjustedScriptBlock if required here.
+            if ($null -ne $PrimaryScriptBlock.Ast.ParamBlock -or
+                $null -ne $PrimaryScriptBlock.Ast.Body.ParamBlock) {
 
-            $adjustInject = $null -ne $PrimaryScriptBlock.Ast.ParamBlock -or $null -ne $PrimaryScriptBlock.Ast.Body.ParamBlock
+                if ($null -ne $PrimaryScriptBlock.Ast.ParamBlock) {
+                    Write-Verbose "Ast ParamBlock detected"
+                    $adjustLocation = $PrimaryScriptBlock.Ast
+                } elseif ($null -ne $PrimaryScriptBlock.Ast.Body.ParamBlock) {
+                    Write-Verbose "Ast Body ParamBlock detected"
+                    $adjustLocation = $PrimaryScriptBlock.Ast.Body
+                } else {
+                    throw "Unknown adjustLocation"
+                }
 
-            if ($adjustInject) {
                 $scriptBlockInjectLines += $adjustLocation.ParamBlock.ToString()
                 $startIndex = $adjustLocation.ParamBlock.Extent.EndOffSet - $adjustLocation.Extent.StartOffset
                 $adjustedScriptBlock = [ScriptBlock]::Create($PrimaryScriptBlock.ToString().Substring($startIndex))
@@ -160,6 +162,13 @@ function Add-ScriptBlockInjection {
             $scriptBlockInjectLines += $adjustedScriptBlock
             $scriptBlockInjectLines | ForEach-Object {
                 $scriptBlockFinalized += $_.ToString() + [System.Environment]::NewLine
+            }
+
+            # In order to fully use Invoke-Command, we need to wrap everything in it's own function name again.
+            if (-not [string]::IsNullOrEmpty($PrimaryScriptBlock.Ast.Name)) {
+                Write-Verbose "Wrapping into function name"
+                $scriptBlockFinalized = "function $($PrimaryScriptBlock.Ast.Name) { $([System.Environment]::NewLine)" +
+                "$scriptBlockFinalized $([System.Environment]::NewLine) } $([System.Environment]::NewLine) $($PrimaryScriptBlock.Ast.Name) @args"
             }
 
             return ([ScriptBlock]::Create($scriptBlockFinalized))
