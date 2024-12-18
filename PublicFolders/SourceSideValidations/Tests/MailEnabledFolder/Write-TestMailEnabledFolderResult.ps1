@@ -69,11 +69,7 @@ function Write-TestMailEnabledFolderResult {
                 "or use a command like this to delete them all:`n`n" +
                 "Import-Csv .\ValidationResults.csv |`n" +
                 " ? ResultType -eq OrphanedMPF |`n" +
-                " % {`n" +
-                "  `$folder = ([ADSI](`"LDAP://`$(`$_.FolderIdentity)`"))`n" +
-                "  `$parent = ([ADSI]`"`$(`$folder.Parent)`")`n" +
-                "  `$parent.Children.Remove(`$folder)`n" +
-                " }")
+                " % { Disable-MailPublicFolder `$_.FolderIdentity }")
         }
 
         if ($orphanedMPFDuplicateResults.Count -gt 0) {
