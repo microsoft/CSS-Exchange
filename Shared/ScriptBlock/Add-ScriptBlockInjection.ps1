@@ -62,7 +62,7 @@ function Add-ScriptBlockInjection {
                 $lines = @()
                 $lines += 'if ($PSSenderInfo) {'
                 $IncludeUsingParameter | ForEach-Object {
-                    $lines += '$name=$Using:name'.Replace("name", "$_")
+                    $lines += '$Script:name=$Using:name'.Replace("name", "$_")
                 }
                 $lines += "}" + [System.Environment]::NewLine
                 $usingLines = $lines -join [System.Environment]::NewLine
