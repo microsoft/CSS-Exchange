@@ -1,6 +1,6 @@
 # Exchange Online Connector Check
 
-This is a simple check that can be performed from the Exchange On Prem side to quickly determine if the EXO connector is misconfigured. This does not completely determine if the connector is misconfigured, as Health Checker script is not designed to connect to Exchange Online to properly determine if everything is correctly configured for the way you want your mail flow to work.
+This is a simple check that can be performed from the Exchange On Prem side to quickly determine if the EXO connector is misconfigured. This does not completely determine if the connector is misconfigured, as Health Checker script is not designed to connect to Exchange Online to properly determine if everything is correctly configured for the way you want your mail flow to work. It does not take into account if you are routing your OnPrem mail through EXO to External domains and may flag the connector as not properly configured because `CloudServicesMailEnabled` is not set to `$true`. It is only here to check for Internal mail between OnPrem and your tenant EXO mailboxes.
 
 A Send Connector is determined to be destined for Exchange Online if one of the following is true:
 
