@@ -27,6 +27,7 @@
 .NOTES
     Supported Script Block Creations are:
         [ScriptBlock]::Create(string) and ${Function:Write-Verbose}
+    Supported ways to write the function of the script block are defined in the Pester testing file.
     Supported ways of using the return script block:
         Invoke-Command
         Invoke-Command -AsJob
