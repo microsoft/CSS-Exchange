@@ -33,10 +33,6 @@
         Invoke-Command -AsJob
         Start-Job
         & $scriptBlock $params
-
-    TODO:
-        Determine why we need to return a string type. If that is true, update the description block to state why that is and the comment as well.
-        Create Pester testing around the supported scenarios
 #>
 function Add-ScriptBlockInjection {
     [CmdletBinding()]
