@@ -403,7 +403,7 @@ Describe "Supported Additional Parameters" {
             )
             $Script:VerboseCounter = 0
             Mock Write-Verbose { param ($Message) $Script:VerboseCounter++ }
-            $sb = Add-ScriptBlockInjection -PrimaryScriptBlock $PScriptBlock -IncludeUsingParameter $UsingVariables -IncludeScriptBlock ${Function:InjectProcessFunction}
+            $sb = Add-ScriptBlockInjection -PrimaryScriptBlock $PScriptBlock -IncludeUsingVariableName $UsingVariables -IncludeScriptBlock ${Function:InjectProcessFunction}
             $verboseFromScriptBlock = $Script:VerboseCounter
 
             $arguments = @{
