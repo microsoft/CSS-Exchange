@@ -15,8 +15,7 @@
 .PARAMETER PrimaryScriptBlock
     This is the main script block that we will be injecting everything inside of.
     This is the one that you will be passing your arguments to if there are any and will be executing.
-.PARAMETER IncludeUsingParameter
-    TODO change this parameter name to IncludeUsingVariable
+.PARAMETER IncludeUsingVariableName
     Add any additional variables that we wish to provide to the script block with the "$using:" status.
     These are for things that are not included in the passed arguments and are likely script scoped variables in functions that are being injected.
 .PARAMETER IncludeScriptBlock
@@ -40,12 +39,11 @@ function Add-ScriptBlockInjection {
         [Parameter(Mandatory = $true)]
         [ScriptBlock]$PrimaryScriptBlock,
 
-        [string[]]$IncludeUsingParameter,
+        [string[]]$IncludeUsingVariableName,
 
         [ScriptBlock[]]$IncludeScriptBlock,
 
-        [ScriptBlock]
-        $CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
     process {
         try {
@@ -58,10 +56,10 @@ function Add-ScriptBlockInjection {
             $adjustedScriptBlock = $PrimaryScriptBlock
             $injectedLinesHandledInBeginBlock = $false
 
-            if ($null -ne $IncludeUsingParameter) {
+            if ($null -ne $IncludeUsingVariableName) {
                 $lines = @()
                 $lines += 'if ($PSSenderInfo) {'
-                $IncludeUsingParameter | ForEach-Object {
+                $IncludeUsingVariableName | ForEach-Object {
                     $lines += '$Script:name=$Using:name'.Replace("name", "$_")
                 }
                 $lines += "}" + [System.Environment]::NewLine

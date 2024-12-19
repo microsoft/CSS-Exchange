@@ -59,10 +59,10 @@ function Test-DiskSpace {
     Write-Verbose("Getting Get-FreeSpace string to create Script Block")
     SetWriteRemoteVerboseAction "New-VerbosePipelineObject"
     $scriptBlockInjectParams = @{
-        PrimaryScriptBlock    = ${Function:Get-FreeSpace}
-        IncludeScriptBlock    = @(${Function:Write-Verbose}, ${Function:New-PipelineObject}, ${Function:New-VerbosePipelineObject})
-        IncludeUsingParameter = "WriteRemoteVerboseDebugAction"
-        CatchActionFunction   = ${Function:Invoke-CatchActions}
+        PrimaryScriptBlock       = ${Function:Get-FreeSpace}
+        IncludeScriptBlock       = @(${Function:Write-Verbose}, ${Function:New-PipelineObject}, ${Function:New-VerbosePipelineObject})
+        IncludeUsingVariableName = "WriteRemoteVerboseDebugAction"
+        CatchActionFunction      = ${Function:Invoke-CatchActions}
     }
     $getFreeSpaceScriptBlock = Add-ScriptBlockInjection @scriptBlockInjectParams
     Write-Verbose("Successfully Created Script Block")

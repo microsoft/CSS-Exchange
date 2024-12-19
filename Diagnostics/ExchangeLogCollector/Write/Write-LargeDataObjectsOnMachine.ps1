@@ -426,10 +426,10 @@ function Write-LargeDataObjectsOnMachine {
             # Set remote version action to be able to return objects on the pipeline to log and handle them.
             SetWriteRemoteVerboseAction "New-VerbosePipelineObject"
             $scriptBlockInjectParams = @{
-                IncludeScriptBlock    = @(${Function:Write-Verbose}, ${Function:New-PipelineObject}, ${Function:New-VerbosePipelineObject})
-                IncludeUsingParameter = "WriteRemoteVerboseDebugAction"
-                PrimaryScriptBlock    = ${Function:Get-ExchangeInstallDirectory}
-                CatchActionFunction   = ${Function:Invoke-CatchActions}
+                IncludeScriptBlock       = @(${Function:Write-Verbose}, ${Function:New-PipelineObject}, ${Function:New-VerbosePipelineObject})
+                IncludeUsingVariableName = "WriteRemoteVerboseDebugAction"
+                PrimaryScriptBlock       = ${Function:Get-ExchangeInstallDirectory}
+                CatchActionFunction      = ${Function:Invoke-CatchActions}
             }
             #Setup all the Script blocks that we are going to use.
             Write-Verbose("Getting Get-ExchangeInstallDirectory string to create Script Block")
