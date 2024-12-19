@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidAssignmentToAutomaticVariable', '', Justification = 'Pester testing file')]
 [CmdletBinding()]
 param()
 BeforeAll {
@@ -8,6 +9,9 @@ BeforeAll {
     . $Script:parentPath\Add-ScriptBlockInjection.ps1
 }
 
+# Only testing with Start-Job and operator, due to the fact that Invoke-Command should be doing a similar operation as operator.
+# Invoke-Command is going to be using WMI, which shouldn't be an issue.
+# We can't use Invoke-Command as a Job or against the machine within Pester because it requires to be run as Admin, which can't be done in the pipeline.
 Describe "Generic Testing" {
     BeforeAll {
         $sb = [ScriptBlock]::Create("Get-Process")
@@ -188,34 +192,37 @@ Describe "Supported Primary Script Block Types" {
                 $arguments["ArgumentList"] = $ArgumentList
             }
 
-            # Testing Invoke-Command
-            $r = Invoke-Command @arguments
-            $r.A | Should -Be $ArgumentList[0]
-            $r.B | Should -Be $ArgumentList[1]
-
-            foreach ($match in $VerboseMockMatches) {
-                Assert-MockCalled Write-Verbose -ParameterFilter { $Message -eq $match } -Exactly 1
-            }
-
             # Start Job
             $job = Start-Job @arguments
             $r = Receive-Job $job -Wait -AutoRemoveJob
             $r.A | Should -Be $ArgumentList[0]
             $r.B | Should -Be $ArgumentList[1]
 
-            foreach ($match in $VerboseMockMatches) {
-                Assert-MockCalled Write-Verbose -ParameterFilter { $Message -eq $match } -Exactly 1
-            }
-
             # operator
-            if ( $null -eq $ArgumentList) {
-                $r = & $sb
-                $r.A | Should -Be "Hello"
-                $r.B | Should -Be "World"
-            } else {
-                $r = & $sb @ArgumentList
-                $r.A | Should -Be $ArgumentList[0]
-                $r.B | Should -Be $ArgumentList[1]
+            try {
+                if ($PSSenderInfo) {
+                    $PSSenderInfoOriginal = $PSSenderInfo
+                    $PSSenderInfo = $null
+                    $restPSSenderInfo = $true
+                }
+
+                if ( $null -eq $ArgumentList) {
+                    $r = & $sb
+                    $r.A | Should -Be "Hello"
+                    $r.B | Should -Be "World"
+                } else {
+                    $r = & $sb @ArgumentList
+                    $r.A | Should -Be $ArgumentList[0]
+                    $r.B | Should -Be $ArgumentList[1]
+                }
+
+                foreach ($match in $VerboseMockMatches) {
+                    Assert-MockCalled Write-Verbose -ParameterFilter { $Message -eq $match } -Exactly 1
+                }
+            } finally {
+                if ($restPSSenderInfo) {
+                    $PSSenderInfo = $PSSenderInfoOriginal
+                }
             }
         }
     }
@@ -407,24 +414,6 @@ Describe "Supported Additional Parameters" {
                 $arguments["ArgumentList"] = $ArgumentList
             }
 
-            # Testing Invoke-Command
-            $r = Invoke-Command @arguments
-            if ($UsingVariables.Count -eq 1) {
-                $r.A | Should -Be $ArgumentList[0]
-                $r.B | Should -Be $ArgumentList[1]
-            } else {
-                $r.A | Should -Be "$($ArgumentList[0]) $((Get-Variable $UsingVariables[1]).Value)"
-                $r.B | Should -Be "$($ArgumentList[1]) $((Get-Variable $UsingVariables[2]).Value)"
-            }
-
-            foreach ($match in $VerboseMockMatches) {
-                Assert-MockCalled Write-Verbose -ParameterFilter { $Message -eq $match } -Exactly 1
-            }
-
-            # Not sure why, but we need to add 1 here.
-            Assert-MockCalled Write-Verbose -Exactly ($verboseFromScriptBlock + $VerboseMockMatches.Count + 1)
-
-
             # Start Job
             $job = Start-Job @arguments
             $r = Receive-Job $job -Wait -AutoRemoveJob
@@ -436,26 +425,38 @@ Describe "Supported Additional Parameters" {
                 $r.B | Should -Be "$($ArgumentList[1]) $((Get-Variable $UsingVariables[2]).Value)"
             }
 
-            foreach ($match in $VerboseMockMatches) {
-                Assert-MockCalled Write-Verbose -ParameterFilter { $Message -eq $match } -Exactly 1
-            }
+            try {
+                if ($PSSenderInfo) {
+                    $PSSenderInfoOriginal = $PSSenderInfo
+                    $PSSenderInfo = $null
+                    $restPSSenderInfo = $true
+                }
 
-            # Not sure why, but we need to add 1 here.
-            Assert-MockCalled Write-Verbose -Exactly ($verboseFromScriptBlock + $VerboseMockMatches.Count + 1)
-
-            # operator
-            if ( $null -eq $ArgumentList) {
-                $r = & $sb
-                $r.A | Should -Be "Hello"
-                $r.B | Should -Be "World"
-            } else {
-                $r = & $sb @ArgumentList
-                if ($UsingVariables.Count -eq 1) {
-                    $r.A | Should -Be $ArgumentList[0]
-                    $r.B | Should -Be $ArgumentList[1]
+                # operator
+                if ( $null -eq $ArgumentList) {
+                    $r = & $sb
+                    $r.A | Should -Be "Hello"
+                    $r.B | Should -Be "World"
                 } else {
-                    $r.A | Should -Be "$($ArgumentList[0]) $((Get-Variable $UsingVariables[1]).Value)"
-                    $r.B | Should -Be "$($ArgumentList[1]) $((Get-Variable $UsingVariables[2]).Value)"
+                    $r = & $sb @ArgumentList
+                    if ($UsingVariables.Count -eq 1) {
+                        $r.A | Should -Be $ArgumentList[0]
+                        $r.B | Should -Be $ArgumentList[1]
+                    } else {
+                        $r.A | Should -Be "$($ArgumentList[0]) $((Get-Variable $UsingVariables[1]).Value)"
+                        $r.B | Should -Be "$($ArgumentList[1]) $((Get-Variable $UsingVariables[2]).Value)"
+                    }
+                }
+
+                foreach ($match in $VerboseMockMatches) {
+                    Assert-MockCalled Write-Verbose -ParameterFilter { $Message -eq $match } -Exactly 1
+                }
+
+                # Not sure why, but we need to add 1 here.
+                Assert-MockCalled Write-Verbose -Exactly ($verboseFromScriptBlock + $VerboseMockMatches.Count + 1)
+            } finally {
+                if ($restPSSenderInfo) {
+                    $PSSenderInfo = $PSSenderInfoOriginal
                 }
             }
         }
