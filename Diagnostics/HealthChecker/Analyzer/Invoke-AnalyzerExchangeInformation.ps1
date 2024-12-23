@@ -622,9 +622,14 @@ function Invoke-AnalyzerExchangeInformation {
             }
             Add-AnalyzedResultInformation @params
 
+            if ($getExchangeServer.FeaturesEnabled.Count -gt 0) {
+                $details = ([string]::Join(", ", $getExchangeServer.FeaturesEnabled))
+            } else {
+                $details = "None Enabled"
+            }
             $params = $flightingBaseParams + @{
                 Name    = "Features Enabled"
-                Details = ([string]::Join(", ", $getExchangeServer.FeaturesEnabled))
+                Details = $details
             }
             Add-AnalyzedResultInformation @params
 
