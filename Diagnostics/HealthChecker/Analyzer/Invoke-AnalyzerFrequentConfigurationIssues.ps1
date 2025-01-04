@@ -3,9 +3,9 @@
 
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
-. $PSScriptRoot\Test-IanaTimeZoneMapping.ps1
 . $PSScriptRoot\..\..\..\Shared\CompareExchangeBuildLevel.ps1
 . $PSScriptRoot\..\..\..\Shared\ErrorMonitorFunctions.ps1
+. $PSScriptRoot\..\..\..\Shared\ValidatorFunctions\Test-IanaTimeZoneMapping.ps1
 function Invoke-AnalyzerFrequentConfigurationIssues {
     [CmdletBinding()]
     param(
@@ -260,11 +260,11 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
             $ianaTimeZoneInvalidEntriesList = New-Object System.Collections.Generic.List[string]
 
             foreach ($invalid in $ianaTimeZoneStatusMissingAttributes) {
-                $ianaTimeZoneInvalidEntriesList.Add("Invalid entry - IANA: $($invalid.IANA) Win: $($invalid.Win)")
+                $ianaTimeZoneInvalidEntriesList.Add("[Invalid entry] - IANA: $($invalid.IANA) Win: $($invalid.Win)")
             }
 
             foreach ($dupe in $ianaTimeZoneStatusDuplicateEntries) {
-                $ianaTimeZoneInvalidEntriesList.Add("Duplicate entry - IANA: $($dupe.IANA) Win: $($dupe.Win)")
+                $ianaTimeZoneInvalidEntriesList.Add("[Duplicate entry] - IANA: $($dupe.IANA) Win: $($dupe.Win)")
             }
 
             if ($ianaTimeZoneInvalidEntriesList.Count -ge 1) {
@@ -372,7 +372,7 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
                 "`r`n`t`t`tCloudServicesMailEnabled: $($connector.CloudEnabled)" +
                 "`r`n`t`t`tTLSCertificateName set: $($connector.CertificateDetails.TlsCertificateNameStatus -ne "TlsCertificateNameEmpty")"
                 DisplayCustomTabNumber = 2
-                DisplayWriteType       = "Red"
+                DisplayWriteType       = "Yellow"
             }
             Add-AnalyzedResultInformation @params
             $showMoreInfo = $true

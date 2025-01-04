@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\..\..\..\Shared\ErrorMonitorFunctions.ps1
+. $PSScriptRoot\..\ErrorMonitorFunctions.ps1
 
 function Test-IanaTimeZoneMapping {
     [CmdletBinding(DefaultParameterSetName = "FilePath")]
@@ -52,14 +52,22 @@ function Test-IanaTimeZoneMapping {
                 if ([System.String]::IsNullOrEmpty($iana) -or
                     [System.String]::IsNullOrEmpty($win)) {
                     Write-Verbose "Map node missing required attribute: $xmlMapKey"
-                    $xmlMissingAttributesList.Add($node)
+                    #$xmlMissingAttributesList.Add("@IANA='$iana' and @Win='$win'")
+                    $xmlMissingAttributesList.Add([PSCustomObject]@{
+                            IANA = if ([System.String]::IsNullOrEmpty($iana)) { "N/A" } else { $iana }
+                            Win  = if ([System.String]::IsNullOrEmpty($win)) { "N/A" } else { $win }
+                        })
 
                     continue
                 }
 
                 if ($xmlMap -contains $xmlMapKey) {
                     Write-Verbose "Duplicate entry found: $xmlMapKey"
-                    $xmlDuplicateEntriesList.Add($node)
+                    #$xmlDuplicateEntriesList.Add("@IANA='$iana' and @Win='$win'")
+                    $xmlDuplicateEntriesList.Add([PSCustomObject]@{
+                            IANA = $iana
+                            Win  = $win
+                        })
 
                     continue
                 }
@@ -72,6 +80,7 @@ function Test-IanaTimeZoneMapping {
         }
     } end {
         return [PSCustomObject]@{
+            IanaMappingXml        = $IanaMappingFile
             NodeMissingAttributes = $xmlMissingAttributesList
             DuplicateEntries      = $xmlDuplicateEntriesList
         }

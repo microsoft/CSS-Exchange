@@ -10,6 +10,7 @@ nav:
     - Get-SimpleAuditLogReport: Admin/Get-SimpleAuditLogReport.md
     - MonitorExchangeAuthCertificate: Admin/MonitorExchangeAuthCertificate.md
     - Remove-CertExpiryNotifications: Admin/Remove-CertExpiryNotifications.md
+    - Remove-DuplicateEntriesFromIanaMappings: Admin/Remove-DuplicateEntriesFromIanaMappings.md
     - Reset-ScanEngineVersion: Admin/Reset-ScanEngineVersion.md
     - SetUnifiedContentPath: Admin/SetUnifiedContentPath.md
     - Test-AMSI: Admin/Test-AMSI.md
