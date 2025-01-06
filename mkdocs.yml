@@ -76,7 +76,8 @@ nav:
       - TransportRetryConfigCheck: Diagnostics/HealthChecker/TransportRetryConfigCheck.md
     - ManagedAvailabilityTroubleshooter: Diagnostics/ManagedAvailabilityTroubleshooter.md
     - Test-ExchAVExclusions: Diagnostics/Test-ExchAVExclusions.md
-    - FreeBusyChecker: Diagnostics/FreeBusyChecker.md
+    - FreeBusyChecker:
+      - Diagnostics/FreeBusyChecker/FreeBusyChecker.md
   - Hybrid:
     - Test-HMAEAS: Hybrid/Test-HMAEAS.md
   - M365:
