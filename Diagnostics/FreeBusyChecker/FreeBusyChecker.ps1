@@ -185,10 +185,10 @@ begin {
     $Script:IntraOrgCon = Get-IntraOrganizationConnector -WarningAction SilentlyContinue -ErrorAction SilentlyContinue | Select-Object Name, TarGetAddressDomains, DiscoveryEndpoint, Enabled
     ShowParameters
     CheckParameters
-    if ($Script:IntraOrgCon.enabled -Like "True") {
+    if ($Script:IntraOrgCon.enabled -like "True") {
         $Auth = hostOutputIntraOrgConEnabled($Auth)
     }
-    if ($Script:IntraOrgCon.enabled -Like "False") {
+    if ($Script:IntraOrgCon.enabled -like "False") {
         hostOutputIntraOrgConNotEnabled
     }
     # Free busy Lookup methods
@@ -200,7 +200,7 @@ begin {
 
     if ($Org -contains 'ExchangeOnPremise' -or -not $Org) {
         #region DAuth Checks
-        if ($Auth -like "DAuth" -OR -not $Auth -or $Auth -like "All") {
+        if ($Auth -like "DAuth" -or -not $Auth -or $Auth -like "All") {
             Write-Host "  Testing DAuth Configuration"
             OrgRelCheck -OrgRelParameter $Script:OrgRel
             PrintDynamicWidthLine
@@ -243,7 +243,7 @@ begin {
         #endregion
     }
     # EXO Part
-    if ($Org -contains 'ExchangeOnline' -OR -not $Org) {
+    if ($Org -contains 'ExchangeOnline' -or -not $Org) {
         #region ConnectExo
         $Exo = Test-ExchangeOnlineConnection
         if (-not ($Exo)) {
