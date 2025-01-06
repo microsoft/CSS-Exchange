@@ -500,7 +500,7 @@ function TestOrgRel {
     #$Script:TestFail = 0
     $Script:OrgRelIdentity = $Script:OrgRel.Identity
     $Script:OrgRelTarGetApplicationUri = $Script:OrgRel.TarGetApplicationUri
-    if ( $Script:OrgRelTarGetApplicationUri -like "Outlook.com" -OR $Script:OrgRelTarGetApplicationUri -like "outlook.com") {
+    if ( $Script:OrgRelTarGetApplicationUri -like "Outlook.com" -or $Script:OrgRelTarGetApplicationUri -like "outlook.com") {
         Write-Host -ForegroundColor Green "Test-OrganizationRelationship -Identity $Script:OrgRelIdentity  -UserIdentity $Script:UserOnPrem"
         #need to grab errors and provide alerts in error case
         PrintDynamicWidthLine

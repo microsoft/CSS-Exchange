@@ -16,7 +16,7 @@ function IntraOrgConCheck {
     $IntraOrgTarGetAddressDomain =$Script:IntraOrgCon.TarGetAddressDomains.Domain
     $IntraOrgTarGetAddressDomain = $IntraOrgTarGetAddressDomain.ToLower()
     Write-Host -ForegroundColor White " TarGet Address Domains: "
-    if ($Script:IntraOrgCon.TarGetAddressDomains -like "*$Script:ExchangeOnlineDomain*" -Or$Script:IntraOrgCon.TarGetAddressDomains -like "*$Script:ExchangeOnlineAltDomain*" ) {
+    if ($Script:IntraOrgCon.TarGetAddressDomains -like "*$Script:ExchangeOnlineDomain*" -or $Script:IntraOrgCon.TarGetAddressDomains -like "*$Script:ExchangeOnlineAltDomain*" ) {
         Write-Host -ForegroundColor Green " "$Script:IntraOrgCon.TarGetAddressDomains
         $Script:tdIntraOrgTarGetAddressDomainColor = "green"
     } else {
@@ -419,7 +419,6 @@ function OAuthConnectivityCheck {
     if ($Script:OAuthConnectivity.ResultType -ne 'Success') {
         $Script:OAuthConnectivity
     }
-    
     if ($Script:OAuthConnectivity.Detail.FullId -like '*(401) Unauthorized*') {
         Write-Host -ForegroundColor Red "Error: The remote Server returned an error: (401) Unauthorized"
         if ($Script:OAuthConnectivity.Detail.FullId -like '*The user specified by the user-context in the token does not exist*') {

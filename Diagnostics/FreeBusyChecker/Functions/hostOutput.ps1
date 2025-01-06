@@ -69,15 +69,15 @@ function ShowParameters() {
 }
 function hostOutputIntraOrgConEnabled($Auth) {
     PrintDynamicWidthLine
-    if ($Auth -Like "DAuth") {
+    if ($Auth -like "DAuth") {
         Write-Host -ForegroundColor yellow "  Warning: Intra Organization Connector Enabled True -> Running for DAuth only as -Auth DAuth option was selected`n  "
-        if ($Script:OrgRel.enabled -Like "True") {
+        if ($Script:OrgRel.enabled -like "True") {
             Write-Host -ForegroundColor White "           Organization Relationship Enabled True `n  "
         }
         Write-Host -ForegroundColor White "      This script can be Run using the -Auth All parameter to Check for both OAuth and DAuth configuration. `n `n         Example: ./FreeBusyChecker.ps1 -Auth All"
         lookupMethodDAuthHtml
     }
-    if ($Auth -Like "") {
+    if ($Auth -like "") {
         $Auth = "OAuth"
         Write-Host -ForegroundColor White "    -> Free Busy Lookup is done using OAuth when the Intra Organization Connector is Enabled"
         Write-Host -ForegroundColor White "    -> Running for OAuth only as OAuth takes precedence over DAuth;"
@@ -85,7 +85,7 @@ function hostOutputIntraOrgConEnabled($Auth) {
         Write-Host -ForegroundColor White "`n         This script can be Run using the -Auth DAuth parameter to Check for DAuth configuration only. `n `n         Example: ./FreeBusyChecker.ps1 -Auth DAuth"
         lookupMethodDAuthHtml
     }
-    if ($Auth -Like "All") {
+    if ($Auth -like "All") {
         lookupMethodCheckAllHtml
     }
     return $Auth

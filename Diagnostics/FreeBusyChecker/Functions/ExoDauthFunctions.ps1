@@ -43,7 +43,7 @@ function ExoOrgRelCheck () {
         $Script:tdExoOrgRelFreeBusyAccessLevel = "$($exoOrgRel.FreeBusyAccessLevel)"
         $Script:tdExoOrgRelFreeBusyAccessLevelColor = "green"
     }
-    if ($exoOrgRel.FreeBusyAccessLevel -NE "AvailabilityOnly" -AND $exoOrgRel.FreeBusyAccessLevel -NE "LimitedDetails") {
+    if ($exoOrgRel.FreeBusyAccessLevel -ne "AvailabilityOnly" -and $exoOrgRel.FreeBusyAccessLevel -ne "LimitedDetails") {
         Write-Host -ForegroundColor Red "  FreeBusyAccessEnabled : False"
         $Script:tdExoOrgRelFreeBusyAccessLevel = "$($exoOrgRel.FreeBusyAccessLevel)"
         $Script:tdExoOrgRelFreeBusyAccessLevelColor = "red"
