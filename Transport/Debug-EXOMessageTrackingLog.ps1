@@ -180,10 +180,12 @@ function Format-StoreDriverReceive {
 
     #### Need to add all of the data we want to a PSCustomobject
     $hash = @{
-        DateTime    = $Entry.date_time
-        Source      = $Entry.source
-        event_id    = $Entry.event_id
-        client_type = (Get-SubmissionClientType -Data $Entry.source_context)
+        DateTime        = $Entry.date_time
+        Source          = $Entry.source
+        event_id        = $Entry.event_id
+        client_type     = (Get-SubmissionClientType -Data $Entry.source_context)
+        recipient_count = $Entry.recipient_count
+        reference       = (Get-ReferencePopulated -Data $Entry.reference)
 
 
 
@@ -195,13 +197,14 @@ function Format-StoreDriverReceive {
     $object = [pscustomobject]$hash
 }
 
+# Get the submission client type from a storedriver receive event
 Function Get-SubmissionClientType {
     [CmdletBinding()]
-    [OutputType([String])]
+    [OutputType([string])]
     param (
         # Parameter help description
         [Parameter(Mandatory = $true)]
-        [array]
+        [string]
         $Data
     )
 
@@ -209,8 +212,24 @@ Function Get-SubmissionClientType {
 
     switch ($hash.ClientType) {
         MoMT { Return "Outlook Client" }
+        OWA { Return "OWA" }
         Default { Return $hash.ClientType }
     }
 }
 
+# Determine if the message is a reply/forward/response based on reference being populated
+Function Get-ReferencePopulated {
+    [CmdletBinding()]
+    [OutputType([string])]
+    param (
+        # Parameter help description
+        [Parameter(Mandatory = $true)]
+        [string]
+        $Data
+    )
+
+    if ([string]::IsNullOrEmpty($Data)) {
+        Return "Reply/Forward/Response"
+    } else { Return "Empty" }
+}
 
