@@ -1,5 +1,4 @@
-﻿# Import and validate the MTL file.
-Function Import-MTL {
+﻿Function Import-MTL {
     [CmdletBinding()]
     [OutputType([array])]
     Param(
@@ -45,7 +44,6 @@ Function Import-MTL {
     }
 
     return $initial_mtl
-
 }
 
 # Gather up all of the entries related to a single MessageID
@@ -55,12 +53,10 @@ Function Group-ByMessageID {
     param (
         # MTL array to process
         [Parameter(Mandatory = $true)]
-        [array]
-        $MTL,
+        [array]$MTL,
         # MessageID to group by
         [Parameter(Mandatory = $true)]
-        [string]
-        $MessageID
+        [string]$MessageID
     )
 
     # Filter the MTL by our messageID
@@ -102,7 +98,6 @@ Function Group-ByRecipient {
     ### Do we want to search the reference Colum here as well??
 
     Return $Output
-
 }
 
 # Test if we have only a single MessageID provided in the MTL
@@ -139,7 +134,6 @@ Function Test-UniqueRecipient {
     } else {
         Return $true
     }
-
 }
 
 function Test-CSVData {
@@ -180,21 +174,19 @@ function Format-StoreDriverReceive {
 
     #### Need to add all of the data we want to a PSCustomobject
     $hash = @{
-        DateTime        = $Entry.date_time
+        DateTime        = $Entry.date_time_utc
+        Description     = "Message received from Database Connected Client"
         Source          = $Entry.source
         event_id        = $Entry.event_id
         client_type     = (Get-SubmissionClientType -Data $Entry.source_context)
         recipient_count = $Entry.recipient_count
         reference       = (Get-ReferencePopulated -Data $Entry.reference)
-
-
-
     }
 
-
-
     # Convert the hash table to an object
-    $object = [pscustomobject]$hash
+    $object = [PSCustomObject]$hash
+
+    Return $object
 }
 
 # Get the submission client type from a storedriver receive event
@@ -233,3 +225,22 @@ Function Get-ReferencePopulated {
     } else { Return "Empty" }
 }
 
+Function Out-HTML {
+    [CmdletBinding()]
+    [OutputType([string])]
+    param (
+        # Parameter help description
+        [Parameter(Mandatory = $true)]
+        [PSCustomObject]
+        $Data
+    )
+
+    $memberCount = ($Data | Get-Member -MemberType Properties).count
+
+    $i = 0
+
+    $Data | ConvertTo-Html -Property
+    # PS C:\Users\matbyrd\CaseBuddy.CaseData\2412130030003408_TEAMS> $b | ConvertTo-Html -PreContent "<h1>$($b.Event_ID) : $($b.Source)</h1>" | Out-file c:\temp\test.html;Invoke-Item c:\temp\test.html
+
+    While ($i -lt $memberCount) { }
+}
