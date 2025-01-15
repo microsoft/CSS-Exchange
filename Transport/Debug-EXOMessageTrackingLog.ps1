@@ -1,4 +1,5 @@
-﻿Function Import-MTL {
+﻿### Utilities ###
+Function Import-MTL {
     [CmdletBinding()]
     [OutputType([array])]
     Param(
@@ -158,89 +159,53 @@ function Test-CSVData {
     return $true
 }
 
-# Take a StorDriver Receive event and format the output into HTML with all critical data
-function Format-StoreDriverReceive {
+Function Write-OutputFile {
+    [CmdletBinding()]
+    param (
+        # Parameter help description
+        [Parameter(Mandatory = $true)]
+        [string]
+        $header,
+        [Parameter(Mandatory = $true)]
+        [string]
+        $message
+    )
+
+    Add-Content "`n"
+    Add-Content $header.ToUpper()
+    Add-Content "`n"
+    Add-Content $message
+
+}
+
+
+### Diagnostics ###
+
+# Determine and report the type of client that submitted the message
+Function Test-SubmissionClientType {
     [CmdletBinding()]
     param (
         # Parameter help description
         [Parameter(Mandatory = $true)]
         [array]
-        $Entry
+        $messageIDFilteredEvents
     )
 
-    # Make sure our return object is null
-    $object = $null
-    $hash = $null
+    # Select the StoreDriver Submit event for this messageID
+    $event = $messageIDFilteredEvents | Where-Object ($_.source -eq "STOREDRIVER" -and $_.event_id -eq "RECEIVE")
 
-    #### Need to add all of the data we want to a PSCustomobject
-    $hash = @{
-        DateTime        = $Entry.date_time_utc
-        Description     = "Message received from Database Connected Client"
-        Source          = $Entry.source
-        event_id        = $Entry.event_id
-        client_type     = (Get-SubmissionClientType -Data $Entry.source_context)
-        recipient_count = $Entry.recipient_count
-        reference       = (Get-ReferencePopulated -Data $Entry.reference)
-    }
+    # Extract the client time
+    $hash = ConvertFrom-StringData ($event -replace ",", " `n") -Delimiter ":"
 
-    # Convert the hash table to an object
-    $object = [PSCustomObject]$hash
-
-    Return $object
-}
-
-# Get the submission client type from a storedriver receive event
-Function Get-SubmissionClientType {
-    [CmdletBinding()]
-    [OutputType([string])]
-    param (
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $Data
-    )
-
-    $hash = ConvertFrom-StringData ($Data -replace ",", " `n") -Delimiter ":"
+    # Convert client type
+    [string]$client = $null
 
     switch ($hash.ClientType) {
-        MoMT { Return "Outlook Client" }
-        OWA { Return "OWA" }
-        Default { Return $hash.ClientType }
+        MoMT { $client = "Outlook Client" }
+        OWA { $client = "OWA" }
+        Default { $client = $hash.ClientType }
     }
-}
 
-# Determine if the message is a reply/forward/response based on reference being populated
-Function Get-ReferencePopulated {
-    [CmdletBinding()]
-    [OutputType([string])]
-    param (
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $Data
-    )
+    Write-OutputFile -header "Submitting Client Type" -message $client
 
-    if ([string]::IsNullOrEmpty($Data)) {
-        Return "Reply/Forward/Response"
-    } else { Return "Empty" }
-}
-
-Function Out-HTML {
-    [CmdletBinding()]
-    [OutputType([string])]
-    param (
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [PSCustomObject]
-        $Data
-    )
-
-    $memberCount = ($Data | Get-Member -MemberType Properties).count
-
-    $i = 0
-
-    $Data | ConvertTo-Html -Property
-    # PS C:\Users\matbyrd\CaseBuddy.CaseData\2412130030003408_TEAMS> $b | ConvertTo-Html -PreContent "<h1>$($b.Event_ID) : $($b.Source)</h1>" | Out-file c:\temp\test.html;Invoke-Item c:\temp\test.html
-
-    While ($i -lt $memberCount) { }
 }
