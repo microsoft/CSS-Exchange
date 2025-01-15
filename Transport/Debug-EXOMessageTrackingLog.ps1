@@ -166,23 +166,26 @@ Function Write-OutputFile {
         [Parameter(Mandatory = $true)]
         [string]
         $header,
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [string]
-        $message
+        $message,
+        [Parameter(Mandatory = $false)]
+        [hashtable]
+        $myTable
     )
 
-    Add-Content "`n"
-    Add-Content $header.ToUpper()
-    Add-Content "`n"
-    Add-Content $message
+    $file = "C:\temp\out.txt"
 
+    Add-Content -Path $file  $header.ToUpper()
+    Add-Content -Path $file "===================="
+    $myTable.getEnumerator() | Format-Table -AutoSize -HideTableHeaders | Out-String | Add-Content -Path $file
+    Add-Content -Path $file "`n"
 }
-
 
 ### Diagnostics ###
 
 # Determine and report the type of client that submitted the message
-Function Test-SubmissionClientType {
+Function Test-SubmissionData {
     [CmdletBinding()]
     param (
         # Parameter help description
@@ -192,20 +195,49 @@ Function Test-SubmissionClientType {
     )
 
     # Select the StoreDriver Submit event for this messageID
-    $event = $messageIDFilteredEvents | Where-Object ($_.source -eq "STOREDRIVER" -and $_.event_id -eq "RECEIVE")
+    $entry = $messageIDFilteredEvents | Where-Object { $_.source -eq "STOREDRIVER" -and $_.event_id -eq "RECEIVE" }
+    if ($entry.count -gt 1) { Write-Error "Found more than one STOREDRIVER RECIEVE event for this message" }
+    else { $toParse = $entry.source_context }
 
-    # Extract the client time
-    $hash = ConvertFrom-StringData ($event -replace ",", " `n") -Delimiter ":"
+    # Extract the submission data
+    $submission = ConvertFrom-StringData ($toParse -replace ",", " `n") -Delimiter ":"
 
-    # Convert client type
-    [string]$client = $null
-
-    switch ($hash.ClientType) {
-        MoMT { $client = "Outlook Client" }
-        OWA { $client = "OWA" }
-        Default { $client = $hash.ClientType }
+    #### Need to add all of the data we want to a PSCustomobject
+    $hash = @{
+        ClientType        = $submission.ClientType
+        CreationTime      = $submission.CreationTime
+        SubmittingMailbox = $submission.Mailbox
+        MessageClass      = $submission.MessageClass
     }
 
-    Write-OutputFile -header "Submitting Client Type" -message $client
+    Write-OutputFile -header "Submission information" -myTable $hash
+
+}
+
+Function Test-MIMEData {
+    [CmdletBinding()]
+    param (
+        # Parameter help description
+        [Parameter(Mandatory = $true)]
+        [array]
+        $messageIDFilteredEvents
+    )
+
+    # Select the StoreDriver Submit event for this messageID
+    $entry = $messageIDFilteredEvents | Where-Object { $_.source -eq "SMTP" -and $_.event_id -eq "RECEIVE" }
+    if ($entry.count -gt 1) { Write-Error "Found more than one SMTP RECIEVE event for this message" }
+    else { $toParse = $entry.custom_data }
+
+    $mimeData = (ConvertFrom-StringData ($toParse -replace ";", " `n") -Delimiter "=")["S:MimeParts"].split("S:")[1].split("/")
+
+    $hash = @{
+        AttachmentCount = $mimeData[0]
+
+
+
+
+    }
+
+
 
 }
