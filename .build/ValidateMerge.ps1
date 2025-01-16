@@ -44,8 +44,8 @@ $allowMergeFiles = @()
 $filesAlreadyChecked = New-Object 'System.Collections.Generic.HashSet[string]'
 
 # Get all the commits between origin/$Branch and HEAD.
-$gitlog = git log --format="%H %cd" --date=rfc origin/$Branch..HEAD
-$m = $gitlog | Select-String "^(\S+) (.*)$"
+$gitLog = git log --format="%H %cd" --date=rfc origin/$Branch..HEAD
+$m = $gitLog | Select-String "^(\S+) (.*)$"
 
 foreach ($commitMatch in $m) {
     $commitHash = $commitMatch.Matches.Groups[1].Value
@@ -77,11 +77,11 @@ foreach ($commitMatch in $m) {
         $topLevelDependents = New-Object 'System.Collections.Generic.HashSet[string]'
         while ($stack.Count -gt 0) {
             $currentFile = $stack.Pop()
-            $depdendents = $dependentsTable[$currentFile]
-            if ($null -eq $depdendents -or $depdendents.Count -eq 0) {
+            $dependents = $dependentsTable[$currentFile]
+            if ($null -eq $dependents -or $dependents.Count -eq 0) {
                 [void]$topLevelDependents.Add($currentFile)
             } else {
-                foreach ($dependent in $depdendents) {
+                foreach ($dependent in $dependents) {
                     [void]$stack.Push($dependent)
                 }
             }
