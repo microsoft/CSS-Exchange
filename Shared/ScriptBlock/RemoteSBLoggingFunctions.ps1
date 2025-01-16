@@ -5,7 +5,7 @@
     Collection of functions that handles how to properly add
     Write-Verbose, Write-Host, Write-Process to the pipeline as an object for logging, and how to pull them off it.
 #>
-function New-RemotePipelineObject {
+function New-RemoteLoggingPipelineObject {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'No state change.')]
     [CmdletBinding()]
     param(
@@ -17,6 +17,26 @@ function New-RemotePipelineObject {
         [PSCustomObject]@{
             RemoteLoggingValue = $Object
             RemoteLoggingType  = $Type
+        }
+    }
+}
+
+function Get-RemotePipelineNonLoggingObject {
+    [CmdletBinding()]
+    param(
+        [object[]]$Object
+    )
+    process {
+        foreach ($instance in $Object) {
+            $type = $instance.RemoteLoggingType
+
+            if ($type -eq "Verbose" -or
+                $type -eq "Process" -or
+                $type -eq "Host") {
+                continue
+            }
+
+            $instance
         }
     }
 }
@@ -52,6 +72,6 @@ function New-RemoteVerbosePipelineObject {
         [string]$Message
     )
     process {
-        New-RemotePipelineObject $Message "Verbose"
+        New-RemoteLoggingPipelineObject $Message "Verbose"
     }
 }
