@@ -41,6 +41,37 @@ function Get-DefaultSBInjectionContext {
     )
     process {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        $defaultScriptBlocks = @(${Function:Write-Verbose}, ${Function:Write-Host}, ${Function:Write-Progress})
+        $defaultScriptBlocks = @(${Function:Write-Verbose}, ${Function:Write-Host}, ${Function:Write-Progress},
+            ${Function:New-RemoteLoggingPipelineObject}, ${Function:New-RemoteVerbosePipelineObject}, ${Function:Invoke-RemotePipelineHandler},
+            ${Function:New-RemoteHostPipelineObject}, ${Function:New-RemoteProgressPipelineObject})
+        $includeScriptBlockList = New-Object System.Collections.Generic.List[ScriptBlock]
+        $includeUsingVariableNameList = New-Object System.Collections.Generic.List[string]
+
+        foreach ($sb in $defaultScriptBlocks) {
+            if ($null -eq $sb) {
+                continue
+            }
+
+            if ($sb.Ast.Name -eq "Write-Verbose") {
+                $includeUsingVariableNameList.Add("WriteRemoteVerboseDebugAction")
+            }
+            $includeScriptBlockList.Add($sb)
+        }
+
+        foreach ($sb in $IncludeScriptBlock) {
+            $includeScriptBlockList.Add($sb)
+        }
+
+        foreach ($var in $IncludeUsingVariableName) {
+            $includeUsingVariableNameList.Add($var)
+        }
+
+        $params = @{
+            PrimaryScriptBlock       = $PrimaryScriptBlock
+            IncludeUsingVariableName = $includeUsingVariableNameList
+            IncludeScriptBlock       = $includeScriptBlockList
+            CatchActionFunction      = $CatchActionFunction
+        }
+        return (Add-ScriptBlockInjection @params)
     }
 }
