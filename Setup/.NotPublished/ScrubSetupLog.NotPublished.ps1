@@ -132,7 +132,7 @@ function ScrubValuesAndReplace {
     $Script:logContent = $newContent
 }
 
-$scrubToDomainPossibleName = "Rey.Ben.Skywalker.Child.Solo.local"
+$scrubToDomainPossibleName = "Rey.Ben.SkyWalker.Child.Solo.local"
 
 #Scrub the data
 $loggedOnUserSls = $logContent | Select-String "Logged on user: (.+)."
@@ -196,7 +196,7 @@ $orgContainerMatch = $orgContainerSls.Line.Substring($index, $orgContainerSls.Li
 $orgContainer = $orgContainerMatch.Replace($orgContainerSls.Matches.Groups[1].Value, "SoloORG")
 
 ScrubValuesAndReplace -Match $orgContainerMatch -Replace $orgContainer
-ScrubValuesAndReplace -Match $orgContainersls.Matches.Groups[1].Value -Replace "SoloORG"
+ScrubValuesAndReplace -Match $orgContainerSls.Matches.Groups[1].Value -Replace "SoloORG"
 
 $serverFQDNSls = $logContent | Select-String "Evaluated \[Setting:ComputerNameDnsFullyQualified\].+\[Value:`"(.+)`"\] \[ParentValue:"
 $i = 1
