@@ -56,7 +56,7 @@ function Get-DefaultSBInjectionContext {
                 $includeUsingVariableNameList.Add("WriteRemoteVerboseDebugAction")
             }
 
-            if ($sb.Ast.Name -eq "Write-Verbose") {
+            if ($sb.Ast.Name -eq "Write-Progress") {
                 $includeUsingVariableNameList.Add("WriteRemoteProgressDebugAction")
             }
             $includeScriptBlockList.Add($sb)
