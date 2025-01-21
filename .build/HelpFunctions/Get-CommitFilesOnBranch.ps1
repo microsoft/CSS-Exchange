@@ -14,8 +14,8 @@ function Get-CommitFilesOnBranch {
 
     Write-Verbose "Checking commits only"
     # Get all the commits between origin/$Branch and HEAD.
-    $gitlog = git log --format="%H %cd" --date=rfc origin/$Branch..HEAD
-    $m = $gitlog | Select-String "^(\S+) (.*)$"
+    $gitLog = git log --format="%H %cd" --date=rfc origin/$Branch..HEAD
+    $m = $gitLog | Select-String "^(\S+) (.*)$"
 
     foreach ($commitMatch in $m) {
         $commitHash = $commitMatch.Matches.Groups[1].Value

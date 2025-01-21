@@ -84,6 +84,7 @@ function Invoke-AnalyzerExchangeInformation {
     }
 
     $extendedSupportDate = $exchangeInformation.BuildInformation.VersionInformation.ExtendedSupportDate
+    $exchangeFriendlyName = $exchangeInformation.BuildInformation.VersionInformation.FriendlyName
     if ($extendedSupportDate -le ([DateTime]::Now.AddYears(1))) {
         $displayWriteType = "Yellow"
 
@@ -91,8 +92,12 @@ function Invoke-AnalyzerExchangeInformation {
             $displayWriteType = "Red"
         }
 
-        $displayValue = "$($exchangeInformation.BuildInformation.VersionInformation.ExtendedSupportDate.ToString("MMM dd, yyyy",
-            [System.Globalization.CultureInfo]::CreateSpecificCulture("en-US"))) - Please note of the End Of Life date and plan to migrate soon."
+        if (($exchangeFriendlyName -match '2010|2013|2016|2019')) {
+            $displayValue = "$($exchangeInformation.BuildInformation.VersionInformation.ExtendedSupportDate.ToString("MMM dd, yyyy",
+            [System.Globalization.CultureInfo]::CreateSpecificCulture("en-US"))) - Please note the End Of Life date. Reference our blog for more information: https://aka.ms/HC-UpgradeToSE"
+        } else {
+            $displayValue = "Please note the End Of Life date and plan your migration accordingly."
+        }
 
         if ($extendedSupportDate -le ([DateTime]::Now)) {
             $displayValue = "Error: Your Exchange server reached end of life on " +
@@ -146,7 +151,7 @@ function Invoke-AnalyzerExchangeInformation {
         foreach ($kbInfo in $exchangeInformation.BuildInformation.KBsInstalledInfo) {
             $kbName = $kbInfo.PackageName
             $params = $baseParams + @{
-                Details                = "$kbName - Installed on $($kbInfo.InstalledDate)"
+                Details                = "$kbName"
                 DisplayCustomTabNumber = 2
                 TestingName            = "Exchange IU"
             }
@@ -241,7 +246,7 @@ function Invoke-AnalyzerExchangeInformation {
         }
 
         $params = $baseParams + @{
-            Name                   = "Remaining Trail Period"
+            Name                   = "Remaining Trial Period"
             Details                = $details
             DisplayWriteType       = $displayWriteType
             DisplayCustomTabNumber = 2
@@ -315,7 +320,10 @@ function Invoke-AnalyzerExchangeInformation {
                 $displayMissingGroups.Add("Unable to determine Local System Membership as the results were blank.")
             }
 
-            if ($null -ne $exchangeInformation.ComputerMembership.ADGroupMembership) {
+            if ($exchangeInformation.ComputerMembership.ADGroupMembership -eq "NoAdModule") {
+                $displayMissingGroups.Add("Missing Active Directory Module. Run 'Install-WindowsFeature RSat-AD-PowerShell'")
+            } elseif ($null -ne $exchangeInformation.ComputerMembership.ADGroupMembership -and
+                $exchangeInformation.ComputerMembership.ADGroupMembership.Count -gt 0) {
                 foreach ($adGroup in $adGroupList) {
                     if (($null -eq ($exchangeInformation.ComputerMembership.ADGroupMembership.SID | Where-Object { $_.ToString() -eq $adGroup.SID }))) {
                         $displayMissingGroups.Add("$($adGroup.WellKnownName) - AD Group Membership")

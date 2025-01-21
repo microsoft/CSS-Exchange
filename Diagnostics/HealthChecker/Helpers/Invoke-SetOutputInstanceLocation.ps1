@@ -18,6 +18,6 @@ function Invoke-SetOutputInstanceLocation {
         $endName = "-{0}{1}" -f $Server, $endName
     }
 
-    $Script:OutputFullPath = "{0}\{1}{2}" -f $Script:OutputFilePath, $FileName, $endName
-    $Script:OutXmlFullPath = $Script:OutputFullPath.Replace(".txt", ".xml")
+    $Script:OutputFullPath = Join-Path -Path $Script:OutputFilePath -ChildPath ('{0}{1}' -f $FileName, $endName)
+    $Script:OutXmlFullPath = [System.IO.Path]::ChangeExtension($Script:OutputFullPath, 'xml')
 }

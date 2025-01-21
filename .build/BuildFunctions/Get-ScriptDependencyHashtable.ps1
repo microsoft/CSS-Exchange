@@ -24,8 +24,8 @@ function Get-ScriptDependencyHashtable {
 
             if ($currentFile.EndsWith(".ps1")) {
                 Select-String "\. (?:\.|\`$PSScriptRoot)\\(.*).ps1" $currentFile | ForEach-Object {
-                    $dotloadedScriptPath = $_.Matches[0].Groups[1].Value + ".ps1"
-                    $dotSourcedFile = (Get-Item (Join-Path $currentFolder $dotloadedScriptPath)).FullName
+                    $dotLoadedScriptPath = $_.Matches[0].Groups[1].Value + ".ps1"
+                    $dotSourcedFile = (Get-Item (Join-Path $currentFolder $dotLoadedScriptPath)).FullName
                     $deps[$currentFile] += $dotSourcedFile
                     if ($null -eq $deps[$dotSourcedFile]) {
                         $stack.Push($dotSourcedFile)

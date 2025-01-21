@@ -1,0 +1,523 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<!--Copyright (c) Microsoft Corporation.  All rights reserved.-->
+<!--This file is generated using a tool. Do not make any manual changes. For more info contact exocalecodev-->
+<TimeZoneMapping SchemaVersion="1.0" GeneratedAt="131533516898187399" ProcessedAt="131594152944308317">
+  <Mappings>
+    <Map IANA="Africa/Cairo" Win="Egypt Standard Time" />
+    <Map IANA="Africa/Casablanca" Win="Morocco Standard Time" />
+    <Map IANA="Africa/Johannesburg" Win="South Africa Standard Time" />
+    <Map IANA="Africa/Khartoum" Win="Sudan Standard Time" />
+    <Map IANA="Africa/Lagos" Win="W. Central Africa Standard Time" />
+    <Map IANA="Africa/Nairobi" Win="E. Africa Standard Time" />
+    <Map IANA="Africa/Tripoli" Win="Libya Standard Time" />
+    <Map IANA="Africa/Windhoek" Win="Namibia Standard Time" />
+    <Map IANA="America/Adak" Win="Aleutian Standard Time" />
+    <Map IANA="America/Anchorage" Win="Alaskan Standard Time" />
+    <Map IANA="America/Araguaina" Win="Tocantins Standard Time" />
+    <Map IANA="America/Argentina/Buenos_Aires" Win="Argentina Standard Time" />
+    <Map IANA="America/Asuncion" Win="Paraguay Standard Time" />
+    <Map IANA="America/Bahia" Win="Bahia Standard Time" />
+    <Map IANA="America/Bogota" Win="SA Pacific Standard Time" />
+    <Map IANA="America/Cancun" Win="Eastern Standard Time (Mexico)" />
+    <Map IANA="America/Caracas" Win="Venezuela Standard Time" />
+    <Map IANA="America/Cayenne" Win="SA Eastern Standard Time" />
+    <Map IANA="America/Chicago" Win="Central Standard Time" />
+    <Map IANA="America/Chihuahua" Win="Mountain Standard Time (Mexico)" />
+    <Map IANA="America/Cuiaba" Win="Central Brazilian Standard Time" />
+    <Map IANA="America/Denver" Win="Mountain Standard Time" />
+    <Map IANA="America/Godthab" Win="Greenland Standard Time" />
+    <Map IANA="America/Grand_Turk" Win="Turks And Caicos Standard Time" />
+    <Map IANA="America/Guatemala" Win="Central America Standard Time" />
+    <Map IANA="America/Halifax" Win="Atlantic Standard Time" />
+    <Map IANA="America/Havana" Win="Cuba Standard Time" />
+    <Map IANA="America/Indiana/Indianapolis" Win="US Eastern Standard Time" />
+    <Map IANA="America/La_Paz" Win="SA Western Standard Time" />
+    <Map IANA="America/Los_Angeles" Win="Pacific Standard Time" />
+    <Map IANA="America/Mexico_City" Win="Central Standard Time (Mexico)" />
+    <Map IANA="America/Miquelon" Win="Saint Pierre Standard Time" />
+    <Map IANA="America/Montevideo" Win="Montevideo Standard Time" />
+    <Map IANA="America/New_York" Win="Eastern Standard Time" />
+    <Map IANA="America/Phoenix" Win="US Mountain Standard Time" />
+    <Map IANA="America/Port-au-Prince" Win="Haiti Standard Time" />
+    <Map IANA="America/Punta_Arenas" Win="Magallanes Standard Time" />
+    <Map IANA="America/Regina" Win="Canada Central Standard Time" />
+    <Map IANA="America/Santiago" Win="Pacific SA Standard Time" />
+    <Map IANA="America/Sao_Paulo" Win="E. South America Standard Time" />
+    <Map IANA="America/St_Johns" Win="Newfoundland Standard Time" />
+    <Map IANA="America/Tijuana" Win="Pacific Standard Time (Mexico)" />
+    <Map IANA="Asia/Almaty" Win="Qyzylorda Standard Time" />
+    <Map IANA="Asia/Amman" Win="Jordan Standard Time" />
+    <Map IANA="Asia/Baghdad" Win="Arabic Standard Time" />
+    <Map IANA="Asia/Baku" Win="Azerbaijan Standard Time" />
+    <Map IANA="Asia/Bangkok" Win="SE Asia Standard Time" />
+    <Map IANA="Asia/Barnaul" Win="Altai Standard Time" />
+    <Map IANA="Asia/Beirut" Win="Middle East Standard Time" />
+    <Map IANA="Asia/Chita" Win="Transbaikal Standard Time" />
+    <Map IANA="Asia/Colombo" Win="Sri Lanka Standard Time" />
+    <Map IANA="Asia/Damascus" Win="Syria Standard Time" />
+    <Map IANA="Asia/Dhaka" Win="Bangladesh Standard Time" />
+    <Map IANA="Asia/Dubai" Win="Arabian Standard Time" />
+    <Map IANA="Asia/Hebron" Win="West Bank Standard Time" />
+    <Map IANA="Asia/Hovd" Win="W. Mongolia Standard Time" />
+    <Map IANA="Asia/Irkutsk" Win="North Asia East Standard Time" />
+    <Map IANA="Asia/Jerusalem" Win="Israel Standard Time" />
+    <Map IANA="Asia/Kabul" Win="Afghanistan Standard Time" />
+    <Map IANA="Asia/Kamchatka" Win="Russia Time Zone 11" />
+    <Map IANA="Asia/Karachi" Win="Pakistan Standard Time" />
+    <Map IANA="Asia/Kathmandu" Win="Nepal Standard Time" />
+    <Map IANA="Asia/Kolkata" Win="India Standard Time" />
+    <Map IANA="Asia/Krasnoyarsk" Win="North Asia Standard Time" />
+    <Map IANA="Asia/Magadan" Win="Magadan Standard Time" />
+    <Map IANA="Asia/Novosibirsk" Win="N. Central Asia Standard Time" />
+    <Map IANA="Asia/Omsk" Win="Omsk Standard Time" />
+    <Map IANA="Asia/Pyongyang" Win="North Korea Standard Time" />
+    <Map IANA="Asia/Riyadh" Win="Arab Standard Time" />
+    <Map IANA="Asia/Sakhalin" Win="Sakhalin Standard Time" />
+    <Map IANA="Asia/Seoul" Win="Korea Standard Time" />
+    <Map IANA="Asia/Shanghai" Win="China Standard Time" />
+    <Map IANA="Asia/Singapore" Win="Singapore Standard Time" />
+    <Map IANA="Asia/Srednekolymsk" Win="Russia Time Zone 10" />
+    <Map IANA="Asia/Taipei" Win="Taipei Standard Time" />
+    <Map IANA="Asia/Tashkent" Win="West Asia Standard Time" />
+    <Map IANA="Asia/Tbilisi" Win="Georgian Standard Time" />
+    <Map IANA="Asia/Tehran" Win="Iran Standard Time" />
+    <Map IANA="Asia/Tokyo" Win="Tokyo Standard Time" />
+    <Map IANA="Asia/Tomsk" Win="Tomsk Standard Time" />
+    <Map IANA="Asia/Ulaanbaatar" Win="Ulaanbaatar Standard Time" />
+    <Map IANA="Asia/Vladivostok" Win="Vladivostok Standard Time" />
+    <Map IANA="Asia/Yakutsk" Win="Yakutsk Standard Time" />
+    <Map IANA="Asia/Yangon" Win="Myanmar Standard Time" />
+    <Map IANA="Asia/Yekaterinburg" Win="Ekaterinburg Standard Time" />
+    <Map IANA="Asia/Yerevan" Win="Caucasus Standard Time" />
+    <Map IANA="Atlantic/Azores" Win="Azores Standard Time" />
+    <Map IANA="Atlantic/Cape_Verde" Win="Cape Verde Standard Time" />
+    <Map IANA="Atlantic/Reykjavik" Win="Greenwich Standard Time" />
+    <Map IANA="Australia/Adelaide" Win="Cen. Australia Standard Time" />
+    <Map IANA="Australia/Brisbane" Win="E. Australia Standard Time" />
+    <Map IANA="Australia/Darwin" Win="AUS Central Standard Time" />
+    <Map IANA="Australia/Eucla" Win="Aus Central W. Standard Time" />
+    <Map IANA="Australia/Hobart" Win="Tasmania Standard Time" />
+    <Map IANA="Australia/Lord_Howe" Win="Lord Howe Standard Time" />
+    <Map IANA="Australia/Perth" Win="W. Australia Standard Time" />
+    <Map IANA="Australia/Sydney" Win="AUS Eastern Standard Time" />
+    <Map IANA="Etc/GMT" Win="UTC" />
+    <Map IANA="Etc/GMT+11" Win="UTC-11" />
+    <Map IANA="Etc/GMT+12" Win="Dateline Standard Time" />
+    <Map IANA="Etc/GMT+2" Win="UTC-02" />
+    <Map IANA="Etc/GMT+8" Win="UTC-08" />
+    <Map IANA="Etc/GMT+9" Win="UTC-09" />
+    <Map IANA="Etc/GMT-12" Win="UTC+12" />
+    <Map IANA="Etc/GMT-13" Win="UTC+13" />
+    <Map IANA="Europe/Astrakhan" Win="Astrakhan Standard Time" />
+    <Map IANA="Europe/Berlin" Win="W. Europe Standard Time" />
+    <Map IANA="Europe/Bucharest" Win="GTB Standard Time" />
+    <Map IANA="Europe/Budapest" Win="Central Europe Standard Time" />
+    <Map IANA="Europe/Chisinau" Win="E. Europe Standard Time" />
+    <Map IANA="Europe/Istanbul" Win="Turkey Standard Time" />
+    <Map IANA="Europe/Kaliningrad" Win="Kaliningrad Standard Time" />
+    <Map IANA="Europe/Kiev" Win="FLE Standard Time" />
+    <Map IANA="Europe/London" Win="GMT Standard Time" />
+    <Map IANA="Europe/Minsk" Win="Belarus Standard Time" />
+    <Map IANA="Europe/Moscow" Win="Russian Standard Time" />
+    <Map IANA="Europe/Paris" Win="Romance Standard Time" />
+    <Map IANA="Europe/Samara" Win="Russia Time Zone 3" />
+    <Map IANA="Europe/Saratov" Win="Saratov Standard Time" />
+    <Map IANA="Europe/Warsaw" Win="Central European Standard Time" />
+    <Map IANA="Indian/Mauritius" Win="Mauritius Standard Time" />
+    <Map IANA="Pacific/Apia" Win="Samoa Standard Time" />
+    <Map IANA="Pacific/Auckland" Win="New Zealand Standard Time" />
+    <Map IANA="Pacific/Bougainville" Win="Bougainville Standard Time" />
+    <Map IANA="Pacific/Chatham" Win="Chatham Islands Standard Time" />
+    <Map IANA="Pacific/Easter" Win="Easter Island Standard Time" />
+    <Map IANA="Pacific/Fiji" Win="Fiji Standard Time" />
+    <Map IANA="Pacific/Guadalcanal" Win="Central Pacific Standard Time" />
+    <Map IANA="Pacific/Honolulu" Win="Hawaiian Standard Time" />
+    <Map IANA="Pacific/Kiritimati" Win="Line Islands Standard Time" />
+    <Map IANA="Pacific/Marquesas" Win="Marquesas Standard Time" />
+    <Map IANA="Pacific/Norfolk" Win="Norfolk Standard Time" />
+    <Map IANA="Pacific/Port_Moresby" Win="West Pacific Standard Time" />
+    <Map IANA="Pacific/Tongatapu" Win="Tonga Standard Time" />
+    <Map IANA="Europe/Andorra" Win="W. Europe Standard Time" />
+    <Map IANA="America/Antigua" Win="SA Western Standard Time" />
+    <Map IANA="America/Anguilla" Win="SA Western Standard Time" />
+    <Map IANA="Europe/Tirane" Win="Central Europe Standard Time" />
+    <Map IANA="Africa/Luanda" Win="W. Central Africa Standard Time" />
+    <Map IANA="Antarctica/Casey" Win="Central Pacific Standard Time" />
+    <Map IANA="Antarctica/Davis" Win="SE Asia Standard Time" />
+    <Map IANA="Antarctica/DumontDUrville" Win="West Pacific Standard Time" />
+    <Map IANA="Antarctica/Mawson" Win="West Asia Standard Time" />
+    <Map IANA="Antarctica/McMurdo" Win="New Zealand Standard Time" />
+    <Map IANA="Antarctica/Palmer" Win="Magallanes Standard Time" />
+    <Map IANA="Antarctica/Rothera" Win="SA Eastern Standard Time" />
+    <Map IANA="Antarctica/Syowa" Win="E. Africa Standard Time" />
+    <Map IANA="Antarctica/Vostok" Win="Central Asia Standard Time" />
+    <Map IANA="America/Argentina/Catamarca" Win="Argentina Standard Time" />
+    <Map IANA="America/Argentina/Cordoba" Win="Argentina Standard Time" />
+    <Map IANA="America/Argentina/Jujuy" Win="Argentina Standard Time" />
+    <Map IANA="America/Argentina/La_Rioja" Win="Argentina Standard Time" />
+    <Map IANA="America/Argentina/Mendoza" Win="Argentina Standard Time" />
+    <Map IANA="America/Argentina/Rio_Gallegos" Win="Argentina Standard Time" />
+    <Map IANA="America/Argentina/Salta" Win="Argentina Standard Time" />
+    <Map IANA="America/Argentina/San_Juan" Win="Argentina Standard Time" />
+    <Map IANA="America/Argentina/San_Luis" Win="Argentina Standard Time" />
+    <Map IANA="America/Argentina/Tucuman" Win="Argentina Standard Time" />
+    <Map IANA="America/Argentina/Ushuaia" Win="Argentina Standard Time" />
+    <Map IANA="America/Buenos_Aires" Win="Argentina Standard Time" />
+    <Map IANA="America/Catamarca" Win="Argentina Standard Time" />
+    <Map IANA="America/Cordoba" Win="Argentina Standard Time" />
+    <Map IANA="America/Jujuy" Win="Argentina Standard Time" />
+    <Map IANA="America/Mendoza" Win="Argentina Standard Time" />
+    <Map IANA="Pacific/Pago_Pago" Win="UTC-11" />
+    <Map IANA="Europe/Vienna" Win="W. Europe Standard Time" />
+    <Map IANA="Antarctica/Macquarie" Win="Central Pacific Standard Time" />
+    <Map IANA="Australia/Broken_Hill" Win="Cen. Australia Standard Time" />
+    <Map IANA="Australia/Currie" Win="Tasmania Standard Time" />
+    <Map IANA="Australia/Lindeman" Win="E. Australia Standard Time" />
+    <Map IANA="Australia/Melbourne" Win="AUS Eastern Standard Time" />
+    <Map IANA="America/Aruba" Win="SA Western Standard Time" />
+    <Map IANA="Europe/Mariehamn" Win="FLE Standard Time" />
+    <Map IANA="Europe/Sarajevo" Win="Central European Standard Time" />
+    <Map IANA="America/Barbados" Win="SA Western Standard Time" />
+    <Map IANA="Europe/Brussels" Win="Romance Standard Time" />
+    <Map IANA="Africa/Ouagadougou" Win="Greenwich Standard Time" />
+    <Map IANA="Europe/Sofia" Win="FLE Standard Time" />
+    <Map IANA="Asia/Bahrain" Win="Arab Standard Time" />
+    <Map IANA="Africa/Bujumbura" Win="South Africa Standard Time" />
+    <Map IANA="Africa/Porto-Novo" Win="W. Central Africa Standard Time" />
+    <Map IANA="America/St_Barthelemy" Win="SA Western Standard Time" />
+    <Map IANA="Atlantic/Bermuda" Win="Atlantic Standard Time" />
+    <Map IANA="Asia/Brunei" Win="Singapore Standard Time" />
+    <Map IANA="America/Kralendijk" Win="SA Western Standard Time" />
+    <Map IANA="America/Belem" Win="SA Eastern Standard Time" />
+    <Map IANA="America/Boa_Vista" Win="SA Western Standard Time" />
+    <Map IANA="America/Campo_Grande" Win="Central Brazilian Standard Time" />
+    <Map IANA="America/Eirunepe" Win="SA Pacific Standard Time" />
+    <Map IANA="America/Fortaleza" Win="SA Eastern Standard Time" />
+    <Map IANA="America/Maceio" Win="SA Eastern Standard Time" />
+    <Map IANA="America/Manaus" Win="SA Western Standard Time" />
+    <Map IANA="America/Noronha" Win="UTC-02" />
+    <Map IANA="America/Porto_Velho" Win="SA Western Standard Time" />
+    <Map IANA="America/Recife" Win="SA Eastern Standard Time" />
+    <Map IANA="America/Rio_Branco" Win="SA Pacific Standard Time" />
+    <Map IANA="America/Santarem" Win="SA Eastern Standard Time" />
+    <Map IANA="America/Nassau" Win="Eastern Standard Time" />
+    <Map IANA="Asia/Thimphu" Win="Bangladesh Standard Time" />
+    <Map IANA="Africa/Gaborone" Win="South Africa Standard Time" />
+    <Map IANA="America/Belize" Win="Central America Standard Time" />
+    <Map IANA="America/Atikokan" Win="SA Pacific Standard Time" />
+    <Map IANA="America/Blanc-Sablon" Win="SA Western Standard Time" />
+    <Map IANA="America/Cambridge_Bay" Win="Mountain Standard Time" />
+    <Map IANA="America/Coral_Harbour" Win="SA Pacific Standard Time" />
+    <Map IANA="America/Creston" Win="US Mountain Standard Time" />
+    <Map IANA="America/Dawson" Win="Pacific Standard Time" />
+    <Map IANA="America/Dawson_Creek" Win="US Mountain Standard Time" />
+    <Map IANA="America/Edmonton" Win="Mountain Standard Time" />
+    <Map IANA="America/Fort_Nelson" Win="US Mountain Standard Time" />
+    <Map IANA="America/Glace_Bay" Win="Atlantic Standard Time" />
+    <Map IANA="America/Goose_Bay" Win="Atlantic Standard Time" />
+    <Map IANA="America/Inuvik" Win="Mountain Standard Time" />
+    <Map IANA="America/Iqaluit" Win="Eastern Standard Time" />
+    <Map IANA="America/Moncton" Win="Atlantic Standard Time" />
+    <Map IANA="America/Montreal" Win="Eastern Standard Time" />
+    <Map IANA="America/Nipigon" Win="Eastern Standard Time" />
+    <Map IANA="America/Pangnirtung" Win="Eastern Standard Time" />
+    <Map IANA="America/Rainy_River" Win="Central Standard Time" />
+    <Map IANA="America/Rankin_Inlet" Win="Central Standard Time" />
+    <Map IANA="America/Resolute" Win="Central Standard Time" />
+    <Map IANA="America/Swift_Current" Win="Canada Central Standard Time" />
+    <Map IANA="America/Thunder_Bay" Win="Eastern Standard Time" />
+    <Map IANA="America/Toronto" Win="Eastern Standard Time" />
+    <Map IANA="America/Vancouver" Win="Pacific Standard Time" />
+    <Map IANA="America/Whitehorse" Win="Pacific Standard Time" />
+    <Map IANA="America/Winnipeg" Win="Central Standard Time" />
+    <Map IANA="America/Yellowknife" Win="Mountain Standard Time" />
+    <Map IANA="Indian/Cocos" Win="Myanmar Standard Time" />
+    <Map IANA="Africa/Kinshasa" Win="W. Central Africa Standard Time" />
+    <Map IANA="Africa/Lubumbashi" Win="South Africa Standard Time" />
+    <Map IANA="Africa/Bangui" Win="W. Central Africa Standard Time" />
+    <Map IANA="Africa/Brazzaville" Win="W. Central Africa Standard Time" />
+    <Map IANA="Europe/Zurich" Win="W. Europe Standard Time" />
+    <Map IANA="Africa/Abidjan" Win="Greenwich Standard Time" />
+    <Map IANA="Pacific/Rarotonga" Win="Hawaiian Standard Time" />
+    <Map IANA="Africa/Douala" Win="W. Central Africa Standard Time" />
+    <Map IANA="Asia/Urumqi" Win="China Standard Time" />
+    <Map IANA="America/Costa_Rica" Win="Central America Standard Time" />
+    <Map IANA="America/Curacao" Win="SA Western Standard Time" />
+    <Map IANA="Indian/Christmas" Win="SE Asia Standard Time" />
+    <Map IANA="Asia/Famagusta" Win="Turkey Standard Time" />
+    <Map IANA="Asia/Nicosia" Win="GTB Standard Time" />
+    <Map IANA="Europe/Prague" Win="Central Europe Standard Time" />
+    <Map IANA="Europe/Busingen" Win="W. Europe Standard Time" />
+    <Map IANA="Africa/Djibouti" Win="E. Africa Standard Time" />
+    <Map IANA="Europe/Copenhagen" Win="Romance Standard Time" />
+    <Map IANA="America/Dominica" Win="SA Western Standard Time" />
+    <Map IANA="America/Santo_Domingo" Win="SA Western Standard Time" />
+    <Map IANA="Africa/Algiers" Win="W. Central Africa Standard Time" />
+    <Map IANA="America/Guayaquil" Win="SA Pacific Standard Time" />
+    <Map IANA="Pacific/Galapagos" Win="Central America Standard Time" />
+    <Map IANA="Europe/Tallinn" Win="FLE Standard Time" />
+    <Map IANA="Africa/El_Aaiun" Win="Morocco Standard Time" />
+    <Map IANA="Africa/Asmera" Win="E. Africa Standard Time" />
+    <Map IANA="Africa/Ceuta" Win="Romance Standard Time" />
+    <Map IANA="Atlantic/Canary" Win="GMT Standard Time" />
+    <Map IANA="Europe/Madrid" Win="Romance Standard Time" />
+    <Map IANA="Africa/Addis_Ababa" Win="E. Africa Standard Time" />
+    <Map IANA="Europe/Helsinki" Win="FLE Standard Time" />
+    <Map IANA="Atlantic/Stanley" Win="SA Eastern Standard Time" />
+    <Map IANA="Pacific/Chuuk" Win="West Pacific Standard Time" />
+    <Map IANA="Pacific/Kosrae" Win="Central Pacific Standard Time" />
+    <Map IANA="Pacific/Pohnpei" Win="Central Pacific Standard Time" />
+    <Map IANA="Pacific/Ponape" Win="Central Pacific Standard Time" />
+    <Map IANA="Pacific/Truk" Win="West Pacific Standard Time" />
+    <Map IANA="Atlantic/Faeroe" Win="GMT Standard Time" />
+    <Map IANA="Atlantic/Faroe" Win="GMT Standard Time" />
+    <Map IANA="Africa/Libreville" Win="W. Central Africa Standard Time" />
+    <Map IANA="America/Grenada" Win="SA Western Standard Time" />
+    <Map IANA="Europe/Guernsey" Win="GMT Standard Time" />
+    <Map IANA="Africa/Accra" Win="Greenwich Standard Time" />
+    <Map IANA="Europe/Gibraltar" Win="W. Europe Standard Time" />
+    <Map IANA="America/Danmarkshavn" Win="UTC" />
+    <Map IANA="America/Scoresbysund" Win="Azores Standard Time" />
+    <Map IANA="America/Thule" Win="Atlantic Standard Time" />
+    <Map IANA="Africa/Banjul" Win="Greenwich Standard Time" />
+    <Map IANA="Africa/Conakry" Win="Greenwich Standard Time" />
+    <Map IANA="America/Guadeloupe" Win="SA Western Standard Time" />
+    <Map IANA="Africa/Malabo" Win="W. Central Africa Standard Time" />
+    <Map IANA="Europe/Athens" Win="GTB Standard Time" />
+    <Map IANA="Atlantic/South_Georgia" Win="UTC-02" />
+    <Map IANA="Pacific/Guam" Win="West Pacific Standard Time" />
+    <Map IANA="Africa/Bissau" Win="Greenwich Standard Time" />
+    <Map IANA="America/Guyana" Win="SA Western Standard Time" />
+    <Map IANA="Asia/Hong_Kong" Win="China Standard Time" />
+    <Map IANA="America/Tegucigalpa" Win="Central America Standard Time" />
+    <Map IANA="Europe/Zagreb" Win="Central European Standard Time" />
+    <Map IANA="Asia/Jakarta" Win="SE Asia Standard Time" />
+    <Map IANA="Asia/Jayapura" Win="Tokyo Standard Time" />
+    <Map IANA="Asia/Makassar" Win="Singapore Standard Time" />
+    <Map IANA="Asia/Pontianak" Win="SE Asia Standard Time" />
+    <Map IANA="Europe/Dublin" Win="GMT Standard Time" />
+    <Map IANA="Europe/Isle_of_Man" Win="GMT Standard Time" />
+    <Map IANA="Asia/Calcutta" Win="India Standard Time" />
+    <Map IANA="Indian/Chagos" Win="Central Asia Standard Time" />
+    <Map IANA="Europe/Rome" Win="W. Europe Standard Time" />
+    <Map IANA="Europe/Jersey" Win="GMT Standard Time" />
+    <Map IANA="America/Jamaica" Win="SA Pacific Standard Time" />
+    <Map IANA="Asia/Phnom_Penh" Win="SE Asia Standard Time" />
+    <Map IANA="Pacific/Enderbury" Win="UTC+13" />
+    <Map IANA="Pacific/Tarawa" Win="UTC+12" />
+    <Map IANA="Indian/Comoro" Win="E. Africa Standard Time" />
+    <Map IANA="America/St_Kitts" Win="SA Western Standard Time" />
+    <Map IANA="Asia/Kuwait" Win="Arab Standard Time" />
+    <Map IANA="America/Cayman" Win="SA Pacific Standard Time" />
+    <Map IANA="Asia/Aqtau" Win="West Asia Standard Time" />
+    <Map IANA="Asia/Aqtobe" Win="West Asia Standard Time" />
+    <Map IANA="Asia/Atyrau" Win="West Asia Standard Time" />
+    <Map IANA="Asia/Oral" Win="West Asia Standard Time" />
+    <Map IANA="Asia/Qyzylorda" Win="Central Asia Standard Time" />
+    <Map IANA="Asia/Vientiane" Win="SE Asia Standard Time" />
+    <Map IANA="America/St_Lucia" Win="SA Western Standard Time" />
+    <Map IANA="Europe/Vaduz" Win="W. Europe Standard Time" />
+    <Map IANA="Africa/Monrovia" Win="Greenwich Standard Time" />
+    <Map IANA="Africa/Maseru" Win="South Africa Standard Time" />
+    <Map IANA="Europe/Vilnius" Win="FLE Standard Time" />
+    <Map IANA="Europe/Luxembourg" Win="W. Europe Standard Time" />
+    <Map IANA="Europe/Riga" Win="FLE Standard Time" />
+    <Map IANA="Europe/Monaco" Win="W. Europe Standard Time" />
+    <Map IANA="Europe/Podgorica" Win="Central Europe Standard Time" />
+    <Map IANA="America/Marigot" Win="SA Western Standard Time" />
+    <Map IANA="Indian/Antananarivo" Win="E. Africa Standard Time" />
+    <Map IANA="Pacific/Kwajalein" Win="UTC+12" />
+    <Map IANA="Pacific/Majuro" Win="UTC+12" />
+    <Map IANA="Europe/Skopje" Win="Central European Standard Time" />
+    <Map IANA="Africa/Bamako" Win="Greenwich Standard Time" />
+    <Map IANA="Asia/Rangoon" Win="Myanmar Standard Time" />
+    <Map IANA="Asia/Choibalsan" Win="Ulaanbaatar Standard Time" />
+    <Map IANA="Asia/Macau" Win="China Standard Time" />
+    <Map IANA="Pacific/Saipan" Win="West Pacific Standard Time" />
+    <Map IANA="America/Martinique" Win="SA Western Standard Time" />
+    <Map IANA="Africa/Nouakchott" Win="Greenwich Standard Time" />
+    <Map IANA="America/Montserrat" Win="SA Western Standard Time" />
+    <Map IANA="Europe/Malta" Win="W. Europe Standard Time" />
+    <Map IANA="Indian/Maldives" Win="West Asia Standard Time" />
+    <Map IANA="Africa/Blantyre" Win="South Africa Standard Time" />
+    <Map IANA="America/Bahia_Banderas" Win="Central Standard Time (Mexico)" />
+    <Map IANA="America/Hermosillo" Win="US Mountain Standard Time" />
+    <Map IANA="America/Matamoros" Win="Central Standard Time" />
+    <Map IANA="America/Mazatlan" Win="Mountain Standard Time (Mexico)" />
+    <Map IANA="America/Merida" Win="Central Standard Time (Mexico)" />
+    <Map IANA="America/Monterrey" Win="Central Standard Time (Mexico)" />
+    <Map IANA="America/Ojinaga" Win="Mountain Standard Time" />
+    <Map IANA="America/Santa_Isabel" Win="Pacific Standard Time (Mexico)" />
+    <Map IANA="Asia/Kuala_Lumpur" Win="Singapore Standard Time" />
+    <Map IANA="Asia/Kuching" Win="Singapore Standard Time" />
+    <Map IANA="Africa/Maputo" Win="South Africa Standard Time" />
+    <Map IANA="Pacific/Noumea" Win="Central Pacific Standard Time" />
+    <Map IANA="Africa/Niamey" Win="W. Central Africa Standard Time" />
+    <Map IANA="America/Managua" Win="Central America Standard Time" />
+    <Map IANA="Europe/Amsterdam" Win="W. Europe Standard Time" />
+    <Map IANA="Europe/Oslo" Win="W. Europe Standard Time" />
+    <Map IANA="Asia/Katmandu" Win="Nepal Standard Time" />
+    <Map IANA="Pacific/Nauru" Win="UTC+12" />
+    <Map IANA="Pacific/Niue" Win="UTC-11" />
+    <Map IANA="Asia/Muscat" Win="Arabian Standard Time" />
+    <Map IANA="America/Panama" Win="SA Pacific Standard Time" />
+    <Map IANA="America/Lima" Win="SA Pacific Standard Time" />
+    <Map IANA="Pacific/Gambier" Win="UTC-09" />
+    <Map IANA="Pacific/Tahiti" Win="Hawaiian Standard Time" />
+    <Map IANA="Asia/Manila" Win="Singapore Standard Time" />
+    <Map IANA="Pacific/Pitcairn" Win="UTC-08" />
+    <Map IANA="America/Puerto_Rico" Win="SA Western Standard Time" />
+    <Map IANA="Asia/Gaza" Win="West Bank Standard Time" />
+    <Map IANA="Atlantic/Madeira" Win="GMT Standard Time" />
+    <Map IANA="Europe/Lisbon" Win="GMT Standard Time" />
+    <Map IANA="Pacific/Palau" Win="Tokyo Standard Time" />
+    <Map IANA="Asia/Qatar" Win="Arab Standard Time" />
+    <Map IANA="Indian/Reunion" Win="Mauritius Standard Time" />
+    <Map IANA="Europe/Belgrade" Win="Central Europe Standard Time" />
+    <Map IANA="Asia/Anadyr" Win="Russia Time Zone 11" />
+    <Map IANA="Asia/Khandyga" Win="Yakutsk Standard Time" />
+    <Map IANA="Asia/Novokuznetsk" Win="North Asia Standard Time" />
+    <Map IANA="Asia/Ust-Nera" Win="Vladivostok Standard Time" />
+    <Map IANA="Europe/Kirov" Win="Russian Standard Time" />
+    <Map IANA="Europe/Ulyanovsk" Win="Astrakhan Standard Time" />
+    <Map IANA="Europe/Volgograd" Win="Russian Standard Time" />
+    <Map IANA="Africa/Kigali" Win="South Africa Standard Time" />
+    <Map IANA="Indian/Mahe" Win="Mauritius Standard Time" />
+    <Map IANA="Europe/Stockholm" Win="W. Europe Standard Time" />
+    <Map IANA="Atlantic/St_Helena" Win="Greenwich Standard Time" />
+    <Map IANA="Europe/Ljubljana" Win="Central Europe Standard Time" />
+    <Map IANA="Arctic/Longyearbyen" Win="W. Europe Standard Time" />
+    <Map IANA="Europe/Bratislava" Win="Central Europe Standard Time" />
+    <Map IANA="Africa/Freetown" Win="Greenwich Standard Time" />
+    <Map IANA="Europe/San_Marino" Win="W. Europe Standard Time" />
+    <Map IANA="Africa/Dakar" Win="Greenwich Standard Time" />
+    <Map IANA="Africa/Mogadishu" Win="E. Africa Standard Time" />
+    <Map IANA="America/Paramaribo" Win="SA Eastern Standard Time" />
+    <Map IANA="Africa/Juba" Win="E. Africa Standard Time" />
+    <Map IANA="Africa/Sao_Tome" Win="Greenwich Standard Time" />
+    <Map IANA="America/El_Salvador" Win="Central America Standard Time" />
+    <Map IANA="America/Lower_Princes" Win="SA Western Standard Time" />
+    <Map IANA="Africa/Mbabane" Win="South Africa Standard Time" />
+    <Map IANA="Africa/Ndjamena" Win="W. Central Africa Standard Time" />
+    <Map IANA="Indian/Kerguelen" Win="West Asia Standard Time" />
+    <Map IANA="Africa/Lome" Win="Greenwich Standard Time" />
+    <Map IANA="Asia/Dushanbe" Win="West Asia Standard Time" />
+    <Map IANA="Pacific/Fakaofo" Win="UTC+13" />
+    <Map IANA="Asia/Dili" Win="Tokyo Standard Time" />
+    <Map IANA="Asia/Ashgabat" Win="West Asia Standard Time" />
+    <Map IANA="Africa/Tunis" Win="W. Central Africa Standard Time" />
+    <Map IANA="America/Port_of_Spain" Win="SA Western Standard Time" />
+    <Map IANA="Pacific/Funafuti" Win="UTC+12" />
+    <Map IANA="Africa/Dar_es_Salaam" Win="E. Africa Standard Time" />
+    <Map IANA="Europe/Simferopol" Win="Russian Standard Time" />
+    <Map IANA="Europe/Uzhgorod" Win="FLE Standard Time" />
+    <Map IANA="Europe/Zaporozhye" Win="FLE Standard Time" />
+    <Map IANA="Africa/Kampala" Win="E. Africa Standard Time" />
+    <Map IANA="Pacific/Johnston" Win="Hawaiian Standard Time" />
+    <Map IANA="Pacific/Midway" Win="UTC-11" />
+    <Map IANA="Pacific/Wake" Win="UTC+12" />
+    <Map IANA="America/Boise" Win="Mountain Standard Time" />
+    <Map IANA="America/Detroit" Win="Eastern Standard Time" />
+    <Map IANA="America/Indiana/Knox" Win="Central Standard Time" />
+    <Map IANA="America/Indiana/Marengo" Win="US Eastern Standard Time" />
+    <Map IANA="America/Indiana/Petersburg" Win="Eastern Standard Time" />
+    <Map IANA="America/Indiana/Tell_City" Win="Central Standard Time" />
+    <Map IANA="America/Indiana/Vevay" Win="US Eastern Standard Time" />
+    <Map IANA="America/Indiana/Vincennes" Win="Eastern Standard Time" />
+    <Map IANA="America/Indiana/Winamac" Win="Eastern Standard Time" />
+    <Map IANA="America/Indianapolis" Win="US Eastern Standard Time" />
+    <Map IANA="America/Juneau" Win="Alaskan Standard Time" />
+    <Map IANA="America/Kentucky/Louisville" Win="Eastern Standard Time" />
+    <Map IANA="America/Kentucky/Monticello" Win="Eastern Standard Time" />
+    <Map IANA="America/Louisville" Win="Eastern Standard Time" />
+    <Map IANA="America/Menominee" Win="Central Standard Time" />
+    <Map IANA="America/Metlakatla" Win="Alaskan Standard Time" />
+    <Map IANA="America/Nome" Win="Alaskan Standard Time" />
+    <Map IANA="America/North_Dakota/Beulah" Win="Central Standard Time" />
+    <Map IANA="America/North_Dakota/Center" Win="Central Standard Time" />
+    <Map IANA="America/North_Dakota/New_Salem" Win="Central Standard Time" />
+    <Map IANA="America/Sitka" Win="Alaskan Standard Time" />
+    <Map IANA="America/Yakutat" Win="Alaskan Standard Time" />
+    <Map IANA="Asia/Samarkand" Win="West Asia Standard Time" />
+    <Map IANA="Europe/Vatican" Win="W. Europe Standard Time" />
+    <Map IANA="America/St_Vincent" Win="SA Western Standard Time" />
+    <Map IANA="America/Tortola" Win="SA Western Standard Time" />
+    <Map IANA="America/St_Thomas" Win="SA Western Standard Time" />
+    <Map IANA="Asia/Ho_Chi_Minh" Win="SE Asia Standard Time" />
+    <Map IANA="Asia/Saigon" Win="SE Asia Standard Time" />
+    <Map IANA="Pacific/Efate" Win="Central Pacific Standard Time" />
+    <Map IANA="Pacific/Wallis" Win="UTC+12" />
+    <Map IANA="Asia/Aden" Win="Arab Standard Time" />
+    <Map IANA="Indian/Mayotte" Win="E. Africa Standard Time" />
+    <Map IANA="Africa/Lusaka" Win="South Africa Standard Time" />
+    <Map IANA="Africa/Harare" Win="South Africa Standard Time" />
+    <Map IANA="CST6CDT" Win="Central Standard Time" />
+    <Map IANA="EST5EDT" Win="Eastern Standard Time" />
+    <Map IANA="Etc/GMT+1" Win="Cape Verde Standard Time" />
+    <Map IANA="Etc/GMT+10" Win="Hawaiian Standard Time" />
+    <Map IANA="Etc/GMT+3" Win="SA Eastern Standard Time" />
+    <Map IANA="Etc/GMT+4" Win="SA Western Standard Time" />
+    <Map IANA="Etc/GMT+5" Win="SA Pacific Standard Time" />
+    <Map IANA="Etc/GMT+6" Win="Central America Standard Time" />
+    <Map IANA="Etc/GMT+7" Win="US Mountain Standard Time" />
+    <Map IANA="Etc/GMT-1" Win="W. Central Africa Standard Time" />
+    <Map IANA="Etc/GMT-10" Win="West Pacific Standard Time" />
+    <Map IANA="Etc/GMT-11" Win="Central Pacific Standard Time" />
+    <Map IANA="Etc/GMT-14" Win="Line Islands Standard Time" />
+    <Map IANA="Etc/GMT-2" Win="South Africa Standard Time" />
+    <Map IANA="Etc/GMT-3" Win="E. Africa Standard Time" />
+    <Map IANA="Etc/GMT-4" Win="Arabian Standard Time" />
+    <Map IANA="Etc/GMT-5" Win="West Asia Standard Time" />
+    <Map IANA="Etc/GMT-6" Win="Central Asia Standard Time" />
+    <Map IANA="Etc/GMT-7" Win="SE Asia Standard Time" />
+    <Map IANA="Etc/GMT-8" Win="Singapore Standard Time" />
+    <Map IANA="Etc/GMT-9" Win="Tokyo Standard Time" />
+    <Map IANA="Etc/UTC" Win="UTC" />
+    <Map IANA="MST7MDT" Win="Mountain Standard Time" />
+    <Map IANA="PST8PDT" Win="Pacific Standard Time" />
+    <Map IANA="America/Rosario" Win="Argentina Standard Time" />
+    <Map IANA="America/Shiprock" Win="Mountain Standard Time" />
+    <Map IANA="America/Virgin" Win="SA Western Standard Time" />
+    <Map IANA="Antarctica/South_Pole" Win="New Zealand Standard Time" />
+    <Map IANA="Asia/Chongqing" Win="China Standard Time" />
+    <Map IANA="Asia/Dacca" Win="Bangladesh Standard Time" />
+    <Map IANA="Asia/Harbin" Win="China Standard Time" />
+    <Map IANA="Asia/Kashgar" Win="China Standard Time" />
+    <Map IANA="Asia/Macao" Win="China Standard Time" />
+    <Map IANA="Atlantic/Jan_Mayen" Win="W. Europe Standard Time" />
+    <Map IANA="Australia/ACT" Win="AUS Eastern Standard Time" />
+    <Map IANA="Australia/Canberra" Win="AUS Eastern Standard Time" />
+    <Map IANA="Brazil/East" Win="E. South America Standard Time" />
+    <Map IANA="Canada/Atlantic" Win="Atlantic Standard Time" />
+    <Map IANA="Canada/Central" Win="Central Standard Time" />
+    <Map IANA="Canada/Eastern" Win="Eastern Standard Time" />
+    <Map IANA="Canada/Mountain" Win="Mountain Standard Time" />
+    <Map IANA="Canada/Pacific" Win="Pacific Standard Time" />
+    <Map IANA="Canada/Saskatchewan" Win="Canada Central Standard Time" />
+    <Map IANA="Chile/EasterIsland" Win="Easter Island Standard Time" />
+    <Map IANA="Eire" Win="GMT Standard Time" />
+    <Map IANA="Europe/Belfast" Win="GMT Standard Time" />
+    <Map IANA="GMT+0" Win="UTC" />
+    <Map IANA="Hongkong" Win="China Standard Time" />
+    <Map IANA="Iran" Win="Iran Standard Time" />
+    <Map IANA="Israel" Win="Israel Standard Time" />
+    <Map IANA="Jamaica" Win="SA Pacific Standard Time" />
+    <Map IANA="Mexico/General" Win="Central Standard Time (Mexico)" />
+    <Map IANA="Poland" Win="Central European Standard Time" />
+    <Map IANA="Turkey" Win="Turkey Standard Time" />
+    <Map IANA="US/Alaska" Win="Alaskan Standard Time" />
+    <Map IANA="US/Aleutian" Win="Aleutian Standard Time" />
+    <Map IANA="US/Arizona" Win="US Mountain Standard Time" />
+    <Map IANA="US/Central" Win="Central Standard Time" />
+    <Map IANA="US/East-Indiana" Win="US Eastern Standard Time" />
+    <Map IANA="US/Eastern" Win="Eastern Standard Time" />
+    <Map IANA="US/Hawaii" Win="Hawaiian Standard Time" />
+    <Map IANA="US/Indiana-Starke" Win="Central Standard Time" />
+    <Map IANA="US/Michigan" Win="Eastern Standard Time" />
+    <Map IANA="US/Mountain" Win="Mountain Standard Time" />
+    <Map IANA="US/Pacific" Win="Pacific Standard Time" />
+    <Map IANA="US/Samoa" Win="UTC-11" />
+    <Map IANA="GMT" Win="UTC" />
+    <Map IANA="Asia/Istanbul" Win="Turkey Standard Time" />
+  </Mappings>
+</TimeZoneMapping>

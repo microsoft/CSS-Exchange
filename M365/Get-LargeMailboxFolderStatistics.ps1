@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#Requires -Modules @{ ModuleName="ExchangeOnlineManagement"; RequiredVersion="3.4.0" }
+#Requires -Modules @{ ModuleName="ExchangeOnlineManagement"; ModuleVersion="3.4.0" }
 
 <#
 .SYNOPSIS
