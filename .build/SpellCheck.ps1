@@ -36,7 +36,7 @@ function DoSpellCheck {
 
     $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".."))
 
-    cspell lint --config "$PSScriptRoot\cspell.json" --no-progress (Join-Path $repoRoot "**" "*.md") (Join-Path $repoRoot "**" "*.ps1")
+    cspell lint --dot --config "$PSScriptRoot\cspell.json" --no-progress (Join-Path $repoRoot "**" "*.md") (Join-Path $repoRoot "**" "*.ps1")
 }
 
 DoSpellCheck

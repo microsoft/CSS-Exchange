@@ -3,6 +3,7 @@
 
 $repoRoot = Get-Item "$PSScriptRoot\.."
 $docsDir = "$repoRoot\docs"
+#cspell:words mkdocs
 $markDownFiles = Get-Content "$repoRoot\mkdocs.yml" | Select-String "(\S+\.md)" | ForEach-Object {
     $_.Matches.Groups[1].Value
 }

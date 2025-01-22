@@ -19,9 +19,9 @@ function CheckScriptFileHasBOM {
 
         https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_character_encoding
 
-        "If you need to use non-Ascii characters in your scripts, save them as UTF-8 with BOM.
+        "If you need to use non-ASCII characters in your scripts, save them as UTF-8 with BOM.
         Without the BOM, Windows PowerShell misinterprets your script as being encoded in the
-        legacy "ANSI" codepage. Conversely, files that do have the UTF-8 BOM can be problematic
+        legacy "ANSI" CodePage. Conversely, files that do have the UTF-8 BOM can be problematic
         on Unix-like platforms."
 
         Since these scripts are purely for Exchange and Exchange Online, we expect they will usually

@@ -116,11 +116,11 @@ param(
     [Parameter(ParameterSetName = 'RestartIISAll', Mandatory = $true)]
     [switch]$RestartIIS,
     [Alias("ExchangeServerFQDN")]
-    [Parameter(ParameterSetName = 'TestAMSI', Mandatory = $false, ValueFromPipeline = $true)]
-    [Parameter(ParameterSetName = 'EnableAMSI', Mandatory = $false, ValueFromPipeline = $true)]
-    [Parameter(ParameterSetName = 'DisableAMSI', Mandatory = $false, ValueFromPipeline = $true)]
-    [Parameter(ParameterSetName = 'CheckAMSIConfig', Mandatory = $false, ValueFromPipeline = $true)]
-    [Parameter(ParameterSetName = 'RestartIIS', Mandatory = $false, ValueFromPipeline = $true)]
+    [Parameter(Position = 0, ParameterSetName = 'TestAMSI', Mandatory = $false, ValueFromPipeline = $true)]
+    [Parameter(Position = 0, ParameterSetName = 'EnableAMSI', Mandatory = $false, ValueFromPipeline = $true)]
+    [Parameter(Position = 0, ParameterSetName = 'DisableAMSI', Mandatory = $false, ValueFromPipeline = $true)]
+    [Parameter(Position = 0, ParameterSetName = 'CheckAMSIConfig', Mandatory = $false, ValueFromPipeline = $true)]
+    [Parameter(Position = 0, ParameterSetName = 'RestartIIS', Mandatory = $false, ValueFromPipeline = $true)]
     [string[]]$ServerList = $null,
     [Parameter(ParameterSetName = 'TestAMSIAll', Mandatory = $true)]
     [Parameter(ParameterSetName = 'CheckAMSIConfigAll', Mandatory = $true)]
@@ -153,6 +153,10 @@ param(
 )
 
 begin {
+
+    if (-not $ServerList -and $args.Count -gt 0) {
+        $ServerList = @($args[0])
+    }
 
     . $PSScriptRoot\..\Shared\Confirm-Administrator.ps1
     . $PSScriptRoot\..\Shared\Confirm-ExchangeShell.ps1

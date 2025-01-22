@@ -53,7 +53,7 @@ $allScriptFiles = Get-ChildItem -Path $repoRoot -Directory |
     ForEach-Object { $_.FullName }
 
 <#
-    Build the table of depedencies, and a separate table of commit times.
+    Build the table of dependencies, and a separate table of commit times.
 #>
 
 $dependencyHashtable = Get-ScriptDependencyHashtable -FileNames $allScriptFiles

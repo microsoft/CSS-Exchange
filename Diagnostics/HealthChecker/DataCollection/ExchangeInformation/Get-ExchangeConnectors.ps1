@@ -30,6 +30,7 @@ function Get-ExchangeConnectors {
             $exchangeFactoryConnectorReturnObject = [PSCustomObject]@{
                 Identity           = $ConnectorObject.Identity
                 Name               = $ConnectorObject.Name
+                Fqdn               = $ConnectorObject.Fqdn
                 Enabled            = $ConnectorObject.Enabled
                 CloudEnabled       = $false
                 ConnectorType      = $null
