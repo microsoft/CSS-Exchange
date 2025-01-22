@@ -35,10 +35,10 @@ function Request-Module {
     )
 
     $noFoundError = $true
-    foreach ($module in $Modules) {
-        Write-Verbose "Checking $module PowerShell Module"
+    foreach ($m in $Module) {
+        Write-Verbose "Checking $m PowerShell Module"
         $getParams = @{
-            Name        = $module
+            Name        = $m
             ErrorAction = 'SilentlyContinue'
         }
         if ($MinModuleVersion) {
@@ -49,13 +49,13 @@ function Request-Module {
         }
         $installed = Get-InstalledModule @getParams
 
-        if ($null -eq $installed -or $installed.Name -notcontains $module) {
-            Write-Host "The following module is missing: $module" -ForegroundColor Yellow
+        if ($null -eq $installed -or $installed.Name -notcontains $m) {
+            Write-Host "The following module is missing: $m" -ForegroundColor Yellow
             $confirmed = $null
             try {
-                Write-Verbose "Installing $module"
+                Write-Verbose "Installing $m"
                 $installParams = @{
-                    Name        = $module
+                    Name        = $m
                     Scope       = "CurrentUser"
                     ErrorAction = 'Stop'
                 }
@@ -67,10 +67,10 @@ function Request-Module {
                 }
                 Install-Module @installParams -Force
 
-                Write-Verbose "Checking $module"
+                Write-Verbose "Checking $m"
                 $confirmed = Get-InstalledModule @getParams
                 if (-not $confirmed) {
-                    Write-Host "We could not install module: $module" -ForegroundColor Red
+                    Write-Host "We could not install module: $m" -ForegroundColor Red
                     $noFoundError = $false
                 }
             } catch {
@@ -78,7 +78,7 @@ function Request-Module {
                 $noFoundError = $false
             }
         } else {
-            Write-Verbose "Found $module module installed"
+            Write-Verbose "Found $m module installed"
         }
     }
     return $noFoundError
