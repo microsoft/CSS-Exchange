@@ -53,7 +53,7 @@ function Connect-GraphAdvanced {
     )
 
     #Validate Graph is installed and loaded
-    $requestModule = Request-Module -Modules $Modules -MinModuleVersion $MinModuleVersion
+    $requestModule = Request-Module -Module $Modules -MinModuleVersion $MinModuleVersion
     if (-not $requestModule) {
         Write-Host "We cannot continue without $Modules Powershell module" -ForegroundColor Red
         return $null

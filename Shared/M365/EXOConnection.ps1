@@ -56,7 +56,7 @@ function Connect-EXOAdvanced {
     )
 
     #Validate EXO 3.0 is installed and loaded
-    $requestModule = Request-Module -Modules "ExchangeOnlineManagement" -MinModuleVersion $MinModuleVersion
+    $requestModule = Request-Module -Module "ExchangeOnlineManagement" -MinModuleVersion $MinModuleVersion
 
     if (-not $requestModule) {
         Write-Host "We cannot continue without ExchangeOnlineManagement Powershell module" -ForegroundColor Red

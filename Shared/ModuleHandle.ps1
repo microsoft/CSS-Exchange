@@ -29,19 +29,18 @@ function Request-Module {
     [OutputType([bool])]
     param (
         [Parameter(Mandatory = $true)]
-        [string[]]$Modules,
+        [string[]]$Module,
         [Parameter(Mandatory = $false)]
         [System.Version]$MinModuleVersion = $null
     )
 
     $noFoundError = $true
     foreach ($module in $Modules) {
-        Write-Verbose "Checking $Modules PowerShell Module"
+        Write-Verbose "Checking $module PowerShell Module"
         $getParams = @{
             Name        = $module
             ErrorAction = 'SilentlyContinue'
         }
-        Write-Verbose "Checking $module"
         if ($MinModuleVersion) {
             $getParams["MinimumVersion"] = $MinModuleVersion
             Write-Verbose "with minimum version $minModuleVersion"
@@ -78,6 +77,8 @@ function Request-Module {
                 Write-Host "Installation process fails. Error: `n$_" -ForegroundColor Red
                 $noFoundError = $false
             }
+        } else {
+            Write-Verbose "Found $module module installed"
         }
     }
     return $noFoundError
