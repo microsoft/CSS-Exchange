@@ -1,4 +1,67 @@
-﻿### Utilities ###
+﻿# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+<#
+.NOTES
+	Name: Measure-EmailDelayInMTL.ps1
+	Requires: User Rights
+    Major Release History:
+        08/05/2024 - Initial Release
+
+.SYNOPSIS
+Generates a report of the maximum message delay for all messages in an Message Tracking Log.
+
+.DESCRIPTION
+Gather message tracking log details of all message to / from a given recipient for a given time range.
+Recommend using Start-HistoricalSearch in EXO.
+
+The script will provide an output of all unique message ids with the following information:
+MessageID
+Time Sent
+Total Time in transit
+
+Useful for determining if a "slow" message was a one off or a pattern.
+
+.PARAMETER MTLFile
+MTL File to process.
+
+.PARAMETER ReportPath
+Folder path for the output file.
+
+
+.OUTPUTS
+CSV File with the following information.
+    MessageID               ID of the Message
+    TimeSent                First time we see the message in the MTL
+    TimeReceived            Last delivery time in the MTL
+    MessageDelay            How long before the message was delivered
+
+Default Output File:
+$PSScriptRoot\MTL_report.csv
+
+.EXAMPLE
+.\Measure-EmailDelayInMTL -MTLPath C:\temp\MyMtl.csv
+
+Generates a report from the MyMtl.csv file.
+
+#>
+
+[CmdletBinding()]
+param (
+    [Parameter(Mandatory = $true)]
+    [string]
+    $MTLFile,
+    [Parameter()]
+    [string]
+    $ReportPath = $PSScriptRoot,
+    [Parameter()]
+    [string]
+    $MessageID
+)
+
+. $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
+
+### Utilities ###
 Function Import-MTL {
     [CmdletBinding()]
     [OutputType([array])]
@@ -174,7 +237,7 @@ Function Write-OutputFile {
         $myTable
     )
 
-    $file = "C:\temp\out.txt"
+    $file = $ReportFile
 
     Add-Content -Path $file  $header.ToUpper()
     Add-Content -Path $file "===================="
@@ -202,7 +265,7 @@ Function Test-SubmissionData {
     # Extract the submission data
     $submission = ConvertFrom-StringData ($toParse -replace ",", " `n") -Delimiter ":"
 
-    #### Need to add all of the data we want to a PSCustomobject
+    # Build the reporting hashtable
     $hash = @{
         ClientType        = $submission.ClientType
         CreationTime      = $submission.CreationTime
@@ -230,14 +293,72 @@ Function Test-MIMEData {
 
     $mimeData = (ConvertFrom-StringData ($toParse -replace ";", " `n") -Delimiter "=")["S:MimeParts"].split("S:")[1].split("/")
 
+    # Build the reporting hashtable
     $hash = @{
-        AttachmentCount = $mimeData[0]
-
-
-
-
+        AttachmentCount           = $mimeData[0]
+        EmbeddedAttachments       = $mimeData[1]
+        NumberOfMimeParts         = $mimeData[2]
+        EmailMessageType          = $mimeData[3]
+        EmailMimeComplianceStatus = $mimeData[4]
     }
 
-
-
+    Write-OutputFile -header "Detected Mime Information on Submission" -myTable $hash
 }
+
+Function Test-MTLStatistics {
+    [CmdletBinding()]
+    param (
+        # Parameter help description
+        [Parameter(Mandatory = $true)]
+        [array]
+        $messageIDFilteredEvents
+    )
+
+    # Sort the events by time.
+    $sortedEvents = $messageIDFilteredEvents | Sort-Object -Property "date_time_utc"
+    $receiveEvents = $messageIDFilteredEvents | Where-Object { $_.event_id -like "RECEIVE" }
+    $deliveryEvents = $messageIDFilteredEvents | Where-Object { $_.event_id -like "DELIVER" }
+    $sendExternalEvents = $messageIDFilteredEvents | Where-Object { $_.event_id -like "SENDEXTERNAL" }
+
+    $hash = @{
+        MessageID              = $sortedEvents[0].message_id
+        FirstEvent             = $sortedEvents[0].date_time_utc
+        LastEvent              = $sortedEvents[-1].date_time_utc
+        ReceiveEventCount      = $receiveEvents.count
+        DeliveryEventCount     = $deliveryEvents.count
+        SendExternalEventCount = $sendExternalEvents.count
+    }
+
+    Write-OutputFile -header "General MTL Statistics" -myTable $hash
+}
+
+### Main ###
+
+#Import the MTL file.
+$MTL = Import-MTL -FilePath $MTLFile
+
+# Make sure the path for the output is good
+if (!(Test-Path $ReportPath)) {
+    Write-Error ("Unable to find report path " + $ReportPath)
+} else {
+    $ReportFile = (Join-Path -Path $ReportPath -ChildPath ("MTL Report " + (Get-Date -Format FileDateTime).ToString() + ".txt"))
+}
+
+# If no messageID was provided make sure that there is only one in the MTL
+if ([string]::IsNullOrEmpty($MessageID)) {
+    if (!Test-UniqueMessageID) {
+        Write-Error "Multiple MessageIDs detected in MTL please using -MessageID to specify the one to examine" -ErrorAction Stop
+    } else {
+        $MessageIDFilteredMTL = $MTL
+    }
+}
+
+# If a messageID was provided then filter based on it
+if (!Test-UniqueMessageID -and [string]::IsNullOrEmpty($MessageID)) {
+    $MessageIDFilteredMTL = Group-ByMessageID -MTL $MTL -MessageID $MessageID
+}
+
+# Run the set of tests that we want to run and generate the output.
+Test-MTLStatistics -messageIDFilteredEvents $MessageIDFilteredMTL
+Test-SubmissionData -messageIDFilteredEvents $MessageIDFilteredMTL
+Test-MIMEData -messageIDFilteredEvents $MessageIDFilteredMTL
