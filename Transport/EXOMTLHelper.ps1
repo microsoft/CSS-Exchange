@@ -233,7 +233,7 @@ Function Write-OutputFile {
         [string]
         $message,
         [Parameter(Mandatory = $false)]
-        [hashtable]
+        [System.Management.Automation.OrderedHashtable]
         $myTable
     )
 
@@ -241,8 +241,7 @@ Function Write-OutputFile {
 
     Add-Content -Path $file  $header.ToUpper()
     Add-Content -Path $file "===================="
-    $myTable.getEnumerator() | Format-Table -AutoSize -HideTableHeaders | Out-String | Add-Content -Path $file
-    Add-Content -Path $file "`n"
+    $myTable | Format-Table -AutoSize -HideTableHeaders | Out-String | Add-Content -Path $file
 }
 
 ### Diagnostics ###
@@ -266,7 +265,7 @@ Function Test-SubmissionData {
     $submission = ConvertFrom-StringData ($toParse -replace ",", " `n") -Delimiter ":"
 
     # Build the reporting hashtable
-    $hash = @{
+    $hash = [ordered]@{
         ClientType        = $submission.ClientType
         CreationTime      = $submission.CreationTime
         SubmittingMailbox = $submission.Mailbox
@@ -294,7 +293,7 @@ Function Test-MIMEData {
     $mimeData = (ConvertFrom-StringData ($toParse -replace ";", " `n") -Delimiter "=")["S:MimeParts"].split("S:")[1].split("/")
 
     # Build the reporting hashtable
-    $hash = @{
+    $hash = [ordered]@{
         AttachmentCount           = $mimeData[0]
         EmbeddedAttachments       = $mimeData[1]
         NumberOfMimeParts         = $mimeData[2]
@@ -316,17 +315,19 @@ Function Test-MTLStatistics {
 
     # Sort the events by time.
     $sortedEvents = $messageIDFilteredEvents | Sort-Object -Property "date_time_utc"
-    $receiveEvents = $messageIDFilteredEvents | Where-Object { $_.event_id -like "RECEIVE" }
+    $storeReceiveEvents = $messageIDFilteredEvents | Where-Object { $_.source -eq "STOREDRIVER" -and $_.event_id -like "RECEIVE" }
+    $SMTPReceiveEvents = $messageIDFilteredEvents | Where-Object { $_.source -eq "SMTP" -and $_.event_id -like "RECEIVE" }
     $deliveryEvents = $messageIDFilteredEvents | Where-Object { $_.event_id -like "DELIVER" }
     $sendExternalEvents = $messageIDFilteredEvents | Where-Object { $_.event_id -like "SENDEXTERNAL" }
 
-    $hash = @{
-        MessageID              = $sortedEvents[0].message_id
-        FirstEvent             = $sortedEvents[0].date_time_utc
-        LastEvent              = $sortedEvents[-1].date_time_utc
-        ReceiveEventCount      = $receiveEvents.count
-        DeliveryEventCount     = $deliveryEvents.count
-        SendExternalEventCount = $sendExternalEvents.count
+    $hash = [ordered]@{
+        MessageID          = $sortedEvents[0].message_id
+        FirstEvent         = $sortedEvents[0].date_time_utc
+        LastEvent          = $sortedEvents[-1].date_time_utc
+        StoreReceiveEvents = $storeReceiveEvents.count
+        STMPReceiveEvents  = $SMTPReceiveEvents.count
+        DeliveryEvents     = $deliveryEvents.count
+        SendExternalEvents = $sendExternalEvents.count
     }
 
     Write-OutputFile -header "General MTL Statistics" -myTable $hash
@@ -358,6 +359,8 @@ else {
 }
 
 # Run the set of tests that we want to run and generate the output.
+Write-Output "Generating Reporting"
 Test-MTLStatistics -messageIDFilteredEvents $MessageIDFilteredMTL
 Test-SubmissionData -messageIDFilteredEvents $MessageIDFilteredMTL
 Test-MIMEData -messageIDFilteredEvents $MessageIDFilteredMTL
+Write-Output $ReportFile
