@@ -346,15 +346,14 @@ if (!(Test-Path $ReportPath)) {
 
 # If no messageID was provided make sure that there is only one in the MTL
 if ([string]::IsNullOrEmpty($MessageID)) {
-    if (!Test-UniqueMessageID) {
+    if (!(Test-UniqueMessageID -MTL $MTL)) {
         Write-Error "Multiple MessageIDs detected in MTL please using -MessageID to specify the one to examine" -ErrorAction Stop
     } else {
         $MessageIDFilteredMTL = $MTL
     }
 }
-
 # If a messageID was provided then filter based on it
-if (!Test-UniqueMessageID -and [string]::IsNullOrEmpty($MessageID)) {
+else {
     $MessageIDFilteredMTL = Group-ByMessageID -MTL $MTL -MessageID $MessageID
 }
 
