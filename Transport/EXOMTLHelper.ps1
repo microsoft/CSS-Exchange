@@ -3,24 +3,18 @@
 
 <#
 .NOTES
-	Name: Measure-EmailDelayInMTL.ps1
+	Name: EXOMTLHelper.ps1
 	Requires: User Rights
-    Major Release History:
-        08/05/2024 - Initial Release
 
 .SYNOPSIS
-Generates a report of the maximum message delay for all messages in an Message Tracking Log.
+Reads thru an EXO sourced Message Tracking log to generate plain text reporting on what is in the log.
 
 .DESCRIPTION
-Gather message tracking log details of all message to / from a given recipient for a given time range.
-Recommend using Start-HistoricalSearch in EXO.
+Reads Message Tracking Detailed logs from EXO to generate reporting on critical information that they contain.
+Start-HistoricalSearch -ReportTitle <title> -StartDate <24 hours before sent> -EndDate <24 hours after sent> -ReportType MessageTraceDetail  -MessageID <message ID> -NotifyAddress <address to notify>
 
-The script will provide an output of all unique message ids with the following information:
-MessageID
-Time Sent
-Total Time in transit
-
-Useful for determining if a "slow" message was a one off or a pattern.
+Parses and provides details about the message in the MTL.
+Helpful in troubleshooting message delivery issues.
 
 .PARAMETER MTLFile
 MTL File to process.
@@ -28,21 +22,20 @@ MTL File to process.
 .PARAMETER ReportPath
 Folder path for the output file.
 
+.PARAMETER MessageID
+MessageID of a message to parse if there is more than one in the MTL.
+
 
 .OUTPUTS
-CSV File with the following information.
-    MessageID               ID of the Message
-    TimeSent                First time we see the message in the MTL
-    TimeReceived            Last delivery time in the MTL
-    MessageDelay            How long before the message was delivered
+Text File broken into sections that contain the output of the various data gathering run against the MTL.
 
 Default Output File:
-$PSScriptRoot\MTL_report.csv
+$PSScriptRoot\MTL_Report_<date>.txt
 
 .EXAMPLE
-.\Measure-EmailDelayInMTL -MTLPath C:\temp\MyMtl.csv
+.\EXOMTLHelper.ps1 -MTLPath C:\temp\MyMtl.csv -MessageID <123214124@myserver.com>
 
-Generates a report from the MyMtl.csv file.
+Generates a report from the MyMtl.csv file of the message with ID <123214124@myserver.com>
 
 #>
 
@@ -247,7 +240,7 @@ Function Write-OutputFile {
 ### Diagnostics ###
 
 # Determine and report the type of client that submitted the message
-Function Test-SubmissionData {
+Function Get-SubmissionData {
     [CmdletBinding()]
     param (
         # Parameter help description
@@ -276,7 +269,7 @@ Function Test-SubmissionData {
 
 }
 
-Function Test-MIMEData {
+Function Get-MIMEData {
     [CmdletBinding()]
     param (
         # Parameter help description
@@ -304,7 +297,7 @@ Function Test-MIMEData {
     Write-OutputFile -header "Detected Mime Information on Submission" -myTable $hash
 }
 
-Function Test-MTLStatistics {
+Function Get-MTLStatistics {
     [CmdletBinding()]
     param (
         # Parameter help description
@@ -342,7 +335,7 @@ $MTL = Import-MTL -FilePath $MTLFile
 if (!(Test-Path $ReportPath)) {
     Write-Error ("Unable to find report path " + $ReportPath)
 } else {
-    $ReportFile = (Join-Path -Path $ReportPath -ChildPath ("MTL Report " + (Get-Date -Format FileDateTime).ToString() + ".txt"))
+    $ReportFile = (Join-Path -Path $ReportPath -ChildPath ("MTL_Report_" + (Get-Date -Format FileDateTime).ToString() + ".txt"))
 }
 
 # If no messageID was provided make sure that there is only one in the MTL
@@ -360,7 +353,7 @@ else {
 
 # Run the set of tests that we want to run and generate the output.
 Write-Output "Generating Reporting"
-Test-MTLStatistics -messageIDFilteredEvents $MessageIDFilteredMTL
-Test-SubmissionData -messageIDFilteredEvents $MessageIDFilteredMTL
-Test-MIMEData -messageIDFilteredEvents $MessageIDFilteredMTL
+Get-MTLStatistics -messageIDFilteredEvents $MessageIDFilteredMTL
+Get-SubmissionData -messageIDFilteredEvents $MessageIDFilteredMTL
+Get-MIMEData -messageIDFilteredEvents $MessageIDFilteredMTL
 Write-Output $ReportFile
