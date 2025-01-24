@@ -12,6 +12,11 @@ To Provide Feedback about this tool: [Feedback Form](https://forms.office.com/pa
 
 Use: Collects OAuth and DAuth Hybrid Availability Configuration Settings Both for Exchange On Premises and Exchange Online if connected to Exchange Online using -Prefix EO before executing this script (see Usage bellow).
 
+How To Run:
+
+This script must be run as Administrator in Exchange Management Shell on an Exchange Server. You can provide no parameters, and the script will just run against Exchange On-Premises and Exchange Online to query for OAuth and DAuth configuration settings. It will compare existing values with standard values and provide details of what may not be correct.
+Please take note that though this script may output that a specific setting is not a standard setting, it does not mean that your configurations are incorrect. For example, DNS may be configured with specific mappings that this script cannot evaluate.
+
 Example Screen Output:
 
 ![image](./image1.png)
@@ -39,17 +44,6 @@ Required Permissions:
 Please make sure that the account used is a member of the Local Administrator group. This should be fulfilled on Exchange servers by being a member of the Organization Management group. However, if the group membership was adjusted or in case the script is executed on a non-Exchange system like a management server, you need to add your account to the Local Administrator group.
 
 Other Pre Requisites:
-
-AD management Tools:
-
-If not available, they can be installed with the following command:
-
-```powershell
-  Install-WindowsFeature -name AD-Domain-Services -IncludeManagementTools
-```
-Imports and Installs the following Modules (if not available):
-
-PSSnapin: microsoft.exchange.management.powershell.snapin
 
 Module  : ActiveDirectory Module
 Module  : ExchangeOnlineManagement Module

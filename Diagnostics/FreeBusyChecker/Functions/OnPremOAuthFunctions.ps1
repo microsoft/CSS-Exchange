@@ -541,7 +541,6 @@ function AutoDVirtualDCheckOauth {
 function EWSVirtualDirectoryCheckOAuth {
     Write-Host -ForegroundColor Green " Get-WebServicesVirtualDirectory  -Server $($server)| Select Identity,Name,ExchangeVersion,*Authentication*,*url"
     PrintDynamicWidthLine
-    FetchEWSInformation
     $W = $WebServicesVirtualDirectoryOAuth | Format-List
     $W
     EWSVirtualDirectoryCheckOAuthHtmlHead
@@ -624,7 +623,6 @@ function EWSVirtualDirectoryCheckOAuth {
         }
         Write-Host -ForegroundColor White "  Should be True"
     }
-    #PrintDynamicWidthLine
     Write-Host -ForegroundColor White "`n  WindowsAuthentication:"
     if ($WebServicesVirtualDirectoryOauth.WindowsAuthentication -eq "True") {
         foreach ( $ser in $WebServicesVirtualDirectoryOauth) {

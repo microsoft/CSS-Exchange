@@ -428,7 +428,6 @@ function AutoDVirtualDCheck {
 function EWSVirtualDirectoryCheck {
     Write-Host -ForegroundColor Green " Get-WebServicesVirtualDirectory -Server $($server)| Select Identity,Name,ExchangeVersion,*Authentication*,*url"
     PrintDynamicWidthLine
-    FetchEWSInformation
     $Script:WebServicesVirtualDirectory
     PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " Summary - Get-WebServicesVirtualDirectory"

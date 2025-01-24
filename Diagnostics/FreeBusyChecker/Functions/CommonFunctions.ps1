@@ -4,7 +4,7 @@ function Test-ExchangeOnlineConnection {
     Write-Host -ForegroundColor Green " Checking Exchange Online Configuration"
     Write-Host " Testing Connection to Exchange Online with EO Prefix."
     try {
-        $CheckExoMailbox = get-EOMailbox $Script:UserOnline -ErrorAction Stop
+        $CheckExoMailbox = Get-EOMailbox $Script:UserOnline -ErrorAction Stop
         if ($null -ne $CheckExoMailbox) {
             return $true
         } else {
@@ -24,14 +24,12 @@ function FetchEWSInformation {
     if (-not $Script:WebServicesVirtualDirectory -or -not $Script:WebServicesVirtualDirectoryOAuth) {
         $Script:WebServicesVirtualDirectory = Get-WebServicesVirtualDirectory -Server $Script:Server | Select-Object Identity, Name, ExchangeVersion, *Authentication*, *url -ErrorAction SilentlyContinue
         $Script:WebServicesVirtualDirectoryOAuth = $Script:WebServicesVirtualDirectory
+        $Script:ExchangeOnPremEWS = ($Script:WebServicesVirtualDirectory.externalURL.AbsoluteUri)
     }
 }
 function CheckIfExchangeServer {
-    param (
-        [string]$Server
-    )
-    $exchangeServer = Get-ExchangeServer $Server -ErrorAction SilentlyContinue
-    if (!$exchangeServer) {
+    $exchangeShell = Confirm-ExchangeShell
+    if (-not($exchangeShell.ShellLoaded)) {
         Write-Host "$Server is not an Exchange Server. This script should be run in Exchange Server Management Shell"
         exit
     }

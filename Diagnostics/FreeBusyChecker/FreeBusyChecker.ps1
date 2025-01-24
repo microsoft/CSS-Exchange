@@ -97,7 +97,11 @@ param(
     [Parameter(Mandatory = $false, ParameterSetName = "Test")]
     [string]$OnPremEWSUrl,
     [Parameter(Mandatory = $false, ParameterSetName = "Test")]
-    [string]$OnPremLocalDomain
+    [string]$OnPremLocalDomain,
+    [Parameter(Mandatory = $true, ParameterSetName = "ScriptUpdateOnly", HelpMessage = "Update only script.")]
+    [switch]$ScriptUpdateOnly,
+    [Parameter(Mandatory = $false, ParameterSetName = "SkipVersionCheck", HelpMessage = "Skip version check.")]
+    [switch]$SkipVersionCheck
 )
 begin {
     . $PSScriptRoot\Functions\OnPremDAuthFunctions.ps1
@@ -107,6 +111,8 @@ begin {
     . $PSScriptRoot\Functions\htmlContent.ps1
     . $PSScriptRoot\Functions\hostOutput.ps1
     . $PSScriptRoot\Functions\CommonFunctions.ps1
+    . $PSScriptRoot\..\..\Shared\Confirm-ExchangeShell.ps1
+    . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\GenericScriptUpdate.ps1
 } end {
     $Script:countOrgRelIssues = (0)
     $Script:WebServicesVirtualDirectory = $null
@@ -114,7 +120,6 @@ begin {
     $Script:startingDate = (Get-Date -Format yyyyMMdd_HHmmss)
     $Script:htmlFile = "$PSScriptRoot\FBCheckerOutput_$($Script:startingDate).html"
 
-    CheckIfExchangeServer($Script:Server)
     loadingParameters
     #Parameter input
 
@@ -147,14 +152,9 @@ begin {
     $Script:ExchangeOnPremDomain = ($Script:UserOnPrem -split "@")[1]
 
     if (-not $OnPremEWSUrl) {
-
-        $EWSVirtualDirectory = Get-WebServicesVirtualDirectory -server $Script:Server -ErrorAction SilentlyContinue
-        if ($EWSVirtualDirectory.externalURL.AbsoluteUri.Count -gt 1) {
-            $Script:ExchangeOnPremEWS = ($EWSVirtualDirectory.externalURL.AbsoluteUri)[0]
-        } else {
-            $Script:ExchangeOnPremEWS = ($EWSVirtualDirectory.externalURL.AbsoluteUri)
-        }
+        FetchEWSInformation
     } else {
+        FetchEWSInformation
         $Script:ExchangeOnPremEWS = ($OnPremEWSUrl)
     }
 
@@ -182,13 +182,13 @@ begin {
         exit
     }
     #region Show Parameters
-    $Script:IntraOrgCon = Get-IntraOrganizationConnector -WarningAction SilentlyContinue -ErrorAction SilentlyContinue | Select-Object Name, TarGetAddressDomains, DiscoveryEndpoint, Enabled
+    $Script:IntraOrgCon = Get-IntraOrganizationConnector -WarningAction SilentlyContinue -ErrorAction SilentlyContinue | Where-Object { $_.TargetAddressDomains -contains $Script:ExchangeOnlineDomain } | Select-Object Name, TarGetAddressDomains, DiscoveryEndpoint, Enabled
     ShowParameters
     CheckParameters
-    if ($Script:IntraOrgCon.enabled -like "True") {
+    if ($Script:IntraOrgCon.enabled -eq $true) {
         $Auth = hostOutputIntraOrgConEnabled($Auth)
     }
-    if ($Script:IntraOrgCon.enabled -like "False") {
+    if ($Script:IntraOrgCon.enabled -eq $false) {
         hostOutputIntraOrgConNotEnabled
     }
     # Free busy Lookup methods
@@ -249,7 +249,6 @@ begin {
         if (-not ($Exo)) {
             Write-Host -ForegroundColor Red "`n Please connect to Exchange Online Using the EXO V3 module using EO as connection Prefix to collect Exchange OnLine Free Busy configuration Information."
             Write-Host -ForegroundColor Cyan "`n`n   Example: PS C:\Connect-ExchangeOnline -Prefix EO"
-            Write-Host -ForegroundColor Cyan "`n   Example: PS C:\Connect-ExchangeOnline -Prefix EO -Org ExchangeOnline"
             Write-Host -ForegroundColor Yellow "`n   More Info at:https://learn.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2?view=exchange-ps"
             exit
         }
