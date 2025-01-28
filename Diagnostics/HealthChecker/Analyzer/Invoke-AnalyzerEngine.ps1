@@ -34,14 +34,16 @@ function Invoke-AnalyzerEngine {
         DisplayGroupingKey  = (Get-DisplayResultsGroupingKey -Name "BeginningInfo" -DisplayGroupName $false -DisplayOrder 0 -DefaultTabNumber 0)
     }
 
+    <# TODO: Determine if we want to remove.
     if (!$Script:DisplayedScriptVersionAlready) {
         $params = $baseParams + @{
             Name             = "Exchange Health Checker Version"
-            Details          = $BuildVersion
+            Details          = $HealthServerObject.HealthCheckerVersion
             AddHtmlDetailRow = $false
         }
         Add-AnalyzedResultInformation @params
     }
+    #>
 
     $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that:
