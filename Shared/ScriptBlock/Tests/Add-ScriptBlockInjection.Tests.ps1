@@ -19,12 +19,12 @@ Describe "Generic Testing" {
     }
 
     It "Making sure it is a ScriptBlock type" {
-        $Script:results.GetType().Name | Should -Be "ScriptBlock"
+        $Script:results | Should -BeOfType "ScriptBlock"
     }
 
     It "Can be converted to script block" {
         $Script:results = [ScriptBlock]::Create($Script:results)
-        $Script:results.GetType().Name | Should -Be "ScriptBlock"
+        $Script:results | Should -BeOfType "ScriptBlock"
     }
 }
 
