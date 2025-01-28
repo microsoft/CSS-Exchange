@@ -1,13 +1,15 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\DataCollection\OrganizationInformation\Add-JobOrganizationInformation.ps1
+
 <#
     TODO:
         Write-Progress bar to be included
         Include Write-Warning in the debug logging
         Improve logic for determining what name to use FQDN or name.
 #>
-function Get-HealthCheckerData {
+function Get-HealthCheckerDataCollection {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
@@ -67,6 +69,9 @@ function Get-HealthCheckerData {
             }
         }
         Write-Verbose "Took $($stopWatch.Elapsed.TotalSeconds) seconds to get the Exchange Server and determine what names we can use."
+
+        # Set the script variable for the name of the computer that we want to connect to for EMS
+        $Script:PrimaryRemoteShellConnectionPoint = (Get-PSSession | Where-Object { $_.Availability -eq "Available" -and $_.State -eq "Opened" } | Select-Object -First 1).ComputerName
 
         # Add all the jobs to the queue that we need.
     }
