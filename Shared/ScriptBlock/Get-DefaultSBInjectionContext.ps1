@@ -11,13 +11,13 @@
     This function utilized Add-ScriptBlockInjection and will automatically include the required variables
     and script blocks needed within the project to handle logging in a remote script block.
 .DESCRIPTION
-    By default this will include, if they are overwritten, the script blocks for the functions:
+    By default this will include, if they are overridden, the script blocks for the functions:
         Write-Verbose
         Write-Progress
         Write-Host
-    The reason why these are overwritten is to allow the code to be execute by itself and still work correctly.
-    So instead of creating a function called Write-VerboseAndLog to Write-Verbose to the screen and log out the information, you can just overwrite Write-Verbose to do this for you.
-    The problem comes in when you would like to debug a remote execution in a log to determine a problem. In your overwritten functions, you can account for this and have the caller handle this.
+    The reason why these are overridden is to allow the code to be execute by itself and still work correctly.
+    So instead of creating a function called Write-VerboseAndLog to Write-Verbose to the screen and log out the information, you can just override Write-Verbose to do this for you.
+    The problem comes in when you would like to debug a remote execution in a log to determine a problem. In your overridden functions, you can account for this and have the caller handle this.
 .PARAMETER PrimaryScriptBlock
     This is the main script block that we will be injecting everything inside of.
     This is the one that you will be passing your arguments to if there are any and will be executing.
