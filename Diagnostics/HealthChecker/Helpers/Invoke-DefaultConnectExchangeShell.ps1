@@ -4,20 +4,32 @@
 function Invoke-DefaultConnectExchangeShell {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true)]
-        [string]$ExchangeServerName
+        [Parameter(Position = 1)]
+        [string]$ExchangeServerName,
+
+        [bool]$Force = $false
     )
     process {
-        $currentWarningPreference = $WarningPreference
-        $WarningPreference = 'SilentlyContinue'
-        Import-PSSession (New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri "http://$ExchangeServerName/powershell" -Authentication Kerberos) | Out-Null
 
-        try {
-            Get-EventLogLevel -ErrorAction Stop | Out-Null
-            Write-Verbose "Successfully loaded Exchange Shell"
-        } catch {
-            throw "Failed to load Exchange Management Shell against server $ExchangeServerName."
+        if ($PSSenderInfo -or $Force) {
+
+            if ([string]::IsNullOrEmpty($ExchangeServerName) -and $PSSenderInfo) {
+                # $PrimaryRemoteShellConnectionPoint must be set in the primary session.
+                # With Start-Job, this always requires any Using variable to be set, even if we aren't going to be using it.
+                $ExchangeServerName = $Using:PrimaryRemoteShellConnectionPoint
+            }
+
+            $currentWarningPreference = $WarningPreference
+            $WarningPreference = 'SilentlyContinue'
+            Import-PSSession (New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri "http://$ExchangeServerName/powershell" -Authentication Kerberos) | Out-Null
+
+            try {
+                Get-EventLogLevel -ErrorAction Stop | Out-Null
+                Write-Verbose "Successfully loaded Exchange Shell"
+            } catch {
+                throw "Failed to load Exchange Management Shell against server $ExchangeServerName. Inner Exception $_"
+            }
+            $WarningPreference = $currentWarningPreference
         }
-        $WarningPreference = $currentWarningPreference
     }
 }
