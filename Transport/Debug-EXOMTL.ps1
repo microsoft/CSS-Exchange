@@ -3,7 +3,7 @@
 
 <#
 .NOTES
-	Name: EXOMTLHelper.ps1
+	Name: Debug-EXOMTL.ps1
 	Requires: User Rights
 
 .SYNOPSIS
@@ -25,7 +25,6 @@ Folder path for the output file.
 .PARAMETER MessageID
 MessageID of a message to parse if there is more than one in the MTL.
 
-
 .OUTPUTS
 Text File broken into sections that contain the output of the various data gathering run against the MTL.
 
@@ -33,7 +32,7 @@ Default Output File:
 $PSScriptRoot\MTL_Report_<date>.txt
 
 .EXAMPLE
-.\EXOMTLHelper.ps1 -MTLPath C:\temp\MyMtl.csv -MessageID <123214124@myserver.com>
+.\Debug-EXOMTL.ps1 -MTLPath C:\temp\MyMtl.csv -MessageID <123214124@myserver.com>
 
 Generates a report from the MyMtl.csv file of the message with ID <123214124@myserver.com>
 
@@ -240,7 +239,7 @@ Function Write-OutputFile {
 ### Diagnostics ###
 
 # Determine and report the type of client that submitted the message
-Function Get-SubmissionData {
+Function Get-StoreSubmissionData {
     [CmdletBinding()]
     param (
         # Parameter help description
@@ -251,7 +250,7 @@ Function Get-SubmissionData {
 
     # Select the StoreDriver Submit event for this messageID
     $entry = $messageIDFilteredEvents | Where-Object { $_.source -eq "STOREDRIVER" -and $_.event_id -eq "RECEIVE" }
-    if ($entry.count -gt 1) { Write-Error "Found more than one STOREDRIVER RECIEVE event for this message" }
+    if ($entry.count -gt 1) { Write-Warning "Found more than one STOREDRIVER RECIEVE event for this message" }
     else { $toParse = $entry.source_context }
 
     # Extract the submission data
@@ -265,7 +264,7 @@ Function Get-SubmissionData {
         MessageClass      = $submission.MessageClass
     }
 
-    Write-OutputFile -header "Submission information" -myTable $hash
+    Write-OutputFile -header "Submission Information" -myTable $hash
 
 }
 
@@ -312,13 +311,15 @@ Function Get-MTLStatistics {
     $SMTPReceiveEvents = $messageIDFilteredEvents | Where-Object { $_.source -eq "SMTP" -and $_.event_id -like "RECEIVE" }
     $deliveryEvents = $messageIDFilteredEvents | Where-Object { $_.event_id -like "DELIVER" }
     $sendExternalEvents = $messageIDFilteredEvents | Where-Object { $_.event_id -like "SENDEXTERNAL" }
+    $SMTPResubmitEvents = $messageIDFilteredEvents | Where-Object { $_.event_id -like "RESUBMIT" }
 
     $hash = [ordered]@{
         MessageID          = $sortedEvents[0].message_id
         FirstEvent         = $sortedEvents[0].date_time_utc
         LastEvent          = $sortedEvents[-1].date_time_utc
         StoreReceiveEvents = $storeReceiveEvents.count
-        STMPReceiveEvents  = $SMTPReceiveEvents.count
+        SMTPReceiveEvents  = $SMTPReceiveEvents.count
+        SMTPResubmitEvents = $SMTPResubmitEvents.count
         DeliveryEvents     = $deliveryEvents.count
         SendExternalEvents = $sendExternalEvents.count
     }
@@ -354,6 +355,6 @@ else {
 # Run the set of tests that we want to run and generate the output.
 Write-Output "Generating Reporting"
 Get-MTLStatistics -messageIDFilteredEvents $MessageIDFilteredMTL
-Get-SubmissionData -messageIDFilteredEvents $MessageIDFilteredMTL
+Get-SToreSubmissionData -messageIDFilteredEvents $MessageIDFilteredMTL
 Get-MIMEData -messageIDFilteredEvents $MessageIDFilteredMTL
 Write-Output $ReportFile
