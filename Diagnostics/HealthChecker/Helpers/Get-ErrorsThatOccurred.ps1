@@ -12,7 +12,7 @@ function Get-ErrorsThatOccurred {
         Write-VerboseErrorInformation $CurrentError
     }
 
-    if ($Error.Count -gt 0) {
+    if ($Error.Count -gt 0 -or $Script:SaveDebugLog) {
         Write-Host ""
         Write-Host ""
         function Write-Errors {
@@ -44,7 +44,7 @@ function Get-ErrorsThatOccurred {
                 Invoke-CatchActions
             }
         } elseif ($Script:VerboseEnabled -or
-            $SaveDebugLog) {
+            $Script:SaveDebugLog) {
             Write-Verbose "All errors that occurred were in try catch blocks and was handled correctly."
             $Script:Logger.PreventLogCleanup = $true
             Write-Errors

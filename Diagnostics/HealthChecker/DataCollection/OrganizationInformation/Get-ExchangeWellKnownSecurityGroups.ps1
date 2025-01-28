@@ -11,9 +11,10 @@ function Get-ExchangeWellKnownSecurityGroups {
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $exchangeGroups = New-Object 'System.Collections.Generic.List[object]'
+        $otherWellKnownObjects = $null
     } process {
         try {
-            $otherWellKnownObjects = Get-ExchangeOtherWellKnownObjects
+            Get-ExchangeOtherWellKnownObjects | Invoke-RemotePipelineHandler -Result ([ref]$otherWellKnownObjects)
         } catch {
             Write-Verbose "Failed to get Get-ExchangeOtherWellKnownObjects"
             Invoke-CatchActions

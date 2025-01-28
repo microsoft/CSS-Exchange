@@ -48,6 +48,17 @@ function Write-OutColumns($OutColumns) {
                 IndentSpaces       = $OutColumns.IndentSpaces
                 StringOutput       = ([ref]$stringOutput)
             }
+
+            if ($null -ne $OutColumns.ColorizerFunctions -and
+                $OutColumns.ColorizerFunctions[0].GetType().Name -eq "String") {
+                $colorizerFunctions = @()
+                foreach ($sb in $OutColumns.ColorizerFunctions) {
+                    $colorizerFunctions += [ScriptBlock]::Create($sb)
+                }
+
+                $params.ColorizerFunctions = $colorizerFunctions
+            }
+
             $OutColumns.DisplayObject | Out-Columns @params
             $stringOutput | Out-File ($Script:OutputFullPath) -Append
             Write-DebugLog $stringOutput

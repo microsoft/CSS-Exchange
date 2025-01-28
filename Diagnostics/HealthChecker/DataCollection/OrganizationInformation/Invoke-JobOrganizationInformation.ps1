@@ -1,24 +1,27 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\Get-ExchangeAdSchemaInformation.ps1
-. $PSScriptRoot\Get-ExchangeDomainsAclPermissions.ps1
-. $PSScriptRoot\Get-ExchangeWellKnownSecurityGroups.ps1
-. $PSScriptRoot\Get-SecurityCve-2021-34470.ps1
-. $PSScriptRoot\Get-SecurityCve-2022-21978.ps1
-. $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ExchangeADSplitPermissionsEnabled.ps1
-. $PSScriptRoot\..\..\..\..\Shared\Get-MonitoringOverride.ps1
-. $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
-. $PSScriptRoot\..\..\..\..\Shared\Invoke-CatchActionErrorLoop.ps1
-function Get-OrganizationInformation {
+function Invoke-JobOrganizationInformation {
     [CmdletBinding()]
-    param(
-        [Parameter(Mandatory = $true)]
-        [bool]$EdgeServer
-    )
+    param()
     begin {
+
+        # Build Process to add functions.
+        . $PSScriptRoot\Get-ExchangeAdSchemaInformation.ps1
+        . $PSScriptRoot\Get-ExchangeDomainsAclPermissions.ps1
+        . $PSScriptRoot\Get-ExchangeWellKnownSecurityGroups.ps1
+        . $PSScriptRoot\Get-SecurityCve-2021-34470.ps1
+        . $PSScriptRoot\Get-SecurityCve-2022-21978.ps1
+        . $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ExchangeADSplitPermissionsEnabled.ps1
+
+        if ($PSSenderInfo) {
+            $Script:ErrorsExcluded = @()
+        }
+
+        $jobStopWatch = [System.Diagnostics.Stopwatch]::StartNew()
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        $organizationConfig = $null
+        Invoke-DefaultConnectExchangeShell
+        $getOrganizationConfig = $null
         $domainsAclPermissions = $null
         $wellKnownSecurityGroups = $null
         $adSchemaInformation = $null
@@ -30,22 +33,31 @@ function Get-OrganizationInformation {
         $isSplitADPermissions = $false
         $adSiteCount = 0
         $getSettingOverride = $null
-    } process {
+        $jobHandledErrors = $null
+    }
+    process {
         try {
-            $organizationConfig = Get-OrganizationConfig -ErrorAction Stop
+            $getOrganizationConfig = Get-OrganizationConfig -ErrorAction Stop
         } catch {
-            Write-Yellow "Failed to run Get-OrganizationConfig."
+            Write-Warning "Failed to run Get-OrganizationConfig."
+            Invoke-CatchActions
+        }
+
+        try {
+            $getSendConnector = Get-SendConnector -ErrorAction Stop
+        } catch {
+            Write-Verbose "Failed to run Get-SendConnector"
             Invoke-CatchActions
         }
 
         # Pull out information from OrganizationConfig
-        # This is done in case Get-OrganizationConfig and we set a true boolean value of false
-        if ($null -ne $organizationConfig) {
-            $mapiHttpEnabled = $organizationConfig.MapiHttpEnabled
+        # This is done incase Get-OrganizationConfig and we set a true boolean value of false
+        if ($null -ne $getOrganizationConfig) {
+            $mapiHttpEnabled = $getOrganizationConfig.MapiHttpEnabled
             # Enabled Download Domains will not be there if running EMS from Exchange 2013.
             # By default, EnableDownloadDomains is set to Unknown in case this is run on 2013 server.
-            if ($null -ne $organizationConfig.EnableDownloadDomains) {
-                $enableDownloadDomains = $organizationConfig.EnableDownloadDomains
+            if ($null -ne $getOrganizationConfig.EnableDownloadDomains) {
+                $enableDownloadDomains = $getOrganizationConfig.EnableDownloadDomains
             } else {
                 Write-Verbose "No EnableDownloadDomains detected on Get-OrganizationConfig"
             }
@@ -61,21 +73,13 @@ function Get-OrganizationInformation {
             Invoke-CatchActions
         }
 
-        try {
-            $getSendConnector = Get-SendConnector -ErrorAction Stop
-        } catch {
-            Write-Verbose "Failed to run Get-SendConnector"
-            Invoke-CatchActions
-        }
+        if (-not (Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\EdgeTransportRole')) {
+            Get-ExchangeAdSchemaInformation | Invoke-RemotePipelineHandler -Result ([ref]$adSchemaInformation)
+            Get-ExchangeDomainsAclPermissions | Invoke-RemotePipelineHandler -Result ([ref]$domainsAclPermissions)
+            Get-ExchangeWellKnownSecurityGroups | Invoke-RemotePipelineHandler -Result ([ref]$wellKnownSecurityGroups)
+            Get-ExchangeADSplitPermissionsEnabled -CatchActionFunction ${Function:Invoke-CatchActions} | Invoke-RemotePipelineHandler -Result ([ref]$isSplitADPermissions)
 
-        # NO Edge Server Collection
-        if (-not ($EdgeServer)) {
-
-            $adSchemaInformation = Get-ExchangeAdSchemaInformation
-            $domainsAclPermissions = Get-ExchangeDomainsAclPermissions
-            $wellKnownSecurityGroups = Get-ExchangeWellKnownSecurityGroups
-            $isSplitADPermissions = Get-ExchangeADSplitPermissionsEnabled -CatchActionFunction ${Function:Invoke-CatchActions}
-
+            # Exchange Cmdlets
             try {
                 $getIrmConfiguration = Get-IRMConfiguration -ErrorAction Stop
             } catch {
@@ -91,6 +95,13 @@ function Get-OrganizationInformation {
             }
 
             try {
+                $getAuthServer = Get-AuthServer -ErrorAction Stop
+            } catch {
+                Write-Verbose "Failed to run Auth Server"
+                Invoke-CatchActions
+            }
+
+            try {
                 # It was reported that this isn't getting thrown to the catch action when failing. As a quick fix, handling this by looping over errors.
                 $currentErrors = $Error.Count
                 $getDdgPublicFolders = @(Get-DynamicDistributionGroup "PublicFolderMailboxes*" -IncludeSystemObjects -ErrorAction "Stop")
@@ -100,6 +111,24 @@ function Get-OrganizationInformation {
                 Invoke-CatchActions
             }
 
+            try {
+                $getHybridConfiguration = Get-HybridConfiguration -ErrorAction Stop
+            } catch {
+                Write-Yellow "Failed to run Get-HybridConfiguration"
+                Invoke-CatchActions
+            }
+
+            try {
+                $getSettingOverride = Get-SettingOverride -ErrorAction Stop
+            } catch {
+                Write-Verbose "Failed to run Get-SettingOverride"
+                $getSettingOverride = "Unknown"
+                Invoke-CatchActions
+            }
+
+            [array]$globalMonitoringOverride = Get-MonitoringOverride
+
+            # AD Queries
             try {
                 $rootDSE = [ADSI]("LDAP://$([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Name)/RootDSE")
                 $directorySearcher = New-Object System.DirectoryServices.DirectorySearcher
@@ -135,39 +164,24 @@ function Get-OrganizationInformation {
                 MsExchStorageGroup = $adSchemaInformation.MsExchStorageGroup
             }
 
+            $CVE202221978Results = $null
+            $CVE202134470Results = $null
+            Get-SecurityCve-2022-21978 @cve21978Params | Invoke-RemotePipelineHandler -Result ([ref]$CVE202221978Results)
+            Get-SecurityCve-2021-34470 @cve34470Params | Invoke-RemotePipelineHandler -Result ([ref]$CVE202134470Results)
+
             $securityResults = [PSCustomObject]@{
-                CVE202221978 = (Get-SecurityCve-2022-21978 @cve21978Params)
-                CVE202134470 = (Get-SecurityCve-2021-34470 @cve34470Params)
+                CVE202221978 = $CVE202221978Results
+                CVE202134470 = $CVE202134470Results
             }
+        }
 
-            try {
-                $getHybridConfiguration = Get-HybridConfiguration -ErrorAction Stop
-            } catch {
-                Write-Yellow "Failed to run Get-HybridConfiguration"
-                Invoke-CatchActions
-            }
-
-            try {
-                $getAuthServer = Get-AuthServer -ErrorAction Stop
-            } catch {
-                Write-Verbose "Failed to run Get-AuthServer"
-                Invoke-CatchActions
-            }
-
-            try {
-                $getSettingOverride = Get-SettingOverride -ErrorAction Stop
-            } catch {
-                Write-Verbose "Failed to run Get-SettingOverride"
-                $getSettingOverride = "Unknown"
-                Invoke-CatchActions
-            }
-
-            [array]$globalMonitoringOverride = Get-MonitoringOverride
+        if ($PSSenderInfo) {
+            $jobHandledErrors = $Script:ErrorsExcluded
         }
     } end {
-        return [PSCustomObject]@{
-            GetAuthServer                     = $getAuthServer
-            GetOrganizationConfig             = $organizationConfig
+        Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($jobStopWatch.Elapsed.TotalSeconds) seconds"
+        [PSCustomObject]@{
+            GetOrganizationConfig             = $getOrganizationConfig
             DomainsAclPermissions             = $domainsAclPermissions
             WellKnownSecurityGroups           = $wellKnownSecurityGroups
             AdSchemaInformation               = $adSchemaInformation
@@ -183,7 +197,10 @@ function Get-OrganizationInformation {
             GetIrmConfiguration               = $getIrmConfiguration
             GetGlobalMonitoringOverride       = $globalMonitoringOverride
             GetAuthConfig                     = $getAuthConfig
+            GetAuthServer                     = $getAuthServer
             GetSendConnector                  = $getSendConnector
+            RemoteJob                         = $true -eq $PSSenderInfo
+            JobHandledErrors                  = $jobHandledErrors
         }
     }
 }

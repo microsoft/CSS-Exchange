@@ -1,7 +1,6 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\Get-ExchangeCertificateCustomObject.ps1
 . $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 
 function Invoke-AnalyzerSecurityExchangeCertificates {
@@ -24,15 +23,7 @@ function Invoke-AnalyzerSecurityExchangeCertificates {
         DisplayGroupingKey  = $DisplayGroupingKey
     }
 
-    $customObjectParams = @{
-        InternalTransportCertificate = $exchangeInformation.ExchangeCertificateInformation.InternalCertificate
-        AuthConfig                   = $HealthServerObject.OrganizationInformation.GetAuthConfig
-    }
-
-    $exchangeServerCertificatesObject = $null
-    $exchangeInformation.ExchangeCertificateInformation.Certificates |
-        Get-ExchangeCertificateCustomObject @customObjectParams |
-        Invoke-RemotePipelineHandler -Result ([ref]$exchangeServerCertificatesObject)
+    $exchangeServerCertificatesObject = $exchangeInformation.ExchangeCertificateInformation.CustomCertificates
 
     foreach ($certificate in $exchangeServerCertificatesObject) {
 

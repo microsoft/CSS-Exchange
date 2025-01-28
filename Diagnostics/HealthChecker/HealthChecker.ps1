@@ -129,6 +129,14 @@ param(
     [Parameter(Mandatory = $true, ParameterSetName = "VulnerabilityReport", HelpMessage = "Enable to collect data on the entire environment and report only the security vulnerabilities.")]
     [switch]$VulnerabilityReport,
 
+    # TODO: Remove this prior to public release
+    [Parameter(Mandatory = $false)]
+    [ValidateScript( { $_ -ge 2 -and $_ -le 30 })]
+    [string]$DevTestingDefaultOptimizedServerToJobSize = 8,
+
+    [Parameter(Mandatory = $false)]
+    [switch]$ForceLegacy,
+
     [Parameter(Mandatory = $false, ParameterSetName = "HealthChecker", HelpMessage = "Skip over checking for a new updated version of the script.")]
     [Parameter(Mandatory = $false, ParameterSetName = "MailboxReport", HelpMessage = "Skip over checking for a new updated version of the script.")]
     [Parameter(Mandatory = $false, ParameterSetName = "LoadBalancingReport", HelpMessage = "Skip over checking for a new updated version of the script.")]
@@ -147,7 +155,6 @@ param(
 
 begin {
 
-    . $PSScriptRoot\Analyzer\Invoke-AnalyzerEngine.ps1
     . $PSScriptRoot\Helpers\Get-ErrorsThatOccurred.ps1
     . $PSScriptRoot\Helpers\Get-ExportedHealthCheckerFiles.ps1
     . $PSScriptRoot\Helpers\Invoke-ConfirmExchangeShell.ps1
