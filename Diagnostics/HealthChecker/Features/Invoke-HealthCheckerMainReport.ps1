@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Get-HealthCheckerDataCollection.ps1
 . $PSScriptRoot\Get-HealthCheckerData.ps1
 # The main functionality of Exchange Health Checker.
 # Collect information and report it to the screen and export out the results.
