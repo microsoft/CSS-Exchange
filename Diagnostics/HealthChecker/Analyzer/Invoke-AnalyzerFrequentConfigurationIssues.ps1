@@ -3,7 +3,6 @@
 
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
-. $PSScriptRoot\Get-ExchangeConnectorCustomObject.ps1
 . $PSScriptRoot\..\..\..\Shared\CompareExchangeBuildLevel.ps1
 . $PSScriptRoot\..\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\..\Shared\ValidatorFunctions\Test-IanaTimeZoneMapping.ps1
@@ -352,19 +351,7 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
 
     # Detect Send Connector sending to EXO
     $exoConnector = New-Object System.Collections.Generic.List[object]
-    $sendConnectors = $null
-
-    if ($null -ne $organizationInformation.GetSendConnector) {
-        $objParams = @{
-            Connector   = $organizationInformation.GetSendConnector
-            Certificate = $exchangeInformation.ExchangeCertificateInformation.Certificates
-        }
-        $sendConnectors = $null
-
-        if (@($objParams.Connector.PSObject.Properties).Count -ne 0) {
-            Get-ExchangeConnectorCustomObject @objParams | Invoke-RemotePipelineHandlerList -Result ([ref]$sendConnectors)
-        }
-    }
+    $sendConnectors = $exchangeInformation.ExchangeCustomConnector | Where-Object { $_.ConnectorType -eq "Send" }
 
     foreach ($sendConnector in $sendConnectors) {
         $smartHostMatch = ($sendConnector.SmartHosts -match $eopDomainRegExPattern).Count -gt 0

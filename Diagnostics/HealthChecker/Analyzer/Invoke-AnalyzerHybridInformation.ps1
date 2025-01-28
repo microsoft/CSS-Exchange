@@ -3,7 +3,6 @@
 
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
-. $PSScriptRoot\Get-ExchangeConnectorCustomObject.ps1
 . $PSScriptRoot\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 
 function Invoke-AnalyzerHybridInformation {
@@ -301,13 +300,9 @@ function Invoke-AnalyzerHybridInformation {
             Add-AnalyzedResultInformation @params
         }
 
-        if ($null -ne $HealthServerObject.OrganizationInformation.GetSendConnector -or
-            $null -ne $exchangeInformation.GetReceiveConnector) {
-            [array]$connectors = $HealthServerObject.OrganizationInformation.GetSendConnector
-            [array]$connectors += $exchangeInformation.GetReceiveConnector
-            $exchangeConnectors = $null
-            Get-ExchangeConnectorCustomObject -Connector $connectors -Certificate $exchangeInformation.ExchangeCertificateInformation.Certificates |
-                Invoke-RemotePipelineHandlerList -Result ([ref]$exchangeConnectors)
+        if ($null -ne $exchangeInformation.ExchangeCustomConnector) {
+
+            $exchangeConnectors = $exchangeInformation.ExchangeCustomConnector
 
             foreach ($connector in $exchangeConnectors) {
                 $cloudConnectorWriteType = "Yellow"
