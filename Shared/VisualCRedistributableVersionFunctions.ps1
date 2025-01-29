@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Invoke-ScriptBlockHandler.ps1
+. $PSScriptRoot\ScriptBlock\RemotePipelineHandlerFunctions.ps1
 
 function Get-VisualCRedistributableInstalledVersion {
     [CmdletBinding()]
@@ -14,10 +15,15 @@ function Get-VisualCRedistributableInstalledVersion {
         $softwareList = New-Object 'System.Collections.Generic.List[object]'
     }
     process {
-        $installedSoftware = Invoke-ScriptBlockHandler -ComputerName $ComputerName `
-            -ScriptBlock { Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\* } `
-            -ScriptBlockDescription "Querying for software" `
-            -CatchActionFunction $CatchActionFunction
+
+        if ($PSSenderInfo) {
+            $installedSoftware = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*"
+        } else {
+            $installedSoftware = Invoke-ScriptBlockHandler -ComputerName $ComputerName `
+                -ScriptBlock { Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\* } `
+                -ScriptBlockDescription "Querying for software" `
+                -CatchActionFunction $CatchActionFunction
+        }
 
         foreach ($software in $installedSoftware) {
 
