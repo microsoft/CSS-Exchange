@@ -17,7 +17,7 @@
         Add in Read ME page for this section of code
 #>
 
-function Wait-JobQueued {
+function Wait-JobQueue {
     [CmdletBinding()]
     param(
         [int]$MaxJobsPerServer = 5
@@ -125,7 +125,7 @@ function Wait-JobQueued {
                     $jobInfo.Error = $JobError
                     $jobInfo.JobEndTime = [DateTime]::Now
                     Remove-Job $jobInfo.Job -Force
-                    $runningJobs.Remove($jobInfo)
+                    $runningJobs.Remove($jobInfo) | Out-Null
 
                     if ($jobInfo.JobCommand -eq "Start-Job") {
                         $jobsRunningPerServer[$env:COMPUTERNAME] += -1
