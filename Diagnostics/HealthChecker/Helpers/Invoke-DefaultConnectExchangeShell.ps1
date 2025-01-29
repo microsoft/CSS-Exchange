@@ -20,6 +20,8 @@ function Invoke-DefaultConnectExchangeShell {
             }
 
             $currentWarningPreference = $WarningPreference
+            $currentVerbosePreference = $VerbosePreference
+            $VerbosePreference = 'SilentlyContinue'
             $WarningPreference = 'SilentlyContinue'
             Import-PSSession (New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri "http://$ExchangeServerName/powershell" -Authentication Kerberos) | Out-Null
 
@@ -30,6 +32,7 @@ function Invoke-DefaultConnectExchangeShell {
                 throw "Failed to load Exchange Management Shell against server $ExchangeServerName. Inner Exception $_"
             }
             $WarningPreference = $currentWarningPreference
+            $VerbosePreference = $currentVerbosePreference
         }
     }
 }
