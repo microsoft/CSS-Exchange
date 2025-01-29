@@ -19,6 +19,8 @@ function Invoke-DefaultConnectExchangeShell {
                 $ExchangeServerName = $Using:PrimaryRemoteShellConnectionPoint
             }
 
+            # Track how long we spent trying to connect to Exchange, as this can be time consuming.
+            $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
             $currentWarningPreference = $WarningPreference
             $currentVerbosePreference = $VerbosePreference
             $VerbosePreference = 'SilentlyContinue'
@@ -27,7 +29,7 @@ function Invoke-DefaultConnectExchangeShell {
 
             try {
                 Get-EventLogLevel -ErrorAction Stop | Out-Null
-                Write-Verbose "Successfully loaded Exchange Shell"
+                Write-Verbose "Successfully loaded Exchange Shell. Took $($stopWatch.Elapsed.TotalSeconds) seconds to complete."
             } catch {
                 throw "Failed to load Exchange Management Shell against server $ExchangeServerName. Inner Exception $_"
             }
