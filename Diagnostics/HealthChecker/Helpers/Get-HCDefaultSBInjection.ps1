@@ -12,13 +12,13 @@ function Get-HCDefaultSBInjection {
 
         [string[]]$IncludeUsingVariableName,
 
-        [ScriptBlock]$IncludeScriptBlock
+        [ScriptBlock[]]$IncludeScriptBlock
     )
     process {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
         $addScriptBlocks = @(${Function:Invoke-CatchActions}, ${Function:Invoke-CatchActionErrorLoop}, ${Function:Write-VerboseErrorInformation},
-            ${Function:WriteErrorInformationBase})
+            ${Function:WriteErrorInformationBase}, ${Function:Invoke-CatchActionError})
         $includeScriptBlockList = New-Object System.Collections.Generic.List[ScriptBlock]
         $includeUsingVariableNameList = New-Object System.Collections.Generic.List[string]
 
