@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-ExchangeContainer.ps1
+. $PSScriptRoot\..\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 
 function Get-ExchangeOtherWellKnownObjects {
     [CmdletBinding()]
@@ -30,7 +31,8 @@ function Get-ExchangeOtherWellKnownObjects {
         "A2A4102E6F676141A2C4AB50F3C102D5" = "PublicFolderMailboxes"
     }
 
-    $exchangeContainer = Get-ExchangeContainer
+    $exchangeContainer = $null
+    Get-ExchangeContainer | Invoke-RemotePipelineHandler -Result ([ref]$exchangeContainer)
     $searcher = New-Object System.DirectoryServices.DirectorySearcher($exchangeContainer, "(objectClass=*)", @("otherWellKnownObjects", "distinguishedName"))
     $result = $searcher.FindOne()
     foreach ($val in $result.Properties["otherWellKnownObjects"]) {
