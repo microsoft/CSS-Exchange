@@ -59,7 +59,7 @@ function Get-DefaultSBInjectionContext {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $defaultScriptBlocks = @(${Function:Write-Verbose}, ${Function:Write-Host}, ${Function:Write-Progress},
             ${Function:New-RemoteLoggingPipelineObject}, ${Function:New-RemoteVerbosePipelineObject}, ${Function:Invoke-RemotePipelineHandler},
-            ${Function:New-RemoteHostPipelineObject}, ${Function:New-RemoteProgressPipelineObject})
+            ${Function:Invoke-RemotePipelineHandlerList}, ${Function:New-RemoteHostPipelineObject}, ${Function:New-RemoteProgressPipelineObject})
         $includeScriptBlockList = New-Object System.Collections.Generic.List[ScriptBlock]
         $includeUsingVariableNameList = New-Object System.Collections.Generic.List[string]
 
