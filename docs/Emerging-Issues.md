@@ -3,6 +3,10 @@ hide:
   - toc
 ---
 
+<!-- Mark words okay for spell check here
+#cspell:words MSIL
+ -->
+
 # Emerging Issues for Exchange On-Premises
 
 This page lists emerging issues for Exchange On-Premises deployments, possible root cause and solution/workaround to fix the issues. The page will be consistently updated with new issues found and reflect current status of the issues mentioned.
