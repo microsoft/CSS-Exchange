@@ -27,5 +27,6 @@ function Invoke-HealthCheckerMainReport {
     }
 
     Invoke-ErrorCatchActionLoopFromIndex $currentErrors
+    Get-HealthCheckerDataCollection $ServerNames
     Get-HealthCheckerData $ServerNames $EdgeServer
 }
