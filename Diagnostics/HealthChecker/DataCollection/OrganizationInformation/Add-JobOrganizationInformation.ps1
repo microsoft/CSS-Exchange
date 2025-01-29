@@ -23,7 +23,13 @@ function Add-JobOrganizationInformation {
                 . $PSScriptRoot\Get-ExchangeAdSchemaInformation.ps1
                 . $PSScriptRoot\Get-ExchangeDomainsAclPermissions.ps1
                 . $PSScriptRoot\Get-ExchangeWellKnownSecurityGroups.ps1
+                . $PSScriptRoot\Get-SecurityCve-2021-34470.ps1
+                . $PSScriptRoot\Get-SecurityCve-2022-21978.ps1
                 . $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ExchangeADSplitPermissionsEnabled.ps1
+
+                if ($PSSenderInfo) {
+                    $Script:ErrorsExcluded = @()
+                }
 
                 Invoke-DefaultConnectExchangeShell
                 $getOrganizationConfig = $null
@@ -38,6 +44,7 @@ function Add-JobOrganizationInformation {
                 $isSplitADPermissions = $false
                 $adSiteCount = 0
                 $getSettingOverride = $null
+                $jobHandledErrors = $null
             }
             process {
                 try {
@@ -71,10 +78,10 @@ function Add-JobOrganizationInformation {
                 }
 
                 if (-not (Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\EdgeTransportRole')) {
-                    $adSchemaInformation = Get-ExchangeAdSchemaInformation
-                    $domainsAclPermissions = Get-ExchangeDomainsAclPermissions
-                    $wellKnownSecurityGroups = Get-ExchangeWellKnownSecurityGroups
-                    $isSplitADPermissions = Get-ExchangeADSplitPermissionsEnabled -CatchActionFunction ${Function:Invoke-CatchActions}
+                    Get-ExchangeAdSchemaInformation | Invoke-RemotePipelineHandler -Result ([ref]$adSchemaInformation)
+                    Get-ExchangeDomainsAclPermissions | Invoke-RemotePipelineHandler -Result ([ref]$domainsAclPermissions)
+                    Get-ExchangeWellKnownSecurityGroups | Invoke-RemotePipelineHandler -Result ([ref]$wellKnownSecurityGroups)
+                    Get-ExchangeADSplitPermissionsEnabled -CatchActionFunction ${Function:Invoke-CatchActions} | Invoke-RemotePipelineHandler -Result ([ref]$isSplitADPermissions)
 
                     # Exchange Cmdlets
                     try {
@@ -152,6 +159,10 @@ function Add-JobOrganizationInformation {
                         CVE202134470 = (Get-SecurityCve-2021-34470 @cve34470Params)
                     }
                 }
+
+                if ($PSSenderInfo) {
+                    $jobHandledErrors = $Script:ErrorsExcluded
+                }
             } end {
                 Write-Verbose "Completed: $($MyInvocation.MyCommand)"
                 [PSCustomObject]@{
@@ -170,6 +181,8 @@ function Add-JobOrganizationInformation {
                     GetDynamicDgPublicFolderMailboxes = $getDdgPublicFolders
                     GetIrmConfiguration               = $getIrmConfiguration
                     GetGlobalMonitoringOverride       = $globalMonitoringOverride
+                    RemoteJob                         = $true -eq $PSSenderInfo
+                    JobHandledErrors                  = $jobHandledErrors
                 }
             }
         }
