@@ -1,12 +1,17 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\Helpers\Get-HCDefaultSBInjection.ps1
+. $PSScriptRoot\..\..\Helpers\Invoke-DefaultConnectExchangeShell.ps1
+. $PSScriptRoot\..\..\..\..\Shared\JobManagement\Add-JobQueue.ps1
+
 function Add-JobOrganizationInformation {
     [CmdletBinding()]
     param()
     process {
         <#
             Non Default Script Block Dependencies
+                Invoke-DefaultConnectExchangeShell
                 Get-MonitoringOverride
         #>
         function Invoke-JobOrganizationInformation {
@@ -170,6 +175,14 @@ function Add-JobOrganizationInformation {
         }
 
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-
+        $scriptBlock = Get-HCDefaultSBInjection -PrimaryScriptBlock ${Function:Invoke-JobOrganizationInformation} -IncludeScriptBlock @(${Function:Get-MonitoringOverride}, ${Function:Invoke-DefaultConnectExchangeShell})
+        $params = @{
+            JobCommand   = "Start-Job"
+            JobParameter = @{
+                ScriptBlock = $scriptBlock
+            }
+            JobId        = "0df92d89-fbe2-44f5-b17c-ed32f94cf948-OrganizationInformation"
+        }
+        Add-JobQueue @params
     }
 }
