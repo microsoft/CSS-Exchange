@@ -7,7 +7,7 @@ function Add-JobOrganizationInformation {
     process {
         <#
             Non Default Script Block Dependencies
-
+                Get-MonitoringOverride
         #>
         function Invoke-JobOrganizationInformation {
             [CmdletBinding()]
@@ -18,10 +18,21 @@ function Add-JobOrganizationInformation {
                 . $PSScriptRoot\Get-ExchangeAdSchemaInformation.ps1
                 . $PSScriptRoot\Get-ExchangeDomainsAclPermissions.ps1
                 . $PSScriptRoot\Get-ExchangeWellKnownSecurityGroups.ps1
+                . $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ExchangeADSplitPermissionsEnabled.ps1
 
                 Invoke-DefaultConnectExchangeShell
+                $getOrganizationConfig = $null
+                $domainsAclPermissions = $null
+                $wellKnownSecurityGroups = $null
+                $adSchemaInformation = $null
+                $getHybridConfiguration = $null
                 $enableDownloadDomains = "Unknown" # Set to unknown by default.
+                $getAcceptedDomain = $null
                 $mapiHttpEnabled = $false
+                $securityResults = $null
+                $isSplitADPermissions = $false
+                $adSiteCount = 0
+                $getSettingOverride = $null
             }
             process {
                 try {
@@ -58,6 +69,83 @@ function Add-JobOrganizationInformation {
                     $adSchemaInformation = Get-ExchangeAdSchemaInformation
                     $domainsAclPermissions = Get-ExchangeDomainsAclPermissions
                     $wellKnownSecurityGroups = Get-ExchangeWellKnownSecurityGroups
+                    $isSplitADPermissions = Get-ExchangeADSplitPermissionsEnabled -CatchActionFunction ${Function:Invoke-CatchActions}
+
+                    # Exchange Cmdlets
+                    try {
+                        $getIrmConfiguration = Get-IRMConfiguration -ErrorAction Stop
+                    } catch {
+                        Write-Verbose "Failed to get the IRM Configuration"
+                        Invoke-CatchActions
+                    }
+
+                    try {
+                        # It was reported that this isn't getting thrown to the catch action when failing. As a quick fix, handling this by looping over errors.
+                        $currentErrors = $Error.Count
+                        $getDdgPublicFolders = @(Get-DynamicDistributionGroup "PublicFolderMailboxes*" -IncludeSystemObjects -ErrorAction "Stop")
+                        Invoke-CatchActionErrorLoop $currentErrors ${Function:Invoke-CatchActions}
+                    } catch {
+                        Write-Verbose "Failed to get the dynamic distribution group for public folder mailboxes."
+                        Invoke-CatchActions
+                    }
+
+                    try {
+                        $getHybridConfiguration = Get-HybridConfiguration -ErrorAction Stop
+                    } catch {
+                        Write-Yellow "Failed to run Get-HybridConfiguration"
+                        Invoke-CatchActions
+                    }
+
+                    try {
+                        $getSettingOverride = Get-SettingOverride -ErrorAction Stop
+                    } catch {
+                        Write-Verbose "Failed to run Get-SettingOverride"
+                        $getSettingOverride = "Unknown"
+                        Invoke-CatchActions
+                    }
+
+                    [array]$globalMonitoringOverride = Get-MonitoringOverride
+
+                    # AD Queries
+                    try {
+                        $rootDSE = [ADSI]("LDAP://$([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Name)/RootDSE")
+                        $directorySearcher = New-Object System.DirectoryServices.DirectorySearcher
+                        $directorySearcher.SearchScope = "Subtree"
+                        $directorySearcher.SearchRoot = [ADSI]("LDAP://" + $rootDSE.configurationNamingContext.ToString())
+                        $directorySearcher.Filter = "(objectCategory=site)"
+                        $directorySearcher.PageSize = 100
+                        $adSiteCount = ($directorySearcher.FindAll()).Count
+                    } catch {
+                        Write-Verbose "Failed to collect AD Site Count information"
+                        Invoke-CatchActions
+                    }
+
+                    $schemaRangeUpper = (
+                        ($adSchemaInformation.msExchSchemaVersionPt.Properties["RangeUpper"])[0]).ToInt32([System.Globalization.NumberFormatInfo]::InvariantInfo)
+
+                    if ($schemaRangeUpper -lt 15323) {
+                        $schemaLevel = "2013"
+                    } elseif ($schemaRangeUpper -lt 17000) {
+                        $schemaLevel = "2016"
+                    } else {
+                        $schemaLevel = "2019"
+                    }
+
+                    $cve21978Params = @{
+                        DomainsAcls                     = $domainsAclPermissions
+                        ExchangeWellKnownSecurityGroups = $wellKnownSecurityGroups
+                        ExchangeSchemaLevel             = $schemaLevel
+                        SplitADPermissions              = $isSplitADPermissions
+                    }
+
+                    $cve34470Params = @{
+                        MsExchStorageGroup = $adSchemaInformation.MsExchStorageGroup
+                    }
+
+                    $securityResults = [PSCustomObject]@{
+                        CVE202221978 = (Get-SecurityCve-2022-21978 @cve21978Params)
+                        CVE202134470 = (Get-SecurityCve-2021-34470 @cve34470Params)
+                    }
                 }
             } end {
                 Write-Verbose "Completed: $($MyInvocation.MyCommand)"
