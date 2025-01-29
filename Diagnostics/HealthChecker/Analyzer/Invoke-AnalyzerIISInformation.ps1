@@ -78,6 +78,7 @@ function Invoke-AnalyzerIISInformation {
     Write-Verbose "Working on IIS Web Sites"
     $outputObjectDisplayValue = New-Object System.Collections.Generic.List[object]
     $problemCertList = New-Object System.Collections.Generic.List[string]
+    $exchangeBackEndBindingsList = New-Object System.Collections.Generic.List[string]
     $iisWebSites = $exchangeInformation.IISSettings.IISWebSite | Sort-Object ID
     $bindingsPropertyName = "Protocol - Bindings - Certificate"
 
@@ -107,6 +108,10 @@ function Invoke-AnalyzerIISInformation {
                     } elseif ($cert.LifetimeInDays -lt 0) {
                         $problemCertList.Add("'$certHash' Has expired and will cause problems.")
                     }
+                }
+
+                if ($website.name -eq "Exchange Back End" -and $($_.Protocol) -eq "https") {
+                    $exchangeBackEndBindingsList.Add($($_.bindingInformation))
                 }
 
                 1..(($protocolLength - $_.Protocol.Length) + 1) | ForEach-Object { $pSpace += " " }
@@ -146,6 +151,16 @@ function Invoke-AnalyzerIISInformation {
             }
             Add-AnalyzedResultInformation @params
         }
+    }
+
+    #Checking Exchange Backend Site bindings to make sure it does not bind with single IP Address.
+    if ($exchangeBackendBindingsList -notcontains '*:444:') {
+        $params = $baseParams + @{
+            Name             = "Website Binding Issue Detected"
+            Details          = "Make sure 'Exchange Back End' website is not bind with single IP Address"
+            DisplayWriteType = "Red"
+        }
+        Add-AnalyzedResultInformation @params
     }
 
     ########################
