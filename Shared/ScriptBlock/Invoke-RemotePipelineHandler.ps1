@@ -20,7 +20,9 @@ function Invoke-RemotePipelineHandler {
         foreach ($instance in $Object) {
             $type = $instance.RemoteLoggingType
 
-            if ($type -match "Verbose|Progress|Host") {
+            if ($null -ne $type -and
+                $type.GetType().Name -ne "PSMethod" -and
+                $type -match "Verbose|Progress|Host") {
                 #place it back onto the pipeline
                 $instance
             } else {
