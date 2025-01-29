@@ -4,8 +4,7 @@
 . $PSScriptRoot\Invoke-ScriptBlockHandler.ps1
 function Get-ExSetupFileVersionInfo {
     param(
-        [Parameter(Mandatory = $true)]
-        [string]$Server,
+        [string]$Server = $env:COMPUTERNAME,
 
         [Parameter(Mandatory = $false)]
         [ScriptBlock]$CatchActionFunction
@@ -36,7 +35,12 @@ function Get-ExSetupFileVersionInfo {
         }
     }
 
-    $exSetupDetails = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock ${Function:Get-ExSetupDetailsScriptBlock} -ScriptBlockDescription "Getting ExSetup remotely" -CatchActionFunction $CatchActionFunction
+    if ($PSSenderInfo) {
+        $exSetupDetails = Get-ExSetupDetailsScriptBlock
+    } else {
+        $exSetupDetails = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock ${Function:Get-ExSetupDetailsScriptBlock} -ScriptBlockDescription "Getting ExSetup remotely" -CatchActionFunction $CatchActionFunction
+    }
+
     Write-Verbose "Exiting: $($MyInvocation.MyCommand)"
     return $exSetupDetails
 }

@@ -3,6 +3,7 @@
 
 . $PSScriptRoot\..\Invoke-ScriptBlockHandler.ps1
 . $PSScriptRoot\..\Get-RemoteRegistryValue.ps1
+. $PSScriptRoot\..\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 
 function Get-TlsCipherSuiteInformation {
     [OutputType("System.Object")]
@@ -49,12 +50,16 @@ function Get-TlsCipherSuiteInformation {
         # 'Get-TlsCipherSuite' takes account of the cipher suites which are configured by the help of GPO.
         # No need to query the ciphers defined via GPO if this call is successful.
         Write-Verbose "Trying to query TlsCipherSuites via 'Get-TlsCipherSuite'"
-        $getTlsCipherSuiteParams = @{
-            ComputerName        = $MachineName
-            ScriptBlock         = { Get-TlsCipherSuite }
-            CatchActionFunction = $CatchActionFunction
+        if ($PSSenderInfo) {
+            $tlsCipherSuites = Get-TlsCipherSuite
+        } else {
+            $getTlsCipherSuiteParams = @{
+                ComputerName        = $MachineName
+                ScriptBlock         = { Get-TlsCipherSuite }
+                CatchActionFunction = $CatchActionFunction
+            }
+            $tlsCipherSuites = Invoke-ScriptBlockHandler @getTlsCipherSuiteParams
         }
-        $tlsCipherSuites = Invoke-ScriptBlockHandler @getTlsCipherSuiteParams
 
         if ($null -eq $tlsCipherSuites) {
             # If we can't get the ciphers via cmdlet, we need to query them via registry call and need to check
@@ -71,7 +76,8 @@ function Get-TlsCipherSuiteInformation {
             }
 
             Write-Verbose "Trying to query cipher suites configured via GPO from registry"
-            $policyDefinedCiphers = Get-RemoteRegistryValue @policyTlsRegistryParams
+            $policyDefinedCiphers = $null
+            Get-RemoteRegistryValue @policyTlsRegistryParams | Invoke-RemotePipelineHandler -Result ([ref]$policyDefinedCiphers)
 
             if ($null -ne $policyDefinedCiphers) {
                 Write-Verbose "Ciphers specified via GPO found - these take precedence over what is in the default location"
@@ -86,7 +92,8 @@ function Get-TlsCipherSuiteInformation {
                     CatchActionFunction = $CatchActionFunction
                 }
 
-                $tlsCipherSuites = Get-RemoteRegistryValue @tlsRegistryParams
+                $tlsCipherSuites = $null
+                Get-RemoteRegistryValue @tlsRegistryParams | Invoke-RemotePipelineHandler -Result ([ref]$tlsCipherSuites)
             }
         }
 

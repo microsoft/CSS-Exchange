@@ -11,12 +11,16 @@ function Get-ApplicationHostConfig {
         [ScriptBlock]$CatchActionFunction
     )
 
-    $params = @{
-        ComputerName           = $ComputerName
-        ScriptBlockDescription = "Getting applicationHost.config"
-        ScriptBlock            = { (Get-Content "$($env:WINDIR)\System32\inetSrv\config\applicationHost.config" -Raw -Encoding UTF8).Trim() }
-        CatchActionFunction    = $CatchActionFunction
-    }
+    if ($PSSenderInfo) {
+        return ((Get-Content "$($env:WINDIR)\System32\inetSrv\config\applicationHost.config" -Raw -Encoding UTF8).Trim())
+    } else {
+        $params = @{
+            ComputerName           = $ComputerName
+            ScriptBlockDescription = "Getting applicationHost.config"
+            ScriptBlock            = { (Get-Content "$($env:WINDIR)\System32\inetSrv\config\applicationHost.config" -Raw -Encoding UTF8).Trim() }
+            CatchActionFunction    = $CatchActionFunction
+        }
 
-    return Invoke-ScriptBlockHandler @params
+        return Invoke-ScriptBlockHandler @params
+    }
 }

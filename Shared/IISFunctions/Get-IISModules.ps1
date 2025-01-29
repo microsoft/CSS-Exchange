@@ -3,6 +3,7 @@
 
 . $PSScriptRoot\..\Invoke-CatchActionError.ps1
 . $PSScriptRoot\..\Invoke-ScriptBlockHandler.ps1
+. $PSScriptRoot\..\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 
 function Get-IISModules {
     [CmdletBinding()]
@@ -116,13 +117,17 @@ function Get-IISModules {
                         Write-Verbose "SkipLegacyOSModules enabled? $SkipLegacyOSModules"
                         Write-Verbose "Checking file signing information now..."
 
-                        $signatureParams = @{
-                            ComputerName        = $ComputerName
-                            ScriptBlock         = { Get-AuthenticodeSignature -FilePath $args[0] }
-                            ArgumentList        = , $Modules.image # , is used to force the array to be passed as a single object
-                            CatchActionFunction = $CatchActionFunction
+                        if ($PSSenderInfo) {
+                            $allSignatures = Get-AuthenticodeSignature -FilePath $Modules.image
+                        } else {
+                            $signatureParams = @{
+                                ComputerName        = $ComputerName
+                                ScriptBlock         = { Get-AuthenticodeSignature -FilePath $args[0] }
+                                ArgumentList        = , $Modules.image # , is used to force the array to be passed as a single object
+                                CatchActionFunction = $CatchActionFunction
+                            }
+                            $allSignatures = Invoke-ScriptBlockHandler @signatureParams
                         }
-                        $allSignatures = Invoke-ScriptBlockHandler @signatureParams
 
                         foreach ($m in $Modules) {
                             Write-Verbose "Now processing module: $($m.name)"
@@ -193,7 +198,8 @@ function Get-IISModules {
     }
     process {
         $ApplicationHostConfig.configuration.'system.webServer'.globalModules.add | ForEach-Object {
-            $moduleFilePath = GetModulePath -Path $_.image
+            $moduleFilePath = $null
+            GetModulePath -Path $_.image | Invoke-RemotePipelineHandler -Result ([ref]$moduleFilePath)
             # Replace the image path with the full path without environment variables
             $_.image = $moduleFilePath
             $modulesToCheckList.Add($_)
@@ -205,8 +211,8 @@ function Get-IISModules {
             SkipLegacyOSModules = $SkipLegacyOSModulesCheck # now handled within the function as we need to return all modules which are loaded by IIS
             CatchActionFunction = $CatchActionFunction
         }
-        $modules = GetIISModulesSignatureStatus @getIISModulesSignatureStatusParams
-
+        $modules = $null
+        GetIISModulesSignatureStatus @getIISModulesSignatureStatusParams | Invoke-RemotePipelineHandler -Result ([ref]$modules)
         # Validate if all modules that are loaded are digitally signed
         $allModulesAreSigned = (-not($modules.Signed.Contains($false)))
         Write-Verbose "Are all modules loaded by IIS digitally signed? $allModulesAreSigned"

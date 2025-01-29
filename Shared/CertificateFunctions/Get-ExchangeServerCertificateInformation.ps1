@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\ActiveDirectoryFunctions\Get-InternalTransportCertificateFromServer.ps1
+. $PSScriptRoot\..\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 . $PSScriptRoot\..\Invoke-CatchActionError.ps1
 . $PSScriptRoot\ConvertTo-ExchangeCertificate.ps1
 
@@ -77,10 +78,14 @@ function Get-ExchangeServerCertificateInformation {
     process {
         try {
             Write-Verbose "Trying to receive certificates from Exchange server: $($Server)"
-            $exchangeServerCertificates = Get-ExchangeCertificate -Server $Server -ErrorAction Stop | ConvertTo-ExchangeCertificate -CatchActionFunction $CatchActionFunction
+            $exchangeServerCertificates = $null
+            Get-ExchangeCertificate -Server $Server -ErrorAction Stop | ConvertTo-ExchangeCertificate -CatchActionFunction $CatchActionFunction |
+                Invoke-RemotePipelineHandler -Result ([ref]$exchangeServerCertificates)
 
             Write-Verbose "Trying to query internal transport certificate from AD for this server"
-            $internalTransportCertificate = Get-InternalTransportCertificateFromServer -ComputerName $Server -CatchActionFunction $CatchActionFunction
+            $internalTransportCertificate = $null
+            Get-InternalTransportCertificateFromServer -ComputerName $Server -CatchActionFunction $CatchActionFunction |
+                Invoke-RemotePipelineHandler -Result ([ref]$internalTransportCertificate)
         } catch {
             Write-Verbose "Failed to collect the Exchange Server Certificate Information on $server. Inner Exception: $_"
             Invoke-CatchActionError $CatchActionFunction

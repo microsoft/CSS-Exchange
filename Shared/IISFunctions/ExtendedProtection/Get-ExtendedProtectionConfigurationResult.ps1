@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\Invoke-CatchActionError.ps1
+. $PSScriptRoot\..\..\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 
 function Get-ExtendedProtectionConfigurationResult {
     [CmdletBinding()]
@@ -70,7 +71,6 @@ function Get-ExtendedProtectionConfigurationResult {
                     $SiteVDirLocations.Count -gt 0) {
                     foreach ($SiteVDirLocation in $SiteVDirLocations) {
                         if ($SiteVDirLocation -eq "$($WebSite[$i])/$virtualDirectory") {
-                            Write-Verbose "Set Extended Protection to None because of restriction override '$($WebSite[$i])\$virtualDirectory'"
                             $ExtendedProtection[$i] = "None"
                             break
                         }
@@ -262,7 +262,9 @@ function Get-ExtendedProtectionConfigurationResult {
                 try {
                     Write-Verbose "Verify extended protection setting for $($matchEntry.VirtualDirectory) on web site $($matchEntry.WebSite)"
 
-                    $extendedConfiguration = GetExtendedProtectionConfiguration -Xml $applicationHostConfig -Path "$($matchEntry.WebSite)/$($matchEntry.VirtualDirectory)"
+                    $extendedConfiguration = $null
+                    GetExtendedProtectionConfiguration -Xml $applicationHostConfig -Path "$($matchEntry.WebSite)/$($matchEntry.VirtualDirectory)" |
+                        Invoke-RemotePipelineHandler -Result ([ref]$extendedConfiguration)
 
                     # Extended Protection is a windows security feature which blocks MiTM attacks.
                     # Supported server roles are: Mailbox and ClientAccess
