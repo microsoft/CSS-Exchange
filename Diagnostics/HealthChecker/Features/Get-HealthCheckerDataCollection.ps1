@@ -74,5 +74,7 @@ function Get-HealthCheckerDataCollection {
         $Script:PrimaryRemoteShellConnectionPoint = (Get-PSSession | Where-Object { $_.Availability -eq "Available" -and $_.State -eq "Opened" } | Select-Object -First 1).ComputerName
 
         # Add all the jobs to the queue that we need.
+        Add-JobOrganizationInformation
+        Write-Debug "Testing" -Debug
     }
 }
