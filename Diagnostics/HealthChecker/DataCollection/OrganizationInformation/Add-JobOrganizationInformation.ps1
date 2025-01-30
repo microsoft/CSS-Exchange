@@ -3,6 +3,7 @@
 
 . $PSScriptRoot\..\..\Helpers\Get-HCDefaultSBInjection.ps1
 . $PSScriptRoot\..\..\Helpers\Invoke-DefaultConnectExchangeShell.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Get-MonitoringOverride.ps1
 . $PSScriptRoot\..\..\..\..\Shared\JobManagement\Add-JobQueue.ps1
 
 function Add-JobOrganizationInformation {
