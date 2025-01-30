@@ -171,8 +171,11 @@ function Add-ScriptBlockInjection {
 
             return ([ScriptBlock]::Create($scriptBlockFinalized))
         } catch {
-            Write-Verbose "Failed to add to the script block"
+            # Because this returns a null value, we need to 'log' the issue,
+            # but also stop the script as other things will fail down the line if the script block is null.
+            Write-Verbose "Failed to add to the script block. Inner Exception: $_"
             Invoke-CatchActionError $CatchActionFunction
+            Write-Error "$($MyInvocation.MyCommand) had an error trying to inject a script block. Inner Exception: $_" -ErrorAction Stop
         }
     }
 }
