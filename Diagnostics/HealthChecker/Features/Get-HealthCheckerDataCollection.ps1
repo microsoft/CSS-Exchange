@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\DataCollection\OrganizationInformation\Add-JobOrganizationInformation.ps1
+. $PSScriptRoot\..\DataCollection\ServerInformation\Add-JobHardwareInformation.ps1
 
 <#
     TODO:
@@ -75,6 +76,10 @@ function Get-HealthCheckerDataCollection {
 
         # Add all the jobs to the queue that we need.
         Add-JobOrganizationInformation
+
+        foreach ($serverName in $getExchangeServerList.Keys) {
+            Add-JobHardwareInformation -ComputerName $serverName
+        }
         Write-Debug "Testing" -Debug
     }
 }
