@@ -2,6 +2,8 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistrySubKey.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlock\Invoke-RemotePipelineHandler.ps1
+
 function Get-ExchangeUpdates {
     param(
         [Parameter(Mandatory = $true)]
@@ -22,9 +24,9 @@ function Get-ExchangeUpdates {
         $RegLocation = "SOFTWARE\Microsoft\Updates\Exchange 2019"
     }
 
-    $RegKey = Get-RemoteRegistrySubKey -MachineName $Server `
-        -SubKey $RegLocation `
-        -CatchActionFunction ${Function:Invoke-CatchActions}
+    $RegKey = $null
+    Get-RemoteRegistrySubKey -MachineName $Server -SubKey $RegLocation -CatchActionFunction ${Function:Invoke-CatchActions} |
+        Invoke-RemotePipelineHandler -Result ([ref]$RegKey)
 
     if ($null -ne $RegKey) {
         $IU = $RegKey.GetSubKeyNames()
