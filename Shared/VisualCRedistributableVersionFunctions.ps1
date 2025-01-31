@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Invoke-ScriptBlockHandler.ps1
+. $PSScriptRoot\ScriptBlock\Invoke-RemotePipelineHandler.ps1
 
 function Get-VisualCRedistributableInstalledVersion {
     [CmdletBinding()]
