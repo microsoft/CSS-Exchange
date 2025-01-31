@@ -32,6 +32,8 @@ function Invoke-RemotePipelineHandler {
         # If only a single result, return that vs a list.
         if ($nonLoggingInfo.Count -eq 1) {
             $Result.Value = $nonLoggingInfo[0]
+        } elseif ($nonLoggingInfo.Count -eq 0) {
+            $Result.Value = $null
         } else {
             $Result.Value = $nonLoggingInfo
         }
