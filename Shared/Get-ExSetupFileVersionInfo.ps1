@@ -36,7 +36,12 @@ function Get-ExSetupFileVersionInfo {
         }
     }
 
-    $exSetupDetails = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock ${Function:Get-ExSetupDetailsScriptBlock} -ScriptBlockDescription "Getting ExSetup remotely" -CatchActionFunction $CatchActionFunction
+    if ($PSSenderInfo) {
+        $exSetupDetails = Get-ExSetupDetailsScriptBlock
+    } else {
+        $exSetupDetails = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock ${Function:Get-ExSetupDetailsScriptBlock} -ScriptBlockDescription "Getting ExSetup remotely" -CatchActionFunction $CatchActionFunction
+    }
+
     Write-Verbose "Exiting: $($MyInvocation.MyCommand)"
     return $exSetupDetails
 }
