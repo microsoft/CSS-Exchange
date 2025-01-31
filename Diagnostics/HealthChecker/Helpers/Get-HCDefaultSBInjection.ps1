@@ -18,7 +18,7 @@ function Get-HCDefaultSBInjection {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
         $addScriptBlocks = @(${Function:Invoke-CatchActions}, ${Function:Invoke-CatchActionErrorLoop}, ${Function:Write-VerboseErrorInformation},
-            ${Function:WriteErrorInformationBase}, ${Function:Invoke-CatchActionError})
+            ${Function:WriteErrorInformationBase}, ${Function:Invoke-CatchActionError}, ${Function:Invoke-ErrorCatchActionLoopFromIndex})
         $includeScriptBlockList = New-Object System.Collections.Generic.List[ScriptBlock]
         $includeUsingVariableNameList = New-Object System.Collections.Generic.List[string]
 
