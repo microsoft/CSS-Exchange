@@ -6,15 +6,14 @@
 
 function Get-PowerPlanSetting {
     [CmdletBinding()]
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$Server
-    )
+    param()
     process {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $highPerformanceSet = $false
         $powerPlanSetting = [string]::Empty
-        $win32_PowerPlan = Get-WmiObjectHandler -ComputerName $Server -Class Win32_PowerPlan -Namespace 'root\ciMv2\power' -Filter "isActive='true'" -CatchActionFunction ${Function:Invoke-CatchActions}
+        $win32_PowerPlan = $null
+        Get-WmiObjectHandler -Class Win32_PowerPlan -Namespace 'root\ciMv2\power' -Filter "isActive='true'" -CatchActionFunction ${Function:Invoke-CatchActions} |
+            Invoke-RemotePipelineHandler -Result ([ref]$win32_PowerPlan)
 
         if ($null -ne $win32_PowerPlan) {
 
