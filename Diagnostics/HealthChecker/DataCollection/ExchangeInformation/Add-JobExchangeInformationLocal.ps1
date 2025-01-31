@@ -19,13 +19,26 @@ function Add-JobExchangeInformationLocal {
             begin {
                 # Build Process to add functions.
                 . $PSScriptRoot\Get-ExchangeDependentServices.ps1
+                . $PSScriptRoot\Get-ExchangeRegistryValues.ps1
 
                 if ($PSSenderInfo) {
                     $Script:ErrorsExcluded = @()
                 }
+
+                $dependentServices = $null
+                $registryValues = $null
             }
             process {
                 $windows2016OrGreater = [environment]::OSVersion.Version -ge "10.0.0.0"
+                Get-ExchangeDependentServices | Invoke-RemotePipelineHandler -Result ([ref]$dependentServices)
+                Get-ExchangeRegistryValues -CatchActionFunction ${Function:Invoke-CatchActions} | Invoke-RemotePipelineHandler -Result ([ref]$registryValues)
+                $serverExchangeBinDirectory = [System.Io.Path]::Combine($registryValues.MsiInstallPath, "Bin\")
+                Write-Verbose "Found Exchange Bin: $serverExchangeBinDirectory"
+
+
+                if (-not (Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\EdgeTransportRole')) {
+
+                }
 
                 if ($PSSenderInfo) {
                     $jobHandledErrors = $Script:ErrorsExcluded
