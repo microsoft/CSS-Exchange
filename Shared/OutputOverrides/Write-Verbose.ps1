@@ -15,6 +15,11 @@ function Write-Verbose {
             $Message = & $Script:WriteVerboseManipulateMessageAction $Message
         }
 
+        if ($PSSenderInfo -and
+            $null -ne $Script:WriteVerboseRemoteManipulateMessageAction) {
+            $Message = & $Script:WriteVerboseRemoteManipulateMessageAction $Message
+        }
+
         Microsoft.PowerShell.Utility\Write-Verbose $Message
 
         if ($null -ne $Script:WriteVerboseDebugAction) {
@@ -39,4 +44,8 @@ function SetWriteRemoteVerboseAction ($DebugAction) {
 
 function SetWriteVerboseManipulateMessageAction ($DebugAction) {
     $Script:WriteVerboseManipulateMessageAction = $DebugAction
+}
+
+function SetWriteVerboseRemoteManipulateMessageAction ($DebugAction) {
+    $Script:WriteVerboseRemoteManipulateMessageAction = $DebugAction
 }
