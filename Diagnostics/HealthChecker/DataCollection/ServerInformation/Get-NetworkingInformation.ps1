@@ -8,16 +8,20 @@
 function Get-NetworkingInformation {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true)]
-        [string]$Server
+        [string]$Server = $env:COMPUTERNAME
     )
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $ipv6DisabledOnNICs = $false
+        $httpProxy = $null
+        $packetsReceivedDiscarded = $null
+        $networkAdapters = @()
     } process {
-        $httpProxy = Get-HttpProxySetting -Server $Server
-        $packetsReceivedDiscarded = (Get-LocalizedCounterSamples -MachineName $Server -Counter "\Network Interface(*)\Packets Received Discarded")
-        $networkAdapters = @(Get-AllNicInformation -ComputerName $Server -CatchActionFunction ${Function:Invoke-CatchActions} -ComputerFQDN $ServerFQDN)
+        Get-HttpProxySetting | Invoke-RemotePipelineHandler -Result ([ref]$httpProxy)
+        Get-LocalizedCounterSamples -MachineName $Server -Counter "\Network Interface(*)\Packets Received Discarded" |
+            Invoke-RemotePipelineHandler -Result ([ref]$packetsReceivedDiscarded)
+        Get-AllNicInformation -CatchActionFunction ${Function:Invoke-CatchActions} | Invoke-RemotePipelineHandler -Result ([ref]$networkAdapters)
+        [array]$networkAdapters = $networkAdapters
 
         foreach ($adapter in $networkAdapters) {
             if (-not ($adapter.IPv6Enabled)) {
