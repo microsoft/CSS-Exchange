@@ -3,6 +3,7 @@
 
 . $PSScriptRoot\..\..\Helpers\Get-HCDefaultSBInjection.ps1
 . $PSScriptRoot\..\..\Helpers\Invoke-DefaultConnectExchangeShell.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ExchangeContainer.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-MonitoringOverride.ps1
 . $PSScriptRoot\..\..\..\..\Shared\JobManagement\Add-JobQueue.ps1
 
@@ -13,6 +14,7 @@ function Add-JobOrganizationInformation {
         <#
             Non Default Script Block Dependencies
                 Invoke-DefaultConnectExchangeShell
+                Get-ExchangeContainer
                 Get-MonitoringOverride
         #>
         function Invoke-JobOrganizationInformation {
@@ -189,7 +191,11 @@ function Add-JobOrganizationInformation {
         }
 
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        $scriptBlock = Get-HCDefaultSBInjection -PrimaryScriptBlock ${Function:Invoke-JobOrganizationInformation} -IncludeScriptBlock @(${Function:Get-MonitoringOverride}, ${Function:Invoke-DefaultConnectExchangeShell})
+        $sbInjectionParams = @{
+            PrimaryScriptBlock = ${Function:Invoke-JobOrganizationInformation}
+            IncludeScriptBlock = @(${Function:Get-MonitoringOverride}, ${Function:Invoke-DefaultConnectExchangeShell}, ${Function:Get-ExchangeContainer})
+        }
+        $scriptBlock = Get-HCDefaultSBInjection @sbInjectionParams
         $params = @{
             JobCommand   = "Start-Job"
             JobParameter = @{
