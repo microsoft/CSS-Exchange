@@ -8,7 +8,6 @@
 function Get-NETFrameworkInformation {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true)]
         [string]$Server
     )
     process {
@@ -18,7 +17,8 @@ function Get-NETFrameworkInformation {
             FileNames           = @("System.Data.dll", "System.Configuration.dll")
             CatchActionFunction = ${Function:Invoke-CatchActions}
         }
-        $fileInformation = Get-DotNetDllFileVersions @params
+        $fileInformation = $null
+        Get-DotNetDllFileVersions @params | Invoke-RemotePipelineHandler -Result ([ref]$fileInformation)
         $netFramework = Get-NETFrameworkVersion -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
     } end {
         return [PSCustomObject]@{
