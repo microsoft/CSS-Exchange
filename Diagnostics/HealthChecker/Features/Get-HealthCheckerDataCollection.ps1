@@ -4,6 +4,7 @@
 . $PSScriptRoot\..\DataCollection\OrganizationInformation\Add-JobOrganizationInformation.ps1
 . $PSScriptRoot\..\DataCollection\ServerInformation\Add-JobHardwareInformation.ps1
 . $PSScriptRoot\..\DataCollection\ServerInformation\Add-JobOperatingSystemInformation.ps1
+. $PSScriptRoot\..\DataCollection\ExchangeInformation\Add-JobExchangeInformationCmdlet.ps1
 
 <#
     TODO:
@@ -81,6 +82,7 @@ function Get-HealthCheckerDataCollection {
         foreach ($serverName in $getExchangeServerList.Keys) {
             Add-JobHardwareInformation -ComputerName $serverName
             Add-JobOperatingSystemInformation -ComputerName $serverName
+            Add-JobExchangeInformationCmdlet -ComputerName $serverName
         }
         Write-Debug "Testing" -Debug
     }
