@@ -6,8 +6,7 @@
 
 function Get-ExchangeUpdates {
     param(
-        [Parameter(Mandatory = $true)]
-        [string]$Server,
+        [string]$Server = $env:COMPUTERNAME,
 
         [Parameter(Mandatory = $true)]
         [ValidateSet("Exchange2013", "Exchange2016", "Exchange2019")]
