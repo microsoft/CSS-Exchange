@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\TLS\Get-AllTlsSettings.ps1
-. $PSScriptRoot\..\..\..\..\Shared\Get-ExtendedProtectionConfiguration.ps1
+. $PSScriptRoot\..\..\..\..\Shared\IISFunctions\ExtendedProtection\Get-ExtendedProtectionConfiguration.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
 
 # This function is used to collect the required information needed to determine if a server is ready for Extended Protection
