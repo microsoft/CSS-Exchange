@@ -1,9 +1,9 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\Invoke-CatchActionError.ps1
-. $PSScriptRoot\Invoke-ScriptBlockHandler.ps1
-. $PSScriptRoot\Write-ErrorInformation.ps1
+. $PSScriptRoot\..\..\Invoke-CatchActionError.ps1
+. $PSScriptRoot\..\..\Invoke-ScriptBlockHandler.ps1
+. $PSScriptRoot\..\..\Write-ErrorInformation.ps1
 
 function Get-ExtendedProtectionConfiguration {
     [CmdletBinding()]
