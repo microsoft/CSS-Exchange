@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\..\..\..\..\Shared\Get-ExtendedProtectionConfiguration.ps1
+. $PSScriptRoot\..\..\..\..\Shared\IISFunctions\ExtendedProtection\Get-ExtendedProtectionConfiguration.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Write-ErrorInformation.ps1
 

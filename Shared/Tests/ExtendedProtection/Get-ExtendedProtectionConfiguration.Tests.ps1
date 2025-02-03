@@ -7,7 +7,7 @@ param()
 BeforeAll {
     $Script:parentPath = (Split-Path -Parent $PSScriptRoot)
     $Script:Server = $env:COMPUTERNAME
-    . $Script:parentPath\..\Get-ExtendedProtectionConfiguration.ps1
+    . $Script:parentPath\..\IISFunctions\ExtendedProtection\Get-ExtendedProtectionConfiguration.ps1
 
     function Invoke-CatchActions {
         param()
