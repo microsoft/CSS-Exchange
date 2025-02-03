@@ -4,8 +4,7 @@
 . $PSScriptRoot\Invoke-ScriptBlockHandler.ps1
 function Get-ExSetupFileVersionInfo {
     param(
-        [Parameter(Mandatory = $true)]
-        [string]$Server,
+        [string]$Server = $env:COMPUTERNAME,
 
         [Parameter(Mandatory = $false)]
         [ScriptBlock]$CatchActionFunction
