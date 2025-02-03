@@ -34,12 +34,15 @@ function Invoke-RemotePipelineLoggingLocal {
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
         [object[]]$Object
     )
-    process {
+    begin {
         # Store everything into a list so we can just write it to the log once and makes it easier for log review.
+        $logToVerbose = New-Object System.Collections.Generic.List[string]
         $logToVerbose = New-Object System.Collections.Generic.List[string]
         $logToVerbose.Add("")
         $logToVerbose.Add("")
         $logToVerbose.Add("------------------- Remote Pipeline Logging -------------------------")
+    }
+    process {
         foreach ($instance in $Object) {
             $type = $instance.RemoteLoggingType
 
@@ -52,6 +55,8 @@ function Invoke-RemotePipelineLoggingLocal {
                 $instance
             }
         }
+    }
+    end {
         $logToVerbose.Add("----------------- End Remote Pipeline Logging -----------------------")
         $logToVerbose | Out-String | Write-Verbose
     }
