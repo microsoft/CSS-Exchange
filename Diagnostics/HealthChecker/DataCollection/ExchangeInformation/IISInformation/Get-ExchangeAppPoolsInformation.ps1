@@ -3,17 +3,23 @@
 
 . $PSScriptRoot\Get-AppPool.ps1
 . $PSScriptRoot\..\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
+. $PSScriptRoot\..\..\..\..\..\Shared\ScriptBlock\Invoke-RemotePipelineHandler.ps1
+
 function Get-ExchangeAppPoolsInformation {
     param(
-        [Parameter(Mandatory = $true)]
-        [string]$Server
+        [string]$Server = $env:COMPUTERNAME
     )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
-    $appPool = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock ${Function:Get-AppPool} `
-        -ScriptBlockDescription "Getting App Pool information" `
-        -CatchActionFunction ${Function:Invoke-CatchActions}
+    if ($PSSenderInfo) {
+        $appPool = $null
+        Get-AppPool | Invoke-RemotePipelineHandler -Result ([ref]$appPool)
+    } else {
+        $appPool = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock ${Function:Get-AppPool} `
+            -ScriptBlockDescription "Getting App Pool information" `
+            -CatchActionFunction ${Function:Invoke-CatchActions}
+    }
 
     $exchangeAppPoolsInfo = @{}
 
@@ -21,7 +27,7 @@ function Get-ExchangeAppPoolsInformation {
         Where-Object { $_.add.name -like "MSExchange*" } |
         ForEach-Object {
             Write-Verbose "Working on App Pool: $($_.add.name)"
-            $configContent = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock {
+            $scriptBlock = {
                 param(
                     $FilePath
                 )
@@ -29,10 +35,16 @@ function Get-ExchangeAppPoolsInformation {
                     return (Get-Content $FilePath -Raw -Encoding UTF8).Trim()
                 }
                 return [string]::Empty
-            } `
-                -ScriptBlockDescription "Getting Content file for $($_.add.name)" `
-                -ArgumentList $_.add.CLRConfigFile `
-                -CatchActionFunction ${Function:Invoke-CatchActions}
+            }
+
+            if ($PSSenderInfo) {
+                $configContent = & $scriptBlock $_.add.CLRConfigFile
+            } else {
+                $configContent = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock $scriptBlock `
+                    -ScriptBlockDescription "Getting Content file for $($_.add.name)" `
+                    -ArgumentList $_.add.CLRConfigFile `
+                    -CatchActionFunction ${Function:Invoke-CatchActions}
+            }
 
             $gcUnknown = $true
             $gcServerEnabled = $false
