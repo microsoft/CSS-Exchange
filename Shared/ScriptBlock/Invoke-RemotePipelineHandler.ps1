@@ -15,8 +15,10 @@ function Invoke-RemotePipelineHandler {
         [Parameter(Mandatory = $true)]
         [ref]$Result
     )
-    process {
+    begin {
         $nonLoggingInfo = New-Object System.Collections.Generic.List[object]
+    }
+    process {
         foreach ($instance in $Object) {
             $type = $instance.RemoteLoggingType
 
@@ -29,6 +31,8 @@ function Invoke-RemotePipelineHandler {
                 $nonLoggingInfo.Add($instance)
             }
         }
+    }
+    end {
         # If only a single result, return that vs a list.
         if ($nonLoggingInfo.Count -eq 1) {
             $Result.Value = $nonLoggingInfo[0]
