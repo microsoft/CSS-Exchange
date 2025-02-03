@@ -18,12 +18,6 @@ function Add-JobExchangeInformationCmdlet {
             Non Default Script Block Dependencies
                 Invoke-DefaultConnectExchangeShell
                 Get-ExchangeContainer
-                Get-ExchangeBuildVersionInformation
-                GetExchangeBuildDictionary
-                GetValidatePossibleParameters
-                ValidateSUParameter
-                ValidateCUParameter
-                ValidateVersionParameter
                 Get-MonitoringOverride
                 Get-RemoteRegistrySubKey
         #>
@@ -36,10 +30,8 @@ function Add-JobExchangeInformationCmdlet {
             begin {
                 # Build Process to add functions.
                 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeDiagnosticInformation.ps1
-                . $PSScriptRoot\..\..\..\..\Shared\Get-ExSetupFileVersionInfo.ps1
                 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeSettingOverride.ps1
                 . $PSScriptRoot\Get-ExchangeServerCertificates.ps1
-                . $PSScriptRoot\Get-ExchangeUpdates.ps1
                 . $PSScriptRoot\Get-ExchangeVirtualDirectories.ps1
                 . $PSScriptRoot\Get-ExchangeConnectors.ps1
                 . $PSScriptRoot\Get-ExchangeServerMaintenanceState.ps1
@@ -48,15 +40,12 @@ function Add-JobExchangeInformationCmdlet {
                     $Script:ErrorsExcluded = @()
                 }
                 $exchangeCertificates = $null
-                $exSetupDetails = $null
-                $serverRole = "Unknown"
-                $getExchangeUpdates = @()
                 $exchangeConnectors = $null
                 $serverMaintenance = $null
                 $settingOverrides = $null
                 $edgeTransportResourceThrottling = $null
                 $serverMonitoringOverride = $null
-                $versionInformation = $null
+                $getExchangeVirtualDirectories = $null
 
                 Invoke-DefaultConnectExchangeShell
             }
@@ -64,48 +53,7 @@ function Add-JobExchangeInformationCmdlet {
 
                 $getExchangeServer = Get-ExchangeServer -Identity $Server -Status # TODO: Determine if we want to keep the cmdlet with the status or have it be passed to this job.
                 Get-ExchangeServerCertificates -Server $Server | Invoke-RemotePipelineHandler -Result ([ref]$exchangeCertificates)
-                Get-ExSetupFileVersionInfo -Server $Server -CatchActionFunction ${Function:Invoke-CatchActions} |
-                    Invoke-RemotePipelineHandler -Result ([ref]$exSetupDetails)
-
-                if ($null -eq $exSetupDetails) {
-                    # couldn't find ExSetup.exe this should be rare so we are just going to handle this by displaying the AdminDisplayVersion from Get-ExchangeServer
-                    # couldn't find ExSetup.exe this should be rare so we are just going to handle this by displaying the AdminDisplayVersion from Get-ExchangeServer
-                    Get-ExchangeBuildVersionInformation -AdminDisplayVersion $getExchangeServer.AdminDisplayVersion |
-                        Invoke-RemotePipelineHandler -Result ([ref]$versionInformation)
-                    $exSetupDetails = [PSCustomObject]@{
-                        FileVersion      = $versionInformation.BuildVersion.ToString()
-                        FileBuildPart    = $versionInformation.BuildVersion.Build
-                        FilePrivatePart  = $versionInformation.BuildVersion.Revision
-                        FileMajorPart    = $versionInformation.BuildVersion.Major
-                        FileMinorPart    = $versionInformation.BuildVersion.Minor
-                        FailedGetExSetup = $true
-                    }
-                } else {
-                    Get-ExchangeBuildVersionInformation -FileVersion ($exSetupDetails.FileVersion) |
-                        Invoke-RemotePipelineHandler -Result ([ref]$versionInformation)
-                }
-
-                [string]$role = $getExchangeServer.ServerRole
-                Write-Verbose "Role: $role"
-
-                if ($role -like "Mailbox,ClientAccess*") { $serverRole = "MultiRole" }
-                elseif ($role -like "*ClientAccess*") { $serverRole = "ClientAccess" }
-                elseif (-not ([string]::IsNullOrEmpty($role))) { $serverRole = $role }
-
-                # Not an Exchange Cmdlet, but going to keep this here now.
-                Get-ExchangeUpdates -Server $Server -ExchangeMajorVersion $versionInformation.MajorVersion | Invoke-RemotePipelineHandler -Result ([ref]$getExchangeUpdates)
-                [array]$getExchangeUpdates = @($getExchangeUpdates)
-
-                $buildInformation = [PSCustomObject]@{
-                    ServerRole         = $serverRole
-                    MajorVersion       = $versionInformation.MajorVersion
-                    CU                 = $versionInformation.CU
-                    ExchangeSetup      = $exSetupDetails
-                    VersionInformation = $versionInformation
-                    KBsInstalledInfo   = [array]$getExchangeUpdates
-                }
-
-                $getExchangeVirtualDirectories = Get-ExchangeVirtualDirectories -Server $Server
+                Get-ExchangeVirtualDirectories -Server $Server | Invoke-RemotePipelineHandler -Result ([ref]$getExchangeVirtualDirectories)
 
                 if ($getExchangeServer.IsEdgeServer -eq $false) {
                     Write-Verbose "Query Exchange Connector settings via 'Get-ExchangeConnectors'"
@@ -118,7 +66,6 @@ function Add-JobExchangeInformationCmdlet {
                         Invoke-CatchActions
                     }
                 }
-
 
                 Get-ExchangeServerMaintenanceState -Server $Server -ComponentsToSkip "ForwardSyncDaemon", "ProvisioningRps" |
                     Invoke-RemotePipelineHandler -Result ([ref]$serverMaintenance)
@@ -237,41 +184,28 @@ function Add-JobExchangeInformationCmdlet {
             end {
                 Write-Verbose "Completed: $($MyInvocation.MyCommand)"
                 [PSCustomObject]@{
-                    BuildInformation                         = $buildInformation
-                    GetExchangeServer                        = $getExchangeServer
-                    VirtualDirectories                       = $getExchangeVirtualDirectories
-                    GetMailboxServer                         = $getMailboxServer
-                    ExtendedProtectionConfig                 = $extendedProtectionConfig
-                    ExchangeConnectors                       = $exchangeConnectors
-                    ExchangeServicesNotRunning               = [array]$exchangeServicesNotRunning
-                    GetTransportService                      = $getTransportService
-                    ApplicationPools                         = $applicationPools
-                    RegistryValues                           = $registryValues
-                    ServerMaintenance                        = $serverMaintenance
-                    ExchangeCertificates                     = [array]$exchangeCertificates
-                    ExchangeEmergencyMitigationServiceResult = $eemsEndpointResults
-                    EdgeTransportResourceThrottling          = $edgeTransportResourceThrottling # If we want to checkout other diagnosticInfo, we should create a new object here.
-                    ApplicationConfigFileStatus              = $applicationConfigFileStatus
-                    DependentServices                        = $dependentServices
-                    IISSettings                              = $iisSettings
-                    SettingOverrides                         = $settingOverrides
-                    FIPFSUpdateIssue                         = $FIPFSUpdateIssue
-                    AES256CBCInformation                     = $aes256CbcDetails
-                    IanaTimeZoneMappingsRaw                  = $ianaTimeZoneMappingContent
-                    FileContentInformation                   = $fileContentInformation
-                    ComputerMembership                       = $computerMembership
-                    GetServerMonitoringOverride              = $serverMonitoringOverride
-                    RemoteJob                                = $true -eq $PSSenderInfo
-                    JobHandledErrors                         = $jobHandledErrors
+                    GetExchangeServer               = $getExchangeServer
+                    VirtualDirectories              = $getExchangeVirtualDirectories
+                    GetMailboxServer                = $getMailboxServer
+                    ExchangeConnectors              = $exchangeConnectors
+                    ExchangeServicesNotRunning      = [array]$exchangeServicesNotRunning
+                    GetTransportService             = $getTransportService
+                    ServerMaintenance               = $serverMaintenance
+                    ExchangeCertificates            = [array]$exchangeCertificates
+                    EdgeTransportResourceThrottling = $edgeTransportResourceThrottling # If we want to checkout other diagnosticInfo, we should create a new object here.iisSettings
+                    SettingOverrides                = $settingOverrides
+                    ComputerMembership              = $computerMembership
+                    GetServerMonitoringOverride     = $serverMonitoringOverride
+                    RemoteJob                       = $true -eq $PSSenderInfo
+                    JobHandledErrors                = $jobHandledErrors
                 }
             }
         }
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $sbInjectionParams = @{
             PrimaryScriptBlock = ${Function:Invoke-JobExchangeInformationCmdlet}
-            IncludeScriptBlock = @(${Function:Invoke-DefaultConnectExchangeShell}, ${Function:Get-ExchangeContainer}, ${Function:Get-ExchangeBuildVersionInformation},
-                ${Function:GetExchangeBuildDictionary}, ${Function:GetValidatePossibleParameters}, ${Function:ValidateSUParameter}, ${Function:ValidateCUParameter},
-                ${Function:ValidateVersionParameter}, ${Function:Get-MonitoringOverride}, ${Function:Get-RemoteRegistrySubKey})
+            IncludeScriptBlock = @(${Function:Invoke-DefaultConnectExchangeShell}, ${Function:Get-ExchangeContainer},
+                ${Function:Get-MonitoringOverride})
         }
         $scriptBlock = Get-HCDefaultSBInjection @sbInjectionParams
         $params = @{
