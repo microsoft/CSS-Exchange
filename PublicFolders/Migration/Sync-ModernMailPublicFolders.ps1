@@ -69,6 +69,8 @@ param(
     [switch] $WhatIf = $false
 )
 
+# cSpell:words mepf, mepfs, EXOV2, MEPFDNs
+
 # Writes a dated information message to console
 function WriteInfoMessage() {
     param ($message)
@@ -89,22 +91,22 @@ function WriteVerboseMessage() {
 
 # Writes an error importing a mail public folder to the CSV summary
 function WriteErrorSummary() {
-    param ($folder, $operation, $errorMessage, $commandtext)
+    param ($folder, $operation, $errorMessage, $commandText)
 
-    WriteOperationSummary -folder $folder.Guid -operation $operation -result $errorMessage -commandtext $commandtext
+    WriteOperationSummary -folder $folder.Guid -operation $operation -result $errorMessage -commandText $commandText
     $script:errorsEncountered++
 }
 
 # Writes the operation executed and its result to the output CSV
 function WriteOperationSummary() {
-    param ($folder, $operation, $result, $commandtext)
+    param ($folder, $operation, $result, $commandText)
 
     $columns = @(
         (Get-Date).ToString(),
         $folder.Guid,
         $operation,
         (EscapeCsvColumn $result),
-        (EscapeCsvColumn $commandtext)
+        (EscapeCsvColumn $commandText)
     )
 
     Add-Content $CsvSummaryFile -Value ("{0},{1},{2},{3},{4}" -f $columns)
@@ -178,7 +180,7 @@ function NewMailEnabledPublicFolder() {
     if ($localFolder.PrimarySmtpAddress.ToString() -eq "") {
         $errorMsg = ($LocalizedStrings.FailedToCreateMailPublicFolderEmptyPrimarySmtpAddress -f $localFolder.Guid)
         Write-Error $errorMsg
-        WriteErrorSummary -folder $localFolder -operation $LocalizedStrings.CreateOperationName -errorMessage $errorMsg -commandtext ""
+        WriteErrorSummary -folder $localFolder -operation $LocalizedStrings.CreateOperationName -errorMessage $errorMsg -commandText ""
         return
     }
 
@@ -196,13 +198,13 @@ function NewMailEnabledPublicFolder() {
 
     try {
         $null = &$script:NewSyncMailPublicFolderCommand @newParams
-        WriteOperationSummary -folder $localFolder -operation $LocalizedStrings.CreateOperationName -result $LocalizedStrings.CsvSuccessResult -commandtext $commandText
+        WriteOperationSummary -folder $localFolder -operation $LocalizedStrings.CreateOperationName -result $LocalizedStrings.CsvSuccessResult -commandText $commandText
 
         if (-not $WhatIf) {
             $script:ObjectsCreated++
         }
     } catch {
-        WriteErrorSummary -folder $localFolder -operation $LocalizedStrings.CreateOperationName -errorMessage $error[0].Exception.Message -commandtext $commandText
+        WriteErrorSummary -folder $localFolder -operation $LocalizedStrings.CreateOperationName -errorMessage $error[0].Exception.Message -commandText $commandText
         Write-Error $_
     }
 }
@@ -229,13 +231,13 @@ function RemoveMailEnabledPublicFolder() {
 
     try {
         &$script:RemoveSyncMailPublicFolderCommand @removeParams
-        WriteOperationSummary -folder $remoteFolder -operation $LocalizedStrings.RemoveOperationName -result $LocalizedStrings.CsvSuccessResult -commandtext $commandText
+        WriteOperationSummary -folder $remoteFolder -operation $LocalizedStrings.RemoveOperationName -result $LocalizedStrings.CsvSuccessResult -commandText $commandText
 
         if (-not $WhatIf) {
             $script:ObjectsDeleted++
         }
     } catch {
-        WriteErrorSummary -folder $remoteFolder -operation $LocalizedStrings.RemoveOperationName -errorMessage $_.Exception.Message -commandtext $commandText
+        WriteErrorSummary -folder $remoteFolder -operation $LocalizedStrings.RemoveOperationName -errorMessage $_.Exception.Message -commandText $commandText
         Write-Error $_
     }
 }
@@ -265,13 +267,13 @@ function UpdateMailEnabledPublicFolder() {
 
     try {
         &$script:SetMailPublicFolderCommand @setParams
-        WriteOperationSummary -folder $remoteFolder -operation $LocalizedStrings.UpdateOperationName -result $LocalizedStrings.CsvSuccessResult -commandtext $commandText
+        WriteOperationSummary -folder $remoteFolder -operation $LocalizedStrings.UpdateOperationName -result $LocalizedStrings.CsvSuccessResult -commandText $commandText
 
         if (-not $WhatIf) {
             $script:ObjectsUpdated++
         }
     } catch {
-        WriteErrorSummary -folder $remoteFolder -operation $LocalizedStrings.UpdateOperationName -errorMessage $_.Exception.Message -commandtext $commandText
+        WriteErrorSummary -folder $remoteFolder -operation $LocalizedStrings.UpdateOperationName -errorMessage $_.Exception.Message -commandText $commandText
         Write-Error $_
     }
 }
@@ -408,7 +410,7 @@ function checkForInconsistenciesWithMEPF() {
         $script:mailPublicFoldersDisconnectedFile
     )
 
-    # If there are any inconsistencies with mail-enabled public folders, the validatemepf script outputs any of these files
+    # If there are any inconsistencies with mail-enabled public folders, the ValidateMepf script outputs any of these files
     for ($i = 0; $i -lt $files.Length; $i++) {
         if (Test-Path $files[$i]) {
             return $true
@@ -682,7 +684,7 @@ try {
                         break
                     }
 
-                    WriteErrorSummary -folder $next -operation $LocalizedStrings.UpdateOperationName -errorMessage ($LocalizedStrings.PrimarySmtpAddressUsedByAnotherFolder -f $local.PrimarySmtpAddress, $local.Guid) -commandtext ""
+                    WriteErrorSummary -folder $next -operation $LocalizedStrings.UpdateOperationName -errorMessage ($LocalizedStrings.PrimarySmtpAddressUsedByAnotherFolder -f $local.PrimarySmtpAddress, $local.Guid) -commandText ""
 
                     # If there were a previous match based on OnPremisesObjectId, remove the folder operation from add and update collections
                     $pendingAdds.Remove($next.Guid)
@@ -697,7 +699,7 @@ try {
                     $pendingUpdates.Remove($local.Guid)
                     $localIndex += $duplicatesFound + 1
 
-                    WriteErrorSummary -folder $local -operation $LocalizedStrings.UpdateOperationName -errorMessage ($LocalizedStrings.PrimarySmtpAddressUsedByOtherFolders -f $local.PrimarySmtpAddress, $duplicatesFound) -commandtext ""
+                    WriteErrorSummary -folder $local -operation $LocalizedStrings.UpdateOperationName -errorMessage ($LocalizedStrings.PrimarySmtpAddressUsedByOtherFolders -f $local.PrimarySmtpAddress, $duplicatesFound) -commandText ""
                     WriteWarningMessage ($LocalizedStrings.SkippingFoldersWithDuplicateAddress -f ($duplicatesFound + 1), $local.PrimarySmtpAddress)
                 } elseif ($pendingUpdates.Contains($local.Guid)) {
                     # If we get here, it means two different remote objects match the same local object (one by OnPremisesObjectId and another by PrimarySmtpAddress).
@@ -706,7 +708,7 @@ try {
                     $pendingUpdates.Remove($local.Guid)
 
                     $errorMessage = ($LocalizedStrings.AmbiguousLocalMailPublicFolderResolution -f $local.Guid, $ambiguousRemoteObj.Guid, $remote.Guid)
-                    WriteErrorSummary -folder $local -operation $LocalizedStrings.UpdateOperationName -errorMessage $errorMessage -commandtext ""
+                    WriteErrorSummary -folder $local -operation $LocalizedStrings.UpdateOperationName -errorMessage $errorMessage -commandText ""
                     WriteWarningMessage $errorMessage
                 } else {
                     # Since there was no match originally using OnPremisesObjectId, the local object was treated as an add to Exchange Online.
@@ -752,10 +754,10 @@ try {
         }
     }
 
-    # Find out the authoritative AcceptedDomains on-premises so that we don't accidently remove cloud-only email addresses during updates
+    # Find out the authoritative AcceptedDomains on-premises so that we don't accidentally remove cloud-only email addresses during updates
     $script:authoritativeDomains = @(Get-AcceptedDomain | Where-Object { $_.DomainType -eq "Authoritative" } | ForEach-Object { $_.DomainName.ToString() })
 
-    # Finally, let's perfom the actual operations against Exchange Online
+    # Finally, let's perform the actual operations against Exchange Online
     $script:itemsProcessed = 0
     for ($i = 0; $i -lt $pendingRemoves.Length; $i++) {
         WriteProgress -statusFormat $LocalizedStrings.ProgressBarStatusRemoving -statusProcessed $i -statusTotal $pendingRemoves.Length

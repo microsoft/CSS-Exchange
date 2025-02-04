@@ -24,6 +24,8 @@ param(
     [bool] $Confirm = $true
 )
 
+# cSpell:words mepf, mepfs
+
 # Load localized strings
 Import-LocalizedData -BindingVariable LocalizedStrings -FileName SetMailPublicFolderExternalAddress.strings.psd1
 

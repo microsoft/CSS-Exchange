@@ -110,12 +110,12 @@ function ReadNonIpmSubtree() {
 # Function that executes statistics
 function GatherStatistics() {
     $index = 0
-    $PFIDENTITY_INDEX = 2
+    $PFIdentity_Index = 2
 
     #Prepare and call the Get-PublicFolderStatistics cmdlet
     $publicFolderStatistics = @(Get-PublicFolderStatistics -ResultSize:Unlimited)
 
-    #Explcitly get statistics for NON_IPM_SUBTREE since this is not included by default.
+    #Explicitly get statistics for NON_IPM_SUBTREE since this is not included by default.
     $publicFolderStatistics += @($script:NonIpmSubtreeFolders.Values | Get-PublicFolderStatistics -ResultSize:Unlimited)
 
     #Fill Folder Statistics
@@ -139,9 +139,9 @@ function GatherStatistics() {
             if ($script:FolderStatistics.ContainsKey($dumpsterEntryId)) {
                 # We already have processed its dumpster
                 # Check which is the deepest folder, deepest one is the folder and shorter one is its dumpster
-                # When processing dumpster we dont want to have a deleted folder and its dumpster size taken
+                # When processing dumpster we don't want to have a deleted folder and its dumpster size taken
                 # into account twice. So we always take deleted folder into account instead of its dumpster.
-                $dumpsterFolderIdentity = $script:FolderStatistics[$dumpsterEntryId][$PFIDENTITY_INDEX]
+                $dumpsterFolderIdentity = $script:FolderStatistics[$dumpsterEntryId][$PFIdentity_Index]
                 $dumpsterDepth = ([Regex]::Matches($dumpsterFolderIdentity, "\\")).Count
                 $folderDepth = ([Regex]::Matches($publicFolderIdentity, "\\")).Count
                 if ($folderDepth -gt $dumpsterDepth) {
@@ -173,22 +173,22 @@ function WriteProgress() {
 # Function that creates folder objects in right way for exporting
 function CreateFolderObjects() {
     $index = 1
-    $PFSIZE_INDEX = 0
-    $PFDELETEDSIZE_INDEX = 1
-    $PFIDENTITY_INDEX = 2
+    $PFSize_Index = 0
+    $PFDeletedSize_Index = 1
+    $PFIdentity_Index = 2
 
     foreach ($publicFolderEntryId in $script:FolderStatistics.Keys) {
         $IsNonIpmSubtreeFolder = $script:NonIpmSubtreeFolders.ContainsKey($publicFolderEntryId)
         $publicFolderIdentity = ""
 
         if ($IsNonIpmSubtreeFolder) {
-            $publicFolderIdentity = $script:FolderStatistics[$publicFolderEntryId][$PFIDENTITY_INDEX]
-            $dumpsterSize = $script:FolderStatistics[$publicFolderEntryId][$PFDELETEDSIZE_INDEX]
-            $folderSize = $script:FolderStatistics[$publicFolderEntryId][$PFSIZE_INDEX]
+            $publicFolderIdentity = $script:FolderStatistics[$publicFolderEntryId][$PFIdentity_Index]
+            $dumpsterSize = $script:FolderStatistics[$publicFolderEntryId][$PFDeletedSize_Index]
+            $folderSize = $script:FolderStatistics[$publicFolderEntryId][$PFSize_Index]
         } else {
-            $publicFolderIdentity = "\IPM_SUBTREE" + $script:FolderStatistics[$publicFolderEntryId][$PFIDENTITY_INDEX]
-            $dumpsterSize = $script:FolderStatistics[$publicFolderEntryId][$PFDELETEDSIZE_INDEX]
-            $folderSize = $script:FolderStatistics[$publicFolderEntryId][$PFSIZE_INDEX]
+            $publicFolderIdentity = "\IPM_SUBTREE" + $script:FolderStatistics[$publicFolderEntryId][$PFIdentity_Index]
+            $dumpsterSize = $script:FolderStatistics[$publicFolderEntryId][$PFDeletedSize_Index]
+            $folderSize = $script:FolderStatistics[$publicFolderEntryId][$PFSize_Index]
         }
 
         if ($publicFolderIdentity -ne "") {
@@ -245,7 +245,7 @@ function AssertPublicFoldersPresent() {
 function AssertExportFileValid() {
     param($ExportFile)
 
-    # Check if the path leading upto the item is valid.
+    # Check if the path leading up to the item is valid.
     $parent = Split-Path $ExportFile -Parent
     $parentValid = ($parent -eq "") -or (Test-Path $parent -PathType Container)
 

@@ -47,26 +47,26 @@ $script:Exchange16CUBuild = 669
 # Folder Node's member indices
 # This is an optimization since creating and storing objects as PSObject types
 # is an expensive operation in powershell
-# CLASSNAME_MEMBERNAME
-$script:FOLDERNODE_PATH = 0
-$script:FOLDERNODE_MAILBOX = 1
-$script:FOLDERNODE_TOTALITEMSIZE = 2
-$script:FOLDERNODE_AGGREGATETOTALITEMSIZE = 3
-$script:FOLDERNODE_TOTALRECOVERABLEITEMSIZE = 4
-$script:FOLDERNODE_AGGREGATETOTALRECOVERABLEITEMSIZE = 5
-$script:FOLDERNODE_PARENT = 6
-$script:FOLDERNODE_CHILDREN = 7
-$script:MAILBOX_NAME = 0
-$script:MAILBOX_UNUSEDSIZE = 1
-$script:MAILBOX_UNUSEDRECOVERABLEITEMSIZE = 2
-$script:MAILBOX_ISINHERITED = 3
+# ClassName_MemberName
+$script:FolderNode_Path = 0
+$script:FolderNode_Mailbox = 1
+$script:FolderNode_TotalItemSize = 2
+$script:FolderNode_AggregateTotalItemSize = 3
+$script:FolderNode_TotalRecoverableItemSize = 4
+$script:FolderNode_AggregateTotalRecoverableItemSize = 5
+$script:FolderNode_Parent = 6
+$script:FolderNode_Children = 7
+$script:Mailbox_Name = 0
+$script:Mailbox_UnusedSize = 1
+$script:Mailbox_UnusedRecoverableItemSize = 2
+$script:Mailbox_IsInherited = 3
 
 $script:ROOT = @("`\", $null, 0, 0, 0, 0, $null, @{})
 
 #load hashtable of localized string
 Import-LocalizedData -BindingVariable MapGenerator_LocalizedStrings -FileName ModernPublicFolderToMailboxMapGenerator.strings.psd1
 
-# Function that constructs the entire tree based on the folderpath
+# Function that constructs the entire tree based on the folder path
 # As and when it constructs it computes its aggregate folder size that included itself
 function LoadFolderHierarchy() {
     foreach ($folder in $script:PublicFolders) {
@@ -77,26 +77,26 @@ function LoadFolderHierarchy() {
         $parent = $script:ROOT
 
         #Stores the subpath of the folder currently getting processed
-        $currFolderPath = ""
+        $currentFolderPath = ""
         foreach ($familyMember in $folder.FolderName.Split('\', [System.StringSplitOptions]::RemoveEmptyEntries)) {
-            $currFolderPath = $currFolderPath + "\"+ $familyMember
+            $currentFolderPath = $currentFolderPath + "\"+ $familyMember
             # Try to locate the appropriate subfolder
-            $child = $parent[$script:FOLDERNODE_CHILDREN].Item($familyMember)
+            $child = $parent[$script:FolderNode_Children].Item($familyMember)
             if ($null -eq $child) {
-                if ($folder.FolderName.Equals($currFolderPath)) {
+                if ($folder.FolderName.Equals($currentFolderPath)) {
                     # Create this leaf node and add subfolder to parent's children
                     $child = @($folder.FolderName, $null, $folderSize, $folderSize, $recoverableItemSize, $recoverableItemSize, $parent, @{})
-                    $parent[$script:FOLDERNODE_CHILDREN].Add($familyMember, $child)
+                    $parent[$script:FolderNode_Children].Add($familyMember, $child)
                 } else {
                     # We have found a folder which is not in the stats file, set the size of such folders to zero.
-                    $child = @($currFolderPath, $null, 0, 0, 0, 0, $parent, @{})
-                    $parent[$script:FOLDERNODE_CHILDREN].Add($familyMember, $child)
+                    $child = @($currentFolderPath, $null, 0, 0, 0, 0, $parent, @{})
+                    $parent[$script:FolderNode_Children].Add($familyMember, $child)
                 }
             }
 
             # Add child's individual size to parent's aggregate size
-            $parent[$script:FOLDERNODE_AGGREGATETOTALITEMSIZE] += $folderSize
-            $parent[$script:FOLDERNODE_AGGREGATETOTALRECOVERABLEITEMSIZE] += $recoverableItemSize
+            $parent[$script:FolderNode_AggregateTotalItemSize] += $folderSize
+            $parent[$script:FolderNode_AggregateTotalRecoverableItemSize] += $recoverableItemSize
             $parent = $child
         }
     }
@@ -104,22 +104,22 @@ function LoadFolderHierarchy() {
 
 # Function that assigns content mailboxes to public folders
 # $node: Root node to be assigned to a mailbox
-# $mailboxName: If not $null, we will attempt to accomodate folder in this mailbox
+# $mailboxName: If not $null, we will attempt to accommodate folder in this mailbox
 function AllocateMailbox() {
     param ($node, $mailboxName)
 
     if ($null -ne $mailboxName) {
         # Since a mailbox was supplied by the caller, we should first attempt to use it
-        if ($node[$script:FOLDERNODE_AGGREGATETOTALITEMSIZE] -le $script:PublicFolderMailboxes[$mailboxName][$script:MAILBOX_UNUSEDSIZE] -and
-            $node[$script:FOLDERNODE_AGGREGATETOTALRECOVERABLEITEMSIZE] -le $script:PublicFolderMailboxes[$mailboxName][$script:MAILBOX_UNUSEDRECOVERABLEITEMSIZE]) {
+        if ($node[$script:FolderNode_AggregateTotalItemSize] -le $script:PublicFolderMailboxes[$mailboxName][$script:Mailbox_UnusedSize] -and
+            $node[$script:FolderNode_AggregateTotalRecoverableItemSize] -le $script:PublicFolderMailboxes[$mailboxName][$script:Mailbox_UnusedRecoverableItemSize]) {
             # Node's contents (including branch) can be completely fit into specified mailbox
             # Assign the folder to mailbox and update mailbox's remaining size
-            $node[$script:FOLDERNODE_MAILBOX] = $mailboxName
-            $script:PublicFolderMailboxes[$mailboxName][$script:MAILBOX_UNUSEDSIZE] -= $node[$script:FOLDERNODE_AGGREGATETOTALITEMSIZE]
-            $script:PublicFolderMailboxes[$mailboxName][$script:MAILBOX_UNUSEDRECOVERABLEITEMSIZE] -= $node[$script:FOLDERNODE_AGGREGATETOTALRECOVERABLEITEMSIZE]
-            if ($script:PublicFolderMailboxes[$mailboxName][$script:MAILBOX_ISINHERITED] -eq $false) {
+            $node[$script:FolderNode_Mailbox] = $mailboxName
+            $script:PublicFolderMailboxes[$mailboxName][$script:Mailbox_UnusedSize] -= $node[$script:FolderNode_AggregateTotalItemSize]
+            $script:PublicFolderMailboxes[$mailboxName][$script:Mailbox_UnusedRecoverableItemSize] -= $node[$script:FolderNode_AggregateTotalRecoverableItemSize]
+            if ($script:PublicFolderMailboxes[$mailboxName][$script:Mailbox_IsInherited] -eq $false) {
                 # This mailbox was not parent's content mailbox, but was created by a sibling
-                $script:AssignedFolders += New-Object PSObject -Property @{FolderPath = $node[$script:FOLDERNODE_PATH]; TargetMailbox = $node[$script:FOLDERNODE_MAILBOX] }
+                $script:AssignedFolders += New-Object PSObject -Property @{FolderPath = $node[$script:FolderNode_Path]; TargetMailbox = $node[$script:FolderNode_Mailbox] }
             }
 
             return $mailboxName
@@ -130,24 +130,24 @@ function AllocateMailbox() {
     $newMailboxName = "Mailbox" + ($script:NEXT_MAILBOX++)
     $script:PublicFolderMailboxes[$newMailboxName] = @($newMailboxName, $MailboxSize, $MailboxRecoverableItemSize, $false)
 
-    $node[$script:FOLDERNODE_MAILBOX] = $newMailboxName
-    $script:AssignedFolders += New-Object PSObject -Property @{FolderPath = $node[$script:FOLDERNODE_PATH]; TargetMailbox = $node[$script:FOLDERNODE_MAILBOX] }
-    if ($node[$script:FOLDERNODE_AGGREGATETOTALITEMSIZE] -le $script:PublicFolderMailboxes[$newMailboxName][$script:MAILBOX_UNUSEDSIZE] -and
-        $node[$script:FOLDERNODE_AGGREGATETOTALRECOVERABLEITEMSIZE] -le $script:PublicFolderMailboxes[$newMailboxName][$script:MAILBOX_UNUSEDRECOVERABLEITEMSIZE]) {
+    $node[$script:FolderNode_Mailbox] = $newMailboxName
+    $script:AssignedFolders += New-Object PSObject -Property @{FolderPath = $node[$script:FolderNode_Path]; TargetMailbox = $node[$script:FolderNode_Mailbox] }
+    if ($node[$script:FolderNode_AggregateTotalItemSize] -le $script:PublicFolderMailboxes[$newMailboxName][$script:Mailbox_UnusedSize] -and
+        $node[$script:FolderNode_AggregateTotalRecoverableItemSize] -le $script:PublicFolderMailboxes[$newMailboxName][$script:Mailbox_UnusedRecoverableItemSize]) {
         # Node's contents (including branch) can be completely fit into the newly created mailbox
         # Assign the folder to mailbox and update mailbox's remaining size
-        $script:PublicFolderMailboxes[$newMailboxName][$script:MAILBOX_UNUSEDSIZE] -= $node[$script:FOLDERNODE_AGGREGATETOTALITEMSIZE]
-        $script:PublicFolderMailboxes[$newMailboxName][$script:MAILBOX_UNUSEDRECOVERABLEITEMSIZE] -= $node[$script:FOLDERNODE_AGGREGATETOTALRECOVERABLEITEMSIZE]
+        $script:PublicFolderMailboxes[$newMailboxName][$script:Mailbox_UnusedSize] -= $node[$script:FolderNode_AggregateTotalItemSize]
+        $script:PublicFolderMailboxes[$newMailboxName][$script:Mailbox_UnusedRecoverableItemSize] -= $node[$script:FolderNode_AggregateTotalRecoverableItemSize]
         return $newMailboxName
     } else {
         # Since node's contents (including branch) could not be fitted into the newly created mailbox,
         # put it's individual contents into the mailbox
-        $script:PublicFolderMailboxes[$newMailboxName][$script:MAILBOX_UNUSEDSIZE] -= $node[$script:FOLDERNODE_TOTALITEMSIZE]
-        $script:PublicFolderMailboxes[$newMailboxName][$script:MAILBOX_UNUSEDRECOVERABLEITEMSIZE] -= $node[$script:FOLDERNODE_TOTALRECOVERABLEITEMSIZE]
+        $script:PublicFolderMailboxes[$newMailboxName][$script:Mailbox_UnusedSize] -= $node[$script:FolderNode_TotalItemSize]
+        $script:PublicFolderMailboxes[$newMailboxName][$script:Mailbox_UnusedRecoverableItemSize] -= $node[$script:FolderNode_TotalRecoverableItemSize]
     }
 
-    $subFolders = @(@($node[$script:FOLDERNODE_CHILDREN].GetEnumerator()) | Sort-Object @{Expression= { $_.Value[$script:FOLDERNODE_AGGREGATETOTALITEMSIZE] }; Ascending=$true })
-    $script:PublicFolderMailboxes[$newMailboxName][$script:MAILBOX_ISINHERITED] = $true
+    $subFolders = @(@($node[$script:FolderNode_Children].GetEnumerator()) | Sort-Object @{Expression= { $_.Value[$script:FolderNode_AggregateTotalItemSize] }; Ascending=$true })
+    $script:PublicFolderMailboxes[$newMailboxName][$script:Mailbox_IsInherited] = $true
     foreach ($subFolder in $subFolders) {
         $newMailboxName = AllocateMailbox $subFolder.Value $newMailboxName
     }
@@ -156,26 +156,26 @@ function AllocateMailbox() {
 }
 
 # Function to check if further optimization can be done on the output generated
-function TryAccomodateSubFoldersWithParent() {
+function TryAccommodateSubFoldersWithParent() {
     $numAssignedFolders = $script:AssignedFolders.Count
     for ($index = $numAssignedFolders - 1 ; $index -ge 0 ; $index--) {
         $assignedFolder = $script:AssignedFolders[$index]
 
         # Locate folder's parent
-        for ($jindex = $index - 1 ; $jindex -ge 0 ; $jindex--) {
-            if ($assignedFolder.FolderPath.StartsWith($script:AssignedFolders[$jindex].FolderPath)) {
+        for ($jIndex = $index - 1 ; $jIndex -ge 0 ; $jIndex--) {
+            if ($assignedFolder.FolderPath.StartsWith($script:AssignedFolders[$jIndex].FolderPath)) {
                 # Found first ancestor
-                $ancestor = $script:AssignedFolders[$jindex]
-                $usedMailboxSize = $MailboxSize - $script:PublicFolderMailboxes[$assignedFolder.TargetMailbox][$script:MAILBOX_UNUSEDSIZE]
-                $usedRecoverableMailboxSize = $MailboxRecoverableItemSize - $script:PublicFolderMailboxes[$assignedFolder.TargetMailbox][$script:MAILBOX_UNUSEDRECOVERABLEITEMSIZE]
-                if ($usedMailboxSize -le $script:PublicFolderMailboxes[$ancestor.TargetMailbox][$script:MAILBOX_UNUSEDSIZE] -and
-                    $usedRecoverableMailboxSize -le $script:PublicFolderMailboxes[$ancestor.TargetMailbox][$script:MAILBOX_UNUSEDRECOVERABLEITEMSIZE]) {
+                $ancestor = $script:AssignedFolders[$jIndex]
+                $usedMailboxSize = $MailboxSize - $script:PublicFolderMailboxes[$assignedFolder.TargetMailbox][$script:Mailbox_UnusedSize]
+                $usedRecoverableMailboxSize = $MailboxRecoverableItemSize - $script:PublicFolderMailboxes[$assignedFolder.TargetMailbox][$script:Mailbox_UnusedRecoverableItemSize]
+                if ($usedMailboxSize -le $script:PublicFolderMailboxes[$ancestor.TargetMailbox][$script:Mailbox_UnusedSize] -and
+                    $usedRecoverableMailboxSize -le $script:PublicFolderMailboxes[$ancestor.TargetMailbox][$script:Mailbox_UnusedRecoverableItemSize]) {
                     # If the current mailbox can fit into its ancestor mailbox, add the former's contents to ancestor
                     # and remove the mailbox assigned to it.Update the ancestor mailbox's size accordingly
-                    $script:PublicFolderMailboxes[$assignedFolder.TargetMailbox][$script:MAILBOX_UNUSEDSIZE] = $MailboxSize
-                    $script:PublicFolderMailboxes[$ancestor.TargetMailbox][$script:MAILBOX_UNUSEDSIZE] -= $usedMailboxSize
-                    $script:PublicFolderMailboxes[$assignedFolder.TargetMailbox][$script:MAILBOX_UNUSEDRECOVERABLEITEMSIZE] = $MailboxRecoverableItemSize
-                    $script:PublicFolderMailboxes[$ancestor.TargetMailbox][$script:MAILBOX_UNUSEDRECOVERABLEITEMSIZE] -= $usedRecoverableMailboxSize
+                    $script:PublicFolderMailboxes[$assignedFolder.TargetMailbox][$script:Mailbox_UnusedSize] = $MailboxSize
+                    $script:PublicFolderMailboxes[$ancestor.TargetMailbox][$script:Mailbox_UnusedSize] -= $usedMailboxSize
+                    $script:PublicFolderMailboxes[$assignedFolder.TargetMailbox][$script:Mailbox_UnusedRecoverableItemSize] = $MailboxRecoverableItemSize
+                    $script:PublicFolderMailboxes[$ancestor.TargetMailbox][$script:Mailbox_UnusedRecoverableItemSize] -= $usedRecoverableMailboxSize
                     $assignedFolder.TargetMailbox = $null
                 }
 
@@ -191,17 +191,17 @@ function TryAccomodateSubFoldersWithParent() {
 
 # Check if all folders have size and dumpster size less than mailbox size and dumpster size respectively
 function AssertFolderSizeLessThanQuota() {
-    $currMaxFolderSize = ($script:PublicFolders | Measure-Object -Property FolderSize -Maximum).Maximum
-    $currMaxRecoverableItemSize = ($script:PublicFolders | Measure-Object -Property DeletedItemSize -Maximum).Maximum
+    $currentMaxFolderSize = ($script:PublicFolders | Measure-Object -Property FolderSize -Maximum).Maximum
+    $currentMaxRecoverableItemSize = ($script:PublicFolders | Measure-Object -Property DeletedItemSize -Maximum).Maximum
 
     $shouldFail = $false
-    if ($currMaxFolderSize -gt $MailboxSize) {
-        Write-Host "[$($(Get-Date).ToString())]" ($MapGenerator_LocalizedStrings.MammothFolder -f  $currMaxFolderSize)
+    if ($currentMaxFolderSize -gt $MailboxSize) {
+        Write-Host "[$($(Get-Date).ToString())]" ($MapGenerator_LocalizedStrings.MammothFolder -f  $currentMaxFolderSize)
         $shouldFail = $true
     }
 
-    if ($currMaxRecoverableItemSize -gt $MailboxRecoverableItemSize) {
-        Write-Host "[$($(Get-Date).ToString())]" ($MapGenerator_LocalizedStrings.MammothDumpsterFolder -f  $currMaxRecoverableItemSize)
+    if ($currentMaxRecoverableItemSize -gt $MailboxRecoverableItemSize) {
+        Write-Host "[$($(Get-Date).ToString())]" ($MapGenerator_LocalizedStrings.MammothDumpsterFolder -f  $currentMaxRecoverableItemSize)
         $shouldFail = $true
     }
 
@@ -256,7 +256,7 @@ AssertMinVersion
 Write-Host "[$($(Get-Date).ToString())]" $MapGenerator_LocalizedStrings.ProcessFolder
 $script:PublicFolders = Import-Csv $ImportFile
 
-# Check if there is atleast one public folder in existence
+# Check if there is at least one public folder in existence
 if (!$script:PublicFolders) {
     Write-Host "[$($(Get-Date).ToString())]" $MapGenerator_LocalizedStrings.ProcessEmptyFile
     return
@@ -268,7 +268,7 @@ AssertFolderSizeLessThanQuota
 Write-Host "[$($(Get-Date).ToString())]" $MapGenerator_LocalizedStrings.LoadFolderHierarchy
 LoadFolderHierarchy
 
-# Contains the list of instantiated public folder maiboxes
+# Contains the list of instantiated public folder mailboxes
 # Key: mailbox name, Value: unused mailbox size
 $script:PublicFolderMailboxes = @{}
 $script:AssignedFolders = @()
@@ -280,8 +280,8 @@ $script:MAILBOX_LIMIT = 100
 Write-Host "[$($(Get-Date).ToString())]" $MapGenerator_LocalizedStrings.AllocateFolders
 $null = AllocateMailbox $script:ROOT $null
 
-Write-Host "[$($(Get-Date).ToString())]" $MapGenerator_LocalizedStrings.AccomodateFolders
-TryAccomodateSubFoldersWithParent
+Write-Host "[$($(Get-Date).ToString())]" $MapGenerator_LocalizedStrings.AccommodateFolders
+TryAccommodateSubFoldersWithParent
 
 Write-Host "[$($(Get-Date).ToString())]" $MapGenerator_LocalizedStrings.ExportFolderMap
 $script:NEXT_MAILBOX = 2
@@ -291,7 +291,7 @@ $numAssignedFolders = $script:AssignedFolders.Count
 
 # Prepare the folder object that is to be finally exported
 # During the process, rename the mailbox assigned to it.
-# This is done to prevent any gap in generated mailbox name sequence at the end of the execution of TryAccomodateSubFoldersWithParent function
+# This is done to prevent any gap in generated mailbox name sequence at the end of the execution of TryAccommodateSubFoldersWithParent function
 for ($index = 0 ; $index -lt $numAssignedFolders ; $index++) {
     $current = $script:AssignedFolders[$index]
     $currentMailboxName = $current.TargetMailbox
