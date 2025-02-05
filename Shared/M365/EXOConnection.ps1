@@ -34,7 +34,7 @@ $exoConnection = Connect-EXOAdvanced -AllowMultipleSessions -Prefix Con2
 This example establishes a connection to Exchange Online, allows multiple sessions, and specifies a prefix "Con2" for the session.
 
 .EXAMPLE
-$exoConnection2 = Connect-EXOAdvanced -minModuleVersion 3.5.0
+$exoConnection2 = Connect-EXOAdvanced -MinModuleVersion 3.5.0
 This example establishes a connection to Exchange Online and specifies a minimum module version of 3.5.0.
 #>
 

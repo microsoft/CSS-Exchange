@@ -32,7 +32,7 @@ $graphConnection = Connect-GraphAdvanced -Scopes Group.Read.All, User.Read.All -
 This example establishes a connection to Microsoft Graph with the scopes "Group.Read.All" and "User.Read.All" using the "Microsoft.Graph.Users" and "Microsoft.Graph.Groups" modules.
 
 .EXAMPLE
-$graphConnection = Connect-GraphAdvanced -Scopes Group.Read.All, User.Read.All -Modules Microsoft.Graph.Users, Microsoft.Graph.Groups -minModuleVersion 2.25.0
+$graphConnection = Connect-GraphAdvanced -Scopes Group.Read.All, User.Read.All -Modules Microsoft.Graph.Users, Microsoft.Graph.Groups -MinModuleVersion 2.25.0
 This example establishes a connection to Microsoft Graph with the scopes "Group.Read.All" and "User.Read.All" using the "Microsoft.Graph.Users" and "Microsoft.Graph.Groups" modules, and specifies a minimum module version of 2.25.0.
 #>
 
