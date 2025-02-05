@@ -63,8 +63,21 @@ $script:Mailbox_IsInherited = 3
 
 $script:ROOT = @("`\", $null, 0, 0, 0, 0, $null, @{})
 
-#load hashtable of localized string
-Import-LocalizedData -BindingVariable MapGenerator_LocalizedStrings -FileName ModernPublicFolderToMailboxMapGenerator.strings.psd1
+$MapGenerator_LocalizedStrings = ConvertFrom-StringData @'
+###PSLOC
+MammothFolder = MailboxSize should be atleast {0} to accomodate all your public folders.
+MammothDumpsterFolder = MailboxRecoverableItemSize should be atleast {0} to accomodate all your public folders.
+ProcessFolder = Reading public folder list...
+ProcessEmptyFile = Cannot generate mapping from empty file
+LoadFolderHierarchy = Loading folder hierarchy...
+CannotLoadFolders = Unable to load public folders...
+AllocateFolders = Allocating folders to mailboxes...
+AccommodateFolders = Trying to accomodate folders with their parent...
+ExportFolderMap = Exporting folder mapping...
+VersionErrorMessage = This script should be run on Exchange Server 2013 CU15 or later, or Exchange Server 2016 CU4 or later. The following servers are running other versions of Exchange Server:\n\t{0}
+MailboxLimitError = Number of public folder mailboxes cannot exceed more than {0} for modern public folder migration.
+###PSLOC
+'@
 
 # Function that constructs the entire tree based on the folder path
 # As and when it constructs it computes its aggregate folder size that included itself
