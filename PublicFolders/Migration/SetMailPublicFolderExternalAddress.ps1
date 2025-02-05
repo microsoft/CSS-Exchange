@@ -27,7 +27,6 @@ param(
 # cSpell:words mepf, mepfs
 
 $LocalizedStrings = ConvertFrom-StringData @'
-###PSLOC
 FindingPublicFoldersAcceptedDomain = Locating the well-known accepted domain for public folder email routing...
 FoundPublicFolderAcceptedDomain = Found '{0}'
 EnumeratingMailEnabledPublicFolders = Enumerating mail-enabled public folders...
@@ -51,7 +50,6 @@ NoMailEnabledPublicFoldersRequiresStamping = No mail-enabled public folder requi
 ExecutionSummaryFile = Execution summary is stored in {0} file
 StampingConfirmation = Confirmation for stamping: {0}
 RunningWithConfirmation = Running with user confirmation
-###PSLOC
 '@
 
 if (Test-Path $ExecutionSummaryFile) {

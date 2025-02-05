@@ -15,7 +15,6 @@ param(
 )
 
 $ModernPublicFolderStatistics_LocalizedStrings = ConvertFrom-StringData @'
-###PSLOC
 ProcessingNonIpmSubtree = Enumerating folders under NON_IPM_SUBTREE...
 ProcessingNonIpmSubtreeComplete = Enumerating folders under NON_IPM_SUBTREE completed...{0} folders found.
 ProcessingIpmSubtree = Enumerating folders under IPM_SUBTREE...
@@ -30,7 +29,6 @@ VersionErrorMessage = This script should be run on Exchange Server 2013 CU15 or 
 ProgressBarActivity = Generating Statistics for Public Folders...
 InvalidFolderNames = The following folders have invalid characters in the name ('\\' or '/') and cannot be migrated; please rename them and run the script again:\n\t{0}
 InvalidExportFile = Path to the export file '{0}' is invalid. Please provide a valid path.
-###PSLOC
 '@
 
 ################ START OF DEFAULTS ################

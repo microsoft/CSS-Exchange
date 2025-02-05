@@ -536,7 +536,6 @@ $script:mailDisabledWithProxyGuidFile = Join-Path $PWD "MailDisabledWithProxyGui
 $script:mailPublicFoldersDisconnectedFile = Join-Path $PWD "MailPublicFoldersDisconnected.txt"
 
 $LocalizedStrings = ConvertFrom-StringData @'
-###PSLOC
 CreatingRemoteSession = Creating an Exchange Online remote session...
 FailedToCreateRemoteSession = Unable to create a remote shell session to Exchange Online. The error is as follows: "{0}".
 FailedToImportRemoteSession = Exchange Online remote could session not be imported. The error is as follows: "{0}".
@@ -581,12 +580,11 @@ DownloadValidateMEPFScriptFailed = Unable to download ValidateMailEnabledPublicF
 FoundInconsistenciesWithMEPFs = Found some inconsistencies with mail-enabled public folders. To fix them run Sync-ModernMailPublicFolders.ps1 script with -FixInconsistencies parameter.
 MailDisablePublicFoldersInFile = Mail disabling public folders mentioned in {0}.
 DeleteOrphanedMailPublicFoldersInFile = Deleting orphaned mail public folders mentioned in {0}.
-DeleteDuplicateMailPublicFoldersinFile = Deleting duplicate mail public folders mentioned in {0}.
+DeleteDuplicateMailPublicFoldersInFile = Deleting duplicate mail public folders mentioned in {0}.
 AddAddressesFromDuplicates = Adding email addresses from duplicates...
 MailEnablePublicFoldersWithProxyGUIDinFile = Mail-enabling public folders mentioned in {0}.
 MailEnablePFAssociatedToDisconnectedMEPFsInFile = Resetting MailEnabled and MailRecipientGuid properties of public folders corresponding to disconnected mepfs mentioned in {0}.
-EXOV2ModuleNotInstalled = This script uses modern authenticaion to connect to Exchange Online and requires EXO V2 module to be installed. Please follow the instructions at https://docs.microsoft.com/powershell/exchange/exchange-online-powershell-v2?view=exchange-ps#install-the-exo-v2-module to install EXO V2 module.
-###PSLOC
+EXOV2ModuleNotInstalled = This script uses modern authentication to connect to Exchange Online and requires EXO V2 module to be installed. Please follow the instructions at https://docs.microsoft.com/powershell/exchange/exchange-online-powershell-v2?view=exchange-ps#install-the-exo-v2-module to install EXO V2 module.
 '@
 
 #minimum supported exchange version to run this script
