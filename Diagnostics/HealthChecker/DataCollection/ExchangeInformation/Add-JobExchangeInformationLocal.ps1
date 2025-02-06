@@ -120,23 +120,6 @@ function Add-JobExchangeInformationLocal {
                     }
                     Write-Verbose "Trying to query Exchange Server IIS settings"
                     Get-ExchangeServerIISSettings @exchangeServerIISParams | Invoke-RemotePipelineHandler -Result ([ref]$iisSettings)
-                    Write-Verbose "Query extended protection configuration for multiple CVEs testing"
-                    $getExtendedProtectionConfigurationParams = @{
-                        ExSetupVersion      = $buildInformation.ExchangeSetup.FileVersion
-                        CatchActionFunction = ${Function:Invoke-CatchActions}
-                    }
-
-                    try {
-                        if ($null -ne $iisSettings.ApplicationHostConfig) {
-                            $getExtendedProtectionConfigurationParams.ApplicationHostConfig = [xml]$iisSettings.ApplicationHostConfig
-                        }
-                        Write-Verbose "Was able to convert the ApplicationHost.Config to XML"
-                        $extendedProtectionConfig = $null
-                        # Get-ExtendedProtectionConfiguration @getExtendedProtectionConfigurationParams | Invoke-RemotePipelineHandler -Result ([ref]$extendedProtectionConfig)
-                    } catch {
-                        Write-Verbose "Failed to get the ExtendedProtectionConfig"
-                        Invoke-CatchActions
-                    }
 
                     try {
                         $localGroupMember = Get-LocalGroupMember -SID "S-1-5-32-544" -ErrorAction Stop
