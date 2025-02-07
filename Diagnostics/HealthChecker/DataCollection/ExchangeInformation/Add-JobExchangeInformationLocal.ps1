@@ -229,7 +229,7 @@ function Add-JobExchangeInformationLocal {
                 ScriptBlock  = $scriptBlock
                 ArgumentList = $GetExchangeServer
             }
-            JobId        = "cb563125-6cb9-4da9-9cde-241ee4f76332-$ComputerName"
+            JobId        = "Invoke-JobExchangeInformationLocal-$ComputerName"
         }
         Add-JobQueue @params
     }
