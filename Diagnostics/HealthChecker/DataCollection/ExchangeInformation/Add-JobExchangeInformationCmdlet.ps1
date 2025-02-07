@@ -214,7 +214,7 @@ function Add-JobExchangeInformationCmdlet {
                 ScriptBlock  = $scriptBlock
                 ArgumentList = $ComputerName
             }
-            JobId        = "67e6f848-0045-48a5-8d0e-4deecc4e922e-$ComputerName"
+            JobId        = "Invoke-JobExchangeInformationCmdlet-$ComputerName"
         }
         Add-JobQueue @params
     }
