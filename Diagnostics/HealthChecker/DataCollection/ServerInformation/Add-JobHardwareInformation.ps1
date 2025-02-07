@@ -88,7 +88,7 @@ function Add-JobHardwareInformation {
                 ComputerName = $ComputerName
                 ScriptBlock  = $scriptBlock
             }
-            JobId        = "ece68150-fb38-44b3-b83e-ec0d0e51327f-$ComputerName"
+            JobId        = "Invoke-JobHardwareInformation-$ComputerName"
         }
         Add-JobQueue @params
     }
