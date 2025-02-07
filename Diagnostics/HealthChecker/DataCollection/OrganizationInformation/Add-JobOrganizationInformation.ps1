@@ -201,7 +201,7 @@ function Add-JobOrganizationInformation {
             JobParameter = @{
                 ScriptBlock = $scriptBlock
             }
-            JobId        = "0df92d89-fbe2-44f5-b17c-ed32f94cf948-OrganizationInformation"
+            JobId        = "Invoke-JobOrganizationInformation"
         }
         Add-JobQueue @params
     }
