@@ -20,7 +20,9 @@
 function Wait-JobQueue {
     [CmdletBinding()]
     param(
-        [int]$MaxJobsPerServer = 5
+        [int]$MaxJobsPerServer = 5,
+
+        [ScriptBlock]$ProcessReceiveJobAction
     )
     begin {
 
@@ -120,7 +122,15 @@ function Wait-JobQueue {
             if ($nonRunningJobs.Count -gt 0) {
                 foreach ($jobInfo in $nonRunningJobs) {
                     $JobError = $null
+                    Write-Verbose "Attempting to receive job $($jobInfo.JobId)"
                     $result = Receive-Job $jobInfo.Job -ErrorVariable "JobError"
+                    Write-Verbose "Successfully received the job"
+                    if ($null -ne $ProcessReceiveJobAction -and
+                        $null -ne $result) {
+                        $result = & $ProcessReceiveJobAction $result
+                        Write-Verbose "Successfully processed job action"
+                    }
+
                     $jobInfo.Results = $result
                     $jobInfo.Error = $JobError
                     $jobInfo.JobEndTime = [DateTime]::Now
