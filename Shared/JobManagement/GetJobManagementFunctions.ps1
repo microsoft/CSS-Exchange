@@ -13,20 +13,30 @@ function Get-JobQueue {
     }
 }
 
-function Get-JobResultList {
+function Get-JobQueueResult {
     [CmdletBinding()]
+    [OutputType([Hashtable])]
     param()
-    process {
-        if ($null -eq $Script:jobsQueued) {
+    begin {
+
+        $getJobQueue = Get-JobQueue
+
+        if ($null -eq $getJobQueue) {
             throw "Jobs Queued is null"
         }
 
-        if ($null -ne ($Script:jobsQueued.Values | Where-Object { $_.JobEndTime -eq [DateTime]::MinValue })) {
+        if ($null -ne ($getJobQueue.Values | Where-Object { $_.JobEndTime -eq [DateTime]::MinValue })) {
             throw "Not all jobs appear to be completed"
         }
 
-        $result = New-Object System.Collections.Generic.List[System.Object]
-        $result.AddRange(@($Script:jobsQueued.Values))
-        $result
+        $results = @{}
+    }
+    process {
+        foreach ($key in $getJobQueue.Keys) {
+            $results.Add($key, $getJobQueue[$key].Results)
+        }
+    }
+    end {
+        $results
     }
 }
