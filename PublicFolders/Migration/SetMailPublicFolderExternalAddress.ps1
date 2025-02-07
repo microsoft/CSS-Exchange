@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 # .SYNOPSIS
-# StampMailEnabledPublicFolders.ps1
+# SetMailPublicFolderExternalAddress.ps1
 #    Stamps ExternalEmailAddress property of the mail-enabled public folders with their respective EXO smtp address.
 #
 # .PARAMETER ExecutionSummaryFile
@@ -13,7 +13,7 @@
 #    a value with the Confirm switch.
 #
 # .EXAMPLE
-#    .\StampMailEnabledPublicFolders.ps1 -ExecutionSummaryFile:summary.csv
+#    .\SetMailPublicFolderExternalAddress.ps1 -ExecutionSummaryFile:summary.csv
 
 param(
     [Parameter(Mandatory=$true)]

@@ -3,7 +3,7 @@
 
 # .SYNOPSIS
 # ModernPublicFolderToMailboxMapGenerator.ps1
-#    Generates a CSV file that contains the mapping of 2013/2016 public folder branch to mailbox
+#    Generates a CSV file that contains the mapping of modern public folder branch to mailbox
 
 param(
     # Mailbox size

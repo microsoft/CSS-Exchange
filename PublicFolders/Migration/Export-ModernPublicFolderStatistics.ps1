@@ -46,7 +46,7 @@ $script:Exchange16CUBuild = 669
 ################ END OF DEFAULTS #################
 
 # Function that determines if the given NON IPM folder should be included.
-function ShouldIncludeNonIpmFolder() {
+function ShouldIncludeNonIpmFolder {
     param($PublicFolderIdentity)
 
     # Append a "\" to the path. Since paths in the whitelist end with a "\",
@@ -238,7 +238,6 @@ function AssertMinVersion() {
             ($version.Minor -eq $script:Exchange16MinorVersion) -and
             ($version.Build -ge $script:Exchange16CUBuild))
 
-        # If version is less than minimum version of Exchange15 or Exchange16, or if the version belongs to Exchange19 onwards, then add the server to failed list.
         if (!$hasMinE15Version -and !$hasMinE16Version -and ($version.Minor -le $script:Exchange16MinorVersion)) {
             $failedServers += $server.Fqdn
         }
