@@ -176,7 +176,7 @@ function Add-JobOperatingSystemInformation {
                 ComputerName = $ComputerName
                 ScriptBlock  = $scriptBlock
             }
-            JobId        = "44b09ae8-21e4-4936-9e0c-222f007d6056-$ComputerName"
+            JobId        = "Invoke-JobOperatingSystemInformation-$ComputerName"
         }
         Add-JobQueue @params
     }
