@@ -6,6 +6,8 @@
 . $PSScriptRoot\..\DataCollection\ServerInformation\Add-JobOperatingSystemInformation.ps1
 . $PSScriptRoot\..\DataCollection\ExchangeInformation\Add-JobExchangeInformationCmdlet.ps1
 . $PSScriptRoot\..\DataCollection\ExchangeInformation\Add-JobExchangeInformationLocal.ps1
+. $PSScriptRoot\..\..\..\Shared\JobManagement\Wait-JobQueue.ps1
+. $PSScriptRoot\..\..\..\Shared\ScriptBlock\RemoteSBLoggingFunctions.ps1
 
 <#
     TODO:
@@ -86,6 +88,25 @@ function Get-HealthCheckerDataCollection {
             Add-JobExchangeInformationCmdlet -ComputerName $serverName
             Add-JobExchangeInformationLocal -ComputerName $serverName -GetExchangeServer ($getExchangeServerList[$serverName])
         }
+
+        Measure-Command {
+            # TODO: Create proper Receive Job Action to handle the errors that we see in the logging location as well.
+            # AND/OR improve the error logging inside remote
+            Wait-JobQueue -ProcessReceiveJobAction ${Function:Invoke-RemotePipelineLoggingLocal}
+            $jobResults = Get-JobQueueResult
+        }
+
+        $orgKey = "Invoke-JobOrganizationInformation"
+        $hardwareKey = "Invoke-JobHardwareInformation"
+        $osKey = "Invoke-JobOperatingSystemInformation"
+        $exchCmdletKey = "Invoke-JobExchangeInformationCmdlet"
+        $exchLocalKey = "Invoke-JobExchangeInformationLocal"
+        $healthCheckerData = New-Object System.Collections.Generic.List[object]
+
+        foreach ($serverName in $getExchangeServerList.Keys) {
+
+        }
+
         Write-Debug "Testing" -Debug
     }
 }
