@@ -138,6 +138,7 @@ function Get-HealthCheckerDataCollection {
                     BuildInformation                         = $exchLocalResults.BuildInformation
                     DependentServices                        = $exchLocalResults.DependentServices
                     ExchangeEmergencyMitigationServiceResult = $exchLocalResults.ExchangeEmergencyMitigationServiceResult
+                    ExchangeFeatureFlightingServiceResult    = $exchLocalResults.ExchangeFeatureFlightingServiceResult
                     ExtendedProtectionConfig                 = $exchLocalResults.ExtendedProtectionConfig
                     FileContentInformation                   = $exchLocalResults.FileContentInformation
                     FIPFSUpdateIssue                         = $exchLocalResults.FIPFSUpdateIssue
