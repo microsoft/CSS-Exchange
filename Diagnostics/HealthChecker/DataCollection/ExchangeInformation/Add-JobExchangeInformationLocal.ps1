@@ -182,7 +182,22 @@ function Add-JobExchangeInformationLocal {
                     } else {
                         Write-Verbose "No Proxy Server Detected."
                     }
-                    $eemsEndpointResults = Invoke-WebRequest -Method Get -Uri "https://officeclient.microsoft.com/GetExchangeMitigations" -UseBasicParsing
+
+                    Write-Verbose "Attempting to get the endpoints from the server"
+
+                    try {
+                        $eemsEndpointResults = Invoke-WebRequest -Method Get -Uri "https://officeclient.microsoft.com/GetExchangeMitigations" -UseBasicParsing
+                        Write-Verbose "Successfully got the results for GetExchangeMitigations URL"
+                    } catch {
+                        Invoke-CatchActions
+                    }
+
+                    try {
+                        $featureFlightingEndpointResults = Invoke-WebRequest -Method Get -Uri "https://officeclient.microsoft.com/GetExchangeConfig" -UseBasicParsing
+                        Write-Verbose "Successfully got the results for GetExchangeConfig URL"
+                    } catch {
+                        Invoke-CatchActions
+                    }
                 } catch {
                     Invoke-CatchActions
                 } finally {
@@ -201,6 +216,7 @@ function Add-JobExchangeInformationLocal {
                     ApplicationPools                         = $applicationPools
                     RegistryValues                           = $registryValues
                     ExchangeEmergencyMitigationServiceResult = $eemsEndpointResults
+                    ExchangeFeatureFlightingServiceResult    = $featureFlightingEndpointResults
                     ApplicationConfigFileStatus              = $applicationConfigFileStatus
                     DependentServices                        = $dependentServices
                     IISSettings                              = $iisSettings
