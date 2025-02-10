@@ -89,6 +89,8 @@ function Get-HealthCheckerDataCollection {
             Add-JobExchangeInformationLocal -ComputerName $serverName -GetExchangeServer ($getExchangeServerList[$serverName])
         }
 
+        $generationTime = Get-Date
+
         Measure-Command {
             # TODO: Create proper Receive Job Action to handle the errors that we see in the logging location as well.
             # AND/OR improve the error logging inside remote
@@ -105,6 +107,51 @@ function Get-HealthCheckerDataCollection {
 
         foreach ($serverName in $getExchangeServerList.Keys) {
 
+            $exchCmdletResults = $jobResults["$exchCmdletKey-$serverName"]
+            $exchLocalResults = $jobResults["$exchLocalKey-$serverName"]
+
+            $hcObject = [PSCustomObject]@{
+                GenerationTime          = $generationTime
+                ServerName              = $serverName
+                HardwareInformation     = $jobResults["$hardwareKey-$serverName"]
+                OSInformation           = $jobResults["$osKey-$serverName"]
+                OrganizationInformation = $jobResults[$orgKey]
+                ExchangeInformation     = [PSCustomObject]@{
+                    EdgeTransportResourceThrottling          = $exchCmdletResults.EdgeTransportResourceThrottling
+                    ExchangeCertificates                     = $exchCmdletResults.ExchangeCertificates
+                    ExchangeConnectors                       = $exchCmdletResults.ExchangeConnectors
+                    ExchangeServicesNotRunning               = $exchCmdletResults.ExchangeServicesNotRunning
+                    GetExchangeServer                        = $exchCmdletResults.GetExchangeServer
+                    GetMailboxServer                         = $exchCmdletResults.GetMailboxServer
+                    GetServerMonitoringOverride              = $exchCmdletResults.GetServerMonitoringOverride
+                    GetTransportService                      = $exchCmdletResults.GetTransportService
+                    ServerMaintenance                        = $exchCmdletResults.ServerMaintenance
+                    SettingOverrides                         = $exchCmdletResults.SettingOverrides
+                    VirtualDirectories                       = $exchCmdletResults.VirtualDirectories
+                    ComputerMembership                       = [PSCustomObject]@{
+                        ADGroupMembership = $exchCmdletResults.ADGroupMembership
+                        LocalGroupMember  = $exchLocalResults.LocalGroupMember
+                    }
+                    AES256CBCInformation                     = $exchLocalResults.AES256CBCInformation
+                    ApplicationConfigFileStatus              = $exchLocalResults.ApplicationConfigFileStatus
+                    ApplicationPools                         = $exchLocalResults.ApplicationPools
+                    BuildInformation                         = $exchLocalResults.BuildInformation
+                    DependentServices                        = $exchLocalResults.DependentServices
+                    ExchangeEmergencyMitigationServiceResult = $exchLocalResults.ExchangeEmergencyMitigationServiceResult
+                    ExtendedProtectionConfig                 = $exchLocalResults.ExtendedProtectionConfig
+                    FileContentInformation                   = $exchLocalResults.FileContentInformation
+                    FIPFSUpdateIssue                         = $exchLocalResults.FIPFSUpdateIssue
+                    IanaTimeZoneMappingsRaw                  = $exchLocalResults.IanaTimeZoneMappingsRaw
+                    IISSettings                              = $exchLocalResults.IISSettings
+                    RegistryValues                           = $exchLocalResults.RegistryValues
+                }
+            }
+
+            Measure-Command {
+                $analyzedResults = Invoke-AnalyzerEngine -HealthServerObject $hcObject
+                Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
+            }
+            $healthCheckerData.Add($hcObject)
         }
 
         Write-Debug "Testing" -Debug
