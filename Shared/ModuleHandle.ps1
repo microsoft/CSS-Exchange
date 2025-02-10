@@ -44,7 +44,7 @@ function Request-Module {
         Write-Verbose "Checking $m PowerShell Module"
         $getParams = @{
             Name        = $m
-            ErrorAction = 'SilentlyContinue'
+            ErrorAction = 'Stop'
         }
         if ($MinModuleVersion) {
             $getParams["MinimumVersion"] = $MinModuleVersion
@@ -52,21 +52,26 @@ function Request-Module {
         } else {
             Write-Verbose "without minimum version"
         }
-        $installed = Get-InstalledModule @getParams
+        $installed = $null
+        try {
+            $installed = Get-InstalledModule @getParams
+        } catch {
+            Write-Host "Get-InstalledModule fails. Error: `n$_" -ForegroundColor Red
+            $noFoundError = $false
+        }
 
-        if ($null -eq $installed -or $installed.Name -notcontains $m) {
-            Write-Host "The following module is missing: $m" -ForegroundColor Yellow
-            if ($InstallAllUsersIfNotAvailable -and (-not (Confirm-Administrator))) {
-                Write-Warning "Module $m is not available and cannot be installed for all users because this PowerShell is not running in elevated mode."
-                $noFoundError = $false
-            } else {
-                $confirmed = $null
-                try {
+        if ($noFoundError -eq $true) {
+            if ($null -eq $installed -or $installed.Name -notcontains $m) {
+                Write-Host "The following module is missing: $m" -ForegroundColor Yellow
+                if ($InstallAllUsersIfNotAvailable -and (-not (Confirm-Administrator))) {
+                    Write-Warning "Module $m is not available and cannot be installed for all users because this PowerShell is not running in elevated mode."
+                    $noFoundError = $false
+                } else {
+                    $confirmed = $null
                     Write-Verbose "Installing $m"
                     $installParams = @{
-                        Name        = $m
-                        Scope       = "CurrentUser"
-                        ErrorAction = 'Stop'
+                        Name  = $m
+                        Scope = "CurrentUser"
                     }
                     if ($InstallAllUsersIfNotAvailable) {
                         $installParams.Scope = "AllUsers"
@@ -77,21 +82,30 @@ function Request-Module {
                     } else {
                         Write-Verbose "without minimum version"
                     }
-                    Install-Module @installParams -Force
-
+                    try {
+                        Install-Module @installParams -Force
+                    } catch {
+                        Write-Host "Installation process fails. Error: `n$_" -ForegroundColor Red
+                        $noFoundError = $false
+                    }
                     Write-Verbose "Checking $m"
-                    $confirmed = Get-InstalledModule @getParams
+                    $confirmed = $null
+                    try {
+                        $confirmed = Get-InstalledModule @getParams
+                    } catch {
+                        Write-Host "Get-InstalledModule fails. Error: `n$_" -ForegroundColor Red
+                        $noFoundError = $false
+                    }
                     if (-not $confirmed) {
                         Write-Host "We could not install module: $m" -ForegroundColor Red
                         $noFoundError = $false
                     }
-                } catch {
-                    Write-Host "Installation process fails. Error: `n$_" -ForegroundColor Red
-                    $noFoundError = $false
                 }
+            } else {
+                Write-Verbose "Found $m module installed"
             }
         } else {
-            Write-Verbose "Found $m module installed"
+            Write-Verbose "Error searching modules."
         }
     }
     return $noFoundError
