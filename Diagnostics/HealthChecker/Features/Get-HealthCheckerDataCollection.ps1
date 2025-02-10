@@ -90,13 +90,12 @@ function Get-HealthCheckerDataCollection {
         }
 
         $generationTime = Get-Date
-
-        Measure-Command {
-            # TODO: Create proper Receive Job Action to handle the errors that we see in the logging location as well.
-            # AND/OR improve the error logging inside remote
-            Wait-JobQueue -ProcessReceiveJobAction ${Function:Invoke-RemotePipelineLoggingLocal}
-            $jobResults = Get-JobQueueResult
-        }
+        $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
+        # TODO: Create proper Receive Job Action to handle the errors that we see in the logging location as well.
+        # AND/OR improve the error logging inside remote
+        Wait-JobQueue -ProcessReceiveJobAction ${Function:Invoke-RemotePipelineLoggingLocal}
+        $jobResults = Get-JobQueueResult
+        Write-Host "Job Queue and Get Results time taken $($stopWatch.Elapsed.TotalSeconds) seconds"
 
         $orgKey = "Invoke-JobOrganizationInformation"
         $hardwareKey = "Invoke-JobHardwareInformation"
@@ -104,6 +103,7 @@ function Get-HealthCheckerDataCollection {
         $exchCmdletKey = "Invoke-JobExchangeInformationCmdlet"
         $exchLocalKey = "Invoke-JobExchangeInformationLocal"
         $healthCheckerData = New-Object System.Collections.Generic.List[object]
+        $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
 
         foreach ($serverName in $getExchangeServerList.Keys) {
 
@@ -148,12 +148,14 @@ function Get-HealthCheckerDataCollection {
                 }
             }
 
-            Measure-Command {
-                $analyzedResults = Invoke-AnalyzerEngine -HealthServerObject $hcObject
-                Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
-            }
+            $stopWatch2 = [System.Diagnostics.Stopwatch]::StartNew()
+            $analyzedResults = Invoke-AnalyzerEngine -HealthServerObject $hcObject
+            Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
+            Write-Host "Took $($stopWatch2.Elapsed.TotalSeconds) seconds for analyzer and results"
             $healthCheckerData.Add($hcObject)
         }
+
+        Write-Host "All servers to complete analyzed results $($stopWatch.Elapsed.TotalSeconds) seconds"
 
         Write-Debug "Testing" -Debug
     }
