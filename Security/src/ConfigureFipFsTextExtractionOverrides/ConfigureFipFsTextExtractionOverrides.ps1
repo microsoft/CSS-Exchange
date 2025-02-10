@@ -66,7 +66,8 @@ param(
     [Parameter(Mandatory = $true, ParameterSetName = "ConfigureOverride")]
     [ValidateSet("OutsideInModule", "XlsbOfficePackage", "XlsmOfficePackage", "XlsxOfficePackage", "ExcelStorage" , "DocmOfficePackage",
         "DocxOfficePackage", "PptmOfficePackage", "PptxOfficePackage", "WordStorage", "PowerPointStorage", "VisioStorage", "Rtf",
-        "Xml", "OdfTextDocument", "OdfSpreadsheet", "OdfPresentation", "OneNote", "Pdf", "Html", "AutoCad", "Jpeg", "Tiff", IgnoreCase = $false)]
+        "Xml", "OdfTextDocument", "OdfSpreadsheet", "OdfPresentation", "OneNote", "VsdmOfficePackage", "VsdxOfficePackage", "VssmOfficePackage",
+        "VssxOfficePackage", "VstmOfficePackage", "VstxOfficePackage", "VisioXml", "PublisherStorage", "Pdf", "Html", "AutoCad", "Jpeg", "Tiff", IgnoreCase = $false)]
     [string[]]$ConfigureOverride,
 
     [Parameter(Mandatory = $false, ParameterSetName = "ConfigureOverride")]
@@ -130,7 +131,7 @@ begin {
             $Action -eq "Allow") {
             $params = @{
                 Message   = "Display warning about OutsideInModule override operation"
-                Target    = "This operation enables an outdate version of the OutsideInModule which is known to be vulnerable." +
+                Target    = "This operation might enable an outdate version of the OutsideInModule which is known to be vulnerable." +
                 "`r`n$exchangeServicesWording" +
                 "`r`n$vulnerabilityMoreInformationWording" +
                 "`r`nDo you want to proceed?"
@@ -140,7 +141,7 @@ begin {
             $Action -eq "Allow") {
             $params = @{
                 Message   = "Display warning about file type override operation"
-                Target    = "This operation enables OutsideInModule usage for the following file types:" +
+                Target    = "This operation might enable OutsideInModule usage for the following file types:" +
                 "`r`n$([string]::Join(", ", $ConfigureOverride))" +
                 "`r`n$exchangeServicesWording" +
                 "`r`n$vulnerabilityMoreInformationWording" +

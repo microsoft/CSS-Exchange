@@ -44,6 +44,7 @@ function Get-ServerOperatingSystemVersion {
             "*Server 2016*" { $osReturnValue = "Windows2016" }
             "*Server 2019*" { $osReturnValue = "Windows2019" }
             "*Server 2022*" { $osReturnValue = "Windows2022" }
+            "*Server 2025*" { $osReturnValue = "Windows2025" }
             default { $osReturnValue = "Unknown" }
         }
     }

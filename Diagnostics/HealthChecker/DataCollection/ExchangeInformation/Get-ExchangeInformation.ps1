@@ -180,23 +180,38 @@ function Get-ExchangeInformation {
 
         $FIPFSUpdateIssue = Get-FIPFSScanEngineVersionState @fipFsParams
 
-        $eemsEndpointParams = @{
+        $endpointScriptBlock = {
+            param($url, $proxy)
+
+            if ($null -eq $url) {
+                throw "NULL URL provided for endpoint script block"
+            }
+            Write-Verbose "Going to try to get the endpoint information for: $url"
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+            if ($null -ne $proxy) {
+                Write-Verbose "Proxy Server detected. Going to use: $proxy"
+                [System.Net.WebRequest]::DefaultWebProxy = New-Object System.Net.WebProxy($proxy)
+                [System.Net.WebRequest]::DefaultWebProxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
+                [System.Net.WebRequest]::DefaultWebProxy.BypassProxyOnLocal = $true
+            } elseif ($null -ne [System.Net.WebRequest]::DefaultWebProxy.Address) {
+                Write-Verbose "No Exchange proxy provided, but one is set on the PowerShell session. Going to remove it."
+                [System.Net.WebRequest]::DefaultWebProxy = $null
+            }
+            Invoke-WebRequest -Method Get -Uri $url -UseBasicParsing
+        }
+
+        $scriptBlockEndpointParams = @{
             ComputerName           = $Server
             ScriptBlockDescription = "Test EEMS pattern service connectivity"
             CatchActionFunction    = ${Function:Invoke-CatchActions}
-            ArgumentList           = $getExchangeServer.InternetWebProxy
-            ScriptBlock            = {
-                [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-                if ($null -ne $args[0]) {
-                    Write-Verbose "Proxy Server detected. Going to use: $($args[0])"
-                    [System.Net.WebRequest]::DefaultWebProxy = New-Object System.Net.WebProxy($args[0])
-                    [System.Net.WebRequest]::DefaultWebProxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
-                    [System.Net.WebRequest]::DefaultWebProxy.BypassProxyOnLocal = $true
-                }
-                Invoke-WebRequest -Method Get -Uri "https://officeclient.microsoft.com/GetExchangeMitigations" -UseBasicParsing
-            }
+            ArgumentList           = @("https://officeclient.microsoft.com/GetExchangeMitigations", $getExchangeServer.InternetWebProxy)
+            ScriptBlock            = $endpointScriptBlock
         }
-        $eemsEndpointResults = Invoke-ScriptBlockHandler @eemsEndpointParams
+        $eemsEndpointResults = Invoke-ScriptBlockHandler @scriptBlockEndpointParams
+
+        $scriptBlockEndpointParams.ScriptBlockDescription = "Test Feature Flighting service connectivity"
+        $scriptBlockEndpointParams.ArgumentList[0] = "https://officeclient.microsoft.com/GetExchangeConfig"
+        $featureFlightingEndpointResults = Invoke-ScriptBlockHandler @scriptBlockEndpointParams
 
         Write-Verbose "Checking AES256-CBC information protection readiness and configuration"
         $aes256CbcParams = @{
@@ -321,6 +336,7 @@ function Get-ExchangeInformation {
             ServerMaintenance                        = $serverMaintenance
             ExchangeCertificates                     = [array]$exchangeCertificates
             ExchangeEmergencyMitigationServiceResult = $eemsEndpointResults
+            ExchangeFeatureFlightingServiceResult    = $featureFlightingEndpointResults
             EdgeTransportResourceThrottling          = $edgeTransportResourceThrottling # If we want to checkout other diagnosticInfo, we should create a new object here.
             ApplicationConfigFileStatus              = $applicationConfigFileStatus
             DependentServices                        = $dependentServices

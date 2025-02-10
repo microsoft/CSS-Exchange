@@ -21,6 +21,10 @@ Details about the security vulnerability can be found in the [MSRC security advi
 
       Microsoft strongly recommends not overriding the default behavior that was introduced with the March 2024 security update if there are no functional issues that affect your organization's mail flow.
 
+!!! warning "Warning"
+
+      If you are running this script against an Exchange 2019 CU15 server or newer, make sure you are using the latest version of the script as there has been changes done to the script to account for what is supported with this version of Exchange.
+
 ## Requirements
 
 This script **must** be run as Administrator in `Exchange Management Shell (EMS)`. The user must be a member of the `Organization Management` role group.
@@ -65,8 +69,8 @@ Parameter | Description
 ----------|------------
 ExchangeServerNames | A list of Exchange servers that you want to run the script against.
 SkipExchangeServerNames | A list of Exchange servers that you don't want to execute the configuration action.
-ConfigureOverride | A list of file types that should be allowed to be processed by the `OutsideInModule`. The following input can be used: `XlsbOfficePackage`, `XlsmOfficePackage`, `XlsxOfficePackage`, `ExcelStorage`, `DocmOfficePackage`, `DocxOfficePackage`, `PptmOfficePackage`, `PptxOfficePackage`, `WordStorage`, `PowerPointStorage`, `VisioStorage`, `Rtf`, `Xml`, `OdfTextDocument`, `OdfSpreadsheet`, `OdfPresentation`, `OneNote`, `Pdf`, `Html`, `AutoCad`, `Jpeg`, `Tiff`.<br><br>If you want to enable the previous version of the `OutsideInModule` (`8.5.3`) to process file types, you must specify `OutsideInModule` as file type. Note that the `OutsideInModule` value cannot be used together with other file type values.<br><br>The input is case-sensitive.
-Action | String parameter to define the action that should be performed. Input can be `Allow` or `Block`. The default value is: `Block`
+ConfigureOverride | A list of file types that should be allowed to be processed by the `OutsideInModule`. The following input can be used: `XlsbOfficePackage`, `XlsmOfficePackage`, `XlsxOfficePackage`, `ExcelStorage`, `DocmOfficePackage`, `DocxOfficePackage`, `PptmOfficePackage`, `PptxOfficePackage`, `WordStorage`, `PowerPointStorage`, `VisioStorage`, `Rtf`, `Xml`, `OdfTextDocument`, `OdfSpreadsheet`, `OdfPresentation`, `OneNote`, `Pdf`, `Html`, `AutoCad`, `Jpeg`, `Tiff`.<br><br>If you want to enable the previous version of the `OutsideInModule` (`8.5.3`) to process file types, you must specify `OutsideInModule` as file type. Note that the `OutsideInModule` value cannot be used together with other file type values.<br><br>If on Exchange 2019 CU15, we now allow `VsdmOfficePackage`, `VsdxOfficePackage`, `VssmOfficePackage`, `VssxOfficePackage`, `VstmOfficePackage`, `VstxOfficePackage`, `VisioXml`, `PublisherStorage` to be used to be able to move back to the `IFiltersOnly` type if required. Another change with CU15 support, is that we no longer support changing the `OutsideInModule` as we are now using `DocParser` as the new method.<br><br>The input is case-sensitive.
+Action | String parameter to define the action that should be performed. Input can be `Allow` or `Block`. The default value is: `Block`<br><br>With Exchange 2019 CU15, `Allow` will move the Type provided to the original location prior to CU15. The `Block` action will move the Type back to `PreferDocParser` if applicable.
 Rollback | Switch parameter to restore the `configuration.xml` that was backed-up during a previous run of the script.
 ScriptUpdateOnly | Switch parameter to only update the script without performing any other actions.
 SkipVersionCheck | Switch parameter to skip the automatic version check and script update.
