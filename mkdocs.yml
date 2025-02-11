@@ -92,7 +92,11 @@ nav:
     - ExPerfAnalyzer: Performance/ExPerfAnalyzer.md
     - SimplePerf: Performance/SimplePerf.md
   - PublicFolders:
+    - Export-ModernPublicFolderStatistics: PublicFolders/Export-ModernPublicFolderStatistics.md
+    - ModernPublicFolderToMailboxMapGenerator: PublicFolders/ModernPublicFolderToMailboxMapGenerator.md
+    - SetMailPublicFolderExternalAddress: PublicFolders/SetMailPublicFolderExternalAddress.md
     - SourceSideValidations: PublicFolders/SourceSideValidations.md
+    - Sync-ModernMailPublicFolders: PublicFolders/Sync-ModernMailPublicFolders.md
     - Update-PublicFolderPermissions: PublicFolders/Update-PublicFolderPermissions.md
     - ValidateMailEnabledPublicFolders: PublicFolders/ValidateMailEnabledPublicFolders.md
     - ValidateEXOPFDumpster: PublicFolders/ValidateEXOPFDumpster.md
