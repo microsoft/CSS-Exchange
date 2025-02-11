@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\..\..\Shared\CompareExchangeBuildLevel.ps1
 . $PSScriptRoot\..\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\..\Get-DisplayResultsGroupingKey.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityExchangeCertificates.ps1
@@ -50,6 +51,7 @@ function Invoke-AnalyzerSecuritySettings {
 
     $tlsVersions = @("1.0", "1.1", "1.2", "1.3")
     $tls13SupportedOS = @("Windows2012", "Windows2012R2", "Windows2016", "Windows2019") -notcontains $osInformation.BuildInformation.MajorVersion
+    $tls13SupportedExchange = Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $HealthServerObject.ExchangeInformation.BuildInformation.VersionInformation -Version "Exchange2019" -CU "CU15"
     $currentNetVersion = $osInformation.TLSSettings.Registry.NET["NETv4"]
 
     $tlsSettings = $osInformation.TLSSettings.Registry.TLS
@@ -79,12 +81,13 @@ function Invoke-AnalyzerSecuritySettings {
 
         # Any TLS version is Misconfigured or Half Disabled is Red
         # Only TLS 1.2 being Disabled is Red
-        # Currently TLS 1.3 being Enabled is Red
+        # TLS 1.3 being Enabled is Red on unsupported OS and Exchange version.
+        # TLS 1.3 started support with Exchange 2019 CU15 with Windows Server 2022 or newer versions
         # TLS 1.0 or 1.1 being Enabled is Yellow as we recommend to disable this weak protocol versions
         if (($currentTlsVersion.TLSConfiguration -eq "Misconfigured" -or
                 $currentTlsVersion.TLSConfiguration -eq "Half Disabled") -or
                 ($tlsKey -eq "1.2" -and $currentTlsVersion.TLSConfiguration -eq "Disabled") -or
-                ($tlsKey -eq "1.3" -and $currentTlsVersion.TLSConfiguration -eq "Enabled")) {
+                ($tlsKey -eq "1.3" -and $currentTlsVersion.TLSConfiguration -eq "Enabled" -and (-not $tls13SupportedOS -or -not $tls13SupportedExchange))) {
             $displayWriteType = "Red"
         } elseif ($currentTlsVersion.TLSConfiguration -eq "Enabled" -and
             ($tlsKey -eq "1.1" -or $tlsKey -eq "1.0")) {
