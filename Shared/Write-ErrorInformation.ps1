@@ -9,30 +9,37 @@ function WriteErrorInformationBase {
         [string]$Cmdlet
     )
 
+    [string]$errorInformation = [System.Environment]::NewLine + [System.Environment]::NewLine +
+    "----------------Error Information----------------" + [System.Environment]::NewLine
+
     if ($null -ne $CurrentError.OriginInfo) {
-        & $Cmdlet "Error Origin Info: $($CurrentError.OriginInfo.ToString())"
+        $errorInformation += "Error Origin Info: $($CurrentError.OriginInfo.ToString())$([System.Environment]::NewLine)"
     }
 
-    & $Cmdlet "$($CurrentError.CategoryInfo.Activity) : $($CurrentError.ToString())"
+    $errorInformation += "$($CurrentError.CategoryInfo.Activity) : $($CurrentError.ToString())$([System.Environment]::NewLine)"
 
     if ($null -ne $CurrentError.Exception -and
         $null -ne $CurrentError.Exception.StackTrace) {
-        & $Cmdlet "Inner Exception: $($CurrentError.Exception.StackTrace)"
+        $errorInformation += "Inner Exception: $($CurrentError.Exception.StackTrace)$([System.Environment]::NewLine)"
     } elseif ($null -ne $CurrentError.Exception) {
-        & $Cmdlet "Inner Exception: $($CurrentError.Exception)"
+        $errorInformation += "Inner Exception: $($CurrentError.Exception)$([System.Environment]::NewLine)"
     }
 
     if ($null -ne $CurrentError.InvocationInfo.PositionMessage) {
-        & $Cmdlet "Position Message: $($CurrentError.InvocationInfo.PositionMessage)"
+        $errorInformation += "Position Message: $($CurrentError.InvocationInfo.PositionMessage)$([System.Environment]::NewLine)"
     }
 
     if ($null -ne $CurrentError.Exception.SerializedRemoteInvocationInfo.PositionMessage) {
-        & $Cmdlet "Remote Position Message: $($CurrentError.Exception.SerializedRemoteInvocationInfo.PositionMessage)"
+        $errorInformation += "Remote Position Message: $($CurrentError.Exception.SerializedRemoteInvocationInfo.PositionMessage)$([System.Environment]::NewLine)"
     }
 
     if ($null -ne $CurrentError.ScriptStackTrace) {
-        & $Cmdlet "Script Stack: $($CurrentError.ScriptStackTrace)"
+        $errorInformation += "Script Stack: $($CurrentError.ScriptStackTrace)$([System.Environment]::NewLine)"
     }
+
+    $errorInformation += "-------------------------------------------------$([System.Environment]::NewLine)$([System.Environment]::NewLine)"
+
+    & $Cmdlet $errorInformation
 }
 
 function Write-VerboseErrorInformation {
