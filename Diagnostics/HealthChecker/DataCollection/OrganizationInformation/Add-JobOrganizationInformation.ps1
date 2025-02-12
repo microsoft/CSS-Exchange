@@ -157,9 +157,14 @@ function Add-JobOrganizationInformation {
                         MsExchStorageGroup = $adSchemaInformation.MsExchStorageGroup
                     }
 
+                    $CVE202221978Results = $null
+                    $CVE202134470Results = $null
+                    Get-SecurityCve-2022-21978 @cve21978Params | Invoke-RemotePipelineHandler -Result ([ref]$CVE202221978Results)
+                    Get-SecurityCve-2021-34470 @cve34470Params | Invoke-RemotePipelineHandler -Result ([ref]$CVE202134470Results)
+
                     $securityResults = [PSCustomObject]@{
-                        CVE202221978 = (Get-SecurityCve-2022-21978 @cve21978Params)
-                        CVE202134470 = (Get-SecurityCve-2021-34470 @cve34470Params)
+                        CVE202221978 = $CVE202221978Results
+                        CVE202134470 = $CVE202134470Results
                     }
                 }
 
