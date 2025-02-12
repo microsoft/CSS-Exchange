@@ -94,7 +94,6 @@ function Invoke-WriteDebugErrorsThatOccurred {
             [object]$CurrentError
         )
         Write-VerboseErrorInformation $CurrentError
-        Write-Verbose "-----------------------------------`r`n`r`n"
     }
 
     if ($Error.Count -gt 0) {
