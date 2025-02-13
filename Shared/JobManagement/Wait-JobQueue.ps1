@@ -135,7 +135,8 @@ function Wait-JobQueue {
                     $jobInfo.Error = $JobError
                     $jobInfo.JobEndTime = [DateTime]::Now
                     $timeTaken = $jobInfo.JobEndTime - $jobInfo.JobStartTime
-                    Write-Verbose "Job $($jobInfo.JobId) took $($timeTaken.TotalSeconds)"
+                    $psTimeTaken = $jobInfo.Job.PSEndTime - $jobInfo.Job.PSBeginTime
+                    Write-Verbose "Job $($jobInfo.JobId) took $($timeTaken.TotalSeconds) seconds and PS Job Time $($psTimeTaken.TotalSeconds)"
                     Remove-Job $jobInfo.Job -Force
                     $runningJobs.Remove($jobInfo) | Out-Null
 
