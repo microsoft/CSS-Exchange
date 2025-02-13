@@ -37,7 +37,7 @@ function WriteErrorInformationBase {
         $errorInformation += "Script Stack: $($CurrentError.ScriptStackTrace)$([System.Environment]::NewLine)"
     }
 
-    $errorInformation += "------------------------------------------------$([System.Environment]::NewLine)$([System.Environment]::NewLine)"
+    $errorInformation += "-------------------------------------------------$([System.Environment]::NewLine)$([System.Environment]::NewLine)"
 
     & $Cmdlet $errorInformation
 }
