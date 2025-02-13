@@ -128,12 +128,14 @@ function Wait-JobQueue {
                     if ($null -ne $ProcessReceiveJobAction -and
                         $null -ne $result) {
                         $result = & $ProcessReceiveJobAction $result
-                        Write-Verbose "Successfully processed job action"
+                        Write-Verbose "Successfully processed job action $($jobInfo.JobId)"
                     }
 
                     $jobInfo.Results = $result
                     $jobInfo.Error = $JobError
                     $jobInfo.JobEndTime = [DateTime]::Now
+                    $timeTaken = $jobInfo.JobEndTime - $jobInfo.JobStartTime
+                    Write-Verbose "Job $($jobInfo.JobId) took $($timeTaken.TotalSeconds)"
                     Remove-Job $jobInfo.Job -Force
                     $runningJobs.Remove($jobInfo) | Out-Null
 
