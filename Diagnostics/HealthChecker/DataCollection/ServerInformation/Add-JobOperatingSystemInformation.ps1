@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\VisualCRedistributableVersionFunctions.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Get-NETFrameworkVersion.ps1
 
 function Add-JobOperatingSystemInformation {
     [CmdletBinding()]
