@@ -413,9 +413,12 @@ function Invoke-AnalyzerIISInformation {
         WebConfigContent      = $iisWebConfigContent
     }
 
-    $urlRewriteRules = Get-URLRewriteRule @ruleParams
-    $ipFilterSettings = Get-IPFilterSetting -ApplicationHostConfig ([xml]$applicationHostConfig)
-    $authTypeSettings = Get-IISAuthenticationType -ApplicationHostConfig ([xml]$applicationHostConfig)
+    $urlRewriteRules = $null
+    $ipFilterSettings = $null
+    $authTypeSettings = $null
+    Get-URLRewriteRule @ruleParams | Invoke-RemotePipelineHandler -Result ([ref]$urlRewriteRules)
+    Get-IPFilterSetting -ApplicationHostConfig ([xml]$applicationHostConfig) | Invoke-RemotePipelineHandler -Result ([ref]$ipFilterSettings)
+    Get-IISAuthenticationType -ApplicationHostConfig ([xml]$applicationHostConfig) | Invoke-RemotePipelineHandler -Result ([ref]$authTypeSettings)
     $failedLocationsForAuth = @()
     Write-Verbose "Evaluating the IIS Locations for display"
 
