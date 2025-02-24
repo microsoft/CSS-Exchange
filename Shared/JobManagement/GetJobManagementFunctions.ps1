@@ -1,6 +1,18 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+function Get-AsyncJobQueue {
+    [CmdletBinding()]
+    param()
+    process {
+        if ($null -eq $Script:getAsyncJobQueueHash) {
+            Write-Verbose "Creating Get-AsyncJobQueue Hashtable"
+            $Script:getAsyncJobQueueHash = @{}
+        }
+        $Script:getAsyncJobQueueHash
+    }
+}
+
 function Get-JobQueue {
     [CmdletBinding()]
     param()
