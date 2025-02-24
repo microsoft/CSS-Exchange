@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\Analyzer\Add-AsyncJobAnalyzerEngine.ps1
 . $PSScriptRoot\..\DataCollection\OrganizationInformation\Add-JobOrganizationInformation.ps1
 . $PSScriptRoot\..\DataCollection\ServerInformation\Add-JobHardwareInformation.ps1
 . $PSScriptRoot\..\DataCollection\ServerInformation\Add-JobOperatingSystemInformation.ps1
@@ -148,11 +149,12 @@ function Get-HealthCheckerDataCollection {
                 }
             }
 
-            $stopWatch2 = [System.Diagnostics.Stopwatch]::StartNew()
-            $analyzedResults = Invoke-AnalyzerEngine -HealthServerObject $hcObject
-            Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
-            Write-Host "Took $($stopWatch2.Elapsed.TotalSeconds) seconds for analyzer and results"
-            $healthCheckerData.Add($hcObject)
+            #$stopWatch2 = [System.Diagnostics.Stopwatch]::StartNew()
+            Add-AsyncJobAnalyzerEngine -HealthServerObject $hcObject
+            #Write-Verbose "After analyzer as $($stopWatch2.Elapsed.TotalSeconds) seconds" -Verbose
+            #Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
+            #Write-Verbose "Took $($stopWatch2.Elapsed.TotalSeconds) seconds for analyzer and results" -Verbose
+            #$healthCheckerData.Add($hcObject)
         }
 
         Write-Host "All servers to complete analyzed results $($stopWatch.Elapsed.TotalSeconds) seconds"
