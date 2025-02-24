@@ -1,6 +1,11 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\..\Shared\JobManagement\Add-AsyncJobQueue.ps1
+. $PSScriptRoot\..\..\..\Shared\VisualCRedistributableVersionFunctions.ps1
+. $PSScriptRoot\..\..\..\Shared\Get-NETFrameworkVersion.ps1
+. $PSScriptRoot\..\..\..\Shared\CompareExchangeBuildLevel.ps1
+
 function Add-AsyncJobAnalyzerEngine {
     [CmdletBinding()]
     param(
@@ -17,7 +22,9 @@ function Add-AsyncJobAnalyzerEngine {
             ValidateCUParameter
             ValidateVersionParameter
             Test-ExchangeBuildGreaterOrEqualThanSecurityPatch
-            Get-VisualCRedistributableInstalledVersion
+            Test-ExchangeBuildGreaterOrEqualThanBuild
+            Test-ExchangeBuildLessThanBuild
+            Get-VisualCRedistributableLatest
             Get-NETFrameworkVersion
             GetNetVersionDictionary
             ValidateNetNameParameter
@@ -59,12 +66,15 @@ function Add-AsyncJobAnalyzerEngine {
             PrimaryScriptBlock = ${Function:Invoke-JobAnalyzerEngine}
             IncludeScriptBlock = @(${Function:Get-ExchangeBuildVersionInformation}, ${Function:GetExchangeBuildDictionary}, ${Function:GetExchangeBuildDictionary},
                 ${Function:GetValidatePossibleParameters}, ${Function:ValidateSUParameter}, ${Function:ValidateCUParameter}, ${Function:ValidateVersionParameter},
-                ${Function:Test-ExchangeBuildGreaterOrEqualThanSecurityPatch}, ${Function:Get-VisualCRedistributableInstalledVersion}, ${Function:Get-NETFrameworkVersion},
-                ${Function:GetNetVersionDictionary}, ${Function:ValidateNetNameParameter} )
+                ${Function:Test-ExchangeBuildGreaterOrEqualThanSecurityPatch}, ${Function:Get-VisualCRedistributableLatest}, ${Function:Get-NETFrameworkVersion},
+                ${Function:GetNetVersionDictionary}, ${Function:ValidateNetNameParameter}, ${Function:Test-ExchangeBuildGreaterOrEqualThanBuild}, ${Function:Test-ExchangeBuildLessThanBuild},
+                ${Function:Test-VisualCRedistributableUpToDate}, ${Function:Get-VisualCRedistributableInfo}, ${Function:Test-VisualCRedistributableInstalled})
         }
         $scriptBlock = Get-HCDefaultSBInjection @sbInjectionParams
         $params = @{
+            JobCommand   = "Invoke-Command"
             JobParameter = @{
+                ComputerName = $env:COMPUTERNAME
                 ScriptBlock  = $scriptBlock
                 ArgumentList = $HealthServerObject
             }
