@@ -1,6 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\GetJobManagementFunctions.ps1
+
 function Add-AsyncJobQueue {
     [CmdletBinding()]
     param(
