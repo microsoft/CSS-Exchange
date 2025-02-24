@@ -582,7 +582,11 @@ function Invoke-AnalyzerExchangeInformation {
         }
     }
 
-    if ((Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2019" -CU "CU15") -and
+    $isE19CU15Plus = $null
+    Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2019" -CU "CU15" |
+        Invoke-RemotePipelineHandler -Result ([ref]$isE19CU15Plus)
+
+    if ($isE19CU15Plus -and
         $exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false) {
         # This feature only needs to be displayed if we are on Exchange 2019 CU15+
         if ($null -eq $exchangeInformation.GetExchangeServer.RingLevel) {
