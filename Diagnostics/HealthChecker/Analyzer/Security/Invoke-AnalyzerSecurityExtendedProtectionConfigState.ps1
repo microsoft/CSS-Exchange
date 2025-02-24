@@ -35,7 +35,8 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
                 CatchActionFunction   = ${Function:Invoke-CatchActions}
                 ApplicationHostConfig = [xml]$SecurityObject.ExchangeInformation.IISSettings.ApplicationHostConfig
             }
-            $extendedProtection = Get-ExtendedProtectionConfigurationResult @extendedProtectionParams
+            $extendedProtection = $null
+            Get-ExtendedProtectionConfigurationResult @extendedProtectionParams | Invoke-RemotePipelineHandler -Result ([ref]$extendedProtection)
         } catch {
             Write-Verbose "Failed to get the ExtendedProtectionConfig"
             Invoke-CatchActions
