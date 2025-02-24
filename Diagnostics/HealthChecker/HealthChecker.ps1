@@ -147,7 +147,6 @@ param(
 
 begin {
 
-    . $PSScriptRoot\Analyzer\Invoke-AnalyzerEngine.ps1
     . $PSScriptRoot\Helpers\Get-ErrorsThatOccurred.ps1
     . $PSScriptRoot\Helpers\Get-ExportedHealthCheckerFiles.ps1
     . $PSScriptRoot\Helpers\Invoke-ConfirmExchangeShell.ps1
