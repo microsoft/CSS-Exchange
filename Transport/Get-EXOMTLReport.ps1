@@ -257,7 +257,7 @@ function Get-StoreSubmissionData {
     [array]$entry = $messageIDFilteredEvents | Where-Object { $_.source -eq "STOREDRIVER" -and $_.event_id -eq "RECEIVE" }
 
     # If we have more than one submission event that is a problem
-    if ($entry.count -gt 1){Write-Warning "Detected multiple Submission events for the same message"}
+    if ($entry.count -gt 1) { Write-Warning "Detected multiple Submission events for the same message" }
 
     # We can have multiple SMTP RECEIVE events if they are using add on services
     foreach ($event in $entry) {
