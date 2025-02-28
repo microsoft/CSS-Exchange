@@ -1,8 +1,9 @@
+!scriptblock
 adfs
 Adsi
 amsi
-Antispam
 anob
+Antispam
 asmx
 authsspi
 autodiscover
@@ -26,8 +27,8 @@ dumptidset
 DWORD
 eems
 EFORMS
-EICAR
 eicar
+EICAR
 Emotet
 emsmdb
 Entra
@@ -37,12 +38,13 @@ Eventlog
 evtx
 Exchweb
 exfiltration
+EXOMTL
 fabrikam
 FIPFS
 fips
-Fsis
 fltmc
 freb
+Fsis
 FYDIBOHF
 GCDO
 Get-AuthenticodeSignature
@@ -92,8 +94,8 @@ Mgmt
 mitigations
 msdcs
 MSDTC
-MSERT
 msert
+MSERT
 msipc
 msrc
 Multiplexor
@@ -109,8 +111,8 @@ notin
 notlike
 notmatch
 nspi
-ntlm
 NTFS
+ntlm
 NUMA
 nupkg
 odata
@@ -138,7 +140,7 @@ Runtimes
 sccm
 Schannel
 SCOM
-!scriptblock
+SENDEXTERNAL
 SERVERNAME
 Servicehost
 servicelet
@@ -146,6 +148,7 @@ Sids
 Snapin
 SPDLT
 STMP
+STOREDRIVER
 syncall
 tcpip
 TDSDSA
