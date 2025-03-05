@@ -48,7 +48,10 @@ param (
     $ReportPath = $PSScriptRoot,
     [Parameter()]
     [string]
-    $MessageID
+    $MessageID,
+    [Parameter()]
+    [bool]
+    $SkipUpdate = $false
 )
 
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
@@ -74,7 +77,7 @@ function Import-MTL {
 
     # If it is null then we need to try without Unicode
     if ($null -eq $initial_mtl) {
-        Write-Output "Failed to Load as Unicode; trying normal load"
+        Write-Information "Failed to Load as Unicode; trying normal load"
         $initial_mtl = Import-Csv $FilePath
         # If we still have nothing then log an error and fail
         if ($null -eq $initial_mtl) {
@@ -82,19 +85,19 @@ function Import-MTL {
         }
         # Need to know that we loaded without Unicode.
         else {
-            Write-Output "Loaded CSV without Unicode"
+            Write-Information "Loaded CSV without Unicode"
         }
     } else {
-        Write-Output "Loaded MTL with Unicode"
+        Write-Information "Loaded MTL with Unicode"
     }
 
     # Making sure the MTL contains the fields we want.
     if (!(Test-CSVData -CSV $initial_mtl -ColumnsToCheck "date_time_utc", "source_context", "connector_id", "source", "event_id", "message_id", "recipient_address", "recipient_status", "recipient_count", "related_recipient_address", "reference", "message_subject", "sender_address", "return_path", "message_info", "directionality", "custom_data")) {
         Write-Error "MTL is missing one or more required fields." -ErrorAction Stop
-    } else { Write-Output "CSV Passed Validation" }
+    } else { Write-Information "CSV Passed Validation" }
 
     # Converting our strings into [DateTime]
-    Write-Output "Converting date_time_utc values"
+    Write-Information "Converting date_time_utc values"
     for ($i = 0; $i -lt $initial_mtl.Count; $i++) {
         try {
             $initial_mtl[$i].date_time_utc = Get-Date($initial_mtl[$i].date_time_utc)
@@ -132,34 +135,6 @@ function Group-ByMessageID {
     return $Output
 }
 
-# Gather up all of the entries by recipient
-function Group-ByRecipient {
-    [CmdletBinding()]
-    [OutputType([array])]
-    param (
-        # MTL array to process
-        [Parameter(Mandatory = $true)]
-        [array]
-        $MTL,
-        # MessageID to group by
-        [Parameter(Mandatory = $true)]
-        [string]
-        $Recipient
-    )
-
-    # Filter the MTL by the provided recipient
-    [array]$Output = $MTL | Where-Object { $_.recipient_address -like ('*' + $Recipient + '*') }
-
-    # Make sure we found the recipient
-    if ($null -eq $Output) {
-        Write-Error ("Recipient " + $Recipient + " not found in provide MTL.") -ErrorAction Stop
-    }
-
-    ### Do we want to search the reference Colum here as well??
-
-    return $Output
-}
-
 # Test if we have only a single MessageID provided in the MTL
 function Test-UniqueMessageID {
     [CmdletBinding()]
@@ -178,24 +153,7 @@ function Test-UniqueMessageID {
     }
 }
 
-# Determine if we have a unique recipient in the MTL
-function Test-UniqueRecipient {
-    [CmdletBinding()]
-    [OutputType([bool])]
-    param (
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [array]
-        $MTL
-    )
-
-    if (($MTL | Select-Object -Property recipient_address -Unique).count -gt 1) {
-        return $false
-    } else {
-        return $true
-    }
-}
-
+# Makes sure that the provided CSV file has the needed columns to be a valid MTL
 function Test-CSVData {
     param(
         [array]$CSV,
@@ -212,14 +170,14 @@ function Test-CSVData {
     $ColumnHeaders = ($CSV | Get-Member -MemberType NoteProperty).Name.replace("`"", "")
     foreach ( $ToCheck in $ColumnsToCheck) {
         if (!($ColumnHeaders -contains $ToCheck)) {
-            # Write-Output ("Missing " + $ToCheck)
+            # Write-Information ("Missing " + $ToCheck)
             return $false
         }
     }
     return $true
 }
 
-function Write-OutputFile {
+function Write-InformationFile {
     [CmdletBinding()]
     param (
         # Parameter help description
@@ -273,7 +231,7 @@ function Get-StoreSubmissionData {
             MessageClass      = $submission.MessageClass
         }
 
-        Write-OutputFile -header "Submission Information" -myTable $hash
+        Write-InformationFile -header "Submission Information" -myTable $hash
     }
 }
 
@@ -307,7 +265,7 @@ function Get-MIMEData {
                 EmailMimeComplianceStatus = $mimeData[4]
             }
 
-            Write-OutputFile -header "Detected Mime Information on Submission" -myTable $hash
+            Write-InformationFile -header "Detected Mime Information on Submission" -myTable $hash
         }
     }
 }
@@ -323,10 +281,10 @@ function Get-MTLStatistics {
 
     # Sort the events by time.
     $sortedEvents = $messageIDFilteredEvents | Sort-Object -Property "date_time_utc"
-    $storeReceiveEvents = $messageIDFilteredEvents | Where-Object { $_.source -eq "STOREDRIVER" -and $_.event_id -like "RECEIVE" }
+    $storeReceiveEvents = $messageIDFilteredEvents | Where-Object { $_.source -eq "StoreDriver" -and $_.event_id -like "RECEIVE" }
     $SMTPReceiveEvents = $messageIDFilteredEvents | Where-Object { $_.source -eq "SMTP" -and $_.event_id -like "RECEIVE" }
     $deliveryEvents = $messageIDFilteredEvents | Where-Object { $_.event_id -like "DELIVER" }
-    $sendExternalEvents = $messageIDFilteredEvents | Where-Object { $_.event_id -like "SENDEXTERNAL" }
+    $sendExternalEvents = $messageIDFilteredEvents | Where-Object { $_.event_id -like "SendExternal" }
     $SMTPResubmitEvents = $messageIDFilteredEvents | Where-Object { $_.event_id -like "RESUBMIT" }
 
     $hash = [ordered]@{
@@ -340,17 +298,27 @@ function Get-MTLStatistics {
         SendExternalEvents = $sendExternalEvents.count
     }
 
-    Write-OutputFile -header "General MTL Statistics" -myTable $hash
+    Write-InformationFile -header "General MTL Statistics" -myTable $hash
 }
 
 ### Main ###
+
+if ($SkipUpdate) { Write-Information "Skipping Update" }
+else {
+    # See if we have an updated version.
+    if (Test-ScriptVersion -AutoUpdate) {
+        # Update was downloaded, so stop here.
+        Write-Host "Script was updated. Please rerun the command."
+        return
+    }
+}
 
 #Import the MTL file.
 $MTL = Import-MTL -FilePath $MTLFile
 
 # Make sure the path for the output is good
 if (!(Test-Path $ReportPath)) {
-    Write-Error ("Unable to find report path " + $ReportPath)
+    Write-Error ("Unable to find report path " + $ReportPath) -ErrorAction Stop
 } else {
     $ReportFile = (Join-Path -Path $ReportPath -ChildPath ("MTL_Report_" + (Get-Date -Format FileDateTime).ToString() + ".txt"))
 }
@@ -369,8 +337,8 @@ else {
 }
 
 # Run the set of tests that we want to run and generate the output.
-Write-Output "Generating Reporting"
+Write-Information "Generating Reporting"
 Get-MTLStatistics -messageIDFilteredEvents $MessageIDFilteredMTL
 Get-SToreSubmissionData -messageIDFilteredEvents $MessageIDFilteredMTL
 Get-MIMEData -messageIDFilteredEvents $MessageIDFilteredMTL
-Write-Output $ReportFile
+Write-Information $ReportFile

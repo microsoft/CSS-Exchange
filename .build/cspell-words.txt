@@ -140,7 +140,6 @@ Runtimes
 sccm
 Schannel
 SCOM
-SENDEXTERNAL
 SERVERNAME
 Servicehost
 servicelet
@@ -148,7 +147,6 @@ Sids
 Snapin
 SPDLT
 STMP
-STOREDRIVER
 syncall
 tcpip
 TDSDSA
