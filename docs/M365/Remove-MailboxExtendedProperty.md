@@ -19,8 +19,12 @@ Lastly, repeat the search to check the named properties no longer appear in the 
 Example to search the mailbox for messages with any named properties matching the specific pattern and remove them from the messages.
 ```PowerShell
     $mailboxExtendedProperty = Get-MailboxExtendedProperty -Identity fred@contoso.com | Where-Object { $_.PropertyName -like '*Some Pattern*' }
-    $messagesWithExtendedProperty = .\Search-MailboxExtendedProperty.ps1 -MailboxExtendedProperty $mailboxExtendedProperty
-    .\Remove-MailboxExtendedProperty.ps1 -MessagesWithExtendedProperty $messagesWithExtendedProperty
+
+    $messagesWithExtendedProperty = .\Search-MailboxExtendedProperty.ps1 -MailboxExtendedProperty $mailboxExtendedProperty # Using Delegated permissions
+    .\Remove-MailboxExtendedProperty.ps1 -MessagesWithExtendedProperty $messagesWithExtendedProperty# Using Delegated permissions
+
+    $messagesWithExtendedProperty = .\Search-MailboxExtendedProperty.ps1 -MailboxExtendedProperty $mailboxExtendedProperty -UserPrincipalName fred@contoso.com # Using Application permissions
+    .\Remove-MailboxExtendedProperty.ps1 -MessagesWithExtendedProperty $messagesWithExtendedProperty -UserPrincipalName fred@contoso.com # Using Application permissions
 ```
 
 ## Prerequisites
@@ -47,4 +51,14 @@ To connect to Graph, using delegated access, and you don't know the credentials 
 
 ```PowerShell
     Connect-MgGraph -TenantId 2bbb42ba-e564-4f7b-9765-e19bc80c6123 -ClientId 8af900d8-db73-4918-81ef-3d35a873b6b2 -Scopes "User.Read Mail.ReadWrite" -UseDeviceCode
+```
+
+To connect to Graph, using application access and a shared secret, to search by a tenant administrator against another mailbox in the tenant.
+
+```PowerShell
+    $clientId = "8af900d8-db73-4918-81ef-3d35a873b6b2"
+    $clientSecret = "<your secret>"
+    $secureClientSecret = ConvertTo-SecureString -String $clientSecret -AsPlainText -Force
+    $clientSecretCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $clientId, $secureClientSecret
+    Connect-MgGraph -ClientSecretCredential $clientSecretCredential -TenantId 2bbb42ba-e564-4f7b-9765-e19bc80c6123
 ```

@@ -1,9 +1,9 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#Requires -Modules @{ ModuleName="ExchangeOnlineManagement"; ModuleVersion="3.4.0" }
-#Requires -Modules @{ ModuleName="Microsoft.Graph.Users"; ModuleVersion="2.24.0" }
-#Requires -Modules @{ ModuleName="Microsoft.Graph.Mail"; ModuleVersion="2.24.0" }
+#Requires -Modules @{ ModuleName="ExchangeOnlineManagement"; ModuleVersion="3.7.0" }
+#Requires -Modules @{ ModuleName="Microsoft.Graph.Users"; ModuleVersion="2.25.0" }
+#Requires -Modules @{ ModuleName="Microsoft.Graph.Mail"; ModuleVersion="2.25.0" }
 
 <#
 .SYNOPSIS
@@ -20,7 +20,14 @@
 
 .EXAMPLE
     $mailboxExtendedProperty = Get-MailboxExtendedProperty -Identity fred@contoso.com | Where-Object { $_.PropertyName -like '*Some Pattern*' }
+
+    Delegated permissions:
+
     $messagesWithExtendedProperty = .\Search-MailboxExtendedProperty.ps1 -MailboxExtendedProperty $mailboxExtendedProperty
+
+    Application permissions:
+
+    $messagesWithExtendedProperty = .\Search-MailboxExtendedProperty.ps1 -MailboxExtendedProperty $mailboxExtendedProperty -UserPrincipalName fred@contoso.com
 #>
 param(
     [Parameter(Mandatory = $true, Position = 0)]
@@ -31,7 +38,9 @@ param(
                 throw "The parameter MailboxExtendedProperty doesn't appear to be the result from running 'Get-MailboxExtendedProperty'."
             }
         })]
-    $MailboxExtendedProperty
+    $MailboxExtendedProperty,
+    [Parameter(Mandatory = $false, Position = 1)]
+    $UserPrincipalName
 )
 
 process {
@@ -69,18 +78,27 @@ process {
     # Messages found with the extended property
     $message = @()
 
-    # Get the current Microsoft Graph context
-    $context = Get-MgContext
-    if ($null -eq $context) {
-        Write-Host -ForegroundColor Red "No valid context. Please connect to Microsoft Graph first."
-        return
-    }
+    if ($PSCmdlet.MyInvocation.BoundParameters.ContainsKey('UserPrincipalName')) {
+        # Get the user information for the supplied user principal name
+        $user = Get-MgUser -UserId $UserPrincipalName -Select 'displayName, id, mail, userPrincipalName'
+        if ($null -eq $user) {
+            Write-Host -ForegroundColor Red "No valid user. Please check the name and retry."
+            return
+        }
+    } else {
+        # Get the current Microsoft Graph context
+        $context = Get-MgContext
+        if ($null -eq $context) {
+            Write-Host -ForegroundColor Red "No valid context. Please connect to Microsoft Graph first."
+            return
+        }
 
-    # Get the user information for the context
-    $user = Get-MgUser -UserId $context.Account -Select 'displayName, id, mail, userPrincipalName'
-    if ($null -eq $user) {
-        Write-Host -ForegroundColor Red "No valid user. Please check the Microsoft Graph connection."
-        return
+        # Get the user information for the context
+        $user = Get-MgUser -UserId $context.Account -Select 'displayName, id, mail, userPrincipalName'
+        if ($null -eq $user) {
+            Write-Host -ForegroundColor Red "No valid user. Please check the Microsoft Graph connection."
+            return
+        }
     }
 
     Write-Host "Searching for mailbox items with the specified $($MailboxExtendedProperty.Count) extended properties in the mailbox of $($user.UserPrincipalName)."
