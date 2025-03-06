@@ -3876,10 +3876,17 @@
 <p>Then run <code>Remove-MailboxExtendedProperty.ps1</code> with a list of mailbox items and their named property, that are to be removed.</p>
 <p>Lastly, repeat the search to check the named properties no longer appear in the results.</p>
 <h3 id="syntax">Syntax:</h3>
-<p>Example to search the mailbox for messages with any named properties matching the specific pattern and remove them from the messages.
+<p>Example to search the mailbox for messages with any named properties matching the specific pattern and remove them from the messages, using delegated access.
 <div class="highlight"><pre><span></span><code>    <span class="nv">$mailboxExtendedProperty</span> <span class="p">=</span> <span class="nb">Get-MailboxExtendedProperty</span> <span class="n">-Identity</span> <span class="n">fred</span><span class="nv">@contoso</span><span class="p">.</span><span class="n">com</span> <span class="p">|</span> <span class="nb">Where-Object</span> <span class="p">{</span> <span class="nv">$_</span><span class="p">.</span><span class="n">PropertyName</span> <span class="o">-like</span> <span class="s1">&#39;*Some Pattern*&#39;</span> <span class="p">}</span>
+
     <span class="nv">$messagesWithExtendedProperty</span> <span class="p">=</span> <span class="p">.\</span><span class="nb">Search-MailboxExtendedProperty</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-MailboxExtendedProperty</span> <span class="nv">$mailboxExtendedProperty</span>
     <span class="p">.\</span><span class="nb">Remove-MailboxExtendedProperty</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-MessagesWithExtendedProperty</span> <span class="nv">$messagesWithExtendedProperty</span>
+</code></pre></div></p>
+<p>Example to search the mailbox for messages with any named properties matching the specific pattern and remove them from the messages, using application access.
+<div class="highlight"><pre><span></span><code>    <span class="nv">$mailboxExtendedProperty</span> <span class="p">=</span> <span class="nb">Get-MailboxExtendedProperty</span> <span class="n">-Identity</span> <span class="n">fred</span><span class="nv">@contoso</span><span class="p">.</span><span class="n">com</span> <span class="p">|</span> <span class="nb">Where-Object</span> <span class="p">{</span> <span class="nv">$_</span><span class="p">.</span><span class="n">PropertyName</span> <span class="o">-like</span> <span class="s1">&#39;*Some Pattern*&#39;</span> <span class="p">}</span>
+
+    <span class="nv">$messagesWithExtendedProperty</span> <span class="p">=</span> <span class="p">.\</span><span class="nb">Search-MailboxExtendedProperty</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-MailboxExtendedProperty</span> <span class="nv">$mailboxExtendedProperty</span> <span class="n">-UserPrincipalName</span> <span class="n">fred</span><span class="nv">@contoso</span><span class="p">.</span><span class="n">com</span>
+    <span class="p">.\</span><span class="nb">Remove-MailboxExtendedProperty</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-MessagesWithExtendedProperty</span> <span class="nv">$messagesWithExtendedProperty</span> <span class="n">-UserPrincipalName</span> <span class="n">fred</span><span class="nv">@contoso</span><span class="p">.</span><span class="n">com</span>
 </code></pre></div></p>
 <h2 id="prerequisites">Prerequisites</h2>
 <p>This script uses the <a href="../Search-MailboxExtendedProperty/#install-exchangeonlinemanagement-powershell-module">ExchangeOnlineManagement PowerShell module</a> and an Exchange Online connection to be successfully established by a Tenant Admin.</p>
@@ -3895,6 +3902,13 @@ Scopes are the ones specified during App registration.
 </code></pre></div>
 <p>To connect to Graph, using delegated access, and you don't know the credentials of the mailbox you want to search. This generates a Url and device code, which is given to the end user and the end user performs the login on your behalf.</p>
 <div class="highlight"><pre><span></span><code>    <span class="nb">Connect-MgGraph</span> <span class="n">-TenantId</span> <span class="n">2bbb42ba-e564</span><span class="p">-</span><span class="n">4f7b</span><span class="p">-</span><span class="n">9765-e19bc80c6123</span> <span class="n">-ClientId</span> <span class="n">8af900d8-db73</span><span class="p">-</span><span class="n">4918</span><span class="p">-</span><span class="n">81ef</span><span class="p">-</span><span class="n">3d35a873b6b2</span> <span class="n">-Scopes</span> <span class="s2">&quot;User.Read Mail.ReadWrite&quot;</span> <span class="n">-UseDeviceCode</span>
+</code></pre></div>
+<p>To connect to Graph, using application access and a shared secret, to search by a tenant administrator against another mailbox in the tenant.</p>
+<div class="highlight"><pre><span></span><code>    <span class="nv">$clientId</span> <span class="p">=</span> <span class="s2">&quot;8af900d8-db73-4918-81ef-3d35a873b6b2&quot;</span>
+    <span class="nv">$clientSecret</span> <span class="p">=</span> <span class="s2">&quot;&lt;your secret&gt;&quot;</span>
+    <span class="nv">$secureClientSecret</span> <span class="p">=</span> <span class="nb">ConvertTo-SecureString</span> <span class="n">-String</span> <span class="nv">$clientSecret</span> <span class="n">-AsPlainText</span> <span class="n">-Force</span>
+    <span class="nv">$clientSecretCredential</span> <span class="p">=</span> <span class="nb">New-Object</span> <span class="n">-TypeName</span> <span class="n">System</span><span class="p">.</span><span class="n">Management</span><span class="p">.</span><span class="n">Automation</span><span class="p">.</span><span class="n">PSCredential</span> <span class="n">-ArgumentList</span> <span class="nv">$clientId</span><span class="p">,</span> <span class="nv">$secureClientSecret</span>
+    <span class="nb">Connect-MgGraph</span> <span class="n">-ClientSecretCredential</span> <span class="nv">$clientSecretCredential</span> <span class="n">-TenantId</span> <span class="n">2bbb42ba-e564</span><span class="p">-</span><span class="n">4f7b</span><span class="p">-</span><span class="n">9765-e19bc80c6123</span>
 </code></pre></div>
 
 
@@ -3916,7 +3930,7 @@ Scopes are the ones specified during App registration.
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 22, 2024 10:07:35">November 22, 2024</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="March 6, 2025 16:03:44">March 6, 2025</span>
   </span>
 
     
