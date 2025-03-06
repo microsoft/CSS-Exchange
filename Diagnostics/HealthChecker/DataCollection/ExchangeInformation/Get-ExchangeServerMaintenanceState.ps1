@@ -21,7 +21,9 @@ function Get-ExchangeServerMaintenanceState {
 
         try {
             $errorCount = $Error.Count
+            Write-Verbose "Trying to run Get-ClusterNode"
             $getClusterNode = Get-ClusterNode -Name $Server -ErrorAction Stop
+            Invoke-ErrorCatchActionLoopFromIndex $errorCount
         } catch {
             Write-Verbose "Failed to run Get-ClusterNode"
             Invoke-ErrorCatchActionLoopFromIndex $errorCount
