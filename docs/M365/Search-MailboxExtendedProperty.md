@@ -26,13 +26,18 @@ There are some limitations: the search is limited to messages (extended properti
 
 ### Syntax:
 
-Example to search the mailbox for messages with any named properties matching the specific pattern.
+Example to search the mailbox for messages with any named properties matching the specific pattern, using delegated access.
 ```PowerShell
     $mailboxExtendedProperty = Get-MailboxExtendedProperty -Identity fred@contoso.com | Where-Object { $_.PropertyName -like '*Some Pattern*' }
 
-    $messagesWithExtendedProperty = .\Search-MailboxExtendedProperty.ps1 -MailboxExtendedProperty $mailboxExtendedProperty # Using Delegated permissions
+    $messagesWithExtendedProperty = .\Search-MailboxExtendedProperty.ps1 -MailboxExtendedProperty $mailboxExtendedProperty
+```
 
-    $messagesWithExtendedProperty = .\Search-MailboxExtendedProperty.ps1 -MailboxExtendedProperty $mailboxExtendedProperty -UserPrincipalName fred@contoso.com # Using Application permissions
+Example to search the mailbox for messages with any named properties matching the specific pattern, using application access.
+```PowerShell
+    $mailboxExtendedProperty = Get-MailboxExtendedProperty -Identity fred@contoso.com | Where-Object { $_.PropertyName -like '*Some Pattern*' }
+
+    $messagesWithExtendedProperty = .\Search-MailboxExtendedProperty.ps1 -MailboxExtendedProperty $mailboxExtendedProperty -UserPrincipalName fred@contoso.com
 ```
 
 ## Prerequisites

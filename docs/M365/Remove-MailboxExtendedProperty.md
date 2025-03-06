@@ -16,15 +16,20 @@ Lastly, repeat the search to check the named properties no longer appear in the 
 
 ### Syntax:
 
-Example to search the mailbox for messages with any named properties matching the specific pattern and remove them from the messages.
+Example to search the mailbox for messages with any named properties matching the specific pattern and remove them from the messages, using delegated access.
 ```PowerShell
     $mailboxExtendedProperty = Get-MailboxExtendedProperty -Identity fred@contoso.com | Where-Object { $_.PropertyName -like '*Some Pattern*' }
 
-    $messagesWithExtendedProperty = .\Search-MailboxExtendedProperty.ps1 -MailboxExtendedProperty $mailboxExtendedProperty # Using Delegated permissions
-    .\Remove-MailboxExtendedProperty.ps1 -MessagesWithExtendedProperty $messagesWithExtendedProperty# Using Delegated permissions
+    $messagesWithExtendedProperty = .\Search-MailboxExtendedProperty.ps1 -MailboxExtendedProperty $mailboxExtendedProperty
+    .\Remove-MailboxExtendedProperty.ps1 -MessagesWithExtendedProperty $messagesWithExtendedProperty
+```
 
-    $messagesWithExtendedProperty = .\Search-MailboxExtendedProperty.ps1 -MailboxExtendedProperty $mailboxExtendedProperty -UserPrincipalName fred@contoso.com # Using Application permissions
-    .\Remove-MailboxExtendedProperty.ps1 -MessagesWithExtendedProperty $messagesWithExtendedProperty -UserPrincipalName fred@contoso.com # Using Application permissions
+Example to search the mailbox for messages with any named properties matching the specific pattern and remove them from the messages, using application access.
+```PowerShell
+    $mailboxExtendedProperty = Get-MailboxExtendedProperty -Identity fred@contoso.com | Where-Object { $_.PropertyName -like '*Some Pattern*' }
+
+    $messagesWithExtendedProperty = .\Search-MailboxExtendedProperty.ps1 -MailboxExtendedProperty $mailboxExtendedProperty -UserPrincipalName fred@contoso.com
+    .\Remove-MailboxExtendedProperty.ps1 -MessagesWithExtendedProperty $messagesWithExtendedProperty -UserPrincipalName fred@contoso.com
 ```
 
 ## Prerequisites
