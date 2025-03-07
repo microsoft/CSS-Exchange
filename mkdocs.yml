@@ -90,7 +90,7 @@ nav:
     - Search-MailboxExtendedProperty: M365/Search-MailboxExtendedProperty.md
     - Remove-MailboxExtendedProperty: M365/Remove-MailboxExtendedProperty.md
   - Outlook:
-    -Update-OutlookLink: Outlook/Update-OutlookLink.md
+    - Update-OutlookLink: Outlook/Update-OutlookLink.md
   - Performance:
     - ExPerfWiz: Performance/ExPerfWiz.md
     - ExPerfAnalyzer: Performance/ExPerfAnalyzer.md
