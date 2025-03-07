@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#Requires -Modules @{ ModuleName="ExchangeOnlineManagement"; ModuleVersion="3.4.0" }
+#Requires -Modules @{ ModuleName="ExchangeOnlineManagement"; ModuleVersion="3.7.0" }
 
 <#
 .SYNOPSIS
@@ -14,7 +14,7 @@
     The identity of the user whose mailbox extended properties are to be retrieved.
 
 .PARAMETER Threshold
-    The quota threshold to check for having exceeded. Default is 0.9, which is 90% of the allowed quota.
+    The quota threshold to check for having exceeded. Default is 1.0, which is 100% of the allowed quota.
 
 .PARAMETER SelectFirst
     The number of sorted descending results to select, when checking any namespace or same name prefix quota. Default is 10.
@@ -30,7 +30,7 @@ param(
     $Identity,
     [Parameter(Mandatory = $false, Position = 1)]
     [ValidateRange(0.0, 1.0)]
-    [double]$Threshold = 0.9,
+    [double]$Threshold = 1.0,
     [Parameter(Mandatory = $false, Position = 2)]
     $SelectFirst = 10
 )

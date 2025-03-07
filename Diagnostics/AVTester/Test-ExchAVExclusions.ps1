@@ -370,6 +370,7 @@ while ($currentDiff -gt 0) {
         #Exchange 2019
         $ModuleAllowList.add("Microsoft.Exchange.BigFunnelFlow.28.dll")
         $ModuleAllowList.add("BigFunnel.NeuralTree.dll")
+        $ModuleAllowList.add("DocParserWrapper.dll")
 
         #.NET Foundation
         $ModuleAllowList.add("Microsoft.AspNet.SignalR.Core.dll")
