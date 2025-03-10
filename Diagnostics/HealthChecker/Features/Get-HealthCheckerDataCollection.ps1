@@ -8,6 +8,7 @@
 . $PSScriptRoot\..\DataCollection\ExchangeInformation\Add-JobExchangeInformationCmdlet.ps1
 . $PSScriptRoot\..\DataCollection\ExchangeInformation\Add-JobExchangeInformationLocal.ps1
 . $PSScriptRoot\..\..\..\Shared\JobManagement\Wait-JobQueue.ps1
+. $PSScriptRoot\..\..\..\Shared\JobManagement\Wait-AsyncJobQueue.ps1
 . $PSScriptRoot\..\..\..\Shared\ScriptBlock\RemoteSBLoggingFunctions.ps1
 
 <#
@@ -104,6 +105,7 @@ function Get-HealthCheckerDataCollection {
         $exchCmdletKey = "Invoke-JobExchangeInformationCmdlet"
         $exchLocalKey = "Invoke-JobExchangeInformationLocal"
         $healthCheckerData = New-Object System.Collections.Generic.List[object]
+        $waitAsyncList = New-Object System.Collections.Generic.List[string]
         $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
 
         foreach ($serverName in $getExchangeServerList.Keys) {
@@ -151,14 +153,16 @@ function Get-HealthCheckerDataCollection {
 
             #$stopWatch2 = [System.Diagnostics.Stopwatch]::StartNew()
             Add-AsyncJobAnalyzerEngine -HealthServerObject $hcObject
+            $waitAsyncList.Add("Invoke-JobAnalyzerEngine-$($hcObject.ServerName)")
             #Write-Verbose "After analyzer as $($stopWatch2.Elapsed.TotalSeconds) seconds" -Verbose
             #Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
             #Write-Verbose "Took $($stopWatch2.Elapsed.TotalSeconds) seconds for analyzer and results" -Verbose
             #$healthCheckerData.Add($hcObject)
         }
 
+        Wait-AsyncJobQueue -AwaitJobId $waitAsyncList -ProcessReceiveJobAction ${Function:Invoke-RemotePipelineLoggingLocal}
+        $jobResults = Get-AsyncJobQueueResult
         Write-Host "All servers to complete analyzed results $($stopWatch.Elapsed.TotalSeconds) seconds"
-
         Write-Debug "Testing" -Debug
     }
 }
