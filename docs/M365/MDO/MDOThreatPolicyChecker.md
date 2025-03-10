@@ -125,6 +125,7 @@ EmailAddress | Allows you to specify email address or multiple addresses separat
 IncludeMDOPolicies | Checks both EOP and MDO (Safe Attachment and Safe Links) policies for user(s) specified in the CSV file or EmailAddress parameter.
 OnlyMDOPolicies | Checks only MDO (Safe Attachment and Safe Links) policies for user(s) specified in the CSV file or EmailAddress parameter.
 ShowDetailedPolicies | In addition to the policy applied, show any policy details that are set to True, On, or not blank.
+ShowDetailedExplanation | Show specific explanation about why a policy is matched or not.
 SkipConnectionCheck | Skips connection check for Graph and Exchange Online.
 SkipVersionCheck | Skips the version check of the script.
 ScriptUpdateOnly | Just updates script version to latest one.
