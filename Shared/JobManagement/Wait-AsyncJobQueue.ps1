@@ -6,7 +6,7 @@
 function Wait-AsyncJobQueue {
     [CmdletBinding()]
     param(
-        [string[]]$AwaitJobId,
+        [System.Collections.Generic.List[string]]$AwaitJobId,
 
         [ScriptBlock]$ProcessReceiveJobAction
     )
@@ -18,14 +18,22 @@ function Wait-AsyncJobQueue {
         }
 
         $awaitFilterJobsOnly = $null -ne $AwaitJobId -and $AwaitJobId.count -gt 0
+        $alreadyProcessJobs = New-Object System.Collections.Generic.List[string]
+        $currentPossibleJobs = Get-Job
     }
     process {
         do {
-            $completedJobs = $getAsyncJobQueue.Values | Where-Object { $_.Job.State -ne "Running" }
+            $completedJobs = $getAsyncJobQueue.Values | Where-Object { $_.Job.State -ne "Running" -and (-not ($alreadyProcessJobs.Contains($_.JobId))) }
 
             foreach ($jobInfo in $completedJobs) {
                 $JobError = $null
                 Write-Verbose "Attempting to receive job $($jobInfo.JobId)"
+
+                if (-not ($currentPossibleJobs.Name.Contains($jobInfo.JobId))) {
+                    Write-Verbose "Job was already removed, moving onto the next job."
+                    $alreadyProcessJobs.Add($jobInfo.JobId)
+                }
+
                 $result = Receive-Job $jobInfo.Job -ErrorVariable "JobError"
                 Write-Verbose "Successfully received the job"
                 if ($null -ne $ProcessReceiveJobAction -and
@@ -40,6 +48,7 @@ function Wait-AsyncJobQueue {
                 $timeTaken = $jobInfo.JobEndTime - $jobInfo.JobStartTime
                 $psTimeTaken = $jobInfo.Job.PSEndTime - $jobInfo.Job.PSBeginTime
                 Write-Verbose "Job $($jobInfo.JobId) took $($timeTaken.TotalSeconds) seconds and PS Job Time $($psTimeTaken.TotalSeconds)"
+                $alreadyProcessJobs.Add($jobInfo.JobId)
                 Remove-Job $jobInfo.Job -Force
 
                 if ($AwaitJobId.Count -gt 0) {
