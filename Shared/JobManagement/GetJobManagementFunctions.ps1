@@ -25,6 +25,30 @@ function Get-JobQueue {
     }
 }
 
+function Get-AsyncJobQueueResult {
+    [CmdletBinding()]
+    [OutputType([Hashtable])]
+    param()
+    begin {
+        $getAsyncJobQueue = Get-AsyncJobQueue
+
+        if ($null -eq $getAsyncJobQueue) {
+            throw "Async Jobs Queued is null"
+        }
+
+        # Add some additional logic check
+        $results = @{}
+    }
+    process {
+        foreach ($key in $getAsyncJobQueue.Keys) {
+            $results.Add($key, $getAsyncJobQueue[$key].Results)
+        }
+    }
+    end {
+        $results
+    }
+}
+
 function Get-JobQueueResult {
     [CmdletBinding()]
     [OutputType([Hashtable])]
