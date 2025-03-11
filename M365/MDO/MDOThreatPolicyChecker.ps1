@@ -78,6 +78,12 @@ param(
     [Parameter(Mandatory = $false, ParameterSetName = 'AppliedMDOEmail')]
     [switch]$ShowDetailedPolicies,
 
+    [Parameter(Mandatory = $false, ParameterSetName = 'AppliedCsv')]
+    [Parameter(Mandatory = $false, ParameterSetName = 'AppliedEmail')]
+    [Parameter(Mandatory = $false, ParameterSetName = 'AppliedMDOCsv')]
+    [Parameter(Mandatory = $false, ParameterSetName = 'AppliedMDOEmail')]
+    [switch]$ShowDetailedExplanation,
+
     [Parameter(Mandatory = $false)]
     [switch]$SkipConnectionCheck,
 
@@ -282,10 +288,11 @@ begin {
             $emailInRule = $emailExceptionInRule = $groupInRule = $groupExceptionInRule = $domainInRule = $domainExceptionInRule = $false
 
             if ($Outbound) {
+                $message = "Checking outbound spam rule: `"$($rule.Name)`""
                 if ($ShowDetailedExplanation) {
-                    Write-Host "`n`t`tChecking outbound spam rule: `"$($rule.Name)`""
+                    Write-Host "`t`t$message"
                 } else {
-                    Write-Verbose "Checking outbound spam rule: `"$($rule.Name)`""
+                    Write-Verbose $message
                 }
                 $requestedProperties = 'From', 'ExceptIfFrom', 'FromMemberOf', 'ExceptIfFromMemberOf', 'SenderDomainIs', 'ExceptIfSenderDomainIs'
                 $senderOrReceiver = $rule.From
@@ -295,10 +302,11 @@ begin {
                 $domainsIs = $rule.SenderDomainIs
                 $exceptIfDomainsIs = $rule.ExceptIfSenderDomainIs
             } else {
+                $message = "Checking rule: `"$($rule.Name)`""
                 if ($ShowDetailedExplanation) {
-                    Write-Host "`n`t`tChecking rule: `"$($rule.Name)`""
+                    Write-Host "`n`t`t$message"
                 } else {
-                    Write-Verbose "Checking rule: `"$($rule.Name)`""
+                    Write-Verbose $message
                 }
                 $requestedProperties = 'SentTo', 'ExceptIfSentTo', 'SentToMemberOf', 'ExceptIfSentToMemberOf', 'RecipientDomainIs', 'ExceptIfRecipientDomainIs'
                 $senderOrReceiver = $rule.SentTo
@@ -317,28 +325,31 @@ begin {
             Write-Verbose " "
 
             if ($senderOrReceiver -and $Email -in $senderOrReceiver) {
+                $message = "Included in rule as User. Other conditions must match also."
                 if ($ShowDetailedExplanation) {
-                    Write-Host "`t`tIncluded in rule as User. Other conditions must match also."
+                    Write-Host "`t`t$message"
                 } else {
-                    Write-Verbose "Included in rule as User. Other conditions must match also."
+                    Write-Verbose $message
                 }
                 $emailInRule = $true
             }
             if ($exceptSenderOrReceiver -and $Email -in $exceptSenderOrReceiver) {
+                $message = "Excluded from rule as User."
                 if ($ShowDetailedExplanation) {
-                    Write-Host "`t`tExcluded from rule as User."
+                    Write-Host "`t`t$message"
                 } else {
-                    Write-Verbose  "Excluded from rule as User."
+                    Write-Verbose  $message
                 }
                 $emailExceptionInRule = $true
             }
 
             if ($memberOf) {
                 foreach ($groupEmail in $memberOf) {
+                    $message = "Checking if recipient is in Group $groupEmail"
                     if ($ShowDetailedExplanation) {
-                        Write-Host "`t`tChecking if recipient is in Group $groupEmail"
+                        Write-Host "`t`t$message"
                     } else {
-                        Write-Verbose "Checking if recipient is in Group $groupEmail"
+                        Write-Verbose $message
                     }
                     $groupObjectId = Get-GroupObjectId -GroupEmail $groupEmail
                     if ([string]::IsNullOrEmpty($groupObjectId)) {
@@ -346,17 +357,19 @@ begin {
                     } else {
                         $groupInRule = Test-IsInGroup -Email $Email -GroupObjectId $groupObjectId
                         if ($groupInRule) {
+                            $message = "Group membership match: $($Email.ToString()) is a member of Group $($groupObjectId)"
                             if ($ShowDetailedExplanation) {
-                                Write-Host "`t`tGroup membership match: $($Email.ToString()) is a member of Group $($groupObjectId)"
+                                Write-Host "`t`t$message"
                             } else {
-                                Write-Verbose "Group membership match: $($Email.ToString()) is a member of Group $($groupObjectId)"
+                                Write-Verbose $message
                             }
                             break
                         } else {
+                            $message = "No Group match because $($Email.ToString()) is not a member of Group $($groupObjectId)"
                             if ($ShowDetailedExplanation) {
-                                Write-Host "`t`tNo Group match because $($Email.ToString()) is not a member of Group $($groupObjectId)"
+                                Write-Host "`t`t$message"
                             } else {
-                                Write-Verbose "No Group match because $($Email.ToString()) is not a member of Group $($groupObjectId)"
+                                Write-Verbose $message
                             }
                             break
                         }
@@ -366,10 +379,11 @@ begin {
 
             if ($exceptMemberOf) {
                 foreach ($groupEmail in $exceptMemberOf) {
+                    $message = "Checking if recipient is in excluded Group $groupEmail"
                     if ($ShowDetailedExplanation) {
-                        Write-Host "`t`tChecking if recipient is in excluded Group $groupEmail"
+                        Write-Host "`t`t$message"
                     } else {
-                        Write-Verbose "Checking if recipient is in excluded Group $groupEmail"
+                        Write-Verbose $message
                     }
                     $groupObjectId = Get-GroupObjectId -GroupEmail $groupEmail
                     if ([string]::IsNullOrEmpty($groupObjectId)) {
@@ -377,17 +391,19 @@ begin {
                     } else {
                         $groupExceptionInRule = Test-IsInGroup -Email $Email -GroupObjectId $groupObjectId
                         if ($groupExceptionInRule) {
+                            $message = "Excluded from rule by group membership. $($Email.ToString()) is in excluded Group $($groupObjectId)"
                             if ($ShowDetailedExplanation) {
-                                Write-Host "`t`tExcluded from rule by group membership. $($Email.ToString()) is in excluded Group $($groupObjectId)"
+                                Write-Host "`t`t$message"
                             } else {
-                                Write-Verbose "Excluded from rule by group membership. $($Email.ToString()) is in excluded Group $($groupObjectId)"
+                                Write-Verbose $message
                             }
                             break
                         } else {
+                            $message = "$($Email.ToString()) is not excluded from rule by membership in Group $($groupObjectId)"
                             if ($ShowDetailedExplanation) {
-                                Write-Host "`t`t$($Email.ToString()) is not excluded from rule by membership in Group $($groupObjectId)"
+                                Write-Host "`t`t$message"
                             } else {
-                                Write-Verbose "$($Email.ToString()) is not excluded from rule by membership in Group $($groupObjectId)"
+                                Write-Verbose $message
                             }
                             break
                         }
@@ -398,18 +414,20 @@ begin {
             $temp = $Email.Host
             while ($temp.IndexOf(".") -gt 0) {
                 if ($temp -in $domainsIs) {
+                    $message = "Domain is in rule: $temp. Other conditions must match also."
                     if ($ShowDetailedExplanation) {
-                        Write-Host "`t`tDomain is in rule: $temp. Other conditions must match also."
+                        Write-Host "`t`t$message"
                     } else {
-                        Write-Verbose ("Domain is in rule: {0}. Other conditions must match also." -f $temp)
+                        Write-Verbose $message
                     }
                     $domainInRule = $true
                 }
                 if ($temp -in $exceptIfDomainsIs) {
+                    $message = "Excluded from rule by domain: $temp"
                     if ($ShowDetailedExplanation) {
-                        Write-Host "`t`tExcluded from rule by domain: $temp"
+                        Write-Host "`t`t$message"
                     } else {
-                        Write-Verbose "Excluded from rule by domain: $temp"
+                        Write-Verbose $message
                     }
                     $domainExceptionInRule = $true
                 }
@@ -421,25 +439,31 @@ begin {
             if (((($emailInRule -or (-not $senderOrReceiver)) -and ($domainInRule -or (-not $domainsIs)) -and ($groupInRule -or (-not $memberOf))) -and
                  ($emailInRule -or $domainInRule -or $groupInRule)) -and
                 ((-not $emailExceptionInRule) -and (-not $groupExceptionInRule) -and (-not $domainExceptionInRule))) {
+                $message = "Policy match found: `"$($rule.Name)`""
+                $messageDetail = "Included in rule as User: {0}. Included in rule by Group membership: {1}. Included in rule by Domain: {2}."
+                $messageDetail2 = "Excluded from rule as User: {0}. Excluded from rule by group membership: {1}. Excluded from rule by domain: {2}."
                 if ($ShowDetailedExplanation) {
-                    Write-Host "`t`tPolicy match found: `"$($rule.Name)`""
-                    Write-Host ("`t`tIncluded in rule as User: {0}. Included in rule by Group membership: {1}. Included in rule by Domain: {2}." -f $emailInRule, $groupInRule, $domainInRule)
-                    Write-Host ("`t`tExcluded from rule as User: {0}. Excluded from rule by group membership: {1}. Excluded from rule by domain: {2}." -f $emailExceptionInRule, $groupExceptionInRule, $domainExceptionInRule)
+                    Write-Host "`t`t$message"
+                    Write-Host ("`t`t$messageDetail" -f $emailInRule, $groupInRule, $domainInRule)
+                    Write-Host ("`t`t$messageDetail2" -f $emailExceptionInRule, $groupExceptionInRule, $domainExceptionInRule)
                 } else {
-                    Write-Verbose "Policy match found: `"$($rule.Name)`""
-                    Write-Verbose ("Included in rule as User: {0}. Included in rule by Group membership: {1}. Included in rule by Domain: {2}." -f $emailInRule, $groupInRule, $domainInRule)
-                    Write-Verbose ("Excluded from rule as User: {0}. Excluded from rule by group membership: {1}. Excluded from rule by domain: {2}." -f $emailExceptionInRule, $groupExceptionInRule, $domainExceptionInRule)
+                    Write-Verbose $message
+                    Write-Verbose ("$messageDetail" -f $emailInRule, $groupInRule, $domainInRule)
+                    Write-Verbose ("$messageDetail2" -f $emailExceptionInRule, $groupExceptionInRule, $domainExceptionInRule)
                 }
                 return $rule
             } else {
+                $message = "The rule/policy does not explicitly include the recipient because not all User, Group, and Domain properties which have values include the recipient. `n`t`tDue to the AND operator between the User, Group, and Domain inclusion properties, if any of those properties have non-null values (they are not empty), the recipient must be included in that property."
+                $messageDetail = "Included in rule as User: {0}. Included in rule by Group membership: {1}. Included in rule by Domain: {2}."
+                $messageDetail2 = "Excluded from rule as User: {0}. Excluded from rule by group membership: {1}. Excluded from rule by domain: {2}."
                 if ($ShowDetailedExplanation) {
-                    Write-Host "`t`tThe rule/policy does not explicitly include the recipient because not all User, Group, and Domain properties which have values include the recipient. Due to the AND operator between the User, Group, and Domain inclusion properties, if any of those properties have non-null values (they are not empty), the recipient must be included in that property."
-                    Write-Host ("`t`tIncluded in rule as User: {0}. Included in rule by Group membership: {1}. Included in rule by Domain: {2}." -f $emailInRule, $groupInRule, $domainInRule)
-                    Write-Host ("`t`tExcluded from rule as User: {0}. Excluded from rule by group membership: {1}. Excluded from rule by domain: {2}." -f $emailExceptionInRule, $groupExceptionInRule, $domainExceptionInRule)
+                    Write-Host "`t`t$message"
+                    Write-Host ("`t`t$messageDetail" -f $emailInRule, $groupInRule, $domainInRule)
+                    Write-Host ("`t`t$messageDetail2" -f $emailExceptionInRule, $groupExceptionInRule, $domainExceptionInRule)
                 } else {
-                    Write-Verbose "The rule/policy does not explicitly include the recipient because not all User, Group, and Domain properties which have values include the recipient. Due to the AND operator between the User, Group, and Domain inclusion properties, if any of those properties have non-null values (they are not empty), the recipient must be included in that property."
-                    Write-Verbose ("Included in rule as User: {0}. Included in rule by Group membership: {1}. Included in rule by Domain: {2}." -f $emailInRule, $groupInRule, $domainInRule)
-                    Write-Verbose ("Excluded from rule as User: {0}. Excluded from rule by group membership: {1}. Excluded from rule by domain: {2}." -f $emailExceptionInRule, $groupExceptionInRule, $domainExceptionInRule)
+                    Write-Verbose $message
+                    Write-Verbose ("$messageDetail" -f $emailInRule, $groupInRule, $domainInRule)
+                    Write-Verbose ("$messageDetail2" -f $emailExceptionInRule, $groupExceptionInRule, $domainExceptionInRule)
                 }
             }
 
@@ -447,12 +471,14 @@ begin {
             if ((-not $Outbound) -and
                 (((-not $senderOrReceiver) -and (-not $domainsIs) -and (-not $memberOf)) -and
                  ((-not $emailExceptionInRule) -and (-not $groupExceptionInRule) -and (-not $domainExceptionInRule)))) {
+                $message = "The recipient is IMPLICITLY included. There are no recipients explicitly included in the policy, and the user is not explicitly excluded either in the User, Group, or Domain exclusion properties. `n`t`tImplicit inclusion is possible for Preset policies and Safe Attachments and Safe Links in which no explicit inclusions have been made."
+                $messageDetail = "Rule of matching policy: `"$($rule.Name)`""
                 if ($ShowDetailedExplanation) {
-                    Write-Host "`t`tThe recipient is IMPLICITLY included. There are no recipients explicitly included in the policy, and the user is not explicitly excluded either in the User, Group, or Domain exclusion properties. Implicit inclusion is possible for Preset policies and Safe Attachments and Safe Links in which no explicit inclusions have been made."
-                    Write-Host "`t`tRule of matching policy: `"$($rule.Name)`""
+                    Write-Host "`t`t$message"
+                    Write-Host "`t`t$messageDetail"
                 } else {
-                    Write-Verbose "The recipient is IMPLICITLY included. There are no recipients explicitly included in the policy, and the user is not explicitly excluded either in the User, Group, or Domain exclusion properties. Implicit inclusion is possible for Preset policies and Safe Attachments and Safe Links in which no explicit inclusions have been made."
-                    Write-Verbose "Rule of matching policy: `"$($rule.Name)`""
+                    Write-Verbose $message
+                    Write-Verbose $messageDetail
                 }
                 return $rule
             }
@@ -785,7 +811,7 @@ process {
             $stEmailAddress = $email.ToString()
             # Initialize a variable to capture all policy details
             $allPolicyDetails = ""
-            Write-Host "`n`nPolicies applied to $stEmailAddress..."
+            Write-Host "`n`nPolicies applied to $stEmailAddress..." -ForegroundColor Yellow
 
             if ( -not $OnlyMDOPolicies) {
                 # Check the Strict EOP rules first as they have higher precedence
