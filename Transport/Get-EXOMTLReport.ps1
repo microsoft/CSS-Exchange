@@ -212,7 +212,7 @@ function Get-StoreSubmissionData {
     )
 
     # Select the StoreDriver Submit event for this messageID
-    [array]$entry = $messageIDFilteredEvents | Where-Object { $_.source -eq "STOREDRIVER" -and $_.event_id -eq "RECEIVE" }
+    [array]$entry = $messageIDFilteredEvents | Where-Object { $_.source -eq "StoreDriver" -and $_.event_id -eq "RECEIVE" }
 
     # If we have more than one submission event that is a problem
     if ($entry.count -gt 1) { Write-Warning "Detected multiple Submission events for the same message" }
