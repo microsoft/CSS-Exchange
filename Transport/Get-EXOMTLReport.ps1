@@ -303,6 +303,10 @@ function Get-MTLStatistics {
 
 ### Main ###
 
+# Set InformationPreference to allow Write-Information to be displayed to the screen.
+$OriginalInformationPreference = $InformationPreference
+$InformationPreference = 'Continue'
+
 if ($SkipUpdate) { Write-Information "Skipping Update" }
 else {
     # See if we have an updated version.
@@ -342,3 +346,6 @@ Get-MTLStatistics -messageIDFilteredEvents $MessageIDFilteredMTL
 Get-SToreSubmissionData -messageIDFilteredEvents $MessageIDFilteredMTL
 Get-MIMEData -messageIDFilteredEvents $MessageIDFilteredMTL
 Write-Information $ReportFile
+
+# Set informationPreference back to the original setting.
+$InformationPreference = $OriginalInformationPreference
