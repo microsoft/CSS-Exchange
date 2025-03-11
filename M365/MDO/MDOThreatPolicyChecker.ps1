@@ -526,7 +526,7 @@ begin {
     SetWriteVerboseAction ${Function:Write-DebugLog}
     SetWriteWarningAction ${Function:Write-HostLog}
 
-    $BuildVersion = "25.01.23.2258"
+    $BuildVersion = ""
 
     Write-Host ("MDOThreatPolicyChecker.ps1 script version $($BuildVersion)") -ForegroundColor Green
 
