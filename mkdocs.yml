@@ -76,6 +76,8 @@ nav:
       - TransportRetryConfigCheck: Diagnostics/HealthChecker/TransportRetryConfigCheck.md
     - ManagedAvailabilityTroubleshooter: Diagnostics/ManagedAvailabilityTroubleshooter.md
     - Test-ExchAVExclusions: Diagnostics/Test-ExchAVExclusions.md
+    - FreeBusyChecker:
+      - Diagnostics/FreeBusyChecker/FreeBusyChecker.md
   - Hybrid:
     - Test-HMAEAS: Hybrid/Test-HMAEAS.md
   - M365:
@@ -87,6 +89,8 @@ nav:
     - Test-MailboxExtendedProperty: M365/Test-MailboxExtendedProperty.md
     - Search-MailboxExtendedProperty: M365/Search-MailboxExtendedProperty.md
     - Remove-MailboxExtendedProperty: M365/Remove-MailboxExtendedProperty.md
+  - Outlook:
+    - Update-OutlookLink: Outlook/Update-OutlookLink.md
   - Performance:
     - ExPerfWiz: Performance/ExPerfWiz.md
     - ExPerfAnalyzer: Performance/ExPerfAnalyzer.md
