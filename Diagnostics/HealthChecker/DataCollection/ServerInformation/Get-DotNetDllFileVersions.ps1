@@ -2,7 +2,8 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
-. $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
+
 function Get-DotNetDllFileVersions {
     [CmdletBinding()]
     [OutputType("System.Collections.Hashtable")]
@@ -38,10 +39,11 @@ function Get-DotNetDllFileVersions {
         $files = @{}
     }
     process {
-        $dotNetInstallPath = Get-RemoteRegistryValue -MachineName $ComputerName `
+        Get-RemoteRegistryValue -MachineName $ComputerName `
             -SubKey "SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" `
             -GetValue "InstallPath" `
-            -CatchActionFunction $CatchActionFunction
+            -CatchActionFunction $CatchActionFunction |
+            Invoke-RemotePipelineHandler -Result ([ref]$dotNetInstallPath)
 
         if ([string]::IsNullOrEmpty($dotNetInstallPath)) {
             Write-Verbose "Failed to determine .NET install path"
@@ -50,10 +52,7 @@ function Get-DotNetDllFileVersions {
 
         foreach ($fileName in $FileNames) {
             Write-Verbose "Querying for .NET DLL File $fileName"
-            $getItem = Invoke-ScriptBlockHandler -ComputerName $ComputerName `
-                -ScriptBlock ${Function:Invoke-ScriptBlockGetItem} `
-                -ArgumentList ("{0}\{1}" -f $dotNetInstallPath, $filename) `
-                -CatchActionFunction $CatchActionFunction
+            $getItem = Invoke-ScriptBlockGetItem ("{0}\{1}" -f $dotNetInstallPath, $filename)
             $files.Add($fileName, $getItem)
         }
     }

@@ -3,6 +3,7 @@
 
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\..\..\..\Shared\ErrorMonitorFunctions.ps1
+. $PSScriptRoot\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 
 function Invoke-AnalyzerKnownBuildIssues {
     [CmdletBinding()]
@@ -69,17 +70,19 @@ function Invoke-AnalyzerKnownBuildIssues {
             [object]$IssueBuildInformation,
             [version]$CurrentBuild
         )
-        $knownIssue = GetVersionFromString $IssueBuildInformation.BuildNumber
+        $knownIssue = $null
+        GetVersionFromString $IssueBuildInformation.BuildNumber | Invoke-RemotePipelineHandler -Result ([ref]$knownIssue)
         Write-Verbose "Testing Known Issue Build $knownIssue"
 
         if ($null -eq $knownIssue -or
             $CurrentBuild.Minor -ne $knownIssue.Minor) { return $false }
 
         $fixValueNull = [string]::IsNullOrEmpty($IssueBuildInformation.FixBuildNumber)
+        $resolvedBuild = $null
         if ($fixValueNull) {
-            $resolvedBuild = GetVersionFromString "0.0.0.0"
+            GetVersionFromString "0.0.0.0" | Invoke-RemotePipelineHandler -Result ([ref]$resolvedBuild)
         } else {
-            $resolvedBuild = GetVersionFromString $IssueBuildInformation.FixBuildNumber
+            GetVersionFromString $IssueBuildInformation.FixBuildNumber | Invoke-RemotePipelineHandler -Result ([ref]$resolvedBuild)
         }
 
         Write-Verbose "Testing against possible resolved build number $resolvedBuild"
@@ -115,7 +118,9 @@ function Invoke-AnalyzerKnownBuildIssues {
 
         foreach ($issue in $KnownBuildIssuesToFixes) {
 
-            if ((TestOnKnownBuildIssue $issue $CurrentVersion) -and
+            $isKnownBuildIssue = $null
+            TestOnKnownBuildIssue $issue $CurrentVersion | Invoke-RemotePipelineHandler -Result ([ref]$isKnownBuildIssue)
+            if ($isKnownBuildIssue -and
                 (-not($Script:CachedKnownIssues.Contains($InformationUrl)))) {
                 Write-Verbose "Known issue Match detected"
                 if (-not ($Script:DisplayKnownIssueHeader)) {
