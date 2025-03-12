@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\CompareExchangeBuildLevel.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlock\RemotePipelineHandlerFunctions.ps1
 . $PSScriptRoot\..\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\..\Get-DisplayResultsGroupingKey.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityExchangeCertificates.ps1
@@ -51,7 +52,9 @@ function Invoke-AnalyzerSecuritySettings {
 
     $tlsVersions = @("1.0", "1.1", "1.2", "1.3")
     $tls13SupportedOS = @("Windows2012", "Windows2012R2", "Windows2016", "Windows2019") -notcontains $osInformation.BuildInformation.MajorVersion
-    $tls13SupportedExchange = Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $HealthServerObject.ExchangeInformation.BuildInformation.VersionInformation -Version "Exchange2019" -CU "CU15"
+    $tls13SupportedExchange = $null
+    Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $HealthServerObject.ExchangeInformation.BuildInformation.VersionInformation -Version "Exchange2019" -CU "CU15" |
+        Invoke-RemotePipelineHandler -Result ([ref]$tls13SupportedExchange)
     $currentNetVersion = $osInformation.TLSSettings.Registry.NET["NETv4"]
 
     $tlsSettings = $osInformation.TLSSettings.Registry.TLS
