@@ -769,9 +769,6 @@ function Invoke-AnalyzerIISInformation {
         Add-AnalyzedResultInformation @params
     }
 
-    Write-Verbose "value: "
-    $binSearchFoldersNotFound | Write-Verbose -Verbose
-
     if ($null -ne $binSearchFoldersNotFound) {
         $params = $baseParams + @{
             Name                = "Bin Search Folder Not Found"
