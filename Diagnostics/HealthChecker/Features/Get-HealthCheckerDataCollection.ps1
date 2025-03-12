@@ -151,18 +151,58 @@ function Get-HealthCheckerDataCollection {
                 }
             }
 
-            #$stopWatch2 = [System.Diagnostics.Stopwatch]::StartNew()
-            Add-AsyncJobAnalyzerEngine -HealthServerObject $hcObject
-            $waitAsyncList.Add("Invoke-JobAnalyzerEngine-$($hcObject.ServerName)")
-            #Write-Verbose "After analyzer as $($stopWatch2.Elapsed.TotalSeconds) seconds" -Verbose
-            #Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
-            #Write-Verbose "Took $($stopWatch2.Elapsed.TotalSeconds) seconds for analyzer and results" -Verbose
-            #$healthCheckerData.Add($hcObject)
+            if ($asyncAnalyzerEngine) {
+                # Write-Debug "Before asyncJob" -Debug
+                Add-AsyncJobAnalyzerEngine -HealthServerObject $hcObject
+                $waitAsyncList.Add("Invoke-JobAnalyzerEngine-$($hcObject.ServerName)")
+            } else {
+                $stopWatch2 = [System.Diagnostics.Stopwatch]::StartNew()
+                $analyzedResults = Invoke-AnalyzerEngine -HealthServerObject $hcObject
+                Write-Verbose "After analyzer as $($stopWatch2.Elapsed.TotalSeconds) seconds" -Verbose
+                Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
+                Write-Verbose "Took $($stopWatch2.Elapsed.TotalSeconds) seconds for analyzer and results" -Verbose
+                $healthCheckerData.Add($hcObject)
+            }
         }
 
-        Wait-AsyncJobQueue -AwaitJobId $waitAsyncList -ProcessReceiveJobAction ${Function:Invoke-RemotePipelineLoggingLocal}
-        $jobResults = Get-AsyncJobQueueResult
-        Write-Host "All servers to complete analyzed results $($stopWatch.Elapsed.TotalSeconds) seconds"
+        if ($asyncAnalyzerEngine) {
+            Wait-AsyncJobQueue -AwaitJobId $waitAsyncList -ProcessReceiveJobAction ${Function:Invoke-RemotePipelineLoggingLocal}
+            $jobResults = Get-AsyncJobQueueResult
+            Write-Host "All servers to complete analyzed results $($stopWatch.Elapsed.TotalSeconds) seconds"
+            $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
+
+            foreach ($key in $jobResults.Keys) {
+                $analyzedResults = $jobResults[$key].HCAnalyzedResults
+                $serverName = $analyzedResults.HealthCheckerExchangeServer.ServerName
+                Invoke-SetOutputInstanceLocation -Server $serverName -FileName "HealthChecker" -IncludeServerName $true
+                try {
+                    $analyzedResults | Export-Clixml -Path $Script:OutXmlFullPath -Encoding UTF8 -Depth 2 -ErrorAction Stop -Force
+                } catch {
+                    Write-Verbose "Failed to Export-Clixml. Inner Exception: $_"
+                    Write-Verbose "Converting HealthCheckerExchangeServer to json."
+                    $outputXml = [PSCustomObject]@{
+                        HealthCheckerExchangeServer = $null
+                        HtmlServerValues            = $analyzedResults.HtmlServerValues
+                        DisplayResults              = $analyzedResults.DisplayResults
+                    }
+                    try {
+                        $jsonHealthChecker = $analyzedResults.HealthCheckerExchangeServer | ConvertTo-Json -Depth 6 -ErrorAction Stop
+                        $outputXml.HealthCheckerExchangeServer = $jsonHealthChecker | ConvertFrom-Json -ErrorAction Stop
+                        $outputXml | Export-Clixml -Path $Script:OutXmlFullPath -Encoding UTF8 -Depth 2 -ErrorAction Stop -Force
+                        Write-Verbose "Successfully export out the data after the convert"
+                    } catch {
+                        Write-Red "Failed to Export-Clixml. Unable to export the data."
+                    }
+                }
+                Write-HostLog "Exchange Health Checker version $BuildVersion"
+                Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
+                Write-Grey "Output file written to $($Script:OutputFullPath)"
+                Write-Grey "Exported Data Object Written to $($Script:OutXmlFullPath)"
+            }
+        }
+
+        Write-Verbose "Writing out the screen took total $($stopWatch.Elapsed.TotalSeconds) seconds"
+
         Write-Debug "Testing" -Debug
     }
 }
