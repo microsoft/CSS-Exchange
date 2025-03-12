@@ -19,7 +19,8 @@ function Get-NETFrameworkInformation {
         }
         $fileInformation = $null
         Get-DotNetDllFileVersions @params | Invoke-RemotePipelineHandler -Result ([ref]$fileInformation)
-        $netFramework = Get-NETFrameworkVersion -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
+        $netFramework = $null
+        Get-NETFrameworkVersion -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions} | Invoke-RemotePipelineHandler -Result ([ref]$netFramework)
     } end {
         return [PSCustomObject]@{
             MajorVersion    = $netFramework.MinimumValue
