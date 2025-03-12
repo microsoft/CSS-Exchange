@@ -37,7 +37,6 @@ function Invoke-RemotePipelineLoggingLocal {
     begin {
         # Store everything into a list so we can just write it to the log once and makes it easier for log review.
         $logToVerbose = New-Object System.Collections.Generic.List[string]
-        $logToVerbose = New-Object System.Collections.Generic.List[string]
         $logToVerbose.Add("")
         $logToVerbose.Add("")
         $logToVerbose.Add("------------------- Remote Pipeline Logging -------------------------")
