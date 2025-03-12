@@ -563,11 +563,9 @@ function Invoke-AnalyzerIISInformation {
                     $_.key -eq "BinSearchFolders"
                 }).value
             $paths = $binSearchFolders.Split(";").Trim()
-            $paths | ForEach-Object { Write-Verbose "BinSearchFolder: $($_)" }
             $installPath = $exchangeInformation.RegistryValues.MsiInstallPath
             foreach ($binTestPath in  @("bin", "bin\CmdletExtensionAgents", "ClientAccess\Owa\bin")) {
                 $testPath = [System.IO.Path]::Combine($installPath, $binTestPath)
-                Write-Verbose "Testing path: $testPath"
                 if (-not ($paths -contains $testPath)) {
                     return $_
                 }
@@ -770,6 +768,9 @@ function Invoke-AnalyzerIISInformation {
         }
         Add-AnalyzedResultInformation @params
     }
+
+    Write-Verbose "value: "
+    $binSearchFoldersNotFound | Write-Verbose -Verbose
 
     if ($null -ne $binSearchFoldersNotFound) {
         $params = $baseParams + @{
