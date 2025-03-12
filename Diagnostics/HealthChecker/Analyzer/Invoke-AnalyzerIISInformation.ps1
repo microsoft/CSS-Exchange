@@ -6,6 +6,8 @@
 . $PSScriptRoot\Get-IISAuthenticationType.ps1
 . $PSScriptRoot\Get-IPFilterSetting.ps1
 . $PSScriptRoot\Get-URLRewriteRule.ps1
+. $PSScriptRoot\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
+
 function Invoke-AnalyzerIISInformation {
     [CmdletBinding()]
     param(
@@ -413,9 +415,12 @@ function Invoke-AnalyzerIISInformation {
         WebConfigContent      = $iisWebConfigContent
     }
 
-    $urlRewriteRules = Get-URLRewriteRule @ruleParams
-    $ipFilterSettings = Get-IPFilterSetting -ApplicationHostConfig ([xml]$applicationHostConfig)
-    $authTypeSettings = Get-IISAuthenticationType -ApplicationHostConfig ([xml]$applicationHostConfig)
+    $urlRewriteRules = $null
+    $ipFilterSettings = $null
+    $authTypeSettings = $null
+    Get-URLRewriteRule @ruleParams | Invoke-RemotePipelineHandler -Result ([ref]$urlRewriteRules)
+    Get-IPFilterSetting -ApplicationHostConfig ([xml]$applicationHostConfig) | Invoke-RemotePipelineHandler -Result ([ref]$ipFilterSettings)
+    Get-IISAuthenticationType -ApplicationHostConfig ([xml]$applicationHostConfig) | Invoke-RemotePipelineHandler -Result ([ref]$authTypeSettings)
     $failedLocationsForAuth = @()
     Write-Verbose "Evaluating the IIS Locations for display"
 
@@ -560,11 +565,9 @@ function Invoke-AnalyzerIISInformation {
                     $_.key -eq "BinSearchFolders"
                 }).value
             $paths = $binSearchFolders.Split(";").Trim()
-            $paths | ForEach-Object { Write-Verbose "BinSearchFolder: $($_)" }
             $installPath = $exchangeInformation.RegistryValues.MsiInstallPath
             foreach ($binTestPath in  @("bin", "bin\CmdletExtensionAgents", "ClientAccess\Owa\bin")) {
                 $testPath = [System.IO.Path]::Combine($installPath, $binTestPath)
-                Write-Verbose "Testing path: $testPath"
                 if (-not ($paths -contains $testPath)) {
                     return $_
                 }

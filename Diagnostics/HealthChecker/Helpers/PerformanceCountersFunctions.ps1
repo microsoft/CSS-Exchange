@@ -4,6 +4,7 @@
 . $PSScriptRoot\..\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\..\Shared\Get-RemoteRegistrySubKey.ps1
 . $PSScriptRoot\..\..\..\Shared\Get-RemoteRegistryValue.ps1
+. $PSScriptRoot\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 
 # Use this after the counters have been localized.
 function Get-CounterSamples {
@@ -45,8 +46,12 @@ function Get-LocalizedCounterSamples {
 
         foreach ($currentCounter in $Counter) {
             $counterObject = Get-CounterFullNameToCounterObject -FullCounterName $currentCounter
-            $localizedCounterName = Get-LocalizedPerformanceCounterName -ComputerName $computer -PerformanceCounterName $counterObject.CounterName
-            $localizedObjectName = Get-LocalizedPerformanceCounterName -ComputerName $computer -PerformanceCounterName $counterObject.ObjectName
+            $localizedCounterName = $null
+            $localizedObjectName = $null
+            Get-LocalizedPerformanceCounterName -ComputerName $computer -PerformanceCounterName $counterObject.CounterName |
+                Invoke-RemotePipelineHandler -Result ([ref]$localizedCounterName)
+            Get-LocalizedPerformanceCounterName -ComputerName $computer -PerformanceCounterName $counterObject.ObjectName |
+                Invoke-RemotePipelineHandler -Result ([ref]$localizedObjectName)
             $localizedFullCounterName = ($counterObject.FullName.Replace($counterObject.CounterName, $localizedCounterName)).Replace($counterObject.ObjectName, $localizedObjectName)
 
             if (-not ($localizedCounters.Contains($localizedFullCounterName))) {
@@ -58,7 +63,9 @@ function Get-LocalizedCounterSamples {
 
     $currentErrorIndex = $Error.Count
     # Store the localized counter sample information so we can reverse engineer back to the English counter name so other code can handle it.
-    $localizedCounterSamples = (Get-CounterSamples -MachineName $MachineName -Counter $localizedCounters -CustomErrorAction $CustomErrorAction)
+    $localizedCounterSamples = $null
+    Get-CounterSamples -MachineName $MachineName -Counter $localizedCounters -CustomErrorAction $CustomErrorAction |
+        Invoke-RemotePipelineHandler -Result ([ref]$localizedCounterSamples)
 
     foreach ($localSample in $localizedCounterSamples) {
         foreach ($key in $localizedCounterLookup.Keys) {
@@ -103,7 +110,9 @@ function Get-LocalizedPerformanceCounterName {
     }
 
     if (-not ($Script:EnglishOnlyOSCache.ContainsKey($ComputerName))) {
-        $perfLib = Get-RemoteRegistrySubKey @baseParams -SubKey "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Perflib"
+        $perfLib = $null
+        Get-RemoteRegistrySubKey @baseParams -SubKey "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Perflib" |
+            Invoke-RemotePipelineHandler -Result ([ref]$perfLib)
 
         if ($null -eq $perfLib) {
             Write-Verbose "No Perflib on computer. Assume EnglishOnlyOS for Get-Counter attempt"
@@ -133,7 +142,8 @@ function Get-LocalizedPerformanceCounterName {
             GetValue  = "Counter"
             ValueType = "MultiString"
         }
-        $enUSCounterKeys = Get-RemoteRegistryValue @params
+        $enUSCounterKeys = $null
+        Get-RemoteRegistryValue @params | Invoke-RemotePipelineHandler -Result ([ref]$enUSCounterKeys)
 
         if ($null -eq $enUSCounterKeys) {
             Write-Verbose "No 'en-US' (009) 'Counter' registry value found."
@@ -151,7 +161,8 @@ function Get-LocalizedPerformanceCounterName {
             GetValue  = "Counter"
             ValueType = "MultiString"
         }
-        $currentCounterKeys = Get-RemoteRegistryValue @params
+        $currentCounterKeys = $null
+        Get-RemoteRegistryValue @params | Invoke-RemotePipelineHandler -Result ([ref]$currentCounterKeys)
 
         if ($null -eq $currentCounterKeys) {
             Write-Verbose "No 'localized' (CurrentLanguage) 'Counter' registry value found"

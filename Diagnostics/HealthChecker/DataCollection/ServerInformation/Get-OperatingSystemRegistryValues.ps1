@@ -2,6 +2,8 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
+
 function Get-OperatingSystemRegistryValues {
     [CmdletBinding()]
     param(
@@ -9,6 +11,16 @@ function Get-OperatingSystemRegistryValues {
         [ScriptBlock]$CatchActionFunction
     )
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
+    $suppressEpValue = $null
+    $ubrValue = $null
+    $lanManValue = $null
+    $ipv6ComponentsValue = $null
+    $tcpKeepAliveValue = $null
+    $rpcMinValue = $null
+    $credGuardValue = $null
+    $lmValue = $null
+    $renegoServerValue = $null
+    $renegoClientValue = $null
 
     $baseParams = @{
         MachineName         = $MachineName
@@ -46,18 +58,12 @@ function Get-OperatingSystemRegistryValues {
         GetValue  = "AllowInsecureRenegoClients"
         ValueType = "DWord"
     }
-    $renegoClientValue = Get-RemoteRegistryValue @renegoClientsParams
-
-    if ($null -eq $renegoClientValue) { $renegoClientValue = "NULL" }
 
     $renegoServersParams = $baseParams + @{
         SubKey    = "SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL"
         GetValue  = "AllowInsecureRenegoServers"
         ValueType = "DWord"
     }
-    $renegoServerValue = Get-RemoteRegistryValue @renegoServersParams
-
-    if ($null -eq $renegoServerValue) { $renegoServerValue = "NULL" }
 
     $credGuardParams = $baseParams + @{
         SubKey   = "SYSTEM\CurrentControlSet\Control\LSA"
@@ -74,20 +80,32 @@ function Get-OperatingSystemRegistryValues {
         GetValue  = "LmCompatibilityLevel"
         ValueType = "DWord"
     }
-    $lmValue = Get-RemoteRegistryValue @lmCompParams
+
+    Get-RemoteRegistryValue @lmCompParams | Invoke-RemotePipelineHandler -Result ([ref]$lmValue)
+    Get-RemoteRegistryValue @suppressEpParams | Invoke-RemotePipelineHandler -Result ([ref]$suppressEpValue)
+    Get-RemoteRegistryValue @ubrParams | Invoke-RemotePipelineHandler -Result ([ref]$ubrValue)
+    Get-RemoteRegistryValue @lanManParams | Invoke-RemotePipelineHandler -Result ([ref]$lanManValue)
+    Get-RemoteRegistryValue @ipv6ComponentsParams | Invoke-RemotePipelineHandler -Result ([ref]$ipv6ComponentsValue)
+    Get-RemoteRegistryValue @tcpKeepAliveParams | Invoke-RemotePipelineHandler -Result ([ref]$tcpKeepAliveValue)
+    Get-RemoteRegistryValue @rpcMinParams | Invoke-RemotePipelineHandler -Result ([ref]$rpcMinValue)
+    Get-RemoteRegistryValue @credGuardParams | Invoke-RemotePipelineHandler -Result ([ref]$credGuardValue)
+    Get-RemoteRegistryValue @renegoServersParams | Invoke-RemotePipelineHandler -Result ([ref]$renegoServerValue)
+    Get-RemoteRegistryValue @renegoClientsParams | Invoke-RemotePipelineHandler -Result ([ref]$renegoClientValue)
 
     if ($null -eq $lmValue) { $lmValue = 3 }
+    if ($null -eq $renegoServerValue) { $renegoServerValue = "NULL" }
+    if ($null -eq $renegoClientValue) { $renegoClientValue = "NULL" }
 
     return [PSCustomObject]@{
-        SuppressExtendedProtection      = [int](Get-RemoteRegistryValue @suppressEpParams)
+        SuppressExtendedProtection      = [int]$suppressEpValue
         LmCompatibilityLevel            = $lmValue
-        CurrentVersionUbr               = [int](Get-RemoteRegistryValue @ubrParams)
-        LanManServerDisabledCompression = [int](Get-RemoteRegistryValue @lanManParams)
-        IPv6DisabledComponents          = [int](Get-RemoteRegistryValue @ipv6ComponentsParams)
-        TCPKeepAlive                    = [int](Get-RemoteRegistryValue @tcpKeepAliveParams)
-        RpcMinConnectionTimeout         = [int](Get-RemoteRegistryValue @rpcMinParams)
+        CurrentVersionUbr               = [int]$ubrValue
+        LanManServerDisabledCompression = [int]$lanManValue
+        IPv6DisabledComponents          = [int]$ipv6ComponentsValue
+        TCPKeepAlive                    = [int]$tcpKeepAliveValue
+        RpcMinConnectionTimeout         = [int]$rpcMinValue
         AllowInsecureRenegoServers      = $renegoServerValue
         AllowInsecureRenegoClients      = $renegoClientValue
-        CredentialGuard                 = [int](Get-RemoteRegistryValue @credGuardParams)
+        CredentialGuard                 = [int]$credGuardValue
     }
 }

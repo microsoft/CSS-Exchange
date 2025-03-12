@@ -2,14 +2,15 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\Get-WmiObjectHandler.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
+
 function Get-PageFileInformation {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$Server
-    )
+    param()
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-    $pageFiles = @(Get-WmiObjectHandler -ComputerName $Server -Class "Win32_PageFileSetting" -CatchActionFunction ${Function:Invoke-CatchActions})
+    $pageFiles = $null
+    Get-WmiObjectHandler -Class "Win32_PageFileSetting" -CatchActionFunction ${Function:Invoke-CatchActions} |
+        Invoke-RemotePipelineHandlerList -Result ([ref]$pageFiles)
     $pageFileList = New-Object 'System.Collections.Generic.List[object]'
 
     if ($null -eq $pageFiles -or

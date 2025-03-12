@@ -1,7 +1,6 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 function Get-Smb1ServerSettings {
     [CmdletBinding()]
     param(
@@ -15,13 +14,7 @@ function Get-Smb1ServerSettings {
         $windowsFeature = $null
     }
     process {
-        $params = @{
-            ComputerName           = $ServerName
-            ScriptBlock            = { Get-SmbServerConfiguration -ErrorAction Stop }
-            CatchActionFunction    = $CatchActionFunction
-            ScriptBlockDescription = "Get-SmbServerConfiguration"
-        }
-        $smbServerConfiguration = Invoke-ScriptBlockHandler @params
+        $smbServerConfiguration = Get-SmbServerConfiguration
 
         if ($null -ne $GetWindowsFeature -and
             $GetWindowsFeature.Count -gt 0) {
