@@ -3,6 +3,7 @@
 
 . $PSScriptRoot\..\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\..\Get-FilteredSettingOverrideInformation.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\CompareExchangeBuildLevel.ps1
 function Invoke-AnalyzerSecurityOverrides {
     [CmdletBinding()]
@@ -42,7 +43,8 @@ function Invoke-AnalyzerSecurityOverrides {
             FilterParameterName     = "LearningLocations"
         }
 
-        [array]$deserializationBinderSettings = Get-FilteredSettingOverrideInformation @params
+        [array]$deserializationBinderSettings = $null
+        Get-FilteredSettingOverrideInformation @params | Invoke-RemotePipelineHandler -Result ([ref]$deserializationBinderSettings)
 
         if ($null -ne $deserializationBinderSettings) {
             foreach ($setting in $deserializationBinderSettings) {
@@ -90,7 +92,11 @@ function Invoke-AnalyzerSecurityOverrides {
         Add-AnalyzedResultInformation @params
     }
 
-    if ((Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -SUName "Nov24SU")) {
+    $isNov24SUPlus = $null
+    Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -SUName "Nov24SU" |
+        Invoke-RemotePipelineHandler -Result ([ref]$isNov24SUPlus)
+
+    if (($isNov24SUPlus)) {
         Write-Verbose "ECCCertificateSupport Check for after changes"
         $params = @{
             ExchangeSettingOverride = $exchangeInformation.SettingOverrides
@@ -102,7 +108,8 @@ function Invoke-AnalyzerSecurityOverrides {
             FilterParameterName     = "Enabled"
         }
 
-        [array]$eccCertificateSupportOverride = Get-FilteredSettingOverrideInformation @params
+        [array]$eccCertificateSupportOverride = $null
+        Get-FilteredSettingOverrideInformation @params | Invoke-RemotePipelineHandler -Result ([ref]$eccCertificateSupportOverride)
         $overrideIsEnabled = ($null -ne ($eccCertificateSupportOverride | Where-Object { $_.ParameterValue -eq "true" }))
 
         if ($overrideIsEnabled -and $exchangeInformation.RegistryValues.EnableEccCertificateSupport -ne "1") {
