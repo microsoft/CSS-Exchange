@@ -132,8 +132,8 @@ function Get-HealthCheckerDataCollection {
                     SettingOverrides                         = $exchCmdletResults.SettingOverrides
                     VirtualDirectories                       = $exchCmdletResults.VirtualDirectories
                     ComputerMembership                       = [PSCustomObject]@{
-                        ADGroupMembership = $exchCmdletResults.ADGroupMembership
-                        LocalGroupMember  = $exchLocalResults.LocalGroupMember
+                        ADGroupMembership = $exchCmdletResults.ComputerMembership.ADGroupMembership
+                        LocalGroupMember  = $exchLocalResults.ComputerMembership.LocalGroupMember
                     }
                     AES256CBCInformation                     = $exchLocalResults.AES256CBCInformation
                     ApplicationConfigFileStatus              = $exchLocalResults.ApplicationConfigFileStatus
