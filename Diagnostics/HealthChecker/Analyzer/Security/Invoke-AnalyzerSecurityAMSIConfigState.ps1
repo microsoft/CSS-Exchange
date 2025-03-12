@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 . $PSScriptRoot\..\Get-FilteredSettingOverrideInformation.ps1
 . $PSScriptRoot\..\..\..\..\Shared\CompareExchangeBuildLevel.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 
 function Invoke-AnalyzerSecurityAMSIConfigState {
     [CmdletBinding()]
@@ -28,10 +29,20 @@ function Invoke-AnalyzerSecurityAMSIConfigState {
     # AMSI integration is only available on Windows Server 2016 or higher and only on
     # Exchange Server 2016 CU21+ or Exchange Server 2019 CU10+.
     # AMSI is also not available on Edge Transport Servers (no http component available).
+    $isE16CU21Plus = $null
+    $isE19CU10Plus = $null
+    $isExSeRtmPlus = $null
+    Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2016" -CU "CU21" |
+        Invoke-RemotePipelineHandler -Result ([ref]$isE16CU21Plus)
+    Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2019" -CU "CU10" |
+        Invoke-RemotePipelineHandler -Result ([ref]$isE19CU10Plus)
+    Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "ExchangeSE" -CU "RTM" |
+        Invoke-RemotePipelineHandler -Result ([ref]$isExSeRtmPlus)
+
     if (($osInformation.BuildInformation.BuildVersion -ge [System.Version]"10.0.0.0") -and
-        ((Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2016" -CU "CU21") -or
-        (Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2019" -CU "CU10") -or
-        (Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "ExchangeSE" -CU "RTM")) -and
+        (($isE16CU21Plus) -or
+        ($isE19CU10Plus) -or
+        ($isExSeRtmPlus)) -and
         ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false)) {
 
         $filterSettingOverrideParams = @{
@@ -45,7 +56,8 @@ function Invoke-AnalyzerSecurityAMSIConfigState {
         }
 
         # Only thing that is returned is Accepted values and unique
-        [array]$amsiInformation = Get-FilteredSettingOverrideInformation @filterSettingOverrideParams
+        $amsiInformation = $null
+        Get-FilteredSettingOverrideInformation @filterSettingOverrideParams | Invoke-RemotePipelineHandlerList -Result ([ref]$amsiInformation)
         $amsiWriteType = "Yellow"
         $amsiConfigurationWarning = "`r`n`t`tThis may pose a security risk to your servers"
         $amsiMoreInfo = "More Information: https://aka.ms/HC-AMSIExchange"
@@ -103,9 +115,11 @@ function Invoke-AnalyzerSecurityAMSIConfigState {
         $filterSettingOverrideParams.FilterSectionName = "AmsiRequestBodyScanning"
         $filterSettingOverrideParams.FilterParameterName = @("EnabledAll", "EnabledApi", "EnabledAutoD", "EnabledEcp",
             "EnabledEws", "EnabledMapi", "EnabledEas", "EnabledOab", "EnabledOwa", "EnabledPowerShell", "EnabledOthers")
-        [array]$amsiRequestBodyScanning = Get-FilteredSettingOverrideInformation @filterSettingOverrideParams
+        [array]$amsiRequestBodyScanning = $null
+        Get-FilteredSettingOverrideInformation @filterSettingOverrideParams | Invoke-RemotePipelineHandlerList -Result ([ref]$amsiRequestBodyScanning)
         $filterSettingOverrideParams.FilterSectionName = "BlockRequestBodyGreaterThanMaxScanSize"
-        [array]$amsiBlockRequestBodyGreater = Get-FilteredSettingOverrideInformation @filterSettingOverrideParams
+        [array]$amsiBlockRequestBodyGreater = $null
+        Get-FilteredSettingOverrideInformation @filterSettingOverrideParams | Invoke-RemotePipelineHandlerList -Result ([ref]$amsiBlockRequestBodyGreater)
         $amsiRequestBodyScanningEnabled = $amsiRequestBodyScanning.Count -gt 0 -and
         ($null -ne ($amsiRequestBodyScanning | Where-Object { $_.ParameterValue -eq "True" }))
         $amsiBlockRequestBodyEnabled = $amsiBlockRequestBodyGreater.Count -gt 0 -and
@@ -146,9 +160,12 @@ function Invoke-AnalyzerSecurityAMSIConfigState {
         }
         Add-AnalyzedResultInformation @params
 
+        $isNov24SUOrGreater = $false
+        Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -SUName "Nov24SU" |
+            Invoke-RemotePipelineHandler -Result ([ref]$isNov24SUOrGreater)
         if (($amsiRequestBodyScanningEnabled -or
                 $amsiBlockRequestBodyEnabled) -and
-            -not (Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -SUName "Nov24SU")) {
+            -not ($isNov24SUOrGreater)) {
             $params = $baseParams + @{
                 Details                = "AMSI Body Scanning Option(s) enabled, but not applicable due to the version of Exchange. Must be on Nov24SU or greater to have this feature enabled."
                 DisplayCustomTabNumber = 2

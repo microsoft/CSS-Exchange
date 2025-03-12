@@ -3,6 +3,8 @@
 
 . $PSScriptRoot\Get-SerializedDataSigningState.ps1
 . $PSScriptRoot\..\Add-AnalyzedResultInformation.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
+
 function Invoke-AnalyzerSecurityCveAddressedBySerializedDataSigning {
     [CmdletBinding()]
     param(
@@ -106,7 +108,8 @@ function Invoke-AnalyzerSecurityCveAddressedBySerializedDataSigning {
         $detailsString = "{0}`r`n`t`tSee: https://portal.msrc.microsoft.com/security-guidance/advisory/{0} for more information."
 
         $getSerializedDataSigningState = Get-SerializedDataSigningState -SecurityObject $SecurityObject
-        $cveFixedBySerializedDataSigning = NewCveFixedBySDSObject
+        $cveFixedBySerializedDataSigning = $null
+        NewCveFixedBySDSObject | Invoke-RemotePipelineHandler -Result ([ref]$cveFixedBySerializedDataSigning)
     }
     process {
         if ($getSerializedDataSigningState.SupportedRole -ne $false) {
@@ -120,7 +123,7 @@ function Invoke-AnalyzerSecurityCveAddressedBySerializedDataSigning {
                     foreach ($entry in $cveFixedBySerializedDataSigning) {
                         $buildIsVulnerable = $null
                         # If we find it on the AnalyzedResults list, it means that the build is outdated and as a result vulnerable
-                        $buildIsVulnerable = FindCveEntryInAnalyzeResults -AnalyzeResults $AnalyzeResults -CVE $($entry.CVE)
+                        FindCveEntryInAnalyzeResults -AnalyzeResults $AnalyzeResults -CVE $($entry.CVE) | Invoke-RemotePipelineHandler -Result ([ref]$buildIsVulnerable)
                         if ($entry.CodeFixRequired -and
                             $buildIsVulnerable) {
                             # SDS is configured but there is a code change required that comes as part of a newer Exchange build.
@@ -131,6 +134,7 @@ function Invoke-AnalyzerSecurityCveAddressedBySerializedDataSigning {
                             # SDS is configured as expected and there is no code change required.
                             # We consider this combination as secure since the Exchange build was vulnerable but SDS mitigates.
                             Write-Verbose ("CVE was on this list but was removed since SDS mitigates the vulnerability")
+                            #TODO: Need to review this because this looks like we return a bool value for no reason here.
                             FindCveEntryInAnalyzeResults -AnalyzeResults $AnalyzeResults -CVE $($entry.CVE) -RemoveWhenFound
                         } else {
                             # We end up here if build is not vulnerable
@@ -143,7 +147,10 @@ function Invoke-AnalyzerSecurityCveAddressedBySerializedDataSigning {
                     foreach ($entry in $cveFixedBySerializedDataSigning) {
                         Write-Verbose ("System is vulnerable to: $($entry.CVE)")
 
-                        if ((FindCveEntryInAnalyzeResults -AnalyzeResults $AnalyzeResults -CVE $($entry.CVE)) -eq $false) {
+                        $value = $null
+                        FindCveEntryInAnalyzeResults -AnalyzeResults $AnalyzeResults -CVE $($entry.CVE) | Invoke-RemotePipelineHandler -Result ([ref]$value)
+
+                        if (($value) -eq $false) {
                             Write-Verbose ("CVE wasn't found in the results list and will be added now as it requires SDS to be mitigated")
                             $params.Details = $detailsString -f $($entry.CVE)
                             $params.DisplayTestingValue = $($entry.CVE)

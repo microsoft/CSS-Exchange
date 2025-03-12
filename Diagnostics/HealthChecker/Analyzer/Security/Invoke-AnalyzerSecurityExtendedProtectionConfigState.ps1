@@ -1,6 +1,9 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\..\..\Shared\IISFunctions\ExtendedProtection\Get-ExtendedProtectionConfigurationResult.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
+
 function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
     [CmdletBinding()]
     param(
@@ -15,7 +18,6 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
     )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-    $extendedProtection = $SecurityObject.ExchangeInformation.ExtendedProtectionConfig
     # Adding CVE-2024-21410 for the updated CVE for release with CU14
     $cveList = "CVE-2022-24516, CVE-2022-21979, CVE-2022-21980, CVE-2022-24477, CVE-2022-30134, CVE-2024-21410"
 
@@ -26,6 +28,20 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
 
     # Supported server roles are: Mailbox and ClientAccess
     if ($SecurityObject.IsEdgeServer -eq $false) {
+
+        # Get the Extended Protection Results
+        try {
+            $extendedProtectionParams = @{
+                ExSetupVersion        = $SecurityObject.ExchangeInformation.BuildInformation.VersionInformation.BuildVersion
+                CatchActionFunction   = ${Function:Invoke-CatchActions}
+                ApplicationHostConfig = [xml]$SecurityObject.ExchangeInformation.IISSettings.ApplicationHostConfig
+            }
+            $extendedProtection = $null
+            Get-ExtendedProtectionConfigurationResult @extendedProtectionParams | Invoke-RemotePipelineHandler -Result ([ref]$extendedProtection)
+        } catch {
+            Write-Verbose "Failed to get the ExtendedProtectionConfig"
+            Invoke-CatchActions
+        }
 
         if ($null -ne $extendedProtection) {
             Write-Verbose "Exchange extended protection information found - performing vulnerability testing"

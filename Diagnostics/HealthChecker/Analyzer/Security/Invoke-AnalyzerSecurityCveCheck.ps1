@@ -15,6 +15,8 @@
 . $PSScriptRoot\Invoke-AnalyzerSecurityIISModules.ps1
 . $PSScriptRoot\..\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\..\..\..\..\Shared\CompareExchangeBuildLevel.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
+
 function Invoke-AnalyzerSecurityCveCheck {
     [CmdletBinding()]
     param(
@@ -175,7 +177,10 @@ function Invoke-AnalyzerSecurityCveCheck {
     }
 
     foreach ($key in $sortedKeys) {
-        if (-not (Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -SUName $key)) {
+        $isSUOrGreater = $false
+        Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -SUName $key |
+            Invoke-RemotePipelineHandler -Result ([ref]$isSUOrGreater)
+        if (-not ($isSUOrGreater)) {
             Write-Verbose "Tested that we aren't on SU $key or greater"
             $cveNames = ($suNameDictionary[$key] | Where-Object { $_.Version.Contains($exchangeInformation.BuildInformation.MajorVersion) }).CVE
             foreach ($cveName in $cveNames) {
