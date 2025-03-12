@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\Add-AnalyzedResultInformation.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\CompareExchangeBuildLevel.ps1
 
 <#
@@ -40,7 +41,11 @@ function Invoke-AnalyzerSecurityADV24199947 {
             return
         }
 
-        $isVulnerable = (-not (Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $SecurityObject.BuildInformation -SUName "Mar24SU"))
+        $isMarch24SUPlus = $null
+        Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $SecurityObject.BuildInformation -SUName "Mar24SU" |
+            Invoke-RemotePipelineHandler -Result ([ref]$isMarch24SUPlus)
+
+        $isVulnerable = (-not $isMarch24SUPlus)
 
         # if patch is installed, need to check for the override.
         if ($isVulnerable -eq $false) {
