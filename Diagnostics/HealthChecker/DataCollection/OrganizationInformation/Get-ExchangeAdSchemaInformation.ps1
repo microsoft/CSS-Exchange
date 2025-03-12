@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-ExchangeAdSchemaClass.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlock\RemotePipelineHandlerFunctions.ps1
 
 function Get-ExchangeAdSchemaInformation {
 
