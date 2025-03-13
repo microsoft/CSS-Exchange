@@ -105,7 +105,7 @@ foreach ($fileInfo in $filesToCheck) {
             }
             break
         } catch {
-            Write-Warning "Invoke-ScriptAnalyer failed on $($fileInfo.FullName). Error:"
+            Write-Warning "Invoke-ScriptAnalyzer failed on $($fileInfo.FullName). Error:"
             $_.Exception | Format-List | Out-Host
             Write-Warning "Retrying in 5 seconds."
             Start-Sleep -Seconds 5

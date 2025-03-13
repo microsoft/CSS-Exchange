@@ -3,13 +3,13 @@
 
 . $PSScriptRoot\..\ExchangeServerInfo\Get-DAGInformation.ps1
 . $PSScriptRoot\..\ExchangeServerInfo\Get-ExchangeBasicServerObject.ps1
-. $PSScriptRoot\..\Helpers\Add-ScriptBlockInjection.ps1
-. $PSScriptRoot\..\Helpers\PipelineFunctions.ps1
 . $PSScriptRoot\..\Helpers\Start-JobManager.ps1
 . $PSScriptRoot\..\RemoteScriptBlock\Get-ExchangeInstallDirectory.ps1
 . $PSScriptRoot\..\RemoteScriptBlock\IO\Compress-Folder.ps1
 . $PSScriptRoot\..\RemoteScriptBlock\IO\Save-DataToFile.ps1
 . $PSScriptRoot\..\..\..\Shared\ErrorMonitorFunctions.ps1
+. $PSScriptRoot\..\..\..\Shared\ScriptBlock\Get-DefaultSBInjectionContext.ps1
+. $PSScriptRoot\..\..\..\Shared\ScriptBlock\RemoteSBLoggingFunctions.ps1
 #This function job is to write out the Data that is too large to pass into the main script block
 #This is for mostly Exchange Related objects.
 #To handle this, we export the data locally and copy the data over the correct server.
@@ -422,20 +422,10 @@ function Write-LargeDataObjectsOnMachine {
                 Write out the Exchange Server Object Data and copy them over to the correct server
             #>
 
-            # Set remote version action to be able to return objects on the pipeline to log and handle them.
-            SetWriteRemoteVerboseAction "New-VerbosePipelineObject"
-            $scriptBlockInjectParams = @{
-                IncludeScriptBlock    = @(${Function:Write-Verbose}, ${Function:New-PipelineObject}, ${Function:New-VerbosePipelineObject})
-                IncludeUsingParameter = "WriteRemoteVerboseDebugAction"
-            }
             #Setup all the Script blocks that we are going to use.
             Write-Verbose("Getting Get-ExchangeInstallDirectory string to create Script Block")
-            $getExchangeInstallDirectoryString = Add-ScriptBlockInjection @scriptBlockInjectParams `
-                -PrimaryScriptBlock ${Function:Get-ExchangeInstallDirectory} `
-                -CatchActionFunction ${Function:Invoke-CatchActions}
-            Write-Verbose("Creating Script Block")
-            $getExchangeInstallDirectoryScriptBlock = [ScriptBlock]::Create($getExchangeInstallDirectoryString)
-
+            $getExchangeInstallDirectoryScriptBlock = Get-DefaultSBInjectionContext -PrimaryScriptBlock ${Function:Get-ExchangeInstallDirectory}
+            Write-Verbose("Successfully Created Script Block")
             Write-Verbose("New-Item create Script Block")
             $newFolderScriptBlock = { param($path) New-Item -ItemType Directory -Path $path -Force | Out-Null }
 
@@ -461,16 +451,19 @@ function Write-LargeDataObjectsOnMachine {
             }
 
             Write-Verbose ("Calling job for Get Exchange Install Directory")
-            $serverInstallDirectories = Start-JobManager -ServersWithArguments $serverArgListExchangeInstallDirectory `
-                -ScriptBlock $getExchangeInstallDirectoryScriptBlock `
-                -NeedReturnData $true `
-                -JobBatchName "Exchange Install Directories for Write-LargeDataObjectsOnMachine" `
-                -RemotePipelineHandler ${Function:Invoke-PipelineHandler}
+            $params = @{
+                ServersWithArguments  = $serverArgListExchangeInstallDirectory
+                ScriptBlock           = $getExchangeInstallDirectoryScriptBlock
+                NeedReturnData        = $true
+                JobBatchName          = "Exchange Install Directories for Write-LargeDataObjectsOnMachine"
+                RemotePipelineHandler = ${Function:Invoke-RemotePipelineLoggingLocal}
+            }
+            $serverInstallDirectories = Start-JobManager @params
 
             Write-Verbose("Calling job for folder creation")
             Start-JobManager -ServersWithArguments $serverArgListDirectoriesToCreate -ScriptBlock $newFolderScriptBlock `
                 -JobBatchName "Creating folders for Write-LargeDataObjectsOnMachine" `
-                -RemotePipelineHandler ${Function:Invoke-PipelineHandler}
+                -RemotePipelineHandler ${Function:Invoke-RemotePipelineLoggingLocal}
 
             #Now do the rest of the actions
             foreach ($serverData in $exchangeServerData) {

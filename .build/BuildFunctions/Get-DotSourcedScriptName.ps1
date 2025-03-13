@@ -17,8 +17,8 @@ function Get-DotSourcedScriptName {
     process {
         $m = $Line | Select-String "\. (?:\.|\`$PSScriptRoot)\\(.*).ps1"
         if ($null -ne $m) {
-            $dotloadedScriptPath = $m.Matches[0].Groups[1].Value + ".ps1"
-            $dotloadedScriptPath
+            $dotLoadedScriptPath = $m.Matches[0].Groups[1].Value + ".ps1"
+            $dotLoadedScriptPath
         }
     }
 }

@@ -1,12 +1,12 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\Add-ScriptBlockInjection.ps1
 . $PSScriptRoot\Enter-YesNoLoopAction.ps1
-. $PSScriptRoot\PipelineFunctions.ps1
 . $PSScriptRoot\Start-JobManager.ps1
 . $PSScriptRoot\..\RemoteScriptBlock\Get-FreeSpace.ps1
 . $PSScriptRoot\..\..\..\Shared\ErrorMonitorFunctions.ps1
+. $PSScriptRoot\..\..\..\Shared\ScriptBlock\Get-DefaultSBInjectionContext.ps1
+. $PSScriptRoot\..\..\..\Shared\ScriptBlock\RemoteSBLoggingFunctions.ps1
 function Test-DiskSpace {
     param(
         [Parameter(Mandatory = $true)][array]$Servers,
@@ -57,17 +57,16 @@ function Test-DiskSpace {
     }
 
     Write-Verbose("Getting Get-FreeSpace string to create Script Block")
-    SetWriteRemoteVerboseAction "New-VerbosePipelineObject"
-    $getFreeSpaceString = Add-ScriptBlockInjection -PrimaryScriptBlock ${Function:Get-FreeSpace} `
-        -IncludeScriptBlock @(${Function:Write-Verbose}, ${Function:New-PipelineObject}, ${Function:New-VerbosePipelineObject}) `
-        -IncludeUsingParameter "WriteRemoteVerboseDebugAction" `
-        -CatchActionFunction ${Function:Invoke-CatchActions}
-    Write-Verbose("Creating Script Block")
-    $getFreeSpaceScriptBlock = [ScriptBlock]::Create($getFreeSpaceString)
-    $serversData = Start-JobManager -ServersWithArguments $serverArgs -ScriptBlock $getFreeSpaceScriptBlock `
-        -NeedReturnData $true `
-        -JobBatchName "Getting the free space for test disk space" `
-        -RemotePipelineHandler ${Function:Invoke-PipelineHandler}
+    $getFreeSpaceScriptBlock = Get-DefaultSBInjectionContext -PrimaryScriptBlock ${Function:Get-FreeSpace}
+    Write-Verbose("Successfully Created Script Block")
+    $params = @{
+        ServersWithArguments  = $serverArgs
+        ScriptBlock           = $getFreeSpaceScriptBlock
+        NeedReturnData        = $true
+        JobBatchName          = "Getting the free space for test disk space"
+        RemotePipelineHandler = ${Function:Invoke-RemotePipelineLoggingLocal}
+    }
+    $serversData = Start-JobManager @params
     $passedServers = @()
     foreach ($server in $Servers) {
 

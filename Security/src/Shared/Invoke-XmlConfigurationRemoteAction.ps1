@@ -19,7 +19,7 @@ TODO List
         [string]FilePath
         [object[]]Actions
             [string]SelectNodesFilter
-            [string]OperationType     AcceptedValues: RemoveNode, SetAttribute, AppendAttribute, MoveNode, ReplaceAttributeValue
+            [string]OperationType     AcceptedValues: RemoveNode, SetAttribute, AppendAttribute, MoveNode, ReplaceAttributeValue, AppendChildFromClone
             [object]Operation
                     Type = SetAttribute
                         [string]AttributeName
@@ -36,6 +36,10 @@ TODO List
 
                         # This is only required if the SelectNodesFilter doesn't contain a narrow filtered request where only 1 node is returned.
                         [string]ParentNodeAttributeNameFilterAdd
+                    Type = AppendChildFromClone
+                        [string]AttributeName
+                        [string]Value
+                        [string]SelectSingleNodeFilterForClone  # SelectNodesFilter is where we are AppendChild at, this is where we are cloning from.
         [string]BackupFileName
         [object]Restore
             [string]FileName
@@ -114,7 +118,7 @@ function Invoke-XmlConfigurationRemoteAction {
                 [int]Id
                 [object]Content
             [object[]]Actions
-                [string]RestoreType             AcceptedValues: AppendChild, SetAttribute, MoveNode
+                [string]RestoreType             AcceptedValues: AppendChild, SetAttribute, MoveNode, RemoveNode
                 [string]SelectNodesFilter       This should always be the location where we want to handle actions in the main configuration file.
                 [object]Operation
                     Type = AppendChild
@@ -143,7 +147,8 @@ function Invoke-XmlConfigurationRemoteAction {
                         $action.OperationType -ne "SetAttribute" -and
                         $action.OperationType -ne "AppendAttribute" -and
                         $action.OperationType -ne "ReplaceAttributeValue" -and
-                        $action.OperationType -ne "MoveNode")) {
+                        $action.OperationType -ne "MoveNode" -and
+                        $action.OperationType -ne "AppendChildFromClone")) {
                         throw "Failed to provide valid action OperationType."
                     }
 
@@ -157,7 +162,11 @@ function Invoke-XmlConfigurationRemoteAction {
                         [string]::IsNullOrEmpty($action.Operation.Value) -or
                         $null -eq $action.Operation.ReplaceValue)) -or
                     ($action.OperationType -eq "MoveNode" -and
-                        ([string]::IsNullOrEmpty($action.Operation.MoveToSelectNodesFilter)))) {
+                        ([string]::IsNullOrEmpty($action.Operation.MoveToSelectNodesFilter))) -or
+                    ($action.OperationType -eq "AppendChildFromClone" -and
+                        ([string]::IsNullOrEmpty($action.Operation.AttributeName) -or
+                        [string]::IsNullOrEmpty($action.Operation.Value) -or
+                        [string]::IsNullOrEmpty($action.Operation.SelectSingleNodeFilterForClone)))) {
                         throw "Failed to provide correct Operation values for OperationType '$($action.OperationType)'"
                     }
                 } catch {
@@ -289,6 +298,8 @@ function Invoke-XmlConfigurationRemoteAction {
 
                             [void]$selectNode.ParentNode.RemoveChild($selectNode)
                             [void]$moveToNodeLocation.AppendChild($selectNode)
+                        } elseif ($action.RestoreType -eq "RemoveNode") {
+                            [void]$selectNode.ParentNode.RemoveChild($selectNode)
                         }
                     } catch {
                         $allActionsPerformed = $false
@@ -330,7 +341,9 @@ function Invoke-XmlConfigurationRemoteAction {
                 Write-Verbose "Trying to find SelectNodes based off filter: '$($action.SelectNodesFilter)'"
                 $selectNodes = $contentXml.SelectNodes($action.SelectNodesFilter)
 
-                if ($selectNodes.Count -eq 0) {
+                if ($selectNodes.Count -eq 0 -and $action.OperationType -eq "AppendChildFromClone") {
+                    throw "Unable to find node where we want to append child to with filter '$($action.SelectNodesFilter)'. This breaks the append child process and we are unable to continue."
+                } elseif ($selectNodes.Count -eq 0) {
                     # This shouldn't be treated as an error.
                     Write-Verbose "No nodes were found with the current filter. This could be the action was already taken or doesn't exist."
                     continue
@@ -475,6 +488,19 @@ function Invoke-XmlConfigurationRemoteAction {
                                 $node.($action.Operation.AttributeName) = $action.Operation.Value
                                 Write-Verbose "Successfully reset the value to '$($action.Operation.Value)'"
                             }
+                        } elseif ($action.OperationType -eq "AppendChildFromClone") {
+                            Write-Verbose "Getting clone from filter path: '$($action.Operation.SelectSingleNodeFilterForClone)'"
+                            $cloneNode = $contentXml.SelectSingleNode($action.Operation.SelectSingleNodeFilterForClone).CloneNode($true)
+
+                            if ($null -eq $cloneNode.($action.Operation.AttributeName)) {
+                                throw "Attribute '$($action.Operation.AttributeName)' doesn't exist on this node"
+                            }
+
+                            $cloneNode.($action.Operation.AttributeName) = $action.Operation.Value
+                            $currentRestoreAction.RestoreType = "RemoveNode"
+                            $currentRestoreAction.SelectNodesFilter = "$($action.SelectNodesFilter)/*[@$($action.Operation.AttributeName)='$($action.Operation.Value)']"
+                            Write-Verbose "Setting restore SelectNodesFilter to $($currentRestoreAction.SelectNodesFilter)"
+                            [void]$node.AppendChild($cloneNode)
                         }
 
                         # Add Current Restore to list if needed.

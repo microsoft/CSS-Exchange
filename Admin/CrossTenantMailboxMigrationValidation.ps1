@@ -193,8 +193,8 @@ function CheckObjects {
                 #Check for the T2T license on any of the objects (either source or target) as long as the source mailbox is a regular mailbox
                 Write-Verbose -Message "Informational: Source mailbox is regular, checking if either SOURCE mailbox or TARGET MailUser has the T2T license assigned"
                 if ($SourceObject.RecipientTypeDetails -eq 'UserMailbox') {
-                    if ($SourceObject.PersistedCapabilities -notmatch 'ExchangeT2TMbxMove') {
-                        if ($TargetObject.PersistedCapabilities -notmatch 'ExchangeT2TMbxMove') {
+                    if ($SourceObject.PersistedCapabilities -notcontains 'ExchangeT2TMbxMove') {
+                        if ($TargetObject.PersistedCapabilities -notcontains 'ExchangeT2TMbxMove') {
                             Write-Host ">> Error: Neither SOURCE mailbox or TARGET MailUser have a valid T2T migration license. This is a pre-requisite, and if the license is not assigned by the time the migration is injected, it will fail to complete" -ForegroundColor Red
                         } else {
                             Write-Verbose -Message "TARGET MailUser has a valid T2T migration license"
@@ -273,8 +273,8 @@ function CheckObjects {
 
                 #Verify if SOURCE mailbox is part of the Mail-Enabled Security Group defined on the SOURCE organization relationship
                 Write-Verbose -Message "Informational: Checking if the SOURCE mailbox is a member of the SOURCE organization relationship Mail-Enabled Security Group defined on the MailboxMovePublishedScopes"
-                $SourceTenantOrgRelationship = Get-SourceOrganizationRelationship | Where-Object { ($_.MailboxMoveCapability -eq "RemoteOutbound") -and ($null -ne $_.OauthApplicationId) }
-                if ((Get-SourceDistributionGroupMember $SourceTenantOrgRelationship.MailboxMovePublishedScopes[0]).Name -contains $SourceObject.Name) {
+                $SourceTenantOrgRelationship = Get-SourceOrganizationRelationship | Where-Object { ($_.MailboxMoveCapability -like "*RemoteOutbound*") -and ($null -ne $_.OauthApplicationId) }
+                if ((Get-SourceDistributionGroupMember $SourceTenantOrgRelationship.MailboxMovePublishedScopes[0] -ResultSize unlimited).Name -contains $SourceObject.Name) {
                     Write-Host ">> SOURCE mailbox is within the MailboxMovePublishedScopes" -ForegroundColor Green
                 } else {
                     Write-Host ">> Error: SOURCE mailbox is NOT within the MailboxMovePublishedScopes. The migration will fail if you don't correct this" -ForegroundColor Red
@@ -416,7 +416,7 @@ function CheckObjects {
                             Write-Verbose -Message "Informational: The X500 address $($Address) from SOURCE object is present on TARGET object"
                         } else {
                             if (!$TargetObject.IsDirSynced) {
-                                Write-Host ">> Error: $($Address) is not present on the TARGET MailUser, would you like to add it? (Y/N): " -ForegroundColor Red -NoNewline
+                                Write-Host ">> Warning: $($Address) is not present on the TARGET MailUser. All of the X500 addresses of the source mailbox object, as a best practice, should be present on the target MailUser object. Would you like to add it? (Y/N): " -ForegroundColor Yellow -NoNewline
                                 $AddX500 = Read-Host
                                 Write-Host " Your input: $($AddX500)"
                                 if ($AddX500.ToLower() -eq "y") {
@@ -426,7 +426,7 @@ function CheckObjects {
                                     $TargetObject = Get-TargetMailUser $TargetIdentity
                                 }
                             } else {
-                                Write-Host ">> Error: $($Address) is not present on the TARGET MailUser and the object is DirSynced. This is not a change that can be done directly on EXO, please add the X500 address from on-premises and perform an AADConnect delta sync" -ForegroundColor Red
+                                Write-Host ">> Warning: $($Address) is not present on the TARGET MailUser and the object is DirSynced. All of the X500 addresses of the source mailbox object, as a best practice, should be present on the target MailUser object. This is not a change that can be done directly on EXO, please add the X500 address from on-premises and perform an AADConnect delta sync" -ForegroundColor Yellow
                             }
                         }
                     }
@@ -489,8 +489,8 @@ function CheckObjectsSourceOffline {
                 #Check for the T2T license on any of the objects (either source or target) as long as the source mailbox is a regular mailbox
                 Write-Verbose -Message "Informational: Source mailbox is regular, checking if either SOURCE mailbox or TARGET MailUser has the T2T license assigned"
                 if ($SourceObject.RecipientTypeDetails -eq 'UserMailbox') {
-                    if ($SourceObject.PersistedCapabilities -notmatch 'ExchangeT2TMbxMove') {
-                        if ($TargetObject.PersistedCapabilities -notmatch 'ExchangeT2TMbxMove') {
+                    if ($SourceObject.PersistedCapabilities -notcontains 'ExchangeT2TMbxMove') {
+                        if ($TargetObject.PersistedCapabilities -notcontains 'ExchangeT2TMbxMove') {
                             Write-Host ">> Error: Neither SOURCE mailbox or TARGET MailUser have a valid T2T migration license. This is a pre-requisite, and if the license is not assigned by the time the migration is injected, it will fail to complete" -ForegroundColor Red
                         } else {
                             Write-Verbose -Message "TARGET MailUser has a valid T2T migration license"
@@ -559,7 +559,7 @@ function CheckObjectsSourceOffline {
                 #Verify if SOURCE mailbox is part of the Mail-Enabled Security Group defined on the SOURCE organization relationship
                 Write-Verbose -Message "Informational: Checking if the SOURCE mailbox is a member of the SOURCE organization relationship Mail-Enabled Security Group defined on the MailboxMovePublishedScopes"
                 $SourceTenantOrgRelationship = (Import-Clixml $OutputPath\SourceOrgRelationship.xml)
-                $SourceTenantOrgRelationship = $SourceTenantOrgRelationship | Where-Object { ($_.MailboxMoveCapability -eq "RemoteOutbound") -and ($null -ne $_.OauthApplicationId) }
+                $SourceTenantOrgRelationship = $SourceTenantOrgRelationship | Where-Object { ($_.MailboxMoveCapability -like "*RemoteOutbound*") -and ($null -ne $_.OauthApplicationId) }
                 $SourceTenantMailboxMovePublishedScopesSGMembers = Import-Clixml $OutputPath\MailboxMovePublishedScopesSGMembers.xml
                 if ($SourceTenantMailboxMovePublishedScopesSGMembers.Name -contains $SourceObject.Name) {
                     Write-Host ">> SOURCE mailbox is within the MailboxMovePublishedScopes" -ForegroundColor Green
@@ -704,7 +704,7 @@ function CheckObjectsSourceOffline {
                             Write-Verbose -Message "Informational: The X500 address $($Address) from SOURCE object is present on TARGET object"
                         } else {
                             if (!$TargetObject.IsDirSynced) {
-                                Write-Host ">> Error: $($Address) is not present on the TARGET MailUser, would you like to add it? (Y/N): " -ForegroundColor Red -NoNewline
+                                Write-Host ">> Error: $($Address) is not present on the TARGET MailUser. All of the X500 addresses of the source mailbox object, as a best practice, should be present on the target MailUser object. Would you like to add it? (Y/N): " -ForegroundColor Red -NoNewline
                                 $AddX500 = Read-Host
                                 Write-Host " Your input: $($AddX500)"
                                 if ($AddX500.ToLower() -eq "y") {
@@ -714,7 +714,7 @@ function CheckObjectsSourceOffline {
                                     $TargetObject = Get-TargetMailUser $TargetIdentity
                                 }
                             } else {
-                                Write-Host ">> Error: $($Address) is not present on the TARGET MailUser and the object is DirSynced. This is not a change that can be done directly on EXO, please add the X500 address from on-premises and perform an AADConnect delta sync" -ForegroundColor Red
+                                Write-Host ">> Error: $($Address) is not present on the TARGET MailUser and the object is DirSynced. All of the X500 addresses of the source mailbox object, as a best practice, should be present on the target MailUser object. This is not a change that can be done directly on EXO, please add the X500 address from on-premises and perform an AADConnect delta sync" -ForegroundColor Red
                             }
                         }
                     }
@@ -811,7 +811,7 @@ function CheckOrgs {
     Write-Verbose -Message "Informational: Checking SOURCE tenant organization relationship"
     if ($SourceTenantOrgRelationship.MailboxMoveEnabled) {
         Write-Host "Organization relationship on SOURCE tenant is enabled for moves" -ForegroundColor Green
-        if ($SourceTenantOrgRelationship.MailboxMoveCapability -eq "RemoteOutbound") {
+        if ($SourceTenantOrgRelationship.MailboxMoveCapability -like "*RemoteOutbound*") {
             Write-Host "Organization relationship on SOURCE tenant MailboxMove is correctly set" -ForegroundColor Green
             if ($SourceTenantOrgRelationship.DomainNames -contains $TargetTenantId) {
                 Write-Host "Organization relationship on SOURCE tenant DomainNames is correctly pointing to TargetTenantId" -ForegroundColor Green
@@ -879,7 +879,7 @@ function CheckOrgsSourceOffline {
     Write-Verbose -Message "Informational: Checking SOURCE tenant organization relationship"
     if ($SourceTenantOrgRelationship.MailboxMoveEnabled) {
         Write-Host "Organization relationship on SOURCE tenant is enabled for moves" -ForegroundColor Green
-        if ($SourceTenantOrgRelationship.MailboxMoveCapability -eq "RemoteOutbound") {
+        if ($SourceTenantOrgRelationship.MailboxMoveCapability -like "*RemoteOutbound*") {
             Write-Host "Organization relationship on SOURCE tenant MailboxMove is correctly set" -ForegroundColor Green
             if ($SourceTenantOrgRelationship.DomainNames -contains $TargetTenantId) {
                 Write-Host "Organization relationship on SOURCE tenant DomainNames is correctly pointing to TargetTenantId" -ForegroundColor Green
@@ -1112,7 +1112,7 @@ if ($CollectSourceOnly -and $CSV) {
         $SourceTenantOrganizationRelationship | ForEach-Object {
             if (($_.MailboxMoveEnabled) -and ($_.MailboxMoveCapability -eq "RemoteOutbound") -and ($_.MailboxMovePublishedScopes)) {
                 Write-Host "Informational: $($_.Identity) organization relationship meets the conditions for a cross tenant mailbox migration scenario, exporting members of the security group defined on the MailboxMovePublishedScopes" -ForegroundColor Yellow
-                Get-SourceDistributionGroupMember $_.MailboxMovePublishedScopes[0] | Export-Clixml $OutputPath\MailboxMovePublishedScopesSGMembers.xml
+                Get-SourceDistributionGroupMember $_.MailboxMovePublishedScopes[0] -ResultSize Unlimited | Export-Clixml $OutputPath\MailboxMovePublishedScopesSGMembers.xml
             } else {
                 Write-Host "Informational: $($_.Identity) organization relationship doesn't match for a cross tenant mailbox migration scenario" -ForegroundColor Yellow
             }
@@ -1192,4 +1192,3 @@ if ($SourceIsOffline -and $PathForCollectedData -and $CheckOrgs) {
     LoggingOff
     KillSessions
 }
-
