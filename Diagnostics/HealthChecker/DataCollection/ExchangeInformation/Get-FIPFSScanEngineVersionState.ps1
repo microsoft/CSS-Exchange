@@ -3,14 +3,14 @@
 
 . $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlock\Invoke-RemotePipelineHandler.ps1
 
 function Get-FIPFSScanEngineVersionState {
     [CmdletBinding()]
     [OutputType("System.Object")]
     param (
-        [Parameter(Mandatory = $true)]
         [string]
-        $ComputerName,
+        $ComputerName = $env:COMPUTERNAME,
         [Parameter(Mandatory = $true)]
         [System.Version]
         $ExSetupVersion,
@@ -62,10 +62,16 @@ function Get-FIPFSScanEngineVersionState {
             Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
             try {
-                $scanEngineVersions = Invoke-ScriptBlockHandler -ComputerName $ComputerName `
-                    -ScriptBlock ${Function:GetFolderFromExchangeInstallPath} `
-                    -ArgumentList ("FIP-FS\Data\Engines\amd64\Microsoft\Bin") `
-                    -CatchActionFunction ${Function:Invoke-CatchActions}
+
+                if ($PSSenderInfo) {
+                    $scanEngineVersions = $null
+                    GetFolderFromExchangeInstallPath "FIP-FS\Data\Engines\amd64\Microsoft\Bin" | Invoke-RemotePipelineHandler -Result ([ref]$scanEngineVersions)
+                } else {
+                    $scanEngineVersions = Invoke-ScriptBlockHandler -ComputerName $ComputerName `
+                        -ScriptBlock ${Function:GetFolderFromExchangeInstallPath} `
+                        -ArgumentList ("FIP-FS\Data\Engines\amd64\Microsoft\Bin") `
+                        -CatchActionFunction ${Function:Invoke-CatchActions}
+                }
 
                 if ($null -ne $scanEngineVersions) {
                     if ($scanEngineVersions.Failed) {
@@ -119,8 +125,10 @@ function Get-FIPFSScanEngineVersionState {
         try {
 
             if ($AffectedServerRole) {
-                $highestScanEngineVersionNumber = GetHighestScanEngineVersionNumber -ComputerName $ComputerName
-                $fipFsIssueFixedBuild = IsFIPFSFixedBuild -BuildNumber $ExSetupVersion
+                $highestScanEngineVersionNumber = $null
+                $fipFsIssueFixedBuild = $null
+                GetHighestScanEngineVersionNumber -ComputerName $ComputerName | Invoke-RemotePipelineHandler -Result ([ref]$highestScanEngineVersionNumber)
+                IsFIPFSFixedBuild -BuildNumber $ExSetupVersion | Invoke-RemotePipelineHandler -Result ([ref]$fipFsIssueFixedBuild)
 
                 if ($null -eq $highestScanEngineVersionNumber) {
                     Write-Verbose "No scan engine version found on the computer - this can cause issues still with some transport rules"

@@ -74,12 +74,17 @@ function Get-ExchangeAES256CBCDetails {
             Write-Verbose "AES256-CBC encryption for information protection is supported by this Exchange Server build"
             $aes256CBCSupported = $true
 
-            $params = @{
-                ComputerName        = $Server
-                ScriptBlock         = ${Function:GetRegistryAclCheckScriptBlock}
-                CatchActionFunction = ${Function:Invoke-CatchActions}
+            if ($PSSenderInfo) {
+                $results = GetRegistryAclCheckScriptBlock
+            } else {
+                $params = @{
+                    ComputerName        = $Server
+                    ScriptBlock         = ${Function:GetRegistryAclCheckScriptBlock}
+                    CatchActionFunction = ${Function:Invoke-CatchActions}
+                }
+                $results = Invoke-ScriptBlockHandler @params
             }
-            $results = Invoke-ScriptBlockHandler @params
+
             Write-Verbose "Found Registry Path: $($results.PathExits)"
             Write-Verbose "Configured Correctly: $($results.RegistryKeyConfiguredAsExpected)"
             $msipcRegistryAclAsExpected = $results.RegistryKeyConfiguredAsExpected

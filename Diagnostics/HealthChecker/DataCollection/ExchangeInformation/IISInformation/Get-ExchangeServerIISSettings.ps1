@@ -8,10 +8,11 @@
 . $PSScriptRoot\..\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 . $PSScriptRoot\..\..\..\..\..\Shared\IISFunctions\Get-ApplicationHostConfig.ps1
 . $PSScriptRoot\..\..\..\..\..\Shared\IISFunctions\Get-IISModules.ps1
+. $PSScriptRoot\..\..\..\..\..\Shared\ScriptBlock\Invoke-RemotePipelineHandler.ps1
 
 function Get-ExchangeServerIISSettings {
     param(
-        [string]$ComputerName,
+        [string]$ComputerName = $env:COMPUTERNAME,
         [bool]$IsLegacyOS = $false,
         [ScriptBlock]$CatchActionFunction
     )
@@ -24,7 +25,8 @@ function Get-ExchangeServerIISSettings {
         }
 
         try {
-            $exchangeWebSites = Get-ExchangeWebSitesFromAd -ComputerName $ComputerName
+            $exchangeWebSites = $null
+            Get-ExchangeWebSitesFromAd -ComputerName $ComputerName | Invoke-RemotePipelineHandler -Result ([ref]$exchangeWebSites)
             if ($exchangeWebSites.Count -gt 2) {
                 Write-Verbose "Multiple OWA/ECP virtual directories detected"
             }
@@ -35,26 +37,38 @@ function Get-ExchangeServerIISSettings {
             Invoke-CatchActions
         }
 
-        # We need to wrap the array into another array as the -WebSitesToProcess parameter expects an array object
-        $webSite = Invoke-ScriptBlockHandler @params -ScriptBlock ${Function:Get-IISWebSite} -ArgumentList (, $exchangeWebSites) -ScriptBlockDescription "Get-IISWebSite"
-        $webApplication = Invoke-ScriptBlockHandler @params -ScriptBlock ${Function:Get-IISWebApplication} -ScriptBlockDescription "Get-IISWebApplication"
+        if ($PSSenderInfo) {
+            $webSite = $null
+            $webApplication = $null
+            Get-IISWebSite -WebSitesToProcess $exchangeWebSites | Invoke-RemotePipelineHandler -Result ([ref]$webSite)
+            Get-IISWebApplication | Invoke-RemotePipelineHandler -Result ([ref]$webApplication)
+        } else {
+            # We need to wrap the array into another array as the -WebSitesToProcess parameter expects an array object
+            $webSite = Invoke-ScriptBlockHandler @params -ScriptBlock ${Function:Get-IISWebSite} -ArgumentList (, $exchangeWebSites) -ScriptBlockDescription "Get-IISWebSite"
+            $webApplication = Invoke-ScriptBlockHandler @params -ScriptBlock ${Function:Get-IISWebApplication} -ScriptBlockDescription "Get-IISWebApplication"
+        }
 
         # Get the TokenCacheModule build information as we need it to perform version testing
         Write-Verbose "Trying to query TokenCacheModule version information"
-        $tokenCacheModuleParams = @{
-            ComputerName           = $Server
-            ScriptBlockDescription = "Get TokenCacheModule version information"
-            ScriptBlock            = { [System.Diagnostics.FileVersionInfo]::GetVersionInfo("$env:windir\System32\inetsrv\cachtokn.dll") }
-            CatchActionFunction    = ${Function:Invoke-CatchActions}
+
+        if ($PSSenderInfo) {
+            $tokenCacheModuleVersionInformation = [System.Diagnostics.FileVersionInfo]::GetVersionInfo("$env:windir\System32\inetsrv\cachtokn.dll")
+        } else {
+            $tokenCacheModuleParams = @{
+                ComputerName           = $Server
+                ScriptBlockDescription = "Get TokenCacheModule version information"
+                ScriptBlock            = { [System.Diagnostics.FileVersionInfo]::GetVersionInfo("$env:windir\System32\inetsrv\cachtokn.dll") }
+                CatchActionFunction    = ${Function:Invoke-CatchActions}
+            }
+            $tokenCacheModuleVersionInformation = Invoke-ScriptBlockHandler @tokenCacheModuleParams
         }
-        $tokenCacheModuleVersionInformation = Invoke-ScriptBlockHandler @tokenCacheModuleParams
 
         # Get the shared web configuration files
         $sharedWebConfigPaths = @($webApplication.ConfigurationFileInfo.LinkedConfigurationFilePath | Select-Object -Unique)
         $sharedWebConfig = $null
 
         if ($sharedWebConfigPaths.Count -gt 0) {
-            $sharedWebConfig = Invoke-ScriptBlockHandler @params -ScriptBlock {
+            $scriptBlock = {
                 param ($ConfigFiles)
                 $ConfigFiles | ForEach-Object {
                     Write-Verbose "Working on shared config file: $_"
@@ -79,11 +93,17 @@ function Get-ExchangeServerIISSettings {
                         Valid    = $validWebConfig
                     }
                 }
-            } -ArgumentList (, $sharedWebConfigPaths) -ScriptBlockDescription "Getting Shared Web Config Files"
+            }
+            if ($PSSenderInfo) {
+                $sharedWebConfig = & $scriptBlock $sharedWebConfigPaths
+            } else {
+                $sharedWebConfig = Invoke-ScriptBlockHandler @params -ScriptBlock $scriptBlock -ArgumentList (, $sharedWebConfigPaths) -ScriptBlockDescription "Getting Shared Web Config Files"
+            }
         }
 
         Write-Verbose "Trying to query the 'applicationHost.config' file"
-        $applicationHostConfig = Get-ApplicationHostConfig $ComputerName $CatchActionFunction
+        $applicationHostConfig = $null
+        Get-ApplicationHostConfig $ComputerName $CatchActionFunction | Invoke-RemotePipelineHandler -Result ([ref]$applicationHostConfig)
 
         if ($null -ne $applicationHostConfig) {
             Write-Verbose "Trying to query the modules which are loaded by IIS"
@@ -101,7 +121,8 @@ function Get-ExchangeServerIISSettings {
                 SkipLegacyOSModulesCheck = $IsLegacyOS
                 CatchActionFunction      = $CatchActionFunction
             }
-            $iisModulesInformation = Get-IISModules @iisModulesParams
+            $iisModulesInformation = $null
+            Get-IISModules @iisModulesParams | Invoke-RemotePipelineHandler -Result ([ref]$iisModulesInformation)
         } else {
             Write-Verbose "No 'applicationHost.config' file returned by previous call"
         }

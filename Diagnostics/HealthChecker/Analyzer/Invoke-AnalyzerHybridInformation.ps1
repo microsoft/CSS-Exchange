@@ -29,7 +29,8 @@ function Invoke-AnalyzerHybridInformation {
     $getHybridConfiguration.ReceivingTransportServers.DistinguishedName -contains $exchangeInformation.GetExchangeServer.DistinguishedName
 
     if ($exchangeInformation.BuildInformation.VersionInformation.BuildVersion -ge "15.0.0.0" -and
-        $null -ne $getHybridConfiguration) {
+        $null -ne $getHybridConfiguration -and
+        @($getHybridConfiguration.PSObject.Properties).Count -ne 0) {
 
         $params = $baseParams + @{
             Name    = "Organization Hybrid Enabled"

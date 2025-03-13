@@ -2,13 +2,15 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-ExchangeContainer.ps1
+. $PSScriptRoot\..\ScriptBlock\Invoke-RemotePipelineHandler.ps1
 
 function Get-OrganizationContainer {
     [CmdletBinding()]
     [OutputType([System.DirectoryServices.DirectoryEntry])]
     param ()
 
-    $exchangeContainer = Get-ExchangeContainer
+    $exchangeContainer = $null
+    Get-ExchangeContainer | Invoke-RemotePipelineHandler -Result ([ref]$exchangeContainer)
     $searcher = New-Object System.DirectoryServices.DirectorySearcher($exchangeContainer, "(objectClass=msExchOrganizationContainer)", @("distinguishedName"))
     return $searcher.FindOne().GetDirectoryEntry()
 }

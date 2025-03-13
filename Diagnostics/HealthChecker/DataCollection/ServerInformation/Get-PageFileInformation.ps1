@@ -3,13 +3,13 @@
 
 . $PSScriptRoot\..\..\..\..\Shared\Get-WmiObjectHandler.ps1
 function Get-PageFileInformation {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$Server
-    )
+    param()
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-    $pageFiles = @(Get-WmiObjectHandler -ComputerName $Server -Class "Win32_PageFileSetting" -CatchActionFunction ${Function:Invoke-CatchActions})
+    $pageFiles = @()
+    Get-WmiObjectHandler -Class "Win32_PageFileSetting" -CatchActionFunction ${Function:Invoke-CatchActions} |
+        Invoke-RemotePipelineHandler -Result ([ref]$pageFiles)
+    [array]$pageFiles = @($pageFiles)
     $pageFileList = New-Object 'System.Collections.Generic.List[object]'
 
     if ($null -eq $pageFiles -or
