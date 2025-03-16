@@ -13,7 +13,10 @@ function Invoke-RemotePipelineHandler {
         [object[]]$Object,
 
         [Parameter(Mandatory = $true)]
-        [ref]$Result
+        [ref]$Result,
+
+        [Parameter(Mandatory = $false)]
+        [switch]$ReturnAsList
     )
     begin {
         $nonLoggingInfo = New-Object System.Collections.Generic.List[object]
@@ -33,8 +36,10 @@ function Invoke-RemotePipelineHandler {
         }
     }
     end {
-        # If only a single result, return that vs a list.
-        if ($nonLoggingInfo.Count -eq 1) {
+        # If only a single result, return that vs a list unless requested by ReturnAsList.
+        if ($nonLoggingInfo.Count -eq 1 -and $ReturnAsList) {
+            $Result.Value = $nonLoggingInfo
+        } elseif ($nonLoggingInfo.Count -eq 1) {
             $Result.Value = $nonLoggingInfo[0]
         } elseif ($nonLoggingInfo.Count -eq 0) {
             $Result.Value = $null
