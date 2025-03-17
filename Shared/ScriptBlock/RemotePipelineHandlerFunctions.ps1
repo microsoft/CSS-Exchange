@@ -48,3 +48,106 @@ function Invoke-RemotePipelineHandler {
         }
     }
 }
+
+function TestNonLoggingInfo {
+    [CmdletBinding()]
+    param(
+        [object]$Object
+    )
+
+    $type = $Object.RemoteLoggingType
+
+    return ($null -ne $type -and
+        $type.GetType().Name -ne "PSMethod" -and
+        $type -match "Verbose|Progress|Host")
+}
+
+function Invoke-RemotePipelineHandlerBoolean {
+    [CmdletBinding()]
+    param(
+        [Parameter(ValueFromPipeline = $true)]
+        [object[]]$Object,
+
+        [Parameter(Mandatory = $true)]
+        [ref]$Result
+    )
+    begin {
+        $nonLoggingInfo = New-Object System.Collections.Generic.List[bool]
+    }
+    process {
+        foreach ($instance in $Object) {
+            if ((TestNonLoggingInfo $instance)) {
+                $instance
+            } else {
+                $nonLoggingInfo.Add($instance)
+            }
+        }
+    }
+    end {
+        if ($nonLoggingInfo.Count -ne 1 -and
+            $nonLoggingInfo[0].GetType().Name -ne "Boolean") {
+            throw "Incorrect Pipeline Result Detected"
+        }
+        [bool]($Result.Value) = $nonLoggingInfo[0]
+    }
+}
+
+function Invoke-RemotePipelineHandlerObject {
+    [CmdletBinding()]
+    param(
+        [Parameter(ValueFromPipeline = $true)]
+        [object[]]$Object,
+
+        [Parameter(Mandatory = $true)]
+        [ref]$Result
+    )
+    begin {
+        $nonLoggingInfo = New-Object System.Collections.Generic.List[bool]
+    }
+    process {
+        foreach ($instance in $Object) {
+            if ((TestNonLoggingInfo $instance)) {
+                $instance
+            } else {
+                $nonLoggingInfo.Add($instance)
+            }
+        }
+    }
+    end {
+        if ($nonLoggingInfo.Count -eq 0) {
+            $Result.Value = $null
+        } elseif ($nonLoggingInfo.Count -ne 1 -and
+            $nonLoggingInfo[0].GetType().Name -eq "Boolean") {
+            throw "Incorrect Pipeline Result Detected"
+        } else {
+            $Result.Value = $nonLoggingInfo
+        }
+    }
+}
+
+function Invoke-RemotePipelineHandlerList {
+    [CmdletBinding()]
+    param(
+        [Parameter(ValueFromPipeline = $true)]
+        [object[]]$Object,
+
+        [Parameter(Mandatory = $true)]
+        [ref]$Result
+    )
+    begin {
+        $nonLoggingInfo = New-Object System.Collections.Generic.List[bool]
+    }
+    process {
+        foreach ($instance in $Object) {
+            if ((TestNonLoggingInfo $instance)) {
+                $instance
+            } else {
+                $nonLoggingInfo.Add($instance)
+            }
+        }
+    }
+    end {
+        # This could be an empty list, up to the caller to determine this.
+        $Result.Value = $nonLoggingInfo
+    }
+}
