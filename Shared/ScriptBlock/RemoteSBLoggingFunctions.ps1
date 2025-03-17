@@ -1,8 +1,6 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\Invoke-RemotePipelineHandler.ps1
-
 <#
     Collection of functions that handles how to properly add
     Write-Verbose, Write-Host, Write-Progress to the pipeline as an object for logging, and how to pull them off it.
