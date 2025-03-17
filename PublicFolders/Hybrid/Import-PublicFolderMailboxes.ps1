@@ -19,6 +19,8 @@ param (
     [string] $ConnectionUri = "https://outlook.office365.com/powerShell-liveID"
 )
 
+#cspell:words EXOV2
+
 ## Create a tenant PSSession.
 function CreateTenantSession() {
     Import-Module ExchangeOnlineManagement -ErrorAction SilentlyContinue

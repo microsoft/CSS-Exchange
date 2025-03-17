@@ -4,7 +4,7 @@
 # .SYNOPSIS
 # Sync-MailPublicFoldersCloudToOnprem.ps1
 #    This script imports the new mail public folders as sync mail public folders from Exchange Online to on-premise.
-#	 And also synchronizes the properites of existing mail-enabled public folders from Exchange Online to on-premises (thereby overriding the mail public folder properties in on-premise).
+#	 And also synchronizes the properties of existing mail-enabled public folders from Exchange Online to on-premises (thereby overriding the mail public folder properties in on-premise).
 #
 # Example input to the script:
 #
@@ -24,6 +24,8 @@ param (
     [string] $CsvSummaryFile
 )
 
+# cspell:words EXOV2 MEPF
+
 # Writes a dated information message to console
 function WriteInfoMessage() {
     param ($message)
@@ -32,22 +34,22 @@ function WriteInfoMessage() {
 
 # Writes an error importing a mail public folder to the CSV summary
 function WriteErrorSummary() {
-    param ($folder, $operation, $errorMessage, $commandtext)
+    param ($folder, $operation, $errorMessage, $commandText)
 
-    WriteOperationSummary -folder $folder.Guid -operation $operation -result $errorMessage -commandtext $commandtext
+    WriteOperationSummary -folder $folder.Guid -operation $operation -result $errorMessage -commandText $commandText
     $script:errorsEncountered++
 }
 
 # Writes the operation executed and its result to the output CSV
 function WriteOperationSummary() {
-    param ($folder, $operation, $result, $commandtext)
+    param ($folder, $operation, $result, $commandText)
 
     $columns = @(
         (Get-Date).ToString(),
         $folder.Guid,
         $operation,
         (EscapeCsvColumn $result),
-        (EscapeCsvColumn $commandtext)
+        (EscapeCsvColumn $commandText)
     )
 
     Add-Content $CsvSummaryFile -Value ("{0},{1},{2},{3},{4}" -f $columns)
@@ -253,7 +255,7 @@ function GetRemoteMailPublicFolders() {
     return $mailPublicFolders
 }
 
-#Get list of MEPF's in OnPrem to be deleted
+#Get list of MEPFs in OnPrem to be deleted
 function GetFoldersToMailDisable(
 				[object[]] $localMailPublicFolders,
 				[hashtable] $validExternalEmailAddresses) {
@@ -330,7 +332,7 @@ function SyncMailPublicFolders {
                     # Creating new sync mail public folder
                     $null = &$script:NewSyncMailPublicFolderCommand @newParams
 
-                    WriteOperationSummary -folder $mailPublicFolder -operation $LocalizedStrings.CreateOperationName -result $LocalizedStrings.CsvSuccessResult -commandtext $createSyncPublicFolder
+                    WriteOperationSummary -folder $mailPublicFolder -operation $LocalizedStrings.CreateOperationName -result $LocalizedStrings.CsvSuccessResult -commandText $createSyncPublicFolder
 
                     $setParams = @{}
                     $setParams.Add("Identity", $name)
@@ -346,14 +348,14 @@ function SyncMailPublicFolders {
                     # Setting other properties to the newly created sync mail public folder
                     &$script:SetMailPublicFolderCommand @setParams
 
-                    WriteOperationSummary -folder $mailPublicFolder -operation $LocalizedStrings.SetOperationName -result $LocalizedStrings.CsvSuccessResult -commandtext $setOtherProperties
+                    WriteOperationSummary -folder $mailPublicFolder -operation $LocalizedStrings.SetOperationName -result $LocalizedStrings.CsvSuccessResult -commandText $setOtherProperties
 
                     $validExternalEmailAddresses.Add($externalEmailAddress, $false)
                     $script:CreatedPublicFoldersCount++
                 }
 
                 catch {
-                    WriteErrorSummary -folder $mailPublicFolder -operation $LocalizedStrings.CreateOperationName -errorMessage $_.Exception.Message -commandtext ""
+                    WriteErrorSummary -folder $mailPublicFolder -operation $LocalizedStrings.CreateOperationName -errorMessage $_.Exception.Message -commandText ""
                     Write-Error $_
                 }
             }
@@ -378,14 +380,14 @@ function SyncMailPublicFolders {
                     # Setting properties to the existing sync mail public folder
                     &$script:SetMailPublicFolderCommand @updateParams
 
-                    WriteOperationSummary -folder $mailPublicFolder -operation $LocalizedStrings.UpdateOperationName -result $LocalizedStrings.CsvSuccessResult -commandtext $updateProperties
+                    WriteOperationSummary -folder $mailPublicFolder -operation $LocalizedStrings.UpdateOperationName -result $LocalizedStrings.CsvSuccessResult -commandText $updateProperties
 
                     $validExternalEmailAddresses.Add($externalEmailAddress, $false)
                     $script:UpdatedPublicFoldersCount++
                 }
 
                 catch {
-                    WriteErrorSummary -folder $mailPublicFolder -operation $LocalizedStrings.UpdateOperationName -errorMessage $_.Exception.Message -commandtext $updateProperties
+                    WriteErrorSummary -folder $mailPublicFolder -operation $LocalizedStrings.UpdateOperationName -errorMessage $_.Exception.Message -commandText $updateProperties
                     Write-Error $_
                 }
             }
@@ -435,10 +437,10 @@ function SyncMailPublicFolders {
                 # Deleting sync mail public folder
                 &$script:DeletePublicFolderCommand @deleteParams
 
-                WriteOperationSummary -folder $syncPublicFolder -operation $LocalizedStrings.DeleteOperationName -result $LocalizedStrings.CsvSuccessResult -commandtext $disableMailPublicFolder
+                WriteOperationSummary -folder $syncPublicFolder -operation $LocalizedStrings.DeleteOperationName -result $LocalizedStrings.CsvSuccessResult -commandText $disableMailPublicFolder
                 $script:RemovedPublicFoldersCount++
             } catch {
-                WriteErrorSummary -folder $syncPublicFolder -operation $LocalizedStrings.DeleteOperationName -errorMessage $_.Exception.Message -commandtext $disableMailPublicFolder
+                WriteErrorSummary -folder $syncPublicFolder -operation $LocalizedStrings.DeleteOperationName -errorMessage $_.Exception.Message -commandText $disableMailPublicFolder
                 Write-Error $_
             }
         }
