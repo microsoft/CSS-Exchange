@@ -469,7 +469,6 @@ $script:SmtpPrefixLength = $script:SmtpPrefix.Length
 
 #load hashtable of localized string
 $LocalizedStrings = ConvertFrom-StringData @'
-###PSLOC
 SyncingMailPublicFolder = Syncing mail public folder '{0}'.
 CreatingSyncMailPublicFolder = Creating sync mail public folder object '{0}'.
 UpdatingSyncMailPublicFolder = Sync mail public folder object '{0}' already exists, hence updating properties.
@@ -496,8 +495,7 @@ CompletedStatsCount = Total sync mail mail public folders created: {0}, updated:
 VerifyConnectorAcceptedDomainsMessage = Please make sure that the following domain(s) are added to the on-premise hybrid connector to avoid a possibility of mail looping: {0}
 FoldersToMailDisableConfirmation = You are about to mail-disable the MEPF's in {0} (Y/N).
 ConnectExchangeOnlineFailure = Connection to Exchange-Online has failed, terminating the script.
-EXOV2ModuleNotInstalled = This script uses modern authenticaion to connect to Exchange Online and requires EXO V2 module to be installed. Please follow the instructions at https://docs.microsoft.com/powershell/exchange/exchange-online-powershell-v2?view=exchange-ps#install-the-exo-v2-module to install EXO V2 module.
-###PSLOC
+EXOV2ModuleNotInstalled = This script uses modern authentication to connect to Exchange Online and requires EXO V2 module to be installed. Please follow the instructions at https://docs.microsoft.com/powershell/exchange/exchange-online-powershell-v2?view=exchange-ps#install-the-exo-v2-module to install EXO V2 module.
 '@
 
 #minimum supported exchange version to run this script
