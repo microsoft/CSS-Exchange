@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\..\Invoke-CatchActionError.ps1
 . $PSScriptRoot\..\Invoke-ScriptBlockHandler.ps1
-. $PSScriptRoot\..\ScriptBlock\Invoke-RemotePipelineHandler.ps1
+. $PSScriptRoot\..\ScriptBlock\RemotePipelineHandlerFunctions.ps1
 
 function Get-IISModules {
     [CmdletBinding()]
