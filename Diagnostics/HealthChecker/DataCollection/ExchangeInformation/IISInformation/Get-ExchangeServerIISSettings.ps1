@@ -8,7 +8,7 @@
 . $PSScriptRoot\..\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 . $PSScriptRoot\..\..\..\..\..\Shared\IISFunctions\Get-ApplicationHostConfig.ps1
 . $PSScriptRoot\..\..\..\..\..\Shared\IISFunctions\Get-IISModules.ps1
-. $PSScriptRoot\..\..\..\..\..\Shared\ScriptBlock\Invoke-RemotePipelineHandler.ps1
+. $PSScriptRoot\..\..\..\..\..\Shared\ScriptBlock\RemotePipelineHandlerFunctions.ps1
 
 function Get-ExchangeServerIISSettings {
     param(
