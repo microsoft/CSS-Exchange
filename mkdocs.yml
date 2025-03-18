@@ -75,6 +75,7 @@ nav:
       - ExchangeComputerMembership: Diagnostics/HealthChecker/ExchangeComputerMembership.md
       - UnifiedContentCleanup: Diagnostics/HealthChecker/UnifiedContentCleanup.md
       - TransportRetryConfigCheck: Diagnostics/HealthChecker/TransportRetryConfigCheck.md
+      - ExchangeHybridApplicationCheck: Diagnostics/HealthChecker/ExchangeHybridApplicationCheck.md
     - ManagedAvailabilityTroubleshooter: Diagnostics/ManagedAvailabilityTroubleshooter.md
     - Test-ExchAVExclusions: Diagnostics/Test-ExchAVExclusions.md
     - FreeBusyChecker:
