@@ -4,7 +4,7 @@
 . $PSScriptRoot\..\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\..\Shared\Get-RemoteRegistrySubKey.ps1
 . $PSScriptRoot\..\..\..\Shared\Get-RemoteRegistryValue.ps1
-. $PSScriptRoot\..\..\..\Shared\ScriptBlock\Invoke-RemotePipelineHandler.ps1
+. $PSScriptRoot\..\..\..\Shared\ScriptBlock\RemotePipelineHandlerFunctions.ps1
 
 # Use this after the counters have been localized.
 function Get-CounterSamples {
