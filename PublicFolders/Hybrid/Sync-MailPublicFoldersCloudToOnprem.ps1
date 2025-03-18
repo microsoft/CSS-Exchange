@@ -15,7 +15,7 @@ param (
     [Parameter(Mandatory=$false)]
     [PSCredential] $Credential,
 
-    [Parameter(Mandatory = $false)]
+    [Parameter(Mandatory = $true)]
     [ValidateNotNull()]
     [string] $ConnectionUri = "https://outlook.office365.com/powerShell-liveID",
 
