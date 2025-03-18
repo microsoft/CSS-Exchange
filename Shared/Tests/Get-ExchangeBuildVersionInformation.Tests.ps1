@@ -207,7 +207,7 @@ Describe "Testing Get-ExchangeBuildVersionInformation.ps1" {
                         $latestSU.FriendlyName.Substring(0, $latestSU.FriendlyName.Length - 2) | Should -Be $secondSU.FriendlyName
                     }
                     # This test could change depending on the reason for the v2 release.
-                    $secondSU.LatestSU | Should -Be $false #This would need to be true on the next SU release.
+                    $secondSU.LatestSU | Should -Be $true
                 }
             }
         }
@@ -257,7 +257,7 @@ Describe "Testing Get-ExchangeBuildVersionInformation.ps1" {
                     $latestSupportedSU.FriendlyName.Substring(0, $latestSupportedSU.FriendlyName.Length - 2) | Should -Be $secondSU.FriendlyName
                 }
                 # This test could change depending on the reason for the v2 release.
-                $secondSU.LatestSU | Should -Be $false #This would need to be true on the next SU release.
+                $secondSU.LatestSU | Should -Be $true
             }
 
             $latestUnsupportedSUs = (GetExchangeBuildDictionary)["Exchange2019"][$unSupportedCU.CU].SU.Values |
@@ -307,7 +307,7 @@ Describe "Testing Get-ExchangeBuildVersionInformation.ps1" {
                     $latestSU.FriendlyName.Substring(0, $latestSU.FriendlyName.Length - 2) | Should -Be $previousSU.FriendlyName
                 }
                 # This test could change depending on the reason for the v2 release.
-                $previousSU.LatestSU | Should -Be $false #This would need to be true on the next SU release.
+                $previousSU.LatestSU | Should -Be $true
             }
 
             (Get-ExchangeBuildVersionInformation -FileVersion $latest2CUs[1]).Supported | Should -Be $false
