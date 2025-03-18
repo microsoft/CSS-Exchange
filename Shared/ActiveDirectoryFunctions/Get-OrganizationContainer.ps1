@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-ExchangeContainer.ps1
-. $PSScriptRoot\..\ScriptBlock\Invoke-RemotePipelineHandler.ps1
+. $PSScriptRoot\..\ScriptBlock\RemotePipelineHandlerFunctions.ps1
 
 function Get-OrganizationContainer {
     [CmdletBinding()]
