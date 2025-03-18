@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
-. $PSScriptRoot\..\..\..\..\Shared\ScriptBlock\Invoke-RemotePipelineHandler.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlock\RemotePipelineHandlerFunctions.ps1
 
 function Get-ExchangeDependentServices {
     [CmdletBinding()]
