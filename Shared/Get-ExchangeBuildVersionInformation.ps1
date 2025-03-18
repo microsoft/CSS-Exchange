@@ -83,7 +83,10 @@ function Get-ExchangeBuildVersionInformation {
                     foreach ($cuKey in $exchangeBuildDictionary[$exchangeKey].Keys) {
                         if ($null -ne $exchangeBuildDictionary[$exchangeKey][$cuKey].SU -and
                             $exchangeBuildDictionary[$exchangeKey][$cuKey].SU.ContainsKey($FindBySUName)) {
-                            Get-ExchangeBuildVersionInformation -FileVersion $exchangeBuildDictionary[$exchangeKey][$cuKey].SU[$FindBySUName]
+                            $result = $null
+                            Get-ExchangeBuildVersionInformation -FileVersion $exchangeBuildDictionary[$exchangeKey][$cuKey].SU[$FindBySUName] |
+                                Invoke-RemotePipelineHandler -Result ([ref]$result)
+                            $result
                         }
                     }
                 }

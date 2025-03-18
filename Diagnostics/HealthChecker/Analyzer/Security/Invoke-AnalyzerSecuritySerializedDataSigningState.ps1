@@ -22,7 +22,8 @@ function Invoke-AnalyzerSecuritySerializedDataSigningState {
         DisplayGroupingKey  = $DisplayGroupingKey
     }
 
-    $getSerializedDataSigningState = Get-SerializedDataSigningState -HealthServerObject $HealthServerObject
+    $getSerializedDataSigningState = $null
+    Get-SerializedDataSigningState -HealthServerObject $HealthServerObject | Invoke-RemotePipelineHandler -Result ([ref]$getSerializedDataSigningState)
     # Because this is tied to public CVEs now, everything must be Red unless configured correctly
     # We must also show it even if not on the correct build of Exchange.
     $serializedDataSigningWriteType = "Red"

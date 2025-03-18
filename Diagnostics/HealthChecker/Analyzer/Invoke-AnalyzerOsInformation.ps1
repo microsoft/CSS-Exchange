@@ -144,7 +144,8 @@ function Invoke-AnalyzerOsInformation {
         }
         Add-AnalyzedResultInformation @params
     } else {
-        $displayFriendly = Get-NETFrameworkVersion -NetVersionKey $recommendedNetVersion
+        $displayFriendly = $null
+        Get-NETFrameworkVersion -NetVersionKey $recommendedNetVersion | Invoke-RemotePipelineHandler -Result ([ref]$displayFriendly)
         $displayValue = "{0} - Warning Recommended .NET Version is {1}" -f $osInformation.NETFramework.FriendlyName, $displayFriendly.FriendlyName
         $testValue = [PSCustomObject]@{
             CurrentValue        = $osInformation.NETFramework.FriendlyName
