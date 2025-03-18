@@ -44,8 +44,12 @@ function Get-SerializedDataSigningState {
         $additionalInformation = [string]::Empty
         $serializedDataSigningEnabled = $false
         $supportedRole = $exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false
-        $supportedVersion = (Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -SUName "Jan23SU")
-        $enabledByDefaultVersion = (Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -SUName "Nov23SU")
+        $supportedVersion = $null
+        Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -SUName "Jan23SU" |
+            Invoke-RemotePipelineHandler -Result ([ref]$supportedVersion)
+        $enabledByDefaultVersion = $null
+        Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -SUName "Nov23SU" |
+            Invoke-RemotePipelineHandler -Result ([ref]$enabledByDefaultVersion)
         $filterServer = $exchangeInformation.GetExchangeServer.Name
         $exchangeBuild = $exchangeInformation.BuildInformation.VersionInformation.BuildVersion
         Write-Verbose "Reviewing settings against build: $exchangeBuild"
@@ -67,7 +71,8 @@ function Get-SerializedDataSigningState {
                     FilterParameterName     = "Enabled"
                 }
 
-                [array]$serializedDataSigningSettingOverride = Get-FilteredSettingOverrideInformation @params
+                $serializedDataSigningSettingOverride = $null
+                Get-FilteredSettingOverrideInformation @params | Invoke-RemotePipelineHandler -Result ([ref]$serializedDataSigningSettingOverride)
 
                 if ($null -eq $serializedDataSigningSettingOverride) {
                     Write-Verbose "No Setting Override Found"
