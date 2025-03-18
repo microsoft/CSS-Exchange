@@ -8,7 +8,7 @@ function Get-PageFileInformation {
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $pageFiles = $null
     Get-WmiObjectHandler -Class "Win32_PageFileSetting" -CatchActionFunction ${Function:Invoke-CatchActions} |
-        Invoke-RemotePipelineHandler -Result ([ref]$pageFiles) -ReturnAsList
+        Invoke-RemotePipelineHandlerList -Result ([ref]$pageFiles)
     $pageFileList = New-Object 'System.Collections.Generic.List[object]'
 
     if ($null -eq $pageFiles -or
