@@ -20,7 +20,7 @@ function Get-NetworkingInformation {
         Get-HttpProxySetting | Invoke-RemotePipelineHandler -Result ([ref]$httpProxy)
         Get-LocalizedCounterSamples -MachineName $Server -Counter "\Network Interface(*)\Packets Received Discarded" |
             Invoke-RemotePipelineHandler -Result ([ref]$packetsReceivedDiscarded)
-        Get-AllNicInformation -CatchActionFunction ${Function:Invoke-CatchActions} | Invoke-RemotePipelineHandler -Result ([ref]$networkAdapters) -ReturnAsList
+        Get-AllNicInformation -CatchActionFunction ${Function:Invoke-CatchActions} | Invoke-RemotePipelineHandlerList -Result ([ref]$networkAdapters)
 
         foreach ($adapter in $networkAdapters) {
             if (-not ($adapter.IPv6Enabled)) {
