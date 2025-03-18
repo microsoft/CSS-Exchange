@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\Get-AppPool.ps1
 . $PSScriptRoot\..\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
-. $PSScriptRoot\..\..\..\..\..\Shared\ScriptBlock\Invoke-RemotePipelineHandler.ps1
+. $PSScriptRoot\..\..\..\..\..\Shared\ScriptBlock\RemotePipelineHandlerFunctions.ps1
 
 function Get-ExchangeAppPoolsInformation {
     param(
