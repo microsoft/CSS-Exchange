@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\Invoke-ScriptBlockHandler.ps1
-. $PSScriptRoot\..\ScriptBlock\Invoke-RemotePipelineHandler.ps1
+. $PSScriptRoot\..\ScriptBlock\RemotePipelineHandlerFunctions.ps1
 . $PSScriptRoot\Get-AllTlsSettingsFromRegistry.ps1
 . $PSScriptRoot\Get-TlsCipherSuiteInformation.ps1
 
