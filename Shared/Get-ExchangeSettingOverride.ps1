@@ -3,7 +3,7 @@
 
 . $PSScriptRoot\Get-ExchangeDiagnosticInformation.ps1
 . $PSScriptRoot\Invoke-CatchActionError.ps1
-. $PSScriptRoot\ScriptBlock\Invoke-RemotePipelineHandler.ps1
+. $PSScriptRoot\ScriptBlock\RemotePipelineHandlerFunctions.ps1
 
 function Get-ExchangeSettingOverride {
     [CmdletBinding()]
