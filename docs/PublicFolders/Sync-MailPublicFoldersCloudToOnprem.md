@@ -1,11 +1,11 @@
-# Sync-ModernPublicFoldersCloudToOnprem
+# Sync-MailPublicFoldersCloudToOnprem
 
-Download the latest release: [Sync-ModernPublicFoldersCloudToOnprem.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Sync-ModernPublicFoldersCloudToOnprem.ps1)
+Download the latest release: [Sync-MailPublicFoldersCloudToOnprem.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Sync-MailPublicFoldersCloudToOnprem.ps1)
 
 ## Syntax
 
 ```powershell
-Sync-ModernPublicFoldersCloudToOnprem.ps1
+Sync-MailPublicFoldersCloudToOnprem.ps1
   -ConnectionUri <String>
   -CsvSummaryFile <String>
   [-Credential <PSCredential>]
