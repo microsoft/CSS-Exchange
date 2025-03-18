@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-OrganizationContainer.ps1
-. $PSScriptRoot\..\ScriptBlock\Invoke-RemotePipelineHandler.ps1
+. $PSScriptRoot\..\ScriptBlock\RemotePipelineHandlerFunctions.ps1
 . $PSScriptRoot\..\Invoke-CatchActionError.ps1
 
 function Get-InternalTransportCertificateFromServer {
