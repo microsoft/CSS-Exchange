@@ -52,7 +52,7 @@ function Invoke-AnalyzerSecurityAMSIConfigState {
 
         # Only thing that is returned is Accepted values and unique
         $amsiInformation = $null
-        Get-FilteredSettingOverrideInformation @filterSettingOverrideParams | Invoke-RemotePipelineHandler -Result ([ref]$amsiInformation) -ReturnAsList
+        Get-FilteredSettingOverrideInformation @filterSettingOverrideParams | Invoke-RemotePipelineHandlerList -Result ([ref]$amsiInformation)
         $amsiWriteType = "Yellow"
         $amsiConfigurationWarning = "`r`n`t`tThis may pose a security risk to your servers"
         $amsiMoreInfo = "More Information: https://aka.ms/HC-AMSIExchange"
@@ -111,10 +111,10 @@ function Invoke-AnalyzerSecurityAMSIConfigState {
         $filterSettingOverrideParams.FilterParameterName = @("EnabledAll", "EnabledApi", "EnabledAutoD", "EnabledEcp",
             "EnabledEws", "EnabledMapi", "EnabledEas", "EnabledOab", "EnabledOwa", "EnabledPowerShell", "EnabledOthers")
         [array]$amsiRequestBodyScanning = $null
-        Get-FilteredSettingOverrideInformation @filterSettingOverrideParams | Invoke-RemotePipelineHandler -Result ([ref]$amsiRequestBodyScanning) -ResultsToWrite
+        Get-FilteredSettingOverrideInformation @filterSettingOverrideParams | Invoke-RemotePipelineHandlerList -Result ([ref]$amsiRequestBodyScanning)
         $filterSettingOverrideParams.FilterSectionName = "BlockRequestBodyGreaterThanMaxScanSize"
         [array]$amsiBlockRequestBodyGreater = $null
-        Get-FilteredSettingOverrideInformation @filterSettingOverrideParams | Invoke-RemotePipelineHandler -Result ([ref]$amsiBlockRequestBodyGreater) -ResultsToWrite
+        Get-FilteredSettingOverrideInformation @filterSettingOverrideParams | Invoke-RemotePipelineHandlerList -Result ([ref]$amsiBlockRequestBodyGreater)
         $amsiRequestBodyScanningEnabled = $amsiRequestBodyScanning.Count -gt 0 -and
             ($null -ne ($amsiRequestBodyScanning | Where-Object { $_.ParameterValue -eq "True" }))
         $amsiBlockRequestBodyEnabled = $amsiBlockRequestBodyGreater.Count -gt 0 -and
