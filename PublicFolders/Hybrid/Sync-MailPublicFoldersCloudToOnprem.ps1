@@ -520,9 +520,6 @@ if ($localServerVersion.Major -lt $minSupportedVersion) {
     exit
 }
 
-# Create a PSSession
-WriteInfoMessage ($LocalizedStrings.CreatingRemoteSession)
-
 InitializeExchangeOnlineRemoteSession
 
 # Get mail enabled public folders in cloud
