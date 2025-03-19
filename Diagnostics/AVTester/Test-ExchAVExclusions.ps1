@@ -322,7 +322,6 @@ $registryPath = "HKLM:\SOFTWARE\Microsoft\AMSI\Providers"
 
 # Get all subKeys in the specified registry path
 $subKeys = Get-ChildItem -Path $registryPath -ErrorAction SilentlyContinue
-#$AMSIDlls = New-Object Collections.Generic.List[string]
 
 if ($subKeys) {
     # Regular expression to match the subKey names
