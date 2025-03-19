@@ -322,7 +322,7 @@ $registryPath = "HKLM:\SOFTWARE\Microsoft\AMSI\Providers"
 
 # Get all subKeys in the specified registry path
 $subKeys = Get-ChildItem -Path $registryPath -ErrorAction SilentlyContinue
-$AMSIDlls = New-Object Collections.Generic.List[string]
+#$AMSIDlls = New-Object Collections.Generic.List[string]
 
 if ($subKeys) {
     # Regular expression to match the subKey names
@@ -333,10 +333,8 @@ if ($subKeys) {
 
     if ($matchingSubKeys) {
         $AMSIDll = $null
-        $AMSIDll = $matchingSubKeys | ForEach-Object { (Get-Item "HKLM:\SOFTWARE\Classes\ClSid\$_\InprocServer32" -ErrorAction SilentlyContinue).GetValue("") }
-        if ($AMSIDll) {
-            $AMSIDlls += $AMSIDll.trim('"')
-        } else {
+        $AMSIDll = $matchingSubKeys | ForEach-Object { (Get-Item "HKLM:\SOFTWARE\Classes\ClSid\$_\InprocServer32" -ErrorAction SilentlyContinue).GetValue("").trim('"') }
+        if ($null -eq $AMSIDll) {
             Write-Host 'No AMSI Dlls was found for $subKeys, possible AMSI misconfiguration"' -ForegroundColor Red
         }
     } else {
@@ -501,7 +499,7 @@ while ($currentDiff -gt 0) {
                 foreach ($module in $ProcessModules) {
                     $OutString = ("PROCESS: $($process.ProcessName) PID($($process.Id)) UNEXPECTED MODULE: $($module.ModuleName) COMPANY: $($module.Company)`n`tPATH: $($module.FileName)`n`tFileVersion: $($module.FileVersion)")
                     if ($process.MainModule.ModuleName -eq "W3wp.exe") {
-                        if ($AMSIDlls -contains $module.FileName) {
+                        if ($AMSIDll -contains $module.FileName) {
                             $OutString = ("PROCESS: $($process.ProcessName) PID($($process.Id)) MODULE: $($module.ModuleName) COMPANY: $($module.Company)`n`tPATH: $($module.FileName)`n`tFileVersion: $($module.FileVersion)")
                             Write-Host "[WARNING] - AMSI DLL Detected: $OutString" -ForegroundColor Yellow
                             $SuspiciousAMSIinW3wpProcessList += $OutString
