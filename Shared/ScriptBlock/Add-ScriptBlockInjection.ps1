@@ -1,24 +1,49 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\..\..\..\Shared\Invoke-CatchActionError.ps1
+. $PSScriptRoot\..\Invoke-CatchActionError.ps1
 
-# Injects Verbose and Debug Preferences and other passed variables into the script block
-# It will also inject any additional script blocks into the main script block.
-# This allows for an Invoke-Command to work as intended if multiple functions/script blocks are required.
+<#
+.SYNOPSIS
+    Takes a script block and injects additional functions that you might want to have included in remote or job script block.
+    This prevents duplicate code from being written to bloat the script size.
+.DESCRIPTION
+    By default, it will inject the Verbose and Debug Preferences and other passed variables into the script block with "using" in the correct usage.
+    Within this project, we accounted for Invoke-Command to fail due to WMI issues, therefore we would fallback and execute the script block locally,
+    if that the server we wanted to run against. Therefore, if you are use '$Using:VerbosePreference' it would cause a failure.
+    So we account for that here as well.
+.PARAMETER PrimaryScriptBlock
+    This is the main script block that we will be injecting everything inside of.
+    This is the one that you will be passing your arguments to if there are any and will be executing.
+.PARAMETER IncludeUsingVariableName
+    Add any additional variables that we wish to provide to the script block with the "$using:" status.
+    These are for things that are not included in the passed arguments and are likely script scoped variables in functions that are being injected.
+.PARAMETER IncludeScriptBlock
+    Additional script blocks that need to be included. The most common ones are going to be like Write-Verbose and Write-Host.
+    This then allows the remote script block to manipulate the data that is in Write-Verbose and be returned to the pipeline so it can be logged to the main caller.
+.PARAMETER CatchActionFunction
+    The script block to be executed if we have an exception while trying to create the injected script block.
+.NOTES
+    Supported Script Block Creations are:
+        [ScriptBlock]::Create(string) and ${Function:Write-Verbose}
+    Supported ways to write the function of the script block are defined in the Pester testing file.
+    Supported ways of using the return script block:
+        Invoke-Command
+        Invoke-Command -AsJob
+        Start-Job
+        & $scriptBlock @params
+#>
 function Add-ScriptBlockInjection {
     [CmdletBinding()]
-    [OutputType([string])]
     param(
         [Parameter(Mandatory = $true)]
         [ScriptBlock]$PrimaryScriptBlock,
 
-        [string[]]$IncludeUsingParameter,
+        [string[]]$IncludeUsingVariableName,
 
         [ScriptBlock[]]$IncludeScriptBlock,
 
-        [ScriptBlock]
-        $CatchActionFunction
+        [ScriptBlock]$CatchActionFunction
     )
     process {
         try {
@@ -30,13 +55,12 @@ function Add-ScriptBlockInjection {
             $scriptBlockFinalized = [string]::Empty
             $adjustedScriptBlock = $PrimaryScriptBlock
             $injectedLinesHandledInBeginBlock = $false
-            $adjustInject = $false
 
-            if ($null -ne $IncludeUsingParameter) {
+            if ($null -ne $IncludeUsingVariableName) {
                 $lines = @()
                 $lines += 'if ($PSSenderInfo) {'
-                $IncludeUsingParameter | ForEach-Object {
-                    $lines += '$name=$Using:name'.Replace("name", "$_")
+                $IncludeUsingVariableName | ForEach-Object {
+                    $lines += '$Script:name=$Using:name'.Replace("name", "$_")
                 }
                 $lines += "}" + [System.Environment]::NewLine
                 $usingLines = $lines -join [System.Environment]::NewLine
@@ -64,17 +88,20 @@ function Add-ScriptBlockInjection {
             # Here you need to find the ParamBlock and add it to the inject lines to be at the top of the script block.
             # Then you need to recreate the adjustedScriptBlock to be where the ParamBlock ended.
 
-            if ($null -ne $PrimaryScriptBlock.Ast.ParamBlock) {
-                Write-Verbose "Ast ParamBlock detected"
-                $adjustLocation = $PrimaryScriptBlock.Ast
-            } elseif ($null -ne $PrimaryScriptBlock.Ast.Body.ParamBlock) {
-                Write-Verbose "Ast Body ParamBlock detected"
-                $adjustLocation = $PrimaryScriptBlock.Ast.Body
-            }
+            # adjust the location of the adjustedScriptBlock if required here.
+            if ($null -ne $PrimaryScriptBlock.Ast.ParamBlock -or
+                $null -ne $PrimaryScriptBlock.Ast.Body.ParamBlock) {
 
-            $adjustInject = $null -ne $PrimaryScriptBlock.Ast.ParamBlock -or $null -ne $PrimaryScriptBlock.Ast.Body.ParamBlock
+                if ($null -ne $PrimaryScriptBlock.Ast.ParamBlock) {
+                    Write-Verbose "Ast ParamBlock detected"
+                    $adjustLocation = $PrimaryScriptBlock.Ast
+                } elseif ($null -ne $PrimaryScriptBlock.Ast.Body.ParamBlock) {
+                    Write-Verbose "Ast Body ParamBlock detected"
+                    $adjustLocation = $PrimaryScriptBlock.Ast.Body
+                } else {
+                    throw "Unknown adjustLocation"
+                }
 
-            if ($adjustInject) {
                 $scriptBlockInjectLines += $adjustLocation.ParamBlock.ToString()
                 $startIndex = $adjustLocation.ParamBlock.Extent.EndOffSet - $adjustLocation.Extent.StartOffset
                 $adjustedScriptBlock = [ScriptBlock]::Create($PrimaryScriptBlock.ToString().Substring($startIndex))
@@ -135,8 +162,14 @@ function Add-ScriptBlockInjection {
                 $scriptBlockFinalized += $_.ToString() + [System.Environment]::NewLine
             }
 
-            #Need to return a string type otherwise run into issues.
-            return $scriptBlockFinalized
+            # In order to fully use Invoke-Command, we need to wrap everything in it's own function name again.
+            if (-not [string]::IsNullOrEmpty($PrimaryScriptBlock.Ast.Name)) {
+                Write-Verbose "Wrapping into function name"
+                $scriptBlockFinalized = "function $($PrimaryScriptBlock.Ast.Name) { $([System.Environment]::NewLine)" +
+                "$scriptBlockFinalized $([System.Environment]::NewLine) } $([System.Environment]::NewLine) $($PrimaryScriptBlock.Ast.Name) @args"
+            }
+
+            return ([ScriptBlock]::Create($scriptBlockFinalized))
         } catch {
             Write-Verbose "Failed to add to the script block"
             Invoke-CatchActionError $CatchActionFunction

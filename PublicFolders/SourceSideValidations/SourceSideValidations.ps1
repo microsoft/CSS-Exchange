@@ -180,14 +180,14 @@ try {
     }
 
     if ($folderData.Errors.Count -gt 0) {
-        $folderData.Errors | Export-Csv $ResultsFile -NoTypeInformation
+        $folderData.Errors | Export-Csv $ResultsFile -NoTypeInformation -Encoding UTF8
     }
 
     if ("Dumpsters" -in $Tests) {
         Write-Progress @progressParams -Status "Step 2 of 6"
 
         $badDumpsters = Test-DumpsterMapping -FolderData $folderData
-        $badDumpsters | Export-Csv $ResultsFile -NoTypeInformation -Append
+        $badDumpsters | Export-Csv $ResultsFile -NoTypeInformation -Append -Encoding UTF8
     }
 
     if ("Limits" -in $Tests) {
@@ -195,28 +195,28 @@ try {
 
         # This test emits results in a weird order, so sort them.
         $limitsExceeded = Test-FolderLimit -FolderData $folderData | Sort-Object FolderIdentity
-        $limitsExceeded | Export-Csv $ResultsFile -NoTypeInformation -Append
+        $limitsExceeded | Export-Csv $ResultsFile -NoTypeInformation -Append -Encoding UTF8
     }
 
     if ("Names" -in $Tests) {
         Write-Progress @progressParams -Status "Step 4 of 6"
 
         $badNames = Test-FolderName -FolderData $folderData
-        $badNames | Export-Csv $ResultsFile -NoTypeInformation -Append
+        $badNames | Export-Csv $ResultsFile -NoTypeInformation -Append -Encoding UTF8
     }
 
     if ("MailEnabled" -in $Tests) {
         Write-Progress @progressParams -Status "Step 5 of 6"
 
         $badMailEnabled = Test-MailEnabledFolder -FolderData $folderData
-        $badMailEnabled | Export-Csv $ResultsFile -NoTypeInformation -Append
+        $badMailEnabled | Export-Csv $ResultsFile -NoTypeInformation -Append -Encoding UTF8
     }
 
     if ("Permissions" -in $Tests) {
         Write-Progress @progressParams -Status "Step 6 of 6"
 
         $badPermissions = Test-Permission -FolderData $folderData
-        $badPermissions | Export-Csv $ResultsFile -NoTypeInformation -Append
+        $badPermissions | Export-Csv $ResultsFile -NoTypeInformation -Append -Encoding UTF8
     }
 
     Write-Progress @progressParams -Completed

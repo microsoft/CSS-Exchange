@@ -10,6 +10,7 @@ nav:
     - Get-SimpleAuditLogReport: Admin/Get-SimpleAuditLogReport.md
     - MonitorExchangeAuthCertificate: Admin/MonitorExchangeAuthCertificate.md
     - Remove-CertExpiryNotifications: Admin/Remove-CertExpiryNotifications.md
+    - Remove-DuplicateEntriesFromIanaMappings: Admin/Remove-DuplicateEntriesFromIanaMappings.md
     - Reset-ScanEngineVersion: Admin/Reset-ScanEngineVersion.md
     - SetUnifiedContentPath: Admin/SetUnifiedContentPath.md
     - Test-AMSI: Admin/Test-AMSI.md
@@ -75,6 +76,8 @@ nav:
       - TransportRetryConfigCheck: Diagnostics/HealthChecker/TransportRetryConfigCheck.md
     - ManagedAvailabilityTroubleshooter: Diagnostics/ManagedAvailabilityTroubleshooter.md
     - Test-ExchAVExclusions: Diagnostics/Test-ExchAVExclusions.md
+    - FreeBusyChecker:
+      - Diagnostics/FreeBusyChecker/FreeBusyChecker.md
   - Hybrid:
     - Test-HMAEAS: Hybrid/Test-HMAEAS.md
   - M365:
@@ -83,12 +86,21 @@ nav:
       - ResendFailedMail: M365/MDO/ResendFailedMail.md
     - DLT365Groupsupgrade: M365/DLT365Groupsupgrade.md
     - Get-LargeMailboxFolderStatistics: M365/Get-LargeMailboxFolderStatistics.md
+    - Test-MailboxExtendedProperty: M365/Test-MailboxExtendedProperty.md
+    - Search-MailboxExtendedProperty: M365/Search-MailboxExtendedProperty.md
+    - Remove-MailboxExtendedProperty: M365/Remove-MailboxExtendedProperty.md
+  - Outlook:
+    - Update-OutlookLink: Outlook/Update-OutlookLink.md
   - Performance:
     - ExPerfWiz: Performance/ExPerfWiz.md
     - ExPerfAnalyzer: Performance/ExPerfAnalyzer.md
     - SimplePerf: Performance/SimplePerf.md
   - PublicFolders:
+    - Export-ModernPublicFolderStatistics: PublicFolders/Export-ModernPublicFolderStatistics.md
+    - ModernPublicFolderToMailboxMapGenerator: PublicFolders/ModernPublicFolderToMailboxMapGenerator.md
+    - SetMailPublicFolderExternalAddress: PublicFolders/SetMailPublicFolderExternalAddress.md
     - SourceSideValidations: PublicFolders/SourceSideValidations.md
+    - Sync-ModernMailPublicFolders: PublicFolders/Sync-ModernMailPublicFolders.md
     - Update-PublicFolderPermissions: PublicFolders/Update-PublicFolderPermissions.md
     - ValidateMailEnabledPublicFolders: PublicFolders/ValidateMailEnabledPublicFolders.md
     - ValidateEXOPFDumpster: PublicFolders/ValidateEXOPFDumpster.md

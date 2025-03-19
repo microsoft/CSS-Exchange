@@ -27,9 +27,7 @@
 	This optional parameter allows the target Exchange server to be specified.  If it is not the
 	local server is assumed.
 .PARAMETER OutputFilePath
-	This optional parameter allows an output directory to be specified.  If it is not the local
-	directory is assumed.  This parameter must not end in a \.  To specify the folder "logs" on
-	the root of the E: drive you would use "-OutputFilePath E:\logs", not "-OutputFilePath E:\logs\".
+	This optional parameter allows an output directory to be specified. Default location is the current directory.
 .PARAMETER MailboxReport
 	This optional parameter gives a report of the number of active and passive databases and
 	mailboxes on the server.
@@ -93,9 +91,7 @@ param(
     [string[]]$Server = ($env:COMPUTERNAME),
 
     [Parameter(Mandatory = $false, HelpMessage = "Provide the location of where the output files should go.")]
-    [ValidateScript( {
-            -not $_.ToString().EndsWith('\') -and (Test-Path $_)
-        })]
+    [ValidateScript( { Test-Path $_ })]
     [string]$OutputFilePath = ".",
 
     [Parameter(Mandatory = $true, ParameterSetName = "MailboxReport", HelpMessage = "Enable the MailboxReport feature data collection against the server.")]
@@ -115,9 +111,7 @@ param(
     [Parameter(Mandatory = $false, ParameterSetName = "HTMLReport", HelpMessage = "Provide the directory where the XML files are located at from previous runs of the Health Checker to Import the data from.")]
     [Parameter(Mandatory = $false, ParameterSetName = "AnalyzeDataOnly", HelpMessage = "Provide the directory where the XML files are located at from previous runs of the Health Checker to Import the data from.")]
     [Parameter(Mandatory = $false, ParameterSetName = "VulnerabilityReport", HelpMessage = "Provide the directory where the XML files are located at from previous runs of the Health Checker to Import the data from.")]
-    [ValidateScript( {
-            -not $_.ToString().EndsWith('\')
-        })]
+    [ValidateScript( { Test-Path $_ })]
     [string]$XMLDirectoryPath = ".",
 
     [Parameter(Mandatory = $true, ParameterSetName = "HTMLReport", HelpMessage = "Enable the HTMLReport feature to run against the XML files from previous runs of the Health Checker script.")]
@@ -258,11 +252,23 @@ begin {
 
         if ($ScriptUpdateOnly) {
             Invoke-SetOutputInstanceLocation -FileName "HealthChecker-ScriptUpdateOnly"
+            $currentErrors = $Error.Count
             switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/HC-VersionsUrl" -Confirm:$false) {
                 ($true) { Write-Green("Script was successfully updated.") }
                 ($false) { Write-Yellow("No update of the script performed.") }
                 default { Write-Red("Unable to perform ScriptUpdateOnly operation.") }
             }
+
+            if ($currentErrors -ne $Error.Count) {
+                Write-Host ""
+                Write-Warning "Failed to get latest version of script details. Failing with this inner exception:"
+                Write-Host ""
+                $Error[$Error.Count - $currentErrors - 1] | Out-String | Write-Host -ForegroundColor Red
+                Write-Host ""
+                Write-Host "Address the above exception in order to get the script to auto update."
+            }
+
+            Invoke-ErrorCatchActionLoopFromIndex $currentErrors
             return
         }
 
