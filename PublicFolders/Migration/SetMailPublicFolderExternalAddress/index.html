@@ -8,17 +8,17 @@
       
       
       
-        <link rel="canonical" href="https://microsoft.github.io/CSS-Exchange/PublicFolders/SetMailPublicFolderExternalAddress/">
+        <link rel="canonical" href="https://microsoft.github.io/CSS-Exchange/PublicFolders/Migration/SetMailPublicFolderExternalAddress/">
       
       
         <link rel="prev" href="../ModernPublicFolderToMailboxMapGenerator/">
       
       
-        <link rel="next" href="../SourceSideValidations/">
+        <link rel="next" href="../Sync-ModernMailPublicFolders/">
       
       
-      <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.7">
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.9">
     
     
       
@@ -26,7 +26,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.8608ea7d.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.4af4bdda.min.css">
       
       
   
@@ -47,7 +47,7 @@
     
   
   
-  <style>:root{--md-admonition-icon--note:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M1 7.775V2.75C1 1.784 1.784 1 2.75 1h5.025c.464 0 .91.184 1.238.513l6.25 6.25a1.75 1.75 0 0 1 0 2.474l-5.026 5.026a1.75 1.75 0 0 1-2.474 0l-6.25-6.25A1.75 1.75 0 0 1 1 7.775m1.5 0c0 .066.026.13.073.177l6.25 6.25a.25.25 0 0 0 .354 0l5.025-5.025a.25.25 0 0 0 0-.354l-6.25-6.25a.25.25 0 0 0-.177-.073H2.75a.25.25 0 0 0-.25.25ZM6 5a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/></svg>');--md-admonition-icon--info:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13M6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75M8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2"/></svg>');--md-admonition-icon--success:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 .018-1.042.75.75 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0"/></svg>');--md-admonition-icon--bug:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M4.72.22a.75.75 0 0 1 1.06 0l1 .999a3.5 3.5 0 0 1 2.441 0l.999-1a.748.748 0 0 1 1.265.332.75.75 0 0 1-.205.729l-.775.776c.616.63.995 1.493.995 2.444v.327q0 .15-.025.292c.408.14.764.392 1.029.722l1.968-.787a.75.75 0 0 1 .556 1.392L13 7.258V9h2.25a.75.75 0 0 1 0 1.5H13v.5q-.002.615-.141 1.186l2.17.868a.75.75 0 0 1-.557 1.392l-2.184-.873A5 5 0 0 1 8 16a5 5 0 0 1-4.288-2.427l-2.183.873a.75.75 0 0 1-.558-1.392l2.17-.868A5 5 0 0 1 3 11v-.5H.75a.75.75 0 0 1 0-1.5H3V7.258L.971 6.446a.75.75 0 0 1 .558-1.392l1.967.787c.265-.33.62-.583 1.03-.722a1.7 1.7 0 0 1-.026-.292V4.5c0-.951.38-1.814.995-2.444L4.72 1.28a.75.75 0 0 1 0-1.06m.53 6.28a.75.75 0 0 0-.75.75V11a3.5 3.5 0 1 0 7 0V7.25a.75.75 0 0 0-.75-.75ZM6.173 5h3.654A.17.17 0 0 0 10 4.827V4.5a2 2 0 1 0-4 0v.327c0 .096.077.173.173.173"/></svg>');--md-admonition-icon--warning:url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0M9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/></svg>');}</style>
+  <style>:root{--md-admonition-icon--note:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M1%207.775V2.75C1%201.784%201.784%201%202.75%201h5.025c.464%200%20.91.184%201.238.513l6.25%206.25a1.75%201.75%200%200%201%200%202.474l-5.026%205.026a1.75%201.75%200%200%201-2.474%200l-6.25-6.25A1.75%201.75%200%200%201%201%207.775m1.5%200c0%20.066.026.13.073.177l6.25%206.25a.25.25%200%200%200%20.354%200l5.025-5.025a.25.25%200%200%200%200-.354l-6.25-6.25a.25.25%200%200%200-.177-.073H2.75a.25.25%200%200%200-.25.25ZM6%205a1%201%200%201%201%200%202%201%201%200%200%201%200-2%22/%3E%3C/svg%3E');--md-admonition-icon--info:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M0%208a8%208%200%201%201%2016%200A8%208%200%200%201%200%208m8-6.5a6.5%206.5%200%201%200%200%2013%206.5%206.5%200%200%200%200-13M6.5%207.75A.75.75%200%200%201%207.25%207h1a.75.75%200%200%201%20.75.75v2.75h.25a.75.75%200%200%201%200%201.5h-2a.75.75%200%200%201%200-1.5h.25v-2h-.25a.75.75%200%200%201-.75-.75M8%206a1%201%200%201%201%200-2%201%201%200%200%201%200%202%22/%3E%3C/svg%3E');--md-admonition-icon--success:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M13.78%204.22a.75.75%200%200%201%200%201.06l-7.25%207.25a.75.75%200%200%201-1.06%200L2.22%209.28a.75.75%200%200%201%20.018-1.042.75.75%200%200%201%201.042-.018L6%2010.94l6.72-6.72a.75.75%200%200%201%201.06%200%22/%3E%3C/svg%3E');--md-admonition-icon--bug:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M4.72.22a.75.75%200%200%201%201.06%200l1%20.999a3.5%203.5%200%200%201%202.441%200l.999-1a.748.748%200%200%201%201.265.332.75.75%200%200%201-.205.729l-.775.776c.616.63.995%201.493.995%202.444v.327q0%20.15-.025.292c.408.14.764.392%201.029.722l1.968-.787a.75.75%200%200%201%20.556%201.392L13%207.258V9h2.25a.75.75%200%200%201%200%201.5H13v.5q-.002.615-.141%201.186l2.17.868a.75.75%200%200%201-.557%201.392l-2.184-.873A5%205%200%200%201%208%2016a5%205%200%200%201-4.288-2.427l-2.183.873a.75.75%200%200%201-.558-1.392l2.17-.868A5%205%200%200%201%203%2011v-.5H.75a.75.75%200%200%201%200-1.5H3V7.258L.971%206.446a.75.75%200%200%201%20.558-1.392l1.967.787c.265-.33.62-.583%201.03-.722a1.7%201.7%200%200%201-.026-.292V4.5c0-.951.38-1.814.995-2.444L4.72%201.28a.75.75%200%200%201%200-1.06m.53%206.28a.75.75%200%200%200-.75.75V11a3.5%203.5%200%201%200%207%200V7.25a.75.75%200%200%200-.75-.75ZM6.173%205h3.654A.17.17%200%200%200%2010%204.827V4.5a2%202%200%201%200-4%200v.327c0%20.096.077.173.173.173%22/%3E%3C/svg%3E');--md-admonition-icon--warning:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M6.457%201.047c.659-1.234%202.427-1.234%203.086%200l6.082%2011.378A1.75%201.75%200%200%201%2014.082%2015H1.918a1.75%201.75%200%200%201-1.543-2.575Zm1.763.707a.25.25%200%200%200-.44%200L1.698%2013.132a.25.25%200%200%200%20.22.368h12.164a.25.25%200%200%200%20.22-.368Zm.53%203.996v2.5a.75.75%200%200%201-1.5%200v-2.5a.75.75%200%200%201%201.5%200M9%2011a1%201%200%201%201-2%200%201%201%200%200%201%202%200%22/%3E%3C/svg%3E');}</style>
 
 
 
@@ -65,7 +65,7 @@
       
     
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -100,9 +100,9 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="Microsoft - CSS-Exchange" class="md-header__button md-logo" aria-label="Microsoft - CSS-Exchange" data-md-component="logo">
+    <a href="../../.." title="Microsoft - CSS-Exchange" class="md-header__button md-logo" aria-label="Microsoft - CSS-Exchange" data-md-component="logo">
       
-  <img src="../../Images/MicrosoftLogo.svg" alt="logo">
+  <img src="../../../Images/MicrosoftLogo.svg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -206,9 +206,9 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Microsoft - CSS-Exchange" class="md-nav__button md-logo" aria-label="Microsoft - CSS-Exchange" data-md-component="logo">
+    <a href="../../.." title="Microsoft - CSS-Exchange" class="md-nav__button md-logo" aria-label="Microsoft - CSS-Exchange" data-md-component="logo">
       
-  <img src="../../Images/MicrosoftLogo.svg" alt="logo">
+  <img src="../../../Images/MicrosoftLogo.svg" alt="logo">
 
     </a>
     Microsoft - CSS-Exchange
@@ -235,7 +235,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Emerging-Issues/" class="md-nav__link">
+      <a href="../../../Emerging-Issues/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -320,7 +320,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Admin/Clear-MailboxPermission/" class="md-nav__link">
+      <a href="../../../Admin/Clear-MailboxPermission/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -342,7 +342,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Admin/CrossTenantMailboxMigrationValidation/" class="md-nav__link">
+      <a href="../../../Admin/CrossTenantMailboxMigrationValidation/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -364,7 +364,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Admin/Find-AmbiguousSids/" class="md-nav__link">
+      <a href="../../../Admin/Find-AmbiguousSids/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -386,7 +386,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Admin/Get-EASMailboxLogs/" class="md-nav__link">
+      <a href="../../../Admin/Get-EASMailboxLogs/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -408,7 +408,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Admin/Get-SimpleAuditLogReport/" class="md-nav__link">
+      <a href="../../../Admin/Get-SimpleAuditLogReport/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -430,7 +430,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Admin/MonitorExchangeAuthCertificate/" class="md-nav__link">
+      <a href="../../../Admin/MonitorExchangeAuthCertificate/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -452,7 +452,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Admin/Remove-CertExpiryNotifications/" class="md-nav__link">
+      <a href="../../../Admin/Remove-CertExpiryNotifications/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -474,7 +474,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Admin/Remove-DuplicateEntriesFromIanaMappings/" class="md-nav__link">
+      <a href="../../../Admin/Remove-DuplicateEntriesFromIanaMappings/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -496,7 +496,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Admin/Reset-ScanEngineVersion/" class="md-nav__link">
+      <a href="../../../Admin/Reset-ScanEngineVersion/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -518,7 +518,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Admin/SetUnifiedContentPath/" class="md-nav__link">
+      <a href="../../../Admin/SetUnifiedContentPath/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -540,7 +540,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Admin/Test-AMSI/" class="md-nav__link">
+      <a href="../../../Admin/Test-AMSI/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -562,7 +562,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Admin/Test-ExchangePropertyPermissions/" class="md-nav__link">
+      <a href="../../../Admin/Test-ExchangePropertyPermissions/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -584,7 +584,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Admin/Update-Engines/" class="md-nav__link">
+      <a href="../../../Admin/Update-Engines/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -659,7 +659,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Calendar/Check-SharingStatus/" class="md-nav__link">
+      <a href="../../../Calendar/Check-SharingStatus/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -681,7 +681,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Calendar/Get-CalendarDiagnosticObjectsSummary/" class="md-nav__link">
+      <a href="../../../Calendar/Get-CalendarDiagnosticObjectsSummary/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -703,7 +703,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Calendar/Get-RBASummary/" class="md-nav__link">
+      <a href="../../../Calendar/Get-RBASummary/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -725,7 +725,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Calendar/BookingsDiagnosticSummary/" class="md-nav__link">
+      <a href="../../../Calendar/BookingsDiagnosticSummary/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -798,7 +798,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Databases/Analyze-SpaceDump/" class="md-nav__link">
+      <a href="../../../Databases/Analyze-SpaceDump/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -820,7 +820,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Databases/Compare-MailboxStatistics/" class="md-nav__link">
+      <a href="../../../Databases/Compare-MailboxStatistics/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -842,7 +842,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Databases/VSSTester/" class="md-nav__link">
+      <a href="../../../Databases/VSSTester/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -923,7 +923,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/ExchangeLogCollector/" class="md-nav__link">
+      <a href="../../../Diagnostics/ExchangeLogCollector/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -945,7 +945,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/ExTRA/" class="md-nav__link">
+      <a href="../../../Diagnostics/ExTRA/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -967,7 +967,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/FindFrontEndActivity/FindFrontEndActivity/" class="md-nav__link">
+      <a href="../../../Diagnostics/FindFrontEndActivity/FindFrontEndActivity/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1093,7 +1093,7 @@
           
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../Diagnostics/HealthChecker/" class="md-nav__link ">
+            <a href="../../../Diagnostics/HealthChecker/" class="md-nav__link ">
               
   
   <span class="md-ellipsis">
@@ -1127,7 +1127,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/ExoConnectorCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/ExoConnectorCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1149,7 +1149,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/ExchangeServerMaintenanceCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/ExchangeServerMaintenanceCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1171,7 +1171,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/MAPIFrontEndAppPoolGCModeCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/MAPIFrontEndAppPoolGCModeCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1193,7 +1193,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/RebootPending/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/RebootPending/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1215,7 +1215,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/CTSProcessorAffinityPercentageCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/CTSProcessorAffinityPercentageCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1237,7 +1237,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/CredentialGuardCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/CredentialGuardCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1259,7 +1259,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/RPCMinConnectionTimeoutCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/RPCMinConnectionTimeoutCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1281,7 +1281,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/TCPIPSettingsCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/TCPIPSettingsCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1303,7 +1303,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/GeneralHardwareInformation/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/GeneralHardwareInformation/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1325,7 +1325,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/HyperThreadingCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/HyperThreadingCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1347,7 +1347,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/NumaBiosCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/NumaBiosCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1369,7 +1369,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/ProcessorCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/ProcessorCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1391,7 +1391,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/IPv6EnabledCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/IPv6EnabledCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1413,7 +1413,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/PacketsLossCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/PacketsLossCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1435,7 +1435,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/RSSEnabledCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/RSSEnabledCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1457,7 +1457,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/SleepyNICCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/SleepyNICCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1479,7 +1479,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/NETFrameworkSupportabilityCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/NETFrameworkSupportabilityCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1501,7 +1501,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/NodeRunnerMemoryLimitCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/NodeRunnerMemoryLimitCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1523,7 +1523,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/PagefileSizeCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/PagefileSizeCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1545,7 +1545,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/VisualCRedistributableVersionCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/VisualCRedistributableVersionCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1567,7 +1567,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/LMCompatibilityLevelInformationCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/LMCompatibilityLevelInformationCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1589,7 +1589,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/May22SU/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/May22SU/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1611,7 +1611,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/CloudConnectorCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/CloudConnectorCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1633,7 +1633,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/TLSConfigurationCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/TLSConfigurationCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1655,7 +1655,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/CertificateCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/CertificateCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1677,7 +1677,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/AuthCertificateCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/AuthCertificateCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1699,7 +1699,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/SerializedDataSigningCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/SerializedDataSigningCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1721,7 +1721,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/SettingOverridesCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/SettingOverridesCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1743,7 +1743,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/InternalTransportCertificateCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/InternalTransportCertificateCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1765,7 +1765,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/SMBv1Check/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/SMBv1Check/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1787,7 +1787,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/EEMSCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/EEMSCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1809,7 +1809,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/AMSIIntegration/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/AMSIIntegration/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1831,7 +1831,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/VulnerabilityCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/VulnerabilityCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1853,7 +1853,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/DownloadDomainCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/DownloadDomainCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1875,7 +1875,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/OpenRelayDomain/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/OpenRelayDomain/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1897,7 +1897,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/FIPFSCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/FIPFSCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1919,7 +1919,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/IISInformation/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/IISInformation/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1941,7 +1941,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/IISWebConfigCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/IISWebConfigCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1963,7 +1963,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/RunHCViaSchedTask/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/RunHCViaSchedTask/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1985,7 +1985,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/ADSiteCount/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/ADSiteCount/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2007,7 +2007,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/ExchangeComputerMembership/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/ExchangeComputerMembership/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2029,7 +2029,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/UnifiedContentCleanup/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/UnifiedContentCleanup/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2051,7 +2051,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/HealthChecker/TransportRetryConfigCheck/" class="md-nav__link">
+      <a href="../../../Diagnostics/HealthChecker/TransportRetryConfigCheck/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2081,7 +2081,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/ManagedAvailabilityTroubleshooter/" class="md-nav__link">
+      <a href="../../../Diagnostics/ManagedAvailabilityTroubleshooter/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2103,7 +2103,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/Test-ExchAVExclusions/" class="md-nav__link">
+      <a href="../../../Diagnostics/Test-ExchAVExclusions/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2165,7 +2165,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Diagnostics/FreeBusyChecker/FreeBusyChecker/" class="md-nav__link">
+      <a href="../../../Diagnostics/FreeBusyChecker/FreeBusyChecker/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2242,7 +2242,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Hybrid/Test-HMAEAS/" class="md-nav__link">
+      <a href="../../../Hybrid/Test-HMAEAS/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2363,7 +2363,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../M365/MDO/MDOThreatPolicyChecker/" class="md-nav__link">
+      <a href="../../../M365/MDO/MDOThreatPolicyChecker/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2385,7 +2385,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../M365/MDO/ResendFailedMail/" class="md-nav__link">
+      <a href="../../../M365/MDO/ResendFailedMail/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2415,7 +2415,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../M365/DLT365Groupsupgrade/" class="md-nav__link">
+      <a href="../../../M365/DLT365Groupsupgrade/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2437,7 +2437,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../M365/Get-LargeMailboxFolderStatistics/" class="md-nav__link">
+      <a href="../../../M365/Get-LargeMailboxFolderStatistics/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2459,7 +2459,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../M365/Test-MailboxExtendedProperty/" class="md-nav__link">
+      <a href="../../../M365/Test-MailboxExtendedProperty/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2481,7 +2481,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../M365/Search-MailboxExtendedProperty/" class="md-nav__link">
+      <a href="../../../M365/Search-MailboxExtendedProperty/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2503,7 +2503,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../M365/Remove-MailboxExtendedProperty/" class="md-nav__link">
+      <a href="../../../M365/Remove-MailboxExtendedProperty/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2572,7 +2572,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Outlook/Update-OutlookLink/" class="md-nav__link">
+      <a href="../../../Outlook/Update-OutlookLink/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2645,7 +2645,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Performance/ExPerfWiz/" class="md-nav__link">
+      <a href="../../../Performance/ExPerfWiz/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2667,7 +2667,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Performance/ExPerfAnalyzer/" class="md-nav__link">
+      <a href="../../../Performance/ExPerfAnalyzer/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2689,7 +2689,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Performance/SimplePerf/" class="md-nav__link">
+      <a href="../../../Performance/SimplePerf/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2734,10 +2734,6 @@
       
         
       
-        
-      
-        
-      
     
     
     
@@ -2764,6 +2760,148 @@
           <label class="md-nav__title" for="__nav_10">
             <span class="md-nav__icon md-icon"></span>
             PublicFolders
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_1" id="__nav_10_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Hybrid
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_1">
+            <span class="md-nav__icon md-icon"></span>
+            Hybrid
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Hybrid/Import-PublicFolderMailboxes/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Import-PublicFolderMailboxes
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Hybrid/Sync-MailPublicFoldersCloudToOnprem/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sync-MailPublicFoldersCloudToOnprem
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_10_2" id="__nav_10_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Migration
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_10_2">
+            <span class="md-nav__icon md-icon"></span>
+            Migration
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2899,7 +3037,37 @@
   
   
     <li class="md-nav__item">
-      <a href="../SourceSideValidations/" class="md-nav__link">
+      <a href="../Sync-ModernMailPublicFolders/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sync-ModernMailPublicFolders
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../SourceSideValidations/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2921,29 +3089,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../Sync-ModernMailPublicFolders/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Sync-ModernMailPublicFolders
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../Update-PublicFolderPermissions/" class="md-nav__link">
+      <a href="../../Update-PublicFolderPermissions/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2965,7 +3111,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../ValidateMailEnabledPublicFolders/" class="md-nav__link">
+      <a href="../../ValidateMailEnabledPublicFolders/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -2987,7 +3133,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../ValidateEXOPFDumpster/" class="md-nav__link">
+      <a href="../../ValidateEXOPFDumpster/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -3056,7 +3202,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Retention/Get-MRMDetails/" class="md-nav__link">
+      <a href="../../../Retention/Get-MRMDetails/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -3125,7 +3271,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Search/Troubleshoot-ModernSearch/" class="md-nav__link">
+      <a href="../../../Search/Troubleshoot-ModernSearch/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -3212,7 +3358,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Security/CVE-2023-21709/" class="md-nav__link">
+      <a href="../../../Security/CVE-2023-21709/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -3254,7 +3400,7 @@
           
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../Security/CVE-2023-23397/" class="md-nav__link ">
+            <a href="../../../Security/CVE-2023-23397/" class="md-nav__link ">
               
   
   <span class="md-ellipsis">
@@ -3288,7 +3434,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Security/CVE-2023-23397/FAQ/" class="md-nav__link">
+      <a href="../../../Security/CVE-2023-23397/FAQ/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -3318,7 +3464,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Security/ConfigureFipFsTextExtractionOverrides/" class="md-nav__link">
+      <a href="../../../Security/ConfigureFipFsTextExtractionOverrides/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -3340,7 +3486,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Security/EOMT/" class="md-nav__link">
+      <a href="../../../Security/EOMT/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -3362,7 +3508,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Security/EOMTv2/" class="md-nav__link">
+      <a href="../../../Security/EOMTv2/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -3384,7 +3530,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Security/Extended-Protection/" class="md-nav__link">
+      <a href="../../../Security/Extended-Protection/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -3406,7 +3552,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Security/ExchangeExtendedProtectionManagement/" class="md-nav__link">
+      <a href="../../../Security/ExchangeExtendedProtectionManagement/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -3428,7 +3574,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Security/ExchangeMitigations/" class="md-nav__link">
+      <a href="../../../Security/ExchangeMitigations/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -3450,7 +3596,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Security/Test-CVE-2021-34470/" class="md-nav__link">
+      <a href="../../../Security/Test-CVE-2021-34470/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -3472,7 +3618,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Security/Test-ProxyLogon/" class="md-nav__link">
+      <a href="../../../Security/Test-ProxyLogon/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -3549,7 +3695,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Setup/CopyMissingDlls/" class="md-nav__link">
+      <a href="../../../Setup/CopyMissingDlls/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -3571,7 +3717,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Setup/FixInstallerCache/" class="md-nav__link">
+      <a href="../../../Setup/FixInstallerCache/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -3593,7 +3739,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Setup/Set-ExchAVExclusions/" class="md-nav__link">
+      <a href="../../../Setup/Set-ExchAVExclusions/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -3641,7 +3787,7 @@
           
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../Setup/SetupAssist/" class="md-nav__link ">
+            <a href="../../../Setup/SetupAssist/" class="md-nav__link ">
               
   
   <span class="md-ellipsis">
@@ -3675,7 +3821,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Setup/SetupAssist/ComputersContainer/" class="md-nav__link">
+      <a href="../../../Setup/SetupAssist/ComputersContainer/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -3697,7 +3843,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Setup/SetupAssist/ReadOnlyDomainControllerContainer/" class="md-nav__link">
+      <a href="../../../Setup/SetupAssist/ReadOnlyDomainControllerContainer/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -3719,7 +3865,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Setup/SetupAssist/RebootPending/" class="md-nav__link">
+      <a href="../../../Setup/SetupAssist/RebootPending/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -3741,7 +3887,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Setup/SetupAssist/InstallWatermark/" class="md-nav__link">
+      <a href="../../../Setup/SetupAssist/InstallWatermark/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -3771,7 +3917,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Setup/SetupLogReviewer/" class="md-nav__link">
+      <a href="../../../Setup/SetupLogReviewer/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -3844,7 +3990,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Transport/Compute-TopExoRecipientsFromMessageTrace/" class="md-nav__link">
+      <a href="../../../Transport/Compute-TopExoRecipientsFromMessageTrace/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -3866,7 +4012,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Transport/ReplayQueueDatabases/" class="md-nav__link">
+      <a href="../../../Transport/ReplayQueueDatabases/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -3888,7 +4034,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Transport/Measure-EmailDelayInMTL/" class="md-nav__link">
+      <a href="../../../Transport/Measure-EmailDelayInMTL/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -3970,7 +4116,7 @@
 
 
   
-    <a href="https://github.com/microsoft/CSS-Exchange/edit/main/docs/PublicFolders/SetMailPublicFolderExternalAddress.md" title="Edit this page" class="md-content__button md-icon">
+    <a href="https://github.com/microsoft/CSS-Exchange/edit/main/docs/PublicFolders/Migration/SetMailPublicFolderExternalAddress.md" title="Edit this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -4008,7 +4154,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 5, 2025 20:01:56">February 5, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="March 19, 2025 14:00:16">March 19, 2025</span>
   </span>
 
     
@@ -4055,10 +4201,10 @@
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.indexes", "content.action.edit"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.indexes", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.c8b220af.min.js"></script>
       
     
   </body>
