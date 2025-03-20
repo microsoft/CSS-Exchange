@@ -96,11 +96,15 @@ nav:
     - ExPerfAnalyzer: Performance/ExPerfAnalyzer.md
     - SimplePerf: Performance/SimplePerf.md
   - PublicFolders:
-    - Export-ModernPublicFolderStatistics: PublicFolders/Export-ModernPublicFolderStatistics.md
-    - ModernPublicFolderToMailboxMapGenerator: PublicFolders/ModernPublicFolderToMailboxMapGenerator.md
-    - SetMailPublicFolderExternalAddress: PublicFolders/SetMailPublicFolderExternalAddress.md
+    - Hybrid:
+      - Import-PublicFolderMailboxes: PublicFolders/Hybrid/Import-PublicFolderMailboxes.md
+      - Sync-MailPublicFoldersCloudToOnprem: PublicFolders/Hybrid/Sync-MailPublicFoldersCloudToOnprem.md
+    - Migration:
+      - Export-ModernPublicFolderStatistics: PublicFolders/Migration/Export-ModernPublicFolderStatistics.md
+      - ModernPublicFolderToMailboxMapGenerator: PublicFolders/Migration/ModernPublicFolderToMailboxMapGenerator.md
+      - SetMailPublicFolderExternalAddress: PublicFolders/Migration/SetMailPublicFolderExternalAddress.md
+      - Sync-ModernMailPublicFolders: PublicFolders/Migration/Sync-ModernMailPublicFolders.md
     - SourceSideValidations: PublicFolders/SourceSideValidations.md
-    - Sync-ModernMailPublicFolders: PublicFolders/Sync-ModernMailPublicFolders.md
     - Update-PublicFolderPermissions: PublicFolders/Update-PublicFolderPermissions.md
     - ValidateMailEnabledPublicFolders: PublicFolders/ValidateMailEnabledPublicFolders.md
     - ValidateEXOPFDumpster: PublicFolders/ValidateEXOPFDumpster.md
