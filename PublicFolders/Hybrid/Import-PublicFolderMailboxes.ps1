@@ -11,7 +11,7 @@
 #
 # The above example imports public folder mailbox objects from cloud as mail enabled users to on-premise.
 param (
-    [Parameter(Mandatory=$false)]
+    [Parameter(Mandatory = $false)]
     [PSCredential] $Credential,
 
     [Parameter(Mandatory = $false)]
@@ -26,7 +26,7 @@ function CreateTenantSession() {
     Import-Module ExchangeOnlineManagement -ErrorAction SilentlyContinue
     if (Get-Module ExchangeOnlineManagement) {
         $sessionOption = (New-PSSessionOption -SkipCACheck)
-        Connect-ExchangeOnline -Credential $Credential -ConnectionURI $ConnectionUri -PSSessionOption $sessionOption -Prefix "Remote" -ErrorAction SilentlyContinue
+        Connect-ExchangeOnline -Credential $Credential -ConnectionUri $ConnectionUri -PSSessionOption $sessionOption -Prefix "Remote" -ErrorAction SilentlyContinue
     } else {
         Write-Warning $LocalizedStrings.EXOV2ModuleNotInstalled
         exit
@@ -62,7 +62,7 @@ function SyncPublicFolderMailboxes(
 
         if ($null -ne $mailUser) {
             WriteInfoMessage ($LocalizedStrings.RemovingMailUsers -f $mailUser)
-            Set-OrganizationConfig -RemotePublicFolderMailboxes @{Remove =$mailUser }
+            Set-OrganizationConfig -RemotePublicFolderMailboxes @{Remove = $mailUser }
 
             WriteInfoMessage ($LocalizedStrings.DeleteMailUser -f $mailUser)
             Remove-MailUser $mailUser -Confirm:$false
@@ -72,6 +72,7 @@ function SyncPublicFolderMailboxes(
 
     $validExternalEmailAddresses = @()
     $mailUserList = @()
+    $domainController = $null
 
     if ($null -ne $publicFolderMailboxes) {
         $hasPublicFolderServingHierarchy = $false
@@ -90,7 +91,21 @@ function SyncPublicFolderMailboxes(
                 if ($null -eq $mailUser) {
                     WriteInfoMessage ($LocalizedStrings.CreatingMailUser -f $displayName)
                     try {
-                        $mailUser = New-MailUser -Name $name -ExternalEmailAddress $externalEmailAddress -DisplayName $displayName
+                        $p = @{
+                            Name                 = $name
+                            ExternalEmailAddress = $externalEmailAddress
+                            DisplayName          = $displayName
+                        }
+
+                        if ($null -ne $domainController) {
+                            $p.DomainController = $domainController
+                        }
+
+                        $mailUser = New-MailUser @p
+                        if ($null -eq $domainController -and $null -ne $mailUser) {
+                            $domainController = $mailUser.OriginatingServer
+                        }
+
                         $mailUserList += $mailUser
                     } catch {
                         Write-Host $error[0]
@@ -114,7 +129,7 @@ function SyncPublicFolderMailboxes(
 
     foreach ($mailUser in $mailUserList) {
         $validExternalEmailAddresses += $mailUser.ExternalEmailAddress
-        Set-OrganizationConfig -RemotePublicFolderMailboxes @{Add =$mailUser }
+        Set-OrganizationConfig -RemotePublicFolderMailboxes @{Add = $mailUser } -DomainController $domainController
     }
 }
 
