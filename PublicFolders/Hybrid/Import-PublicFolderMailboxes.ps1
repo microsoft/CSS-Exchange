@@ -42,6 +42,7 @@ function WriteInfoMessage() {
 ## Retrieve public folder mailboxes
 function GetPublicFolderMailBoxes() {
     $publicFolderMailboxes = Get-RemoteMailbox -PublicFolder -ResultSize:Unlimited -ErrorAction:SilentlyContinue -WarningAction:SilentlyContinue
+    $publicFolderMailboxes = $publicFolderMailboxes | Where-Object { -not $_.IsExcludedFromServingHierarchy } | Select-Object -First 10
 
     # Return the results
     if ($null -eq $publicFolderMailboxes -or ([array]($publicFolderMailboxes)).Count -lt 1) {
