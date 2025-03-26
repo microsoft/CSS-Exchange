@@ -9,13 +9,13 @@
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExSetupFileVersionInfo.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-FileContentInformation.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-MonitoringOverride.ps1
+. $PSScriptRoot\..\..\..\..\Shared\CertificateFunctions\Get-ExchangeServerCertificateInformation.ps1
 . $PSScriptRoot\IISInformation\Get-ExchangeAppPoolsInformation.ps1
 . $PSScriptRoot\IISInformation\Get-ExchangeServerIISSettings.ps1
 . $PSScriptRoot\Get-ExchangeAES256CBCDetails.ps1
 . $PSScriptRoot\Get-ExchangeConnectors.ps1
 . $PSScriptRoot\Get-ExchangeDependentServices.ps1
 . $PSScriptRoot\Get-ExchangeRegistryValues.ps1
-. $PSScriptRoot\Get-ExchangeServerCertificates.ps1
 . $PSScriptRoot\Get-ExchangeServerMaintenanceState.ps1
 . $PSScriptRoot\Get-ExchangeUpdates.ps1
 . $PSScriptRoot\Get-ExchangeVirtualDirectories.ps1
@@ -36,7 +36,7 @@ function Get-ExchangeInformation {
         }
         $windows2016OrGreater = Invoke-ScriptBlockHandler @params
         $getExchangeServer = (Get-ExchangeServer -Identity $Server -Status)
-        $exchangeCertificates = Get-ExchangeServerCertificates -Server $Server
+        $exchangeCertificateInformation = Get-ExchangeServerCertificateInformation -Server $Server -CatchActionFunction ${Function:Invoke-CatchActions}
         $exSetupDetails = Get-ExSetupFileVersionInfo -Server $Server -CatchActionFunction ${Function:Invoke-CatchActions}
 
         if ($null -eq $exSetupDetails) {
@@ -334,7 +334,6 @@ function Get-ExchangeInformation {
             ApplicationPools                         = $applicationPools
             RegistryValues                           = $registryValues
             ServerMaintenance                        = $serverMaintenance
-            ExchangeCertificates                     = [array]$exchangeCertificates
             ExchangeEmergencyMitigationServiceResult = $eemsEndpointResults
             ExchangeFeatureFlightingServiceResult    = $featureFlightingEndpointResults
             EdgeTransportResourceThrottling          = $edgeTransportResourceThrottling # If we want to checkout other diagnosticInfo, we should create a new object here.
@@ -348,6 +347,7 @@ function Get-ExchangeInformation {
             FileContentInformation                   = $fileContentInformation
             ComputerMembership                       = $computerMembership
             GetServerMonitoringOverride              = $serverMonitoringOverride
+            ExchangeCertificateInformation           = $exchangeCertificateInformation
         }
     }
 }
