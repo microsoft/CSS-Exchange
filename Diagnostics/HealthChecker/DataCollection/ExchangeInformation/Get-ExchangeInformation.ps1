@@ -13,7 +13,6 @@
 . $PSScriptRoot\IISInformation\Get-ExchangeAppPoolsInformation.ps1
 . $PSScriptRoot\IISInformation\Get-ExchangeServerIISSettings.ps1
 . $PSScriptRoot\Get-ExchangeAES256CBCDetails.ps1
-. $PSScriptRoot\Get-ExchangeConnectors.ps1
 . $PSScriptRoot\Get-ExchangeDependentServices.ps1
 . $PSScriptRoot\Get-ExchangeRegistryValues.ps1
 . $PSScriptRoot\Get-ExchangeServerMaintenanceState.ps1
@@ -78,11 +77,15 @@ function Get-ExchangeInformation {
         $serverExchangeBinDirectory = [System.Io.Path]::Combine($registryValues.MsiInstallPath, "Bin\")
         Write-Verbose "Found Exchange Bin: $serverExchangeBinDirectory"
 
+        try {
+            $getReceiveConnectors = Get-ReceiveConnector -Server $Server -ErrorAction Stop
+        } catch {
+            Write-Verbose "Failed to run Get-ReceiveConnectors"
+            Invoke-CatchActions
+        }
+
         if ($getExchangeServer.IsEdgeServer -eq $false) {
             $applicationPools = Get-ExchangeAppPoolsInformation -Server $Server
-
-            Write-Verbose "Query Exchange Connector settings via 'Get-ExchangeConnectors'"
-            $exchangeConnectors = Get-ExchangeConnectors -ComputerName $Server -CertificateObject $exchangeCertificates
 
             $exchangeServerIISParams = @{
                 ComputerName        = $Server
@@ -328,7 +331,7 @@ function Get-ExchangeInformation {
             VirtualDirectories                       = $getExchangeVirtualDirectories
             GetMailboxServer                         = $getMailboxServer
             ExtendedProtectionConfig                 = $extendedProtectionConfig
-            ExchangeConnectors                       = $exchangeConnectors
+            GetReceiveConnector                      = $getReceiveConnectors
             ExchangeServicesNotRunning               = [array]$exchangeServicesNotRunning
             GetTransportService                      = $getTransportService
             ApplicationPools                         = $applicationPools

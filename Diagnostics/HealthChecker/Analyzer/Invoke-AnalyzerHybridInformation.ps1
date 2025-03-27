@@ -3,6 +3,7 @@
 
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
+. $PSScriptRoot\Get-ExchangeConnectorCustomObject.ps1
 function Invoke-AnalyzerHybridInformation {
     [CmdletBinding()]
     param(
@@ -197,8 +198,13 @@ function Invoke-AnalyzerHybridInformation {
             Add-AnalyzedResultInformation @params
         }
 
-        if ($null -ne $exchangeInformation.ExchangeConnectors) {
-            foreach ($connector in $exchangeInformation.ExchangeConnectors) {
+        if ($null -ne $HealthServerObject.OrganizationInformation.GetSendConnector -or
+            $null -ne $exchangeInformation.GetReceiveConnector) {
+            [array]$connectors = $HealthServerObject.OrganizationInformation.GetSendConnector
+            [array]$connectors += $exchangeInformation.GetReceiveConnector
+            [array]$exchangeConnectors = Get-ExchangeConnectorCustomObject -Connector $connectors -Certificate $exchangeInformation.ExchangeCertificateInformation.Certificates
+
+            foreach ($connector in $exchangeConnectors) {
                 $cloudConnectorWriteType = "Yellow"
                 if (($connector.TransportRole -ne "HubTransport") -and
                     ($connector.CloudEnabled -eq $true)) {
