@@ -61,6 +61,13 @@ function Get-OrganizationInformation {
             Invoke-CatchActions
         }
 
+        try {
+            $getSendConnector = Get-SendConnector -ErrorAction Stop
+        } catch {
+            Write-Verbose "Failed to run Get-SendConnector"
+            Invoke-CatchActions
+        }
+
         # NO Edge Server Collection
         if (-not ($EdgeServer)) {
 
@@ -168,6 +175,7 @@ function Get-OrganizationInformation {
             GetIrmConfiguration               = $getIrmConfiguration
             GetGlobalMonitoringOverride       = $globalMonitoringOverride
             GetAuthConfig                     = $getAuthConfig
+            GetSendConnector                  = $getSendConnector
         }
     }
 }
