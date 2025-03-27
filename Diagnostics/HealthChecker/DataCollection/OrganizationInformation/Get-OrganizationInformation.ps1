@@ -77,6 +77,13 @@ function Get-OrganizationInformation {
             }
 
             try {
+                $getAuthConfig = Get-AuthConfig -ErrorAction Stop
+            } catch {
+                Write-Verbose "Failed to get the Auth Config"
+                Invoke-CatchActions
+            }
+
+            try {
                 # It was reported that this isn't getting thrown to the catch action when failing. As a quick fix, handling this by looping over errors.
                 $currentErrors = $Error.Count
                 $getDdgPublicFolders = @(Get-DynamicDistributionGroup "PublicFolderMailboxes*" -IncludeSystemObjects -ErrorAction "Stop")
@@ -160,6 +167,7 @@ function Get-OrganizationInformation {
             GetDynamicDgPublicFolderMailboxes = $getDdgPublicFolders
             GetIrmConfiguration               = $getIrmConfiguration
             GetGlobalMonitoringOverride       = $globalMonitoringOverride
+            GetAuthConfig                     = $getAuthConfig
         }
     }
 }
