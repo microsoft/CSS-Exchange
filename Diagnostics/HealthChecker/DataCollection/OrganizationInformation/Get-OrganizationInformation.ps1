@@ -61,6 +61,13 @@ function Get-OrganizationInformation {
             Invoke-CatchActions
         }
 
+        try {
+            $getSendConnector = Get-SendConnector -ErrorAction Stop
+        } catch {
+            Write-Verbose "Failed to run Get-SendConnector"
+            Invoke-CatchActions
+        }
+
         # NO Edge Server Collection
         if (-not ($EdgeServer)) {
 
@@ -73,6 +80,13 @@ function Get-OrganizationInformation {
                 $getIrmConfiguration = Get-IRMConfiguration -ErrorAction Stop
             } catch {
                 Write-Verbose "Failed to get the IRM Configuration"
+                Invoke-CatchActions
+            }
+
+            try {
+                $getAuthConfig = Get-AuthConfig -ErrorAction Stop
+            } catch {
+                Write-Verbose "Failed to get the Auth Config"
                 Invoke-CatchActions
             }
 
@@ -160,6 +174,8 @@ function Get-OrganizationInformation {
             GetDynamicDgPublicFolderMailboxes = $getDdgPublicFolders
             GetIrmConfiguration               = $getIrmConfiguration
             GetGlobalMonitoringOverride       = $globalMonitoringOverride
+            GetAuthConfig                     = $getAuthConfig
+            GetSendConnector                  = $getSendConnector
         }
     }
 }
