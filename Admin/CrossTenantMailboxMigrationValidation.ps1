@@ -20,7 +20,7 @@
     - Making sure the source mailbox object X500 addresses are also present on the target MailUser object.
     - Making sure the target MailUser object PrimarySMTPAddress attribute value is part of the target tenant accepted domains and give you the option to set it to be like the UPN if not true, as long as the Target MailUser is not DirSynced
     - Making sure the target MailUser object EmailAddresses are all part of the target tenant accepted domains and give you the option to remove them if any doesn't belong to are found, as long as the Target MailUser is not DirSynced
-    - Making sure the target MailUser object ExternalEmailAddress attribute value points to the source Mailbox object PrimarySMTPAddress and give you the option to set it if not true, as long as the Target MailUser is not DirSynced
+    - Making sure the target MailUser object ExternalEmailAddress attribute value points to any of the source Mailbox object EmailAddresses and give you the option to set it to the PrimarySMTPAddress if not true, as long as the Target MailUser is not DirSynced
     - Verifying if there's a T2T license assigned on either the source or target objects.
     - Checking if there's an AAD app as described on https://docs.microsoft.com/en-us/microsoft-365/enterprise/cross-tenant-mailbox-migration?view=o365-worldwide#prepare-the-target-destination-tenant-by-creating-the-migration-application-and-secret
     - Checking if the AAD app on Target has been consented in Source tenant as described on https://docs.microsoft.com/en-us/microsoft-365/enterprise/cross-tenant-mailbox-migration?view=o365-worldwide#prepare-the-source-current-mailbox-location-tenant-by-accepting-the-migration-application-and-configuring-the-organization-relationship
@@ -434,23 +434,23 @@ function CheckObjects {
                     Write-Verbose -Message "Informational: SOURCE mailbox doesn't contain any X500 address"
                 }
 
-                #Check ExternalEmailAddress on TargetMailUser with primarySMTPAddress from SourceMailbox:
-                Write-Verbose -Message "Informational: Checking if the ExternalEmailAddress on TARGET object points to the PrimarySMTPAddress of the SOURCE object"
-                if ($TargetObject.ExternalEmailAddress.Split(":")[1] -eq $SourceObject.PrimarySmtpAddress) {
-                    Write-Host ">> ExternalEmailAddress of Target MailUser is pointing to PrimarySMTPAddress of Source Mailbox" -ForegroundColor Green
+                #Check ExternalEmailAddress on TargetMailUser is part of any of the EmailAddresses from SourceMailbox:
+                Write-Verbose -Message "Informational: Checking if the ExternalEmailAddress on TARGET object is part of EmailAddresses of the SOURCE object"
+                if ($SourceObject.EmailAddresses -icontains $TargetObject.ExternalEmailAddress) {
+                    Write-Host ">> ExternalEmailAddress of Target MailUser is pointing to an existing E-mail address of Source Mailbox" -ForegroundColor Green
                 } else {
                     if (!$TargetObject.IsDirSynced) {
-                        Write-Host ">> Error: TargetMailUser ExternalEmailAddress value $($TargetObject.ExternalEmailAddress) does not match the PrimarySMTPAddress of the SourceMailbox $($SourceObject.PrimarySmtpAddress) , would you like to set it? (Y/N): " -ForegroundColor Red -NoNewline
+                        Write-Host ">> Error: TargetMailUser ExternalEmailAddress value $($TargetObject.ExternalEmailAddress) is not present on the EmailAddresses of the SourceMailbox, would you like to set it pointing to the PrimarySMTPAddress of the source mailbox instead? (Y/N): " -ForegroundColor Red -NoNewline
                         $RemoveAddressOption = Read-Host
                         Write-Host " Your input: $($RemoveAddressOption)"
                         if ($RemoveAddressOption.ToLower() -eq "y") {
                             Write-Host "Informational: Setting the ExternalEmailAddress of SOURCE object to $($SourceObject.PrimarySmtpAddress)"
-                            Set-TargetMailUser $TargetIdentity -ExternalEmailAddress $SourceObject.PrimarySmtpAddress
+                            Set-TargetMailUser $TargetIdentity -ExternalEmailAddress $SourceObject.PrimarySmtpAddress -ErrorAction SilentlyContinue
                             #Reload TARGET object into variable as it has been changed
                             $TargetObject = Get-TargetMailUser $TargetIdentity
                         }
                     } else {
-                        Write-Host ">> Error: TargetMailUser ExternalEmailAddress value $($TargetObject.ExternalEmailAddress) does not match the PrimarySMTPAddress of the SourceMailbox $($SourceObject.PrimarySmtpAddress). The object is DirSynced and this is not a change that can be done directly on EXO. Please do the change on-premises and perform an AADConnect delta sync" -ForegroundColor Red
+                        Write-Host ">> Error: TargetMailUser ExternalEmailAddress value $($TargetObject.ExternalEmailAddress) does not match any of the E-mail addresses of the SourceMailbox. The object is DirSynced and this is not a change that can be done directly on EXO. Please do the change on-premises and perform an AADConnect delta sync" -ForegroundColor Red
                     }
                 }
             }
@@ -722,23 +722,23 @@ function CheckObjectsSourceOffline {
                     Write-Verbose -Message "Informational: SOURCE mailbox doesn't contain any X500 address"
                 }
 
-                #Check ExternalEmailAddress on TargetMailUser with primarySMTPAddress from SourceMailbox:
+                #Check ExternalEmailAddress on TargetMailUser is part of any of the EmailAddresses from SourceMailbox:
                 Write-Verbose -Message "Informational: Checking if the ExternalEmailAddress on TARGET object points to the PrimarySMTPAddress of the SOURCE object"
-                if ($TargetObject.ExternalEmailAddress.Split(":")[1] -eq $SourceObject.PrimarySmtpAddress) {
-                    Write-Host ">> ExternalEmailAddress of Target MailUser is pointing to PrimarySMTPAddress of Source Mailbox" -ForegroundColor Green
+                if ($SourceObject.EmailAddresses -icontains $TargetObject.ExternalEmailAddress) {
+                    Write-Host ">> ExternalEmailAddress of Target MailUser is pointing to an existing E-mail address of Source Mailbox" -ForegroundColor Green
                 } else {
                     if (!$TargetObject.IsDirSynced) {
-                        Write-Host ">> Error: TargetMailUser ExternalEmailAddress value $($TargetObject.ExternalEmailAddress) does not match the PrimarySMTPAddress of the SourceMailbox $($SourceObject.PrimarySmtpAddress) , would you like to set it? (Y/N): " -ForegroundColor Red -NoNewline
+                        Write-Host ">> Error: TargetMailUser ExternalEmailAddress value $($TargetObject.ExternalEmailAddress) is not present on the EmailAddresses of the SourceMailbox, would you like to set it pointing to the PrimarySMTPAddress of the source mailbox instead? (Y/N): " -ForegroundColor Red -NoNewline
                         $RemoveAddressOption = Read-Host
                         Write-Host " Your input: $($RemoveAddressOption)"
                         if ($RemoveAddressOption.ToLower() -eq "y") {
                             Write-Host "Informational: Setting the ExternalEmailAddress of SOURCE object to $($SourceObject.PrimarySmtpAddress)"
-                            Set-TargetMailUser $TargetIdentity -ExternalEmailAddress $SourceObject.PrimarySmtpAddress
+                            Set-TargetMailUser $TargetIdentity -ExternalEmailAddress $SourceObject.PrimarySmtpAddress -ErrorAction SilentlyContinue
                             #Reload TARGET object into variable as it has been changed
                             $TargetObject = Get-TargetMailUser $TargetIdentity
                         }
                     } else {
-                        Write-Host ">> Error: TargetMailUser ExternalEmailAddress value $($TargetObject.ExternalEmailAddress) does not match the PrimarySMTPAddress of the SourceMailbox $($SourceObject.PrimarySmtpAddress). The object is DirSynced and this is not a change that can be done directly on EXO. Please do the change on-premises and perform an AADConnect delta sync" -ForegroundColor Red
+                        Write-Host ">> Error: TargetMailUser ExternalEmailAddress value $($TargetObject.ExternalEmailAddress) does not match any of the E-mail addresses of the SourceMailbox. The object is DirSynced and this is not a change that can be done directly on EXO. Please do the change on-premises and perform an AADConnect delta sync" -ForegroundColor Red
                     }
                 }
             }
