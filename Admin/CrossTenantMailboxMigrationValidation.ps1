@@ -722,7 +722,6 @@ function CheckObjectsSourceOffline {
                     Write-Verbose -Message "Informational: SOURCE mailbox doesn't contain any X500 address"
                 }
 
-
                 #Check ExternalEmailAddress on TargetMailUser is part of any of the EmailAddresses from SourceMailbox:
                 Write-Verbose -Message "Informational: Checking if the ExternalEmailAddress on TARGET object points to the PrimarySMTPAddress of the SOURCE object"
                 if ($SourceObject.EmailAddresses -icontains $TargetObject.ExternalEmailAddress) {
