@@ -20,6 +20,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
         It "Testing Standard Mock Calls" {
             $Script:ErrorCount = 0
             Mock Invoke-CatchActions { $Script:ErrorCount++ }
+            Mock Invoke-CatchActionError { $Script:ErrorCount++ }
             #redo change to a mock call for Exchange cmdlets
             Mock Get-ExchangeServer { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeServer.xml" }
             Mock Get-ExchangeCertificate { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeCertificate.xml" }
