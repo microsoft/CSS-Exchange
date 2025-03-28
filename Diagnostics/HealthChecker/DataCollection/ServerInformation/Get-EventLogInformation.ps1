@@ -6,7 +6,6 @@ function Get-EventLogInformation {
     [CmdletBinding()]
     [OutputType("System.Collections.Hashtable")]
     param(
-        [Parameter(Mandatory = $true)]
         [string]$Server,
         [ScriptBlock]$CatchActionFunction
     )
@@ -29,11 +28,16 @@ function Get-EventLogInformation {
             return $results
         }
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        $params = @{
-            ComputerName        = $Server
-            ScriptBlock         = ${Function:GetRemoteEventLogInformation}
-            CatchActionFunction = $CatchActionFunction
+
+        if ($PSSenderInfo) {
+            return GetRemoteEventLogInformation
+        } else {
+            $params = @{
+                ComputerName        = $Server
+                ScriptBlock         = ${Function:GetRemoteEventLogInformation}
+                CatchActionFunction = $CatchActionFunction
+            }
+            return (Invoke-ScriptBlockHandler @params)
         }
-        return (Invoke-ScriptBlockHandler @params)
     }
 }

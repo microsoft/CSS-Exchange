@@ -4,7 +4,6 @@
 . $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 function Get-HttpProxySetting {
     param(
-        [Parameter(Mandatory = $true)]
         [string]$Server
     )
 
@@ -46,17 +45,27 @@ function Get-HttpProxySetting {
         }
     }
 
-    $httpProxy32 = Invoke-ScriptBlockHandler -ComputerName $Server `
-        -ScriptBlock ${Function:GetWinHttpSettings} `
-        -ArgumentList "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Connections" `
-        -ScriptBlockDescription "Getting 32 Http Proxy Value" `
-        -CatchActionFunction ${Function:Invoke-CatchActions}
+    #TODO: Determine how to best handle this
+    if ($PSSenderInfo) {
+        $httpProxy32 = $null
+        $httpProxy64 = $null
+        GetWinHttpSettings "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Connections" |
+            Invoke-RemotePipelineHandler -Result ([ref]$httpProxy32)
+        GetWinHttpSettings "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Internet Settings\Connections" |
+            Invoke-RemotePipelineHandler -Result ([ref]$httpProxy64)
+    } else {
+        $httpProxy32 = Invoke-ScriptBlockHandler -ComputerName $Server `
+            -ScriptBlock ${Function:GetWinHttpSettings} `
+            -ArgumentList "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Connections" `
+            -ScriptBlockDescription "Getting 32 Http Proxy Value" `
+            -CatchActionFunction ${Function:Invoke-CatchActions}
 
-    $httpProxy64 = Invoke-ScriptBlockHandler -ComputerName $Server `
-        -ScriptBlock ${Function:GetWinHttpSettings} `
-        -ArgumentList "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Internet Settings\Connections" `
-        -ScriptBlockDescription "Getting 64 Http Proxy Value" `
-        -CatchActionFunction ${Function:Invoke-CatchActions}
+        $httpProxy64 = Invoke-ScriptBlockHandler -ComputerName $Server `
+            -ScriptBlock ${Function:GetWinHttpSettings} `
+            -ArgumentList "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Internet Settings\Connections" `
+            -ScriptBlockDescription "Getting 64 Http Proxy Value" `
+            -CatchActionFunction ${Function:Invoke-CatchActions}
+    }
 
     $httpProxy = [PSCustomObject]@{
         ProxyAddress         = $(if ($httpProxy32.ProxyAddress -ne "None") { $httpProxy32.ProxyAddress } else { $httpProxy64.ProxyAddress })

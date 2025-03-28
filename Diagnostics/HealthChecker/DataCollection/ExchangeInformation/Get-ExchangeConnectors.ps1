@@ -2,6 +2,8 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlock\RemotePipelineHandlerFunctions.ps1
+
 function Get-ExchangeConnectors {
     [CmdletBinding()]
     [OutputType("System.Object[]")]
@@ -161,8 +163,9 @@ function Get-ExchangeConnectors {
                 foreach ($connectorObject in $ConnectorCustomObject) {
 
                     if ($null -ne $ConnectorObject.CertificateDetails.TlsCertificateName) {
-                        $connectorTlsCertificateNormalizedObject = NormalizeTlsCertificateName `
-                            -TlsCertificateName $ConnectorObject.CertificateDetails.TlsCertificateName
+                        $connectorTlsCertificateNormalizedObject = $null
+                        NormalizeTlsCertificateName -TlsCertificateName $ConnectorObject.CertificateDetails.TlsCertificateName |
+                            Invoke-RemotePipelineHandler -Result ([ref]$connectorTlsCertificateNormalizedObject)
 
                         if ($null -eq $connectorTlsCertificateNormalizedObject) {
                             Write-Verbose "Unable to normalize TlsCertificateName - could be caused by an invalid TlsCertificateName configuration"
@@ -212,18 +215,22 @@ function Get-ExchangeConnectors {
             $connectorCustomObject = @()
 
             foreach ($receiveConnector in $allReceiveConnectors) {
-                $connectorCustomObject += ExchangeConnectorObjectFactory -ConnectorObject $receiveConnector
+                $obj = $null
+                ExchangeConnectorObjectFactory -ConnectorObject $receiveConnector | Invoke-RemotePipelineHandler -Result ([ref]$obj)
+                $connectorCustomObject += $obj
             }
 
             foreach ($sendConnector in $allSendConnectors) {
-                $connectorCustomObject += ExchangeConnectorObjectFactory -ConnectorObject $sendConnector
+                $obj = $null
+                ExchangeConnectorObjectFactory -ConnectorObject $sendConnector | Invoke-RemotePipelineHandler -Result ([ref]$obj)
+                $connectorCustomObject += $obj
             }
 
             if (($null -ne $connectorCustomObject) -and
                 ($null -ne $CertificateObject)) {
-                $connectorReturnObject = FindMatchingExchangeCertificate `
-                    -CertificateObject $CertificateObject `
-                    -ConnectorCustomObject $connectorCustomObject
+                $connectorReturnObject = $null
+                FindMatchingExchangeCertificate -CertificateObject $CertificateObject -ConnectorCustomObject $connectorCustomObject |
+                    Invoke-RemotePipelineHandler -Result ([ref]$connectorReturnObject)
             } else {
                 Write-Verbose "No connector object which can be processed was returned"
                 $connectorReturnObject = $connectorCustomObject

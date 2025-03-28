@@ -10,7 +10,6 @@ function Get-ErrorsThatOccurred {
             [object]$CurrentError
         )
         Write-VerboseErrorInformation $CurrentError
-        Write-Verbose "-----------------------------------`r`n`r`n"
     }
 
     if ($Error.Count -gt 0) {

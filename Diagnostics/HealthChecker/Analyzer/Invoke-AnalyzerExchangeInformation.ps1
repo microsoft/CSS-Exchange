@@ -582,7 +582,11 @@ function Invoke-AnalyzerExchangeInformation {
         }
     }
 
-    if ((Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2019" -CU "CU15") -and
+    $isE19CU15Plus = $null
+    Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2019" -CU "CU15" |
+        Invoke-RemotePipelineHandler -Result ([ref]$isE19CU15Plus)
+
+    if ($isE19CU15Plus -and
         $exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false) {
         # This feature only needs to be displayed if we are on Exchange 2019 CU15+
         if ($null -eq $exchangeInformation.GetExchangeServer.RingLevel) {
@@ -623,7 +627,7 @@ function Invoke-AnalyzerExchangeInformation {
             Add-AnalyzedResultInformation @params
 
             if ($getExchangeServer.FeaturesEnabled.Count -gt 0) {
-                $details = ([string]::Join(", ", $getExchangeServer.FeaturesEnabled))
+                $details = ([string]::Join(", ", @($getExchangeServer.FeaturesEnabled)))
             } else {
                 $details = "None Enabled"
             }
@@ -637,28 +641,28 @@ function Invoke-AnalyzerExchangeInformation {
             if ($getExchangeServer.FeaturesApproved.Count -gt 0) {
                 $params = $flightingBaseParams + @{
                     Name    = "Features Approved"
-                    Details = ([string]::Join(", ", $getExchangeServer.FeaturesApproved))
+                    Details = ([string]::Join(", ", @($getExchangeServer.FeaturesApproved)))
                 }
                 Add-AnalyzedResultInformation @params
             }
             if ($getExchangeServer.FeaturesAwaitingAdminApproval.Count -gt 0) {
                 $params = $flightingBaseParams + @{
                     Name    = "Features Awaiting Admin Approval"
-                    Details = ([string]::Join(", ", $getExchangeServer.FeaturesAwaitingAdminApproval))
+                    Details = ([string]::Join(", ", @($getExchangeServer.FeaturesAwaitingAdminApproval)))
                 }
                 Add-AnalyzedResultInformation @params
             }
             if ($getExchangeServer.FeaturesBlocked.Count -gt 0) {
                 $params = $flightingBaseParams + @{
                     Name    = "Features Blocked"
-                    Details = ([string]::Join(", ", $getExchangeServer.FeaturesBlocked))
+                    Details = ([string]::Join(", ", @($getExchangeServer.FeaturesBlocked)))
                 }
                 Add-AnalyzedResultInformation @params
             }
             if ($getExchangeServer.FeaturesDisabled.Count -gt 0) {
                 $params = $flightingBaseParams + @{
                     Name    = "Features Disabled"
-                    Details = ([string]::Join(", ", $getExchangeServer.FeaturesDisabled))
+                    Details = ([string]::Join(", ", @($getExchangeServer.FeaturesDisabled)))
                 }
                 Add-AnalyzedResultInformation @params
             }

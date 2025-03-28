@@ -28,8 +28,15 @@ function Invoke-AnalyzerSecurityMitigationService {
     }
     #Description: Check for Exchange Emergency Mitigation Service (EEMS)
     #Introduced in: Exchange 2016 CU22, Exchange 2019 CU11
-    if (((Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2016" -CU "CU22") -or
-        (Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2019" -CU "CU11")) -and
+    $isE16CU22Plus = $null
+    $isE19CU11Plus = $null
+    Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2016" -CU "CU22" |
+        Invoke-RemotePipelineHandler -Result ([ref]$isE16CU22Plus)
+    Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2019" -CU "CU11" |
+        Invoke-RemotePipelineHandler -Result ([ref]$isE19CU11Plus)
+
+    if ((($isE16CU22Plus) -or
+        ($isE19CU11Plus)) -and
         $exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false) {
 
         if (-not([String]::IsNullOrEmpty($mitigationEnabledAtOrg))) {
