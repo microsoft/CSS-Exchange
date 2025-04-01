@@ -7,7 +7,8 @@ param()
 BeforeAll {
     $Script:parentPath = (Split-Path -Parent $PSScriptRoot)
     $Script:Server = $env:COMPUTERNAME
-    . $Script:parentPath\Get-ExchangeServerCertificates.ps1
+    . $Script:parentPath\..\..\..\..\Shared\CertificateFunctions\Get-ExchangeServerCertificateInformation.ps1
+    . $Script:parentPath\..\..\Analyzer\Security\Get-ExchangeCertificateCustomObject.ps1
     . $PSScriptRoot\..\..\..\..\..\.build\Load-Module.ps1
 
     if (-not (Load-Module -Name "Microsoft.PowerShell.Security" -MinimumVersion "7.0.0.0")) {
@@ -27,7 +28,7 @@ BeforeAll {
     }
 }
 
-Describe "Testing Get-ExchangeServerCertificates.ps1" {
+Describe "Testing Get-ExchangeServerCertificateInformation & Get-ExchangeCertificateCustomObject" {
 
     BeforeAll {
         Mock Get-AuthConfig -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetAuthConfig.xml }
@@ -37,7 +38,8 @@ Describe "Testing Get-ExchangeServerCertificates.ps1" {
 
     Context "Valid Exchange Server Certificates Detected" {
         BeforeAll {
-            $Script:results = Get-ExchangeServerCertificates -Server $Script:Server
+            $info = Get-ExchangeServerCertificateInformation -Server $Script:Server
+            $script:results = $info.Certificates | Get-ExchangeCertificateCustomObject -InternalTransportCertificate $info.InternalCertificate -AuthConfig (Get-AuthConfig)
         }
 
         It "Valid Auth Certificate (using weak SHA1 Hash Algorithm) Detected" {
@@ -79,7 +81,8 @@ Describe "Testing Get-ExchangeServerCertificates.ps1" {
     Context "No Matching Auth Certificate Found" {
         BeforeAll {
             Mock Get-ExchangeCertificate -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetExchangeCertificateWithoutAuth.xml }
-            $Script:results = Get-ExchangeServerCertificates -Server $Script:Server
+            $info = Get-ExchangeServerCertificateInformation -Server $Script:Server
+            $script:results = $info.Certificates | Get-ExchangeCertificateCustomObject -InternalTransportCertificate $info.InternalCertificate -AuthConfig (Get-AuthConfig)
         }
 
         It "Get Auth Config But No Matching Certificate" {
@@ -95,7 +98,8 @@ Describe "Testing Get-ExchangeServerCertificates.ps1" {
     Context "Auth Configuration Call Failed" {
         BeforeAll {
             Mock Get-AuthConfig -MockWith { throw "Bad thing happened - Get-AuthConfig" }
-            $Script:results = Get-ExchangeServerCertificates -Server $Script:Server
+            $info = Get-ExchangeServerCertificateInformation -Server $Script:Server
+            $script:results = $info.Certificates | Get-ExchangeCertificateCustomObject -InternalTransportCertificate $info.InternalCertificate -AuthConfig $null
         }
 
         It "Unable To Find Valid Auth Certificate" {
@@ -105,14 +109,14 @@ Describe "Testing Get-ExchangeServerCertificates.ps1" {
 
                 $result.IsCurrentAuthConfigCertificate | Should -Be "InvalidAuthConfig"
             }
-            $error[0].Exception.Message | Should -Be "Bad thing happened - Get-AuthConfig"
         }
     }
 
     Context "No Exchange Server Certificate Returned" {
         BeforeAll {
             Mock Get-ExchangeCertificate -MockWith { return $null }
-            $Script:results = Get-ExchangeServerCertificates -Server $Script:Server
+            $info = Get-ExchangeServerCertificateInformation -Server $Script:Server
+            $script:results = $info.Certificates | Get-ExchangeCertificateCustomObject -InternalTransportCertificate $info.InternalCertificate -AuthConfig (Get-AuthConfig)
         }
 
         It "No Custom certificate Object Returned" {
@@ -123,7 +127,8 @@ Describe "Testing Get-ExchangeServerCertificates.ps1" {
     Context "Exchange Server Certificate Returned In Raw Format" {
         BeforeAll {
             Mock Get-ExchangeCertificate { Import-Clixml $Script:parentPath\Tests\DataCollection\GetExchangeCertificateBroken.xml }
-            $Script:results = Get-ExchangeServerCertificates -Server $Script:Server
+            $info = Get-ExchangeServerCertificateInformation -Server $Script:Server
+            $script:results = $info.Certificates | Get-ExchangeCertificateCustomObject -InternalTransportCertificate $info.InternalCertificate -AuthConfig (Get-AuthConfig)
         }
 
         It "Should Successfully Import Certificates From RawData" {
@@ -140,7 +145,8 @@ Describe "Testing Get-ExchangeServerCertificates.ps1" {
     Context "Get-ExchangeCertificate Call Hit An Exception" {
         BeforeAll {
             Mock Get-ExchangeCertificate -MockWith { throw "Bad thing happened - Get-ExchangeCertificate" }
-            $Script:results = Get-ExchangeServerCertificates -Server $Script:Server
+            $info = Get-ExchangeServerCertificateInformation -Server $Script:Server
+            $script:results = $info.Certificates | Get-ExchangeCertificateCustomObject -InternalTransportCertificate $info.InternalCertificate -AuthConfig (Get-AuthConfig)
         }
 
         It "No Custom Certificate Object Returned And Exception Logged" {
@@ -152,7 +158,8 @@ Describe "Testing Get-ExchangeServerCertificates.ps1" {
     Context "Check If Certificates On SkipList Are Skipped" {
         BeforeAll {
             Mock Get-ExchangeCertificate -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetExchangeCertificateOnAzure.xml }
-            $Script:results = Get-ExchangeServerCertificates -Server $Script:Server
+            $info = Get-ExchangeServerCertificateInformation -Server $Script:Server
+            $script:results = $info.Certificates | Get-ExchangeCertificateCustomObject -InternalTransportCertificate $info.InternalCertificate -AuthConfig (Get-AuthConfig)
         }
 
         It "Should Not Return The 'Windows Azure CRP Certificate Generator' Certificate" {

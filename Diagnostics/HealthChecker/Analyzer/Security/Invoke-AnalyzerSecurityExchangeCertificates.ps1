@@ -1,6 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Get-ExchangeCertificateCustomObject.ps1
+
 function Invoke-AnalyzerSecurityExchangeCertificates {
     [CmdletBinding()]
     param(
@@ -21,7 +23,15 @@ function Invoke-AnalyzerSecurityExchangeCertificates {
         DisplayGroupingKey  = $DisplayGroupingKey
     }
 
-    foreach ($certificate in $exchangeInformation.ExchangeCertificates) {
+    $customObjectParams = @{
+        InternalTransportCertificate = $exchangeInformation.ExchangeCertificateInformation.InternalCertificate
+        AuthConfig                   = $HealthServerObject.OrganizationInformation.GetAuthConfig
+    }
+
+    $exchangeServerCertificatesObject = $exchangeInformation.ExchangeCertificateInformation.Certificates |
+        Get-ExchangeCertificateCustomObject @customObjectParams
+
+    foreach ($certificate in $exchangeServerCertificatesObject) {
 
         if ($certificate.LifetimeInDays -ge 60) {
             $displayColor = "Green"
