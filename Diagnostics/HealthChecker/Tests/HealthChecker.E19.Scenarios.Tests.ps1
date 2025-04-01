@@ -155,7 +155,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "Event Log Size Test" {
             GetObject "Event Log - Application" |
-                Should -BeLike "--ERROR-- Not enough logs to cover 7 days. Last log entry is at *. This could cause issues with determining Root Cause Analysis."
+                Should -BeLike "--ERROR-- Not enough logs to cover 7 days. Oldest log entry is at *. This could cause issues with determining Root Cause Analysis."
         }
 
         It "TCP Keep Alive Time" {
