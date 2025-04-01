@@ -8,6 +8,7 @@
     Major Release History:
         06/16/2021 - Initial Release
         06/26/2023 - Added ability to scan processes
+        02/10/2025 - Added AMSI detection
 
 .SYNOPSIS
 Uses EICAR files to verify that all Exchange paths that should be excluded from AV scanning are excluded.
@@ -313,6 +314,39 @@ $currentDiff = $initialDiff
 $firstExecution = $true
 $SuspiciousProcessList = New-Object Collections.Generic.List[string]
 $SuspiciousW3wpProcessList = New-Object Collections.Generic.List[string]
+$SuspiciousAMSIinW3wpProcessList = New-Object Collections.Generic.List[string]
+
+# Get AMSI Dlls registered
+# Define the AMSI providers registry path
+$registryPath = "HKLM:\SOFTWARE\Microsoft\AMSI\Providers"
+
+$subKeys = $null
+$AMSIDll = New-Object Collections.Generic.List[string]
+# Get all subKeys in the specified registry path
+$subKeys = Get-ChildItem -Path $registryPath -ErrorAction SilentlyContinue
+
+if ($subKeys) {
+    # Regular expression to match the subKey names
+    $regex = "[0-9A-Fa-f\-]{36}"
+
+    $matchingSubKeys = $null
+    # Filter the subKeys that match the regular expression and get only their names
+    $matchingSubKeys = $subKeys -match $regex
+    if ($matchingSubKeys) {
+        foreach ($subKey in $matchingSubKeys) {
+            $foundDll = (Get-Item "HKLM:\SOFTWARE\Classes\ClSid\$($subKey.PSChildName)\InprocServer32" -ErrorAction SilentlyContinue).GetValue("").trim('"')
+            if ($null -eq $foundDll) {
+                Write-Host 'No AMSI Dlls was found for $($subKey.PSChildName), possible AMSI misconfiguration"' -ForegroundColor Red
+            } else {
+                $AMSIDll.add($foundDll)
+            }
+        }
+    } else {
+        Write-Host 'No AMSI configuration was found, possible AMSI misconfiguration"' -ForegroundColor Red
+    }
+} else {
+    Write-Host '"No AMSI Providers was found"'
+}
 
 Write-Host "Analyzing Exchange Processes"
 while ($currentDiff -gt 0) {
@@ -468,10 +502,17 @@ while ($currentDiff -gt 0) {
             if ($ProcessModules.count -gt 0) {
                 foreach ($module in $ProcessModules) {
                     $OutString = ("PROCESS: $($process.ProcessName) PID($($process.Id)) UNEXPECTED MODULE: $($module.ModuleName) COMPANY: $($module.Company)`n`tPATH: $($module.FileName)`n`tFileVersion: $($module.FileVersion)")
-                    Write-Host "[FAIL] - $OutString" -ForegroundColor Red
                     if ($process.MainModule.ModuleName -eq "W3wp.exe") {
-                        $SuspiciousW3wpProcessList += $OutString
+                        if ($AMSIDll -contains $module.FileName) {
+                            $OutString = ("PROCESS: $($process.ProcessName) PID($($process.Id)) MODULE: $($module.ModuleName) COMPANY: $($module.Company)`n`tPATH: $($module.FileName)`n`tFileVersion: $($module.FileVersion)")
+                            Write-Host "[WARNING] - AMSI DLL Detected: $OutString" -ForegroundColor Yellow
+                            $SuspiciousAMSIinW3wpProcessList += $OutString
+                        } else {
+                            Write-Host "[FAIL] - $OutString" -ForegroundColor Red
+                            $SuspiciousW3wpProcessList += $OutString
+                        }
                     } else {
+                        Write-Host "[FAIL] - $OutString" -ForegroundColor Red
                         $SuspiciousProcessList += $OutString
                     }
                 }
@@ -554,7 +595,7 @@ $OutputPath = Join-Path $PSScriptRoot BadExclusions-$StartDateFormatted.txt
 "###########################################################################################" | Out-File $OutputPath -Append
 
 # Report what we found
-if ($BadFolderList.count -gt 0 -or $BadExtensionList.Count -gt 0 -or $SuspiciousProcessList.count -gt 0 -or $SuspiciousW3wpProcessList.count -gt 0) {
+if ($BadFolderList.count -gt 0 -or $BadExtensionList.Count -gt 0 -or $SuspiciousProcessList.count -gt 0 -or $SuspiciousW3wpProcessList.count -gt 0 -or $SuspiciousAMSIinW3wpProcessList.count -gt 0) {
 
     Write-Host "Possible AV Scanning found" -ForegroundColor Red
     if ($BadFolderList.count -gt 0 ) {
@@ -579,6 +620,14 @@ if ($BadFolderList.count -gt 0 -or $BadExtensionList.Count -gt 0 -or $Suspicious
         "`n[Non-Default Modules Loaded on W3wp.exe]" | Out-File $OutputPath -Append
         $SuspiciousW3wpProcessList | Out-File $OutputPath -Append
         Write-Warning ("Found $($SuspiciousW3wpProcessList.count) UnExpected modules loaded into W3wp.exe ")
+    }
+    if ($SuspiciousAMSIinW3wpProcessList.count -gt 0) {
+        $SuspiciousAMSIinW3wpProcessListString = "`nFound AMSI modules in w3wp processes`nThat may impact Exchange performance and Outlook connectivity in some scenarios.`nThese modules are not necessarily anomalies, but we recommend checking the following articles: `n`thttps://learn.microsoft.com/en-us/exchange/antispam-and-antimalware/amsi-integration-with-exchange `n`thttps://aka.ms/Test-AMSI"
+        $SuspiciousAMSIinW3wpProcessListString | Out-File $OutputPath -Append
+        Write-Warning $SuspiciousAMSIinW3wpProcessListString
+        "`n[AMSI Modules Loaded on W3wp.exe]" | Out-File $OutputPath -Append
+        $SuspiciousAMSIinW3wpProcessList | Out-File $OutputPath -Append
+        Write-Warning ("Found $($SuspiciousAMSIinW3wpProcessList.count) AMSI modules loaded into W3wp.exe ")
     }
     Write-Warning ("Review " + $OutputPath + " For the full list.")
 } else {
