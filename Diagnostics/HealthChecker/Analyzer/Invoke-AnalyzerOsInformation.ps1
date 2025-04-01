@@ -493,7 +493,7 @@ function Invoke-AnalyzerOsInformation {
                 $logInfo.FileSize -ge $logInfo.MaxSize) {
                 $params = $baseParams + @{
                     Name             = "Event Log - $logType"
-                    Details          = "--ERROR-- Not enough logs to cover $days days. Last log entry is at $($logInfo.LastLogEntry)." +
+                    Details          = "--ERROR-- Not enough logs to cover $days days. Oldest log entry is at $($logInfo.LastLogEntry)." +
                     " This could cause issues with determining Root Cause Analysis."
                     DisplayWriteType = "Red"
                 }
