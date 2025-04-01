@@ -241,22 +241,26 @@ foreach ($p in $Platforms) {
             $fullPkgUrl = $engineUrl + $manifest.ManifestFile.Package.version + "/" + $manifest.ManifestFile.Package.FullPackage.name
             $fullPkgPath = ($fullPkgDir + $manifest.ManifestFile.Package.FullPackage.name)
 
-            $wc.DownloadFile($fullPkgUrl, $fullPkgPath)
+            if (((Test-Path $fullPkgPath) -ne $true) -or ((Get-Item $fullPkgPath).Length -ne $manifest.ManifestFile.Package.FullPackage.Size)) {
+                $wc.DownloadFile($fullPkgUrl, $fullPkgPath)
 
-            # Detect if there are any subdirectories
-            # needed for this engine
-            $subDirCount = $manifest.ManifestFile.Package.Files.Dir.Count
+                # Detect if there are any subdirectories
+                # needed for this engine
+                $subDirCount = $manifest.ManifestFile.Package.Files.Dir.Count
 
-            for ($i=0; $i -lt $subDirCount; $i++) {
-                CreatePath ($fullPkgDir + $manifest.ManifestFile.Package.Files.Dir[$i].name)
+                for ($i=0; $i -lt $subDirCount; $i++) {
+                    CreatePath ($fullPkgDir + $manifest.ManifestFile.Package.Files.Dir[$i].name)
+                }
+
+                ExtractCab $fullPkgPath $fullPkgDir
+
+                # Copy the downloaded manifest to the package directory
+                Copy-Item $manifestPath -Destination $fullPkgDir
+
+                Write-Host "Download Complete: " $engine.Name
+            } else {
+                Write-Host "Engine already up to date: " $engine.Name
             }
-
-            ExtractCab $fullPkgPath $fullPkgDir
-
-            # Copy the downloaded manifest to the package directory
-            Copy-Item $manifestPath -Destination $fullPkgDir
-
-            Write-Host "Download Complete: " $engine.Name
         }
     }
 }
