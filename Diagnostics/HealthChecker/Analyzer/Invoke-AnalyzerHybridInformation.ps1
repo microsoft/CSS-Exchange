@@ -206,6 +206,9 @@ function Invoke-AnalyzerHybridInformation {
 
             foreach ($connector in $exchangeConnectors) {
                 $cloudConnectorWriteType = "Yellow"
+                $smartHostsPointToExo = $false
+                $addressSpacesContainsWildcard = $false
+
                 if (($connector.TransportRole -ne "HubTransport") -and
                     ($connector.CloudEnabled -eq $true)) {
 
