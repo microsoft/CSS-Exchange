@@ -258,8 +258,7 @@ foreach ($p in $Platforms) {
                 Copy-Item $manifestPath -Destination $fullPkgDir
 
                 Write-Host "Download Complete: " $engine.Name
-            }
-            else {
+            } else {
                 Write-Host "Engine already up to date: " $engine.Name
             }
         }
