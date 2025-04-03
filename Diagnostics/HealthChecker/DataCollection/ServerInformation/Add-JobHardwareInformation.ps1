@@ -9,7 +9,11 @@ function Add-JobHardwareInformation {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
-        [string]$ComputerName
+        [string]$ComputerName,
+
+        [Parameter(Mandatory = $true)]
+        [ValidateSet("Legacy", "Queue", "StartNow")]
+        [string]$RunType
     )
     process {
         <#
@@ -20,18 +24,28 @@ function Add-JobHardwareInformation {
         . $PSScriptRoot\Invoke-JobHardwareInformation.ps1
 
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        $params = @{
-            PrimaryScriptBlock = ${Function:Invoke-JobHardwareInformation}
-            IncludeScriptBlock = @(${Function:Get-WmiObjectCriticalHandler}, ${Function:Get-WmiObjectHandler})
-        }
-        $scriptBlock = Get-HCDefaultSBInjection @params
-        $params = @{
-            JobParameter = @{
-                ComputerName = $ComputerName
-                ScriptBlock  = $scriptBlock
+
+        if ($RunType -eq "Legacy") {
+            throw "Legacy Not Implemented"
+        } else {
+            $params = @{
+                PrimaryScriptBlock = ${Function:Invoke-JobHardwareInformation}
+                IncludeScriptBlock = @(${Function:Get-WmiObjectCriticalHandler}, ${Function:Get-WmiObjectHandler})
             }
-            JobId        = "Invoke-JobHardwareInformation-$ComputerName"
+            $scriptBlock = Get-HCDefaultSBInjection @params
+            $params = @{
+                JobParameter = @{
+                    ComputerName = $ComputerName
+                    ScriptBlock  = $scriptBlock
+                }
+                JobId        = "Invoke-JobHardwareInformation-$ComputerName"
+            }
+
+            if ($RunType -eq "Queue") {
+                Add-JobQueue @params
+            } elseif ($RunType -eq "StartNow") {
+                throw "StartNow Not Implemented"
+            }
         }
-        Add-JobQueue @params
     }
 }
