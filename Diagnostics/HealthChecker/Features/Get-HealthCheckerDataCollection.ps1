@@ -81,6 +81,7 @@ function Get-HealthCheckerDataCollection {
         }
 
         Write-Verbose "DevTestingScenario is set to $DevTestingScenario"
+        $hardwareRunType = $osRunType = $exchLocalRunType = $exchCmdletRunType = $orgRunType = "Queue"
         $getExchangeServerList = @{}
     }
     process {
@@ -111,13 +112,13 @@ function Get-HealthCheckerDataCollection {
         $Script:PrimaryRemoteShellConnectionPoint = (Get-PSSession | Where-Object { $_.Availability -eq "Available" -and $_.State -eq "Opened" } | Select-Object -First 1).ComputerName
 
         # Add all the jobs to the queue that we need.
-        Add-JobOrganizationInformation
+        Add-JobOrganizationInformation -RunType $orgRunType
 
         foreach ($serverName in $getExchangeServerList.Keys) {
-            Add-JobHardwareInformation -ComputerName $serverName
-            Add-JobOperatingSystemInformation -ComputerName $serverName
-            Add-JobExchangeInformationCmdlet -ComputerName $serverName
-            Add-JobExchangeInformationLocal -ComputerName $serverName -GetExchangeServer ($getExchangeServerList[$serverName])
+            Add-JobHardwareInformation -ComputerName $serverName -RunType $hardwareRunType
+            Add-JobOperatingSystemInformation -ComputerName $serverName -RunType $osRunType
+            Add-JobExchangeInformationCmdlet -ComputerName $serverName -RunType $exchCmdletRunType
+            Add-JobExchangeInformationLocal -ComputerName $serverName -GetExchangeServer ($getExchangeServerList[$serverName]) -RunType $exchLocalRunType
         }
 
         $generationTime = Get-Date
@@ -231,7 +232,5 @@ function Get-HealthCheckerDataCollection {
         }
 
         Write-Verbose "Writing out the screen took total $($stopWatch.Elapsed.TotalSeconds) seconds"
-
-        Write-Debug "Testing" -Debug
     }
 }
