@@ -16,6 +16,29 @@
         Write-Progress bar to be included
         Include Write-Warning in the debug logging
         Improve logic for determining what name to use FQDN or name.
+
+    DevTestingScenario described here:
+        LegacyOption: Run HealthChecker in Synchronous mode
+        MainScenario: Is the mode that we believe is going to be the best performing option
+
+            Scenario1:
+                Data Collection Jobs are started with Sync Job (doesn't start till we wait for it)
+                ExchCmdlets Jobs are all done per server in its own job
+                Wait for all data collection jobs to be done before next step
+                Analyzer is done with Async (starts once it is added to the queue)
+                Write out the results on the main PS session
+            Scenario2:
+                Data Collection Jobs are started with Async Job (starts once added to the queue)
+                ExchCmdlets Jobs are run in the main PowerShell session
+                Wait for all data collection jobs to be done before next step
+                Analyzer is done with Async 9starts once it is added to the queue)
+                Write out the results on the main PS session
+            Scenario3:
+                Data Collection Jobs are started with Async Job (starts once added to the queue)
+                ExchCmdlets Jobs are broken up to determine how to best handle
+                Wait for all data collection jobs to be done before next step
+                Analyzer is done with Async (starts once it is added to the queue)
+                Write out the results on the main PS session
 #>
 function Get-HealthCheckerDataCollection {
     [CmdletBinding()]
@@ -52,6 +75,12 @@ function Get-HealthCheckerDataCollection {
             return $false
         }
 
+        if ($DevTestingScenario -eq "MainScenario") {
+            # Set to the current main scenario that appears to work the best.
+            $DevTestingScenario = "Scenario1"
+        }
+
+        Write-Verbose "DevTestingScenario is set to $DevTestingScenario"
         $getExchangeServerList = @{}
     }
     process {
