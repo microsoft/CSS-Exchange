@@ -12,7 +12,11 @@ function Add-JobExchangeInformationLocal {
         [string]$ComputerName,
 
         [Parameter(Mandatory = $true)]
-        [object]$GetExchangeServer
+        [object]$GetExchangeServer,
+
+        [Parameter(Mandatory = $true)]
+        [ValidateSet("Legacy", "Queue", "StartNow")]
+        [string]$RunType
     )
     process {
         <#
@@ -30,21 +34,31 @@ function Add-JobExchangeInformationLocal {
         . $PSScriptRoot\Invoke-JobExchangeInformationLocal.ps1
 
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        $sbInjectionParams = @{
-            PrimaryScriptBlock = ${Function:Invoke-JobExchangeInformationLocal}
-            IncludeScriptBlock = @(${Function:Get-ExchangeBuildVersionInformation}, ${Function:GetExchangeBuildDictionary}, ${Function:GetValidatePossibleParameters},
-                ${Function:ValidateSUParameter}, ${Function:ValidateCUParameter}, ${Function:ValidateVersionParameter}, ${Function:Get-RemoteRegistrySubKey},
-                ${Function:Get-RemoteRegistryValue}, ${Function:Test-ExchangeBuildGreaterOrEqualThanSecurityPatch})
-        }
-        $scriptBlock = Get-HCDefaultSBInjection @sbInjectionParams
-        $params = @{
-            JobParameter = @{
-                ComputerName = $ComputerName
-                ScriptBlock  = $scriptBlock
-                ArgumentList = $GetExchangeServer
+
+        if ($RunType -eq "Legacy") {
+            throw "Legacy Not Implemented"
+        } else {
+            $sbInjectionParams = @{
+                PrimaryScriptBlock = ${Function:Invoke-JobExchangeInformationLocal}
+                IncludeScriptBlock = @(${Function:Get-ExchangeBuildVersionInformation}, ${Function:GetExchangeBuildDictionary}, ${Function:GetValidatePossibleParameters},
+                    ${Function:ValidateSUParameter}, ${Function:ValidateCUParameter}, ${Function:ValidateVersionParameter}, ${Function:Get-RemoteRegistrySubKey},
+                    ${Function:Get-RemoteRegistryValue}, ${Function:Test-ExchangeBuildGreaterOrEqualThanSecurityPatch})
             }
-            JobId        = "Invoke-JobExchangeInformationLocal-$ComputerName"
+            $scriptBlock = Get-HCDefaultSBInjection @sbInjectionParams
+            $params = @{
+                JobParameter = @{
+                    ComputerName = $ComputerName
+                    ScriptBlock  = $scriptBlock
+                    ArgumentList = $GetExchangeServer
+                }
+                JobId        = "Invoke-JobExchangeInformationLocal-$ComputerName"
+            }
+
+            if ($RunType -eq "Queue") {
+                Add-JobQueue @params
+            } elseif ($RunType -eq "StartNow") {
+                throw "StartNow Not Implemented"
+            }
         }
-        Add-JobQueue @params
     }
 }
