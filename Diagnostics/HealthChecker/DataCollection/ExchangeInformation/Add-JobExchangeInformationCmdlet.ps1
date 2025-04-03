@@ -11,7 +11,12 @@ function Add-JobExchangeInformationCmdlet {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
-        [string]$ComputerName
+        [string]$ComputerName,
+
+        # TODO: This is going to need to completely change
+        [Parameter(Mandatory = $true)]
+        [ValidateSet("Legacy", "Queue")]
+        [string]$RunType
     )
     process {
         <#
@@ -23,21 +28,26 @@ function Add-JobExchangeInformationCmdlet {
         #>
         . $PSScriptRoot\Invoke-JobExchangeInformationCmdlet.ps1
 
-        Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        $sbInjectionParams = @{
-            PrimaryScriptBlock = ${Function:Invoke-JobExchangeInformationCmdlet}
-            IncludeScriptBlock = @(${Function:Invoke-DefaultConnectExchangeShell}, ${Function:Get-ExchangeContainer},
-                ${Function:Get-MonitoringOverride})
-        }
-        $scriptBlock = Get-HCDefaultSBInjection @sbInjectionParams
-        $params = @{
-            JobCommand   = "Start-Job"
-            JobParameter = @{
-                ScriptBlock  = $scriptBlock
-                ArgumentList = $ComputerName
+        if ($RunType -eq "Legacy") {
+            throw "Legacy Not Implemented"
+        } else {
+            # only thing we have right now is queue.
+            Write-Verbose "Calling: $($MyInvocation.MyCommand)"
+            $sbInjectionParams = @{
+                PrimaryScriptBlock = ${Function:Invoke-JobExchangeInformationCmdlet}
+                IncludeScriptBlock = @(${Function:Invoke-DefaultConnectExchangeShell}, ${Function:Get-ExchangeContainer},
+                    ${Function:Get-MonitoringOverride})
             }
-            JobId        = "Invoke-JobExchangeInformationCmdlet-$ComputerName"
+            $scriptBlock = Get-HCDefaultSBInjection @sbInjectionParams
+            $params = @{
+                JobCommand   = "Start-Job"
+                JobParameter = @{
+                    ScriptBlock  = $scriptBlock
+                    ArgumentList = $ComputerName
+                }
+                JobId        = "Invoke-JobExchangeInformationCmdlet-$ComputerName"
+            }
+            Add-JobQueue @params
         }
-        Add-JobQueue @params
     }
 }
