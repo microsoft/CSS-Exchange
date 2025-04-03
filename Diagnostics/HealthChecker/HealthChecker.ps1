@@ -7,6 +7,7 @@
 	Requires: Exchange Management Shell and administrator rights on the target Exchange
 	server as well as the local machine.
     Major Release History:
+        4/4/2025  - Initial Public Release with Multithreading TODO change date
         4/20/2021  - Initial Public Release on CSS-Exchange.
         11/10/2020 - Initial Public Release of version 3.
         1/18/2017 - Initial Public Release of version 2.
@@ -128,6 +129,11 @@ param(
 
     [Parameter(Mandatory = $true, ParameterSetName = "VulnerabilityReport", HelpMessage = "Enable to collect data on the entire environment and report only the security vulnerabilities.")]
     [switch]$VulnerabilityReport,
+
+    # TODO: Remove this prior to public release
+    [Parameter(Mandatory = $false)]
+    [ValidateSet("MainScenario", "LegacyOption")]
+    [string]$DevTestingScenario = "MainScenario",
 
     [Parameter(Mandatory = $false, ParameterSetName = "HealthChecker", HelpMessage = "Skip over checking for a new updated version of the script.")]
     [Parameter(Mandatory = $false, ParameterSetName = "MailboxReport", HelpMessage = "Skip over checking for a new updated version of the script.")]
