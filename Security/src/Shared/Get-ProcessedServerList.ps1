@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\..\Shared\ScriptBlock\RemotePipelineHandlerFunctions.ps1
 . $PSScriptRoot\..\..\..\Shared\CompareExchangeBuildLevel.ps1
 . $PSScriptRoot\..\..\..\Shared\Get-ExchangeBuildVersionInformation.ps1
 . $PSScriptRoot\..\..\..\Shared\Get-ExSetupFileVersionInfo.ps1
@@ -108,7 +109,9 @@ function Get-ProcessedServerList {
                             CurrentExchangeBuild = (Get-ExchangeBuildVersionInformation -FileVersion $exSetupDetails.FileVersion)
                             SU                   = $MinimumSU
                         }
-                        if ((Test-ExchangeBuildGreaterOrEqualThanSecurityPatch @params)) {
+                        $isSUOrGreater = $false
+                        Test-ExchangeBuildGreaterOrEqualThanSecurityPatch @params | Invoke-RemotePipelineHandler -Result ([ref]$isSUOrGreater)
+                        if ($isSUOrGreater) {
                             $validExchangeServer.Add($server)
                         } else {
                             Write-Verbose "Server $($server.Name) build is older than our expected min SU build. Build Number: $($exSetupDetails.FileVersion)"
