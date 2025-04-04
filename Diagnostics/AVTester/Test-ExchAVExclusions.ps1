@@ -326,23 +326,23 @@ $AMSIDll = New-Object Collections.Generic.List[string]
 $subKeys = Get-ChildItem -Path $registryPath -ErrorAction SilentlyContinue
 
 if ($subKeys) {
-    # Regular expression to match the subKey names
-    $regex = "[0-9A-Fa-f\-]{36}"
-
-    $matchingSubKeys = $null
-    # Filter the subKeys that match the regular expression and get only their names
-    $matchingSubKeys = $subKeys -match $regex
-    if ($matchingSubKeys) {
-        foreach ($subKey in $matchingSubKeys) {
-            $foundDll = (Get-Item "HKLM:\SOFTWARE\Classes\ClSid\$($subKey.PSChildName)\InprocServer32" -ErrorAction SilentlyContinue).GetValue("").trim('"')
-            if ($null -eq $foundDll) {
-                Write-Host 'No AMSI Dlls was found for $($subKey.PSChildName), possible AMSI misconfiguration"' -ForegroundColor Red
-            } else {
-                $AMSIDll.add($foundDll)
+    foreach ($subKey in $subKeys) {
+        $matchingSubKeys = $null
+        # Filter the subKeys that match the regular expression and get only their names
+        $matchingSubKeys = $subKey -match '[0-9A-Fa-f\-]{36}'
+        if ($matchingSubKeys) {
+            foreach ($m in $Matches.Values) {
+                $foundDll = (Get-Item "HKLM:\SOFTWARE\Classes\ClSid\{$m}\InprocServer32" -ErrorAction SilentlyContinue).GetValue("").trim('"')
+                if ($null -eq $foundDll) {
+                    Write-Host "No AMSI Dlls was found for $m, possible AMSI misconfiguration" -ForegroundColor Red
+                } else {
+                    Write-Verbose "AMSI $m was found"
+                    $AMSIDll.add($foundDll)
+                }
             }
+        } else {
+            Write-Host 'No AMSI configuration was found, possible AMSI misconfiguration"' -ForegroundColor Red
         }
-    } else {
-        Write-Host 'No AMSI configuration was found, possible AMSI misconfiguration"' -ForegroundColor Red
     }
 } else {
     Write-Host '"No AMSI Providers was found"'
