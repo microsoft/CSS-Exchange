@@ -117,12 +117,12 @@ function Get-HealthCheckerDataCollection {
         foreach ($serverName in $getExchangeServerList.Keys) {
             Add-JobHardwareInformation -ComputerName $serverName -RunType $hardwareRunType
             Add-JobOperatingSystemInformation -ComputerName $serverName -RunType $osRunType
-            Add-JobExchangeInformationCmdlet -ComputerName $serverName -RunType $exchCmdletRunType
             Add-JobExchangeInformationLocal -ComputerName $serverName -GetExchangeServer ($getExchangeServerList[$serverName]) -RunType $exchLocalRunType
         }
 
         $generationTime = Get-Date
         $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
+        $exchCmdletJobResults = $getExchangeServerList.Keys | Add-JobExchangeInformationCmdlet -RunType "Legacy"
         # TODO: Create proper Receive Job Action to handle the errors that we see in the logging location as well.
         # AND/OR improve the error logging inside remote
         Wait-JobQueue -ProcessReceiveJobAction ${Function:Invoke-RemotePipelineLoggingLocal}
@@ -140,7 +140,8 @@ function Get-HealthCheckerDataCollection {
 
         foreach ($serverName in $getExchangeServerList.Keys) {
 
-            $exchCmdletResults = $jobResults["$exchCmdletKey-$serverName"]
+            # $exchCmdletResults = $jobResults["$exchCmdletKey-$serverName"]
+            $exchCmdletResults = $exchCmdletJobResults["$exchCmdletKey-$serverName"]
             $exchLocalResults = $jobResults["$exchLocalKey-$serverName"]
 
             $hcObject = [PSCustomObject]@{
