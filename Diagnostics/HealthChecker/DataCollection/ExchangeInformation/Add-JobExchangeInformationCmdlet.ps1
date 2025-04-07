@@ -10,7 +10,7 @@
 function Add-JobExchangeInformationCmdlet {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
         [string]$ComputerName,
 
         # TODO: This is going to need to completely change
@@ -18,7 +18,17 @@ function Add-JobExchangeInformationCmdlet {
         [ValidateSet("Legacy", "Queue")]
         [string]$RunType
     )
+    begin {
+        Write-Verbose "Calling: $($MyInvocation.MyCommand)"
+        $exchangeServerList = New-Object System.Collections.Generic.List[string]
+        $legacyResults = @{}
+    }
     process {
+        foreach ($name in $ComputerName) {
+            $exchangeServerList.Add($name)
+        }
+    }
+    end {
         <#
             Non Default Script Block Dependencies
                 Invoke-DefaultConnectExchangeShell
@@ -29,10 +39,14 @@ function Add-JobExchangeInformationCmdlet {
         . $PSScriptRoot\Invoke-JobExchangeInformationCmdlet.ps1
 
         if ($RunType -eq "Legacy") {
-            throw "Legacy Not Implemented"
+
+            foreach ($name in $exchangeServerList) {
+                $data = Invoke-JobExchangeInformationCmdlet -Server $name
+                $legacyResults.Add("Invoke-JobExchangeInformationCmdlet-$name", $data)
+            }
+            return $legacyResults
         } else {
             # only thing we have right now is queue.
-            Write-Verbose "Calling: $($MyInvocation.MyCommand)"
             $sbInjectionParams = @{
                 PrimaryScriptBlock = ${Function:Invoke-JobExchangeInformationCmdlet}
                 IncludeScriptBlock = @(${Function:Invoke-DefaultConnectExchangeShell}, ${Function:Get-ExchangeContainer},
