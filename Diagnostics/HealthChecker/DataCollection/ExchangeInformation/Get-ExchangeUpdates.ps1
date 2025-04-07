@@ -8,7 +8,7 @@ function Get-ExchangeUpdates {
         [string]$Server,
 
         [Parameter(Mandatory = $true)]
-        [ValidateSet("Exchange2013", "Exchange2016", "Exchange2019")]
+        [ValidateSet("Exchange2013", "Exchange2016", "Exchange2019", "ExchangeSE")]
         [string]$ExchangeMajorVersion
     )
     Write-Verbose("Calling: $($MyInvocation.MyCommand) Passed: $ExchangeMajorVersion")

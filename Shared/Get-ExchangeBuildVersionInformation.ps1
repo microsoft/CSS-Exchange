@@ -71,6 +71,7 @@ function Get-ExchangeBuildVersionInformation {
         $orgValue = 0
         $schemaValue = 0
         $mesoValue = 0
+        $exSE = "ExchangeSE"
         $ex19 = "Exchange2019"
         $ex16 = "Exchange2016"
         $ex13 = "Exchange2013"
@@ -110,7 +111,25 @@ function Get-ExchangeBuildVersionInformation {
             Exchange 2016 & 2019 AD Changes: https://learn.microsoft.com/en-us/exchange/plan-and-deploy/prepare-ad-and-domains?view=exchserver-2019
             Exchange 2013 AD Changes: https://learn.microsoft.com/en-us/exchange/prepare-active-directory-and-domains-exchange-2013-help
         #>
-        if ($exchangeVersion.Major -eq 15 -and $exchangeVersion.Minor -eq 2) {
+        if ($exchangeVersion.Major -eq 15 -and $exchangeVersion.Minor -eq 2 -and $exchangeVersion.Build -ge 2562) {
+            Write-Verbose "Exchange Server SE is detected"
+            $exchangeMajorVersion = "ExchangeSE"
+            $extendedSupportDate = "10/14/9999"
+            $friendlyName = "Exchange SE"
+            #Latest Version AD Settings
+            $schemaValue = 17003
+            $mesoValue = 13243
+            $orgValue = 16763
+
+            switch ($exchangeVersion) {
+                { $_ -ge (GetBuildVersion $exSE "RTM") } {
+                    $cuLevel = "RTM"
+                    $cuReleaseDate = "07/01/2025"
+                    $supportedBuildNumber = $true
+                    $latestSUBuild = $true
+                }
+            }
+        } elseif ($exchangeVersion.Major -eq 15 -and $exchangeVersion.Minor -eq 2) {
             Write-Verbose "Exchange 2019 is detected"
             $exchangeMajorVersion = "Exchange2019"
             $extendedSupportDate = "10/14/2025"
@@ -844,6 +863,9 @@ function GetExchangeBuildDictionary {
                     "Apr25HU" = "15.2.1748.24"
                     "May25HU" = "15.2.1748.26"
                 })
+        }
+        "ExchangeSE"   = @{
+            "RTM" = (NewCUAndSUObject "15.2.2562.17")
         }
     }
 }

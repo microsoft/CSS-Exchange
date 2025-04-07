@@ -30,7 +30,8 @@ function Invoke-AnalyzerSecurityAMSIConfigState {
     # AMSI is also not available on Edge Transport Servers (no http component available).
     if (($osInformation.BuildInformation.BuildVersion -ge [System.Version]"10.0.0.0") -and
         ((Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2016" -CU "CU21") -or
-        (Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2019" -CU "CU10")) -and
+        (Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2019" -CU "CU10") -or
+        (Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "ExchangeSE" -CU "RTM")) -and
         ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false)) {
 
         $filterSettingOverrideParams = @{
