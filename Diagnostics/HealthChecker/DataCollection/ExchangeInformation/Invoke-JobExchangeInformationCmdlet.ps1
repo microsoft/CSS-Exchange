@@ -31,7 +31,7 @@ function Invoke-JobExchangeInformationCmdlet {
     process {
 
         $getExchangeServer = Get-ExchangeServer -Identity $Server -Status # TODO: Determine if we want to keep the cmdlet with the status or have it be passed to this job.
-        Get-ExchangeServerCertificateInformation -Server $Server | Invoke-RemotePipelineHandler -Result ([ref]$exchangeCertificateInformation)
+        Get-ExchangeServerCertificateInformation -Server $Server -CatchActionFunction ${Function:Invoke-CatchActions} | Invoke-RemotePipelineHandler -Result ([ref]$exchangeCertificateInformation)
         Get-ExchangeVirtualDirectories -Server $Server | Invoke-RemotePipelineHandler -Result ([ref]$getExchangeVirtualDirectories)
 
         try {
@@ -85,7 +85,7 @@ function Invoke-JobExchangeInformationCmdlet {
             Process   = "EdgeTransport"
             Component = "ResourceThrottling"
         }
-        Get-ExchangeDiagnosticInformation @params | Invoke-RemotePipelineHandler -Result ([ref]$edgeTransportResourceThrottling)
+        Get-ExchangeDiagnosticInformation @params -CatchActionFunction ${Function:Invoke-CatchActions} | Invoke-RemotePipelineHandler -Result ([ref]$edgeTransportResourceThrottling)
         Get-MonitoringOverride -Server $Server | Invoke-RemotePipelineHandler -Result ([ref]$serverMonitoringOverride)
 
         # TODO: Address issue https://github.com/microsoft/CSS-Exchange/issues/2252
