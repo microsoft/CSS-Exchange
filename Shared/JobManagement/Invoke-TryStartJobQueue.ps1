@@ -69,7 +69,7 @@ function Invoke-TryStartJobQueue {
             }
         }
 
-        foreach($normalJob in $normalPriorityJobs) {
+        foreach ($normalJob in $normalPriorityJobs) {
             if ((TryAddToRunQueue $normalJob)) {
                 $jobsToAdd.Enqueue($normalJob)
             }
