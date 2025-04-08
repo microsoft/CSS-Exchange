@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\GetJobManagementFunctions.ps1
+. $PSScriptRoot\Invoke-TryStartJobQueue.ps1
 
 <#
 .SYNOPSIS
@@ -26,36 +27,6 @@ function Wait-JobQueue {
     )
     begin {
 
-        function AddToRunList {
-            param(
-                [Parameter(Mandatory = $true)]
-                $Job
-            )
-
-            if ($Job.JobCommand -eq "Invoke-Command") {
-                $computerName = $Job.JobParameter.ComputerName
-
-                if (-not ($jobsRunningPerServer.ContainsKey($computerName))) {
-                    $jobsRunningPerServer.Add($computerName, 1)
-                    return $true
-                } elseif ($jobsRunningPerServer[$computerName] -le $MaxJobsPerServer) {
-                    $jobsRunningPerServer[$computerName] += 1
-                    return $true
-                }
-            } elseif ($Job.JobCommand -eq "Start-Job") {
-                if (-not ($jobsRunningPerServer.ContainsKey($env:COMPUTERNAME))) {
-                    $jobsRunningPerServer.Add($env:COMPUTERNAME, 1)
-                } elseif ($jobsRunningPerServer[$env:COMPUTERNAME] -le $MaxJobsPerServer) {
-                    $jobsRunningPerServer[$env:COMPUTERNAME] += 1
-                    return $true
-                }
-            }
-            return $false
-        }
-
-        $runningJobs = New-Object System.Collections.Generic.List[object]
-        $maxJobsRunning = $false
-        $jobsRunningPerServer = @{}
         $getJobQueue = Get-JobQueue
 
         if ($getJobQueue.Count -eq 0) {
@@ -65,62 +36,17 @@ function Wait-JobQueue {
     process {
         do {
             # Check to see if we need to add any more jobs
-            if ($getJobQueue.Count -gt 0 -and $maxJobsRunning -eq $false) {
-                $jobsToAdd = New-Object System.Collections.Generic.Queue[object]
-                # Filter on priority
-                $highPriorityJobs = New-Object System.Collections.Generic.List[object]
-                $normalPriorityJobs = New-Object System.Collections.Generic.List[object]
-                $lowPriorityJobs = New-Object System.Collections.Generic.List[object]
+            $tryStartJobQueue = $null -ne $getJobQueue.Values | Where-Object { $null -eq $_.Job }
 
-                $getJobQueue.Values | Where-Object { $null -eq $_.Job } | ForEach-Object {
-                    if ($_.Priority -eq "High") { $highPriorityJobs.Add($_) }
-                    elseif ($_.Priority -eq "Normal") { $normalPriorityJobs.Add($_) }
-                    elseif ($_.Priority -eq "Low") { $lowPriorityJobs.Add($_) }
-                    else { throw "Unknown Priority Level" }
-                }
-
-                foreach ($highJob in $highPriorityJobs) {
-                    if ((AddToRunList $highJob)) {
-                        $jobsToAdd.Enqueue($highJob)
-                    }
-                }
-
-                foreach ($normalJob in $normalPriorityJobs) {
-                    if ((AddToRunList $normalJob)) {
-                        $jobsToAdd.Enqueue($normalJob)
-                    }
-                }
-
-                foreach ($lowJob in $lowPriorityJobs) {
-                    if ((AddToRunList $lowJob)) {
-                        $jobsToAdd.Enqueue($lowJob)
-                    }
-                }
-
-                # Kick off what is in the jobsToAdd queue
-                while ($jobsToAdd.Count -gt 0) {
-                    $currentJob = $jobsToAdd.Dequeue()
-                    $jobCommand = $currentJob.JobCommand
-                    $jobParameter = $currentJob.JobParameter
-
-                    if ($jobCommand -eq "Invoke-Command") {
-                        $jobParameter["AsJob"] = $true
-                    }
-                    Write-Verbose "Starting to execute job '$($currentJob.JobId)'"
-
-                    $newJob = & $jobCommand @JobParameter
-                    $jobInfo = $getJobQueue.Values | Where-Object { $_.JobId -eq $currentJob.JobId }
-                    $jobInfo.Job = $newJob
-                    $jobInfo.JobStartTime = [DateTime]::Now
-                    $runningJobs.Add($jobInfo)
-                }
+            if ($tryStartJobQueue) {
+                Invoke-TryStartJobQueue
             }
 
             # Check all the current jobs running to see if they have finished
-            $nonRunningJobs = @($runningJobs | Where-Object { $_.Job.State -ne "Running" } )
+            $completedJobsToProcess = $getJobQueue.Values | Where-Object { $null -ne $_.Job -and $_.JobEndTime -eq [DateTime]::MinValue  -and $_.Job.State -ne "Running" }
 
-            if ($nonRunningJobs.Count -gt 0) {
-                foreach ($jobInfo in $nonRunningJobs) {
+            if ($completedJobsToProcess.Count -gt 0) {
+                foreach ($jobInfo in $completedJobsToProcess) {
                     $JobError = $null
                     Write-Verbose "Attempting to receive job $($jobInfo.JobId)"
                     $result = Receive-Job $jobInfo.Job -ErrorVariable "JobError"
@@ -138,18 +64,11 @@ function Wait-JobQueue {
                     $psTimeTaken = $jobInfo.Job.PSEndTime - $jobInfo.Job.PSBeginTime
                     Write-Verbose "Job $($jobInfo.JobId) took $($timeTaken.TotalSeconds) seconds and PS Job Time $($psTimeTaken.TotalSeconds)"
                     Remove-Job $jobInfo.Job -Force
-                    $runningJobs.Remove($jobInfo) | Out-Null
-
-                    if ($jobInfo.JobCommand -eq "Start-Job") {
-                        $jobsRunningPerServer[$env:COMPUTERNAME] += -1
-                    } else {
-                        $jobsRunningPerServer[$jobInfo.Job.Location] += -1
-                    }
                 }
             }
 
             Start-Sleep 1
             $continue = $null -ne ($getJobQueue.Values | Where-Object { $_.JobEndTime -eq [DateTime]::MinValue })
-        } while ($continue -or $runningJobs.Count -gt 0)
+        } while ($continue)
     }
 }
