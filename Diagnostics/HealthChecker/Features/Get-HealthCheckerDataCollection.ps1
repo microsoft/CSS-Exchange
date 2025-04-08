@@ -123,6 +123,7 @@ function Get-HealthCheckerDataCollection {
         $generationTime = Get-Date
         $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
         $exchCmdletJobResults = $getExchangeServerList.Keys | Add-JobExchangeInformationCmdlet -RunType "Legacy"
+        Write-Host "Took $($stopWatch.Elapsed.TotalSeconds) seconds to complete the Add-JobExchangeInformationCmdlet Legacy"
         # TODO: Create proper Receive Job Action to handle the errors that we see in the logging location as well.
         # AND/OR improve the error logging inside remote
         Wait-JobQueue -ProcessReceiveJobAction ${Function:Invoke-RemotePipelineLoggingLocal}
