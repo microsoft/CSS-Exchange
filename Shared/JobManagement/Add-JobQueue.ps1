@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\GetJobManagementFunctions.ps1
+. $PSScriptRoot\Invoke-TryStartJobQueue.ps1
 
 <#
 .SYNOPSIS
@@ -19,7 +20,8 @@
     The friendly name of the job that can be used for Write-Progress
 .PARAMETER Priority
     If you have a job that needs to go first, make sure that it is set to High. Valid Options High, Normal, Low
-
+.PARAMETER TryStartNow
+    Attempt to start the job right away, if not just queue.
 #>
 
 function Add-JobQueue {
@@ -33,7 +35,8 @@ function Add-JobQueue {
         [string]$JobId,
         [string]$FriendlyName,
         [ValidateSet("High", "Normal", "Low")]
-        [string]$Priority = "Normal"
+        [string]$Priority = "Normal",
+        [bool]$TryStartNow = $false
     )
     begin {
         $getJobQueue = Get-JobQueue
@@ -57,5 +60,9 @@ function Add-JobQueue {
 
         $getJobQueue.Add($JobId, $obj)
         Write-Verbose "Successfully added JobId: $JobId"
+
+        if ($TryStartNow) {
+            Invoke-TryStartJobQueue
+        }
     }
 }
