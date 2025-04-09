@@ -81,7 +81,7 @@ function Get-HealthCheckerDataCollection {
         }
 
         Write-Verbose "DevTestingScenario is set to $DevTestingScenario"
-        $hardwareRunType = $osRunType = $exchLocalRunType = $exchCmdletRunType = $orgRunType = "Queue"
+        $hardwareRunType = $osRunType = $exchLocalRunType = $exchCmdletRunType = $orgRunType = "StartNow"
         $getExchangeServerList = @{}
     }
     process {
@@ -123,12 +123,13 @@ function Get-HealthCheckerDataCollection {
         $generationTime = Get-Date
         $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
         $exchCmdletJobResults = $getExchangeServerList.Keys | Add-JobExchangeInformationCmdlet -RunType "Legacy"
-        Write-Host "Took $($stopWatch.Elapsed.TotalSeconds) seconds to complete the Add-JobExchangeInformationCmdlet Legacy"
+        Write-Verbose "Took $($stopWatch.Elapsed.TotalSeconds) seconds to complete the Add-JobExchangeInformationCmdlet Legacy" -Verbose
         # TODO: Create proper Receive Job Action to handle the errors that we see in the logging location as well.
         # AND/OR improve the error logging inside remote
         Wait-JobQueue -ProcessReceiveJobAction ${Function:Invoke-RemotePipelineLoggingLocal}
         $jobResults = Get-JobQueueResult
-        Write-Host "Job Queue and Get Results time taken $($stopWatch.Elapsed.TotalSeconds) seconds"
+        Write-Verbose "Job Queue and Get Results time taken $($stopWatch.Elapsed.TotalSeconds) seconds" -Verbose
+        Clear-JobQueue
 
         $orgKey = "Invoke-JobOrganizationInformation"
         $hardwareKey = "Invoke-JobHardwareInformation"
@@ -183,7 +184,7 @@ function Get-HealthCheckerDataCollection {
                 }
             }
 
-            if ($asyncAnalyzerEngine) {
+            if ($true) {
                 # Write-Debug "Before asyncJob" -Debug
                 Add-AsyncJobAnalyzerEngine -HealthServerObject $hcObject
                 $waitAsyncList.Add("Invoke-JobAnalyzerEngine-$($hcObject.ServerName)")
@@ -196,12 +197,12 @@ function Get-HealthCheckerDataCollection {
                 $healthCheckerData.Add($hcObject)
             }
         }
-        Write-Host "Took $($stopWatch.Elapsed.TotalSeconds) seconds to start and queue the analyzer results"
+        Write-Verbose "Took $($stopWatch.Elapsed.TotalSeconds) seconds to start and queue the analyzer results" -Verbose
 
-        if ($asyncAnalyzerEngine) {
-            Wait-AsyncJobQueue -AwaitJobId $waitAsyncList -ProcessReceiveJobAction ${Function:Invoke-RemotePipelineLoggingLocal}
+        if ($true) {
+            Wait-JobQueue -ProcessReceiveJobAction ${Function:Invoke-RemotePipelineLoggingLocal}
             $jobResults = Get-AsyncJobQueueResult
-            Write-Host "All servers to complete analyzed results $($stopWatch.Elapsed.TotalSeconds) seconds"
+            Write-Verbose "All servers to complete analyzed results $($stopWatch.Elapsed.TotalSeconds) seconds" -Verbose
             $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
 
             foreach ($key in $jobResults.Keys) {
@@ -227,7 +228,7 @@ function Get-HealthCheckerDataCollection {
                         Write-Red "Failed to Export-Clixml. Unable to export the data."
                     }
                 }
-                Write-HostLog "Exchange Health Checker version $BuildVersion"
+                Write-HostLog "Exchange Health Checker version $Script:BuildVersion"
                 Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
                 Write-Grey "Output file written to $($Script:OutputFullPath)"
                 Write-Grey "Exported Data Object Written to $($Script:OutXmlFullPath)"
