@@ -87,7 +87,7 @@ function Clear-JobQueue {
             throw "Jobs Queued is null"
         }
 
-        if ($null -eq ($getJobQueue.Values | Where-Object { $_.JobEndTime -eq [DateTime]::MinValue })) {
+        if ($null -ne ($getJobQueue.Values | Where-Object { $_.JobEndTime -eq [DateTime]::MinValue })) {
             throw "Not all jobs appear to be completed"
         }
         $getJobQueue.Clear()
