@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\..\..\..\..\Shared\Get-ExtendedProtectionConfiguration.ps1
+. $PSScriptRoot\..\..\..\..\Shared\IISFunctions\ExtendedProtection\Get-ExtendedProtectionConfiguration.ps1
 . $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeBuildVersionInformation.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeDiagnosticInformation.ps1
@@ -62,6 +62,7 @@ function Get-ExchangeInformation {
             KBsInstalledInfo   = [array](Get-ExchangeUpdates -Server $Server -ExchangeMajorVersion $versionInformation.MajorVersion)
         }
 
+        # another job type
         $dependentServices = (Get-ExchangeDependentServices -MachineName $Server)
 
         try {
@@ -73,6 +74,7 @@ function Get-ExchangeInformation {
 
         $getExchangeVirtualDirectories = Get-ExchangeVirtualDirectories -Server $Server
 
+        # another job type
         $registryValues = Get-ExchangeRegistryValues -MachineName $Server -CatchActionFunction ${Function:Invoke-CatchActions}
         $serverExchangeBinDirectory = [System.Io.Path]::Combine($registryValues.MsiInstallPath, "Bin\")
         Write-Verbose "Found Exchange Bin: $serverExchangeBinDirectory"
@@ -85,6 +87,7 @@ function Get-ExchangeInformation {
         }
 
         if ($getExchangeServer.IsEdgeServer -eq $false) {
+            # another job type
             $applicationPools = Get-ExchangeAppPoolsInformation -Server $Server
 
             $exchangeServerIISParams = @{
@@ -93,9 +96,11 @@ function Get-ExchangeInformation {
                 CatchActionFunction = ${Function:Invoke-CatchActions}
             }
 
+            # another job type
             Write-Verbose "Trying to query Exchange Server IIS settings"
             $iisSettings = Get-ExchangeServerIISSettings @exchangeServerIISParams
 
+            # another job type
             Write-Verbose "Query extended protection configuration for multiple CVEs testing"
             $getExtendedProtectionConfigurationParams = @{
                 ComputerName        = $Server
@@ -116,6 +121,7 @@ function Get-ExchangeInformation {
             }
         }
 
+        # another job type
         $configParams = @{
             ComputerName = $Server
             FileLocation = @("$([System.IO.Path]::Combine($serverExchangeBinDirectory, "EdgeTransport.exe.config"))",
@@ -129,6 +135,7 @@ function Get-ExchangeInformation {
             $configParams.FileLocation += "$([System.IO.Path]::Combine($registryValues.FipFsDatabasePath, "Configuration.xml"))"
         }
 
+        # another job type
         $getFileContentInformation = Get-FileContentInformation @configParams
         $applicationConfigFileStatus = @{}
         $fileContentInformation = @{}
@@ -181,6 +188,7 @@ function Get-ExchangeInformation {
             AffectedServerRole = $($getExchangeServer.IsMailboxServer -eq $true)
         }
 
+        # another job type
         $FIPFSUpdateIssue = Get-FIPFSScanEngineVersionState @fipFsParams
 
         $endpointScriptBlock = {
@@ -203,6 +211,7 @@ function Get-ExchangeInformation {
             Invoke-WebRequest -Method Get -Uri $url -UseBasicParsing
         }
 
+        # another job type TODO: ADD this after the merge
         $scriptBlockEndpointParams = @{
             ComputerName           = $Server
             ScriptBlockDescription = "Test EEMS pattern service connectivity"
@@ -221,6 +230,7 @@ function Get-ExchangeInformation {
             Server             = $Server
             VersionInformation = $versionInformation
         }
+        # another job type
         $aes256CbcDetails = Get-ExchangeAES256CBCDetails @aes256CbcParams
 
         Write-Verbose "Getting Exchange Diagnostic Information"
@@ -238,6 +248,7 @@ function Get-ExchangeInformation {
                 CatchActionFunction    = ${Function:Invoke-CatchActions}
                 ScriptBlock            = {
                     try {
+                        # another job type
                         $localGroupMember = Get-LocalGroupMember -SID "S-1-5-32-544" -ErrorAction Stop
                     } catch {
                         Write-Verbose "Failed to run Get-LocalGroupMember. Inner Exception: $_"
@@ -247,6 +258,7 @@ function Get-ExchangeInformation {
             }
             $localGroupMember = Invoke-ScriptBlockHandler @params
 
+            # This needs to be done within Start-Job for the way that it is currently done.
             # AD Module cmdlets don't appear to work in remote context with Invoke-Command, this is why it is now moved outside of the Invoke-ScriptBlockHandler.
             try {
                 Write-Verbose "Trying to get the computer DN"
