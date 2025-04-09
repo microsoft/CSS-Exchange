@@ -76,3 +76,20 @@ function Get-JobQueueResult {
         $results
     }
 }
+
+function Clear-JobQueue {
+    [CmdletBinding()]
+    param()
+    process {
+        $getJobQueue = Get-JobQueue
+
+        if ($null -eq $getJobQueue) {
+            throw "Jobs Queued is null"
+        }
+
+        if ($null -eq ($getJobQueue.Values | Where-Object { $_.JobEndTime -eq [DateTime]::MinValue })) {
+            throw "Not all jobs appear to be completed"
+        }
+        $getJobQueue.Clear()
+    }
+}
