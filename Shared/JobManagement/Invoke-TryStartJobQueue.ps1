@@ -39,6 +39,7 @@ function Invoke-TryStartJobQueue {
         $jobsToAdd = New-Object System.Collections.Generic.Queue[object]
     }
     process {
+        $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
         $getJobQueue = Get-JobQueue
 
         if ($getJobQueue.Count -eq 0) {
@@ -81,6 +82,8 @@ function Invoke-TryStartJobQueue {
             }
         }
 
+        Write-Verbose "Took $($stopWatch.Elapsed.TotalSeconds) seconds to filter out $($jobsToAdd.Count) Jobs to start vs $($getJobQueue.Count) queued"
+        $stopWatch2 = [System.Diagnostics.Stopwatch]::StartNew()
         if ($jobsToAdd.Count -eq 0) {
             Write-Verbose "No jobs able to be started."
         }
@@ -99,5 +102,7 @@ function Invoke-TryStartJobQueue {
             $jobInfo.Job = $newJob
             $jobInfo.JobStartTime = [DateTime]::Now
         }
+        Write-Verbose "Took $($stopWatch2.Elapsed.TotalSeconds) seconds to start the jobs"
+        Write-Verbose "Took $($stopWatch.Elapsed.TotalSeconds) seconds to complete the entire process."
     }
 }
