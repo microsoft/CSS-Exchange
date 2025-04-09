@@ -79,6 +79,7 @@ function Add-AsyncJobAnalyzerEngine {
                 ArgumentList = $HealthServerObject
             }
             JobId        = "Invoke-JobAnalyzerEngine-$($HealthServerObject.ServerName)"
+            TryStartNow  = $true
         }
         Add-AsyncJobQueue @params
     }
