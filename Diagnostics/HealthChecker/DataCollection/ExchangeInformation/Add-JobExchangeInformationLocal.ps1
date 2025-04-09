@@ -52,13 +52,9 @@ function Add-JobExchangeInformationLocal {
                     ArgumentList = $GetExchangeServer
                 }
                 JobId        = "Invoke-JobExchangeInformationLocal-$ComputerName"
+                TryStartNow  = $RunType -eq "StartNow"
             }
-
-            if ($RunType -eq "Queue") {
-                Add-JobQueue @params
-            } elseif ($RunType -eq "StartNow") {
-                throw "StartNow Not Implemented"
-            }
+            Add-JobQueue @params
         }
     }
 }
