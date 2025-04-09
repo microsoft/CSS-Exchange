@@ -196,6 +196,7 @@ function Get-HealthCheckerDataCollection {
                 $healthCheckerData.Add($hcObject)
             }
         }
+        Write-Host "Took $($stopWatch.Elapsed.TotalSeconds) seconds to start and queue the analyzer results"
 
         if ($asyncAnalyzerEngine) {
             Wait-AsyncJobQueue -AwaitJobId $waitAsyncList -ProcessReceiveJobAction ${Function:Invoke-RemotePipelineLoggingLocal}
