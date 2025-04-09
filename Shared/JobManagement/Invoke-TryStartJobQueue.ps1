@@ -86,8 +86,14 @@ function Invoke-TryStartJobQueue {
         $stopWatch2 = [System.Diagnostics.Stopwatch]::StartNew()
         if ($jobsToAdd.Count -eq 0) {
             Write-Verbose "No jobs able to be started."
+            $Script:LoopsDetected++
+
+            if ($Script:LoopsDetected -gt 40) {
+                Write-Debug "Loop detected" -Debug
+            }
         }
         while ($jobsToAdd.Count -gt 0) {
+            $Script:LoopsDetected = 0
             $currentJob = $jobsToAdd.Dequeue()
             $jobCommand = $currentJob.JobCommand
             $jobParameter = $currentJob.JobParameter
