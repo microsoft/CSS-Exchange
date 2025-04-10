@@ -420,6 +420,9 @@ while ($currentDiff -gt 0) {
         #Google Inc.
         $ModuleAllowList.add("Google.Protobuf.dll")
 
+		#International Components for Unicode
+		$ModuleAllowList.add("icu.dll")
+
         #Newtonsoft
         $ModuleAllowList.add("Newtonsoft.Json.dll")
         $ModuleAllowList.add("Newtonsoft.Json.Bson.dll")
