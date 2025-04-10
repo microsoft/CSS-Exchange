@@ -29,6 +29,7 @@ $script:CustomPropertyNameList =
 "IsOrganizerProperty",
 "IsSharedInEvent",
 "ItemID",
+"LogBodyStats",
 "LogClientInfoString",
 "LogRowType",
 "LogTimestamp",
@@ -46,6 +47,17 @@ $LogLimit = 2000
 if ($ShortLogs.IsPresent) {
     $LogLimit = 500
 }
+
+if($MaxLogs.IsPresent) {
+    $LogLimit = 12000
+}
+
+$ItemClasses = @(
+    "IPM.Appointment",
+    "IPM.Schedule.Meeting.Request",
+    "IPM.Schedule.Meeting.Canceled",
+    "IPM.Schedule.Meeting.Forwarded"
+)
 
 <#
 .SYNOPSIS
@@ -77,6 +89,24 @@ function GetCalendarDiagnosticObjects {
         $params.Add("CustomPropertyName", $script:CustomPropertyNameList)
     }
 
+    if ($ExceptionDate.IsPresent) {
+        Write-Host -ForegroundColor Yellow "Pulling all the Exceptions for $ExceptionDate and adding them to the output."
+        $params.Add("AnalyzeExceptionWithOriginalStartDate", $ExceptionDate)
+    }
+    
+    if ($MaxLogs.IsPresent) {
+        Write-Host -ForegroundColor Yellow "Limiting the number of logs to $LogLimit."
+        $params.Add("ItemClass", $ItemClasses)
+    }
+
+    if ($null -ne $CustomProperty) {
+        Write-Host -ForegroundColor Yellow "Adding custom properties to the RAW output."
+        $params.Remove("CustomPropertyName")
+        $script:CustomPropertyNameList += $CustomProperty
+        Write-Host -ForegroundColor Yellow "Adding extra CustomProperty: $CustomProperty"
+        $params.Add("CustomPropertyName", $script:CustomPropertyNameList)
+    }
+    
     if ($Identity -and $MeetingID) {
         Write-Verbose "Getting CalLogs for [$Identity] with MeetingID [$MeetingID]."
         $CalLogs = Get-CalendarDiagnosticObjects @params -MeetingID $MeetingID

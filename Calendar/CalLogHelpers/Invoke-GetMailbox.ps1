@@ -144,41 +144,24 @@ function CheckIdentities {
 
 <#
 .SYNOPSIS
-Gets the Best Address from the From Property
-#>
-function GetBestFromAddress {
-    param(
-        $From
-    )
-
-    if ($null -ne $($From.SmtpEmailAddress)) {
-        return $($From.SmtpEmailAddress)
-    } elseif ($($From.EmailAddress) -ne "none") {
-        return BetterThanNothingCNConversion($($From.EmailAddress))
-    } else {
-        Write-Verbose "GetBestFromAddress : Unable to Process From Address: [$From]"
-        return "NotFound"
-    }
-}
-
-<#
-.SYNOPSIS
 Creates a list of CN that are used in the Calendar Logs, Looks up the Mailboxes and stores them in the MailboxList.
 #>
 function ConvertCNtoSMTP {
     # Creates a list of CN's that we will do MB look up on
     $CNEntries = @()
-    $CNEntries += ($script:GCDO.SentRepresentingEmailAddress.ToUpper() | Select-Object -Unique)
     $CNEntries += ($script:GCDO.ResponsibleUserName.ToUpper() | Select-Object -Unique)
-    $CNEntries += ($script:GCDO.SenderEmailAddress.ToUpper() | Select-Object -Unique)
+    $CNEntries += ($script:GCDO.SentRepresentingEmailAddress.ToUpper() | Select-Object -Unique)
+    $CNEntries += ($script:GCDO.Sender.ToUpper() | Select-Object -Unique)
+    # $CNEntries += ($script:GCDO.SenderEmailAddress.ToUpper() | Select-Object -Unique)
     $CNEntries = $CNEntries | Select-Object -Unique
-    Write-Verbose "`t Have $($CNEntries.count) CNEntries to look for..."
+    Write-Verbose "`t Have $($CNEntries.count) CN Entries to look for..."
     Write-Verbose "CNEntries: "; foreach ($CN in $CNEntries) { Write-Verbose $CN }
 
     $Org = $script:MB.OrganizationalUnit.split('/')[-1]
 
     # Creates a Dictionary of MB's that we will use to look up the CN's
     Write-Verbose "Converting CN entries into SMTP Addresses..."
+
     foreach ($CNEntry in $CNEntries) {
         if ($CNEntry -match 'cn=([\w,\s.@-]*[^/])$') {
             if ($CNEntry -match $WellKnownCN_CA) {
@@ -188,6 +171,15 @@ function ConvertCNtoSMTP {
             } else {
                 $script:MailboxList[$CNEntry] = (GetMailbox -Identity $CNEntry -Organization $Org)
             }
+        }
+        # might be new readable format!
+        else {
+            if( $CNEntry -match "<*@*>") {
+                $script:MailboxList[$CNEntry] = GetSMTPAddress -PassedCN $CNEntry
+            } else {
+                Write-Verbose "GetSMTPAddress: Passed in Value does not look like a CN or SMTP Address: [$CNEntry]"
+            }
+            $script:MailboxList[$CNEntry] = $CNEntry
         }
     }
 
@@ -217,16 +209,26 @@ function GetSMTPAddress {
         $PassedCN
     )
 
-    if ($PassedCN -match 'cn=([\w,\s.@-]*[^/])$') {
+    if ($PassedCN -match $WellKnownCN_Trans) {
+        return $Transport
+    } elseif ($PassedCN -match $WellKnownCN_CA) {
+        return $CalAttendant
+    } elseif ($PassedCN -match "<*@*>") {
+        # This is a new format that we are seeing in the Calendar Logs.
+        # Example: '"Jon Doe" <Jon.Doe@Contoso.com>'
+        $SMTPAddress = $($PassedCN -split ("<")[-1] -split (">")[0])[1].Trim()
+        return $SMTPAddress
+    } elseif ($PassedCN -match 'cn=([\w,\s.@-]*[^/])$') {
         return GetMailboxProp -PassedCN $PassedCN -Prop "PrimarySmtpAddress"
+    } elseif (($PassedCN -match "NotFound") -or ($PassedCN -match "InvalidSchemaPropertyName") -or ([string]::IsNullOrEmpty($PassedCN))) {
+        Write-Verbose "GetSMTPAddress: Passed in Value is empty or not Valid: [$PassedCN]."
+        return ""
     } elseif ($PassedCN -match "@") {
-        Write-Verbose "Looks like we have an SMTP Address already: [$PassedCN]"
-        return $PassedCN
-    } elseif ($PassedCN -match "NotFound") {
+        Write-Verbose "GetSMTPAddress: Looks like we have an SMTP Address already: [$PassedCN]."
         return $PassedCN
     } else {
         # We have a problem, we don't have a CN or an SMTP Address
-        Write-Warning "GetSMTPAddress: Passed in Value does not look like a CN or SMTP Address: [$PassedCN]"
+        Write-Warning "GetSMTPAddress: Passed in Value does not look like a CN or SMTP Address: [$PassedCN]."
         return $PassedCN
     }
 }

@@ -201,8 +201,6 @@ function FormatHeader {
     Set-CellComment -Text "OriginalLogFolder (OriginalParentDisplayName): The Original Log Folder that the item was in / delivered to." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 15 -HorizontalAlignment Left         # SharedFolderName
     Set-CellComment -Text "SharedFolderName: Was this from a Modern Sharing, and if so what Folder." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment Left         # ReceivedBy
-    Set-CellComment -Text "ReceivedBy: The Receiver of the Calendar Item. Should always be the owner of the Mailbox." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment Left         # ReceivedRepresenting
     Set-CellComment -Text "ReceivedRepresenting: Who the item was Received for, of then the Delegate." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment Center         # MeetingRequestType
@@ -213,8 +211,6 @@ function FormatHeader {
     Set-CellComment -Text "EndTime: The End Time of the Meeting. This and all Times are in UTC." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 17 -NumberFormat "m/d/yyyy h:mm:ss"  -HorizontalAlignment Left         # OriginalStartDate
     Set-CellComment -Text "OriginalStartDate: The Original Start Date of the Meeting." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment Left         # TimeZone
-    Set-CellComment -Text "TimeZone: The Time Zone of the Meeting." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment Left         # Location
     Set-CellComment -Text "Location: The Location of the Meeting." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment Center         # CalendarItemType
