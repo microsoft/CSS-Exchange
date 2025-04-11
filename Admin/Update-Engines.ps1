@@ -9,7 +9,9 @@ param(
     [string[]]$Engines = ("Microsoft"),
     [string[]]$Platforms = ("amd64"),
     [switch]$ScriptUpdateOnly,
-    [switch]$SkipVersionCheck
+    [switch]$SkipVersionCheck,
+    [switch]$CleanUp,
+    [int]$VersionsToKeep = 10
 )
 
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
@@ -78,6 +80,10 @@ function CreatePath($path) {
     }
 }
 
+function CleanUpFolder($path, $itemsToKeep) {
+    Get-ChildItem $path | ? { $_.PSIsContainer } | Sort-Object -Property CreationTime -Descending | Select-Object -Skip $itemsToKeep | Remove-Item -Recurse
+}
+
 # Use the Shell.Application COM object to extract the
 # contents of the sourceCabPath and put the contents into
 # the destinationDirectory. Support is included for cab
@@ -136,6 +142,8 @@ Write-Host "Update Path: " $UpdatePathUrl
 Write-Host "Engine Directory: " $EngineDirPath
 Write-Host "Engines: " $Engines
 Write-Host "Platforms: " $Platforms
+Write-Host "CleanUp: " $CleanUp
+Write-Host "VersionsToKeep: " $VersionsToKeep
 
 if ((Test-Path $EngineDirPath) -ne $true) {
     $(throw "The directory specified to store the engines does not exist or the user this script is running as does not have permissions to access it. " + $EngineDirPath)
@@ -260,6 +268,11 @@ foreach ($p in $Platforms) {
                 Write-Host "Download Complete: " $engine.Name
             } else {
                 Write-Host "Engine already up to date: " $engine.Name
+            }
+
+            # Clean up
+            if ($CleanUp) {
+                CleanUpFolder $enginePath $VersionsToKeep
             }
         }
     }
