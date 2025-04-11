@@ -34,13 +34,13 @@ Case Number to include in the Filename of the output.
 Limit Logs to 500 instead of the default 2000, in case the server has trouble responding with the full logs.
 
 .PARAMETER MaxLogs
-Increase log limit to 12,000 in case the default 2000 does not contain the needed information. Note this can be time consuming, and it does not contain all the logs such as User Responses. 
+Increase log limit to 12,000 in case the default 2000 does not contain the needed information. Note this can be time consuming, and it does not contain all the logs such as User Responses.
 
 .PARAMETER CustomProperty
 Advanced users can add custom properties to the output in the RAW output. This is not recommended unless you know what you are doing. The properties must be in the format of "PropertyName1, PropertyName2, PropertyName3".  The properties will be added to the RAW output and not the Timeline output.  The properties must be in the format of "PropertyName1, PropertyName2, PropertyName3".  The properties will only be added to the RAW output.
 
 .PARAMETER ExceptionDate
-Date of the Exception Meeting to collect logs for.  Fastest way to get Exceptions for a meeting. 
+Date of the Exception Meeting to collect logs for.  Fastest way to get Exceptions for a meeting.
 
 .PARAMETER NoExceptions
 Do not collect Exception Meetings.  This is the default behavior of the script.
@@ -141,7 +141,7 @@ if (!$ExportToCSV.IsPresent) {
 }
 
 # Default to Collecting Exceptions
-if (!$NoExceptions.IsPresent){
+if (!$NoExceptions.IsPresent) {
     $Exceptions=$true
     Write-Host -ForegroundColor Yellow "Collecting Exceptions."
     Write-Host -ForegroundColor Yellow "`tTo not collecting Exceptions, use the -NoExceptions switch."

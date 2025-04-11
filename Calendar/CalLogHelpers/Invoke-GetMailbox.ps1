@@ -174,7 +174,7 @@ function ConvertCNtoSMTP {
         }
         # might be new readable format!
         else {
-            if( $CNEntry -match "<*@*>") {
+            if ( $CNEntry -match "<*@*>") {
                 $script:MailboxList[$CNEntry] = GetSMTPAddress -PassedCN $CNEntry
             } else {
                 Write-Verbose "GetSMTPAddress: Passed in Value does not look like a CN or SMTP Address: [$CNEntry]"

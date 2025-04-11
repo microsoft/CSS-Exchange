@@ -144,7 +144,7 @@ function BuildCSV {
         $ItemType = $CalendarItemTypes.($CalLog.ItemClass)
 
         # CleanNotFounds
-        $PropsToClean = "FreeBusyStatus", "ClientIntent", "AppointmentSequenceNumber", "AppointmentLastSequenceNumber", "RecurrencePattern", "AppointmentAuxiliaryFlags", "EventEmailReminderTimer", "IsSeriesCancelled", "AppointmentCounterProposal", "MeetingRequestType", "SendMeetingMessagesDiagnostics","AttendeeCollection"
+        $PropsToClean = "FreeBusyStatus", "ClientIntent", "AppointmentSequenceNumber", "AppointmentLastSequenceNumber", "RecurrencePattern", "AppointmentAuxiliaryFlags", "EventEmailReminderTimer", "IsSeriesCancelled", "AppointmentCounterProposal", "MeetingRequestType", "SendMeetingMessagesDiagnostics", "AttendeeCollection"
         foreach ($Prop in $PropsToClean) {
             # Exception objects, etc. don't have these properties.
             if ($null -ne $CalLog.$Prop) {
@@ -163,7 +163,7 @@ function BuildCSV {
             'TriggerAction'                  = $CalLog.CalendarLogTriggerAction
             'ItemClass'                      = $ItemType
             'Seq:Exp:ItemVersion'            = CompressVersionInfo($CalLog)
-            'Organizer'                      = $CalLog.From.split("<")[0].replace('"','')
+            'Organizer'                      = $CalLog.From.split("<")[0].replace('"', '')
             'From'                           = GetSMTPAddress($CalLog.From)
             'FreeBusy'                       = $CalLog.FreeBusyStatus.ToString()
             'ResponsibleUser'                = GetSMTPAddress($CalLog.ResponsibleUserName)
@@ -178,7 +178,6 @@ function BuildCSV {
             'OriginalStartDate'              = ConvertDateTime($CalLog.OriginalStartDate)
             'Location'                       = $CalLog.Location
             'CalendarItemType'               = $CalLog.CalendarItemType.ToString()
-            'IsException'                    = $CalLog.IsException
             'RecurrencePattern'              = $CalLog.RecurrencePattern
             'AppointmentAuxiliaryFlags'      = $CalLog.AppointmentAuxiliaryFlags.ToString()
             'DisplayAttendeesAll'            = $CalLog.DisplayAttendeesAll
@@ -234,9 +233,9 @@ function FixCalendarItemType {
         $CalLogs
     )
     foreach ($CalLog in $CalLogs) {
-        if ($CalLog.OriginalStartDate -neq "NotFound" -or ![string]::IsNullOrEmpty($CalLog.OriginalStartDate)) {
+        if ($CalLog.OriginalStartDate -ne "NotFound" -or ![string]::IsNullOrEmpty($CalLog.OriginalStartDate)) {
             $CalLog.CalendarItemType = "Exception"
-            $CalLog.IsException = $true
+            $CalLog.isException = $true
         }
     }
 }

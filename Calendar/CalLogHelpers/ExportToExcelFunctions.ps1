@@ -148,14 +148,14 @@ $ConditionalFormatting = $(
     New-ConditionalText -Range "T:T" -ConditionalType ContainsText -Text "Outdated" -ConditionalTextColor DarkRed -BackgroundColor LightPink
 
     # CalendarItemType
-    New-ConditionalText -Range "AA3:AA9999" -ConditionalType ContainsText -Text "RecurringMaster" -ConditionalTextColor $null -BackgroundColor Plum
+    New-ConditionalText -Range "X3:X9999" -ConditionalType ContainsText -Text "RecurringMaster" -ConditionalTextColor $null -BackgroundColor Plum
 
     # AppointmentAuxiliaryFlags
-    New-ConditionalText -Range "AD3:AD9999" -ConditionalType ContainsText -Text "Copied" -ConditionalTextColor DarkRed -BackgroundColor LightPink
-    New-ConditionalText -Range "AC3:AC9999" -ConditionalType ContainsText -Text "ForwardedAppointment" -ConditionalTextColor DarkRed -BackgroundColor $null
+    New-ConditionalText -Range "AB3:AB9999" -ConditionalType ContainsText -Text "Copied" -ConditionalTextColor DarkRed -BackgroundColor LightPink
+    New-ConditionalText -Range "AA3:AA9999" -ConditionalType ContainsText -Text "ForwardedAppointment" -ConditionalTextColor DarkRed -BackgroundColor $null
 
     # ResponseType
-    New-ConditionalText -Range "AG3:AG9999" -ConditionalType ContainsText -Text "Organizer" -ConditionalTextColor Orange -BackgroundColor $null
+    New-ConditionalText -Range "AE3:AE9999" -ConditionalType ContainsText -Text "Organizer" -ConditionalTextColor Orange -BackgroundColor $null
 )
 
 function FormatHeader {
@@ -215,8 +215,6 @@ function FormatHeader {
     Set-CellComment -Text "Location: The Location of the Meeting." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment Center         # CalendarItemType
     Set-CellComment -Text "CalendarItemType: The Calendar Item Type of the Meeting." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment Center         # IsException
-    Set-CellComment -Text "IsException: Is this an Exception?" -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 20 -HorizontalAlignment Left         # RecurrencePattern
     Set-CellComment -Text "RecurrencePattern: The Recurrence Pattern of the Meeting." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 30 -HorizontalAlignment Center       # AppointmentAuxiliaryFlags
