@@ -36,14 +36,14 @@ function Wait-JobQueue {
     process {
         do {
             # Check to see if we need to add any more jobs
-            $tryStartJobQueue = $null -ne $getJobQueue.Values | Where-Object { $null -eq $_.Job }
+            $tryStartJobQueue = $null -ne ($getJobQueue.Values | Where-Object { $null -eq $_.Job })
 
             if ($tryStartJobQueue) {
                 Invoke-TryStartJobQueue
             }
 
             # Check all the current jobs running to see if they have finished
-            $completedJobsToProcess = $getJobQueue.Values | Where-Object { $null -ne $_.Job -and $_.JobEndTime -eq [DateTime]::MinValue  -and $_.Job.State -ne "Running" }
+            [array]$completedJobsToProcess = $getJobQueue.Values | Where-Object { $null -ne $_.Job -and $_.JobEndTime -eq [DateTime]::MinValue  -and $_.Job.State -ne "Running" }
 
             if ($completedJobsToProcess.Count -gt 0) {
                 foreach ($jobInfo in $completedJobsToProcess) {
