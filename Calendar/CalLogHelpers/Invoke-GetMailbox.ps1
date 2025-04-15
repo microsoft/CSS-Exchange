@@ -172,7 +172,7 @@ function ConvertCNtoSMTP {
                 $script:MailboxList[$CNEntry] = (GetMailbox -Identity $CNEntry -Organization $Org)
             }
         }
-        # might be new readable format!
+        # New more readable format!
         else {
             if ( $CNEntry -match "<*@*>") {
                 $script:MailboxList[$CNEntry] = GetSMTPAddress -PassedCN $CNEntry

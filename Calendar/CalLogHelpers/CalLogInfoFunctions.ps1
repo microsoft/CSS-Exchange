@@ -40,7 +40,7 @@ function SetIsRoom {
 
     # Simple logic is if RBA is running on the MB, it is a Room MB, otherwise it is not.
     foreach ($CalLog in $CalLogs) {
-        #  Write-Verbose "Checking if this is a Room Mailbox. [$($CalLog.ItemClass)] [$($CalLog.ExternalSharingMasterId)] [$($CalLog.LogClientInfoString)]"
+        Write-Verbose "Checking if this is a Room Mailbox. [$($CalLog.ItemClass)] [$($CalLog.ExternalSharingMasterId)] [$($CalLog.LogClientInfoString)]"
         if ($CalLog.ItemClass -eq "IPM.Appointment" -and
             $CalLog.ExternalSharingMasterId -eq "NotFound" -and
             $CalLog.LogClientInfoString -like "*ResourceBookingAssistant*" ) {
@@ -63,7 +63,8 @@ function SetIsRecurring {
     # See if this is a recurring meeting
     foreach ($CalLog in $CalLogs) {
         if ($CalendarItemTypes.($CalLog.ItemClass) -eq "Ipm.Appointment" -and
-            #      $CalLog.ExternalSharingMasterId -eq "NotFound" -and   # Commenting this out will get all the updates for shared calendars, which is important with Delegates.
+            # Commenting this out will get all the updates for shared calendars, which is important with Delegates.
+            #      $CalLog.ExternalSharingMasterId -eq "NotFound" -and   
             $CalLog.CalendarItemType.ToString() -eq "RecurringMaster") {
             $IsRecurring = $true
             Write-Verbose "Found recurring meeting."

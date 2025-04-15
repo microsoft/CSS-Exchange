@@ -91,13 +91,13 @@ function GetCalendarDiagnosticObjects {
 
     if (-not [string]::IsNullOrEmpty($ExceptionDate)) {
         Write-Host -ForegroundColor Green "---------------------------------------"
-        Write-Host -ForegroundColor Green "Pulling all the Exceptions for $ExceptionDate and adding them to the output."
+        Write-Host -ForegroundColor Green "Pulling all the Exceptions for [$ExceptionDate] and adding them to the output."
         Write-Host -ForegroundColor Green "---------------------------------------"
         $params.Add("AnalyzeExceptionWithOriginalStartDate", $ExceptionDate)
     }
 
     if ($MaxLogs.IsPresent) {
-        Write-Host -ForegroundColor Yellow "Limiting the number of logs to $LogLimit, and limiting the number of Item Class retrieved"
+        Write-Host -ForegroundColor Yellow "Limiting the number of logs to $LogLimit, and limiting the number of Item Classes retrieved."
         $params.Add("ItemClass", $LimitedItemClasses)
     }
 
@@ -105,7 +105,7 @@ function GetCalendarDiagnosticObjects {
         Write-Host -ForegroundColor Yellow "Adding custom properties to the RAW output."
         $params.Remove("CustomPropertyName")
         $script:CustomPropertyNameList += $CustomProperty
-        Write-Host -ForegroundColor Yellow "Adding extra CustomProperty: $CustomProperty"
+        Write-Host -ForegroundColor Yellow "Adding extra CustomProperty: [$CustomProperty]"
         $params.Add("CustomPropertyName", $script:CustomPropertyNameList)
     }
 
