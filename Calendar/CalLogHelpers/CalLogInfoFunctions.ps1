@@ -64,7 +64,7 @@ function SetIsRecurring {
     foreach ($CalLog in $CalLogs) {
         if ($CalendarItemTypes.($CalLog.ItemClass) -eq "Ipm.Appointment" -and
             # Commenting this out will get all the updates for shared calendars, which is important with Delegates.
-            #      $CalLog.ExternalSharingMasterId -eq "NotFound" -and   
+            #      $CalLog.ExternalSharingMasterId -eq "NotFound" -and
             $CalLog.CalendarItemType.ToString() -eq "RecurringMaster") {
             $IsRecurring = $true
             Write-Verbose "Found recurring meeting."
