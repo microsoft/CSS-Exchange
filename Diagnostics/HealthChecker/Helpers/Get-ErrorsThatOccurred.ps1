@@ -12,7 +12,7 @@ function Get-ErrorsThatOccurred {
         Write-VerboseErrorInformation $CurrentError
     }
 
-    if ($Error.Count -gt 0) {
+    if ($Error.Count -gt 0 -or $Script:SaveDebugLog) {
         Write-Host ""
         Write-Host ""
         function Write-Errors {
