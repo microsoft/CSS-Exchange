@@ -155,7 +155,7 @@ $ConditionalFormatting = $(
     New-ConditionalText -Range "AA3:AA9999" -ConditionalType ContainsText -Text "ForwardedAppointment" -ConditionalTextColor DarkRed -BackgroundColor $null
 
     # ResponseType
-    New-ConditionalText -Range "AE3:AE9999" -ConditionalType ContainsText -Text "Organizer" -ConditionalTextColor Orange -BackgroundColor $null
+    New-ConditionalText -Range "AD3:AD9999" -ConditionalType ContainsText -Text "Organizer" -ConditionalTextColor Orange -BackgroundColor $null
 )
 
 function FormatHeader {
@@ -213,7 +213,7 @@ function FormatHeader {
     Set-CellComment -Text "OriginalStartDate: The Original Start Date of the Meeting." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment Left         # Location
     Set-CellComment -Text "Location: The Location of the Meeting." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
-    $sheet.Column(++$n) | Set-ExcelRange -Width 10 -HorizontalAlignment Center         # CalendarItemType
+    $sheet.Column(++$n) | Set-ExcelRange -Width 15 -HorizontalAlignment Center         # CalendarItemType
     Set-CellComment -Text "CalendarItemType: The Calendar Item Type of the Meeting." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet
     $sheet.Column(++$n) | Set-ExcelRange -Width 20 -HorizontalAlignment Left         # RecurrencePattern
     Set-CellComment -Text "RecurrencePattern: The Recurrence Pattern of the Meeting." -Row $HeaderRow -ColumnNumber $n  -Worksheet $sheet

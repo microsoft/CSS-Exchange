@@ -163,7 +163,7 @@ function BuildCSV {
             'TriggerAction'                  = $CalLog.CalendarLogTriggerAction
             'ItemClass'                      = $ItemType
             'Seq:Exp:ItemVersion'            = CompressVersionInfo($CalLog)
-            'Organizer'                      = $CalLog.From.split("<")[0].replace('"', '')
+            'Organizer'                      = GetDisplayName($CalLog.From)
             'From'                           = GetSMTPAddress($CalLog.From)
             'FreeBusy'                       = $CalLog.FreeBusyStatus.ToString()
             'ResponsibleUser'                = GetSMTPAddress($CalLog.ResponsibleUserName)
@@ -233,7 +233,7 @@ function FixCalendarItemType {
         $CalLogs
     )
     foreach ($CalLog in $CalLogs) {
-        if ($CalLog.OriginalStartDate -ne "NotFound" -or ![string]::IsNullOrEmpty($CalLog.OriginalStartDate)) {
+        if ($CalLog.OriginalStartDate -ne "NotFound" -and ![string]::IsNullOrEmpty($CalLog.OriginalStartDate)) {
             $CalLog.CalendarItemType = "Exception"
             $CalLog.isException = $true
         }

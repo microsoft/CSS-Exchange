@@ -141,10 +141,18 @@ if (!$ExportToCSV.IsPresent) {
 }
 
 # Default to Collecting Exceptions
-if (!$NoExceptions.IsPresent) {
+if ((!$NoExceptions.IsPresent) -and ([string]::IsNullOrEmpty($ExceptionDate))) {
     $Exceptions=$true
     Write-Host -ForegroundColor Yellow "Collecting Exceptions."
     Write-Host -ForegroundColor Yellow "`tTo not collecting Exceptions, use the -NoExceptions switch."
+} else {
+    Write-Host -ForegroundColor Green "---------------------------------------"
+    if ($NoExceptions.IsPresent) {
+        Write-Host -ForegroundColor Green "Not Checking for Exceptions"
+    } else {
+        Write-Host -ForegroundColor Green "Checking for Exceptions on $ExceptionDate"
+    }
+    Write-Host -ForegroundColor Green "---------------------------------------"
 }
 
 # ===================================================================================================

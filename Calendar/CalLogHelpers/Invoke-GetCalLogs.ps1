@@ -89,8 +89,10 @@ function GetCalendarDiagnosticObjects {
         $params.Add("CustomPropertyName", $script:CustomPropertyNameList)
     }
 
-    if ($ExceptionDate.IsPresent) {
-        Write-Host -ForegroundColor Yellow "Pulling all the Exceptions for $ExceptionDate and adding them to the output."
+    if (-not [string]::IsNullOrEmpty($ExceptionDate)) {
+        Write-Host -ForegroundColor Green "---------------------------------------"
+        Write-Host -ForegroundColor Green "Pulling all the Exceptions for $ExceptionDate and adding them to the output."
+        Write-Host -ForegroundColor Green "---------------------------------------"
         $params.Add("AnalyzeExceptionWithOriginalStartDate", $ExceptionDate)
     }
 
@@ -109,6 +111,9 @@ function GetCalendarDiagnosticObjects {
 
     if ($Identity -and $MeetingID) {
         Write-Verbose "Getting CalLogs for [$Identity] with MeetingID [$MeetingID]."
+        if ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
+            Write-Host -ForegroundColor Yellow ($params.GetEnumerator() | ForEach-Object { "`t$($_.Key) = $($_.Value)`n" })
+        }
         $CalLogs = Get-CalendarDiagnosticObjects @params -MeetingID $MeetingID
     } elseif ($Identity -and $Subject ) {
         Write-Verbose "Getting CalLogs for [$Identity] with Subject [$Subject]."

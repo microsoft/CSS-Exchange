@@ -155,7 +155,7 @@ function ConvertCNtoSMTP {
     # $CNEntries += ($script:GCDO.SenderEmailAddress.ToUpper() | Select-Object -Unique)
     $CNEntries = $CNEntries | Select-Object -Unique
     Write-Verbose "`t Have $($CNEntries.count) CN Entries to look for..."
-    Write-Verbose "CNEntries: "; foreach ($CN in $CNEntries) { Write-Verbose $CN }
+    Write-Verbose "CNEntries: "; foreach ($CN in $CNEntries) { Write-Verbose `t`t$CN }
 
     $Org = $script:MB.OrganizationalUnit.split('/')[-1]
 
@@ -197,7 +197,17 @@ function GetDisplayName {
     param(
         $PassedCN
     )
-    return GetMailboxProp -PassedCN $PassedCN -Prop "DisplayName"
+    Write-Verbose "GetDisplayName:: Working on [$PassedCN]"
+    if ($PassedCN.Properties.Name -contains 'DisplayName') {
+        return GetMailboxProp -PassedCN $PassedCN -Prop "DisplayName"
+    } elseif ($PassedCN -match '<' ) {
+        return $PassedCN.ToString().split("<")[0].replace('"', '')
+    } elseif ($PassedCN -match '\[OneOff') {
+        return $PassedCN.ToString().split('"')[1]
+    } else {
+        Write-Verbose "Unable to get the DisplayName for [$PassedCN]"
+        return $PassedCN
+    }
 }
 
 <#
@@ -218,13 +228,23 @@ function GetSMTPAddress {
         # Example: '"Jon Doe" <Jon.Doe@Contoso.com>'
         $SMTPAddress = $($PassedCN -split ("<")[-1] -split (">")[0])[1].Trim()
         return $SMTPAddress
+    } elseif ($PassedCN -match '<O=') {
+        #Matching "Users Name" </O=...>
+        $pattern = "<([^>]*)>"
+        #$matches = [regex]::Matches($PassedCN, $pattern)
+        $MailboxOU = ([regex]::Matches($PassedCN, $pattern)).groups[1].value
+        Write-Verbose "Using /OU format to look up mailbox for [$PassedCN]"
+        return GetMailboxProp -PassedCN $MailboxOU -Prop "PrimarySmtpAddress"
     } elseif ($PassedCN -match 'cn=([\w,\s.@-]*[^/])$') {
         return GetMailboxProp -PassedCN $PassedCN -Prop "PrimarySmtpAddress"
-    } elseif (($PassedCN -match "NotFound") -or ($PassedCN -match "InvalidSchemaPropertyName") -or ([string]::IsNullOrEmpty($PassedCN))) {
+    } elseif (($PassedCN -match "NotFound") -or ([string]::IsNullOrEmpty($PassedCN))) {
+        return ""
+    } elseif ($PassedCN -match "InvalidSchemaPropertyName") {
         Write-Verbose "GetSMTPAddress: Passed in Value is empty or not Valid: [$PassedCN]."
         return ""
     } elseif ($PassedCN -match "@") {
         Write-Verbose "GetSMTPAddress: Looks like we have an SMTP Address already: [$PassedCN]."
+        $PassedCN.SMTPAddress
         return $PassedCN
     } else {
         # We have a problem, we don't have a CN or an SMTP Address
