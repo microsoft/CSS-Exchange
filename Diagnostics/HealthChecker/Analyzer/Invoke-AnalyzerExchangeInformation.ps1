@@ -749,7 +749,7 @@ function Invoke-AnalyzerExchangeInformation {
         ($null -eq $serverMaintenance.GetClusterNode -or
         $serverMaintenance.GetClusterNode.State -eq "Up") -and
         ($null -eq $getMailboxServer -or
-            ($getMailboxServer.DatabaseCopyActivationDisabledAndMoveNow -eq $false -and
+        ($getMailboxServer.DatabaseCopyActivationDisabledAndMoveNow -eq $false -and
         $getMailboxServer.DatabaseCopyAutoActivationPolicy.ToString() -eq "Unrestricted"))) {
         $params = $baseParams + @{
             Name             = "Exchange Server Maintenance"

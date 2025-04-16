@@ -82,7 +82,7 @@ try {
     $Script:MainCatchOccurred = $true
 } finally {
     if ($PSBoundParameters["Verbose"] -or
-    (Test-UnhandledErrorsOccurred) -or
+        (Test-UnhandledErrorsOccurred) -or
         $Script:MainCatchOccurred -or
         $RemoteDebug) {
         $Script:DebugLogger.PreventLogCleanup = $true
@@ -91,7 +91,7 @@ try {
     $Script:DebugLogger | Invoke-LoggerInstanceCleanup
 
     if ((Test-UnhandledErrorsOccurred) -and
-    (-not($Script:MainCatchOccurred))) {
+        (-not($Script:MainCatchOccurred))) {
         Write-Warning "Ran into an issue with the script. If possible please email 'ExToolsFeedback@microsoft.com' of the issue that you are facing with the log '$($Script:DebugLogger.FullPath)'"
     }
 }

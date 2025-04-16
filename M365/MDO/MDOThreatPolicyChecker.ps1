@@ -392,7 +392,7 @@ begin {
             # Check for explicit inclusion in any user, group, or domain that are not empty, and account for 3 empty inclusions
             # Also check for any exclusions as user, group, or domain. Nulls don't need to be accounted for and this is an OR condition for exclusions
             if (((($emailInRule -or (-not $senderOrReceiver)) -and ($domainInRule -or (-not $domainsIs)) -and ($groupInRule -or (-not $memberOf))) -and
-                 ($emailInRule -or $domainInRule -or $groupInRule)) -and
+                    ($emailInRule -or $domainInRule -or $groupInRule)) -and
                 ((-not $emailExceptionInRule) -and (-not $groupExceptionInRule) -and (-not $domainExceptionInRule))) {
                 Write-DetailedExplanationOption -Message "Policy match found: `"$($rule.Name)`"" -ShowDetailedExplanation:$ShowDetailedExplanation
                 Write-DetailedExplanationOption -Message "Included in rule as User: $emailInRule. Included in rule by Group membership: $groupInRule. Included in rule by Domain: $domainInRule." -ShowDetailedExplanation:$ShowDetailedExplanation
@@ -407,7 +407,7 @@ begin {
             # Check for implicit inclusion (no mailboxes included at all), which is possible for Presets and SA/SL. They are included if not explicitly excluded. Only inbound
             if ((-not $Outbound) -and
                 (((-not $senderOrReceiver) -and (-not $domainsIs) -and (-not $memberOf)) -and
-                 ((-not $emailExceptionInRule) -and (-not $groupExceptionInRule) -and (-not $domainExceptionInRule)))) {
+                ((-not $emailExceptionInRule) -and (-not $groupExceptionInRule) -and (-not $domainExceptionInRule)))) {
                 Write-DetailedExplanationOption -Message "The recipient is IMPLICITLY included. There are no recipients explicitly included in the policy, and the user is not explicitly excluded either in the User, Group, or Domain exclusion properties. `n`t`tImplicit inclusion is possible for Preset policies and Safe Attachments and Safe Links in which no explicit inclusions have been made." -ShowDetailedExplanation:$ShowDetailedExplanation
                 Write-DetailedExplanationOption -Message "Rule of matching policy: `"$($rule.Name)`"" -ShowDetailedExplanation:$ShowDetailedExplanation
                 return $rule
@@ -429,7 +429,7 @@ begin {
         $Policy.PSObject.Properties | ForEach-Object {
             if ($null -ne $_.Value -and
                 (($_.Value.GetType() -eq [Boolean] -and $_.Value -eq $true) -or
-                    ($_.Value -ne '{}' -and $_.Value -ne 'Off' -and $_.Value -ne $true -and $_.Value -ne '' -and $excludedProperties -notcontains $_.Name))) {
+                ($_.Value -ne '{}' -and $_.Value -ne 'Off' -and $_.Value -ne $true -and $_.Value -ne '' -and $excludedProperties -notcontains $_.Name))) {
                 Write-Host "`t`t$($_.Name): $($_.Value)"
             } else {
                 Write-Verbose "`t`tExcluded property:$($_.Name): $($_.Value)"

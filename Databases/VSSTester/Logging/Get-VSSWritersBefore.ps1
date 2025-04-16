@@ -34,7 +34,7 @@ function Get-VSSWritersBefore {
         $possibleDcomPermissionIssue = ((Test-Path $oleKey) -and
             ($null -ne (Get-ItemProperty $oleKey).DefaultAccessPermission)) -or
         ((Test-Path $dcomKey) -and
-            ($null -ne (Get-ItemProperty $dcomKey).MachineAccessRestriction))
+        ($null -ne (Get-ItemProperty $dcomKey).MachineAccessRestriction))
 
         Write-Warning "WARNING: Microsoft Exchange Writer not present on server. Unable to perform proper backups on the server."
 
