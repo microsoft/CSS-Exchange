@@ -248,8 +248,8 @@ $scriptBlock = {
             return
         }
 
-        foreach ($profile in $profiles) {
-            $localPath = $profile.LocalPath
+        foreach ($localProfile in $profiles) {
+            $localPath = $localProfile.LocalPath
             if ($null -ne $localPath) {
                 $directories.Add("$localPath\AppData\Roaming\Microsoft\Internet Explorer\Quick Launch")
                 $directories.Add("$localPath\AppData\Roaming\Microsoft\Windows\Start Menu\Programs")
