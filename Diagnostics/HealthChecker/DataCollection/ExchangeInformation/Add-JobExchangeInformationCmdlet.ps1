@@ -15,8 +15,10 @@ function Add-JobExchangeInformationCmdlet {
 
         # TODO: This is going to need to completely change
         [Parameter(Mandatory = $true)]
-        [ValidateSet("Legacy", "Queue")]
-        [string]$RunType
+        [ValidateSet("Legacy", "Queue", "QueueOptimize")]
+        [string]$RunType,
+
+        [ref]$JobKeyMatchingToServer
     )
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
@@ -38,30 +40,71 @@ function Add-JobExchangeInformationCmdlet {
         #>
         . $PSScriptRoot\Invoke-JobExchangeInformationCmdlet.ps1
 
+        $sbInjectionParams = @{
+            PrimaryScriptBlock = ${Function:Invoke-JobExchangeInformationCmdlet}
+            IncludeScriptBlock = @(${Function:Invoke-DefaultConnectExchangeShell}, ${Function:Get-ExchangeContainer},
+                ${Function:Get-MonitoringOverride})
+        }
+        $scriptBlock = Get-HCDefaultSBInjection @sbInjectionParams
+
         if ($RunType -eq "Legacy") {
 
             foreach ($name in $exchangeServerList) {
-                $data = Invoke-JobExchangeInformationCmdlet -Server $name
+                $data = Invoke-JobExchangeInformationCmdlet -ServerName $name
                 $legacyResults.Add("Invoke-JobExchangeInformationCmdlet-$name", $data)
             }
             return $legacyResults
-        } else {
-            # only thing we have right now is queue.
-            $sbInjectionParams = @{
-                PrimaryScriptBlock = ${Function:Invoke-JobExchangeInformationCmdlet}
-                IncludeScriptBlock = @(${Function:Invoke-DefaultConnectExchangeShell}, ${Function:Get-ExchangeContainer},
-                    ${Function:Get-MonitoringOverride})
-            }
-            $scriptBlock = Get-HCDefaultSBInjection @sbInjectionParams
-            $params = @{
-                JobCommand   = "Start-Job"
-                JobParameter = @{
-                    ScriptBlock  = $scriptBlock
-                    ArgumentList = $ComputerName
+        } elseif ($RunType -eq "Queue") {
+
+            foreach ($name in $exchangeServerList) {
+                $params = @{
+                    JobCommand   = "Start-Job"
+                    JobParameter = @{
+                        ScriptBlock  = $scriptBlock
+                        ArgumentList = $name
+                    }
+                    JobId        = "Invoke-JobExchangeInformationCmdlet-$name"
                 }
-                JobId        = "Invoke-JobExchangeInformationCmdlet-$ComputerName"
+                Add-JobQueue @params
             }
-            Add-JobQueue @params
+        } elseif ($RunType -eq "QueueOptimize") {
+            $jobNumbers = [System.Math]::Ceiling($exchangeServerList.Count / 8 )
+            $maxServers = [System.Math]::Ceiling($exchangeServerList.Count / $jobNumbers)
+            $argumentListValues = New-Object System.Collections.Generic.List[string[]]
+            $tempListValues = New-Object System.Collections.Generic.List[string]
+            $index = 0
+            $serversAdded = 0
+            $indexJobMatch = @{}
+
+            while ($index -lt $exchangeServerList.Count) {
+
+                if ($serversAdded -ge $maxServers) {
+                    $argumentListValues.Add($tempListValues)
+                    $tempListValues = New-Object System.Collections.Generic.List[string]
+                    $serversAdded = 0
+                }
+                $tempListValues.Add($exchangeServerList[$index])
+                $indexJobMatch.Add($exchangeServerList[$index], $argumentListValues.Count)
+                $serversAdded++
+                $index++
+            }
+            $argumentListValues.Add($tempListValues)
+            $indexJobMatch.Keys | ForEach-Object {
+                $JobKeyMatchingToServer.Value.Add($_, "Invoke-JobExchangeInformationCmdlet-$(($argumentListValues[$indexJobMatch[$_]]).GetHashCode())")
+            }
+
+            foreach ($argumentList in $argumentListValues) {
+                $params = @{
+                    JobCommand   = "Start-Job"
+                    JobParameter = @{
+                        ScriptBlock  = $scriptBlock
+                        ArgumentList = (, @($argumentList))
+                    }
+                    JobId        = "Invoke-JobExchangeInformationCmdlet-$($argumentList.GetHashCode())"
+                    TryStartNow  = $true
+                }
+                Add-JobQueue @params
+            }
         }
     }
 }
