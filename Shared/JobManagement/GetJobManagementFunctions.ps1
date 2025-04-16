@@ -1,18 +1,6 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-function Get-AsyncJobQueue {
-    [CmdletBinding()]
-    param()
-    process {
-        if ($null -eq $Script:getAsyncJobQueueHash) {
-            Write-Verbose "Creating Get-AsyncJobQueue Hashtable"
-            $Script:getAsyncJobQueueHash = @{}
-        }
-        $Script:getAsyncJobQueueHash
-    }
-}
-
 function Get-JobQueue {
     [CmdletBinding()]
     param()
@@ -22,30 +10,6 @@ function Get-JobQueue {
             $Script:getJobQueueHash = @{}
         }
         $Script:getJobQueueHash
-    }
-}
-
-function Get-AsyncJobQueueResult {
-    [CmdletBinding()]
-    [OutputType([Hashtable])]
-    param()
-    begin {
-        $getAsyncJobQueue = Get-AsyncJobQueue
-
-        if ($null -eq $getAsyncJobQueue) {
-            throw "Async Jobs Queued is null"
-        }
-
-        # Add some additional logic check
-        $results = @{}
-    }
-    process {
-        foreach ($key in $getAsyncJobQueue.Keys) {
-            $results.Add($key, $getAsyncJobQueue[$key].Results)
-        }
-    }
-    end {
-        $results
     }
 }
 
