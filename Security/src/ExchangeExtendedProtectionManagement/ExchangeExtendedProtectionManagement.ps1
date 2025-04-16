@@ -68,28 +68,28 @@ param(
 
     [Parameter (Mandatory = $false, ParameterSetName = 'GetExchangeIPs', HelpMessage = "Using this parameter will allow you to specify the path to the output file.")]
     [ValidateScript({
-        (Test-Path -Path $_ -IsValid) -and ([string]::IsNullOrEmpty((Split-Path -Parent $_)) -or (Test-Path -Path (Split-Path -Parent $_)))
+            (Test-Path -Path $_ -IsValid) -and ([string]::IsNullOrEmpty((Split-Path -Parent $_)) -or (Test-Path -Path (Split-Path -Parent $_)))
         })]
     [string]$OutputFilePath = [System.IO.Path]::Combine((Get-Location).Path, "IPList.txt"),
 
     [Parameter (Mandatory = $true, ParameterSetName = 'ConfigureMitigation', HelpMessage = "Using this parameter will allow you to specify a txt file with IP range that will be used to apply IP filters.")]
     [Parameter (Mandatory = $true, ParameterSetName = 'ValidateMitigation', HelpMessage = "Using this parameter will allow you to specify a txt file with IP range that will be used to validate IP filters.")]
     [ValidateScript({
-        (Test-Path -Path $_)
+            (Test-Path -Path $_)
         })]
     [string]$IPRangeFilePath,
 
     [Parameter (Mandatory = $true, ParameterSetName = 'ConfigureMitigation', HelpMessage = "Using this parameter will allow you to specify the site and VDir on which you want to configure mitigation.")]
     [ValidateSet('EWSBackend')]
     [ValidateScript({
-        ($null -ne $_) -and ($_.Length -gt 0)
+            ($null -ne $_) -and ($_.Length -gt 0)
         })]
     [string[]]$RestrictType,
 
     [Parameter (Mandatory = $true, ParameterSetName = 'ValidateMitigation', HelpMessage = "Using this switch will allow you to validate if the mitigations have been applied correctly.")]
     [ValidateSet('RestrictTypeEWSBackend')]
     [ValidateScript({
-        ($null -ne $_) -and ($_.Length -gt 0)
+            ($null -ne $_) -and ($_.Length -gt 0)
         })]
     [string[]]$ValidateType,
 
@@ -173,7 +173,7 @@ begin {
     $RollbackRestrictType = $RollbackSelected -and (-not $RollbackRestoreIISAppConfig) -and (-not $RollbackRestoreConfiguration)
     $ConfigureMitigationSelected = $PsCmdlet.ParameterSetName -eq "ConfigureMitigation"
     $ConfigureEPSelected = $ConfigureMitigationSelected -or
-        ($PsCmdlet.ParameterSetName -eq "ConfigureEP" -and -not $ShowExtendedProtection)
+    ($PsCmdlet.ParameterSetName -eq "ConfigureEP" -and -not $ShowExtendedProtection)
     $ValidateTypeSelected = $PsCmdlet.ParameterSetName -eq "ValidateMitigation"
 
     $includeExchangeServerNames = New-Object 'System.Collections.Generic.List[string]'

@@ -28,7 +28,7 @@ function Build-ExchangeAuthCertificateManagementAccount {
 
         $systemMailboxIdentity = "SM_ad0b1fe3a1a3"
         $domainToUse = (Get-Mailbox -Arbitration -ErrorAction SilentlyContinue | Where-Object {
-            ($null -ne $_.UserPrincipalName)
+                ($null -ne $_.UserPrincipalName)
             } | Select-Object -First 1).UserPrincipalName.Split("@")[-1]
 
         if (($UseExistingAccount) -and

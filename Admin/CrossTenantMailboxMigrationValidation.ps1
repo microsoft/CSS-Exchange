@@ -995,8 +995,8 @@ function LoggingOff {
 
 if ($ScriptUpdateOnly) {
     switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/CrossTenantMailboxMigrationValidationScript-VersionsURL" -Confirm:$false) {
-    ($true) { Write-Host ("Script was successfully updated") -ForegroundColor Green }
-    ($false) { Write-Host ("No update of the script performed") -ForegroundColor Yellow }
+        ($true) { Write-Host ("Script was successfully updated") -ForegroundColor Green }
+        ($false) { Write-Host ("No update of the script performed") -ForegroundColor Yellow }
         default { Write-Host (">> Error: Unable to perform ScriptUpdateOnly operation") -ForegroundColor Red }
     }
     return

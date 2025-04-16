@@ -153,17 +153,17 @@ function Invoke-XmlConfigurationRemoteAction {
                     }
 
                     if (($null -eq $action.Operation -and $action.OperationType -ne "RemoveNode") -or
-                    (($action.OperationType -eq "SetAttribute" -or
+                        (($action.OperationType -eq "SetAttribute" -or
                             $action.OperationType -eq "AppendAttribute") -and
                         ([string]::IsNullOrEmpty($action.Operation.AttributeName) -or
                         [string]::IsNullOrEmpty($action.Operation.Value))) -or
-                    ($action.OperationType -eq "ReplaceAttributeValue" -and
-                    ([string]::IsNullOrEmpty($action.Operation.AttributeName) -or
+                        ($action.OperationType -eq "ReplaceAttributeValue" -and
+                        ([string]::IsNullOrEmpty($action.Operation.AttributeName) -or
                         [string]::IsNullOrEmpty($action.Operation.Value) -or
                         $null -eq $action.Operation.ReplaceValue)) -or
-                    ($action.OperationType -eq "MoveNode" -and
+                        ($action.OperationType -eq "MoveNode" -and
                         ([string]::IsNullOrEmpty($action.Operation.MoveToSelectNodesFilter))) -or
-                    ($action.OperationType -eq "AppendChildFromClone" -and
+                        ($action.OperationType -eq "AppendChildFromClone" -and
                         ([string]::IsNullOrEmpty($action.Operation.AttributeName) -or
                         [string]::IsNullOrEmpty($action.Operation.Value) -or
                         [string]::IsNullOrEmpty($action.Operation.SelectSingleNodeFilterForClone)))) {

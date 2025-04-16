@@ -61,7 +61,7 @@ function Invoke-SetupLogReviewer {
             $setupBuild = New-Object System.Version $setupLogReviewer.SetupBuildNumber -ErrorAction Stop
 
             if (($localBuild -eq $setupBuild -or
-                ($localBuild.Minor -eq $setupBuild.Minor -and
+                    ($localBuild.Minor -eq $setupBuild.Minor -and
                     $localBuild.Build -eq $setupBuild.Build)) -and
                 ($setupLogReviewer.SetupMode -ne "Install")) {
                 Write-Host "Same build number detected..... if using powershell.exe to start setup. Make sure you do '.\setup.exe'" -ForegroundColor "Red"

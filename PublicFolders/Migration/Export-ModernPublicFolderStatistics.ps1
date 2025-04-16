@@ -145,7 +145,7 @@ function GatherStatistics() {
             # Folder is not present in NON IPM Subtree or
             # Folder's dumpster is not present in "\NON_IPM_SUBTREE\DUMPSTER_ROOT"
             if ([String]::IsNullOrEmpty($dumpsterEntryId) -or (!$script:NonIpmSubtreeFolders.ContainsKey($dumpsterEntryId)) -or
-               (!$script:NonIpmSubtreeFolders[$dumpsterEntryId].StartsWith("\NON_IPM_SUBTREE\DUMPSTER_ROOT\"))) {
+                (!$script:NonIpmSubtreeFolders[$dumpsterEntryId].StartsWith("\NON_IPM_SUBTREE\DUMPSTER_ROOT\"))) {
                 $index++
                 continue
             }

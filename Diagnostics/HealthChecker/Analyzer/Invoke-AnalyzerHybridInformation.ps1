@@ -96,7 +96,7 @@ function Invoke-AnalyzerHybridInformation {
             }
 
             if (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.ReceivingTransportServers)) -or
-            (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.SendingTransportServers)))) {
+                (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.SendingTransportServers)))) {
                 $params = $baseParams + @{
                     Details                = "When configuring the EdgeTransportServers parameter, you must configure the ReceivingTransportServers and SendingTransportServers parameter values to null"
                     DisplayWriteType       = "Yellow"
@@ -450,7 +450,7 @@ function Invoke-AnalyzerHybridInformation {
 
                                 if (($connector.CertificateDetails.TlsCertificateNameStatus -eq "TlsCertificateNameSyntaxInvalid") -or
                                     (($connector.CertificateDetails.GoodTlsCertificateSyntax -eq $false) -and
-                                        ($null -ne $connector.CertificateDetails.TlsCertificateName))) {
+                                    ($null -ne $connector.CertificateDetails.TlsCertificateName))) {
                                     $params = $baseParams + @{
                                         Name             = "TlsCertificateName Syntax Invalid"
                                         Details          = "True"

@@ -202,7 +202,7 @@ function Invoke-AnalyzerIISInformation {
                 }
 
                 if (($webSite.Hsts.NativeHstsSettings.enabled) -and
-                ($webSite.Hsts.HstsViaCustomHeader.enabled)) {
+                    ($webSite.Hsts.HstsViaCustomHeader.enabled)) {
                     $showAdditionalHstsInformation = $true
                     Write-Verbose "HSTS conflict detected"
                     $params = $baseParams + @{
@@ -298,7 +298,7 @@ function Invoke-AnalyzerIISInformation {
             $appRestarts.Requests -ne "0" -or
             $null -ne $appRestarts.Schedule -or
             ($appRestarts.Time -ne "00:00:00" -and
-                ($webAppKey -ne "MSExchangeOWAAppPool" -and
+            ($webAppKey -ne "MSExchangeOWAAppPool" -and
             $webAppKey -ne "MSExchangeECPAppPool")))
 
         $outputObjectDisplayValue.Add(([PSCustomObject]@{

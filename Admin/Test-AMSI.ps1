@@ -593,15 +593,15 @@ process {
 
     if ($ScriptUpdateOnly) {
         switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/Test-AMSI-VersionsURL" -Confirm:$false) {
-        ($true) { Write-Host ("Script was successfully updated") -ForegroundColor Green }
-        ($false) { Write-Host ("No update of the script performed") -ForegroundColor Yellow }
+            ($true) { Write-Host ("Script was successfully updated") -ForegroundColor Green }
+            ($false) { Write-Host ("No update of the script performed") -ForegroundColor Yellow }
             default { Write-Host ("Unable to perform ScriptUpdateOnly operation") -ForegroundColor Red }
         }
         return
     }
 
     if ((-not($SkipVersionCheck)) -and
-    (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/Test-AMSI-VersionsURL" -Confirm:$false)) {
+        (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/Test-AMSI-VersionsURL" -Confirm:$false)) {
         Write-Host ("Script was updated. Please re-run the command") -ForegroundColor Yellow
         return
     }
@@ -715,7 +715,7 @@ process {
 
     if ((($filterList.count -gt 0) -or
             $TestAMSI -or
-           (($EnableAMSI -or $DisableAMSI) -and
+            (($EnableAMSI -or $DisableAMSI) -and
             -not $ServerList)) -and
         $SupportedExchangeServers.count -gt 0) {
 
