@@ -25,10 +25,12 @@ $script:CustomPropertyNameList =
 "InternetMessageId",
 "IsAllDayEvent",
 "IsCancelled",
+"IsException",
 "IsMeeting",
 "IsOrganizerProperty",
 "IsSharedInEvent",
 "ItemID",
+"LogBodyStats",
 "LogClientInfoString",
 "LogRowType",
 "LogTimestamp",
@@ -47,11 +49,21 @@ if ($ShortLogs.IsPresent) {
     $LogLimit = 500
 }
 
+if ($MaxLogs.IsPresent) {
+    $LogLimit = 12000
+}
+
+$LimitedItemClasses = @(
+    "IPM.Appointment",
+    "IPM.Schedule.Meeting.Request",
+    "IPM.Schedule.Meeting.Canceled",
+    "IPM.Schedule.Meeting.Forwarded"
+)
+
 <#
 .SYNOPSIS
 Run Get-CalendarDiagnosticObjects for passed in User with Subject or MeetingID.
 #>
-
 function GetCalendarDiagnosticObjects {
     param(
         [string]$Identity,
@@ -77,8 +89,31 @@ function GetCalendarDiagnosticObjects {
         $params.Add("CustomPropertyName", $script:CustomPropertyNameList)
     }
 
+    if (-not [string]::IsNullOrEmpty($ExceptionDate)) {
+        Write-Host -ForegroundColor Green "---------------------------------------"
+        Write-Host -ForegroundColor Green "Pulling all the Exceptions for [$ExceptionDate] and adding them to the output."
+        Write-Host -ForegroundColor Green "---------------------------------------"
+        $params.Add("AnalyzeExceptionWithOriginalStartDate", $ExceptionDate)
+    }
+
+    if ($MaxLogs.IsPresent) {
+        Write-Host -ForegroundColor Yellow "Limiting the number of logs to $LogLimit, and limiting the number of Item Classes retrieved."
+        $params.Add("ItemClass", $LimitedItemClasses)
+    }
+
+    if ($null -ne $CustomProperty) {
+        Write-Host -ForegroundColor Yellow "Adding custom properties to the RAW output."
+        $params.Remove("CustomPropertyName")
+        $script:CustomPropertyNameList += $CustomProperty
+        Write-Host -ForegroundColor Yellow "Adding extra CustomProperty: [$CustomProperty]"
+        $params.Add("CustomPropertyName", $script:CustomPropertyNameList)
+    }
+
     if ($Identity -and $MeetingID) {
         Write-Verbose "Getting CalLogs for [$Identity] with MeetingID [$MeetingID]."
+        if ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
+            Write-Host -ForegroundColor Yellow ($params.GetEnumerator() | ForEach-Object { "`t$($_.Key) = $($_.Value)`n" })
+        }
         $CalLogs = Get-CalendarDiagnosticObjects @params -MeetingID $MeetingID
     } elseif ($Identity -and $Subject ) {
         Write-Verbose "Getting CalLogs for [$Identity] with Subject [$Subject]."

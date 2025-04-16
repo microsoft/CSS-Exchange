@@ -134,8 +134,8 @@ function BuildCSV {
     $script:MailboxList = @{}
     Write-Host "Creating Map of Mailboxes to CNs..."
     CreateExternalMasterIDMap
-
     ConvertCNtoSMTP
+    FixCalendarItemType($script:GCDO)
 
     Write-Host "Making Calendar Logs more readable..."
     $Index = 0
@@ -144,7 +144,7 @@ function BuildCSV {
         $ItemType = $CalendarItemTypes.($CalLog.ItemClass)
 
         # CleanNotFounds
-        $PropsToClean = "FreeBusyStatus", "ClientIntent", "AppointmentSequenceNumber", "AppointmentLastSequenceNumber", "RecurrencePattern", "AppointmentAuxiliaryFlags", "EventEmailReminderTimer", "IsSeriesCancelled", "AppointmentCounterProposal", "MeetingRequestType", "SendMeetingMessagesDiagnostics"
+        $PropsToClean = "FreeBusyStatus", "ClientIntent", "AppointmentSequenceNumber", "AppointmentLastSequenceNumber", "RecurrencePattern", "AppointmentAuxiliaryFlags", "EventEmailReminderTimer", "IsSeriesCancelled", "AppointmentCounterProposal", "MeetingRequestType", "SendMeetingMessagesDiagnostics", "AttendeeCollection"
         foreach ($Prop in $PropsToClean) {
             # Exception objects, etc. don't have these properties.
             if ($null -ne $CalLog.$Prop) {
@@ -163,24 +163,21 @@ function BuildCSV {
             'TriggerAction'                  = $CalLog.CalendarLogTriggerAction
             'ItemClass'                      = $ItemType
             'Seq:Exp:ItemVersion'            = CompressVersionInfo($CalLog)
-            'Organizer'                      = $CalLog.From.FriendlyDisplayName
-            'From'                           = GetBestFromAddress($CalLog.From)
+            'Organizer'                      = GetDisplayName($CalLog.From)
+            'From'                           = GetSMTPAddress($CalLog.From)
             'FreeBusy'                       = $CalLog.FreeBusyStatus.ToString()
             'ResponsibleUser'                = GetSMTPAddress($CalLog.ResponsibleUserName)
-            'Sender'                         = GetSMTPAddress($CalLog.SenderEmailAddress)
+            'Sender'                         = GetSMTPAddress($CalLog.Sender)
             'LogFolder'                      = $CalLog.ParentDisplayName
             'OriginalLogFolder'              = $CalLog.OriginalParentDisplayName
             'SharedFolderName'               = MapSharedFolder($CalLog.ExternalSharingMasterId)
-            'ReceivedBy'                     = $CalLog.ReceivedBy.SmtpEmailAddress
-            'ReceivedRepresenting'           = $CalLog.ReceivedRepresenting.SmtpEmailAddress
+            'ReceivedRepresenting'           = GetSMTPAddress($CalLog.ReceivedRepresenting)
             'MeetingRequestType'             = $CalLog.MeetingRequestType.ToString()
             'StartTime'                      = ConvertDateTime($CalLog.StartTime)
             'EndTime'                        = ConvertDateTime($CalLog.EndTime)
             'OriginalStartDate'              = ConvertDateTime($CalLog.OriginalStartDate)
-            'TimeZone'                       = $CalLog.TimeZone
             'Location'                       = $CalLog.Location
             'CalendarItemType'               = $CalLog.CalendarItemType.ToString()
-            'IsException'                    = $CalLog.IsException
             'RecurrencePattern'              = $CalLog.RecurrencePattern
             'AppointmentAuxiliaryFlags'      = $CalLog.AppointmentAuxiliaryFlags.ToString()
             'DisplayAttendeesAll'            = $CalLog.DisplayAttendeesAll
@@ -218,12 +215,28 @@ function ConvertDateTime {
 
 function GetAttendeeCount {
     param(
-        [string] $AttendeeCollection
+        [string] $AttendeesAll
     )
-    if ($From.SmtpAddress -ne "NotFound") {
-        return ($AttendeeCollection -split ';').Count
+    if ($AttendeesAll -ne "NotFound") {
+        return ($AttendeesAll -split ';').Count
     } else {
         return "-"
+    }
+}
+
+<#
+.SYNOPSIS
+Corrects the CalenderItemType column
+#>
+function FixCalendarItemType {
+    param(
+        $CalLogs
+    )
+    foreach ($CalLog in $CalLogs) {
+        if ($CalLog.OriginalStartDate -ne "NotFound" -and ![string]::IsNullOrEmpty($CalLog.OriginalStartDate)) {
+            $CalLog.CalendarItemType = "Exception"
+            $CalLog.isException = $true
+        }
     }
 }
 
