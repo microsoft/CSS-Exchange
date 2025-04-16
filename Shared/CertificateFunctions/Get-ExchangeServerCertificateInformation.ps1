@@ -45,7 +45,7 @@ function Get-ExchangeServerCertificateInformation {
 
             $certificateMatch = $Exclusions | Where-Object {
                 ((($Certificate.Subject -match $_.IorSPattern) -or
-                ($Certificate.Issuer -match $_.IorSPattern)) -and
+                    ($Certificate.Issuer -match $_.IorSPattern)) -and
                 ($Certificate.IsSelfSigned -eq $_.IsSelfSigned))
             } | Select-Object -First 1
 

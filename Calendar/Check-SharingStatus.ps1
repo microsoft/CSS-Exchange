@@ -405,7 +405,7 @@ function GetReceiverInformation {
     ProcessInternetCalendarLogs -Identity $Receiver
 
     if (($script:SharingType -like "InternalSharing") -or
-    ($script:SharingType -like "ExternalSharing")) {
+        ($script:SharingType -like "ExternalSharing")) {
         # Validate Modern Sharing Status
         if (Get-Command -Name Get-CalendarEntries -ErrorAction SilentlyContinue) {
             Write-Verbose "Found Get-CalendarEntries cmdlet. Running cmdlet: Get-CalendarEntries -Identity $Receiver"

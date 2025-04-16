@@ -299,7 +299,7 @@ end {
     } finally {
 
         if ($Script:VerboseEnabled -or
-        ($Error.Count -ne $Script:ErrorsFromStartOfCopy)) {
+            ($Error.Count -ne $Script:ErrorsFromStartOfCopy)) {
             #$Script:Logger.RemoveLatestLogFile()
         }
     }

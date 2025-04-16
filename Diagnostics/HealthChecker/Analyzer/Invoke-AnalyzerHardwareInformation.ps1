@@ -312,7 +312,7 @@ function Invoke-AnalyzerHardwareInformation {
                 $params.Details = "Unknown - Required Counter Not Loaded. Missing Counter: $($counterName)"
                 $params.DisplayWriteType = "Yellow"
             } elseif (($counter.CookedValue / 1024) -ne $totalPhysicalMemory -and
-            ($counter.CookedValue / 1024) -ne $totalPhysicalMemoryNotRounded) {
+                ($counter.CookedValue / 1024) -ne $totalPhysicalMemoryNotRounded) {
                 $params.Details = "$true $($counter.CookedValue / 1024)GB is the allowed dynamic memory of the server. Not supported to have dynamic memory configured."
                 $params.DisplayWriteType = "Red"
             }

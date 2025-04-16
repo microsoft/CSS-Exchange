@@ -17,7 +17,7 @@ function Invoke-HealthCheckerMainReport {
     $currentErrors = $Error.Count
 
     if ((-not $SkipVersionCheck) -and
-                (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/HC-VersionsUrl")) {
+        (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/HC-VersionsUrl")) {
         Write-Yellow "Script was updated. Please rerun the command."
         return
     } else {

@@ -82,7 +82,7 @@ function Get-IISWebSite {
                 and return them as PSCustomObject. We're looking for the following directive: max-age, includeSubDomains, preload, redirectHttpToHttps
             #>
             $customHeaderHsts = ($webConfigContentXml.configuration.'system.webServer'.httpProtocol.customHeaders.add | Where-Object {
-                ($_.name -eq "Strict-Transport-Security")
+                    ($_.name -eq "Strict-Transport-Security")
                 }).value
             if ($null -ne $customHeaderHsts) {
                 Write-Verbose "Hsts via custom header configuration detected"

@@ -86,8 +86,8 @@ function Invoke-AnalyzerSecuritySettings {
         # TLS 1.0 or 1.1 being Enabled is Yellow as we recommend to disable this weak protocol versions
         if (($currentTlsVersion.TLSConfiguration -eq "Misconfigured" -or
                 $currentTlsVersion.TLSConfiguration -eq "Half Disabled") -or
-                ($tlsKey -eq "1.2" -and $currentTlsVersion.TLSConfiguration -eq "Disabled") -or
-                ($tlsKey -eq "1.3" -and $currentTlsVersion.TLSConfiguration -eq "Enabled" -and (-not $tls13SupportedOS -or -not $tls13SupportedExchange))) {
+            ($tlsKey -eq "1.2" -and $currentTlsVersion.TLSConfiguration -eq "Disabled") -or
+            ($tlsKey -eq "1.3" -and $currentTlsVersion.TLSConfiguration -eq "Enabled" -and (-not $tls13SupportedOS -or -not $tls13SupportedExchange))) {
             $displayWriteType = "Red"
         } elseif ($currentTlsVersion.TLSConfiguration -eq "Enabled" -and
             ($tlsKey -eq "1.1" -or $tlsKey -eq "1.0")) {
