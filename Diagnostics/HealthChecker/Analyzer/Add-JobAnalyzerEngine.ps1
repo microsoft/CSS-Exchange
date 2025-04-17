@@ -13,8 +13,7 @@ function Add-JobAnalyzerEngine {
         [object]$HealthServerObject,
 
         [Parameter(Mandatory = $true)]
-        [ValidateSet("Legacy", "StartNow")]
-        [string]$RunType
+        [string]$ExecutingServer
     )
     process {
         <#
@@ -37,29 +36,25 @@ function Add-JobAnalyzerEngine {
 
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
-        if ($RunType -eq "Legacy") {
-            throw "Legacy Not Implemented"
-        } elseif ($RunType -eq "StartNow") {
-            $sbInjectionParams = @{
-                PrimaryScriptBlock = ${Function:Invoke-JobAnalyzerEngine}
-                IncludeScriptBlock = @(${Function:Get-ExchangeBuildVersionInformation}, ${Function:GetExchangeBuildDictionary}, ${Function:GetExchangeBuildDictionary},
-                    ${Function:GetValidatePossibleParameters}, ${Function:ValidateSUParameter}, ${Function:ValidateCUParameter}, ${Function:ValidateVersionParameter},
-                    ${Function:Test-ExchangeBuildGreaterOrEqualThanSecurityPatch}, ${Function:Get-VisualCRedistributableLatest}, ${Function:Get-NETFrameworkVersion},
-                    ${Function:GetNetVersionDictionary}, ${Function:ValidateNetNameParameter}, ${Function:Test-ExchangeBuildGreaterOrEqualThanBuild}, ${Function:Test-ExchangeBuildLessThanBuild},
-                    ${Function:Test-ExchangeBuildEqualBuild}, ${Function:Test-VisualCRedistributableUpToDate}, ${Function:Get-VisualCRedistributableInfo}, ${Function:Test-VisualCRedistributableInstalled})
-            }
-            $scriptBlock = Get-HCDefaultSBInjection @sbInjectionParams
-            $params = @{
-                JobCommand   = "Invoke-Command"
-                JobParameter = @{
-                    ComputerName = ($HealthServerObject.ServerName) # TODO: Improve the logic here.
-                    ScriptBlock  = $scriptBlock
-                    ArgumentList = $HealthServerObject
-                }
-                JobId        = "Invoke-JobAnalyzerEngine-$($HealthServerObject.ServerName)"
-                TryStartNow  = $true
-            }
-            Add-JobQueue @params
+        $sbInjectionParams = @{
+            PrimaryScriptBlock = ${Function:Invoke-JobAnalyzerEngine}
+            IncludeScriptBlock = @(${Function:Get-ExchangeBuildVersionInformation}, ${Function:GetExchangeBuildDictionary}, ${Function:GetExchangeBuildDictionary},
+                ${Function:GetValidatePossibleParameters}, ${Function:ValidateSUParameter}, ${Function:ValidateCUParameter}, ${Function:ValidateVersionParameter},
+                ${Function:Test-ExchangeBuildGreaterOrEqualThanSecurityPatch}, ${Function:Get-VisualCRedistributableLatest}, ${Function:Get-NETFrameworkVersion},
+                ${Function:GetNetVersionDictionary}, ${Function:ValidateNetNameParameter}, ${Function:Test-ExchangeBuildGreaterOrEqualThanBuild}, ${Function:Test-ExchangeBuildLessThanBuild},
+                ${Function:Test-ExchangeBuildEqualBuild}, ${Function:Test-VisualCRedistributableUpToDate}, ${Function:Get-VisualCRedistributableInfo}, ${Function:Test-VisualCRedistributableInstalled})
         }
+        $scriptBlock = Get-HCDefaultSBInjection @sbInjectionParams
+        $params = @{
+            JobCommand   = "Invoke-Command"
+            JobParameter = @{
+                ComputerName = $ExecutingServer
+                ScriptBlock  = $scriptBlock
+                ArgumentList = $HealthServerObject
+            }
+            JobId        = "Invoke-JobAnalyzerEngine-$($HealthServerObject.ServerName)"
+            TryStartNow  = $true
+        }
+        Add-JobQueue @params
     }
 }
