@@ -1,7 +1,6 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\..\Analyzer\Add-AsyncJobAnalyzerEngine.ps1
 . $PSScriptRoot\..\DataCollection\OrganizationInformation\Add-JobOrganizationInformation.ps1
 . $PSScriptRoot\..\DataCollection\ServerInformation\Add-JobHardwareInformation.ps1
 . $PSScriptRoot\..\DataCollection\ServerInformation\Add-JobOperatingSystemInformation.ps1
@@ -86,7 +85,6 @@ function Get-HealthCheckerDataCollection {
     }
     process {
         # Loop through all the server names provided to make sure they are an Exchange server, and to get the FQDN for them.
-        $mainStopWatch = [System.Diagnostics.Stopwatch]::StartNew()
         $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
         foreach ($serverName in $ServerNames) {
             try {
@@ -144,7 +142,6 @@ function Get-HealthCheckerDataCollection {
         Clear-JobQueue
 
         $healthCheckerData = New-Object System.Collections.Generic.List[object]
-        $waitAsyncList = New-Object System.Collections.Generic.List[string]
         $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
 
         foreach ($serverName in $getExchangeServerList.Keys) {
@@ -198,22 +195,11 @@ function Get-HealthCheckerDataCollection {
                     RegistryValues                           = $exchLocalResults.RegistryValues
                 }
             }
-
-            if ($true) {
-                # Write-Debug "Before asyncJob" -Debug
-                Add-AsyncJobAnalyzerEngine -HealthServerObject $hcObject -RunType "StartNow"
-                $waitAsyncList.Add("Invoke-JobAnalyzerEngine-$($hcObject.ServerName)")
-            } else {
-                $stopWatch2 = [System.Diagnostics.Stopwatch]::StartNew()
-                $analyzedResults = Invoke-AnalyzerEngine -HealthServerObject $hcObject
-                Write-Verbose "After analyzer as $($stopWatch2.Elapsed.TotalSeconds) seconds" -Verbose
-                Write-ResultsToScreen -ResultsToWrite $analyzedResults.DisplayResults
-                Write-Verbose "Took $($stopWatch2.Elapsed.TotalSeconds) seconds for analyzer and results" -Verbose
-                $healthCheckerData.Add($hcObject)
-            }
+            $healthCheckerData.Add($hcObject)
         }
-        Write-Verbose "Took $($stopWatch.Elapsed.TotalSeconds) seconds to start and queue the analyzer results" -Verbose
+        Write-Verbose "Took $($stopWatch.Elapsed.TotalSeconds) seconds to create the Health Checker object list" -Verbose
 
+        <#
         if ($true) {
             Wait-JobQueue -ProcessReceiveJobAction ${Function:Invoke-RemotePipelineLoggingLocal}
             $jobResults = Get-JobQueueResult
@@ -252,5 +238,7 @@ function Get-HealthCheckerDataCollection {
 
         Write-Verbose "Writing out the screen took total $($stopWatch.Elapsed.TotalSeconds) seconds"
         Write-Verbose "Total time in script data collection took $($mainStopWatch.Elapsed.TotalSeconds) seconds"
+     #>
+        return $healthCheckerData
     }
 }
