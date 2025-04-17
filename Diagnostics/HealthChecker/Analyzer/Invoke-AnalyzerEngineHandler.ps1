@@ -1,6 +1,11 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\Add-JobAnalyzerEngine.ps1
+. $PSScriptRoot\..\..\..\Shared\JobManagement\GetJobManagementFunctions.ps1
+. $PSScriptRoot\..\..\..\Shared\JobManagement\Wait-JobQueue.ps1
+. $PSScriptRoot\..\..\..\Shared\ScriptBlock\RemoteSBLoggingFunctions.ps1
+
 <#
     This function handles how we need to call the Analyzer Engine. If that is done by a job or done on this main session.
 #>
@@ -30,6 +35,16 @@ function Invoke-AnalyzerEngineHandler {
             }
         } else {
             foreach ($healthServerObject in $ServerDataCollection) {
+                Add-JobAnalyzerEngine -HealthServerObject $healthServerObject -ExecutingServer $healthServerObject.ServerName #TODO: Improve this logic
+            }
+            Wait-JobQueue -ProcessReceiveJobAction ${Function:Invoke-RemotePipelineLoggingLocal}
+            $getJobQueueResult = Get-JobQueueResult
+            Write-Verbose "All servers to complete analyzed results $($stopWatch.Elapsed.TotalSeconds) seconds"
+
+            foreach ($key in $getJobQueueResult.Keys) {
+                $analyzedResults = $getJobQueueResult[$key].HCAnalyzedResults
+                $serverName = $analyzedResults.HealthCheckerExchangeServer.ServerName
+                $finalResultsProcessed.Add($serverName, $analyzedResults)
             }
         }
     }
