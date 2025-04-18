@@ -93,6 +93,13 @@ function Invoke-JobOrganizationInformation {
             }
 
             try {
+                $getAuthServer = Get-AuthServer -ErrorAction Stop
+            } catch {
+                Write-Verbose "Failed to run Auth Server"
+                Invoke-CatchActions
+            }
+
+            try {
                 # It was reported that this isn't getting thrown to the catch action when failing. As a quick fix, handling this by looping over errors.
                 $currentErrors = $Error.Count
                 $getDdgPublicFolders = @(Get-DynamicDistributionGroup "PublicFolderMailboxes*" -IncludeSystemObjects -ErrorAction "Stop")
@@ -188,6 +195,7 @@ function Invoke-JobOrganizationInformation {
             GetIrmConfiguration               = $getIrmConfiguration
             GetGlobalMonitoringOverride       = $globalMonitoringOverride
             GetAuthConfig                     = $getAuthConfig
+            GetAuthServer                     = $getAuthServer
             GetSendConnector                  = $getSendConnector
             RemoteJob                         = $true -eq $PSSenderInfo
             JobHandledErrors                  = $jobHandledErrors
