@@ -1,20 +1,16 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\Invoke-CatchActionError.ps1
-. $PSScriptRoot\Invoke-ScriptBlockHandler.ps1
-. $PSScriptRoot\Write-ErrorInformation.ps1
+. $PSScriptRoot\..\..\Invoke-CatchActionError.ps1
+. $PSScriptRoot\..\..\ScriptBlock\RemotePipelineHandlerFunctions.ps1
 
-function Get-ExtendedProtectionConfiguration {
+function Get-ExtendedProtectionConfigurationResult {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
-        [string]$ComputerName,
-
-        [Parameter(Mandatory = $false)]
         [System.Xml.XmlNode]$ApplicationHostConfig,
 
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $true)]
         [System.Version]$ExSetupVersion,
 
         [Parameter(Mandatory = $false)]
@@ -36,7 +32,6 @@ function Get-ExtendedProtectionConfiguration {
         [Parameter(Mandatory = $false)]
         [ScriptBlock]$CatchActionFunction
     )
-
     begin {
         function NewVirtualDirMatchingEntry {
             param(
@@ -76,7 +71,6 @@ function Get-ExtendedProtectionConfiguration {
                     $SiteVDirLocations.Count -gt 0) {
                     foreach ($SiteVDirLocation in $SiteVDirLocations) {
                         if ($SiteVDirLocation -eq "$($WebSite[$i])/$virtualDirectory") {
-                            Write-Verbose "Set Extended Protection to None because of restriction override '$($WebSite[$i])\$virtualDirectory'"
                             $ExtendedProtection[$i] = "None"
                             break
                         }
@@ -90,19 +84,6 @@ function Get-ExtendedProtectionConfiguration {
                     SslFlags           = $SslFlags[$i]
                 }
             }
-        }
-
-        # Intended for inside of Invoke-Command.
-        function GetApplicationHostConfig {
-            $appHostConfig = New-Object -TypeName Xml
-            try {
-                $appHostConfigPath = "$($env:WINDIR)\System32\inetSrv\config\applicationHost.config"
-                $appHostConfig.Load($appHostConfigPath)
-            } catch {
-                Write-Verbose "Failed to loaded application host config file. $_"
-                $appHostConfig = $null
-            }
-            return $appHostConfig
         }
 
         function GetExtendedProtectionConfiguration {
@@ -219,48 +200,6 @@ function Get-ExtendedProtectionConfiguration {
         }
 
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-
-        $computerResult = Invoke-ScriptBlockHandler -ComputerName $ComputerName -ScriptBlock { return $env:COMPUTERNAME }
-        $serverConnected = $null -ne $computerResult
-
-        if ($null -eq $computerResult) {
-            Write-Verbose "Failed to connect to server $ComputerName"
-            return
-        }
-
-        if ($null -eq $ExSetupVersion) {
-            [System.Version]$ExSetupVersion = Invoke-ScriptBlockHandler -ComputerName $ComputerName -ScriptBlock {
-                (Get-Command ExSetup.exe |
-                    ForEach-Object { $_.FileVersionInfo } |
-                    Select-Object -First 1).FileVersion
-            }
-
-            if ($null -eq $ExSetupVersion) {
-                throw "Failed to determine Exchange build number"
-            }
-        } else {
-            # Hopefully the caller knows what they are doing, best be from the correct server!!
-            Write-Verbose "Caller passed the ExSetupVersion information"
-        }
-
-        if ($null -eq $ApplicationHostConfig) {
-            Write-Verbose "Trying to load the application host config from $ComputerName"
-            $params = @{
-                ComputerName        = $ComputerName
-                ScriptBlock         = ${Function:GetApplicationHostConfig}
-                CatchActionFunction = $CatchActionFunction
-            }
-
-            $ApplicationHostConfig = Invoke-ScriptBlockHandler @params
-
-            if ($null -eq $ApplicationHostConfig) {
-                throw "Failed to load application host config from $ComputerName"
-            }
-        } else {
-            # Hopefully the caller knows what they are doing, best be from the correct server!!
-            Write-Verbose "Caller passed the application host config."
-        }
-
         $default = "Default Web Site"
         $backend = "Exchange Back End"
         $Script:IsExchange2013 = $ExSetupVersion.Major -eq 15 -and $ExSetupVersion.Minor -eq 0
@@ -323,7 +262,9 @@ function Get-ExtendedProtectionConfiguration {
                 try {
                     Write-Verbose "Verify extended protection setting for $($matchEntry.VirtualDirectory) on web site $($matchEntry.WebSite)"
 
-                    $extendedConfiguration = GetExtendedProtectionConfiguration -Xml $applicationHostConfig -Path "$($matchEntry.WebSite)/$($matchEntry.VirtualDirectory)"
+                    $extendedConfiguration = $null
+                    GetExtendedProtectionConfiguration -Xml $applicationHostConfig -Path "$($matchEntry.WebSite)/$($matchEntry.VirtualDirectory)" |
+                        Invoke-RemotePipelineHandler -Result ([ref]$extendedConfiguration)
 
                     # Extended Protection is a windows security feature which blocks MiTM attacks.
                     # Supported server roles are: Mailbox and ClientAccess
@@ -434,10 +375,7 @@ function Get-ExtendedProtectionConfiguration {
     }
     end {
         return [PSCustomObject]@{
-            ComputerName                          = $ComputerName
-            ServerConnected                       = $serverConnected
             SupportedVersionForExtendedProtection = $supportedVersion
-            ApplicationHostConfig                 = $ApplicationHostConfig
             ExtendedProtectionConfiguration       = $extendedProtectionList
             ExtendedProtectionConfigured          = $null -ne ($extendedProtectionList.ExtendedProtection | Where-Object { $_ -ne "None" })
         }
