@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://microsoft.github.io/CSS-Exchange/Diagnostics/HealthChecker/FIPFSCheck/">
+        <link rel="canonical" href="https://microsoft.github.io/CSS-Exchange/Diagnostics/HealthChecker/ExchangeHybridApplicationCheck/">
       
       
-        <link rel="prev" href="../OpenRelayDomain/">
+        <link rel="prev" href="../TransportRetryConfigCheck/">
       
       
-        <link rel="next" href="../IISInformation/">
+        <link rel="next" href="../../ManagedAvailabilityTroubleshooter/">
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>FIPFSCheck - Microsoft - CSS-Exchange</title>
+        <title>ExchangeHybridApplicationCheck - Microsoft - CSS-Exchange</title>
       
     
     
@@ -84,7 +84,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#fip-fs-check" class="md-skip">
+        <a href="#dedicated-exchange-hybrid-application" class="md-skip">
           Skip to content
         </a>
       
@@ -119,7 +119,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              FIPFSCheck
+              ExchangeHybridApplicationCheck
             
           </span>
         </div>
@@ -1996,19 +1996,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../FIPFSCheck/" class="md-nav__link">
         
   
   
@@ -2019,7 +2010,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -2190,10 +2180,32 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../ExchangeHybridApplicationCheck/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    ExchangeHybridApplicationCheck
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -2204,6 +2216,44 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#included-in-html-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      Included in HTML Report?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      Additional resources
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -4234,6 +4284,32 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#included-in-html-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      Included in HTML Report?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      Additional resources
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -4248,7 +4324,7 @@
 
 
   
-    <a href="https://github.com/microsoft/CSS-Exchange/edit/main/docs/Diagnostics/HealthChecker/FIPFSCheck.md" title="Edit this page" class="md-content__button md-icon">
+    <a href="https://github.com/microsoft/CSS-Exchange/edit/main/docs/Diagnostics/HealthChecker/ExchangeHybridApplicationCheck.md" title="Edit this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -4256,29 +4332,16 @@
   
 
 
-<h1 id="fip-fs-check">FIP-FS Check</h1>
-<p><strong>Description:</strong></p>
-<p>We have addressed the issue causing messages to be stuck in transport queues of on-premises <code>Exchange Server 2016</code> and <code>Exchange Server 2019</code>. The problem relates to a date check failure with the change of the new year and it not a failure of the AV engine itself. This is not an issue with malware scanning or the malware engine, and it is not a security-related issue.</p>
-<p>The version checking performed against the signature file is causing the malware engine to crash, resulting in messages being stuck in transport queues.</p>
-<p>This check validates if the problematic signature file has already downloaded and processed. It shows a red warning indicating that the FIP-FS scan engine should be reset to avoid running into the transport or pattern update issue.</p>
-<ul>
-<li>Exchange 2013 is <strong>not affected</strong> by the transport queue issue, however, if invalid patterns has been applied, no newer update pattern with a lower version number (like <code>2112330001</code>) will be applied.</li>
-<li>We check if a folder with number <code>2201010000</code> or greater exists under <code>ExchangeInstallPath\FIP-FS\Data\Engines\amd64\Microsoft\Bin</code>.</li>
-<li>
-<p>We also check if the server runs a fixed Exchange build (March 2022 Security Update or higher) that does not crash when the problematic version is used.</p>
-</li>
-<li>
-<p>If we detect the problematic version folder and the server doesn't run a fixed build, we recommend to reset the scan engine version (see <code>Email Stuck in Exchange On-premises Transport Queues</code> in the "Additional resources" section).</p>
-</li>
-<li>
-<p>If we detect the problematic version folder but the server runs a fixed build, it should be safe to delete the folder without performing a scan engine reset. If the directory cannot be deleted, it means that the problematic version is in use. This is a problem because in this case, no new scan engine version will be applied. In this case, a reset of the scan engine must be performed.</p>
-</li>
-</ul>
-<p>Please follow the instructions in the references below to reset the scan engine.</p>
-<p><strong>Included in HTML Report?</strong></p>
+<h1 id="dedicated-exchange-hybrid-application">Dedicated Exchange Hybrid Application</h1>
+<p>When Microsoft Exchange Server is deployed in a hybrid configuration, features such as Free/Busy sharing, MailTips, and Profile pictures are made available between Exchange Server and Exchange Online. This configuration ensures a seamless user experience. These features are automatically configured the first time the Hybrid Configuration Wizard (HCW) runs.</p>
+<p>To enable hybrid functionality, Exchange Server uses a shared service principal with Exchange Online for secure communication. However, this process will be revised in the near future as Exchange Server transitions from using the EWS API to the Microsoft Graph API for requesting data from Exchange Online. To prepare for this significant change, a configuration update will be required in your Exchange hybrid environment.</p>
+<p>This check validates whether the so-called <code>dedicated Exchange hybrid application</code> is configured in your Exchange environment if Exchange hybrid was detected. See the <a href="#additional-resources">Additional Resources</a> for more information about the feature and configuration instructions.</p>
+<h2 id="included-in-html-report">Included in HTML Report?</h2>
 <p>Yes</p>
-<p><strong>Additional resources:</strong></p>
-<p><a href="https://techcommunity.microsoft.com/t5/exchange-team-blog/email-stuck-in-exchange-on-premises-transport-queues/ba-p/3049447">Email Stuck in Exchange On-premises Transport Queues</a></p>
+<h2 id="additional-resources">Additional resources</h2>
+<p><a href="https://aka.ms/ConfigureExchangeHybridApplication-Docs">Deploy dedicated Exchange hybrid app</a></p>
+<p><a href="https://techcommunity.microsoft.com/blog/exchange/exchange-server-security-changes-for-hybrid-deployments/4396833">Exchange Server Security Changes for Hybrid Deployments</a></p>
+<p><a href="https://techcommunity.microsoft.com/blog/exchange/released-april-2025-exchange-server-hotfix-updates/4402471">Released: April 2025 Exchange Server Hotfix Updates</a></p>
 
 
 
@@ -4299,7 +4362,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 30, 2022 17:28:51">June 30, 2022</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="March 18, 2025 09:48:37">March 18, 2025</span>
   </span>
 
     
