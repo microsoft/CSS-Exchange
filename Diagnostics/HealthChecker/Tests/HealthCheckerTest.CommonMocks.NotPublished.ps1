@@ -388,3 +388,54 @@ function Get-GlobalMonitoringOverride {
 function Get-ServerMonitoringOverride {
     return $null
 }
+
+function Get-AuthServer {
+    param(
+        [ValidateSet("ACS", "EvoSTS", "All")]
+        [string]$Type = "All"
+    )
+
+    $returnListObject =  New-Object System.Collections.Generic.List[object]
+
+    $orgId = $((New-Guid).Guid)
+    $tenantId = $((New-Guid).Guid)
+    $applicationId = $((New-Guid).Guid)
+
+    $acs = [PSCustomObject]@{
+        Name                           = "ACS - $orgId"
+        Id                             = "ACS - $orgId"
+        IssuerIdentifier               = "00000001-0000-0000-c000-000000000000"
+        Realm                          = $tenantId
+        TokenIssuingEndpoint           = "https://accounts.accesscontrol.windows.net/$tenantId/tokens/OAuth/2"
+        AuthorizationEndpoint          = $null
+        ApplicationIdentifier          = $null
+        AuthMetadataUrl                = "https://accounts.accesscontrol.windows.net/$tenantId/metadata/json/1"
+        DomainName                     = @("contoso.mail.onmicrosoft.com", "contoso.com")
+        Type                           = "MicrosoftACS"
+        Enabled                        = $true
+        IsDefaultAuthorizationEndpoint = $false
+    }
+
+    $evoSts = [PSCustomObject]@{
+        Name                           = "EvoSts - $orgId"
+        Id                             = "EvoSts - $orgId"
+        IssuerIdentifier               = "https://sts.windows.net/$tenantId/"
+        Realm                          = $tenantId
+        TokenIssuingEndpoint           = "https://login.windows.net/common/oauth2/token"
+        AuthorizationEndpoint          = "https://login.windows.net/common/oauth2/authorize"
+        ApplicationIdentifier          = $applicationId
+        AuthMetadataUrl                = "https://login.windows.net/$tenantId/federationmetadata/2007-06/federationmetadata.xml"
+        DomainName                     = @("contoso.mail.onmicrosoft.com")
+        Type                           = "AzureAD"
+        Enabled                        = $true
+        IsDefaultAuthorizationEndpoint = $true
+    }
+
+    switch ($Type) {
+        "ACS" { $returnListObject.Add($acs) }
+        "EvoSTS" { $returnListObject.Add($evoSts) }
+        "All" { $returnListObject.AddRange(@($acs, $evoSts)) }
+    }
+
+    return $returnListObject
+}

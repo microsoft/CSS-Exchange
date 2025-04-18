@@ -4,6 +4,7 @@ nav:
   - Emerging Issues: Emerging-Issues.md
   - Admin:
     - Clear-MailboxPermission: Admin/Clear-MailboxPermission.md
+    - ConfigureExchangeHybridApplication: Hybrid/ConfigureExchangeHybridApplication.md
     - Cross-TenantMailboxMigrationValidation: Admin/CrossTenantMailboxMigrationValidation.md
     - Find-AmbiguousSids: Admin/Find-AmbiguousSids.md
     - Get-EASMailboxLogs: Admin/Get-EASMailboxLogs.md
@@ -74,6 +75,7 @@ nav:
       - ExchangeComputerMembership: Diagnostics/HealthChecker/ExchangeComputerMembership.md
       - UnifiedContentCleanup: Diagnostics/HealthChecker/UnifiedContentCleanup.md
       - TransportRetryConfigCheck: Diagnostics/HealthChecker/TransportRetryConfigCheck.md
+      - ExchangeHybridApplicationCheck: Diagnostics/HealthChecker/ExchangeHybridApplicationCheck.md
     - ManagedAvailabilityTroubleshooter: Diagnostics/ManagedAvailabilityTroubleshooter.md
     - Test-ExchAVExclusions: Diagnostics/Test-ExchAVExclusions.md
     - FreeBusyChecker:

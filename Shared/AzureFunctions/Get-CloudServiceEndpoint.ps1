@@ -1,21 +1,20 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+<#
+    This shared function is used to get the endpoints for the Azure and Microsoft 365 services.
+    It returns a PSCustomObject with the following properties:
+        GraphApiEndpoint: The endpoint for the Microsoft Graph API
+        ExchangeOnlineEndpoint: The endpoint for Exchange Online
+        AutoDiscoverSecureName: The endpoint for Autodiscover
+        AzureADEndpoint: The endpoint for Azure Active Directory
+        EnvironmentName: The name of the Azure environment
+#>
 function Get-CloudServiceEndpoint {
     [CmdletBinding()]
     param(
         [string]$EndpointName
     )
-
-    <#
-        This shared function is used to get the endpoints for the Azure and Microsoft 365 services.
-        It returns a PSCustomObject with the following properties:
-            GraphApiEndpoint: The endpoint for the Microsoft Graph API
-            ExchangeOnlineEndpoint: The endpoint for Exchange Online
-            AutoDiscoverSecureName: The endpoint for Autodiscover
-            AzureADEndpoint: The endpoint for Azure Active Directory
-            EnvironmentName: The name of the Azure environment
-    #>
 
     begin {
         Write-Verbose "Calling $($MyInvocation.MyCommand)"
