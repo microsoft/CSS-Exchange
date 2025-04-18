@@ -52,7 +52,7 @@ function Get-GraphAccessToken {
         "&code_challenge_method=$codeChallengeMethod&code_challenge=$codeChallenge"
 
         Start-Process -FilePath $authCodeRequestUrl
-        $authCodeResponse = Start-LocalListener
+        $authCodeResponse = Start-LocalListener -TimeoutSeconds 120
 
         if ($null -ne $authCodeResponse) {
             # Redeem the returned code for an access token
