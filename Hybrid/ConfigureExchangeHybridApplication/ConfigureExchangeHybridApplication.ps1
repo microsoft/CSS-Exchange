@@ -454,9 +454,9 @@ begin {
                 $_.Fqdn -eq $localServerFqdn
             }).ServerRole -eq "Mailbox"
 
-        # Stop processing if the server where the script runs is an Edge Transport Server
+        # Stop processing if the server where the script runs isn't a Mailbox server
         if ($isLocalServerMailboxServer -eq $false) {
-            Write-Host "The selected configuration can't be executed from an Edge Transport Server - please run the script on a Mailbox Server" -ForegroundColor Red
+            Write-Host "Processing stopped: The selected configuration must be executed on a Mailbox server" -ForegroundColor Red
 
             return
         }
