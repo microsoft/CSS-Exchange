@@ -22,8 +22,24 @@ function Invoke-AnalyzerHybridInformation {
         AnalyzedInformation = $AnalyzeResults
         DisplayGroupingKey  = Get-DisplayResultsGroupingKey -Name "Hybrid Information"  -DisplayOrder $Order
     }
+
+    $guidRegEx = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $getHybridConfiguration = $HealthServerObject.OrganizationInformation.GetHybridConfiguration
+
+    $evoStsAuthServer = $HealthServerObject.OrganizationInformation.GetAuthServer | Where-Object {
+        (($_.Name -match "^EvoSts - $guidRegEx") -or
+        ($_.Name -match "EvoSTS")) -and
+        $_.Type -eq "AzureAD" -and
+        $_.ApplicationIdentifier -match $guidRegEx -and
+        $_.Enabled -eq $true
+    }
+
+    $dedicatedHybridAppOverride = $HealthServerObject.OrganizationInformation.GetSettingOverride | Where-Object {
+        $_.ComponentName -eq "Global" -and
+        $_.SectionName -eq "ExchangeOnpremAsThirdPartyAppId"
+    }
 
     # Check if the server is configured as sending or receiving transport server - if it is, the certificate used for hybrid mail flow must exist on the machine
     $certificateShouldExistOnServer = $getHybridConfiguration.SendingTransportServers.DistinguishedName -contains $exchangeInformation.GetExchangeServer.DistinguishedName -or
@@ -96,7 +112,7 @@ function Invoke-AnalyzerHybridInformation {
             }
 
             if (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.ReceivingTransportServers)) -or
-            (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.SendingTransportServers)))) {
+                (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.SendingTransportServers)))) {
                 $params = $baseParams + @{
                     Details                = "When configuring the EdgeTransportServers parameter, you must configure the ReceivingTransportServers and SendingTransportServers parameter values to null"
                     DisplayWriteType       = "Yellow"
@@ -194,6 +210,90 @@ function Invoke-AnalyzerHybridInformation {
             $params = $baseParams + @{
                 Details                = "No feature(s) enabled for Hybrid use"
                 DisplayCustomTabNumber = 2
+            }
+            Add-AnalyzedResultInformation @params
+        }
+
+        Add-AnalyzedResultInformation -Name "Dedicated Exchange Hybrid Application" @baseParams
+
+        $dedicatedHybridAppWriteType = "Yellow"
+        $dedicatedHybridAppAuthServerObjects = 0
+
+        if ($dedicatedHybridAppOverride.Count -ge 1) {
+            # We can't determine the status if we find multiple SO - show error
+            if ($dedicatedHybridAppOverride.Count -gt 1) {
+                $dedicatedHybridAppShowMoreInformation = $true
+                $dedicatedHybridAppWriteType = "Red"
+
+                $params = $baseParams + @{
+                    Details                = "Multiple SettingOverrides detected - unable to determine status of the feature"
+                    DisplayCustomTabNumber = 2
+                    DisplayWriteType       = $dedicatedHybridAppWriteType
+                    TestingName            = "MultipleSettingOverrides"
+                    DisplayTestingValue    = $true
+                }
+                Add-AnalyzedResultInformation @params
+            }
+
+            if ($evoStsAuthServer.Count -ge 1) {
+                foreach ($authServer in $evoStsAuthServer) {
+                    $dedicatedHybridAppAuthServerObjects++
+
+                    $authServerDetails = "AuthServer: $($authServer.Id)`r`n`t`tTenantId: $($authServer.Realm)`r`n`t`tAppId: $($authServer.ApplicationIdentifier)`r`n`t`tDomain(s): $([System.String]::Join(", ", $authServer.DomainName))"
+
+                    if ($dedicatedHybridAppAuthServerObjects -lt $evoStsAuthServer.Count) {
+                        $authServerDetails = $authServerDetails + "`r`n`r`n"
+                    }
+
+                    $params = $baseParams + @{
+                        Details                = $authServerDetails
+                        DisplayCustomTabNumber = 2
+                        TestingName            = "AuthServer - $dedicatedHybridAppAuthServerObjects"
+                        DisplayTestingValue    = [PSCustomObject]@{
+                            Id         = $authServer.Id
+                            Realm      = $authServer.Realm
+                            AppId      = $authServer.ApplicationIdentifier
+                            DomainName = $authServer.DomainName
+                        }
+                    }
+                    Add-AnalyzedResultInformation @params
+                }
+            }
+
+            if ($dedicatedHybridAppAuthServerObjects -eq 0) {
+                $dedicatedHybridAppShowMoreInformation = $true
+                $dedicatedHybridAppWriteType = "Red"
+
+                $params = $baseParams + @{
+                    Details                = "No valid AuthServer object was found that supports the dedicated Exchange Hybrid Application"
+                    DisplayCustomTabNumber = 2
+                    DisplayWriteType       = $dedicatedHybridAppWriteType
+                    TestingName            = "NoValidAuthServer"
+                    DisplayTestingValue    = $true
+                }
+                Add-AnalyzedResultInformation @params
+            }
+        }
+
+        if ($dedicatedHybridAppOverride.Count -eq 0) {
+            $dedicatedHybridAppShowMoreInformation = $true
+            $params = $baseParams + @{
+                Details                = "Configure the dedicated hybrid app to ensure hybrid features continue working in the future"
+                DisplayCustomTabNumber = 2
+                DisplayWriteType       = $dedicatedHybridAppWriteType
+                TestingName            = "DedicatedHybridAppNotConfigured"
+                DisplayTestingValue    = $true
+            }
+            Add-AnalyzedResultInformation @params
+        }
+
+        if ($dedicatedHybridAppShowMoreInformation) {
+            $params = $baseParams + @{
+                Details                = "More information: https://aka.ms/HC-ExchangeHybridApplication"
+                DisplayCustomTabNumber = 2
+                DisplayWriteType       = $dedicatedHybridAppWriteType
+                TestingName            = "DedicatedHybridAppShowMoreInformation"
+                DisplayTestingValue    = $true
             }
             Add-AnalyzedResultInformation @params
         }
@@ -450,7 +550,7 @@ function Invoke-AnalyzerHybridInformation {
 
                                 if (($connector.CertificateDetails.TlsCertificateNameStatus -eq "TlsCertificateNameSyntaxInvalid") -or
                                     (($connector.CertificateDetails.GoodTlsCertificateSyntax -eq $false) -and
-                                        ($null -ne $connector.CertificateDetails.TlsCertificateName))) {
+                                    ($null -ne $connector.CertificateDetails.TlsCertificateName))) {
                                     $params = $baseParams + @{
                                         Name             = "TlsCertificateName Syntax Invalid"
                                         Details          = "True"

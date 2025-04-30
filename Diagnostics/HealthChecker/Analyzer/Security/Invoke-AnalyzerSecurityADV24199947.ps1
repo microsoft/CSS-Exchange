@@ -48,7 +48,7 @@ function Invoke-AnalyzerSecurityADV24199947 {
             # Key for the file content information
             $key = [System.IO.Path]::Combine($SecurityObject.ExchangeInformation.RegistryValues.FipFsDatabasePath, "Configuration.xml")
             $unknownError = [string]::IsNullOrEmpty($SecurityObject.ExchangeInformation.RegistryValues.FipFsDatabasePath) -or
-                ($null -eq $SecurityObject.ExchangeInformation.FileContentInformation[$key])
+            ($null -eq $SecurityObject.ExchangeInformation.FileContentInformation[$key])
 
             if ($unknownError) {
                 $params.Details += " Unable to determine if override is set due to no data to review."

@@ -55,12 +55,12 @@ function Get-ExchangeServerMaintenanceState {
                         $inactiveComponents += "'{0}' is in Maintenance Mode" -f $component.Component
                     } else {
                         if (($null -ne $latestLocalState) -and
-                        ($latestLocalState.State -ne "Active")) {
+                            ($latestLocalState.State -ne "Active")) {
                             $inactiveComponents += "'{0}' is in Local Maintenance Mode only" -f $component.Component
                         }
 
                         if (($null -ne $latestRemoteState) -and
-                        ($latestRemoteState.State -ne "Active")) {
+                            ($latestRemoteState.State -ne "Active")) {
                             $inactiveComponents += "'{0}' is in Remote Maintenance Mode only" -f $component.Component
                         }
                     }

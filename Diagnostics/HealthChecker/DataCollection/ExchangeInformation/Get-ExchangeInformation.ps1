@@ -152,7 +152,7 @@ function Get-ExchangeInformation {
         $settingOverrides = Get-ExchangeSettingOverride -Server $Server -CatchActionFunction ${Function:Invoke-CatchActions}
 
         if (($getExchangeServer.IsMailboxServer) -or
-        ($getExchangeServer.IsEdgeServer)) {
+            ($getExchangeServer.IsEdgeServer)) {
             try {
                 $exchangeServicesNotRunning = @()
                 $testServiceHealthResults = Test-ServiceHealth -Server $Server -ErrorAction Stop

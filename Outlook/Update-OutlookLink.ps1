@@ -205,8 +205,8 @@ $scriptBlock = {
             try {
                 # Search for all .lnk files that point to Outlook.exe and have the name "Outlook" or "Microsoft Outlook"
                 $lnkFiles = Get-ChildItem -Path $directory -Filter "*.lnk" -Recurse -ErrorAction SilentlyContinue | Where-Object {
-                ($_.Name -eq "Outlook.lnk" -or $_.Name -eq "Microsoft Outlook.lnk") -and
-                (Select-String -Path $_.FullName -Pattern "Outlook.exe" -Quiet)
+                    ($_.Name -eq "Outlook.lnk" -or $_.Name -eq "Microsoft Outlook.lnk") -and
+                    (Select-String -Path $_.FullName -Pattern "Outlook.exe" -Quiet)
                 }
 
                 # Rename the .lnk files
@@ -248,8 +248,8 @@ $scriptBlock = {
             return
         }
 
-        foreach ($profile in $profiles) {
-            $localPath = $profile.LocalPath
+        foreach ($localProfile in $profiles) {
+            $localPath = $localProfile.LocalPath
             if ($null -ne $localPath) {
                 $directories.Add("$localPath\AppData\Roaming\Microsoft\Internet Explorer\Quick Launch")
                 $directories.Add("$localPath\AppData\Roaming\Microsoft\Windows\Start Menu\Programs")

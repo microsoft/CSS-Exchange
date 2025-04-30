@@ -148,6 +148,13 @@ function Get-OrganizationInformation {
             }
 
             try {
+                $getAuthServer = Get-AuthServer -ErrorAction Stop
+            } catch {
+                Write-Verbose "Failed to run Get-AuthServer"
+                Invoke-CatchActions
+            }
+
+            try {
                 $getSettingOverride = Get-SettingOverride -ErrorAction Stop
             } catch {
                 Write-Verbose "Failed to run Get-SettingOverride"
@@ -159,6 +166,7 @@ function Get-OrganizationInformation {
         }
     } end {
         return [PSCustomObject]@{
+            GetAuthServer                     = $getAuthServer
             GetOrganizationConfig             = $organizationConfig
             DomainsAclPermissions             = $domainsAclPermissions
             WellKnownSecurityGroups           = $wellKnownSecurityGroups

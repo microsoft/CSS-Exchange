@@ -106,9 +106,9 @@ function Invoke-AnalyzerSecurityAMSIConfigState {
         $filterSettingOverrideParams.FilterSectionName = "BlockRequestBodyGreaterThanMaxScanSize"
         [array]$amsiBlockRequestBodyGreater = Get-FilteredSettingOverrideInformation @filterSettingOverrideParams
         $amsiRequestBodyScanningEnabled = $amsiRequestBodyScanning.Count -gt 0 -and
-            ($null -ne ($amsiRequestBodyScanning | Where-Object { $_.ParameterValue -eq "True" }))
+        ($null -ne ($amsiRequestBodyScanning | Where-Object { $_.ParameterValue -eq "True" }))
         $amsiBlockRequestBodyEnabled = $amsiBlockRequestBodyGreater.Count -gt 0 -and
-            ($null -ne ($amsiBlockRequestBodyGreater | Where-Object { $_.ParameterValue -eq "True" }))
+        ($null -ne ($amsiBlockRequestBodyGreater | Where-Object { $_.ParameterValue -eq "True" }))
         $requestBodyDisplayValue = $amsiStateEnabled -and $amsiRequestBodyScanningEnabled
         $requestBodyDisplayType = $requestBodySizeBlockDisplayType = "Grey"
         $requestBodySizeBlockDisplayValue = $false

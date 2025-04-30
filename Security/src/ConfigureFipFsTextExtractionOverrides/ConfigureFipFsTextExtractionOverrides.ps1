@@ -87,7 +87,7 @@ begin {
     $versionsUrl = "https://aka.ms/ConfigureFipFsTextExtractionOverrides-VersionsURL"
 
     . $PSScriptRoot\ConfigurationAction\Invoke-TextExtractionOverride.ps1
-    . $PSScriptRoot\..\Shared\Get-ProcessedServerList.ps1
+    . $PSScriptRoot\..\..\..\Shared\Get-ProcessedServerList.ps1
     . $PSScriptRoot\..\..\..\Shared\Confirm-ExchangeManagementShell.ps1
     . $PSScriptRoot\..\..\..\Shared\Confirm-Administrator.ps1
     . $PSScriptRoot\..\..\..\Shared\GenericScriptStartLogging.ps1

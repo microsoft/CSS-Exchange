@@ -74,9 +74,9 @@ function Get-FilteredSettingOverrideInformation {
                                 # can have it apply by build and server parameter
                                 if (($null -eq $entry.MinVersion -or
                                         $FilterServerVersion -ge $entry.MinVersion) -and
-                                (($null -eq $entry.MaxVersion -or
+                                    (($null -eq $entry.MaxVersion -or
                                         $FilterServerVersion -le $entry.MaxVersion)) -and
-                                (($null -eq $entry.Server -or
+                                    (($null -eq $entry.Server -or
                                         $entry.Server -contains $adjustedFilterServer))) {
                                     $status = $entry.Status.ToString()
                                 } else {
@@ -88,7 +88,7 @@ function Get-FilteredSettingOverrideInformation {
 
                             # Add to the list if the status is Accepted, and we do not have that ParameterName yet in the list.
                             if ($status -eq "Accepted" -and
-                            ($results.Count -lt 1 -or
+                                ($results.Count -lt 1 -or
                                 -not ($results.ParameterName -contains $currentFilterParameterName))) {
                                 $results.Add([PSCustomObject]@{
                                         Name           = $entry.Name
