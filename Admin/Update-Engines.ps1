@@ -81,7 +81,7 @@ function CreatePath($path) {
 }
 
 function CleanUpFolder($path, $itemsToKeep) {
-    Get-ChildItem $path | ? { $_.PSIsContainer } | Sort-Object -Property CreationTime -Descending | Select-Object -Skip $itemsToKeep | Remove-Item -Recurse
+    Get-ChildItem $path | Where-Object { $_.PSIsContainer } | Sort-Object -Property CreationTime -Descending | Select-Object -Skip $itemsToKeep | Remove-Item -Recurse
 }
 
 # Use the Shell.Application COM object to extract the
