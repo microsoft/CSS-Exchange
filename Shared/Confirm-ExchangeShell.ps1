@@ -25,8 +25,8 @@ function Confirm-ExchangeShell {
         $setupKey = 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\Setup'
         $remoteShell = (-not(Test-Path $setupKey))
         $toolsServer = (Test-Path $setupKey) -and
-            (-not(Test-Path $edgeTransportKey)) -and
-            ($null -eq (Get-ItemProperty -Path $setupKey -Name "Services" -ErrorAction SilentlyContinue))
+        (-not(Test-Path $edgeTransportKey)) -and
+        ($null -eq (Get-ItemProperty -Path $setupKey -Name "Services" -ErrorAction SilentlyContinue))
         Invoke-CatchActionErrorLoop $currentErrors $CatchActionFunction
 
         function IsExchangeManagementSession {
@@ -53,7 +53,7 @@ function Confirm-ExchangeShell {
                     Write-Verbose "Type is: $($e.GetType().Name) BaseType is: $($e.GetType().BaseType)"
                     if (($e.GetType().Name -eq "EventCategoryObject") -or
                         (($e.GetType().Name -eq "PSObject") -and
-                            ($null -ne $e.SerializationData))) {
+                        ($null -ne $e.SerializationData))) {
                         $isExchangeManagementShell = $true
                     }
                 }

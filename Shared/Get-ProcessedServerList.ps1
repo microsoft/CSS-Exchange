@@ -1,10 +1,10 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\..\..\..\Shared\CompareExchangeBuildLevel.ps1
-. $PSScriptRoot\..\..\..\Shared\Get-ExchangeBuildVersionInformation.ps1
-. $PSScriptRoot\..\..\..\Shared\Get-ExSetupFileVersionInfo.ps1
-. $PSScriptRoot\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
+. $PSScriptRoot\CompareExchangeBuildLevel.ps1
+. $PSScriptRoot\Get-ExchangeBuildVersionInformation.ps1
+. $PSScriptRoot\Get-ExSetupFileVersionInfo.ps1
+. $PSScriptRoot\Invoke-ScriptBlockHandler.ps1
 
 function Get-ProcessedServerList {
     [CmdletBinding()]
@@ -17,7 +17,9 @@ function Get-ProcessedServerList {
 
         [bool]$DisableGetExchangeServerFullList,
 
-        [string]$MinimumSU
+        [string]$MinimumSU,
+
+        [bool]$DisplayOutdatedServers = $true
     )
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
@@ -94,7 +96,20 @@ function Get-ProcessedServerList {
 
         if ($CheckOnline -or (-not ([string]::IsNullOrEmpty($MinimumSU)))) {
             Write-Verbose "Will check to see if the servers are online"
+            $serverCount = 0
+            $paramWriteProgress = @{
+                Activity        = "Retrieving Exchange Server Build Information"
+                Status          = "Progress:"
+                PercentComplete = $serverCount
+            }
+            Write-Progress @paramWriteProgress
+
             foreach ($server in $possibleValidExchangeServer) {
+                $serverCount++
+                $paramWriteProgress.Activity = "Processing Server: $server"
+                $paramWriteProgress.PercentComplete = (($serverCount / $possibleValidExchangeServer.Count) * 100)
+                Write-Progress @paramWriteProgress
+
                 $exSetupDetails = Get-ExSetupFileVersionInfo -Server $server.FQDN
 
                 if ($null -ne $exSetupDetails -and
@@ -123,6 +138,8 @@ function Get-ProcessedServerList {
                     $offlineExchangeServerFqdn.Add($server.FQDN)
                 }
             }
+
+            Write-Progress @paramWriteProgress -Completed
         } else {
             $validExchangeServer.AddRange($possibleValidExchangeServer)
         }
@@ -131,9 +148,11 @@ function Get-ProcessedServerList {
 
         # If we have servers in the outdatedBuildExchangeServerFqdn list, the default response should be to display that we are removing them from the list.
         if ($outdatedBuildExchangeServerFqdn.Count -gt 0) {
-            Write-Host ""
-            Write-Host "Excluded the following server(s) because the build is older than what is required to make a change: $([string]::Join(", ", $outdatedBuildExchangeServerFqdn))"
-            Write-Host ""
+            if ($DisplayOutdatedServers) {
+                Write-Host ""
+                Write-Host "Excluded the following server(s) because the build is older than what is required to make a change: $([string]::Join(", ", $outdatedBuildExchangeServerFqdn))"
+                Write-Host ""
+            }
         }
     }
     end {

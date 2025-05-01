@@ -86,7 +86,7 @@ function CreateTimelineRow {
                 }
 
                 $Extra = ""
-                if ($CalLog.IsException) {
+                if ($CalLog.CalendarItemType -eq "Exception") {
                     $Extra = " to the meeting starting $($CalLog.StartTime)"
                 } elseif ($CalLog.AppointmentRecurring) {
                     $Extra = " to the meeting series"

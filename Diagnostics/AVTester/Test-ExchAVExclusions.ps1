@@ -8,6 +8,7 @@
     Major Release History:
         06/16/2021 - Initial Release
         06/26/2023 - Added ability to scan processes
+        02/10/2025 - Added AMSI detection
 
 .SYNOPSIS
 Uses EICAR files to verify that all Exchange paths that should be excluded from AV scanning are excluded.
@@ -117,8 +118,8 @@ Write-Host ("Test-ExchAVExclusions.ps1 script version $($BuildVersion)") -Foregr
 
 if ($ScriptUpdateOnly) {
     switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/Test-ExchAVExclusions-VersionsURL" -Confirm:$false) {
-    ($true) { Write-Host ("Script was successfully updated") -ForegroundColor Green }
-    ($false) { Write-Host ("No update of the script performed") -ForegroundColor Yellow }
+        ($true) { Write-Host ("Script was successfully updated") -ForegroundColor Green }
+        ($false) { Write-Host ("No update of the script performed") -ForegroundColor Yellow }
         default { Write-Host ("Unable to perform ScriptUpdateOnly operation") -ForegroundColor Red }
     }
     return
@@ -313,6 +314,39 @@ $currentDiff = $initialDiff
 $firstExecution = $true
 $SuspiciousProcessList = New-Object Collections.Generic.List[string]
 $SuspiciousW3wpProcessList = New-Object Collections.Generic.List[string]
+$SuspiciousAMSIinW3wpProcessList = New-Object Collections.Generic.List[string]
+
+# Get AMSI Dlls registered
+# Define the AMSI providers registry path
+$registryPath = "HKLM:\SOFTWARE\Microsoft\AMSI\Providers"
+
+$subKeys = $null
+$AMSIDll = New-Object Collections.Generic.List[string]
+# Get all subKeys in the specified registry path
+$subKeys = Get-ChildItem -Path $registryPath -ErrorAction SilentlyContinue
+
+if ($subKeys) {
+    foreach ($subKey in $subKeys) {
+        $matchingSubKeys = $null
+        # Filter the subKeys that match the regular expression and get only their names
+        $matchingSubKeys = $subKey -match '[0-9A-Fa-f\-]{36}'
+        if ($matchingSubKeys) {
+            foreach ($m in $Matches.Values) {
+                $foundDll = (Get-Item "HKLM:\SOFTWARE\Classes\ClSid\{$m}\InprocServer32" -ErrorAction SilentlyContinue).GetValue("").trim('"')
+                if ($null -eq $foundDll) {
+                    Write-Host "No AMSI Dlls was found for $m, possible AMSI misconfiguration" -ForegroundColor Red
+                } else {
+                    Write-Verbose "AMSI $m was found"
+                    $AMSIDll.Add($foundDll)
+                }
+            }
+        } else {
+            Write-Host 'No AMSI configuration was found, possible AMSI misconfiguration"' -ForegroundColor Red
+        }
+    }
+} else {
+    Write-Host '"No AMSI Providers was found"'
+}
 
 Write-Host "Analyzing Exchange Processes"
 while ($currentDiff -gt 0) {
@@ -335,85 +369,89 @@ while ($currentDiff -gt 0) {
 
         #Exchange 2013
         # Bin\Search\Ceres\HostController\Data\Repository\Journal\
-        $ModuleAllowList.add("Microsoft.Exchange.TransportFlow.50.dll")
-        $ModuleAllowList.add("Microsoft.ClientResourceView.FlowService.dll")
-        $ModuleAllowList.add("Microsoft.Exchange.TransportFlowMdm.50.dll")
-        $ModuleAllowList.add("Microsoft.Exchange.Search.Writer.50.dll")
+        $ModuleAllowList.Add("Microsoft.Exchange.TransportFlow.50.dll")
+        $ModuleAllowList.Add("Microsoft.ClientResourceView.FlowService.dll")
+        $ModuleAllowList.Add("Microsoft.Exchange.TransportFlowMdm.50.dll")
+        $ModuleAllowList.Add("Microsoft.Exchange.Search.Writer.50.dll")
 
-        $ModuleAllowList.add("FUSE.Paxos.Network.dll")
-        $ModuleAllowList.add("FUSE.Weld.Base.Portable.dll")
-        $ModuleAllowList.add("ParallelExtensionsExtras.dll")
-        $ModuleAllowList.add("Google.ProtocolBuffers.dll")
+        $ModuleAllowList.Add("FUSE.Paxos.Network.dll")
+        $ModuleAllowList.Add("FUSE.Weld.Base.Portable.dll")
+        $ModuleAllowList.Add("ParallelExtensionsExtras.dll")
+        $ModuleAllowList.Add("Google.ProtocolBuffers.dll")
 
         #Exchange 2016
         # Bin\Search\Ceres\HostController\Data\Repository\Journal\
-        $ModuleAllowList.add("Microsoft.Exchange.TransportFlowMdm.105.dll")
-        $ModuleAllowList.add("Microsoft.Exchange.TransportFlow.105.dll")
-        $ModuleAllowList.add("Microsoft.Exchange.Search.Writer.109.dll")
-        $ModuleAllowList.add("Microsoft.Exchange.WatermarkCtsFlow.100.dll")
+        $ModuleAllowList.Add("Microsoft.Exchange.TransportFlowMdm.105.dll")
+        $ModuleAllowList.Add("Microsoft.Exchange.TransportFlow.105.dll")
+        $ModuleAllowList.Add("Microsoft.Exchange.Search.Writer.109.dll")
+        $ModuleAllowList.Add("Microsoft.Exchange.WatermarkCtsFlow.100.dll")
 
-        $ModuleAllowList.add("Bond.Precompiler.dll")
-        $ModuleAllowList.add("Microsoft.Applications.Telemetry.dll")
-        $ModuleAllowList.add("Microsoft.Applications.Telemetry.Server.dll")
-        $ModuleAllowList.add("Microsoft.RightsManagementServices.Core.dll")
-        $ModuleAllowList.add("Microsoft.Search.ObjectStore.Client.dll")
-        $ModuleAllowList.add("ParallelExtensionsExtras.dll")
-        $ModuleAllowList.add("System.IdentityModel.Tokens.Jwt.dll")
-        $ModuleAllowList.add("Owin.dll")
-        $ModuleAllowList.add("Google.ProtocolBuffers.dll")
+        $ModuleAllowList.Add("Bond.Precompiler.dll")
+        $ModuleAllowList.Add("Microsoft.Applications.Telemetry.dll")
+        $ModuleAllowList.Add("Microsoft.Applications.Telemetry.Server.dll")
+        $ModuleAllowList.Add("Microsoft.RightsManagementServices.Core.dll")
+        $ModuleAllowList.Add("Microsoft.Search.ObjectStore.Client.dll")
+        $ModuleAllowList.Add("ParallelExtensionsExtras.dll")
+        $ModuleAllowList.Add("System.IdentityModel.Tokens.Jwt.dll")
+        $ModuleAllowList.Add("Owin.dll")
+        $ModuleAllowList.Add("Google.ProtocolBuffers.dll")
 
-        $ModuleAllowList.add("DiskLockerApi.dll")
-        $ModuleAllowList.add("ExDbFailureItemApi.dll")
-        $ModuleAllowList.add("ManagedBlingSigned.dll")
-        $ModuleAllowList.add("Microsoft.DSSMNativeSSELib.dll")
+        $ModuleAllowList.Add("DiskLockerApi.dll")
+        $ModuleAllowList.Add("ExDbFailureItemApi.dll")
+        $ModuleAllowList.Add("ManagedBlingSigned.dll")
+        $ModuleAllowList.Add("Microsoft.DSSMNativeSSELib.dll")
 
         #Exchange 2019
-        $ModuleAllowList.add("Microsoft.Exchange.BigFunnelFlow.28.dll")
-        $ModuleAllowList.add("BigFunnel.NeuralTree.dll")
+        $ModuleAllowList.Add("Microsoft.Exchange.BigFunnelFlow.28.dll")
+        $ModuleAllowList.Add("BigFunnel.NeuralTree.dll")
+        $ModuleAllowList.Add("DocParserWrapper.dll")
 
         #.NET Foundation
-        $ModuleAllowList.add("Microsoft.AspNet.SignalR.Core.dll")
-        $ModuleAllowList.add("Microsoft.AspNet.SignalR.SystemWeb.dll")
+        $ModuleAllowList.Add("Microsoft.AspNet.SignalR.Core.dll")
+        $ModuleAllowList.Add("Microsoft.AspNet.SignalR.SystemWeb.dll")
 
         #Microsoft Research Limited
-        $ModuleAllowList.add("Infer.Compiler.dll")
-        $ModuleAllowList.add("Infer.Runtime.dll")
+        $ModuleAllowList.Add("Infer.Compiler.dll")
+        $ModuleAllowList.Add("Infer.Runtime.dll")
 
         #The Legion of the Bouncy Castle
-        $ModuleAllowList.add("BouncyCastle.Crypto.dll")
+        $ModuleAllowList.Add("BouncyCastle.Crypto.dll")
 
         #Google Inc.
-        $ModuleAllowList.add("Google.Protobuf.dll")
+        $ModuleAllowList.Add("Google.Protobuf.dll")
 
         #Newtonsoft
-        $ModuleAllowList.add("Newtonsoft.Json.dll")
-        $ModuleAllowList.add("Newtonsoft.Json.Bson.dll")
+        $ModuleAllowList.Add("Newtonsoft.Json.dll")
+        $ModuleAllowList.Add("Newtonsoft.Json.Bson.dll")
 
         #Marc Gravell
-        $ModuleAllowList.add("protobuf-net.dll")
-        $ModuleAllowList.add("protobuf-net.Core.dll")
+        $ModuleAllowList.Add("protobuf-net.dll")
+        $ModuleAllowList.Add("protobuf-net.Core.dll")
 
         #Matthew Manela
-        $ModuleAllowList.add("DiffPlex.dll")
+        $ModuleAllowList.Add("DiffPlex.dll")
 
         #The Apache Software Foundation
-        $ModuleAllowList.add("log4net.dll")
+        $ModuleAllowList.Add("log4net.dll")
 
         #http://system.data.sqlite.org/
-        $ModuleAllowList.add("System.Data.SQLite.dll")
+        $ModuleAllowList.Add("System.Data.SQLite.dll")
 
         #Robert Simpson, et al.
-        $ModuleAllowList.add("SQLite.Interop.dll")
+        $ModuleAllowList.Add("SQLite.Interop.dll")
 
         #Microsoft.Cloud.InstrumentationFramework.*
-        $ModuleAllowList.add("Microsoft.Cloud.InstrumentationFramework.Events.dll")
-        $ModuleAllowList.add("Microsoft.Cloud.InstrumentationFramework.Health.dll")
-        $ModuleAllowList.add("Microsoft.Cloud.InstrumentationFramework.Metrics.dll")
+        $ModuleAllowList.Add("Microsoft.Cloud.InstrumentationFramework.Events.dll")
+        $ModuleAllowList.Add("Microsoft.Cloud.InstrumentationFramework.Health.dll")
+        $ModuleAllowList.Add("Microsoft.Cloud.InstrumentationFramework.Metrics.dll")
 
         #Windows
-        $ModuleAllowList.add("prxyqry.DLL")
+        $ModuleAllowList.Add("prxyqry.DLL")
+        $ModuleAllowList.Add("icu.dll")
+        $ModuleAllowList.Add("TextShaping.dll")
+
         #Windows Fraunhofer IIS MPEG Audio Layer-3 ACM codec - MPEG Audio Layer-3 Codec for MSACM
-        $ModuleAllowList.add("l3codecp.acm")
+        $ModuleAllowList.Add("l3codecp.acm")
 
         # CompanyName allow list
         $CompanyNameAllowList = New-Object Collections.Generic.List[string]
@@ -467,10 +505,17 @@ while ($currentDiff -gt 0) {
             if ($ProcessModules.count -gt 0) {
                 foreach ($module in $ProcessModules) {
                     $OutString = ("PROCESS: $($process.ProcessName) PID($($process.Id)) UNEXPECTED MODULE: $($module.ModuleName) COMPANY: $($module.Company)`n`tPATH: $($module.FileName)`n`tFileVersion: $($module.FileVersion)")
-                    Write-Host "[FAIL] - $OutString" -ForegroundColor Red
                     if ($process.MainModule.ModuleName -eq "W3wp.exe") {
-                        $SuspiciousW3wpProcessList += $OutString
+                        if ($AMSIDll -contains $module.FileName) {
+                            $OutString = ("PROCESS: $($process.ProcessName) PID($($process.Id)) MODULE: $($module.ModuleName) COMPANY: $($module.Company)`n`tPATH: $($module.FileName)`n`tFileVersion: $($module.FileVersion)")
+                            Write-Host "[WARNING] - AMSI DLL Detected: $OutString" -ForegroundColor Yellow
+                            $SuspiciousAMSIinW3wpProcessList += $OutString
+                        } else {
+                            Write-Host "[FAIL] - $OutString" -ForegroundColor Red
+                            $SuspiciousW3wpProcessList += $OutString
+                        }
                     } else {
+                        Write-Host "[FAIL] - $OutString" -ForegroundColor Red
                         $SuspiciousProcessList += $OutString
                     }
                 }
@@ -553,7 +598,7 @@ $OutputPath = Join-Path $PSScriptRoot BadExclusions-$StartDateFormatted.txt
 "###########################################################################################" | Out-File $OutputPath -Append
 
 # Report what we found
-if ($BadFolderList.count -gt 0 -or $BadExtensionList.Count -gt 0 -or $SuspiciousProcessList.count -gt 0 -or $SuspiciousW3wpProcessList.count -gt 0) {
+if ($BadFolderList.count -gt 0 -or $BadExtensionList.Count -gt 0 -or $SuspiciousProcessList.count -gt 0 -or $SuspiciousW3wpProcessList.count -gt 0 -or $SuspiciousAMSIinW3wpProcessList.count -gt 0) {
 
     Write-Host "Possible AV Scanning found" -ForegroundColor Red
     if ($BadFolderList.count -gt 0 ) {
@@ -578,6 +623,14 @@ if ($BadFolderList.count -gt 0 -or $BadExtensionList.Count -gt 0 -or $Suspicious
         "`n[Non-Default Modules Loaded on W3wp.exe]" | Out-File $OutputPath -Append
         $SuspiciousW3wpProcessList | Out-File $OutputPath -Append
         Write-Warning ("Found $($SuspiciousW3wpProcessList.count) UnExpected modules loaded into W3wp.exe ")
+    }
+    if ($SuspiciousAMSIinW3wpProcessList.count -gt 0) {
+        $SuspiciousAMSIinW3wpProcessListString = "`nFound AMSI modules in w3wp processes`nThat may impact Exchange performance and Outlook connectivity in some scenarios.`nThese modules are not necessarily anomalies, but we recommend checking the following articles: `n`thttps://learn.microsoft.com/en-us/exchange/antispam-and-antimalware/amsi-integration-with-exchange `n`thttps://aka.ms/Test-AMSI"
+        $SuspiciousAMSIinW3wpProcessListString | Out-File $OutputPath -Append
+        Write-Warning $SuspiciousAMSIinW3wpProcessListString
+        "`n[AMSI Modules Loaded on W3wp.exe]" | Out-File $OutputPath -Append
+        $SuspiciousAMSIinW3wpProcessList | Out-File $OutputPath -Append
+        Write-Warning ("Found $($SuspiciousAMSIinW3wpProcessList.count) AMSI modules loaded into W3wp.exe ")
     }
     Write-Warning ("Review " + $OutputPath + " For the full list.")
 } else {

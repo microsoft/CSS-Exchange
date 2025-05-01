@@ -32,7 +32,7 @@ function Get-ExchangeADSplitPermissionsEnabled {
             Write-Verbose "'Exchange Windows Permissions' in 'Microsoft Exchange Protected Groups' OU detected"
             # AD split permissions is enabled if 'Exchange Trusted Subsystem' isn't a member of the 'Exchange Windows Permissions' security group
             $isADSplitPermissionsEnabled = (($null -eq $adSearcherResult.Properties.member) -or
-            (-not($adSearcherResult.Properties.member).ToLower().Contains($exchangeTrustedSubsystemDN.ToLower())))
+                (-not($adSearcherResult.Properties.member).ToLower().Contains($exchangeTrustedSubsystemDN.ToLower())))
         }
     } catch {
         Write-Verbose "OU 'Microsoft Exchange Protected Groups' was not found - AD split permissions not enabled"

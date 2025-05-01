@@ -57,6 +57,14 @@ function Invoke-TextExtractionOverride {
                     "OdfSpreadsheet"    = "PreferIFilters"
                     "OdfPresentation"   = "PreferIFilters"
                     "OneNote"           = "PreferIFilters"
+                    "VsdmOfficePackage" = "IFiltersOnly"
+                    "VsdxOfficePackage" = "IFiltersOnly"
+                    "VssmOfficePackage" = "IFiltersOnly"
+                    "VssxOfficePackage" = "IFiltersOnly"
+                    "VstmOfficePackage" = "IFiltersOnly"
+                    "VstxOfficePackage" = "IFiltersOnly"
+                    "VisioXml"          = "IFiltersOnly"
+                    "PublisherStorage"  = "IFiltersOnly"
                     "Pdf"               = "PreferOutsideIn"
                     "Html"              = "PreferOutsideIn"
                     "AutoCad"           = "OutsideInOnly"
@@ -64,6 +72,7 @@ function Invoke-TextExtractionOverride {
                     "Tiff"              = "OutsideInOnly"
                 }
 
+                $cu15OnlyTypeList = @("VsdmOfficePackage", "VsdxOfficePackage", "VssmOfficePackage", "VssxOfficePackage", "VstmOfficePackage", "VstxOfficePackage", "VisioXml", "PublisherStorage")
                 $baseXPathFilter = "//*[local-name()='Configuration']/*[local-name()='System']/*[local-name()='TextExtractionSettings']"
                 $outsideInOnlyModuleXPathFilter = $baseXPathFilter +
                 "/*[local-name()='ModuleLists']/*[local-name()='ModuleList'][@TypeList='OutsideInOnly']/*[local-name()='Module'][contains(., 'OutsideInModule.dll')]"
@@ -86,9 +95,35 @@ function Invoke-TextExtractionOverride {
                 $path = (Join-Path $fipFsDatabasePath "Configuration.xml")
                 Write-Verbose "Using the database path of '$path' to adjust"
 
+                # Need to now detect the version of Exchange for different logic added with CU15
+                try {
+                    $owaVersionParams = @{
+                        MachineName = $env:COMPUTERNAME
+                        SubKey      = "SOFTWARE\Microsoft\ExchangeServer\v15\Setup"
+                        GetValue    = "OwaVersion"
+                    }
+                    [System.Version]$owaVersion = Get-RemoteRegistryValue @owaVersionParams
+
+                    if ($null -eq $owaVersion) {
+                        throw "No OWA Version key found"
+                    }
+                } catch {
+                    throw "Unable to get OWA Version Key from Registry. Inner Exception: $_"
+                }
+
+                $cu15OrNewer = $owaVersion -ge ([System.Version]"15.2.1748.1")
+
+                if ($cu15OrNewer) {
+                    Write-Verbose "We are on CU15 or newer"
+                    $backupFileName = "TextExtractionOverrideV2"
+                } else {
+                    Write-Verbose "We are on a supported version, but less than CU15"
+                    $backupFileName = "TextExtractionOverride"
+                }
+
                 $xmlConfigurationRemoteAction = [PSCustomObject]@{
                     FilePath       = $path
-                    BackupFileName = "TextExtractionOverride"
+                    BackupFileName = $backupFileName
                     Actions        = (New-Object System.Collections.Generic.List[object])
                 }
 
@@ -104,69 +139,119 @@ function Invoke-TextExtractionOverride {
                         # If we got a true result, we stopped the service
                         # Now create the actions list
                         foreach ($configureActionOverride in $ArgumentList.ConfigureOverride) {
-                            if ($configureActionOverride -eq "OutsideInModule") {
-                                # If configureActionOverride is OutsideInModule then we are setting that path only.
-                                $actionOperation = [PSCustomObject]@{
-                                    SelectNodesFilter = $outsideInOnlyModuleXPathFilter
-                                    OperationType     = [string]::Empty
-                                    Operation         = [PSCustomObject]@{
-                                        AttributeName = "#text"
-                                        Value         = "|NO"
-                                        ReplaceValue  = [string]::Empty
+
+                            if ($cu15OrNewer) {
+                                if ($configureActionOverride -eq "OutsideInModule") {
+                                    Write-Warning "OutsideInModule is no longer required with the version of Exchange that you are on."
+                                } elseif (@("AutoCad", "Jpeg", "Tiff") -contains $configureActionOverride) {
+                                    $baseFilter = $typeListBaseXPathFilter -f "OutsideInOnly"
+
+                                    if ($ArgumentList.Action -eq "Allow") {
+                                        $xmlConfigurationRemoteAction.Actions.Add(([PSCustomObject]@{
+                                                    SelectNodesFilter = $baseFilter
+                                                    OperationType     = "AppendChildFromClone"
+                                                    Operation         = [PSCustomObject]@{
+                                                        AttributeName                  = "Name"
+                                                        Value                          = $configureActionOverride
+                                                        SelectSingleNodeFilterForClone = ($baseXPathFilter + "/*[local-name()='TypeLists']/*[local-name()='TypeList']/*[local-name()='Type']")
+                                                    }
+                                                }))
+                                    } elseif ($ArgumentList.Action -eq "Block") {
+                                        $xmlConfigurationRemoteAction.Actions.Add(([PSCustomObject]@{
+                                                    SelectNodesFilter = ($baseFilter + "/*[local-name()='Type'][@Name='$configureActionOverride']")
+                                                    OperationType     = "RemoveNode"
+                                                }))
+                                    }
+                                } else {
+                                    $baseFilter = $getTypeBaseTypeListXPathFilter -f $configureActionOverride
+
+                                    if ($ArgumentList.Action -eq "Allow") {
+                                        $xmlConfigurationRemoteAction.Actions.Add(([PSCustomObject]@{
+                                                    SelectNodesFilter = $baseFilter
+                                                    OperationType     = "MoveNode"
+                                                    Operation         = [PSCustomObject]@{
+                                                        MoveToSelectNodesFilter          = ($typeListBaseXPathFilter -f $defaultTypeLocations[$configureActionOverride])
+                                                        ParentNodeAttributeNameFilterAdd = "Name"
+                                                    }
+                                                }))
+                                    } elseif ($ArgumentList.Action -eq "Block") {
+                                        $xmlConfigurationRemoteAction.Actions.Add(([PSCustomObject]@{
+                                                    SelectNodesFilter = $baseFilter
+                                                    OperationType     = "MoveNode"
+                                                    Operation         = [PSCustomObject]@{
+                                                        MoveToSelectNodesFilter          = ($typeListBaseXPathFilter -f "PreferDocParser")
+                                                        ParentNodeAttributeNameFilterAdd = "Name"
+                                                    }
+                                                }))
                                     }
                                 }
-
-                                if ($ArgumentList.Action -eq "Allow") {
-                                    $actionOperation.OperationType = "AppendAttribute"
-                                    $xmlConfigurationRemoteAction.Actions.Add($actionOperation)
-                                } elseif ($ArgumentList.Action -eq "Block") {
-                                    $actionOperation.OperationType = "ReplaceAttributeValue"
-                                    $xmlConfigurationRemoteAction.Actions.Add($actionOperation)
-                                }
                             } else {
-                                # Now everything else is attempting to do the following on the Type:
-                                # Either set or remove the |NO flag
-                                # Move the Type to the TypeList OutsideInOnly as that is the only location where the |NO flag is honored
-                                $baseFilter = $getTypeBaseTypeListXPathFilter -f $configureActionOverride
+                                if ($configureActionOverride -eq "OutsideInModule") {
+                                    # If configureActionOverride is OutsideInModule then we are setting that path only.
+                                    $actionOperation = [PSCustomObject]@{
+                                        SelectNodesFilter = $outsideInOnlyModuleXPathFilter
+                                        OperationType     = [string]::Empty
+                                        Operation         = [PSCustomObject]@{
+                                            AttributeName = "#text"
+                                            Value         = "|NO"
+                                            ReplaceValue  = [string]::Empty
+                                        }
+                                    }
 
-                                if ($ArgumentList.Action -eq "Allow") {
+                                    if ($ArgumentList.Action -eq "Allow") {
+                                        $actionOperation.OperationType = "AppendAttribute"
+                                        $xmlConfigurationRemoteAction.Actions.Add($actionOperation)
+                                    } elseif ($ArgumentList.Action -eq "Block") {
+                                        $actionOperation.OperationType = "ReplaceAttributeValue"
+                                        $xmlConfigurationRemoteAction.Actions.Add($actionOperation)
+                                    }
+                                } elseif ($cu15OnlyTypeList -contains $configureActionOverride) {
+                                    Write-Host "The configuration action of '$configureActionOverride' is not supported with this version of Exchange."
+                                } else {
+                                    # Now everything else is attempting to do the following on the Type:
+                                    # Either set or remove the |NO flag
+                                    # Move the Type to the TypeList OutsideInOnly as that is the only location where the |NO flag is honored
+                                    $baseFilter = $getTypeBaseTypeListXPathFilter -f $configureActionOverride
 
-                                    $xmlConfigurationRemoteAction.Actions.Add(([PSCustomObject]@{
-                                                SelectNodesFilter = $baseFilter
-                                                OperationType     = "MoveNode"
-                                                Operation         = [PSCustomObject]@{
-                                                    MoveToSelectNodesFilter          = ($typeListBaseXPathFilter -f "OutsideInOnly")
-                                                    ParentNodeAttributeNameFilterAdd = "Name"
-                                                }
-                                            }))
+                                    if ($ArgumentList.Action -eq "Allow") {
 
-                                    $xmlConfigurationRemoteAction.Actions.Add(([PSCustomObject]@{
-                                                SelectNodesFilter = $baseFilter
-                                                OperationType     = "AppendAttribute"
-                                                Operation         = [PSCustomObject]@{
-                                                    AttributeName = "Name"
-                                                    Value         = "|NO"
-                                                }
-                                            }))
-                                } elseif ($ArgumentList.Action -eq "Block") {
-                                    $xmlConfigurationRemoteAction.Actions.Add(([PSCustomObject]@{
-                                                SelectNodesFilter = $baseFilter
-                                                OperationType     = "ReplaceAttributeValue"
-                                                Operation         = [PSCustomObject]@{
-                                                    AttributeName = "Name"
-                                                    Value         = "|NO"
-                                                    ReplaceValue  = [string]::Empty
-                                                }
-                                            }))
+                                        $xmlConfigurationRemoteAction.Actions.Add(([PSCustomObject]@{
+                                                    SelectNodesFilter = $baseFilter
+                                                    OperationType     = "MoveNode"
+                                                    Operation         = [PSCustomObject]@{
+                                                        MoveToSelectNodesFilter          = ($typeListBaseXPathFilter -f "OutsideInOnly")
+                                                        ParentNodeAttributeNameFilterAdd = "Name"
+                                                    }
+                                                }))
 
-                                    $xmlConfigurationRemoteAction.Actions.Add(([PSCustomObject]@{
-                                                SelectNodesFilter = $baseFilter
-                                                OperationType     = "MoveNode"
-                                                Operation         = [PSCustomObject]@{
-                                                    MoveToSelectNodesFilter          = ($typeListBaseXPathFilter -f $defaultTypeLocations[$configureActionOverride])
-                                                    ParentNodeAttributeNameFilterAdd = "Name"
-                                                }
-                                            }))
+                                        $xmlConfigurationRemoteAction.Actions.Add(([PSCustomObject]@{
+                                                    SelectNodesFilter = $baseFilter
+                                                    OperationType     = "AppendAttribute"
+                                                    Operation         = [PSCustomObject]@{
+                                                        AttributeName = "Name"
+                                                        Value         = "|NO"
+                                                    }
+                                                }))
+                                    } elseif ($ArgumentList.Action -eq "Block") {
+                                        $xmlConfigurationRemoteAction.Actions.Add(([PSCustomObject]@{
+                                                    SelectNodesFilter = $baseFilter
+                                                    OperationType     = "ReplaceAttributeValue"
+                                                    Operation         = [PSCustomObject]@{
+                                                        AttributeName = "Name"
+                                                        Value         = "|NO"
+                                                        ReplaceValue  = [string]::Empty
+                                                    }
+                                                }))
+
+                                        $xmlConfigurationRemoteAction.Actions.Add(([PSCustomObject]@{
+                                                    SelectNodesFilter = $baseFilter
+                                                    OperationType     = "MoveNode"
+                                                    Operation         = [PSCustomObject]@{
+                                                        MoveToSelectNodesFilter          = ($typeListBaseXPathFilter -f $defaultTypeLocations[$configureActionOverride])
+                                                        ParentNodeAttributeNameFilterAdd = "Name"
+                                                    }
+                                                }))
+                                    }
                                 }
                             }
                         }

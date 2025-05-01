@@ -23,7 +23,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Name" $env:COMPUTERNAME
             TestObjectMatch "Version" "Exchange 2019 CU11"
             TestObjectMatch "Build Number" "15.02.0986.005"
-            TestObjectMatch "End Of Life" $true -WriteType "Yellow" # This is going to change to red once we get 178 out
+            TestObjectMatch "End Of Life" $true -WriteType "Red" # This is going to change to red once we get 178 out - today (04/28/2025) this has changed to red
             TestObjectMatch "Server Role" "Mailbox"
             TestObjectMatch "Edition" "Warning - StandardEvaluation" -WriteType "Yellow"
             TestObjectMatch "Remaining Trial Period" "Error - 00:00:00" -WriteType "Red"

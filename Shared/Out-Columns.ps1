@@ -96,14 +96,14 @@ function Out-Columns {
                 $p = $props[$i]
                 $val = $obj."$p"
 
-                if ($val -isnot [array]) {
+                if ($val -isnot [array] -and $val -isnot [System.Collections.ArrayList]) {
                     $val = WrapLine -line $val -width $colWidths[$i]
-                } elseif ($val -is [array]) {
+                } elseif ($val -is [array] -or $val -is [System.Collections.ArrayList]) {
                     $val = $val | Where-Object { $null -ne $_ }
                     $val = $val | ForEach-Object { WrapLine -line $_ -width $colWidths[$i] }
                 }
 
-                if ($val -is [array]) {
+                if ($val -is [array] -or $val -is [System.Collections.ArrayList]) {
                     $multiLineProps[$p] = $val
                     if ($val.Length -gt $linesNeededForThisObject) {
                         $linesNeededForThisObject = $val.Length
@@ -172,7 +172,7 @@ function Out-Columns {
                     $val = $thing."$($props[$i])"
                     if ($null -ne $val) {
                         $width = 0
-                        if ($val -isnot [array]) {
+                        if ($val -isnot [array] -and $val -isnot [System.Collections.ArrayList]) {
                             $val = $val.ToString().Split("`n")
                         }
 

@@ -42,7 +42,7 @@ function Write-BasicMailboxInformation {
             if ((-not ($MailboxInformation.MailboxInfo.MaxReceiveSize.ToString() -eq "0 B (0 bytes)")) -and
                 (($MailboxInformation.MailboxInfo.UseDatabaseQuotaDefaults -eq $true -and
                     $MailboxInformation.MailboxStatistics.TotalItemSize.Value -ge $MailboxInformation.MailboxStatistics.DatabaseProhibitSendReceiveQuota) -or
-                    ($MailboxInformation.MailboxInfo.UseDatabaseQuotaDefaults -eq $false -and
+                ($MailboxInformation.MailboxInfo.UseDatabaseQuotaDefaults -eq $false -and
                 $MailboxInformation.MailboxStatistics.TotalItemSize.Value -ge $MailboxInformation.MailboxInfo.MaxReceiveSize))) {
                 Write-Warning "The mailbox is full, all messages greater than 1MB will fail to be indexed."
             } else {

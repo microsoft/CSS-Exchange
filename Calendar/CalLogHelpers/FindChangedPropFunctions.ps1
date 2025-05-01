@@ -118,11 +118,6 @@ function FindChangedProperties {
                 CreateMeetingSummary -Time " " -MeetingChanges $TimeLineText
             }
 
-            if ($CalLog.ReceivedBy -ne $script:PreviousCalLog.ReceivedBy) {
-                [Array]$TimeLineText = "The Received By changed from [$($script:PreviousCalLog.ReceivedBy)] to: [$($CalLog.ReceivedBy)]"
-                CreateMeetingSummary -Time " " -MeetingChanges $TimeLineText
-            }
-
             if ($CalLog.ReceivedRepresenting -ne $script:PreviousCalLog.ReceivedRepresenting) {
                 [Array]$TimeLineText = "The Received Representing changed from [$($script:PreviousCalLog.ReceivedRepresenting)] to: [$($CalLog.ReceivedRepresenting)]"
                 CreateMeetingSummary -Time " " -MeetingChanges $TimeLineText

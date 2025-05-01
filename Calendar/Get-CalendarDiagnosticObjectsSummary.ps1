@@ -3,8 +3,8 @@
 
 <#
 .DESCRIPTION
-This Exchange Online script runs the Get-CalendarDiagnosticObjects script and returns a summarized timeline of actions in clear english
-as well as the Calendar Diagnostic Objects in CSV format.
+This Exchange Online script runs the Get-CalendarDiagnosticObjects script and returns a summarized timeline of actions in clear English
+as well as the Calendar Diagnostic Objects in Excel.
 
 .PARAMETER Identity
 One or more SMTP Address of EXO User Mailbox to query.
@@ -16,19 +16,34 @@ Subject of the meeting to query, only valid if Identity is a single user.
 The MeetingID of the meeting to query.
 
 .PARAMETER TrackingLogs
-Include specific tracking logs in the output. Only useable with the MeetingID parameter.
+Include specific tracking logs in the output. Only usable with the MeetingID parameter.
 
 .PARAMETER Exceptions
-Include Exception objects in the output. Only useable with the MeetingID parameter.
+Include Exception objects in the output. Only usable with the MeetingID parameter. (Default)
 
 .PARAMETER ExportToExcel
-[Beta Feature] Export the output to an Excel file with formatting.  Running the scrip for multiple users will create multiple tabs in the Excel file.
+Export the output to an Excel file with formatting.  Running the scrip for multiple users will create multiple tabs in the Excel file. (Default)
+
+.PARAMETER ExportToCSV
+Export the output to 3 CSV files per user.
 
 .PARAMETER CaseNumber
 Case Number to include in the Filename of the output.
 
 .PARAMETER ShortLogs
 Limit Logs to 500 instead of the default 2000, in case the server has trouble responding with the full logs.
+
+.PARAMETER MaxLogs
+Increase log limit to 12,000 in case the default 2000 does not contain the needed information. Note this can be time consuming, and it does not contain all the logs such as User Responses.
+
+.PARAMETER CustomProperty
+Advanced users can add custom properties to the output in the RAW output. This is not recommended unless you know what you are doing. The properties must be in the format of "PropertyName1, PropertyName2, PropertyName3".  The properties will be added to the RAW output and not the Timeline output.  The properties must be in the format of "PropertyName1, PropertyName2, PropertyName3".  The properties will only be added to the RAW output.
+
+.PARAMETER ExceptionDate
+Date of the Exception Meeting to collect logs for.  Fastest way to get Exceptions for a meeting.
+
+.PARAMETER NoExceptions
+Do not collect Exception Meetings.  This was the default behavior of the script, now exceptions are collected by default.
 
 .EXAMPLE
 Get-CalendarDiagnosticObjectsSummary.ps1 -Identity someuser@microsoft.com -MeetingID 040000008200E00074C5B7101A82E008000000008063B5677577D9010000000000000000100000002FCDF04279AF6940A5BFB94F9B9F73CD
@@ -37,9 +52,11 @@ Get-CalendarDiagnosticObjectsSummary.ps1 -Identity someuser@microsoft.com -Subje
 .EXAMPLE
 Get-CalendarDiagnosticObjectsSummary.ps1 -Identity User1, User2, Delegate -MeetingID $MeetingID
 .EXAMPLE
-Get-CalendarDiagnosticObjectsSummary.ps1 -Identity $Users -MeetingID $MeetingID -TrackingLogs -Exceptions
+Get-CalendarDiagnosticObjectsSummary.ps1 -Identity $Users -MeetingID $MeetingID -TrackingLogs -NoExceptions
 .EXAMPLE
 Get-CalendarDiagnosticObjectsSummary.ps1 -Identity $Users -MeetingID $MeetingID -TrackingLogs -Exceptions -ExportToExcel -CaseNumber 123456
+.EXAMPLE
+Get-CalendarDiagnosticObjectsSummary.ps1 -Identity $Users -MeetingID $MeetingID -TrackingLogs -ExceptionDate "01/28/2024" -CaseNumber 123456
 
 .SYNOPSIS
 Used to collect easy to read Calendar Logs.
@@ -53,21 +70,31 @@ Used to collect easy to read Calendar Logs.
 param (
     [Parameter(Mandatory, Position = 0, HelpMessage = "Enter the Identity of the mailbox(es) to query. Press <Enter> again when done.")]
     [string[]]$Identity,
-    [Parameter(HelpMessage = "Export all Logs to Excel.")]
+    [Parameter(HelpMessage = "Export all Logs to Excel (Default).")]
     [switch]$ExportToExcel,
+    [Parameter(HelpMessage = "Export all Logs to CSV files.")]
+    [switch]$ExportToCSV,
     [Parameter(HelpMessage = "Case Number to include in the Filename of the output.")]
     [string]$CaseNumber,
     [Parameter(HelpMessage = "Limit Logs to 500 instead of the default 2000, in case the server has trouble responding with the full logs.")]
     [switch]$ShortLogs,
+    [Parameter(HelpMessage = "Limit Logs to 12000 instead of the default 2000, in case the server has trouble responding with the full logs.")]
+    [switch]$MaxLogs,
+    [Parameter(HelpMessage = "Custom Property to add to the RAW output.")]
+    [string[]]$CustomProperty,
 
     [Parameter(Mandatory, ParameterSetName = 'MeetingID', Position = 1, HelpMessage = "Enter the MeetingID of the meeting to query. Recommended way to search for CalLogs.")]
     [string]$MeetingID,
-    [Parameter(HelpMessage = "Include specific tracking logs in the output. Only useable with the MeetingID parameter.")]
+    [Parameter(HelpMessage = "Include specific tracking logs in the output. Only usable with the MeetingID parameter.")]
     [switch]$TrackingLogs,
-    [Parameter(HelpMessage = "Include Exception objects in the output. Only useable with the MeetingID parameter.")]
+    [Parameter(HelpMessage = "Include Exception objects in the output. Only usable with the MeetingID parameter.")]
     [switch]$Exceptions,
+    [Parameter(HelpMessage = "Date of the Exception to collect the logs for.")]
+    [DateTime]$ExceptionDate,
+    [Parameter(HelpMessage = "Do Not collect Exception Meetings.")]
+    [switch]$NoExceptions,
 
-    [Parameter(Mandatory, ParameterSetName = 'Subject', Position = 1, HelpMessage = "Enter the Subject of the meeting. Do not include the RE:, FW:, etc..")]
+    [Parameter(Mandatory, ParameterSetName = 'Subject', Position = 1, HelpMessage = "Enter the Subject of the meeting. Do not include the RE:, FW:, etc.,  No wild cards (* or ?)")]
     [string]$Subject
 )
 
@@ -78,7 +105,7 @@ $BuildVersion = ""
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 if (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/CL-VersionsUrl" -Confirm:$false) {
     # Update was downloaded, so stop here.
-    Write-Host "Script was updated. Please rerun the command." -ForegroundColor Yellow
+    Write-Host -ForegroundColor Red "Script was updated. Please rerun the command." -ForegroundColor Yellow
     return
 }
 
@@ -103,11 +130,29 @@ $script:BuildVersion = $BuildVersion
 . $PSScriptRoot\CalLogHelpers\FindChangedPropFunctions.ps1
 . $PSScriptRoot\CalLogHelpers\Write-DashLineBoxColor.ps1
 
-if ($ExportToExcel.IsPresent) {
+# Default to Excel unless specified otherwise.
+if (!$ExportToCSV.IsPresent) {
+    Write-Host -ForegroundColor Yellow "Exporting to Excel."
+    $script:ExportToExcel = $true
     . $PSScriptRoot\..\Shared\Confirm-Administrator.ps1
     $script:IsAdministrator = Confirm-Administrator
     . $PSScriptRoot\CalLogHelpers\ExcelModuleInstaller.ps1
     . $PSScriptRoot\CalLogHelpers\ExportToExcelFunctions.ps1
+}
+
+# Default to Collecting Exceptions
+if ((!$NoExceptions.IsPresent) -and ([string]::IsNullOrEmpty($ExceptionDate))) {
+    $Exceptions=$true
+    Write-Host -ForegroundColor Yellow "Collecting Exceptions."
+    Write-Host -ForegroundColor Yellow "`tTo not collecting Exceptions, use the -NoExceptions switch."
+} else {
+    Write-Host -ForegroundColor Green "---------------------------------------"
+    if ($NoExceptions.IsPresent) {
+        Write-Host -ForegroundColor Green "Not Checking for Exceptions"
+    } else {
+        Write-Host -ForegroundColor Green "Checking for Exceptions on $ExceptionDate"
+    }
+    Write-Host -ForegroundColor Green "---------------------------------------"
 }
 
 # ===================================================================================================

@@ -454,31 +454,37 @@ begin {
                                         if ($null -eq $checkCmdLet) {
                                             Write-Warning "Get-MpComputerStatus cmdLet is not available"
                                         } else {
-                                            if ((Get-MpComputerStatus).RealTimeProtectionEnabled) {
-                                                Write-Host "Windows Defender has Real Time Protection Enabled" -ForegroundColor Green
+                                            $statusResult = $null
+                                            $statusResult = Get-MpComputerStatus -ErrorAction SilentlyContinue
+                                            if ($null -eq $statusResult) {
+                                                Write-Warning "Get-MpComputerStatus do not return information"
                                             } else {
-                                                Write-Host "Windows Defender has Real Time Protection Disabled" -ForegroundColor Red
-                                            }
-                                            Write-Host "It should be version 1.1.18300.4 or newest."
-                                            if (Test-Path $WindowsDefenderPath -PathType Container) {
-                                                $process = Join-Path -Path $WindowsDefenderPath -ChildPath "MpCmdRun.exe"
-                                                if (Test-Path $process -PathType Leaf) {
-                                                    $DefenderVersion = $null
-                                                    $DefenderVersion = [System.Version]::new((& $process -SignatureUpdate | Where-Object { $_.StartsWith('Engine Version:') }).Split(' ')[2])
-                                                    if ($DefenderVersion) {
-                                                        if ($DefenderVersion -ge "1.1.18300.4") {
-                                                            Write-Host "Windows Defender version supported for AMSI: $DefenderVersion" -ForegroundColor Green
+                                                if ($statusResult.RealTimeProtectionEnabled) {
+                                                    Write-Host "Windows Defender has Real Time Protection Enabled" -ForegroundColor Green
+                                                } else {
+                                                    Write-Host "Windows Defender has Real Time Protection Disabled" -ForegroundColor Red
+                                                }
+                                                Write-Host "It should be version 1.1.18300.4 or newest."
+                                                if (Test-Path $WindowsDefenderPath -PathType Container) {
+                                                    $process = Join-Path -Path $WindowsDefenderPath -ChildPath "MpCmdRun.exe"
+                                                    if (Test-Path $process -PathType Leaf) {
+                                                        $DefenderVersion = $null
+                                                        $DefenderVersion = [System.Version]::new((& $process -SignatureUpdate | Where-Object { $_.StartsWith('Engine Version:') }).Split(' ')[2])
+                                                        if ($DefenderVersion) {
+                                                            if ($DefenderVersion -ge "1.1.18300.4") {
+                                                                Write-Host "Windows Defender version supported for AMSI: $DefenderVersion" -ForegroundColor Green
+                                                            } else {
+                                                                Write-Host "Windows Defender version Non-supported for AMSI: $DefenderVersion" -ForegroundColor Red
+                                                            }
                                                         } else {
-                                                            Write-Host "Windows Defender version Non-supported for AMSI: $DefenderVersion" -ForegroundColor Red
+                                                            Write-Host "We could not get Windows Defender version" -ForegroundColor Red
                                                         }
                                                     } else {
-                                                        Write-Host "We could not get Windows Defender version" -ForegroundColor Red
+                                                        Write-Host "We did not find Windows Defender MpCmdRun.exe." -ForegroundColor Red
                                                     }
                                                 } else {
-                                                    Write-Host "We did not find Windows Defender MpCmdRun.exe." -ForegroundColor Red
+                                                    Write-Host "We did not find Windows Defender Path." -ForegroundColor Red
                                                 }
-                                            } else {
-                                                Write-Host "We did not find Windows Defender Path." -ForegroundColor Red
                                             }
                                         }
                                     } else {
@@ -587,15 +593,15 @@ process {
 
     if ($ScriptUpdateOnly) {
         switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/Test-AMSI-VersionsURL" -Confirm:$false) {
-        ($true) { Write-Host ("Script was successfully updated") -ForegroundColor Green }
-        ($false) { Write-Host ("No update of the script performed") -ForegroundColor Yellow }
+            ($true) { Write-Host ("Script was successfully updated") -ForegroundColor Green }
+            ($false) { Write-Host ("No update of the script performed") -ForegroundColor Yellow }
             default { Write-Host ("Unable to perform ScriptUpdateOnly operation") -ForegroundColor Red }
         }
         return
     }
 
     if ((-not($SkipVersionCheck)) -and
-    (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/Test-AMSI-VersionsURL" -Confirm:$false)) {
+        (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/Test-AMSI-VersionsURL" -Confirm:$false)) {
         Write-Host ("Script was updated. Please re-run the command") -ForegroundColor Yellow
         return
     }
@@ -709,7 +715,7 @@ process {
 
     if ((($filterList.count -gt 0) -or
             $TestAMSI -or
-           (($EnableAMSI -or $DisableAMSI) -and
+            (($EnableAMSI -or $DisableAMSI) -and
             -not $ServerList)) -and
         $SupportedExchangeServers.count -gt 0) {
 

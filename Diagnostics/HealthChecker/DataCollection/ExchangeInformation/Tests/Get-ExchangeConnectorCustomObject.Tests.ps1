@@ -7,8 +7,9 @@ param()
 BeforeAll {
     $Script:parentPath = (Split-Path -Parent $PSScriptRoot)
     $Script:Server = $env:COMPUTERNAME
-    . $Script:parentPath\Get-ExchangeConnectors.ps1
-    . $Script:parentPath\Get-ExchangeServerCertificates.ps1
+    . $Script:parentPath\..\..\..\..\Shared\CertificateFunctions\Get-ExchangeServerCertificateInformation.ps1
+    . $Script:parentPath\..\..\Analyzer\Get-ExchangeConnectorCustomObject.ps1
+    . $Script:parentPath\..\..\Analyzer\Security\Get-ExchangeCertificateCustomObject.ps1
 
     function Invoke-CatchActions {
         param()
@@ -27,18 +28,20 @@ BeforeAll {
     }
 }
 
-Describe "Testing Get-ExchangeConnectors.ps1" {
+Describe "Testing Get-ExchangeConnectorCustomObject" {
     BeforeAll {
         Mock Get-Date -MockWith { return ([System.Convert]::ToDateTime("01/01/2022", [System.Globalization.DateTimeFormatInfo]::InvariantInfo).ToUniversalTime()) }
         Mock Get-ExchangeCertificate -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetExchangeCertificate.xml }
         Mock Get-SendConnector -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetSendConnector.xml }
         Mock Get-ReceiveConnector -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetReceiveConnector.xml }
-        $Script:exchangeCertificates = Get-ExchangeServerCertificates -Server $Script:Server
+        [array]$Script:connectors = Get-ReceiveConnector
+        [array]$Script:connectors += Get-SendConnector
+        $Script:exchangeCertificates  = (Get-ExchangeServerCertificateInformation -Server $Script:Server).Certificates
     }
 
     Context "Validate Exchange Connectors Return Object" {
         BeforeAll {
-            $Script:results = Get-ExchangeConnectors -ComputerName $Server -CertificateObject $exchangeCertificates
+            $Script:results = Get-ExchangeConnectorCustomObject -Connector $connectors -Certificate $exchangeCertificates
         }
 
         It "Should Return 6 Connector Objects For Each Connector" {
@@ -122,8 +125,8 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
     Context "Multiple Matching Certificate Found On The System" {
         BeforeAll {
             Mock Get-ExchangeCertificate -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetExchangeCertificateMultipleMatches.xml }
-            $Script:multipleMatchingExchangeCertificates = Get-ExchangeServerCertificates -Server $Script:Server
-            $Script:results = Get-ExchangeConnectors -ComputerName $Server -CertificateObject $multipleMatchingExchangeCertificates
+            $Script:multipleMatchingExchangeCertificates = (Get-ExchangeServerCertificateInformation -Server $Script:Server).Certificates
+            $Script:results = Get-ExchangeConnectorCustomObject -Connector $connectors -Certificate $multipleMatchingExchangeCertificates
         }
 
         It "Should Return Multiple Certificate Thumbprints And Lifetime Information" {
@@ -143,8 +146,8 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
     Context "Cloud Mail Enabled And TlsCertificateName Set But Certificate Not On The System" {
         BeforeAll {
             Mock Get-ExchangeCertificate -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetExchangeCertificateIncomplete.xml }
-            $Script:missingExchangeCertificate = Get-ExchangeServerCertificates -Server $Script:Server
-            $Script:results = Get-ExchangeConnectors -ComputerName $Server -CertificateObject $missingExchangeCertificate
+            $Script:missingExchangeCertificate = (Get-ExchangeServerCertificateInformation -Server $Script:Server).Certificates
+            $Script:results = Get-ExchangeConnectorCustomObject -Connector $connectors -Certificate $missingExchangeCertificate
 
             [array]$cloudConnectors = $null
             foreach ($result in $results) {
@@ -165,9 +168,7 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
 
     Context "No Certificate Object Was Passed To The Function" {
         BeforeAll {
-            Mock Get-ExchangeCertificate -MockWith { return $null }
-            $Script:emptyExchangeCertificate = Get-ExchangeServerCertificates -Server $Script:Server
-            $Script:results = Get-ExchangeConnectors -ComputerName $Server -CertificateObject $emptyExchangeCertificate
+            $Script:results = Get-ExchangeConnectorCustomObject -Connector $Script:connectors -Certificate $null
         }
 
         It "Should Return Objects For Each Connector" {
@@ -178,7 +179,7 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
             foreach ($connector in $results) {
                 $connector.CertificateDetails.CertificateMatchDetected | Should -Be $false
                 $connector.CertificateDetails.GoodTlsCertificateSyntax | Should -Be $false
-                $connector.CertificateDetails.CertificateLifetimeInfo | Should -Be $null
+                $connector.CertificateDetails.CertificateLifetimeInfo.Count | Should -Be 0
             }
         }
     }
@@ -186,7 +187,9 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
     Context "Cloud Mail Enabled But No TlsCertificateName Set On Receive Connector" {
         BeforeAll {
             Mock Get-ReceiveConnector -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetReceiveConnectorEmptyTlsCertificateName.xml }
-            $Script:results = Get-ExchangeConnectors -ComputerName $Server -CertificateObject $exchangeCertificates
+            [array]$Script:connectors = Get-ReceiveConnector
+            [array]$Script:connectors += Get-SendConnector
+            $Script:results = Get-ExchangeConnectorCustomObject -Connector $connectors -Certificate $exchangeCertificates
 
             [array]$cloudConnectors = $null
             foreach ($result in $results) {
@@ -198,7 +201,7 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
 
         It "Cloud Mail Receive Connector Has Empty TlsCertificateName" {
             $cloudConnectors[0].ConnectorType | Should -Be "Receive"
-            $cloudConnectors[0].CertificateDetails.CertificateLifetimeInfo | Should -Be $null
+            $cloudConnectors[0].CertificateDetails.CertificateLifetimeInfo.Count | Should -Be 0
             $cloudConnectors[0].CertificateDetails.TlsCertificateName | Should -Be $null
             $cloudConnectors[0].CertificateDetails.TlsCertificateNameStatus | Should -Be "TlsCertificateNameEmpty"
             $cloudConnectors[0].CertificateDetails.GoodTlsCertificateSyntax | Should -Be $false
@@ -214,7 +217,7 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
 
         It "Certificate Lifetime Should Be 0 For Connectors Without TlsCertificateName Set" {
             $cloudConnectors[0].CertificateDetails.TlsCertificateNameStatus | Should -Be "TlsCertificateNameEmpty"
-            $cloudConnectors[0].CertificateDetails.CertificateLifetimeInfo | Should -Be $null
+            $cloudConnectors[0].CertificateDetails.CertificateLifetimeInfo.Count | Should -Be 0
         }
 
         It "Certificate Lifetime Should Be Returned For Connectors With TlsCertificateName Set" {
@@ -227,7 +230,7 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
         BeforeAll {
             Mock Get-ReceiveConnector -MockWith { return $null }
             Mock Get-SendConnector -MockWith { return $null }
-            $Script:results = Get-ExchangeConnectors -ComputerName $Server -CertificateObject $exchangeCertificates
+            $Script:results = Get-ExchangeConnectorCustomObject -Connector $null -Certificate $exchangeCertificates
         }
 
         It "No Object Should Be Returned" {
@@ -238,7 +241,9 @@ Describe "Testing Get-ExchangeConnectors.ps1" {
     Context "Relay Mails To The Internet Via M365 Send Connector" {
         BeforeAll {
             Mock Get-SendConnector -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetSendConnectorConfiguredToRelayToM365.xml }
-            $Script:results = Get-ExchangeConnectors -ComputerName $Server -CertificateObject $exchangeCertificates
+            [array]$Script:connectors = Get-ReceiveConnector
+            [array]$Script:connectors += Get-SendConnector
+            $Script:results = Get-ExchangeConnectorCustomObject -Connector $connectors -Certificate $exchangeCertificates
         }
 
         It "Send Connector Configured As Expected For Relaying Via M365" {

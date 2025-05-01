@@ -11,7 +11,7 @@ function Get-FileName {
     $ShortMeetingID = $ThisMeetingID.Substring($ThisMeetingID.length - 6)
 
     if ($script:Identity -like "*@*") {
-        $script:ShortId = $script:Identity.Split('@')[0]
+        $script:ShortId = $script:Identity.split('@')[0]
     } else {
         $script:ShortId = $script:Identity
     }

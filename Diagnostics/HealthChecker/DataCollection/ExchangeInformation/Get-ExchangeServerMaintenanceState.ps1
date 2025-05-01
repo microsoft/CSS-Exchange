@@ -20,10 +20,13 @@ function Get-ExchangeServerMaintenanceState {
         $getServerComponentState = Get-ServerComponentState -Identity $Server -ErrorAction SilentlyContinue
 
         try {
+            $errorCount = $Error.Count
+            Write-Verbose "Trying to run Get-ClusterNode"
             $getClusterNode = Get-ClusterNode -Name $Server -ErrorAction Stop
+            Invoke-ErrorCatchActionLoopFromIndex $errorCount
         } catch {
             Write-Verbose "Failed to run Get-ClusterNode"
-            Invoke-CatchActions
+            Invoke-ErrorCatchActionLoopFromIndex $errorCount
         }
 
         Write-Verbose "Running ServerComponentStates checks"
@@ -52,12 +55,12 @@ function Get-ExchangeServerMaintenanceState {
                         $inactiveComponents += "'{0}' is in Maintenance Mode" -f $component.Component
                     } else {
                         if (($null -ne $latestLocalState) -and
-                        ($latestLocalState.State -ne "Active")) {
+                            ($latestLocalState.State -ne "Active")) {
                             $inactiveComponents += "'{0}' is in Local Maintenance Mode only" -f $component.Component
                         }
 
                         if (($null -ne $latestRemoteState) -and
-                        ($latestRemoteState.State -ne "Active")) {
+                            ($latestRemoteState.State -ne "Active")) {
                             $inactiveComponents += "'{0}' is in Remote Maintenance Mode only" -f $component.Component
                         }
                     }

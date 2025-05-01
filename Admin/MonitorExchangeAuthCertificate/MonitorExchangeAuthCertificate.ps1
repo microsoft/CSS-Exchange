@@ -554,7 +554,7 @@ function Main {
             "You can find it under: '$($Script:Logger.FullPath)' on computer: $($env:COMPUTERNAME)"
 
             if (($renewalActionResult.RenewalActionPerformed) -and
-            ($authCertStatus.HybridSetupDetected -eq $false)) {
+                ($authCertStatus.HybridSetupDetected -eq $false)) {
                 if ($null -ne $emailBodyBase) {
                     if ($authCertStatus.MultipleExchangeADSites) {
                         $finalEmailBody = $emailBodyBase + $emailBodyRenewalAction + $emailBodyMultiADSites
@@ -565,7 +565,7 @@ function Main {
                 Write-Host ("")
                 Write-Host ("The renewal action was successfully performed") -ForegroundColor Green
             } elseif (($renewalActionResult.RenewalActionPerformed) -and
-            ($authCertStatus.HybridSetupDetected)) {
+                ($authCertStatus.HybridSetupDetected)) {
                 if ($null -ne $emailBodyBase) {
                     if ($authCertStatus.MultipleExchangeADSites) {
                         $finalEmailBody = $emailBodyBase + $emailBodyRenewalAction + $emailBodyMultiADSites + $emailBodyHybrid
@@ -674,7 +674,7 @@ function Main {
             Write-Host ("")
             Write-Host ("Test result: $($renewalActionWording)") -ForegroundColor Cyan
             if ((($authCertStatus.AuthCertificateMissingOnServers.Count -gt 0) -and
-                ($authCertStatus.CurrentAuthCertificateImportRequired)) -or
+                    ($authCertStatus.CurrentAuthCertificateImportRequired)) -or
                 (($authCertStatus.NextAuthCertificateMissingOnServers.Count -gt 0) -and
                 ($authCertStatus.NextAuthCertificateImportRequired))) {
                 Write-Host ("`rThe script will try to import the certificate to the missing servers automatically (as long as it's valid).") -ForegroundColor Cyan
@@ -701,8 +701,8 @@ function Main {
 
         if ((-not($WhatIfPreference)) -and
             (($renewalActionResult.RenewalActionPerformed) -or
-                ($null -ne $importCurrentAuthCertificateResults) -or
-                ($null -ne $importNextAuthCertificateResults)) -and
+            ($null -ne $importCurrentAuthCertificateResults) -or
+            ($null -ne $importNextAuthCertificateResults)) -and
             (-not([System.String]::IsNullOrEmpty($SendEmailNotificationTo)))) {
             Write-Host ("`r`nTrying to send out email notification to the following recipients: $($SendEmailNotificationTo)")
             $sendEmailNotificationParams.Add("Body", $finalEmailBody)

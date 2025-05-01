@@ -84,7 +84,7 @@ function Get-NuGetPackage {
                 }
 
                 if (($null -ne $nuGetPackage) -and
-                ($nuGetPackage.title.Count -eq 1)) {
+                    ($nuGetPackage.title.Count -eq 1)) {
                     Write-Verbose "NuGet package found: $($nuGetPackage.id)"
                     $packageFound = $true
                     Write-Verbose "Description: $($nuGetPackage.description)"

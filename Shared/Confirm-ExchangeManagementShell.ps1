@@ -14,7 +14,7 @@ function Confirm-ExchangeManagementShell {
     $level = Get-EventLogLevel | Select-Object -First 1
     if (($level.GetType().Name -eq "EventCategoryObject") -or
         (($level.GetType().Name -eq "PSObject") -and
-            ($null -ne $level.SerializationData))) {
+        ($null -ne $level.SerializationData))) {
         return $true
     }
 

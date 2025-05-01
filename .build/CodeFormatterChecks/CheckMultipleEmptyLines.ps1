@@ -31,7 +31,7 @@ function CheckMultipleEmptyLines {
             $current = $newLineTokens[$index]
 
             if ($current.StartColumn -eq 1 -and
-            ($index + 1) -lt $newLineTokens.Count -and
+                ($index + 1) -lt $newLineTokens.Count -and
                 $newLineTokens[$index + 1].StartColumn -eq 1 -and
                 $newLineTokens[$index + 1].Start -eq ($current.Start + 2)) {
                 $foundProblem = $true

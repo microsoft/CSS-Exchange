@@ -17,9 +17,9 @@ function Get-LoadBalancingReport {
             ([System.Convert]::ToString($_.Site).Split("/")[-1] -eq $SiteName) } | Select-Object Name, Site | Sort-Object Name
         Write-Grey("Site filtering ON.  Only Exchange 2013+ MBX servers in {0} will be used in the report." -f $SiteName)
         $MBXServers = $getExchangeServer | Where-Object {
-                ($_.IsMailboxServer -eq $true) -and
-                ($_.AdminDisplayVersion -match "^Version 15") -and
-                ([System.Convert]::ToString($_.Site).Split("/")[-1] -eq $SiteName) } | Select-Object Name, Site | Sort-Object Name
+            ($_.IsMailboxServer -eq $true) -and
+            ($_.AdminDisplayVersion -match "^Version 15") -and
+            ([System.Convert]::ToString($_.Site).Split("/")[-1] -eq $SiteName) } | Select-Object Name, Site | Sort-Object Name
     } else {
         if ( ($null -eq $ServerList) ) {
             Write-Grey("Filtering OFF.  All Exchange 2013+ servers will be used in the report.")
@@ -262,7 +262,7 @@ function Get-LoadBalancingReport {
                     $serverValue = 0
                 }
                 if (($totalRequests -eq 0) -or
-                ($null -eq $totalRequests)) {
+                    ($null -eq $totalRequests)) {
                     $percentageLoad = 0
                 } else {
                     $percentageLoad = [math]::Round((($serverValue / $totalRequests) * 100))
@@ -329,7 +329,7 @@ function Get-LoadBalancingReport {
                     $serverValue = 0
                 }
                 if (($totalRequests -eq 0) -or
-                ($null -eq $totalRequests)) {
+                    ($null -eq $totalRequests)) {
                     $percentageLoad = 0
                 } else {
                     $percentageLoad = [math]::Round((($serverValue / $totalRequests) * 100))

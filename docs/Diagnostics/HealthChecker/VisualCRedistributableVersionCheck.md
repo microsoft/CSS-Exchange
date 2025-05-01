@@ -10,7 +10,7 @@ Yes
 
 **Additional resources:**
 
-[Microsoft Visual C++ Redistributable Latest Supported Downloads](https://support.microsoft.com/help/2977003/the-latest-supported-visual-c-downloads)
+[Microsoft Visual C++ Redistributable Latest Supported Downloads](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist)
 
 [Exchange Server 2019 prerequisites](https://docs.microsoft.com/exchange/plan-and-deploy/prerequisites?view=exchserver-2019)
 

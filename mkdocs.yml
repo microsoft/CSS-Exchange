@@ -74,9 +74,13 @@ nav:
       - ExchangeComputerMembership: Diagnostics/HealthChecker/ExchangeComputerMembership.md
       - UnifiedContentCleanup: Diagnostics/HealthChecker/UnifiedContentCleanup.md
       - TransportRetryConfigCheck: Diagnostics/HealthChecker/TransportRetryConfigCheck.md
+      - ExchangeHybridApplicationCheck: Diagnostics/HealthChecker/ExchangeHybridApplicationCheck.md
     - ManagedAvailabilityTroubleshooter: Diagnostics/ManagedAvailabilityTroubleshooter.md
     - Test-ExchAVExclusions: Diagnostics/Test-ExchAVExclusions.md
+    - FreeBusyChecker:
+      - Diagnostics/FreeBusyChecker/FreeBusyChecker.md
   - Hybrid:
+    - ConfigureExchangeHybridApplication: Hybrid/ConfigureExchangeHybridApplication.md
     - Test-HMAEAS: Hybrid/Test-HMAEAS.md
   - M365:
     - MDO:
@@ -87,11 +91,21 @@ nav:
     - Test-MailboxExtendedProperty: M365/Test-MailboxExtendedProperty.md
     - Search-MailboxExtendedProperty: M365/Search-MailboxExtendedProperty.md
     - Remove-MailboxExtendedProperty: M365/Remove-MailboxExtendedProperty.md
+  - Outlook:
+    - Update-OutlookLink: Outlook/Update-OutlookLink.md
   - Performance:
     - ExPerfWiz: Performance/ExPerfWiz.md
     - ExPerfAnalyzer: Performance/ExPerfAnalyzer.md
     - SimplePerf: Performance/SimplePerf.md
   - PublicFolders:
+    - Hybrid:
+      - Import-PublicFolderMailboxes: PublicFolders/Hybrid/Import-PublicFolderMailboxes.md
+      - Sync-MailPublicFoldersCloudToOnprem: PublicFolders/Hybrid/Sync-MailPublicFoldersCloudToOnprem.md
+    - Migration:
+      - Export-ModernPublicFolderStatistics: PublicFolders/Migration/Export-ModernPublicFolderStatistics.md
+      - ModernPublicFolderToMailboxMapGenerator: PublicFolders/Migration/ModernPublicFolderToMailboxMapGenerator.md
+      - SetMailPublicFolderExternalAddress: PublicFolders/Migration/SetMailPublicFolderExternalAddress.md
+      - Sync-ModernMailPublicFolders: PublicFolders/Migration/Sync-ModernMailPublicFolders.md
     - SourceSideValidations: PublicFolders/SourceSideValidations.md
     - Update-PublicFolderPermissions: PublicFolders/Update-PublicFolderPermissions.md
     - ValidateMailEnabledPublicFolders: PublicFolders/ValidateMailEnabledPublicFolders.md

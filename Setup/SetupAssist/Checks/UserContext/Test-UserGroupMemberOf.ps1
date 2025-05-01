@@ -67,7 +67,7 @@ function Test-UserGroupMemberOf {
             if (-not (Confirm-Administrator)) {
                 New-TestResult @params -Result "Failed" -ReferenceInfo "Must run as Administrator to properly test"
             } elseif ($null -ne $tokenGroups -and
-            ($tokenGroups.SID.Contains($group.Role.ToString()))) {
+                ($tokenGroups.SID.Contains($group.Role.ToString()))) {
                 New-TestResult @params -Result "Warning" -ReferenceInfo "Need to log off and log back in"
             } else {
                 New-TestResult @params -Result "Failed" -ReferenceInfo $group.Reason

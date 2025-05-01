@@ -100,12 +100,12 @@ function Invoke-AnalyzerIISInformation {
 
                 if (-not ([string]::IsNullOrEmpty($_.certificateHash))) {
                     $certHash = $_.certificateHash
-                    $cert = $exchangeInformation.ExchangeCertificates | Where-Object { $_.Thumbprint -eq $certHash }
+                    $cert = $exchangeInformation.ExchangeCertificateInformation.Certificates | Where-Object { $_.Thumbprint -eq $certHash }
 
                     if ($null -eq $cert) {
                         $problemCertList.Add("'$certHash' Doesn't exist on the server and this will cause problems.")
                         $certHash = "Cert thumbprint '$certHash' not found on server"
-                    } elseif ($cert.LifetimeInDays -lt 0) {
+                    } elseif (([System.Convert]::ToDateTime($cert.NotAfter, [System.Globalization.DateTimeFormatInfo]::InvariantInfo) - (Get-Date)).Days -lt 0) {
                         $problemCertList.Add("'$certHash' Has expired and will cause problems.")
                     }
                 }
@@ -202,7 +202,7 @@ function Invoke-AnalyzerIISInformation {
                 }
 
                 if (($webSite.Hsts.NativeHstsSettings.enabled) -and
-                ($webSite.Hsts.HstsViaCustomHeader.enabled)) {
+                    ($webSite.Hsts.HstsViaCustomHeader.enabled)) {
                     $showAdditionalHstsInformation = $true
                     Write-Verbose "HSTS conflict detected"
                     $params = $baseParams + @{
@@ -298,7 +298,7 @@ function Invoke-AnalyzerIISInformation {
             $appRestarts.Requests -ne "0" -or
             $null -ne $appRestarts.Schedule -or
             ($appRestarts.Time -ne "00:00:00" -and
-                ($webAppKey -ne "MSExchangeOWAAppPool" -and
+            ($webAppKey -ne "MSExchangeOWAAppPool" -and
             $webAppKey -ne "MSExchangeECPAppPool")))
 
         $outputObjectDisplayValue.Add(([PSCustomObject]@{

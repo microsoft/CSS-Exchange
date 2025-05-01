@@ -47,7 +47,7 @@ function Invoke-AnalyzerSecurityCveCheck {
             }
 
             if (($fileBuildPart -lt $securityFixedBuildPart) -or
-                    ($fileBuildPart -eq $securityFixedBuildPart -and
+                ($fileBuildPart -eq $securityFixedBuildPart -and
                 $filePrivatePart -lt $securityFixedPrivatePart)) {
                 foreach ($cveName in $CVENames) {
                     $params = @{

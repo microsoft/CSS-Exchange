@@ -89,7 +89,7 @@ function Get-AllTlsSettingsFromRegistry {
             # want to check for if Server is Disabled and Disabled By Default is not set or the reverse. This would be only part disabled
             # and not what we recommend on the blog post.
             $halfDisabled = ($serverEnabled -eq $false -and $serverDisabledByDefault -eq $false -and $null -ne $serverDisabledByDefaultValue) -or
-                ($serverEnabled -and $serverDisabledByDefault)
+            ($serverEnabled -and $serverDisabledByDefault)
             $configuration = "Enabled"
 
             if ($disabled) {

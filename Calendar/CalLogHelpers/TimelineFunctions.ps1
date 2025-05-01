@@ -38,11 +38,13 @@ function FindOrganizer {
             $Script:Organizer = $($CalLog.From.SmtpEmailAddress)
         } elseif ($null -ne $CalLog.From.DisplayName) {
             $Script:Organizer = $($CalLog.From.DisplayName)
+        } elseif ($calLog.From -match "^\s*<") {
+            $Script:Organizer = $($CalLog.From -split "<")[1] -replace ">", ""
         } else {
             $Script:Organizer = $($CalLog.From)
         }
     }
-    Write-Host "Setting Organizer to : [$Script:Organizer]"
+    Write-Host -ForegroundColor Green "Setting Organizer to : [$Script:Organizer]"
 }
 
 function FindFirstMeeting {

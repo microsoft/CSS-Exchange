@@ -97,12 +97,12 @@ function Get-FIPFSScanEngineVersionState {
             if ($BuildNumber.Major -eq 15) {
                 if ($BuildNumber.Minor -eq 2) {
                     $fixedFIPFSBuild = ($BuildNumber.Build -gt 986) -or
-                        (($BuildNumber.Build -eq 986) -and ($BuildNumber.Revision -ge 22)) -or
-                        (($BuildNumber.Build -eq 922) -and ($BuildNumber.Revision -ge 27))
+                    (($BuildNumber.Build -eq 986) -and ($BuildNumber.Revision -ge 22)) -or
+                    (($BuildNumber.Build -eq 922) -and ($BuildNumber.Revision -ge 27))
                 } elseif ($BuildNumber.Minor -eq 1) {
                     $fixedFIPFSBuild = ($BuildNumber.Build -gt 2375) -or
-                        (($BuildNumber.Build -eq 2375) -and ($BuildNumber.Revision -ge 24)) -or
-                        (($BuildNumber.Build -eq 2308) -and ($BuildNumber.Revision -ge 27))
+                    (($BuildNumber.Build -eq 2375) -and ($BuildNumber.Revision -ge 24)) -or
+                    (($BuildNumber.Build -eq 2308) -and ($BuildNumber.Revision -ge 27))
                 } else {
                     Write-Verbose "Looks like we're on Exchange 2013 which is not affected by this FIP-FS issue"
                     $fixedFIPFSBuild = $true

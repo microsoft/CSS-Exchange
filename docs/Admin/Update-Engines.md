@@ -28,6 +28,8 @@ Update-Engines.ps1
   [-Platforms <string[]>]
   [-ScriptUpdateOnly <switch>]
   [-SkipVersionCheck <switch>]
+  [-CleanUp <switch>]
+  [-VersionsToKeep <int>]
 ```
 
 ## Steps to update scan engines

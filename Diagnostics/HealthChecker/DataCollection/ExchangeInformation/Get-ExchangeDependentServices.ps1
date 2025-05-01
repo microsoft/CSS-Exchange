@@ -113,7 +113,7 @@ function Get-ExchangeDependentServices {
                 $monitorServicesList.Add((NewServiceObject $service))
 
                 if (-not ($service.Status.ToString() -eq "Running" -or
-                ($monitor.Type -eq "Common" -and
+                        ($monitor.Type -eq "Common" -and
                         $monitor.StartType -eq "Manual"))) {
                     if ($monitor.Type -eq "Critical") {
                         $notRunningCriticalServices.Add((NewServiceObject $service))

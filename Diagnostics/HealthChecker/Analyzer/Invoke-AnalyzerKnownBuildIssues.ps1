@@ -116,7 +116,7 @@ function Invoke-AnalyzerKnownBuildIssues {
         foreach ($issue in $KnownBuildIssuesToFixes) {
 
             if ((TestOnKnownBuildIssue $issue $CurrentVersion) -and
-                    (-not($Script:CachedKnownIssues.Contains($InformationUrl)))) {
+                (-not($Script:CachedKnownIssues.Contains($InformationUrl)))) {
                 Write-Verbose "Known issue Match detected"
                 if (-not ($Script:DisplayKnownIssueHeader)) {
                     $Script:DisplayKnownIssueHeader = $true

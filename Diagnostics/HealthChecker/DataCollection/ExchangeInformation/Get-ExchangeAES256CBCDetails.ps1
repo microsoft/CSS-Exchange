@@ -40,11 +40,11 @@ function Get-ExchangeAES256CBCDetails {
                 Write-Verbose "Registry key exists and Acl was successfully queried - validating Acl now"
                 try {
                     $aclMatch = $acl.Access.Where({
-                    ($_.RegistryRights -eq $networkServiceAcl.RegistryRights) -and
-                    ($_.AccessControlType -eq $networkServiceAcl.AccessControlType) -and
-                    ($_.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]) -eq $networkServiceAcl.IdentityReference) -and
-                    ($_.InheritanceFlags -eq $networkServiceAcl.InheritanceFlags) -and
-                    ($_.PropagationFlags -eq $networkServiceAcl.PropagationFlags)
+                            ($_.RegistryRights -eq $networkServiceAcl.RegistryRights) -and
+                            ($_.AccessControlType -eq $networkServiceAcl.AccessControlType) -and
+                            ($_.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]) -eq $networkServiceAcl.IdentityReference) -and
+                            ($_.InheritanceFlags -eq $networkServiceAcl.InheritanceFlags) -and
+                            ($_.PropagationFlags -eq $networkServiceAcl.PropagationFlags)
                         })
 
                     if (@($aclMatch).Count -ge 1) {

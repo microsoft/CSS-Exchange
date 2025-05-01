@@ -46,7 +46,7 @@ function Get-ExchangeAuthCertificateStatus {
         $authConfiguration = Get-AuthConfig -ErrorAction SilentlyContinue
         $allMailboxServers = Get-ExchangeServer | Where-Object {
             ((($_.IsMailboxServer) -or
-            ($_.IsClientAccessServer)) -and
+                ($_.IsClientAccessServer)) -and
             ($_.AdminDisplayVersion -match "^Version 15"))
         }
 
@@ -113,7 +113,7 @@ function Get-ExchangeAuthCertificateStatus {
             Write-Verbose ("Number of unreachable servers: $($exchangeServersUnreachableList.Count) - IgnoreUnreachableServers? $($IgnoreUnreachableServers)")
 
             if (($exchangeServersUnreachableList.Count -eq 0) -or
-            (($exchangeServersUnreachableList.Count -gt 0) -and
+                (($exchangeServersUnreachableList.Count -gt 0) -and
                 ($IgnoreUnreachableServers))) {
 
                 if ($exchangeServersReachableList.Count -gt $currentAuthCertificateMissingOnServersList.Count) {
@@ -159,7 +159,7 @@ function Get-ExchangeAuthCertificateStatus {
                     # Scenario 1: Current Auth Certificate has expired and no next Auth Certificate defined or the next Auth Certificate has expired
                     $replaceRequired = $true
                 } elseif ((($currentAuthCertificateValidInDays -ge 0) -and
-                    ($currentAuthCertificateValidInDays -le 60)) -and
+                        ($currentAuthCertificateValidInDays -le 60)) -and
                     (($nextAuthCertificateValidInDays -le 0) -or
                     ($nextAuthCertificateValidInDays -le 120)) -and
                     ($currentAuthCertificateMissingOnServersList.Count -eq 0) -and
@@ -182,7 +182,7 @@ function Get-ExchangeAuthCertificateStatus {
                 }
 
                 $stopProcessingDueToHybrid = ((($null -ne $hybridConfiguration) -and ($IgnoreHybridSetup -eq $false)) -and
-                (($replaceRequired) -or ($configureNextAuthRequired)))
+                    (($replaceRequired) -or ($configureNextAuthRequired)))
 
                 Write-Verbose ("Replace of the primary Auth Certificate required? $($replaceRequired)")
                 Write-Verbose ("Import of the primary Auth Certificate required? $($importCurrentAuthCertificateRequired)")

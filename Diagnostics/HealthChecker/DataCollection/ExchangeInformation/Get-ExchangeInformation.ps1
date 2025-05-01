@@ -9,13 +9,12 @@
 . $PSScriptRoot\..\..\..\..\Shared\Get-ExSetupFileVersionInfo.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-FileContentInformation.ps1
 . $PSScriptRoot\..\..\..\..\Shared\Get-MonitoringOverride.ps1
+. $PSScriptRoot\..\..\..\..\Shared\CertificateFunctions\Get-ExchangeServerCertificateInformation.ps1
 . $PSScriptRoot\IISInformation\Get-ExchangeAppPoolsInformation.ps1
 . $PSScriptRoot\IISInformation\Get-ExchangeServerIISSettings.ps1
 . $PSScriptRoot\Get-ExchangeAES256CBCDetails.ps1
-. $PSScriptRoot\Get-ExchangeConnectors.ps1
 . $PSScriptRoot\Get-ExchangeDependentServices.ps1
 . $PSScriptRoot\Get-ExchangeRegistryValues.ps1
-. $PSScriptRoot\Get-ExchangeServerCertificates.ps1
 . $PSScriptRoot\Get-ExchangeServerMaintenanceState.ps1
 . $PSScriptRoot\Get-ExchangeUpdates.ps1
 . $PSScriptRoot\Get-ExchangeVirtualDirectories.ps1
@@ -36,7 +35,7 @@ function Get-ExchangeInformation {
         }
         $windows2016OrGreater = Invoke-ScriptBlockHandler @params
         $getExchangeServer = (Get-ExchangeServer -Identity $Server -Status)
-        $exchangeCertificates = Get-ExchangeServerCertificates -Server $Server
+        $exchangeCertificateInformation = Get-ExchangeServerCertificateInformation -Server $Server -CatchActionFunction ${Function:Invoke-CatchActions}
         $exSetupDetails = Get-ExSetupFileVersionInfo -Server $Server -CatchActionFunction ${Function:Invoke-CatchActions}
 
         if ($null -eq $exSetupDetails) {
@@ -78,11 +77,15 @@ function Get-ExchangeInformation {
         $serverExchangeBinDirectory = [System.Io.Path]::Combine($registryValues.MsiInstallPath, "Bin\")
         Write-Verbose "Found Exchange Bin: $serverExchangeBinDirectory"
 
+        try {
+            $getReceiveConnectors = Get-ReceiveConnector -Server $Server -ErrorAction Stop
+        } catch {
+            Write-Verbose "Failed to run Get-ReceiveConnectors"
+            Invoke-CatchActions
+        }
+
         if ($getExchangeServer.IsEdgeServer -eq $false) {
             $applicationPools = Get-ExchangeAppPoolsInformation -Server $Server
-
-            Write-Verbose "Query Exchange Connector settings via 'Get-ExchangeConnectors'"
-            $exchangeConnectors = Get-ExchangeConnectors -ComputerName $Server -CertificateObject $exchangeCertificates
 
             $exchangeServerIISParams = @{
                 ComputerName        = $Server
@@ -149,7 +152,7 @@ function Get-ExchangeInformation {
         $settingOverrides = Get-ExchangeSettingOverride -Server $Server -CatchActionFunction ${Function:Invoke-CatchActions}
 
         if (($getExchangeServer.IsMailboxServer) -or
-        ($getExchangeServer.IsEdgeServer)) {
+            ($getExchangeServer.IsEdgeServer)) {
             try {
                 $exchangeServicesNotRunning = @()
                 $testServiceHealthResults = Test-ServiceHealth -Server $Server -ErrorAction Stop
@@ -180,23 +183,38 @@ function Get-ExchangeInformation {
 
         $FIPFSUpdateIssue = Get-FIPFSScanEngineVersionState @fipFsParams
 
-        $eemsEndpointParams = @{
+        $endpointScriptBlock = {
+            param($url, $proxy)
+
+            if ($null -eq $url) {
+                throw "NULL URL provided for endpoint script block"
+            }
+            Write-Verbose "Going to try to get the endpoint information for: $url"
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+            if ($null -ne $proxy) {
+                Write-Verbose "Proxy Server detected. Going to use: $proxy"
+                [System.Net.WebRequest]::DefaultWebProxy = New-Object System.Net.WebProxy($proxy)
+                [System.Net.WebRequest]::DefaultWebProxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
+                [System.Net.WebRequest]::DefaultWebProxy.BypassProxyOnLocal = $true
+            } elseif ($null -ne [System.Net.WebRequest]::DefaultWebProxy.Address) {
+                Write-Verbose "No Exchange proxy provided, but one is set on the PowerShell session. Going to remove it."
+                [System.Net.WebRequest]::DefaultWebProxy = $null
+            }
+            Invoke-WebRequest -Method Get -Uri $url -UseBasicParsing
+        }
+
+        $scriptBlockEndpointParams = @{
             ComputerName           = $Server
             ScriptBlockDescription = "Test EEMS pattern service connectivity"
             CatchActionFunction    = ${Function:Invoke-CatchActions}
-            ArgumentList           = $getExchangeServer.InternetWebProxy
-            ScriptBlock            = {
-                [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-                if ($null -ne $args[0]) {
-                    Write-Verbose "Proxy Server detected. Going to use: $($args[0])"
-                    [System.Net.WebRequest]::DefaultWebProxy = New-Object System.Net.WebProxy($args[0])
-                    [System.Net.WebRequest]::DefaultWebProxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
-                    [System.Net.WebRequest]::DefaultWebProxy.BypassProxyOnLocal = $true
-                }
-                Invoke-WebRequest -Method Get -Uri "https://officeclient.microsoft.com/GetExchangeMitigations" -UseBasicParsing
-            }
+            ArgumentList           = @("https://officeclient.microsoft.com/GetExchangeMitigations", $getExchangeServer.InternetWebProxy)
+            ScriptBlock            = $endpointScriptBlock
         }
-        $eemsEndpointResults = Invoke-ScriptBlockHandler @eemsEndpointParams
+        $eemsEndpointResults = Invoke-ScriptBlockHandler @scriptBlockEndpointParams
+
+        $scriptBlockEndpointParams.ScriptBlockDescription = "Test Feature Flighting service connectivity"
+        $scriptBlockEndpointParams.ArgumentList[0] = "https://officeclient.microsoft.com/GetExchangeConfig"
+        $featureFlightingEndpointResults = Invoke-ScriptBlockHandler @scriptBlockEndpointParams
 
         Write-Verbose "Checking AES256-CBC information protection readiness and configuration"
         $aes256CbcParams = @{
@@ -313,14 +331,14 @@ function Get-ExchangeInformation {
             VirtualDirectories                       = $getExchangeVirtualDirectories
             GetMailboxServer                         = $getMailboxServer
             ExtendedProtectionConfig                 = $extendedProtectionConfig
-            ExchangeConnectors                       = $exchangeConnectors
+            GetReceiveConnector                      = $getReceiveConnectors
             ExchangeServicesNotRunning               = [array]$exchangeServicesNotRunning
             GetTransportService                      = $getTransportService
             ApplicationPools                         = $applicationPools
             RegistryValues                           = $registryValues
             ServerMaintenance                        = $serverMaintenance
-            ExchangeCertificates                     = [array]$exchangeCertificates
             ExchangeEmergencyMitigationServiceResult = $eemsEndpointResults
+            ExchangeFeatureFlightingServiceResult    = $featureFlightingEndpointResults
             EdgeTransportResourceThrottling          = $edgeTransportResourceThrottling # If we want to checkout other diagnosticInfo, we should create a new object here.
             ApplicationConfigFileStatus              = $applicationConfigFileStatus
             DependentServices                        = $dependentServices
@@ -332,6 +350,7 @@ function Get-ExchangeInformation {
             FileContentInformation                   = $fileContentInformation
             ComputerMembership                       = $computerMembership
             GetServerMonitoringOverride              = $serverMonitoringOverride
+            ExchangeCertificateInformation           = $exchangeCertificateInformation
         }
     }
 }
