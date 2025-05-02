@@ -179,6 +179,7 @@ begin {
     $BuildVersion = ""
 
     $Script:VerboseEnabled = $false
+    $mainStopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     #this is to set the verbose information to a different color
     if ($PSBoundParameters["Verbose"]) {
         #Write verbose output in cyan since we already use yellow for warnings
@@ -328,6 +329,7 @@ begin {
         if ($Script:VerboseEnabled) {
             $Host.PrivateData.VerboseForegroundColor = $VerboseForeground
         }
+        Write-Verbose "The total script time took $($mainStopWatch.Elapsed.TotalSeconds) seconds"
         $Script:Logger | Invoke-LoggerInstanceCleanup
         if ($Script:Logger.PreventLogCleanup) {
             Write-Host("Output Debug file written to {0}" -f $Script:Logger.FullPath)

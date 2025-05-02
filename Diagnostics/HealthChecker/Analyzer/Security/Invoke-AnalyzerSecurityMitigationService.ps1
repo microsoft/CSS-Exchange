@@ -18,6 +18,7 @@ function Invoke-AnalyzerSecurityMitigationService {
         [object]$DisplayGroupingKey
     )
 
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $exchangeCU = $exchangeInformation.BuildInformation.CU
@@ -166,4 +167,5 @@ function Invoke-AnalyzerSecurityMitigationService {
     } else {
         Write-Verbose "Exchange Emergency Mitigation Service feature not available because we are on: $($exchangeInformation.BuildInformation.MajorVersion) $exchangeCU or on Edge Transport Server"
     }
+    Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }
