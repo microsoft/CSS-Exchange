@@ -23,6 +23,7 @@ function Invoke-AnalyzerSecuritySettings {
         [int]$Order
     )
 
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $osInformation = $HealthServerObject.OSInformation
     $aes256CbcInformation = $HealthServerObject.ExchangeInformation.AES256CBCInformation
@@ -486,4 +487,5 @@ function Invoke-AnalyzerSecuritySettings {
         }
         Add-AnalyzedResultInformation @params
     }
+    Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }

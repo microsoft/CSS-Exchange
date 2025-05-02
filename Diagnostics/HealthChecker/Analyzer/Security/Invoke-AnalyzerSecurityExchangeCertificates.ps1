@@ -16,6 +16,7 @@ function Invoke-AnalyzerSecurityExchangeCertificates {
         [object]$DisplayGroupingKey
     )
 
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $baseParams = @{
@@ -365,4 +366,5 @@ function Invoke-AnalyzerSecurityExchangeCertificates {
         }
         Add-AnalyzedResultInformation @params
     }
+    Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }

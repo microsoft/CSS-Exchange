@@ -20,6 +20,7 @@ function Invoke-AnalyzerOsInformation {
         [int]$Order
     )
 
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $osInformation = $HealthServerObject.OSInformation
@@ -525,4 +526,5 @@ function Invoke-AnalyzerOsInformation {
             }
         }
     }
+    Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }

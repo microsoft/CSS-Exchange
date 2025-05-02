@@ -25,6 +25,7 @@ function Invoke-AnalyzerSecurityADV24199947 {
         [object]$DisplayGroupingKey
     )
     process {
+        $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
         $params = @{
@@ -70,5 +71,6 @@ function Invoke-AnalyzerSecurityADV24199947 {
         } else {
             Write-Verbose "Not vulnerable to ADV24199947"
         }
+        Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
     }
 }

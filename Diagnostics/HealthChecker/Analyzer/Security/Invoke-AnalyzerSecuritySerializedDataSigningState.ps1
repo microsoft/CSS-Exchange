@@ -18,6 +18,7 @@ function Invoke-AnalyzerSecuritySerializedDataSigningState {
         [object]$DisplayGroupingKey
     )
 
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $baseParams = @{
         AnalyzedInformation = $AnalyzeResults
@@ -68,4 +69,5 @@ function Invoke-AnalyzerSecuritySerializedDataSigningState {
         }
         Add-AnalyzedResultInformation @params
     }
+    Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }

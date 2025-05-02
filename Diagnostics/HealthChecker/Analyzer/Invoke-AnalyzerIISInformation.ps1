@@ -21,6 +21,7 @@ function Invoke-AnalyzerIISInformation {
         [int]$Order
     )
 
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $baseParams = @{
@@ -839,4 +840,5 @@ function Invoke-AnalyzerIISInformation {
         }
         Add-AnalyzedResultInformation @params
     }
+    Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }

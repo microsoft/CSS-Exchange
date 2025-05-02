@@ -22,6 +22,7 @@ function Invoke-AnalyzerSecurityOverrides {
         This function is used to analyze overrides which are enabled via SettingOverride or Registry Value
     #>
 
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $exchangeBuild = $exchangeInformation.BuildInformation.VersionInformation.BuildVersion
@@ -122,4 +123,5 @@ function Invoke-AnalyzerSecurityOverrides {
             Add-AnalyzedResultInformation @params
         }
     }
+    Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }
