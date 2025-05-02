@@ -20,6 +20,7 @@ function Invoke-AnalyzerExchangeInformation {
         [int]$Order
     )
 
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $keyExchangeInformation = Get-DisplayResultsGroupingKey -Name "Exchange Information"  -DisplayOrder $Order
     $exchangeInformation = $HealthServerObject.ExchangeInformation
@@ -810,4 +811,5 @@ function Invoke-AnalyzerExchangeInformation {
             Add-AnalyzedResultInformation @params
         }
     }
+    Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }

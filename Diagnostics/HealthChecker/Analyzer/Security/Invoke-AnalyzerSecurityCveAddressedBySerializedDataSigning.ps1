@@ -25,6 +25,7 @@ function Invoke-AnalyzerSecurityCveAddressedBySerializedDataSigning {
     #>
 
     begin {
+        $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         function NewCveFixedBySDSObject {
             param()
@@ -167,5 +168,6 @@ function Invoke-AnalyzerSecurityCveAddressedBySerializedDataSigning {
         } else {
             Write-Verbose "Exchange server role is not affected by these vulnerabilities"
         }
+        Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
     }
 }
