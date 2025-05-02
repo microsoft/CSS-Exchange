@@ -17,6 +17,7 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
         [object]$DisplayGroupingKey
     )
 
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     # Adding CVE-2024-21410 for the updated CVE for release with CU14
     $cveList = "CVE-2022-24516, CVE-2022-21979, CVE-2022-21980, CVE-2022-24477, CVE-2022-30134, CVE-2024-21410"
@@ -202,4 +203,5 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
             Write-Verbose "No Extended Protection configuration found - check will be skipped"
         }
     }
+    Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }
