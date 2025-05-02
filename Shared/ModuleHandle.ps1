@@ -31,82 +31,75 @@ function Request-Module {
     [OutputType([bool])]
     param (
         [Parameter(Mandatory = $true)]
-        [string[]]$Module,
+        [string]$Module,
         [Parameter(Mandatory = $false)]
         [System.Version]$MinModuleVersion = $null,
         [Parameter(Mandatory = $false)]
         [switch]$InstallAllUsersIfNotAvailable
     )
 
-    $noFoundError = $true
+    $installedModule = $null
+    $getParams = @{
+        Name        = $Module
+        ErrorAction = 'SilentlyContinue'
+    }
+    if ($MinModuleVersion) {
+        $getParams["MinimumVersion"] = $MinModuleVersion
+    }
 
-    foreach ($m in $Module) {
-        Write-Verbose "Checking $m PowerShell Module"
-        $getParams = @{
-            Name        = $m
-            ErrorAction = 'Stop'
+    try {
+        $installedModule = Get-InstalledModule @getParams
+    } catch {
+        Write-Host "Get-InstalledModule fails. Error: `n$_" -ForegroundColor Red
+        return $false
+    }
+
+    if ($installedModule) {
+        Write-Verbose "Module $Module is already installed."
+        return $true
+    } else {
+        Write-Host "Module $Module is not installed."
+    }
+
+    if ($InstallAllUsersIfNotAvailable -and (-not (Confirm-Administrator))) {
+        Write-Host "Module $Module is not available and cannot be installed for all users because this PowerShell is not running in elevated mode." -ForegroundColor Red
+        return $false
+    } else {
+        Write-Verbose "Installing $Module"
+        $installParams = @{
+            Name  = $Module
+            Scope = "CurrentUser"
+        }
+        if ($InstallAllUsersIfNotAvailable) {
+            $installParams.Scope = "AllUsers"
+            Write-Verbose "Scope: AllUsers"
         }
         if ($MinModuleVersion) {
-            $getParams["MinimumVersion"] = $MinModuleVersion
-            Write-Verbose "with minimum version $minModuleVersion"
+            $installParams["MinimumVersion"] = $MinModuleVersion
+            Write-Verbose "with minimum version $MinModuleVersion"
         } else {
             Write-Verbose "without minimum version"
         }
-        $installed = $null
         try {
-            $installed = Get-InstalledModule @getParams
+            Write-Host "Installing module $Module..."
+            Install-Module @installParams -AllowClobber
+        } catch {
+            Write-Host "Installation process fails. Error: `n$_" -ForegroundColor Red
+            return $false
+        }
+        $installedModule = $null
+        try {
+            $installedModule = Get-InstalledModule @getParams
         } catch {
             Write-Host "Get-InstalledModule fails. Error: `n$_" -ForegroundColor Red
-            $noFoundError = $false
+            return $false
         }
-
-        if ($noFoundError -eq $true) {
-            if ($null -eq $installed -or $installed.Name -notcontains $m) {
-                Write-Host "The following module is missing: $m" -ForegroundColor Yellow
-                if ($InstallAllUsersIfNotAvailable -and (-not (Confirm-Administrator))) {
-                    Write-Warning "Module $m is not available and cannot be installed for all users because this PowerShell is not running in elevated mode."
-                    $noFoundError = $false
-                } else {
-                    $confirmed = $null
-                    Write-Verbose "Installing $m"
-                    $installParams = @{
-                        Name  = $m
-                        Scope = "CurrentUser"
-                    }
-                    if ($InstallAllUsersIfNotAvailable) {
-                        $installParams.Scope = "AllUsers"
-                    }
-                    if ($MinModuleVersion) {
-                        $installParams["MinimumVersion"] = $MinModuleVersion
-                        Write-Verbose "with minimum version $minModuleVersion"
-                    } else {
-                        Write-Verbose "without minimum version"
-                    }
-                    try {
-                        Install-Module @installParams -Force
-                    } catch {
-                        Write-Host "Installation process fails. Error: `n$_" -ForegroundColor Red
-                        $noFoundError = $false
-                    }
-                    Write-Verbose "Checking $m"
-                    $confirmed = $null
-                    try {
-                        $confirmed = Get-InstalledModule @getParams
-                    } catch {
-                        Write-Host "Get-InstalledModule fails. Error: `n$_" -ForegroundColor Red
-                        $noFoundError = $false
-                    }
-                    if (-not $confirmed) {
-                        Write-Host "We could not install module: $m" -ForegroundColor Red
-                        $noFoundError = $false
-                    }
-                }
-            } else {
-                Write-Verbose "Found $m module installed"
-            }
+        if ($null -eq $installedModule) {
+            Write-Host "We could not install module: $Module" -ForegroundColor Red
+            return $false
         } else {
-            Write-Verbose "Error searching modules."
+            Write-Host "Module $Module correctly installed." -ForegroundColor Green
+            return $true
         }
     }
-    return $noFoundError
 }

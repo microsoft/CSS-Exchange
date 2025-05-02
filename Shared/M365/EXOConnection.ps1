@@ -115,13 +115,13 @@ function Connect-EXOAdvanced {
             }
         }
         if ($newConnection.count -gt 1) {
-            Write-Host "You have more than one Exchange Online sessions with Prefix $Prefix." -ForegroundColor Red
+            Write-Host "You have more than one Exchange Online sessions with Prefix $Prefix.`nPlease use just one session with same Prefix." -ForegroundColor Red
             return $null
         }
     } else {
         Write-Verbose "You already have an Exchange Online session"
         if ($connections.count -gt 1) {
-            Write-Host "You have more than one Exchange Online sessions please use just one session. You are not using AllowMultipleSessions" -ForegroundColor Red
+            Write-Host "You have more than one Exchange Online sessions.`nPlease use just one session as you are not using AllowMultipleSessions" -ForegroundColor Red
             return $null
         }
         $newConnection = $connections
