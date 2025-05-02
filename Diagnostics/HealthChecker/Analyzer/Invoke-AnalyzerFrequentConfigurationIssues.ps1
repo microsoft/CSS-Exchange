@@ -21,6 +21,7 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
         [int]$Order
     )
 
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $osInformation = $HealthServerObject.OSInformation
@@ -487,4 +488,5 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
             Add-AnalyzedResultInformation @params
         }
     }
+    Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }

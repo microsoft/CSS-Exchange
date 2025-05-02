@@ -18,6 +18,7 @@ function Invoke-AnalyzerKnownBuildIssues {
         [object]$DisplayGroupingKey
     )
 
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $baseParams = @{
         AnalyzedInformation = $AnalyzeResults
@@ -283,4 +284,5 @@ function Invoke-AnalyzerKnownBuildIssues {
         Write-Verbose "Failed to run TestForKnownBuildIssues"
         Invoke-CatchActions
     }
+    Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }
