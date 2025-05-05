@@ -3,25 +3,25 @@
 
 <#
 .SYNOPSIS
-This script defines a function `Request-Module` that checks for the presence of specified PowerShell modules.
+This script defines a function `Request-Module` that checks for the presence of specified PowerShell module.
 If a module is not found, it attempts to install it on current user scope.
-The function accepts a list of module names and an optional minimum version for the modules.
-It returns a boolean indicating whether all specified modules are installed successfully.
+The function accepts a module names and an optional minimum version for the module.
+It returns a boolean indicating whether a specified module was added successfully (installed if it is needed).
 
-.PARAMETER Modules
- Mandatory array of strings specifying the names of the modules to check and install if necessary.
+.PARAMETER Module
+ Mandatory string specifying the names of the module to check and install if necessary.
 .PARAMETER MinModuleVersion
- Optional parameter to specify the minimum version of the modules (default is null).
+ Optional parameter to specify the minimum version of the module (default is null).
 
 .OUTPUTS
-bool. A boolean indicating whether all specified modules are installed successfully.
+bool. A boolean indicating whether the specified module was added successfully (installed if it is needed).
 
 .EXAMPLE
-$requestModule = Request-Module -Modules "ExchangeOnlineManagement"
+$requestModule = Request-Module -Module "ExchangeOnlineManagement"
 This example checks if the "ExchangeOnlineManagement" module is installed. If it is not found, the script attempts to install it.
 
 .EXAMPLE
-$requestModule = Request-Module -Modules "ExchangeOnlineManagement" -MinModuleVersion $MinModuleVersion
+$requestModule = Request-Module -Module "ExchangeOnlineManagement" -MinModuleVersion $MinModuleVersion
 This example checks if the "ExchangeOnlineManagement" module with a specified minimum version is installed. If it is not found, the script attempts to install it.
 #>
 
