@@ -19,6 +19,7 @@ function Invoke-AnalyzerEngine {
     param(
         [object]$HealthServerObject
     )
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
     $analyzedResults = [PSCustomObject]@{
@@ -34,14 +35,16 @@ function Invoke-AnalyzerEngine {
         DisplayGroupingKey  = (Get-DisplayResultsGroupingKey -Name "BeginningInfo" -DisplayGroupName $false -DisplayOrder 0 -DefaultTabNumber 0)
     }
 
+    <# TODO: Determine if we want to remove.
     if (!$Script:DisplayedScriptVersionAlready) {
         $params = $baseParams + @{
             Name             = "Exchange Health Checker Version"
-            Details          = $BuildVersion
+            Details          = $HealthServerObject.HealthCheckerVersion
             AddHtmlDetailRow = $false
         }
         Add-AnalyzedResultInformation @params
     }
+    #>
 
     $VirtualizationWarning = @"
 Virtual Machine detected.  Certain settings about the host hardware cannot be detected from the virtual machine.  Verify on the VM Host that:
@@ -80,6 +83,6 @@ For further details, please review the virtualization recommendations on Microso
     Invoke-AnalyzerSecuritySettings -AnalyzeResults ([ref]$analyzedResults) -HealthServerObject $HealthServerObject -Order ($order++)
     Invoke-AnalyzerSecurityVulnerability -AnalyzeResults ([ref]$analyzedResults) -HealthServerObject $HealthServerObject -Order ($order++)
     Invoke-AnalyzerIISInformation -AnalyzeResults ([ref]$analyzedResults) -HealthServerObject $HealthServerObject -Order ($order++)
-    Write-Debug("End of Analyzer Engine")
+    Write-Verbose "Calling: $($MyInvocation.MyCommand) took $($stopWatch.Elapsed.TotalSeconds) seconds"
     return $analyzedResults
 }
