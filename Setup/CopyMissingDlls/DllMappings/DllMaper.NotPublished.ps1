@@ -16,6 +16,10 @@ function Get-MatchingObject {
         [object]$IsoChildObject
     )
 
+    if ($null -eq $InstallChildObject.Directory -or $null -eq $IsoChildObject.Directory) {
+        Write-Debug "Null result" -Debug
+    }
+
     return [PSCustomObject]@{
         FileName         = $InstallChildObject.Name
         InstallDirectory = $InstallChildObject.Directory.ToString()
@@ -49,7 +53,7 @@ function Find-BestObject {
         }
     if ($null -ne $foundItem -and
         $foundItem.Count -eq 1) {
-        return $foundItemF
+        return $foundItem
     }
 
     #check the hash of the file against the ISO
