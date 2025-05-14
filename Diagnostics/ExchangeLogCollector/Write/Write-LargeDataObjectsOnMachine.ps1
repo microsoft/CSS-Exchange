@@ -8,8 +8,8 @@
 . $PSScriptRoot\..\RemoteScriptBlock\IO\Compress-Folder.ps1
 . $PSScriptRoot\..\RemoteScriptBlock\IO\Save-DataToFile.ps1
 . $PSScriptRoot\..\..\..\Shared\ErrorMonitorFunctions.ps1
-. $PSScriptRoot\..\..\..\Shared\ScriptBlock\Get-DefaultSBInjectionContext.ps1
-. $PSScriptRoot\..\..\..\Shared\ScriptBlock\RemoteSBLoggingFunctions.ps1
+. $PSScriptRoot\..\..\..\Shared\ScriptBlockFunctions\Get-DefaultSBInjectionContext.ps1
+. $PSScriptRoot\..\..\..\Shared\ScriptBlockFunctions\RemoteSBLoggingFunctions.ps1
 #This function job is to write out the Data that is too large to pass into the main script block
 #This is for mostly Exchange Related objects.
 #To handle this, we export the data locally and copy the data over the correct server.
