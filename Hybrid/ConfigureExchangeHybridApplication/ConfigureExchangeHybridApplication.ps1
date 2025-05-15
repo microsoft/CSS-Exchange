@@ -270,7 +270,7 @@ begin {
     $notes = "Used by Exchange Server as part of the hybrid configuration to enable hybrid features such as Free/Busy, MailTips, and Profile Picture sharing between Exchange Server and Exchange Online."
 
     # Exchange Server logo as this will be added to the Enterprise Application in Entra ID
-    $logo = Get-Content ".\Logos\ExchangeServerLogo.jpg" -AsByteStream -Raw
+    $logo = Get-Content ".\Logos\ExchangeServerLogo.png" -AsByteStream -Raw
     #endregion
 
     # List to store the Exchange servers which are running on an older Exchange Server build
@@ -620,7 +620,7 @@ begin {
             $newEwsAzureApplicationParams = $graphApiBaseParams + @{
                 AzureApplicationName                  = $azureApplicationName
                 AskForConsent                         = $true
-                JpegByteArray                         = $logo
+                PngByteArray                          = $logo
                 Notes                                 = $notes
                 AllowCreationWithoutConsentPermission = $true
             }

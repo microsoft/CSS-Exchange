@@ -5,7 +5,7 @@
 
 <#
     Creates a new Azure Application with a specified Display Name, SignInAudience and when provided, logo.
-    The logo must be a JPEG provided as byte array.
+    The logo must be a PNG provided as byte array.
     signInAudience information: https://learn.microsoft.com/graph/api/resources/application#signinaudience-values
     Create application method: https://learn.microsoft.com/graph/api/application-post-applications
     Upload logo: https://learn.microsoft.com/graph/api/application-update?view=graph-rest-1.0&tabs=http#http-request
@@ -24,7 +24,7 @@ function New-AzureApplication {
 
         $Description = "Added by $($script:MyInvocation.MyCommand.Name)",
 
-        $JpegByteArray,
+        $PngByteArray,
 
         $Notes,
 
@@ -60,19 +60,19 @@ function New-AzureApplication {
             return
         }
 
-        # We check if the binary data starts with the JPEG signature (FFD8)
-        if ($null -ne $JpegByteArray -and
-            ($JpegByteArray -eq 0xFF -and
-            $JpegByteArray -eq 0xD8)) {
+        # We check if the binary data starts with the PNG signature (magic number)
+        if ($null -ne $PngByteArray -and
+            ($PngByteArray.Length -ge 8) -and
+            ([System.BitConverter]::ToString(@(0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A)) -ceq [System.BitConverter]::ToString($PngByteArray[0..7]))) {
             Write-Verbose "Logo was provided and will be uploaded to the Azure Application"
 
             try {
                 $memoryStream = New-Object System.IO.MemoryStream
-                $memoryStream.Write($JpegByteArray, 0, $JpegByteArray.Length)
+                $memoryStream.Write($PngByteArray, 0, $PngByteArray.Length)
                 $memoryStream.Seek(0, [System.IO.SeekOrigin]::Begin) | Out-Null
 
                 $uploadLogoParams = $azureApplicationBasicParams + @{
-                    ContentType        = "image/jpeg"
+                    ContentType        = "image/png"
                     Query              = "applications(appId='{$($newAzureApplicationResponse.Content.appId)}')/logo"
                     Body               = $memoryStream
                     Method             = "PUT"
