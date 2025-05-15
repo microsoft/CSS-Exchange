@@ -28,7 +28,7 @@ function New-EwsAzureApplication {
         [ValidateNotNullOrEmpty()]
         $AzureApplicationName,
 
-        $JpegByteArray,
+        $PngByteArray,
 
         $Notes,
 
@@ -91,9 +91,9 @@ function New-EwsAzureApplication {
             Notes       = $Notes
         }
 
-        if ($null -ne $JpegByteArray) {
-            Write-Verbose "Logo as jpeg byte array was provided"
-            $createNewAzureApplicationParams.Add("JpegByteArray", $JpegByteArray)
+        if ($null -ne $PngByteArray) {
+            Write-Verbose "Logo as png byte array was provided"
+            $createNewAzureApplicationParams.Add("PngByteArray", $PngByteArray)
         }
 
         # Graph API call to create a new Azure Application
