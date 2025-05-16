@@ -45,7 +45,7 @@ process {
     # The Guid of the InternetHeaders namespace.
     $internetHeadersNamespace = "00020386-0000-0000-C000-000000000046"
     # The length of the prefix to check for named properties with the same name.
-    $prefixLength = 10
+    $prefixLength = 5
 
     # Retrieve the named properties.
     $namedProps = Get-MailboxExtendedProperty -Identity $Identity
