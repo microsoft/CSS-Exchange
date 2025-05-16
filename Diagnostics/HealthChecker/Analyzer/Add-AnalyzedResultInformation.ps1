@@ -87,8 +87,6 @@ function Add-AnalyzedResultInformation {
         }
     }
     process {
-        Write-Verbose "Calling $($MyInvocation.MyCommand): $name"
-
         if ($AddDisplayResultsLineInfo) {
             if (!($AnalyzedInformation.DisplayResults.ContainsKey($DisplayGroupingKey))) {
                 Write-Verbose "Adding Display Grouping Key: $($DisplayGroupingKey.Name)"
