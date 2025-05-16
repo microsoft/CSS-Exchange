@@ -242,7 +242,7 @@ function Invoke-AnalyzerKnownBuildIssues {
             CurrentVersion          = $currentVersion
             KnownBuildIssuesToFixes = @((GetKnownIssueBuildInformation "15.2.1544.9" "15.2.1544.11"),
                 (GetKnownIssueBuildInformation "15.2.1258.32" "15.2.1258.34"),
-                (GetKnownIssueBuildInformation "15.1.2507.37", "15.1.2507.39"))
+                (GetKnownIssueBuildInformation "15.1.2507.37" "15.1.2507.39"))
             InformationUrl          = (GetKnownIssueInformation @infoParams)
         }
         TestForKnownBuildIssues @params
