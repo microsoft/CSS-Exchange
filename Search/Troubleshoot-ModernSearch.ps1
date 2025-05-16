@@ -419,7 +419,7 @@ try {
     }
 
     Write-Verbose "Starting Script At: $([DateTime]::Now)"
-    Write-Host "Exchange Troubleshot Modern Search Version $BuildVersion"
+    Write-Host "Exchange Troubleshoot Modern Search Version $BuildVersion"
     Set-ADServerSettings -ViewEntireForest $true
     Main
     Write-Verbose "Finished Script At: $([DateTime]::Now)"
