@@ -32,12 +32,14 @@ function Invoke-RemotePipelineLoggingLocal {
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
         [object[]]$Object
     )
-    process {
+    begin {
         # Store everything into a list so we can just write it to the log once and makes it easier for log review.
         $logToVerbose = New-Object System.Collections.Generic.List[string]
         $logToVerbose.Add("")
         $logToVerbose.Add("")
         $logToVerbose.Add("------------------- Remote Pipeline Logging -------------------------")
+    }
+    process {
         foreach ($instance in $Object) {
             $type = $instance.RemoteLoggingType
 
@@ -50,38 +52,10 @@ function Invoke-RemotePipelineLoggingLocal {
                 $instance
             }
         }
+    }
+    end {
         $logToVerbose.Add("----------------- End Remote Pipeline Logging -----------------------")
         $logToVerbose | Out-String | Write-Verbose
-    }
-}
-
-<#
-    This function is used for when you are in a remote context to still be able to have
-    debug logging within a secondary function that you just called and returning a object from that function.
-    This then prevents all the objects from New-RemoteLoggingPipelineObject to also be stored in your variable.
-#>
-function Invoke-RemotePipelineHandler {
-    [CmdletBinding()]
-    param(
-        [Parameter(ValueFromPipeline = $true)]
-        [object[]]$Object,
-
-        [Parameter(Mandatory = $true)]
-        [ref]$Result
-    )
-    process {
-        $nonLoggingInfo = New-Object System.Collections.Generic.List[object]
-        foreach ($instance in $Object) {
-            $type = $instance.RemoteLoggingType
-
-            if ($type -match "Verbose|Progress|Host") {
-                #place it back onto the pipeline
-                $instance
-            } else {
-                $nonLoggingInfo.Add($instance)
-            }
-        }
-        $Result.Value = $nonLoggingInfo
     }
 }
 

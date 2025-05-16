@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\Get-ExchangeCertificateCustomObject.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 
 function Invoke-AnalyzerSecurityExchangeCertificates {
     [CmdletBinding()]
@@ -16,6 +16,7 @@ function Invoke-AnalyzerSecurityExchangeCertificates {
         [object]$DisplayGroupingKey
     )
 
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $baseParams = @{
@@ -23,13 +24,7 @@ function Invoke-AnalyzerSecurityExchangeCertificates {
         DisplayGroupingKey  = $DisplayGroupingKey
     }
 
-    $customObjectParams = @{
-        InternalTransportCertificate = $exchangeInformation.ExchangeCertificateInformation.InternalCertificate
-        AuthConfig                   = $HealthServerObject.OrganizationInformation.GetAuthConfig
-    }
-
-    $exchangeServerCertificatesObject = $exchangeInformation.ExchangeCertificateInformation.Certificates |
-        Get-ExchangeCertificateCustomObject @customObjectParams
+    $exchangeServerCertificatesObject = $exchangeInformation.ExchangeCertificateInformation.CustomCertificates
 
     foreach ($certificate in $exchangeServerCertificatesObject) {
 
@@ -371,4 +366,5 @@ function Invoke-AnalyzerSecurityExchangeCertificates {
         }
         Add-AnalyzedResultInformation @params
     }
+    Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }
