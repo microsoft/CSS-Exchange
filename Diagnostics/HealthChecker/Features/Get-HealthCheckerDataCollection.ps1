@@ -31,34 +31,6 @@ function Get-HealthCheckerDataCollection {
         [string[]]$ServerNames
     )
     begin {
-
-        function TestComputerName {
-            [CmdletBinding()]
-            [OutputType([bool])]
-            param(
-                [string]$ComputerName
-            )
-            try {
-                Write-Verbose "Testing $ComputerName"
-
-                # If local computer, we should just assume that it should work.
-                if ($ComputerName -eq $env:COMPUTERNAME) {
-                    Write-Verbose "Local computer, returning true"
-                    return $true
-                }
-
-                Invoke-Command -ComputerName $ComputerName -ScriptBlock { Get-Date } -ErrorAction Stop | Out-Null
-                $reg = [Microsoft.Win32.RegistryKey]::OpenRemoteBaseKey("LocalMachine", $ComputerName)
-                $reg.OpenSubKey("SOFTWARE\Microsoft\Windows NT\CurrentVersion") | Out-Null
-                Write-Verbose "Returning true back"
-                return $true
-            } catch {
-                Write-Verbose "Failed to run against $ComputerName"
-                Invoke-CatchActions
-            }
-            return $false
-        }
-
         $exchCmdletRunType = $orgRunType = "QueueJob"
         $getExchangeServerList = @{}
         $Script:defaultOptimizedServerToJobSize = $DevTestingDefaultOptimizedServerToJobSize
@@ -85,25 +57,68 @@ function Get-HealthCheckerDataCollection {
         # Loop through all the server names provided to make sure they are an Exchange server, and to get the FQDN for them.
         if (-not $ForceLegacy) {
             $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
+            $stopWatchGetExchange = New-Object System.Diagnostics.Stopwatch
+            $getExchangeServerListToTestFQDN = @{}
             foreach ($serverName in $ServerNames) {
                 try {
+                    $stopWatchGetExchange.Start()
                     $getExchangeServer = Get-ExchangeServer $serverName -ErrorAction Stop
-                    # test the name to know what we are going to use for the Invoke-Command logic.
-                    $serverKeyName = $getExchangeServer.FQDN
-                    if (-not (TestComputerName $getExchangeServer.FQDN)) {
-                        if (-not (TestComputerName $getExchangeServer.Name)) {
-                            Write-Warning "Unable to connect to server $serverName. Please run locally"
-                            continue
-                        }
-                        $serverKeyName = $getExchangeServer.Name
-                    }
-
-                    $getExchangeServerList.Add($serverKeyName, $getExchangeServer)
+                    $stopWatchGetExchange.Stop()
+                    $getExchangeServerListToTestFQDN.Add($getExchangeServer.FQDN, $getExchangeServer)
                 } catch {
                     Write-Warning "Unable to find server: $serverName"
                     Invoke-CatchActions
                 }
             }
+
+            # Now test out the results.
+            $errorCount = $Error.Count
+            $startTime = [DateTime]::Now
+            [array]$invokeCommandResults = Invoke-Command -ComputerName @($getExchangeServerListToTestFQDN.Keys) -ScriptBlock { Get-Date } -ErrorAction SilentlyContinue |
+                ForEach-Object {
+                    $_ | Add-Member -Name ReturnTime -MemberType NoteProperty -Value ([DateTime]::Now)
+                    $_ | Add-Member -Name ExecuteStartTime -MemberType NoteProperty -Value $startTime
+                    $_
+                }
+            Write-Verbose "Took $(([DateTime]::Now) - $startTime) to execute the Invoke-Command test for FQDN"
+
+            if ($invokeCommandResults.Count -ne $getExchangeServerListToTestFQDN.Count) {
+                Write-Verbose "Not all servers passed the FQDN test, this could be the result of a server being down, unable to connect via FQDN, or Invoke-Command doesn't work."
+                # Remove all the ones from the list that passed
+                foreach ($passed in $invokeCommandResults) {
+                    $getExchangeServerList.Add($passed.PSComputerName, $getExchangeServerListToTestFQDN[$passed.PSComputerName])
+                    $getExchangeServerListToTestFQDN.Remove($passed.PSComputerName)
+                }
+                Write-Verbose "Successfully was able to get the following servers for FQDN: $([string]::Join(", ", @($getExchangeServerList.Keys)))"
+                Write-Verbose "Failed to get from the following servers for FQDN: $([string]::Join(", ", @($getExchangeServerListToTestFQDN.Keys)))"
+                # Now we need to go through what is left to see if we can get to it by server name vs FQDN
+                $startTime = [DateTime]::Now
+                [array]$invokeCommandResults = Invoke-Command -ComputerName @($getExchangeServerListToTestFQDN.Values.Name) -ScriptBlock { Get-Date } -ErrorAction SilentlyContinue |
+                    ForEach-Object {
+                        $_ | Add-Member -Name ReturnTime -MemberType NoteProperty -Value ([DateTime]::Now)
+                        $_ | Add-Member -Name ExecuteStartTime -MemberType NoteProperty -Value $startTime
+                        $_
+                    }
+                Write-Verbose "Took $(([DateTime]::Now) - $startTime) to execute the Invoke-Command test for server name"
+
+                foreach ($passed in $invokeCommandResults) {
+                    $key = $getExchangeServerListToTestFQDN.Values | Where-Object { $_.Name -eq $passed }
+                    $getExchangeServerList.Add($passed.PSComputerName, $getExchangeServerListToTestFQDN[$key.FQDN])
+                    $getExchangeServerListToTestFQDN.Remove($key.FQDN)
+                }
+                Write-Verbose "Successfully was able to get the following servers for server name: $([string]::Join(", ", @($invokeCommandResults.PSComputerName)))"
+                Write-Verbose "Failed to get from the following servers for server name: $([string]::Join(", ", @($getExchangeServerListToTestFQDN.Keys)))"
+
+                if ($getExchangeServerListToTestFQDN.Count -gt 0) {
+                    Write-Warning "Failed to connect to the following servers: $([string]::Join(", ", @($getExchangeServerListToTestFQDN.Keys))). Please run locally."
+                }
+            } else {
+                Write-Verbose "All Servers Passed FQDN test"
+                $getExchangeServerList = $getExchangeServerListToTestFQDN
+            }
+
+            Invoke-ErrorCatchActionLoopFromIndex $errorCount
+            Write-Verbose "Took $($stopWatchGetExchange.Elapsed.TotalSeconds) seconds to just run Get-ExchangeServer."
             Write-Verbose "Took $($stopWatch.Elapsed.TotalSeconds) seconds to get the Exchange Server and determine what names we can use."
         }
 
