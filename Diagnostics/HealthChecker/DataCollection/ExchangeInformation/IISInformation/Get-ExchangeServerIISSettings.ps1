@@ -40,37 +40,34 @@ function Get-ExchangeServerIISSettings {
         $tokenCacheModuleVersionInformation = [System.Diagnostics.FileVersionInfo]::GetVersionInfo("$env:windir\System32\inetsrv\cachtokn.dll")
         # Get the shared web configuration files
         $sharedWebConfigPaths = @($webApplication.ConfigurationFileInfo.LinkedConfigurationFilePath | Select-Object -Unique)
-        $sharedWebConfig = $null
+        $sharedWebConfig = New-Object System.Collections.Generic.List[object]
 
-        if ($sharedWebConfigPaths.Count -gt 0) {
-            $scriptBlock = {
-                param ($ConfigFiles)
-                $ConfigFiles | ForEach-Object {
-                    Write-Verbose "Working on shared config file: $_"
-                    $validWebConfig = $false
-                    $exist = Test-Path $_
-                    $content = $null
-                    try {
-                        if ($exist) {
-                            $content = (Get-Content $_ -Raw -Encoding UTF8).Trim()
-                            [xml]$content | Out-Null # test to make sure it is valid
-                            $validWebConfig = $true
-                        }
-                    } catch {
-                        # Inside of Invoke-Command, can't use Invoke-CatchActions
-                        Write-Verbose "Failed to convert shared web config '$_' to xml. Exception: $($_.Exception)"
-                    }
-
-                    [PSCustomObject]@{
-                        Location = $_
-                        Exist    = $exist
-                        Content  = $content
-                        Valid    = $validWebConfig
-                    }
+        # This is to account for the code now being executed on the server itself now.
+        foreach ($sharedWebConfigPath in $sharedWebConfigPaths) {
+            Write-Verbose "Working on shared config file: $sharedWebConfigPath"
+            $validWebConfig = $false
+            $exist = Test-Path $sharedWebConfigPath
+            $content = $null
+            try {
+                if ($exist) {
+                    $content = (Get-Content $sharedWebConfigPath -Raw -Encoding UTF8).Trim()
+                    [xml]$content | Out-Null # test to make sure it is valid
+                    $validWebConfig = $true
                 }
+            } catch {
+                Write-Verbose "Failed to convert shared web config '$sharedWebConfigPath' to xml. Exception: $($_.Exception)"
+                Invoke-CatchActions
             }
-            $sharedWebConfig = & $scriptBlock $sharedWebConfigPaths
+
+            $sharedWebConfig.Add([PSCustomObject]@{
+                    Location = $sharedWebConfigPath
+                    Exist    = $exist
+                    Content  = $content
+                    Valid    = $validWebConfig
+                })
         }
+
+        if ($sharedWebConfig.Count -eq 0) { $sharedWebConfig = $null }
 
         try {
             Write-Verbose "Trying to query the 'applicationHost.config' file"
