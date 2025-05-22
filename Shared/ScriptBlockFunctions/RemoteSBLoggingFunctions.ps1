@@ -10,7 +10,7 @@ function New-RemoteLoggingPipelineObject {
     [CmdletBinding()]
     param(
         [object]$Object,
-        [ValidateSet("Verbose", "Host", "Progress")]
+        [ValidateSet("Verbose", "Host", "Progress", "Warning")]
         [string]$Type
     )
     process {
@@ -43,7 +43,7 @@ function Invoke-RemotePipelineLoggingLocal {
         foreach ($instance in $Object) {
             $type = $instance.RemoteLoggingType
 
-            if ($type -match "Verbose|Host|Progress") {
+            if ($type -match "Verbose|Host|Progress|Warning") {
                 # Follow the process for logging locally with Write-Verbose for everything.
                 # These values should have been manipulated already.
                 $logToVerbose.Add(($instance.RemoteLoggingValue))
@@ -92,5 +92,17 @@ function New-RemoteProgressPipelineObject {
     )
     process {
         New-RemoteLoggingPipelineObject $Object "Progress"
+    }
+}
+
+function New-RemoteWarningPipelineObject {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'No state change.')]
+    [CmdletBinding()]
+    param(
+        [Parameter(Position = 1)]
+        [string]$Message
+    )
+    process {
+        New-RemoteLoggingPipelineObject $Message "Warning"
     }
 }
