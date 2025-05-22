@@ -3,7 +3,6 @@
 
 . $PSScriptRoot\Get-IISWebApplication.ps1
 . $PSScriptRoot\Get-IISWebSite.ps1
-. $PSScriptRoot\..\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ExchangeWebSitesFromAd.ps1
 . $PSScriptRoot\..\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\..\..\..\Shared\IISFunctions\Get-IISModules.ps1
 . $PSScriptRoot\..\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
@@ -16,23 +15,9 @@ function Get-ExchangeServerIISSettings {
     )
     process {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-
-        try {
-            $exchangeWebSites = $null
-            Get-ExchangeWebSitesFromAd -ComputerName $ComputerName | Invoke-RemotePipelineHandler -Result ([ref]$exchangeWebSites)
-            if ($exchangeWebSites.Count -gt 2) {
-                Write-Verbose "Multiple OWA/ECP virtual directories detected"
-            }
-            Write-Verbose "Exchange websites detected: $([string]::Join(", " ,$exchangeWebSites))"
-        } catch {
-            Write-Verbose "Failed to get the Exchange Web Sites from Ad."
-            $exchangeWebSites = $null
-            Invoke-CatchActions
-        }
-
         $webSite = $null
         $webApplication = $null
-        Get-IISWebSite -WebSitesToProcess $exchangeWebSites | Invoke-RemotePipelineHandler -Result ([ref]$webSite)
+        Get-IISWebSite | Invoke-RemotePipelineHandler -Result ([ref]$webSite)
         Get-IISWebApplication | Invoke-RemotePipelineHandler -Result ([ref]$webApplication)
 
         # Get the TokenCacheModule build information as we need it to perform version testing

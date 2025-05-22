@@ -26,8 +26,6 @@ function Add-JobExchangeInformationLocal {
             ${Function:ValidateSUParameter},
             ${Function:ValidateVersionParameter},
             ${Function:Get-ExchangeBuildVersionInformation},
-            ${Function:Get-ExchangeContainer},
-            ${Function:Get-OrganizationContainer},
             ${Function:Get-RemoteRegistrySubKey},
             ${Function:Get-RemoteRegistryValue},
             ${Function:Test-ExchangeBuildGreaterOrEqualThanSecurityPatch}

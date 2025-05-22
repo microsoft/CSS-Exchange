@@ -51,6 +51,33 @@ function Get-HealthCheckerDataObject {
             $exchangeCustomConnector = Get-ExchangeConnectorCustomObject @customConnectorParams
         }
 
+        # Adjust the IIS information.
+        $iisSettings = $ExchangeLocalResult.IISSettings
+        $webSites = New-Object System.Collections.Generic.List[object]
+        $nonExchangeWebSites = New-Object System.Collections.Generic.List[object]
+
+        $iisSettings.IISWebSite |
+            ForEach-Object {
+                $site = $_
+                $currentCount = $webSites.Count
+                foreach ($name in $ExchangeCmdletResult.ExchangeWebSiteNames) {
+                    if ($name -eq $site.Name) {
+                        $webSites.Add($site)
+                    }
+                }
+
+                if ($currentCount -eq $webSites.Count) {
+                    $nonExchangeWebSites.Add($site)
+                }
+            }
+        if ($webSites.Count -gt 0) {
+            $iisSettings.IISWebSite = $webSites
+            $iisSettings | Add-Member -Name "NonExchangeWebSites" -MemberType NoteProperty -Value $nonExchangeWebSites
+        } else {
+            Write-Verbose "No IIS Web Sites were found that matched the ExchangeWebSiteNames so we are placing all the sites in the main container."
+            $iisSettings.IISWebSite = $nonExchangeWebSites
+        }
+
         $hcObject = [PSCustomObject]@{
             GenerationTime          = $GenerationTime
             HealthCheckerVersion    = $Script:BuildVersion
@@ -85,7 +112,7 @@ function Get-HealthCheckerDataObject {
                 FileContentInformation                   = $ExchangeLocalResult.FileContentInformation
                 FIPFSUpdateIssue                         = $ExchangeLocalResult.FIPFSUpdateIssue
                 IanaTimeZoneMappingsRaw                  = $ExchangeLocalResult.IanaTimeZoneMappingsRaw
-                IISSettings                              = $ExchangeLocalResult.IISSettings
+                IISSettings                              = $iisSettings
                 RegistryValues                           = $ExchangeLocalResult.RegistryValues
                 ExchangeCustomConnector                  = $exchangeCustomConnector
             }
