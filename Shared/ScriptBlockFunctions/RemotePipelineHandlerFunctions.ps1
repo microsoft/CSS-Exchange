@@ -25,7 +25,7 @@ function Invoke-RemotePipelineHandler {
 
             if ($null -ne $type -and
                 $type.GetType().Name -ne "PSMethod" -and
-                $type -match "Verbose|Progress|Host") {
+                $type -match "Verbose|Progress|Host|Warning") {
                 #place it back onto the pipeline
                 $instance
             } else {
@@ -69,7 +69,7 @@ function Invoke-RemotePipelineHandlerList {
 
             if ($null -ne $type -and
                 $type.GetType().Name -ne "PSMethod" -and
-                $type -match "Verbose|Progress|Host") {
+                $type -match "Verbose|Progress|Host|Warning") {
                 #place it back onto the pipeline
                 $instance
             } else {
