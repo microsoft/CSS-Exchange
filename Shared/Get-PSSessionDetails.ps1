@@ -6,14 +6,13 @@ function Get-PSSessionDetails {
     param()
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-    # cSpell:disable
     Write-Verbose "============= PowerShell Information ==========="
     Write-Verbose "Version: $($PSVersionTable.PSVersion)"
 
     try {
         $modulesLoaded = Get-Module -ErrorAction Stop
 
-        Write-Verbose "Module(s) Loaded:"
+        Write-Verbose "Module(s) Currently Loaded:"
         foreach ($m in $modulesLoaded) {
             Write-Verbose "Name: $($m.Name) - Type: $($m.ModuleType)"
         }
@@ -28,7 +27,7 @@ function Get-PSSessionDetails {
         Write-Verbose "Exception: $_"
     }
 
-    Write-Verbose "Language Mode: $($ExecutionContext.SessionState.LanguageMode)"
+    Write-Verbose "PowerShell Language Mode: $($ExecutionContext.SessionState.LanguageMode)"
 
     Write-Verbose "============= User Information ================="
     Write-Verbose "User: $env:USERNAME"
@@ -39,21 +38,36 @@ function Get-PSSessionDetails {
     Write-Verbose "FQDN: $([System.Net.Dns]::GetHostEntry($env:COMPUTERNAME).HostName)"
 
     try {
+        Write-Verbose "============= OS Language Information =========="
         $osLanguageInformation = Get-WinSystemLocale -ErrorAction Stop
-        Write-Verbose "OS Language:"
-        Write-Verbose "Name: $($osLanguageInformation.Name) - Display Name: $($osLanguageInformation.DisplayName) - LCID: $($osLanguageInformation.LCID)"
+        Write-Verbose "Name: $($osLanguageInformation.Name)"
+        Write-Verbose "Display Name: $($osLanguageInformation.DisplayName)"
+        # cSpell:disable-next-line
+        Write-Verbose "LCID: $($osLanguageInformation.LCID)"
     } catch {
         Write-Verbose "Exception: $_"
     }
 
     try {
+        Write-Verbose "============= UI Language Information =========="
+        $uiLanguageInformation = Get-UICulture -ErrorAction Stop
+        Write-Verbose "Name: $($uiLanguageInformation.Name)"
+        Write-Verbose "Display Name: $($uiLanguageInformation.DisplayName)"
+        # cSpell:disable-next-line
+        Write-Verbose "LCID: $($uiLanguageInformation.LCID)"
+    } catch {
+        Write-Verbose "Exception: $_"
+    }
+
+    try {
+        Write-Verbose "============= Time Zone Information ============"
         $timeZoneInformation = Get-TimeZone -ErrorAction Stop
-        Write-Verbose "Time Zone:"
-        Write-Verbose "Id: $($timeZoneInformation.Id) - Display Name: $($timeZoneInformation.DisplayName) - DST supported? $($timeZoneInformation.SupportsDaylightSavingTime)"
+        Write-Verbose "Id: $($timeZoneInformation.Id)"
+        Write-Verbose "Display Name: $($timeZoneInformation.DisplayName)"
+        Write-Verbose "DST Supported? $($timeZoneInformation.SupportsDaylightSavingTime)"
     } catch {
         Write-Verbose "Exception: $_"
     }
 
     Write-Verbose "================================================"
-    # cSpell:enable
 }
