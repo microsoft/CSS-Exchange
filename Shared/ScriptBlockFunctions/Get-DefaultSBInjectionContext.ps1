@@ -3,6 +3,7 @@
 
 . $PSScriptRoot\..\OutputOverrides\Write-Verbose.ps1
 . $PSScriptRoot\..\OutputOverrides\Write-Progress.ps1
+. $PSScriptRoot\..\OutputOverrides\Write-Warning.ps1
 . $PSScriptRoot\Add-ScriptBlockInjection.ps1
 . $PSScriptRoot\RemoteSBLoggingFunctions.ps1
 
@@ -15,6 +16,7 @@
         Write-Verbose
         Write-Progress
         Write-Host
+        Write-Warning
     The reason why these are overridden is to allow the code to be execute by itself and still work correctly.
     So instead of creating a function called Write-VerboseAndLog to Write-Verbose to the screen and log out the information, you can just override Write-Verbose to do this for you.
     The problem comes in when you would like to debug a remote execution in a log to determine a problem. In your overridden functions, you can account for this and have the caller handle this.
@@ -56,10 +58,23 @@ function Get-DefaultSBInjectionContext {
             }
         }
 
+        function Get-DefaultManipulatorWarningMessage {
+            [CmdletBinding()]
+            [OutputType([string])]
+            param(
+                [Parameter(Position = 1, ValueFromPipeline)]
+                [string]$Message
+            )
+            process {
+                return "[$env:COMPUTERNAME] : $Message"
+            }
+        }
+
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        $defaultScriptBlocks = @(${Function:Write-Verbose}, ${Function:Write-Host}, ${Function:Write-Progress},
+        $defaultScriptBlocks = @(${Function:Write-Verbose}, ${Function:Write-Host}, ${Function:Write-Progress}, ${Function:Write-Warning},
             ${Function:New-RemoteLoggingPipelineObject}, ${Function:New-RemoteVerbosePipelineObject}, ${Function:Invoke-RemotePipelineHandler},
-            ${Function:Invoke-RemotePipelineHandlerList}, ${Function:New-RemoteHostPipelineObject}, ${Function:New-RemoteProgressPipelineObject})
+            ${Function:Invoke-RemotePipelineHandlerList}, ${Function:New-RemoteHostPipelineObject}, ${Function:New-RemoteProgressPipelineObject},
+            ${Function:New-RemoteWarningPipelineObject})
         $includeScriptBlockList = New-Object System.Collections.Generic.List[ScriptBlock]
         $includeUsingVariableNameList = New-Object System.Collections.Generic.List[string]
 
@@ -83,6 +98,16 @@ function Get-DefaultSBInjectionContext {
                 SetWriteRemoteProgressAction "New-RemoteProgressPipelineObject"
                 $includeUsingVariableNameList.Add("WriteRemoteProgressDebugAction")
             }
+
+            if ($sb.Ast.Name -eq "Write-Warning") {
+                Write-Verbose "Set and Add WriteRemoteWarningDebugAction/WriteWarningManipulateMessageAction to using list"
+                SetWriteRemoteWarningAction "New-RemoteWarningPipelineObject"
+                SetWriteWarningManipulateMessageAction "Get-DefaultManipulatorWarningMessage"
+                $includeUsingVariableNameList.Add("WriteRemoteWarningDebugAction")
+                $includeUsingVariableNameList.Add("WriteWarningManipulateMessageAction")
+                $includeScriptBlockList.Add(${Function:Get-DefaultManipulatorWarningMessage})
+            }
+
             $includeScriptBlockList.Add($sb)
         }
 
