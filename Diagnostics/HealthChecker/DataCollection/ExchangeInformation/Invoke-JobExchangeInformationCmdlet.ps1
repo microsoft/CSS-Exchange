@@ -11,6 +11,7 @@ function Invoke-JobExchangeInformationCmdlet {
         # Build Process to add functions.
         . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeDiagnosticInformation.ps1
         . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeSettingOverride.ps1
+        . $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ExchangeWebSitesFromAd.ps1
         . $PSScriptRoot\..\..\..\..\Shared\CertificateFunctions\Get-ExchangeServerCertificateInformation.ps1
         . $PSScriptRoot\Get-ExchangeVirtualDirectories.ps1
         . $PSScriptRoot\Get-ExchangeServerMaintenanceState.ps1
@@ -92,6 +93,20 @@ function Invoke-JobExchangeInformationCmdlet {
             }
             Get-ExchangeDiagnosticInformation @params -CatchActionFunction ${Function:Invoke-CatchActions} | Invoke-RemotePipelineHandler -Result ([ref]$edgeTransportResourceThrottling)
             Get-MonitoringOverride -Server $Server | Invoke-RemotePipelineHandler -Result ([ref]$serverMonitoringOverride)
+
+            try {
+                $exchangeWebSites = $null
+                Get-ExchangeWebSitesFromAd -ComputerName $Server | Invoke-RemotePipelineHandler -Result ([ref]$exchangeWebSites)
+
+                if ($exchangeWebSites.Count -gt 2) {
+                    Write-Verbose "Multiple OWA/ECP virtual directories detected"
+                }
+                Write-Verbose "Exchange websites detected: $([string]::Join(", " ,$exchangeWebSites))"
+            } catch {
+                Write-Verbose "Failed to get the Exchange Web Sites from Ad."
+                $exchangeWebSites = $null
+                Invoke-CatchActions
+            }
 
             # TODO: Address issue https://github.com/microsoft/CSS-Exchange/issues/2252
             # AD Module cmdlets don't appear to work in remote context with Invoke-Command, this is why it is now moved outside of the Invoke-ScriptBlockHandler.
@@ -186,6 +201,7 @@ function Invoke-JobExchangeInformationCmdlet {
                 ComputerMembership              = $computerMembership
                 GetServerMonitoringOverride     = $serverMonitoringOverride
                 ExchangeCertificateInformation  = $exchangeCertificateInformation
+                ExchangeWebSiteNames            = $exchangeWebSites
                 RemoteJob                       = $true -eq $PSSenderInfo
                 JobHandledErrors                = $jobHandledErrors
             }
