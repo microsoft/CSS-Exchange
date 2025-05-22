@@ -7,6 +7,7 @@
 	Requires: Exchange Management Shell and administrator rights on the target Exchange
 	server as well as the local machine.
     Major Release History:
+        4/4/2025  - Initial Public Release with Multithreading TODO change date
         4/20/2021  - Initial Public Release on CSS-Exchange.
         11/10/2020 - Initial Public Release of version 3.
         1/18/2017 - Initial Public Release of version 2.
@@ -129,6 +130,14 @@ param(
     [Parameter(Mandatory = $true, ParameterSetName = "VulnerabilityReport", HelpMessage = "Enable to collect data on the entire environment and report only the security vulnerabilities.")]
     [switch]$VulnerabilityReport,
 
+    # TODO: Remove this prior to public release
+    [Parameter(Mandatory = $false)]
+    [ValidateScript( { $_ -ge 2 -and $_ -le 30 })]
+    [string]$DevTestingDefaultOptimizedServerToJobSize = 8,
+
+    [Parameter(Mandatory = $false)]
+    [switch]$ForceLegacy,
+
     [Parameter(Mandatory = $false, ParameterSetName = "HealthChecker", HelpMessage = "Skip over checking for a new updated version of the script.")]
     [Parameter(Mandatory = $false, ParameterSetName = "MailboxReport", HelpMessage = "Skip over checking for a new updated version of the script.")]
     [Parameter(Mandatory = $false, ParameterSetName = "LoadBalancingReport", HelpMessage = "Skip over checking for a new updated version of the script.")]
@@ -147,7 +156,6 @@ param(
 
 begin {
 
-    . $PSScriptRoot\Analyzer\Invoke-AnalyzerEngine.ps1
     . $PSScriptRoot\Helpers\Get-ErrorsThatOccurred.ps1
     . $PSScriptRoot\Helpers\Get-ExportedHealthCheckerFiles.ps1
     . $PSScriptRoot\Helpers\Invoke-ConfirmExchangeShell.ps1
@@ -163,6 +171,7 @@ begin {
 
     . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
     . $PSScriptRoot\..\..\Shared\ErrorMonitorFunctions.ps1
+    . $PSScriptRoot\..\..\Shared\Get-PSSessionDetails.ps1
     . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
     . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Host.ps1
     . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Verbose.ps1
@@ -172,6 +181,7 @@ begin {
     $BuildVersion = ""
 
     $Script:VerboseEnabled = $false
+    $mainStopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     #this is to set the verbose information to a different color
     if ($PSBoundParameters["Verbose"]) {
         #Write verbose output in cyan since we already use yellow for warnings
@@ -188,6 +198,7 @@ begin {
     SetProperForegroundColor
     SetWriteVerboseAction ${Function:Write-DebugLog}
     SetWriteWarningAction ${Function:Write-DebugLog}
+    Get-PSSessionDetails
 } process {
     $Server | ForEach-Object { $Script:ServerNameList.Add($_.ToUpper()) }
 } end {
@@ -321,6 +332,7 @@ begin {
         if ($Script:VerboseEnabled) {
             $Host.PrivateData.VerboseForegroundColor = $VerboseForeground
         }
+        Write-Verbose "The total script time took $($mainStopWatch.Elapsed.TotalSeconds) seconds" -Verbose
         $Script:Logger | Invoke-LoggerInstanceCleanup
         if ($Script:Logger.PreventLogCleanup) {
             Write-Host("Output Debug file written to {0}" -f $Script:Logger.FullPath)
