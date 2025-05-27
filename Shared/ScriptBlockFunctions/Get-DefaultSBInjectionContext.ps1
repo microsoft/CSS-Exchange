@@ -17,6 +17,7 @@
         Write-Progress
         Write-Host
         Write-Warning
+        Write-Error
     The reason why these are overridden is to allow the code to be execute by itself and still work correctly.
     So instead of creating a function called Write-VerboseAndLog to Write-Verbose to the screen and log out the information, you can just override Write-Verbose to do this for you.
     The problem comes in when you would like to debug a remote execution in a log to determine a problem. In your overridden functions, you can account for this and have the caller handle this.
@@ -70,11 +71,23 @@ function Get-DefaultSBInjectionContext {
             }
         }
 
+        function Get-DefaultManipulatorErrorMessage {
+            [CmdletBinding()]
+            [OutputType([string])]
+            param(
+                [Parameter(Position = 1, ValueFromPipeline)]
+                [string]$Message
+            )
+            process {
+                return "[$env:COMPUTERNAME] : $Message"
+            }
+        }
+
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        $defaultScriptBlocks = @(${Function:Write-Verbose}, ${Function:Write-Host}, ${Function:Write-Progress}, ${Function:Write-Warning},
+        $defaultScriptBlocks = @(${Function:Write-Verbose}, ${Function:Write-Host}, ${Function:Write-Progress}, ${Function:Write-Warning}, ${Function:Write-Error},
             ${Function:New-RemoteLoggingPipelineObject}, ${Function:New-RemoteVerbosePipelineObject}, ${Function:Invoke-RemotePipelineHandler},
             ${Function:Invoke-RemotePipelineHandlerList}, ${Function:New-RemoteHostPipelineObject}, ${Function:New-RemoteProgressPipelineObject},
-            ${Function:New-RemoteWarningPipelineObject})
+            ${Function:New-RemoteWarningPipelineObject}, ${Function:New-RemoteErrorPipelineObject})
         $includeScriptBlockList = New-Object System.Collections.Generic.List[ScriptBlock]
         $includeUsingVariableNameList = New-Object System.Collections.Generic.List[string]
 
@@ -106,6 +119,15 @@ function Get-DefaultSBInjectionContext {
                 $includeUsingVariableNameList.Add("WriteRemoteWarningDebugAction")
                 $includeUsingVariableNameList.Add("WriteWarningManipulateMessageAction")
                 $includeScriptBlockList.Add(${Function:Get-DefaultManipulatorWarningMessage})
+            }
+
+            if ($sb.Ast.Name -eq "Write-Error") {
+                Write-Verbose "Set and Add WriteRemoteWarningDebugAction/SetWriteWarningManipulateMessageAction to using list"
+                SetWriteRemoteErrorAction "New-RemoteErrorPipelineObject"
+                SetWriteErrorManipulateMessageAction "Get-DefaultManipulatorErrorMessage"
+                $includeUsingVariableNameList.Add("WriteRemoteErrorDebugAction")
+                $includeUsingVariableNameList.Add("WriteErrorManipulateMessageAction")
+                $includeScriptBlockList.Add(${Function:Get-DefaultManipulatorErrorMessage})
             }
 
             $includeScriptBlockList.Add($sb)

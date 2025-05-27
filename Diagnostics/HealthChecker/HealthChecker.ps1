@@ -172,6 +172,7 @@ begin {
     . $PSScriptRoot\..\..\Shared\ErrorMonitorFunctions.ps1
     . $PSScriptRoot\..\..\Shared\Get-PSSessionDetails.ps1
     . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
+    . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Error.ps1
     . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Host.ps1
     . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Verbose.ps1
     . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Warning.ps1
@@ -197,6 +198,7 @@ begin {
     SetProperForegroundColor
     SetWriteVerboseAction ${Function:Write-DebugLog}
     SetWriteWarningAction ${Function:Write-DebugLog}
+    SetWriteErrorAction ${Function:Write-DebugLog}
     Get-PSSessionDetails
 } process {
     $Server | ForEach-Object { $Script:ServerNameList.Add($_.ToUpper()) }
