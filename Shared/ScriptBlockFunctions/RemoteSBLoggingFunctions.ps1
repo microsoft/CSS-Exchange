@@ -3,14 +3,14 @@
 
 <#
     Collection of functions that handles how to properly add
-    Write-Verbose, Write-Host, Write-Progress to the pipeline as an object for logging, and how to pull them off it.
+    Write-Verbose, Write-Host, Write-Progress, Write-Warning, Write-Error to the pipeline as an object for logging, and how to pull them off it.
 #>
 function New-RemoteLoggingPipelineObject {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'No state change.')]
     [CmdletBinding()]
     param(
         [object]$Object,
-        [ValidateSet("Verbose", "Host", "Progress", "Warning")]
+        [ValidateSet("Verbose", "Host", "Progress", "Warning", "Error")]
         [string]$Type
     )
     process {
@@ -43,7 +43,7 @@ function Invoke-RemotePipelineLoggingLocal {
         foreach ($instance in $Object) {
             $type = $instance.RemoteLoggingType
 
-            if ($type -match "Verbose|Host|Progress|Warning") {
+            if ($type -match "Verbose|Host|Progress|Warning|Error") {
                 # Follow the process for logging locally with Write-Verbose for everything.
                 # These values should have been manipulated already.
                 $logToVerbose.Add(($instance.RemoteLoggingValue))
@@ -104,5 +104,17 @@ function New-RemoteWarningPipelineObject {
     )
     process {
         New-RemoteLoggingPipelineObject $Message "Warning"
+    }
+}
+
+function New-RemoteErrorPipelineObject {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'No state change.')]
+    [CmdletBinding()]
+    param(
+        [Parameter(Position = 1)]
+        [string]$Message
+    )
+    process {
+        New-RemoteLoggingPipelineObject $Message "Error"
     }
 }
