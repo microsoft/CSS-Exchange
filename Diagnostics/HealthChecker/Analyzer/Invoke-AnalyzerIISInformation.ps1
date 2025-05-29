@@ -390,10 +390,10 @@ function Invoke-AnalyzerIISInformation {
     $defaultWebSitePowerShellSslEnabled = $false
     $defaultWebSitePowerShellAuthenticationEnabled = $false
     $iisWebSettings = @($exchangeInformation.IISSettings.IISWebApplication)
-    $iisWebSettings += @($exchangeInformation.IISSettings.IISWebSite)
+    $iisWebSettings += ([array]($exchangeInformation.IISSettings.IISWebSite))
     $iisConfigurationSettings = @($exchangeInformation.IISSettings.IISWebApplication.ConfigurationFileInfo)
-    $iisConfigurationSettings += $iisWebSiteConfigs = @($exchangeInformation.IISSettings.IISWebSite.ConfigurationFileInfo)
-    $iisConfigurationSettings += @($exchangeInformation.IISSettings.IISSharedWebConfig)
+    $iisConfigurationSettings += $iisWebSiteConfigs = ([array]($exchangeInformation.IISSettings.IISWebSite.ConfigurationFileInfo))
+    $iisConfigurationSettings += ([array]($exchangeInformation.IISSettings.IISSharedWebConfig))
     $extendedProtectionConfiguration = $exchangeInformation.ExtendedProtectionConfig.ExtendedProtectionConfiguration
     $displayMainSitesList = @("Default Web Site", "API", "Autodiscover", "ecp", "EWS", "mapi", "Microsoft-Server-ActiveSync", "Proxy", "OAB", "owa",
         "PowerShell", "Rpc", "Exchange Back End", "emsmdb", "nspi", "RpcWithCert")
@@ -556,7 +556,7 @@ function Invoke-AnalyzerIISInformation {
     }
 
     # Missing config file should really only occur for SharedWebConfig files, as the web application would go back to the parent site.
-    $missingSharedConfigFile = @($exchangeInformation.IISSettings.IISSharedWebConfig) | Where-Object { $_.Exist -eq $false }
+    $missingSharedConfigFile = ([array]($exchangeInformation.IISSettings.IISSharedWebConfig)) | Where-Object { $_.Exist -eq $false }
     $missingConfigFiles = $iisWebSettings | Where-Object { $_.ConfigurationFileInfo.Exist -eq $false }
     $defaultVariableDetected = $iisConfigurationSettings | Where-Object { $null -ne ($_.Content | Select-String "%ExchangeInstallDir%") }
     $binSearchFoldersNotFound = $iisConfigurationSettings |
