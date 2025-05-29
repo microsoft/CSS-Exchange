@@ -5,6 +5,7 @@
 . $PSScriptRoot\..\..\..\Shared\JobManagementFunctions\GetJobManagementFunctions.ps1
 . $PSScriptRoot\..\..\..\Shared\JobManagementFunctions\Wait-JobQueue.ps1
 . $PSScriptRoot\..\..\..\Shared\ScriptBlockFunctions\RemoteSBLoggingFunctions.ps1
+. $PSScriptRoot\..\..\..\Shared\ScriptDebugFunctions.ps1
 
 <#
     This function handles how we need to call the Analyzer Engine. If that is done by a job or done on this main session.
@@ -39,6 +40,8 @@ function Invoke-AnalyzerEngineHandler {
             }
             Wait-JobQueue -ProcessReceiveJobAction ${Function:Invoke-RemotePipelineLoggingLocal}
             $getJobQueueResult = Get-JobQueueResult
+            Write-Verbose "Saving out the JobQueue"
+            Add-DebugObject -ObjectKeyName "GetJobQueue-AfterDataCollection" -ObjectValueEntry ((Get-JobQueue).Clone())
             Write-Verbose "All servers to complete analyzed results $($stopWatch.Elapsed.TotalSeconds) seconds"
 
             foreach ($key in $getJobQueueResult.Keys) {
