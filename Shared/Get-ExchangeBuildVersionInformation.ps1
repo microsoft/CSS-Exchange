@@ -128,6 +128,7 @@ function Get-ExchangeBuildVersionInformation {
                     $supportedBuildNumber = $true
                     $latestSUBuild = $true
                 }
+                (GetBuildVersion $ex19 "CU15" -SU "May25HU") { $latestSUBuild = $true }
                 (GetBuildVersion $ex19 "CU15" -SU "Apr25HU") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex19 "CU15") } {
                     $cuLevel = "CU14"
@@ -135,6 +136,7 @@ function Get-ExchangeBuildVersionInformation {
                     $supportedBuildNumber = $true
                     $orgValue = 16762
                 }
+                (GetBuildVersion $ex19 "CU14" -SU "May25HU") { $latestSUBuild = $true }
                 (GetBuildVersion $ex19 "CU14" -SU "Apr25HU") { $latestSUBuild = $true }
                 (GetBuildVersion $ex19 "CU14" -SU "Nov24SUv2") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex19 "CU14") } {
@@ -236,6 +238,7 @@ function Get-ExchangeBuildVersionInformation {
                     $cuReleaseDate = "04/20/2022"
                     $supportedBuildNumber = $true
                 }
+                (GetBuildVersion $ex16 "CU23" -SU "May25HU") { $latestSUBuild = $true }
                 (GetBuildVersion $ex16 "CU23" -SU "Apr25HU") { $latestSUBuild = $true }
                 (GetBuildVersion $ex16 "CU23" -SU "Nov24SUv2") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex16 "CU23") } {
@@ -726,6 +729,7 @@ function GetExchangeBuildDictionary {
                     "Nov24SU"   = "15.1.2507.43"
                     "Nov24SUv2" = "15.1.2507.44"
                     "Apr25HU"   = "15.1.2507.55"
+                    "May25HU"   = "15.1.2507.57"
                 })
         }
         "Exchange2019" = @{
@@ -834,9 +838,11 @@ function GetExchangeBuildDictionary {
                     "Nov24SU"   = "15.2.1544.13"
                     "Nov24SUv2" = "15.2.1544.14"
                     "Apr25HU"   = "15.2.1544.25"
+                    "May25HU"   = "15.2.1544.27"
                 })
             "CU15" = (NewCUAndSUObject "15.2.1748.10" @{
                     "Apr25HU" = "15.2.1748.24"
+                    "May25HU" = "15.2.1748.26"
                 })
         }
     }
