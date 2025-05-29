@@ -2,6 +2,8 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
+
 function Get-ServerOperatingSystemVersion {
     [CmdletBinding()]
     [OutputType("System.Object")]
@@ -13,6 +15,8 @@ function Get-ServerOperatingSystemVersion {
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $osReturnValue = [string]::Empty
+        $osCaption = $null
+        $installationType = $null
         $baseParams = @{
             MachineName         = $ComputerName
             CatchActionFunction = $CatchActionFunction
@@ -32,8 +36,10 @@ function Get-ServerOperatingSystemVersion {
     }
     process {
         Write-Verbose "Getting the version build information for computer: $ComputerName"
-        $osCaption = Get-RemoteRegistryValue @productNameParams
-        $installationType = Get-RemoteRegistryValue @installationTypeParams
+        Get-RemoteRegistryValue @productNameParams |
+            Invoke-RemotePipelineHandler -Result ([ref]$osCaption)
+        Get-RemoteRegistryValue @installationTypeParams |
+            Invoke-RemotePipelineHandler -Result ([ref]$installationType)
         Write-Verbose "OsCaption: '$osCaption' InstallationType: '$installationType'"
 
         switch -Wildcard ($osCaption) {

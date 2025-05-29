@@ -19,6 +19,7 @@ function Invoke-AnalyzerEngine {
     param(
         [object]$HealthServerObject
     )
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
     $analyzedResults = [PSCustomObject]@{
@@ -32,15 +33,6 @@ function Invoke-AnalyzerEngine {
     $baseParams = @{
         AnalyzedInformation = $analyzedResults
         DisplayGroupingKey  = (Get-DisplayResultsGroupingKey -Name "BeginningInfo" -DisplayGroupName $false -DisplayOrder 0 -DefaultTabNumber 0)
-    }
-
-    if (!$Script:DisplayedScriptVersionAlready) {
-        $params = $baseParams + @{
-            Name             = "Exchange Health Checker Version"
-            Details          = $BuildVersion
-            AddHtmlDetailRow = $false
-        }
-        Add-AnalyzedResultInformation @params
     }
 
     $VirtualizationWarning = @"
@@ -80,6 +72,6 @@ For further details, please review the virtualization recommendations on Microso
     Invoke-AnalyzerSecuritySettings -AnalyzeResults ([ref]$analyzedResults) -HealthServerObject $HealthServerObject -Order ($order++)
     Invoke-AnalyzerSecurityVulnerability -AnalyzeResults ([ref]$analyzedResults) -HealthServerObject $HealthServerObject -Order ($order++)
     Invoke-AnalyzerIISInformation -AnalyzeResults ([ref]$analyzedResults) -HealthServerObject $HealthServerObject -Order ($order++)
-    Write-Debug("End of Analyzer Engine")
+    Write-Verbose "Completed $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
     return $analyzedResults
 }

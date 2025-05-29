@@ -3,6 +3,8 @@
 
 . $PSScriptRoot\..\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-SerializedDataSigningState.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
+
 function Invoke-AnalyzerSecuritySerializedDataSigningState {
     [CmdletBinding()]
     param(
@@ -16,13 +18,15 @@ function Invoke-AnalyzerSecuritySerializedDataSigningState {
         [object]$DisplayGroupingKey
     )
 
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $baseParams = @{
         AnalyzedInformation = $AnalyzeResults
         DisplayGroupingKey  = $DisplayGroupingKey
     }
 
-    $getSerializedDataSigningState = Get-SerializedDataSigningState -HealthServerObject $HealthServerObject
+    $getSerializedDataSigningState = $null
+    Get-SerializedDataSigningState -HealthServerObject $HealthServerObject | Invoke-RemotePipelineHandler -Result ([ref]$getSerializedDataSigningState)
     # Because this is tied to public CVEs now, everything must be Red unless configured correctly
     # We must also show it even if not on the correct build of Exchange.
     $serializedDataSigningWriteType = "Red"
@@ -65,4 +69,5 @@ function Invoke-AnalyzerSecuritySerializedDataSigningState {
         }
         Add-AnalyzedResultInformation @params
     }
+    Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }

@@ -15,6 +15,10 @@ function Get-ExchangeConnectorCustomObject {
     process {
         foreach ($currentConnector in $Connector) {
 
+            if (@($currentConnector.PSObject.Properties).Count -eq 0) {
+                continue
+            }
+
             if ($null -ne $currentConnector.Server) {
                 $connectorType = "Receive"
                 $cloudEnabled = -not ([System.String]::IsNullOrEmpty($currentConnector.TlsDomainCapabilities))
