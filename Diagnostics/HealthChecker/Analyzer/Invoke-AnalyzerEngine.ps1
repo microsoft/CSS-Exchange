@@ -61,6 +61,10 @@ For further details, please review the virtualization recommendations on Microso
         Add-AnalyzedResultInformation @params
     }
 
+    if ($env:COMPUTERNAME -eq "VNext-E19B") {
+        throw "Testing failure error"
+    }
+
     # Can't do a Hash Table pass param due to [ref]
     Invoke-AnalyzerExchangeInformation -AnalyzeResults ([ref]$analyzedResults) -HealthServerObject $HealthServerObject -Order ($order++)
     Invoke-AnalyzerOrganizationInformation -AnalyzeResults ([ref]$analyzedResults) -HealthServerObject $HealthServerObject -Order ($order++)
