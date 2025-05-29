@@ -32,11 +32,3 @@ function Add-DebugObject {
         $getDebugObject[$ObjectKeyName].Add($ObjectValueEntry)
     }
 }
-
-<#
-    $MyInvocation.ScriptLineNumber provides the caller's line. Not where it is at being used in the script.
-    That is why this needs to be it's own function.
-#>
-function Get-ScriptDebugLine {
-    $MyInvocation.ScriptLineNumber
-}
