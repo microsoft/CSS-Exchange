@@ -19,12 +19,6 @@
 . $PSScriptRoot\..\..\..\Shared\ScriptBlockFunctions\RemoteSBLoggingFunctions.ps1
 . $PSScriptRoot\..\..\..\Shared\ScriptDebugFunctions.ps1
 
-<#
-    TODO:
-        Write-Progress bar to be included
-        Include Write-Warning in the debug logging
-        Improve logic for determining what name to use FQDN or name.
-#>
 function Get-HealthCheckerDataCollection {
     [CmdletBinding()]
     param(
@@ -53,6 +47,13 @@ function Get-HealthCheckerDataCollection {
             Write-Verbose "Force Legacy has been applied."
             $orgRunType = $exchCmdletRunType = "CurrentSession"
         }
+
+        $progressDataCollectionParams = @{
+            Activity = "Setting up jobs to queue for data collection"
+            ParentId = 0
+            Id       = 1
+            Status   = [string]::Empty
+        }
     }
     process {
         # Loop through all the server names provided to make sure they are an Exchange server, and to get the FQDN for them.
@@ -60,8 +61,12 @@ function Get-HealthCheckerDataCollection {
             $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
             $stopWatchGetExchange = New-Object System.Diagnostics.Stopwatch
             $getExchangeServerListToTestFQDN = @{}
+            $getExchServerCount = 1
             foreach ($serverName in $ServerNames) {
                 try {
+                    $progressDataCollectionParams.Status = "Running Get-ExchangeServer for passed server names $getExchServerCount / $($ServerNames.Count)"
+                    $getExchServerCount++
+                    Write-Progress @progressDataCollectionParams
                     $stopWatchGetExchange.Start()
                     $getExchangeServer = Get-ExchangeServer $serverName -ErrorAction Stop
                     $stopWatchGetExchange.Stop()
@@ -74,6 +79,8 @@ function Get-HealthCheckerDataCollection {
 
             # Now test out the results.
             $errorCount = $Error.Count
+            $progressDataCollectionParams.Status = "Verifying Invoke-Command works against the servers for FQDN"
+            Write-Progress @progressDataCollectionParams
             $startTime = [DateTime]::Now
             [array]$invokeCommandResults = Invoke-Command -ComputerName @($getExchangeServerListToTestFQDN.Keys) -ScriptBlock { Get-Date } -ErrorAction SilentlyContinue |
                 ForEach-Object {
@@ -93,6 +100,8 @@ function Get-HealthCheckerDataCollection {
                 Write-Verbose "Successfully was able to get the following servers for FQDN: $([string]::Join(", ", @($getExchangeServerList.Keys)))"
                 Write-Verbose "Failed to get from the following servers for FQDN: $([string]::Join(", ", @($getExchangeServerListToTestFQDN.Keys)))"
                 # Now we need to go through what is left to see if we can get to it by server name vs FQDN
+                $progressDataCollectionParams.Status = "$($getExchangeServerListToTestFQDN.Count) failed to be reached by FQDN testing out Name instead"
+                Write-Progress @progressDataCollectionParams
                 $startTime = [DateTime]::Now
                 [array]$invokeCommandResults = Invoke-Command -ComputerName @($getExchangeServerListToTestFQDN.Values.Name) -ScriptBlock { Get-Date } -ErrorAction SilentlyContinue |
                     ForEach-Object {
@@ -145,22 +154,37 @@ function Get-HealthCheckerDataCollection {
 
             $jobResults = @{}
             $exchCmdletJobResults = @{}
+            $progressDataCollectionParams.Activity = "Legacy Data Collection Locally Only"
+            $progressDataCollectionParams.Status = "Getting Organization Information"
+            Write-Progress @progressDataCollectionParams
             $orgCmdletJobResults = Invoke-JobOrganizationInformation
+            $progressDataCollectionParams.Status = "Getting Exchange Cmdlet Information"
+            Write-Progress @progressDataCollectionParams
             $exchCmdletValue = Invoke-JobExchangeInformationCmdlet -ServerName $getExchangeServer.Name
             $exchCmdletJobResults.Add("$exchCmdletKey-$($getExchangeServer.Name)", $exchCmdletValue)
+            $progressDataCollectionParams.Status = "Getting Hardware Information"
+            Write-Progress @progressDataCollectionParams
             $hardwareValue = Invoke-JobHardwareInformation
             $jobResults.Add("$hardwareKey-$($getExchangeServer.Name)", $hardwareValue)
+            $progressDataCollectionParams.Status = "Getting Operating System Information"
+            Write-Progress @progressDataCollectionParams
             $osValue = Invoke-JobOperatingSystemInformation
             $jobResults.Add("$osKey-$($getExchangeServer.Name)", $osValue)
+            $progressDataCollectionParams.Status = "Getting Exchange Local Information"
+            Write-Progress @progressDataCollectionParams
             $exchLocalValue = Invoke-JobExchangeInformationLocal -GetExchangeServer $getExchangeServer
             $jobResults.Add("$exchLocalKey-$($getExchangeServer.Name)", $exchLocalValue)
         } else {
             # Add all the jobs to the queue that we need.
             if ($orgRunType -eq "QueueJob") {
+                $progressDataCollectionParams.Status = "Adding Job Organization Information to Queue"
+                Write-Progress @progressDataCollectionParams
                 Add-JobOrganizationInformation
             }
 
             foreach ($serverName in $getExchangeServerList.Keys) {
+                $progressDataCollectionParams.Status = "Adding Local Server Data Collection Jobs for $serverName"
+                Write-Progress @progressDataCollectionParams
                 Add-JobHardwareInformation -ComputerName $serverName
                 Add-JobOperatingSystemInformation -ComputerName $serverName
                 Add-JobExchangeInformationLocal -ComputerName $serverName -GetExchangeServer ($getExchangeServerList[$serverName])
@@ -169,14 +193,20 @@ function Get-HealthCheckerDataCollection {
             if ($exchCmdletRunType -eq "CurrentSession") {
                 $exchCmdletJobResults = @{}
                 foreach ($serverName in $getExchangeServerList.Keys) {
+                    $progressDataCollectionParams.Status = "Getting Exchange Cmdlet Information in current PowerShell session for Server $serverName"
+                    Write-Progress @progressDataCollectionParams
                     $data = Invoke-JobExchangeInformationCmdlet -ServerName $serverName
                     $exchCmdletJobResults.Add("$exchCmdletKey-$serverName", $data)
                 }
             } else {
+                $progressDataCollectionParams.Status = "Adding Jobs for all the Exchange Server Cmdlet information to the queue"
+                Write-Progress @progressDataCollectionParams
                 $getExchangeServerList.Keys | Add-JobExchangeInformationCmdlet -JobKeyMatchingToServer ([ref]$exchCmdletServerJobData)
             }
 
             if ($orgRunType -eq "CurrentSession") {
+                $progressDataCollectionParams.Status = "Collecting Organization Information in current PowerShell session"
+                Write-Progress @progressDataCollectionParams
                 $orgCmdletJobResults = Invoke-JobOrganizationInformation
             }
 
@@ -193,8 +223,12 @@ function Get-HealthCheckerDataCollection {
 
         $healthCheckerData = New-Object System.Collections.Generic.List[object]
         $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
+        $createObjectCounter = 1
 
         foreach ($serverName in $getExchangeServerList.Keys) {
+            $progressDataCollectionParams.Status = "Organizing Data Structures for Servers. $createObjectCounter / $($getExchangeServerList.Count)"
+            $createObjectCounter++
+            Write-Progress @progressDataCollectionParams
 
             if ($orgRunType -eq "CurrentSession" -or $null -ne $orgCmdletJobResults) {
                 if ($null -eq $orgCmdletJobResults) {
@@ -230,6 +264,7 @@ function Get-HealthCheckerDataCollection {
             $healthCheckerData.Add($dataObject)
         }
         Write-Verbose "Took $($stopWatch.Elapsed.TotalSeconds) seconds to create the Health Checker object list"
+        Write-Progress @progressDataCollectionParams -Completed
         return $healthCheckerData
     }
 }
