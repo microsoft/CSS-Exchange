@@ -109,8 +109,6 @@ function Invoke-JobExchangeInformationCmdlet {
                 Invoke-CatchActions
             }
 
-            # TODO: Address issue https://github.com/microsoft/CSS-Exchange/issues/2252
-            # AD Module cmdlets don't appear to work in remote context with Invoke-Command, this is why it is now moved outside of the Invoke-ScriptBlockHandler.
             try {
                 Write-Verbose "Trying to find the computer membership"
                 [string]$adSiteRaw = $getExchangeServer.Site
@@ -121,75 +119,33 @@ function Invoke-JobExchangeInformationCmdlet {
                 Write-Verbose "Got GC: $globalCatalog"
                 $DomainDN = "DC=$($getExchangeServer.OrganizationalUnit.Split("/")[0].Replace(".",",DC="))"
                 Write-Verbose "Determined DomainDN to be: $DomainDN"
-                $searcher = New-Object System.DirectoryServices.DirectorySearcher
-                $searcher.SearchRoot = "GC://$globalCatalog/$DomainDN"
-                $searcher.Filter = "(&(objectCategory=computer)(objectClass=computer)(cn=$($getExchangeServer.Name)))"
-                [string]$computerDN = $searcher.FindOne().Properties["DistinguishedName"][0]
-                Write-Verbose "Found Computer DN to be: $computerDN"
+                $directoryEntry = [ADSI]("GC://$globalCatalog/$DomainDN")
+                $searchFilter = "(&(objectCategory=computer)(objectClass=computer)(cn=$($getExchangeServer.Name)))"
+                $properties = @("distinguishedName", "memberOf", "whenCreated", "whenChanged", "objectGUID", "objectSid", "servicePrincipalName", "msExchRMSComputerAccountsBL")
+                $searcher = New-Object System.DirectoryServices.DirectorySearcher($directoryEntry, $searchFilter, $properties)
+                $searchResults = $searcher.FindOne()
+                $adPrincipalGroupMembership = New-Object System.Collections.Generic.List[object]
 
-                $adComputer = (Get-ADComputer ($Server.Split(".")[0]) -ErrorAction Stop -Properties MemberOf)
-                $computerDN = $adComputer.DistinguishedName
-                Write-Verbose "Computer DN: $computerDN"
-                $params = @{
-                    Identity    = $computerDN
-                    ErrorAction = "Stop"
-                }
-                try {
-                    $serverId = ([ADSI]("GC://$([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Name)/RootDSE")).dnsHostName.ToString()
-                    Write-Verbose "Adding ServerId '$serverId' to the Get-AD* cmdlets"
-                    $params["Server"] = $serverId
-                } catch {
-                    Write-Verbose "Failed to find the root DSE. Inner Exception: $_"
-                    Invoke-CatchActions
-                }
-                $adPrincipalGroupMembership = (Get-ADPrincipalGroupMembership @params)
-            } catch [System.Management.Automation.CommandNotFoundException] {
-                if ($_.TargetObject -eq "Get-ADComputer") {
-                    $adPrincipalGroupMembership = "NoAdModule"
-                    Invoke-CatchActions
-                } else {
-                    # If this occurs, do not run Invoke-CatchActions to let us know what is wrong here.
-                    Write-Verbose "CommandNotFoundException thrown, but not for Get-ADComputer. Inner Exception: $_"
-                }
-            } catch {
-                Write-Verbose "Failed to get the AD Principal Group Membership. Inner Exception: $_"
-                Invoke-CatchActions
-                if ($null -eq $adComputer -or
-                    $null -eq $adComputer.MemberOf -or
-                    $adComputer.MemberOf.Count -eq 0) {
-                    Write-Verbose "Failed to get the ADComputer information to be able to find the MemberOf with Get-ADObject"
-                } else {
-                    $adPrincipalGroupMembership = New-Object System.Collections.Generic.List[object]
-                    foreach ($memberDN in $adComputer.MemberOf) {
-                        try {
-                            $params = @{
-                                Filter      = "distinguishedName -eq `"$memberDN`""
-                                Properties  = "objectSid"
-                                ErrorAction = "Stop"
-                            }
-
-                            if (-not([string]::IsNullOrEmpty($serverId))) {
-                                $params["Server"] = "$($serverId):3268" # Needs to be a GC port incase we are looking for a group outside of this domain.
-                            }
-                            $adObject = Get-ADObject @params
-
-                            if ($null -eq $adObject) {
-                                Write-Verbose "Failed to find AD Object with filter '$($params.Filter)' on server '$($params.Server)'"
-                                continue
-                            }
-
-                            $adPrincipalGroupMembership.Add([PSCustomObject]@{
-                                    Name              = $adObject.Name
-                                    DistinguishedName = $adObject.DistinguishedName
-                                    ObjectGuid        = $adObject.ObjectGuid
-                                    SID               = $adObject.objectSid
-                                })
-                        } catch {
-                            # Currently do not add Invoke-CatchActions as we want to be aware if this doesn't fix some things.
-                            Write-Verbose "Failed to run Get-ADObject against '$memberDN'. Inner Exception: $_"
-                        }
+                if ($null -ne $searchResults) {
+                    foreach ($dnEntry in $searchResults.Properties["memberOf"]) {
+                        $adEntry = [ADSI]"LDAP://$dnEntry"
+                        $properties = @("distinguishedName", "name", "objectSid", "objectGUID")
+                        $searcher = New-Object System.DirectoryServices.DirectorySearcher($adEntry, "(objectClass=*)", $properties)
+                        $searchResults = $searcher.FindOne()
+                        $objectSidBytes = $searchResults.Properties["objectSid"][0]
+                        $objectSid = New-Object System.Security.Principal.SecurityIdentifier($objectSidBytes, 0)
+                        $objectGuid = [System.Guid]::New($($searchResults.Properties["objectGUID"])).Guid
+                        $adPrincipalGroupMembership.Add(([PSCustomObject]@{
+                                    Name              = $searchResults.Properties["name"]
+                                    DistinguishedName = $searchResults.Properties["distinguishedName"]
+                                    ObjectGuid        = $objectGuid
+                                    SID               = $objectSid
+                                }))
                     }
                 }
+            } catch {
+                Write-Verbose "Ran into issue trying to get computer membership information"
+                Invoke-CatchActions
             }
             $computerMembership = [PSCustomObject]@{
                 ADGroupMembership = $adPrincipalGroupMembership
