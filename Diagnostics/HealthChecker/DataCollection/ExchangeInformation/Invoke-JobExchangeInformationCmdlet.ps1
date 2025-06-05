@@ -12,6 +12,7 @@ function Invoke-JobExchangeInformationCmdlet {
         . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeDiagnosticInformation.ps1
         . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeSettingOverride.ps1
         . $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ExchangeWebSitesFromAd.ps1
+        . $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-GlobalCatalogServer.ps1
         . $PSScriptRoot\..\..\..\..\Shared\CertificateFunctions\Get-ExchangeServerCertificateInformation.ps1
         . $PSScriptRoot\Get-ExchangeVirtualDirectories.ps1
         . $PSScriptRoot\Get-ExchangeServerMaintenanceState.ps1
@@ -111,7 +112,21 @@ function Invoke-JobExchangeInformationCmdlet {
             # TODO: Address issue https://github.com/microsoft/CSS-Exchange/issues/2252
             # AD Module cmdlets don't appear to work in remote context with Invoke-Command, this is why it is now moved outside of the Invoke-ScriptBlockHandler.
             try {
-                Write-Verbose "Trying to get the computer DN"
+                Write-Verbose "Trying to find the computer membership"
+                [string]$adSiteRaw = $getExchangeServer.Site
+                $adSite = $adSiteRaw.Substring($adSiteRaw.IndexOf("/Sites/") + 7)
+                Write-Verbose "Found the Computer Site: $adSite"
+                $globalCatalog = $null
+                Get-GlobalCatalogServer -SiteName $adSite | Invoke-RemotePipelineHandler -Result ([ref]$globalCatalog)
+                Write-Verbose "Got GC: $globalCatalog"
+                $DomainDN = "DC=$($getExchangeServer.OrganizationalUnit.Split("/")[0].Replace(".",",DC="))"
+                Write-Verbose "Determined DomainDN to be: $DomainDN"
+                $searcher = New-Object System.DirectoryServices.DirectorySearcher
+                $searcher.SearchRoot = "GC://$globalCatalog/$DomainDN"
+                $searcher.Filter = "(&(objectCategory=computer)(objectClass=computer)(cn=$($getExchangeServer.Name)))"
+                [string]$computerDN = $searcher.FindOne().Properties["DistinguishedName"][0]
+                Write-Verbose "Found Computer DN to be: $computerDN"
+
                 $adComputer = (Get-ADComputer ($Server.Split(".")[0]) -ErrorAction Stop -Properties MemberOf)
                 $computerDN = $adComputer.DistinguishedName
                 Write-Verbose "Computer DN: $computerDN"
