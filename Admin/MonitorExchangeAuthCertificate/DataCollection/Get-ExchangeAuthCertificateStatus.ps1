@@ -8,7 +8,11 @@ function Get-ExchangeAuthCertificateStatus {
     [OutputType([System.Object])]
     param(
         [bool]$IgnoreUnreachableServers = $false,
+
         [bool]$IgnoreHybridSetup = $false,
+
+        [bool]$EnforceNewNextAuthCertificateCreation = $false,
+
         [ScriptBlock]$CatchActionFunction
     )
 
@@ -158,13 +162,15 @@ function Get-ExchangeAuthCertificateStatus {
                     ($nextAuthCertificateValidInDays -lt 0)) {
                     # Scenario 1: Current Auth Certificate has expired and no next Auth Certificate defined or the next Auth Certificate has expired
                     $replaceRequired = $true
-                } elseif ((($currentAuthCertificateValidInDays -ge 0) -and
+                } elseif (((($currentAuthCertificateValidInDays -ge 0) -and
                         ($currentAuthCertificateValidInDays -le 60)) -and
                     (($nextAuthCertificateValidInDays -le 0) -or
                     ($nextAuthCertificateValidInDays -le 120)) -and
                     ($currentAuthCertificateMissingOnServersList.Count -eq 0) -and
-                    ($nextAuthCertificateMissingOnServersList.Count -eq 0)) {
+                    ($nextAuthCertificateMissingOnServersList.Count -eq 0)) -or
+                    $EnforceNewNextAuthCertificateCreation) {
                     # Scenario 2: Current Auth Certificate is valid but no next Auth Certificate defined or next Auth Certificate will expire in < 120 days
+                    # or EnforceNewNextAuthCertificateCreation was explicitly set to true
                     $configureNextAuthRequired = $true
                 } elseif (($currentAuthCertificateValidInDays -le 0) -and
                     ($nextAuthCertificateValidInDays -ge 0)) {
@@ -186,7 +192,7 @@ function Get-ExchangeAuthCertificateStatus {
 
                 Write-Verbose ("Replace of the primary Auth Certificate required? $($replaceRequired)")
                 Write-Verbose ("Import of the primary Auth Certificate required? $($importCurrentAuthCertificateRequired)")
-                Write-Verbose ("Replace of the next Auth Certificate required? $($configureNextAuthRequired)")
+                Write-Verbose ("Replace of the next Auth Certificate required or explicitly desired? $($configureNextAuthRequired)")
                 Write-Verbose ("Import of the next Auth Certificate required? $($importNextAuthCertificateRequired)")
                 Write-Verbose ("Hybrid Configuration detected? $($null -ne $hybridConfiguration)")
                 Write-Verbose ("Stop processing due to hybrid? $($stopProcessingDueToHybrid)")
