@@ -98,6 +98,7 @@ function CheckIdentities {
     Write-Host "Preparing to check $($Identity.count) Mailbox(es)..."
 
     foreach ($Id in $Identity) {
+        [bool]$script:CalLogsDisabled = $false
         $Account = GetMailbox -Identity $Id -UseGetMailbox $true
         if ($null -eq $Account) {
             # -or $script:MB.GetType().FullName -ne "Microsoft.Exchange.Data.Directory.Management.Mailbox") {
@@ -117,8 +118,9 @@ function CheckIdentities {
                 $script:MB = $Account
             }
         }
+        # Need to resest between users!!!
         if ($Account.CalendarVersionStoreDisabled -eq $true) {
-            [bool]$script:CalLogsDisabled = $true
+            $script:CalLogsDisabled = $true
             Write-Host -ForegroundColor DarkRed "Mailbox [$Id] has CalendarVersionStoreDisabled set to True.  This mailbox will not have Calendar Logs."
             Write-Host -ForegroundColor DarkRed "Some logs will be available for Mailbox [$Id] but they will not be complete."
         }
