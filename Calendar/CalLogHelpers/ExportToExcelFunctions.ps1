@@ -109,44 +109,44 @@ function GetExcelParams($path, $tabName) {
 }
 
 $ColumnMap = @{
-    LogTimestamp            = "A"
-    LogRowType              = "B"
-    SubjectProperty         = "C"
-    Client                  = "D"
-    LogClientInfoString     = "E"
-    TriggerAction           = "F"
-    ItemClass               = "G"
-    SeqExpItemVersion       = "H"
-    Organizer               = "I"
-    From                    = "J"
-    FreeBusyStatus          = "K"
-    ResponsibleUser         = "L"
-    Sender                  = "M"
-    LogFolder               = "N"
-    OriginalLogFolder       = "O"
-    SharedFolderName        = "P"
-    ReceivedRepresenting    = "Q"
-    MeetingRequestType      = "R"
-    StartTime               = "S"
-    EndTime                 = "T"
-    OriginalStartDate       = "U"
-    Location                = "V"
-    CalendarItemType        = "W"
-    RecurrencePattern       = "X"
-    AppointmentAuxiliaryFlags = "Y"
-    DisplayAttendeesAll     = "Z"
-    AttendeeCount           = "AA"
-    AppointmentState        = "AB"
-    ResponseType            = "AC"
-    ClientIntent            = "AD"
-    AppointmentRecurring    = "AE"
-    HasAttachment           = "AF"
-    IsCancelled             = "AG"
-    IsAllDayEvent           = "AH"
-    IsSeriesCancelled       = "AI"
+    LogTimestamp                   = "A"
+    LogRowType                     = "B"
+    SubjectProperty                = "C"
+    Client                         = "D"
+    LogClientInfoString            = "E"
+    TriggerAction                  = "F"
+    ItemClass                      = "G"
+    SeqExpItemVersion              = "H"
+    Organizer                      = "I"
+    From                           = "J"
+    FreeBusyStatus                 = "K"
+    ResponsibleUser                = "L"
+    Sender                         = "M"
+    LogFolder                      = "N"
+    OriginalLogFolder              = "O"
+    SharedFolderName               = "P"
+    ReceivedRepresenting           = "Q"
+    MeetingRequestType             = "R"
+    StartTime                      = "S"
+    EndTime                        = "T"
+    OriginalStartDate              = "U"
+    Location                       = "V"
+    CalendarItemType               = "W"
+    RecurrencePattern              = "X"
+    AppointmentAuxiliaryFlags      = "Y"
+    DisplayAttendeesAll            = "Z"
+    AttendeeCount                  = "AA"
+    AppointmentState               = "AB"
+    ResponseType                   = "AC"
+    ClientIntent                   = "AD"
+    AppointmentRecurring           = "AE"
+    HasAttachment                  = "AF"
+    IsCancelled                    = "AG"
+    IsAllDayEvent                  = "AH"
+    IsSeriesCancelled              = "AI"
     SendMeetingMessagesDiagnostics = "AJ"
-    AttendeeCollection      = "AK"
-    CalendarLogRequestId    = "AL"
+    AttendeeCollection             = "AK"
+    CalendarLogRequestId           = "AL"
 }
 
 function GetExcelColumnNumber {
@@ -174,7 +174,7 @@ function Get-ColumnRange {
 
     # if ($null -eq $col) { throw "Unknown property: $PropertyName" }
     if ($StartRow -and $EndRow) {
-      #  Write-Host -ForegroundColor DarkGray "Getting column range for $PropertyName : $col, StartRow: $StartRow, EndRow: $EndRow"
+        #  Write-Host -ForegroundColor DarkGray "Getting column range for $PropertyName : $col, StartRow: $StartRow, EndRow: $EndRow"
         return $col + $StartRow + ":" + $col + $EndRow
     } else {
         return $col + ":" + $col
@@ -195,7 +195,6 @@ $ConditionalFormatting = @(
     New-ConditionalText "ResourceBookingAssistant" -ConditionalTextColor Blue -BackgroundColor $null
     New-ConditionalText "Calendar Replication" -ConditionalTextColor Blue -BackgroundColor $null
 
-    Write-Host -ForegroundColor DarkGreen "Adding Conditional Formatting for :: ConditionalFormatting"
     New-ConditionalText -Range (Get-ColumnRange -PropertyName 'LogRowType') -ConditionalType ContainsText -Text "Interesting" -ConditionalTextColor Green -BackgroundColor $null
     New-ConditionalText -Range (Get-ColumnRange -PropertyName 'LogRowType') -ConditionalType ContainsText -Text "SeriesException" -ConditionalTextColor Green -BackgroundColor $null
     New-ConditionalText -Range (Get-ColumnRange -PropertyName 'LogRowType') -ConditionalType ContainsText -Text "DeletedSeriesException" -ConditionalTextColor Orange -BackgroundColor $null
@@ -212,12 +211,12 @@ $ConditionalFormatting = @(
     New-ConditionalText -Range (Get-ColumnRange -PropertyName 'ItemClass') -ConditionalType ContainsText -Text ".Resp." -ConditionalTextColor Orange -BackgroundColor $null
     New-ConditionalText -Range (Get-ColumnRange -PropertyName 'ItemClass') -ConditionalType ContainsText -Text "IPM.OLE.CLASS" -ConditionalTextColor Plum -BackgroundColor $null
 
-    New-ConditionalText -Range (Get-ColumnRange -PropertyName 'FreeBusyStatus' -StartRow 3 -EndRow 1000) -ConditionalType ContainsText -Text "Free" -ConditionalTextColor Red -BackgroundColor $null
-    New-ConditionalText -Range (Get-ColumnRange -PropertyName 'FreeBusyStatus' -StartRow 3 -EndRow 1000) -ConditionalType ContainsText -Text "Tentative" -ConditionalTextColor Orange -BackgroundColor $null
-    New-ConditionalText -Range (Get-ColumnRange -PropertyName 'FreeBusyStatus' -StartRow 3 -EndRow 1000) -ConditionalType ContainsText -Text "Busy" -ConditionalTextColor Green -BackgroundColor $null
+    New-ConditionalText -Range (Get-ColumnRange -PropertyName 'FreeBusyStatus') -ConditionalType ContainsText -Text "Free" -ConditionalTextColor Red -BackgroundColor $null
+    New-ConditionalText -Range (Get-ColumnRange -PropertyName 'FreeBusyStatus') -ConditionalType ContainsText -Text "Tentative" -ConditionalTextColor Orange -BackgroundColor $null
+    New-ConditionalText -Range (Get-ColumnRange -PropertyName 'FreeBusyStatus') -ConditionalType ContainsText -Text "Busy" -ConditionalTextColor Green -BackgroundColor $null
 
-    New-ConditionalText -Range (Get-ColumnRange -PropertyName 'SharedFolderName' -StartRow 3 -EndRow 1000) -ConditionalType Equal -Text "Not Shared" -ConditionalTextColor Blue -BackgroundColor $null
-    New-ConditionalText -Range (Get-ColumnRange -PropertyName 'SharedFolderName' -StartRow 3 -EndRow 1000) -ConditionalType NotContainsText -Text "Not Shared" -ConditionalTextColor Black -BackgroundColor Tan
+    New-ConditionalText -Range (Get-ColumnRange -PropertyName 'SharedFolderName') -ConditionalType Equal -Text "Not Shared" -ConditionalTextColor Blue -BackgroundColor $null
+    New-ConditionalText -Range (Get-ColumnRange -PropertyName 'SharedFolderName') -ConditionalType NotContainsText -Text "Not Shared" -ConditionalTextColor Black -BackgroundColor Tan
 
     New-ConditionalText -Range (Get-ColumnRange -PropertyName 'MeetingRequestType') -ConditionalType ContainsText -Text "Outdated" -ConditionalTextColor DarkRed -BackgroundColor LightPink
 
@@ -237,7 +236,7 @@ function CheckRows {
 
     # Highlight the Resp in LightGoldenRodYellow
     CheckColumnForText -sheet $sheet -columnNumber $(GetExcelColumnNumber($ColumnMap.ItemClass)) -textToFind "Resp" -cellcolor "LightGoldenRodYellow" -fontColor "Black"
-    
+
     # Highlight the RUM in Red
     CheckColumnForText -sheet $sheet -columnNumber $(GetExcelColumnNumber($ColumnMap.AppointmentAuxiliaryFlags)) -textToFind "RepairUpdateMessage" -cellcolor "White" -fontColor "DarkRed"
 
@@ -262,19 +261,15 @@ function CheckColumnForText {
         [string] $cellcolor = "Yellow",
         [string] $fontColor = "DarkRed"
     )
-    
-    Write-Host -ForegroundColor Green "Checking column $columnNumber for text '$textToFind'..."
+
+    Write-Verbose "Checking column $columnNumber for text '$textToFind'..."
     for ($row = 3; $row -le $sheet.Dimension.End.Row; $row++) {
         $cellValue = $sheet.Cells[$row, $columnNumber].Text
-        # Write-Host -ForegroundColor DarkBlue "Checking row $row, column $columnNumber : $cellValue"        
 
         if ($cellValue -like "*$textToFind*") {
-        #   Write-Host -ForegroundColor Yellow "Found '$textToFind' in row $row, column $columnNumber"
             HighliteRow -sheet $sheet -rowNumber $row -cellcolor $cellcolor -fontColor $fontColor
         }
     }
-    # Write-Host -ForegroundColor Cyan "Highliting rows with '$textToFind' completed."
-
 }
 
 # Checks if two columns in the same row match specified values and highlights the row if both match.
@@ -289,18 +284,15 @@ function CheckColumnsForValues {
         [string] $fontColor = "DarkRed"
     )
 
-    Write-Host -ForegroundColor Green "Checking for rows where column $columnNumber1 = '$value1' AND column $columnNumber2 = '$value2'..."
+    Write-Verbose "Checking for rows where column $columnNumber1 = '$value1' AND column $columnNumber2 = '$value2'..."
     for ($row = 3; $row -le $sheet.Dimension.End.Row; $row++) {
         $cellValue1 = $sheet.Cells[$row, $columnNumber1].Text
         $cellValue2 = $sheet.Cells[$row, $columnNumber2].Text
-        # Write-Host -ForegroundColor DarkBlue "Row '$row': Col$columnNumber1='$cellValue1', Col$columnNumber2='$cellValue2'"
 
         if ($cellValue1 -like "*$value1*" -and $cellValue2 -like "*$value2*") {
-            Write-Host -ForegroundColor Yellow "Found match in row '$row': '$value1' and '$value2'"
             HighliteRow -sheet $sheet -rowNumber $row -cellcolor $cellcolor -fontColor $fontColor
         }
     }
-    # Write-Host -ForegroundColor Cyan "Highlighting rows with both values completed."
 }
 
 function HighliteRow {
@@ -314,7 +306,7 @@ function HighliteRow {
     # 'A' to our last row, 'AM'.
     $rowName = "A" + $row + ":" + $lastColumn + $row
 
-    Write-Host -ForegroundColor Green "Highliting row $rowName with cell color [$cellcolor] and font color [$fontColor]"
+    Write-Verbose "Highliting row $rowName with cell color [$cellcolor] and font color [$fontColor]"
     $sheet.Cells[$rowName].Style.Fill.PatternType = 'Solid'
     $sheet.Cells[$rowName].Style.Fill.BackgroundColor.SetColor([System.Drawing.Color]::$cellcolor)
     $sheet.Cells[$rowName].Style.Font.Color.SetColor([System.Drawing.Color]::$fontColor)
