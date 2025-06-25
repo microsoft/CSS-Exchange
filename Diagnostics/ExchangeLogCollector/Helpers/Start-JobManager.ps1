@@ -19,7 +19,7 @@ function Start-JobManager {
 
         [ScriptBlock]$RemotePipelineHandler
     )
-    <# It needs to be this way incase of different arguments being passed to different machines
+    <# It needs to be this way in case of different arguments being passed to different machines
         [array]ServersWithArguments
             [string]ServerName
             [object]ArgumentList #customized for your ScriptBlock

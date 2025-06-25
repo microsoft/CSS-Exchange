@@ -292,7 +292,7 @@ function Get-ExchangeInformation {
                             }
 
                             if (-not([string]::IsNullOrEmpty($serverId))) {
-                                $params["Server"] = "$($serverId):3268" # Needs to be a GC port incase we are looking for a group outside of this domain.
+                                $params["Server"] = "$($serverId):3268" # Needs to be a GC port in case we are looking for a group outside of this domain.
                             }
                             $adObject = Get-ADObject @params
 
