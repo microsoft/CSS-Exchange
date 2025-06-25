@@ -124,7 +124,7 @@ function CheckIdentities {
                 $script:MB = $Account
             }
         }
-        # Need to resest between users!!!
+        # Need to reset between users!!!
         if ($Account.CalendarVersionStoreDisabled -eq $true) {
             $script:CalLogsDisabled = $true
             Write-Host -ForegroundColor DarkRed "Mailbox [$Id] has CalendarVersionStoreDisabled set to True.  This mailbox will not have Calendar Logs."
@@ -180,7 +180,7 @@ function ConvertCNtoSMTP {
             Write-Verbose  "Using Get MB to look up [$CNEntry]"
             $script:MailboxList[$CNEntry] = (GetMailbox -Identity $CNEntry -Organization $Org)
         } elseif ($CNEntry -like "*<*@*>") {
-            Write-Verbose "Passing in SMPT address [$CNEntry] to GetSMTPAddress"
+            Write-Verbose "Passing in SMTP address [$CNEntry] to GetSMTPAddress"
             $script:MailboxList[$CNEntry] = GetSMTPAddress -PassedCN $Cn
         } elseif ($CNEntry -like '*</O=*>') {
             $Cn = $CNEntry -split "<" | Select-Object -Last 1

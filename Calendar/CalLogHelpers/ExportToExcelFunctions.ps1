@@ -235,16 +235,16 @@ function CheckRows {
     $sheet = $excel.Workbook.Worksheets[$ShortId]
 
     # Highlight the Resp in LightGoldenRodYellow
-    CheckColumnForText -sheet $sheet -columnNumber $(GetExcelColumnNumber($ColumnMap.ItemClass)) -textToFind "Resp" -cellcolor "LightGoldenRodYellow" -fontColor "Black"
+    CheckColumnForText -sheet $sheet -columnNumber $(GetExcelColumnNumber($ColumnMap.ItemClass)) -textToFind "Resp" -cellColor "LightGoldenRodYellow" -fontColor "Black"
 
     # Highlight the RUM in Red
-    CheckColumnForText -sheet $sheet -columnNumber $(GetExcelColumnNumber($ColumnMap.AppointmentAuxiliaryFlags)) -textToFind "RepairUpdateMessage" -cellcolor "White" -fontColor "DarkRed"
+    CheckColumnForText -sheet $sheet -columnNumber $(GetExcelColumnNumber($ColumnMap.AppointmentAuxiliaryFlags)) -textToFind "RepairUpdateMessage" -cellColor "White" -fontColor "DarkRed"
 
     #Highlight the Cancellation in Orange
-    CheckColumnsForValues -sheet $sheet -columnNumber1  $(GetExcelColumnNumber($ColumnMap.ItemClass)) -value1 "Cancellation" -columnNumber2  $(GetExcelColumnNumber($ColumnMap.TriggerAction)) -value2 "Create" -cellcolor "Khaki" -fontColor "Black"
+    CheckColumnsForValues -sheet $sheet -columnNumber1  $(GetExcelColumnNumber($ColumnMap.ItemClass)) -value1 "Cancellation" -columnNumber2  $(GetExcelColumnNumber($ColumnMap.TriggerAction)) -value2 "Create" -cellColor "Khaki" -fontColor "Black"
 
     # Highlight the Create from Transport in light blue
-    CheckColumnsForValues -sheet $sheet -columnNumber1  $(GetExcelColumnNumber($ColumnMap.LogClientInfoString)) -value1 "Transport" -columnNumber2  $(GetExcelColumnNumber($ColumnMap.TriggerAction)) -value2 "Create" -cellcolor "LightBlue" -fontColor "Black"
+    CheckColumnsForValues -sheet $sheet -columnNumber1  $(GetExcelColumnNumber($ColumnMap.LogClientInfoString)) -value1 "Transport" -columnNumber2  $(GetExcelColumnNumber($ColumnMap.TriggerAction)) -value2 "Create" -cellColor "LightBlue" -fontColor "Black"
 
     $excel.Save()
 }
@@ -258,7 +258,7 @@ function CheckColumnForText {
         [object] $sheet,
         [int] $columnNumber,
         [string] $textToFind,
-        [string] $cellcolor = "Yellow",
+        [string] $cellColor = "Yellow",
         [string] $fontColor = "DarkRed"
     )
 
@@ -267,7 +267,7 @@ function CheckColumnForText {
         $cellValue = $sheet.Cells[$row, $columnNumber].Text
 
         if ($cellValue -like "*$textToFind*") {
-            HighliteRow -sheet $sheet -rowNumber $row -cellcolor $cellcolor -fontColor $fontColor
+            HighlightRow -sheet $sheet -rowNumber $row -cellColor $cellColor -fontColor $fontColor
         }
     }
 }
@@ -280,7 +280,7 @@ function CheckColumnsForValues {
         [string] $value1,
         [int] $columnNumber2,
         [string] $value2,
-        [string] $cellcolor = "LightPink",
+        [string] $cellColor = "LightPink",
         [string] $fontColor = "DarkRed"
     )
 
@@ -290,25 +290,25 @@ function CheckColumnsForValues {
         $cellValue2 = $sheet.Cells[$row, $columnNumber2].Text
 
         if ($cellValue1 -like "*$value1*" -and $cellValue2 -like "*$value2*") {
-            HighliteRow -sheet $sheet -rowNumber $row -cellcolor $cellcolor -fontColor $fontColor
+            HighlightRow -sheet $sheet -rowNumber $row -cellColor $cellColor -fontColor $fontColor
         }
     }
 }
 
-function HighliteRow {
+function HighlightRow {
     param(
         [object] $sheet,
         [string] $rowNumber,
-        [string] $cellcolor = "Thistle",
+        [string] $cellColor = "Thistle",
         [string] $fontColor = "DarkRed"
     )
     # Highlight the entire row with the specified color
     # 'A' to our last row, 'AM'.
     $rowName = "A" + $row + ":" + $lastColumn + $row
 
-    Write-Verbose "Highliting row $rowName with cell color [$cellcolor] and font color [$fontColor]"
+    Write-Verbose "Highlighting row $rowName with cell color [$cellColor] and font color [$fontColor]"
     $sheet.Cells[$rowName].Style.Fill.PatternType = 'Solid'
-    $sheet.Cells[$rowName].Style.Fill.BackgroundColor.SetColor([System.Drawing.Color]::$cellcolor)
+    $sheet.Cells[$rowName].Style.Fill.BackgroundColor.SetColor([System.Drawing.Color]::$cellColor)
     $sheet.Cells[$rowName].Style.Font.Color.SetColor([System.Drawing.Color]::$fontColor)
 }
 
