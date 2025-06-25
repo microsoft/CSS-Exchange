@@ -108,8 +108,8 @@ function FindChangedProperties {
                 CreateMeetingSummary -Time " " -MeetingChanges $TimeLineText
             }
 
-            if ($CalLog.SenderSMTPAddress -ne $script:PreviousCalLog.SenderSMTPAddress) {
-                [Array]$TimeLineText = "The Sender Email Address changed from [$($script:PreviousCalLog.SenderSMTPAddress)] to: [$($CalLog.SenderSMTPAddress)]"
+            if ($CalLog.Sender -ne $script:PreviousCalLog.Sender) {
+                [Array]$TimeLineText = "The Sender Email Address changed from [$($script:PreviousCalLog.Sender)] to: [$($CalLog.Sender)]"
                 CreateMeetingSummary -Time " " -MeetingChanges $TimeLineText
             }
 

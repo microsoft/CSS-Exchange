@@ -228,9 +228,9 @@ function CreateTimelineRow {
             switch ($CalLog.Client) {
                 Transport {
                     if ($CalLog.IsException -eq $True) {
-                        [array] $Output = "Transport $($CalLog.TriggerAction)d a Meeting Cancellation based on changes by [$($CalLog.SenderSMTPAddress)] for the exception starting on [$($CalLog.StartTime)]"
+                        [array] $Output = "Transport $($CalLog.TriggerAction)d a Meeting Cancellation based on changes by [$($CalLog.Sender)] for the exception starting on [$($CalLog.StartTime)]"
                     } else {
-                        [array] $Output = "Transport $($CalLog.TriggerAction)d a Meeting Cancellation based on changes by [$($CalLog.SenderSMTPAddress)]."
+                        [array] $Output = "Transport $($CalLog.TriggerAction)d a Meeting Cancellation based on changes by [$($CalLog.Sender)]."
                     }
                 }
                 ResourceBookingAssistant {
