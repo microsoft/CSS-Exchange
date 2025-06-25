@@ -154,7 +154,7 @@ function BuildCSV {
 
         # Record one row
         $GCDOResults += [PSCustomObject]@{
-            'LogRow'                         = $Index
+            #'LogRow'                         = $Index
             'LogTimestamp'                   = ConvertDateTime($CalLog.LogTimestamp)
             'LogRowType'                     = $CalLog.LogRowType.ToString()
             'SubjectProperty'                = $CalLog.SubjectProperty

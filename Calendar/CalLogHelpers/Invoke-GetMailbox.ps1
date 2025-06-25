@@ -21,6 +21,12 @@ function GetMailbox {
         [bool]$UseGetMailbox
     )
 
+    if ($Identity -like "*<*") {
+        $Identity = $Identity -split "<" | Select-Object -Last 1
+        $Identity = $Identity -split ">" | Select-Object -First 1
+        Write-Verbose "Refined Identity to [$Identity]"
+    }
+
     $params = @{Identity = $Identity
         ErrorAction      = "SilentlyContinue"
     }
@@ -98,6 +104,7 @@ function CheckIdentities {
     Write-Host "Preparing to check $($Identity.count) Mailbox(es)..."
 
     foreach ($Id in $Identity) {
+        [bool]$script:CalLogsDisabled = $false
         $Account = GetMailbox -Identity $Id -UseGetMailbox $true
         if ($null -eq $Account) {
             # -or $script:MB.GetType().FullName -ne "Microsoft.Exchange.Data.Directory.Management.Mailbox") {
@@ -117,8 +124,9 @@ function CheckIdentities {
                 $script:MB = $Account
             }
         }
+        # Need to reset between users!!!
         if ($Account.CalendarVersionStoreDisabled -eq $true) {
-            [bool]$script:CalLogsDisabled = $true
+            $script:CalLogsDisabled = $true
             Write-Host -ForegroundColor DarkRed "Mailbox [$Id] has CalendarVersionStoreDisabled set to True.  This mailbox will not have Calendar Logs."
             Write-Host -ForegroundColor DarkRed "Some logs will be available for Mailbox [$Id] but they will not be complete."
         }
@@ -163,25 +171,29 @@ function ConvertCNtoSMTP {
     Write-Verbose "Converting CN entries into SMTP Addresses..."
 
     foreach ($CNEntry in $CNEntries) {
-        if ($CNEntry -match 'cn=([\w,\s.@-]*[^/])$') {
-            if ($CNEntry -match $WellKnownCN_CA) {
-                $script:MailboxList[$CNEntry] = $CalAttendant
-            } elseif ($CNEntry -match $WellKnownCN_Trans) {
-                $script:MailboxList[$CNEntry] = $Transport
-            } else {
-                $script:MailboxList[$CNEntry] = (GetMailbox -Identity $CNEntry -Organization $Org)
-            }
+        Write-Verbose  "Processing CNEntry: [$CNEntry]"
+        if ($CNEntry -like $WellKnownCN_CA) {
+            $script:MailboxList[$CNEntry] = $CalAttendant
+        } elseif ($CNEntry -like $WellKnownCN_Trans) {
+            $script:MailboxList[$CNEntry] = $Transport
+        } elseif ($CNEntry -match 'cn=([\w,\s.@-]*[^/])$') {
+            Write-Verbose  "Using Get MB to look up [$CNEntry]"
+            $script:MailboxList[$CNEntry] = (GetMailbox -Identity $CNEntry -Organization $Org)
+        } elseif ($CNEntry -like "*<*@*>") {
+            Write-Verbose "Passing in SMTP address [$CNEntry] to GetSMTPAddress"
+            $script:MailboxList[$CNEntry] = GetSMTPAddress -PassedCN $Cn
+        } elseif ($CNEntry -like '*</O=*>') {
+            $Cn = $CNEntry -split "<" | Select-Object -Last 1
+            $Cn = $Cn -split ">" | Select-Object -First 1
+            Write-Verbose  "`t Working on [$CN]"
+            $script:MailboxList[$CNEntry] = GetMailboxProp -PassedCN $Cn -Prop "PrimarySmtpAddress"
+        } else {
+            Write-Verbose "ConvertCNtoSMTP: Passed in Value does not look like a CN or SMTP Address: [$CNEntry]"
         }
-        # New more readable format!
-        else {
-            if ( $CNEntry -match "<*@*>") {
-                $script:MailboxList[$CNEntry] = GetSMTPAddress -PassedCN $CNEntry
-            } else {
-                Write-Verbose "GetSMTPAddress: Passed in Value does not look like a CN or SMTP Address: [$CNEntry]"
-            }
-            $script:MailboxList[$CNEntry] = $CNEntry
-        }
+
+        $script:MailboxList[$CNEntry] = $CNEntry
     }
+    Write-Verbose "MailboxList: $($script:MailboxList.Count) entries found."
 
     foreach ($key in $script:MailboxList.Keys) {
         $value = $script:MailboxList[$key]
@@ -219,23 +231,26 @@ function GetSMTPAddress {
         $PassedCN
     )
 
+    #Write-Verbose "GetSMTPAddress:: Working on [$PassedCN]"
     if ($PassedCN -match $WellKnownCN_Trans) {
         return $Transport
     } elseif ($PassedCN -match $WellKnownCN_CA) {
         return $CalAttendant
-    } elseif ($PassedCN -match "<*@*>") {
+    } elseif ($PassedCN -like "*<*@*>") {
         # This is a new format that we are seeing in the Calendar Logs.
         # Example: '"Jon Doe" <Jon.Doe@Contoso.com>'
         $SMTPAddress = $($PassedCN -split ("<")[-1] -split (">")[0])[1].Trim()
+        Write-Verbose "GetSMTPAddress: Using <SMTPAddress> format of [$PassedCN] as [$SMTPAddress]"
         return $SMTPAddress
-    } elseif ($PassedCN -match '<O=') {
+    } elseif ($PassedCN -match '</O=') {
         #Matching "Users Name" </O=...>
         $pattern = "<([^>]*)>"
         #$matches = [regex]::Matches($PassedCN, $pattern)
         $MailboxOU = ([regex]::Matches($PassedCN, $pattern)).groups[1].value
-        Write-Verbose "Using /OU format to look up mailbox for [$PassedCN]"
+        Write-Verbose "GetSMTPAddress: Using /OU format to look up mailbox for [$MailboxOU]"
         return GetMailboxProp -PassedCN $MailboxOU -Prop "PrimarySmtpAddress"
     } elseif ($PassedCN -match 'cn=([\w,\s.@-]*[^/])$') {
+        Write-Verbose "GetSMTPAddress: Using CN format to look up mailbox for [$PassedCN]"
         return GetMailboxProp -PassedCN $PassedCN -Prop "PrimarySmtpAddress"
     } elseif (($PassedCN -match "NotFound") -or ([string]::IsNullOrEmpty($PassedCN))) {
         return ""
@@ -288,6 +303,7 @@ function BetterThanNothingCNConversion {
                 $cNameSplit= $cNameMatch.split('-')[-2] + '-' + $cNameMatch.split('-')[-1]
                 Write-Verbose "BetterThanNothingCNConversion: Returning Lengthened : [$cNameSplit]"
             }
+            Write-Verbose "BetterThanNothingCNConversion: Returning : [$cNameSplit]."
             return $cNameSplit
         }
         # Sometimes we do not have the "-" in front of the Name.
