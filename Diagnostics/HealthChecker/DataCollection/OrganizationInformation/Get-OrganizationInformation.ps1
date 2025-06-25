@@ -39,7 +39,7 @@ function Get-OrganizationInformation {
         }
 
         # Pull out information from OrganizationConfig
-        # This is done incase Get-OrganizationConfig and we set a true boolean value of false
+        # This is done in case Get-OrganizationConfig and we set a true boolean value of false
         if ($null -ne $organizationConfig) {
             $mapiHttpEnabled = $organizationConfig.MapiHttpEnabled
             # Enabled Download Domains will not be there if running EMS from Exchange 2013.
