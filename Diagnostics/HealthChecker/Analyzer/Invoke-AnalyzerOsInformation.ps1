@@ -97,6 +97,7 @@ function Invoke-AnalyzerOsInformation {
 
     # .NET Supported Levels
     $currentExchangeBuild = $exchangeInformation.BuildInformation.VersionInformation
+    $exSE = "ExchangeSE"
     $ex2019 = "Exchange2019"
     $ex2016 = "Exchange2016"
     $ex2013 = "Exchange2013"
@@ -126,7 +127,8 @@ function Invoke-AnalyzerOsInformation {
         (Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU13") -or
         (Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2019 -CU "CU2")) {
         $recommendedNetVersion = $netVersionDictionary["Net4d7d2"]
-    } elseif ((Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2019 -CU "CU14") -and
+    } elseif (((Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2019 -CU "CU14") -or
+            (Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $exSE -CU "RTM")) -and
         ($osVersion -ne "Windows2019")) {
         $recommendedNetVersion = $netVersionDictionary["Net4d8d1"]
     } else {
@@ -222,9 +224,9 @@ function Invoke-AnalyzerOsInformation {
         if ($exchangeInformation.BuildInformation.VersionInformation.BuildVersion -ge "15.2.0.0") {
             $recommendedPageFile = [Math]::Round($totalPhysicalMemory / 4)
             $pageFileObj.RecommendedPageFile = $recommendedPageFile
-            Write-Verbose "System is running Exchange 2019. Recommended PageFile Size: $recommendedPageFile"
+            Write-Verbose "System is running $($exchangeInformation.BuildInformation.VersionInformation.FriendlyName). Recommended PageFile Size: $recommendedPageFile"
 
-            $recommendedPageFileWording2019 = "On Exchange 2019, the recommended PageFile size is 25% ({0}MB) of the total system memory ({1}MB)."
+            $recommendedPageFileWording2019 = "On $($exchangeInformation.BuildInformation.VersionInformation.FriendlyName), the recommended PageFile size is 25% ({0}MB) of the total system memory ({1}MB)."
             if ($pageFileObj.MaxPageSize -eq 0) {
                 $pageFileAdditionalDisplayValue = ("Error: $recommendedPageFileWording2019" -f $recommendedPageFile, $totalPhysicalMemory)
             } elseif ($recommendedPageFile -ne $pageFileObj.MaxPageSize) {
