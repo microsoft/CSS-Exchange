@@ -4,6 +4,7 @@
 . $PSScriptRoot\..\Analyzer\Get-ExchangeConnectorCustomObject.ps1
 . $PSScriptRoot\..\Analyzer\Security\Get-ExchangeCertificateCustomObject.ps1
 . $PSScriptRoot\..\..\..\Shared\CertificateFunctions\ConvertTo-ExchangeCertificate.ps1
+. $PSScriptRoot\..\..\..\Shared\IISFunctions\ExtendedProtection\Get-ExtendedProtectionConfigurationResult.ps1
 
 function Get-HealthCheckerDataObject {
     [CmdletBinding()]
@@ -78,6 +79,19 @@ function Get-HealthCheckerDataObject {
             $iisSettings.IISWebSite = $nonExchangeWebSites
         }
 
+        $extendedProtectionConfig = $null
+
+        try {
+            $getExtendedProtectionConfigurationResultsParams = @{
+                ApplicationHostConfig = [xml]$iisSettings.ApplicationHostConfig
+                ExSetupVersion        = $ExchangeLocalResult.BuildInformation.VersionInformation.BuildVersion
+                CatchActionFunction   = ${Function:Invoke-CatchActions}
+            }
+            $extendedProtectionConfig = Get-ExtendedProtectionConfigurationResult @getExtendedProtectionConfigurationResultsParams
+        } catch {
+            Invoke-CatchActions
+        }
+
         $hcObject = [PSCustomObject]@{
             GenerationTime          = $GenerationTime
             HealthCheckerVersion    = $Script:BuildVersion
@@ -108,7 +122,7 @@ function Get-HealthCheckerDataObject {
                 DependentServices                        = $ExchangeLocalResult.DependentServices
                 ExchangeEmergencyMitigationServiceResult = $ExchangeLocalResult.ExchangeEmergencyMitigationServiceResult
                 ExchangeFeatureFlightingServiceResult    = $ExchangeLocalResult.ExchangeFeatureFlightingServiceResult
-                ExtendedProtectionConfig                 = $ExchangeLocalResult.ExtendedProtectionConfig
+                ExtendedProtectionConfig                 = $extendedProtectionConfig
                 FileContentInformation                   = $ExchangeLocalResult.FileContentInformation
                 FIPFSUpdateIssue                         = $ExchangeLocalResult.FIPFSUpdateIssue
                 IanaTimeZoneMappingsRaw                  = $ExchangeLocalResult.IanaTimeZoneMappingsRaw
