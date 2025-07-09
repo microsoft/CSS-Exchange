@@ -54,8 +54,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-ServerMonitoringOverride { return $null }
 
             $Error.Clear()
-            Get-OrganizationInformation -EdgeServer $false | Out-Null
-            Get-HealthCheckerExchangeServer -ServerName $Script:Server | Out-Null
+            Get-HealthCheckerDataCollection -ServerNames $env:COMPUTERNAME | Out-Null
 
             $Error.Count | Should -Be $Script:ErrorCount
             # Hard coded to know if this ever changes.
@@ -64,7 +63,6 @@ Describe "Testing Health Checker by Mock Data Imports" {
             # Assert-MockCalled Invoke-CatchActions -Exactly 1
 
             Assert-MockCalled Get-WmiObjectHandler -Exactly 6
-            Assert-MockCalled Invoke-ScriptBlockHandler -Exactly 5
             Assert-MockCalled Get-RemoteRegistryValue -Exactly 26
             Assert-MockCalled Get-RemoteRegistrySubKey -Exactly 1
             Assert-MockCalled Get-NETFrameworkVersion -Exactly 1
@@ -81,7 +79,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-ExchangeAppPoolsInformation -Exactly 1
             Assert-MockCalled Get-ExchangeDomainsAclPermissions -Exactly 1
             Assert-MockCalled Get-ExchangeAdSchemaClass -Exactly 2
-            Assert-MockCalled Get-ExchangeServer -Exactly 1
+            Assert-MockCalled Get-ExchangeServer -Exactly 2
             Assert-MockCalled Get-ExchangeCertificate -Exactly 1
             Assert-MockCalled Get-AuthConfig -Exactly 1
             Assert-MockCalled Get-ExSetupFileVersionInfo -Exactly 1
