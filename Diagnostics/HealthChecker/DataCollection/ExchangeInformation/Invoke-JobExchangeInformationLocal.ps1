@@ -8,6 +8,7 @@ function Invoke-JobExchangeInformationLocal {
         [object]$GetExchangeServer
     )
     begin {
+        # Extract for Pester Testing - Start
         # Build Process to add functions.
         . $PSScriptRoot\Get-ExchangeDependentServices.ps1
         . $PSScriptRoot\Get-ExchangeRegistryValues.ps1
@@ -18,6 +19,7 @@ function Invoke-JobExchangeInformationLocal {
         . $PSScriptRoot\IISInformation\Get-ExchangeServerIISSettings.ps1
         . $PSScriptRoot\..\..\..\..\Shared\Get-ExSetupFileVersionInfo.ps1
         . $PSScriptRoot\..\..\..\..\Shared\Get-FileContentInformation.ps1
+        # Extract for Pester Testing - End
 
         if ($PSSenderInfo) {
             $Script:ErrorsExcluded = @()

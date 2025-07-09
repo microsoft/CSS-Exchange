@@ -6,6 +6,7 @@ function Invoke-JobOrganizationInformation {
     param()
     begin {
 
+        # Extract for Pester Testing - Start
         # Build Process to add functions.
         . $PSScriptRoot\Get-ExchangeAdSchemaInformation.ps1
         . $PSScriptRoot\Get-ExchangeDomainsAclPermissions.ps1
@@ -13,6 +14,7 @@ function Invoke-JobOrganizationInformation {
         . $PSScriptRoot\Get-SecurityCve-2021-34470.ps1
         . $PSScriptRoot\Get-SecurityCve-2022-21978.ps1
         . $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ExchangeADSplitPermissionsEnabled.ps1
+        # Extract for Pester Testing - End
 
         if ($PSSenderInfo) {
             $Script:ErrorsExcluded = @()
