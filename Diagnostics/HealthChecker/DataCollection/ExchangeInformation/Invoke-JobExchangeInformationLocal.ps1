@@ -190,7 +190,6 @@ function Invoke-JobExchangeInformationLocal {
         Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($jobStopWatch.Elapsed.TotalSeconds) seconds"
         [PSCustomObject]@{
             BuildInformation                         = $buildInformation
-            ExtendedProtectionConfig                 = $extendedProtectionConfig
             ApplicationPools                         = $applicationPools
             RegistryValues                           = $registryValues
             ExchangeEmergencyMitigationServiceResult = $eemsEndpointResults
