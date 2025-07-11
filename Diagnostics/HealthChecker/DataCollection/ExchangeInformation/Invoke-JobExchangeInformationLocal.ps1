@@ -149,6 +149,24 @@ function Invoke-JobExchangeInformationLocal {
         }
         Get-FIPFSScanEngineVersionState @fipFsParams | Invoke-RemotePipelineHandler -Result ([ref]$FIPFSUpdateIssue)
 
+        # Extract for Pester Testing - Start
+        function Get-InvokeWebRequestResult {
+            [CmdletBinding()]
+            param(
+                [Parameter(Mandatory = $true)]
+                [string]$Uri
+            )
+            try {
+                Write-Verbose "Trying to get endpoint Uri: $Uri"
+                $results = Invoke-WebRequest -Method Get -Uri $Uri -UseBasicParsing
+                Write-Verbose "Successfully got the results"
+            } catch {
+                Invoke-CatchActions
+            }
+            return $results
+        }
+        # Extract for Pester Testing - End
+
         try {
             $originalSecurityProtocol = [Net.ServicePointManager]::SecurityProtocol
             [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -162,22 +180,8 @@ function Invoke-JobExchangeInformationLocal {
             }
 
             Write-Verbose "Attempting to get the endpoints from the server"
-
-            try {
-                Write-Verbose "Trying to get GetExchangeMitigations endpoint"
-                $eemsEndpointResults = Invoke-WebRequest -Method Get -Uri "https://officeclient.microsoft.com/GetExchangeMitigations" -UseBasicParsing
-                Write-Verbose "Successfully got the results for GetExchangeMitigations URL"
-            } catch {
-                Invoke-CatchActions
-            }
-
-            try {
-                Write-Verbose "Trying to get GetExchangeConfig endpoint"
-                $featureFlightingEndpointResults = Invoke-WebRequest -Method Get -Uri "https://officeclient.microsoft.com/GetExchangeConfig" -UseBasicParsing
-                Write-Verbose "Successfully got the results for GetExchangeConfig URL"
-            } catch {
-                Invoke-CatchActions
-            }
+            $eemsEndpointResults = Get-InvokeWebRequestResult -Uri "https://officeclient.microsoft.com/GetExchangeMitigations"
+            $featureFlightingEndpointResults = Get-InvokeWebRequestResult -Uri "https://officeclient.microsoft.com/GetExchangeConfig"
         } catch {
             Invoke-CatchActions
         } finally {

@@ -7,8 +7,14 @@ function Get-IISWebSite {
 
     $returnList = New-Object 'System.Collections.Generic.List[object]'
     $webSites = New-Object 'System.Collections.Generic.List[object]'
-    $webSites.AddRange((Get-WebSite))
-    $bindings = Get-WebBinding
+    try {
+        $webSites.AddRange((Get-WebSite))
+        $bindings = Get-WebBinding
+    } catch {
+        Write-Verbose "Failed to run Get-WebSite or Get-WebBinding for IIS Web Site information. Inner Exception: $_"
+        Invoke-CatchActions
+        return $null
+    }
 
     foreach ($site in $webSites) {
         Write-Verbose "Working on Site: $($site.Name)"
