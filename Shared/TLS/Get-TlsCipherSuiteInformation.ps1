@@ -51,7 +51,12 @@ function Get-TlsCipherSuiteInformation {
         # No need to query the ciphers defined via GPO if this call is successful.
         Write-Verbose "Trying to query TlsCipherSuites via 'Get-TlsCipherSuite'"
         if ($PSSenderInfo) {
-            $tlsCipherSuites = Get-TlsCipherSuite
+            try {
+                $tlsCipherSuites = Get-TlsCipherSuite
+            } catch {
+                Write-Verbose "Failed to get the TlsCipherSuite. Inner Exception: $_"
+                Invoke-CatchActionError $CatchActionFunction
+            }
         } else {
             $getTlsCipherSuiteParams = @{
                 ComputerName        = $MachineName
