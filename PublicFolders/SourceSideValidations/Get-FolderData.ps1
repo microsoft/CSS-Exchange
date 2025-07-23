@@ -119,7 +119,7 @@ function Get-FolderData {
                 $folderData.Statistics | Export-Csv $PSScriptRoot\Statistics.csv
                 foreach ($errorParam in $statisticsResult.Errors) {
                     $errorResult = New-TestResult @errorParam
-                    $folderData.Errors.Add($errorResult)
+                    $null = $folderData.Errors.Add($errorResult)
                 }
             }
         }
