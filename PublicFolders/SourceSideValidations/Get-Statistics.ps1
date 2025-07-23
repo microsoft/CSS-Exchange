@@ -37,23 +37,36 @@ function Get-Statistics {
         if ($null -eq $FolderData) {
             $WarningPreference = "SilentlyContinue"
             Import-PSSession (New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri "http://$Server/powershell" -Authentication Kerberos) | Out-Null
-            $statistics = Get-PublicFolderStatistics -ResultSize Unlimited | ForEach-Object {
-                $progressCount++
-                if ($sw.ElapsedMilliseconds -gt 1000) {
-                    $sw.Restart()
-                    Write-Progress @progressParams -Status $progressCount
-                }
+            for ($i = 0; $i -lt 3; $i++) {
+                try {
+                    $statistics = Get-PublicFolderStatistics -ResultSize Unlimited | ForEach-Object {
+                        $progressCount++
+                        if ($sw.ElapsedMilliseconds -gt 1000) {
+                            $sw.Restart()
+                            Write-Progress @progressParams -Status $progressCount
+                        }
 
-                [Int64]$totalItemSize = -1
-                if ($_.TotalItemSize.ToString() -match "\(([\d|,|.]+) bytes\)") {
-                    $numberString = $Matches[1] -replace "\D", ""
-                    $totalItemSize = [Int64]::Parse($numberString)
-                }
+                        [Int64]$totalItemSize = -1
+                        if ($_.TotalItemSize.ToString() -match "\(([\d|,|.]+) bytes\)") {
+                            $numberString = $Matches[1] -replace "\D", ""
+                            $totalItemSize = [Int64]::Parse($numberString)
+                        }
 
-                [PSCustomObject]@{
-                    EntryId       = $_.EntryId
-                    ItemCount     = $_.ItemCount
-                    TotalItemSize = $totalItemSize
+                        [PSCustomObject]@{
+                            EntryId       = $_.EntryId
+                            ItemCount     = $_.ItemCount
+                            TotalItemSize = $totalItemSize
+                        }
+                    }
+                } catch {
+                    Write-Warning "Failed to get statistics from $Server. Attempt $($i + 1) of 3."
+                    Write-Verbose "Exception: $($_.Exception.Message)"
+                    if ($i -eq 2) {
+                        Write-Error "Failed to get statistics from $Server after 3 attempts. Exception: $($_.Exception)"
+                        return
+                    } else {
+                        Start-Sleep -Seconds 5
+                    }
                 }
             }
         } else {
@@ -100,7 +113,7 @@ function Get-Statistics {
 
             $hierarchyMailbox = Get-Mailbox -PublicFolder (Get-OrganizationConfig).RootPublicFolderMailbox.ToString()
             $serverWithHierarchy = (Get-MailboxDatabase $hierarchyMailbox.Database).Server.Name
-            $retryJobNumber = 1
+            $retryJobNumber = 0
 
             Wait-QueuedJob | ForEach-Object {
                 $finishedJob = $_
@@ -119,9 +132,10 @@ function Get-Statistics {
                         $foldersRemaining = @($finishedJob.Folders | Where-Object { -not $entryIdsProcessed.Contains($_.EntryId) })
                         if ($foldersRemaining.Count -gt 0) {
                             Write-Host "$($foldersRemaining.Count) folders remaining in the failed job. Re-queueing for $serverWithHierarchy."
+                            $retryJobNumber++
                             $retryJob = @{
                                 ArgumentList = $serverWithHierarchy, $hierarchyMailbox.Name, $foldersRemaining
-                                Name         = "Statistics Retry Job $($retryJobNumber++)"
+                                Name         = "Statistics Retry Job $($retryJobNumber)"
                                 ScriptBlock  = ${Function:Get-StatisticsJob}
                             }
 
