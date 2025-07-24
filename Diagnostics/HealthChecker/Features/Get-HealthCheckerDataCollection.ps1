@@ -17,6 +17,7 @@
 . $PSScriptRoot\..\DataCollection\ExchangeInformation\Invoke-JobExchangeInformationLocal.ps1
 . $PSScriptRoot\..\..\..\Shared\JobManagementFunctions\Wait-JobQueue.ps1
 . $PSScriptRoot\..\..\..\Shared\ScriptBlockFunctions\RemoteSBLoggingFunctions.ps1
+. $PSScriptRoot\..\..\..\Shared\ScriptDebugFunctions.ps1
 
 <#
     TODO:
@@ -132,6 +133,7 @@ function Get-HealthCheckerDataCollection {
         $exchLocalKey = "Invoke-JobExchangeInformationLocal"
         $generationTime = Get-Date
         $exchCmdletServerJobData = @{}
+        Add-DebugObject -ObjectKeyName "GetExchangeServerList" -ObjectValueEntry $getExchangeServerList
 
         if ($ForceLegacy) {
             try {
@@ -184,6 +186,8 @@ function Get-HealthCheckerDataCollection {
             Wait-JobQueue -ProcessReceiveJobAction ${Function:Invoke-RemotePipelineLoggingLocal}
             $jobResults = Get-JobQueueResult
             Write-Verbose "Job Queue and Get Results time taken $($stopWatch.Elapsed.TotalSeconds) seconds"
+            Write-Verbose "Saving out the JobQueue prior to clearing it."
+            Add-DebugObject -ObjectKeyName "GetJobQueue-AfterDataCollection" -ObjectValueEntry ((Get-JobQueue).Clone())
             Clear-JobQueue
         }
 
@@ -221,7 +225,9 @@ function Get-HealthCheckerDataCollection {
                 OSInformationResult           = $jobResults["$osKey-$serverName"]
                 GenerationTime                = $generationTime
             }
-            $healthCheckerData.Add((Get-HealthCheckerDataObject @params))
+            $dataObject = Get-HealthCheckerDataObject @params
+            Add-DebugObject -ObjectKeyName "Get-HealthCheckerDataObject" -ObjectValueEntry $dataObject
+            $healthCheckerData.Add($dataObject)
         }
         Write-Verbose "Took $($stopWatch.Elapsed.TotalSeconds) seconds to create the Health Checker object list"
         return $healthCheckerData
