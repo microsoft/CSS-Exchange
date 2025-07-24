@@ -11,6 +11,12 @@ function Get-ProcessorInformation {
         [ScriptBlock]$CatchActionFunction
     )
     begin {
+        # Extract for Pester Testing - Start
+        function GetProcessorCount {
+            return [System.Environment]::ProcessorCount
+        }
+        # Extract for Pester Testing - End
+
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $wmiObject = $null
         $processorName = [string]::Empty
@@ -61,7 +67,7 @@ function Get-ProcessorInformation {
             $previousProcessor = $processor
         }
 
-        $presentedProcessorCoreCount = [System.Environment]::ProcessorCount
+        $presentedProcessorCoreCount = GetProcessorCount
 
         if ($null -eq $presentedProcessorCoreCount) {
             Write-Verbose "Wasn't able to get Presented Processor Core Count on the Server. Setting to -1."

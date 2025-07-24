@@ -20,6 +20,7 @@ function Get-FIPFSScanEngineVersionState {
 
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
+        # Extract for Pester Testing - Start
         function GetFolderFromExchangeInstallPath {
             param(
                 [Parameter(Mandatory = $true)]
@@ -51,6 +52,7 @@ function Get-FIPFSScanEngineVersionState {
             }
             return $null
         }
+        # Extract for Pester Testing - End
 
         function GetHighestScanEngineVersionNumber {
             param (

@@ -13,6 +13,14 @@ function Get-ExchangeServerIISSettings {
         [bool]$IsLegacyOS = $false,
         [ScriptBlock]$CatchActionFunction
     )
+    begin {
+        # Function for pester testing.
+        # Extract for Pester Testing - Start
+        function GetCachtoknVersionInfo {
+            return [System.Diagnostics.FileVersionInfo]::GetVersionInfo("$env:windir\System32\inetsrv\cachtokn.dll")
+        }
+        # Extract for Pester Testing - End
+    }
     process {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $webSite = $null
@@ -22,7 +30,7 @@ function Get-ExchangeServerIISSettings {
 
         # Get the TokenCacheModule build information as we need it to perform version testing
         Write-Verbose "Trying to query TokenCacheModule version information"
-        $tokenCacheModuleVersionInformation = [System.Diagnostics.FileVersionInfo]::GetVersionInfo("$env:windir\System32\inetsrv\cachtokn.dll")
+        $tokenCacheModuleVersionInformation = GetCachtoknVersionInfo
         # Get the shared web configuration files
         $sharedWebConfigPaths = @($webApplication.ConfigurationFileInfo.LinkedConfigurationFilePath | Select-Object -Unique)
         $sharedWebConfig = New-Object System.Collections.Generic.List[object]

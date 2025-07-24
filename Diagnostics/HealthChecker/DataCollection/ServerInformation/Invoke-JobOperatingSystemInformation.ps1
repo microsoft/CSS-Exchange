@@ -5,6 +5,7 @@ function Invoke-JobOperatingSystemInformation {
     [CmdletBinding()]
     param()
     begin {
+        # Extract for Pester Testing - Start
         # Build Process to add functions.
         . $PSScriptRoot\..\..\..\..\Shared\Get-ServerRebootPending.ps1
         . $PSScriptRoot\..\..\..\..\Shared\TLS\Get-AllTlsSettings.ps1
@@ -18,6 +19,7 @@ function Invoke-JobOperatingSystemInformation {
         . $PSScriptRoot\Get-PowerPlanSetting.ps1
         . $PSScriptRoot\Get-Smb1ServerSettings.ps1
         . $PSScriptRoot\Get-TimeZoneInformation.ps1
+        # Extract for Pester Testing - End
 
         $jobStopWatch = [System.Diagnostics.Stopwatch]::StartNew()
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"

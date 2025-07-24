@@ -8,6 +8,7 @@ function Invoke-JobExchangeInformationCmdlet {
         [string[]]$ServerName
     )
     begin {
+        # Extract for Pester Testing - Start
         # Build Process to add functions.
         . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeDiagnosticInformation.ps1
         . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeSettingOverride.ps1
@@ -15,6 +16,7 @@ function Invoke-JobExchangeInformationCmdlet {
         . $PSScriptRoot\..\..\..\..\Shared\CertificateFunctions\Get-ExchangeServerCertificateInformation.ps1
         . $PSScriptRoot\Get-ExchangeVirtualDirectories.ps1
         . $PSScriptRoot\Get-ExchangeServerMaintenanceState.ps1
+        # Extract for Pester Testing - End
 
         if ($PSSenderInfo) {
             $Script:ErrorsExcluded = @()

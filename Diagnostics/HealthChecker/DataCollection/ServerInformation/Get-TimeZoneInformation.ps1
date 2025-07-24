@@ -11,6 +11,13 @@ function Get-TimeZoneInformation {
         [ScriptBlock]$CatchActionFunction
     )
     begin {
+
+        # Extract for Pester Testing - Start
+        function GetCurrentTimeZone {
+            return ([System.TimeZone]::CurrentTimeZone).StandardName
+        }
+        # Extract for Pester Testing - End
+
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $actionsToTake = @()
         $dstIssueDetected = $false
@@ -54,7 +61,7 @@ function Get-TimeZoneInformation {
             $actionsToTake += "Warning: DynamicDaylightTimeDisabled is set, Windows can not properly detect any DST rule changes in your time zone."
         }
 
-        $currentTimeZone = ([System.TimeZone]::CurrentTimeZone).StandardName
+        $currentTimeZone = GetCurrentTimeZone
     }
     end {
         return [PSCustomObject]@{

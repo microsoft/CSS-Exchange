@@ -6,9 +6,11 @@ function Invoke-JobHardwareInformation {
     param()
     begin {
 
+        # Extract for Pester Testing - Start
         # Build Process to add functions.
         . $PSScriptRoot\Get-ProcessorInformation.ps1
         . $PSScriptRoot\Get-ServerType.ps1
+        # Extract for Pester Testing - End
 
         if ($PSSenderInfo) {
             $Script:ErrorsExcluded = @()
