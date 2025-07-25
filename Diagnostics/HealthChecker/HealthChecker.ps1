@@ -191,14 +191,18 @@ begin {
     }
 
     $Script:ServerNameList = New-Object System.Collections.Generic.List[string]
-    $Script:Logger = Get-NewLoggerInstance -LogName "HealthChecker-Debug" `
-        -LogDirectory $Script:OutputFilePath `
-        -AppendDateTime $false `
-        -ErrorAction SilentlyContinue
+    $loggerParams = @{
+        LogName        = "HealthChecker-Debug"
+        LogDirectory   = $Script:OutputFilePath
+        AppendDateTime = $true
+        ErrorAction    = "SilentlyContinue"
+    }
+    $Script:Logger = Get-NewLoggerInstance @loggerParams
     SetProperForegroundColor
     SetWriteVerboseAction ${Function:Write-DebugLog}
     SetWriteWarningAction ${Function:Write-DebugLog}
     SetWriteErrorAction ${Function:Write-DebugLog}
+    SetWriteProgressAction ${Function:Write-DebugLog}
     Get-PSSessionDetails
 } process {
     $Server | ForEach-Object { $Script:ServerNameList.Add($_.ToUpper()) }

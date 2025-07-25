@@ -25,17 +25,32 @@ function Invoke-AnalyzerEngineHandler {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $finalResultsProcessed = @{}
         $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
+        $progressAnalyzerParams = @{
+            Activity        = "Setting up jobs to queue for analysis"
+            ParentId        = 0
+            Id              = 1
+            Status          = [string]::Empty
+            PercentComplete = -1
+        }
+        $analysisCounter = 1
     }
     process {
         if ($RunType -eq "CurrentSession") {
             foreach ($healthServerObject in $ServerDataCollection) {
                 $singleServerStopWatch = [System.Diagnostics.Stopwatch]::StartNew()
+                $progressAnalyzerParams.Activity = "Analysis to execute in current PowerShell session"
+                $progressAnalyzerParams.Status = "Executing analysis on $($healthServerObject.ServerName)"
+                $progressAnalyzerParams.PercentComplete = ($analysisCounter++ / $ServerDataCollection.Count * 100)
+                Write-Progress @progressAnalyzerParams
                 $analyzedResults = Invoke-JobAnalyzerEngine -HealthServerObject $healthServerObject
                 Write-Verbose "$($healthServerObject.ServerName) Analyzer Engine took $($singleServerStopWatch.Elapsed.TotalSeconds) seconds"
                 $finalResultsProcessed.Add($healthServerObject.ServerName, $analyzedResults.HCAnalyzedResults)
             }
         } else {
             foreach ($healthServerObject in $ServerDataCollection) {
+                $progressAnalyzerParams.Status = "Add job for Server $($healthServerObject.ServerName)"
+                $progressAnalyzerParams.PercentComplete = ($analysisCounter++ / $ServerDataCollection.Count * 100)
+                Write-Progress @progressAnalyzerParams
                 Add-JobAnalyzerEngine -HealthServerObject $healthServerObject -ExecutingServer $healthServerObject.ServerName #TODO: Improve this logic
             }
             Wait-JobQueue -ProcessReceiveJobAction ${Function:Invoke-RemotePipelineLoggingLocal}
@@ -52,6 +67,7 @@ function Invoke-AnalyzerEngineHandler {
         }
     }
     end {
+        Write-Progress @progressAnalyzerParams -Completed
         Write-Verbose "Completed $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
         return $finalResultsProcessed
     }
