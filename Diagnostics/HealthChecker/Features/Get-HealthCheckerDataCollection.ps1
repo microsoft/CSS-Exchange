@@ -112,7 +112,7 @@ function Get-HealthCheckerDataCollection {
                 Write-Verbose "Took $(([DateTime]::Now) - $startTime) to execute the Invoke-Command test for server name"
 
                 foreach ($passed in $invokeCommandResults) {
-                    $key = $getExchangeServerListToTestFQDN.Values | Where-Object { $_.Name -eq $passed }
+                    $key = $getExchangeServerListToTestFQDN.Values | Where-Object { $_.Name -eq $passed.PSComputerName }
                     $getExchangeServerList.Add($passed.PSComputerName, $getExchangeServerListToTestFQDN[$key.FQDN])
                     $getExchangeServerListToTestFQDN.Remove($key.FQDN)
                 }

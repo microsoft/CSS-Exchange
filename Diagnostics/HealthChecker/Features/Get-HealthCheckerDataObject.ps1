@@ -52,47 +52,52 @@ function Get-HealthCheckerDataObject {
             $exchangeCustomConnector = Get-ExchangeConnectorCustomObject @customConnectorParams
         }
 
-        # Adjust the IIS information.
-        $iisSettings = $ExchangeLocalResult.IISSettings
-        $webSites = New-Object System.Collections.Generic.List[object]
-        $nonExchangeWebSites = New-Object System.Collections.Generic.List[object]
+        if (-not $ExchangeCmdletResult.GetExchangeServer.IsEdgeServer) {
+            # Adjust the IIS information.
+            $iisSettings = $ExchangeLocalResult.IISSettings
+            $webSites = New-Object System.Collections.Generic.List[object]
+            $nonExchangeWebSites = New-Object System.Collections.Generic.List[object]
 
-        if ($null -ne $iisSettings.IISWebSite) {
-            $iisSettings.IISWebSite |
-                ForEach-Object {
-                    $site = $_
-                    $currentCount = $webSites.Count
-                    foreach ($name in $ExchangeCmdletResult.ExchangeWebSiteNames) {
-                        if ($name -eq $site.Name) {
-                            $webSites.Add($site)
+            if ($null -ne $iisSettings.IISWebSite) {
+                $iisSettings.IISWebSite |
+                    ForEach-Object {
+                        $site = $_
+                        $currentCount = $webSites.Count
+                        foreach ($name in $ExchangeCmdletResult.ExchangeWebSiteNames) {
+                            if ($name -eq $site.Name) {
+                                $webSites.Add($site)
+                            }
+                        }
+
+                        if ($currentCount -eq $webSites.Count) {
+                            $nonExchangeWebSites.Add($site)
                         }
                     }
 
-                    if ($currentCount -eq $webSites.Count) {
-                        $nonExchangeWebSites.Add($site)
-                    }
+                if ($webSites.Count -gt 0) {
+                    $iisSettings.IISWebSite = $webSites
+                    $iisSettings | Add-Member -Name "NonExchangeWebSites" -MemberType NoteProperty -Value $nonExchangeWebSites
+                } else {
+                    Write-Verbose "No IIS Web Sites were found that matched the ExchangeWebSiteNames so we are placing all the sites in the main container."
+                    $iisSettings.IISWebSite = $nonExchangeWebSites
                 }
-
-            if ($webSites.Count -gt 0) {
-                $iisSettings.IISWebSite = $webSites
-                $iisSettings | Add-Member -Name "NonExchangeWebSites" -MemberType NoteProperty -Value $nonExchangeWebSites
-            } else {
-                Write-Verbose "No IIS Web Sites were found that matched the ExchangeWebSiteNames so we are placing all the sites in the main container."
-                $iisSettings.IISWebSite = $nonExchangeWebSites
             }
-        }
 
-        $extendedProtectionConfig = $null
+            $extendedProtectionConfig = $null
 
-        try {
-            $getExtendedProtectionConfigurationResultsParams = @{
-                ApplicationHostConfig = [xml]$iisSettings.ApplicationHostConfig
-                ExSetupVersion        = $ExchangeLocalResult.BuildInformation.VersionInformation.BuildVersion
-                CatchActionFunction   = ${Function:Invoke-CatchActions}
+            try {
+                $getExtendedProtectionConfigurationResultsParams = @{
+                    ApplicationHostConfig = [xml]$iisSettings.ApplicationHostConfig
+                    ExSetupVersion        = $ExchangeLocalResult.BuildInformation.VersionInformation.BuildVersion
+                    CatchActionFunction   = ${Function:Invoke-CatchActions}
+                }
+                $extendedProtectionConfig = Get-ExtendedProtectionConfigurationResult @getExtendedProtectionConfigurationResultsParams
+            } catch {
+                Invoke-CatchActions
             }
-            $extendedProtectionConfig = Get-ExtendedProtectionConfigurationResult @getExtendedProtectionConfigurationResultsParams
-        } catch {
-            Invoke-CatchActions
+        } else {
+            Write-Verbose "Processing an Edge Server, so not processing IIS Settings"
+            $iisSettings = $null
         }
 
         $hcObject = [PSCustomObject]@{
