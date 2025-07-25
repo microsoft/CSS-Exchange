@@ -57,9 +57,27 @@ function Invoke-AnalyzerEngineHandler {
             $getJobQueueResult = Get-JobQueueResult
             Write-Verbose "Saving out the JobQueue"
             Add-DebugObject -ObjectKeyName "GetJobQueue-AfterDataCollection" -ObjectValueEntry ((Get-JobQueue).Clone())
+            $noResults = $getJobQueueResult.Keys | Where-Object { $null -eq $getJobQueueResult[$_] }
+
+            if ($null -ne $noResults) {
+                Write-Verbose "Analyzer failed for the following servers: $([string]::Join(", ", $noResults))"
+                $getJobQueue = Get-JobQueue
+                foreach ($failedJobKey in $noResults) {
+                    $serverName = $getJobQueue[$failedJobKey].JobParameter.ArgumentList.ServerName
+                    Write-Verbose "Working on Server $serverName"
+                    $singleServerStopWatch = [System.Diagnostics.Stopwatch]::StartNew()
+                    $analyzedResults = Invoke-JobAnalyzerEngine -HealthServerObject $getJobQueue[$failedJobKey].JobParameter.ArgumentList
+                    Write-Verbose "$serverName Analyzer Engine took $($singleServerStopWatch.Elapsed.TotalSeconds) seconds"
+                    $finalResultsProcessed.Add($serverName, $analyzedResults.HCAnalyzedResults)
+                }
+            }
             Write-Verbose "All servers to complete analyzed results $($stopWatch.Elapsed.TotalSeconds) seconds"
 
             foreach ($key in $getJobQueueResult.Keys) {
+                if ( $null -eq $getJobQueueResult[$key]) {
+                    # Skip over jobs that are null out.
+                    continue
+                }
                 $analyzedResults = $getJobQueueResult[$key].HCAnalyzedResults
                 $serverName = $analyzedResults.HealthCheckerExchangeServer.ServerName
                 $finalResultsProcessed.Add($serverName, $analyzedResults)
