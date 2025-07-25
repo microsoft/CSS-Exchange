@@ -17,11 +17,10 @@ Describe "Exchange 2019 Scenarios testing 2" {
         BeforeAll {
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_PageFileSetting" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\OS\Win32_PageFileWellConfigured.xml" }
-            Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\BadApplicationHost.config" -Raw -Encoding UTF8 }
+            Mock Get-Content -ParameterFilter { $Path -eq "$($env:WINDIR)\System32\inetSrv\config\applicationHost.config" } `
+                -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\BadApplicationHost.config" -Raw -Encoding UTF8 }
             Mock Get-WebApplication -MockWith { throw "Error - Pester" }
             Mock Get-WebSite -ParameterFilter { $null -eq $Name } -MockWith { throw "Error - Pester" }
-            Mock Get-WebSite -ParameterFilter { $Name -eq "Default Web Site" } -MockWith { throw "Error - Pester" }
-            Mock Get-WebSite -ParameterFilter { $Name -eq "Exchange Back End" } -MockWith { throw "Error - Pester" }
 
             SetDefaultRunOfHealthChecker "Debug_PageFile_Well_Scenario_Results.xml"
         }

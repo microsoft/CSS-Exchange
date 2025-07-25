@@ -14,6 +14,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
 
     Context "Basic Exchange 2016 CU22 Testing" {
         BeforeAll {
+            Mock Get-InvokeWebRequestResult -ParameterFilter { $Uri -eq "https://officeclient.microsoft.com/GetExchangeMitigations" } -MockWith { return $null }
             Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Test EEMS pattern service connectivity" } -MockWith { return $null }
             SetDefaultRunOfHealthChecker "Debug_E16_Results.xml"
         }
@@ -21,7 +22,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
         It "Display Results - Exchange Information" {
             SetActiveDisplayGrouping "Exchange Information"
 
-            TestObjectMatch "Name" $env:COMPUTERNAME
+            TestObjectMatch "Name" "SOLO-E16A"
             TestObjectMatch "Version" "Exchange 2016 CU22"
             TestObjectMatch "Build Number" "15.01.2375.007"
             TestObjectMatch "Server Role" "Mailbox"

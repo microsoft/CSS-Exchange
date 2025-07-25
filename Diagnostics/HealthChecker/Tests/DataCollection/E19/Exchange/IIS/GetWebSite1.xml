@@ -610,7 +610,7 @@
                   <S N="Name">max-age</S>
                   <S N="TypeName">System.Int64</S>
                   <S N="Schema">Microsoft.IIs.PowerShell.Framework.ConfigurationAttributeSchema</S>
-                  <I64 N="Value">0</I64>
+                  <I64 N="Value">300</I64>
                   <B N="IsExtended">false</B>
                 </Props>
               </Obj>
@@ -687,7 +687,7 @@
         </Props>
         <MS>
           <B N="enabled">true</B>
-          <I64 N="max-age">0</I64>
+          <I64 N="max-age">300</I64>
           <B N="includeSubDomains">false</B>
           <B N="preload">false</B>
           <B N="redirectHttpToHttps">false</B>
