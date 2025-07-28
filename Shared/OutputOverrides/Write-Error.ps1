@@ -14,6 +14,11 @@ function Write-Error {
             $Message = & $Script:WriteErrorManipulateMessageAction $Message
         }
 
+        if ($PSSenderInfo -and
+            $null -ne $Script:WriteErrorRemoteManipulateMessageAction) {
+            $Message = & $Script:WriteErrorRemoteManipulateMessageAction $Message
+        }
+
         Microsoft.PowerShell.Utility\Write-Error $Message
 
         # Add ERROR to beginning of the message by default.
@@ -40,4 +45,8 @@ function SetWriteRemoteErrorAction ($DebugAction) {
 
 function SetWriteErrorManipulateMessageAction ($DebugAction) {
     $Script:WriteErrorManipulateMessageAction = $DebugAction
+}
+
+function SetWriteErrorRemoteManipulateMessageAction ($DebugAction) {
+    $Script:WriteErrorRemoteManipulateMessageAction = $DebugAction
 }

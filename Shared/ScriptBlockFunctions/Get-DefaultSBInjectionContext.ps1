@@ -115,18 +115,18 @@ function Get-DefaultSBInjectionContext {
             if ($sb.Ast.Name -eq "Write-Warning") {
                 Write-Verbose "Set and Add WriteRemoteWarningDebugAction/WriteWarningManipulateMessageAction to using list"
                 SetWriteRemoteWarningAction "New-RemoteWarningPipelineObject"
-                SetWriteWarningManipulateMessageAction "Get-DefaultManipulatorWarningMessage"
+                SetWriteWarningRemoteManipulateMessageAction "Get-DefaultManipulatorWarningMessage"
                 $includeUsingVariableNameList.Add("WriteRemoteWarningDebugAction")
-                $includeUsingVariableNameList.Add("WriteWarningManipulateMessageAction")
+                $includeUsingVariableNameList.Add("WriteWarningRemoteManipulateMessageAction")
                 $includeScriptBlockList.Add(${Function:Get-DefaultManipulatorWarningMessage})
             }
 
             if ($sb.Ast.Name -eq "Write-Error") {
                 Write-Verbose "Set and Add WriteRemoteWarningDebugAction/SetWriteWarningManipulateMessageAction to using list"
                 SetWriteRemoteErrorAction "New-RemoteErrorPipelineObject"
-                SetWriteErrorManipulateMessageAction "Get-DefaultManipulatorErrorMessage"
+                SetWriteErrorRemoteManipulateMessageAction "Get-DefaultManipulatorErrorMessage"
                 $includeUsingVariableNameList.Add("WriteRemoteErrorDebugAction")
-                $includeUsingVariableNameList.Add("WriteErrorManipulateMessageAction")
+                $includeUsingVariableNameList.Add("WriteErrorRemoteManipulateMessageAction")
                 $includeScriptBlockList.Add(${Function:Get-DefaultManipulatorErrorMessage})
             }
 
