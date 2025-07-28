@@ -37,14 +37,20 @@ function Invoke-AnalyzerEngineHandler {
     process {
         if ($RunType -eq "CurrentSession") {
             foreach ($healthServerObject in $ServerDataCollection) {
-                $singleServerStopWatch = [System.Diagnostics.Stopwatch]::StartNew()
-                $progressAnalyzerParams.Activity = "Analysis to execute in current PowerShell session"
-                $progressAnalyzerParams.Status = "Executing analysis on $($healthServerObject.ServerName)"
-                $progressAnalyzerParams.PercentComplete = ($analysisCounter++ / $ServerDataCollection.Count * 100)
-                Write-Progress @progressAnalyzerParams
-                $analyzedResults = Invoke-JobAnalyzerEngine -HealthServerObject $healthServerObject
-                Write-Verbose "$($healthServerObject.ServerName) Analyzer Engine took $($singleServerStopWatch.Elapsed.TotalSeconds) seconds"
-                $finalResultsProcessed.Add($healthServerObject.ServerName, $analyzedResults.HCAnalyzedResults)
+                try {
+                    $singleServerStopWatch = [System.Diagnostics.Stopwatch]::StartNew()
+                    $progressAnalyzerParams.Activity = "Analysis to execute in current PowerShell session"
+                    $progressAnalyzerParams.Status = "Executing analysis on $($healthServerObject.ServerName)"
+                    $progressAnalyzerParams.PercentComplete = ($analysisCounter++ / $ServerDataCollection.Count * 100)
+                    Write-Progress @progressAnalyzerParams
+                    $analyzedResults = Invoke-JobAnalyzerEngine -HealthServerObject $healthServerObject
+                    Write-Verbose "$($healthServerObject.ServerName) Analyzer Engine took $($singleServerStopWatch.Elapsed.TotalSeconds) seconds"
+                    $finalResultsProcessed.Add($healthServerObject.ServerName, $analyzedResults.HCAnalyzedResults)
+                } catch {
+                    Invoke-CatchActions
+                    # Use Write-Error to bubble up the error to us.
+                    Write-Error "Failed to process $($healthServerObject.ServerName) for analysis"
+                }
             }
         } else {
             foreach ($healthServerObject in $ServerDataCollection) {
@@ -63,12 +69,18 @@ function Invoke-AnalyzerEngineHandler {
                 Write-Verbose "Analyzer failed for the following servers: $([string]::Join(", ", $noResults))"
                 $getJobQueue = Get-JobQueue
                 foreach ($failedJobKey in $noResults) {
-                    $serverName = $getJobQueue[$failedJobKey].JobParameter.ArgumentList.ServerName
-                    Write-Verbose "Working on Server $serverName"
-                    $singleServerStopWatch = [System.Diagnostics.Stopwatch]::StartNew()
-                    $analyzedResults = Invoke-JobAnalyzerEngine -HealthServerObject $getJobQueue[$failedJobKey].JobParameter.ArgumentList
-                    Write-Verbose "$serverName Analyzer Engine took $($singleServerStopWatch.Elapsed.TotalSeconds) seconds"
-                    $finalResultsProcessed.Add($serverName, $analyzedResults.HCAnalyzedResults)
+                    try {
+                        $serverName = $getJobQueue[$failedJobKey].JobParameter.ArgumentList.ServerName
+                        Write-Verbose "Working on Server $serverName"
+                        $singleServerStopWatch = [System.Diagnostics.Stopwatch]::StartNew()
+                        $analyzedResults = Invoke-JobAnalyzerEngine -HealthServerObject $getJobQueue[$failedJobKey].JobParameter.ArgumentList
+                        Write-Verbose "$serverName Analyzer Engine took $($singleServerStopWatch.Elapsed.TotalSeconds) seconds"
+                        $finalResultsProcessed.Add($serverName, $analyzedResults.HCAnalyzedResults)
+                    } catch {
+                        Invoke-CatchActions
+                        # Use Write-Error to bubble up the error to us.
+                        Write-Error "Failed to process $serverName for analysis"
+                    }
                 }
             }
             Write-Verbose "All servers to complete analyzed results $($stopWatch.Elapsed.TotalSeconds) seconds"
