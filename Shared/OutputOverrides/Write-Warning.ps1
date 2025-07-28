@@ -14,6 +14,11 @@ function Write-Warning {
             $Message = & $Script:WriteWarningManipulateMessageAction $Message
         }
 
+        if ($PSSenderInfo -and
+            $null -ne $Script:WriteWarningRemoteManipulateMessageAction) {
+            $Message = & $Script:WriteWarningRemoteManipulateMessageAction $Message
+        }
+
         Microsoft.PowerShell.Utility\Write-Warning $Message
 
         # Add WARNING to beginning of the message by default.
@@ -41,4 +46,8 @@ function SetWriteRemoteWarningAction ($DebugAction) {
 
 function SetWriteWarningManipulateMessageAction ($DebugAction) {
     $Script:WriteWarningManipulateMessageAction = $DebugAction
+}
+
+function SetWriteWarningRemoteManipulateMessageAction ($DebugAction) {
+    $Script:WriteWarningRemoteManipulateMessageAction = $DebugAction
 }
