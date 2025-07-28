@@ -17,6 +17,70 @@ function Invoke-JobExchangeInformationCmdlet {
         . $PSScriptRoot\..\..\..\..\Shared\CertificateFunctions\Get-ExchangeServerCertificateInformation.ps1
         . $PSScriptRoot\Get-ExchangeVirtualDirectories.ps1
         . $PSScriptRoot\Get-ExchangeServerMaintenanceState.ps1
+
+        function GetExchangeServerADInformation {
+            [CmdletBinding()]
+            param(
+                [Parameter(Mandatory = $true)]
+                [object]$GetExchangeServer
+            )
+            $adPrincipalGroupMembership = New-Object System.Collections.Generic.List[object]
+            $computerObject = $null
+            try {
+                Write-Verbose "Trying to find the computer membership"
+                [string]$adSiteRaw = $GetExchangeServer.Site
+                $adSite = $adSiteRaw.Substring($adSiteRaw.IndexOf("/Sites/") + 7)
+                Write-Verbose "Found the Computer Site: $adSite"
+                $globalCatalog = $null
+                Get-GlobalCatalogServer -SiteName $adSite | Invoke-RemotePipelineHandler -Result ([ref]$globalCatalog)
+                Write-Verbose "Got GC: $globalCatalog"
+                $DomainDN = "DC=$($GetExchangeServer.OrganizationalUnit.Split("/")[0].Replace(".",",DC="))"
+                Write-Verbose "Determined DomainDN to be: $DomainDN"
+                $directoryEntry = [ADSI]("GC://$globalCatalog/$DomainDN")
+                $searchFilter = "(&(objectCategory=computer)(objectClass=computer)(cn=$($getExchangeServer.Name)))"
+                $properties = @("distinguishedName", "memberOf", "whenCreated", "whenChanged", "objectGUID", "objectSid", "servicePrincipalName", "msExchRMSComputerAccountsBL")
+                $searcher = New-Object System.DirectoryServices.DirectorySearcher($directoryEntry, $searchFilter, $properties)
+                $computerSearchResults = $searcher.FindOne()
+                Write-Verbose "Building Computer AD Object"
+                $computerObjectSidBytes = $computerSearchResults.Properties["objectSid"][0]
+                $computerObjectSid = New-Object System.Security.Principal.SecurityIdentifier($computerObjectSidBytes, 0)
+                $computerObject = [PSCustomObject]@{
+                    MemberOf                    = $computerSearchResults.Properties["memberOf"]
+                    MSExchRmsComputerAccountsBl = $computerSearchResults.Properties["MsExchRmsComputerAccountsBl"]
+                    WhenCreated                 = $computerSearchResults.Properties["WhenCreated"]
+                    WhenChanged                 = $computerSearchResults.Properties["WhenChanged"]
+                    DistinguishedName           = $computerSearchResults.Properties["DistinguishedName"]
+                    ObjectGuid                  = ([System.Guid]::New($($computerSearchResults.Properties["objectGuid"])).Guid)
+                    ServicePrincipalName        = $computerSearchResults.Properties["ServicePrincipalName"]
+                    ObjectSid                   = $computerObjectSid
+                }
+
+                if ($null -ne $computerSearchResults) {
+                    foreach ($dnEntry in $computerSearchResults.Properties["memberOf"]) {
+                        $adEntry = [ADSI]"LDAP://$dnEntry"
+                        $properties = @("distinguishedName", "name", "objectSid", "objectGUID")
+                        $searcher = New-Object System.DirectoryServices.DirectorySearcher($adEntry, "(objectClass=*)", $properties)
+                        $searchResults = $searcher.FindOne()
+                        $objectSidBytes = $searchResults.Properties["objectSid"][0]
+                        $objectSid = New-Object System.Security.Principal.SecurityIdentifier($objectSidBytes, 0)
+                        $objectGuid = [System.Guid]::New($($searchResults.Properties["objectGUID"])).Guid
+                        $adPrincipalGroupMembership.Add(([PSCustomObject]@{
+                                    Name              = $searchResults.Properties["name"]
+                                    DistinguishedName = $searchResults.Properties["distinguishedName"]
+                                    ObjectGuid        = $objectGuid
+                                    SID               = $objectSid
+                                }))
+                    }
+                }
+            } catch {
+                Write-Verbose "Ran into issue trying to get computer membership information"
+                Invoke-CatchActions
+            }
+            return [PSCustomObject]@{
+                ComputerObject  = $computerObject
+                GroupMembership = $adPrincipalGroupMembership
+            }
+        }
         # Extract for Pester Testing - End
 
         if ($PSSenderInfo) {
@@ -111,46 +175,11 @@ function Invoke-JobExchangeInformationCmdlet {
                 Invoke-CatchActions
             }
 
-            try {
-                Write-Verbose "Trying to find the computer membership"
-                [string]$adSiteRaw = $getExchangeServer.Site
-                $adSite = $adSiteRaw.Substring($adSiteRaw.IndexOf("/Sites/") + 7)
-                Write-Verbose "Found the Computer Site: $adSite"
-                $globalCatalog = $null
-                Get-GlobalCatalogServer -SiteName $adSite | Invoke-RemotePipelineHandler -Result ([ref]$globalCatalog)
-                Write-Verbose "Got GC: $globalCatalog"
-                $DomainDN = "DC=$($getExchangeServer.OrganizationalUnit.Split("/")[0].Replace(".",",DC="))"
-                Write-Verbose "Determined DomainDN to be: $DomainDN"
-                $directoryEntry = [ADSI]("GC://$globalCatalog/$DomainDN")
-                $searchFilter = "(&(objectCategory=computer)(objectClass=computer)(cn=$($getExchangeServer.Name)))"
-                $properties = @("distinguishedName", "memberOf", "whenCreated", "whenChanged", "objectGUID", "objectSid", "servicePrincipalName", "msExchRMSComputerAccountsBL")
-                $searcher = New-Object System.DirectoryServices.DirectorySearcher($directoryEntry, $searchFilter, $properties)
-                $searchResults = $searcher.FindOne()
-                $adPrincipalGroupMembership = New-Object System.Collections.Generic.List[object]
+            $getAdGroupInformation = $null
+            GetExchangeServerADInformation -GetExchangeServer $getExchangeServer | Invoke-RemotePipelineHandler -Result ([ref]$getAdGroupInformation)
 
-                if ($null -ne $searchResults) {
-                    foreach ($dnEntry in $searchResults.Properties["memberOf"]) {
-                        $adEntry = [ADSI]"LDAP://$dnEntry"
-                        $properties = @("distinguishedName", "name", "objectSid", "objectGUID")
-                        $searcher = New-Object System.DirectoryServices.DirectorySearcher($adEntry, "(objectClass=*)", $properties)
-                        $searchResults = $searcher.FindOne()
-                        $objectSidBytes = $searchResults.Properties["objectSid"][0]
-                        $objectSid = New-Object System.Security.Principal.SecurityIdentifier($objectSidBytes, 0)
-                        $objectGuid = [System.Guid]::New($($searchResults.Properties["objectGUID"])).Guid
-                        $adPrincipalGroupMembership.Add(([PSCustomObject]@{
-                                    Name              = $searchResults.Properties["name"]
-                                    DistinguishedName = $searchResults.Properties["distinguishedName"]
-                                    ObjectGuid        = $objectGuid
-                                    SID               = $objectSid
-                                }))
-                    }
-                }
-            } catch {
-                Write-Verbose "Ran into issue trying to get computer membership information"
-                Invoke-CatchActions
-            }
             $computerMembership = [PSCustomObject]@{
-                ADGroupMembership = $adPrincipalGroupMembership
+                ADGroupMembership = $getAdGroupInformation.GroupMembership
             }
 
             if ($PSSenderInfo) {
@@ -175,6 +204,7 @@ function Invoke-JobExchangeInformationCmdlet {
                 GetServerMonitoringOverride     = $serverMonitoringOverride
                 ExchangeCertificateInformation  = $exchangeCertificateInformation
                 ExchangeWebSiteNames            = $exchangeWebSites
+                ADObject                        = $getAdGroupInformation.ComputerObject
                 RemoteJob                       = $true -eq $PSSenderInfo
                 JobHandledErrors                = $jobHandledErrors
             }

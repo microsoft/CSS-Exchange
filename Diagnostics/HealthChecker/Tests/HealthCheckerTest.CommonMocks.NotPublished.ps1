@@ -252,6 +252,10 @@ Mock Get-LocalGroupMember {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetLocalGroupMember.xml"
 }
 
+Mock GetExchangeServerADInformation {
+    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeServerADInformation.xml"
+}
+
 # Do nothing
 Mock Invoke-CatchActions { }
 
@@ -312,10 +316,6 @@ function Get-DynamicDistributionGroup {
 
 function Get-IRMConfiguration {
     return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetIrmConfiguration.xml"
-}
-
-function Get-ADPrincipalGroupMembership {
-    return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetADPrincipalGroupMembership.xml"
 }
 
 function Get-ADComputer { return $null }
