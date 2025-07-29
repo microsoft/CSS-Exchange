@@ -101,9 +101,6 @@ function Invoke-JobExchangeInformationLocal {
 
             try {
                 $localGroupMember = Get-LocalGroupMember -SID "S-1-5-32-544" -ErrorAction Stop
-                $computerMembership = [PSCustomObject]@{
-                    LocalGroupMember = $localGroupMember
-                }
             } catch {
                 Write-Verbose "Failed to run Get-LocalGroupMember. Inner Exception: $_"
             }
@@ -207,7 +204,7 @@ function Invoke-JobExchangeInformationLocal {
             AES256CBCInformation                     = $aes256CbcDetails
             IanaTimeZoneMappingsRaw                  = $ianaTimeZoneMappingContent
             FileContentInformation                   = $fileContentInformation
-            ComputerMembership                       = $computerMembership
+            LocalGroupMember                         = $localGroupMember
             RemoteJob                                = $true -eq $PSSenderInfo
             JobHandledErrors                         = $jobHandledErrors
         }

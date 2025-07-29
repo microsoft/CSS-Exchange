@@ -175,12 +175,8 @@ function Invoke-JobExchangeInformationCmdlet {
                 Invoke-CatchActions
             }
 
-            $getAdGroupInformation = $null
-            GetExchangeServerADInformation -GetExchangeServer $getExchangeServer | Invoke-RemotePipelineHandler -Result ([ref]$getAdGroupInformation)
-
-            $computerMembership = [PSCustomObject]@{
-                ADGroupMembership = $getAdGroupInformation.GroupMembership
-            }
+            $getExchangeServerADInformation = $null
+            GetExchangeServerADInformation -GetExchangeServer $getExchangeServer | Invoke-RemotePipelineHandler -Result ([ref]$getExchangeServerADInformation)
 
             if ($PSSenderInfo) {
                 $jobHandledErrors = $Script:ErrorsExcluded
@@ -200,11 +196,10 @@ function Invoke-JobExchangeInformationCmdlet {
                 ServerMaintenance               = $serverMaintenance
                 EdgeTransportResourceThrottling = $edgeTransportResourceThrottling # If we want to checkout other diagnosticInfo, we should create a new object here.iisSettings
                 SettingOverrides                = $settingOverrides
-                ComputerMembership              = $computerMembership
                 GetServerMonitoringOverride     = $serverMonitoringOverride
                 ExchangeCertificateInformation  = $exchangeCertificateInformation
                 ExchangeWebSiteNames            = $exchangeWebSites
-                ADObject                        = $getAdGroupInformation.ComputerObject
+                ADObject                        = $getExchangeServerADInformation
                 RemoteJob                       = $true -eq $PSSenderInfo
                 JobHandledErrors                = $jobHandledErrors
             }
