@@ -23,6 +23,6 @@ try {
     Write-Host "Setup Log Reviewer Version: $BuildVersion"
     Invoke-SetupLogReviewer -SetupLog $SetupLog -DelegatedSetup:$DelegatedSetup
 } catch {
-    Write-HostErrorInformation $_ "Write-Host"
+    Write-HostErrorInformation $_
     Write-Warning ("Ran into an issue with the script. If possible please email the Setup Log to 'ExToolsFeedback@microsoft.com', or at least notify them of the issue.")
 }

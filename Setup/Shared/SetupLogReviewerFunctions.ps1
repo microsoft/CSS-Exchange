@@ -193,7 +193,7 @@ function Get-SetupLogReviewer {
     }
 
     $contextLength = 30
-    $validSetupLog = Select-String "Starting Microsoft Exchange Server \d\d\d\d Setup" $SetupLog -Context 0, $contextLength
+    $validSetupLog = Select-String "Starting Microsoft Exchange Server (\d\d\d\d|Subscription Edition) Setup" $SetupLog -Context 0, $contextLength
 
     if ($null -eq $validSetupLog) {
         throw "Failed to provide valid Exchange Setup Log"
