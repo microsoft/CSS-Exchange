@@ -47,7 +47,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-ExchangeDiagnosticInfo -ParameterFilter { $Process -eq "EdgeTransport" -and $Component -eq "ResourceThrottling" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo_EdgeTransportResourceThrottling1.xml" }
             Mock Get-IISModules { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetIISModulesNoTokenCacheModule.xml" }
-            Mock Get-ADPrincipalGroupMembership { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetADPrincipalGroupMembership2.xml" }
+            Mock GetExchangeServerADInformation { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeServerADInformation2.xml" }
             Mock Get-LocalGroupMember { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetLocalGroupMember2.xml" }
             Mock Get-WindowsFeature { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetWindowsFeature1.xml" }
             Mock Get-SmbServerConfiguration { return Import-Clixml "$Script:MockDataCollectionRoot\OS\GetSmbServerConfiguration1.xml" }

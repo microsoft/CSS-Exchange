@@ -119,9 +119,10 @@ function Get-HealthCheckerDataObject {
                 SettingOverrides                         = $ExchangeCmdletResult.SettingOverrides
                 VirtualDirectories                       = $ExchangeCmdletResult.VirtualDirectories
                 ExchangeCertificateInformation           = $exchangeCertificateInformation
-                ComputerMembership                       = [PSCustomObject]@{
-                    ADGroupMembership = $ExchangeCmdletResult.ComputerMembership.ADGroupMembership
-                    LocalGroupMember  = $ExchangeLocalResult.ComputerMembership.LocalGroupMember
+                ADComputerObject                         = [PSCustomObject]@{
+                    ADObject          = $ExchangeCmdletResult.ADObject.ComputerObject
+                    ADGroupMembership = $ExchangeCmdletResult.ADObject.GroupMembership
+                    LocalGroupMember  = $ExchangeLocalResult.LocalGroupMember
                 }
                 AES256CBCInformation                     = $ExchangeLocalResult.AES256CBCInformation
                 ApplicationConfigFileStatus              = $ExchangeLocalResult.ApplicationConfigFileStatus

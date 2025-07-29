@@ -304,7 +304,7 @@ function Invoke-AnalyzerExchangeInformation {
             DisplayWriteType = "Grey"
         }
 
-        if ($null -ne $exchangeInformation.ComputerMembership -and
+        if ($null -ne $exchangeInformation.ADComputerObject -and
             $null -ne $HealthServerObject.OrganizationInformation.WellKnownSecurityGroups) {
             $localGroupList = $HealthServerObject.OrganizationInformation.WellKnownSecurityGroups |
                 Where-Object { $_.WellKnownName -eq "Exchange Trusted Subsystem" }
@@ -314,9 +314,9 @@ function Invoke-AnalyzerExchangeInformation {
                 Where-Object { $_.WellKnownName -in @("Exchange Trusted Subsystem", "Exchange Servers") }
             $displayMissingGroups = New-Object System.Collections.Generic.List[string]
 
-            if ($null -ne $exchangeInformation.ComputerMembership.LocalGroupMember) {
+            if ($null -ne $exchangeInformation.ADComputerObject.LocalGroupMember) {
                 foreach ($localGroup in $localGroupList) {
-                    if (($null -eq ($exchangeInformation.ComputerMembership.LocalGroupMember.SID | Where-Object { $_.ToString() -eq $localGroup.SID } ))) {
+                    if (($null -eq ($exchangeInformation.ADComputerObject.LocalGroupMember.SID | Where-Object { $_.ToString() -eq $localGroup.SID } ))) {
                         $displayMissingGroups.Add("$($localGroup.WellKnownName) - Local System Membership")
                     }
                 }
@@ -324,12 +324,10 @@ function Invoke-AnalyzerExchangeInformation {
                 $displayMissingGroups.Add("Unable to determine Local System Membership as the results were blank.")
             }
 
-            if ($exchangeInformation.ComputerMembership.ADGroupMembership -eq "NoAdModule") {
-                $displayMissingGroups.Add("Missing Active Directory Module. Run 'Install-WindowsFeature RSat-AD-PowerShell'")
-            } elseif ($null -ne $exchangeInformation.ComputerMembership.ADGroupMembership -and
-                $exchangeInformation.ComputerMembership.ADGroupMembership.Count -gt 0) {
+            if ($null -ne $exchangeInformation.ADComputerObject.ADGroupMembership -and
+                $exchangeInformation.ADComputerObject.ADGroupMembership.Count -gt 0) {
                 foreach ($adGroup in $adGroupList) {
-                    if (($null -eq ($exchangeInformation.ComputerMembership.ADGroupMembership.SID | Where-Object { $_.ToString() -eq $adGroup.SID }))) {
+                    if (($null -eq ($exchangeInformation.ADComputerObject.ADGroupMembership.SID | Where-Object { $_.ToString() -eq $adGroup.SID }))) {
                         $displayMissingGroups.Add("$($adGroup.WellKnownName) - AD Group Membership")
                     }
                 }
