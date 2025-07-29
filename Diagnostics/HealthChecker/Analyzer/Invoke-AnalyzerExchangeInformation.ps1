@@ -324,9 +324,7 @@ function Invoke-AnalyzerExchangeInformation {
                 $displayMissingGroups.Add("Unable to determine Local System Membership as the results were blank.")
             }
 
-            if ($exchangeInformation.ADComputerObject.ADGroupMembership -eq "NoAdModule") {
-                $displayMissingGroups.Add("Missing Active Directory Module. Run 'Install-WindowsFeature RSat-AD-PowerShell'")
-            } elseif ($null -ne $exchangeInformation.ADComputerObject.ADGroupMembership -and
+            if ($null -ne $exchangeInformation.ADComputerObject.ADGroupMembership -and
                 $exchangeInformation.ADComputerObject.ADGroupMembership.Count -gt 0) {
                 foreach ($adGroup in $adGroupList) {
                     if (($null -eq ($exchangeInformation.ADComputerObject.ADGroupMembership.SID | Where-Object { $_.ToString() -eq $adGroup.SID }))) {
