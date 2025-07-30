@@ -26,7 +26,9 @@ function Test-ExchangeServices {
         "MSExchangeSubmission",
         "MSExchangeThrottling",
         "MSExchangeTransport",
-        "MSExchangeTransportLogSearch")
+        "MSExchangeTransportLogSearch",
+        "RemoteRegistry",
+        "WinMgmt")
 
     $services = Get-Service -ErrorAction SilentlyContinue |
         Where-Object { $exchangeServices.Contains($_.Name) }
