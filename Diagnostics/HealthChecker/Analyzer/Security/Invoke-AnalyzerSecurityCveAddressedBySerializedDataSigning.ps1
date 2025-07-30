@@ -110,7 +110,7 @@ function Invoke-AnalyzerSecurityCveAddressedBySerializedDataSigning {
 
         $getSerializedDataSigningState = Get-SerializedDataSigningState -SecurityObject $SecurityObject
         $cveFixedBySerializedDataSigning = $null
-        NewCveFixedBySDSObject | Invoke-RemotePipelineHandler -Result ([ref]$cveFixedBySerializedDataSigning)
+        NewCveFixedBySDSObject | Invoke-RemotePipelineHandlerList -Result ([ref]$cveFixedBySerializedDataSigning)
     }
     process {
         if ($getSerializedDataSigningState.SupportedRole -ne $false) {

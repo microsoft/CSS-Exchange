@@ -73,9 +73,10 @@ function Get-SerializedDataSigningState {
                 }
 
                 $serializedDataSigningSettingOverride = $null
-                Get-FilteredSettingOverrideInformation @params | Invoke-RemotePipelineHandler -Result ([ref]$serializedDataSigningSettingOverride)
+                Get-FilteredSettingOverrideInformation @params | Invoke-RemotePipelineHandlerList -Result ([ref]$serializedDataSigningSettingOverride)
 
-                if ($null -eq $serializedDataSigningSettingOverride) {
+                if ($null -eq $serializedDataSigningSettingOverride -or
+                    $serializedDataSigningSettingOverride.Count -eq 0) {
                     Write-Verbose "No Setting Override Found"
                     $serializedDataSigningEnabled = $enabledByDefaultVersion
                 } elseif ($serializedDataSigningSettingOverride.Count -eq 1) {
