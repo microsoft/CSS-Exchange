@@ -66,7 +66,7 @@ function Invoke-AnalyzerEngineHandler {
             $noResults = $getJobQueueResult.Keys | Where-Object { $null -eq $getJobQueueResult[$_] }
 
             if ($null -ne $noResults) {
-                Write-Verbose "Analyzer failed for the following servers: $([string]::Join(", ", $noResults))"
+                Write-Verbose "Analyzer failed for the following servers: $([string]::Join(", ", [array]$noResults))"
                 $getJobQueue = Get-JobQueue
                 foreach ($failedJobKey in $noResults) {
                     try {

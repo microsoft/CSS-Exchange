@@ -115,7 +115,7 @@ function Invoke-AnalyzerSecurityCveAddressedBySerializedDataSigning {
     process {
         if ($getSerializedDataSigningState.SupportedRole -ne $false) {
             if ($cveFixedBySerializedDataSigning.Count -ge 1) {
-                Write-Verbose ("Testing CVEs: {0}" -f [string]::Join(", ", $cveFixedBySerializedDataSigning.CVE))
+                Write-Verbose ("Testing CVEs: {0}" -f [string]::Join(", ", [array]$cveFixedBySerializedDataSigning.CVE))
 
                 if (($getSerializedDataSigningState.SupportedVersion) -and
                     ($getSerializedDataSigningState.Enabled)) {

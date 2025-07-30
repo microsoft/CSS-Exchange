@@ -97,8 +97,8 @@ function Get-HealthCheckerDataCollection {
                     $getExchangeServerList.Add($passed.PSComputerName, $getExchangeServerListToTestFQDN[$passed.PSComputerName])
                     $getExchangeServerListToTestFQDN.Remove($passed.PSComputerName)
                 }
-                Write-Verbose "Successfully was able to get the following servers for FQDN: $([string]::Join(", ", @($getExchangeServerList.Keys)))"
-                Write-Verbose "Failed to get from the following servers for FQDN: $([string]::Join(", ", @($getExchangeServerListToTestFQDN.Keys)))"
+                Write-Verbose "Successfully was able to get the following servers for FQDN: $([string]::Join(", ", [array]$getExchangeServerList.Keys))"
+                Write-Verbose "Failed to get from the following servers for FQDN: $([string]::Join(", ", [array]$getExchangeServerListToTestFQDN.Keys))"
                 # Now we need to go through what is left to see if we can get to it by server name vs FQDN
                 $progressDataCollectionParams.Status = "$($getExchangeServerListToTestFQDN.Count) failed to be reached by FQDN testing out Name instead"
                 Write-Progress @progressDataCollectionParams
@@ -116,11 +116,11 @@ function Get-HealthCheckerDataCollection {
                     $getExchangeServerList.Add($passed.PSComputerName, $getExchangeServerListToTestFQDN[$key.FQDN])
                     $getExchangeServerListToTestFQDN.Remove($key.FQDN)
                 }
-                Write-Verbose "Successfully was able to get the following servers for server name: $([string]::Join(", ", @($invokeCommandResults.PSComputerName)))"
-                Write-Verbose "Failed to get from the following servers for server name: $([string]::Join(", ", @($getExchangeServerListToTestFQDN.Keys)))"
+                Write-Verbose "Successfully was able to get the following servers for server name: $([string]::Join(", ", [array]$invokeCommandResults.PSComputerName))"
+                Write-Verbose "Failed to get from the following servers for server name: $([string]::Join(", ", [array]$getExchangeServerListToTestFQDN.Keys))"
 
                 if ($getExchangeServerListToTestFQDN.Count -gt 0) {
-                    Write-Warning "Failed to connect to the following servers: $([string]::Join(", ", @($getExchangeServerListToTestFQDN.Keys))). Please run locally."
+                    Write-Warning "Failed to connect to the following servers: $([string]::Join(", ", [array]$getExchangeServerListToTestFQDN.Keys)). Please run locally."
                 }
             } else {
                 Write-Verbose "All Servers Passed FQDN test"

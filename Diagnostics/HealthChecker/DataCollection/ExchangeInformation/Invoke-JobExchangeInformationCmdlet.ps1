@@ -168,7 +168,7 @@ function Invoke-JobExchangeInformationCmdlet {
                 if ($exchangeWebSites.Count -gt 2) {
                     Write-Verbose "Multiple OWA/ECP virtual directories detected"
                 }
-                Write-Verbose "Exchange websites detected: $([string]::Join(", " ,$exchangeWebSites))"
+                Write-Verbose "Exchange websites detected: $([string]::Join(", ", [array]$exchangeWebSites))"
             } catch {
                 Write-Verbose "Failed to get the Exchange Web Sites from Ad."
                 $exchangeWebSites = $null

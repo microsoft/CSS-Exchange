@@ -94,7 +94,7 @@ function Get-SerializedDataSigningState {
                     }
                 } else {
                     Write-Verbose "Multi overrides detected"
-                    $additionalInformation = "SerializedDataSigning is unknown - Multi Setting Overrides Applied: $([string]::Join(", ", $serializedDataSigningSettingOverride.Name))"
+                    $additionalInformation = "SerializedDataSigning is unknown - Multi Setting Overrides Applied: $([string]::Join(", ", [array]$serializedDataSigningSettingOverride.Name))"
                 }
             } else {
                 Write-Verbose "Checking Registry Value for SerializedDataSigning configuration state"

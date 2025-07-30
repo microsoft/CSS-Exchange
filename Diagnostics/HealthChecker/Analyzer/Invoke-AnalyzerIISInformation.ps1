@@ -637,7 +637,7 @@ function Invoke-AnalyzerIISInformation {
         if ($alreadyDisplayedUrlRewriteRules[$urlMatchProblem].Count -gt 0) {
             $params = $baseParams + @{
                 Name             = "Misconfigured URL Rewrite Rule - URL Match Problem Rules"
-                Details          = "$([string]::Join(",", $alreadyDisplayedUrlRewriteRules[$urlMatchProblem]))" +
+                Details          = "$([string]::Join(",", [array]$alreadyDisplayedUrlRewriteRules[$urlMatchProblem]))" +
                 "`r`n`t`tURL Match is set only a wild card which will result in a HTTP 500." +
                 "`r`n`t`tIf the rule is required, the URL match should be '.*' to avoid issues."
                 DisplayWriteType = "Red"

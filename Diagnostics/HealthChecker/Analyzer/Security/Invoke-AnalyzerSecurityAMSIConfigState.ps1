@@ -84,7 +84,7 @@ function Invoke-AnalyzerSecurityAMSIConfigState {
             }
         } else {
             $amsiState = "Multiple overrides detected"
-            $additionalAMSIDisplayValue = $amsiConfigurationUnknown + " - Multi Setting Overrides Applied: $([string]::Join(", ", $amsiInformation.Name))"
+            $additionalAMSIDisplayValue = $amsiConfigurationUnknown + " - Multi Setting Overrides Applied: $([string]::Join(", ", [array]$amsiInformation.Name))"
             $additionalAMSIDisplayValue += $amsiConfigurationWarning + "`r`n`t`t" + $amsiMoreInfo
         }
 

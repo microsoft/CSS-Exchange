@@ -242,7 +242,7 @@ function Invoke-AnalyzerHybridInformation {
                 foreach ($authServer in $evoStsAuthServer) {
                     $dedicatedHybridAppAuthServerObjects++
 
-                    $authServerDetails = "AuthServer: $($authServer.Id)`r`n`t`tTenantId: $($authServer.Realm)`r`n`t`tAppId: $($authServer.ApplicationIdentifier)`r`n`t`tDomain(s): $([System.String]::Join(", ", @($authServer.DomainName)))"
+                    $authServerDetails = "AuthServer: $($authServer.Id)`r`n`t`tTenantId: $($authServer.Realm)`r`n`t`tAppId: $($authServer.ApplicationIdentifier)`r`n`t`tDomain(s): $([System.String]::Join(", ", [array]$authServer.DomainName))"
 
                     if ($dedicatedHybridAppAuthServerObjects -lt $evoStsAuthServer.Count) {
                         $authServerDetails = $authServerDetails + "`r`n`r`n"

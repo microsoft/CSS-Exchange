@@ -277,7 +277,7 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
             if ($ianaTimeZoneInvalidEntriesList.Count -ge 1) {
                 $params = $baseParams + @{
                     Name             = "IanaTimeZoneMappings.xml invalid"
-                    Details          = "`r`n`t`t$([System.String]::Join("`r`n`t`t", $ianaTimeZoneInvalidEntriesList))`r`n`t`tMore information: https://aka.ms/ExchangeIanaTimeZoneIssue"
+                    Details          = "`r`n`t`t$([System.String]::Join("`r`n`t`t", [array]$ianaTimeZoneInvalidEntriesList))`r`n`t`tMore information: https://aka.ms/ExchangeIanaTimeZoneIssue"
                     DisplayWriteType = "Red"
                 }
                 Add-AnalyzedResultInformation @params
