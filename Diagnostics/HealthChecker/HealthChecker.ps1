@@ -204,6 +204,7 @@ begin {
     SetWriteErrorAction ${Function:Write-DebugLog}
     SetWriteProgressAction ${Function:Write-DebugLog}
     Get-PSSessionDetails
+    Write-Verbose "Script Execution Line: $($script:MyInvocation.Line)"
 } process {
     $Server | ForEach-Object { $Script:ServerNameList.Add($_.ToUpper()) }
 } end {
