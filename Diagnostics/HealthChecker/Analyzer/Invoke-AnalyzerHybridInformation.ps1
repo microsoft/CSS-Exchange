@@ -30,7 +30,7 @@ function Invoke-AnalyzerHybridInformation {
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $getHybridConfiguration = $HealthServerObject.OrganizationInformation.GetHybridConfiguration
 
-    $evoStsAuthServer = $HealthServerObject.OrganizationInformation.GetAuthServer | Where-Object {
+    [array]$evoStsAuthServer = $HealthServerObject.OrganizationInformation.GetAuthServer | Where-Object {
         (($_.Name -match "^EvoSts - $guidRegEx") -or
         ($_.Name -match "EvoSTS")) -and
         $_.Type -eq "AzureAD" -and
@@ -38,7 +38,7 @@ function Invoke-AnalyzerHybridInformation {
         $_.Enabled -eq $true
     }
 
-    $dedicatedHybridAppOverride = $HealthServerObject.OrganizationInformation.GetSettingOverride | Where-Object {
+    [array]$dedicatedHybridAppOverride = $HealthServerObject.OrganizationInformation.GetSettingOverride | Where-Object {
         $_.ComponentName -eq "Global" -and
         $_.SectionName -eq "ExchangeOnpremAsThirdPartyAppId"
     }
@@ -242,7 +242,7 @@ function Invoke-AnalyzerHybridInformation {
                 foreach ($authServer in $evoStsAuthServer) {
                     $dedicatedHybridAppAuthServerObjects++
 
-                    $authServerDetails = "AuthServer: $($authServer.Id)`r`n`t`tTenantId: $($authServer.Realm)`r`n`t`tAppId: $($authServer.ApplicationIdentifier)`r`n`t`tDomain(s): $([System.String]::Join(", ", $authServer.DomainName))"
+                    $authServerDetails = "AuthServer: $($authServer.Id)`r`n`t`tTenantId: $($authServer.Realm)`r`n`t`tAppId: $($authServer.ApplicationIdentifier)`r`n`t`tDomain(s): $([System.String]::Join(", ", @($authServer.DomainName)))"
 
                     if ($dedicatedHybridAppAuthServerObjects -lt $evoStsAuthServer.Count) {
                         $authServerDetails = $authServerDetails + "`r`n`r`n"
