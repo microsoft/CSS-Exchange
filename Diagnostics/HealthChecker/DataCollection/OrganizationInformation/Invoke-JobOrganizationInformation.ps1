@@ -46,7 +46,21 @@ function Invoke-JobOrganizationInformation {
         }
 
         try {
-            $getSendConnector = Get-SendConnector -ErrorAction Stop
+            $getSendConnectorRaw = Get-SendConnector -ErrorAction Stop
+            $getSendConnector = New-Object System.Collections.Generic.List[object]
+
+            # We need pull out the information about AuthenticationCredential to allow the data to be exported and imported
+            foreach ($sendConnectorRaw in $getSendConnectorRaw) {
+                $sendConnector = $sendConnectorRaw | Select-Object -Property * -ExcludeProperty AuthenticationCredential
+
+                if ($null -ne $sendConnectorRaw.AuthenticationCredential -and
+                    $null -ne $sendConnectorRaw.AuthenticationCredential.UserName) {
+                    $sendConnector | Add-Member -MemberType NoteProperty -Name AuthenticationCredential -Value ([PSCustomObject]@{
+                            UserName = ($sendConnectorRaw.AuthenticationCredential.UserName)
+                        })
+                }
+                $getSendConnector.Add($sendConnector)
+            }
         } catch {
             Write-Verbose "Failed to run Get-SendConnector"
             Invoke-CatchActions
