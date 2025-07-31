@@ -33,7 +33,7 @@ function Invoke-AnalyzerHybridInformation {
     [array]$evoStsAuthServer = $HealthServerObject.OrganizationInformation.GetAuthServer | Where-Object {
         (($_.Name -match "^EvoSts - $guidRegEx") -or
         ($_.Name -match "EvoSTS")) -and
-        $_.Type -eq "AzureAD" -and
+        $_.Type.ToString() -eq "AzureAD" -and
         $_.ApplicationIdentifier -match $guidRegEx -and
         $_.Enabled -eq $true
     }
