@@ -177,8 +177,10 @@ function Invoke-JobExchangeInformationLocal {
             }
 
             Write-Verbose "Attempting to get the endpoints from the server"
-            $eemsEndpointResults = Get-InvokeWebRequestResult -Uri "https://officeclient.microsoft.com/GetExchangeMitigations"
-            $featureFlightingEndpointResults = Get-InvokeWebRequestResult -Uri "https://officeclient.microsoft.com/GetExchangeConfig"
+            $eemsEndpointResults = $null
+            Get-InvokeWebRequestResult -Uri "https://officeclient.microsoft.com/GetExchangeMitigations" | Invoke-RemotePipelineHandler -Result ([ref]$eemsEndpointResults)
+            $featureFlightingEndpointResults = $null
+            Get-InvokeWebRequestResult -Uri "https://officeclient.microsoft.com/GetExchangeConfig" | Invoke-RemotePipelineHandler -Result ([ref]$featureFlightingEndpointResults)
         } catch {
             Invoke-CatchActions
         } finally {
