@@ -49,6 +49,7 @@ function Get-ErrorsThatOccurred {
 
         if ((Test-UnhandledErrorsOccurred)) {
             Write-Red("There appears to have been some errors in the script. To assist with debugging of the script, please send the HealthChecker-Debug_*.txt, HealthChecker-ScriptDebugObject.xml, and .xml file to ExToolsFeedback@microsoft.com.")
+            Write-Red "`tPlease include in the subject of the email with 'HealthChecker-$([System.Guid]::NewGuid())' to avoid duplicate email subjects being sent to us."
             $Script:Logger.PreventLogCleanup = $true
             Write-ScriptDebugObject
             Write-Errors
