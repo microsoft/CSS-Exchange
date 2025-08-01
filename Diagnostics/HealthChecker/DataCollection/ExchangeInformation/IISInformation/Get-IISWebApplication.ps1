@@ -2,7 +2,13 @@
 # Licensed under the MIT License.
 
 function Get-IISWebApplication {
-    $webApplications = Get-WebApplication
+    try {
+        $webApplications = Get-WebApplication
+    } catch {
+        Write-Verbose "Failed to run Get-WebApplication. Inner Exception: $_"
+        Invoke-CatchActions
+    }
+
     $returnList = New-Object 'System.Collections.Generic.List[object]'
 
     foreach ($webApplication in $webApplications) {

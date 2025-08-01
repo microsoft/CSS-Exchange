@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-RemoteRegistryValue.ps1
+. $PSScriptRoot\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 
 function Get-NETFrameworkVersion {
     [CmdletBinding(DefaultParameterSetName = "CollectFromServer")]
@@ -37,7 +38,9 @@ function Get-NETFrameworkVersion {
                 GetValue            = "Release"
                 CatchActionFunction = $CatchActionFunction
             }
-            [int]$NetVersionKey = Get-RemoteRegistryValue @params
+            $NetVersionKey = $null
+            Get-RemoteRegistryValue @params | Invoke-RemotePipelineHandler -Result ([ref]$NetVersionKey)
+            [int]$NetVersionKey = $NetVersionKey
         }
 
         #Using Minimum Version as per https://docs.microsoft.com/en-us/dotnet/framework/migration-guide/how-to-determine-which-versions-are-installed?redirectedfrom=MSDN#minimum-version

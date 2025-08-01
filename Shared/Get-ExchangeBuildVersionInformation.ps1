@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Invoke-CatchActionError.ps1
+. $PSScriptRoot\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 
 # This function is used to determine the version of Exchange based off a build number or
 # by providing the Exchange Version and CU and/or SU. This provides one location in the entire repository
@@ -84,7 +85,10 @@ function Get-ExchangeBuildVersionInformation {
                     foreach ($cuKey in $exchangeBuildDictionary[$exchangeKey].Keys) {
                         if ($null -ne $exchangeBuildDictionary[$exchangeKey][$cuKey].SU -and
                             $exchangeBuildDictionary[$exchangeKey][$cuKey].SU.ContainsKey($FindBySUName)) {
-                            Get-ExchangeBuildVersionInformation -FileVersion $exchangeBuildDictionary[$exchangeKey][$cuKey].SU[$FindBySUName]
+                            $result = $null
+                            Get-ExchangeBuildVersionInformation -FileVersion $exchangeBuildDictionary[$exchangeKey][$cuKey].SU[$FindBySUName] |
+                                Invoke-RemotePipelineHandler -Result ([ref]$result)
+                            $result
                         }
                     }
                 }

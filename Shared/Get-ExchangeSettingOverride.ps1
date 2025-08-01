@@ -3,6 +3,7 @@
 
 . $PSScriptRoot\Get-ExchangeDiagnosticInformation.ps1
 . $PSScriptRoot\Invoke-CatchActionError.ps1
+. $PSScriptRoot\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 
 function Get-ExchangeSettingOverride {
     [CmdletBinding()]
@@ -18,6 +19,7 @@ function Get-ExchangeSettingOverride {
         $updatedTime = [DateTime]::MinValue
         $settingOverrides = $null
         $simpleSettingOverrides = New-Object 'System.Collections.Generic.List[object]'
+        $diagnosticInfo = $null
     }
     process {
         try {
@@ -28,7 +30,8 @@ function Get-ExchangeSettingOverride {
                 Server              = $Server
                 CatchActionFunction = $CatchActionFunction
             }
-            $diagnosticInfo = Get-ExchangeDiagnosticInformation @params
+            Get-ExchangeDiagnosticInformation @params |
+                Invoke-RemotePipelineHandler -Result ([ref]$diagnosticInfo)
 
             if ($null -ne $diagnosticInfo) {
                 Write-Verbose "Successfully got the Exchange Diagnostic Information"
