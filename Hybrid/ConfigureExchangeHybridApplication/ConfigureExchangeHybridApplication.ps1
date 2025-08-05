@@ -1172,6 +1172,6 @@ begin {
     }
 
     Write-Host ""
-    Write-Host "Do you have feedback regarding the script? Please email ExToolsFeedback@microsoft.com." -ForegroundColor Green
+    Write-Host "Do you have feedback regarding the script? Please email ExchOnPremFeedback@microsoft.com." -ForegroundColor Green
     Write-Host ""
 }
