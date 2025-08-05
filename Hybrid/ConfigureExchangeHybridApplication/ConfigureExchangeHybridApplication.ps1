@@ -288,6 +288,14 @@ begin {
     Get-PSSessionDetails
     Write-Verbose "Url to check for new versions of the script is: $versionsUrl"
 
+    # Prevent the script from running on PowerShell Core - there are adjustments needed which must be tested before release
+    # We can't use requires PSEdition Desktop because it's not compatible with PowerShell version 3 and 4
+    if ($null -ne $PSVersionTable.PSEdition -and $PSVersionTable.PSEdition -eq "Core") {
+        Write-Host "This script isn't supported in PowerShell Core - use PowerShell 5.1 or earlier" -ForegroundColor Yellow
+
+        return
+    }
+
     #region Pre-Configuration
     # Gets the Fqdn of the local computer
     $localServerFqdn = [System.Net.Dns]::GetHostEntry($env:COMPUTERNAME).HostName
@@ -390,7 +398,7 @@ begin {
         Message   = "Show warning about Microsoft Entra ID application configuration"
         Target    = "The script was executed to perform the following operations:" +
         "`r`n`r`n$targetMessage" +
-        "`r`n`r`nMore information about the script and each operation can be found under: https://aka.ms/ConfigureExchangeHybridApplication" +
+        "`r`n`r`nMore information about the script and each operation can be found under: https://aka.ms/ConfigureExchangeHybridApplication-Docs#changes-made-by-the-script" +
         "`r`n`r`nDo you want to continue?"
         Operation = "Configure dedicated Exchange hybrid application feature"
     }
@@ -1155,7 +1163,15 @@ begin {
     }
     #endregion
 } end {
+    if ($Script:EnableExchangeHybridApplicationOverride) {
+        Write-Host ""
+        Write-Host "******************************************************************************************************" -ForegroundColor Yellow
+        Write-Host "* After confirming the dedicated hybrid app works, run the script in service principal clean-up mode *" -ForegroundColor Yellow
+        Write-Host "* https://aka.ms/ConfigureExchangeHybridApplication-Docs#service-principal-clean-up-mode             *" -ForegroundColor Yellow
+        Write-Host "******************************************************************************************************" -ForegroundColor Yellow
+    }
+
     Write-Host ""
-    Write-Host ("Do you have feedback regarding the script? Please email ExToolsFeedback@microsoft.com.") -ForegroundColor Green
+    Write-Host "Do you have feedback regarding the script? Please email ExchOnPremFeedback@microsoft.com." -ForegroundColor Green
     Write-Host ""
 }
