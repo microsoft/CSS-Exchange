@@ -10,6 +10,10 @@
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-2023-36434.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityCveAddressedBySerializedDataSigning.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-2024-49040.ps1
+. $PSScriptRoot\Invoke-AnalyzerSecurityCve-2025-25005.ps1
+. $PSScriptRoot\Invoke-AnalyzerSecurityCve-2025-25006.ps1
+. $PSScriptRoot\Invoke-AnalyzerSecurityCve-2025-25007.ps1
+. $PSScriptRoot\Invoke-AnalyzerSecurityCve-2025-33051.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-MarchSuSpecial.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityExtendedProtectionConfigState.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityIISModules.ps1
@@ -214,6 +218,10 @@ function Invoke-AnalyzerSecurityCveCheck {
     Invoke-AnalyzerSecurityCve-MarchSuSpecial -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     Invoke-AnalyzerSecurityADV24199947 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     Invoke-AnalyzerSecurityCve-2024-49040 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
+    Invoke-AnalyzerSecurityCve-2025-25005 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
+    Invoke-AnalyzerSecurityCve-2025-25006 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
+    Invoke-AnalyzerSecurityCve-2025-25007 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
+    Invoke-AnalyzerSecurityCve-2025-33051 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     # Make sure that these stay as the last one to keep the output more readable
     Invoke-AnalyzerSecurityExtendedProtectionConfigState -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
 }
