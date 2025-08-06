@@ -114,7 +114,7 @@ function Get-ExchangeBuildVersionInformation {
         if ($exchangeVersion.Major -eq 15 -and $exchangeVersion.Minor -eq 2 -and $exchangeVersion.Build -ge 2562) {
             Write-Verbose "Exchange Server SE is detected"
             $exchangeMajorVersion = "ExchangeSE"
-            $extendedSupportDate = "10/14/9999"
+            $extendedSupportDate = "12/31/2035"
             $friendlyName = "Exchange SE"
             #Latest Version AD Settings
             $schemaValue = 17003
