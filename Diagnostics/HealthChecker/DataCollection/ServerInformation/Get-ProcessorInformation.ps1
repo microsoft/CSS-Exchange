@@ -2,7 +2,8 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-WmiObjectCriticalHandler.ps1
-. $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
+
 function Get-ProcessorInformation {
     [CmdletBinding()]
     param(
@@ -10,6 +11,12 @@ function Get-ProcessorInformation {
         [ScriptBlock]$CatchActionFunction
     )
     begin {
+        # Extract for Pester Testing - Start
+        function GetProcessorCount {
+            return [System.Environment]::ProcessorCount
+        }
+        # Extract for Pester Testing - End
+
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $wmiObject = $null
         $processorName = [string]::Empty
@@ -25,7 +32,10 @@ function Get-ProcessorInformation {
         $previousProcessor = $null
     }
     process {
-        $wmiObject = @(Get-WmiObjectCriticalHandler -ComputerName $MachineName -Class "Win32_Processor" -CatchActionFunction $CatchActionFunction)
+        $wmiObject = @()
+        Get-WmiObjectCriticalHandler -ComputerName $MachineName -Class "Win32_Processor" -CatchActionFunction $CatchActionFunction |
+            Invoke-RemotePipelineHandler -Result ([ref]$wmiObject)
+        [array]$wmiObject = @($wmiObject)
         $processorName = $wmiObject[0].Name
         $maxClockSpeed = $wmiObject[0].MaxClockSpeed
         Write-Verbose "Evaluating processor results"
@@ -57,10 +67,7 @@ function Get-ProcessorInformation {
             $previousProcessor = $processor
         }
 
-        $presentedProcessorCoreCount = Invoke-ScriptBlockHandler -ComputerName $MachineName `
-            -ScriptBlock { [System.Environment]::ProcessorCount } `
-            -ScriptBlockDescription "Trying to get the System.Environment ProcessorCount" `
-            -CatchActionFunction $CatchActionFunction
+        $presentedProcessorCoreCount = GetProcessorCount
 
         if ($null -eq $presentedProcessorCoreCount) {
             Write-Verbose "Wasn't able to get Presented Processor Core Count on the Server. Setting to -1."
