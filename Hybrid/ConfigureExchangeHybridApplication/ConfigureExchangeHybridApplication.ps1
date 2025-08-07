@@ -456,7 +456,7 @@ begin {
         Write-Verbose "Script was run to only configure TargetSharingEpr or AuthServer - dedicated Exchange hybrid application feature build check will be skipped"
     } elseif ($isAutomatedCertificateUpload -or
         $Script:EnableExchangeHybridApplicationOverride) {
-        $exchangeServersList = Get-ProcessedServerList -MinimumSU "Apr25HU" -DisplayOutdatedServers $false
+        $exchangeServersList = Get-ProcessedServerList -MinimumSU "Apr25SU" -DisplayOutdatedServers $false
 
         $isLocalServerMailboxServer = ($exchangeServersList.GetExchangeServer | Where-Object {
                 $_.Fqdn -eq $localServerFqdn
