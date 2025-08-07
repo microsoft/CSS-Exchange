@@ -145,9 +145,10 @@ function Get-ExchangeBuildVersionInformation {
                     $cuLevel = "CU15"
                     $cuReleaseDate = "02/10/2025"
                     $supportedBuildNumber = $true
+                    $latestSUBuild = $true
                 }
                 (GetBuildVersion $ex19 "CU15" -SU "May25HU") { $latestSUBuild = $true }
-                (GetBuildVersion $ex19 "CU15" -SU "Apr25SU") { $latestSUBuild = $true }
+                (GetBuildVersion $ex19 "CU15" -SU "Apr25HU") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex19 "CU15") } {
                     $cuLevel = "CU14"
                     $cuReleaseDate = "02/13/2024"
@@ -155,13 +156,17 @@ function Get-ExchangeBuildVersionInformation {
                     $orgValue = 16762
                 }
                 (GetBuildVersion $ex19 "CU14" -SU "May25HU") { $latestSUBuild = $true }
-                (GetBuildVersion $ex19 "CU14" -SU "Apr25SU") { $latestSUBuild = $true }
+                (GetBuildVersion $ex19 "CU14" -SU "Apr25HU") { $latestSUBuild = $true }
+                (GetBuildVersion $ex19 "CU14" -SU "Nov24SUv2") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex19 "CU14") } {
                     $cuLevel = "CU13"
                     $cuReleaseDate = "05/03/2023"
                     $supportedBuildNumber = $false
                     $orgValue = 16761
                 }
+                # Technically the SU is still secure. Might need to change pester testing on this to make it okay. But it is complaining about the second SU both being on the latest.
+                # for now just going to leave as is as this might change with upcoming releases.
+                (GetBuildVersion $ex19 "CU13" -SU "Nov24SUv2") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex19 "CU13") } {
                     $cuLevel = "CU12"
                     $cuReleaseDate = "04/20/2022"
@@ -253,7 +258,8 @@ function Get-ExchangeBuildVersionInformation {
                     $supportedBuildNumber = $true
                 }
                 (GetBuildVersion $ex16 "CU23" -SU "May25HU") { $latestSUBuild = $true }
-                (GetBuildVersion $ex16 "CU23" -SU "Apr25SU") { $latestSUBuild = $true }
+                (GetBuildVersion $ex16 "CU23" -SU "Apr25HU") { $latestSUBuild = $true }
+                (GetBuildVersion $ex16 "CU23" -SU "Nov24SUv2") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex16 "CU23") } {
                     $cuLevel = "CU22"
                     $cuReleaseDate = "09/28/2021"
@@ -741,7 +747,7 @@ function GetExchangeBuildDictionary {
                     "Apr24HU"   = "15.1.2507.39"
                     "Nov24SU"   = "15.1.2507.43"
                     "Nov24SUv2" = "15.1.2507.44"
-                    "Apr25SU"   = "15.1.2507.55"
+                    "Apr25HU"   = "15.1.2507.55"
                     "May25HU"   = "15.1.2507.57"
                 })
         }
@@ -850,11 +856,11 @@ function GetExchangeBuildDictionary {
                     "Apr24HU"   = "15.2.1544.11"
                     "Nov24SU"   = "15.2.1544.13"
                     "Nov24SUv2" = "15.2.1544.14"
-                    "Apr25SU"   = "15.2.1544.25"
+                    "Apr25HU"   = "15.2.1544.25"
                     "May25HU"   = "15.2.1544.27"
                 })
             "CU15" = (NewCUAndSUObject "15.2.1748.10" @{
-                    "Apr25SU" = "15.2.1748.24"
+                    "Apr25HU" = "15.2.1748.24"
                     "May25HU" = "15.2.1748.26"
                 })
         }
