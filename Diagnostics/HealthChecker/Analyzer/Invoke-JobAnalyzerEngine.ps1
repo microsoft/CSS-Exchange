@@ -35,6 +35,7 @@ function Invoke-JobAnalyzerEngine {
             HCAnalyzedResults = $healthCheckerAnalyzedResult
             RemoteJob         = $true -eq $PSSenderInfo
             JobHandledErrors  = $jobHandledErrors
+            AllErrors         = $Error
         }
     }
 }

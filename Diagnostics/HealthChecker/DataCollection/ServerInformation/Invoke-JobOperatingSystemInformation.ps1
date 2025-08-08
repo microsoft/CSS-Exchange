@@ -137,6 +137,7 @@ function Invoke-JobOperatingSystemInformation {
             PerformanceCounters        = $counters
             RemoteJob                  = $true -eq $PSSenderInfo
             JobHandledErrors           = $jobHandledErrors
+            AllErrors                  = $Error
         }
     }
 }

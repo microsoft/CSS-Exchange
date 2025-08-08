@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Add-JobAnalyzerEngine.ps1
+. $PSScriptRoot\..\Helpers\HiddenJobUnhandledErrorFunctions.ps1
 . $PSScriptRoot\..\..\..\Shared\JobManagementFunctions\GetJobManagementFunctions.ps1
 . $PSScriptRoot\..\..\..\Shared\JobManagementFunctions\Wait-JobQueue.ps1
 . $PSScriptRoot\..\..\..\Shared\ScriptBlockFunctions\RemoteSBLoggingFunctions.ps1
@@ -64,6 +65,7 @@ function Invoke-AnalyzerEngineHandler {
             Write-Verbose "Saving out the JobQueue"
             Add-DebugObject -ObjectKeyName "GetJobQueue-AfterDataCollection" -ObjectValueEntry ((Get-JobQueue).Clone())
             $noResults = $getJobQueueResult.Keys | Where-Object { $null -eq $getJobQueueResult[$_] }
+            $getJobQueueResult.Values | Where-Object { $null -ne $_ } | Invoke-HiddenJobUnhandledErrors
 
             if ($null -ne $noResults) {
                 Write-Verbose "Analyzer failed for the following servers: $([string]::Join(", ", [array]$noResults))"

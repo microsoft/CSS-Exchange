@@ -15,6 +15,7 @@
 . $PSScriptRoot\..\DataCollection\ExchangeInformation\Add-JobExchangeInformationLocal.ps1
 . $PSScriptRoot\..\DataCollection\ExchangeInformation\Invoke-JobExchangeInformationCmdlet.ps1
 . $PSScriptRoot\..\DataCollection\ExchangeInformation\Invoke-JobExchangeInformationLocal.ps1
+. $PSScriptRoot\..\Helpers\HiddenJobUnhandledErrorFunctions.ps1
 . $PSScriptRoot\..\..\..\Shared\JobManagementFunctions\Wait-JobQueue.ps1
 . $PSScriptRoot\..\..\..\Shared\ScriptBlockFunctions\RemoteSBLoggingFunctions.ps1
 . $PSScriptRoot\..\..\..\Shared\ScriptDebugFunctions.ps1
@@ -216,6 +217,7 @@ function Get-HealthCheckerDataCollection {
             Wait-JobQueue -ProcessReceiveJobAction ${Function:Invoke-RemotePipelineLoggingLocal}
             $jobResults = Get-JobQueueResult
             Write-Verbose "Job Queue and Get Results time taken $($stopWatch.Elapsed.TotalSeconds) seconds"
+            $jobResults.Values | Where-Object { $null -ne $_ } | Invoke-HiddenJobUnhandledErrors
             Write-Verbose "Saving out the JobQueue prior to clearing it."
             Add-DebugObject -ObjectKeyName "GetJobQueue-AfterDataCollection" -ObjectValueEntry ((Get-JobQueue).Clone())
             Clear-JobQueue
@@ -259,6 +261,18 @@ function Get-HealthCheckerDataCollection {
                 OSInformationResult           = $jobResults["$osKey-$serverName"]
                 GenerationTime                = $generationTime
             }
+
+            if ($null -eq $organizationInformation -or
+                $null -eq $exchCmdletResults -or
+                $null -eq $exchLocalResults -or
+                $null -eq $jobResults["$hardwareKey-$serverName"] -or
+                $null -eq $jobResults["$osKey-$serverName"]) {
+                Write-Verbose ("Didn't get all the information. OrgInfo: $($null -eq $organizationInformation) ExchCmdlet: $($null -eq $exchCmdletResults)" +
+                    " ExchLocal: $($null -eq $exchLocalResults) Hardware: $($null -eq $jobResults["$hardwareKey-$serverName"]) OSInfo: $($null -eq $jobResults["$osKey-$serverName"])")
+                Write-Warning "Failed to get all the required information for server $serverName to properly review the data. Try to collect the data locally."
+                continue
+            }
+
             $dataObject = Get-HealthCheckerDataObject @params
             Add-DebugObject -ObjectKeyName "Get-HealthCheckerDataObject" -ObjectValueEntry $dataObject
             $healthCheckerData.Add($dataObject)

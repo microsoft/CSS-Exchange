@@ -209,6 +209,7 @@ function Invoke-JobExchangeInformationLocal {
             LocalGroupMember                         = $localGroupMember
             RemoteJob                                = $true -eq $PSSenderInfo
             JobHandledErrors                         = $jobHandledErrors
+            AllErrors                                = $Error
         }
     }
 }
