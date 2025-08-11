@@ -331,10 +331,13 @@ begin {
         $graphApiEndpoint = $Script:CustomGraphApiUri
     }
 
-    # Query the guid of the Exchange organization and set the name of the application that we create in Azure and working with
-    $organizationGuid = Get-ExchangeOrganizationGuid
+    if (-not $Script:ResetFirstPartyServicePrincipalKeyCredentials) {
+        # Query the guid of the Exchange organization and set the name of the application that we create in Azure and working with
+        $organizationGuid = Get-ExchangeOrganizationGuid
+    }
 
-    if ($null -eq $organizationGuid) {
+    if ($null -eq $organizationGuid -and
+        -not $Script:ResetFirstPartyServicePrincipalKeyCredentials) {
         Write-Host "Unable to query the guid of the Exchange organization - please try to run the script again" -ForegroundColor Yellow
 
         return
@@ -550,24 +553,26 @@ begin {
             AzAccountsObject = $graphAccessToken
         }
 
-        # We need the application information for running any kind of sub-task and therefore query it first
-        if ([System.String]::IsNullOrEmpty($Script:CustomAppId)) {
-            Write-Verbose "No App ID was provided via 'CustomAppId' parameter"
-            $azureApplicationInformation = Get-AzureApplication @graphApiBaseParams -AzureApplicationName $azureApplicationName
+        if (-not $Script:ResetFirstPartyServicePrincipalKeyCredentials) {
+            # We need the application information for running any kind of sub-task and therefore query it first
+            if ([System.String]::IsNullOrEmpty($Script:CustomAppId)) {
+                Write-Verbose "No App ID was provided via 'CustomAppId' parameter"
+                $azureApplicationInformation = Get-AzureApplication @graphApiBaseParams -AzureApplicationName $azureApplicationName
 
-            # Get-AzureApplication returns $null if the Graph API call has failed (StatusCode != 200)
-            if ($null -eq $azureApplicationInformation) {
-                Write-Host "Graph API call to validate the existence of the application has failed" -ForegroundColor Yellow
-                Write-Host "Please run the script again or provide the App ID by using the 'CustomAppId' parameter" -ForegroundColor Yellow
+                # Get-AzureApplication returns $null if the Graph API call has failed (StatusCode != 200)
+                if ($null -eq $azureApplicationInformation) {
+                    Write-Host "Graph API call to validate the existence of the application has failed" -ForegroundColor Yellow
+                    Write-Host "Please run the script again or provide the App ID by using the 'CustomAppId' parameter" -ForegroundColor Yellow
 
-                return
+                    return
+                }
             }
-        }
 
-        # We also need the list of domains which are registered for a tenant to locate the remote routing domains
-        if ([System.String]::IsNullOrWhiteSpace($Script:RemoteRoutingDomain)) {
-            Write-Verbose "No Remote Routing Domain ID was provided via 'RemoteRoutingDomain' parameter"
-            $domainList = Get-AzureTenantDomainList @graphApiBaseParams
+            # We also need the list of domains which are registered for a tenant to locate the remote routing domains
+            if ([System.String]::IsNullOrWhiteSpace($Script:RemoteRoutingDomain)) {
+                Write-Verbose "No Remote Routing Domain ID was provided via 'RemoteRoutingDomain' parameter"
+                $domainList = Get-AzureTenantDomainList @graphApiBaseParams
+            }
         }
     }
 
@@ -1159,7 +1164,8 @@ begin {
             return
         }
 
-        Write-Host "The Service Principal of the first-party application has been successfully updated" -ForegroundColor Green
+        # TODO: Improve this to return a status message which is clearer based on the return (requires refactoring of Remove-CertificateFromAzureServicePrincipal function)
+        Write-Host "The Service Principal for the first-party application has been updated successfully, or no keyCredentials were found" -ForegroundColor Green
     }
     #endregion
 } end {
