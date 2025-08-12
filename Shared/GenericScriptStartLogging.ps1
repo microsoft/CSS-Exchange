@@ -37,5 +37,5 @@ if ($Script:DualLoggingEnabled) {
     $Script:Logger = Get-NewLoggerInstance @params
     SetWriteHostAction ${Function:Write-HostLogAndDebugLog}
 } else {
-    SetWriteHostAction ${Write-DebugLog}
+    SetWriteHostAction ${Function:Write-DebugLog}
 }
