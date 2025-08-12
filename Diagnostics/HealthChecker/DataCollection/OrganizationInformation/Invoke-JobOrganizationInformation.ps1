@@ -217,6 +217,7 @@ function Invoke-JobOrganizationInformation {
             GetSendConnector                  = $getSendConnector
             RemoteJob                         = $true -eq $PSSenderInfo
             JobHandledErrors                  = $jobHandledErrors
+            AllErrors                         = $Error
         }
     }
 }

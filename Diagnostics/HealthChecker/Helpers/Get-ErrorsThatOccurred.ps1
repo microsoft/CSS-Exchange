@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\HiddenJobUnhandledErrorFunctions.ps1
 . $PSScriptRoot\..\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\..\Shared\ScriptDebugFunctions.ps1
 function Get-ErrorsThatOccurred {
@@ -13,21 +14,30 @@ function Get-ErrorsThatOccurred {
         Write-VerboseErrorInformation $CurrentError
     }
 
-    if ($Error.Count -gt 0 -or $Script:SaveDebugLog) {
+    if ($Error.Count -gt 0 -or $Script:SaveDebugLog -or (Test-HiddenJobUnhandledErrors)) {
         Write-Host ""
         Write-Host ""
         function Write-Errors {
-            Write-Verbose "`r`n`r`nErrors that occurred that wasn't handled"
+            Write-Verbose "`r`n`r`n-----Errors that were handled-----"
+            Get-HandledErrors | ForEach-Object {
+                Write-Verbose "Error Index: $($_.Index)"
+                WriteErrorInformation $_.ErrorInformation
+            }
+            Write-Verbose "----------------------------------"
+
+            Write-Verbose "`r`n`r`n----Errors that occurred that wasn't handled----"
 
             Get-UnhandledErrors | ForEach-Object {
                 Write-Verbose "Error Index: $($_.Index)"
                 WriteErrorInformation $_.ErrorInformation
             }
 
-            Write-Verbose "`r`n`r`nErrors that were handled"
-            Get-HandledErrors | ForEach-Object {
-                Write-Verbose "Error Index: $($_.Index)"
-                WriteErrorInformation $_.ErrorInformation
+            Write-Verbose "----------------------------------"
+
+            if (Test-HiddenJobUnhandledErrors) {
+                Write-Verbose "`r`n`r`n----Errors that occurred that was not handled remotely----"
+                Invoke-WriteHiddenJobUnhandledErrors
+                Write-Verbose "----------------------------------"
             }
         }
 

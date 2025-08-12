@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\Invoke-CatchActionError.ps1
 . $PSScriptRoot\GetJobManagementFunctions.ps1
 . $PSScriptRoot\Invoke-TryStartJobQueue.ps1
 
@@ -17,7 +18,9 @@ function Wait-JobQueue {
     param(
         [int]$MaxJobsPerServer = 5,
 
-        [ScriptBlock]$ProcessReceiveJobAction
+        [ScriptBlock]$ProcessReceiveJobAction,
+
+        [ScriptBlock]$CatchActionFunction
     )
     begin {
 
@@ -57,6 +60,7 @@ function Wait-JobQueue {
                 $jobReceivedCompleted = 0
                 foreach ($jobInfo in $completedJobsToProcess) {
                     $JobError = $null
+                    $result = $null
                     $jobReceivedCompleted++
                     $jobQueueProgressParams.CurrentOperation = "Receiving Job '$($jobInfo.JobId)' $jobReceivedCompleted of $($completedJobsToProcess.Count)"
                     Write-Progress @jobQueueProgressParams
@@ -64,7 +68,15 @@ function Wait-JobQueue {
                     Write-Verbose "Attempting to receive job $($jobInfo.JobId)"
                     $jobInfo.JobEndTime = [DateTime]::Now
                     $receiveJobStopWatch = [System.Diagnostics.Stopwatch]::StartNew()
-                    $result = Receive-Job $jobInfo.Job -ErrorVariable "JobError"
+
+                    try {
+                        # Need to place inside of a try catch here to prevent displaying errors that occur in the job.
+                        $result = Receive-Job $jobInfo.Job -ErrorVariable "JobError" -ErrorAction Stop
+                    } catch {
+                        Write-Verbose "Had an error trying to Receive-Job. Inner Exception: $_"
+                        Invoke-CatchActionError $CatchActionFunction
+                    }
+
                     Write-Verbose "Receive-Job took $($receiveJobStopWatch.Elapsed.TotalSeconds) seconds to complete"
 
                     if ($jobInfo.Job.ChildJobs.Progress.Count -gt 1) {

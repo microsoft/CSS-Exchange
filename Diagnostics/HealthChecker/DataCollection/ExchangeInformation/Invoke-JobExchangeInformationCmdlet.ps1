@@ -89,10 +89,18 @@ function Invoke-JobExchangeInformationCmdlet {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $jobStopWatch = [System.Diagnostics.Stopwatch]::StartNew()
         Invoke-DefaultConnectExchangeShell
+        $resetErrors = $false
     }
     process {
 
         foreach ($Server in $ServerName) {
+            if ($resetErrors) {
+                # If we have a lot of errors, we don't want to have a lot of duplicates returned since we are in a loop.
+                if ($PSSenderInfo) {
+                    $Script:ErrorsExcluded = @()
+                }
+                $Error.Clear()
+            }
             $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
             Write-Verbose "Working on collecting information for $Server"
             $exchangeCertificateInformation = $null
@@ -202,7 +210,9 @@ function Invoke-JobExchangeInformationCmdlet {
                 ADObject                        = $getExchangeServerADInformation
                 RemoteJob                       = $true -eq $PSSenderInfo
                 JobHandledErrors                = $jobHandledErrors
+                AllErrors                       = $Error
             }
+            $resetErrors = $true
         }
     }
     end {
