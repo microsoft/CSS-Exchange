@@ -126,7 +126,13 @@ foreach ($commitMatch in $m) {
             $commitTimeOnMain = [DateTime]::Parse($commitTimeOnMainString).ToUniversalTime()
         }
 
+        if ($allowMergeFiles.Count -gt 0 -and $allowMergeFiles.File.Contains($affectedFile)) {
+            Write-Host "Skipping file '$affectedFile' because we already verified that we have a newer commit."
+            continue
+        }
+
         if ($null -ne $commitTimeOnMain -and $commitTime -lt $commitTimeOnMain) {
+            Write-Debug "Adding a file '$affectedFile' to prevent merge" -Debug
             $preventMergeFiles += [PSCustomObject]@{
                 File             = $affectedFile
                 CommitHash       = $commitHash
