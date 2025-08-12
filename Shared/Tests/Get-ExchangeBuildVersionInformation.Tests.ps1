@@ -8,6 +8,129 @@ param()
 BeforeAll {
     $Script:parentPath = (Split-Path -Parent $PSScriptRoot)
     . $Script:parentPath\Get-ExchangeBuildVersionInformation.ps1
+
+    function Invoke-ProcessSUProcess {
+        [CmdletBinding()]
+        param(
+            [Parameter(Mandatory = $true)]
+            [string]$ResultsKeyName,
+            [bool]$ProcessLatestCUOnly = $false
+        )
+        $exchangeLatestCUs = $Script:results[$ResultsKeyName]
+
+        # Most Current CU
+        $latestCU = Get-ExchangeBuildVersionInformation -FileVersion $exchangeLatestCUs[0]
+        $noSUsYet = $null -eq (GetExchangeBuildDictionary)[$ResultsKeyName][$latestCU.CU].SU
+        $trueSUReleaseForLatestCU = $false
+
+        $latestCU.Supported | Should -Be $true
+
+        if ($noSUsYet) {
+            $latestCU.LatestSU | Should -Be $true
+        } else {
+
+            $allSUsOnLatestCU = (GetExchangeBuildDictionary)[$ResultsKeyName][$latestCU.CU].SU.Values |
+                ForEach-Object { [System.Version]$_ } |
+                Sort-Object -Descending
+
+            foreach ($su in $allSUsOnLatestCU) {
+                $test = Get-ExchangeBuildVersionInformation -FileVersion $su
+                $isSU = $null -ne ($test.FriendlyName | Select-String "\D{3}\d{2}SU")
+
+                if ($isSU) { $trueSUReleaseForLatestCU = $true; break }
+            }
+
+            $latestSU = Get-ExchangeBuildVersionInformation -FileVersion $allSUsOnLatestCU[0]
+            $notSecondVersionSU = $null -eq ($latestSU.FriendlyName | Select-String "\D{3}\d{2}SUv\d")
+
+            # On the latest CU, it shouldn't be secure if we have released an SU
+            $latestCU.LatestSU | Should -Be (-not $trueSUReleaseForLatestCU)
+
+            # Latest SU release should always be secure and supported
+            $latestSU.Supported | Should -Be $true
+            $latestSU.LatestSU | Should -Be $true
+
+            # Walk through the SUs, make sure that they are set correctly.
+            # Latest Release should be always secure, the previous one just depends on the more recent release.
+            <#
+            May25HU - Secure
+            Apr25HU - Secure
+            Mar25SU - Secure
+            vs
+            Aug25SU - Secure
+            May25HU - not secure going down
+            Apr25HU
+            Mar25SU
+        #>
+            $processedSUAlready = $false
+
+            foreach ($su in $allSUsOnLatestCU) {
+                $currentSUTest = Get-ExchangeBuildVersionInformation -FileVersion $su
+                $currentSUTest.Supported | Should -Be $true # Still supported, just might not be secure.
+
+                if (-not $processedSUAlready) {
+                    $currentSUTest.LatestSU | Should -Be $true
+
+                    if ($notSecondVersionSU) {
+                        # Once we hit a SU, processedSUAlready will be set to true, causing all remaining SUs to test false for LatestSU
+                        $processedSUAlready = $null -ne ($currentSUTest.FriendlyName | Select-String "\D{3}\d{2}SU")
+                    }
+                } else {
+                    $currentSUTest.LatestSU | Should -Be $false
+                }
+            }
+        }
+
+        if ($ProcessLatestCUOnly -or
+            $exchangeLatestCUs.Count -eq 1) { return }
+
+        $supportedCU = Get-ExchangeBuildVersionInformation -FileVersion $exchangeLatestCUs[1]
+
+        if ($exchangeLatestCUs.Count -ge 3) {
+            $unSupportedCU = Get-ExchangeBuildVersionInformation -FileVersion $exchangeLatestCUs[2]
+        }
+
+        # N-1 CU Testing. We still support this CU, and should be releasing security releases for it.
+        $latestSupportedSUs = (GetExchangeBuildDictionary)[$ResultsKeyName][$supportedCU.CU].SU.Values |
+            ForEach-Object { [System.Version]$_ } |
+            Sort-Object -Descending
+        $processedSUAlready = $false
+
+        foreach ($su in $latestSupportedSUs) {
+            $currentSUTest = Get-ExchangeBuildVersionInformation -FileVersion $su
+            $currentSUTest.Supported | Should -Be $true # Still supported, just might not be secure.
+
+            if (-not $processedSUAlready) {
+                $currentSUTest.LatestSU | Should -Be $true
+
+                if ($notSecondVersionSU) {
+                    # Once we hit a SU, processedSUAlready will be set to true, causing all remaining SUs to test false for LatestSU
+                    $processedSUAlready = $null -ne ($currentSUTest.FriendlyName | Select-String "\D{3}\d{2}SU")
+                }
+            } else {
+                $currentSUTest.LatestSU | Should -Be $false
+            }
+        }
+
+        if ($null -ne $unSupportedCU) {
+            # Testing out N - 3 for Exchange 2019. This is to test out to make sure we state for this CU that it is not supported and may or may not be secure.
+            # In order for this CU to not be secure, 1 SU has to be released for the current CU.
+            $latestUnsupportedSUs = (GetExchangeBuildDictionary)[$ResultsKeyName][$unSupportedCU.CU].SU.Values |
+                ForEach-Object { [System.Version]$_ } |
+                Sort-Object -Descending |
+                Select-Object -First 2
+
+            $latestSUOnUnsupportedCU = Get-ExchangeBuildVersionInformation -FileVersion $latestUnsupportedSUs[0]
+            $latestSUOnUnsupportedCU.Supported | Should -Be $false
+            $latestSUOnUnsupportedCU.LatestSU | Should -Be (-not $trueSUReleaseForLatestCU)
+
+            if ($latestUnsupportedSUs.Count -eq 2) {
+                $unsupportedSU = Get-ExchangeBuildVersionInformation -FileVersion $latestUnsupportedSUs[1]
+                $unsupportedSU.Supported | Should -Be $false
+                $unsupportedSU.LatestSU | Should -Be $false
+            }
+        }
+    }
 }
 
 Describe "Testing Get-ExchangeBuildVersionInformation.ps1" {
@@ -144,6 +267,10 @@ Describe "Testing Get-ExchangeBuildVersionInformation.ps1" {
     Context "Latest SU Results" {
         BeforeAll {
             $Script:results = @{
+                "ExchangeSE"   = (GetExchangeBuildDictionary)["ExchangeSE"].Values.CU |
+                    ForEach-Object { [System.Version]$_ } |
+                    Sort-Object -Descending |
+                    Select-Object -First 3
                 "Exchange2019" = (GetExchangeBuildDictionary)["Exchange2019"].Values.CU |
                     ForEach-Object { [System.Version]$_ } |
                     Sort-Object -Descending |
@@ -154,163 +281,14 @@ Describe "Testing Get-ExchangeBuildVersionInformation.ps1" {
                     Select-Object -First 2
             }
         }
-        It "Exchange 2019 Latest CU" {
-            $latest3CUs = $Script:results["Exchange2019"]
-
-            # Latest CU in the list check to see if there are SUs
-            $latestCU = Get-ExchangeBuildVersionInformation -FileVersion $latest3CUs[0]
-            $noSUsYet = $null -eq (GetExchangeBuildDictionary)["Exchange2019"][$latestCU.CU].SU
-
-            if ($noSUsYet) {
-                $latestCU.Supported | Should -Be $true
-                $latestCU.LatestSU | Should -Be $true
-            } else {
-                $latestCU.Supported | Should -Be $true
-
-                # LatestSU is latest Security Release information.
-                # LatestSU should be set to true for HU and most recent SU prior (if any)
-                $allSUs = (GetExchangeBuildDictionary)["Exchange2019"][$latestCU.CU].SU.Values |
-                    ForEach-Object { [System.Version]$_ } |
-                    Sort-Object -Descending
-                $latestSU = Get-ExchangeBuildVersionInformation -FileVersion $allSUs[0]
-                $notSecondVersionSU = $null -eq ($latestSU.FriendlyName | Select-String "\D{3}\d{2}SUv\d")
-                $notHotfixUpdate = $null -eq ($latestSU.FriendlyName | Select-String "\D{3}\d{2}HU") # Hotfix updates are cumulative and contain the latest security improvements
-                $suReleasedForCU = $false
-
-                foreach ($su in $allSUs) {
-                    $test = Get-ExchangeBuildVersionInformation -FileVersion $su
-                    $isSU = $null -ne ($test.FriendlyName | Select-String "\D{3}\d{2}SU")
-
-                    if ($isSU) { $suReleasedForCU = $true }
-                }
-
-                $latestCU.LatestSU | Should -Be (-not $suReleasedForCU)
-
-                # Now we need to find the latest SU
-                $latest2SUs = $allSUs |
-                    Select-Object -First 2
-
-                # RegEx to find if the latest is a v* version. Then we assume what we have set is correct and we don't test them.
-                $latestSU.Supported | Should -Be $true
-                $latestSU.LatestSU | Should -Be $true
-
-                if ($latest2SUs.Count -eq 2 -and
-                    $notSecondVersionSU -and
-                    $notHotfixUpdate) {
-                    $latestSU = Get-ExchangeBuildVersionInformation -FileVersion $latest2SUs[1]
-                    $latestSU.Supported | Should -Be $true
-                    $latestSU.LatestSU | Should -Be $false
-                } elseif ($latest2SUs.Count -eq 2) {
-                    $secondSU = Get-ExchangeBuildVersionInformation -FileVersion $latest2SUs[1]
-                    $secondSU.Supported | Should -Be $true
-                    if ($notHotfixUpdate) {
-                        $latestSU.FriendlyName.Substring(0, $latestSU.FriendlyName.Length - 2) | Should -Be $secondSU.FriendlyName
-                    }
-                    # This test could change depending on the reason for the v2 release.
-                    $secondSU.LatestSU | Should -Be $true
-                }
-            }
+        It "Exchange SE SU testing" {
+            Invoke-ProcessSUProcess -ResultsKeyName "ExchangeSE"
         }
-        It "Exchange 2019 Previous CUs" {
-            $latest3CUs = $Script:results["Exchange2019"]
-
-            # Previous CUs should always have SUs.
-            $latestCU = Get-ExchangeBuildVersionInformation -FileVersion $latest3CUs[0]
-            $supportedCU = Get-ExchangeBuildVersionInformation -FileVersion $latest3CUs[1]
-            $unSupportedCU = Get-ExchangeBuildVersionInformation -FileVersion $latest3CUs[2]
-            $noSUsYet = $null -eq (GetExchangeBuildDictionary)["Exchange2019"][$latestCU.CU].SU
-            $trueSUReleaseForLast = $false
-
-            if (-not $noSUsYet) {
-                $allSUsForLatestCU = (GetExchangeBuildDictionary)["Exchange2019"][$latestCU.CU].SU.Values |
-                    ForEach-Object { [System.Version]$_ } |
-                    Sort-Object -Descending
-                foreach ($su in $allSUsForLatestCU) {
-                    $test = Get-ExchangeBuildVersionInformation -FileVersion $su
-                    $isSU = $null -ne ($test.FriendlyName | Select-String "\D{3}\d{2}SU")
-
-                    if ($isSU) { $trueSUReleaseForLast = $true }
-                }
-            }
-
-            $latestSupportedSUs = (GetExchangeBuildDictionary)["Exchange2019"][$supportedCU.CU].SU.Values |
-                ForEach-Object { [System.Version]$_ } |
-                Sort-Object -Descending |
-                Select-Object -First 2
-
-            $latestSupportedSU = Get-ExchangeBuildVersionInformation -FileVersion $latestSupportedSUs[0]
-            $latestSupportedSU.Supported | Should -Be $true
-            $latestSupportedSU.LatestSU | Should -Be $true
-            $notSecondVersionSU = $null -eq ($latestSupportedSU.FriendlyName | Select-String "\D{3}\d{2}SUv\d")
-            $notHotfixUpdate = $null -eq ($latestSupportedSU.FriendlyName | Select-String "\D{3}\d{2}HU") # Hotfix updates are cumulative and contain the latest security improvements
-
-            if ($latestSupportedSUs.Count -eq 2 -and
-                $notSecondVersionSU -and
-                $notHotfixUpdate) {
-                $latestSupportedSU = Get-ExchangeBuildVersionInformation -FileVersion $latestSupportedSUs[1]
-                $latestSupportedSU.Supported | Should -Be $true
-                $latestSupportedSU.LatestSU | Should -Be $false
-            } elseif ($latestSupportedSUs.Count -eq 2) {
-                $secondSU = Get-ExchangeBuildVersionInformation -FileVersion $latestSupportedSUs[1]
-                $secondSU.Supported | Should -Be $true
-                if ($notHotfixUpdate) {
-                    $latestSupportedSU.FriendlyName.Substring(0, $latestSupportedSU.FriendlyName.Length - 2) | Should -Be $secondSU.FriendlyName
-                }
-                # This test could change depending on the reason for the v2 release.
-                $secondSU.LatestSU | Should -Be $true
-            }
-
-            $latestUnsupportedSUs = (GetExchangeBuildDictionary)["Exchange2019"][$unSupportedCU.CU].SU.Values |
-                ForEach-Object { [System.Version]$_ } |
-                Sort-Object -Descending |
-                Select-Object -First 2
-
-            $latestUnsupportedSU = Get-ExchangeBuildVersionInformation -FileVersion $latestUnsupportedSUs[0]
-            $latestUnsupportedSU.Supported | Should -Be $false
-            $latestUnsupportedSU.LatestSU | Should -Be (-not $trueSUReleaseForLast)
-
-            if ($latestUnsupportedSUs.Count -eq 2) {
-                $latestUnsupportedSU = Get-ExchangeBuildVersionInformation -FileVersion $latestUnsupportedSUs[1]
-                $latestUnsupportedSU.Supported | Should -Be $false
-                $latestUnsupportedSU.LatestSU | Should -Be $false
-            }
+        It "Exchange 2019 SU testing" {
+            Invoke-ProcessSUProcess -ResultsKeyName "Exchange2019"
         }
         It "Exchange 2016 Latest SU" {
-            $latest2CUs = $Script:results["Exchange2016"]
-
-            $latestCU = Get-ExchangeBuildVersionInformation -FileVersion $latest2CUs[0]
-            $latestCU.CU | Should -Be "CU23"
-            $latestCU.Supported | Should -Be $true
-            $latestCU.LatestSU | Should -Be $false
-
-            $latest2SUs = (GetExchangeBuildDictionary)["Exchange2016"][$latestCU.CU].SU.Values |
-                ForEach-Object { [System.Version]$_ } |
-                Sort-Object -Descending |
-                Select-Object -First 2
-
-            $latestSU = Get-ExchangeBuildVersionInformation -FileVersion $latest2SUs[0]
-            $latestSU.Supported | Should -Be $true
-            $latestSU.LatestSU | Should -Be $true
-
-            $notSecondVersionSU = $null -eq ($latestSU.FriendlyName | Select-String "\D{3}\d{2}SUv\d")
-            $notHotfixUpdate = $null -eq ($latestSU.FriendlyName | Select-String "\D{3}\d{2}HU") # Hotfix updates are cumulative and contain the latest security improvements
-
-            if ($notSecondVersionSU -and
-                $notHotfixUpdate) {
-                $previousSU = Get-ExchangeBuildVersionInformation -FileVersion $latest2SUs[1]
-                $previousSU.Supported | Should -Be $true
-                $previousSU.LatestSU | Should -Be $false
-            } else {
-                $previousSU = Get-ExchangeBuildVersionInformation -FileVersion $latest2SUs[1]
-                $previousSU.Supported | Should -Be $true
-                if ($notHotfixUpdate) {
-                    $latestSU.FriendlyName.Substring(0, $latestSU.FriendlyName.Length - 2) | Should -Be $previousSU.FriendlyName
-                }
-                # This test could change depending on the reason for the v2 release.
-                $previousSU.LatestSU | Should -Be $true
-            }
-
-            (Get-ExchangeBuildVersionInformation -FileVersion $latest2CUs[1]).Supported | Should -Be $false
+            Invoke-ProcessSUProcess -ResultsKeyName "Exchange2019" -ProcessLatestCUOnly $true
         }
     }
 }

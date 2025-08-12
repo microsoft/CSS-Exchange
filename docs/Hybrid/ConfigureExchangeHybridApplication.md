@@ -6,6 +6,8 @@ This documentation focuses on different scenarios and how they can be configured
 
 ## How to use the script
 
+The script must be run from PowerShell version 5 or greater. Running the script from PowerShell Core is not supported.
+
 This section contains examples of some of the most common scenarios in which the script can be used. These examples aim to provide clear guidance on how to configure various settings and features using the script, ensuring that administrators can effectively apply it to their specific needs.
 
 ### Examples

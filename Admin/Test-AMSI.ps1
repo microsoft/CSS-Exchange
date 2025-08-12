@@ -654,6 +654,7 @@ process {
         switch ($versionInformation.MajorVersion) {
             "Exchange2016" { if ($versionInformation.BuildVersion -ge "15.1.2308.8") { $SupportedExchangeServers.Add($server); break } }
             "Exchange2019" { if ($versionInformation.BuildVersion -ge "15.2.922.7") { $SupportedExchangeServers.Add($server); break } }
+            "ExchangeSE" { $SupportedExchangeServers.Add($server); break }
         }
     }
 

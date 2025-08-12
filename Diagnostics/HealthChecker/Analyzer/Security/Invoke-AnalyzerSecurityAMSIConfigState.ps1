@@ -105,13 +105,14 @@ function Invoke-AnalyzerSecurityAMSIConfigState {
         }
 
         <#
-            AMSI Needs to be enabled in order for Request Body Scanning to work.
+            AMSI Needs to be enabled in order for Request Body Scanning to work. If Aug25SU is installed, EnabledAll is set to true by default.
             - If request body scanning is enabled, but AMSI is disabled, call out this misconfiguration
             - If request body max size is enabled, if the HTTP request body size is over 1MB regardless if AMSI is enabled,
                 it will be rejected.
             - If request body scanning is enabled and AMSI is enabled, then just show enabled.
         #>
 
+        $isAug25SuOrGreater = Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -SUName "Aug25SU"
         $amsiStateEnabled = "true" -eq $amsiState
         $filterSettingOverrideParams.FilterSectionName = "AmsiRequestBodyScanning"
         $filterSettingOverrideParams.FilterParameterName = @("EnabledAll", "EnabledApi", "EnabledAutoD", "EnabledEcp",
@@ -121,7 +122,10 @@ function Invoke-AnalyzerSecurityAMSIConfigState {
         $filterSettingOverrideParams.FilterSectionName = "BlockRequestBodyGreaterThanMaxScanSize"
         [array]$amsiBlockRequestBodyGreater = $null
         Get-FilteredSettingOverrideInformation @filterSettingOverrideParams | Invoke-RemotePipelineHandlerList -Result ([ref]$amsiBlockRequestBodyGreater)
-        $amsiRequestBodyScanningEnabled = $amsiRequestBodyScanning.Count -gt 0 -and
+        [array]$enabledAllValues = $amsiRequestBodyScanning | Where-Object { $_.ParameterName -eq "EnabledAll" }
+        $defaultEnabledAll = $isAug25SuOrGreater -and ($null -eq ($enabledAllValues | Where-Object { $_.ParameterValue -eq "False" }))
+        Write-Verbose "Enabled All Default Value Set to '$defaultEnabledAll'"
+        $amsiRequestBodyScanningEnabled = $defaultEnabledAll -or $amsiRequestBodyScanning.Count -gt 0 -and
         ($null -ne ($amsiRequestBodyScanning | Where-Object { $_.ParameterValue -eq "True" }))
         $amsiBlockRequestBodyEnabled = $amsiBlockRequestBodyGreater.Count -gt 0 -and
         ($null -ne ($amsiBlockRequestBodyGreater | Where-Object { $_.ParameterValue -eq "True" }))

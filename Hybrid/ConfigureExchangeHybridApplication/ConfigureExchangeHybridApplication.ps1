@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#Requires -Version 3.0
+#Requires -Version 5.0
 
 <#
 .SYNOPSIS
@@ -288,6 +288,14 @@ begin {
     Get-PSSessionDetails
     Write-Verbose "Url to check for new versions of the script is: $versionsUrl"
 
+    # Prevent the script from running on PowerShell Core - there are adjustments needed which must be tested before release
+    # We can't use requires PSEdition Desktop because it's not compatible with PowerShell version 3 and 4
+    if ($null -ne $PSVersionTable.PSEdition -and $PSVersionTable.PSEdition -eq "Core") {
+        Write-Host "This script isn't supported in PowerShell Core - use PowerShell 5.1 or earlier" -ForegroundColor Yellow
+
+        return
+    }
+
     #region Pre-Configuration
     # Gets the Fqdn of the local computer
     $localServerFqdn = [System.Net.Dns]::GetHostEntry($env:COMPUTERNAME).HostName
@@ -323,10 +331,13 @@ begin {
         $graphApiEndpoint = $Script:CustomGraphApiUri
     }
 
-    # Query the guid of the Exchange organization and set the name of the application that we create in Azure and working with
-    $organizationGuid = Get-ExchangeOrganizationGuid
+    if (-not $Script:ResetFirstPartyServicePrincipalKeyCredentials) {
+        # Query the guid of the Exchange organization and set the name of the application that we create in Azure and working with
+        $organizationGuid = Get-ExchangeOrganizationGuid
+    }
 
-    if ($null -eq $organizationGuid) {
+    if ($null -eq $organizationGuid -and
+        -not $Script:ResetFirstPartyServicePrincipalKeyCredentials) {
         Write-Host "Unable to query the guid of the Exchange organization - please try to run the script again" -ForegroundColor Yellow
 
         return
@@ -390,7 +401,7 @@ begin {
         Message   = "Show warning about Microsoft Entra ID application configuration"
         Target    = "The script was executed to perform the following operations:" +
         "`r`n`r`n$targetMessage" +
-        "`r`n`r`nMore information about the script and each operation can be found under: https://aka.ms/ConfigureExchangeHybridApplication" +
+        "`r`n`r`nMore information about the script and each operation can be found under: https://aka.ms/ConfigureExchangeHybridApplication-Docs#changes-made-by-the-script" +
         "`r`n`r`nDo you want to continue?"
         Operation = "Configure dedicated Exchange hybrid application feature"
     }
@@ -542,24 +553,26 @@ begin {
             AzAccountsObject = $graphAccessToken
         }
 
-        # We need the application information for running any kind of sub-task and therefore query it first
-        if ([System.String]::IsNullOrEmpty($Script:CustomAppId)) {
-            Write-Verbose "No App ID was provided via 'CustomAppId' parameter"
-            $azureApplicationInformation = Get-AzureApplication @graphApiBaseParams -AzureApplicationName $azureApplicationName
+        if (-not $Script:ResetFirstPartyServicePrincipalKeyCredentials) {
+            # We need the application information for running any kind of sub-task and therefore query it first
+            if ([System.String]::IsNullOrEmpty($Script:CustomAppId)) {
+                Write-Verbose "No App ID was provided via 'CustomAppId' parameter"
+                $azureApplicationInformation = Get-AzureApplication @graphApiBaseParams -AzureApplicationName $azureApplicationName
 
-            # Get-AzureApplication returns $null if the Graph API call has failed (StatusCode != 200)
-            if ($null -eq $azureApplicationInformation) {
-                Write-Host "Graph API call to validate the existence of the application has failed" -ForegroundColor Yellow
-                Write-Host "Please run the script again or provide the App ID by using the 'CustomAppId' parameter" -ForegroundColor Yellow
+                # Get-AzureApplication returns $null if the Graph API call has failed (StatusCode != 200)
+                if ($null -eq $azureApplicationInformation) {
+                    Write-Host "Graph API call to validate the existence of the application has failed" -ForegroundColor Yellow
+                    Write-Host "Please run the script again or provide the App ID by using the 'CustomAppId' parameter" -ForegroundColor Yellow
 
-                return
+                    return
+                }
             }
-        }
 
-        # We also need the list of domains which are registered for a tenant to locate the remote routing domains
-        if ([System.String]::IsNullOrWhiteSpace($Script:RemoteRoutingDomain)) {
-            Write-Verbose "No Remote Routing Domain ID was provided via 'RemoteRoutingDomain' parameter"
-            $domainList = Get-AzureTenantDomainList @graphApiBaseParams
+            # We also need the list of domains which are registered for a tenant to locate the remote routing domains
+            if ([System.String]::IsNullOrWhiteSpace($Script:RemoteRoutingDomain)) {
+                Write-Verbose "No Remote Routing Domain ID was provided via 'RemoteRoutingDomain' parameter"
+                $domainList = Get-AzureTenantDomainList @graphApiBaseParams
+            }
         }
     }
 
@@ -1151,11 +1164,20 @@ begin {
             return
         }
 
-        Write-Host "The Service Principal of the first-party application has been successfully updated" -ForegroundColor Green
+        # TODO: Improve this to return a status message which is clearer based on the return (requires refactoring of Remove-CertificateFromAzureServicePrincipal function)
+        Write-Host "The Service Principal for the first-party application has been updated successfully, or no keyCredentials were found" -ForegroundColor Green
     }
     #endregion
 } end {
+    if ($Script:EnableExchangeHybridApplicationOverride) {
+        Write-Host ""
+        Write-Host "******************************************************************************************************" -ForegroundColor Yellow
+        Write-Host "* After confirming the dedicated hybrid app works, run the script in service principal clean-up mode *" -ForegroundColor Yellow
+        Write-Host "* https://aka.ms/ConfigureExchangeHybridApplication-Docs#service-principal-clean-up-mode             *" -ForegroundColor Yellow
+        Write-Host "******************************************************************************************************" -ForegroundColor Yellow
+    }
+
     Write-Host ""
-    Write-Host ("Do you have feedback regarding the script? Please email ExToolsFeedback@microsoft.com.") -ForegroundColor Green
+    Write-Host "Do you have feedback regarding the script? Please email ExchOnPremFeedback@microsoft.com." -ForegroundColor Green
     Write-Host ""
 }

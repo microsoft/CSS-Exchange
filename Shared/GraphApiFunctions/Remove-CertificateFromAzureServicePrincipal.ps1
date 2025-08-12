@@ -73,7 +73,7 @@ function Remove-CertificateFromAzureServicePrincipal {
     }
 
     # Check for existing key credentials, retain existing ones which don't match the thumbprint that was passed
-    if ($null -ne $getAzureServicePrincipalResponse.KeyCredentials) {
+    if (($getAzureServicePrincipalResponse.KeyCredentials).Count -ge 1) {
         Write-Verbose "Existing key credentials for this Service Principal have been located"
 
         if ($RemoveAllCertificates) {
@@ -108,7 +108,7 @@ function Remove-CertificateFromAzureServicePrincipal {
         }
     } else {
         Write-Verbose "No existing key credentials found for this Service Principal"
-        return $false
+        return $true
     }
 
     # If there are keyCredentials that should be retained, provide them, otherwise, pass an empty array to clean up all keyCredentials
