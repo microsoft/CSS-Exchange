@@ -6,6 +6,12 @@
 . $PSScriptRoot\..\..\..\Shared\CertificateFunctions\ConvertTo-ExchangeCertificate.ps1
 . $PSScriptRoot\..\..\..\Shared\IISFunctions\ExtendedProtection\Get-ExtendedProtectionConfigurationResult.ps1
 
+<#
+.DESCRIPTION
+    This function is to create a single object from all the different jobs that was sent out to the server to collect information.
+    Because some of the data structures require information from different jobs, we need create them here to be in a similar data structure as before
+    within the analyzer selection.
+#>
 function Get-HealthCheckerDataObject {
     [CmdletBinding()]
     param(
@@ -54,6 +60,7 @@ function Get-HealthCheckerDataObject {
 
         if (-not $ExchangeCmdletResult.GetExchangeServer.IsEdgeServer) {
             # Adjust the IIS information.
+            # We need to Adjust the IIS information to remove the non Exchange IIS sites that we determined from AD and locally on the server.
             $iisSettings = $ExchangeLocalResult.IISSettings
             $webSites = New-Object System.Collections.Generic.List[object]
             $nonExchangeWebSites = New-Object System.Collections.Generic.List[object]

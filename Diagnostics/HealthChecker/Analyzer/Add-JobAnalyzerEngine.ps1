@@ -7,6 +7,10 @@
 . $PSScriptRoot\..\..\..\Shared\CompareExchangeBuildLevel.ps1
 . $PSScriptRoot\Invoke-JobAnalyzerEngine.ps1
 
+<#
+.DESCRIPTION
+    This function will start a job to execute the analyzer logic of the data that was collected.
+#>
 function Add-JobAnalyzerEngine {
     [CmdletBinding()]
     param(
@@ -35,7 +39,7 @@ function Add-JobAnalyzerEngine {
             ${Function:Test-ExchangeBuildGreaterOrEqualThanBuild},
             ${Function:Test-ExchangeBuildGreaterOrEqualThanSecurityPatch},
             ${Function:Test-ExchangeBuildLessThanBuild},
-            ${Function:Test-VisualCRedistributableInstalled}
+            ${Function:Test-VisualCRedistributableInstalled},
             ${Function:Test-VisualCRedistributableUpToDate}
         )
 

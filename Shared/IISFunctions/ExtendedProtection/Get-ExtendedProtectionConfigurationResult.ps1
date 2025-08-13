@@ -4,6 +4,15 @@
 . $PSScriptRoot\..\..\Invoke-CatchActionError.ps1
 . $PSScriptRoot\..\..\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 
+<#
+.SYNOPSIS
+    Processes the Results from the ApplicationHost.config file to determine if all the proper sites are setup for Extended Protection.
+    This will return the results in a object format.
+.PARAMETER ApplicationHostConfig
+    The ApplicationHost.config file from the server.
+.PARAMETER ExSetupVersion
+    The ExSetup.exe version value that we are running at on the server. This is to know if Extended Protection is supported or not.
+#>
 function Get-ExtendedProtectionConfigurationResult {
     [CmdletBinding()]
     param(

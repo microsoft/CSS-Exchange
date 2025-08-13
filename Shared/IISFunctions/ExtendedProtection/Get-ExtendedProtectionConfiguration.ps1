@@ -6,6 +6,21 @@
 . $PSScriptRoot\..\..\Write-ErrorInformation.ps1
 . $PSScriptRoot\Get-ExtendedProtectionConfigurationResult.ps1
 
+<#
+.SYNOPSIS
+    This function will collect the required information from the computer in question and provide back the Extended Protection configuration results.
+    Use Get-ExtendedProtectionConfigurationResult if you have ApplicationHostConfig and ExSetupVersion information already.
+.PARAMETER ComputerName
+    The computer you want to collect the information from.
+.PARAMETER ApplicationHostConfig
+    Pass the ApplicationHost.config file of the server if you already have it. Then we will just use this file instead.
+.PARAMETER IsMailboxServer
+    Set this to true if the Exchange Server is a Mailbox Server to properly determine what we need to process for sites. Default: $true
+.PARAMETER IsClientAccessServer
+    Set this to true if the Exchange Server is a Client Access Server to properly determine what we need to process for sites. Default: $true
+.PARAMETER ExSetupVersion
+    Pass the ExSetupVersion if you already have this information so we don't need to collect this.
+#>
 function Get-ExtendedProtectionConfiguration {
     [CmdletBinding()]
     param(

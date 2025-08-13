@@ -7,6 +7,10 @@
 . $PSScriptRoot\..\..\..\..\Shared\CompareExchangeBuildLevel.ps1
 . $PSScriptRoot\Invoke-JobExchangeInformationLocal.ps1
 
+<#
+.DESCRIPTION
+    This function will start a job to be executed on the remote server and collect data that is related to Exchange Information.
+#>
 function Add-JobExchangeInformationLocal {
     [CmdletBinding()]
     param(

@@ -6,6 +6,10 @@
 . $PSScriptRoot\..\..\..\..\Shared\JobManagementFunctions\Add-JobQueue.ps1
 . $PSScriptRoot\Invoke-JobHardwareInformation.ps1
 
+<#
+.DESCRIPTION
+    This function will start a job to be executed on the remote server and collect data that is related to Hardware Information.
+#>
 function Add-JobHardwareInformation {
     [CmdletBinding()]
     param(

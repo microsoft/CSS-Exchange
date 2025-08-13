@@ -9,6 +9,13 @@
 . $PSScriptRoot\..\..\..\..\Shared\Get-MonitoringOverride.ps1
 . $PSScriptRoot\Invoke-JobExchangeInformationCmdlet.ps1
 
+<#
+.DESCRIPTION
+    This process takes all the Exchange Servers that were passed to it and breaks up the list into manageable group.
+    We need to do this because loading EMS can take time so it is faster to process multiple servers on a single session.
+    Because the servers are grouped together, you must pass in a hashtable to be able to find the server data.
+    The hashtable uses the server name as the key and the value is going to be name of the Job Id where the server will be located.
+#>
 function Add-JobExchangeInformationCmdlet {
     [CmdletBinding()]
     [OutputType([hashtable])]
@@ -43,6 +50,7 @@ function Add-JobExchangeInformationCmdlet {
         }
         $scriptBlock = Get-HCDefaultSBInjection @sbInjectionParams
 
+        # Here is how we determine how many servers per job we should handle.
         $jobNumbers = [System.Math]::Ceiling($exchangeServerList.Count / $Script:defaultOptimizedServerToJobSize )
         $maxServers = [System.Math]::Ceiling($exchangeServerList.Count / $jobNumbers)
         $argumentListValues = New-Object System.Collections.Generic.List[string[]]
@@ -70,7 +78,7 @@ function Add-JobExchangeInformationCmdlet {
 
         foreach ($argumentList in $argumentListValues) {
             $params = @{
-                JobCommand   = "Start-Job"
+                JobCommand   = "Start-Job" # Start-Job is required to do EMS & LDAP queries.
                 JobParameter = @{
                     ScriptBlock  = $scriptBlock
                     ArgumentList = (, @($argumentList))

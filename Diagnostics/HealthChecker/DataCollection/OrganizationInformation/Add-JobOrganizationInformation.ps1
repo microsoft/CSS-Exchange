@@ -8,6 +8,10 @@
 . $PSScriptRoot\..\..\..\..\Shared\JobManagementFunctions\Add-JobQueue.ps1
 . $PSScriptRoot\Invoke-JobOrganizationInformation.ps1
 
+<#
+.DESCRIPTION
+    This function will start a job to be executed on the server to collect information about the organization.
+#>
 function Add-JobOrganizationInformation {
     [CmdletBinding()]
     param()

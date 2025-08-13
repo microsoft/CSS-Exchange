@@ -1,6 +1,13 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+<#
+.DESCRIPTION
+    This is the main function script block that will be executed to collect data about the Exchange Server from both
+    EMS and Active Directory via LDAP.
+    This function must be executed only within the main PowerShell session or within Start-Job
+    This will return objects to the pipeline for each server.
+#>
 function Invoke-JobExchangeInformationCmdlet {
     [CmdletBinding()]
     param(

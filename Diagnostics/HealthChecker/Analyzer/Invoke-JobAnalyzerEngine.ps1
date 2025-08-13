@@ -7,6 +7,11 @@
 . $PSScriptRoot\..\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\..\Shared\Get-NETFrameworkVersion.ps1
 
+<#
+.DESCRIPTION
+    This is the main function wrapper around Invoke-AnalyzerEngine.
+    This was created for the build process to place everything within analyzer inside of a single script block to make it easier for making the call remotely.
+#>
 function Invoke-JobAnalyzerEngine {
     [CmdletBinding()]
     param(

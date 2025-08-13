@@ -1,6 +1,12 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+<#
+.DESCRIPTION
+    This is the main function script block that will be executed to collect data about the Operating System Information.
+    This function must be executed on the server that you want to collect data from.
+    This will return an object to the pipeline about the server.
+#>
 function Invoke-JobOperatingSystemInformation {
     [CmdletBinding()]
     param()
