@@ -45,9 +45,9 @@ function Invoke-AnalyzerSecurityOverrides {
         }
 
         [array]$deserializationBinderSettings = $null
-        Get-FilteredSettingOverrideInformation @params | Invoke-RemotePipelineHandler -Result ([ref]$deserializationBinderSettings)
+        Get-FilteredSettingOverrideInformation @params | Invoke-RemotePipelineHandlerList -Result ([ref]$deserializationBinderSettings)
 
-        if ($null -ne $deserializationBinderSettings) {
+        if ($deserializationBinderSettings.Count -gt 0) {
             foreach ($setting in $deserializationBinderSettings) {
                 Write-Verbose "Strict Mode has been disabled via SettingOverride for $($setting.ParameterValue) location"
                 $strictModeDisabledLocationsList.Add($setting.ParameterValue)
@@ -110,8 +110,9 @@ function Invoke-AnalyzerSecurityOverrides {
         }
 
         [array]$eccCertificateSupportOverride = $null
-        Get-FilteredSettingOverrideInformation @params | Invoke-RemotePipelineHandler -Result ([ref]$eccCertificateSupportOverride)
-        $overrideIsEnabled = ($null -ne ($eccCertificateSupportOverride | Where-Object { $_.ParameterValue -eq "true" }))
+        Get-FilteredSettingOverrideInformation @params | Invoke-RemotePipelineHandlerList -Result ([ref]$eccCertificateSupportOverride)
+        $overrideIsEnabled = $eccCertificateSupportOverride.Count -gt 0 -and
+        ($null -ne ($eccCertificateSupportOverride | Where-Object { $_.ParameterValue -eq "true" }))
 
         if ($overrideIsEnabled -and $exchangeInformation.RegistryValues.EnableEccCertificateSupport -ne "1") {
             $params = $baseParams + @{
