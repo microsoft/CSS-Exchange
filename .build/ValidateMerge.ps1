@@ -43,6 +43,9 @@ $allowMergeFiles = @()
 # Files we already checked. We only want to check each file once.
 $filesAlreadyChecked = New-Object 'System.Collections.Generic.HashSet[string]'
 
+# Top Level Tier files that were already checked.
+$topLevelDependentFilesChecked = New-Object 'System.Collections.Generic.HashSet[string]'
+
 # Get all the commits between origin/$Branch and HEAD.
 $gitLog = git log --format="%H %cd" --date=rfc origin/$Branch..HEAD
 $m = $gitLog | Select-String "^(\S+) (.*)$"
@@ -94,7 +97,14 @@ foreach ($commitMatch in $m) {
 
         # Now we walk back down the dependency tree, starting from the top-level dependents.
         $stack.Clear()
-        $topLevelDependents | ForEach-Object { [void]$stack.Push($_) }
+        $topLevelDependents | ForEach-Object {
+            if ($topLevelDependentFilesChecked.Contains($_)) {
+                Write-Host "Skipping reviewing top-level file $($_) as we have already reviewed in a previous commit."
+            } else {
+                [void]$topLevelDependentFilesChecked.Add($_)
+                [void]$stack.Push($_)
+            }
+        }
         while ($stack.Count -gt 0) {
             $currentFile = $stack.Pop()
             [void]$filesAffectedByThisChange.Add($currentFile)
@@ -104,6 +114,11 @@ foreach ($commitMatch in $m) {
                     [void]$stack.Push($dependency)
                 }
             }
+        }
+
+        if ($filesAffectedByThisChange.Count -eq 0) {
+            Write-Host "No new files needed to be reviewed by this commit."
+            continue
         }
 
         Write-Host "  Those top-level dependents affect $($filesAffectedByThisChange.Count) files:"
@@ -117,6 +132,11 @@ foreach ($commitMatch in $m) {
         # Only care about .ps1 files for versioning
         if (-not ($affectedFile.EndsWith(".ps1"))) {
             Write-Host "Skipping non ps1 file: $affectedFile"
+            continue
+        }
+
+        if ($allowMergeFiles.Count -gt 0 -and $allowMergeFiles.File.Contains($affectedFile)) {
+            Write-Host "Skipping affected file '$affectedFile' because we already verified that we have a newer commit."
             continue
         }
 
