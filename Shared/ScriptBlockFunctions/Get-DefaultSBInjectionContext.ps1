@@ -4,6 +4,7 @@
 . $PSScriptRoot\..\OutputOverrides\Write-Verbose.ps1
 . $PSScriptRoot\..\OutputOverrides\Write-Progress.ps1
 . $PSScriptRoot\..\OutputOverrides\Write-Warning.ps1
+. $PSScriptRoot\..\OutputOverrides\Write-Error.ps1
 . $PSScriptRoot\Add-ScriptBlockInjection.ps1
 . $PSScriptRoot\RemoteSBLoggingFunctions.ps1
 
