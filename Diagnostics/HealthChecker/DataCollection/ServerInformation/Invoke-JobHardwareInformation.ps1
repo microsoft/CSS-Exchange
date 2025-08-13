@@ -1,6 +1,12 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+<#
+.DESCRIPTION
+    This the main function script block that will be executed to collect data about the Hardware Information of the remote server.
+    This function must be executed only on the server you want to collect data from.
+    This will return an object to the pipeline about the server.
+#>
 function Invoke-JobHardwareInformation {
     [CmdletBinding()]
     param()

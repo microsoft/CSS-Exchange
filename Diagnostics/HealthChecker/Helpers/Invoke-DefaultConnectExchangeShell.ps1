@@ -1,6 +1,11 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+<#
+.DESCRIPTION
+    This function will try to connect to the Exchange Server with Remote Exchange Management Shell.
+    This will only execute if we determined that we are within a job or with a Force switch, otherwise, we should already have EMS loaded
+#>
 function Invoke-DefaultConnectExchangeShell {
     [CmdletBinding()]
     param(
@@ -21,6 +26,8 @@ function Invoke-DefaultConnectExchangeShell {
 
             # Track how long we spent trying to connect to Exchange, as this can be time consuming.
             $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
+            # We want to hide any warnings or verbose information this process causes.
+            # Our overrides will still work when we are set like this however.
             $currentWarningPreference = $WarningPreference
             $currentVerbosePreference = $VerbosePreference
             $VerbosePreference = 'SilentlyContinue'

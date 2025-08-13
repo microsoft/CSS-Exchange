@@ -1,6 +1,12 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+<#
+.DESCRIPTION
+    This is the main function script block that will be executed to collect data on the server related to Exchange Information.
+    This function is designed to only execute on the server you are trying to collect information from.
+    This will return the object to the pipeline of the results.
+#>
 function Invoke-JobExchangeInformationLocal {
     [CmdletBinding()]
     param(

@@ -28,7 +28,7 @@ function Invoke-HealthCheckerMainReport {
 
     Invoke-ErrorCatchActionLoopFromIndex $currentErrors
     [array]$hcDataCollection = Get-HealthCheckerDataCollection $ServerNames
-    # TODO: Properly handle Force Legacy.
+    # ForceLegacy is only supported running locally on the problem server which will execute in the current session.
     if ($hcDataCollection.Count -eq 1) {
         $runType = "CurrentSession"
     } else {
