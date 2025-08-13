@@ -108,7 +108,8 @@ function Invoke-AnalyzerSecurityCveAddressedBySerializedDataSigning {
 
         $detailsString = "{0}`r`n`t`tSee: https://portal.msrc.microsoft.com/security-guidance/advisory/{0} for more information."
 
-        $getSerializedDataSigningState = Get-SerializedDataSigningState -SecurityObject $SecurityObject
+        $getSerializedDataSigningState = $null
+        Get-SerializedDataSigningState -SecurityObject $SecurityObject | Invoke-RemotePipelineHandler -Result ([ref]$getSerializedDataSigningState)
         $cveFixedBySerializedDataSigning = $null
         NewCveFixedBySDSObject | Invoke-RemotePipelineHandlerList -Result ([ref]$cveFixedBySerializedDataSigning)
     }
