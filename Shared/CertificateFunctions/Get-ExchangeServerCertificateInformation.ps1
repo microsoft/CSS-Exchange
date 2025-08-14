@@ -46,12 +46,16 @@ function Get-ExchangeServerCertificateInformation {
 
             $certificateMatch = $Exclusions | Where-Object {
                 ((($Certificate.Subject -match $_.IorSPattern) -or
-                    ($Certificate.Issuer -match $_.IorSPattern)) -and
-                ($Certificate.IsSelfSigned -eq $_.IsSelfSigned))
+                    ($Certificate.Issuer -match $_.IorSPattern)))
             } | Select-Object -First 1
 
             if ($null -ne $certificateMatch) {
-                return $certificateMatch.IsSelfSigned -eq $Certificate.IsSelfSigned
+                # IsSelfSigned only exist on Exchange Certificate object, here is how we can get around this.
+                $certIsSelfSigned = $Certificate.IsSelfSigned
+                if ($null -eq $certIsSelfSigned) {
+                    $certIsSelfSigned = $null -eq (Compare-Object -ReferenceObject $Certificate.SubjectName.RawData -DifferenceObject $Certificate.IssuerName.RawData)
+                }
+                return $certificateMatch.IsSelfSigned -eq $certIsSelfSigned
             }
             return $false
         }
