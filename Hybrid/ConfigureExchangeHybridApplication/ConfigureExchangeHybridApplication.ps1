@@ -53,6 +53,8 @@
     This parameter allows you to run granular configurations. Note that some of the tasks depend on others and can't be run alone.
     Values that can be used with this parameter are: Global, USGovernmentL4, USGovernmentL5, ChinaCloud
     The default value is: Global
+.PARAMETER CustomClientId
+    This parameter is reserved for internal Microsoft use. Do not use it unless explicitly advised by Microsoft.
 .PARAMETER CustomGraphApiUri
     This parameter is reserved for internal Microsoft use. Do not use it unless explicitly advised by Microsoft.
 .PARAMETER CustomEntraAuthUri
@@ -160,6 +162,13 @@ param(
     [Parameter(Mandatory = $false, ParameterSetName = "Create")]
     [Parameter(Mandatory = $false, ParameterSetName = "Delete")]
     [string]$AzureEnvironment = "Global",
+
+    [Parameter(Mandatory = $false, ParameterSetName = "FullyConfigureExchangeHybridApplication")]
+    [Parameter(Mandatory = $false, ParameterSetName = "FirstPartyKeyCredentialsCleanup")]
+    [Parameter(Mandatory = $false, ParameterSetName = "Create")]
+    [Parameter(Mandatory = $false, ParameterSetName = "Delete")]
+    [ValidatePattern("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")]
+    [string]$CustomClientId = $null,
 
     [Parameter(Mandatory = $false, ParameterSetName = "FullyConfigureExchangeHybridApplication")]
     [Parameter(Mandatory = $false, ParameterSetName = "FirstPartyKeyCredentialsCleanup")]
@@ -541,7 +550,23 @@ begin {
         # Acquire Graph access token to run calls against Graph Api but only do if no custom AppId was passed
         if ([System.String]::IsNullOrEmpty($Script:CustomAppId)) {
             Write-Verbose "Acquiring Microsoft Graph API access token"
-            $graphAccessToken = Get-GraphAccessToken -AzureADEndpoint $azureADEndpoint -GraphApiUrl $graphApiEndpoint
+            $getGraphAccessTokenParams = @{
+                AzureADEndpoint = $azureADEndpoint
+                GraphApiUrl     = $graphApiEndpoint
+            }
+
+            if (-not [System.String]::IsNullOrEmpty($Script:CustomClientId)) {
+                Write-Verbose "CustomClientId $Script:CustomClientId was provided and will be used"
+                $getGraphAccessTokenParams.Add("ClientId", $Script:CustomClientId)
+            }
+
+            $graphAccessToken = Get-GraphAccessToken @getGraphAccessTokenParams
+
+            if ($null -eq $graphAccessToken) {
+                Write-Host "Failed to acquire an access token - the script cannot continue" -ForegroundColor Yellow
+
+                return
+            }
 
             # Get the tenantId from the access token as we need it later
             $Script:TenantId = $graphAccessToken.TenantId
@@ -793,89 +818,130 @@ begin {
             $appId = $Script:CustomAppId
         }
 
-        if ($domainList.Count -eq 0 -and
-            [System.String]::IsNullOrWhiteSpace($Script:RemoteRoutingDomain)) {
-            # We're ending up here in case that no domain was provided via RemoteRoutingDomain parameter and Graph API call didn't return anything (due to failure or no information available)
-            Write-Host "We couldn't find any domains assigned to your tenant, and no domain was provided using the RemoteRoutingDomain parameter" -ForegroundColor Yellow
-
-            return
-        }
-
         try {
-            # Identify all Remote Routing Domains as we need to add them to the Auth Server object via DomainName parameter
-            $targetDeliveryDomains = Get-RemoteDomain | Where-Object {
-                $_.TargetDeliveryDomain -eq $true
-            }
+            $authServers = Get-AuthServer -ErrorAction Stop
         } catch {
-            Write-Host "We couldn't query the Remote Domains configured in your organization" -ForegroundColor Yellow
+            Write-Host "Unable to run the 'Get-AuthServer' cmdlet" -ForegroundColor Yellow
             Write-Verbose "We hit the following exception: $_"
 
             return
         }
 
-        $domainsToCheck = $Script:RemoteRoutingDomain
-
-        # If we have something in the domainList, replace domainsToCheck with domainList
-        if ($domainList.Count -ge 1) {
-            $domainsToCheck = $domainList.Id
-        }
-
-        # It shouldn't be possible to set TargetDeliveryDomain to true on multiple remote domains - if it is somehow possible, this method would return multiple domains
-        $domainsToAdd = $domainsToCheck | Where-Object {
-            $targetDeliveryDomains.DomainName -contains $_
-        }
-
-        # If we don't have a match, we can't continue
-        if ($domainsToAdd.Count -eq 0) {
-            Write-Host "We couldn't find any domain which is configured as Remote Routing Domain and can't continue" -ForegroundColor Yellow
-
-            return
-        }
-
-        $authServers = Get-AuthServer -ErrorAction SilentlyContinue
-
         if ($authServers.Count -eq 0) {
-            Write-Host "We did not find an Auth Server object - script can't continue" -ForegroundColor Yellow
+            Write-Host "We did not find an Auth Server - script can't continue" -ForegroundColor Yellow
 
             return
         }
 
-        # Search for the Auth Server object, new syntax is 'EvoSts - {Guid}'; old syntax is just 'EvoSTS'
+        # Search for the AzureAD Auth Server object, new syntax is 'EvoSts - {Guid}'; old syntax is just 'EvoSTS'
         # Type must be AzureAD and Realm must be the Tenant Id
-        $authServer = $authServers | Where-Object {
+        $evoStsAuthServer = $authServers | Where-Object {
             (($_.Name -match "^EvoSts - [0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$") -or
             ($_.Name -match "EvoSTS")) -and
             $_.Type -eq "AzureAD" -and
-            $_.Realm -eq $Script:TenantId -and
+            $_.Realm -match "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" -and
             $_.Enabled
         }
 
-        if ($authServer.Count -eq 0) {
+        if ($evoStsAuthServer.Count -eq 0) {
             # No Auth Server object was found - we can't continue processing
-            Write-Host "We did not find an Auth Server object which is valid for hybrid usage - script can't continue" -ForegroundColor Yellow
+            Write-Host "We did not find an Auth Server which is valid for hybrid usage - script can't continue" -ForegroundColor Yellow
 
             return
         }
 
-        if ($authServer.Count -gt 1) {
-            # Don't do anything if multiple Auth Server objects were found - unexpected Auth Server configuration found (multiple objects that match our conditions)
-            Write-Host "We found multiple Auth Server objects - please run the script again and provide the name of the Auth Server" -ForegroundColor Yellow
+        if ($evoStsAuthServer.Count -gt 1) {
+            # If there are multipe Auth Server objects, this indicates a multi-tenant configuration
+            Write-Host "We found multiple Auth Server which are valid for hybrid use - trying to find the one for tenant $Script:TenantId"
+            $evoStsAuthServer = $evoStsAuthServer | Where-Object { $_.Realm -eq $Script:TenantId }
 
-            return
+            if ($evoStsAuthServer.Count -le 0) {
+                Write-Host "We did not find an Auth Server which is configured for your tenant" -ForegroundColor Yellow
+
+                return
+            }
+
+            if ($evoStsAuthServer.Count -gt 1) {
+                Write-Host "More than one EvoSTS Auth Server was found that is configured for your tenant" -ForegroundColor Yellow
+
+                return
+            }
         }
 
         # We've detected a matching Auth Server object which we'll configure for dedicated Exchange hybrid application feature
-        Write-Host "Auth Server: $($authServer.Identity) was identified as valid hybrid configured object"
+        Write-Host "'$($evoStsAuthServer.Identity)' was identified as matching Auth Server"
+
+        # Search for the MicrosoftACS Auth Server object (it should be there if HCW was executed in this environment)
+        $acsAuthServer = $authServers | Where-Object {
+            $_.Type -eq "MicrosoftACS" -and
+            $_.Realm -eq $Script:TenantId -and
+            $_.DomainName.Count -ge 1 -and
+            $_.Enabled
+        }
+
+        if ($acsAuthServer.Count -eq 1) {
+            # If there is already an MicrosoftACS auth server object, we'll simply copy the values from the DomainName property to the EvoSTS auth server
+            Write-Verbose "We've detected an existing MicrosoftACS Auth Server object from which we'll copy the DomainName information"
+            Write-Verbose "$([System.String]::Join(", ", $acsAuthServer.DomainName)) will be added to the EvoSTS Auth Server"
+
+            $domainsToAdd = $acsAuthServer.DomainName.Domain
+        } else {
+            if (-not[System.String]::IsNullOrWhiteSpace($Script:RemoteRoutingDomain)) {
+                Write-Verbose "RemoteRoutingDomain '$Script:RemoteRoutingDomain' was provided via parameter"
+            } elseif ($domainList.Count -ge 1) {
+                Write-Verbose "$($domainList.Count) domain(s) returned via Graph API call"
+
+                if (($domainList | Where-Object { $_.IsInitial }).Count -ne 1) {
+                    Write-Host "Unable to find the inital domain in your tenant" -ForegroundColor Yellow
+
+                    return
+                }
+            } else {
+                # We're ending up here in case that no domain was provided via RemoteRoutingDomain parameter and Graph API call didn't return anything
+                Write-Host "We couldn't find any domains assigned to your tenant, and no domain was provided using the RemoteRoutingDomain parameter" -ForegroundColor Yellow
+
+                return
+            }
+
+            try {
+                $acceptedDomains = Get-AcceptedDomain -ErrorAction Stop
+
+                if ($acceptedDomains.Count -le 0) {
+                    Write-Host "We couldn't find any accepted domain in your Exchange organization" -ForegroundColor Yellow
+
+                    return
+                }
+
+                Write-Verbose "We found $($acceptedDomains.Count) accepted domains in this Exchange organization"
+
+                $domainsToAdd = $Script:RemoteRoutingDomain
+
+                if ([System.String]::IsNullOrWhiteSpace($Script:RemoteRoutingDomain)) {
+                    # Filter out any domain that exists in both worlds - exclude the initial (onmicrosoft.com) domain
+                    $domainsToAdd = $acceptedDomains.DomainName.Domain | Where-Object {
+                        $domainList.Id -contains $_ -and
+                        $domainList.IsInitial -eq $false
+                    }
+
+                    Write-Verbose "We found $($domainsToAdd.Count) accepted domains that exist in on-premises and online organization"
+                }
+            } catch {
+                Write-Host "Unable to run the 'Get-AcceptedDomain' cmdlet" -ForegroundColor Yellow
+                Write-Verbose "We hit the following exception: $_"
+
+                return
+            }
+        }
 
         # Now we try to configure the Auth Server object to use the newly created Application (client) ID
         try {
-            Set-AuthServer -Identity "$($authServer.Identity)" -ApplicationIdentifier "$appId" -DomainName @{ add = $domainsToAdd } -ErrorAction Stop
-            Write-Host "Auth Server: $($authServer.Identity) was successfully configured to use the following App ID: $appId" -ForegroundColor Green
+            Set-AuthServer -Identity "$($evoStsAuthServer.Identity)" -ApplicationIdentifier "$appId" -DomainName @{ add = $domainsToAdd } -ErrorAction Stop
+            Write-Host "Auth Server: $($evoStsAuthServer.Identity) was successfully configured to use the following App ID: $appId" -ForegroundColor Green
         } catch {
             $formattedDomainString = [System.String]::Join(",", $($domainsToAdd | ForEach-Object { "`"$_`"" }))
 
             Write-Host "Unable to perform the Auth Server configuration - please run the following command from an EMS:" -ForegroundColor Yellow
-            Write-Host "`tSet-AuthServer -Identity `"$($authServer.Identity)`" -ApplicationIdentifier `"$appId`" -DomainName @{add=$formattedDomainString}" -ForegroundColor Yellow
+            Write-Host "`tSet-AuthServer -Identity `"$($autevoStsAuthServerhServer.Identity)`" -ApplicationIdentifier `"$appId`" -DomainName @{add=$formattedDomainString}" -ForegroundColor Yellow
             Write-Verbose "We hit the following exception: $_"
 
             return
@@ -1142,6 +1208,7 @@ begin {
     #region ResetFirstPartyServicePrincipalKeyCredentials
     if ($Script:ResetFirstPartyServicePrincipalKeyCredentials) {
         Write-Host "`r`nPerforming operation: ResetFirstPartyServicePrincipalKeyCredentials" -ForegroundColor Cyan
+        $reset1PkeyCredentialsForegroundColor = "Yellow"
 
         $removeCertificateFromAzureServicePrincipalParams = $graphApiBaseParams + @{
             WellKnownApplicationId = $resourceAppId
@@ -1158,14 +1225,19 @@ begin {
 
         $1pCleanUpReturn = Remove-CertificateFromAzureServicePrincipal @removeCertificateFromAzureServicePrincipalParams
 
-        if ($1pCleanUpReturn -ne $true) {
-            Write-Host "An error occurred while updating the Service Principal of the first-party application" -ForegroundColor Yellow
+        if ($1pCleanUpReturn.Successful) {
+            $reset1PkeyCredentialsForegroundColor = "Green"
 
-            return
+            Write-Host "The Service Principal for the first-party application was processed successfully" -ForegroundColor $reset1PkeyCredentialsForegroundColor
         }
 
-        # TODO: Improve this to return a status message which is clearer based on the return (requires refactoring of Remove-CertificateFromAzureServicePrincipal function)
-        Write-Host "The Service Principal for the first-party application has been updated successfully, or no keyCredentials were found" -ForegroundColor Green
+        if ($1pCleanUpReturn.Successful -eq $false) {
+            Write-Host "An error occurred while updating the Service Principal for the first-party application" -ForegroundColor $reset1PkeyCredentialsForegroundColor
+        }
+
+        if ($null -ne $1pCleanUpReturn.Message) {
+            Write-Host $1pCleanUpReturn.Message -ForegroundColor $reset1PkeyCredentialsForegroundColor
+        }
     }
     #endregion
 } end {
