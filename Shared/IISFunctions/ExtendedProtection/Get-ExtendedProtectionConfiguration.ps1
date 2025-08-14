@@ -4,6 +4,7 @@
 . $PSScriptRoot\..\..\Invoke-CatchActionError.ps1
 . $PSScriptRoot\..\..\Invoke-ScriptBlockHandler.ps1
 . $PSScriptRoot\..\..\Write-ErrorInformation.ps1
+. $PSScriptRoot\Get-ExtendedProtectionConfigurationResult.ps1
 
 function Get-ExtendedProtectionConfiguration {
     [CmdletBinding()]
@@ -38,8 +39,6 @@ function Get-ExtendedProtectionConfiguration {
     )
 
     begin {
-
-        . $PSScriptRoot\Get-ExtendedProtectionConfigurationResult.ps1
 
         # Intended for inside of Invoke-Command.
         function GetApplicationHostConfig {

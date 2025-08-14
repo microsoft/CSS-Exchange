@@ -2,15 +2,18 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\Invoke-CatchActionError.ps1
-. $PSScriptRoot\..\Invoke-ScriptBlockHandler.ps1
 . $PSScriptRoot\..\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 
+<#
+.DESCRIPTION
+    Gets the IIS Modules that are loaded on the local server. You must pass the ApplicationHost.config file to get the proper information and
+    execute this on the server in question.
+.NOTES
+    You MUST execute this code on the server you want to collect information for. This can be done remotely via Invoke-Command/Invoke-ScriptBlockHandler.
+#>
 function Get-IISModules {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $false)]
-        [string]$ComputerName = $env:COMPUTERNAME,
-
         [Parameter(Mandatory = $true)]
         [System.Xml.XmlNode]$ApplicationHostConfig,
 
@@ -56,9 +59,6 @@ function Get-IISModules {
         function GetIISModulesSignatureStatus {
             [CmdletBinding()]
             param(
-                [Parameter(Mandatory = $true)]
-                [string]$ComputerName,
-
                 [Parameter(Mandatory = $true)]
                 [object[]]$Modules,
 
@@ -117,17 +117,7 @@ function Get-IISModules {
                         Write-Verbose "SkipLegacyOSModules enabled? $SkipLegacyOSModules"
                         Write-Verbose "Checking file signing information now..."
 
-                        if ($PSSenderInfo) {
-                            $allSignatures = Get-AuthenticodeSignature -FilePath $Modules.image
-                        } else {
-                            $signatureParams = @{
-                                ComputerName        = $ComputerName
-                                ScriptBlock         = { Get-AuthenticodeSignature -FilePath $args[0] }
-                                ArgumentList        = , $Modules.image # , is used to force the array to be passed as a single object
-                                CatchActionFunction = $CatchActionFunction
-                            }
-                            $allSignatures = Invoke-ScriptBlockHandler @signatureParams
-                        }
+                        $allSignatures = Get-AuthenticodeSignature -FilePath $Modules.image
 
                         foreach ($m in $Modules) {
                             Write-Verbose "Now processing module: $($m.name)"
@@ -206,7 +196,6 @@ function Get-IISModules {
         }
 
         $getIISModulesSignatureStatusParams = @{
-            ComputerName        = $ComputerName
             Modules             = $modulesToCheckList
             SkipLegacyOSModules = $SkipLegacyOSModulesCheck # now handled within the function as we need to return all modules which are loaded by IIS
             CatchActionFunction = $CatchActionFunction
