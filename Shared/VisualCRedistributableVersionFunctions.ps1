@@ -1,12 +1,20 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\Invoke-ScriptBlockHandler.ps1
+. $PSScriptRoot\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 
+<#
+.DESCRIPTION
+    These set of functions are what we use to collect and determine what Visual C++ Redistributable version is installed on the server.
+    It is responsible for collecting the information and determine the version from the local server.
+.NOTES
+    You MUST execute the Get-VisualCRedistributableInstalledVersion code on the server you want to collect information for.
+    This can be done remotely via Invoke-Command/Invoke-ScriptBlockHandler.
+    The other functions may be executed on the primary script server.
+#>
 function Get-VisualCRedistributableInstalledVersion {
     [CmdletBinding()]
     param(
-        [string]$ComputerName = $env:COMPUTERNAME,
         [ScriptBlock]$CatchActionFunction
     )
     begin {
@@ -14,10 +22,8 @@ function Get-VisualCRedistributableInstalledVersion {
         $softwareList = New-Object 'System.Collections.Generic.List[object]'
     }
     process {
-        $installedSoftware = Invoke-ScriptBlockHandler -ComputerName $ComputerName `
-            -ScriptBlock { Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\* } `
-            -ScriptBlockDescription "Querying for software" `
-            -CatchActionFunction $CatchActionFunction
+
+        $installedSoftware = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*"
 
         foreach ($software in $installedSoftware) {
 

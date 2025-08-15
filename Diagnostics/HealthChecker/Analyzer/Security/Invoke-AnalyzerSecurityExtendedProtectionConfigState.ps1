@@ -1,5 +1,6 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 
 function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
     [CmdletBinding()]
@@ -14,10 +15,11 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
         [object]$DisplayGroupingKey
     )
 
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-    $extendedProtection = $SecurityObject.ExchangeInformation.ExtendedProtectionConfig
     # Adding CVE-2024-21410 for the updated CVE for release with CU14
     $cveList = "CVE-2022-24516, CVE-2022-21979, CVE-2022-21980, CVE-2022-24477, CVE-2022-30134, CVE-2024-21410"
+    $extendedProtection = $SecurityObject.ExchangeInformation.ExtendedProtectionConfig
 
     $baseParams = @{
         AnalyzedInformation = $AnalyzeResults
@@ -186,4 +188,5 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
             Write-Verbose "No Extended Protection configuration found - check will be skipped"
         }
     }
+    Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }
