@@ -61,6 +61,7 @@ function Add-JobExchangeInformationCmdlet {
 
         while ($index -lt $exchangeServerList.Count) {
 
+            # Once we get to our maxServers limit, we reset our lists that we need to add.
             if ($serversAdded -ge $maxServers) {
                 $argumentListValues.Add($tempListValues)
                 $tempListValues = New-Object System.Collections.Generic.List[string]
@@ -71,6 +72,7 @@ function Add-JobExchangeInformationCmdlet {
             $serversAdded++
             $index++
         }
+        #TODO: need to review as this might be a bug
         $argumentListValues.Add($tempListValues)
         $indexJobMatch.Keys | ForEach-Object {
             $JobKeyMatchingToServer.Value.Add($_, "Invoke-JobExchangeInformationCmdlet-$(($argumentListValues[$indexJobMatch[$_]]).GetHashCode())")
