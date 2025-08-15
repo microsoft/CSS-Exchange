@@ -25,6 +25,22 @@ function Invoke-JobExchangeInformationLocal {
         . $PSScriptRoot\IISInformation\Get-ExchangeServerIISSettings.ps1
         . $PSScriptRoot\..\..\..\..\Shared\Get-ExSetupFileVersionInfo.ps1
         . $PSScriptRoot\..\..\..\..\Shared\Get-FileContentInformation.ps1
+
+        function Get-InvokeWebRequestResult {
+            [CmdletBinding()]
+            param(
+                [Parameter(Mandatory = $true)]
+                [string]$Uri
+            )
+            try {
+                Write-Verbose "Trying to get endpoint Uri: $Uri"
+                $results = Invoke-WebRequest -Method Get -Uri $Uri -UseBasicParsing
+                Write-Verbose "Successfully got the results"
+            } catch {
+                Invoke-CatchActions
+            }
+            return $results
+        }
         # Extract for Pester Testing - End
 
         if ($PSSenderInfo) {
@@ -150,24 +166,6 @@ function Invoke-JobExchangeInformationLocal {
             AffectedServerRole = $($GetExchangeServer.IsMailboxServer -eq $true)
         }
         Get-FIPFSScanEngineVersionState @fipFsParams | Invoke-RemotePipelineHandler -Result ([ref]$FIPFSUpdateIssue)
-
-        # Extract for Pester Testing - Start
-        function Get-InvokeWebRequestResult {
-            [CmdletBinding()]
-            param(
-                [Parameter(Mandatory = $true)]
-                [string]$Uri
-            )
-            try {
-                Write-Verbose "Trying to get endpoint Uri: $Uri"
-                $results = Invoke-WebRequest -Method Get -Uri $Uri -UseBasicParsing
-                Write-Verbose "Successfully got the results"
-            } catch {
-                Invoke-CatchActions
-            }
-            return $results
-        }
-        # Extract for Pester Testing - End
 
         try {
             $originalSecurityProtocol = [Net.ServicePointManager]::SecurityProtocol
