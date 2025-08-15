@@ -1,9 +1,6 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-# Needs to be on top to avoid the function to be encapsulated
-. $PSScriptRoot\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
-
 . $PSScriptRoot\Get-HealthCheckerDataObject.ps1
 . $PSScriptRoot\..\DataCollection\OrganizationInformation\Add-JobOrganizationInformation.ps1
 . $PSScriptRoot\..\DataCollection\OrganizationInformation\Invoke-JobOrganizationInformation.ps1

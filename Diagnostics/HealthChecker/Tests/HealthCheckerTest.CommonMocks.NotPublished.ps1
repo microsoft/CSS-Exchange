@@ -28,8 +28,6 @@ Mock Get-WmiObjectHandler {
     }
 }
 
-Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Test EEMS pattern service connectivity" } -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\WebRequest_GetExchangeMitigations.xml" }
-
 Mock GetCurrentTimeZone -MockWith { return "Pacific Standard Time" }
 Mock GetProcessorCount -MockWith { return 4 }
 Mock GetCachtoknVersionInfo -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\IIS\GetVersionInformationCachTokn.xml" }

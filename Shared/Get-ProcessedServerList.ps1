@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\ScriptBlockFunctions\Add-ScriptBlockInjection.ps1
 . $PSScriptRoot\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 . $PSScriptRoot\CompareExchangeBuildLevel.ps1
 . $PSScriptRoot\Get-ExchangeBuildVersionInformation.ps1
@@ -111,7 +112,13 @@ function Get-ProcessedServerList {
                 $paramWriteProgress.PercentComplete = (($serverCount / $possibleValidExchangeServer.Count) * 100)
                 Write-Progress @paramWriteProgress
 
-                $exSetupDetails = Get-ExSetupFileVersionInfo -Server $server.FQDN
+                $params = @{
+                    PrimaryScriptBlock = ${Function:Get-ExSetupFileVersionInfo}
+                    IncludeScriptBlock = ${Function:Invoke-CatchActionError}
+                }
+
+                $scriptBlock = Add-ScriptBlockInjection @params
+                $exSetupDetails = Invoke-ScriptBlockHandler -ComputerName $server.FQDN -ScriptBlock $scriptBlock
 
                 if ($null -ne $exSetupDetails -and
                     (-not ([string]::IsNullOrEmpty($exSetupDetails)))) {

@@ -107,7 +107,6 @@ function Invoke-JobExchangeInformationLocal {
         }
 
         $configParams = @{
-            ComputerName = $env:COMPUTERNAME
             FileLocation = @("$([System.IO.Path]::Combine($serverExchangeBinDirectory, "EdgeTransport.exe.config"))",
                 "$([System.IO.Path]::Combine($serverExchangeBinDirectory, "Search\Ceres\Runtime\1.0\noderunner.exe.config"))",
                 "$([System.IO.Path]::Combine($serverExchangeBinDirectory, "Monitoring\Config\AntiMalware.xml"))",

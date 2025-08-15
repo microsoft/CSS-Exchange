@@ -7,7 +7,6 @@
 function Get-AllTlsSettingsFromRegistry {
     [CmdletBinding()]
     param(
-        [string]$MachineName = $env:COMPUTERNAME,
         [ScriptBlock]$CatchActionFunction
     )
     begin {
@@ -56,7 +55,7 @@ function Get-AllTlsSettingsFromRegistry {
         }
 
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        Write-Verbose "Passed - MachineName: '$MachineName'"
+        Write-Verbose "Passed - MachineName: '$env:COMPUTERNAME'"
         $registryBase = "SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS {0}\{1}"
         $enabledKey = "Enabled"
         $disabledKey = "DisabledByDefault"
@@ -71,7 +70,7 @@ function Get-AllTlsSettingsFromRegistry {
             $registryServer = $registryBase -f $tlsVersion, "Server"
             $registryClient = $registryBase -f $tlsVersion, "Client"
             $baseParams = @{
-                MachineName         = $MachineName
+                MachineName         = $env:COMPUTERNAME
                 CatchActionFunction = $CatchActionFunction
             }
 
@@ -161,12 +160,12 @@ function Get-AllTlsSettingsFromRegistry {
             $wowSchUseStrongCrypto = $null
 
             $msRegistryKeyParams = @{
-                MachineName         = $MachineName
+                MachineName         = $env:COMPUTERNAME
                 SubKey              = $msRegistryKey
                 CatchActionFunction = $CatchActionFunction
             }
             $wowMsRegistryKeyParams = @{
-                MachineName         = $MachineName
+                MachineName         = $env:COMPUTERNAME
                 SubKey              = $wowMsRegistryKey
                 CatchActionFunction = $CatchActionFunction
             }

@@ -1,14 +1,13 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\..\Invoke-ScriptBlockHandler.ps1
 . $PSScriptRoot\..\Get-RemoteRegistryValue.ps1
+. $PSScriptRoot\..\Invoke-CatchActionError.ps1
 . $PSScriptRoot\..\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 
 function Get-TlsCipherSuiteInformation {
     [OutputType("System.Object")]
     param(
-        [string]$MachineName = $env:COMPUTERNAME,
         [ScriptBlock]$CatchActionFunction
     )
 
@@ -50,20 +49,11 @@ function Get-TlsCipherSuiteInformation {
         # 'Get-TlsCipherSuite' takes account of the cipher suites which are configured by the help of GPO.
         # No need to query the ciphers defined via GPO if this call is successful.
         Write-Verbose "Trying to query TlsCipherSuites via 'Get-TlsCipherSuite'"
-        if ($PSSenderInfo) {
-            try {
-                $tlsCipherSuites = Get-TlsCipherSuite
-            } catch {
-                Write-Verbose "Failed to get the TlsCipherSuite. Inner Exception: $_"
-                Invoke-CatchActionError $CatchActionFunction
-            }
-        } else {
-            $getTlsCipherSuiteParams = @{
-                ComputerName        = $MachineName
-                ScriptBlock         = { Get-TlsCipherSuite }
-                CatchActionFunction = $CatchActionFunction
-            }
-            $tlsCipherSuites = Invoke-ScriptBlockHandler @getTlsCipherSuiteParams
+        try {
+            $tlsCipherSuites = Get-TlsCipherSuite
+        } catch {
+            Write-Verbose "Failed to get the TlsCipherSuite. Inner Exception: $_"
+            Invoke-CatchActionError $CatchActionFunction
         }
 
         if ($null -eq $tlsCipherSuites) {
@@ -73,7 +63,7 @@ function Get-TlsCipherSuiteInformation {
             Write-Verbose "Failed to query TlsCipherSuites via 'Get-TlsCipherSuite' fallback to registry"
 
             $policyTlsRegistryParams = @{
-                MachineName         = $MachineName
+                MachineName         = $env:COMPUTERNAME
                 SubKey              = "SOFTWARE\Policies\Microsoft\Cryptography\Configuration\SSL\00010002"
                 GetValue            = "Functions"
                 ValueType           = "String"
@@ -90,7 +80,7 @@ function Get-TlsCipherSuiteInformation {
             } else {
                 Write-Verbose "No cipher suites configured via GPO found - going to query the local TLS cipher suites"
                 $tlsRegistryParams = @{
-                    MachineName         = $MachineName
+                    MachineName         = $env:COMPUTERNAME
                     SubKey              = "SYSTEM\CurrentControlSet\Control\Cryptography\Configuration\Local\SSL\00010002"
                     GetValue            = "Functions"
                     ValueType           = "MultiString"

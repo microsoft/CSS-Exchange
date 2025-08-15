@@ -7,7 +7,6 @@ param()
 BeforeAll {
     $Script:parentPath = (Split-Path -Parent $PSScriptRoot)
     . $Script:parentPath\IISFunctions\Get-IISModules.ps1
-    . $Script:parentPath\Invoke-ScriptBlockHandler.ps1
 
     function LoadApplicationHostConfig {
         [CmdletBinding()]

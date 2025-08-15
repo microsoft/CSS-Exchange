@@ -80,7 +80,6 @@ function Get-ExchangeServerIISSettings {
                 return
             }
             $iisModulesParams = @{
-                ComputerName             = $ComputerName
                 ApplicationHostConfig    = $xmlApplicationHostConfig
                 SkipLegacyOSModulesCheck = $IsLegacyOS
                 CatchActionFunction      = $CatchActionFunction
