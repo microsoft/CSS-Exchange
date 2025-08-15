@@ -5,7 +5,6 @@ function Get-EventLogInformation {
     [CmdletBinding()]
     [OutputType("System.Collections.Hashtable")]
     param(
-        [string]$Server,
         [ScriptBlock]$CatchActionFunction
     )
     process {
