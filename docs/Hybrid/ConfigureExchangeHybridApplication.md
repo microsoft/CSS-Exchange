@@ -10,6 +10,11 @@ The script must be run from PowerShell version 5 or greater. Running the script 
 
 This section contains examples of some of the most common scenarios in which the script can be used. These examples aim to provide clear guidance on how to configure various settings and features using the script, ensuring that administrators can effectively apply it to their specific needs.
 
+## Logging
+
+If you encounter issues while using the script, check the debug log generated during execution. The log files are stored in the same directory as the script and follow this naming format:
+`ConfigureExchangeHybridApplication.ps1-Debug_<timestamp>.txt`
+
 ### Examples
 
 The script will create the application in Microsoft Entra ID, upload the current Auth Certificate, and if configured, the new next Auth Certificate. It will also configure the Auth Server object and create a global setting override to enable the feature. Additionally, the script will validate the availability of the Auth Certificates as `keyCredentials` of the `Office 365 Exchange Online` first-party application's Service Principal and attempt to remove them if necessary.
@@ -76,6 +81,7 @@ ConfigureTargetSharingEpr | Use this switch parameter to configure the Organizat
 EnableExchangeHybridApplicationOverride | Use this switch parameter to create the Setting Override which enables the dedicated Exchange hybrid application. This parameter allows you to run granular configurations. Note that some of the tasks depend on others and can't be run alone.
 ResetFirstPartyServicePrincipalKeyCredentials | Use this switch parameter to remove a specific or all available Key Credentials from the Service Principal of the `Office 365 Exchange Online` application. By default, all existing Key Credentials will be removed. If you provide the thumbprint of a certificate by using the `CertificateInformation` parameter, only the specified and all expired certificates will be removed.
 AzureEnvironment | Use this parameter to run the script against non-Global cloud environments, for example, `Microsoft 365 operated by 21Vianet`. This parameter allows you to run granular configurations. Note that some of the tasks depend on others and can't be run alone. Values that can be used with this parameter are: `Global`, `USGovernmentL4`, `USGovernmentL5`, `ChinaCloud`. The default value is: `Global`
+CustomClientId | This parameter is reserved for internal Microsoft use. Do not use it unless explicitly advised by Microsoft.
 CustomGraphApiUri | This parameter is reserved for internal Microsoft use. Do not use it unless explicitly advised by Microsoft.
 CustomEntraAuthUri | This parameter is reserved for internal Microsoft use. Do not use it unless explicitly advised by Microsoft.
 CustomInitialCloudDomains | This parameter is reserved for internal Microsoft use. Do not use it unless explicitly advised by Microsoft.
