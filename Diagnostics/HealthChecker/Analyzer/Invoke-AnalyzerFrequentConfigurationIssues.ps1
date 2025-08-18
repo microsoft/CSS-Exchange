@@ -235,6 +235,7 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
                     }
                 }
             } catch {
+                Invoke-CatchActions
                 $params = $baseParams + @{
                     Name                = "$fileName Invalid Config Format"
                     Details             = "True --- Error: Not able to convert to xml which means it is in an incorrect format that will cause problems with the process."
@@ -476,6 +477,7 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
                 Add-AnalyzedResultInformation @params
             }
         } catch {
+            Invoke-CatchActions
             if ($edgeKeySuccessful) {
                 $params.Details = "AntiMalware.xml Invalid Config Format"
             } else {
