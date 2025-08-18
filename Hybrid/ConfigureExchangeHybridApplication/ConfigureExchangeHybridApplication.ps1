@@ -867,7 +867,11 @@ begin {
 
         # We've detected a matching Auth Server object which we'll configure for dedicated Exchange hybrid application feature
         Write-Host "'$($evoStsAuthServer.Identity)' was identified as matching Auth Server"
-        Write-Verbose "Previous DomainName entries: $([System.String]::Join(", ", [array]$evoStsAuthServer.DomainName))"
+        if (($evoStsAuthServer.DomainName).Count -ge 1) {
+            Write-Verbose "Previous DomainName entries: $([System.String]::Join(", ", [array]$evoStsAuthServer.DomainName))"
+        } else {
+            Write-Verbose "Previous DomainName entries were empty"
+        }
 
         # Search for the MicrosoftACS Auth Server object (it should be there if HCW was executed in this environment)
         $acsAuthServer = $authServers | Where-Object {
@@ -912,8 +916,14 @@ begin {
                         $domainList.IsInitial -eq $false
                     }
 
-                    Write-Verbose "We found $($domainsToAdd.Count) accepted domains that exist in on-premises and online organization"
-                    Write-Verbose "Domains are: $([System.String]::Join(", ", $domainsToAdd))"
+                    if ($domainsToAdd.Count -ge 1) {
+                        Write-Verbose "We found $($domainsToAdd.Count) accepted domains that exist in on-premises and online organization"
+                        Write-Verbose "Domains are: $([System.String]::Join(", ", $domainsToAdd))"
+                    } else {
+                        Write-Warning "We did not find any domain that exists in on-premises and online organization"
+
+                        return
+                    }
                 }
             } catch {
                 Write-Warning "Unable to run the 'Get-AcceptedDomain' cmdlet - Exception: $_"
