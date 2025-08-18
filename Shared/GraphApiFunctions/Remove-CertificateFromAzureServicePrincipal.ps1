@@ -98,9 +98,11 @@ function Remove-CertificateFromAzureServicePrincipal {
 
                     # If the certificate has expired and RemoveExpiredCertificates is true, do not retain it
                     if ($RemoveExpiredCertificates) {
+                        # Date and time information type is DateTimeOffset (using ISO 8601 format and is always in UTC time)
+                        # see https://learn.microsoft.com/graph/api/resources/keycredential?view=graph-rest-1.0#properties
                         [DateTime]$expDate = $key.endDateTime
 
-                        if ($expDate -lt (Get-Date)) {
+                        if ($expDate -lt (Get-Date).ToUniversalTime()) {
                             Write-Verbose "Certificate: $CertificateThumbprint has expired and will be removed from the Service Principal"
                             continue
                         }

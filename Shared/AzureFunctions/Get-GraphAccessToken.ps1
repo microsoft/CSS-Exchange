@@ -6,6 +6,16 @@
 . $PSScriptRoot\..\Helpers\Start-LocalListener.ps1
 . $PSScriptRoot\..\ScriptUpdateFunctions\Invoke-WebRequestWithProxyDetection.ps1
 
+<#
+    This function is used to get an access token for the Azure Graph API by using the OAuth 2.0 authorization code flow
+    with PKCE (Proof Key for Code Exchange). The OAuth 2.0 authorization code grant type, or auth code flow,
+    enables a client application to obtain authorized access to protected resources like web APIs.
+    The auth code flow requires a user-agent that supports redirection from the authorization server
+    (the Microsoft identity platform) back to your application.
+
+    More information about the auth code flow with PKCE can be found here:
+    https://learn.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow#protocol-details
+#>
 function Get-GraphAccessToken {
     [CmdletBinding()]
     param(
@@ -22,20 +32,17 @@ function Get-GraphAccessToken {
         [string]$Scope = "$($GraphApiUrl)//AuditLog.Read.All Directory.AccessAsUser.All email openid profile"
     )
 
-    <#
-        This function is used to get an access token for the Azure Graph API by using the OAuth 2.0 authorization code flow
-        with PKCE (Proof Key for Code Exchange). The OAuth 2.0 authorization code grant type, or auth code flow,
-        enables a client application to obtain authorized access to protected resources like web APIs.
-        The auth code flow requires a user-agent that supports redirection from the authorization server
-        (the Microsoft identity platform) back to your application.
-
-        More information about the auth code flow with PKCE can be found here:
-        https://learn.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow#protocol-details
-    #>
-
     begin {
         Write-Verbose "Calling $($MyInvocation.MyCommand)"
 
+        <#
+            This helper function takes a query string (such as the one returned in an OAuth 2.0 redirect URI)
+            and converts it into a PowerShell hashtable for easier access to individual parameters.
+            It handles query strings starting with "/?", "?", or "#" and supports multiple values for the same key.
+            Special handling is included to avoid logging sensitive values like the full authorization code.
+
+            Example query string: /?code=1.AWEBopV8FWgvEkyBGMjt_4b...&state=54889...&session_state=007cd9
+        #>
         function ConvertFrom-QueryString {
             param(
                 [string]$Query
@@ -51,11 +58,13 @@ function Get-GraphAccessToken {
                 $Query = $Query.Substring(1)
             }
 
+            # Return an empty hashtable if the query string is null or empty
             if ([System.String]::IsNullOrEmpty($Query)) {
                 Write-Verbose "Empty or null string was passed to the function"
                 return $map
             }
 
+            # Split the query by "&" to get its elements (code, state, session_state...)
             foreach ($pair in ($Query -split "&")) {
                 # Skip guard to skip empty strings
                 if (-not $pair) {
@@ -63,12 +72,14 @@ function Get-GraphAccessToken {
                     continue
                 }
 
+                # Next, split the string by "=" to separate key and value
                 $keyValue = $pair -split "=", 2
 
                 $key = $keyValue[0]
                 Write-Verbose "Key '$key' was assigned"
 
                 if ($keyValue.Count -gt 1) {
+                    # Extract the value part after "="
                     $value = $keyValue[1]
 
                     # Make sure to not log the full authorization code
@@ -79,6 +90,7 @@ function Get-GraphAccessToken {
                     }
                 }
 
+                # In case the key already exists, add the new value as array to the existing key
                 if ($map.ContainsKey($key)) {
                     Write-Verbose "Key '$key' already exists in the hashtable - adding new value as array"
                     $map[$key] = @($map[$key]) + $value

@@ -10,6 +10,11 @@ The script must be run from PowerShell version 5 or greater. Running the script 
 
 This section contains examples of some of the most common scenarios in which the script can be used. These examples aim to provide clear guidance on how to configure various settings and features using the script, ensuring that administrators can effectively apply it to their specific needs.
 
+## Logging
+
+If you encounter issues while using the script, check the debug log generated during execution. The log files are stored in the same directory as the script and follow this naming format:
+`ConfigureExchangeHybridApplication.ps1-Debug_<timestamp>.txt`
+
 ### Examples
 
 The script will create the application in Microsoft Entra ID, upload the current Auth Certificate, and if configured, the new next Auth Certificate. It will also configure the Auth Server object and create a global setting override to enable the feature. Additionally, the script will validate the availability of the Auth Certificates as `keyCredentials` of the `Office 365 Exchange Online` first-party application's Service Principal and attempt to remove them if necessary.
