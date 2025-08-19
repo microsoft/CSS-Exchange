@@ -420,6 +420,19 @@ begin {
     # This combination needs some special treatment like running on a mailbox server and via EMS
     $isAutomatedCertificateUpload = $Script:UpdateCertificate -and $Script:CertificateMethod -eq "Automated"
 
+    try {
+        if ((Get-Module -ErrorAction Stop).Name -contains "ExchangeOnlineManagement") {
+            Write-Warning "We've detected that the ExchangeOnlineManagement module is loaded in this session"
+            Write-Warning "Please open a new Exchange Management Shell and don't connect to Exchange Online"
+
+            return
+        }
+    } catch {
+        Write-Warning "Unable to query the modules which are loaded in this PowerShell session - Exception: $_"
+
+        return
+    }
+
     if (-not(Confirm-ExchangeManagementShell)) {
         $notRunViaEmsString = "To perform the {0} configuration, the script must be executed from an elevated Exchange Management Shell (EMS)"
 
