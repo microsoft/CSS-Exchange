@@ -24,6 +24,7 @@ Dsamain
 DTLS
 dumptidset
 DWORD
+ecdsa
 eems
 EFORMS
 EICAR
@@ -102,6 +103,7 @@ NDIS
 Nego
 Netlogon
 netsh
+nist
 nmap
 noderunner
 notcontains
@@ -114,6 +116,7 @@ NTFS
 NUMA
 nupkg
 odata
+oids
 onmicrosoft
 onprem
 OutlookiOS
