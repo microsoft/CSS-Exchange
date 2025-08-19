@@ -36,7 +36,7 @@ function Invoke-JobOrganizationInformation {
         $adSchemaInformation = $null
         $getHybridConfiguration = $null
         $enableDownloadDomains = "Unknown" # Set to unknown by default.
-        $getAcceptedDomain = $null
+        $acceptedDomainObj = $null
         $mapiHttpEnabled = $false
         $securityResults = $null
         $isSplitADPermissions = $false
@@ -89,11 +89,21 @@ function Invoke-JobOrganizationInformation {
         }
 
         try {
-            $getAcceptedDomain = Get-AcceptedDomain -ErrorAction Stop
+            $getAcceptedDomainData = Get-AcceptedDomain -ErrorAction Stop
         } catch {
             Write-Verbose "Failed to run Get-AcceptedDomain"
-            $getAcceptedDomain = "Unknown"
+            $acceptedDomainObj = "Unknown"
             Invoke-CatchActions
+        }
+
+        #Process AcceptedDomains because of large hosting environments this can bloat the information.
+        if ($null -eq $acceptedDomainObj) {
+            # WildCard Domain issues
+            $wildCardAcceptedDomain = $getAcceptedDomainData |  Where-Object { $_.DomainName.ToString() -eq "*" }
+
+            $acceptedDomainObj = [PSCustomObject]@{
+                WildCardAcceptedDomain = $wildCardAcceptedDomain
+            }
         }
 
         if (-not (Test-Path 'HKLM:\SOFTWARE\Microsoft\ExchangeServer\v15\EdgeTransportRole')) {
@@ -210,7 +220,7 @@ function Invoke-JobOrganizationInformation {
             AdSchemaInformation               = $adSchemaInformation
             GetHybridConfiguration            = $getHybridConfiguration
             EnableDownloadDomains             = $enableDownloadDomains
-            GetAcceptedDomain                 = $getAcceptedDomain
+            AcceptedDomain                    = $acceptedDomainObj
             MapiHttpEnabled                   = $mapiHttpEnabled
             SecurityResults                   = $securityResults
             IsSplitADPermissions              = $isSplitADPermissions
