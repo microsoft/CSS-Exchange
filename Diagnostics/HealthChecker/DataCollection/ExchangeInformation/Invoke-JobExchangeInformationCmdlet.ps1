@@ -175,19 +175,21 @@ function Invoke-JobExchangeInformationCmdlet {
             }
             Get-ExchangeDiagnosticInformation @params -CatchActionFunction ${Function:Invoke-CatchActions} | Invoke-RemotePipelineHandler -Result ([ref]$edgeTransportResourceThrottling)
             Get-MonitoringOverride -Server $Server | Invoke-RemotePipelineHandler -Result ([ref]$serverMonitoringOverride)
+            $exchangeWebSites = $null
 
-            try {
-                $exchangeWebSites = $null
-                Get-ExchangeWebSitesFromAd -ComputerName $Server | Invoke-RemotePipelineHandler -Result ([ref]$exchangeWebSites)
+            if (-not $getExchangeServer.IsEdgeServer) {
+                try {
+                    Get-ExchangeWebSitesFromAd -ComputerName $Server | Invoke-RemotePipelineHandler -Result ([ref]$exchangeWebSites)
 
-                if ($exchangeWebSites.Count -gt 2) {
-                    Write-Verbose "Multiple OWA/ECP virtual directories detected"
+                    if ($exchangeWebSites.Count -gt 2) {
+                        Write-Verbose "Multiple OWA/ECP virtual directories detected"
+                    }
+                    Write-Verbose "Exchange websites detected: $([string]::Join(", ", [array]$exchangeWebSites))"
+                } catch {
+                    Write-Verbose "Failed to get the Exchange Web Sites from Ad."
+                    $exchangeWebSites = $null
+                    Invoke-CatchActions
                 }
-                Write-Verbose "Exchange websites detected: $([string]::Join(", ", [array]$exchangeWebSites))"
-            } catch {
-                Write-Verbose "Failed to get the Exchange Web Sites from Ad."
-                $exchangeWebSites = $null
-                Invoke-CatchActions
             }
 
             $getExchangeServerADInformation = $null
