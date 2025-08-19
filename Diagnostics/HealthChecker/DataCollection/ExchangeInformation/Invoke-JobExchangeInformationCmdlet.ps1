@@ -118,7 +118,7 @@ function Invoke-JobExchangeInformationCmdlet {
             $serverMonitoringOverride = $null
             $getExchangeVirtualDirectories = $null
 
-            $getExchangeServer = Get-ExchangeServer -Identity $Server -Status # TODO: Determine if we want to keep the cmdlet with the status or have it be passed to this job.
+            $getExchangeServer = Get-ExchangeServer -Identity $Server
             Get-ExchangeServerCertificateInformation -Server $Server -CatchActionFunction ${Function:Invoke-CatchActions} | Invoke-RemotePipelineHandler -Result ([ref]$exchangeCertificateInformation)
             Get-ExchangeVirtualDirectories -Server $Server | Invoke-RemotePipelineHandler -Result ([ref]$getExchangeVirtualDirectories)
 
