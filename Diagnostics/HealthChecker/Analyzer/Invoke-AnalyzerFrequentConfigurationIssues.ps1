@@ -289,35 +289,32 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
         }
     }
 
-    $displayWriteType = "Yellow"
-    $displayValue = "Unknown - Unable to run Get-AcceptedDomain"
+    $displayWriteType = "Grey"
+    $displayValue = "Not Set"
     $additionalDisplayValue = [string]::Empty
 
-    if ($null -ne $organizationInformation.GetAcceptedDomain -and
-        $organizationInformation.GetAcceptedDomain -ne "Unknown") {
+    if ($organizationInformation.AcceptedDomain -eq "Unknown") {
+        $displayWriteType = "Yellow"
+        $displayValue = "Unknown - Unable to run Get-AcceptedDomain"
+    } elseif ($null -ne $organizationInformation.AcceptedDomain -and
+        $null -ne $organizationInformation.AcceptedDomain.WildCardAcceptedDomain) {
 
-        $wildCardAcceptedDomain = $organizationInformation.GetAcceptedDomain | Where-Object { $_.DomainName.ToString() -eq "*" }
+        $wildCardAcceptedDomain = $organizationInformation.AcceptedDomain.WildCardAcceptedDomain
+        $displayWriteType = "Red"
+        $displayValue = "Error --- Accepted Domain `"$($wildCardAcceptedDomain.Id)`" is set to a Wild Card (*) Domain Name with a domain type of $($wildCardAcceptedDomain.DomainType.ToString()). This is not recommended as this is an open relay for the entire environment.`r`n`t`tMore Information: https://aka.ms/HC-OpenRelayDomain"
 
-        if ($null -eq $wildCardAcceptedDomain) {
-            $displayValue = "Not Set"
-            $displayWriteType = "Grey"
-        } else {
-            $displayWriteType = "Red"
-            $displayValue = "Error --- Accepted Domain `"$($wildCardAcceptedDomain.Id)`" is set to a Wild Card (*) Domain Name with a domain type of $($wildCardAcceptedDomain.DomainType.ToString()). This is not recommended as this is an open relay for the entire environment.`r`n`t`tMore Information: https://aka.ms/HC-OpenRelayDomain"
+        $isE16CU22Plus = $null
+        $isE19CU11Plus = $null
+        Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2016" -CU "CU22" |
+            Invoke-RemotePipelineHandler -Result ([ref]$isE16CU22Plus)
+        Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2019" -CU "CU11" |
+            Invoke-RemotePipelineHandler -Result ([ref]$isE19CU11Plus)
 
-            $isE16CU22Plus = $null
-            $isE19CU11Plus = $null
-            Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2016" -CU "CU22" |
-                Invoke-RemotePipelineHandler -Result ([ref]$isE16CU22Plus)
-            Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2019" -CU "CU11" |
-                Invoke-RemotePipelineHandler -Result ([ref]$isE19CU11Plus)
-
-            if ($wildCardAcceptedDomain.DomainType.ToString() -eq "InternalRelay" -and
-                ($isE16CU22Plus -or $isE19CU11Plus)) {
-                $additionalDisplayValue = "`r`n`t`tERROR: You have an open relay set as Internal Replay Type and on a CU that is known to cause issues with transport services crashing. Follow the above article for more information."
-            } elseif ($wildCardAcceptedDomain.DomainType.ToString() -eq "InternalRelay") {
-                $additionalDisplayValue = "`r`n`t`tWARNING: You have an open relay set as Internal Relay Type. You are not on a CU yet that is having issue, recommended to change this prior to upgrading. Follow the above article for more information."
-            }
+        if ($wildCardAcceptedDomain.DomainType.ToString() -eq "InternalRelay" -and
+            ($isE16CU22Plus -or $isE19CU11Plus)) {
+            $additionalDisplayValue = "`r`n`t`tERROR: You have an open relay set as Internal Replay Type and on a CU that is known to cause issues with transport services crashing. Follow the above article for more information."
+        } elseif ($wildCardAcceptedDomain.DomainType.ToString() -eq "InternalRelay") {
+            $additionalDisplayValue = "`r`n`t`tWARNING: You have an open relay set as Internal Relay Type. You are not on a CU yet that is having issue, recommended to change this prior to upgrading. Follow the above article for more information."
         }
     }
 
