@@ -53,6 +53,8 @@
     This parameter allows you to run granular configurations. Note that some of the tasks depend on others and can't be run alone.
     Values that can be used with this parameter are: Global, USGovernmentL4, USGovernmentL5, ChinaCloud
     The default value is: Global
+.PARAMETER CustomClientId
+    This parameter is reserved for internal Microsoft use. Do not use it unless explicitly advised by Microsoft.
 .PARAMETER CustomGraphApiUri
     This parameter is reserved for internal Microsoft use. Do not use it unless explicitly advised by Microsoft.
 .PARAMETER CustomEntraAuthUri
@@ -165,6 +167,13 @@ param(
     [Parameter(Mandatory = $false, ParameterSetName = "FirstPartyKeyCredentialsCleanup")]
     [Parameter(Mandatory = $false, ParameterSetName = "Create")]
     [Parameter(Mandatory = $false, ParameterSetName = "Delete")]
+    [ValidatePattern("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")]
+    [string]$CustomClientId = $null,
+
+    [Parameter(Mandatory = $false, ParameterSetName = "FullyConfigureExchangeHybridApplication")]
+    [Parameter(Mandatory = $false, ParameterSetName = "FirstPartyKeyCredentialsCleanup")]
+    [Parameter(Mandatory = $false, ParameterSetName = "Create")]
+    [Parameter(Mandatory = $false, ParameterSetName = "Delete")]
     [string]$CustomGraphApiUri = $null,
 
     [Parameter(Mandatory = $false, ParameterSetName = "FullyConfigureExchangeHybridApplication")]
@@ -231,8 +240,8 @@ begin {
         param()
 
         Write-Host ""
-        Write-Host "If the script was already run from an elevated Exchange Management Shell (EMS), ensure the Auth Certificate is valid" -ForegroundColor Yellow
-        Write-Host "For more details, see: https://aka.ms/MonitorExchangeAuthCertificate" -ForegroundColor Yellow
+        Write-Warning "If the script was already run from an elevated Exchange Management Shell (EMS), ensure the Auth Certificate is valid"
+        Write-Warning "For more details, see: https://aka.ms/MonitorExchangeAuthCertificate"
     }
 
     function Get-XForEnabledFeature {
@@ -291,7 +300,7 @@ begin {
     # Prevent the script from running on PowerShell Core - there are adjustments needed which must be tested before release
     # We can't use requires PSEdition Desktop because it's not compatible with PowerShell version 3 and 4
     if ($null -ne $PSVersionTable.PSEdition -and $PSVersionTable.PSEdition -eq "Core") {
-        Write-Host "This script isn't supported in PowerShell Core - use PowerShell 5.1 or earlier" -ForegroundColor Yellow
+        Write-Warning "This script isn't supported in PowerShell Core - use PowerShell 5.1 or earlier"
 
         return
     }
@@ -338,7 +347,7 @@ begin {
 
     if ($null -eq $organizationGuid -and
         -not $Script:ResetFirstPartyServicePrincipalKeyCredentials) {
-        Write-Host "Unable to query the guid of the Exchange organization - please try to run the script again" -ForegroundColor Yellow
+        Write-Warning "Unable to query the guid of the Exchange organization - please try to run the script again"
 
         return
     }
@@ -359,7 +368,7 @@ begin {
     #region Prerequisites
     # Make sure that PowerShell runs in elevated mode - if it doesn't we don't need to proceed further - stop the script run
     if (-not (Confirm-Administrator)) {
-        Write-Host "This script must be executed in elevated mode - start the PowerShell as an Administrator and try again" -ForegroundColor Yellow
+        Write-Warning "This script must be executed in elevated mode - start the PowerShell as an Administrator and try again"
 
         return
     }
@@ -418,9 +427,9 @@ begin {
 
         # Script must be executed via EMS if 'UpdateCertificate' parameter is used and CertificateMethod is set to 'Automated'
         if ($isAutomatedCertificateUpload) {
-            Write-Host "To perform the automated export and upload of the Auth Certificate, the script must be executed on an Exchange server" -ForegroundColor Yellow
-            Write-Host "Make sure to run the script from an elevated Exchange Management Shell (EMS)" -ForegroundColor Yellow
-            Write-Host "Otherwise you can specify the certificate by using the '-CertificateInformation' parameter" -ForegroundColor Yellow
+            Write-Warning "To perform the automated export and upload of the Auth Certificate, the script must be executed on an Exchange server"
+            Write-Warning "Make sure to run the script from an elevated Exchange Management Shell (EMS)"
+            Write-Warning "Otherwise you can specify the certificate by using the '-CertificateInformation' parameter"
             Show-AuthCertificateInvalidWarning
 
             return
@@ -428,7 +437,7 @@ begin {
 
         # Script must be executed via EMS if 'ConfigureAuthServer' parameter is used - this is because we need to run the 'Set-AuthServer' cmdlet
         if ($Script:ConfigureAuthServer) {
-            Write-Host ($notRunViaEmsString -f "Auth Server") -ForegroundColor Yellow
+            Write-Warning ($notRunViaEmsString -f "Auth Server")
             Show-AuthCertificateInvalidWarning
 
             return
@@ -436,7 +445,7 @@ begin {
 
         # Script must be executed via EMS if 'ConfigureTargetSharingEpr' parameter is used - this is because we need to run the 'Set-OrganizationRelationship' cmdlet
         if ($Script:ConfigureTargetSharingEpr) {
-            Write-Host ($notRunViaEmsString -f "TargetSharingEpr") -ForegroundColor Yellow
+            Write-Warning ($notRunViaEmsString -f "TargetSharingEpr")
             Show-AuthCertificateInvalidWarning
 
             return
@@ -444,7 +453,7 @@ begin {
 
         # Script must be executed via EMS if 'EnableExchangeHybridApplicationOverride' parameter is used - this is because we need to run the 'New-SettingOverride' cmdlet
         if ($Script:EnableExchangeHybridApplicationOverride) {
-            Write-Host ($notRunViaEmsString -f "Setting Override") -ForegroundColor Yellow
+            Write-Warning ($notRunViaEmsString -f "Setting Override")
             Show-AuthCertificateInvalidWarning
 
             return
@@ -541,7 +550,23 @@ begin {
         # Acquire Graph access token to run calls against Graph Api but only do if no custom AppId was passed
         if ([System.String]::IsNullOrEmpty($Script:CustomAppId)) {
             Write-Verbose "Acquiring Microsoft Graph API access token"
-            $graphAccessToken = Get-GraphAccessToken -AzureADEndpoint $azureADEndpoint -GraphApiUrl $graphApiEndpoint
+            $getGraphAccessTokenParams = @{
+                AzureADEndpoint = $azureADEndpoint
+                GraphApiUrl     = $graphApiEndpoint
+            }
+
+            if (-not [System.String]::IsNullOrEmpty($Script:CustomClientId)) {
+                Write-Verbose "CustomClientId $Script:CustomClientId was provided and will be used"
+                $getGraphAccessTokenParams.Add("ClientId", $Script:CustomClientId)
+            }
+
+            $graphAccessToken = Get-GraphAccessToken @getGraphAccessTokenParams
+
+            if ($null -eq $graphAccessToken) {
+                Write-Warning "Failed to acquire an access token - the script cannot continue"
+
+                return
+            }
 
             # Get the tenantId from the access token as we need it later
             $Script:TenantId = $graphAccessToken.TenantId
@@ -561,8 +586,8 @@ begin {
 
                 # Get-AzureApplication returns $null if the Graph API call has failed (StatusCode != 200)
                 if ($null -eq $azureApplicationInformation) {
-                    Write-Host "Graph API call to validate the existence of the application has failed" -ForegroundColor Yellow
-                    Write-Host "Please run the script again or provide the App ID by using the 'CustomAppId' parameter" -ForegroundColor Yellow
+                    Write-Warning "Graph API call to validate the existence of the application has failed"
+                    Write-Warning "Please run the script again or provide the App ID by using the 'CustomAppId' parameter"
 
                     return
                 }
@@ -583,7 +608,7 @@ begin {
 
         # Check if the Azure Application exists - if it doesn't exist we don't need to do anything
         if ($azureApplicationInformation.ApplicationExists -eq $false) {
-            Write-Host "Application: $azureApplicationName doesn't exist" -ForegroundColor Yellow
+            Write-Warning "Application: $azureApplicationName doesn't exist"
 
             return
         }
@@ -591,7 +616,7 @@ begin {
         $deleteApplicationReturn = Remove-AzureApplication @graphApiBaseParams -AzureApplicationName $azureApplicationName
 
         if ($deleteApplicationReturn -eq $false) {
-            Write-Host "Something went wrong while deleting the application" -ForegroundColor Yellow
+            Write-Warning "Something went wrong while deleting the application"
 
             return
         }
@@ -621,9 +646,9 @@ begin {
                 Write-Verbose "Application: $azureApplicationName App ID: $($azureApplicationInformation.AppId) is not configured as expected"
                 Write-Verbose "PermissionsAsExpected: $($testAzureApplicationPermissionReturn.PermissionsAsExpected) AdminConsentGranted: $($testAzureApplicationPermissionReturn.AdminConsentGranted)"
 
-                Write-Host "Application: $azureApplicationName with App ID: $($azureApplicationInformation.AppId) already exists but seems not to be configured as expected" -ForegroundColor Yellow
-                Write-Host "Please delete the application by executing the script as follows:" -ForegroundColor Yellow
-                Write-Host "`t.\$($script:MyInvocation.MyCommand.Name) -DeleteApplication" -ForegroundColor Yellow
+                Write-Warning "Application: $azureApplicationName with App ID: $($azureApplicationInformation.AppId) already exists but seems not to be configured as expected"
+                Write-Warning "Please delete the application by executing the script as follows:"
+                Write-Warning "`t.\$($script:MyInvocation.MyCommand.Name) -DeleteApplication"
 
                 return
             }
@@ -642,7 +667,7 @@ begin {
             $newEwsApplicationReturn = New-EwsAzureApplication @newEwsAzureApplicationParams
 
             if ($null -eq $newEwsApplicationReturn.AppId) {
-                Write-Host "Something went wrong while creating application: $azureApplicationName" -ForegroundColor Yellow
+                Write-Warning "Something went wrong while creating application: $azureApplicationName"
 
                 return
             }
@@ -654,8 +679,8 @@ begin {
             Write-Host "Tenant ID: $Script:TenantId"
 
             if ($newEwsApplicationReturn.AdminConsent -eq $false) {
-                Write-Host "`r`nIMPORTANT: The application was created without tenant-wide admin consent, which is required to enable the dedicated Exchange hybrid application feature" -ForegroundColor Yellow
-                Write-Host "To complete the configuration, please ensure that you grant admin consent in the Microsoft Entra portal" -ForegroundColor Yellow
+                Write-Warning "`r`nIMPORTANT: The application was created without tenant-wide admin consent, which is required to enable the dedicated Exchange hybrid application feature"
+                Write-Warning "To complete the configuration, please ensure that you grant admin consent in the Microsoft Entra portal"
             }
         }
     }
@@ -669,13 +694,13 @@ begin {
         $azureApplicationInformation = Get-AzureApplication @graphApiBaseParams -AzureApplicationName $azureApplicationName
 
         if ($null -eq $azureApplicationInformation) {
-            Write-Host "Graph API call to validate the existence of the application has failed" -ForegroundColor Yellow
+            Write-Warning "Graph API call to validate the existence of the application has failed"
 
             return
         }
 
         if ($azureApplicationInformation.ApplicationExists -eq $false) {
-            Write-Host "Application: $azureApplicationName doesn't exist - use the parameter 'CreateApplication' to create it first" -ForegroundColor Yellow
+            Write-Warning "Application: $azureApplicationName doesn't exist - use the parameter 'CreateApplication' to create it first"
 
             return
         }
@@ -688,8 +713,7 @@ begin {
                 $certificateObject = Export-CertificateToMemory -Certificate (Get-ChildItem -Path "Cert:\LocalMachine\My\$Script:CertificateInformation")
                 $certificateListObject.Add($certificateObject)
             } catch {
-                Write-Host "Unable to query and export certificate with thumbprint: $Script:CertificateInformation" -ForegroundColor Yellow
-                Write-Verbose "We hit the following exception: $_"
+                Write-Warning "Unable to query and export certificate with thumbprint: $Script:CertificateInformation - Exception: $_"
 
                 return
             }
@@ -698,7 +722,7 @@ begin {
         if (($Script:CertificateMethod -eq "File") -and
             (-not([System.String]::IsNullOrEmpty($Script:CertificateInformation)))) {
             if ((Test-Path -Path $Script:CertificateInformation) -eq $false) {
-                Write-Host "The certificate file: $Script:CertificateInformation doesn't exist" -ForegroundColor Yellow
+                Write-Warning "The certificate file: $Script:CertificateInformation doesn't exist"
 
                 return
             }
@@ -711,8 +735,7 @@ begin {
                 $certificateObject = Export-CertificateToMemory -Certificate $x509CertificateObject
                 $certificateListObject.Add($certificateObject)
             } catch {
-                Write-Host "Unable to import the certificate: $Script:CertificateInformation" -ForegroundColor Yellow
-                Write-Verbose "We hit the following exception: $_"
+                Write-Warning "Unable to import the certificate: $Script:CertificateInformation - Exception: $_"
 
                 return
             }
@@ -733,8 +756,7 @@ begin {
                     $certificateListObject.Add($newNextAuthCertificate)
                 }
             } catch {
-                Write-Host "Unable to query and export Exchange Server Auth Certificate: $_" -ForegroundColor Yellow
-                Write-Verbose "We hit the following exception: $_"
+                Write-Warning "Unable to query and export Exchange Server Auth Certificate - Exception: $_"
 
                 return
             }
@@ -742,7 +764,7 @@ begin {
 
         # Validate that we have at least one certificate in the list object as we need this for further processing
         if ($certificateListObject.Count -eq 0) {
-            Write-Host "No valid certificate was found - processing will be stopped" -ForegroundColor Yellow
+            Write-Warning "No valid certificate was found - processing will be stopped"
 
             return
         }
@@ -755,7 +777,7 @@ begin {
             if ($addCertificateReturn) {
                 Write-Host "The certificate was successfully added to the application" -ForegroundColor Green
             } else {
-                Write-Host "Something went wrong while adding the certificate to the application" -ForegroundColor Yellow
+                Write-Warning "Something went wrong while adding the certificate to the application"
 
                 return
             }
@@ -776,14 +798,14 @@ begin {
 
             # If we still don't have any value for the Azure Application, it means that the Graph API call has failed for whatever reason - we can't continue
             if ($null -eq $azureApplicationInformation) {
-                Write-Host "Graph API call to validate the existence of the application has failed" -ForegroundColor Yellow
+                Write-Warning "Graph API call to validate the existence of the application has failed"
 
                 return
             }
 
             # We can't continue if the call was successful but no application was found
             if ($azureApplicationInformation.ApplicationExists -eq $false) {
-                Write-Host "Application: $azureApplicationName doesn't exist - use the parameter 'CreateApplication' to create it first" -ForegroundColor Yellow
+                Write-Warning "Application: $azureApplicationName doesn't exist - use the parameter 'CreateApplication' to create it first"
 
                 return
             }
@@ -793,89 +815,132 @@ begin {
             $appId = $Script:CustomAppId
         }
 
-        if ($domainList.Count -eq 0 -and
-            [System.String]::IsNullOrWhiteSpace($Script:RemoteRoutingDomain)) {
-            # We're ending up here in case that no domain was provided via RemoteRoutingDomain parameter and Graph API call didn't return anything (due to failure or no information available)
-            Write-Host "We couldn't find any domains assigned to your tenant, and no domain was provided using the RemoteRoutingDomain parameter" -ForegroundColor Yellow
-
-            return
-        }
-
         try {
-            # Identify all Remote Routing Domains as we need to add them to the Auth Server object via DomainName parameter
-            $targetDeliveryDomains = Get-RemoteDomain | Where-Object {
-                $_.TargetDeliveryDomain -eq $true
-            }
+            $authServers = Get-AuthServer -ErrorAction Stop
         } catch {
-            Write-Host "We couldn't query the Remote Domains configured in your organization" -ForegroundColor Yellow
-            Write-Verbose "We hit the following exception: $_"
+            Write-Warning "Unable to run the 'Get-AuthServer' cmdlet - Exception: $_"
 
             return
         }
-
-        $domainsToCheck = $Script:RemoteRoutingDomain
-
-        # If we have something in the domainList, replace domainsToCheck with domainList
-        if ($domainList.Count -ge 1) {
-            $domainsToCheck = $domainList.Id
-        }
-
-        # It shouldn't be possible to set TargetDeliveryDomain to true on multiple remote domains - if it is somehow possible, this method would return multiple domains
-        $domainsToAdd = $domainsToCheck | Where-Object {
-            $targetDeliveryDomains.DomainName -contains $_
-        }
-
-        # If we don't have a match, we can't continue
-        if ($domainsToAdd.Count -eq 0) {
-            Write-Host "We couldn't find any domain which is configured as Remote Routing Domain and can't continue" -ForegroundColor Yellow
-
-            return
-        }
-
-        $authServers = Get-AuthServer -ErrorAction SilentlyContinue
 
         if ($authServers.Count -eq 0) {
-            Write-Host "We did not find an Auth Server object - script can't continue" -ForegroundColor Yellow
+            Write-Warning "We did not find an Auth Server - script can't continue"
 
             return
         }
 
-        # Search for the Auth Server object, new syntax is 'EvoSts - {Guid}'; old syntax is just 'EvoSTS'
+        # Search for the AzureAD Auth Server object, new syntax is 'EvoSts - {Guid}'; old syntax is just 'EvoSTS'
         # Type must be AzureAD and Realm must be the Tenant Id
-        $authServer = $authServers | Where-Object {
+        $evoStsAuthServer = $authServers | Where-Object {
             (($_.Name -match "^EvoSts - [0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$") -or
             ($_.Name -match "EvoSTS")) -and
             $_.Type -eq "AzureAD" -and
-            $_.Realm -eq $Script:TenantId -and
+            $_.Realm -match "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" -and
             $_.Enabled
         }
 
-        if ($authServer.Count -eq 0) {
+        if ($evoStsAuthServer.Count -eq 0) {
             # No Auth Server object was found - we can't continue processing
-            Write-Host "We did not find an Auth Server object which is valid for hybrid usage - script can't continue" -ForegroundColor Yellow
+            Write-Warning "We did not find an Auth Server which is valid for hybrid usage - script can't continue"
 
             return
         }
 
-        if ($authServer.Count -gt 1) {
-            # Don't do anything if multiple Auth Server objects were found - unexpected Auth Server configuration found (multiple objects that match our conditions)
-            Write-Host "We found multiple Auth Server objects - please run the script again and provide the name of the Auth Server" -ForegroundColor Yellow
+        if ($evoStsAuthServer.Count -gt 1) {
+            # If there are multiple Auth Server objects, this indicates a multi-tenant configuration
+            Write-Host "We found multiple Auth Server which are valid for hybrid use - trying to find the one for tenant $Script:TenantId"
+            $evoStsAuthServer = $evoStsAuthServer | Where-Object { $_.Realm -eq $Script:TenantId }
 
-            return
+            if ($evoStsAuthServer.Count -le 0) {
+                Write-Warning "We did not find an Auth Server which is configured for your tenant"
+
+                return
+            }
+
+            if ($evoStsAuthServer.Count -gt 1) {
+                Write-Warning "More than one EvoSTS Auth Server was found that is configured for your tenant"
+                Write-Warning "Re-run Hybrid Configuration Wizard (HCW) or manually  remove the duplicate EvoSTS Auth Server"
+
+                return
+            }
         }
 
         # We've detected a matching Auth Server object which we'll configure for dedicated Exchange hybrid application feature
-        Write-Host "Auth Server: $($authServer.Identity) was identified as valid hybrid configured object"
+        Write-Host "'$($evoStsAuthServer.Identity)' was identified as matching Auth Server"
+        if (($evoStsAuthServer.DomainName).Count -ge 1) {
+            Write-Verbose "Previous DomainName entries: $([System.String]::Join(", ", [array]$evoStsAuthServer.DomainName))"
+        } else {
+            Write-Verbose "Previous DomainName entries were empty"
+        }
 
-        # Now we try to configure the Auth Server object to use the newly created Application (client) ID
+        # Search for the MicrosoftACS Auth Server object (it should be there if HCW was executed in this environment)
+        $acsAuthServer = $authServers | Where-Object {
+            $_.Type -eq "MicrosoftACS" -and
+            $_.Realm -eq $Script:TenantId -and
+            $_.DomainName.Count -ge 1 -and
+            $_.Enabled
+        }
+
+        if ($acsAuthServer.Count -eq 1) {
+            # If there is already an MicrosoftACS auth server object, we'll simply copy the values from the DomainName property to the EvoSTS auth server
+            Write-Verbose "We've detected an existing MicrosoftACS Auth Server object from which we'll copy the DomainName information"
+            Write-Verbose "$([System.String]::Join(", ", [array]$acsAuthServer.DomainName)) will be added to the EvoSTS Auth Server"
+
+            $domainsToAdd = $acsAuthServer.DomainName.Domain
+        } else {
+            if ([System.String]::IsNullOrWhiteSpace($Script:RemoteRoutingDomain) -and
+                ($domainList.Count -le 0)) {
+                # We're ending up here in case that no domain was provided via RemoteRoutingDomain parameter and Graph API call didn't return anything
+                Write-Warning "We couldn't find any domains assigned to your tenant, and no domain was provided using the RemoteRoutingDomain parameter"
+
+                return
+            }
+
+            try {
+                $acceptedDomains = Get-AcceptedDomain -ErrorAction Stop
+
+                if ($acceptedDomains.Count -le 0) {
+                    Write-Warning "We couldn't find any accepted domain in your Exchange organization"
+
+                    return
+                }
+
+                Write-Verbose "We found $($acceptedDomains.Count) accepted domains in this Exchange organization"
+
+                $domainsToAdd = $Script:RemoteRoutingDomain
+
+                if ([System.String]::IsNullOrWhiteSpace($Script:RemoteRoutingDomain)) {
+                    # Filter out any domain that exists in both worlds - exclude the initial (onmicrosoft.com) domain
+                    $domainsToAdd = $acceptedDomains.DomainName.Domain | Where-Object {
+                        $domainList.Id -contains $_ -and
+                        $domainList.IsInitial -eq $false
+                    }
+
+                    if ($domainsToAdd.Count -ge 1) {
+                        Write-Verbose "We found $($domainsToAdd.Count) accepted domains that exist in on-premises and online organization"
+                        Write-Verbose "Domains are: $([System.String]::Join(", ", $domainsToAdd))"
+                    } else {
+                        Write-Warning "We did not find any domain that exists in on-premises and online organization"
+
+                        return
+                    }
+                }
+            } catch {
+                Write-Warning "Unable to run the 'Get-AcceptedDomain' cmdlet - Exception: $_"
+
+                return
+            }
+        }
+
+        # Configure the Auth Server object to use the newly created Application (client) ID - we override the existing DomainName values to avoid issues caused by misconfigured DomainName entries
         try {
-            Set-AuthServer -Identity "$($authServer.Identity)" -ApplicationIdentifier "$appId" -DomainName @{ add = $domainsToAdd } -ErrorAction Stop
-            Write-Host "Auth Server: $($authServer.Identity) was successfully configured to use the following App ID: $appId" -ForegroundColor Green
+            Set-AuthServer -Identity "$($evoStsAuthServer.Identity)" -ApplicationIdentifier "$appId" -DomainName $domainsToAdd -ErrorAction Stop
+            Write-Host "Auth Server: $($evoStsAuthServer.Identity) was successfully configured to use the following App ID: $appId" -ForegroundColor Green
         } catch {
             $formattedDomainString = [System.String]::Join(",", $($domainsToAdd | ForEach-Object { "`"$_`"" }))
 
-            Write-Host "Unable to perform the Auth Server configuration - please run the following command from an EMS:" -ForegroundColor Yellow
-            Write-Host "`tSet-AuthServer -Identity `"$($authServer.Identity)`" -ApplicationIdentifier `"$appId`" -DomainName @{add=$formattedDomainString}" -ForegroundColor Yellow
+            Write-Warning "Unable to perform the Auth Server configuration - please run the following command from an EMS:"
+            Write-Warning "`tSet-AuthServer -Identity `"$($evoStsAuthServer.Identity)`" -ApplicationIdentifier `"$appId`" -DomainName $formattedDomainString"
             Write-Verbose "We hit the following exception: $_"
 
             return
@@ -949,8 +1014,7 @@ begin {
                                     try {
                                         $matchingDomainName = $matchingSmtpRoutingDomainName.Replace(".mail.", ".")
                                     } catch {
-                                        Write-Host "Processing SMTP routing domain failed - we can't update this OrganizationRelationship" -ForegroundColor Yellow
-                                        Write-Verbose "We hit the following exception: $_"
+                                        Write-Warning "Processing SMTP routing domain failed - we can't update this OrganizationRelationship - Exception: $_"
                                     }
                                 }
 
@@ -970,8 +1034,7 @@ begin {
 
                         Write-Verbose "Domain is not part of the TargetAutodiscoverEpr Url"
                     } catch {
-                        Write-Host "TargetAutodiscoverEpr validation failed" -ForegroundColor Yellow
-                        Write-Verbose "We hit the following exception: $_"
+                        Write-Warning "TargetAutodiscoverEpr validation failed - Exception: $_"
 
                         continue
                     }
@@ -993,9 +1056,9 @@ begin {
 
                 # We can't continue if no information via AutoD v2 were returned
                 if ([System.String]::IsNullOrEmpty($autoDiscoverInformation.Url)) {
-                    Write-Host "Unable to query EWS endpoint by using AutoDiscover for the following domain: $matchingDomainName" -ForegroundColor Yellow
-                    Write-Host "If the relationship is between Exchange Server and Exchange Online, run the following command and replace '<ExchangeOnlineEwsUrl>' with the associated Url:" -ForegroundColor Yellow
-                    Write-Host "`tSet-OrganizationRelationship -Identity `"$($relationshipObject.Identity)`" -TargetSharingEpr `"<ExchangeOnlineEwsUrl>`"" -ForegroundColor Yellow
+                    Write-Warning "Unable to query EWS endpoint by using AutoDiscover for the following domain: $matchingDomainName"
+                    Write-Warning "If the relationship is between Exchange Server and Exchange Online, run the following command and replace '<ExchangeOnlineEwsUrl>' with the associated Url:"
+                    Write-Warning "`tSet-OrganizationRelationship -Identity `"$($relationshipObject.Identity)`" -TargetSharingEpr `"<ExchangeOnlineEwsUrl>`""
 
                     continue
                 }
@@ -1013,8 +1076,8 @@ begin {
 
                         Write-Host "TargetSharingEpr was successfully configured" -ForegroundColor Green
                     } catch {
-                        Write-Host "Unable to perform the TargetSharingEpr configuration - please run the following command via EMS:" -ForegroundColor Yellow
-                        Write-Host "`tSet-OrganizationRelationship -Identity `"$($relationshipObject.Identity)`" -TargetSharingEpr `"$ewsUrl`"" -ForegroundColor Yellow
+                        Write-Warning "Unable to perform the TargetSharingEpr configuration - please run the following command via EMS:"
+                        Write-Warning "`tSet-OrganizationRelationship -Identity `"$($relationshipObject.Identity)`" -TargetSharingEpr `"$ewsUrl`""
 
                         Write-Verbose "We hit the following exception: $_"
                     }
@@ -1043,14 +1106,14 @@ begin {
 
                 # If we still don't have any value for the Azure Application, it means that the Graph API call has failed for whatever reason - we can't continue
                 if ($null -eq $azureApplicationInformation) {
-                    Write-Host "Graph API call to validate the existence of the application has failed" -ForegroundColor Yellow
+                    Write-Warning "Graph API call to validate the existence of the application has failed"
 
                     return
                 }
 
                 # We can't continue if the call was successful but no application was found
                 if ($azureApplicationInformation.ApplicationExists -eq $false) {
-                    Write-Host "Unable to validate the application permission and tenant-wide admin consent - make sure that the application $azureApplicationName exists and is configured as expected" -ForegroundColor Yellow
+                    Write-Warning "Unable to validate the application permission and tenant-wide admin consent - make sure that the application $azureApplicationName exists and is configured as expected"
 
                     return
                 }
@@ -1073,7 +1136,7 @@ begin {
 
         # Ensure that the override is not created unless admin consent has been granted
         if ($adminConsentGiven -eq $false) {
-            Write-Host "Unable to create the Setting Override to enable the feature because tenant-wide admin consent has not yet been granted" -ForegroundColor Yellow
+            Write-Warning "Unable to create the Setting Override to enable the feature because tenant-wide admin consent has not yet been granted"
 
             return
         }
@@ -1092,7 +1155,7 @@ begin {
             }
 
             if ($null -ne $3pOverrides) {
-                Write-Host "The following Setting Override(s) already exist:" -ForegroundColor Yellow
+                Write-Warning "The following Setting Override(s) already exist:"
 
                 # If we find some, check whether they enable or disable the feature explicitly
                 foreach ($o in $3pOverrides) {
@@ -1107,8 +1170,8 @@ begin {
                     $3pSettingOverridesObject.Add($o)
                 }
 
-                Write-Host "Run the following command if you want to remove the existing Setting Override(s):" -ForegroundColor Yellow
-                Write-Host "`tGet-SettingOverride | Where-Object {`$_.ComponentName -eq `"Global`" -and `$_.SectionName -eq `"ExchangeOnpremAsThirdPartyAppId`"} | Remove-SettingOverride -Confirm:`$false" -ForegroundColor Yellow
+                Write-Warning "Run the following command if you want to remove the existing Setting Override(s):"
+                Write-Warning "`tGet-SettingOverride | Where-Object {`$_.ComponentName -eq `"Global`" -and `$_.SectionName -eq `"ExchangeOnpremAsThirdPartyAppId`"} | Remove-SettingOverride -Confirm:`$false"
 
                 return
             }
@@ -1130,8 +1193,7 @@ begin {
 
                 Write-Host "Setting Override to enable the dedicated Exchange hybrid application feature was successfully created" -ForegroundColor Green
             } catch {
-                Write-Host "Unable to create the new Setting Override" -ForegroundColor Yellow
-                Write-Verbose "We hit the following exception: $_"
+                Write-Warning "Unable to create the new Setting Override - Exception: $_"
 
                 return
             }
@@ -1142,6 +1204,7 @@ begin {
     #region ResetFirstPartyServicePrincipalKeyCredentials
     if ($Script:ResetFirstPartyServicePrincipalKeyCredentials) {
         Write-Host "`r`nPerforming operation: ResetFirstPartyServicePrincipalKeyCredentials" -ForegroundColor Cyan
+        $reset1PKeyCredentialsForegroundColor = "Yellow"
 
         $removeCertificateFromAzureServicePrincipalParams = $graphApiBaseParams + @{
             WellKnownApplicationId = $resourceAppId
@@ -1158,23 +1221,28 @@ begin {
 
         $1pCleanUpReturn = Remove-CertificateFromAzureServicePrincipal @removeCertificateFromAzureServicePrincipalParams
 
-        if ($1pCleanUpReturn -ne $true) {
-            Write-Host "An error occurred while updating the Service Principal of the first-party application" -ForegroundColor Yellow
+        if ($1pCleanUpReturn.Successful) {
+            $reset1PKeyCredentialsForegroundColor = "Green"
 
-            return
+            Write-Host "The Service Principal for the first-party application was processed successfully" -ForegroundColor $reset1PKeyCredentialsForegroundColor
         }
 
-        # TODO: Improve this to return a status message which is clearer based on the return (requires refactoring of Remove-CertificateFromAzureServicePrincipal function)
-        Write-Host "The Service Principal for the first-party application has been updated successfully, or no keyCredentials were found" -ForegroundColor Green
+        if ($1pCleanUpReturn.Successful -eq $false) {
+            Write-Host "An error occurred while updating the Service Principal for the first-party application" -ForegroundColor $reset1PKeyCredentialsForegroundColor
+        }
+
+        if ($null -ne $1pCleanUpReturn.Message) {
+            Write-Host $1pCleanUpReturn.Message -ForegroundColor $reset1PKeyCredentialsForegroundColor
+        }
     }
     #endregion
 } end {
     if ($Script:EnableExchangeHybridApplicationOverride) {
         Write-Host ""
-        Write-Host "******************************************************************************************************" -ForegroundColor Yellow
-        Write-Host "* After confirming the dedicated hybrid app works, run the script in service principal clean-up mode *" -ForegroundColor Yellow
-        Write-Host "* https://aka.ms/ConfigureExchangeHybridApplication-Docs#service-principal-clean-up-mode             *" -ForegroundColor Yellow
-        Write-Host "******************************************************************************************************" -ForegroundColor Yellow
+        Write-Warning "******************************************************************************************************"
+        Write-Warning "* After confirming the dedicated hybrid app works, run the script in service principal clean-up mode *"
+        Write-Warning "* https://aka.ms/ConfigureExchangeHybridApplication-Docs#service-principal-clean-up-mode             *"
+        Write-Warning "******************************************************************************************************"
     }
 
     Write-Host ""
