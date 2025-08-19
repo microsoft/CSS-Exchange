@@ -94,8 +94,7 @@ function Invoke-JobExchangeInformationLocal {
         elseif (-not ([string]::IsNullOrEmpty($role))) { $serverRole = $role }
 
         # Not an Exchange Cmdlet, but going to keep this here now.
-        Get-ExchangeUpdates -ExchangeMajorVersion $versionInformation.MajorVersion | Invoke-RemotePipelineHandler -Result ([ref]$getExchangeUpdates)
-        [array]$getExchangeUpdates = @($getExchangeUpdates)
+        Get-ExchangeUpdates -ExchangeMajorVersion $versionInformation.MajorVersion | Invoke-RemotePipelineHandlerList -Result ([ref]$getExchangeUpdates)
 
         $buildInformation = [PSCustomObject]@{
             ServerRole         = $serverRole
