@@ -297,7 +297,8 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
         $displayWriteType = "Yellow"
         $displayValue = "Unknown - Unable to run Get-AcceptedDomain"
     } elseif ($null -ne $organizationInformation.AcceptedDomain -and
-        $null -ne $organizationInformation.AcceptedDomain.WildCardAcceptedDomain) {
+        $null -ne $organizationInformation.AcceptedDomain.WildCardAcceptedDomain -and
+        @($organizationInformation.AcceptedDomain.WildCardAcceptedDomain.PSObject.Properties).Count -gt 0) {
 
         $wildCardAcceptedDomain = $organizationInformation.AcceptedDomain.WildCardAcceptedDomain
         $displayWriteType = "Red"
