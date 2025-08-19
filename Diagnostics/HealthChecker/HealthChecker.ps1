@@ -134,7 +134,7 @@ param(
     [ValidateScript( { $_ -ge 2 -and $_ -le 30 })]
     [string]$DevTestingDefaultOptimizedServerToJobSize = 8,
 
-    [Parameter(Mandatory = $false)]
+    [Parameter(Mandatory = $false, ParameterSetName = "HealthChecker", HelpMessage = "Data collection prevents the use of jobs to be executed.")]
     [switch]$ForceLegacy,
 
     [Parameter(Mandatory = $false, ParameterSetName = "HealthChecker", HelpMessage = "Skip over checking for a new updated version of the script.")]
