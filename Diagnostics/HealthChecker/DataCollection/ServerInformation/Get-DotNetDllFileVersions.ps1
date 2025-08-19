@@ -39,11 +39,13 @@ function Get-DotNetDllFileVersions {
         $files = @{}
     }
     process {
-        Get-RemoteRegistryValue -MachineName $ComputerName `
-            -SubKey "SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" `
-            -GetValue "InstallPath" `
-            -CatchActionFunction $CatchActionFunction |
-            Invoke-RemotePipelineHandler -Result ([ref]$dotNetInstallPath)
+        $params = @{
+            MachineName         = $ComputerName
+            SubKey              = "SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full"
+            GetValue            = "InstallPath"
+            CatchActionFunction = $CatchActionFunction
+        }
+        Get-RemoteRegistryValue @params | Invoke-RemotePipelineHandler -Result ([ref]$dotNetInstallPath)
 
         if ([string]::IsNullOrEmpty($dotNetInstallPath)) {
             Write-Verbose "Failed to determine .NET install path"

@@ -1,6 +1,12 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+<#
+.DESCRIPTION
+    This is the main function script block that will be executed to collect data on the server related to Exchange Information.
+    This function is designed to only execute on the server you are trying to collect information from.
+    This will return the object to the pipeline of the results.
+#>
 function Invoke-JobExchangeInformationLocal {
     [CmdletBinding()]
     param(
@@ -19,6 +25,22 @@ function Invoke-JobExchangeInformationLocal {
         . $PSScriptRoot\IISInformation\Get-ExchangeServerIISSettings.ps1
         . $PSScriptRoot\..\..\..\..\Shared\Get-ExSetupFileVersionInfo.ps1
         . $PSScriptRoot\..\..\..\..\Shared\Get-FileContentInformation.ps1
+
+        function Get-InvokeWebRequestResult {
+            [CmdletBinding()]
+            param(
+                [Parameter(Mandatory = $true)]
+                [string]$Uri
+            )
+            try {
+                Write-Verbose "Trying to get endpoint Uri: $Uri"
+                $results = Invoke-WebRequest -Method Get -Uri $Uri -UseBasicParsing
+                Write-Verbose "Successfully got the results"
+            } catch {
+                Invoke-CatchActions
+            }
+            return $results
+        }
         # Extract for Pester Testing - End
 
         if ($PSSenderInfo) {
@@ -72,8 +94,7 @@ function Invoke-JobExchangeInformationLocal {
         elseif (-not ([string]::IsNullOrEmpty($role))) { $serverRole = $role }
 
         # Not an Exchange Cmdlet, but going to keep this here now.
-        Get-ExchangeUpdates -ExchangeMajorVersion $versionInformation.MajorVersion | Invoke-RemotePipelineHandler -Result ([ref]$getExchangeUpdates)
-        [array]$getExchangeUpdates = @($getExchangeUpdates)
+        Get-ExchangeUpdates -ExchangeMajorVersion $versionInformation.MajorVersion | Invoke-RemotePipelineHandlerList -Result ([ref]$getExchangeUpdates)
 
         $buildInformation = [PSCustomObject]@{
             ServerRole         = $serverRole
@@ -144,24 +165,6 @@ function Invoke-JobExchangeInformationLocal {
             AffectedServerRole = $($GetExchangeServer.IsMailboxServer -eq $true)
         }
         Get-FIPFSScanEngineVersionState @fipFsParams | Invoke-RemotePipelineHandler -Result ([ref]$FIPFSUpdateIssue)
-
-        # Extract for Pester Testing - Start
-        function Get-InvokeWebRequestResult {
-            [CmdletBinding()]
-            param(
-                [Parameter(Mandatory = $true)]
-                [string]$Uri
-            )
-            try {
-                Write-Verbose "Trying to get endpoint Uri: $Uri"
-                $results = Invoke-WebRequest -Method Get -Uri $Uri -UseBasicParsing
-                Write-Verbose "Successfully got the results"
-            } catch {
-                Invoke-CatchActions
-            }
-            return $results
-        }
-        # Extract for Pester Testing - End
 
         try {
             $originalSecurityProtocol = [Net.ServicePointManager]::SecurityProtocol

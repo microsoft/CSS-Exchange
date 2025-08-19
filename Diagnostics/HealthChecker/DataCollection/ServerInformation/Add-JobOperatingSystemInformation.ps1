@@ -5,6 +5,10 @@
 . $PSScriptRoot\..\..\..\..\Shared\Get-NETFrameworkVersion.ps1
 . $PSScriptRoot\Invoke-JobOperatingSystemInformation.ps1
 
+<#
+.DESCRIPTION
+    This function will start a job to be executed on the remote server and collect data related to Operating System Information.
+#>
 function Add-JobOperatingSystemInformation {
     [CmdletBinding()]
     param(
@@ -24,7 +28,7 @@ function Add-JobOperatingSystemInformation {
             ${Function:Get-NETFrameworkVersion},
             ${Function:Get-RemoteRegistrySubKey},
             ${Function:Get-RemoteRegistryValue},
-            ${Function:Get-VisualCRedistributableInstalledVersion}
+            ${Function:Get-VisualCRedistributableInstalledVersion},
             ${Function:Get-WmiObjectCriticalHandler},
             ${Function:Get-WmiObjectHandler}
         )
