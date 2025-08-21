@@ -1154,6 +1154,60 @@ begin {
             return
         }
 
+        # Do a basic check to find out if OAuth is configured in the environment - if it's not, we should not create the SO as this could break workflows
+        try {
+            # Check for the 'Exchange Online' partner application - we expect it to be there and that it's enabled
+            $exchangeOnlinePartnerApplication = Get-PartnerApplication -ErrorAction Stop | Where-Object {
+                $_.ApplicationIdentifier -eq $resourceAppId -and
+                [System.String]::IsNullOrEmpty($_.Realm) -and
+                $_.Enabled -eq $true
+            }
+
+            # Check for IntraOrganizationConnector (IOC) - we expect at least one to be found
+            $ioc = Get-IntraOrganizationConnector -ErrorAction Stop
+
+            $exchangePartnerApplicationFound = ($exchangeOnlinePartnerApplication.Count -ge 1)
+            $iocFound = ($ioc.Count -ge 1)
+            $enabledIoc = @($ioc | Where-Object { $_.Enabled })
+            $disabledIoc = @($ioc | Where-Object { -not $_.Enabled })
+            $basicOAuthConfigCheckPassed = ($exchangePartnerApplicationFound -and $enabledIoc)
+
+            if (-not $exchangePartnerApplicationFound) {
+                Write-Warning "We did not find the 'Exchange Online' partner application in your on-premises environment"
+            } elseif ($exchangeOnlinePartnerApplication.Count -gt 1) {
+                Write-Warning "Multiple enabled 'Exchange Online' partner applications found - this may indicate a misconfiguration"
+            }
+
+            if (-not $iocFound) {
+                Write-Warning "We did not find an IntraOrganizationConnector in your on-premises environment"
+            }
+
+            if ($enabledIoc.Count -eq 0) {
+                Write-Warning "We did not find any enabled IntraOrganizationConnector in your on-premises environment"
+            }
+
+            foreach ($c in $enabledIoc) {
+                Write-Verbose "We found the following enabled IntraOrganizationConnector: '$($c.Name)'"
+                Write-Verbose "TargetAddressDomain: $($c.TargetAddressDomains) - DiscoveryEndpoint: $($c.DiscoveryEndpoint)"
+            }
+
+            foreach ($c in $disabledIoc) {
+                Write-Warning "The following IntraOrganizationConnector is disabled:"
+                Write-Warning "Name: $($c.Name) - TargetAddressDomain: $($c.TargetAddressDomains)"
+            }
+
+            if (-not $exchangePartnerApplicationFound -or
+                -not $iocFound -or
+                $enabledIoc.Count -eq 0) {
+                Write-Warning "It seems like your OAuth configuration is invalid - are you using DAuth instead of OAuth?"
+                Write-Host ""
+            }
+        } catch {
+            Write-Warning "Unable to query OAuth related settings - Exception: $_"
+
+            return
+        }
+
         # Check if the setting override already exists and if it doesn't, create the setting override to enable the feature run Get-ExchangeDiagnosticInfo first to avoid caching issues
         Get-ExchangeDiagnosticInfo -Process "Microsoft.Exchange.Directory.TopologyService" -Component "VariantConfiguration" -Argument "Refresh" | Out-Null
         $settingOverrides = Get-ExchangeSettingOverride -Server $env:COMPUTERNAME
@@ -1162,36 +1216,54 @@ begin {
         if (($null -ne $settingOverrides) -and
             ($settingOverrides.SimpleSettingOverrides.Count -gt 0)) {
             # Filter out the overrides which enable or disable the ExchangeOnpremAsThirdPartyAppId feature
-            $3pOverrides = $settingOverrides.SimpleSettingOverrides | Where-Object {
+            $featureSettingOverrides = $settingOverrides.SimpleSettingOverrides | Where-Object {
                 ($_.SectionName -eq "ExchangeOnpremAsThirdPartyAppId") -and
                 ($_.ComponentName -eq "Global")
             }
 
-            if ($null -ne $3pOverrides) {
+            if ($null -ne $featureSettingOverrides) {
                 Write-Warning "The following Setting Override(s) already exist:"
+                Write-Host ""
 
                 # If we find some, check whether they enable or disable the feature explicitly
-                foreach ($o in $3pOverrides) {
-                    if ($o.Parameters -eq "Enabled=true") {
-                        Write-Host "`tSetting Override: $($o.Name) - Enables the dedicated Exchange hybrid application feature"
-                    } elseif ($o.Parameters -eq "Enabled=false") {
-                        Write-Host "`tSetting Override: $($o.Name) - Disables the dedicated Exchange hybrid application feature"
-                    } else {
-                        Write-Host "`tSetting Override: $($o.Name) - Contains an unexpected Parameters value: $($o.Parameters)"
+                $featureEnabledCount = 0
+                foreach ($o in $featureSettingOverrides) {
+                    $match = [regex]::Match($o.Parameters, "^\s*Enabled\s*=\s*(true|false)\s*$", "IgnoreCase")
+                    $featureIsEnabled = ($match.Success -and $match.Groups[1].Value)
+                    $featureSettingOverrideValue = if (-not $match.Success) { "Unknown" } else { $match.Groups[1].Value }
+
+                    if ($featureIsEnabled) {
+                        $featureEnabledCount++
                     }
+
+                    Write-Host ("[Setting Override] Name: '{0}' Feature enabled? '{1}'" -f $o.Name, $featureSettingOverrideValue)
 
                     $3pSettingOverridesObject.Add($o)
                 }
 
+                Write-Host ""
                 Write-Warning "Run the following command if you want to remove the existing Setting Override(s):"
-                Write-Warning "`tGet-SettingOverride | Where-Object {`$_.ComponentName -eq `"Global`" -and `$_.SectionName -eq `"ExchangeOnpremAsThirdPartyAppId`"} | Remove-SettingOverride -Confirm:`$false"
+                Write-Warning "Get-SettingOverride | Where-Object {`$_.ComponentName -eq `"Global`" -and `$_.SectionName -eq `"ExchangeOnpremAsThirdPartyAppId`"} | Remove-SettingOverride -Confirm:`$false"
+
+                if ($featureEnabledCount -gt 0 -and
+                    -not $basicOAuthConfigCheckPassed) {
+                    Write-Host ""
+                    Write-Warning "The dedicated hybrid application feature is enabled, but your OAuth configuration appears to be incomplete"
+                    Write-Warning "Please review your OAuth configuration and either fix it manually or run the Hybrid Configuration Wizard (HCW)"
+                }
 
                 return
             }
         }
 
         # If no setting overrides, which control the dedicated Exchange hybrid application feature, exists we'll create a new global override, otherwise, do nothing and display the name of the existing overrides
-        if ($3pSettingOverridesObject.Count -eq 0) {
+        # We only do this if the basic OAuth configuration check has passed
+        if (-not $basicOAuthConfigCheckPassed) {
+            Write-Warning "The feature cannot be enabled because the configuration is incomplete"
+            Write-Warning "Please review your OAuth configuration and either fix it manually or run the Hybrid Configuration Wizard (HCW)"
+
+            return
+        } elseif ($3pSettingOverridesObject.Count -eq 0) {
             try {
                 $newSettingOverrideParams = @{
                     Name       = "EnableExchangeHybrid3PAppFeature"
