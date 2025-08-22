@@ -23,6 +23,20 @@ function Invoke-AnalyzerEngineHandler {
         [string]$RunType
     )
     begin {
+
+        function InvokeRemoteAnalyzerCatchActions {
+            param(
+                [object]$CurrentError = $Error[0]
+            )
+            if ($CurrentError.Exception -is [System.Management.Automation.Remoting.PSRemotingTransportException] -or
+                $CurrentError.Exception.StackTrace -is [System.Management.Automation.Remoting.PSRemotingTransportException]) {
+                # This would be is if we can't send the payload remotely, we are going to "handle" this and not have customers report it.
+                Invoke-CatchActions $CurrentError
+            } else {
+                Write-Verbose "Exception didn't match. Exception: $($CurrentError.Exception) StackTrace: $($CurrentError.Exception.StackTrace)"
+            }
+        }
+
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $finalResultsProcessed = @{}
         $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
@@ -62,7 +76,7 @@ function Invoke-AnalyzerEngineHandler {
                 # We are going to attempt to execute the analyzer on the server the data came from. This way we can start up a lot of jobs all at the same time and be done quickly.
                 Add-JobAnalyzerEngine -HealthServerObject $healthServerObject -ExecutingServer $healthServerObject.ServerName
             }
-            Wait-JobQueue -ProcessReceiveJobAction ${Function:Invoke-RemotePipelineLoggingLocal}
+            Wait-JobQueue -ProcessReceiveJobAction ${Function:Invoke-RemotePipelineLoggingLocal} -CatchActionFunction ${Function:InvokeRemoteAnalyzerCatchActions}
             $getJobQueueResult = Get-JobQueueResult
             Write-Verbose "Saving out the JobQueue"
             Add-DebugObject -ObjectKeyName "GetJobQueue-AfterDataCollection" -ObjectValueEntry ((Get-JobQueue).Clone())
@@ -85,7 +99,7 @@ function Invoke-AnalyzerEngineHandler {
                         Write-Progress @progressAnalyzerParams
                         Add-JobAnalyzerEngine -HealthServerObject $getJobQueueClone[$failedJobKey].JobParameter.ArgumentList -ExecutingServer $env:COMPUTERNAME
                     }
-                    Wait-JobQueue -ProcessReceiveJobAction ${Function:Invoke-RemotePipelineLoggingLocal}
+                    Wait-JobQueue -ProcessReceiveJobAction ${Function:Invoke-RemotePipelineLoggingLocal} -CatchActionFunction ${Function:InvokeRemoteAnalyzerCatchActions}
                     $getJobQueueResult2 = Get-JobQueueResult
                     $getJobQueueResult2.Keys | ForEach-Object { $getJobQueueResult[$_] = $getJobQueueResult2[$_] }
                     $getJobQueueResult2.Values | Where-Object { $null -ne $_ } | Invoke-HiddenJobUnhandledErrors
