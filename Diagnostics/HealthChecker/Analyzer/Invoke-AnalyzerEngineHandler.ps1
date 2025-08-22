@@ -23,6 +23,16 @@ function Invoke-AnalyzerEngineHandler {
         [string]$RunType
     )
     begin {
+
+        function InvokeRemoteAnalyzerCatchActions {
+            $e = $Error[0]
+
+            if ($e.Exception -is [System.Management.Automation.Remoting.PSRemotingTransportException]) {
+                # This would be is if we can't send the payload remotely, we are going to "handle" this and not have customers report it.
+                Invoke-CatchActions
+            }
+        }
+
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $finalResultsProcessed = @{}
         $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
@@ -62,7 +72,7 @@ function Invoke-AnalyzerEngineHandler {
                 # We are going to attempt to execute the analyzer on the server the data came from. This way we can start up a lot of jobs all at the same time and be done quickly.
                 Add-JobAnalyzerEngine -HealthServerObject $healthServerObject -ExecutingServer $healthServerObject.ServerName
             }
-            Wait-JobQueue -ProcessReceiveJobAction ${Function:Invoke-RemotePipelineLoggingLocal}
+            Wait-JobQueue -ProcessReceiveJobAction ${Function:Invoke-RemotePipelineLoggingLocal} -CatchActionFunction ${Function:InvokeRemoteAnalyzerCatchActions}
             $getJobQueueResult = Get-JobQueueResult
             Write-Verbose "Saving out the JobQueue"
             Add-DebugObject -ObjectKeyName "GetJobQueue-AfterDataCollection" -ObjectValueEntry ((Get-JobQueue).Clone())
