@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-ExchangeAdSchemaClass.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 
 function Get-ExchangeAdSchemaInformation {
 
@@ -14,7 +15,7 @@ function Get-ExchangeAdSchemaInformation {
             $propertyName = $name.Replace("-", "")
             $value = $null
             try {
-                $value = Get-ExchangeAdSchemaClass -SchemaClassName $name
+                Get-ExchangeAdSchemaClass -SchemaClassName $name | Invoke-RemotePipelineHandler -Result ([ref]$value)
             } catch {
                 Write-Verbose "Failed to get $name"
                 Invoke-CatchActions

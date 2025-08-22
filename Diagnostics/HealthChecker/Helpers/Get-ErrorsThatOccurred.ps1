@@ -1,7 +1,9 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\HiddenJobUnhandledErrorFunctions.ps1
 . $PSScriptRoot\..\..\..\Shared\ErrorMonitorFunctions.ps1
+. $PSScriptRoot\..\..\..\Shared\ScriptDebugFunctions.ps1
 function Get-ErrorsThatOccurred {
 
     function WriteErrorInformation {
@@ -10,44 +12,62 @@ function Get-ErrorsThatOccurred {
             [object]$CurrentError
         )
         Write-VerboseErrorInformation $CurrentError
-        Write-Verbose "-----------------------------------`r`n`r`n"
     }
 
-    if ($Error.Count -gt 0) {
+    if ($Error.Count -gt 0 -or $Script:SaveDebugLog -or (Test-HiddenJobUnhandledErrors)) {
         Write-Host ""
         Write-Host ""
         function Write-Errors {
-            Write-Verbose "`r`n`r`nErrors that occurred that wasn't handled"
+            Write-Verbose "`r`n`r`n-----Errors that were handled-----"
+            Get-HandledErrors | ForEach-Object {
+                Write-Verbose "Error Index: $($_.Index)"
+                WriteErrorInformation $_.ErrorInformation
+            }
+            Write-Verbose "----------------------------------"
+
+            Write-Verbose "`r`n`r`n----Errors that occurred that wasn't handled----"
 
             Get-UnhandledErrors | ForEach-Object {
                 Write-Verbose "Error Index: $($_.Index)"
                 WriteErrorInformation $_.ErrorInformation
             }
 
-            Write-Verbose "`r`n`r`nErrors that were handled"
-            Get-HandledErrors | ForEach-Object {
-                Write-Verbose "Error Index: $($_.Index)"
-                WriteErrorInformation $_.ErrorInformation
+            Write-Verbose "----------------------------------"
+
+            if (Test-HiddenJobUnhandledErrors) {
+                Write-Verbose "`r`n`r`n----Errors that occurred that was not handled remotely----"
+                Invoke-WriteHiddenJobUnhandledErrors
+                Write-Verbose "----------------------------------"
             }
         }
 
-        if ((Test-UnhandledErrorsOccurred)) {
-            Write-Red("There appears to have been some errors in the script. To assist with debugging of the script, please send the HealthChecker-Debug_*.txt, HealthChecker-Errors.json, and .xml file to ExToolsFeedback@microsoft.com.")
-            $Script:Logger.PreventLogCleanup = $true
-            Write-Errors
-            #Need to convert Error to Json because running into odd issues with trying to export $Error out in my lab. Got StackOverflowException for one of the errors i always see there.
+        function Write-ScriptDebugObject {
+            Write-Verbose "Writing out the script debug objects"
             try {
-                $Error |
-                    ConvertTo-Json |
-                    Out-File (Join-Path -Path $Script:OutputFilePath -ChildPath 'HealthChecker-Errors.json')
+                #Need to convert Error to Json because running into odd issues with trying to export $Error out in my lab. Got StackOverflowException for one of the errors i always see there.
+                Add-DebugObject -ObjectKeyName "ScriptErrors" -ObjectValueEntry ($Error | ConvertTo-Json)
             } catch {
-                Write-Red("Failed to export the HealthChecker-Errors.json")
+                Write-Host "Failed to convert Error to Json" -ForegroundColor Red
                 Invoke-CatchActions
             }
+            $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
+            $path = (Join-Path -Path $Script:OutputFilePath -ChildPath "HealthChecker-ScriptDebugObject.xml")
+            Get-DebugObject | Export-Clixml -Encoding utf8 -Path $path
+            Write-Verbose "Took $($stopWatch.Elapsed.TotalSeconds) seconds to write out ScriptDebugObject"
+            Write-Host "Script Debug Object Path: $path"
+        }
+
+        if ((Test-UnhandledErrorsOccurred)) {
+            Write-Red("There appears to have been some errors in the script. To assist with debugging of the script, please send the HealthChecker-Debug_*.txt, HealthChecker-ScriptDebugObject.xml, and .xml file to ExToolsFeedback@microsoft.com.")
+            Write-Red "`tPlease include in the subject of the email with 'HealthChecker-$([System.Guid]::NewGuid())' to avoid duplicate email subjects being sent to us."
+            $Script:Logger.PreventLogCleanup = $true
+            Write-ScriptDebugObject
+            Write-Errors
         } elseif ($Script:VerboseEnabled -or
-            $SaveDebugLog) {
+            $Script:SaveDebugLog) {
             Write-Verbose "All errors that occurred were in try catch blocks and was handled correctly."
             $Script:Logger.PreventLogCleanup = $true
+            Write-ScriptDebugObject
             Write-Errors
         }
     } else {

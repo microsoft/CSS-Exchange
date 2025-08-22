@@ -1,0 +1,316 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.Automation.PSCustomObject</T>
+      <T>System.Object</T>
+    </TN>
+    <MS>
+      <Obj N="ComputerObject" RefId="1">
+        <TNRef RefId="0" />
+        <MS>
+          <Obj N="MemberOf" RefId="2">
+            <TN RefId="1">
+              <T>System.DirectoryServices.ResultPropertyValueCollection</T>
+              <T>System.Collections.ReadOnlyCollectionBase</T>
+              <T>System.Object</T>
+            </TN>
+            <IE>
+              <S>CN=Exchange Install Domain Servers,CN=Microsoft Exchange System Objects,DC=Solo,DC=com</S>
+              <S>CN=Managed Availability Servers,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+              <S>CN=Exchange Trusted Subsystem,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+              <S>CN=Exchange Servers,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+            </IE>
+            <Props>
+              <I32 N="Count">4</I32>
+              <Obj N="SyncRoot" RefId="3">
+                <TN RefId="2">
+                  <T>System.Object</T>
+                </TN>
+                <ToString>System.Object</ToString>
+              </Obj>
+              <B N="IsSynchronized">false</B>
+            </Props>
+          </Obj>
+          <Obj N="MSExchRmsComputerAccountsBl" RefId="4">
+            <TNRef RefId="1" />
+            <IE>
+              <S>CN=FederatedEmail.4c1f4d8b-8179-4148-93bf-00a95fa1e042,CN=Users,DC=Solo,DC=com</S>
+            </IE>
+            <Props>
+              <I32 N="Count">1</I32>
+              <Obj N="SyncRoot" RefId="5">
+                <TNRef RefId="2" />
+                <ToString>System.Object</ToString>
+              </Obj>
+              <B N="IsSynchronized">false</B>
+            </Props>
+          </Obj>
+          <Obj N="WhenCreated" RefId="6">
+            <TNRef RefId="1" />
+            <IE>
+              <DT>2021-10-06T19:09:42</DT>
+            </IE>
+            <Props>
+              <I32 N="Count">1</I32>
+              <Obj N="SyncRoot" RefId="7">
+                <TNRef RefId="2" />
+                <ToString>System.Object</ToString>
+              </Obj>
+              <B N="IsSynchronized">false</B>
+            </Props>
+          </Obj>
+          <Obj N="WhenChanged" RefId="8">
+            <TNRef RefId="1" />
+            <IE>
+              <DT>2025-07-28T19:53:59</DT>
+            </IE>
+            <Props>
+              <I32 N="Count">1</I32>
+              <Obj N="SyncRoot" RefId="9">
+                <TNRef RefId="2" />
+                <ToString>System.Object</ToString>
+              </Obj>
+              <B N="IsSynchronized">false</B>
+            </Props>
+          </Obj>
+          <Obj N="DistinguishedName" RefId="10">
+            <TNRef RefId="1" />
+            <IE>
+              <S>CN=SOLO-E19A,CN=Computers,DC=Solo,DC=com</S>
+            </IE>
+            <Props>
+              <I32 N="Count">1</I32>
+              <Obj N="SyncRoot" RefId="11">
+                <TNRef RefId="2" />
+                <ToString>System.Object</ToString>
+              </Obj>
+              <B N="IsSynchronized">false</B>
+            </Props>
+          </Obj>
+          <S N="ObjectGuid">aa92dc0d-047f-4008-9a15-aecc84a5825e</S>
+          <Obj N="ServicePrincipalName" RefId="12">
+            <TNRef RefId="1" />
+            <IE>
+              <S>IMAP/SOLO-E19A</S>
+              <S>IMAP/Solo-E19A.Solo.com</S>
+              <S>IMAP4/SOLO-E19A</S>
+              <S>IMAP4/Solo-E19A.Solo.com</S>
+              <S>POP/SOLO-E19A</S>
+              <S>POP/Solo-E19A.Solo.com</S>
+              <S>POP3/SOLO-E19A</S>
+              <S>POP3/Solo-E19A.Solo.com</S>
+              <S>exchangeRFR/SOLO-E19A</S>
+              <S>exchangeRFR/Solo-E19A.Solo.com</S>
+              <S>exchangeAB/SOLO-E19A</S>
+              <S>exchangeAB/Solo-E19A.Solo.com</S>
+              <S>exchangeMDB/SOLO-E19A</S>
+              <S>exchangeMDB/Solo-E19A.Solo.com</S>
+              <S>SMTP/SOLO-E19A</S>
+              <S>SMTP/Solo-E19A.Solo.com</S>
+              <S>SmtpSvc/SOLO-E19A</S>
+              <S>SmtpSvc/Solo-E19A.Solo.com</S>
+              <S>WSMAN/Solo-E19A</S>
+              <S>WSMAN/Solo-E19A.Solo.com</S>
+              <S>TERMSRV/SOLO-E19A</S>
+              <S>TERMSRV/Solo-E19A.Solo.com</S>
+              <S>RestrictedKrbHost/SOLO-E19A</S>
+              <S>HOST/SOLO-E19A</S>
+              <S>RestrictedKrbHost/Solo-E19A.Solo.com</S>
+              <S>HOST/Solo-E19A.Solo.com</S>
+            </IE>
+            <Props>
+              <I32 N="Count">26</I32>
+              <Obj N="SyncRoot" RefId="13">
+                <TNRef RefId="2" />
+                <ToString>System.Object</ToString>
+              </Obj>
+              <B N="IsSynchronized">false</B>
+            </Props>
+          </Obj>
+          <Obj N="ObjectSid" RefId="14">
+            <TN RefId="3">
+              <T>System.Security.Principal.SecurityIdentifier</T>
+              <T>System.Security.Principal.IdentityReference</T>
+              <T>System.Object</T>
+            </TN>
+            <ToString>S-1-5-21-1281225956-1072373970-2205875210-1104</ToString>
+            <Props>
+              <I32 N="BinaryLength">28</I32>
+              <Obj N="AccountDomainSid" RefId="15">
+                <TNRef RefId="3" />
+                <ToString>S-1-5-21-1281225956-1072373970-2205875210</ToString>
+                <Props>
+                  <I32 N="BinaryLength">24</I32>
+                  <S N="AccountDomainSid">S-1-5-21-1281225956-1072373970-2205875210</S>
+                  <S N="Value">S-1-5-21-1281225956-1072373970-2205875210</S>
+                </Props>
+              </Obj>
+              <S N="Value">S-1-5-21-1281225956-1072373970-2205875210-1104</S>
+            </Props>
+          </Obj>
+        </MS>
+      </Obj>
+      <Obj N="GroupMembership" RefId="16">
+        <TN RefId="4">
+          <T>System.Collections.Generic.List`1[[System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <Obj RefId="17">
+            <TNRef RefId="0" />
+            <MS>
+              <Obj N="Name" RefId="18">
+                <TNRef RefId="1" />
+                <IE>
+                  <S>Exchange Install Domain Servers</S>
+                </IE>
+                <Props>
+                  <I32 N="Count">1</I32>
+                  <Obj N="SyncRoot" RefId="19">
+                    <TNRef RefId="2" />
+                    <ToString>System.Object</ToString>
+                  </Obj>
+                  <B N="IsSynchronized">false</B>
+                </Props>
+              </Obj>
+              <Obj N="DistinguishedName" RefId="20">
+                <TNRef RefId="1" />
+                <IE>
+                  <S>CN=Exchange Install Domain Servers,CN=Microsoft Exchange System Objects,DC=Solo,DC=com</S>
+                </IE>
+                <Props>
+                  <I32 N="Count">1</I32>
+                  <Obj N="SyncRoot" RefId="21">
+                    <TNRef RefId="2" />
+                    <ToString>System.Object</ToString>
+                  </Obj>
+                  <B N="IsSynchronized">false</B>
+                </Props>
+              </Obj>
+              <S N="ObjectGuid">030f144f-b669-4dc2-9af0-bbd6072bc60a</S>
+              <Obj N="SID" RefId="22">
+                <TNRef RefId="3" />
+                <ToString>S-1-5-21-1281225956-1072373970-2205875210-1134</ToString>
+                <Props>
+                  <I32 N="BinaryLength">28</I32>
+                  <Obj N="AccountDomainSid" RefId="23">
+                    <TNRef RefId="3" />
+                    <ToString>S-1-5-21-1281225956-1072373970-2205875210</ToString>
+                    <Props>
+                      <I32 N="BinaryLength">24</I32>
+                      <S N="AccountDomainSid">S-1-5-21-1281225956-1072373970-2205875210</S>
+                      <S N="Value">S-1-5-21-1281225956-1072373970-2205875210</S>
+                    </Props>
+                  </Obj>
+                  <S N="Value">S-1-5-21-1281225956-1072373970-2205875210-1134</S>
+                </Props>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="24">
+            <TNRef RefId="0" />
+            <MS>
+              <Obj N="Name" RefId="25">
+                <TNRef RefId="1" />
+                <IE>
+                  <S>Managed Availability Servers</S>
+                </IE>
+                <Props>
+                  <I32 N="Count">1</I32>
+                  <Obj N="SyncRoot" RefId="26">
+                    <TNRef RefId="2" />
+                    <ToString>System.Object</ToString>
+                  </Obj>
+                  <B N="IsSynchronized">false</B>
+                </Props>
+              </Obj>
+              <Obj N="DistinguishedName" RefId="27">
+                <TNRef RefId="1" />
+                <IE>
+                  <S>CN=Managed Availability Servers,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+                </IE>
+                <Props>
+                  <I32 N="Count">1</I32>
+                  <Obj N="SyncRoot" RefId="28">
+                    <TNRef RefId="2" />
+                    <ToString>System.Object</ToString>
+                  </Obj>
+                  <B N="IsSynchronized">false</B>
+                </Props>
+              </Obj>
+              <S N="ObjectGuid">35cf4379-eb47-40ec-99bf-6a6c8c01245e</S>
+              <Obj N="SID" RefId="29">
+                <TNRef RefId="3" />
+                <ToString>S-1-5-21-1281225956-1072373970-2205875210-1121</ToString>
+                <Props>
+                  <I32 N="BinaryLength">28</I32>
+                  <Obj N="AccountDomainSid" RefId="30">
+                    <TNRef RefId="3" />
+                    <ToString>S-1-5-21-1281225956-1072373970-2205875210</ToString>
+                    <Props>
+                      <I32 N="BinaryLength">24</I32>
+                      <S N="AccountDomainSid">S-1-5-21-1281225956-1072373970-2205875210</S>
+                      <S N="Value">S-1-5-21-1281225956-1072373970-2205875210</S>
+                    </Props>
+                  </Obj>
+                  <S N="Value">S-1-5-21-1281225956-1072373970-2205875210-1121</S>
+                </Props>
+              </Obj>
+            </MS>
+          </Obj>
+          <Obj RefId="38">
+            <TNRef RefId="0" />
+            <MS>
+              <Obj N="Name" RefId="39">
+                <TNRef RefId="1" />
+                <IE>
+                  <S>Exchange Servers</S>
+                </IE>
+                <Props>
+                  <I32 N="Count">1</I32>
+                  <Obj N="SyncRoot" RefId="40">
+                    <TNRef RefId="2" />
+                    <ToString>System.Object</ToString>
+                  </Obj>
+                  <B N="IsSynchronized">false</B>
+                </Props>
+              </Obj>
+              <Obj N="DistinguishedName" RefId="41">
+                <TNRef RefId="1" />
+                <IE>
+                  <S>CN=Exchange Servers,OU=Microsoft Exchange Security Groups,DC=Solo,DC=com</S>
+                </IE>
+                <Props>
+                  <I32 N="Count">1</I32>
+                  <Obj N="SyncRoot" RefId="42">
+                    <TNRef RefId="2" />
+                    <ToString>System.Object</ToString>
+                  </Obj>
+                  <B N="IsSynchronized">false</B>
+                </Props>
+              </Obj>
+              <S N="ObjectGuid">b67f89a9-ed61-49b2-a26c-1bb4b5142101</S>
+              <Obj N="SID" RefId="43">
+                <TNRef RefId="3" />
+                <ToString>S-1-5-21-1281225956-1072373970-2205875210-1119</ToString>
+                <Props>
+                  <I32 N="BinaryLength">28</I32>
+                  <Obj N="AccountDomainSid" RefId="44">
+                    <TNRef RefId="3" />
+                    <ToString>S-1-5-21-1281225956-1072373970-2205875210</ToString>
+                    <Props>
+                      <I32 N="BinaryLength">24</I32>
+                      <S N="AccountDomainSid">S-1-5-21-1281225956-1072373970-2205875210</S>
+                      <S N="Value">S-1-5-21-1281225956-1072373970-2205875210</S>
+                    </Props>
+                  </Obj>
+                  <S N="Value">S-1-5-21-1281225956-1072373970-2205875210-1119</S>
+                </Props>
+              </Obj>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+</Objs>

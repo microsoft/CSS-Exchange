@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-ExchangeProtocolContainer.ps1
+. $PSScriptRoot\..\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 
 function Get-ExchangeWebSitesFromAd {
     [CmdletBinding()]
@@ -27,7 +28,8 @@ function Get-ExchangeWebSitesFromAd {
         $processedExchangeWebSites = New-Object 'System.Collections.Generic.List[array]'
     }
     process {
-        $protocolContainer = Get-ExchangeProtocolContainer -ComputerName $ComputerName
+        $protocolContainer = $null
+        Get-ExchangeProtocolContainer -ComputerName $ComputerName | Invoke-RemotePipelineHandler -Result ([ref]$protocolContainer)
         if ($null -ne $protocolContainer) {
             $httpProtocol = $protocolContainer.Children | Where-Object {
                 ($_.name -eq "HTTP")
