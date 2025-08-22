@@ -258,9 +258,9 @@ begin {
 
             $analyzedResults = @()
             foreach ($serverData in $importData) {
-                $analyzedServerResults = Invoke-AnalyzerEngine -HealthServerObject $serverData.HealthCheckerExchangeServer
-                Write-ResultsToScreen -ResultsToWrite $analyzedServerResults.DisplayResults
-                $analyzedResults += $analyzedServerResults
+                $analyzedServerResults = Invoke-JobAnalyzerEngine -HealthServerObject $serverData.HealthCheckerExchangeServer
+                Write-ResultsToScreen -ResultsToWrite $analyzedServerResults.HCAnalyzedResults.DisplayResults
+                $analyzedResults += $analyzedServerResults.HCAnalyzedResults
             }
 
             Get-HtmlServerReport -AnalyzedHtmlServerValues $analyzedResults.HtmlServerValues -HtmlOutFilePath $htmlOutFilePath
