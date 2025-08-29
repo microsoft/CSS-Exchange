@@ -110,8 +110,8 @@ function Invoke-AnalyzerSecurityAMSIConfigState {
         [array]$enabledAllValues = $amsiRequestBodyScanning | Where-Object { $_.ParameterName -eq "EnabledAll" }
         $defaultEnabledAll = $isAug25SuOrGreater -and ($null -eq ($enabledAllValues | Where-Object { $_.ParameterValue -eq "False" }))
         Write-Verbose "Enabled All Default Value Set to '$defaultEnabledAll'"
-        $amsiRequestBodyScanningEnabled = $defaultEnabledAll -or $amsiRequestBodyScanning.Count -gt 0 -and
-        ($null -ne ($amsiRequestBodyScanning | Where-Object { $_.ParameterValue -eq "True" }))
+        $amsiRequestBodyScanningEnabled = $defaultEnabledAll -or ($amsiRequestBodyScanning.Count -gt 0 -and
+            ($null -ne ($amsiRequestBodyScanning | Where-Object { $_.ParameterValue -eq "True" })))
         $amsiBlockRequestBodyEnabled = $amsiBlockRequestBodyGreater.Count -gt 0 -and
         ($null -ne ($amsiBlockRequestBodyGreater | Where-Object { $_.ParameterValue -eq "True" }))
         $requestBodyDisplayValue = $amsiStateEnabled -and $amsiRequestBodyScanningEnabled
