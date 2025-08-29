@@ -128,12 +128,15 @@ function Get-HealthCheckerDataCollection {
                     }
                 Write-Verbose "Took $(([DateTime]::Now) - $startTime) to execute the Invoke-Command test for server name"
 
-                foreach ($passed in $invokeCommandResults) {
-                    $key = $getExchangeServerListToTestFQDN.Values | Where-Object { $_.Name -eq $passed.PSComputerName }
-                    $getExchangeServerList.Add($passed.PSComputerName, $getExchangeServerListToTestFQDN[$key.FQDN])
-                    $getExchangeServerListToTestFQDN.Remove($key.FQDN)
+                if ($invokeCommandResults.Count -gt 0) {
+                    foreach ($passed in $invokeCommandResults) {
+                        $key = $getExchangeServerListToTestFQDN.Values | Where-Object { $_.Name -eq $passed.PSComputerName }
+                        $getExchangeServerList.Add($passed.PSComputerName, $getExchangeServerListToTestFQDN[$key.FQDN])
+                        $getExchangeServerListToTestFQDN.Remove($key.FQDN)
+                    }
+                    Write-Verbose "Successfully was able to get the following servers for server name: $([string]::Join(", ", [array]$invokeCommandResults.PSComputerName))"
                 }
-                Write-Verbose "Successfully was able to get the following servers for server name: $([string]::Join(", ", [array]$invokeCommandResults.PSComputerName))"
+
                 Write-Verbose "Failed to get from the following servers for server name: $([string]::Join(", ", [array]$getExchangeServerListToTestFQDN.Keys))"
 
                 if ($getExchangeServerListToTestFQDN.Count -gt 0) {
