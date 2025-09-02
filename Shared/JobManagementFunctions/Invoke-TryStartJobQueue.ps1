@@ -96,7 +96,7 @@ function Invoke-TryStartJobQueue {
 
             if ($Script:LoopsDetected -gt 40) {
                 Write-Verbose "Loop detected current value: $($Script:LoopsDetected)"
-                # For those who want to debug this, keep Write-Debug just incase.
+                # For those who want to debug this, keep Write-Debug just in case.
                 Write-Debug "Loop detected when calling $($MyInvocation.MyCommand)"
             }
         }
