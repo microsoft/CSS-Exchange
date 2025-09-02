@@ -129,11 +129,6 @@ param(
     [Parameter(Mandatory = $true, ParameterSetName = "VulnerabilityReport", HelpMessage = "Enable to collect data on the entire environment and report only the security vulnerabilities.")]
     [switch]$VulnerabilityReport,
 
-    # TODO: Remove this prior to public release
-    [Parameter(Mandatory = $false)]
-    [ValidateScript( { $_ -ge 2 -and $_ -le 30 })]
-    [string]$DevTestingDefaultOptimizedServerToJobSize = 8,
-
     [Parameter(Mandatory = $false, ParameterSetName = "HealthChecker", HelpMessage = "Data collection prevents the use of jobs to be executed.")]
     [switch]$ForceLegacy,
 
