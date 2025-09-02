@@ -11,8 +11,17 @@ function Get-ExchangeVersion {
 
     Write-Host "$(Get-Date) Verifying Exchange version..."
     $exchVer = (Get-ExchangeServer $ServerName).AdminDisplayVersion
-    $exchVerMajor = $exchVer.major
-    $exchVerMinor = $exchVer.minor
+    if ($exchVer -is [string]) {
+    # Agar string hai (deserialize ho gaya), split karke major/minor nikal lo
+    $parts = $exchVer.Split('.')
+    $exchVerMajor = [int]$parts[0]
+    $exchVerMinor = if ($parts.Count -gt 1) { [int]$parts[1] } else { 0 }
+} else {
+    # Agar object hai, normal property access
+    $exchVerMajor = $exchVer.Major
+    $exchVerMinor = $exchVer.Minor
+}
+
 
     switch ($exchVerMajor) {
         "14" {
