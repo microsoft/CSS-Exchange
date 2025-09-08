@@ -23,6 +23,20 @@ function Invoke-AnalyzerEngineHandler {
         [string]$RunType
     )
     begin {
+
+        function InvokeRemoteAnalyzerCatchActions {
+            param(
+                [object]$CurrentError = $Error[0]
+            )
+            if ($CurrentError.Exception -is [System.Management.Automation.Remoting.PSRemotingTransportException] -or
+                $CurrentError.Exception.StackTrace -is [System.Management.Automation.Remoting.PSRemotingTransportException]) {
+                # This would be is if we can't send the payload remotely, we are going to "handle" this and not have customers report it.
+                Invoke-CatchActions $CurrentError
+            } else {
+                Write-Verbose "Exception didn't match. Exception: $($CurrentError.Exception) StackTrace: $($CurrentError.Exception.StackTrace)"
+            }
+        }
+
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $finalResultsProcessed = @{}
         $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
@@ -54,13 +68,15 @@ function Invoke-AnalyzerEngineHandler {
                 }
             }
         } else {
+            # Initial Attempt of executing the jobs on the server the data was collected from. There is a chance this can fail due to the object being too large.
             foreach ($healthServerObject in $ServerDataCollection) {
                 $progressAnalyzerParams.Status = "Add job for Server $($healthServerObject.ServerName)"
                 $progressAnalyzerParams.PercentComplete = ($analysisCounter++ / $ServerDataCollection.Count * 100)
                 Write-Progress @progressAnalyzerParams
-                Add-JobAnalyzerEngine -HealthServerObject $healthServerObject -ExecutingServer $healthServerObject.ServerName #TODO: Improve this logic
+                # We are going to attempt to execute the analyzer on the server the data came from. This way we can start up a lot of jobs all at the same time and be done quickly.
+                Add-JobAnalyzerEngine -HealthServerObject $healthServerObject -ExecutingServer $healthServerObject.ServerName
             }
-            Wait-JobQueue -ProcessReceiveJobAction ${Function:Invoke-RemotePipelineLoggingLocal}
+            Wait-JobQueue -ProcessReceiveJobAction ${Function:Invoke-RemotePipelineLoggingLocal} -CatchActionFunction ${Function:InvokeRemoteAnalyzerCatchActions}
             $getJobQueueResult = Get-JobQueueResult
             Write-Verbose "Saving out the JobQueue"
             Add-DebugObject -ObjectKeyName "GetJobQueue-AfterDataCollection" -ObjectValueEntry ((Get-JobQueue).Clone())
@@ -68,20 +84,50 @@ function Invoke-AnalyzerEngineHandler {
             $getJobQueueResult.Values | Where-Object { $null -ne $_ } | Invoke-HiddenJobUnhandledErrors
 
             if ($null -ne $noResults) {
+                # We have had some results fail.
                 Write-Verbose "Analyzer failed for the following servers: $([string]::Join(", ", [array]$noResults))"
-                $getJobQueue = Get-JobQueue
-                foreach ($failedJobKey in $noResults) {
-                    try {
-                        $serverName = $getJobQueue[$failedJobKey].JobParameter.ArgumentList.ServerName
-                        Write-Verbose "Working on Server $serverName"
-                        $singleServerStopWatch = [System.Diagnostics.Stopwatch]::StartNew()
-                        $analyzedResults = Invoke-JobAnalyzerEngine -HealthServerObject $getJobQueue[$failedJobKey].JobParameter.ArgumentList
-                        Write-Verbose "$serverName Analyzer Engine took $($singleServerStopWatch.Elapsed.TotalSeconds) seconds"
-                        $finalResultsProcessed.Add($serverName, $analyzedResults.HCAnalyzedResults)
-                    } catch {
-                        Invoke-CatchActions
-                        # Use Write-Error to bubble up the error to us.
-                        Write-Error "Failed to process $serverName for analysis"
+                $getJobQueueClone = (Get-JobQueue).Clone()
+
+                # To speed up this process, we should attempt to do local jobs.
+                if ($noResults.Count -ge 3) {
+                    Clear-JobQueue
+                    $analysisCounter = 1
+                    foreach ($failedJobKey in $noResults) {
+                        $serverName = $getJobQueueClone[$failedJobKey].JobParameter.ArgumentList.ServerName
+                        $progressAnalyzerParams.Status = "Add job for Server $serverName to retry locally"
+                        $progressAnalyzerParams.PercentComplete = ($analysisCounter++ / $noResults.Count * 100)
+                        Write-Progress @progressAnalyzerParams
+                        Add-JobAnalyzerEngine -HealthServerObject $getJobQueueClone[$failedJobKey].JobParameter.ArgumentList -ExecutingServer $env:COMPUTERNAME
+                    }
+                    Wait-JobQueue -ProcessReceiveJobAction ${Function:Invoke-RemotePipelineLoggingLocal} -CatchActionFunction ${Function:InvokeRemoteAnalyzerCatchActions}
+                    $getJobQueueResult2 = Get-JobQueueResult
+                    $getJobQueueResult2.Keys | ForEach-Object { $getJobQueueResult[$_] = $getJobQueueResult2[$_] }
+                    $getJobQueueResult2.Values | Where-Object { $null -ne $_ } | Invoke-HiddenJobUnhandledErrors
+                    $noResults = $getJobQueueResult.Keys | Where-Object { $null -eq $getJobQueueResult[$_] }
+                    Add-DebugObject -ObjectKeyName "GetJobQueue-AfterDataCollectionLocalAttempt" -ObjectValueEntry ((Get-JobQueue).Clone())
+                }
+
+                if ($null -ne $noResults) {
+                    Write-Verbose "Analyzer failed for the following servers on the local server: $([string]::Join(", ", [array]$noResults))"
+                    $getJobQueue = Get-JobQueue
+                    $analysisCounter = 1
+                    $progressAnalyzerParams.Activity = "Analysis to execute in current PowerShell session"
+                    foreach ($failedJobKey in $noResults) {
+                        try {
+                            $serverName = $getJobQueue[$failedJobKey].JobParameter.ArgumentList.ServerName
+                            Write-Verbose "Working on Server $serverName"
+                            $progressAnalyzerParams.Status = "Executing analysis on $serverName"
+                            $progressAnalyzerParams.PercentComplete = ($analysisCounter++ / $noResults.Count * 100)
+                            Write-Progress @progressAnalyzerParams
+                            $singleServerStopWatch = [System.Diagnostics.Stopwatch]::StartNew()
+                            $analyzedResults = Invoke-JobAnalyzerEngine -HealthServerObject $getJobQueue[$failedJobKey].JobParameter.ArgumentList
+                            Write-Verbose "$serverName Analyzer Engine took $($singleServerStopWatch.Elapsed.TotalSeconds) seconds"
+                            $finalResultsProcessed.Add($serverName, $analyzedResults.HCAnalyzedResults)
+                        } catch {
+                            Invoke-CatchActions
+                            # Use Write-Error to bubble up the error to us.
+                            Write-Error "Failed to process $serverName for analysis"
+                        }
                     }
                 }
             }
