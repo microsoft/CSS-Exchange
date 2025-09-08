@@ -280,6 +280,21 @@ function Invoke-AnalyzerKnownBuildIssues {
             InformationUrl          = (GetKnownIssueInformation @infoParams)
         }
         TestForKnownBuildIssues @params
+
+        Write-Verbose "Test for known move to archive issue with Hybrid App"
+        $infoParams = @{
+            Name = "Online archiving fails for on-premises users in hybrid environment"
+            Url  = "https://support.microsoft.com/en-us/topic/online-archiving-fails-for-on-premises-users-in-hybrid-environment-ab3b6a9f-18bf-493b-b47d-450ad7c89ed4"
+        }
+        $params = @{
+            CurrentVersion          = $currentVersion
+            KnownBuildIssuesToFixes = @((GetKnownIssueBuildInformation "15.2.2562.17" "15.2.2562.27"),
+                (GetKnownIssueBuildInformation "15.2.1748.24" "15.2.1748.37"),
+                (GetKnownIssueBuildInformation "15.2.1544.25" "15.2.1544.34"),
+                (GetKnownIssueBuildInformation "15.1.2507.55" "15.1.2507.59"))
+            InformationUrl          = (GetKnownIssueInformation @infoParams)
+        }
+        TestForKnownBuildIssues @params
     } catch {
         Write-Verbose "Failed to run TestForKnownBuildIssues"
         Invoke-CatchActions
