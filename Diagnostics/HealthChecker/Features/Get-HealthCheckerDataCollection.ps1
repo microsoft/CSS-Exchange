@@ -35,11 +35,10 @@ function Get-HealthCheckerDataCollection {
         # By default, we want to queue the job so we set the run type to "QueueJob"
         $exchCmdletRunType = $orgRunType = "QueueJob"
         $getExchangeServerList = @{}
-        #TODO: DevTestingDefaultOptimizedServerToJobSize need to be renamed or removed.
         # This is the default value that we want to batch the servers into for Exchange Cmdlet data collection
         # We can speed up the process of large server data collection by spinning up jobs vs having a bunch of servers
         # trying to process on a single main thread for this process. However, we need to be careful as connecting EMS takes some time.
-        $Script:defaultOptimizedServerToJobSize = $DevTestingDefaultOptimizedServerToJobSize
+        $Script:defaultOptimizedServerToJobSize = 8
 
         # If there isn't enough Exchange Servers to justify spinning up a job with EMS, we can do this quicker inside the main PowerShell thread here.
         # Therefore, we will set this to CurrentSession.

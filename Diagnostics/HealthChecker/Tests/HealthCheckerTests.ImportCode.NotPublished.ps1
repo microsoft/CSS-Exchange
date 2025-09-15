@@ -22,7 +22,6 @@ $scriptContent = Get-PesterScriptContent -FilePath @(
 
 Invoke-Expression $scriptContent
 
-$Script:DevTestingDefaultOptimizedServerToJobSize = 1
 $Script:ForceLegacy = $true
 
 function SetDefaultRunOfHealthChecker {
