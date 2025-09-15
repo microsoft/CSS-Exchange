@@ -49,9 +49,9 @@ function IntraOrgConCheck {
 }
 function AuthServerCheck {
     #PrintDynamicWidthLine
-    Write-Host -ForegroundColor Green " Get-AuthServer | Select Name,IssuerIdentifier,TokenIssuingEndpoint,AuthMetadataUrl,Enabled"
+    Write-Host -ForegroundColor Green " Get-AuthServer | Select Name, Realm, IssuerIdentifier,TokenIssuingEndpoint,AuthMetadataUrl,Enabled"
     PrintDynamicWidthLine
-    $AuthServer = Get-AuthServer | Where-Object { $_.Name -like "ACS*" } | Select-Object Name, IssuerIdentifier, TokenIssuingEndpoint, AuthMetadataUrl, Enabled
+    $AuthServer = Get-AuthServer | Where-Object { $_.Name -like "EvoSts*" } | Select-Object Name, Realm, IssuerIdentifier, TokenIssuingEndpoint, AuthMetadataUrl, Enabled
     $AuthServer
     $Script:tDAuthServerIssuerIdentifier = $AuthServer.IssuerIdentifier
     $Script:tDAuthServerTokenIssuingEndpoint = $AuthServer.TokenIssuingEndpoint
@@ -61,30 +61,30 @@ function AuthServerCheck {
     Write-Host -ForegroundColor Green " Summary - Auth Server"
     PrintDynamicWidthLine
     Write-Host -ForegroundColor White " IssuerIdentifier: "
-    if ($AuthServer.IssuerIdentifier -like "00000001-0000-0000-c000-000000000000" ) {
+    if ($AuthServer.IssuerIdentifier -like "https://sts.windows.net/$($AuthServer.Realm)/" ) {
         Write-Host -ForegroundColor Green " " $AuthServer.IssuerIdentifier
         $Script:tDAuthServerIssuerIdentifierColor = "green"
     } else {
         Write-Host -ForegroundColor Red " IssuerIdentifier appears not to be correct."
-        Write-Host -ForegroundColor White " Should be 00000001-0000-0000-c000-000000000000"
+        Write-Host -ForegroundColor White " Should be https://sts.windows.net/<Cloud Tenant ID>/"
         $Script:tDAuthServerIssuerIdentifierColor = "red"
     }
     Write-Host -ForegroundColor White " TokenIssuingEndpoint: "
-    if ($AuthServer.TokenIssuingEndpoint -like "https://accounts.accesscontrol.windows.net/*" -and $AuthServer.TokenIssuingEndpoint -like "*/tokens/OAuth/2" ) {
+    if ($AuthServer.TokenIssuingEndpoint -like "https://login.windows.net/common/oauth2/token*" ) {
         Write-Host -ForegroundColor Green " " $AuthServer.TokenIssuingEndpoint
         $Script:tDAuthServerTokenIssuingEndpointColor = "green"
     } else {
         Write-Host -ForegroundColor Red " TokenIssuingEndpoint appears not to be correct."
-        Write-Host -ForegroundColor White " Should be  https://accounts.accesscontrol.windows.net/<Cloud Tenant ID>/tokens/OAuth/2"
+        Write-Host -ForegroundColor White " Should be  https://login.windows.net/common/oauth2/token"
         $Script:tDAuthServerTokenIssuingEndpointColor = "red"
     }
     Write-Host -ForegroundColor White " AuthMetadataUrl: "
-    if ($AuthServer.AuthMetadataUrl -like "https://accounts.accesscontrol.windows.net/*" -and $AuthServer.TokenIssuingEndpoint -like "*/tokens/OAuth/2" ) {
+    if ($AuthServer.AuthMetadataUrl -like "https://login.windows.net/*/federationmetadata/2007-06/federationmetadata.xml" ) {
         Write-Host -ForegroundColor Green " " $AuthServer.AuthMetadataUrl
         $Script:tDAuthServerAuthMetadataUrlColor = "green"
     } else {
         Write-Host -ForegroundColor Red " AuthMetadataUrl appears not to be correct."
-        Write-Host -ForegroundColor White " Should be  https://accounts.accesscontrol.windows.net/<Cloud Tenant ID>/Metadata/json/1"
+        Write-Host -ForegroundColor White " Should be  https://login.windows.net/<Initial Tenant Domain>/federationmetadata/2007-06/federationmetadata.xml"
         $Script:tDAuthServerAuthMetadataUrlColor = "red"
     }
     Write-Host -ForegroundColor White " Enabled: "
@@ -638,3 +638,4 @@ function EWSVirtualDirectoryCheckOAuth {
         Write-Host -ForegroundColor White "  Should be True "
     }
 }
+
