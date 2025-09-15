@@ -29,14 +29,16 @@ function Invoke-HealthCheckerMainReport {
     Invoke-ErrorCatchActionLoopFromIndex $currentErrors
     [array]$hcDataCollection = Get-HealthCheckerDataCollection $ServerNames
     # ForceLegacy is only supported running locally on the problem server which will execute in the current session.
-    if ($hcDataCollection.Count -eq 1) {
+    if ($null -eq $hcDataCollection) {
+        Write-Verbose "Get-HealthCheckerDataCollection returned null. Exit now."
+        return
+    } elseif ($hcDataCollection.Count -eq 1) {
         $runType = "CurrentSession"
     } else {
         $runType = "StartNow"
     }
     $analyzedEngineResults = Invoke-AnalyzerEngineHandler -ServerDataCollection $hcDataCollection -RunType $runType
 
-    # TODO: Handle this better.
     $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     $stopWatchWrite = New-Object System.Diagnostics.Stopwatch
     $stopWatchToScreen = New-Object System.Diagnostics.Stopwatch
