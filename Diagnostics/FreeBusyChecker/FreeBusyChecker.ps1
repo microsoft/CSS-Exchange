@@ -74,7 +74,6 @@ This cmdlet will run the Free Busy Checker Script for Exchange On-Premises Avail
 #>
 #region Properties and Parameters
 
-#Requires -Module ExchangeOnlineManagement
 #Requires -Module ActiveDirectory
 
 [CmdletBinding(DefaultParameterSetName = "FreeBusyInfo_OP", SupportsShouldProcess)]
@@ -119,6 +118,14 @@ begin {
     $Script:Server = hostname
     $Script:startingDate = (Get-Date -Format yyyyMMdd_HHmmss)
     $Script:htmlFile = "$PSScriptRoot\FBCheckerOutput_$($Script:startingDate).html"
+#Check if EXO module is not installed, if so, Import it.
+  if (-not $Org -or ($Org -eq 'ExchangeOnline')) {
+        if (-not (Get-Module -ListAvailable -Name ExchangeOnlineManagement)) {
+        Write-Error "The ExchangeOnlineManagement module is required but not installed. 
+        Install it with: Install-Module ExchangeOnlineManagement"
+        return
+    }
+    Import-Module ExchangeOnlineManagement -ErrorAction Stop}
 
     loadingParameters
     #Parameter input
