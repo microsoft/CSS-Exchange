@@ -148,12 +148,12 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     $displayWriteType = "Grey"
 
     if ($credentialGuardValue) {
-        $displayValue = "{0} `r`n`t`tError: Credential Guard is not supported on an Exchange Server. This can cause a performance hit on the server." -f $credentialGuardValue
+        $displayValue = "$credentialGuardValue `r`n`t`tError: Credential Guard is not supported on an Exchange Server. This can cause a performance hit on the server.`r`n`t`tMore Information: https://aka.ms/HC-CredentialGuardCheck"
         $displayWriteType = "Red"
     }
 
     if ($credGuardUnknown -and (-not ($credentialGuardValue))) {
-        $displayValue = "Unknown `r`n`t`tWarning: Unable to determine Credential Guard status. If enabled, this can cause a performance hit on the server."
+        $displayValue = "Unknown `r`n`t`tWarning: Unable to determine Credential Guard status. If enabled, this can cause a performance hit on the server.`r`n`t`tMore Information: https://aka.ms/HC-CredentialGuardCheck"
         $displayWriteType = "Yellow"
     }
 
