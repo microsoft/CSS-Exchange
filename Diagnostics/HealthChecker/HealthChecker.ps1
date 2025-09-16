@@ -7,6 +7,7 @@
 	Requires: Exchange Management Shell and administrator rights on the target Exchange
 	server as well as the local machine.
     Major Release History:
+        9/16/2025  - Initial Public Release of Multi-Threading.
         4/20/2021  - Initial Public Release on CSS-Exchange.
         11/10/2020 - Initial Public Release of version 3.
         1/18/2017 - Initial Public Release of version 2.
