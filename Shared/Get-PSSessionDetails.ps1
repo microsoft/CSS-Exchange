@@ -34,6 +34,7 @@ function Get-PSSessionDetails {
     Write-Verbose "Domain Name: $env:USERDNSDOMAIN"
 
     Write-Verbose "============= Computer Information ============="
+    Write-Verbose "OS Version: $(([environment]::OSVersion.Version).ToString())"
     Write-Verbose "NetBIOS Name: $env:COMPUTERNAME"
     Write-Verbose "FQDN: $([System.Net.Dns]::GetHostEntry($env:COMPUTERNAME).HostName)"
 
