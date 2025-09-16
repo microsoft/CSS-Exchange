@@ -2,26 +2,24 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-AppPool.ps1
-. $PSScriptRoot\..\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
+. $PSScriptRoot\..\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
+
 function Get-ExchangeAppPoolsInformation {
     param(
-        [Parameter(Mandatory = $true)]
-        [string]$Server
+        [string]$Server = $env:COMPUTERNAME
     )
 
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
-    $appPool = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock ${Function:Get-AppPool} `
-        -ScriptBlockDescription "Getting App Pool information" `
-        -CatchActionFunction ${Function:Invoke-CatchActions}
-
+    $appPool = $null
+    Get-AppPool | Invoke-RemotePipelineHandler -Result ([ref]$appPool)
     $exchangeAppPoolsInfo = @{}
 
     $appPool |
         Where-Object { $_.add.name -like "MSExchange*" } |
         ForEach-Object {
             Write-Verbose "Working on App Pool: $($_.add.name)"
-            $configContent = Invoke-ScriptBlockHandler -ComputerName $Server -ScriptBlock {
+            $scriptBlock = {
                 param(
                     $FilePath
                 )
@@ -29,11 +27,9 @@ function Get-ExchangeAppPoolsInformation {
                     return (Get-Content $FilePath -Raw -Encoding UTF8).Trim()
                 }
                 return [string]::Empty
-            } `
-                -ScriptBlockDescription "Getting Content file for $($_.add.name)" `
-                -ArgumentList $_.add.CLRConfigFile `
-                -CatchActionFunction ${Function:Invoke-CatchActions}
+            }
 
+            $configContent = & $scriptBlock $_.add.CLRConfigFile
             $gcUnknown = $true
             $gcServerEnabled = $false
 

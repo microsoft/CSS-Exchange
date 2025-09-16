@@ -221,7 +221,7 @@ function Get-LoadBalancingReport {
     </style>
     <body>
     <h1 align=""center"">Exchange Health Checker v$($BuildVersion)</h1>
-    <h1 align=""center"">Domain : $(($(Get-ADDomain).DNSRoot).toUpper())</h1>
+    <h1 align=""center"">Domain : $(([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Name).ToUpper())</h1>
     <h2 align=""center"">Load balancer run finished : $((Get-Date).ToString("yyyy-MM-dd HH:mm"))</h2><br>"
 
     [array]$htmlLoadDetails += "<table>

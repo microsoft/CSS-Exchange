@@ -3,10 +3,11 @@
 
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
-. $PSScriptRoot\Get-ExchangeConnectorCustomObject.ps1
 . $PSScriptRoot\..\..\..\Shared\CompareExchangeBuildLevel.ps1
 . $PSScriptRoot\..\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\..\Shared\ValidatorFunctions\Test-IanaTimeZoneMapping.ps1
+. $PSScriptRoot\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
+
 function Invoke-AnalyzerFrequentConfigurationIssues {
     [CmdletBinding()]
     param(
@@ -20,6 +21,7 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
         [int]$Order
     )
 
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $osInformation = $HealthServerObject.OSInformation
@@ -85,8 +87,11 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
 
     $detailsValue = $exchangeInformation.RegistryValues.EnableEccCertificateSupport
     $displayWriteType = "Grey"
+    $isNov24SUPlus = $null
+    Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -SUName "Nov24SU" |
+        Invoke-RemotePipelineHandler -Result ([ref]$isNov24SUPlus)
 
-    if (-not (Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -SUName "Nov24SU") -and $detailsValue -eq "1") {
+    if (-not ($isNov24SUPlus) -and $detailsValue -eq "1") {
         $detailsValue = "1 --- Warning: On a build that doesn't support this configuration yet.`r`n`t`tMore Information: https://aka.ms/HC-EccCertificateChange"
         $displayWriteType = "Yellow"
     }
@@ -143,12 +148,12 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     $displayWriteType = "Grey"
 
     if ($credentialGuardValue) {
-        $displayValue = "{0} `r`n`t`tError: Credential Guard is not supported on an Exchange Server. This can cause a performance hit on the server." -f $credentialGuardValue
+        $displayValue = "$credentialGuardValue `r`n`t`tError: Credential Guard is not supported on an Exchange Server. This can cause a performance hit on the server.`r`n`t`tMore Information: https://aka.ms/HC-CredentialGuardCheck"
         $displayWriteType = "Red"
     }
 
     if ($credGuardUnknown -and (-not ($credentialGuardValue))) {
-        $displayValue = "Unknown `r`n`t`tWarning: Unable to determine Credential Guard status. If enabled, this can cause a performance hit on the server."
+        $displayValue = "Unknown `r`n`t`tWarning: Unable to determine Credential Guard status. If enabled, this can cause a performance hit on the server.`r`n`t`tMore Information: https://aka.ms/HC-CredentialGuardCheck"
         $displayWriteType = "Yellow"
     }
 
@@ -254,7 +259,8 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
             [xml]$ianaTimeZoneMappingXml = $exchangeInformation.IanaTimeZoneMappingsRaw
 
             # Test IanaTimeZoneMapping.xml content to ensure it doesn't contain invalid or duplicate entries
-            $ianaTimeZoneMappingStatus = Test-IanaTimeZoneMapping -IanaMappingFile $ianaTimeZoneMappingXml
+            $ianaTimeZoneMappingStatus = $null
+            Test-IanaTimeZoneMapping -IanaMappingFile $ianaTimeZoneMappingXml | Invoke-RemotePipelineHandler -Result ([ref]$ianaTimeZoneMappingStatus)
 
             $ianaTimeZoneStatusMissingAttributes = $ianaTimeZoneMappingStatus.NodeMissingAttributes
             $ianaTimeZoneStatusDuplicateEntries = $ianaTimeZoneMappingStatus.DuplicateEntries
@@ -272,7 +278,7 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
             if ($ianaTimeZoneInvalidEntriesList.Count -ge 1) {
                 $params = $baseParams + @{
                     Name             = "IanaTimeZoneMappings.xml invalid"
-                    Details          = "`r`n`t`t$([System.String]::Join("`r`n`t`t", $ianaTimeZoneInvalidEntriesList))`r`n`t`tMore information: https://aka.ms/ExchangeIanaTimeZoneIssue"
+                    Details          = "`r`n`t`t$([System.String]::Join("`r`n`t`t", [array]$ianaTimeZoneInvalidEntriesList))`r`n`t`tMore information: https://aka.ms/ExchangeIanaTimeZoneIssue"
                     DisplayWriteType = "Red"
                 }
                 Add-AnalyzedResultInformation @params
@@ -283,29 +289,33 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
         }
     }
 
-    $displayWriteType = "Yellow"
-    $displayValue = "Unknown - Unable to run Get-AcceptedDomain"
+    $displayWriteType = "Grey"
+    $displayValue = "Not Set"
     $additionalDisplayValue = [string]::Empty
 
-    if ($null -ne $organizationInformation.GetAcceptedDomain -and
-        $organizationInformation.GetAcceptedDomain -ne "Unknown") {
+    if ($organizationInformation.AcceptedDomain -eq "Unknown") {
+        $displayWriteType = "Yellow"
+        $displayValue = "Unknown - Unable to run Get-AcceptedDomain"
+    } elseif ($null -ne $organizationInformation.AcceptedDomain -and
+        $null -ne $organizationInformation.AcceptedDomain.WildCardAcceptedDomain -and
+        @($organizationInformation.AcceptedDomain.WildCardAcceptedDomain.PSObject.Properties).Count -gt 0) {
 
-        $wildCardAcceptedDomain = $organizationInformation.GetAcceptedDomain | Where-Object { $_.DomainName.ToString() -eq "*" }
+        $wildCardAcceptedDomain = $organizationInformation.AcceptedDomain.WildCardAcceptedDomain
+        $displayWriteType = "Red"
+        $displayValue = "Error --- Accepted Domain `"$($wildCardAcceptedDomain.Id)`" is set to a Wild Card (*) Domain Name with a domain type of $($wildCardAcceptedDomain.DomainType.ToString()). This is not recommended as this is an open relay for the entire environment.`r`n`t`tMore Information: https://aka.ms/HC-OpenRelayDomain"
 
-        if ($null -eq $wildCardAcceptedDomain) {
-            $displayValue = "Not Set"
-            $displayWriteType = "Grey"
-        } else {
-            $displayWriteType = "Red"
-            $displayValue = "Error --- Accepted Domain `"$($wildCardAcceptedDomain.Id)`" is set to a Wild Card (*) Domain Name with a domain type of $($wildCardAcceptedDomain.DomainType.ToString()). This is not recommended as this is an open relay for the entire environment.`r`n`t`tMore Information: https://aka.ms/HC-OpenRelayDomain"
+        $isE16CU22Plus = $null
+        $isE19CU11Plus = $null
+        Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2016" -CU "CU22" |
+            Invoke-RemotePipelineHandler -Result ([ref]$isE16CU22Plus)
+        Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2019" -CU "CU11" |
+            Invoke-RemotePipelineHandler -Result ([ref]$isE19CU11Plus)
 
-            if ($wildCardAcceptedDomain.DomainType.ToString() -eq "InternalRelay" -and
-                ((Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2016" -CU "CU22") -or
-                (Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2019" -CU "CU11"))) {
-                $additionalDisplayValue = "`r`n`t`tERROR: You have an open relay set as Internal Replay Type and on a CU that is known to cause issues with transport services crashing. Follow the above article for more information."
-            } elseif ($wildCardAcceptedDomain.DomainType.ToString() -eq "InternalRelay") {
-                $additionalDisplayValue = "`r`n`t`tWARNING: You have an open relay set as Internal Relay Type. You are not on a CU yet that is having issue, recommended to change this prior to upgrading. Follow the above article for more information."
-            }
+        if ($wildCardAcceptedDomain.DomainType.ToString() -eq "InternalRelay" -and
+            ($isE16CU22Plus -or $isE19CU11Plus)) {
+            $additionalDisplayValue = "`r`n`t`tERROR: You have an open relay set as Internal Replay Type and on a CU that is known to cause issues with transport services crashing. Follow the above article for more information."
+        } elseif ($wildCardAcceptedDomain.DomainType.ToString() -eq "InternalRelay") {
+            $additionalDisplayValue = "`r`n`t`tWARNING: You have an open relay set as Internal Relay Type. You are not on a CU yet that is having issue, recommended to change this prior to upgrading. Follow the above article for more information."
         }
     }
 
@@ -341,15 +351,7 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
 
     # Detect Send Connector sending to EXO
     $exoConnector = New-Object System.Collections.Generic.List[object]
-    $sendConnectors = $null
-
-    if ($null -ne $organizationInformation.GetSendConnector) {
-        $objParams = @{
-            Connector   = $organizationInformation.GetSendConnector
-            Certificate = $exchangeInformation.ExchangeCertificateInformation.Certificates
-        }
-        $sendConnectors = Get-ExchangeConnectorCustomObject @objParams
-    }
+    $sendConnectors = $exchangeInformation.ExchangeCustomConnector | Where-Object { $_.ConnectorType -eq "Send" }
 
     foreach ($sendConnector in $sendConnectors) {
         $smartHostMatch = ($sendConnector.SmartHosts -match $eopDomainRegExPattern).Count -gt 0
@@ -486,4 +488,5 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
             Add-AnalyzedResultInformation @params
         }
     }
+    Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }

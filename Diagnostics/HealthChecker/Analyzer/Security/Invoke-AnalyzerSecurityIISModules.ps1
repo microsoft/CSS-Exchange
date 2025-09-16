@@ -16,6 +16,7 @@ function Invoke-AnalyzerSecurityIISModules {
         [object]$DisplayGroupingKey
     )
 
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $exchangeInformation = $SecurityObject.ExchangeInformation
     $moduleInformation = $exchangeInformation.IISSettings.IISModulesInformation
@@ -116,4 +117,5 @@ function Invoke-AnalyzerSecurityIISModules {
     } else {
         Write-Verbose "IIS is not available on Edge Transport Server - check will be skipped"
     }
+    Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }

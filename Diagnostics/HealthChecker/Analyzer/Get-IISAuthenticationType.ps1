@@ -1,6 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
+
 function Get-IISAuthenticationType {
     [CmdletBinding()]
     [OutputType([hashtable])]
@@ -143,7 +145,8 @@ function Get-IISAuthenticationType {
                                 Completed           = [ref]$didComplete
                             }
 
-                            $value = GetAuthTypeName @params
+                            $value = $null
+                            GetAuthTypeName @params | Invoke-RemotePipelineHandler -Result ([ref]$value)
                             if ($didComplete) {
                                 $authenticationTypeCompleted[$authenticationType] = $true
 
@@ -176,7 +179,8 @@ function Get-IISAuthenticationType {
                                         Completed           = [ref]$didComplete
                                     }
 
-                                    $value = GetAuthTypeName @params
+                                    $value = $null
+                                    GetAuthTypeName @params | Invoke-RemotePipelineHandler -Result ([ref]$value)
                                     if ($didComplete) {
                                         $authenticationTypeCompleted[$authenticationType] = $true
 

@@ -1,12 +1,13 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\Invoke-ScriptBlockHandler.ps1
+. $PSScriptRoot\Invoke-CatchActionError.ps1
+. $PSScriptRoot\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 
+# Updated this function to only be executed on the intended server.
 function Get-ServerRebootPending {
     [CmdletBinding()]
     param(
-        [string]$ServerName = $env:COMPUTERNAME,
         [ScriptBlock]$CatchActionFunction
     )
     begin {
@@ -18,7 +19,8 @@ function Get-ServerRebootPending {
                 }
                 return $false
             } catch {
-                throw
+                Invoke-CatchActionError $CatchActionFunction
+                return $false
             }
         }
 
@@ -30,7 +32,8 @@ function Get-ServerRebootPending {
                 }
                 return $false
             } catch {
-                throw
+                Invoke-CatchActionError $CatchActionFunction
+                return $false
             }
         }
 
@@ -38,50 +41,30 @@ function Get-ServerRebootPending {
             try {
                 return (Invoke-CimMethod -Namespace 'Root\ccm\clientSDK' -ClassName 'CCM_ClientUtilities' -Name 'DetermineIfRebootPending' -ErrorAction Stop)
             } catch {
-                throw
+                Invoke-CatchActionError $CatchActionFunction
+                return $false
             }
-        }
-
-        function Get-PathTestingReboot {
-            param(
-                [string]$TestingPath
-            )
-
-            return (Test-Path $TestingPath)
         }
 
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $pendingRebootLocations = New-Object 'System.Collections.Generic.List[string]'
+        $pendingFileRenameOperationValue = $null
+        $ccmReboot = $null
+        $updateExeVolatileValue = $null
     }
     process {
-        $pendingFileRenameOperationValue = Invoke-ScriptBlockHandler -ComputerName $ServerName -ScriptBlock ${Function:Get-PendingFileReboot} `
-            -ScriptBlockDescription "Get-PendingFileReboot" `
-            -CatchActionFunction $CatchActionFunction
+        Get-PendingFileReboot | Invoke-RemotePipelineHandler -Result ([ref]$pendingFileRenameOperationValue)
+        Get-UpdateExeVolatile | Invoke-RemotePipelineHandler -Result ([ref]$updateExeVolatileValue)
+        Get-PendingCCMReboot | Invoke-RemotePipelineHandler -Result ([ref]$ccmReboot)
+        $componentBasedServicingPendingRebootValue = (Test-Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending")
+        $autoUpdatePendingRebootValue = (Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired")
+        $ccmRebootPending = $ccmReboot -and ($ccmReboot.RebootPending -or $ccmReboot.IsHardRebootPending)
+        $pendingReboot = ($ccmRebootPending -or $pendingFileRenameOperationValue -or $componentBasedServicingPendingRebootValue -or
+            $autoUpdatePendingRebootValue -or $updateExeVolatileValue)
 
         if ($null -eq $pendingFileRenameOperationValue) {
             $pendingFileRenameOperationValue = $false
         }
-
-        $componentBasedServicingPendingRebootValue = Invoke-ScriptBlockHandler -ComputerName $ServerName -ScriptBlock ${Function:Get-PathTestingReboot} `
-            -ScriptBlockDescription "Component Based Servicing Reboot Pending" `
-            -ArgumentList "HKLM:\Software\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending" `
-            -CatchActionFunction $CatchActionFunction
-
-        $ccmReboot = Invoke-ScriptBlockHandler -ComputerName $ServerName -ScriptBlock ${Function:Get-PendingCCMReboot} `
-            -ScriptBlockDescription "Get-PendingSCCMReboot" `
-            -CatchActionFunction $CatchActionFunction
-
-        $autoUpdatePendingRebootValue = Invoke-ScriptBlockHandler -ComputerName $ServerName -ScriptBlock ${Function:Get-PathTestingReboot} `
-            -ScriptBlockDescription "Auto Update Pending Reboot" `
-            -ArgumentList "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired" `
-            -CatchActionFunction $CatchActionFunction
-
-        $updateExeVolatileValue = Invoke-ScriptBlockHandler -ComputerName $ServerName -ScriptBlock ${Function:Get-UpdateExeVolatile} `
-            -ScriptBlockDescription "UpdateExeVolatile Reboot Pending" `
-            -CatchActionFunction $CatchActionFunction
-
-        $ccmRebootPending = $ccmReboot -and ($ccmReboot.RebootPending -or $ccmReboot.IsHardRebootPending)
-        $pendingReboot = $ccmRebootPending -or $pendingFileRenameOperationValue -or $componentBasedServicingPendingRebootValue -or $autoUpdatePendingRebootValue -or $updateExeVolatileValue
 
         if ($ccmRebootPending) {
             Write-Verbose "RebootPending in CCM_ClientUtilities"

@@ -2,8 +2,9 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\CompareExchangeBuildLevel.ps1
-. $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 . $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
+
 function Get-ExchangeAES256CBCDetails {
     param(
         [Parameter(Mandatory = $false)]
@@ -69,20 +70,17 @@ function Get-ExchangeAES256CBCDetails {
         $msipcRegistryAclAsExpected = $false
     } process {
         # First, check if the build running on the server supports AES256-CBC
-        if (Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $VersionInformation -SU "Aug23SU") {
+        $isAug23SUOrGreater = $false
+        Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $VersionInformation -SU "Aug23SU" |
+            Invoke-RemotePipelineHandler -Result ([ref]$isAug23SUOrGreater)
+        if ($isAug23SUOrGreater) {
 
             Write-Verbose "AES256-CBC encryption for information protection is supported by this Exchange Server build"
             $aes256CBCSupported = $true
-
-            $params = @{
-                ComputerName        = $Server
-                ScriptBlock         = ${Function:GetRegistryAclCheckScriptBlock}
-                CatchActionFunction = ${Function:Invoke-CatchActions}
-            }
-            $results = Invoke-ScriptBlockHandler @params
+            $results = GetRegistryAclCheckScriptBlock
+            $msipcRegistryAclAsExpected = $results.RegistryKeyConfiguredAsExpected
             Write-Verbose "Found Registry Path: $($results.PathExits)"
             Write-Verbose "Configured Correctly: $($results.RegistryKeyConfiguredAsExpected)"
-            $msipcRegistryAclAsExpected = $results.RegistryKeyConfiguredAsExpected
         } else {
             Write-Verbose "AES256-CBC encryption for information protection is not supported by this Exchange Server build"
         }

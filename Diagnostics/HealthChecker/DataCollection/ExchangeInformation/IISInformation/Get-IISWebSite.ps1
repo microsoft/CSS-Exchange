@@ -2,22 +2,19 @@
 # Licensed under the MIT License.
 
 function Get-IISWebSite {
-    param(
-        [array]$WebSitesToProcess
-    )
+    [CmdletBinding()]
+    param()
 
     $returnList = New-Object 'System.Collections.Generic.List[object]'
     $webSites = New-Object 'System.Collections.Generic.List[object]'
-
-    if ($null -eq $WebSitesToProcess) {
-        $webSites.AddRange((Get-Website))
-    } else {
-        foreach ($iisWebSite in $WebSitesToProcess) {
-            $webSites.Add((Get-Website -Name $($iisWebSite)))
-        }
+    try {
+        $webSites.AddRange((Get-WebSite))
+        $bindings = Get-WebBinding
+    } catch {
+        Write-Verbose "Failed to run Get-WebSite or Get-WebBinding for IIS Web Site information. Inner Exception: $_"
+        Invoke-CatchActions
+        return $null
     }
-
-    $bindings = Get-WebBinding
 
     foreach ($site in $webSites) {
         Write-Verbose "Working on Site: $($site.Name)"

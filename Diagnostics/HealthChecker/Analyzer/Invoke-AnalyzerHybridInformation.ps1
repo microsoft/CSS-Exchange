@@ -3,7 +3,8 @@
 
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
-. $PSScriptRoot\Get-ExchangeConnectorCustomObject.ps1
+. $PSScriptRoot\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
+
 function Invoke-AnalyzerHybridInformation {
     [CmdletBinding()]
     param(
@@ -17,6 +18,7 @@ function Invoke-AnalyzerHybridInformation {
         [int]$Order
     )
 
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $baseParams = @{
         AnalyzedInformation = $AnalyzeResults
@@ -28,15 +30,15 @@ function Invoke-AnalyzerHybridInformation {
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $getHybridConfiguration = $HealthServerObject.OrganizationInformation.GetHybridConfiguration
 
-    $evoStsAuthServer = $HealthServerObject.OrganizationInformation.GetAuthServer | Where-Object {
+    [array]$evoStsAuthServer = $HealthServerObject.OrganizationInformation.GetAuthServer | Where-Object {
         (($_.Name -match "^EvoSts - $guidRegEx") -or
         ($_.Name -match "EvoSTS")) -and
-        $_.Type -eq "AzureAD" -and
+        $_.Type.ToString() -eq "AzureAD" -and
         $_.ApplicationIdentifier -match $guidRegEx -and
         $_.Enabled -eq $true
     }
 
-    $dedicatedHybridAppOverride = $HealthServerObject.OrganizationInformation.GetSettingOverride | Where-Object {
+    [array]$dedicatedHybridAppOverride = $HealthServerObject.OrganizationInformation.GetSettingOverride | Where-Object {
         $_.ComponentName -eq "Global" -and
         $_.SectionName -eq "ExchangeOnpremAsThirdPartyAppId"
     }
@@ -46,7 +48,8 @@ function Invoke-AnalyzerHybridInformation {
     $getHybridConfiguration.ReceivingTransportServers.DistinguishedName -contains $exchangeInformation.GetExchangeServer.DistinguishedName
 
     if ($exchangeInformation.BuildInformation.VersionInformation.BuildVersion -ge "15.0.0.0" -and
-        $null -ne $getHybridConfiguration) {
+        $null -ne $getHybridConfiguration -and
+        @($getHybridConfiguration.PSObject.Properties).Count -ne 0) {
 
         $params = $baseParams + @{
             Name    = "Organization Hybrid Enabled"
@@ -239,7 +242,7 @@ function Invoke-AnalyzerHybridInformation {
                 foreach ($authServer in $evoStsAuthServer) {
                     $dedicatedHybridAppAuthServerObjects++
 
-                    $authServerDetails = "AuthServer: $($authServer.Id)`r`n`t`tTenantId: $($authServer.Realm)`r`n`t`tAppId: $($authServer.ApplicationIdentifier)`r`n`t`tDomain(s): $([System.String]::Join(", ", $authServer.DomainName))"
+                    $authServerDetails = "AuthServer: $($authServer.Id)`r`n`t`tTenantId: $($authServer.Realm)`r`n`t`tAppId: $($authServer.ApplicationIdentifier)`r`n`t`tDomain(s): $([System.String]::Join(", ", [array]$authServer.DomainName))"
 
                     if ($dedicatedHybridAppAuthServerObjects -lt $evoStsAuthServer.Count) {
                         $authServerDetails = $authServerDetails + "`r`n`r`n"
@@ -298,11 +301,9 @@ function Invoke-AnalyzerHybridInformation {
             Add-AnalyzedResultInformation @params
         }
 
-        if ($null -ne $HealthServerObject.OrganizationInformation.GetSendConnector -or
-            $null -ne $exchangeInformation.GetReceiveConnector) {
-            [array]$connectors = $HealthServerObject.OrganizationInformation.GetSendConnector
-            [array]$connectors += $exchangeInformation.GetReceiveConnector
-            [array]$exchangeConnectors = Get-ExchangeConnectorCustomObject -Connector $connectors -Certificate $exchangeInformation.ExchangeCertificateInformation.Certificates
+        if ($null -ne $exchangeInformation.ExchangeCustomConnector) {
+
+            $exchangeConnectors = $exchangeInformation.ExchangeCustomConnector
 
             foreach ($connector in $exchangeConnectors) {
                 $cloudConnectorWriteType = "Yellow"
@@ -572,4 +573,5 @@ function Invoke-AnalyzerHybridInformation {
             }
         }
     }
+    Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }

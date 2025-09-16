@@ -17,6 +17,7 @@ function Invoke-AnalyzerOrganizationInformation {
         [int]$Order
     )
 
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $organizationInformation = $HealthServerObject.OrganizationInformation
 
@@ -105,4 +106,5 @@ function Invoke-AnalyzerOrganizationInformation {
     } else {
         Write-Verbose "No Dynamic Distribution Group Public Folder Mailboxes found to review."
     }
+    Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }

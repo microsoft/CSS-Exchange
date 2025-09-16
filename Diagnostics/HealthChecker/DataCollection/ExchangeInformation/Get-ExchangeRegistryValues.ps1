@@ -2,10 +2,12 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
+
 function Get-ExchangeRegistryValues {
     [CmdletBinding()]
     param(
-        [string]$MachineName,
+        [string]$MachineName = $env:COMPUTERNAME,
         [ScriptBlock]$CatchActionFunction
     )
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
@@ -68,16 +70,38 @@ function Get-ExchangeRegistryValues {
         ValueType = "String"
     }
 
+    $disableBaseTypeCheckForDeserializationValue = $null
+    $ctsProcessorAffinityPercentageValue = $null
+    $fipsAlgorithmPolicyEnabledValue = $null
+    $disableGranularReplicationValue = $null
+    $disableAsyncNotificationValue = $null
+    $serializedDataSigningValue = $null
+    $msiInstallPathValue = $null
+    $disablePreservationValue = $null
+    $fipFsDatabasePathValue = $null
+    $enableEccCertificateSupportValue = $null
+
+    Get-RemoteRegistryValue @baseTypeCheckForDeserializationParams | Invoke-RemotePipelineHandler -Result ([ref]$disableBaseTypeCheckForDeserializationValue)
+    Get-RemoteRegistryValue @ctsParams | Invoke-RemotePipelineHandler -Result ([ref]$ctsProcessorAffinityPercentageValue)
+    Get-RemoteRegistryValue @fipsParams | Invoke-RemotePipelineHandler -Result ([ref]$fipsAlgorithmPolicyEnabledValue)
+    Get-RemoteRegistryValue @blockReplParams | Invoke-RemotePipelineHandler -Result ([ref]$disableGranularReplicationValue)
+    Get-RemoteRegistryValue @disableAsyncParams | Invoke-RemotePipelineHandler -Result ([ref]$disableAsyncNotificationValue)
+    Get-RemoteRegistryValue @serializedDataSigningParams | Invoke-RemotePipelineHandler -Result ([ref]$serializedDataSigningValue)
+    Get-RemoteRegistryValue @installDirectoryParams | Invoke-RemotePipelineHandler -Result ([ref]$msiInstallPathValue)
+    Get-RemoteRegistryValue @disablePreservationParams | Invoke-RemotePipelineHandler -Result ([ref]$disablePreservationValue)
+    Get-RemoteRegistryValue @fipFsDatabasePathParams | Invoke-RemotePipelineHandler -Result ([ref]$fipFsDatabasePathValue)
+    Get-RemoteRegistryValue @eccCertificateSupportParams | Invoke-RemotePipelineHandler -Result ([ref]$enableEccCertificateSupportValue)
+
     return [PSCustomObject]@{
-        DisableBaseTypeCheckForDeserialization = [int](Get-RemoteRegistryValue @baseTypeCheckForDeserializationParams)
-        CtsProcessorAffinityPercentage         = [int](Get-RemoteRegistryValue @ctsParams)
-        FipsAlgorithmPolicyEnabled             = [int](Get-RemoteRegistryValue @fipsParams)
-        DisableGranularReplication             = [int](Get-RemoteRegistryValue @blockReplParams)
-        DisableAsyncNotification               = [int](Get-RemoteRegistryValue @disableAsyncParams)
-        SerializedDataSigning                  = [int](Get-RemoteRegistryValue @serializedDataSigningParams)
-        MsiInstallPath                         = [string](Get-RemoteRegistryValue @installDirectoryParams)
-        DisablePreservation                    = [string](Get-RemoteRegistryValue @disablePreservationParams)
-        FipFsDatabasePath                      = [string](Get-RemoteRegistryValue @fipFsDatabasePathParams)
-        EnableEccCertificateSupport            = [string](Get-RemoteRegistryValue @eccCertificateSupportParams)
+        DisableBaseTypeCheckForDeserialization = [int]$disableBaseTypeCheckForDeserializationValue
+        CtsProcessorAffinityPercentage         = [int]$ctsProcessorAffinityPercentageValue
+        FipsAlgorithmPolicyEnabled             = [int]$fipsAlgorithmPolicyEnabledValue
+        DisableGranularReplication             = [int]$disableGranularReplicationValue
+        DisableAsyncNotification               = [int]$disableAsyncNotificationValue
+        SerializedDataSigning                  = [int]$serializedDataSigningValue
+        MsiInstallPath                         = [string]$msiInstallPathValue
+        DisablePreservation                    = [string]$disablePreservationValue
+        FipFsDatabasePath                      = [string]$fipFsDatabasePathValue
+        EnableEccCertificateSupport            = [string]$enableEccCertificateSupportValue
     }
 }
