@@ -50,7 +50,8 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
         It "Display Results - Operating System Information" {
             SetActiveDisplayGrouping "Operating System Information"
 
-            TestObjectMatch "Version" "Windows Server 2016 Datacenter"
+            TestObjectMatch "Product Name" "Windows Server 2016 Datacenter"
+            TestObjectMatch "Version" "2009 (OS Build: 26100.720)"
             TestObjectMatch "Time Zone" "Pacific Standard Time"
             TestObjectMatch "Dynamic Daylight Time Enabled" "True"
             TestObjectMatch ".NET Framework" "4.8" -WriteType "Green"
@@ -71,7 +72,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             $pageFileAdditional = GetObject "PageFile Additional Information"
             $pageFileAdditional | Should -Be "Error: PageFile is not set to total system memory plus 10MB which should be 6154MB."
 
-            $Script:ActiveGrouping.Count | Should -Be 14
+            $Script:ActiveGrouping.Count | Should -Be 15
         }
 
         It "Display Results - Process/Hardware Information" {
