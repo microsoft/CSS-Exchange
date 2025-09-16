@@ -142,7 +142,6 @@ function Invoke-AnalyzerSecurityCveCheck {
         "Jun23SU" = (NewCveEntry @("CVE-2023-28310", "CVE-2023-32031") @($ex2016, $ex2019))
         "Aug23SU" = (NewCveEntry @("CVE-2023-38181", "CVE-2023-38182", "CVE-2023-38185", "CVE-2023-35368", "CVE-2023-35388", "CVE-2023-36777", "CVE-2023-36757", "CVE-2023-36756", "CVE-2023-36745", "CVE-2023-36744") @($ex2016, $ex2019))
         "Oct23SU" = (NewCveEntry @("CVE-2023-36778") @($ex2016, $ex2019))
-        "Nov23SU" = (NewCveEntry @("CVE-2023-36050", "CVE-2023-36039", "CVE-2023-36035", "CVE-2023-36439") @($ex2016, $ex2019))
         "Mar24SU" = (NewCveEntry @("CVE-2024-26198") @($ex2016, $ex2019))
         "Apr25HU" = (NewCveEntry @("CVE-2025-53786") @($ex2016, $ex2019))
     }
