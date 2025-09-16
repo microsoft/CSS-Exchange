@@ -124,6 +124,7 @@ function Invoke-JobExchangeInformationLocal {
                 $localGroupMember = Get-LocalGroupMember -SID "S-1-5-32-544" -ErrorAction Stop
             } catch {
                 Write-Verbose "Failed to run Get-LocalGroupMember. Inner Exception: $_"
+                Invoke-CatchActions
             }
         }
 
