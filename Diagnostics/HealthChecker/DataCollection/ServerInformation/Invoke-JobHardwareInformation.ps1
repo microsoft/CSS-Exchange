@@ -51,6 +51,7 @@ function Invoke-JobHardwareInformation {
 
         if ($PSSenderInfo) {
             $jobHandledErrors = $Script:ErrorsExcluded
+            $allErrors = $Error
         }
     }
     end {
@@ -66,7 +67,7 @@ function Invoke-JobHardwareInformation {
             MemoryInformation = [array]$physicalMemory
             RemoteJob         = $true -eq $PSSenderInfo
             JobHandledErrors  = $jobHandledErrors
-            AllErrors         = $Error
+            AllErrors         = $allErrors
         }
     }
 }

@@ -210,6 +210,7 @@ function Invoke-JobOrganizationInformation {
 
         if ($PSSenderInfo) {
             $jobHandledErrors = $Script:ErrorsExcluded
+            $allErrors = $Error
         }
     } end {
         Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($jobStopWatch.Elapsed.TotalSeconds) seconds"
@@ -234,7 +235,7 @@ function Invoke-JobOrganizationInformation {
             GetSendConnector                  = $getSendConnector
             RemoteJob                         = $true -eq $PSSenderInfo
             JobHandledErrors                  = $jobHandledErrors
-            AllErrors                         = $Error
+            AllErrors                         = $allErrors
         }
     }
 }
