@@ -44,6 +44,7 @@ param (
 )
 
 begin {
+    . $PSScriptRoot\..\Shared\Invoke-CatchActionError.ps1
     . $PSScriptRoot\..\Shared\Confirm-Administrator.ps1
     . $PSScriptRoot\..\Shared\Get-ExSetupFileVersionInfo.ps1
     . $PSScriptRoot\..\Shared\Invoke-ScriptBlockHandler.ps1
@@ -195,11 +196,11 @@ begin {
         IncludeScriptBlock = ${Function:Invoke-CatchActionError}
     }
 
-    $scriptBlock = Add-ScriptBlockInjection @params
+    $sbGetExSetupFileVersionInfo = Add-ScriptBlockInjection @params
 
     foreach ($srv in $Server) {
         # Check if the target server is online / reachable to us, we use the Get-ExSetupFileVersionInfo custom function to do this
-        $exchangeFileVersionInfo = Invoke-ScriptBlockHandler -ComputerName $srv -ScriptBlock $scriptBlock
+        $exchangeFileVersionInfo = Invoke-ScriptBlockHandler -ComputerName $srv -ScriptBlock $sbGetExSetupFileVersionInfo
 
         if (-not([System.String]::IsNullOrEmpty($exchangeFileVersionInfo))) {
             Invoke-ScriptBlockHandler -ComputerName $srv -ScriptBlock $scriptBlock -ArgumentList $RestartServices, $env:COMPUTERNAME
