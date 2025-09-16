@@ -46,6 +46,19 @@ function Get-HealthCheckerDataCollection {
             $orgRunType = $exchCmdletRunType = "CurrentSession"
         }
 
+        # If the local server that is running the script is Windows Server 2012/R2, we can't use multi-threading, it must be legacy.
+        $windows2016OrGreater = [environment]::OSVersion.Version -ge "10.0.0.0"
+
+        if (-not $windows2016OrGreater) {
+            if ($ServerNames.Count -eq 1) {
+                Write-Verbose "Switching to ForceLegacy to run the script locally on Windows Server 2012/R2"
+                $Script:ForceLegacy = $true
+            } else {
+                Write-Warning "Unable to run the script against multiple servers from a Windows Server 2012 or Windows Server 2012 R2. Please run from a different computer or run locally on the Exchange Server."
+                throw "Unsupported OS Version"
+            }
+        }
+
         # ForceLegacy is for when we can't use jobs. Since we can't use jobs for some reason, we must only do this locally.
         if ($ForceLegacy) {
 
