@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+# Generic testing for Exchange 2019
 [CmdletBinding()]
 param()
 
