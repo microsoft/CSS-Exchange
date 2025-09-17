@@ -137,6 +137,9 @@ Mock Get-RemoteRegistryValue {
         "DatabasePath" { return "$Script:MockDataCollectionRoot\Exchange" }
         "SuppressExtendedProtection" { return 0 }
         "EnableEccCertificateSupport" { return $null }
+        "ProductName" { return "Windows Server 2019" }
+        "ReleaseID" { return 2009 }
+        "CurrentBuild" { return 26100 }
         default { throw "Failed to find GetValue: $GetValue" }
     }
 }

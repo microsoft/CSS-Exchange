@@ -55,7 +55,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
         It "Display Results - Operating System Information" {
             SetActiveDisplayGrouping "Operating System Information"
 
-            TestObjectMatch "Version" "Windows Server 2019 Datacenter (Server Core)"
+            TestObjectMatch "Product Name" "Windows Server 2019 Datacenter (Server Core)"
+            TestObjectMatch "Version" "2009 (OS Build: 26100.720)"
             TestObjectMatch "Time Zone" "Pacific Standard Time"
             TestObjectMatch "Dynamic Daylight Time Enabled" "True"
             TestObjectMatch ".NET Framework" "4.8" -WriteType "Green"
@@ -76,7 +77,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             $pageFileAdditional = GetObject "PageFile Additional Information"
             $pageFileAdditional | Should -Be "Error: On Exchange 2019 CU11, the recommended PageFile size is 25% (1536MB) of the total system memory (6144MB)."
 
-            $Script:ActiveGrouping.Count | Should -Be 14
+            $Script:ActiveGrouping.Count | Should -Be 15
         }
 
         It "Display Results - Process/Hardware Information" {

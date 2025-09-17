@@ -21,6 +21,9 @@ function Get-OperatingSystemRegistryValues {
     $lmValue = $null
     $renegoServerValue = $null
     $renegoClientValue = $null
+    $productNameValue = $null
+    $releaseIdValue = $null
+    $currentBuildValue = $null
 
     $baseParams = @{
         MachineName         = $MachineName
@@ -81,6 +84,21 @@ function Get-OperatingSystemRegistryValues {
         ValueType = "DWord"
     }
 
+    $productNameParams = $baseParams + @{
+        SubKey   = "SOFTWARE\Microsoft\Windows NT\CurrentVersion"
+        GetValue = "ProductName"
+    }
+
+    $releaseIdParams = $baseParams + @{
+        SubKey   = "SOFTWARE\Microsoft\Windows NT\CurrentVersion"
+        GetValue = "ReleaseID"
+    }
+
+    $currentBuildParams = $baseParams + @{
+        SubKey   = "SOFTWARE\Microsoft\Windows NT\CurrentVersion"
+        GetValue = "CurrentBuild"
+    }
+
     Get-RemoteRegistryValue @lmCompParams | Invoke-RemotePipelineHandler -Result ([ref]$lmValue)
     Get-RemoteRegistryValue @suppressEpParams | Invoke-RemotePipelineHandler -Result ([ref]$suppressEpValue)
     Get-RemoteRegistryValue @ubrParams | Invoke-RemotePipelineHandler -Result ([ref]$ubrValue)
@@ -91,6 +109,9 @@ function Get-OperatingSystemRegistryValues {
     Get-RemoteRegistryValue @credGuardParams | Invoke-RemotePipelineHandler -Result ([ref]$credGuardValue)
     Get-RemoteRegistryValue @renegoServersParams | Invoke-RemotePipelineHandler -Result ([ref]$renegoServerValue)
     Get-RemoteRegistryValue @renegoClientsParams | Invoke-RemotePipelineHandler -Result ([ref]$renegoClientValue)
+    Get-RemoteRegistryValue @productNameParams | Invoke-RemotePipelineHandler -Result ([ref]$productNameValue)
+    Get-RemoteRegistryValue @releaseIdParams | Invoke-RemotePipelineHandler -Result ([ref]$releaseIdValue)
+    Get-RemoteRegistryValue @currentBuildParams | Invoke-RemotePipelineHandler -Result ([ref]$currentBuildValue)
 
     if ($null -eq $lmValue) { $lmValue = 3 }
     if ($null -eq $renegoServerValue) { $renegoServerValue = "NULL" }
@@ -107,5 +128,8 @@ function Get-OperatingSystemRegistryValues {
         AllowInsecureRenegoServers      = $renegoServerValue
         AllowInsecureRenegoClients      = $renegoClientValue
         CredentialGuard                 = [int]$credGuardValue
+        ProductName                     = $productNameValue
+        ReleaseId                       = $releaseIdValue
+        CurrentBuild                    = $currentBuildValue
     }
 }

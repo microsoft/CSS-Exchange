@@ -63,7 +63,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             # Assert-MockCalled Invoke-CatchActions -Exactly 1
 
             Assert-MockCalled Get-WmiObjectHandler -Exactly 6
-            Assert-MockCalled Get-RemoteRegistryValue -Exactly 26
+            Assert-MockCalled Get-RemoteRegistryValue -Exactly 29
             Assert-MockCalled Get-RemoteRegistrySubKey -Exactly 1
             Assert-MockCalled Get-NETFrameworkVersion -Exactly 1
             Assert-MockCalled Get-DotNetDllFileVersions -Exactly 1

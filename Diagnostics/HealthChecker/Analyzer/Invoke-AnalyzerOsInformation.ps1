@@ -32,10 +32,19 @@ function Invoke-AnalyzerOsInformation {
     }
 
     $params = $baseParams + @{
-        Name                  = "Version"
+        Name                  = "Product Name"
         Details               = $osInformation.BuildInformation.FriendlyName
         AddHtmlOverviewValues = $true
-        HtmlName              = "OS Version"
+        HtmlName              = "Product Name"
+    }
+    Add-AnalyzedResultInformation @params
+
+    $detailsValue = "$($osInformation.RegistryValues.ReleaseID)"
+    $detailsValue += " (OS Build: $($osInformation.RegistryValues.CurrentBuild).$($osInformation.RegistryValues.CurrentVersionUbr))"
+
+    $params = $baseParams + @{
+        Name    = "Version"
+        Details = $detailsValue
     }
     Add-AnalyzedResultInformation @params
 
