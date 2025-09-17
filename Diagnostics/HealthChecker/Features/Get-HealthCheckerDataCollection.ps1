@@ -152,11 +152,24 @@ function Get-HealthCheckerDataCollection {
                 Write-Verbose "Failed to get from the following servers for server name: $([string]::Join(", ", [array]$getExchangeServerListToTestFQDN.Keys))"
 
                 if ($getExchangeServerListToTestFQDN.Count -gt 0) {
-                    Write-Warning "Failed to connect to the following servers: $([string]::Join(", ", [array]$getExchangeServerListToTestFQDN.Keys)). Please run locally."
+                    # We want to suppress the warning if we are only trying to run the server locally to begin with. Then force the legacy option automatically.
+                    if ($getExchangeServerListToTestFQDN.Count -eq 1 -and
+                        $ServerNames.Count -eq 1 -and
+                        ($ServerNames[0].Split(".")[0]) -eq $env:COMPUTERNAME) {
+                        Write-Verbose "We are only trying to run on the local server and can't do jobs. Therefore, we should force the legacy option."
+                        $Script:ForceLegacy = $true
+                    } else {
+                        Write-Warning "Failed to connect to the following servers: $([string]::Join(", ", [array]$getExchangeServerListToTestFQDN.Keys)). Please run locally."
+                    }
                 }
             } else {
                 Write-Verbose "All Servers Passed FQDN test"
                 $getExchangeServerList = $getExchangeServerListToTestFQDN
+            }
+
+            if ($getExchangeServerList.Count -eq 0 -and $Script:ForceLegacy -eq $false) {
+                Write-Warning "Unable to continue as you must run the script locally on the required server(s) as we aren't able to connect remotely from here."
+                throw "Unable to connect remotely to server(s)"
             }
 
             Invoke-ErrorCatchActionLoopFromIndex $errorCount
