@@ -8,6 +8,7 @@ function Get-PSSessionDetails {
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     Write-Verbose "============= PowerShell Information ==========="
     Write-Verbose "Version: $($PSVersionTable.PSVersion)"
+    Write-Verbose "Host: $($host.Name)"
 
     try {
         $modulesLoaded = Get-Module -ErrorAction Stop
