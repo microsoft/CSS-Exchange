@@ -19,17 +19,14 @@ function Get-ExchangeAppPoolsInformation {
         Where-Object { $_.add.name -like "MSExchange*" } |
         ForEach-Object {
             Write-Verbose "Working on App Pool: $($_.add.name)"
-            $scriptBlock = {
-                param(
-                    $FilePath
-                )
-                if (Test-Path $FilePath) {
-                    return (Get-Content $FilePath -Raw -Encoding UTF8).Trim()
-                }
-                return [string]::Empty
+            $clrConfigFilePath = $_.add.CLRConfigFile
+
+            if ((-not ([string]::IsNullOrEmpty($clrConfigFilePath))) -and (Test-Path $clrConfigFilePath)) {
+                $configContent = (Get-Content $clrConfigFilePath -Raw -Encoding UTF8).Trim()
+            } else {
+                $configContent = [string]::Empty
             }
 
-            $configContent = & $scriptBlock $_.add.CLRConfigFile
             $gcUnknown = $true
             $gcServerEnabled = $false
 
