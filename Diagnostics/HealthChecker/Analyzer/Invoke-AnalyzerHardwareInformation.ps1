@@ -261,11 +261,12 @@ function Invoke-AnalyzerHardwareInformation {
 
         if ($totalPhysicalMemory -gt 256) {
             $displayDetails = "{0} GB `r`n`t`tWarning: We recommend for the best performance to be scaled at or below 256 GB of Memory" -f $totalPhysicalMemory
+        } elseif ($totalPhysicalMemory -lt 128 -and
+            $exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false) {
+            $displayDetails = "{0} GB `r`n`t`tWarning: We recommend for the best performance to have a minimum of 128GB of RAM installed on the machine." -f $totalPhysicalMemory
         } elseif ($totalPhysicalMemory -lt 64 -and
             $exchangeInformation.GetExchangeServer.IsEdgeServer -eq $true) {
             $displayDetails = "{0} GB `r`n`t`tWarning: We recommend for the best performance to have a minimum of 64GB of RAM installed on the machine." -f $totalPhysicalMemory
-        } elseif ($totalPhysicalMemory -lt 128) {
-            $displayDetails = "{0} GB `r`n`t`tWarning: We recommend for the best performance to have a minimum of 128GB of RAM installed on the machine." -f $totalPhysicalMemory
         } else {
             $displayDetails = "{0} GB" -f $totalPhysicalMemory
             $displayWriteType = "Grey"
