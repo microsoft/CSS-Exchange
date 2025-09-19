@@ -14,7 +14,13 @@ function Get-Smb1ServerSettings {
         $windowsFeature = $null
     }
     process {
-        $smbServerConfiguration = Get-SmbServerConfiguration
+
+        try {
+            $smbServerConfiguration = Get-SmbServerConfiguration -ErrorAction Stop
+        } catch {
+            Write-Verbose "Failed to run Get-SmbServerConfiguration. Inner Exception: $_"
+            Invoke-CatchActionError
+        }
 
         if ($null -ne $GetWindowsFeature -and
             $GetWindowsFeature.Count -gt 0) {
