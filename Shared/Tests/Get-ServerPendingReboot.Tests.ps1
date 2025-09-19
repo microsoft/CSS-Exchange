@@ -26,13 +26,13 @@ Describe "Testing Get-ServerRebootPending" {
 
         It "Get-ServerRebootPending reboot not pending" {
             Mock Test-Path { return $false }
-            $results = Get-ServerRebootPending -ServerName $env:COMPUTERNAME
+            $results = Get-ServerRebootPending
             $results.PendingReboot | Should -Be $false
         }
 
         It "Get-ServerRebootPending reboot is pending" {
             Mock Test-Path { return $true }
-            $results = Get-ServerRebootPending -ServerName $env:COMPUTERNAME
+            $results = Get-ServerRebootPending
             $results.PendingReboot | Should -Be $true
         }
     }
@@ -42,7 +42,7 @@ Describe "Testing Get-ServerRebootPending" {
         It "Get-ServerRebootPending reboot not pending" {
             Mock Get-ItemProperty { throw }
             Mock Invoke-CimMethod { throw }
-            $results = Get-ServerRebootPending -ServerName $env:COMPUTERNAME
+            $results = Get-ServerRebootPending
             $results.PendingReboot | Should -Be $false
         }
     }
@@ -52,29 +52,29 @@ Describe "Testing Get-ServerRebootPending" {
         BeforeEach {
             Mock Get-ItemProperty { throw }
             Mock Test-Path { return $false }
-            Mock Invoke-CimMethod { return $null }
         }
 
         It "Get-ServerRebootPending reboot not pending - CimMethod null" {
-            $results = Get-ServerRebootPending -ServerName $env:COMPUTERNAME
+            Mock Invoke-CimMethod { return $null }
+            $results = Get-ServerRebootPending
             $results.PendingReboot | Should -Be $false
         }
 
         It "Get-ServerRebootPending reboot not pending - CimMethod both values set to false" {
             Mock Invoke-CimMethod { return Get-SCCMRebootObject }
-            $results = Get-ServerRebootPending -ServerName $env:COMPUTERNAME
+            $results = Get-ServerRebootPending
             $results.PendingReboot | Should -Be $false
         }
 
         It "Get-ServerRebootPending reboot pending - CimMethod RebootPending set to true" {
             Mock Invoke-CimMethod { $r = Get-SCCMRebootObject; $r.RebootPending = $true; return $r }
-            $results = Get-ServerRebootPending -ServerName $env:COMPUTERNAME
+            $results = Get-ServerRebootPending
             $results.PendingReboot | Should -Be $true
         }
 
         It "Get-ServerRebootPending reboot pending - CimMethod IsHardRebootPending set to true" {
             Mock Invoke-CimMethod { $r = Get-SCCMRebootObject; $r.IsHardRebootPending = $true; return $r }
-            $results = Get-ServerRebootPending -ServerName $env:COMPUTERNAME
+            $results = Get-ServerRebootPending
             $results.PendingReboot | Should -Be $true
         }
     }
@@ -88,13 +88,13 @@ Describe "Testing Get-ServerRebootPending" {
         }
 
         It "Get-ServerRebootPending reboot not pending" {
-            $results = Get-ServerRebootPending -ServerName $env:COMPUTERNAME
+            $results = Get-ServerRebootPending
             $results.PendingReboot | Should -Be $false
         }
 
         It "Get-ServerRebootPending reboot pending" {
             Mock Get-ItemProperty { return $true }
-            $results = Get-ServerRebootPending -ServerName $env:COMPUTERNAME
+            $results = Get-ServerRebootPending
             $results.PendingReboot | Should -Be $true
         }
     }

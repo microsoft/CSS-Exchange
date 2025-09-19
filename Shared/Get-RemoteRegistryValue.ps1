@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-RemoteRegistrySubKey.ps1
+. $PSScriptRoot\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 
 function Get-RemoteRegistryValue {
     [CmdletBinding()]
@@ -30,14 +31,19 @@ function Get-RemoteRegistryValue {
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $registryGetValue = $null
+        $regSubKey = $null
     }
     process {
 
         try {
 
-            $regSubKey = Get-RemoteRegistrySubKey -RegistryHive $RegistryHive `
-                -MachineName $MachineName `
-                -SubKey $SubKey
+            $params = @{
+                RegistryHive = $RegistryHive
+                MachineName  = $MachineName
+                SubKey       = $SubKey
+            }
+
+            Get-RemoteRegistrySubKey @params | Invoke-RemotePipelineHandler -Result ([ref]$regSubKey)
 
             if (-not ([System.String]::IsNullOrWhiteSpace($regSubKey))) {
                 Write-Verbose "Attempting to get the value $GetValue"

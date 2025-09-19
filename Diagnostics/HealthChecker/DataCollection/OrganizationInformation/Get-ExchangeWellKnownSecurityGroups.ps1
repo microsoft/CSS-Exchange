@@ -3,15 +3,18 @@
 
 . $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ExchangeOtherWellKnownObjects.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
+
 function Get-ExchangeWellKnownSecurityGroups {
     [CmdletBinding()]
     param()
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $exchangeGroups = New-Object 'System.Collections.Generic.List[object]'
+        $otherWellKnownObjects = $null
     } process {
         try {
-            $otherWellKnownObjects = Get-ExchangeOtherWellKnownObjects
+            Get-ExchangeOtherWellKnownObjects | Invoke-RemotePipelineHandler -Result ([ref]$otherWellKnownObjects)
         } catch {
             Write-Verbose "Failed to get Get-ExchangeOtherWellKnownObjects"
             Invoke-CatchActions

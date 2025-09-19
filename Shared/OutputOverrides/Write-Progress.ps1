@@ -17,7 +17,7 @@ function Write-Progress {
 
         [int]$ParentId = -1,
 
-        [int]$PercentComplete,
+        [int]$PercentComplete = -1,
 
         [int]$SecondsRemaining = -1,
 
@@ -26,7 +26,13 @@ function Write-Progress {
         [Parameter(Position = 1)]
         [string]$Status
     )
-
+    begin {
+        if ($null -eq $Script:WriteProgressGUIStopWatch) {
+            $Script:WriteProgressGUIStopWatch = [System.Diagnostics.Stopwatch]::StartNew()
+            $isFirstRun = $true
+        }
+        $writeProgressStopWatch = [System.Diagnostics.Stopwatch]::StartNew()
+    }
     process {
         $params = @{
             Activity         = $Activity
@@ -43,7 +49,11 @@ function Write-Progress {
             $params.Add("Status", $Status)
         }
 
-        Microsoft.PowerShell.Utility\Write-Progress @params
+        # This is to help improve the overall performance if Write-Progress is used in a tight loop.
+        if ($isFirstRun -or $Completed -or $Script:WriteProgressGUIStopWatch.Elapsed.TotalMilliseconds -gt 500) {
+            Microsoft.PowerShell.Utility\Write-Progress @params
+            $Script:WriteProgressGUIStopWatch.Restart()
+        }
 
         $message = "Write-Progress Activity: '$Activity' Completed: $Completed CurrentOperation: '$CurrentOperation' Id: $Id" +
         " ParentId: $ParentId PercentComplete: $PercentComplete SecondsRemaining: $SecondsRemaining SourceId: $SourceId Status: '$Status'"
@@ -55,6 +65,10 @@ function Write-Progress {
         if ($PSSenderInfo -and
             $null -ne $Script:WriteRemoteProgressDebugAction) {
             & $Script:WriteRemoteProgressDebugAction $message
+        }
+
+        if ($writeProgressStopWatch.Elapsed.TotalSeconds -ge 2) {
+            Write-Verbose "End $($MyInvocation.MyCommand) and took $($writeProgressStopWatch.Elapsed.TotalSeconds) seconds"
         }
     }
 }

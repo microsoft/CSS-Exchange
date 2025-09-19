@@ -5,6 +5,7 @@
 . $PSScriptRoot\Get-RemoteRegistryValue.ps1
 . $PSScriptRoot\Invoke-CatchActionError.ps1
 . $PSScriptRoot\Invoke-CatchActionErrorLoop.ps1
+. $PSScriptRoot\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 function Get-AllNicInformation {
     [CmdletBinding()]
     param(
@@ -25,9 +26,11 @@ function Get-AllNicInformation {
                 $nicAdapterBasicPath = "SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002bE10318}"
                 [int]$i = 0
                 Write-Verbose "Probing started to detect NIC adapter registry path"
+                $registrySubKey = $null
             }
             process {
-                $registrySubKey = Get-RemoteRegistrySubKey -MachineName $ComputerName -SubKey $nicAdapterBasicPath
+                Get-RemoteRegistrySubKey -MachineName $ComputerName -SubKey $nicAdapterBasicPath |
+                    Invoke-RemotePipelineHandler -Result ([ref]$registrySubKey)
                 if ($null -ne $registrySubKey) {
                     $optionalKeys = $registrySubKey.GetSubKeyNames() | Where-Object { $_ -like "0*" }
                     do {
@@ -38,7 +41,9 @@ function Get-AllNicInformation {
                             GetValue            = "NetCfgInstanceId"
                             CatchActionFunction = $CatchActionFunction
                         }
-                        $netCfgInstanceId = Get-RemoteRegistryValue @netCfgRemoteRegistryParams
+                        $netCfgInstanceId = $null
+                        Get-RemoteRegistryValue @netCfgRemoteRegistryParams |
+                            Invoke-RemotePipelineHandler -Result ([ref]$netCfgInstanceId)
 
                         if ($netCfgInstanceId -eq $NicAdapterComponentId) {
                             Write-Verbose "Matching ComponentId found - now checking for PnPCapabilitiesValue"
@@ -48,7 +53,9 @@ function Get-AllNicInformation {
                                 GetValue            = "PnPCapabilities"
                                 CatchActionFunction = $CatchActionFunction
                             }
-                            $nicAdapterPnPCapabilitiesValue = Get-RemoteRegistryValue @pnpRemoteRegistryParams
+                            $nicAdapterPnPCapabilitiesValue = $null
+                            Get-RemoteRegistryValue @pnpRemoteRegistryParams |
+                                Invoke-RemotePipelineHandler -Result ([ref]$nicAdapterPnPCapabilitiesValue)
                             break
                         } else {
                             Write-Verbose "No matching ComponentId found"
@@ -117,6 +124,7 @@ function Get-AllNicInformation {
                 }
 
                 $nicObjects = New-Object 'System.Collections.Generic.List[object]'
+                $networkAdapterConfigurations = $null
             }
             process {
                 if ($WmiObject) {
@@ -126,7 +134,8 @@ function Get-AllNicInformation {
                         Filter              = "IPEnabled = True"
                         CatchActionFunction = $CatchActionFunction
                     }
-                    $networkAdapterConfigurations = Get-WmiObjectHandler @networkAdapterConfigurationsParams
+                    Get-WmiObjectHandler @networkAdapterConfigurationsParams |
+                        Invoke-RemotePipelineHandler -Result ([ref]$networkAdapterConfigurations)
                 }
 
                 foreach ($networkConfig in $NetworkConfiguration) {
@@ -148,7 +157,9 @@ function Get-AllNicInformation {
                         $adapter = $networkConfig.NetAdapter
 
                         if ($adapter.DriverFileName -ne "NdIsImPlatform.sys") {
-                            $nicPnpCapabilitiesSetting = Get-NicPnpCapabilitiesSetting -NicAdapterComponentId $adapter.DeviceID
+                            $nicPnpCapabilitiesSetting = $null
+                            Get-NicPnpCapabilitiesSetting -NicAdapterComponentId $adapter.DeviceID |
+                                Invoke-RemotePipelineHandler -Result ([ref]$nicPnpCapabilitiesSetting)
                         } else {
                             Write-Verbose "Multiplexor adapter detected. Going to skip PnpCapabilities check"
                             $nicPnpCapabilitiesSetting = [PSCustomObject]@{
@@ -226,7 +237,9 @@ function Get-AllNicInformation {
                         $description = $adapter.Description
 
                         if ($adapter.ServiceName -ne "NdIsImPlatformMp") {
-                            $nicPnpCapabilitiesSetting = Get-NicPnpCapabilitiesSetting -NicAdapterComponentId $adapter.Guid
+                            $nicPnpCapabilitiesSetting = $null
+                            Get-NicPnpCapabilitiesSetting -NicAdapterComponentId $adapter.Guid |
+                                Invoke-RemotePipelineHandler -Result ([ref]$nicPnpCapabilitiesSetting)
                         } else {
                             Write-Verbose "Multiplexor adapter detected. Going to skip PnpCapabilities check"
                             $nicPnpCapabilitiesSetting = [PSCustomObject]@{
@@ -315,13 +328,17 @@ function Get-AllNicInformation {
     process {
         try {
             try {
-                $networkConfiguration = Get-NetworkConfiguration -ComputerName $ComputerName
+                $networkConfiguration = $null
+                Get-NetworkConfiguration -ComputerName $ComputerName |
+                    Invoke-RemotePipelineHandler -Result ([ref]$networkConfiguration)
             } catch {
                 Invoke-CatchActionError $CatchActionFunction
 
                 try {
                     if (-not ([string]::IsNullOrEmpty($ComputerFQDN))) {
-                        $networkConfiguration = Get-NetworkConfiguration -ComputerName $ComputerFQDN
+                        $networkConfiguration = $null
+                        Get-NetworkConfiguration -ComputerName $ComputerFQDN |
+                            Invoke-RemotePipelineHandler -Result ([ref]$networkConfiguration)
                     } else {
                         $bypassCatchActions = $true
                         Write-Verbose "No FQDN was passed, going to rethrow error."
@@ -340,7 +357,10 @@ function Get-AllNicInformation {
                 throw
             }
 
-            return (Get-NicInformation -NetworkConfiguration $networkConfiguration)
+            $getNicInformation = $null
+            Get-NicInformation -NetworkConfiguration $networkConfiguration |
+                Invoke-RemotePipelineHandler -Result ([ref]$getNicInformation)
+            return $getNicInformation
         } catch {
             if (-not $bypassCatchActions) {
                 Invoke-CatchActionError $CatchActionFunction
@@ -352,9 +372,14 @@ function Get-AllNicInformation {
                 Filter              = "NetConnectionStatus ='2'"
                 CatchActionFunction = $CatchActionFunction
             }
-            $wmiNetworkCards = Get-WmiObjectHandler @wmiNetworkCardsParams
+            $wmiNetworkCards = $null
+            Get-WmiObjectHandler @wmiNetworkCardsParams |
+                Invoke-RemotePipelineHandler -Result ([ref]$wmiNetworkCards)
 
-            return (Get-NicInformation -NetworkConfiguration $wmiNetworkCards -WmiObject $true)
+            $getNicInformation = $null
+            Get-NicInformation -NetworkConfiguration $wmiNetworkCards -WmiObject $true |
+                Invoke-RemotePipelineHandler -Result ([ref]$getNicInformation)
+            return $getNicInformation
         }
     }
 }

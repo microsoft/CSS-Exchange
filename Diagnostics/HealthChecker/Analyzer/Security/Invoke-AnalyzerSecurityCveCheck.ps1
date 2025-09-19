@@ -19,6 +19,8 @@
 . $PSScriptRoot\Invoke-AnalyzerSecurityIISModules.ps1
 . $PSScriptRoot\..\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\..\..\..\..\Shared\CompareExchangeBuildLevel.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
+
 function Invoke-AnalyzerSecurityCveCheck {
     [CmdletBinding()]
     param(
@@ -87,6 +89,9 @@ function Invoke-AnalyzerSecurityCveCheck {
         }
     }
 
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
+    Write-Verbose "Calling: $($MyInvocation.MyCommand)"
+
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $osInformation = $HealthServerObject.OSInformation
 
@@ -137,7 +142,6 @@ function Invoke-AnalyzerSecurityCveCheck {
         "Jun23SU" = (NewCveEntry @("CVE-2023-28310", "CVE-2023-32031") @($ex2016, $ex2019))
         "Aug23SU" = (NewCveEntry @("CVE-2023-38181", "CVE-2023-38182", "CVE-2023-38185", "CVE-2023-35368", "CVE-2023-35388", "CVE-2023-36777", "CVE-2023-36757", "CVE-2023-36756", "CVE-2023-36745", "CVE-2023-36744") @($ex2016, $ex2019))
         "Oct23SU" = (NewCveEntry @("CVE-2023-36778") @($ex2016, $ex2019))
-        "Nov23SU" = (NewCveEntry @("CVE-2023-36050", "CVE-2023-36039", "CVE-2023-36035", "CVE-2023-36439") @($ex2016, $ex2019))
         "Mar24SU" = (NewCveEntry @("CVE-2024-26198") @($ex2016, $ex2019))
         "Apr25HU" = (NewCveEntry @("CVE-2025-53786") @($ex2016, $ex2019))
     }
@@ -179,8 +183,15 @@ function Invoke-AnalyzerSecurityCveCheck {
         $sortedKeys.Insert($insertAt, $value)
     }
 
+    $stopWatchTestBuild = New-Object System.Diagnostics.Stopwatch
+
     foreach ($key in $sortedKeys) {
-        if (-not (Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -SUName $key)) {
+        $isSUOrGreater = $false
+        $stopWatchTestBuild.Start()
+        Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -SUName $key |
+            Invoke-RemotePipelineHandler -Result ([ref]$isSUOrGreater)
+        $stopWatchTestBuild.Stop()
+        if (-not ($isSUOrGreater)) {
             Write-Verbose "Tested that we aren't on SU $key or greater"
             $cveNames = ($suNameDictionary[$key] | Where-Object { $_.Version.Contains($exchangeInformation.BuildInformation.MajorVersion) }).CVE
             foreach ($cveName in $cveNames) {
@@ -197,6 +208,8 @@ function Invoke-AnalyzerSecurityCveCheck {
             }
         }
     }
+
+    Write-Verbose "CVE Check testing Test-ExchangeBuildGreaterOrEqualThanSecurityPatch took $($stopWatchTestBuild.Elapsed.TotalSeconds) seconds"
 
     $securityObject = [PSCustomObject]@{
         BuildInformation    = $exchangeInformation.BuildInformation.VersionInformation
@@ -224,4 +237,5 @@ function Invoke-AnalyzerSecurityCveCheck {
     Invoke-AnalyzerSecurityCve-2025-33051 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     # Make sure that these stay as the last one to keep the output more readable
     Invoke-AnalyzerSecurityExtendedProtectionConfigState -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
+    Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }

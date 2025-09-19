@@ -3,6 +3,8 @@
 
 . $PSScriptRoot\..\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\..\..\..\..\Shared\CompareExchangeBuildLevel.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
+
 function Invoke-AnalyzerSecurityMitigationService {
     [CmdletBinding()]
     param(
@@ -16,6 +18,7 @@ function Invoke-AnalyzerSecurityMitigationService {
         [object]$DisplayGroupingKey
     )
 
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $exchangeCU = $exchangeInformation.BuildInformation.CU
@@ -28,9 +31,19 @@ function Invoke-AnalyzerSecurityMitigationService {
     }
     #Description: Check for Exchange Emergency Mitigation Service (EEMS)
     #Introduced in: Exchange 2016 CU22, Exchange 2019 CU11
-    if (((Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2016" -CU "CU22") -or
-            (Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2019" -CU "CU11") -or
-            (Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "ExchangeSE" -CU "RTM")) -and
+    $isE16CU22Plus = $null
+    $isE19CU11Plus = $null
+    $isExSeRtmPlus = $null
+    Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2016" -CU "CU22" |
+        Invoke-RemotePipelineHandler -Result ([ref]$isE16CU22Plus)
+    Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "Exchange2019" -CU "CU11" |
+        Invoke-RemotePipelineHandler -Result ([ref]$isE19CU11Plus)
+    Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "ExchangeSE" -CU "RTM" |
+        Invoke-RemotePipelineHandler -Result ([ref]$isExSeRtmPlus)
+
+    if ((($isE16CU22Plus) -or
+            ($isE19CU11Plus) -or
+            ($isExSeRtmPlus)) -and
         $exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false) {
 
         if (-not([String]::IsNullOrEmpty($mitigationEnabledAtOrg))) {
@@ -154,4 +167,5 @@ function Invoke-AnalyzerSecurityMitigationService {
     } else {
         Write-Verbose "Exchange Emergency Mitigation Service feature not available because we are on: $($exchangeInformation.BuildInformation.MajorVersion) $exchangeCU or on Edge Transport Server"
     }
+    Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }

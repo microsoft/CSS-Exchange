@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\Get-FilteredSettingOverrideInformation.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\CompareExchangeBuildLevel.ps1
 # Used to determine the state of the Serialized Data Signing on the server.
 function Get-SerializedDataSigningState {
@@ -44,8 +45,12 @@ function Get-SerializedDataSigningState {
         $additionalInformation = [string]::Empty
         $serializedDataSigningEnabled = $false
         $supportedRole = $exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false
-        $supportedVersion = (Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -SUName "Jan23SU")
-        $enabledByDefaultVersion = (Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -SUName "Nov23SU")
+        $supportedVersion = $null
+        Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -SUName "Jan23SU" |
+            Invoke-RemotePipelineHandler -Result ([ref]$supportedVersion)
+        $enabledByDefaultVersion = $null
+        Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -SUName "Nov23SU" |
+            Invoke-RemotePipelineHandler -Result ([ref]$enabledByDefaultVersion)
         $filterServer = $exchangeInformation.GetExchangeServer.Name
         $exchangeBuild = $exchangeInformation.BuildInformation.VersionInformation.BuildVersion
         Write-Verbose "Reviewing settings against build: $exchangeBuild"
@@ -67,9 +72,11 @@ function Get-SerializedDataSigningState {
                     FilterParameterName     = "Enabled"
                 }
 
-                [array]$serializedDataSigningSettingOverride = Get-FilteredSettingOverrideInformation @params
+                $serializedDataSigningSettingOverride = $null
+                Get-FilteredSettingOverrideInformation @params | Invoke-RemotePipelineHandlerList -Result ([ref]$serializedDataSigningSettingOverride)
 
-                if ($null -eq $serializedDataSigningSettingOverride) {
+                if ($null -eq $serializedDataSigningSettingOverride -or
+                    $serializedDataSigningSettingOverride.Count -eq 0) {
                     Write-Verbose "No Setting Override Found"
                     $serializedDataSigningEnabled = $enabledByDefaultVersion
                 } elseif ($serializedDataSigningSettingOverride.Count -eq 1) {
@@ -87,7 +94,7 @@ function Get-SerializedDataSigningState {
                     }
                 } else {
                     Write-Verbose "Multi overrides detected"
-                    $additionalInformation = "SerializedDataSigning is unknown - Multi Setting Overrides Applied: $([string]::Join(", ", $serializedDataSigningSettingOverride.Name))"
+                    $additionalInformation = "SerializedDataSigning is unknown - Multi Setting Overrides Applied: $([string]::Join(", ", [array]$serializedDataSigningSettingOverride.Name))"
                 }
             } else {
                 Write-Verbose "Checking Registry Value for SerializedDataSigning configuration state"

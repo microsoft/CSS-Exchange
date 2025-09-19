@@ -1,6 +1,9 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\Add-ScriptBlockInjection.ps1
+. $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
+
 function Invoke-TextExtractionOverride {
     [CmdletBinding()]
     param(
@@ -17,7 +20,6 @@ function Invoke-TextExtractionOverride {
     begin {
         $remoteScriptBlockExecute = {
             param($ArgumentList)
-            . $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
             . $PSScriptRoot\..\..\Shared\Invoke-StartStopService.ps1
             . $PSScriptRoot\..\..\Shared\Invoke-XmlConfigurationRemoteAction.ps1
 
@@ -296,6 +298,13 @@ function Invoke-TextExtractionOverride {
         }
     }
     process {
+        $params = @{
+            PrimaryScriptBlock = $remoteScriptBlockExecute
+            IncludeScriptBlock = @(${Function:Get-RemoteRegistryValue},
+                ${Function:Get-RemoteRegistrySubKey},
+                ${Function:Invoke-RemotePipelineHandler})
+        }
+        $remoteScriptBlockExecute = Add-ScriptBlockInjection @params
         $results = Invoke-Command -ComputerName $ComputerName -ScriptBlock $remoteScriptBlockExecute -ArgumentList ([PSCustomObject]@{
                 ConfigureOverride = $ConfigureOverride
                 Action            = $Action

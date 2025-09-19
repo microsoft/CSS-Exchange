@@ -3,6 +3,7 @@
 
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
+. $PSScriptRoot\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 . $PSScriptRoot\..\..\..\Shared\CompareExchangeBuildLevel.ps1
 . $PSScriptRoot\..\..\..\Shared\VisualCRedistributableVersionFunctions.ps1
 . $PSScriptRoot\..\..\..\Shared\Get-NETFrameworkVersion.ps1
@@ -19,6 +20,7 @@ function Invoke-AnalyzerOsInformation {
         [int]$Order
     )
 
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $osInformation = $HealthServerObject.OSInformation
@@ -30,10 +32,19 @@ function Invoke-AnalyzerOsInformation {
     }
 
     $params = $baseParams + @{
-        Name                  = "Version"
+        Name                  = "Product Name"
         Details               = $osInformation.BuildInformation.FriendlyName
         AddHtmlOverviewValues = $true
-        HtmlName              = "OS Version"
+        HtmlName              = "Product Name"
+    }
+    Add-AnalyzedResultInformation @params
+
+    $detailsValue = "$($osInformation.RegistryValues.ReleaseID)"
+    $detailsValue += " (OS Build: $($osInformation.RegistryValues.CurrentBuild).$($osInformation.RegistryValues.CurrentVersionUbr))"
+
+    $params = $baseParams + @{
+        Name    = "Version"
+        Details = $detailsValue
     }
     Add-AnalyzedResultInformation @params
 
@@ -106,29 +117,49 @@ function Invoke-AnalyzerOsInformation {
     $netVersionDictionary = GetNetVersionDictionary
 
     Write-Verbose "Checking $($exchangeInformation.BuildInformation.MajorVersion) .NET Framework Support Versions"
+    $isEx13CU3OrLess = $null
+    Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU4" | Invoke-RemotePipelineHandler -Result ([ref]$isEx13CU3OrLess)
+    $isEx13CU12OrLess = $null
+    Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU13" | Invoke-RemotePipelineHandler -Result ([ref]$isEx13CU12OrLess)
+    $isEx16CU1OrLess = $null
+    Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU2" | Invoke-RemotePipelineHandler -Result ([ref]$isEx16CU1OrLess)
+    $isEx13CU14OrLess = $null
+    Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU15" | Invoke-RemotePipelineHandler -Result ([ref]$isEx13CU14OrLess)
+    $isEx16CU2 = $null
+    Test-ExchangeBuildEqualBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU2" | Invoke-RemotePipelineHandler -Result ([ref]$isEx16CU2)
+    $isEx16CU3 = $null
+    Test-ExchangeBuildEqualBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU3" | Invoke-RemotePipelineHandler -Result ([ref]$isEx16CU3)
+    $isEx13CU18OrLess = $null
+    Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU19" | Invoke-RemotePipelineHandler -Result ([ref]$isEx13CU18OrLess)
+    $isEx16CU7OrLess = $null
+    Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU8" | Invoke-RemotePipelineHandler -Result ([ref]$isEx16CU7OrLess)
+    $isEx13CU20OrLess = $null
+    Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU21" | Invoke-RemotePipelineHandler -Result ([ref]$isEx13CU20OrLess)
+    $isEx16CU10OrLess = $null
+    Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU11" | Invoke-RemotePipelineHandler -Result ([ref]$isEx16CU10OrLess)
+    $isEx16CU12OrLess = $null
+    Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU13" | Invoke-RemotePipelineHandler -Result ([ref]$isEx16CU12OrLess)
+    $isEx19CU1OrLess = $null
+    Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2019 -CU "CU2" | Invoke-RemotePipelineHandler -Result ([ref]$isEx19CU1OrLess)
+    $isEx19CU14OrGreater = $null
+    Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2019 -CU "CU14" | Invoke-RemotePipelineHandler -Result ([ref]$isEx19CU14OrGreater)
+    $isExSeRTMOrGreater = $null
+    Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $exSE -CU "RTM" | Invoke-RemotePipelineHandler -Result ([ref]$isExSeRTMOrGreater)
 
-    if ((Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU4")) {
+    if ($isEx13CU3OrLess) {
         $recommendedNetVersion = $netVersionDictionary["Net4d5"]
-    } elseif ((Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU13") -or
-        (Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU2")) {
+    } elseif ($isEx13CU12OrLess -or $isEx16CU1OrLess) {
         $recommendedNetVersion = $netVersionDictionary["Net4d5d2wFix"]
-    } elseif ((Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU15") -or
-        (Test-ExchangeBuildEqualBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU2") -or
-        ((Test-ExchangeBuildEqualBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU3") -and
-        $osVersion -ne "Windows2016")) {
+    } elseif ($isEx13CU14OrLess -or $isEx16CU2 -or
+        ($isEx16CU3 -and $osVersion -ne "Windows2016")) {
         $recommendedNetVersion = $netVersionDictionary["Net4d6d1wFix"]
-    } elseif ((Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU19") -or
-        (Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU8")) {
+    } elseif ($isEx13CU18OrLess -or $isEx16CU7OrLess) {
         $recommendedNetVersion = $netVersionDictionary["Net4d6d2"]
-    } elseif ((Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU21") -or
-        (Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU11")) {
+    } elseif ($isEx13CU20OrLess -or $isEx16CU10OrLess) {
         $recommendedNetVersion = $netVersionDictionary["Net4d7d1"]
-    } elseif ((Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2013 -CU "CU21") -or
-        (Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2016 -CU "CU13") -or
-        (Test-ExchangeBuildLessThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2019 -CU "CU2")) {
+    } elseif ($isEx13CU20OrLess -or $isEx16CU12OrLess -or $isEx19CU1OrLess) {
         $recommendedNetVersion = $netVersionDictionary["Net4d7d2"]
-    } elseif (((Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $ex2019 -CU "CU14") -or
-            (Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $currentExchangeBuild -Version $exSE -CU "RTM")) -and
+    } elseif (($isEx19CU14OrGreater -or $isExSeRTMOrGreater) -and
         ($osVersion -ne "Windows2019")) {
         $recommendedNetVersion = $netVersionDictionary["Net4d8d1"]
     } else {
@@ -146,7 +177,8 @@ function Invoke-AnalyzerOsInformation {
         }
         Add-AnalyzedResultInformation @params
     } else {
-        $displayFriendly = Get-NETFrameworkVersion -NetVersionKey $recommendedNetVersion
+        $displayFriendly = $null
+        Get-NETFrameworkVersion -NetVersionKey $recommendedNetVersion | Invoke-RemotePipelineHandler -Result ([ref]$displayFriendly)
         $displayValue = "{0} - Warning Recommended .NET Version is {1}" -f $osInformation.NETFramework.FriendlyName, $displayFriendly.FriendlyName
         $testValue = [PSCustomObject]@{
             CurrentValue        = $osInformation.NETFramework.FriendlyName
@@ -503,4 +535,5 @@ function Invoke-AnalyzerOsInformation {
             }
         }
     }
+    Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }

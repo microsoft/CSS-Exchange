@@ -16,6 +16,7 @@ function Invoke-AnalyzerNicSettings {
         [int]$Order
     )
 
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $baseParams = @{
         AnalyzedInformation = $AnalyzeResults
@@ -333,4 +334,5 @@ function Invoke-AnalyzerNicSettings {
         }
         Add-AnalyzedResultInformation @params
     }
+    Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }

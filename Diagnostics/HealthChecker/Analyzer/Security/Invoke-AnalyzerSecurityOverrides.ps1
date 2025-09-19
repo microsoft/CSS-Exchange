@@ -3,6 +3,7 @@
 
 . $PSScriptRoot\..\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\..\Get-FilteredSettingOverrideInformation.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 . $PSScriptRoot\..\..\..\..\Shared\CompareExchangeBuildLevel.ps1
 function Invoke-AnalyzerSecurityOverrides {
     [CmdletBinding()]
@@ -21,6 +22,7 @@ function Invoke-AnalyzerSecurityOverrides {
         This function is used to analyze overrides which are enabled via SettingOverride or Registry Value
     #>
 
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $exchangeBuild = $exchangeInformation.BuildInformation.VersionInformation.BuildVersion
@@ -42,9 +44,10 @@ function Invoke-AnalyzerSecurityOverrides {
             FilterParameterName     = "LearningLocations"
         }
 
-        [array]$deserializationBinderSettings = Get-FilteredSettingOverrideInformation @params
+        [array]$deserializationBinderSettings = $null
+        Get-FilteredSettingOverrideInformation @params | Invoke-RemotePipelineHandlerList -Result ([ref]$deserializationBinderSettings)
 
-        if ($null -ne $deserializationBinderSettings) {
+        if ($deserializationBinderSettings.Count -gt 0) {
             foreach ($setting in $deserializationBinderSettings) {
                 Write-Verbose "Strict Mode has been disabled via SettingOverride for $($setting.ParameterValue) location"
                 $strictModeDisabledLocationsList.Add($setting.ParameterValue)
@@ -90,7 +93,11 @@ function Invoke-AnalyzerSecurityOverrides {
         Add-AnalyzedResultInformation @params
     }
 
-    if ((Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -SUName "Nov24SU")) {
+    $isNov24SUPlus = $null
+    Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -SUName "Nov24SU" |
+        Invoke-RemotePipelineHandler -Result ([ref]$isNov24SUPlus)
+
+    if (($isNov24SUPlus)) {
         Write-Verbose "ECCCertificateSupport Check for after changes"
         $params = @{
             ExchangeSettingOverride = $exchangeInformation.SettingOverrides
@@ -102,8 +109,10 @@ function Invoke-AnalyzerSecurityOverrides {
             FilterParameterName     = "Enabled"
         }
 
-        [array]$eccCertificateSupportOverride = Get-FilteredSettingOverrideInformation @params
-        $overrideIsEnabled = ($null -ne ($eccCertificateSupportOverride | Where-Object { $_.ParameterValue -eq "true" }))
+        [array]$eccCertificateSupportOverride = $null
+        Get-FilteredSettingOverrideInformation @params | Invoke-RemotePipelineHandlerList -Result ([ref]$eccCertificateSupportOverride)
+        $overrideIsEnabled = $eccCertificateSupportOverride.Count -gt 0 -and
+        ($null -ne ($eccCertificateSupportOverride | Where-Object { $_.ParameterValue -eq "true" }))
 
         if ($overrideIsEnabled -and $exchangeInformation.RegistryValues.EnableEccCertificateSupport -ne "1") {
             $params = $baseParams + @{
@@ -115,4 +124,5 @@ function Invoke-AnalyzerSecurityOverrides {
             Add-AnalyzedResultInformation @params
         }
     }
+    Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }

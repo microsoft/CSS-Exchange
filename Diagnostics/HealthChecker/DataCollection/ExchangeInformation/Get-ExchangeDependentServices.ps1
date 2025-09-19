@@ -2,10 +2,12 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\ErrorMonitorFunctions.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
+
 function Get-ExchangeDependentServices {
     [CmdletBinding()]
     param(
-        [string]$MachineName
+        [string]$MachineName = $env:COMPUTERNAME
     )
     begin {
 
@@ -104,21 +106,23 @@ function Get-ExchangeDependentServices {
         foreach ($service in $getServices) {
 
             $monitor = $servicesList | Where-Object { $_.ServiceName -eq $service.Name }
+            $serviceObj = $null
+            NewServiceObject $service | Invoke-RemotePipelineHandler -Result ([ref]$serviceObj)
 
             if ($null -ne $monitor) {
                 # Any critical services not running, add to list
                 # Any critical or common services not set to Automatic that should be or set to disabled, add to list
                 # Any common services not running, besides the ones that are set to manual, add to list
                 Write-Verbose "Working on $($monitor.ServiceName)"
-                $monitorServicesList.Add((NewServiceObject $service))
+                $monitorServicesList.Add($serviceObj)
 
                 if (-not ($service.Status.ToString() -eq "Running" -or
                         ($monitor.Type -eq "Common" -and
                         $monitor.StartType -eq "Manual"))) {
                     if ($monitor.Type -eq "Critical") {
-                        $notRunningCriticalServices.Add((NewServiceObject $service))
+                        $notRunningCriticalServices.Add($serviceObj)
                     } else {
-                        $notRunningCommonServices.Add((NewServiceObject $service))
+                        $notRunningCommonServices.Add($serviceObj)
                     }
                 }
                 try {
@@ -130,9 +134,8 @@ function Get-ExchangeDependentServices {
                             $startType -eq "Manual") {
                             Write-Verbose "Good configuration"
                         } else {
-                            $serviceObject = NewServiceObject $service
-                            $serviceObject | Add-Member -MemberType NoteProperty -Name "CorrectStartType" -Value $monitor.StartType
-                            $misconfiguredServices.Add($serviceObject)
+                            $serviceObj | Add-Member -MemberType NoteProperty -Name "CorrectStartType" -Value $monitor.StartType
+                            $misconfiguredServices.Add($serviceObj)
                         }
                     }
                 } catch {
@@ -140,7 +143,7 @@ function Get-ExchangeDependentServices {
                     Invoke-CatchActions
                 }
             }
-            $getServicesList.Add((NewServiceObject $service))
+            $getServicesList.Add($serviceObj)
         }
     } end {
         return [PSCustomObject]@{

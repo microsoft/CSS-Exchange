@@ -7,7 +7,6 @@ param()
 BeforeAll {
     $Script:parentPath = (Split-Path -Parent $PSScriptRoot)
     . $Script:parentPath\IISFunctions\Get-IISModules.ps1
-    . $Script:parentPath\Invoke-ScriptBlockHandler.ps1
 
     function LoadApplicationHostConfig {
         [CmdletBinding()]
@@ -62,7 +61,7 @@ Describe "Testing Get-IISModules.ps1" {
 
         It "Should Return The IISModules Object" {
             $iisModules.GetType() | Should -Be PSCustomObject
-            $iisModules.ModuleList.GetType() | Should -Be System.Object[]
+            $iisModules.ModuleList.GetType().ToString() | Should -Be "System.Collections.Generic.List``1[System.Object]"
             $iisModules.Count | Should -Be 1
             $iisModules.ModuleList.Count | Should -Be 31
         }
@@ -94,7 +93,7 @@ Describe "Testing Get-IISModules.ps1" {
 
         It "Should Return The IISModules Object" {
             $iisModules.GetType() | Should -Be PSCustomObject
-            $iisModules.ModuleList.GetType() | Should -Be System.Object[]
+            $iisModules.ModuleList.GetType().ToString() | Should -Be "System.Collections.Generic.List``1[System.Object]"
             $iisModules.Count | Should -Be 1
             $iisModules.ModuleList.Count | Should -Be 31
         }
@@ -126,7 +125,7 @@ Describe "Testing Get-IISModules.ps1" {
 
         It "Should Return The IISModules Object" {
             $iisModules.GetType() | Should -Be PSCustomObject
-            $iisModules.ModuleList.GetType() | Should -Be System.Object[]
+            $iisModules.ModuleList.GetType().ToString() | Should -Be "System.Collections.Generic.List``1[System.Object]"
             $iisModules.Count | Should -Be 1
             $iisModules.ModuleList.Count | Should -Be 34
         }
@@ -173,7 +172,7 @@ Describe "Testing Get-IISModules.ps1" {
 
         It "Should Return The IISModules Object" {
             $iisModules.GetType() | Should -Be PSCustomObject
-            $iisModules.ModuleList.GetType() | Should -Be System.Object[]
+            $iisModules.ModuleList.GetType().ToString() | Should -Be "System.Collections.Generic.List``1[System.Object]"
             $iisModules.Count | Should -Be 1
             $iisModules.ModuleList.Count | Should -Be 31
         }

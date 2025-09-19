@@ -20,13 +20,39 @@ function Get-ExchangeServerMaintenanceState {
         $getServerComponentState = Get-ServerComponentState -Identity $Server -ErrorAction SilentlyContinue
 
         try {
-            $errorCount = $Error.Count
-            Write-Verbose "Trying to run Get-ClusterNode"
-            $getClusterNode = Get-ClusterNode -Name $Server -ErrorAction Stop
-            Invoke-ErrorCatchActionLoopFromIndex $errorCount
+            # Check to see if on the local box, we have CluSSvc running,
+            # if not we need to run Get-ClusterNode within Invoke-Command to avoid a warning being displayed.
+            $clusterService = Get-Service CluSSvc -ErrorAction Stop
+            $runLocally = $clusterService.Status.ToString() -eq "Running"
         } catch {
-            Write-Verbose "Failed to run Get-ClusterNode"
-            Invoke-ErrorCatchActionLoopFromIndex $errorCount
+            Write-Verbose "Failed to get cluster service status information. Inner Exception: $_"
+            Invoke-CatchActions
+        }
+
+        if ($runLocally) {
+            try {
+                $errorCount = $Error.Count
+                Write-Verbose "Trying to run Get-ClusterNode"
+                $getClusterNode = Get-ClusterNode -Name $Server -ErrorAction Stop
+                Invoke-ErrorCatchActionLoopFromIndex $errorCount
+            } catch {
+                Write-Verbose "Failed to run Get-ClusterNode"
+                Invoke-ErrorCatchActionLoopFromIndex $errorCount
+            }
+        } else {
+            try {
+                Write-Verbose "Trying to run Get-ClusterNode remotely"
+                $sb = {
+                    # Set to silently continue to avoid warning on the screen.
+                    # This can still occur when Cluster Service is not running on the server when within Start-Job.
+                    $WarningPreference = "SilentlyContinue"
+                    Get-ClusterNode -Name $env:COMPUTERNAME
+                }
+                $getClusterNode = Invoke-Command -ScriptBlock $sb -ComputerName $Server -ErrorAction Stop
+            } catch {
+                Write-Verbose "Failed to get the cluster information remotely."
+                Invoke-CatchActions
+            }
         }
 
         Write-Verbose "Running ServerComponentStates checks"

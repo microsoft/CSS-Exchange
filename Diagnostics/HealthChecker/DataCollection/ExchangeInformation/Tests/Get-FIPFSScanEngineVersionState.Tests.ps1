@@ -6,9 +6,11 @@
 [CmdletBinding()]
 param()
 BeforeAll {
+    . $PSScriptRoot\..\..\..\..\..\Shared\PesterLoadFunctions.NotPublished.ps1
     $Script:parentPath = (Split-Path -Parent $PSScriptRoot)
     $Script:Server = $env:COMPUTERNAME
-    . $Script:parentPath\Get-FIPFSScanEngineVersionState.ps1
+    $scriptContent = Get-PesterScriptContent -FilePath $Script:parentPath\Get-FIPFSScanEngineVersionState.ps1
+    Invoke-Expression $scriptContent
 
     function Invoke-CatchActions {
         param()
@@ -22,7 +24,7 @@ Describe "Testing Get-FIPFSScanEngineVersionState.ps1" {
 
     Context "Invalid Pattern Detected On Affected Exchange Build" {
         BeforeAll {
-            Mock Invoke-ScriptBlockHandler -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetChildItemInvalidPattern.xml }
+            Mock GetFolderFromExchangeInstallPath -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetChildItemInvalidPattern.xml }
             $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server -ExSetupVersion $Script:notFixed -AffectedServerRole $true
         }
 
@@ -36,7 +38,7 @@ Describe "Testing Get-FIPFSScanEngineVersionState.ps1" {
 
     Context "Valid Pattern Detected On Affected Exchange Build" {
         BeforeAll {
-            Mock Invoke-ScriptBlockHandler -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetChildItemValidPattern.xml }
+            Mock GetFolderFromExchangeInstallPath -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetChildItemValidPattern.xml }
             $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server -ExSetupVersion $Script:notFixed -AffectedServerRole $true
         }
 
@@ -50,7 +52,7 @@ Describe "Testing Get-FIPFSScanEngineVersionState.ps1" {
 
     Context "Invalid Pattern Detected On Fixed Exchange Build" {
         BeforeAll {
-            Mock Invoke-ScriptBlockHandler -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetChildItemInvalidPattern.xml }
+            Mock GetFolderFromExchangeInstallPath -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetChildItemInvalidPattern.xml }
             $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server -ExSetupVersion $Script:Fixed -AffectedServerRole $true
         }
 
@@ -64,7 +66,7 @@ Describe "Testing Get-FIPFSScanEngineVersionState.ps1" {
 
     Context "Exchange Server Role Not Affected" {
         BeforeAll {
-            Mock Invoke-ScriptBlockHandler -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetChildItemInvalidPattern.xml }
+            Mock GetFolderFromExchangeInstallPath -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetChildItemInvalidPattern.xml }
             $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server -ExSetupVersion $Script:Fixed -AffectedServerRole $false
         }
 
@@ -78,7 +80,7 @@ Describe "Testing Get-FIPFSScanEngineVersionState.ps1" {
 
     Context "No FIP-FS scan engines - return null back from GetFolderFromExchangeInstallPath" {
         BeforeAll {
-            Mock Invoke-ScriptBlockHandler -MockWith { return $null }
+            Mock GetFolderFromExchangeInstallPath -MockWith { return $null }
             Mock Write-Verbose {}
         }
 
@@ -92,7 +94,7 @@ Describe "Testing Get-FIPFSScanEngineVersionState.ps1" {
 
     Context "No FIP-FS scan engine directory - return failed object from GetFolderFromExchangeInstallPath" {
         BeforeAll {
-            Mock Invoke-ScriptBlockHandler -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetChildItemFailed.xml }
+            Mock GetFolderFromExchangeInstallPath -MockWith { return Import-Clixml $Script:parentPath\Tests\DataCollection\GetChildItemFailed.xml }
             Mock Write-Verbose {}
         }
 

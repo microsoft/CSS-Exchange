@@ -2,10 +2,11 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\Get-RemoteRegistryValue.ps1
+. $PSScriptRoot\..\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
+
 function Get-AllTlsSettingsFromRegistry {
     [CmdletBinding()]
     param(
-        [string]$MachineName = $env:COMPUTERNAME,
         [ScriptBlock]$CatchActionFunction
     )
     begin {
@@ -54,7 +55,7 @@ function Get-AllTlsSettingsFromRegistry {
         }
 
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        Write-Verbose "Passed - MachineName: '$MachineName'"
+        Write-Verbose "Passed - MachineName: '$env:COMPUTERNAME'"
         $registryBase = "SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS {0}\{1}"
         $enabledKey = "Enabled"
         $disabledKey = "DisabledByDefault"
@@ -69,19 +70,37 @@ function Get-AllTlsSettingsFromRegistry {
             $registryServer = $registryBase -f $tlsVersion, "Server"
             $registryClient = $registryBase -f $tlsVersion, "Client"
             $baseParams = @{
-                MachineName         = $MachineName
+                MachineName         = $env:COMPUTERNAME
                 CatchActionFunction = $CatchActionFunction
             }
 
+            $serverEnabledValue = $null
+            $serverDisabledByDefaultValue = $null
+            $clientEnabledValue = $null
+            $clientDisabledByDefaultValue = $null
+            $serverEnabled = $null
+            $serverDisabledByDefault = $null
+            $clientEnabled = $null
+            $clientDisabledByDefault = $null
+
             # Get the Enabled and DisabledByDefault values
-            $serverEnabledValue = Get-RemoteRegistryValue @baseParams -SubKey $registryServer -GetValue $enabledKey
-            $serverDisabledByDefaultValue = Get-RemoteRegistryValue @baseParams -SubKey $registryServer -GetValue $disabledKey
-            $clientEnabledValue = Get-RemoteRegistryValue @baseParams -SubKey $registryClient -GetValue $enabledKey
-            $clientDisabledByDefaultValue = Get-RemoteRegistryValue @baseParams -SubKey $registryClient -GetValue $disabledKey
-            $serverEnabled = (Get-TLSMemberValue -GetKeyType $enabledKey -KeyValue $serverEnabledValue -NullIsEnabled ($tlsVersion -ne "1.3"))
-            $serverDisabledByDefault = (Get-TLSMemberValue -GetKeyType $disabledKey -KeyValue $serverDisabledByDefaultValue)
-            $clientEnabled = (Get-TLSMemberValue -GetKeyType $enabledKey -KeyValue $clientEnabledValue -NullIsEnabled ($tlsVersion -ne "1.3"))
-            $clientDisabledByDefault = (Get-TLSMemberValue -GetKeyType $disabledKey -KeyValue $clientDisabledByDefaultValue)
+            Get-RemoteRegistryValue @baseParams -SubKey $registryServer -GetValue $enabledKey |
+                Invoke-RemotePipelineHandler -Result ([ref]$serverEnabledValue)
+            Get-RemoteRegistryValue @baseParams -SubKey $registryServer -GetValue $disabledKey |
+                Invoke-RemotePipelineHandler -Result ([ref]$serverDisabledByDefaultValue)
+            Get-RemoteRegistryValue @baseParams -SubKey $registryClient -GetValue $enabledKey |
+                Invoke-RemotePipelineHandler -Result ([ref]$clientEnabledValue)
+            Get-RemoteRegistryValue @baseParams -SubKey $registryClient -GetValue $disabledKey |
+                Invoke-RemotePipelineHandler -Result ([ref]$clientDisabledByDefaultValue)
+            Get-TLSMemberValue -GetKeyType $enabledKey -KeyValue $serverEnabledValue -NullIsEnabled ($tlsVersion -ne "1.3") |
+                Invoke-RemotePipelineHandler -Result ([ref]$serverEnabled)
+            Get-TLSMemberValue -GetKeyType $disabledKey -KeyValue $serverDisabledByDefaultValue |
+                Invoke-RemotePipelineHandler -Result ([ref]$serverDisabledByDefault)
+            Get-TLSMemberValue -GetKeyType $enabledKey -KeyValue $clientEnabledValue -NullIsEnabled ($tlsVersion -ne "1.3") |
+                Invoke-RemotePipelineHandler -Result ([ref]$clientEnabled)
+            Get-TLSMemberValue -GetKeyType $disabledKey -KeyValue $clientDisabledByDefaultValue |
+                Invoke-RemotePipelineHandler -Result ([ref]$clientDisabledByDefault)
+
             $disabled = $serverEnabled -eq $false -and ($serverDisabledByDefault -or $null -eq $serverDisabledByDefaultValue) -and
             $clientEnabled -eq $false -and ($clientDisabledByDefault -or $null -eq $clientDisabledByDefaultValue)
             $misconfigured = $serverEnabled -ne $clientEnabled -or $serverDisabledByDefault -ne $clientDisabledByDefault
@@ -131,41 +150,53 @@ function Get-AllTlsSettingsFromRegistry {
 
             $msRegistryKey = $netRegistryBase -f "Microsoft", $netVersion
             $wowMsRegistryKey = $netRegistryBase -f "Wow6432Node\Microsoft", $netVersion
+            $systemDefaultTlsVersionsValue = $null
+            $schUseStrongCryptoValue = $null
+            $wowSystemDefaultTlsVersionsValue = $null
+            $wowSchUseStrongCryptoValue = $null
+            $systemDefaultTlsVersions = $null
+            $wowSystemDefaultTlsVersions = $null
+            $schUseStrongCrypto = $null
+            $wowSchUseStrongCrypto = $null
 
-            $systemDefaultTlsVersionsValue = Get-RemoteRegistryValue `
-                -MachineName $MachineName `
-                -SubKey $msRegistryKey `
-                -GetValue "SystemDefaultTlsVersions" `
-                -CatchActionFunction $CatchActionFunction
-            $schUseStrongCryptoValue = Get-RemoteRegistryValue `
-                -MachineName $MachineName `
-                -SubKey $msRegistryKey `
-                -GetValue "SchUseStrongCrypto" `
-                -CatchActionFunction $CatchActionFunction
-            $wowSystemDefaultTlsVersionsValue = Get-RemoteRegistryValue `
-                -MachineName $MachineName `
-                -SubKey $wowMsRegistryKey `
-                -GetValue "SystemDefaultTlsVersions" `
-                -CatchActionFunction $CatchActionFunction
-            $wowSchUseStrongCryptoValue = Get-RemoteRegistryValue `
-                -MachineName $MachineName `
-                -SubKey $wowMsRegistryKey `
-                -GetValue "SchUseStrongCrypto" `
-                -CatchActionFunction $CatchActionFunction
+            $msRegistryKeyParams = @{
+                MachineName         = $env:COMPUTERNAME
+                SubKey              = $msRegistryKey
+                CatchActionFunction = $CatchActionFunction
+            }
+            $wowMsRegistryKeyParams = @{
+                MachineName         = $env:COMPUTERNAME
+                SubKey              = $wowMsRegistryKey
+                CatchActionFunction = $CatchActionFunction
+            }
+            Get-RemoteRegistryValue @msRegistryKeyParams -GetValue "SystemDefaultTlsVersions" |
+                Invoke-RemotePipelineHandler -Result ([ref]$systemDefaultTlsVersionsValue)
+            Get-RemoteRegistryValue  @msRegistryKeyParams -GetValue "SchUseStrongCrypto" |
+                Invoke-RemotePipelineHandler -Result ([ref]$schUseStrongCryptoValue)
+            Get-RemoteRegistryValue @wowMsRegistryKeyParams -GetValue "SystemDefaultTlsVersions" |
+                Invoke-RemotePipelineHandler -Result ([ref]$wowSystemDefaultTlsVersionsValue)
+            Get-RemoteRegistryValue @wowMsRegistryKeyParams -GetValue "SchUseStrongCrypto" |
+                Invoke-RemotePipelineHandler -Result ([ref]$wowSchUseStrongCryptoValue)
 
-            $systemDefaultTlsVersions = (Get-NETDefaultTLSValue -KeyValue $SystemDefaultTlsVersionsValue -NetVersion $netVersion -KeyName "SystemDefaultTlsVersions")
-            $wowSystemDefaultTlsVersions = (Get-NETDefaultTLSValue -KeyValue $wowSystemDefaultTlsVersionsValue -NetVersion $netVersion -KeyName "WowSystemDefaultTlsVersions")
+            Get-NETDefaultTLSValue -KeyValue $SystemDefaultTlsVersionsValue -NetVersion $netVersion -KeyName "SystemDefaultTlsVersions" |
+                Invoke-RemotePipelineHandler -Result ([ref]$systemDefaultTlsVersions)
+            Get-NETDefaultTLSValue -KeyValue $wowSystemDefaultTlsVersionsValue -NetVersion $netVersion -KeyName "WowSystemDefaultTlsVersions" |
+                Invoke-RemotePipelineHandler -Result ([ref]$wowSystemDefaultTlsVersions)
+            Get-NETDefaultTLSValue -KeyValue $schUseStrongCryptoValue -NetVersion $netVersion -KeyName "SchUseStrongCrypto" |
+                Invoke-RemotePipelineHandler -Result ([ref]$schUseStrongCrypto)
+            Get-NETDefaultTLSValue -KeyValue $wowSchUseStrongCryptoValue -NetVersion $netVersion -KeyName "WowSchUseStrongCrypto" |
+                Invoke-RemotePipelineHandler -Result ([ref]$wowSchUseStrongCrypto)
 
             $currentNetTlsDefaultVersionObject = [PSCustomObject]@{
                 NetVersion                       = $netVersion
                 SystemDefaultTlsVersions         = $systemDefaultTlsVersions
                 SystemDefaultTlsVersionsValue    = $systemDefaultTlsVersionsValue
-                SchUseStrongCrypto               = (Get-NETDefaultTLSValue -KeyValue $schUseStrongCryptoValue -NetVersion $netVersion -KeyName "SchUseStrongCrypto")
+                SchUseStrongCrypto               = $schUseStrongCrypto
                 SchUseStrongCryptoValue          = $schUseStrongCryptoValue
                 MicrosoftRegistryLocation        = $msRegistryKey
                 WowSystemDefaultTlsVersions      = $wowSystemDefaultTlsVersions
                 WowSystemDefaultTlsVersionsValue = $wowSystemDefaultTlsVersionsValue
-                WowSchUseStrongCrypto            = (Get-NETDefaultTLSValue -KeyValue $wowSchUseStrongCryptoValue -NetVersion $netVersion -KeyName "WowSchUseStrongCrypto")
+                WowSchUseStrongCrypto            = $wowSchUseStrongCrypto
                 WowSchUseStrongCryptoValue       = $wowSchUseStrongCryptoValue
                 WowRegistryLocation              = $wowMsRegistryKey
                 SDtvConfiguredCorrectly          = $systemDefaultTlsVersions -eq $wowSystemDefaultTlsVersions

@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-OrganizationContainer.ps1
+. $PSScriptRoot\..\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 . $PSScriptRoot\..\Invoke-CatchActionError.ps1
 
 function Get-InternalTransportCertificateFromServer {
@@ -22,7 +23,8 @@ function Get-InternalTransportCertificateFromServer {
 
     try {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        $organizationContainer = Get-OrganizationContainer
+        $organizationContainer = $null
+        Get-OrganizationContainer | Invoke-RemotePipelineHandler -Result ([ref]$organizationContainer)
         $exchangeServerPath = ("CN=" + $($ComputerName.Split(".")[0]) + ",CN=Servers,CN=Exchange Administrative Group (FYDIBOHF23SPDLT),CN=Administrative Groups," + $organizationContainer.distinguishedName)
         $exchangeServer = [ADSI]("LDAP://" + $exchangeServerPath)
         Write-Verbose "Exchange Server path: $($exchangeServerPath)"

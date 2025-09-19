@@ -6,6 +6,8 @@
 . $PSScriptRoot\Get-IISAuthenticationType.ps1
 . $PSScriptRoot\Get-IPFilterSetting.ps1
 . $PSScriptRoot\Get-URLRewriteRule.ps1
+. $PSScriptRoot\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
+
 function Invoke-AnalyzerIISInformation {
     [CmdletBinding()]
     param(
@@ -19,6 +21,7 @@ function Invoke-AnalyzerIISInformation {
         [int]$Order
     )
 
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $baseParams = @{
@@ -386,11 +389,11 @@ function Invoke-AnalyzerIISInformation {
     $applicationHostConfig = $exchangeInformation.IISSettings.ApplicationHostConfig
     $defaultWebSitePowerShellSslEnabled = $false
     $defaultWebSitePowerShellAuthenticationEnabled = $false
-    $iisWebSettings = @($exchangeInformation.IISSettings.IISWebApplication)
-    $iisWebSettings += @($exchangeInformation.IISSettings.IISWebSite)
-    $iisConfigurationSettings = @($exchangeInformation.IISSettings.IISWebApplication.ConfigurationFileInfo)
-    $iisConfigurationSettings += $iisWebSiteConfigs = @($exchangeInformation.IISSettings.IISWebSite.ConfigurationFileInfo)
-    $iisConfigurationSettings += @($exchangeInformation.IISSettings.IISSharedWebConfig)
+    $iisWebSettings = [array]($exchangeInformation.IISSettings.IISWebApplication)
+    $iisWebSettings += [array]($exchangeInformation.IISSettings.IISWebSite)
+    $iisConfigurationSettings = [array]($exchangeInformation.IISSettings.IISWebApplication.ConfigurationFileInfo)
+    $iisConfigurationSettings += $iisWebSiteConfigs = [array]($exchangeInformation.IISSettings.IISWebSite.ConfigurationFileInfo)
+    $iisConfigurationSettings += [array]($exchangeInformation.IISSettings.IISSharedWebConfig)
     $extendedProtectionConfiguration = $exchangeInformation.ExtendedProtectionConfig.ExtendedProtectionConfiguration
     $displayMainSitesList = @("Default Web Site", "API", "Autodiscover", "ecp", "EWS", "mapi", "Microsoft-Server-ActiveSync", "Proxy", "OAB", "owa",
         "PowerShell", "Rpc", "Exchange Back End", "emsmdb", "nspi", "RpcWithCert")
@@ -413,9 +416,12 @@ function Invoke-AnalyzerIISInformation {
         WebConfigContent      = $iisWebConfigContent
     }
 
-    $urlRewriteRules = Get-URLRewriteRule @ruleParams
-    $ipFilterSettings = Get-IPFilterSetting -ApplicationHostConfig ([xml]$applicationHostConfig)
-    $authTypeSettings = Get-IISAuthenticationType -ApplicationHostConfig ([xml]$applicationHostConfig)
+    $urlRewriteRules = $null
+    $ipFilterSettings = $null
+    $authTypeSettings = $null
+    Get-URLRewriteRule @ruleParams | Invoke-RemotePipelineHandler -Result ([ref]$urlRewriteRules)
+    Get-IPFilterSetting -ApplicationHostConfig ([xml]$applicationHostConfig) | Invoke-RemotePipelineHandler -Result ([ref]$ipFilterSettings)
+    Get-IISAuthenticationType -ApplicationHostConfig ([xml]$applicationHostConfig) | Invoke-RemotePipelineHandler -Result ([ref]$authTypeSettings)
     $failedLocationsForAuth = @()
     Write-Verbose "Evaluating the IIS Locations for display"
 
@@ -550,7 +556,7 @@ function Invoke-AnalyzerIISInformation {
     }
 
     # Missing config file should really only occur for SharedWebConfig files, as the web application would go back to the parent site.
-    $missingSharedConfigFile = @($exchangeInformation.IISSettings.IISSharedWebConfig) | Where-Object { $_.Exist -eq $false }
+    $missingSharedConfigFile = [array]($exchangeInformation.IISSettings.IISSharedWebConfig) | Where-Object { $_.Exist -eq $false }
     $missingConfigFiles = $iisWebSettings | Where-Object { $_.ConfigurationFileInfo.Exist -eq $false }
     $defaultVariableDetected = $iisConfigurationSettings | Where-Object { $null -ne ($_.Content | Select-String "%ExchangeInstallDir%") }
     $binSearchFoldersNotFound = $iisConfigurationSettings |
@@ -560,11 +566,9 @@ function Invoke-AnalyzerIISInformation {
                     $_.key -eq "BinSearchFolders"
                 }).value
             $paths = $binSearchFolders.Split(";").Trim()
-            $paths | ForEach-Object { Write-Verbose "BinSearchFolder: $($_)" }
             $installPath = $exchangeInformation.RegistryValues.MsiInstallPath
             foreach ($binTestPath in  @("bin", "bin\CmdletExtensionAgents", "ClientAccess\Owa\bin")) {
                 $testPath = [System.IO.Path]::Combine($installPath, $binTestPath)
-                Write-Verbose "Testing path: $testPath"
                 if (-not ($paths -contains $testPath)) {
                     return $_
                 }
@@ -633,7 +637,7 @@ function Invoke-AnalyzerIISInformation {
         if ($alreadyDisplayedUrlRewriteRules[$urlMatchProblem].Count -gt 0) {
             $params = $baseParams + @{
                 Name             = "Misconfigured URL Rewrite Rule - URL Match Problem Rules"
-                Details          = "$([string]::Join(",", $alreadyDisplayedUrlRewriteRules[$urlMatchProblem]))" +
+                Details          = "$([string]::Join(",", [array]$alreadyDisplayedUrlRewriteRules[$urlMatchProblem]))" +
                 "`r`n`t`tURL Match is set only a wild card which will result in a HTTP 500." +
                 "`r`n`t`tIf the rule is required, the URL match should be '.*' to avoid issues."
                 DisplayWriteType = "Red"
@@ -836,4 +840,5 @@ function Invoke-AnalyzerIISInformation {
         }
         Add-AnalyzedResultInformation @params
     }
+    Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }
