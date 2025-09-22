@@ -49,7 +49,7 @@ function IntraOrgConCheck {
 }
 function AuthServerCheck {
     #PrintDynamicWidthLine
-    Write-Host -ForegroundColor Green " Get-AuthServer | Select Name, Realm, IssuerIdentifier,TokenIssuingEndpoint,AuthMetadataUrl,Enabled"
+    Write-Host -ForegroundColor Green " Get-AuthServer | Select Name, Realm, IssuerIdentifier, TokenIssuingEndpoint, AuthMetadataUrl, Enabled"
     PrintDynamicWidthLine
     $AuthServer = Get-AuthServer | Where-Object { $_.Name -like "EvoSts*" } | Select-Object Name, Realm, IssuerIdentifier, TokenIssuingEndpoint, AuthMetadataUrl, Enabled
     $AuthServer
