@@ -18,6 +18,7 @@ function Invoke-AnalyzerNicSettings {
 
     $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
+    $currentTime = [DateTime]::Now
     $baseParams = @{
         AnalyzedInformation = $AnalyzeResults
         DisplayGroupingKey  = (Get-DisplayResultsGroupingKey -Name "NIC Settings Per Active Adapter"  -DisplayOrder $Order -DefaultTabNumber 2)
@@ -52,7 +53,7 @@ function Invoke-AnalyzerNicSettings {
                 if ($null -eq $driverDate -or
                     $driverDate -eq [DateTime]::MaxValue) {
                     $detailsValue = "Unknown"
-                } elseif ((New-TimeSpan -Start $date -End $driverDate).Days -lt [int]-365) {
+                } elseif ((New-TimeSpan -Start $currentTime -End $driverDate).Days -lt [int]-365) {
                     $params = $baseParams + @{
                         Details          = "Warning: NIC driver is over 1 year old. Verify you are at the latest version."
                         DisplayWriteType = "Yellow"
