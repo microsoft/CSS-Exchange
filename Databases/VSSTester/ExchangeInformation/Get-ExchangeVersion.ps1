@@ -21,13 +21,11 @@ function Get-ExchangeVersion {
     if ($exchangeVersion.Major -eq 15 -and $exchangeVersion.Minor -ne 0) {
         if ($exchangeVersion.Minor -eq 1) {
             $exchVer = "2016"
-        }
-        else {
+        } else {
             # Handle everything else as 2019
             $exchVer = "2019"
         }
-    }
-    else {
+    } else {
         throw "Unsupported build of Exchange. $($exchangeVersion.ToString())"
     }
 
