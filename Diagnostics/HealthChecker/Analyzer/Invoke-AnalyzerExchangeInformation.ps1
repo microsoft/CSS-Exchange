@@ -73,7 +73,7 @@ function Invoke-AnalyzerExchangeInformation {
     }
 
     if ($exchangeInformation.BuildInformation.VersionInformation.Supported -eq $false) {
-        $daysOld = ($date - $exchangeInformation.BuildInformation.VersionInformation.ReleaseDate).Days
+        $daysOld = (([DateTime]::Now) - $exchangeInformation.BuildInformation.VersionInformation.ReleaseDate).Days
 
         $params = $baseParams + @{
             Name                   = "Error"
