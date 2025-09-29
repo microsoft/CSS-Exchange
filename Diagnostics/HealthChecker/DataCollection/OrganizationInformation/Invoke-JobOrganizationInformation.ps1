@@ -159,7 +159,7 @@ function Invoke-JobOrganizationInformation {
                 Invoke-CatchActions
             }
 
-            [array]$globalMonitoringOverride = Get-MonitoringOverride
+            [array]$globalMonitoringOverride = Get-MonitoringOverride -CatchActionFunction ${Function:Invoke-CatchActions}
 
             # AD Queries
             try {
