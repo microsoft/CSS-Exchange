@@ -174,7 +174,7 @@ function Invoke-JobExchangeInformationCmdlet {
                 Component = "ResourceThrottling"
             }
             Get-ExchangeDiagnosticInformation @params -CatchActionFunction ${Function:Invoke-CatchActions} | Invoke-RemotePipelineHandler -Result ([ref]$edgeTransportResourceThrottling)
-            Get-MonitoringOverride -Server $Server | Invoke-RemotePipelineHandler -Result ([ref]$serverMonitoringOverride)
+            Get-MonitoringOverride -Server $Server -CatchActionFunction ${Function:Invoke-CatchActions} | Invoke-RemotePipelineHandler -Result ([ref]$serverMonitoringOverride)
             $exchangeWebSites = $null
 
             if (-not $getExchangeServer.IsEdgeServer) {

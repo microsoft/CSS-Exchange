@@ -46,6 +46,7 @@ function Get-ErrorsThatOccurred {
             try {
                 #Need to convert Error to Json because running into odd issues with trying to export $Error out in my lab. Got StackOverflowException for one of the errors i always see there.
                 Add-DebugObject -ObjectKeyName "ScriptErrors" -ObjectValueEntry ($Error | ConvertTo-Json)
+                Add-DebugObject -ObjectKeyName "HandledScriptErrors" -ObjectValueEntry (Get-HandledErrors | ConvertTo-Json)
             } catch {
                 Write-Host "Failed to convert Error to Json" -ForegroundColor Red
                 Invoke-CatchActions
