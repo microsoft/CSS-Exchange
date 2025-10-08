@@ -69,7 +69,8 @@ function Get-ExtendedProtectionConfiguration {
         }
 
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-
+    }
+    process {
         $computerResult = Invoke-ScriptBlockHandler -ComputerName $ComputerName -ScriptBlock { return $env:COMPUTERNAME }
         $serverConnected = $null -ne $computerResult
 
@@ -110,8 +111,7 @@ function Get-ExtendedProtectionConfiguration {
             # Hopefully the caller knows what they are doing, best be from the correct server!!
             Write-Verbose "Caller passed the application host config."
         }
-    }
-    process {
+
         $params = @{
             ApplicationHostConfig = $ApplicationHostConfig
             ExSetupVersion        = $ExSetupVersion
