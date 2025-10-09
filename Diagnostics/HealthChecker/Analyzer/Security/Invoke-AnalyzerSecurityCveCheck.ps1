@@ -102,6 +102,7 @@ function Invoke-AnalyzerSecurityCveCheck {
     $ex2013 = "Exchange2013"
     $ex2016 = "Exchange2016"
     $ex2019 = "Exchange2019"
+    $exSE = "ExchangeSE"
     $suNameDictionary = @{
         "Mar18SU" = ((NewCveEntry @("CVE-2018-0924", "CVE-2018-0940") @($ex2013, $ex2016)) + (NewCveEntry "CVE-2018-0941" $ex2016))
         "May18SU" = ((NewCveEntry @("CVE-2018-8151", "CVE-2018-8154", "CVE-2018-8159") @($ex2013, $ex2016)) + (NewCveEntry @("CVE-2018-8152", "CVE-2018-8153") $ex2016))
@@ -140,6 +141,7 @@ function Invoke-AnalyzerSecurityCveCheck {
         "Oct23SU" = (NewCveEntry @("CVE-2023-36778") @($ex2016, $ex2019))
         "Mar24SU" = (NewCveEntry @("CVE-2024-26198") @($ex2016, $ex2019))
         "Apr25HU" = (NewCveEntry @("CVE-2025-53786") @($ex2016, $ex2019))
+        "Oct25SU" = (NewCveEntry @("CVE-2025-59249") @($ex2016, $ex2019, $exSE))
     }
 
     # Need to organize the list so oldest CVEs come out first.
@@ -281,6 +283,44 @@ function Invoke-AnalyzerSecurityCveCheck {
                         })
                     FilterParameterValueMatch = "false"
                 })
+        })
+    $cveAndOverrideCheckParamList.Add($cveOverrideBaseParams + @{
+            SUName                     = "Oct25SU"
+            CVEName                    = "CVE-2025-53782"
+            SettingOverrideInformation = ([PSCustomObject]@{
+                    SettingOverrideParams     = ($settingOverrideBaseParams + @{
+                            FilterComponentName = "Global"
+                            FilterSectionName   = "CatTokenAuthorizationCheck"
+                            FilterParameterName = "Enabled"
+                        })
+                    FilterParameterValueMatch = "false"
+                })
+        })
+    $cveAndOverrideCheckParamList.Add($cveOverrideBaseParams + @{
+            SUName                     = "Oct25SU"
+            CVEName                    = "CVE-2025-59248"
+            SettingOverrideInformation = (@([PSCustomObject]@{
+                        SettingOverrideParams     = ($settingOverrideBaseParams + @{
+                                FilterComponentName = "Transport"
+                                FilterSectionName   = "NonCompliantSenderSettings"
+                                FilterParameterName = "BlockEmailWithMultipleP2FromHeaders"
+                            })
+                        FilterParameterValueMatch = "false"
+                    }), ([PSCustomObject]@{
+                        SettingOverrideParams     = ($settingOverrideBaseParams + @{
+                                FilterComponentName = "Transport"
+                                FilterSectionName   = "ParseGroupEmailAddressesInPartnerUtils"
+                                FilterParameterName = "Enabled"
+                            })
+                        FilterParameterValueMatch = "false"
+                    }), ([PSCustomObject]@{
+                        SettingOverrideParams     = ($settingOverrideBaseParams + @{
+                                FilterComponentName = "ContentConversion"
+                                FilterSectionName   = "InboundMimeHeaderParserCheckGroupAddresses"
+                                FilterParameterName = "Enabled"
+                            })
+                        FilterParameterValueMatch = "false"
+                    }))
         })
 
     foreach ($params in $cveAndOverrideCheckParamList) {
