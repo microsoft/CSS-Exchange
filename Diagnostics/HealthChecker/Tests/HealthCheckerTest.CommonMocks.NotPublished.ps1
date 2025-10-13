@@ -336,6 +336,8 @@ function Get-PowerShellVirtualDirectory { return $null }
 
 function Get-HybridConfiguration { return $null }
 
+function Get-PartnerApplication { return $null }
+
 # Needs to be a function as PS core doesn't have -ComputerName parameter
 function Get-Service {
     [CmdletBinding()]

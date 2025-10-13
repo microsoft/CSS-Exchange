@@ -29,9 +29,11 @@ Describe "Exchange 2019 Scenarios testing 3" {
 
             # ToDo: Add additional general hybrid tests here
             # cSpell:disable
-            GetObject "Organization Hybrid Enabled" | Should -Be $true
+            GetObject "Hybrid Configuration Detected" | Should -Be $true
             GetObject "On-Premises Smart Host Domain" | Should -Be "mail.contoso.com"
             GetObject "TLS Certificate Name" | Should -Be "<I>CN=GeoTrust TLS RSA CA G1, OU=www.digicert.com, O=DigiCert Inc, C=US<S>CN=mail.contoso.com"
+            GetObject "OAuth between Exchange Server and Microsoft Teams" | Should -Be $false
+            GetObject "LegacySfBPartnerApp" | Should -Be $null
             # cSpell:enable
         }
     }
@@ -85,6 +87,22 @@ Describe "Exchange 2019 Scenarios testing 3" {
 
             GetObject "DedicatedHybridAppNotConfigured" | Should -Be $true
             GetObject "DedicatedHybridAppShowMoreInformation" | Should -Be $true
+        }
+    }
+
+    Context "Scenario 5" {
+        BeforeAll {
+            Mock Get-PartnerApplication -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetPartnerApplication.xml" }
+
+            SetDefaultRunOfHealthChecker "Debug_Hybrid_Configuration_Scenario5_Results.xml"
+        }
+
+        It "Hybrid Configuration Detected" {
+            SetActiveDisplayGrouping "Hybrid Information"
+
+            GetObject "Hybrid Configuration Detected" | Should -Be $true
+            GetObject "OAuth between Exchange Server and Microsoft Teams" | Should -Be $true
+            GetObject "LegacySfBPartnerApp" | Should -Be $true
         }
     }
 }

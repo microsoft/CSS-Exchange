@@ -32,6 +32,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-OrganizationConfig { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOrganizationConfig.xml" }
             Mock Get-InternalTransportCertificateFromServer { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetInternalTransportCertificateFromServer.xml" }
             Mock Get-HybridConfiguration { return $null }
+            Mock Get-PartnerApplication { return $null }
             Mock Get-ExchangeDiagnosticInfo -ParameterFilter { $Process -eq "Microsoft.Exchange.Directory.TopologyService" -and $Component -eq "VariantConfiguration" -and $Argument -eq "Overrides" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo_ADTopVariantConfiguration.xml" }
             # do not need to match the function. Only needed really to test the Assert-MockCalled
@@ -88,6 +89,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-WebServicesVirtualDirectory -Exactly 1
             Assert-MockCalled Get-OrganizationConfig -Exactly 1
             Assert-MockCalled Get-HybridConfiguration -Exactly 1
+            Assert-MockCalled Get-PartnerApplication -Exactly 1
             Assert-MockCalled Get-Service -Exactly 2
             Assert-MockCalled Get-SettingOverride -Exactly 1
             Assert-MockCalled Get-ServerComponentState -Exactly 1
