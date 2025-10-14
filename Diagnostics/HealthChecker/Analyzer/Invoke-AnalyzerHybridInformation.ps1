@@ -29,12 +29,39 @@ function Invoke-AnalyzerHybridInformation {
 
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $getHybridConfiguration = $HealthServerObject.OrganizationInformation.GetHybridConfiguration
+    $getPartnerApplication = $HealthServerObject.OrganizationInformation.GetPartnerApplication
 
     [array]$evoStsAuthServer = $HealthServerObject.OrganizationInformation.GetAuthServer | Where-Object {
-        (($_.Name -match "^EvoSts - $guidRegEx") -or
-        ($_.Name -match "EvoSTS")) -and
         $_.Type.ToString() -eq "AzureAD" -and
-        $_.ApplicationIdentifier -match $guidRegEx -and
+        $_.Enabled -eq $true
+    }
+
+    [array]$acsAuthServer = $HealthServerObject.OrganizationInformation.GetAuthServer | Where-Object {
+        $_.Type.ToString() -eq "MicrosoftACS" -and
+        $_.Enabled -eq $true
+    }
+
+    # Exchange Online first-party application
+    [array]$exchangeOnlinePartnerApplication = $getPartnerApplication | Where-Object {
+        $_.ApplicationIdentifier -eq "00000002-0000-0ff1-ce00-000000000000" -and
+        $_.Enabled -eq $true
+    }
+
+    # Legacy Skype for Business online first-party application
+    [array]$legacySkypeForBusinessPartnerApplication = $getPartnerApplication | Where-Object {
+        $_.ApplicationIdentifier -eq "00000004-0000-0ff1-ce00-000000000000" -and
+        $_.Enabled -eq $true
+    }
+
+    # Teams Scheduler first-party application
+    [array]$teamsSchedulerPartnerApplication = $getPartnerApplication | Where-Object {
+        $_.ApplicationIdentifier -eq "7557eb47-c689-4224-abcf-aef9bd7573df" -and
+        $_.Enabled -eq $true
+    }
+
+    # Cloud Voicemail first-party application
+    [array]$cloudVoicemailPartnerApplication = $getPartnerApplication | Where-Object {
+        $_.ApplicationIdentifier -eq "db7de2b5-2149-435e-8043-e080dd50afae" -and
         $_.Enabled -eq $true
     }
 
@@ -43,179 +70,194 @@ function Invoke-AnalyzerHybridInformation {
         $_.SectionName -eq "ExchangeOnpremAsThirdPartyAppId"
     }
 
+    # We assume that oAuth between on-prem and online is configured if these two conditions apply
+    # See: https://learn.microsoft.com/exchange/configure-oauth-authentication-between-exchange-and-exchange-online-organizations-exchange-2013-help
+    $oAuthConfigured = (($evoStsAuthServer.Count -or $acsAuthServer.Count) -gt 0) -and ($exchangeOnlinePartnerApplication.Count -gt 0)
+
     # Check if the server is configured as sending or receiving transport server - if it is, the certificate used for hybrid mail flow must exist on the machine
     $certificateShouldExistOnServer = $getHybridConfiguration.SendingTransportServers.DistinguishedName -contains $exchangeInformation.GetExchangeServer.DistinguishedName -or
     $getHybridConfiguration.ReceivingTransportServers.DistinguishedName -contains $exchangeInformation.GetExchangeServer.DistinguishedName
 
     if ($exchangeInformation.BuildInformation.VersionInformation.BuildVersion -ge "15.0.0.0" -and
-        $null -ne $getHybridConfiguration -and
-        @($getHybridConfiguration.PSObject.Properties).Count -ne 0) {
+        ($null -ne $getHybridConfiguration -and
+        @($getHybridConfiguration.PSObject.Properties).Count -ne 0) -or
+        $oAuthConfigured) {
 
         $params = $baseParams + @{
-            Name    = "Organization Hybrid Enabled"
+            Name    = "Hybrid Configuration Detected"
             Details = "True"
         }
         Add-AnalyzedResultInformation @params
 
-        if (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.OnPremisesSmartHost))) {
-            $onPremSmartHostDomain = ($getHybridConfiguration.OnPremisesSmartHost).ToString()
-            $onPremSmartHostWriteType = "Grey"
-        } else {
-            $onPremSmartHostDomain = "No on-premises smart host domain configured for hybrid use"
-            $onPremSmartHostWriteType = "Yellow"
-        }
+        if ($null -ne $getHybridConfiguration -and
+            @($getHybridConfiguration.PSObject.Properties).Count -ne 0) {
 
-        $params = $baseParams + @{
-            Name             = "On-Premises Smart Host Domain"
-            Details          = $onPremSmartHostDomain
-            DisplayWriteType = $onPremSmartHostWriteType
-        }
-        Add-AnalyzedResultInformation @params
+            if (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.OnPremisesSmartHost))) {
+                $onPremSmartHostDomain = ($getHybridConfiguration.OnPremisesSmartHost).ToString()
+                $onPremSmartHostWriteType = "Grey"
+            } else {
+                $onPremSmartHostDomain = "No on-premises smart host domain configured for hybrid use"
+                $onPremSmartHostWriteType = "Yellow"
+            }
 
-        if (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.Domains))) {
-            $domainsConfiguredForHybrid = $getHybridConfiguration.Domains
-            $domainsConfiguredForHybridWriteType = "Grey"
-        } else {
-            $domainsConfiguredForHybridWriteType = "Yellow"
-        }
+            $params = $baseParams + @{
+                Name             = "On-Premises Smart Host Domain"
+                Details          = $onPremSmartHostDomain
+                DisplayWriteType = $onPremSmartHostWriteType
+            }
+            Add-AnalyzedResultInformation @params
 
-        $params = $baseParams + @{
-            Name             = "Domain(s) configured for Hybrid use"
-            DisplayWriteType = $domainsConfiguredForHybridWriteType
-        }
-        Add-AnalyzedResultInformation @params
+            if (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.Domains))) {
+                $domainsConfiguredForHybrid = $getHybridConfiguration.Domains
+                $domainsConfiguredForHybridWriteType = "Grey"
+            } else {
+                $domainsConfiguredForHybridWriteType = "Yellow"
+            }
 
-        if ($domainsConfiguredForHybrid.Count -ge 1) {
-            foreach ($domain in $domainsConfiguredForHybrid) {
+            $params = $baseParams + @{
+                Name             = "Domain(s) configured for Hybrid use"
+                DisplayWriteType = $domainsConfiguredForHybridWriteType
+            }
+            Add-AnalyzedResultInformation @params
+
+            if ($domainsConfiguredForHybrid.Count -ge 1) {
+                foreach ($domain in $domainsConfiguredForHybrid) {
+                    $params = $baseParams + @{
+                        Details                = $domain
+                        DisplayWriteType       = $domainsConfiguredForHybridWriteType
+                        DisplayCustomTabNumber = 2
+                    }
+                    Add-AnalyzedResultInformation @params
+                }
+            } else {
                 $params = $baseParams + @{
-                    Details                = $domain
+                    Details                = "No domain configured for Hybrid use"
                     DisplayWriteType       = $domainsConfiguredForHybridWriteType
                     DisplayCustomTabNumber = 2
                 }
                 Add-AnalyzedResultInformation @params
             }
-        } else {
-            $params = $baseParams + @{
-                Details                = "No domain configured for Hybrid use"
-                DisplayWriteType       = $domainsConfiguredForHybridWriteType
-                DisplayCustomTabNumber = 2
-            }
-            Add-AnalyzedResultInformation @params
-        }
 
-        if (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.EdgeTransportServers))) {
-            Add-AnalyzedResultInformation -Name "Edge Transport Server(s)" @baseParams
+            if (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.EdgeTransportServers))) {
+                Add-AnalyzedResultInformation -Name "Edge Transport Server(s)" @baseParams
 
-            foreach ($edgeServer in $getHybridConfiguration.EdgeTransportServers) {
-                $params = $baseParams + @{
-                    Details                = $edgeServer
-                    DisplayCustomTabNumber = 2
-                }
-                Add-AnalyzedResultInformation @params
-            }
-
-            if (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.ReceivingTransportServers)) -or
-                (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.SendingTransportServers)))) {
-                $params = $baseParams + @{
-                    Details                = "When configuring the EdgeTransportServers parameter, you must configure the ReceivingTransportServers and SendingTransportServers parameter values to null"
-                    DisplayWriteType       = "Yellow"
-                    DisplayCustomTabNumber = 2
-                }
-                Add-AnalyzedResultInformation @params
-            }
-        } else {
-            Add-AnalyzedResultInformation -Name "Receiving Transport Server(s)" @baseParams
-
-            if (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.ReceivingTransportServers))) {
-                foreach ($receivingTransportSrv in $getHybridConfiguration.ReceivingTransportServers) {
+                foreach ($edgeServer in $getHybridConfiguration.EdgeTransportServers) {
                     $params = $baseParams + @{
-                        Details                = $receivingTransportSrv
+                        Details                = $edgeServer
+                        DisplayCustomTabNumber = 2
+                    }
+                    Add-AnalyzedResultInformation @params
+                }
+
+                if (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.ReceivingTransportServers)) -or
+                    (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.SendingTransportServers)))) {
+                    $params = $baseParams + @{
+                        Details                = "When configuring the EdgeTransportServers parameter, you must configure the ReceivingTransportServers and SendingTransportServers parameter values to null"
+                        DisplayWriteType       = "Yellow"
+                        DisplayCustomTabNumber = 2
+                    }
+                    Add-AnalyzedResultInformation @params
+                }
+            } else {
+                Add-AnalyzedResultInformation -Name "Receiving Transport Server(s)" @baseParams
+
+                if (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.ReceivingTransportServers))) {
+                    foreach ($receivingTransportSrv in $getHybridConfiguration.ReceivingTransportServers) {
+                        $params = $baseParams + @{
+                            Details                = $receivingTransportSrv
+                            DisplayCustomTabNumber = 2
+                        }
+                        Add-AnalyzedResultInformation @params
+                    }
+                } else {
+                    $params = $baseParams + @{
+                        Details                = "No Receiving Transport Server configured for Hybrid use"
+                        DisplayWriteType       = "Yellow"
+                        DisplayCustomTabNumber = 2
+                    }
+                    Add-AnalyzedResultInformation @params
+                }
+
+                Add-AnalyzedResultInformation -Name "Sending Transport Server(s)" @baseParams
+
+                if (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.SendingTransportServers))) {
+                    foreach ($sendingTransportSrv in $getHybridConfiguration.SendingTransportServers) {
+                        $params = $baseParams + @{
+                            Details                = $sendingTransportSrv
+                            DisplayCustomTabNumber = 2
+                        }
+                        Add-AnalyzedResultInformation @params
+                    }
+                } else {
+                    $params = $baseParams + @{
+                        Details                = "No Sending Transport Server configured for Hybrid use"
+                        DisplayWriteType       = "Yellow"
+                        DisplayCustomTabNumber = 2
+                    }
+                    Add-AnalyzedResultInformation @params
+                }
+            }
+
+            if ($getHybridConfiguration.ServiceInstance -eq 1) {
+                $params = $baseParams + @{
+                    Name    = "Service Instance"
+                    Details = "Office 365 operated by 21Vianet"
+                }
+                Add-AnalyzedResultInformation @params
+            } elseif ($getHybridConfiguration.ServiceInstance -ne 0) {
+                $params = $baseParams + @{
+                    Name             = "Service Instance"
+                    Details          = $getHybridConfiguration.ServiceInstance
+                    DisplayWriteType = "Red"
+                }
+                Add-AnalyzedResultInformation @params
+
+                $params = $baseParams + @{
+                    Details          = "You are using an invalid value. Please set this value to 0 (null) or re-run HCW"
+                    DisplayWriteType = "Red"
+                }
+                Add-AnalyzedResultInformation @params
+            }
+
+            if (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.TlsCertificateName))) {
+                $params = $baseParams + @{
+                    Name    = "TLS Certificate Name"
+                    Details = ($getHybridConfiguration.TlsCertificateName).ToString()
+                }
+                Add-AnalyzedResultInformation @params
+            } else {
+                $params = $baseParams + @{
+                    Name             = "TLS Certificate Name"
+                    Details          = "No valid certificate found"
+                    DisplayWriteType = "Red"
+                }
+                Add-AnalyzedResultInformation @params
+            }
+
+            Add-AnalyzedResultInformation -Name "Feature(s) enabled for Hybrid use" @baseParams
+
+            if (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.Features))) {
+                foreach ($feature in $getHybridConfiguration.Features) {
+                    $params = $baseParams + @{
+                        Details                = $feature
                         DisplayCustomTabNumber = 2
                     }
                     Add-AnalyzedResultInformation @params
                 }
             } else {
                 $params = $baseParams + @{
-                    Details                = "No Receiving Transport Server configured for Hybrid use"
-                    DisplayWriteType       = "Yellow"
-                    DisplayCustomTabNumber = 2
-                }
-                Add-AnalyzedResultInformation @params
-            }
-
-            Add-AnalyzedResultInformation -Name "Sending Transport Server(s)" @baseParams
-
-            if (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.SendingTransportServers))) {
-                foreach ($sendingTransportSrv in $getHybridConfiguration.SendingTransportServers) {
-                    $params = $baseParams + @{
-                        Details                = $sendingTransportSrv
-                        DisplayCustomTabNumber = 2
-                    }
-                    Add-AnalyzedResultInformation @params
-                }
-            } else {
-                $params = $baseParams + @{
-                    Details                = "No Sending Transport Server configured for Hybrid use"
-                    DisplayWriteType       = "Yellow"
+                    Details                = "No feature(s) enabled for Hybrid use"
                     DisplayCustomTabNumber = 2
                 }
                 Add-AnalyzedResultInformation @params
             }
         }
 
-        if ($getHybridConfiguration.ServiceInstance -eq 1) {
-            $params = $baseParams + @{
-                Name    = "Service Instance"
-                Details = "Office 365 operated by 21Vianet"
-            }
-            Add-AnalyzedResultInformation @params
-        } elseif ($getHybridConfiguration.ServiceInstance -ne 0) {
-            $params = $baseParams + @{
-                Name             = "Service Instance"
-                Details          = $getHybridConfiguration.ServiceInstance
-                DisplayWriteType = "Red"
-            }
-            Add-AnalyzedResultInformation @params
-
-            $params = $baseParams + @{
-                Details          = "You are using an invalid value. Please set this value to 0 (null) or re-run HCW"
-                DisplayWriteType = "Red"
-            }
-            Add-AnalyzedResultInformation @params
+        $params = $baseParams + @{
+            Name    = "OAuth between Exchange Server and Exchange Online"
+            Details = $oAuthConfigured
         }
-
-        if (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.TlsCertificateName))) {
-            $params = $baseParams + @{
-                Name    = "TLS Certificate Name"
-                Details = ($getHybridConfiguration.TlsCertificateName).ToString()
-            }
-            Add-AnalyzedResultInformation @params
-        } else {
-            $params = $baseParams + @{
-                Name             = "TLS Certificate Name"
-                Details          = "No valid certificate found"
-                DisplayWriteType = "Red"
-            }
-            Add-AnalyzedResultInformation @params
-        }
-
-        Add-AnalyzedResultInformation -Name "Feature(s) enabled for Hybrid use" @baseParams
-
-        if (-not([System.String]::IsNullOrEmpty($getHybridConfiguration.Features))) {
-            foreach ($feature in $getHybridConfiguration.Features) {
-                $params = $baseParams + @{
-                    Details                = $feature
-                    DisplayCustomTabNumber = 2
-                }
-                Add-AnalyzedResultInformation @params
-            }
-        } else {
-            $params = $baseParams + @{
-                Details                = "No feature(s) enabled for Hybrid use"
-                DisplayCustomTabNumber = 2
-            }
-            Add-AnalyzedResultInformation @params
-        }
+        Add-AnalyzedResultInformation @params
 
         Add-AnalyzedResultInformation -Name "Dedicated Exchange Hybrid Application" @baseParams
 
@@ -238,13 +280,16 @@ function Invoke-AnalyzerHybridInformation {
                 Add-AnalyzedResultInformation @params
             }
 
-            if ($evoStsAuthServer.Count -ge 1) {
-                foreach ($authServer in $evoStsAuthServer) {
+            # Filter any evoSTS auth servers which have the application identifier set to a guid as this indicates the dedicated hybrid app is configured
+            $dedicatedHybridAppAuthServer = $evoStsAuthServer | Where-Object { $_.ApplicationIdentifier -match $guidRegEx }
+
+            if ($dedicatedHybridAppAuthServer.Count -ge 1) {
+                foreach ($authServer in $dedicatedHybridAppAuthServer) {
                     $dedicatedHybridAppAuthServerObjects++
 
                     $authServerDetails = "AuthServer: $($authServer.Id)`r`n`t`tTenantId: $($authServer.Realm)`r`n`t`tAppId: $($authServer.ApplicationIdentifier)`r`n`t`tDomain(s): $([System.String]::Join(", ", [array]$authServer.DomainName))"
 
-                    if ($dedicatedHybridAppAuthServerObjects -lt $evoStsAuthServer.Count) {
+                    if ($dedicatedHybridAppAuthServerObjects -lt $dedicatedHybridAppAuthServer.Count) {
                         $authServerDetails = $authServerDetails + "`r`n`r`n"
                     }
 
@@ -297,6 +342,35 @@ function Invoke-AnalyzerHybridInformation {
                 DisplayWriteType       = $dedicatedHybridAppWriteType
                 TestingName            = "DedicatedHybridAppShowMoreInformation"
                 DisplayTestingValue    = $true
+            }
+            Add-AnalyzedResultInformation @params
+        }
+
+        $params = $baseParams + @{
+            Name    = "OAuth between Exchange Server and Microsoft Teams"
+            Details = $legacySkypeForBusinessPartnerApplication -or $cloudVoicemailPartnerApplication -or $teamsSchedulerPartnerApplication
+        }
+        Add-AnalyzedResultInformation @params
+
+        if ($legacySkypeForBusinessPartnerApplication -and
+            (-not $cloudVoicemailPartnerApplication -and
+            -not $teamsSchedulerPartnerApplication)) {
+
+            # Customers must take action and create new partner applications for Cloud Voicemail and/or Teams Scheduler
+            # See: https://learn.microsoft.com/skypeforbusiness/deploy/integrate-with-exchange-server/oauth-with-online-and-on-premises
+            $params = $baseParams + @{
+                Details                = "Legacy Skype for Business Online Partner Application detected"
+                DisplayCustomTabNumber = 2
+                DisplayWriteType       = "Red"
+                TestingName            = "LegacySfBPartnerApp"
+                DisplayTestingValue    = $true
+            }
+            Add-AnalyzedResultInformation @params
+
+            $params = $baseParams + @{
+                Details                = "Follow the instructions to configure the new dedicated Partner Applications`r`n`t`thttps://aka.ms/HC-SfBLegacyPartnerApp"
+                DisplayCustomTabNumber = 2
+                DisplayWriteType       = "Red"
             }
             Add-AnalyzedResultInformation @params
         }

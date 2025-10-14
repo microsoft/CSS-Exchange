@@ -133,7 +133,7 @@ function Test-ExchangeBuildGreaterOrEqualThanSecurityPatch {
 
         if ($null -eq $allSecurityPatches -or
             $allSecurityPatches.Count -eq 0) {
-            Write-Verbose "We didn't find a security path for this version of Exchange."
+            Write-Verbose "We didn't find a security path ($SUName) for this version of Exchange ($CurrentExchangeBuild)."
             Write-Verbose "We assume this means that this version of Exchange $($CurrentExchangeBuild.MajorVersion) isn't vulnerable for this SU $SUName"
             $testResult = $true
             return

@@ -35,6 +35,7 @@ function Invoke-JobOrganizationInformation {
         $wellKnownSecurityGroups = $null
         $adSchemaInformation = $null
         $getHybridConfiguration = $null
+        $getPartnerApplication = $null
         $enableDownloadDomains = "Unknown" # Set to unknown by default.
         $acceptedDomainObj = $null
         $mapiHttpEnabled = $false
@@ -152,6 +153,13 @@ function Invoke-JobOrganizationInformation {
             }
 
             try {
+                $getPartnerApplication = Get-PartnerApplication -ErrorAction Stop
+            } catch {
+                Write-Yellow "Failed to run Get-PartnerApplication"
+                Invoke-CatchActions
+            }
+
+            try {
                 $getSettingOverride = Get-SettingOverride -ErrorAction Stop
             } catch {
                 Write-Verbose "Failed to run Get-SettingOverride"
@@ -220,6 +228,7 @@ function Invoke-JobOrganizationInformation {
             WellKnownSecurityGroups           = $wellKnownSecurityGroups
             AdSchemaInformation               = $adSchemaInformation
             GetHybridConfiguration            = $getHybridConfiguration
+            GetPartnerApplication             = $getPartnerApplication
             EnableDownloadDomains             = $enableDownloadDomains
             AcceptedDomain                    = $acceptedDomainObj
             MapiHttpEnabled                   = $mapiHttpEnabled

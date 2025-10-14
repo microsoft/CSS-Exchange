@@ -9,12 +9,8 @@
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-2022-21978.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-2023-36434.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityCveAddressedBySerializedDataSigning.ps1
-. $PSScriptRoot\Invoke-AnalyzerSecurityCve-2024-49040.ps1
-. $PSScriptRoot\Invoke-AnalyzerSecurityCve-2025-25005.ps1
-. $PSScriptRoot\Invoke-AnalyzerSecurityCve-2025-25006.ps1
-. $PSScriptRoot\Invoke-AnalyzerSecurityCve-2025-25007.ps1
-. $PSScriptRoot\Invoke-AnalyzerSecurityCve-2025-33051.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityCve-MarchSuSpecial.ps1
+. $PSScriptRoot\Invoke-AnalyzerSecurityCveAndOverrideCheck.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityExtendedProtectionConfigState.ps1
 . $PSScriptRoot\Invoke-AnalyzerSecurityIISModules.ps1
 . $PSScriptRoot\..\Add-AnalyzedResultInformation.ps1
@@ -106,6 +102,7 @@ function Invoke-AnalyzerSecurityCveCheck {
     $ex2013 = "Exchange2013"
     $ex2016 = "Exchange2016"
     $ex2019 = "Exchange2019"
+    $exSE = "ExchangeSE"
     $suNameDictionary = @{
         "Mar18SU" = ((NewCveEntry @("CVE-2018-0924", "CVE-2018-0940") @($ex2013, $ex2016)) + (NewCveEntry "CVE-2018-0941" $ex2016))
         "May18SU" = ((NewCveEntry @("CVE-2018-8151", "CVE-2018-8154", "CVE-2018-8159") @($ex2013, $ex2016)) + (NewCveEntry @("CVE-2018-8152", "CVE-2018-8153") $ex2016))
@@ -144,6 +141,7 @@ function Invoke-AnalyzerSecurityCveCheck {
         "Oct23SU" = (NewCveEntry @("CVE-2023-36778") @($ex2016, $ex2019))
         "Mar24SU" = (NewCveEntry @("CVE-2024-26198") @($ex2016, $ex2019))
         "Apr25HU" = (NewCveEntry @("CVE-2025-53786") @($ex2016, $ex2019))
+        "Oct25SU" = (NewCveEntry @("CVE-2025-59249") @($ex2016, $ex2019, $exSE))
     }
 
     # Need to organize the list so oldest CVEs come out first.
@@ -211,6 +209,124 @@ function Invoke-AnalyzerSecurityCveCheck {
 
     Write-Verbose "CVE Check testing Test-ExchangeBuildGreaterOrEqualThanSecurityPatch took $($stopWatchTestBuild.Elapsed.TotalSeconds) seconds"
 
+    # CVEs that have public overrides available.
+    $cveAndOverrideCheckParamList = New-Object System.Collections.Generic.List[Hashtable]
+    $cveOverrideBaseParams = @{
+        AnalyzeResults       = $AnalyzeResults
+        CurrentExchangeBuild = $exchangeInformation.BuildInformation.VersionInformation
+        DisplayGroupingKey   = $DisplayGroupingKey
+    }
+
+    $settingOverrideBaseParams = @{
+        ExchangeSettingOverride = $exchangeInformation.SettingOverrides
+        GetSettingOverride      = $HealthServerObject.OrganizationInformation.GetSettingOverride
+        FilterServer            = $exchangeInformation.GetExchangeServer.Name
+        FilterServerVersion     = $exchangeInformation.BuildInformation.VersionInformation.BuildVersion
+    }
+
+    $cveAndOverrideCheckParamList.Add($cveOverrideBaseParams + @{
+            SUName                     = "Nov24SUv2"
+            CVEName                    = "CVE-2024-49040"
+            SettingOverrideInformation = ([PSCustomObject]@{
+                    SettingOverrideParams     = ($settingOverrideBaseParams + @{
+                            FilterComponentName = "Transport"
+                            FilterSectionName   = "NonCompliantSenderSettings"
+                            FilterParameterName = "AddP2FromRegexMatchHeader"
+                        })
+                    FilterParameterValueMatch = "false"
+                })
+        })
+    $cveAndOverrideCheckParamList.Add($cveOverrideBaseParams + @{
+            SUName                     = "Aug25SU"
+            CVEName                    = "CVE-2025-25005"
+            SettingOverrideInformation = ([PSCustomObject]@{
+                    SettingOverrideParams     = ($settingOverrideBaseParams + @{
+                            FilterComponentName = "OAuth"
+                            FilterSectionName   = "AppIdBasedAudienceValidation"
+                            FilterParameterName = "Enabled"
+                        })
+                    FilterParameterValueMatch = "false"
+                })
+        })
+    $cveAndOverrideCheckParamList.Add($cveOverrideBaseParams + @{
+            SUName                     = "Aug25SU"
+            CVEName                    = "CVE-2025-25006"
+            SettingOverrideInformation = ([PSCustomObject]@{
+                    SettingOverrideParams     = ($settingOverrideBaseParams + @{
+                            FilterComponentName = "Transport"
+                            FilterSectionName   = "NonCompliantSenderSettings"
+                            FilterParameterName = "BlockNullBytesInFromHeader"
+                        })
+                    FilterParameterValueMatch = "false"
+                })
+        })
+    $cveAndOverrideCheckParamList.Add($cveOverrideBaseParams + @{
+            SUName                     = "Aug25SU"
+            CVEName                    = "CVE-2025-25007"
+            SettingOverrideInformation = ([PSCustomObject]@{
+                    SettingOverrideParams     = ($settingOverrideBaseParams + @{
+                            FilterComponentName = "Transport"
+                            FilterSectionName   = "NonCompliantSenderSettings"
+                            FilterParameterName = "BlockCharactersAfterUnquotedSemicolon"
+                        })
+                    FilterParameterValueMatch = "false"
+                })
+        })
+    $cveAndOverrideCheckParamList.Add($cveOverrideBaseParams + @{
+            SUName                     = "Aug25SU"
+            CVEName                    = "CVE-2025-33051"
+            SettingOverrideInformation = ([PSCustomObject]@{
+                    SettingOverrideParams     = ($settingOverrideBaseParams + @{
+                            FilterComponentName = "Cafe"
+                            FilterSectionName   = "RemoveBackendCookieFromAutoDiscoverV2Response"
+                            FilterParameterName = "Enabled"
+                        })
+                    FilterParameterValueMatch = "false"
+                })
+        })
+    $cveAndOverrideCheckParamList.Add($cveOverrideBaseParams + @{
+            SUName                     = "Oct25SU"
+            CVEName                    = "CVE-2025-53782"
+            SettingOverrideInformation = ([PSCustomObject]@{
+                    SettingOverrideParams     = ($settingOverrideBaseParams + @{
+                            FilterComponentName = "Global"
+                            FilterSectionName   = "CatTokenAuthorizationCheck"
+                            FilterParameterName = "Enabled"
+                        })
+                    FilterParameterValueMatch = "false"
+                })
+        })
+    $cveAndOverrideCheckParamList.Add($cveOverrideBaseParams + @{
+            SUName                     = "Oct25SU"
+            CVEName                    = "CVE-2025-59248"
+            SettingOverrideInformation = (@([PSCustomObject]@{
+                        SettingOverrideParams     = ($settingOverrideBaseParams + @{
+                                FilterComponentName = "Transport"
+                                FilterSectionName   = "NonCompliantSenderSettings"
+                                FilterParameterName = "BlockEmailWithMultipleP2FromHeaders"
+                            })
+                        FilterParameterValueMatch = "false"
+                    }), ([PSCustomObject]@{
+                        SettingOverrideParams     = ($settingOverrideBaseParams + @{
+                                FilterComponentName = "Transport"
+                                FilterSectionName   = "ParseGroupEmailAddressesInPartnerUtils"
+                                FilterParameterName = "Enabled"
+                            })
+                        FilterParameterValueMatch = "false"
+                    }), ([PSCustomObject]@{
+                        SettingOverrideParams     = ($settingOverrideBaseParams + @{
+                                FilterComponentName = "ContentConversion"
+                                FilterSectionName   = "InboundMimeHeaderParserCheckGroupAddresses"
+                                FilterParameterName = "Enabled"
+                            })
+                        FilterParameterValueMatch = "false"
+                    }))
+        })
+
+    foreach ($params in $cveAndOverrideCheckParamList) {
+        Invoke-AnalyzerSecurityCveAndOverrideCheck @params
+    }
+
     $securityObject = [PSCustomObject]@{
         BuildInformation    = $exchangeInformation.BuildInformation.VersionInformation
         MajorVersion        = $exchangeInformation.BuildInformation.MajorVersion
@@ -230,11 +346,7 @@ function Invoke-AnalyzerSecurityCveCheck {
     Invoke-AnalyzerSecurityCveAddressedBySerializedDataSigning -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     Invoke-AnalyzerSecurityCve-MarchSuSpecial -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     Invoke-AnalyzerSecurityADV24199947 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
-    Invoke-AnalyzerSecurityCve-2024-49040 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
-    Invoke-AnalyzerSecurityCve-2025-25005 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
-    Invoke-AnalyzerSecurityCve-2025-25006 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
-    Invoke-AnalyzerSecurityCve-2025-25007 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
-    Invoke-AnalyzerSecurityCve-2025-33051 -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
+
     # Make sure that these stay as the last one to keep the output more readable
     Invoke-AnalyzerSecurityExtendedProtectionConfigState -AnalyzeResults $AnalyzeResults -SecurityObject $securityObject -DisplayGroupingKey $DisplayGroupingKey
     Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
