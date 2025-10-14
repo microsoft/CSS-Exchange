@@ -149,7 +149,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange 2016" {
             $downloadDomains = GetObject "CVE-2021-1730"
             $downloadDomains.DownloadDomainsEnabled | Should -Be "false"
 
-            $Script:ActiveGrouping.Count | Should -Be 67
+            $Script:ActiveGrouping.Count | Should -Be 68
         }
     }
 
