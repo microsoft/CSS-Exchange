@@ -283,7 +283,7 @@ function Invoke-AnalyzerHybridInformation {
             }
 
             # Filter any evoSTS auth servers which have the application identifier set to a guid as this indicates the dedicated hybrid app is configured
-            $dedicatedHybridAppAuthServer = $evoStsAuthServer | Where-Object { $_.ApplicationIdentifier -match $guidRegEx }
+            [array]$dedicatedHybridAppAuthServer = $evoStsAuthServer | Where-Object { $_.ApplicationIdentifier -match $guidRegEx }
 
             if ($dedicatedHybridAppAuthServer.Count -ge 1) {
                 foreach ($authServer in $dedicatedHybridAppAuthServer) {
