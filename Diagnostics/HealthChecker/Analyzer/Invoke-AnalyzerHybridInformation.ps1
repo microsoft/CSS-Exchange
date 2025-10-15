@@ -32,11 +32,13 @@ function Invoke-AnalyzerHybridInformation {
     $getPartnerApplication = $HealthServerObject.OrganizationInformation.GetPartnerApplication
 
     [array]$evoStsAuthServer = $HealthServerObject.OrganizationInformation.GetAuthServer | Where-Object {
+        $null -ne $_.Type -and
         $_.Type.ToString() -eq "AzureAD" -and
         $_.Enabled -eq $true
     }
 
     [array]$acsAuthServer = $HealthServerObject.OrganizationInformation.GetAuthServer | Where-Object {
+        $null -ne $_.Type -and
         $_.Type.ToString() -eq "MicrosoftACS" -and
         $_.Enabled -eq $true
     }
