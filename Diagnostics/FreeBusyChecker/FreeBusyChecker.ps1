@@ -118,7 +118,8 @@ begin {
     $Script:Server = hostname
     $Script:startingDate = (Get-Date -Format yyyyMMdd_HHmmss)
     $Script:htmlFile = "$PSScriptRoot\FBCheckerOutput_$($Script:startingDate).html"
-#Check if EXO module is not installed, if so, Import it.
+    
+#Check if EXO module is required and available, if so, import it.
   if (-not $Org -or ($Org -eq 'ExchangeOnline')) {
         if (-not (Get-Module -ListAvailable -Name ExchangeOnlineManagement)) {
         Write-Error "The ExchangeOnlineManagement module is required but not installed. 
