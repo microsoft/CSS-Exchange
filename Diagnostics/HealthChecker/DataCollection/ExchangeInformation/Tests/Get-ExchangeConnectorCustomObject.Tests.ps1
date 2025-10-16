@@ -253,7 +253,8 @@ Describe "Testing Get-ExchangeConnectorCustomObject" {
                     $_.Name | Should -Be "My company to Office 365"
                     $_.RequireTLS | Should -Be $true
                     # 1 = EncryptionOnly; 2 = CertificateValidation; 3 = DomainValidation
-                    $_.TlsAuthLevel | Should -Be 2
+                    # Now forcing the use of property to be a string, this is the correct way to do this.
+                    $_.TlsAuthLevel | Should -Be "CertificateValidation"
                 }
                 { ([System.Management.Automation.WildcardPattern]::ContainsWildcardCharacters($_.AddressSpaces)) } {
                     $addressSpacesContainsWildcard = $true

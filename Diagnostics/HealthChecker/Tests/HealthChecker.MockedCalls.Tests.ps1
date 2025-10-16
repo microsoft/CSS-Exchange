@@ -32,6 +32,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-OrganizationConfig { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOrganizationConfig.xml" }
             Mock Get-InternalTransportCertificateFromServer { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetInternalTransportCertificateFromServer.xml" }
             Mock Get-HybridConfiguration { return $null }
+            Mock Get-PartnerApplication { return $null }
             Mock Get-ExchangeDiagnosticInfo -ParameterFilter { $Process -eq "Microsoft.Exchange.Directory.TopologyService" -and $Component -eq "VariantConfiguration" -and $Argument -eq "Overrides" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo_ADTopVariantConfiguration.xml" }
             # do not need to match the function. Only needed really to test the Assert-MockCalled
@@ -54,8 +55,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-ServerMonitoringOverride { return $null }
 
             $Error.Clear()
-            Get-OrganizationInformation -EdgeServer $false | Out-Null
-            Get-HealthCheckerExchangeServer -ServerName $Script:Server | Out-Null
+            Get-HealthCheckerDataCollection -ServerNames $env:COMPUTERNAME | Out-Null
 
             $Error.Count | Should -Be $Script:ErrorCount
             # Hard coded to know if this ever changes.
@@ -64,8 +64,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             # Assert-MockCalled Invoke-CatchActions -Exactly 1
 
             Assert-MockCalled Get-WmiObjectHandler -Exactly 6
-            Assert-MockCalled Invoke-ScriptBlockHandler -Exactly 5
-            Assert-MockCalled Get-RemoteRegistryValue -Exactly 26
+            Assert-MockCalled Get-RemoteRegistryValue -Exactly 29
             Assert-MockCalled Get-RemoteRegistrySubKey -Exactly 1
             Assert-MockCalled Get-NETFrameworkVersion -Exactly 1
             Assert-MockCalled Get-DotNetDllFileVersions -Exactly 1
@@ -81,7 +80,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-ExchangeAppPoolsInformation -Exactly 1
             Assert-MockCalled Get-ExchangeDomainsAclPermissions -Exactly 1
             Assert-MockCalled Get-ExchangeAdSchemaClass -Exactly 2
-            Assert-MockCalled Get-ExchangeServer -Exactly 1
+            Assert-MockCalled Get-ExchangeServer -Exactly 2
             Assert-MockCalled Get-ExchangeCertificate -Exactly 1
             Assert-MockCalled Get-AuthConfig -Exactly 1
             Assert-MockCalled Get-ExSetupFileVersionInfo -Exactly 1
@@ -90,7 +89,8 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Assert-MockCalled Get-WebServicesVirtualDirectory -Exactly 1
             Assert-MockCalled Get-OrganizationConfig -Exactly 1
             Assert-MockCalled Get-HybridConfiguration -Exactly 1
-            Assert-MockCalled Get-Service -Exactly 1
+            Assert-MockCalled Get-PartnerApplication -Exactly 1
+            Assert-MockCalled Get-Service -Exactly 2
             Assert-MockCalled Get-SettingOverride -Exactly 1
             Assert-MockCalled Get-ServerComponentState -Exactly 1
             Assert-MockCalled Test-ServiceHealth -Exactly 1

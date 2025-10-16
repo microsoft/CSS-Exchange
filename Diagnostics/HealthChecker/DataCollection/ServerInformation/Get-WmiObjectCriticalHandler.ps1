@@ -2,6 +2,8 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\..\Shared\Get-WmiObjectHandler.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
+
 function Get-WmiObjectCriticalHandler {
     [CmdletBinding()]
     param(
@@ -29,8 +31,8 @@ function Get-WmiObjectCriticalHandler {
         Namespace           = $Namespace
         CatchActionFunction = $CatchActionFunction
     }
-
-    $wmi = Get-WmiObjectHandler @params
+    $wmi = $null
+    Get-WmiObjectHandler @params | Invoke-RemotePipelineHandler -Result ([ref]$wmi)
 
     if ($null -eq $wmi) {
         # Check for common issues that have been seen. If common issue, Write-Warning the re-throw the error up.

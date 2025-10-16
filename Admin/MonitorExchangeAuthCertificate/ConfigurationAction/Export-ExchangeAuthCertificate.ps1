@@ -2,7 +2,13 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\Shared\Invoke-CatchActionError.ps1
+. $PSScriptRoot\..\..\..\Shared\CertificateFunctions\Export-CertificateAndPrivateKey.ps1
 
+<#
+.DESCRIPTION
+    This function exports the current Auth Certificate and (if configured) the next Auth Certificate.
+    The certificates will be stored as password protected .pfx file.
+#>
 function Export-ExchangeAuthCertificate {
     [CmdletBinding(SupportsShouldProcess)]
     [OutputType([System.Object])]
@@ -12,15 +18,10 @@ function Export-ExchangeAuthCertificate {
         [ScriptBlock]$CatchActionFunction
     )
 
-    <#
-        This function exports the current Auth Certificate and (if configured) the next Auth Certificate.
-        The certificates will be stored as password protected .pfx file.
-    #>
-
     try {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        $certificatesReadyToExportList = New-Object 'System.Collections.Generic.List[object]'
-        $certificatesUnableToExportList = New-Object 'System.Collections.Generic.List[string]'
+        $certificatesReadyToExportList = New-Object System.Collections.Generic.List[object]
+        $certificatesUnableToExportList = New-Object System.Collections.Generic.List[string]
         $currentAuthConfig = Get-AuthConfig -ErrorAction Stop
         $allExchangeCertificates = Get-ExchangeCertificate -Server $env:COMPUTERNAME -ErrorAction SilentlyContinue
 
@@ -67,17 +68,27 @@ function Export-ExchangeAuthCertificate {
             foreach ($cert in $certificatesReadyToExportList) {
                 Write-Verbose ("Exporting the certificate with thumbprint: $($cert.Thumbprint) now...")
                 try {
-                    if ($PSCmdlet.ShouldProcess($cert.Thumbprint, "Export-ExchangeCertificate")) {
-                        $authCert = Export-ExchangeCertificate -Thumbprint $cert.Thumbprint -BinaryEncoded -Password $Password
+                    if ($PSCmdlet.ShouldProcess($cert.Thumbprint, "Export-CertificateAndPrivateKey")) {
+                        $exportExchangeCertificateParams = @{
+                            Thumbprint          = $cert.Thumbprint
+                            Password            = $Password
+                            CatchActionFunction = $CatchActionFunction
+                        }
+                        $authCert = Export-CertificateAndPrivateKey @exportExchangeCertificateParams
+
+                        if (-not $authCert) {
+                            Write-Verbose "Export of the Auth Certificate was not possible"
+                            return
+                        }
                     }
                     $certExportPath = "$($PSScriptRoot)\$($cert.Thumbprint)-$($dateTimeAppendix).pfx"
                     if ($PSCmdlet.ShouldProcess("Export certificate: $($cert.Thumbprint) To: $certExportPath", "[System.IO.File]::WriteAllBytes")) {
-                        [System.IO.File]::WriteAllBytes($certExportPath, $authCert.FileData)
+                        [System.IO.File]::WriteAllBytes($certExportPath, $authCert)
                     }
                     Write-Verbose ("Certificate exported to: $certExportPath")
                 } catch {
                     Write-Verbose ("We hit an issue during certificate export - Exception $($Error[0].Exception.Message)")
-                    $certificatesUnableToExportList.Add($authCert.Thumbprint)
+                    $certificatesUnableToExportList.Add($cert.Thumbprint)
                     Invoke-CatchActionError $CatchActionFunction
                 }
             }

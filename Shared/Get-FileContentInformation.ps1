@@ -1,54 +1,44 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\Invoke-ScriptBlockHandler.ps1
+<#
+.DESCRIPTION
+    Gets the file information related to the passed list of files to the function.
+    It will determine if the file exists and the raw content information for the file.
+.NOTES
+    You MUST execute this code on the server you want to collect information for. This can be done remotely via Invoke-Command/Invoke-ScriptBlockHandler.
+#>
 function Get-FileContentInformation {
     [CmdletBinding()]
+    [OutputType([HashTable])]
     param(
-        [Parameter(Mandatory = $true)]
-        [string]$ComputerName,
-
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
         [string[]]$FileLocation
     )
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        $allFiles = New-Object System.Collections.Generic.List[string]
+        $results = @{}
     }
     process {
         foreach ($file in $FileLocation) {
-            $allFiles.Add($file)
+            $present = (Test-Path $file)
+
+            if ($present) {
+                $content = Get-Content $file -Raw -Encoding UTF8
+            } else {
+                $content = $null
+            }
+
+            $obj = [PSCustomObject]@{
+                Present  = $present
+                FileName = ([IO.Path]::GetFileName($file))
+                FilePath = $file
+                Content  = $content
+            }
+            $results.Add($file, $obj)
         }
     }
     end {
-        $params = @{
-            ComputerName           = $ComputerName
-            ScriptBlockDescription = "Getting File Content Information"
-            ArgumentList           = @(, $allFiles)
-            ScriptBlock            = {
-                param($FileLocations)
-                $results = @{}
-                foreach ($fileLocation in $FileLocations) {
-                    $present = (Test-Path $fileLocation)
-
-                    if ($present) {
-                        $content = Get-Content $fileLocation -Raw -Encoding UTF8
-                    } else {
-                        $content = $null
-                    }
-
-                    $obj = [PSCustomObject]@{
-                        Present  = $present
-                        FileName = ([IO.Path]::GetFileName($fileLocation))
-                        FilePath = $fileLocation
-                        Content  = $content
-                    }
-
-                    $results.Add($fileLocation, $obj)
-                }
-                return $results
-            }
-        }
-        return (Invoke-ScriptBlockHandler @params)
+        return $results
     }
 }

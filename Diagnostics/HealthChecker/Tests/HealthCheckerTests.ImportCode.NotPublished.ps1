@@ -17,11 +17,12 @@ if (-not (Load-Module -Name "Microsoft.PowerShell.Security" -MinimumVersion "7.0
 # Pulls out nested functions required to mock with Pester
 $scriptContent = Get-PesterScriptContent -FilePath @(
     "$Script:parentPath\Analyzer\Invoke-AnalyzerEngine.ps1",
-    "$Script:parentPath\DataCollection\ExchangeInformation\Get-HealthCheckerExchangeServer.ps1"
-    "$Script:parentPath\DataCollection\OrganizationInformation\Get-OrganizationInformation.ps1"
+    "$Script:parentPath\Features\Get-HealthCheckerDataCollection.ps1"
 )
 
 Invoke-Expression $scriptContent
+
+$Script:ForceLegacy = $true
 
 function SetDefaultRunOfHealthChecker {
     [CmdletBinding()]
@@ -30,9 +31,7 @@ function SetDefaultRunOfHealthChecker {
         [string]$ExportDebugFileName
     )
     Invoke-ErrorMonitoring
-    $org = Get-OrganizationInformation -EdgeServer $false
-    $hc = Get-HealthCheckerExchangeServer -ServerName $env:COMPUTERNAME
-    $hc.OrganizationInformation = $org
+    $hc = Get-HealthCheckerDataCollection -ServerNames $env:COMPUTERNAME
 
     # By not exporting, we save a few seconds. If you need to debug set $Script:DebugHCPester = $true
     # Then run test manually with Invoke-Pester

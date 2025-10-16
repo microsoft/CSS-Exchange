@@ -2,7 +2,19 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\Shared\Invoke-CatchActionError.ps1
+. $PSScriptRoot\..\..\..\Shared\CertificateFunctions\Export-CertificateAndPrivateKey.ps1
 
+<#
+.DESCRIPTION
+    This function can be used to export an Exchange Certificate as byte array and import it to a list of servers
+    which were passed to this function via ServersToImportList parameter.
+    The function returns a PSCustomObject with the following properties:
+        - ExportSuccessful : Indicator if the certificate was successfully exported on the source server (where the script runs)
+        - ImportToAllServersSuccessful : Indicator if the certificate was successfully imported to all servers
+        - Thumbprint : Thumbprint of the certificate that was imported
+        - ImportedToServersList : List of all servers on which the certificate was successfully imported
+        - ImportToServersFailedList : List of all serves on which the certificate import failed for whatever reason
+#>
 function Import-ExchangeAuthCertificateToServers {
     [CmdletBinding(SupportsShouldProcess)]
     param(
@@ -19,22 +31,11 @@ function Import-ExchangeAuthCertificateToServers {
         [ScriptBlock]$CatchActionFunction
     )
 
-    <#
-        This function can be used to export an Exchange Certificate as byte array and import it to a list of servers
-        which were passed to this function via ServersToImportList parameter.
-        The function returns a PSCustomObject with the following properties:
-            - ExportSuccessful : Indicator if the certificate was successfully exported on the source server (where the script runs)
-            - ImportToAllServersSuccessful : Indicator if the certificate was successfully imported to all servers
-            - Thumbprint : Thumbprint of the certificate that was imported
-            - ImportedToServersList : List of all servers on which the certificate was successfully imported
-            - ImportToServersFailedList : List of all serves on which the certificate import failed for whatever reason
-    #>
-
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $exportSuccessful = $false
-        $importFailedList = New-Object "System.Collections.Generic.List[string]"
-        $importSuccessfulList = New-Object "System.Collections.Generic.List[string]"
+        $importFailedList = New-Object System.Collections.Generic.List[string]
+        $importSuccessfulList = New-Object System.Collections.Generic.List[string]
     }
     process {
         try {
@@ -48,20 +49,19 @@ function Import-ExchangeAuthCertificateToServers {
             $secureString.MakeReadOnly()
             $bytes = $null
 
-            if ($PSCmdlet.ShouldProcess($Thumbprint, "Export-ExchangeCertificate")) {
+            if ($PSCmdlet.ShouldProcess($Thumbprint, "Export-CertificateAndPrivateKey")) {
                 # Export the certificate as byte array as we need to pass this to the Import-ExchangeCertificate cmdlet
                 $exportExchangeCertificateParams = @{
-                    Server        = $ExportFromServer
-                    Thumbprint    = $Thumbprint
-                    BinaryEncoded = $true
-                    Password      = $secureString
-                    ErrorAction   = "Stop"
+                    ComputerName        = $ExportFromServer
+                    Thumbprint          = $Thumbprint
+                    Password            = $secureString
+                    CatchActionFunction = $CatchActionFunction
                 }
-                $exportedAuthCertificate = Export-ExchangeCertificate @exportExchangeCertificateParams
+                $exportedAuthCertificate = Export-CertificateAndPrivateKey @exportExchangeCertificateParams
             }
 
-            if (($null -ne $exportedAuthCertificate.FileData) -or
-                ($WhatIfPreference)) {
+            if ($exportedAuthCertificate -or
+                $WhatIfPreference) {
                 Write-Verbose ("Certificate with thumbprint: $Thumbprint successfully exported")
                 $exportSuccessful = $true
 
@@ -71,7 +71,7 @@ function Import-ExchangeAuthCertificateToServers {
                         if ($PSCmdlet.ShouldProcess($server, "Import-ExchangeCertificate")) {
                             $importExchangeCertificateParams = @{
                                 Server               = $server
-                                FileData             = $exportedAuthCertificate.FileData
+                                FileData             = $exportedAuthCertificate
                                 Password             = $secureString
                                 PrivateKeyExportable = $true
                                 ErrorAction          = "Stop"

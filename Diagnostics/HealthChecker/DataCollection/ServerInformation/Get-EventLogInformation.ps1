@@ -1,19 +1,18 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\..\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 function Get-EventLogInformation {
     [CmdletBinding()]
     [OutputType("System.Collections.Hashtable")]
     param(
-        [Parameter(Mandatory = $true)]
-        [string]$Server,
         [ScriptBlock]$CatchActionFunction
     )
     process {
-        function GetRemoteEventLogInformation {
-            $results = @{}
-            foreach ($log in @("Application", "System")) {
+        Write-Verbose "Calling: $($MyInvocation.MyCommand)"
+
+        $results = @{}
+        foreach ($log in @("Application", "System")) {
+            try {
                 $lastLogEntry = Get-WinEvent -LogName $log -Oldest -MaxEvents 1
                 $listLog = Get-WinEvent -ListLog $log
                 $results.Add($log, ([PSCustomObject]@{
@@ -24,16 +23,12 @@ function Get-EventLogInformation {
                             IsEnabled    = $listLog.IsEnabled
                             LogFilePath  = $listLog.LogFilePath
                         }))
+            } catch {
+                Write-Verbose "Failed to get Event Log '$log'. Inner Exception: $_"
+                Invoke-CatchActionError $CatchActionFunction
             }
+        }
 
-            return $results
-        }
-        Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        $params = @{
-            ComputerName        = $Server
-            ScriptBlock         = ${Function:GetRemoteEventLogInformation}
-            CatchActionFunction = $CatchActionFunction
-        }
-        return (Invoke-ScriptBlockHandler @params)
+        return $results
     }
 }

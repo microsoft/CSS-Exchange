@@ -1,9 +1,13 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\..\..\..\..\Shared\TLS\Get-AllTlsSettings.ps1
-. $PSScriptRoot\..\..\..\..\Shared\Get-ExtendedProtectionConfiguration.ps1
+# Remote Registry needs to be loaded before others to make sure we can access it within this function.
 . $PSScriptRoot\..\..\..\..\Shared\Get-RemoteRegistryValue.ps1
+
+. $PSScriptRoot\..\..\..\..\Shared\TLS\Get-AllTlsSettings.ps1
+. $PSScriptRoot\..\..\..\..\Shared\IISFunctions\ExtendedProtection\Get-ExtendedProtectionConfiguration.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\Add-ScriptBlockInjection.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 
 # This function is used to collect the required information needed to determine if a server is ready for Extended Protection
 function Get-ExtendedProtectionPrerequisitesCheck {
@@ -64,7 +68,13 @@ function Get-ExtendedProtectionPrerequisitesCheck {
                 $progressParams.Status = "$baseStatus TLS Settings"
                 Write-Progress @progressParams
                 Write-Verbose "$($progressParams.Status)"
-                $tlsSettings = Get-AllTlsSettings -MachineName $server.FQDN
+                $includeScriptBlockList = @(
+                    ${Function:Invoke-RemotePipelineHandler},
+                    ${Function:Get-RemoteRegistryValue},
+                    ${Function:Get-RemoteRegistrySubKey}
+                )
+                $scriptBlock = Add-ScriptBlockInjection -PrimaryScriptBlock ${Function:Get-AllTlsSettings} -IncludeScriptBlock $includeScriptBlockList
+                $tlsSettings = Invoke-ScriptBlockHandler -ComputerName $server.FQDN -ScriptBlock $scriptBlock
                 $params = @{
                     MachineName = $server.FQDN
                     SubKey      = "SYSTEM\CurrentControlSet\Control\Lsa"

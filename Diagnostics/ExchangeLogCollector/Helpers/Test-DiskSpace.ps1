@@ -5,8 +5,8 @@
 . $PSScriptRoot\Start-JobManager.ps1
 . $PSScriptRoot\..\RemoteScriptBlock\Get-FreeSpace.ps1
 . $PSScriptRoot\..\..\..\Shared\ErrorMonitorFunctions.ps1
-. $PSScriptRoot\..\..\..\Shared\ScriptBlock\Get-DefaultSBInjectionContext.ps1
-. $PSScriptRoot\..\..\..\Shared\ScriptBlock\RemoteSBLoggingFunctions.ps1
+. $PSScriptRoot\..\..\..\Shared\ScriptBlockFunctions\Get-DefaultSBInjectionContext.ps1
+. $PSScriptRoot\..\..\..\Shared\ScriptBlockFunctions\RemoteSBLoggingFunctions.ps1
 function Test-DiskSpace {
     param(
         [Parameter(Mandatory = $true)][array]$Servers,

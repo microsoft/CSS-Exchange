@@ -8,8 +8,8 @@
 . $PSScriptRoot\..\RemoteScriptBlock\IO\Compress-Folder.ps1
 . $PSScriptRoot\..\RemoteScriptBlock\IO\Save-DataToFile.ps1
 . $PSScriptRoot\..\..\..\Shared\ErrorMonitorFunctions.ps1
-. $PSScriptRoot\..\..\..\Shared\ScriptBlock\Get-DefaultSBInjectionContext.ps1
-. $PSScriptRoot\..\..\..\Shared\ScriptBlock\RemoteSBLoggingFunctions.ps1
+. $PSScriptRoot\..\..\..\Shared\ScriptBlockFunctions\Get-DefaultSBInjectionContext.ps1
+. $PSScriptRoot\..\..\..\Shared\ScriptBlockFunctions\RemoteSBLoggingFunctions.ps1
 #This function job is to write out the Data that is too large to pass into the main script block
 #This is for mostly Exchange Related objects.
 #To handle this, we export the data locally and copy the data over the correct server.
@@ -325,16 +325,27 @@ function Write-LargeDataObjectsOnMachine {
                 New-Item -ItemType Directory -Path $reportPath -Force | Out-Null
 
                 try {
-                    Write-Host "Attempting to run CollectOverMetrics.ps1 against $($_.Name)"
-                    &"$Script:localExInstall\Scripts\CollectOverMetrics.ps1" -DatabaseAvailabilityGroup $_.Name `
-                        -IncludeExtendedEvents `
-                        -GenerateHtmlReport `
-                        -ReportPath $reportPath
+                    Write-Host "Attempting to run CollectOverMetrics.ps1 against $($_.Name) DAG to path '$reportPath'"
+                    # Due to CollectOverMetrics.ps1 script using Set-StrictMode we can't use our override of Write-Host.
+                    # So we need to delete it and add it back afterwards.
+                    $storedDefaultWriteHost = ${Function:Write-Host}
+                    Get-ChildItem -Path Function:\Write-Host | Remove-Item
+                    $params = @{
+                        DatabaseAvailabilityGroup = $_.Name
+                        IncludeExtendedEvents     = $true
+                        GenerateHtmlReport        = $true
+                        ReportPath                = $reportPath
+                    }
+                    &"$Script:localExInstall\Scripts\CollectOverMetrics.ps1" @params
                 } catch {
                     Write-Verbose("Failed to collect failover metrics")
                     Invoke-CatchActions
                     $failed = $true
                 }
+                # Add the Write-Host back
+                $stringScriptBlock = "function Script:Write-Host { $($storedDefaultWriteHost.ToString()) }"
+                $scriptBlock = ([ScriptBlock]::Create($stringScriptBlock))
+                . $scriptBlock
 
                 if (!$failed) {
                     $zipCopyLocation = Compress-Folder -Folder $reportPath -ReturnCompressedLocation $true

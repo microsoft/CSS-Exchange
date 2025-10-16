@@ -2,6 +2,8 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Get-ExchangeBuildVersionInformation.ps1
+. $PSScriptRoot\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
+
 function Test-ExchangeBuildGreaterOrEqualThanBuild {
     [CmdletBinding()]
     [OutputType([bool])]
@@ -28,7 +30,8 @@ function Test-ExchangeBuildGreaterOrEqualThanBuild {
             if (-not([string]::IsNullOrEmpty($SU))) {
                 $params.SU = $SU
             }
-            $testBuild = Get-ExchangeBuildVersionInformation @params
+            $testBuild = $null
+            Get-ExchangeBuildVersionInformation @params | Invoke-RemotePipelineHandler -Result ([ref]$testBuild)
             $testResult = $CurrentExchangeBuild.BuildVersion -ge $testBuild.BuildVersion
         }
     } end {
@@ -64,7 +67,8 @@ function Test-ExchangeBuildLessThanBuild {
                 $params.SU = $SU
             }
 
-            $testBuild = Get-ExchangeBuildVersionInformation @params
+            $testBuild = $null
+            Get-ExchangeBuildVersionInformation @params | Invoke-RemotePipelineHandler -Result ([ref]$testBuild)
             $testResult = $CurrentExchangeBuild.BuildVersion -lt $testBuild.BuildVersion
         }
     } end {
@@ -99,7 +103,8 @@ function Test-ExchangeBuildEqualBuild {
             if (-not([string]::IsNullOrEmpty($SU))) {
                 $params.SU = $SU
             }
-            $testBuild = Get-ExchangeBuildVersionInformation @params
+            $testBuild = $null
+            Get-ExchangeBuildVersionInformation @params | Invoke-RemotePipelineHandler -Result ([ref]$testBuild)
             $testResult = $CurrentExchangeBuild.BuildVersion -eq $testBuild.BuildVersion
         }
     } end {
@@ -119,13 +124,16 @@ function Test-ExchangeBuildGreaterOrEqualThanSecurityPatch {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $testResult = $false
     } process {
-        $allSecurityPatches = Get-ExchangeBuildVersionInformation -FindBySUName $SUName |
+        $allSecurityPatches = $null
+        Get-ExchangeBuildVersionInformation -FindBySUName $SUName |
+            Invoke-RemotePipelineHandler -Result ([ref]$allSecurityPatches)
+        $allSecurityPatches = $allSecurityPatches |
             Where-Object { $_.MajorVersion -eq $CurrentExchangeBuild.MajorVersion } |
             Sort-Object ReleaseDate -Descending
 
         if ($null -eq $allSecurityPatches -or
             $allSecurityPatches.Count -eq 0) {
-            Write-Verbose "We didn't find a security path for this version of Exchange."
+            Write-Verbose "We didn't find a security path ($SUName) for this version of Exchange ($CurrentExchangeBuild)."
             Write-Verbose "We assume this means that this version of Exchange $($CurrentExchangeBuild.MajorVersion) isn't vulnerable for this SU $SUName"
             $testResult = $true
             return
