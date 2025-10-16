@@ -76,49 +76,64 @@ if ($null -ne $alreadySelectedTags) {
 
 $selectionTableJson = $selectionTable | ConvertTo-Json -Depth 4
 
-$httpListener = New-Object System.Net.HttpListener
-$httpListener.Prefixes.Add($uri)
-$httpListener.Start()
+$listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, 5002)
+$listener.Start()
 
-& explorer.exe $uri
+Start-Process "explorer.exe" $uri
 
 try {
-    while ($httpListener.IsListening) {
-        $task = $httpListener.GetContextAsync()
-        while (-not $task.AsyncWaitHandle.WaitOne(100)) {
+    while ($listener.Server.IsBound) {
+
+        if (-not $listener.Pending()) {
             Start-Sleep -Milliseconds 100
+            continue
         }
 
-        $context = $task.GetAwaiter().GetResult()
+        $client = $listener.AcceptTcpClient()
+        $stream = $client.GetStream()
+        $reader = New-Object IO.StreamReader($stream)
+        $writer = New-Object IO.StreamWriter($stream)
+        $writer.AutoFlush = $true
 
-        if ($context.Request.HttpMethod -eq "PUT") {
-            $context.Response.StatusCode = 200
-            $context.Response.Close()
+        # Read request line
+        $requestLine = $reader.ReadLine()
 
-            # The user might have closed the tab, or might have clicked Refresh.
-            # They both fire the same event. So, wait a moment and see if we get
-            # another request. If we don't, tab was closed.
-            $task = $httpListener.GetContextAsync()
-            if (-not $task.AsyncWaitHandle.WaitOne(1000)) {
-                Write-Host "Browser tab was closed without saving changes."
-                break
-            } else {
-                $context = $task.GetAwaiter().GetResult()
-            }
+        if (-not $requestLine) {
+            # No valid request, close client and continue listening
+            $client.Close()
+            continue
         }
 
-        if ($context.Request.HttpMethod -eq "GET") {
-            Write-Host "Showing tag selector UI in the default browser."
+        $headers = @{}
+        while (($line = $reader.ReadLine()) -and $line -ne "") {
+            $parts = $line.Split(":", 2)
+            if ($parts.Length -eq 2) { $headers[$parts[0].Trim()] = $parts[1].Trim() }
+        }
+
+        if ($requestLine -match "^PUT") {
+            Write-Host "Browser tab was closed without saving changes."
+            $writer.WriteLine("HTTP/1.1 200 OK")
+            $writer.WriteLine("Content-Length: 0")
+            $writer.WriteLine("Connection: close")
+            $writer.WriteLine()
+            $client.Close()
+            break
+        }
+
+        elseif ($requestLine -match "^GET") {
             $pageContent = $htmlFileContent.Replace("var selectionTable = [];", "var selectionTable = $selectionTableJson;")
-            $pageContentUTF8 = [System.Text.Encoding]::UTF8.GetBytes($pageContent)
-            $context.Response.StatusCode = 200
-            $context.Response.OutputStream.Write($pageContentUTF8, 0, $pageContentUTF8.Length)
-            $context.Response.Close()
-        } elseif ($context.Request.HttpMethod -eq "POST") {
-            $reader = New-Object System.IO.StreamReader($context.Request.InputStream, "UTF8")
-            $body = $reader.ReadToEnd()
-            $context.Response.StatusCode = 200
-            $context.Response.Close()
+            $bytes = [System.Text.Encoding]::UTF8.GetBytes($pageContent)
+            $writer.WriteLine("HTTP/1.1 200 OK")
+            $writer.WriteLine("Content-Type: text/html; charset=UTF-8")
+            $writer.WriteLine("Content-Length: $($bytes.Length)")
+            $writer.WriteLine("Connection: close")
+            $writer.WriteLine()
+            $stream.Write($bytes, 0, $bytes.Length)
+        } elseif ($requestLine -match "^POST") {
+            $contentLength = [int]$headers["Content-Length"]
+            $buffer = New-Object byte[] $contentLength
+            $stream.Read($buffer, 0, $contentLength) | Out-Null
+            $body = [System.Text.Encoding]::UTF8.GetString($buffer)
             $tagInfo = ConvertFrom-Json $body
             $selectedTags = @()
             foreach ($category in $tagInfo) {
@@ -150,11 +165,18 @@ try {
 
             [IO.File]::WriteAllLines($outputPath, $linesToSave)
 
+            $writer.WriteLine("HTTP/1.1 200 OK")
+            $writer.WriteLine("Content-Length: 0")
+            $writer.WriteLine("Connection: close")
+            $writer.WriteLine()
+
+            $client.Close()
             break
         }
+        $client.Close()
     }
 } finally {
-    $httpListener.Close()
+    $listener.Stop()
 }
 
 if (Test-Path $outputPath) {
