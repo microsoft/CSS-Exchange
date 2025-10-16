@@ -84,7 +84,7 @@ function AuthServerCheck {
         $Script:tDAuthServerAuthMetadataUrlColor = "green"
     } else {
         Write-Host -ForegroundColor Red " AuthMetadataUrl appears not to be correct."
-        Write-Host -ForegroundColor White " Should be  https://login.windows.net/<Initial Tenant Domain>/federationmetadata/2007-06/federationmetadata.xml"
+        Write-Host -ForegroundColor White " Should be  https://login.windows.net/<Initial Tenant Domain>/FederationMetadata/2007-06/FederationMetadata.xml"
         $Script:tDAuthServerAuthMetadataUrlColor = "red"
     }
     Write-Host -ForegroundColor White " Enabled: "
@@ -638,4 +638,5 @@ function EWSVirtualDirectoryCheckOAuth {
         Write-Host -ForegroundColor White "  Should be True "
     }
 }
+
 
