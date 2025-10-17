@@ -354,9 +354,6 @@ while ($currentDiff -gt 0) {
         # Test Exchange Processes for unexpected modules
         $ExchangeProcessList = Get-ExchAVExclusionsProcess -ExchangePath $ExchangePath -MsiProductMinor ([byte]$serverExchangeInstallDirectory.MsiProductMinor)
 
-        # Include w3wp process in the analysis
-        $ExchangeProcessList += (Join-Path $env:SystemRoot '\System32\inetSrv\W3wp.exe')
-
         # Gather all processes on the computer and filter by the Exchange Process List
         $ServerProcess = Get-Process | Where-Object { $ExchangeProcessList -contains $_.path } | Sort-Object -Property ProcessName
 
