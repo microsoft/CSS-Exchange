@@ -76,50 +76,137 @@ if ($null -ne $alreadySelectedTags) {
 
 $selectionTableJson = $selectionTable | ConvertTo-Json -Depth 4
 
-$httpListener = New-Object System.Net.HttpListener
-$httpListener.Prefixes.Add($uri)
-$httpListener.Start()
+$tcpListener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, 5002)
+$tcpListener.Start()
 
 & explorer.exe $uri
 
+function ReadRequest($stream) {
+    Write-Debug "Reading request from stream"
+    $reader = New-Object System.IO.StreamReader($stream, [Text.Encoding]::UTF8, $false, 1024, $true)
+    $line = $reader.ReadLine()
+    if (-not $line) {
+        return $null
+    }
+
+    $req = [PSCustomObject]@{
+        RequestLine = $line
+        Method      = $null
+        Path        = $null
+        Version     = "HTTP/1.1"
+        Headers     = @{}
+        Body        = [byte[]]::new(0)
+    }
+
+    $parts = $line -split ' '
+    if ($parts.Length -ge 2) { $req.Method = $parts[0]; $req.Path = $parts[1] }
+    if ($parts.Length -ge 3) { $req.Version = $parts[2] }
+
+    # headers
+    while ($true) {
+        $h = $reader.ReadLine()
+        if ($null -eq $h -or $h -eq '') { break }
+        $kv = $h -split ":\s*", 2
+        if ($kv.Length -eq 2) { $req.Headers[$kv[0]] = $kv[1] }
+    }
+
+    # body (simple Content-Length handling)
+    if ($req.Headers.ContainsKey("Content-Length")) {
+        $len = [int]$req.Headers["Content-Length"]
+        if ($len -gt 0) {
+            $buf = New-Object char[] $len
+            $total = 0
+            while ($total -lt $len) {
+                $read = $reader.Read($buf, $total, $len - $total)
+                if ($read -le 0) { break }
+                $total += $read
+            }
+            $bodyText = [Text.Encoding]::UTF8.GetString($buf, 0, $total)
+            $req.Body = $bodyText
+        }
+    }
+
+    $reader.Close()
+
+    Write-Debug "Request read: $($req.Method) $($req.Path), $($req.Headers.Count) headers, $($req.Body.Length) body bytes"
+
+    return $req
+}
+
+function WriteResponse {
+    param(
+        [System.IO.Stream]$Stream,
+        [int]$Status = 200,
+        [string]$ContentType = "text/plain; charset=utf-8",
+        [byte[]]$BodyBytes
+    )
+
+    Write-Debug "Writing response to stream: $Status, $($BodyBytes.Length) body bytes"
+
+    $statusText = @{
+        200 = "OK"; 400 = "Bad Request"; 404 = "Not Found"; 500 = "Internal Server Error"
+    }[$Status]
+
+    if (-not $BodyBytes) { $BodyBytes = [byte[]]::new(0) }
+
+    $header =
+    "HTTP/1.1 $Status $statusText`r`n" +
+    "Date: $([DateTime]::UtcNow.ToString('r'))`r`n" +
+    "Server: ExTRA-TcpListener`r`n" +
+    "Content-Type: $ContentType`r`n" +
+    "Content-Length: $($BodyBytes.Length)`r`n" +
+    "Connection: close`r`n`r`n"
+
+    $headerBytes = [Text.Encoding]::ASCII.GetBytes($header)
+    $stream.Write($headerBytes, 0, $headerBytes.Length)
+    if ($BodyBytes.Length -gt 0) { $stream.Write($BodyBytes, 0, $BodyBytes.Length) }
+    $stream.Flush()
+
+    Write-Debug "Response written: $Status $statusText, $($BodyBytes.Length) body bytes"
+}
+
+$putTimer = [Diagnostics.Stopwatch]::new()
+
 try {
-    while ($httpListener.IsListening) {
-        $task = $httpListener.GetContextAsync()
-        while (-not $task.AsyncWaitHandle.WaitOne(100)) {
-            Start-Sleep -Milliseconds 100
+    while ($true) {
+        if ($putTimer.Elapsed.TotalSeconds -gt 1) {
+            Write-Host "Browser tab was closed without saving changes."
+            break
         }
 
-        $context = $task.GetAwaiter().GetResult()
+        if (-not $tcpListener.Pending()) {
+            Start-Sleep -Milliseconds 100
+            continue
+        }
 
-        if ($context.Request.HttpMethod -eq "PUT") {
-            $context.Response.StatusCode = 200
-            $context.Response.Close()
+        if ($putTimer.IsRunning) {
+            $putTimer.Stop()
+            $putTimer.Reset()
+        }
+
+        $client = $tcpListener.AcceptTcpClient()
+        $stream = $client.GetStream()
+        $request = ReadRequest $stream
+
+        if ($request.Method -eq "PUT") {
+            WriteResponse -Stream $stream -Status 200
+            $client.Close()
 
             # The user might have closed the tab, or might have clicked Refresh.
             # They both fire the same event. So, wait a moment and see if we get
             # another request. If we don't, tab was closed.
-            $task = $httpListener.GetContextAsync()
-            if (-not $task.AsyncWaitHandle.WaitOne(1000)) {
-                Write-Host "Browser tab was closed without saving changes."
-                break
-            } else {
-                $context = $task.GetAwaiter().GetResult()
-            }
-        }
-
-        if ($context.Request.HttpMethod -eq "GET") {
+            $putTimer.Start()
+        } elseif ($request.Method -eq "GET") {
             Write-Host "Showing tag selector UI in the default browser."
             $pageContent = $htmlFileContent.Replace("var selectionTable = [];", "var selectionTable = $selectionTableJson;")
             $pageContentUTF8 = [System.Text.Encoding]::UTF8.GetBytes($pageContent)
-            $context.Response.StatusCode = 200
-            $context.Response.OutputStream.Write($pageContentUTF8, 0, $pageContentUTF8.Length)
-            $context.Response.Close()
-        } elseif ($context.Request.HttpMethod -eq "POST") {
-            $reader = New-Object System.IO.StreamReader($context.Request.InputStream, "UTF8")
-            $body = $reader.ReadToEnd()
-            $context.Response.StatusCode = 200
-            $context.Response.Close()
-            $tagInfo = ConvertFrom-Json $body
+            WriteResponse -Stream $stream -Status 200 -ContentType "text/html; charset=utf-8" -BodyBytes $pageContentUTF8
+            $client.Close()
+        } elseif ($request.Method -eq "POST") {
+            WriteResponse -Stream $stream -Status 200
+            $client.Close()
+
+            $tagInfo = ConvertFrom-Json $request.Body
             $selectedTags = @()
             foreach ($category in $tagInfo) {
                 $selectedTagsForThisCategory = $category.tags | Where-Object { $_.isSelected }
@@ -151,10 +238,13 @@ try {
             [IO.File]::WriteAllLines($outputPath, $linesToSave)
 
             break
+        } else {
+            WriteResponse -Stream $stream -Status 400
+            $client.Close()
         }
     }
 } finally {
-    $httpListener.Close()
+    $tcpListener.Stop()
 }
 
 if (Test-Path $outputPath) {
