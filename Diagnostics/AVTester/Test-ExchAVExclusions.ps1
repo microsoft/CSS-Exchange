@@ -337,6 +337,7 @@ if ($subKeys) {
                 } else {
                     Write-Verbose "AMSI $m was found"
                     $AMSIDll.Add($foundDll)
+                    # cSpell:ignore MPCLIENT
                     if ($foundDll -like "*MpOav.dll") {
                     $defenderPath = Split-Path $foundDll -Parent
                     $mpClientPath = Join-Path $defenderPath "MPCLIENT.DLL"
