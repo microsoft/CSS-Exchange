@@ -565,7 +565,11 @@ function Invoke-AnalyzerIISInformation {
             $binSearchFolders = (([xml]($_.Content)).configuration.appSettings.add | Where-Object {
                     $_.key -eq "BinSearchFolders"
                 }).value
-            $paths = $binSearchFolders.Split(";").Trim()
+            $paths = $null
+
+            if ($null -ne $binSearchFolders) {
+                $paths = $binSearchFolders.Split(";").Trim()
+            }
             $installPath = $exchangeInformation.RegistryValues.MsiInstallPath
             foreach ($binTestPath in  @("bin", "bin\CmdletExtensionAgents", "ClientAccess\Owa\bin")) {
                 $testPath = [System.IO.Path]::Combine($installPath, $binTestPath)
