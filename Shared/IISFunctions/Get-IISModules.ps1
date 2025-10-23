@@ -117,12 +117,19 @@ function Get-IISModules {
                         Write-Verbose "SkipLegacyOSModules enabled? $SkipLegacyOSModules"
                         Write-Verbose "Checking file signing information now..."
 
-                        $allSignatures = Get-AuthenticodeSignature -FilePath $Modules.image
+                        try {
+                            $allSignatures = Get-AuthenticodeSignature -FilePath $Modules.image -ErrorAction Stop
+                            Write-Verbose "Successfully collected all the modules Authenticode signatures"
+                        } catch {
+                            Write-Verbose "Failed to collect all the modules Authenticode signatures. Inner Exception: $_"
+                            Invoke-CatchActionError $CatchActionFunction
+                        }
 
                         foreach ($m in $Modules) {
                             Write-Verbose "Now processing module: $($m.name)"
                             $signature = $null
                             $isModuleSigned = $false
+                            $pathNotFound = $false
                             $signatureDetails = [PSCustomObject]@{
                                 Signer            = $null
                                 SignatureStatus   = -1
@@ -130,7 +137,23 @@ function Get-IISModules {
                             }
 
                             try {
-                                $signature = $allSignatures | Where-Object { $_.Path -eq $m.image } | Select-Object -First 1
+
+                                if ($null -eq $allSignatures) {
+                                    if ((Test-Path $m.image)) {
+                                        try {
+                                            $signature = Get-AuthenticodeSignature -FilePath $m.image -ErrorAction Stop
+                                        } catch {
+                                            Write-Verbose "Failed to get the Authenticode Signature for module '$($m.image)'. Inner Exception: $_"
+                                            # Don't handle the exception with Invoke-CatchActionError because we might want to see what exceptions are occurring and have them reported.
+                                        }
+                                    } else {
+                                        Write-Verbose "Module path was not found '$($m.image)'"
+                                        $pathNotFound = $true
+                                    }
+                                } else {
+                                    $signature = $allSignatures | Where-Object { $_.Path -eq $m.image } | Select-Object -First 1
+                                }
+
                                 if (($SkipLegacyOSModules) -and
                                     ($m.image -in $modulesToSkip)) {
                                     Write-Verbose "Module was found in module skip list and will be skipped"
@@ -167,6 +190,7 @@ function Get-IISModules {
                                         Path             = $m.image
                                         Signed           = $isModuleSigned
                                         SignatureDetails = $signatureDetails
+                                        PathNotFound     = $pathNotFound
                                     })
                             } catch {
                                 Write-Verbose "Unable to validate file signing information"
