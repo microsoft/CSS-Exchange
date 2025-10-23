@@ -55,16 +55,13 @@ function ProcessCalendarSharingInviteLogs {
     $csvString = $header -join ","
     $csvString += "`n"
 
-    # Call the Export-MailboxDiagnosticLogs cmdlet and store the output in a variable
     try {
-        # Call the Export-MailboxDiagnosticLogs cmdlet and store the output in a variable
         # -ErrorAction is not supported on Export-MailboxDiagnosticLogs
         # $logOutput = Export-MailboxDiagnosticLogs $Identity -ComponentName CalendarSharingInvite -ErrorAction SilentlyContinue
 
         $logOutput = Export-MailboxDiagnosticLogs $Identity -ComponentName CalendarSharingInvite
     } catch {
-        # Code to run if an error occurs
-        Write-Error "An error occurred: $_"
+        Write-Error "Ignore above error, No CalendarSharingInvite logs found."
     }
 
     # check if the output is empty
@@ -126,16 +123,13 @@ function ProcessCalendarSharingAcceptLogs {
     $header4Line = "Timestamp", "Mailbox", "SharedCalendarOwner", "FolderName"
     $header5Line = "Timestamp", "MailboxLast", "MailboxFirst", "SharedCalendarOwner", "FolderName"
 
-    # Call the Export-MailboxDiagnosticLogs cmdlet and store the output in a variable
     try {
-        # Call the Export-MailboxDiagnosticLogs cmdlet and store the output in a variable
         # -ErrorAction is not supported on Export-MailboxDiagnosticLogs
         # $logOutput = Export-MailboxDiagnosticLogs $Identity -ComponentName AcceptCalendarSharingInvite -ErrorAction SilentlyContinue
         Write-Host "Collecting AcceptCalendarSharingInvite logs for [$Identity] ..."
-        $logOutput = Export-MailboxDiagnosticLogs $Identity -ComponentName AcceptCalendarSharingInvite 2>$null
+        $logOutput = Export-MailboxDiagnosticLogs $Identity -ComponentName AcceptCalendarSharingInvite
     } catch {
-        # Code to run if an error occurs
-        Write-Error "An error occurred: $_"
+        Write-Error "Ignore above error, No AcceptCalendarSharingInvite logs found."
     }
 
     # check if the output is empty
@@ -190,14 +184,6 @@ function ProcessCalendarSharingAcceptLogs {
         Write-Debug "$($row.Timestamp) - $($row.SharedCalendarOwner) - $($row.FolderName) "
     }
 
-    # Filter the output to get the most recent update for each recipient
-    #Write-Host -ForegroundColor Cyan "Receiver [$Identity] has accepted copies of the shared calendar from the following recipients:"
-    #$csvObject | Sort-Object { [DateTime]$_.Timestamp } -Descending | Sort-Object SharedCalendarOwner -Unique | Sort-Object { [DateTime]$_.Timestamp } -Descending | Format-Table -a Timestamp, SharedCalendarOwner, FolderName
-
-    # Output the results to the console
-    #Write-Host "Receiver [$Identity] has accepted copies of the shared calendar from the following recipients in the last 180 days:"
-    #$csvObject | Where-Object { [DateTime]$_.Timestamp -gt (Get-Date).AddDays(-180) } | Format-Table -a Timestamp, SharedCalendarOwner, FolderName
-
     Write-Host "Receiver [$Identity] has accepted copies of the shared calendar from the following recipients in the last 180 days:"
     if ($csvObject.Timestamp.Substring(0, 2) -gt 12) {
         Write-Verbose "Trying European DateTime Format - dd/MM/yyyy HH:mm:ss"
@@ -205,7 +191,13 @@ function ProcessCalendarSharingAcceptLogs {
     } else {
         $culture = [System.Globalization.CultureInfo]::CreateSpecificCulture("en-US")
     }
-    $csvObject | Where-Object { [DateTime]::Parse($_.Timestamp, $culture) -gt (Get-Date).AddDays(-180) } | Format-Table -a Timestamp, SharedCalendarOwner, FolderName
+
+    try {
+        $csvObject | Where-Object { [DateTime]::Parse($_.Timestamp, $culture) -gt (Get-Date).AddDays(-180) } | Format-Table -a Timestamp, SharedCalendarOwner, FolderName
+    } catch {
+        Write-Error "Error parsing dates in the log entries.  Outputting all entries without date filtering."
+        $csvObject |  Format-Table -a Timestamp, SharedCalendarOwner, FolderName
+    }
 }
 
 <#
@@ -232,11 +224,9 @@ function ProcessInternetCalendarLogs {
         # Call the Export-MailboxDiagnosticLogs cmdlet and store the output in a variable
         # -ErrorAction is not supported on Export-MailboxDiagnosticLogs
         # $logOutput = Export-MailboxDiagnosticLogs $Identity -ComponentName AcceptCalendarSharingInvite -ErrorAction SilentlyContinue
-
         $logOutput = Export-MailboxDiagnosticLogs $Identity -ComponentName InternetCalendar
     } catch {
-        # Code to run if an error occurs
-        Write-Error "An error occurred processing InternetCalendar logs."
+        Write-Error "Ignore above error, No InternetCalendar logs found."
     }
 
     # check if the output is empty
@@ -392,6 +382,7 @@ function GetOwnerInformation {
         Write-Host -ForegroundColor Red "`t Calendar is not Shared Out using Modern Sharing."
     }
 
+    # cSpell:ignore Sharees
     Write-Host -ForegroundColor DarkYellow "`t Running 'Get-CalendarActiveSharingInformation -Identity "${Owner}:\$OwnerCalendarName"'"
     $OwnerActiveSharingInfo = Get-CalendarActiveSharingInformation -Identity "${Owner}:\$OwnerCalendarName"
     if ($OwnerActiveSharingInfo.ActiveShareesDataSet.Sharees.count -gt 0) {
@@ -521,7 +512,7 @@ function GetReceiverInformation {
                 $ewsId_del= $ReceiverCalEntries[0].LocalFolderId
                 Write-Host "Trying to run cmdlet: Get-CalendarValidationResult -Version V2 -Identity $Receiver -SourceCalendarId $ewsId_del -TargetUserId $Owner -IncludeAnalysis 1 -OnlyReportErrors 1 | FT -a GlobalObjectId, EventValidationResult  "
                 try {
-                    $ValidationResults = Get-CalendarValidationResult -Version V2 -Identity $Receiver -SourceCalendarId $ewsId_del -TargetUserId $Owner -IncludeAnalysis 1 -OnlyReportErrors 1 2>$null
+                    $ValidationResults = Get-CalendarValidationResult -Version V2 -Identity $Receiver -SourceCalendarId $ewsId_del -TargetUserId $Owner -IncludeAnalysis 1 -OnlyReportErrors 1
                     $ValidationResults | Format-List UserPrimarySMTPAddress, Subject, GlobalObjectId, EventValidationResult, EventComparisonResult
                 } catch {
                     Write-Error "Failed to run Get-CalendarValidationResult: $_"
