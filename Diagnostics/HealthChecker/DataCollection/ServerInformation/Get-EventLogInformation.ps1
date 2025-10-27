@@ -13,8 +13,8 @@ function Get-EventLogInformation {
         $results = @{}
         foreach ($log in @("Application", "System")) {
             try {
-                $lastLogEntry = Get-WinEvent -LogName $log -Oldest -MaxEvents 1
-                $listLog = Get-WinEvent -ListLog $log
+                $lastLogEntry = Get-WinEvent -LogName $log -Oldest -MaxEvents 1 -ErrorAction Stop
+                $listLog = Get-WinEvent -ListLog $log -ErrorAction Stop
                 $results.Add($log, ([PSCustomObject]@{
                             LastLogEntry = $lastLogEntry.TimeCreated
                             MaxSize      = $listLog.MaximumSizeInBytes
