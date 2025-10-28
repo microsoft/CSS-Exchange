@@ -333,30 +333,10 @@ if ($subKeys) {
             foreach ($m in $Matches.Values) {
                 $foundDll = (Get-Item "HKLM:\SOFTWARE\Classes\ClSid\{$m}\InprocServer32" -ErrorAction SilentlyContinue).GetValue("").trim('"')
                 if ($null -eq $foundDll) {
-                    Write-Host "No AMSI Dlls was found for $m, possible AMSI misconfiguration" -ForegroundColor Red
+                    Write-Host "No AMSI Dlls were found for $m, possible AMSI misconfiguration" -ForegroundColor Red
                 } else {
                     Write-Verbose "AMSI $m was found"
                     $AMSIDll.Add($foundDll)
-                    # cSpell:ignore MPCLIENT
-                    if ($foundDll -like "*MpOav.dll") {
-                    $defenderPath = Split-Path $foundDll -Parent
-                    $mpClientPath = Join-Path $defenderPath "MPCLIENT.DLL"
-                    if (Test-Path $mpClientPath) {
-                        Write-Verbose "Adding Windows Defender MPCLIENT.DLL: $mpClientPath"
-                        $AMSIDll.Add($mpClientPath)
-                    } else {
-                        Write-Verbose "MPCLIENT.DLL not found at: $mpClientPath"
-                    }
-                }
-            }
-        } else {
-            Write-Host 'No AMSI configuration was found, possible AMSI misconfiguration"' -ForegroundColor Red
-        }
-    }
-} else {
-    Write-Host '"No AMSI Providers was found"'
-}
-
                 }
             }
         } else {
@@ -506,7 +486,7 @@ while ($currentDiff -gt 0) {
 
             # Remove Microsoft modules
             Write-Verbose "Removing Microsoft Modules"
-            $ProcessModules = $ProcessModules | Where-Object { ($_.FileVersionInfo.CompanyName -notin $CompanyNameAllowList) -or ($_.FileName -like "*Windows Defender*")  }
+            $ProcessModules = $ProcessModules | Where-Object { ($_.FileVersionInfo.CompanyName -notin $CompanyNameAllowList) -or ($_.FileName -like "*Windows Defender*") }
 
             # Remove Oracle modules on FIPS
             Write-Verbose "Removing Oracle Modules"
@@ -522,8 +502,26 @@ while ($currentDiff -gt 0) {
                 $hasAmsiDll = $process.modules | Where-Object { $_.ModuleName -like "amsi.dll" }
                 foreach ($module in $ProcessModules) {
                     $OutString = ("PROCESS: $($process.ProcessName) PID($($process.Id)) UNEXPECTED MODULE: $($module.ModuleName) COMPANY: $($module.Company)`n`tPATH: $($module.FileName)`n`tFileVersion: $($module.FileVersion)")
-                    # If there is amsi.dll in the process and the module is in the AMSIDll list, it is the AMSI provider
-                    if ($hasAmsiDll -and ($AMSIDll -contains $module.FileName)) {
+                    # If there is amsi.dll in the process and the module name matches any AMSI provider DLL name, it is the AMSI provider
+                    $isAmsiProvider = $false
+                    if ($hasAmsiDll) {
+                        foreach ($amsiDll in $AMSIDll) {
+                            if ([System.IO.Path]::GetFileName($module.FileName) -eq [System.IO.Path]::GetFileName($amsiDll)) {
+                                $isAmsiProvider = $true
+                                break
+                            }
+                        }
+                        # Additionally check for known Windows Defender AMSI-related modules by filename
+                        # This handles version mismatches where MPCLIENT.DLL path was constructed from registry
+                        if (-not $isAmsiProvider) {
+                            $moduleFileName = [System.IO.Path]::GetFileName($module.FileName)
+                            $knownDefenderModules = @("MPCLIENT.DLL", "MpOav.dll")
+                            if ($knownDefenderModules -contains $moduleFileName) {
+                                $isAmsiProvider = $true
+                            }
+                        }
+                    }
+                    if ($isAmsiProvider) {
                         $OutString = ("PROCESS: $($process.ProcessName) PID($($process.Id)) MODULE: $($module.ModuleName) COMPANY: $($module.Company)`n`tPATH: $($module.FileName)`n`tFileVersion: $($module.FileVersion)")
                         Write-Host "[WARNING] - AMSI Provider Detected: $OutString" -ForegroundColor Yellow
                         $SuspiciousAMSIProcessList += $OutString
