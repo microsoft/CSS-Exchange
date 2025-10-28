@@ -100,7 +100,7 @@ function Invoke-JobOrganizationInformation {
         #Process AcceptedDomains because of large hosting environments this can bloat the information.
         if ($null -eq $acceptedDomainObj) {
             # WildCard Domain issues
-            $wildCardAcceptedDomain = $getAcceptedDomainData |  Where-Object { $_.DomainName.ToString() -eq "*" }
+            $wildCardAcceptedDomain = $getAcceptedDomainData | Where-Object { $_.DomainName.ToString() -eq "*" }
 
             $acceptedDomainObj = [PSCustomObject]@{
                 WildCardAcceptedDomain = $wildCardAcceptedDomain
@@ -183,6 +183,46 @@ function Invoke-JobOrganizationInformation {
                 Invoke-CatchActions
             }
 
+            # Domain Trusts information
+            try {
+                $trustedDomainResults = New-Object System.Collections.Generic.List[object]
+                $globalCatalog = ([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain().Forest.FindGlobalCatalog()).Name
+                $entry = [ADSI]("GC://$globalCatalog")
+                $filter = "(objectClass=trustedDomain)"
+                $directorySearcher = New-Object System.DirectoryServices.DirectorySearcher($entry, $filter)
+                $allGCResults = $directorySearcher.FindAll()
+                foreach ($gcResult in $allGCResults) {
+                    # Only keep what appears to be useful properties.
+                    # https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/e9a2d23c-c31e-4a6f-88a0-6646fdb51a3c
+                    # https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/36565693-b5e4-4f37-b0a8-c1b12138e18e
+                    $trustObject = [PSCustomObject]@{
+                        DistinguishedName        = [string]($gcResult.Properties["DistinguishedName"])
+                        TrustDirection           = [int]($gcResult.Properties["TrustDirection"][0])
+                        TrustAttributes          = [int]($gcResult.Properties["TrustAttributes"][0])
+                        TrustPartner             = [string]($gcResult.Properties["TrustPartner"])
+                        TrustType                = [int]($gcResult.Properties["TrustType"][0])
+                        WhenChanged              = [DateTime]($gcResult.Properties["WhenChanged"][0])
+                        SupportedEncryptionTypes = "Unknown"
+                    }
+
+                    try {
+                        # msDS-SupportedEncryptionTypes is only available on the DC port vs GC. Need to lookup each one manually.
+                        $singleEntry = [ADSI]("LDAP://$($trustObject.DistinguishedName)")
+                        $directorySearcher = New-Object System.DirectoryServices.DirectorySearcher($singleEntry)
+                        $results = $directorySearcher.FindOne()
+                        # Do not define type here.
+                        $trustObject.SupportedEncryptionTypes = ($results.Properties["msDS-SupportedEncryptionTypes"][0])
+                    } catch {
+                        Write-Verbose "Failed to find $($trustObject.DistinguishedName) msDS-SupportedEncryptionTypes value."
+                        Invoke-CatchActions
+                    }
+                    $trustedDomainResults.Add($trustObject)
+                }
+            } catch {
+                Write-Verbose "Failed to collect Domain Trusts information. Inner Exception $_"
+                Invoke-CatchActions
+            }
+
             $schemaRangeUpper = (
                 ($adSchemaInformation.msExchSchemaVersionPt.Properties["RangeUpper"])[0]).ToInt32([System.Globalization.NumberFormatInfo]::InvariantInfo)
 
@@ -242,6 +282,7 @@ function Invoke-JobOrganizationInformation {
             GetAuthConfig                     = $getAuthConfig
             GetAuthServer                     = $getAuthServer
             GetSendConnector                  = $getSendConnector
+            TrustedDomain                     = $trustedDomainResults
             RemoteJob                         = $true -eq $PSSenderInfo
             JobHandledErrors                  = $jobHandledErrors
             AllErrors                         = $allErrors
