@@ -37,10 +37,11 @@ function Invoke-AnalyzerSecurityIISModules {
                     $modulesWriteType = "Red"
 
                     $iisModulesOutputList.Add([PSCustomObject]@{
-                            Module = $m.Name
-                            Path   = $m.Path
-                            Signer = "N/A"
-                            Status = "Not signed"
+                            Module       = $m.Name
+                            Path         = $m.Path
+                            Signer       = "N/A"
+                            Status       = "Not signed"
+                            PathNotFound = $m.PathNotFound
                         })
                 } elseif (($m.SignatureDetails.IsMicrosoftSigned -eq $false) -or
                     ($m.SignatureDetails.SignatureStatus -ne 0) -and
@@ -97,6 +98,10 @@ function Invoke-AnalyzerSecurityIISModules {
                             "Red"
                         } elseif ($o.$p -ne 0) {
                             "Yellow"
+                        }
+                    } elseif ($p -eq "PathNotFound") {
+                        if ($o.$p -eq $true) {
+                            "Red"
                         }
                     }
                 }
