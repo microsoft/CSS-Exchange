@@ -266,19 +266,6 @@ function Invoke-AnalyzerSecurityExchangeCertificates {
             }
             Add-AnalyzedResultInformation @params
         }
-    } elseif ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $true) {
-        $params = $baseParams + @{
-            Name                   = "Valid Internal Transport Certificate Found On Server"
-            Details                = $false
-            DisplayCustomTabNumber = 1
-        }
-        Add-AnalyzedResultInformation @params
-
-        $params = $baseParams + @{
-            Details                = "We can't check for Internal Transport Certificate on Edge Transport Servers"
-            DisplayCustomTabNumber = 2
-        }
-        Add-AnalyzedResultInformation @params
     } else {
         $params = $baseParams + @{
             Name                   = "Valid Internal Transport Certificate Found On Server"
