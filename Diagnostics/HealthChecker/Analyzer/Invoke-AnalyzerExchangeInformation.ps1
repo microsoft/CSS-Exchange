@@ -206,6 +206,20 @@ function Invoke-AnalyzerExchangeInformation {
             DisplayCustomTabNumber = 2
         }
         Add-AnalyzedResultInformation @params
+    } else {
+        # Now we need to check to see if we are on the latest build or not.
+        $latestBuild = (GetExchangeBuildDictionary)[$exchangeInformation.BuildInformation.VersionInformation.MajorVersion][$exchangeInformation.BuildInformation.VersionInformation.CU].SU.Values |
+            ForEach-Object { [System.Version]$_ } |
+            Sort-Object -Descending |
+            Select-Object -First 1
+        if ($latestBuild -ne $exchangeInformation.BuildInformation.VersionInformation.BuildVersion) {
+            $params = $baseParams + @{
+                Details                = "Not on the latest Exchange Patch. While you are still on the latest Security Related Patch, there is a newer build available."
+                DisplayWriteType       = "Yellow"
+                DisplayCustomTabNumber = 2
+            }
+            Add-AnalyzedResultInformation @params
+        }
     }
 
     $params = @{
