@@ -165,6 +165,14 @@ function Invoke-AnalyzerSecurityCveCheck {
     foreach ($value in $unsortedKeys) {
         $month = $value.Substring(0, 3)
         $year = [int]$value.Substring(3, 2)
+
+        # Only add values that are greater than or equal to our current CU year build.
+        $cuReleaseYear = [int]([string]$exchangeInformation.BuildInformation.VersionInformation.ReleaseDate.Year).Substring(2)
+
+        if ($year -lt $cuReleaseYear) {
+            continue
+        }
+
         $insertAt = 0
         while ($insertAt -lt $sortedKeys.Count) {
 
@@ -180,6 +188,8 @@ function Invoke-AnalyzerSecurityCveCheck {
 
         $sortedKeys.Insert($insertAt, $value)
     }
+
+    Write-Verbose "We will only process $($sortedKeys.Count) CVEs based off this CU's Release Date $($exchangeInformation.BuildInformation.VersionInformation.ReleaseDate)"
 
     $stopWatchTestBuild = New-Object System.Diagnostics.Stopwatch
 
