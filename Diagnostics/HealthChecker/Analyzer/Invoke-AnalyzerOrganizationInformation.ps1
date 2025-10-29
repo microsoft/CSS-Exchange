@@ -113,7 +113,13 @@ function Invoke-AnalyzerOrganizationInformation {
         foreach ($trustDomain in $organizationInformation.TrustedDomain) {
             Write-Verbose "Working on creating display object for $($trustDomain.DistinguishedName)"
             $systemKey = ",CN=System,"
-            $domainName = $trustDomain.DistinguishedName.Substring($trustDomain.DistinguishedName.IndexOf($systemKey)).Replace($systemKey, "").Replace("DC=", "").Replace(",", ".")
+            $systemKeyIndex = $trustDomain.DistinguishedName.IndexOf($systemKey)
+            if ($systemKeyIndex -ge 0) {
+                $domainName = $trustDomain.DistinguishedName.Substring($systemKeyIndex).Replace($systemKey, "").Replace("DC=", "").Replace(",", ".")
+            } else {
+                Write-Verbose "Expected pattern '$systemKey' not found in DistinguishedName: $($trustDomain.DistinguishedName). Using full DistinguishedName as domain name."
+                $domainName = $trustDomain.DistinguishedName
+            }
             $displayTrustObject.Add([PSCustomObject]@{
                     DomainName      = $domainName
                     TrustPartner    = $trustDomain.TrustPartner
