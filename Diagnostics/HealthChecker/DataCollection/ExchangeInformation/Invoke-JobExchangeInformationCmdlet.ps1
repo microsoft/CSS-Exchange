@@ -161,6 +161,12 @@ function Invoke-JobExchangeInformationCmdlet {
 
                 try {
                     $getTransportService = Get-TransportService -Identity $Server -ErrorAction Stop
+                    try {
+                        $exchangeCertificateInformation.InternalCertificateThumbprint = $getTransportService.InternalTransportCertificateThumbprint
+                    } catch {
+                        Write-Verbose "Failed to create the certificate object."
+                        Invoke-CatchActions
+                    }
                 } catch {
                     Write-Verbose "Failed to run Get-TransportService"
                     Invoke-CatchActions

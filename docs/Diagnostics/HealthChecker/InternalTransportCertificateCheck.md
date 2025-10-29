@@ -6,6 +6,8 @@ The Internal Transport Certificate in Exchange Server is used in Exchange Server
 
 A missing Internal Transport Certificate can lead to a broken MailFlow on or with the affected machine. It's therefore essential to have a valid certificate for this purpose on the machine. We recommend to not replace the self-signed certificate which was created by Exchange itself.
 
+Health Checker gets the Internal Transport Certificate by running `Get-TransportService` if this has failed to run, this would also result in the failed to find the Internal Transport Certificate.
+
 ### What does the check do?
 
 The check queries the certificate which is marked as Internal Transport Certificate on the server against which the script is currently running. The script will throw a warning if the certificate cannot be found on the machine. It must then be recreated by the Exchange Server administrator and set as new Internal Transport Certificate.

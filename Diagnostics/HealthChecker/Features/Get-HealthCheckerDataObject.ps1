@@ -38,14 +38,14 @@ function Get-HealthCheckerDataObject {
         if ($null -ne $ExchangeCmdletResult.ExchangeCertificateInformation) {
             $certs = ($ExchangeCmdletResult.ExchangeCertificateInformation.Certificates | ConvertTo-ExchangeCertificate -CatchActionFunction ${Function:Invoke-CatchActions})
             $certCustomParams = @{
-                InternalTransportCertificate = $ExchangeCmdletResult.ExchangeCertificateInformation.InternalCertificate
-                AuthConfig                   = $OrganizationInformationResult.GetAuthConfig
+                InternalTransportCertificateThumbprint = $ExchangeCmdletResult.ExchangeCertificateInformation.InternalCertificateThumbprint
+                AuthConfig                             = $OrganizationInformationResult.GetAuthConfig
             }
 
             $exchangeCertificateInformation = [PSCustomObject]@{
-                Certificates        = $certs
-                InternalCertificate = $ExchangeCmdletResult.ExchangeCertificateInformation.InternalCertificate
-                CustomCertificates  = ($certs | Get-ExchangeCertificateCustomObject @certCustomParams)
+                Certificates                  = $certs
+                InternalCertificateThumbprint = $ExchangeCmdletResult.ExchangeCertificateInformation.InternalCertificateThumbprint
+                CustomCertificates            = ($certs | Get-ExchangeCertificateCustomObject @certCustomParams)
             }
 
             [array]$connector = $OrganizationInformationResult.GetSendConnector
