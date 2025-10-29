@@ -167,6 +167,24 @@ function Invoke-JobOrganizationInformation {
                 Invoke-CatchActions
             }
 
+            try {
+                if ($null -ne $getOrganizationConfig -and $null -ne $getOrganizationConfig.RootPublicFolderMailbox) {
+                    [string]$guid = $getOrganizationConfig.RootPublicFolderMailbox
+                    Write-Verbose "Trying to collect root public folder mailbox information - $guid"
+                    $getMailboxRootPF = Get-Mailbox -PublicFolder $guid -ErrorAction Stop
+                    $rootPublicFolderMailbox = [PSCustomObject]@{
+                        Name                           = $getMailboxRootPF.Name
+                        ExchangeGuid                   = $getMailboxRootPF.ExchangeGuid
+                        IsExcludedFromServingHierarchy = $getMailboxRootPF.IsExcludedFromServingHierarchy
+                        IsHierarchyReady               = $getMailboxRootPF.IsHierarchyReady
+                        IsHierarchySyncEnabled         = $getMailboxRootPF.IsHierarchySyncEnabled
+                    }
+                }
+            } catch {
+                Write-Verbose "Failed to get the public folder mailbox. Inner Exception: $_"
+                Invoke-CatchActions
+            }
+
             [array]$globalMonitoringOverride = Get-MonitoringOverride -CatchActionFunction ${Function:Invoke-CatchActions}
 
             # AD Queries
@@ -283,6 +301,7 @@ function Invoke-JobOrganizationInformation {
             GetAuthServer                     = $getAuthServer
             GetSendConnector                  = $getSendConnector
             TrustedDomain                     = $trustedDomainResults
+            RootPublicFolderMailbox           = $rootPublicFolderMailbox
             RemoteJob                         = $true -eq $PSSenderInfo
             JobHandledErrors                  = $jobHandledErrors
             AllErrors                         = $allErrors
