@@ -30,7 +30,6 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-OwaVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOwaVirtualDirectory.xml" }
             Mock Get-WebServicesVirtualDirectory { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetWebServicesVirtualDirectory.xml" }
             Mock Get-OrganizationConfig { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetOrganizationConfig.xml" }
-            Mock Get-InternalTransportCertificateFromServer { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetInternalTransportCertificateFromServer.xml" }
             Mock Get-HybridConfiguration { return $null }
             Mock Get-PartnerApplication { return $null }
             Mock Get-ExchangeDiagnosticInfo -ParameterFilter { $Process -eq "Microsoft.Exchange.Directory.TopologyService" -and $Component -eq "VariantConfiguration" -and $Argument -eq "Overrides" } `
