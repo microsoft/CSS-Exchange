@@ -378,6 +378,28 @@ function Invoke-AnalyzerExchangeInformation {
             $params.Details = "Unknown - Wasn't able to get the Computer Membership information"
             Add-AnalyzedResultInformation @params
         }
+
+        if ($null -ne $exchangeInformation.ADComputerObject -and
+            $null -ne $exchangeInformation.ADComputerObject.ADObject.TokenGroupsGlobalAndUniversal) {
+            $displayWriteType = "Grey"
+            $details = $exchangeInformation.ADComputerObject.ADObject.TokenGroupsGlobalAndUniversal.Count
+
+            if ($exchangeInformation.ADComputerObject.ADObject.TokenGroupsGlobalAndUniversal.Count -ge 75) {
+                $displayWriteType = "Yellow"
+            }
+
+            if ($exchangeInformation.ADComputerObject.ADObject.TokenGroupsGlobalAndUniversal.Count -ge 100) {
+                $displayWriteType = "Red"
+                $details += " --- Error: Might run into issues with this token being too large"
+            }
+
+            $params = $baseParams + @{
+                Name             = "Exchange Server Token Groups"
+                Details          = $details
+                DisplayWriteType = $displayWriteType
+            }
+            Add-AnalyzedResultInformation @params
+        }
     }
 
     if ($exchangeInformation.BuildInformation.MajorVersion -eq "Exchange2013" -and
