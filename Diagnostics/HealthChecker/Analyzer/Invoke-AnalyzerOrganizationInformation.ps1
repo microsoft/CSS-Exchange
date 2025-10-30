@@ -106,5 +106,44 @@ function Invoke-AnalyzerOrganizationInformation {
     } else {
         Write-Verbose "No Dynamic Distribution Group Public Folder Mailboxes found to review."
     }
+
+    # Domain Trusts
+    if ($null -ne $organizationInformation.TrustedDomain -and $organizationInformation.TrustedDomain.Count -gt 0) {
+        $displayTrustObject = New-Object System.Collections.Generic.List[object]
+        foreach ($trustDomain in $organizationInformation.TrustedDomain) {
+            Write-Verbose "Working on creating display object for $($trustDomain.DistinguishedName)"
+            $systemKey = ",CN=System,"
+            $systemKeyIndex = $trustDomain.DistinguishedName.IndexOf($systemKey)
+            if ($systemKeyIndex -ge 0) {
+                $domainName = $trustDomain.DistinguishedName.Substring($systemKeyIndex).Replace($systemKey, "").Replace("DC=", "").Replace(",", ".")
+            } else {
+                Write-Verbose "Expected pattern '$systemKey' not found in DistinguishedName: $($trustDomain.DistinguishedName). Using full DistinguishedName as domain name."
+                $domainName = $trustDomain.DistinguishedName
+            }
+            $displayTrustObject.Add([PSCustomObject]@{
+                    DomainName      = $domainName
+                    TrustPartner    = $trustDomain.TrustPartner
+                    TrustAttributes = $trustDomain.TrustAttributes
+                    EncryptionTypes = $trustDomain.SupportedEncryptionTypes
+                })
+        }
+        $displayTrustObject = $displayTrustObject | Sort-Object DomainName
+
+        $params = $baseParams + @{
+            Name             = "Domain Trusts"
+            AddHtmlDetailRow = $false
+        }
+        Add-AnalyzedResultInformation @params
+
+        $params = $baseParams + @{
+            OutColumns = ([PSCustomObject]@{
+                    DisplayObject = $displayTrustObject
+                    IndentSpaces  = 12
+                })
+            HtmlName   = "Domain Trusts"
+        }
+        Add-AnalyzedResultInformation @params
+    }
+
     Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }
