@@ -167,7 +167,7 @@ function Invoke-AnalyzerSecurityCveCheck {
         $year = [int]$value.Substring(3, 2)
 
         # Only add values that are greater than or equal to our current CU year build.
-        $cuReleaseYear = [int]([string]$exchangeInformation.BuildInformation.VersionInformation.ReleaseDate.Year).Substring(2)
+        $cuReleaseYear = $exchangeInformation.BuildInformation.VersionInformation.ReleaseDate.Year % 100
 
         if ($year -lt $cuReleaseYear) {
             continue
