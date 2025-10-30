@@ -488,5 +488,24 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
             Add-AnalyzedResultInformation @params
         }
     }
+
+    if ($null -ne $organizationInformation.RootPublicFolderMailbox) {
+        $rootPfMailbox = $organizationInformation.RootPublicFolderMailbox
+        $displayWriteType = "Grey"
+        $details = $true
+
+        if ($rootPfMailbox.IsExcludedFromServingHierarchy -ne $true) {
+            $displayWriteType = "Red"
+            $details = "false - Error"
+        }
+
+        $params = $baseParams + @{
+            Name             = "Root Public Folder Mailbox Serving Hierarchy"
+            Details          = $details
+            DisplayWriteType = $displayWriteType
+        }
+        Add-AnalyzedResultInformation @params
+    }
+
     Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }
