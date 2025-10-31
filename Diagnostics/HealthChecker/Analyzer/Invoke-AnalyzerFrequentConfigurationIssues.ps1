@@ -492,11 +492,11 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     if ($null -ne $organizationInformation.RootPublicFolderMailbox) {
         $rootPfMailbox = $organizationInformation.RootPublicFolderMailbox
         $displayWriteType = "Grey"
-        $details = $true
+        $details = $false
 
         if ($rootPfMailbox.IsExcludedFromServingHierarchy -ne $true) {
             $displayWriteType = "Red"
-            $details = "false - Error"
+            $details = "true - Error"
         }
 
         $params = $baseParams + @{
