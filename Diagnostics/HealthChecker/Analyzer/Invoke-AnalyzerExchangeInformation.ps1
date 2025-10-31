@@ -706,6 +706,46 @@ function Invoke-AnalyzerExchangeInformation {
             }
             Add-AnalyzedResultInformation @params
         }
+
+        $groupedResults = $exchangeInformation.SettingOverrides.SimpleSettingOverrides |
+            Group-Object ComponentName, SectionName |
+            Where-Object { $_.Count -gt 1 }
+
+        if ($null -ne $groupedResults) {
+            $breakAndDisplay = $false
+            foreach ($groupedResult in $groupedResults) {
+                $parameterNameList = New-Object System.Collections.Generic.HashSet[string]
+                foreach ($group in $groupedResult.Group) {
+                    foreach ($parameterLine in @($group.Parameters)) {
+                        $parameterName = $parameterLine.Split("=")[0]
+
+                        # If it is already added to the list, it will be a false value returned. Therefore, we have multiple parameters set on the same thing.
+                        if (-not ($parameterNameList.Add($parameterName))) {
+                            $breakAndDisplay = $true
+                            break
+                        }
+                    }
+
+                    if ($breakAndDisplay) {
+                        break
+                    }
+                }
+
+                if ($breakAndDisplay) {
+                    break
+                }
+            }
+
+            if ($breakAndDisplay) {
+                $params = $baseParams + @{
+                    Name                   = "Duplicate Overrides"
+                    Details                = "Error! Duplicate Overrides have been detected for the same parameter causing possible misconfigurations. Please address as soon as possible."
+                    DisplayWriteType       = "Red"
+                    DisplayCustomTabNumber = 2
+                }
+                Add-AnalyzedResultInformation @params
+            }
+        }
     }
 
     $monitoringOverrides = New-Object System.Collections.Generic.List[object]
