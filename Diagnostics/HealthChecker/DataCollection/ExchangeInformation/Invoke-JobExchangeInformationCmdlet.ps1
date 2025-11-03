@@ -21,6 +21,7 @@ function Invoke-JobExchangeInformationCmdlet {
         . $PSScriptRoot\..\..\..\..\Shared\Get-ExchangeSettingOverride.ps1
         . $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-ExchangeWebSitesFromAd.ps1
         . $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-GlobalCatalogServer.ps1
+        . $PSScriptRoot\..\..\..\..\Shared\ActiveDirectoryFunctions\Get-TokenGroupsGlobalAndUniversal.ps1
         . $PSScriptRoot\..\..\..\..\Shared\CertificateFunctions\Get-ExchangeServerCertificateInformation.ps1
         . $PSScriptRoot\Get-ExchangeVirtualDirectories.ps1
         . $PSScriptRoot\Get-ExchangeServerMaintenanceState.ps1
@@ -52,14 +53,19 @@ function Invoke-JobExchangeInformationCmdlet {
                 $computerObjectSidBytes = $computerSearchResults.Properties["objectSid"][0]
                 $computerObjectSid = New-Object System.Security.Principal.SecurityIdentifier($computerObjectSidBytes, 0)
                 $computerObject = [PSCustomObject]@{
-                    MemberOf                    = $computerSearchResults.Properties["memberOf"]
-                    MSExchRmsComputerAccountsBl = $computerSearchResults.Properties["MsExchRmsComputerAccountsBl"]
-                    WhenCreated                 = $computerSearchResults.Properties["WhenCreated"]
-                    WhenChanged                 = $computerSearchResults.Properties["WhenChanged"]
-                    DistinguishedName           = $computerSearchResults.Properties["DistinguishedName"]
-                    ObjectGuid                  = ([System.Guid]::New($($computerSearchResults.Properties["objectGuid"])).Guid)
-                    ServicePrincipalName        = $computerSearchResults.Properties["ServicePrincipalName"]
-                    ObjectSid                   = $computerObjectSid
+                    MemberOf                      = $computerSearchResults.Properties["memberOf"]
+                    MSExchRmsComputerAccountsBl   = $computerSearchResults.Properties["MsExchRmsComputerAccountsBl"]
+                    WhenCreated                   = $computerSearchResults.Properties["WhenCreated"]
+                    WhenChanged                   = $computerSearchResults.Properties["WhenChanged"]
+                    DistinguishedName             = $computerSearchResults.Properties["DistinguishedName"]
+                    ObjectGuid                    = ([System.Guid]::New($($computerSearchResults.Properties["objectGuid"])).Guid)
+                    ServicePrincipalName          = $computerSearchResults.Properties["ServicePrincipalName"]
+                    ObjectSid                     = $computerObjectSid
+                    TokenGroupsGlobalAndUniversal = $null
+                }
+
+                if ($null -ne $computerObject.DistinguishedName) {
+                    $computerObject.TokenGroupsGlobalAndUniversal = Get-TokenGroupsGlobalAndUniversal -GCName $globalCatalog -DistinguishedName $computerObject.DistinguishedName -CatchActionFunction ${Function:Invoke-CatchActions}
                 }
 
                 if ($null -ne $computerSearchResults) {
