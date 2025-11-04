@@ -15,6 +15,7 @@ function Get-AllNicInformation {
     )
     begin {
 
+        #cspell:ignore Lbfo
         # Extract for Pester Testing - Start
         function Get-NicPnpCapabilitiesSetting {
             [CmdletBinding()]
@@ -125,6 +126,9 @@ function Get-AllNicInformation {
 
                 $nicObjects = New-Object 'System.Collections.Generic.List[object]'
                 $networkAdapterConfigurations = $null
+                $getNetLbfoTeam = $null
+                $getNetAdapter = $null
+                $newCimSession = $null
             }
             process {
                 if ($WmiObject) {
@@ -136,6 +140,41 @@ function Get-AllNicInformation {
                     }
                     Get-WmiObjectHandler @networkAdapterConfigurationsParams |
                         Invoke-RemotePipelineHandler -Result ([ref]$networkAdapterConfigurations)
+                }
+
+                if (($ComputerName).Split(".")[0] -ne $env:COMPUTERNAME) {
+                    try {
+                        $newCimSession = New-CimSession -ComputerName $ComputerName -ErrorAction Stop
+                    } catch {
+                        Write-Verbose "Failed to get the Cim Session for the computer. Inner Exception $_"
+                        Invoke-CatchActionError $CatchActionFunction
+                    }
+                }
+
+                if ((($ComputerName).Split(".")[0] -ne $env:COMPUTERNAME) -and $null -eq $newCimSession) {
+                    Write-Verbose "Failed to get the Cim Session for a non-local computer, can't get the additional adapter information."
+                } else {
+                    $params = @{
+                        ErrorAction = "Stop"
+                    }
+
+                    if ($null -ne $newCimSession) {
+                        $params.Add("CimSession", $newCimSession)
+                    }
+
+                    try {
+                        $getNetLBfoTeam = Get-NetLbfoTeam @params
+                    } catch {
+                        Write-Verbose "Failed to run Get-NetLbfoTeam. Inner Exception: $_"
+                        Invoke-CatchActionError $CatchActionFunction
+                    }
+
+                    try {
+                        $getNetAdapter = Get-NetAdapter @params
+                    } catch {
+                        Write-Verbose "Failed to run Get-NetAdapter. Inner Exception: $_"
+                        Invoke-CatchActionError $CatchActionFunction
+                    }
                 }
 
                 foreach ($networkConfig in $NetworkConfiguration) {
@@ -151,10 +190,23 @@ function Get-AllNicInformation {
                     $ipv6Enabled = $false
                     $isRegisteredInDns = $false
                     $dnsServerToBeUsed = $null
+                    $isTeamedNic = $false
+                    $teamedMembers = $null
 
                     if (-not ($WmiObject)) {
                         Write-Verbose "Working on NIC: $($networkConfig.InterfaceDescription)"
                         $adapter = $networkConfig.NetAdapter
+
+                        if ($null -ne $getNetLbfoTeam) {
+                            foreach ($team in $getNetLbfoTeam) {
+                                if ($team.Name -eq $adapter.Name) {
+                                    Write-Verbose "NIC Appears to be a teamed NIC"
+                                    $isTeamedNic = $true
+                                    $teamedMembers = $team.Members
+                                    break
+                                }
+                            }
+                        }
 
                         if ($adapter.DriverFileName -ne "NdIsImPlatform.sys") {
                             $nicPnpCapabilitiesSetting = $null
@@ -312,13 +364,20 @@ function Get-AllNicInformation {
                             RegisteredInDns   = $isRegisteredInDns
                             DnsServer         = $dnsServerToBeUsed
                             DnsClient         = $dnsClient
+                            IsTeamedNic       = $isTeamedNic
+                            TeamedMembers     = $teamedMembers
                         })
                 }
             }
             end {
+                $obj = [PSCustomObject]@{
+                    Adapters       = [array]$nicObjects
+                    GetNetAdapter  = $getNetAdapter
+                    GetNetLbfoTeam = $getNetLbfoTeam
+                }
                 Write-Verbose "Found $($nicObjects.Count) active adapters on the computer."
                 Write-Verbose "Exiting: $($MyInvocation.MyCommand)"
-                return $nicObjects
+                return $obj
             }
         }
 
