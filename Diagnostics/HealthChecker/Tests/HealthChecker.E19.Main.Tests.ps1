@@ -112,7 +112,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Registered In DNS" "True"
             TestObjectMatch "Packets Received Discarded" 0 -WriteType "Green"
 
-            $Script:ActiveGrouping.Count | Should -Be 16
+            $Script:ActiveGrouping.Count | Should -Be 17
         }
 
         It "Display Results - Frequent Configuration Issues" {
@@ -234,7 +234,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
             TestObjectMatch "Sleepy NIC Disabled" "True"
 
-            $Script:ActiveGrouping.Count | Should -Be 18
+            $Script:ActiveGrouping.Count | Should -Be 19
         }
 
         It "Display Results - Security Settings" {
