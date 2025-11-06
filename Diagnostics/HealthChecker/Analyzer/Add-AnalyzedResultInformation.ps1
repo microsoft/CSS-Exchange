@@ -55,6 +55,25 @@ function Add-AnalyzedResultInformation {
     )
     begin {
         Write-Verbose "Calling $($MyInvocation.MyCommand): $name"
+
+        function GetHtmlTextValue {
+            param(
+                [string]$OriginalValue
+            )
+
+            # Test for all the changes, if they do not exist, just return now.
+            if ([string]::IsNullOrEmpty($OriginalValue) -or
+                ($OriginalValue.Contains(">") -eq $false -and
+                $OriginalValue.Contains("<") -eq $false)) {
+                return $OriginalValue
+            }
+            Write-Verbose "Need to make changes for HTML text"
+            Write-Verbose "Original Value: $OriginalValue"
+            $OriginalValue = $OriginalValue.Replace(">", "&gt;")
+            $OriginalValue = $OriginalValue.Replace("<", "&lt;")
+            Write-Verbose "New Value: $OriginalValue"
+            return $OriginalValue
+        }
         function GetOutColumnsColorObject {
             param(
                 [object[]]$OutColumns,
@@ -184,9 +203,9 @@ function Add-AnalyzedResultInformation {
             if ($null -ne $OutColumns) {
                 $detailRow.TableValue = (GetOutColumnsColorObject -OutColumns $OutColumns.DisplayObject -OutColumnsColorTests $OutColumnsColorTests)
             } elseif ([string]::IsNullOrEmpty($HtmlDetailsCustomValue)) {
-                $detailRow.DetailValue = $Details
+                $detailRow.DetailValue = GetHtmlTextValue $Details
             } else {
-                $detailRow.DetailValue = $HtmlDetailsCustomValue
+                $detailRow.DetailValue = GetHtmlTextValue $HtmlDetailsCustomValue
             }
 
             $AnalyzedInformation.HtmlServerValues["ServerDetails"].Add($detailRow)
@@ -211,9 +230,9 @@ function Add-AnalyzedResultInformation {
             }
 
             if ([string]::IsNullOrEmpty($HtmlDetailsCustomValue)) {
-                $overviewValue.DetailValue = $Details
+                $overviewValue.DetailValue = GetHtmlTextValue $Details
             } else {
-                $overviewValue.DetailValue = $HtmlDetailsCustomValue
+                $overviewValue.DetailValue = GetHtmlTextValue $HtmlDetailsCustomValue
             }
 
             $AnalyzedInformation.HtmlServerValues["OverviewValues"].Add($overviewValue)
