@@ -3,6 +3,7 @@
 
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\..\..\..\Shared\ErrorMonitorFunctions.ps1
+. $PSScriptRoot\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 
 function Invoke-AnalyzerKnownBuildIssues {
     [CmdletBinding()]
@@ -17,6 +18,7 @@ function Invoke-AnalyzerKnownBuildIssues {
         [object]$DisplayGroupingKey
     )
 
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $baseParams = @{
         AnalyzedInformation = $AnalyzeResults
@@ -69,17 +71,19 @@ function Invoke-AnalyzerKnownBuildIssues {
             [object]$IssueBuildInformation,
             [version]$CurrentBuild
         )
-        $knownIssue = GetVersionFromString $IssueBuildInformation.BuildNumber
+        $knownIssue = $null
+        GetVersionFromString $IssueBuildInformation.BuildNumber | Invoke-RemotePipelineHandler -Result ([ref]$knownIssue)
         Write-Verbose "Testing Known Issue Build $knownIssue"
 
         if ($null -eq $knownIssue -or
             $CurrentBuild.Minor -ne $knownIssue.Minor) { return $false }
 
         $fixValueNull = [string]::IsNullOrEmpty($IssueBuildInformation.FixBuildNumber)
+        $resolvedBuild = $null
         if ($fixValueNull) {
-            $resolvedBuild = GetVersionFromString "0.0.0.0"
+            GetVersionFromString "0.0.0.0" | Invoke-RemotePipelineHandler -Result ([ref]$resolvedBuild)
         } else {
-            $resolvedBuild = GetVersionFromString $IssueBuildInformation.FixBuildNumber
+            GetVersionFromString $IssueBuildInformation.FixBuildNumber | Invoke-RemotePipelineHandler -Result ([ref]$resolvedBuild)
         }
 
         Write-Verbose "Testing against possible resolved build number $resolvedBuild"
@@ -115,7 +119,9 @@ function Invoke-AnalyzerKnownBuildIssues {
 
         foreach ($issue in $KnownBuildIssuesToFixes) {
 
-            if ((TestOnKnownBuildIssue $issue $CurrentVersion) -and
+            $isKnownBuildIssue = $null
+            TestOnKnownBuildIssue $issue $CurrentVersion | Invoke-RemotePipelineHandler -Result ([ref]$isKnownBuildIssue)
+            if ($isKnownBuildIssue -and
                 (-not($Script:CachedKnownIssues.Contains($InformationUrl)))) {
                 Write-Verbose "Known issue Match detected"
                 if (-not ($Script:DisplayKnownIssueHeader)) {
@@ -274,8 +280,24 @@ function Invoke-AnalyzerKnownBuildIssues {
             InformationUrl          = (GetKnownIssueInformation @infoParams)
         }
         TestForKnownBuildIssues @params
+
+        Write-Verbose "Test for known move to archive issue with Hybrid App"
+        $infoParams = @{
+            Name = "Online archiving fails for on-premises users in hybrid environment"
+            Url  = "https://support.microsoft.com/en-us/topic/online-archiving-fails-for-on-premises-users-in-hybrid-environment-ab3b6a9f-18bf-493b-b47d-450ad7c89ed4"
+        }
+        $params = @{
+            CurrentVersion          = $currentVersion
+            KnownBuildIssuesToFixes = @((GetKnownIssueBuildInformation "15.2.2562.17" "15.2.2562.27"),
+                (GetKnownIssueBuildInformation "15.2.1748.24" "15.2.1748.37"),
+                (GetKnownIssueBuildInformation "15.2.1544.25" "15.2.1544.34"),
+                (GetKnownIssueBuildInformation "15.1.2507.55" "15.1.2507.59"))
+            InformationUrl          = (GetKnownIssueInformation @infoParams)
+        }
+        TestForKnownBuildIssues @params
     } catch {
         Write-Verbose "Failed to run TestForKnownBuildIssues"
         Invoke-CatchActions
     }
+    Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }

@@ -173,6 +173,14 @@ if (-not ([string]::IsNullOrEmpty($Subject)) ) {
     $script:Identity = $ValidatedIdentities
     GetCalLogsWithSubject -Identity $ValidatedIdentities -Subject $Subject
 } elseif (-not ([string]::IsNullOrEmpty($MeetingID))) {
+    #Validate MeetingID is good
+    if ($MeetingID -like "UID:*") {
+        $MeetingID = $MeetingID.Replace("UID:", "")
+    }
+    if ($MeetingID -notlike "040000008*") {
+        Write-Error "This does not look like a valid MeetingID: $MeetingID."
+        Write-Error "Calendar MeetingID almost always start with 040000008..."
+    }
     # Process Logs based off Passed in MeetingID
     foreach ($ID in $ValidatedIdentities) {
         Write-DashLineBoxColor "Looking for CalLogs from [$ID] with passed in MeetingID."

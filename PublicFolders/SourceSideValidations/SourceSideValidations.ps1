@@ -49,6 +49,8 @@ param (
 # For HashSet support
 Add-Type -AssemblyName System.Core -ErrorAction Stop
 
+$BuildVersion = ""
+
 try {
     if (-not $SkipVersionCheck) {
         if (Test-ScriptVersion -AutoUpdate) {
@@ -234,12 +236,10 @@ try {
     Write-Host
     Write-Host "Validation results were written to file:"
     Write-Host $ResultsFile -ForegroundColor Green
-
-    $private:endTime = Get-Date
-
     Write-Host
-    Write-Host "SourceSideValidations complete. Total duration" ($endTime - $startTime)
 } finally {
+    $private:endTime = Get-Date
+    Write-Host "SourceSideValidations $BuildVersion complete. Total duration" ($endTime - $startTime)
     Write-Host
     Write-Host "Liked the script or had a problem? Let us know at ExToolsFeedback@microsoft.com"
 }

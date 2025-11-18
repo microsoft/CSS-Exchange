@@ -14,7 +14,11 @@ function Test-MailEnabledFolder {
 
     begin {
         function GetCommandToMergeEmailAddresses($publicFolder, $orphanedMailPublicFolder) {
-            $linkedMailPublicFolder = Get-PublicFolder $publicFolder.Identity | Get-MailPublicFolder
+            $linkedMailPublicFolder = Get-PublicFolder $publicFolder.Identity | Get-MailPublicFolder -ErrorAction SilentlyContinue
+            if ($null -eq $linkedMailPublicFolder) {
+                return $null
+            }
+
             $emailAddressesOnGoodObject = @($linkedMailPublicFolder.EmailAddresses | Where-Object { $_.ToString().StartsWith("smtp:", "OrdinalIgnoreCase") } | ForEach-Object { $_.ToString().Substring($_.ToString().IndexOf(':') + 1) })
             $emailAddressesOnBadObject = @($orphanedMailPublicFolder.EmailAddresses | Where-Object { $_.ToString().StartsWith("smtp:", "OrdinalIgnoreCase") } | ForEach-Object { $_.ToString().Substring($_.ToString().IndexOf(':') + 1) })
             $emailAddressesToAdd = $emailAddressesOnBadObject | Where-Object { -not $emailAddressesOnGoodObject.Contains($_) }
@@ -164,8 +168,11 @@ function Test-MailEnabledFolder {
                 $partialEntryId += "0000"
                 if ($byPartialEntryId.TryGetValue($partialEntryId, [ref]$pf)) {
                     if ($pf.MailEnabled -eq $true) {
-
-                        $command = GetCommandToMergeEmailAddresses $pf $thisMPF
+                        if ($mailPublicFoldersLinked.ContainsKey($_.Guid.ToString())) {
+                            $command = GetCommandToMergeEmailAddresses $pf $thisMPF
+                        } else {
+                            $command = "Set-PublicFolder `"$($pf.Identity)`" -MailRecipientGuid $($thisMPF.Guid)"
+                        }
 
                         $params = @{
                             Identity   = $thisMPF.DistinguishedName.Replace("/", "\/")

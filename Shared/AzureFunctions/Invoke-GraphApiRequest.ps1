@@ -23,7 +23,7 @@ function Invoke-GraphApiRequest {
         $Body,
 
         [Parameter(Mandatory = $true)]
-        [ValidatePattern("^([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_\-\+\/=]*)")]
+        [ValidatePattern("^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$")]
         [string]$AccessToken,
 
         [Parameter(Mandatory = $false)]

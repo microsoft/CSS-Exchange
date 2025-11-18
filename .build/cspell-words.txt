@@ -4,6 +4,7 @@ amsi
 Antispam
 anob
 asmx
+Authenticode
 authsspi
 autodiscover
 bincirc
@@ -46,7 +47,6 @@ fltmc
 freb
 FYDIBOHF
 GCDO
-Get-AuthenticodeSignature
 globalsequence
 Hashtable
 HHMM

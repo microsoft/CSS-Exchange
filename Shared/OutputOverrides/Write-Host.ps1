@@ -1,6 +1,10 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+<#
+.DESCRIPTION
+    An override for Write-Host to allow logging to occur and color format changes to match with what the user as default set for Warning and Error.
+#>
 function Write-Host {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Proper handling of write host with colors')]
     [CmdletBinding()]

@@ -18,16 +18,21 @@ function ConvertTo-ExchangeCertificate {
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
         $typeIsNotLoaded = $false
-
-        try {
-            $CertificateObject[0] -isnot [Microsoft.Exchange.Management.SystemConfigurationTasks.ExchangeCertificate] | Out-Null
-        } catch {
-            Write-Verbose "Type is not loaded to be able to convert."
-            $typeIsNotLoaded = $true
-            Invoke-CatchActionError $CatchActionFunction
-        }
+        $isProcessTypeAttempted = $false
     }
     process {
+
+        if ($isProcessTypeAttempted -eq $false) {
+            # Only try this once
+            $isProcessTypeAttempted = $true
+            try {
+                $CertificateObject[0] -isnot [Microsoft.Exchange.Management.SystemConfigurationTasks.ExchangeCertificate] | Out-Null
+            } catch {
+                Write-Verbose "Type is not loaded to be able to convert."
+                $typeIsNotLoaded = $true
+                Invoke-CatchActionError $CatchActionFunction
+            }
+        }
 
         foreach ($cert in $CertificateObject) {
             if ($null -eq $cert.Thumbprint) {

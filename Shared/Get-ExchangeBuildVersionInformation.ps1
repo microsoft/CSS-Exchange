@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\Invoke-CatchActionError.ps1
+. $PSScriptRoot\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 
 # This function is used to determine the version of Exchange based off a build number or
 # by providing the Exchange Version and CU and/or SU. This provides one location in the entire repository
@@ -71,6 +72,7 @@ function Get-ExchangeBuildVersionInformation {
         $orgValue = 0
         $schemaValue = 0
         $mesoValue = 0
+        $exSE = "ExchangeSE"
         $ex19 = "Exchange2019"
         $ex16 = "Exchange2016"
         $ex13 = "Exchange2013"
@@ -83,7 +85,10 @@ function Get-ExchangeBuildVersionInformation {
                     foreach ($cuKey in $exchangeBuildDictionary[$exchangeKey].Keys) {
                         if ($null -ne $exchangeBuildDictionary[$exchangeKey][$cuKey].SU -and
                             $exchangeBuildDictionary[$exchangeKey][$cuKey].SU.ContainsKey($FindBySUName)) {
-                            Get-ExchangeBuildVersionInformation -FileVersion $exchangeBuildDictionary[$exchangeKey][$cuKey].SU[$FindBySUName]
+                            $result = $null
+                            Get-ExchangeBuildVersionInformation -FileVersion $exchangeBuildDictionary[$exchangeKey][$cuKey].SU[$FindBySUName] |
+                                Invoke-RemotePipelineHandler -Result ([ref]$result)
+                            $result
                         }
                     }
                 }
@@ -110,7 +115,25 @@ function Get-ExchangeBuildVersionInformation {
             Exchange 2016 & 2019 AD Changes: https://learn.microsoft.com/en-us/exchange/plan-and-deploy/prepare-ad-and-domains?view=exchserver-2019
             Exchange 2013 AD Changes: https://learn.microsoft.com/en-us/exchange/prepare-active-directory-and-domains-exchange-2013-help
         #>
-        if ($exchangeVersion.Major -eq 15 -and $exchangeVersion.Minor -eq 2) {
+        if ($exchangeVersion.Major -eq 15 -and $exchangeVersion.Minor -eq 2 -and $exchangeVersion.Build -ge 2562) {
+            Write-Verbose "Exchange Server SE is detected"
+            $exchangeMajorVersion = "ExchangeSE"
+            $extendedSupportDate = "12/31/2035"
+            $friendlyName = "Exchange SE"
+            #Latest Version AD Settings
+            $schemaValue = 17003
+            $mesoValue = 13243
+            $orgValue = 16763
+
+            switch ($exchangeVersion) {
+                { $_ -ge (GetBuildVersion $exSE "RTM") } {
+                    $cuLevel = "RTM"
+                    $cuReleaseDate = "07/01/2025"
+                    $supportedBuildNumber = $true
+                }
+                (GetBuildVersion $exSE "RTM" -SU "Oct25SU") { $latestSUBuild = $true }
+            }
+        } elseif ($exchangeVersion.Major -eq 15 -and $exchangeVersion.Minor -eq 2) {
             Write-Verbose "Exchange 2019 is detected"
             $exchangeMajorVersion = "Exchange2019"
             $extendedSupportDate = "10/14/2025"
@@ -126,28 +149,21 @@ function Get-ExchangeBuildVersionInformation {
                     $cuLevel = "CU15"
                     $cuReleaseDate = "02/10/2025"
                     $supportedBuildNumber = $true
-                    $latestSUBuild = $true
                 }
-                (GetBuildVersion $ex19 "CU15" -SU "May25HU") { $latestSUBuild = $true }
-                (GetBuildVersion $ex19 "CU15" -SU "Apr25HU") { $latestSUBuild = $true }
+                (GetBuildVersion $ex19 "CU15" -SU "Oct25SU") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex19 "CU15") } {
                     $cuLevel = "CU14"
                     $cuReleaseDate = "02/13/2024"
                     $supportedBuildNumber = $true
                     $orgValue = 16762
                 }
-                (GetBuildVersion $ex19 "CU14" -SU "May25HU") { $latestSUBuild = $true }
-                (GetBuildVersion $ex19 "CU14" -SU "Apr25HU") { $latestSUBuild = $true }
-                (GetBuildVersion $ex19 "CU14" -SU "Nov24SUv2") { $latestSUBuild = $true }
+                (GetBuildVersion $ex19 "CU14" -SU "Oct25SU") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex19 "CU14") } {
                     $cuLevel = "CU13"
                     $cuReleaseDate = "05/03/2023"
                     $supportedBuildNumber = $false
                     $orgValue = 16761
                 }
-                # Technically the SU is still secure. Might need to change pester testing on this to make it okay. But it is complaining about the second SU both being on the latest.
-                # for now just going to leave as is as this might change with upcoming releases.
-                (GetBuildVersion $ex19 "CU13" -SU "Nov24SUv2") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex19 "CU13") } {
                     $cuLevel = "CU12"
                     $cuReleaseDate = "04/20/2022"
@@ -238,9 +254,7 @@ function Get-ExchangeBuildVersionInformation {
                     $cuReleaseDate = "04/20/2022"
                     $supportedBuildNumber = $true
                 }
-                (GetBuildVersion $ex16 "CU23" -SU "May25HU") { $latestSUBuild = $true }
-                (GetBuildVersion $ex16 "CU23" -SU "Apr25HU") { $latestSUBuild = $true }
-                (GetBuildVersion $ex16 "CU23" -SU "Nov24SUv2") { $latestSUBuild = $true }
+                (GetBuildVersion $ex16 "CU23" -SU "Oct25SU") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex16 "CU23") } {
                     $cuLevel = "CU22"
                     $cuReleaseDate = "09/28/2021"
@@ -730,6 +744,9 @@ function GetExchangeBuildDictionary {
                     "Nov24SUv2" = "15.1.2507.44"
                     "Apr25HU"   = "15.1.2507.55"
                     "May25HU"   = "15.1.2507.57"
+                    "Aug25SU"   = "15.1.2507.58"
+                    "Sep25HU"   = "15.1.2507.59"
+                    "Oct25SU"   = "15.1.2507.61"
                 })
         }
         "Exchange2019" = @{
@@ -839,10 +856,23 @@ function GetExchangeBuildDictionary {
                     "Nov24SUv2" = "15.2.1544.14"
                     "Apr25HU"   = "15.2.1544.25"
                     "May25HU"   = "15.2.1544.27"
+                    "Aug25SU"   = "15.2.1544.33"
+                    "Sep25HU"   = "15.2.1544.34"
+                    "Oct25SU"   = "15.2.1544.36"
                 })
             "CU15" = (NewCUAndSUObject "15.2.1748.10" @{
                     "Apr25HU" = "15.2.1748.24"
                     "May25HU" = "15.2.1748.26"
+                    "Aug25SU" = "15.2.1748.36"
+                    "Sep25HU" = "15.2.1748.37"
+                    "Oct25SU" = "15.2.1748.39"
+                })
+        }
+        "ExchangeSE"   = @{
+            "RTM" = (NewCUAndSUObject "15.2.2562.17" @{
+                    "Aug25SU" = "15.2.2562.20"
+                    "Sep25HU" = "15.2.2562.27"
+                    "Oct25SU" = "15.2.2562.29"
                 })
         }
     }

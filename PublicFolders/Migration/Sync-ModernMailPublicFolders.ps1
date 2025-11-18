@@ -570,7 +570,6 @@ ProgressBarStatusUpdating = Updating existing items on Exchange Online: {0}/{1}.
 ProgressBarStatusCreating = Creating new items on Exchange Online: {0}/{1}.
 SyncMailPublicFolderObjectsComplete = Syncing of mail public folder objects into Active Directory completed: {0} objects created, {1} objects updated and {2} objects deleted.
 ErrorsFoundDuringImport = Total errors found: {0}. Please, check the error summary at '{1}' for more information.
-LocalServerVersionNotSupported = You cannot execute this script from your local Exchange server: "{0}". This script can only be executed from Exchange 2007 Management Shell and above.
 ForceParameterRequired = You are about to remove ALL mail-enabled public folders from Exchange Online Active Directory. Only proceed if you do not have any users on Exchange Online already using mail-enabled public folders. Also, make sure your local Exchange deployment doesn't have any mail-enabled public folders by running Get-MailPublicFolder. You can bypass this warning by running the script using the -Force parameter.
 SystemFoldersSkipped = The following {0} mail-enabled public folder(s) will not be synced as they are linked to system public folders. These folders are not applicable for Exchange Online.
 UnableToDetectSystemMailPublicFolders = The script is unable to determine a list of system public folders while the local public folder deployment is locked for migration. This may cause some mail-enabled system public folders to be synced to Exchange Online Active Directory and cause Public Folder migration to fail. If that happens, you can run "Set-MailPublicFolder -IgnoreMissingFolderLink:$true" for each AD object that is a system folder and resume the migration. Note that these system folders don't need to be mail-enabled on Exchange 2013 or later, so it is completely safe to ignore errors reported while mail-enabling them during migration. To learn more about system public folders, please read the following TechNet article: https://technet.microsoft.com/en-us/library/bb397221(v=exchg.151).aspx#Trees.
@@ -587,8 +586,6 @@ MailEnablePFAssociatedToDisconnectedMEPFsInFile = Resetting MailEnabled and Mail
 EXOV2ModuleNotInstalled = This script uses modern authentication to connect to Exchange Online and requires EXO V2 module to be installed. Please follow the instructions at https://docs.microsoft.com/powershell/exchange/exchange-online-powershell-v2?view=exchange-ps#install-the-exo-v2-module to install EXO V2 module.
 '@
 
-#minimum supported exchange version to run this script
-$minSupportedVersion = 8
 ################ END OF DECLARATION #################
 
 try {
@@ -608,13 +605,6 @@ $null = New-Item -Path $CsvSummaryFile -ItemType File -Force -ErrorAction:Stop -
     $LocalizedStrings.OperationCsvHeader,
     $LocalizedStrings.ResultCsvHeader,
     $LocalizedStrings.CommandCsvHeader)
-
-$localServerVersion = (Get-ExchangeServer $env:COMPUTERNAME -ErrorAction:Stop).AdminDisplayVersion
-# This script can run from Exchange 2007 Management shell and above
-if ($localServerVersion.Major -lt $minSupportedVersion) {
-    Write-Error ($LocalizedStrings.LocalServerVersionNotSupported -f $localServerVersion) -ErrorAction:Continue
-    exit
-}
 
 try {
     InitializeExchangeOnlineRemoteSession

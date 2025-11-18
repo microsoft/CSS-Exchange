@@ -15,6 +15,10 @@ function Get-ExchangeConnectorCustomObject {
     process {
         foreach ($currentConnector in $Connector) {
 
+            if (@($currentConnector.PSObject.Properties).Count -eq 0) {
+                continue
+            }
+
             if ($null -ne $currentConnector.Server) {
                 $connectorType = "Receive"
                 $cloudEnabled = -not ([System.String]::IsNullOrEmpty($currentConnector.TlsDomainCapabilities))
@@ -28,6 +32,7 @@ function Get-ExchangeConnectorCustomObject {
             $goodTlsCertificateSyntax = $false
             $tlsCertificateNameStatus = "TlsCertificateNameEmpty"
             $certificateLifetimeInformation = @{}
+            $tlsAuthLevel = $null
 
             if ($null -ne $currentConnector.TlsCertificateName) {
 
@@ -81,6 +86,10 @@ function Get-ExchangeConnectorCustomObject {
                 }
             }
 
+            if ($null -ne $currentConnector.TlsAuthLevel) {
+                $tlsAuthLevel = $currentConnector.TlsAuthLevel.ToString()
+            }
+
             [PSCustomObject]@{
                 Identity           = $currentConnector.Identity
                 Name               = $currentConnector.Name
@@ -92,7 +101,7 @@ function Get-ExchangeConnectorCustomObject {
                 SmartHosts         = $currentConnector.SmartHosts
                 AddressSpaces      = $currentConnector.AddressSpaces
                 RequireTls         = $currentConnector.RequireTls
-                TlsAuthLevel       = $currentConnector.TlsAuthLevel
+                TlsAuthLevel       = $tlsAuthLevel
                 TlsDomain          = $currentConnector.TlsDomain
                 CertificateDetails = [PSCustomObject]@{
                     CertificateMatchDetected = $certificateMatchDetected

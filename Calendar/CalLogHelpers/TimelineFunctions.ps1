@@ -102,7 +102,7 @@ function BuildTimeline {
 
         $MeetingChanges = CreateTimelineRow
         # Create the Timeline by adding to Time to the generated MeetingChanges
-        $Time = "$($($CalLog.LogRow).toString().PadRight(5)) -- $(ConvertDateTime($CalLog.LogTimestamp))"
+        $Time = "$(ConvertDateTime($CalLog.LogTimestamp))"
 
         if ($MeetingChanges) {
             if ($script:MeetingSummaryNeeded) {

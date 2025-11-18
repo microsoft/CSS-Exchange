@@ -1,6 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\ScriptBlockFunctions\Add-ScriptBlockInjection.ps1
+. $PSScriptRoot\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 . $PSScriptRoot\CompareExchangeBuildLevel.ps1
 . $PSScriptRoot\Get-ExchangeBuildVersionInformation.ps1
 . $PSScriptRoot\Get-ExSetupFileVersionInfo.ps1
@@ -110,7 +112,13 @@ function Get-ProcessedServerList {
                 $paramWriteProgress.PercentComplete = (($serverCount / $possibleValidExchangeServer.Count) * 100)
                 Write-Progress @paramWriteProgress
 
-                $exSetupDetails = Get-ExSetupFileVersionInfo -Server $server.FQDN
+                $params = @{
+                    PrimaryScriptBlock = ${Function:Get-ExSetupFileVersionInfo}
+                    IncludeScriptBlock = ${Function:Invoke-CatchActionError}
+                }
+
+                $scriptBlock = Add-ScriptBlockInjection @params
+                $exSetupDetails = Invoke-ScriptBlockHandler -ComputerName $server.FQDN -ScriptBlock $scriptBlock
 
                 if ($null -ne $exSetupDetails -and
                     (-not ([string]::IsNullOrEmpty($exSetupDetails)))) {
@@ -123,7 +131,9 @@ function Get-ProcessedServerList {
                             CurrentExchangeBuild = (Get-ExchangeBuildVersionInformation -FileVersion $exSetupDetails.FileVersion)
                             SU                   = $MinimumSU
                         }
-                        if ((Test-ExchangeBuildGreaterOrEqualThanSecurityPatch @params)) {
+                        $isSUOrGreater = $false
+                        Test-ExchangeBuildGreaterOrEqualThanSecurityPatch @params | Invoke-RemotePipelineHandler -Result ([ref]$isSUOrGreater)
+                        if ($isSUOrGreater) {
                             $validExchangeServer.Add($server)
                         } else {
                             Write-Verbose "Server $($server.Name) build is older than our expected min SU build. Build Number: $($exSetupDetails.FileVersion)"

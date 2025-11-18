@@ -42,6 +42,8 @@ function Get-AzureTenantDomainList {
                 IsDefault         = $d.isDefault
                 IsInitial         = $d.isInitial
                 IsRoot            = $d.isRoot
+                IsVerified        = $d.isVerified
+                IsEmailDomain     = $d.supportedServices -contains "Email"
                 SupportedServices = $d.supportedServices
             })
     }

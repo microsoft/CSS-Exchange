@@ -1,18 +1,18 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+<#
+.DESCRIPTION
+    This helper function must be used if Serialization Data Signing is enabled, but the Auth Certificate
+    which is configured has expired or isn't available on the system where the script runs.
+    The 'Get-ExchangeCertificate' cmdlet fails to deserialize and so, only RawData (byte[]) will be returned.
+    To workaround, we initialize the X509Certificate2 class and import the data by using the Import() method.
+#>
 function Import-ExchangeCertificateFromRawData {
     [CmdletBinding()]
     param(
         [System.Object[]]$ExchangeCertificates
     )
-
-    <#
-        This helper function must be used if Serialization Data Signing is enabled, but the Auth Certificate
-        which is configured has expired or isn't available on the system where the script runs.
-        The 'Get-ExchangeCertificate' cmdlet fails to deserialize and so, only RawData (byte[]) will be returned.
-        To workaround, we initialize the X509Certificate2 class and import the data by using the Import() method.
-    #>
 
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"

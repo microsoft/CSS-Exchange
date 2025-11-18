@@ -16,6 +16,7 @@ function Invoke-AnalyzerSecurityIISModules {
         [object]$DisplayGroupingKey
     )
 
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $exchangeInformation = $SecurityObject.ExchangeInformation
     $moduleInformation = $exchangeInformation.IISSettings.IISModulesInformation
@@ -36,10 +37,11 @@ function Invoke-AnalyzerSecurityIISModules {
                     $modulesWriteType = "Red"
 
                     $iisModulesOutputList.Add([PSCustomObject]@{
-                            Module = $m.Name
-                            Path   = $m.Path
-                            Signer = "N/A"
-                            Status = "Not signed"
+                            Module       = $m.Name
+                            Path         = $m.Path
+                            Signer       = "N/A"
+                            Status       = "Not signed"
+                            PathNotFound = $m.PathNotFound
                         })
                 } elseif (($m.SignatureDetails.IsMicrosoftSigned -eq $false) -or
                     ($m.SignatureDetails.SignatureStatus -ne 0) -and
@@ -97,6 +99,10 @@ function Invoke-AnalyzerSecurityIISModules {
                         } elseif ($o.$p -ne 0) {
                             "Yellow"
                         }
+                    } elseif ($p -eq "PathNotFound") {
+                        if ($o.$p -eq $true) {
+                            "Red"
+                        }
                     }
                 }
 
@@ -116,4 +122,5 @@ function Invoke-AnalyzerSecurityIISModules {
     } else {
         Write-Verbose "IIS is not available on Edge Transport Server - check will be skipped"
     }
+    Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }

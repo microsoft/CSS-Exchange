@@ -33,7 +33,7 @@ function Get-FilteredSettingOverrideInformation {
     )
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
-        Write-Verbose "Trying to filter down results for ComponentName: $FilterComponentName SectionName: $FilterSectionName ParameterName: $([string]::Join(", ", $FilterParameterName))"
+        Write-Verbose "Trying to filter down results for ComponentName: $FilterComponentName SectionName: $FilterSectionName ParameterName: $([string]::Join(", ", [array]$FilterParameterName))"
         $results = New-Object "System.Collections.Generic.List[object]"
         $findFromOverride = $null
         $usedAdSettings = $false

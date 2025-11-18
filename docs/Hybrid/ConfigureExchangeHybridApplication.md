@@ -6,7 +6,14 @@ This documentation focuses on different scenarios and how they can be configured
 
 ## How to use the script
 
+The script must be run from PowerShell version 5 or greater. Running the script from PowerShell Core is not supported.
+
 This section contains examples of some of the most common scenarios in which the script can be used. These examples aim to provide clear guidance on how to configure various settings and features using the script, ensuring that administrators can effectively apply it to their specific needs.
+
+## Logging
+
+If you encounter issues while using the script, check the debug log generated during execution. The log files are stored in the same directory as the script and follow this naming format:
+`ConfigureExchangeHybridApplication.ps1-Debug_<timestamp>.txt`
 
 ### Examples
 
@@ -74,6 +81,7 @@ ConfigureTargetSharingEpr | Use this switch parameter to configure the Organizat
 EnableExchangeHybridApplicationOverride | Use this switch parameter to create the Setting Override which enables the dedicated Exchange hybrid application. This parameter allows you to run granular configurations. Note that some of the tasks depend on others and can't be run alone.
 ResetFirstPartyServicePrincipalKeyCredentials | Use this switch parameter to remove a specific or all available Key Credentials from the Service Principal of the `Office 365 Exchange Online` application. By default, all existing Key Credentials will be removed. If you provide the thumbprint of a certificate by using the `CertificateInformation` parameter, only the specified and all expired certificates will be removed.
 AzureEnvironment | Use this parameter to run the script against non-Global cloud environments, for example, `Microsoft 365 operated by 21Vianet`. This parameter allows you to run granular configurations. Note that some of the tasks depend on others and can't be run alone. Values that can be used with this parameter are: `Global`, `USGovernmentL4`, `USGovernmentL5`, `ChinaCloud`. The default value is: `Global`
+CustomClientId | This parameter is reserved for internal Microsoft use. Do not use it unless explicitly advised by Microsoft.
 CustomGraphApiUri | This parameter is reserved for internal Microsoft use. Do not use it unless explicitly advised by Microsoft.
 CustomEntraAuthUri | This parameter is reserved for internal Microsoft use. Do not use it unless explicitly advised by Microsoft.
 CustomInitialCloudDomains | This parameter is reserved for internal Microsoft use. Do not use it unless explicitly advised by Microsoft.

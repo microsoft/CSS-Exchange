@@ -24,6 +24,8 @@ function Write-BasicMailboxInformation {
             "Exchange Server Version: $($MailboxInformation.ExchangeServer.AdminDisplayVersion)",
             "Max Send Size: $($MailboxInformation.MailboxInfo.MaxSendSize.ToString())",
             "Max Receive Size: $($MailboxInformation.MailboxInfo.MaxReceiveSize.ToString())",
+            "Archive Quota: $($MailboxInformation.MailboxInfo.ArchiveQuota.ToString())",
+            "Archive Warning Quota: $($MailboxInformation.MailboxInfo.ArchiveWarningQuota.ToString())",
             "Use Database Quotas: $($MailboxInformation.MailboxInfo.UseDatabaseQuotaDefaults.ToString())",
             "Database Send Quota: $($MailboxInformation.MailboxStatistics.DatabaseProhibitSendQuota.ToString())"
             "Database Send & Receive Quota: $($MailboxInformation.MailboxStatistics.DatabaseProhibitSendReceiveQuota.ToString())"
@@ -43,7 +45,7 @@ function Write-BasicMailboxInformation {
                 (($MailboxInformation.MailboxInfo.UseDatabaseQuotaDefaults -eq $true -and
                     $MailboxInformation.MailboxStatistics.TotalItemSize.Value -ge $MailboxInformation.MailboxStatistics.DatabaseProhibitSendReceiveQuota) -or
                 ($MailboxInformation.MailboxInfo.UseDatabaseQuotaDefaults -eq $false -and
-                $MailboxInformation.MailboxStatistics.TotalItemSize.Value -ge $MailboxInformation.MailboxInfo.MaxReceiveSize))) {
+                $MailboxInformation.MailboxStatistics.TotalItemSize.Value -ge $MailboxInformation.MailboxInfo.ProhibitSendReceiveQuota))) {
                 Write-Warning "The mailbox is full, all messages greater than 1MB will fail to be indexed."
             } else {
                 Write-Verbose "Mailbox is not full. Indexing should work."

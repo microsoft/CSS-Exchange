@@ -17,11 +17,10 @@ Describe "Exchange 2019 Scenarios testing 2" {
         BeforeAll {
             Mock Get-WmiObjectHandler -ParameterFilter { $Class -eq "Win32_PageFileSetting" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\OS\Win32_PageFileWellConfigured.xml" }
-            Mock Invoke-ScriptBlockHandler -ParameterFilter { $ScriptBlockDescription -eq "Getting applicationHost.config" } -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\BadApplicationHost.config" -Raw -Encoding UTF8 }
+            Mock Get-Content -ParameterFilter { $Path -eq "$($env:WINDIR)\System32\inetSrv\config\applicationHost.config" } `
+                -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\BadApplicationHost.config" -Raw -Encoding UTF8 }
             Mock Get-WebApplication -MockWith { throw "Error - Pester" }
             Mock Get-WebSite -ParameterFilter { $null -eq $Name } -MockWith { throw "Error - Pester" }
-            Mock Get-WebSite -ParameterFilter { $Name -eq "Default Web Site" } -MockWith { throw "Error - Pester" }
-            Mock Get-WebSite -ParameterFilter { $Name -eq "Exchange Back End" } -MockWith { throw "Error - Pester" }
 
             SetDefaultRunOfHealthChecker "Debug_PageFile_Well_Scenario_Results.xml"
         }
@@ -72,7 +71,7 @@ Describe "Exchange 2019 Scenarios testing 2" {
             $pageFile.RecommendedPageFile | Should -Be 1536
 
             $pageFileAdditional = GetObject "PageFile Additional Information"
-            $pageFileAdditional | Should -Be "Warning: On Exchange 2019, the recommended PageFile size is 25% (1536MB) of the total system memory (6144MB)."
+            $pageFileAdditional | Should -Be "Warning: On Exchange 2019 CU11, the recommended PageFile size is 25% (1536MB) of the total system memory (6144MB)."
         }
 
         It "Bad Default Web Site web.config file" {
@@ -104,7 +103,7 @@ Describe "Exchange 2019 Scenarios testing 2" {
             $pageFile.RecommendedPageFile | Should -Be 1536
 
             $pageFileAdditional = GetObject "PageFile Additional Information"
-            $pageFileAdditional | Should -Be "Error: On Exchange 2019, the recommended PageFile size is 25% (1536MB) of the total system memory (6144MB)."
+            $pageFileAdditional | Should -Be "Error: On Exchange 2019 CU11, the recommended PageFile size is 25% (1536MB) of the total system memory (6144MB)."
         }
     }
 
@@ -135,7 +134,7 @@ Describe "Exchange 2019 Scenarios testing 2" {
             $pageFile2.RecommendedPageFile | Should -Be 1536
 
             $pageFileAdditional = GetObject "PageFile Additional Information"
-            $pageFileAdditional | Should -Be "Error: On Exchange 2019, the recommended PageFile size is 25% (1536MB) of the total system memory (6144MB)."
+            $pageFileAdditional | Should -Be "Error: On Exchange 2019 CU11, the recommended PageFile size is 25% (1536MB) of the total system memory (6144MB)."
 
             $multiPageFileWarning = GetObject "Multiple PageFile Detected"
             $multiPageFileWarning | Should -Be $true
@@ -169,7 +168,7 @@ Describe "Exchange 2019 Scenarios testing 2" {
             $pageFile2.RecommendedPageFile | Should -Be 1536
 
             $pageFileAdditional = GetObject "PageFile Additional Information"
-            $pageFileAdditional | Should -Be "Warning: On Exchange 2019, the recommended PageFile size is 25% (1536MB) of the total system memory (6144MB)."
+            $pageFileAdditional | Should -Be "Warning: On Exchange 2019 CU11, the recommended PageFile size is 25% (1536MB) of the total system memory (6144MB)."
 
             $multiPageFileWarning = GetObject "Multiple PageFile Detected"
             $multiPageFileWarning | Should -Be $true

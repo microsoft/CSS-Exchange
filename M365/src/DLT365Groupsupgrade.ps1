@@ -66,23 +66,7 @@ function Connect2EXO {
         break
     }
 }
-#Check if Distribution Group can't be upgraded because Member*Restriction is set to "Closed"
-function DebugMemberRestriction {
-    param(
-        [Parameter(Mandatory = $true)]
-        [PSCustomObject]$DistGroup
 
-    )
-    $MemberJoinRestriction = $DistGroup.MemberJoinRestriction.ToLower().ToString()
-    $MemberDepartRestriction = $DistGroup.MemberDepartRestriction.ToLower().ToString()
-    if ($MemberDepartRestriction -eq "closed" -or $MemberJoinRestriction -eq "closed") {
-        $script:ConditionsFailed++
-        Write-Host "Distribution Group can't be upgraded cause either MemberJoinRestriction or MemberDepartRestriction or both values are set to Closed!" -ForegroundColor Red
-        "Distribution Group can't be upgraded cause either MemberJoinRestriction or MemberDepartRestriction or both values are set to Closed!" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-        Write-Host "FIX --> Please follow the following article https://aka.ms/Setdistributiongroup to proceed with fixing DL Member*Restriction & set DL MemberJoin/DepartRestriction to Open!`n" -ForegroundColor Green
-        "FIX --> Please follow the following article https://aka.ms/Setdistributiongroup to proceed with fixing DL Member*Restriction & set DL MemberJoin/DepartRestriction to Open!`n" | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
-    }
-}
 #Check if Distribution Group can't be upgraded because it is DirSynced
 function DebugDirSync {
     param(
@@ -451,7 +435,6 @@ Write-Host $Description -ForegroundColor Cyan
 $Description | Out-File $ExportPath\DlToO365GroupUpgradeChecksREPORT.txt -Append
 
 #Main Function
-DebugMemberRestriction($dg)
 DebugDirSync($dg)
 DebugMatchingEap($dg)
 DebugGroupNesting($dg)

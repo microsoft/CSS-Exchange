@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-. $PSScriptRoot\Get-ExchangeCertificateCustomObject.ps1
+. $PSScriptRoot\..\..\..\..\Shared\ScriptBlockFunctions\RemotePipelineHandlerFunctions.ps1
 
 function Invoke-AnalyzerSecurityExchangeCertificates {
     [CmdletBinding()]
@@ -16,6 +16,7 @@ function Invoke-AnalyzerSecurityExchangeCertificates {
         [object]$DisplayGroupingKey
     )
 
+    $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     $exchangeInformation = $HealthServerObject.ExchangeInformation
     $baseParams = @{
@@ -23,13 +24,7 @@ function Invoke-AnalyzerSecurityExchangeCertificates {
         DisplayGroupingKey  = $DisplayGroupingKey
     }
 
-    $customObjectParams = @{
-        InternalTransportCertificate = $exchangeInformation.ExchangeCertificateInformation.InternalCertificate
-        AuthConfig                   = $HealthServerObject.OrganizationInformation.GetAuthConfig
-    }
-
-    $exchangeServerCertificatesObject = $exchangeInformation.ExchangeCertificateInformation.Certificates |
-        Get-ExchangeCertificateCustomObject @customObjectParams
+    $exchangeServerCertificatesObject = $exchangeInformation.ExchangeCertificateInformation.CustomCertificates
 
     foreach ($certificate in $exchangeServerCertificatesObject) {
 
@@ -271,19 +266,6 @@ function Invoke-AnalyzerSecurityExchangeCertificates {
             }
             Add-AnalyzedResultInformation @params
         }
-    } elseif ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $true) {
-        $params = $baseParams + @{
-            Name                   = "Valid Internal Transport Certificate Found On Server"
-            Details                = $false
-            DisplayCustomTabNumber = 1
-        }
-        Add-AnalyzedResultInformation @params
-
-        $params = $baseParams + @{
-            Details                = "We can't check for Internal Transport Certificate on Edge Transport Servers"
-            DisplayCustomTabNumber = 2
-        }
-        Add-AnalyzedResultInformation @params
     } else {
         $params = $baseParams + @{
             Name                   = "Valid Internal Transport Certificate Found On Server"
@@ -371,4 +353,5 @@ function Invoke-AnalyzerSecurityExchangeCertificates {
         }
         Add-AnalyzedResultInformation @params
     }
+    Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }
