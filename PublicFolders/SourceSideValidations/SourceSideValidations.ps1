@@ -52,6 +52,8 @@ Add-Type -AssemblyName System.Core -ErrorAction Stop
 $BuildVersion = ""
 
 try {
+    $startTime = Get-Date
+
     if (-not $SkipVersionCheck) {
         if (Test-ScriptVersion -AutoUpdate) {
             # Update was downloaded, so stop here.
@@ -112,8 +114,6 @@ try {
 
         return
     }
-
-    $startTime = Get-Date
 
     if ($null -eq (Get-Command Set-ADServerSettings -ErrorAction:SilentlyContinue)) {
         Write-Warning "Exchange Server cmdlets are not present in this shell."
