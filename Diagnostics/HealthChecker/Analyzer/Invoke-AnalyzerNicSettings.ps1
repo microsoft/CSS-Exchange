@@ -25,17 +25,28 @@ function Invoke-AnalyzerNicSettings {
     }
     $osInformation = $HealthServerObject.OSInformation
     $hardwareInformation = $HealthServerObject.HardwareInformation
+    $nameToInterfaceDescriptionKey = @{}
 
-    foreach ($adapter in $osInformation.NetworkInformation.NetworkAdapters) {
+    foreach ($netAdapter in $osInformation.NetworkInformation.NetworkAdapters.GetNetAdapter) {
+        $nameToInterfaceDescriptionKey.Add($netAdapter.Name, $netAdapter.InterfaceDescription)
+    }
+
+    foreach ($adapter in $osInformation.NetworkInformation.NetworkAdapters.Adapters) {
 
         if ($adapter.Description -eq "Remote NDIS Compatible Device") {
             Write-Verbose "Remote NDIS Compatible Device found. Ignoring NIC."
             continue
         }
 
+        $adapterName = $adapter.Name
+
+        if ($adapter.IsTeamedNic -and $null -ne $adapter.TeamedMembers) {
+            $adapterName = $adapterName + " - ('$([string]::Join("', '", ([array]$adapter.TeamedMembers)))')"
+        }
+
         $params = $baseParams + @{
             Name                   = "Interface Description"
-            Details                = "$($adapter.Description) [$($adapter.Name)]"
+            Details                = "$($adapter.Description) [$adapterName]"
             DisplayCustomTabNumber = 1
         }
         Add-AnalyzedResultInformation @params
@@ -223,8 +234,15 @@ function Invoke-AnalyzerNicSettings {
             Add-AnalyzedResultInformation @params
         }
 
+        $params = $baseParams + @{
+            Name    = "NIC Teamed"
+            Details = $adapter.IsTeamedNic
+        }
+        Add-AnalyzedResultInformation @params
+
         $adapterDescription = $adapter.Description
         $cookedValue = 0
+        $cookedTeamValue = @{}
         $foundCounter = $false
 
         if ($null -eq $osInformation.NetworkInformation.PacketsReceivedDiscarded) {
@@ -244,6 +262,21 @@ function Invoke-AnalyzerNicSettings {
                 $cookedValue = $prdInstance.CookedValue
                 $foundCounter = $true
                 break
+            } elseif ($adapter.IsTeamedNic) {
+                foreach ($memberNameKey in $adapter.TeamedMembers) {
+                    if (-not ($nameToInterfaceDescriptionKey.ContainsKey($memberNameKey))) {
+                        Write-Verbose "Failed to find $memberNameKey for counter lookup."
+                    } else {
+                        if ($instanceName -eq $nameToInterfaceDescriptionKey[$memberNameKey] -or
+                            $instanceName -eq $nameToInterfaceDescriptionKey[$memberNameKey].Replace("#", "_")) {
+                            $cookedTeamValue.Add($instanceName, $prdInstance.CookedValue)
+                        }
+                    }
+                }
+
+                if ($cookedTeamValue.Count -eq 0) {
+                    Write-Verbose "Failed to find a counter for adapter for this teamed NIC. $instanceName didn't match."
+                }
             }
         }
 
@@ -260,12 +293,24 @@ function Invoke-AnalyzerNicSettings {
                 $displayValue = $baseDisplayValue -f $cookedValue, "Warning"
             } else {
                 $displayWriteType = "Red"
-                $displayValue = [string]::Concat(($baseDisplayValue -f $cookedValue, "Error"), "We are also seeing this value being rather high so this can cause a performance impacted on a system.")
+                $displayValue = [string]::Concat(($baseDisplayValue -f $cookedValue, "Error"), " We are also seeing this value being rather high so this can cause a performance impact on a system.")
             }
 
             if ($adapterDescription -like "*vmxnet3*" -and
                 $cookedValue -gt 0) {
                 $knownIssue = $true
+            }
+        } elseif ($cookedTeamValue.Count -gt 0) {
+            $totalCookedValue = 0
+            $cookedTeamValue.Values | ForEach-Object { $totalCookedValue += [int]$_ }
+
+            if ($totalCookedValue -eq 0) {
+                $displayWriteType = "Green"
+            } elseif ($totalCookedValue -lt 1000) {
+                $displayValue = $baseDisplayValue -f "$($totalCookedValue) for all adapters on the team.", "Warning"
+            } else {
+                $displayWriteType = "Red"
+                $displayValue = [string]::Concat(($baseDisplayValue -f "$($totalCookedValue) for all adapters on the team.", "Error"), " We are also seeing this value being rather high so this can cause a performance impact on a system.")
             }
         } else {
             $displayValue = "Couldn't find value for the counter."
@@ -292,7 +337,7 @@ function Invoke-AnalyzerNicSettings {
         }
     }
 
-    if ($osInformation.NetworkInformation.NetworkAdapters.Count -gt 1) {
+    if ($osInformation.NetworkInformation.NetworkAdapters.Adapters.Count -gt 1) {
         $params = $baseParams + @{
             Details          = "Multiple active network adapters detected. Exchange 2013 or greater may not need separate adapters for MAPI and replication traffic.  For details please refer to https://aka.ms/HC-PlanHA#network-requirements"
             AddHtmlDetailRow = $false
@@ -324,7 +369,7 @@ function Invoke-AnalyzerNicSettings {
         Add-AnalyzedResultInformation @params
     }
 
-    $noDNSRegistered = ($osInformation.NetworkInformation.NetworkAdapters | Where-Object { $_.RegisteredInDns -eq $true }).Count -eq 0
+    $noDNSRegistered = ($osInformation.NetworkInformation.NetworkAdapters.Adapters | Where-Object { $_.RegisteredInDns -eq $true }).Count -eq 0
 
     if ($noDNSRegistered) {
         $params = $baseParams + @{
