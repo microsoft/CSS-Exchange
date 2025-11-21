@@ -275,9 +275,6 @@ function New-ExchangeSelfSignedCertificate {
                 }
             }
 
-            $certificateThumbprint = $certificate.Thumbprint
-
-
             if ($PSCmdlet.ShouldProcess("Setting certificate thumbprint")) {
                 $certificateThumbprint = $certificate.Thumbprint
             } else {

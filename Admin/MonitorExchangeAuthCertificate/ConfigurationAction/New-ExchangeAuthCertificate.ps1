@@ -208,7 +208,11 @@ function New-ExchangeAuthCertificate {
                             $newAuthCertificate = New-ExchangeSelfSignedCertificate @newCustomAuthCertificateParams
                         } else {
                             Write-Verbose "Creating a default self-signed certificate with a lifetime of 5 years"
-                            $newAuthCertificate = New-ExchangeCertificate @newAuthCertificateParams
+                            $certObject = New-ExchangeCertificate @newAuthCertificateParams
+                            $newAuthCertificate = [PSCustomObject]@{
+                                Thumbprint = $certObject.Thumbprint
+                                Subject    = $certObject.Subject
+                            }
                         }
                         Start-Sleep -Seconds 5
                     } else {

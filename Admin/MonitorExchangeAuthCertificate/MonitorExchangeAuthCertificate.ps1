@@ -80,7 +80,7 @@
     The new Auth Certificate, which is eventually created, will be created with a lifetime of 365 days (1 year).
 .EXAMPLE
     .\MonitorExchangeAuthCertificate.ps1 -EnforceNewAuthCertificateCreation -CustomCertificateLifetimeInDays 365 -Confirm:$false
-    Runs the script in Auth Certificate enforcement mode.A new Auth Certificate is created and staged as new next Auth Certificate.
+    Runs the script in Auth Certificate enforcement mode. A new Auth Certificate is created and staged as new next Auth Certificate.
     The Exchange AuthAdmin servicelet will publish the newly created Auth Certificate as soon as it processes it the next time (usually in a 12 hour time frame).
     The new Auth Certificate, which is created, will be created with a lifetime of 365 days (1 year).
 .EXAMPLE
