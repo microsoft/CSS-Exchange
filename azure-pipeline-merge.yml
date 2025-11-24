@@ -18,6 +18,9 @@ extends:
     stages:
     - stage: stage
       jobs:
+      - task: npmAuthenticate@0
+        inputs:
+          feedUrl: 'https://pkgs.dev.azure.com/CSS-Exchange-Tools/48cb0d5f-15bc-4c97-a88e-9a0b5f5b9933/_packaging/CSS-Exchange-Tools_Feed/npm/registry/'
       - job: job
         steps:
         - pwsh: |
