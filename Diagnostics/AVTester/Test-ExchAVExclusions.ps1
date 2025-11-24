@@ -401,6 +401,7 @@ while ($currentDiff -gt 0) {
         $ModuleAllowList.Add("Microsoft.Exchange.BigFunnelFlow.28.dll")
         $ModuleAllowList.Add("BigFunnel.NeuralTree.dll")
         $ModuleAllowList.Add("DocParserWrapper.dll")
+        $ModuleAllowList.Add("MimeKit.dll")
 
         #.NET Foundation
         $ModuleAllowList.Add("Microsoft.AspNet.SignalR.Core.dll")
