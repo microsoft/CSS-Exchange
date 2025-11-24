@@ -80,14 +80,14 @@ function Connect-EXOAdvanced {
     }
 
     if ($null -eq $connections -or $AllowMultipleSessions) {
-        if ($connections.ModulePrefix -contains $Prefix) {
+        if ($connections | Where-Object { $_.ModulePrefix -eq $Prefix }) {
             Write-Host "You already have a session" -ForegroundColor Yellow -NoNewline
             if ($Prefix) {
                 Write-Host " with the prefix $Prefix." -ForegroundColor Yellow
             } else {
                 Write-Host " without prefix." -ForegroundColor Yellow
             }
-            $newConnection = $connections | Where-Object { $_.ModulePrefix -eq $Prefix }
+            $newConnection = $connections | Where-Object { $_.ModulePrefix -eq $Prefix } | Select-Object -First 1
         } else {
             $prefixString = "."
             if ($Prefix) { $prefixString = " with Prefix $Prefix." }
@@ -114,13 +114,13 @@ function Connect-EXOAdvanced {
                 }
             }
         }
-        if ($newConnection.count -gt 1) {
+        if (@($newConnection).Count -gt 1) {
             Write-Host "You have more than one Exchange Online sessions with Prefix $Prefix.`nPlease use just one session with same Prefix." -ForegroundColor Red
             return $null
         }
     } else {
         Write-Verbose "You already have an Exchange Online session"
-        if ($connections.count -gt 1) {
+        if (@($connections).Count -gt 1) {
             Write-Host "You have more than one Exchange Online sessions.`nPlease use just one session as you are not using AllowMultipleSessions" -ForegroundColor Red
             return $null
         }

@@ -174,8 +174,8 @@ function Show-GraphContext {
     Write-Host "`nConnected to Graph"
     Write-Host "Session details"
     Write-Host "Tenant Id: $($Context.TenantId)"
-    if ($graphConnection.AuthType) {
-        Write-Host "AuthType: $($graphConnection.AuthType)"
+    if ($Context.AuthType) {
+        Write-Host "AuthType: $($Context.AuthType)"
     }
     if ($Context.Account) {
         Write-Host "Account: $($Context.Account)"
