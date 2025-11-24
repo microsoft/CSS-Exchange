@@ -20,14 +20,14 @@ function DoSpellCheck {
         exit 1
     }
 
-    $cspellModule = npm ls cspell | Select-String "cspell@"
+    $cspellModule = npm -g ls cspell | Select-String "cspell@"
 
     if ([string]::IsNullOrEmpty($cspellModule)) {
         Write-Host "Installing cspell..."
-        npm install cspell
+        npm install -g cspell
     }
 
-    $cspellModule = npm ls cspell | Select-String "cspell@"
+    $cspellModule = npm -g ls cspell | Select-String "cspell@"
 
     if ([string]::IsNullOrEmpty($cspellModule)) {
         Write-Host "Could not install cspell. Please install cspell and try again."
