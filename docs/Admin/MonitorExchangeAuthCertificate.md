@@ -103,6 +103,12 @@ The following syntax executes the script in scheduled task mode, but it doesn't 
 PS C:\> .\MonitorExchangeAuthCertificate.ps1 -ConfigureScriptToRunViaScheduledTask -AutomationAccountCredential (Get-Credential) -SendEmailNotificationTo "John.Doe@contoso.com"
 ```
 
+The following syntax runs the script in Auth Certificate enforcement mode. In this mode, the script creates a new Auth Certificate (in this example, with a custom lifetime of 1 year) and stages it as the new next Auth Certificate. An existing new next Auth Certificate will be overwritten by the new one. The new Auth Certificate will become active as soon as the Exchange AuthAdmin servicelet processes it the next time (usually within a 12 hour timeframe).
+
+```powershell
+PS C:\> .\MonitorExchangeAuthCertificate.ps1 -EnforceNewAuthCertificateCreation -CustomCertificateLifetimeInDays 365 -Confirm:$false
+```
+
 The following syntax runs the script in Auth Certificate export mode. In this mode, the script exports the current and (if configured) the next Auth Certificate as DER (Distinguished Encoding Rules) binary encoded `PKCS #12` files, using the `.pfx` file name extension.
 
 The naming syntax for the exported .pfx file is: `<CertificateThumbprint>-<Timestamp>.pfx`
@@ -122,6 +128,8 @@ PS C:\> .\MonitorExchangeAuthCertificate.ps1 -ScriptUpdateOnly
 Parameter | Description
 ----------|------------
 ValidateAndRenewAuthCertificate | This optional parameter enables the validation and renewal mode which will perform the required actions to replace an invalid/expired Auth Certificate or configures a new next Auth Certificate if the current Auth Certificate expires in < 60 days or the certificate configured as next Auth Certificate expires in < 120 days.
+EnforceNewAuthCertificateCreation | This optional switch parameter enforces the creation of a new Auth Certificate, which will become active within 24 hours after creation.
+CustomCertificateLifetimeInDays | This optional parameter allows you to specify a custom lifetime in days for the new Auth Certificate.
 IgnoreUnreachableServers | This optional parameter can be used to ignore if some of the Exchange servers within the organization cannot be reached. If this parameter is used, the script only validates the servers that can be reached and will perform Auth Certificate renewal actions based on the result. Parameter can be combined with the `IgnoreHybridConfig` parameter and can also be used with the `ConfigureScriptToRunViaScheduledTask` parameter to configure the script to run via scheduled task.
 IgnoreHybridConfig | This optional parameter allows you to explicitly perform Auth Certificate renewal actions (if required) even if an Exchange hybrid configuration was detected. You need to run the HCW after the renewed Auth Certificate becomes the one in use. Parameter can be combined with the `IgnoreUnreachableServers` parameter and can also be used with the `ConfigureScriptToRunViaScheduledTask` parameter to configure the script to run via scheduled task.
 PrepareADForAutomationOnly | This optional parameter can be used in AD Split Permission scenarios. It allows you to create the AD account which can then be used to run the Exchange Auth Certificate Monitoring script automatically via Task Scheduler.

@@ -22,6 +22,11 @@
 .PARAMETER ValidateAndRenewAuthCertificate
     You can use this parameter to let the script perform the required Auth Certificate renewal actions.
     If the script runs with this parameter set to $false, no action will be made to the current Auth Configuration.
+.PARAMETER EnforceNewAuthCertificateCreation
+    You can use this switch parameter to let the script stage a new next Auth Certificate which will become automatically active within 24 hours.
+.PARAMETER CustomCertificateLifetimeInDays
+    You can use this parameter to specify a custom lifetime for the newly created Auth certificate.
+    By default, the self-signed certificate is created with a lifetime of 5 years.
 .PARAMETER IgnoreUnreachableServers
     This optional parameter can be used to ignore if some of the Exchange servers within the organization cannot be reached.
     If this parameter is used, the script only validates the servers that can be reached and will perform Auth Certificate
@@ -67,6 +72,17 @@
     .\MonitorExchangeAuthCertificate.ps1 -ValidateAndRenewAuthCertificate $true -Confirm:$false
     Runs the script in renewal mode without user interaction. The Auth Certificate renewal action will be performed (if required).
     In unattended mode the internal SMTP certificate will be replaced with the new Auth Certificate and is then set back to the previous one.
+    The new Auth Certificate, which is eventually created, will have a lifetime of 5 years.
+.EXAMPLE
+    .\MonitorExchangeAuthCertificate.ps1 -ValidateAndRenewAuthCertificate $true -CustomCertificateLifetimeInDays 365 -Confirm:$false
+    Runs the script in renewal mode without user interaction. The Auth Certificate renewal action will be performed (if required).
+    In unattended mode the internal SMTP certificate will be replaced with the new Auth Certificate and is then set back to the previous one.
+    The new Auth Certificate, which is eventually created, will be created with a lifetime of 365 days (1 year).
+.EXAMPLE
+    .\MonitorExchangeAuthCertificate.ps1 -EnforceNewAuthCertificateCreation -CustomCertificateLifetimeInDays 365 -Confirm:$false
+    Runs the script in Auth Certificate enforcement mode. A new Auth Certificate is created and staged as new next Auth Certificate.
+    The Exchange AuthAdmin servicelet will publish the newly created Auth Certificate as soon as it processes it the next time (usually in a 12 hour time frame).
+    The new Auth Certificate, which is created, will be created with a lifetime of 365 days (1 year).
 .EXAMPLE
     .\MonitorExchangeAuthCertificate.ps1 -ValidateAndRenewAuthCertificate $true -IgnoreUnreachableServers $true -Confirm:$false
     Runs the script in renewal mode without user interaction. We only take the Exchange server into account which are reachable and will perform
@@ -87,12 +103,23 @@ param(
     [Parameter(Mandatory = $false, ParameterSetName = "MonitorExchangeAuthCertificateManually")]
     [bool]$ValidateAndRenewAuthCertificate = $false,
 
+    [Parameter(Mandatory = $false, ParameterSetName = "EnforceNewNextAuthCertificateConfiguration")]
+    [switch]$EnforceNewAuthCertificateCreation,
+
     [Parameter(Mandatory = $false, ParameterSetName = "MonitorExchangeAuthCertificateManually")]
     [Parameter(Mandatory = $false, ParameterSetName = "ConfigureAutomaticExecutionViaScheduledTask")]
+    [Parameter(Mandatory = $false, ParameterSetName = "EnforceNewNextAuthCertificateConfiguration")]
+    [ValidateScript({ $_ -ge 0 })]
+    [int]$CustomCertificateLifetimeInDays = 0,
+
+    [Parameter(Mandatory = $false, ParameterSetName = "MonitorExchangeAuthCertificateManually")]
+    [Parameter(Mandatory = $false, ParameterSetName = "ConfigureAutomaticExecutionViaScheduledTask")]
+    [Parameter(Mandatory = $false, ParameterSetName = "EnforceNewNextAuthCertificateConfiguration")]
     [bool]$IgnoreUnreachableServers = $false,
 
     [Parameter(Mandatory = $false, ParameterSetName = "MonitorExchangeAuthCertificateManually")]
     [Parameter(Mandatory = $false, ParameterSetName = "ConfigureAutomaticExecutionViaScheduledTask")]
+    [Parameter(Mandatory = $false, ParameterSetName = "EnforceNewNextAuthCertificateConfiguration")]
     [bool]$IgnoreHybridConfig = $false,
 
     [Parameter(Mandatory = $false, ParameterSetName = "SetupAutomaticExecutionADRequirements")]
@@ -134,6 +161,7 @@ param(
 
     [Parameter(Mandatory = $false, ParameterSetName = "MonitorExchangeAuthCertificateManually")]
     [Parameter(Mandatory = $false, ParameterSetName = "ConfigureAutomaticExecutionViaScheduledTask")]
+    [Parameter(Mandatory = $false, ParameterSetName = "EnforceNewNextAuthCertificateConfiguration")]
     [Parameter(Mandatory = $false, ParameterSetName = "SetupAutomaticExecutionADRequirements")]
     [switch]$SkipVersionCheck
 )
@@ -169,7 +197,7 @@ function Main {
     param()
 
     if (-not(Confirm-Administrator)) {
-        Write-Warning ("The script needs to be executed in elevated mode. Start the Exchange Management Shell as an Administrator.")
+        Write-Warning ("The script must be executed in elevated mode. Start the Exchange Management Shell as an administrator.")
         $Error.Clear()
         Start-Sleep -Seconds 2
         exit
@@ -399,6 +427,8 @@ function Main {
 
     if ($ValidateAndRenewAuthCertificate) {
         Write-Host ("Mode: Testing and replacing or importing the Auth Certificate (if required)")
+    } elseif ($EnforceNewAuthCertificateCreation) {
+        Write-Host ("Mode: Enforce new next Auth Certificate creation")
     } else {
         Write-Host ("The script was run without parameter therefore, only a check of the Auth Certificate configuration is performed and no change will be made")
     }
@@ -423,9 +453,10 @@ function Main {
     }
 
     $authCertificateStatusParams = @{
-        IgnoreUnreachableServers = $IgnoreUnreachableServers
-        IgnoreHybridSetup        = $IgnoreHybridConfig
-        CatchActionFunction      = ${Function:Invoke-CatchActions}
+        IgnoreUnreachableServers              = $IgnoreUnreachableServers
+        IgnoreHybridSetup                     = $IgnoreHybridConfig
+        EnforceNewNextAuthCertificateCreation = $EnforceNewAuthCertificateCreation
+        CatchActionFunction                   = ${Function:Invoke-CatchActions}
     }
     $authCertStatus = Get-ExchangeAuthCertificateStatus @authCertificateStatusParams
 
@@ -439,7 +470,7 @@ function Main {
     if ($authCertStatus.ReplaceRequired) {
         $renewalActionWording = "The Auth Certificate in use must be replaced by a new one."
     } elseif ($authCertStatus.ConfigureNextAuthRequired) {
-        $renewalActionWording = "The Auth Certificate configured as next Auth Certificate must be configured or replaced by a new one."
+        $renewalActionWording = "The Auth Certificate configured as next Auth Certificate must be configured or replaced by a new one or is created on express request."
     } elseif (($authCertStatus.CurrentAuthCertificateImportRequired) -or
         ($authCertStatus.NextAuthCertificateImportRequired)) {
         $renewalActionWording = "The current or next Auth Certificate is missing on some servers and must be imported."
@@ -455,23 +486,28 @@ function Main {
         Write-Host ("Please rerun the script using the '-IgnoreHybridConfig `$true' parameter to perform the renewal action.") -ForegroundColor Yellow
         Write-Host ("It's also required to run the Hybrid Configuration Wizard (HCW) after the primary Auth Certificate was replaced.") -ForegroundColor Yellow
     } else {
-        if (($ValidateAndRenewAuthCertificate) -and
+        if (($ValidateAndRenewAuthCertificate -or
+                $EnforceNewAuthCertificateCreation) -and
             ($renewalActionRequired)) {
             Write-Host ("Renewal scenario: $($renewalActionWording)")
             if ($authCertStatus.ReplaceRequired) {
                 $replaceExpiredAuthCertificateParams = @{
-                    ReplaceExpiredAuthCertificate = $true
-                    CatchActionFunction           = ${Function:Invoke-CatchActions}
-                    WhatIf                        = $WhatIfPreference
+                    ReplaceExpiredAuthCertificate    = $true
+                    NewAuthCertificateLifetimeInDays = $CustomCertificateLifetimeInDays
+                    CatchActionFunction              = ${Function:Invoke-CatchActions}
+                    WhatIf                           = $WhatIfPreference
                 }
                 $renewalActionResult = New-ExchangeAuthCertificate @replaceExpiredAuthCertificateParams
 
                 $emailBodyRenewalScenario = "The Auth Certificate in use was invalid (expired) or not available on all Exchange Servers within your organization.<BR>" +
                 "It was immediately replaced by a new one which is already active.<BR><BR>"
             } elseif ($authCertStatus.ConfigureNextAuthRequired) {
+                # Set CurrentAuthCertificateLifetimeInDays to 2 in case that EnforceNewAuthCertificateCreation was used
+                # We do that to ensure that the new Auth Certificate will become active next time the AuthAdmin servicelet processes it
                 $configureNextAuthCertificateParams = @{
                     ConfigureNextAuthCertificate         = $true
-                    CurrentAuthCertificateLifetimeInDays = $authCertStatus.CurrentAuthCertificateLifetimeInDays
+                    NewAuthCertificateLifetimeInDays     = $CustomCertificateLifetimeInDays
+                    CurrentAuthCertificateLifetimeInDays = if ($EnforceNewAuthCertificateCreation) { 2 } else { $authCertStatus.CurrentAuthCertificateLifetimeInDays }
                     CatchActionFunction                  = ${Function:Invoke-CatchActions}
                     WhatIf                               = $WhatIfPreference
                 }
