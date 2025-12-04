@@ -32,11 +32,13 @@ function Invoke-AnalyzerHybridInformation {
     $getPartnerApplication = $HealthServerObject.OrganizationInformation.GetPartnerApplication
 
     [array]$evoStsAuthServer = $HealthServerObject.OrganizationInformation.GetAuthServer | Where-Object {
+        $null -ne $_.Type -and
         $_.Type.ToString() -eq "AzureAD" -and
         $_.Enabled -eq $true
     }
 
     [array]$acsAuthServer = $HealthServerObject.OrganizationInformation.GetAuthServer | Where-Object {
+        $null -ne $_.Type -and
         $_.Type.ToString() -eq "MicrosoftACS" -and
         $_.Enabled -eq $true
     }
@@ -281,7 +283,7 @@ function Invoke-AnalyzerHybridInformation {
             }
 
             # Filter any evoSTS auth servers which have the application identifier set to a guid as this indicates the dedicated hybrid app is configured
-            $dedicatedHybridAppAuthServer = $evoStsAuthServer | Where-Object { $_.ApplicationIdentifier -match $guidRegEx }
+            [array]$dedicatedHybridAppAuthServer = $evoStsAuthServer | Where-Object { $_.ApplicationIdentifier -match $guidRegEx }
 
             if ($dedicatedHybridAppAuthServer.Count -ge 1) {
                 foreach ($authServer in $dedicatedHybridAppAuthServer) {

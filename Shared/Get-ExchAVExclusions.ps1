@@ -286,6 +286,7 @@ function Get-ExchAVExclusionsProcess {
         if ((Get-ExchangeServer $env:COMPUTERNAME).IsClientAccessServer -or (Get-ExchangeServer $env:COMPUTERNAME).IsMailboxServer) {
             $ProcessList.Add((Join-Path $ExchangePath 'Bin\Search\Ceres\HostController\hostcontrollerservice.exe'))
             $ProcessList.Add((Join-Path $env:SystemRoot '\System32\inetSrv\inetInfo.exe'))
+            $ProcessList.Add((Join-Path $env:SystemRoot '\System32\inetSrv\w3wp.exe'))
             $ProcessList.Add((Join-Path $ExchangePath 'Bin\Microsoft.Exchange.Directory.TopologyService.exe'))
         }
 
@@ -310,6 +311,7 @@ function Get-ExchAVExclusionsProcess {
             $ProcessList.Add((Join-Path $ExchangePath 'FIP-FS\Bin\fms.exe'))
             $ProcessList.Add((Join-Path $ExchangePath 'Bin\Search\Ceres\HostController\hostcontrollerservice.exe'))
             $ProcessList.Add((Join-Path $env:SystemRoot '\System32\inetSrv\inetInfo.exe'))
+            $ProcessList.Add((Join-Path $env:SystemRoot '\System32\inetSrv\w3wp.exe'))
             $ProcessList.Add((Join-Path $ExchangePath 'Bin\Microsoft.Exchange.Directory.TopologyService.exe'))
             $ProcessList.Add((Join-Path $ExchangePath 'Bin\Microsoft.Exchange.EdgeSyncSvc.exe'))
             $ProcessList.Add((Join-Path $ExchangePath 'FrontEnd\PopImap\Microsoft.Exchange.Imap4.exe'))

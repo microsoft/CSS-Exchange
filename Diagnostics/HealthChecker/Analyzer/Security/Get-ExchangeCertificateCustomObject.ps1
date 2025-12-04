@@ -7,7 +7,7 @@ function Get-ExchangeCertificateCustomObject {
         [Parameter(ValueFromPipeline)]
         [object[]]$Certificate,
 
-        [object]$InternalTransportCertificate,
+        [string]$InternalTransportCertificateThumbprint,
 
         [object]$AuthConfig
     )
@@ -104,7 +104,7 @@ function Get-ExchangeCertificateCustomObject {
                     IsSanCertificate               = $null -ne $cert.DnsNameList -and ($cert.DnsNameList).Count -gt 1
                     Namespaces                     = $certDnsNameList
                     Services                       = $cert.Services
-                    IsInternalTransportCertificate = $null -ne $InternalTransportCertificate -and $cert.Thumbprint -eq $InternalTransportCertificate.Thumbprint
+                    IsInternalTransportCertificate = $null -ne $InternalTransportCertificateThumbprint -and $cert.Thumbprint -eq $InternalTransportCertificateThumbprint
                     IsCurrentAuthConfigCertificate = $isAuthConfigInfo
                     IsNextAuthConfigCertificate    = $isNextAuthCertificate
                     SetAsActiveAuthCertificateOn   = if ($isNextAuthCertificate) { $authConfig.NextCertificateEffectiveDate } else { $null }

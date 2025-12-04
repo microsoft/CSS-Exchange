@@ -179,6 +179,15 @@ function Get-HealthCheckerDataCollection {
 
         # Set the script variable for the name of the computer that we want to connect to for EMS
         $Script:PrimaryRemoteShellConnectionPoint = (Get-PSSession | Where-Object { $_.Availability -eq "Available" -and $_.State -eq "Opened" } | Select-Object -First 1).ComputerName
+
+        if ($null -eq $Script:PrimaryRemoteShellConnectionPoint) {
+            if ($orgRunType -eq "QueueJob") {
+                Write-Warning "Unsupported to use the snap-in to run Health Checker against multiple servers. You must use Remote Shell or EMS."
+                throw "Using Exchange Snap-In to run Health Checker with Jobs"
+            } else {
+                Write-Verbose "Using the Exchange Snap-in and we are using the current session, so this might work."
+            }
+        }
         $stopWatch = [System.Diagnostics.Stopwatch]::StartNew()
         $orgKey = "Invoke-JobOrganizationInformation"
         $hardwareKey = "Invoke-JobHardwareInformation"

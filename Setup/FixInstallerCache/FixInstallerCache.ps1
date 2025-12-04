@@ -35,7 +35,7 @@ try {
     if ($RemoteDebug) {
         Write-Verbose "Remote Debug detected, saving out the installer cache location."
         try {
-            $installerCacheFiles = Get-ChildItem "$env:SystemPath\Windows\Installer" -ErrorAction Stop |
+            $installerCacheFiles = Get-ChildItem "$env:WinDir\Installer" -ErrorAction Stop |
                 Where-Object { $_.Name.ToLower().EndsWith(".msi") } |
                 ForEach-Object {
                     return Get-FileInformation -File $_.FullName

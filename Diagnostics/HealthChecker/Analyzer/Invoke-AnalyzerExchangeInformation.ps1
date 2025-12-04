@@ -206,6 +206,20 @@ function Invoke-AnalyzerExchangeInformation {
             DisplayCustomTabNumber = 2
         }
         Add-AnalyzedResultInformation @params
+    } else {
+        # Now we need to check to see if we are on the latest build or not.
+        $latestBuild = (GetExchangeBuildDictionary)[$exchangeInformation.BuildInformation.VersionInformation.MajorVersion][$exchangeInformation.BuildInformation.VersionInformation.CU].SU.Values |
+            ForEach-Object { [System.Version]$_ } |
+            Sort-Object -Descending |
+            Select-Object -First 1
+        if ($latestBuild -ne $exchangeInformation.BuildInformation.VersionInformation.BuildVersion) {
+            $params = $baseParams + @{
+                Details                = "Not on the latest Exchange Patch. While you are still on the latest Security Related Patch, there is a newer build available."
+                DisplayWriteType       = "Yellow"
+                DisplayCustomTabNumber = 2
+            }
+            Add-AnalyzedResultInformation @params
+        }
     }
 
     $params = @{
@@ -362,6 +376,28 @@ function Invoke-AnalyzerExchangeInformation {
         } else {
             $params.DisplayWriteType = "Yellow"
             $params.Details = "Unknown - Wasn't able to get the Computer Membership information"
+            Add-AnalyzedResultInformation @params
+        }
+
+        if ($null -ne $exchangeInformation.ADComputerObject -and
+            $null -ne $exchangeInformation.ADComputerObject.ADObject.TokenGroupsGlobalAndUniversal) {
+            $displayWriteType = "Grey"
+            $details = $exchangeInformation.ADComputerObject.ADObject.TokenGroupsGlobalAndUniversal.Count
+
+            if ($exchangeInformation.ADComputerObject.ADObject.TokenGroupsGlobalAndUniversal.Count -ge 75) {
+                $displayWriteType = "Yellow"
+            }
+
+            if ($exchangeInformation.ADComputerObject.ADObject.TokenGroupsGlobalAndUniversal.Count -ge 100) {
+                $displayWriteType = "Red"
+                $details += " --- Error: Might run into issues with this token being too large"
+            }
+
+            $params = $baseParams + @{
+                Name             = "Exchange Server Token Groups"
+                Details          = $details
+                DisplayWriteType = $displayWriteType
+            }
             Add-AnalyzedResultInformation @params
         }
     }
@@ -691,6 +727,46 @@ function Invoke-AnalyzerExchangeInformation {
                 HtmlName   = "Setting Overrides"
             }
             Add-AnalyzedResultInformation @params
+        }
+
+        $groupedResults = $exchangeInformation.SettingOverrides.SimpleSettingOverrides |
+            Group-Object ComponentName, SectionName |
+            Where-Object { $_.Count -gt 1 }
+
+        if ($null -ne $groupedResults) {
+            $breakAndDisplay = $false
+            foreach ($groupedResult in $groupedResults) {
+                $parameterNameList = New-Object System.Collections.Generic.HashSet[string]
+                foreach ($group in $groupedResult.Group) {
+                    foreach ($parameterLine in @($group.Parameters)) {
+                        $parameterName = ([string]$parameterLine).Split("=")[0].Trim()
+
+                        # If it is already added to the list, it will be a false value returned. Therefore, we have multiple parameters set on the same thing.
+                        if (-not ($parameterNameList.Add($parameterName))) {
+                            $breakAndDisplay = $true
+                            break
+                        }
+                    }
+
+                    if ($breakAndDisplay) {
+                        break
+                    }
+                }
+
+                if ($breakAndDisplay) {
+                    break
+                }
+            }
+
+            if ($breakAndDisplay) {
+                $params = $baseParams + @{
+                    Name                   = "Duplicate Overrides"
+                    Details                = "Error! Duplicate Overrides have been detected for the same parameter causing possible misconfigurations. Please address as soon as possible."
+                    DisplayWriteType       = "Red"
+                    DisplayCustomTabNumber = 2
+                }
+                Add-AnalyzedResultInformation @params
+            }
         }
     }
 
