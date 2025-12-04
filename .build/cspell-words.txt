@@ -103,6 +103,7 @@ Nego
 Netlogon
 netsh
 nmap
+nslookup
 noderunner
 notcontains
 notin
