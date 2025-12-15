@@ -382,7 +382,7 @@ function Invoke-AnalyzerExchangeInformation {
         if ($null -ne $exchangeInformation.ADComputerObject -and
             $null -ne $exchangeInformation.ADComputerObject.ADObject.TokenGroupsGlobalAndUniversal) {
             $displayWriteType = "Grey"
-            $details = $exchangeInformation.ADComputerObject.ADObject.TokenGroupsGlobalAndUniversal.Count
+            [string]$details = $exchangeInformation.ADComputerObject.ADObject.TokenGroupsGlobalAndUniversal.Count
 
             if ($exchangeInformation.ADComputerObject.ADObject.TokenGroupsGlobalAndUniversal.Count -ge 75) {
                 $displayWriteType = "Yellow"
@@ -390,7 +390,7 @@ function Invoke-AnalyzerExchangeInformation {
 
             if ($exchangeInformation.ADComputerObject.ADObject.TokenGroupsGlobalAndUniversal.Count -ge 100) {
                 $displayWriteType = "Red"
-                [string]$details += " --- Error: Might run into issues with this token being too large"
+                $details += " --- Error: Might run into issues with this token being too large"
             }
 
             $params = $baseParams + @{
