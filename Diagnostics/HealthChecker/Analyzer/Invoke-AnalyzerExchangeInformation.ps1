@@ -382,7 +382,7 @@ function Invoke-AnalyzerExchangeInformation {
         if ($null -ne $exchangeInformation.ADComputerObject -and
             $null -ne $exchangeInformation.ADComputerObject.ADObject.TokenGroupsGlobalAndUniversal) {
             $displayWriteType = "Grey"
-            $details = $exchangeInformation.ADComputerObject.ADObject.TokenGroupsGlobalAndUniversal.Count
+            [string]$details = $exchangeInformation.ADComputerObject.ADObject.TokenGroupsGlobalAndUniversal.Count
 
             if ($exchangeInformation.ADComputerObject.ADObject.TokenGroupsGlobalAndUniversal.Count -ge 75) {
                 $displayWriteType = "Yellow"
