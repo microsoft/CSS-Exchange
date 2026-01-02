@@ -1,4 +1,4 @@
-#cspell:words aspf, adkim, CTRY
+<!-- #cspell:words aspf, adkim, CTRY -->
 
 # Email Authentication Checker (CSS Exchange)
 

@@ -2,10 +2,10 @@
 # Licensed under the MIT License.
 
 # email providers
-#cspell:words gmail, googlemail, amazonses, proofpoint, pphosted, mimecast
+#cspell:words Gmail, GoogleMail, AmazonSES, Proofpoint, Pphosted, Mimecast
 
 # DKIM Providers
-#cspell:words mailchimp, smtpapi, mailgun, mailo, scph, zendesk, salesforce, klaviyo, aweber, getresponse, convertkit, infusionsoft, infusionsoft, pardot, marketo, eloqua, eloqua, sendlane, moosend, omnisend, emailoctopus, sendinblue, elasticemail, pepipost, socketlabs, mailjet, dynadot, zoho, protonmail, fastmail, rackspace, bluehost, namecheap, plesk
+#cspell:words Mailchimp, smtpapi, Mailgun, mailo, scph, Zendesk, Salesforce, Klaviyo, AWeber, GetResponse, ConvertKit, Infusionsoft, Pardot, Marketo, Eloqua, Sendlane, Moosend, Omnisend, EmailOctopus, Sendinblue, Elasticemail, Pepipost, Socketlabs, Mailjet, Dynadot, Zoho, Protonmail, Fastmail, RackSpace, Bluehost, Namecheap, Plesk
 
 # protocol words
 #cspell:words softfail, softpass, permerror, temperror, compauth, adkim, aspf, NSPM, BIMP, DIMP, FTBP, HPHSH, HPHISH, HSPM, INTOS, MALW, OSPM, PHSH, SPOOF, UIMP, dmarc, domainkey, mxvault
@@ -108,7 +108,7 @@ param(
     [switch]$ScriptUpdateOnly
 )
 
-#region Function to get provider-specific documentation URLs
+# Function to get provider-specific documentation URLs
 function Get-ProviderSpecificURLs {
     param([array]$Providers)
 
@@ -134,10 +134,9 @@ function Get-ProviderSpecificURLs {
         }
     }
 }
-#endregion
 
 # Enhanced UI Functions
-#region Helper function to parse DKIM records into key-value pairs
+# Helper function to parse DKIM records into key-value pairs
 function ConvertFrom-DKIMRecord {
     param([string]$dkimRecord)
 
@@ -158,9 +157,8 @@ function ConvertFrom-DKIMRecord {
 
     return $tags
 }
-#endregion
 
-#region Helper function to generate recommendations based on issue patterns
+# Helper function to generate recommendations based on issue patterns
 function Get-Recommendation {
     param(
         [string]$Issue,
@@ -273,9 +271,8 @@ function Get-Recommendation {
         }
     }
 }
-#endregion
 
-#region Function to analyze MX records for a domain
+# Function to analyze MX records for a domain
 function Get-MXRecordAnalysis {
     param([string]$domain)
 
@@ -346,22 +343,22 @@ function Get-MXRecordAnalysis {
                             $mxAnalysis.MXProviders += "Microsoft/Office 365"
                         }
                         $providerDetected = $true
-                    } elseif ($serverName -match "gmail|google|googlemail") {
+                    } elseif ($serverName -match "Gmail|Google|GoogleMail") {
                         if ("Google/Gmail" -notin $mxAnalysis.MXProviders) {
                             $mxAnalysis.MXProviders += "Google/Gmail"
                         }
                         $providerDetected = $true
-                    } elseif ($serverName -match "amazonses|ses") {
+                    } elseif ($serverName -match "AmazonSES|ses") {
                         if ("Amazon SES" -notin $mxAnalysis.MXProviders) {
                             $mxAnalysis.MXProviders += "Amazon SES"
                         }
                         $providerDetected = $true
-                    } elseif ($serverName -match "proofpoint|pphosted") {
+                    } elseif ($serverName -match "Proofpoint|Pphosted") {
                         if ("Proofpoint" -notin $mxAnalysis.MXProviders) {
                             $mxAnalysis.MXProviders += "Proofpoint"
                         }
                         $providerDetected = $true
-                    } elseif ($serverName -match "mimecast") {
+                    } elseif ($serverName -match "Mimecast") {
                         if ("Mimecast" -notin $mxAnalysis.MXProviders) {
                             $mxAnalysis.MXProviders += "Mimecast"
                         }
@@ -405,9 +402,8 @@ function Get-MXRecordAnalysis {
 
     return $mxAnalysis
 }
-#endregion
 
-#region Function to count DNS lookups in SPF record
+# Function to count DNS lookups in SPF record
 function Get-SpfDnsLookupCount {
     param([string]$spfRecord)
 
@@ -417,27 +413,20 @@ function Get-SpfDnsLookupCount {
     $mechanisms = $spfRecord -split '\s+' | Where-Object { $_ -ne '' }
 
     foreach ($mechanism in $mechanisms) {
-        # Count mechanisms that require DNS lookups
-        if ($mechanism -match '^(include:|a:|mx:|exists:|redirect=)') {
-            $lookupCount++
-        }
-        # Count a mechanism without domain (uses current domain)
-        elseif ($mechanism -eq 'a' -or $mechanism -eq 'mx') {
-            $lookupCount++
-        }
-        # Count a/mx mechanisms with CIDR but no domain
-        elseif ($mechanism -match '^(a|mx)/\d+$') {
+        # Count mechanisms that require DNS lookups or a mechanism without domain (uses current domain) or a/mx mechanisms with CIDR but no domain
+        if ($mechanism -match '^(include:|a:|mx:|exists:|redirect=)' -or $mechanism -eq 'a' -or $mechanism -eq 'mx' -or $mechanism -match '^(a|mx)/\d+$') {
             $lookupCount++
         }
     }
 
     return $lookupCount
 }
-#endregion
 
-#region Function to validate SPF record syntax
+# Function to validate SPF record syntax
 function Test-SPFSyntax {
     param([string]$spfRecord)
+
+    Write-Verbose "Test-SPFSyntax: Calling $($MyInvocation.MyCommand): Processing spfRecord: '$spfRecord'"
 
     $syntaxIssues = @()
 
@@ -458,17 +447,13 @@ function Test-SPFSyntax {
 
     # Validate each mechanism
     foreach ($mechanism in $mechanisms) {
-        # Skip modifiers (contain '=')
+        # Check for modifiers (contain '=')
         if ($mechanism -match '=' -and $mechanism -notmatch '^(include:|a:|mx:|ptr:|exists:|redirect=)') {
             # Check for unknown modifiers/mechanisms
             if ($mechanism -notmatch '^(exp=|redirect=)') {
                 $syntaxIssues += "Unknown modifier or mechanism: '$mechanism'"
             }
-            continue
-        }
-
-        # Validate mechanism syntax
-        if ($mechanism -match '^[+\-~?]?(all|include:|a|mx|ptr|exists:|ip4:|ip6:)') {
+        } elseif ($mechanism -match '^[+\-~?]?(all|include:|a|mx|ptr|exists:|ip4:|ip6:)') {
             # Valid mechanism types, check specific syntax
             if ($mechanism -match '^[+\-~?]?ip4:') {
                 # Validate IPv4 address/CIDR
@@ -517,11 +502,12 @@ function Test-SPFSyntax {
 
     return $syntaxIssues
 }
-#endregion
 
-#region Function to validate DKIM record syntax
+# Function to validate DKIM record syntax
 function Test-DKIMSyntax {
     param([string]$dkimRecord, [string]$selector)
+
+    Write-Verbose "Test-DKIMSyntax: Calling $($MyInvocation.MyCommand): Processing dkimRecord: '$dkimRecord' for selector '$selector'"
 
     $syntaxIssues = @()
 
@@ -640,9 +626,8 @@ function Test-DKIMSyntax {
 
     return $syntaxIssues
 }
-#endregion
 
-#region Function to detect DKIM service providers
+# Function to detect DKIM service providers
 function Get-DKIMServiceProvider {
     param([hashtable]$dkimRecords, [string]$domain)
 
@@ -655,8 +640,8 @@ function Get-DKIMServiceProvider {
     # Common DKIM provider patterns
     $providerPatterns = @{
         'Microsoft/Office 365' = @('selector1', 'selector2')
-        'Google/Gmail'         = @('google', 'gmail')
-        'Amazon SES'           = @('amazonses')
+        'Google/Gmail'         = @('Google', 'Gmail')
+        'Amazon SES'           = @('AmazonSES')
         'Mailchimp'            = @('k1', 'k2', 'k3')
         'SendGrid'             = @('s1', 's2', 'smtpapi')
         'Constant Contact'     = @('k1', 'k2')
@@ -664,40 +649,40 @@ function Get-DKIMServiceProvider {
         'Mandrill'             = @('mandrill')
         'Postmark'             = @('pm', 'postmark')
         'SparkPost'            = @('scph')
-        'Zendesk'              = @('zendesk1', 'zendesk2')
-        'Salesforce'           = @('salesforce')
+        'Zendesk'              = @('Zendesk1', 'Zendesk2')
+        'Salesforce'           = @('Salesforce')
         'HubSpot'              = @('hs1', 'hs2')
         'Klaviyo'              = @('dkim')
         'Campaign Monitor'     = @('cm')
-        'AWeber'               = @('aweber')
-        'GetResponse'          = @('getresponse')
-        'ConvertKit'           = @('convertkit')
+        'AWeber'               = @('AWeber')
+        'GetResponse'          = @('GetResponse')
+        'ConvertKit'           = @('ConvertKit')
         'ActiveCampaign'       = @('ac')
         'Drip'                 = @('drip')
         'Infusionsoft'         = @('ifs')
-        'Pardot'               = @('pardot')
-        'Marketo'              = @('marketo')
-        'Eloqua'               = @('eloqua')
+        'Pardot'               = @('Pardot')
+        'Marketo'              = @('Marketo')
+        'Eloqua'               = @('Eloqua')
         'Braze'                = @('braze')
         'Iterable'             = @('iterable')
-        'Sendlane'             = @('sendlane')
-        'Moosend'              = @('moosend')
-        'Omnisend'             = @('omnisend')
+        'Sendlane'             = @('Sendlane')
+        'Moosend'              = @('Moosend')
+        'Omnisend'             = @('Omnisend')
         'Benchmark'            = @('benchmark')
-        'EmailOctopus'         = @('emailoctopus')
-        'Sendinblue'           = @('sendinblue')
-        'Elastic Email'        = @('elasticemail')
-        'Pepipost'             = @('pepipost')
-        'Socketlabs'           = @('socketlabs')
-        'Mailjet'              = @('mailjet')
+        'EmailOctopus'         = @('EmailOctopus')
+        'Sendinblue'           = @('Sendinblue')
+        'Elastic Email'        = @('Elasticemail')
+        'Pepipost'             = @('Pepipost')
+        'Socketlabs'           = @('Socketlabs')
+        'Mailjet'              = @('Mailjet')
         'SMTP2GO'              = @('smtp2go')
         'Turbo-SMTP'           = @('turbo-smtp')
-        'Dynadot'              = @('dynadot')
-        'Zoho Mail'            = @('zoho')
+        'Dynadot'              = @('Dynadot')
+        'Zoho Mail'            = @('Zoho')
         'Titan Email'          = @('titan')
-        'Protonmail'           = @('protonmail')
+        'Protonmail'           = @('Protonmail')
         'Fastmail'             = @('fm1', 'fm2', 'fm3')
-        'Rackspace'            = @('rackspace')
+        'Rackspace'            = @('Rackspace')
         'Bluehost'             = @('default')
         'GoDaddy'              = @('k1')
         'Namecheap'            = @('default')
@@ -733,9 +718,8 @@ function Get-DKIMServiceProvider {
 
     return $providerInfo
 }
-#endregion
 
-#region Function to extract and analyze SPF all mechanism
+# Function to extract and analyze SPF all mechanism
 function Get-SPFAllMechanism {
     param([string]$spfRecord)
 
@@ -751,11 +735,12 @@ function Get-SPFAllMechanism {
         return ""
     }
 }
-#endregion
 
-#region Function to check for multiple SPF records (RFC violation)
+# Function to check for multiple SPF records (RFC violation)
 function Test-MultipleSPFRecords {
     param([string]$domain)
+
+    Write-Verbose "Test-MultipleSPFRecords: Calling $($MyInvocation.MyCommand): Processing domain: '$domain'"
 
     $multipleRecordIssues = @()
 
@@ -778,11 +763,12 @@ function Test-MultipleSPFRecords {
 
     return $multipleRecordIssues
 }
-#endregion
 
-#region Function to validate SPF macros and check for security issues
+# Function to validate SPF macros and check for security issues
 function Test-SPFMacroSecurity {
     param([string]$spfRecord)
+
+    Write-Verbose "Test-SPFMacroSecurity: Calling $($MyInvocation.MyCommand): Processing spfRecord: '$spfRecord'"
 
     $macroSecurityIssues = @()
 
@@ -875,11 +861,12 @@ function Test-SPFMacroSecurity {
 
     return $macroSecurityIssues
 }
-#endregion
 
-#region Function to check TTL for SPF sub-records (A records referenced in SPF)
+# Function to check TTL for SPF sub-records (A records referenced in SPF)
 function Test-SPFSubRecordsTTL {
     param([string]$spfRecord, [string]$domain)
+
+    Write-Verbose "Test-SPFSubRecordsTTL: Calling $($MyInvocation.MyCommand): Processing spfRecord: '$spfRecord' for domain: '$domain'"
 
     $subRecordIssues = @()
     $checkedRecords = @()
@@ -988,9 +975,8 @@ function Test-SPFSubRecordsTTL {
 
     return $subRecordIssues
 }
-#endregion
 
-#region Function to collect TTL values for SPF sub-records (A/MX/TXT records referenced in SPF)
+# Function to collect TTL values for SPF sub-records (A/MX/TXT records referenced in SPF)
 function Get-SPFSubRecordsTTLValues {
     param([string]$spfRecord, [string]$domain)
 
@@ -1117,9 +1103,8 @@ function Get-SPFSubRecordsTTLValues {
 
     return $subRecordTTLValues
 }
-#endregion
 
-#region Function to extract DKIM key length from public key
+# Function to extract DKIM key length from public key
 function Get-DKIMKeyLength {
     param([string]$dkimRecord)
 
@@ -1251,9 +1236,8 @@ function Get-DKIMKeyLength {
         }
     }
 }
-#endregion
 
-#region Helper function to get DKIM key status
+# Helper function to get DKIM key status
 function Get-DKIMKeyStatus {
     param([string]$dkimRecord)
 
@@ -1280,9 +1264,8 @@ function Get-DKIMKeyStatus {
 
     return "UNKNOWN"
 }
-#endregion
 
-#region Function to get authoritative DNS servers and their IP addresses for a domain
+# Function to get authoritative DNS servers and their IP addresses for a domain
 function Get-AuthoritativeDNSServers {
     param([string]$domain)
 
@@ -1340,9 +1323,8 @@ function Get-AuthoritativeDNSServers {
 
     return $authServers
 }
-#endregion
 
-#region Function to perform DNS query against authoritative servers
+# Function to perform DNS query against authoritative servers
 function Resolve-DnsNameAuthoritative {
     param(
         [string]$Name,
@@ -1407,14 +1389,15 @@ function Resolve-DnsNameAuthoritative {
 
     return $results
 }
-#endregion
 
-#region Function to validate domain name format
+# Function to validate domain name format
 function Test-DomainFormat {
     param(
         [string]$DomainName,
         [string]$Context = "domain"
     )
+
+    Write-Verbose "Test-DomainFormat: Calling $($MyInvocation.MyCommand): Processing domain: '$DomainName' in context: '$Context'"
 
     # Check for invalid characters based on context
     $invalidChars = @()
@@ -1467,9 +1450,8 @@ function Test-DomainFormat {
 
     return $true
 }
-#endregion
 
-#region Function to analyze Authentication-Results for DMARC Pass check
+# Function to analyze Authentication-Results for DMARC Pass check
 function Get-AuthenticationResults {
     param([string]$HeaderContent)
 
@@ -1511,7 +1493,7 @@ function Get-AuthenticationResults {
     # Parse Authentication-Results header for individual components
     # Enhanced regex to capture only Authentication-Results headers that start with spf= and end with reason=
     # This excludes ARC-Authentication-Results and other unwanted headers
-    $authResultsMatches = [regex]::Matches($HeaderContent, '(?<!ARC-)Authentication-Results:\s*(spf=.*?reason=[^\r\n]*)', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase -bor [System.Text.RegularExpressions.RegexOptions]::Singleline)
+    $authResultsMatches = [regex]::Matches($HeaderContent, '(?<!ARC-)Authentication-Results:\s*(spf=.*?reason=[^\r\n]*)', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase -bor [System.Text.RegularExpressions.RegexOptions]::SingleLine)
 
     foreach ($match in $authResultsMatches) {
         $authFullHeader = $match.Groups[0].Value  # Complete header including "Authentication-Results:"
@@ -1758,9 +1740,8 @@ function Get-AuthenticationResults {
 
     return $authResults
 }
-#endregion
 
-#region Function to parse email headers and extract domains from smtp.mailfrom and header.from
+# Function to parse email headers and extract domains from smtp.mailfrom and header.from
 function Get-DomainsFromEmailHeaders {
     param([string]$FilePath)
 
@@ -2042,9 +2023,8 @@ function Get-DomainsFromEmailHeaders {
         return @()
     }
 }
-#endregion
 
-#region Function to calculate check percentages for donut charts
+# Function to calculate check percentages for donut charts
 function Get-ProtocolCheckPercentage {
     param(
         [PSCustomObject]$result,
@@ -2113,9 +2093,8 @@ function Get-ProtocolCheckPercentage {
 
     return 0
 }
-#endregion
 
-#region Function to generate enhanced interactive segmented donut chart SVG
+# Function to generate enhanced interactive segmented donut chart SVG
 function Add-SegmentedDonutChart {
     param($checks, $protocol)
 
@@ -2184,9 +2163,8 @@ function Add-SegmentedDonutChart {
 
     return $svg
 }
-#endregion
 
-#region Function to get individual check results for segmented charts
+# Function to get individual check results for segmented charts
 function Get-ProtocolCheckDetails {
     param($result, $protocol)
 
@@ -2325,9 +2303,8 @@ function Get-ProtocolCheckDetails {
 
     return $checks
 }
-#endregion
 
-#region Function to get explanation for authentication reason codes
+# Function to get explanation for authentication reason codes
 function Get-ReasonCodeExplanation {
     param(
         [string]$ReasonCode
@@ -2370,7 +2347,6 @@ function Get-ReasonCodeExplanation {
     # Return empty string if no pattern matches
     return ""
 }
-#endregion
 
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 
@@ -2468,7 +2444,7 @@ if ($Domain) {
 }
 
 # Common DKIM selectors to check - expanded list for better detection
-$commonSelectors = @("default", "selector1", "selector2", "google", "gmail", "k1", "k2", "dkim", "mail", "email", "s1", "s2", "smtpapi", "amazonses", "mandrill", "mailgun", "pm", "zendesk1", "mxvault")
+$commonSelectors = @("default", "selector1", "selector2", "Google", "Gmail", "k1", "k2", "dkim", "mail", "email", "s1", "s2", "smtpapi", "AmazonSES", "Mandrill", "Mailgun", "pm", "Zendesk1", "mxvault")
 
 foreach ($domain in $domains) {
     Write-Host "Analyzing domain: $domain" -ForegroundColor Yellow
