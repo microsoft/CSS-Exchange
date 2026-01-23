@@ -216,20 +216,38 @@ function Invoke-AnalyzerSecurityAMSIConfigState {
             $amsiRequestBodyScanningDisabledProtocols.Count -gt 0) -and
             $amsiRequestBodyScanningEnabledProtocols.ParameterName -notcontains "EnabledAll") {
 
-            if ($defaultEnabledAll) {
-                # Aug25SU+ has body scanning enabled by default for all protocols.
-                # Show which protocols are explicitly disabled, or confirm default-enabled state.
-                if ($amsiRequestBodyScanningDisabledProtocols.Count -gt 0) {
-                    $disabledProtocols = $amsiRequestBodyScanningDisabledProtocols | ForEach-Object { $_.ParameterName -replace "^Enabled", "" }
-                    $protocolsDisplay = "Body scanning is disabled via Setting Override for protocols: " + ($disabledProtocols -join ", ")
+            if ($isAug25SuOrGreater) {
+                Write-Verbose "Aug25SU or greater detected - adjusting protocol display logic accordingly"
+
+                # Aug25SU+ has body scanning enabled by default for all protocols
+                # You must set EnabledAll=False to disable globally, then enable individual protocols as needed
+                if ($amsiRequestBodyScanningDisabledProtocols.ParameterName -contains "EnabledAll") {
+                    if ($amsiRequestBodyScanningEnabledProtocols.Count -gt 0) {
+                        Write-Verbose "EnabledAll=False detected via Setting Override and individual protocols enabled - adjusting protocol display accordingly"
+                        $enabledProtocols = $amsiRequestBodyScanningEnabledProtocols | ForEach-Object { $_.ParameterName -replace "^Enabled", "" }
+                        $protocolsDisplay = "Enabled for protocols: " + ($enabledProtocols -join ", ")
+                    } else {
+                        Write-Verbose "EnabledAll=False detected via Setting Override but no individual protocols enabled - adjusting protocol display accordingly"
+                        $protocolsDisplay = "Body scanning is disabled via Setting Override for all protocols"
+                    }
                 } else {
+                    Write-Verbose "EnabledAll not explicitly disabled - per protocol settings will be ignored since default is enabled for all protocols"
                     $protocolsDisplay = "Body scanning enabled by default for all protocols"
                 }
             } else {
-                # Pre-Aug25SU or EnabledAll explicitly disabled: show which protocols are explicitly enabled.
-                $enabledProtocols = $amsiRequestBodyScanningEnabledProtocols | ForEach-Object { $_.ParameterName -replace "^Enabled", "" }
-                $protocolsDisplay = "Enabled for protocols: " + ($enabledProtocols -join ", ")
+                Write-Verbose "Pre-Aug25SU detected - using standard protocol display logic"
+                # Pre-Aug25SU: body scanning is disabled by default, show which protocols are explicitly enabled.
+                # Note: EnabledAll=True case is already handled by the outer condition (skips this block entirely).
+                if ($amsiRequestBodyScanningEnabledProtocols.Count -eq 0) {
+                    # Only disabled protocol overrides exist - no protocols have body scanning enabled
+                    $protocolsDisplay = "Body scanning is disabled for all protocols"
+                } else {
+                    # Individual protocols are explicitly enabled via Setting Override
+                    $enabledProtocols = $amsiRequestBodyScanningEnabledProtocols | ForEach-Object { $_.ParameterName -replace "^Enabled", "" }
+                    $protocolsDisplay = "Enabled for protocols: " + ($enabledProtocols -join ", ")
+                }
             }
+
             $params = $baseParams + @{
                 Details                = $protocolsDisplay
                 DisplayCustomTabNumber = 2
