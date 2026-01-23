@@ -153,7 +153,7 @@ function Invoke-AnalyzerSecurityAMSIConfigState {
         Write-Verbose "Enabled All Default Value Set to '$defaultEnabledAll'"
 
         # Collect Setting Overrides that explicitly enable body scanning for specific protocols (e.g., EnabledEcp=True)
-        $amsiRequestBodyScanningEnabledProtocols = $amsiRequestBodyScanning | Where-Object { $_.ParameterValue -eq "True" }
+        [array]$amsiRequestBodyScanningEnabledProtocols = $amsiRequestBodyScanning | Where-Object { $_.ParameterValue -eq "True" }
 
         # Determine if AMSI body scanning is enabled (for any protocol):
         # Case 1: Default enabled (Aug25SU+ without explicit disable) - covered by $defaultEnabledAll
