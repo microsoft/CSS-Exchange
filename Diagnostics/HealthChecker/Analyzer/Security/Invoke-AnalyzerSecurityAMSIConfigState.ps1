@@ -40,12 +40,15 @@ function Invoke-AnalyzerSecurityAMSIConfigState {
     Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -Version "ExchangeSE" -CU "RTM" |
         Invoke-RemotePipelineHandler -Result ([ref]$isExSeRtmPlus)
 
+    # AMSI is available starting with Windows Server 2016
     if (($osInformation.BuildInformation.BuildVersion -ge [System.Version]"10.0.0.0") -and
         (($isE16CU21Plus) -or
         ($isE19CU10Plus) -or
         ($isExSeRtmPlus)) -and
         ($exchangeInformation.GetExchangeServer.IsEdgeServer -eq $false)) {
 
+        # Query Setting Override configuration that controls AMSI integration in Exchange Server.
+        # The "Cafe\HttpRequestFiltering\Enabled" setting determines whether AMSI scanning is active.
         $filterSettingOverrideParams = @{
             ExchangeSettingOverride = $HealthServerObject.ExchangeInformation.SettingOverrides
             GetSettingOverride      = $HealthServerObject.OrganizationInformation.GetSettingOverride
@@ -56,7 +59,7 @@ function Invoke-AnalyzerSecurityAMSIConfigState {
             FilterParameterName     = "Enabled"
         }
 
-        # Only thing that is returned is Accepted values and unique
+        # Query returns only accepted (valid) and unique Setting Override values that apply to this server
         $amsiInformation = $null
         Get-FilteredSettingOverrideInformation @filterSettingOverrideParams | Invoke-RemotePipelineHandlerList -Result ([ref]$amsiInformation)
         $amsiWriteType = "Yellow"
@@ -67,7 +70,7 @@ function Invoke-AnalyzerSecurityAMSIConfigState {
         $additionalAMSIDisplayValue = $null
 
         if ($amsiInformation.Count -eq 0) {
-            # No results returned, no matches therefore good.
+            # No Setting Override found means AMSI uses the default state (enabled) - this is the expected secure configuration
             $amsiWriteType = "Green"
             $amsiState = "True"
         } elseif ($amsiInformation -eq "Unknown") {
@@ -105,50 +108,93 @@ function Invoke-AnalyzerSecurityAMSIConfigState {
         }
 
         <#
-            AMSI Needs to be enabled in order for Request Body Scanning to work. If Aug25SU is installed, EnabledAll is set to true by default.
-            - If request body scanning is enabled, but AMSI is disabled, call out this misconfiguration
-            - If request body max size is enabled, if the HTTP request body size is over 1MB regardless if AMSI is enabled,
-                it will be rejected.
-            - If request body scanning is enabled and AMSI is enabled, then just show enabled.
+            AMSI Request Body Scanning Feature (introduced with Nov24SUenabled by default starting with Aug25SU):
+            This feature extends AMSI protection to scan HTTP request bodies, not just URLs/headers.
+
+            Prerequisites:
+            - AMSI must be enabled (HttpRequestFiltering\Enabled = True) for body scanning to work
+            - Starting with Aug25SU, EnabledAll defaults to True (body scanning enabled for all protocols)
+
+            Configuration scenarios we check for:
+            1. Body scanning enabled + AMSI enabled = Good (show as enabled)
+            2. Body scanning enabled + AMSI disabled = Misconfiguration warning (body scanning won't work)
+            3. Body size blocking enabled = Warning that requests over 1MB will be rejected (works regardless of AMSI state)
         #>
 
         $isAug25SuOrGreater = Test-ExchangeBuildGreaterOrEqualThanSecurityPatch -CurrentExchangeBuild $exchangeInformation.BuildInformation.VersionInformation -SUName "Aug25SU"
         $amsiStateEnabled = "true" -eq $amsiState
+
+        # Query Setting Override for AMSI body scanning - can be enabled globally (EnabledAll) or per-protocol
+        # Protocols include: Api, AutoD, Ecp, Ews, Mapi, Eas, Oab, Owa, PowerShell, Others
         $filterSettingOverrideParams.FilterSectionName = "AmsiRequestBodyScanning"
         $filterSettingOverrideParams.FilterParameterName = @("EnabledAll", "EnabledApi", "EnabledAutoD", "EnabledEcp",
             "EnabledEws", "EnabledMapi", "EnabledEas", "EnabledOab", "EnabledOwa", "EnabledPowerShell", "EnabledOthers")
         [array]$amsiRequestBodyScanning = $null
+
         Get-FilteredSettingOverrideInformation @filterSettingOverrideParams | Invoke-RemotePipelineHandlerList -Result ([ref]$amsiRequestBodyScanning)
+
+        # Query Setting Override for request body size blocking feature.
+        # When enabled, HTTP requests with bodies larger than 1MB are blocked entirely.
+        # WARNING: This blocking occurs regardless of whether AMSI is enabled or disabled.
         $filterSettingOverrideParams.FilterSectionName = "BlockRequestBodyGreaterThanMaxScanSize"
         [array]$amsiBlockRequestBodyGreater = $null
+
         Get-FilteredSettingOverrideInformation @filterSettingOverrideParams | Invoke-RemotePipelineHandlerList -Result ([ref]$amsiBlockRequestBodyGreater)
+
+        # Extract any "EnabledAll" Setting Override values - this parameter controls body scanning for all protocols at once
         [array]$enabledAllValues = $amsiRequestBodyScanning | Where-Object { $_.ParameterName -eq "EnabledAll" }
-        $defaultEnabledAll = $isAug25SuOrGreater -and ($null -eq ($enabledAllValues | Where-Object { $_.ParameterValue -eq "False" }))
+
+        # Extract any "EnabledAll=False" Setting Overrides - these explicitly disable body scanning for all protocols
+        [array]$enabledAllFalseValues = $enabledAllValues | Where-Object { $_.ParameterValue -eq "False" }
+
+        # Determine if body scanning is enabled by default for all protocols:
+        # True if: running Aug25SU or later (where EnabledAll defaults to True) AND no Setting Override explicitly disables it
+        $defaultEnabledAll = $isAug25SuOrGreater -and ($null -eq $enabledAllFalseValues)
         Write-Verbose "Enabled All Default Value Set to '$defaultEnabledAll'"
-        $amsiRequestBodyScanningEnabled = $defaultEnabledAll -or ($amsiRequestBodyScanning.Count -gt 0 -and
-            ($null -ne ($amsiRequestBodyScanning | Where-Object { $_.ParameterValue -eq "True" })))
+
+        # Collect Setting Overrides that explicitly enable body scanning for specific protocols (e.g., EnabledEcp=True)
+        $amsiRequestBodyScanningEnabledProtocols = $amsiRequestBodyScanning | Where-Object { $_.ParameterValue -eq "True" }
+
+        # Determine if AMSI body scanning is enabled (for any protocol):
+        # Case 1: Default enabled (Aug25SU+ without explicit disable) - covered by $defaultEnabledAll
+        # Case 2: Explicitly enabled via Setting Override for at least one protocol, AND EnabledAll is not set to False
+        $amsiRequestBodyScanningEnabled = $defaultEnabledAll -or
+        ($null -ne ($amsiRequestBodyScanning | Where-Object { $_.ParameterValue -eq "True" }) -and
+        $null -eq $enabledAllFalseValues)
+
+        # Check if request body size blocking is explicitly enabled via Setting Override
         $amsiBlockRequestBodyEnabled = $amsiBlockRequestBodyGreater.Count -gt 0 -and
         ($null -ne ($amsiBlockRequestBodyGreater | Where-Object { $_.ParameterValue -eq "True" }))
+
+        # Calculate display value: True only if both AMSI and body scanning are enabled
         $requestBodyDisplayValue = $amsiStateEnabled -and $amsiRequestBodyScanningEnabled
         $requestBodyDisplayType = $requestBodySizeBlockDisplayType = "Grey"
         $requestBodySizeBlockDisplayValue = $false
 
+        # Warn if body size blocking is enabled - this can impact legitimate large requests (e.g., file uploads)
         if ($amsiBlockRequestBodyEnabled) {
             $requestBodySizeBlockDisplayValue = "$true - WARNING: Requests over 1MB will be blocked."
             $requestBodySizeBlockDisplayType = "Yellow"
             $amsiMoreInformationDisplay = $true
         }
 
+        # Check for misconfiguration: body scanning features configured but AMSI itself is disabled
         if ($amsiStateEnabled -eq $false) {
+            # Body scanning requires AMSI to be enabled - warn about this ineffective configuration
             if ($amsiRequestBodyScanningEnabled) {
                 $requestBodyDisplayValue = "$true - WARNING: AMSI not enabled"
                 $requestBodyDisplayType = "Yellow"
                 $amsiMoreInformationDisplay = $true
             }
+            # Body size blocking works independently of AMSI state - warn that blocking will still occur
             if ($amsiBlockRequestBodyEnabled) {
                 $requestBodySizeBlockDisplayValue += " AMSI not enabled and this will still be triggered."
                 $amsiMoreInformationDisplay = $true
             }
+        }
+
+        if ($amsiRequestBodyScanningEnabled -eq $false) {
+            $requestBodyDisplayType = "Yellow"
         }
 
         $params = $baseParams + @{
@@ -157,6 +203,21 @@ function Invoke-AnalyzerSecurityAMSIConfigState {
             DisplayWriteType = $requestBodyDisplayType
         }
         Add-AnalyzedResultInformation @params
+
+        # Display which specific protocols have body scanning enabled via Setting Overrides.
+        # Skip this if EnabledAll is used, since that already covers all protocols and listing them would be redundant.
+        if ($amsiRequestBodyScanningEnabled -and
+            $amsiRequestBodyScanningEnabledProtocols.Count -gt 0 -and
+            $amsiRequestBodyScanningEnabledProtocols.ParameterName -notcontains "EnabledAll") {
+            $enabledProtocols = $amsiRequestBodyScanningEnabledProtocols | ForEach-Object { $_.ParameterName -replace "^Enabled", "" }
+            $protocolsDisplay = "Enabled for protocols: " + ($enabledProtocols -join ", ")
+            $params = $baseParams + @{
+                Details                = $protocolsDisplay
+                DisplayCustomTabNumber = 2
+                DisplayWriteType       = $requestBodyDisplayType
+            }
+            Add-AnalyzedResultInformation @params
+        }
 
         $params = $baseParams + @{
             Name             = "AMSI Request Body Size Block"
