@@ -66,7 +66,7 @@ function Get-CloudServiceEndpoint {
                 $environmentName = "DelosCloud"
                 $graphApiEndpoint = "https://graph.svc.sovcloud.de"
                 $exchangeOnlineEndpoint = "https://outlook.sovcloud.de"
-                $autodiscoverSecureName = "autodiscover-s.outlook.sovcloud.de"
+                $autodiscoverSecureName = "https://autodiscover-s.outlook.sovcloud.de"
                 $azureADEndpoint = "https://login.sovcloud-identity.de"
                 break
             }
