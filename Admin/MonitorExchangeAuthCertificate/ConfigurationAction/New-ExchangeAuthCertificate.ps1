@@ -4,6 +4,7 @@
 . $PSScriptRoot\..\DataCollection\Get-ExchangeServerCertificate.ps1
 . $PSScriptRoot\..\..\..\Shared\ActiveDirectoryFunctions\Get-InternalTransportCertificateFromServer.ps1
 . $PSScriptRoot\..\..\..\Shared\CertificateFunctions\Import-ExchangeCertificateFromRawData.ps1
+. $PSScriptRoot\..\..\..\Shared\CertificateFunctions\New-ExchangeSelfSignedCertificate.ps1
 . $PSScriptRoot\..\..\..\Shared\Invoke-CatchActionError.ps1
 
 function New-ExchangeAuthCertificate {
@@ -18,6 +19,11 @@ function New-ExchangeAuthCertificate {
 
         [Parameter(Mandatory = $true, ParameterSetName = "NewNextAuthCert")]
         [int]$CurrentAuthCertificateLifetimeInDays,
+
+        [Parameter(Mandatory = $false, ParameterSetName = "NewPrimaryAuthCert")]
+        [Parameter(Mandatory = $false, ParameterSetName = "NewNextAuthCert")]
+        [ValidateScript({ $_ -ge 0 })]
+        [int]$NewAuthCertificateLifetimeInDays,
 
         [Parameter(Mandatory = $false, ParameterSetName = "NewPrimaryAuthCert")]
         [Parameter(Mandatory = $false, ParameterSetName = "NewNextAuthCert")]
@@ -98,6 +104,16 @@ function New-ExchangeAuthCertificate {
                     FriendlyName         = $authCertificateFriendlyName
                     DomainName           = @()
                     ErrorAction          = "Stop"
+                }
+
+                $newCustomAuthCertificateParams = @{
+                    AlgorithmType               = "RSA"
+                    UseRSACryptoServiceProvider = $true # Make sure to set this to true as the certificate can't be used as Auth Certificate otherwise
+                    KeySize                     = 2048
+                    LifetimeInDays              = $NewAuthCertificateLifetimeInDays
+                    SubjectName                 = "Microsoft Exchange Server Auth Certificate"
+                    FriendlyName                = $authCertificateFriendlyName
+                    DomainName                  = @()
                 }
 
                 if ($PSCmdlet.ShouldProcess($env:COMPUTERNAME, $confirmationMessage, "Unattended Exchange certificate generation")) {
@@ -187,7 +203,17 @@ function New-ExchangeAuthCertificate {
                 Write-Verbose ("Starting Auth Certificate creation process")
                 try {
                     if ($PSCmdlet.ShouldProcess("New-ExchangeCertificate", "Generate new Auth Certificate")) {
-                        $newAuthCertificate = New-ExchangeCertificate @newAuthCertificateParams
+                        if ($NewAuthCertificateLifetimeInDays -gt 0) {
+                            Write-Verbose "Creating a custom self-signed certificate with a lifetime of $NewAuthCertificateLifetimeInDays days"
+                            $newAuthCertificate = New-ExchangeSelfSignedCertificate @newCustomAuthCertificateParams
+                        } else {
+                            Write-Verbose "Creating a default self-signed certificate with a lifetime of 5 years"
+                            $certObject = New-ExchangeCertificate @newAuthCertificateParams
+                            $newAuthCertificate = [PSCustomObject]@{
+                                Thumbprint = $certObject.Thumbprint
+                                Subject    = $certObject.Subject
+                            }
+                        }
                         Start-Sleep -Seconds 5
                     } else {
                         $newAuthCertificateParams.GetEnumerator() | ForEach-Object {
