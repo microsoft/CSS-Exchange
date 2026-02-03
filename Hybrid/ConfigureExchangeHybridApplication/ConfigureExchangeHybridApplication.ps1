@@ -51,7 +51,7 @@
 .PARAMETER AzureEnvironment
     Use this parameter to run the script against non-Global cloud environments, for example, Microsoft 365 operated by 21Vianet.
     This parameter allows you to run granular configurations. Note that some of the tasks depend on others and can't be run alone.
-    Values that can be used with this parameter are: Global, USGovernmentL4, USGovernmentL5, ChinaCloud
+    Values that can be used with this parameter are: Global, USGovernmentL4, USGovernmentL5, ChinaCloud, BleuCloud, DelosCloud
     The default value is: Global
 .PARAMETER CustomClientId
     This parameter is reserved for internal Microsoft use. Do not use it unless explicitly advised by Microsoft.
@@ -156,7 +156,7 @@ param(
     [Parameter(Mandatory = $false, ParameterSetName = "FirstPartyKeyCredentialsCleanup")]
     [switch]$ResetFirstPartyServicePrincipalKeyCredentials,
 
-    [ValidateSet("Global", "USGovernmentL4", "USGovernmentL5", "ChinaCloud")]
+    [ValidateSet("Global", "USGovernmentL4", "USGovernmentL5", "ChinaCloud", "BleuCloud", "DelosCloud")]
     [Parameter(Mandatory = $false, ParameterSetName = "FullyConfigureExchangeHybridApplication")]
     [Parameter(Mandatory = $false, ParameterSetName = "FirstPartyKeyCredentialsCleanup")]
     [Parameter(Mandatory = $false, ParameterSetName = "Create")]

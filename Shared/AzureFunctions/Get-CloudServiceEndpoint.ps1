@@ -54,6 +54,22 @@ function Get-CloudServiceEndpoint {
                 $azureADEndpoint = "https://login.partner.microsoftonline.cn"
                 break
             }
+            "BleuCloud" {
+                $environmentName = "BleuCloud"
+                $graphApiEndpoint = "https://graph.svc.sovcloud.fr"
+                $exchangeOnlineEndpoint = "https://outlook.sovcloud.fr"
+                $autodiscoverSecureName = "https://autodiscover-s.outlook.sovcloud.fr"
+                $azureADEndpoint = "https://login.sovcloud-identity.fr"
+                break
+            }
+            "DelosCloud" {
+                $environmentName = "DelosCloud"
+                $graphApiEndpoint = "https://graph.svc.sovcloud.de"
+                $exchangeOnlineEndpoint = "https://outlook.sovcloud.de"
+                $autodiscoverSecureName = "https://autodiscover-s.outlook.sovcloud.de"
+                $azureADEndpoint = "https://login.sovcloud-identity.de"
+                break
+            }
         }
     }
     end {
