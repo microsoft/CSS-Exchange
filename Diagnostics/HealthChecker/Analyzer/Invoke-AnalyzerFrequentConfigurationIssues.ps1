@@ -425,7 +425,7 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     }
 
     if ($null -ne $exchangeInformation.GetTransportService) {
-        if ($exchangeInformation.GetTransportService.MaxPerDomainOutboundConnections -lt 40) {
+        if ([int]($exchangeInformation.GetTransportService.MaxPerDomainOutboundConnections) -lt 40) {
             $params = $baseParams + @{
                 Name             = "MaxPerDomainOutboundConnections"
                 Details          = "Value set to $($exchangeInformation.GetTransportService.MaxPerDomainOutboundConnections), which is less than the recommended value of 40. `r`n`t`tMore details: https://aka.ms/HC-TransportRetryConfigCheck"
