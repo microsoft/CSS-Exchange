@@ -5265,6 +5265,9 @@
 <p>The following syntax executes the script in scheduled task mode, but it doesn't create the <code>SystemMailbox{b963af59-3975-4f92-9d58-ad0b1fe3a1a3}@contoso.local</code> user account. Instead, the account passed via <code>AutomationAccountCredential</code> parameter is used. Should a renewal action be performed, then email notifications will be sent to <code>John.Doe@contoso.com"</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">MonitorExchangeAuthCertificate</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ConfigureScriptToRunViaScheduledTask</span> <span class="n">-AutomationAccountCredential</span> <span class="p">(</span><span class="nb">Get-Credential</span><span class="p">)</span> <span class="n">-SendEmailNotificationTo</span> <span class="s2">&quot;John.Doe@contoso.com&quot;</span>
 </code></pre></div>
+<p>The following syntax runs the script in Auth Certificate enforcement mode. In this mode, the script creates a new Auth Certificate (in this example, with a custom lifetime of 1 year) and stages it as the new next Auth Certificate. An existing new next Auth Certificate will be overwritten by the new one. The new Auth Certificate will become active as soon as the Exchange AuthAdmin servicelet processes it the next time (usually within a 12 hour timeframe).</p>
+<div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">MonitorExchangeAuthCertificate</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-EnforceNewAuthCertificateCreation</span> <span class="n">-CustomCertificateLifetimeInDays</span> <span class="n">365</span> <span class="n">-Confirm</span><span class="p">:</span><span class="nv">$false</span>
+</code></pre></div>
 <p>The following syntax runs the script in Auth Certificate export mode. In this mode, the script exports the current and (if configured) the next Auth Certificate as DER (Distinguished Encoding Rules) binary encoded <code>PKCS #12</code> files, using the <code>.pfx</code> file name extension.</p>
 <p>The naming syntax for the exported .pfx file is: <code>&lt;CertificateThumbprint&gt;-&lt;Timestamp&gt;.pfx</code></p>
 <div class="highlight"><pre><span></span><code><span class="nb">PS </span><span class="n">C</span><span class="p">:\&gt;</span> <span class="p">.\</span><span class="n">MonitorExchangeAuthCertificate</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ExportAuthCertificatesAsPfx</span>
@@ -5284,6 +5287,14 @@
 <tr>
 <td>ValidateAndRenewAuthCertificate</td>
 <td>This optional parameter enables the validation and renewal mode which will perform the required actions to replace an invalid/expired Auth Certificate or configures a new next Auth Certificate if the current Auth Certificate expires in &lt; 60 days or the certificate configured as next Auth Certificate expires in &lt; 120 days.</td>
+</tr>
+<tr>
+<td>EnforceNewAuthCertificateCreation</td>
+<td>This optional switch parameter enforces the creation of a new Auth Certificate, which will become active within 24 hours after creation.</td>
+</tr>
+<tr>
+<td>CustomCertificateLifetimeInDays</td>
+<td>This optional parameter allows you to specify a custom lifetime in days for the new Auth Certificate.</td>
 </tr>
 <tr>
 <td>IgnoreUnreachableServers</td>
@@ -5359,7 +5370,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="October 23, 2023 17:41:09 UTC">October 23, 2023</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 6, 2025 15:13:09 UTC">June 6, 2025</span>
   </span>
 
     
