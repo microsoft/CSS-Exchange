@@ -26,6 +26,8 @@ extends:
           displayName: "Docs Check"
         - pwsh: .\.build\SpellCheck.ps1
           displayName: "Spell Check"
+          env:
+            RepositoryName: $(Build.Repository.Name)
         - pwsh: |
             cd .\.build
             .\CodeFormatter.ps1 -Branch $env:TargetBranchName
