@@ -31,7 +31,11 @@ function Test-DumpsterMapping {
             }
 
             process {
-                $dumpster = $FolderData.NonIpmEntryIdDictionary[$Folder.DumpsterEntryId]
+                $dumpster = $null
+
+                if (-not ([string]::IsNullOrEmpty($Folder.DumpsterEntryId))) {
+                    $dumpster = $FolderData.NonIpmEntryIdDictionary[$Folder.DumpsterEntryId]
+                }
 
                 if ($null -eq $dumpster -or
                     (-not $dumpster.Identity.StartsWith("\NON_IPM_SUBTREE\DUMPSTER_ROOT", "OrdinalIgnoreCase")) -or

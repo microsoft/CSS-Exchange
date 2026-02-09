@@ -14,7 +14,8 @@ BeforeAll {
         param(
             [Parameter(Mandatory = $true)]
             [string]$ResultsKeyName,
-            [bool]$ProcessLatestCUOnly = $false
+            [bool]$ProcessLatestCUOnly = $false,
+            [bool]$ExchangeVersionSupported = $true
         )
         $exchangeLatestCUs = $Script:results[$ResultsKeyName]
 
@@ -26,7 +27,7 @@ BeforeAll {
         $latestCU.Supported | Should -Be $true
 
         if ($noSUsYet) {
-            $latestCU.LatestSU | Should -Be $true
+            $latestCU.LatestSU | Should -Be $ExchangeVersionSupported
         } else {
 
             $allSUsOnLatestCU = (GetExchangeBuildDictionary)[$ResultsKeyName][$latestCU.CU].SU.Values |
@@ -48,7 +49,7 @@ BeforeAll {
 
             # Latest SU release should always be secure and supported
             $latestSU.Supported | Should -Be $true
-            $latestSU.LatestSU | Should -Be $true
+            $latestSU.LatestSU | Should -Be $ExchangeVersionSupported
 
             # Walk through the SUs, make sure that they are set correctly.
             # Latest Release should be always secure, the previous one just depends on the more recent release.
@@ -69,7 +70,7 @@ BeforeAll {
                 $currentSUTest.Supported | Should -Be $true # Still supported, just might not be secure.
 
                 if (-not $processedSUAlready) {
-                    $currentSUTest.LatestSU | Should -Be $true
+                    $currentSUTest.LatestSU | Should -Be $ExchangeVersionSupported
 
                     if ($notSecondVersionSU) {
                         # Once we hit a SU, processedSUAlready will be set to true, causing all remaining SUs to test false for LatestSU
@@ -101,7 +102,7 @@ BeforeAll {
             $currentSUTest.Supported | Should -Be $true # Still supported, just might not be secure.
 
             if (-not $processedSUAlready) {
-                $currentSUTest.LatestSU | Should -Be $true
+                $currentSUTest.LatestSU | Should -Be $ExchangeVersionSupported
 
                 if ($notSecondVersionSU) {
                     # Once we hit a SU, processedSUAlready will be set to true, causing all remaining SUs to test false for LatestSU
@@ -285,10 +286,10 @@ Describe "Testing Get-ExchangeBuildVersionInformation.ps1" {
             Invoke-ProcessSUProcess -ResultsKeyName "ExchangeSE"
         }
         It "Exchange 2019 SU testing" {
-            Invoke-ProcessSUProcess -ResultsKeyName "Exchange2019"
+            Invoke-ProcessSUProcess -ResultsKeyName "Exchange2019" -ExchangeVersionSupported $true #This gets set to false once ESU is no longer a thing
         }
         It "Exchange 2016 Latest SU" {
-            Invoke-ProcessSUProcess -ResultsKeyName "Exchange2019" -ProcessLatestCUOnly $true
+            Invoke-ProcessSUProcess -ResultsKeyName "Exchange2016" -ProcessLatestCUOnly $true -ExchangeVersionSupported $true #This gets set to false once ESU is no longer a thing
         }
     }
 }

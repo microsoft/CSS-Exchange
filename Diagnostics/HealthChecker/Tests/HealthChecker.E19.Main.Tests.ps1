@@ -112,7 +112,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "Registered In DNS" "True"
             TestObjectMatch "Packets Received Discarded" 0 -WriteType "Green"
 
-            $Script:ActiveGrouping.Count | Should -Be 16
+            $Script:ActiveGrouping.Count | Should -Be 17
         }
 
         It "Display Results - Frequent Configuration Issues" {
@@ -161,7 +161,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             $cveTests.Contains("CVE-2023-36434") | Should -Be $true
             $cveTests.Contains("CVE-2023-36039") | Should -Be $true
             $cveTests.Contains("ADV24199947") | Should -Be $true
-            $cveTests.Count | Should -Be 60
+            $cveTests.Count | Should -Be 62
             $downloadDomains = GetObject "CVE-2021-1730"
             $downloadDomains.DownloadDomainsEnabled | Should -Be "False"
             TestObjectMatch "Extended Protection Vulnerable" "True" -WriteType "Red"
@@ -234,7 +234,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
             TestObjectMatch "Sleepy NIC Disabled" "True"
 
-            $Script:ActiveGrouping.Count | Should -Be 18
+            $Script:ActiveGrouping.Count | Should -Be 19
         }
 
         It "Display Results - Security Settings" {
