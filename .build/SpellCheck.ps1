@@ -30,6 +30,13 @@ function DoSpellCheck {
     $cspellModule = npm -g ls cspell | Select-String "cspell@"
 
     if ([string]::IsNullOrEmpty($cspellModule)) {
+
+        if ($env:RepositoryName -ne "microsoft/CSS-Exchange") {
+            Write-Host "Not running on public pipeline. You must manually run SpellCheck to verify this step will pass. Skipping over."
+            # Need to exit to allow the pipeline to continue
+            exit 0
+        }
+
         Write-Host "Could not install cspell. Please install cspell and try again."
         exit 1
     }
