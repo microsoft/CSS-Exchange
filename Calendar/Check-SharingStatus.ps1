@@ -191,16 +191,16 @@ function ProcessCalendarSharingAcceptLogs {
         $timestamp = $entry.Timestamp
         if ([string]::IsNullOrEmpty($timestamp)) { continue }
 
-        $datePart = $timestamp.Split(" ")[0]
-        if ([string]::IsNullOrEmpty($datePart)) { continue }
+        $monthOrDay = $timestamp.Split(" ")[0]
+        if ([string]::IsNullOrEmpty($monthOrDay)) { continue }
 
-        $dayPart = $datePart.Split("/")[0]
-        if ([string]::IsNullOrEmpty($dayPart)) { continue }
+        $firstValue = $monthOrDay.Split("/")[0]
+        if ([string]::IsNullOrEmpty($firstValue)) { continue }
 
-        $dayValue = 0
-        if ([int]::TryParse($dayPart, [ref]$dayValue)) {
-            if ($dayValue -gt 12) {
-                Write-Verbose "Trying European DateTime Format - dd/MM/yyyy HH:mm:ss"
+        $valueToTest = 0
+        if ([int]::TryParse($firstValue, [ref]$valueToTest)) {
+            if ($valueToTest -gt 12) {
+                Write-Verbose "Looks like European DateTime Format - dd/MM/yyyy HH:mm:ss"
                 $culture = [System.Globalization.CultureInfo]::CreateSpecificCulture("en-GB")
                 break
             }
@@ -319,11 +319,6 @@ function GetOwnerInformation {
     }
 
     $script:OwnerMB | Format-List DisplayName, Database, ServerName, LitigationHoldEnabled, CalendarVersionStoreDisabled, CalendarRepairDisabled, RecipientType*
-
-    if ($null -eq $script:OwnerMB) {
-        Write-Host -ForegroundColor Red "Could not find Owner Mailbox [$Owner]."
-        exit
-    }
 
     Write-Host -ForegroundColor DarkYellow "Send on Behalf Granted to :"
     foreach ($del in $($script:OwnerMB.GrantSendOnBehalfTo)) {
@@ -456,7 +451,7 @@ function GetReceiverInformation {
         $script:SharingType = "ExternalSharing"
     }
 
-    $OwnerCalendarName = $($OwnerMB.DisplayName)
+    $OwnerCalendarName = $($script:OwnerMB.DisplayName)
     Write-Host -ForegroundColor Cyan "Receiver Calendar Folders (look for a copy of [$OwnerCalendarName] Calendar):"
     Write-Host -ForegroundColor Cyan "Running: 'Get-MailboxFolderStatistics -Identity $Receiver -FolderScope Calendar'"
     $CalStats = Get-MailboxFolderStatistics -Identity $Receiver -FolderScope Calendar
@@ -480,14 +475,14 @@ function GetReceiverInformation {
     }
 
     # Note $Owner has a * at the end in case we have had multiple setup for the same user, they will be appended with a " 1", etc.
-    if (($CalStats | Where-Object Name -Like $owner*) -or ($CalStats | Where-Object Name -Like "$($ownerMB.DisplayName)*" )) {
+    if (($CalStats | Where-Object Name -Like $Owner*) -or ($CalStats | Where-Object Name -Like "$($script:OwnerMB.DisplayName)*" )) {
         Write-Host -ForegroundColor Green "Looks like we might have found a copy of the Owner Calendar in the Receiver Mailbox."
         Write-Host -ForegroundColor Green "This is a good indication the there is a Modern Sharing Relationship between these users."
         Write-Host -ForegroundColor Green "If the clients use the Modern Sharing or not is a up to the client."
         $script:ModernSharing = $true
 
-        $CalStats | Where-Object Name -Like $owner* | Format-Table -a FolderPath, ItemsInFolder, FolderAndSubfolderSize
-        if (($CalStats | Where-Object Name -Like $owner*).count -gt 1) {
+        $CalStats | Where-Object Name -Like $Owner* | Format-Table -a FolderPath, ItemsInFolder, FolderAndSubfolderSize
+        if (($CalStats | Where-Object Name -Like $Owner*).count -gt 1) {
             Write-Host -ForegroundColor Yellow "Warning: Might have found more than one copy of the Owner Calendar in the Receiver Mailbox."
         }
     } else {
