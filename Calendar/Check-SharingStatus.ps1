@@ -383,22 +383,24 @@ function GetOwnerInformation {
     }
 
     # cSpell:ignore Sharees
-    Write-Host -ForegroundColor DarkYellow "`t Running 'Get-CalendarActiveSharingInformation -Identity "${Owner}:\$OwnerCalendarName"'"
-    $OwnerActiveSharingInfo = Get-CalendarActiveSharingInformation -Identity "${Owner}:\$OwnerCalendarName"
-    if ($OwnerActiveSharingInfo.ActiveShareesDataSet.Sharees.count -gt 0) {
-        Write-Host -ForegroundColor Green "`t Calendar has [$($OwnerActiveSharingInfo.ActiveShareesDataSet.Sharees.count)] Active Receivers."
-        $receivers = $OwnerActiveSharingInfo.ActiveShareesDataSet.Sharees | ForEach-Object {
-            [PSCustomObject]@{
-                EmailAddress          = $_.EmailAddress
-                SharingPermissionFlag = ($_.SharingPermissionFlags -join ",")
-                LastSyncTime          = $_.LastSyncTime
+    if (Get-Command -Name Get-CalendarActiveSharingInformation -ErrorAction SilentlyContinue) {
+        Write-Host -ForegroundColor DarkYellow "`t Running 'Get-CalendarActiveSharingInformation -Identity "${Owner}:\$OwnerCalendarName"'"
+        $OwnerActiveSharingInfo = Get-CalendarActiveSharingInformation -Identity "${Owner}:\$OwnerCalendarName"
+        if ($OwnerActiveSharingInfo.ActiveShareesDataSet.Sharees.count -gt 0) {
+            Write-Host -ForegroundColor Green "`t Calendar has [$($OwnerActiveSharingInfo.ActiveShareesDataSet.Sharees.count)] Active Receivers."
+            $receivers = $OwnerActiveSharingInfo.ActiveShareesDataSet.Sharees | ForEach-Object {
+                [PSCustomObject]@{
+                    EmailAddress          = $_.EmailAddress
+                    SharingPermissionFlag = ($_.SharingPermissionFlags -join ",")
+                    LastSyncTime          = $_.LastSyncTime
+                }
             }
-        }
-        Write-Host -ForegroundColor DarkYellow "Look for the Receiver [$Receiver] in the list of Active Receivers."
+            Write-Host -ForegroundColor DarkYellow "Look for the Receiver [$Receiver] in the list of Active Receivers."
 
-        $receivers | Format-Table -AutoSize EmailAddress, SharingPermissionFlag, LastSyncTime
-    } else {
-        Write-Host -ForegroundColor Yellow "`t Calendar has no Active Receivers according to Get-CalendarActiveSharingInformation."
+            $receivers | Format-Table -AutoSize EmailAddress, SharingPermissionFlag, LastSyncTime
+        } else {
+            Write-Host -ForegroundColor Yellow "`t Calendar has no Active Receivers according to Get-CalendarActiveSharingInformation."
+        }
     }
     Write-Host -ForegroundColor DarkYellow "`n`n`n------------------------------------------------"
 }
