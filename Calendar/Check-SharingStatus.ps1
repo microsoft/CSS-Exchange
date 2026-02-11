@@ -185,11 +185,26 @@ function ProcessCalendarSharingAcceptLogs {
     }
 
     Write-Host "Receiver [$Identity] has accepted copies of the shared calendar from the following recipients in the last 180 days:"
-    if ($csvObject.Timestamp.Substring(0, 2) -gt 12) {
-        Write-Verbose "Trying European DateTime Format - dd/MM/yyyy HH:mm:ss"
-        $culture = [System.Globalization.CultureInfo]::CreateSpecificCulture("en-GB")
-    } else {
-        $culture = [System.Globalization.CultureInfo]::CreateSpecificCulture("en-US")
+    # Try to determine date format by examining timestamps (updated to deal with 2/6/2026 5:20:07 PM)
+    $culture = [System.Globalization.CultureInfo]::CreateSpecificCulture("en-US")
+    foreach ($entry in $csvObject) {
+        $timestamp = $entry.Timestamp
+        if ([string]::IsNullOrEmpty($timestamp)) { continue }
+
+        $datePart = $timestamp.Split(" ")[0]
+        if ([string]::IsNullOrEmpty($datePart)) { continue }
+
+        $dayPart = $datePart.Split("/")[0]
+        if ([string]::IsNullOrEmpty($dayPart)) { continue }
+
+        $dayValue = 0
+        if ([int]::TryParse($dayPart, [ref]$dayValue)) {
+            if ($dayValue -gt 12) {
+                Write-Verbose "Trying European DateTime Format - dd/MM/yyyy HH:mm:ss"
+                $culture = [System.Globalization.CultureInfo]::CreateSpecificCulture("en-GB")
+                break
+            }
+        }
     }
 
     try {
@@ -335,7 +350,7 @@ function GetOwnerInformation {
     $OwnerCalendarPerms | Format-Table -a User, AccessRights, SharingPermissionFlags
 
     # Warn if the size is greater than 1 GB
-    if ([int]$OwnerCalendarStats[0].FolderSize.Split("(")[1].Replace(" bytes)", "") -gt 1000000000) {
+    if ([int64]$OwnerCalendarStats[0].FolderSize.Split("(")[1].Replace(" bytes)", "").Replace(",", "") -gt 1000000000) {
         Write-Host -ForegroundColor Yellow "Warning: Owner Calendar size is greater than 1 GB. This can impact calendar performance."
         Write-Host -ForegroundColor Yellow "`t Consider archiving old calendar items or reducing the size of attachments in calendar items."
     }
