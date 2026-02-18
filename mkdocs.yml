@@ -84,6 +84,7 @@ nav:
     - Test-HMAEAS: Hybrid/Test-HMAEAS.md
   - M365:
     - MDO:
+      - EmailAuthChecker: M365/MDO/EmailAuthChecker.md
       - MDOThreatPolicyChecker: M365/MDO/MDOThreatPolicyChecker.md
       - ResendFailedMail: M365/MDO/ResendFailedMail.md
     - DLT365Groupsupgrade: M365/DLT365Groupsupgrade.md
