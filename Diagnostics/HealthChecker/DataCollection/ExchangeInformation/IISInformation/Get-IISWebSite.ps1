@@ -1,6 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\ConvertTo-PSObject.ps1
+
 function Get-IISWebSite {
     [CmdletBinding()]
     param()
@@ -18,8 +20,35 @@ function Get-IISWebSite {
 
     foreach ($site in $webSites) {
         Write-Verbose "Working on Site: $($site.Name)"
-        $siteBindings = $bindings |
+        [array]$siteBindings = $bindings |
             Where-Object { $_.ItemXPath -like "*@name='$($site.name)' and @id='$($site.id)'*" }
+
+        # Convert the object to prevent serialization issues
+        $siteBindingsConvertedList = New-Object System.Collections.Generic.List[object]
+
+        foreach ($binding in $siteBindings) {
+            $convertedSiteBindings = $null
+            $params = @{
+                ObjectToConvert     = $binding
+                ObjectTypeToConvert = "Microsoft.IIs.PowerShell.Framework*"
+                PropertiesToSkip    = @("ChildElements", "Attributes", "Schema", "ConfigurationPathType", "ElementTagName", "Methods")
+            }
+
+            try {
+                ConvertTo-PSObject @params | Invoke-RemotePipelineHandler -Result ([ref]$convertedSiteBindings)
+            } catch {
+                Write-Verbose "Failed to convert the object. Inner Exception: $_"
+                Invoke-CatchActions
+            }
+
+            if ($null -eq $convertedSiteBindings -and $null -ne $binding) {
+                Write-Verbose "ConvertTo-PSObject failed to return an object for Site Bindings. Using old object."
+                $convertedSiteBindings = $binding
+            }
+
+            $siteBindingsConvertedList.Add($convertedSiteBindings)
+        }
+
         # Logic should be consistent for all ways we call Get-WebConfigFile
         try {
             $configurationFilePath = (Get-WebConfigFile "IIS:\Sites\$($site.Name)").FullName
@@ -134,23 +163,44 @@ function Get-IISWebSite {
             $physicalPath = $site.physicalPath.Replace("%windir%", $env:windir).Replace("%SystemDrive%", $env:SystemDrive)
         }
 
+        # Convert the object to prevent serialization issues
+        $convertedObject = $null
+        $params = @{
+            ObjectToConvert     = $site
+            ObjectTypeToConvert = "Microsoft.IIs.PowerShell.Framework*"
+            PropertiesToSkip    = @("ChildElements", "Attributes", "Schema", "ConfigurationPathType", "ElementTagName", "Methods")
+        }
+
+        try {
+            ConvertTo-PSObject @params | Invoke-RemotePipelineHandler -Result ([ref]$convertedObject)
+        } catch {
+            Write-Verbose "Failed to convert the object. Inner Exception: $_"
+            Invoke-CatchActions
+        }
+
+        if ($null -eq $convertedObject -and
+            $null -ne $site) {
+            Write-Verbose "ConvertTo-PSObject failed to return an object. Using the default object."
+            $convertedObject = $site
+        }
+
         $returnList.Add([PSCustomObject]@{
-                Name                       = $site.Name
-                Id                         = $site.Id
-                State                      = $site.State
-                Bindings                   = $siteBindings
-                Limits                     = $site.Limits
-                LogFile                    = $site.logFile
-                TraceFailedRequestsLogging = $site.traceFailedRequestsLogging
+                Name                       = $convertedObject.Name
+                Id                         = $convertedObject.Id
+                State                      = $convertedObject.State
+                Bindings                   = $siteBindingsConvertedList
+                Limits                     = $convertedObject.Limits
+                LogFile                    = $convertedObject.logFile
+                TraceFailedRequestsLogging = $convertedObject.traceFailedRequestsLogging
                 Hsts                       = [PSCustomObject]@{
-                    NativeHstsSettings  = $site.hsts
+                    NativeHstsSettings  = $convertedObject.hsts
                     HstsViaCustomHeader = $customHeaderHstsObj
                 }
-                ApplicationDefaults        = $site.applicationDefaults
-                VirtualDirectoryDefaults   = $site.virtualDirectoryDefaults
-                Collection                 = $site.collection
-                ApplicationPool            = $site.applicationPool
-                EnabledProtocols           = $site.enabledProtocols
+                ApplicationDefaults        = $convertedObject.applicationDefaults
+                VirtualDirectoryDefaults   = $convertedObject.virtualDirectoryDefaults
+                Collection                 = $convertedObject.collection
+                ApplicationPool            = $convertedObject.applicationPool
+                EnabledProtocols           = $convertedObject.enabledProtocols
                 PhysicalPath               = $physicalPath
                 ConfigurationFileInfo      = [PSCustomObject]@{
                     Location = $configurationFilePath
