@@ -32,7 +32,9 @@ the remaining folders are ones that are experiencing permanent failures.
 First, generate your input file to tell the script which folders to export.
 This can be the entire hierarchy or a subset:
 
+```powershell
 Get-PublicFolder "\Some\Folder" -Recurse -ResultSize Unlimited | Export-Csv PublicFoldersToExport.csv
+```
 
 Provide that file to the script. This is how it will determine the difference
 between what it needs to export and what is already exported.
