@@ -106,6 +106,7 @@ nav:
       - ModernPublicFolderToMailboxMapGenerator: PublicFolders/Migration/ModernPublicFolderToMailboxMapGenerator.md
       - SetMailPublicFolderExternalAddress: PublicFolders/Migration/SetMailPublicFolderExternalAddress.md
       - Sync-ModernMailPublicFolders: PublicFolders/Migration/Sync-ModernMailPublicFolders.md
+    - Export-PublicFolderStatistics: PublicFolders/Export-PublicFolderStatistics.md
     - SourceSideValidations: PublicFolders/SourceSideValidations.md
     - Update-PublicFolderPermissions: PublicFolders/Update-PublicFolderPermissions.md
     - ValidateMailEnabledPublicFolders: PublicFolders/ValidateMailEnabledPublicFolders.md
