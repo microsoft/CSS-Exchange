@@ -78,6 +78,20 @@ Write-Host "Public folders already exported: $($foldersAlreadyExported.Count)"
 $publicFolders = $publicFolders | Where-Object { $foldersAlreadyExported.Contains($_.Identity.ToString()) -eq $false }
 Write-Host "Public folders remaining to process: $($publicFolders.Count)"
 
+# Sanitize a string value for safe inclusion in a CSV file. Values that begin
+# with characters recognised as formula triggers by spreadsheet applications
+# (=, +, -, @, or tab) are prefixed with a single quote so they are treated as text.
+function ConvertTo-SafeCsvValue {
+    param ([string]$Value)
+    if ([string]::IsNullOrEmpty($Value)) {
+        return $Value
+    }
+    if ($Value -match '^[=+\-@\t]') {
+        return "'" + $Value
+    }
+    return $Value
+}
+
 $startTime = [DateTime]::UtcNow
 $successfullyExportedCount = 0
 $failedExportCount = 0
@@ -89,7 +103,7 @@ for ($i = 0; $i -lt $publicFolders.Count; $i++) {
     Write-Progress -Activity $publicFolders[$i].Identity -Status "$i / $($publicFolders.Count) Estimated time remaining: $estimatedTimeRemaining" -PercentComplete (($i + 1) * 100 / $publicFolders.Count)
     try {
         # We make this an array since we could have a scenario where multiple folders have the same path
-        $stats = @(Get-PublicFolderStatistics $publicFolders[$i].Identity -ErrorAction Stop | Select-Object Name, @{Label = "FolderPath"; Expression = { "\" + ($_.FolderPath -join "\") } }, ItemCount, TotalItemSize, AssociatedItemCount, TotalAssociatedItemSize, DeletedItemCount, TotalDeletedItemSize, CreationTime, LastModificationTime)
+        $stats = @(Get-PublicFolderStatistics $publicFolders[$i].Identity -ErrorAction Stop | Select-Object @{Label = "Name"; Expression = { ConvertTo-SafeCsvValue $_.Name } }, @{Label = "FolderPath"; Expression = { "\" + ($_.FolderPath -join "\") } }, ItemCount, TotalItemSize, AssociatedItemCount, TotalAssociatedItemSize, DeletedItemCount, TotalDeletedItemSize, CreationTime, LastModificationTime)
         $exportBatch.AddRange($stats)
         if ($exportBatch.Count -ge $BatchSize) {
             $exportBatch | Export-Csv -Path $OutputFile -Append -Encoding utf8 -NoTypeInformation
