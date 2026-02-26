@@ -103,7 +103,7 @@ for ($i = 0; $i -lt $publicFolders.Count; $i++) {
     Write-Progress -Activity $publicFolders[$i].Identity -Status "$i / $($publicFolders.Count) Estimated time remaining: $estimatedTimeRemaining" -PercentComplete (($i + 1) * 100 / $publicFolders.Count)
     try {
         # We make this an array since we could have a scenario where multiple folders have the same path
-        $stats = @(Get-PublicFolderStatistics $publicFolders[$i].Identity -ErrorAction Stop | Select-Object @{Label = "Name"; Expression = { ConvertTo-SafeCsvValue $_.Name } }, @{Label = "FolderPath"; Expression = { ConvertTo-SafeCsvValue ("\" + ($_.FolderPath -join "\")) } }, ItemCount, TotalItemSize, AssociatedItemCount, TotalAssociatedItemSize, DeletedItemCount, TotalDeletedItemSize, CreationTime, LastModificationTime)
+        $stats = @(Get-PublicFolderStatistics $publicFolders[$i].Identity -ErrorAction Stop | Select-Object @{Label = "Name"; Expression = { ConvertTo-SafeCsvValue $_.Name } }, @{Label = "FolderPath"; Expression = { "\" + ($_.FolderPath -join "\") } }, ItemCount, TotalItemSize, AssociatedItemCount, TotalAssociatedItemSize, DeletedItemCount, TotalDeletedItemSize, CreationTime, LastModificationTime)
         $exportBatch.AddRange($stats)
         if ($exportBatch.Count -ge $BatchSize) {
             $exportBatch | Export-Csv -Path $OutputFile -Append -Encoding utf8 -NoTypeInformation
