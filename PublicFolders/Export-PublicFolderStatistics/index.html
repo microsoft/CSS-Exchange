@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://microsoft.github.io/CSS-Exchange/Setup/FixInstallerCache/">
+        <link rel="canonical" href="https://microsoft.github.io/CSS-Exchange/PublicFolders/Export-PublicFolderStatistics/">
       
       
-        <link rel="prev" href="../CopyMissingDlls/">
+        <link rel="prev" href="../Migration/Sync-ModernMailPublicFolders/">
       
       
-        <link rel="next" href="../Set-ExchAVExclusions/">
+        <link rel="next" href="../SourceSideValidations/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>FixInstallerCache - Microsoft - CSS-Exchange</title>
+        <title>Export-PublicFolderStatistics - Microsoft - CSS-Exchange</title>
       
     
     
@@ -96,7 +96,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#fixinstallercache" class="md-skip">
+        <a href="#export-publicfolderstatistics" class="md-skip">
           Skip to content
         </a>
       
@@ -131,7 +131,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              FixInstallerCache
+              Export-PublicFolderStatistics
             
           </span>
         </div>
@@ -3402,8 +3402,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -3425,11 +3427,11 @@
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" checked>
         
           
           <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
@@ -3450,7 +3452,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_10">
             <span class="md-nav__icon md-icon"></span>
             
@@ -3521,7 +3523,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../PublicFolders/Hybrid/Import-PublicFolderMailboxes/" class="md-nav__link">
+      <a href="../Hybrid/Import-PublicFolderMailboxes/" class="md-nav__link">
         
   
   
@@ -3549,7 +3551,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../PublicFolders/Hybrid/Sync-MailPublicFoldersCloudToOnprem/" class="md-nav__link">
+      <a href="../Hybrid/Sync-MailPublicFoldersCloudToOnprem/" class="md-nav__link">
         
   
   
@@ -3642,7 +3644,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../PublicFolders/Migration/Export-ModernPublicFolderStatistics/" class="md-nav__link">
+      <a href="../Migration/Export-ModernPublicFolderStatistics/" class="md-nav__link">
         
   
   
@@ -3670,7 +3672,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../PublicFolders/Migration/ModernPublicFolderToMailboxMapGenerator/" class="md-nav__link">
+      <a href="../Migration/ModernPublicFolderToMailboxMapGenerator/" class="md-nav__link">
         
   
   
@@ -3698,7 +3700,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../PublicFolders/Migration/SetMailPublicFolderExternalAddress/" class="md-nav__link">
+      <a href="../Migration/SetMailPublicFolderExternalAddress/" class="md-nav__link">
         
   
   
@@ -3726,7 +3728,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../PublicFolders/Migration/Sync-ModernMailPublicFolders/" class="md-nav__link">
+      <a href="../Migration/Sync-ModernMailPublicFolders/" class="md-nav__link">
         
   
   
@@ -3759,10 +3761,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../PublicFolders/Export-PublicFolderStatistics/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Export-PublicFolderStatistics
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -3778,6 +3807,103 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#input-csv-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input CSV format
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output CSV
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#behavior-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Behavior &amp; Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -3790,7 +3916,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../PublicFolders/SourceSideValidations/" class="md-nav__link">
+      <a href="../SourceSideValidations/" class="md-nav__link">
         
   
   
@@ -3818,7 +3944,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../PublicFolders/Update-PublicFolderPermissions/" class="md-nav__link">
+      <a href="../Update-PublicFolderPermissions/" class="md-nav__link">
         
   
   
@@ -3846,7 +3972,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../PublicFolders/ValidateMailEnabledPublicFolders/" class="md-nav__link">
+      <a href="../ValidateMailEnabledPublicFolders/" class="md-nav__link">
         
   
   
@@ -3874,7 +4000,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../PublicFolders/ValidateEXOPFDumpster/" class="md-nav__link">
+      <a href="../ValidateEXOPFDumpster/" class="md-nav__link">
         
   
   
@@ -4506,10 +4632,8 @@
       
   
   
-    
   
   
-  
     
     
       
@@ -4527,11 +4651,11 @@
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_14" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_14" >
         
           
           <label class="md-nav__link" for="__nav_14" id="__nav_14_label" tabindex="0">
@@ -4552,7 +4676,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_14_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_14_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_14">
             <span class="md-nav__icon md-icon"></span>
             
@@ -4570,7 +4694,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../CopyMissingDlls/" class="md-nav__link">
+      <a href="../../Setup/CopyMissingDlls/" class="md-nav__link">
         
   
   
@@ -4595,19 +4719,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../Setup/FixInstallerCache/" class="md-nav__link">
         
   
   
@@ -4623,7 +4738,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -4636,7 +4750,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../Set-ExchAVExclusions/" class="md-nav__link">
+      <a href="../../Setup/Set-ExchAVExclusions/" class="md-nav__link">
         
   
   
@@ -4690,7 +4804,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../SetupAssist/" class="md-nav__link ">
+            <a href="../../Setup/SetupAssist/" class="md-nav__link ">
               
   
   
@@ -4734,7 +4848,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../SetupAssist/ComputersContainer/" class="md-nav__link">
+      <a href="../../Setup/SetupAssist/ComputersContainer/" class="md-nav__link">
         
   
   
@@ -4762,7 +4876,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../SetupAssist/ReadOnlyDomainControllerContainer/" class="md-nav__link">
+      <a href="../../Setup/SetupAssist/ReadOnlyDomainControllerContainer/" class="md-nav__link">
         
   
   
@@ -4790,7 +4904,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../SetupAssist/RebootPending/" class="md-nav__link">
+      <a href="../../Setup/SetupAssist/RebootPending/" class="md-nav__link">
         
   
   
@@ -4818,7 +4932,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../SetupAssist/InstallWatermark/" class="md-nav__link">
+      <a href="../../Setup/SetupAssist/InstallWatermark/" class="md-nav__link">
         
   
   
@@ -4854,7 +4968,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../SetupLogReviewer/" class="md-nav__link">
+      <a href="../../Setup/SetupLogReviewer/" class="md-nav__link">
         
   
   
@@ -5048,6 +5162,91 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#input-csv-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input CSV format
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output CSV
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#behavior-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Behavior &amp; Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -5063,7 +5262,7 @@
 
 
   
-    <a href="https://github.com/microsoft/CSS-Exchange/edit/main/docs/Setup/FixInstallerCache.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/microsoft/CSS-Exchange/edit/main/docs/PublicFolders/Export-PublicFolderStatistics.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -5071,30 +5270,89 @@
   
 
 
-<h1 id="fixinstallercache">FixInstallerCache</h1>
-<p>Download the latest release: <a href="https://github.com/microsoft/CSS-Exchange/releases/latest/download/FixInstallerCache.ps1">FixInstallerCache.ps1</a></p>
-<p>This script is used to copy over the missing MSI files from the installer cache.</p>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>CurrentCuRootDirectory</td>
-<td>string</td>
-<td>The root location of the current CU that you are on.</td>
-</tr>
-<tr>
-<td>MachineName</td>
-<td>string array</td>
-<td>One or more machine names from which to copy the required MSI files.</td>
-</tr>
-</tbody>
-</table>
+<h1 id="export-publicfolderstatistics">Export-PublicFolderStatistics</h1>
+<p>Download the latest release: <a href="https://github.com/microsoft/CSS-Exchange/releases/latest/download/Export-PublicFolderStatistics.ps1">Export-PublicFolderStatistics.ps1</a></p>
+<p>This script exports statistics for a list of public folders to CSV by calling
+<code>Get-PublicFolderStatistics</code> for each folder identity in an input CSV.</p>
+<p>Get-PublicFolderStatistics may encounter transient exceptions for
+many different reasons, such as database failover, connection timing out,
+laptop going to sleep, etc. This makes exporting statistics for thousands
+of public folders difficult.</p>
+<p>This script attempts to solve the problem by using an input file that lists
+the folders it needs to export, and then exporting those results in batches
+as it goes. If it skips folders, fails entirely, or is interrupted
+for whatever reason, the user can simply run it again. It will read the
+input file, skip everything that is already in the export file, and then
+continue adding to the same export file until it fails or completes.</p>
+<p>In this way, the user can rerun the script repeatedly and keep building
+the results file until all folders have been exported, or at least until
+the remaining folders are ones that are experiencing permanent failures.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<ul>
+<li>Run where Exchange cmdlets are available (ExchangeOnlineManagement module
+  or EMS is loaded).</li>
+<li>Input CSV must contain a column named <code>Identity</code> with public folder paths.</li>
+</ul>
+<h2 id="usage">Usage</h2>
+<p>First, generate your input file to tell the script which folders to export.
+This can be the entire hierarchy or a subset:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">Get-PublicFolder</span> <span class="s2">&quot;\Some\Folder&quot;</span> <span class="n">-Recurse</span> <span class="n">-ResultSize</span> <span class="n">Unlimited</span> <span class="p">|</span> <span class="nb">Export-Csv</span> <span class="n">PublicFoldersToExport</span><span class="p">.</span><span class="n">csv</span>
+</code></pre></div>
+<p>Provide that file to the script. This is how it will determine the difference
+between what it needs to export and what is already exported.</p>
+<p>Example (basic):</p>
+<div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="nb">Export-PublicFolderStatistics</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-InputFile</span> <span class="n">PublicFoldersToExport</span><span class="p">.</span><span class="n">csv</span>
+</code></pre></div>
+<p>Example (custom output file):</p>
+<div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="nb">Export-PublicFolderStatistics</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-InputFile</span> <span class="n">PublicFoldersToExport</span><span class="p">.</span><span class="n">csv</span> <span class="n">-OutputFile</span> <span class="n">PFStats</span><span class="p">.</span><span class="n">csv</span>
+</code></pre></div>
+<p>Example (custom batch size):</p>
+<div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="nb">Export-PublicFolderStatistics</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-InputFile</span> <span class="n">PublicFoldersToExport</span><span class="p">.</span><span class="n">csv</span> <span class="n">-BatchSize</span> <span class="n">20</span>
+</code></pre></div>
+<h2 id="parameters">Parameters</h2>
+<ul>
+<li><code>-InputFile</code> (required): Path to CSV file containing public folder identities.</li>
+<li><code>-OutputFile</code> (optional): Path to the CSV to write results to. Defaults to
+  <code>PublicFolderStatistics.csv</code>.</li>
+<li><code>-BatchSize</code> (optional): Number of results buffered before appending to the
+  output CSV. Must be 1 or greater. Defaults to <code>5</code>.</li>
+</ul>
+<h2 id="input-csv-format">Input CSV format</h2>
+<p>The CSV must include an <code>Identity</code> column. Each row should contain a single
+public folder identity (for example <code>\Contoso\Departments\HR</code>). The script
+automatically ignores the Exchange root markers <code>\</code> and <code>\NON_IPM_SUBTREE</code>.</p>
+<h2 id="output-csv">Output CSV</h2>
+<p>The output CSV contains the selected properties returned by
+<code>Get-PublicFolderStatistics</code> including:</p>
+<ul>
+<li><code>Name</code></li>
+<li><code>FolderPath</code> (joined folder path with leading <code>\</code>)</li>
+<li><code>ItemCount</code></li>
+<li><code>TotalItemSize</code></li>
+<li><code>AssociatedItemCount</code></li>
+<li><code>TotalAssociatedItemSize</code></li>
+<li><code>DeletedItemCount</code></li>
+<li><code>TotalDeletedItemSize</code></li>
+<li><code>CreationTime</code></li>
+<li><code>LastModificationTime</code></li>
+</ul>
+<p>If the output file already exists, the script reads it and skips folders that
+already have a <code>FolderPath</code> entry so the script can be safely re-run.</p>
+<h2 id="behavior-notes">Behavior &amp; Notes</h2>
+<ul>
+<li>Progress is reported via <code>Write-Progress</code> with an estimated remaining time.</li>
+<li>Errors for individual folders are written to host and processing continues.</li>
+<li>The script appends to the output CSV in batches (configured by <code>-BatchSize</code>);
+  ensure sufficient disk space and permissions for the target path.</li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ul>
+<li>If <code>Get-PublicFolderStatistics</code> fails for a folder, the script logs the
+  exception message and continues. Re-run the script to retry failed folders.</li>
+<li>Validate the <code>Identity</code> values in the input CSV if many queries fail.
+  Long runs of the script may encounter expected failures due to folders being
+  renamed or deleted after the input file was generated.</li>
+</ul>
 
 
 
@@ -5115,7 +5373,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 24, 2021 16:04:15 UTC">November 24, 2021</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="February 26, 2026 19:22:19 UTC">February 26, 2026</span>
   </span>
 
     
