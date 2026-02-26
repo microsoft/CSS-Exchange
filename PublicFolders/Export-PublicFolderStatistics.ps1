@@ -79,7 +79,7 @@ $publicFolders = $publicFolders | Where-Object { $foldersAlreadyExported.Contain
 Write-Host "Public folders remaining to process: $($publicFolders.Count)"
 
 # Sanitize a string value for safe inclusion in a CSV file. Values that begin
-# with characters recognised as formula triggers by spreadsheet applications
+# with characters recognized as formula triggers by spreadsheet applications
 # (=, +, -, @, or tab) are prefixed with a single quote so they are treated as text.
 function ConvertTo-SafeCsvValue {
     param ([string]$Value)
