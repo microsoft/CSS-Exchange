@@ -1,5 +1,7 @@
 # Export-PublicFolderStatistics
 
+Download the latest release: [Export-PublicFolderStatistics.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Export-PublicFolderStatistics.ps1)
+
 This script exports statistics for a list of public folders to CSV by calling
 `Get-PublicFolderStatistics` for each folder identity in an input CSV.
 
