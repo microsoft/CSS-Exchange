@@ -39,19 +39,19 @@ between what it needs to export and what is already exported.
 
 Example (basic):
 
-```
+```powershell
 .\Export-PublicFolderStatistics.ps1 -InputFile PublicFoldersToExport.csv
 ```
 
 Example (custom output file):
 
-```
+```powershell
 .\Export-PublicFolderStatistics.ps1 -InputFile PublicFoldersToExport.csv -OutputFile PFStats.csv
 ```
 
 Example (custom batch size):
 
-```
+```powershell
 .\Export-PublicFolderStatistics.ps1 -InputFile PublicFoldersToExport.csv -BatchSize 20
 ```
 
