@@ -22,6 +22,11 @@ function Import-ExchangeCertificateFromRawData {
             Write-Verbose ("Going to process '$($ExchangeCertificates.Count )' Exchange certificates")
 
             foreach ($c in $ExchangeCertificates) {
+                if ($null -eq $c.RawData) {
+                    Write-Verbose "Skipping certificate because RawData is null"
+                    continue
+                }
+
                 # Initialize X509Certificate2 class
                 $certObject = New-Object 'System.Security.Cryptography.X509Certificates.X509Certificate2'
                 # Use the Import() method to import byte[] RawData
