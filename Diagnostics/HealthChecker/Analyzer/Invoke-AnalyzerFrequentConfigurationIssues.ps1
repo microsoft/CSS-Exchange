@@ -495,7 +495,8 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
         $displayWriteType = "Grey"
         $details = $false
 
-        if ($rootPfMailbox.IsExcludedFromServingHierarchy -ne $true) {
+        if ($rootPfMailbox.IsExcludedFromServingHierarchy -ne $true -and
+            $rootPfMailbox.MultiplePublicFolderMailboxes -eq $true) {
             $displayWriteType = "Red"
             $details = "true - Error"
         }
