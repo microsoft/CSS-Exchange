@@ -143,6 +143,7 @@ nav:
     - Compute-TopExoRecipientsFromMessageTrace: Transport/Compute-TopExoRecipientsFromMessageTrace.md
     - ReplayQueueDatabases: Transport/ReplayQueueDatabases.md
     - Measure-EmailDelayInMTL: Transport/Measure-EmailDelayInMTL.md
+    - Get-EXOMTLReport: Transport/Get-EXOMTLReport.md
 theme:
   name: 'material'
   features:
