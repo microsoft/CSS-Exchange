@@ -134,6 +134,7 @@ Mock Get-RemoteRegistryValue {
         "DaylightStart" { return @(0, 0, 3, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0) }
         "DisableBaseTypeCheckForDeserialization" { return $null }
         "DisablePreservation" { return 0 }
+        "DisableRootAutoUpdate" { return $null }
         "DatabasePath" { return "$Script:MockDataCollectionRoot\Exchange" }
         "SuppressExtendedProtection" { return 0 }
         "EnableEccCertificateSupport" { return $null }

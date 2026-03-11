@@ -124,6 +124,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "CTS Processor Affinity Percentage" 0 -WriteType "Green"
             TestObjectMatch "Disable Async Notification" $false
             TestObjectMatch "Credential Guard Enabled" $false
+            TestObjectMatch "Trusted Root Certificates Auto Update Disabled" $false -WriteType "Green"
             TestObjectMatch "EdgeTransport.exe.config Present" "True" -WriteType "Green"
             TestObjectMatch "NodeRunner.exe memory limit" "0 MB" -WriteType "Green"
             TestObjectMatch "Open Relay Wild Card Domain" "Not Set"
@@ -131,7 +132,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             TestObjectMatch "UnifiedContent Auto Cleanup Configured" $true -WriteType "Green"
             TestObjectMatch "EnableEccCertificateSupport Registry Value" $false
 
-            $Script:ActiveGrouping.Count | Should -Be 15
+            $Script:ActiveGrouping.Count | Should -Be 16
         }
 
         It "Display Results - Security Settings" {
