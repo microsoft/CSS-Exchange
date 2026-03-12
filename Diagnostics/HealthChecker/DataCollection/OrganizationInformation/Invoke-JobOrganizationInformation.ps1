@@ -172,12 +172,15 @@ function Invoke-JobOrganizationInformation {
                     [string]$guid = $getOrganizationConfig.RootPublicFolderMailbox
                     Write-Verbose "Trying to collect root public folder mailbox information - $guid"
                     $getMailboxRootPF = Get-Mailbox -PublicFolder $guid -ErrorAction Stop
+                    $multiplePFMailboxes = @(Get-Mailbox -PublicFolder -ErrorAction Stop -ResultSize 2).Count -gt 1
+                    Write-Verbose "There are $(if ($multiplePFMailboxes) { "multiple" } else { "not multiple" }) public folder mailboxes in the environment."
                     $rootPublicFolderMailbox = [PSCustomObject]@{
                         Name                           = $getMailboxRootPF.Name
                         ExchangeGuid                   = $getMailboxRootPF.ExchangeGuid
                         IsExcludedFromServingHierarchy = $getMailboxRootPF.IsExcludedFromServingHierarchy
                         IsHierarchyReady               = $getMailboxRootPF.IsHierarchyReady
                         IsHierarchySyncEnabled         = $getMailboxRootPF.IsHierarchySyncEnabled
+                        MultiplePublicFolderMailboxes  = $multiplePFMailboxes
                     }
                 }
             } catch {
