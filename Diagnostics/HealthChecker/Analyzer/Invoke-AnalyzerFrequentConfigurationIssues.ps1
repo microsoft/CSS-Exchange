@@ -165,6 +165,36 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     }
     Add-AnalyzedResultInformation @params
 
+    $disableRootAutoUpdate = $osInformation.RegistryValues.DisableRootAutoUpdate
+
+    if ($disableRootAutoUpdate -eq 0) {
+        $displayWriteType = "Green"
+        $displayValue = $disableRootAutoUpdate
+        $displayTestingValue = $disableRootAutoUpdate -ne 0
+    } elseif ($disableRootAutoUpdate -eq 1) {
+        $displayWriteType = "Yellow"
+        $displayValue = "$disableRootAutoUpdate `r`n`t`tWarning: Automatic root certificate updates are disabled. Ensure root certificates are manually kept up to date to avoid Exchange Online connectivity issues." +
+        "`r`n`t`tRefer to the Azure Certificate Authority Details documentation for the list of root and intermediate CAs." +
+        "`r`n`t`tMore Information: https://aka.ms/HC-TrustedRootCertificatesCheck"
+        $displayTestingValue = $disableRootAutoUpdate -ne 0
+    } else {
+        $displayWriteType = "Yellow"
+        $displayValue = "$disableRootAutoUpdate `r`n`t`tWarning: Invalid value for DisableRootAutoUpdate. This should be set to 0 or 1." +
+        "`r`n`t`tIf disabled, ensure root certificates are manually kept up to date to avoid Exchange Online connectivity issues." +
+        "`r`n`t`tRefer to the Azure Certificate Authority Details documentation for the list of root and intermediate CAs." +
+        "`r`n`t`tMore Information: https://aka.ms/HC-TrustedRootCertificatesCheck"
+        $displayTestingValue = $disableRootAutoUpdate -ne 0
+    }
+
+    $params = $baseParams + @{
+        Name                = "Trusted Root Certificates Auto Update Disabled"
+        Details             = $displayValue
+        DisplayWriteType    = $displayWriteType
+        DisplayTestingValue = $displayTestingValue
+        HtmlName            = "TrustedRootCertificatesAutoUpdateDisabled"
+    }
+    Add-AnalyzedResultInformation @params
+
     if ($null -ne $exchangeInformation.ApplicationConfigFileStatus -and
         $exchangeInformation.ApplicationConfigFileStatus.Count -ge 1) {
 

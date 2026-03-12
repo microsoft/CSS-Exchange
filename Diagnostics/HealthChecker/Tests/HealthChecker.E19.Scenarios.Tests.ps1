@@ -26,6 +26,7 @@ Describe "Testing Health Checker by Mock Data Imports" {
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "KeepAliveTime" } -MockWith { return 0 }
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "CtsProcessorAffinityPercentage" } -MockWith { return 10 }
             Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "LsaCfgFlags" } -MockWith { return 1 }
+            Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "DisableRootAutoUpdate" } -MockWith { return 1 }
             Mock Test-Path -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\EdgeTransport.exe.config" } -MockWith { return $false }
             Mock Test-Path -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\Search\Ceres\Runtime\1.0\noderunner.exe.config" } -MockWith { return $false }
             Mock Get-Content -ParameterFilter { $Path -eq "C:\Program Files\Microsoft\Exchange Server\V15\Bin\EdgeTransport.exe.config" } -MockWith { return $null }
@@ -168,6 +169,10 @@ Describe "Testing Health Checker by Mock Data Imports" {
 
         It "Credential Guard Enabled" {
             TestObjectMatch "Credential Guard Enabled" "True" -WriteType "Red"
+        }
+
+        It "Trusted Root Certificates Auto Update Disabled" {
+            TestObjectMatch "Trusted Root Certificates Auto Update Disabled" $true -WriteType "Yellow"
         }
 
         It "EdgeTransport.exe.config Present" {

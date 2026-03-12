@@ -24,6 +24,7 @@ function Get-OperatingSystemRegistryValues {
     $productNameValue = $null
     $releaseIdValue = $null
     $currentBuildValue = $null
+    $disableRootAutoUpdateValue = $null
 
     $baseParams = @{
         MachineName         = $MachineName
@@ -99,6 +100,12 @@ function Get-OperatingSystemRegistryValues {
         GetValue = "CurrentBuild"
     }
 
+    $disableRootAutoUpdateParams = $baseParams + @{
+        SubKey    = "SOFTWARE\Policies\Microsoft\SystemCertificates\AuthRoot"
+        GetValue  = "DisableRootAutoUpdate"
+        ValueType = "DWord"
+    }
+
     Get-RemoteRegistryValue @lmCompParams | Invoke-RemotePipelineHandler -Result ([ref]$lmValue)
     Get-RemoteRegistryValue @suppressEpParams | Invoke-RemotePipelineHandler -Result ([ref]$suppressEpValue)
     Get-RemoteRegistryValue @ubrParams | Invoke-RemotePipelineHandler -Result ([ref]$ubrValue)
@@ -112,6 +119,7 @@ function Get-OperatingSystemRegistryValues {
     Get-RemoteRegistryValue @productNameParams | Invoke-RemotePipelineHandler -Result ([ref]$productNameValue)
     Get-RemoteRegistryValue @releaseIdParams | Invoke-RemotePipelineHandler -Result ([ref]$releaseIdValue)
     Get-RemoteRegistryValue @currentBuildParams | Invoke-RemotePipelineHandler -Result ([ref]$currentBuildValue)
+    Get-RemoteRegistryValue @disableRootAutoUpdateParams | Invoke-RemotePipelineHandler -Result ([ref]$disableRootAutoUpdateValue)
 
     if ($null -eq $lmValue) { $lmValue = 3 }
     if ($null -eq $renegoServerValue) { $renegoServerValue = "NULL" }
@@ -128,6 +136,7 @@ function Get-OperatingSystemRegistryValues {
         AllowInsecureRenegoServers      = $renegoServerValue
         AllowInsecureRenegoClients      = $renegoClientValue
         CredentialGuard                 = [int]$credGuardValue
+        DisableRootAutoUpdate           = [int]$disableRootAutoUpdateValue
         ProductName                     = $productNameValue
         ReleaseId                       = $releaseIdValue
         CurrentBuild                    = $currentBuildValue

@@ -60,6 +60,7 @@ nav:
       - SerializedDataSigningCheck: Diagnostics/HealthChecker/SerializedDataSigningCheck.md
       - SettingOverridesCheck: Diagnostics/HealthChecker/SettingOverridesCheck.md
       - InternalTransportCertificateCheck: Diagnostics/HealthChecker/InternalTransportCertificateCheck.md
+      - TrustedRootCertificatesCheck: Diagnostics/HealthChecker/TrustedRootCertificatesCheck.md
       - SMBv1Check: Diagnostics/HealthChecker/SMBv1Check.md
       - EEMSCheck: Diagnostics/HealthChecker/EEMSCheck.md
       - AMSICheck: Diagnostics/HealthChecker/AMSIIntegration.md
