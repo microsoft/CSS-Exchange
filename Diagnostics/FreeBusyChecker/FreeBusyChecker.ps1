@@ -12,6 +12,10 @@ This script can be used to validate the Availability configuration of the follow
 - Exchange Server
 - Exchange Online
 
+Prerequisites:
+- PowerShell 7 or later
+- Exchange Online PowerShell V3 module (EXO V3)
+
 Required Permissions:
 
     - Organization Management
@@ -29,6 +33,8 @@ To collect information for Exchange Online a connection to Exchange Online must 
 Example:
 
 PS C:\scripts\FreeBusyChecker> Connect-ExchangeOnline -Prefix EO
+PS C:\scripts\FreeBusyChecker> .\FreeBusyChecker.ps1 -Org ExchangeOnPremise -Auth OAuth
+This cmdlet will run the Free Busy Checker Script for Exchange On-Premises OAuth Availability Configurations after connecting to Exchange Online.
 
 .PARAMETER Auth
 Allows you to choose the authentication type to validate.
