@@ -15,7 +15,7 @@ The script is designed to be resilient for long-running operations:
 Environment|Support
 -|-
 Exchange Online|Supported
-Exchange SE|Supported
+Exchange SE|Not Supported
 
 ## Syntax
 
