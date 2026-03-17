@@ -26,6 +26,8 @@ ManagePublicFolderPermissions.ps1
     [-Mailbox <String>]
     [-File <String>]
     [-BatchSize <Int32>]
+    [-WhatIf]
+    [-Confirm]
     [<CommonParameters>]
 
 ManagePublicFolderPermissions.ps1
@@ -34,6 +36,8 @@ ManagePublicFolderPermissions.ps1
     [-ReplaceExisting]
     [-OnlyModifyEmptyACLs]
     [-BatchSize <Int32>]
+    [-WhatIf]
+    [-Confirm]
     [<CommonParameters>]
 ```
 
@@ -86,6 +90,8 @@ Import only into folders whose ACL currently contains only `Default` and `Anonym
 - `-OnlyModifyEmptyACLs` (optional, Import): Skips a folder if it already contains any ACL entries other than `Default` and `Anonymous`.
 - `-File` (required for Import, optional for Export): CSV input/output path.
 - `-BatchSize` (optional): Batch size used for writing progress in export/import. Default is `100`.
+- `-WhatIf` (optional): Shows what actions the script would take (export/import operations) without making any changes.
+- `-Confirm` (optional): Prompts for confirmation before performing each change when importing or modifying permissions.
 
 ## CSV format
 
