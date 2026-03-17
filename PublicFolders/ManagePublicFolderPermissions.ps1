@@ -368,7 +368,7 @@ end {
                 }
 
                 Write-Host "Adding permission for user '$($perm.DisplayName)' on folder '$($perm.FolderPath)'."
-                Add-PublicFolderClientPermission -Identity $folderIdentityForCmdlets -User (GetUserStringFromPermissionImportLine $perm) -AccessRights $importedAccessRightsFromCsv -Confirm:$false
+                Add-PublicFolderClientPermission -Identity $folderIdentityForCmdlets -User (GetUserStringFromPermissionImportLine $perm) -AccessRights $importedAccessRights -Confirm:$false
 
                 $processedRows.Add($progressKey) | Out-Null
                 $progressBatch.Add([PSCustomObject]@{ ProgressKey = $progressKey }) | Out-Null
