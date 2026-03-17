@@ -56,7 +56,7 @@ Documentation: docs/PublicFolders/ManagePublicFolderPermissions.md
 #Requires -Version 5.1
 #Requires -Modules ExchangeOnlineManagement
 
-[CmdletBinding()]
+[CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
 param (
     [Parameter(Mandatory = $true, ParameterSetName = 'Export')]
     [switch]
@@ -363,12 +363,18 @@ end {
                         continue
                     } else {
                         Write-Host "Permission for user '$($existingPermission.User.DisplayName)' on folder '$($perm.FolderPath)' exists but differs. Removing."
-                        Remove-PublicFolderClientPermission -Identity $folderIdentityForCmdlets -User (GetUserStringFromPermissionImportLine $perm) -Confirm:$false
+                        $targetUser = GetUserStringFromPermissionImportLine $perm
+                        if ($PSCmdlet.ShouldProcess("$($perm.FolderPath) [$targetUser]", 'Remove public folder client permission')) {
+                            Remove-PublicFolderClientPermission -Identity $folderIdentityForCmdlets -User $targetUser -Confirm:$false
+                        }
                     }
                 }
 
                 Write-Host "Adding permission for user '$($perm.DisplayName)' on folder '$($perm.FolderPath)'."
-                Add-PublicFolderClientPermission -Identity $folderIdentityForCmdlets -User (GetUserStringFromPermissionImportLine $perm) -AccessRights $importedAccessRights -Confirm:$false
+                $targetUser = GetUserStringFromPermissionImportLine $perm
+                if ($PSCmdlet.ShouldProcess("$($perm.FolderPath) [$targetUser]", "Add public folder client permission ($($importedAccessRights -join ', '))")) {
+                    Add-PublicFolderClientPermission -Identity $folderIdentityForCmdlets -User $targetUser -AccessRights $importedAccessRights -Confirm:$false
+                }
 
                 $processedRows.Add($progressKey) | Out-Null
                 $progressBatch.Add([PSCustomObject]@{ ProgressKey = $progressKey }) | Out-Null
