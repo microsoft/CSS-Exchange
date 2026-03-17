@@ -310,7 +310,7 @@ end {
                     $skipCurrentFolder = $false
                     $currentFolderPermissions = @()
                     try {
-                        $currentFolderPermissions = Get-PublicFolderClientPermission -Identity $folderIdentityForCmdlets
+                        $currentFolderPermissions = Get-PublicFolderClientPermission -Identity $folderIdentityForCmdlets -ErrorAction Stop
                         $currentFolderIdentity = $folderIdentityForCmdlets
 
                         if ($OnlyModifyEmptyACLs) {
