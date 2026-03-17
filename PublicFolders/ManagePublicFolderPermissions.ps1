@@ -395,4 +395,7 @@ end {
 
         Write-Host "Import completed."
     }
+
+    Write-Host ""
+    Write-Host "Do you have feedback regarding the script? Please email ExToolsFeedback@microsoft.com."
 }
