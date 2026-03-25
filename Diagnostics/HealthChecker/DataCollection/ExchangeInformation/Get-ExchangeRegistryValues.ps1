@@ -100,8 +100,8 @@ function Get-ExchangeRegistryValues {
         DisableAsyncNotification               = [int]$disableAsyncNotificationValue
         SerializedDataSigning                  = [int]$serializedDataSigningValue
         MsiInstallPath                         = [string]$msiInstallPathValue
-        DisablePreservation                    = [string]$disablePreservationValue
+        DisablePreservation                    = [int]$disablePreservationValue
         FipFsDatabasePath                      = [string]$fipFsDatabasePathValue
-        EnableEccCertificateSupport            = [string]$enableEccCertificateSupportValue
+        EnableEccCertificateSupport            = [int]$enableEccCertificateSupportValue
     }
 }
