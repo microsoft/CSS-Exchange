@@ -79,10 +79,10 @@ $CreateHourlyReport =
     $lookupCount = 0
     $totalLookups = $aboveThreshold.Count
     $topRecipients = $aboveThreshold.Where( {
-        $lookupCount++
-        Write-Progress -Activity "Get-Mailbox lookups" -Status "$lookupCount of $totalLookups - $($_.RecipientAddress)" -PercentComplete (($lookupCount / $totalLookups) * 100)
-        (Get-Mailbox $_.RecipientAddress -ErrorAction SilentlyContinue) -ne $null
-    }) | Sort-Object MessageCount -Descending | Select-Object Date, MessageCount, RecipientAddress
+            $lookupCount++
+            Write-Progress -Activity "Get-Mailbox lookups" -Status "$lookupCount of $totalLookups - $($_.RecipientAddress)" -PercentComplete (($lookupCount / $totalLookups) * 100)
+            (Get-Mailbox $_.RecipientAddress -ErrorAction SilentlyContinue) -ne $null
+        }) | Sort-Object MessageCount -Descending | Select-Object Date, MessageCount, RecipientAddress
     Write-Progress -Activity "Get-Mailbox lookups" -Completed
     $sw.Stop()
     Write-Host "  Get-Mailbox lookups: $($sw.Elapsed.ToString('hh\:mm\:ss\.fff')) ($totalLookups lookups, $($($topRecipients | Measure-Object).Count) matched)"
