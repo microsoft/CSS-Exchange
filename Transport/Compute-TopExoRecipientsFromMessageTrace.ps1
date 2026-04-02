@@ -114,33 +114,37 @@ $GetDeliveredMessageTraceEvents =
 }
 
 #Main
-$savedProgressPreference = $ProgressPreference
-$ProgressPreference = 'Continue'
 
-$hourlyReport = New-Object -TypeName "System.Collections.ArrayList"
-$eventList = New-Object -TypeName "System.Collections.ArrayList"
-$totalTimer = [System.Diagnostics.Stopwatch]::StartNew()
+try {
+    $savedProgressPreference = $ProgressPreference
+    $ProgressPreference = 'Continue'
 
-Write-Host "Start Message Trace"
-$stepTimer = [System.Diagnostics.Stopwatch]::StartNew()
-$eventList = Invoke-Command -ScriptBlock $GetDeliveredMessageTraceEvents -ArgumentList $StartDate, $EndDate, $TimeoutAfter
-$stepTimer.Stop()
-Write-Host "Message Trace completed in $($stepTimer.Elapsed.ToString('hh\:mm\:ss\.fff')). Events retrieved: $($eventList.Count)"
+    $hourlyReport = New-Object -TypeName "System.Collections.ArrayList"
+    $eventList = New-Object -TypeName "System.Collections.ArrayList"
+    $totalTimer = [System.Diagnostics.Stopwatch]::StartNew()
 
-Write-Host "Create Hourly Report"
-$stepTimer = [System.Diagnostics.Stopwatch]::StartNew()
-$topList = Invoke-Command -ScriptBlock $CreateHourlyReport -ArgumentList $eventList, $Threshold, $hourlyReport
-$stepTimer.Stop()
-Write-Host "Hourly Report completed in $($stepTimer.Elapsed.ToString('hh\:mm\:ss\.fff')). Hourly entries: $($hourlyReport.Count), Top recipients: $(($topList | Measure-Object).Count)"
+    Write-Host "Start Message Trace"
+    $stepTimer = [System.Diagnostics.Stopwatch]::StartNew()
+    $eventList = Invoke-Command -ScriptBlock $GetDeliveredMessageTraceEvents -ArgumentList $StartDate, $EndDate, $TimeoutAfter
+    $stepTimer.Stop()
+    Write-Host "Message Trace completed in $($stepTimer.Elapsed.ToString('hh\:mm\:ss\.fff')). Events retrieved: $($eventList.Count)"
 
-$totalTimer.Stop()
-Write-Host "Total execution time: $($totalTimer.Elapsed.ToString('hh\:mm\:ss\.fff'))"
+    Write-Host "Create Hourly Report"
+    $stepTimer = [System.Diagnostics.Stopwatch]::StartNew()
+    $topList = Invoke-Command -ScriptBlock $CreateHourlyReport -ArgumentList $eventList, $Threshold, $hourlyReport
+    $stepTimer.Stop()
+    Write-Host "Hourly Report completed in $($stepTimer.Elapsed.ToString('hh\:mm\:ss\.fff')). Hourly entries: $($hourlyReport.Count), Top recipients: $(($topList | Measure-Object).Count)"
 
-$props = [ordered]@{
-    'TopRecipients'      = $topList
-    'HourlyReport'       = $hourlyReport | Select-Object Date, HourOfDayUTC, MessageCount, RecipientAddress
-    'MessageTraceEvents' = $eventList
+    $totalTimer.Stop()
+    Write-Host "Total execution time: $($totalTimer.Elapsed.ToString('hh\:mm\:ss\.fff'))"
+
+    $props = [ordered]@{
+        'TopRecipients'      = $topList
+        'HourlyReport'       = $hourlyReport | Select-Object Date, HourOfDayUTC, MessageCount, RecipientAddress
+        'MessageTraceEvents' = $eventList
+    }
+    $results = New-Object -TypeName PSObject -Property $props
+    return $results
+} finally {
+    $ProgressPreference = $savedProgressPreference
 }
-$ProgressPreference = $savedProgressPreference
-$results = New-Object -TypeName PSObject -Property $props
-return $results
