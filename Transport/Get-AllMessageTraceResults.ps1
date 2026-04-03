@@ -74,14 +74,19 @@ function Get-AllMessageTraceResults {
     $results = Get-MessageTraceV2 @splatParams -WarningVariable moreAvailable 3>$null
     if ($results) { $allResults.AddRange(@($results)) }
 
-    $moreResultsMessage = $moreAvailable -join ""
+    $nextCommand = "Get-MessageTraceV2 @splatParams"
+    $moreResultsMessage = if ($moreAvailable.Count -gt 0) { $moreAvailable[-1].ToString() } else { "" }
     while ($results.Count -eq $PageSize -and $moreResultsMessage.StartsWith($moreResultsPrefix) -and (Get-Date) -lt $timeout) {
         $page++
         Write-Progress -Activity "Fetching message trace data" -Status "Retrieved $($allResults.Count) messages (page $page)..."
         $nextCommand = $moreResultsMessage.Substring($moreResultsPrefix.Length)
         $results = Invoke-Command -ScriptBlock ([ScriptBlock]::Create($nextCommand)) -WarningVariable moreAvailable 3>$null
         if ($results) { $allResults.AddRange(@($results)) }
-        $moreResultsMessage = $moreAvailable -join ""
+        $moreResultsMessage = if ($moreAvailable.Count -gt 0) { $moreAvailable[-1].ToString() } else { "" }
+    }
+
+    if ($results.Count -eq $PageSize -and -not $moreResultsMessage.StartsWith($moreResultsPrefix)) {
+        Write-Warning "Get-MessageTraceV2 pagination failed with unexpected warning message: '$moreResultsMessage'. Last command: '$nextCommand'"
     }
 
     Write-Progress -Activity "Fetching message trace data" -Completed
