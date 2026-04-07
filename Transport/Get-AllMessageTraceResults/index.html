@@ -8,28 +8,28 @@
       
       
       
-        <link rel="canonical" href="https://microsoft.github.io/CSS-Exchange/Diagnostics/HealthChecker/EEMSCheck/">
+        <link rel="canonical" href="https://microsoft.github.io/CSS-Exchange/Transport/Get-AllMessageTraceResults/">
       
       
-        <link rel="prev" href="../SMBv1Check/">
+        <link rel="prev" href="../Compute-TopExoRecipientsFromMessageTrace/">
       
       
-        <link rel="next" href="../AMSIIntegration/">
+        <link rel="next" href="../ReplayQueueDatabases/">
       
       
         
       
       
-      <link rel="icon" href="../../../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>EEMSCheck - Microsoft - CSS-Exchange</title>
+        <title>Get-AllMessageTraceResults - Microsoft - CSS-Exchange</title>
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
       
   
@@ -78,7 +78,7 @@
       
     
     
-    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -96,7 +96,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#exchange-emergency-mitigation-service-check" class="md-skip">
+        <a href="#get-allmessagetraceresults" class="md-skip">
           Skip to content
         </a>
       
@@ -112,9 +112,9 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../../.." title="Microsoft - CSS-Exchange" class="md-header__button md-logo" aria-label="Microsoft - CSS-Exchange" data-md-component="logo">
+    <a href="../.." title="Microsoft - CSS-Exchange" class="md-header__button md-logo" aria-label="Microsoft - CSS-Exchange" data-md-component="logo">
       
-  <img src="../../../Images/MicrosoftLogo.svg" alt="logo">
+  <img src="../../Images/MicrosoftLogo.svg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -131,7 +131,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              EEMSCheck
+              Get-AllMessageTraceResults
             
           </span>
         </div>
@@ -221,9 +221,9 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../.." title="Microsoft - CSS-Exchange" class="md-nav__button md-logo" aria-label="Microsoft - CSS-Exchange" data-md-component="logo">
+    <a href="../.." title="Microsoft - CSS-Exchange" class="md-nav__button md-logo" aria-label="Microsoft - CSS-Exchange" data-md-component="logo">
       
-  <img src="../../../Images/MicrosoftLogo.svg" alt="logo">
+  <img src="../../Images/MicrosoftLogo.svg" alt="logo">
 
     </a>
     Microsoft - CSS-Exchange
@@ -250,7 +250,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Emerging-Issues/" class="md-nav__link">
+      <a href="../../Emerging-Issues/" class="md-nav__link">
         
   
   
@@ -352,7 +352,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Admin/Clear-MailboxPermission/" class="md-nav__link">
+      <a href="../../Admin/Clear-MailboxPermission/" class="md-nav__link">
         
   
   
@@ -380,7 +380,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Admin/CrossTenantMailboxMigrationValidation/" class="md-nav__link">
+      <a href="../../Admin/CrossTenantMailboxMigrationValidation/" class="md-nav__link">
         
   
   
@@ -408,7 +408,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Admin/Find-AmbiguousSids/" class="md-nav__link">
+      <a href="../../Admin/Find-AmbiguousSids/" class="md-nav__link">
         
   
   
@@ -436,7 +436,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Admin/Get-EASMailboxLogs/" class="md-nav__link">
+      <a href="../../Admin/Get-EASMailboxLogs/" class="md-nav__link">
         
   
   
@@ -464,7 +464,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Admin/Get-SimpleAuditLogReport/" class="md-nav__link">
+      <a href="../../Admin/Get-SimpleAuditLogReport/" class="md-nav__link">
         
   
   
@@ -492,7 +492,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Admin/MonitorExchangeAuthCertificate/" class="md-nav__link">
+      <a href="../../Admin/MonitorExchangeAuthCertificate/" class="md-nav__link">
         
   
   
@@ -520,7 +520,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Admin/Remove-CertExpiryNotifications/" class="md-nav__link">
+      <a href="../../Admin/Remove-CertExpiryNotifications/" class="md-nav__link">
         
   
   
@@ -548,7 +548,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Admin/Remove-DuplicateEntriesFromIanaMappings/" class="md-nav__link">
+      <a href="../../Admin/Remove-DuplicateEntriesFromIanaMappings/" class="md-nav__link">
         
   
   
@@ -576,7 +576,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Admin/Reset-ScanEngineVersion/" class="md-nav__link">
+      <a href="../../Admin/Reset-ScanEngineVersion/" class="md-nav__link">
         
   
   
@@ -604,7 +604,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Admin/SetUnifiedContentPath/" class="md-nav__link">
+      <a href="../../Admin/SetUnifiedContentPath/" class="md-nav__link">
         
   
   
@@ -632,7 +632,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Admin/Test-AMSI/" class="md-nav__link">
+      <a href="../../Admin/Test-AMSI/" class="md-nav__link">
         
   
   
@@ -660,7 +660,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Admin/Test-ExchangePropertyPermissions/" class="md-nav__link">
+      <a href="../../Admin/Test-ExchangePropertyPermissions/" class="md-nav__link">
         
   
   
@@ -688,7 +688,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Admin/Update-Engines/" class="md-nav__link">
+      <a href="../../Admin/Update-Engines/" class="md-nav__link">
         
   
   
@@ -780,7 +780,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Calendar/Check-SharingStatus/" class="md-nav__link">
+      <a href="../../Calendar/Check-SharingStatus/" class="md-nav__link">
         
   
   
@@ -808,7 +808,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Calendar/Get-CalendarDiagnosticObjectsSummary/" class="md-nav__link">
+      <a href="../../Calendar/Get-CalendarDiagnosticObjectsSummary/" class="md-nav__link">
         
   
   
@@ -836,7 +836,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Calendar/Get-RBASummary/" class="md-nav__link">
+      <a href="../../Calendar/Get-RBASummary/" class="md-nav__link">
         
   
   
@@ -864,7 +864,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Calendar/BookingsDiagnosticSummary/" class="md-nav__link">
+      <a href="../../Calendar/BookingsDiagnosticSummary/" class="md-nav__link">
         
   
   
@@ -954,7 +954,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Databases/Analyze-SpaceDump/" class="md-nav__link">
+      <a href="../../Databases/Analyze-SpaceDump/" class="md-nav__link">
         
   
   
@@ -982,7 +982,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Databases/Compare-MailboxStatistics/" class="md-nav__link">
+      <a href="../../Databases/Compare-MailboxStatistics/" class="md-nav__link">
         
   
   
@@ -1010,7 +1010,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Databases/VSSTester/" class="md-nav__link">
+      <a href="../../Databases/VSSTester/" class="md-nav__link">
         
   
   
@@ -1042,10 +1042,8 @@
       
   
   
-    
   
   
-  
     
     
       
@@ -1067,11 +1065,11 @@
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
         
           
           <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
@@ -1092,7 +1090,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1110,7 +1108,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../ExchangeLogCollector/" class="md-nav__link">
+      <a href="../../Diagnostics/ExchangeLogCollector/" class="md-nav__link">
         
   
   
@@ -1138,7 +1136,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../ExTRA/" class="md-nav__link">
+      <a href="../../Diagnostics/ExTRA/" class="md-nav__link">
         
   
   
@@ -1166,7 +1164,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../FindFrontEndActivity/FindFrontEndActivity/" class="md-nav__link">
+      <a href="../../Diagnostics/FindFrontEndActivity/FindFrontEndActivity/" class="md-nav__link">
         
   
   
@@ -1191,8 +1189,6 @@
                 
   
   
-    
-  
   
   
     
@@ -1296,15 +1292,15 @@
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_4" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_4" >
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../" class="md-nav__link ">
+            <a href="../../Diagnostics/HealthChecker/" class="md-nav__link ">
               
   
   
@@ -1328,7 +1324,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_4_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1348,7 +1344,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../ExoConnectorCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/ExoConnectorCheck/" class="md-nav__link">
         
   
   
@@ -1376,7 +1372,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../ExchangeServerMaintenanceCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/ExchangeServerMaintenanceCheck/" class="md-nav__link">
         
   
   
@@ -1404,7 +1400,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../MAPIFrontEndAppPoolGCModeCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/MAPIFrontEndAppPoolGCModeCheck/" class="md-nav__link">
         
   
   
@@ -1432,7 +1428,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../RebootPending/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/RebootPending/" class="md-nav__link">
         
   
   
@@ -1460,7 +1456,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../CTSProcessorAffinityPercentageCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/CTSProcessorAffinityPercentageCheck/" class="md-nav__link">
         
   
   
@@ -1488,7 +1484,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../CredentialGuardCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/CredentialGuardCheck/" class="md-nav__link">
         
   
   
@@ -1516,7 +1512,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../RPCMinConnectionTimeoutCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/RPCMinConnectionTimeoutCheck/" class="md-nav__link">
         
   
   
@@ -1544,7 +1540,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../TCPIPSettingsCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/TCPIPSettingsCheck/" class="md-nav__link">
         
   
   
@@ -1572,7 +1568,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../GeneralHardwareInformation/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/GeneralHardwareInformation/" class="md-nav__link">
         
   
   
@@ -1600,7 +1596,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../HyperThreadingCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/HyperThreadingCheck/" class="md-nav__link">
         
   
   
@@ -1628,7 +1624,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../NumaBiosCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/NumaBiosCheck/" class="md-nav__link">
         
   
   
@@ -1656,7 +1652,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../ProcessorCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/ProcessorCheck/" class="md-nav__link">
         
   
   
@@ -1684,7 +1680,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../IPv6EnabledCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/IPv6EnabledCheck/" class="md-nav__link">
         
   
   
@@ -1712,7 +1708,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../PacketsLossCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/PacketsLossCheck/" class="md-nav__link">
         
   
   
@@ -1740,7 +1736,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../RSSEnabledCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/RSSEnabledCheck/" class="md-nav__link">
         
   
   
@@ -1768,7 +1764,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../SleepyNICCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/SleepyNICCheck/" class="md-nav__link">
         
   
   
@@ -1796,7 +1792,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../NETFrameworkSupportabilityCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/NETFrameworkSupportabilityCheck/" class="md-nav__link">
         
   
   
@@ -1824,7 +1820,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../NodeRunnerMemoryLimitCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/NodeRunnerMemoryLimitCheck/" class="md-nav__link">
         
   
   
@@ -1852,7 +1848,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../PagefileSizeCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/PagefileSizeCheck/" class="md-nav__link">
         
   
   
@@ -1880,7 +1876,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../VisualCRedistributableVersionCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/VisualCRedistributableVersionCheck/" class="md-nav__link">
         
   
   
@@ -1908,7 +1904,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../LMCompatibilityLevelInformationCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/LMCompatibilityLevelInformationCheck/" class="md-nav__link">
         
   
   
@@ -1936,7 +1932,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../May22SU/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/May22SU/" class="md-nav__link">
         
   
   
@@ -1964,7 +1960,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../CloudConnectorCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/CloudConnectorCheck/" class="md-nav__link">
         
   
   
@@ -1992,7 +1988,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../TLSConfigurationCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/TLSConfigurationCheck/" class="md-nav__link">
         
   
   
@@ -2020,7 +2016,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../CertificateCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/CertificateCheck/" class="md-nav__link">
         
   
   
@@ -2048,7 +2044,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../AuthCertificateCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/AuthCertificateCheck/" class="md-nav__link">
         
   
   
@@ -2076,7 +2072,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../SerializedDataSigningCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/SerializedDataSigningCheck/" class="md-nav__link">
         
   
   
@@ -2104,7 +2100,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../SettingOverridesCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/SettingOverridesCheck/" class="md-nav__link">
         
   
   
@@ -2132,7 +2128,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../InternalTransportCertificateCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/InternalTransportCertificateCheck/" class="md-nav__link">
         
   
   
@@ -2160,7 +2156,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../TrustedRootCertificatesCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/TrustedRootCertificatesCheck/" class="md-nav__link">
         
   
   
@@ -2188,7 +2184,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../SMBv1Check/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/SMBv1Check/" class="md-nav__link">
         
   
   
@@ -2213,19 +2209,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../Diagnostics/HealthChecker/EEMSCheck/" class="md-nav__link">
         
   
   
@@ -2241,7 +2228,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -2254,7 +2240,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../AMSIIntegration/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/AMSIIntegration/" class="md-nav__link">
         
   
   
@@ -2282,7 +2268,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../VulnerabilityCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/VulnerabilityCheck/" class="md-nav__link">
         
   
   
@@ -2310,7 +2296,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../DownloadDomainCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/DownloadDomainCheck/" class="md-nav__link">
         
   
   
@@ -2338,7 +2324,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../OpenRelayDomain/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/OpenRelayDomain/" class="md-nav__link">
         
   
   
@@ -2366,7 +2352,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../FIPFSCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/FIPFSCheck/" class="md-nav__link">
         
   
   
@@ -2394,7 +2380,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../IISInformation/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/IISInformation/" class="md-nav__link">
         
   
   
@@ -2422,7 +2408,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../IISWebConfigCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/IISWebConfigCheck/" class="md-nav__link">
         
   
   
@@ -2450,7 +2436,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../RunHCViaSchedTask/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/RunHCViaSchedTask/" class="md-nav__link">
         
   
   
@@ -2478,7 +2464,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../ADSiteCount/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/ADSiteCount/" class="md-nav__link">
         
   
   
@@ -2506,7 +2492,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../ExchangeComputerMembership/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/ExchangeComputerMembership/" class="md-nav__link">
         
   
   
@@ -2534,7 +2520,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../UnifiedContentCleanup/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/UnifiedContentCleanup/" class="md-nav__link">
         
   
   
@@ -2562,7 +2548,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../TransportRetryConfigCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/TransportRetryConfigCheck/" class="md-nav__link">
         
   
   
@@ -2590,7 +2576,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../ExchangeHybridApplicationCheck/" class="md-nav__link">
+      <a href="../../Diagnostics/HealthChecker/ExchangeHybridApplicationCheck/" class="md-nav__link">
         
   
   
@@ -2626,7 +2612,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../ManagedAvailabilityTroubleshooter/" class="md-nav__link">
+      <a href="../../Diagnostics/ManagedAvailabilityTroubleshooter/" class="md-nav__link">
         
   
   
@@ -2654,7 +2640,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../Test-ExchAVExclusions/" class="md-nav__link">
+      <a href="../../Diagnostics/Test-ExchAVExclusions/" class="md-nav__link">
         
   
   
@@ -2733,7 +2719,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../FreeBusyChecker/FreeBusyChecker/" class="md-nav__link">
+      <a href="../../Diagnostics/FreeBusyChecker/FreeBusyChecker/" class="md-nav__link">
         
   
   
@@ -2829,7 +2815,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Hybrid/ConfigureExchangeHybridApplication/" class="md-nav__link">
+      <a href="../../Hybrid/ConfigureExchangeHybridApplication/" class="md-nav__link">
         
   
   
@@ -2857,7 +2843,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Hybrid/Test-HMAEAS/" class="md-nav__link">
+      <a href="../../Hybrid/Test-HMAEAS/" class="md-nav__link">
         
   
   
@@ -3006,7 +2992,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../M365/MDO/MDOThreatPolicyChecker/" class="md-nav__link">
+      <a href="../../M365/MDO/MDOThreatPolicyChecker/" class="md-nav__link">
         
   
   
@@ -3034,7 +3020,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../M365/MDO/ResendFailedMail/" class="md-nav__link">
+      <a href="../../M365/MDO/ResendFailedMail/" class="md-nav__link">
         
   
   
@@ -3070,7 +3056,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../M365/DLT365Groupsupgrade/" class="md-nav__link">
+      <a href="../../M365/DLT365Groupsupgrade/" class="md-nav__link">
         
   
   
@@ -3098,7 +3084,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../M365/Get-LargeMailboxFolderStatistics/" class="md-nav__link">
+      <a href="../../M365/Get-LargeMailboxFolderStatistics/" class="md-nav__link">
         
   
   
@@ -3126,7 +3112,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../M365/Test-MailboxExtendedProperty/" class="md-nav__link">
+      <a href="../../M365/Test-MailboxExtendedProperty/" class="md-nav__link">
         
   
   
@@ -3154,7 +3140,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../M365/Search-MailboxExtendedProperty/" class="md-nav__link">
+      <a href="../../M365/Search-MailboxExtendedProperty/" class="md-nav__link">
         
   
   
@@ -3182,7 +3168,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../M365/Remove-MailboxExtendedProperty/" class="md-nav__link">
+      <a href="../../M365/Remove-MailboxExtendedProperty/" class="md-nav__link">
         
   
   
@@ -3268,7 +3254,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Outlook/Update-OutlookLink/" class="md-nav__link">
+      <a href="../../Outlook/Update-OutlookLink/" class="md-nav__link">
         
   
   
@@ -3358,7 +3344,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Performance/ExPerfWiz/" class="md-nav__link">
+      <a href="../../Performance/ExPerfWiz/" class="md-nav__link">
         
   
   
@@ -3386,7 +3372,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Performance/ExPerfAnalyzer/" class="md-nav__link">
+      <a href="../../Performance/ExPerfAnalyzer/" class="md-nav__link">
         
   
   
@@ -3414,7 +3400,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Performance/SimplePerf/" class="md-nav__link">
+      <a href="../../Performance/SimplePerf/" class="md-nav__link">
         
   
   
@@ -3567,7 +3553,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../PublicFolders/Hybrid/Import-PublicFolderMailboxes/" class="md-nav__link">
+      <a href="../../PublicFolders/Hybrid/Import-PublicFolderMailboxes/" class="md-nav__link">
         
   
   
@@ -3595,7 +3581,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../PublicFolders/Hybrid/Sync-MailPublicFoldersCloudToOnprem/" class="md-nav__link">
+      <a href="../../PublicFolders/Hybrid/Sync-MailPublicFoldersCloudToOnprem/" class="md-nav__link">
         
   
   
@@ -3688,7 +3674,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../PublicFolders/Migration/Export-ModernPublicFolderStatistics/" class="md-nav__link">
+      <a href="../../PublicFolders/Migration/Export-ModernPublicFolderStatistics/" class="md-nav__link">
         
   
   
@@ -3716,7 +3702,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../PublicFolders/Migration/ModernPublicFolderToMailboxMapGenerator/" class="md-nav__link">
+      <a href="../../PublicFolders/Migration/ModernPublicFolderToMailboxMapGenerator/" class="md-nav__link">
         
   
   
@@ -3744,7 +3730,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../PublicFolders/Migration/SetMailPublicFolderExternalAddress/" class="md-nav__link">
+      <a href="../../PublicFolders/Migration/SetMailPublicFolderExternalAddress/" class="md-nav__link">
         
   
   
@@ -3772,7 +3758,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../PublicFolders/Migration/Sync-ModernMailPublicFolders/" class="md-nav__link">
+      <a href="../../PublicFolders/Migration/Sync-ModernMailPublicFolders/" class="md-nav__link">
         
   
   
@@ -3808,7 +3794,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../PublicFolders/Export-PublicFolderStatistics/" class="md-nav__link">
+      <a href="../../PublicFolders/Export-PublicFolderStatistics/" class="md-nav__link">
         
   
   
@@ -3836,7 +3822,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../PublicFolders/ManagePublicFolderPermissions/" class="md-nav__link">
+      <a href="../../PublicFolders/ManagePublicFolderPermissions/" class="md-nav__link">
         
   
   
@@ -3864,7 +3850,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../PublicFolders/SourceSideValidations/" class="md-nav__link">
+      <a href="../../PublicFolders/SourceSideValidations/" class="md-nav__link">
         
   
   
@@ -3892,7 +3878,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../PublicFolders/Update-PublicFolderPermissions/" class="md-nav__link">
+      <a href="../../PublicFolders/Update-PublicFolderPermissions/" class="md-nav__link">
         
   
   
@@ -3920,7 +3906,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../PublicFolders/ValidateMailEnabledPublicFolders/" class="md-nav__link">
+      <a href="../../PublicFolders/ValidateMailEnabledPublicFolders/" class="md-nav__link">
         
   
   
@@ -3948,7 +3934,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../PublicFolders/ValidateEXOPFDumpster/" class="md-nav__link">
+      <a href="../../PublicFolders/ValidateEXOPFDumpster/" class="md-nav__link">
         
   
   
@@ -4034,7 +4020,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Retention/Get-MRMDetails/" class="md-nav__link">
+      <a href="../../Retention/Get-MRMDetails/" class="md-nav__link">
         
   
   
@@ -4120,7 +4106,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Search/Troubleshoot-ModernSearch/" class="md-nav__link">
+      <a href="../../Search/Troubleshoot-ModernSearch/" class="md-nav__link">
         
   
   
@@ -4224,7 +4210,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Security/CVE-2023-21709/" class="md-nav__link">
+      <a href="../../Security/CVE-2023-21709/" class="md-nav__link">
         
   
   
@@ -4272,7 +4258,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../Security/CVE-2023-23397/" class="md-nav__link ">
+            <a href="../../Security/CVE-2023-23397/" class="md-nav__link ">
               
   
   
@@ -4316,7 +4302,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Security/CVE-2023-23397/FAQ/" class="md-nav__link">
+      <a href="../../Security/CVE-2023-23397/FAQ/" class="md-nav__link">
         
   
   
@@ -4352,7 +4338,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Security/ConfigureFipFsTextExtractionOverrides/" class="md-nav__link">
+      <a href="../../Security/ConfigureFipFsTextExtractionOverrides/" class="md-nav__link">
         
   
   
@@ -4380,7 +4366,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Security/EOMT/" class="md-nav__link">
+      <a href="../../Security/EOMT/" class="md-nav__link">
         
   
   
@@ -4408,7 +4394,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Security/EOMTv2/" class="md-nav__link">
+      <a href="../../Security/EOMTv2/" class="md-nav__link">
         
   
   
@@ -4436,7 +4422,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Security/Extended-Protection/" class="md-nav__link">
+      <a href="../../Security/Extended-Protection/" class="md-nav__link">
         
   
   
@@ -4464,7 +4450,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Security/ExchangeExtendedProtectionManagement/" class="md-nav__link">
+      <a href="../../Security/ExchangeExtendedProtectionManagement/" class="md-nav__link">
         
   
   
@@ -4492,7 +4478,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Security/ExchangeMitigations/" class="md-nav__link">
+      <a href="../../Security/ExchangeMitigations/" class="md-nav__link">
         
   
   
@@ -4520,7 +4506,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Security/Test-CVE-2021-34470/" class="md-nav__link">
+      <a href="../../Security/Test-CVE-2021-34470/" class="md-nav__link">
         
   
   
@@ -4548,7 +4534,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Security/Test-ProxyLogon/" class="md-nav__link">
+      <a href="../../Security/Test-ProxyLogon/" class="md-nav__link">
         
   
   
@@ -4642,7 +4628,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Setup/CopyMissingDlls/" class="md-nav__link">
+      <a href="../../Setup/CopyMissingDlls/" class="md-nav__link">
         
   
   
@@ -4670,7 +4656,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Setup/FixInstallerCache/" class="md-nav__link">
+      <a href="../../Setup/FixInstallerCache/" class="md-nav__link">
         
   
   
@@ -4698,7 +4684,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Setup/Set-ExchAVExclusions/" class="md-nav__link">
+      <a href="../../Setup/Set-ExchAVExclusions/" class="md-nav__link">
         
   
   
@@ -4752,7 +4738,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../Setup/SetupAssist/" class="md-nav__link ">
+            <a href="../../Setup/SetupAssist/" class="md-nav__link ">
               
   
   
@@ -4796,7 +4782,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Setup/SetupAssist/ComputersContainer/" class="md-nav__link">
+      <a href="../../Setup/SetupAssist/ComputersContainer/" class="md-nav__link">
         
   
   
@@ -4824,7 +4810,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Setup/SetupAssist/ReadOnlyDomainControllerContainer/" class="md-nav__link">
+      <a href="../../Setup/SetupAssist/ReadOnlyDomainControllerContainer/" class="md-nav__link">
         
   
   
@@ -4852,7 +4838,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Setup/SetupAssist/RebootPending/" class="md-nav__link">
+      <a href="../../Setup/SetupAssist/RebootPending/" class="md-nav__link">
         
   
   
@@ -4880,7 +4866,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Setup/SetupAssist/InstallWatermark/" class="md-nav__link">
+      <a href="../../Setup/SetupAssist/InstallWatermark/" class="md-nav__link">
         
   
   
@@ -4916,7 +4902,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Setup/SetupLogReviewer/" class="md-nav__link">
+      <a href="../../Setup/SetupLogReviewer/" class="md-nav__link">
         
   
   
@@ -4948,8 +4934,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -4965,11 +4953,11 @@
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_15" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_15" checked>
         
           
           <label class="md-nav__link" for="__nav_15" id="__nav_15_label" tabindex="0">
@@ -4990,7 +4978,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_15_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_15_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_15">
             <span class="md-nav__icon md-icon"></span>
             
@@ -5008,7 +4996,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Transport/Compute-TopExoRecipientsFromMessageTrace/" class="md-nav__link">
+      <a href="../Compute-TopExoRecipientsFromMessageTrace/" class="md-nav__link">
         
   
   
@@ -5033,10 +5021,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../../Transport/Get-AllMessageTraceResults/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Get-AllMessageTraceResults
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -5052,6 +5067,59 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -5064,7 +5132,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Transport/ReplayQueueDatabases/" class="md-nav__link">
+      <a href="../ReplayQueueDatabases/" class="md-nav__link">
         
   
   
@@ -5092,7 +5160,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Transport/Measure-EmailDelayInMTL/" class="md-nav__link">
+      <a href="../Measure-EmailDelayInMTL/" class="md-nav__link">
         
   
   
@@ -5140,6 +5208,47 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -5155,7 +5264,7 @@
 
 
   
-    <a href="https://github.com/microsoft/CSS-Exchange/edit/main/docs/Diagnostics/HealthChecker/EEMSCheck.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/microsoft/CSS-Exchange/edit/main/docs/Transport/Get-AllMessageTraceResults.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -5163,57 +5272,48 @@
   
 
 
-<h1 id="exchange-emergency-mitigation-service-check">Exchange Emergency Mitigation Service Check</h1>
-<p><strong>Description:</strong></p>
-<p>The <code>Exchange Emergency Mitigation Server</code> also known as <code>EEMS</code> or <code>EM</code> was introduced with the <code>Exchange Server 2019 Cumulative Update 11</code> and <code>Exchange Server 2016 Cumulative Update 22</code>.</p>
-<p>The Exchange Emergency Mitigation service helps to keep your Exchange Servers secure by applying mitigations to address any potential threats against your servers. It uses the cloud-based <code>Office Config Service (OCS)</code> to check for and download available mitigations and to send diagnostic data to Microsoft.</p>
-<p>The EM service runs as a Windows service on an Exchange Mailbox server. The EM service will be installed automatically on servers with the Mailbox role. The EM service will not be installed on Edge Transport servers.</p>
-<p>The use of the EM service is optional. If you do not want Microsoft to automatically apply mitigations to your Exchange servers, you can disable the feature.</p>
-<p>This check performs the following testings to highlight the configuration state of the EEMS:</p>
-<ul>
-<li>
-<p>Configuration Check</p>
-<ul>
-<li>Shows if the EEMS is enabled or not on Organizational level</li>
-<li>Shows if the EEMS is enabled or not on Server level</li>
-</ul>
-</li>
-<li>
-<p>Windows Service Check</p>
-<ul>
-<li><code>MSExchangeMitigation</code> Windows service startup type should be: <code>Automatic</code></li>
-<li><code>MSExchangeMitigation</code> Windows service status should be: <code>Running</code></li>
-</ul>
-</li>
-<li>
-<p>Pattern Service Check</p>
-<ul>
-<li>We validate if we can reach the OCS which is used to serve the latest mitigations</li>
-<li>OCS Mitigation Service url: <code>https://officeclient.microsoft.com/GetExchangeMitigations</code></li>
-</ul>
-</li>
-<li>
-<p>Mitigations Check</p>
-<ul>
-<li>Shows which mitigations are currently being applied</li>
-<li>Shows which mitigations are currently being blocked</li>
-</ul>
-</li>
-<li>
-<p>Diagnostic Data Check</p>
-<ul>
-<li>Shows if the service is configured to provide diagnostic data to Microsoft or not</li>
-</ul>
-</li>
-</ul>
-<p><strong>Included in HTML Report?</strong></p>
-<p>Yes</p>
-<p><strong>Additional resources:</strong></p>
-<p><a href="https://techcommunity.microsoft.com/t5/exchange-team-blog/new-security-feature-in-september-2021-cumulative-update-for/ba-p/2783155">New security feature in September 2021 Cumulative Update for Exchange Server</a></p>
-<p><a href="https://techcommunity.microsoft.com/t5/exchange-team-blog/released-september-2021-quarterly-exchange-updates/ba-p/2779883">Released: September 2021 Quarterly Exchange Updates</a></p>
-<p><a href="https://techcommunity.microsoft.com/t5/exchange-team-blog/addressing-your-feedback-on-the-exchange-emergency-mitigation/ba-p/2796190">Addressing Your Feedback on the Exchange Emergency Mitigation Service</a></p>
-<p><a href="https://docs.microsoft.com/exchange/exchange-emergency-mitigation-service?view=exchserver-2019">Exchange Emergency Mitigation (EM) service</a></p>
-<p><a href="https://docs.microsoft.com/exchange/plan-and-deploy/deployment-ref/ms-exch-setupreadiness-MitigationsCloudEndpointUnreachable?view=exchserver-2019">Mitigations Cloud endpoint is not reachable</a></p>
+<h1 id="get-allmessagetraceresults">Get-AllMessageTraceResults</h1>
+<p>Download the latest release: <a href="https://github.com/microsoft/CSS-Exchange/releases/latest/download/Get-AllMessageTraceResults.ps1">Get-AllMessageTraceResults.ps1</a></p>
+<p>This script is a wrapper for the Exchange Online <code>Get-MessageTraceV2</code> cmdlet that automatically handles pagination. It requires an active Exchange Online PowerShell session. Results are collected in pages of up to 5000 and fetching continues until all results are returned or a timeout is reached.</p>
+<h2 id="parameters">Parameters</h2>
+<p>-StartDate</p>
+<p>The start date of the date range to search. Data is available for the last 90 days, with a maximum of 10 days per query.</p>
+<p>-EndDate</p>
+<p>The end date of the date range to search.</p>
+<p>-SenderAddress</p>
+<p>Filters results by the sender's email address. Accepts multiple values separated by commas.</p>
+<p>-RecipientAddress</p>
+<p>Filters results by the recipient's email address. Accepts multiple values separated by commas.</p>
+<p>-MessageId</p>
+<p>Filters results by the Message-ID header field of the message.</p>
+<p>-MessageTraceId</p>
+<p>Filters results by the message trace ID (GUID).</p>
+<p>-FromIP</p>
+<p>Filters results by the source IP address.</p>
+<p>-ToIP</p>
+<p>Filters results by the destination IP address.</p>
+<p>-Status</p>
+<p>Filters results by delivery status. Valid values are: <code>Delivered</code>, <code>Expanded</code>, <code>Failed</code>, <code>FilteredAsSpam</code>, <code>GettingStatus</code>, <code>Pending</code>, <code>Quarantined</code>.</p>
+<p>-Subject</p>
+<p>Filters results by the message subject. Use with <code>-SubjectFilterType</code> to control matching behavior.</p>
+<p>-SubjectFilterType</p>
+<p>Specifies how the <code>-Subject</code> value is evaluated. Valid values are: <code>Contains</code>, <code>StartsWith</code>, <code>EndsWith</code>.</p>
+<p>-PageSize</p>
+<p>The number of results to retrieve per page. Valid range is 1 to 5000. The default value is 5000.</p>
+<p>-TimeoutMinutes</p>
+<p>The number of minutes before the script stops fetching additional pages. The default value is 30 minutes.</p>
+<h2 id="examples">Examples</h2>
+<p>Retrieve all messages from the last 7 hours:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">$messages</span> <span class="p">=</span> <span class="p">.\</span><span class="nb">Get-AllMessageTraceResults</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-StartDate</span> <span class="p">(</span><span class="nb">Get-Date</span><span class="p">).</span><span class="n">AddHours</span><span class="p">(-</span><span class="n">7</span><span class="p">)</span> <span class="n">-EndDate</span> <span class="p">(</span><span class="nb">Get-Date</span><span class="p">)</span>
+</code></pre></div>
+<p>Filter by sender and status:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">$messages</span> <span class="p">=</span> <span class="p">.\</span><span class="nb">Get-AllMessageTraceResults</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-StartDate</span> <span class="p">(</span><span class="nb">Get-Date</span><span class="p">).</span><span class="n">AddHours</span><span class="p">(-</span><span class="n">7</span><span class="p">)</span> <span class="n">-EndDate</span> <span class="p">(</span><span class="nb">Get-Date</span><span class="p">)</span> <span class="n">-SenderAddress</span> <span class="s2">&quot;john@contoso.com&quot;</span> <span class="n">-Status</span> <span class="s2">&quot;Delivered&quot;</span>
+</code></pre></div>
+<p>Filter by recipient with a custom page size:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">$messages</span> <span class="p">=</span> <span class="p">.\</span><span class="nb">Get-AllMessageTraceResults</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-StartDate</span> <span class="p">(</span><span class="nb">Get-Date</span><span class="p">).</span><span class="n">AddDays</span><span class="p">(-</span><span class="n">2</span><span class="p">)</span> <span class="n">-EndDate</span> <span class="p">(</span><span class="nb">Get-Date</span><span class="p">)</span> <span class="n">-RecipientAddress</span> <span class="s2">&quot;jane@contoso.com&quot;</span> <span class="n">-PageSize</span> <span class="n">1000</span>
+</code></pre></div>
+<h2 id="output">Output</h2>
+<p>Returns an array of message trace objects from <code>Get-MessageTraceV2</code>. The total number of retrieved messages is displayed upon completion.</p>
 
 
 
@@ -5234,7 +5334,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="January 13, 2023 18:19:08 UTC">January 13, 2023</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="April 6, 2026 14:07:54 UTC">April 6, 2026</span>
   </span>
 
     
@@ -5284,10 +5384,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.indexes", "content.action.edit"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.indexes", "content.action.edit"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
