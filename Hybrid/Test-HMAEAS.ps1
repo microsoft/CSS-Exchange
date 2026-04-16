@@ -252,16 +252,13 @@ process {
                 Write-Host "We are trying to get an access token to access the EAS endpoint. Please login with your credentials when prompted." -ForegroundColor Green
                 Write-Host "The token should contain Outlook Mobile under app_DisplayName" -ForegroundColor Yellow
                 Write-Host
-                $authority = "https://login.windows.net/common/oauth2/authorize"
+                $authority = "https://login.microsoftonline.com/common"
                 $uri = New-Object "System.Uri" -ArgumentList $easUrl
                 $resource = "$($uri.Scheme)://$($uri.Host)"
                 $applicationClientId = "27922004-5251-4030-b22d-91ecd9a37ea4"
-                $redirectUri = [System.Uri]("urn:ietf:wg:oauth:2.0:oob").ToLower()
-                $authenticationContext = New-Object "Microsoft.IdentityModel.Clients.ActiveDirectory.AuthenticationContext" -ArgumentList $authority
-                $PromptBehavior = [Microsoft.IdentityModel.Clients.ActiveDirectory.PromptBehavior]::RefreshSession
-                $platformParam = New-Object "Microsoft.IdentityModel.Clients.ActiveDirectory.PlatformParameters" -ArgumentList $PromptBehavior, $NULL
-                $userIdentifier = New-Object "Microsoft.IdentityModel.Clients.ActiveDirectory.UserIdentifier" -ArgumentList $SMTP, 1
-                $authResult = $authenticationContext.AcquireTokenAsync($resource, $applicationClientId, $redirectUri, $platformParam, $userIdentifier).Result
+                $scopes = [string[]]@("$resource/.default")
+                $app = [Microsoft.Identity.Client.PublicClientApplicationBuilder]::Create($applicationClientId).WithAuthority($authority).WithDefaultRedirectUri().Build()
+                $authResult = $app.AcquireTokenInteractive($scopes).WithLoginHint($SMTP).ExecuteAsync().Result
                 $accessToken = $authResult.AccessToken
                 if ($NULL -eq $accessToken) {
                     throw [System.Exception] "Failed to get access token."
@@ -295,12 +292,20 @@ process {
     }
 
     if ($TestEAS) {
-        Write-Host "Installing Microsoft.IdentityModel.Clients.ActiveDirectory package. Please accept if prompted." -ForegroundColor Green
-        Install-Package Microsoft.IdentityModel.Clients.ActiveDirectory -RequiredVersion 3.19.8 -Source 'https://www.nuget.org/api/v2' -SkipDependencies -Scope CurrentUser
-        Write-Host "Loading Microsoft.IdentityModel.Clients.ActiveDirectory package" -ForegroundColor Green
-        $package = Get-Package "Microsoft.IdentityModel.Clients.ActiveDirectory"
+        Write-Host "Installing Microsoft.Identity.Client (MSAL) package. Please accept if prompted." -ForegroundColor Green
+        Install-Package Microsoft.Identity.Client -Source 'https://www.nuget.org/api/v2' -Scope CurrentUser
+        Write-Host "Loading Microsoft.Identity.Client (MSAL) package" -ForegroundColor Green
+        $depPackage = Get-Package "Microsoft.IdentityModel.Abstractions" -ErrorAction SilentlyContinue
+        if ($depPackage) {
+            $depPath = Split-Path $depPackage.Source -Parent
+            $depDllPath = Join-Path -Path $depPath -ChildPath "lib/net462/Microsoft.IdentityModel.Abstractions.dll"
+            if (Test-Path $depDllPath) {
+                Add-Type -Path $depDllPath -ErrorAction SilentlyContinue
+            }
+        }
+        $package = Get-Package "Microsoft.Identity.Client"
         $packagePath = Split-Path $package.Source -Parent
-        $dllPath = Join-Path -Path $packagePath -ChildPath "lib/net45/Microsoft.IdentityModel.Clients.ActiveDirectory.dll"
+        $dllPath = Join-Path -Path $packagePath -ChildPath "lib/net462/Microsoft.Identity.Client.dll"
         Add-Type -Path $dllPath -ErrorAction Stop
         $easUrl = Read-AutoDv2EAS -CustomAutoD $CustomAutoD
         Test-EASBearer
