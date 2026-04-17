@@ -870,10 +870,104 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#who-to-collect-from" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Who to collect from
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Output">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pre-filtered-columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pre-filtered columns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#syntax" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Syntax:
+        Syntax
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validate-your-collection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validate your collection
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#known-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Known issues
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#more-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        More information
       
     </span>
   </a>
@@ -5193,10 +5287,104 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#who-to-collect-from" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Who to collect from
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Output">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pre-filtered-columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pre-filtered columns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#syntax" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Syntax:
+        Syntax
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validate-your-collection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validate your collection
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#known-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Known issues
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#more-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        More information
       
     </span>
   </a>
@@ -5230,15 +5418,65 @@
 
 <h1 id="get-calendardiagnosticobjectssummary">Get-CalendarDiagnosticObjectsSummary</h1>
 <p>Download the latest release: <a href="https://github.com/microsoft/CSS-Exchange/releases/latest/download/Get-CalendarDiagnosticObjectsSummary.ps1">Get-CalendarDiagnosticObjectsSummary.ps1</a></p>
-<p>This script runs the Get-CalendarDiagnosticObjects cmdlet and returns a summarized timeline of actions into clear English. It will also output an easier to read version of the CalLogs (enhanced) as well as a Raw copy of the logs for Developers. </p>
-<p>To run the script, you will need a valid SMTP Address for a user and a meeting Subject or MeetingID.</p>
-<p>The script will display summarized timeline of actions and save the logs returned in csv format in the current directory.
-New <strong>-ExportToExcel</strong> highly recommended for ease of use (all logs in one file, color coding, etc.). First time use will request installing the ImportExcel module. See https://github.com/dfinke/ImportExcel for more information on the ImportExcel module.</p>
+<p>This script runs the Get-CalendarDiagnosticObjects cmdlet and returns a summarized timeline of actions in clear English as well as the Calendar Diagnostic Objects in Excel.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<ol>
+<li>
+<p>Install the <a href="https://github.com/dfinke/ImportExcel">ImportExcel</a> module (required for the default Excel export):</p>
+<div class="highlight"><pre><span></span><code><span class="nb">Install-Module</span> <span class="n">-Name</span> <span class="n">ImportExcel</span>
+</code></pre></div>
+</li>
+<li>
+<p>Connect to <a href="https://learn.microsoft.com/powershell/exchange/connect-to-exchange-online-powershell">Exchange Online PowerShell</a>:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">Import-Module</span> <span class="n">ExchangeOnlineManagement</span>
+<span class="nb">Connect-ExchangeOnline</span> <span class="n">-UserPrincipalName</span> <span class="n">admin</span><span class="nv">@contoso</span><span class="p">.</span><span class="n">com</span>
+</code></pre></div>
+</li>
+</ol>
+<p>Use <strong>-ExportToCSV</strong> to export to CSV files instead if ImportExcel is not available.</p>
+<h2 id="who-to-collect-from">Who to collect from</h2>
+<p>Collect from <strong>all key participants</strong> upfront. Partial collections produce incomplete analysis.</p>
 <table>
 <thead>
 <tr>
-<th style="text-align: left;">Parameters:</th>
-<th style="text-align: left;">Explanation:</th>
+<th>Participant</th>
+<th>When to include</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Organizer</strong></td>
+<td>Always — the authoritative copy</td>
+</tr>
+<tr>
+<td><strong>Affected attendee(s)</strong></td>
+<td>Always — 1–2 is usually enough</td>
+</tr>
+<tr>
+<td><strong>Delegate(s)</strong></td>
+<td>If delegates manage the organizer's or attendee's calendar</td>
+</tr>
+<tr>
+<td><strong>Room/resource mailbox</strong></td>
+<td>If the issue involves a room booking</td>
+</tr>
+<tr>
+<td><strong>Modern Sharing partners</strong></td>
+<td>If the calendar is shared via Modern Sharing</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Note:</strong> Calendar diagnostic logs are removed after 31 days. Collect promptly.</p>
+</blockquote>
+<h2 id="parameters">Parameters</h2>
+<p>Using <strong>-MeetingID</strong> (the <code>CleanGlobalObjectId</code>) is the preferred collection method. It produces more detailed logs than a subject search and allows collecting for multiple participants in a single run.</p>
+<p>Using <strong>-Subject</strong> performs a case-insensitive substring match. Only a single <code>-Identity</code> can be used with <code>-Subject</code>. If multiple meetings match, the script creates a separate file for each match.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Parameter</th>
+<th style="text-align: left;">Explanation</th>
 </tr>
 </thead>
 <tbody>
@@ -5248,39 +5486,103 @@ New <strong>-ExportToExcel</strong> highly recommended for ease of use (all logs
 </tr>
 <tr>
 <td style="text-align: left;"><strong>-Subject</strong></td>
-<td style="text-align: left;">Subject of the meeting to query, only valid if Identity is a single user.</td>
+<td style="text-align: left;">Subject of the meeting to query. Case-insensitive substring match. Only valid with a single Identity.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>-MeetingID</strong></td>
-<td style="text-align: left;">MeetingID of the meeting to query. <BR> - Preferred way to get CalLogs.</td>
+<td style="text-align: left;">The <code>CleanGlobalObjectId</code> of the meeting to query. <BR> - Preferred way to get CalLogs.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>-TrackingLogs</strong></td>
-<td style="text-align: left;">Populate attendee tracking columns in the output. <BR> - Only useable with the MeetingID parameter.</td>
+<td style="text-align: left;">Populate attendee tracking columns in the output. Collected by default; use <code>-NoTrackingLogs</code> to skip. <BR> - Only usable with the MeetingID parameter.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>-NoTrackingLogs</strong></td>
+<td style="text-align: left;">Do not collect Tracking Logs.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>-Exceptions</strong></td>
-<td style="text-align: left;">Include Exception objects in the output. <br> - Only useable with the MeetingID parameter. <br></td>
+<td style="text-align: left;">Exceptions are collected by default for recurring meetings. This switch is kept for backward compatibility but is no longer required. Use <code>-NoExceptions</code> to skip or <code>-ExceptionDate</code> to collect a single occurrence.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>-NoExceptions</strong></td>
+<td style="text-align: left;">Do not collect Exception Meetings.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>-ExceptionDate</strong></td>
+<td style="text-align: left;">Date of a specific Exception Meeting to collect logs for. <BR> - Fastest way to get logs for a single occurrence of a recurring meeting.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>-ExportToExcel</strong></td>
-<td style="text-align: left;">- <code>[NEW Feature]</code> Export the output to an Excel file with formatting.  <BR> - Running the script for multiple users will create three tabs in the Excel file for each user. <BR> If you want to add more users to the Excel file, close the file and rerun with new user. <BR>        - one tab for Enhanced CalLog         <BR>  - one tab for the TimeLine        <BR>  - Tab one for Raw CalLog</td>
+<td style="text-align: left;">Export the output to an Excel file with formatting (Default). <BR> - Creates three tabs per user (Enhanced, Raw, Timeline) plus a shared Script Info tab. <BR> - To add more users later, close the file and rerun with the new user only.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>-ExportToCSV</strong></td>
+<td style="text-align: left;">Export the output to 3 CSV files per user instead of Excel.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>-CaseNumber</strong></td>
-<td style="text-align: left;">Case Number to include in the Filename of the output. <BR> - PrePend <code>&lt;CaseNumber&gt;_</code> to filename.</td>
+<td style="text-align: left;">Case Number to include in the Filename of the output. <BR> - Prepend <code>&lt;CaseNumber&gt;_</code> to filename.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>-ShortLogs</strong></td>
 <td style="text-align: left;">Limit Logs to 500 instead of the default 2000, in case the server has trouble responding with the full logs.</td>
 </tr>
 <tr>
-<td style="text-align: left;">---</td>
-<td style="text-align: left;"></td>
+<td style="text-align: left;"><strong>-MaxLogs</strong></td>
+<td style="text-align: left;">Increase log limit to 12,000 in case the default 2000 does not contain the needed information. <BR> - Note: this can be time consuming and <strong>does not contain all log types such as User Responses</strong>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>-CustomProperty</strong></td>
+<td style="text-align: left;">Add custom properties to the RAW output. <BR> - Properties must be in the format of <code>"PropertyName1, PropertyName2, PropertyName3"</code>. <BR> - Properties will only be added to the RAW output.</td>
 </tr>
 </tbody>
 </table>
-<h4 id="syntax">Syntax:</h4>
+<h2 id="output">Output</h2>
+<p>Filename pattern: <code>&lt;CaseNumber&gt;_CalLogSummary_&lt;short meeting ID&gt;.xlsx</code></p>
+<p>The Excel workbook contains the following worksheets (in tab order):</p>
+<table>
+<thead>
+<tr>
+<th>Worksheet</th>
+<th>Tab Color</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>\&lt;user&gt;</strong></td>
+<td>Orange / Green / Blue / Red</td>
+<td><strong>Enhanced CalLogs</strong> — the primary analysis source. Contains processed calendar diagnostic objects with friendly column names, color coding, and LogRowType classification. Tab color reflects the role: <strong>Orange</strong> = Organizer, <strong>Green</strong> = Room/Resource, <strong>Blue</strong> = Attendee. <strong>Red</strong> = CalLogs are disabled for this user.</td>
+</tr>
+<tr>
+<td><strong>Script Info</strong></td>
+<td>Grey</td>
+<td>Script version, age, runtime, command line, identities processed, and any errors. Each run appends to this tab so you have a history of all collections for this meeting.</td>
+</tr>
+<tr>
+<td><strong>\&lt;user&gt;_Raw</strong></td>
+<td><em>(same as Enhanced)</em></td>
+<td><strong>Raw CalLogs</strong> — the unprocessed calendar diagnostic data. Useful for escalations or when you need fields not in the Enhanced tab.</td>
+</tr>
+<tr>
+<td><strong>\&lt;user&gt;_TimeLine</strong></td>
+<td><em>(same as Enhanced)</em></td>
+<td><strong>Timeline</strong> — a human-readable summary of key events for the meeting in chronological order.</td>
+</tr>
+</tbody>
+</table>
+<p>Three worksheets are created per user (Enhanced, Raw, Timeline) plus the shared Script Info tab. To add another participant after the initial run, close the Excel file and rerun the script passing in only the new user.</p>
+<h3 id="pre-filtered-columns">Pre-filtered columns</h3>
+<p>The <strong>LogRowType</strong> column is pre-filtered to hide noisy row types by default:</p>
+<ul>
+<li><code>OtherAssistant</code></li>
+<li><code>MeetingMessageChange</code></li>
+<li><code>DeletedSeriesException</code></li>
+</ul>
+<p>To see all rows, clear the filter on the LogRowType column dropdown in Excel.</p>
+<hr />
+<h2 id="syntax">Syntax</h2>
 <p>Example to return timeline for a user with MeetingID:
 <div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="nb">Get-CalendarDiagnosticObjectsSummary</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Identity</span> <span class="n">user</span><span class="nv">@contoso</span><span class="p">.</span><span class="n">com</span> <span class="n">-MeetingID</span> <span class="n">040000008200E00074C5B7101A82E0080000000010E4301F9312D801000000000000000010000000996102014F1D484A8123C16DDBF8603E</span>
 </code></pre></div></p>
@@ -5290,16 +5592,43 @@ New <strong>-ExportToExcel</strong> highly recommended for ease of use (all logs
 Get CalLogs for 3 users:
 <div class="highlight"><pre><span></span><code><span class="nb">Get-CalendarDiagnosticObjectsSummary</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Identity</span> <span class="n">User1</span><span class="p">,</span> <span class="n">User2</span><span class="p">,</span> <span class="n">Delegate</span> <span class="n">-MeetingID</span> <span class="nv">$MeetingID</span>
 </code></pre></div>
-Add Tracking Logs and Exceptions:
-<div class="highlight"><pre><span></span><code><span class="nb">Get-CalendarDiagnosticObjectsSummary</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Identity</span> <span class="nv">$Users</span> <span class="n">-MeetingID</span> <span class="nv">$MeetingID</span> <span class="n">-TrackingLogs</span> <span class="n">-Exceptions</span>
+Add Tracking Logs without Exceptions:
+<div class="highlight"><pre><span></span><code><span class="nb">Get-CalendarDiagnosticObjectsSummary</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Identity</span> <span class="nv">$Users</span> <span class="n">-MeetingID</span> <span class="nv">$MeetingID</span> <span class="n">-NoExceptions</span>
 </code></pre></div>
-Export CalLogs to Excel:
-<div class="highlight"><pre><span></span><code><span class="nb">Get-CalendarDiagnosticObjectsSummary</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Identity</span> <span class="nv">$Users</span> <span class="n">-MeetingID</span> <span class="nv">$MeetingID</span> <span class="n">-TrackingLogs</span> <span class="n">-Exceptions</span> <span class="n">-ExportToExcel</span> <span class="n">-CaseNumber</span> <span class="n">123456</span>
+Skip Tracking Logs:
+<div class="highlight"><pre><span></span><code><span class="nb">Get-CalendarDiagnosticObjectsSummary</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Identity</span> <span class="nv">$Users</span> <span class="n">-MeetingID</span> <span class="nv">$MeetingID</span> <span class="n">-NoTrackingLogs</span>
+</code></pre></div>
+Export CalLogs to Excel with a Case Number (Exceptions and Excel are both default):
+<div class="highlight"><pre><span></span><code><span class="nb">Get-CalendarDiagnosticObjectsSummary</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Identity</span> <span class="nv">$Users</span> <span class="n">-MeetingID</span> <span class="nv">$MeetingID</span> <span class="n">-ExportToExcel</span> <span class="n">-CaseNumber</span> <span class="n">123456</span>
 </code></pre></div>
 Will create file like  <code>.\123456_CalLogSummary_&lt;MeetingID&gt;.xlsx</code> in current directory.</p>
-<p>More Documentation on collecting CalLogs and Analyzing them:
- <a href="https://aka.ms/GetCalLogs">How to Get Calendar Logs</a>
- <a href="https://aka.ms/AnalyzeCalLogs">How to Analyze Calendar Logs</a></p>
+<p>Collect logs for a specific Exception date:
+<div class="highlight"><pre><span></span><code><span class="nb">Get-CalendarDiagnosticObjectsSummary</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Identity</span> <span class="nv">$Users</span> <span class="n">-MeetingID</span> <span class="nv">$MeetingID</span> <span class="n">-ExceptionDate</span> <span class="s2">&quot;01/28/2024&quot;</span> <span class="n">-CaseNumber</span> <span class="n">123456</span>
+</code></pre></div></p>
+<h2 id="validate-your-collection">Validate your collection</h2>
+<p>Before analyzing, verify:</p>
+<ul>
+<li>[ ] Participant worksheets exist for each participant (Enhanced, Raw, Timeline), and the shared Script Info worksheet is present</li>
+<li>[ ] All key participants are included (organizer, affected attendees, delegates, room mailboxes)</li>
+<li>[ ] LogTimestamp range covers the incident timeframe</li>
+<li>[ ] Response rows exist (if investigating response issues — collected by default, use <code>-NoTrackingLogs</code> to skip)</li>
+<li>[ ] Exception rows exist (if investigating recurring meeting issues)</li>
+<li>[ ] <code>CalendarVersionStoreDisabled</code> is not <code>True</code> — if True, logs are fundamentally incomplete</li>
+<li>[ ] Row count is not at the exact 2,000 limit — if it is, recollect with <code>-MaxLogs</code></li>
+</ul>
+<h2 id="known-issues">Known issues</h2>
+<p><strong><code>New-ConditionalText : The term 'New-ConditionalText' is not recognized...</code></strong></p>
+<p>This error occurs when the ImportExcel module conflicts with the Exchange Online session. To resolve:</p>
+<ol>
+<li>Run <code>Disconnect-ExchangeOnline</code></li>
+<li>Close the PowerShell session and start a new one as administrator</li>
+<li>Reconnect to Exchange Online and rerun the script</li>
+</ol>
+<h2 id="more-information">More information</h2>
+<ul>
+<li><a href="https://learn.microsoft.com/exchange/troubleshoot/calendars/cdl/get-calendar-diagnostic-logs">How to Get Calendar Logs</a></li>
+<li><a href="https://learn.microsoft.com/exchange/troubleshoot/calendars/cdl/analyze-calendar-diagnostic-logs">How to Analyze Calendar Logs</a></li>
+</ul>
 
 
 
@@ -5320,7 +5649,7 @@ Will create file like  <code>.\123456_CalLogSummary_&lt;MeetingID&gt;.xlsx</code
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="October 21, 2024 17:56:02 UTC">October 21, 2024</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="April 15, 2026 21:08:52 UTC">April 15, 2026</span>
   </span>
 
     
