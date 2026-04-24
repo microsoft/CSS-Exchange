@@ -44,10 +44,10 @@ function CheckParameters {
     if ([string]::IsNullOrWhiteSpace($Script:ExchangeOnPremLocalDomain)) {
         $MissingParameters += "Exchange On Premises Local Domain.  Example: . 'C:\scripts\FreeBusyChecker\FreeBusyChecker.ps1' -OnPremisesUser John@Contoso.com"
     }
-    if ([string]::IsNullOrWhiteSpace($exchangeOnPremDomain)) {
+    if ([string]::IsNullOrWhiteSpace($Script:ExchangeOnPremDomain)) {
         $MissingParameters += "Exchange On Premises Domain.  Example: -OnPremLocalDomain Contoso.local"
     }
-    if ([string]::IsNullOrWhiteSpace($exchangeOnPremEWS)) {
+    if ([string]::IsNullOrWhiteSpace($Script:ExchangeOnPremEWS)) {
         $MissingParameters += "Exchange On Premises EWS Virtual Directory External URL.  Example:  'C:\FreeBusyChecker.ps1' -OnPremEWSUrl https://mail.contoso.com/EWS/Exchange.asmx"
     }
     if ([string]::IsNullOrWhiteSpace($Script:UserOnPrem)) {
