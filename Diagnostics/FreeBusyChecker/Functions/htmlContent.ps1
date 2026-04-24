@@ -119,7 +119,7 @@ margin-right: 1%;
             </li>
           </ul>
         </div>
-        <div class='Black'  style = 'padding-left: 0%;'><h2Configuration:</h2></div>
+        <div class='Black'  style = 'padding-left: 0%;'><h2>Configuration:</h2></div>
         <p style='margin-left:2%;'>TLS 1.2 should be Enabled in order for Hybrid Free Busy to work. To confirm TLS Settings please Run the HealthChecker Script</p>
           <ul>
             <li><a href='https://microsoft.github.io/CSS-Exchange/Diagnostics/HealthChecker/'>Microsoft Exchange Health Checker Script</a></li>
