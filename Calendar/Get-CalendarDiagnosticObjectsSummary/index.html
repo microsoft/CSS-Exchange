@@ -5419,6 +5419,9 @@
 <h1 id="get-calendardiagnosticobjectssummary">Get-CalendarDiagnosticObjectsSummary</h1>
 <p>Download the latest release: <a href="https://github.com/microsoft/CSS-Exchange/releases/latest/download/Get-CalendarDiagnosticObjectsSummary.ps1">Get-CalendarDiagnosticObjectsSummary.ps1</a></p>
 <p>This script runs the Get-CalendarDiagnosticObjects cmdlet and returns a summarized timeline of actions in clear English as well as the Calendar Diagnostic Objects in Excel.</p>
+<blockquote>
+<p><strong>New feature:</strong> <code>-FastExceptions</code> uses the recurring meeting's <code>AppointmentRecurrenceBlob</code> to identify exception dates first, then collects those occurrences directly. This is the fastest option when investigating recurring meeting exceptions, and it now collects the last 6 months by default. Add <code>-AllExceptions</code> to collect every exception date instead.</p>
+</blockquote>
 <h2 id="prerequisites">Prerequisites</h2>
 <ol>
 <li>
@@ -5471,7 +5474,7 @@
 </blockquote>
 <h2 id="parameters">Parameters</h2>
 <p>Using <strong>-MeetingID</strong> (the <code>CleanGlobalObjectId</code>) is the preferred collection method. It produces more detailed logs than a subject search and allows collecting for multiple participants in a single run.</p>
-<p>Using <strong>-Subject</strong> performs a case-insensitive substring match. Only a single <code>-Identity</code> can be used with <code>-Subject</code>. If multiple meetings match, the script creates a separate file for each match.</p>
+<p>Using <strong>-Subject</strong> performs a case-insensitive substring match. Only a single <code>-Identity</code> can be used with <code>-Subject</code>. If multiple meetings match, the script creates a separate file for each match. Exception collection still runs by default only when the subject search resolves to exactly one <code>MeetingID</code>. Tracking logs still require <strong>-MeetingID</strong>.</p>
 <table>
 <thead>
 <tr>
@@ -5511,6 +5514,14 @@
 <tr>
 <td style="text-align: left;"><strong>-ExceptionDate</strong></td>
 <td style="text-align: left;">Date of a specific Exception Meeting to collect logs for. <BR> - Fastest way to get logs for a single occurrence of a recurring meeting.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>-FastExceptions</strong></td>
+<td style="text-align: left;"><strong>New feature.</strong> Parse the meeting's <code>AppointmentRecurrenceBlob</code> to find exception dates first, then collect those occurrences directly. This fast path collects the last 6 months by default. If blob parsing fails, the script falls back to the legacy per-appointment exception collector.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>-AllExceptions</strong></td>
+<td style="text-align: left;">When used with <code>-FastExceptions</code>, collect all exception dates instead of the default last 6 months.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>-ExportToExcel</strong></td>
@@ -5605,6 +5616,12 @@ Will create file like  <code>.\123456_CalLogSummary_&lt;MeetingID&gt;.xlsx</code
 <p>Collect logs for a specific Exception date:
 <div class="highlight"><pre><span></span><code><span class="nb">Get-CalendarDiagnosticObjectsSummary</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Identity</span> <span class="nv">$Users</span> <span class="n">-MeetingID</span> <span class="nv">$MeetingID</span> <span class="n">-ExceptionDate</span> <span class="s2">&quot;01/28/2024&quot;</span> <span class="n">-CaseNumber</span> <span class="n">123456</span>
 </code></pre></div></p>
+<p>Collect recurring meeting exceptions with the new fast path:
+<div class="highlight"><pre><span></span><code><span class="nb">Get-CalendarDiagnosticObjectsSummary</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Identity</span> <span class="nv">$Users</span> <span class="n">-MeetingID</span> <span class="nv">$MeetingID</span> <span class="n">-FastExceptions</span>
+</code></pre></div></p>
+<p>Collect all recurring meeting exceptions with the new fast path:
+<div class="highlight"><pre><span></span><code><span class="nb">Get-CalendarDiagnosticObjectsSummary</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Identity</span> <span class="nv">$Users</span> <span class="n">-MeetingID</span> <span class="nv">$MeetingID</span> <span class="n">-FastExceptions</span> <span class="n">-AllExceptions</span>
+</code></pre></div></p>
 <h2 id="validate-your-collection">Validate your collection</h2>
 <p>Before analyzing, verify:</p>
 <ul>
@@ -5649,7 +5666,7 @@ Will create file like  <code>.\123456_CalLogSummary_&lt;MeetingID&gt;.xlsx</code
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="April 15, 2026 21:08:52 UTC">April 15, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="April 22, 2026 00:14:25 UTC">April 22, 2026</span>
   </span>
 
     
