@@ -29,6 +29,16 @@
     Use this switch parameter to configure the Auth Server object. The script will add the appId of the newly created application to the "EvoSTS" or
     "EvoSTS - {Guid}" Auth Server object.
     This parameter allows you to run granular configurations. Note that some of the tasks depend on others and can't be run alone.
+.PARAMETER UseGraphApiOnly
+    Use this switch parameter to configure only Graph API permissions for the dedicated Exchange hybrid application.
+    When this parameter is used, EWS API permissions will not be configured.
+    If you do not use this parameter, the script will configure EWS API permissions by default,
+    with an optional prompt to add Graph API permissions in addition.
+.PARAMETER RemoveApiPermissions
+    Use this parameter to remove specific API permissions from the dedicated Exchange hybrid application.
+    Accepts an array of API types to remove. Valid values are: "EWS", "Graph".
+    This removes both the admin consent (app role assignments) from all service principals and the permission entries
+    from the application manifest. This is useful when you need to clean up permissions that are no longer needed.
 .PARAMETER CustomAppId
     Use this parameter to provide the Application (client) ID (also known as appId) of a custom application in Microsoft Entra ID.
     In most cases this parameter does not need to be used.
@@ -114,6 +124,13 @@
     It uses of the App ID which is provided. The script will not verify if the App ID is correct as it will not perform any Graph API calls.
     You can use this syntax if the application was already created by using a different non-Exchange Server machine as described in the previous example.
     It's intended for environments where Exchange Server has no outgoing connection to Microsoft Graph API.
+.EXAMPLE
+    PS C:\> .\ConfigureExchangeHybridApplication.ps1 -RemoveApiPermissions "EWS"
+    It will remove the EWS API permissions from the dedicated Exchange hybrid application. This removes both the admin consent
+    (app role assignments) from all service principals and the permission entries from the application manifest.
+.EXAMPLE
+    PS C:\> .\ConfigureExchangeHybridApplication.ps1 -RemoveApiPermissions "EWS", "Graph"
+    It will remove both EWS and Graph API permissions from the dedicated Exchange hybrid application.
 #>
 
 [CmdletBinding(DefaultParameterSetName = "FullyConfigureExchangeHybridApplication", SupportsShouldProcess = $true, ConfirmImpact = 'High')]
@@ -133,6 +150,14 @@ param(
     [Parameter(Mandatory = $false, ParameterSetName = "Create")]
     [Parameter(Mandatory = $false, ParameterSetName = "CustomAppId")]
     [switch]$ConfigureAuthServer,
+
+    [Parameter(Mandatory = $false, ParameterSetName = "FullyConfigureExchangeHybridApplication")]
+    [Parameter(Mandatory = $false, ParameterSetName = "Create")]
+    [switch]$UseGraphApiOnly,
+
+    [ValidateSet("EWS", "Graph")]
+    [Parameter(Mandatory = $false, ParameterSetName = "RemovePermissions")]
+    [string[]]$RemoveApiPermissions,
 
     [Parameter(Mandatory = $true, ParameterSetName = "CustomAppId")]
     [ValidatePattern("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")]
@@ -161,12 +186,14 @@ param(
     [Parameter(Mandatory = $false, ParameterSetName = "FirstPartyKeyCredentialsCleanup")]
     [Parameter(Mandatory = $false, ParameterSetName = "Create")]
     [Parameter(Mandatory = $false, ParameterSetName = "Delete")]
+    [Parameter(Mandatory = $false, ParameterSetName = "RemovePermissions")]
     [string]$AzureEnvironment = "Global",
 
     [Parameter(Mandatory = $false, ParameterSetName = "FullyConfigureExchangeHybridApplication")]
     [Parameter(Mandatory = $false, ParameterSetName = "FirstPartyKeyCredentialsCleanup")]
     [Parameter(Mandatory = $false, ParameterSetName = "Create")]
     [Parameter(Mandatory = $false, ParameterSetName = "Delete")]
+    [Parameter(Mandatory = $false, ParameterSetName = "RemovePermissions")]
     [ValidatePattern("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")]
     [string]$CustomClientId = $null,
 
@@ -174,12 +201,14 @@ param(
     [Parameter(Mandatory = $false, ParameterSetName = "FirstPartyKeyCredentialsCleanup")]
     [Parameter(Mandatory = $false, ParameterSetName = "Create")]
     [Parameter(Mandatory = $false, ParameterSetName = "Delete")]
+    [Parameter(Mandatory = $false, ParameterSetName = "RemovePermissions")]
     [string]$CustomGraphApiUri = $null,
 
     [Parameter(Mandatory = $false, ParameterSetName = "FullyConfigureExchangeHybridApplication")]
     [Parameter(Mandatory = $false, ParameterSetName = "FirstPartyKeyCredentialsCleanup")]
     [Parameter(Mandatory = $false, ParameterSetName = "Create")]
     [Parameter(Mandatory = $false, ParameterSetName = "Delete")]
+    [Parameter(Mandatory = $false, ParameterSetName = "RemovePermissions")]
     [string]$CustomEntraAuthUri = $null,
 
     [Parameter(Mandatory = $false, ParameterSetName = "FullyConfigureExchangeHybridApplication")]
@@ -205,6 +234,7 @@ param(
     [Parameter(Mandatory = $false, ParameterSetName = "FirstPartyKeyCredentialsCleanup")]
     [Parameter(Mandatory = $false, ParameterSetName = "Create")]
     [Parameter(Mandatory = $false, ParameterSetName = "Delete")]
+    [Parameter(Mandatory = $false, ParameterSetName = "RemovePermissions")]
     [switch]$SkipVersionCheck
 )
 
@@ -220,19 +250,23 @@ begin {
     . $PSScriptRoot\..\..\Shared\Get-ProtocolEndpointViaAutoDv2.ps1
     . $PSScriptRoot\..\..\Shared\Show-Disclaimer.ps1
     . $PSScriptRoot\..\..\Shared\ActiveDirectoryFunctions\Get-ExchangeOrganizationGuid.ps1
-    . $PSScriptRoot\..\..\Shared\AzureFunctions\Get-GraphAccessToken.ps1
+    . $PSScriptRoot\..\..\Shared\AzureFunctions\Get-Consent.ps1
     . $PSScriptRoot\..\..\Shared\AzureFunctions\Get-CloudServiceEndpoint.ps1
+    . $PSScriptRoot\..\..\Shared\AzureFunctions\Get-GraphAccessToken.ps1
     . $PSScriptRoot\..\..\Shared\AzureFunctions\Get-NewJsonWebToken.ps1
     . $PSScriptRoot\..\..\Shared\AzureFunctions\Get-NewOAuthToken.ps1
     . $PSScriptRoot\..\..\Shared\GraphApiFunctions\Add-CertificateToAzureApplication.ps1
     . $PSScriptRoot\..\..\Shared\GraphApiFunctions\Get-AzureApplication.ps1
     . $PSScriptRoot\..\..\Shared\GraphApiFunctions\Get-AzureAppRoleAssignments.ps1
-    . $PSScriptRoot\..\..\Shared\GraphApiFunctions\Get-AzureServicePrincipal.ps1
     . $PSScriptRoot\..\..\Shared\GraphApiFunctions\Get-AzureTenantDomainList.ps1
-    . $PSScriptRoot\..\..\Shared\GraphApiFunctions\New-EwsAzureApplication.ps1
+    . $PSScriptRoot\..\..\Shared\GraphApiFunctions\New-ApiPermissionObject.ps1
+    . $PSScriptRoot\..\..\Shared\GraphApiFunctions\New-ExchangeAzureApplication.ps1
     . $PSScriptRoot\..\..\Shared\GraphApiFunctions\Remove-AzureApplication.ps1
+    . $PSScriptRoot\..\..\Shared\GraphApiFunctions\Remove-AzureApplicationPermission.ps1
     . $PSScriptRoot\..\..\Shared\GraphApiFunctions\Remove-CertificateFromAzureServicePrincipal.ps1
     . $PSScriptRoot\..\..\Shared\GraphApiFunctions\Test-AzureApplicationPermission.ps1
+    . $PSScriptRoot\..\..\Shared\GraphApiFunctions\Test-GraphApiEndpoint.ps1
+    . $PSScriptRoot\..\..\Shared\GraphApiFunctions\Update-ExchangeAzureApplication.ps1
     . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\GenericScriptUpdate.ps1
     . $PSScriptRoot\..\..\Shared\Get-ProcessedServerList.ps1
 
@@ -257,12 +291,8 @@ begin {
     }
 
     #region Constants
-    # Base build number on which the Exchange Server 2019 CU15 release is based
-    [System.Version]$exchangeServer2019Cu15BaseBuild = "15.2.1748.0"
-
     # IDs that we need to create the application in Microsoft Entra ID
     $resourceAppId = "00000002-0000-0ff1-ce00-000000000000" # Office 365 Exchange Online
-    $resourceAccessId = "dc890d15-9560-4a4c-9b7f-a736ec74ec40" # full_access_as_app (Use Exchange Web Services with full access to all mailboxes)
 
     # Arbitration mailbox that exists in all tenants (regardless of the cloud environment), which is used in AutoD v2 calls against EXO
     $arbitrationMailbox = "Migration.8f3e7716-2011-43e4-96b1-aba62d229136"
@@ -282,6 +312,12 @@ begin {
     $logo = Get-Content ".\Logos\ExchangeServerLogo.png" -AsByteStream -Raw
     #endregion
 
+    # EWS API permissions which are required for the functionality of the hybrid application using EWS API workflow
+    $ewsApiPermissions = New-ApiPermissionObject -ApiType "EWS" -Permissions "full_access_as_app" -PermissionType "Application"
+
+    # Graph API permissions which are required for the functionality of the hybrid application using Graph API workflow
+    $graphApiPermissions = New-ApiPermissionObject -ApiType "Graph" -Permissions "Calendars.Read", "MailboxSettings.Read", "MailTips.ReadBasic.All", "ProfilePhoto.Read.All" -PermissionType "Application"
+
     # List to store the Exchange servers which are running on an older Exchange Server build
     $outdatedExchangeServersList = New-Object System.Collections.Generic.List[string]
 
@@ -293,14 +329,21 @@ begin {
 
     # List to store the setting overrides configurations
     $3pSettingOverridesObject = New-Object System.Collections.Generic.List[object]
+
+    # List to store the Graph API setting overrides configurations
+    $graphApiSettingOverridesObject = New-Object System.Collections.Generic.List[object]
+
+    # List to store the API permissions array based on the RemoveApiPermissions parameter values
+    $permissionsToRemoveList = New-Object System.Collections.Generic.List[object]
 } process {
     Get-PSSessionDetails
+    Write-Verbose "Script Execution Line: $($script:MyInvocation.Line)"
     Write-Verbose "Url to check for new versions of the script is: $versionsUrl"
 
     # Prevent the script from running on PowerShell Core - there are adjustments needed which must be tested before release
     # We can't use requires PSEdition Desktop because it's not compatible with PowerShell version 3 and 4
     if ($null -ne $PSVersionTable.PSEdition -and $PSVersionTable.PSEdition -eq "Core") {
-        Write-Warning "This script isn't supported in PowerShell Core - use PowerShell 5.1 or earlier"
+        Write-Warning "This script is not supported in PowerShell Core. Please use Windows PowerShell 5.1 instead."
 
         return
     }
@@ -387,6 +430,12 @@ begin {
         `r`n`r`nIMPORTANT: The application which was created in Microsoft Entra ID to enable the dedicated Exchange hybrid application feature will be deleted
         `rThis can lead to a broken hybrid state if the dedicated Exchange hybrid application feature is still enabled and configured to use this Entra application
 "@
+    } elseif ($Script:RemoveApiPermissions) {
+        $targetMessage = "[{0}] RemoveApiPermissions: {1}" -f $(Get-XForEnabledFeature $true), ($Script:RemoveApiPermissions -join ", ")
+        $targetMessage = $targetMessage + @"
+        `r`n`r`nIMPORTANT: The specified API permissions will be removed from the application in Microsoft Entra ID, and the admin consent for these permissions will be removed as well
+        `rThis can lead to a broken hybrid state if the removed permissions are still needed for the hybrid features used in your organization
+"@
     } elseif ($Script:ResetFirstPartyServicePrincipalKeyCredentials) {
         # Add additional context about the reset first-party keyCredentials operation
         $targetMessage = "[{0}] ResetFirstPartyServicePrincipalKeyCredentials" -f $(Get-XForEnabledFeature $Script:ResetFirstPartyServicePrincipalKeyCredentials)
@@ -422,13 +471,14 @@ begin {
 
     try {
         if ((Get-Module -ErrorAction Stop).Name -contains "ExchangeOnlineManagement") {
-            Write-Warning "We've detected that the ExchangeOnlineManagement module is loaded in this session"
-            Write-Warning "Please open a new Exchange Management Shell and don't connect to Exchange Online"
+            Write-Warning "The ExchangeOnlineManagement module is loaded in this session."
+            Write-Warning "Please open a new Exchange Management Shell session without connecting to Exchange Online."
 
             return
         }
     } catch {
-        Write-Warning "Unable to query the modules which are loaded in this PowerShell session - Exception: $_"
+        Write-Warning "Failed to query loaded PowerShell modules."
+        Write-Verbose "Exception details: $_"
 
         return
     }
@@ -481,7 +531,8 @@ begin {
         Write-Verbose "Script was run to only configure TargetSharingEpr or AuthServer - dedicated Exchange hybrid application feature build check will be skipped"
     } elseif ($isAutomatedCertificateUpload -or
         $Script:EnableExchangeHybridApplicationOverride) {
-        $exchangeServersList = Get-ProcessedServerList -MinimumSU "Apr25HU" -DisplayOutdatedServers $false
+        # Starting with the May 2026 hotfix update, Exchange Server can use Graph API together with the dedicated Exchange hybrid application feature
+        $exchangeServersList = Get-ProcessedServerList -MinimumSU "May26HU" -DisplayOutdatedServers $false
 
         $isLocalServerMailboxServer = ($exchangeServersList.GetExchangeServer | Where-Object {
                 $_.Fqdn -eq $localServerFqdn
@@ -489,7 +540,7 @@ begin {
 
         # Stop processing if the server where the script runs isn't a Mailbox server
         if ($isLocalServerMailboxServer -eq $false) {
-            Write-Host "Processing stopped: The selected configuration must be executed on a Mailbox server" -ForegroundColor Red
+            Write-Host "The selected configuration must be executed on a Mailbox server. Processing stopped." -ForegroundColor Red
 
             return
         }
@@ -505,42 +556,39 @@ begin {
                 continue
             }
 
-            if ($server.AdminDisplayVersion -lt $exchangeServer2019Cu15BaseBuild) {
-                Write-Verbose "Build is lower than the Exchange Server 2019 CU15 base build - validating SU build"
+            # We no longer need to check if the Exchange Server build supports the dedicated Exchange hybrid application feature
+            # The reason is that hybrid features have already stopped working globally because we've disabled the first-party application workflow in the cloud
+            # Enabling the dedicated hybrid application feature will therefore not break any existing functionality because it's already broken if the feature is not being used
+            # We therefore only check if the build supports the Graph API workflow as this is necessary for creating the new setting override that was introduced with
+            # the Exchange Server March 2026 hotfix update
 
-                if ($exchangeServersList.OfflineExchangeServerFqdn -contains $server.Fqdn) {
-                    Write-Verbose "Server is offline - we can't validate if the build supports dedicated Exchange hybrid application feature"
-                    $offlineExchangeServersList.Add($server.Fqdn)
+            Write-Verbose "Server role supports dedicated Exchange hybrid application feature"
 
-                    continue
-                }
+            if ($exchangeServersList.OfflineExchangeServerFqdn -contains $server.Fqdn) {
+                Write-Verbose "Server is offline - we can't validate if the build supports the hybrid Graph API workflow"
+                $offlineExchangeServersList.Add($server.Fqdn)
 
-                if ($exchangeServersList.OutdatedBuildExchangeServerFqdn -contains $server.Fqdn) {
-                    Write-Verbose "Server build doesn't support dedicated Exchange hybrid application feature"
-                    $outdatedExchangeServersList.Add($server.Fqdn)
-
-                    continue
-                }
+                continue
             }
 
-            Write-Verbose "Server supports dedicated Exchange hybrid application feature"
+            if ($exchangeServersList.OutdatedBuildExchangeServerFqdn -contains $server.Fqdn) {
+                Write-Verbose "Exchange server version doesn't support the dedicated Exchange hybrid application with the Graph API workflow"
+                $outdatedExchangeServersList.Add($server.Fqdn)
+
+                continue
+            }
+
+            Write-Verbose "Server supports dedicated Exchange hybrid application Graph API workflow"
         }
 
         if ($outdatedExchangeServersList.Count -ge 1 -or
             $offlineExchangeServersList.Count -ge 1) {
-            # Make sure that the computer which runs the script, is not running an outdated build because of the setting override that is created by the script
-            if ($outdatedExchangeServersList -contains $localServerFqdn) {
-                Write-Host "The script needs to be run on an Exchange server that supports the dedicated Exchange hybrid application feature" -ForegroundColor Red
-
-                return
-            }
-
             $outdatedServersDisclaimerParams = @{
                 Message   = "Show warning about outdated Exchange server builds"
-                Target    = "The following Exchange servers are either running a build that does not support the dedicated Exchange hybrid application feature or were offline and could not be validated:" +
-                "`r`nOutdated: $([System.String]::Join(", ", $outdatedExchangeServersList))" +
+                Target    = "The following Exchange servers are either running a build that doesn't support the hybrid Graph API workflow or were offline and could not be validated:" +
+                "`r`nGraph API unsupported: $([System.String]::Join(", ", $outdatedExchangeServersList))" +
                 "`r`nOffline: $([System.String]::Join(", ", $offlineExchangeServersList))" +
-                "`r`nOutdated servers will continue to use the first-party application even after dedicated Exchange hybrid application feature is enabled." +
+                "`r`nGraph API unsupported servers will continue to use the EWS API until it's getting blocked or deprecated in Exchange Online." +
                 "`r`n`r`nDo you want to continue?"
                 Operation = "Configure dedicated Exchange hybrid application feature"
             }
@@ -557,7 +605,8 @@ begin {
         $Script:UpdateCertificate -or
         $Script:ConfigureAuthServer -or
         $Script:EnableExchangeHybridApplicationOverride -or
-        $Script:ResetFirstPartyServicePrincipalKeyCredentials) {
+        $Script:ResetFirstPartyServicePrincipalKeyCredentials -or
+        $Script:RemoveApiPermissions) {
         Write-Verbose "Access token or tenant information are required to process the current scenario selection"
 
         # Acquire Graph access token to run calls against Graph Api but only do if no custom AppId was passed
@@ -614,6 +663,44 @@ begin {
         }
     }
 
+    # Scenarios where we need to configure or validate API permissions are the following
+    if ($Script:CreateApplication -or
+        $Script:EnableExchangeHybridApplicationOverride) {
+        # If the script wasn't executed with UseGraphApiOnly parameter, we configure EWS permissions by default
+        # However, we give the user the option to configure Graph API permissions in addition to EWS permissions via a prompt
+        # Matrix of scenarios and configured API permissions:
+        #
+        # Script run without UseGraphApiOnly | EWS API permissions with prompt to add Graph API permissions in addition
+        # Script run with UseGraphApiOnly    | Graph API permissions only (no EWS)
+
+        if (-not $Script:UseGraphApiOnly) {
+            $configureGraphApiPermissionsInAddition = Get-Consent -Message ("`r`nDo you want to {0} Graph API permissions in addition to EWS permissions?" -f $(if ($Script:CreateApplication) { "configure" } else { "validate" }))
+
+            if ($configureGraphApiPermissionsInAddition) {
+                Write-Verbose "User has consented to configure/validate Graph API permissions in addition to EWS permissions"
+                $apiPermissions = @($ewsApiPermissions, $graphApiPermissions)
+            } else {
+                Write-Verbose "User has declined to configure/validate Graph API permissions in addition to EWS permissions"
+                $apiPermissions = @($ewsApiPermissions)
+            }
+        } else {
+            $scriptExecutionMode = if ($Script:CreateApplication) { "configured" } else { "validated" }
+            Write-Verbose "Script was executed with UseGraphApiOnly parameter - only Graph API permissions will be $scriptExecutionMode"
+            $useGraphApiOnlyMessage = @(
+                "The script was executed with the 'UseGraphApiOnly' parameter.",
+                "Only Graph API permissions will be $scriptExecutionMode.",
+                "",
+                "If you have mailboxes hosted on Exchange Server with cloud-based archive mailboxes",
+                "and archiving policies applied, EWS permissions are also required to ensure that",
+                "archiving features continue to work as expected.",
+                "",
+                "This is a known limitation that will be addressed in a future Exchange Server release."
+            )
+            Write-Host ($useGraphApiOnlyMessage -join "`r`n") -ForegroundColor Yellow
+            $apiPermissions = @($graphApiPermissions)
+        }
+    }
+
     #region DeleteApplication
     if ($Script:DeleteApplication) {
         Write-Host "`r`nPerforming operation: DeleteApplication" -ForegroundColor Cyan
@@ -646,54 +733,105 @@ begin {
         # First, check if the Azure Application already exists - if that's the case, we don't need to do anything except validating it
         if ($azureApplicationInformation.ApplicationExists) {
             $testAzureApplicationParams = $graphApiBaseParams + @{
-                AzureApplicationObject = $azureApplicationInformation
-                ResourceAppId          = $resourceAppId
-                ResourceAccessId       = $resourceAccessId
-                Type                   = "Role"
+                ApiPermissionsObject   = $apiPermissions
             }
 
-            $testAzureApplicationPermissionReturn = Test-AzureApplicationPermission @testAzureApplicationParams
+            $testAzureApplicationPermissionResult = Test-AzureApplicationPermission @testAzureApplicationParams -AzureApplicationObject $azureApplicationInformation
 
-            if ($testAzureApplicationPermissionReturn.PermissionsAsExpected -eq $false -or
-                $testAzureApplicationPermissionReturn.AdminConsentGranted -eq $false) {
-                Write-Verbose "Application: $azureApplicationName App ID: $($azureApplicationInformation.AppId) is not configured as expected"
-                Write-Verbose "PermissionsAsExpected: $($testAzureApplicationPermissionReturn.PermissionsAsExpected) AdminConsentGranted: $($testAzureApplicationPermissionReturn.AdminConsentGranted)"
+            foreach ($result in $testAzureApplicationPermissionResult) {
+                Write-Verbose "Permission: '$($result.Name)' Permissions found? '$($result.AllPermissionsFound)' - Admin consent granted? '$($result.AdminConsentGranted)'"
 
-                Write-Warning "Application: $azureApplicationName with App ID: $($azureApplicationInformation.AppId) already exists but seems not to be configured as expected"
-                Write-Warning "Please delete the application by executing the script as follows:"
-                Write-Warning "`t.\$($script:MyInvocation.MyCommand.Name) -DeleteApplication"
+                if ($result.AllPermissionsFound -eq $false) {
+                    Write-Warning "Application '$azureApplicationName' is missing the following permissions: $($result.MissingApiPermissions.AppRole.value -join ", ")"
+                }
 
-                return
+                if ($result.AdminConsentGranted -eq $false) {
+                    Write-Warning "Application '$azureApplicationName' is missing admin consent for the following permissions: $($result.MissingAdminConsents.AppRole.value -join ", ")"
+                }
             }
 
-            Write-Host "Application: $azureApplicationName with App ID: $($azureApplicationInformation.AppId) already exists and is configured as expected"
+            if ($testAzureApplicationPermissionResult.AllPermissionsFound -contains $false -or
+                $testAzureApplicationPermissionResult.AdminConsentGranted -contains $false) {
+                $consentToFixPermissions = Get-Consent -Message "Do you want the script to add the missing permissions and request admin consent?"
+
+                if ($consentToFixPermissions) {
+                    Write-Verbose "User has consented to update the dedicated hybrid application"
+
+                    $updateExchangeAzureApplicationParams = $graphApiBaseParams + @{
+                        AzureApplicationName                  = $azureApplicationName
+                        TestAzureApplicationPermissionResult  = $testAzureApplicationPermissionResult
+                        AskForConsent                         = $true
+                        AllowCreationWithoutConsentPermission = $true
+                    }
+
+                    $updateExchangeApplicationResult = Update-ExchangeAzureApplication @updateExchangeAzureApplicationParams
+
+                    if ($updateExchangeApplicationResult.Success -eq $false) {
+                        Write-Warning "Something went wrong while updating application: $azureApplicationName"
+
+                        return
+                    } else {
+                        # Get the application information again to refresh the app roles and permission information after the update
+                        $azureApplicationInformation = Get-AzureApplication @graphApiBaseParams -AzureApplicationName $azureApplicationName
+
+                        # Refresh permission and consent information after a successful update
+                        $testAzureApplicationPermissionResult = Test-AzureApplicationPermission @testAzureApplicationParams -AzureApplicationObject $azureApplicationInformation
+                    }
+                } else {
+                    Write-Verbose "User has declined to update the dedicated hybrid application"
+
+                    Write-Warning "Application '$azureApplicationName' (App ID: $($azureApplicationInformation.AppId)) already exists but is not configured correctly."
+                    Write-Warning "Please delete the application by running the script as follows:"
+                    Write-Warning ".\$($script:MyInvocation.MyCommand.Name) -DeleteApplication"
+
+                    return
+                }
+            } else {
+                Write-Verbose "All required permissions are configured and admin consent is granted"
+                Write-Host "Application: $azureApplicationName with App ID: $($azureApplicationInformation.AppId) already exists and is configured as expected"
+            }
         } else {
-            $newEwsAzureApplicationParams = $graphApiBaseParams + @{
+            $newExchangeAzureApplicationParams = $graphApiBaseParams + @{
                 AzureApplicationName                  = $azureApplicationName
+                RequestedApiPermissions               = $apiPermissions
                 AskForConsent                         = $true
                 PngByteArray                          = $logo
                 Notes                                 = $notes
                 AllowCreationWithoutConsentPermission = $true
             }
 
-            # Try to create the EWS Azure Application
-            $newEwsApplicationReturn = New-EwsAzureApplication @newEwsAzureApplicationParams
+            # Try to create the Exchange Azure Application
+            $newExchangeAzureApplicationReturn = New-ExchangeAzureApplication @newExchangeAzureApplicationParams
 
-            if ($null -eq $newEwsApplicationReturn.AppId) {
-                Write-Warning "Something went wrong while creating application: $azureApplicationName"
+            if ($newExchangeAzureApplicationReturn.Success -eq $false -or
+                $null -eq $newExchangeAzureApplicationReturn.AppId) {
+                Write-Warning "There was an error while creating the application: $azureApplicationName"
 
                 return
             }
 
-            Write-Verbose "Application: $azureApplicationName Tenant: $Script:TenantId App ID: $($newEwsApplicationReturn.AppId) AdminConsent? $($newEwsApplicationReturn.AdminConsent) was created"
+            $adminConsentStatus = if ($null -ne $newExchangeAzureApplicationReturn.AdminConsentResults -and
+                $newExchangeAzureApplicationReturn.AdminConsentResults.Granted -notcontains $false) {
+                "GrantedForAllRequestedPermissions"
+            } elseif ($null -ne $newExchangeAzureApplicationReturn.AdminConsentResults) {
+                "PartiallyOrNotGranted"
+            } else {
+                "Unknown"
+            }
+            Write-Verbose "Application: $azureApplicationName Tenant: $Script:TenantId App ID: $($newExchangeAzureApplicationReturn.AppId) AdminConsentStatus: $adminConsentStatus was created"
 
             Write-Host "`r`nApplication: $azureApplicationName was successfully created - take a note of the following values:" -ForegroundColor Green
-            Write-Host "App ID: $($newEwsApplicationReturn.AppId)"
+            Write-Host "App ID: $($newExchangeAzureApplicationReturn.AppId)"
             Write-Host "Tenant ID: $Script:TenantId"
 
-            if ($newEwsApplicationReturn.AdminConsent -eq $false) {
-                Write-Warning "`r`nIMPORTANT: The application was created without tenant-wide admin consent, which is required to enable the dedicated Exchange hybrid application feature"
+            if ($newExchangeAzureApplicationReturn.AdminConsentResults.Granted -notcontains $false) {
+                Write-Host "Admin consent was granted for all requested permissions" -ForegroundColor Green
+            } else {
+                Write-Warning "Admin consent is missing for some or all requested permissions, which is required to enable the dedicated Exchange hybrid application feature"
                 Write-Warning "To complete the configuration, please ensure that you grant admin consent in the Microsoft Entra portal"
+                $newExchangeAzureApplicationReturn.AdminConsentResults | Where-Object { $_.Granted -eq $false } | ForEach-Object {
+                    Write-Warning "Missing admin consent for API permission: $($_.ApiType) - Reason: $($_.Reason)"
+                }
             }
         }
     }
@@ -803,11 +941,8 @@ begin {
         Write-Host "`r`nPerforming operation: ConfigureAuthServer" -ForegroundColor Cyan
 
         if ([System.String]::IsNullOrEmpty($Script:CustomAppId)) {
-            # Run Get-AzureApplication again in case that it was not run before or in case that ApplicationExists was false in the previous run
-            if ($null -eq $azureApplicationInformation -or
-                $azureApplicationInformation.ApplicationExists -eq $false) {
-                $azureApplicationInformation = Get-AzureApplication @graphApiBaseParams -AzureApplicationName $azureApplicationName
-            }
+            # Run Get-AzureApplication again to make sure that we have the latest information for the Azure Application
+            $azureApplicationInformation = Get-AzureApplication @graphApiBaseParams -AzureApplicationName $azureApplicationName
 
             # If we still don't have any value for the Azure Application, it means that the Graph API call has failed for whatever reason - we can't continue
             if ($null -eq $azureApplicationInformation) {
@@ -837,7 +972,7 @@ begin {
         }
 
         if ($authServers.Count -eq 0) {
-            Write-Warning "We did not find an Auth Server - script can't continue"
+            Write-Warning "No Auth Server was found. The script cannot continue."
 
             return
         }
@@ -854,25 +989,25 @@ begin {
 
         if ($evoStsAuthServer.Count -eq 0) {
             # No Auth Server object was found - we can't continue processing
-            Write-Warning "We did not find an Auth Server which is valid for hybrid usage - script can't continue"
+            Write-Warning "No Auth Server valid for hybrid use was found. The script cannot continue."
 
             return
         }
 
         if ($evoStsAuthServer.Count -gt 1) {
             # If there are multiple Auth Server objects, this indicates a multi-tenant configuration
-            Write-Host "We found multiple Auth Server which are valid for hybrid use - trying to find the one for tenant $Script:TenantId"
+            Write-Host "Multiple Auth Servers valid for hybrid use were found. Attempting to find the one for tenant $Script:TenantId..."
             $evoStsAuthServer = $evoStsAuthServer | Where-Object { $_.Realm -eq $Script:TenantId }
 
             if ($evoStsAuthServer.Count -le 0) {
-                Write-Warning "We did not find an Auth Server which is configured for your tenant"
+                Write-Warning "No Auth Server configured for your tenant was found."
 
                 return
             }
 
             if ($evoStsAuthServer.Count -gt 1) {
-                Write-Warning "More than one EvoSTS Auth Server was found that is configured for your tenant"
-                Write-Warning "Re-run Hybrid Configuration Wizard (HCW) or manually  remove the duplicate EvoSTS Auth Server"
+                Write-Warning "More than one EvoSTS Auth Server was found that is configured for your tenant."
+                Write-Warning "Re-run the Hybrid Configuration Wizard (HCW) or manually remove the duplicate EvoSTS Auth Server."
 
                 return
             }
@@ -904,7 +1039,7 @@ begin {
             if ([System.String]::IsNullOrWhiteSpace($Script:RemoteRoutingDomain) -and
                 ($domainList.Count -le 0)) {
                 # We're ending up here in case that no domain was provided via RemoteRoutingDomain parameter and Graph API call didn't return anything
-                Write-Warning "We couldn't find any domains assigned to your tenant, and no domain was provided using the RemoteRoutingDomain parameter"
+                Write-Warning "No domains assigned to your tenant were found, and no domain was provided using the RemoteRoutingDomain parameter."
 
                 return
             }
@@ -913,7 +1048,7 @@ begin {
                 $acceptedDomains = Get-AcceptedDomain -ErrorAction Stop
 
                 if ($acceptedDomains.Count -le 0) {
-                    Write-Warning "We couldn't find any accepted domain in your Exchange organization"
+                    Write-Warning "No accepted domains were found in your Exchange organization."
 
                     return
                 }
@@ -930,10 +1065,10 @@ begin {
                     }
 
                     if ($domainsToAdd.Count -ge 1) {
-                        Write-Verbose "We found $($domainsToAdd.Count) accepted domains that exist in on-premises and online organization"
-                        Write-Verbose "Domains are: $([System.String]::Join(", ", $domainsToAdd))"
+                        Write-Verbose "Found $($domainsToAdd.Count) accepted domains that exist in both on-premises and online organizations."
+                        Write-Verbose "Domains: $([System.String]::Join(", ", $domainsToAdd))"
                     } else {
-                        Write-Warning "We did not find any domain that exists in on-premises and online organization"
+                        Write-Warning "No matching domains were found between the on-premises and online organizations."
 
                         return
                     }
@@ -948,15 +1083,30 @@ begin {
         # Configure the Auth Server object to use the newly created Application (client) ID - we override the existing DomainName values to avoid issues caused by misconfigured DomainName entries
         try {
             Set-AuthServer -Identity "$($evoStsAuthServer.Identity)" -ApplicationIdentifier "$appId" -DomainName $domainsToAdd -ErrorAction Stop
-            Write-Host "Auth Server: $($evoStsAuthServer.Identity) was successfully configured to use the following App ID: $appId" -ForegroundColor Green
+            Write-Host "Auth Server '$($evoStsAuthServer.Identity)' was successfully configured to use App ID: $appId" -ForegroundColor Green
         } catch {
             $formattedDomainString = [System.String]::Join(",", $($domainsToAdd | ForEach-Object { "`"$_`"" }))
 
-            Write-Warning "Unable to perform the Auth Server configuration - please run the following command from an EMS:"
+            Write-Warning "Failed to configure Auth Server. Please run the following command in Exchange Management Shell:"
             Write-Warning "`tSet-AuthServer -Identity `"$($evoStsAuthServer.Identity)`" -ApplicationIdentifier `"$appId`" -DomainName $formattedDomainString"
             Write-Verbose "We hit the following exception: $_"
 
             return
+        }
+
+        # Configure the Graph API endpoint for the Auth Server object - this is required for the Graph API workflow of the dedicated Exchange hybrid application feature to work
+        # We only try to set the Graph API endpoint if the server where the script is executed is running a build that supports the Graph API workflow
+        if ($outdatedExchangeServersList -notcontains $localServerFqdn) {
+            try {
+                Set-AuthServer -Identity "$($evoStsAuthServer.Identity)" -GraphBaseUrl $graphApiEndpoint -ErrorAction Stop
+                Write-Host "Auth Server '$($evoStsAuthServer.Identity)' Graph API endpoint was successfully set to: $graphApiEndpoint" -ForegroundColor Green
+            } catch {
+                Write-Warning "Failed to set Graph API endpoint for Auth Server. Please run the following command in Exchange Management Shell:"
+                Write-Warning "`tSet-AuthServer -Identity `"$($evoStsAuthServer.Identity)`" -GraphBaseUrl `"$graphApiEndpoint`""
+                Write-Verbose "We hit the following exception: $_"
+
+                return
+            }
         }
     }
     #endregion
@@ -1057,7 +1207,7 @@ begin {
                 # or that the previous logic has failed for what ever reason
                 if ($matchingDomainName.Count -ne 1) {
                     Write-Verbose "OrganizationRelationship is not between Exchange Server and Exchange Online and will be skipped"
-                    Write-Host "This OrganizationRelationship seems not to be related to Exchange Online and can't be updated by the script"
+                    Write-Host "This OrganizationRelationship does not appear to be related to Exchange Online and cannot be updated by the script."
 
                     continue
                 }
@@ -1087,9 +1237,9 @@ begin {
 
                         Set-OrganizationRelationship -Identity "$($relationshipObject.Identity)" -TargetSharingEpr $ewsUrl -ErrorAction Stop
 
-                        Write-Host "TargetSharingEpr was successfully configured" -ForegroundColor Green
+                        Write-Host "TargetSharingEpr was successfully configured." -ForegroundColor Green
                     } catch {
-                        Write-Warning "Unable to perform the TargetSharingEpr configuration - please run the following command via EMS:"
+                        Write-Warning "Failed to configure TargetSharingEpr. Please run the following command in Exchange Management Shell:"
                         Write-Warning "`tSet-OrganizationRelationship -Identity `"$($relationshipObject.Identity)`" -TargetSharingEpr `"$ewsUrl`""
 
                         Write-Verbose "We hit the following exception: $_"
@@ -1109,13 +1259,9 @@ begin {
         Write-Host "`r`nPerforming operation: CreateSettingOverride" -ForegroundColor Cyan
 
         if ([System.String]::IsNullOrEmpty($Script:CustomAppId)) {
-            if ($null -eq $testAzureApplicationPermissionReturn) {
-                # We end up here in case that we don't have the application permission information from the previous CreateApplication call - we must query them
-                # Run Get-AzureApplication again in case that it was not run before or in case that ApplicationExists was false in the previous run
-                if ($null -eq $azureApplicationInformation -or
-                    $azureApplicationInformation.ApplicationExists -eq $false) {
-                    $azureApplicationInformation = Get-AzureApplication @graphApiBaseParams -AzureApplicationName $azureApplicationName
-                }
+            if ($null -eq $testAzureApplicationPermissionResult) {
+                # Run Get-AzureApplication again to make sure that we have the latest information for the Azure Application, especially regarding permissions and admin consent status
+                $azureApplicationInformation = Get-AzureApplication @graphApiBaseParams -AzureApplicationName $azureApplicationName
 
                 # If we still don't have any value for the Azure Application, it means that the Graph API call has failed for whatever reason - we can't continue
                 if ($null -eq $azureApplicationInformation) {
@@ -1133,15 +1279,15 @@ begin {
 
                 $testAzureApplicationParams = $graphApiBaseParams + @{
                     AzureApplicationObject = $azureApplicationInformation
-                    ResourceAppId          = $resourceAppId
-                    ResourceAccessId       = $resourceAccessId
-                    Type                   = "Role"
+                    ApiPermissionsObject   = $apiPermissions
                 }
 
-                $testAzureApplicationPermissionReturn = Test-AzureApplicationPermission @testAzureApplicationParams
+                $testAzureApplicationPermissionResult = Test-AzureApplicationPermission @testAzureApplicationParams
             }
 
-            $adminConsentGiven = $testAzureApplicationPermissionReturn.PermissionsAsExpected -and $testAzureApplicationPermissionReturn.AdminConsentGranted
+            # Validate that all required permissions are configured and that tenant-wide admin consent is granted
+            $adminConsentGiven = ($testAzureApplicationPermissionResult.AllPermissionsFound -notcontains $false) -and
+            ($testAzureApplicationPermissionResult.AdminConsentGranted -notcontains $false)
         } else {
             # We can't validate the admin consent in case that a custom app id is provided - therefore set this flag to true
             $adminConsentGiven = $true
@@ -1149,7 +1295,7 @@ begin {
 
         # Ensure that the override is not created unless admin consent has been granted
         if ($adminConsentGiven -eq $false) {
-            Write-Warning "Unable to create the Setting Override to enable the feature because tenant-wide admin consent has not yet been granted"
+            Write-Warning "Unable to create the Setting Override to enable the feature because tenant-wide admin consent has not yet been granted on all required permissions for the application"
 
             return
         }
@@ -1214,26 +1360,36 @@ begin {
 
         # Check if we have at least one setting override
         if (($null -ne $settingOverrides) -and
-            ($settingOverrides.SimpleSettingOverrides.Count -gt 0)) {
-            # Filter out the overrides which enable or disable the ExchangeOnpremAsThirdPartyAppId feature
-            $featureSettingOverrides = $settingOverrides.SimpleSettingOverrides | Where-Object {
-                ($_.SectionName -eq "ExchangeOnpremAsThirdPartyAppId") -and
-                ($_.ComponentName -eq "Global")
-            }
+            ($settingOverrides.SimpleSettingOverrides.Count -ge 1)) {
+            # Filter out the overrides which control the ExchangeOnpremAsThirdPartyAppId feature
+            $exchangeOnpremAsThirdPartyAppIdSettingOverrides = @($settingOverrides.SimpleSettingOverrides | Where-Object {
+                    ($_.SectionName -eq "ExchangeOnpremAsThirdPartyAppId") -and
+                    ($_.ComponentName -eq "Global")
+                })
 
-            if ($null -ne $featureSettingOverrides) {
+            # Filter out the overrides which control the Exchange Hybrid Graph API routing feature
+            $routeThroughMSGraphSettingOverrides = @($settingOverrides.SimpleSettingOverrides | Where-Object {
+                    ($_.SectionName -eq "RouteThroughMSGraph") -and
+                    ($_.ComponentName -eq "SettingOverride")
+                })
+
+            # If we find some, check whether they enable or disable the dedicated hybrid application feature or Graph API workflow explicitly
+            if ($exchangeOnpremAsThirdPartyAppIdSettingOverrides.Count -ge 1 -or
+                $routeThroughMSGraphSettingOverrides.Count -ge 1) {
                 Write-Warning "The following Setting Override(s) already exist:"
                 Write-Host ""
 
-                # If we find some, check whether they enable or disable the feature explicitly
-                $featureEnabledCount = 0
-                foreach ($o in $featureSettingOverrides) {
-                    $match = [regex]::Match($o.Parameters, "^\s*Enabled\s*=\s*(true|false)\s*$", "IgnoreCase")
-                    $featureIsEnabled = ($match.Success -and $match.Groups[1].Value)
+                $settingOverridesEnabledRegex = "^\s*Enabled\s*=\s*(true|false)\s*$"
+                $3pFeatureEnabledCount = 0
+                $graphApiFeatureEnabledCount = 0
+
+                foreach ($o in $exchangeOnpremAsThirdPartyAppIdSettingOverrides) {
+                    $match = [regex]::Match($o.Parameters, $settingOverridesEnabledRegex, "IgnoreCase")
+                    $featureIsEnabled = ($match.Success -and $match.Groups[1].Value -eq "true")
                     $featureSettingOverrideValue = if (-not $match.Success) { "Unknown" } else { $match.Groups[1].Value }
 
                     if ($featureIsEnabled) {
-                        $featureEnabledCount++
+                        $3pFeatureEnabledCount++
                     }
 
                     Write-Host ("[Setting Override] Name: '{0}' Feature enabled? '{1}'" -f $o.Name, $featureSettingOverrideValue)
@@ -1241,29 +1397,72 @@ begin {
                     $3pSettingOverridesObject.Add($o)
                 }
 
-                Write-Host ""
-                Write-Warning "Run the following command if you want to remove the existing Setting Override(s):"
-                Write-Warning "Get-SettingOverride | Where-Object {`$_.ComponentName -eq `"Global`" -and `$_.SectionName -eq `"ExchangeOnpremAsThirdPartyAppId`"} | Remove-SettingOverride -Confirm:`$false"
+                foreach ($o in $routeThroughMSGraphSettingOverrides) {
+                    $match = [regex]::Match($o.Parameters, $settingOverridesEnabledRegex, "IgnoreCase")
+                    $featureIsEnabled = ($match.Success -and $match.Groups[1].Value -eq "true")
+                    $featureSettingOverrideValue = if (-not $match.Success) { "Unknown" } else { $match.Groups[1].Value }
 
-                if ($featureEnabledCount -gt 0 -and
+                    if ($featureIsEnabled) {
+                        $graphApiFeatureEnabledCount++
+                    }
+
+                    Write-Host ("[Setting Override] Name: '{0}' RouteThroughMSGraph enabled? '{1}'" -f $o.Name, $featureSettingOverrideValue)
+
+                    $graphApiSettingOverridesObject.Add($o)
+                }
+
+                if ($3pFeatureEnabledCount -ge 1 -and
                     -not $basicOAuthConfigCheckPassed) {
                     Write-Host ""
                     Write-Warning "The dedicated hybrid application feature is enabled, but your OAuth configuration appears to be incomplete"
-                    Write-Warning "Please review your OAuth configuration and either fix it manually or run the Hybrid Configuration Wizard (HCW)"
+                    Write-Warning "Please review your OAuth configuration and either fix it manually or run the Hybrid Configuration Wizard (HCW) to ensure that your environment is properly configured for Exchange hybrid application features"
                 }
 
-                return
+                if ($3pFeatureEnabledCount -eq 0 -and
+                    $graphApiFeatureEnabledCount -ge 1) {
+                    Write-Host ""
+                    Write-Warning "The RouteThroughMSGraph feature is enabled, but the dedicated hybrid application feature is not enabled"
+                    Write-Warning "Please review the existing dedicated hybrid app configuration and fix it manually or run the Hybrid Configuration Wizard (HCW) to ensure that your environment is properly configured for Exchange hybrid application features"
+                }
+
+                if ($3pSettingOverridesObject.Count -ge 1 -and
+                    $graphApiSettingOverridesObject.Count -ge 1) {
+                    # Both types exist - show removal commands for both and exit
+                    Write-Host ""
+                    Write-Warning "Run the following command(s) if you want to remove the existing Setting Override(s):"
+                    Write-Warning "Get-SettingOverride | Where-Object {`$_.ComponentName -eq `"Global`" -and `$_.SectionName -eq `"ExchangeOnpremAsThirdPartyAppId`"} | Remove-SettingOverride -Confirm:`$false"
+                    Write-Warning "Get-SettingOverride | Where-Object {`$_.ComponentName -eq `"SettingOverride`" -and `$_.SectionName -eq `"RouteThroughMSGraph`"} | Remove-SettingOverride -Confirm:`$false"
+
+                    Write-Verbose "Both features are already configured (either enabled or disabled) - no need to create new Setting Overrides"
+
+                    return
+                }
+
+                # Only one type exists - the script will attempt to create the missing one next
+                # Show removal instructions only for the type that already exists
+                Write-Host ""
+                Write-Host "The script will now attempt to create the missing Setting Override. If you want to remove the existing one(s) instead, run:"
+                Write-Host ""
+                if ($exchangeOnpremAsThirdPartyAppIdSettingOverrides.Count -gt 0) {
+                    Write-Warning "Get-SettingOverride | Where-Object {`$_.ComponentName -eq `"Global`" -and `$_.SectionName -eq `"ExchangeOnpremAsThirdPartyAppId`"} | Remove-SettingOverride -Confirm:`$false"
+                }
+
+                if ($routeThroughMSGraphSettingOverrides.Count -gt 0) {
+                    Write-Warning "Get-SettingOverride | Where-Object {`$_.ComponentName -eq `"SettingOverride`" -and `$_.SectionName -eq `"RouteThroughMSGraph`"} | Remove-SettingOverride -Confirm:`$false"
+                }
             }
         }
 
         # If no setting overrides, which control the dedicated Exchange hybrid application feature, exists we'll create a new global override, otherwise, do nothing and display the name of the existing overrides
         # We only do this if the basic OAuth configuration check has passed
         if (-not $basicOAuthConfigCheckPassed) {
-            Write-Warning "The feature cannot be enabled because the configuration is incomplete"
+            Write-Warning "The feature cannot be enabled because your OAuth configuration is incomplete"
             Write-Warning "Please review your OAuth configuration and either fix it manually or run the Hybrid Configuration Wizard (HCW)"
 
             return
-        } elseif ($3pSettingOverridesObject.Count -eq 0) {
+        }
+
+        if ($3pSettingOverridesObject.Count -eq 0) {
             try {
                 $newSettingOverrideParams = @{
                     Name       = "EnableExchangeHybrid3PAppFeature"
@@ -1278,7 +1477,66 @@ begin {
 
                 Write-Host "Setting Override to enable the dedicated Exchange hybrid application feature was successfully created" -ForegroundColor Green
             } catch {
-                Write-Warning "Unable to create the new Setting Override - Exception: $_"
+                Write-Warning "Unable to create the new Setting Override to enable the dedicated hybrid application feature"
+                Write-Warning "Make sure that you run an Exchange Server build that supports the dedicated hybrid application feature and that you have the necessary permissions to create Setting Overrides in your environment"
+                Write-Warning "Exception: $_"
+
+                return
+            }
+        }
+
+        if ($graphApiSettingOverridesObject.Count -eq 0 -and
+            $outdatedExchangeServersList -notcontains $localServerFqdn) {
+            $createGraphApiWorkflowSettingOverrideConsentMessage = "`r`n`nYou're running an Exchange Server build that supports the Exchange hybrid application " +
+            "Graph API workflow feature, but this feature is not yet enabled. `r`nDo you want to enable it by creating the associated Setting Override? " +
+            "This will allow the hybrid application to route through Graph API. `r`nNote that this requires that tenant-wide admin consent is granted on " +
+            "all required permissions for the application. `r`nIf you choose not to create the Setting Override at this moment, you can still create it later."
+
+            $createGraphApiWorkflowSettingOverrideConsent = Get-Consent -Message $createGraphApiWorkflowSettingOverrideConsentMessage
+
+            if ($createGraphApiWorkflowSettingOverrideConsent -eq $false) {
+                Write-Warning "No consent was given to create the Setting Override for the RouteThroughMSGraph feature - the feature will not be enabled. You can enable it later by running the script in 'EnableExchangeHybridApplicationOverride' mode again."
+
+                return
+            }
+
+            # If we have consent to create the setting override for the Graph API workflow feature, do a quick sanity check to make sure that
+            # the Graph API endpoint is reachable - we want to avoid creating the setting override if the endpoint is not reachable as this could lead to issues.
+            # Administrators can still create the setting override by granting consent
+            if (-not (Test-GraphApiEndpoint -GraphApiUrl $graphApiEndpoint)) {
+                $graphApiEndpointUnreachableConsentMessage = "`r`n`nThe Graph API endpoint '$graphApiEndpoint' doesn't appear to be reachable from this server. " +
+                "This may break hybrid features that rely on the Graph API if we create the Setting Override " +
+                "for the RouteThroughMSGraph feature. `r`n" +
+                "Do you still want to create the Setting Override for the RouteThroughMSGraph feature?"
+
+                $graphApiEndpointUnreachableConsent = Get-Consent -Message $graphApiEndpointUnreachableConsentMessage
+
+                if ($graphApiEndpointUnreachableConsent -eq $false) {
+                    Write-Warning "No consent was given to create the Setting Override for the RouteThroughMSGraph feature while the Graph API endpoint is not reachable - the feature will not be enabled. You can enable it later by running the script in 'EnableExchangeHybridApplicationOverride' mode again."
+
+                    return
+                }
+            }
+
+            Write-Verbose "Graph API endpoint '$graphApiEndpoint' is reachable - we can proceed with creating the Setting Override for the RouteThroughMSGraph feature"
+
+            try {
+                $newSettingOverrideParams = @{
+                    Name       = "EnableRouteThroughMSGraphFeature"
+                    Component  = "SettingOverride"
+                    Section    = "RouteThroughMSGraph"
+                    Parameters = @("Enabled=true")
+                    Reason     = "Created by $($script:MyInvocation.MyCommand.Name) on $(Get-Date)"
+                }
+                # Execute the commands to create the new setting override and to refresh the variant configuration
+                New-SettingOverride @newSettingOverrideParams -ErrorAction Stop | Out-Null
+                Get-ExchangeDiagnosticInfo -Process "Microsoft.Exchange.Directory.TopologyService" -Component "VariantConfiguration" -Argument "Refresh" | Out-Null
+
+                Write-Host "Setting Override to enable the dedicated Exchange hybrid application Graph API workflow feature was successfully created" -ForegroundColor Green
+            } catch {
+                Write-Warning "Unable to create the new Setting Override for the RouteThroughMSGraph feature"
+                Write-Warning "Make sure that you run an Exchange Server build that supports the RouteThroughMSGraph feature and that you have the necessary permissions to create Setting Overrides in your environment"
+                Write-Warning "Exception: $_"
 
                 return
             }
@@ -1318,6 +1576,65 @@ begin {
 
         if ($null -ne $1pCleanUpReturn.Message) {
             Write-Host $1pCleanUpReturn.Message -ForegroundColor $reset1PKeyCredentialsForegroundColor
+        }
+    }
+    #endregion
+
+    #region RemoveApiPermissionsFromAzureApplication
+    if ($Script:RemoveApiPermissions) {
+        Write-Host "`r`nPerforming operation: RemoveApiPermissionsFromAzureApplication" -ForegroundColor Cyan
+
+        if ($Script:RemoveApiPermissions -contains "EWS") {
+            Write-Verbose "EWS permissions will be removed"
+            $permissionsToRemoveList.AddRange(@($ewsApiPermissions))
+        }
+
+        if ($Script:RemoveApiPermissions -contains "Graph") {
+            Write-Verbose "Graph API permissions will be removed"
+            $permissionsToRemoveList.AddRange(@($graphApiPermissions))
+        }
+
+        if ($permissionsToRemoveList.Count -eq 0) {
+            Write-Warning "No valid API permissions specified for removal"
+            return
+        }
+
+        if ([System.String]::IsNullOrEmpty($Script:CustomAppId)) {
+            # Run Get-AzureApplication again to make sure that we have the latest information for the Azure Application
+            $azureApplicationInformation = Get-AzureApplication @graphApiBaseParams -AzureApplicationName $azureApplicationName
+
+            # If we still don't have any value for the Azure Application, it means that the Graph API call has failed for whatever reason - we can't continue
+            if ($null -eq $azureApplicationInformation) {
+                Write-Warning "Graph API call to validate the existence of the application has failed"
+
+                return
+            }
+
+            # We can't continue if the call was successful but no application was found
+            if ($azureApplicationInformation.ApplicationExists -eq $false) {
+                Write-Warning "Application: $azureApplicationName doesn't exist - use the parameter 'CreateApplication' to create it first"
+
+                return
+            }
+
+            $appId = $azureApplicationInformation.AppId
+        } else {
+            $appId = $Script:CustomAppId
+        }
+
+        $removeApiPermissionsParams = $graphApiBaseParams + @{
+            AzureApplicationId = $appId
+            ApiPermissions     = $permissionsToRemoveList
+        }
+
+        $removeApiPermissionsReturn = Remove-AzureApplicationPermission @removeApiPermissionsParams
+
+        if ($removeApiPermissionsReturn) {
+            Write-Host "The API permissions were successfully removed from the application" -ForegroundColor Green
+        } else {
+            Write-Warning "Something went wrong while removing the API permissions from the application"
+
+            return
         }
     }
     #endregion
