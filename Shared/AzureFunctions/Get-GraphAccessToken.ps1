@@ -7,7 +7,7 @@
 . $PSScriptRoot\..\ScriptUpdateFunctions\Invoke-WebRequestWithProxyDetection.ps1
 
 <#
-    This function is used to get an access token for the Azure Graph API. By default, it uses the OAuth 2.0 authorization
+    This function is used to get an access token for the Microsoft Graph API. By default, it uses the OAuth 2.0 authorization
     code flow with PKCE (Proof Key for Code Exchange). If a local browser callback can't be completed, it falls back to
     the OAuth 2.0 device code flow so the user can authenticate from another device.
 
@@ -81,6 +81,8 @@ function Get-GraphAccessToken {
                 [hashtable]$Body
             )
 
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
             $requestParams = @{
                 Uri             = $Uri
                 Method          = "POST"
@@ -88,6 +90,18 @@ function Get-GraphAccessToken {
                 Body            = $Body
                 UseBasicParsing = $true
                 ErrorAction     = "Stop"
+            }
+
+            try {
+                $proxyUri = ([System.Net.WebRequest]::GetSystemWebProxy()).GetProxy($Uri)
+                if ($Uri -ne $proxyUri.OriginalString) {
+                    Write-Verbose "Proxy server configuration detected"
+                    Write-Verbose $proxyUri.OriginalString
+                    $requestParams.Proxy = $proxyUri.OriginalString
+                    $requestParams.ProxyUseDefaultCredentials = $true
+                }
+            } catch {
+                Write-Verbose "Unable to check for proxy server configuration"
             }
 
             try {
@@ -139,6 +153,45 @@ function Get-GraphAccessToken {
                     Content    = $content
                 }
             }
+        }
+
+        function Get-OAuthErrorMessage {
+            param(
+                [Parameter(Mandatory = $true)]
+                [string]$DefaultMessage,
+
+                [Parameter(Mandatory = $false)]
+                [object]$ErrorContent,
+
+                [Parameter(Mandatory = $false)]
+                [Nullable[int]]$StatusCode
+            )
+
+            $errorMessageParts = New-Object System.Collections.Generic.List[string]
+            $errorMessageParts.Add($DefaultMessage) | Out-Null
+
+            if ($null -ne $StatusCode) {
+                $errorMessageParts.Add("Status code: $StatusCode") | Out-Null
+            }
+
+            if ($ErrorContent -is [string]) {
+                if (-not [System.String]::IsNullOrEmpty($ErrorContent)) {
+                    $errorMessageParts.Add($ErrorContent) | Out-Null
+                }
+            } elseif ($null -ne $ErrorContent) {
+                $oauthError = $ErrorContent.error
+                $oauthErrorDescription = $ErrorContent.error_description
+
+                if (-not [System.String]::IsNullOrEmpty($oauthError)) {
+                    $errorMessageParts.Add("Error: $oauthError") | Out-Null
+                }
+
+                if (-not [System.String]::IsNullOrEmpty($oauthErrorDescription)) {
+                    $errorMessageParts.Add("Error description: $oauthErrorDescription") | Out-Null
+                }
+            }
+
+            return $errorMessageParts -join " "
         }
 
         function Test-AuthorizationCodeFlowAvailable {
@@ -273,7 +326,10 @@ function Get-GraphAccessToken {
             }
 
             if ($deviceCodeResponse.StatusCode -ne 200 -or $null -eq $deviceCodeResponse.Content) {
-                Write-Host "Unable to initiate device code authentication." -ForegroundColor Red
+                Write-Host (Get-OAuthErrorMessage `
+                        -DefaultMessage "Unable to initiate device code authentication." `
+                        -ErrorContent $deviceCodeResponse.Content `
+                        -StatusCode $deviceCodeResponse.StatusCode) -ForegroundColor Red
                 return $null
             }
 
@@ -433,7 +489,14 @@ function Get-GraphAccessToken {
             $code = $queryString["code"]
 
             if (-not $code) {
-                Write-Host "Authorization code is missing in callback" -ForegroundColor Red
+                $authorizationCodeResult.AuthorizationCodeFailureMessage = Get-OAuthErrorMessage `
+                    -DefaultMessage "Authorization code is missing in callback." `
+                    -ErrorContent ([PSCustomObject]@{
+                        error             = $queryString["error"]
+                        error_description = $queryString["error_description"]
+                    })
+
+                Write-Host $authorizationCodeResult.AuthorizationCodeFailureMessage -ForegroundColor Red
 
                 return $authorizationCodeResult
             }
