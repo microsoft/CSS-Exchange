@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://microsoft.github.io/CSS-Exchange/Security/ExchangeMitigations/">
+        <link rel="canonical" href="https://microsoft.github.io/CSS-Exchange/Security/EOMT-Legacy/">
       
       
-        <link rel="prev" href="../ExchangeExtendedProtectionManagement/">
+        <link rel="prev" href="../EOMT/">
       
       
-        <link rel="next" href="../Test-CVE-2021-34470/">
+        <link rel="next" href="../EOMTv2-Legacy/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>ExchangeMitigations - Microsoft - CSS-Exchange</title>
+        <title>EOMT (Legacy) - Microsoft - CSS-Exchange</title>
       
     
     
@@ -96,7 +96,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#exchangemitigations" class="md-skip">
+        <a href="#exchange-on-premises-mitigation-tool-eomt-legacy" class="md-skip">
           Skip to content
         </a>
       
@@ -131,7 +131,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              ExchangeMitigations
+              EOMT (Legacy)
             
           </span>
         </div>
@@ -4393,17 +4393,186 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../EOMTv2/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EOMT (Legacy)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
   <span class="md-ellipsis">
     
   
-    EOMTv2
+    EOMT (Legacy)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#requirements-to-run-the-exchange-on-premises-mitigation-tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Requirements to run the Exchange On-premises Mitigation Tool
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#system-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        System Requirements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#who-should-run-the-exchange-on-premises-mitigation-tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Who should run the Exchange On-premises Mitigation Tool
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#important-note-regarding-microsoft-safety-scanner" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Important note regarding Microsoft Safety Scanner
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#exchange-on-premises-mitigation-tool-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exchange On-premises Mitigation Tool Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#exchange-on-premises-mitigation-tool-q-a" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exchange On-premises Mitigation Tool Q &amp; A
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Exchange On-premises Mitigation Tool Q &amp; A">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#eomtps1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EOMT.PS1
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exchangemitigationsps1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExchangeMitigations.ps1:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../EOMTv2-Legacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EOMTv2 (Legacy)
   
 
     
@@ -4468,44 +4637,6 @@
   
 
       </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-    
-  
-  
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    ExchangeMitigations
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-      
     </li>
   
 
@@ -5138,6 +5269,108 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#requirements-to-run-the-exchange-on-premises-mitigation-tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Requirements to run the Exchange On-premises Mitigation Tool
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#system-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        System Requirements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#who-should-run-the-exchange-on-premises-mitigation-tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Who should run the Exchange On-premises Mitigation Tool
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#important-note-regarding-microsoft-safety-scanner" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Important note regarding Microsoft Safety Scanner
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#exchange-on-premises-mitigation-tool-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exchange On-premises Mitigation Tool Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#exchange-on-premises-mitigation-tool-q-a" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exchange On-premises Mitigation Tool Q &amp; A
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Exchange On-premises Mitigation Tool Q &amp; A">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#eomtps1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EOMT.PS1
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exchangemitigationsps1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExchangeMitigations.ps1:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -5153,7 +5386,7 @@
 
 
   
-    <a href="https://github.com/microsoft/CSS-Exchange/edit/main/docs/Security/ExchangeMitigations.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/microsoft/CSS-Exchange/edit/main/docs/Security/EOMT-Legacy.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -5161,45 +5394,110 @@
   
 
 
-<h1 id="exchangemitigations">ExchangeMitigations</h1>
-<p>Download the latest release: <a href="https://github.com/microsoft/CSS-Exchange/releases/latest/download/ExchangeMitigations.ps1">ExchangeMitigations.ps1</a></p>
-<p>This script contains 4 mitigations to help address the following vulnerabilities:</p>
+<h1 id="exchange-on-premises-mitigation-tool-eomt-legacy">Exchange On-premises Mitigation Tool (EOMT) — Legacy</h1>
+<div class="admonition warning">
+<p class="admonition-title">LEGACY — This script has been replaced</p>
+<p>This script has been replaced by the unified <a href="../EOMT/">Exchange On-premises Mitigation Tool (EOMT)</a>, which supports multiple CVEs, JSON-backed rollback, and remote execution. Please use the new EOMT for all current and future mitigations. This page is retained for historical reference only.</p>
+</div>
+<p>Download the latest release: <a href="https://github.com/microsoft/CSS-Exchange/releases/latest/download/EOMT-Legacy.ps1">EOMT-Legacy.ps1</a></p>
+<p>This legacy script contained mitigations to help address the following vulnerability:</p>
 <ul>
 <li>CVE-2021-26855</li>
-<li>CVE-2021-26857</li>
-<li>CVE-2021-27065</li>
-<li>CVE-2021-26858</li>
 </ul>
-<p>For more information on each mitigation please visit https://aka.ms/exchangevulns</p>
-<p><strong>This should only be used as a temporary mitigation until your Exchange Servers can be fully patched, recommended guidance is to apply all of the mitigations at once.</strong></p>
-<p>For this script to work you must have the IIS URL Rewrite Module installed which can be done via this script using the -FullPathToMSI parameter.</p>
-<p>For IIS 10 and higher URL Rewrite Module 2.1 must be installed, you can download version 2.1 here:</p>
+<p>This is the most effective way to help quickly protect and mitigate your Exchange Servers prior to patching. <strong>We recommend this script over the previous ExchangeMitigations.ps1 script.</strong> The Exchange On-premises Mitigation Tool automatically downloads any dependencies and runs the Microsoft Safety Scanner. This a better approach for Exchange deployments with Internet access and for those who want an attempt at automated remediation. We have not observed any impact to Exchange Server functionality via these mitigation methods. EOMT.ps1 is completely automated and uses familiar mitigation methods previously documented. This script has four operations it performs:</p>
 <ul>
-<li>x86 &amp; x64 -https://www.iis.net/downloads/microsoft/url-rewrite</li>
+<li><strong><em>+NEW</em></strong> Check for the latest version of EOMT and download it.</li>
+<li>Mitigate against current known attacks using CVE-2021-26855 via a URL Rewrite configuration</li>
+<li>Scan the Exchange Server using the <a href="https://docs.microsoft.com/en-us/windows/security/threat-protection/intelligence/safety-scanner-download">Microsoft Safety Scanner</a></li>
+<li>Attempt to remediate compromises detected by the Microsoft Safety Scanner.</li>
 </ul>
-<p>For IIS 8.5 and lower Rewrite Module 2.0 must be installed, you can download version 2.0 here:</p>
+<p>This a better approach for Exchange deployments with Internet access and for those who want an attempt at automated remediation. We have not observed any impact to Exchange Server functionality via these mitigation methods nor do these mitigation methods make any direct changes that disable features of Exchange.</p>
+<p>Use of the Exchange On-premises Mitigation Tool and the Microsoft Safety Scanner are subject to the terms of the Microsoft Privacy Statement: https://aka.ms/privacy</p>
+<h2 id="requirements-to-run-the-exchange-on-premises-mitigation-tool">Requirements to run the Exchange On-premises Mitigation Tool</h2>
 <ul>
-<li>
-<p>x86 - https://www.microsoft.com/en-us/download/details.aspx?id=5747</p>
-</li>
-<li>
-<p>x64 - https://www.microsoft.com/en-us/download/details.aspx?id=7435</p>
-</li>
+<li>External Internet Connection from your Exchange server (required to download the Microsoft Safety Scanner and the IIS URL Rewrite Module).</li>
+<li>PowerShell script must be run as Administrator.</li>
 </ul>
-<p>Installing URL Rewrite version 2.1 on IIS versions 8.5 and lower may cause IIS and Exchange to become unstable. If there is a mismatch between the URL Rewrite module and IIS version, ExchangeMitigations.ps1 will not apply the mitigation for CVE-2021-26855. You must uninstall the URL Rewrite module and reinstall the correct version.</p>
-<p>Script requires PowerShell 3.0 and later and must be executed from an elevated PowerShell Session.</p>
-<p>Download the latest release here:</p>
-<p><a href="https://github.com/microsoft/CSS-Exchange/releases/latest/download/ExchangeMitigations.ps1">Download ExchangeMitigations.ps1</a></p>
-<p>To apply all mitigations with MSI install</p>
-<p><code>.\ExchangeMitigations.ps1 -FullPathToMSI "FullPathToMSI" -WebSiteNames "Default Web Site" -ApplyAllMitigations</code></p>
-<p>To apply all mitigations without MSI install</p>
-<p><code>.\ExchangeMitigations.ps1 -WebSiteNames "Default Web Site" -ApplyAllMitigations -Verbose</code></p>
-<p>To rollback all mitigations</p>
-<p><code>.\ExchangeMitigations.ps1 -WebSiteNames "Default Web Site" -RollbackAllMitigation</code></p>
-<p>To apply multiple or specific mitigations (out of the 4)</p>
-<p><code>.\ExchangeMitigations.ps1 -WebSiteNames "Default Web Site" -ApplyECPAppPoolMitigation -ApplyOABAppPoolMitigation</code></p>
-<p>To rollback multiple or specific mitigations</p>
-<p><code>.\ExchangeMitigations.ps1 -WebSiteNames "Default Web Site" -RollbackECPAppPoolMitigation -RollbackOABAppPoolMitigation</code></p>
+<h2 id="system-requirements">System Requirements</h2>
+<ul>
+<li>PowerShell 3 or later</li>
+<li>IIS 7.5 and later</li>
+<li>Exchange 2013, 2016, or 2019</li>
+<li>Windows Server 2008 R2, Server 2012, Server 2012 R2, Server 2016, Server 2019</li>
+<li><strong><em>+New</em></strong> If Operating System is older than Windows Server 2016, must have <a href="https://support.microsoft.com/en-us/topic/update-for-universal-c-runtime-in-windows-c0514201-7fe6-95a3-b0a5-287930f3560c">KB2999226</a> for IIS Rewrite Module 2.1 to work.</li>
+</ul>
+<h2 id="who-should-run-the-exchange-on-premises-mitigation-tool">Who should run the Exchange On-premises Mitigation Tool</h2>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Guidance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>If you have done nothing to date to patch or mitigate this issue…</td>
+<td>Run EOMT.PS1 as soon as possible.This will both attempt to remediate as well as mitigate your servers against further attacks. Once complete, follow patching guidance to update your servers on http://aka.ms/exchangevulns</td>
+</tr>
+<tr>
+<td>If you have mitigated using any/all of the mitigation guidance Microsoft has given (ExchangeMitigations.Ps1, Blog post, etc..)</td>
+<td>Run EOMT.PS1 as soon as possible.  This will both attempt to remediate as well as mitigate your servers against further attacks.   Once complete, follow patching guidance to update your servers on http://aka.ms/exchangevulns</td>
+</tr>
+<tr>
+<td>If you have already patched your systems and are protected, but did NOT investigate for any adversary activity, indicators of compromise, etc….</td>
+<td>Run EOMT.PS1 as soon as possible.   This will attempt to remediate any existing compromise that may not have been full remediated before patching.</td>
+</tr>
+<tr>
+<td>If you have already patched and investigated your systems for any indicators of compromise, etc….</td>
+<td>No action is required</td>
+</tr>
+</tbody>
+</table>
+<h2 id="important-note-regarding-microsoft-safety-scanner">Important note regarding Microsoft Safety Scanner</h2>
+<p>The Exchange On-premises Mitigation Tool runs the Microsoft Safety Scanner in a quick scan mode. If you suspect any compromise, we highly recommend you run it in the FULL SCAN mode. FULL SCAN mode can take a long time but if you are not running Microsoft Defender AV as your default AV, FULL SCAN will be required to remediate threats.</p>
+<h2 id="exchange-on-premises-mitigation-tool-examples">Exchange On-premises Mitigation Tool Examples</h2>
+<p>The default recommended way of using EOMT.ps1. This will determine if your server is vulnerable, mitigate if vulnerable, and run MSERT in quick scan mode. If the server is not vulnerable only MSERT quick scan will run.</p>
+<p><code>.\EOMT.ps1</code></p>
+<p>To run a Full MSERT Scan -  We only recommend this option only if the initial quick scan discovered threats. The full scan may take hours or days to complete.</p>
+<p><code>.\EOMT.ps1 -RunFullScan -DoNotRunMitigation</code></p>
+<p>To run the Exchange On-premises Mitigation Tool with MSERT in detect only mode - MSERT will not remediate detected threats.</p>
+<p><code>.\EOMT.ps1 -DoNotRemediate</code></p>
+<p>To roll back the Exchange On-premises Mitigation Tool mitigations</p>
+<p><code>.\EOMT.ps1 -RollbackMitigation</code></p>
+<p>Note: If ExchangeMitigations.ps1 was used previously to apply mitigations, Use ExchangeMitigations.ps1 for rollback.</p>
+<p><strong><em>+NEW</em></strong> EOMT will now AutoUpdate by downloading the latest version from GitHub. To prevent EOMT from fetching updates to EOMT.ps1 from the internet.</p>
+<p><code>.\EOMT.ps1 -DoNotAutoUpdateEOMT</code></p>
+<h2 id="exchange-on-premises-mitigation-tool-q-a">Exchange On-premises Mitigation Tool Q &amp; A</h2>
+<p><strong>Question</strong>: What mode should I run EOMT.ps1 in by default?</p>
+<p><strong>Answer</strong>: By default, EOMT.ps1 should be run without any parameters:</p>
+<p>This will run the default mode which does the following:
+1. Checks if your server is vulnerable based on the presence of the SU patch or Exchange version.
+2. Downloads and installs the IIS URL rewrite tool <strong>(only if vulnerable)</strong>.
+3. Applies the URL rewrite mitigation <strong>(only if vulnerable)</strong>.
+4. Runs the Microsoft Safety Scanner in "Quick Scan" mode <strong>(vulnerable or not)</strong>.</p>
+<p><strong>Question</strong>:  What if I run a full scan and it's affecting the resources of my servers?</p>
+<p><strong>Answer</strong>:  You can terminate the process of the scan by running the following command in an Administrative PowerShell session.</p>
+<p><code>Stop-Process -Name msert</code></p>
+<p><strong>Question</strong>:  What is the real difference between this script (EOMT.PS1) and the previous script Microsoft released (ExchangeMitigations.Ps1).</p>
+<p><strong>Answer</strong>:  The Exchange On-premises Mitigation Tool was released to help pull together multiple mitigation and response steps, whereas the previous script simply enabled mitigations. Some details on what each do:</p>
+<h3 id="eomtps1">EOMT.PS1</h3>
+<ul>
+<li>Mitigation of CVE-2021-26855 via a URL Rewrite configuration.</li>
+<li>Mitigation does not impact Exchange functionality.</li>
+<li>Malware scan of the Exchange Server via the Microsoft Safety Scanner</li>
+<li>Attempt to reverse any changes made by identified threats.</li>
+</ul>
+<h3 id="exchangemitigationsps1">ExchangeMitigations.ps1:</h3>
+<ul>
+<li>Does mitigations for all 4 CVE's - CVE-2021-26855, CVE-2021-26857, CVE-2021-27065 &amp; CVE-2021-26858.</li>
+<li>Some of the mitigation methods impact Exchange functionality.</li>
+<li>Does not do any scanning for existing compromise or exploitation.</li>
+<li>Does not take response actions to existing active identified threats.</li>
+</ul>
+<p><strong>Question:</strong>  What if I do not have an external internet connection from my Exchange server?</p>
+<p><strong>Answer:</strong>  If you do not have an external internet connection, you can still use the legacy script (ExchangeMitigations.ps1) and other steps from the mitigation blog post:  <a href="https://msrc-blog.microsoft.com/2021/03/05/microsoft-exchange-server-vulnerabilities-mitigations-march-2021/">Microsoft Exchange Server Vulnerabilities Mitigations – March 2021</a></p>
+<p><strong>Question:</strong> If I have already ran the mitigations previously, will the Exchange On-premises Mitigation Tool roll back any of the mitigations?</p>
+<p><strong>Answer:</strong> No, please use the legacy script (ExchangeMitigations.ps1) to do rollback. The legacy script supports rollback for the mitigations the Exchange On-premises Mitigation Tool applied.</p>
 
 
 
@@ -5220,7 +5518,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 24, 2021 16:04:15 UTC">November 24, 2021</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 13, 2026 20:02:33 UTC">May 13, 2026</span>
   </span>
 
     
