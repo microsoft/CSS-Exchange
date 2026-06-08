@@ -1525,7 +1525,7 @@ begin {
                     Name       = "EnableRouteThroughMSGraphFeature"
                     Component  = "SettingOverride"
                     Section    = "RouteThroughMSGraph"
-                    Parameters = @("Enabled=true")
+                    Parameters = @("Enabled=true", "EnabledForMailTips=true", "EnabledForAutomaticReplies=false")
                     Reason     = "Created by $($script:MyInvocation.MyCommand.Name) on $(Get-Date)"
                 }
                 # Execute the commands to create the new setting override and to refresh the variant configuration
