@@ -65,6 +65,30 @@ The script will delete the application in Microsoft Entra ID without undoing any
 .\ConfigureExchangeHybridApplication.ps1 -DeleteApplication
 ```
 
+The script will fully configure the dedicated Exchange hybrid application with Graph API permissions only. When the `UseGraphApiOnly` parameter is used, EWS API permissions are not configured. Without this parameter, the script configures EWS API permissions by default and prompts whether to add Graph API permissions in addition.
+
+```powershell
+.\ConfigureExchangeHybridApplication.ps1 -FullyConfigureExchangeHybridApplication -UseGraphApiOnly
+```
+
+In Split Execution Configuration Mode, you can also use the `UseGraphApiOnly` parameter when creating the application on a machine with Microsoft Graph API connectivity to configure Graph API permissions only.
+
+```powershell
+.\ConfigureExchangeHybridApplication.ps1 -CreateApplication -UseGraphApiOnly -UpdateCertificate -CertificateMethod "File" -CertificateInformation "c:\temp\certificate.cer"
+```
+
+The script will remove the `full_access_as_app` EWS API permission from the dedicated Exchange hybrid application. Use this syntax if you don't use any features that require the EWS API and want to use Graph API permissions only. This removes both the admin consent (app role assignments) from all Service Principals and the permission entries from the application manifest. This command can be executed on a non-Exchange Server.
+
+```powershell
+.\ConfigureExchangeHybridApplication.ps1 -RemoveApiPermissions "EWS"
+```
+
+The script will remove both the EWS and Graph API permissions from the dedicated Exchange hybrid application. Provide an array of API types to remove multiple permissions at once. This command can be executed on a non-Exchange Server.
+
+```powershell
+.\ConfigureExchangeHybridApplication.ps1 -RemoveApiPermissions "EWS", "Graph"
+```
+
 ## Parameters
 
 Parameter | Description
@@ -74,6 +98,8 @@ CreateApplication | Use this switch parameter to create the application in Micro
 DeleteApplication | Use this switch parameter to delete an existing application in Microsoft Entra ID. Note that the script will only delete the application. The script doesn't undo any changes, e.g. to Auth Server objects and doesn't remove the Setting Override. This parameter allows you to run granular configurations. Note that some of the tasks depend on others and can't be run alone.
 UpdateCertificate | Use this switch parameter to upload the Auth Certificate to the application in Microsoft Entra ID. This parameter allows you to run granular configurations. Note that some of the tasks depend on others and can't be run alone.
 ConfigureAuthServer | Use this switch parameter to configure the Auth Server object. The script will add the appId of the newly created application to the `EvoSTS` or `EvoSTS - {Guid}` Auth Server object. This parameter allows you to run granular configurations. Note that some of the tasks depend on others and can't be run alone.
+UseGraphApiOnly | Use this switch parameter to configure only Graph API permissions for the dedicated Exchange hybrid application. When this parameter is used, EWS API permissions will not be configured. If you do not use this parameter, the script will configure EWS API permissions by default, with an optional prompt to add Graph API permissions in addition.
+RemoveApiPermissions | Use this parameter to remove specific API permissions from the dedicated Exchange hybrid application. Accepts an array of API types to remove. Valid values are: `EWS`, `Graph`. This removes both the admin consent (app role assignments) from all service principals and the permission entries from the application manifest. This is useful when you need to clean up permissions that are no longer needed.
 CustomAppId | Use this parameter to provide the Application (client) ID (also known as appId) of a custom application in Microsoft Entra ID. In most cases this parameter does not need to be used.
 TenantId | Use this parameter to provide the ID of your tenant in Microsoft Entra ID. In most cases this parameter does not need to be used.
 RemoteRoutingDomain | Use this parameter to provide the remote routing domain of your tenant in Microsoft Entra ID. In most cases this parameter does not need to be used.
@@ -90,3 +116,4 @@ CertificateMethod | Use this parameter to specify the method which should be use
 CertificateInformation | Use this parameter to provide the thumbprint of the certificate that you want the script to export and upload or the file path to the certificate file, for example, `c:\temp\certificate.cer`. You don't need to use this parameter if `CertificateMethod` is set to `Automated`. If you provide the thumbprint, the script searches and exports the certificate with the thumbprint provided from the local machines certificate store. If you provide the file path, the script uploads the certificate, which was specified. This parameter allows you to run granular configurations. Note that some of the tasks depend on others and can't be run alone.
 ScriptUpdateOnly | This optional parameter allows you to only update the script without performing any other actions.
 SkipVersionCheck | This optional parameter allows you to skip the automatic version check and script update.
+UseDeviceCodeFlow | Use this switch parameter to force the Graph API access token to be acquired via the OAuth 2.0 device code flow instead of the default authorization code flow with PKCE. Windows Server Core is detected automatically and uses the device code flow without this switch, so you only need it to force the device code flow on other browser-less hosts. You will be asked to open a verification URL on another device and enter a user code to complete the sign-in. Note that the device code flow may be blocked by Conditional Access policies in your tenant.
