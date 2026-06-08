@@ -85,6 +85,12 @@
     If you provide the thumbprint, the script searches and exports the certificate with the thumbprint provided from the local machines certificate
     store. If you provide the file path, the script uploads the certificate, which was specified.
     This parameter allows you to run granular configurations. Note that some of the tasks depend on others and can't be run alone.
+.PARAMETER UseDeviceCodeFlow
+    Use this switch parameter to force the Graph API access token to be acquired via the OAuth 2.0 device code flow
+    instead of the default authorization code flow with PKCE. Windows Server Core is detected automatically and uses
+    the device code flow without this switch, so you only need it to force the device code flow on other browser-less hosts.
+    You will be asked to open a verification URL on another device and enter a user code to complete the sign-in.
+    Note that the device code flow may be blocked by Conditional Access policies in your tenant.
 .PARAMETER ScriptUpdateOnly
     This optional parameter allows you to only update the script without performing any other actions.
 .PARAMETER SkipVersionCheck
@@ -227,6 +233,13 @@ param(
     [Parameter(Mandatory = $false, ParameterSetName = "Create")]
     [string]$CertificateInformation,
 
+    [Parameter(Mandatory = $false, ParameterSetName = "FullyConfigureExchangeHybridApplication")]
+    [Parameter(Mandatory = $false, ParameterSetName = "FirstPartyKeyCredentialsCleanup")]
+    [Parameter(Mandatory = $false, ParameterSetName = "Create")]
+    [Parameter(Mandatory = $false, ParameterSetName = "Delete")]
+    [Parameter(Mandatory = $false, ParameterSetName = "RemovePermissions")]
+    [switch]$UseDeviceCodeFlow,
+
     [Parameter(Mandatory = $true, ParameterSetName = "ScriptUpdateOnly")]
     [switch]$ScriptUpdateOnly,
 
@@ -249,6 +262,7 @@ begin {
     . $PSScriptRoot\..\..\Shared\Get-PSSessionDetails.ps1
     . $PSScriptRoot\..\..\Shared\Get-ProtocolEndpointViaAutoDv2.ps1
     . $PSScriptRoot\..\..\Shared\Show-Disclaimer.ps1
+    . $PSScriptRoot\..\..\Shared\Test-IsServerCoreOperatingSystem.ps1
     . $PSScriptRoot\..\..\Shared\ActiveDirectoryFunctions\Get-ExchangeOrganizationGuid.ps1
     . $PSScriptRoot\..\..\Shared\AzureFunctions\Get-Consent.ps1
     . $PSScriptRoot\..\..\Shared\AzureFunctions\Get-CloudServiceEndpoint.ps1
@@ -620,6 +634,14 @@ begin {
             if (-not [System.String]::IsNullOrEmpty($Script:CustomClientId)) {
                 Write-Verbose "CustomClientId $Script:CustomClientId was provided and will be used"
                 $getGraphAccessTokenParams.Add("ClientId", $Script:CustomClientId)
+            }
+
+            # Use the device code flow when it was explicitly requested via -UseDeviceCodeFlow, or when we detect a
+            # Windows Server Core installation, where no browser is available for the default authorization code flow.
+            if ($UseDeviceCodeFlow -or
+                (Test-IsServerCoreOperatingSystem)) {
+                Write-Verbose "The device code flow will be used to acquire the access token"
+                $getGraphAccessTokenParams.Add("UseDeviceCodeFlow", $true)
             }
 
             $graphAccessToken = Get-GraphAccessToken @getGraphAccessTokenParams
