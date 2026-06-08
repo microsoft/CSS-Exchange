@@ -7,14 +7,23 @@
 . $PSScriptRoot\..\ScriptUpdateFunctions\Invoke-WebRequestWithProxyDetection.ps1
 
 <#
-    This function is used to get an access token for the Azure Graph API by using the OAuth 2.0 authorization code flow
-    with PKCE (Proof Key for Code Exchange). The OAuth 2.0 authorization code grant type, or auth code flow,
-    enables a client application to obtain authorized access to protected resources like web APIs.
+    This function is used to get an access token for the Azure Graph API. By default it uses the OAuth 2.0
+    authorization code flow with PKCE (Proof Key for Code Exchange). The OAuth 2.0 authorization code grant type,
+    or auth code flow, enables a client application to obtain authorized access to protected resources like web APIs.
     The auth code flow requires a user-agent that supports redirection from the authorization server
     (the Microsoft identity platform) back to your application.
 
     More information about the auth code flow with PKCE can be found here:
     https://learn.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow#protocol-details
+
+    For hosts without a browser (for example, Windows Server Core), the -UseDeviceCodeFlow switch can be used to
+    acquire the token via the OAuth 2.0 device authorization grant (device code flow) instead. In that flow the user
+    is asked to open a verification URL on another device and enter a user code to complete the sign-in, so no local
+    browser or redirect listener is required. Note that the device code flow is less phishing resistant than the auth
+    code flow and may be blocked by Conditional Access policies, so it should only be used when no browser is available.
+
+    More information about the device code flow can be found here:
+    https://learn.microsoft.com/azure/active-directory/develop/v2-oauth2-device-code
 #>
 function Get-GraphAccessToken {
     [CmdletBinding()]
@@ -34,7 +43,10 @@ function Get-GraphAccessToken {
         # a first party application, which cannot rely on dynamic consent / pre-authorization for a first party
         # resource).
         [Parameter(Mandatory = $false)]
-        [string]$Scope = "$($GraphApiUrl)/.default openid profile"
+        [string]$Scope = "$($GraphApiUrl)/.default openid profile",
+
+        [Parameter(Mandatory = $false)]
+        [switch]$UseDeviceCodeFlow
     )
 
     begin {
@@ -117,6 +129,115 @@ function Get-GraphAccessToken {
         $connectionSuccessful = $false
     }
     process {
+        if ($UseDeviceCodeFlow) {
+            Write-Verbose "Device code flow was selected to acquire the access token"
+            Write-Host "Device code flow is intended for hosts without a browser (for example, Windows Server Core)." -ForegroundColor Yellow
+            Write-Host "Note: This flow may be blocked by Conditional Access policies in your tenant." -ForegroundColor Yellow
+
+            # Request a device code from the Microsoft Azure Active Directory endpoint
+            $deviceCodeRequestParams = @{
+                Uri             = "$AzureADEndpoint/organizations/oauth2/v2.0/devicecode"
+                Method          = "POST"
+                ContentType     = "application/x-www-form-urlencoded"
+                Body            = @{
+                    client_id = $ClientId
+                    scope     = $Scope
+                }
+                UseBasicParsing = $true
+            }
+            $deviceCodeResponse = Invoke-WebRequestWithProxyDetection -ParametersObject $deviceCodeRequestParams
+
+            if (($null -eq $deviceCodeResponse) -or
+                ($deviceCodeResponse.StatusCode -ne 200)) {
+                Write-Host "Unable to acquire a device code from the Microsoft Azure Active Directory endpoint." -ForegroundColor Red
+
+                return
+            }
+
+            $deviceCode = $deviceCodeResponse.Content | ConvertFrom-Json
+
+            # Display the user instructions returned by the endpoint (verification URL and user code)
+            Write-Host $deviceCode.message -ForegroundColor Cyan
+
+            $pollingInterval = [int]$deviceCode.interval
+            $pollingStopwatch = New-Object System.Diagnostics.Stopwatch
+            $pollingStopwatch.Start()
+
+            do {
+                Start-Sleep -Seconds $pollingInterval
+
+                # Poll the token endpoint to check whether the user completed the sign-in. We use
+                # -ReturnErrorResponse so that the helper surfaces the HTTP 400 error body instead of swallowing
+                # it - the device code flow relies on the authorization_pending / slow_down error codes to drive
+                # the polling loop. Proxy detection is handled centrally by Invoke-WebRequestWithProxyDetection.
+                $redeemDeviceCodeParams = @{
+                    Uri             = "$AzureADEndpoint/organizations/oauth2/v2.0/token"
+                    Method          = "POST"
+                    ContentType     = "application/x-www-form-urlencoded"
+                    Body            = @{
+                        client_id   = $ClientId
+                        grant_type  = "urn:ietf:params:oauth:grant-type:device_code"
+                        device_code = $deviceCode.device_code
+                    }
+                    UseBasicParsing = $true
+                }
+                $redeemDeviceCodeResponse = Invoke-WebRequestWithProxyDetection -ParametersObject $redeemDeviceCodeParams -ReturnErrorResponse
+
+                if (($null -ne $redeemDeviceCodeResponse) -and
+                    ($redeemDeviceCodeResponse.StatusCode -eq 200)) {
+                    $tokens = $redeemDeviceCodeResponse.Content | ConvertFrom-Json
+                    $idTokenPayload = (Convert-JsonWebTokenToObject $tokens.id_token).Payload
+                    $connectionSuccessful = $true
+
+                    break
+                }
+
+                $errorResponse = $null
+
+                if (($null -ne $redeemDeviceCodeResponse) -and
+                    (-not [System.String]::IsNullOrEmpty($redeemDeviceCodeResponse.Content))) {
+                    $errorResponse = $redeemDeviceCodeResponse.Content | ConvertFrom-Json
+                }
+
+                switch ($errorResponse.error) {
+                    "authorization_pending" {
+                        Write-Verbose "Authorization is pending - the user has not completed the sign-in yet"
+                    }
+                    "slow_down" {
+                        Write-Verbose "Polling too fast - increasing the polling interval by 5 seconds"
+                        $pollingInterval += 5
+                    }
+                    "authorization_declined" {
+                        Write-Host "The user declined the sign-in request." -ForegroundColor Red
+
+                        return
+                    }
+                    "expired_token" {
+                        Write-Host "The device code has expired before the sign-in was completed." -ForegroundColor Red
+
+                        return
+                    }
+                    "access_denied" {
+                        Write-Host "The sign-in request was denied." -ForegroundColor Red
+
+                        return
+                    }
+                    default {
+                        Write-Host "Unable to redeem the device code for an access token." -ForegroundColor Red
+                        Write-Verbose "Unexpected error: $($errorResponse.error) - $($errorResponse.error_description)"
+
+                        return
+                    }
+                }
+            } while ($pollingStopwatch.Elapsed.TotalSeconds -lt [int]$deviceCode.expires_in)
+
+            if (-not $connectionSuccessful) {
+                Write-Host "Timed out waiting for the device code sign-in to complete." -ForegroundColor Red
+            }
+
+            return
+        }
+
         $codeChallenge = $codeChallengeVerifier.CodeChallenge
         $codeVerifier = $codeChallengeVerifier.Verifier
 
