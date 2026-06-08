@@ -26,10 +26,15 @@ function Get-GraphAccessToken {
         [string]$GraphApiUrl = "https://graph.microsoft.com",
 
         [Parameter(Mandatory = $false)]
-        [string]$ClientId = "1950a258-227b-4e31-a9cf-717495945fc2", # Well-known Microsoft Azure PowerShell application ID
+        [string]$ClientId = "4d2f5175-f06b-49e2-9f4a-8e614a8abc03", # Microsoft Exchange Hybrid Wizard application ID
 
+        # The OpenID Connect scopes "openid" and "profile" must be requested explicitly so that an id_token is
+        # returned alongside the access_token. The id_token is required for the nonce replay check and to read the
+        # tenant id. ".default" requests all permissions that have already been consented for the app (required for
+        # a first party application, which cannot rely on dynamic consent / pre-authorization for a first party
+        # resource).
         [Parameter(Mandatory = $false)]
-        [string]$Scope = "$($GraphApiUrl)//AuditLog.Read.All Directory.AccessAsUser.All email openid profile"
+        [string]$Scope = "$($GraphApiUrl)/.default openid profile"
     )
 
     begin {
@@ -171,6 +176,15 @@ function Get-GraphAccessToken {
 
             if ($redeemAuthCodeResponse.StatusCode -eq 200) {
                 $tokens = $redeemAuthCodeResponse.Content | ConvertFrom-Json
+
+                # An id_token is only returned when the "openid" scope was requested. It is required to perform
+                # the nonce replay check and to read the tenant id, so fail clearly if it is missing.
+                if ([System.String]::IsNullOrEmpty($tokens.id_token)) {
+                    Write-Host "No id_token was returned - make sure the 'openid' scope is part of the requested scope" -ForegroundColor Red
+
+                    return
+                }
+
                 $idTokenPayload = (Convert-JsonWebTokenToObject $tokens.id_token).Payload
 
                 Write-Verbose "Script nonce: '$nonce' - Returned nonce: '$($idTokenPayload.nonce)'"
