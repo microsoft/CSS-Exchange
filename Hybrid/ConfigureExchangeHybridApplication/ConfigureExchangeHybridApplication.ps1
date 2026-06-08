@@ -1406,7 +1406,8 @@ begin {
                 $graphApiFeatureEnabledCount = 0
 
                 foreach ($o in $exchangeOnpremAsThirdPartyAppIdSettingOverrides) {
-                    $match = [regex]::Match($o.Parameters, $settingOverridesEnabledRegex, "IgnoreCase")
+                    $enabledParameter = @($o.Parameters) | Where-Object { $_ -match "^\s*Enabled\s*=" } | Select-Object -First 1
+                    $match = [regex]::Match([string]$enabledParameter, $settingOverridesEnabledRegex, "IgnoreCase")
                     $featureIsEnabled = ($match.Success -and $match.Groups[1].Value -eq "true")
                     $featureSettingOverrideValue = if (-not $match.Success) { "Unknown" } else { $match.Groups[1].Value }
 
@@ -1420,7 +1421,8 @@ begin {
                 }
 
                 foreach ($o in $routeThroughMSGraphSettingOverrides) {
-                    $match = [regex]::Match($o.Parameters, $settingOverridesEnabledRegex, "IgnoreCase")
+                    $enabledParameter = @($o.Parameters) | Where-Object { $_ -match "^\s*Enabled\s*=" } | Select-Object -First 1
+                    $match = [regex]::Match([string]$enabledParameter, $settingOverridesEnabledRegex, "IgnoreCase")
                     $featureIsEnabled = ($match.Success -and $match.Groups[1].Value -eq "true")
                     $featureSettingOverrideValue = if (-not $match.Success) { "Unknown" } else { $match.Groups[1].Value }
 
