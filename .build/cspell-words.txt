@@ -22,6 +22,7 @@ contoso
 CTMM
 Datacenter
 dcom
+devicecode
 DMARC
 Dsamain
 DTLS
@@ -171,4 +172,5 @@ Webex
 Weve
 wevtutil
 windir
+wids
 Xlsb
