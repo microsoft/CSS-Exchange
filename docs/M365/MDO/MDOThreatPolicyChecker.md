@@ -2,19 +2,24 @@
 
 Download the latest release: [MDOThreatPolicyChecker.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/MDOThreatPolicyChecker.ps1)
 
-Use this script to find inconsistencies or redundancies in user membership and policy application of Microsoft Defender for Office 365 and Exchange Online Protection threat policies that lead to missed or unexpected coverage of users by the policy. If issues are found, the script provides guidance on how to resolve them.
+In mid-2026, Include conditions (Users, Groups, and Domains) in threat policies are moving from AND logic to OR logic. Prior to that, a policy will apply to a user only if the user matches all populated Inclusion conditions. After that, a policy will apply if a user matches any included User, Group, or Domain.
+Check a policy in your tenant to confirm if it is already using OR logic as **this script will prompt you to specify which logic is being used**. A message center post will also inform you of the change for your tenant.
 
-The script also helps you identify which threat policies cover a particular user, including anti-malware, anti-phishing, inbound and outbound anti-spam, as well as Safe Attachments and Safe Links policies in case these are licensed for your tenant.
+Use this script to find any threat policies that have users specified by more than one Include condition in Microsoft Defender for Office 365 and Exchange Online Protection.
+
+The script helps you identify which threat policies cover a particular user, including anti-malware, anti-phishing, inbound and outbound anti-spam, as well as Safe Attachments and Safe Links policies in case these are licensed for your tenant.
 
 The script can help with such questions as:
 
-- Are there confusing policies with conditions that lead to unexpected coverage or coverage gaps?
+- Does your tenant have policies with multiple Inclusion conditions?
 
 - Which threat policies apply to a recipient, **or should have applied** but did not? **No actual detection or Network Message ID needed.**
 
 - Which actions would be taken on an email for each policy matched?
 
-The script runs only in Read mode from Exchange Online and Microsoft Graph PowerShell. It does not modify any policies, and only provides actionable guidance for administrators for remediation.
+The script runs only in Read mode from Exchange Online and Microsoft Graph PowerShell. It does not modify any policies; it only provides insight into user policy-coverage.
+
+The Graph cmdlet prerequisite below is not necessary to check for multiple Inclusion conditions. Simply connect to Exchange Online and run the script with no parameters.
 
 ## Prerequisites
 The script uses Powershell cmdlets from the Exchange Online module and from the Microsoft.Graph.Authentication, Microsoft.Graph.Groups, and Microsoft.Graph.Users modules.
@@ -62,15 +67,11 @@ You can find the Exchange module and information in the following links:<br>
 
 
 ## Parameters and Use Cases:
-Run the script without any parameters to review all threat protection policies and to find inconsistencies with user inclusion and/or exclusion conditions:
+Run the script without any parameters to review any threat protection policies with multiple user Inclusion conditions:
 
-!['No Logical inconsistencies found'](img/No-Logical-Inconsistencies.png)
+!['Multiple Inclusion conditions'](img/Multiple-Inclusion-Conditions.png)
 
-**Script Output 1: No logical inconsistencies found** message if the policies are configured correctly, and no further corrections are required.
-
-![Potentially illogical inclusions found.](img/Logical-Inconsistency-Found.png)
-
-**Script Output 2: Logical inconsistencies found**. Inconsistencies found in the antispam policy named 'Custom antispam policy', and consequent recommendations shown -- illogical inclusions as both users and groups are specified. This policy will only apply to the users who are also members of the specified group.
+**Script run with no parameters:** Multiple Inclusion conditions found for some policies.
 
 - IncludeMDOPolicies
 

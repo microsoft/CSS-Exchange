@@ -96,11 +96,636 @@ param(
 
 begin {
 
-    . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
-    . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
-    . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Verbose.ps1
-    . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Warning.ps1
-    . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Host.ps1
+
+
+
+
+function Confirm-ProxyServer {
+    [CmdletBinding()]
+    [OutputType([bool])]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]
+        $TargetUri
+    )
+
+    Write-Verbose "Calling $($MyInvocation.MyCommand)"
+    try {
+        $proxyObject = ([System.Net.WebRequest]::GetSystemWebProxy()).GetProxy($TargetUri)
+        if ($TargetUri -ne $proxyObject.OriginalString) {
+            Write-Verbose "Proxy server configuration detected"
+            Write-Verbose $proxyObject.OriginalString
+            return $true
+        } else {
+            Write-Verbose "No proxy server configuration detected"
+            return $false
+        }
+    } catch {
+        Write-Verbose "Unable to check for proxy server configuration"
+        return $false
+    }
+}
+
+function WriteErrorInformationBase {
+    [CmdletBinding()]
+    param(
+        [object]$CurrentError = $Error[0],
+        [ValidateSet("Write-Host", "Write-Verbose")]
+        [string]$Cmdlet
+    )
+
+    [string]$errorInformation = [System.Environment]::NewLine + [System.Environment]::NewLine +
+    "----------------Error Information----------------" + [System.Environment]::NewLine
+
+    if ($null -ne $CurrentError.OriginInfo) {
+        $errorInformation += "Error Origin Info: $($CurrentError.OriginInfo.ToString())$([System.Environment]::NewLine)"
+    }
+
+    $errorInformation += "$($CurrentError.CategoryInfo.Activity) : $($CurrentError.ToString())$([System.Environment]::NewLine)"
+
+    if ($null -ne $CurrentError.Exception -and
+        $null -ne $CurrentError.Exception.StackTrace) {
+        $errorInformation += "Inner Exception: $($CurrentError.Exception.StackTrace)$([System.Environment]::NewLine)"
+    } elseif ($null -ne $CurrentError.Exception) {
+        $errorInformation += "Inner Exception: $($CurrentError.Exception)$([System.Environment]::NewLine)"
+    }
+
+    if ($null -ne $CurrentError.InvocationInfo.PositionMessage) {
+        $errorInformation += "Position Message: $($CurrentError.InvocationInfo.PositionMessage)$([System.Environment]::NewLine)"
+    }
+
+    if ($null -ne $CurrentError.Exception.SerializedRemoteInvocationInfo.PositionMessage) {
+        $errorInformation += "Remote Position Message: $($CurrentError.Exception.SerializedRemoteInvocationInfo.PositionMessage)$([System.Environment]::NewLine)"
+    }
+
+    if ($null -ne $CurrentError.ScriptStackTrace) {
+        $errorInformation += "Script Stack: $($CurrentError.ScriptStackTrace)$([System.Environment]::NewLine)"
+    }
+
+    $errorInformation += "-------------------------------------------------$([System.Environment]::NewLine)$([System.Environment]::NewLine)"
+
+    & $Cmdlet $errorInformation
+}
+
+function Write-VerboseErrorInformation {
+    [CmdletBinding()]
+    param(
+        [object]$CurrentError = $Error[0]
+    )
+    WriteErrorInformationBase $CurrentError "Write-Verbose"
+}
+
+function Write-HostErrorInformation {
+    [CmdletBinding()]
+    param(
+        [object]$CurrentError = $Error[0]
+    )
+    WriteErrorInformationBase $CurrentError "Write-Host"
+}
+
+function Invoke-WebRequestWithProxyDetection {
+    [CmdletBinding(DefaultParameterSetName = "Default")]
+    param (
+        [Parameter(Mandatory = $true, ParameterSetName = "Default")]
+        [string]
+        $Uri,
+
+        [Parameter(Mandatory = $false, ParameterSetName = "Default")]
+        [switch]
+        $UseBasicParsing,
+
+        [Parameter(Mandatory = $true, ParameterSetName = "ParametersObject")]
+        [hashtable]
+        $ParametersObject,
+
+        [Parameter(Mandatory = $false, ParameterSetName = "Default")]
+        [string]
+        $OutFile
+    )
+
+    Write-Verbose "Calling $($MyInvocation.MyCommand)"
+    if ([System.String]::IsNullOrEmpty($Uri)) {
+        $Uri = $ParametersObject.Uri
+    }
+
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    if (Confirm-ProxyServer -TargetUri $Uri) {
+        $webClient = New-Object System.Net.WebClient
+        $webClient.Headers.Add("User-Agent", "PowerShell")
+        $webClient.Proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
+    }
+
+    if ($null -eq $ParametersObject) {
+        $params = @{
+            Uri     = $Uri
+            OutFile = $OutFile
+        }
+
+        if ($UseBasicParsing) {
+            $params.UseBasicParsing = $true
+        }
+    } else {
+        $params = $ParametersObject
+    }
+
+    try {
+        Invoke-WebRequest @params
+    } catch {
+        Write-VerboseErrorInformation
+    }
+}
+
+<#
+    Determines if the script has an update available.
+#>
+function Get-ScriptUpdateAvailable {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param (
+        [Parameter(Mandatory = $false)]
+        [string]
+        $VersionsUrl = "https://github.com/microsoft/CSS-Exchange/releases/latest/download/ScriptVersions.csv"
+    )
+
+    $BuildVersion = "26.04.29.1054"
+
+    $scriptName = $script:MyInvocation.MyCommand.Name
+    $scriptPath = [IO.Path]::GetDirectoryName($script:MyInvocation.MyCommand.Path)
+    $scriptFullName = (Join-Path $scriptPath $scriptName)
+
+    $result = [PSCustomObject]@{
+        ScriptName     = $scriptName
+        CurrentVersion = $BuildVersion
+        LatestVersion  = ""
+        UpdateFound    = $false
+        Error          = $null
+    }
+
+    if ((Get-AuthenticodeSignature -FilePath $scriptFullName).Status -eq "NotSigned") {
+        Write-Warning "This script appears to be an unsigned test build. Skipping version check."
+    } else {
+        try {
+            $versionData = [Text.Encoding]::UTF8.GetString((Invoke-WebRequestWithProxyDetection -Uri $VersionsUrl -UseBasicParsing).Content) | ConvertFrom-Csv
+            $latestVersion = ($versionData | Where-Object { $_.File -eq $scriptName }).Version
+            $result.LatestVersion = $latestVersion
+            if ($null -ne $latestVersion) {
+                $result.UpdateFound = ($latestVersion -ne $BuildVersion)
+            } else {
+                Write-Warning ("Unable to check for a script update as no script with the same name was found." +
+                    "`r`nThis can happen if the script has been renamed. Please check manually if there is a newer version of the script.")
+            }
+
+            Write-Verbose "Current version: $($result.CurrentVersion) Latest version: $($result.LatestVersion) Update found: $($result.UpdateFound)"
+        } catch {
+            Write-Verbose "Unable to check for updates: $($_.Exception)"
+            $result.Error = $_
+        }
+    }
+
+    return $result
+}
+
+
+function Confirm-Signature {
+    [CmdletBinding()]
+    [OutputType([bool])]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]
+        $File
+    )
+
+    $IsValid = $false
+    $MicrosoftSigningRoot2010 = 'CN=Microsoft Root Certificate Authority 2010, O=Microsoft Corporation, L=Redmond, S=Washington, C=US'
+    $MicrosoftSigningRoot2011 = 'CN=Microsoft Root Certificate Authority 2011, O=Microsoft Corporation, L=Redmond, S=Washington, C=US'
+
+    try {
+        $sig = Get-AuthenticodeSignature -FilePath $File
+
+        if ($sig.Status -ne 'Valid') {
+            Write-Warning "Signature is not trusted by machine as Valid, status: $($sig.Status)."
+            throw
+        }
+
+        $chain = New-Object -TypeName System.Security.Cryptography.X509Certificates.X509Chain
+        $chain.ChainPolicy.VerificationFlags = "IgnoreNotTimeValid"
+
+        if (-not $chain.Build($sig.SignerCertificate)) {
+            Write-Warning "Signer certificate doesn't chain correctly."
+            throw
+        }
+
+        if ($chain.ChainElements.Count -le 1) {
+            Write-Warning "Certificate Chain shorter than expected."
+            throw
+        }
+
+        $rootCert = $chain.ChainElements[$chain.ChainElements.Count - 1]
+
+        if ($rootCert.Certificate.Subject -ne $rootCert.Certificate.Issuer) {
+            Write-Warning "Top-level certificate in chain is not a root certificate."
+            throw
+        }
+
+        if ($rootCert.Certificate.Subject -ne $MicrosoftSigningRoot2010 -and $rootCert.Certificate.Subject -ne $MicrosoftSigningRoot2011) {
+            Write-Warning "Unexpected root cert. Expected $MicrosoftSigningRoot2010 or $MicrosoftSigningRoot2011, but found $($rootCert.Certificate.Subject)."
+            throw
+        }
+
+        Write-Host "File signed by $($sig.SignerCertificate.Subject)"
+
+        $IsValid = $true
+    } catch {
+        $IsValid = $false
+    }
+
+    $IsValid
+}
+
+<#
+.SYNOPSIS
+    Overwrites the current running script file with the latest version from the repository.
+.NOTES
+    This function always overwrites the current file with the latest file, which might be
+    the same. Get-ScriptUpdateAvailable should be called first to determine if an update is
+    needed.
+
+    In many situations, updates are expected to fail, because the server running the script
+    does not have internet access. This function writes out failures as warnings, because we
+    expect that Get-ScriptUpdateAvailable was already called and it successfully reached out
+    to the internet.
+#>
+function Invoke-ScriptUpdate {
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    [OutputType([boolean])]
+    param ()
+
+    $scriptName = $script:MyInvocation.MyCommand.Name
+    $scriptPath = [IO.Path]::GetDirectoryName($script:MyInvocation.MyCommand.Path)
+    $scriptFullName = (Join-Path $scriptPath $scriptName)
+
+    $oldName = [IO.Path]::GetFileNameWithoutExtension($scriptName) + ".old"
+    $oldFullName = (Join-Path $scriptPath $oldName)
+    $tempFullName = (Join-Path ((Get-Item $env:TEMP).FullName) $scriptName)
+
+    if ($PSCmdlet.ShouldProcess("$scriptName", "Update script to latest version")) {
+        try {
+            Invoke-WebRequestWithProxyDetection -Uri "https://github.com/microsoft/CSS-Exchange/releases/latest/download/$scriptName" -OutFile $tempFullName
+        } catch {
+            Write-Warning "AutoUpdate: Failed to download update: $($_.Exception.Message)"
+            return $false
+        }
+
+        try {
+            if (Confirm-Signature -File $tempFullName) {
+                Write-Host "AutoUpdate: Signature validated."
+                if (Test-Path $oldFullName) {
+                    Remove-Item $oldFullName -Force -Confirm:$false -ErrorAction Stop
+                }
+                Move-Item $scriptFullName $oldFullName
+                Move-Item $tempFullName $scriptFullName
+                Remove-Item $oldFullName -Force -Confirm:$false -ErrorAction Stop
+                Write-Host "AutoUpdate: Succeeded."
+                return $true
+            } else {
+                Write-Warning "AutoUpdate: Signature could not be verified: $tempFullName."
+                Write-Warning "AutoUpdate: Update was not applied."
+            }
+        } catch {
+            Write-Warning "AutoUpdate: Failed to apply update: $($_.Exception.Message)"
+        }
+    }
+
+    return $false
+}
+
+<#
+    Determines if the script has an update available. Use the optional
+    -AutoUpdate switch to make it update itself. Pass -Confirm:$false
+    to update without prompting the user. Pass -Verbose for additional
+    diagnostic output.
+
+    Returns $true if an update was downloaded, $false otherwise. The
+    result will always be $false if the -AutoUpdate switch is not used.
+#>
+function Test-ScriptVersion {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess', '', Justification = 'Need to pass through ShouldProcess settings to Invoke-ScriptUpdate')]
+    [CmdletBinding(SupportsShouldProcess)]
+    [OutputType([bool])]
+    param (
+        [Parameter(Mandatory = $false)]
+        [switch]
+        $AutoUpdate,
+        [Parameter(Mandatory = $false)]
+        [string]
+        $VersionsUrl = "https://github.com/microsoft/CSS-Exchange/releases/latest/download/ScriptVersions.csv"
+    )
+
+    $updateInfo = Get-ScriptUpdateAvailable $VersionsUrl
+    if ($updateInfo.UpdateFound) {
+        if ($AutoUpdate) {
+            return Invoke-ScriptUpdate
+        } else {
+            Write-Warning "$($updateInfo.ScriptName) $BuildVersion is outdated. Please download the latest, version $($updateInfo.LatestVersion)."
+        }
+    }
+
+    return $false
+}
+
+function Get-NewLoggerInstance {
+    [CmdletBinding()]
+    param(
+        [string]$LogDirectory = (Get-Location).Path,
+
+        [ValidateNotNullOrEmpty()]
+        [string]$LogName = "Script_Logging",
+
+        [bool]$AppendDateTime = $true,
+
+        [bool]$AppendDateTimeToFileName = $true,
+
+        [int]$MaxFileSizeMB = 10,
+
+        [int]$CheckSizeIntervalMinutes = 10,
+
+        [int]$NumberOfLogsToKeep = 10
+    )
+
+    $fileName = if ($AppendDateTimeToFileName) { "{0}_{1}.txt" -f $LogName, ((Get-Date).ToString('yyyyMMddHHmmss')) } else { "$LogName.txt" }
+    $fullFilePath = [System.IO.Path]::Combine($LogDirectory, $fileName)
+
+    if (-not (Test-Path $LogDirectory)) {
+        try {
+            New-Item -ItemType Directory -Path $LogDirectory -ErrorAction Stop | Out-Null
+        } catch {
+            throw "Failed to create Log Directory: $LogDirectory. Inner Exception: $_"
+        }
+    }
+
+    return [PSCustomObject]@{
+        FullPath                 = $fullFilePath
+        AppendDateTime           = $AppendDateTime
+        MaxFileSizeMB            = $MaxFileSizeMB
+        CheckSizeIntervalMinutes = $CheckSizeIntervalMinutes
+        NumberOfLogsToKeep       = $NumberOfLogsToKeep
+        BaseInstanceFileName     = $fileName.Replace(".txt", "")
+        Instance                 = 1
+        NextFileCheckTime        = ((Get-Date).AddMinutes($CheckSizeIntervalMinutes))
+        PreventLogCleanup        = $false
+        LoggerDisabled           = $false
+    } | Write-LoggerInstance -Object "Starting Logger Instance $(Get-Date)"
+}
+
+function Write-LoggerInstance {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        [object]$LoggerInstance,
+
+        [Parameter(Mandatory = $true, Position = 1)]
+        [object]$Object
+    )
+    process {
+        if ($LoggerInstance.LoggerDisabled) { return }
+
+        if ($LoggerInstance.AppendDateTime -and
+            $Object.GetType().Name -eq "string") {
+            $Object = "[$([System.DateTime]::Now)] : $Object"
+        }
+
+        # Doing WhatIf:$false to support -WhatIf in main scripts but still log the information
+        $Object | Out-File $LoggerInstance.FullPath -Append -WhatIf:$false
+
+        #Upkeep of the logger information
+        if ($LoggerInstance.NextFileCheckTime -gt [System.DateTime]::Now) {
+            return
+        }
+
+        #Set next update time to avoid issues so we can log things
+        $LoggerInstance.NextFileCheckTime = ([System.DateTime]::Now).AddMinutes($LoggerInstance.CheckSizeIntervalMinutes)
+        $item = Get-ChildItem $LoggerInstance.FullPath
+
+        if (($item.Length / 1MB) -gt $LoggerInstance.MaxFileSizeMB) {
+            $LoggerInstance | Write-LoggerInstance -Object "Max file size reached rolling over" | Out-Null
+            $directory = [System.IO.Path]::GetDirectoryName($LoggerInstance.FullPath)
+            $fileName = "$($LoggerInstance.BaseInstanceFileName)-$($LoggerInstance.Instance).txt"
+            $LoggerInstance.Instance++
+            $LoggerInstance.FullPath = [System.IO.Path]::Combine($directory, $fileName)
+
+            $items = Get-ChildItem -Path ([System.IO.Path]::GetDirectoryName($LoggerInstance.FullPath)) -Filter "*$($LoggerInstance.BaseInstanceFileName)*"
+
+            if ($items.Count -gt $LoggerInstance.NumberOfLogsToKeep) {
+                $item = $items | Sort-Object LastWriteTime | Select-Object -First 1
+                $LoggerInstance | Write-LoggerInstance "Removing Log File $($item.FullName)" | Out-Null
+                $item | Remove-Item -Force
+            }
+        }
+    }
+    end {
+        return $LoggerInstance
+    }
+}
+
+function Invoke-LoggerInstanceCleanup {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        [object]$LoggerInstance
+    )
+    process {
+        if ($LoggerInstance.LoggerDisabled -or
+            $LoggerInstance.PreventLogCleanup) {
+            return
+        }
+
+        Get-ChildItem -Path ([System.IO.Path]::GetDirectoryName($LoggerInstance.FullPath)) -Filter "*$($LoggerInstance.BaseInstanceFileName)*" |
+            Remove-Item -Force
+    }
+}
+
+function Write-Verbose {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'In order to log Write-Verbose from Shared functions')]
+    [CmdletBinding()]
+    param(
+        [Parameter(Position = 1, ValueFromPipeline)]
+        [string]$Message
+    )
+
+    process {
+
+        if ($null -ne $Script:WriteVerboseManipulateMessageAction) {
+            $Message = & $Script:WriteVerboseManipulateMessageAction $Message
+        }
+
+        if ($PSSenderInfo -and
+            $null -ne $Script:WriteVerboseRemoteManipulateMessageAction) {
+            $Message = & $Script:WriteVerboseRemoteManipulateMessageAction $Message
+        }
+
+        Microsoft.PowerShell.Utility\Write-Verbose $Message
+
+        if ($null -ne $Script:WriteVerboseDebugAction) {
+            & $Script:WriteVerboseDebugAction $Message
+        }
+
+        # $PSSenderInfo is set when in a remote context
+        if ($PSSenderInfo -and
+            $null -ne $Script:WriteRemoteVerboseDebugAction) {
+            & $Script:WriteRemoteVerboseDebugAction $Message
+        }
+    }
+}
+
+function SetWriteVerboseAction ($DebugAction) {
+    $Script:WriteVerboseDebugAction = $DebugAction
+}
+
+function SetWriteRemoteVerboseAction ($DebugAction) {
+    $Script:WriteRemoteVerboseDebugAction = $DebugAction
+}
+
+function SetWriteVerboseManipulateMessageAction ($DebugAction) {
+    $Script:WriteVerboseManipulateMessageAction = $DebugAction
+}
+
+function SetWriteVerboseRemoteManipulateMessageAction ($DebugAction) {
+    $Script:WriteVerboseRemoteManipulateMessageAction = $DebugAction
+}
+
+function Write-Warning {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'In order to log Write-Warning from Shared functions')]
+    [CmdletBinding()]
+    param(
+        [Parameter(Position = 1, ValueFromPipeline)]
+        [string]$Message
+    )
+    process {
+
+        if ($null -ne $Script:WriteWarningManipulateMessageAction) {
+            $Message = & $Script:WriteWarningManipulateMessageAction $Message
+        }
+
+        if ($PSSenderInfo -and
+            $null -ne $Script:WriteWarningRemoteManipulateMessageAction) {
+            $Message = & $Script:WriteWarningRemoteManipulateMessageAction $Message
+        }
+
+        Microsoft.PowerShell.Utility\Write-Warning $Message
+
+        # Add WARNING to beginning of the message by default.
+        $Message = "WARNING: $Message"
+
+        if ($null -ne $Script:WriteWarningDebugAction) {
+            & $Script:WriteWarningDebugAction $Message
+        }
+
+        # $PSSenderInfo is set when in a remote context
+        if ($PSSenderInfo -and
+            $null -ne $Script:WriteRemoteWarningDebugAction) {
+            & $Script:WriteRemoteWarningDebugAction $Message
+        }
+    }
+}
+
+function SetWriteWarningAction ($DebugAction) {
+    $Script:WriteWarningDebugAction = $DebugAction
+}
+
+function SetWriteRemoteWarningAction ($DebugAction) {
+    $Script:WriteRemoteWarningDebugAction = $DebugAction
+}
+
+function SetWriteWarningManipulateMessageAction ($DebugAction) {
+    $Script:WriteWarningManipulateMessageAction = $DebugAction
+}
+
+function SetWriteWarningRemoteManipulateMessageAction ($DebugAction) {
+    $Script:WriteWarningRemoteManipulateMessageAction = $DebugAction
+}
+
+<#
+.DESCRIPTION
+    An override for Write-Host to allow logging to occur and color format changes to match with what the user as default set for Warning and Error.
+#>
+function Write-Host {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Proper handling of write host with colors')]
+    [CmdletBinding()]
+    param(
+        [Parameter(Position = 1, ValueFromPipeline)]
+        [object]$Object,
+        [switch]$NoNewLine,
+        [string]$ForegroundColor
+    )
+    process {
+        $consoleHost = $host.Name -eq "ConsoleHost"
+
+        if ($null -ne $Script:WriteHostManipulateObjectAction) {
+            $Object = & $Script:WriteHostManipulateObjectAction $Object
+        }
+
+        $params = @{
+            Object    = $Object
+            NoNewLine = $NoNewLine
+        }
+
+        if ([string]::IsNullOrEmpty($ForegroundColor)) {
+            if ($null -ne $host.UI.RawUI.ForegroundColor -and
+                $consoleHost) {
+                $params.Add("ForegroundColor", $host.UI.RawUI.ForegroundColor)
+            }
+        } elseif ($ForegroundColor -eq "Yellow" -and
+            $consoleHost -and
+            $null -ne $host.PrivateData.WarningForegroundColor) {
+            $params.Add("ForegroundColor", $host.PrivateData.WarningForegroundColor)
+        } elseif ($ForegroundColor -eq "Red" -and
+            $consoleHost -and
+            $null -ne $host.PrivateData.ErrorForegroundColor) {
+            $params.Add("ForegroundColor", $host.PrivateData.ErrorForegroundColor)
+        } else {
+            $params.Add("ForegroundColor", $ForegroundColor)
+        }
+
+        Microsoft.PowerShell.Utility\Write-Host @params
+
+        if ($null -ne $Script:WriteHostDebugAction -and
+            $null -ne $Object) {
+            &$Script:WriteHostDebugAction $Object
+        }
+    }
+}
+
+function SetProperForegroundColor {
+    $Script:OriginalConsoleForegroundColor = $host.UI.RawUI.ForegroundColor
+
+    if ($Host.UI.RawUI.ForegroundColor -eq $Host.PrivateData.WarningForegroundColor) {
+        Write-Verbose "Foreground Color matches warning's color"
+
+        if ($Host.UI.RawUI.ForegroundColor -ne "Gray") {
+            $Host.UI.RawUI.ForegroundColor = "Gray"
+        }
+    }
+
+    if ($Host.UI.RawUI.ForegroundColor -eq $Host.PrivateData.ErrorForegroundColor) {
+        Write-Verbose "Foreground Color matches error's color"
+
+        if ($Host.UI.RawUI.ForegroundColor -ne "Gray") {
+            $Host.UI.RawUI.ForegroundColor = "Gray"
+        }
+    }
+}
+
+function RevertProperForegroundColor {
+    $Host.UI.RawUI.ForegroundColor = $Script:OriginalConsoleForegroundColor
+}
+
+function SetWriteHostAction ($DebugAction) {
+    $Script:WriteHostDebugAction = $DebugAction
+}
+
+function SetWriteHostManipulateObjectAction ($ManipulateObject) {
+    $Script:WriteHostManipulateObjectAction = $ManipulateObject
+}
 
     # Cache to reduce calls to Get-MgGroup
     $groupCache = @{}
@@ -332,7 +957,7 @@ begin {
             Write-Verbose " "
 
             if ($senderOrReceiver -and $Email -in $senderOrReceiver) {
-                Write-DetailedExplanationOption -Message "Included in rule as User. Other conditions must match also." -ShowDetailedExplanation:$ShowDetailedExplanation
+                Write-DetailedExplanationOption -Message "Included in rule as User." -ShowDetailedExplanation:$ShowDetailedExplanation
                 $emailInRule = $true
             }
             if ($exceptSenderOrReceiver -and $Email -in $exceptSenderOrReceiver) {
@@ -379,7 +1004,7 @@ begin {
             $temp = $Email.Host
             while ($temp.IndexOf(".") -gt 0) {
                 if ($temp -in $domainsIs) {
-                    Write-DetailedExplanationOption -Message "Domain is in rule: $temp. Other conditions must match also." -ShowDetailedExplanation:$ShowDetailedExplanation
+                    Write-DetailedExplanationOption -Message "Domain is in rule: $temp." -ShowDetailedExplanation:$ShowDetailedExplanation
                     $domainInRule = $true
                 }
                 if ($temp -in $exceptIfDomainsIs) {
@@ -389,17 +1014,29 @@ begin {
                 $temp = $temp.Substring($temp.IndexOf(".") + 1)
             }
 
-            # Check for explicit inclusion in any user, group, or domain that are not empty, and account for 3 empty inclusions
-            # Also check for any exclusions as user, group, or domain. Nulls don't need to be accounted for and this is an OR condition for exclusions
-            if (((($emailInRule -or (-not $senderOrReceiver)) -and ($domainInRule -or (-not $domainsIs)) -and ($groupInRule -or (-not $memberOf))) -and
-                    ($emailInRule -or $domainInRule -or $groupInRule)) -and
+            # Check for explicit inclusion based on selected logic (AND or OR)
+            # Exclusions are always OR: any exclusion match removes the user
+            if ($Script:IncludeLogic -eq '1') {
+                # AND logic: user must match ALL populated inclusion properties
+                $isIncluded = ((($emailInRule -or (-not $senderOrReceiver)) -and ($domainInRule -or (-not $domainsIs)) -and ($groupInRule -or (-not $memberOf))) -and
+                    ($emailInRule -or $domainInRule -or $groupInRule))
+            } else {
+                # OR logic: user must match ANY populated inclusion property
+                $isIncluded = ($emailInRule -or $groupInRule -or $domainInRule)
+            }
+
+            if ($isIncluded -and
                 ((-not $emailExceptionInRule) -and (-not $groupExceptionInRule) -and (-not $domainExceptionInRule))) {
                 Write-DetailedExplanationOption -Message "Policy match found: `"$($rule.Name)`"" -ShowDetailedExplanation:$ShowDetailedExplanation
                 Write-DetailedExplanationOption -Message "Included in rule as User: $emailInRule. Included in rule by Group membership: $groupInRule. Included in rule by Domain: $domainInRule." -ShowDetailedExplanation:$ShowDetailedExplanation
                 Write-DetailedExplanationOption -Message "Excluded from rule as User: $emailExceptionInRule. Excluded from rule by group membership: $groupExceptionInRule. Excluded from rule by domain: $domainExceptionInRule." -ShowDetailedExplanation:$ShowDetailedExplanation
                 return $rule
             } else {
-                Write-DetailedExplanationOption -Message "The rule/policy does not explicitly include the recipient because not all User, Group, and Domain properties which have values include the recipient. `n`t`tDue to the AND operator between the User, Group, and Domain inclusion properties, if any of those properties have non-null values (they are not empty), the recipient must be included in that property." -ShowDetailedExplanation:$ShowDetailedExplanation
+                if ($Script:IncludeLogic -eq '1') {
+                    Write-DetailedExplanationOption -Message "The rule/policy does not explicitly include the recipient because not all User, Group, and Domain properties which have values include the recipient. `n`t`tDue to the AND operator between the User, Group, and Domain inclusion properties, if any of those properties have non-null values (they are not empty), the recipient must be included in that property." -ShowDetailedExplanation:$ShowDetailedExplanation
+                } else {
+                    Write-DetailedExplanationOption -Message "The rule/policy does not explicitly include the recipient. The recipient does not match any of the User, Group, or Domain inclusion properties (OR condition)." -ShowDetailedExplanation:$ShowDetailedExplanation
+                }
                 Write-DetailedExplanationOption -Message "Included in rule as User: $emailInRule. Included in rule by Group membership: $groupInRule. Included in rule by Domain: $domainInRule." -ShowDetailedExplanation:$ShowDetailedExplanation
                 Write-DetailedExplanationOption -Message "Excluded from rule as User: $emailExceptionInRule. Excluded from rule by group membership: $groupExceptionInRule. Excluded from rule by domain: $domainExceptionInRule." -ShowDetailedExplanation:$ShowDetailedExplanation
             }
@@ -482,9 +1119,16 @@ begin {
     SetWriteVerboseAction ${Function:Write-DebugLog}
     SetWriteWarningAction ${Function:Write-HostLog}
 
-    $BuildVersion = ""
+    $BuildVersion = "26.04.29.1054"
 
     Write-Host ("MDOThreatPolicyChecker.ps1 script version $($BuildVersion)") -ForegroundColor Green
+    Write-Host " "
+    Write-Host "============================================================================================================" -ForegroundColor Cyan
+    Write-Host "In mid-2026, Include conditions (Users/Groups/Domains) in threat policies are moving from AND" -ForegroundColor Yellow
+    Write-Host "logic to OR logic. After that, a policy will apply if a user matches any included User, Group, or Domain." -ForegroundColor Yellow
+    Write-Host "Check a policy in your tenant to confirm if it is already using OR logic as this script will prompt you to" -ForegroundColor Yellow
+    Write-Host "specify which logic is being used. A message center post will also inform you of the change for your tenant." -ForegroundColor Yellow
+    Write-Host "============================================================================================================" -ForegroundColor Cyan
 
     if ($ScriptUpdateOnly) {
         switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/MDOThreatPolicyChecker-VersionsURL" -Confirm:$false) {
@@ -603,38 +1247,32 @@ process {
             # Loop through each policy
             foreach ($policy in $policies) {
                 # Initialize an empty list to store issues
-                $issues = New-Object System.Collections.Generic.List[string]
+                $multiInclude = New-Object System.Collections.Generic.List[string]
 
-                # Check the logic of the policy and add issues to the list
-                if ($policy.SentTo -and $policy.ExceptIfSentTo) {
-                    $issues.Add("`t`t-> User inclusions and exclusions. `n`t`t`tExcluding and including Users individually is redundant and confusing as only the included Users could possibly be included.`n")
-                }
-                if ($policy.RecipientDomainIs -and $policy.ExceptIfRecipientDomainIs) {
-                    $issues.Add("`t`t-> Domain inclusions and exclusions. `n`t`t`tExcluding and including Domains is redundant and confusing as only the included Domains could possibly be included.`n")
-                }
+                # Check for multiple Include conditions
                 if ($policy.SentTo -and $policy.SentToMemberOf) {
-                    $issues.Add("`t`t-> Illogical inclusions of Users and Groups. `n`t`t`tThe policy will only apply to Users who are also members of any Groups you have specified. `n`t`t`tThis makes the Group inclusion redundant and confusing.`n`t`t`tSuggestion: use one or the other type of inclusion.`n")
+                    $multiInclude.Add("`t`tUsers and Groups")
                 }
                 if ($policy.SentTo -and $policy.RecipientDomainIs) {
-                    $issues.Add("`t`t-> Illogical inclusions of Users and Domains. `n`t`t`tThe policy will only apply to Users whose email domains also match any Domains you have specified. `n`t`t`tThis makes the Domain inclusion redundant and confusing.`n`t`t`tSuggestion: use one or the other type of inclusion.`n")
+                    $multiInclude.Add("`t`tUsers and Domains")
+                }
+                if ($policy.SentToMemberOf -and $policy.RecipientDomainIs) {
+                    $multiInclude.Add("`t`tGroups and Domains")
                 }
 
-                # Do the same checks for Outbound spam policies
-                if ($policy.From -and $policy.ExceptIfFrom) {
-                    $issues.Add("`t`t-> User inclusions and exclusions. `n`t`t`tExcluding and including Users individually is redundant and confusing as only the included Users could possibly be included.`n")
-                }
-                if ($policy.SenderDomainIs -and $policy.ExceptIfSenderDomainIs) {
-                    $issues.Add("`t`t-> Domain inclusions and exclusions. `n`t`t`tExcluding and including Domains is redundant and confusing as only the included Domains could possibly be included.`n")
-                }
+                # Check for multiple Include conditions (Outbound)
                 if ($policy.From -and $policy.FromMemberOf) {
-                    $issues.Add("`t`t-> Illogical inclusions of Users and Groups. `n`t`t`tThe policy will only apply to Users who are also members of any Groups you have specified. `n`t`t`tThis makes the Group inclusion redundant and confusing.`n`t`t`tSuggestion: use one or the other type of inclusion.`n")
+                    $multiInclude.Add("`t`tUsers and Groups")
                 }
                 if ($policy.From -and $policy.SenderDomainIs) {
-                    $issues.Add("`t`t-> Illogical inclusions of Users and Domains. `n`t`t`tThe policy will only apply to Users whose email domains also match any Domains you have specified. `n`t`t`tThis makes the Domain inclusion redundant and confusing.`n`t`t`tSuggestion: use one or the other type of inclusion.`n")
+                    $multiInclude.Add("`t`tUsers and Domains")
+                }
+                if ($policy.FromMemberOf -and $policy.SenderDomainIs) {
+                    $multiInclude.Add("`t`tGroups and Domains")
                 }
 
-                # If there are any issues, print the policy details once and then list all the issues
-                if ($issues.Count -gt 0) {
+                # If there are multiple include conditions, print the policy details and list them
+                if ($multiInclude.Count -gt 0) {
                     if ($policy.State -eq "Enabled") {
                         $color = [console]::ForegroundColor
                     } else {
@@ -643,18 +1281,35 @@ process {
                     Write-Host ("Policy `"$($policy.Name)`":")
                     Write-Host ("`tType: $($cmdlets[$cmdlet]).")
                     Write-Host ("`tState: $($policy.State).") -ForegroundColor $color
-                    Write-Host ("`tIssues: ") -ForegroundColor Red
-                    foreach ($issue in $issues) {
-                        Write-Host $issue
+                    Write-Host ("`tMultiple Include conditions:") -ForegroundColor Red
+                    foreach ($item in $multiInclude) {
+                        Write-Host $item
                     }
                     $foundIssues = $true
                 }
             }
         }
         if (-not $foundIssues) {
-            Write-Host ("No logical inconsistencies found!") -ForegroundColor DarkGreen
+            Write-Host ("No policies with multiple Include conditions found!") -ForegroundColor DarkGreen
         }
     } else {
+        # Prompt for AND or OR logic when evaluating policies for specific users
+        Write-Host " "
+        Write-Host "Please select how to evaluate Include conditions:" -ForegroundColor Cyan
+        Write-Host "  1) AND logic (original) - A user must match ALL populated Include conditions (Users AND Groups AND Domains)"
+        Write-Host "  2) OR logic (new)       - A user must match ANY populated Include condition (Users OR Groups OR Domains)"
+        Write-Host " "
+
+        $Script:IncludeLogic = $null
+        while ($Script:IncludeLogic -notin @('1', '2')) {
+            $Script:IncludeLogic = Read-Host "Enter your choice (1 or 2)"
+        }
+
+        switch ($Script:IncludeLogic) {
+            '1' { Write-Host "`nUsing AND logic for Include conditions.`n" -ForegroundColor Green }
+            '2' { Write-Host "`nUsing OR logic for Include conditions.`n" -ForegroundColor Green }
+        }
+
         if ($CsvFilePath) {
             try {
                 # Import CSV file
@@ -719,7 +1374,7 @@ process {
             $malwareFilterRules = Get-MalwareFilterRule | Where-Object { $_.State -ne 'Disabled' }
             $antiPhishRules = Get-AntiPhishRule | Where-Object { $_.State -ne 'Disabled' }
             $hostedContentFilterRules = Get-HostedContentFilterRule | Where-Object { $_.State -ne 'Disabled' }
-            $hostedOutboundSpamFilterRules = Get-HostedOutboundSpamFilterRule | Where-Object { $_.State -ne 'Disabled' }
+            $hostedOutboundSpamFilterRules = Get-HostedOutboundSpamFilterRule | Where-Object { $_.State -ne 'Disabled' -and $_.Name -ne 'Strict Preset Security Policy' -and $_.Name -ne 'Standard Preset Security Policy' }
             $eopStrictPresetRules = Get-EOPProtectionPolicyRule | Where-Object { $_.Identity -eq 'Strict Preset Security Policy' } | Where-Object { $_.State -ne 'Disabled' }
             $eopStandardPresetRules = Get-EOPProtectionPolicyRule | Where-Object { $_.Identity -eq 'Standard Preset Security Policy' } | Where-Object { $_.State -ne 'Disabled' }
         }
@@ -755,20 +1410,6 @@ process {
                         $allPolicyDetails += "`n`tPreset policy settings are not configurable but documented here:`n`t`thttps://learn.microsoft.com/en-us/defender-office-365/recommended-settings-for-eop-and-office365#anti-spam-anti-malware-and-anti-phishing-protection-in-eop"
                     }
                     Write-Host $allPolicyDetails -ForegroundColor Green
-                    $outboundSpamMatchedRule = $null
-                    if ($hostedOutboundSpamFilterRules) {
-                        $outboundSpamMatchedRule = Test-Rules -Rules $hostedOutboundSpamFilterRules -email $stEmailAddress -Outbound
-                        if ($null -eq $outboundSpamMatchedRule) {
-                            Write-Host "`nOutbound Spam policy applied:`n`tDefault policy"  -ForegroundColor Yellow
-                            $hostedOutboundSpamFilterPolicy = Get-HostedOutboundSpamFilterPolicy "Default"
-                        } else {
-                            $hostedOutboundSpamFilterPolicy = Get-HostedOutboundSpamFilterPolicy $outboundSpamMatchedRule.HostedOutboundSpamFilterPolicy
-                            Write-Host "`nOutbound Spam policy applied:`n`tName: $($outboundSpamMatchedRule.HostedOutboundSpamFilterPolicy)`n`tPriority: $($outboundSpamMatchedRule.Priority)"  -ForegroundColor Yellow
-                        }
-                        if ($hostedOutboundSpamFilterPolicy -and $ShowDetailedPolicies) {
-                            Show-DetailedPolicy -Policy $hostedOutboundSpamFilterPolicy
-                        }
-                    }
                 } else {
                     # Check the Standard EOP rules secondly
                     $matchedRule = $null
@@ -781,20 +1422,6 @@ process {
                             $allPolicyDetails += "`n`tPreset policy settings are not configurable but documented here:`n`t`thttps://learn.microsoft.com/en-us/defender-office-365/recommended-settings-for-eop-and-office365#anti-spam-anti-malware-and-anti-phishing-protection-in-eop"
                         }
                         Write-Host $allPolicyDetails -ForegroundColor Green
-                        $outboundSpamMatchedRule = $allPolicyDetails = $null
-                        if ($hostedOutboundSpamFilterRules) {
-                            $outboundSpamMatchedRule = Test-Rules -Rules $hostedOutboundSpamFilterRules -Email $stEmailAddress -Outbound
-                            if ($null -eq $outboundSpamMatchedRule) {
-                                Write-Host "`nOutbound Spam policy applied:`n`tDefault policy"  -ForegroundColor Yellow
-                                $hostedOutboundSpamFilterPolicy = Get-HostedOutboundSpamFilterPolicy "Default"
-                            } else {
-                                $hostedOutboundSpamFilterPolicy = Get-HostedOutboundSpamFilterPolicy $outboundSpamMatchedRule.HostedOutboundSpamFilterPolicy
-                                Write-Host "`nOutbound Spam policy applied:`n`tName: $($outboundSpamMatchedRule.HostedOutboundSpamFilterPolicy)`n`tPriority: $($outboundSpamMatchedRule.Priority)"  -ForegroundColor Yellow
-                            }
-                            if ($hostedOutboundSpamFilterPolicy -and $ShowDetailedPolicies) {
-                                Show-DetailedPolicy -Policy $hostedOutboundSpamFilterPolicy
-                            }
-                        }
                     } else {
                         # If no match in EOPProtectionPolicyRules, check MalwareFilterRules, AntiPhishRules, outboundSpam, and HostedContentFilterRules
                         $allPolicyDetails = " "
@@ -843,24 +1470,25 @@ process {
                             Show-DetailedPolicy -Policy $hostedContentFilterPolicy
                         }
 
-                        $outboundSpamMatchedRule = $hostedOutboundSpamFilterPolicy = $null
-                        if ($hostedOutboundSpamFilterRules) {
-                            $outboundSpamMatchedRule = Test-Rules -Rules $hostedOutboundSpamFilterRules -email $stEmailAddress -Outbound
-                        }
-                        if ($null -eq $outboundSpamMatchedRule) {
-                            Write-Host "`nOutbound Spam policy applied:`n`tDefault policy"  -ForegroundColor Yellow
-                            $hostedOutboundSpamFilterPolicy = Get-HostedOutboundSpamFilterPolicy "Default"
-                        } else {
-                            $hostedOutboundSpamFilterPolicy = Get-HostedOutboundSpamFilterPolicy $outboundSpamMatchedRule.HostedOutboundSpamFilterPolicy
-                            Write-Host "`nOutbound Spam policy applied:`n`tName: $($outboundSpamMatchedRule.HostedOutboundSpamFilterPolicy)`n`tPriority: $($outboundSpamMatchedRule.Priority)"  -ForegroundColor Yellow
-                        }
-                        if ($hostedOutboundSpamFilterPolicy -and $ShowDetailedPolicies) {
-                            Show-DetailedPolicy -Policy $hostedOutboundSpamFilterPolicy
-                        }
-
                         $allPolicyDetails = $userDetails + "`n" + $allPolicyDetails
                         Write-Host $allPolicyDetails -ForegroundColor Yellow
                     }
+                }
+
+                # Outbound spam is not covered by Preset policies; always check custom outbound spam rules
+                $outboundSpamMatchedRule = $hostedOutboundSpamFilterPolicy = $null
+                if ($hostedOutboundSpamFilterRules) {
+                    $outboundSpamMatchedRule = Test-Rules -Rules $hostedOutboundSpamFilterRules -email $stEmailAddress -Outbound
+                }
+                if ($null -eq $outboundSpamMatchedRule) {
+                    Write-Host "`nOutbound Spam policy applied:`n`tDefault policy"  -ForegroundColor Yellow
+                    $hostedOutboundSpamFilterPolicy = Get-HostedOutboundSpamFilterPolicy "Default"
+                } else {
+                    $hostedOutboundSpamFilterPolicy = Get-HostedOutboundSpamFilterPolicy $outboundSpamMatchedRule.HostedOutboundSpamFilterPolicy
+                    Write-Host "`nOutbound Spam policy applied:`n`tName: $($outboundSpamMatchedRule.HostedOutboundSpamFilterPolicy)`n`tPriority: $($outboundSpamMatchedRule.Priority)"  -ForegroundColor Yellow
+                }
+                if ($hostedOutboundSpamFilterPolicy -and $ShowDetailedPolicies) {
+                    Show-DetailedPolicy -Policy $hostedOutboundSpamFilterPolicy
                 }
             }
 
@@ -970,3 +1598,4 @@ process {
     }
     Write-Host " "
 }
+
