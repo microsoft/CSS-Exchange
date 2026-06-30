@@ -398,6 +398,16 @@ function GetExcelParams($path, $tabName) {
         $TableStyle = "Light11" # Green for Room Mailbox
         $TitleExtra = ", Resource"
         $script:TabColor = [System.Drawing.Color]::FromArgb(112, 173, 71) # Green
+    } elseif ($script:IsDelegateOfOrganizer) {
+        Write-Host -ForegroundColor Magenta "Delegate of Organizer Detected"
+        $TableStyle = "Light10" # Orange family for Organizer-side
+        $TitleExtra = ", Delegate"
+        $script:TabColor = [System.Drawing.Color]::FromArgb(204, 85, 0) # Dark Orange
+    } elseif ($script:IsDelegateOfAttendee) {
+        Write-Host -ForegroundColor Magenta "Delegate of Attendee Detected"
+        $TableStyle = "Light14" # Purple family for Attendee-side Delegate
+        $TitleExtra = ", Delegate"
+        $script:TabColor = [System.Drawing.Color]::FromArgb(112, 48, 160) # Dark Purple
     } else {
         $TableStyle = "Light12" # Light Blue for normal Attendee
         $script:TabColor = [System.Drawing.Color]::FromArgb(91, 155, 213) # Blue
@@ -994,4 +1004,97 @@ function FormatHeader {
 
     # Set the Header row to be bold and left aligned
     $sheet.Row($HeaderRow) | Set-ExcelRange -Bold -HorizontalAlignment Left
+}
+
+<#
+.SYNOPSIS
+Cross-user post-pass that recolors any Attendee whose mailbox is also represented by a
+Delegate-of-Attendee in the same workbook. Called once after all per-user worksheets
+have been written.
+
+Light Purple is applied to the Attendee tabs/tables when a Delegate-of-Attendee was
+identified among the analyzed identities and their DelegateForSmtp matches the
+Attendee's Identity. Delegate-of-Organizer cases are NOT affected; the Organizer keeps
+their orange coloring.
+#>
+function Update-AttendeeTabsForDelegates {
+    if ($null -eq $script:UserRoles -or $script:UserRoles.Count -eq 0) {
+        return
+    }
+    if ([string]::IsNullOrEmpty($script:FileName) -or -not (Test-Path -LiteralPath $script:FileName)) {
+        return
+    }
+
+    # Build the set of attendee SMTPs that have a Delegate among the analyzed users.
+    $attendeesWithDelegate = @{}
+    foreach ($entry in $script:UserRoles.Values) {
+        if ($entry.IsDelegateOfAttendee -and -not [string]::IsNullOrEmpty($entry.DelegateForSmtp)) {
+            $key = $entry.DelegateForSmtp.Trim().ToLowerInvariant()
+            $attendeesWithDelegate[$key] = $true
+        }
+    }
+
+    if ($attendeesWithDelegate.Count -eq 0) {
+        return
+    }
+
+    # Find the matching Attendee identities in $script:UserRoles (pure Attendees only).
+    $targets = @()
+    foreach ($entry in $script:UserRoles.Values) {
+        if ($entry.IsOrganizer -or $entry.IsRoomMB -or
+            $entry.IsDelegateOfOrganizer -or $entry.IsDelegateOfAttendee) {
+            continue
+        }
+        $key = ([string]$entry.Identity).Trim().ToLowerInvariant()
+        if ($attendeesWithDelegate.ContainsKey($key)) {
+            $targets += $entry
+        }
+    }
+
+    if ($targets.Count -eq 0) {
+        Write-Verbose "Update-AttendeeTabsForDelegates: No Attendee tabs needed recoloring."
+        return
+    }
+
+    $lightPurple = [System.Drawing.Color]::FromArgb(218, 191, 246)
+    $savedEAP = $ErrorActionPreference
+    $pkg = $null
+
+    try {
+        $ErrorActionPreference = 'SilentlyContinue'
+        $pkg = Open-ExcelPackage -Path $script:FileName -ErrorAction Stop
+
+        foreach ($target in $targets) {
+            $shortId = $target.ShortId
+            if ([string]::IsNullOrEmpty($shortId)) { continue }
+
+            # Worksheet names follow Get-FileName / Export-CalLog conventions.
+            foreach ($sheetName in @($shortId, ($shortId + "_TimeLine"))) {
+                $ws = $pkg.Workbook.Worksheets[$sheetName]
+                if ($null -eq $ws) { continue }
+
+                $ws.TabColor = $lightPurple
+
+                # If the sheet has a single table (Enhanced CalLogs), switch its style to a
+                # purple-family style so the table coloring matches the tab.
+                try {
+                    if ($null -ne $ws.Tables -and $ws.Tables.Count -gt 0) {
+                        $ws.Tables[0].StyleName = "Light14"
+                    }
+                } catch {
+                    Write-Verbose "Update-AttendeeTabsForDelegates: Unable to set table style on [$sheetName]: $_"
+                }
+            }
+
+            Write-Host -ForegroundColor Magenta "Recolored Attendee tab for [$($target.Identity)] (Light Purple) because a Delegate was analyzed."
+            $script:UserRoles[$target.Identity].HasDelegate = $true
+        }
+
+        $pkg.Save()
+    } catch {
+        Write-Warning "Update-AttendeeTabsForDelegates: Unable to recolor Attendee tabs: $_"
+    } finally {
+        if ($null -ne $pkg) { $pkg.Dispose() }
+        $ErrorActionPreference = $savedEAP
+    }
 }

@@ -146,6 +146,7 @@ $script:SubjectResolvedMeetingId = $null
 $script:SubjectCanCollectExceptions = $false
 $script:SubjectSkippedExceptionCollection = $false
 $script:ExceptionCollectionStatus = $null
+$script:UserRoles = [ordered]@{}
 # ===================================================================================================
 # Support scripts
 # ===================================================================================================
@@ -277,8 +278,17 @@ if (-not ([string]::IsNullOrEmpty($Subject)) ) {
         $script:Identity = $ID
         if ($script:GCDO.count -gt 0) {
             Write-Host -ForegroundColor Cyan "Found $($script:GCDO.count) CalLogs with MeetingID [$MeetingID]."
-            $script:IsOrganizer = (SetIsOrganizer -CalLogs $script:GCDO)
-            Write-Host -ForegroundColor Cyan "The user [$ID] $(if ($IsOrganizer) {"IS"} else {"is NOT"}) the Organizer of the meeting."
+
+            # Reset per-user role state before classifying this identity.
+            $script:IsOrganizer = $false
+            $script:IsRoomMB = $null
+            $script:IsDelegateOfOrganizer = $false
+            $script:IsDelegateOfAttendee = $false
+            $script:DelegateForSmtp = $null
+
+            # Determine whether this mailbox is a Room / Equipment. SetIsOrganizer is now
+            # re-run inside BuildCSV (after SMTPs are resolved) so the user/From validation
+            # can correctly exclude Modern-Sharing copies of someone else's data.
             $script:IsRoomMB = (SetIsRoom -CalLogs $script:GCDO)
             if ($script:IsRoomMB) {
                 Write-Host -ForegroundColor Cyan "The user [$ID] is a Room Mailbox."
@@ -289,6 +299,14 @@ if (-not ([string]::IsNullOrEmpty($Subject)) ) {
             }
 
             BuildCSV
+
+            # IsOrganizer / IsDelegate* are populated by BuildCSV once SMTPs are resolved.
+            Write-Host -ForegroundColor Cyan "The user [$ID] $(if ($script:IsOrganizer) {"IS"} else {"is NOT"}) the Organizer of the meeting."
+
+            if ($script:IsOrganizer -and (CheckForBifurcation($script:GCDO) -ne $false)) {
+                Write-Host -ForegroundColor Red "Warning: No IPM.Appointment found for the Organizer. CalLogs start to expire after 31 days."
+            }
+
             BuildTimeline
         } else {
             Write-Warning "No CalLogs were found for [$ID] with MeetingID [$MeetingID]."
@@ -296,6 +314,12 @@ if (-not ([string]::IsNullOrEmpty($Subject)) ) {
     }
 } else {
     Write-Warning "A valid MeetingID was not found, nor Subject. Please confirm the MeetingID or Subject and try again."
+}
+
+# Cross-user post-pass: if a Delegate-of-Attendee was detected and the attendee they delegate
+# for is also one of the analyzed identities, color that attendee's tab Light Purple.
+if ($ExportToExcel.IsPresent -and $null -ne $script:UserRoles -and $script:UserRoles.Count -gt 0) {
+    Update-AttendeeTabsForDelegates
 }
 
 Write-DashLineBoxColor "Hope this script was helpful in getting and understanding the Calendar Logs.",

@@ -669,7 +669,51 @@ function BuildCSV {
 
     Write-Host -ForegroundColor Green "Calendar Logs have been processed, Exporting logs to file..."
     BuildOrganizerUserNameMap
+
+    # Resolve $script:ShortId / $script:FileName for this user before role classification so
+    # the cross-user post-pass can find the correct worksheet by ShortId.
+    Get-FileName
+
+    # Refine the user's role now that SMTP-resolved Enhanced logs are available. SetIsOrganizer
+    # is re-evaluated here so that the user-identity / From check can be performed against the
+    # resolved SMTPs, and Delegate-of-Organizer / Delegate-of-Attendee are classified.
+    Set-UserRoleClassification
+
     Export-CalLog
+}
+
+<#
+.SYNOPSIS
+Re-evaluates IsOrganizer with the resolved SMTPs and assigns the Delegate role for the
+current user using $script:EnhancedCalLogs. Also records the per-user role into
+$script:UserRoles so a final cross-user pass can color the Attendee tabs that have a
+Delegate among the analyzed identities.
+#>
+function Set-UserRoleClassification {
+    # Re-run IsOrganizer now that MailboxList is populated so the From check is accurate.
+    $script:IsOrganizer = (SetIsOrganizer -CalLogs $script:GCDO -Identity $script:Identity)
+
+    # Re-compute IsRoomMB so all paths (MeetingID + Subject) produce consistent classification.
+    $script:IsRoomMB = (SetIsRoom -CalLogs $script:GCDO)
+
+    # Determine the Delegate role (only set when not already Organizer / Room).
+    SetDelegateRole -EnhancedCalLogs $script:EnhancedCalLogs -Identity $script:Identity
+
+    # Record the role for the cross-user "Attendee with Delegate" post-pass.
+    if ($null -eq $script:UserRoles) {
+        $script:UserRoles = [ordered]@{}
+    }
+
+    $script:UserRoles[$script:Identity] = [PSCustomObject]@{
+        Identity              = $script:Identity
+        ShortId               = $script:ShortId
+        IsOrganizer           = [bool]$script:IsOrganizer
+        IsRoomMB              = [bool]$script:IsRoomMB
+        IsDelegateOfOrganizer = [bool]$script:IsDelegateOfOrganizer
+        IsDelegateOfAttendee  = [bool]$script:IsDelegateOfAttendee
+        DelegateForSmtp       = $script:DelegateForSmtp
+        HasDelegate           = $false
+    }
 }
 
 <#
