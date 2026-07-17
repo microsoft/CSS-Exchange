@@ -8,22 +8,23 @@
 
 <#
     This function is used to get an access token for the Azure Graph API. By default it uses the OAuth 2.0
-    authorization code flow with PKCE (Proof Key for Code Exchange). The OAuth 2.0 authorization code grant type,
-    or auth code flow, enables a client application to obtain authorized access to protected resources like web APIs.
-    The auth code flow requires a user-agent that supports redirection from the authorization server
-    (the Microsoft identity platform) back to your application.
-
-    More information about the auth code flow with PKCE can be found here:
-    https://learn.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow#protocol-details
-
-    For hosts without a browser (for example, Windows Server Core), the -UseDeviceCodeFlow switch can be used to
-    acquire the token via the OAuth 2.0 device authorization grant (device code flow) instead. In that flow the user
-    is asked to open a verification URL on another device and enter a user code to complete the sign-in, so no local
-    browser or redirect listener is required. Note that the device code flow is less phishing resistant than the auth
-    code flow and may be blocked by Conditional Access policies, so it should only be used when no browser is available.
+    device authorization grant (device code flow). In that flow the user is asked to open a verification URL
+    (on another device or in a local browser) and enter a user code to complete the sign-in, so no local browser
+    or redirect listener is required. This is the default because the application used to acquire the token no
+    longer permits a loopback (http://localhost) redirect, which the authorization code flow relies on. Note that
+    the device code flow may be blocked by Conditional Access policies in your tenant.
 
     More information about the device code flow can be found here:
     https://learn.microsoft.com/azure/active-directory/develop/v2-oauth2-device-code
+
+    The -UseAuthorizationCodeFlow switch can be used to acquire the token via the OAuth 2.0 authorization code flow
+    with PKCE (Proof Key for Code Exchange) instead. That flow requires a user-agent that supports redirection from
+    the authorization server (the Microsoft identity platform) back to a local redirect listener, so it only works
+    on hosts with a browser and with an application that permits a loopback redirect URI (for example, a custom
+    application passed via -ClientId).
+
+    More information about the auth code flow with PKCE can be found here:
+    https://learn.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow#protocol-details
 #>
 function Get-GraphAccessToken {
     [CmdletBinding()]
@@ -46,7 +47,7 @@ function Get-GraphAccessToken {
         [string]$Scope = "$($GraphApiUrl)/.default openid profile",
 
         [Parameter(Mandatory = $false)]
-        [switch]$UseDeviceCodeFlow
+        [switch]$UseAuthorizationCodeFlow
     )
 
     begin {
@@ -129,9 +130,16 @@ function Get-GraphAccessToken {
         $connectionSuccessful = $false
     }
     process {
-        if ($UseDeviceCodeFlow) {
+        # The authorization code flow relies on a loopback (http://localhost) redirect, which the default
+        # ClientId does not permit. A custom application that allows a loopback redirect URI must be supplied
+        # via -ClientId when this flow is requested, so treat ClientId as mandatory in that case.
+        if ($UseAuthorizationCodeFlow -and (-not $PSBoundParameters.ContainsKey("ClientId"))) {
+            throw "The -ClientId parameter is mandatory when -UseAuthorizationCodeFlow is used. The default application does not permit a loopback (http://localhost) redirect, which the authorization code flow requires."
+        }
+
+        if (-not $UseAuthorizationCodeFlow) {
             Write-Verbose "Device code flow was selected to acquire the access token"
-            Write-Host "Device code flow is intended for hosts without a browser (for example, Windows Server Core)." -ForegroundColor Yellow
+            Write-Host "Using the device code flow to acquire the access token." -ForegroundColor Yellow
             Write-Host "Note: This flow may be blocked by Conditional Access policies in your tenant." -ForegroundColor Yellow
 
             # Request a device code from the Microsoft Azure Active Directory endpoint
@@ -186,6 +194,15 @@ function Get-GraphAccessToken {
                 if (($null -ne $redeemDeviceCodeResponse) -and
                     ($redeemDeviceCodeResponse.StatusCode -eq 200)) {
                     $tokens = $redeemDeviceCodeResponse.Content | ConvertFrom-Json
+
+                    # An id_token is only returned when the "openid" scope was requested. It is required to read
+                    # the tenant id, so fail clearly if it is missing.
+                    if ([System.String]::IsNullOrEmpty($tokens.id_token)) {
+                        Write-Host "No id_token was returned - make sure the 'openid' scope is part of the requested scope" -ForegroundColor Red
+
+                        return
+                    }
+
                     $idTokenPayload = (Convert-JsonWebTokenToObject $tokens.id_token).Payload
                     $connectionSuccessful = $true
 
