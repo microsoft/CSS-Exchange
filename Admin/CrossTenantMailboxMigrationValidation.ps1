@@ -54,7 +54,7 @@
         Jdoe@contoso.com, Jdoe@fabrikam.com
         BSmith@contoso.com, BSmith@fabrikam.com
 
-        If Used along with the 'CollectSourceOnly' parameter, you only need the 'SourceUser' column.
+        If Used along with the 'CollectSourceOnly' parameter, you only need the 'SourceUser' column. This parameter is optional when used with 'CollectSourceOnly': if you omit it, only the SOURCE tenant/org level configuration (AAD app, organization relationship, MailboxMovePublishedScopes group membership) is collected and no mailbox-specific data is gathered.
 
 .PARAMETER CheckOrgs
         This will allow you to perform the checks for the source and target organizations. More specifically the organization relationship on both tenants, the migration endpoint on target tenant and the existence of the AAD application needed.
@@ -66,7 +66,7 @@
         This will allow you to specify a log path to transcript all the script execution and it's results. This parameter is mandatory.
 
 .PARAMETER CollectSourceOnly
-        This will allow you to specify a CSV file so we can export all necessary data of the source tenant and mailboxes to migrate, compress the files as a zip file to be used by the target tenant admin as a source for validation against the target. This parameter is mandatory and also requires the '-CSV' parameter to be specified containing the SourceUser column.
+        This will allow you to collect data from the SOURCE tenant only (AAD and EXO) and compress it into a zip file to be used by the target tenant admin as a source for validation against the target. If used along with the '-CSV' parameter (containing the SourceUser column), it will also collect per-mailbox data for the listed users. If '-CSV' is omitted, only SOURCE tenant/org level configuration is collected (no mailbox-specific data).
 
 .PARAMETER PathForCollectedData
         This will allow you to specify a path to store the exported data from the source tenant when used along with the 'CollectSourceOnly' and 'SDP' parameters transcript all the script execution and it's results. This parameter is mandatory.
@@ -101,6 +101,10 @@
 .EXAMPLE
         .\CrossTenantMailboxMigrationValidation.ps1 -CollectSourceOnly -PathForCollectedData c:\temp -LogPath C:\temp\CTMMCollectSource.log -CSV C:\temp\UsersToMigrate.csv
         This will connect to the Source tenant against AAD and EXO, and will collect all the relevant information (config and user wise) so it can be used passed to the Target tenant admin for the Target validation to be done without the need to connect to the source tenant at the same time.
+
+.EXAMPLE
+        .\CrossTenantMailboxMigrationValidation.ps1 -CollectSourceOnly -PathForCollectedData c:\temp -LogPath C:\temp\CTMMCollectSource.log
+        This will connect to the Source tenant against AAD and EXO, and will collect only the SOURCE tenant/org level configuration (no mailbox-specific data), compressing it into a zip file that can be passed to the Target tenant admin.
 .#>
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('CustomRules\AvoidUsingReadHost', '', Justification = 'Do not want to change logic of script as of now')]
@@ -109,7 +113,7 @@ param (
     [Parameter(Mandatory = $False, ParameterSetName = "OfflineMode", HelpMessage = "Validate source Mailbox and Target MailUser objects. If used alone you will be prompted to introduce the identities you want to validate")]
     [System.Management.Automation.SwitchParameter]$CheckObjects,
     [Parameter(Mandatory = $False, ParameterSetName = "ObjectsValidation", HelpMessage = "Path pointing to the CSV containing the identities to validate. CheckObjects parameter needs also to be specified")]
-    [Parameter(Mandatory = $True, ParameterSetName = "CollectMode", HelpMessage = "Path pointing to the CSV containing the identities to validate. CheckObjects parameter needs also to be specified")]
+    [Parameter(Mandatory = $False, ParameterSetName = "CollectMode", HelpMessage = "Path pointing to the CSV containing the identities to validate. Optional when used with 'CollectSourceOnly' alone: if omitted, only SOURCE tenant/org configuration is collected")]
     [System.String]$CSV,
     [Parameter(Mandatory = $True, ParameterSetName = "ObjectsValidation", HelpMessage = "Path pointing to the log file")]
     [Parameter(Mandatory = $True, ParameterSetName = "OfflineMode", HelpMessage = "Path pointing to the log file")]
@@ -122,7 +126,7 @@ param (
     [System.Management.Automation.SwitchParameter]$CheckOrgs,
     [Parameter(Mandatory = $True, ParameterSetName = "SDP", HelpMessage = "Collect relevant data for troubleshooting purposes and send it to Microsoft Support if needed")]
     [System.Management.Automation.SwitchParameter]$SDP,
-    [Parameter(Mandatory = $False, ParameterSetName = "CollectMode", HelpMessage = "Collect source only mode, to generate the necessary files and provide them to the target tenant admin. You need to specify the CSV parameter as well")]
+    [Parameter(Mandatory = $False, ParameterSetName = "CollectMode", HelpMessage = "Collect source only mode, to generate the necessary files and provide them to the target tenant admin. Specify the CSV parameter as well to also collect per-mailbox data, or omit it to only collect SOURCE tenant/org configuration")]
     [System.Management.Automation.SwitchParameter]$CollectSourceOnly,
     [Parameter(Mandatory = $True, ParameterSetName = "SDP", HelpMessage = "Path that will be used to store the collected data")]
     [Parameter(Mandatory = $True, ParameterSetName = "CollectMode", HelpMessage = "Path that will be used to store the collected data")]
@@ -1079,7 +1083,7 @@ if ($SDP) {
     KillSessions
 }
 
-if ($CollectSourceOnly -and $CSV) {
+if ($CollectSourceOnly) {
     LoggingOn
     #Create the folders based on date and time to store the files
     $currentDate = (Get-Date).ToString('ddMMyyHHMM')
@@ -1095,56 +1099,65 @@ if ($CollectSourceOnly -and $CSV) {
     Write-Verbose -Message "SourceTenantId gathered from (Get-MgOrganization).id: $SourceTenantId"
     Write-Verbose -Message "Gathering AAD Service Principals"
     Get-MgServicePrincipal -All | Where-Object { $_.ReplyUrls -eq 'https://office.com' } | Export-Clixml $OutputPath\SourceAADServicePrincipals.xml
-    $Objects = Import-Csv $CSV
-    if ($Objects.SourceUser) {
-        Write-Verbose -Message "Informational: CSV file contains the SourceUser column, now we need to connect to the source EXO tenant"
-        ConnectToSourceEXOTenant
+    Write-Verbose -Message "Informational: Connecting to the source EXO tenant to collect organization-level configuration"
+    ConnectToSourceEXOTenant
 
-        #Collect the TenantId and OrganizationConfig only once and leave the foreach only to mailboxes we need to collect data from
-        Write-Host "Informational: Saving SOURCE tenant id to text file"  -ForegroundColor Yellow
-        $SourceTenantId | Out-File $OutputPath\SourceTenantId.txt
+    #Collect the TenantId and OrganizationConfig only once, this is always gathered regardless of whether a CSV of mailboxes was provided
+    Write-Host "Informational: Saving SOURCE tenant id to text file"  -ForegroundColor Yellow
+    $SourceTenantId | Out-File $OutputPath\SourceTenantId.txt
 
-        Write-Host "Informational: Exporting the SOURCE tenant organization relationships"  -ForegroundColor Yellow
-        $SourceTenantOrganizationRelationship = Get-SourceOrganizationRelationship
-        $SourceTenantOrganizationRelationship | Export-Clixml $OutputPath\SourceOrgRelationship.xml
+    Write-Host "Informational: Exporting the SOURCE tenant organization relationships"  -ForegroundColor Yellow
+    $SourceTenantOrganizationRelationship = Get-SourceOrganizationRelationship
+    $SourceTenantOrganizationRelationship | Export-Clixml $OutputPath\SourceOrgRelationship.xml
 
-        Write-Host "Informational: Checking if there's a published scope defined on the organization relationships to extract the members"  -ForegroundColor Yellow
-        $SourceTenantOrganizationRelationship | ForEach-Object {
-            if (($_.MailboxMoveEnabled) -and ($_.MailboxMoveCapability -eq "RemoteOutbound") -and ($_.MailboxMovePublishedScopes)) {
-                Write-Host "Informational: $($_.Identity) organization relationship meets the conditions for a cross tenant mailbox migration scenario, exporting members of the security group defined on the MailboxMovePublishedScopes" -ForegroundColor Yellow
-                Get-SourceDistributionGroupMember $_.MailboxMovePublishedScopes[0] -ResultSize Unlimited | Export-Clixml $OutputPath\MailboxMovePublishedScopesSGMembers.xml
-            } else {
-                Write-Host "Informational: $($_.Identity) organization relationship doesn't match for a cross tenant mailbox migration scenario" -ForegroundColor Yellow
-            }
-        }
-
-        foreach ($object in $Objects) {
-            $SourceIdentity = $object.SourceUser
-            Write-Host ""
-            Write-Host "----------------------------------------" -ForegroundColor Cyan
-            Write-Host "----------------------------------------" -ForegroundColor Cyan
-            Write-Host ""
-            Write-Host $SourceIdentity" is being used as SOURCE object"
-            CollectSourceData
-        }
-
-        #Compress folder contents into a zip file
-        Write-Host "Informational: Source data has been exported. Compressing it into a ZIP file"  -ForegroundColor Yellow
-        if ((Get-ChildItem $OutputPath).count -gt 0) {
-            try {
-                Copy-Item $CSV -Destination $OutputPath\UsersToProcess.csv
-                Compress-Archive -Path $OutputPath\*.* -DestinationPath $PathForCollectedData\CTMMCollectedSourceData.zip -Force
-                Write-Host "Informational: ZIP file has been generated with a total of $((Get-ChildItem $OutputPath).count) files, and can be found at $($PathForCollectedData)\CTMMCollectedSourceData.zip so it can be sent to the target tenant administrator, however you can still access the raw data at $($OutputPath)"  -ForegroundColor Yellow
-            } catch {
-                Write-Host ">> Error: There was an issue trying to compress the exported data" -ForegroundColor Red
-            }
+    Write-Host "Informational: Checking if there's a published scope defined on the organization relationships to extract the members"  -ForegroundColor Yellow
+    $SourceTenantOrganizationRelationship | ForEach-Object {
+        if (($_.MailboxMoveEnabled) -and ($_.MailboxMoveCapability -eq "RemoteOutbound") -and ($_.MailboxMovePublishedScopes)) {
+            Write-Host "Informational: $($_.Identity) organization relationship meets the conditions for a cross tenant mailbox migration scenario, exporting members of the security group defined on the MailboxMovePublishedScopes" -ForegroundColor Yellow
+            Get-SourceDistributionGroupMember $_.MailboxMovePublishedScopes[0] -ResultSize Unlimited | Export-Clixml $OutputPath\MailboxMovePublishedScopesSGMembers.xml
         } else {
-            Write-Host ">> Error: No data has been detected at $($OutputPath), so there's nothing to compress" -ForegroundColor Red
+            Write-Host "Informational: $($_.Identity) organization relationship doesn't match for a cross tenant mailbox migration scenario" -ForegroundColor Yellow
+        }
+    }
+
+    if ($CSV) {
+        $Objects = Import-Csv $CSV
+        if ($Objects.SourceUser) {
+            Write-Verbose -Message "Informational: CSV file contains the SourceUser column, collecting per-mailbox data as well"
+            foreach ($object in $Objects) {
+                $SourceIdentity = $object.SourceUser
+                Write-Host ""
+                Write-Host "----------------------------------------" -ForegroundColor Cyan
+                Write-Host "----------------------------------------" -ForegroundColor Cyan
+                Write-Host ""
+                Write-Host $SourceIdentity" is being used as SOURCE object"
+                CollectSourceData
+            }
+            Copy-Item $CSV -Destination $OutputPath\UsersToProcess.csv
+        } else {
+            Write-Host ">> Error: Invalid CSV file, please make sure you specify a correct one with the 'SourceUser' column" -ForegroundColor Red
+            Disconnect-MgGraph | Out-Null
+            LoggingOff
+            KillSessions
+            exit
         }
     } else {
-        Write-Host ">> Error: Invalid CSV file, please make sure you specify a correct one with the 'SourceUser' column" -ForegroundColor Red
-        exit
+        Write-Host "Informational: No CSV file was specified, only SOURCE tenant/org level configuration will be collected (no mailbox-specific data)" -ForegroundColor Yellow
     }
+
+    #Compress folder contents into a zip file
+    Write-Host "Informational: Source data has been exported. Compressing it into a ZIP file"  -ForegroundColor Yellow
+    if ((Get-ChildItem $OutputPath).count -gt 0) {
+        try {
+            Compress-Archive -Path $OutputPath\*.* -DestinationPath $PathForCollectedData\CTMMCollectedSourceData.zip -Force
+            Write-Host "Informational: ZIP file has been generated with a total of $((Get-ChildItem $OutputPath).count) files, and can be found at $($PathForCollectedData)\CTMMCollectedSourceData.zip so it can be sent to the target tenant administrator, however you can still access the raw data at $($OutputPath)"  -ForegroundColor Yellow
+        } catch {
+            Write-Host ">> Error: There was an issue trying to compress the exported data" -ForegroundColor Red
+        }
+    } else {
+        Write-Host ">> Error: No data has been detected at $($OutputPath), so there's nothing to compress" -ForegroundColor Red
+    }
+
     Disconnect-MgGraph | Out-Null
     LoggingOff
     KillSessions
