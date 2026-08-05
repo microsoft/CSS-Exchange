@@ -153,6 +153,7 @@ nav:
   - Transport:
     - Compute-TopExoRecipientsFromMessageTrace: Transport/Compute-TopExoRecipientsFromMessageTrace.md
     - Get-AllMessageTraceResults: Transport/Get-AllMessageTraceResults.md
+    - Get-TerrlExternalRecipientEstimate: Transport/Get-TerrlExternalRecipientEstimate.md
     - ReplayQueueDatabases: Transport/ReplayQueueDatabases.md
     - Measure-EmailDelayInMTL: Transport/Measure-EmailDelayInMTL.md
 theme:
