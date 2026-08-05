@@ -14,7 +14,7 @@ The result is an **estimate**, not the live TERRL counter. Message trace does no
 
 `Get-LimitsEnforcementStatus` is the live ground truth for the tenant's current `ObservedValue`, `Threshold`, `Verdict`, and `EnforcementEnabled` state. Use `-CompareToEnforcementStatus` to display those values beside the estimate.
 
-Message trace data can also be delayed. A zero or lower estimate does not prove that the live rolling 24-hour counter is zero or below its threshold.
+Message trace data can also be delayed. A zero or low estimate does not prove that the live rolling 24-hour counter is zero or below its threshold.
 
 ## Prerequisites
 
