@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-# cspell:ignore Terrl pscustomobject
+# cspell:ignore Terrl
 
 [CmdletBinding()]
 param()
@@ -21,7 +21,7 @@ BeforeAll {
             [datetime]$Received = [datetime]'2026-08-05T12:00:00Z'
         )
 
-        [pscustomobject]@{
+        [PSCustomObject]@{
             MessageTraceId   = $MessageTraceId
             MessageId        = $MessageId
             SenderAddress    = $SenderAddress
@@ -107,7 +107,13 @@ Describe 'Get-TerrlExternalRecipientEstimate' {
                 Get-TerrlTraceRow -MessageTraceId 'trace-2' -MessageId 'message-2' `
                     -SenderAddress 'Postmaster@contoso.com' -RecipientAddress 'two@example.net'
                 Get-TerrlTraceRow -MessageTraceId 'trace-3' -MessageId 'message-3' `
-                    -SenderAddress 'sender@contoso.com' -RecipientAddress 'three@example.net'
+                    -SenderAddress 'MicrosoftExchange329e71ec88ae4615bbc36ab6ce41109e@contoso.com' `
+                    -RecipientAddress 'three@example.net'
+                Get-TerrlTraceRow -MessageTraceId 'trace-4' -MessageId 'message-4' `
+                    -SenderAddress 'microsoftexchange329e71ec88ae4615bbc36ab6ce41109e@contoso.com' `
+                    -RecipientAddress 'four@example.net'
+                Get-TerrlTraceRow -MessageTraceId 'trace-5' -MessageId 'message-5' `
+                    -SenderAddress 'sender@contoso.com' -RecipientAddress 'five@example.net'
             )
 
             $result = Measure-TerrlFromTraceRows -Rows $rows -AcceptedDomain 'contoso.com' `
@@ -117,7 +123,7 @@ Describe 'Get-TerrlExternalRecipientEstimate' {
             ($result.Exclusions | Where-Object Reason -EQ 'NullSender (NDR/DSN/system)').RecipientRows |
                 Should -Be 1
             ($result.Exclusions | Where-Object Reason -EQ 'SystemSender (NDR/DSN)').RecipientRows |
-                Should -Be 1
+                Should -Be 3
         }
 
         It 'counts a null sender when null-sender exclusion is disabled' {
@@ -195,7 +201,7 @@ Describe 'Get-TerrlExternalRecipientEstimate' {
             $traceCommand = {
                 param($startDate, $endDate, $pageSize, $startingRecipientAddress)
 
-                $Script:traceCalls.Add([pscustomobject]@{
+                $Script:traceCalls.Add([PSCustomObject]@{
                         StartDate                = $startDate
                         EndDate                  = $endDate
                         PageSize                 = $pageSize

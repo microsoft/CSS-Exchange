@@ -83,6 +83,7 @@ Optional path for exporting the top-sender ranking as CSV.
 
 The script writes a summary to the host and returns an object with these principal properties:
 
+- `ScriptVersion`: Build-stamped script version.
 - `TraceRows`: Number of message trace rows evaluated.
 - `ExternalRecipientsCounted`: Estimated count of external message-recipient pairs.
 - `DistinctExternalRecipients`: Number of distinct external recipient addresses.

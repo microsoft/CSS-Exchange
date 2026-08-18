@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-# cspell:ignore TERRL Terrl pscustomobject microsoftexchange
+# cspell:ignore TERRL Terrl
 
 <#
 .SYNOPSIS
@@ -94,7 +94,7 @@
     https://techcommunity.microsoft.com/blog/exchange/introducing-exchange-online-tenant-outbound-email-limits/4372797
 #>
 [CmdletBinding()]
-[OutputType([pscustomobject])]
+[OutputType([PSCustomObject])]
 param(
     [Parameter()]
     [datetime]$EndDate = (Get-Date),
@@ -141,6 +141,11 @@ param(
 )
 
 begin {
+    $BuildVersion = ""
+    if ([string]::IsNullOrWhiteSpace($BuildVersion)) {
+        $BuildVersion = 'Development'
+    }
+
     $pipelineRows = [System.Collections.Generic.List[object]]::new()
     $pipelineWasConnected = $MyInvocation.ExpectingInput
 
@@ -198,12 +203,20 @@ begin {
         [OutputType([bool])]
         param([string]$SenderAddress)
         if ([string]::IsNullOrWhiteSpace($SenderAddress)) { return $false }
-        $s = $SenderAddress.Trim().Trim('<', '>').ToLowerInvariant()
+        $s = $SenderAddress.Trim().Trim('<', '>')
         if ([string]::IsNullOrWhiteSpace($s)) { return $false }
         $local = if ($s.Contains('@')) { $s.Substring(0, $s.IndexOf('@')) } else { $s }
-        if ($local -eq 'postmaster' -or $local -eq 'mailer-daemon') { return $true }
+        if ($local.Equals('postmaster', [System.StringComparison]::OrdinalIgnoreCase) -or
+            $local.Equals('mailer-daemon', [System.StringComparison]::OrdinalIgnoreCase)) {
+            return $true
+        }
         # Well-known Exchange system mailbox used for system-generated mail.
-        if ($s.StartsWith('microsoftexchange329e71ec88ae4615bbc36ab6ce41109e@')) { return $true }
+        if ($s.StartsWith(
+                'MicrosoftExchange329e71ec88ae4615bbc36ab6ce41109e@',
+                [System.StringComparison]::OrdinalIgnoreCase
+            )) {
+            return $true
+        }
         return $false
     }
 
@@ -232,8 +245,10 @@ begin {
         } else {
             $normalizedSender
         }
-        $isMicrosoftExchangeRecipient =
-        $senderLocalPart -eq 'microsoftexchange329e71ec88ae4615bbc36ab6ce41109e'
+        $isMicrosoftExchangeRecipient = $senderLocalPart.Equals(
+            'MicrosoftExchange329e71ec88ae4615bbc36ab6ce41109e',
+            [System.StringComparison]::OrdinalIgnoreCase
+        )
 
         return (
             ($JournalSenderSet.Contains($normalizedSender) -or $isMicrosoftExchangeRecipient) -and
@@ -250,12 +265,12 @@ begin {
     .SYNOPSIS
         Classify Get-MessageTraceV2 rows against the TERRL rules and return a structured estimate.
     .OUTPUTS
-        pscustomobject with ExternalRecipientsCounted, DistinctExternalRecipients,
+        PSCustomObject with ExternalRecipientsCounted, DistinctExternalRecipients,
         DistinctOutboundMessages, AcceptedRecipientRows, TopSenders, TopRecipientDomains,
         and Exclusions.
     #>
         [CmdletBinding()]
-        [OutputType([pscustomobject])]
+        [OutputType([PSCustomObject])]
         param(
             [Parameter(Mandatory)][AllowEmptyCollection()][object[]]$Rows,
             [Parameter(Mandatory)][string[]]$AcceptedDomain,
@@ -379,7 +394,7 @@ begin {
 
         $senderRanking = @(
             foreach ($senderKey in $senderRecipientCounts.Keys) {
-                [pscustomobject]@{
+                [PSCustomObject]@{
                     Sender             = $senderKey
                     ExternalRecipients = $senderRecipientCounts[$senderKey]
                     Messages           = $senderMessageCounts[$senderKey]
@@ -394,7 +409,7 @@ begin {
 
         $domainRanking = @(
             foreach ($domain in $domainCounts.Keys) {
-                [pscustomobject]@{
+                [PSCustomObject]@{
                     RecipientDomain    = $domain
                     ExternalRecipients = $domainCounts[$domain]
                     PercentOfTotal     = if ($total -gt 0) {
@@ -408,14 +423,14 @@ begin {
 
         $exclusions = @(
             foreach ($reason in $exclusionCounts.Keys) {
-                [pscustomobject]@{
+                [PSCustomObject]@{
                     Reason        = $reason
                     RecipientRows = $exclusionCounts[$reason]
                 }
             }
         ) | Sort-Object RecipientRows -Descending
 
-        [pscustomobject]@{
+        [PSCustomObject]@{
             TraceRows                  = $Rows.Count
             ExternalRecipientsCounted  = $total
             DistinctExternalRecipients = $distinctRecipientSet.Count
@@ -832,6 +847,7 @@ begin {
             -JournalRecipient $resolvedJournalRecipients `
             -JournalReportSender $resolvedJournalReportSenders `
             -TopSenders $TopSenders
+        $result | Add-Member -MemberType NoteProperty -Name ScriptVersion -Value $BuildVersion
 
         # 4. Report -------------------------------------------------------------------------------------
         $acceptedSet = ConvertTo-TerrlDomainSet -Domain $accepted
@@ -842,6 +858,7 @@ begin {
             $StartDate.ToUniversalTime(),
             $EndDate.ToUniversalTime()
         )
+        Write-Host ("Script version       : {0}" -f $BuildVersion)
         Write-Host ("Accepted domains     : {0}" -f (($acceptedSet | Select-Object -First 8) -join ', '))
         Write-Host ("Journal destinations : {0}" -f $(if ($result.JournalRecipients.Count) { $result.JournalRecipients -join ', ' } else { '(none discovered)' }))
         Write-Host ("Journal senders      : {0}" -f $(if ($result.JournalReportSenders.Count) { $result.JournalReportSenders -join ', ' } else { '(none discovered)' }))
