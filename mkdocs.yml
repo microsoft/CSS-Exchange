@@ -128,9 +128,6 @@ nav:
     - Troubleshoot-ModernSearch: Search/Troubleshoot-ModernSearch.md
   - Security:
     - CVE-2023-21709: Security/CVE-2023-21709.md
-    - CVE-2023-23397:
-      - Security/CVE-2023-23397/index.md
-      - FAQ: Security/CVE-2023-23397/FAQ.md
     - ConfigureFipFsTextExtractionOverrides: Security/ConfigureFipFsTextExtractionOverrides.md
     - EOMT: Security/EOMT.md
     - EOMT (Legacy): Security/EOMT-Legacy.md
