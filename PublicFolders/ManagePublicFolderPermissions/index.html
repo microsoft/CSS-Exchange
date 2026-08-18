@@ -5867,7 +5867,7 @@
 <div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">ManagePublicFolderPermissions</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Export</span> <span class="o">-File</span> <span class="n">PFPerms</span><span class="p">.</span><span class="n">csv</span>
 </code></pre></div>
 <p>Export a specific subtree:</p>
-<div class="highlight"><pre><span></span><code><span class="nb">Get-PublicFolder</span> <span class="n">-Identity</span> <span class="s2">&quot;\Finance&quot;</span> <span class="n">-Recurse</span> <span class="n">-ResultSize</span> <span class="n">Unlimited</span> <span class="p">|</span>
+<div class="highlight"><pre><span></span><code><span class="nb">Get-PublicFolder</span> <span class="n">-Identity</span> <span class="s2">"\Finance"</span> <span class="n">-Recurse</span> <span class="n">-ResultSize</span> <span class="n">Unlimited</span> <span class="p">|</span>
     <span class="p">.\</span><span class="n">ManagePublicFolderPermissions</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Export</span> <span class="o">-File</span> <span class="n">PFPerms</span><span class="p">.</span><span class="n">csv</span>
 </code></pre></div>
 <p>Import permissions from CSV (do not overwrite existing matching entries):</p>

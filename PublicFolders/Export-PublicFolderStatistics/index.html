@@ -5697,7 +5697,7 @@ the remaining folders are ones that are experiencing permanent failures.</p>
 <h2 id="usage">Usage</h2>
 <p>First, generate your input file to tell the script which folders to export.
 This can be the entire hierarchy or a subset:</p>
-<div class="highlight"><pre><span></span><code><span class="nb">Get-PublicFolder</span> <span class="s2">&quot;\Some\Folder&quot;</span> <span class="n">-Recurse</span> <span class="n">-ResultSize</span> <span class="n">Unlimited</span> <span class="p">|</span> <span class="nb">Export-Csv</span> <span class="n">PublicFoldersToExport</span><span class="p">.</span><span class="n">csv</span>
+<div class="highlight"><pre><span></span><code><span class="nb">Get-PublicFolder</span> <span class="s2">"\Some\Folder"</span> <span class="n">-Recurse</span> <span class="n">-ResultSize</span> <span class="n">Unlimited</span> <span class="p">|</span> <span class="nb">Export-Csv</span> <span class="n">PublicFoldersToExport</span><span class="p">.</span><span class="n">csv</span>
 </code></pre></div>
 <p>Provide that file to the script. This is how it will determine the difference
 between what it needs to export and what is already exported.</p>

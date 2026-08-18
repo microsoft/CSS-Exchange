@@ -6085,21 +6085,21 @@
 <div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">EOMT</span><span class="p">.</span><span class="n">ps1</span>
 </code></pre></div>
 <h3 id="apply-a-specific-cve-mitigation">Apply a specific CVE mitigation</h3>
-<div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">EOMT</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-CVE</span> <span class="s2">&quot;CVE-2026-42897&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">EOMT</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-CVE</span> <span class="s2">"CVE-2026-42897"</span>
 </code></pre></div>
 <h3 id="apply-mitigation-to-all-exchange-servers">Apply mitigation to all Exchange servers</h3>
 <p>Requires Exchange Management Shell. Servers are checked for vulnerability before mitigations are applied. Servers that are already patched or unreachable are skipped automatically.</p>
-<div class="highlight"><pre><span></span><code><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">EOMT</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-CVE</span> <span class="s2">&quot;CVE-2026-42897&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">EOMT</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-CVE</span> <span class="s2">"CVE-2026-42897"</span>
 </code></pre></div>
 <h3 id="apply-mitigation-to-specific-servers">Apply mitigation to specific servers</h3>
-<div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">EOMT</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ExchangeServerNames</span> <span class="s2">&quot;EX01&quot;</span><span class="p">,</span> <span class="s2">&quot;EX02&quot;</span> <span class="n">-CVE</span> <span class="s2">&quot;CVE-2026-42897&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">EOMT</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ExchangeServerNames</span> <span class="s2">"EX01"</span><span class="p">,</span> <span class="s2">"EX02"</span> <span class="n">-CVE</span> <span class="s2">"CVE-2026-42897"</span>
 </code></pre></div>
 <h3 id="roll-back-a-mitigation">Roll back a mitigation</h3>
 <p>Restores the original IIS configuration from the JSON backup file created during apply.</p>
-<div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">EOMT</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-RollbackMitigation</span> <span class="n">-CVE</span> <span class="s2">&quot;CVE-2026-42897&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">EOMT</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-RollbackMitigation</span> <span class="n">-CVE</span> <span class="s2">"CVE-2026-42897"</span>
 </code></pre></div>
 <h3 id="roll-back-on-all-exchange-servers">Roll back on all Exchange servers</h3>
-<div class="highlight"><pre><span></span><code><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">EOMT</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-RollbackMitigation</span> <span class="n">-CVE</span> <span class="s2">&quot;CVE-2026-42897&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">EOMT</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-RollbackMitigation</span> <span class="n">-CVE</span> <span class="s2">"CVE-2026-42897"</span>
 </code></pre></div>
 <h3 id="check-vulnerability-status">Check vulnerability status</h3>
 <p>Checks each target server and reports vulnerability status using four properties: <strong>Code Fix</strong> (whether the Exchange security update is installed), <strong>Mitigation</strong> (whether an enabled IIS URL Rewrite rule is present), <strong>Disabled Rules</strong> (rules matching behavior but currently disabled), and <strong>Rule Name Match</strong> (whether the expected rule name exists with different behavior). No changes are made.</p>
@@ -6112,7 +6112,7 @@
 <li><strong>No code fix, matching rule disabled</strong> — <code>"DISABLED — rollback then re-apply"</code> (Red) — a rule with the expected name is disabled; or <code>"False — matching rule disabled under different name. Run EOMT to apply."</code> (Red) — a behaviorally-matching rule exists under a different name but is disabled.</li>
 <li><strong>No code fix, no mitigation</strong> — <code>"False — ACTION REQUIRED"</code> (Red) — the server is unprotected.</li>
 </ul>
-<div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">EOMT</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ShowMitigationStatus</span> <span class="n">-CVE</span> <span class="s2">&quot;CVE-2026-42897&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">EOMT</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-ShowMitigationStatus</span> <span class="n">-CVE</span> <span class="s2">"CVE-2026-42897"</span>
 </code></pre></div>
 <h3 id="run-msert-scan-only-no-mitigation">Run MSERT scan only (no mitigation)</h3>
 <div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">EOMT</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-RunMSERT</span> <span class="n">-DoNotRunMitigation</span>
@@ -6121,10 +6121,10 @@
 <div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">EOMT</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-RunMSERTFullScan</span> <span class="n">-DoNotRemediate</span> <span class="n">-DoNotRunMitigation</span>
 </code></pre></div>
 <h3 id="preview-changes-with-whatif">Preview changes with WhatIf</h3>
-<div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">EOMT</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-WhatIf</span> <span class="n">-CVE</span> <span class="s2">&quot;CVE-2026-42897&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">EOMT</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-WhatIf</span> <span class="n">-CVE</span> <span class="s2">"CVE-2026-42897"</span>
 </code></pre></div>
 <h3 id="skip-specific-servers-during-remote-execution">Skip specific servers during remote execution</h3>
-<div class="highlight"><pre><span></span><code><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">EOMT</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-CVE</span> <span class="s2">&quot;CVE-2026-42897&quot;</span> <span class="n">-SkipExchangeServerNames</span> <span class="s2">&quot;EX03&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">EOMT</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-CVE</span> <span class="s2">"CVE-2026-42897"</span> <span class="n">-SkipExchangeServerNames</span> <span class="s2">"EX03"</span>
 </code></pre></div>
 <h2 id="how-it-works">How It Works</h2>
 <ol>

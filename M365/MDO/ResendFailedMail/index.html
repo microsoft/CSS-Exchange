@@ -5694,9 +5694,9 @@
 </ol>
 <div class="highlight"><pre><span></span><code><span class="nb">Connect-ExchangeOnline</span> <span class="n">-ShowBanner</span><span class="p">:</span><span class="nv">$false</span>
 
-<span class="nv">$ClientSecretCredential</span> <span class="p">=</span> <span class="nb">Get-Credential</span> <span class="n">-Credential</span> <span class="s2">&quot;[YOUR APP ID HERE]&quot;</span>
+<span class="nv">$ClientSecretCredential</span> <span class="p">=</span> <span class="nb">Get-Credential</span> <span class="n">-Credential</span> <span class="s2">"[YOUR APP ID HERE]"</span>
 <span class="c"># Enter client_secret in the password prompt.</span>
-<span class="nb">Connect-MgGraph</span> <span class="n">-TenantId</span> <span class="s2">&quot;[YOUR TENANT ID HERE]&quot;</span> <span class="n">-ClientSecretCredential</span> <span class="nv">$ClientSecretCredential</span> <span class="n">-NoWelcome</span>
+<span class="nb">Connect-MgGraph</span> <span class="n">-TenantId</span> <span class="s2">"[YOUR TENANT ID HERE]"</span> <span class="n">-ClientSecretCredential</span> <span class="nv">$ClientSecretCredential</span> <span class="n">-NoWelcome</span>
 </code></pre></div>
 <p>You can find the Microsoft Graph modules in the following link:
 &nbsp;&nbsp;&nbsp;&nbsp;https://www.powershellgallery.com/packages/Microsoft.Graph/
@@ -5726,7 +5726,7 @@
 <div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">ResendFailedMail</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-StartDate</span> <span class="n">12-Oct</span><span class="p">-</span><span class="n">2024</span> <span class="n">-EndDate</span> <span class="n">14-Oct</span><span class="p">-</span><span class="n">2024</span>
 </code></pre></div>
 <br>To resend an email based on the Message ID, and include any duplicates, run the following:
-<div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">ResendFailedMail</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-MessageId</span> <span class="s2">&quot;&lt;1111XXX@MailServer.contoso.com&gt;&quot;</span> <span class="n">-IncludeDuplicates</span>
+<div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">ResendFailedMail</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-MessageId</span> <span class="s2">"&lt;1111XXX@MailServer.contoso.com&gt;"</span> <span class="n">-IncludeDuplicates</span>
 </code></pre></div></p>
 <h2 id="parameters-all-parameters-are-optional">Parameters - all parameters are optional</h2>
 <table>

@@ -5605,15 +5605,15 @@
 <p>Prior to collecting the data, we check to make sure that there is at least 10GB of free space at the location of where we are trying to save the data of the target server. The script will continue to keep track of all the logs and data that is being copied over and will stop if we have less than 10GB of free space.</p>
 <p>You are able to use a config file to load up all the parameters you wish to choose and the servers you wish to run the script against. Just create a file called <code>ExchangeLogCollector.ps1.json</code> and place at the same location as the script. Then provide the switches you would like to use in the file like so:</p>
 <div class="highlight"><pre><span></span><code>{
-  &quot;Servers&quot;: [
-    &quot;ADT-E16A&quot;,
-    &quot;ADT-E16B&quot;,
-    &quot;ADT-E16C&quot;
+  "Servers": [
+    "ADT-E16A",
+    "ADT-E16B",
+    "ADT-E16C"
   ],
-  &quot;FilePath&quot;: &quot;C:\\MS_Logs&quot;,
-  &quot;IISLogs&quot;: true,
-  &quot;AppSysLogsToXml&quot;: false,
-  &quot;ScriptDebug&quot;: true
+  "FilePath": "C:\\MS_Logs",
+  "IISLogs": true,
+  "AppSysLogsToXml": false,
+  "ScriptDebug": true
 }
 </code></pre></div>
 <p><strong>NOTE:</strong> It is import that you use <code>\\</code> for the file path otherwise the settings will fail to load.</p>
@@ -5628,7 +5628,7 @@
 <div class="highlight"><pre><span></span><code>.\ExchangeLogCollector.ps1 -Servers EXCH1,EXCH2 -IISLogs -RPCLogs
 </code></pre></div>
 <p>This cmdlet will collect all relevant data regarding Message Tracking Logs and Protocol Logs for the past 3 hours from the servers EXCH1 and EXCH2 and store them at the default location of "C:\MS_Logs_Collection"</p>
-<div class="highlight"><pre><span></span><code>.\ExchangeLogCollector.ps1 -Servers EXCH1,EXCH2 -MessageTrackingLogs -TransportProtocolLogs -LogAge &quot;03:00:00&quot;
+<div class="highlight"><pre><span></span><code>.\ExchangeLogCollector.ps1 -Servers EXCH1,EXCH2 -MessageTrackingLogs -TransportProtocolLogs -LogAge "03:00:00"
 </code></pre></div>
 <h2 id="parameters">Parameters</h2>
 <table>

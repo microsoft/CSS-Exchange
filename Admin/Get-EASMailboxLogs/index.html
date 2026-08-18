@@ -5573,13 +5573,13 @@
 </code></pre></div>
 <h2 id="examples">Examples</h2>
 <p>The following example collects logs for two mailbox every hour:</p>
-<div class="highlight"><pre><span></span><code>.\Get-EASMailboxLogs.ps1 -mailbox @(&quot;jim&quot;,&quot;zeke&quot;) -OutputPath C:\EASLogs -interval 60
+<div class="highlight"><pre><span></span><code>.\Get-EASMailboxLogs.ps1 -mailbox @("jim","zeke") -OutputPath C:\EASLogs -interval 60
 </code></pre></div>
 <p>The following example collects logs for a mailbox:
-<div class="highlight"><pre><span></span><code>.\Get-EASMailboxLogs.ps1 -Mailbox &quot;jim&quot; -OutputPath c:\EASLogs
+<div class="highlight"><pre><span></span><code>.\Get-EASMailboxLogs.ps1 -Mailbox "jim" -OutputPath c:\EASLogs
 </code></pre></div></p>
 <p>The following example enables Verbose Logging on the current on premise server and collects logs for a mailbox:
-<div class="highlight"><pre><span></span><code>.\Get-EASMailboxLogs.ps1 -Mailbox &quot;jim&quot; -OutputPath c:\EASLogs -EnableMailboxLoggingVerboseMode $true
+<div class="highlight"><pre><span></span><code>.\Get-EASMailboxLogs.ps1 -Mailbox "jim" -OutputPath c:\EASLogs -EnableMailboxLoggingVerboseMode $true
 </code></pre></div></p>
 
 

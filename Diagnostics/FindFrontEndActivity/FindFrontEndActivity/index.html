@@ -5703,13 +5703,13 @@
 .\FindFrontEndActivity.ps1 -ServerName &lt;String[]&gt; -SamAccountName &lt;String[]&gt; [-LatencyThreshold &lt;Int32&gt;] [-Protocol &lt;String[]&gt;] [-IncludeNonExecutes] [-Quiet] -StartTime &lt;DateTime&gt; -EndTime &lt;DateTime&gt; [&lt;CommonParameters&gt;]
 </code></pre></div>
 <h2 id="quick-start-examples">Quick Start Examples</h2>
-<div class="highlight"><pre><span></span><code><span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">&quot;john.doe&quot;</span> <span class="p">|</span> <span class="nb">ft</span>
+<div class="highlight"><pre><span></span><code><span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">"john.doe"</span> <span class="p">|</span> <span class="nb">ft</span>
 
 <span class="n">DateTime</span>                 <span class="n">AuthenticatedUser</span>  <span class="n">UrlStem</span>       <span class="n">ServerHostName</span> <span class="n">TargetServer</span>         <span class="n">TotalRequestTime</span>
 <span class="p">--------</span>                 <span class="p">-----------------</span>  <span class="p">-------</span>       <span class="p">--------------</span> <span class="p">------------</span>         <span class="p">----------------</span>
 <span class="n">2023</span><span class="p">-</span><span class="n">02</span><span class="p">-</span><span class="n">11T15</span><span class="p">:</span><span class="n">59</span><span class="p">:</span><span class="n">35</span><span class="p">.</span><span class="n">174Z</span> <span class="n">contoso</span><span class="p">\</span><span class="n">john</span><span class="p">.</span><span class="n">doe</span>   <span class="p">/</span><span class="n">mapi</span><span class="p">/</span><span class="n">emsmdb</span><span class="p">/</span> <span class="n">EXCH1</span>          <span class="n">exch1</span><span class="p">.</span><span class="n">contoso</span><span class="p">.</span><span class="n">local</span>  <span class="n">2214</span>
 </code></pre></div>
-<div class="highlight"><pre><span></span><code><span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">&quot;john.doe&quot;</span> <span class="n">-LatencyThreshold</span> <span class="n">100</span> <span class="p">|</span> <span class="nb">ft</span>
+<div class="highlight"><pre><span></span><code><span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">"john.doe"</span> <span class="n">-LatencyThreshold</span> <span class="n">100</span> <span class="p">|</span> <span class="nb">ft</span>
 
 <span class="n">DateTime</span>                 <span class="n">AuthenticatedUser</span>  <span class="n">UrlStem</span>       <span class="n">ServerHostName</span> <span class="n">TargetServer</span>         <span class="n">TotalRequestTime</span>
 <span class="p">--------</span>                 <span class="p">-----------------</span>  <span class="p">-------</span>       <span class="p">--------------</span> <span class="p">------------</span>         <span class="p">----------------</span>
@@ -5719,7 +5719,7 @@
 <span class="n">2023</span><span class="p">-</span><span class="n">02</span><span class="p">-</span><span class="n">11T15</span><span class="p">:</span><span class="n">59</span><span class="p">:</span><span class="n">35</span><span class="p">.</span><span class="n">488Z</span> <span class="n">contoso</span><span class="p">\</span><span class="n">john</span><span class="p">.</span><span class="n">doe</span>   <span class="p">/</span><span class="n">mapi</span><span class="p">/</span><span class="n">emsmdb</span><span class="p">/</span> <span class="n">EXCH1</span>          <span class="n">exch1</span><span class="p">.</span><span class="n">contoso</span><span class="p">.</span><span class="n">local</span>  <span class="n">161</span>
 <span class="n">2023</span><span class="p">-</span><span class="n">02</span><span class="p">-</span><span class="n">11T15</span><span class="p">:</span><span class="n">59</span><span class="p">:</span><span class="n">38</span><span class="p">.</span><span class="n">133Z</span> <span class="n">contoso</span><span class="p">\</span><span class="n">john</span><span class="p">.</span><span class="n">doe</span>   <span class="p">/</span><span class="n">mapi</span><span class="p">/</span><span class="n">emsmdb</span><span class="p">/</span> <span class="n">EXCH1</span>          <span class="n">exch1</span><span class="p">.</span><span class="n">contoso</span><span class="p">.</span><span class="n">local</span>  <span class="n">399</span>
 </code></pre></div>
-<div class="highlight"><pre><span></span><code><span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">&quot;john.doe&quot;</span> <span class="n">-Protocol</span> <span class="s2">&quot;ews&quot;</span><span class="p">,</span> <span class="s2">&quot;mapi&quot;</span> <span class="p">|</span> <span class="nb">ft</span>
+<div class="highlight"><pre><span></span><code><span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">"john.doe"</span> <span class="n">-Protocol</span> <span class="s2">"ews"</span><span class="p">,</span> <span class="s2">"mapi"</span> <span class="p">|</span> <span class="nb">ft</span>
 
 <span class="n">DateTime</span>                 <span class="n">AuthenticatedUser</span>  <span class="n">UrlStem</span>            <span class="n">ServerHostName</span> <span class="n">TargetServer</span>         <span class="n">TotalRequestTime</span>
 <span class="p">--------</span>                 <span class="p">-----------------</span>  <span class="p">-------</span>            <span class="p">--------------</span> <span class="p">------------</span>         <span class="p">----------------</span>
@@ -5728,13 +5728,13 @@
 <span class="n">2023</span><span class="p">-</span><span class="n">02</span><span class="p">-</span><span class="n">11T15</span><span class="p">:</span><span class="n">59</span><span class="p">:</span><span class="n">35</span><span class="p">.</span><span class="n">174Z</span> <span class="n">contoso</span><span class="p">\</span><span class="n">john</span><span class="p">.</span><span class="n">doe</span>   <span class="p">/</span><span class="n">mapi</span><span class="p">/</span><span class="n">emsmdb</span><span class="p">/</span>      <span class="n">EXCH1</span>          <span class="n">exch1</span><span class="p">.</span><span class="n">contoso</span><span class="p">.</span><span class="n">local</span>  <span class="n">2214</span>
 </code></pre></div>
 <p>Note the difference between -Quiet mode and the default:</p>
-<div class="highlight"><pre><span></span><code><span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">&quot;john.doe&quot;</span> <span class="n">-Quiet</span>
+<div class="highlight"><pre><span></span><code><span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">"john.doe"</span> <span class="n">-Quiet</span>
 <span class="n">EXCH1</span>
 <span class="n">EXCH3</span>
 <span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span>
 <span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="c"># Notice how we returned two servers when using -Quiet.</span>
 <span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span>
-<span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">&quot;john.doe&quot;</span> <span class="p">|</span> <span class="nb">ft</span>
+<span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">"john.doe"</span> <span class="p">|</span> <span class="nb">ft</span>
 
 <span class="n">DateTime</span>                 <span class="n">AuthenticatedUser</span>  <span class="n">UrlStem</span>       <span class="n">ServerHostName</span> <span class="n">TargetServer</span>         <span class="n">TotalRequestTime</span>
 <span class="p">--------</span>                 <span class="p">-----------------</span>  <span class="p">-------</span>       <span class="p">--------------</span> <span class="p">------------</span>         <span class="p">----------------</span>
@@ -5746,7 +5746,7 @@
 <span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="c"># we need to remove the latency filter and include non-execute activity,</span>
 <span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="c"># but this will return a lot of noise.</span>
 <span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span>
-<span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">&quot;john.doe&quot;</span> <span class="n">-LatencyThreshold</span> <span class="n">0</span> <span class="n">-IncludeNonExecutes</span> <span class="p">|</span> <span class="nb">ft</span>
+<span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">"john.doe"</span> <span class="n">-LatencyThreshold</span> <span class="n">0</span> <span class="n">-IncludeNonExecutes</span> <span class="p">|</span> <span class="nb">ft</span>
 
 <span class="n">DateTime</span>                 <span class="n">AuthenticatedUser</span>  <span class="n">UrlStem</span>       <span class="n">ServerHostName</span> <span class="n">TargetServer</span>         <span class="n">TotalRequestTime</span>
 <span class="p">--------</span>                 <span class="p">-----------------</span>  <span class="p">-------</span>       <span class="p">--------------</span> <span class="p">------------</span>         <span class="p">----------------</span>
@@ -5757,7 +5757,7 @@
 <span class="p">...</span>
 </code></pre></div>
 <p>To see all details, use <code>fl *</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">&quot;john.doe&quot;</span> <span class="p">|</span> <span class="nb">fl </span><span class="p">*</span>
+<div class="highlight"><pre><span></span><code><span class="no">[PS]</span> <span class="n">C</span><span class="p">:\&gt;</span><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">"john.doe"</span> <span class="p">|</span> <span class="nb">fl </span><span class="p">*</span>
 
 
 <span class="n">DateTime</span>                        <span class="p">:</span> <span class="n">2023</span><span class="p">-</span><span class="n">02</span><span class="p">-</span><span class="n">11T16</span><span class="p">:</span><span class="n">25</span><span class="p">:</span><span class="n">14</span><span class="p">.</span><span class="n">508Z</span>
@@ -5816,7 +5816,7 @@ protocols. See the parameters and examples for more information.</p>
 
     Required?                    false
     Position?                    named
-    Default value                @(&#39;MAPI&#39;)
+    Default value                @('MAPI')
     Accept pipeline input?       false
     Accept wildcard characters?  false
 
@@ -5842,8 +5842,8 @@ protocols. See the parameters and examples for more information.</p>
     Accept wildcard characters?  false
 
 -TimeSpan &lt;TimeSpan&gt;
-    Specify how far back to search the logs. This is a TimeSpan value, such as &quot;01:00&quot; for the
-    last hour or &quot;00:30&quot; for the last 30 minutes. (Default: 15 minutes). Use this parameter to
+    Specify how far back to search the logs. This is a TimeSpan value, such as "01:00" for the
+    last hour or "00:30" for the last 30 minutes. (Default: 15 minutes). Use this parameter to
     search the most recent logs. Use StartTime and EndTime to search older logs.
 
     Required?                    false
@@ -5854,7 +5854,7 @@ protocols. See the parameters and examples for more information.</p>
 
 -StartTime &lt;DateTime&gt;
     Logs older than this time are not searched. This is a DateTime value, such as (Get-Date).AddDays(-1)
-    or &quot;2023-02-11 08:00&quot;. Use this parameter to search old logs. Use -TimeSpan to search the
+    or "2023-02-11 08:00". Use this parameter to search old logs. Use -TimeSpan to search the
     most recent logs.
 
     Required?                    true
@@ -5865,7 +5865,7 @@ protocols. See the parameters and examples for more information.</p>
 
 -EndTime &lt;DateTime&gt;
     Logs newer than this time are not searched. This is a DateTime value, such as (Get-Date).AddDays(-1)
-    or &quot;2023-02-11 09:00&quot;. Use this parameter to search old logs. Use -TimeSpan to search the
+    or "2023-02-11 09:00". Use this parameter to search old logs. Use -TimeSpan to search the
     most recent logs.
 
     Required?                    true
@@ -5881,15 +5881,15 @@ protocols. See the parameters and examples for more information.</p>
     about_CommonParameters (https://go.microsoft.com/fwlink/?LinkID=113216).
 </code></pre></div>
 <h2 id="example-1">Example 1</h2>
-<p><div class="highlight"><pre><span></span><code><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">&quot;user1&quot;</span><span class="p">,</span> <span class="s2">&quot;user2&quot;</span> <span class="p">|</span> <span class="nb">ft</span>
+<p><div class="highlight"><pre><span></span><code><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">"user1"</span><span class="p">,</span> <span class="s2">"user2"</span> <span class="p">|</span> <span class="nb">ft</span>
 </code></pre></div>
 Show any MAPI HttpProxy activity that took more than 1 second for user1 or user2 within the last 15 minutes on all Exchange servers in the forest.</p>
 <h2 id="example-2">Example 2</h2>
-<p><div class="highlight"><pre><span></span><code><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">&quot;user1&quot;</span><span class="p">,</span> <span class="s2">&quot;user2&quot;</span> <span class="n">-Quiet</span>
+<p><div class="highlight"><pre><span></span><code><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">"user1"</span><span class="p">,</span> <span class="s2">"user2"</span> <span class="n">-Quiet</span>
 </code></pre></div>
 Show only the server names where user1 or user2 are found in the MAPI HttpProxy logs within the last 15 minutes.</p>
 <h2 id="example-3">Example 3</h2>
-<p><div class="highlight"><pre><span></span><code><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">&quot;user1&quot;</span><span class="p">,</span> <span class="s2">&quot;user2&quot;</span> <span class="n">-Protocol</span> <span class="s2">&quot;ews&quot;</span><span class="p">,</span> <span class="s2">&quot;mapi&quot;</span> <span class="n">-LatencyThreshold</span> <span class="n">100</span> <span class="n">-TimeSpan</span> <span class="s2">&quot;00:30&quot;</span>
+<p><div class="highlight"><pre><span></span><code><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">FindFrontEndActivity</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-SamAccountName</span> <span class="s2">"user1"</span><span class="p">,</span> <span class="s2">"user2"</span> <span class="n">-Protocol</span> <span class="s2">"ews"</span><span class="p">,</span> <span class="s2">"mapi"</span> <span class="n">-LatencyThreshold</span> <span class="n">100</span> <span class="n">-TimeSpan</span> <span class="s2">"00:30"</span>
 </code></pre></div>
 Show any EWS or MAPI HttpProxy activity that took more than 100 milliseconds for user1 or user2 within the last 30 minutes on all Exchange servers in the forest.</p>
 

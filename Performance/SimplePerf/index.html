@@ -5613,7 +5613,7 @@
 </code></pre></div>
 Starts a collector using Exchange counter defaults. The collector is non-circular, will run for 8 hours, has a
 5-second interval, has a max file size of 1 GB, and saves the logs to C:\SimplePerf.</p>
-<p><div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">SimplePerf</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Start</span> <span class="n">-IncludeCounters</span> <span class="s2">&quot;\Thread&quot;</span>
+<p><div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">SimplePerf</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Start</span> <span class="n">-IncludeCounters</span> <span class="s2">"\Thread"</span>
 </code></pre></div>
 Starts a collector using Exchange counter defaults plus all \Thread counters. The collector is non-circular,
 will run for 8 hours, has a 5-second interval, has a max file size of 1 GB, and saves the logs to C:\SimplePerf.</p>
@@ -5631,32 +5631,32 @@ Stops a running SimplePerf.</p>
 <p><div class="highlight"><pre><span></span><code><span class="nb">Get-ExchangeServer</span> <span class="p">|</span> <span class="p">.\</span><span class="n">SimplePerf</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Start</span>
 </code></pre></div>
 Starts a SimplePerf with the default options on all Exchange servers.</p>
-<p><div class="highlight"><pre><span></span><code><span class="s2">&quot;SRV1&quot;</span><span class="p">,</span> <span class="s2">&quot;SRV2&quot;</span><span class="p">,</span> <span class="s2">&quot;SRV3&quot;</span> <span class="p">|</span> <span class="p">.\</span><span class="n">SimplePerf</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Start</span>
+<p><div class="highlight"><pre><span></span><code><span class="s2">"SRV1"</span><span class="p">,</span> <span class="s2">"SRV2"</span><span class="p">,</span> <span class="s2">"SRV3"</span> <span class="p">|</span> <span class="p">.\</span><span class="n">SimplePerf</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Start</span>
 </code></pre></div>
 Starts a SimplePerf with the default options on the three named servers.</p>
-<p><div class="highlight"><pre><span></span><code><span class="s2">&quot;SRV1&quot;</span><span class="p">,</span> <span class="s2">&quot;SRV2&quot;</span><span class="p">,</span> <span class="s2">&quot;SRV3&quot;</span> <span class="p">|</span> <span class="p">.\</span><span class="n">SimplePerf</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Stop</span>
+<p><div class="highlight"><pre><span></span><code><span class="s2">"SRV1"</span><span class="p">,</span> <span class="s2">"SRV2"</span><span class="p">,</span> <span class="s2">"SRV3"</span> <span class="p">|</span> <span class="p">.\</span><span class="n">SimplePerf</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Stop</span>
 </code></pre></div>
 Stops a running SimplePerf on the three named servers.</p>
 <h2 id="using-named-collectors">Using Named Collectors</h2>
 <p>It is possible to run several SimplePerf collectors on the same computer at the same time by providing the <strong>-CollectorName</strong> parameter. For example:</p>
-<div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">SimplePerf</span> <span class="n">-Start</span> <span class="n">-Interval</span> <span class="n">60</span> <span class="n">-CollectorName</span> <span class="s2">&quot;Minute&quot;</span>
-<span class="p">.\</span><span class="n">SimplePerf</span> <span class="n">-Start</span> <span class="n">-Interval</span> <span class="n">5</span> <span class="n">-CollectorName</span> <span class="s2">&quot;FiveSeconds&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">SimplePerf</span> <span class="n">-Start</span> <span class="n">-Interval</span> <span class="n">60</span> <span class="n">-CollectorName</span> <span class="s2">"Minute"</span>
+<span class="p">.\</span><span class="n">SimplePerf</span> <span class="n">-Start</span> <span class="n">-Interval</span> <span class="n">5</span> <span class="n">-CollectorName</span> <span class="s2">"FiveSeconds"</span>
 </code></pre></div>
 <p>When using collector names, the same name must be provided to the <strong>-Stop</strong> command:</p>
-<div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">SimplePerf</span> <span class="n">-Stop</span> <span class="n">-CollectorName</span> <span class="s2">&quot;Minute&quot;</span>
-<span class="p">.\</span><span class="n">SimplePerf</span> <span class="n">-Stop</span> <span class="n">-CollectorName</span> <span class="s2">&quot;FiveSeconds&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">SimplePerf</span> <span class="n">-Stop</span> <span class="n">-CollectorName</span> <span class="s2">"Minute"</span>
+<span class="p">.\</span><span class="n">SimplePerf</span> <span class="n">-Stop</span> <span class="n">-CollectorName</span> <span class="s2">"FiveSeconds"</span>
 </code></pre></div>
 <h2 id="counter-name-filters">Counter Name Filters</h2>
 <p>The counters collected by SimplePerf can be controlled with a combination of three parameters: <strong>-Scenario</strong>, <strong>-IncludeCounters</strong>, and <strong>-ExcludeCounters</strong>.</p>
 <p>Currently, there are only two scenarios: <strong>Exchange</strong> and <strong>None</strong>. The <strong>Exchange</strong> scenario is a common set of counters for Exchange Server, similar to what ExPerfWiz would collect. <strong>None</strong> is a completely empty counter set.</p>
 <p><strong>-IncludeCounters</strong> and <strong>-ExcludeCounters</strong> perform a <em>StartsWith</em> match against the counter name. This makes it possible to collect a large number of counters with minimal syntax. For example:</p>
-<p><div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">SimplePerf</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Start</span> <span class="n">-IncludeCounters</span> <span class="s2">&quot;\MSExchange&quot;</span><span class="p">,</span> <span class="s2">&quot;\Microsoft Exchange&quot;</span>
+<p><div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">SimplePerf</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Start</span> <span class="n">-IncludeCounters</span> <span class="s2">"\MSExchange"</span><span class="p">,</span> <span class="s2">"\Microsoft Exchange"</span>
 </code></pre></div>
 This example starts a SimplePerf using the <strong>Exchange</strong> scenario, but then it includes <em>every</em> counter starting with either MSExchange or Microsoft Exchange.</p>
-<p><div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">SimplePerf</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Start</span> <span class="n">-IncludeCounters</span> <span class="s2">&quot;\MSExchange&quot;</span><span class="p">,</span> <span class="s2">&quot;\Microsoft Exchange&quot;</span> <span class="n">-Scenario</span> <span class="s2">&quot;None&quot;</span>
+<p><div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">SimplePerf</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Start</span> <span class="n">-IncludeCounters</span> <span class="s2">"\MSExchange"</span><span class="p">,</span> <span class="s2">"\Microsoft Exchange"</span> <span class="n">-Scenario</span> <span class="s2">"None"</span>
 </code></pre></div>
 This example starts a SimplePerf collecting all the matching Exchange counters <em>without</em> including any default counters at all, because the <strong>None</strong> scenario was specified.</p>
-<p><div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">SimplePerf</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Start</span> <span class="n">-ExcludeCounters</span> <span class="s2">&quot;\MSExchange Transport&quot;</span>
+<p><div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">SimplePerf</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Start</span> <span class="n">-ExcludeCounters</span> <span class="s2">"\MSExchange Transport"</span>
 </code></pre></div>
 In this example, we use the <strong>Exchange</strong> scenario as a starting point, but then we remove all counters starting with MSExchange Transport.</p>
 <p>Note that individual counters can be excluded even if the counter set has been included. To illustrate:</p>

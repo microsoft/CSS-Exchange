@@ -5657,9 +5657,9 @@
     FriendlyName         = $env:COMPUTERNAME
     DomainName           = $env:COMPUTERNAME
     IncludeServerFQDN    = $true
-    Services             = &quot;SMTP&quot;
+    Services             = "SMTP"
     Force                = $true
-    ErrorAction          = &quot;Stop&quot;
+    ErrorAction          = "Stop"
 }
 
 New-ExchangeCertificate @newInternalTransportCertificateParams

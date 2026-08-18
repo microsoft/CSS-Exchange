@@ -5925,7 +5925,7 @@ Export CalLogs to Excel with a Case Number (Exceptions and Excel are both defaul
 </code></pre></div>
 Will create file like  <code>.\123456_CalLogSummary_&lt;MeetingID&gt;.xlsx</code> in current directory.</p>
 <p>Collect logs for a specific Exception date:
-<div class="highlight"><pre><span></span><code><span class="nb">Get-CalendarDiagnosticObjectsSummary</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Identity</span> <span class="nv">$Users</span> <span class="n">-MeetingID</span> <span class="nv">$MeetingID</span> <span class="n">-ExceptionDate</span> <span class="s2">&quot;01/28/2024&quot;</span> <span class="n">-CaseNumber</span> <span class="n">123456</span>
+<div class="highlight"><pre><span></span><code><span class="nb">Get-CalendarDiagnosticObjectsSummary</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Identity</span> <span class="nv">$Users</span> <span class="n">-MeetingID</span> <span class="nv">$MeetingID</span> <span class="n">-ExceptionDate</span> <span class="s2">"01/28/2024"</span> <span class="n">-CaseNumber</span> <span class="n">123456</span>
 </code></pre></div></p>
 <p>Collect all recurring meeting exception dates with default fast collection:
 <div class="highlight"><pre><span></span><code><span class="nb">Get-CalendarDiagnosticObjectsSummary</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Identity</span> <span class="nv">$Users</span> <span class="n">-MeetingID</span> <span class="nv">$MeetingID</span> <span class="n">-AllExceptions</span>
