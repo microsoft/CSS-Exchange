@@ -68,8 +68,8 @@ $YesAll = 16
 $NoConfirmDirectory = 512
 $NoUI = 1024
 
-$UmFileName = "UniversalManifest.cab"
-$EliFileName = "EngineInfo.cab"
+$Script:UmFileName = "UniversalManifest.cab"
+$Script:EliFileName = "EngineInfo.cab"
 
 # Checks if the specified path exists.
 # If not the directory is created.
@@ -135,6 +135,235 @@ function ExtractCab($sourceCabPath, $destinationDirectory) {
     }
 }
 
+# Downloads a URI to a destination path using the supplied WebClient.
+# Extracted so tests can mock the network call without hitting the wire.
+function Invoke-WebClientDownload {
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.Net.WebClient]$WebClient,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Uri,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Destination
+    )
+    $WebClient.DownloadFile($Uri, $Destination)
+}
+
+# Reads an XML manifest from disk and returns the parsed document.
+# Extracted so tests can substitute synthetic XML fixtures.
+function Read-Manifest {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+    return [xml](Get-Content -Path $Path)
+}
+
+# Selects the <Platform> element matching PlatformName from the Universal Manifest.
+# Throws if no matching platform is found.
+function Get-PlatformElement {
+    param(
+        [Parameter(Mandatory = $true)]
+        [xml]$UniversalManifest,
+
+        [Parameter(Mandatory = $true)]
+        [string]$PlatformName
+    )
+    $platform = $UniversalManifest.UniversalManifest.EngineVersions.SelectSingleNode(("Platform[@id='" + $PlatformName + "']"))
+    if ($platform -isnot [System.Xml.XmlElement]) {
+        $(throw "The Platform '" + $PlatformName + "' is not valid.")
+    }
+    return $platform
+}
+
+# Selects the <Engine> element matching EngineName from the supplied Platform.
+# Writes a non-terminating error and returns $null if no matching engine is found.
+function Get-EngineElement {
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.Xml.XmlElement]$PlatformElement,
+
+        [Parameter(Mandatory = $true)]
+        [string]$EngineName
+    )
+    $engine = $PlatformElement.SelectSingleNode(("Category/Engine[@name='" + $EngineName + "']"))
+    if ($engine -isnot [System.Xml.XmlElement]) {
+        $errMsg = "The engine name '" + $EngineName + "' is not valid."
+        Write-Error $errMsg -Category InvalidArgument
+        return $null
+    }
+    return $engine
+}
+
+# Downloads the Universal Manifest CAB, extracts it, and returns the parsed XML.
+# Also creates the metadata and temp directories and clears stale temp files.
+function Invoke-UniversalManifestDownload {
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.Net.WebClient]$WebClient,
+
+        [Parameter(Mandatory = $true)]
+        [string]$UpdatePathUrl,
+
+        [Parameter(Mandatory = $true)]
+        [string]$EngineDirPath,
+
+        [Parameter(Mandatory = $true)]
+        [string]$TempFilePath
+    )
+
+    $url = ($UpdatePathUrl + "metadata/$($Script:UmFileName)")
+    $umFilePath = $EngineDirPath + "metadata\$($Script:UmFileName)"
+    $metaDataDir = $EngineDirPath + "metadata\"
+
+    CreatePath -path $metaDataDir
+
+    Invoke-WebClientDownload -WebClient $WebClient -Uri $url -Destination $umFilePath
+
+    CreatePath -path $TempFilePath
+
+    # Delete any temporary files left over from
+    # any previous runs of the script
+    Remove-Item ($TempFilePath + "*.*")
+
+    # Extract the xml file from the cab
+    # so we can parse and read the data
+    ExtractCab -sourceCabPath $umFilePath -destinationDirectory $TempFilePath
+
+    return (Read-Manifest -Path ($TempFilePath + "UniversalManifest.xml"))
+}
+
+# Downloads the Engine License Info CAB for the version reported by the Universal Manifest,
+# but only if the versioned metadata directory does not already contain it.
+function Invoke-EngineLicenseInfoDownload {
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.Net.WebClient]$WebClient,
+
+        [Parameter(Mandatory = $true)]
+        [string]$UpdatePathUrl,
+
+        [Parameter(Mandatory = $true)]
+        [string]$EngineDirPath,
+
+        [Parameter(Mandatory = $true)]
+        [xml]$UniversalManifest
+    )
+
+    $engineInfoVersion = $UniversalManifest.UniversalManifest.licenseInfoVersion
+    Write-Host "The current Engine License Info version: " $engineInfoVersion
+
+    $engineInfoFilePath = $EngineDirPath + "metadata\" + $engineInfoVersion
+
+    CreatePath -path $engineInfoFilePath
+
+    $engineInfoFilePath += "\" + $Script:EliFileName
+
+    # If the versioned directory does not exists
+    # download the new version of the Engine License Info
+    if ((Test-Path $engineInfoFilePath) -ne $true) {
+        Write-Host "The current version of the Engine License Info needs to be downloaded."
+
+        $engineInfoURL = ($UpdatePathUrl + "\metadata\" + $engineInfoVersion + "/" + $Script:EliFileName)
+        Invoke-WebClientDownload -WebClient $WebClient -Uri $engineInfoURL -Destination $engineInfoFilePath
+
+        Write-Host "The Engine License Info download is complete."
+    }
+}
+
+# Performs the full download flow for a single engine on a single platform:
+# downloads the per-engine manifest CAB, extracts it, reads the version and full
+# package name, downloads the full package if missing or size-mismatched,
+# creates any subdirectories the manifest declares, extracts the package, and
+# copies the manifest into the versioned package directory. Optionally prunes
+# older versioned directories when CleanUp is specified.
+function Invoke-EngineUpdate {
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.Net.WebClient]$WebClient,
+
+        [Parameter(Mandatory = $true)]
+        [string]$UpdatePathUrl,
+
+        [Parameter(Mandatory = $true)]
+        [string]$EngineDirPath,
+
+        [Parameter(Mandatory = $true)]
+        [string]$TempFilePath,
+
+        [Parameter(Mandatory = $true)]
+        [System.Xml.XmlElement]$Platform,
+
+        [Parameter(Mandatory = $true)]
+        [System.Xml.XmlElement]$Engine,
+
+        [Parameter(Mandatory = $false)]
+        [switch]$CleanUp,
+
+        [Parameter(Mandatory = $false)]
+        [int]$VersionsToKeep = 10
+    )
+
+    Write-Host "Engine: $($Engine.Name) UpdateVersion: $($Engine.Package.version)"
+
+    $manifestFileNameRoot = "manifest." + $Engine.Default
+    $manifestFileName = $manifestFileNameRoot + ".cab"
+    $engineUrl = $UpdatePathUrl + $Platform.id + "/" + $Engine.Name + "/" + "Package/"
+    $manifestUrl = ($engineUrl + $manifestFileName)
+    $enginePath = $EngineDirPath + $Platform.id + "\" + $Engine.Name + "\Package\"
+
+    Write-Host "Begin download: $($Engine.Name) Url: $($manifestUrl)"
+
+    CreatePath -path $enginePath
+
+    $manifestPath = $enginePath + $manifestFileName
+
+    Invoke-WebClientDownload -WebClient $WebClient -Uri $manifestUrl -Destination $manifestPath
+
+    # Delete any temporary files left over from
+    # any previous runs of the script
+    Remove-Item ($TempFilePath + "*.*")
+
+    ExtractCab -sourceCabPath $manifestPath -destinationDirectory $TempFilePath
+
+    $manifest = Read-Manifest -Path ($TempFilePath + "manifest.xml")
+
+    $fullPkgDir = $enginePath + $manifest.ManifestFile.Package.version + "\"
+
+    CreatePath -path $fullPkgDir
+
+    $fullPkgUrl = $engineUrl + $manifest.ManifestFile.Package.version + "/" + $manifest.ManifestFile.Package.FullPackage.name
+    $fullPkgPath = ($fullPkgDir + $manifest.ManifestFile.Package.FullPackage.name)
+
+    if (((Test-Path $fullPkgPath) -ne $true) -or ((Get-Item $fullPkgPath).Length -ne $manifest.ManifestFile.Package.FullPackage.Size)) {
+        Invoke-WebClientDownload -WebClient $WebClient -Uri $fullPkgUrl -Destination $fullPkgPath
+
+        # Detect if there are any subdirectories
+        # needed for this engine
+        $subDirCount = $manifest.ManifestFile.Package.Files.Dir.Count
+
+        for ($i = 0; $i -lt $subDirCount; $i++) {
+            CreatePath -path ($fullPkgDir + $manifest.ManifestFile.Package.Files.Dir[$i].name)
+        }
+
+        ExtractCab -sourceCabPath $fullPkgPath -destinationDirectory $fullPkgDir
+
+        # Copy the downloaded manifest to the package directory
+        Copy-Item $manifestPath -Destination $fullPkgDir
+
+        Write-Host "Download Complete: " $Engine.Name
+    } else {
+        Write-Host "Engine already up to date: " $Engine.Name
+    }
+
+    # Clean up
+    if ($CleanUp) {
+        CleanUpFolder -path $enginePath -itemsToKeep $VersionsToKeep
+    }
+}
+
 #---------------------------------------------------------------------------------------
 # Main Script
 #---------------------------------------------------------------------------------------
@@ -153,128 +382,27 @@ $tempFilePath = $EngineDirPath + "temp\"
 
 $wc = New-Object System.Net.WebClient
 
-# Download the Universal Manifest file
-$url = ($UpdatePathUrl + "metadata/$($UmFileName)")
-$umFilePath = $EngineDirPath + "metadata\$($UmFileName)"
+$umFile = Invoke-UniversalManifestDownload -WebClient $wc -UpdatePathUrl $UpdatePathUrl -EngineDirPath $EngineDirPath -TempFilePath $tempFilePath
 
-$metaDataDir = $EngineDirPath + "metadata\"
-
-CreatePath $metaDataDir
-
-$wc.DownloadFile($url, $umFilePath)
-
-CreatePath $tempFilePath
-
-# Delete any temporary files left over from
-# any previous runs of the script
-Remove-Item ($tempFilePath + "*.*")
-
-# Extract the xml file from the cab
-# so we can parse and read the data
-ExtractCab $umFilePath $tempFilePath
-
-# Read in and process the contents of the
-# Universal Manifest file.
-[xml]$umFile = Get-Content($tempFilePath + "UniversalManifest.xml")
-
-# Check if we need to download a new Engine License Info file
-$engineInfoVersion = $umFile.UniversalManifest.licenseInfoVersion
-Write-Host "The current Engine License Info version: " $engineInfoVersion
-
-$engineInfoFilePath = $EngineDirPath + "metadata\" + $engineInfoVersion
-
-CreatePath $engineInfoFilePath
-
-$engineInfoFilePath += "\" + $EliFileName
-
-# If the versioned directory does not exists
-# download the new version of the Engine License Info
-if ((Test-Path $engineInfoFilePath) -ne $true) {
-    Write-Host "The current version of the Engine License Info needs to be downloaded."
-
-    $engineInfoURL = ($UpdatePathUrl + "\metadata\" + $engineInfoVersion + "/" + $EliFileName)
-    $wc.DownloadFile($engineInfoURL, $engineInfoFilePath)
-
-    Write-Host "The Engine License Info download is complete."
-}
+Invoke-EngineLicenseInfoDownload -WebClient $wc -UpdatePathUrl $UpdatePathUrl -EngineDirPath $EngineDirPath -UniversalManifest $umFile
 
 Write-Host "Begin Processing Engine Updates"
 
 # Process each engine in the Universal Manifest
 # and download all applicable engines
 foreach ($p in $Platforms) {
-    $platform = $umFile.UniversalManifest.EngineVersions.SelectSingleNode(("Platform[@id='" + $p + "']"))
-
-    if ($platform -isnot [System.Xml.XmlElement]) {
-        $(throw "The Platform '" + $p + "' is not valid.")
-    }
+    $platform = Get-PlatformElement -UniversalManifest $umFile -PlatformName $p
 
     Write-Host "Platform: " $platform.id
 
     foreach ($e in $Engines) {
-        $engine = $platform.SelectSingleNode(("Category/Engine[@name='" + $e + "']"))
+        $engine = Get-EngineElement -PlatformElement $platform -EngineName $e
 
-        if ($engine -isnot [System.Xml.XmlElement]) {
-            $errMsg = "The engine name '" + $e + "' is not valid."
-            Write-Error $errMsg -Category InvalidArgument
-        } else {
-            Write-Host "Engine: $($engine.Name) UpdateVersion: $($engine.Package.version)"
-
-            $manifestFileNameRoot = "manifest." + $engine.Default
-            $manifestFileName = $manifestFileNameRoot + ".cab"
-            $engineUrl = $UpdatePathUrl + $platform.id + "/" + $engine.Name + "/" + "Package/"
-            $manifestUrl =  ($engineUrl + $manifestFileName)
-            $enginePath = $EngineDirPath + $platform.id + "\" + $engine.Name + "\Package\"
-
-            Write-Host "Begin download: $($engine.Name) Url: $($manifestUrl)"
-
-            CreatePath $enginePath
-
-            $manifestPath = $enginePath + $manifestFileName
-
-            $wc.DownloadFile($manifestUrl, $manifestPath)
-
-            # Delete any temporary files left over from
-            # any previous runs of the script
-            Remove-Item ($tempFilePath + "*.*")
-
-            ExtractCab $manifestPath $tempFilePath
-
-            [xml]$manifest = Get-Content($tempFilePath + "manifest.xml")
-
-            $fullPkgDir = $enginePath + $manifest.ManifestFile.Package.version + "\"
-
-            CreatePath $fullPkgDir
-
-            $fullPkgUrl = $engineUrl + $manifest.ManifestFile.Package.version + "/" + $manifest.ManifestFile.Package.FullPackage.name
-            $fullPkgPath = ($fullPkgDir + $manifest.ManifestFile.Package.FullPackage.name)
-
-            if (((Test-Path $fullPkgPath) -ne $true) -or ((Get-Item $fullPkgPath).Length -ne $manifest.ManifestFile.Package.FullPackage.Size)) {
-                $wc.DownloadFile($fullPkgUrl, $fullPkgPath)
-
-                # Detect if there are any subdirectories
-                # needed for this engine
-                $subDirCount = $manifest.ManifestFile.Package.Files.Dir.Count
-
-                for ($i=0; $i -lt $subDirCount; $i++) {
-                    CreatePath ($fullPkgDir + $manifest.ManifestFile.Package.Files.Dir[$i].name)
-                }
-
-                ExtractCab $fullPkgPath $fullPkgDir
-
-                # Copy the downloaded manifest to the package directory
-                Copy-Item $manifestPath -Destination $fullPkgDir
-
-                Write-Host "Download Complete: " $engine.Name
-            } else {
-                Write-Host "Engine already up to date: " $engine.Name
-            }
-
-            # Clean up
-            if ($CleanUp) {
-                CleanUpFolder $enginePath $VersionsToKeep
-            }
+        if ($null -eq $engine) {
+            continue
         }
+
+        Invoke-EngineUpdate -WebClient $wc -UpdatePathUrl $UpdatePathUrl -EngineDirPath $EngineDirPath -TempFilePath $tempFilePath -Platform $platform -Engine $engine -CleanUp:$CleanUp -VersionsToKeep $VersionsToKeep
     }
 }
 
