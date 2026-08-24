@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ManifestFile xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" created="2026-08-18T19:11:52" version="2.0">
+  <Package type="engine" name="Microsoft" platform="amd64" version="2112342123" updatemode="Full">
+    <FullPackage type="CAB" name="microsoft_fullpkg.cab" size="12345">
+      <hash algorithm="sha256" hash="quVpWy3z7iyybjCIp2Y2e6Yoyd32WGdvnrStFVj0eVU=" />
+    </FullPackage>
+    <Files>
+      <Dir name="sub1" />
+      <Dir name="sub2" />
+      <File name="update.ini" path="" size="30">
+        <hash algorithm="sha256" hash="/5JQUsMubGUnWvfz7mtpVAI/UeOoFg1uqThNcTOFtrs=" />
+      </File>
+    </Files>
+  </Package>
+</ManifestFile>

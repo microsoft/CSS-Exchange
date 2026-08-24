@@ -75,7 +75,7 @@ $Script:EliFileName = "EngineInfo.cab"
 # If not the directory is created.
 function CreatePath($path) {
     if ((Test-Path $path) -ne $true) {
-        New-Item -type Directory $path
+        New-Item -Type Directory $path | Out-Null
         Write-Host "Created: " $path
     }
 }
