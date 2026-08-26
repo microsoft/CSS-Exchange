@@ -4,11 +4,82 @@
 . $PSScriptRoot\..\AzureFunctions\Invoke-GraphApiRequest.ps1
 
 <#
-    Creates a new Azure Application with a specified Display Name, SignInAudience and when provided, logo.
-    The logo must be a PNG provided as byte array.
-    signInAudience information: https://learn.microsoft.com/graph/api/resources/application#signinaudience-values
-    Create application method: https://learn.microsoft.com/graph/api/application-post-applications
-    Upload logo: https://learn.microsoft.com/graph/api/application-update?view=graph-rest-1.0&tabs=http#http-request
+.SYNOPSIS
+    Creates a new Azure AD application registration with optional logo.
+
+.DESCRIPTION
+    This function creates a new Azure AD application registration using the Microsoft Graph API.
+    It configures the application with a display name, sign-in audience, description, and notes.
+    Optionally, a PNG logo can be uploaded to the application.
+
+    The function performs the following operations:
+    1. Creates the application registration via the Graph API applications endpoint
+    2. If a valid PNG byte array is provided, uploads it as the application logo
+    3. Returns the created application's identifiers
+
+    The logo upload is optional and non-blocking - if it fails, the function still returns
+    the successfully created application details.
+
+.PARAMETER AzAccountsObject
+    The Azure accounts object containing authentication context (AccessToken) for Graph API calls.
+
+.PARAMETER DisplayName
+    The display name for the new Azure AD application.
+
+.PARAMETER SignInAudience
+    Specifies what Microsoft accounts are supported for the application. Valid values:
+    - AzureADMyOrg: Users in this organizational directory only (single tenant) [Default]
+    - AzureADMultipleOrgs: Users in any organizational directory (multi-tenant)
+    - AzureADandPersonalMicrosoftAccount: Users in any org directory and personal Microsoft accounts
+    - PersonalMicrosoftAccount: Personal Microsoft accounts only
+
+.PARAMETER Description
+    The description for the application. Defaults to "Added by <script name>".
+
+.PARAMETER PngByteArray
+    Optional byte array containing a PNG image to use as the application logo.
+    The image must be a valid PNG file (validated by checking the PNG magic number signature).
+
+.PARAMETER Notes
+    Optional notes for the application. If not provided, defaults to a message indicating
+    the application was created by the script with a link to the CSS-Exchange releases.
+
+.PARAMETER GraphApiUrl
+    The Microsoft Graph API endpoint URL to use for API requests (e.g., "https://graph.microsoft.com").
+
+.OUTPUTS
+    PSCustomObject with the following properties:
+    - DisplayName: The display name of the created application
+    - Id: The Object ID of the application (unique identifier in Azure AD)
+    - AppId: The Application (Client) ID used for authentication
+
+    Returns $null if the application creation fails or is skipped via -WhatIf.
+
+.EXAMPLE
+    $app = New-AzureApplication -AzAccountsObject $azContext -DisplayName "MyExchangeApp" -GraphApiUrl "https://graph.microsoft.com"
+
+    Write-Host "Created application with AppId: $($app.AppId)"
+
+.EXAMPLE
+    # Create a multi-tenant application with a custom logo
+    $logoBytes = [System.IO.File]::ReadAllBytes("C:\logo.png")
+    $app = New-AzureApplication -AzAccountsObject $azContext `
+        -DisplayName "MyMultiTenantApp" `
+        -SignInAudience "AzureADMultipleOrgs" `
+        -Description "Custom application for Exchange management" `
+        -PngByteArray $logoBytes `
+        -GraphApiUrl "https://graph.microsoft.com"
+
+.NOTES
+    Required Graph API permissions:
+    - Application.ReadWrite.All (to create application registrations)
+
+    This function supports -WhatIf and -Confirm through ShouldProcess.
+
+    API References:
+    - Create application: https://learn.microsoft.com/graph/api/application-post-applications
+    - Update application logo: https://learn.microsoft.com/graph/api/application-update
+    - SignInAudience values: https://learn.microsoft.com/graph/api/resources/application#signinaudience-values
 #>
 function New-AzureApplication {
     [CmdletBinding(SupportsShouldProcess)]

@@ -98,6 +98,7 @@ PopLogs | Enable to collect POP logging. Location: `(Get-PopSettings -Server $se
 PowerShellLogs | Enable to collect the PowerShell Logs. Location: `V15\Logging\HttpProxy\PowerShell`
 QueueInformation | Enable to collect the historical queue information. Location: `(Get-TransportService $server).QueueLogPath`
 ReceiveConnectors | Enable to collect the Receive Connector information from the server.
+RESTLogs | Enable to collect REST API Logs. Location: `V15\Logging\Rest` and `V15\Logging\HttpProxy\Rest`
 RPCLogs | Enable to collect RPC Logs. Location: `V15\Logging\RPC Client Access`, `V15\Logging\HttpProxy\RpcHttp`, and `V15\Logging\RpcHttp`
 SearchLogs | Enable to collect Search Logs. Location: `V15\Bin\Search\Ceres\Diagnostics\Logs`, `V15\Bin\Search\Ceres\Diagnostics\ETLTraces`, `V15\Logging\Search`. On 2019 only we also include `V15\Logging\BigFunnelMetricsCollectionAssistant`, `V15\Logging\BigFunnelQueryParityAssistant`, and `V15\Logging\BigFunnelRetryFeederTimeBasedAssistant`
 SendConnectors | Enable to collect the send connector information from the environment.

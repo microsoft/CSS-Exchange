@@ -1,6 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\ConvertTo-PSObject.ps1
+
 function Get-IISWebApplication {
     try {
         $webApplications = Get-WebApplication
@@ -59,9 +61,29 @@ function Get-IISWebApplication {
             Write-Verbose "Failed to process additional context for: $($webApplication.ItemXPath). Exception: $($_.Exception)"
         }
 
+        # Convert the object to prevent serialization issues
+        $convertedObject = $null
+        $params = @{
+            ObjectToConvert     = $webApplication
+            ObjectTypeToConvert = "Microsoft.IIs.PowerShell.Framework*"
+            PropertiesToSkip    = @("ChildElements", "Attributes", "Schema", "ConfigurationPathType", "ElementTagName", "Methods")
+        }
+        try {
+            ConvertTo-PSObject @params | Invoke-RemotePipelineHandler -Result ([ref]$convertedObject)
+        } catch {
+            Write-Verbose "Failed to convert the object. Inner Exception: $_"
+            Invoke-CatchActions
+        }
+
+        if ($null -eq $convertedObject -and
+            $null -ne $webApplication) {
+            Write-Verbose "ConvertTo-PSObject failed to return an object. Using the default object."
+            $convertedObject = $webApplication
+        }
+
         $returnList.Add([PSCustomObject]@{
                 FriendlyName               = $friendlyName
-                Path                       = $webApplication.Path
+                Path                       = $convertedObject.Path
                 ConfigurationFileInfo      = ([PSCustomObject]@{
                         Valid                       = $validWebConfig
                         Location                    = $configurationFilePath
@@ -70,18 +92,18 @@ function Get-IISWebApplication {
                         LinkedConfigurationLine     = $linkedConfigurationLine
                         LinkedConfigurationFilePath = $linkedConfigurationFilePath
                     })
-                ApplicationPool            = $webApplication.applicationPool
-                EnabledProtocols           = $webApplication.enabledProtocols
-                ServiceAutoStartEnabled    = $webApplication.serviceAutoStartEnabled
-                ServiceAutoStartProvider   = $webApplication.serviceAutoStartProvider
-                PreloadEnabled             = $webApplication.preloadEnabled
-                PreviouslyEnabledProtocols = $webApplication.previouslyEnabledProtocols
-                ServiceAutoStartMode       = $webApplication.serviceAutoStartMode
-                VirtualDirectoryDefaults   = $webApplication.virtualDirectoryDefaults
-                Collection                 = $webApplication.Collection
-                Location                   = $webApplication.Location
-                ItemXPath                  = $webApplication.ItemXPath
-                PhysicalPath               = $webApplication.PhysicalPath.Replace("%windir%", $env:windir).Replace("%SystemDrive%", $env:SystemDrive)
+                ApplicationPool            = $convertedObject.applicationPool
+                EnabledProtocols           = $convertedObject.enabledProtocols
+                ServiceAutoStartEnabled    = $convertedObject.serviceAutoStartEnabled
+                ServiceAutoStartProvider   = $convertedObject.serviceAutoStartProvider
+                PreloadEnabled             = $convertedObject.preloadEnabled
+                PreviouslyEnabledProtocols = $convertedObject.previouslyEnabledProtocols
+                ServiceAutoStartMode       = $convertedObject.serviceAutoStartMode
+                VirtualDirectoryDefaults   = $convertedObject.virtualDirectoryDefaults
+                Collection                 = $convertedObject.Collection
+                Location                   = $convertedObject.Location
+                ItemXPath                  = $convertedObject.ItemXPath
+                PhysicalPath               = $convertedObject.PhysicalPath.Replace("%windir%", $env:windir).Replace("%SystemDrive%", $env:SystemDrive)
             })
     }
 

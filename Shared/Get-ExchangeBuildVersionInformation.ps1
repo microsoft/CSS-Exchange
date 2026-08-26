@@ -131,7 +131,7 @@ function Get-ExchangeBuildVersionInformation {
                     $cuReleaseDate = "07/01/2025"
                     $supportedBuildNumber = $true
                 }
-                (GetBuildVersion $exSE "RTM" -SU "Dec25SU") { $latestSUBuild = $true }
+                (GetBuildVersion $exSE "RTM" -SU "Aug26SU") { $latestSUBuild = $true }
             }
         } elseif ($exchangeVersion.Major -eq 15 -and $exchangeVersion.Minor -eq 2) {
             Write-Verbose "Exchange 2019 is detected"
@@ -150,14 +150,14 @@ function Get-ExchangeBuildVersionInformation {
                     $cuReleaseDate = "02/10/2025"
                     $supportedBuildNumber = $true
                 }
-                (GetBuildVersion $ex19 "CU15" -SU "Dec25SU") { $latestSUBuild = $true }
+                (GetBuildVersion $ex19 "CU15" -SU "Aug26SU") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex19 "CU15") } {
                     $cuLevel = "CU14"
                     $cuReleaseDate = "02/13/2024"
                     $supportedBuildNumber = $true
                     $orgValue = 16762
                 }
-                (GetBuildVersion $ex19 "CU14" -SU "Dec25SU") { $latestSUBuild = $true }
+                (GetBuildVersion $ex19 "CU14" -SU "Aug26SU") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex19 "CU14") } {
                     $cuLevel = "CU13"
                     $cuReleaseDate = "05/03/2023"
@@ -254,7 +254,7 @@ function Get-ExchangeBuildVersionInformation {
                     $cuReleaseDate = "04/20/2022"
                     $supportedBuildNumber = $true
                 }
-                (GetBuildVersion $ex16 "CU23" -SU "Dec25SU") { $latestSUBuild = $true }
+                (GetBuildVersion $ex16 "CU23" -SU "Aug26SU") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex16 "CU23") } {
                     $cuLevel = "CU22"
                     $cuReleaseDate = "09/28/2021"
@@ -748,6 +748,10 @@ function GetExchangeBuildDictionary {
                     "Sep25HU"   = "15.1.2507.59"
                     "Oct25SU"   = "15.1.2507.61"
                     "Dec25SU"   = "15.1.2507.63"
+                    "Feb26SU"   = "15.1.2507.66"
+                    "Jun26SU"   = "15.1.2507.69"
+                    "Jul26SU"   = "15.1.2507.71"
+                    "Aug26SU"   = "15.1.2507.72"
                 })
         }
         "Exchange2019" = @{
@@ -861,6 +865,10 @@ function GetExchangeBuildDictionary {
                     "Sep25HU"   = "15.2.1544.34"
                     "Oct25SU"   = "15.2.1544.36"
                     "Dec25SU"   = "15.2.1544.37"
+                    "Feb26SU"   = "15.2.1544.39"
+                    "Jun26SU"   = "15.2.1544.41"
+                    "Jul26SU"   = "15.2.1544.43"
+                    "Aug26SU"   = "15.2.1544.44"
                 })
             "CU15" = (NewCUAndSUObject "15.2.1748.10" @{
                     "Apr25HU" = "15.2.1748.24"
@@ -869,6 +877,10 @@ function GetExchangeBuildDictionary {
                     "Sep25HU" = "15.2.1748.37"
                     "Oct25SU" = "15.2.1748.39"
                     "Dec25SU" = "15.2.1748.42"
+                    "Feb26SU" = "15.2.1748.43"
+                    "Jun26SU" = "15.2.1748.46"
+                    "Jul26SU" = "15.2.1748.48"
+                    "Aug26SU" = "15.2.1748.49"
                 })
         }
         "ExchangeSE"   = @{
@@ -877,6 +889,11 @@ function GetExchangeBuildDictionary {
                     "Sep25HU" = "15.2.2562.27"
                     "Oct25SU" = "15.2.2562.29"
                     "Dec25SU" = "15.2.2562.35"
+                    "Feb26SU" = "15.2.2562.37"
+                    "May26HU" = "15.2.2562.41"
+                    "Jun26SU" = "15.2.2562.43"
+                    "Jul26SU" = "15.2.2562.45"
+                    "Aug26SU" = "15.2.2562.46"
                 })
         }
     }

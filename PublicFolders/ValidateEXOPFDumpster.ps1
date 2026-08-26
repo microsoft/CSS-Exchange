@@ -1,12 +1,19 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
+[CmdletBinding(DefaultParameterSetName = "Default")]
 param(
-    [Parameter(Mandatory = $false)]
+    [Parameter(Mandatory = $false, ParameterSetName = "Default")]
     [String]$ExportPath,
-    [Parameter(Mandatory = $true)]
+    [Parameter(Mandatory = $true, ParameterSetName = "Default")]
     [String]$PFolder,
-    [Parameter(Mandatory = $false)]
-    [String]$AffectedUser)
+    [Parameter(Mandatory = $false, ParameterSetName = "Default")]
+    [String]$AffectedUser,
+    [Parameter(Mandatory = $true, ParameterSetName = "ScriptUpdateOnly")]
+    [switch]$ScriptUpdateOnly,
+    [switch]$SkipVersionCheck)
+
+. $PSScriptRoot\..\Shared\ScriptUpdateFunctions\GenericScriptUpdate.ps1
+
 $Script:ReportName = "ValidatePFDumpsterREPORT.txt"
 #Requires -Modules @{ModuleName="ExchangeOnlineManagement"; ModuleVersion="3.0.0" }
 function LogError {

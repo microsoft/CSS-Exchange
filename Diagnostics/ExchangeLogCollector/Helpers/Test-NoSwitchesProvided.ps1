@@ -29,6 +29,7 @@ function Test-NoSwitchesProvided {
         $ImapLogs -or
         $OABLogs -or
         $PowerShellLogs -or
+        $RESTLogs -or
         $WindowsSecurityLogs -or
         $MailboxAssistantsLogs -or
         $ExchangeServerInformation -or

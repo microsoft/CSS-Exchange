@@ -1,0 +1,984 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>Microsoft.Management.Infrastructure.CimInstance#root/cimv2/Win32_NetworkAdapterConfiguration</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/cimv2/CIM_Setting</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#Win32_NetworkAdapterConfiguration</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#CIM_Setting</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>Win32_NetworkAdapterConfiguration: [00000000] Microsoft Hyper-V Network Adapter (Index = 0)</ToString>
+    <Props>
+      <S N="Caption">[00000000] Microsoft Hyper-V Network Adapter</S>
+      <S N="Description">Microsoft Hyper-V Network Adapter</S>
+      <S N="SettingID">{DB6BECBC-0612-414F-BD53-7053E2BE8988}</S>
+      <Nil N="ArpAlwaysSourceRoute" />
+      <Nil N="ArpUseEtherSNAP" />
+      <S N="DatabasePath">%SystemRoot%\System32\drivers\etc</S>
+      <Nil N="DeadGWDetectEnabled" />
+      <Obj N="DefaultIPGateway" RefId="1">
+        <TN RefId="1">
+          <T>System.String[]</T>
+          <T>System.Array</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <S>192.168.13.1</S>
+        </LST>
+      </Obj>
+      <Nil N="DefaultTOS" />
+      <Nil N="DefaultTTL" />
+      <B N="DHCPEnabled">false</B>
+      <Nil N="DHCPLeaseExpires" />
+      <Nil N="DHCPLeaseObtained" />
+      <Nil N="DHCPServer" />
+      <Nil N="DNSDomain" />
+      <Obj N="DNSDomainSuffixSearchOrder" RefId="2">
+        <TNRef RefId="1" />
+        <LST>
+          <S>Contoso.local</S>
+        </LST>
+      </Obj>
+      <B N="DNSEnabledForWINSResolution">false</B>
+      <S N="DNSHostName">Contoso-EX1</S>
+      <Obj N="DNSServerSearchOrder" RefId="3">
+        <TNRef RefId="1" />
+        <LST>
+          <S>192.168.13.10</S>
+        </LST>
+      </Obj>
+      <B N="DomainDNSRegistrationEnabled">false</B>
+      <Nil N="ForwardBufferMemory" />
+      <B N="FullDNSRegistrationEnabled">true</B>
+      <Obj N="GatewayCostMetric" RefId="4">
+        <TN RefId="2">
+          <T>System.UInt16[]</T>
+          <T>System.Array</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <U16>256</U16>
+        </LST>
+      </Obj>
+      <Nil N="IGMPLevel" />
+      <U32 N="Index">0</U32>
+      <U32 N="InterfaceIndex">15</U32>
+      <Obj N="IPAddress" RefId="5">
+        <TNRef RefId="1" />
+        <LST>
+          <S>192.168.13.11</S>
+          <S>fe80::2908:fac7:fcd3:c7ce</S>
+        </LST>
+      </Obj>
+      <U32 N="IPConnectionMetric">15</U32>
+      <B N="IPEnabled">true</B>
+      <B N="IPFilterSecurityEnabled">false</B>
+      <Nil N="IPPortSecurityEnabled" />
+      <Obj N="IPSecPermitIPProtocols" RefId="6">
+        <TNRef RefId="1" />
+        <LST />
+      </Obj>
+      <Obj N="IPSecPermitTCPPorts" RefId="7">
+        <TNRef RefId="1" />
+        <LST />
+      </Obj>
+      <Obj N="IPSecPermitUDPPorts" RefId="8">
+        <TNRef RefId="1" />
+        <LST />
+      </Obj>
+      <Obj N="IPSubnet" RefId="9">
+        <TNRef RefId="1" />
+        <LST>
+          <S>255.255.255.0</S>
+          <S>64</S>
+        </LST>
+      </Obj>
+      <Nil N="IPUseZeroBroadcast" />
+      <Nil N="IPXAddress" />
+      <Nil N="IPXEnabled" />
+      <Nil N="IPXFrameType" />
+      <Nil N="IPXMediaType" />
+      <Nil N="IPXNetworkNumber" />
+      <Nil N="IPXVirtualNetNumber" />
+      <Nil N="KeepAliveInterval" />
+      <Nil N="KeepAliveTime" />
+      <S N="MACAddress">00:15:5D:00:0A:4B</S>
+      <Nil N="MTU" />
+      <Nil N="NumForwardPackets" />
+      <Nil N="PMTUBHDetectEnabled" />
+      <Nil N="PMTUDiscoveryEnabled" />
+      <S N="ServiceName">netvsc</S>
+      <U32 N="TcpipNetbiosOptions">0</U32>
+      <Nil N="TcpMaxConnectRetransmissions" />
+      <Nil N="TcpMaxDataRetransmissions" />
+      <Nil N="TcpNumConnections" />
+      <Nil N="TcpUseRFC1122UrgentPointer" />
+      <Nil N="TcpWindowSize" />
+      <B N="WINSEnableLMHostsLookup">true</B>
+      <Nil N="WINSHostLookupFile" />
+      <Nil N="WINSPrimaryServer" />
+      <S N="WINSScopeID"></S>
+      <Nil N="WINSSecondaryServer" />
+      <Nil N="PSComputerName" />
+    </Props>
+    <MS>
+      <Obj N="__ClassMetadata" RefId="10">
+        <TN RefId="3">
+          <T>System.Collections.ArrayList</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <Obj RefId="11">
+            <MS>
+              <S N="ClassName">CIM_Setting</S>
+              <S N="Namespace">ROOT/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735718104</I32>
+              <S N="MiXml">&lt;CLASS NAME="CIM_Setting"&gt;&lt;QUALIFIER NAME="Abstract" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Locale" TYPE="sint32"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="UUID" TYPE="string"&gt;&lt;VALUE&gt;{8502C572-5FBB-11D2-AAC1-006008C78BC7}&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="Caption" TYPE="string"&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Description" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="SettingID" TYPE="string"&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;256&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;/CLASS&gt;</S>
+            </MS>
+          </Obj>
+          <Obj RefId="12">
+            <MS>
+              <S N="ClassName">Win32_NetworkAdapterConfiguration</S>
+              <S N="Namespace">root/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735690024</I32>
+              <S N="MiXml">&lt;CLASS NAME="Win32_NetworkAdapterConfiguration" SUPERCLASS="CIM_Setting"&gt;&lt;QUALIFIER NAME="Locale" TYPE="sint32"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="UUID" TYPE="string"&gt;&lt;VALUE&gt;{8502C515-5FBB-11D2-AAC1-006008C78BC7}&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="dynamic" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="provider" TYPE="string"&gt;&lt;VALUE&gt;CIMWin32&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="ArpAlwaysSourceRoute" TYPE="boolean"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|ArpAlwaysSourceRoute&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ArpUseEtherSNAP" TYPE="boolean"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|ArpUseEtherSNAP&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DatabasePath" TYPE="string"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|DatabasePath&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DeadGWDetectEnabled" TYPE="boolean"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|EnableDeadGWDetect&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY.ARRAY NAME="DefaultIPGateway" TYPE="string"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|System\CurrentControlSet\Services|Parameters|DefaultGateway&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY.ARRAY&gt;&lt;PROPERTY NAME="DefaultTOS" TYPE="uint8"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|DefaultTOS&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DefaultTTL" TYPE="uint8"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|DefaultTTL&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DHCPEnabled" TYPE="boolean"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services|EnableDHCP&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DHCPLeaseExpires" TYPE="datetime"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services|LeaseTerminatesTime&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DHCPLeaseObtained" TYPE="datetime"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services|LeaseObtainedTime&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DHCPServer" TYPE="string"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services|DhcpServer&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DNSDomain" TYPE="string"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|Domain&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY.ARRAY NAME="DNSDomainSuffixSearchOrder" TYPE="string"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|SearchList&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY.ARRAY&gt;&lt;PROPERTY NAME="DNSEnabledForWINSResolution" TYPE="boolean"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|EnableDNS&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DNSHostName" TYPE="string"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|Hostname&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY.ARRAY NAME="DNSServerSearchOrder" TYPE="string"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|NameServer&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY.ARRAY&gt;&lt;PROPERTY NAME="DomainDNSRegistrationEnabled" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ForwardBufferMemory" TYPE="uint32"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|ForwardBufferMemory&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="FullDNSRegistrationEnabled" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY.ARRAY NAME="GatewayCostMetric" TYPE="uint16"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY.ARRAY&gt;&lt;PROPERTY NAME="IGMPLevel" TYPE="uint8"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|IGMPLevel&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Index" TYPE="uint32"&gt;&lt;QUALIFIER NAME="key" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002BE10318}&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InterfaceIndex" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY.ARRAY NAME="IPAddress" TYPE="string"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|System\CurrentControlSet\Services|Parameters\Tcpip|IPAddress&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY.ARRAY&gt;&lt;PROPERTY NAME="IPConnectionMetric" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="IPEnabled" TYPE="boolean"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|System\CurrentControlSet\Services|Parameters\Tcpip&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="IPFilterSecurityEnabled" TYPE="boolean"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|IPFilterSecurityEnabled&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="IPPortSecurityEnabled" TYPE="boolean"&gt;&lt;QUALIFIER NAME="DEPRECATED" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;WMI|Win32_NetworkAdapterConfiguration|IPFilterSecurityEnabled&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY.ARRAY NAME="IPSecPermitIPProtocols" TYPE="string"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|RawIPAllowedProtocols&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY.ARRAY&gt;&lt;PROPERTY.ARRAY NAME="IPSecPermitTCPPorts" TYPE="string"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|TCPAllowedPorts&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY.ARRAY&gt;&lt;PROPERTY.ARRAY NAME="IPSecPermitUDPPorts" TYPE="string"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|UDPAllowedPorts&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY.ARRAY&gt;&lt;PROPERTY.ARRAY NAME="IPSubnet" TYPE="string"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|System\CurrentControlSet\Services|Parameters|SubnetMask&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY.ARRAY&gt;&lt;PROPERTY NAME="IPUseZeroBroadcast" TYPE="boolean"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|UseZeroBroadcast&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="IPXAddress" TYPE="string"&gt;&lt;QUALIFIER NAME="DEPRECATED" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32API|Windows Sockets Version 2|getsockopt|IPX_ADDRESS&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="IPXEnabled" TYPE="boolean"&gt;&lt;QUALIFIER NAME="DEPRECATED" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;WMI&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY.ARRAY NAME="IPXFrameType" TYPE="uint32"&gt;&lt;QUALIFIER NAME="DEPRECATED" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\nwlnkipx\Parameters|PktType&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;255&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY.ARRAY&gt;&lt;PROPERTY NAME="IPXMediaType" TYPE="uint32"&gt;&lt;QUALIFIER NAME="DEPRECATED" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\nwlnkipx\Parameters|MediaType&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;8&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY.ARRAY NAME="IPXNetworkNumber" TYPE="string"&gt;&lt;QUALIFIER NAME="DEPRECATED" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\nwlnkipx\Parameters|NetworkNumber&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY.ARRAY&gt;&lt;PROPERTY NAME="IPXVirtualNetNumber" TYPE="string"&gt;&lt;QUALIFIER NAME="DEPRECATED" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\nwlnkipx\Parameters|VirtualNetworkNumber&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="KeepAliveInterval" TYPE="uint32"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|KeepAliveInterval&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="KeepAliveTime" TYPE="uint32"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|KeepAliveInterval&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="MACAddress" TYPE="string"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32API|Device Input and Output Functions|DeviceIoControl&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="MTU" TYPE="uint32"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|MTU&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="NumForwardPackets" TYPE="uint32"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|NumForwardPackets&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="PMTUBHDetectEnabled" TYPE="boolean"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|EnablePMTUBHDetect&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="PMTUDiscoveryEnabled" TYPE="boolean"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|EnablePMTUDiscovery&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ServiceName" TYPE="string"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|Software\Microsoft\Windows NT\CurrentVersion\NetworkCards|ServiceName&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="TcpipNetbiosOptions" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="TcpMaxConnectRetransmissions" TYPE="uint32"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|TcpMaxConnectRetransmissions&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="TcpMaxDataRetransmissions" TYPE="uint32"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|TcpMaxDataRetransmissions&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="TcpNumConnections" TYPE="uint32"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|TcpNumConnections&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="TcpUseRFC1122UrgentPointer" TYPE="boolean"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|TcpUseRFC1122UrgentPointer&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="TcpWindowSize" TYPE="uint16"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|TcpWindowSize&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="WINSEnableLMHostsLookup" TYPE="boolean"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|EnableLMHOSTS&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="WINSHostLookupFile" TYPE="string"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32API|System Information Functions|GetSystemDirectory|\drivers\etc\lmhosts&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="WINSPrimaryServer" TYPE="string"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32API|Device Input and Output Functions|DeviceIoControl&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="WINSScopeID" TYPE="string"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|ScopeID&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="WINSSecondaryServer" TYPE="string"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32API|Device Input and Output Functions|DeviceIoControl&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;METHOD NAME="EnableDHCP" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;WMI&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="RenewDHCPLease" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;WMI&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="RenewDHCPLeaseAll" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;WMI&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Static" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="ReleaseDHCPLease" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;WMI&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="ReleaseDHCPLeaseAll" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;WMI&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Static" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="EnableStatic" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;WMI&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER.ARRAY NAME="IPAddress" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;WMI&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER.ARRAY&gt;&lt;PARAMETER.ARRAY NAME="SubnetMask" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;WMI&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER.ARRAY&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetGateways" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;WMI&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER.ARRAY NAME="DefaultIPGateway" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces\&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER.ARRAY&gt;&lt;PARAMETER.ARRAY NAME="GatewayCostMetric" TYPE="uint16"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;WMI&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Optional" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER.ARRAY&gt;&lt;/METHOD&gt;&lt;METHOD NAME="EnableDNS" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Static" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="DNSDomain" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|Domain&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Optional" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER.ARRAY NAME="DNSDomainSuffixSearchOrder" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|SearchList&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Optional" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER.ARRAY&gt;&lt;PARAMETER NAME="DNSHostName" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|Hostname&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Optional" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER.ARRAY NAME="DNSServerSearchOrder" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|NameServer&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Optional" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER.ARRAY&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetDNSDomain" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="DNSDomain" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|Domain&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetDNSServerSearchOrder" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER.ARRAY NAME="DNSServerSearchOrder" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|NameServer&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER.ARRAY&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetDNSSuffixSearchOrder" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Static" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER.ARRAY NAME="DNSDomainSuffixSearchOrder" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|NameServer&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER.ARRAY&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetDynamicDNSRegistration" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="DomainDNSRegistrationEnabled" TYPE="boolean"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Optional" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="FullDNSRegistrationEnabled" TYPE="boolean"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetIPConnectionMetric" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="IPConnectionMetric" TYPE="uint32"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetWINSServer" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32API|Device Input and Output Functions|DeviceIoControl&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="WINSPrimaryServer" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32API|Device Input and Output Functions|DeviceIoControl&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="WINSSecondaryServer" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32API|Device Input and Output Functions|DeviceIoControl&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="EnableWINS" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Static" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="DNSEnabledForWINSResolution" TYPE="boolean"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Netbt\Parameters|EnableDNS&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="WINSEnableLMHostsLookup" TYPE="boolean"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Netbt\Parameters|EnableLMHOSTS&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="WINSHostLookupFile" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|DatabasePath&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="optional" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="WINSScopeID" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Netbt\Parameters|ScopeID&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="optional" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetTcpipNetbios" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="TcpipNetbiosOptions" TYPE="uint32"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="EnableIPSec" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services|Tcpip\Parameters\Interfaces&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER.ARRAY NAME="IPSecPermitIPProtocols" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services|Tcpip\Parameters\Interfaces|RawIPAllowedProtocols&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER.ARRAY&gt;&lt;PARAMETER.ARRAY NAME="IPSecPermitTCPPorts" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services|Tcpip\Parameters\Interfaces|TCPAllowedPorts&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER.ARRAY&gt;&lt;PARAMETER.ARRAY NAME="IPSecPermitUDPPorts" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services|Tcpip\Parameters\Interfaces|UDPAllowedPorts&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER.ARRAY&gt;&lt;/METHOD&gt;&lt;METHOD NAME="DisableIPSec" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services|Tcpip\Parameters\Interfaces&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetIPXVirtualNetworkNumber" TYPE="uint32"&gt;&lt;QUALIFIER NAME="DEPRECATED" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\nwlnkipx\Parameters&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Static" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="IPXVirtualNetNumber" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\nwlnkipx\Parameters|VirtualNetworkNumber&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetIPXFrameTypeNetworkPairs" TYPE="uint32"&gt;&lt;QUALIFIER NAME="DEPRECATED" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\nwlnkipx\Parameters\Adapters&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER.ARRAY NAME="IPXFrameType" TYPE="uint32"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\nwlnkipx\Parameters\Adapters|PktType&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;255&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER.ARRAY&gt;&lt;PARAMETER.ARRAY NAME="IPXNetworkNumber" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\nwlnkipx\Parameters\Adapters|NetworkNumber&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER.ARRAY&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetDatabasePath" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Static" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="DatabasePath" TYPE="string"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|DatabasePath&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetIPUseZeroBroadcast" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Static" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="IPUseZeroBroadcast" TYPE="boolean"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|UseZeroBroadcast&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetArpAlwaysSourceRoute" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Static" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="ArpAlwaysSourceRoute" TYPE="boolean"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|ArpAlwaysSourceRoute&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetArpUseEtherSNAP" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Static" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="ArpUseEtherSNAP" TYPE="boolean"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|ArpUseEtherSNAP&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetDefaultTOS" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Static" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="DefaultTOS" TYPE="uint8"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|DefaultTOS&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetDefaultTTL" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Static" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="DefaultTTL" TYPE="uint8"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|DefaultTTL&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetDeadGWDetect" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Static" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="DeadGWDetectEnabled" TYPE="boolean"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|EnableDeadGWDetect&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetPMTUBHDetect" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Static" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="PMTUBHDetectEnabled" TYPE="boolean"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|EnablePMTUBHDetect&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetPMTUDiscovery" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Static" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="PMTUDiscoveryEnabled" TYPE="boolean"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|EnablePMTUDiscovery&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetForwardBufferMemory" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Static" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="ForwardBufferMemory" TYPE="uint32"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|ForwardBufferMemory&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetIGMPLevel" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Static" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="IGMPLevel" TYPE="uint8"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|IGMPLevel&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetKeepAliveInterval" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Static" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="KeepAliveInterval" TYPE="uint32"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|KeepAliveInterval&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetKeepAliveTime" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Static" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="KeepAliveTime" TYPE="uint32"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|KeepAliveInterval&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetMTU" TYPE="uint32"&gt;&lt;QUALIFIER NAME="DEPRECATED" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Static" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="MTU" TYPE="uint32"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|MTU&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetNumForwardPackets" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Static" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="NumForwardPackets" TYPE="uint32"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|NumForwardPackets&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetTcpMaxConnectRetransmissions" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|TcpMaxConnectRetransmissions&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Static" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="TcpMaxConnectRetransmissions" TYPE="uint32"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|TcpMaxConnectRetransmissions&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetTcpMaxDataRetransmissions" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Static" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="TcpMaxDataRetransmissions" TYPE="uint32"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|TcpMaxDataRetransmissions&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetTcpNumConnections" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Static" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="TcpNumConnections" TYPE="uint32"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|TcpNumConnections&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetTcpUseRFC1122UrgentPointer" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Static" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="TcpUseRFC1122UrgentPointer" TYPE="boolean"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|TcpUseRFC1122UrgentPointer&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="SetTcpWindowSize" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Static" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="TcpWindowSize" TYPE="uint16"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|TcpWindowSize&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="EnableIPFilterSec" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Static" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;VALUE&gt;65&lt;/VALUE&gt;&lt;VALUE&gt;66&lt;/VALUE&gt;&lt;VALUE&gt;67&lt;/VALUE&gt;&lt;VALUE&gt;68&lt;/VALUE&gt;&lt;VALUE&gt;69&lt;/VALUE&gt;&lt;VALUE&gt;70&lt;/VALUE&gt;&lt;VALUE&gt;71&lt;/VALUE&gt;&lt;VALUE&gt;72&lt;/VALUE&gt;&lt;VALUE&gt;73&lt;/VALUE&gt;&lt;VALUE&gt;74&lt;/VALUE&gt;&lt;VALUE&gt;75&lt;/VALUE&gt;&lt;VALUE&gt;76&lt;/VALUE&gt;&lt;VALUE&gt;77&lt;/VALUE&gt;&lt;VALUE&gt;78&lt;/VALUE&gt;&lt;VALUE&gt;79&lt;/VALUE&gt;&lt;VALUE&gt;80&lt;/VALUE&gt;&lt;VALUE&gt;81&lt;/VALUE&gt;&lt;VALUE&gt;82&lt;/VALUE&gt;&lt;VALUE&gt;83&lt;/VALUE&gt;&lt;VALUE&gt;84&lt;/VALUE&gt;&lt;VALUE&gt;85&lt;/VALUE&gt;&lt;VALUE&gt;86&lt;/VALUE&gt;&lt;VALUE&gt;87&lt;/VALUE&gt;&lt;VALUE&gt;88&lt;/VALUE&gt;&lt;VALUE&gt;89&lt;/VALUE&gt;&lt;VALUE&gt;90&lt;/VALUE&gt;&lt;VALUE&gt;91&lt;/VALUE&gt;&lt;VALUE&gt;92&lt;/VALUE&gt;&lt;VALUE&gt;93&lt;/VALUE&gt;&lt;VALUE&gt;94&lt;/VALUE&gt;&lt;VALUE&gt;95&lt;/VALUE&gt;&lt;VALUE&gt;96&lt;/VALUE&gt;&lt;VALUE&gt;97&lt;/VALUE&gt;&lt;VALUE&gt;98&lt;/VALUE&gt;&lt;VALUE&gt;100&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;PARAMETER NAME="IPFilterSecurityEnabled" TYPE="boolean"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="In" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|SYSTEM\CurrentControlSet\Services\Tcpip\Parameters|IPFilterSecurityEnabled&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;/CLASS&gt;</S>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+  <Obj RefId="13">
+    <TNRef RefId="0" />
+    <ToString>Win32_NetworkAdapterConfiguration: [00000001] Microsoft Kernel Debug Network Adapter (Index = 1)</ToString>
+    <Props>
+      <S N="Caption">[00000001] Microsoft Kernel Debug Network Adapter</S>
+      <S N="Description">Microsoft Kernel Debug Network Adapter</S>
+      <S N="SettingID">{7A8CE6FA-7092-494D-9082-CB34236F5571}</S>
+      <Nil N="ArpAlwaysSourceRoute" />
+      <Nil N="ArpUseEtherSNAP" />
+      <Nil N="DatabasePath" />
+      <Nil N="DeadGWDetectEnabled" />
+      <Nil N="DefaultIPGateway" />
+      <Nil N="DefaultTOS" />
+      <Nil N="DefaultTTL" />
+      <B N="DHCPEnabled">true</B>
+      <Nil N="DHCPLeaseExpires" />
+      <Nil N="DHCPLeaseObtained" />
+      <Nil N="DHCPServer" />
+      <Nil N="DNSDomain" />
+      <Nil N="DNSDomainSuffixSearchOrder" />
+      <Nil N="DNSEnabledForWINSResolution" />
+      <Nil N="DNSHostName" />
+      <Nil N="DNSServerSearchOrder" />
+      <Nil N="DomainDNSRegistrationEnabled" />
+      <Nil N="ForwardBufferMemory" />
+      <Nil N="FullDNSRegistrationEnabled" />
+      <Nil N="GatewayCostMetric" />
+      <Nil N="IGMPLevel" />
+      <U32 N="Index">1</U32>
+      <U32 N="InterfaceIndex">8</U32>
+      <Nil N="IPAddress" />
+      <Nil N="IPConnectionMetric" />
+      <B N="IPEnabled">false</B>
+      <Nil N="IPFilterSecurityEnabled" />
+      <Nil N="IPPortSecurityEnabled" />
+      <Nil N="IPSecPermitIPProtocols" />
+      <Nil N="IPSecPermitTCPPorts" />
+      <Nil N="IPSecPermitUDPPorts" />
+      <Nil N="IPSubnet" />
+      <Nil N="IPUseZeroBroadcast" />
+      <Nil N="IPXAddress" />
+      <Nil N="IPXEnabled" />
+      <Nil N="IPXFrameType" />
+      <Nil N="IPXMediaType" />
+      <Nil N="IPXNetworkNumber" />
+      <Nil N="IPXVirtualNetNumber" />
+      <Nil N="KeepAliveInterval" />
+      <Nil N="KeepAliveTime" />
+      <Nil N="MACAddress" />
+      <Nil N="MTU" />
+      <Nil N="NumForwardPackets" />
+      <Nil N="PMTUBHDetectEnabled" />
+      <Nil N="PMTUDiscoveryEnabled" />
+      <S N="ServiceName">kdnic</S>
+      <Nil N="TcpipNetbiosOptions" />
+      <Nil N="TcpMaxConnectRetransmissions" />
+      <Nil N="TcpMaxDataRetransmissions" />
+      <Nil N="TcpNumConnections" />
+      <Nil N="TcpUseRFC1122UrgentPointer" />
+      <Nil N="TcpWindowSize" />
+      <Nil N="WINSEnableLMHostsLookup" />
+      <Nil N="WINSHostLookupFile" />
+      <Nil N="WINSPrimaryServer" />
+      <Nil N="WINSScopeID" />
+      <Nil N="WINSSecondaryServer" />
+      <Nil N="PSComputerName" />
+    </Props>
+    <MS>
+      <Obj N="__ClassMetadata" RefId="14">
+        <TNRef RefId="3" />
+        <LST>
+          <Obj RefId="15">
+            <MS>
+              <S N="ClassName">Win32_NetworkAdapterConfiguration</S>
+              <S N="Namespace">root/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735690024</I32>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+  <Obj RefId="16">
+    <TNRef RefId="0" />
+    <ToString>Win32_NetworkAdapterConfiguration: [00000002] WAN Miniport (SSTP) (Index = 2)</ToString>
+    <Props>
+      <S N="Caption">[00000002] WAN Miniport (SSTP)</S>
+      <S N="Description">WAN Miniport (SSTP)</S>
+      <S N="SettingID">{331CDBE6-9036-4AB1-9FEC-61125FD12B9E}</S>
+      <Nil N="ArpAlwaysSourceRoute" />
+      <Nil N="ArpUseEtherSNAP" />
+      <Nil N="DatabasePath" />
+      <Nil N="DeadGWDetectEnabled" />
+      <Nil N="DefaultIPGateway" />
+      <Nil N="DefaultTOS" />
+      <Nil N="DefaultTTL" />
+      <B N="DHCPEnabled">false</B>
+      <Nil N="DHCPLeaseExpires" />
+      <Nil N="DHCPLeaseObtained" />
+      <Nil N="DHCPServer" />
+      <Nil N="DNSDomain" />
+      <Nil N="DNSDomainSuffixSearchOrder" />
+      <Nil N="DNSEnabledForWINSResolution" />
+      <Nil N="DNSHostName" />
+      <Nil N="DNSServerSearchOrder" />
+      <Nil N="DomainDNSRegistrationEnabled" />
+      <Nil N="ForwardBufferMemory" />
+      <Nil N="FullDNSRegistrationEnabled" />
+      <Nil N="GatewayCostMetric" />
+      <Nil N="IGMPLevel" />
+      <U32 N="Index">2</U32>
+      <U32 N="InterfaceIndex">5</U32>
+      <Nil N="IPAddress" />
+      <Nil N="IPConnectionMetric" />
+      <B N="IPEnabled">false</B>
+      <Nil N="IPFilterSecurityEnabled" />
+      <Nil N="IPPortSecurityEnabled" />
+      <Nil N="IPSecPermitIPProtocols" />
+      <Nil N="IPSecPermitTCPPorts" />
+      <Nil N="IPSecPermitUDPPorts" />
+      <Nil N="IPSubnet" />
+      <Nil N="IPUseZeroBroadcast" />
+      <Nil N="IPXAddress" />
+      <Nil N="IPXEnabled" />
+      <Nil N="IPXFrameType" />
+      <Nil N="IPXMediaType" />
+      <Nil N="IPXNetworkNumber" />
+      <Nil N="IPXVirtualNetNumber" />
+      <Nil N="KeepAliveInterval" />
+      <Nil N="KeepAliveTime" />
+      <Nil N="MACAddress" />
+      <Nil N="MTU" />
+      <Nil N="NumForwardPackets" />
+      <Nil N="PMTUBHDetectEnabled" />
+      <Nil N="PMTUDiscoveryEnabled" />
+      <S N="ServiceName">RasSstp</S>
+      <Nil N="TcpipNetbiosOptions" />
+      <Nil N="TcpMaxConnectRetransmissions" />
+      <Nil N="TcpMaxDataRetransmissions" />
+      <Nil N="TcpNumConnections" />
+      <Nil N="TcpUseRFC1122UrgentPointer" />
+      <Nil N="TcpWindowSize" />
+      <Nil N="WINSEnableLMHostsLookup" />
+      <Nil N="WINSHostLookupFile" />
+      <Nil N="WINSPrimaryServer" />
+      <Nil N="WINSScopeID" />
+      <Nil N="WINSSecondaryServer" />
+      <Nil N="PSComputerName" />
+    </Props>
+    <MS>
+      <Obj N="__ClassMetadata" RefId="17">
+        <TNRef RefId="3" />
+        <LST>
+          <Obj RefId="18">
+            <MS>
+              <S N="ClassName">Win32_NetworkAdapterConfiguration</S>
+              <S N="Namespace">root/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735690024</I32>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+  <Obj RefId="19">
+    <TNRef RefId="0" />
+    <ToString>Win32_NetworkAdapterConfiguration: [00000003] WAN Miniport (IKEv2) (Index = 3)</ToString>
+    <Props>
+      <S N="Caption">[00000003] WAN Miniport (IKEv2)</S>
+      <S N="Description">WAN Miniport (IKEv2)</S>
+      <S N="SettingID">{93036520-A61A-487B-BE33-6E17AFBC4357}</S>
+      <Nil N="ArpAlwaysSourceRoute" />
+      <Nil N="ArpUseEtherSNAP" />
+      <Nil N="DatabasePath" />
+      <Nil N="DeadGWDetectEnabled" />
+      <Nil N="DefaultIPGateway" />
+      <Nil N="DefaultTOS" />
+      <Nil N="DefaultTTL" />
+      <B N="DHCPEnabled">false</B>
+      <Nil N="DHCPLeaseExpires" />
+      <Nil N="DHCPLeaseObtained" />
+      <Nil N="DHCPServer" />
+      <Nil N="DNSDomain" />
+      <Nil N="DNSDomainSuffixSearchOrder" />
+      <Nil N="DNSEnabledForWINSResolution" />
+      <Nil N="DNSHostName" />
+      <Nil N="DNSServerSearchOrder" />
+      <Nil N="DomainDNSRegistrationEnabled" />
+      <Nil N="ForwardBufferMemory" />
+      <Nil N="FullDNSRegistrationEnabled" />
+      <Nil N="GatewayCostMetric" />
+      <Nil N="IGMPLevel" />
+      <U32 N="Index">3</U32>
+      <U32 N="InterfaceIndex">10</U32>
+      <Nil N="IPAddress" />
+      <Nil N="IPConnectionMetric" />
+      <B N="IPEnabled">false</B>
+      <Nil N="IPFilterSecurityEnabled" />
+      <Nil N="IPPortSecurityEnabled" />
+      <Nil N="IPSecPermitIPProtocols" />
+      <Nil N="IPSecPermitTCPPorts" />
+      <Nil N="IPSecPermitUDPPorts" />
+      <Nil N="IPSubnet" />
+      <Nil N="IPUseZeroBroadcast" />
+      <Nil N="IPXAddress" />
+      <Nil N="IPXEnabled" />
+      <Nil N="IPXFrameType" />
+      <Nil N="IPXMediaType" />
+      <Nil N="IPXNetworkNumber" />
+      <Nil N="IPXVirtualNetNumber" />
+      <Nil N="KeepAliveInterval" />
+      <Nil N="KeepAliveTime" />
+      <Nil N="MACAddress" />
+      <Nil N="MTU" />
+      <Nil N="NumForwardPackets" />
+      <Nil N="PMTUBHDetectEnabled" />
+      <Nil N="PMTUDiscoveryEnabled" />
+      <S N="ServiceName">RasAgileVpn</S>
+      <Nil N="TcpipNetbiosOptions" />
+      <Nil N="TcpMaxConnectRetransmissions" />
+      <Nil N="TcpMaxDataRetransmissions" />
+      <Nil N="TcpNumConnections" />
+      <Nil N="TcpUseRFC1122UrgentPointer" />
+      <Nil N="TcpWindowSize" />
+      <Nil N="WINSEnableLMHostsLookup" />
+      <Nil N="WINSHostLookupFile" />
+      <Nil N="WINSPrimaryServer" />
+      <Nil N="WINSScopeID" />
+      <Nil N="WINSSecondaryServer" />
+      <Nil N="PSComputerName" />
+    </Props>
+    <MS>
+      <Obj N="__ClassMetadata" RefId="20">
+        <TNRef RefId="3" />
+        <LST>
+          <Obj RefId="21">
+            <MS>
+              <S N="ClassName">Win32_NetworkAdapterConfiguration</S>
+              <S N="Namespace">root/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735690024</I32>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+  <Obj RefId="22">
+    <TNRef RefId="0" />
+    <ToString>Win32_NetworkAdapterConfiguration: [00000004] WAN Miniport (L2TP) (Index = 4)</ToString>
+    <Props>
+      <S N="Caption">[00000004] WAN Miniport (L2TP)</S>
+      <S N="Description">WAN Miniport (L2TP)</S>
+      <S N="SettingID">{AA13DF37-75D4-484D-9717-992A59DF1182}</S>
+      <Nil N="ArpAlwaysSourceRoute" />
+      <Nil N="ArpUseEtherSNAP" />
+      <Nil N="DatabasePath" />
+      <Nil N="DeadGWDetectEnabled" />
+      <Nil N="DefaultIPGateway" />
+      <Nil N="DefaultTOS" />
+      <Nil N="DefaultTTL" />
+      <B N="DHCPEnabled">false</B>
+      <Nil N="DHCPLeaseExpires" />
+      <Nil N="DHCPLeaseObtained" />
+      <Nil N="DHCPServer" />
+      <Nil N="DNSDomain" />
+      <Nil N="DNSDomainSuffixSearchOrder" />
+      <Nil N="DNSEnabledForWINSResolution" />
+      <Nil N="DNSHostName" />
+      <Nil N="DNSServerSearchOrder" />
+      <Nil N="DomainDNSRegistrationEnabled" />
+      <Nil N="ForwardBufferMemory" />
+      <Nil N="FullDNSRegistrationEnabled" />
+      <Nil N="GatewayCostMetric" />
+      <Nil N="IGMPLevel" />
+      <U32 N="Index">4</U32>
+      <U32 N="InterfaceIndex">14</U32>
+      <Nil N="IPAddress" />
+      <Nil N="IPConnectionMetric" />
+      <B N="IPEnabled">false</B>
+      <Nil N="IPFilterSecurityEnabled" />
+      <Nil N="IPPortSecurityEnabled" />
+      <Nil N="IPSecPermitIPProtocols" />
+      <Nil N="IPSecPermitTCPPorts" />
+      <Nil N="IPSecPermitUDPPorts" />
+      <Nil N="IPSubnet" />
+      <Nil N="IPUseZeroBroadcast" />
+      <Nil N="IPXAddress" />
+      <Nil N="IPXEnabled" />
+      <Nil N="IPXFrameType" />
+      <Nil N="IPXMediaType" />
+      <Nil N="IPXNetworkNumber" />
+      <Nil N="IPXVirtualNetNumber" />
+      <Nil N="KeepAliveInterval" />
+      <Nil N="KeepAliveTime" />
+      <Nil N="MACAddress" />
+      <Nil N="MTU" />
+      <Nil N="NumForwardPackets" />
+      <Nil N="PMTUBHDetectEnabled" />
+      <Nil N="PMTUDiscoveryEnabled" />
+      <S N="ServiceName">Rasl2tp</S>
+      <Nil N="TcpipNetbiosOptions" />
+      <Nil N="TcpMaxConnectRetransmissions" />
+      <Nil N="TcpMaxDataRetransmissions" />
+      <Nil N="TcpNumConnections" />
+      <Nil N="TcpUseRFC1122UrgentPointer" />
+      <Nil N="TcpWindowSize" />
+      <Nil N="WINSEnableLMHostsLookup" />
+      <Nil N="WINSHostLookupFile" />
+      <Nil N="WINSPrimaryServer" />
+      <Nil N="WINSScopeID" />
+      <Nil N="WINSSecondaryServer" />
+      <Nil N="PSComputerName" />
+    </Props>
+    <MS>
+      <Obj N="__ClassMetadata" RefId="23">
+        <TNRef RefId="3" />
+        <LST>
+          <Obj RefId="24">
+            <MS>
+              <S N="ClassName">Win32_NetworkAdapterConfiguration</S>
+              <S N="Namespace">root/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735690024</I32>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+  <Obj RefId="25">
+    <TNRef RefId="0" />
+    <ToString>Win32_NetworkAdapterConfiguration: [00000005] WAN Miniport (PPTP) (Index = 5)</ToString>
+    <Props>
+      <S N="Caption">[00000005] WAN Miniport (PPTP)</S>
+      <S N="Description">WAN Miniport (PPTP)</S>
+      <S N="SettingID">{5D9854E9-7B00-44E0-8876-E8BB521F02DE}</S>
+      <Nil N="ArpAlwaysSourceRoute" />
+      <Nil N="ArpUseEtherSNAP" />
+      <Nil N="DatabasePath" />
+      <Nil N="DeadGWDetectEnabled" />
+      <Nil N="DefaultIPGateway" />
+      <Nil N="DefaultTOS" />
+      <Nil N="DefaultTTL" />
+      <B N="DHCPEnabled">false</B>
+      <Nil N="DHCPLeaseExpires" />
+      <Nil N="DHCPLeaseObtained" />
+      <Nil N="DHCPServer" />
+      <Nil N="DNSDomain" />
+      <Nil N="DNSDomainSuffixSearchOrder" />
+      <Nil N="DNSEnabledForWINSResolution" />
+      <Nil N="DNSHostName" />
+      <Nil N="DNSServerSearchOrder" />
+      <Nil N="DomainDNSRegistrationEnabled" />
+      <Nil N="ForwardBufferMemory" />
+      <Nil N="FullDNSRegistrationEnabled" />
+      <Nil N="GatewayCostMetric" />
+      <Nil N="IGMPLevel" />
+      <U32 N="Index">5</U32>
+      <U32 N="InterfaceIndex">6</U32>
+      <Nil N="IPAddress" />
+      <Nil N="IPConnectionMetric" />
+      <B N="IPEnabled">false</B>
+      <Nil N="IPFilterSecurityEnabled" />
+      <Nil N="IPPortSecurityEnabled" />
+      <Nil N="IPSecPermitIPProtocols" />
+      <Nil N="IPSecPermitTCPPorts" />
+      <Nil N="IPSecPermitUDPPorts" />
+      <Nil N="IPSubnet" />
+      <Nil N="IPUseZeroBroadcast" />
+      <Nil N="IPXAddress" />
+      <Nil N="IPXEnabled" />
+      <Nil N="IPXFrameType" />
+      <Nil N="IPXMediaType" />
+      <Nil N="IPXNetworkNumber" />
+      <Nil N="IPXVirtualNetNumber" />
+      <Nil N="KeepAliveInterval" />
+      <Nil N="KeepAliveTime" />
+      <Nil N="MACAddress" />
+      <Nil N="MTU" />
+      <Nil N="NumForwardPackets" />
+      <Nil N="PMTUBHDetectEnabled" />
+      <Nil N="PMTUDiscoveryEnabled" />
+      <S N="ServiceName">PptpMiniport</S>
+      <Nil N="TcpipNetbiosOptions" />
+      <Nil N="TcpMaxConnectRetransmissions" />
+      <Nil N="TcpMaxDataRetransmissions" />
+      <Nil N="TcpNumConnections" />
+      <Nil N="TcpUseRFC1122UrgentPointer" />
+      <Nil N="TcpWindowSize" />
+      <Nil N="WINSEnableLMHostsLookup" />
+      <Nil N="WINSHostLookupFile" />
+      <Nil N="WINSPrimaryServer" />
+      <Nil N="WINSScopeID" />
+      <Nil N="WINSSecondaryServer" />
+      <Nil N="PSComputerName" />
+    </Props>
+    <MS>
+      <Obj N="__ClassMetadata" RefId="26">
+        <TNRef RefId="3" />
+        <LST>
+          <Obj RefId="27">
+            <MS>
+              <S N="ClassName">Win32_NetworkAdapterConfiguration</S>
+              <S N="Namespace">root/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735690024</I32>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+  <Obj RefId="28">
+    <TNRef RefId="0" />
+    <ToString>Win32_NetworkAdapterConfiguration: [00000006] WAN Miniport (PPPOE) (Index = 6)</ToString>
+    <Props>
+      <S N="Caption">[00000006] WAN Miniport (PPPOE)</S>
+      <S N="Description">WAN Miniport (PPPOE)</S>
+      <S N="SettingID">{A6BE94F4-3C6C-42DA-935E-359EFF332303}</S>
+      <Nil N="ArpAlwaysSourceRoute" />
+      <Nil N="ArpUseEtherSNAP" />
+      <Nil N="DatabasePath" />
+      <Nil N="DeadGWDetectEnabled" />
+      <Nil N="DefaultIPGateway" />
+      <Nil N="DefaultTOS" />
+      <Nil N="DefaultTTL" />
+      <B N="DHCPEnabled">false</B>
+      <Nil N="DHCPLeaseExpires" />
+      <Nil N="DHCPLeaseObtained" />
+      <Nil N="DHCPServer" />
+      <Nil N="DNSDomain" />
+      <Nil N="DNSDomainSuffixSearchOrder" />
+      <Nil N="DNSEnabledForWINSResolution" />
+      <Nil N="DNSHostName" />
+      <Nil N="DNSServerSearchOrder" />
+      <Nil N="DomainDNSRegistrationEnabled" />
+      <Nil N="ForwardBufferMemory" />
+      <Nil N="FullDNSRegistrationEnabled" />
+      <Nil N="GatewayCostMetric" />
+      <Nil N="IGMPLevel" />
+      <U32 N="Index">6</U32>
+      <U32 N="InterfaceIndex">13</U32>
+      <Nil N="IPAddress" />
+      <Nil N="IPConnectionMetric" />
+      <B N="IPEnabled">false</B>
+      <Nil N="IPFilterSecurityEnabled" />
+      <Nil N="IPPortSecurityEnabled" />
+      <Nil N="IPSecPermitIPProtocols" />
+      <Nil N="IPSecPermitTCPPorts" />
+      <Nil N="IPSecPermitUDPPorts" />
+      <Nil N="IPSubnet" />
+      <Nil N="IPUseZeroBroadcast" />
+      <Nil N="IPXAddress" />
+      <Nil N="IPXEnabled" />
+      <Nil N="IPXFrameType" />
+      <Nil N="IPXMediaType" />
+      <Nil N="IPXNetworkNumber" />
+      <Nil N="IPXVirtualNetNumber" />
+      <Nil N="KeepAliveInterval" />
+      <Nil N="KeepAliveTime" />
+      <Nil N="MACAddress" />
+      <Nil N="MTU" />
+      <Nil N="NumForwardPackets" />
+      <Nil N="PMTUBHDetectEnabled" />
+      <Nil N="PMTUDiscoveryEnabled" />
+      <S N="ServiceName">RasPppoe</S>
+      <Nil N="TcpipNetbiosOptions" />
+      <Nil N="TcpMaxConnectRetransmissions" />
+      <Nil N="TcpMaxDataRetransmissions" />
+      <Nil N="TcpNumConnections" />
+      <Nil N="TcpUseRFC1122UrgentPointer" />
+      <Nil N="TcpWindowSize" />
+      <Nil N="WINSEnableLMHostsLookup" />
+      <Nil N="WINSHostLookupFile" />
+      <Nil N="WINSPrimaryServer" />
+      <Nil N="WINSScopeID" />
+      <Nil N="WINSSecondaryServer" />
+      <Nil N="PSComputerName" />
+    </Props>
+    <MS>
+      <Obj N="__ClassMetadata" RefId="29">
+        <TNRef RefId="3" />
+        <LST>
+          <Obj RefId="30">
+            <MS>
+              <S N="ClassName">Win32_NetworkAdapterConfiguration</S>
+              <S N="Namespace">root/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735690024</I32>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+  <Obj RefId="31">
+    <TNRef RefId="0" />
+    <ToString>Win32_NetworkAdapterConfiguration: [00000007] WAN Miniport (GRE) (Index = 7)</ToString>
+    <Props>
+      <S N="Caption">[00000007] WAN Miniport (GRE)</S>
+      <S N="Description">WAN Miniport (GRE)</S>
+      <S N="SettingID">{8940A0E1-6B6B-4165-A581-2C5AD3E66A3A}</S>
+      <Nil N="ArpAlwaysSourceRoute" />
+      <Nil N="ArpUseEtherSNAP" />
+      <Nil N="DatabasePath" />
+      <Nil N="DeadGWDetectEnabled" />
+      <Nil N="DefaultIPGateway" />
+      <Nil N="DefaultTOS" />
+      <Nil N="DefaultTTL" />
+      <B N="DHCPEnabled">false</B>
+      <Nil N="DHCPLeaseExpires" />
+      <Nil N="DHCPLeaseObtained" />
+      <Nil N="DHCPServer" />
+      <Nil N="DNSDomain" />
+      <Nil N="DNSDomainSuffixSearchOrder" />
+      <Nil N="DNSEnabledForWINSResolution" />
+      <Nil N="DNSHostName" />
+      <Nil N="DNSServerSearchOrder" />
+      <Nil N="DomainDNSRegistrationEnabled" />
+      <Nil N="ForwardBufferMemory" />
+      <Nil N="FullDNSRegistrationEnabled" />
+      <Nil N="GatewayCostMetric" />
+      <Nil N="IGMPLevel" />
+      <U32 N="Index">7</U32>
+      <U32 N="InterfaceIndex">9</U32>
+      <Nil N="IPAddress" />
+      <Nil N="IPConnectionMetric" />
+      <B N="IPEnabled">false</B>
+      <Nil N="IPFilterSecurityEnabled" />
+      <Nil N="IPPortSecurityEnabled" />
+      <Nil N="IPSecPermitIPProtocols" />
+      <Nil N="IPSecPermitTCPPorts" />
+      <Nil N="IPSecPermitUDPPorts" />
+      <Nil N="IPSubnet" />
+      <Nil N="IPUseZeroBroadcast" />
+      <Nil N="IPXAddress" />
+      <Nil N="IPXEnabled" />
+      <Nil N="IPXFrameType" />
+      <Nil N="IPXMediaType" />
+      <Nil N="IPXNetworkNumber" />
+      <Nil N="IPXVirtualNetNumber" />
+      <Nil N="KeepAliveInterval" />
+      <Nil N="KeepAliveTime" />
+      <Nil N="MACAddress" />
+      <Nil N="MTU" />
+      <Nil N="NumForwardPackets" />
+      <Nil N="PMTUBHDetectEnabled" />
+      <Nil N="PMTUDiscoveryEnabled" />
+      <S N="ServiceName">RasGre</S>
+      <Nil N="TcpipNetbiosOptions" />
+      <Nil N="TcpMaxConnectRetransmissions" />
+      <Nil N="TcpMaxDataRetransmissions" />
+      <Nil N="TcpNumConnections" />
+      <Nil N="TcpUseRFC1122UrgentPointer" />
+      <Nil N="TcpWindowSize" />
+      <Nil N="WINSEnableLMHostsLookup" />
+      <Nil N="WINSHostLookupFile" />
+      <Nil N="WINSPrimaryServer" />
+      <Nil N="WINSScopeID" />
+      <Nil N="WINSSecondaryServer" />
+      <Nil N="PSComputerName" />
+    </Props>
+    <MS>
+      <Obj N="__ClassMetadata" RefId="32">
+        <TNRef RefId="3" />
+        <LST>
+          <Obj RefId="33">
+            <MS>
+              <S N="ClassName">Win32_NetworkAdapterConfiguration</S>
+              <S N="Namespace">root/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735690024</I32>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+  <Obj RefId="34">
+    <TNRef RefId="0" />
+    <ToString>Win32_NetworkAdapterConfiguration: [00000008] WAN Miniport (IP) (Index = 8)</ToString>
+    <Props>
+      <S N="Caption">[00000008] WAN Miniport (IP)</S>
+      <S N="Description">WAN Miniport (IP)</S>
+      <S N="SettingID">{314BB08B-1969-4DE0-B93E-BB87F100F2C3}</S>
+      <Nil N="ArpAlwaysSourceRoute" />
+      <Nil N="ArpUseEtherSNAP" />
+      <Nil N="DatabasePath" />
+      <Nil N="DeadGWDetectEnabled" />
+      <Nil N="DefaultIPGateway" />
+      <Nil N="DefaultTOS" />
+      <Nil N="DefaultTTL" />
+      <B N="DHCPEnabled">false</B>
+      <Nil N="DHCPLeaseExpires" />
+      <Nil N="DHCPLeaseObtained" />
+      <Nil N="DHCPServer" />
+      <Nil N="DNSDomain" />
+      <Nil N="DNSDomainSuffixSearchOrder" />
+      <Nil N="DNSEnabledForWINSResolution" />
+      <Nil N="DNSHostName" />
+      <Nil N="DNSServerSearchOrder" />
+      <Nil N="DomainDNSRegistrationEnabled" />
+      <Nil N="ForwardBufferMemory" />
+      <Nil N="FullDNSRegistrationEnabled" />
+      <Nil N="GatewayCostMetric" />
+      <Nil N="IGMPLevel" />
+      <U32 N="Index">8</U32>
+      <U32 N="InterfaceIndex">4</U32>
+      <Nil N="IPAddress" />
+      <Nil N="IPConnectionMetric" />
+      <B N="IPEnabled">false</B>
+      <Nil N="IPFilterSecurityEnabled" />
+      <Nil N="IPPortSecurityEnabled" />
+      <Nil N="IPSecPermitIPProtocols" />
+      <Nil N="IPSecPermitTCPPorts" />
+      <Nil N="IPSecPermitUDPPorts" />
+      <Nil N="IPSubnet" />
+      <Nil N="IPUseZeroBroadcast" />
+      <Nil N="IPXAddress" />
+      <Nil N="IPXEnabled" />
+      <Nil N="IPXFrameType" />
+      <Nil N="IPXMediaType" />
+      <Nil N="IPXNetworkNumber" />
+      <Nil N="IPXVirtualNetNumber" />
+      <Nil N="KeepAliveInterval" />
+      <Nil N="KeepAliveTime" />
+      <Nil N="MACAddress" />
+      <Nil N="MTU" />
+      <Nil N="NumForwardPackets" />
+      <Nil N="PMTUBHDetectEnabled" />
+      <Nil N="PMTUDiscoveryEnabled" />
+      <S N="ServiceName">NdisWan</S>
+      <Nil N="TcpipNetbiosOptions" />
+      <Nil N="TcpMaxConnectRetransmissions" />
+      <Nil N="TcpMaxDataRetransmissions" />
+      <Nil N="TcpNumConnections" />
+      <Nil N="TcpUseRFC1122UrgentPointer" />
+      <Nil N="TcpWindowSize" />
+      <Nil N="WINSEnableLMHostsLookup" />
+      <Nil N="WINSHostLookupFile" />
+      <Nil N="WINSPrimaryServer" />
+      <Nil N="WINSScopeID" />
+      <Nil N="WINSSecondaryServer" />
+      <Nil N="PSComputerName" />
+    </Props>
+    <MS>
+      <Obj N="__ClassMetadata" RefId="35">
+        <TNRef RefId="3" />
+        <LST>
+          <Obj RefId="36">
+            <MS>
+              <S N="ClassName">Win32_NetworkAdapterConfiguration</S>
+              <S N="Namespace">root/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735690024</I32>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+  <Obj RefId="37">
+    <TNRef RefId="0" />
+    <ToString>Win32_NetworkAdapterConfiguration: [00000009] WAN Miniport (IPv6) (Index = 9)</ToString>
+    <Props>
+      <S N="Caption">[00000009] WAN Miniport (IPv6)</S>
+      <S N="Description">WAN Miniport (IPv6)</S>
+      <S N="SettingID">{65F40D2D-EB88-4550-871F-0EB5DA48BD22}</S>
+      <Nil N="ArpAlwaysSourceRoute" />
+      <Nil N="ArpUseEtherSNAP" />
+      <Nil N="DatabasePath" />
+      <Nil N="DeadGWDetectEnabled" />
+      <Nil N="DefaultIPGateway" />
+      <Nil N="DefaultTOS" />
+      <Nil N="DefaultTTL" />
+      <B N="DHCPEnabled">false</B>
+      <Nil N="DHCPLeaseExpires" />
+      <Nil N="DHCPLeaseObtained" />
+      <Nil N="DHCPServer" />
+      <Nil N="DNSDomain" />
+      <Nil N="DNSDomainSuffixSearchOrder" />
+      <Nil N="DNSEnabledForWINSResolution" />
+      <Nil N="DNSHostName" />
+      <Nil N="DNSServerSearchOrder" />
+      <Nil N="DomainDNSRegistrationEnabled" />
+      <Nil N="ForwardBufferMemory" />
+      <Nil N="FullDNSRegistrationEnabled" />
+      <Nil N="GatewayCostMetric" />
+      <Nil N="IGMPLevel" />
+      <U32 N="Index">9</U32>
+      <U32 N="InterfaceIndex">7</U32>
+      <Nil N="IPAddress" />
+      <Nil N="IPConnectionMetric" />
+      <B N="IPEnabled">false</B>
+      <Nil N="IPFilterSecurityEnabled" />
+      <Nil N="IPPortSecurityEnabled" />
+      <Nil N="IPSecPermitIPProtocols" />
+      <Nil N="IPSecPermitTCPPorts" />
+      <Nil N="IPSecPermitUDPPorts" />
+      <Nil N="IPSubnet" />
+      <Nil N="IPUseZeroBroadcast" />
+      <Nil N="IPXAddress" />
+      <Nil N="IPXEnabled" />
+      <Nil N="IPXFrameType" />
+      <Nil N="IPXMediaType" />
+      <Nil N="IPXNetworkNumber" />
+      <Nil N="IPXVirtualNetNumber" />
+      <Nil N="KeepAliveInterval" />
+      <Nil N="KeepAliveTime" />
+      <Nil N="MACAddress" />
+      <Nil N="MTU" />
+      <Nil N="NumForwardPackets" />
+      <Nil N="PMTUBHDetectEnabled" />
+      <Nil N="PMTUDiscoveryEnabled" />
+      <S N="ServiceName">NdisWan</S>
+      <Nil N="TcpipNetbiosOptions" />
+      <Nil N="TcpMaxConnectRetransmissions" />
+      <Nil N="TcpMaxDataRetransmissions" />
+      <Nil N="TcpNumConnections" />
+      <Nil N="TcpUseRFC1122UrgentPointer" />
+      <Nil N="TcpWindowSize" />
+      <Nil N="WINSEnableLMHostsLookup" />
+      <Nil N="WINSHostLookupFile" />
+      <Nil N="WINSPrimaryServer" />
+      <Nil N="WINSScopeID" />
+      <Nil N="WINSSecondaryServer" />
+      <Nil N="PSComputerName" />
+    </Props>
+    <MS>
+      <Obj N="__ClassMetadata" RefId="38">
+        <TNRef RefId="3" />
+        <LST>
+          <Obj RefId="39">
+            <MS>
+              <S N="ClassName">Win32_NetworkAdapterConfiguration</S>
+              <S N="Namespace">root/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735690024</I32>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+  <Obj RefId="40">
+    <TNRef RefId="0" />
+    <ToString>Win32_NetworkAdapterConfiguration: [00000010] WAN Miniport (Network Monitor) (Index = 10)</ToString>
+    <Props>
+      <S N="Caption">[00000010] WAN Miniport (Network Monitor)</S>
+      <S N="Description">WAN Miniport (Network Monitor)</S>
+      <S N="SettingID">{A2F3E49E-0788-44BA-8096-EF30DFB26D1A}</S>
+      <Nil N="ArpAlwaysSourceRoute" />
+      <Nil N="ArpUseEtherSNAP" />
+      <Nil N="DatabasePath" />
+      <Nil N="DeadGWDetectEnabled" />
+      <Nil N="DefaultIPGateway" />
+      <Nil N="DefaultTOS" />
+      <Nil N="DefaultTTL" />
+      <B N="DHCPEnabled">false</B>
+      <Nil N="DHCPLeaseExpires" />
+      <Nil N="DHCPLeaseObtained" />
+      <Nil N="DHCPServer" />
+      <Nil N="DNSDomain" />
+      <Nil N="DNSDomainSuffixSearchOrder" />
+      <Nil N="DNSEnabledForWINSResolution" />
+      <Nil N="DNSHostName" />
+      <Nil N="DNSServerSearchOrder" />
+      <Nil N="DomainDNSRegistrationEnabled" />
+      <Nil N="ForwardBufferMemory" />
+      <Nil N="FullDNSRegistrationEnabled" />
+      <Nil N="GatewayCostMetric" />
+      <Nil N="IGMPLevel" />
+      <U32 N="Index">10</U32>
+      <U32 N="InterfaceIndex">12</U32>
+      <Nil N="IPAddress" />
+      <Nil N="IPConnectionMetric" />
+      <B N="IPEnabled">false</B>
+      <Nil N="IPFilterSecurityEnabled" />
+      <Nil N="IPPortSecurityEnabled" />
+      <Nil N="IPSecPermitIPProtocols" />
+      <Nil N="IPSecPermitTCPPorts" />
+      <Nil N="IPSecPermitUDPPorts" />
+      <Nil N="IPSubnet" />
+      <Nil N="IPUseZeroBroadcast" />
+      <Nil N="IPXAddress" />
+      <Nil N="IPXEnabled" />
+      <Nil N="IPXFrameType" />
+      <Nil N="IPXMediaType" />
+      <Nil N="IPXNetworkNumber" />
+      <Nil N="IPXVirtualNetNumber" />
+      <Nil N="KeepAliveInterval" />
+      <Nil N="KeepAliveTime" />
+      <Nil N="MACAddress" />
+      <Nil N="MTU" />
+      <Nil N="NumForwardPackets" />
+      <Nil N="PMTUBHDetectEnabled" />
+      <Nil N="PMTUDiscoveryEnabled" />
+      <S N="ServiceName">NdisWan</S>
+      <Nil N="TcpipNetbiosOptions" />
+      <Nil N="TcpMaxConnectRetransmissions" />
+      <Nil N="TcpMaxDataRetransmissions" />
+      <Nil N="TcpNumConnections" />
+      <Nil N="TcpUseRFC1122UrgentPointer" />
+      <Nil N="TcpWindowSize" />
+      <Nil N="WINSEnableLMHostsLookup" />
+      <Nil N="WINSHostLookupFile" />
+      <Nil N="WINSPrimaryServer" />
+      <Nil N="WINSScopeID" />
+      <Nil N="WINSSecondaryServer" />
+      <Nil N="PSComputerName" />
+    </Props>
+    <MS>
+      <Obj N="__ClassMetadata" RefId="41">
+        <TNRef RefId="3" />
+        <LST>
+          <Obj RefId="42">
+            <MS>
+              <S N="ClassName">Win32_NetworkAdapterConfiguration</S>
+              <S N="Namespace">root/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735690024</I32>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+</Objs>

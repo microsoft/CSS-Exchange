@@ -10,7 +10,7 @@
     Tries to builds a timeline of the history of the meeting based on the diagnostic objects.
 
 .DESCRIPTION
-    By using the time sorted diagnostic objects for one user on one meeting, we try to give a high level
+    By using the Enhanced diagnostic objects, which are sorted before the Timeline is built, we try to give a high level
     overview of what happened to the meeting. This can be use to get a quick overview of the meeting and
     then you can look into the CalLog in Excel to get more details.
 
@@ -54,7 +54,11 @@ function FindFirstMeeting {
         $IpmAppointments = $script:GCDO | Where-Object { $_.ItemClass -eq "IPM.Appointment" }
     }
     if ($IpmAppointments.count -eq 0) {
-        Write-Host -ForegroundColor Red "Warning: Cannot find any IPM.Appointments, if this is the Organizer, check for the Outlook Bifurcation issue."
+        if ($script:IsOrganizer) {
+            Write-Host -ForegroundColor Red "Warning: Cannot find any IPM.Appointments for the Organizer. Check for the Outlook Bifurcation issue."
+        } else {
+            Write-Host -ForegroundColor Yellow "Warning: No IPM.Appointments found. This user is not the Organizer, so this may be expected (e.g. delegate without the meeting on their own calendar)."
+        }
         Write-Host -ForegroundColor Red "Warning: No IPM.Appointment found. CalLogs start to expire after 31 days."
         return $null
     } else {
@@ -63,13 +67,14 @@ function FindFirstMeeting {
 }
 
 function BuildTimeline {
-    $script:TimeLineOutput = @()
+    $script:TimeLineOutput = [System.Collections.Generic.List[object]]::new()
 
     $script:FirstLog = FindFirstMeeting
     FindOrganizer($script:FirstLog)
 
     # Ignorable and items from Shared Calendars are not included in the TimeLine.
-    [array]$InterestingCalLogs = $script:EnhancedCalLogs | Where-Object { $_.LogRowType -eq "Interesting" -and $_.SharedFolderName -eq "Not Shared" }
+    [array]$InterestingCalLogs = $script:EnhancedCalLogs |
+        Where-Object { $_.LogRowType -eq "Interesting" -and $_.SharedFolderName -eq "Not Shared" }
 
     if ($InterestingCalLogs.count -eq 0) {
         Write-Host "All CalLogs are Ignorable, nothing to create a timeline with, displaying initial values."
@@ -84,7 +89,7 @@ function BuildTimeline {
 
     Write-DashLineBoxColor "  TimeLine for: [$Identity]",
     "CollectionDate: $($(Get-Date).ToString("yyyy-MM-dd HH:mm:ss"))",
-    "ScriptVersion: $ScriptVersion",
+    "ScriptVersion: $Script:BuildVersion",
     "  Subject: $($script:GCDO[0].NormalizedSubject)",
     "  Organizer: $Script:Organizer",
     "  MeetingID: $($script:GCDO[0].CleanGlobalObjectId)"
@@ -117,10 +122,13 @@ function BuildTimeline {
         }
 
         # Setup Previous log (if current logs is an IPM.Appointment)
-        if ($CalendarItemTypes.($CalLog.ItemClass) -eq "Ipm.Appointment" -or $CalendarItemTypes.($CalLog.ItemClass) -eq "Exception") {
+        if ($null -ne $CalLog.ItemClass -and
+            ((GetItemType $CalLog.ItemClass) -eq "Ipm.Appointment" -or (IsExceptionItemType (GetItemType $CalLog.ItemClass)))) {
             $script:PreviousCalLog = $CalLog
         }
     }
+
+    [void](Test-LogTimestampOrder -Entries $script:TimeLineOutput -Name 'Timeline' -ValuePropertyName 'Time')
 
     Export-Timeline
 }

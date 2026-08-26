@@ -2,105 +2,183 @@
 
 Download the latest release: [EOMT.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/EOMT.ps1)
 
-This script contains mitigations to help address the following vulnerabilities.
+!!! warning "Mitigations are temporary"
 
-* CVE-2021-26855
+      Installation of the applicable [Exchange Server Security Update](https://aka.ms/LatestExchangeServerUpdate) is the ***only way to fully protect your servers***. The mitigations applied by this tool are a temporary measure to reduce exposure until patching can be completed.
 
-This is the most effective way to help quickly protect and mitigate your Exchange Servers prior to patching. **We recommend this script over the previous ExchangeMitigations.ps1 script.** The Exchange On-premises Mitigation Tool automatically downloads any dependencies and runs the Microsoft Safety Scanner. This a better approach for Exchange deployments with Internet access and for those who want an attempt at automated remediation. We have not observed any impact to Exchange Server functionality via these mitigation methods. EOMT.ps1 is completely automated and uses familiar mitigation methods previously documented. This script has four operations it performs:
+The Exchange On-premises Mitigation Tool (EOMT) applies IIS URL Rewrite mitigations for known Exchange Server CVEs. It replaces the legacy [EOMT.ps1](EOMT-Legacy.md) and [EOMTv2.ps1](EOMTv2-Legacy.md) scripts with a single, extensible tool that supports multiple CVEs from a unified interface.
 
-* ***+NEW*** Check for the latest version of EOMT and download it.
-* Mitigate against current known attacks using CVE-2021-26855 via a URL Rewrite configuration
-* Scan the Exchange Server using the [Microsoft Safety Scanner](https://docs.microsoft.com/en-us/windows/security/threat-protection/intelligence/safety-scanner-download)
-* Attempt to remediate compromises detected by the Microsoft Safety Scanner.
+## Features
 
-This a better approach for Exchange deployments with Internet access and for those who want an attempt at automated remediation. We have not observed any impact to Exchange Server functionality via these mitigation methods nor do these mitigation methods make any direct changes that disable features of Exchange.
+- **Multi-CVE support** — Apply mitigations for any supported CVE from a single script
+- **Interactive CVE selection** — When `-CVE` is not specified, an interactive prompt displays available mitigations sorted by priority
+- **JSON-backed rollback** — Each mitigation creates a per-CVE JSON backup file for reliable restoration of original IIS settings
+- **Remote execution** — Target multiple Exchange servers via pipeline input from `Get-ExchangeServer` or the `-ExchangeServerNames` parameter
+- **WhatIf support** — Preview all IIS configuration changes before applying them
+- **MSERT integration** — Optionally download and run the Microsoft Safety Scanner for malware detection
+- **Auto-update** — Automatically checks for newer versions of the script from GitHub
+- **Extensible** — Adding support for a new CVE requires only a definition file — no changes to the core script
 
-Use of the Exchange On-premises Mitigation Tool and the Microsoft Safety Scanner are subject to the terms of the Microsoft Privacy Statement: https://aka.ms/privacy
+## Supported CVEs
 
-## Requirements to run the Exchange On-premises Mitigation Tool
+CVE | Description
+---|---
+CVE-2026-42897 | OWA XSS — Outbound URL Rewrite adding Content-Security-Policy header to OWA HTML responses
+CVE-2022-41040 | ProxyNotShell — Autodiscover SSRF (URL Rewrite mitigation on Default Web Site)
+CVE-2021-26855 | ProxyLogon — OWA cookie deserialization SSRF (URL Rewrite mitigation on Default Web Site)
 
-* External Internet Connection from your Exchange server (required to download the Microsoft Safety Scanner and the IIS URL Rewrite Module).
-* PowerShell script must be run as Administrator.
+## Requirements
 
-## System Requirements
-* PowerShell 3 or later
-* IIS 7.5 and later
-* Exchange 2013, 2016, or 2019
-* Windows Server 2008 R2, Server 2012, Server 2012 R2, Server 2016, Server 2019
-* ***+New*** If Operating System is older than Windows Server 2016, must have [KB2999226](https://support.microsoft.com/en-us/topic/update-for-universal-c-runtime-in-windows-c0514201-7fe6-95a3-b0a5-287930f3560c) for IIS Rewrite Module 2.1 to work.
+- PowerShell 3 or later
+- Must be run as Administrator
+- IIS 7.5 and later
+- Exchange Server SE (Subscription Edition)
+- Supported Windows Server versions (Server 2019, Server 2022, Server 2025)
+- [Optional] External Internet connection (required for auto-update and MSERT download)
+- [Optional] For remote execution: Exchange Management Shell must be loaded
 
-## Who should run the Exchange On-premises Mitigation Tool
+## Parameters
 
-Situation | Guidance
--|-
-If you have done nothing to date to patch or mitigate this issue… | Run EOMT.PS1 as soon as possible.This will both attempt to remediate as well as mitigate your servers against further attacks. Once complete, follow patching guidance to update your servers on http://aka.ms/exchangevulns
-If you have mitigated using any/all of the mitigation guidance Microsoft has given (ExchangeMitigations.Ps1, Blog post, etc..) | Run EOMT.PS1 as soon as possible.  This will both attempt to remediate as well as mitigate your servers against further attacks.   Once complete, follow patching guidance to update your servers on http://aka.ms/exchangevulns
-If you have already patched your systems and are protected, but did NOT investigate for any adversary activity, indicators of compromise, etc…. | Run EOMT.PS1 as soon as possible.   This will attempt to remediate any existing compromise that may not have been full remediated before patching.
-If you have already patched and investigated your systems for any indicators of compromise, etc…. | No action is required
+Parameter | Description
+---|---
+`-ExchangeServerNames` | One or more Exchange server names to target. Accepts pipeline input from `Get-ExchangeServer`. If omitted, targets the local server only.
+`-SkipExchangeServerNames` | Exchange server names to exclude when processing multiple servers.
+`-CVE` | The CVE to mitigate. If omitted, an interactive prompt allows selection. Must match a supported CVE ID.
+`-RollbackMitigation` | Roll back the mitigation for the specified CVE using the JSON backup created during apply.
+`-ShowMitigationStatus` | Display the current Code Fix (security update) and Mitigation (IIS URL Rewrite rule) status for each target server. Detects six states including disabled rules and name conflicts. Read-only — no changes are made.
+`-RunMSERT` | Download and run the Microsoft Safety Scanner in quick scan mode. Local execution only.
+`-RunMSERTFullScan` | Run MSERT in full scan mode (may take hours or days). Implies `-RunMSERT`. Local execution only.
+`-DoNotRunMitigation` | Skip applying the URL Rewrite mitigation. Useful with `-RunMSERT` to scan without modifying IIS.
+`-DoNotRemediate` | MSERT detects but does not auto-remove threats.
+`-SkipAutoUpdate` | Skip checking for a newer version of this script from GitHub.
+`-SkipDisclaimer` | Bypass the interactive disclaimer prompt.
+`-WhatIf` | Preview changes without applying them.
 
-## Important note regarding Microsoft Safety Scanner
- The Exchange On-premises Mitigation Tool runs the Microsoft Safety Scanner in a quick scan mode. If you suspect any compromise, we highly recommend you run it in the FULL SCAN mode. FULL SCAN mode can take a long time but if you are not running Microsoft Defender AV as your default AV, FULL SCAN will be required to remediate threats.
+## Examples
 
-## Exchange On-premises Mitigation Tool Examples
-The default recommended way of using EOMT.ps1. This will determine if your server is vulnerable, mitigate if vulnerable, and run MSERT in quick scan mode. If the server is not vulnerable only MSERT quick scan will run.
+### Apply the default mitigation to the local server
 
-`.\EOMT.ps1`
+The recommended way to use EOMT. If `-CVE` is not specified, an interactive prompt displays available mitigations sorted by priority and allows selection.
 
-To run a Full MSERT Scan -  We only recommend this option only if the initial quick scan discovered threats. The full scan may take hours or days to complete.
+```powershell
+.\EOMT.ps1
+```
 
-`.\EOMT.ps1 -RunFullScan -DoNotRunMitigation`
+### Apply a specific CVE mitigation
 
-To run the Exchange On-premises Mitigation Tool with MSERT in detect only mode - MSERT will not remediate detected threats.
+```powershell
+.\EOMT.ps1 -CVE "CVE-2026-42897"
+```
 
-`.\EOMT.ps1 -DoNotRemediate`
+### Apply mitigation to all Exchange servers
 
-To roll back the Exchange On-premises Mitigation Tool mitigations
+Requires Exchange Management Shell. Servers are checked for vulnerability before mitigations are applied. Servers that are already patched or unreachable are skipped automatically.
 
-`.\EOMT.ps1 -RollbackMitigation`
+```powershell
+Get-ExchangeServer | .\EOMT.ps1 -CVE "CVE-2026-42897"
+```
 
-Note: If ExchangeMitigations.ps1 was used previously to apply mitigations, Use ExchangeMitigations.ps1 for rollback.
+### Apply mitigation to specific servers
 
-***+NEW*** EOMT will now AutoUpdate by downloading the latest version from GitHub. To prevent EOMT from fetching updates to EOMT.ps1 from the internet.
+```powershell
+.\EOMT.ps1 -ExchangeServerNames "EX01", "EX02" -CVE "CVE-2026-42897"
+```
 
-`.\EOMT.ps1 -DoNotAutoUpdateEOMT`
+### Roll back a mitigation
 
-## Exchange On-premises Mitigation Tool Q & A
+Restores the original IIS configuration from the JSON backup file created during apply.
 
-**Question**: What mode should I run EOMT.ps1 in by default?
+```powershell
+.\EOMT.ps1 -RollbackMitigation -CVE "CVE-2026-42897"
+```
 
-**Answer**: By default, EOMT.ps1 should be run without any parameters:
+### Roll back on all Exchange servers
 
-This will run the default mode which does the following:
-1. Checks if your server is vulnerable based on the presence of the SU patch or Exchange version.
-2. Downloads and installs the IIS URL rewrite tool **(only if vulnerable)**.
-3. Applies the URL rewrite mitigation **(only if vulnerable)**.
-4. Runs the Microsoft Safety Scanner in "Quick Scan" mode **(vulnerable or not)**.
+```powershell
+Get-ExchangeServer | .\EOMT.ps1 -RollbackMitigation -CVE "CVE-2026-42897"
+```
 
-**Question**:  What if I run a full scan and it's affecting the resources of my servers?
+### Check vulnerability status
 
-**Answer**:  You can terminate the process of the scan by running the following command in an Administrative PowerShell session.
+Checks each target server and reports vulnerability status using four properties: **Code Fix** (whether the Exchange security update is installed), **Mitigation** (whether an enabled IIS URL Rewrite rule is present), **Disabled Rules** (rules matching behavior but currently disabled), and **Rule Name Match** (whether the expected rule name exists with different behavior). No changes are made.
 
-`Stop-Process -Name msert`
+The output uses color-coded status messages:
 
-**Question**:  What is the real difference between this script (EOMT.PS1) and the previous script Microsoft released (ExchangeMitigations.Ps1).
+- **Code Fix installed, mitigation present** — `"True (can be safely rolled back)"` (Yellow) — the mitigation is redundant and can be removed.
+- **Code Fix installed, no mitigation** — `"N/A (protected by security update)"` (Green) — the server is fully protected; no mitigation needed.
+- **No code fix, mitigation present** — `"True"` (Green) — the server is temporarily protected by the IIS rule.
+- **No code fix, rule name conflict** — `"CONFLICT — rollback then re-apply"` (Red) — the expected rule name exists but with different behavior. Roll back the conflicting rule and re-apply EOMT.
+- **No code fix, matching rule disabled** — `"DISABLED — rollback then re-apply"` (Red) — a rule with the expected name is disabled; or `"False — matching rule disabled under different name. Run EOMT to apply."` (Red) — a behaviorally-matching rule exists under a different name but is disabled.
+- **No code fix, no mitigation** — `"False — ACTION REQUIRED"` (Red) — the server is unprotected.
 
-**Answer**:  The Exchange On-premises Mitigation Tool was released to help pull together multiple mitigation and response steps, whereas the previous script simply enabled mitigations. Some details on what each do:
+```powershell
+.\EOMT.ps1 -ShowMitigationStatus -CVE "CVE-2026-42897"
+```
 
-### EOMT.PS1
-* Mitigation of CVE-2021-26855 via a URL Rewrite configuration.
-* Mitigation does not impact Exchange functionality.
-* Malware scan of the Exchange Server via the Microsoft Safety Scanner
-* Attempt to reverse any changes made by identified threats.
-### ExchangeMitigations.ps1:
-* Does mitigations for all 4 CVE's - CVE-2021-26855, CVE-2021-26857, CVE-2021-27065 & CVE-2021-26858.
-* Some of the mitigation methods impact Exchange functionality.
-* Does not do any scanning for existing compromise or exploitation.
-* Does not take response actions to existing active identified threats.
+### Run MSERT scan only (no mitigation)
 
-**Question:**  What if I do not have an external internet connection from my Exchange server?
+```powershell
+.\EOMT.ps1 -RunMSERT -DoNotRunMitigation
+```
 
-**Answer:**  If you do not have an external internet connection, you can still use the legacy script (ExchangeMitigations.ps1) and other steps from the mitigation blog post:  [Microsoft Exchange Server Vulnerabilities Mitigations – March 2021](https://msrc-blog.microsoft.com/2021/03/05/microsoft-exchange-server-vulnerabilities-mitigations-march-2021/)
+### Run MSERT full scan in detect-only mode
 
-**Question:** If I have already ran the mitigations previously, will the Exchange On-premises Mitigation Tool roll back any of the mitigations?
+```powershell
+.\EOMT.ps1 -RunMSERTFullScan -DoNotRemediate -DoNotRunMitigation
+```
 
-**Answer:** No, please use the legacy script (ExchangeMitigations.ps1) to do rollback. The legacy script supports rollback for the mitigations the Exchange On-premises Mitigation Tool applied.
+### Preview changes with WhatIf
+
+```powershell
+.\EOMT.ps1 -WhatIf -CVE "CVE-2026-42897"
+```
+
+### Skip specific servers during remote execution
+
+```powershell
+Get-ExchangeServer | .\EOMT.ps1 -CVE "CVE-2026-42897" -SkipExchangeServerNames "EX03"
+```
+
+## How It Works
+
+1. **CVE selection** — If `-CVE` is not provided, the script displays an interactive menu of available mitigations sorted by priority and prompts for selection.
+2. **Prerequisite check** — Each target server is checked remotely for two conditions: whether the Exchange security update (code fix) is installed and whether the IIS URL Rewrite mitigation rule is already present. Servers where either the code fix or the mitigation is already applied are skipped. Servers that are unreachable or missing prerequisites (e.g., IIS URL Rewrite Module) are reported and skipped.
+3. **Mitigation apply** — IIS URL Rewrite rules are added using the IIS configuration management pipeline. Before any changes are made, the current IIS state is captured and saved to a per-CVE JSON backup file at `%WINDIR%\System32\inetsrv\config\`.
+4. **Rollback** — When `-RollbackMitigation` is specified, the JSON backup file is read and each original setting is restored. The backup file is then renamed to `.bak`.
+
+## Remote Execution Notes
+
+- Remote execution requires Exchange Management Shell to be loaded for server resolution.
+- Each target server must have PowerShell remoting enabled (WinRM).
+- MSERT scanning is only supported on the local server — it is skipped for remote targets.
+- If a remote server is missing the IIS URL Rewrite Module, it is skipped with a warning. Install the module manually or run the script locally on that server.
+
+## FAQ
+
+**Q: What happens if I run the script without any parameters?**
+
+A: The script prompts you to select a CVE from the available mitigations. It then checks if your local server needs protection (by verifying both the security update and mitigation status) and applies the mitigation if needed.
+
+**Q: Can I apply mitigations for multiple CVEs at once?**
+
+A: Run the script once per CVE. Each CVE creates its own JSON backup file and can be rolled back independently.
+
+**Q: What if the mitigation was previously applied by the legacy EOMT.ps1 or EOMTv2.ps1?**
+
+A: The new EOMT applies the same IIS URL Rewrite rules as the legacy scripts. If the rule already exists, the apply operation completes without duplicating it. To roll back a mitigation applied by a legacy script, use that same legacy script's rollback mechanism, as the JSON backup file format differs.
+
+**Q: What if the mitigation rule is disabled or has a name conflict?**
+
+A: If a mitigation rule exists but is disabled, `-ShowMitigationStatus` reports it in red. If the expected rule name is in use by a different rule (name conflict), it is also flagged. In both cases, run `-RollbackMitigation` to remove the conflicting or disabled rule first, then re-run EOMT to apply a clean mitigation.
+
+**Q: Does this script make changes that affect Exchange functionality?**
+
+A: The URL Rewrite mitigations do not disable Exchange features. They add request filtering rules that block known attack patterns while allowing normal traffic.
+
+**Q: What if I don't have an internet connection?**
+
+A: The IIS URL Rewrite Module must be installed manually if not already present. Use `-SkipAutoUpdate` to skip the version check. MSERT requires internet access to download.
+
+## Privacy
+
+Use of the Exchange On-premises Mitigation Tool and the Microsoft Safety Scanner are subject to the terms of the [Microsoft Privacy Statement](https://aka.ms/privacy).

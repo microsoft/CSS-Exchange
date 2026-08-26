@@ -9,6 +9,7 @@ extends:
   parameters:
     settings:
       skipBuildTagsForGitHubPullRequests: true
+      networkIsolationPolicy: Okay,CFSClean,CFSClean2
     pool:
       name: MSSecurity-1ES-Build-Agents-Pool
       image: MSSecurity-1ES-Windows-2022
@@ -19,13 +20,28 @@ extends:
     - stage: stage
       jobs:
       - job: job
+        variables:
+          CFS_FEED_SOURCE: 'https://pkgs.dev.azure.com/CSS-Exchange-Tools/$(System.TeamProjectId)/_packaging/$(CfsFeedName)/nuget/v2'
+          NPM_CONFIG_GLOBALCONFIG: '$(Build.SourcesDirectory)/.build/.npmrc'
         steps:
+        - pwsh: |
+            $registry = "https://pkgs.dev.azure.com/CSS-Exchange-Tools/$(System.TeamProjectId)/_packaging/$(CfsFeedName)/npm/registry/"
+            Set-Content -Path "$(Build.SourcesDirectory)/.build/.npmrc" -Value @("registry=$registry", "always-auth=true")
+          displayName: "Configure CFS npm feed"
+        - task: NuGetAuthenticate@1
+          displayName: "Authenticate Azure Artifacts feed (PowerShell modules)"
+        - task: npmAuthenticate@0
+          displayName: "Authenticate Azure Artifacts feed (cspell)"
+          inputs:
+            workingFile: '$(Build.SourcesDirectory)/.build/.npmrc'
         - pwsh: |
             cd .\.build
             .\docs.ps1
           displayName: "Docs Check"
         - pwsh: .\.build\SpellCheck.ps1
           displayName: "Spell Check"
+          env:
+            RepositoryName: $(Build.Repository.Name)
         - pwsh: |
             cd .\.build
             .\CodeFormatter.ps1 -Branch $env:TargetBranchName
@@ -33,6 +49,7 @@ extends:
           condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/release'))
           env:
             TargetBranchName: $(System.PullRequest.TargetBranch)
+            SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         - pwsh: |
             cd .\.build
             .\Build.ps1
@@ -43,6 +60,7 @@ extends:
           displayName: "Running Invoke-Pester"
           env:
             TargetBranchName: $(System.PullRequest.TargetBranch)
+            SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         - pwsh: |
             cd .\.build
             .\ValidateMerge.ps1 -Branch $env:TargetBranchName

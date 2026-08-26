@@ -71,6 +71,7 @@ function Get-ArgumentList {
         PopLogs                        = $PopLogs
         PowerShellLogs                 = $PowerShellLogs
         QueueInformation               = $QueueInformation
+        RESTLogs                       = $RESTLogs
         RootFilePath                   = $Script:RootFilePath
         RPCLogs                        = $RPCLogs
         SearchLogs                     = $SearchLogs

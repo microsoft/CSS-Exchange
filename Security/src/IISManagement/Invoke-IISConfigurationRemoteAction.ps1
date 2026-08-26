@@ -165,7 +165,8 @@ function Invoke-IISConfigurationRemoteAction {
                         $commandParameters = $cmd.Parameters
                         $location = GetLocationValue $commandParameters
                         $progressCounter++
-                        $remoteActionProgressParams.Status = "Restoring settings $($commandParameters["Name"]) at '$location'"
+                        $actionDisplay = if ($commandParameters.ContainsKey("Name")) { $commandParameters["Name"] } else { $commandParameters["Filter"] }
+                        $remoteActionProgressParams.Status = "Restoring settings $actionDisplay at '$location'"
                         $remoteActionProgressParams.PercentComplete = ($progressCounter / $totalActions * 100)
                         Write-Progress @remoteActionProgressParams
 
@@ -217,11 +218,16 @@ function Invoke-IISConfigurationRemoteAction {
                         $remoteActionProgressParams.Status = "Gathering current values. $backupProgressCounter of $backupActionsCount"
                         $remoteActionProgressParams.PercentComplete = ($progressCounter / $totalActions * 100)
                         Write-Progress @remoteActionProgressParams
-                        Write-VerboseAndLog "Working on '$($actionItem.Get.Cmdlet) $($actionItem.Get.ParametersToString)"
+
+                        if ($null -eq $actionItem.Get) {
+                            Write-VerboseAndLog "Action has no Get/Restore pair — skipping backup for this action (parent rollback handles cleanup)."
+                            continue
+                        }
+
+                        Write-VerboseAndLog "Working on '$($actionItem.Get.Cmdlet) $($actionItem.Get.ParametersToString)'"
                         $params = $actionItem.Get.Parameters
                         $currentValue = & $actionItem.Get.Cmdlet @params
 
-                        #TODO: Need to determine if this is the correct course of logic when not dealing with a true value or a Set-WebConfigProp
                         if ($null -ne $currentValue) {
 
                             # Some values will return a complete object. Only pull out the value.
@@ -235,6 +241,7 @@ function Invoke-IISConfigurationRemoteAction {
                             if ($null -ne $loadingJson) {
                                 $parameterNames = $actionItem.Restore.Parameters.Keys | Where-Object { $_ -ne "ErrorAction" -and $_ -ne "Value" }
                                 $matchCmdlet = $loadingJson | Where-Object { $_.Cmdlet -eq $actionItem.Restore.Cmdlet }
+                                $matchFound = $false
 
                                 foreach ($restoreCmdlet in $matchCmdlet) {
                                     $index = 0
@@ -264,10 +271,52 @@ function Invoke-IISConfigurationRemoteAction {
                             } else {
                                 Write-VerboseAndLog "Not adding restore action because it was already in the list."
                             }
-                        } else {
-                            #TODO: need a test case here
-                            throw "NULL Current Value Address Logic"
                         }
+                        # EOMT: Added for URL Rewrite rule support — handle null current value for Add/Clear actions.
+                        # When adding a new rule (Add-WebConfigurationProperty), the Get returns $null because
+                        # the rule doesn't exist yet. The restore action is Clear-WebConfiguration which doesn't
+                        # need a Value parameter — it just needs the Filter to identify what to remove.
+                        # When clearing (Clear-WebConfiguration), a null Get means the item is already gone,
+                        # so no restore action is needed (nothing to re-add).
+                        elseif ($actionItem.Set.Cmdlet -eq "Add-WebConfigurationProperty") {
+                            Write-VerboseAndLog "Current value is null for Add action — rule does not exist yet. Recording Clear restore action without Value."
+
+                            if ($null -ne $loadingJson) {
+                                $parameterNames = $actionItem.Restore.Parameters.Keys | Where-Object { $_ -ne "ErrorAction" }
+                                $matchCmdlet = $loadingJson | Where-Object { $_.Cmdlet -eq $actionItem.Restore.Cmdlet }
+                                $matchFound = $false
+
+                                foreach ($restoreCmdlet in $matchCmdlet) {
+                                    $index = 0
+                                    $matchFound = $true
+
+                                    while ($index -lt $parameterNames.Count) {
+                                        $paramName = $parameterNames[$index]
+
+                                        if ($null -eq $restoreCmdlet.Parameters.$paramName -or
+                                            $restoreCmdlet.Parameters.$paramName -ne $actionItem.Restore.Parameters[$paramName]) {
+                                            $matchFound = $false
+                                            break
+                                        }
+                                        $index++
+                                    }
+                                    if ($matchFound) {
+                                        Write-VerboseAndLog "Found match in existing backup, don't overwrite."
+                                        break
+                                    }
+                                }
+                            }
+
+                            if ($null -eq $loadingJson -or $matchFound -eq $false) {
+                                Write-VerboseAndLog "Adding Clear restore action (no Value parameter needed)."
+                                $restoreActions.Add($actionItem.Restore)
+                            } else {
+                                Write-VerboseAndLog "Not adding restore action because it was already in the list."
+                            }
+                        } else {
+                            Write-VerboseAndLog "Current value is null and action is not an Add — skipping restore action."
+                        }
+                        # EOMT: End of null current-value handling
                     } catch {
                         Write-VerboseAndLog "Failed to collect restore actions."
                         $gatheredAllRestoreActions = $false
@@ -305,19 +354,21 @@ function Invoke-IISConfigurationRemoteAction {
 
             # Proceed to set the configuration
             Write-VerboseAndLog "Setting the configuration actions"
-            foreach ($actionItem in $InputObject.Actions.Set) {
+            foreach ($wrappedAction in $InputObject.Actions) {
+                $actionItem = $wrappedAction.Set
                 try {
                     $commandParameters = $actionItem.Parameters
                     $location = GetLocationValue $commandParameters
+                    $actionDisplay = if ($commandParameters.ContainsKey("Name")) { $commandParameters["Name"] } else { $commandParameters["Filter"] }
                     $progressCounter++
-                    $remoteActionProgressParams.Status = "Setting $($commandParameters["Name"]) at '$location'"
+                    $remoteActionProgressParams.Status = "Setting $actionDisplay at '$location'"
                     $remoteActionProgressParams.PercentComplete = ($progressCounter / $totalActions * 100)
                     Write-Progress @remoteActionProgressParams
                     Write-VerboseAndLog "Running the following: $($actionItem.Cmdlet) $($actionItem.ParametersToString)"
 
                     & $actionItem.Cmdlet @commandParameters
                 } catch {
-                    Write-VerboseAndLog "$($env:COMPUTERNAME): Failed to set '$($commandParameters["Name"])' for '$location' with the value '$($commandParameters["Value"])'. Inner Exception $_"
+                    Write-VerboseAndLog "$($env:COMPUTERNAME): Failed to execute '$($actionItem.Cmdlet)' for '$actionDisplay' at '$location'. Inner Exception $_"
                     $allActionsPerformed = $false
                     $errorContext.Add($_)
                 }

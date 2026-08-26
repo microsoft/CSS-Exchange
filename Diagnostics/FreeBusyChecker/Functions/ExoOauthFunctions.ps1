@@ -12,14 +12,14 @@ function EXOIntraOrgConCheck {
     Write-Host -ForegroundColor Green " Summary - Online Intra Organization Connector"
     PrintDynamicWidthLine
     Write-Host -ForegroundColor White " TarGet Address Domains: "
-    if ($Script:ExoIntraOrgCon.TarGetAddressDomains -like "*$ExchangeOnpremDomain*") {
+    if ($Script:ExoIntraOrgCon.TarGetAddressDomains -like "*$Script:ExchangeOnPremDomain*") {
         Write-Host -ForegroundColor Green " " $Script:ExoIntraOrgCon.TarGetAddressDomains
         $Script:tdExoIntraOrgConTarGetAddressDomains = $Script:ExoIntraOrgCon.TarGetAddressDomains
         $Script:tdExoIntraOrgConTarGetAddressDomainsColor = "green"
     } else {
         Write-Host -ForegroundColor Red " TarGet Address Domains is NOT correct."
-        Write-Host -ForegroundColor White " Should contain the $ExchangeOnpremDomain"
-        $Script:tdExoIntraOrgConTarGetAddressDomains = " $($Script:ExoIntraOrgCon.TarGetAddressDomains) . Should contain the $ExchangeOnpremDomain"
+        Write-Host -ForegroundColor White " Should contain the $Script:ExchangeOnPremDomain"
+        $Script:tdExoIntraOrgConTarGetAddressDomains = " $($Script:ExoIntraOrgCon.TarGetAddressDomains) . Should contain the $Script:ExchangeOnPremDomain"
         $Script:tdExoIntraOrgConTarGetAddressDomainsColor = "red"
     }
     Write-Host -ForegroundColor White " DiscoveryEndpoint: "
@@ -56,20 +56,20 @@ function EXOIntraOrgConCheck {
 function EXOIntraOrgConfigCheck {
     Write-Host -ForegroundColor Green " Get-IntraOrganizationConfiguration | Select OnPremiseTarGetAddresses"
     PrintDynamicWidthLine
-    $Script:ExoIntraOrgConfig = Get-EOOnPremisesOrganization | Select-Object OrganizationGuid | Get-EOIntraOrganizationConfiguration | Select-Object * | Where-Object { $_.OnPremiseTarGetAddresses -like "*$ExchangeOnPremDomain*" }
+    $Script:ExoIntraOrgConfig = Get-EOOnPremisesOrganization | Select-Object OrganizationGuid | Get-EOIntraOrganizationConfiguration | Select-Object * | Where-Object { $_.OnPremiseTarGetAddresses -like "*$Script:ExchangeOnPremDomain*" }
     $IOConfig = $Script:ExoIntraOrgConfig | Format-List
     $IOConfig
     PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " Summary - Exchange Online Intra Organization Configuration"
     PrintDynamicWidthLine
     Write-Host -ForegroundColor White " OnPremiseTarGetAddresses: "
-    if ($Script:ExoIntraOrgConfig.OnPremiseTarGetAddresses -like "*$ExchangeOnpremDomain*") {
+    if ($Script:ExoIntraOrgConfig.OnPremiseTarGetAddresses -like "*$Script:ExchangeOnPremDomain*") {
         Write-Host -ForegroundColor Green " " $Script:ExoIntraOrgConfig.OnPremiseTarGetAddresses
         $Script:tdExoIntraOrgConfigOnPremiseTarGetAddresses = $Script:ExoIntraOrgConfig.OnPremiseTarGetAddresses
         $Script:tdExoIntraOrgConfigOnPremiseTarGetAddressesColor = "green"
     } else {
         Write-Host -ForegroundColor Red " OnPremise TarGet Addresses are NOT correct."
-        Write-Host -ForegroundColor White " Should contain the $ExchangeOnpremDomain"
+        Write-Host -ForegroundColor White " Should contain the $Script:ExchangeOnPremDomain"
         $Script:tdExoIntraOrgConfigOnPremiseTarGetAddresses = $Script:ExoIntraOrgConfig.OnPremiseTarGetAddresses
         $Script:tdExoIntraOrgConfigOnPremiseTarGetAddressesColor = "red"
     }

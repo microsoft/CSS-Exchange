@@ -43,7 +43,7 @@ New-Item -Path $distFolder -ItemType Directory | Out-Null
     are referenced.
 #>
 
-$excludedFolders = @(".build", "dist")
+$excludedFolders = @(".build", "dist", ".github")
 
 $allScriptFiles = Get-ChildItem -Path $repoRoot -Directory |
     Where-Object { -not $excludedFolders.Contains($_.Name) } |

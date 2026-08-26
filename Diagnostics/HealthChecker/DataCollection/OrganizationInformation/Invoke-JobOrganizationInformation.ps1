@@ -17,6 +17,7 @@ function Invoke-JobOrganizationInformation {
         # Build Process to add functions.
         . $PSScriptRoot\Get-ExchangeAdSchemaInformation.ps1
         . $PSScriptRoot\Get-ExchangeDomainsAclPermissions.ps1
+        . $PSScriptRoot\Get-ExchangeLegacySecurityGroups.ps1
         . $PSScriptRoot\Get-ExchangeWellKnownSecurityGroups.ps1
         . $PSScriptRoot\Get-SecurityCve-2021-34470.ps1
         . $PSScriptRoot\Get-SecurityCve-2022-21978.ps1
@@ -33,6 +34,7 @@ function Invoke-JobOrganizationInformation {
         $getOrganizationConfig = $null
         $domainsAclPermissions = $null
         $wellKnownSecurityGroups = $null
+        $legacySecurityGroups = $null
         $adSchemaInformation = $null
         $getHybridConfiguration = $null
         $getPartnerApplication = $null
@@ -111,6 +113,7 @@ function Invoke-JobOrganizationInformation {
             Get-ExchangeAdSchemaInformation | Invoke-RemotePipelineHandler -Result ([ref]$adSchemaInformation)
             Get-ExchangeDomainsAclPermissions | Invoke-RemotePipelineHandler -Result ([ref]$domainsAclPermissions)
             Get-ExchangeWellKnownSecurityGroups | Invoke-RemotePipelineHandler -Result ([ref]$wellKnownSecurityGroups)
+            Get-ExchangeLegacySecurityGroups | Invoke-RemotePipelineHandler -Result ([ref]$legacySecurityGroups)
             Get-ExchangeADSplitPermissionsEnabled -CatchActionFunction ${Function:Invoke-CatchActions} | Invoke-RemotePipelineHandler -Result ([ref]$isSplitADPermissions)
 
             # Exchange Cmdlets
@@ -172,12 +175,15 @@ function Invoke-JobOrganizationInformation {
                     [string]$guid = $getOrganizationConfig.RootPublicFolderMailbox
                     Write-Verbose "Trying to collect root public folder mailbox information - $guid"
                     $getMailboxRootPF = Get-Mailbox -PublicFolder $guid -ErrorAction Stop
+                    $multiplePFMailboxes = @(Get-Mailbox -PublicFolder -ErrorAction Stop -ResultSize 2).Count -gt 1
+                    Write-Verbose "There are $(if ($multiplePFMailboxes) { "multiple" } else { "not multiple" }) public folder mailboxes in the environment."
                     $rootPublicFolderMailbox = [PSCustomObject]@{
                         Name                           = $getMailboxRootPF.Name
                         ExchangeGuid                   = $getMailboxRootPF.ExchangeGuid
                         IsExcludedFromServingHierarchy = $getMailboxRootPF.IsExcludedFromServingHierarchy
                         IsHierarchyReady               = $getMailboxRootPF.IsHierarchyReady
                         IsHierarchySyncEnabled         = $getMailboxRootPF.IsHierarchySyncEnabled
+                        MultiplePublicFolderMailboxes  = $multiplePFMailboxes
                     }
                 }
             } catch {
@@ -241,32 +247,38 @@ function Invoke-JobOrganizationInformation {
                 Invoke-CatchActions
             }
 
-            $schemaRangeUpper = (
-                ($adSchemaInformation.msExchSchemaVersionPt.Properties["RangeUpper"])[0]).ToInt32([System.Globalization.NumberFormatInfo]::InvariantInfo)
-
-            if ($schemaRangeUpper -lt 15323) {
-                $schemaLevel = "2013"
-            } elseif ($schemaRangeUpper -lt 17000) {
-                $schemaLevel = "2016"
-            } else {
-                $schemaLevel = "2019"
-            }
-
-            $cve21978Params = @{
-                DomainsAcls                     = $domainsAclPermissions
-                ExchangeWellKnownSecurityGroups = $wellKnownSecurityGroups
-                ExchangeSchemaLevel             = $schemaLevel
-                SplitADPermissions              = $isSplitADPermissions
-            }
-
-            $cve34470Params = @{
-                MsExchStorageGroup = $adSchemaInformation.MsExchStorageGroup
-            }
-
             $CVE202221978Results = $null
             $CVE202134470Results = $null
-            Get-SecurityCve-2022-21978 @cve21978Params | Invoke-RemotePipelineHandler -Result ([ref]$CVE202221978Results)
-            Get-SecurityCve-2021-34470 @cve34470Params | Invoke-RemotePipelineHandler -Result ([ref]$CVE202134470Results)
+            # Only execute if we were able to return the information from the schema class.
+            if ($null -ne $adSchemaInformation.msExchSchemaVersionPt) {
+
+                $schemaRangeUpper = (
+                    ($adSchemaInformation.msExchSchemaVersionPt.Properties["RangeUpper"])[0]).ToInt32([System.Globalization.NumberFormatInfo]::InvariantInfo)
+
+                if ($schemaRangeUpper -lt 15323) {
+                    $schemaLevel = "2013"
+                } elseif ($schemaRangeUpper -lt 17000) {
+                    $schemaLevel = "2016"
+                } else {
+                    $schemaLevel = "2019"
+                }
+
+                $cve21978Params = @{
+                    DomainsAcls                     = $domainsAclPermissions
+                    ExchangeWellKnownSecurityGroups = $wellKnownSecurityGroups
+                    ExchangeSchemaLevel             = $schemaLevel
+                    SplitADPermissions              = $isSplitADPermissions
+                }
+                Get-SecurityCve-2022-21978 @cve21978Params | Invoke-RemotePipelineHandler -Result ([ref]$CVE202221978Results)
+            }
+
+            if ($null -ne $adSchemaInformation.MsExchStorageGroup) {
+                $cve34470Params = @{
+                    MsExchStorageGroup = $adSchemaInformation.MsExchStorageGroup
+                }
+
+                Get-SecurityCve-2021-34470 @cve34470Params | Invoke-RemotePipelineHandler -Result ([ref]$CVE202134470Results)
+            }
 
             $securityResults = [PSCustomObject]@{
                 CVE202221978 = $CVE202221978Results
@@ -284,6 +296,7 @@ function Invoke-JobOrganizationInformation {
             GetOrganizationConfig             = $getOrganizationConfig
             DomainsAclPermissions             = $domainsAclPermissions
             WellKnownSecurityGroups           = $wellKnownSecurityGroups
+            LegacySecurityGroups              = $legacySecurityGroups
             AdSchemaInformation               = $adSchemaInformation
             GetHybridConfiguration            = $getHybridConfiguration
             GetPartnerApplication             = $getPartnerApplication

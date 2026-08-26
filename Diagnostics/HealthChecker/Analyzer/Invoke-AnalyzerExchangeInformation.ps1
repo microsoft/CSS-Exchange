@@ -335,7 +335,13 @@ function Invoke-AnalyzerExchangeInformation {
                     }
                 }
             } else {
-                $displayMissingGroups.Add("Unable to determine Local System Membership as the results were blank.")
+                if ($null -ne $exchangeInformation.ADComputerObject.LocalGroupMemberException -and
+                    $exchangeInformation.ADComputerObject.LocalGroupMemberException.Exception -is [System.InvalidOperationException] -and
+                    $HealthServerObject.OSInformation.BuildInformation.BuildVersion -lt [System.Version]"10.0.26100") {
+                    $displayMissingGroups.Add("Unable to determine Local System Membership. This can occur when orphaned SIDs exist in the local Administrators group.")
+                } else {
+                    $displayMissingGroups.Add("Unable to determine Local System Membership as the results were blank.")
+                }
             }
 
             if ($null -ne $exchangeInformation.ADComputerObject.ADGroupMembership -and

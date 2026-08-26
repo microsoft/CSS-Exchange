@@ -209,11 +209,14 @@ function New-ExchangeAuthCertificate {
                         } else {
                             Write-Verbose "Creating a default self-signed certificate with a lifetime of 5 years"
                             $certObject = New-ExchangeCertificate @newAuthCertificateParams
+
                             $newAuthCertificate = [PSCustomObject]@{
                                 Thumbprint = $certObject.Thumbprint
                                 Subject    = $certObject.Subject
+                                RawData    = $certObject.RawData # We need to include RawData in case the deserialization of the cert object fails
                             }
                         }
+                        Write-Verbose "Certificate with thumbprint: $($newAuthCertificate.Thumbprint) was generated"
                         Start-Sleep -Seconds 5
                     } else {
                         $newAuthCertificateParams.GetEnumerator() | ForEach-Object {
@@ -240,7 +243,7 @@ function New-ExchangeAuthCertificate {
 
                 if ($null -ne $newAuthCertificate) {
                     $operationSuccessful = $true
-                    if ($null -ne $newAuthCertificate.Thumbprint) {
+                    if (-not([System.String]::IsNullOrWhiteSpace($newAuthCertificate.Thumbprint))) {
                         Write-Verbose ("Certificate object successfully deserialized")
                         [string]$newAuthCertificateThumbprint = $newAuthCertificate.Thumbprint
                     } else {

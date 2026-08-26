@@ -25,7 +25,19 @@ ValidateExoPfDumpster.ps1
   [-PFolder <string[]>]
   [-AffectedUser <string[]>]
   [-ExportPath <string[]>]
+  [-SkipVersionCheck]
+
+ValidateExoPfDumpster.ps1
+  -ScriptUpdateOnly
 ```
+
+## Parameters
+
+- `-PFolder` (required): Identity of the affected public folder to validate.
+- `-AffectedUser` (optional): SMTP address of the affected user when the issue is specific to a single user.
+- `-ExportPath` (optional): Path where the report and log files are generated.
+- `-ScriptUpdateOnly` (optional): Only updates the script to the latest released version without performing any other actions.
+- `-SkipVersionCheck` (optional): Skips the automatic version check and script update.
 
 ## Output
 

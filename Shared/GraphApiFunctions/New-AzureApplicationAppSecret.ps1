@@ -4,9 +4,66 @@
 . $PSScriptRoot\Get-AzureApplication.ps1
 
 <#
-    This function creates an App secret for a given application and return it.
-    The assigned App Password is valid for 7 days.
-    https://learn.microsoft.com/graph/api/application-addpassword?view=graph-rest-1.0&tabs=http#request
+.SYNOPSIS
+    Creates a new client secret for an Azure AD application.
+
+.DESCRIPTION
+    This function creates a new client secret (application password) for an existing Azure AD
+    application using the Microsoft Graph API. The secret is valid for 7 days from creation.
+
+    The function performs the following operations:
+    1. Retrieves the Azure application by name to get its Object ID
+    2. Garbage collects any expired secrets by removing them from the application
+    3. Creates a new client secret with a 7-day expiration
+    4. Waits 60 seconds for Azure AD replication before returning the secret
+
+    IMPORTANT: The secret value is only returned once at creation time and cannot be retrieved
+    later. Store the returned secret securely.
+
+.PARAMETER AzAccountsObject
+    The Azure accounts object containing authentication context (AccessToken) for Graph API calls.
+
+.PARAMETER AzureApplicationName
+    The display name of the Azure AD application to create the secret for.
+
+.PARAMETER GraphApiUrl
+    The Microsoft Graph API endpoint URL to use for API requests (e.g., "https://graph.microsoft.com").
+
+.OUTPUTS
+    System.String
+    The plain-text secret value that can be used for authentication.
+
+    Returns $null if:
+    - The application is not found
+    - The application query fails
+    - Secret creation fails
+
+.EXAMPLE
+    $secret = New-AzureApplicationAppSecret -AzAccountsObject $azContext -AzureApplicationName "MyExchangeApp" -GraphApiUrl "https://graph.microsoft.com"
+
+    if ($secret) {
+        Write-Host "Secret created successfully. Store this value securely!"
+        # Use the secret for authentication
+    } else {
+        Write-Host "Failed to create secret"
+    }
+
+.NOTES
+    Required Graph API permissions:
+    - Application.ReadWrite.All (to add and remove password credentials)
+
+    The created secret:
+    - Has a display name of "AppAccessKey"
+    - Expires after 7 days
+    - Cannot be retrieved after creation - store it immediately
+
+    This function automatically cleans up expired secrets before creating a new one.
+
+    This function supports -WhatIf and -Confirm through ShouldProcess (for secret deletion).
+
+    API Reference:
+    - Add password: https://learn.microsoft.com/graph/api/application-addpassword
+    - Remove password: https://learn.microsoft.com/graph/api/application-removepassword
 #>
 function New-AzureApplicationAppSecret {
     [CmdletBinding(SupportsShouldProcess)]

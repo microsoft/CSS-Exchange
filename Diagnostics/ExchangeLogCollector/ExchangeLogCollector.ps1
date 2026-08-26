@@ -44,6 +44,7 @@ param (
     [switch]$PowerShellLogs,
     [switch]$QueueInformation,
     [switch]$ReceiveConnectors,
+    [switch]$RESTLogs,
     [switch]$RPCLogs,
     [switch]$SearchLogs,
     [switch]$SendConnectors,

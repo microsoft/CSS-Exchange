@@ -3,21 +3,21 @@
 
 function ExoOrgRelCheck () {
     PrintDynamicWidthLine
-    Write-Host -ForegroundColor Green " Get-EOOrganizationRelationship  | Where{($_.DomainNames -like $ExchangeOnPremDomain )} | Select Identity,DomainNames,FreeBusy*,TarGet*,Enabled"
+    Write-Host -ForegroundColor Green " Get-EOOrganizationRelationship  | Where{($_.DomainNames -like $Script:ExchangeOnPremDomain )} | Select Identity,DomainNames,FreeBusy*,TarGet*,Enabled"
     PrintDynamicWidthLine
     $ExoOrgRel
     PrintDynamicWidthLine
     Write-Host  -ForegroundColor Green " Summary - Organization Relationship"
     PrintDynamicWidthLine
     Write-Host  " Domain Names:"
-    if ($exoOrgRel.DomainNames -like $ExchangeOnPremDomain) {
-        Write-Host -ForegroundColor Green "  Domain Names Include the $ExchangeOnPremDomain Domain"
+    if ($exoOrgRel.DomainNames -like $Script:ExchangeOnPremDomain) {
+        Write-Host -ForegroundColor Green "  Domain Names Include the $Script:ExchangeOnPremDomain Domain"
         $Script:tdExoOrgRelDomainNames = $exoOrgRel.DomainNames
         $Script:tdExoOrgRelDomainNamesColor = "green"
     } else {
-        Write-Host -ForegroundColor Red "  Domain Names do Not Include the $ExchangeOnPremDomain Domain"
+        Write-Host -ForegroundColor Red "  Domain Names do Not Include the $Script:ExchangeOnPremDomain Domain"
         $exoOrgRel.DomainNames
-        $Script:tdExoOrgRelDomainNames = "$($exoOrgRel.DomainNames) - Domain Names do Not Include the $ExchangeOnPremDomain Domain"
+        $Script:tdExoOrgRelDomainNames = "$($exoOrgRel.DomainNames) - Domain Names do Not Include the $Script:ExchangeOnPremDomain Domain"
         $Script:tdExoOrgRelDomainNamesColor = "green"
     }
     #FreeBusyAccessEnabled
@@ -50,7 +50,7 @@ function ExoOrgRelCheck () {
     }
     #TarGetApplicationUri
     Write-Host  " TarGetApplicationUri:"
-    $a = "FYDIBOHF25SPDLT." + $ExchangeOnPremDomain
+    $a = "FYDIBOHF25SPDLT." + $Script:ExchangeOnPremDomain
     $HybridAgentTargetSharingEpr = "http://outlook.office.com/"
     $HATargetAutodiscoverEpr = "https://autodiscover-s.outlook.com/autodiscover/autodiscover.svc/"
     if ($exoOrgRel.TarGetSharingEpr -like "*resource.mailboxMigration.his.MSAppProxy.net/EWS/Exchange.asmx") {

@@ -55,7 +55,7 @@ function Export-CalLog {
 }
 
 function Export-CalLogCSV {
-    $GCDOResults | Export-Csv -Path $Filename -NoTypeInformation -Encoding UTF8
+    $script:EnhancedCalLogs | Export-Csv -Path $Filename -NoTypeInformation -Encoding UTF8
     $script:GCDO | Export-Csv -Path $FilenameRaw -NoTypeInformation -Encoding UTF8
 }
 

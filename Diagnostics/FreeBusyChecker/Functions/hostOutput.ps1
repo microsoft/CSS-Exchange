@@ -58,9 +58,9 @@ function ShowParameters() {
     Write-Host  -ForegroundColor White " AD root Domain"
     Write-Host -ForegroundColor Green "  $Script:ExchangeOnPremLocalDomain"
     Write-Host -ForegroundColor White " Exchange On Premises Domain:  "
-    Write-Host -ForegroundColor Green "  $exchangeOnPremDomain"
+    Write-Host -ForegroundColor Green "  $Script:ExchangeOnPremDomain"
     Write-Host -ForegroundColor White " Exchange On Premises External EWS url:"
-    Write-Host -ForegroundColor Green "  $exchangeOnPremEWS"
+    Write-Host -ForegroundColor Green "  $Script:ExchangeOnPremEWS"
     Write-Host -ForegroundColor White " On Premises Hybrid Mailbox:"
     Write-Host -ForegroundColor Green "  $Script:UserOnPrem"
     Write-Host -ForegroundColor White " Exchange Online Mailbox:"
@@ -83,7 +83,7 @@ function hostOutputIntraOrgConEnabled($Auth) {
         Write-Host -ForegroundColor White "    -> Running for OAuth only as OAuth takes precedence over DAuth;"
         Write-Host -ForegroundColor White "`n         This script can be Run using the -Auth All parameter to Check for both OAuth and DAuth configuration. `n `n         Example: ./FreeBusyChecker.ps1 -Auth All"
         Write-Host -ForegroundColor White "`n         This script can be Run using the -Auth DAuth parameter to Check for DAuth configuration only. `n `n         Example: ./FreeBusyChecker.ps1 -Auth DAuth"
-        lookupMethodDAuthHtml
+        lookupMethodOAuthHtml
     }
     if ($Auth -like "All") {
         lookupMethodCheckAllHtml

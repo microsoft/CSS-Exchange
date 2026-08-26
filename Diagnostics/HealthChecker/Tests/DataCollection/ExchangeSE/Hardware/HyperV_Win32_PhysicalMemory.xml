@@ -1,0 +1,182 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>Microsoft.Management.Infrastructure.CimInstance#root/cimv2/Win32_PhysicalMemory</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/cimv2/CIM_PhysicalMemory</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/cimv2/CIM_Chip</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/cimv2/CIM_PhysicalComponent</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/cimv2/CIM_PhysicalElement</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/cimv2/CIM_ManagedSystemElement</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#Win32_PhysicalMemory</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#CIM_PhysicalMemory</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#CIM_Chip</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#CIM_PhysicalComponent</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#CIM_PhysicalElement</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#CIM_ManagedSystemElement</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>Win32_PhysicalMemory: Physical Memory (Tag = "Physical Memory 0")</ToString>
+    <Props>
+      <S N="Caption">Physical Memory</S>
+      <S N="Description">Physical Memory</S>
+      <Nil N="InstallDate" />
+      <S N="Name">Physical Memory</S>
+      <Nil N="Status" />
+      <S N="CreationClassName">Win32_PhysicalMemory</S>
+      <S N="Manufacturer">Microsoft Corporation</S>
+      <Nil N="Model" />
+      <Nil N="OtherIdentifyingInfo" />
+      <S N="PartNumber">None</S>
+      <Nil N="PoweredOn" />
+      <S N="SerialNumber">None</S>
+      <Nil N="SKU" />
+      <S N="Tag">Physical Memory 0</S>
+      <Nil N="Version" />
+      <Nil N="HotSwappable" />
+      <Nil N="Removable" />
+      <Nil N="Replaceable" />
+      <U16 N="FormFactor">0</U16>
+      <S N="BankLabel">None</S>
+      <U64 N="Capacity">4160749568</U64>
+      <Nil N="DataWidth" />
+      <U32 N="InterleavePosition">0</U32>
+      <U16 N="MemoryType">0</U16>
+      <Nil N="PositionInRow" />
+      <Nil N="Speed" />
+      <Nil N="TotalWidth" />
+      <U32 N="Attributes">0</U32>
+      <U32 N="ConfiguredClockSpeed">0</U32>
+      <U32 N="ConfiguredVoltage">0</U32>
+      <S N="DeviceLocator">M0001</S>
+      <U16 N="InterleaveDataDepth">0</U16>
+      <U32 N="MaxVoltage">0</U32>
+      <U32 N="MinVoltage">0</U32>
+      <U32 N="SMBIOSMemoryType">2</U32>
+      <U16 N="TypeDetail">4</U16>
+      <Nil N="PSComputerName" />
+    </Props>
+    <MS>
+      <Obj N="__ClassMetadata" RefId="1">
+        <TN RefId="1">
+          <T>System.Collections.ArrayList</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <Obj RefId="2">
+            <MS>
+              <S N="ClassName">CIM_ManagedSystemElement</S>
+              <S N="Namespace">ROOT/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735878248</I32>
+              <S N="MiXml">&lt;CLASS NAME="CIM_ManagedSystemElement"&gt;&lt;QUALIFIER NAME="Abstract" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Locale" TYPE="sint32"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="UUID" TYPE="string"&gt;&lt;VALUE&gt;{8502C517-5FBB-11D2-AAC1-006008C78BC7}&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="Caption" TYPE="string"&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Description" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InstallDate" TYPE="datetime"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;MIF.DMTF|ComponentID|001.5&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Name" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Status" TYPE="string"&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;OK&lt;/VALUE&gt;&lt;VALUE&gt;Error&lt;/VALUE&gt;&lt;VALUE&gt;Degraded&lt;/VALUE&gt;&lt;VALUE&gt;Unknown&lt;/VALUE&gt;&lt;VALUE&gt;Pred Fail&lt;/VALUE&gt;&lt;VALUE&gt;Starting&lt;/VALUE&gt;&lt;VALUE&gt;Stopping&lt;/VALUE&gt;&lt;VALUE&gt;Service&lt;/VALUE&gt;&lt;VALUE&gt;Stressed&lt;/VALUE&gt;&lt;VALUE&gt;NonRecover&lt;/VALUE&gt;&lt;VALUE&gt;No Contact&lt;/VALUE&gt;&lt;VALUE&gt;Lost Comm&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;/CLASS&gt;</S>
+            </MS>
+          </Obj>
+          <Obj RefId="3">
+            <MS>
+              <S N="ClassName">CIM_PhysicalElement</S>
+              <S N="Namespace">ROOT/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735872008</I32>
+              <S N="MiXml">&lt;CLASS NAME="CIM_PhysicalElement" SUPERCLASS="CIM_ManagedSystemElement"&gt;&lt;QUALIFIER NAME="Locale" TYPE="sint32"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="UUID" TYPE="string"&gt;&lt;VALUE&gt;{FAF76B61-798C-11D2-AAD1-006008C78BC7}&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Abstract" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="CreationClassName" TYPE="string"&gt;&lt;QUALIFIER NAME="CIM_Key" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;256&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Manufacturer" TYPE="string"&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;256&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Model" TYPE="string"&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="OtherIdentifyingInfo" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="PartNumber" TYPE="string"&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;256&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="PoweredOn" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="SerialNumber" TYPE="string"&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="SKU" TYPE="string"&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Tag" TYPE="string"&gt;&lt;QUALIFIER NAME="CIM_Key" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;256&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Version" TYPE="string"&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;/CLASS&gt;</S>
+            </MS>
+          </Obj>
+          <Obj RefId="4">
+            <MS>
+              <S N="ClassName">CIM_PhysicalComponent</S>
+              <S N="Namespace">ROOT/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735600984</I32>
+              <S N="MiXml">&lt;CLASS NAME="CIM_PhysicalComponent" SUPERCLASS="CIM_PhysicalElement"&gt;&lt;QUALIFIER NAME="Locale" TYPE="sint32"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="UUID" TYPE="string"&gt;&lt;VALUE&gt;{FAF76B78-798C-11D2-AAD1-006008C78BC7}&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="abstract" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="HotSwappable" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Removable" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Replaceable" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;/CLASS&gt;</S>
+            </MS>
+          </Obj>
+          <Obj RefId="5">
+            <MS>
+              <S N="ClassName">CIM_Chip</S>
+              <S N="Namespace">ROOT/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735596824</I32>
+              <S N="MiXml">&lt;CLASS NAME="CIM_Chip" SUPERCLASS="CIM_PhysicalComponent"&gt;&lt;QUALIFIER NAME="Locale" TYPE="sint32"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="UUID" TYPE="string"&gt;&lt;VALUE&gt;{FAF76B7A-798C-11D2-AAD1-006008C78BC7}&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="abstract" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="FormFactor" TYPE="uint16"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;/CLASS&gt;</S>
+            </MS>
+          </Obj>
+          <Obj RefId="6">
+            <MS>
+              <S N="ClassName">CIM_PhysicalMemory</S>
+              <S N="Namespace">ROOT/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735583304</I32>
+              <S N="MiXml">&lt;CLASS NAME="CIM_PhysicalMemory" SUPERCLASS="CIM_Chip"&gt;&lt;QUALIFIER NAME="Locale" TYPE="sint32"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="UUID" TYPE="string"&gt;&lt;VALUE&gt;{FAF76B7B-798C-11D2-AAD1-006008C78BC7}&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="abstract" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="FormFactor" TYPE="uint16"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;MIF.DMTF|Memory Device|002.6&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Override" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE&gt;FormFactor&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="BankLabel" TYPE="string"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;MIF.DMTF|Memory Device|002.4&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Capacity" TYPE="uint64"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;MIF.DMTF|Memory Device|002.5&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DataWidth" TYPE="uint16"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;MIF.DMTF|Memory Device|002.8&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InterleavePosition" TYPE="uint32"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;MIF.DMTF|Memory Device Mapped Addresses|001.7&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="MemoryType" TYPE="uint16"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;MIF.DMTF|Memory Device|002.9&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="PositionInRow" TYPE="uint32"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;MIF.DMTF|Memory Device Mapped Addresses|001.6&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Speed" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="TotalWidth" TYPE="uint16"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;MIF.DMTF|Memory Device|002.7&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;/CLASS&gt;</S>
+            </MS>
+          </Obj>
+          <Obj RefId="7">
+            <MS>
+              <S N="ClassName">Win32_PhysicalMemory</S>
+              <S N="Namespace">root/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735584344</I32>
+              <S N="MiXml">&lt;CLASS NAME="Win32_PhysicalMemory" SUPERCLASS="CIM_PhysicalMemory"&gt;&lt;QUALIFIER NAME="Locale" TYPE="sint32"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="UUID" TYPE="string"&gt;&lt;VALUE&gt;{FAF76B93-798C-11D2-AAD1-006008C78BC7}&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="dynamic" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="provider" TYPE="string"&gt;&lt;VALUE&gt;CIMWin32&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="Tag" TYPE="string"&gt;&lt;QUALIFIER NAME="CIM_Key" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;256&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="key" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;WMI&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Override" TYPE="string"&gt;&lt;VALUE&gt;Tag&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Attributes" TYPE="uint32"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;SMBIOS|Type 17|Attributes&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ConfiguredClockSpeed" TYPE="uint32"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;SMBIOS|Type 17|Configured Memory Clock Speed&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ConfiguredVoltage" TYPE="uint32"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;SMBIOS|Type 17|Configured voltage&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DeviceLocator" TYPE="string"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;SMBIOS|Type 17|Device Locator&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InterleaveDataDepth" TYPE="uint16"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;SMBIOS|Type 20|Interleaved Data Depth&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="MaxVoltage" TYPE="uint32"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;SMBIOS|Type 17|Maximum voltage&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="MinVoltage" TYPE="uint32"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;SMBIOS|Type 20|Minimum voltage&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="SMBIOSMemoryType" TYPE="uint32"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;SMBIOS|Type 17|Memory_Type&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="TypeDetail" TYPE="uint16"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;SMBIOS|Type 17|Type Detail&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;/CLASS&gt;</S>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+  <Obj RefId="8">
+    <TNRef RefId="0" />
+    <ToString>Win32_PhysicalMemory: Physical Memory (Tag = "Physical Memory 1")</ToString>
+    <Props>
+      <S N="Caption">Physical Memory</S>
+      <S N="Description">Physical Memory</S>
+      <Nil N="InstallDate" />
+      <S N="Name">Physical Memory</S>
+      <Nil N="Status" />
+      <S N="CreationClassName">Win32_PhysicalMemory</S>
+      <S N="Manufacturer">Microsoft Corporation</S>
+      <Nil N="Model" />
+      <Nil N="OtherIdentifyingInfo" />
+      <S N="PartNumber">None</S>
+      <Nil N="PoweredOn" />
+      <S N="SerialNumber">None</S>
+      <Nil N="SKU" />
+      <S N="Tag">Physical Memory 1</S>
+      <Nil N="Version" />
+      <Nil N="HotSwappable" />
+      <Nil N="Removable" />
+      <Nil N="Replaceable" />
+      <U16 N="FormFactor">0</U16>
+      <S N="BankLabel">None</S>
+      <U64 N="Capacity">2281701376</U64>
+      <Nil N="DataWidth" />
+      <U32 N="InterleavePosition">0</U32>
+      <U16 N="MemoryType">0</U16>
+      <Nil N="PositionInRow" />
+      <Nil N="Speed" />
+      <Nil N="TotalWidth" />
+      <U32 N="Attributes">0</U32>
+      <U32 N="ConfiguredClockSpeed">0</U32>
+      <U32 N="ConfiguredVoltage">0</U32>
+      <S N="DeviceLocator">M0002</S>
+      <U16 N="InterleaveDataDepth">0</U16>
+      <U32 N="MaxVoltage">0</U32>
+      <U32 N="MinVoltage">0</U32>
+      <U32 N="SMBIOSMemoryType">2</U32>
+      <U16 N="TypeDetail">4</U16>
+      <Nil N="PSComputerName" />
+    </Props>
+    <MS>
+      <Obj N="__ClassMetadata" RefId="9">
+        <TNRef RefId="1" />
+        <LST>
+          <Obj RefId="10">
+            <MS>
+              <S N="ClassName">Win32_PhysicalMemory</S>
+              <S N="Namespace">root/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735584344</I32>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+</Objs>

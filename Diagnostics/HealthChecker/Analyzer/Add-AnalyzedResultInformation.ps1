@@ -56,24 +56,46 @@ function Add-AnalyzedResultInformation {
     begin {
         Write-Verbose "Calling $($MyInvocation.MyCommand): $name"
 
+        # Extract for Pester Testing - Start
         function GetHtmlTextValue {
             param(
                 [string]$OriginalValue
             )
 
-            # Test for all the changes, if they do not exist, just return now.
-            if ([string]::IsNullOrEmpty($OriginalValue) -or
-                ($OriginalValue.Contains(">") -eq $false -and
-                $OriginalValue.Contains("<") -eq $false)) {
+            if ([string]::IsNullOrEmpty($OriginalValue)) {
                 return $OriginalValue
             }
-            Write-Verbose "Need to make changes for HTML text"
-            Write-Verbose "Original Value: $OriginalValue"
-            $OriginalValue = $OriginalValue.Replace(">", "&gt;")
-            $OriginalValue = $OriginalValue.Replace("<", "&lt;")
-            Write-Verbose "New Value: $OriginalValue"
+
+            # HTML encode < and > characters so they are not interpreted as HTML tags.
+            if ($OriginalValue.Contains("<") -or $OriginalValue.Contains(">")) {
+                Write-Verbose "Need to make changes for HTML text"
+                Write-Verbose "Original Value: $OriginalValue"
+                $OriginalValue = $OriginalValue.Replace(">", "&gt;")
+                $OriginalValue = $OriginalValue.Replace("<", "&lt;")
+                # Restore intentional <br> tags used for line breaks in multi-value HTML cells.
+                $OriginalValue = $OriginalValue.Replace("&lt;br&gt;", "<br>")
+                Write-Verbose "New Value: $OriginalValue"
+            }
+
+            # Convert URLs to clickable hyperlinks in the HTML report.
+            if ($OriginalValue.Contains("https://") -or $OriginalValue.Contains("http://")) {
+                $OriginalValue = [regex]::Replace($OriginalValue, '(https?://[^\s<>"''`]+)', {
+                        param($match)
+                        $url = $match.Groups[1].Value
+                        # Strip trailing punctuation that is likely sentence-ending, not part of the URL.
+                        $trailing = ""
+                        while ($url.Length -gt 0 -and $url[-1] -match '[.,;)\]:]') {
+                            $trailing = $url[-1] + $trailing
+                            $url = $url.Substring(0, $url.Length - 1)
+                        }
+                        # cspell:ignore noopener noreferrer
+                        return "<a href=`"$url`" target=`"_blank`" rel=`"noopener noreferrer`">$url</a>$trailing"
+                    })
+            }
+
             return $OriginalValue
         }
+        # Extract for Pester Testing - End
         function GetOutColumnsColorObject {
             param(
                 [object[]]$OutColumns,

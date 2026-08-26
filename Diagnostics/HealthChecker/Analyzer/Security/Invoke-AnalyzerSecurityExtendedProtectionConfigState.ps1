@@ -67,6 +67,7 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
                     TestingName         = "Extended Protection Vulnerable"
                     CustomName          = $cveList
                     DisplayTestingValue = $true
+                    AddHtmlDetailRow    = $false
                 }
                 $epBasicParams = $baseParams + @{
                     DisplayWriteType       = "Red"
@@ -132,6 +133,7 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
 
                 $epFrontEndParams = $baseParams + @{
                     Name                = "Security Vulnerability"
+                    AddHtmlDetailRow    = $false
                     OutColumns          = ([PSCustomObject]@{
                             DisplayObject      = $epFrontEndOutputObjectDisplayValue
                             ColorizerFunctions = @($epConfig)
@@ -142,6 +144,7 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
 
                 $epBackEndParams = $baseParams + @{
                     Name                = "Security Vulnerability"
+                    AddHtmlDetailRow    = $false
                     OutColumns          = ([PSCustomObject]@{
                             DisplayObject      = $epBackEndOutputObjectDisplayValue
                             ColorizerFunctions = @($epConfig)
@@ -179,6 +182,7 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
                     TestingName         = "Extended Protection Vulnerable"
                     CustomName          = $cveList
                     DisplayTestingValue = $true
+                    AddHtmlDetailRow    = $false
                 }
                 Add-AnalyzedResultInformation @params
             } else {

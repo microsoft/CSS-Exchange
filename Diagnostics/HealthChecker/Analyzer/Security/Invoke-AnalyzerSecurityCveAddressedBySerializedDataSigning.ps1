@@ -32,6 +32,7 @@ function Invoke-AnalyzerSecurityCveAddressedBySerializedDataSigning {
             DisplayGroupingKey  = $DisplayGroupingKey
             Name                = "Security Vulnerability"
             DisplayWriteType    = "Red"
+            AddHtmlDetailRow    = $false
         }
 
         $detailsString = "{0}`r`n`t`tSee: https://portal.msrc.microsoft.com/security-guidance/advisory/{0} for more information."

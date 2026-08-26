@@ -145,5 +145,67 @@ function Invoke-AnalyzerOrganizationInformation {
         Add-AnalyzedResultInformation @params
     }
 
+    # Legacy Exchange security groups (security best practice cleanup).
+    # These groups were created by Exchange 2000/2003, are not used by modern Exchange, and still
+    # carry elevated AD permissions. We surface them here (Organization Information) as a Yellow
+    # best-practice warning - this is a configuration cleanup recommendation, not a vulnerability.
+    $legacySecurityGroups = $organizationInformation.LegacySecurityGroups
+
+    if ($null -ne $legacySecurityGroups -and $legacySecurityGroups.Count -gt 0) {
+        Write-Verbose "Found $($legacySecurityGroups.Count) legacy Exchange security group(s) to review"
+
+        $params = $baseParams + @{
+            Name                = "Legacy Exchange Security Groups"
+            Details             = $true
+            DisplayWriteType    = "Yellow"
+            DisplayTestingValue = $true
+            AddHtmlDetailRow    = $false
+        }
+        Add-AnalyzedResultInformation @params
+
+        $legacyGroupsDisplay = New-Object System.Collections.Generic.List[object]
+        foreach ($legacyGroup in $legacySecurityGroups) {
+            $legacyGroupsDisplay.Add([PSCustomObject]@{
+                    DistinguishedName = $legacyGroup.DistinguishedName
+                    Scope             = $legacyGroup.Scope
+                    Members           = $legacyGroup.MemberCount
+                })
+        }
+
+        # Legacy groups are always flagged Yellow. The Members cell is only highlighted when the
+        # group actually has members; an empty Members count (0) is left at the default color.
+        $legacyGroupsColorizer = {
+            param ($o, $p)
+            if ($p -eq "Members") {
+                if ($o.$p -gt 0) {
+                    "Yellow"
+                }
+            } else {
+                "Yellow"
+            }
+        }
+
+        $params = $baseParams + @{
+            OutColumns           = ([PSCustomObject]@{
+                    DisplayObject      = $legacyGroupsDisplay
+                    ColorizerFunctions = @($legacyGroupsColorizer)
+                    IndentSpaces       = 12
+                })
+            OutColumnsColorTests = @($legacyGroupsColorizer)
+            HtmlName             = "Legacy Exchange Security Groups"
+            TestingName          = "Legacy Exchange Security Groups Table"
+        }
+        Add-AnalyzedResultInformation @params
+
+        $params = $baseParams + @{
+            Details                = "These legacy Exchange security groups are not used by modern Exchange and carry elevated AD permissions. As a security best practice, review their membership and delete them if they are no longer required. More Information: https://aka.ms/HC-LegacyExchangeGroups"
+            DisplayWriteType       = "Yellow"
+            DisplayCustomTabNumber = 1
+        }
+        Add-AnalyzedResultInformation @params
+    } else {
+        Write-Verbose "No legacy Exchange security groups found."
+    }
+
     Write-Verbose "Completed: $($MyInvocation.MyCommand) and took $($stopWatch.Elapsed.TotalSeconds) seconds"
 }

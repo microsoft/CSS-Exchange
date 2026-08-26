@@ -129,7 +129,7 @@ function Invoke-AnalyzerSecurityMitigationService {
                 }
 
                 $params = $baseParams + @{
-                    Details                = "Run: 'Get-Mitigations.ps1' from: '$ExScripts' to learn more."
+                    Details                = "Run: 'Get-Mitigations.ps1' from: '$([System.IO.Path]::Combine($exchangeInformation.RegistryValues.MsiInstallPath, "Scripts"))' to learn more."
                     DisplayCustomTabNumber = 2
                 }
                 Add-AnalyzedResultInformation @params

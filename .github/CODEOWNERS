@@ -15,8 +15,8 @@
 
 # EXO PF Team
 /PublicFolders/Migration/                               @vishmittal @microsoft/css-exchange-admins
-/PublicFolders/Hybrid/                                  @vishmittal @microsoft/css-exchange-admins
+/PublicFolders/MailPublicFolderSync/                    @vishmittal @microsoft/css-exchange-admins
 /PublicFolders/Update-PublicFolderPermissions.ps1       @vishmittal @microsoft/css-exchange-admins
 /docs/PublicFolders/Migration/                          @vishmittal @microsoft/css-exchange-admins
-/docs/PublicFolders/Hybrid/                             @vishmittal @microsoft/css-exchange-admins
+/docs/PublicFolders/MailPublicFolderSync/               @vishmittal @microsoft/css-exchange-admins
 /docs/PublicFolders/Update-PublicFolderPermissions.md   @vishmittal @microsoft/css-exchange-admins

@@ -191,10 +191,11 @@ begin {
         $groupMembers = $null
         Write-Verbose "Getting $GroupObjectId"
         try {
-            $groupMembers = Get-MgGroupMember -GroupId $GroupObjectId -ErrorAction Stop
+            $groupMembers = Get-MgGroupMember -GroupId $GroupObjectId -All -ErrorAction Stop
         } catch {
             Write-Host "Error getting group members for $GroupObjectId`:`n$_" -ForegroundColor Red
-            return $null
+            $memberCache[$cacheKey] = $false
+            return $false
         }
 
         # Check if the email address is in the group
@@ -209,7 +210,8 @@ begin {
                             $user = Get-MgUser -UserId $member.Id -ErrorAction Stop
                         } catch {
                             Write-Host "Error getting user with Id $($member.Id):`n$_" -ForegroundColor Red
-                            return $null
+                            $memberCache[$cacheKey] = $false
+                            return $false
                         }
                         # Compare the user's email address with the $email parameter
                         if ($user.Mail -eq $Email.ToString()) {
@@ -351,7 +353,6 @@ begin {
                             break
                         } else {
                             Write-DetailedExplanationOption -Message "No Group match because $($Email.ToString()) is not a member of Group $($groupObjectId)" -ShowDetailedExplanation:$ShowDetailedExplanation
-                            break
                         }
                     }
                 }
@@ -370,7 +371,6 @@ begin {
                             break
                         } else {
                             Write-DetailedExplanationOption -Message "$($Email.ToString()) is not excluded from rule by membership in Group $($groupObjectId)" -ShowDetailedExplanation:$ShowDetailedExplanation
-                            break
                         }
                     }
                 }

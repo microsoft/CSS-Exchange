@@ -6,9 +6,86 @@
 . $PSScriptRoot\..\AzureFunctions\Invoke-GraphApiRequest.ps1
 
 <#
-    This function removes a certificate from a Service Principal in Microsoft Entra ID.
-    It will also remove any certificate that has expired. This functionality is enabled by default but can be disabled if needed.
-    https://learn.microsoft.com/graph/api/serviceprincipal-update
+.SYNOPSIS
+    Removes certificate credentials from an Azure AD service principal.
+
+.DESCRIPTION
+    This function removes certificate credentials (keyCredentials) from a service principal in
+    Microsoft Entra ID using the Microsoft Graph API. It can remove a specific certificate by
+    thumbprint, all certificates, or automatically clean up expired certificates.
+
+    The function performs the following operations:
+    1. Resolves the application (by name or well-known AppId) and retrieves its service principal
+    2. Examines existing key credentials on the service principal
+    3. Builds a list of certificates to retain based on the removal criteria:
+       - Excludes the certificate matching the specified thumbprint
+       - Excludes expired certificates (if RemoveExpiredCertificates is true)
+       - Excludes all certificates (if RemoveAllCertificates is true)
+    4. Updates the service principal with only the retained certificates
+
+    You must specify either AzureApplicationName or WellKnownApplicationId to identify
+    the target application.
+
+.PARAMETER AzAccountsObject
+    The Azure accounts object containing authentication context (AccessToken) for Graph API calls.
+
+.PARAMETER AzureApplicationName
+    The display name of the Azure AD application whose service principal should be updated.
+    Mutually exclusive with WellKnownApplicationId.
+
+.PARAMETER WellKnownApplicationId
+    The well-known Application ID (AppId/ClientId) of the service principal to update.
+    Must be a valid GUID format. Mutually exclusive with AzureApplicationName.
+
+.PARAMETER GraphApiUrl
+    The Microsoft Graph API endpoint URL to use for API requests (e.g., "https://graph.microsoft.com").
+
+.PARAMETER CertificateThumbprint
+    The thumbprint of the specific certificate to remove.
+    This certificate will be excluded from the retained credentials.
+
+.PARAMETER RemoveAllCertificates
+    When set to $true, removes all certificate credentials from the service principal.
+    Defaults to $false.
+
+.PARAMETER RemoveExpiredCertificates
+    When set to $true, automatically removes any expired certificates in addition to
+    the specified certificate. Defaults to $true.
+
+.OUTPUTS
+    PSCustomObject with the following properties:
+    - Successful: Boolean indicating whether the operation completed successfully
+    - Message: Descriptive message about the operation result
+
+.EXAMPLE
+    # Remove a specific certificate by thumbprint
+    $result = Remove-CertificateFromAzureServicePrincipal -AzAccountsObject $azContext `
+        -AzureApplicationName "MyExchangeApp" `
+        -CertificateThumbprint "A1B2C3D4E5F6A1B2C3D4E5F6A1B2C3D4E5F6A1B2" `
+        -GraphApiUrl "https://graph.microsoft.com"
+
+    if ($result.Successful) {
+        Write-Host "Certificate removed: $($result.Message)"
+    }
+
+.EXAMPLE
+    # Remove all certificates from a well-known application's service principal
+    $result = Remove-CertificateFromAzureServicePrincipal -AzAccountsObject $azContext `
+        -WellKnownApplicationId "00000002-0000-0ff1-ce00-000000000000" `
+        -RemoveAllCertificates $true `
+        -GraphApiUrl "https://graph.microsoft.com"
+
+.NOTES
+    Required Graph API permissions:
+    - Application.ReadWrite.All (to update service principal key credentials)
+
+    The function uses a PATCH operation to replace all keyCredentials, retaining only
+    those that don't match the removal criteria.
+
+    This function supports -WhatIf and -Confirm through ShouldProcess.
+
+    API Reference:
+    - Update servicePrincipal: https://learn.microsoft.com/graph/api/serviceprincipal-update
 #>
 function Remove-CertificateFromAzureServicePrincipal {
     [CmdletBinding(SupportsShouldProcess)]

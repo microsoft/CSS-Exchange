@@ -205,6 +205,7 @@ function Get-ExchAVExclusionsExtensions {
             $ExtensionsList.Add("edb")
             $ExtensionsList.Add("jfm")
             $ExtensionsList.Add("jrs")
+            $ExtensionsList.Add("jsl")
             $ExtensionsList.Add("log")
             $ExtensionsList.Add("que")
         }

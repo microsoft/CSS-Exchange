@@ -72,6 +72,7 @@ function Invoke-AnalyzerSecurityCveAndOverrideCheck {
                 Details             = ("{0}$(if($overrideDisabled){" - Disabled By Override"})`r`n`t`tSee: https://portal.msrc.microsoft.com/security-guidance/advisory/{0} for more information." -f $CVEName)
                 DisplayWriteType    = "Red"
                 DisplayTestingValue = $CVEName
+                AddHtmlDetailRow    = $false
             }
             Add-AnalyzedResultInformation @params
         }

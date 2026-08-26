@@ -1,0 +1,60 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>Microsoft.Management.Infrastructure.CimInstance#root/cimv2/power/Win32_PowerPlan</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/cimv2/power/CIM_SettingData</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/cimv2/power/CIM_ManagedElement</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#Win32_PowerPlan</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#CIM_SettingData</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#CIM_ManagedElement</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>Win32_PowerPlan (InstanceID = "Microsoft:PowerPlan\{381b4222-f694-41f0...)</ToString>
+    <Props>
+      <Nil N="Caption" />
+      <S N="Description">Automatically balances performance with energy consumption on capable hardware.</S>
+      <S N="ElementName">Balanced</S>
+      <S N="InstanceID">Microsoft:PowerPlan\{381b4222-f694-41f0-9685-ff5bb260df2e}</S>
+      <B N="IsActive">true</B>
+      <Nil N="PSComputerName" />
+    </Props>
+    <MS>
+      <Obj N="__ClassMetadata" RefId="1">
+        <TN RefId="1">
+          <T>System.Collections.ArrayList</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <Obj RefId="2">
+            <MS>
+              <S N="ClassName">CIM_ManagedElement</S>
+              <S N="Namespace">ROOT/cimv2/power</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735710824</I32>
+              <S N="MiXml">&lt;CLASS NAME="CIM_ManagedElement"&gt;&lt;QUALIFIER NAME="Abstract" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="locale" TYPE="sint32" TOSUBCLASS="false"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Core::CoreElements&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="Caption" TYPE="string"&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Description" TYPE="string"&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ElementName" TYPE="string"&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InstanceID" TYPE="string"&gt;&lt;/PROPERTY&gt;&lt;/CLASS&gt;</S>
+            </MS>
+          </Obj>
+          <Obj RefId="3">
+            <MS>
+              <S N="ClassName">CIM_SettingData</S>
+              <S N="Namespace">ROOT/cimv2/power</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735709784</I32>
+              <S N="MiXml">&lt;CLASS NAME="CIM_SettingData" SUPERCLASS="CIM_ManagedElement"&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Core::Settings&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Abstract" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="locale" TYPE="sint32" TOSUBCLASS="false"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="ElementName" TYPE="string"&gt;&lt;QUALIFIER NAME="Override" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE&gt;ElementName&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Required" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InstanceID" TYPE="string"&gt;&lt;QUALIFIER NAME="key" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Override" TYPE="string" TOSUBCLASS="false"&gt;&lt;VALUE&gt;InstanceID&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;/CLASS&gt;</S>
+            </MS>
+          </Obj>
+          <Obj RefId="4">
+            <MS>
+              <S N="ClassName">Win32_PowerPlan</S>
+              <S N="Namespace">root/cimv2/power</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735705624</I32>
+              <S N="MiXml">&lt;CLASS NAME="Win32_PowerPlan" SUPERCLASS="CIM_SettingData"&gt;&lt;QUALIFIER NAME="UMLPackagePath" TYPE="string"&gt;&lt;VALUE&gt;CIM::Core::Settings&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="dynamic" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Locale" TYPE="sint32" TOSUBCLASS="false"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="provider" TYPE="string"&gt;&lt;VALUE&gt;PowerWmiProvider&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="IsActive" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;METHOD NAME="Activate" TYPE="boolean"&gt;&lt;QUALIFIER NAME="implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/METHOD&gt;&lt;/CLASS&gt;</S>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+</Objs>

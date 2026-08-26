@@ -1,5 +1,7 @@
 # How To Contribute
 
+<!-- cspell:words mkdocs pymdownx winget -->
+
 ## Quick Start
 
 * Brand new to Git and GitHub? Check out our [New User Guide](https://microsoft.github.io/CSS-Exchange/NewUserGuide/).
@@ -13,6 +15,23 @@
   * Only add words to the dictionary if absolutely necessary.
 * From PS7, run `.build\Build.ps1`. Test the resulting script in `dist/`.
 * Commit the changes on your own branch and open a Pull Request.
+
+## Git Hooks (Optional)
+
+Pre-commit hooks are available to catch common issues before committing:
+- **Sensitive data scanning** on test data files (blocks unrecognized email domains, public IPs, credential-like values)
+- **Pester test run count** checking (blocks if a test file exceeds 5 pipeline runs)
+- **PSScriptAnalyzer** validation on staged PowerShell files
+
+To enable, run once after cloning:
+
+```powershell
+.github/Install-GitHooks.ps1
+```
+
+This sets `core.hooksPath` to `.github/GitHooks/`. Hook updates are picked up automatically on `git pull`. Use `git commit --no-verify` to bypass hooks when needed.
+
+PSScriptAnalyzer >= 1.24 is required for full hook coverage. Install with `Install-Module PSScriptAnalyzer -MinimumVersion 1.24`. Without it, the analyzer check is skipped.
 
 It is recommended to use Visual Studio Code when developing scripts for this project. Opening VSCode at
 the root of this repo will ensure that VSCode uses the settings in the repro to enforce most of the
@@ -111,3 +130,77 @@ provides word-wrapping of table values. Search for it in the repo to see how dif
 ### Other stuff
 
 Check out the Shared folder.
+
+## Documentation
+
+The documentation site at https://microsoft.github.io/CSS-Exchange is built with [MkDocs Material](https://squidfunk.github.io/mkdocs-material/). Pages are Markdown files in the `docs/` folder, and navigation is configured in `mkdocs.yml`.
+
+### Previewing Locally
+
+To preview documentation changes locally, you need Python 3 installed.
+
+**Install Python (if not already installed):**
+
+```powershell
+winget install Python.Python.3.12
+```
+
+Close and reopen your terminal after installing so Python is available on your PATH.
+
+**Install MkDocs dependencies:**
+
+```powershell
+pip install mkdocs-material mkdocs-git-revision-date-localized-plugin
+```
+
+**Start the local preview server from the repository root:**
+
+```powershell
+cd C:\GitHub\CSS-Exchange  # or wherever you cloned the repo
+mkdocs serve
+```
+
+Then open `http://127.0.0.1:8000/CSS-Exchange/` in your browser. The server must be run from the directory containing `mkdocs.yml`.
+
+**Note:** The server watches for file changes and automatically rebuilds. However, if changes don't appear after saving a file, stop the server with `Ctrl+C` and restart it with `mkdocs serve`. Some changes (especially structural ones) require a full restart to take effect. You may also need to hard refresh your browser (`Ctrl+Shift+R`) to bypass the browser cache.
+
+### Emerging Issues Page
+
+The [Emerging Issues](https://microsoft.github.io/CSS-Exchange/Emerging-Issues/) page uses MkDocs collapsible admonitions instead of tables. The MkDocs config already enables `admonition` and `pymdownx.details` to support this.
+
+**Current issues** use `???+ warning` (expanded by default, yellow/orange styling):
+
+```markdown
+???+ warning "8/18/2025 — Short description of the issue"
+    **Update causing the issue:** Description or link to the update
+
+    **Issue:** Description of what goes wrong.
+
+    **Workaround/Solution:** Steps to resolve.
+```
+
+**Old/resolved issues** use `??? note` (collapsed by default, blue styling):
+
+```markdown
+??? note "4/23/2024 — Short description of the issue"
+    **Update causing the issue:** Description or link to the update
+
+    **Issue:** Description of what goes wrong.
+
+    **Workaround/Solution:** Steps to resolve.
+```
+
+**Formatting guidelines:**
+
+- Use fenced code blocks for multi-line error messages:
+
+    ````markdown
+        ```
+        Error 1935. An error occurred during the installation of assembly...
+        ```
+    ````
+
+- Use inline code for short error strings: `` `The modified Permissions cannot be changed.` ``
+- Move issues from Current Issues to Old Issues when they are resolved, changing `???+ warning` to `??? note`
+
+**Note:** These admonitions will not render in VS Code's built-in Markdown preview. Use the local MkDocs server described above to preview how they will appear on the site.

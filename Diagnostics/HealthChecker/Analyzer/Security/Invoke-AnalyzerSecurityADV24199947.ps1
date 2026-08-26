@@ -35,6 +35,7 @@ function Invoke-AnalyzerSecurityADV24199947 {
             DisplayWriteType    = "Red"
             Details             = "{0}"
             DisplayTestingValue = "ADV24199947"
+            AddHtmlDetailRow    = $false
         }
 
         if ($SecurityObject.IsEdgeServer) {

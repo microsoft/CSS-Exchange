@@ -7,6 +7,17 @@
 # in order to run one of the checks. ExFolders can be downloaded here:
 # https://techcommunity.microsoft.com/gxcuf89792/attachments/gxcuf89792/Exchange/12412/2/ExFolders-SP1+.zip
 
+[CmdletBinding()]
+param(
+    [Parameter(Mandatory = $false, ParameterSetName = "ScriptUpdateOnly")]
+    [switch]$ScriptUpdateOnly,
+
+    [Parameter(Mandatory = $false)]
+    [switch]$SkipVersionCheck
+)
+
+. $PSScriptRoot\..\Shared\ScriptUpdateFunctions\GenericScriptUpdate.ps1
+
 Set-ADServerSettings -ViewEntireForest $true
 
 Write-Host "Checking for mail-enabled System folders..."

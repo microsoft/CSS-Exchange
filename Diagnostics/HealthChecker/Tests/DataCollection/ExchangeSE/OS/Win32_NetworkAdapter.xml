@@ -1,0 +1,737 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>Microsoft.Management.Infrastructure.CimInstance#root/cimv2/Win32_NetworkAdapter</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/cimv2/CIM_NetworkAdapter</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/cimv2/CIM_LogicalDevice</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/cimv2/CIM_LogicalElement</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#ROOT/cimv2/CIM_ManagedSystemElement</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#Win32_NetworkAdapter</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#CIM_NetworkAdapter</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#CIM_LogicalDevice</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#CIM_LogicalElement</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance#CIM_ManagedSystemElement</T>
+      <T>Microsoft.Management.Infrastructure.CimInstance</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>Win32_NetworkAdapter: [00000000] Microsoft Hyper-V Network Adapter (DeviceID = "0")</ToString>
+    <Props>
+      <S N="Caption">[00000000] Microsoft Hyper-V Network Adapter</S>
+      <S N="Description">Microsoft Hyper-V Network Adapter</S>
+      <Nil N="InstallDate" />
+      <S N="Name">Microsoft Hyper-V Network Adapter</S>
+      <Nil N="Status" />
+      <U16 N="Availability">3</U16>
+      <U32 N="ConfigManagerErrorCode">0</U32>
+      <B N="ConfigManagerUserConfig">false</B>
+      <S N="CreationClassName">Win32_NetworkAdapter</S>
+      <S N="DeviceID">0</S>
+      <Nil N="ErrorCleared" />
+      <Nil N="ErrorDescription" />
+      <Nil N="LastErrorCode" />
+      <S N="PNPDeviceID">VMBUS\{F8615163-DF3E-46C5-913F-F2D2F965ED0E}\{A214EBCD-E15E-414E-BC3B-4B9DDA8BED4C}</S>
+      <Nil N="PowerManagementCapabilities" />
+      <B N="PowerManagementSupported">false</B>
+      <Nil N="StatusInfo" />
+      <S N="SystemCreationClassName">Win32_ComputerSystem</S>
+      <S N="SystemName">CONTOSO-EX1</S>
+      <Nil N="AutoSense" />
+      <Nil N="MaxSpeed" />
+      <Nil N="NetworkAddresses" />
+      <Nil N="PermanentAddress" />
+      <U64 N="Speed">10000000000</U64>
+      <S N="AdapterType">Ethernet 802.3</S>
+      <U16 N="AdapterTypeId">0</U16>
+      <S N="GUID">{DB6BECBC-0612-414F-BD53-7053E2BE8988}</S>
+      <U32 N="Index">0</U32>
+      <B N="Installed">true</B>
+      <U32 N="InterfaceIndex">15</U32>
+      <S N="MACAddress">00:15:5D:00:0A:4B</S>
+      <S N="Manufacturer">Microsoft</S>
+      <U32 N="MaxNumberControlled">0</U32>
+      <S N="NetConnectionID">Ethernet</S>
+      <U16 N="NetConnectionStatus">2</U16>
+      <B N="NetEnabled">true</B>
+      <B N="PhysicalAdapter">true</B>
+      <S N="ProductName">Microsoft Hyper-V Network Adapter</S>
+      <S N="ServiceName">netvsc</S>
+      <DT N="TimeOfLastReset">2026-06-10T12:20:35.644721-07:00</DT>
+      <Nil N="PSComputerName" />
+    </Props>
+    <MS>
+      <Obj N="__ClassMetadata" RefId="1">
+        <TN RefId="1">
+          <T>System.Collections.ArrayList</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <Obj RefId="2">
+            <MS>
+              <S N="ClassName">CIM_ManagedSystemElement</S>
+              <S N="Namespace">ROOT/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735377736</I32>
+              <S N="MiXml">&lt;CLASS NAME="CIM_ManagedSystemElement"&gt;&lt;QUALIFIER NAME="Abstract" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Locale" TYPE="sint32"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="UUID" TYPE="string"&gt;&lt;VALUE&gt;{8502C517-5FBB-11D2-AAC1-006008C78BC7}&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="Caption" TYPE="string"&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Description" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InstallDate" TYPE="datetime"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;MIF.DMTF|ComponentID|001.5&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Name" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Status" TYPE="string"&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;OK&lt;/VALUE&gt;&lt;VALUE&gt;Error&lt;/VALUE&gt;&lt;VALUE&gt;Degraded&lt;/VALUE&gt;&lt;VALUE&gt;Unknown&lt;/VALUE&gt;&lt;VALUE&gt;Pred Fail&lt;/VALUE&gt;&lt;VALUE&gt;Starting&lt;/VALUE&gt;&lt;VALUE&gt;Stopping&lt;/VALUE&gt;&lt;VALUE&gt;Service&lt;/VALUE&gt;&lt;VALUE&gt;Stressed&lt;/VALUE&gt;&lt;VALUE&gt;NonRecover&lt;/VALUE&gt;&lt;VALUE&gt;No Contact&lt;/VALUE&gt;&lt;VALUE&gt;Lost Comm&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;/CLASS&gt;</S>
+            </MS>
+          </Obj>
+          <Obj RefId="3">
+            <MS>
+              <S N="ClassName">CIM_LogicalElement</S>
+              <S N="Namespace">ROOT/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735379816</I32>
+              <S N="MiXml">&lt;CLASS NAME="CIM_LogicalElement" SUPERCLASS="CIM_ManagedSystemElement"&gt;&lt;QUALIFIER NAME="Locale" TYPE="sint32"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="UUID" TYPE="string"&gt;&lt;VALUE&gt;{8502C518-5FBB-11D2-AAC1-006008C78BC7}&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Abstract" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/CLASS&gt;</S>
+            </MS>
+          </Obj>
+          <Obj RefId="4">
+            <MS>
+              <S N="ClassName">CIM_LogicalDevice</S>
+              <S N="Namespace">ROOT/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735510408</I32>
+              <S N="MiXml">&lt;CLASS NAME="CIM_LogicalDevice" SUPERCLASS="CIM_LogicalElement"&gt;&lt;QUALIFIER NAME="Locale" TYPE="sint32"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="UUID" TYPE="string"&gt;&lt;VALUE&gt;{8502C529-5FBB-11D2-AAC1-006008C78BC7}&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Abstract" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="Availability" TYPE="uint16"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;MIF.DMTF|Operational State|003.5&lt;/VALUE&gt;&lt;VALUE&gt;MIB.IETF|HOST-RESOURCES-MIB.hrDeviceStatus&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;VALUE&gt;7&lt;/VALUE&gt;&lt;VALUE&gt;8&lt;/VALUE&gt;&lt;VALUE&gt;9&lt;/VALUE&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;VALUE&gt;12&lt;/VALUE&gt;&lt;VALUE&gt;13&lt;/VALUE&gt;&lt;VALUE&gt;14&lt;/VALUE&gt;&lt;VALUE&gt;15&lt;/VALUE&gt;&lt;VALUE&gt;16&lt;/VALUE&gt;&lt;VALUE&gt;17&lt;/VALUE&gt;&lt;VALUE&gt;18&lt;/VALUE&gt;&lt;VALUE&gt;19&lt;/VALUE&gt;&lt;VALUE&gt;20&lt;/VALUE&gt;&lt;VALUE&gt;21&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ConfigManagerErrorCode" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Schema" TYPE="string"&gt;&lt;VALUE&gt;Win32&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;VALUE&gt;7&lt;/VALUE&gt;&lt;VALUE&gt;8&lt;/VALUE&gt;&lt;VALUE&gt;9&lt;/VALUE&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;VALUE&gt;12&lt;/VALUE&gt;&lt;VALUE&gt;13&lt;/VALUE&gt;&lt;VALUE&gt;14&lt;/VALUE&gt;&lt;VALUE&gt;15&lt;/VALUE&gt;&lt;VALUE&gt;16&lt;/VALUE&gt;&lt;VALUE&gt;17&lt;/VALUE&gt;&lt;VALUE&gt;18&lt;/VALUE&gt;&lt;VALUE&gt;19&lt;/VALUE&gt;&lt;VALUE&gt;20&lt;/VALUE&gt;&lt;VALUE&gt;21&lt;/VALUE&gt;&lt;VALUE&gt;22&lt;/VALUE&gt;&lt;VALUE&gt;23&lt;/VALUE&gt;&lt;VALUE&gt;24&lt;/VALUE&gt;&lt;VALUE&gt;25&lt;/VALUE&gt;&lt;VALUE&gt;26&lt;/VALUE&gt;&lt;VALUE&gt;27&lt;/VALUE&gt;&lt;VALUE&gt;28&lt;/VALUE&gt;&lt;VALUE&gt;29&lt;/VALUE&gt;&lt;VALUE&gt;30&lt;/VALUE&gt;&lt;VALUE&gt;31&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ConfigManagerUserConfig" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Schema" TYPE="string"&gt;&lt;VALUE&gt;Win32&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="CreationClassName" TYPE="string"&gt;&lt;QUALIFIER NAME="CIM_Key" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="DeviceID" TYPE="string"&gt;&lt;QUALIFIER NAME="CIM_Key" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ErrorCleared" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ErrorDescription" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="LastErrorCode" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="PNPDeviceID" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Schema" TYPE="string"&gt;&lt;VALUE&gt;Win32&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY.ARRAY NAME="PowerManagementCapabilities" TYPE="uint16"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY.ARRAY&gt;&lt;PROPERTY NAME="PowerManagementSupported" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="StatusInfo" TYPE="uint16"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;MIF.DMTF|Operational State|003.3&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="SystemCreationClassName" TYPE="string"&gt;&lt;QUALIFIER NAME="CIM_Key" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Propagated" TYPE="string"&gt;&lt;VALUE&gt;CIM_System.CreationClassName&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="SystemName" TYPE="string"&gt;&lt;QUALIFIER NAME="CIM_Key" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Propagated" TYPE="string"&gt;&lt;VALUE&gt;CIM_System.Name&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;METHOD NAME="SetPowerState" TYPE="uint32"&gt;&lt;PARAMETER NAME="PowerState" TYPE="uint16"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="IN" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;PARAMETER NAME="Time" TYPE="datetime"&gt;&lt;QUALIFIER NAME="ID" TYPE="sint32" OVERRIDABLE="false"&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="IN" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PARAMETER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="Reset" TYPE="uint32"&gt;&lt;/METHOD&gt;&lt;/CLASS&gt;</S>
+            </MS>
+          </Obj>
+          <Obj RefId="5">
+            <MS>
+              <S N="ClassName">CIM_NetworkAdapter</S>
+              <S N="Namespace">ROOT/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735507288</I32>
+              <S N="MiXml">&lt;CLASS NAME="CIM_NetworkAdapter" SUPERCLASS="CIM_LogicalDevice"&gt;&lt;QUALIFIER NAME="Locale" TYPE="sint32"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="UUID" TYPE="string"&gt;&lt;VALUE&gt;{8502C532-5FBB-11D2-AAC1-006008C78BC7}&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Abstract" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="AutoSense" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="MaxSpeed" TYPE="uint64"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY.ARRAY NAME="NetworkAddresses" TYPE="string" ARRAYSIZE="64"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;MIF.DMTF|Network Adapter 802 Port|001.3&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY.ARRAY&gt;&lt;PROPERTY NAME="PermanentAddress" TYPE="string"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;MIF.DMTF|Network Adapter 802 Port|001.2&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MaxLen" TYPE="sint32"&gt;&lt;VALUE&gt;64&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Speed" TYPE="uint64"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;MIB.IETF|RFC1213-MIB.ifSpeed&lt;/VALUE&gt;&lt;VALUE&gt;MIF.DMTF|Network Adapter 802 Port|001.5&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;/CLASS&gt;</S>
+            </MS>
+          </Obj>
+          <Obj RefId="6">
+            <MS>
+              <S N="ClassName">Win32_NetworkAdapter</S>
+              <S N="Namespace">root/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735501048</I32>
+              <S N="MiXml">&lt;CLASS NAME="Win32_NetworkAdapter" SUPERCLASS="CIM_NetworkAdapter"&gt;&lt;QUALIFIER NAME="Locale" TYPE="sint32"&gt;&lt;VALUE&gt;1033&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="UUID" TYPE="string"&gt;&lt;VALUE&gt;{8502C4C0-5FBB-11D2-AAC1-006008C78BC7}&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="dynamic" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="provider" TYPE="string"&gt;&lt;VALUE&gt;CIMWin32&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;PROPERTY NAME="DeviceID" TYPE="string"&gt;&lt;QUALIFIER NAME="CIM_Key" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="key" TYPE="boolean" OVERRIDABLE="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|System\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002BE10318}&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="Override" TYPE="string"&gt;&lt;VALUE&gt;DeviceId&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="AdapterType" TYPE="string"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;DeviceIoControl::OID_GEN_MEDIA_IN_USE&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Ethernet 802.3&lt;/VALUE&gt;&lt;VALUE&gt;Token Ring 802.5&lt;/VALUE&gt;&lt;VALUE&gt;Fiber Distributed Data Interface (FDDI)&lt;/VALUE&gt;&lt;VALUE&gt;Wide Area Network (WAN)&lt;/VALUE&gt;&lt;VALUE&gt;LocalTalk&lt;/VALUE&gt;&lt;VALUE&gt;Ethernet using DIX header format&lt;/VALUE&gt;&lt;VALUE&gt;ARCNET&lt;/VALUE&gt;&lt;VALUE&gt;ARCNET (878.2)&lt;/VALUE&gt;&lt;VALUE&gt;ATM&lt;/VALUE&gt;&lt;VALUE&gt;Wireless&lt;/VALUE&gt;&lt;VALUE&gt;Infrared Wireless&lt;/VALUE&gt;&lt;VALUE&gt;Bpc&lt;/VALUE&gt;&lt;VALUE&gt;CoWan&lt;/VALUE&gt;&lt;VALUE&gt;1394&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="AdapterTypeId" TYPE="uint16"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;DeviceIoControl::OID_GEN_MEDIA_IN_USE&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="GUID" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Index" TYPE="uint32"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|System\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002BE10318}&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Installed" TYPE="boolean"&gt;&lt;QUALIFIER NAME="DEPRECATED" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|Software\Microsoft\Windows NT\CurrentVersion\NetworkCards|DriverDate&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="InterfaceIndex" TYPE="uint32"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="MACAddress" TYPE="string"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32API|Device Input and Output Functions|DeviceIoControl&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Manufacturer" TYPE="string"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|Software\Microsoft\Windows NT\CurrentVersion\NetworkCards|Manufacturer&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="MaxNumberControlled" TYPE="uint32"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;MIF.DMTF|Bus Port|001.9|Maximum Number of Attachments&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="NetConnectionID" TYPE="string"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="write" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="NetConnectionStatus" TYPE="uint16"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="ValueMap" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;0&lt;/VALUE&gt;&lt;VALUE&gt;1&lt;/VALUE&gt;&lt;VALUE&gt;2&lt;/VALUE&gt;&lt;VALUE&gt;3&lt;/VALUE&gt;&lt;VALUE&gt;4&lt;/VALUE&gt;&lt;VALUE&gt;5&lt;/VALUE&gt;&lt;VALUE&gt;6&lt;/VALUE&gt;&lt;VALUE&gt;7&lt;/VALUE&gt;&lt;VALUE&gt;8&lt;/VALUE&gt;&lt;VALUE&gt;9&lt;/VALUE&gt;&lt;VALUE&gt;10&lt;/VALUE&gt;&lt;VALUE&gt;11&lt;/VALUE&gt;&lt;VALUE&gt;12&lt;/VALUE&gt;&lt;VALUE&gt;..&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="NetEnabled" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="PhysicalAdapter" TYPE="boolean"&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ProductName" TYPE="string"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|Software\Microsoft\Windows NT\CurrentVersion\NetworkCards|ServiceName&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="ServiceName" TYPE="string"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;Win32Registry|Software\Microsoft\Windows NT\CurrentVersion\NetworkCards|ProductName&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;PROPERTY NAME="TimeOfLastReset" TYPE="datetime"&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;SOFTWARE\Microsoft\Windows NT\CurrentVersion\Perflib\009|System Up Time&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="read" TYPE="boolean"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;/PROPERTY&gt;&lt;METHOD NAME="Enable" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;WMI&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/METHOD&gt;&lt;METHOD NAME="Disable" TYPE="uint32"&gt;&lt;QUALIFIER NAME="Implemented" TYPE="boolean" TOSUBCLASS="false"&gt;&lt;VALUE&gt;true&lt;/VALUE&gt;&lt;/QUALIFIER&gt;&lt;QUALIFIER NAME="MappingStrings" TYPE="string"&gt;&lt;VALUE.ARRAY&gt;&lt;VALUE&gt;WMI&lt;/VALUE&gt;&lt;/VALUE.ARRAY&gt;&lt;/QUALIFIER&gt;&lt;/METHOD&gt;&lt;/CLASS&gt;</S>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+  <Obj RefId="7">
+    <TNRef RefId="0" />
+    <ToString>Win32_NetworkAdapter: [00000001] Microsoft Kernel Debug Network Adapter (DeviceID = "1")</ToString>
+    <Props>
+      <S N="Caption">[00000001] Microsoft Kernel Debug Network Adapter</S>
+      <S N="Description">Microsoft Kernel Debug Network Adapter</S>
+      <Nil N="InstallDate" />
+      <S N="Name">Microsoft Kernel Debug Network Adapter</S>
+      <Nil N="Status" />
+      <U16 N="Availability">3</U16>
+      <U32 N="ConfigManagerErrorCode">0</U32>
+      <B N="ConfigManagerUserConfig">false</B>
+      <S N="CreationClassName">Win32_NetworkAdapter</S>
+      <S N="DeviceID">1</S>
+      <Nil N="ErrorCleared" />
+      <Nil N="ErrorDescription" />
+      <Nil N="LastErrorCode" />
+      <S N="PNPDeviceID">ROOT\KDNIC\0000</S>
+      <Nil N="PowerManagementCapabilities" />
+      <B N="PowerManagementSupported">false</B>
+      <Nil N="StatusInfo" />
+      <S N="SystemCreationClassName">Win32_ComputerSystem</S>
+      <S N="SystemName">CONTOSO-EX1</S>
+      <Nil N="AutoSense" />
+      <Nil N="MaxSpeed" />
+      <Nil N="NetworkAddresses" />
+      <Nil N="PermanentAddress" />
+      <Nil N="Speed" />
+      <Nil N="AdapterType" />
+      <Nil N="AdapterTypeId" />
+      <Nil N="GUID" />
+      <U32 N="Index">1</U32>
+      <B N="Installed">true</B>
+      <U32 N="InterfaceIndex">8</U32>
+      <Nil N="MACAddress" />
+      <S N="Manufacturer">Microsoft</S>
+      <U32 N="MaxNumberControlled">0</U32>
+      <Nil N="NetConnectionID" />
+      <Nil N="NetConnectionStatus" />
+      <Nil N="NetEnabled" />
+      <B N="PhysicalAdapter">false</B>
+      <S N="ProductName">Microsoft Kernel Debug Network Adapter</S>
+      <S N="ServiceName">kdnic</S>
+      <DT N="TimeOfLastReset">2026-06-10T12:20:35.644721-07:00</DT>
+      <Nil N="PSComputerName" />
+    </Props>
+    <MS>
+      <Obj N="__ClassMetadata" RefId="8">
+        <TNRef RefId="1" />
+        <LST>
+          <Obj RefId="9">
+            <MS>
+              <S N="ClassName">Win32_NetworkAdapter</S>
+              <S N="Namespace">root/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735501048</I32>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+  <Obj RefId="10">
+    <TNRef RefId="0" />
+    <ToString>Win32_NetworkAdapter: [00000002] WAN Miniport (SSTP) (DeviceID = "2")</ToString>
+    <Props>
+      <S N="Caption">[00000002] WAN Miniport (SSTP)</S>
+      <S N="Description">WAN Miniport (SSTP)</S>
+      <Nil N="InstallDate" />
+      <S N="Name">WAN Miniport (SSTP)</S>
+      <Nil N="Status" />
+      <U16 N="Availability">3</U16>
+      <Nil N="ConfigManagerErrorCode" />
+      <Nil N="ConfigManagerUserConfig" />
+      <S N="CreationClassName">Win32_NetworkAdapter</S>
+      <S N="DeviceID">2</S>
+      <Nil N="ErrorCleared" />
+      <Nil N="ErrorDescription" />
+      <Nil N="LastErrorCode" />
+      <Nil N="PNPDeviceID" />
+      <Nil N="PowerManagementCapabilities" />
+      <B N="PowerManagementSupported">false</B>
+      <Nil N="StatusInfo" />
+      <S N="SystemCreationClassName">Win32_ComputerSystem</S>
+      <S N="SystemName">CONTOSO-EX1</S>
+      <Nil N="AutoSense" />
+      <Nil N="MaxSpeed" />
+      <Nil N="NetworkAddresses" />
+      <Nil N="PermanentAddress" />
+      <Nil N="Speed" />
+      <Nil N="AdapterType" />
+      <Nil N="AdapterTypeId" />
+      <Nil N="GUID" />
+      <U32 N="Index">2</U32>
+      <B N="Installed">true</B>
+      <U32 N="InterfaceIndex">5</U32>
+      <Nil N="MACAddress" />
+      <Nil N="Manufacturer" />
+      <U32 N="MaxNumberControlled">0</U32>
+      <Nil N="NetConnectionID" />
+      <Nil N="NetConnectionStatus" />
+      <Nil N="NetEnabled" />
+      <B N="PhysicalAdapter">false</B>
+      <S N="ProductName">WAN Miniport (SSTP)</S>
+      <Nil N="ServiceName" />
+      <DT N="TimeOfLastReset">2026-06-10T12:20:35.644721-07:00</DT>
+      <Nil N="PSComputerName" />
+    </Props>
+    <MS>
+      <Obj N="__ClassMetadata" RefId="11">
+        <TNRef RefId="1" />
+        <LST>
+          <Obj RefId="12">
+            <MS>
+              <S N="ClassName">Win32_NetworkAdapter</S>
+              <S N="Namespace">root/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735501048</I32>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+  <Obj RefId="13">
+    <TNRef RefId="0" />
+    <ToString>Win32_NetworkAdapter: [00000003] WAN Miniport (IKEv2) (DeviceID = "3")</ToString>
+    <Props>
+      <S N="Caption">[00000003] WAN Miniport (IKEv2)</S>
+      <S N="Description">WAN Miniport (IKEv2)</S>
+      <Nil N="InstallDate" />
+      <S N="Name">WAN Miniport (IKEv2)</S>
+      <Nil N="Status" />
+      <U16 N="Availability">3</U16>
+      <Nil N="ConfigManagerErrorCode" />
+      <Nil N="ConfigManagerUserConfig" />
+      <S N="CreationClassName">Win32_NetworkAdapter</S>
+      <S N="DeviceID">3</S>
+      <Nil N="ErrorCleared" />
+      <Nil N="ErrorDescription" />
+      <Nil N="LastErrorCode" />
+      <Nil N="PNPDeviceID" />
+      <Nil N="PowerManagementCapabilities" />
+      <B N="PowerManagementSupported">false</B>
+      <Nil N="StatusInfo" />
+      <S N="SystemCreationClassName">Win32_ComputerSystem</S>
+      <S N="SystemName">CONTOSO-EX1</S>
+      <Nil N="AutoSense" />
+      <Nil N="MaxSpeed" />
+      <Nil N="NetworkAddresses" />
+      <Nil N="PermanentAddress" />
+      <Nil N="Speed" />
+      <Nil N="AdapterType" />
+      <Nil N="AdapterTypeId" />
+      <Nil N="GUID" />
+      <U32 N="Index">3</U32>
+      <B N="Installed">true</B>
+      <U32 N="InterfaceIndex">10</U32>
+      <Nil N="MACAddress" />
+      <Nil N="Manufacturer" />
+      <U32 N="MaxNumberControlled">0</U32>
+      <Nil N="NetConnectionID" />
+      <Nil N="NetConnectionStatus" />
+      <Nil N="NetEnabled" />
+      <B N="PhysicalAdapter">false</B>
+      <S N="ProductName">WAN Miniport (IKEv2)</S>
+      <Nil N="ServiceName" />
+      <DT N="TimeOfLastReset">2026-06-10T12:20:35.644721-07:00</DT>
+      <Nil N="PSComputerName" />
+    </Props>
+    <MS>
+      <Obj N="__ClassMetadata" RefId="14">
+        <TNRef RefId="1" />
+        <LST>
+          <Obj RefId="15">
+            <MS>
+              <S N="ClassName">Win32_NetworkAdapter</S>
+              <S N="Namespace">root/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735501048</I32>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+  <Obj RefId="16">
+    <TNRef RefId="0" />
+    <ToString>Win32_NetworkAdapter: [00000004] WAN Miniport (L2TP) (DeviceID = "4")</ToString>
+    <Props>
+      <S N="Caption">[00000004] WAN Miniport (L2TP)</S>
+      <S N="Description">WAN Miniport (L2TP)</S>
+      <Nil N="InstallDate" />
+      <S N="Name">WAN Miniport (L2TP)</S>
+      <Nil N="Status" />
+      <U16 N="Availability">3</U16>
+      <Nil N="ConfigManagerErrorCode" />
+      <Nil N="ConfigManagerUserConfig" />
+      <S N="CreationClassName">Win32_NetworkAdapter</S>
+      <S N="DeviceID">4</S>
+      <Nil N="ErrorCleared" />
+      <Nil N="ErrorDescription" />
+      <Nil N="LastErrorCode" />
+      <Nil N="PNPDeviceID" />
+      <Nil N="PowerManagementCapabilities" />
+      <B N="PowerManagementSupported">false</B>
+      <Nil N="StatusInfo" />
+      <S N="SystemCreationClassName">Win32_ComputerSystem</S>
+      <S N="SystemName">CONTOSO-EX1</S>
+      <Nil N="AutoSense" />
+      <Nil N="MaxSpeed" />
+      <Nil N="NetworkAddresses" />
+      <Nil N="PermanentAddress" />
+      <Nil N="Speed" />
+      <Nil N="AdapterType" />
+      <Nil N="AdapterTypeId" />
+      <Nil N="GUID" />
+      <U32 N="Index">4</U32>
+      <B N="Installed">true</B>
+      <U32 N="InterfaceIndex">14</U32>
+      <Nil N="MACAddress" />
+      <Nil N="Manufacturer" />
+      <U32 N="MaxNumberControlled">0</U32>
+      <Nil N="NetConnectionID" />
+      <Nil N="NetConnectionStatus" />
+      <Nil N="NetEnabled" />
+      <B N="PhysicalAdapter">false</B>
+      <S N="ProductName">WAN Miniport (L2TP)</S>
+      <Nil N="ServiceName" />
+      <DT N="TimeOfLastReset">2026-06-10T12:20:35.644721-07:00</DT>
+      <Nil N="PSComputerName" />
+    </Props>
+    <MS>
+      <Obj N="__ClassMetadata" RefId="17">
+        <TNRef RefId="1" />
+        <LST>
+          <Obj RefId="18">
+            <MS>
+              <S N="ClassName">Win32_NetworkAdapter</S>
+              <S N="Namespace">root/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735501048</I32>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+  <Obj RefId="19">
+    <TNRef RefId="0" />
+    <ToString>Win32_NetworkAdapter: [00000005] WAN Miniport (PPTP) (DeviceID = "5")</ToString>
+    <Props>
+      <S N="Caption">[00000005] WAN Miniport (PPTP)</S>
+      <S N="Description">WAN Miniport (PPTP)</S>
+      <Nil N="InstallDate" />
+      <S N="Name">WAN Miniport (PPTP)</S>
+      <Nil N="Status" />
+      <U16 N="Availability">3</U16>
+      <Nil N="ConfigManagerErrorCode" />
+      <Nil N="ConfigManagerUserConfig" />
+      <S N="CreationClassName">Win32_NetworkAdapter</S>
+      <S N="DeviceID">5</S>
+      <Nil N="ErrorCleared" />
+      <Nil N="ErrorDescription" />
+      <Nil N="LastErrorCode" />
+      <Nil N="PNPDeviceID" />
+      <Nil N="PowerManagementCapabilities" />
+      <B N="PowerManagementSupported">false</B>
+      <Nil N="StatusInfo" />
+      <S N="SystemCreationClassName">Win32_ComputerSystem</S>
+      <S N="SystemName">CONTOSO-EX1</S>
+      <Nil N="AutoSense" />
+      <Nil N="MaxSpeed" />
+      <Nil N="NetworkAddresses" />
+      <Nil N="PermanentAddress" />
+      <Nil N="Speed" />
+      <Nil N="AdapterType" />
+      <Nil N="AdapterTypeId" />
+      <Nil N="GUID" />
+      <U32 N="Index">5</U32>
+      <B N="Installed">true</B>
+      <U32 N="InterfaceIndex">6</U32>
+      <Nil N="MACAddress" />
+      <Nil N="Manufacturer" />
+      <U32 N="MaxNumberControlled">0</U32>
+      <Nil N="NetConnectionID" />
+      <Nil N="NetConnectionStatus" />
+      <Nil N="NetEnabled" />
+      <B N="PhysicalAdapter">false</B>
+      <S N="ProductName">WAN Miniport (PPTP)</S>
+      <Nil N="ServiceName" />
+      <DT N="TimeOfLastReset">2026-06-10T12:20:35.644721-07:00</DT>
+      <Nil N="PSComputerName" />
+    </Props>
+    <MS>
+      <Obj N="__ClassMetadata" RefId="20">
+        <TNRef RefId="1" />
+        <LST>
+          <Obj RefId="21">
+            <MS>
+              <S N="ClassName">Win32_NetworkAdapter</S>
+              <S N="Namespace">root/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735501048</I32>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+  <Obj RefId="22">
+    <TNRef RefId="0" />
+    <ToString>Win32_NetworkAdapter: [00000006] WAN Miniport (PPPOE) (DeviceID = "6")</ToString>
+    <Props>
+      <S N="Caption">[00000006] WAN Miniport (PPPOE)</S>
+      <S N="Description">WAN Miniport (PPPOE)</S>
+      <Nil N="InstallDate" />
+      <S N="Name">WAN Miniport (PPPOE)</S>
+      <Nil N="Status" />
+      <U16 N="Availability">3</U16>
+      <Nil N="ConfigManagerErrorCode" />
+      <Nil N="ConfigManagerUserConfig" />
+      <S N="CreationClassName">Win32_NetworkAdapter</S>
+      <S N="DeviceID">6</S>
+      <Nil N="ErrorCleared" />
+      <Nil N="ErrorDescription" />
+      <Nil N="LastErrorCode" />
+      <Nil N="PNPDeviceID" />
+      <Nil N="PowerManagementCapabilities" />
+      <B N="PowerManagementSupported">false</B>
+      <Nil N="StatusInfo" />
+      <S N="SystemCreationClassName">Win32_ComputerSystem</S>
+      <S N="SystemName">CONTOSO-EX1</S>
+      <Nil N="AutoSense" />
+      <Nil N="MaxSpeed" />
+      <Nil N="NetworkAddresses" />
+      <Nil N="PermanentAddress" />
+      <Nil N="Speed" />
+      <Nil N="AdapterType" />
+      <Nil N="AdapterTypeId" />
+      <Nil N="GUID" />
+      <U32 N="Index">6</U32>
+      <B N="Installed">true</B>
+      <U32 N="InterfaceIndex">13</U32>
+      <Nil N="MACAddress" />
+      <Nil N="Manufacturer" />
+      <U32 N="MaxNumberControlled">0</U32>
+      <Nil N="NetConnectionID" />
+      <Nil N="NetConnectionStatus" />
+      <Nil N="NetEnabled" />
+      <B N="PhysicalAdapter">false</B>
+      <S N="ProductName">WAN Miniport (PPPOE)</S>
+      <Nil N="ServiceName" />
+      <DT N="TimeOfLastReset">2026-06-10T12:20:35.644721-07:00</DT>
+      <Nil N="PSComputerName" />
+    </Props>
+    <MS>
+      <Obj N="__ClassMetadata" RefId="23">
+        <TNRef RefId="1" />
+        <LST>
+          <Obj RefId="24">
+            <MS>
+              <S N="ClassName">Win32_NetworkAdapter</S>
+              <S N="Namespace">root/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735501048</I32>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+  <Obj RefId="25">
+    <TNRef RefId="0" />
+    <ToString>Win32_NetworkAdapter: [00000007] WAN Miniport (GRE) (DeviceID = "7")</ToString>
+    <Props>
+      <S N="Caption">[00000007] WAN Miniport (GRE)</S>
+      <S N="Description">WAN Miniport (GRE)</S>
+      <Nil N="InstallDate" />
+      <S N="Name">WAN Miniport (GRE)</S>
+      <Nil N="Status" />
+      <U16 N="Availability">3</U16>
+      <Nil N="ConfigManagerErrorCode" />
+      <Nil N="ConfigManagerUserConfig" />
+      <S N="CreationClassName">Win32_NetworkAdapter</S>
+      <S N="DeviceID">7</S>
+      <Nil N="ErrorCleared" />
+      <Nil N="ErrorDescription" />
+      <Nil N="LastErrorCode" />
+      <Nil N="PNPDeviceID" />
+      <Nil N="PowerManagementCapabilities" />
+      <B N="PowerManagementSupported">false</B>
+      <Nil N="StatusInfo" />
+      <S N="SystemCreationClassName">Win32_ComputerSystem</S>
+      <S N="SystemName">CONTOSO-EX1</S>
+      <Nil N="AutoSense" />
+      <Nil N="MaxSpeed" />
+      <Nil N="NetworkAddresses" />
+      <Nil N="PermanentAddress" />
+      <Nil N="Speed" />
+      <Nil N="AdapterType" />
+      <Nil N="AdapterTypeId" />
+      <Nil N="GUID" />
+      <U32 N="Index">7</U32>
+      <B N="Installed">true</B>
+      <U32 N="InterfaceIndex">9</U32>
+      <Nil N="MACAddress" />
+      <Nil N="Manufacturer" />
+      <U32 N="MaxNumberControlled">0</U32>
+      <Nil N="NetConnectionID" />
+      <Nil N="NetConnectionStatus" />
+      <Nil N="NetEnabled" />
+      <B N="PhysicalAdapter">false</B>
+      <S N="ProductName">WAN Miniport (GRE)</S>
+      <Nil N="ServiceName" />
+      <DT N="TimeOfLastReset">2026-06-10T12:20:35.644721-07:00</DT>
+      <Nil N="PSComputerName" />
+    </Props>
+    <MS>
+      <Obj N="__ClassMetadata" RefId="26">
+        <TNRef RefId="1" />
+        <LST>
+          <Obj RefId="27">
+            <MS>
+              <S N="ClassName">Win32_NetworkAdapter</S>
+              <S N="Namespace">root/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735501048</I32>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+  <Obj RefId="28">
+    <TNRef RefId="0" />
+    <ToString>Win32_NetworkAdapter: [00000008] WAN Miniport (IP) (DeviceID = "8")</ToString>
+    <Props>
+      <S N="Caption">[00000008] WAN Miniport (IP)</S>
+      <S N="Description">WAN Miniport (IP)</S>
+      <Nil N="InstallDate" />
+      <S N="Name">WAN Miniport (IP)</S>
+      <Nil N="Status" />
+      <U16 N="Availability">3</U16>
+      <Nil N="ConfigManagerErrorCode" />
+      <Nil N="ConfigManagerUserConfig" />
+      <S N="CreationClassName">Win32_NetworkAdapter</S>
+      <S N="DeviceID">8</S>
+      <Nil N="ErrorCleared" />
+      <Nil N="ErrorDescription" />
+      <Nil N="LastErrorCode" />
+      <Nil N="PNPDeviceID" />
+      <Nil N="PowerManagementCapabilities" />
+      <B N="PowerManagementSupported">false</B>
+      <Nil N="StatusInfo" />
+      <S N="SystemCreationClassName">Win32_ComputerSystem</S>
+      <S N="SystemName">CONTOSO-EX1</S>
+      <Nil N="AutoSense" />
+      <Nil N="MaxSpeed" />
+      <Nil N="NetworkAddresses" />
+      <Nil N="PermanentAddress" />
+      <Nil N="Speed" />
+      <Nil N="AdapterType" />
+      <Nil N="AdapterTypeId" />
+      <Nil N="GUID" />
+      <U32 N="Index">8</U32>
+      <B N="Installed">true</B>
+      <U32 N="InterfaceIndex">4</U32>
+      <Nil N="MACAddress" />
+      <Nil N="Manufacturer" />
+      <U32 N="MaxNumberControlled">0</U32>
+      <Nil N="NetConnectionID" />
+      <Nil N="NetConnectionStatus" />
+      <Nil N="NetEnabled" />
+      <B N="PhysicalAdapter">false</B>
+      <S N="ProductName">WAN Miniport (IP)</S>
+      <Nil N="ServiceName" />
+      <DT N="TimeOfLastReset">2026-06-10T12:20:35.644721-07:00</DT>
+      <Nil N="PSComputerName" />
+    </Props>
+    <MS>
+      <Obj N="__ClassMetadata" RefId="29">
+        <TNRef RefId="1" />
+        <LST>
+          <Obj RefId="30">
+            <MS>
+              <S N="ClassName">Win32_NetworkAdapter</S>
+              <S N="Namespace">root/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735501048</I32>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+  <Obj RefId="31">
+    <TNRef RefId="0" />
+    <ToString>Win32_NetworkAdapter: [00000009] WAN Miniport (IPv6) (DeviceID = "9")</ToString>
+    <Props>
+      <S N="Caption">[00000009] WAN Miniport (IPv6)</S>
+      <S N="Description">WAN Miniport (IPv6)</S>
+      <Nil N="InstallDate" />
+      <S N="Name">WAN Miniport (IPv6)</S>
+      <Nil N="Status" />
+      <U16 N="Availability">3</U16>
+      <Nil N="ConfigManagerErrorCode" />
+      <Nil N="ConfigManagerUserConfig" />
+      <S N="CreationClassName">Win32_NetworkAdapter</S>
+      <S N="DeviceID">9</S>
+      <Nil N="ErrorCleared" />
+      <Nil N="ErrorDescription" />
+      <Nil N="LastErrorCode" />
+      <Nil N="PNPDeviceID" />
+      <Nil N="PowerManagementCapabilities" />
+      <B N="PowerManagementSupported">false</B>
+      <Nil N="StatusInfo" />
+      <S N="SystemCreationClassName">Win32_ComputerSystem</S>
+      <S N="SystemName">CONTOSO-EX1</S>
+      <Nil N="AutoSense" />
+      <Nil N="MaxSpeed" />
+      <Nil N="NetworkAddresses" />
+      <Nil N="PermanentAddress" />
+      <Nil N="Speed" />
+      <Nil N="AdapterType" />
+      <Nil N="AdapterTypeId" />
+      <Nil N="GUID" />
+      <U32 N="Index">9</U32>
+      <B N="Installed">true</B>
+      <U32 N="InterfaceIndex">7</U32>
+      <Nil N="MACAddress" />
+      <Nil N="Manufacturer" />
+      <U32 N="MaxNumberControlled">0</U32>
+      <Nil N="NetConnectionID" />
+      <Nil N="NetConnectionStatus" />
+      <Nil N="NetEnabled" />
+      <B N="PhysicalAdapter">false</B>
+      <S N="ProductName">WAN Miniport (IPv6)</S>
+      <Nil N="ServiceName" />
+      <DT N="TimeOfLastReset">2026-06-10T12:20:35.644721-07:00</DT>
+      <Nil N="PSComputerName" />
+    </Props>
+    <MS>
+      <Obj N="__ClassMetadata" RefId="32">
+        <TNRef RefId="1" />
+        <LST>
+          <Obj RefId="33">
+            <MS>
+              <S N="ClassName">Win32_NetworkAdapter</S>
+              <S N="Namespace">root/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735501048</I32>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+  <Obj RefId="34">
+    <TNRef RefId="0" />
+    <ToString>Win32_NetworkAdapter: [00000010] WAN Miniport (Network Monitor) (DeviceID = "10")</ToString>
+    <Props>
+      <S N="Caption">[00000010] WAN Miniport (Network Monitor)</S>
+      <S N="Description">WAN Miniport (Network Monitor)</S>
+      <Nil N="InstallDate" />
+      <S N="Name">WAN Miniport (Network Monitor)</S>
+      <Nil N="Status" />
+      <U16 N="Availability">3</U16>
+      <Nil N="ConfigManagerErrorCode" />
+      <Nil N="ConfigManagerUserConfig" />
+      <S N="CreationClassName">Win32_NetworkAdapter</S>
+      <S N="DeviceID">10</S>
+      <Nil N="ErrorCleared" />
+      <Nil N="ErrorDescription" />
+      <Nil N="LastErrorCode" />
+      <Nil N="PNPDeviceID" />
+      <Nil N="PowerManagementCapabilities" />
+      <B N="PowerManagementSupported">false</B>
+      <Nil N="StatusInfo" />
+      <S N="SystemCreationClassName">Win32_ComputerSystem</S>
+      <S N="SystemName">CONTOSO-EX1</S>
+      <Nil N="AutoSense" />
+      <Nil N="MaxSpeed" />
+      <Nil N="NetworkAddresses" />
+      <Nil N="PermanentAddress" />
+      <Nil N="Speed" />
+      <Nil N="AdapterType" />
+      <Nil N="AdapterTypeId" />
+      <Nil N="GUID" />
+      <U32 N="Index">10</U32>
+      <B N="Installed">true</B>
+      <U32 N="InterfaceIndex">12</U32>
+      <Nil N="MACAddress" />
+      <Nil N="Manufacturer" />
+      <U32 N="MaxNumberControlled">0</U32>
+      <Nil N="NetConnectionID" />
+      <Nil N="NetConnectionStatus" />
+      <Nil N="NetEnabled" />
+      <B N="PhysicalAdapter">false</B>
+      <S N="ProductName">WAN Miniport (Network Monitor)</S>
+      <Nil N="ServiceName" />
+      <DT N="TimeOfLastReset">2026-06-10T12:20:35.644721-07:00</DT>
+      <Nil N="PSComputerName" />
+    </Props>
+    <MS>
+      <Obj N="__ClassMetadata" RefId="35">
+        <TNRef RefId="1" />
+        <LST>
+          <Obj RefId="36">
+            <MS>
+              <S N="ClassName">Win32_NetworkAdapter</S>
+              <S N="Namespace">root/cimv2</S>
+              <S N="ServerName">CONTOSO-EX1</S>
+              <I32 N="Hash">-1735501048</I32>
+            </MS>
+          </Obj>
+        </LST>
+      </Obj>
+    </MS>
+  </Obj>
+</Objs>

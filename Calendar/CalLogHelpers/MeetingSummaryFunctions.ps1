@@ -22,17 +22,15 @@ function Convert-Data {
         }
     }
     $MaxItemCount = ($ItemCounts | Measure-Object -Maximum).Maximum
-    $FinalArray = @()
-    for ($Inc = 0; $Inc -lt $MaxItemCount; $Inc++) {
+    $FinalArray = for ($Inc = 0; $Inc -lt $MaxItemCount; $Inc++) {
         $FinalObj = New-Object PsObject
         foreach ($Item in $ValidArrays) {
             $FinalObj | Add-Member -MemberType NoteProperty -Name $Item -Value $VariableLookup[$Item][$Inc]
         }
-        $FinalArray += $FinalObj
+        $FinalObj
     }
 
     return $FinalArray
-    $FinalArray = @()
 }
 
 # ===================================================================================================
@@ -93,5 +91,5 @@ function CreateMeetingSummary {
         $MeetingChanges += $InitialToList, $InitialLocation, $InitialStartTime, $InitialEndTime, $InitialRecurring
     }
 
-    $script:TimeLineOutput += Convert-Data -ArrayNames "Time", "MeetingChanges"
+    $script:TimeLineOutput.AddRange(@(Convert-Data -ArrayNames "Time", "MeetingChanges"))
 }

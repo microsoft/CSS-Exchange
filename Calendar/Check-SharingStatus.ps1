@@ -61,7 +61,8 @@ function ProcessCalendarSharingInviteLogs {
 
         $logOutput = Export-MailboxDiagnosticLogs $Identity -ComponentName CalendarSharingInvite
     } catch {
-        Write-Error "Ignore above error, No CalendarSharingInvite logs found."
+        Write-Warning "Failed to retrieve CalendarSharingInvite logs for [$Identity]: $($_.Exception.Message)"
+        return
     }
 
     # check if the output is empty
@@ -70,7 +71,6 @@ function ProcessCalendarSharingInviteLogs {
         return
     }
 
-    $logLines =@()
     # Split the output into an array of lines
     $logLines = $logOutput.MailboxLog -split "`r`n"
 
@@ -129,7 +129,13 @@ function ProcessCalendarSharingAcceptLogs {
         Write-Host "Collecting AcceptCalendarSharingInvite logs for [$Identity] ..."
         $logOutput = Export-MailboxDiagnosticLogs $Identity -ComponentName AcceptCalendarSharingInvite
     } catch {
-        Write-Error "Ignore above error, No AcceptCalendarSharingInvite logs found."
+        $errorMessage = $_.Exception.Message
+        if ($errorMessage -match "(?i)not\s+found|no\s+logs") {
+            Write-Warning "No AcceptCalendarSharingInvite logs found for [$Identity]. Details: $errorMessage"
+            return
+        }
+
+        throw "Failed to collect AcceptCalendarSharingInvite logs for [$Identity]: $errorMessage"
     }
 
     # check if the output is empty
@@ -138,7 +144,6 @@ function ProcessCalendarSharingAcceptLogs {
         return
     }
 
-    $logLines =@()
     # Split the output into an array of lines
     $logLines = $logOutput.MailboxLog -split "`r`n"
 
@@ -185,11 +190,26 @@ function ProcessCalendarSharingAcceptLogs {
     }
 
     Write-Host "Receiver [$Identity] has accepted copies of the shared calendar from the following recipients in the last 180 days:"
-    if ($csvObject.Timestamp.Substring(0, 2) -gt 12) {
-        Write-Verbose "Trying European DateTime Format - dd/MM/yyyy HH:mm:ss"
-        $culture = [System.Globalization.CultureInfo]::CreateSpecificCulture("en-GB")
-    } else {
-        $culture = [System.Globalization.CultureInfo]::CreateSpecificCulture("en-US")
+    # Try to determine date format by examining timestamps (updated to deal with 2/6/2026 5:20:07 PM)
+    $culture = [System.Globalization.CultureInfo]::CreateSpecificCulture("en-US")
+    foreach ($entry in $csvObject) {
+        $timestamp = $entry.Timestamp
+        if ([string]::IsNullOrEmpty($timestamp)) { continue }
+
+        $monthOrDay = $timestamp.Split(" ")[0]
+        if ([string]::IsNullOrEmpty($monthOrDay)) { continue }
+
+        $firstValue = $monthOrDay.Split("/")[0]
+        if ([string]::IsNullOrEmpty($firstValue)) { continue }
+
+        $valueToTest = 0
+        if ([int]::TryParse($firstValue, [ref]$valueToTest)) {
+            if ($valueToTest -gt 12) {
+                Write-Verbose "Looks like European DateTime Format - dd/MM/yyyy HH:mm:ss"
+                $culture = [System.Globalization.CultureInfo]::CreateSpecificCulture("en-GB")
+                break
+            }
+        }
     }
 
     try {
@@ -226,20 +246,15 @@ function ProcessInternetCalendarLogs {
         # $logOutput = Export-MailboxDiagnosticLogs $Identity -ComponentName AcceptCalendarSharingInvite -ErrorAction SilentlyContinue
         $logOutput = Export-MailboxDiagnosticLogs $Identity -ComponentName InternetCalendar
     } catch {
-        Write-Error "Ignore above error, No InternetCalendar logs found."
+        Write-Warning "No InternetCalendar logs found for [$Identity]."
     }
 
     # check if the output is empty
     if ($null -eq $logOutput.MailboxLog) {
-        Write-Host -ForegroundColor Green "==========================================="
-        Write-Host -ForegroundColor Green "It is safe to ignore the big error above, it is just saying that there are no InternetCalendar logs."
         Write-Host -ForegroundColor Green "No InternetCalendar Logs found for [$Identity]."
         Write-Host -ForegroundColor Green "User [$Identity] is not receiving any Published Calendars."
-        Write-Host -ForegroundColor Green "==========================================="
         return
     }
-
-    $logLines =@()
 
     # Split the output into an array of lines
     $logLines = $logOutput.MailboxLog -split "`r`n"
@@ -288,14 +303,6 @@ function GetOwnerInformation {
     Write-Host -ForegroundColor DarkYellow "Key Owner Mailbox Information:"
     Write-Host -ForegroundColor DarkYellow "`t Running 'Get-Mailbox $Owner'"
     $script:OwnerMB = Get-Mailbox $Owner
-    # Write-Host "`t DisplayName:" $script:OwnerMB.DisplayName
-    # Write-Host "`t Database:" $script:OwnerMB.Database
-    # Write-Host "`t ServerName:" $script:OwnerMB.ServerName
-    # Write-Host "`t LitigationHoldEnabled:" $script:OwnerMB.LitigationHoldEnabled
-    # Write-Host "`t CalendarVersionStoreDisabled:" $script:OwnerMB.CalendarVersionStoreDisabled
-    # Write-Host "`t CalendarRepairDisabled:" $script:OwnerMB.CalendarRepairDisabled
-    # Write-Host "`t RecipientTypeDetails:" $script:OwnerMB.RecipientTypeDetails
-    # Write-Host "`t RecipientType:" $script:OwnerMB.RecipientType
 
     if (-not $script:OwnerMB) {
         Write-Host -ForegroundColor Yellow "Could not find Owner Mailbox [$Owner]."
@@ -304,11 +311,6 @@ function GetOwnerInformation {
     }
 
     $script:OwnerMB | Format-List DisplayName, Database, ServerName, LitigationHoldEnabled, CalendarVersionStoreDisabled, CalendarRepairDisabled, RecipientType*
-
-    if ($null -eq $script:OwnerMB) {
-        Write-Host -ForegroundColor Red "Could not find Owner Mailbox [$Owner]."
-        exit
-    }
 
     Write-Host -ForegroundColor DarkYellow "Send on Behalf Granted to :"
     foreach ($del in $($script:OwnerMB.GrantSendOnBehalfTo)) {
@@ -327,7 +329,7 @@ function GetOwnerInformation {
     $OwnerCalendarStats = Get-MailboxFolderStatistics -Identity $Owner -FolderScope Calendar
     $OwnerCalendarName = ($OwnerCalendarStats | Where-Object FolderType -EQ "Calendar").Name
 
-    $OwnerCalendarStats | Format-Table -a FolderPath, ItemsInFolder, FolderAndSubfolderSize
+    $OwnerCalendarStats | Format-Table -a FolderPath, VisibleItemsInFolder, FolderAndSubfolderSize
 
     Write-Host -ForegroundColor DarkYellow "Owner Calendar Permissions:"
     Write-Host -ForegroundColor DarkYellow "`t Running 'Get-MailboxFolderPermission "${Owner}:\$OwnerCalendarName" | Format-Table -a User, AccessRights, SharingPermissionFlags'"
@@ -335,13 +337,13 @@ function GetOwnerInformation {
     $OwnerCalendarPerms | Format-Table -a User, AccessRights, SharingPermissionFlags
 
     # Warn if the size is greater than 1 GB
-    if ([int]$OwnerCalendarStats[0].FolderSize.Split("(")[1].Replace(" bytes)", "") -gt 1000000000) {
+    if ([int64]$OwnerCalendarStats[0].FolderSize.Split("(")[1].Replace(" bytes)", "").Replace(",", "") -gt 1000000000) {
         Write-Host -ForegroundColor Yellow "Warning: Owner Calendar size is greater than 1 GB. This can impact calendar performance."
         Write-Host -ForegroundColor Yellow "`t Consider archiving old calendar items or reducing the size of attachments in calendar items."
     }
 
     # Warn if the Calendar count is greater than 100,000 items
-    if ([int]$OwnerCalendarStats[0].ItemsInFolder -gt 100000) {
+    if ([int]$OwnerCalendarStats[0].VisibleItemsInFolder -gt 100000) {
         Write-Host -ForegroundColor Yellow "Warning: Owner Calendar has more than 100,000 items. This can impact calendar performance."
         Write-Host -ForegroundColor Yellow "`t Consider archiving old calendar items."
     }
@@ -365,6 +367,7 @@ function GetOwnerInformation {
         $script:OwnerPublished = $false
     }
 
+    Write-Host -ForegroundColor DarkYellow "`t ExtendedFolderFlags: $($OwnerCalendarFolder.ExtendedFolderFlags)"
     if ($OwnerCalendarFolder.ExtendedFolderFlags.Contains("SharedOut")) {
         Write-Host -ForegroundColor Green "Owner Calendar is Shared Out using Modern Sharing."
         $script:OwnerModernSharing = $true
@@ -373,32 +376,25 @@ function GetOwnerInformation {
         $script:OwnerModernSharing = $false
     }
 
-    Write-Host -ForegroundColor DarkYellow "`t Running 'Get-MailboxCalendarFolder -Identity "${Owner}:\$OwnerCalendarName"'"
-    $CalFolderProps = Get-MailboxCalendarFolder -Identity "${Owner}:\$OwnerCalendarName"
-    Write-Host -ForegroundColor DarkYellow "`t ExtendedFolderFlags: $($CalFolderProps.ExtendedFolderFlags)"
-    if ($CalFolderProps.ExtendedFolderFlags -like "*SharedOut*") {
-        Write-Host -ForegroundColor Green "`t Calendar is Shared Out using Modern Sharing."
-    } else {
-        Write-Host -ForegroundColor Red "`t Calendar is not Shared Out using Modern Sharing."
-    }
-
     # cSpell:ignore Sharees
-    Write-Host -ForegroundColor DarkYellow "`t Running 'Get-CalendarActiveSharingInformation -Identity "${Owner}:\$OwnerCalendarName"'"
-    $OwnerActiveSharingInfo = Get-CalendarActiveSharingInformation -Identity "${Owner}:\$OwnerCalendarName"
-    if ($OwnerActiveSharingInfo.ActiveShareesDataSet.Sharees.count -gt 0) {
-        Write-Host -ForegroundColor Green "`t Calendar has [$($OwnerActiveSharingInfo.ActiveShareesDataSet.Sharees.count)] Active Receivers."
-        $receivers = $OwnerActiveSharingInfo.ActiveShareesDataSet.Sharees | ForEach-Object {
-            [PSCustomObject]@{
-                EmailAddress          = $_.EmailAddress
-                SharingPermissionFlag = ($_.SharingPermissionFlags -join ",")
-                LastSyncTime          = $_.LastSyncTime
+    if (Get-Command -Name Get-CalendarActiveSharingInformation -ErrorAction SilentlyContinue) {
+        Write-Host -ForegroundColor DarkYellow "`t Running 'Get-CalendarActiveSharingInformation -Identity "${Owner}:\$OwnerCalendarName"'"
+        $OwnerActiveSharingInfo = Get-CalendarActiveSharingInformation -Identity "${Owner}:\$OwnerCalendarName"
+        if ($OwnerActiveSharingInfo.ActiveShareesDataSet.Sharees.count -gt 0) {
+            Write-Host -ForegroundColor Green "`t Calendar has [$($OwnerActiveSharingInfo.ActiveShareesDataSet.Sharees.count)] Active Receivers."
+            $receivers = $OwnerActiveSharingInfo.ActiveShareesDataSet.Sharees | ForEach-Object {
+                [PSCustomObject]@{
+                    EmailAddress          = $_.EmailAddress
+                    SharingPermissionFlag = ($_.SharingPermissionFlags -join ",")
+                    LastSyncTime          = $_.LastSyncTime
+                }
             }
-        }
-        Write-Host -ForegroundColor DarkYellow "Look for the Receiver [$Receiver] in the list of Active Receivers."
+            Write-Host -ForegroundColor DarkYellow "Look for the Receiver [$Receiver] in the list of Active Receivers."
 
-        $receivers | Format-Table -AutoSize EmailAddress, SharingPermissionFlag, LastSyncTime
-    } else {
-        Write-Host -ForegroundColor Yellow "`t Calendar has no Active Receivers according to Get-CalendarActiveSharingInformation."
+            $receivers | Format-Table -AutoSize EmailAddress, SharingPermissionFlag, LastSyncTime
+        } else {
+            Write-Host -ForegroundColor Yellow "`t Calendar has no Active Receivers according to Get-CalendarActiveSharingInformation."
+        }
     }
     Write-Host -ForegroundColor DarkYellow "`n`n`n------------------------------------------------"
 }
@@ -439,11 +435,11 @@ function GetReceiverInformation {
         $script:SharingType = "ExternalSharing"
     }
 
-    $OwnerCalendarName = $($OwnerMB.DisplayName)
+    $OwnerCalendarName = $($script:OwnerMB.DisplayName)
     Write-Host -ForegroundColor Cyan "Receiver Calendar Folders (look for a copy of [$OwnerCalendarName] Calendar):"
     Write-Host -ForegroundColor Cyan "Running: 'Get-MailboxFolderStatistics -Identity $Receiver -FolderScope Calendar'"
     $CalStats = Get-MailboxFolderStatistics -Identity $Receiver -FolderScope Calendar
-    $CalStats | Format-Table -a FolderPath, ItemsInFolder, FolderAndSubfolderSize
+    $CalStats | Format-Table -a FolderPath, VisibleItemsInFolder, FolderAndSubfolderSize
     $ReceiverCalendarName = ($CalStats | Where-Object FolderType -EQ "Calendar").Name
 
     # Warning if there are multiple copies of the Owner Calendar in the Receiver Mailbox.
@@ -452,7 +448,7 @@ function GetReceiverInformation {
     }
 
     # Warning if the Receivers copy of the Calendar name is the default "Calendar".
-    if (($CalStats.name -like "Cal*").count -gt 1) {
+    if (($CalStats.name -like "Calendar*").count -gt 1) {
         Write-Host -ForegroundColor Yellow "Warning: Receiver might have multiple Calendars named 'Calendar'."
         Write-Host -ForegroundColor Yellow "Warning: This can cause confusion with which calendar is being referenced."
     }
@@ -463,14 +459,14 @@ function GetReceiverInformation {
     }
 
     # Note $Owner has a * at the end in case we have had multiple setup for the same user, they will be appended with a " 1", etc.
-    if (($CalStats | Where-Object Name -Like $owner*) -or ($CalStats | Where-Object Name -Like "$($ownerMB.DisplayName)*" )) {
+    if (($CalStats | Where-Object Name -Like "$Owner*") -or ($CalStats | Where-Object Name -Like "$($script:OwnerMB.DisplayName)*" )) {
         Write-Host -ForegroundColor Green "Looks like we might have found a copy of the Owner Calendar in the Receiver Mailbox."
         Write-Host -ForegroundColor Green "This is a good indication the there is a Modern Sharing Relationship between these users."
         Write-Host -ForegroundColor Green "If the clients use the Modern Sharing or not is a up to the client."
         $script:ModernSharing = $true
 
-        $CalStats | Where-Object Name -Like $owner* | Format-Table -a FolderPath, ItemsInFolder, FolderAndSubfolderSize
-        if (($CalStats | Where-Object Name -Like $owner*).count -gt 1) {
+        $CalStats | Where-Object Name -Like "$Owner*" | Format-Table -a FolderPath, VisibleItemsInFolder, FolderAndSubfolderSize
+        if (($CalStats | Where-Object Name -Like "$Owner*").count -gt 1) {
             Write-Host -ForegroundColor Yellow "Warning: Might have found more than one copy of the Owner Calendar in the Receiver Mailbox."
         }
     } else {
@@ -504,19 +500,6 @@ function GetReceiverInformation {
                 Write-Host "Old Model Calendar Sharing Entries:"
                 Write-Host "Consider upgrading these to the new model."
                 $ReceiverCalEntries | Where-Object SharingModelType -Like Old | Format-Table CalendarGroupName, CalendarName, OwnerEmailAddress, SharingModelType, IsOrphanedEntry
-            }
-
-            # need to check if Get-CalendarValidationResult in the PS Workspace
-            if ((Get-Command -Name Get-CalendarValidationResult -ErrorAction SilentlyContinue) -and
-                $null -ne $ReceiverCalEntries) {
-                $ewsId_del= $ReceiverCalEntries[0].LocalFolderId
-                Write-Host "Trying to run cmdlet: Get-CalendarValidationResult -Version V2 -Identity $Receiver -SourceCalendarId $ewsId_del -TargetUserId $Owner -IncludeAnalysis 1 -OnlyReportErrors 1 | FT -a GlobalObjectId, EventValidationResult  "
-                try {
-                    $ValidationResults = Get-CalendarValidationResult -Version V2 -Identity $Receiver -SourceCalendarId $ewsId_del -TargetUserId $Owner -IncludeAnalysis 1 -OnlyReportErrors 1
-                    $ValidationResults | Format-List UserPrimarySMTPAddress, Subject, GlobalObjectId, EventValidationResult, EventComparisonResult
-                } catch {
-                    Write-Error "Failed to run Get-CalendarValidationResult: $_"
-                }
             }
         }
 
@@ -559,8 +542,8 @@ function GetReceiverInformation {
 }
 
 # Main
-$script:ModernSharing
-$script:SharingType
+$script:ModernSharing = $false
+$script:SharingType = $null
 GetOwnerInformation -Owner $Owner
 GetReceiverInformation -Receiver $Receiver
 

@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+# PesterPriority: High
 BeforeAll {
     $parent = Split-Path -Parent $PSScriptRoot
     $parent = [IO.Path]::Combine($parent, "SetupLogReviewer")

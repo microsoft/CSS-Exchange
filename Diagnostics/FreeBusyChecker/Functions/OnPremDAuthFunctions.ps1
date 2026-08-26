@@ -204,7 +204,7 @@ function FedTrustCheck {
     PrintDynamicWidthLine
     $CurrentTime = Get-Date
     Write-Host -ForegroundColor White " Federation Trust Application Uri:"
-    if ($FedTrust.ApplicationUri -like "FYDIBOHF25SPDLT.$ExchangeOnpremDomain") {
+    if ($FedTrust.ApplicationUri -like "FYDIBOHF25SPDLT.$Script:ExchangeOnPremDomain") {
         Write-Host -ForegroundColor Green " " $FedTrust.ApplicationUri
         $Script:tdFedTrustApplicationUriColor = "green"
         $Script:tdFedTrustApplicationUriFL = $FedTrust.ApplicationUri

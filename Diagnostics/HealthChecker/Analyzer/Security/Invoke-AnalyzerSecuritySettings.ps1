@@ -60,13 +60,17 @@ function Invoke-AnalyzerSecuritySettings {
     Test-ExchangeBuildGreaterOrEqualThanBuild -CurrentExchangeBuild $HealthServerObject.ExchangeInformation.BuildInformation.VersionInformation -Version "ExchangeSE" -CU "RTM" |
         Invoke-RemotePipelineHandler -Result ([ref]$tls13SupportedExSE)
     $tls13SupportedExchange = $tls13SupportedEx2019 -or $tls13SupportedExSE
+    Write-Verbose "TLS 1.3 Support - OS MajorVersion: '$($osInformation.BuildInformation.MajorVersion)' tls13SupportedOS: $tls13SupportedOS"
+    Write-Verbose "TLS 1.3 Support - Exchange MajorVersion: '$($HealthServerObject.ExchangeInformation.BuildInformation.VersionInformation.MajorVersion)' CU: '$($HealthServerObject.ExchangeInformation.BuildInformation.VersionInformation.CU)'"
+    Write-Verbose "TLS 1.3 Support - tls13SupportedEx2019: $tls13SupportedEx2019 tls13SupportedExSE: $tls13SupportedExSE tls13SupportedExchange: $tls13SupportedExchange"
     $currentNetVersion = $osInformation.TLSSettings.Registry.NET["NETv4"]
 
     $tlsSettings = $osInformation.TLSSettings.Registry.TLS
     $misconfiguredClientServerSettings = ($tlsSettings.Values | Where-Object { $_.TLSMisconfigured -eq $true }).Count -ne 0
-    $displayLinkToDocsPage = ($tlsSettings.Values | Where-Object { $_.TLSConfiguration -ne "Enabled" -and $_.TLSConfiguration -ne "Disabled" }).Count -ne 0
-    $lowerTlsVersionDisabled = ($tlsSettings.Values | Where-Object { $_.TLSVersionDisabled -eq $true -and ($_.TLSVersion -ne "1.2" -and $_.TLSVersion -ne "1.3") }).Count -ne 0
-    $tls13NotDisabled = ($tlsSettings.Values | Where-Object { $_.TLSConfiguration -ne "Disabled" -and $_.TLSVersion -eq "1.3" }).Count -gt 0
+    $displayLinkToDocsPage = @($tlsSettings.Values | Where-Object { $_.TLSConfiguration -ne "Enabled" -and $_.TLSConfiguration -ne "Disabled" }).Count -ne 0
+    $lowerTlsVersionDisabled = @($tlsSettings.Values | Where-Object { $_.TLSVersionDisabled -eq $true -and ($_.TLSVersion -ne "1.2" -and $_.TLSVersion -ne "1.3") }).Count -ne 0
+    $tls13NotDisabled = @($tlsSettings.Values | Where-Object { $_.TLSConfiguration -ne "Disabled" -and $_.TLSVersion -eq "1.3" }).Count -gt 0
+    Write-Verbose "TLS 1.3 Support - tls13NotDisabled: $tls13NotDisabled TLS 1.3 TLSConfiguration: '$(($tlsSettings['1.3']).TLSConfiguration)'"
 
     $sbValue = {
         param ($o, $p)
@@ -226,7 +230,7 @@ function Invoke-AnalyzerSecuritySettings {
         Add-AnalyzedResultInformation @params
     }
 
-    if ($tls13NotDisabled) {
+    if ($tls13NotDisabled -and (-not $tls13SupportedOS -or -not $tls13SupportedExchange)) {
         $displayLinkToDocsPage = $true
         $params = $baseParams + @{
             Details                = "Error: TLS 1.3 is not disabled and not supported currently on Exchange and is known to cause issues within the cluster."

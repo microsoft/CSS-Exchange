@@ -167,11 +167,11 @@ begin {
 
     $Script:ExchangeOnPremLocalDomain = $ADDomain.forest
     if ([string]::IsNullOrWhitespace($ADDomain)) {
-        $Script:ExchangeOnPremLocalDomain = $exchangeOnPremDomain
+        $Script:ExchangeOnPremLocalDomain = $Script:ExchangeOnPremDomain
     }
 
-    if ($ExchangeOnPremDomain) {
-        $Script:FedInfoEOP = Get-federationInformation -DomainName $ExchangeOnPremDomain  -BypassAdditionalDomainValidation -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Select-Object *
+    if ($Script:ExchangeOnPremDomain) {
+        $Script:FedInfoEOP = Get-federationInformation -DomainName $Script:ExchangeOnPremDomain  -BypassAdditionalDomainValidation -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Select-Object *
     }
     #endregion
 
@@ -253,10 +253,10 @@ begin {
             exit
         }
         Write-Host " Connected to Exchange Online."
-        $Script:ExoOrgRel = Get-EOOrganizationRelationship | Where-Object { ($_.DomainNames -like $ExchangeOnPremDomain ) } | Select-Object Enabled, Identity, DomainNames, FreeBusy*, TarGet*
+        $Script:ExoOrgRel = Get-EOOrganizationRelationship | Where-Object { ($_.DomainNames -like $Script:ExchangeOnPremDomain ) } | Select-Object Enabled, Identity, DomainNames, FreeBusy*, TarGet*
         $Script:ExoIntraOrgCon = Get-EOIntraOrganizationConnector | Select-Object Name, TarGetAddressDomains, DiscoveryEndpoint, Enabled
-        $Script:tarGetAddressPr1 = ("https://AutoDiscover." + $ExchangeOnPremDomain + "/AutoDiscover/AutoDiscover.svc/WSSecurity")
-        $Script:tarGetAddressPr2 = ("https://" + $ExchangeOnPremDomain + "/AutoDiscover/AutoDiscover.svc/WSSecurity")
+        $Script:tarGetAddressPr1 = ("https://AutoDiscover." + $Script:ExchangeOnPremDomain + "/AutoDiscover/AutoDiscover.svc/WSSecurity")
+        $Script:tarGetAddressPr2 = ("https://" + $Script:ExchangeOnPremDomain + "/AutoDiscover/AutoDiscover.svc/WSSecurity")
         exoHeaderHtml
 
         #endregion

@@ -91,6 +91,24 @@ function TestObjectMatch {
         Should -Be $WriteType
 }
 
+function GetHtmlServerDetail {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, Position = 1)]
+        [string]$Name
+    )
+    $Script:results.HtmlServerValues["ServerDetails"] | Where-Object { $_.Name -eq $Name }
+}
+
+function GetHtmlOverviewValue {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, Position = 1)]
+        [string]$Name
+    )
+    $Script:results.HtmlServerValues["OverviewValues"] | Where-Object { $_.Name -eq $Name }
+}
+
 function TestOutColumnObjectCompare {
     [CmdletBinding()]
     param(

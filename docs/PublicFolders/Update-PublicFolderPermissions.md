@@ -20,6 +20,7 @@ Update-PublicFolderPermissions.ps1
     [-ExcludeFolderEntryIds <String[]>]
     [-SkipCurrentAccessCheck]
     [-ProgressLogFile <String>]
+    [-SkipVersionCheck]
     [-WhatIf]
     [-Confirm]
     [<CommonParameters>]
@@ -31,10 +32,22 @@ Update-PublicFolderPermissions.ps1
     [-ExcludeFolderEntryIds <String[]>]
     [-SkipCurrentAccessCheck]
     [-ProgressLogFile <String>]
+    [-SkipVersionCheck]
+    [-WhatIf]
+    [-Confirm]
+    [<CommonParameters>]
+
+Update-PublicFolderPermissions.ps1
+    -ScriptUpdateOnly
     [-WhatIf]
     [-Confirm]
     [<CommonParameters>]
 ```
+
+## Script update parameters
+
+- `-ScriptUpdateOnly` (optional): Only updates the script to the latest released version without performing any other actions.
+- `-SkipVersionCheck` (optional): Skips the automatic version check and script update.
 
 ## Usage
 

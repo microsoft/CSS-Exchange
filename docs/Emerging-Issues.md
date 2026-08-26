@@ -11,28 +11,292 @@ hide:
 
 This page lists emerging issues for Exchange On-Premises deployments, possible root cause and solution/workaround to fix the issues. The page will be consistently updated with new issues found and reflect current status of the issues mentioned.
 
-|**Updated on**|**Update causing the issue**|**Issue**|**Workaround/Solution**|
-|-|-|-|-|
-| 8/18/2025 | Dedicated Exchange hybrid app created using [ConfigureExchangeHybridApplication script](https://microsoft.github.io/CSS-Exchange/Hybrid/ConfigureExchangeHybridApplication/) or the HCW method | After deploying dedicated Exchange hybrid app <BR> using HCW or the [ConfigureExchangeHybridApplication script]([https://msrc.microsoft.com/update-guide/vulnerability/CVE-2025-53786](https://microsoft.github.io/CSS-Exchange/Hybrid/ConfigureExchangeHybridApplication/)) <BR> you may notice Rich hybrid features <BR> i.e. Free/Busy, MailTips and Photos temporarily unavailable. | Depending on the size of the organization, <BR> it may take up to 60 minutes for the <BR> dedicated Exchange hybrid application configuration <BR> to be recognized by the responsible Exchange Server processes. <BR> The process can be expedited by performing IISReset <BR> or recycling MSExchangeServicesAppPool on Exchange Servers. <BR> Please check [this documentation](https://learn.microsoft.com/exchange/hybrid-deployment/deploy-dedicated-hybrid-app#frequently-asked-questions) for details|
-| 2/24/2025 | [Exchange Server 2019 CU14](https://support.microsoft.com/KB/5035606) OR [Exchange Server 2019 Cumulative Update 15](https://support.microsoft.com/kb/5042461) | Environments that are using SSL offloading configuration<br/>may face issues with Outlook connectivity issues<br/>after upgrading to [Exchange Server 2019 CU14](https://support.microsoft.com/KB/5035606) OR [Exchange Server 2019 Cumulative Update 15](https://support.microsoft.com/kb/5042461) | As announced in [August 2023](https://techcommunity.microsoft.com/t5/exchange-team-blog/coming-soon-enabling-extended-protection-on-exchange-server-by/ba-p/3911849)<br/>, by default, starting with [Exchange Server 2019 CU14](https://support.microsoft.com/KB/5035606),<br/>setup enables the Windows Extended Protection (EP) feature<br/>on the Exchange server being installed.<br/>Extended Protection isn't supported in environments<br/>that use SSL Offloading. SSL termination during SSL Offloading causes<br/>Extended Protection to fail.<br/>To enable Extended Protection in your Exchange environment,<br/>you must not be using SSL offloading with your Load Balancers.<br/>Please check [this link](https://learn.microsoft.com/exchange/plan-and-deploy/post-installation-tasks/security-best-practices/exchange-extended-protection?view=exchserver-2019#scenarios-that-could-affect-client-connectivity-when-extended-protection-was-enabled) for more details |
-| 2/6/2025 | HCW | You may see following error when creating Migration Endpoint using HCW <BR><BR> "The last connection attempt happened too recently" | Please create the Migration Endpoint manually by following steps in [this article](https://aka.ms/mep) while the issue is being fixed in HCW|
-| 1/29/2025 | [November Exchange Security Update for Exchange 2016 & Exchange 2019 V2](https://support.microsoft.com/help/5049233) | You may see following error when installing<br/>[November 2024 V2 Exchange Security Update](https://support.microsoft.com/topic/description-of-version-2-of-the-security-update-for-microsoft-exchange-server-2019-and-2016-november-27-2024-kb5049233-e807f65d-da39-48a9-9a7e-69612cac8077): <BR><BR> Error 1935. An error occurred during the installation of<br/>assembly<br/>'Microsoft.Exchange.Data.Common,version="15.1.2503.00"<br/>,fileVersion="15.1.2507.44",culture="neutral",<br/>publicKeyToken="31BF3856AD364E35",processorArchitecture="MSIL"'.<br/>For more information, refer to Microsoft Help and Support. HRESULT: 0x800700B7.<br/> assembly interface: IAssemblyCacheItem, function: Commit, component: {B79F9EB4-6D81-48F3-BC2D-3A0A83C30742} | Please follow the workaround provided on [this KB article](https://aka.ms/NovSUKB) |
-| 11/29/2024 | [November Exchange Security Update for Exchange 2016 & Exchange 2019 V2](https://support.microsoft.com/help/5049233) | Time zone exception may be reported in event viewer<br/>, after installing the [November Exchange Security Update for Exchange 2016 & Exchange 2019 V2](https://support.microsoft.com/help/5049233)<BR><BR>Event log entries are generated if Exchange Server fails<br/>to process calendar information, such as: <BR><BR> w3wp\#MSExchangeOWAAppPool, M.Exchange.Net , M.E.E.ExIanaTimeZoneProvider+Cache.AddTimeZone<br/>, M.E.ExchangeSystem.InvalidTimeZoneException<BR>OR<BR>Microsoft.Exchange.ExchangeSystem.InvalidTimeZoneException: Time zone id already exists | Please follow the workaround provided on [this KB article](https://support.microsoft.com/topic/time-zone-exception-occurs-after-installing-exchange-server-november-2024-su-version-1-or-version-2-851b3005-6d39-49a9-a6b5-5b4bb42a606f) |
-| 11/27/2024 | [November Exchange Security Update for Exchange 2016 & Exchange 2019](https://support.microsoft.com/help/5044062) | Exchange Transport Rules may stop working after applying the [November Exchange Security Update for Exchange 2016 & Exchange 2019](https://support.microsoft.com/help/5044062)  | Please install the re-released [November 2024 Exchange security update](https://techcommunity.microsoft.com/blog/exchange/re-release-of-november-2024-exchange-server-security-update-packages/4341892) |
-| 9/11/2024 |  [August 2024 update for Windows](https://support.microsoft.com/kb/5041578) | After installing the [August 2024 update for Windows](https://support.microsoft.com/kb/5041578) <BR><BR> 1) Microsoft Exchange Transport service may start crashing <BR> 2) Microsoft Filtering Management Service may not start or start with long delay | **Update on 9/11/2024** <BR><BR> Install [Windows Update for September 2024](https://support.microsoft.com/topic/september-10-2024-kb5043050-os-build-17763-6293-66e9809a-1838-4474-a6a7-90d64f042f00) or later <BR><BR> **Old information**<BR> <span style="text-decoration: line-through;">Please follow steps in [this KB](https://learn.microsoft.com/windows/release-health/status-windows-10-1809-and-windows-server-2019#3375msgdesc)</span> |
+## Current Issues
 
-**Old issues**
+???+ warning "8/18/2025 — Rich hybrid features temporarily unavailable after deploying dedicated Exchange hybrid app"
+    **Update causing the issue:** Dedicated Exchange hybrid app created using
+    [ConfigureExchangeHybridApplication script](https://microsoft.github.io/CSS-Exchange/Hybrid/ConfigureExchangeHybridApplication/)
+    or the HCW method
 
-|**Updated on**|**Update causing the issue**|**Issue**|**Workaround/Solution**|
-|-|-|-|-|
-| 4/23/2024 |  [March 2024 Security Update for Exchange 2019,2016](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-march-2024-exchange-server-security-updates/ba-p/4075348) | After installing the [March 2024 Security Update]((https://techcommunity.microsoft.com/t5/exchange-team-blog/released-march-2024-exchange-server-security-updates/ba-p/4075348)),<br/>Search in Outlook (cached mode) may show<br/>"We're having trouble fetching results from the server...".<br/>The search works fine in OWA or Outlook online mode. | Please install [April 2024 Hotfix Update](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-april-2024-exchange-server-hotfix-updates/ba-p/4120536) |
-| 4/23/2024 |  [March 2024 Security Update for Exchange 2019,2016](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-march-2024-exchange-server-security-updates/ba-p/4075348) | After installing the Security Update,<br/>add-ins may stop working with following error <BR><BR>"Add-in Error Something went wrong<br/>and we couldn't start this add-in.<br/>Please try again later or contact your system administrator   | Please install [April 2024 Hotfix Update](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-april-2024-exchange-server-hotfix-updates/ba-p/4120536) |
-| 4/23/2024 |  [March 2024 Security Update for Exchange 2019,2016](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-march-2024-exchange-server-security-updates/ba-p/4075348) |After installing the March 2024 Security Update,<br/>Unread envelope icon is not getting updated | Please install [April 2024 Hotfix Update](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-april-2024-exchange-server-hotfix-updates/ba-p/4120536) |
-| 4/23/2024 |  [March 2024 Security Update for Exchange 2019,2016](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-march-2024-exchange-server-security-updates/ba-p/4075348) |After installing the March 2024 Security Update,<br/>preview of Office documents in OWA may fail with error<br/> "Sorry, there was a problem and<BR/> we can't open this document."   | Please install [April 2024 Hotfix Update](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-april-2024-exchange-server-hotfix-updates/ba-p/4120536) |
-| 2/19/2024 | [CU 14 for Exchange 2019](https://support.microsoft.com/topic/5036404) | Exchange 2019 CU14 RecoverServer fails<BR/>while creating "New-PushNotificationsVirtualDirectory"<BR/>with following error:<BR><BR>Exception setting "ExtendedProtectionTokenChecking":<BR/>"Cannot convert null to type<BR/>"Microsoft.Exchange.Data.Directory.<BR/>SystemConfiguration.ExtendedProtectionTokenCheckingMode"<BR/>due to enumeration values that are not valid.<BR>  | Please follow the steps from [this KB](https://support.microsoft.com/topic/5036404) to resolve the issue
-| 11/23/2023 | [November 2023 Security Update](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-november-2023-exchange-server-security-updates/ba-p/3980209) for Exchange 2016, Exchange 2019 | Some customers may find queue viewer<BR/>crashing with error <BR><BR>"Failed to enable constraints.<BR/>One or more rows contain values violating non-null,<BR/>unique, or foreign-key constraints" | The error can occur if the<BR/>Exchange server auth certificate has expired.<BR/>Solution is to renew the [Exchange server auth certificate manually](https://learn.microsoft.com/exchange/troubleshoot/administration/cannot-access-owa-or-ecp-if-oauth-expired)<BR/>or by using [this script](https://microsoft.github.io/CSS-Exchange/Admin/MonitorExchangeAuthCertificate/) |
-| 10/12/2023 | [All versions of August 2023 Security Update](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-august-2023-exchange-server-security-updates/ba-p/3892811) for Exchange 2016, Exchange 2019 | Users in account forest can't change<BR/>expired password in OWA in multi-forest Exchange deployments<BR/>after installing any version of [August 2023 Security Update for Exchange servers](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-august-2023-exchange-server-security-updates/ba-p/3892811)<BR><BR>**Note**<BR> The account forest user will<BR/>be able to change the password after they sign in to<BR/>Outlook on the web if their password is not yet expired.<BR/>The issue affects only account forest<BR/>users who have passwords that are already expired.<BR/>This change does not affect users<BR/>in organizations that don't use multiple forests.|** Update on 10/12/2023 ** <BR><BR> Follow steps on [this article](https://support.microsoft.com/topic/users-in-account-forest-can-t-change-expired-password-in-owa-in-multi-forest-exchange-deployments-after-installing-august-2023-su-b17c3579-0233-4d84-9245-755dd1092edb) |
-| 8/15/2023 | [Non-English August 2023 Security Update](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-august-2023-exchange-server-security-updates/ba-p/3892811) for Exchange 2016, Exchange 2019 | When you install the Microsoft Exchange Server 2019<BR/>or 2016 August 2023 Security Update (SU)<BR/>on a Windows Server-based device that is running a non-English<BR/>operating system (OS) version,<BR/>Setup suddenly stops and rolls back<BR/>the changes. However, the Exchange Server services remain<BR/>in a disabled state. |The latest SUs have been released<BR/>that do not require a workaround to install.<BR/>If you used a workaround to install KB5029388,<BR/>it is highly recommend to uninstall the KB5029388 to avoid issues down the line.<BR/>For more information please check out [this KB](https://support.microsoft.com/topic/exchange-server-2019-and-2016-august-2023-security-update-installation-fails-on-non-english-operating-systems-ef38d805-f645-4511-8cc5-cf967e5d5c75). |
-| 6/15/2023 | [January 2023 Security Update](https://www.microsoft.com/en-us/download/details.aspx?id=104914) for Exchange 2016, Exchange 2019 | When you try to uninstall<BR/>Microsoft Exchange Server 2019 or 2016 on servers<BR/>, that had January 2023 Security Update <BR/>for Exchange Server installed at any point,<BR/>the Setup fails with following error message: <BR><BR>[ERROR] The operation couldn't be performed<BR/>because object '<ServerName>' couldn't<BR/>be found on '<DomainControllerName>'. |Install Exchange Security Update June 2023 or higher to resolve the issue.<BR/>Check [this KB](https://support.microsoft.com/help/5025312) for more details |
-| 6/15/2023 |Extended protection enabled on Exchange server | Changing the permissions for Public Folders<BR/>by using an Outlook client will fail with the following error,<BR/>if Extended Protection is enabled: <BR><BR>`The modified Permissions cannot be changed.`| Install Exchange Security Update June 2023 or higher Security Update<BR/>and create the setting override mentioned in [this KB](https://support.microsoft.com/topic/extended-protection-doesn-t-support-public-folder-client-permissions-management-through-outlook-bd2037b5-40e0-413a-b368-746b3f5439ee) |
-| 3/16/2023 | [Outlook client update for CVE-2023-23397 released](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2023-23397)| These vulnerabilities affect Exchange Server.<BR/>Exchange Online customers are already protected from the vulnerabilities addressed in these SUs<BR/>and do not need to take any action<BR/>**other than updating Exchange servers in their environment,<BR/>and if applicable, installing the security update<BR/>for Outlook on Windows described on the link on the right.**<br/>More details about specific CVEs can be found in the<BR/>[Security Update Guide](https://msrc.microsoft.com/update-guide/) (filter on Exchange Server under Product Family).<br>**Awareness: Outlook client update for CVE-2023-23397 released**<br>There is a critical security update for Microsoft Outlook for Windows<BR/>that is required to address [CVE-2023-23397](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2023-23397). To address this CVE,<BR/>**you must install the Outlook security update,<BR/>regardless of where your mail is hosted (e.g., Exchange Online, Exchange Server, some other platform).** | **Please check [this page](https://aka.ms/OLKCVEFAQ) for FAQs about the [Outlook CVE-2023-23397](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2023-23397)** |
+    **Issue:** After deploying dedicated Exchange hybrid app
+    using HCW or the [ConfigureExchangeHybridApplication script](https://microsoft.github.io/CSS-Exchange/Hybrid/ConfigureExchangeHybridApplication/)
+    you may notice Rich hybrid features
+    i.e. Free/Busy, MailTips and Photos temporarily unavailable.
+
+    **Workaround/Solution:** Depending on the size of the organization,
+    it may take up to 60 minutes for the
+    dedicated Exchange hybrid application configuration
+    to be recognized by the responsible Exchange Server processes.
+    The process can be expedited by performing IISReset
+    or recycling MSExchangeServicesAppPool on Exchange Servers.
+    Please check [this documentation](https://learn.microsoft.com/exchange/hybrid-deployment/deploy-dedicated-hybrid-app#frequently-asked-questions) for details.
+
+???+ warning "2/24/2025 — Outlook connectivity issues with SSL offloading after CU14/CU15"
+    **Update causing the issue:**
+    [Exchange Server 2019 CU14](https://support.microsoft.com/KB/5035606) OR
+    [Exchange Server 2019 Cumulative Update 15](https://support.microsoft.com/kb/5042461)
+
+    **Issue:** Environments that are using SSL offloading configuration
+    may face Outlook connectivity issues
+    after upgrading to [Exchange Server 2019 CU14](https://support.microsoft.com/KB/5035606) OR
+    [Exchange Server 2019 Cumulative Update 15](https://support.microsoft.com/kb/5042461).
+
+    **Workaround/Solution:** As announced in [August 2023](https://techcommunity.microsoft.com/t5/exchange-team-blog/coming-soon-enabling-extended-protection-on-exchange-server-by/ba-p/3911849),
+    by default, starting with [Exchange Server 2019 CU14](https://support.microsoft.com/KB/5035606),
+    setup enables the Windows Extended Protection (EP) feature
+    on the Exchange server being installed.
+    Extended Protection isn't supported in environments
+    that use SSL Offloading. SSL termination during SSL Offloading causes
+    Extended Protection to fail.
+    To enable Extended Protection in your Exchange environment,
+    you must not be using SSL offloading with your Load Balancers.
+    Please check [this link](https://learn.microsoft.com/exchange/plan-and-deploy/post-installation-tasks/security-best-practices/exchange-extended-protection?view=exchserver-2019#scenarios-that-could-affect-client-connectivity-when-extended-protection-was-enabled) for more details.
+
+???+ warning "2/6/2025 — Migration Endpoint creation fails via HCW"
+    **Update causing the issue:** HCW
+
+    **Issue:** You may see the following error when creating Migration Endpoint using HCW:
+
+    `The last connection attempt happened too recently`
+
+    **Workaround/Solution:** Please create the Migration Endpoint manually by following steps in
+    [this article](https://aka.ms/mep) while the issue is being fixed in HCW.
+
+???+ warning "1/29/2025 — Error 1935 when installing November 2024 V2 Exchange Security Update"
+    **Update causing the issue:**
+    [November Exchange Security Update for Exchange 2016 & Exchange 2019 V2](https://support.microsoft.com/help/5049233)
+
+    **Issue:** You may see the following error when installing
+    [November 2024 V2 Exchange Security Update](https://support.microsoft.com/topic/description-of-version-2-of-the-security-update-for-microsoft-exchange-server-2019-and-2016-november-27-2024-kb5049233-e807f65d-da39-48a9-9a7e-69612cac8077):
+
+    ```
+    Error 1935. An error occurred during the installation of assembly 'Microsoft.Exchange.Data.Common,version="15.1.2503.00",fileVersion="15.1.2507.44",culture="neutral",publicKeyToken="31BF3856AD364E35",processorArchitecture="MSIL"'.
+    HRESULT: 0x800700B7. assembly interface: IAssemblyCacheItem, function: Commit, component: {B79F9EB4-6D81-48F3-BC2D-3A0A83C30742}
+    ```
+
+    **Workaround/Solution:** Please follow the workaround provided on
+    [this KB article](https://aka.ms/NovSUKB).
+
+## Old Issues
+
+??? note "11/29/2024 — Time zone exception after installing November 2024 SU V2"
+    **Update causing the issue:**
+    [November Exchange Security Update for Exchange 2016 & Exchange 2019 V2](https://support.microsoft.com/help/5049233)
+
+    **Issue:** Time zone exception may be reported in event viewer,
+    after installing the [November Exchange Security Update for Exchange 2016 & Exchange 2019 V2](https://support.microsoft.com/help/5049233).
+
+    Event log entries are generated if Exchange Server fails
+    to process calendar information, such as:
+
+    ```
+    w3wp#MSExchangeOWAAppPool, M.Exchange.Net, M.E.E.ExIanaTimeZoneProvider+Cache.AddTimeZone, M.E.ExchangeSystem.InvalidTimeZoneException
+    ```
+    OR
+    ```
+    Microsoft.Exchange.ExchangeSystem.InvalidTimeZoneException: Time zone id already exists
+    ```
+
+    **Workaround/Solution:** Please follow the workaround provided on
+    [this KB article](https://support.microsoft.com/topic/time-zone-exception-occurs-after-installing-exchange-server-november-2024-su-version-1-or-version-2-851b3005-6d39-49a9-a6b5-5b4bb42a606f).
+
+??? note "11/27/2024 — Transport Rules stop working after November 2024 SU"
+    **Update causing the issue:**
+    [November Exchange Security Update for Exchange 2016 & Exchange 2019](https://support.microsoft.com/help/5044062)
+
+    **Issue:** Exchange Transport Rules may stop working after applying the
+    [November Exchange Security Update for Exchange 2016 & Exchange 2019](https://support.microsoft.com/help/5044062).
+
+    **Workaround/Solution:** Please install the re-released
+    [November 2024 Exchange security update](https://techcommunity.microsoft.com/blog/exchange/re-release-of-november-2024-exchange-server-security-update-packages/4341892).
+
+??? note "9/11/2024 — Transport service crashing or Filtering Management Service delayed after August 2024 Windows Update"
+    **Update causing the issue:**
+    [August 2024 update for Windows](https://support.microsoft.com/kb/5041578)
+
+    **Issue:** After installing the [August 2024 update for Windows](https://support.microsoft.com/kb/5041578):
+
+    1. Microsoft Exchange Transport service may start crashing
+    2. Microsoft Filtering Management Service may not start or start with long delay
+
+    **Workaround/Solution:** **Update on 9/11/2024** — Install
+    [Windows Update for September 2024](https://support.microsoft.com/topic/september-10-2024-kb5043050-os-build-17763-6293-66e9809a-1838-4474-a6a7-90d64f042f00) or later.
+
+    ~~Please follow steps in [this KB](https://learn.microsoft.com/windows/release-health/status-windows-10-1809-and-windows-server-2019#3375msgdesc)~~
+
+??? note "4/23/2024 — Search in Outlook fails after March 2024 SU"
+    **Update causing the issue:**
+    [March 2024 Security Update for Exchange 2019,2016](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-march-2024-exchange-server-security-updates/ba-p/4075348)
+
+    **Issue:** After installing the [March 2024 Security Update](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-march-2024-exchange-server-security-updates/ba-p/4075348),
+    Search in Outlook (cached mode) may show
+    `We're having trouble fetching results from the server...`.
+    The search works fine in OWA or Outlook online mode.
+
+    **Workaround/Solution:** Please install
+    [April 2024 Hotfix Update](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-april-2024-exchange-server-hotfix-updates/ba-p/4120536).
+
+??? note "4/23/2024 — Add-ins stop working after March 2024 SU"
+    **Update causing the issue:**
+    [March 2024 Security Update for Exchange 2019,2016](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-march-2024-exchange-server-security-updates/ba-p/4075348)
+
+    **Issue:** After installing the Security Update,
+    add-ins may stop working with following error:
+
+    ```
+    Add-in Error Something went wrong and we couldn't start this add-in. Please try again later or contact your system administrator
+    ```
+
+    **Workaround/Solution:** Please install
+    [April 2024 Hotfix Update](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-april-2024-exchange-server-hotfix-updates/ba-p/4120536).
+
+??? note "4/23/2024 — Unread envelope icon not updating after March 2024 SU"
+    **Update causing the issue:**
+    [March 2024 Security Update for Exchange 2019,2016](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-march-2024-exchange-server-security-updates/ba-p/4075348)
+
+    **Issue:** After installing the March 2024 Security Update,
+    Unread envelope icon is not getting updated.
+
+    **Workaround/Solution:** Please install
+    [April 2024 Hotfix Update](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-april-2024-exchange-server-hotfix-updates/ba-p/4120536).
+
+??? note "4/23/2024 — Office document preview fails in OWA after March 2024 SU"
+    **Update causing the issue:**
+    [March 2024 Security Update for Exchange 2019,2016](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-march-2024-exchange-server-security-updates/ba-p/4075348)
+
+    **Issue:** After installing the March 2024 Security Update,
+    preview of Office documents in OWA may fail with error:
+
+    `Sorry, there was a problem and we can't open this document.`
+
+    **Workaround/Solution:** Please install
+    [April 2024 Hotfix Update](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-april-2024-exchange-server-hotfix-updates/ba-p/4120536).
+
+??? note "2/19/2024 — CU14 RecoverServer fails creating PushNotificationsVirtualDirectory"
+    **Update causing the issue:**
+    [CU 14 for Exchange 2019](https://support.microsoft.com/topic/5036404)
+
+    **Issue:** Exchange 2019 CU14 RecoverServer fails
+    while creating "New-PushNotificationsVirtualDirectory"
+    with following error:
+
+    ```
+    Exception setting "ExtendedProtectionTokenChecking": "Cannot convert null to type "Microsoft.Exchange.Data.Directory.SystemConfiguration.ExtendedProtectionTokenCheckingMode" due to enumeration values that are not valid.
+    ```
+
+    **Workaround/Solution:** Please follow the steps from
+    [this KB](https://support.microsoft.com/topic/5036404) to resolve the issue.
+
+??? note "11/23/2023 — Queue viewer crashing after November 2023 SU"
+    **Update causing the issue:**
+    [November 2023 Security Update](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-november-2023-exchange-server-security-updates/ba-p/3980209)
+    for Exchange 2016, Exchange 2019
+
+    **Issue:** Some customers may find queue viewer
+    crashing with error:
+
+    ```
+    Failed to enable constraints. One or more rows contain values violating non-null, unique, or foreign-key constraints
+    ```
+
+    **Workaround/Solution:** The error can occur if the
+    Exchange server auth certificate has expired.
+    Solution is to renew the
+    [Exchange server auth certificate manually](https://learn.microsoft.com/exchange/troubleshoot/administration/cannot-access-owa-or-ecp-if-oauth-expired)
+    or by using [this script](https://microsoft.github.io/CSS-Exchange/Admin/MonitorExchangeAuthCertificate/).
+
+??? note "10/12/2023 — Account forest users can't change expired password in OWA after August 2023 SU"
+    **Update causing the issue:**
+    [All versions of August 2023 Security Update](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-august-2023-exchange-server-security-updates/ba-p/3892811)
+    for Exchange 2016, Exchange 2019
+
+    **Issue:** Users in account forest can't change
+    expired password in OWA in multi-forest Exchange deployments
+    after installing any version of
+    [August 2023 Security Update for Exchange servers](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-august-2023-exchange-server-security-updates/ba-p/3892811).
+
+    **Note:** The account forest user will
+    be able to change the password after they sign in to
+    Outlook on the web if their password is not yet expired.
+    The issue affects only account forest
+    users who have passwords that are already expired.
+    This change does not affect users
+    in organizations that don't use multiple forests.
+
+    **Workaround/Solution:** **Update on 10/12/2023** — Follow steps on
+    [this article](https://support.microsoft.com/topic/users-in-account-forest-can-t-change-expired-password-in-owa-in-multi-forest-exchange-deployments-after-installing-august-2023-su-b17c3579-0233-4d84-9245-755dd1092edb).
+
+??? note "8/15/2023 — Non-English August 2023 SU installation fails"
+    **Update causing the issue:**
+    [Non-English August 2023 Security Update](https://techcommunity.microsoft.com/t5/exchange-team-blog/released-august-2023-exchange-server-security-updates/ba-p/3892811)
+    for Exchange 2016, Exchange 2019
+
+    **Issue:** When you install the Microsoft Exchange Server 2019
+    or 2016 August 2023 Security Update (SU)
+    on a Windows Server-based device that is running a non-English
+    operating system (OS) version,
+    Setup suddenly stops and rolls back
+    the changes. However, the Exchange Server services remain
+    in a disabled state.
+
+    **Workaround/Solution:** The latest SUs have been released
+    that do not require a workaround to install.
+    If you used a workaround to install KB5029388,
+    it is highly recommended to uninstall the KB5029388 to avoid issues down the line.
+    For more information please check out
+    [this KB](https://support.microsoft.com/topic/exchange-server-2019-and-2016-august-2023-security-update-installation-fails-on-non-english-operating-systems-ef38d805-f645-4511-8cc5-cf967e5d5c75).
+
+??? note "6/15/2023 — Exchange uninstall fails after January 2023 SU"
+    **Update causing the issue:**
+    [January 2023 Security Update](https://www.microsoft.com/en-us/download/details.aspx?id=104914)
+    for Exchange 2016, Exchange 2019
+
+    **Issue:** When you try to uninstall
+    Microsoft Exchange Server 2019 or 2016 on servers
+    that had January 2023 Security Update
+    for Exchange Server installed at any point,
+    the Setup fails with the following error message:
+
+    ```
+    [ERROR] The operation couldn't be performed because object '<ServerName>' couldn't be found on '<DomainControllerName>'.
+    ```
+
+    **Workaround/Solution:** Install Exchange Security Update June 2023 or higher to resolve the issue.
+    Check [this KB](https://support.microsoft.com/help/5025312) for more details.
+
+??? note "6/15/2023 — Public Folder permissions can't be changed with Extended Protection enabled"
+    **Update causing the issue:** Extended protection enabled on Exchange server
+
+    **Issue:** Changing the permissions for Public Folders
+    by using an Outlook client will fail with the following error,
+    if Extended Protection is enabled:
+
+    `The modified Permissions cannot be changed.`
+
+    **Workaround/Solution:** Install the Exchange Server June 2023 or higher Security Update
+    and create the setting override mentioned in
+    [this KB](https://support.microsoft.com/topic/extended-protection-doesn-t-support-public-folder-client-permissions-management-through-outlook-bd2037b5-40e0-413a-b368-746b3f5439ee).
+
+??? note "3/16/2023 — Outlook client update for CVE-2023-23397"
+    **Update causing the issue:**
+    [Outlook client update for CVE-2023-23397 released](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2023-23397)
+
+    **Issue:** These vulnerabilities affect Exchange Server.
+    Exchange Online customers are already protected from the vulnerabilities addressed in these SUs
+    and do not need to take any action
+    **other than updating Exchange servers in their environment,
+    and if applicable, installing the security update
+    for Outlook on Windows described on the link on the right.**
+
+    More details about specific CVEs can be found in the
+    [Security Update Guide](https://msrc.microsoft.com/update-guide/) (filter on Exchange Server under Product Family).
+
+    **Awareness: Outlook client update for CVE-2023-23397 released**
+
+    There is a critical security update for Microsoft Outlook for Windows
+    that is required to address [CVE-2023-23397](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2023-23397). To address this CVE,
+    **you must install the Outlook security update,
+    regardless of where your mail is hosted (e.g., Exchange Online, Exchange Server, some other platform).**
+
+    **Workaround/Solution:** Please check [this page](https://aka.ms/OLKCVEFAQ) for FAQs about the
+    [Outlook CVE-2023-23397](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2023-23397).

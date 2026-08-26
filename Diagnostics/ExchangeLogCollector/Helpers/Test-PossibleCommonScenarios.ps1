@@ -29,6 +29,7 @@ function Test-PossibleCommonScenarios {
         $Script:ExPerfWiz = $true
         $Script:OABLogs = $true
         $Script:PowerShellLogs = $true
+        $Script:RESTLogs = $true
         $Script:WindowsSecurityLogs = $true
         $Script:CollectFailoverMetrics = $true
         $Script:TransportConnectivityLogs = $true

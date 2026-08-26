@@ -1,0 +1,9 @@
+#!/bin/bash
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+# Git pre-commit hook - delegates to PowerShell for validation checks
+# Install via: .github/Install-GitHooks.ps1
+
+HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
+exec pwsh -NoProfile -NonInteractive -File "$HOOK_DIR/pre-commit.ps1"

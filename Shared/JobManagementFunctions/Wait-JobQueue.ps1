@@ -18,6 +18,8 @@ function Wait-JobQueue {
     param(
         [int]$MaxJobsPerServer = 5,
 
+        [bool]$RedirectReceiveJobErrorStream = $true,
+
         [ScriptBlock]$ProcessReceiveJobAction,
 
         [ScriptBlock]$CatchActionFunction
@@ -69,12 +71,19 @@ function Wait-JobQueue {
                     $jobInfo.JobEndTime = [DateTime]::Now
                     $receiveJobStopWatch = [System.Diagnostics.Stopwatch]::StartNew()
 
-                    try {
-                        # Need to place inside of a try catch here to prevent displaying errors that occur in the job.
-                        $result = Receive-Job $jobInfo.Job -ErrorVariable "JobError" -ErrorAction Stop
-                    } catch {
-                        Write-Verbose "Had an error trying to Receive-Job. Inner Exception: $_"
-                        Invoke-CatchActionError $CatchActionFunction
+                    if ($RedirectReceiveJobErrorStream) {
+                        # Redirect the Error Stream to NULL to prevent displaying errors that occur in the job.
+                        # When this is done, the errors that are in JobError are added to the local $Error variable.
+                        # This then needs to be handled by the caller to properly detect this.
+                        $result = Receive-Job $jobInfo.Job -ErrorVariable "JobError" 2>$null
+                    } else {
+                        try {
+                            # Need to place inside of a try catch here to prevent displaying errors that occur in the job.
+                            $result = Receive-Job $jobInfo.Job -ErrorVariable "JobError" -ErrorAction Stop
+                        } catch {
+                            Write-Verbose "Had an error trying to Receive-Job. Inner Exception: $_"
+                            Invoke-CatchActionError $CatchActionFunction
+                        }
                     }
 
                     Write-Verbose "Receive-Job took $($receiveJobStopWatch.Elapsed.TotalSeconds) seconds to complete"

@@ -158,7 +158,6 @@ function ConvertCNtoSMTP {
     # Creates a list of CN's that we will do MB look up on
     $CNEntries = @()
     $CNEntries += ($script:GCDO.ResponsibleUserName.ToUpper() | Select-Object -Unique)
-    $CNEntries += ($script:GCDO.SentRepresentingEmailAddress.ToUpper() | Select-Object -Unique)
     $CNEntries += ($script:GCDO.Sender.ToUpper() | Select-Object -Unique)
     # $CNEntries += ($script:GCDO.SenderEmailAddress.ToUpper() | Select-Object -Unique)
     $CNEntries = $CNEntries | Select-Object -Unique
@@ -189,9 +188,8 @@ function ConvertCNtoSMTP {
             $script:MailboxList[$CNEntry] = GetMailboxProp -PassedCN $Cn -Prop "PrimarySmtpAddress"
         } else {
             Write-Verbose "ConvertCNtoSMTP: Passed in Value does not look like a CN or SMTP Address: [$CNEntry]"
+            $script:MailboxList[$CNEntry] = $CNEntry
         }
-
-        $script:MailboxList[$CNEntry] = $CNEntry
     }
     Write-Verbose "MailboxList: $($script:MailboxList.Count) entries found."
 
@@ -209,17 +207,27 @@ function GetDisplayName {
     param(
         $PassedCN
     )
+
+    # Use string key for cache lookup
+    $cacheKey = [string]$PassedCN
+    if ($script:DisplayNameCache.ContainsKey($cacheKey)) {
+        return $script:DisplayNameCache[$cacheKey]
+    }
+
     Write-Verbose "GetDisplayName:: Working on [$PassedCN]"
     if ($PassedCN.Properties.Name -contains 'DisplayName') {
-        return GetMailboxProp -PassedCN $PassedCN -Prop "DisplayName"
+        $result = GetMailboxProp -PassedCN $PassedCN -Prop "DisplayName"
     } elseif ($PassedCN -match '<' ) {
-        return $PassedCN.ToString().split("<")[0].replace('"', '')
+        $result = $PassedCN.ToString().split("<")[0].replace('"', '')
     } elseif ($PassedCN -match '\[OneOff') {
-        return $PassedCN.ToString().split('"')[1]
+        $result = $PassedCN.ToString().split('"')[1]
     } else {
         Write-Verbose "Unable to get the DisplayName for [$PassedCN]"
-        return $PassedCN
+        $result = $PassedCN
     }
+
+    $script:DisplayNameCache[$cacheKey] = $result
+    return $result
 }
 
 <#
@@ -231,41 +239,52 @@ function GetSMTPAddress {
         $PassedCN
     )
 
+    # Use string key for cache lookup
+    $cacheKey = [string]$PassedCN
+    if ($script:SMTPAddressCache.ContainsKey($cacheKey)) {
+        return $script:SMTPAddressCache[$cacheKey]
+    }
+
     #Write-Verbose "GetSMTPAddress:: Working on [$PassedCN]"
     if ($PassedCN -match $WellKnownCN_Trans) {
-        return $Transport
+        $result = $Transport
     } elseif ($PassedCN -match $WellKnownCN_CA) {
-        return $CalAttendant
+        $result = $CalAttendant
     } elseif ($PassedCN -like "*<*@*>") {
         # This is a new format that we are seeing in the Calendar Logs.
         # Example: '"Jon Doe" <Jon.Doe@Contoso.com>'
-        $SMTPAddress = $($PassedCN -split ("<")[-1] -split (">")[0])[1].Trim()
-        Write-Verbose "GetSMTPAddress: Using <SMTPAddress> format of [$PassedCN] as [$SMTPAddress]"
-        return $SMTPAddress
+        $smtpMatch = [regex]::Match($PassedCN, '<([^>]+)>')
+        if ($smtpMatch.Success) {
+            $result = $smtpMatch.Groups[1].Value.Trim()
+        } else {
+            $result = $PassedCN
+        }
+        Write-Verbose "GetSMTPAddress: Using <SMTPAddress> format of [$PassedCN] as [$result]"
     } elseif ($PassedCN -match '</O=') {
         #Matching "Users Name" </O=...>
         $pattern = "<([^>]*)>"
-        #$matches = [regex]::Matches($PassedCN, $pattern)
         $MailboxOU = ([regex]::Matches($PassedCN, $pattern)).groups[1].value
         Write-Verbose "GetSMTPAddress: Using /OU format to look up mailbox for [$MailboxOU]"
-        return GetMailboxProp -PassedCN $MailboxOU -Prop "PrimarySmtpAddress"
+        $result = GetMailboxProp -PassedCN $MailboxOU -Prop "PrimarySmtpAddress"
     } elseif ($PassedCN -match 'cn=([\w,\s.@-]*[^/])$') {
         Write-Verbose "GetSMTPAddress: Using CN format to look up mailbox for [$PassedCN]"
-        return GetMailboxProp -PassedCN $PassedCN -Prop "PrimarySmtpAddress"
+        $result = GetMailboxProp -PassedCN $PassedCN -Prop "PrimarySmtpAddress"
     } elseif (($PassedCN -match "NotFound") -or ([string]::IsNullOrEmpty($PassedCN))) {
-        return ""
+        $result = ""
     } elseif ($PassedCN -match "InvalidSchemaPropertyName") {
         Write-Verbose "GetSMTPAddress: Passed in Value is empty or not Valid: [$PassedCN]."
-        return ""
+        $result = ""
     } elseif ($PassedCN -match "@") {
         Write-Verbose "GetSMTPAddress: Looks like we have an SMTP Address already: [$PassedCN]."
-        $PassedCN.SMTPAddress
-        return $PassedCN
+        $result = $PassedCN
     } else {
         # We have a problem, we don't have a CN or an SMTP Address
         Write-Warning "GetSMTPAddress: Passed in Value does not look like a CN or SMTP Address: [$PassedCN]."
-        return $PassedCN
+        $result = $PassedCN
     }
+
+    $script:SMTPAddressCache[$cacheKey] = $result
+    return $result
 }
 
 <#

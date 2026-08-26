@@ -400,7 +400,7 @@ function Invoke-AnalyzerOsInformation {
             $displayWriteType2012 = "Green"
             $displayValue2012 = "$($installed2012.DisplayVersion) Version is current"
         } elseif (Test-VisualCRedistributableInstalled -Year 2012 -Installed $osInformation.VcRedistributable) {
-            $displayValue2012 = "Redistributable ($($installed2012.DisplayVersion)) is outdated"
+            $displayValue2012 = "Redistributable is outdated ($($installed2012.DisplayVersion)). Update the Visual C++ 2012 version."
             $displayWriteType2012 = "Yellow"
         }
 
@@ -408,7 +408,7 @@ function Invoke-AnalyzerOsInformation {
             $displayWriteType2013 = "Green"
             $displayValue2013 = "$($installed2013.DisplayVersion) Version is current"
         } elseif (Test-VisualCRedistributableInstalled -Year 2013 -Installed $osInformation.VcRedistributable) {
-            $displayValue2013 = "Redistributable ($($installed2013.DisplayVersion)) is outdated"
+            $displayValue2013 = "Redistributable is outdated ($($installed2013.DisplayVersion)). Update the Visual C++ 2013 version."
             $displayWriteType2013 = "Yellow"
         }
     }
@@ -435,7 +435,7 @@ function Invoke-AnalyzerOsInformation {
         $displayWriteType2012 -eq "Yellow") {
 
         $params = $baseParams + @{
-            Details                = "Note: For more information about the latest C++ Redistributable please visit: https://aka.ms/HC-LatestVC`r`n`t`tThis is not a requirement to upgrade, only a notification to bring to your attention."
+            Details                = "Note: Exchange requires the Visual C++ 2012 and 2013 Redistributable specifically. These are not replaced by newer versions.`r`n`t`tFor more information please visit: https://aka.ms/HC-LatestVC"
             DisplayWriteType       = "Yellow"
             DisplayCustomTabNumber = 2
         }

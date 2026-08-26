@@ -51,6 +51,12 @@
 #   The default path is UpdatePublicFolderPermission.[yyyyMMdd_HHmm].log where the portion in square brackets
 #   gets replaced with the current date and time at the moment of execution of the script.
 #
+#.PARAMETER  ScriptUpdateOnly
+#   If provided the script will only update itself to the latest released version without performing any other actions.
+#
+#.PARAMETER  SkipVersionCheck
+#   If provided the script will skip the automatic version check and script update.
+#
 #.EXAMPLE
 #    .\Update-PublicFolderPermissions.ps1 -IncludeFolders "\MyFolder" -AccessRights "Owner" -Users "John", "Administrator" -Recurse -Confirm:$false
 #
@@ -89,8 +95,13 @@ param (
     [switch]$SkipCurrentAccessCheck,
     [Parameter(Mandatory=$False, ParameterSetName='Default')]
     [Parameter(Mandatory=$False, ParameterSetName='PropagateAll')]
-    [string]$ProgressLogFile = ".\UpdatePublicFolderPermission.$((Get-Date).ToString('yyyyMMdd_HHmm')).log"
+    [string]$ProgressLogFile = ".\UpdatePublicFolderPermission.$((Get-Date).ToString('yyyyMMdd_HHmm')).log",
+    [Parameter(Mandatory=$True, ParameterSetName='ScriptUpdateOnly')]
+    [switch]$ScriptUpdateOnly,
+    [switch]$SkipVersionCheck
 )
+
+. $PSScriptRoot\..\Shared\ScriptUpdateFunctions\GenericScriptUpdate.ps1
 
 #############################################################################################################
 #   Returns the list of public folders to process ignoring duplicates and folders in the exclude list

@@ -1,0 +1,14 @@
+﻿<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.Automation.PSCustomObject</T>
+      <T>System.Object</T>
+    </TN>
+    <MS>
+      <B N="ComponentBasedServicing">false</B>
+      <B N="WindowsUpdate">false</B>
+      <B N="PendingFileRename">false</B>
+      <B N="SccmReboot">false</B>
+    </MS>
+  </Obj>
+</Objs>

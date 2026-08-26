@@ -175,6 +175,17 @@ function Invoke-RemoteMain {
             Add-LogCopyFullTaskAction "$Script:localExInstall`Logging\CmdletInfra" "CmdletInfra_Logs"
         }
 
+        if ($PassedInfo.RESTLogs) {
+
+            if ($Script:localServerObject.Mailbox) {
+                Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\Rest" "REST_BE_Logs"
+            }
+
+            if ($Script:localServerObject.CAS) {
+                Add-DefaultLogCopyTaskAction "$Script:localExInstall`Logging\HttpProxy\Rest" "REST_Proxy_Logs"
+            }
+        }
+
         if ($Script:localServerObject.DAGMember -and
             $PassedInfo.DAGInformation) {
             Add-TaskAction "Save-FailoverClusterInformation"
