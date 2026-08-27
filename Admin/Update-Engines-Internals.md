@@ -361,11 +361,10 @@ helper applies specifically at the trust boundary where a manifest field
 becomes a filesystem name.
 
 Any segment that resolves outside the intended root throws before the path
-reaches `WebClient.DownloadFile`, `New-Item`, `Copy-Item`, or the
-`Shell.Application` COM API used to extract CABs. This closes the class of
-path-traversal findings in which an attacker-controlled manifest field
-escapes the target directory, without depending on the correctness of the
-manifest fields themselves.
+reaches `WebClient.DownloadFile`, `New-Item`, `Copy-Item`, or `expand.exe`.
+This closes the class of path-traversal findings in which an
+attacker-controlled manifest field escapes the target directory, without
+depending on the correctness of the manifest fields themselves.
 
 **Precondition — local storage with admin-only ACLs.** `GetFullPath` is a
 lexical canonicalizer; it does not resolve NTFS junctions, symbolic links,

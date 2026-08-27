@@ -62,13 +62,6 @@ begin {
 
     $BuildVersion = ""
 
-    # Constants used in the script
-    $ShellProgId = "Shell.Application"
-    $DoNotDisplayProgress = 4
-    $YesAll = 16
-    $NoConfirmDirectory = 512
-    $NoUI = 1024
-
     $Script:UmFileName = "UniversalManifest.cab"
     $Script:EliFileName = "EngineInfo.cab"
 
@@ -89,8 +82,8 @@ begin {
     #
     # This is the primary defense against path-traversal payloads in manifest
     # fields: any segment that resolves outside the intended root fails here
-    # before the path reaches WebClient.DownloadFile, New-Item, Copy-Item, or the
-    # Shell.Application COM API.
+    # before the path reaches WebClient.DownloadFile, New-Item, Copy-Item, or
+    # expand.exe.
     #
     # LIMITATION: this is a lexical containment check. GetFullPath does not
     # resolve NTFS junctions, symbolic links, or mount points. If an unprivileged
@@ -711,64 +704,28 @@ begin {
         Get-ChildItem -Path $path | Where-Object { $_.PSIsContainer } | Sort-Object -Property CreationTime -Descending | Select-Object -Skip $itemsToKeep | Remove-Item -Recurse
     }
 
-    # Use the Shell.Application COM object to extract the
-    # contents of the sourceCabPath and put the contents into
-    # the destinationDirectory. Support is included for cab
-    # files with sub directory hierarchies.
+    # Extract the contents of $sourceCabPath into $destinationDirectory using
+    # expand.exe, preserving the CAB's internal directory structure. Throws on
+    # non-zero exit so callers can react to partial or failed extractions.
     function ExtractCab($sourceCabPath, $destinationDirectory) {
-        # Use expand.exe when available; otherwise fall back to the Shell.Application
-        # COM object. Get-Command is silent, so it does not leak into the calling
-        # function's output stream. Older code probed with a bare `& "expand.exe"`,
-        # which wrote the utility's usage banner and per-file "Adding..." lines to
-        # the pipeline; any wrapping function that ended with `return (Read-Manifest ...)`
-        # then returned an Object[] containing those strings alongside the intended
-        # XmlDocument, which broke every downstream `[xml]`-typed consumer.
-        if (Get-Command expand.exe -ErrorAction SilentlyContinue) {
-            & "expand.exe" "-R" $sourceCabPath "-F:*" $destinationDirectory | Out-Null
-            if ($LASTEXITCODE -ne 0) {
-                # expand.exe failed (corrupt CAB, disk full, permission denied,
-                # etc.). Without this check, partial extractions could still be
-                # copied into the persistent metadata/package directories, and
-                # the next run would see the outer CAB's size and hash as
-                # already-verified and skip re-extraction indefinitely.
-                $(throw "expand.exe failed to extract '$sourceCabPath' to '$destinationDirectory' with exit code $LASTEXITCODE.")
-            }
-        } else {
-            $shell = New-Object -ComObject $ShellProgId
-
-            if (!$?) {
-                $(throw "unable to create $ShellProgId object")
-            }
-
-            $source = $shell.Namespace($sourceCabPath).items()
-            $destination = $shell.Namespace($destinationDirectory)
-            $flags = $DoNotDisplayProgress + $YesAll + $NoConfirmDirectory + $NoUI
-            $itemCount = $source.Count
-            $cabNameLength = $sourceCabPath.Length
-            $cachedDestDir = ""
-            $relativeDest = ""
-
-            # Process each item in the cab. Determine if the destination
-            # is a sub directory and create if necessary.
-            for ($i = 0; $i -lt $itemCount; $i++) {
-                $lastPathIndex = $source.item($i).Path.LastIndexOf("\")
-
-                # If the file inside the zip file should be extracted
-                # to a subfolder, then we need to reset the destination
-                if ($lastPathIndex -gt $cabNameLength) {
-                    $relativePath = $source.item($i).Path.SubString(($cabNameLength + 1), ($lastPathIndex - $cabNameLength))
-                    $relativeDestDir = Get-ContainedPath -Root $destinationDirectory -Segment $relativePath
-
-                    if ($relativeDestDir -ne $cachedDestDir) {
-                        $relativeDest = $shell.Namespace($relativeDestDir)
-                        $cachedDestDir = $relativeDestDir
-                    }
-
-                    $relativeDest.CopyHere($source.item($i), $flags)
-                } else {
-                    $destination.CopyHere($source.item($i), $flags)
-                }
-            }
+        # expand.exe ships with every supported Exchange Server operating
+        # system, including Server Core. Invoke it via its trusted absolute
+        # path in System32 so a customized or restricted PATH cannot cause
+        # a CommandNotFoundException here (and cannot be used to redirect
+        # extraction to an untrusted binary). Redirect the utility's usage
+        # banner and per-file "Adding..." progress to $null so a wrapping
+        # function that ends with `return (Read-Manifest ...)` returns just
+        # the intended XmlDocument, not an Object[] mixed with expand's text
+        # output.
+        $expandExePath = Join-Path $env:SystemRoot "System32\expand.exe"
+        & $expandExePath "-R" $sourceCabPath "-F:*" $destinationDirectory | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            # expand.exe failed (corrupt CAB, disk full, permission denied,
+            # etc.). Without this check, partial extractions could still be
+            # copied into the persistent metadata/package directories, and
+            # the next run would see the outer CAB's size and hash as
+            # already-verified and skip re-extraction indefinitely.
+            $(throw "expand.exe failed to extract '$sourceCabPath' to '$destinationDirectory' with exit code $LASTEXITCODE.")
         }
     }
 
