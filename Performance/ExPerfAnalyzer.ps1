@@ -1048,7 +1048,7 @@ function Main {
             # register this script as a handler for perfmon BLG files
             New-PSDrive -PSProvider Registry -Root HKEY_CLASSES_ROOT -Name HKCR | Out-Null
             $scriptPath = $MyInvocation.ScriptName
-            $defaultCommand = 'powershell.exe -command "& ' + "'" + $scriptPath + "'" + " '%1'" + '"'
+            $defaultCommand = 'powershell.exe -NoProfile -File "' + $scriptPath + '" -PerfmonFile "%1"'
             Write-Debug $defaultCommand
             $newRegKey = New-Item HKCR:\Diagnostic.Perfmon.Document\shell\ExPerfAnalyzer\command -Force -Value $defaultCommand
             $string = "ExPerfAnalyzer {0}registered itself as a shell handler for perfmon .blg files."
