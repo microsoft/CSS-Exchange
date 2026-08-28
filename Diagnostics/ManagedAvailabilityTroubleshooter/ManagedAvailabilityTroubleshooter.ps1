@@ -50,7 +50,11 @@ function ParseProbeResult2 {
     param( [String] $ProbeResultEventCompleteCmd , [String] $FilterXpath , [String] $WaitString , [String] $MonitorToInvestigate , [String] $ResponderToInvestigate)
 
     TestFileOrCmd $ProbeResultEventCmd
-    $ProbeEventsCmd = '(' + $ProbeResultEventCompleteCmd + ' -FilterXPath ("' + $FilterXpath + '") -ErrorAction SilentlyContinue | % {[XML]$_.toXml()}).event.userData.eventXml'
+    # $FilterXpath is embedded as a variable reference (not string-interpolated) so
+    # PowerShell binds it as a -FilterXPath parameter value at Invoke-Expression time.
+    # This prevents a crafted event-XML-derived XPath value from breaking out of the
+    # command string and executing arbitrary code.
+    $ProbeEventsCmd = '(' + $ProbeResultEventCompleteCmd + ' -FilterXPath $FilterXpath -ErrorAction SilentlyContinue | % {[XML]$_.toXml()}).event.userData.eventXml'
     Write-Verbose $ProbeEventsCmd
     $titleProbeEvents = "Probe events"
     if ( $ProbeDetailsFullName )
@@ -94,10 +98,12 @@ function InvestigateProbe {
     if (-not ($ResponderTargetResource) -and ($ProbeToInvestigate.split("/").Count -gt 1)) {
         $ResponderTargetResource = $ProbeToInvestigate.split("/")[1]
     }
-    $ProbeDetailsCmd = '(' + $ProbeDefinitionEventCmd + '| % {[XML]$_.toXml()}).event.userData.eventXml| ? {$_.Name -like "' + $ProbeToInvestigate.split("/")[0] + '*" }'
+    $probeNamePattern = "$($ProbeToInvestigate.Split('/')[0])*"
+    $ProbeDetailsCmd = '(' + $ProbeDefinitionEventCmd + '| % {[XML]$_.toXml()}).event.userData.eventXml'
     Write-Verbose $ProbeDetailsCmd
+    Write-Verbose ("Filtering Probe definitions where Name -like '" + $probeNamePattern + "'")
     Write-Progress "Checking Probe definition"
-    $ProbeDetails = Invoke-Expression $ProbeDetailsCmd
+    $ProbeDetails = Invoke-Expression $ProbeDetailsCmd | Where-Object { $_.Name -like $probeNamePattern }
     Write-Progress "Checking Probe definition" -Completed
     if ( $ProbeDetails) {
         if ($ProbeDetails.Count -gt 1) {
@@ -187,10 +193,12 @@ function InvestigateMonitor {
     }
 
     TestFileOrCmd $MonitorDefinitionCmd
-    $MonitorDetailsCmd = '(' + $MonitorDefinitionCmd + '| % {[XML]$_.toXml()}).event.userData.eventXml| ? {$_.Name -like "' + $MonitorToInvestigate.split("/")[0] + '*" }'
+    $monitorNamePattern = "$($MonitorToInvestigate.Split('/')[0])*"
+    $MonitorDetailsCmd = '(' + $MonitorDefinitionCmd + '| % {[XML]$_.toXml()}).event.userData.eventXml'
     Write-Verbose $MonitorDetailsCmd
+    Write-Verbose ("Filtering Monitor definitions where Name -like '" + $monitorNamePattern + "'")
     Write-Progress "Checking Monitor definition"
-    $MonitorDetails = Invoke-Expression $MonitorDetailsCmd | Select-Object -uniq
+    $MonitorDetails = Invoke-Expression $MonitorDetailsCmd | Where-Object { $_.Name -like $monitorNamePattern } | Select-Object -uniq
     Write-Progress "Checking Monitor definition" -Completed
     if ($MonitorDetails.Count -gt 1) {
         if ( $ResourceNameToInvestigate ) {
@@ -254,10 +262,12 @@ function InvestigateMaintenanceMonitor {
     param([String]$MaintenanceFailureMonitor , [String] $ResponderToInvestigate)
 
     TestFileOrCmd $MaintenanceDefinitionCmd
-    $MaintenanceDefinitionCmd = '(' + $MaintenanceDefinitionCmd + '| % {[XML]$_.toXml()}).event.userData.eventXml| ? {$_.ServiceName -like "' + $MaintenanceFailureMonitor + '*" }'
+    $maintenanceServiceNamePattern = "$MaintenanceFailureMonitor*"
+    $MaintenanceDefinitionCmd = '(' + $MaintenanceDefinitionCmd + '| % {[XML]$_.toXml()}).event.userData.eventXml'
     Write-Verbose $MaintenanceDefinitionCmd
+    Write-Verbose ("Filtering Maintenance definitions where ServiceName -like '" + $maintenanceServiceNamePattern + "'")
     Write-Progress "Checking Maintenance definition"
-    $MaintenanceDetails = Invoke-Expression $MaintenanceDefinitionCmd
+    $MaintenanceDetails = Invoke-Expression $MaintenanceDefinitionCmd | Where-Object { $_.ServiceName -like $maintenanceServiceNamePattern }
     Write-Progress "Checking Maintenance definition" -Completed
     if ( $MaintenanceDetails) {
         $MaintenanceDetailsGroups = $MaintenanceDetails | Group-Object Name
@@ -272,10 +282,12 @@ function InvestigateMaintenanceMonitor {
         $MaintenanceDetails | Format-List
 
         TestFileOrCmd $MaintenanceResultCmd
-        $MaintenanceResultCmd = '(' + $MaintenanceResultCmd + ' -FilterXPath "*/System/Level<=3" | % {[XML]$_.toXml()}).event.userData.eventXml| ? {$_.ResultName -like "' + $MaintenanceDetails.Name + '*" }'
+        $maintenanceResultNamePattern = "$($MaintenanceDetails.Name)*"
+        $MaintenanceResultCmd = '(' + $MaintenanceResultCmd + ' -FilterXPath "*/System/Level<=3" | % {[XML]$_.toXml()}).event.userData.eventXml'
         Write-Verbose $MaintenanceResultCmd
+        Write-Verbose ("Filtering Maintenance results where ResultName -like '" + $maintenanceResultNamePattern + "'")
         Write-Progress "Checking Maintenance Result warnings and errors"
-        $MaintenanceResults = Invoke-Expression $MaintenanceResultCmd
+        $MaintenanceResults = Invoke-Expression $MaintenanceResultCmd | Where-Object { $_.ResultName -like $maintenanceResultNamePattern }
         Write-Progress "Checking Maintenance Result warnings and errors"
         $Script:lastProbeError = $MaintenanceResults[0]
         if ($Script:KnownIssueDetectionAlreadyDone -eq $false) { KnownIssueDetection $MonitorToInvestigate $ResponderToInvestigate }
@@ -296,8 +308,12 @@ function OverrideIfNeeded {
     Write-Host ("In case this recovery action happens too often or does not help , you may like to temporarily disable this failover response while you investigate.")
 
     $ResponderWithServiceName = $ResponderServiceName + "`\" + $ResponderToInvestigate
-    $AddGlobalMonitoringOverrideCmd = "Add-GlobalMonitoringOverride -Identity $ResponderWithServiceName  -ItemType Responder -PropertyName Enabled -PropertyValue 0"
-    $RemoveGlobalMonitoringOverrideCmd = "Remove-GlobalMonitoringOverride -Identity $ResponderWithServiceName  -ItemType Responder -PropertyName Enabled"
+    # Wrap $ResponderWithServiceName in a PowerShell single-quoted literal in the
+    # displayed commands so a copy-paste user runs the same value that the direct
+    # cmdlet invocation binds; embedded apostrophes are escaped by doubling.
+    $escapedResponderWithServiceName = "'" + ($ResponderWithServiceName -replace "'", "''") + "'"
+    $AddGlobalMonitoringOverrideCmd = "Add-GlobalMonitoringOverride -Identity $escapedResponderWithServiceName  -ItemType Responder -PropertyName Enabled -PropertyValue 0"
+    $RemoveGlobalMonitoringOverrideCmd = "Remove-GlobalMonitoringOverride -Identity $escapedResponderWithServiceName  -ItemType Responder -PropertyName Enabled"
     if ( $pathForLogsSpecified ) {
         Write-Host ("If you like to disable " + $ResponderToInvestigate + " Responder , run this command in Exchange Powershell")
         Write-Host -foreground yellow $AddGlobalMonitoringOverrideCmd
@@ -307,16 +323,17 @@ function OverrideIfNeeded {
         if ("yes", "YES", "Y", "y" -contains (Read-Host ("Do you like to disable " + $ResponderToInvestigate + " Responder ? Y/N"))) {
             Write-Host ("`nHere is the command used to disable " + $ResponderToInvestigate + " Responder :")
             Write-Host -foreground yellow $AddGlobalMonitoringOverrideCmd
-            Invoke-Expression $AddGlobalMonitoringOverrideCmd
+            Add-GlobalMonitoringOverride -Identity $ResponderWithServiceName -ItemType Responder -PropertyName Enabled -PropertyValue 0
             Write-Host ("It may take some time to apply the change to disable " + $ResponderToInvestigate + " Responder.")
             $continueToCheckIfResponderIsEnabled = $true
             while ( $continueToCheckIfResponderIsEnabled) {
                 if ("yes", "YES", "Y", "y" -contains (Read-Host ("Do you like to check if " + $ResponderToInvestigate + " Responder is now disabled ? Y/N"))) {
                     TestFileOrCmd $ResponderDefinitionCmd
-                    $ResponderDetailsCmd = '(' + $ResponderDefinitionCmd + '| % {[XML]$_.toXml()}).event.userData.eventXml| ? {$_.Name -eq "' + $ResponderToInvestigate + '" }'
+                    $ResponderDetailsCmd = '(' + $ResponderDefinitionCmd + '| % {[XML]$_.toXml()}).event.userData.eventXml'
                     Write-Verbose $ResponderDetailsCmd
+                    Write-Verbose ("Filtering Responder definitions where Name -eq '" + $ResponderToInvestigate + "'")
                     Write-Progress "Checking Responder definition"
-                    $ResponderDetails = Invoke-Expression $ResponderDetailsCmd
+                    $ResponderDetails = Invoke-Expression $ResponderDetailsCmd | Where-Object { $_.Name -eq $ResponderToInvestigate }
                     Write-Progress "Checking Responder definition" -Completed
                     if ($ResponderDetails) {
                         if ( $ResponderDetails.enabled -eq 1) {
@@ -338,7 +355,7 @@ function OverrideIfNeeded {
                             Write-Host ("`n" + $ResponderToInvestigate + " Responder is now disabled and similar reboot should not currently be triggered by this responder")
                             $ResponderDetails | Format-Table ServiceName, Name, Enabled -a
                             Write-Host ("When you have fixed the issue triggering this responder, you can reenable it again using this command :")
-                            Write-Host ("remove-GlobalMonitoringOverride -Identity " + $ResponderWithServiceName + "  -ItemType Responder -PropertyName Enabled")
+                            Write-Host ("remove-GlobalMonitoringOverride -Identity " + $escapedResponderWithServiceName + "  -ItemType Responder -PropertyName Enabled")
                             $continueToCheckIfResponderIsEnabled = $false
                         }
                     } else
@@ -377,10 +394,11 @@ function InvestigateResponder {
         }
     } else {
         TestFileOrCmd $ResponderDefinitionCmd
-        $ResponderDetailsCmd = '(' + $ResponderDefinitionCmd + '| % {[XML]$_.toXml()}).event.userData.eventXml| ? {$_.Name -eq "' + $ResponderToInvestigate + '" }'
+        $ResponderDetailsCmd = '(' + $ResponderDefinitionCmd + '| % {[XML]$_.toXml()}).event.userData.eventXml'
         Write-Verbose $ResponderDetailsCmd
+        Write-Verbose ("Filtering Responder definitions where Name -eq '" + $ResponderToInvestigate + "'")
         Write-Progress "Checking Responder definition"
-        $ResponderDetails = Invoke-Expression $ResponderDetailsCmd | Select-Object -uniq
+        $ResponderDetails = Invoke-Expression $ResponderDetailsCmd | Where-Object { $_.Name -eq $ResponderToInvestigate } | Select-Object -uniq
         Write-Progress "Checking Responder definition" -Completed
         if ( $ResponderDetails) {
             if ($ResponderDetails.Count -gt 1) {
@@ -863,7 +881,7 @@ if ($pathForLogs) {
             $RecoveryActionResultsCmd = "File missing for this action.`n" + $errorMsg
         } else {
             Write-Host ("Found file " + $RecoveryActionResultsLog.FullName)
-            $RecoveryActionResultsCmd = "( Get-WinEvent -path ""$RecoveryActionResultsLog"""
+            $RecoveryActionResultsCmd = '( Get-WinEvent -Path $RecoveryActionResultsLog.FullName'
             $foundNoLogToAnalyze = $false
         }
         $ResponderDefinitionLog = ($Dir | Where-Object { $_.Name -like "*ResponderDefinition.evtx" })
@@ -879,7 +897,7 @@ if ($pathForLogs) {
             $ResponderDefinitionCmd = "File missing for this action.`n" + $errorMsg
         } else {
             Write-Host ("Found file " + $ResponderDefinitionLog.FullName)
-            $ResponderDefinitionCmd = "Get-WinEvent -path ""$ResponderDefinitionLog"""
+            $ResponderDefinitionCmd = 'Get-WinEvent -Path $ResponderDefinitionLog.FullName'
             $foundNoLogToAnalyze = $false
         }
         $MaintenanceDefinitionLog = ($Dir | Where-Object { $_.Name -like "*MaintenanceDefinition.evtx" })
@@ -895,7 +913,7 @@ if ($pathForLogs) {
             $MaintenanceDefinitionCmd = "File missing for this action.`n" + $errorMsg
         } else {
             Write-Host ("Found file " + $MaintenanceDefinitionLog.FullName)
-            $MaintenanceDefinitionCmd = "Get-WinEvent -path ""$MaintenanceDefinitionLog"""
+            $MaintenanceDefinitionCmd = 'Get-WinEvent -Path $MaintenanceDefinitionLog.FullName'
             $foundNoLogToAnalyze = $false
         }
         $MaintenanceResultLog = ($Dir | Where-Object { $_.Name -like "*MaintenanceResult.evtx" })
@@ -911,7 +929,7 @@ if ($pathForLogs) {
             $MaintenanceResultCmd = "File missing for this action.`n" + $errorMsg
         } else {
             Write-Host ("Found file " + $MaintenanceResultLog.FullName)
-            $MaintenanceResultCmd = "Get-WinEvent -path ""$MaintenanceResultLog"""
+            $MaintenanceResultCmd = 'Get-WinEvent -Path $MaintenanceResultLog.FullName'
             $foundNoLogToAnalyze = $false
         }
         $MonitorDefinitionLog = ($Dir | Where-Object { $_.Name -like "*MonitorDefinition.evtx" })
@@ -927,7 +945,7 @@ if ($pathForLogs) {
             $MonitorDefinitionCmd = "File missing for this action.`n" + $errorMsg
         } else {
             Write-Host ("Found file " + $MonitorDefinitionLog.FullName)
-            $MonitorDefinitionCmd = "Get-WinEvent -path ""$MonitorDefinitionLog"""
+            $MonitorDefinitionCmd = 'Get-WinEvent -Path $MonitorDefinitionLog.FullName'
             $foundNoLogToAnalyze = $false
         }
         $ProbeDefinitionLog = ($Dir | Where-Object { $_.Name -like "*ProbeDefinition.evtx" })
@@ -943,7 +961,7 @@ if ($pathForLogs) {
             $ProbeDefinitionEventCmd = "File missing for this action.`n" + $errorMsg
         } else {
             Write-Host ("Found file " + $ProbeDefinitionLog.FullName)
-            $ProbeDefinitionEventCmd = "Get-WinEvent -path ""$ProbeDefinitionLog"""
+            $ProbeDefinitionEventCmd = 'Get-WinEvent -Path $ProbeDefinitionLog.FullName'
             $foundNoLogToAnalyze = $false
         }
         $ProbeResultLog = ($Dir | Where-Object { $_.Name -like "*ProbeResult.evtx" })
@@ -959,7 +977,7 @@ if ($pathForLogs) {
             $ProbeResultEventCmd = "File missing for this action.`n" + $errorMsg
         } else {
             Write-Host ("Found file " + $ProbeResultLog.FullName)
-            $ProbeResultEventCmd = "Get-WinEvent -path ""$ProbeResultLog"""
+            $ProbeResultEventCmd = 'Get-WinEvent -Path $ProbeResultLog.FullName'
             $foundNoLogToAnalyze = $false
         }
         $ManagedAvailabilityMonitoringLog = ($Dir | Where-Object { $_.Name -like "*Exchange-ManagedAvailabilityMonitoring.evtx" })
@@ -975,7 +993,7 @@ if ($pathForLogs) {
             $ManagedAvailabilityMonitoringCmd = "File missing for this action.`n" + $errorMsg
         } else {
             Write-Host ("Found file " + $ManagedAvailabilityMonitoringLog.FullName)
-            $ManagedAvailabilityMonitoringCmd = "Get-WinEvent -path ""$ManagedAvailabilityMonitoringLog"""
+            $ManagedAvailabilityMonitoringCmd = 'Get-WinEvent -Path $ManagedAvailabilityMonitoringLog.FullName'
             $foundNoLogToAnalyze = $false
         }
         $SystemLog = ($Dir | Where-Object { $_.Name -like "*System.evtx" })
@@ -991,7 +1009,7 @@ if ($pathForLogs) {
             $SystemCmd = "File missing for this action.`n" + $errorMsg
         } else {
             Write-Host ("Found file " + $SystemLog.FullName)
-            $SystemCmd = "Get-WinEvent -path ""$SystemLog"""
+            $SystemCmd = 'Get-WinEvent -Path $SystemLog.FullName'
             $foundNoLogToAnalyze = $false
         }
         $ServerHealthFile = Get-ChildItem ($pathForLogs + "*ServerHealth_FL.TXT")
