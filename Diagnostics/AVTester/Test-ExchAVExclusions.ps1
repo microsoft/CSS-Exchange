@@ -46,10 +46,10 @@ Just update script version to latest one.
 
 .OUTPUTS
 Log file:
-$PSScriptRoot\Test-ExchAvExclusions-#DataTime#.txt
+$PSScriptRoot\Test-ExchAvExclusions-#ServerName#-#DataTime#.txt
 
 List of Scanned Folders:
-$PSScriptRoot\BadExclusions-#DataTime#.txt
+$PSScriptRoot\BadExclusions-#ServerName#-#DataTime#.txt
 
 .EXAMPLE
 .\Test-ExchAVExclusions.ps1
@@ -101,7 +101,7 @@ function Write-HostLog ($message) {
     }
 }
 
-$LogFileName = "Test-ExchAvExclusions"
+$LogFileName = "Test-ExchAvExclusions-$env:COMPUTERNAME"
 $StartDate = Get-Date
 $StartDateFormatted = ($StartDate).ToString("yyyyMMddhhmmss")
 $Script:DebugLogger = Get-NewLoggerInstance -LogName "$LogFileName-Debug-$StartDateFormatted" -LogDirectory $PSScriptRoot -AppendDateTimeToFileName $false -ErrorAction SilentlyContinue
@@ -114,7 +114,7 @@ SetWriteWarningAction ${Function:Write-HostLog}
 
 $BuildVersion = ""
 
-Write-Host ("Test-ExchAVExclusions.ps1 script version $($BuildVersion)") -ForegroundColor Green
+Write-Host ("Test-ExchAVExclusions.ps1 script version $($BuildVersion) on server $env:COMPUTERNAME") -ForegroundColor Green
 
 if ($ScriptUpdateOnly) {
     switch (Test-ScriptVersion -AutoUpdate -VersionsUrl "https://aka.ms/Test-ExchAVExclusions-VersionsURL" -Confirm:$false) {
@@ -605,9 +605,9 @@ foreach ($extension in $extensionsList) {
 #Delete Random Folder
 Remove-Item $randomFolder -Confirm:$false -Force -Recurse
 
-$OutputPath = Join-Path $PSScriptRoot BadExclusions-$StartDateFormatted.txt
+$OutputPath = Join-Path $PSScriptRoot "BadExclusions-$env:COMPUTERNAME-$StartDateFormatted.txt"
 "###########################################################################################" | Out-File $OutputPath
-"Exclusions analysis at $((Get-Date).ToString())" | Out-File $OutputPath -Append
+"Exclusions analysis on server $env:COMPUTERNAME at $((Get-Date).ToString())" | Out-File $OutputPath -Append
 "###########################################################################################" | Out-File $OutputPath -Append
 
 # Report what we found
