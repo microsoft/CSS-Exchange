@@ -1,0 +1,13 @@
+{
+  "id": "exo-rba-troubleshooting",
+  "version": "0.1.0-preview",
+  "displayName": "EXO RBA Troubleshooting",
+  "description": "Diagnoses Exchange Online Resource Booking Assistant policy, routing, mailbox lifecycle, post-processing, and targeted meeting RBA log issues from Get-RBASummary JSON evidence; safely routes adjacent item-propagation and non-RBA requests.",
+  "displayCollection": "Microsoft Exchange Support Skills",
+  "entryPoint": "SKILL.md",
+  "downloadUrl": "https://github.com/microsoft/CSS-Exchange/releases/latest/download/EXO-RBA-Troubleshooting-SKILL.md",
+  "tsgRulesVersion": "0.1.0-preview",
+  "reportSchemaVersions": [
+    "1.0-preview"
+  ]
+}

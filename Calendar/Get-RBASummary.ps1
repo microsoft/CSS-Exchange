@@ -56,6 +56,10 @@ $script:collectorStatuses = [ordered]@{}
 $script:collectionErrors = [System.Collections.Generic.List[object]]::new()
 $script:evaluationErrors = [System.Collections.Generic.List[object]]::new()
 $script:TranscriptStarted = $false
+$script:ResourceDelegateIdentitySets = @()
+$script:ResourceDelegateIdentitySetsAvailable = $false
+$script:SanitizedIdentityMap = [System.Collections.Generic.Dictionary[string, string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+$script:SanitizedIdentitySequence = 0
 Write-Host "`r`nRBA Summary Output saved as [" -NoNewline
 Write-Host -ForegroundColor Cyan $SummaryFilename -NoNewline
 Write-Host "] in the current directory."
@@ -363,8 +367,10 @@ function CollectCalendarFolderPermissions {
         $calendarFolderIdentity = "$Identity`:\$($calendarFolder.Name)"
         @(Get-MailboxFolderPermission -Identity $calendarFolderIdentity -ErrorAction Stop)
     }
+}
 
-    $script:ResourceDelegateIdentitySets = @($RbaSettings.ResourceDelegates | ForEach-Object {
+function Initialize-RbaResourceDelegateIdentitySets {
+    $resourceDelegateIdentitySets = @($script:RbaSettings.ResourceDelegates | ForEach-Object {
             $delegateIdentity = ([string]$_).ToLowerInvariant()
             $identityAliases = [System.Collections.Generic.List[string]]::new()
             $identityAliases.Add($delegateIdentity)
@@ -380,6 +386,8 @@ function CollectCalendarFolderPermissions {
                 aliases = @($identityAliases | Sort-Object -Unique)
             }
         })
+    $script:ResourceDelegateIdentitySets = $resourceDelegateIdentitySets
+    $script:ResourceDelegateIdentitySetsAvailable = $true
 }
 
 function CollectMailboxPermissions {
@@ -962,7 +970,26 @@ function Get-RbaTargetedLogBlockObject {
 
 function Get-RbaMeetingLogSearchObject {
     if ([string]::IsNullOrWhiteSpace($MeetingSubject)) {
-        return $null
+        return [PSCustomObject]@{
+            searchSubject                    = $null
+            status                           = "NotRequested"
+            sourceOrder                      = "NewestFirst"
+            eventOrder                       = "NewestFirst"
+            rawLogChronologicalReadDirection = "BottomToTop"
+            subjectMatchCount                = 0
+            meetingIds                       = @()
+            eventCount                       = 0
+            acceptCount                      = 0
+            tentativeCount                   = 0
+            declineCount                     = 0
+            updateCount                      = 0
+            cancellationCount                = 0
+            delegateReferralCount            = 0
+            externalSkippedCount             = 0
+            horizonDeclineCount              = 0
+            recurrenceTruncateCount          = 0
+            events                           = @()
+        }
     }
 
     if ($script:collectorStatuses["RbaLog"].status -ne "Success") {
@@ -1050,9 +1077,9 @@ function RBALogSummary {
         return
     }
 
-    if ($RBALog.count -gt 1) {
-        Write-Host "`tFound $($RBALog.count) RBA Log entries in RBALog.  Summarizing Accepts, Declines, and Tentative meetings."
-        $Starts = $RBALog | Select-String -Pattern "START -"
+    if ($script:RBALog.count -gt 1) {
+        Write-Host "`tFound $($script:RBALog.count) RBA Log entries in RBALog.  Summarizing Accepts, Declines, and Tentative meetings."
+        $Starts = $script:RBALog | Select-String -Pattern "START -"
         $FirstDate = "[Unknown]"
         $LastDate = "[Unknown]"
 
@@ -1063,14 +1090,14 @@ function RBALogSummary {
             Write-Host "`t $($starts.count) Processed events times between $FirstDate and $LastDate"
         }
 
-        $AcceptLogs = $RBALog | Select-String -Pattern "Action:Accept"
-        $DeclineLogs = $RBALog | Select-String -Pattern "Action:Decline"
-        $TentativeLogs = $RBALog | Select-String -Pattern "Action:Tentative"
-        $UpdatedLogs = $RBALog | Select-String -Pattern "Begin ProcessUpdateRequest"
-        $SkippedExternal = $RBALog | Select-String -Pattern "Skipping processing because user settings for processing external items is false."
-        $DelegateReferrals = $RBALog | Select-String -Pattern "Forwarding Request To Delegates"
-        $NonMeetingRequests = $RBALog | Select-String -Pattern "Item is not a meeting request"
-        $Cancellations = $RBALog | Select-String -Pattern "It's a meeting cancellation."
+        $AcceptLogs = $script:RBALog | Select-String -Pattern "Action:Accept"
+        $DeclineLogs = $script:RBALog | Select-String -Pattern "Action:Decline"
+        $TentativeLogs = $script:RBALog | Select-String -Pattern "Action:Tentative"
+        $UpdatedLogs = $script:RBALog | Select-String -Pattern "Begin ProcessUpdateRequest"
+        $SkippedExternal = $script:RBALog | Select-String -Pattern "Skipping processing because user settings for processing external items is false."
+        $DelegateReferrals = $script:RBALog | Select-String -Pattern "Forwarding Request To Delegates"
+        $NonMeetingRequests = $script:RBALog | Select-String -Pattern "Item is not a meeting request"
+        $Cancellations = $script:RBALog | Select-String -Pattern "It's a meeting cancellation."
 
         if ($AcceptLogs.count -ne 0) {
             $LastAccept = ($AcceptLogs[0] -split ",")[0].Trim()
@@ -1134,15 +1161,12 @@ function RBALogSummary {
             }
         }
 
-        # Making RBA Log more readable.
-        $RBALog = $RBALog.replace(", Entry Action: Message, LogComment", "")
-        $RBALog = $RBALog.replace("Mailbox: ", "")
-
         $Filename = "RBA-Logs_$($Identity.Split('@')[0])_$runTimestamp.txt"
         Write-Host "`r`n`t RBA Logs saved as [" -NoNewline
         Write-Host -ForegroundColor Cyan $Filename -NoNewline
         Write-Host "] in the current directory."
-        $RBALog | Out-File -FilePath $Filename
+        $script:RBALog.replace(", Entry Action: Message, LogComment", "").replace("Mailbox: ", "") |
+            Out-File -FilePath $Filename
 
         RBAPostScript
     } else {
@@ -1707,14 +1731,17 @@ function Get-RbaFindings {
             $rights = @($_.AccessRights | ForEach-Object { [string]$_ })
             $rights -contains "Editor" -or $rights -contains "Owner"
         } | ForEach-Object { Get-RbaPermissionIdentity -PermissionUser $_.User })
-    $configuredDelegateCount = @($RbaSettings.ResourceDelegates).Count
-    $delegatesWithoutDirectCalendarAccess = if ($settingsAvailable -and $calendarPermissionsAvailable) {
+    $configuredDelegateCount = if ($settingsAvailable) {
+        @($script:RbaSettings.ResourceDelegates).Count
+    } else { 0 }
+    $delegatesWithoutDirectCalendarAccess = if ($settingsAvailable -and $calendarPermissionsAvailable -and
+        $script:ResourceDelegateIdentitySetsAvailable) {
         @($script:ResourceDelegateIdentitySets | Where-Object {
                 @($_.aliases | Where-Object { $_ -in $directCalendarEditorIdentities }).Count -eq 0
             })
     } else { @() }
     Add-RbaFinding -Findings $findings -RuleId "RBA803" -Severity Warning `
-        -Status $(if (-not $settingsAvailable -or -not $calendarPermissionsAvailable) { "NotEvaluated" } elseif ($configuredDelegateCount -eq 0) { "NotApplicable" } elseif ($delegatesWithoutDirectCalendarAccess.Count -gt 0) { "Detected" } else { "NotDetected" }) `
+        -Status $(if (-not $settingsAvailable -or -not $calendarPermissionsAvailable -or -not $script:ResourceDelegateIdentitySetsAvailable) { "NotEvaluated" } elseif ($configuredDelegateCount -eq 0) { "NotApplicable" } elseif ($delegatesWithoutDirectCalendarAccess.Count -gt 0) { "Detected" } else { "NotDetected" }) `
         -Title "A resource delegate has no matching direct Calendar Editor permission" `
         -Evidence @{ configuredDelegateCount = $configuredDelegateCount; unmatchedIdentityCount = $delegatesWithoutDirectCalendarAccess.Count }
 
@@ -1748,17 +1775,42 @@ function ConvertTo-RbaIdentityList {
     )
 
     $result = [System.Collections.Generic.List[string]]::new()
-    $index = 0
     foreach ($item in @($Value)) {
-        $text = [string]$item
-        if ($IncludeSensitiveData -or $text -eq $Identity) {
-            $result.Add($text)
-        } else {
-            $index++
-            $result.Add("SanitizedIdentity-$index")
-        }
+        $result.Add((Get-RbaSanitizedIdentity -Value $item -PreserveTargetIdentity))
     }
     return $result.ToArray()
+}
+
+function Get-RbaSanitizedIdentity {
+    param(
+        [AllowNull()]
+        [object]$Value,
+
+        [switch]$PreserveTargetIdentity
+    )
+
+    $identityText = [string]$Value
+    if ($IncludeSensitiveData) {
+        return $identityText
+    }
+
+    $normalizedIdentity = $identityText.Trim().ToLowerInvariant()
+    if ($PreserveTargetIdentity -and $normalizedIdentity -eq $Identity.Trim().ToLowerInvariant()) {
+        return $identityText
+    }
+
+    if (-not [string]::IsNullOrEmpty($normalizedIdentity) -and
+        $script:SanitizedIdentityMap.ContainsKey($normalizedIdentity)) {
+        return $script:SanitizedIdentityMap[$normalizedIdentity]
+    }
+
+    $script:SanitizedIdentitySequence++
+    $sanitizedIdentity = "SanitizedIdentity-$($script:SanitizedIdentitySequence)"
+    if (-not [string]::IsNullOrEmpty($normalizedIdentity)) {
+        $script:SanitizedIdentityMap.Add($normalizedIdentity, $sanitizedIdentity)
+    }
+    # An identity without a stable key receives a unique placeholder for each occurrence.
+    return $sanitizedIdentity
 }
 
 function Get-RbaMailboxIdentitySummaryObject {
@@ -1823,14 +1875,12 @@ function Get-RbaCalendarPermissionSummaryObject {
     }
 
     $entries = [System.Collections.Generic.List[object]]::new()
-    $identityIndex = 0
     foreach ($permission in @($script:CalendarFolderPermissions)) {
         $permissionIdentity = Get-RbaPermissionIdentity -PermissionUser $permission.User
-        $principal = if ($permissionIdentity -in @("default", "anonymous") -or $IncludeSensitiveData) {
+        $principal = if ($permissionIdentity.Trim() -in @("default", "anonymous") -or $IncludeSensitiveData) {
             [string]$permission.User
         } else {
-            $identityIndex++
-            "SanitizedIdentity-$identityIndex"
+            Get-RbaSanitizedIdentity -Value $permissionIdentity
         }
         $entries.Add([PSCustomObject]@{
                 principal              = $principal
@@ -1855,13 +1905,13 @@ function Get-RbaMailboxPermissionSummaryObject {
             @($_.AccessRights | ForEach-Object { [string]$_ }) -contains "FullAccess" -and
             (Get-RbaPermissionIdentity -PermissionUser $_.User) -notin @("nt authority\self", "self")
         })
-    $grantees = if ($IncludeSensitiveData) {
-        @($fullAccessPermissions | ForEach-Object { [string]$_.User })
-    } elseif ($fullAccessPermissions.Count -eq 0) {
-        @()
-    } else {
-        @(1..$fullAccessPermissions.Count | ForEach-Object { "SanitizedIdentity-$_" })
-    }
+    $grantees = @($fullAccessPermissions | ForEach-Object {
+            if ($IncludeSensitiveData) {
+                [string]$_.User
+            } else {
+                Get-RbaSanitizedIdentity -Value (Get-RbaPermissionIdentity -PermissionUser $_.User)
+            }
+        })
 
     return [PSCustomObject]@{
         explicitFullAccessCount = $fullAccessPermissions.Count
@@ -2012,6 +2062,7 @@ try {
     Invoke-RbaCollectorOperation -Name "RbaLog" -Action { CollectRBALog }
 
     if ($script:collectorStatuses["CalendarProcessing"].status -eq "Success") {
+        Invoke-RbaEvaluation -Name "Resource delegate identity enrichment" -Action { Initialize-RbaResourceDelegateIdentitySets }
         Invoke-RbaEvaluation -Name "Calendar processing" -Action { EvaluateCalProcessing }
         if ($script:collectorStatuses["Mailbox"].status -eq "Success" -and
             (-not $script:Workspace -or $script:collectorStatuses["Place"].status -eq "Success")) {
