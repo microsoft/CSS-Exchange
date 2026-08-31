@@ -7,6 +7,12 @@ description: Diagnose Exchange Online Resource Booking Assistant policy, routing
 
 Use this skill only to analyze a `Get-RBASummary.ps1` JSON report for an Exchange Online tenant administrator. Do not request or rely on the text transcript when sanitized JSON is sufficient.
 
+## Beta Feature
+
+This skill is currently in beta. Its analysis and recommendations may change as the feature evolves. Review all evidence, commands, expected impacts, and rollback guidance before making configuration changes.
+
+Send feedback, issues, and suggestions to `CalLogFormatterDevs@microsoft.com`.
+
 The generic guardrails in [TSG-Rules.md](TSG-Rules.md) and the RBA-specific findings in [RBA-Rules.md](RBA-Rules.md) are mandatory. Apply the generic rules throughout the interaction and use the RBA rules to interpret individual findings.
 
 ## Safety boundary

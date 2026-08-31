@@ -2115,5 +2115,8 @@ try {
 }
 
 $skillUrl = "https://github.com/microsoft/CSS-Exchange/releases/latest/download/EXO-RBA-Troubleshooting-SKILL.md"
+Write-Host "`r`nBeta Feature: The EXO RBA troubleshooting skill is currently in beta." -ForegroundColor Yellow
+Write-Host "Review its analysis and recommendations before making configuration changes."
 Write-Host "Tenant admins can install and use the EXO RBA troubleshooting skill for deeper analysis:"
 Write-Host -ForegroundColor Cyan $skillUrl
+Write-Host "Send feedback to CalLogFormatterDevs@microsoft.com"

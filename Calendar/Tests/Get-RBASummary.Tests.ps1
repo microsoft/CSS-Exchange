@@ -242,7 +242,9 @@ Describe "Get-RBASummary best-effort report" {
             $Path -like "RBA-Summary-For_room_*.json" -and $ErrorAction -eq "Stop"
         }
         $output | Should -Match "Unable to write RBA JSON output"
+        $output | Should -Match "Beta Feature"
         $output | Should -Match "Tenant admins can install and use the EXO RBA troubleshooting skill"
+        $output | Should -Match "CalLogFormatterDevs@microsoft.com"
     }
 
     It "marks a collector failed when post-collection evidence processing throws" {
