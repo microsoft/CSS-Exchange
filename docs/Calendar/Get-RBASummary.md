@@ -6,11 +6,11 @@ Download the adjacent analysis skill: [EXO-RBA-Troubleshooting-SKILL.md](https:/
 
 `Get-RBASummary.ps1` collects Resource Booking Assistant (RBA) configuration and recent processing evidence for one room, equipment, or Workspace mailbox. It produces a readable text summary and a structured JSON report that can be analyzed with the adjacent EXO RBA troubleshooting skill.
 
-The script validates mailbox type, booking policy, request routing, delegate configuration, post-processing, room properties, permissions, and recent RBA log activity. Collection is best effort: it independently attempts `Get-Mailbox`, `Get-Place`, `Get-InboxRule`, `Get-CalendarProcessing`, Calendar and mailbox permissions, and `Export-MailboxDiagnosticLogs`. If the active mailbox lookup fails, the same mailbox collector performs a targeted soft-deleted-mailbox lookup. If one collector fails, the remaining collectors still run and evaluations that require unavailable evidence are safely skipped.
+The script validates mailbox type, booking policy, request routing, delegate configuration, post-processing, room properties, permissions, and recent RBA log activity. It first resolves the identity with `Get-Mailbox`, including a targeted soft-deleted-mailbox fallback. Collection stops if no mailbox is resolved or the resolved object is not a room or equipment mailbox. After this prerequisite validation, collection is best effort: it independently attempts `Get-Place`, `Get-InboxRule`, `Get-CalendarProcessing`, Calendar and mailbox permissions, and `Export-MailboxDiagnosticLogs`. If one of those collectors fails, the remaining collectors still run and evaluations that require unavailable evidence are safely skipped.
 
 ## Requirements
 
-- PowerShell 7 or later.
+- Windows PowerShell 5.1 or PowerShell 7 or later.
 - The Exchange Online PowerShell module and an active `Connect-ExchangeOnline` session.
 - Permission to read the target mailbox, CalendarProcessing configuration, mailbox diagnostic logs, and applicable permissions.
 - A room or equipment mailbox. Workspace-specific validation applies when the mailbox resource type is `Workspace`.
@@ -18,13 +18,14 @@ The script validates mailbox type, booking policy, request routing, delegate con
 ## Syntax
 
 ```powershell
-.\Get-RBASummary.ps1 -Identity <ResourceMailbox> [-MeetingSubject <String>] [-IncludeSensitiveData] [-SkipVersionCheck] [-Verbose]
+.\Get-RBASummary.ps1 -Identity <ResourceMailbox> [-Subject <String> | -MeetingId <String>] [-IncludeSensitiveData] [-SkipVersionCheck] [-Verbose]
 ```
 
 | Parameter | Required | Description |
 |---|---|---|
 | `Identity` | Yes | Resource mailbox identity. An SMTP address is recommended. |
-| `MeetingSubject` | No | Case-insensitive literal subject substring used to select and correlate retained RBA processing blocks. This adds sensitive meeting evidence to the JSON report. |
+| `Subject` | No | Case-insensitive literal subject substring used to discover meeting IDs. After discovery, only blocks carrying those IDs are correlated. This adds sensitive meeting evidence to the JSON report. The former `MeetingSubject` name remains available as an alias. Cannot be combined with `MeetingId`. |
+| `MeetingId` | No | Clean global object ID used to select all matching retained RBA processing blocks directly. A comma in the documented `040000008,` prefix is normalized. Cannot be combined with `Subject`. |
 | `IncludeSensitiveData` | No | Includes full identities, target mailbox identifiers, the complete RBA log, and the text transcript in JSON. |
 | `SkipVersionCheck` | No | Skips the automatic script update check. |
 | `Verbose` | No | Displays additional policy and post-processing explanations. |
@@ -39,7 +40,10 @@ Examples:
 .\Get-RBASummary.ps1 -Identity Room1@Contoso.com -Verbose
 
 # Collect targeted evidence for one meeting subject
-.\Get-RBASummary.ps1 -Identity Room1@Contoso.com -MeetingSubject "Quarterly planning"
+.\Get-RBASummary.ps1 -Identity Room1@Contoso.com -Subject "Quarterly planning"
+
+# Re-run targeted analysis directly with the meeting ID discovered above
+.\Get-RBASummary.ps1 -Identity Room1@Contoso.com -MeetingId "04000000800E00074C5A7101A82E00700000000..."
 
 # Include all sensitive evidence
 .\Get-RBASummary.ps1 -Identity Room1@Contoso.com -IncludeSensitiveData
@@ -47,7 +51,7 @@ Examples:
 
 ## Output files
 
-Every run that passes the script update self-check attempts to create timestamp-correlated text and JSON reports. The JSON report contains a schema version, collection status, per-collector status, collection errors, minimal configuration and log-summary evidence, and findings with stable rule IDs. A status of `Partial` or `Failed` means the collection errors and `NotEvaluated` findings should be reviewed before drawing conclusions. `NotApplicable` means that evidence was available but the rule does not apply to the resource or its routing configuration.
+Every run that passes the script update self-check attempts to create timestamp-correlated text and JSON reports. The text transcript and JSON metadata record a canonical command line with the resolved values of every supplied parameter. The JSON report also contains a schema version, collection status, per-collector status, collection errors, minimal configuration and log-summary evidence, and findings with stable rule IDs. A status of `Partial` or `Failed` means the collection errors and `NotEvaluated` findings should be reviewed before drawing conclusions. `NotApplicable` means that evidence was available but the rule does not apply to the resource or its routing configuration.
 
 A collector is successful only when collection and its immediate evidence processing both finish successfully. If processing fails after evidence was retrieved, that collector is marked `Failed`, the overall status cannot be `Complete`, and other successfully collected evidence remains in the report. Collector and evaluation errors retain their existing `error` or `message` strings and include bounded `exceptionType`, `category`, `fullyQualifiedErrorId`, and `innerExceptionMessage` metadata when available. Stack traces, invocation details, target objects, and remote position details are not exported.
 
@@ -70,14 +74,16 @@ The report identifies its handling mode in `metadata.privacyMode`:
 | Mode | Trigger | Included evidence |
 |---|---|---|
 | `Sanitized` | Default | Keeps the target mailbox identity and summary but replaces other identities with placeholders. Omits complete logs, transcript content, stable identifiers, and sensitive response text. |
-| `TargetedMeeting` | `-MeetingSubject` without `-IncludeSensitiveData` | Adds only subject-matching RBA blocks and blocks correlated by extracted meeting ID. These blocks can contain subjects, identities, and processing details. |
+| `TargetedMeeting` | `-Subject` or `-MeetingId` without `-IncludeSensitiveData` | Adds only RBA blocks correlated by an extracted or supplied meeting ID. If a subject matches but has no extractable ID, only its matching blocks are added. These blocks can contain subjects, identities, and processing details. |
 | `Full` | `-IncludeSensitiveData` | Adds full identities, target proxy addresses and stable identifiers, complete RBA log, transcript content, and additional response text. |
 
 Treat `TargetedMeeting` and `Full` reports as sensitive customer data.
 
 ## Targeted meeting log search
 
-The script searches the retained RBA log for the subject, extracts meeting IDs from matching processing blocks, and includes every retained block with those IDs. It recognizes the existing ID labels plus the exact `Begin ProcessRequest Goid:` and `Begin ProcessUpdateRequest Goid:` formats. For correlation, it normalizes the documented comma after the `040000008` GOID prefix; the complete unchanged source line remains in the raw block. This allows the skill to follow separate initial request, update, and cancellation processing even when later blocks omit the subject. If the same subject resolves to multiple meeting IDs, their timelines remain separate.
+With `-Subject`, the script searches the retained RBA log, extracts meeting IDs from matching processing blocks, and then switches to meeting-ID correlation. Once at least one ID is discovered, only retained blocks carrying those IDs are included; an additional subject-only block is not treated as the same meeting. If a subject resolves to multiple IDs, the text output reports each meeting independently and warns the operator to rerun with `-MeetingId` for focused analysis. The JSON `meetings` array likewise contains one outcome summary per ID; do not treat the top-level targeted counts as one meeting in that case. With `-MeetingId`, discovery is skipped and all retained blocks carrying the supplied ID are selected directly. The text summary states whether the requested meeting was found and prints every resolved ID so it can be reused with `-MeetingId` or downstream Calendar Diagnostic Log tools.
+
+The decoder recognizes the existing ID labels plus the exact `Begin ProcessRequest Goid:` and `Begin ProcessUpdateRequest Goid:` formats. For correlation, it normalizes the documented comma after the `040000008` GOID prefix; the complete unchanged source line remains in the raw block. This allows the skill to follow separate initial request, update, and cancellation processing even when later blocks omit the subject. If the same subject resolves to multiple meeting IDs, their timelines remain separate.
 
 Exported RBA logs are newest-first: the newest result or END lines are at the top, and a processing unit's oldest START line is at the bottom. Because RBA processing is single-threaded, targeted extraction treats each processing unit as one contiguous range. The only recognized boundary is the exact line ending:
 
@@ -89,22 +95,28 @@ Each targeted event reports `startMarker`, `startTimeText`, `startBoundaryFound`
 
 Possible search statuses are:
 
-- `NotRequested`: no meeting subject was supplied, so counts and event collections are empty;
-- `Found`: the subject matched and at least one meeting ID was extracted;
+- `NotRequested`: neither a meeting subject nor meeting ID was supplied, so counts and event collections are empty;
+- `Found`: a subject resolved to at least one meeting ID, or the supplied meeting ID occurs in at least one retained block;
 - `FoundWithoutMeetingId`: the subject matched, but other processing blocks cannot be correlated safely;
-- `NotFound`: no subject match exists in the retained log; and
+- `NotFound`: no subject match or supplied meeting ID exists in the retained log; and
 - `LogUnavailable`: RBA log collection failed.
 
 `NotRequested` remains in the default `Sanitized` privacy mode. `NotFound` does not mean the meeting was never processed. The RBA log retains only bounded recent history, and older processing can roll off. Targeted raw blocks can contain meeting subjects, identities, and processing details and must be handled as sensitive customer evidence.
+
+For a resolved meeting, `firstLogTimeText` is the timestamp on the oldest retained `Begin ProcessRequest` row, `lastLogTimeText` is the newest recognized meeting-processing timestamp in the correlated evidence, and `lastUpdateTimeText` is the newest retained `Begin ProcessUpdateRequest` or `End ProcessUpdateRequest` timestamp. `recurrenceStatus` is `Recurring` or `NotRecurring` only when an explicit supported marker exists; otherwise it is `Unknown`. The report also summarizes explicit policy, disposition, tentative-response, and delegate-forwarding markers in `policyResult`, `disposition`, `tentativeResponseSent`, `forwardedToDelegates`, and `delegateMessageCount`. The human-readable report prints these meeting-specific values after the aggregate last-activity lines. It does not print meeting-specific detail rows for `NotFound`.
 
 The targeted event fields identify exact retained markers:
 
 | JSON field | RBA log marker or meaning |
 |---|---|
 | `actions` | `Action:Accept`, `Action:Decline`, or `Action:Tentative` |
+| `policyResult` | `Defaulting to in policy.` or `Not in policy.` |
+| `disposition` | `Meeting request evaluate returns result <Action>` or an `Action:<Action>` marker |
 | `updateDetected` | `Begin ProcessUpdateRequest` |
 | `cancellationDetected` | `It's a meeting cancellation.` |
 | `delegateReferralDetected` | `Forwarding Request To Delegates` |
+| `delegateMessageCount` | `Sending approval messages to <count> delegates.` |
+| `tentativeResponseSent` | `END - Sending the tentatively acceptance response to organizer.` |
 | `externalProcessingSkipped` | External processing was skipped because the corresponding setting was false. |
 | `horizonDeclineDetected` | A recurring request exceeded the booking window and was explicitly declined. |
 | `recurrenceTruncateDetected` | A recurring request was explicitly truncated at the booking window. |
@@ -114,7 +126,7 @@ These observations establish what the retained RBA log recorded. They do not est
 ## Troubleshooting skill usage flow
 
 1. Connect to Exchange Online with permission to read the target resource mailbox.
-2. Run `Get-RBASummary.ps1`. Add `-MeetingSubject` when investigating a recent specific meeting.
+2. Run `Get-RBASummary.ps1`. Add `-Subject` when investigating a recent specific meeting.
 3. Note the JSON path displayed at the end of the run.
 4. Add the JSON report and `EXO-RBA-Troubleshooting-SKILL.md` to Copilot or another compatible assistant.
 5. Ask the assistant to analyze the JSON by using the EXO RBA troubleshooting skill. The skill validates evidence, ranks detected findings, identifies collection gaps, and recommends tenant-admin commands with impact and rollback guidance. It does not execute configuration changes.
@@ -161,7 +173,7 @@ The report and troubleshooting skill provide bounded coverage for common lifecyc
 - Current creation and change timestamps are observations only. A change timestamp does not identify the changed property, and one resolved target cannot prove that no duplicate or stale object exists elsewhere in the tenant.
 - `RemoveCanceledMeetings` and aggregate RBA update and cancellation counts can explain configured retention and whether the available RBA log contains those operation types. They cannot establish whether a specific update or cancellation changed a specific item.
 - Recurrence policy and RBA log findings can identify booking-window declines or truncations. They cannot establish that a current series is orphaned.
-- With `-MeetingSubject`, targeted RBA blocks can establish that RBA logged an accept, decline, tentative action, update, cancellation, delegate referral, external-message skip, horizon decline, or recurrence truncation for an extracted meeting ID. They still do not establish final calendar state.
+- With `-Subject`, targeted RBA blocks can establish that RBA logged an accept, decline, tentative action, update, cancellation, delegate referral, external-message skip, horizon decline, or recurrence truncation for an extracted meeting ID. They still do not establish final calendar state.
 - Targeted blocks preserve the exported newest-first order. Read each raw block bottom-up from its exact START boundary; printed timestamps support their own rows but should not reorder equal or ambiguous entries.
 
 Former-organizer reservations, stale calendar items, specific update or cancellation propagation, and orphaned recurring series require item-level Calendar Diagnostic Log evidence from the resource and, when available, the organizer. Correlate both mailboxes by the same meeting ID; subject and timestamp are secondary correlation values. Tenant-wide duplicate or obsolete room objects require a recipient inventory or object-lifecycle workflow.

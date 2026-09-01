@@ -122,11 +122,17 @@ BeforeAll {
         param(
             [switch]$IncludeSensitiveData,
 
-            [string]$MeetingSubject
+            [string]$Subject,
+
+            [string]$MeetingId
         )
 
         Push-Location -Path $TestDrive
         try {
+            Get-ChildItem -Path $TestDrive -Filter "RBA-*-For_room_*" -ErrorAction SilentlyContinue |
+                Remove-Item -Force
+            Get-ChildItem -Path $TestDrive -Filter "RBA-Logs_room_*" -ErrorAction SilentlyContinue |
+                Remove-Item -Force
             $params = @{
                 Identity         = "room@contoso.com"
                 SkipVersionCheck = $true
@@ -134,8 +140,11 @@ BeforeAll {
             if ($IncludeSensitiveData) {
                 $params.IncludeSensitiveData = $true
             }
-            if (-not [string]::IsNullOrWhiteSpace($MeetingSubject)) {
-                $params.MeetingSubject = $MeetingSubject
+            if (-not [string]::IsNullOrWhiteSpace($Subject)) {
+                $params.Subject = $Subject
+            }
+            if (-not [string]::IsNullOrWhiteSpace($MeetingId)) {
+                $params.MeetingId = $MeetingId
             }
             & $Script:scriptPath @params
             $jsonPath = Get-ChildItem -Path $TestDrive -Filter "RBA-Summary-For_room_*.json" |
@@ -169,23 +178,55 @@ Describe "Get-RBASummary best-effort report" {
         }
     }
 
-    It "continues all collectors and writes partial JSON after a collector failure" {
+    It "stops collection when the mailbox cannot be resolved" {
         Mock Get-Mailbox { throw "Mailbox unavailable" }
 
-        $report = Invoke-TestRbaSummary
+        Push-Location -Path $TestDrive
+        try {
+            $output = & $Script:scriptPath -Identity "missing@contoso.com" -SkipVersionCheck *>&1 | Out-String
+            $jsonFiles = @(Get-ChildItem -Path $TestDrive -Filter "RBA-Summary-For_missing_*.json")
+        } finally {
+            Pop-Location
+        }
 
         Assert-MockCalled -CommandName Get-Mailbox -Exactly 2
-        Assert-MockCalled -CommandName Get-Place -Exactly 1
-        Assert-MockCalled -CommandName Get-InboxRule -Exactly 1
-        Assert-MockCalled -CommandName Get-CalendarProcessing -Exactly 1
-        Assert-MockCalled -CommandName Get-MailboxFolderPermission -Exactly 1
-        Assert-MockCalled -CommandName Get-MailboxPermission -Exactly 1
-        Assert-MockCalled -CommandName Export-MailboxDiagnosticLogs -Exactly 1
-        $report.metadata.collectionStatus | Should -Be "Partial"
-        $report.collectors.Mailbox.status | Should -Be "Failed"
-        $report.collectionErrors.collector | Should -Contain "Mailbox"
-        @($report.collectionErrors | Where-Object { $_.collector -eq "Mailbox" }).Count | Should -Be 1
-        ($report.findings | Where-Object { $_.ruleId -eq "RBA001" }).status | Should -Be "Detected"
+        Assert-MockCalled -CommandName Get-Place -Exactly 0
+        Assert-MockCalled -CommandName Get-InboxRule -Exactly 0
+        Assert-MockCalled -CommandName Get-CalendarProcessing -Exactly 0
+        Assert-MockCalled -CommandName Get-MailboxFolderPermission -Exactly 0
+        Assert-MockCalled -CommandName Get-MailboxPermission -Exactly 0
+        Assert-MockCalled -CommandName Export-MailboxDiagnosticLogs -Exactly 0
+        $output | Should -Match "Unable to resolve 'missing@contoso.com' to a mailbox\. Stopping\."
+        $jsonFiles.Count | Should -Be 0
+    }
+
+    It "stops collection when the identity is not a resource mailbox" {
+        Mock Get-Mailbox {
+            [PSCustomObject]@{
+                Identity             = "user@contoso.com"
+                PrimarySmtpAddress   = "user@contoso.com"
+                RecipientTypeDetails = "UserMailbox"
+                ResourceType         = $null
+            }
+        }
+
+        Push-Location -Path $TestDrive
+        try {
+            $output = & $Script:scriptPath -Identity "user@contoso.com" -SkipVersionCheck *>&1 | Out-String
+            $jsonFiles = @(Get-ChildItem -Path $TestDrive -Filter "RBA-Summary-For_user_*.json")
+        } finally {
+            Pop-Location
+        }
+
+        Assert-MockCalled -CommandName Get-Mailbox -Exactly 1
+        Assert-MockCalled -CommandName Get-Place -Exactly 0
+        Assert-MockCalled -CommandName Get-InboxRule -Exactly 0
+        Assert-MockCalled -CommandName Get-CalendarProcessing -Exactly 0
+        Assert-MockCalled -CommandName Get-MailboxFolderPermission -Exactly 0
+        Assert-MockCalled -CommandName Get-MailboxPermission -Exactly 0
+        Assert-MockCalled -CommandName Export-MailboxDiagnosticLogs -Exactly 0
+        $output | Should -Match "The mailbox is not a Room Mailbox / Equipment Mailbox\. RBA will only work with these\. Stopping\."
+        $jsonFiles.Count | Should -Be 0
     }
 
     It "detects a recoverable soft-deleted room after the active lookup fails" {
@@ -247,6 +288,27 @@ Describe "Get-RBASummary best-effort report" {
         $output | Should -Match "CalLogFormatterDevs@microsoft.com"
     }
 
+    It "prints each generated output file on one line and uses the feedback alias" {
+        Push-Location -Path $TestDrive
+        try {
+            $output = & $Script:scriptPath -Identity "room@contoso.com" -SkipVersionCheck *>&1 | Out-String
+            $summaryPath = Get-ChildItem -Path $TestDrive -Filter "RBA-Summary-For_room_*.txt" |
+                Sort-Object -Property LastWriteTime | Select-Object -Last 1
+            $summary = Get-Content -Path $summaryPath.FullName -Raw
+        } finally {
+            Pop-Location
+        }
+
+        $output | Should -Match "RBA logs saved as \[RBA-Logs_room_.*\.txt\] in the current directory\."
+        $output | Should -Match "Text summary: \[RBA-Summary-For_room_.*\.txt\]"
+        $output | Should -Match "JSON report:\s+\[RBA-Summary-For_room_.*\.json\]"
+        $output | Should -Match "RBA logs:\s+\[RBA-Logs_room_.*\.txt\]"
+        $output | Should -Match "Feedback: CalLogFormatterDevs@microsoft.com"
+        $output | Should -Not -Match "Shanefe@microsoft.com"
+        $summary | Should -Match "RBA output files:"
+        $summary | Should -Match "JSON report:\s+\[RBA-Summary-For_room_.*\.json\]"
+    }
+
     It "marks a collector failed when post-collection evidence processing throws" {
         Push-Location -Path $TestDrive
         try {
@@ -278,22 +340,22 @@ Describe "Get-RBASummary best-effort report" {
     }
 
     It "emits bounded structured error metadata without diagnostic internals" {
-        Mock Get-Mailbox {
+        Mock Get-Place {
             $innerException = [System.Exception]::new("Inner detail")
-            $errorMessage = [string]::Join([Environment]::NewLine, @("Mailbox", "unavailable"))
+            $errorMessage = [string]::Join([Environment]::NewLine, @("Place", "unavailable"))
             $exception = [System.InvalidOperationException]::new($errorMessage, $innerException)
             Write-Error -Exception $exception -Message $exception.Message -Category PermissionDenied `
-                -ErrorId "RbaMailboxFailure" -ErrorAction Stop
+                -ErrorId "RbaPlaceFailure" -ErrorAction Stop
         }
 
         $report = Invoke-TestRbaSummary
-        $collector = $report.collectors.Mailbox
-        $errorEntry = @($report.collectionErrors | Where-Object { $_.collector -eq "Mailbox" })[0]
+        $collector = $report.collectors.Place
+        $errorEntry = @($report.collectionErrors | Where-Object { $_.collector -eq "Place" })[0]
 
-        $collector.error | Should -Be "Mailbox unavailable"
+        $collector.error | Should -Be "Place unavailable"
         $collector.exceptionType | Should -Be "System.InvalidOperationException"
         $collector.category | Should -Be "PermissionDenied"
-        $collector.fullyQualifiedErrorId | Should -Match "RbaMailboxFailure"
+        $collector.fullyQualifiedErrorId | Should -Match "RbaPlaceFailure"
         $collector.innerExceptionMessage | Should -Be "Inner detail"
         $collector.error.Length | Should -BeLessOrEqual 2048
         $errorEntry.message | Should -Be $collector.error
@@ -322,6 +384,29 @@ Describe "Get-RBASummary best-effort report" {
         $report.collectors.Place.status | Should -Be "Failed"
         $report.collectionErrors.collector | Should -Contain "Place"
         ($report.findings | Where-Object { $_.ruleId -eq "RBA002" }).status | Should -Be "Detected"
+    }
+
+    It "captures a Get-Place exception, explains the failure, and continues collection" {
+        Mock Get-Place { throw "InternalServerError: Error executing cmdlet; token is null" }
+
+        Push-Location -Path $TestDrive
+        try {
+            $output = & $Script:scriptPath -Identity "room@contoso.com" -SkipVersionCheck *>&1 | Out-String
+            $jsonPath = Get-ChildItem -Path $TestDrive -Filter "RBA-Summary-For_room_*.json" |
+                Sort-Object -Property LastWriteTime | Select-Object -Last 1
+            $report = Get-Content -Path $jsonPath.FullName -Raw | ConvertFrom-Json
+        } finally {
+            Pop-Location
+        }
+
+        $output | Should -Match "Get-Place failed to get information from room@contoso.com\. Double-check the setup of the room\."
+        Assert-MockCalled -CommandName Get-InboxRule -Exactly 1
+        Assert-MockCalled -CommandName Get-CalendarProcessing -Exactly 1
+        Assert-MockCalled -CommandName Export-MailboxDiagnosticLogs -Exactly 1
+        $report.metadata.collectionStatus | Should -Be "Partial"
+        $report.collectors.Place.status | Should -Be "Failed"
+        $report.collectors.Place.error | Should -Match "InternalServerError"
+        $report.collectionErrors.collector | Should -Contain "Place"
     }
 
     It "sanitizes non-target identities and emits the documented finding families by default" {
@@ -518,22 +603,28 @@ Describe "Get-RBASummary best-effort report" {
 
     It "collects every retained RBA processing block for meeting IDs found by subject" {
         $meetingIdWithComma = "040000008,00E00074C5A7101A82E007000000004220FC5BAC74D90100000000000000001000000068B165058D1E2E439252F58379D4FE92"
-        $meetingId = $meetingIdWithComma -replace ',', ''
+        $expectedMeetingId = $meetingIdWithComma -replace ',', ''
         $unrelatedMeetingId = "040000008200E00074C5B7101A82E00800000000FFFFFFFFFFFFFFFF"
         Mock Export-MailboxDiagnosticLogs {
             [PSCustomObject]@{
                 MailboxLog = @(
                     "2026-08-22T10:00:03Z, Cancellation processing completed."
-                    "MeetingId: $meetingId"
+                    "MeetingId: $expectedMeetingId"
                     "It's a meeting cancellation."
                     "2026-08-22T10:00:00Z, START - HandleEventInternal Automatic Booking is enabled for resource."
                     "2026-08-21T10:00:04Z, END - Sending the acceptance response to organizer."
                     "2026-08-21T10:00:03Z, Entry Action: Message, LogComment: Action:Accept"
-                    "2026-08-21T10:00:01Z, Begin ProcessUpdateRequest Goid: $meetingId"
+                    "2026-08-21T10:00:01Z, Begin ProcessUpdateRequest Goid: $expectedMeetingId"
                     "2026-08-21T10:00:00Z, START - HandleEventInternal Automatic Booking is enabled for resource."
                     "2026-08-20T10:00:05Z, END - Sending the acceptance response to organizer."
                     "2026-08-20T10:00:04Z, PostProcessing completed on ItemId."
+                    ""
                     "2026-08-20T10:00:03Z, Entry Action: Message, LogComment: Action:Accept"
+                    "2026-08-20T10:00:02Z, Sending approval messages to 1 delegates."
+                    "2026-08-20T10:00:02Z, Forwarding Request To Delegates."
+                    "2026-08-20T10:00:02Z, END - Sending the tentatively acceptance response to organizer."
+                    "2026-08-20T10:00:02Z, Meeting request evaluate returns result Tentative"
+                    "2026-08-20T10:00:02Z, Defaulting to in policy."
                     "2026-08-20T10:00:02Z, Received Request from: Organizer subject Project Falcon"
                     "2026-08-20T10:00:01Z, Begin ProcessRequest Goid: $meetingIdWithComma"
                     "2026-08-20T10:00:00Z, START - HandleEventInternal Automatic Booking is enabled for resource."
@@ -545,17 +636,29 @@ Describe "Get-RBASummary best-effort report" {
             }
         }
 
-        $report = Invoke-TestRbaSummary -MeetingSubject "project falcon"
+        $report = Invoke-TestRbaSummary -Subject "project falcon"
 
         $report.metadata.privacyMode | Should -Be "TargetedMeeting"
+        $report.metadata.commandLine | Should -Be ".\Get-RBASummary.ps1 -Identity 'room@contoso.com' -Subject 'project falcon' -SkipVersionCheck:true"
         $report.PSObject.Properties.Name | Should -Not -Contain "fullRbaLog"
         $report.meetingLogSearch.status | Should -Be "Found"
+        $report.meetingLogSearch.searchType | Should -Be "Subject"
+        $report.meetingLogSearch.searchMeetingId | Should -BeNullOrEmpty
         $report.meetingLogSearch.subjectMatchCount | Should -Be 1
-        $report.meetingLogSearch.meetingIds | Should -Contain $meetingId
+        $report.meetingLogSearch.meetingIds | Should -Contain $expectedMeetingId
         $report.meetingLogSearch.eventCount | Should -Be 3
         $report.meetingLogSearch.updateCount | Should -Be 1
         $report.meetingLogSearch.cancellationCount | Should -Be 1
         $report.meetingLogSearch.declineCount | Should -Be 0
+        $report.meetingLogSearch.firstLogTimeText.ToUniversalTime().ToString("o") | Should -Be "2026-08-20T10:00:01.0000000Z"
+        $report.meetingLogSearch.lastLogTimeText.ToUniversalTime().ToString("o") | Should -Be "2026-08-22T10:00:03.0000000Z"
+        $report.meetingLogSearch.lastUpdateTimeText.ToUniversalTime().ToString("o") | Should -Be "2026-08-21T10:00:01.0000000Z"
+        $report.meetingLogSearch.recurrenceStatus | Should -Be "Unknown"
+        $report.meetingLogSearch.policyResult | Should -Be "InPolicy"
+        $report.meetingLogSearch.disposition | Should -Be "Multiple"
+        $report.meetingLogSearch.forwardedToDelegates | Should -BeTrue
+        $report.meetingLogSearch.delegateMessageCount | Should -Be 1
+        $report.meetingLogSearch.tentativeResponseSent | Should -BeTrue
         $report.meetingLogSearch.sourceOrder | Should -Be "NewestFirst"
         $report.meetingLogSearch.eventOrder | Should -Be "NewestFirst"
         $report.meetingLogSearch.rawLogChronologicalReadDirection | Should -Be "BottomToTop"
@@ -572,7 +675,8 @@ Describe "Get-RBASummary best-effort report" {
         $initialEvent.chronologicalReadDirection | Should -Be "BottomToTop"
         $initialEvent.rawLog[0] | Should -Be "2026-08-20T10:00:05Z, END - Sending the acceptance response to organizer."
         $initialEvent.rawLog[-1] | Should -Be $initialEvent.startMarker
-        @($initialEvent.rawLog).Count | Should -Be 6
+        @($initialEvent.rawLog).Count | Should -Be 11
+        $initialEvent.rawLog | Should -Not -Contain ""
         $initialEvent.rawLog | Should -Contain "2026-08-20T10:00:04Z, PostProcessing completed on ItemId."
         $initialEvent.rawLog | Should -Contain "2026-08-20T10:00:01Z, Begin ProcessRequest Goid: $meetingIdWithComma"
         @($report.meetingLogSearch.events.rawLog | Where-Object { $_ -match "Different meeting" }) | Should -BeNullOrEmpty
@@ -581,16 +685,206 @@ Describe "Get-RBASummary best-effort report" {
         ($report.findings | Where-Object { $_.ruleId -eq "RBA712" }).status | Should -Be "Detected"
         ($report.findings | Where-Object { $_.ruleId -eq "RBA713" }).status | Should -Be "Detected"
         ($report.findings | Where-Object { $_.ruleId -eq "RBA715" }).status | Should -Be "NotDetected"
+
+        $summary = Get-ChildItem -Path $TestDrive -Filter "RBA-Summary-For_room_*.txt" |
+            Sort-Object -Property LastWriteTime | Select-Object -Last 1
+        $summaryContent = Get-Content -Path $summary.FullName -Raw
+        $summaryContent | Should -Match ([regex]::Escape("Command line: .\Get-RBASummary.ps1 -Identity 'room@contoso.com' -Subject 'project falcon' -SkipVersionCheck:true"))
+        $summaryContent | Should -Match "Targeted meeting search:"
+        $summaryContent | Should -Match "Search result\s+Found"
+        $summaryContent | Should -Match ([regex]::Escape($expectedMeetingId))
+        $summaryContent | Should -Match "subsequent correlation uses the meeting ID"
+        $summaryContent | Should -Match "First meeting log\s+2026-08-20T10:00:01Z"
+        $summaryContent | Should -Match "Last meeting update\s+2026-08-21T10:00:01Z"
+        $summaryContent | Should -Match "Policy result\s+In policy"
+        $summaryContent | Should -Match "Disposition\s+Multiple"
+        $summaryContent | Should -Match "Tentative response sent\s+Yes"
+        $summaryContent | Should -Match "Forwarded to delegates\s+Yes"
+        $summaryContent | Should -Match "Delegate approval messages\s+1"
+        $summaryContent.IndexOf("Last updated") | Should -BeLessThan $summaryContent.IndexOf("Targeted meeting search:")
+    }
+
+    It "switches from subject discovery to meeting ID-only correlation" {
+        $expectedMeetingId = "04000000800E00074C5A7101A82E007000000004220FC5BAC74D90100000000000000001000000068B165058D1E2E439252F58379D4FE92"
+        Mock Export-MailboxDiagnosticLogs {
+            [PSCustomObject]@{
+                MailboxLog = @(
+                    "Subject: ClassicOnly"
+                    "2026-08-22T10:00:00Z, START - HandleEventInternal Automatic Booking is enabled for resource."
+                    "Subject: ClassicOnly"
+                    "2026-08-21T10:00:01Z, Begin ProcessRequest Goid: $expectedMeetingId"
+                    "2026-08-21T10:00:00Z, START - HandleEventInternal Automatic Booking is enabled for resource."
+                ) -join "`r`n"
+            }
+        }
+
+        $report = Invoke-TestRbaSummary -Subject "ClassicOnly"
+
+        $report.meetingLogSearch.status | Should -Be "Found"
+        $report.meetingLogSearch.subjectMatchCount | Should -Be 2
+        $report.meetingLogSearch.eventCount | Should -Be 1
+        $report.meetingLogSearch.events[0].meetingIds | Should -Contain $expectedMeetingId
+    }
+
+    It "separates outcomes when a subject resolves to multiple meeting IDs" {
+        $newerMeetingId = "040000008200E00074C5B7101A82E0080000000040102B6651CBDC01000000000000000010000000F88270875E4D8C4EAE68086FFC170C60"
+        $olderMeetingId = "040000008200E00074C5B7101A82E0080000000060043C1FE2C5DC01000000000000000010000000849AA4DF567BE0499C0A21B37BE890E1"
+        Mock Export-MailboxDiagnosticLogs {
+            [PSCustomObject]@{
+                MailboxLog = @(
+                    "2026-08-22T10:00:05Z, Sending approval messages to 1 delegates."
+                    "2026-08-22T10:00:04Z, Forwarding Request To Delegates."
+                    "2026-08-22T10:00:03Z, Entry Action:Tentative, Subject :Classic newer"
+                    "2026-08-22T10:00:02Z, Defaulting to in policy."
+                    "2026-08-22T10:00:01Z, Begin ProcessRequest Goid: $newerMeetingId"
+                    "2026-08-22T10:00:00Z, START - HandleEventInternal Automatic Booking is enabled for resource."
+                    "2026-08-21T10:00:03Z, Entry Action:Decline, Subject :Classic older"
+                    "2026-08-21T10:00:02Z, Not in policy."
+                    "2026-08-21T10:00:01Z, Begin ProcessRequest Goid: $olderMeetingId"
+                    "2026-08-21T10:00:00Z, START - HandleEventInternal Automatic Booking is enabled for resource."
+                ) -join "`r`n"
+            }
+        }
+
+        $report = Invoke-TestRbaSummary -Subject "Classic"
+
+        $report.meetingLogSearch.meetingIds.Count | Should -Be 2
+        $report.meetingLogSearch.meetings.Count | Should -Be 2
+        $newerMeeting = $report.meetingLogSearch.meetings | Where-Object { $_.meetingId -eq $newerMeetingId }
+        $newerMeeting.policyResult | Should -Be "InPolicy"
+        $newerMeeting.disposition | Should -Be "Tentative"
+        $newerMeeting.forwardedToDelegates | Should -BeTrue
+        $newerMeeting.delegateMessageCount | Should -Be 1
+        $olderMeeting = $report.meetingLogSearch.meetings | Where-Object { $_.meetingId -eq $olderMeetingId }
+        $olderMeeting.policyResult | Should -Be "OutOfPolicy"
+        $olderMeeting.disposition | Should -Be "Decline"
+        $olderMeeting.forwardedToDelegates | Should -BeFalse
+
+        $summary = Get-ChildItem -Path $TestDrive -Filter "RBA-Summary-For_room_*.txt" |
+            Sort-Object -Property LastWriteTime | Select-Object -Last 1
+        $summaryContent = Get-Content -Path $summary.FullName -Raw
+        $summaryContent | Should -Match "subject matched 2 meeting IDs"
+        $summaryContent | Should -Match "Meeting 1 of 2:"
+        $summaryContent | Should -Match "Meeting 2 of 2:"
+        $summaryContent | Should -Match ([regex]::Escape($newerMeetingId))
+        $summaryContent | Should -Match ([regex]::Escape($olderMeetingId))
+        $summaryContent | Should -Match "Policy result\s+In policy"
+        $summaryContent | Should -Match "Policy result\s+Out of policy"
+        $summaryContent | Should -Match "Disposition\s+Tentatively accepted"
+        $summaryContent | Should -Match "Disposition\s+Declined"
+    }
+
+    It "reports an in-policy tentative meeting forwarded to resource delegates" {
+        $expectedMeetingId = "040000008200E00074C5B7101A82E0080000000040102B6651CBDC01000000000000000010000000F88270875E4D8C4EAE68086FFC170C60"
+        Mock Export-MailboxDiagnosticLogs {
+            [PSCustomObject]@{
+                MailboxLog = @(
+                    "04/13/2026 19:26:29, END - Sending the tentatively acceptance response to organizer."
+                    "04/13/2026 19:26:28, Sending approval messages to 1 delegates."
+                    "04/13/2026 19:26:28, Forwarding Request To Delegates."
+                    "04/13/2026 19:26:26, Entry Action:Tentative, Subject :ClassicOnly"
+                    "04/13/2026 19:26:21, Meeting request evaluate returns result Tentative"
+                    "04/13/2026 19:26:20, Sender has RequestInPolicy."
+                    "04/13/2026 19:26:20, Evaluate: Completed IsRequestInPolicy."
+                    "04/13/2026 19:26:20, Defaulting to in policy."
+                    "04/13/2026 19:26:18, Begin ProcessRequest Goid: $expectedMeetingId"
+                    "04/13/2026 19:26:18, START - HandleEventInternal Automatic Booking is enabled for resource."
+                ) -join "`r`n"
+            }
+        }
+
+        $report = Invoke-TestRbaSummary -Subject "ClassicOnly"
+
+        $report.meetingLogSearch.policyResult | Should -Be "InPolicy"
+        $report.meetingLogSearch.disposition | Should -Be "Tentative"
+        $report.meetingLogSearch.tentativeResponseSent | Should -BeTrue
+        $report.meetingLogSearch.forwardedToDelegates | Should -BeTrue
+        $report.meetingLogSearch.delegateMessageCount | Should -Be 1
+        $report.meetingLogSearch.events[0].policyResult | Should -Be "InPolicy"
+        $report.meetingLogSearch.events[0].disposition | Should -Be "Tentative"
+        $report.meetingLogSearch.events[0].delegateMessageCount | Should -Be 1
+        $report.meetingLogSearch.events[0].tentativeResponseSent | Should -BeTrue
+        $report.meetingLogSearch.events[0].PSObject.Properties.Name | Should -Contain "policyResult"
+        $report.meetingLogSearch.events[0].PSObject.Properties.Name | Should -Contain "disposition"
+        $report.meetingLogSearch.events[0].PSObject.Properties.Name | Should -Contain "delegateMessageCount"
+        $report.meetingLogSearch.events[0].PSObject.Properties.Name | Should -Contain "tentativeResponseSent"
+
+        $summary = Get-ChildItem -Path $TestDrive -Filter "RBA-Summary-For_room_*.txt" |
+            Sort-Object -Property LastWriteTime | Select-Object -Last 1
+        $summaryContent = Get-Content -Path $summary.FullName -Raw
+        $summaryContent | Should -Match "Policy result\s+In policy"
+        $summaryContent | Should -Match "Disposition\s+Tentatively accepted"
+        $summaryContent | Should -Match "Tentative response sent\s+Yes"
+        $summaryContent | Should -Match "Forwarded to delegates\s+Yes"
+        $summaryContent | Should -Match "Delegate approval messages\s+1"
+    }
+
+    It "accepts a MeetingId and returns all retained blocks for that ID" {
+        $meetingIdWithComma = "040000008,00E00074C5A7101A82E007000000004220FC5BAC74D90100000000000000001000000068B165058D1E2E439252F58379D4FE92"
+        $expectedMeetingId = $meetingIdWithComma -replace ',', ''
+        Mock Export-MailboxDiagnosticLogs {
+            [PSCustomObject]@{
+                MailboxLog = @(
+                    "2026-08-22T10:00:01Z, Begin ProcessUpdateRequest Goid: $expectedMeetingId"
+                    "2026-08-22T10:00:00Z, START - HandleEventInternal Automatic Booking is enabled for resource."
+                    "2026-08-21T10:00:02Z, IsRecurring: True"
+                    "2026-08-21T10:00:01Z, Begin ProcessRequest Goid: $meetingIdWithComma"
+                    "2026-08-21T10:00:00Z, START - HandleEventInternal Automatic Booking is enabled for resource."
+                ) -join "`r`n"
+            }
+        }
+
+        $report = Invoke-TestRbaSummary -MeetingId $meetingIdWithComma
+
+        $report.metadata.privacyMode | Should -Be "TargetedMeeting"
+        $report.meetingLogSearch.searchType | Should -Be "MeetingId"
+        $report.meetingLogSearch.searchSubject | Should -BeNullOrEmpty
+        $report.meetingLogSearch.searchMeetingId | Should -Be $expectedMeetingId
+        $report.meetingLogSearch.status | Should -Be "Found"
+        $report.meetingLogSearch.meetingIds | Should -Contain $expectedMeetingId
+        $report.meetingLogSearch.eventCount | Should -Be 2
+        $report.meetingLogSearch.updateCount | Should -Be 1
+        $report.meetingLogSearch.recurrenceStatus | Should -Be "Recurring"
+        $report.meetingLogSearch.firstLogTimeText.ToUniversalTime().ToString("o") | Should -Be "2026-08-21T10:00:01.0000000Z"
+        $report.meetingLogSearch.lastUpdateTimeText.ToUniversalTime().ToString("o") | Should -Be "2026-08-22T10:00:01.0000000Z"
+    }
+
+    It "rejects Subject and MeetingId when supplied together" {
+        { & $Script:scriptPath -Identity "room@contoso.com" -Subject "ClassicOnly" -MeetingId "04000000800E00074C5A7101A82E00700000000" -SkipVersionCheck } |
+            Should -Throw "Specify either Subject or MeetingId, not both."
     }
 
     It "reports that a subject is not found without claiming the meeting was never processed" {
-        $report = Invoke-TestRbaSummary -MeetingSubject "Missing meeting"
+        $report = Invoke-TestRbaSummary -Subject "Missing meeting"
 
         $report.metadata.privacyMode | Should -Be "TargetedMeeting"
         $report.meetingLogSearch.status | Should -Be "NotFound"
         $report.meetingLogSearch.eventCount | Should -Be 0
+        $report.meetingLogSearch.firstLogTimeText | Should -BeNullOrEmpty
+        $report.meetingLogSearch.lastUpdateTimeText | Should -BeNullOrEmpty
+        $report.meetingLogSearch.recurrenceStatus | Should -Be "Unknown"
         ($report.findings | Where-Object { $_.ruleId -eq "RBA710" }).status | Should -Be "Detected"
         ($report.findings | Where-Object { $_.ruleId -eq "RBA711" }).status | Should -Be "NotDetected"
+
+        $summary = Get-ChildItem -Path $TestDrive -Filter "RBA-Summary-For_room_*.txt" |
+            Sort-Object -Property LastWriteTime | Select-Object -Last 1
+        $summaryContent = Get-Content -Path $summary.FullName -Raw
+        $summaryContent | Should -Not -Match "First meeting log"
+    }
+
+    It "accepts MeetingSubject as a compatibility alias for Subject" {
+        Push-Location -Path $TestDrive
+        try {
+            & $Script:scriptPath -Identity "room@contoso.com" -MeetingSubject "Missing meeting" -SkipVersionCheck
+            $jsonPath = Get-ChildItem -Path $TestDrive -Filter "RBA-Summary-For_room_*.json" |
+                Sort-Object -Property LastWriteTime | Select-Object -Last 1
+            $report = Get-Content -Path $jsonPath.FullName -Raw | ConvertFrom-Json
+        } finally {
+            Pop-Location
+        }
+
+        $report.metadata.privacyMode | Should -Be "TargetedMeeting"
+        $report.meetingLogSearch.searchSubject | Should -Be "Missing meeting"
     }
 
     It "keeps Calendar access, booking delegates, and post-processing as separate findings" {
@@ -759,6 +1053,21 @@ Describe "Get-RBASummary best-effort report" {
         ($report.findings | Where-Object { $_.ruleId -eq "RBA820" }).status | Should -Be "NotEvaluated"
     }
 
+    It "fully enumerates folder statistics before selecting the Calendar folder" {
+        Mock Get-MailboxFolderStatistics {
+            [PSCustomObject]@{ Name = "Calendar"; FolderType = "Calendar" }
+            [PSCustomObject]@{ Name = "Inbox"; FolderType = "Inbox" }
+        }
+
+        $report = Invoke-TestRbaSummary
+
+        $report.collectors.CalendarFolderPermissions.status | Should -Be "Success"
+        Assert-MockCalled -CommandName Get-MailboxFolderStatistics -Exactly 1
+        Assert-MockCalled -CommandName Get-MailboxFolderPermission -Exactly 1 -ParameterFilter {
+            $Identity -eq "room@contoso.com:\Calendar"
+        }
+    }
+
     It "keeps Calendar permissions successful when CalendarProcessing fails" {
         Mock Get-CalendarProcessing { throw "Calendar processing unavailable" }
 
@@ -845,7 +1154,7 @@ Describe "RBA log processing block extraction" {
             }
         }
 
-        $report = Invoke-TestRbaSummary -MeetingSubject "Boundary test"
+        $report = Invoke-TestRbaSummary -Subject "Boundary test"
         $report.meetingLogSearch.eventCount | Should -Be 1
         $report.meetingLogSearch.events[0].startBoundaryFound | Should -BeTrue
         $report.meetingLogSearch.events[0].rawLog | Should -Contain "2026-08-28T10:00:02Z, START - Retry checkpoint"
@@ -865,7 +1174,7 @@ Describe "RBA log processing block extraction" {
             }
         }
 
-        $report = Invoke-TestRbaSummary -MeetingSubject "Missing boundary test"
+        $report = Invoke-TestRbaSummary -Subject "Missing boundary test"
         $report.meetingLogSearch.eventCount | Should -Be 1
         $report.meetingLogSearch.events[0].startBoundaryFound | Should -BeFalse
         $report.meetingLogSearch.events[0].boundaryStatus | Should -Be "MissingStartBoundary"
@@ -889,7 +1198,7 @@ Describe "EXO RBA troubleshooting skill package" {
 
         $content = Get-Content -Path $destinationPath -Raw
         $content | Should -Match "^---\r?\nname: exo-rba-troubleshooting\r?\n"
-        $content | Should -Match "Skill version: ``0\.1\.0-preview``"
+        $content | Should -Match "Skill version: ``0\.1\.1-preview``"
         $content | Should -Match "TSG rules version: ``0\.1\.0-preview``"
         $content | Should -Match "Canonical download: https://github.com/microsoft/CSS-Exchange/releases/latest/download/EXO-RBA-Troubleshooting-SKILL\.md"
         $content | Should -Match "## TSG core rules"

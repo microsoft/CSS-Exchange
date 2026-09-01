@@ -1,6 +1,6 @@
 {
   "id": "exo-rba-troubleshooting",
-  "version": "0.1.0-preview",
+  "version": "0.1.1-preview",
   "displayName": "EXO RBA Troubleshooting",
   "description": "Diagnoses Exchange Online Resource Booking Assistant policy, routing, mailbox lifecycle, post-processing, and targeted meeting RBA log issues from Get-RBASummary JSON evidence; safely routes adjacent item-propagation and non-RBA requests.",
   "displayCollection": "Microsoft Exchange Support Skills",

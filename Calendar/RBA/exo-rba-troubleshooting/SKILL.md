@@ -70,16 +70,19 @@ The minimal downstream evidence for a specific meeting is Calendar Diagnostic Lo
 When `meetingLogSearch.status` is not `NotRequested`, treat it as explicitly requested sensitive meeting evidence. Analyze it before aggregate `rbaLogSummary` counts. A `NotRequested` object contains only ordering metadata, zero counts, and empty meeting ID and event collections and remains sanitized.
 
 1. State the requested search status exactly: `LogUnavailable`, `NotFound`, `FoundWithoutMeetingId`, or `Found`.
-2. For `NotFound`, say "the subject was not found in the retained RBA log." Do not say the meeting was never processed. Explain that RBA log history is bounded and older events might have rolled off.
+2. For `NotFound`, use `searchType` to say either "the subject was not found in the retained RBA log" or "the meeting ID was not found in the retained RBA log." Do not say the meeting was never processed. Explain that RBA log history is bounded and older events might have rolled off.
 3. For `FoundWithoutMeetingId`, analyze only the subject-matching blocks. State that updates or cancellations in other blocks cannot be correlated safely.
-4. For `Found`, separate results by meeting ID. Never merge IDs merely because their subjects match.
-5. Treat `events` and `sequence` as newest-first source order: sequence 1 is nearest the top of the exported log and is the newest retained processing unit. To present event history chronologically, traverse the event array from highest sequence to lowest. Use `startTimeText` only as the timestamp printed on the exact START row; do not reorder equal or ambiguous timestamps or infer elapsed time from them. Do not call an update a reschedule unless an approved marker explicitly establishes rescheduling.
-6. Cite the event sequence and exact raw marker supporting every action, update, cancellation, delegate referral, external skip, horizon decline, or recurrence truncation statement.
-7. Apply `RBA710`–`RBA715` and the targeted marker table in the RBA rules. Free-form raw text can be quoted as an observation but must not be promoted to a deterministic classification unless the rules approve that marker.
-8. If `Action:Decline` is present, look for an approved reason marker in the same processing block. Current configuration can corroborate documented behavior but cannot retroactively establish the decline reason. If no approved marker is present, state "decline observed; reason not established by the current decoder."
-9. Distinguish RBA processing from final calendar state. Route final item state, participant divergence, recurrence exceptions, or responsible-actor questions to Calendar Diagnostic Log analysis using the extracted meeting ID.
+4. For `Found`, analyze each object in `meetings` separately. A subject search switches to ID-only correlation after discovery. If multiple IDs are present, do not describe top-level targeted counts or outcomes as one meeting; recommend rerunning with `-MeetingId`. Never merge IDs merely because their subjects match.
+5. Report `firstLogTimeText`, `lastLogTimeText`, and `lastUpdateTimeText` as retained RBA-log timestamps, not proof of final calendar state. Report `recurrenceStatus` exactly; `Unknown` means no supported explicit recurrence marker was retained and must not be converted to `NotRecurring`.
+6. Treat `events` and `sequence` as newest-first source order: sequence 1 is nearest the top of the exported log and is the newest retained processing unit. To present event history chronologically, traverse the event array from highest sequence to lowest. Use `startTimeText` only as the timestamp printed on the exact START row; do not reorder equal or ambiguous timestamps or infer elapsed time from them. Do not call an update a reschedule unless an approved marker explicitly establishes rescheduling.
+7. Cite the event sequence and exact raw marker supporting every action, update, cancellation, delegate referral, external skip, horizon decline, or recurrence truncation statement.
+8. Apply `RBA710`–`RBA715` and the targeted marker table in the RBA rules. Free-form raw text can be quoted as an observation but must not be promoted to a deterministic classification unless the rules approve that marker.
+9. If `Action:Decline` is present, look for an approved reason marker in the same processing block. Current configuration can corroborate documented behavior but cannot retroactively establish the decline reason. If no approved marker is present, state "decline observed; reason not established by the current decoder."
+10. Distinguish RBA processing from final calendar state. Route final item state, participant divergence, recurrence exceptions, or responsible-actor questions to Calendar Diagnostic Log analysis using the extracted meeting ID.
 
-The report deliberately exports only subject-matching blocks and blocks correlated by extracted meeting ID unless `IncludeSensitiveData` was also used. Do not request the full RBA log when the targeted evidence is sufficient.
+Before citing any decoded event field, verify that the property exists on that event object. Current reports emit `policyResult`, `disposition`, `delegateMessageCount`, and `tentativeResponseSent` on each targeted event. If an older or malformed report omits one of these properties, do not cite the nonexistent field or synthesize a value for it. An approved exact marker in that event's `rawLog` may still be quoted as a raw observation, explicitly labeled as raw-only; otherwise report the value as unavailable.
+
+The report deliberately exports only blocks correlated by an extracted or supplied meeting ID unless `IncludeSensitiveData` was also used. If a subject matches without an extractable ID, it exports only those subject-matching blocks. Do not request the full RBA log when the targeted evidence is sufficient.
 
 ### RBA source ordering and event boundaries
 
@@ -105,7 +108,7 @@ Do not reverse or rewrite `rawLog` in citations. Preserve the exported text and 
 ## Workflow
 
 1. Classify the symptom using the explicit out-of-scope routing table. Stop and route any non-RBA symptom branch before interpreting RBA findings.
-2. Perform the non-blocking version check below. Continue if it cannot complete.
+2. Attempt the non-blocking version check below once. Record one of `Current`, `UpdateAvailable`, or `Unavailable`, then continue immediately. `Unavailable` is operational metadata, not an RBA finding or evidence gap.
 3. Parse the supplied JSON. If parsing fails, stop diagnosis and explain that a valid JSON report is required.
 4. Validate that `metadata.schemaVersion` is `1.0-preview`, `metadata.identity` is present, `metadata.collectionStatus` is `Complete`, `Partial`, or `Failed`, `metadata.privacyMode` is `Sanitized`, `TargetedMeeting`, or `Full`, and `collectors`, `findings`, and `collectionErrors` are present.
 5. Apply [TSG-Rules.md](TSG-Rules.md), including its evidence-validation, truthfulness, output, remediation, and data-handling requirements.
@@ -149,4 +152,10 @@ At the start of analysis, compare the skill version in the local package metadat
 
 `https://raw.githubusercontent.com/microsoft/CSS-Exchange/main/Calendar/RBA/exo-rba-troubleshooting/manifest.json`
 
-Use available read-only web retrieval. If package metadata is unavailable, or retrieval, parsing, or comparison fails, mention the check was unavailable and continue. If the remote preview version is newer, mention the latest-release Markdown download; never block diagnosis and never download or install automatically.
+Use available read-only web retrieval and make at most one retrieval attempt. Do not ask the administrator to enable network access, retry, wait, or provide remote metadata.
+
+- `Current`: local and remote versions were parsed and the remote preview version is not newer. No version warning is required.
+- `UpdateAvailable`: the remote preview version is newer. Mention the latest-release Markdown download, but do not download or install it.
+- `Unavailable`: local package metadata is unavailable, or retrieval, parsing, or comparison fails. Mention once that the version check was unavailable, then proceed immediately with the supplied report.
+
+Version-check status must never be reported as an RBA finding, failed collector, report evidence gap, or diagnosis blocker.

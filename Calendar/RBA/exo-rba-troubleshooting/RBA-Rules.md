@@ -136,8 +136,8 @@ Get-CalendarProcessing -Identity <ResourceMailbox> | Format-List AutomateProcess
 | RBA703 | Warning | Applicable only when usable RBA log history exists. No meeting update operation was observed in that history. | RBA log entry and update counts |
 | RBA704 | Warning | Applicable when RBA log evidence is available. The log explicitly records one or more recurring requests whose recurrence end exceeded `BookingWindowInDays` and whose entire request was declined. Correlate by global object identifier, subject, and timestamp before applying this observation to a reported meeting. | `rbaLogSummary.horizonDeclineCount` |
 | RBA705 | Warning | Applicable when RBA log evidence is available. The log explicitly records one or more recurring requests whose recurrence was truncated at the booking-window boundary. Correlate by global object identifier, subject, and timestamp before applying this observation to a reported meeting. | `rbaLogSummary.recurrenceTruncateCount` |
-| RBA710 | Warning | Applicable only when `-MeetingSubject` was supplied and RBA log collection succeeded. The subject was not found in the retained log. This means only that no case-insensitive text match exists in the available bounded history; it does not prove that the meeting was never processed. | `meetingLogSearch.status`, `meetingLogSearch.subjectMatchCount` |
-| RBA711 | Information | Applicable only when `-MeetingSubject` was supplied. The subject was found in one or more retained processing blocks. When a meeting ID was extracted, all retained blocks carrying that ID are included even if later update or cancellation blocks omit the subject. | `meetingLogSearch.status`, subject, meeting IDs, and event counts |
+| RBA710 | Warning | Applicable when `-Subject` or `-MeetingId` was supplied and RBA log collection succeeded. The requested value was not found in the retained log. This does not prove that the meeting was never processed because bounded history can roll off. | `meetingLogSearch.searchType`, `meetingLogSearch.status`, `meetingLogSearch.subjectMatchCount` |
+| RBA711 | Information | Applicable when a targeted search succeeds. A subject search discovers meeting IDs and then switches to ID-only correlation; a direct meeting-ID search skips subject discovery. All retained blocks carrying a resolved ID are included even when update or cancellation blocks omit the subject. | `meetingLogSearch.searchType`, subject, requested meeting ID, resolved meeting IDs, and event counts |
 | RBA712 | Information | Applicable only to a successful targeted search. One or more correlated blocks contain the exact `Begin ProcessUpdateRequest` marker. This establishes that RBA logged update processing for the correlated meeting ID; it does not prove the final resource-calendar state. | `meetingLogSearch.updateCount`, targeted event markers and raw log |
 | RBA713 | Information | Applicable only to a successful targeted search. One or more correlated blocks contain the exact `It's a meeting cancellation.` marker. This establishes that RBA recognized cancellation processing for the correlated meeting ID; interpret the resulting item state with `RemoveCanceledMeetings` and Calendar Diagnostic Logs. | `meetingLogSearch.cancellationCount`, targeted event markers and raw log |
 | RBA714 | Warning | Applicable when the subject matched retained log text but no meeting ID could be extracted from the matching block. Only subject-matching blocks are included, and later blocks cannot be safely correlated. | `meetingLogSearch.status`, `meetingLogSearch.subjectMatchCount` |
@@ -147,7 +147,7 @@ Get-CalendarProcessing -Identity <ResourceMailbox> | Format-List AutomateProcess
 
 ## Targeted meeting log analysis
 
-z`meetingLogSearch` has status `NotRequested`, zero counts, and empty meeting ID and event collections when the administrator does not supply `-MeetingSubject`. Findings `RBA710`–`RBA715` are then `NotApplicable`. When a subject is supplied, the search is a case-insensitive literal substring search of the retained RBA log. The exported source is newest-first, with the newest line at the top. RBA is single-threaded, so contiguous extraction is intentional: a processing block contains every line after the preceding newer exact boundary through and including its own row ending `START - HandleEventInternal Automatic Booking is enabled for resource.` at the bottom. Generic `START -` rows are not boundaries.
+`meetingLogSearch` has status `NotRequested`, zero counts, and empty meeting ID and event collections when the administrator supplies neither `-Subject` nor `-MeetingId`. Findings `RBA710`–`RBA715` are then `NotApplicable`. A subject search is a case-insensitive literal substring search used to discover meeting IDs, after which correlation uses only those IDs. A direct meeting-ID search skips discovery. The exported source is newest-first, with the newest line at the top. RBA is single-threaded, so contiguous extraction is intentional: a processing block contains every line after the preceding newer exact boundary through and including its own row ending `START - HandleEventInternal Automatic Booking is enabled for resource.` at the bottom. Generic `START -` rows are not boundaries.
 
 The `events` array preserves top-down source order, so sequence 1 is the newest retained processing unit. Each event's `rawLog` also preserves newest-first source text and must be read bottom-up for chronology. Across events, traverse highest sequence to lowest for chronological history. Printed timestamps corroborate the rows on which they occur but must not be used to reorder equal or ambiguous rows. `startMarker` is the complete exact START row, while `startTimeText` and compatibility field `eventTimeText` contain that row's timestamp—not an END or result timestamp. `startBoundaryFound` and `boundaryStatus` expose whether an exact lower boundary was retained; evidence with `MissingStartBoundary` is partial and must not be attached to a neighboring event.
 
@@ -163,14 +163,18 @@ Use the manual log-reference phases narrowly:
 
 Read one raw block chronologically as START at the bottom, then entry/classification, policy evaluation, decision, optional post-processing, and finally the newest result or documented END line toward the top. Preserve the raw text and cite it in exported order rather than rewriting it.
 
-The targeted event fields are deterministic observations of exact markers:
+The targeted event fields are deterministic observations of exact markers. Current `1.0-preview` reports emit every field in this table on each targeted event. Before citing a field, verify that the property exists in the supplied event object. If an older or malformed report omits it, do not invent or cite the missing property. An approved marker in that event's `rawLog` may be quoted only as an explicitly labeled raw-only observation; otherwise the value is unavailable.
 
-| Event field | Required marker |
+| Emitted event field | Required marker |
 |---|---|
 | `actions` | `Action:Accept`, `Action:Decline`, or `Action:Tentative` |
+| `policyResult` | `Defaulting to in policy.` or `Not in policy.` |
+| `disposition` | `Meeting request evaluate returns result <Action>` or an `Action:<Action>` marker |
 | `updateDetected` | `Begin ProcessUpdateRequest` |
 | `cancellationDetected` | `It's a meeting cancellation.` |
 | `delegateReferralDetected` | `Forwarding Request To Delegates` |
+| `delegateMessageCount` | `Sending approval messages to <count> delegates.` |
+| `tentativeResponseSent` | `END - Sending the tentatively acceptance response to organizer.` |
 | `externalProcessingSkipped` | `Skipping processing because user settings for processing external items is false.` |
 | `horizonDeclineDetected` | `Recurrence ends is past the booking window. Meeting will be declined.` |
 | `recurrenceTruncateDetected` | `Truncating meeting recurrence end window` |

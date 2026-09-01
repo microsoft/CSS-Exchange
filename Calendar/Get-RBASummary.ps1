@@ -1,41 +1,130 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+# .SYNOPSIS
+# Collects and summarizes Resource Booking Assistant configuration, permissions, and diagnostic log evidence.
 #
 # .DESCRIPTION
-# This script runs the Get-CalendarProcessing cmdlet and returns the output with more details in clear english,
-# highlighting the key settings that affect RBA and some of the common errors in configuration.
+# Collects Exchange resource-mailbox, CalendarProcessing, permission, inbox-rule, Place, and RBA diagnostic-log
+# evidence. It produces a human-readable summary, a structured JSON report, and a readable RBA log file when
+# diagnostic log evidence is available. Mailbox existence and resource type are validated before the remaining
+# collectors run; after that validation, independent collectors continue after non-fatal failures.
+#
+# Use Subject to locate recent retained RBA processing by a case-insensitive subject substring. The script extracts
+# meeting IDs from matching blocks and then correlates processing by meeting ID. If the subject resolves to multiple
+# IDs, each meeting is reported separately. Use MeetingId to target one clean global object ID directly.
 #
 # .PARAMETER Identity
-# Address of Resource Mailbox to query
+# Identity of the room or equipment mailbox to query. An SMTP address is recommended.
+#
+# .PARAMETER Subject
+# Case-insensitive literal subject substring used to discover retained meeting processing. After meeting IDs are
+# extracted, correlation uses those IDs. Subject cannot be combined with MeetingId. MeetingSubject remains an alias.
+#
+# .PARAMETER MeetingId
+# Clean global object ID used to select retained RBA processing directly. A comma after the documented 040000008
+# prefix is normalized for correlation. MeetingId cannot be combined with Subject.
 #
 # .PARAMETER IncludeSensitiveData
-# Includes full-fidelity identities, RBA log content, and transcript content in the JSON output.
-#
-# .PARAMETER MeetingSubject
-# Searches the retained RBA diagnostic log for this subject, extracts meeting IDs from matching processing blocks,
-# and includes every retained RBA processing block for those meeting IDs in the JSON output.
+# Includes full-fidelity identities, complete RBA log content, and transcript content in the JSON report. Without
+# this switch, identities are sanitized; Subject and MeetingId searches still include targeted sensitive evidence.
 #
 # .PARAMETER SkipVersionCheck
-# Skips the automatic script update check.
+# Skips the automatic script update check. Intended primarily for controlled testing.
 #
 # .EXAMPLE
 # .\Get-RBASummary.ps1 -Identity Room1@Contoso.com
-# or
+#
+# Collects a standard sanitized report for the resource mailbox.
+#
+# .EXAMPLE
 # .\Get-RBASummary.ps1 -Identity Room1@Contoso.com -Verbose
+#
+# Collects a standard report and displays additional configuration explanations.
+#
+# .EXAMPLE
+# .\Get-RBASummary.ps1 -Identity Room1@Contoso.com -Subject "Quarterly planning"
+#
+# Searches retained RBA logs for the subject, extracts meeting IDs, and reports each resolved meeting separately.
+#
+# .EXAMPLE
+# .\Get-RBASummary.ps1 -Identity Room1@Contoso.com -MeetingId "04000000800E00074C5A7101A82E00700000000..."
+#
+# Searches retained RBA logs directly for one meeting ID.
+#
+# .EXAMPLE
+# .\Get-RBASummary.ps1 -Identity Room1@Contoso.com -IncludeSensitiveData
+#
+# Includes complete identities, RBA log evidence, and transcript content in the JSON report. Handle the generated
+# files as sensitive customer data.
+#
+# .OUTPUTS
+# Creates timestamp-correlated text summary and JSON report files in the current directory. When RBA diagnostic log
+# evidence is available, also creates a readable RBA log text file. The script writes progress to the host.
+#
+# .NOTES
+# The targeted meeting and full reports can contain meeting subjects, identities, timestamps, and processing details.
+# Review collectionErrors, evaluationErrors, and NotEvaluated findings before relying on a partial report.
 
 [CmdletBinding()]
 param (
     [Parameter(Mandatory = $true, Position = 0)]
     [string]$Identity,
 
+    [Alias("MeetingSubject")]
     [ValidateNotNullOrEmpty()]
-    [string]$MeetingSubject,
+    [string]$Subject,
+
+    [ValidateNotNullOrEmpty()]
+    [string]$MeetingId,
 
     [switch]$IncludeSensitiveData,
 
     [switch]$SkipVersionCheck
 )
+
+if (-not [string]::IsNullOrWhiteSpace($Subject) -and -not [string]::IsNullOrWhiteSpace($MeetingId)) {
+    throw "Specify either Subject or MeetingId, not both."
+}
+
+function ConvertTo-RbaCommandLineValue {
+    param(
+        [AllowNull()]
+        [object]$Value
+    )
+
+    if ($null -eq $Value) {
+        return '$null'
+    }
+
+    if ($Value -is [array]) {
+        $values = @($Value | ForEach-Object { ConvertTo-RbaCommandLineValue -Value $_ })
+        return "@($($values -join ', '))"
+    }
+
+    return "'$(([string]$Value).Replace("'", "''"))'"
+}
+
+$invocationParts = [System.Collections.Generic.List[string]]::new()
+$invocationParts.Add(".\Get-RBASummary.ps1")
+$parameterOrder = @(
+    "Identity", "Subject", "MeetingId", "IncludeSensitiveData", "SkipVersionCheck",
+    "Verbose", "Debug", "ErrorAction", "WarningAction", "InformationAction",
+    "ErrorVariable", "WarningVariable", "InformationVariable", "OutVariable", "OutBuffer", "PipelineVariable"
+)
+foreach ($parameterName in $parameterOrder) {
+    if (-not $PSBoundParameters.ContainsKey($parameterName)) {
+        continue
+    }
+
+    $parameterValue = $PSBoundParameters[$parameterName]
+    if ($parameterValue -is [System.Management.Automation.SwitchParameter] -or $parameterValue -is [bool]) {
+        $invocationParts.Add("-$parameterName`:$($parameterValue.ToString().ToLowerInvariant())")
+    } else {
+        $invocationParts.Add("-$parameterName $(ConvertTo-RbaCommandLineValue -Value $parameterValue)")
+    }
+}
+$script:InvocationCommandLine = $invocationParts -join ' '
 
 $BuildVersion = ""
 
@@ -52,6 +141,7 @@ Write-Verbose "Script Versions: $BuildVersion"
 $runTimestamp = (Get-Date).ToString('yyyy-MM-dd_HH-mm-ss')
 $SummaryFilename = "RBA-Summary-For_$($Identity.Split('@')[0])_$runTimestamp.txt"
 $JsonFilename = "RBA-Summary-For_$($Identity.Split('@')[0])_$runTimestamp.json"
+$script:RbaLogFilename = $null
 $script:collectorStatuses = [ordered]@{}
 $script:collectionErrors = [System.Collections.Generic.List[object]]::new()
 $script:evaluationErrors = [System.Collections.Generic.List[object]]::new()
@@ -60,15 +150,14 @@ $script:ResourceDelegateIdentitySets = @()
 $script:ResourceDelegateIdentitySetsAvailable = $false
 $script:SanitizedIdentityMap = [System.Collections.Generic.Dictionary[string, string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 $script:SanitizedIdentitySequence = 0
-Write-Host "`r`nRBA Summary Output saved as [" -NoNewline
-Write-Host -ForegroundColor Cyan $SummaryFilename -NoNewline
-Write-Host "] in the current directory."
+Write-Host -ForegroundColor Cyan "`r`nRBA Summary Output saved as [$SummaryFilename] in the current directory."
 try {
     Start-Transcript -Path $SummaryFilename -ErrorAction Stop | Out-Null
     $script:TranscriptStarted = $true
 } catch {
     Write-Warning "Unable to start transcript '$SummaryFilename': $($_.Exception.Message)"
 }
+Write-Host "Command line: $script:InvocationCommandLine"
 Write-Host "`r`n"
 
 function ConvertTo-RbaSafeErrorText {
@@ -172,7 +261,9 @@ function Invoke-RbaCollector {
         [Parameter(Mandatory)]
         [ScriptBlock]$Action,
 
-        [switch]$AllowEmptyCollection
+        [switch]$AllowEmptyCollection,
+
+        [string]$FailureMessage
     )
 
     try {
@@ -207,13 +298,17 @@ function Invoke-RbaCollector {
                 fullyQualifiedErrorId = $errorInfo.fullyQualifiedErrorId
                 innerExceptionMessage = $errorInfo.innerExceptionMessage
             })
-        Write-Warning "$Name collection failed: $($errorInfo.message)"
+        if ([string]::IsNullOrWhiteSpace($FailureMessage)) {
+            Write-Warning "$Name collection failed: $($errorInfo.message)"
+        } else {
+            Write-Warning $FailureMessage
+        }
         return $null
     }
 }
 
 function CollectMailbox {
-    Write-Host -NoNewline "Running : "; Write-Host -ForegroundColor Cyan "Get-Mailbox -Identity $Identity"
+    Write-Host -ForegroundColor Cyan "Running: Get-Mailbox -Identity $Identity"
     $script:Mailbox = Invoke-RbaCollector -Name "Mailbox" -Action {
         try {
             $mailbox = Get-Mailbox -Identity $Identity -ErrorAction Stop
@@ -235,12 +330,12 @@ function CollectMailbox {
 
     # check we get a response
     if ($null -eq $script:Mailbox) {
-        Write-Host -ForegroundColor Red "Get-Mailbox was unavailable. Make sure you Import-Module ExchangeOnlineManagement and Connect-ExchangeOnline. Continuing with other collectors."
+        Write-Host -ForegroundColor Red "Get-Mailbox was unavailable. Make sure you Import-Module ExchangeOnlineManagement and Connect-ExchangeOnline."
     } else {
         if ($script:MailboxObjectState -eq "SoftDeleted") {
             Write-Host -ForegroundColor Red "The resource mailbox is soft-deleted and cannot perform active RBA processing."
         } elseif ($script:Mailbox.RecipientTypeDetails -ne "RoomMailbox" -and $script:Mailbox.RecipientTypeDetails -ne "EquipmentMailbox") {
-            Write-Host -ForegroundColor Red "The mailbox is not a Room Mailbox / Equipment Mailbox. RBA will only work with these. Continuing collection."
+            Write-Host -ForegroundColor Red "The mailbox is not a Room Mailbox / Equipment Mailbox. RBA will only work with these. Stopping."
         }
         if ($script:Mailbox.ResourceType -eq "Workspace") {
             $script:Workspace = $true
@@ -253,27 +348,37 @@ function CollectMailbox {
 
 function CollectPlace {
     # Get-Place does not cross forest boundaries so we will get an error here if we are not in the right forest.
-    Write-Host -NoNewline "Running : "; Write-Host -ForegroundColor Cyan "Get-Place -Identity $Identity"
-    $script:Place = Invoke-RbaCollector -Name "Place" -Action {
-        Get-Place -Identity $Identity -ErrorAction Stop
+    Write-Host -ForegroundColor Cyan "Running: Get-Place -Identity $Identity"
+    $placeFailureMessage = "Get-Place failed to get information from $Identity. Double-check the setup of the room."
+    $script:Place = Invoke-RbaCollector -Name "Place" -FailureMessage $placeFailureMessage -Action {
+        $placeOutput = @(Get-Place -Identity $Identity -ErrorAction Stop *>&1)
+        $placeError = @($placeOutput | Where-Object { $_ -is [System.Management.Automation.ErrorRecord] } | Select-Object -First 1)
+        if ($placeError.Count -gt 0) {
+            throw $placeError[0]
+        }
+        @($placeOutput | Where-Object {
+                $_ -isnot [System.Management.Automation.InformationRecord] -and
+                $_ -isnot [System.Management.Automation.WarningRecord] -and
+                $_ -isnot [System.Management.Automation.VerboseRecord] -and
+                $_ -isnot [System.Management.Automation.DebugRecord]
+            })
     }
 
     if ($null -eq $script:Place) {
-        Write-Host -ForegroundColor Red "Get-Place information is unavailable for $Identity."
         Write-Host -ForegroundColor Red "Make sure you are running from the correct forest.  Get-Place does not cross forest boundaries."
         if ($null -ne $script:Mailbox -and $null -ne $script:Mailbox.Database) {
             Write-Host "Hint Forest is likely something like: [$($script:Mailbox.Database.split("DG")[0])]."
         }
     }
 
-    Write-Host -ForegroundColor Yellow "For more information see https://learn.microsoft.com/en-us/powershell/module/exchange/get-mailbox?view=exchange-ps"
+    Write-Host -ForegroundColor Yellow "For more information, see https://learn.microsoft.com/powershell/module/exchange/get-place"
     Write-Host
 }
 
 # Validate that there are not delegate rules that will block RBA functionality
 function ValidateInboxRules {
     Write-Host "Checking for Delegate Rules that will block RBA functionality..."
-    Write-Host -NoNewline "Running : "; Write-Host -ForegroundColor Cyan "Get-InboxRule -mailbox $Identity -IncludeHidden"
+    Write-Host -ForegroundColor Cyan "Running: Get-InboxRule -Mailbox $Identity -IncludeHidden"
     [array]$script:InboxRules = Invoke-RbaCollector -Name "InboxRules" -AllowEmptyCollection -Action {
         @(Get-InboxRule -Mailbox $Identity -IncludeHidden -ErrorAction Stop)
     }
@@ -306,7 +411,7 @@ function ValidateInboxRules {
 
 # Retrieve the CalendarProcessing information
 function GetCalendarProcessing {
-    Write-Host -NoNewline "Running : "; Write-Host -ForegroundColor Cyan "Get-CalendarProcessing -Identity $Identity"
+    Write-Host -ForegroundColor Cyan "Running: Get-CalendarProcessing -Identity $Identity"
     $script:RbaSettings = Invoke-RbaCollector -Name "CalendarProcessing" -Action {
         Get-CalendarProcessing -Identity $Identity -ErrorAction Stop
     }
@@ -320,10 +425,8 @@ function GetCalendarProcessing {
         return
     }
 
-    $RbaSettings | Format-List
-
-    Write-Host -ForegroundColor Yellow "For more information on Set-CalendarProcessing see
-                https://learn.microsoft.com/en-us/powershell/module/exchange/set-calendarprocessing?view=exchange-ps"
+    Write-Host -ForegroundColor Green "Calendar processing settings collected successfully."
+    Write-Host -ForegroundColor Yellow "For more information, see https://learn.microsoft.com/powershell/module/exchange/set-calendarprocessing"
     Write-Host
 }
 
@@ -355,17 +458,24 @@ function Get-RbaPermissionIdentity {
 }
 
 function CollectCalendarFolderPermissions {
-    Write-Host -NoNewline "Running : "; Write-Host -ForegroundColor Cyan "Get-MailboxFolderPermission for the Calendar folder of $Identity"
-    [array]$script:CalendarFolderPermissions = Invoke-RbaCollector -Name "CalendarFolderPermissions" -AllowEmptyCollection -Action {
-        $calendarFolder = Get-MailboxFolderStatistics -Identity $Identity -FolderScope Calendar -ErrorAction Stop |
-            Where-Object { $_.FolderType -eq "Calendar" } |
-            Select-Object -First 1
+    Write-Host -ForegroundColor Cyan "Running: Get-MailboxFolderPermission for the Calendar folder of $Identity"
+    $failureMessage = "Unable to collect Calendar folder permissions for $Identity. Continuing with other available evidence."
+    [array]$script:CalendarFolderPermissions = Invoke-RbaCollector -Name "CalendarFolderPermissions" -AllowEmptyCollection -FailureMessage $failureMessage -Action {
+        Write-Verbose "Locating the Calendar folder for $Identity."
+        # Materialize the remote result before selecting a folder. Select-Object -First can stop the
+        # remote pipeline early and add a misleading "The pipeline has been stopped" transcript entry.
+        $calendarFolders = @(Get-MailboxFolderStatistics -Identity $Identity -FolderScope Calendar -ErrorAction Stop)
+        $calendarFolder = @($calendarFolders | Where-Object { $_.FolderType -eq "Calendar" })[0]
         if ($null -eq $calendarFolder) {
             throw "The Calendar folder could not be located."
         }
 
         $calendarFolderIdentity = "$Identity`:\$($calendarFolder.Name)"
+        Write-Verbose "Collecting permissions from $calendarFolderIdentity."
         @(Get-MailboxFolderPermission -Identity $calendarFolderIdentity -ErrorAction Stop)
+    }
+    if ($script:collectorStatuses["CalendarFolderPermissions"].status -eq "Success") {
+        Write-Host -ForegroundColor Green "Calendar folder permissions collected successfully."
     }
 }
 
@@ -391,7 +501,7 @@ function Initialize-RbaResourceDelegateIdentitySets {
 }
 
 function CollectMailboxPermissions {
-    Write-Host -NoNewline "Running : "; Write-Host -ForegroundColor Cyan "Get-MailboxPermission -Identity $Identity"
+    Write-Host -ForegroundColor Cyan "Running: Get-MailboxPermission -Identity $Identity"
     [array]$script:MailboxPermissions = Invoke-RbaCollector -Name "MailboxPermissions" -AllowEmptyCollection -Action {
         @(Get-MailboxPermission -Identity $Identity -ErrorAction Stop)
     }
@@ -782,28 +892,27 @@ function VerbosePostProcessing {
 
 #Add information about RBA logs.
 function RBAPostScript {
-    Write-Host
-    Write-Host "If more information is needed about this resource mailbox, please look at the RBA logs saved in this directory to
-        see how the system proceed the meeting request."
-    Write-Host "To get new RBA Logs, run the following command:"
+    Write-DashLineBoxColor @("Next Steps") -Color Cyan
+    Write-Host "Review the saved RBA log to see how meeting requests were processed."
+    Write-Host "To collect a new RBA log:"
     Write-Host -ForegroundColor Yellow "`tExport-MailboxDiagnosticLogs $Identity -ComponentName RBA"
     Write-Host
-    Write-Host "To continue troubleshooting further, suggestion is to create a Test Meeting and send it to this room, making sure that the meeting is in the future, as the RBA does not process meeting in the past)."
-    Write-Host "Then pull the RBA Logs as well as the Calendar Diagnostic Objects for the Meeting Organizer and the Room to see how the system processed the meeting request."
-    Write-Host "For Calendar Diagnostic Objects, try [CalLogSummaryScript](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Get-CalendarDiagnosticObjectsSummary.ps1)"
-
-    Write-Host "`n`rIf you found an error with this script or a misconfigured RBA case that this should cover,
-         send mail to Shanefe@microsoft.com"
+    Write-Host "For additional troubleshooting, send a future test meeting to the room, then collect RBA logs and Calendar Diagnostic Objects for the organizer and room."
+    Write-Host "Calendar Diagnostic Objects tool:"
+    Write-Host -ForegroundColor Cyan "`thttps://github.com/microsoft/CSS-Exchange/releases/latest/download/Get-CalendarDiagnosticObjectsSummary.ps1"
+    Write-Host "`r`nFeedback: CalLogFormatterDevs@microsoft.com"
 }
 
 function CollectRBALog {
-    Write-Host -NoNewline "Running : "; Write-Host -ForegroundColor Cyan "Export-MailboxDiagnosticLogs -Identity $Identity -ComponentName RBA"
+    Write-Host -ForegroundColor Cyan "Running: Export-MailboxDiagnosticLogs -Identity $Identity -ComponentName RBA"
     $diagnosticLog = Invoke-RbaCollector -Name "RbaLog" -Action {
         Export-MailboxDiagnosticLogs -Identity $Identity -ComponentName RBA -ErrorAction Stop
     }
 
     if ($null -ne $diagnosticLog) {
-        [array]$script:RBALog = $diagnosticLog.MailboxLog -split "`r?`n"
+        [array]$script:RBALog = @($diagnosticLog.MailboxLog -split "`r?`n" | Where-Object {
+                -not [string]::IsNullOrWhiteSpace($_)
+            })
     }
 }
 
@@ -811,6 +920,7 @@ function Get-RbaMeetingIdsFromLogLines {
     param(
         [Parameter(Mandatory)]
         [AllowEmptyCollection()]
+        [AllowEmptyString()]
         [string[]]$Lines
     )
 
@@ -833,10 +943,20 @@ function Get-RbaMeetingIdsFromLogLines {
     return @($meetingIds | Sort-Object -Unique)
 }
 
+function ConvertTo-RbaNormalizedMeetingId {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Value
+    )
+
+    return (($Value.Trim() -replace '^[\[\{]', '') -replace '[\]\}]$', '') -replace ',', ''
+}
+
 function Split-RbaLogProcessingBlocks {
     param(
         [Parameter(Mandatory)]
         [AllowEmptyCollection()]
+        [AllowEmptyString()]
         [string[]]$Lines
     )
 
@@ -915,6 +1035,7 @@ function Test-RbaLogLinesContainText {
     param(
         [Parameter(Mandatory)]
         [AllowEmptyCollection()]
+        [AllowEmptyString()]
         [string[]]$Lines,
 
         [Parameter(Mandatory)]
@@ -927,6 +1048,118 @@ function Test-RbaLogLinesContainText {
         }
     }
     return $false
+}
+
+function Get-RbaLogLineTimeText {
+    param(
+        [AllowNull()]
+        [string]$Line
+    )
+
+    if (-not [string]::IsNullOrWhiteSpace($Line) -and $Line -match '^(?<TimeText>[^,]+),') {
+        return $Matches['TimeText'].Trim()
+    }
+    return $null
+}
+
+function Get-RbaTargetedMeetingDetails {
+    param(
+        [Parameter(Mandatory)]
+        [AllowEmptyCollection()]
+        [object[]]$Events
+    )
+
+    $lines = @($Events | ForEach-Object { @($_.rawLog) })
+    if ($lines.Count -eq 0) {
+        return [PSCustomObject]@{
+            firstLogTimeText      = $null
+            lastLogTimeText       = $null
+            lastUpdateTimeText    = $null
+            recurrenceStatus      = "Unknown"
+            policyResult          = "Unknown"
+            disposition           = "Unknown"
+            forwardedToDelegates  = $false
+            delegateMessageCount  = $null
+            tentativeResponseSent = $false
+        }
+    }
+
+    $timestampedLines = @($lines | Where-Object { $_ -match '^[^,]+,' })
+    $initialRequestLines = @($lines | Where-Object { $_ -match '(?i)\bBegin ProcessRequest\s+Goid:' })
+    $updateLines = @($lines | Where-Object { $_ -match '(?i)\b(?:Begin|End) ProcessUpdateRequest\s+Goid:' })
+    $meetingActivityLines = @($timestampedLines | Where-Object {
+            $_ -match '(?i)\b(?:Begin|End) Process(?:Update)?Request\s+Goid:' -or
+            $_ -match '(?i)Action:(?:Accept|Decline|Tentative)' -or
+            $_ -match '(?i)meeting cancellation|Cancellation processing completed' -or
+            $_ -match '(?i)\bEND - Sending the .*response to organizer\.' -or
+            $_ -match '(?i)\bPostProcessing completed on '
+        })
+    $recurringDetected = @($lines | Where-Object {
+            $_ -match '(?i)\bIsRecurring\s*[:=]\s*True\b' -or
+            $_ -match '(?i)\bRecurring meeting request\b' -or
+            $_ -match '(?i)Recurrence ends is past the booking window\. Meeting will be declined\.' -or
+            $_ -match '(?i)Truncating meeting recurrence end window'
+        }).Count -gt 0
+    $notRecurringDetected = @($lines | Where-Object {
+            $_ -match '(?i)\bIsRecurring\s*[:=]\s*False\b' -or
+            $_ -match '(?i)\bNon-recurring meeting request\b'
+        }).Count -gt 0
+    $policyResults = @($Events | ForEach-Object { $_.policyResult } |
+            Where-Object { $_ -ne "Unknown" } | Sort-Object -Unique)
+    $dispositions = @($Events | ForEach-Object { $_.disposition } |
+            Where-Object { $_ -ne "Unknown" } | Sort-Object -Unique)
+    $delegateMessageCounts = @($Events | ForEach-Object { $_.delegateMessageCount } |
+            Where-Object { $null -ne $_ })
+
+    return [PSCustomObject]@{
+        firstLogTimeText      = Get-RbaLogLineTimeText -Line $(if ($initialRequestLines.Count -gt 0) { $initialRequestLines[-1] } elseif ($timestampedLines.Count -gt 0) { $timestampedLines[-1] } else { $null })
+        lastLogTimeText       = Get-RbaLogLineTimeText -Line $(if ($meetingActivityLines.Count -gt 0) { $meetingActivityLines[0] } elseif ($timestampedLines.Count -gt 0) { $timestampedLines[0] } else { $null })
+        lastUpdateTimeText    = Get-RbaLogLineTimeText -Line $(if ($updateLines.Count -gt 0) { $updateLines[0] } else { $null })
+        recurrenceStatus      = $(if ($recurringDetected) { "Recurring" } elseif ($notRecurringDetected) { "NotRecurring" } else { "Unknown" })
+        policyResult          = $(if ($policyResults.Count -eq 1) { $policyResults[0] } elseif ($policyResults.Count -gt 1) { "Mixed" } else { "Unknown" })
+        disposition           = $(if ($dispositions.Count -eq 1) { $dispositions[0] } elseif ($dispositions.Count -gt 1) { "Multiple" } else { "Unknown" })
+        forwardedToDelegates  = @($Events | Where-Object { $_.delegateReferralDetected }).Count -gt 0
+        delegateMessageCount  = $(if ($delegateMessageCounts.Count -gt 0) { ($delegateMessageCounts | Measure-Object -Sum).Sum } else { $null })
+        tentativeResponseSent = @($Events | Where-Object { $_.tentativeResponseSent }).Count -gt 0
+    }
+}
+
+function Get-RbaTargetedMeetingSummaries {
+    param(
+        [Parameter(Mandatory)]
+        [AllowEmptyCollection()]
+        [string[]]$MeetingIds,
+
+        [Parameter(Mandatory)]
+        [AllowEmptyCollection()]
+        [object[]]$Events
+    )
+
+    return @($MeetingIds | ForEach-Object {
+            $currentMeetingId = $_
+            $meetingEvents = @($Events | Where-Object { @($_.meetingIds) -contains $currentMeetingId })
+            $details = Get-RbaTargetedMeetingDetails -Events $meetingEvents
+            [PSCustomObject]@{
+                meetingId             = $currentMeetingId
+                eventCount            = $meetingEvents.Count
+                firstLogTimeText      = $details.firstLogTimeText
+                lastLogTimeText       = $details.lastLogTimeText
+                lastUpdateTimeText    = $details.lastUpdateTimeText
+                recurrenceStatus      = $details.recurrenceStatus
+                policyResult          = $details.policyResult
+                disposition           = $details.disposition
+                tentativeResponseSent = $details.tentativeResponseSent
+                forwardedToDelegates  = $details.forwardedToDelegates
+                delegateMessageCount  = $details.delegateMessageCount
+                acceptCount           = @($meetingEvents | Where-Object { $_.actions -contains "Accept" }).Count
+                tentativeCount        = @($meetingEvents | Where-Object { $_.actions -contains "Tentative" }).Count
+                declineCount          = @($meetingEvents | Where-Object { $_.actions -contains "Decline" }).Count
+                updateCount           = @($meetingEvents | Where-Object { $_.updateDetected }).Count
+                cancellationCount     = @($meetingEvents | Where-Object { $_.cancellationDetected }).Count
+                delegateReferralCount = @($meetingEvents | Where-Object { $_.delegateReferralDetected }).Count
+                eventSequences        = @($meetingEvents.sequence)
+            }
+        })
 }
 
 function Get-RbaTargetedLogBlockObject {
@@ -943,6 +1176,19 @@ function Get-RbaTargetedLogBlockObject {
                 $match.Groups['Action'].Value
             }
         } | Sort-Object -Unique)
+    $evaluationResults = @($Block.lines | ForEach-Object {
+            foreach ($match in [regex]::Matches($_, '(?i)Meeting request evaluate returns result\s+(?<Action>Accept|Decline|Tentative)')) {
+                $match.Groups['Action'].Value
+            }
+        } | Sort-Object -Unique)
+    $dispositions = @($actions + $evaluationResults | Sort-Object -Unique)
+    $delegateMessageCounts = @($Block.lines | ForEach-Object {
+            foreach ($match in [regex]::Matches($_, '(?i)Sending approval messages to\s+(?<Count>\d+)\s+delegates\.')) {
+                [int]$match.Groups['Count'].Value
+            }
+        })
+    $inPolicyDetected = Test-RbaLogLinesContainText -Lines $Block.lines -Text 'Defaulting to in policy.'
+    $outOfPolicyDetected = Test-RbaLogLinesContainText -Lines $Block.lines -Text 'Not in policy.'
 
     return [PSCustomObject]@{
         sequence                   = $Block.sequence
@@ -958,9 +1204,13 @@ function Get-RbaTargetedLogBlockObject {
         subjectMatched             = $SubjectMatched
         meetingIds                 = @($Block.meetingIds)
         actions                    = $actions
+        policyResult               = $(if ($inPolicyDetected -and $outOfPolicyDetected) { "Mixed" } elseif ($inPolicyDetected) { "InPolicy" } elseif ($outOfPolicyDetected) { "OutOfPolicy" } else { "Unknown" })
+        disposition                = $(if ($dispositions.Count -eq 1) { $dispositions[0] } elseif ($dispositions.Count -gt 1) { "Multiple" } else { "Unknown" })
         updateDetected             = Test-RbaLogLinesContainText -Lines $Block.lines -Text 'Begin ProcessUpdateRequest'
         cancellationDetected       = Test-RbaLogLinesContainText -Lines $Block.lines -Text "It's a meeting cancellation."
         delegateReferralDetected   = Test-RbaLogLinesContainText -Lines $Block.lines -Text 'Forwarding Request To Delegates'
+        delegateMessageCount       = $(if ($delegateMessageCounts.Count -gt 0) { ($delegateMessageCounts | Measure-Object -Sum).Sum } else { $null })
+        tentativeResponseSent      = Test-RbaLogLinesContainText -Lines $Block.lines -Text 'END - Sending the tentatively acceptance response to organizer.'
         externalProcessingSkipped  = Test-RbaLogLinesContainText -Lines $Block.lines -Text 'Skipping processing because user settings for processing external items is false.'
         horizonDeclineDetected     = Test-RbaLogLinesContainText -Lines $Block.lines -Text 'Recurrence ends is past the booking window. Meeting will be declined.'
         recurrenceTruncateDetected = Test-RbaLogLinesContainText -Lines $Block.lines -Text 'Truncating meeting recurrence end window'
@@ -969,9 +1219,20 @@ function Get-RbaTargetedLogBlockObject {
 }
 
 function Get-RbaMeetingLogSearchObject {
-    if ([string]::IsNullOrWhiteSpace($MeetingSubject)) {
+    $normalizedRequestedMeetingId = if (-not [string]::IsNullOrWhiteSpace($MeetingId)) {
+        ConvertTo-RbaNormalizedMeetingId -Value $MeetingId
+    } else { $null }
+    $searchType = if (-not [string]::IsNullOrWhiteSpace($Subject)) {
+        "Subject"
+    } elseif (-not [string]::IsNullOrWhiteSpace($normalizedRequestedMeetingId)) {
+        "MeetingId"
+    } else { "None" }
+
+    if ($searchType -eq "None") {
         return [PSCustomObject]@{
+            searchType                       = $searchType
             searchSubject                    = $null
+            searchMeetingId                  = $null
             status                           = "NotRequested"
             sourceOrder                      = "NewestFirst"
             eventOrder                       = "NewestFirst"
@@ -988,13 +1249,25 @@ function Get-RbaMeetingLogSearchObject {
             externalSkippedCount             = 0
             horizonDeclineCount              = 0
             recurrenceTruncateCount          = 0
+            firstLogTimeText                 = $null
+            lastLogTimeText                  = $null
+            lastUpdateTimeText               = $null
+            recurrenceStatus                 = "Unknown"
+            policyResult                     = "Unknown"
+            disposition                      = "Unknown"
+            forwardedToDelegates             = $false
+            delegateMessageCount             = $null
+            tentativeResponseSent            = $false
+            meetings                         = @()
             events                           = @()
         }
     }
 
     if ($script:collectorStatuses["RbaLog"].status -ne "Success") {
         return [PSCustomObject]@{
-            searchSubject                    = $MeetingSubject
+            searchType                       = $searchType
+            searchSubject                    = $Subject
+            searchMeetingId                  = $normalizedRequestedMeetingId
             status                           = "LogUnavailable"
             sourceOrder                      = "NewestFirst"
             eventOrder                       = "NewestFirst"
@@ -1005,17 +1278,73 @@ function Get-RbaMeetingLogSearchObject {
             updateCount                      = 0
             cancellationCount                = 0
             declineCount                     = 0
+            firstLogTimeText                 = $null
+            lastLogTimeText                  = $null
+            lastUpdateTimeText               = $null
+            recurrenceStatus                 = "Unknown"
+            policyResult                     = "Unknown"
+            disposition                      = "Unknown"
+            forwardedToDelegates             = $false
+            delegateMessageCount             = $null
+            tentativeResponseSent            = $false
+            meetings                         = @()
             events                           = @()
         }
     }
 
     $blocks = @(Split-RbaLogProcessingBlocks -Lines @($script:RBALog))
+    if ($searchType -eq "MeetingId") {
+        $selectedBlocks = @($blocks | Where-Object {
+                @($_.meetingIds) -contains $normalizedRequestedMeetingId
+            })
+        $events = @($selectedBlocks | ForEach-Object {
+                Get-RbaTargetedLogBlockObject -Block $_ -SubjectMatched $false
+            })
+        $meetingDetails = Get-RbaTargetedMeetingDetails -Events $events
+        $meetingSummaries = @(Get-RbaTargetedMeetingSummaries -MeetingIds @($normalizedRequestedMeetingId) -Events $events)
+
+        return [PSCustomObject]@{
+            searchType                       = $searchType
+            searchSubject                    = $null
+            searchMeetingId                  = $normalizedRequestedMeetingId
+            status                           = $(if ($events.Count -gt 0) { "Found" } else { "NotFound" })
+            sourceOrder                      = "NewestFirst"
+            eventOrder                       = "NewestFirst"
+            rawLogChronologicalReadDirection = "BottomToTop"
+            subjectMatchCount                = 0
+            meetingIds                       = $(if ($events.Count -gt 0) { @($normalizedRequestedMeetingId) } else { @() })
+            eventCount                       = $events.Count
+            acceptCount                      = @($events | Where-Object { $_.actions -contains "Accept" }).Count
+            tentativeCount                   = @($events | Where-Object { $_.actions -contains "Tentative" }).Count
+            declineCount                     = @($events | Where-Object { $_.actions -contains "Decline" }).Count
+            updateCount                      = @($events | Where-Object { $_.updateDetected }).Count
+            cancellationCount                = @($events | Where-Object { $_.cancellationDetected }).Count
+            delegateReferralCount            = @($events | Where-Object { $_.delegateReferralDetected }).Count
+            externalSkippedCount             = @($events | Where-Object { $_.externalProcessingSkipped }).Count
+            horizonDeclineCount              = @($events | Where-Object { $_.horizonDeclineDetected }).Count
+            recurrenceTruncateCount          = @($events | Where-Object { $_.recurrenceTruncateDetected }).Count
+            firstLogTimeText                 = $meetingDetails.firstLogTimeText
+            lastLogTimeText                  = $meetingDetails.lastLogTimeText
+            lastUpdateTimeText               = $meetingDetails.lastUpdateTimeText
+            recurrenceStatus                 = $meetingDetails.recurrenceStatus
+            policyResult                     = $meetingDetails.policyResult
+            disposition                      = $meetingDetails.disposition
+            forwardedToDelegates             = $meetingDetails.forwardedToDelegates
+            delegateMessageCount             = $meetingDetails.delegateMessageCount
+            tentativeResponseSent            = $meetingDetails.tentativeResponseSent
+            meetings                         = $meetingSummaries
+            events                           = $events
+        }
+    }
+
     $subjectBlocks = @($blocks | Where-Object {
-            Test-RbaLogLinesContainText -Lines $_.lines -Text $MeetingSubject
+            Test-RbaLogLinesContainText -Lines $_.lines -Text $Subject
         })
     if ($subjectBlocks.Count -eq 0) {
         return [PSCustomObject]@{
-            searchSubject                    = $MeetingSubject
+            searchType                       = $searchType
+            searchSubject                    = $Subject
+            searchMeetingId                  = $null
             status                           = "NotFound"
             sourceOrder                      = "NewestFirst"
             eventOrder                       = "NewestFirst"
@@ -1026,16 +1355,34 @@ function Get-RbaMeetingLogSearchObject {
             updateCount                      = 0
             cancellationCount                = 0
             declineCount                     = 0
+            firstLogTimeText                 = $null
+            lastLogTimeText                  = $null
+            lastUpdateTimeText               = $null
+            recurrenceStatus                 = "Unknown"
+            policyResult                     = "Unknown"
+            disposition                      = "Unknown"
+            forwardedToDelegates             = $false
+            delegateMessageCount             = $null
+            tentativeResponseSent            = $false
+            meetings                         = @()
             events                           = @()
         }
     }
 
-    $meetingIds = @($subjectBlocks.meetingIds | Sort-Object -Unique)
+    $meetingIds = @($subjectBlocks | ForEach-Object {
+            @($_.meetingIds) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+        } | Sort-Object -Unique)
     $selectedBlocks = if ($meetingIds.Count -gt 0) {
         @($blocks | Where-Object {
                 $blockMeetingIds = @($_.meetingIds)
-                @($blockMeetingIds | Where-Object { $_ -in $meetingIds }).Count -gt 0 -or
-                (Test-RbaLogLinesContainText -Lines $_.lines -Text $MeetingSubject)
+                $blockMatches = $false
+                foreach ($resolvedMeetingId in $meetingIds) {
+                    if ($blockMeetingIds -contains $resolvedMeetingId) {
+                        $blockMatches = $true
+                        break
+                    }
+                }
+                $blockMatches
             })
     } else {
         $subjectBlocks
@@ -1043,12 +1390,16 @@ function Get-RbaMeetingLogSearchObject {
 
     $events = @($selectedBlocks | ForEach-Object {
             Get-RbaTargetedLogBlockObject -Block $_ `
-                -SubjectMatched (Test-RbaLogLinesContainText -Lines $_.lines -Text $MeetingSubject)
+                -SubjectMatched (Test-RbaLogLinesContainText -Lines $_.lines -Text $Subject)
         })
     $status = if ($meetingIds.Count -gt 0) { "Found" } else { "FoundWithoutMeetingId" }
+    $meetingDetails = Get-RbaTargetedMeetingDetails -Events $events
+    $meetingSummaries = @(Get-RbaTargetedMeetingSummaries -MeetingIds $meetingIds -Events $events)
 
     return [PSCustomObject]@{
-        searchSubject                    = $MeetingSubject
+        searchType                       = $searchType
+        searchSubject                    = $Subject
+        searchMeetingId                  = $null
         status                           = $status
         sourceOrder                      = "NewestFirst"
         eventOrder                       = "NewestFirst"
@@ -1065,8 +1416,43 @@ function Get-RbaMeetingLogSearchObject {
         externalSkippedCount             = @($events | Where-Object { $_.externalProcessingSkipped }).Count
         horizonDeclineCount              = @($events | Where-Object { $_.horizonDeclineDetected }).Count
         recurrenceTruncateCount          = @($events | Where-Object { $_.recurrenceTruncateDetected }).Count
+        firstLogTimeText                 = $meetingDetails.firstLogTimeText
+        lastLogTimeText                  = $meetingDetails.lastLogTimeText
+        lastUpdateTimeText               = $meetingDetails.lastUpdateTimeText
+        recurrenceStatus                 = $meetingDetails.recurrenceStatus
+        policyResult                     = $meetingDetails.policyResult
+        disposition                      = $meetingDetails.disposition
+        forwardedToDelegates             = $meetingDetails.forwardedToDelegates
+        delegateMessageCount             = $meetingDetails.delegateMessageCount
+        tentativeResponseSent            = $meetingDetails.tentativeResponseSent
+        meetings                         = $meetingSummaries
         events                           = $events
     }
+}
+
+function Write-RbaTargetedMeetingSummary {
+    param(
+        [Parameter(Mandatory)]
+        [object]$MeetingSummary,
+
+        [string]$Indent = "  "
+    )
+
+    Write-Host "$($Indent)Meeting ID                 $($MeetingSummary.meetingId)"
+    Write-Host "$($Indent)Correlated events          $($MeetingSummary.eventCount)"
+    Write-Host "$($Indent)First meeting log          $($MeetingSummary.firstLogTimeText)"
+    Write-Host "$($Indent)Latest meeting log         $($MeetingSummary.lastLogTimeText)"
+    Write-Host "$($Indent)Last meeting update        $(if ($null -ne $MeetingSummary.lastUpdateTimeText) { $MeetingSummary.lastUpdateTimeText } else { '[None found]' })"
+    Write-Host "$($Indent)Recurrence                 $($MeetingSummary.recurrenceStatus)"
+    Write-Host "$($Indent)Policy result              $(switch ($MeetingSummary.policyResult) { 'InPolicy' { 'In policy' } 'OutOfPolicy' { 'Out of policy' } default { $MeetingSummary.policyResult } })"
+    Write-Host "$($Indent)Disposition                $(switch ($MeetingSummary.disposition) { 'Accept' { 'Accepted' } 'Tentative' { 'Tentatively accepted' } 'Decline' { 'Declined' } default { $MeetingSummary.disposition } })"
+    Write-Host "$($Indent)Tentative response sent    $(if ($MeetingSummary.tentativeResponseSent) { 'Yes' } else { 'No' })"
+    Write-Host "$($Indent)Forwarded to delegates     $(if ($MeetingSummary.forwardedToDelegates) { 'Yes' } else { 'No' })"
+    if ($null -ne $MeetingSummary.delegateMessageCount) {
+        Write-Host "$($Indent)Delegate approval messages $($MeetingSummary.delegateMessageCount)"
+    }
+    Write-Host "$($Indent)Actions                    Accept=$($MeetingSummary.acceptCount), Tentative=$($MeetingSummary.tentativeCount), Decline=$($MeetingSummary.declineCount)"
+    Write-Host "$($Indent)Updates / cancellations    $($MeetingSummary.updateCount) / $($MeetingSummary.cancellationCount)"
 }
 
 function RBALogSummary {
@@ -1078,7 +1464,6 @@ function RBALogSummary {
     }
 
     if ($script:RBALog.count -gt 1) {
-        Write-Host "`tFound $($script:RBALog.count) RBA Log entries in RBALog.  Summarizing Accepts, Declines, and Tentative meetings."
         $Starts = $script:RBALog | Select-String -Pattern "START -"
         $FirstDate = "[Unknown]"
         $LastDate = "[Unknown]"
@@ -1086,8 +1471,6 @@ function RBALogSummary {
         if ($starts.count -gt 1) {
             $LastDate = ($Starts[0] -split ",")[0].Trim()
             $FirstDate = ($starts[$($Starts.count) -1 ] -split ",")[0].Trim()
-            Write-Host "`tThe RBA Log for [$Identity] shows the following:"
-            Write-Host "`t $($starts.count) Processed events times between $FirstDate and $LastDate"
         }
 
         $AcceptLogs = $script:RBALog | Select-String -Pattern "Action:Accept"
@@ -1099,74 +1482,95 @@ function RBALogSummary {
         $NonMeetingRequests = $script:RBALog | Select-String -Pattern "Item is not a meeting request"
         $Cancellations = $script:RBALog | Select-String -Pattern "It's a meeting cancellation."
 
+        Write-Host "RBA log activity for [$Identity]:"
+        Write-Host ("  {0,-26} {1,6}" -f "Log entries", $script:RBALog.count)
+        Write-Host ("  {0,-26} {1,6}" -f "Processed events", $Starts.count)
+        Write-Host ("  {0,-26} {1,6}" -f "Accepted", $AcceptLogs.count)
+        Write-Host ("  {0,-26} {1,6}" -f "Tentatively accepted", $TentativeLogs.count)
+        Write-Host ("  {0,-26} {1,6}" -f "Declined", $DeclineLogs.count)
+        Write-Host ("  {0,-26} {1,6}" -f "Updates", $UpdatedLogs.count)
+        Write-Host ("  {0,-26} {1,6}" -f "Cancellations", $Cancellations.count)
+        Write-Host ("  {0,-26} {1,6}" -f "Delegate referrals", $DelegateReferrals.count)
+        Write-Host ("  {0,-26} {1,6}" -f "Non-meeting requests", $NonMeetingRequests.count)
+        Write-Host ("  {0,-26} {1,6}" -f "Skipped external meetings", $SkippedExternal.count)
+        Write-Host "  Date range                 $FirstDate to $LastDate"
+
         if ($AcceptLogs.count -ne 0) {
             $LastAccept = ($AcceptLogs[0] -split ",")[0].Trim()
-            Write-Host "`t $($AcceptLogs.count) were Accepted between $FirstDate and $LastDate"
-            Write-Host "`t`t with the last meeting Accepted on $LastAccept"
+            Write-Host "  Last accepted              $LastAccept"
         }
 
         if ($TentativeLogs.count -ne 0) {
             $LastTentative = ($TentativeLogs[0] -split ",")[0].Trim()
-            Write-Host "`t $($TentativeLogs.count) Tentatively Accepted meetings between $FirstDate and $LastDate"
-            Write-Host "`t`t with the last meeting Tentatively Accepted on $LastTentative"
+            Write-Host "  Last tentatively accepted  $LastTentative"
         }
 
         if ($DeclineLogs.count -ne 0) {
             $LastDecline = ($DeclineLogs[0] -split ",")[0].Trim()
-            Write-Host "`t $($DeclineLogs.count) Declined meetings between $FirstDate and $LastDate"
-            Write-Host "`t`t with the last meeting Declined on $LastDecline"
-        }
-
-        if ($AcceptLogs.count -eq 0 -and $TentativeLogs.count -eq 0 -and $DeclineLogs.count -eq 0) {
-            Write-Host -ForegroundColor Red "`t No meetings were processed in the RBA Log."
+            Write-Host "  Last declined              $LastDecline"
         }
 
         if ($UpdatedLogs.count -ne 0) {
             $LastUpdated = ($UpdatedLogs[0] -split ",")[0].Trim()
-            Write-Host "`t $($UpdatedLogs.count) Updates to meetings between $FirstDate and $LastDate"
-            Write-Host "`t`t with the last meeting updated on $LastUpdated"
-        } else {
-            Write-Host -ForegroundColor Red "`t No meetings were updated in the RBA Log."
-        }
-
-        if ($Cancellations.count -ne 0) {
-            Write-Host "`t $($Cancellations.count) Cancellations were processed."
-        } else {
-            Write-Host "`t No meetings were canceled in the RBA Log."
+            Write-Host "  Last updated               $LastUpdated"
         }
 
         if ($DelegateReferrals.count -ne 0) {
             $LastDelegateReferral = ($DelegateReferrals[0] -split ",")[0].Trim()
-            Write-Host "`t $($DelegateReferrals.count) Delegate Referrals were sent between $FirstDate and $LastDate"
-            Write-Host "`t`t with the last Delegate Referral sent on $LastDelegateReferral"
-        } else {
-            Write-Host "`t No Delegate Referrals were sent in the RBA Log."
+            Write-Host "  Last delegate referral     $LastDelegateReferral"
         }
 
         if ($NonMeetingRequests.count -ne 0) {
             $LastNonMeetingRequest = ($NonMeetingRequests[0] -split ",")[0].Trim()
-            Write-Host "`t $($NonMeetingRequests.count) Non Meeting Requests were skipped between $FirstDate and $LastDate"
-            Write-Host "`t`t with the last Non Meeting Request skipped on $LastNonMeetingRequest"
-        } else {
-            Write-Host "`t No Non Meeting Requests were skipped in the RBA Log."
+            Write-Host "  Last non-meeting request   $LastNonMeetingRequest"
+        }
+
+        if ($script:MeetingLogSearch.status -ne "NotRequested") {
+            Write-Host
+            Write-Host -ForegroundColor DarkBlue "Targeted meeting search:"
+            if ($script:MeetingLogSearch.searchType -eq "Subject") {
+                Write-Host "  Subject                    [$($script:MeetingLogSearch.searchSubject)]"
+                Write-Host "  Subject matches            $($script:MeetingLogSearch.subjectMatchCount)"
+            } else {
+                Write-Host "  Requested meeting ID       $($script:MeetingLogSearch.searchMeetingId)"
+            }
+            Write-Host "  Search result              $($script:MeetingLogSearch.status)"
+            Write-Host "  Correlated events (total)  $($script:MeetingLogSearch.eventCount)"
+            if (@($script:MeetingLogSearch.meetingIds).Count -gt 0) {
+                $meetingSummaries = @($script:MeetingLogSearch.meetings)
+                if ($meetingSummaries.Count -gt 1) {
+                    Write-Warning "The subject matched $($meetingSummaries.Count) meeting IDs. Results are separated below; rerun with -MeetingId to investigate one meeting."
+                    for ($meetingIndex = 0; $meetingIndex -lt $meetingSummaries.Count; $meetingIndex++) {
+                        Write-Host
+                        Write-Host -ForegroundColor DarkBlue "  Meeting $($meetingIndex + 1) of $($meetingSummaries.Count):"
+                        Write-RbaTargetedMeetingSummary -MeetingSummary $meetingSummaries[$meetingIndex] -Indent "    "
+                    }
+                } else {
+                    Write-RbaTargetedMeetingSummary -MeetingSummary $meetingSummaries[0]
+                }
+                if ($script:MeetingLogSearch.searchType -eq "Subject") {
+                    Write-Host "  Subject discovery completed; subsequent correlation uses the meeting ID(s)."
+                }
+            } elseif ($script:MeetingLogSearch.status -eq "NotFound") {
+                Write-Warning "The requested meeting was not found in the retained RBA log. Older events may have rolled off."
+            } elseif ($script:MeetingLogSearch.status -eq "FoundWithoutMeetingId") {
+                Write-Warning "The subject was found, but no meeting ID could be extracted for correlation."
+            }
         }
 
         if ($SkippedExternal.count -ne 0) {
             if ($SkippedExternal.Count -lt 3) {
-                Write-Host "`t Warning: $($SkippedExternal.count) External meetings were skipped as processing external items is false."
+                Write-Host -ForegroundColor Yellow "Warning: $($SkippedExternal.count) external meetings were skipped because external-item processing is disabled."
             } else {
-                Write-Host -ForegroundColor Red "`t Warning: $($SkippedExternal.count) External meetings were skipped as processing external items is false."
-                Write-Host -ForegroundColor Red "`t`t Many skipped external meetings may indicate a configuration issue in Transport."
-                Write-Host -ForegroundColor Red "`t`t Validate that Internal Meetings are not getting marked as External."
+                Write-Host -ForegroundColor Red "Warning: $($SkippedExternal.count) external meetings were skipped because external-item processing is disabled."
+                Write-Host -ForegroundColor Red "Many skipped external meetings may indicate a Transport configuration issue. Validate that internal meetings are not marked as external."
             }
         }
 
-        $Filename = "RBA-Logs_$($Identity.Split('@')[0])_$runTimestamp.txt"
-        Write-Host "`r`n`t RBA Logs saved as [" -NoNewline
-        Write-Host -ForegroundColor Cyan $Filename -NoNewline
-        Write-Host "] in the current directory."
+        $script:RbaLogFilename = "RBA-Logs_$($Identity.Split('@')[0])_$runTimestamp.txt"
         $script:RBALog.replace(", Entry Action: Message, LogComment", "").replace("Mailbox: ", "") |
-            Out-File -FilePath $Filename
+            Out-File -FilePath $script:RbaLogFilename -Encoding utf8
+        Write-Host -ForegroundColor Cyan "`r`nRBA logs saved as [$script:RbaLogFilename] in the current directory."
 
         RBAPostScript
     } else {
@@ -1676,16 +2080,16 @@ function Get-RbaFindings {
         -Title "Recurring requests were truncated at the booking window" `
         -Evidence @{ count = $recurrenceTruncationCount }
 
-    $meetingSearchRequested = -not [string]::IsNullOrWhiteSpace($MeetingSubject)
+    $meetingSearchRequested = -not [string]::IsNullOrWhiteSpace($Subject) -or -not [string]::IsNullOrWhiteSpace($MeetingId)
     $meetingSearchStatus = $script:MeetingLogSearch.status
     Add-RbaFinding -Findings $findings -RuleId "RBA710" -Severity Warning `
         -Status $(if (-not $meetingSearchRequested) { "NotApplicable" } elseif (-not $logAvailable) { "NotEvaluated" } elseif ($meetingSearchStatus -eq "NotFound") { "Detected" } else { "NotDetected" }) `
-        -Title "Meeting subject was not found in the retained RBA log" `
+        -Title "Requested meeting was not found in the retained RBA log" `
         -Evidence @{ searchStatus = $meetingSearchStatus; subjectMatchCount = $script:MeetingLogSearch.subjectMatchCount }
 
     Add-RbaFinding -Findings $findings -RuleId "RBA711" -Severity Information `
         -Status $(if (-not $meetingSearchRequested) { "NotApplicable" } elseif (-not $logAvailable) { "NotEvaluated" } elseif ($meetingSearchStatus -in @("Found", "FoundWithoutMeetingId")) { "Detected" } else { "NotDetected" }) `
-        -Title "Meeting subject was found in the retained RBA log" `
+        -Title "Requested meeting was found in the retained RBA log" `
         -Evidence @{ searchStatus = $meetingSearchStatus; subjectMatchCount = $script:MeetingLogSearch.subjectMatchCount; meetingIdCount = @($script:MeetingLogSearch.meetingIds).Count; eventCount = $script:MeetingLogSearch.eventCount }
 
     Add-RbaFinding -Findings $findings -RuleId "RBA712" -Severity Information `
@@ -2005,16 +2409,15 @@ function Write-RbaJson {
         $summary
     } else { $null }
 
-    $script:MeetingLogSearch = Get-RbaMeetingLogSearchObject
-
     $data = [ordered]@{
         metadata            = [ordered]@{
             schemaVersion    = "1.0-preview"
             scriptVersion    = $BuildVersion
             collectedAtUtc   = (Get-Date).ToUniversalTime().ToString("o")
             identity         = $Identity
+            commandLine      = $script:InvocationCommandLine
             collectionStatus = $collectionStatus
-            privacyMode      = $(if ($IncludeSensitiveData) { "Full" } elseif (-not [string]::IsNullOrWhiteSpace($MeetingSubject)) { "TargetedMeeting" } else { "Sanitized" })
+            privacyMode      = $(if ($IncludeSensitiveData) { "Full" } elseif (-not [string]::IsNullOrWhiteSpace($Subject) -or -not [string]::IsNullOrWhiteSpace($MeetingId)) { "TargetedMeeting" } else { "Sanitized" })
         }
         collectors          = $script:collectorStatuses
         mailbox             = $mailboxSummary
@@ -2052,14 +2455,24 @@ function Write-RbaJson {
 }
 
 try {
-    # Attempt every independent collector before running dependent evaluations.
+    # Mailbox existence and type are prerequisites for all RBA collection.
     Invoke-RbaCollectorOperation -Name "Mailbox" -Action { CollectMailbox }
+    if ($script:collectorStatuses["Mailbox"].status -ne "Success") {
+        Write-Host -ForegroundColor Red "Unable to resolve '$Identity' to a mailbox. Stopping."
+        return
+    }
+    if ($script:Mailbox.RecipientTypeDetails -notin @("RoomMailbox", "EquipmentMailbox")) {
+        return
+    }
+
+    # Attempt every remaining independent collector before running dependent evaluations.
     Invoke-RbaCollectorOperation -Name "Place" -Action { CollectPlace }
     Invoke-RbaCollectorOperation -Name "InboxRules" -Action { ValidateInboxRules }
     Invoke-RbaCollectorOperation -Name "CalendarProcessing" -Action { GetCalendarProcessing }
     Invoke-RbaCollectorOperation -Name "CalendarFolderPermissions" -Action { CollectCalendarFolderPermissions }
     Invoke-RbaCollectorOperation -Name "MailboxPermissions" -Action { CollectMailboxPermissions }
     Invoke-RbaCollectorOperation -Name "RbaLog" -Action { CollectRBALog }
+    $script:MeetingLogSearch = Get-RbaMeetingLogSearchObject
 
     if ($script:collectorStatuses["CalendarProcessing"].status -eq "Success") {
         Invoke-RbaEvaluation -Name "Resource delegate identity enrichment" -Action { Initialize-RbaResourceDelegateIdentitySets }
@@ -2106,12 +2519,25 @@ try {
 
 try {
     Write-RbaJson
-    Write-Host "`r`nRBA JSON Output saved as [" -NoNewline
-    Write-Host -ForegroundColor Cyan $JsonFilename -NoNewline
-    Write-Host "] in the current directory."
+    Write-Host -ForegroundColor Cyan "`r`nRBA JSON Output saved as [$JsonFilename] in the current directory."
 } catch {
     $errorInfo = ConvertTo-RbaErrorInfo -ErrorRecord $_
     Write-Warning "Unable to write RBA JSON output '$JsonFilename': $($errorInfo.message)"
+}
+
+$outputFileLines = [System.Collections.Generic.List[string]]::new()
+$outputFileLines.Add("RBA output files:")
+$outputFileLines.Add("  Text summary: [$SummaryFilename]")
+if (Test-Path -Path $JsonFilename) {
+    $outputFileLines.Add("  JSON report:  [$JsonFilename]")
+}
+if (-not [string]::IsNullOrWhiteSpace($script:RbaLogFilename) -and (Test-Path -Path $script:RbaLogFilename)) {
+    $outputFileLines.Add("  RBA logs:     [$script:RbaLogFilename]")
+}
+Write-Host
+$outputFileLines | ForEach-Object { Write-Host -ForegroundColor Cyan $_ }
+if (Test-Path -Path $SummaryFilename) {
+    Add-Content -Path $SummaryFilename -Value ([Environment]::NewLine + ($outputFileLines -join [Environment]::NewLine)) -Encoding utf8
 }
 
 $skillUrl = "https://github.com/microsoft/CSS-Exchange/releases/latest/download/EXO-RBA-Troubleshooting-SKILL.md"
