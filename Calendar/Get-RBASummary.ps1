@@ -840,7 +840,7 @@ function Write-RbaNextSteps {
     Write-DashLineBoxColor @("Next Steps") -Color Cyan
     Write-Host "Review the saved RBA log to see how meeting requests were processed."
     Write-Host "To collect a new RBA log:"
-    Write-Host -ForegroundColor Yellow "`tExport-MailboxDiagnosticLogs $Identity -ComponentName RBA"
+    Write-Host -ForegroundColor Yellow "`tExport-MailboxDiagnosticLogs -Identity $Identity -ComponentName RBA"
     Write-Host
     Write-Host "For additional troubleshooting, send a future test meeting to the room, then collect RBA logs and Calendar Diagnostic Objects for the organizer and room."
     Write-Host "Calendar Diagnostic Objects tool:"
