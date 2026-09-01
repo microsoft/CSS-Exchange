@@ -308,16 +308,17 @@ function CollectPlace {
     $script:Place = Invoke-RbaCollector -Name "Place" -FailureMessage $placeFailureMessage -Action {
         $placeOutput = @(Get-Place -Identity $Identity -ErrorAction Stop *>&1)
         $placeError = @($placeOutput | Where-Object { $_ -is [System.Management.Automation.ErrorRecord] } | Select-Object -First 1)
-        if ($placeError.Count -gt 0) {
-            throw $placeError[0]
-        }
-        @($placeOutput | Where-Object {
+        if ($placeError.Count -gt 0) { throw $placeError[0] }
+
+        $placeObjects = @($placeOutput | Where-Object {
                 $_ -isnot [System.Management.Automation.InformationRecord] -and
                 $_ -isnot [System.Management.Automation.WarningRecord] -and
                 $_ -isnot [System.Management.Automation.VerboseRecord] -and
                 $_ -isnot [System.Management.Automation.DebugRecord]
             })
-    }
+        if ($placeObjects.Count -eq 0) { throw "Get-Place returned no place objects." }
+        if ($placeObjects.Count -gt 1) { Write-Verbose "Get-Place returned $($placeObjects.Count) results; using the first entry." }
+        return $placeObjects[0]
 
     if ($null -eq $script:Place) {
         Write-Host -ForegroundColor Red "Make sure you are running from the correct forest.  Get-Place does not cross forest boundaries."
