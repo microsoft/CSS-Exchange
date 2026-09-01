@@ -6,15 +6,65 @@ BeforeAll {
     $Script:calendarPath = Split-Path -Path $PSScriptRoot -Parent
     $Script:scriptPath = Join-Path -Path $Script:calendarPath -ChildPath "Get-RBASummary.ps1"
 
-    function Get-Mailbox { param($Identity, $SoftDeletedMailbox, $ErrorAction) }
-    function Get-Place { param($Identity, $ErrorAction) }
-    function Get-InboxRule { param($Mailbox, $IncludeHidden, $ErrorAction) }
-    function Get-CalendarProcessing { param($Identity, $ErrorAction) }
-    function Get-MailboxFolderStatistics { param($Identity, $FolderScope, $ErrorAction) }
-    function Get-MailboxFolderPermission { param($Identity, $ErrorAction) }
-    function Get-MailboxPermission { param($Identity, $ErrorAction) }
-    function Export-MailboxDiagnosticLogs { param($Identity, $ComponentName, $ErrorAction) }
-    function Get-Recipient { param($Identity, $Organization, $ErrorAction) }
+    function Get-Mailbox {
+        param(
+            [string]$Identity,
+            [switch]$SoftDeletedMailbox,
+            [System.Management.Automation.ActionPreference]$ErrorAction
+        )
+    }
+    function Get-Place {
+        param(
+            [string]$Identity,
+            [System.Management.Automation.ActionPreference]$ErrorAction
+        )
+    }
+    function Get-InboxRule {
+        param(
+            [string]$Mailbox,
+            [switch]$IncludeHidden,
+            [System.Management.Automation.ActionPreference]$ErrorAction
+        )
+    }
+    function Get-CalendarProcessing {
+        param(
+            [string]$Identity,
+            [System.Management.Automation.ActionPreference]$ErrorAction
+        )
+    }
+    function Get-MailboxFolderStatistics {
+        param(
+            [string]$Identity,
+            [string]$FolderScope,
+            [System.Management.Automation.ActionPreference]$ErrorAction
+        )
+    }
+    function Get-MailboxFolderPermission {
+        param(
+            [string]$Identity,
+            [System.Management.Automation.ActionPreference]$ErrorAction
+        )
+    }
+    function Get-MailboxPermission {
+        param(
+            [string]$Identity,
+            [System.Management.Automation.ActionPreference]$ErrorAction
+        )
+    }
+    function Export-MailboxDiagnosticLogs {
+        param(
+            [string]$Identity,
+            [string]$ComponentName,
+            [System.Management.Automation.ActionPreference]$ErrorAction
+        )
+    }
+    function Get-Recipient {
+        param(
+            [string]$Identity,
+            [string]$Organization,
+            [System.Management.Automation.ActionPreference]$ErrorAction
+        )
+    }
 
     function Get-TestCalendarProcessing {
         [PSCustomObject]@{
