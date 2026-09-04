@@ -5,10 +5,10 @@
     Tests for Write-OutColumns.
 
     Write-OutColumns wraps the shared Out-Columns rendering helper for the
-    HealthChecker writer pipeline. Its OutColumns.ColorizerFunctions property
-    can arrive as [ScriptBlock[]] from in-process callers, or as string[] when
-    the OutColumns object has been through a PowerShell remoting round-trip
-    that serialized the ScriptBlock bodies. Both shapes are covered here.
+    HealthChecker writer pipeline. Table colorization is expressed by the
+    analyzer as string IDs on the OutColumns.ColorizerIds property; the
+    writer resolves those IDs through the local Get-HealthCheckerColorizer
+    registry at render time.
 #>
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Pester scoped fixture variables')]
@@ -47,13 +47,13 @@ BeforeAll {
     function New-OutColumnsObject {
         param(
             [object[]]$DisplayObject,
-            [object[]]$ColorizerFunctions
+            [string[]]$ColorizerIds
         )
         return [PSCustomObject]@{
-            DisplayObject      = $DisplayObject
-            SelectProperties   = @("Name", "State")
-            ColorizerFunctions = $ColorizerFunctions
-            IndentSpaces       = 0
+            DisplayObject    = $DisplayObject
+            SelectProperties = @("Name", "State")
+            ColorizerIds     = $ColorizerIds
+            IndentSpaces     = 0
         }
     }
 }
@@ -63,7 +63,7 @@ Describe "Write-OutColumns" {
     BeforeEach {
         $Script:OutputFullPath = Join-Path -Path $TestDrive -ChildPath "Write-OutColumns.log"
         if (Test-Path -Path $Script:OutputFullPath) { Remove-Item -Path $Script:OutputFullPath -Force }
-        $Script:InvocationLog = New-Object 'System.Collections.Generic.List[string]'
+        $Script:CapturedColorizers = $null
     }
 
     Context "Null input" {
@@ -74,93 +74,133 @@ Describe "Write-OutColumns" {
         }
     }
 
-    Context "In-process ScriptBlock ColorizerFunctions" {
+    Context "ColorizerIds resolved from the local registry" {
 
-        It "Invokes each colorizer once per row/property pair and writes the rendered text" {
-            $rows = @(New-DisplayObject -State "Started"; New-DisplayObject -Name "Row2" -State "Stopped")
-            $sbState = {
-                param($o, $p)
-                $Script:InvocationLog.Add("$p=$($o.$p)") | Out-Null
-                if ($p -eq "State") {
-                    if ($o.$p -eq "Started") { "Green" } else { "Red" }
-                }
+        It "Resolves ColorizerIds to a real ScriptBlock array and passes it to Out-Columns" {
+            $rows = @(New-DisplayObject -State "Started")
+            $outColumns = New-OutColumnsObject -DisplayObject $rows -ColorizerIds @("IisState")
+
+            Mock Out-Columns {
+                $Script:CapturedColorizers = $ColorizerFunctions
             }
-            $outColumns = New-OutColumnsObject -DisplayObject $rows -ColorizerFunctions @($sbState)
 
             Write-OutColumns -OutColumns $outColumns
 
-            # 2 rows * 2 properties = 4 invocations.
-            $Script:InvocationLog.Count | Should -Be 4
-            $Script:InvocationLog | Should -Contain "State=Started"
-            $Script:InvocationLog | Should -Contain "State=Stopped"
+            Should -Invoke Out-Columns -Times 1 -Exactly
+            $Script:CapturedColorizers | Should -Not -BeNullOrEmpty
+            ($Script:CapturedColorizers -is [ScriptBlock[]]) | Should -BeTrue -Because "Out-Columns requires a [ScriptBlock[]] parameter"
+            $Script:CapturedColorizers.Count | Should -Be 1
 
-            Test-Path -Path $Script:OutputFullPath | Should -BeTrue
-            $logContent = Get-Content -Path $Script:OutputFullPath -Raw
-            $logContent | Should -Match "Started"
-            $logContent | Should -Match "Stopped"
+            # The resolved ScriptBlock came from the registry: it should map "Started" -> Green.
+            $color = & $Script:CapturedColorizers[0] $rows[0] "State"
+            $color | Should -Be "Green"
         }
 
-        It "Renders without invoking any colorizer when ColorizerFunctions is null" {
+        It "Resolves multiple ColorizerIds in the same order they were supplied" {
             $rows = @(New-DisplayObject -State "Started")
-            $outColumns = New-OutColumnsObject -DisplayObject $rows -ColorizerFunctions $null
+            $outColumns = New-OutColumnsObject -DisplayObject $rows -ColorizerIds @("IisState", "IisAppPoolRestart")
+
+            Mock Out-Columns {
+                $Script:CapturedColorizers = $ColorizerFunctions
+            }
 
             Write-OutColumns -OutColumns $outColumns
 
-            $Script:InvocationLog.Count | Should -Be 0
-            Test-Path -Path $Script:OutputFullPath | Should -BeTrue
+            ($Script:CapturedColorizers -is [ScriptBlock[]]) | Should -BeTrue
+            $Script:CapturedColorizers.Count | Should -Be 2
+
+            # Prove index 0 is IisState: it colors State=Started as Green.
+            $iisRow = [PSCustomObject]@{ State = "Started"; RestartConditionSet = $true }
+            (& $Script:CapturedColorizers[0] $iisRow "State") | Should -Be "Green" -Because "index 0 must be IisState"
+
+            # Prove index 1 is IisAppPoolRestart: it colors RestartConditionSet=$true as Red.
+            (& $Script:CapturedColorizers[1] $iisRow "RestartConditionSet") | Should -Be "Red" -Because "index 1 must be IisAppPoolRestart"
+        }
+
+        It "Renders without color when ColorizerIds is null" {
+            $rows = @(New-DisplayObject -State "Started")
+            $outColumns = New-OutColumnsObject -DisplayObject $rows -ColorizerIds $null
+
+            Mock Out-Columns {
+                $Script:CapturedColorizers = $ColorizerFunctions
+            }
+
+            { Write-OutColumns -OutColumns $outColumns } | Should -Not -Throw
+            Should -Invoke Out-Columns -Times 1 -Exactly
+            $Script:CapturedColorizers | Should -BeNullOrEmpty
         }
 
         It "Leaves the source DisplayObject unmodified after rendering" {
             $rows = @(New-DisplayObject -State "Started")
             $originalState = $rows[0].State
-            $sb = { param($o, $p) "Green" }
-            $outColumns = New-OutColumnsObject -DisplayObject $rows -ColorizerFunctions @($sb)
+            $outColumns = New-OutColumnsObject -DisplayObject $rows -ColorizerIds @("IisState")
 
             Write-OutColumns -OutColumns $outColumns
 
             $rows[0].State | Should -Be $originalState
         }
-    }
 
-    Context "String-form ColorizerFunctions (post-remoting shape)" {
-
-        It "PSSerializer round-trip converts ScriptBlock entries to strings" {
-            $sb = { param($o, $p) if ($p -eq "State") { "Yellow" } }
-            $original = New-OutColumnsObject -DisplayObject @(New-DisplayObject -State "Started") -ColorizerFunctions @($sb)
-
-            $xml = [System.Management.Automation.PSSerializer]::Serialize($original)
-            $roundTripped = [System.Management.Automation.PSSerializer]::Deserialize($xml)
-
-            $roundTripped.ColorizerFunctions[0].GetType().Name | Should -Be "String"
-            $roundTripped.ColorizerFunctions[0] | Should -Match "Yellow"
+        It "Get-HealthCheckerColorizer throws on an unknown ColorizerId" {
+            {
+                Get-HealthCheckerColorizer -ColorizerId "NotARegisteredColorizer"
+            } | Should -Throw -ExpectedMessage "*Unknown HealthChecker colorizer ID*" -Because "unknown IDs must fail loudly at dev/test time so they cannot silently reach a customer environment"
         }
 
-        It "Rebuilds ScriptBlocks from string ColorizerFunctions and invokes them" {
+        It "Get-HealthCheckerColorizer returns a [ScriptBlock[]] for a single ColorizerId" {
+            $result = Get-HealthCheckerColorizer -ColorizerId "IisState"
+            ($result -is [ScriptBlock[]]) | Should -BeTrue -Because "Out-Columns and Add-AnalyzedResultInformation both bind [ScriptBlock[]] parameters, and the resolver's [OutputType] declares this contract"
+            $result.Count | Should -Be 1
+        }
+
+        It "Get-HealthCheckerColorizer returns a [ScriptBlock[]] preserving supplied order for multiple ColorizerIds" {
+            $result = Get-HealthCheckerColorizer -ColorizerId "IisState", "IisAppPoolRestart"
+            ($result -is [ScriptBlock[]]) | Should -BeTrue
+            $result.Count | Should -Be 2
+
+            $row = [PSCustomObject]@{ State = "Started"; RestartConditionSet = $true }
+            (& $result[0] $row "State") | Should -Be "Green"
+            (& $result[1] $row "RestartConditionSet") | Should -Be "Red"
+        }
+
+        It "Write-OutColumns does not render the table when a ColorizerId is not registered" {
             $rows = @(New-DisplayObject -State "Started")
-            $colorizerBody = '$Script:InvocationLog.Add("STRING-BODY-INVOKED") | Out-Null; "Yellow"'
-            $outColumns = New-OutColumnsObject -DisplayObject $rows -ColorizerFunctions @($colorizerBody)
+            $outColumns = New-OutColumnsObject -DisplayObject $rows -ColorizerIds @("NotARegisteredColorizer")
 
-            Write-OutColumns -OutColumns $outColumns
+            Mock Out-Columns { }
 
-            # 1 row * 2 properties = 2 invocations.
-            $Script:InvocationLog | Should -Contain "STRING-BODY-INVOKED"
-            $Script:InvocationLog.Count | Should -Be 2
+            # The outer catch inside Write-OutColumns swallows the resolver throw and logs it, so no exception escapes.
+            { Write-OutColumns -OutColumns $outColumns } | Should -Not -Throw
+            Should -Invoke Out-Columns -Times 0 -Exactly -Because "the table must not render with a partial/incorrect colorizer state"
         }
 
-        It "Invokes ColorizerFunctions rebuilt from a PSSerializer round-trip" {
-            $sb = {
-                param($o, $p)
-                $Script:InvocationLog.Add("ROUND-TRIP-INVOKED") | Out-Null
-                if ($p -eq "State") { "Yellow" }
-            }
-            $original = New-OutColumnsObject -DisplayObject @(New-DisplayObject -State "Started") -ColorizerFunctions @($sb)
+        It "Does not execute a code-shaped ColorizerId as PowerShell" {
+            $rows = @(New-DisplayObject -State "Started")
+            $Script:CanaryPwned = $false
+            $malicious = '$Script:CanaryPwned = $true; "Red"'
+            $outColumns = New-OutColumnsObject -DisplayObject $rows -ColorizerIds @($malicious)
+
+            { Write-OutColumns -OutColumns $outColumns } | Should -Not -Throw
+            $Script:CanaryPwned | Should -BeFalse
+        }
+
+        It "Resolves ColorizerIds after a PowerShell remoting round-trip (PSSerializer)" {
+            $rows = @(New-DisplayObject -State "Started")
+            $original = New-OutColumnsObject -DisplayObject $rows -ColorizerIds @("IisState")
 
             $xml = [System.Management.Automation.PSSerializer]::Serialize($original)
             $roundTripped = [System.Management.Automation.PSSerializer]::Deserialize($xml)
+
+            $roundTripped.ColorizerIds[0] | Should -Be "IisState"
+            $roundTripped.ColorizerIds[0].GetType().Name | Should -Be "String"
+
+            Mock Out-Columns {
+                $Script:CapturedColorizers = $ColorizerFunctions
+            }
 
             Write-OutColumns -OutColumns $roundTripped
 
-            $Script:InvocationLog | Should -Contain "ROUND-TRIP-INVOKED"
+            $Script:CapturedColorizers | Should -Not -BeNullOrEmpty
+            $Script:CapturedColorizers[0] | Should -BeOfType [ScriptBlock]
         }
     }
 }

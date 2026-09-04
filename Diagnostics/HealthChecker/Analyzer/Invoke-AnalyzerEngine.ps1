@@ -3,6 +3,7 @@
 
 . $PSScriptRoot\Add-AnalyzedResultInformation.ps1
 . $PSScriptRoot\Get-DisplayResultsGroupingKey.ps1
+. $PSScriptRoot\HealthCheckerColorizers.ps1
 . $PSScriptRoot\..\..\..\Shared\VisualCRedistributableVersionFunctions.ps1
 . $PSScriptRoot\Invoke-AnalyzerExchangeInformation.ps1
 . $PSScriptRoot\Invoke-AnalyzerHybridInformation.ps1
