@@ -114,6 +114,7 @@ Netlogon
 netsh
 nist
 nmap
+nslookup
 noderunner
 notcontains
 notin
