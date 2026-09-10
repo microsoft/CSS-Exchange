@@ -16,6 +16,7 @@ Set-StrictMode -Version Latest
 . $PSScriptRoot\BuildFunctions\Get-FileTimestampHashtable.ps1
 . $PSScriptRoot\BuildFunctions\Get-ScriptDependencyTree.ps1
 . $PSScriptRoot\BuildFunctions\Show-ScriptDependencyTree.ps1
+. $PSScriptRoot\BuildFunctions\New-PrototypeSkillFiles.ps1
 
 Write-Host "Build process is running on: Windows? $IsWindows - MacOS? $IsMacOS - Linux? $IsLinux"
 
@@ -214,6 +215,8 @@ $otherFiles = Get-ChildItem -Path $repoRoot -Directory |
 $otherFiles | ForEach-Object {
     Copy-Item $_ $distFolder
 }
+
+New-PrototypeSkillFiles -RepoRoot $repoRoot -DestinationFolder $distFolder
 
 <#
     Warn about unreferenced Shared scripts, just so we don't leave dead code lying around
