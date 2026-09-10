@@ -251,6 +251,36 @@ public static extern uint QueryDosDevice(string lpDeviceName, System.Text.String
     return $true
 }
 
+function Get-CommitShaForTag {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$Repository,
+        [Parameter(Mandatory)][string]$Tag
+    )
+
+    # Resolves an annotated or lightweight tag to its target commit SHA via
+    # the GitHub API. Returns $null on any failure — a missing commit SHA
+    # never fails the caller because the primary result (matched release)
+    # is still valid.
+    if ($Tag -notmatch '\A[A-Za-z0-9._+\-/]+\z') { return $null }
+    if ($Repository -notmatch '\A[A-Za-z0-9._-]+/[A-Za-z0-9._-]+\z') { return $null }
+    try {
+        $endpoint = "repos/$Repository/commits/$Tag"
+        # Pin to github.com so GH_HOST cannot redirect us to another
+        # GitHub-flavored host. --jq keeps the entire response server-side
+        # so no untrusted JSON reaches our shell.
+        $sha = gh api --hostname github.com $endpoint --jq '.sha' 2>$null
+        if ($LASTEXITCODE -ne 0) { return $null }
+        $sha = ($sha | Select-Object -First 1) -as [string]
+        if ([string]::IsNullOrWhiteSpace($sha)) { return $null }
+        $sha = $sha.Trim()
+        if ($sha -notmatch '\A[0-9a-f]{40}\z') { return $null }
+        return $sha
+    } catch {
+        return $null
+    }
+}
+
 $fileName = if ($ScriptName -like "*.ps1") { $ScriptName } else { "$ScriptName.ps1" }
 $targetDate = ConvertTo-VersionDateTime -VersionString $Version
 
@@ -353,14 +383,16 @@ try {
     if ($candidates.Count -eq 0) {
         $terminalStatus = if ($enumerationTruncated) { "not-found-inconclusive" } else { "not-found-no-candidates" }
         return [PSCustomObject]@{
-            Script          = $fileName
-            Version         = $Version
-            ConfirmedTag    = $null
-            SHA256Hash      = $null
-            Status          = $terminalStatus
-            WindowExhausted = $false
-            EarlierGaps     = 0
-            Tried           = @()
+            Script             = $fileName
+            Version            = $Version
+            Repository         = $Repository
+            ConfirmedTag       = $null
+            ConfirmedCommitSha = $null
+            SHA256Hash         = $null
+            Status             = $terminalStatus
+            WindowExhausted    = $false
+            EarlierGaps        = 0
+            Tried              = @()
         }
     }
 
@@ -502,15 +534,18 @@ try {
             if ($rowVersion -eq $Version) {
                 $status = if ($earlierGaps -gt 0 -or $enumerationTruncated) { "match-possibly-not-earliest" } else { "match-earliest" }
                 $tried.Add([PSCustomObject]@{ Tag = $tag; Status = "match"; Detail = (ConvertTo-SafeDetail $rowHash) })
+                $confirmedSha = Get-CommitShaForTag -Repository $Repository -Tag $tag
                 $matchResult = [PSCustomObject]@{
-                    Script          = $fileName
-                    Version         = $Version
-                    ConfirmedTag    = $tag
-                    SHA256Hash      = $rowHash
-                    Status          = $status
-                    WindowExhausted = $false
-                    EarlierGaps     = $earlierGaps
-                    Tried           = $tried.ToArray()
+                    Script             = $fileName
+                    Version            = $Version
+                    Repository         = $Repository
+                    ConfirmedTag       = $tag
+                    ConfirmedCommitSha = $confirmedSha
+                    SHA256Hash         = $rowHash
+                    Status             = $status
+                    WindowExhausted    = $false
+                    EarlierGaps        = $earlierGaps
+                    Tried              = $tried.ToArray()
                 }
             } else {
                 $tried.Add([PSCustomObject]@{ Tag = $tag; Status = "version-mismatch"; Detail = (ConvertTo-SafeDetail $rowVersion) })
@@ -529,14 +564,16 @@ try {
 
     $status = if ($windowExhausted -or $earlierGaps -gt 0 -or $enumerationTruncated) { "not-found-inconclusive" } else { "not-found-complete" }
     [PSCustomObject]@{
-        Script          = $fileName
-        Version         = $Version
-        ConfirmedTag    = $null
-        SHA256Hash      = $null
-        Status          = $status
-        WindowExhausted = $windowExhausted
-        EarlierGaps     = $earlierGaps
-        Tried           = $tried.ToArray()
+        Script             = $fileName
+        Version            = $Version
+        Repository         = $Repository
+        ConfirmedTag       = $null
+        ConfirmedCommitSha = $null
+        SHA256Hash         = $null
+        Status             = $status
+        WindowExhausted    = $windowExhausted
+        EarlierGaps        = $earlierGaps
+        Tried              = $tried.ToArray()
     }
 } finally {
     if ($createdWorkFolder) {

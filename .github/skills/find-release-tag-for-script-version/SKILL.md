@@ -93,6 +93,21 @@ Requires:
 - `gh` on PATH, authenticated. Defaults to `microsoft/CSS-Exchange`; override
   with `-Repository owner/repo`.
 
+## Result fields
+
+| Field | Meaning |
+|---|---|
+| `Script` | Normalized script filename (adds `.ps1` if missing). |
+| `Version` | The queried version string, echoed back unchanged. |
+| `Repository` | The `owner/repo` value used (from `-Repository`; defaults to `microsoft/CSS-Exchange`). Callers use this to gate release-tag allowlists on downstream skills. |
+| `ConfirmedTag` | Release tag whose `ScriptVersions.csv` matched the file+version, or `$null` when not found. |
+| `ConfirmedCommitSha` | 40-hex commit SHA the tag points at, resolved via GitHub API. `$null` if `ConfirmedTag` is `$null` or the API lookup failed. Use for stable source citations (`git show <sha>:path`). |
+| `SHA256Hash` | The `SHA256Hash` value from the matched CSV row, or `$null` when not found. |
+| `Status` | See table below. |
+| `WindowExhausted` | `$true` when the `MaxCandidates` window truncated the candidate list. |
+| `EarlierGaps` | Number of earlier candidates that could not be inspected cleanly (download or CSV problems). |
+| `Tried` | Per-candidate audit trail. |
+
 ## Result Status values
 
 | Status | Meaning | Trust |
@@ -127,9 +142,10 @@ cannot precede the match); a `$true` value only appears on non-match results.
 **Script**:  HealthChecker.ps1
 **Version**: 26.03.12.1424
 
-**Confirmed Tag**: v26.03.12.1616
-**Status**:        match-earliest
-**SHA256Hash**:    97429DCA7B8092F081149A3CE4B5B9CDB078D2F145ECFC7F51BB449B5EEAAD1D
+**Confirmed Tag**:    v26.03.12.1616
+**Commit SHA**:       a1b2c3d4e5f6...  # 40-hex commit SHA for the tag (may be `$null` if lookup failed)
+**Status**:           match-earliest
+**SHA256Hash**:       97429DCA7B8092F081149A3CE4B5B9CDB078D2F145ECFC7F51BB449B5EEAAD1D
 
 **Candidates tried**:
 - v26.03.12.1616 ✓ match
