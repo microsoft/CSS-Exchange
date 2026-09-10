@@ -85,6 +85,12 @@
     If you provide the thumbprint, the script searches and exports the certificate with the thumbprint provided from the local machines certificate
     store. If you provide the file path, the script uploads the certificate, which was specified.
     This parameter allows you to run granular configurations. Note that some of the tasks depend on others and can't be run alone.
+.PARAMETER UseAuthorizationCodeFlow
+    Use this switch parameter to force the Graph API access token to be acquired via the OAuth 2.0 authorization code
+    flow with PKCE instead of the default device code flow. The authorization code flow opens a local browser and
+    requires a redirect listener, so it only works on hosts with a browser and with an application that permits a
+    loopback (http://localhost) redirect URI (for example, a custom application passed via -CustomClientId).
+    Note that the default application does not permit a loopback redirect, so this switch requires a custom application.
 .PARAMETER ScriptUpdateOnly
     This optional parameter allows you to only update the script without performing any other actions.
 .PARAMETER SkipVersionCheck
@@ -227,6 +233,13 @@ param(
     [Parameter(Mandatory = $false, ParameterSetName = "Create")]
     [string]$CertificateInformation,
 
+    [Parameter(Mandatory = $false, ParameterSetName = "FullyConfigureExchangeHybridApplication")]
+    [Parameter(Mandatory = $false, ParameterSetName = "FirstPartyKeyCredentialsCleanup")]
+    [Parameter(Mandatory = $false, ParameterSetName = "Create")]
+    [Parameter(Mandatory = $false, ParameterSetName = "Delete")]
+    [Parameter(Mandatory = $false, ParameterSetName = "RemovePermissions")]
+    [switch]$UseAuthorizationCodeFlow,
+
     [Parameter(Mandatory = $true, ParameterSetName = "ScriptUpdateOnly")]
     [switch]$ScriptUpdateOnly,
 
@@ -249,6 +262,7 @@ begin {
     . $PSScriptRoot\..\..\Shared\Get-PSSessionDetails.ps1
     . $PSScriptRoot\..\..\Shared\Get-ProtocolEndpointViaAutoDv2.ps1
     . $PSScriptRoot\..\..\Shared\Show-Disclaimer.ps1
+    . $PSScriptRoot\..\..\Shared\Test-IsServerCoreOperatingSystem.ps1
     . $PSScriptRoot\..\..\Shared\ActiveDirectoryFunctions\Get-ExchangeOrganizationGuid.ps1
     . $PSScriptRoot\..\..\Shared\AzureFunctions\Get-Consent.ps1
     . $PSScriptRoot\..\..\Shared\AzureFunctions\Get-CloudServiceEndpoint.ps1
@@ -346,6 +360,22 @@ begin {
         Write-Warning "This script is not supported in PowerShell Core. Please use Windows PowerShell 5.1 instead."
 
         return
+    }
+
+    # The authorization code flow opens a local browser and requires an application that permits a loopback
+    # (http://localhost) redirect URI. The default application does not permit such a redirect, so a custom
+    # application must be provided via the 'CustomClientId' parameter when this flow is used. Server Core does
+    # not include the components required to launch a browser, so the flow is ignored there and the script
+    # falls back to the default device code flow.
+    if ($UseAuthorizationCodeFlow) {
+        if (Test-IsServerCoreOperatingSystem) {
+            Write-Warning "The authorization code flow is not supported on Server Core - the device code flow will be used instead."
+            $UseAuthorizationCodeFlow = $false
+        } elseif ([System.String]::IsNullOrEmpty($Script:CustomClientId)) {
+            Write-Warning "The 'CustomClientId' parameter is required when the 'UseAuthorizationCodeFlow' parameter is used because the default application does not permit a loopback (http://localhost) redirect."
+
+            return
+        }
     }
 
     #region Pre-Configuration
@@ -620,6 +650,14 @@ begin {
             if (-not [System.String]::IsNullOrEmpty($Script:CustomClientId)) {
                 Write-Verbose "CustomClientId $Script:CustomClientId was provided and will be used"
                 $getGraphAccessTokenParams.Add("ClientId", $Script:CustomClientId)
+            }
+
+            # The device code flow is used by default to acquire the access token. Use the authorization code flow
+            # only when it was explicitly requested via -UseAuthorizationCodeFlow (requires a browser and an
+            # application that permits a loopback redirect URI, for example a custom application).
+            if ($UseAuthorizationCodeFlow) {
+                Write-Verbose "The authorization code flow will be used to acquire the access token"
+                $getGraphAccessTokenParams.Add("UseAuthorizationCodeFlow", $true)
             }
 
             $graphAccessToken = Get-GraphAccessToken @getGraphAccessTokenParams
@@ -1384,7 +1422,8 @@ begin {
                 $graphApiFeatureEnabledCount = 0
 
                 foreach ($o in $exchangeOnpremAsThirdPartyAppIdSettingOverrides) {
-                    $match = [regex]::Match($o.Parameters, $settingOverridesEnabledRegex, "IgnoreCase")
+                    $enabledParameter = @($o.Parameters) | Where-Object { $_ -match "^\s*Enabled\s*=" } | Select-Object -First 1
+                    $match = [regex]::Match([string]$enabledParameter, $settingOverridesEnabledRegex, "IgnoreCase")
                     $featureIsEnabled = ($match.Success -and $match.Groups[1].Value -eq "true")
                     $featureSettingOverrideValue = if (-not $match.Success) { "Unknown" } else { $match.Groups[1].Value }
 
@@ -1398,7 +1437,8 @@ begin {
                 }
 
                 foreach ($o in $routeThroughMSGraphSettingOverrides) {
-                    $match = [regex]::Match($o.Parameters, $settingOverridesEnabledRegex, "IgnoreCase")
+                    $enabledParameter = @($o.Parameters) | Where-Object { $_ -match "^\s*Enabled\s*=" } | Select-Object -First 1
+                    $match = [regex]::Match([string]$enabledParameter, $settingOverridesEnabledRegex, "IgnoreCase")
                     $featureIsEnabled = ($match.Success -and $match.Groups[1].Value -eq "true")
                     $featureSettingOverrideValue = if (-not $match.Success) { "Unknown" } else { $match.Groups[1].Value }
 
@@ -1525,7 +1565,7 @@ begin {
                     Name       = "EnableRouteThroughMSGraphFeature"
                     Component  = "SettingOverride"
                     Section    = "RouteThroughMSGraph"
-                    Parameters = @("Enabled=true")
+                    Parameters = @("Enabled=true", "EnabledForMailTips=true", "EnabledForAutomaticReplies=false")
                     Reason     = "Created by $($script:MyInvocation.MyCommand.Name) on $(Get-Date)"
                 }
                 # Execute the commands to create the new setting override and to refresh the variant configuration

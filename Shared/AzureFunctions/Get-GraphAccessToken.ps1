@@ -7,11 +7,21 @@
 . $PSScriptRoot\..\ScriptUpdateFunctions\Invoke-WebRequestWithProxyDetection.ps1
 
 <#
-    This function is used to get an access token for the Azure Graph API by using the OAuth 2.0 authorization code flow
-    with PKCE (Proof Key for Code Exchange). The OAuth 2.0 authorization code grant type, or auth code flow,
-    enables a client application to obtain authorized access to protected resources like web APIs.
-    The auth code flow requires a user-agent that supports redirection from the authorization server
-    (the Microsoft identity platform) back to your application.
+    This function is used to get an access token for the Azure Graph API. By default it uses the OAuth 2.0
+    device authorization grant (device code flow). In that flow the user is asked to open a verification URL
+    (on another device or in a local browser) and enter a user code to complete the sign-in, so no local browser
+    or redirect listener is required. This is the default because the application used to acquire the token no
+    longer permits a loopback (http://localhost) redirect, which the authorization code flow relies on. Note that
+    the device code flow may be blocked by Conditional Access policies in your tenant.
+
+    More information about the device code flow can be found here:
+    https://learn.microsoft.com/azure/active-directory/develop/v2-oauth2-device-code
+
+    The -UseAuthorizationCodeFlow switch can be used to acquire the token via the OAuth 2.0 authorization code flow
+    with PKCE (Proof Key for Code Exchange) instead. That flow requires a user-agent that supports redirection from
+    the authorization server (the Microsoft identity platform) back to a local redirect listener, so it only works
+    on hosts with a browser and with an application that permits a loopback redirect URI (for example, a custom
+    application passed via -ClientId).
 
     More information about the auth code flow with PKCE can be found here:
     https://learn.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow#protocol-details
@@ -26,10 +36,18 @@ function Get-GraphAccessToken {
         [string]$GraphApiUrl = "https://graph.microsoft.com",
 
         [Parameter(Mandatory = $false)]
-        [string]$ClientId = "1950a258-227b-4e31-a9cf-717495945fc2", # Well-known Microsoft Azure PowerShell application ID
+        [string]$ClientId = "4d2f5175-f06b-49e2-9f4a-8e614a8abc03", # Microsoft Exchange Hybrid Wizard application ID
+
+        # The OpenID Connect scopes "openid" and "profile" must be requested explicitly so that an id_token is
+        # returned alongside the access_token. The id_token is required for the nonce replay check and to read the
+        # tenant id. ".default" requests all permissions that have already been consented for the app (required for
+        # a first party application, which cannot rely on dynamic consent / pre-authorization for a first party
+        # resource).
+        [Parameter(Mandatory = $false)]
+        [string]$Scope = "$($GraphApiUrl)/.default openid profile",
 
         [Parameter(Mandatory = $false)]
-        [string]$Scope = "$($GraphApiUrl)//AuditLog.Read.All Directory.AccessAsUser.All email openid profile"
+        [switch]$UseAuthorizationCodeFlow
     )
 
     begin {
@@ -112,6 +130,131 @@ function Get-GraphAccessToken {
         $connectionSuccessful = $false
     }
     process {
+        # The authorization code flow relies on a loopback (http://localhost) redirect, which the default
+        # ClientId does not permit. A custom application that allows a loopback redirect URI must be supplied
+        # via -ClientId when this flow is requested, so treat ClientId as mandatory in that case.
+        if ($UseAuthorizationCodeFlow -and (-not $PSBoundParameters.ContainsKey("ClientId"))) {
+            throw "The -ClientId parameter is mandatory when -UseAuthorizationCodeFlow is used. The default application does not permit a loopback (http://localhost) redirect, which the authorization code flow requires."
+        }
+
+        if (-not $UseAuthorizationCodeFlow) {
+            Write-Verbose "Device code flow was selected to acquire the access token"
+            Write-Host "Using the device code flow to acquire the access token." -ForegroundColor Yellow
+            Write-Host "Note: This flow may be blocked by Conditional Access policies in your tenant." -ForegroundColor Yellow
+
+            # Request a device code from the Microsoft Azure Active Directory endpoint
+            $deviceCodeRequestParams = @{
+                Uri             = "$AzureADEndpoint/organizations/oauth2/v2.0/devicecode"
+                Method          = "POST"
+                ContentType     = "application/x-www-form-urlencoded"
+                Body            = @{
+                    client_id = $ClientId
+                    scope     = $Scope
+                }
+                UseBasicParsing = $true
+            }
+            $deviceCodeResponse = Invoke-WebRequestWithProxyDetection -ParametersObject $deviceCodeRequestParams
+
+            if (($null -eq $deviceCodeResponse) -or
+                ($deviceCodeResponse.StatusCode -ne 200)) {
+                Write-Host "Unable to acquire a device code from the Microsoft Azure Active Directory endpoint." -ForegroundColor Red
+
+                return
+            }
+
+            $deviceCode = $deviceCodeResponse.Content | ConvertFrom-Json
+
+            # Display the user instructions returned by the endpoint (verification URL and user code)
+            Write-Host $deviceCode.message -ForegroundColor Cyan
+
+            $pollingInterval = [int]$deviceCode.interval
+            $pollingStopwatch = New-Object System.Diagnostics.Stopwatch
+            $pollingStopwatch.Start()
+
+            do {
+                Start-Sleep -Seconds $pollingInterval
+
+                # Poll the token endpoint to check whether the user completed the sign-in. We use
+                # -ReturnErrorResponse so that the helper surfaces the HTTP 400 error body instead of swallowing
+                # it - the device code flow relies on the authorization_pending / slow_down error codes to drive
+                # the polling loop. Proxy detection is handled centrally by Invoke-WebRequestWithProxyDetection.
+                $redeemDeviceCodeParams = @{
+                    Uri             = "$AzureADEndpoint/organizations/oauth2/v2.0/token"
+                    Method          = "POST"
+                    ContentType     = "application/x-www-form-urlencoded"
+                    Body            = @{
+                        client_id   = $ClientId
+                        grant_type  = "urn:ietf:params:oauth:grant-type:device_code"
+                        device_code = $deviceCode.device_code
+                    }
+                    UseBasicParsing = $true
+                }
+                $redeemDeviceCodeResponse = Invoke-WebRequestWithProxyDetection -ParametersObject $redeemDeviceCodeParams -ReturnErrorResponse
+
+                if (($null -ne $redeemDeviceCodeResponse) -and
+                    ($redeemDeviceCodeResponse.StatusCode -eq 200)) {
+                    $tokens = $redeemDeviceCodeResponse.Content | ConvertFrom-Json
+
+                    # An id_token is only returned when the "openid" scope was requested. It is required to read
+                    # the tenant id, so fail clearly if it is missing.
+                    if ([System.String]::IsNullOrEmpty($tokens.id_token)) {
+                        Write-Host "No id_token was returned - make sure the 'openid' scope is part of the requested scope" -ForegroundColor Red
+
+                        return
+                    }
+
+                    $idTokenPayload = (Convert-JsonWebTokenToObject $tokens.id_token).Payload
+                    $connectionSuccessful = $true
+
+                    break
+                }
+
+                $errorResponse = $null
+
+                if (($null -ne $redeemDeviceCodeResponse) -and
+                    (-not [System.String]::IsNullOrEmpty($redeemDeviceCodeResponse.Content))) {
+                    $errorResponse = $redeemDeviceCodeResponse.Content | ConvertFrom-Json
+                }
+
+                switch ($errorResponse.error) {
+                    "authorization_pending" {
+                        Write-Verbose "Authorization is pending - the user has not completed the sign-in yet"
+                    }
+                    "slow_down" {
+                        Write-Verbose "Polling too fast - increasing the polling interval by 5 seconds"
+                        $pollingInterval += 5
+                    }
+                    "authorization_declined" {
+                        Write-Host "The user declined the sign-in request." -ForegroundColor Red
+
+                        return
+                    }
+                    "expired_token" {
+                        Write-Host "The device code has expired before the sign-in was completed." -ForegroundColor Red
+
+                        return
+                    }
+                    "access_denied" {
+                        Write-Host "The sign-in request was denied." -ForegroundColor Red
+
+                        return
+                    }
+                    default {
+                        Write-Host "Unable to redeem the device code for an access token." -ForegroundColor Red
+                        Write-Verbose "Unexpected error: $($errorResponse.error) - $($errorResponse.error_description)"
+
+                        return
+                    }
+                }
+            } while ($pollingStopwatch.Elapsed.TotalSeconds -lt [int]$deviceCode.expires_in)
+
+            if (-not $connectionSuccessful) {
+                Write-Host "Timed out waiting for the device code sign-in to complete." -ForegroundColor Red
+            }
+
+            return
+        }
+
         $codeChallenge = $codeChallengeVerifier.CodeChallenge
         $codeVerifier = $codeChallengeVerifier.Verifier
 
@@ -171,6 +314,15 @@ function Get-GraphAccessToken {
 
             if ($redeemAuthCodeResponse.StatusCode -eq 200) {
                 $tokens = $redeemAuthCodeResponse.Content | ConvertFrom-Json
+
+                # An id_token is only returned when the "openid" scope was requested. It is required to perform
+                # the nonce replay check and to read the tenant id, so fail clearly if it is missing.
+                if ([System.String]::IsNullOrEmpty($tokens.id_token)) {
+                    Write-Host "No id_token was returned - make sure the 'openid' scope is part of the requested scope" -ForegroundColor Red
+
+                    return
+                }
+
                 $idTokenPayload = (Convert-JsonWebTokenToObject $tokens.id_token).Payload
 
                 Write-Verbose "Script nonce: '$nonce' - Returned nonce: '$($idTokenPayload.nonce)'"

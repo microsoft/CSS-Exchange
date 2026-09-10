@@ -168,7 +168,7 @@ function New-ExchangeAzureApplication {
         }
 
         # Graph API call to get the current logged in user - we need this information to run the following Graph API calls
-        $getAzureSignedInUserInformation = Get-AzureSignedInUserInformation @graphApiBaseParams
+        $getAzureSignedInUserInformation = Get-AzureSignedInUserInformation -AzAccountsObject $AzAccountsObject
 
         if ($null -eq $getAzureSignedInUserInformation) {
             Write-Verbose "Unable to query the signed-in user information"

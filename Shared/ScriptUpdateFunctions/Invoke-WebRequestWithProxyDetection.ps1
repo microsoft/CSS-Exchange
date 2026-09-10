@@ -21,7 +21,11 @@ function Invoke-WebRequestWithProxyDetection {
 
         [Parameter(Mandatory = $false, ParameterSetName = "Default")]
         [string]
-        $OutFile
+        $OutFile,
+
+        [Parameter(Mandatory = $false)]
+        [switch]
+        $ReturnErrorResponse
     )
 
     Write-Verbose "Calling $($MyInvocation.MyCommand)"
@@ -53,5 +57,19 @@ function Invoke-WebRequestWithProxyDetection {
         Invoke-WebRequest @params
     } catch {
         Write-VerboseErrorInformation
+
+        # By default an HTTP error response (for example HTTP 400) is swallowed. When the caller opts in via
+        # -ReturnErrorResponse, surface the error response instead so flows that rely on the error body can
+        # inspect it. This is required by the OAuth 2.0 device code polling loop, which drives its loop based on
+        # the authorization_pending / slow_down error codes returned in the HTTP 400 body. The returned object
+        # exposes StatusCode and Content so the caller can treat success and error responses uniformly.
+        if ($ReturnErrorResponse -and
+            ($null -ne $_.Exception.Response)) {
+            Write-Verbose "Returning the error response because -ReturnErrorResponse was specified"
+            return [PSCustomObject]@{
+                StatusCode = [int]$_.Exception.Response.StatusCode
+                Content    = $_.ErrorDetails.Message
+            }
+        }
     }
 }
