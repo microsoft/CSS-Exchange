@@ -6,7 +6,7 @@ Download the latest release: [Get-RBASummary.ps1](https://github.com/microsoft/C
 
 `Get-RBASummary.ps1` collects Resource Booking Assistant (RBA) configuration and recent processing evidence for one room, equipment, or Workspace mailbox. It produces a readable text summary and a structured JSON report for further analysis.
 
-The script validates mailbox type, booking policy, request routing, delegate configuration, post-processing, room properties, permissions, and recent RBA log activity. It first resolves the identity with `Get-Mailbox`, including a targeted soft-deleted-mailbox fallback. Collection stops before downstream collection and JSON generation if no mailbox is resolved or the resolved object is not a room or equipment mailbox. After this prerequisite validation, collection is best effort: it independently attempts `Get-Place`, `Get-InboxRule`, `Get-CalendarProcessing`, Calendar and mailbox permissions, and `Export-MailboxDiagnosticLogs`. If one of those collectors fails, the remaining collectors still run and evaluations that require unavailable evidence are safely skipped.
+The script validates mailbox type, booking policy, request routing, delegate configuration, post-processing, room properties, permissions, and recent RBA log activity. It first resolves the identity with `Get-Mailbox`, including a targeted soft-deleted-mailbox fallback. If the active lookup fails, the script tries `Get-Mailbox -SoftDeletedMailbox`. If that fallback also fails or returns null, the original active-mailbox error remains the collector failure and user-facing warning; details from the fallback attempt are available with `-Verbose`. Collection stops before downstream collection and JSON generation if no mailbox is resolved or the resolved object is not a room or equipment mailbox. After this prerequisite validation, collection is best effort: it independently attempts `Get-Place`, `Get-InboxRule`, `Get-CalendarProcessing`, Calendar and mailbox permissions, and `Export-MailboxDiagnosticLogs`. If one of those collectors fails, the remaining collectors still run and evaluations that require unavailable evidence are safely skipped.
 
 ## Requirements
 
@@ -51,9 +51,11 @@ Examples:
 
 ## Output files
 
-After the identity resolves to a room or equipment mailbox, the script attempts to create timestamp-correlated text and JSON reports. An unresolved or unsupported mailbox stops before JSON generation. The text transcript and JSON metadata record a canonical command line with the resolved values of every supplied parameter. The JSON report also contains a schema version, collection status, per-collector status, collection errors, minimal configuration and log-summary evidence, and findings with stable rule IDs. A status of `Partial` or `Failed` means the collection errors and `NotEvaluated` findings should be reviewed before drawing conclusions. `NotApplicable` means that evidence was available but the rule does not apply to the resource or its routing configuration.
+The script first attempts to start the text transcript and then resolves and validates the mailbox. An unresolved or unsupported mailbox can therefore leave a text transcript but stops before JSON generation. After successful prerequisite validation, JSON generation is attempted independently. If writing JSON fails, the text summary remains available, and the final output list includes only files that exist.
 
-A collector is successful only when collection and its immediate evidence processing both finish successfully. If processing fails after evidence was retrieved, that collector is marked `Failed`, the overall status cannot be `Complete`, and other successfully collected evidence remains in the report. In `Sanitized` and `TargetedMeeting` modes, remote error messages, fully qualified error IDs, and inner-exception messages are omitted to prevent identity or object details from leaking into JSON. Bounded exception type and category remain available. `Full` mode includes the bounded error details. Stack traces, invocation details, target objects, and remote position details are never exported.
+The text transcript and JSON metadata record a canonical command line with the bound values of every supplied parameter. The JSON report also contains a schema version, collection status, per-collector status, collection errors, minimal configuration and log-summary evidence, and findings with stable rule IDs. A status of `Partial` or `Failed` means the collection errors and `NotEvaluated` findings should be reviewed before drawing conclusions. Mailbox prerequisite failures normally produce no JSON, so `Failed` remains a defined schema status rather than the normal output for an unresolved mailbox. `NotApplicable` means that evidence was available but the rule does not apply to the resource or its routing configuration.
+
+A collector is successful only when collection and its immediate evidence processing both finish successfully. An empty result from a collection-valued collector, such as Inbox Rules, is successful evidence and produces zero counts. A null result from a required scalar collector is a collection failure. If processing fails after evidence was retrieved, that collector is marked `Failed`, the overall status cannot be `Complete`, and other successfully collected evidence remains in the report. In `Sanitized` and `TargetedMeeting` modes, remote error messages, fully qualified error IDs, and inner-exception messages are omitted to prevent identity or object details from leaking into JSON. Bounded exception type and category remain available. `Full` mode includes the bounded error details. Stack traces, invocation details, target objects, and remote position details are never exported.
 
 Output is written to the current working directory. All files from one run share the same timestamp. Invalid filename characters in the supplied identity are replaced so aliases and distinguished-name-style inputs cannot create unintended paths.
 
@@ -61,11 +63,17 @@ Output is written to the current working directory. All files from one run share
 |---|---|
 | `RBA-Summary-For_<mailbox-name>_<yyyy-MM-dd_HH-mm-ss>.txt` | Human-readable transcript and configuration summary. |
 | `RBA-Summary-For_<mailbox-name>_<yyyy-MM-dd_HH-mm-ss>.json` | Structured evidence, collector status, errors, and stable findings for further analysis. |
-| `RBA-Logs_<mailbox-name>_<yyyy-MM-dd_HH-mm-ss>.txt` | Readable retained RBA diagnostic log when log evidence is available. |
+| `RBA-Logs_<mailbox-name>_<yyyy-MM-dd_HH-mm-ss>.txt` | Readable retained RBA diagnostic log when collection succeeds and contains more than one non-empty log entry. |
 
 For example, running the script for `Room1@Contoso.com` creates a filename similar to `RBA-Summary-For_Room1_2026-08-28_15-42-10.json`. The timestamp matches the associated text summary produced by the same run.
 
-The JSON uses schema version `1.0-preview` and records an overall `Complete`, `Partial`, or `Failed` collection status. Review `collectors`, `collectionErrors`, `evaluationErrors`, and `NotEvaluated` findings before drawing conclusions from a partial report. `NotApplicable` means that evidence was available but the finding does not apply to the resource or routing configuration.
+The JSON uses schema version `1.1-preview` and is encoded as UTF-8 without a byte order mark. Compared with `1.0-preview`, `calendarProcessing.maximumConflictPercentage` is removed; use `calendarProcessing.conflictPercentageAllowed`. The transcript and readable RBA-log files do not carry the same BOM-free encoding guarantee.
+
+Every finding contains `ruleId`, `severity`, `status`, `title`, and `evidence`. When `status` is `NotEvaluated`, `evidence` is always JSON `null`; consumers must not interpret unavailable evidence as a negative result. For evaluated findings, evidence is rule-specific and can be a scalar or object. `RBA001` uses an object with an `error` member, while `RBA002` through `RBA007` use a scalar error string or null. In sanitized modes, those error values can contain the fixed text `Error details omitted in sanitized mode.`
+
+The JSON records an overall `Complete`, `Partial`, or `Failed` collection status. Review `collectors`, `collectionErrors`, `evaluationErrors`, and `NotEvaluated` findings before drawing conclusions from a partial report. `NotApplicable` means that evidence was available but the finding does not apply to the resource or routing configuration.
+
+`rbaLogSummary.processedEventCount` counts retained `START -` processing blocks. The accepted, declined, tentative, updated, cancellation, delegate-referral, skipped-external, horizon-decline, and recurrence-truncation values count their respective retained markers independently. These categories are not mutually exclusive: one processing block can increment multiple marker counts, so their sum must not be expected to equal `processedEventCount`. The fields `processedEventCountRepresents`, `markerCountCategoryRelationship`, and `markerCountCategoriesMayOverlapWithinBlock` encode these semantics for consumers.
 
 ## Privacy modes
 
@@ -95,12 +103,14 @@ Each targeted event reports `startMarker`, `startTimeText`, `startBoundaryFound`
 
 Possible search statuses are:
 
-- `NotRequested`: neither a meeting subject nor meeting ID was supplied, so counts and event collections are empty;
-- `Found`: a subject resolved to at least one meeting ID, or the supplied meeting ID occurs in at least one retained block;
-- `FoundWithoutMeetingId`: the subject matched, but other processing blocks cannot be correlated safely;
-- `AmbiguousBoundary`: the requested subject or meeting ID appeared only in content without an exact processing boundary, so no targeted raw evidence was exported;
-- `NotFound`: no subject match or supplied meeting ID exists in the retained log; and
-- `LogUnavailable`: RBA log collection failed.
+- `NotRequested`: neither a meeting subject nor meeting ID was supplied. All count fields are `0`; `meetingIds`, `meetings`, and `events` are empty arrays.
+- `Found`: a subject resolved to at least one meeting ID, or the supplied meeting ID occurs in at least one complete retained block.
+- `FoundWithoutMeetingId`: the subject matched one or more complete blocks, but no meeting ID could be extracted. Only the directly subject-matched complete blocks are returned.
+- `AmbiguousBoundary`: the requested subject or meeting ID appeared only in content without an exact processing boundary. Counts are `0`, and no meeting IDs, meeting summaries, events, or raw targeted evidence are returned.
+- `NotFound`: no subject match or supplied meeting ID exists in the retained log. Counts are `0`, and `meetingIds`, `meetings`, and `events` are empty arrays.
+- `LogUnavailable`: RBA log collection failed. The complete search schema remains present, with zero counts and empty `meetingIds`, `meetings`, and `events`.
+
+No-result search objects use null timestamps, `Unknown` recurrence, policy, and disposition values, false Boolean summaries, and a null delegate-message count.
 
 `NotRequested` remains in the default `Sanitized` privacy mode. `NotFound` does not mean the meeting was never processed. The RBA log retains only bounded recent history, and older processing can roll off. Targeted raw blocks can contain meeting subjects, identities, and processing details and must be handled as sensitive customer evidence.
 
