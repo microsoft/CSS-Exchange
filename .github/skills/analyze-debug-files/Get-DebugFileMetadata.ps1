@@ -414,7 +414,15 @@ function Get-ScriptIdentityFromFilename {
 $Script:RegexTimeout = [System.TimeSpan]::FromSeconds(1)
 
 $Script:TimestampRegex = [regex]::new(
-    '\A\s*\[(?<ts>[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}\s+[0-9]{1,2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?)\]',
+    # Accept both 24-hour (`14:41:31`) and 12-hour (`2:41:31 PM`) time
+    # forms in the bracketed prefix. `[System.DateTime]::Now.ToString()`
+    # in LoggerFunctions.ps1:62 uses the current culture; en-US produces
+    # a 12-hour AM/PM suffix, while cultures like en-GB or ja-JP produce
+    # 24-hour output. Both variants MUST match here so every timestamped
+    # line participates in version-candidate collection, summary
+    # framing, and body-evidence correlation regardless of the machine
+    # that produced the log.
+    '\A\s*\[(?<ts>[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}\s+[0-9]{1,2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?(?:\s*(?i:AM|PM))?)\]',
     [System.Text.RegularExpressions.RegexOptions]::Compiled,
     $Script:RegexTimeout)
 
@@ -485,9 +493,11 @@ $Script:HandledMarkerRegex = [regex]::new(
 # Iter-14 (Q13-MED-4): summary section headers must match the entire
 # sanitized line so an exception message that embeds the phrase (e.g.
 # `Exception message: -----Errors that were handled----- forged`)
-# cannot forge an authoritative summary. HealthChecker emits these as
-# untimestamped lines (the writers in Get-ErrorsThatOccurred.ps1 use
-# `Write-Host`, not `Write-Verbose`), so anchor to line start/end.
+# cannot forge an authoritative summary. HealthChecker emits these
+# headers via `Write-Verbose` in Get-ErrorsThatOccurred.ps1 with a
+# leading "`r`n`r`n" prefix; the logger emits the timestamp prefix
+# BEFORE those newlines, so the line that carries the "----Errors..."
+# text arrives untimestamped. Anchor to line start/end.
 $Script:HandledSummaryHeaderRegex = [regex]::new(
     '(?i)\A-{3,}Errors that were handled-{3,}\z',
     [System.Text.RegularExpressions.RegexOptions]::Compiled,
@@ -498,22 +508,39 @@ $Script:UnhandledSummaryHeaderRegex = [regex]::new(
     [System.Text.RegularExpressions.RegexOptions]::Compiled,
     $Script:RegexTimeout)
 
+# HealthChecker also emits a second unhandled-section footer for errors
+# collected from remote job scopes: `----Errors that occurred that was
+# not handled remotely----` (see Diagnostics/HealthChecker/Helpers/
+# Get-ErrorsThatOccurred.ps1:37-40, guarded by Test-HiddenJobUnhandledErrors).
+# Without this recognizer the state machine treats those errors as bare
+# summary body, so an otherwise-clean run with remote-scope failures is
+# reported as UnhandledCount = 0 and the section content is silently
+# dropped. Treated as another entry point into the 'unhandled' state so
+# events counted here contribute to UnhandledSummaryEvents.
+$Script:UnhandledRemoteSummaryHeaderRegex = [regex]::new(
+    '(?i)\A-{3,}Errors that occurred that was not handled remotely-{3,}\z',
+    [System.Text.RegularExpressions.RegexOptions]::Compiled,
+    $Script:RegexTimeout)
+
 $Script:SummaryFooterRegex = [regex]::new(
     # Iter-23 (RD-branch-10): require a strict timestamp shape
     # (matching $Script:TimestampRegex) inside the brackets rather
     # than accepting `.*?`. A permissive timestamp interior allowed
     # a line like `[09/08/2026 bogus] : ---------------------------`
     # to open a summary event whose Timestamp was $null, which then
-    # crashed Step 7's `.AddSeconds(-60)` correlation.
-    '\A\s*\[[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}\s+[0-9]{1,2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?\]\s*:\s*-{4,}\s*\z',
+    # crashed Step 7's `.AddSeconds(-60)` correlation. Also accepts
+    # the 12-hour AM/PM form emitted by en-US cultures — see the
+    # comment on $Script:TimestampRegex for rationale.
+    '\A\s*\[[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}\s+[0-9]{1,2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?(?:\s*(?i:AM|PM))?\]\s*:\s*-{4,}\s*\z',
     [System.Text.RegularExpressions.RegexOptions]::Compiled,
     $Script:RegexTimeout)
 
 $Script:ErrorIndexRegex = [regex]::new(
     # Iter-23 (RD-branch-10): require a strict timestamp shape
     # (matching $Script:TimestampRegex) inside the brackets. See
-    # SummaryFooterRegex above for rationale.
-    '\A\s*\[[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}\s+[0-9]{1,2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?\]\s*:\s*Error\s+Index\s*[:=]',
+    # SummaryFooterRegex above for rationale. Accepts 12-hour AM/PM
+    # form to match the culture-aware TimestampRegex.
+    '\A\s*\[[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}\s+[0-9]{1,2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?(?:\s*(?i:AM|PM))?\]\s*:\s*Error\s+Index\s*[:=]',
     [System.Text.RegularExpressions.RegexOptions]::Compiled,
     $Script:RegexTimeout)
 
@@ -552,7 +579,12 @@ $Script:AnsiOscRegex = [regex]::new(
     $Script:RegexTimeout)
 
 $Script:ControlCharRegex = [regex]::new(
-    '[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]',
+    # Reject C0 controls (\x00-\x1F, minus tab \x09), DEL (\x7F), and the
+    # C1 control range (\x80-\x9F). The report contract explicitly forbids
+    # both C0 and C1 controls in emitted snippets; leaving the C1 range in
+    # would let terminal-manipulation sequences (CSI, single-shift, etc.
+    # in their 8-bit forms) reach the rendered report.
+    '[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]',
     [System.Text.RegularExpressions.RegexOptions]::Compiled,
     $Script:RegexTimeout)
 
@@ -624,9 +656,15 @@ $Script:CompletionSignals = @(
         Name    = 'UnhandledSummaryHeader'
         Pattern = $Script:UnhandledSummaryHeaderRegex
     }
+    [PSCustomObject]@{
+        Name    = 'UnhandledRemoteSummaryHeader'
+        Pattern = $Script:UnhandledRemoteSummaryHeaderRegex
+    }
 )
 
 $Script:AcceptedTimestampFormats = [string[]]@(
+    # 24-hour forms (cultures like en-GB, ja-JP, and the ISO-8601 style
+    # emitted by scripts that pin CurrentCulture to Invariant).
     'M/d/yyyy H:mm:ss.fffffff',
     'M/d/yyyy H:mm:ss.ffff',
     'M/d/yyyy H:mm:ss.fff',
@@ -634,7 +672,19 @@ $Script:AcceptedTimestampFormats = [string[]]@(
     'MM/dd/yyyy HH:mm:ss.fffffff',
     'MM/dd/yyyy HH:mm:ss.ffff',
     'MM/dd/yyyy HH:mm:ss.fff',
-    'MM/dd/yyyy HH:mm:ss'
+    'MM/dd/yyyy HH:mm:ss',
+    # 12-hour forms (default en-US culture — LoggerFunctions.ps1:62 uses
+    # [System.DateTime]::Now.ToString() which honors the current culture,
+    # and CSS-Exchange scripts do not force InvariantCulture globally).
+    # Parse under InvariantCulture; "AM"/"PM" are the invariant tokens.
+    'M/d/yyyy h:mm:ss.fffffff tt',
+    'M/d/yyyy h:mm:ss.ffff tt',
+    'M/d/yyyy h:mm:ss.fff tt',
+    'M/d/yyyy h:mm:ss tt',
+    'MM/dd/yyyy hh:mm:ss.fffffff tt',
+    'MM/dd/yyyy hh:mm:ss.ffff tt',
+    'MM/dd/yyyy hh:mm:ss.fff tt',
+    'MM/dd/yyyy hh:mm:ss tt'
 )
 
 function ConvertTo-SafeSnippetLine {
@@ -669,7 +719,13 @@ function ConvertTo-SafeSnippetLine {
         $sb = New-Object System.Text.StringBuilder $Line.Length
         foreach ($c in $Line.ToCharArray()) {
             $code = [int]$c
-            if (($code -ge 0x20 -and $code -ne 0x7F) -or $code -eq 0x09) {
+            # Accept: printable ASCII (0x20-0x7E), tab (0x09), and
+            # printable non-ASCII at or above 0xA0. Reject C0 controls
+            # (0x00-0x1F minus tab), DEL (0x7F), and the C1 control range
+            # (0x80-0x9F). Must match $Script:ControlCharRegex so the
+            # timeout fallback preserves the same emitted-character
+            # guarantee as the normal path.
+            if (($code -ge 0x20 -and $code -lt 0x7F) -or ($code -ge 0xA0) -or $code -eq 0x09) {
                 [void]$sb.Append($c)
             }
         }
@@ -753,6 +809,7 @@ function Get-EmptyFileResult {
         HandledEventsTruncated        = $false
         UnhandledEventsTruncated      = $false
         SummaryFooterSeen             = $false
+        RemoteUnhandledSectionSeen    = $false
         CompletionSignals             = @()
         InlineEvents                  = @()
         BodyEvidenceMarkers           = @()
@@ -841,6 +898,7 @@ function Read-DebugFile {
     # Multiple summary blocks (multiple concatenated runs) detection.
     $handledHeaderCount = 0
     $unhandledHeaderCount = 0
+    $remoteUnhandledSectionSeen = $false
     $multipleSummaryBlocksDetected = $false
     $currentSummaryEvent = $null
     $currentSummaryChars = 0
@@ -992,6 +1050,20 @@ function Read-DebugFile {
                     $unhandledHeaderCount++
                     if ($unhandledHeaderCount -gt 1) { $multipleSummaryBlocksDetected = $true }
                     if ($null -eq $summaryStart) { $summaryStart = $lineNumber }
+                } elseif ($Script:UnhandledRemoteSummaryHeaderRegex.IsMatch($line)) {
+                    # HealthChecker's second unhandled section (see the
+                    # comment on $Script:UnhandledRemoteSummaryHeaderRegex).
+                    # Enter the 'unhandled' state so events counted here
+                    # contribute to UnhandledSummaryEvents, and record the
+                    # section for auditing so downstream reports can
+                    # disclose remote-scope errors separately.
+                    $summaryState = 'unhandled'
+                    if ($null -eq $summaryUnhandledCount) { $summaryUnhandledCount = 0 }
+                    if ($null -eq $unhandledHeaderLine) { $unhandledHeaderLine = $lineNumber }
+                    $unhandledHeaderCount++
+                    if ($unhandledHeaderCount -gt 1) { $multipleSummaryBlocksDetected = $true }
+                    $remoteUnhandledSectionSeen = $true
+                    if ($null -eq $summaryStart) { $summaryStart = $lineNumber }
                 }
             } else {
                 # Inside a summary block. Real end-of-section footer is a
@@ -1108,6 +1180,36 @@ function Read-DebugFile {
                     if ($unhandledHeaderCount -gt 1) { $multipleSummaryBlocksDetected = $true }
                     if ($null -eq $summaryUnhandledCount) { $summaryUnhandledCount = 0 }
                     if ($null -eq $unhandledHeaderLine) { $unhandledHeaderLine = $lineNumber }
+                } elseif ($Script:UnhandledRemoteSummaryHeaderRegex.IsMatch($line)) {
+                    # Transition from an earlier section into HealthChecker's
+                    # remote-unhandled section (see the comment on
+                    # $Script:UnhandledRemoteSummaryHeaderRegex). Behaves
+                    # like a normal handled -> unhandled transition so the
+                    # in-flight event is closed and events counted in the
+                    # remote section contribute to UnhandledSummaryEvents.
+                    if ($null -ne $currentSummaryEvent) {
+                        $currentSummaryEvent.OriginalEndLine = $lineNumber - 1
+                        $currentSummaryEvent.TerminationLineNumber = $lineNumber
+                        $currentSummaryEvent.TerminationLineText = $line
+                        $currentSummaryEvent.TerminationKind = 'SectionHeaderTransition'
+                        Add-SummaryEventToList `
+                            -SummaryEvent $currentSummaryEvent `
+                            -State $summaryState `
+                            -HandledList $handledSummaryEvents `
+                            -UnhandledList $unhandledSummaryEvents `
+                            -MaxHandled $MaxHandledSummaryEvents `
+                            -MaxUnhandled $MaxUnhandledSummaryEvents `
+                            -HandledTruncated ([ref]$handledEventsTruncated) `
+                            -UnhandledTruncated ([ref]$unhandledEventsTruncated)
+                    }
+                    $currentSummaryEvent = $null
+                    $currentSummaryChars = 0
+                    $summaryState = 'unhandled'
+                    $unhandledHeaderCount++
+                    if ($unhandledHeaderCount -gt 1) { $multipleSummaryBlocksDetected = $true }
+                    if ($null -eq $summaryUnhandledCount) { $summaryUnhandledCount = 0 }
+                    if ($null -eq $unhandledHeaderLine) { $unhandledHeaderLine = $lineNumber }
+                    $remoteUnhandledSectionSeen = $true
                 } elseif ($null -ne $currentSummaryEvent) {
                     $currentSummaryEvent.OriginalEndLine = $lineNumber
                     # Retention rule:
@@ -1398,6 +1500,7 @@ function Read-DebugFile {
         HandledEventsTruncated        = $handledEventsTruncated
         UnhandledEventsTruncated      = $unhandledEventsTruncated
         SummaryFooterSeen             = $summaryComplete
+        RemoteUnhandledSectionSeen    = $remoteUnhandledSectionSeen
         CompletionSignals             = $completionSignals
         InlineEvents                  = $inlineEventArray
         BodyEvidenceMarkers           = $bodyEvidenceMarkers.ToArray()

@@ -355,7 +355,18 @@ try {
     } else {
         $parsedReleases = $jsonText | ConvertFrom-Json -ErrorAction Stop
     }
-    $releases = @($parsedReleases)
+    # Windows PowerShell 5.1 turns a valid empty JSON array `[]` into
+    # $null via ConvertFrom-Json. Wrapping $null with @(...) yields a
+    # single-element array containing $null, which the shape check
+    # below rejects as "Unexpected release entry shape from gh" — the
+    # branch that should have produced a clean `not-found-no-candidates`
+    # result throws instead. Coerce $null to an empty array before
+    # iterating.
+    if ($null -eq $parsedReleases) {
+        $releases = @()
+    } else {
+        $releases = @($parsedReleases)
+    }
     foreach ($rel in $releases) {
         if ($null -eq $rel -or `
                 -not ($rel.PSObject.Properties.Match('tagName').Count) -or `

@@ -85,6 +85,13 @@ param(
     [string]$Repository,
 
     [Parameter(Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
+    [ValidateScript({
+            if ([string]::IsNullOrWhiteSpace($_)) {
+                throw "TopLevelException cannot be empty or whitespace-only. Callers must supply a real exception message; an empty search would produce Status='Ok' with zero results and misrepresent 'no related issue found' to downstream reports."
+            }
+            return $true
+        })]
     [string]$TopLevelException,
 
     [string]$InnerException,
@@ -131,6 +138,40 @@ function ConvertTo-NormalizedPhrase {
     # Strip timestamps [MM/dd/yyyy HH:mm:ss.fffffff].
     $s = [regex]::Replace($s, '\[\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2}(?:\.\d+)?\]', '<ts>')
     # Collapse whitespace.
+    $s = [regex]::Replace($s, '\s+', ' ').Trim()
+    return $s
+}
+
+# ---------------------------------------------------------------------------
+# Reduce a normalized phrase (which still carries `<path>`, `<unc>`, `<guid>`,
+# `<ts>`, and `tmpEXO_<random>` placeholders left in by ConvertTo-NormalizedPhrase)
+# to a form that is safe to submit as an EXACT-substring GitHub search.
+#
+# GitHub's search does NOT treat `<path>` (or any other placeholder we insert)
+# as a wildcard: a quoted query `"Failure at <path>"` requires the literal
+# substring `Failure at <path>` to appear in the issue, which no real issue
+# body ever contains. Leaving the placeholders in the search phrase silently
+# guarantees zero matches — the caller sees Status='Ok' with empty results
+# and (correctly, by contract) reports "no related issue found" even though
+# a genuine duplicate exists in the tracker.
+#
+# The placeholders remain useful for LOCAL classification (comparing issue
+# body substrings to the current failure); this reducer is only applied to
+# the phrase that is actually submitted to `gh`.
+# ---------------------------------------------------------------------------
+function ConvertTo-SearchablePhrase {
+    param([string]$NormalizedText)
+    if ([string]::IsNullOrWhiteSpace($NormalizedText)) { return '' }
+    $s = $NormalizedText
+    # Drop every placeholder token; GitHub search cannot use them as
+    # wildcards. Each placeholder is replaced with a single space so
+    # word boundaries stay intact.
+    $s = $s -replace '<path>', ' '
+    $s = $s -replace '<unc>', ' '
+    $s = $s -replace '<guid>', ' '
+    $s = $s -replace '<ts>', ' '
+    $s = $s -replace 'tmpEXO_<random>', ' '
+    # Collapse whitespace + trim.
     $s = [regex]::Replace($s, '\s+', ' ').Trim()
     return $s
 }
@@ -281,8 +322,13 @@ if ($LASTEXITCODE -ne 0) {
 # ---------------------------------------------------------------------------
 $normTop = ConvertTo-NormalizedPhrase -Text $TopLevelException
 $normInner = ConvertTo-NormalizedPhrase -Text $InnerException
-$topPhrase = Get-DistinctivePhrase -NormalizedText $normTop
-$innerPhrase = Get-DistinctivePhrase -NormalizedText $normInner
+# Reduce placeholders BEFORE picking the distinctive phrase — see
+# ConvertTo-SearchablePhrase for why leaving `<path>` etc. in the
+# submitted phrase silently zeroes out every search.
+$searchTop = ConvertTo-SearchablePhrase -NormalizedText $normTop
+$searchInner = ConvertTo-SearchablePhrase -NormalizedText $normInner
+$topPhrase = Get-DistinctivePhrase -NormalizedText $searchTop
+$innerPhrase = Get-DistinctivePhrase -NormalizedText $searchInner
 
 # Iter-23 (RD-branch-12): each query is now a hashtable carrying
 # an ExactPhrase flag. Exception-content phrases MUST be submitted
