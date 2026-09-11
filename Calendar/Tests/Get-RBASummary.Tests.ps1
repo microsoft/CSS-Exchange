@@ -248,6 +248,33 @@ Describe "Get-RBASummary best-effort report" {
         $jsonFiles.Count | Should -Be 0
     }
 
+    It "preserves the active mailbox error when the soft-deleted fallback also fails" {
+        Mock Get-Mailbox { throw "Active mailbox access denied" } -ParameterFilter { -not $SoftDeletedMailbox }
+        Mock Get-Mailbox { throw "Soft-deleted mailbox not found" } -ParameterFilter { $SoftDeletedMailbox }
+
+        Push-Location -Path $TestDrive
+        try {
+            $output = @(& $Script:scriptPath -Identity "missing@contoso.com" -SkipVersionCheck -Verbose *>&1)
+            $jsonFiles = @(Get-ChildItem -Path $TestDrive -Filter "RBA-Summary-For_missing_*.json")
+        } finally {
+            Pop-Location
+        }
+
+        $warningMessages = @($output | Where-Object {
+                $_ -is [System.Management.Automation.WarningRecord]
+            } | ForEach-Object { $_.Message })
+        $verboseMessages = @($output | Where-Object {
+                $_ -is [System.Management.Automation.VerboseRecord]
+            } | ForEach-Object { $_.Message })
+
+        Assert-MockCalled -CommandName Get-Mailbox -Exactly 1 -ParameterFilter { -not $SoftDeletedMailbox }
+        Assert-MockCalled -CommandName Get-Mailbox -Exactly 1 -ParameterFilter { $SoftDeletedMailbox }
+        $warningMessages | Should -Contain "Mailbox collection failed: Active mailbox access denied"
+        $warningMessages | Should -Not -Contain "Mailbox collection failed: Soft-deleted mailbox not found"
+        $verboseMessages -join [Environment]::NewLine | Should -Match "Soft-deleted mailbox lookup failed: Soft-deleted mailbox not found"
+        $jsonFiles.Count | Should -Be 0
+    }
+
     It "stops collection when the identity is not a resource mailbox" {
         Mock Get-Mailbox {
             [PSCustomObject]@{

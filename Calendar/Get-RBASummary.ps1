@@ -309,10 +309,18 @@ function CollectMailbox {
             $script:MailboxObjectState = "Active"
             return $mailbox
         } catch {
-            Write-Verbose "Active mailbox lookup failed. Checking for a recoverable soft-deleted mailbox."
-            $mailbox = Get-Mailbox -Identity $Identity -SoftDeletedMailbox -ErrorAction Stop
+            $activeLookupError = $_
+            Write-Verbose -Message "Active mailbox lookup failed. Checking for a recoverable soft-deleted mailbox."
+            try {
+                $mailbox = Get-Mailbox -Identity $Identity -SoftDeletedMailbox -ErrorAction Stop
+            } catch {
+                $fallbackErrorInfo = ConvertTo-RbaErrorInfo -ErrorRecord $_
+                Write-Verbose -Message "Soft-deleted mailbox lookup failed: $($fallbackErrorInfo.message) (Category: $($fallbackErrorInfo.category); fully qualified error ID: $($fallbackErrorInfo.fullyQualifiedErrorId))."
+                throw $activeLookupError
+            }
             if ($null -eq $mailbox) {
-                throw "Soft-deleted mailbox lookup returned null."
+                Write-Verbose -Message "Soft-deleted mailbox lookup returned null."
+                throw $activeLookupError
             }
             $script:MailboxObjectState = "SoftDeleted"
             return $mailbox
