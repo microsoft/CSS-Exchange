@@ -80,7 +80,6 @@ BeforeAll {
             BookingWindowInDays                 = 180
             ConflictPercentageAllowed           = 0
             MaximumConflictInstances            = 0
-            MaximumConflictPercentage           = 0
             EnforceSchedulingHorizon            = $true
             EnforceCapacity                     = $false
             RequestOutOfPolicy                  = @()
@@ -317,20 +316,20 @@ Describe "Get-RBASummary best-effort report" {
     }
 
     It "reports a JSON write failure without hiding generated text output" {
-        Mock Set-Content { throw [System.IO.IOException]::new("JSON destination unavailable") } -ParameterFilter {
-            $Path -like "RBA-Summary-For_room_*.json"
-        }
+        Mock Get-Date { [DateTime]"2026-09-11T09:00:00" }
+        $jsonDirectoryPath = Join-Path -Path $TestDrive -ChildPath "RBA-Summary-For_room_2026-09-11_09-00-00.json"
+        New-Item -Path $jsonDirectoryPath -ItemType Directory | Out-Null
 
         Push-Location -Path $TestDrive
         try {
-            $output = & $Script:scriptPath -Identity "room@contoso.com" -SkipVersionCheck *>&1 | Out-String
+            $output = & $Script:scriptPath -Identity "room@contoso.com" -SkipVersionCheck -Verbose *>&1 | Out-String
         } finally {
             Pop-Location
         }
 
-        Assert-MockCalled -CommandName Set-Content -Exactly 1 -ParameterFilter {
-            $Path -like "RBA-Summary-For_room_*.json" -and $ErrorAction -eq "Stop"
-        }
+        $output | Should -Match "Writing JSON report file\."
+        $output | Should -Not -Match "JSON report file written\."
+        $output | Should -Match "JSON report failure location:"
         $output | Should -Match "Unable to write RBA JSON output"
         $output | Should -Match "Text summary: \[RBA-Summary-For_room_.*\.txt\]"
     }
@@ -354,6 +353,33 @@ Describe "Get-RBASummary best-effort report" {
         $output | Should -Not -Match "Shanefe@microsoft.com"
         $summary | Should -Match "RBA output files:"
         $summary | Should -Match "JSON report:\s+\[RBA-Summary-For_room_.*\.json\]"
+        $summary | Should -Not -Match "MaximumConflictPercentage"
+    }
+
+    It "emits ordered verbose phase boundaries after the feedback line" {
+        Push-Location -Path $TestDrive
+        try {
+            $output = & $Script:scriptPath -Identity "room@contoso.com" -SkipVersionCheck -Verbose *>&1 | Out-String
+        } finally {
+            Pop-Location
+        }
+
+        $phaseMessages = @(
+            "Stopping transcript."
+            "Transcript stopped."
+            "Starting JSON report generation."
+            "JSON report generation completed."
+            "Building final output file list."
+            "Updating text summary with output file list."
+            "Text summary update completed."
+        )
+        $previousIndex = -1
+        foreach ($phaseMessage in $phaseMessages) {
+            $phasePattern = "\[\d+ms\] $([regex]::Escape($phaseMessage))"
+            $phaseIndex = $output.IndexOf(($output | Select-String -Pattern $phasePattern).Matches[0].Value)
+            $phaseIndex | Should -BeGreaterThan $previousIndex
+            $previousIndex = $phaseIndex
+        }
     }
 
     It "marks a collector failed when post-collection evidence processing throws" {
@@ -468,11 +494,16 @@ Describe "Get-RBASummary best-effort report" {
         $report.collectors.Place.status | Should -Be "Failed"
         $report.collectors.Place.error | Should -Be "Error details omitted in sanitized mode."
         $report.collectionErrors.collector | Should -Contain "Place"
+        ($report.findings | Where-Object { $_.ruleId -eq "RBA510" }).status | Should -Be "NotEvaluated"
+        ($report.findings | Where-Object { $_.ruleId -eq "RBA510" }).evidence | Should -BeNullOrEmpty
+        ($report.findings | Where-Object { $_.ruleId -eq "RBA511" }).status | Should -Be "NotEvaluated"
+        ($report.findings | Where-Object { $_.ruleId -eq "RBA511" }).evidence | Should -BeNullOrEmpty
     }
 
     It "sanitizes non-target identities and emits the documented finding families by default" {
         $report = Invoke-TestRbaSummary
 
+        $report.metadata.schemaVersion | Should -Be "1.1-preview"
         $report.metadata.privacyMode | Should -Be "Sanitized"
         $report.metadata.identity | Should -Be "room@contoso.com"
         $report.mailbox.objectState | Should -Be "Active"
@@ -481,6 +512,8 @@ Describe "Get-RBASummary best-effort report" {
         $report.mailbox.PSObject.Properties.Name | Should -Not -Contain "exchangeGuid"
         $report.calendarProcessing.resourceDelegates | Should -Contain "SanitizedIdentity-2"
         $report.calendarProcessing.resourceDelegates | Should -Not -Contain "delegate@contoso.com"
+        $report.calendarProcessing.PSObject.Properties.Name | Should -Contain "conflictPercentageAllowed"
+        $report.calendarProcessing.PSObject.Properties.Name | Should -Not -Contain "maximumConflictPercentage"
         $report.calendarProcessing.PSObject.Properties.Name | Should -Not -Contain "additionalResponse"
         $report.PSObject.Properties.Name | Should -Not -Contain "fullRbaLog"
         $report.meetingLogSearch.searchSubject | Should -BeNullOrEmpty
@@ -517,7 +550,11 @@ Describe "Get-RBASummary best-effort report" {
         @($report.findings.ruleId) | Should -Contain "RBA801"
         @($report.findings.ruleId) | Should -Contain "RBA820"
         @($report.findings.ruleId | Sort-Object -Unique).Count | Should -Be @($report.findings).Count
+        ($report.findings | Where-Object { $_.ruleId -eq "RBA001" }).evidence.PSObject.Properties.Name | Should -Contain "error"
+        ($report.findings | Where-Object { $_.ruleId -eq "RBA001" }).evidence.error | Should -BeNullOrEmpty
         ($report.findings | Where-Object { $_.ruleId -eq "RBA500" }).status | Should -Be "NotApplicable"
+        ($report.findings | Where-Object { $_.ruleId -eq "RBA500" }).evidence.PSObject.Properties.Name | Should -Contain "capacity"
+        ($report.findings | Where-Object { $_.ruleId -eq "RBA500" }).evidence.capacity | Should -Be 8
         ($report.findings | Where-Object { $_.ruleId -eq "RBA411" }).status | Should -Be "Detected"
         ($report.findings | Where-Object { $_.ruleId -eq "RBA801" }).status | Should -Be "Detected"
         ($report.findings | Where-Object { $_.ruleId -eq "RBA801" }).evidence.accessRights | Should -Contain "AvailabilityOnly"
@@ -538,14 +575,43 @@ Describe "Get-RBASummary best-effort report" {
         ($report.findings | Where-Object { $_.ruleId -eq "RBA715" }).evidence.horizonDeclineCount | Should -Be 0
     }
 
+    It "writes JSON as UTF-8 without a byte order mark" {
+        $null = Invoke-TestRbaSummary
+        $jsonPath = Get-ChildItem -Path $TestDrive -Filter "RBA-Summary-For_room_*.json" |
+            Sort-Object -Property LastWriteTime | Select-Object -Last 1
+        $bytes = [System.IO.File]::ReadAllBytes($jsonPath.FullName)
+
+        $bytes.Length | Should -BeGreaterThan 3
+        @($bytes[0], $bytes[1], $bytes[2]) -join "," | Should -Not -Be "239,187,191"
+    }
+
     It "summarizes and writes collected RBA log content after a successful collection" {
+        Mock Export-MailboxDiagnosticLogs {
+            [PSCustomObject]@{
+                MailboxLog = @(
+                    "2026-08-28T10:00:03Z, Entry Action: Message, LogComment: Action:Accept"
+                    "2026-08-28T10:00:02Z, Begin ProcessUpdateRequest"
+                    "2026-08-28T10:00:01Z, It's a meeting cancellation."
+                    "2026-08-28T10:00:00Z, START - HandleEventInternal Automatic Booking is enabled for resource."
+                ) -join "`r`n"
+            }
+        }
+
         $report = Invoke-TestRbaSummary
         $logPath = Get-ChildItem -Path $TestDrive -Filter "RBA-Logs_room_*.txt" |
             Sort-Object -Property LastWriteTime | Select-Object -Last 1
 
         $report.collectors.RbaLog.status | Should -Be "Success"
-        $report.rbaLogSummary.entryCount | Should -Be 2
+        $report.rbaLogSummary.entryCount | Should -Be 4
+        $report.rbaLogSummary.processedEventCount | Should -Be 1
+        $report.rbaLogSummary.processedEventCountRepresents | Should -Be "ProcessingBlocks"
+        $report.rbaLogSummary.markerCountCategoryRelationship | Should -Be "IndependentNonMutuallyExclusive"
+        $report.rbaLogSummary.markerCountCategoriesMayOverlapWithinBlock | Should -BeTrue
         $report.rbaLogSummary.acceptedCount | Should -Be 1
+        $report.rbaLogSummary.updatedCount | Should -Be 1
+        $report.rbaLogSummary.cancellationCount | Should -Be 1
+        ($report.rbaLogSummary.acceptedCount + $report.rbaLogSummary.updatedCount +
+        $report.rbaLogSummary.cancellationCount) | Should -BeGreaterThan $report.rbaLogSummary.processedEventCount
         $logPath | Should -Not -BeNullOrEmpty
         $logContent = Get-Content -Path $logPath.FullName -Raw
         $logContent | Should -Match "Action:Accept"
@@ -910,6 +976,18 @@ Describe "Get-RBASummary best-effort report" {
         ([DateTimeOffset]$report.meetingLogSearch.lastUpdateTimeText).UtcDateTime.ToString("o") | Should -Be "2026-08-22T10:00:01.0000000Z"
     }
 
+    It "returns empty collections when a MeetingId is not found" {
+        $meetingId = "04000000800E00074C5A7101A82E007000000004220FC5BAC74D90100000000000000001000000068B165058D1E2E439252F58379D4FE92"
+
+        $report = Invoke-TestRbaSummary -MeetingId $meetingId
+
+        $report.meetingLogSearch.status | Should -Be "NotFound"
+        $report.meetingLogSearch.eventCount | Should -Be 0
+        @($report.meetingLogSearch.meetingIds).Count | Should -Be 0
+        @($report.meetingLogSearch.events).Count | Should -Be 0
+        @($report.meetingLogSearch.meetings).Count | Should -Be 0
+    }
+
     It "rejects Subject and MeetingId when supplied together" {
         { & $Script:scriptPath -Identity "room@contoso.com" -Subject "ClassicOnly" -MeetingId "04000000800E00074C5A7101A82E00700000000" -SkipVersionCheck } |
             Should -Throw "Specify either Subject or MeetingId, not both."
@@ -1195,8 +1273,7 @@ Describe "Get-RBASummary best-effort report" {
         $report.collectors.CalendarFolderPermissions.status | Should -Be "Success"
         ($report.findings | Where-Object { $_.ruleId -eq "RBA006" }).status | Should -Be "NotDetected"
         ($report.findings | Where-Object { $_.ruleId -eq "RBA803" }).status | Should -Be "NotEvaluated"
-        ($report.findings | Where-Object { $_.ruleId -eq "RBA803" }).evidence.configuredDelegateCount | Should -Be 0
-        ($report.findings | Where-Object { $_.ruleId -eq "RBA803" }).evidence.unmatchedIdentityCount | Should -Be 0
+        ($report.findings | Where-Object { $_.ruleId -eq "RBA803" }).evidence | Should -BeNullOrEmpty
         Assert-MockCalled -CommandName Get-Mailbox -Exactly 1
         Assert-MockCalled -CommandName Get-Place -Exactly 1
         Assert-MockCalled -CommandName Get-InboxRule -Exactly 1
@@ -1228,6 +1305,44 @@ Describe "Get-RBASummary best-effort report" {
         $report.mailbox.externalDirectoryId | Should -Be "22222222-2222-2222-2222-222222222222"
         @($report.fullRbaLog).Count | Should -BeGreaterThan 0
         $report.transcript | Should -Not -BeNullOrEmpty
+    }
+
+    It "normalizes full-fidelity Exchange values before JSON serialization" {
+        $ruleName = [PSCustomObject]@{ NestedRuleValue = [PSCustomObject]@{ Secret = "rule-secret" } }
+        $ruleName | Add-Member -MemberType ScriptMethod -Name ToString -Value { "Rich rule name" } -Force
+        $roomList = [PSCustomObject]@{ NestedRoomListValue = [PSCustomObject]@{ Secret = "room-list-secret" } }
+        $roomList | Add-Member -MemberType ScriptMethod -Name ToString -Value { "RoomList@contoso.com" } -Force
+        $additionalResponse = [PSCustomObject]@{ NestedResponseValue = [PSCustomObject]@{ Secret = "response-secret" } }
+        $additionalResponse | Add-Member -MemberType ScriptMethod -Name ToString -Value { "Contact the delegate" } -Force
+
+        Mock Get-InboxRule { @([PSCustomObject]@{ Name = $ruleName }) }
+        Mock Get-Place {
+            [PSCustomObject]@{
+                City            = "Redmond"
+                Floor           = 1
+                Capacity        = 8
+                Localities      = @($roomList)
+                Street          = "1 Microsoft Way"
+                State           = "WA"
+                PostalCode      = "98052"
+                CountryOrRegion = "US"
+                Building        = "1"
+                Tags            = @("Display")
+            }
+        }
+        Mock Get-CalendarProcessing {
+            $settings = Get-TestCalendarProcessing
+            $settings.AdditionalResponse = $additionalResponse
+            $settings
+        }
+
+        $report = Invoke-TestRbaSummary -IncludeSensitiveData
+        $serializedReport = $report | ConvertTo-Json -Depth 8
+
+        $report.inboxRules.ruleNames | Should -Contain "Rich rule name"
+        $report.place.roomLists | Should -Contain "RoomList@contoso.com"
+        $report.calendarProcessing.additionalResponse | Should -Be "Contact the delegate"
+        $serializedReport | Should -Not -Match "rule-secret|room-list-secret|response-secret"
     }
 
     It "writes full-fidelity output without room lists when Place collection fails" {

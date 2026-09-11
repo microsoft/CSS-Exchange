@@ -102,6 +102,15 @@ function ConvertTo-RbaCommandLineValue {
     return "'$(([string]$Value).Replace("'", "''"))'"
 }
 
+function Write-RbaPhaseVerbose {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Message
+    )
+
+    Write-Verbose "[$($script:RunStopwatch.ElapsedMilliseconds)ms] $Message"
+}
+
 function ConvertTo-RbaFileNameStem {
     param(
         [Parameter(Mandatory)]
@@ -138,6 +147,33 @@ function ConvertTo-RbaSafeErrorText {
         return $text.Substring(0, $MaximumLength)
     }
     return $text
+}
+
+function ConvertTo-RbaPlainString {
+    param(
+        [AllowNull()]
+        [object]$Value
+    )
+
+    if ($null -eq $Value) {
+        return $null
+    }
+
+    try {
+        return [string]$Value
+    } catch {
+        Write-Verbose "Unable to convert a report value of type '$($Value.GetType().FullName)' to a string."
+        return $null
+    }
+}
+
+function ConvertTo-RbaPlainStringList {
+    param(
+        [AllowNull()]
+        [object[]]$Value
+    )
+
+    return @($Value | ForEach-Object { ConvertTo-RbaPlainString -Value $_ })
 }
 
 function ConvertTo-RbaErrorInfo {
@@ -319,6 +355,7 @@ function CollectPlace {
         if ($placeObjects.Count -eq 0) { throw "Get-Place returned no place objects." }
         if ($placeObjects.Count -gt 1) { Write-Verbose "Get-Place returned $($placeObjects.Count) results; using the first entry." }
         return $placeObjects[0]
+    }
 
     if ($null -eq $script:Place) {
         Write-Host -ForegroundColor Red "Make sure you are running from the correct forest.  Get-Place does not cross forest boundaries."
@@ -505,7 +542,6 @@ function RBACriteria {
     `t BookingWindowInDays:            $($RbaSettings.BookingWindowInDays)
     `t ConflictPercentageAllowed:      $($RbaSettings.ConflictPercentageAllowed)
     `t MaximumConflictInstances:       $($RbaSettings.MaximumConflictInstances)
-    `t MaximumConflictPercentage:      $($RbaSettings.MaximumConflictPercentage)
     `t EnforceSchedulingHorizon:       $($RbaSettings.EnforceSchedulingHorizon)
 "@
     Write-Host -NoNewline "`r`nIf all the above criteria are met, the request is "
@@ -1284,7 +1320,12 @@ function Get-RbaMeetingLogSearchObject {
                 Get-RbaTargetedLogBlockObject -Block $_ -SubjectMatched $false
             })
         $meetingDetails = Get-RbaTargetedMeetingDetails -Events $events
-        $meetingSummaries = @(Get-RbaTargetedMeetingSummaries -MeetingIds @($normalizedRequestedMeetingId) -Events $events)
+        [string[]]$matchedMeetingIds = @()
+        [object[]]$meetingSummaries = @()
+        if ($events.Count -gt 0) {
+            $matchedMeetingIds = @($normalizedRequestedMeetingId)
+            $meetingSummaries = @(Get-RbaTargetedMeetingSummaries -MeetingIds $matchedMeetingIds -Events $events)
+        }
 
         return [PSCustomObject]@{
             searchType                       = $searchType
@@ -1295,7 +1336,7 @@ function Get-RbaMeetingLogSearchObject {
             eventOrder                       = "NewestFirst"
             rawLogChronologicalReadDirection = "BottomToTop"
             subjectMatchCount                = 0
-            meetingIds                       = $(if ($events.Count -gt 0) { @($normalizedRequestedMeetingId) } else { @() })
+            meetingIds                       = $matchedMeetingIds
             eventCount                       = $events.Count
             acceptCount                      = @($events | Where-Object { $_.actions -contains "Accept" }).Count
             tentativeCount                   = @($events | Where-Object { $_.actions -contains "Tentative" }).Count
@@ -1782,12 +1823,13 @@ function Add-RbaFinding {
         [object]$Evidence
     )
 
+    $effectiveEvidence = if ($Status -eq "NotEvaluated") { $null } else { $Evidence }
     $Findings.Add([PSCustomObject]@{
             ruleId   = $RuleId
             severity = $Severity
             status   = $Status
             title    = $Title
-            evidence = $Evidence
+            evidence = $effectiveEvidence
         })
 }
 
@@ -1815,7 +1857,8 @@ function Get-RbaFindings {
 
     Add-RbaFinding -Findings $findings -RuleId "RBA001" -Severity Error `
         -Status $(if ($mailboxAvailable) { "NotDetected" } else { "Detected" }) `
-        -Title "Mailbox evidence unavailable" -Evidence (Get-RbaReportErrorMessage -Message $script:collectorStatuses["Mailbox"].error)
+        -Title "Mailbox evidence unavailable" `
+        -Evidence @{ error = Get-RbaReportErrorMessage -Message $script:collectorStatuses["Mailbox"].error }
 
     Add-RbaFinding -Findings $findings -RuleId "RBA002" -Severity Error `
         -Status $(if ($placeAvailable) { "NotDetected" } else { "Detected" }) `
@@ -1936,7 +1979,7 @@ function Get-RbaFindings {
     $isWorkspace = $mailboxAvailable -and $script:Mailbox.ResourceType -eq "Workspace"
     Add-RbaFinding -Findings $findings -RuleId "RBA500" -Severity Error `
         -Status $(if (-not $mailboxAvailable) { "NotEvaluated" } elseif (-not $isWorkspace) { "NotApplicable" } elseif (-not $placeAvailable) { "NotEvaluated" } elseif ([string]::IsNullOrEmpty($script:Place.Capacity)) { "Detected" } else { "NotDetected" }) `
-        -Title "Workspace capacity is missing" -Evidence $script:Place.Capacity
+        -Title "Workspace capacity is missing" -Evidence @{ capacity = $script:Place.Capacity }
 
     $workspaceSettingsInvalid = $isWorkspace -and $settingsAvailable -and
     ($RbaSettings.EnforceCapacity -ne $true -or $RbaSettings.AllowConflicts -ne $true)
@@ -2264,17 +2307,20 @@ function Get-RbaLogSummaryObject {
 
     $starts = @($script:RBALog | Select-String -Pattern "START -")
     return [PSCustomObject]@{
-        entryCount              = @($script:RBALog).Count
-        processedEventCount     = $starts.Count
-        acceptedCount           = @($script:RBALog | Select-String -Pattern "Action:Accept").Count
-        declinedCount           = @($script:RBALog | Select-String -Pattern "Action:Decline").Count
-        tentativeCount          = @($script:RBALog | Select-String -Pattern "Action:Tentative").Count
-        updatedCount            = @($script:RBALog | Select-String -Pattern "Begin ProcessUpdateRequest").Count
-        cancellationCount       = @($script:RBALog | Select-String -Pattern "It's a meeting cancellation.").Count
-        delegateReferralCount   = @($script:RBALog | Select-String -Pattern "Forwarding Request To Delegates").Count
-        skippedExternalCount    = @($script:RBALog | Select-String -Pattern "Skipping processing because user settings for processing external items is false.").Count
-        horizonDeclineCount     = @($script:RBALog | Select-String -Pattern "Recurrence ends is past the booking window. Meeting will be declined.").Count
-        recurrenceTruncateCount = @($script:RBALog | Select-String -Pattern "Truncating meeting recurrence end window").Count
+        entryCount                                 = @($script:RBALog).Count
+        processedEventCount                        = $starts.Count
+        processedEventCountRepresents              = "ProcessingBlocks"
+        markerCountCategoryRelationship            = "IndependentNonMutuallyExclusive"
+        markerCountCategoriesMayOverlapWithinBlock = $true
+        acceptedCount                              = @($script:RBALog | Select-String -Pattern "Action:Accept").Count
+        declinedCount                              = @($script:RBALog | Select-String -Pattern "Action:Decline").Count
+        tentativeCount                             = @($script:RBALog | Select-String -Pattern "Action:Tentative").Count
+        updatedCount                               = @($script:RBALog | Select-String -Pattern "Begin ProcessUpdateRequest").Count
+        cancellationCount                          = @($script:RBALog | Select-String -Pattern "It's a meeting cancellation.").Count
+        delegateReferralCount                      = @($script:RBALog | Select-String -Pattern "Forwarding Request To Delegates").Count
+        skippedExternalCount                       = @($script:RBALog | Select-String -Pattern "Skipping processing because user settings for processing external items is false.").Count
+        horizonDeclineCount                        = @($script:RBALog | Select-String -Pattern "Recurrence ends is past the booking window. Meeting will be declined.").Count
+        recurrenceTruncateCount                    = @($script:RBALog | Select-String -Pattern "Truncating meeting recurrence end window").Count
     }
 }
 
@@ -2329,6 +2375,7 @@ function Get-RbaMailboxPermissionSummaryObject {
 }
 
 function Write-RbaJson {
+    Write-RbaPhaseVerbose -Message "Building JSON collector metadata."
     $successfulCollectors = @($script:collectorStatuses.Values | Where-Object { $_.status -eq "Success" }).Count
     $collectionStatus = if ($successfulCollectors -eq $script:collectorStatuses.Count) {
         "Complete"
@@ -2370,7 +2417,9 @@ function Write-RbaJson {
                 innerExceptionMessage = $(if ($IncludeSensitiveData) { $_.innerExceptionMessage } else { $null })
             }
         })
+    Write-RbaPhaseVerbose -Message "JSON collector metadata completed."
 
+    Write-RbaPhaseVerbose -Message "Building JSON evidence summaries."
     $inboxRules = if ($script:collectorStatuses["InboxRules"].status -eq "Success") {
         [PSCustomObject]@{
             totalCount        = @($script:InboxRules).Count
@@ -2379,7 +2428,8 @@ function Write-RbaJson {
         }
     } else { $null }
     if ($IncludeSensitiveData -and $null -ne $inboxRules) {
-        $inboxRules | Add-Member -MemberType NoteProperty -Name ruleNames -Value @($script:InboxRules.Name)
+        $inboxRules | Add-Member -MemberType NoteProperty -Name ruleNames `
+            -Value @(ConvertTo-RbaPlainStringList -Value $script:InboxRules.Name)
     }
 
     $calendarProcessing = if ($script:collectorStatuses["CalendarProcessing"].status -eq "Success") {
@@ -2396,7 +2446,6 @@ function Write-RbaJson {
             bookingWindowInDays                 = $RbaSettings.BookingWindowInDays
             conflictPercentageAllowed           = $RbaSettings.ConflictPercentageAllowed
             maximumConflictInstances            = $RbaSettings.MaximumConflictInstances
-            maximumConflictPercentage           = $RbaSettings.MaximumConflictPercentage
             enforceSchedulingHorizon            = $RbaSettings.EnforceSchedulingHorizon
             enforceCapacity                     = $RbaSettings.EnforceCapacity
             requestOutOfPolicy                  = ConvertTo-RbaIdentityList -Value $RbaSettings.RequestOutOfPolicy
@@ -2421,7 +2470,8 @@ function Write-RbaJson {
         }
     } else { $null }
     if ($IncludeSensitiveData -and $null -ne $calendarProcessing) {
-        $calendarProcessing | Add-Member -MemberType NoteProperty -Name additionalResponse -Value $RbaSettings.AdditionalResponse
+        $calendarProcessing | Add-Member -MemberType NoteProperty -Name additionalResponse `
+            -Value (ConvertTo-RbaPlainString -Value $RbaSettings.AdditionalResponse)
     }
 
     $mailboxIdentitySummary = Get-RbaMailboxIdentitySummaryObject
@@ -2447,9 +2497,14 @@ function Write-RbaJson {
         $summary
     } else { $null }
 
+    Write-RbaPhaseVerbose -Message "Building JSON findings."
+    $jsonFindings = @(Get-RbaFindings)
+    Write-RbaPhaseVerbose -Message "JSON findings completed."
+
+    Write-RbaPhaseVerbose -Message "Assembling JSON report."
     $data = [ordered]@{
         metadata            = [ordered]@{
-            schemaVersion    = "1.0-preview"
+            schemaVersion    = "1.1-preview"
             scriptVersion    = $BuildVersion
             collectedAtUtc   = (Get-Date).ToUniversalTime().ToString("o")
             identity         = $Identity
@@ -2473,23 +2528,29 @@ function Write-RbaJson {
         inboxRules          = $inboxRules
         rbaLogSummary       = Get-RbaLogSummaryObject
         meetingLogSearch    = $script:MeetingLogSearch
-        findings            = @(Get-RbaFindings)
+        findings            = $jsonFindings
         collectionErrors    = $jsonCollectionErrors
         evaluationErrors    = $jsonEvaluationErrors
     }
 
     if ($IncludeSensitiveData) {
+        Write-RbaPhaseVerbose -Message "Attaching sensitive JSON evidence."
         if ($null -ne $data.place) {
-            $data.place | Add-Member -MemberType NoteProperty -Name roomLists -Value @($script:Place.Localities)
+            $data.place | Add-Member -MemberType NoteProperty -Name roomLists `
+                -Value @(ConvertTo-RbaPlainStringList -Value $script:Place.Localities)
         }
-        $data.fullRbaLog = @($script:RBALog)
+        $data.fullRbaLog = @(ConvertTo-RbaPlainStringList -Value $script:RBALog)
         if (Test-Path -Path $SummaryFilename) {
-            $data.transcript = Get-Content -Path $SummaryFilename -Raw
+            $data.transcript = ConvertTo-RbaPlainString -Value (Get-Content -Path $SummaryFilename -Raw)
         }
     }
 
+    Write-RbaPhaseVerbose -Message "Serializing JSON report."
     $json = $data | ConvertTo-Json -Depth 8 -ErrorAction Stop
-    Set-Content -Path $JsonFilename -Value $json -Encoding utf8 -ErrorAction Stop
+    Write-RbaPhaseVerbose -Message "Writing JSON report file."
+    $jsonFilePath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($JsonFilename)
+    [System.IO.File]::WriteAllText($jsonFilePath, $json, [System.Text.UTF8Encoding]::new($false))
+    Write-RbaPhaseVerbose -Message "JSON report file written."
 }
 
 if (-not [string]::IsNullOrWhiteSpace($Subject) -and -not [string]::IsNullOrWhiteSpace($MeetingId)) {
@@ -2543,6 +2604,7 @@ $script:ResourceDelegateIdentitySets = @()
 $script:ResourceDelegateIdentitySetsAvailable = $false
 $script:SanitizedIdentityMap = [System.Collections.Generic.Dictionary[string, string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 $script:SanitizedIdentitySequence = 0
+$script:RunStopwatch = [System.Diagnostics.Stopwatch]::StartNew()
 Write-Host -ForegroundColor Cyan "`r`nRBA Summary Output saved as [$SummaryFilename] in the current directory."
 try {
     Start-Transcript -Path $SummaryFilename -ErrorAction Stop | Out-Null
@@ -2618,19 +2680,26 @@ try {
     Write-Warning "An unexpected reporting error occurred: $($errorInfo.message)"
 } finally {
     if ($script:TranscriptStarted) {
+        Write-RbaPhaseVerbose -Message "Stopping transcript."
         Stop-Transcript | Out-Null
         $script:TranscriptStarted = $false
+        Write-RbaPhaseVerbose -Message "Transcript stopped."
     }
 }
 
 try {
+    Write-RbaPhaseVerbose -Message "Starting JSON report generation."
     Write-RbaJson
+    Write-RbaPhaseVerbose -Message "JSON report generation completed."
     Write-Host -ForegroundColor Cyan "`r`nRBA JSON Output saved as [$JsonFilename] in the current directory."
 } catch {
+    Write-Verbose "JSON report failure location: $($_.InvocationInfo.PositionMessage)"
+    Write-Verbose "JSON report failure stack: $($_.ScriptStackTrace)"
     $errorInfo = ConvertTo-RbaErrorInfo -ErrorRecord $_
     Write-Warning "Unable to write RBA JSON output '$JsonFilename': $($errorInfo.message)"
 }
 
+Write-RbaPhaseVerbose -Message "Building final output file list."
 $outputFileLines = [System.Collections.Generic.List[string]]::new()
 $outputFileLines.Add("RBA output files:")
 $outputFileLines.Add("  Text summary: [$SummaryFilename]")
@@ -2643,5 +2712,7 @@ if (-not [string]::IsNullOrWhiteSpace($script:RbaLogFilename) -and (Test-Path -P
 Write-Host
 $outputFileLines | ForEach-Object { Write-Host -ForegroundColor Cyan $_ }
 if (Test-Path -Path $SummaryFilename) {
+    Write-RbaPhaseVerbose -Message "Updating text summary with output file list."
     Add-Content -Path $SummaryFilename -Value ([Environment]::NewLine + ($outputFileLines -join [Environment]::NewLine)) -Encoding utf8
+    Write-RbaPhaseVerbose -Message "Text summary update completed."
 }
