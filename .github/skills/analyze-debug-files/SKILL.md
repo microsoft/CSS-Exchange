@@ -434,7 +434,29 @@ try {
         try {
             # Run Build.ps1 in an isolated pwsh process so the caller's
             # error preferences and module state cannot affect the build.
-            & pwsh -NoProfile -File (Join-Path $worktreeRoot '.build\Build.ps1')
+            # Also shield the invocation from
+            # $PSNativeCommandUseErrorActionPreference — when a caller has
+            # enabled it (PS 7.4+), a nonzero exit from Build.ps1 is
+            # promoted to a NativeCommandExitException BEFORE the XML
+            # existence checks below run, which would send this branch
+            # into the outer `catch` even though Build.ps1's exit is
+            # explicitly documented as possibly-cosmetic (Format-Table
+            # errors, spellcheck warnings). Save the caller's setting,
+            # force it off around the invocation, and restore it in the
+            # inner `finally` regardless of outcome.
+            $savedNativePref = $null
+            $hadNativePref = $null -ne (Get-Variable -Name PSNativeCommandUseErrorActionPreference -Scope Global -ErrorAction SilentlyContinue)
+            if ($hadNativePref) { $savedNativePref = $global:PSNativeCommandUseErrorActionPreference }
+            try {
+                $global:PSNativeCommandUseErrorActionPreference = $false
+                & pwsh -NoProfile -File (Join-Path $worktreeRoot '.build\Build.ps1')
+            } finally {
+                if ($hadNativePref) {
+                    $global:PSNativeCommandUseErrorActionPreference = $savedNativePref
+                } else {
+                    Remove-Variable -Name PSNativeCommandUseErrorActionPreference -Scope Global -ErrorAction SilentlyContinue
+                }
+            }
             # Build.ps1 may exit non-zero on cosmetic Format-Table
             # errors while still producing the XML we need. Assert on
             # the XML files instead.
@@ -471,9 +493,43 @@ try {
                 }
                 $metaJson = $meta | ConvertTo-Json -Depth 3
                 [System.IO.File]::WriteAllText((Join-Path $tempDir 'metadata.json'), $metaJson)
-                # Race check: another concurrent runner may have won.
+                # Race check: distinguish a valid concurrent winner from a
+                # stale/corrupt entry. If $cacheDir already exists but is
+                # missing metadata.json or either XML file, or metadata.json
+                # is malformed or does not match $sha, the previous winner
+                # is not usable and every future run would keep hitting the
+                # bad entry — quarantine it so this run can install a fresh
+                # copy. Only accept the existing entry when it validates.
                 if (Test-Path -LiteralPath $cacheDir -PathType Container) {
-                    Remove-Item -LiteralPath $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+                    $existingIsValid = $false
+                    try {
+                        $existingMetaPath = Join-Path $cacheDir 'metadata.json'
+                        $existingDepPath  = Join-Path $cacheDir 'dependencyHashtable.xml'
+                        $existingDeptPath = Join-Path $cacheDir 'dependentHashtable.xml'
+                        if ((Test-Path -LiteralPath $existingMetaPath -PathType Leaf) -and
+                            (Test-Path -LiteralPath $existingDepPath  -PathType Leaf) -and
+                            (Test-Path -LiteralPath $existingDeptPath -PathType Leaf)) {
+                            $existingMeta = Get-Content -LiteralPath $existingMetaPath -Raw -ErrorAction Stop |
+                                ConvertFrom-Json -ErrorAction Stop
+                            if ($existingMeta.SchemaVersion -eq 1 -and
+                                $existingMeta.BaselineSha -eq $sha) {
+                                $existingIsValid = $true
+                            }
+                        }
+                    } catch {
+                        Write-Verbose "Existing cache entry at $cacheDir failed validation: $_"
+                        $existingIsValid = $false
+                    }
+                    if ($existingIsValid) {
+                        Remove-Item -LiteralPath $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+                    } else {
+                        $quarantineName = "$sha.corrupt.$(Get-Date -Format 'yyyyMMddHHmmss').$PID"
+                        $quarantinePath = Join-Path $cacheRoot $quarantineName
+                        Write-Warning "Quarantining invalid cache entry at $cacheDir -> $quarantinePath (missing files, malformed metadata, or SHA/schema mismatch)."
+                        Move-Item -LiteralPath $cacheDir -Destination $quarantinePath -ErrorAction Stop
+                        Move-Item -LiteralPath $tempDir -Destination $cacheDir
+                        $materializationSource = 'BuildAndCached'
+                    }
                 } else {
                     Move-Item -LiteralPath $tempDir -Destination $cacheDir
                     $materializationSource = 'BuildAndCached'
@@ -570,13 +626,30 @@ try {
         $canonical = ($Key -replace '\\', '/').TrimStart('/')
         if ($RepoRelativeSet.Contains($canonical)) { return $canonical }
         # Suffix match against a stale/live absolute worktree path.
+        # Collect every candidate whose repo-relative form is a suffix of
+        # the worktree-rooted key. A single input can end with multiple
+        # repository paths (for example a shorter nested path can be a
+        # suffix of a longer one), so we require an unambiguous longest
+        # match and reject on ties. Returning the first hashtable-key
+        # match — the previous behavior — silently resolved to whichever
+        # entry happened to be enumerated first, which is a wrong-source
+        # bug that the caller cannot detect.
         $winKey = '\' + ($Key -replace '/', '\')
+        $suffixMatches = New-Object System.Collections.Generic.List[string]
         foreach ($k in $Index.Keys) {
             if ($winKey.EndsWith($k, [System.StringComparison]::OrdinalIgnoreCase)) {
-                return $Index[$k]
+                $suffixMatches.Add($k)
             }
         }
-        return $null
+        if ($suffixMatches.Count -eq 0) { return $null }
+        $maxLen = 0
+        foreach ($m in $suffixMatches) { if ($m.Length -gt $maxLen) { $maxLen = $m.Length } }
+        $longest = @($suffixMatches | Where-Object { $_.Length -eq $maxLen })
+        if ($longest.Count -gt 1) {
+            Write-Warning "Ambiguous suffix match for '$Key' at $($baseline.ConfirmedCommitSha) (candidates: $($longest -join ', ')); dropping to avoid wrong-source resolution."
+            return $null
+        }
+        return $Index[$longest[0]]
     }
 
     $normalizedEntry = Resolve-RepoRelativePath -Key $entry -Index $treeIndex -RepoRelativeSet $treePathSet
@@ -1035,10 +1108,21 @@ for log content (see `Safe scalar renderer` above). Wrap untrusted
 values in `<code>...</code>` blocks, NEVER in single-backtick spans.
 Never pass a returned value back into `gh` or `git` as an argument.
 
-**Failure modes.** Both skills return a `Status` field. When
-`Status -ne 'Ok'`, render a single-line "lookup unavailable" note in
-the corresponding subsection and continue with the report. A failing
-provenance lookup MUST NOT abort the report.
+**Failure modes.** Both skills return a `Status` field.
+
+- `Status = 'Ok'` — render the returned results normally.
+- `Status = 'PartialLookup'` (find-related-github-issues only — a subset
+  of the underlying search queries failed but the retained matches are
+  still authoritative) — render the returned results normally AND append
+  a single-line "results may be incomplete: `<StatusDetail>`" note under
+  the subsection so the reader can tell the coverage was reduced.
+- Any other non-`Ok` status (`GhUnavailable`, `AuthFailure`,
+  `RateLimited`, `Error`, or any status returned by
+  `trace-code-introduction` other than `Ok`) — render a single-line
+  "lookup unavailable: `<StatusDetail>`" note in the corresponding
+  subsection and continue with the report.
+
+A failing provenance lookup MUST NOT abort the report.
 
 ### Step 8 — Write the analysis report
 
