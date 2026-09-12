@@ -176,6 +176,18 @@ function Test-IsLexicallyLocalPath {
             return $false
         }
     }
+    # Iter-24 (Copilot review): reject Windows drive-relative forms
+    # like `C:relative` (drive letter + colon NOT followed by `\` or
+    # `/`). These are valid PowerShell paths that resolve against the
+    # PSDrive's per-drive current directory, which can differ from
+    # .NET's `Directory.GetCurrentDirectory()`. Downstream, the
+    # reparse walk uses .NET APIs while `Test-Path` / `Get-Item` /
+    # `Resolve-Path` route through the PowerShell provider system —
+    # a split-brain that would let validation inspect one tree
+    # (`{.NET cwd}\relative`) while enumeration reads another
+    # (`{PSDrive current}\relative`). Require rooted `C:\...` or
+    # `C:/...` before the first filesystem call.
+    if ($Path -match '^[A-Za-z]:(?![\\/])') { return $false }
     # UNC in every recognized shape.
     if ($Path -match '^(\\\\|//)') { return $false }
     if ($Path -match '^\\\\\?\\UNC[\\/]') { return $false }
@@ -244,7 +256,12 @@ function Test-IsSafeLocalDirectory {
         if (-not (Test-IsLexicallyLocalPath -Path $Path)) { return $false }
         $isWin = [System.Environment]::OSVersion.Platform -eq [System.PlatformID]::Win32NT
         if ($isWin) {
-            if ($Path -notmatch '^([A-Za-z]):[\\/]?') { return $false }
+            # Iter-24 (Copilot review): require a rooted drive form
+            # (`C:\` or `C:/`) — drive-relative `C:relative` was
+            # already rejected by `Test-IsLexicallyLocalPath` above,
+            # but tighten the local pattern too so the extracted
+            # drive letter can only come from a rooted path.
+            if ($Path -notmatch '^([A-Za-z]):[\\/]') { return $false }
             $drive = $Matches[1]
             # 2) PSDrive shadow: a single-letter PSDrive (e.g.
             #    `New-PSDrive -Name X -PSProvider FileSystem -Root
@@ -312,7 +329,10 @@ function Test-IsSafeLocalFile {
         if (-not (Test-IsLexicallyLocalPath -Path $Path)) { return $false }
         $isWin = [System.Environment]::OSVersion.Platform -eq [System.PlatformID]::Win32NT
         if ($isWin) {
-            if ($Path -notmatch '^([A-Za-z]):[\\/]?') { return $false }
+            # Iter-24 (Copilot review): require a rooted drive form
+            # (`C:\` or `C:/`). See Test-IsSafeLocalDirectory for
+            # the split-brain rationale.
+            if ($Path -notmatch '^([A-Za-z]):[\\/]') { return $false }
             $drive = $Matches[1]
             # PSDrive shadow: a single-letter PSDrive can shadow the OS
             # drive letter within a PowerShell session. DriveInfo/
@@ -469,16 +489,42 @@ function Get-ScriptIdentityFromFilename {
 
 $Script:RegexTimeout = [System.TimeSpan]::FromSeconds(1)
 
+# Shared bracketed-timestamp shape used by TimestampRegex and every other
+# regex that gates on the `[<producer-culture-timestamp>] : ` framing
+# (SummaryFooterRegex, ErrorIndexRegex, and each timestamped
+# CompletionSignals pattern). Defined ONCE so all consumers stay in
+# lockstep across culture-drift updates. The shape MUST stay a subset of
+# what `$Script:AcceptedTimestampFormats` can round-trip via
+# `TryParseExact` — otherwise CompletionSignals (which only shape-matches,
+# no parse) would false-positive on inputs the parser would reject.
+# Two top-level branches encode the shape-vs-parse contract:
+#   1. Slash MDY/DMY (en-US / en-GB): 24-hour OR 12-hour AM/PM allowed.
+#   2. Non-slash date (dot DMY, year-first slash, year-first hyphen):
+#      24-hour ONLY — AM/PM formats are not in the parse list for these
+#      shapes because de-DE/fr-FR/ja-JP/ko-KR/zh-CN and ISO-8601 style
+#      producers use 24-hour time.
+# Fractional-second group `(?:\.(?:[0-9]{7}|[0-9]{4}|[0-9]{3}))?` accepts
+# ONLY the exact digit counts present in `$Script:AcceptedTimestampFormats`
+# (`.fff`, `.ffff`, `.fffffff` — plus "no fraction"). Intermediate widths
+# (1, 2, 5, 6, and >7) are rejected at the shape stage; permitting them
+# would false-positive CompletionSignals since `TryParseExact` has no
+# format for those widths.
+# Each date alternative uses one consistent separator — cross-mixing
+# like `9/12.2026` is rejected at the shape stage rather than relying on
+# `TryParseExact` to reject downstream.
+#   - `M/d/yyyy` or `d/M/yyyy`   slash MDY (en-US) / DMY (en-GB)
+#   - `d.M.yyyy`                 dot DMY (de-DE, fr-FR)
+#   - `yyyy/M/d`                 slash year-first (ja-JP, ko-KR, zh-CN)
+#   - `yyyy-M-d`                 hyphen year-first (ISO-8601 style)
+$Script:BracketedTimestampShape = '(?:[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}\s+[0-9]{1,2}:[0-9]{2}:[0-9]{2}(?:\.(?:[0-9]{7}|[0-9]{4}|[0-9]{3}))?(?:\s*(?i:AM|PM))?|(?:[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{4}|[0-9]{4}/[0-9]{1,2}/[0-9]{1,2}|[0-9]{4}-[0-9]{1,2}-[0-9]{1,2})\s+[0-9]{1,2}:[0-9]{2}:[0-9]{2}(?:\.(?:[0-9]{7}|[0-9]{4}|[0-9]{3}))?)'
+
 $Script:TimestampRegex = [regex]::new(
-    # Accept both 24-hour (`14:41:31`) and 12-hour (`2:41:31 PM`) time
-    # forms in the bracketed prefix. `[System.DateTime]::Now.ToString()`
-    # in LoggerFunctions.ps1:62 uses the current culture; en-US produces
-    # a 12-hour AM/PM suffix, while cultures like en-GB or ja-JP produce
-    # 24-hour output. Both variants MUST match here so every timestamped
-    # line participates in version-candidate collection, summary
-    # framing, and body-evidence correlation regardless of the machine
-    # that produced the log.
-    '\A\s*\[(?<ts>[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}\s+[0-9]{1,2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?(?:\s*(?i:AM|PM))?)\]',
+    # See `$Script:BracketedTimestampShape` above for the accepted date
+    # shapes. ALL of these variants MUST match here so every timestamped
+    # line participates in version-candidate collection, summary framing,
+    # and body-evidence correlation regardless of the machine that
+    # produced the log.
+    "\A\s*\[(?<ts>$Script:BracketedTimestampShape)\]",
     [System.Text.RegularExpressions.RegexOptions]::Compiled,
     $Script:RegexTimeout)
 
@@ -591,18 +637,21 @@ $Script:SummaryFooterRegex = [regex]::new(
     # a line like `[09/08/2026 bogus] : ---------------------------`
     # to open a summary event whose Timestamp was $null, which then
     # crashed Step 7's `.AddSeconds(-60)` correlation. Also accepts
-    # the 12-hour AM/PM form emitted by en-US cultures — see the
-    # comment on $Script:TimestampRegex for rationale.
-    '\A\s*\[[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}\s+[0-9]{1,2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?(?:\s*(?i:AM|PM))?\]\s*:\s*-{4,}\s*\z',
+    # the 12-hour AM/PM form emitted by en-US cultures and the
+    # non-US date shapes (dot-separator, year-first) — the shared
+    # `$Script:BracketedTimestampShape` above captures the full
+    # producer-culture matrix.
+    "\A\s*\[$Script:BracketedTimestampShape\]\s*:\s*-{4,}\s*\z",
     [System.Text.RegularExpressions.RegexOptions]::Compiled,
     $Script:RegexTimeout)
 
 $Script:ErrorIndexRegex = [regex]::new(
     # Iter-23 (RD-branch-10): require a strict timestamp shape
     # (matching $Script:TimestampRegex) inside the brackets. See
-    # SummaryFooterRegex above for rationale. Accepts 12-hour AM/PM
-    # form to match the culture-aware TimestampRegex.
-    '\A\s*\[[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}\s+[0-9]{1,2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?(?:\s*(?i:AM|PM))?\]\s*:\s*Error\s+Index\s*[:=]',
+    # SummaryFooterRegex above for rationale. Reuses the shared
+    # `$Script:BracketedTimestampShape` for the culture-aware
+    # timestamp interior.
+    "\A\s*\[$Script:BracketedTimestampShape\]\s*:\s*Error\s+Index\s*[:=]",
     [System.Text.RegularExpressions.RegexOptions]::Compiled,
     $Script:RegexTimeout)
 
@@ -718,35 +767,63 @@ $Script:CompletionSignals = @(
         # `Exception text says No errors occurred in the script. but ...`)
         # cannot forge a completion signal. The prefix asserts the
         # `[timestamp] :` framing; the message body is anchored with
-        # `\z` (allowing trailing whitespace).
-        Name    = 'NoErrorsMessage'
-        Pattern = [regex]::new('\A\s*\[[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}\s+[0-9]{1,2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?(?:\s*(?i:AM|PM))?\]\s*:\s*No\s+errors\s+occurred\s+in\s+the\s+script\.\s*\z', [System.Text.RegularExpressions.RegexOptions]::Compiled, $Script:RegexTimeout)
+        # `\z` (allowing trailing whitespace). Uses the shared
+        # `$Script:BracketedTimestampShape` so the timestamped
+        # framing accepts every producer-culture date form the rest
+        # of the parser accepts (en-US slash-MDY, en-GB slash-DMY,
+        # de-DE dot, ja-JP/ISO year-first).
+        # Iter-24 (Copilot review): `IsTimestamped = $true` gates
+        # detection on a successful `TryParseExact` of the bracketed
+        # timestamp. Without the gate, the shape allows out-of-range
+        # component values (day/month `99`, hour `25`, minute/second
+        # `99`) that would let a crafted log line like
+        # `[99/99/2026 25:99:99] : No errors occurred in the script.`
+        # forge a completion signal — Step 6 would then classify a
+        # never-completed run as clean. Summary-header signals below
+        # have `IsTimestamped = $false` because those headers are
+        # intentionally untimestamped (emitted by `Write-Host` /
+        # `Write-Grey` without the logger's `[ts] :` prefix).
+        Name          = 'NoErrorsMessage'
+        Pattern       = [regex]::new("\A\s*\[$Script:BracketedTimestampShape\]\s*:\s*No\s+errors\s+occurred\s+in\s+the\s+script\.\s*\z", [System.Text.RegularExpressions.RegexOptions]::Compiled, $Script:RegexTimeout)
+        IsTimestamped = $true
     }
     [PSCustomObject]@{
-        Name    = 'AllErrorsHandledMessage'
-        Pattern = [regex]::new('\A\s*\[[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}\s+[0-9]{1,2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?(?:\s*(?i:AM|PM))?\]\s*:\s*All\s+errors\s+that\s+occurred\s+were\s+in\s+try\s+catch\s+blocks\s+and\s+was\s+handled\s+correctly\.?\s*\z', [System.Text.RegularExpressions.RegexOptions]::Compiled, $Script:RegexTimeout)
+        Name          = 'AllErrorsHandledMessage'
+        Pattern       = [regex]::new("\A\s*\[$Script:BracketedTimestampShape\]\s*:\s*All\s+errors\s+that\s+occurred\s+were\s+in\s+try\s+catch\s+blocks\s+and\s+was\s+handled\s+correctly\.?\s*\z", [System.Text.RegularExpressions.RegexOptions]::Compiled, $Script:RegexTimeout)
+        IsTimestamped = $true
     }
     [PSCustomObject]@{
-        Name    = 'WritingScriptDebugObjects'
-        Pattern = [regex]::new('\A\s*\[[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}\s+[0-9]{1,2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?(?:\s*(?i:AM|PM))?\]\s*:\s*Writing\s+out\s+the\s+script\s+debug\s+objects\.?\s*\z', [System.Text.RegularExpressions.RegexOptions]::Compiled, $Script:RegexTimeout)
+        Name          = 'WritingScriptDebugObjects'
+        Pattern       = [regex]::new("\A\s*\[$Script:BracketedTimestampShape\]\s*:\s*Writing\s+out\s+the\s+script\s+debug\s+objects\.?\s*\z", [System.Text.RegularExpressions.RegexOptions]::Compiled, $Script:RegexTimeout)
+        IsTimestamped = $true
     }
     [PSCustomObject]@{
-        Name    = 'HandledSummaryHeader'
-        Pattern = $Script:HandledSummaryHeaderRegex
+        Name          = 'HandledSummaryHeader'
+        Pattern       = $Script:HandledSummaryHeaderRegex
+        IsTimestamped = $false
     }
     [PSCustomObject]@{
-        Name    = 'UnhandledSummaryHeader'
-        Pattern = $Script:UnhandledSummaryHeaderRegex
+        Name          = 'UnhandledSummaryHeader'
+        Pattern       = $Script:UnhandledSummaryHeaderRegex
+        IsTimestamped = $false
     }
     [PSCustomObject]@{
-        Name    = 'UnhandledRemoteSummaryHeader'
-        Pattern = $Script:UnhandledRemoteSummaryHeaderRegex
+        Name          = 'UnhandledRemoteSummaryHeader'
+        Pattern       = $Script:UnhandledRemoteSummaryHeaderRegex
+        IsTimestamped = $false
     }
 )
 
 $Script:AcceptedTimestampFormats = [string[]]@(
-    # 24-hour forms (cultures like en-GB, ja-JP, and the ISO-8601 style
-    # emitted by scripts that pin CurrentCulture to Invariant).
+    # ORDER MATTERS. TryParseExact evaluates formats left-to-right and
+    # the FIRST matching format wins. Keep US en-US forms first so
+    # ambiguous slash-separated shapes like `12/09/2026` are consistently
+    # interpreted the same way as en-US logs across the majority of
+    # real-world CSS-Exchange debug files. Non-US forms are appended
+    # AFTER as fallbacks and only kick in when the US pattern fails
+    # (e.g. day > 12, dot-separator, year-first).
+
+    # -- en-US 24-hour (Invariant-cultured scripts and en-US-24h boxes) --
     'M/d/yyyy H:mm:ss.fffffff',
     'M/d/yyyy H:mm:ss.ffff',
     'M/d/yyyy H:mm:ss.fff',
@@ -755,10 +832,10 @@ $Script:AcceptedTimestampFormats = [string[]]@(
     'MM/dd/yyyy HH:mm:ss.ffff',
     'MM/dd/yyyy HH:mm:ss.fff',
     'MM/dd/yyyy HH:mm:ss',
-    # 12-hour forms (default en-US culture — LoggerFunctions.ps1:62 uses
-    # [System.DateTime]::Now.ToString() which honors the current culture,
-    # and CSS-Exchange scripts do not force InvariantCulture globally).
-    # Parse under InvariantCulture; "AM"/"PM" are the invariant tokens.
+    # -- en-US 12-hour (default en-US culture; the majority form we see) --
+    # LoggerFunctions.ps1:62 uses [System.DateTime]::Now.ToString() which
+    # honors the current culture; en-US emits AM/PM. Parse under
+    # InvariantCulture; "AM"/"PM" are the invariant tokens.
     'M/d/yyyy h:mm:ss.fffffff tt',
     'M/d/yyyy h:mm:ss.ffff tt',
     'M/d/yyyy h:mm:ss.fff tt',
@@ -766,7 +843,55 @@ $Script:AcceptedTimestampFormats = [string[]]@(
     'MM/dd/yyyy hh:mm:ss.fffffff tt',
     'MM/dd/yyyy hh:mm:ss.ffff tt',
     'MM/dd/yyyy hh:mm:ss.fff tt',
-    'MM/dd/yyyy hh:mm:ss tt'
+    'MM/dd/yyyy hh:mm:ss tt',
+    # -- en-GB slash day-first, 24-hour (Exchange servers in UK/AU) --
+    # Same slash shape as US MDY but day-first. Kept AFTER US so
+    # ambiguous inputs consistently resolve as US in a mixed corpus;
+    # a genuinely en-GB log (day > 12) falls through here.
+    'd/M/yyyy H:mm:ss.fffffff',
+    'd/M/yyyy H:mm:ss.ffff',
+    'd/M/yyyy H:mm:ss.fff',
+    'd/M/yyyy H:mm:ss',
+    'dd/MM/yyyy HH:mm:ss.fffffff',
+    'dd/MM/yyyy HH:mm:ss.ffff',
+    'dd/MM/yyyy HH:mm:ss.fff',
+    'dd/MM/yyyy HH:mm:ss',
+    # -- en-GB slash day-first, 12-hour (some en-GB regional configs) --
+    'd/M/yyyy h:mm:ss.fffffff tt',
+    'd/M/yyyy h:mm:ss.ffff tt',
+    'd/M/yyyy h:mm:ss.fff tt',
+    'd/M/yyyy h:mm:ss tt',
+    'dd/MM/yyyy hh:mm:ss.fffffff tt',
+    'dd/MM/yyyy hh:mm:ss.ffff tt',
+    'dd/MM/yyyy hh:mm:ss.fff tt',
+    'dd/MM/yyyy hh:mm:ss tt',
+    # -- de-DE / fr-FR dot day-first, 24-hour (Central & Western Europe) --
+    'd.M.yyyy H:mm:ss.fffffff',
+    'd.M.yyyy H:mm:ss.ffff',
+    'd.M.yyyy H:mm:ss.fff',
+    'd.M.yyyy H:mm:ss',
+    'dd.MM.yyyy HH:mm:ss.fffffff',
+    'dd.MM.yyyy HH:mm:ss.ffff',
+    'dd.MM.yyyy HH:mm:ss.fff',
+    'dd.MM.yyyy HH:mm:ss',
+    # -- ja-JP / ko-KR / zh-CN slash year-first, 24-hour --
+    'yyyy/M/d H:mm:ss.fffffff',
+    'yyyy/M/d H:mm:ss.ffff',
+    'yyyy/M/d H:mm:ss.fff',
+    'yyyy/M/d H:mm:ss',
+    'yyyy/MM/dd HH:mm:ss.fffffff',
+    'yyyy/MM/dd HH:mm:ss.ffff',
+    'yyyy/MM/dd HH:mm:ss.fff',
+    'yyyy/MM/dd HH:mm:ss',
+    # -- ISO-8601-ish hyphen year-first, 24-hour --
+    'yyyy-M-d H:mm:ss.fffffff',
+    'yyyy-M-d H:mm:ss.ffff',
+    'yyyy-M-d H:mm:ss.fff',
+    'yyyy-M-d H:mm:ss',
+    'yyyy-MM-dd HH:mm:ss.fffffff',
+    'yyyy-MM-dd HH:mm:ss.ffff',
+    'yyyy-MM-dd HH:mm:ss.fff',
+    'yyyy-MM-dd HH:mm:ss'
 )
 
 function ConvertTo-SafeSnippetLine {
@@ -1533,8 +1658,19 @@ function Read-DebugFile {
             }
 
             # Completion signals.
+            # Iter-24 (Copilot review): `IsTimestamped` signals must
+            # be gated on a successful `TryParseExact` (`$null -ne
+            # $ts`) — the shared shape validates syntax only and
+            # accepts out-of-range component values (e.g.
+            # `[99/99/2026 25:99:99]`), which without this gate would
+            # let a crafted log line forge a completion signal and
+            # make Step 6 classify an incomplete run as clean.
+            # Summary-header signals stay unconditional because those
+            # headers are intentionally untimestamped.
             foreach ($signal in $Script:CompletionSignals) {
-                if (-not $completionSignalHits.ContainsKey($signal.Name) -and $signal.Pattern.IsMatch($line)) {
+                if ($completionSignalHits.ContainsKey($signal.Name)) { continue }
+                if ($signal.IsTimestamped -and $null -eq $ts) { continue }
+                if ($signal.Pattern.IsMatch($line)) {
                     $completionSignalHits[$signal.Name] = $lineNumber
                 }
             }
@@ -1791,7 +1927,21 @@ function Read-DebugFile {
         AnyLineTruncated              = $anyLineTruncated
         MultipleSummaryBlocksDetected = $multipleSummaryBlocksDetected
         DetectedEncoding              = $detectedEncoding
-        SizeBytes                     = $FileInfo.Length
+        # Iter-24 (Copilot review + rubber-duck): use the accepted
+        # post-open snapshot value from the handle-verified read
+        # rather than re-touching `$FileInfo.Length`. Reading
+        # `$FileInfo.Length` here refreshes metadata against the
+        # underlying directory entry — after the reader has already
+        # completed a handle-verified read, that entry could have
+        # been swapped for a reparse point at any point after
+        # `Test-IsSafeLocalFile` (same class of concern Copilot
+        # raised for the catch-branch call to `Get-EmptyFileResult`).
+        # `$AcceptedSnapshotBytes.Value` is the authoritative byte
+        # count the reader actually processed under the trusted
+        # handle, so it is both safer and more accurate (matches
+        # what was analyzed, not what `FileInfo` reports after a
+        # potential concurrent grow).
+        SizeBytes                     = [int64]$AcceptedSnapshotBytes.Value
     }
 }
 
@@ -1920,13 +2070,24 @@ foreach ($f in $processFiles) {
         # Iter-18 (Q17-MED-3): distinguish the sentinel oversize
         # exceptions from generic read failures so the report
         # cleanly labels the cause.
+        # Iter-24 (Copilot review): pass `-SizeBytes ([int64]$acceptedBytesRef.Value)`
+        # explicitly so `Get-EmptyFileResult` does NOT fall back to
+        # `$FileInfo.Length`. When `Read-DebugFile` throws from
+        # `Assert-HandleMatchesExpectedLocalPath` (reparse-to-UNC
+        # redirection detected after opening a handle), reading
+        # `$FileInfo.Length` on a reparse point returns the size of
+        # the REPARSE TARGET — the very off-box path the reader
+        # just refused. `$acceptedBytesRef.Value` is 0 on sentinel
+        # rejection and reflects actual bytes accepted otherwise,
+        # so it is a safe substitute in every catch branch.
         $msg = $_.Exception.Message
+        $acceptedSize = [int64]$acceptedBytesRef.Value
         if ($msg -like 'SnapshotOversize:*') {
-            $results.Add((Get-EmptyFileResult -FileInfo $f -Status 'Oversize' -Detail "Post-open snapshot exceeded per-file cap MaxFileSizeMB=$MaxFileSizeMB (concurrent writer grew file after enumeration)."))
+            $results.Add((Get-EmptyFileResult -FileInfo $f -Status 'Oversize' -Detail "Post-open snapshot exceeded per-file cap MaxFileSizeMB=$MaxFileSizeMB (concurrent writer grew file after enumeration)." -SizeBytes $acceptedSize))
         } elseif ($msg -like 'SnapshotCumulativeOversize:*') {
-            $results.Add((Get-EmptyFileResult -FileInfo $f -Status 'Oversize' -Detail "Post-open snapshot exceeded remaining cumulative budget MaxDirectoryTotalMB=$MaxDirectoryTotalMB (concurrent writer grew file after enumeration)."))
+            $results.Add((Get-EmptyFileResult -FileInfo $f -Status 'Oversize' -Detail "Post-open snapshot exceeded remaining cumulative budget MaxDirectoryTotalMB=$MaxDirectoryTotalMB (concurrent writer grew file after enumeration)." -SizeBytes $acceptedSize))
         } else {
-            $results.Add((Get-EmptyFileResult -FileInfo $f -Status 'Unreadable' -Detail $msg))
+            $results.Add((Get-EmptyFileResult -FileInfo $f -Status 'Unreadable' -Detail $msg -SizeBytes $acceptedSize))
         }
     } finally {
         # Charge whatever Read-DebugFile accepted (may be 0 on

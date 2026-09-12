@@ -285,7 +285,21 @@ function Invoke-GhSearch {
         $qArg = "$safeQuery in:title,body"
     }
     $qualifiedRepo = "github.com/$Repository"
-    $out = & gh search issues $qArg --repo $qualifiedRepo --limit $Limit --json 'number,state,title,url,body' 2>&1
+    # Iter-24 (Copilot review): pass `$qArg` AFTER an explicit `--`
+    # end-of-options marker so gh cannot interpret a query that
+    # begins with `-` or `--` as an option flag.
+    # `Get-SafeQueryPhrase` scrubs internal meta-characters but
+    # preserves leading hyphens — non-exact queries built from
+    # log-influenced `$DiscriminatorFunction` / `$ScriptName`
+    # can otherwise reach `gh search issues` as tokens like
+    # `--author evil in:title,body`, which the argument parser
+    # rejects as "unknown flag" and fails the entire lookup for
+    # the affected query. `--` guarantees the value is treated
+    # as the search query positional regardless of leading
+    # characters, and is defense in depth against future gh
+    # versions where a currently-unknown leading flag becomes
+    # recognized.
+    $out = & gh search issues --repo $qualifiedRepo --limit $Limit --json 'number,state,title,url,body' -- $qArg 2>&1
     $exit = $LASTEXITCODE
     return @{
         Exit        = $exit
