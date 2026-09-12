@@ -16,8 +16,20 @@
     issue.
 
     Duplicate = the issue's title or body contains BOTH the normalized
-                top-level phrase AND the normalized inner-exception phrase
-                (or a close paraphrase).
+                top-level phrase AND the normalized inner-exception
+                phrase. Matching is case-insensitive substring
+                (`String.IndexOf` under `OrdinalIgnoreCase`) against
+                text that has been passed through the same normalization
+                pipeline (`ConvertTo-NormalizedPhrase` +
+                `ConvertTo-SearchablePhrase`) as the caller-supplied
+                phrases — placeholders like `<path>`, `<guid>`, `<ts>`,
+                and `tmpEXO_<random>` are stripped BEFORE comparison so
+                a run whose concrete values differ from an issue's
+                quoted text is not lost. This normalization gives the
+                match a paraphrase-tolerant flavor for volatile tokens
+                only; whole-sentence paraphrases (word reorderings,
+                synonym substitution, missing words in the middle) are
+                NOT recognized as duplicates.
     Similar   = the issue matches the top-level OR the inner-exception
                 phrase (but not both). A discriminator-function-name
                 match alone does NOT qualify -- the same enclosing
@@ -59,7 +71,7 @@
       .DiscardedFunctionOnly   [int]  # count of results that matched
                                       # only on discriminator function
                                       # name and were filtered out
-      .Status                  'Ok' | 'PartialLookup' | 'GhUnavailable' | 'AuthFailure' | 'RateLimited' | 'Error'
+      .Status                  'Ok' | 'PartialLookup' | 'GhUnavailable' | 'AuthFailure' | 'RateLimited' | 'NoSearchablePhrase' | 'Error'
       .StatusDetail            [string]
 
 .NOTES
@@ -443,7 +455,16 @@ $discardedFunctionOnly = 0
 
 foreach ($num in ($aggregate.Keys | Sort-Object)) {
     $item = $aggregate[$num]
-    $normBody = ConvertTo-NormalizedPhrase -Text (($item.title + "`n" + $item.body))
+    # $topPhrase/$innerPhrase were reduced through ConvertTo-SearchablePhrase
+    # to remove `<path>`, `<guid>`, `<ts>`, and `tmpEXO_<random>` placeholders
+    # (a substring compare against a phrase that still contained them would
+    # fail on results whose real path/guid text differs from the current
+    # capture). $normBody must go through the SAME reduction so this
+    # local classification stays consistent with the search pipeline;
+    # otherwise a legitimately-matching issue returned by the broad query
+    # is silently discarded when its body text uses a different concrete
+    # path/guid than the current failure.
+    $normBody = ConvertTo-SearchablePhrase -NormalizedText (ConvertTo-NormalizedPhrase -Text (($item.title + "`n" + $item.body)))
     $matchTop = $topPhrase -and $normBody.IndexOf($topPhrase, [System.StringComparison]::OrdinalIgnoreCase) -ge 0
     $matchInner = $innerPhrase -and $normBody.IndexOf($innerPhrase, [System.StringComparison]::OrdinalIgnoreCase) -ge 0
     $matchFn = $DiscriminatorFunction -and $normBody.IndexOf($DiscriminatorFunction, [System.StringComparison]::OrdinalIgnoreCase) -ge 0
@@ -485,7 +506,25 @@ foreach ($num in ($aggregate.Keys | Sort-Object)) {
 # collected); no failures = Ok.
 $queryCount = $queries.Count
 $failureCount = $searchFailures.Count
-if ($queryCount -gt 0 -and $failureCount -eq $queryCount) {
+if ($queryCount -eq 0) {
+    # No search phrase could be constructed. The mandatory
+    # $TopLevelException reduced to nothing through
+    # ConvertTo-NormalizedPhrase / ConvertTo-SearchablePhrase (a
+    # path-only or placeholder-only exception message), no inner
+    # exception phrase survived, and neither $DiscriminatorFunction
+    # nor $ScriptName was supplied. GitHub was NEVER queried, so we
+    # cannot claim "no related issues" — callers must render this
+    # as "lookup unavailable" instead of "no related issue found".
+    $finalStatus = 'NoSearchablePhrase'
+    # Detail message must accurately reflect why nothing was queryable:
+    # ScriptName alone is intentionally not a valid query (see query
+    # builder above — the script-stem query is only appended when a
+    # top-level phrase also exists, to avoid flooding the results with
+    # every issue that mentions the script name in unrelated context).
+    # A DiscriminatorFunction alone WOULD produce a query, so its
+    # absence is the actionable missing input.
+    $finalDetail = 'No distinctive phrase survived normalization of TopLevelException or InnerException, and no DiscriminatorFunction was supplied to fall back on. ScriptName alone does not build a query. GitHub search was not attempted.'
+} elseif ($failureCount -eq $queryCount) {
     # Every query failed. Cannot claim "no related issues" —
     # this is an error path the caller must surface.
     $finalStatus = 'Error'

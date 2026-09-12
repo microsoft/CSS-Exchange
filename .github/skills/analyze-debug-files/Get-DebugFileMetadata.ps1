@@ -296,11 +296,29 @@ function Test-IsSafeLocalDirectory {
         if ($isWin) {
             if ($Path -notmatch '^([A-Za-z]):[\\/]?') { return $false }
             $drive = $Matches[1]
-            # 2) DRIVE TYPE: reject Network/Unknown/CDRom/NoRootDirectory
+            # 2) PSDrive shadow: a single-letter PSDrive (e.g.
+            #    `New-PSDrive -Name X -PSProvider FileSystem -Root
+            #    '\\attacker\share'` or `... -PSProvider Env`) can shadow
+            #    the OS drive letter within a PowerShell session.
+            #    DriveInfo/QueryDosDevice inspect the OS drive, while
+            #    `Test-Path` / `Resolve-Path` route through the
+            #    PowerShell provider system and follow the shadowed
+            #    target. Reject any captured PSDrive that is not
+            #    FileSystem-backed AND rooted at a bare local drive-
+            #    letter root (e.g. `X:\`) BEFORE the OS-drive checks
+            #    may speak for it.
+            try {
+                $psd = Get-PSDrive -Name $drive -ErrorAction SilentlyContinue
+                if ($null -ne $psd) {
+                    if ($psd.Provider.Name -ne 'FileSystem') { return $false }
+                    if ($psd.Root -notmatch '^[A-Za-z]:[\\/]?$') { return $false }
+                }
+            } catch { return $false }
+            # 3) DRIVE TYPE: reject Network/Unknown/CDRom/NoRootDirectory
             #    BEFORE any filesystem call. DriveInfo reads local mount
             #    metadata only.
             if (-not (Test-IsLocalFixedDrive -DriveLetter $drive)) { return $false }
-            # 3) DOS-device: reject SUBST/aliased drives BEFORE Test-Path.
+            # 4) DOS-device: reject SUBST/aliased drives BEFORE Test-Path.
             try {
                 if (-not (Test-IsLocalDosDeviceTarget -DriveLetter ("$drive" + ':'))) { return $false }
             } catch { return $false }
@@ -346,6 +364,21 @@ function Test-IsSafeLocalFile {
         if ($isWin) {
             if ($Path -notmatch '^([A-Za-z]):[\\/]?') { return $false }
             $drive = $Matches[1]
+            # PSDrive shadow: a single-letter PSDrive can shadow the OS
+            # drive letter within a PowerShell session. DriveInfo/
+            # QueryDosDevice inspect the OS drive, while `Get-Item`
+            # routes through the PowerShell provider system and follows
+            # the shadowed target. Require any captured PSDrive to be
+            # FileSystem-backed AND rooted at a bare local drive-letter
+            # root (e.g. `X:\`) before the OS-drive checks may speak
+            # for it.
+            try {
+                $psd = Get-PSDrive -Name $drive -ErrorAction SilentlyContinue
+                if ($null -ne $psd) {
+                    if ($psd.Provider.Name -ne 'FileSystem') { return $false }
+                    if ($psd.Root -notmatch '^[A-Za-z]:[\\/]?$') { return $false }
+                }
+            } catch { return $false }
             if (-not (Test-IsLocalFixedDrive -DriveLetter $drive)) { return $false }
             try {
                 if (-not (Test-IsLocalDosDeviceTarget -DriveLetter ("$drive" + ':'))) { return $false }
@@ -359,6 +392,79 @@ function Test-IsSafeLocalFile {
         return $true
     } catch {
         return $false
+    }
+}
+
+# ---- Post-open handle path verification ----------------------------------
+#
+# `Test-IsSafeLocalFile` runs BEFORE any handle-opening call site. Between
+# that validation and the subsequent path-based `[System.IO.File]::Open`,
+# a local racer can replace the leaf with a symlink or junction whose
+# target is UNC or points elsewhere entirely — `File.Open` then follows
+# the reparse point and the reader ends up reading a file the caller
+# never authorized.
+#
+# `GetFinalPathNameByHandleW` resolves the canonical path OF THE ALREADY-
+# OPEN HANDLE — the file we actually got, not the file we asked for. Any
+# discrepancy proves the reparse point was swapped in during the race
+# window; the caller must refuse rather than trust the read.
+#
+# `VOLUME_NAME_DOS` (0) returns paths of the form `\\?\<local>` or
+# `\\?\UNC\<server>\<share>\...`; the caller checks for the UNC form
+# and for canonical mismatches after the `\\?\` prefix is stripped.
+function Get-HandleFinalPath {
+    param([Parameter(Mandatory)][Microsoft.Win32.SafeHandles.SafeFileHandle]$Handle)
+    if ($Handle.IsInvalid -or $Handle.IsClosed) {
+        throw [System.InvalidOperationException]::new("Get-HandleFinalPath: handle is invalid or closed.")
+    }
+    if (-not ('AnalyzeDebugFiles.HandlePathHelper' -as [type])) {
+        Add-Type -Namespace 'AnalyzeDebugFiles' -Name 'HandlePathHelper' -MemberDefinition @'
+[System.Runtime.InteropServices.DllImport("kernel32.dll", CharSet=System.Runtime.InteropServices.CharSet.Unicode, SetLastError=true)]
+public static extern uint GetFinalPathNameByHandleW(Microsoft.Win32.SafeHandles.SafeFileHandle hFile, System.Text.StringBuilder lpFilePath, uint cchFilePath, uint dwFlags);
+'@ -ErrorAction Stop
+    }
+    # Buffer must accommodate `\\?\` (4) + max Windows path (~32767)
+    # + null terminator. 32768 is the documented upper bound.
+    $sb = New-Object System.Text.StringBuilder 32768
+    $len = [AnalyzeDebugFiles.HandlePathHelper]::GetFinalPathNameByHandleW($Handle, $sb, [uint32]$sb.Capacity, [uint32]0)
+    if ($len -eq 0) {
+        $err = [System.Runtime.InteropServices.Marshal]::GetLastWin32Error()
+        throw [System.ComponentModel.Win32Exception]::new($err, "GetFinalPathNameByHandleW returned 0.")
+    }
+    if ($len -ge $sb.Capacity) {
+        # Documented contract: on truncation, $len is the REQUIRED buffer
+        # size (including the null terminator). We passed the OS maximum
+        # so this indicates a malformed path — refuse rather than truncate.
+        throw [System.InvalidOperationException]::new("GetFinalPathNameByHandleW reported a required buffer size ($len) exceeding the OS path maximum.")
+    }
+    return $sb.ToString(0, [int]$len)
+}
+
+function Assert-HandleMatchesExpectedLocalPath {
+    param(
+        [Parameter(Mandatory)][Microsoft.Win32.SafeHandles.SafeFileHandle]$Handle,
+        [Parameter(Mandatory)][string]$ExpectedPath
+    )
+    # Only enforced on Windows — Test-IsSafeLocalFile's reparse walk is
+    # Windows-specific and Get-HandleFinalPath resolves through
+    # `kernel32!GetFinalPathNameByHandleW`.
+    if ([System.Environment]::OSVersion.Platform -ne [System.PlatformID]::Win32NT) {
+        return
+    }
+    $actual = Get-HandleFinalPath -Handle $Handle
+    # UNC after resolution → reparse point pointed off-box; refuse.
+    if ($actual -match '\A\\\\\?\\UNC\\' -or $actual -match '\A\\\\[^\\?]') {
+        throw [System.InvalidOperationException]::new(
+            "PostOpenPathRemote: open handle resolved to $actual, which is not a local path. A reparse point was swapped in between Test-IsSafeLocalFile and File.Open; refusing to read $ExpectedPath."
+        )
+    }
+    $actualStripped = $actual -replace '\A\\\\\?\\', ''
+    $expectedStripped = ([System.IO.Path]::GetFullPath($ExpectedPath)).TrimEnd('\')
+    $actualStripped = $actualStripped.TrimEnd('\')
+    if (0 -ne [string]::Compare($actualStripped, $expectedStripped, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw [System.InvalidOperationException]::new(
+            "PostOpenPathMismatch: open handle resolved to $actualStripped, but the validated path was $expectedStripped. A reparse point was swapped in between Test-IsSafeLocalFile and File.Open; refusing to read."
+        )
     }
 }
 
@@ -544,6 +650,26 @@ $Script:ErrorIndexRegex = [regex]::new(
     [System.Text.RegularExpressions.RegexOptions]::Compiled,
     $Script:RegexTimeout)
 
+# HealthChecker's remote-scope unhandled errors do NOT arrive as
+# `Error Index:` records — `Invoke-WriteHiddenJobUnhandledErrors` calls
+# `WriteRemoteErrorInformation` (see
+# Diagnostics/HealthChecker/Helpers/HiddenJobUnhandledErrorFunctions.ps1)
+# which emits each error as an UN-TIMESTAMPED record whose head line is
+# `----------------Remote Error Information----------------`. Without a
+# dedicated recognizer, the ordinary $Script:ErrorIndexRegex never
+# matches inside the remote unhandled section, so UnhandledCount stays
+# at zero even when the section carries real errors and the runner
+# incorrectly reports the log as completed cleanly. This regex is used
+# ONLY while $summaryState -eq 'unhandled' AND $currentUnhandledIsRemote,
+# so it cannot accidentally match content emitted outside the remote
+# section (e.g. a message body that quotes the phrase). Anchor start-
+# to-end on the sanitized line — the record header carries no timestamp
+# prefix.
+$Script:RemoteErrorInformationHeaderRegex = [regex]::new(
+    '(?i)\A-{4,}Remote\s+Error\s+Information-{4,}\z',
+    [System.Text.RegularExpressions.RegexOptions]::Compiled,
+    $Script:RegexTimeout)
+
 # Structurally-relevant exception frames that MUST be retained in a summary
 # event's Context even after the general character budget is exhausted.
 # Includes: HealthChecker error banner header, Position Message: header,
@@ -638,15 +764,15 @@ $Script:CompletionSignals = @(
         # `[timestamp] :` framing; the message body is anchored with
         # `\z` (allowing trailing whitespace).
         Name    = 'NoErrorsMessage'
-        Pattern = [regex]::new('\A\s*\[[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}\s+[0-9]{1,2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?\]\s*:\s*No\s+errors\s+occurred\s+in\s+the\s+script\.\s*\z', [System.Text.RegularExpressions.RegexOptions]::Compiled, $Script:RegexTimeout)
+        Pattern = [regex]::new('\A\s*\[[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}\s+[0-9]{1,2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?(?:\s*(?i:AM|PM))?\]\s*:\s*No\s+errors\s+occurred\s+in\s+the\s+script\.\s*\z', [System.Text.RegularExpressions.RegexOptions]::Compiled, $Script:RegexTimeout)
     }
     [PSCustomObject]@{
         Name    = 'AllErrorsHandledMessage'
-        Pattern = [regex]::new('\A\s*\[[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}\s+[0-9]{1,2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?\]\s*:\s*All\s+errors\s+that\s+occurred\s+were\s+in\s+try\s+catch\s+blocks\s+and\s+was\s+handled\s+correctly\.?\s*\z', [System.Text.RegularExpressions.RegexOptions]::Compiled, $Script:RegexTimeout)
+        Pattern = [regex]::new('\A\s*\[[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}\s+[0-9]{1,2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?(?:\s*(?i:AM|PM))?\]\s*:\s*All\s+errors\s+that\s+occurred\s+were\s+in\s+try\s+catch\s+blocks\s+and\s+was\s+handled\s+correctly\.?\s*\z', [System.Text.RegularExpressions.RegexOptions]::Compiled, $Script:RegexTimeout)
     }
     [PSCustomObject]@{
         Name    = 'WritingScriptDebugObjects'
-        Pattern = [regex]::new('\A\s*\[[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}\s+[0-9]{1,2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?\]\s*:\s*Writing\s+out\s+the\s+script\s+debug\s+objects\.?\s*\z', [System.Text.RegularExpressions.RegexOptions]::Compiled, $Script:RegexTimeout)
+        Pattern = [regex]::new('\A\s*\[[0-9]{1,2}/[0-9]{1,2}/[0-9]{4}\s+[0-9]{1,2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?(?:\s*(?i:AM|PM))?\]\s*:\s*Writing\s+out\s+the\s+script\s+debug\s+objects\.?\s*\z', [System.Text.RegularExpressions.RegexOptions]::Compiled, $Script:RegexTimeout)
     }
     [PSCustomObject]@{
         Name    = 'HandledSummaryHeader'
@@ -790,8 +916,24 @@ function Test-IsTimestampedLine {
 # ---- Streaming file processor --------------------------------------------
 
 function Get-EmptyFileResult {
-    param([Parameter(Mandatory)][System.IO.FileInfo]$FileInfo, [Parameter(Mandatory)][string]$Status, [string]$Detail = $null)
+    param(
+        [Parameter(Mandatory)][System.IO.FileInfo]$FileInfo,
+        [Parameter(Mandatory)][string]$Status,
+        [string]$Detail = $null,
+        # Optional explicit size override. Callers that construct an
+        # empty result BEFORE `Test-IsSafeLocalFile` passes MUST pass
+        # `-SizeBytes 0` (or another literal) so this helper does not
+        # touch `$FileInfo.Length`. `FileInfo.Length` on a symlink or
+        # junction reads the size of the REPARSE TARGET, and for a
+        # reparse-point-rejected entry the target may be a UNC share
+        # — reading it would touch the very off-box path the caller
+        # just refused. Any caller that has already passed the
+        # locality check may omit this parameter and default to
+        # `$FileInfo.Length`.
+        [Nullable[int64]]$SizeBytes = $null
+    )
     $ident = Get-ScriptIdentityFromFilename -FileName $FileInfo.Name
+    if ($null -eq $SizeBytes) { $SizeBytes = $FileInfo.Length }
     return [PSCustomObject]@{
         File                          = $FileInfo.FullName
         Status                        = $Status
@@ -817,7 +959,7 @@ function Get-EmptyFileResult {
         AnyLineTruncated              = $false
         MultipleSummaryBlocksDetected = $false
         DetectedEncoding              = $null
-        SizeBytes                     = $FileInfo.Length
+        SizeBytes                     = $SizeBytes
     }
 }
 
@@ -899,6 +1041,16 @@ function Read-DebugFile {
     $handledHeaderCount = 0
     $unhandledHeaderCount = 0
     $remoteUnhandledSectionSeen = $false
+    # Track WHICH unhandled section we are currently inside so the
+    # footer line-number gets routed to the right variable. The remote
+    # section is a documented continuation of the unhandled block, not
+    # a second concatenated summary — the state machine below therefore
+    # treats it as an entry into the 'unhandled' state without counting
+    # it as a duplicate header, and its footer must be tracked
+    # separately so SummaryComplete can require it when the remote
+    # section has been observed.
+    $currentUnhandledIsRemote = $false
+    $remoteUnhandledFooterLine = $null
     $multipleSummaryBlocksDetected = $false
     $currentSummaryEvent = $null
     $currentSummaryChars = 0
@@ -938,6 +1090,23 @@ function Read-DebugFile {
         # FileShare.ReadWrite so a still-running writer (rare for
         # post-run debug artifacts but supported) does not lock us out.
         $stream = [System.IO.File]::Open($FileInfo.FullName, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
+        # Close the reparse-point-swap TOCTOU. `Test-IsSafeLocalFile`
+        # runs against the pre-open path — a local racer can replace
+        # the leaf with a symlink or junction whose target is UNC or
+        # points elsewhere entirely between that validation and the
+        # Open above. `Assert-HandleMatchesExpectedLocalPath` resolves
+        # the CANONICAL path of the handle we actually got via
+        # `GetFinalPathNameByHandleW` and refuses any UNC form or
+        # mismatch. Must run BEFORE any read from the stream so we
+        # never emit content from an unauthorized target. This does
+        # NOT close every validate/open race — a hard-link swap where
+        # the replacement points at a different local file still
+        # resolves to the same canonical path (both names refer to the
+        # same inode) — but it does close the reparse redirection
+        # path, which is the only vector that could route the read
+        # off-box or to a target the caller lacks permission to open
+        # directly.
+        Assert-HandleMatchesExpectedLocalPath -Handle $stream.SafeFileHandle -ExpectedPath $FileInfo.FullName
         # Snapshot the size AFTER opening the stream. Using $FileInfo.Length
         # (captured before Open) opens a validate/open TOCTOU window: an
         # attacker or concurrent appender could have grown the file between
@@ -1048,20 +1217,31 @@ function Read-DebugFile {
                     $summaryUnhandledCount = 0
                     $unhandledHeaderLine = $lineNumber
                     $unhandledHeaderCount++
+                    $currentUnhandledIsRemote = $false
                     if ($unhandledHeaderCount -gt 1) { $multipleSummaryBlocksDetected = $true }
                     if ($null -eq $summaryStart) { $summaryStart = $lineNumber }
                 } elseif ($Script:UnhandledRemoteSummaryHeaderRegex.IsMatch($line)) {
-                    # HealthChecker's second unhandled section (see the
+                    # HealthChecker's remote unhandled section (see the
                     # comment on $Script:UnhandledRemoteSummaryHeaderRegex).
+                    # This is an EXPECTED CONTINUATION of the unhandled
+                    # block, emitted by Get-ErrorsThatOccurred.ps1's
+                    # Test-HiddenJobUnhandledErrors path AFTER the ordinary
+                    # unhandled section's footer has already been written.
                     # Enter the 'unhandled' state so events counted here
-                    # contribute to UnhandledSummaryEvents, and record the
-                    # section for auditing so downstream reports can
-                    # disclose remote-scope errors separately.
+                    # contribute to UnhandledSummaryEvents, but do NOT
+                    # increment $unhandledHeaderCount and do NOT flag
+                    # $multipleSummaryBlocksDetected — treating this
+                    # continuation as a duplicate block would cause the
+                    # runner to skip Step 7 correlation and report every
+                    # log-with-remote-errors as ambiguous. Set
+                    # $currentUnhandledIsRemote so the footer transition
+                    # below routes the closing line to
+                    # $remoteUnhandledFooterLine instead of overwriting
+                    # $unhandledFooterLine.
                     $summaryState = 'unhandled'
                     if ($null -eq $summaryUnhandledCount) { $summaryUnhandledCount = 0 }
                     if ($null -eq $unhandledHeaderLine) { $unhandledHeaderLine = $lineNumber }
-                    $unhandledHeaderCount++
-                    if ($unhandledHeaderCount -gt 1) { $multipleSummaryBlocksDetected = $true }
+                    $currentUnhandledIsRemote = $true
                     $remoteUnhandledSectionSeen = $true
                     if ($null -eq $summaryStart) { $summaryStart = $lineNumber }
                 }
@@ -1069,7 +1249,15 @@ function Read-DebugFile {
                 # Inside a summary block. Real end-of-section footer is a
                 # TIMESTAMPED dashed divider written by
                 # `Write-Verbose "----------------------------------"`.
-                if ($Script:SummaryFooterRegex.IsMatch($line)) {
+                # Gate on a SUCCESSFULLY PARSED timestamp — the lexical
+                # `$Script:SummaryFooterRegex` accepts any `[m/d/yyyy
+                # H:M:S]` shape, but `Get-LineTimestamp` uses
+                # `TryParseExact` and will return `$null` for
+                # semantically-invalid values (e.g. month 99). Without
+                # this gate, a summary event created here would have a
+                # `$null` Timestamp and crash Step 7's
+                # `Timestamp.AddSeconds(-60)` correlation.
+                if ($Script:SummaryFooterRegex.IsMatch($line) -and $null -ne $ts) {
                     if ($null -ne $currentSummaryEvent) {
                         $currentSummaryEvent.OriginalEndLine = $lineNumber - 1
                         $currentSummaryEvent.TerminationLineNumber = $lineNumber
@@ -1085,13 +1273,26 @@ function Read-DebugFile {
                             -HandledTruncated ([ref]$handledEventsTruncated) `
                             -UnhandledTruncated ([ref]$unhandledEventsTruncated)
                     }
-                    if ($summaryState -eq 'handled') { $handledFooterLine = $lineNumber }
-                    elseif ($summaryState -eq 'unhandled') { $unhandledFooterLine = $lineNumber }
+                    if ($summaryState -eq 'handled') {
+                        $handledFooterLine = $lineNumber
+                    } elseif ($summaryState -eq 'unhandled') {
+                        if ($currentUnhandledIsRemote) {
+                            $remoteUnhandledFooterLine = $lineNumber
+                        } else {
+                            $unhandledFooterLine = $lineNumber
+                        }
+                    }
+                    $currentUnhandledIsRemote = $false
                     $currentSummaryEvent = $null
                     $currentSummaryChars = 0
                     $positionMessageForceRetain = 0
                     $summaryState = 'none'
-                } elseif ($Script:ErrorIndexRegex.IsMatch($line)) {
+                } elseif ($Script:ErrorIndexRegex.IsMatch($line) -and $null -ne $ts) {
+                    # Same null-timestamp guard as SummaryFooterRegex above.
+                    # A lexically-well-formed but semantically-invalid
+                    # timestamp on an `Error Index:` line would otherwise
+                    # produce a summary event whose `Timestamp` is `$null`
+                    # and break Step 7 correlation.
                     if ($null -ne $currentSummaryEvent) {
                         $currentSummaryEvent.OriginalEndLine = $lineNumber - 1
                         $currentSummaryEvent.TerminationLineNumber = $lineNumber
@@ -1116,6 +1317,7 @@ function Read-DebugFile {
                         Context                 = [System.Collections.Generic.List[string]]::new()
                         ContextLineNumbers      = [System.Collections.Generic.List[int]]::new()
                         IsHandled               = ($summaryState -eq 'handled')
+                        IsRemoteRecord          = $false
                         ContextTruncated        = $lineWasTruncated
                         OriginalStartLine       = $lineNumber
                         OriginalEndLine         = $lineNumber
@@ -1134,6 +1336,89 @@ function Read-DebugFile {
                         $currentSummaryEvent.LinesCharacterTruncated++
                     }
                     $positionMessageForceRetain = 0
+                } elseif ($summaryState -eq 'unhandled' -and $currentUnhandledIsRemote -and
+                    $Script:RemoteErrorInformationHeaderRegex.IsMatch($line)) {
+                    # HealthChecker's remote unhandled records are emitted
+                    # by WriteRemoteErrorInformation (see
+                    # Diagnostics/HealthChecker/Helpers/HiddenJobUnhandledErrorFunctions.ps1)
+                    # WITHOUT an `Error Index:` line. Each record starts
+                    # with `----------------Remote Error Information----------------`
+                    # (untimestamped) followed by `Exception Message:`,
+                    # `Position Message:`, `Error Category ...`, and
+                    # `Inner Exception:` lines. Without this branch,
+                    # `$Script:ErrorIndexRegex` never matches inside the
+                    # remote section and UnhandledCount stays at zero
+                    # even when the section carries real errors — the
+                    # runner then reports the log as clean.
+                    #
+                    # Gate this branch on the remote-section state
+                    # ($currentUnhandledIsRemote) so a message body that
+                    # happens to quote the phrase cannot be mistaken for
+                    # a record header outside the section.
+                    #
+                    # Timestamp fallback: the record head line is not
+                    # timestamped. Use $endTime — the last successfully
+                    # parsed log timestamp — so Step 7's
+                    # `Timestamp.AddSeconds(-60)` does not crash. This is
+                    # a safe proxy because HealthChecker writes remote
+                    # error records synchronously between two
+                    # `[timestamp] : ----------------------------------`
+                    # dividers, so $endTime is always set to a
+                    # near-contemporaneous value by the time this branch
+                    # runs. If $endTime is somehow still null (a log
+                    # whose only content is a bare remote section — not
+                    # a shape HealthChecker actually produces), skip
+                    # event creation but still increment UnhandledCount
+                    # so the tally reflects the record.
+                    if ($null -ne $endTime) {
+                        if ($null -ne $currentSummaryEvent) {
+                            $currentSummaryEvent.OriginalEndLine = $lineNumber - 1
+                            $currentSummaryEvent.TerminationLineNumber = $lineNumber
+                            $currentSummaryEvent.TerminationLineText = $line
+                            $currentSummaryEvent.TerminationKind = 'NextRemoteRecord'
+                            Add-SummaryEventToList `
+                                -SummaryEvent $currentSummaryEvent `
+                                -State $summaryState `
+                                -HandledList $handledSummaryEvents `
+                                -UnhandledList $unhandledSummaryEvents `
+                                -MaxHandled $MaxHandledSummaryEvents `
+                                -MaxUnhandled $MaxUnhandledSummaryEvents `
+                                -HandledTruncated ([ref]$handledEventsTruncated) `
+                                -UnhandledTruncated ([ref]$unhandledEventsTruncated)
+                        }
+                        $summaryUnhandledCount++
+                        $currentSummaryEvent = [PSCustomObject]@{
+                            LineNumber              = $lineNumber
+                            Timestamp               = $endTime
+                            HeadLine                = $line
+                            Context                 = [System.Collections.Generic.List[string]]::new()
+                            ContextLineNumbers      = [System.Collections.Generic.List[int]]::new()
+                            IsHandled               = $false
+                            IsRemoteRecord          = $true
+                            ContextTruncated        = $lineWasTruncated
+                            OriginalStartLine       = $lineNumber
+                            OriginalEndLine         = $lineNumber
+                            OmittedLineCount        = 0
+                            TruncatedLineNumbers    = [System.Collections.Generic.List[int]]::new()
+                            LinesCharacterTruncated = 0
+                            TerminationLineNumber   = 0
+                            TerminationLineText     = $null
+                            TerminationKind         = 'EOF'
+                        }
+                        $currentSummaryEvent.Context.Add($line) | Out-Null
+                        $currentSummaryEvent.ContextLineNumbers.Add($lineNumber) | Out-Null
+                        $currentSummaryChars = $line.Length + 1
+                        if ($lineWasTruncated) {
+                            $currentSummaryEvent.TruncatedLineNumbers.Add($lineNumber) | Out-Null
+                            $currentSummaryEvent.LinesCharacterTruncated++
+                        }
+                        $positionMessageForceRetain = 0
+                    } else {
+                        # Fallback: no anchor timestamp available. Count
+                        # the record so UnhandledCount stays accurate but
+                        # do not create a null-timestamp event.
+                        $summaryUnhandledCount++
+                    }
                 } elseif ($Script:HandledSummaryHeaderRegex.IsMatch($line)) {
                     if ($null -ne $currentSummaryEvent) {
                         $currentSummaryEvent.OriginalEndLine = $lineNumber - 1
@@ -1177,16 +1462,20 @@ function Read-DebugFile {
                     $currentSummaryChars = 0
                     $summaryState = 'unhandled'
                     $unhandledHeaderCount++
+                    $currentUnhandledIsRemote = $false
                     if ($unhandledHeaderCount -gt 1) { $multipleSummaryBlocksDetected = $true }
                     if ($null -eq $summaryUnhandledCount) { $summaryUnhandledCount = 0 }
                     if ($null -eq $unhandledHeaderLine) { $unhandledHeaderLine = $lineNumber }
                 } elseif ($Script:UnhandledRemoteSummaryHeaderRegex.IsMatch($line)) {
-                    # Transition from an earlier section into HealthChecker's
-                    # remote-unhandled section (see the comment on
-                    # $Script:UnhandledRemoteSummaryHeaderRegex). Behaves
-                    # like a normal handled -> unhandled transition so the
-                    # in-flight event is closed and events counted in the
-                    # remote section contribute to UnhandledSummaryEvents.
+                    # Mid-section transition into HealthChecker's
+                    # remote-unhandled continuation (see the comment on
+                    # $Script:UnhandledRemoteSummaryHeaderRegex).
+                    # Same handling as the state='none' entry above: do
+                    # NOT increment $unhandledHeaderCount and do NOT flag
+                    # $multipleSummaryBlocksDetected — this is an
+                    # expected continuation, not a duplicated summary
+                    # block. Set $currentUnhandledIsRemote so the closing
+                    # footer routes to $remoteUnhandledFooterLine.
                     if ($null -ne $currentSummaryEvent) {
                         $currentSummaryEvent.OriginalEndLine = $lineNumber - 1
                         $currentSummaryEvent.TerminationLineNumber = $lineNumber
@@ -1205,8 +1494,7 @@ function Read-DebugFile {
                     $currentSummaryEvent = $null
                     $currentSummaryChars = 0
                     $summaryState = 'unhandled'
-                    $unhandledHeaderCount++
-                    if ($unhandledHeaderCount -gt 1) { $multipleSummaryBlocksDetected = $true }
+                    $currentUnhandledIsRemote = $true
                     if ($null -eq $summaryUnhandledCount) { $summaryUnhandledCount = 0 }
                     if ($null -eq $unhandledHeaderLine) { $unhandledHeaderLine = $lineNumber }
                     $remoteUnhandledSectionSeen = $true
@@ -1325,7 +1613,18 @@ function Read-DebugFile {
                 }
             }
 
-            if ($null -eq $pendingEvent -and $isTimestamped -and $isExceptionLine) {
+            if ($null -eq $pendingEvent -and $isTimestamped -and $isExceptionLine -and $null -ne $ts) {
+                # NOTE: `Test-IsTimestampedLine` is a lexical shape check only
+                # (well-formed bracket + digit pattern); it does not validate
+                # the numeric ranges. A syntactically well-formed but
+                # semantically invalid stamp like `[99/99/2026 25:99:99]` will
+                # pass `Test-IsTimestampedLine` but cause `Get-LineTimestamp`
+                # to return `$null`. Refusing to open an InlineEvent with a
+                # null `Timestamp` keeps Step 7's `$Timestamp.AddSeconds(-60)`
+                # secondary-correlation window from crashing on malformed
+                # input — the line is instead treated as "not timestamped
+                # enough" and skipped, matching the same behavior we'd apply
+                # to a line that lacks a bracket entirely.
                 $before = @()
                 $ctxArr = $recentContext.ToArray()
                 if ($ctxArr.Length -ge 2) {
@@ -1422,23 +1721,36 @@ function Read-DebugFile {
     # script reaches end-of-run. `Get-ErrorsThatOccurred.ps1` (SEE
     # Diagnostics/HealthChecker/Helpers/) shows both are always emitted
     # back-to-back. SummaryComplete requires both footers to be present.
+    # When the remote unhandled section has also been observed
+    # (`RemoteUnhandledSectionSeen`), it is a continuation emitted AFTER
+    # the ordinary unhandled footer and has its OWN footer that must
+    # also be seen — otherwise a log truncated inside the remote section
+    # (which happens with abrupt terminations of the runspace-pool
+    # host) would still report `SummaryComplete = $true` from the
+    # ordinary footers alone and be silently treated as a completed run.
     $summaryComplete = $false
     if ($null -ne $handledFooterLine -and $null -ne $unhandledFooterLine) {
-        $summaryComplete = $true
+        if ($remoteUnhandledSectionSeen) {
+            $summaryComplete = ($null -ne $remoteUnhandledFooterLine)
+        } else {
+            $summaryComplete = $true
+        }
     }
 
     $summary = $null
     if ($null -ne $summaryHandledCount -or $null -ne $summaryUnhandledCount) {
         $summary = [PSCustomObject]@{
-            HandledCount        = $summaryHandledCount
-            UnhandledCount      = $summaryUnhandledCount
-            StartLine           = $summaryStart
-            HandledHeaderLine   = $handledHeaderLine
-            HandledFooterLine   = $handledFooterLine
-            UnhandledHeaderLine = $unhandledHeaderLine
-            UnhandledFooterLine = $unhandledFooterLine
-            SummaryComplete     = $summaryComplete
-            FooterSeen          = $summaryComplete
+            HandledCount               = $summaryHandledCount
+            UnhandledCount             = $summaryUnhandledCount
+            StartLine                  = $summaryStart
+            HandledHeaderLine          = $handledHeaderLine
+            HandledFooterLine          = $handledFooterLine
+            UnhandledHeaderLine        = $unhandledHeaderLine
+            UnhandledFooterLine        = $unhandledFooterLine
+            RemoteUnhandledSectionSeen = $remoteUnhandledSectionSeen
+            RemoteUnhandledFooterLine  = $remoteUnhandledFooterLine
+            SummaryComplete            = $summaryComplete
+            FooterSeen                 = $summaryComplete
         }
     }
 
@@ -1459,6 +1771,7 @@ function Read-DebugFile {
                 Context                 = $ctxArray
                 ContextLineNumbers      = $_.ContextLineNumbers.ToArray()
                 IsHandled               = $_.IsHandled
+                IsRemoteRecord          = $_.IsRemoteRecord
                 ContextTruncated        = $_.ContextTruncated
                 OriginalStartLine       = $_.OriginalStartLine
                 OriginalEndLine         = $_.OriginalEndLine
@@ -1579,7 +1892,13 @@ $cumulativeBytes = [int64]0
 
 foreach ($f in $processFiles) {
     if (-not (Test-IsSafeLocalFile -Path $f.FullName)) {
-        $results.Add((Get-EmptyFileResult -FileInfo $f -Status 'Unreadable' -Detail 'Reparse point on file.'))
+        # `Test-IsSafeLocalFile` rejected the file (reparse point,
+        # UNC-shadowed PSDrive, non-local drive, etc.). Do NOT read
+        # `$f.Length` when building the result — `FileInfo.Length` on
+        # a reparse-point entry reads the size of the REDIRECT TARGET,
+        # which may be UNC. Force `SizeBytes = 0` so the helper skips
+        # its default `$FileInfo.Length` fallback.
+        $results.Add((Get-EmptyFileResult -FileInfo $f -Status 'Unreadable' -Detail 'Reparse point on file.' -SizeBytes 0))
         continue
     }
     if ($f.Length -eq 0) {
@@ -1645,7 +1964,13 @@ foreach ($f in $processFiles) {
 }
 
 foreach ($f in $skippedFiles) {
-    $results.Add((Get-EmptyFileResult -FileInfo $f -Status 'Oversize' -Detail "File-count cap reached (MaxFilesPerDirectory=$MaxFilesPerDirectory)."))
+    # Skipped entries never went through Test-IsSafeLocalFile — they were dropped
+    # by the MaxFilesPerDirectory cap before validation. Any of them could still
+    # be a reparse point, so pass -SizeBytes 0 to prevent Get-EmptyFileResult
+    # from reading $FileInfo.Length (which would follow a symlink/junction to
+    # its target and defeat the trust boundary). Actual size is irrelevant here
+    # — the row exists only to record that the cap was reached.
+    $results.Add((Get-EmptyFileResult -FileInfo $f -Status 'Oversize' -Detail "File-count cap reached (MaxFilesPerDirectory=$MaxFilesPerDirectory)." -SizeBytes 0))
 }
 
 # Return a single wrapper object so zero-file runs and
