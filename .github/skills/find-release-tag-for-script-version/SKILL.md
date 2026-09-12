@@ -84,9 +84,11 @@ requested `File` + `Version` pair.
 walk and returns a structured result.
 
 ```powershell
-.\.github\skills\find-release-tag-for-script-version\Find-ReleaseTagForScriptVersion.ps1 `
-    -ScriptName HealthChecker `
-    -Version 26.03.12.1424
+$findReleaseArgs = @{
+    ScriptName = 'HealthChecker'
+    Version    = '26.03.12.1424'
+}
+& .\.github\skills\find-release-tag-for-script-version\Find-ReleaseTagForScriptVersion.ps1 @findReleaseArgs
 ```
 
 Requires:

@@ -113,10 +113,12 @@ a top-level exception phrase also survives), so supplying only
 ## Example invocation
 
 ```powershell
-$related = & .\.github\skills\find-related-github-issues\Find-RelatedGitHubIssues.ps1 `
-    -Repository 'microsoft/CSS-Exchange' `
-    -TopLevelException 'ConvertFrom-Json : Invalid JSON primitive: Cannot.' `
-    -InnerException 'at System.Web.Script.Serialization.JavaScriptObjectDeserializer.DeserializePrimitiveObject()' `
-    -ScriptName 'HealthChecker.ps1' `
-    -DiscriminatorFunction 'Invoke-JobOrganizationInformation'
+$findRelatedArgs = @{
+    Repository            = 'microsoft/CSS-Exchange'
+    TopLevelException     = 'ConvertFrom-Json : Invalid JSON primitive: Cannot.'
+    InnerException        = 'at System.Web.Script.Serialization.JavaScriptObjectDeserializer.DeserializePrimitiveObject()'
+    ScriptName            = 'HealthChecker.ps1'
+    DiscriminatorFunction = 'Invoke-JobOrganizationInformation'
+}
+$related = & .\.github\skills\find-related-github-issues\Find-RelatedGitHubIssues.ps1 @findRelatedArgs
 ```

@@ -127,10 +127,12 @@ lookup unavailable" rather than aborting the parent report.
 ## Example invocation
 
 ```powershell
-$intro = & .\.github\skills\trace-code-introduction\Trace-CodeIntroduction.ps1 `
-    -Path 'Diagnostics/HealthChecker/DataCollection/OrganizationInformation/Invoke-JobOrganizationInformation.ps1' `
-    -StartLine 173 `
-    -EndLine 177 `
-    -BaselineSha 'a8d556e20504dbc7572e6226b97ecfcadfa05304' `
-    -Repository 'microsoft/CSS-Exchange'
+$traceArgs = @{
+    Path        = 'Diagnostics/HealthChecker/DataCollection/OrganizationInformation/Invoke-JobOrganizationInformation.ps1'
+    StartLine   = 173
+    EndLine     = 177
+    BaselineSha = 'a8d556e20504dbc7572e6226b97ecfcadfa05304'
+    Repository  = 'microsoft/CSS-Exchange'
+}
+$intro = & .\.github\skills\trace-code-introduction\Trace-CodeIntroduction.ps1 @traceArgs
 ```

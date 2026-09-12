@@ -4,7 +4,7 @@ description: Analyzes CSS-Exchange debug log files, identifies the source script
 auto_load: false
 ---
 
-<!-- cspell:ignore worktree toctou misattributed metacharacters DONT DACL blocklist lpsz -->
+<!-- cspell:ignore toplevel toctou worktree -->
 
 # Analyze Debug Files
 
@@ -82,15 +82,19 @@ what we do not, and why.
   a reparse point. Log files are the primary untrusted input and get
   a stronger check than plain caller-supplied paths.
 
-**OUT OF SCOPE — deliberately not defended against:**
+**OUT OF SCOPE — deliberately not defended against, because the required
+attacker capability already implies full compromise:**
 
-- Concurrent processes running as the same operator racing our
-  filesystem calls (classic TOCTOU): a process installing a junction,
-  symlink, or SUBST alias between one of our validation checks and a
-  subsequent `Test-Path` / `Push-Location` / `Import-Clixml`.
-- Files or directories mutating between initial intake validation and
-  later use in the same run.
-- Same-user attackers with the ability to modify files on our behalf.
+- Concurrent same-user processes racing our filesystem validation
+  (classic TOCTOU): a process that installs a junction, symlink, or
+  SUBST alias in the window between a validation check and any
+  subsequent filesystem call.
+- Files or directories mutating between initial intake validation
+  and later use in the same run.
+- Any adversary with concurrent same-user code execution — they can
+  compromise the skill by simpler means (editing skill sources, the
+  PowerShell profile, or scheduled tasks) than winning a filesystem
+  race.
 
 **Rationale:** this skill runs on the operator's own machine under the
 operator's own account. An attacker with the ability to race our
@@ -149,8 +153,7 @@ When present, the summary block is more trustworthy than inline detection.
 ### Step 1 — Inventory the debug directory
 
 ```powershell
-$inventory = .\.github\skills\analyze-debug-files\Get-DebugFileMetadata.ps1 `
-    -DebugDirectory <path>
+$inventory = & .\.github\skills\analyze-debug-files\Get-DebugFileMetadata.ps1 -DebugDirectory <path>
 ```
 
 The helper returns a single wrapper object with these fields:
@@ -260,9 +263,11 @@ Use the sibling skill to find the release-tag baseline whose
 `ScriptVersions.csv` matches the identified script+version:
 
 ```powershell
-$baseline = .\.github\skills\find-release-tag-for-script-version\Find-ReleaseTagForScriptVersion.ps1 `
-    -ScriptName <ScriptName> `
-    -Version <Version>
+$findReleaseArgs = @{
+    ScriptName = '<ScriptName>'
+    Version    = '<Version>'
+}
+$baseline = & .\.github\skills\find-release-tag-for-script-version\Find-ReleaseTagForScriptVersion.ps1 @findReleaseArgs
 ```
 
 Result fields to record:
@@ -455,9 +460,10 @@ if ($sha -notmatch '\A[0-9a-f]{40}\z') {
     throw "Step 5 refuses to build a cache path from a non-hex SHA."
 }
 
-# --- Local-path safety helpers (inlined, kept in lockstep with the
-# copies in `.github/skills/analyze-debug-files/Get-DebugFileMetadata.ps1`
-# and `.github/skills/trace-code-introduction/Trace-CodeIntroduction.ps1`).
+# --- Local-path safety helpers (dot-sourced from `.github/skill-lib/`,
+# which holds the canonical copies also consumed by
+# `.github/skills/analyze-debug-files/Get-DebugFileMetadata.ps1` and
+# `.github/skills/trace-code-introduction/Trace-CodeIntroduction.ps1`).
 # Both the dependency-cache root under `$env:LOCALAPPDATA` and the
 # scratch-worktree parent under `[System.IO.Path]::GetTempPath()` are
 # derived from environment variables (`LOCALAPPDATA`, `TEMP`, `TMP`).
@@ -471,57 +477,36 @@ if ($sha -notmatch '\A[0-9a-f]{40}\z') {
 # derived roots before any filesystem write or subprocess call, using
 # the same layered ordering as `Test-IsSafeLocalDirectory` in
 # `Get-DebugFileMetadata.ps1`. ---
-function Test-IsLocalDosDeviceTarget {
-    param([Parameter(Mandatory)][string]$DriveLetter)
-    # QueryDosDevice: real local volumes map to a bare `\Device\<name>`
-    # target; SUBST / DefineDosDevice / raw DOS device aliases target
-    # `\??\<real path>` or `\Device\<name>\<subpath>` and are rejected.
-    # Closes the DriveInfo bypass — SUBST drives report DriveType.Fixed
-    # even when they redirect through a UNC target or reparse point.
-    if (-not ('AnalyzeDebugFilesStep5.DosDeviceHelper' -as [type])) {
-        Add-Type -Namespace 'AnalyzeDebugFilesStep5' -Name 'DosDeviceHelper' -MemberDefinition @'
-[System.Runtime.InteropServices.DllImport("kernel32.dll", CharSet=System.Runtime.InteropServices.CharSet.Unicode, SetLastError=true)]
-public static extern uint QueryDosDevice(string lpDeviceName, System.Text.StringBuilder lpTargetPath, uint maxChars);
-'@ -ErrorAction Stop
-    }
-    $sb = New-Object System.Text.StringBuilder 1024
-    $len = [AnalyzeDebugFilesStep5.DosDeviceHelper]::QueryDosDevice($DriveLetter, $sb, 1024)
-    if ($len -eq 0) { return $false }
-    $target = $sb.ToString()
-    return ($target -match '\A\\Device\\[^\\]+\z')
+# Test-IsLocalDosDeviceTarget: QueryDosDevice check that rejects SUBST /
+# DefineDosDevice / raw DOS device aliases. Real local volumes map to a
+# bare `\Device\<name>` target. Closes the DriveInfo bypass — SUBST drives
+# report DriveType.Fixed even when they redirect through a UNC target or
+# reparse point.
+# Test-PathHasReparsePointRootToLeaf: root→leaf walk that returns $true
+# as soon as any existing ancestor is a reparse point. Not-yet-existing
+# tail segments are OK — Step 5 creates the leaf under the validated root.
+# Anchor to the repo root via `git rev-parse` so the dot-sources resolve
+# regardless of whether the AI extracts this block to a temp .ps1, runs
+# it via `pwsh -Command`, or dot-sources it directly. `$PSScriptRoot` is
+# unreliable across those modes; `.build/Build.ps1` later in this block
+# would fail the same way if we weren't already inside the repo, so
+# depending on git for this anchor adds no new precondition. Then verify
+# the enclosing repository is microsoft/CSS-Exchange — the outer Step
+# 4 block also enforces this, but running Block 4 in isolation would
+# otherwise dot-source `.github/skill-lib/` from whichever repo happens
+# to be checked out under the CWD.
+$repoRootRaw = git rev-parse --show-toplevel 2>$null
+if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($repoRootRaw)) {
+    throw "Step 5 must run inside the microsoft/CSS-Exchange git repository."
 }
-function Test-PathHasReparsePointRootToLeaf {
-    param([Parameter(Mandatory)][string]$Path)
-    # Walks root -> leaf; returns $true as soon as any existing ancestor
-    # is a reparse point. Uses attribute-only reads (no follow) via
-    # `[System.IO.File]::GetAttributes` so we never open a descendant of
-    # a reparse ancestor. Not-yet-existing tail segments are OK — Step 5
-    # will create the leaf itself under the validated root.
-    try {
-        $normalized = [System.IO.Path]::GetFullPath($Path)
-    } catch {
-        return $true
-    }
-    $parts = New-Object System.Collections.Generic.List[string]
-    $cur = $normalized
-    while (-not [string]::IsNullOrEmpty($cur)) {
-        $parts.Insert(0, $cur)
-        $parent = Split-Path -Parent $cur
-        if ([string]::IsNullOrEmpty($parent) -or $parent -eq $cur) { break }
-        $cur = $parent
-    }
-    foreach ($p in $parts) {
-        try {
-            $attrs = [System.IO.File]::GetAttributes($p)
-            if (($attrs -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
-                return $true
-            }
-        } catch [System.IO.FileNotFoundException] { continue }
-        catch [System.IO.DirectoryNotFoundException] { continue }
-        catch { return $true }
-    }
-    return $false
+$repoRoot = $repoRootRaw.Trim()
+$remoteUrl = git -C $repoRoot config --get remote.origin.url 2>$null
+if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($remoteUrl) -or
+    $remoteUrl -notmatch '(?i)\A(?:https://github\.com/microsoft/CSS-Exchange(?:\.git)?/?|git@github\.com:microsoft/CSS-Exchange(?:\.git)?/?|ssh://git@github\.com/microsoft/CSS-Exchange(?:\.git)?/?)\z') {
+    throw "Step 5 requires a microsoft/CSS-Exchange checkout; resolved repo '$repoRoot' has remote '$remoteUrl'."
 }
+. (Join-Path $repoRoot '.github/skill-lib/Test-IsLocalDosDeviceTarget.ps1')
+. (Join-Path $repoRoot '.github/skill-lib/Test-PathHasReparsePointRootToLeaf.ps1')
 function Test-IsSafeLocalDirectoryStep5 {
     param([Parameter(Mandatory)][string]$Path)
     # ORDER MATTERS. Each check must be safe to run against whatever the
