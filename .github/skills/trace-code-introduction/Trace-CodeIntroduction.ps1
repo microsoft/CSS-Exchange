@@ -191,65 +191,16 @@ if ($null -eq $git) {
 # reparse point is present on the resolved root. Modelled after
 # `analyze-debug-files/Get-DebugFileMetadata.ps1` (`Test-IsSafeLocalDirectory`).
 # ---------------------------------------------------------------------------
-function Test-IsLocalDosDeviceTarget {
-    param([Parameter(Mandatory)][string]$DriveLetter)
-    # QueryDosDevice check: reject SUBST/DefineDosDevice-created drives
-    # (their target is `\??\<real path>`) and raw DOS device aliases
-    # (`\Device\<name>\<subpath>`). A real local volume maps to a bare
-    # `\Device\<name>` target with no trailing path component. This is
-    # the same check `analyze-debug-files/Get-DebugFileMetadata.ps1`
-    # applies to `DebugDirectory`; SUBST'd drives report DriveType.Fixed
-    # via `[System.IO.DriveInfo]` but redirect to arbitrary targets
-    # (including UNC or reparse-point paths), so DriveInfo alone is not
-    # enough — this call closes the SUBST bypass.
-    if (-not ('TraceCodeIntroduction.DosDeviceHelper' -as [type])) {
-        Add-Type -Namespace 'TraceCodeIntroduction' -Name 'DosDeviceHelper' -MemberDefinition @'
-[System.Runtime.InteropServices.DllImport("kernel32.dll", CharSet=System.Runtime.InteropServices.CharSet.Unicode, SetLastError=true)]
-public static extern uint QueryDosDevice(string lpDeviceName, System.Text.StringBuilder lpTargetPath, uint maxChars);
-'@ -ErrorAction Stop
-    }
-    $sb = New-Object System.Text.StringBuilder 1024
-    $len = [TraceCodeIntroduction.DosDeviceHelper]::QueryDosDevice($DriveLetter, $sb, 1024)
-    if ($len -eq 0) { return $false }
-    $target = $sb.ToString()
-    return ($target -match '\A\\Device\\[^\\]+\z')
-}
+# Test-IsLocalDosDeviceTarget: QueryDosDevice check that rejects SUBST drives
+# and DOS device aliases. Modeled on analyze-debug-files; closes the SUBST
+# bypass that [System.IO.DriveInfo] leaves open (SUBST'd drives report
+# DriveType.Fixed but redirect to arbitrary targets, including UNC or
+# reparse-point paths).
+. $PSScriptRoot\..\..\skill-lib\Test-IsLocalDosDeviceTarget.ps1
 
-function Test-PathHasReparsePointRootToLeaf {
-    param([Parameter(Mandatory)][string]$Path)
-    # Walks root → leaf. Returns $true as soon as any ancestor is a
-    # reparse point (junction/symlink), WITHOUT ever calling filesystem
-    # cmdlets on a descendant of a reparse ancestor. Uses attribute-only
-    # reads (no follow) via [System.IO.File]::GetAttributes.
-    try {
-        $normalized = [System.IO.Path]::GetFullPath($Path)
-    } catch {
-        return $true
-    }
-    $parts = New-Object System.Collections.Generic.List[string]
-    $cur = $normalized
-    while (-not [string]::IsNullOrEmpty($cur)) {
-        $parts.Insert(0, $cur)
-        $parent = Split-Path -Parent $cur
-        if ([string]::IsNullOrEmpty($parent) -or $parent -eq $cur) { break }
-        $cur = $parent
-    }
-    foreach ($p in $parts) {
-        try {
-            $attrs = [System.IO.File]::GetAttributes($p)
-            if (($attrs -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
-                return $true
-            }
-        } catch [System.IO.FileNotFoundException] {
-            continue
-        } catch [System.IO.DirectoryNotFoundException] {
-            continue
-        } catch {
-            return $true
-        }
-    }
-    return $false
-}
+# Test-PathHasReparsePointRootToLeaf: root→leaf walk that returns $true as
+# soon as any ancestor is a reparse point. Attribute-only reads (no follow).
+. $PSScriptRoot\..\..\skill-lib\Test-PathHasReparsePointRootToLeaf.ps1
 
 function Test-IsRepositoryRootSafe {
     param([Parameter(Mandatory)][string]$Path)

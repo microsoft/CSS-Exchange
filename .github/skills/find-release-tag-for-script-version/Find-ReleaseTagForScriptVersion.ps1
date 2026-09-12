@@ -420,12 +420,12 @@ try {
         $releases = @($parsedReleases)
     }
     foreach ($rel in $releases) {
-        if ($null -eq $rel -or `
-                -not ($rel.PSObject.Properties.Match('tagName').Count) -or `
-                -not ($rel.PSObject.Properties.Match('isDraft').Count) -or `
-                -not ($rel.PSObject.Properties.Match('isPrerelease').Count) -or `
-                -not ($rel.tagName -is [string]) -or `
-            ($rel.isDraft -isnot [bool]) -or `
+        if ($null -eq $rel -or
+            -not ($rel.PSObject.Properties.Match('tagName').Count) -or
+            -not ($rel.PSObject.Properties.Match('isDraft').Count) -or
+            -not ($rel.PSObject.Properties.Match('isPrerelease').Count) -or
+            -not ($rel.tagName -is [string]) -or
+            ($rel.isDraft -isnot [bool]) -or
             ($rel.isPrerelease -isnot [bool])) {
             throw "Unexpected release entry shape from gh."
         }
@@ -548,9 +548,9 @@ try {
 
             $hasEmptyRow = $false
             foreach ($r in $rows) {
-                if ([string]::IsNullOrWhiteSpace([string]$r.File) `
-                        -and [string]::IsNullOrWhiteSpace([string]$r.Version) `
-                        -and [string]::IsNullOrWhiteSpace([string]$r.SHA256Hash)) {
+                if ([string]::IsNullOrWhiteSpace([string]$r.File) -and
+                    [string]::IsNullOrWhiteSpace([string]$r.Version) -and
+                    [string]::IsNullOrWhiteSpace([string]$r.SHA256Hash)) {
                     $hasEmptyRow = $true
                     break
                 }

@@ -1,7 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-# cspell:ignore ansi csi osc untimestamped toctou DACL blocklist
+# cspell:ignore ansi csi osc untimestamped toctou
 
 <#
 .SYNOPSIS
@@ -53,8 +53,12 @@
     the path.
 
 .PARAMETER MaxFileSizeMB
-    Per-file size cap. Default 25. Files larger than the cap are returned
-    with Status = `Oversize` and no parse results.
+    Per-file size cap applied only to the `.txt` and `.log` debug files
+    this script inventories (see `-DebugDirectory`). Default 25. Files
+    larger than the cap are returned with Status = `Oversize` and no
+    parse results. This script does not read any other file type, so
+    this cap has no effect on XML, JSON, or any other files that may
+    exist in `-DebugDirectory`.
 
 .PARAMETER MaxDirectoryTotalMB
     Cumulative size cap across all discovered files. Default 500. When
@@ -182,43 +186,9 @@ function Test-IsLexicallyLocalPath {
     return $true
 }
 
-function Test-PathHasReparsePointRootToLeaf {
-    param([Parameter(Mandatory)][string]$Path)
-    # Walks root → leaf. Returns $true as soon as any ancestor is a reparse
-    # point, WITHOUT ever calling Get-Item on a descendant of a reparse
-    # ancestor. Uses attribute-only reads (no follow) via GetFileAttributes.
-    try {
-        $normalized = [System.IO.Path]::GetFullPath($Path)
-    } catch {
-        return $true
-    }
-    $parts = New-Object System.Collections.Generic.List[string]
-    $cur = $normalized
-    while (-not [string]::IsNullOrEmpty($cur)) {
-        $parts.Insert(0, $cur)
-        $parent = Split-Path -Parent $cur
-        if ([string]::IsNullOrEmpty($parent) -or $parent -eq $cur) { break }
-        $cur = $parent
-    }
-    foreach ($p in $parts) {
-        try {
-            $attrs = [System.IO.File]::GetAttributes($p)
-            if (($attrs -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
-                return $true
-            }
-        } catch [System.IO.FileNotFoundException] {
-            # Not-yet-existing tail segments are OK — the workflow may
-            # create the report file into an existing directory.
-            continue
-        } catch [System.IO.DirectoryNotFoundException] {
-            continue
-        } catch {
-            # Any other error while inspecting an ancestor is a hard fail.
-            return $true
-        }
-    }
-    return $false
-}
+# Test-PathHasReparsePointRootToLeaf: walks root→leaf, returns $true if any
+# ancestor is a reparse point; not-yet-existing tail segments treated as safe.
+. $PSScriptRoot\..\..\skill-lib\Test-PathHasReparsePointRootToLeaf.ps1
 
 function Resolve-ProviderPath {
     param([Parameter(Mandatory)][string]$Path)
@@ -239,29 +209,9 @@ function Resolve-ProviderPath {
     catch { throw "Path could not be resolved: $($_.Exception.Message)" }
 }
 
-function Test-PathHasReparsePoint {
-    param([Parameter(Mandatory)][string]$Path)
-    # Kept as a thin wrapper around root-to-leaf so existing call sites work.
-    return (Test-PathHasReparsePointRootToLeaf -Path $Path)
-}
-
-function Test-IsLocalDosDeviceTarget {
-    param([Parameter(Mandatory)][string]$DriveLetter)
-    # QueryDosDevice check: reject SUBST drives (their target is
-    # \??\<real path>) and raw DOS device aliases (\Device\<name>\<subpath>).
-    # Real local volumes map to a bare \Device\<name> target.
-    if (-not ('AnalyzeDebugFiles.DosDeviceHelper' -as [type])) {
-        Add-Type -Namespace 'AnalyzeDebugFiles' -Name 'DosDeviceHelper' -MemberDefinition @'
-[System.Runtime.InteropServices.DllImport("kernel32.dll", CharSet=System.Runtime.InteropServices.CharSet.Unicode, SetLastError=true)]
-public static extern uint QueryDosDevice(string lpDeviceName, System.Text.StringBuilder lpTargetPath, uint maxChars);
-'@ -ErrorAction Stop
-    }
-    $sb = New-Object System.Text.StringBuilder 1024
-    $len = [AnalyzeDebugFiles.DosDeviceHelper]::QueryDosDevice($DriveLetter, $sb, 1024)
-    if ($len -eq 0) { return $false }
-    $target = $sb.ToString()
-    return ($target -match '\A\\Device\\[^\\]+\z')
-}
+# Test-IsLocalDosDeviceTarget: QueryDosDevice-based check that rejects SUBST
+# drives and DOS device aliases; returns $true only for real local volumes.
+. $PSScriptRoot\..\..\skill-lib\Test-IsLocalDosDeviceTarget.ps1
 
 function Test-IsLocalFixedDrive {
     param([Parameter(Mandatory)][string]$DriveLetter)
@@ -555,9 +505,12 @@ $Script:TimestampedVersionRegex = [regex]::new(
     # mid-message (e.g. quoted error text: `Error text copied:
     # Exchange Health Checker version 99.99.99.9999 and failed`).
     # Accept only lines whose ENTIRE non-whitespace body, after the
-    # standard `[timestamp] : ` prefix, is exactly one of the two
-    # repository-controlled version banners.
-    '\A\[[^\]]+\]\s*:\s*(?:Script\s+Version\s*:|Exchange\s+Health\s+Checker\s+version)\s*(?<v>[0-9]{2}\.[0-9]{2}\.[0-9]{2}\.[0-9]{4})\s*\z',
+    # standard `[timestamp] : ` prefix, is a case-insensitive match for
+    # one of the two repository-controlled version banners. The label
+    # portion is scoped to `(?i:...)` because `Invoke-HealthCheckerMainReport.ps1`
+    # emits both `Version` (via `Write-HostLog`) and `version` (via
+    # `Write-Green`); the numeric shape and anchors stay strict.
+    '\A\[[^\]]+\]\s*:\s*(?i:Script\s+Version\s*:|Exchange\s+Health\s+Checker\s+version)\s*(?<v>[0-9]{2}\.[0-9]{2}\.[0-9]{2}\.[0-9]{4})\s*\z',
     [System.Text.RegularExpressions.RegexOptions]::Compiled,
     $Script:RegexTimeout)
 
@@ -573,8 +526,11 @@ $Script:CanonicalVersionRegex = [regex]::new(
     # and "Exchange Health Checker version NN.NN.NN.NNNN" in the
     # in-report banner. Both are repository-controlled; other
     # scripts either use "Script Version:" or are challenged in
-    # Step 3.
-    '\A\s*(?:Script\s+Version\s*:|Exchange\s+Health\s+Checker\s+version)\s*(?<v>[0-9]{2}\.[0-9]{2}\.[0-9]{2}\.[0-9]{4})\s*\z',
+    # Step 3. Label alternation is scoped case-insensitive `(?i:...)`
+    # to accept both `Version` and `version` capitalizations emitted
+    # from `Invoke-HealthCheckerMainReport.ps1`; anchors and numeric
+    # shape remain strict.
+    '\A\s*(?i:Script\s+Version\s*:|Exchange\s+Health\s+Checker\s+version)\s*(?<v>[0-9]{2}\.[0-9]{2}\.[0-9]{2}\.[0-9]{4})\s*\z',
     [System.Text.RegularExpressions.RegexOptions]::Compiled,
     $Script:RegexTimeout)
 
@@ -1263,15 +1219,17 @@ function Read-DebugFile {
                         $currentSummaryEvent.TerminationLineNumber = $lineNumber
                         $currentSummaryEvent.TerminationLineText = $line
                         $currentSummaryEvent.TerminationKind = 'Footer'
-                        Add-SummaryEventToList `
-                            -SummaryEvent $currentSummaryEvent `
-                            -State $summaryState `
-                            -HandledList $handledSummaryEvents `
-                            -UnhandledList $unhandledSummaryEvents `
-                            -MaxHandled $MaxHandledSummaryEvents `
-                            -MaxUnhandled $MaxUnhandledSummaryEvents `
-                            -HandledTruncated ([ref]$handledEventsTruncated) `
-                            -UnhandledTruncated ([ref]$unhandledEventsTruncated)
+                        $addSummaryEventArgs = @{
+                            SummaryEvent       = $currentSummaryEvent
+                            State              = $summaryState
+                            HandledList        = $handledSummaryEvents
+                            UnhandledList      = $unhandledSummaryEvents
+                            MaxHandled         = $MaxHandledSummaryEvents
+                            MaxUnhandled       = $MaxUnhandledSummaryEvents
+                            HandledTruncated   = ([ref]$handledEventsTruncated)
+                            UnhandledTruncated = ([ref]$unhandledEventsTruncated)
+                        }
+                        Add-SummaryEventToList @addSummaryEventArgs
                     }
                     if ($summaryState -eq 'handled') {
                         $handledFooterLine = $lineNumber
@@ -1298,15 +1256,17 @@ function Read-DebugFile {
                         $currentSummaryEvent.TerminationLineNumber = $lineNumber
                         $currentSummaryEvent.TerminationLineText = $line
                         $currentSummaryEvent.TerminationKind = 'NextErrorIndex'
-                        Add-SummaryEventToList `
-                            -SummaryEvent $currentSummaryEvent `
-                            -State $summaryState `
-                            -HandledList $handledSummaryEvents `
-                            -UnhandledList $unhandledSummaryEvents `
-                            -MaxHandled $MaxHandledSummaryEvents `
-                            -MaxUnhandled $MaxUnhandledSummaryEvents `
-                            -HandledTruncated ([ref]$handledEventsTruncated) `
-                            -UnhandledTruncated ([ref]$unhandledEventsTruncated)
+                        $addSummaryEventArgs = @{
+                            SummaryEvent       = $currentSummaryEvent
+                            State              = $summaryState
+                            HandledList        = $handledSummaryEvents
+                            UnhandledList      = $unhandledSummaryEvents
+                            MaxHandled         = $MaxHandledSummaryEvents
+                            MaxUnhandled       = $MaxUnhandledSummaryEvents
+                            HandledTruncated   = ([ref]$handledEventsTruncated)
+                            UnhandledTruncated = ([ref]$unhandledEventsTruncated)
+                        }
+                        Add-SummaryEventToList @addSummaryEventArgs
                     }
                     if ($summaryState -eq 'handled') { $summaryHandledCount++ }
                     else { $summaryUnhandledCount++ }
@@ -1376,15 +1336,17 @@ function Read-DebugFile {
                             $currentSummaryEvent.TerminationLineNumber = $lineNumber
                             $currentSummaryEvent.TerminationLineText = $line
                             $currentSummaryEvent.TerminationKind = 'NextRemoteRecord'
-                            Add-SummaryEventToList `
-                                -SummaryEvent $currentSummaryEvent `
-                                -State $summaryState `
-                                -HandledList $handledSummaryEvents `
-                                -UnhandledList $unhandledSummaryEvents `
-                                -MaxHandled $MaxHandledSummaryEvents `
-                                -MaxUnhandled $MaxUnhandledSummaryEvents `
-                                -HandledTruncated ([ref]$handledEventsTruncated) `
-                                -UnhandledTruncated ([ref]$unhandledEventsTruncated)
+                            $addSummaryEventArgs = @{
+                                SummaryEvent       = $currentSummaryEvent
+                                State              = $summaryState
+                                HandledList        = $handledSummaryEvents
+                                UnhandledList      = $unhandledSummaryEvents
+                                MaxHandled         = $MaxHandledSummaryEvents
+                                MaxUnhandled       = $MaxUnhandledSummaryEvents
+                                HandledTruncated   = ([ref]$handledEventsTruncated)
+                                UnhandledTruncated = ([ref]$unhandledEventsTruncated)
+                            }
+                            Add-SummaryEventToList @addSummaryEventArgs
                         }
                         $summaryUnhandledCount++
                         $currentSummaryEvent = [PSCustomObject]@{
@@ -1425,15 +1387,17 @@ function Read-DebugFile {
                         $currentSummaryEvent.TerminationLineNumber = $lineNumber
                         $currentSummaryEvent.TerminationLineText = $line
                         $currentSummaryEvent.TerminationKind = 'SectionHeaderTransition'
-                        Add-SummaryEventToList `
-                            -SummaryEvent $currentSummaryEvent `
-                            -State $summaryState `
-                            -HandledList $handledSummaryEvents `
-                            -UnhandledList $unhandledSummaryEvents `
-                            -MaxHandled $MaxHandledSummaryEvents `
-                            -MaxUnhandled $MaxUnhandledSummaryEvents `
-                            -HandledTruncated ([ref]$handledEventsTruncated) `
-                            -UnhandledTruncated ([ref]$unhandledEventsTruncated)
+                        $addSummaryEventArgs = @{
+                            SummaryEvent       = $currentSummaryEvent
+                            State              = $summaryState
+                            HandledList        = $handledSummaryEvents
+                            UnhandledList      = $unhandledSummaryEvents
+                            MaxHandled         = $MaxHandledSummaryEvents
+                            MaxUnhandled       = $MaxUnhandledSummaryEvents
+                            HandledTruncated   = ([ref]$handledEventsTruncated)
+                            UnhandledTruncated = ([ref]$unhandledEventsTruncated)
+                        }
+                        Add-SummaryEventToList @addSummaryEventArgs
                     }
                     $currentSummaryEvent = $null
                     $currentSummaryChars = 0
@@ -1448,15 +1412,17 @@ function Read-DebugFile {
                         $currentSummaryEvent.TerminationLineNumber = $lineNumber
                         $currentSummaryEvent.TerminationLineText = $line
                         $currentSummaryEvent.TerminationKind = 'SectionHeaderTransition'
-                        Add-SummaryEventToList `
-                            -SummaryEvent $currentSummaryEvent `
-                            -State $summaryState `
-                            -HandledList $handledSummaryEvents `
-                            -UnhandledList $unhandledSummaryEvents `
-                            -MaxHandled $MaxHandledSummaryEvents `
-                            -MaxUnhandled $MaxUnhandledSummaryEvents `
-                            -HandledTruncated ([ref]$handledEventsTruncated) `
-                            -UnhandledTruncated ([ref]$unhandledEventsTruncated)
+                        $addSummaryEventArgs = @{
+                            SummaryEvent       = $currentSummaryEvent
+                            State              = $summaryState
+                            HandledList        = $handledSummaryEvents
+                            UnhandledList      = $unhandledSummaryEvents
+                            MaxHandled         = $MaxHandledSummaryEvents
+                            MaxUnhandled       = $MaxUnhandledSummaryEvents
+                            HandledTruncated   = ([ref]$handledEventsTruncated)
+                            UnhandledTruncated = ([ref]$unhandledEventsTruncated)
+                        }
+                        Add-SummaryEventToList @addSummaryEventArgs
                     }
                     $currentSummaryEvent = $null
                     $currentSummaryChars = 0
@@ -1481,15 +1447,17 @@ function Read-DebugFile {
                         $currentSummaryEvent.TerminationLineNumber = $lineNumber
                         $currentSummaryEvent.TerminationLineText = $line
                         $currentSummaryEvent.TerminationKind = 'SectionHeaderTransition'
-                        Add-SummaryEventToList `
-                            -SummaryEvent $currentSummaryEvent `
-                            -State $summaryState `
-                            -HandledList $handledSummaryEvents `
-                            -UnhandledList $unhandledSummaryEvents `
-                            -MaxHandled $MaxHandledSummaryEvents `
-                            -MaxUnhandled $MaxUnhandledSummaryEvents `
-                            -HandledTruncated ([ref]$handledEventsTruncated) `
-                            -UnhandledTruncated ([ref]$unhandledEventsTruncated)
+                        $addSummaryEventArgs = @{
+                            SummaryEvent       = $currentSummaryEvent
+                            State              = $summaryState
+                            HandledList        = $handledSummaryEvents
+                            UnhandledList      = $unhandledSummaryEvents
+                            MaxHandled         = $MaxHandledSummaryEvents
+                            MaxUnhandled       = $MaxUnhandledSummaryEvents
+                            HandledTruncated   = ([ref]$handledEventsTruncated)
+                            UnhandledTruncated = ([ref]$unhandledEventsTruncated)
+                        }
+                        Add-SummaryEventToList @addSummaryEventArgs
                     }
                     $currentSummaryEvent = $null
                     $currentSummaryChars = 0
@@ -1664,15 +1632,17 @@ function Read-DebugFile {
         }
         if ($null -ne $currentSummaryEvent) {
             $currentSummaryEvent.OriginalEndLine = $lineNumber
-            Add-SummaryEventToList `
-                -SummaryEvent $currentSummaryEvent `
-                -State $summaryState `
-                -HandledList $handledSummaryEvents `
-                -UnhandledList $unhandledSummaryEvents `
-                -MaxHandled $MaxHandledSummaryEvents `
-                -MaxUnhandled $MaxUnhandledSummaryEvents `
-                -HandledTruncated ([ref]$handledEventsTruncated) `
-                -UnhandledTruncated ([ref]$unhandledEventsTruncated)
+            $addSummaryEventArgs = @{
+                SummaryEvent       = $currentSummaryEvent
+                State              = $summaryState
+                HandledList        = $handledSummaryEvents
+                UnhandledList      = $unhandledSummaryEvents
+                MaxHandled         = $MaxHandledSummaryEvents
+                MaxUnhandled       = $MaxUnhandledSummaryEvents
+                HandledTruncated   = ([ref]$handledEventsTruncated)
+                UnhandledTruncated = ([ref]$unhandledEventsTruncated)
+            }
+            Add-SummaryEventToList @addSummaryEventArgs
         }
         # Iter-20 (Q19-MED-1): mark parsing as successful. Only set
         # AFTER the final Add-SummaryEventToList (i.e. the try body
@@ -1931,17 +1901,20 @@ foreach ($f in $processFiles) {
     # later valid files.
     $acceptedBytesRef = [ref] ([int64]0)
     try {
-        $r = Read-DebugFile -FileInfo $f `
-            -MaxLineChars $MaxSnippetLineChars `
-            -MaxSnippetTotalChars $MaxSnippetTotalChars `
-            -SnippetContextLines $SnippetContextLines `
-            -MaxInlineEvents $MaxInlineEventsPerFile `
-            -MaxHandledSummaryEvents $MaxHandledSummaryEventsPerFile `
-            -MaxUnhandledSummaryEvents $MaxUnhandledSummaryEventsPerFile `
-            -MaxBodyEvidenceMarkers $MaxBodyEvidenceMarkersPerFile `
-            -MaxSnapshotBytes $maxFileBytes `
-            -RemainingCumulativeBytes $remainingCumulative `
-            -AcceptedSnapshotBytes $acceptedBytesRef
+        $readDebugFileArgs = @{
+            FileInfo                  = $f
+            MaxLineChars              = $MaxSnippetLineChars
+            MaxSnippetTotalChars      = $MaxSnippetTotalChars
+            SnippetContextLines       = $SnippetContextLines
+            MaxInlineEvents           = $MaxInlineEventsPerFile
+            MaxHandledSummaryEvents   = $MaxHandledSummaryEventsPerFile
+            MaxUnhandledSummaryEvents = $MaxUnhandledSummaryEventsPerFile
+            MaxBodyEvidenceMarkers    = $MaxBodyEvidenceMarkersPerFile
+            MaxSnapshotBytes          = $maxFileBytes
+            RemainingCumulativeBytes  = $remainingCumulative
+            AcceptedSnapshotBytes     = $acceptedBytesRef
+        }
+        $r = Read-DebugFile @readDebugFileArgs
         $results.Add($r)
     } catch {
         # Iter-18 (Q17-MED-3): distinguish the sentinel oversize
