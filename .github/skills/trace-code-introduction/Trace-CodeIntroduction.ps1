@@ -176,6 +176,184 @@ if ($null -eq $git) {
     }
 }
 
+# ---------------------------------------------------------------------------
+# RepositoryRoot locality validation
+#
+# `Push-Location` and every subsequent `git` invocation run relative to
+# `$RepositoryRoot`. A caller can pass a UNC path (`\\host\share`), a
+# network-backed PSDrive, an NT device-namespace path (`\\?\`, `\\.\`),
+# or a reparse-point-redirected directory. `Push-Location` and `git` then
+# initiate SMB authentication, PSProvider traversal, or read from an
+# attacker-redirected local target BEFORE any git validation runs.
+#
+# Reject these shapes lexically first (no filesystem access), then verify
+# the resolved drive is a local fixed/removable volume, then confirm no
+# reparse point is present on the resolved root. Modelled after
+# `analyze-debug-files/Get-DebugFileMetadata.ps1` (`Test-IsSafeLocalDirectory`).
+# ---------------------------------------------------------------------------
+function Test-IsLocalDosDeviceTarget {
+    param([Parameter(Mandatory)][string]$DriveLetter)
+    # QueryDosDevice check: reject SUBST/DefineDosDevice-created drives
+    # (their target is `\??\<real path>`) and raw DOS device aliases
+    # (`\Device\<name>\<subpath>`). A real local volume maps to a bare
+    # `\Device\<name>` target with no trailing path component. This is
+    # the same check `analyze-debug-files/Get-DebugFileMetadata.ps1`
+    # applies to `DebugDirectory`; SUBST'd drives report DriveType.Fixed
+    # via `[System.IO.DriveInfo]` but redirect to arbitrary targets
+    # (including UNC or reparse-point paths), so DriveInfo alone is not
+    # enough — this call closes the SUBST bypass.
+    if (-not ('TraceCodeIntroduction.DosDeviceHelper' -as [type])) {
+        Add-Type -Namespace 'TraceCodeIntroduction' -Name 'DosDeviceHelper' -MemberDefinition @'
+[System.Runtime.InteropServices.DllImport("kernel32.dll", CharSet=System.Runtime.InteropServices.CharSet.Unicode, SetLastError=true)]
+public static extern uint QueryDosDevice(string lpDeviceName, System.Text.StringBuilder lpTargetPath, uint maxChars);
+'@ -ErrorAction Stop
+    }
+    $sb = New-Object System.Text.StringBuilder 1024
+    $len = [TraceCodeIntroduction.DosDeviceHelper]::QueryDosDevice($DriveLetter, $sb, 1024)
+    if ($len -eq 0) { return $false }
+    $target = $sb.ToString()
+    return ($target -match '\A\\Device\\[^\\]+\z')
+}
+
+function Test-PathHasReparsePointRootToLeaf {
+    param([Parameter(Mandatory)][string]$Path)
+    # Walks root → leaf. Returns $true as soon as any ancestor is a
+    # reparse point (junction/symlink), WITHOUT ever calling filesystem
+    # cmdlets on a descendant of a reparse ancestor. Uses attribute-only
+    # reads (no follow) via [System.IO.File]::GetAttributes.
+    try {
+        $normalized = [System.IO.Path]::GetFullPath($Path)
+    } catch {
+        return $true
+    }
+    $parts = New-Object System.Collections.Generic.List[string]
+    $cur = $normalized
+    while (-not [string]::IsNullOrEmpty($cur)) {
+        $parts.Insert(0, $cur)
+        $parent = Split-Path -Parent $cur
+        if ([string]::IsNullOrEmpty($parent) -or $parent -eq $cur) { break }
+        $cur = $parent
+    }
+    foreach ($p in $parts) {
+        try {
+            $attrs = [System.IO.File]::GetAttributes($p)
+            if (($attrs -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
+                return $true
+            }
+        } catch [System.IO.FileNotFoundException] {
+            continue
+        } catch [System.IO.DirectoryNotFoundException] {
+            continue
+        } catch {
+            return $true
+        }
+    }
+    return $false
+}
+
+function Test-IsRepositoryRootSafe {
+    param([Parameter(Mandatory)][string]$Path)
+    if ([string]::IsNullOrWhiteSpace($Path)) { return $false }
+    if ($Path.Contains("`0")) { return $false }
+    if ($Path.Contains('::')) { return $false }
+    # UNC in every recognized shape.
+    if ($Path -match '^(\\\\|//)') { return $false }
+    # NT/DOS device namespaces.
+    if ($Path -match '^\\\\\?\\') { return $false }
+    if ($Path -match '^\\\?\?\\') { return $false }
+    if ($Path -match '^\\\\\.\\') { return $false }
+    # Provider-qualified drives longer than a single letter would be a
+    # named PSDrive (e.g. `Env:`, `HKLM:`, custom providers). Only accept
+    # bare single-letter Windows drive letters — a PSDrive with a longer
+    # name might not be FileSystem-backed even after PSDrive validation.
+    if ($Path -match '^([A-Za-z][A-Za-z0-9_+.-]*):[\\/]?') {
+        if ($Matches[1].Length -gt 1) { return $false }
+    }
+    $isWin = [System.Environment]::OSVersion.Platform -eq [System.PlatformID]::Win32NT
+    try {
+        $full = [System.IO.Path]::GetFullPath($Path)
+    } catch {
+        return $false
+    }
+    if ($isWin) {
+        if ($full -notmatch '^([A-Za-z]):[\\/]') { return $false }
+        $driveLetter = $Matches[1]
+        # PSDrive-shadowing bypass: a caller can create
+        # `New-PSDrive -Name <letter> -PSProvider Env` (non-FileSystem
+        # provider) or `New-PSDrive -Name <letter> -PSProvider FileSystem
+        # -Root '\\attacker\share'` (FileSystem provider but rooted on
+        # UNC). Both survive lexical/DriveInfo/QueryDosDevice checks
+        # because those inspect the OS drive letter, while a subsequent
+        # `Test-Path` / `Push-Location` resolves through the PowerShell
+        # provider system and follows the shadowed target. Require the
+        # captured single-letter PSDrive to be FileSystem-backed AND
+        # rooted at a bare local drive letter root (e.g. `X:\`) before
+        # allowing OS-drive checks to speak for it.
+        try {
+            $psd = Get-PSDrive -Name $driveLetter -ErrorAction SilentlyContinue
+            if ($null -ne $psd) {
+                if ($psd.Provider.Name -ne 'FileSystem') { return $false }
+                if ($psd.Root -notmatch '^[A-Za-z]:[\\/]?$') { return $false }
+            }
+        } catch { return $false }
+        # Reject Network/Unknown/CDRom/NoRootDirectory. DriveInfo reads
+        # local mount-table metadata only — safe against mapped-network
+        # drives and does not touch the target volume.
+        try {
+            $di = [System.IO.DriveInfo]::new("$driveLetter" + ':\')
+            $allowed = @([System.IO.DriveType]::Fixed, [System.IO.DriveType]::Removable, [System.IO.DriveType]::Ram)
+            if ($allowed -notcontains $di.DriveType) { return $false }
+        } catch {
+            return $false
+        }
+        # DriveInfo reports SUBST/DefineDosDevice-created drives as
+        # DriveType.Fixed even when their target is a UNC path or a
+        # reparse-point-backed directory, so DriveInfo alone leaves a
+        # bypass: `subst Y: \\attacker\share` -> Y:\ passes DriveInfo
+        # but redirects git through SMB. Close the bypass by requiring
+        # the drive to map to a bare `\Device\<name>` target.
+        try {
+            if (-not (Test-IsLocalDosDeviceTarget -DriveLetter ("$driveLetter" + ':'))) {
+                return $false
+            }
+        } catch {
+            return $false
+        }
+    } else {
+        if ($Path -notmatch '^/') { return $false }
+    }
+    # Reject reparse-point-redirected roots BEFORE Test-Path or any other
+    # filesystem cmdlet may traverse through them. This walks $full root
+    # → leaf so an ancestor junction (e.g. C:\src → \\server\share) is
+    # caught even when the leaf directory is not itself a reparse point.
+    if (Test-PathHasReparsePointRootToLeaf -Path $full) { return $false }
+    # The resolved path must exist as a directory before we cd into it.
+    if (-not (Test-Path -LiteralPath $full -PathType Container)) { return $false }
+    return $true
+}
+
+if (-not (Test-IsRepositoryRootSafe -Path $RepositoryRoot)) {
+    return [PSCustomObject]@{
+        IntroducingCommit    = $null
+        PullRequest          = $null
+        DiffSummary          = $null
+        RegressionAssessment = $null
+        Provenance           = $null
+        Status               = 'Error'
+        StatusDetail         = "RepositoryRoot '$RepositoryRoot' failed local-path validation (UNC, network drive, NT device namespace, non-FileSystem PSDrive, SUBST/DefineDosDevice drive, missing directory, or reparse-point-redirected root)."
+    }
+}
+
+# `Test-IsRepositoryRootSafe` validates the fully-qualified form of the
+# input (via `[System.IO.Path]::GetFullPath`). Replace `$RepositoryRoot`
+# with that same fully-qualified form here so downstream `Push-Location`
+# and every subsequent `git` invocation resolve against the exact string
+# we validated. For a caller-supplied relative or drive-relative path,
+# PowerShell provider resolution can otherwise disagree with .NET path
+# resolution and land `git` in a different directory than the one that
+# passed validation.
+$RepositoryRoot = [System.IO.Path]::GetFullPath($RepositoryRoot)
+
 Push-Location -LiteralPath $RepositoryRoot -ErrorAction Stop
 try {
     # Verify commit exists locally.
@@ -242,8 +420,20 @@ try {
     $blameShas = @()
     if ($blameOk) {
         # Porcelain first line of each entry is `<sha> <origLine> <finalLine> [<groupSize>]`.
+        # Empirically, `git blame --line-porcelain` marks a boundary or
+        # root commit by emitting a standalone `boundary` header line
+        # AFTER the sha line — the sha line itself is NOT prefixed with
+        # `^`. That prefix is only produced by the DEFAULT (non-porcelain)
+        # `git blame` output. This regex still accepts an optional `\^?`
+        # as a defensive superset: it is a no-op against current git
+        # porcelain (matching zero characters), but it protects against
+        # future format tweaks or non-git blame implementations that
+        # unify the two output shapes. The critical fix is above — track
+        # `$blameOk` independently so an empty `$blameShas` list from a
+        # valid-but-empty porcelain run does not fall through to a
+        # single-SHA branch that indexes `[0]` under strict mode.
         foreach ($ln in $blameOut) {
-            if ($ln -is [string] -and $ln -match '\A([0-9a-fA-F]{40})\s+\d+\s+\d+') {
+            if ($ln -is [string] -and $ln -match '\A\^?([0-9a-fA-F]{40})\s+\d+\s+\d+') {
                 $blameShas += $Matches[1].ToLowerInvariant()
             }
         }
@@ -352,12 +542,27 @@ try {
     }
 
     # Parse the diff hunk to build DiffSummary.
+    #
+    # In unified diff output, file-header records are literally '+++ b/path'
+    # and '--- a/path' (three markers followed by a space). Every other line
+    # beginning with '+' is an added source line, and every other line
+    # beginning with '-' is a removed source line — INCLUDING lines whose
+    # own source content begins with '+' or '-' (rendered as '++foo' or
+    # '--bar' in the diff). Previous logic filtered by "second char is not
+    # + or -", which correctly rejected the '+++'/'---' headers but also
+    # silently dropped legitimate '++'/'--' code lines, which could omit
+    # guard keywords and produce an incorrect regression verdict.
+    #
+    # Match the header pattern exactly instead.
     $addedLines = @()
     $removedLines = @()
     foreach ($ln in $diffOut) {
-        if ($ln -match '^\+[^+]' -or ($ln -match '^\+$')) {
+        if ($ln -match '^\+\+\+ ' -or $ln -match '^--- ') {
+            continue
+        }
+        if ($ln.StartsWith('+')) {
             $addedLines += $ln.Substring(1)
-        } elseif ($ln -match '^-[^-]' -or ($ln -match '^-$')) {
+        } elseif ($ln.StartsWith('-')) {
             $removedLines += $ln.Substring(1)
         }
     }
@@ -560,10 +765,17 @@ try {
         DiffSummary          = $diffSummary
         RegressionAssessment = $regression
         Provenance           = & {
-            # Resolve the four provenance states from
+            # Resolve the five provenance states from
             # ($blameOk, $blameShas, $sha). The runner treats any value
             # other than 'SingleMatching' as a warning.
-            #   Unavailable      - `git blame` failed (no attribution possible)
+            #   Unavailable      - `git blame` failed OR succeeded with
+            #                      zero parseable attributions (defensive
+            #                      fallback: even after accepting the
+            #                      `^<sha>` boundary marker, an
+            #                      unrecognized porcelain shape must not
+            #                      throw under Set-StrictMode -Version 3.0
+            #                      when the SingleDiffering branch below
+            #                      would index `$blameShas[0]`).
             #   Mixed            - >1 unique blame SHAs
             #   SingleMatching   - 1 blame SHA == $sha
             #   SingleDiffering  - 1 blame SHA != $sha (whitespace-only
@@ -574,6 +786,9 @@ try {
             if (-not $blameOk) {
                 $availability = 'Unavailable'
                 $note = 'git blame did not produce attribution for the selected range; the IntroducingCommit result was derived from `git log -L` alone and could not be cross-checked.'
+            } elseif ($blameShas.Count -eq 0) {
+                $availability = 'Unavailable'
+                $note = 'git blame ran but produced no parseable per-line attributions for the selected range; the IntroducingCommit result was derived from `git log -L` alone and could not be cross-checked.'
             } elseif ($blameShas.Count -gt 1) {
                 $availability = 'Mixed'
                 $note = "The selected range spans lines produced by $($blameShas.Count) different commits (per `git blame -w`). The 'IntroducingCommit' field is the newest commit that touched the range; other candidates may better explain specific lines. Narrow the range or consult the candidate list before drawing a single conclusion."

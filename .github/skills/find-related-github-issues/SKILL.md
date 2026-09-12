@@ -83,7 +83,7 @@ Returns a `PSCustomObject`:
 | `QueriesRun`             | `string[]`          | The `gh search issues` queries issued                        |
 | `TotalResultsExamined`   | `int`               | Distinct issues considered                                  |
 | `DiscardedFunctionOnly`  | `int`               | Count of issues discarded because they matched only the discriminator function name (no exception-content match). |
-| `Status`                 | `string`            | `Ok` / `PartialLookup` / `GhUnavailable` / `AuthFailure` / `RateLimited` / `Error` |
+| `Status`                 | `string`            | `Ok` / `PartialLookup` / `GhUnavailable` / `AuthFailure` / `RateLimited` / `NoSearchablePhrase` / `Error` |
 | `StatusDetail`           | `string`            | Human-readable detail for non-`Ok` statuses                 |
 
 ## Failure modes
@@ -95,8 +95,18 @@ returns a result with the appropriate `Status` value and empty
 one succeeds, `Status = 'PartialLookup'` and the returned results are
 retained but flagged as incomplete. When ALL queries fail (network,
 auth-per-query, malformed JSON), `Status = 'Error'` — the caller must
-not present an empty result as "no related issue." The caller should
-render "related-issue lookup unavailable" for `Status -ne 'Ok'` and
+not present an empty result as "no related issue." When BOTH
+`TopLevelException` AND `InnerException` reduce to no searchable
+content after normalization (path-only or placeholder-only messages),
+AND no `DiscriminatorFunction` is supplied to fall back on, no
+queries are constructed and `Status = 'NoSearchablePhrase'` — GitHub
+was never queried and the caller must render "related-issue lookup
+unavailable", NOT "no related issue." Note that `ScriptName` alone
+does NOT build a query (the script-stem query is only appended when
+a top-level exception phrase also survives), so supplying only
+`ScriptName` against a path-only exception still yields
+`NoSearchablePhrase`. The caller should render
+"related-issue lookup unavailable" for `Status -ne 'Ok'` and
 `Status -ne 'PartialLookup'`, and disclose incompleteness for
 `PartialLookup`.
 

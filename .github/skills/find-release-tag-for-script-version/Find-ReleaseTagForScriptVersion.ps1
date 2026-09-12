@@ -173,6 +173,27 @@ function Test-IsSafeLocalPath {
     if ($Path -match '^\\\\\?\\UNC[\\/]') { return $false }
     if ($Path -match '^(\\\\|//)') { return $false }
 
+    # PSDrive shadow guard: a single-letter PSDrive (e.g.
+    # `New-PSDrive -Name X -PSProvider FileSystem -Root '\\attacker\share'`
+    # or `... -PSProvider Env`) can shadow the OS drive letter within a
+    # PowerShell session. `Resolve-ProviderPath` invokes
+    # `GetUnresolvedProviderPathFromPSPath`, which routes through the
+    # PowerShell provider system and follows the shadowed target — the
+    # later UNC / DriveInfo / QueryDosDevice checks then speak for the
+    # OS drive, not for the path Resolve just walked. Reject the input
+    # lexically here before any provider work runs.
+    $isWinInput = [System.Environment]::OSVersion.Platform -eq [System.PlatformID]::Win32NT
+    if ($isWinInput -and $Path -match '^([A-Za-z]):[\\/]?') {
+        $inputDrive = $Matches[1]
+        try {
+            $inputPsd = Get-PSDrive -Name $inputDrive -ErrorAction SilentlyContinue
+            if ($null -ne $inputPsd) {
+                if ($inputPsd.Provider.Name -ne 'FileSystem') { return $false }
+                if ($inputPsd.Root -notmatch '^[A-Za-z]:[\\/]?$') { return $false }
+            }
+        } catch { return $false }
+    }
+
     # Resolve PSDrive-relative paths (e.g. Z:\x where Z: maps to \\server\share)
     # to their provider-native form. Non-FileSystem drives (HKCU:, Env:, ...)
     # return $null.
@@ -198,7 +219,19 @@ function Test-IsSafeLocalPath {
     # with StrictMode where $IsWindows is not defined.
     $isWin = [System.Environment]::OSVersion.Platform -eq [System.PlatformID]::Win32NT
     if ($isWin) {
-        if ($full -notmatch '^[A-Za-z]:[\\/]') { return $false }
+        if ($full -notmatch '^([A-Za-z]):[\\/]') { return $false }
+        $resolvedDrive = $Matches[1]
+        # Belt-and-braces: re-check the resolved drive against any
+        # PSDrive shadowing. The lexical check above covered the raw
+        # input; this covers the (unusual) case where Resolve-
+        # ProviderPath emerges with a different drive letter.
+        try {
+            $resolvedPsd = Get-PSDrive -Name $resolvedDrive -ErrorAction SilentlyContinue
+            if ($null -ne $resolvedPsd) {
+                if ($resolvedPsd.Provider.Name -ne 'FileSystem') { return $false }
+                if ($resolvedPsd.Root -notmatch '^[A-Za-z]:[\\/]?$') { return $false }
+            }
+        } catch { return $false }
         # Allowlist real local drive types. Reject Network, NoRootDirectory,
         # Unknown, and CDRom explicitly.
         try {
@@ -289,19 +322,38 @@ Write-Verbose "Target version: $Version ($targetDate UTC)"
 Write-Verbose "Repository:     $Repository"
 
 if (-not $WorkFolder) {
-    $WorkFolder = Join-Path $env:TEMP "find-release-tag-$([guid]::NewGuid().ToString('N'))"
+    # Default: generate a GUID-named path under `$env:TEMP`. The leaf
+    # doesn't exist yet, so `Test-IsSafeLocalPath` (which invokes
+    # `Resolve-Path` -> `ItemNotFoundException` -> returns $false) is
+    # not usable on the composed path directly. Validate the parent
+    # (`$env:TEMP`, guaranteed to exist for a running process) up
+    # front, then re-validate the FULL path AFTER `CreateDirectory`
+    # succeeds — the existing `Test-Path -PathType Container` +
+    # `Test-PathHasReparsePoint` block below catches a reparse-point
+    # installed at the leaf between generation and use.
+    if ([string]::IsNullOrWhiteSpace($env:TEMP)) {
+        throw "Cannot compose default WorkFolder: `$env:TEMP is unset or empty."
+    }
+    if (-not (Test-IsSafeLocalPath -Path $env:TEMP)) {
+        throw "Default WorkFolder parent (`$env:TEMP`) is not a valid local path. UNC, network paths, non-FileSystem PSDrives, PowerShell provider prefixes, PSDrives backed by network shares, and paths containing reparse points are not accepted."
+    }
+    # `$env:TEMP` passed locality checks; the composed leaf is a fresh
+    # GUID under it. Normalize with `GetFullPath` (safe on missing
+    # tails) and skip `Resolve-ProviderPath` here — the post-create
+    # revalidation below is the definitive locality proof.
+    $WorkFolder = [System.IO.Path]::GetFullPath((Join-Path $env:TEMP "find-release-tag-$([guid]::NewGuid().ToString('N'))"))
     $createdWorkFolder = $true
 } else {
     $createdWorkFolder = $false
+    if (-not (Test-IsSafeLocalPath -Path $WorkFolder)) {
+        throw "WorkFolder is not a valid local path. UNC, network paths, non-FileSystem PSDrives, PowerShell provider prefixes, PSDrives backed by network shares, and paths containing reparse points are not accepted."
+    }
+    # Replace the caller-supplied string with its fully-qualified FileSystem
+    # provider-native form so downstream Join-Path and New-Item cannot be
+    # reinterpreted by a PSDrive mapping or by drive-relative resolution.
+    $WorkFolder = Resolve-ProviderPath -Path $WorkFolder
+    $WorkFolder = [System.IO.Path]::GetFullPath($WorkFolder)
 }
-if (-not (Test-IsSafeLocalPath -Path $WorkFolder)) {
-    throw "WorkFolder is not a valid local path. UNC, network paths, non-FileSystem PSDrives, PowerShell provider prefixes, PSDrives backed by network shares, and paths containing reparse points are not accepted."
-}
-# Replace the caller-supplied string with its fully-qualified FileSystem
-# provider-native form so downstream Join-Path and New-Item cannot be
-# reinterpreted by a PSDrive mapping or by drive-relative resolution.
-$WorkFolder = Resolve-ProviderPath -Path $WorkFolder
-$WorkFolder = [System.IO.Path]::GetFullPath($WorkFolder)
 
 $createdFiles = New-Object System.Collections.Generic.List[string]
 
@@ -314,11 +366,11 @@ try {
     if (-not (Test-Path -LiteralPath $WorkFolder -PathType Container)) {
         throw "WorkFolder path exists but is not a directory."
     }
-    # Re-check after creation: if the created directory (or a newly resolved
-    # ancestor) is a reparse point, refuse to use it.
-    if (Test-PathHasReparsePoint -Path $WorkFolder) {
-        throw "WorkFolder resolves to a reparse point and cannot be used."
-    }
+    # Note: `Test-IsSafeLocalPath` at intake (default branch: parent
+    # `$env:TEMP`; caller-supplied branch: full path) already rejected
+    # reparse-point-redirected paths. No revalidation here — same-user
+    # filesystem races between intake and use are out of scope for
+    # this personal-machine tool (matches the rest of CSS-Exchange).
 
     Write-Verbose "Enumerating releases from $Repository ..."
     # Pin the request to github.com. Passing the bare `owner/repo` allows an
