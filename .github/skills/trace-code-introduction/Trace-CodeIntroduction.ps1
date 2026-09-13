@@ -469,7 +469,14 @@ try {
     # limits the traversal to the SINGLE newest commit that touched
     # the range from $BaselineSha's history — which is $sha itself
     # (identical to Phase 1's `$shas[0]`).
-    $diffArgs = @('--no-pager', 'log', '--format=', "-L$range`:$Path", '-1', $BaselineSha)
+    # `-c diff.noprefix=false` overrides any user- or repo-level
+    # `diff.noprefix=true` config so headers are always emitted as
+    # `--- a/path` and `+++ b/path`. Without this override, git emits
+    # `--- path` / `+++ path` for modified files, which the header
+    # regex below (anchored on `a/`, `b/`, or `/dev/null`) would fail
+    # to recognize — the header line would then be miscounted as an
+    # added source line and could cross the classification threshold.
+    $diffArgs = @('--no-pager', '-c', 'diff.noprefix=false', 'log', '--format=', "-L$range`:$Path", '-1', $BaselineSha)
     $diffOut = & git @diffArgs 2>&1
     # Iter-23 (RD-branch-3): a diff-command FAILURE must not be
     # silently swallowed. If Phase 1 confirmed $sha touched the
@@ -512,17 +519,28 @@ try {
     # silently dropped legitimate '++'/'--' code lines, which could omit
     # guard keywords and produce an incorrect regression verdict.
     #
-    # Match the header pattern exactly instead.
+    # Iter-24 (post-review): the header pattern is now anchored on git's
+    # actual header form (`b/`, `a/`, or `/dev/null`). The prior
+    # `^\+\+\+ ` / `^--- ` regex ALSO matched added / removed source lines
+    # whose own content began with `++ ` or `-- ` (rendered `+++ ` / `--- `
+    # in the diff), silently dropping them and re-introducing the very
+    # bug the exact-header comment above was meant to fix.
+    #
+    # Iter-24 (post-review): entries in $diffOut can be ErrorRecord objects
+    # when git wrote to stderr (we redirected `2>&1`). ErrorRecord has no
+    # `.StartsWith(...)` method, so calling it directly throws a runtime
+    # exception and aborts the trace mid-parse. Cast to string first.
     $addedLines = @()
     $removedLines = @()
     foreach ($ln in $diffOut) {
-        if ($ln -match '^\+\+\+ ' -or $ln -match '^--- ') {
+        $s = if ($null -eq $ln) { '' } else { [string]$ln }
+        if ($s -match '^\+\+\+ (b/|/dev/null)' -or $s -match '^--- (a/|/dev/null)') {
             continue
         }
-        if ($ln.StartsWith('+')) {
-            $addedLines += $ln.Substring(1)
-        } elseif ($ln.StartsWith('-')) {
-            $removedLines += $ln.Substring(1)
+        if ($s.StartsWith('+')) {
+            $addedLines += $s.Substring(1)
+        } elseif ($s.StartsWith('-')) {
+            $removedLines += $s.Substring(1)
         }
     }
 
