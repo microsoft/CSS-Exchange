@@ -62,6 +62,15 @@ param(
     [string]$Repository = "microsoft/CSS-Exchange"
 )
 
+# Explicitly disable native-command error promotion inside this script's
+# scope. If the caller enabled $PSNativeCommandUseErrorActionPreference
+# (default in PowerShell 7.4+ under some profiles), a nonzero `gh` exit
+# would throw NativeCommandExitException BEFORE our `$LASTEXITCODE`
+# handling ran — turning the structured `Status = 'GhUnavailable' /
+# 'NotFound' / 'Error'` result contract this script advertises into an
+# unhandled terminating error.
+$PSNativeCommandUseErrorActionPreference = $false
+
 # Bounds for untrusted content that enters the return object (to keep both the
 # on-disk payload and the agent-visible output manageable and non-hostile).
 $script:MaxCsvBytes = 1MB
