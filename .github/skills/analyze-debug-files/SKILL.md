@@ -1398,12 +1398,20 @@ Consequently:
   `HiddenJobUnhandedErrors`.
 - Treat every `IsRemoteRecord -eq $true` event as unhandled with
   authoritative source (HealthChecker itself). Extract the
-  operator-relevant fields from the record's own `Context`
-  (`Exception Message:`, `Position Message:`, `Error Category
-  Activity:`, `Error Category Reason:`, `Error Category TargetName:`,
-  `Error Category TargetType:`, `Error Category Message:`, `Inner
-  Exception:`) — those lines are the failure narrative that the
-  ordinary body-evidence pipeline provides for local errors.
+  operator-relevant fields from the record's own `Context` using the
+  EXACT labels the remote emitter writes (see
+  `Diagnostics/HealthChecker/Helpers/HiddenJobUnhandledErrorFunctions.ps1`
+  → `WriteRemoteErrorInformation`): `Exception Message:`,
+  `Exception Inner Exception:` (NOT `Inner Exception:` — the
+  local-error label; the remote emitter prefixes with
+  `Exception`), `Position Message:`, `Error Category Activity:`,
+  `Error Category Reason:`, `Error Category TargetName:`,
+  `Error Category TargetType:`, `Error Category Message:`, and
+  `Error Details Script Stack Trace:`. Those lines are the failure
+  narrative that the ordinary body-evidence pipeline provides for
+  local errors. If future remote-emitter revisions add or rename
+  fields, quote the record's full `Context` verbatim rather than
+  omitting an unrecognized label.
 - If the record's `Position Message:` names a script/function in a
   format you can lexically match against `$allDeps`, run Step 7's
   source-correlation (walking the code at `$baseline.ConfirmedCommitSha`)

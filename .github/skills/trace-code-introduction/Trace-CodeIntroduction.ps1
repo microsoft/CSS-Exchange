@@ -343,14 +343,22 @@ try {
     }
     $shas = @($shaListOut | Where-Object { $_ -is [string] -and $_ -match '\A[0-9a-fA-F]{40}\z' })
     if ($shas.Count -eq 0) {
+        # `git log -L` exited cleanly but produced no matching commit
+        # SHA — the range has no attributable history at this baseline
+        # (empty output, or output that did not include a %H line).
+        # The status contract advertises `RangeUnavailable` for exactly
+        # this case; returning `Ok` here would let a caller treat a
+        # null `IntroducingCommit` as "successful lookup" and skip the
+        # unavailable-lookup fallback the analyze-debug-files runner
+        # relies on. See the .Status contract in the header comment.
         return [PSCustomObject]@{
             IntroducingCommit    = $null
             PullRequest          = $null
             DiffSummary          = $null
             RegressionAssessment = [PSCustomObject]@{ Verdict = 'Indeterminate'; Reasoning = 'git log -L returned no history for the range.' }
             Provenance           = $null
-            Status               = 'Ok'
-            StatusDetail         = ''
+            Status               = 'RangeUnavailable'
+            StatusDetail         = 'git log -L returned no commit SHAs for the range.'
         }
     }
 
@@ -652,7 +660,17 @@ try {
             $apiOut = & gh api --hostname github.com -H "Accept: application/vnd.github+json" $apiPath 2>&1
             if ($LASTEXITCODE -eq 0) {
                 try {
-                    $apiParsed = $apiOut | ConvertFrom-Json -ErrorAction Stop
+                    # Join before parse: `gh api` can emit pretty-printed
+                    # JSON across multiple native-command output lines.
+                    # PowerShell captures native output as string[] with
+                    # one entry per line, and `ConvertFrom-Json` parses
+                    # each pipeline input independently in Windows
+                    # PowerShell 5.1 — a multi-line array then fails on
+                    # the first `[` and the failure is swallowed by the
+                    # optional-lookup catch. Join to a single JSON
+                    # document before deserializing.
+                    $apiJoined = if ($apiOut -is [array]) { $apiOut -join [System.Environment]::NewLine } else { [string]$apiOut }
+                    $apiParsed = $apiJoined | ConvertFrom-Json -ErrorAction Stop
                     $mergedCandidate = @($apiParsed | Where-Object { $_.merged_at })
                     if ($mergedCandidate.Count -gt 0) {
                         # Deterministic: take the earliest merged PR that
@@ -680,7 +698,14 @@ try {
             $prJson = & gh pr view $prNumber --repo $qualifiedRepo --json 'number,title,url,body,mergedAt,author' 2>&1
             if ($LASTEXITCODE -eq 0) {
                 try {
-                    $prObj = $prJson | ConvertFrom-Json -ErrorAction Stop
+                    # Join before parse — same rationale as the /pulls
+                    # API call above: `gh pr view --json` can emit
+                    # multi-line pretty-printed JSON, and piping an
+                    # array of lines directly to `ConvertFrom-Json`
+                    # can fail per-line in Windows PowerShell 5.1,
+                    # silently dropping the PR metadata.
+                    $prJoined = if ($prJson -is [array]) { $prJson -join [System.Environment]::NewLine } else { [string]$prJson }
+                    $prObj = $prJoined | ConvertFrom-Json -ErrorAction Stop
                     # Extra defensive check: PR number returned must
                     # match what we asked for; if not, drop it.
                     if ([int]$prObj.number -ne $prNumber) { throw "PR number mismatch." }
