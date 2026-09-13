@@ -1429,12 +1429,15 @@ function Read-DebugFile {
                     # WITHOUT an `Error Index:` line. Each record starts
                     # with `----------------Remote Error Information----------------`
                     # (untimestamped) followed by `Exception Message:`,
-                    # `Position Message:`, `Error Category ...`, and
-                    # `Inner Exception:` lines. Without this branch,
-                    # `$Script:ErrorIndexRegex` never matches inside the
-                    # remote section and UnhandledCount stays at zero
-                    # even when the section carries real errors — the
-                    # runner then reports the log as clean.
+                    # `Exception Inner Exception:` (the remote emitter
+                    # uses the `Exception `-prefixed label, distinct
+                    # from the local `Inner Exception:`), `Position
+                    # Message:`, `Error Category ...`, and `Error
+                    # Details Script Stack Trace:` lines. Without this
+                    # branch, `$Script:ErrorIndexRegex` never matches
+                    # inside the remote section and UnhandledCount stays
+                    # at zero even when the section carries real errors
+                    # — the runner then reports the log as clean.
                     #
                     # Gate this branch on the remote-section state
                     # ($currentUnhandledIsRemote) so a message body that

@@ -569,6 +569,85 @@ Describe "analyze-debug-files skill: producer/consumer string sync" {
         }
     }
 
+    Context "Consumer wiring: BodyEvidenceMarkerRegexes complete Kind set is present" {
+
+        # Sync-guards `InvokeCatchActions`, `ErrorExcludedCount`, and
+        # `ErrorCount` above assert one representative marker line per
+        # kind against the actual producer emission. The remaining four
+        # kinds (`TryingTo`, `FailedTo`, `InnerException`,
+        # `CompletedNarrative`) match generic runtime phrases that are
+        # not attributable to a single producer function, so a
+        # producer-anchored assertion is not meaningful. Step 7 of the
+        # skill still relies on all seven kinds being present during
+        # body-evidence correlation: removing any kind — including a
+        # generic one — would silently drop that class of narrative
+        # from the evidence pipeline. This test freezes the complete
+        # expected set so a removal fails loudly, and asserts a
+        # representative match for each generic kind to catch a
+        # pattern-only edit that leaves the Kind entry but breaks
+        # matching.
+
+        It "BodyEvidenceMarkerRegexes exposes exactly the seven expected Kind values" {
+            $expected = @('InvokeCatchActions', 'ErrorExcludedCount', 'ErrorCount', 'TryingTo', 'FailedTo', 'InnerException', 'CompletedNarrative')
+            $actual = @($Script:consumer.BodyEvidence.Keys) | Sort-Object
+            $actualSorted = ($actual -join ',')
+            $expectedSorted = (($expected | Sort-Object) -join ',')
+            $actualSorted | Should -Be $expectedSorted -Because "Step 7 of the analyze-debug-files skill correlates on all seven MarkerKind values; adding or removing a kind changes the evidence contract and must land in a single explicit change with the skill's Step 7 documentation"
+        }
+
+        It "TryingTo regex matches a representative 'Trying to <verb>' body line" {
+            $logged = Get-LoggedLine -RawWriteVerbose 'Trying to open the debug log.'
+            $Script:consumer.BodyEvidence['TryingTo'].IsMatch($logged) | Should -BeTrue -Because "TryingTo is a generic narrative marker; a pattern edit that anchors it too strictly would silently drop legitimate matches"
+        }
+
+        It "FailedTo regex matches a representative 'Failed to <verb>' body line" {
+            $logged = Get-LoggedLine -RawWriteVerbose 'Failed to open the file.'
+            $Script:consumer.BodyEvidence['FailedTo'].IsMatch($logged) | Should -BeTrue
+        }
+
+        It "InnerException regex matches a representative 'Inner Exception:' body line" {
+            # Matches the local error emission from Shared/Write-ErrorInformation.ps1.
+            # The remote emitter uses 'Exception Inner Exception:' (see
+            # Diagnostics/HealthChecker/Helpers/HiddenJobUnhandledErrorFunctions.ps1)
+            # — the InnerException marker's `(?i)Inner\s+Exception\s*[:=]` matches
+            # both variants because it does not anchor the start.
+            $logged = Get-LoggedLine -RawWriteVerbose 'Inner Exception: System.InvalidOperationException'
+            $Script:consumer.BodyEvidence['InnerException'].IsMatch($logged) | Should -BeTrue
+        }
+
+        It "InnerException regex also matches the remote 'Exception Inner Exception:' body line" {
+            # Guards against a future edit that anchors the InnerException
+            # pattern to the start of the line — that would silently drop
+            # the remote-form label the runner relies on when reporting
+            # remote failures.
+            $logged = Get-LoggedLine -RawWriteVerbose 'Exception Inner Exception: System.Net.WebException'
+            $Script:consumer.BodyEvidence['InnerException'].IsMatch($logged) | Should -BeTrue -Because "the remote emitter writes 'Exception Inner Exception:' and the InnerException marker must match both label forms"
+        }
+
+        It "CompletedNarrative regex matches a representative timestamped 'Completed'/'Finished'/'Starting' line" {
+            # CompletedNarrative anchors on the `[<timestamp>] :` framing
+            # to distinguish narrative markers from exception message
+            # bodies that quote the same verb. The logger prefix must
+            # therefore actually appear in the tested line.
+            $logged = Get-LoggedLine -RawWriteVerbose 'Completed the operation.'
+            $Script:consumer.BodyEvidence['CompletedNarrative'].IsMatch($logged) | Should -BeTrue
+        }
+
+        It "CompletedNarrative regex matches a timestamped 'Finished' line" {
+            # The pattern lists three interchangeable verbs
+            # (Completed|Finished|Starting); dropping any one of them
+            # would silently drop a class of narrative marker. A test
+            # per verb catches an alternation edit.
+            $logged = Get-LoggedLine -RawWriteVerbose 'Finished the task.'
+            $Script:consumer.BodyEvidence['CompletedNarrative'].IsMatch($logged) | Should -BeTrue
+        }
+
+        It "CompletedNarrative regex matches a timestamped 'Starting' line" {
+            $logged = Get-LoggedLine -RawWriteVerbose 'Starting the operation.'
+            $Script:consumer.BodyEvidence['CompletedNarrative'].IsMatch($logged) | Should -BeTrue
+        }
+    }
+
     Context "Consumer wiring: CompletionSignals header signals reference the correct named regexes" {
 
         It "HandledSummaryHeader signal's regex is the same pattern as HandledSummaryHeaderRegex and IsTimestamped is `$false" {
