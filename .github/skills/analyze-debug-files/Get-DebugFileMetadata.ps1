@@ -1138,7 +1138,8 @@ function Read-DebugFile {
     $positionMessageForceRetain = 0   # Retain the next N raw lines after a
     # `Position Message:` header (source line + caret) regardless of budget.
 
-    # Completion signal tracking: first-seen line number for each signal.
+    # Completion signal tracking: LAST-seen line number for each signal.
+    # (Overwriting on each match — see Iter-25 comment at the scan site.)
     $completionSignalHits = @{}
 
     # Pending inline event window.
@@ -1670,8 +1671,19 @@ function Read-DebugFile {
             # make Step 6 classify an incomplete run as clean.
             # Summary-header signals stay unconditional because those
             # headers are intentionally untimestamped.
+            # Iter-25 (Copilot review): track the LAST occurrence of
+            # each signal rather than the first. `Invoke-WriteDebugErrorsThatOccurred`
+            # emits its terminal message once per invocation at end-of-run,
+            # but a defensive log tail (multi-invocation logs where the
+            # skill's RunId segmentation is unavailable, or an appended
+            # log where an earlier producer emitted the phrase mid-stream)
+            # could otherwise be classified as completed cleanly on a
+            # stale first-seen hit. Overwriting on each match keeps
+            # Step 6's presence check working while surfacing the
+            # LAST-seen line number in `CompletionSignals[].LineNumber`
+            # so callers that need "near end of log" evidence can
+            # correlate against `Statistics.LineCount` themselves.
             foreach ($signal in $Script:CompletionSignals) {
-                if ($completionSignalHits.ContainsKey($signal.Name)) { continue }
                 if ($signal.IsTimestamped -and $null -eq $ts) { continue }
                 if ($signal.Pattern.IsMatch($line)) {
                     $completionSignalHits[$signal.Name] = $lineNumber

@@ -469,14 +469,17 @@ try {
     # limits the traversal to the SINGLE newest commit that touched
     # the range from $BaselineSha's history — which is $sha itself
     # (identical to Phase 1's `$shas[0]`).
-    # `-c diff.noprefix=false` overrides any user- or repo-level
-    # `diff.noprefix=true` config so headers are always emitted as
+    # `-c diff.noPrefix=false` overrides any user- or repo-level
+    # `diff.noPrefix=true` config so headers are always emitted as
     # `--- a/path` and `+++ b/path`. Without this override, git emits
     # `--- path` / `+++ path` for modified files, which the header
     # regex below (anchored on `a/`, `b/`, or `/dev/null`) would fail
     # to recognize — the header line would then be miscounted as an
     # added source line and could cross the classification threshold.
-    $diffArgs = @('--no-pager', '-c', 'diff.noprefix=false', 'log', '--format=', "-L$range`:$Path", '-1', $BaselineSha)
+    # (Git configuration variable names are case-insensitive, so this
+    # `noPrefix` form matches the same config key that git's own docs
+    # spell as a single lowercase token.)
+    $diffArgs = @('--no-pager', '-c', 'diff.noPrefix=false', 'log', '--format=', "-L$range`:$Path", '-1', $BaselineSha)
     $diffOut = & git @diffArgs 2>&1
     # Iter-23 (RD-branch-3): a diff-command FAILURE must not be
     # silently swallowed. If Phase 1 confirmed $sha touched the
@@ -502,8 +505,17 @@ try {
                 Reasoning = "Phase 3 diff extraction failed: $(($diffOut | Select-Object -First 2) -join ' | ')"
             }
             Provenance           = $null
-            Status               = 'Ok'
-            StatusDetail         = ''
+            # Iter-25 (Copilot review): downstream SKILL.md (analyze-debug-files)
+            # gates the "lookup unavailable" note on `Status -ne 'Ok'`. Returning
+            # `Status = 'Ok'` here made a failed Phase 3 render as a successful
+            # provenance lookup with a null `DiffSummary` — masking the failure
+            # from the report reader. Use `Status = 'Error'` so the sibling skill
+            # emits the standard unavailable-lookup note, and preserve the
+            # failure context in `StatusDetail`. `IntroducingCommit` stays
+            # populated because Phase 1 + Phase 2 succeeded — the commit metadata
+            # is genuine even though the diff-derived assessment is not.
+            Status               = 'Error'
+            StatusDetail         = "Phase 3 diff extraction failed: $(($diffOut | Select-Object -First 2) -join ' | ')"
         }
     }
 

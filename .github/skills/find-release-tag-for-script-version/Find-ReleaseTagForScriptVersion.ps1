@@ -375,11 +375,23 @@ try {
     if (-not (Test-Path -LiteralPath $WorkFolder -PathType Container)) {
         throw "WorkFolder path exists but is not a directory."
     }
-    # Note: `Test-IsSafeLocalPath` at intake (default branch: parent
-    # `$env:TEMP`; caller-supplied branch: full path) already rejected
-    # reparse-point-redirected paths. No revalidation here — same-user
-    # filesystem races between intake and use are out of scope for
-    # this personal-machine tool (matches the rest of CSS-Exchange).
+    # Iter-25 (Copilot review): post-create reparse-point revalidation.
+    # The default branch's intake validated `$env:TEMP` (the parent),
+    # not the composed leaf — the leaf is a fresh GUID that doesn't
+    # exist yet. A same-user race between intake and `CreateDirectory`
+    # could plant a junction/symlink at that leaf, redirecting our
+    # downloads AND causing the finally block's `Remove-Item -Recurse`
+    # to delete through the reparse target. The caller-supplied branch
+    # DID validate the full path at intake, but the same-user race
+    # between intake and CreateDirectory is still theoretically open,
+    # so run the check in both branches. If a reparse point is present,
+    # flip `$createdWorkFolder` to `$false` so the finally block does
+    # NOT recursively delete through the redirection — the caller is
+    # left to inspect the junction.
+    if (Test-PathHasReparsePoint -Path $WorkFolder) {
+        $createdWorkFolder = $false
+        throw "WorkFolder was redirected by a reparse point after creation (same-user race). Refusing to run and refusing to clean up, to avoid following the reparse target. Inspect $WorkFolder manually."
+    }
 
     Write-Verbose "Enumerating releases from $Repository ..."
     # Pin the request to github.com. Passing the bare `owner/repo` allows an
