@@ -1371,7 +1371,7 @@ end {
         ""
         "Examples: "
         "     Update-Engines.ps1 -EngineDirPath C:\Engines\"
-        "     Update-Engines.ps1 -EngineDirPath C:\Engines\ -UpdatePathUrl http://forefrontdl.microsoft.com/server/scanengineupdate/ -Engines Microsoft"
+        "     Update-Engines.ps1 -EngineDirPath C:\Engines\ -UpdatePathUrl https://forefrontdl.microsoft.com/server/scanengineupdate/ -Engines Microsoft"
         ""
         exit
     }

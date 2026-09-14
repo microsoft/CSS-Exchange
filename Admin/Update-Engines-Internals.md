@@ -1,4 +1,4 @@
-<!-- cspell:ignore Kaspersky Cloudmark failovers engineinfo scanengineupdate fullpkg mpasbase mpavbase mpengine mpavdlta mpasdlta mpgear avemicrosoft engineinterface OCSP canonicalizer redownload redownloaded redownloading writtenFileHashes TOCTOU chash -->
+<!-- cspell:ignore Kaspersky Cloudmark failovers engineinfo scanengineupdate fullpkg mpasbase mpavbase mpengine mpavdlta mpasdlta mpgear avemicrosoft engineinterface OCSP canonicalizer redownload redownloaded redownloading writtenFileHashes TOCTOU chash amupdatedl -->
 
 # Update-Engines — Internals, Trust Model, and Test Matrix
 
@@ -57,31 +57,32 @@ pass on the command line.
 
 | Purpose | Default URL |
 |---|---|
-| Primary | `http://forefrontdl.microsoft.com/server/scanengineupdate/` |
+| Primary | `https://forefrontdl.microsoft.com/server/scanengineupdate/` |
 | Failover | `https://amupdatedl.microsoft.com/server/scanengineupdate/` |
 | Alternate | `http://amupdatedl.microsoft.com/server/amupdate/` |
 
-The primary is HTTP by default. HTTP is safe **for content integrity and
-authenticity** — every artifact the script consumes is either
-Authenticode-signed or hash-bound to a signed manifest, and Microsoft holds
-the signing keys, so an on-path attacker cannot substitute a validly-signed
-tampered artifact. See
+The primary is HTTPS by default. Under the artifact trust model, HTTPS is
+not what makes the download safe **for content integrity and authenticity**
+— every artifact the script consumes is either Authenticode-signed or
+hash-bound to a signed manifest, and Microsoft holds the signing keys, so
+an on-path attacker cannot substitute a validly-signed tampered artifact
+regardless of transport. See
 [The trust and integrity model](#the-trust-and-integrity-model).
 
-HTTP does **not** provide freshness. An on-path attacker who can serve
-responses at the update endpoint can replay a validly-signed but older
-release: the signatures remain valid (Microsoft signed those artifacts too),
-the manifest→CAB hash chain still verifies, and every check individually
-passes. The effect is a downgrade: an operator running the script gets AV
-definitions from an earlier date. This condition is discussed in
+What HTTPS *does* add is freshness. Signatures and hashes alone cannot
+distinguish a validly-signed *current* release from a validly-signed
+*older* release: Microsoft signed both. TLS on the transport blocks
+ordinary on-path replay of the older release at the current endpoint URL,
+because the attacker cannot rewrite responses the client is going to
+accept. This condition is discussed in
 [Signed-artifact replay and content-freshness](#signed-artifact-replay-and-content-freshness).
 
-Prefer the HTTPS failover URL where the environment allows it: TLS blocks
-ordinary on-path replay without any change to the artifact trust model.
-If a customer's environment blocks plain HTTP, either failover URL can be
-passed via `-UpdatePathUrl`. The `-FailoverPathUrl` and `-EngineDownloadUrlV2`
-parameters are declared for documentation but the script does not fall
-over between them automatically; an operator picks the URL they want.
+The `-UpdatePathUrl` and `-FailoverPathUrl` parameters let a customer point
+at a different host — for example, the HTTPS `amupdatedl` failover, or the
+HTTP `amupdatedl` alternate if their environment cannot reach the primary
+HTTPS host. The `-FailoverPathUrl` and `-EngineDownloadUrlV2` parameters
+are declared for documentation but the script does not fall over between
+them automatically; an operator picks the URL they want.
 
 ### `-EngineDirPath` must be on local storage
 
@@ -333,11 +334,14 @@ enforces integrity again when the code actually runs.
 
 ## The trust and integrity model
 
-The script talks to update endpoints over **plain HTTP** by default. The
+The script defaults to HTTPS for the update endpoints, but the
 content-integrity and authenticity model does not depend on TLS — every
 artifact the script consumes is cryptographically verified against a
-Microsoft-signed anchor after it lands on disk. Freshness is a separate
-property and is *not* provided; see
+Microsoft-signed anchor after it lands on disk, and the same guarantees
+hold when an operator overrides the default with an HTTP alternate.
+Freshness is a separate property; TLS blocks the ordinary on-path replay
+vector on the default transport, but a persisted version floor is *not*
+provided. See
 [Signed-artifact replay and content-freshness](#signed-artifact-replay-and-content-freshness).
 
 ### Two defenses, in layers
@@ -574,7 +578,8 @@ objections.
 
 ### "The endpoint URL is HTTP, not HTTPS."
 
-**Not a defect for content integrity or authenticity, but see the freshness
+**The default is HTTPS, but HTTP alternates remain supported and are
+not a content-integrity or authenticity defect — see the freshness
 caveat.** The Microsoft download infrastructure serves these artifacts over
 both HTTP and HTTPS. Authenticode signatures and SHA256 hashes bind us to
 Microsoft's signing key regardless of the transport, so an on-path attacker
@@ -582,13 +587,17 @@ cannot substitute *forged* content over either channel.
 
 Freshness is a separate property. TLS on the transport does add value here:
 it blocks ordinary on-path replay of validly-signed older releases (the
-attacker cannot rewrite responses the client is going to accept). Where
-network policy allows it, prefer the HTTPS endpoint. See
+attacker cannot rewrite responses the client is going to accept). The
+default `-UpdatePathUrl` is HTTPS for this reason. Operators who override
+the default with an HTTP alternate (for example the
+`http://amupdatedl.microsoft.com/server/amupdate/` alternate) give up that
+replay protection. See
 [Signed-artifact replay and content-freshness](#signed-artifact-replay-and-content-freshness)
 for the current freshness posture.
 
 The `-UpdatePathUrl` and `-FailoverPathUrl` parameters let a customer point
-at the HTTPS host if their network policy forbids outbound HTTP.
+at a different host — either the HTTPS `amupdatedl` failover or, where the
+HTTPS hosts are unreachable, the HTTP `amupdatedl` alternate.
 
 ### "You should Authenticode-verify the 200 MB payload CAB."
 
@@ -643,8 +652,11 @@ attacker, is not equivalent to an operator's own deliberate rollback.
 
 Mitigations available today without a version floor:
 
-- Use the HTTPS `-UpdatePathUrl` where policy allows: TLS terminates the
-  easy on-path replay vector without changing the artifact trust model.
+- Keep the default HTTPS `-UpdatePathUrl` (or the HTTPS `amupdatedl`
+  failover). TLS terminates the easy on-path replay vector without
+  changing the artifact trust model. Operators who override the default
+  with the HTTP `amupdatedl` alternate lose this protection and should
+  weigh that against the reason for the override.
 - Monitor the versions actually staged (the per-engine manifests record
   `Package.version`), and alert if they stop advancing.
 
@@ -707,9 +719,13 @@ and hashes alone — Microsoft signed both.
 
 ### The condition
 
-The script fetches artifacts over plain HTTP by default and does not
-persist any state about the highest version it has seen. Given both,
-an on-path attacker who can serve responses at the update endpoint can:
+The script does not persist any state about the highest version it has
+seen. The default `-UpdatePathUrl` is HTTPS, which blocks the ordinary
+on-path replay vector for that specific transport. Operators who override
+the default with an HTTP alternate — or an attacker who succeeds in
+downgrading the transport to HTTP — remove that protection. Given the
+absence of a persisted version floor, an on-path attacker who can serve
+responses at the update endpoint over HTTP can:
 
 1. Capture the current Universal Manifest, per-engine manifests, and full
    package CABs for a legitimate release.
@@ -741,10 +757,11 @@ scope of the current hardening batch.
 Operators concerned about replay/downgrade in their environment can
 apply either mitigation today without any script change:
 
-- Pass one of the HTTPS `-UpdatePathUrl` values (documented in
-  [The endpoints](#the-endpoints)) instead of the HTTP default. TLS blocks
-  ordinary on-path replay under the standard trust model; it does not
-  add anything to the artifact-content trust chain.
+- Keep the default HTTPS `-UpdatePathUrl` (or the HTTPS `amupdatedl`
+  failover, both documented in [The endpoints](#the-endpoints)). TLS
+  blocks ordinary on-path replay under the standard trust model; it does
+  not add anything to the artifact-content trust chain. Overriding to the
+  HTTP `amupdatedl` alternate removes this protection.
 - Monitor the versions actually staged. The per-engine manifests record
   `Package.version` in the on-disk mirror; a stalled or regressing
   version number is a signal to investigate.
@@ -759,7 +776,7 @@ setup, exact commands, and expected observable behavior.
 ### Prerequisites
 
 - Windows Server or Windows 10/11 with **PowerShell 5.1 or PowerShell 7**.
-- Network access to `http://forefrontdl.microsoft.com/` (or one of the
+- Network access to `https://forefrontdl.microsoft.com/` (or one of the
   documented failover URLs).
 - Local administrator on the test host (needed to create arbitrary
   directories, not needed by the script itself once the directory exists).

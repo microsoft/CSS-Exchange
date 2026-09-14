@@ -15,7 +15,7 @@ The update path and list of engines can be passed as parameters when the script 
 
 !!! warning "Note:"
 
-    The script will default the engine update path to `http://forefrontdl.microsoft.com/server/scanengineupdate/`. If this endpoint isn't available, you can change the script to use the failover endpoint `https://amupdatedl.microsoft.com/server/scanengineupdate/`. If the previous endpoints aren't available, you can use `http://amupdatedl.microsoft.com/server/amupdate/` as an alternative download location. Only the 64-bit (amd64) platform is served today; older 32-bit (x86) packages have been retired at the update endpoints. Only the `Microsoft` and `Command` engines return content at the current endpoints; other engines listed in the Universal Manifest (Kaspersky, Norman, Symantec, Cloudmark, WormList, Kaspersky5) return 404 and are no longer downloadable. Payload integrity is verified independently of the transport: signed Universal Manifest and per-engine manifests are checked via Authenticode, and the full-package CAB is checked against the SHA256 published in the signed per-engine manifest.
+    The script will default the engine update path to `https://forefrontdl.microsoft.com/server/scanengineupdate/`. If this endpoint isn't available, you can point the script at the failover endpoint `https://amupdatedl.microsoft.com/server/scanengineupdate/`. If neither HTTPS endpoint is available, you can use `http://amupdatedl.microsoft.com/server/amupdate/` as an alternative download location. Only the 64-bit (amd64) platform is served today; older 32-bit (x86) packages have been retired at the update endpoints. Only the `Microsoft` and `Command` engines return content at the current endpoints; other engines listed in the Universal Manifest (Kaspersky, Norman, Symantec, Cloudmark, WormList, Kaspersky5) return 404 and are no longer downloadable. Payload integrity is verified independently of the transport: signed Universal Manifest and per-engine manifests are checked via Authenticode, and the full-package CAB is checked against the SHA256 published in the signed per-engine manifest.
 
 ## Syntax
 
@@ -60,10 +60,10 @@ The following syntax uses the directory `C:\ScanEngineUpdates\` as the root engi
 Update-Engines.ps1 -EngineDirPath C:\ScanEngineUpdates\
 ```
 
-The following syntax uses the directory `C:\ScanEngineUpdates\` as the root engine's directory. It also tries to download the latest updates for the `Microsoft` engine on the `amd64` platform from `http://forefrontdl.microsoft.com/server/scanengineupdate/`. The platform is fixed to `amd64` (the only platform served today); the engine list can also include `Command`.
+The following syntax uses the directory `C:\ScanEngineUpdates\` as the root engine's directory. It also tries to download the latest updates for the `Microsoft` engine on the `amd64` platform from `https://forefrontdl.microsoft.com/server/scanengineupdate/`. The platform is fixed to `amd64` (the only platform served today); the engine list can also include `Command`.
 
 ```powershell
-Update-Engines.ps1 -EngineDirPath C:\ScanEngineUpdates\ -UpdatePathUrl http://forefrontdl.microsoft.com/server/scanengineupdate/ -Engines Microsoft
+Update-Engines.ps1 -EngineDirPath C:\ScanEngineUpdates\ -UpdatePathUrl https://forefrontdl.microsoft.com/server/scanengineupdate/ -Engines Microsoft
 ```
 
 ## Found a bug or want to update the script?
