@@ -334,11 +334,14 @@ enforces integrity again when the code actually runs.
 
 ## The trust and integrity model
 
-The script talks to update endpoints over **plain HTTP** by default. The
+The script defaults to HTTPS for the update endpoints, but the
 content-integrity and authenticity model does not depend on TLS — every
 artifact the script consumes is cryptographically verified against a
-Microsoft-signed anchor after it lands on disk. Freshness is a separate
-property and is *not* provided; see
+Microsoft-signed anchor after it lands on disk, and the same guarantees
+hold when an operator overrides the default with an HTTP alternate.
+Freshness is a separate property; TLS blocks the ordinary on-path replay
+vector on the default transport, but a persisted version floor is *not*
+provided. See
 [Signed-artifact replay and content-freshness](#signed-artifact-replay-and-content-freshness).
 
 ### Two defenses, in layers
