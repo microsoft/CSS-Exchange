@@ -4576,8 +4576,6 @@
       
         
       
-        
-      
     
     
     
@@ -4641,106 +4639,6 @@
   
 
       </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    
-    
-      
-        
-          
-        
-      
-        
-      
-    
-    
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13_2" >
-        
-          
-          <div class="md-nav__link md-nav__container">
-            <a href="../../Security/CVE-2023-23397/" class="md-nav__link ">
-              
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    CVE-2023-23397
-  
-
-    
-  </span>
-  
-  
-
-            </a>
-            
-              
-              <label class="md-nav__link " for="__nav_13_2" id="__nav_13_2_label" tabindex="0">
-                <span class="md-nav__icon md-icon"></span>
-              </label>
-            
-          </div>
-        
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_13_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_13_2">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    CVE-2023-23397
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../Security/CVE-2023-23397/FAQ/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    FAQ
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
     </li>
   
 
@@ -5657,16 +5555,17 @@
   
 
 
+<!-- cspell:ignore Kaspersky Cloudmark -->
 <h1 id="update-engines">Update-Engines</h1>
 <p>Download the latest release: <a href="https://github.com/microsoft/CSS-Exchange/releases/latest/download/Update-Engines.ps1">Update-Engines.ps1</a></p>
 <p>The UpdateEngines script can be used to download the engine packages to be used by the Forefront Protection engine on Exchange Server and Sharepoint Server products.</p>
 <h2 id="description">Description</h2>
 <p>Follow the steps given below to manually update the scan engines in Exchange Server. You may need to do so if you experience issues with accessing anti-malware updates online and want to download those definitions to a central location.</p>
 <p>The manual update involves running the <code>Update-Engines.ps1</code> PowerShell script. This script can be changed according to your needs.</p>
-<p>The update path, list of engines, and list of platforms can be passed as parameters when the script is executed.</p>
+<p>The update path and list of engines can be passed as parameters when the script is executed.</p>
 <div class="admonition warning">
 <p class="admonition-title">Note:</p>
-<p>The script will default the engine update path to <code>https://forefrontdl.microsoft.com/server/scanengineupdate/</code>. If this endpoint isn't available, you can change the script to use the failover endpoint <code>https://amupdatedl.microsoft.com/server/scanengineupdate/</code>. If the previous endpoints aren't available, you can use <code>http://amupdatedl.microsoft.com/server/amupdate/</code> as an alternative download location. By default, all engines will be downloaded for the 64-bit (amd64) platform.</p>
+<p>The script will default the engine update path to <code>http://forefrontdl.microsoft.com/server/scanengineupdate/</code>. If this endpoint isn't available, you can change the script to use the failover endpoint <code>https://amupdatedl.microsoft.com/server/scanengineupdate/</code>. If the previous endpoints aren't available, you can use <code>http://amupdatedl.microsoft.com/server/amupdate/</code> as an alternative download location. Only the 64-bit (amd64) platform is served today; older 32-bit (x86) packages have been retired at the update endpoints. Only the <code>Microsoft</code> and <code>Command</code> engines return content at the current endpoints; other engines listed in the Universal Manifest (Kaspersky, Norman, Symantec, Cloudmark, WormList, Kaspersky5) return 404 and are no longer downloadable. Payload integrity is verified independently of the transport: signed Universal Manifest and per-engine manifests are checked via Authenticode, and the full-package CAB is checked against the SHA256 published in the signed per-engine manifest.</p>
 </div>
 <h2 id="syntax">Syntax</h2>
 <div class="highlight"><pre><span></span><code><span class="nb">Update-Engines</span><span class="p">.</span><span class="n">ps1</span>
@@ -5675,7 +5574,6 @@
   <span class="p">[</span><span class="n">-FailoverPathUrl</span> <span class="p">&lt;</span><span class="n">string</span><span class="p">&gt;]</span>
   <span class="p">[</span><span class="n">-EngineDownloadUrlV2</span> <span class="p">&lt;</span><span class="n">string</span><span class="p">&gt;]</span>
   <span class="p">[</span><span class="n">-Engines</span> <span class="p">&lt;</span><span class="n">string</span><span class="p">[]&gt;]</span>
-  <span class="p">[</span><span class="n">-Platforms</span> <span class="p">&lt;</span><span class="n">string</span><span class="p">[]&gt;]</span>
   <span class="p">[</span><span class="n">-ScriptUpdateOnly</span> <span class="p">&lt;</span><span class="k">switch</span><span class="p">&gt;]</span>
   <span class="p">[</span><span class="n">-SkipVersionCheck</span> <span class="p">&lt;</span><span class="k">switch</span><span class="p">&gt;]</span>
   <span class="p">[</span><span class="n">-CleanUp</span> <span class="p">&lt;</span><span class="k">switch</span><span class="p">&gt;]</span>
@@ -5684,9 +5582,15 @@
 <h2 id="steps-to-update-scan-engines">Steps to update scan engines</h2>
 <ol>
 <li>
-<p>Create a local directory structure on the computer on which you want to download the scan engine updates.</p>
-<p>a. Create a directory. For example, create a directory named <code>ScanEngineUpdates</code>. This directory must be passed via <code>-EngineDirPath</code> parameter to the script.</p>
-<p>b. Set the NTFS file system and share permissions on the directory so that the target Exchange servers have access to it.</p>
+<p>Create a local directory on the computer where you want to download the scan engine updates. For example, <code>C:\ScanEngineUpdates</code>. This directory must be passed via the <code>-EngineDirPath</code> parameter to the script.</p>
+<div class="admonition warning">
+<p class="admonition-title">Local storage required for <code>-EngineDirPath</code></p>
+<p><code>-EngineDirPath</code> must point to a directory on local storage. UNC paths (for example <code>\\server\share</code>) and mapped network drives are rejected by the script. Drive-letter-only values such as <code>C:</code> are also rejected — always provide a full path such as <code>C:\ScanEngineUpdates</code>. Reparse points (junctions, symbolic links) at the target directory or any of its ancestors are rejected as well, to prevent an attacker from redirecting extraction outside the tree between the safety check and the write. Stage the updates on a local disk first; once the script finishes, copy the completed directory to a file share for the Exchange servers to consume.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Restrict write access to the staging directory</p>
+<p>The staging directory and everything beneath it must be writable only by the account running the script and by trusted administrators. The script performs signature and hash checks on downloaded files and then reads those same files back from disk to extract them; a lower-privileged principal with write access to the staging tree can replace verified content between the check and the read, defeating the integrity checks even when they individually pass.</p>
+</div>
 </li>
 <li>
 <p>Download the latest version of the script from <a href="https://github.com/microsoft/CSS-Exchange/releases/latest/download/Update-Engines.ps1">here</a></p>
@@ -5695,15 +5599,18 @@
 <p>Execute the <code>Update-Engines.ps1</code> PowerShell script, providing any necessary parameters.</p>
 </li>
 <li>
-<p>You can now configure the servers to download updates from the directory created in step 1) by using the UNC path of a share name, such as <code>\\server_name\share_name</code>.</p>
+<p>When the script completes, copy the contents of the local staging directory to a file share that your Exchange servers can access. Set NTFS file system and share permissions on that share so the target Exchange servers have read access to it.</p>
+</li>
+<li>
+<p>Configure the Exchange servers to download updates from the UNC path of that share, such as <code>\\server_name\share_name</code>.</p>
 </li>
 </ol>
 <h2 id="examples">Examples</h2>
 <p>The following syntax uses the directory <code>C:\ScanEngineUpdates\</code> as the root engine's directory to store the update pattern.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">Update-Engines</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-EngineDirPath</span> <span class="n">C</span><span class="p">:\</span><span class="n">ScanEngineUpdates</span><span class="p">\</span>
 </code></pre></div>
-<p>The following syntax uses the directory <code>C:\ScanEngineUpdates\</code> as the root engine's directory. It also tries to download the latest updates for the <code>Microsoft</code> engine using the <code>amd64</code> platform from <code>http://forefrontdl.microsoft.com/server/scanengineupdate/</code>.</p>
-<div class="highlight"><pre><span></span><code><span class="nb">Update-Engines</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-EngineDirPath</span> <span class="n">C</span><span class="p">:\</span><span class="n">ScanEngineUpdates</span><span class="p">\</span> <span class="n">-UpdatePathUrl</span> <span class="n">http</span><span class="p">://</span><span class="n">forefrontdl</span><span class="p">.</span><span class="n">microsoft</span><span class="p">.</span><span class="n">com</span><span class="p">/</span><span class="n">server</span><span class="p">/</span><span class="n">scanengineupdate</span><span class="p">/</span> <span class="n">-Engines</span> <span class="n">Microsoft</span> <span class="n">-Platforms</span> <span class="n">amd64</span>
+<p>The following syntax uses the directory <code>C:\ScanEngineUpdates\</code> as the root engine's directory. It also tries to download the latest updates for the <code>Microsoft</code> engine on the <code>amd64</code> platform from <code>http://forefrontdl.microsoft.com/server/scanengineupdate/</code>. The platform is fixed to <code>amd64</code> (the only platform served today); the engine list can also include <code>Command</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="nb">Update-Engines</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-EngineDirPath</span> <span class="n">C</span><span class="p">:\</span><span class="n">ScanEngineUpdates</span><span class="p">\</span> <span class="n">-UpdatePathUrl</span> <span class="n">http</span><span class="p">://</span><span class="n">forefrontdl</span><span class="p">.</span><span class="n">microsoft</span><span class="p">.</span><span class="n">com</span><span class="p">/</span><span class="n">server</span><span class="p">/</span><span class="n">scanengineupdate</span><span class="p">/</span> <span class="n">-Engines</span> <span class="n">Microsoft</span>
 </code></pre></div>
 <h2 id="found-a-bug-or-want-to-update-the-script">Found a bug or want to update the script?</h2>
 <p>Please open a new work item <a href="https://github.com/microsoft/CSS-Exchange/issues">here</a> or reach out to us via: ExToolsFeedback@microsoft.com</p>
@@ -5727,7 +5634,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="April 30, 2025 18:56:15 UTC">April 30, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="August 27, 2026 20:09:05 UTC">August 27, 2026</span>
   </span>
 
     
