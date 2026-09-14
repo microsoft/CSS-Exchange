@@ -5,6 +5,7 @@
 . $PSScriptRoot\..\..\..\Shared\VisualCRedistributableVersionFunctions.ps1
 . $PSScriptRoot\..\..\..\Shared\Get-NETFrameworkVersion.ps1
 . $PSScriptRoot\..\..\..\Shared\CompareExchangeBuildLevel.ps1
+. $PSScriptRoot\HealthCheckerColorizers.ps1
 . $PSScriptRoot\Invoke-JobAnalyzerEngine.ps1
 
 <#
@@ -32,6 +33,7 @@ function Add-JobAnalyzerEngine {
             ${Function:ValidateSUParameter},
             ${Function:ValidateVersionParameter},
             ${Function:Get-ExchangeBuildVersionInformation},
+            ${Function:Get-HealthCheckerColorizer},
             ${Function:Get-NETFrameworkVersion},
             ${Function:Get-VisualCRedistributableInfo},
             ${Function:Get-VisualCRedistributableLatest},

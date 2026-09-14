@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 . $PSScriptRoot\..\..\..\Shared\Out-Columns.ps1
+. $PSScriptRoot\..\Analyzer\HealthCheckerColorizers.ps1
 function Write-Red($message) {
     Write-DebugLog $message
     Write-Host $message -ForegroundColor Red
@@ -43,20 +44,15 @@ function Write-OutColumns($OutColumns) {
         try {
             $stringOutput = $null
             $params = @{
-                Properties         = $OutColumns.SelectProperties
-                ColorizerFunctions = $OutColumns.ColorizerFunctions
-                IndentSpaces       = $OutColumns.IndentSpaces
-                StringOutput       = ([ref]$stringOutput)
+                Properties   = $OutColumns.SelectProperties
+                IndentSpaces = $OutColumns.IndentSpaces
+                StringOutput = ([ref]$stringOutput)
             }
 
-            if ($null -ne $OutColumns.ColorizerFunctions -and
-                $OutColumns.ColorizerFunctions[0].GetType().Name -eq "String") {
-                $colorizerFunctions = @()
-                foreach ($sb in $OutColumns.ColorizerFunctions) {
-                    $colorizerFunctions += [ScriptBlock]::Create($sb)
-                }
-
-                $params.ColorizerFunctions = $colorizerFunctions
+            if ($null -ne $OutColumns.ColorizerIds -and $OutColumns.ColorizerIds.Count -gt 0) {
+                # An unknown ColorizerId is a development-time bug (analyzer references an ID that is not registered).
+                # Let the outer catch handle it so the failure is visible during dev/test rather than silently rendering without color.
+                $params.ColorizerFunctions = Get-HealthCheckerColorizer -ColorizerId $OutColumns.ColorizerIds
             }
 
             $OutColumns.DisplayObject | Out-Columns @params

@@ -49,57 +49,6 @@ param(
     [int]$TimeoutMinutes = 30
 )
 
-$timeout = (Get-Date).AddMinutes($TimeoutMinutes)
-$page = 1
-$allResults = [System.Collections.Generic.List[object]]::new()
+. $PSScriptRoot\Shared\Get-AllMessageTraceResultsFunction.ps1
 
-# Build splat from bound parameters, excluding our custom ones
-$splatParams = @{}
-$excludeParams = @("TimeoutMinutes", "PageSize", "Verbose", "Debug", "ErrorAction", "WarningAction",
-    "InformationAction", "ErrorVariable", "WarningVariable",
-    "InformationVariable", "OutVariable", "OutBuffer", "PipelineVariable")
-
-foreach ($key in $PSBoundParameters.Keys) {
-    if ($key -notin $excludeParams) {
-        $splatParams[$key] = $PSBoundParameters[$key]
-    }
-}
-
-$splatParams["ResultSize"] = $PageSize
-
-Write-Progress -Activity "Fetching message trace data" -Status "Page $page..."
-$rawResults = @(Get-MessageTraceV2 @splatParams 3>&1)
-$results = @($rawResults | Where-Object { $_ -isnot [System.Management.Automation.WarningRecord] })
-foreach ($w in ($rawResults | Where-Object { $_ -is [System.Management.Automation.WarningRecord] })) {
-    Write-Verbose "Get-MessageTraceV2 warning (page $page): $w"
-}
-if ($results) { $allResults.AddRange($results) }
-
-$timedOut = $false
-while ($results.Count -eq $PageSize) {
-    if ((Get-Date) -ge $timeout) {
-        $timedOut = $true
-        break
-    }
-    $page++
-    $lastResult = $results[-1]
-    $splatParams["StartingRecipientAddress"] = $lastResult.RecipientAddress
-    $splatParams["EndDate"] = $lastResult.Received
-    Write-Progress -Activity "Fetching message trace data" -Status "Retrieved $($allResults.Count) messages (page $page)..."
-    $rawResults = @(Get-MessageTraceV2 @splatParams 3>&1)
-    $results = @($rawResults | Where-Object { $_ -isnot [System.Management.Automation.WarningRecord] })
-    foreach ($w in ($rawResults | Where-Object { $_ -is [System.Management.Automation.WarningRecord] })) {
-        Write-Verbose "Get-MessageTraceV2 warning (page $page): $w"
-    }
-    if ($results) { $allResults.AddRange($results) }
-}
-
-Write-Progress -Activity "Fetching message trace data" -Completed
-
-if ($timedOut) {
-    Write-Warning "Timed out after $TimeoutMinutes minutes with more results available. Returning $($allResults.Count) results collected so far."
-}
-
-Write-Verbose "Total messages retrieved: $($allResults.Count)"
-return $allResults
-
+return Get-AllMessageTraceResults @PSBoundParameters

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UniversalManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" postdate="2026-08-18T19:12:12.159616Z" ttl="1" licenseInfoVersion="201910170001" version="1.0">
+  <LicenseInfo type="CAB" name="EngineInfo.cab" size="1389">
+    <hash algorithm="sha256" chash="fg8mEAnf91warHmPxaN+2m+Is4ONvnLMJAEdIcx06uo=" hash="ik7C47roAioJjDwIBxscj5mU5xfxXrxswKnxqd73Wjo=" />
+  </LicenseInfo>
+  <EngineVersions>
+    <Platform id="x86">
+      <Category name="Antivirus">
+        <Engine name="Microsoft" default="{6869FAE0-44E4-4ab0-A3BB-15A609D3E574}">
+          <Package id="{6869FAE0-44E4-4ab0-A3BB-15A609D3E574}" tag="latest" version="2112342047" postdate="2026-08-18T19:07:38.0769542Z" ttl="6" />
+        </Engine>
+        <Engine name="Command" default="{8ADA5D63-D2FE-417d-A839-B60BCBEB05AB}">
+          <Package id="{8ADA5D63-D2FE-417d-A839-B60BCBEB05AB}" tag="latest" version="2409040002" postdate="2024-09-04T02:09:09.8139295Z" ttl="6" />
+        </Engine>
+        <Engine name="Kaspersky" default="{6385D119-6FEB-474b-B8E3-DA265419A907}">
+          <Package id="{6385D119-6FEB-474b-B8E3-DA265419A907}" tag="latest" version="1708200009" postdate="2017-08-20T22:10:26.9267097Z" ttl="4" />
+          <Package id="{7723821F-8485-4d0c-A669-9883EE6805CC}" tag="latest" version="1708200009" postdate="2017-08-20T22:10:26.9267097Z" ttl="4" />
+        </Engine>
+        <Engine name="Norman" default="{DAF85442-B1C2-4adc-A74B-5D4EFD775331}">
+          <Package id="{DAF85442-B1C2-4adc-A74B-5D4EFD775331}" tag="latest" version="1509300002" postdate="2015-09-30T20:48:52.8420838Z" ttl="8" />
+        </Engine>
+        <Engine name="Kaspersky5" default="{97BC2040-DAB6-4e7a-B761-F9D228F47378}">
+          <Package id="{97BC2040-DAB6-4e7a-B761-F9D228F47378}" tag="latest" version="1602020005" postdate="2016-02-02T15:54:24.6022115Z" ttl="4" />
+          <Package id="{CC5219B4-ED5B-4739-9F7B-AB6C1859809B}" tag="latest" version="1602020005" postdate="2016-02-02T15:54:24.6022115Z" ttl="4" />
+        </Engine>
+      </Category>
+      <Category name="List">
+        <Engine name="WormList" default="{398CDD78-852B-40ac-91DE-05F1C6E23641}">
+          <Package id="{398CDD78-852B-40ac-91DE-05F1C6E23641}" tag="latest" version="1410210001" postdate="2014-10-21T17:33:57.6027184Z" ttl="900" />
+        </Engine>
+      </Category>
+      <Category name="Antispam">
+        <Engine name="Cloudmark" default="{D7C19BF4-CC56-489c-9253-45227EDA8D0E}">
+          <Package id="{D7C19BF4-CC56-489c-9253-45227EDA8D0E}" tag="latest" version="1410210001" postdate="2014-10-21T17:34:24.7312923Z" ttl="900" />
+        </Engine>
+      </Category>
+    </Platform>
+    <Platform id="amd64">
+      <Category name="Antispam">
+        <Engine name="Cloudmark" default="{85757C90-319E-470a-965E-3B5B37402380}">
+          <Package id="{85757C90-319E-470a-965E-3B5B37402380}" tag="latest" version="1410210001" postdate="2014-10-21T17:35:06.2743586Z" ttl="900" />
+        </Engine>
+      </Category>
+      <Category name="List">
+        <Engine name="WormList" default="{8B255791-1DC6-4d19-A856-76B54A3E1944}">
+          <Package id="{8B255791-1DC6-4d19-A856-76B54A3E1944}" tag="latest" version="1801220001" postdate="2018-01-22T12:07:29.0891499Z" ttl="900" />
+        </Engine>
+      </Category>
+      <Category name="Antivirus">
+        <Engine name="Microsoft" default="{8B26BC7D-829D-4354-8635-3FA6D6F5B1CB}">
+          <Package id="{8B26BC7D-829D-4354-8635-3FA6D6F5B1CB}" tag="latest" version="2112342123" postdate="2026-08-18T19:11:36.5536303Z" ttl="6" />
+        </Engine>
+        <Engine name="Kaspersky" default="{7CDFC7C4-2546-4348-BF16-37D68397F29E}">
+          <Package id="{7CDFC7C4-2546-4348-BF16-37D68397F29E}" tag="latest" version="1708200010" postdate="2017-08-20T21:58:36.6099699Z" ttl="4" />
+        </Engine>
+        <Engine name="Command" default="{7F1BA753-AB1D-4DF7-9DAC-F9D884036937}">
+          <Package id="{7F1BA753-AB1D-4DF7-9DAC-F9D884036937}" tag="latest" version="2409040002" postdate="2024-09-04T02:09:09.3764197Z" ttl="6" />
+        </Engine>
+        <Engine name="Norman" default="{271D1B97-2D9E-4B56-B3C4-72BA93EE8589}">
+          <Package id="{271D1B97-2D9E-4B56-B3C4-72BA93EE8589}" tag="latest" version="1509300002" postdate="2015-09-28T08:57:57.6750768Z" ttl="8" />
+        </Engine>
+        <Engine name="Symantec" default="{ED4FB5B9-ACE9-4283-8293-E641E17C0ECC}">
+          <Package id="{ED4FB5B9-ACE9-4283-8293-E641E17C0ECC}" tag="latest" version="2107250016" postdate="2021-07-25T16:08:44.6989244Z" ttl="4" />
+        </Engine>
+      </Category>
+    </Platform>
+  </EngineVersions>
+</UniversalManifest>
