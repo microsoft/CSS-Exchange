@@ -46,7 +46,7 @@
 
 param(
     [string]$EngineDirPath,
-    [string]$UpdatePathUrl = "http://forefrontdl.microsoft.com/server/scanengineupdate/",
+    [string]$UpdatePathUrl = "https://forefrontdl.microsoft.com/server/scanengineupdate/",
     [string]$FailoverPathUrl = "https://amupdatedl.microsoft.com/server/scanengineupdate/",
     [string]$EngineDownloadUrlV2 = "http://amupdatedl.microsoft.com/server/amupdate/",
     [ValidateSet('Microsoft', 'Command')]
