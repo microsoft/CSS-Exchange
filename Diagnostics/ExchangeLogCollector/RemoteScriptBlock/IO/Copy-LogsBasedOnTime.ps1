@@ -14,14 +14,16 @@ function Copy-LogsBasedOnTime {
     param(
         [Parameter(Mandatory = $true)][string]$LogPath,
         [Parameter(Mandatory = $true)][string]$CopyToThisLocation,
-        [Parameter(Mandatory = $true)][bool]$IncludeSubDirectory
+        [Parameter(Mandatory = $true)][bool]$IncludeSubDirectory,
+        [switch]$CopyAll
     )
     begin {
         function NoFilesInLocation {
             param(
                 [string]$SourceLocation,
                 [string]$DestinationLocation,
-                [string]$Value = "No data in the location"
+                [string]$Value = "No data in the location",
+                [string]$MarkerName = 'NoFilesDetected.txt'
             )
             $line = "No files were found in '$SourceLocation'."
 
@@ -32,7 +34,7 @@ function Copy-LogsBasedOnTime {
             }
 
             $params = @{
-                Path     = "$DestinationLocation\NoFilesDetected.txt"
+                Path     = [System.IO.Path]::Combine($DestinationLocation, $MarkerName)
                 ItemType = "File"
                 Value    = "Location: $SourceLocation`r`n$Value"
                 Force    = $true
@@ -47,6 +49,10 @@ function Copy-LogsBasedOnTime {
             )
 
             if (@($AllItems).Count -gt 0) {
+                if ($CopyAll) {
+                    Copy-BulkItems -CopyToLocation $CopyToLocation -ItemsToCopyLocation @($AllItems.FullName)
+                    return
+                }
                 $timeRangeFiles = $AllItems | Where-Object { $_.LastWriteTime -ge $copyFromDate -and $_.LastWriteTime -le $copyToDate }
 
                 if ($null -eq $timeRangeFiles) {
@@ -64,11 +70,13 @@ function Copy-LogsBasedOnTime {
         Write-Verbose "Function Enter: $($MyInvocation.MyCommand)"
         Write-Verbose "LogPath: '$LogPath' | CopyToThisLocation: '$CopyToThisLocation'"
         New-Item -ItemType Directory -Path $CopyToThisLocation -Force | Out-Null
-        $collectionTime = [DateTime]::Now
-        $copyFromDate = $collectionTime - $PassedInfo.TimeSpan
-        $copyToDate = $collectionTime - $PassedInfo.EndTimeSpan
-        Write-Verbose "Copy From Date: $copyFromDate"
-        Write-Verbose "Copy To Date: $copyToDate"
+        if (-not $CopyAll) {
+            $collectionTime = [DateTime]::Now
+            $copyFromDate = $collectionTime - $PassedInfo.TimeSpan
+            $copyToDate = $collectionTime - $PassedInfo.EndTimeSpan
+            Write-Verbose "Copy From Date: $copyFromDate"
+            Write-Verbose "Copy To Date: $copyToDate"
+        }
     }
     process {
         try {
@@ -77,7 +85,9 @@ function Copy-LogsBasedOnTime {
                 throw "The log path is not a directory."
             }
         } catch [System.Management.Automation.ItemNotFoundException] {
-            NoFilesInLocation -SourceLocation $LogPath -DestinationLocation $CopyToThisLocation -Value "Path doesn't exist"
+            $markerName = 'NoFilesDetected.txt'
+            if ($CopyAll) { $markerName = 'NoFolderDetected.txt' }
+            NoFilesInLocation -SourceLocation $LogPath -DestinationLocation $CopyToThisLocation -Value "Path doesn't exist" -MarkerName $markerName
             return
         } catch {
             Write-Warning "Unable to inspect log directory '$LogPath': $($_.Exception.Message)"
@@ -94,6 +104,7 @@ function Copy-LogsBasedOnTime {
         $directories = New-Object 'System.Collections.Generic.Queue[System.IO.DirectoryInfo]'
         $directories.Enqueue($sourceRoot)
         $hasFiles = $false
+        $enumerationFailed = $false
         while ($directories.Count -gt 0) {
             $directory = $directories.Dequeue()
             $relativePath = ''
@@ -104,6 +115,7 @@ function Copy-LogsBasedOnTime {
             try {
                 $children = @(Get-ChildItem -LiteralPath $directory.FullName -Force -ErrorAction Stop)
             } catch {
+                $enumerationFailed = $true
                 Write-Warning "Unable to enumerate log directory '$($directory.FullName)': $($_.Exception.Message)"
                 continue
             }
@@ -113,13 +125,14 @@ function Copy-LogsBasedOnTime {
             if ($items.Count -gt 0) {
                 $hasFiles = $true
                 CopyItemsFromDirectory -AllItems $items -CopyToLocation $destination
-            } elseif (-not $IncludeSubDirectory -or $children.Count -eq 0) {
+            } elseif (-not $CopyAll -and (-not $IncludeSubDirectory -or $children.Count -eq 0)) {
                 NoFilesInLocation -SourceLocation $directory.FullName -DestinationLocation $destination
             }
 
             if ($IncludeSubDirectory) {
                 foreach ($child in $children | Where-Object { $_.PSIsContainer }) {
                     if ($child.Attributes -band [System.IO.FileAttributes]::ReparsePoint) {
+                        $enumerationFailed = $true
                         Write-Warning "Skipping linked directory '$($child.FullName)' to avoid following a directory loop."
                     } else {
                         $directories.Enqueue($child)
@@ -130,6 +143,8 @@ function Copy-LogsBasedOnTime {
 
         if ($hasFiles) {
             Invoke-ZipFolder -Folder $CopyToThisLocation
+        } elseif ($CopyAll -and -not $enumerationFailed) {
+            NoFilesInLocation -SourceLocation $LogPath -DestinationLocation $CopyToThisLocation -MarkerName 'NoDataDetected.txt'
         }
     }
     end {

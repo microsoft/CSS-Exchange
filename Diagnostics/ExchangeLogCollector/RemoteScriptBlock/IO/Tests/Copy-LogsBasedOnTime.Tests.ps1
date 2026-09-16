@@ -4,6 +4,7 @@
 BeforeAll {
     . $PSScriptRoot\..\Copy-BulkItems.ps1
     . $PSScriptRoot\..\Copy-LogsBasedOnTime.ps1
+    . $PSScriptRoot\..\Copy-FullLogFullPathRecurse.ps1
     . $PSScriptRoot\..\Compress-Folder.ps1
 
     function Invoke-ZipFolder {
@@ -208,6 +209,56 @@ Describe 'Log file copying preserves every source' {
             [System.IO.Path]::GetFileName($Destination).Length -le 255 -and $Destination -match '__C_SOURCE_[a-f0-9]{12}\.log$'
         }
     }
+
+    It 'creates the space diagnostic in the literal bracketed output directory' {
+        $script:destination = Join-Path -Path $script:fixtureRoot -ChildPath 'Collected\Logs[2026]'
+        $lookalike = Join-Path -Path $script:fixtureRoot -ChildPath 'Collected\Logs2'
+        $null = New-Item -Path $lookalike -ItemType Directory -Force
+        $source = Join-Path -Path $script:firstSource -ChildPath 'current.log'
+        Set-Content -LiteralPath $source -Value 'current marker'
+        $script:ItemSizesHashed = @{ $source = 10 }
+        Mock -CommandName Test-FreeSpace -MockWith { $false }
+        Mock -CommandName Get-StringDataForNotEnoughFreeSpaceFile -MockWith { 'Insufficient fixture space.' }
+        Copy-BulkItems -CopyToLocation $script:destination -ItemsToCopyLocation @($source)
+        Test-Path -LiteralPath "$script:destination\NotEnoughFreeSpace.txt" | Should -BeTrue
+        Test-Path -LiteralPath "$lookalike\NotEnoughFreeSpace.txt" | Should -BeFalse
+    }
+
+    It 'creates the empty-directory marker in the literal bracketed destination' {
+        $script:destination = Join-Path -Path $script:fixtureRoot -ChildPath 'Collected\Logs[2026]'
+        $lookalike = Join-Path -Path $script:fixtureRoot -ChildPath 'Collected\Logs2'
+        $null = New-Item -Path $lookalike -ItemType Directory -Force
+        Copy-LogsBasedOnTime -LogPath $script:firstSource -CopyToThisLocation $script:destination -IncludeSubDirectory $true
+        Test-Path -LiteralPath "$script:destination\NoFilesDetected.txt" | Should -BeTrue
+        Test-Path -LiteralPath "$lookalike\NoFilesDetected.txt" | Should -BeFalse
+    }
+
+    It 'creates a bracketed child directory without writing into a similar existing name' {
+        $source = Join-Path -Path $script:firstSource -ChildPath 'Logs[2026]'
+        $lookalike = Join-Path -Path $script:destination -ChildPath 'Logs2'
+        $null = New-Item -Path $source, $lookalike -ItemType Directory -Force
+        Set-Content -LiteralPath "$source\current.log" -Value 'literal child marker'
+        Copy-LogsBasedOnTime -LogPath $script:firstSource -CopyToThisLocation $script:destination -IncludeSubDirectory $true
+        Get-Content -LiteralPath "$script:destination\Logs[2026]\current.log" | Should -Be 'literal child marker'
+        Test-Path -LiteralPath "$lookalike\current.log" | Should -BeFalse
+    }
+
+    It 'qualifies a colliding filename from a bracketed source without resolving wildcards' {
+        $source = Join-Path -Path $script:secondSource -ChildPath 'Logs[2026]'
+        $lookalike = Join-Path -Path $script:secondSource -ChildPath 'Logs2'
+        $null = New-Item -Path $source, $lookalike -ItemType Directory -Force
+        Set-Content -LiteralPath "$script:firstSource\same.log" -Value 'first marker'
+        Set-Content -LiteralPath "$source\same.log" -Value 'second marker'
+        Set-Content -LiteralPath "$lookalike\same.log" -Value 'wrong marker'
+        Copy-BulkItems -CopyToLocation $script:destination -ItemsToCopyLocation @("$script:firstSource\same.log", "$source\same.log") -WarningVariable copyWarnings -WarningAction SilentlyContinue
+        $files = @(Get-ChildItem -LiteralPath $script:destination -File)
+        $contents = @($files | ForEach-Object { Get-Content -LiteralPath $_.FullName })
+        $files | Should -HaveCount 2
+        $contents | Should -Contain 'first marker'
+        $contents | Should -Contain 'second marker'
+        $contents | Should -Not -Contain 'wrong marker'
+        @($copyWarnings) | Should -HaveCount 0
+    }
 }
 
 Describe 'Copy preflight isolates files while preserving the disk reserve' {
@@ -231,6 +282,63 @@ Describe 'Copy preflight isolates files while preserving the disk reserve' {
         @(Get-ChildItem -LiteralPath $script:RootCopyToDirectory -File) | Should -HaveCount 2
         $script:TotalBytesSizeCopied | Should -Be $expectedSize
         $script:FreeSpaceMinusCopiedAndCompressedGB | Should -Be (100 - $expectedSize / 1GB)
+    }
+
+    It 'does not charge a check-only preflight as a completed copy' {
+        Test-FreeSpace -FilePaths @($script:rotatingFile) -CheckOnly | Should -BeTrue
+        $script:TotalBytesSizeCopied | Should -Be 0
+        $script:FreeSpaceMinusCopiedAndCompressedGB | Should -Be 100
+    }
+
+    It 'does not count a locked file as copied or consume its estimated capacity' {
+        [System.IO.File]::WriteAllBytes($script:rotatingFile, (New-Object byte[] 1048576))
+        [System.IO.File]::WriteAllBytes($script:readableFile, (New-Object byte[] 4096))
+        $stream = [System.IO.File]::Open($script:rotatingFile, [System.IO.FileMode]::Open, [System.IO.FileAccess]::ReadWrite, [System.IO.FileShare]::None)
+        try {
+            Copy-BulkItems -CopyToLocation $script:RootCopyToDirectory -ItemsToCopyLocation @($script:rotatingFile, $script:readableFile) -WarningVariable copyWarnings -WarningAction SilentlyContinue
+            @($copyWarnings) | Should -HaveCount 1
+            (Get-Item -LiteralPath "$script:RootCopyToDirectory\readable.log").Length | Should -Be 4096
+            $script:TotalBytesSizeCopied | Should -Be 4096
+            $script:FreeSpaceMinusCopiedAndCompressedGB | Should -Be (100 - 4096 / 1GB)
+        } finally {
+            $stream.Dispose()
+        }
+    }
+
+    It 'removes an incomplete copy and charges only the successful neighbor' {
+        Mock -CommandName Copy-Item -MockWith {
+            param($LiteralPath, $Destination)
+            if ($LiteralPath -eq $script:rotatingFile) {
+                [System.IO.File]::WriteAllBytes($Destination, [byte[]]@(1, 2, 3))
+                throw 'Copy interrupted after writing a partial file.'
+            }
+            [System.IO.File]::Copy($LiteralPath, $Destination)
+            Get-Item -LiteralPath $Destination
+        }
+        $expectedBytes = (Get-Item -LiteralPath $script:readableFile).Length
+        Copy-BulkItems -CopyToLocation $script:RootCopyToDirectory -ItemsToCopyLocation @($script:rotatingFile, $script:readableFile) -WarningVariable copyWarnings -WarningAction SilentlyContinue
+        @($copyWarnings) | Should -HaveCount 1
+        Test-Path -LiteralPath "$script:RootCopyToDirectory\rotating.log" | Should -BeFalse
+        Test-Path -LiteralPath "$script:RootCopyToDirectory\readable.log" | Should -BeTrue
+        $script:TotalBytesSizeCopied | Should -Be $expectedBytes
+        $script:FreeSpaceMinusCopiedAndCompressedGB | Should -Be (100 - $expectedBytes / 1GB)
+    }
+
+    It 'stops and invalidates the capacity estimate if partial-copy cleanup fails' {
+        Mock -CommandName Copy-Item -MockWith {
+            param($Destination)
+            [System.IO.File]::WriteAllBytes($Destination, [byte[]]@(1, 2, 3))
+            throw 'Copy interrupted.'
+        }
+        Mock -CommandName Remove-Item -MockWith { throw 'Cleanup denied.' }
+        Copy-BulkItems -CopyToLocation $script:RootCopyToDirectory -ItemsToCopyLocation @($script:rotatingFile, $script:readableFile) -WarningVariable copyWarnings -WarningAction SilentlyContinue
+        @($copyWarnings) | Should -HaveCount 2
+        ($copyWarnings -join ' ') | Should -Match 'incomplete copy'
+        (Get-Item -LiteralPath "$script:RootCopyToDirectory\rotating.log").Length | Should -Be 3
+        Test-Path -LiteralPath "$script:RootCopyToDirectory\readable.log" | Should -BeFalse
+        $script:TotalBytesSizeCopied | Should -Be 0
+        $script:FreeSpaceMinusCopiedAndCompressedGB | Should -Be 0
+        Should -Invoke -CommandName Copy-Item -Times 1 -Exactly
     }
 
     It 'continues with a readable file when another rotates during sizing' {
@@ -275,5 +383,102 @@ Describe 'Copy preflight isolates files while preserving the disk reserve' {
         Test-Path -LiteralPath "$script:RootCopyToDirectory\NotEnoughFreeSpace.txt" | Should -BeTrue
         $script:TotalBytesSizeCopied | Should -Be $firstSize
         Should -Invoke -CommandName Get-FreeSpace -Times 1 -Exactly
+    }
+}
+
+Describe 'Full log copying uses the same per-file safeguards' {
+    BeforeEach {
+        $script:sourceRoot = Join-Path -Path $TestDrive -ChildPath ([guid]::NewGuid().ToString('N'))
+        $script:RootCopyToDirectory = Join-Path -Path $TestDrive -ChildPath ([guid]::NewGuid().ToString('N'))
+        $null = New-Item -Path $script:sourceRoot -ItemType Directory
+        $script:rotatingFile = Join-Path -Path $script:sourceRoot -ChildPath 'rotating.log'
+        $script:readableFile = Join-Path -Path $script:sourceRoot -ChildPath 'readable.log'
+        Set-Content -LiteralPath $script:rotatingFile -Value 'rotation control'
+        Set-Content -LiteralPath $script:readableFile -Value 'surviving control'
+        $script:PassedInfo = $null
+        $script:FreeSpaceMinusCopiedAndCompressedGB = 100
+        $script:CurrentFreeSpaceGB = 100
+        $script:AdditionalFreeSpaceCushionGB = 10
+        $script:TotalBytesSizeCopied = 0
+        Mock -CommandName Invoke-ZipFolder -MockWith {}
+    }
+
+    It 'copies all ages without requiring a collection window' {
+        (Get-Item -LiteralPath $script:rotatingFile).LastWriteTime = (Get-Date).AddDays(-30)
+        (Get-Item -LiteralPath $script:readableFile).LastWriteTime = (Get-Date).AddDays(-60)
+        $expectedBytes = (Get-Item -LiteralPath $script:rotatingFile).Length + (Get-Item -LiteralPath $script:readableFile).Length
+        Copy-FullLogFullPathRecurse -LogPath $script:sourceRoot -CopyToThisLocation $script:RootCopyToDirectory
+        @(Get-ChildItem -LiteralPath $script:RootCopyToDirectory -File) | Should -HaveCount 2
+        $script:TotalBytesSizeCopied | Should -Be $expectedBytes
+        Should -Invoke -CommandName Invoke-ZipFolder -Times 1 -Exactly
+    }
+
+    It 'preserves readable siblings if a file rotates during size checking' {
+        Mock -CommandName Test-Path -MockWith {
+            param($LiteralPath)
+            [System.IO.File]::Exists($LiteralPath) -or [System.IO.Directory]::Exists($LiteralPath)
+        }
+        Mock -CommandName Test-Path -ParameterFilter { $LiteralPath -eq $script:rotatingFile } -MockWith {
+            Remove-Item -LiteralPath $script:rotatingFile -Force -ErrorAction SilentlyContinue
+            return $true
+        }
+        $expectedBytes = (Get-Item -LiteralPath $script:readableFile).Length
+        Copy-FullLogFullPathRecurse -LogPath $script:sourceRoot -CopyToThisLocation $script:RootCopyToDirectory -WarningVariable copyWarnings -WarningAction SilentlyContinue
+        @($copyWarnings) | Should -HaveCount 1
+        [System.IO.File]::Exists("$script:RootCopyToDirectory\readable.log") | Should -BeTrue
+        $script:TotalBytesSizeCopied | Should -Be $expectedBytes
+    }
+
+    It 'does not charge a failed full-copy file or discard its readable neighbor' {
+        $expectedBytes = (Get-Item -LiteralPath $script:readableFile).Length
+        $stream = [System.IO.File]::Open($script:rotatingFile, [System.IO.FileMode]::Open, [System.IO.FileAccess]::ReadWrite, [System.IO.FileShare]::None)
+        try {
+            Copy-FullLogFullPathRecurse -LogPath $script:sourceRoot -CopyToThisLocation $script:RootCopyToDirectory -WarningVariable copyWarnings -WarningAction SilentlyContinue
+            @($copyWarnings) | Should -HaveCount 1
+            Test-Path -LiteralPath "$script:RootCopyToDirectory\readable.log" | Should -BeTrue
+            $script:TotalBytesSizeCopied | Should -Be $expectedBytes
+            $script:FreeSpaceMinusCopiedAndCompressedGB | Should -Be (100 - $expectedBytes / 1GB)
+        } finally {
+            $stream.Dispose()
+        }
+    }
+
+    It 'preserves full-copy hierarchy including empty and bracketed directories' {
+        $null = New-Item -Path "$script:sourceRoot\First\Logs[2026]", "$script:sourceRoot\Second\Logs[2026]", "$script:sourceRoot\Empty" -ItemType Directory -Force
+        Set-Content -LiteralPath "$script:sourceRoot\First\Logs[2026]\same.log" -Value 'first'
+        Set-Content -LiteralPath "$script:sourceRoot\Second\Logs[2026]\same.log" -Value 'second'
+        Copy-FullLogFullPathRecurse -LogPath $script:sourceRoot -CopyToThisLocation $script:RootCopyToDirectory
+        Get-Content -LiteralPath "$script:RootCopyToDirectory\First\Logs[2026]\same.log" | Should -Be 'first'
+        Get-Content -LiteralPath "$script:RootCopyToDirectory\Second\Logs[2026]\same.log" | Should -Be 'second'
+        Test-Path -LiteralPath "$script:RootCopyToDirectory\Empty" -PathType Container | Should -BeTrue
+    }
+
+    It 'keeps the full-copy missing-directory diagnostic name' {
+        Copy-FullLogFullPathRecurse -LogPath "$script:sourceRoot\missing" -CopyToThisLocation $script:RootCopyToDirectory
+        Test-Path -LiteralPath "$script:RootCopyToDirectory\NoFolderDetected.txt" | Should -BeTrue
+    }
+
+    It 'keeps the full-copy empty-directory diagnostic name' {
+        $emptySource = Join-Path -Path $script:sourceRoot -ChildPath 'empty'
+        $null = New-Item -Path "$emptySource\nested" -ItemType Directory -Force
+        Copy-FullLogFullPathRecurse -LogPath $emptySource -CopyToThisLocation $script:RootCopyToDirectory
+        Test-Path -LiteralPath "$script:RootCopyToDirectory\NoDataDetected.txt" | Should -BeTrue
+    }
+
+    It 'does not report an unreadable full-copy directory as empty' {
+        Mock -CommandName Get-ChildItem -ParameterFilter { $LiteralPath -eq $script:sourceRoot } -MockWith { throw 'Access denied.' }
+        Copy-FullLogFullPathRecurse -LogPath $script:sourceRoot -CopyToThisLocation $script:RootCopyToDirectory -WarningVariable copyWarnings -WarningAction SilentlyContinue
+        @($copyWarnings) | Should -HaveCount 1
+        Test-Path -LiteralPath "$script:RootCopyToDirectory\NoDataDetected.txt" | Should -BeFalse
+    }
+
+    It 'still enforces the disk reserve when copying all logs' {
+        $script:FreeSpaceMinusCopiedAndCompressedGB = 10
+        $script:CurrentFreeSpaceGB = 10
+        Mock -CommandName Get-FreeSpace -MockWith { 10 }
+        Copy-FullLogFullPathRecurse -LogPath $script:sourceRoot -CopyToThisLocation $script:RootCopyToDirectory
+        Test-Path -LiteralPath "$script:RootCopyToDirectory\NotEnoughFreeSpace.txt" | Should -BeTrue
+        Test-Path -LiteralPath "$script:RootCopyToDirectory\readable.log" | Should -BeFalse
+        $script:TotalBytesSizeCopied | Should -Be 0
     }
 }

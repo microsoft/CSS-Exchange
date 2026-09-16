@@ -14,8 +14,9 @@ function Copy-BulkItems {
     New-Item -ItemType Directory -Path $CopyToLocation -Force | Out-Null
 
     foreach ($item in $ItemsToCopyLocation) {
+        $copyStarted = $false
         try {
-            if (-not (Test-FreeSpace -FilePaths @($item))) {
+            if (-not (Test-FreeSpace -FilePaths @($item) -CheckOnly)) {
                 Write-Host "Not enough free space to copy over this data set."
                 New-Item -Path ("{0}\NotEnoughFreeSpace.txt" -f $CopyToLocation) -ItemType File -Value (Get-StringDataForNotEnoughFreeSpaceFile -FileSizes $Script:ItemSizesHashed) -Force | Out-Null
                 return
@@ -44,9 +45,23 @@ function Copy-BulkItems {
             }
 
             Write-Verbose "Copying '$($source.FullName)' to '$destination'."
-            Copy-Item -LiteralPath $source.FullName -Destination $destination -ErrorAction Stop
+            $copyStarted = $true
+            $copiedItem = Copy-Item -LiteralPath $source.FullName -Destination $destination -PassThru -ErrorAction Stop
+            $Script:TotalBytesSizeCopied += $copiedItem.Length
+            $Script:FreeSpaceMinusCopiedAndCompressedGB -= $copiedItem.Length / 1GB
         } catch {
             Write-Warning "Failed to copy '$item' to '$CopyToLocation': $($_.Exception.Message)"
+            if ($copyStarted) {
+                try {
+                    if (Test-Path -LiteralPath $destination -ErrorAction Stop) {
+                        Remove-Item -LiteralPath $destination -Force -ErrorAction Stop
+                    }
+                } catch {
+                    $Script:FreeSpaceMinusCopiedAndCompressedGB = 0
+                    Write-Warning "Unable to remove incomplete copy '$destination'. Stopping this batch; free space must be checked again: $($_.Exception.Message)"
+                    return
+                }
+            }
         }
     }
 }
