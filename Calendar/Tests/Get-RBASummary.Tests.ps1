@@ -414,7 +414,7 @@ Describe "Get-RBASummary best-effort report" {
         try {
             . $Script:scriptPath -Identity "room@contoso.com" -SkipVersionCheck *>&1 | Out-Null
             $collectedEvidence = @($script:RBALog)
-            $unknownError = ConvertTo-RbaErrorInfo -ErrorRecord ([PSCustomObject]@{})
+            $unknownError = ConvertTo-CalendarDiagnosticErrorInfo -ErrorRecord ([PSCustomObject]@{})
 
             Invoke-RbaCollectorOperation -Name "RbaLog" -Action {
                 throw [System.InvalidOperationException]::new("RBA log processing failed")
@@ -1382,6 +1382,57 @@ Describe "Get-RBASummary best-effort report" {
         $report.collectors.Place.status | Should -Be "Failed"
         $report.place | Should -BeNullOrEmpty
         $report.evaluationErrors | Should -BeNullOrEmpty
+    }
+}
+
+Describe "Get-RBASummary script layout" {
+    It "keeps the entry script focused on ordered loading and one invocable main call" {
+        $entryScript = Get-Content -Path $Script:scriptPath -Raw
+        $expectedHelperOrder = @(
+            "CalendarHelpers\CalendarDiagnosticHelpers.ps1"
+            "RBAHelpers\RBACollectionHelpers.ps1"
+            "RBAHelpers\RBAEvaluationHelpers.ps1"
+            "RBAHelpers\RBALogHelpers.ps1"
+            "RBAHelpers\RBAReportHelpers.ps1"
+            "..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1"
+            "RBAHelpers\Invoke-RbaSummary.ps1"
+        )
+
+        $previousIndex = -1
+        foreach ($helperPath in $expectedHelperOrder) {
+            $helperIndex = $entryScript.IndexOf($helperPath)
+            $helperIndex | Should -BeGreaterThan $previousIndex
+            $previousIndex = $helperIndex
+        }
+
+        $entryScript | Should -Not -Match "(?m)^function\s+"
+        @([regex]::Matches($entryScript, "(?m)^Invoke-RbaSummary\s+@PSBoundParameters\s*$")).Count |
+            Should -Be 1
+    }
+
+    It "uses approved verb and Rba PascalCase names for RBA helper declarations" {
+        $helperFiles = Get-ChildItem -Path (Join-Path -Path $Script:calendarPath -ChildPath "RBAHelpers\*.ps1")
+
+        foreach ($helperFile in $helperFiles) {
+            $tokens = $null
+            $parseErrors = $null
+            $helperAst = [System.Management.Automation.Language.Parser]::ParseFile(
+                $helperFile.FullName,
+                [ref]$tokens,
+                [ref]$parseErrors)
+            $parseErrors | Should -BeNullOrEmpty
+
+            $functionDeclarations = $helperAst.FindAll({
+                    param($node)
+                    $node -is [System.Management.Automation.Language.FunctionDefinitionAst]
+                }, $true)
+
+            foreach ($functionDeclaration in $functionDeclarations) {
+                $functionDeclaration.Name | Should -Match '^(?<Verb>[A-Z][A-Za-z]*)-Rba[A-Z][A-Za-z0-9]*$'
+                $verb = ($functionDeclaration.Name -split '-', 2)[0]
+                Get-Verb -Verb $verb -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
+            }
+        }
     }
 }
 
