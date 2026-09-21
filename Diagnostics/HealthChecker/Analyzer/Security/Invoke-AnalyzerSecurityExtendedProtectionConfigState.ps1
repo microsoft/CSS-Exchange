@@ -112,32 +112,13 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
                     }
                 }
 
-                $epConfig = {
-                    param ($o, $p)
-                    if ($p -eq "ConfigSupported") {
-                        if ($o.$p -ne $true) {
-                            "Red"
-                        }
-                    } elseif ($p -eq "IPFilterEnabled") {
-                        if ($o.$p -eq $true) {
-                            "Green"
-                        }
-                    } elseif ($p -eq "ConfigSecure") {
-                        if ($o.$p -ne $true) {
-                            "Red"
-                        } else {
-                            "Green"
-                        }
-                    }
-                }
-
                 $epFrontEndParams = $baseParams + @{
                     Name                = "Security Vulnerability"
                     AddHtmlDetailRow    = $false
                     OutColumns          = ([PSCustomObject]@{
-                            DisplayObject      = $epFrontEndOutputObjectDisplayValue
-                            ColorizerFunctions = @($epConfig)
-                            IndentSpaces       = 8
+                            DisplayObject = $epFrontEndOutputObjectDisplayValue
+                            ColorizerIds  = @("ExtendedProtectionConfig")
+                            IndentSpaces  = 8
                         })
                     DisplayTestingValue = $cveList
                 }
@@ -146,9 +127,9 @@ function Invoke-AnalyzerSecurityExtendedProtectionConfigState {
                     Name                = "Security Vulnerability"
                     AddHtmlDetailRow    = $false
                     OutColumns          = ([PSCustomObject]@{
-                            DisplayObject      = $epBackEndOutputObjectDisplayValue
-                            ColorizerFunctions = @($epConfig)
-                            IndentSpaces       = 8
+                            DisplayObject = $epBackEndOutputObjectDisplayValue
+                            ColorizerIds  = @("ExtendedProtectionConfig")
+                            IndentSpaces  = 8
                         })
                     DisplayTestingValue = $cveList
                 }

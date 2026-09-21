@@ -85,33 +85,12 @@ function Invoke-AnalyzerSecurityIISModules {
                     Add-AnalyzedResultInformation @params
                 }
 
-                $iisModulesConfig = {
-                    param ($o, $p)
-                    if ($p -eq "Signer") {
-                        if ($o.$p -eq "N/A") {
-                            "Red"
-                        } else {
-                            "Yellow"
-                        }
-                    } elseif ($p -eq "Status") {
-                        if ($o.$p -eq "Not signed") {
-                            "Red"
-                        } elseif ($o.$p -ne 0) {
-                            "Yellow"
-                        }
-                    } elseif ($p -eq "PathNotFound") {
-                        if ($o.$p -eq $true) {
-                            "Red"
-                        }
-                    }
-                }
-
                 $iisModulesParams = $baseParams + @{
                     Name       = "IIS Modules"
                     OutColumns = ([PSCustomObject]@{
-                            DisplayObject      = $iisModulesOutputList
-                            ColorizerFunctions = @($iisModulesConfig)
-                            IndentSpaces       = 8
+                            DisplayObject = $iisModulesOutputList
+                            ColorizerIds  = @("IisModulesConfig")
+                            IndentSpaces  = 8
                         })
                 }
                 Add-AnalyzedResultInformation @iisModulesParams

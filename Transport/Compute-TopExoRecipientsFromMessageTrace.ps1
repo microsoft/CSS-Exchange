@@ -44,6 +44,8 @@ param
     [int]$TimeoutAfter = 30
 )
 
+. $PSScriptRoot\Shared\Get-AllMessageTraceResultsFunction.ps1
+
 $CreateHourlyReport =
 {
     param($eventList, $Threshold, $hourlyReport)
@@ -96,19 +98,9 @@ $CreateHourlyReport =
 $GetDeliveredMessageTraceEvents =
 {
     param([DateTime]$StartDate, [DateTime]$EndDate, $TimeoutAfter)
-    [DateTime]$timeout = (Get-Date).AddMinutes($TimeoutAfter)
 
-    $pageCount = 1
-    Write-Progress -Activity "Fetching message trace data" -Status "Retrieving initial results (page 1)..."
-    $eventList =Get-MessageTraceV2 -StartDate $StartDate -EndDate $EndDate -WarningVariable MoreResultsAvailable -ResultSize 5000 3>$null
-    while ($MoreResultsAvailable -and (Get-Date) -lt $timeout) {
-        $pageCount++
-        Write-Progress -Activity "Fetching message trace data" -Status "Retrieved $($eventList.Count) messages so far (page $pageCount)..."
-        $Query = ($MoreResultsAvailable -join "").TrimStart("There are more results, use the following command to get more. ")
-        $ScriptBlock = [ScriptBlock]::Create($Query)
-        $moreMessages = Invoke-Command -ScriptBlock $ScriptBlock -WarningVariable MoreResultsAvailable -Verbose:$false 3>$null
-        $eventList += $moreMessages
-    }
+    Write-Progress -Activity "Fetching message trace data" -Status "Retrieving results..."
+    $eventList = Get-AllMessageTraceResults -StartDate $StartDate -EndDate $EndDate -TimeoutMinutes $TimeoutAfter
     Write-Progress -Activity "Fetching message trace data" -Completed
     return $eventList
 }

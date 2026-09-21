@@ -72,15 +72,6 @@ function Invoke-AnalyzerSecuritySettings {
     $tls13NotDisabled = @($tlsSettings.Values | Where-Object { $_.TLSConfiguration -ne "Disabled" -and $_.TLSVersion -eq "1.3" }).Count -gt 0
     Write-Verbose "TLS 1.3 Support - tls13NotDisabled: $tls13NotDisabled TLS 1.3 TLSConfiguration: '$(($tlsSettings['1.3']).TLSConfiguration)'"
 
-    $sbValue = {
-        param ($o, $p)
-        if ($p -eq "Value") {
-            if ($o.$p -eq "NULL" -and -not $o.Location.Contains("1.3")) {
-                "Red"
-            }
-        }
-    }
-
     foreach ($tlsKey in $tlsVersions) {
         $currentTlsVersion = $osInformation.TLSSettings.Registry.TLS[$tlsKey]
         $outputObjectDisplayValue = New-Object System.Collections.Generic.List[object]
@@ -117,11 +108,11 @@ function Invoke-AnalyzerSecuritySettings {
 
         $params = $baseParams + @{
             OutColumns           = ([PSCustomObject]@{
-                    DisplayObject      = $outputObjectDisplayValue
-                    ColorizerFunctions = @($sbValue)
-                    IndentSpaces       = 8
+                    DisplayObject = $outputObjectDisplayValue
+                    ColorizerIds  = @("TlsCipherValue")
+                    IndentSpaces  = 8
                 })
-            OutColumnsColorTests = @($sbValue)
+            OutColumnsColorTests = (Get-HealthCheckerColorizer -ColorizerId "TlsCipherValue")
             HtmlName             = "TLS Settings $tlsKey"
             TestingName          = "TLS Settings Group $tlsKey"
         }
@@ -133,15 +124,6 @@ function Invoke-AnalyzerSecuritySettings {
     $netVersions = @("NETv4", "NETv2")
     $outputObjectDisplayValue = New-Object System.Collections.Generic.List[object]
 
-    $sbValue = {
-        param ($o, $p)
-        if ($p -eq "Value") {
-            if ($o.$p -eq "NULL" -and $o.Location -like "*v4.0.30319") {
-                "Red"
-            }
-        }
-    }
-
     foreach ($netVersion in $netVersions) {
         $currentNetVersion = $osInformation.TLSSettings.Registry.NET[$netVersion]
         $outputObjectDisplayValue.Add((NewDisplayObject "SystemDefaultTlsVersions" -Location $currentNetVersion.MicrosoftRegistryLocation -Value $currentNetVersion.SystemDefaultTlsVersionsValue))
@@ -152,9 +134,9 @@ function Invoke-AnalyzerSecuritySettings {
 
     $params = $baseParams + @{
         OutColumns  = ([PSCustomObject]@{
-                DisplayObject      = $outputObjectDisplayValue
-                ColorizerFunctions = @($sbValue)
-                IndentSpaces       = 8
+                DisplayObject = $outputObjectDisplayValue
+                ColorizerIds  = @("TlsNetValue")
+                IndentSpaces  = 8
             })
         HtmlName    = "TLS NET Settings"
         TestingName = "NET TLS Settings Group"
