@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ManifestFile xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" created="8/18/2026 7:11:52 PM" version="2.0">
+  <Package type="engine" name="Microsoft" platform="amd64" version="2112342123" updatemode="Full" updatemode1="Auto" postupdateaction="Reset" ttl="6">
+    <FullPackage type="CAB" name="microsoft_fullpkg.cab" size="214529388">
+      <hash algorithm="sha256" hash="quVpWy3z7iyybjCIp2Y2e6Yoyd32WGdvnrStFVj0eVU=" />
+    </FullPackage>
+    <Files>
+      <File name="update.ini" path="" datetime="8/18/2026 7:11:50 PM" size="30" csize="111" postupdateaction="reset" zipOrder="0">
+        <hash algorithm="sha256" hash="/5JQUsMubGUnWvfz7mtpVAI/UeOoFg1uqThNcTOFtrs=" chash="/dz9W60OA2Y1NFlv4VKP0jWevAvaHRH0PRZefxN82hc=" />
+      </File>
+      <File name="mpgear.staging.dll" path="" datetime="7/1/2026 6:31:08 AM" size="713112" csize="338106" postupdateaction="reset" zipOrder="1">
+        <hash algorithm="sha256" hash="KVBhtm+jxPjOed2CWwyKZYPb9VHk1eiXf3m8YeYynzc=" chash="hWIUEwtx1j9RtKrPqe+NwbrqG4jE/JuzbaHfhh/upuM=" />
+      </File>
+      <File name="mpgear.prod.dll" path="" datetime="7/1/2026 6:31:08 AM" size="713112" csize="338103" postupdateaction="reset" zipOrder="2">
+        <hash algorithm="sha256" hash="KVBhtm+jxPjOed2CWwyKZYPb9VHk1eiXf3m8YeYynzc=" chash="NNn8lx8T4rrMpFYpsOpeHj4HWcuwLQ6W47gb2QOew40=" />
+      </File>
+      <File name="mpgear.dll" path="" datetime="7/1/2026 6:31:08 AM" size="713112" csize="338098" postupdateaction="reset" zipOrder="3">
+        <hash algorithm="sha256" hash="KVBhtm+jxPjOed2CWwyKZYPb9VHk1eiXf3m8YeYynzc=" chash="NC+cGzOk7wVn4fJBbkUYtVtL4kn+vF5Z88kHr3yuoeA=" />
+      </File>
+      <File name="MpEngineMockMetadata.xml" path="" datetime="2/20/2024 10:13:16 AM" size="137" csize="199" postupdateaction="reset" zipOrder="4">
+        <hash algorithm="sha256" hash="y96dgOeJRcnNimcY0mB9XPXYcuPJw1j1L/bB5fJ4lJk=" chash="FspAkaml5iXgzP8PbZ/8x4OxYtDnYG/mvXmvHRo/ERw=" />
+      </File>
+      <File name="mpengine.dll" path="" datetime="8/18/2026 7:11:08 PM" size="19187008" csize="8440041" postupdateaction="reset" zipOrder="5">
+        <hash algorithm="sha256" hash="2Z3qC9u1Kn8QmcCsGZSueJ33a9Dcmp/varv+HPkRSDw=" chash="OucaGFUcmkFAKP9NuMClwgtu+Bang7iZf+jpZcldgZU=" />
+      </File>
+      <File name="mpavdlta.vdm" path="" datetime="8/18/2026 7:11:12 PM" size="1228704" csize="1224474" postupdateaction="reset" zipOrder="6">
+        <hash algorithm="sha256" hash="4S+Ls2aAluylZKyHnG/lWZ+iyJwpPrISdNtdWUd4yQ4=" chash="heKZMWZW5p+nsZL72p2IkwMnpBhyMqD4M0SytC65O0w=" />
+      </File>
+      <File name="mpavbase.vdm" path="" datetime="8/18/2026 7:11:12 PM" size="62176160" csize="62161344" postupdateaction="reset" zipOrder="7">
+        <hash algorithm="sha256" hash="egBYa2PKojODEimyuhLpng5JvdbSdw1qRjmd8gdDdJc=" chash="mmvUmNFBuV9Bmti+y0wyIFc6SJzLb39eZ6mqXzGsons=" />
+      </File>
+      <File name="mpasdlta.vdm" path="" datetime="8/18/2026 7:11:12 PM" size="2439072" csize="2433606" postupdateaction="reset" zipOrder="8">
+        <hash algorithm="sha256" hash="inWuo91A/UybPxolR6SxM/aKI+zOpvIIwE2dDbGMiNo=" chash="mIHRfvu4NN9BDSeTPiXP8wZDo5JWCb1MUH+TrTCKu8Q=" />
+      </File>
+      <File name="mpasbase.vdm" path="" datetime="8/18/2026 7:11:10 PM" size="139278792" csize="138995236" postupdateaction="reset" zipOrder="9">
+        <hash algorithm="sha256" hash="xd6YlCCjIlvvGoAw/0+TJBMxJm7F7TBscbpVPSInGBE=" chash="lQTj7bN8EOG0olivyqy2erzvR/fUIAYbD/GQkbYIcpc=" />
+      </File>
+      <File name="EngineMetaData.xml" path="" datetime="2/22/2012 2:00:30 PM" size="112" csize="174" postupdateaction="reset" zipOrder="10" processingAction="ignoreIfExists">
+        <hash algorithm="sha256" hash="di/rxT8sQ/7rInCYEfSGH0g7Qnxepstpy2xryhnSCYk=" chash="/Oq6qvdRB4Z979IeMma1nPOqaPsA6HKGe64yKlXaL+E=" />
+      </File>
+      <File name="engineinterface.cab" path="" datetime="2/22/2012 2:00:00 PM" size="6434" csize="4342" postupdateaction="reset" zipOrder="11">
+        <hash algorithm="sha256" hash="wh3Komupdhh84584zTBS8Lq1PqMBWkwY0GVmwh4mBg8=" chash="bSGMRWemjyoO7hFXQjOGTfIxU3fzQriWTXPrJgDN6Tk=" />
+      </File>
+      <File name="avemicrosoft.dll" path="" datetime="8/2/2013 7:57:30 AM" size="356552" csize="165169" postupdateaction="reset" zipOrder="12">
+        <hash algorithm="sha256" hash="2C46iOi2wPy8iFrKd58W6HEuAn4g5FRl25DO8C6cwQc=" chash="sEVOgaMqDG0FnFnDpttUvUPi523QtrE2OLkjRYY/d4g=" />
+      </File>
+    </Files>
+  </Package>
+</ManifestFile>

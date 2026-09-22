@@ -130,16 +130,13 @@ function Invoke-AnalyzerIISInformation {
             })
     }
 
-    #Used for Web App Pools as well
-    $sbStarted = { param($o, $p) if ($p -eq "State") { if ($o."$p" -eq "Started") { "Green" } else { "Red" } } }
-
     $params = $baseParams + @{
         OutColumns           = ([PSCustomObject]@{
-                DisplayObject      = $outputObjectDisplayValue
-                ColorizerFunctions = @($sbStarted)
-                IndentSpaces       = 8
+                DisplayObject = $outputObjectDisplayValue
+                ColorizerIds  = @("IisState")
+                IndentSpaces  = 8
             })
-        OutColumnsColorTests = @($sbStarted)
+        OutColumnsColorTests = (Get-HealthCheckerColorizer -ColorizerId "IisState")
         HtmlName             = "IIS Sites Information"
     }
     Add-AnalyzedResultInformation @params
@@ -313,14 +310,13 @@ function Invoke-AnalyzerIISInformation {
         )
     }
 
-    $sbRestart = { param($o, $p) if ($p -eq "RestartConditionSet") { if ($o."$p") { "Red" } else { "Green" } } }
     $params = $baseParams + @{
         OutColumns           = ([PSCustomObject]@{
-                DisplayObject      = $outputObjectDisplayValue
-                ColorizerFunctions = @($sbStarted, $sbRestart)
-                IndentSpaces       = 8
+                DisplayObject = $outputObjectDisplayValue
+                ColorizerIds  = @("IisState", "IisAppPoolRestart")
+                IndentSpaces  = 8
             })
-        OutColumnsColorTests = @($sbStarted, $sbRestart)
+        OutColumnsColorTests = (Get-HealthCheckerColorizer -ColorizerId "IisState", "IisAppPoolRestart")
         HtmlName             = "Application Pool Information"
     }
     Add-AnalyzedResultInformation @params
@@ -349,28 +345,13 @@ function Invoke-AnalyzerIISInformation {
                     }))
         }
 
-        $sbColorizer = {
-            param($o, $p)
-            switch ($p) {
-                { $_ -in "PrivateMemory", "Memory", "Requests" } {
-                    if ($o."$p" -eq "0") { "Green" } else { "Red" }
-                }
-                "Time" {
-                    if ($o."$p" -eq "00:00:00") { "Green" } else { "Red" }
-                }
-                "Schedule" {
-                    if ($o."$p" -eq "null") { "Green" } else { "Red" }
-                }
-            }
-        }
-
         $params = $baseParams + @{
             OutColumns           = ([PSCustomObject]@{
-                    DisplayObject      = $outputObjectDisplayValue
-                    ColorizerFunctions = @($sbColorizer)
-                    IndentSpaces       = 8
+                    DisplayObject = $outputObjectDisplayValue
+                    ColorizerIds  = @("IisAppPoolRestartMetrics")
+                    IndentSpaces  = 8
                 })
-            OutColumnsColorTests = @($sbColorizer)
+            OutColumnsColorTests = (Get-HealthCheckerColorizer -ColorizerId "IisAppPoolRestartMetrics")
             HtmlName             = "Application Pools Restarts"
         }
         Add-AnalyzedResultInformation @params
