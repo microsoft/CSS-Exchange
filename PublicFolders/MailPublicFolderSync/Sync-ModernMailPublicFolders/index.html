@@ -3780,6 +3780,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#address-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Address handling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#summary-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary output
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -5486,6 +5514,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#address-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Address handling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#summary-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary output
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -5517,18 +5573,54 @@
 <p>Download the latest release: <a href="https://github.com/microsoft/CSS-Exchange/releases/latest/download/Sync-ModernMailPublicFolders.ps1">Sync-ModernMailPublicFolders.ps1</a></p>
 <h2 id="syntax">Syntax</h2>
 <div class="highlight"><pre><span></span><code><span class="nb">Sync-ModernMailPublicFolders</span><span class="p">.</span><span class="n">ps1</span>
-  <span class="p">[</span><span class="n">-ExportFile</span><span class="p">]</span> <span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;</span>
-  <span class="p">[</span><span class="n">-ScriptUpdateOnly</span><span class="p">]</span>
+  <span class="n">-CsvSummaryFile</span> <span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;</span>
+  <span class="p">[</span><span class="n">-Credential</span> <span class="p">&lt;</span><span class="n">PSCredential</span><span class="p">&gt;]</span>
+  <span class="p">[</span><span class="n">-ConnectionUri</span> <span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;]</span>
+  <span class="p">[</span><span class="n">-AzureADAuthorizationEndpointUri</span> <span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;]</span>
+  <span class="p">[</span><span class="n">-Confirm</span> <span class="p">&lt;</span><span class="n">Boolean</span><span class="p">&gt;]</span>
+  <span class="p">[</span><span class="n">-FixInconsistencies</span><span class="p">]</span>
+  <span class="p">[</span><span class="n">-Force</span><span class="p">]</span>
+  <span class="p">[</span><span class="n">-WhatIf</span><span class="p">]</span>
+  <span class="p">[</span><span class="n">-SkipVersionCheck</span><span class="p">]</span>
+  <span class="p">[&lt;</span><span class="n">CommonParameters</span><span class="p">&gt;]</span>
+
+<span class="nb">Sync-ModernMailPublicFolders</span><span class="p">.</span><span class="n">ps1</span>
+  <span class="n">-ScriptUpdateOnly</span>
   <span class="p">[</span><span class="n">-SkipVersionCheck</span><span class="p">]</span>
   <span class="p">[&lt;</span><span class="n">CommonParameters</span><span class="p">&gt;]</span>
 </code></pre></div>
 <h2 id="parameters">Parameters</h2>
 <ul>
+<li><code>-CsvSummaryFile</code> (required for synchronization): Path for the operation summary CSV. The directory must exist and be writable. Existing files are preserved; see <a href="#summary-output">Summary output</a>.</li>
+<li><code>-Credential</code> (optional): Exchange Online credentials. Omit this parameter when using MFA.</li>
+<li><code>-ConnectionUri</code> (optional): Exchange Online connection endpoint. Defaults to <code>https://outlook.office365.com/powerShell-liveID</code>.</li>
+<li><code>-AzureADAuthorizationEndpointUri</code> (optional): Authorization endpoint passed to <code>Connect-ExchangeOnline</code>. When omitted, the Exchange Online module uses its default. For a different cloud, supply the appropriate connection and authorization endpoints together.</li>
+<li><code>-Confirm</code> (optional): Whether to prompt before applying synchronization changes. Defaults to <code>$true</code>.</li>
+<li><code>-FixInconsistencies</code> (optional): Fix inconsistencies identified by the mail-enabled public-folder validation script.</li>
+<li><code>-Force</code> (optional): Bypass the empty-source warning. An empty source can cause all Exchange Online mail-enabled public folders to be removed; use with care.</li>
+<li><code>-WhatIf</code> (optional): Simulate synchronization create, update, and delete commands. Summary files are still written. This does not make <code>-FixInconsistencies</code> a simulation; do not combine the two for a read-only run.</li>
 <li><code>-ScriptUpdateOnly</code> (optional): Only updates the script to the latest released version without performing any other actions.</li>
 <li><code>-SkipVersionCheck</code> (optional): Skips the automatic version check and script update.</li>
 </ul>
 <h2 id="usage">Usage</h2>
 <p>For usage details, please see <a href="https://learn.microsoft.com/en-us/exchange/collaboration/public-folders/migrate-to-exchange-online?view=exchserver-2019">Batch migrate Exchange Server public folders to Microsoft 365 or Office 365 | Microsoft Learn</a>.</p>
+<p>Run from the on-premises Exchange Management Shell with the Exchange Online Management module installed:</p>
+<div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="nb">Sync-ModernMailPublicFolders</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-CsvSummaryFile</span> <span class="p">.\</span><span class="n">sync_summary</span><span class="p">.</span><span class="n">csv</span>
+</code></pre></div>
+<p>For a cloud requiring different endpoints, set both endpoint variables to the values documented for that cloud:</p>
+<div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="nb">Sync-ModernMailPublicFolders</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-CsvSummaryFile</span> <span class="p">.\</span><span class="n">sync_summary</span><span class="p">.</span><span class="n">csv</span> <span class="p">`</span>
+    <span class="n">-ConnectionUri</span> <span class="nv">$connectionUri</span> <span class="p">`</span>
+    <span class="n">-AzureADAuthorizationEndpointUri</span> <span class="nv">$authorizationEndpointUri</span>
+</code></pre></div>
+<p>The script retains the <code>Remote</code> command prefix when applying these overrides. Do not replace its <code>Connect-ExchangeOnline</code> call manually. Connection failures stop synchronization instead of being reported as successful.</p>
+<p>See <a href="https://learn.microsoft.com/powershell/module/exchangepowershell/connect-exchangeonline">Connect-ExchangeOnline</a> for endpoint guidance. Endpoint overrides do not remove the script's download requirements. In a disconnected environment, obtain the current scripts in advance, place <code>ValidateMailEnabledPublicFolders.ps1</code> in the working directory, and use <code>-SkipVersionCheck</code> to skip the update check.</p>
+<h3 id="address-handling">Address handling</h3>
+<p>Address processing accepts individual address strings, string arrays, and collections such as <code>ArrayList</code> or <code>ProxyAddressCollection</code>. Individual proxy-address objects, including <code>SmtpProxyAddress</code>, are read through their <code>ProxyAddressString</code> property. The same normalization is applied during creation, updates, and address consolidation.</p>
+<p>Normalization preserves address casing, including primary <code>SMTP:</code> and secondary <code>smtp:</code> prefixes. Existing rules for legacy X500 and cloud-only addresses are unchanged. Unsupported or empty address entries cause an explicit error rather than silently dropping addresses.</p>
+<h3 id="summary-output">Summary output</h3>
+<p>The script never overwrites an existing summary file. If the requested name already exists, it creates a uniquely named sibling CSV and displays a warning with the new path.</p>
+<p>If an active summary file becomes locked, the script tries opening it up to three times, waiting 200 milliseconds between attempts. If it remains locked, the pending record and subsequent output go to a new sibling CSV with its own header. Earlier records stay in the previous file; retain all summary files listed by the script.</p>
+<p>Other file errors, or failure to write the alternate file, stop execution. A summary-writing failure does not retry an Exchange operation or reclassify a completed operation as a failed migration. Review the recorded operations and error before rerunning synchronization.</p>
 
 
 
@@ -5549,7 +5641,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 9, 2026 11:04:23 UTC">June 9, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 18, 2026 19:59:51 UTC">September 18, 2026</span>
   </span>
 
     
