@@ -445,6 +445,9 @@ while ($currentDiff -gt 0) {
         #Windows
         $ModuleAllowList.Add("prxyqry.DLL")
         $ModuleAllowList.Add("icu.dll")
+        # ICU component libraries shipped next to icu.dll, still present in Windows Server 2025
+        $ModuleAllowList.Add("icuuc.dll")
+        $ModuleAllowList.Add("icuin.dll")
         $ModuleAllowList.Add("TextShaping.dll")
 
         #Windows Fraunhofer IIS MPEG Audio Layer-3 ACM codec - MPEG Audio Layer-3 Codec for MSACM
