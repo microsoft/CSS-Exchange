@@ -172,26 +172,13 @@ function Invoke-AnalyzerOrganizationInformation {
                 })
         }
 
-        # Legacy groups are always flagged Yellow. The Members cell is only highlighted when the
-        # group actually has members; an empty Members count (0) is left at the default color.
-        $legacyGroupsColorizer = {
-            param ($o, $p)
-            if ($p -eq "Members") {
-                if ($o.$p -gt 0) {
-                    "Yellow"
-                }
-            } else {
-                "Yellow"
-            }
-        }
-
         $params = $baseParams + @{
             OutColumns           = ([PSCustomObject]@{
-                    DisplayObject      = $legacyGroupsDisplay
-                    ColorizerFunctions = @($legacyGroupsColorizer)
-                    IndentSpaces       = 12
+                    DisplayObject = $legacyGroupsDisplay
+                    ColorizerIds  = @("LegacyExchangeSecurityGroups")
+                    IndentSpaces  = 12
                 })
-            OutColumnsColorTests = @($legacyGroupsColorizer)
+            OutColumnsColorTests = (Get-HealthCheckerColorizer -ColorizerId "LegacyExchangeSecurityGroups")
             HtmlName             = "Legacy Exchange Security Groups"
             TestingName          = "Legacy Exchange Security Groups Table"
         }
