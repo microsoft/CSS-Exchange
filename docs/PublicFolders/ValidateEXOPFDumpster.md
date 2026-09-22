@@ -25,6 +25,8 @@ ValidateExoPfDumpster.ps1
   [-PFolder <string[]>]
   [-AffectedUser <string[]>]
   [-ExportPath <string[]>]
+  [-ConnectionUri <String>]
+  [-AzureADAuthorizationEndpointUri <String>]
   [-SkipVersionCheck]
 
 ValidateExoPfDumpster.ps1
@@ -36,8 +38,12 @@ ValidateExoPfDumpster.ps1
 - `-PFolder` (required): Identity of the affected public folder to validate.
 - `-AffectedUser` (optional): SMTP address of the affected user when the issue is specific to a single user.
 - `-ExportPath` (optional): Path where the report and log files are generated.
+- `-ConnectionUri` (optional): Exchange Online connection URI passed to `Connect-ExchangeOnline` only when provided. Otherwise, the module's default connection URI is unchanged.
+- `-AzureADAuthorizationEndpointUri` (optional): Microsoft Entra authorization endpoint passed to `Connect-ExchangeOnline` only when provided. Use with the appropriate `-ConnectionUri` for your environment. Otherwise, the module's default authorization endpoint is unchanged.
 - `-ScriptUpdateOnly` (optional): Only updates the script to the latest released version without performing any other actions.
 - `-SkipVersionCheck` (optional): Skips the automatic version check and script update.
+
+The endpoint overrides are available during normal operation, not with `-ScriptUpdateOnly`. They apply only when the script creates a new connection. An existing open Exchange Online PowerShell session is reused unchanged.
 
 ## Output
 
@@ -56,6 +62,12 @@ Typically, the script should run with PFolder identity parameter as illustrated 
 
 ```powershell
 .\ValidateExoPfDumpster.ps1 -PFolder \pf1
+```
+
+To override the Exchange Online endpoints for a new connection, supply the connection and authorization URI values for your environment:
+
+```powershell
+.\ValidateExoPfDumpster.ps1 -PFolder \pf1 -ConnectionUri $connectionUri -AzureADAuthorizationEndpointUri $authorizationEndpointUri
 ```
 
 The script will prompt for affected public folder identity/EntryID if it wasn't provided using PFolder parameter then it will prompt for global administrator username & password to connect to EXO by default it validates if the issue is specific to the Public folder "e.g. all users are affected"
@@ -88,4 +100,3 @@ The script created a log file containing all the required information "PublicFol
 ![Picture of example](PFDumps4.jpg)
 ![Picture of Log files](PFDumps5.jpg)
 ![Picture of Log file to Microsoft personnel](PFDumps6.jpg)
-

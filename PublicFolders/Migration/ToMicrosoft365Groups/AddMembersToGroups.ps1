@@ -31,6 +31,10 @@
 # .PARAMETER ConnectionUri
 #    The Exchange Online remote PowerShell connection uri. If you are an Office 365 operated by 21Vianet customer in China, use "https://partner.outlook.cn/PowerShell".
 #
+# .PARAMETER AzureADAuthorizationEndpointUri
+#    Optional Microsoft Entra authorization endpoint for Exchange Online when ArePublicFoldersOnPremises is $true.
+#    Use with the appropriate ConnectionUri for your environment. When omitted, Connect-ExchangeOnline uses its default authorization endpoint.
+#
 # .PARAMETER WhatIf
 #    The WhatIf switch instructs the script to simulate the actions that it would take on the object. By using the WhatIf switch, you can view what changes would occur
 #    without having to apply any of those changes. You don't have to specify a value with the WhatIf switch.
@@ -87,7 +91,11 @@ param(
     [switch] $ScriptUpdateOnly,
 
     [Parameter(Mandatory=$false)]
-    [switch] $SkipVersionCheck
+    [switch] $SkipVersionCheck,
+
+    [Parameter(Mandatory = $false, ParameterSetName = "Default")]
+    [ValidateNotNullOrEmpty()]
+    [string] $AzureADAuthorizationEndpointUri
 )
 
 . $PSScriptRoot\..\..\..\Shared\ScriptUpdateFunctions\GenericScriptUpdate.ps1
@@ -104,6 +112,9 @@ function InitializeExchangeOnlineRemoteSession() {
 
         if ($null -ne $Credential) {
             $connectParams.Credential = $Credential
+        }
+        if (-not [string]::IsNullOrEmpty($AzureADAuthorizationEndpointUri)) {
+            $connectParams.AzureADAuthorizationEndpointUri = $AzureADAuthorizationEndpointUri
         }
         Connect-ExchangeOnline @connectParams
         $script:isConnectedToExchangeOnline = $true
