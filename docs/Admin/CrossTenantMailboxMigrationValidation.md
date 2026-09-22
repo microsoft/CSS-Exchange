@@ -80,6 +80,20 @@ This will allow you to specify a path to store the exported data from the source
 ### SourceIsOffline
 With this parameter, the script will only connect to target tenant and not source, instead it will rely on the zip file gathered when running this script along with the 'CollectSourceOnly' parameter. When used, you also need to specify the 'PathForCollectedData' parameter pointing to the collected zip file.
 
+### SourceConnectionUri
+Optional connection URI passed to `Connect-ExchangeOnline -ConnectionUri` for the source tenant. If omitted, the Exchange Online module default is used. Ignored with `-SourceIsOffline`.
+
+### SourceAzureADAuthorizationEndpointUri
+Optional authorization endpoint URI passed to `Connect-ExchangeOnline -AzureADAuthorizationEndpointUri` for the source tenant. If omitted, the Exchange Online module default is used. Ignored with `-SourceIsOffline`.
+
+### TargetConnectionUri
+Optional connection URI passed to `Connect-ExchangeOnline -ConnectionUri` for the target tenant. If omitted, the Exchange Online module default is used. Ignored with `-CollectSourceOnly`.
+
+### TargetAzureADAuthorizationEndpointUri
+Optional authorization endpoint URI passed to `Connect-ExchangeOnline -AzureADAuthorizationEndpointUri` for the target tenant. If omitted, the Exchange Online module default is used. Ignored with `-CollectSourceOnly`.
+
+Each endpoint override is independent and can be used with object validation, organization validation, source collection, offline-source validation, or SDP collection, but not with `-ScriptUpdateOnly`. Use the supported endpoint values for the tenant being connected to. These parameters override **Exchange Online connections only**: they do not configure Microsoft Graph environments or enable otherwise unsupported cross-cloud migrations.
+
 ## EXAMPLES
 
 ### EXAMPLE 1
@@ -130,3 +144,20 @@ This will expand the CTMMCollectedSourceData.zip file contents into a folder wit
 ```
 
 This will connect to the Source tenant against AAD and EXO, and will collect all the relevant information (config and user wise) so it can be used passed to the Target tenant admin for the Target validation to be done without the need to connect to the source tenant at the same time.
+
+### EXAMPLE 8
+```powershell
+# Set these variables to the supported endpoint URIs for each tenant.
+$sourceConnectionUri = '<source Exchange Online connection URI>'
+$sourceAuthorizationEndpointUri = '<source Azure AD authorization endpoint URI>'
+$targetConnectionUri = '<target Exchange Online connection URI>'
+$targetAuthorizationEndpointUri = '<target Azure AD authorization endpoint URI>'
+
+.\CrossTenantMailboxMigrationValidation.ps1 -CheckObjects -LogPath C:\Logs\CTMM.log `
+    -SourceConnectionUri $sourceConnectionUri `
+    -SourceAzureADAuthorizationEndpointUri $sourceAuthorizationEndpointUri `
+    -TargetConnectionUri $targetConnectionUri `
+    -TargetAzureADAuthorizationEndpointUri $targetAuthorizationEndpointUri
+```
+
+This validates objects using independent connection and authorization endpoint overrides for each Exchange Online tenant. Omit any override to retain the module default for that parameter. For source-only collection, use the source overrides; for offline-source validation, use the target overrides.

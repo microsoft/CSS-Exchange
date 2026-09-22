@@ -10,6 +10,10 @@
 # Import-PublicFolderMailboxes.ps1 -ConnectionUri <cloud url>
 #
 # The above example imports public folder mailbox objects from cloud as mail enabled users to on-premise.
+#
+# .PARAMETER AzureADAuthorizationEndpointUri
+#    Optional Microsoft Entra authorization endpoint for Exchange Online. Use with the appropriate ConnectionUri for your environment.
+#    When omitted, Connect-ExchangeOnline uses its default authorization endpoint.
 [CmdletBinding(DefaultParameterSetName = "Default")]
 param (
     [Parameter(Mandatory = $false)]
@@ -23,7 +27,11 @@ param (
     [switch] $ScriptUpdateOnly,
 
     [Parameter(Mandatory = $false)]
-    [switch] $SkipVersionCheck
+    [switch] $SkipVersionCheck,
+
+    [Parameter(Mandatory = $false, ParameterSetName = "Default")]
+    [ValidateNotNullOrEmpty()]
+    [string] $AzureADAuthorizationEndpointUri
 )
 
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\GenericScriptUpdate.ps1
@@ -42,6 +50,9 @@ function CreateTenantSession() {
 
         if ($null -ne $Credential) {
             $connectParams.Credential = $Credential
+        }
+        if (-not [string]::IsNullOrEmpty($AzureADAuthorizationEndpointUri)) {
+            $connectParams.AzureADAuthorizationEndpointUri = $AzureADAuthorizationEndpointUri
         }
         Connect-ExchangeOnline @connectParams
     } else {

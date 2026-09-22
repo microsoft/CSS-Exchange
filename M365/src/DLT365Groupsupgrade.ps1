@@ -1,9 +1,28 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+<#
+.SYNOPSIS
+    Checks whether a distribution group is eligible for upgrade to a Microsoft 365 group.
+
+.PARAMETER ConnectionUri
+    Optional Exchange Online connection endpoint. When omitted, the module uses its default.
+
+.PARAMETER AzureADAuthorizationEndpointUri
+    Optional authorization endpoint for Connect-ExchangeOnline. Use the endpoint appropriate for your cloud together with ConnectionUri.
+#>
+
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('CustomRules\AvoidUsingReadHost', '', Justification = 'Do not want to change logic of script as of now')]
 [CmdletBinding()]
-param()
+param(
+    [Parameter(Mandatory = $false)]
+    [ValidateNotNullOrEmpty()]
+    [string]$ConnectionUri,
+
+    [Parameter(Mandatory = $false)]
+    [ValidateNotNullOrEmpty()]
+    [string]$AzureADAuthorizationEndpointUri
+)
 
 #Create working folder on the logged user desktop
 $ts = Get-Date -Format yyyyMMdd_HHmmss
@@ -31,6 +50,16 @@ function log {
     $PSobject | Export-Csv $ExportPath\DlToO365GroupUpgradeChecksLogging.csv -NoTypeInformation -Append
 }
 function Connect2EXO {
+    $connectParams = @{
+        ErrorAction = "Stop"
+    }
+    if (-not [string]::IsNullOrEmpty($ConnectionUri)) {
+        $connectParams.ConnectionUri = $ConnectionUri
+    }
+    if (-not [string]::IsNullOrEmpty($AzureADAuthorizationEndpointUri)) {
+        $connectParams.AzureADAuthorizationEndpointUri = $AzureADAuthorizationEndpointUri
+    }
+
     try {
         #Validate EXO V2 is installed
         if ((Get-Module | Where-Object { $_.Name -like "ExchangeOnlineManagement" }).count -eq 1) {
@@ -39,7 +68,7 @@ function Connect2EXO {
             $CurrentStatus = "Success"
             log -CurrentStatus $CurrentStatus -Function "Importing EXO V2 Module" -CurrentDescription $CurrentDescription
             Write-Warning "Connecting to EXO V2, please enter Global administrator credentials when prompted!"
-            Connect-ExchangeOnline -ErrorAction Stop
+            Connect-ExchangeOnline @connectParams
             $CurrentDescription = "Connecting to EXO V2"
             $CurrentStatus = "Success"
             log -CurrentStatus $CurrentStatus -Function "Connecting to EXO V2" -CurrentDescription $CurrentDescription
@@ -53,7 +82,7 @@ function Connect2EXO {
             $CurrentStatus = "Success"
             log -CurrentStatus $CurrentStatus -Function "Installing & Importing EXO V2 powershell module" -CurrentDescription $CurrentDescription
             Write-Warning "Connecting to EXO V2, please enter Global administrator credentials when prompted!"
-            Connect-ExchangeOnline -ErrorAction Stop
+            Connect-ExchangeOnline @connectParams
             $CurrentDescription = "Connecting to EXO V2"
             $CurrentStatus = "Success"
             log -CurrentStatus $CurrentStatus -Function "Connecting to EXO V2" -CurrentDescription $CurrentDescription
