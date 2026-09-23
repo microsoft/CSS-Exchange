@@ -952,16 +952,20 @@ Describe "Check-SharingStatus structured diagnostics" {
             $script:SharingFindings.ruleId | Should -Not -Contain "SHR122"
         }
 
-        It "outputs the detailed owner calendar property set" {
+        It "outputs only relevant owner calendar properties" {
             $output = GetOwnerInformation -Owner "owner@contoso.com" | Out-String
 
             foreach ($propertyName in @(
-                    "Identity", "CreationTime", "PublishEnabled", "ExtendedFolderFlags",
+                    "Identity", "CreationTime", "PublishEnabled", "ExtendedFolderFlags")) {
+                $output | Should -Match "$propertyName\s+:"
+            }
+
+            foreach ($propertyName in @(
                     "CalendarSharingFolderFlags", "CalendarSharingOwnerSmtpAddress",
                     "CalendarSharingPermissionLevel", "SharingLevelOfDetails",
                     "SharingPermissionFlags", "LastAttemptedSyncTime",
                     "LastSuccessfulSyncTime", "SharedCalendarSyncStartDate")) {
-                $output | Should -Match "$propertyName\s+:"
+                $output | Should -Not -Match "$propertyName\s+:"
             }
         }
 
@@ -1132,6 +1136,25 @@ Describe "Check-SharingStatus structured diagnostics" {
             $script:OwnerCalendarFolderPathSpecified = $true
             $script:NormalizedOwnerCalendarFolderPath = "\Calendar\Missing"
             $script:RequestedOwnerCalendarLeafName = "Missing"
+            Mock Get-MailboxFolderStatistics {
+                @(
+                    [PSCustomObject]@{
+                        FolderType           = "Calendar"
+                        Name                 = "Calendar"
+                        FolderPath           = "/Calendar"
+                        FolderSize           = "1 KB (1,024 bytes)"
+                        VisibleItemsInFolder = 10
+                    },
+                    [PSCustomObject]@{
+                        FolderType           = "User Created"
+                        Name                 = "Renamed Calendar"
+                        FolderPath           = "/Renamed Calendar"
+                        FolderSize           = "1 KB (1,024 bytes)"
+                        VisibleItemsInFolder = 52
+                    }
+                )
+            }
+            Mock Write-Host {}
 
             GetOwnerInformation -Owner "owner@contoso.com"
 
@@ -1139,6 +1162,11 @@ Describe "Check-SharingStatus structured diagnostics" {
             $script:CollectorStatuses["OwnerFolderStatistics"].status | Should -Be "NoData"
             ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR110").status |
                 Should -Be "NotEvaluated"
+            Should -Invoke Write-Host -ParameterFilter {
+                ($Object -match "Name\s+FolderPath\s+ItemsInFolder") -and
+                ($Object -match "Calendar\s+/Calendar\s+10") -and
+                ($Object -match "Renamed Calendar\s+/Renamed Calendar\s+52")
+            }
             Should -Not -Invoke Get-MailboxFolderPermission
             Should -Not -Invoke Get-MailboxCalendarFolder
             Should -Not -Invoke Get-CalendarActiveSharingInformation
@@ -1858,6 +1886,19 @@ Describe "Check-SharingStatus structured diagnostics" {
             Should -Not -Invoke Write-Host -ParameterFilter {
                 $Object -eq "No confirmed issues were detected with the evidence available."
             }
+        }
+
+        It "wraps long finding evidence without truncation" {
+            $longEvidence = ("Long evidence text " * 12) + "END-EVIDENCE"
+            Add-SharingFinding -RuleId "SHR231" -Status Detected -Evidence $longEvidence
+
+            $output = Write-SharingSummary `
+                -Owner "owner@contoso.com" `
+                -Receiver "receiver@contoso.com" |
+                Out-String -Width 100
+
+            $output | Should -Match "END-EVIDENCE"
+            $output | Should -Not -Match "\.\.\."
         }
     }
 }

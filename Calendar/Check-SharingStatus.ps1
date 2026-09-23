@@ -1209,6 +1209,17 @@ function Resolve-OwnerCalendarPrerequisite {
             "The requested owner calendar folder path matched more than one folder."
         }
         Write-Host -ForegroundColor Red "$selectionReason Requested owner-relative path: [$($script:NormalizedOwnerCalendarFolderPath)]."
+        if ($script:OwnerCalendarStats.Count -gt 0) {
+            Write-Host -ForegroundColor Yellow "Available Owner Calendar folders returned by Get-MailboxFolderStatistics:"
+            $availableOwnerCalendarTable = $script:OwnerCalendarStats |
+                Sort-Object -Property FolderPath |
+                Format-Table -AutoSize -Property Name, FolderPath, @{
+                    Label      = "ItemsInFolder"
+                    Expression = { $_.VisibleItemsInFolder }
+                } |
+                Out-String
+            Write-Host $availableOwnerCalendarTable
+        }
         Add-SharingFinding -RuleId "SHR110" -Status NotEvaluated -Area "Owner calendar prerequisite" -Evidence @{
             folderPath = $script:NormalizedOwnerCalendarFolderPath
             reason     = $selectionReason
@@ -1752,7 +1763,7 @@ function GetOwnerInformation {
     Write-Host -ForegroundColor DarkYellow "Owner Calendar Folder Information:"
     Write-Host -ForegroundColor DarkYellow "`t Using prerequisite result from 'Get-MailboxCalendarFolder `"$($script:OwnerCalendarFolderIdentity)`"'"
     $OwnerCalendarFolder = $script:OwnerCalendarFolder
-    $OwnerCalendarFolder | Format-List Identity, CreationTime, PublishEnabled, ExtendedFolderFlags, CalendarSharingFolderFlags, CalendarSharingOwnerSmtpAddress, CalendarSharingPermissionLevel, SharingLevelOfDetails, SharingPermissionFlags, LastAttemptedSyncTime, LastSuccessfulSyncTime, SharedCalendarSyncStartDate
+    $OwnerCalendarFolder | Format-List Identity, CreationTime, PublishEnabled, ExtendedFolderFlags
     if ($OwnerCalendarFolder.PublishEnabled) {
         Write-Host -ForegroundColor Green "Owner Calendar is Published."
         $script:OwnerPublished = $true
@@ -2317,7 +2328,7 @@ function Write-SharingSummary {
                 title               = $rootFinding.title
                 evidence            = $script:ConsoleFindingEvidence[$rootFinding.ruleId]
                 recommendedNextStep = $rootFinding.recommendedNextStep
-            } | Format-Table -AutoSize
+            } | Format-Table -AutoSize -Wrap
         }
         if ($script:CollectionErrors.Count -gt 0) {
             Write-Host -ForegroundColor Red "Root prerequisite collection failure:"
@@ -2354,7 +2365,7 @@ function Write-SharingSummary {
                 }
             } |
             Sort-Object -Property @{ Expression = { $severityOrder[$_.severity] } }, ruleId |
-            Format-Table -AutoSize -Property severity, ruleId, title, evidence, recommendedNextStep
+            Format-Table -AutoSize -Wrap -Property severity, ruleId, title, evidence, recommendedNextStep
     }
 
     Write-Host -ForegroundColor Blue "`r`rIncomplete Checks:"
@@ -2374,7 +2385,7 @@ function Write-SharingSummary {
                 }
             } |
             Sort-Object -Property @{ Expression = { $severityOrder[$_.severity] } }, ruleId |
-            Format-Table -AutoSize -Property severity, ruleId, title, evidence, recommendedNextStep
+            Format-Table -AutoSize -Wrap -Property severity, ruleId, title, evidence, recommendedNextStep
         if ($script:CollectionErrors.Count -gt 0) {
             Write-Host -ForegroundColor Yellow "Collection failures:"
             $script:CollectionErrors | Format-Table -AutoSize -Property collector, error
