@@ -5,7 +5,7 @@
 #Requires -Modules Microsoft.Graph.Authentication
 # Get-MgUserMessage
 #Requires -Modules Microsoft.Graph.Mail
-# Get-EXOMailbox Get-ConnectionInformation Get-MessageTrace
+# Get-EXOMailbox Get-ConnectionInformation Get-MessageTraceV2
 #Requires -Modules ExchangeOnlineManagement -Version 3.0.0
 
 # How to connect:
@@ -219,7 +219,7 @@ if ($SenderAddress) { $traceParams["SenderAddress"] = $SenderAddress }
 if ($MessageId) { $traceParams["MessageId"] = $MessageId }
 
 try {
-    [array]$failedMessages = Get-MessageTrace @traceParams -ErrorAction Stop
+    [array]$failedMessages = Get-MessageTraceV2 @traceParams -ErrorAction Stop
 } catch {
     Write-Host "Error: $_.Exception.Message" -ForegroundColor Red
     exit
