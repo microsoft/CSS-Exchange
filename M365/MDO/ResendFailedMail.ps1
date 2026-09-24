@@ -6,7 +6,7 @@
 # Get-MgUserMessage
 #Requires -Modules Microsoft.Graph.Mail
 # Get-EXOMailbox Get-ConnectionInformation Get-MessageTraceV2
-#Requires -Modules ExchangeOnlineManagement -Version 3.0.0
+#Requires -Modules @{ ModuleName="ExchangeOnlineManagement"; ModuleVersion="3.7.0" }
 
 # How to connect:
 # $ClientSecretCredential = Get-Credential -Credential "[YOUR APP ID HERE]"
