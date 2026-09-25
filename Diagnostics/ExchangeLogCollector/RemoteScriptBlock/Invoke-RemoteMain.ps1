@@ -389,11 +389,33 @@ function Invoke-RemoteMain {
     }
 
     if ($PassedInfo.IISLogs) {
-
-        Get-IISLogDirectory |
+        $iisCollectionTime = Get-Date
+        $iisSources = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::OrdinalIgnoreCase)
+        $iisDestinations = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::OrdinalIgnoreCase)
+        $iisDirectoryParameters = @{
+            LogStartDate               = $iisCollectionTime - $PassedInfo.TimeSpan
+            LogEndDate                 = $iisCollectionTime - $PassedInfo.EndTimeSpan
+            IncludeAdditionalLocations = $true
+        }
+        Get-IISLogDirectory @iisDirectoryParameters |
             ForEach-Object {
-                $copyTo = "{0}\IIS_{1}_Logs" -f $Script:RootCopyToDirectory, ($_.Substring($_.LastIndexOf("\") + 1))
-                Add-LogCopyBasedOffTimeTaskAction $_ $copyTo
+                $sourcePath = [System.IO.Path]::GetFullPath($_)
+                if ($iisSources.Add($sourcePath.TrimEnd('\'))) {
+                    $leaf = [System.IO.Path]::GetFileName($sourcePath.TrimEnd('\'))
+                    if ([string]::IsNullOrWhiteSpace($leaf) -or $leaf.EndsWith(':')) { $leaf = 'Root' }
+                    $copyTo = "IIS_${leaf}_Logs"
+                    if (-not $iisDestinations.Add($copyTo)) {
+                        $sourceId = Get-LogSourceIdentifier -Path $sourcePath
+                        $copyTo = "IIS_${leaf}_Logs__$sourceId"
+                        $duplicate = 2
+                        while (-not $iisDestinations.Add($copyTo)) {
+                            $copyTo = "IIS_${leaf}_Logs__${sourceId}_$duplicate"
+                            $duplicate++
+                        }
+                    }
+                    Write-Verbose "IIS collection source '$sourcePath' maps to '$copyTo'."
+                    Add-LogCopyBasedOffTimeTaskAction -LogPath $sourcePath -CopyToThisLocation $copyTo
+                }
             }
 
         Add-LogCopyBasedOffTimeTaskAction "$env:SystemRoot`\System32\LogFiles\HTTPERR" "HTTPERR_Logs"
