@@ -5,6 +5,7 @@
 
 . $PSScriptRoot\Load-Module.ps1
 . $PSScriptRoot\CodeFormatterChecks\CheckContainsCurlyQuotes.ps1
+. $PSScriptRoot\CodeFormatterChecks\CheckBacktickLineContinuation.ps1
 . $PSScriptRoot\CodeFormatterChecks\CheckFileHasNewlineAtEndOfFile.ps1
 . $PSScriptRoot\CodeFormatterChecks\CheckMarkdownFileHasNoBOM.ps1
 . $PSScriptRoot\CodeFormatterChecks\CheckMultipleEmptyLines.ps1
@@ -59,6 +60,7 @@ function Invoke-CodeFormatterOnFiles {
         $errorCount += (CheckTokenTypeCasing $fileInfo $Save "Operator") ? 1 : 0
         $errorCount += (CheckMultipleEmptyLines $fileInfo $Save) ?  1 : 0
         $errorCount += (CheckContainsCurlyQuotes $fileInfo $Save) ? 1 : 0
+        $errorCount += (CheckBacktickLineContinuation $fileInfo $Save) ? 1 : 0
 
         $results = @(CheckScriptFormat $fileInfo $Save)
         if ($results.Length -gt 0 -and $results[0] -eq $true) {
