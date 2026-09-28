@@ -57,6 +57,11 @@ function Invoke-RemoteMain {
             }
         }
 
+        if ($PassedInfo.MRSProxyLogs -and $Script:localServerObject.Mailbox) {
+            Add-DefaultLogCopyTaskAction -LogPath "$Script:localExInstall`Logging\MailboxReplicationService" -CopyToThisLocation "MRS_Logs"
+            Add-DefaultLogCopyTaskAction -LogPath "$Script:localExInstall`Logging\MrsProxyAuthorization" -CopyToThisLocation "MRS_Proxy_Authorization_Logs"
+        }
+
         if ($PassedInfo.RPCLogs) {
 
             if ($Script:localServerObject.Mailbox) {

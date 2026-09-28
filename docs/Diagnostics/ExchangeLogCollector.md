@@ -52,6 +52,14 @@ This cmdlet will collect all relevant data regarding IIS Logs (within the last 3
 .\ExchangeLogCollector.ps1 -Servers EXCH1,EXCH2 -IISLogs -RPCLogs
 ```
 
+This command collects MRS and MRSProxy logs together with EWS and IIS logs for the last three days from EXCH1 and EXCH2:
+
+```powershell
+.\ExchangeLogCollector.ps1 -Servers EXCH1,EXCH2 -MRSProxyLogs -DaysWorth 3
+```
+
+`-MRSProxyLogs` collects existing logs from the default `Logging\MailboxReplicationService` and `Logging\MrsProxyAuthorization` directories under the Exchange installation path on Exchange 2013 and later Mailbox servers. The first directory is shared by MRS and MRSProxy. It also enables `-EWSLogs` and `-IISLogs`, including HTTP error logs, so a single switch collects the migration service and HTTP request logs. The switch uses the standard time filtering and compression behavior and is included in `-AllPossibleLogs`. It does not enable tracing or change server configuration. Customized MRS logging locations must be collected separately.
+
 This cmdlet will collect all relevant data regarding Message Tracking Logs and Protocol Logs for the past 3 hours from the servers EXCH1 and EXCH2 and store them at the default location of "C:\MS_Logs_Collection"
 
 ```
@@ -90,6 +98,7 @@ ManagedAvailabilityLogs | Enable to collect the Managed Availability Logs. Locat
 MapiLogs | Enable to collect MAPI Logs. Location: `V15\Logging\MAPI Client Access`, `V15\Logging\MapiHttp\Mailbox`, and `V15\Logging\HttpProxy\Mapi`
 MessageTrackingLogs | Enable to collect the Message Tracking Logs. Location: `(Get-TransportService $server).MessageTrackingLogPath`
 MitigationService | Enable to collect the Mitigation Service logs. Location: `V15\Logging\MitigationService`
+MRSProxyLogs | Collect existing MRS/MRSProxy logs on Mailbox servers. Default locations: `V15\Logging\MailboxReplicationService` and `V15\Logging\MrsProxyAuthorization`. Also enables `EWSLogs` and `IISLogs`. Included in `-AllPossibleLogs`. Does not enable tracing.
 OABLogs | Enable to collect OAB Logs. Location: `V15\Logging\HttpProxy\OAB`, `V15\Logging\OABGeneratorLog`, `V15\Logging\OABGeneratorSimpleLog`, and `V15\Logging\MAPI AddressBook Service`
 OrganizationConfig | Enable to collect the Organization Configuration from the environment.
 OWALogs | Enable to collect OWA Logs. Location: `V15\Logging\OWA`, `Logging\HttpProxy\OwaCalendar`, and `V15\Logging\HttpProxy\Owa`
