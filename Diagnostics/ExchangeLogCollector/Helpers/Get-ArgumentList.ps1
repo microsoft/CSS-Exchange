@@ -65,6 +65,7 @@ function Get-ArgumentList {
         MasterServer                   = $Script:MasterServer
         MessageTrackingLogs            = $MessageTrackingLogs
         MitigationService              = $MitigationService
+        MRSProxyLogs                   = $MRSProxyLogs
         OABLogs                        = $OABLogs
         OWALogs                        = $OWALogs
         PipelineTracingLogs            = $PipelineTracingLogs
