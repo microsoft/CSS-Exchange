@@ -74,6 +74,19 @@
 .PARAMETER SourceIsOffline
         With this parameter, the script will only connect to target tenant and not source, instead it will rely on the zip file gathered when running this script along with the 'CollectSourceOnly' parameter. When used, you also need to specify the 'PathForCollectedData' parameter pointing to the collected zip file.
 
+.PARAMETER SourceConnectionUri
+        Optional Exchange Online connection URI for the source tenant. If omitted, the Exchange Online module default is used. Ignored when SourceIsOffline is used.
+
+.PARAMETER SourceAzureADAuthorizationEndpointUri
+        Optional Azure AD authorization endpoint URI for the source Exchange Online connection. If omitted, the Exchange Online module default is used. Ignored when SourceIsOffline is used.
+
+.PARAMETER TargetConnectionUri
+        Optional Exchange Online connection URI for the target tenant. If omitted, the Exchange Online module default is used. Ignored when CollectSourceOnly is used.
+
+.PARAMETER TargetAzureADAuthorizationEndpointUri
+        Optional Azure AD authorization endpoint URI for the target Exchange Online connection. If omitted, the Exchange Online module default is used. Ignored when CollectSourceOnly is used.
+        These endpoint overrides apply only to Exchange Online, not Microsoft Graph connections, and do not enable otherwise unsupported cross-cloud migrations.
+
 .EXAMPLE
         .\CrossTenantMailboxMigrationValidation.ps1 -CheckObjects -LogPath C:\Temp\LogFile.txt
         This will prompt you to type the source mailbox identity and the target identity, will establish 2 EXO remote powershell sessions (one to the source tenant and another one to the target tenant), and will check the objects.
@@ -105,6 +118,10 @@
 .EXAMPLE
         .\CrossTenantMailboxMigrationValidation.ps1 -CollectSourceOnly -PathForCollectedData c:\temp -LogPath C:\temp\CTMMCollectSource.log
         This will connect to the Source tenant against AAD and EXO, and will collect only the SOURCE tenant/org level configuration (no mailbox-specific data), compressing it into a zip file that can be passed to the Target tenant admin.
+
+.EXAMPLE
+        .\CrossTenantMailboxMigrationValidation.ps1 -CheckObjects -LogPath C:\Logs\CTMM.log -SourceConnectionUri $sourceConnectionUri -SourceAzureADAuthorizationEndpointUri $sourceAuthorizationEndpointUri -TargetConnectionUri $targetConnectionUri -TargetAzureADAuthorizationEndpointUri $targetAuthorizationEndpointUri
+        Set the variables to the supported connection and authorization endpoint URIs for each tenant before running. Each override is optional and independent, and applies only to that tenant's Exchange Online connection.
 .#>
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('CustomRules\AvoidUsingReadHost', '', Justification = 'Do not want to change logic of script as of now')]
@@ -141,7 +158,35 @@ param (
     [Parameter(Mandatory = $False, ParameterSetName = "SDP")]
     [switch]$SkipVersionCheck,
     [Parameter(Mandatory = $true, ParameterSetName = "ScriptUpdateOnly")]
-    [switch]$ScriptUpdateOnly
+    [switch]$ScriptUpdateOnly,
+    [Parameter(ParameterSetName = "ObjectsValidation")]
+    [Parameter(ParameterSetName = "OfflineMode")]
+    [Parameter(ParameterSetName = "CollectMode")]
+    [Parameter(ParameterSetName = "OrgsValidation")]
+    [Parameter(ParameterSetName = "SDP")]
+    [ValidateNotNullOrEmpty()]
+    [string]$SourceConnectionUri,
+    [Parameter(ParameterSetName = "ObjectsValidation")]
+    [Parameter(ParameterSetName = "OfflineMode")]
+    [Parameter(ParameterSetName = "CollectMode")]
+    [Parameter(ParameterSetName = "OrgsValidation")]
+    [Parameter(ParameterSetName = "SDP")]
+    [ValidateNotNullOrEmpty()]
+    [string]$SourceAzureADAuthorizationEndpointUri,
+    [Parameter(ParameterSetName = "ObjectsValidation")]
+    [Parameter(ParameterSetName = "OfflineMode")]
+    [Parameter(ParameterSetName = "CollectMode")]
+    [Parameter(ParameterSetName = "OrgsValidation")]
+    [Parameter(ParameterSetName = "SDP")]
+    [ValidateNotNullOrEmpty()]
+    [string]$TargetConnectionUri,
+    [Parameter(ParameterSetName = "ObjectsValidation")]
+    [Parameter(ParameterSetName = "OfflineMode")]
+    [Parameter(ParameterSetName = "CollectMode")]
+    [Parameter(ParameterSetName = "OrgsValidation")]
+    [Parameter(ParameterSetName = "SDP")]
+    [ValidateNotNullOrEmpty()]
+    [string]$TargetAzureADAuthorizationEndpointUri
 )
 
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
@@ -149,27 +194,40 @@ param (
 $wsh = New-Object -ComObject WScript.Shell
 
 function ConnectToEXOTenants {
-    #Connect to SourceTenant (EXO)
-    Write-Verbose -Message "Informational: Connecting to SOURCE EXO tenant"
-    $wsh.Popup("You're about to connect to source tenant (EXO), please provide the SOURCE tenant admin credentials", 0, "SOURCE tenant") | Out-Null
-    Connect-ExchangeOnline -Prefix Source -ShowBanner:$false
-
-    #Connect to TargetTenant (EXO)
-    Write-Verbose -Message "Informational: Connecting to TARGET EXO tenant"
-    $wsh.Popup("You're about to connect to target tenant (EXO), please provide the TARGET tenant admin credentials", 0, "TARGET tenant") | Out-Null
-    Connect-ExchangeOnline -Prefix Target -ShowBanner:$false
+    ConnectToSourceEXOTenant
+    ConnectToTargetEXOTenant
 }
 function ConnectToSourceEXOTenant {
     #Connect to SourceTenant (EXO)
     Write-Verbose -Message "Informational: Connecting to SOURCE EXO tenant"
     $wsh.Popup("You're about to connect to source tenant (EXO), please provide the SOURCE tenant admin credentials", 0, "SOURCE tenant") | Out-Null
-    Connect-ExchangeOnline -Prefix Source -ShowBanner:$false
+    $connectionParameters = @{
+        Prefix     = "Source"
+        ShowBanner = $false
+    }
+    if ($SourceConnectionUri) {
+        $connectionParameters.ConnectionUri = $SourceConnectionUri
+    }
+    if ($SourceAzureADAuthorizationEndpointUri) {
+        $connectionParameters.AzureADAuthorizationEndpointUri = $SourceAzureADAuthorizationEndpointUri
+    }
+    Connect-ExchangeOnline @connectionParameters
 }
 function ConnectToTargetEXOTenant {
     #Connect to SourceTenant (EXO)
     Write-Verbose -Message "Informational: Connecting to TARGET EXO tenant"
     $wsh.Popup("You're about to connect to target tenant (EXO), please provide the TARGET tenant admin credentials", 0, "TARGET tenant") | Out-Null
-    Connect-ExchangeOnline -Prefix Target -ShowBanner:$false
+    $connectionParameters = @{
+        Prefix     = "Target"
+        ShowBanner = $false
+    }
+    if ($TargetConnectionUri) {
+        $connectionParameters.ConnectionUri = $TargetConnectionUri
+    }
+    if ($TargetAzureADAuthorizationEndpointUri) {
+        $connectionParameters.AzureADAuthorizationEndpointUri = $TargetAzureADAuthorizationEndpointUri
+    }
+    Connect-ExchangeOnline @connectionParameters
 }
 function CheckObjects {
 

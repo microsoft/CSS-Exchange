@@ -11,6 +11,10 @@
 # Sync-MailPublicFoldersCloudToOnprem.ps1 -ConnectionUri <cloud url> -CsvSummaryFile <path for the summary file>
 #
 # The above example imports new mail public folders objects from Exchange Online as sync mail public folders to on-premise.
+#
+# .PARAMETER AzureADAuthorizationEndpointUri
+#    Optional Microsoft Entra authorization endpoint for Exchange Online. Use with the appropriate ConnectionUri for your environment.
+#    When omitted, Connect-ExchangeOnline uses its default authorization endpoint.
 [CmdletBinding(DefaultParameterSetName = "Default")]
 param (
     [Parameter(Mandatory=$false, ParameterSetName="Default")]
@@ -28,7 +32,11 @@ param (
     [switch] $ScriptUpdateOnly,
 
     [Parameter(Mandatory=$false)]
-    [switch] $SkipVersionCheck
+    [switch] $SkipVersionCheck,
+
+    [Parameter(Mandatory = $false, ParameterSetName = "Default")]
+    [ValidateNotNullOrEmpty()]
+    [string] $AzureADAuthorizationEndpointUri
 )
 
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\GenericScriptUpdate.ps1
@@ -106,6 +114,9 @@ function InitializeExchangeOnlineRemoteSession() {
 
             if ($null -ne $Credential) {
                 $connectParams.Credential = $Credential
+            }
+            if (-not [string]::IsNullOrEmpty($AzureADAuthorizationEndpointUri)) {
+                $connectParams.AzureADAuthorizationEndpointUri = $AzureADAuthorizationEndpointUri
             }
             Connect-ExchangeOnline @connectParams
             $script:isConnectedToExchangeOnline = $true

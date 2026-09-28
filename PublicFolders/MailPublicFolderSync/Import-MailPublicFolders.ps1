@@ -16,6 +16,10 @@
 # Example input to the script:
 #
 # Import-MailPublicFolders.ps1 -ToCloud
+#
+# .PARAMETER AzureADAuthorizationEndpointUri
+#    Optional Microsoft Entra authorization endpoint for Exchange Online. Use with the appropriate ConnectionUri for your environment.
+#    When omitted, Connect-ExchangeOnline uses its default authorization endpoint.
 
 [CmdletBinding(DefaultParameterSetName = "Default")]
 param (
@@ -32,7 +36,11 @@ param (
     [switch] $ScriptUpdateOnly,
 
     [Parameter(Mandatory=$false)]
-    [switch] $SkipVersionCheck
+    [switch] $SkipVersionCheck,
+
+    [Parameter(Mandatory = $false, ParameterSetName = "Default")]
+    [ValidateNotNullOrEmpty()]
+    [string] $AzureADAuthorizationEndpointUri
 )
 
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\GenericScriptUpdate.ps1
@@ -41,7 +49,8 @@ param (
 function CreateTenantSession() {
     param (
         [string] $ConnUri,
-        [PSCredential] $Credential
+        [PSCredential] $Credential,
+        [string] $AzureADAuthorizationEndpointUri
     )
 
     Import-Module -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
@@ -54,6 +63,9 @@ function CreateTenantSession() {
 
         if ($null -ne $Credential) {
             $connectParams.Credential = $Credential
+        }
+        if (-not [string]::IsNullOrEmpty($AzureADAuthorizationEndpointUri)) {
+            $connectParams.AzureADAuthorizationEndpointUri = $AzureADAuthorizationEndpointUri
         }
         Connect-ExchangeOnline @connectParams
     } else {
@@ -212,7 +224,7 @@ function ImportMailPublicFolders() {
 ################################ BEGINNING OF SCRIPT ################################
 
 # Create a PSSession for this organization
-CreateTenantSession -ConnUri $ConnectionUri -Credential $Credential
+CreateTenantSession -ConnUri $ConnectionUri -Credential $Credential -AzureADAuthorizationEndpointUri $AzureADAuthorizationEndpointUri
 
 # Determine the guid of the organization from where to export objects
 $organizationGuid = GetOrganizationGuid -targetForest $ToCloud
