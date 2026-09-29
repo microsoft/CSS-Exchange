@@ -1195,6 +1195,42 @@ Describe "Check-SharingStatus structured diagnostics" {
             $script:SharingFindings.ruleId | Should -Contain "SHR231"
         }
 
+        It "requests more access when receiver calendar folder names are redacted" {
+            $Script:receiverStats = @(
+                [PSCustomObject]@{
+                    FolderType             = "Calendar"
+                    Name                   = "REDACTED-Calendar00"
+                    FolderPath             = "REDACTED-Calendar00"
+                    FolderSize             = "338.8 MB"
+                    FolderAndSubfolderSize = "338.8 MB (355,266,492 bytes)"
+                    VisibleItemsInFolder   = 349
+                },
+                [PSCustomObject]@{
+                    FolderType             = "User Created"
+                    Name                   = "REDACTED-User Created01"
+                    FolderPath             = "REDACTED-User Created01"
+                    FolderSize             = "13.04 MB"
+                    FolderAndSubfolderSize = "13.04 MB (13,670,864 bytes)"
+                    VisibleItemsInFolder   = 435
+                }
+            )
+            Mock Write-Host {}
+
+            GetReceiverInformation -Receiver "receiver@contoso.com"
+
+            Should -Invoke Write-Host -ParameterFilter {
+                $Object -eq "Cannot read [Owner Display] calendar folder names. Get more access."
+            }
+            Should -Not -Invoke Write-Host -ParameterFilter {
+                $Object -like "Warning: Could not Identify the Owner's*"
+            }
+            $script:PIIAccess | Should -BeFalse
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR201").status |
+                Should -Be "Detected"
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR213").status |
+                Should -Be "NotEvaluated"
+        }
+
         It "reports duplicate local folders" {
             $Script:receiverStats += [PSCustomObject]@{
                 FolderType           = "User Created"

@@ -1902,6 +1902,17 @@ function GetReceiverInformation {
         $receiverFolderStatsAvailable = $false
     }
     $CalStats | Format-Table -a FolderPath, VisibleItemsInFolder, FolderAndSubfolderSize
+    $receiverCalendarFolderNamesRedacted = @($CalStats | Where-Object -FilterScript {
+            ([string]$_.Name -match "^\s*REDACTED-") -or
+            ([string]$_.FolderPath -match "^\s*[\\/]*\s*REDACTED-")
+        }).Count -gt 0
+    if ($receiverCalendarFolderNamesRedacted) {
+        Write-Host -ForegroundColor Yellow "Cannot read [$selectedOwnerCalendarName] calendar folder names. Get more access."
+        $script:PIIAccess = $false
+        Add-SharingFinding -RuleId "SHR201" -Status Detected -Area "PII access" -Evidence @{
+            reason = "Receiver calendar folder names are redacted."
+        }
+    }
     $receiverDefaultCalendar = $CalStats |
         Where-Object -Property FolderType -EQ "Calendar" |
         Select-Object -First 1
@@ -2021,17 +2032,13 @@ function GetReceiverInformation {
             Write-Host -ForegroundColor Yellow "Warning: Might have found more than one copy of the Owner Calendar in the Receiver Mailbox."
         }
     } else {
-        if ($script:OwnerCalendarFolderPathSpecified) {
+        if ($receiverCalendarFolderNamesRedacted) {
+            Write-Verbose "Receiver calendar folder matching was skipped because folder names are redacted."
+        } elseif ($script:OwnerCalendarFolderPathSpecified) {
             Write-Host -ForegroundColor Yellow "Warning: Could not identify the selected Owner Calendar [$selectedOwnerCalendarName] in the Receiver Mailbox."
         } else {
             Write-Host -ForegroundColor Yellow "Warning: Could not Identify the Owner's [$Owner] Calendar in the Receiver Mailbox."
         }
-    }
-
-    if ($ReceiverCalendarName -like "REDACTED-*" ) {
-        Write-Host -ForegroundColor Yellow "Do Not have PII information for the Receiver"
-        $script:PIIAccess = $false
-        Add-SharingFinding -Severity Warning -Area "PII access" -Issue "Receiver PII was redacted, limiting folder matching." -Evidence "The receiver default calendar name begins with REDACTED-." -RecommendedNextStep "Obtain PII access for the receiver mailbox database and rerun the pair diagnostics." -Incomplete
     }
 
     ProcessCalendarSharingAcceptLogs -Identity $Receiver
@@ -2123,7 +2130,13 @@ function GetReceiverInformation {
 
         if ($receiverFolderStatsAvailable -and
             ($null -eq $script:ReceiverMatchedCalendar)) {
-            Add-SharingFinding -Severity Error -Area "Receiver calendar folders" -Issue "A local folder for the expected owner was not found." -Evidence "Receiver calendar folder statistics and pair-specific calendar entries did not uniquely identify a folder for owner [$Owner]." -RecommendedNextStep "Inspect invite/accept logs and Get-CalendarEntries for the owner/receiver pair."
+            if ($receiverCalendarFolderNamesRedacted) {
+                Add-SharingFinding -RuleId "SHR213" -Status NotEvaluated -Evidence @{
+                    reason = "Receiver calendar folder names are redacted."
+                }
+            } else {
+                Add-SharingFinding -Severity Error -Area "Receiver calendar folders" -Issue "A local folder for the expected owner was not found." -Evidence "Receiver calendar folder statistics and pair-specific calendar entries did not uniquely identify a folder for owner [$Owner]." -RecommendedNextStep "Inspect invite/accept logs and Get-CalendarEntries for the owner/receiver pair."
+            }
         }
 
         Compare-CalendarFolderStatistics `
@@ -2293,8 +2306,10 @@ function GetReceiverInformation {
             # $SharingRepair = Export-MailboxDiagnosticLogs $Receiver -ComponentName CalendarSharingInconsistencyRepair
         } else {
             $script:CollectorStatuses["ReceiverLocalCalendarFolder"] = [PSCustomObject]@{ status = "NotEvaluated"; error = $null }
-            Write-Host "Do Not have PII information for the Owner, so can not check the Receivers Copy of the Owner Calendar."
-            Write-Host "Get PII Access for both mailboxes and try again."
+            if (-not $receiverCalendarFolderNamesRedacted) {
+                Write-Host "Do Not have PII information for the Owner, so can not check the Receivers Copy of the Owner Calendar."
+                Write-Host "Get PII Access for both mailboxes and try again."
+            }
             Add-SharingFinding -Severity Warning -Area "Receiver calendar folder" -Issue "The receiver local-folder detail check could not be completed." -Evidence "PII access or a uniquely matched owner folder was unavailable." -RecommendedNextStep "Obtain required PII access, confirm the folder using Get-CalendarEntries, and rerun the pair diagnostics." -Incomplete
         }
     }

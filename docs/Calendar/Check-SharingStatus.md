@@ -94,6 +94,7 @@ The detailed console output always contains full-fidelity values. Structured dia
 - Mailbox information and the likely sharing type.
 - The local folder corresponding to the selected owner calendar.
 - Missing, duplicate, or numerically suffixed local folders.
+- Redacted receiver folder names, with guidance to obtain more access before matching the owner's calendar.
 - Accepted sharing invite logs.
 - Pair-specific New and Old sharing-model entries.
 - Orphaned sharing entries.
