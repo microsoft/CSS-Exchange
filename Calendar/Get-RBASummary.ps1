@@ -1,772 +1,95 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
+# cspell:ignore Goid
 
+# .SYNOPSIS
+# Collects and summarizes Resource Booking Assistant configuration, permissions, and diagnostic log evidence.
 #
 # .DESCRIPTION
-# This script runs the Get-CalendarProcessing cmdlet and returns the output with more details in clear english,
-# highlighting the key settings that affect RBA and some of the common errors in configuration.
+# Collects Exchange resource-mailbox, CalendarProcessing, permission, inbox-rule, Place, and RBA diagnostic-log
+# evidence. It produces a human-readable summary, a structured JSON report, and a readable RBA log file when
+# diagnostic log evidence is available. Mailbox existence and resource type are validated before the remaining
+# collectors run; after that validation, independent collectors continue after non-fatal failures.
+#
+# Use Subject to locate recent retained RBA processing by a case-insensitive subject substring. The script extracts
+# meeting IDs from matching blocks and then correlates processing by meeting ID. If the subject resolves to multiple
+# IDs, each meeting is reported separately. Use MeetingId to target one clean global object ID directly.
 #
 # .PARAMETER Identity
-# Address of Resource Mailbox to query
+# Identity of the room or equipment mailbox to query. An SMTP address is recommended.
+#
+# .PARAMETER Subject
+# Case-insensitive literal subject substring used to discover retained meeting processing. After meeting IDs are
+# extracted, correlation uses those IDs. Subject cannot be combined with MeetingId. MeetingSubject remains an alias.
+#
+# .PARAMETER MeetingId
+# Clean global object ID used to select retained RBA processing directly. A comma after the documented 040000008
+# prefix is normalized for correlation. MeetingId cannot be combined with Subject.
+#
+# .PARAMETER IncludeSensitiveData
+# Includes full-fidelity identities, complete RBA log content, and transcript content in the JSON report. Without
+# this switch, identities are sanitized; Subject and MeetingId searches still include targeted sensitive evidence.
+#
+# .PARAMETER SkipVersionCheck
+# Skips the automatic script update check. Intended primarily for controlled testing.
 #
 # .EXAMPLE
 # .\Get-RBASummary.ps1 -Identity Room1@Contoso.com
-# or
+#
+# Collects a standard sanitized report for the resource mailbox.
+#
+# .EXAMPLE
 # .\Get-RBASummary.ps1 -Identity Room1@Contoso.com -Verbose
+#
+# Collects a standard report and displays additional configuration explanations.
+#
+# .EXAMPLE
+# .\Get-RBASummary.ps1 -Identity Room1@Contoso.com -Subject "Quarterly planning"
+#
+# Searches retained RBA logs for the subject, extracts meeting IDs, and reports each resolved meeting separately.
+#
+# .EXAMPLE
+# .\Get-RBASummary.ps1 -Identity Room1@Contoso.com -MeetingId "04000000800E00074C5A7101A82E00700000000..."
+#
+# Searches retained RBA logs directly for one meeting ID.
+#
+# .EXAMPLE
+# .\Get-RBASummary.ps1 -Identity Room1@Contoso.com -IncludeSensitiveData
+#
+# Includes complete identities, RBA log evidence, and transcript content in the JSON report. Handle the generated
+# files as sensitive customer data.
+#
+# .OUTPUTS
+# Creates timestamp-correlated text summary and JSON report files in the current directory. When RBA diagnostic log
+# evidence is available, also creates a readable RBA log text file. The script writes progress to the host.
+#
+# .NOTES
+# The targeted meeting and full reports can contain meeting subjects, identities, timestamps, and processing details.
+# Review collectionErrors, evaluationErrors, and NotEvaluated findings before relying on a partial report.
 
 [CmdletBinding()]
 param (
     [Parameter(Mandatory = $true, Position = 0)]
-    [string]$Identity
+    [string]$Identity,
+
+    [Alias("MeetingSubject")]
+    [ValidateNotNullOrEmpty()]
+    [string]$Subject,
+
+    [ValidateNotNullOrEmpty()]
+    [string]$MeetingId,
+
+    [switch]$IncludeSensitiveData,
+
+    [switch]$SkipVersionCheck
 )
 
-$BuildVersion = ""
-
+. $PSScriptRoot\CalendarHelpers\CalendarDiagnosticHelpers.ps1
+. $PSScriptRoot\RBAHelpers\RBACollectionHelpers.ps1
+. $PSScriptRoot\RBAHelpers\RBAEvaluationHelpers.ps1
+. $PSScriptRoot\RBAHelpers\RBALogHelpers.ps1
+. $PSScriptRoot\RBAHelpers\RBAReportHelpers.ps1
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
+. $PSScriptRoot\RBAHelpers\Invoke-RbaSummary.ps1
 
-if (Test-ScriptVersion -AutoUpdate) {
-    # Update was downloaded, so stop here.
-    Write-Host "Script was updated. Please rerun the command."  -ForegroundColor Yellow
-    return
-}
-
-Write-Verbose "Script Versions: $BuildVersion"
-
-$SummaryFilename = "RBA-Summary-For_$($Identity.Split('@')[0])_$((Get-Date).ToString('yyyy-MM-dd_HH-mm-ss')).txt"
-Write-Host "`r`nRBA Summary Output saved as [" -NoNewline
-Write-Host -ForegroundColor Cyan $SummaryFilename -NoNewline
-Write-Host "] in the current directory."
-Start-Transcript -Path $SummaryFilename
-Write-Host "`r`n"
-
-function ValidateMailbox {
-    Write-Host -NoNewline "Running : "; Write-Host -ForegroundColor Cyan "Get-Mailbox -Identity $Identity"
-    $script:Mailbox = Get-Mailbox -Identity $Identity
-
-    # check we get a response
-    if ($null -eq $script:Mailbox) {
-        Write-Host -ForegroundColor Red "Get-Mailbox returned null. Make sure you Import-Module ExchangeOnlineManagement and  Connect-ExchangeOnline. Exiting script."
-        Stop-Transcript
-        exit
-    } else {
-        if ($script:Mailbox.RecipientTypeDetails -ne "RoomMailbox" -and $script:Mailbox.RecipientTypeDetails -ne "EquipmentMailbox") {
-            Write-Host -ForegroundColor Red "The mailbox is not a Room Mailbox / Equipment Mailbox. RBA will only work with these. Exiting script."
-            Stop-Transcript
-            exit
-        }
-        if ($script:Mailbox.ResourceType -eq "Workspace") {
-            $script:Workspace = $true
-        }
-        Write-Host -ForegroundColor Green "The mailbox is valid for RBA will work with."
-    }
-
-    # Get-Place does not cross forest boundaries so we will get an error here if we are not in the right forest.
-    Write-Host -NoNewline "Running : "; Write-Host -ForegroundColor Cyan "Get-Place -Identity $Identity"
-    $script:Place = Get-Place $Identity
-
-    if ($null -eq $script:Place) {
-        Write-Error "Error: Get-Place returned Null for $Identity."
-        Write-Host -ForegroundColor Red "Make sure you are running from the correct forest.  Get-Place does not cross forest boundaries."
-        Write-Host "Hint Forest is likely something like: [$($script:Mailbox.Database.split("DG")[0])]."
-        Write-Error "Exiting Script."
-        Stop-Transcript
-        exit
-    }
-
-    Write-Host -ForegroundColor Yellow "For more information see https://learn.microsoft.com/en-us/powershell/module/exchange/get-mailbox?view=exchange-ps"
-    Write-Host
-}
-
-# Validate that there are not delegate rules that will block RBA functionality
-function ValidateInboxRules {
-    Write-Host "Checking for Delegate Rules that will block RBA functionality..."
-    Write-Host -NoNewline "Running : "; Write-Host -ForegroundColor Cyan "Get-InboxRule -mailbox $Identity -IncludeHidden"
-    [array]$rules = Get-InboxRule -mailbox $Identity -IncludeHidden
-    # Note as far as I can tell "Delegate Rule <GUID>" is not localized.
-    if ($rules.Name -like "Delegate Rule*") {
-        Write-Host -ForegroundColor Red "Error: There is a user style Delegate Rule setup on this resource mailbox. This will block RBA functionality. Please remove the rule via Remove-InboxRule cmdlet and re-run this script."
-        Write-Host -NoNewline "Rule to look into: "
-        Write-Host -ForegroundColor Red "$($rules.Name -like "Delegate Rule*")"
-        Write-Host -ForegroundColor Red "Exiting script."
-        Stop-Transcript
-        exit
-    } elseif ($rules.Name -like "REDACTED-*") {
-        Write-Host -ForegroundColor Yellow "Warning: No PII Access to MB so cannot check for Delegate Rules."
-        Write-Host -ForegroundColor Yellow "To gain PII access, Mailbox is located on $($mailbox.Database) on server $($mailbox.ServerName)"
-        if ($null -eq $rules.count -or $rules.count -eq 1) {
-            Write-Host -ForegroundColor Yellow "Warning: One rule has been found, which is likely the default Junk Mail rule."
-            Write-Host -ForegroundColor Yellow "Warning: You should verify that this is not a Delegate Rule setup on this resource mailbox. Delegate rules will block RBA functionality. Please remove the rule via Remove-InboxRule cmdlet and re-run this script."
-        } elseif ($rules.count -gt 1) {
-            Write-Host -ForegroundColor Red " --- Inbox Rules needs to be checked manually for any Delegate Rules. --"
-            Write-Host -ForegroundColor Red "Warning: Multiple rules have been found on this resource mailbox. Only the Default Junk Mail rule is expected.  Depending on the rules setup, this may block RBA functionality."
-            Write-Host -ForegroundColor Red "Warning: Please remove the rule(s) via Remove-InboxRule cmdlet and re-run this script."
-        }
-    } else {
-        Write-Host -ForegroundColor Green "Delegate Rules check passes."
-    }
-}
-
-# Retrieve the CalendarProcessing information
-function GetCalendarProcessing {
-    Write-Host -NoNewline "Running : "; Write-Host -ForegroundColor Cyan "Get-CalendarProcessing -Identity $Identity"
-    $script:RbaSettings = Get-CalendarProcessing -Identity $Identity
-
-    # check we get a response
-    if ($null -eq $RbaSettings) {
-        Write-Host -ForegroundColor Red "Get-CalendarProcessing returned null.
-                Make sure you Import-Module ExchangeOnlineManagement
-                and  Connect-ExchangeOnline
-                Exiting script."
-        Stop-Transcript
-        exit
-    }
-
-    $RbaSettings | Format-List
-
-    Write-Host -ForegroundColor Yellow "For more information on Set-CalendarProcessing see
-                https://learn.microsoft.com/en-us/powershell/module/exchange/set-calendarprocessing?view=exchange-ps"
-    Write-Host
-}
-
-function EvaluateCalProcessing {
-
-    if ($RbaSettings.AutomateProcessing -ne "AutoAccept") {
-        Write-Host -ForegroundColor Red "Error: AutomateProcessing is not set to AutoAccept. RBA will not work as configured."
-        Write-Host -ForegroundColor Red "Error: For RBA to do anything AutomateProcessing must be set to AutoAccept."
-        Write-Host -ForegroundColor Red "Error: AutomateProcessing is set to $($RbaSettings.AutomateProcessing)."
-        Write-Host -ForegroundColor Yellow "Use 'Set-CalendarProcessing -Identity $Identity -AutomateProcessing AutoAccept' to set AutomateProcessing to AutoAccept."
-        Write-Host -ForegroundColor Red "Exiting script."
-        Stop-Transcript
-        exit
-    } else {
-        Write-Host -ForegroundColor Green "AutomateProcessing is set to AutoAccept. RBA will analyze the meeting request."
-    }
-}
-
-# RBA processing logic
-function ProcessingLogic {
-    Write-DashLineBoxColor @("RBA Processing Logic") -DashChar =
-    @"
-        The RBA first evaluates a request against all the policy configuration constraints assigned in the calendar
-        processing object for the resource mailbox.
-
-        This will result in the request either being in-policy or out-of-policy. The RBA then reads the recipient well
-        values to determine where to send or handle in-policy requests and out-of-policy requests.
-
-        Lastly if the Request is accepted, the PostProcessing steps will be performed.
-"@
-}
-
-function RBACriteria {
-    Write-DashLineBoxColor @("Policy Configuration") -Color Cyan -DashChar =
-
-    Write-Host " The following criteria are used to determine if a meeting request is in-policy or out-of-policy. "
-    Write-Host -ForegroundColor Cyan @"
-    `t Setting                          Value
-    `t ------------------------------  -----------------------------
-    `t AllowConflicts:                 $($RbaSettings.AllowConflicts)
-    `t AllowDistributionGroup:         $($RbaSettings.AllowDistributionGroup)
-    `t AllowMultipleResources:         $($RbaSettings.AllowMultipleResources)
-    `t MaximumDurationInMinutes:       $($RbaSettings.MaximumDurationInMinutes)
-    `t MinimumDurationInMinutes:       $($RbaSettings.MinimumDurationInMinutes)
-    `t AllowRecurringMeetings:         $($RbaSettings.AllowRecurringMeetings)
-    `t ScheduleOnlyDuringWorkHours:    $($RbaSettings.ScheduleOnlyDuringWorkHours)
-    `t ProcessExternalMeetingMessages: $($RbaSettings.ProcessExternalMeetingMessages)
-    `t BookingWindowInDays:            $($RbaSettings.BookingWindowInDays)
-    `t ConflictPercentageAllowed:      $($RbaSettings.ConflictPercentageAllowed)
-    `t MaximumConflictInstances:       $($RbaSettings.MaximumConflictInstances)
-    `t MaximumConflictPercentage:      $($RbaSettings.MaximumConflictPercentage)
-    `t EnforceSchedulingHorizon:       $($RbaSettings.EnforceSchedulingHorizon)
-"@
-    Write-Host -NoNewline "`r`nIf all the above criteria are met, the request is "
-    Write-Host -ForegroundColor Yellow -NoNewline "In-Policy."
-    Write-Host -NoNewline "`r`nIf any of the above criteria are not met, the request is "
-    Write-Host -ForegroundColor DarkYellow -NoNewline  "Out-of-Policy."
-    Write-Host
-
-    # RBA processing settings Verbose Output
-    $RBACriteriaExtra = ""
-
-    if ($RbaSettings.AllowConflicts -eq $true) {
-        $RBACriteriaExtra += "Unlimited conflicts are allowed. This is Required for Workspaces.`r`n"
-    } elseif ($RbaSettings.ConflictPercentageAllowed -eq 0 `
-            -and $RbaSettings.MaximumConflictInstances -eq 0) {
-        $RBACriteriaExtra += "No conflicts are allowed.`r`n"
-    } else {
-        $RBACriteriaExtra += "For Recurring meetings, conflicts are allowed as long as they are less than $($RbaSettings.ConflictPercentageAllowed)% or less than $($RbaSettings.MaximumConflictInstances) instances.`r`n"
-    }
-
-    if ($RbaSettings.AllowDistributionGroup -eq $true) {
-        $RBACriteriaExtra += "Distribution groups are allowed.`r`n"
-    } else {
-        $RBACriteriaExtra += "Distribution groups are not allowed.`r`n"
-    }
-
-    if ($RbaSettings.AllowMultipleResources -eq $true) {
-        $RBACriteriaExtra += "Multiple resources are allowed.`r`n"
-    } else {
-        $RBACriteriaExtra += "Multiple resources are not allowed.`r`n"
-    }
-
-    if ($RbaSettings.MaximumDurationInMinutes -gt 0) {
-        $RBACriteriaExtra += "Maximum meeting duration is $($RbaSettings.MaximumDurationInMinutes) minutes.`r`n"
-    }
-
-    if ($RbaSettings.MinimumDurationInMinutes -gt 0) {
-        $RBACriteriaExtra += "Minimum meeting duration is $($RbaSettings.MinimumDurationInMinutes) minutes.`r`n"
-    }
-
-    if ($RbaSettings.AllowRecurringMeetings -eq $true) {
-        $RBACriteriaExtra += "Recurring meetings are allowed.`r`n"
-    } else {
-        $RBACriteriaExtra += "Recurring meetings are not allowed.`r`n"
-    }
-
-    if ($RbaSettings.ScheduleOnlyDuringWorkHours -eq $true) {
-        $RBACriteriaExtra += "Meetings are only allowed during work hours.`r`n"
-    } else {
-        $RBACriteriaExtra += "Meetings are allowed at any time.`r`n"
-    }
-
-    if ($RbaSettings.EnforceSchedulingHorizon -eq $true -and $RbaSettings.BookingWindowInDays -gt 0) {
-        $RBACriteriaExtra += "Meetings are only allowed if it starts within $($RbaSettings.BookingWindowInDays) days.`r`n"
-    } else {
-        $RBACriteriaExtra += "SchedulingHorizon is not enforced.`r`n"
-    }
-
-    if ($RbaSettings.ProcessExternalMeetingMessages -eq $true) {
-        $RBACriteriaExtra += "External meeting requests will be evaluated.`r`n"
-    } else {
-        $RBACriteriaExtra += "RBA will reject all External meeting requests.`r`n"
-    }
-
-    $RBACriteriaExtra += "Meetings will only be accepted if within $($RbaSettings.BookingWindowInDays) days.`r`n"
-
-    Write-Verbose $RBACriteriaExtra
-}
-
-# RBA processing settings
-function RBAProcessingValidation {
-    Write-DashLineBoxColor @("Policy Processing:") -DashChar =
-
-    # check for False null False null False null - RBA is configured to do nothing.
-    if ($RbaSettings.RequestOutOfPolicy.Count -eq 0 `
-            -and $RbaSettings.AllRequestOutOfPolicy -eq $false `
-            -and $RbaSettings.BookInPolicy.Count -eq 0 `
-            -and $RbaSettings.AllBookInPolicy -eq $false `
-            -and $RbaSettings.RequestInPolicy.Count -eq 0 `
-            -and $RbaSettings.AllRequestInPolicy -eq $false ) {
-        Write-Host -ForegroundColor Red "`r`n Error: The RBA isn't configured to process items. No RBA processing of Meeting Requests will occur."
-        Write-Host -ForegroundColor Red "Consider configuring the properties below to process all requests.  (Default is null, True, null, False, null, True)."
-        Write-Host
-        Write-Host "`t RequestOutOfPolicy:            {$($RbaSettings.RequestOutOfPolicy)}"
-        Write-Host "`t AllRequestOutOfPolicy:        "$RbaSettings.AllRequestOutOfPolicy
-        Write-Host "`t BookInPolicy:                  {$($RbaSettings.BookInPolicy)}"
-        Write-Host "`t AllBookInPolicy:              "$RbaSettings.AllBookInPolicy
-        Write-Host "`t RequestInPolicy:               {$($RbaSettings.RequestInPolicy)}"
-        Write-Host "`t AllRequestInPolicy:           "$RbaSettings.AllRequestInPolicy
-        Write-Host -ForegroundColor Red "Exiting script."
-        Stop-Transcript
-        exit
-    }
-}
-
-# Write out a list of Mailboxes
-# We get CN from the cmdlet and want Display Name and Primary SMTP Address
-function OutputMBList {
-    param (
-        [Parameter(Mandatory)]
-        [string[]]$MBList
-    )
-    foreach ($User in $MBList) {
-        # MS Support will error as we need the Organization to process from CN
-        $Org = $Identity.Split('@')[1]
-
-        if ($null -ne $Org) {
-            $User = Get-Recipient -Identity $User -organization $Org
-            Write-Host " `t `t [$($User.DisplayName)] -- $($User.PrimarySmtpAddress)"
-        } else {
-            $User = Get-Recipient -Identity $User
-            Write-Host " `t `t [$($User.DisplayName)] -- $($User.PrimarySmtpAddress)"
-        }
-    }
-}
-
-function InPolicyProcessing {
-    # In-policy request processing
-    Write-DashLineBoxColor @("  In-Policy request processing:") -Color Yellow
-
-    if ($RbaSettings.BookInPolicy.Count -eq 0) {
-        Write-Host "`t BookInPolicy:                     {$($RbaSettings.BookInPolicy)}"
-    } else {
-        Write-Host "`t BookInPolicy:                     These $($RbaSettings.BookInPolicy.count) accounts do not require the delegate approval."
-        OutputMBList($RbaSettings.BookInPolicy)
-    }
-    Write-Host "`t AllBookInPolicy:                 "$RbaSettings.AllBookInPolicy
-    Write-Host "`t RequestInPolicy:                  {$($RbaSettings.RequestInPolicy)}"
-    Write-Host "`t AllRequestInPolicy:              "$RbaSettings.AllRequestInPolicy
-    Write-Host
-
-    if ($RbaSettings.AllBookInPolicy -eq $true) {
-        Write-Host "- The RBA will process (auto-book) all in-policy meetings. (Default)"
-        Write-Host "`t Note - This supersedes the all of the other in-policy setting."
-    } else {
-        if ($RbaSettings.BookInPolicy.Count -gt 0) {
-            Write-Host "- The RBA will process (auto-book / accept) in-policy requests from this list of Users:"
-            OutputMBList($RbaSettings.BookInPolicy)
-        }
-
-        Write-Host "- RBA will forward all in-policy meetings to the resource delegates."
-
-        if ($RbaSettings.AllRequestInPolicy -eq $true) {
-            Write-Host "- All users are allowed to submit in-policy requests to the resource delegates."
-        } else {
-            Write-Host "- Users are not allowed to submit request for this resource. (Default)"
-        }
-    }
-}
-
-# Out-of-policy request processing
-function OutOfPolicyProcessing {
-    Write-DashLineBoxColor @("  Out-of-Policy request processing:") -Color DarkYellow
-    if ($RbaSettings.RequestOutOfPolicy.Count -gt 0) {
-        Write-Host "`t RequestOutOfPolicy:           These {$($RbaSettings.RequestOutOfPolicy.Count)} accounts are allowed to submit out-of-policy requests (that require approval by a resource delegate)."
-        OutputMBList($RbaSettings.RequestOutOfPolicy)
-    } else {
-        Write-Host "`t RequestOutOfPolicy:               {$($RbaSettings.RequestOutOfPolicy)}"
-    }
-    Write-Host "`t AllRequestOutOfPolicy:           "$RbaSettings.AllRequestOutOfPolicy
-
-    if ($RbaSettings.AllRequestOutOfPolicy -eq $true ) {
-        Write-Host -ForegroundColor Yellow "Information: - All users are allowed to submit out-of-policy requests to the resource mailbox. Out-of-policy requests require approval by a resource mailbox delegate."
-
-        if ($RbaSettings.RequestOutOfPolicy.count -gt 0) {
-            Write-Host -ForegroundColor Magenta "Warning: The users that are listed in RequestOutOfPolicy are overridden by the AllRequestOutOfPolicy as everyone can submit out of policy requests."
-        }
-    } else {
-        if ($RbaSettings.RequestOutOfPolicy.count -eq 0) {
-            Write-Host "- No User can submit out-of-policy requests to this resource mailbox. (Default)"
-        } else {
-            Write-Host "- Only the users in the RequestOutOfPolicy list can submit out-of-policy requests to this resource mailbox."
-        }
-    }
-}
-
-# RBA Delegate Settings
-function RBADelegateSettings {
-    Write-DashLineBoxColor @("Resource Delegate Settings") -Color White
-
-    if ($RbaSettings.ResourceDelegates.Count -eq 0) {
-        Write-Host "`t ResourceDelegates:               "$RbaSettings.ResourceDelegates
-    } else {
-        Write-Host "`t ResourceDelegates:               $($RbaSettings.ResourceDelegates.Count) Resource Delegate`(s`) have been configured."
-        OutputMBList($RbaSettings.ResourceDelegates)
-    }
-
-    Write-Host "`t AddNewRequestsTentatively:       "$RbaSettings.AddNewRequestsTentatively
-    Write-Host "`t ForwardRequestsToDelegates:      "$RbaSettings.ForwardRequestsToDelegates
-    Write-Host
-
-    # Check for known configuration issues to warn about:
-    if ($RbaSettings.ResourceDelegates.Count -gt 0) {
-        if ($RbaSettings.AddNewRequestsTentatively -eq $true) {
-            Write-Host "In-policy meetings will be marked tentative and the meeting request will be sent to the Resource Delegates to be accepted or rejected. Default"
-        } else {
-            Write-Host -ForegroundColor Yellow "Warning: Only existing calendar items will be updated by the Calendar Attendant."
-        }
-
-        if ($RbaSettings.ForwardRequestsToDelegates -eq $true ) {
-            if ($RbaSettings.AllBookInPolicy -eq $true) {
-                Write-Host -ForegroundColor White "Information: Delegate(s) will not receive any In Policy requests as they will be AutoApproved."
-            } elseif ($RbaSettings.BookInPolicy.Count -gt 0 ) {
-                Write-Host -ForegroundColor White "Information: Delegate(s) will not receive requests from users in the BookInPolicy as they will be AutoApproved."
-                OutputMBList($RbaSettings.BookInPolicy)
-            }
-
-            if ($RbaSettings.AllRequestOutOfPolicy -eq $false) {
-                if ($RbaSettings.RequestOutOfPolicy.Count -eq 0 ) {
-                    Write-Host -ForegroundColor Yellow "Warning: Delegate(s) will not receive any Out of Policy requests as they will all be AutoDenied."
-                } else {
-                    Write-Host -ForegroundColor Yellow "Warning: Delegate(s) will only receive any Out of Policy requests from the below list of users."
-                    OutputMBList($RbaSettings.RequestOutOfPolicy)
-                }
-            } else {
-                Write-Host -ForegroundColor Yellow "Warning: All users can send Out of Policy requests to be approved by the Resource Delegates."
-            }
-        }
-    } else {
-        Write-Host -ForegroundColor Yellow "Warning: No Delegates are configured."
-        if ($RbaSettings.ForwardRequestsToDelegates -eq $true -and
-            $RbaSettings.AllBookInPolicy -ne $true ) {
-            Write-Host -ForegroundColor Yellow "Warning: ForwardRequestsToDelegates is true but there are no Delegates."
-        } if ($RbaSettings.RequestOutOfPolicy.Count -gt 0) {
-            Write-Host -ForegroundColor Red "Error: Users are listed in RequestOutOfPolicy but there are no Delegates. - All Out of policy requests by these users will be Tentatively accepted."
-        } if ($RbaSettings.AllRequestOutOfPolicy -eq $true) {
-            Write-Host -ForegroundColor Red "Error: AllRequestOutOfPolicy is set but there are no Delegates. - All Out of policy requests will be Tentatively accepted."
-        }
-    }
-}
-
-# RBA PostProcessing Steps
-function RBAPostProcessing {
-    Write-DashLineBoxColor @("PostProcessing Setup") -Color Cyan -DashChar =
-    Write-Host -ForegroundColor Cyan "The RBA will format the meeting based on the following settings."
-
-    #    Write-Host -ForegroundColor Cyan "`r`n`t RBA PostProcessing Steps";
-    #    Write-Host -ForegroundColor Cyan "`t ------------------------------------   ---------------------------------";
-    Write-Host -ForegroundColor Cyan @"
-    `t AddOrganizerToSubject:                $($RbaSettings.AddOrganizerToSubject)
-    `t DeleteSubject:                        $($RbaSettings.DeleteSubject)
-    `t DeleteComments (Meeting body):        $($RbaSettings.DeleteComments)
-    `t DeleteAttachments:                    $($RbaSettings.DeleteAttachments)
-    `t RemovePrivateProperty:                $($RbaSettings.RemovePrivateProperty)
-    `t DeleteNonCalendarItems:               $($RbaSettings.DeleteNonCalendarItems)
-    `t RemoveForwardedMeetingNotifications:  $($RbaSettings.RemoveForwardedMeetingNotifications)
-    `t RemoveCanceledMeetings:               $($RbaSettings.RemoveCanceledMeetings)
-    `t EnableAutoRelease:                    $($RbaSettings.EnableAutoRelease)
-    `t AddAdditionalResponse:                $($RbaSettings.AddAdditionalResponse)
-"@
-
-    # Warning about the DeleteComments setting and Teams:
-    if ($RbaSettings.DeleteComments -eq $true) {
-        Write-Host -ForegroundColor Yellow "Warning: DeleteComments is set to true. This will remove the Teams information which is in the meeting body."
-    }
-}
-
-# RBA Verbose PostProcessing Steps
-function VerbosePostProcessing {
-    Write-Verbose "`t`r`n AdditionalResponse:                   `r`n$($RbaSettings.AdditionalResponse)`r`n`r`n"
-
-    $RbaFormattingString = "Description of the RBA Post Processing Steps:`r`n"
-    if ($RbaSettings.DeleteSubject -eq $true) {
-        if ($RbaSettings.AddOrganizerToSubject -eq $true) {
-            $RbaFormattingString += "The RBA will delete the subject and add the organizer to the subject. (Default)"
-        } else {
-            $RbaFormattingString += "The RBA will delete the subject. Consider adding the organizer to the subject with the AddOrganizerToSubject property."
-        }
-    } elseif ($RbaSettings.AddOrganizerToSubject -eq $true) {
-        $RbaFormattingString += "The RBA will add the organizer to the subject."
-    } else {
-        $RbaFormattingString += "The RBA will not change the subject property."
-    }
-    $RbaFormattingString += [environment]::Newline
-
-    if ($RbaSettings.DeleteComments -eq $true) {
-        $RbaFormattingString += "The RBA will remove the meeting body. (Default)"
-    } else {
-        $RbaFormattingString += "The RBA will not change the meeting body."
-    }
-    $RbaFormattingString += [environment]::Newline
-
-    if ($RbaSettings.DeleteAttachments -eq $true) {
-        $RbaFormattingString += "The RBA will remove all Attachments. (Default)"
-    } else {
-        $RbaFormattingString += "The RBA will not change the Attachments."
-    }
-    $RbaFormattingString += [environment]::Newline
-
-    if ($RbaSettings.RemovePrivateProperty -eq $true) {
-        $RbaFormattingString += "The RBA will remove the private property. (Default)"
-    } else {
-        $RbaFormattingString += "The RBA will not change the private property."
-    }
-    $RbaFormattingString += [environment]::Newline
-
-    if ($RbaSettings.DeleteNonCalendarItems -eq $true) {
-        $RbaFormattingString += "The RBA will remove all non-calendar items sent to the resource mailbox. (Default)"
-    } else {
-        $RbaFormattingString += "The RBA will not remove the non-calendar items."
-    }
-    $RbaFormattingString += [environment]::Newline
-
-    if ($RbaSettings.RemoveForwardedMeetingNotifications -eq $true) {
-        $RbaFormattingString += "The RBA will remove all forwarded meeting notifications."
-    } else {
-        $RbaFormattingString += "The RBA will not change the forwarded meeting notifications. (Default)"
-    }
-    $RbaFormattingString += [environment]::Newline
-
-    if ($RbaSettings.RemoveCanceledMeetings -eq $true) {
-        $RbaFormattingString += "The RBA will remove all canceled meetings."
-    } else {
-        $RbaFormattingString += "The RBA will not change the canceled meetings. (Default)"
-    }
-    $RbaFormattingString += [environment]::Newline
-
-    if ($RbaSettings.EnableAutoRelease -eq $true) {
-        $RbaFormattingString += "The RBA will automatically release the meeting if the resource is available."
-    } else {
-        $RbaFormattingString += "The RBA will not automatically release the meeting. (Default)"
-    }
-    $RbaFormattingString += [environment]::Newline
-
-    if ($RbaSettings.AddAdditionalResponse -eq $true -and $RbaSettings.AdditionalResponse.Length -gt 0) {
-        $RbaFormattingString += "The RBA will add the following additional response to the meeting: " +
-        $RbaSettings.AdditionalResponse + "."
-    } else {
-        $RbaFormattingString += "The RBA will not add the additional response."
-    }
-    $RbaFormattingString += [environment]::Newline
-
-    Write-Verbose $RbaFormattingString
-}
-
-#Add information about RBA logs.
-function RBAPostScript {
-    Write-Host
-    Write-Host "If more information is needed about this resource mailbox, please look at the RBA logs saved in this directory to
-        see how the system proceed the meeting request."
-    Write-Host "To get new RBA Logs, run the following command:"
-    Write-Host -ForegroundColor Yellow "`tExport-MailboxDiagnosticLogs $Identity -ComponentName RBA"
-    Write-Host
-    Write-Host "To continue troubleshooting further, suggestion is to create a Test Meeting and send it to this room, making sure that the meeting is in the future, as the RBA does not process meeting in the past)."
-    Write-Host "Then pull the RBA Logs as well as the Calendar Diagnostic Objects for the Meeting Organizer and the Room to see how the system processed the meeting request."
-    Write-Host "For Calendar Diagnostic Objects, try [CalLogSummaryScript](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Get-CalendarDiagnosticObjectsSummary.ps1)"
-
-    Write-Host "`n`rIf you found an error with this script or a misconfigured RBA case that this should cover,
-         send mail to Shanefe@microsoft.com"
-}
-
-function RBALogSummary {
-    Write-DashLineBoxColor @("RBA Log Summary") -Color Blue -DashChar =
-
-    $RBALog = ((Export-MailboxDiagnosticLogs $Identity -ComponentName RBA).MailboxLog -split "`\n`\r").Trim()
-
-    if ($RBALog.count -gt 1) {
-        Write-Host "`tFound $($RBALog.count) RBA Log entries in RBALog.  Summarizing Accepts, Declines, and Tentative meetings."
-        $Starts = $RBALog | Select-String -Pattern "START -"
-        $FirstDate = "[Unknown]"
-        $LastDate = "[Unknown]"
-
-        if ($starts.count -gt 1) {
-            $LastDate = ($Starts[0] -split ",")[0].Trim()
-            $FirstDate = ($starts[$($Starts.count) -1 ] -split ",")[0].Trim()
-            Write-Host "`tThe RBA Log for [$Identity] shows the following:"
-            Write-Host "`t $($starts.count) Processed events times between $FirstDate and $LastDate"
-        }
-
-        $AcceptLogs = $RBALog | Select-String -Pattern "Action:Accept"
-        $DeclineLogs = $RBALog | Select-String -Pattern "Action:Decline"
-        $TentativeLogs = $RBALog | Select-String -Pattern "Action:Tentative"
-        $UpdatedLogs = $RBALog | Select-String -Pattern "Begin ProcessUpdateRequest"
-        $SkippedExternal = $RBALog | Select-String -Pattern "Skipping processing because user settings for processing external items is false."
-        $DelegateReferrals = $RBALog | Select-String -Pattern "Forwarding Request To Delegates"
-        $NonMeetingRequests = $RBALog | Select-String -Pattern "Item is not a meeting request"
-        $Cancellations = $RBALog | Select-String -Pattern "It's a meeting cancellation."
-
-        if ($AcceptLogs.count -ne 0) {
-            $LastAccept = ($AcceptLogs[0] -split ",")[0].Trim()
-            Write-Host "`t $($AcceptLogs.count) were Accepted between $FirstDate and $LastDate"
-            Write-Host "`t`t with the last meeting Accepted on $LastAccept"
-        }
-
-        if ($TentativeLogs.count -ne 0) {
-            $LastTentative = ($TentativeLogs[0] -split ",")[0].Trim()
-            Write-Host "`t $($TentativeLogs.count) Tentatively Accepted meetings between $FirstDate and $LastDate"
-            Write-Host "`t`t with the last meeting Tentatively Accepted on $LastTentative"
-        }
-
-        if ($DeclineLogs.count -ne 0) {
-            $LastDecline = ($DeclineLogs[0] -split ",")[0].Trim()
-            Write-Host "`t $($DeclineLogs.count) Declined meetings between $FirstDate and $LastDate"
-            Write-Host "`t`t with the last meeting Declined on $LastDecline"
-        }
-
-        if ($AcceptLogs.count -eq 0 -and $TentativeLogs.count -eq 0 -and $DeclineLogs.count -eq 0) {
-            Write-Host -ForegroundColor Red "`t No meetings were processed in the RBA Log."
-        }
-
-        if ($UpdatedLogs.count -ne 0) {
-            $LastUpdated = ($UpdatedLogs[0] -split ",")[0].Trim()
-            Write-Host "`t $($UpdatedLogs.count) Updates to meetings between $FirstDate and $LastDate"
-            Write-Host "`t`t with the last meeting updated on $LastUpdated"
-        } else {
-            Write-Host -ForegroundColor Red "`t No meetings were updated in the RBA Log."
-        }
-
-        if ($Cancellations.count -ne 0) {
-            Write-Host "`t $($Cancellations.count) Cancellations were processed."
-        } else {
-            Write-Host "`t No meetings were canceled in the RBA Log."
-        }
-
-        if ($DelegateReferrals.count -ne 0) {
-            $LastDelegateReferral = ($DelegateReferrals[0] -split ",")[0].Trim()
-            Write-Host "`t $($DelegateReferrals.count) Delegate Referrals were sent between $FirstDate and $LastDate"
-            Write-Host "`t`t with the last Delegate Referral sent on $LastDelegateReferral"
-        } else {
-            Write-Host "`t No Delegate Referrals were sent in the RBA Log."
-        }
-
-        if ($NonMeetingRequests.count -ne 0) {
-            $LastNonMeetingRequest = ($NonMeetingRequests[0] -split ",")[0].Trim()
-            Write-Host "`t $($NonMeetingRequests.count) Non Meeting Requests were skipped between $FirstDate and $LastDate"
-            Write-Host "`t`t with the last Non Meeting Request skipped on $LastNonMeetingRequest"
-        } else {
-            Write-Host "`t No Non Meeting Requests were skipped in the RBA Log."
-        }
-
-        if ($SkippedExternal.count -ne 0) {
-            if ($SkippedExternal.Count -lt 3) {
-                Write-Host "`t Warning: $($SkippedExternal.count) External meetings were skipped as processing external items is false."
-            } else {
-                Write-Host -ForegroundColor Red "`t Warning: $($SkippedExternal.count) External meetings were skipped as processing external items is false."
-                Write-Host -ForegroundColor Red "`t`t Many skipped external meetings may indicate a configuration issue in Transport."
-                Write-Host -ForegroundColor Red "`t`t Validate that Internal Meetings are not getting marked as External."
-            }
-        }
-
-        # Making RBA Log more readable.
-        $RBALog = $RBALog.replace(", Entry Action: Message, LogComment", "")
-        $RBALog = $RBALog.replace("Mailbox: ", "")
-
-        $Filename = "RBA-Logs_$($Identity.Split('@')[0])_$((Get-Date).ToString('yyyy-MM-dd_HH-mm-ss')).txt"
-        Write-Host "`r`n`t RBA Logs saved as [" -NoNewline
-        Write-Host -ForegroundColor Cyan $Filename -NoNewline
-        Write-Host "] in the current directory."
-        $RBALog | Out-File $Filename
-
-        RBAPostScript
-    } else {
-        Write-Warning "No RBA Logs found.  Send a test meeting invite to the room and try again if this is a newly created room mailbox."
-    }
-}
-
-#Validate Workspace settings
-function ValidateWorkspace {
-    Write-DashLineBoxColor @("Workspace Settings") -Color White
-    Write-Host  -ForegroundColor White "`tIs Resource [$Identity] a Workspace: $(if ($script:Workspace) {"TRUE"} else {"False - Skipping additional Workspace Checks"})."
-
-    if ($script:Workspace) {
-        if ([string]::IsNullOrEmpty($script:Place.Capacity)) {
-            Write-Host -ForegroundColor Red "`tError: Required Property 'Capacity' is not set for [$Identity]."
-            Write-Host -ForegroundColor White "`tRun " -NoNewline
-            Write-Host -ForegroundColor Yellow "Set-Place $Identity -Capacity <Value> " -NoNewline
-            Write-Host -ForegroundColor White "to set the required properties on the resource."
-        } else {
-            Write-Host -ForegroundColor Green "`tRequired Property 'Capacity' is set to $($script:Place.Capacity)."
-        }
-
-        $requiredWorkspaceSettings = @("EnforceCapacity", "AllowConflicts")
-
-        foreach ($prop in $requiredWorkspaceSettings) {
-            if ($RbaSettings.$prop -ne $true) {
-                $requiredWorkspaceSettingsMissing = $true
-                Write-Host -ForegroundColor Red "`tError: Required Property '$prop' is not set to '$true' for $Identity."
-                Write-Debug "[$Identity].[$prop] is set to: $($RbaSettings.$prop)."
-            } else {
-                Write-Host -ForegroundColor Green "`tRequired Property '$prop' is set to $($RbaSettings.$prop)."
-            }
-        }
-        if ($requiredWorkspaceSettingsMissing) {
-            Write-Host -ForegroundColor White "`tOne or more properties that are required to be true are not. Run the following cmdlet to set the required properties:"
-            Write-Host -ForegroundColor White "`tRun " -NoNewline
-            Write-Host -ForegroundColor Yellow "'Set-CalendarProcessing $Identity -EnforceCapacity `$True -AllowConflicts `$True' " -NoNewline
-            Write-Host -ForegroundColor White "to set the properties to true."
-        }
-
-        Write-Host -ForegroundColor White "`tLearn more about configuring Workspaces at: " -NoNewline
-        Write-Host -ForegroundColor Yellow "https://learn.microsoft.com/en-us/exchange/troubleshoot/outlook-issues/create-book-workspace-outlook"
-    }
-}
-
-# Validate Setting for the New Room List functionality
-function ValidateRoomListSettings {
-    Write-DashLineBoxColor @("Room List Settings") -Color White
-    Write-Host -ForegroundColor White "`tThe new Room Finder uses the City and other properties to help users find the right room for their meeting."
-    Write-Host -ForegroundColor White "`tTags can be used to list features of this room (i.e. Projector, etc.) so that users can narrow down their search for conference rooms."
-
-    Write-Host -ForegroundColor White "`tLearn more at " -NoNewline
-    Write-Host -ForegroundColor Yellow "https://learn.microsoft.com/en-us/outlook/troubleshoot/calendaring/configure-room-finder-rooms-workspaces`n"
-
-    if ([string]::IsNullOrEmpty($Place.Localities)) {
-        ## validate Localities
-        Write-Host -ForegroundColor Yellow "`tWarning: Resource [$Identity] is not part of any Room Lists."
-        Write-Host -ForegroundColor Yellow "`tWarning: Adding this resource to a Room Lists can take 24 hours to be fully propagated."
-    }
-
-    $requiredProperties = @("City", "Floor", "Capacity")
-
-    foreach ($prop in $requiredProperties) {
-        if ([string]::IsNullOrEmpty($script:Place.$prop)) {
-            $requiredPropertiesMissing = $true
-            Write-Host -ForegroundColor Magenta "`tWarning: Required Property '$prop' is not set for $Identity. RoomList functionality may not work as expected."
-        } else {
-            Write-Host -ForegroundColor Green "`tRequired Property '$prop' is set to $($script:Place.$prop)."
-        }
-    }
-
-    if ($requiredPropertiesMissing) {
-        Write-Host -ForegroundColor White "`tOne or more required properties are missing. Run the following cmdlet to set the required properties:"
-        Write-Host -ForegroundColor White "`tRun " -NoNewline
-        Write-Host -ForegroundColor Yellow "Set-Place $Identity -<prop> <Value> " -NoNewline
-        Write-Host -ForegroundColor White "to set the required properties on the resource."
-    }
-
-    Write-Host -ForegroundColor White "`r`n`t New Room List commonly populated information:"
-    Write-Host -ForegroundColor White "`t ----------------------------------------- "
-    Write-Host -ForegroundColor White @"
-    `t Address Info
-    `t Street:              $($script:Place.Street)
-    `t City:                $($script:Place.City)
-    `t State:               $($script:Place.State)
-    `t PostalCode:          $($script:Place.PostalCode)
-    `t CountryOrRegion:     $($script:Place.CountryOrRegion)
-    `t Building Info
-    `t Building:            $($script:Place.Building)
-    `t Floor:               $($script:Place.Floor)
-    `t --Tags describing features and equipment in the Room
-    `t Tags:                $($script:Place.Tags)
-    `t --This room belongs to the following Room Lists (Localities).
-    `t Localities:          $($Place.Localities)
-
-    `t To update any of the above information, run 'Set-Place $Identity -<Property> <Value>'.
-    `t For more information on this command, see
-"@
-    Write-Host -ForegroundColor Yellow "`t https://learn.microsoft.com/en-us/powershell/module/exchange/set-place?view=exchange-ps"
-    Write-Host
-}
-
-function Write-DashLineBoxColor {
-    [CmdletBinding()]
-    param(
-        [string[]]$Line,
-        [string] $Color = "White",
-        [char] $DashChar = "-"
-    )
-    <#
-        This is to simply create a quick and easy display around a line
-        -------------------------------------
-        Line                           Length
-        Line                           Length
-        -------------------------------------
-        # Empty Line
-    #>
-    $highLineLength = 0
-    $Line | ForEach-Object { if ($_.Length -gt $highLineLength) { $highLineLength = $_.Length } }
-    $dashLine = [string]::Empty
-    1..$highLineLength | ForEach-Object { $dashLine += $DashChar }
-    Write-Host
-    Write-Host -ForegroundColor $Color $dashLine
-    $Line | ForEach-Object { Write-Host -ForegroundColor $Color $_ }
-    Write-Host -ForegroundColor $Color $dashLine
-    Write-Host
-}
-
-# Call the Functions in this order:
-ValidateMailbox
-ValidateInboxRules
-GetCalendarProcessing
-EvaluateCalProcessing
-ValidateWorkspace
-ValidateRoomListSettings
-ProcessingLogic
-RBACriteria
-RBAProcessingValidation
-InPolicyProcessing
-OutOfPolicyProcessing
-RBADelegateSettings
-RBAPostProcessing
-VerbosePostProcessing
-RBALogSummary
-Stop-Transcript
+Invoke-RbaSummary @PSBoundParameters
