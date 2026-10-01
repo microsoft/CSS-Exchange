@@ -53,6 +53,7 @@ FYDIBOHF
 GCDO
 github
 globalsequence
+Goid
 Hashtable
 HHMM
 HKCR
