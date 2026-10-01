@@ -25,13 +25,13 @@ BeforeAll {
         -SkipMainExecution
 
     $Script:expectedRuleIds = @(
-        "SHR100", "SHR101", "SHR110", "SHR111", "SHR120", "SHR121", "SHR122", "SHR123",
+        "SHR100", "SHR101", "SHR110", "SHR111", "SHR112", "SHR120", "SHR121", "SHR122", "SHR123",
         "SHR130",
         "SHR200", "SHR201", "SHR210", "SHR211", "SHR212", "SHR213", "SHR214", "SHR220",
         "SHR230", "SHR231", "SHR232", "SHR233", "SHR240", "SHR241", "SHR242", "SHR243",
         "SHR300", "SHR301", "SHR310", "SHR311", "SHR312", "SHR320", "SHR321", "SHR322",
-        "SHR323", "SHR400", "SHR401", "SHR402", "SHR403", "SHR410", "SHR411", "SHR412", "SHR413",
-        "SHR420", "SHR430", "SHR431", "SHR432", "SHR433"
+        "SHR323", "SHR324", "SHR400", "SHR401", "SHR402", "SHR403", "SHR410", "SHR411", "SHR412", "SHR413",
+        "SHR420", "SHR421", "SHR422", "SHR423", "SHR430", "SHR431", "SHR432"
     )
     $Script:collectorNames = @(
         "OwnerMailbox", "ReceiverMailbox", "OwnerFolderStatistics", "ReceiverFolderStatistics",
@@ -57,11 +57,17 @@ BeforeAll {
         $script:SanitizedIdentityMap = [System.Collections.Generic.Dictionary[string, string]]::new([System.StringComparer]::OrdinalIgnoreCase)
         $script:SanitizedIdentitySequence = 0
         $script:IncludeSensitiveData = $false
-        $script:ModernSharingOnly = $true
         $script:Owner = "owner@contoso.com"
         $script:Receiver = "receiver@contoso.com"
         $script:PIIAccess = $true
         $script:ModernSharing = $false
+        $script:LegacyMapiSharing = $false
+        $script:PublishedSharing = $false
+        $script:OwnerPublished = $false
+        $script:OwnerPublishedICalUrl = $null
+        $script:ReceiverInternetCalendarEntries = @()
+        $script:ReceiverPublishedCalendarEntry = $null
+        $script:ReceiverPublishedCalendarFolder = $null
         $script:SharingType = $null
         $script:OwnerMB = $null
         $script:ReceiverMB = $null
@@ -69,6 +75,8 @@ BeforeAll {
         $script:OwnerInviteCheckAvailable = $false
         $script:OwnerCalendarPerms = @()
         $script:OwnerCalendarPermsAvailable = $false
+        $script:OwnerMailboxPerms = @()
+        $script:OwnerMailboxPermsAvailable = $false
         $script:OwnerCalendarStats = @()
         $script:OwnerSelectedCalendar = $null
         $script:OwnerCalendarFolder = $null
@@ -115,6 +123,8 @@ BeforeAll {
             Identity                        = "owner@contoso.com:\Calendar"
             CreationTime                    = (Get-Date).AddDays(-60)
             PublishEnabled                  = $false
+            PublishedCalendarUrl            = $null
+            PublishedICalUrl                = $null
             ExtendedFolderFlags             = @("SharedOut", "ExchangeShareFolder")
             CalendarSharingFolderFlags      = @("None")
             CalendarSharingOwnerSmtpAddress = $null
@@ -297,7 +307,7 @@ Describe "Check-SharingStatus structured diagnostics" {
             $script:SharingFindings.Count | Should -Be $Script:expectedRuleIds.Count
         }
 
-        It "retains healthy states and classifies optional old-model and InternetCalendar rules as NotApplicable" {
+        It "retains healthy states and classifies non-published InternetCalendar rules as NotApplicable" {
             foreach ($collectorName in $Script:collectorNames) {
                 $script:CollectorStatuses[$collectorName] = [PSCustomObject]@{ status = "Success"; error = $null }
             }
@@ -307,22 +317,25 @@ Describe "Check-SharingStatus structured diagnostics" {
             Complete-SharingFindings
 
             @($script:SharingFindings | Where-Object -Property status -EQ "NotDetected").Count |
-                Should -Be ($Script:expectedRuleIds.Count - 2)
+                Should -Be ($Script:expectedRuleIds.Count - 4)
             ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR233").status |
-                Should -Be "NotApplicable"
+                Should -Be "NotDetected"
             ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR420").status |
                 Should -Be "NotApplicable"
+            foreach ($ruleId in @("SHR421", "SHR422", "SHR423")) {
+                ($script:SharingFindings | Where-Object -Property ruleId -EQ $ruleId).status |
+                    Should -Be "NotApplicable"
+            }
             $script:CollectorStatuses["InternetCalendar"].status | Should -Be "Success"
         }
 
-        It "evaluates the optional InternetCalendar rule when ModernSharingOnly is false" {
-            $ModernSharingOnly = $false
+        It "does not evaluate InternetCalendar evidence when the owner calendar is not published" {
             $script:CollectorStatuses["InternetCalendar"] = [PSCustomObject]@{ status = "NoData"; error = $null }
 
             Complete-SharingFindings
 
             ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR420").status |
-                Should -Be "NotDetected"
+                Should -Be "NotApplicable"
         }
     }
 
@@ -504,6 +517,7 @@ Describe "Check-SharingStatus structured diagnostics" {
                 $command = Get-Command -Name "$Script:parentPath\Check-SharingStatus.ps1"
 
                 $command.Parameters.Keys | Should -Contain "OwnerCalendarFolderPath"
+                $command.Parameters.Keys | Should -Not -Contain "ModernSharingOnly"
                 $command.Parameters["OwnerCalendarFolderPath"].Attributes.TypeId.Name |
                     Should -Contain "ValidateNotNullOrEmptyAttribute"
             }
@@ -905,6 +919,22 @@ Describe "Check-SharingStatus structured diagnostics" {
         }
     }
 
+    Context "Duplicate-style calendar folder names" {
+        It "matches only terminal one- or two-digit numeric suffixes" {
+            $folderStatistics = @(
+                [PSCustomObject]@{ Name = "Calendar (1)"; FolderPath = "/Calendar (1)" },
+                [PSCustomObject]@{ Name = "Calendar (12)"; FolderPath = "/Calendar (12)" },
+                [PSCustomObject]@{ Name = "Calendar (123)"; FolderPath = "/Calendar (123)" },
+                [PSCustomObject]@{ Name = "CUB01-3 McKinley (16-32) Public"; FolderPath = "/CUB01-3 McKinley (16-32) Public" },
+                [PSCustomObject]@{ Name = "Calendar (1) Public"; FolderPath = "/Calendar (1) Public" }
+            )
+
+            $matchingFolders = Get-DuplicateStyleCalendarFolders -FolderStatistics $folderStatistics
+
+            $matchingFolders.Name | Should -Be @("Calendar (1)", "Calendar (12)")
+        }
+    }
+
     Context "Owner calendar and active-sharing checks" {
         BeforeEach {
             Initialize-OwnerMocks
@@ -927,6 +957,123 @@ Describe "Check-SharingStatus structured diagnostics" {
             $script:SharingFindings.ruleId | Should -Not -Contain "SHR121"
             $script:SharingFindings.ruleId | Should -Not -Contain "SHR122"
             $script:SharingFindings.ruleId | Should -Not -Contain "SHR312"
+        }
+
+        It "reports that receiver access may use Default or a group when no individual entry exists" {
+            Mock Get-MailboxFolderPermission {
+                @(
+                    [PSCustomObject]@{ User = "Default"; AccessRights = @("Reviewer"); SharingPermissionFlags = @() },
+                    [PSCustomObject]@{ User = "Anonymous"; AccessRights = @("None"); SharingPermissionFlags = @() }
+                )
+            }
+            Mock Get-MailboxPermission {
+                @(
+                    [PSCustomObject]@{ User = "NT AUTHORITY\SELF"; AccessRights = @("FullAccess"); SharingPermissionFlags = @() }
+                )
+            }
+            Mock Write-Host {}
+
+            GetOwnerInformation -Owner "owner@contoso.com"
+
+            Should -Invoke Write-Host -ParameterFilter {
+                $Object -eq "Receiver [receiver@contoso.com] does not have an individual permission entry on the owner Calendar folder or Mailbox; access may come from Default or a group permission."
+            }
+        }
+
+        It "summarizes receiver permissions found on both the calendar and mailbox" {
+            Mock Get-MailboxFolderPermission {
+                @(
+                    [PSCustomObject]@{
+                        User                   = "receiver@contoso.com"
+                        AccessRights           = @("Editor")
+                        SharingPermissionFlags = @("Delegate")
+                    }
+                )
+            }
+            Mock Get-MailboxPermission {
+                @(
+                    [PSCustomObject]@{
+                        User                   = "receiver@contoso.com"
+                        AccessRights           = @("FullAccess", "ReadPermission")
+                        SharingPermissionFlags = @()
+                    }
+                )
+            }
+            Mock Write-Host {}
+
+            GetOwnerInformation -Owner "owner@contoso.com"
+
+            Should -Invoke Write-Host -ParameterFilter {
+                $Object -eq "Receiver [receiver@contoso.com] has [Editor; SharingPermissionFlags: Delegate] on the owner Calendar folder and [FullAccess, ReadPermission] on the owner Mailbox."
+            }
+        }
+
+        It "summarizes a receiver permission found only on the calendar" {
+            Mock Get-MailboxFolderPermission {
+                @(
+                    [PSCustomObject]@{
+                        User                   = "receiver@contoso.com"
+                        AccessRights           = @("Reviewer")
+                        SharingPermissionFlags = @()
+                    }
+                )
+            }
+            Mock Get-MailboxPermission { @() }
+            Mock Write-Host {}
+
+            GetOwnerInformation -Owner "owner@contoso.com"
+
+            Should -Invoke Write-Host -ParameterFilter {
+                $Object -eq "Receiver [receiver@contoso.com] is using [Reviewer] on the owner Calendar folder."
+            }
+        }
+
+        It "summarizes a receiver permission found only on the mailbox" {
+            Mock Get-MailboxFolderPermission { @() }
+            Mock Get-MailboxPermission {
+                @(
+                    [PSCustomObject]@{
+                        User                   = "receiver@contoso.com"
+                        AccessRights           = @("FullAccess")
+                        SharingPermissionFlags = @()
+                    }
+                )
+            }
+            Mock Write-Host {}
+
+            GetOwnerInformation -Owner "owner@contoso.com"
+
+            Should -Invoke Write-Host -ParameterFilter {
+                $Object -eq "Receiver [receiver@contoso.com] has [FullAccess] on the owner Mailbox."
+            }
+        }
+
+        It "warns for duplicate-style owner calendar folder names" {
+            Mock Get-MailboxFolderStatistics {
+                @(
+                    [PSCustomObject]@{
+                        FolderType             = "Calendar"
+                        Name                   = "Calendar"
+                        FolderPath             = "/Calendar"
+                        FolderSize             = "1 KB (1,024 bytes)"
+                        FolderAndSubfolderSize = "1 KB (1,024 bytes)"
+                        VisibleItemsInFolder   = 10
+                    },
+                    [PSCustomObject]@{
+                        FolderType             = "User Created"
+                        Name                   = "Project (12)"
+                        FolderPath             = "/Project (12)"
+                        FolderSize             = "1 KB (1,024 bytes)"
+                        FolderAndSubfolderSize = "1 KB (1,024 bytes)"
+                        VisibleItemsInFolder   = 1
+                    }
+                )
+            }
+
+            GetOwnerInformation -Owner "owner@contoso.com"
+
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR112").status |
+                Should -Be "Detected"
         }
 
         It "normalizes enum-like owner folder flags before validation" {
@@ -956,7 +1103,8 @@ Describe "Check-SharingStatus structured diagnostics" {
             $output = GetOwnerInformation -Owner "owner@contoso.com" | Out-String
 
             foreach ($propertyName in @(
-                    "Identity", "CreationTime", "PublishEnabled", "ExtendedFolderFlags")) {
+                    "Identity", "CreationTime", "PublishEnabled",
+                    "PublishedCalendarUrl", "PublishedICalUrl", "ExtendedFolderFlags")) {
                 $output | Should -Match "$propertyName\s+:"
             }
 
@@ -1188,11 +1336,127 @@ Describe "Check-SharingStatus structured diagnostics" {
         It "reports a missing local folder and missing pair-specific New entry" {
             $Script:receiverStats = @($Script:receiverStats[0])
             $Script:calendarEntries = @()
+            $Script:receiverMailbox.OrganizationalUnitRoot = "OU2"
 
             GetReceiverInformation -Receiver "receiver@contoso.com"
 
             $script:SharingFindings.ruleId | Should -Contain "SHR213"
             $script:SharingFindings.ruleId | Should -Contain "SHR231"
+        }
+
+        It "classifies internal sharing without a Modern copy as legacy MAPI" {
+            $Script:receiverStats = @($Script:receiverStats[0])
+            $Script:calendarEntries = @(
+                [PSCustomObject]@{
+                    CalendarGroupName = "People's calendars"
+                    CalendarName      = "Owner Display"
+                    OwnerEmailAddress = "owner@contoso.com"
+                    SharingModelType  = "Old"
+                    IsOrphanedEntry   = $false
+                }
+            )
+            Add-SharingFinding -RuleId "SHR301" -Status Detected -Evidence @{
+                matchingInviteFound = $false
+            }
+            Add-SharingFinding -RuleId "SHR311" -Status Detected -Evidence @{
+                activeRelationshipFound = $false
+            }
+            Mock Write-Host {}
+            Mock Compare-CalendarFolderStatistics {}
+
+            GetReceiverInformation -Receiver "receiver@contoso.com"
+            Complete-SharingFindings
+
+            $script:LegacyMapiSharing | Should -BeTrue
+            $script:PIIAccess | Should -BeTrue
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR324").status |
+                Should -Be "Detected"
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR324").recommendedNextStep |
+                Should -Match "support\.microsoft\.com/en-us/outlook/calendar-sharing-in-microsoft-365"
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR233").status |
+                Should -Be "Detected"
+            @($script:SharingFindings | Where-Object {
+                    ($_.ruleId -in $script:ModernSharingRuleIds) -and
+                    ($_.status -ne "NotApplicable")
+                }).Count | Should -Be 0
+            Should -Invoke Write-Host -ParameterFilter {
+                $Object -eq "Warning: This internal relationship is using legacy MAPI calendar sharing."
+            }
+            Should -Not -Invoke Write-Host -ParameterFilter {
+                $Object -like "Do Not have PII information*"
+            }
+            Should -Not -Invoke Compare-CalendarFolderStatistics
+        }
+
+        It "validates a published subscription and its receiver local folder" {
+            $script:OwnerPublished = $true
+            $script:OwnerPublishedICalUrl = "https://outlook.office365.com/owa/calendar/owner/calendar.ics"
+            $script:CollectorStatuses["OwnerCalendarFolder"] =
+            [PSCustomObject]@{ status = "Success"; error = $null }
+            $Script:receiverStats = @(
+                $Script:receiverStats[0],
+                [PSCustomObject]@{
+                    FolderType           = "User Created"
+                    Name                 = "Published Owner"
+                    FolderPath           = "/Published Owner"
+                    FolderId             = "published-folder-id"
+                    FolderSize           = "1 KB"
+                    VisibleItemsInFolder = 5
+                }
+            )
+            $Script:calendarEntries = @()
+            Mock ProcessInternetCalendarLogs {
+                $script:CollectorStatuses["InternetCalendar"] =
+                [PSCustomObject]@{ status = "Success"; error = $null }
+                $script:ReceiverInternetCalendarEntries = @(
+                    [PSCustomObject]@{
+                        PublishingUrl    = $script:OwnerPublishedICalUrl
+                        RemoteFolderName = "Calendar"
+                        LocalFolderId    = "published-folder-id"
+                        Folder           = "Published Owner"
+                    }
+                )
+            }
+
+            GetReceiverInformation -Receiver "receiver@contoso.com"
+            Complete-SharingFindings
+
+            $script:PublishedSharing | Should -BeTrue
+            $script:LegacyMapiSharing | Should -BeFalse
+            $script:ModernSharing | Should -BeFalse
+            $script:ReceiverPublishedCalendarFolder.Name | Should -Be "Published Owner"
+            Should -Invoke ProcessInternetCalendarLogs -Times 1 -Exactly
+            foreach ($ruleId in @("SHR421", "SHR422", "SHR423")) {
+                ($script:SharingFindings | Where-Object -Property ruleId -EQ $ruleId).status |
+                    Should -Be "NotDetected"
+            }
+            @($script:SharingFindings | Where-Object {
+                    ($_.ruleId -in $script:ModernSharingRuleIds) -and
+                    ($_.status -ne "NotApplicable")
+                }).Count | Should -Be 0
+        }
+
+        It "warns when the receiver has no subscription to the published owner calendar" {
+            $script:OwnerPublished = $true
+            $script:OwnerPublishedICalUrl = "https://outlook.office365.com/owa/calendar/owner/calendar.ics"
+            $script:CollectorStatuses["OwnerCalendarFolder"] =
+            [PSCustomObject]@{ status = "Success"; error = $null }
+            $Script:receiverStats = @($Script:receiverStats[0])
+            $Script:calendarEntries = @()
+            Mock ProcessInternetCalendarLogs {
+                $script:CollectorStatuses["InternetCalendar"] =
+                [PSCustomObject]@{ status = "NoData"; error = $null }
+                $script:ReceiverInternetCalendarEntries = @()
+            }
+
+            GetReceiverInformation -Receiver "receiver@contoso.com"
+            Complete-SharingFindings
+
+            $script:PublishedSharing | Should -BeTrue
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR421").status |
+                Should -Be "Detected"
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR213").status |
+                Should -Be "NotApplicable"
         }
 
         It "requests more access when receiver calendar folder names are redacted" {
@@ -1246,7 +1510,7 @@ Describe "Check-SharingStatus structured diagnostics" {
         }
 
         It "reports an orphaned New entry and a relevant Old entry" {
-            $ModernSharingOnly = $false
+            Mock Write-Host {}
             $Script:calendarEntries[0].IsOrphanedEntry = $true
             $Script:calendarEntries += [PSCustomObject]@{
                 CalendarGroupName = "People's calendars"
@@ -1259,7 +1523,32 @@ Describe "Check-SharingStatus structured diagnostics" {
             GetReceiverInformation -Receiver "receiver@contoso.com"
 
             $script:SharingFindings.ruleId | Should -Contain "SHR232"
-            $script:SharingFindings.ruleId | Should -Contain "SHR233"
+            $oldEntryFinding = $script:SharingFindings |
+                Where-Object -Property ruleId -EQ "SHR233"
+            $oldEntryFinding.status | Should -Be "Detected"
+            @($oldEntryFinding.evidence.Keys | Sort-Object) |
+                Should -Be @("oldModelEntryCount", "owner", "receiver")
+            $oldEntryFinding.evidence.oldModelEntryCount | Should -Be 1
+            $script:ConsoleFindingEvidence["SHR233"] |
+                Should -Be "Get-CalendarEntries returned [1] Old entry(s) for [owner@contoso.com]."
+            Should -Invoke Write-Host -ParameterFilter {
+                $Object -eq "Old Model Calendar Sharing Entries:"
+            }
+        }
+
+        It "does not collect InternetCalendar or display an empty Old entries table for a non-published owner" {
+            Mock Write-Host {}
+
+            GetReceiverInformation -Receiver "receiver@contoso.com"
+            Complete-SharingFindings
+
+            Should -Not -Invoke ProcessInternetCalendarLogs
+            Should -Not -Invoke Write-Host -ParameterFilter {
+                $Object -eq "Old Model Calendar Sharing Entries:"
+            }
+            $script:CollectorStatuses["InternetCalendar"].status | Should -Be "NotApplicable"
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR420").status |
+                Should -Be "NotApplicable"
         }
 
         It "reports a numeric suffix on the uniquely matched folder" {
@@ -1270,6 +1559,32 @@ Describe "Check-SharingStatus structured diagnostics" {
             GetReceiverInformation -Receiver "receiver@contoso.com"
 
             $script:SharingFindings.ruleId | Should -Contain "SHR214"
+        }
+
+        It "does not warn for ranges, middle suffixes, or three-digit suffixes" {
+            $Script:receiverStats = @(
+                $Script:receiverStats[0],
+                [PSCustomObject]@{
+                    FolderType           = "User Created"
+                    Name                 = "CUB01-3 McKinley (16-32) Public"
+                    FolderPath           = "/CUB01-3 McKinley (16-32) Public"
+                    FolderSize           = "1 KB"
+                    VisibleItemsInFolder = 5
+                },
+                [PSCustomObject]@{
+                    FolderType           = "User Created"
+                    Name                 = "Archive (123)"
+                    FolderPath           = "/Archive (123)"
+                    FolderSize           = "1 KB"
+                    VisibleItemsInFolder = 5
+                }
+            )
+            $Script:calendarEntries = @()
+            $Script:receiverMailbox.OrganizationalUnitRoot = "OU2"
+
+            GetReceiverInformation -Receiver "receiver@contoso.com"
+
+            $script:SharingFindings.ruleId | Should -Not -Contain "SHR214"
         }
 
         It "constructs the same receiver identity from root and Calendar-relative paths" {
@@ -1384,7 +1699,6 @@ Describe "Check-SharingStatus structured diagnostics" {
         ) {
             param($CalendarName, $ExpectedFinding)
 
-            $ModernSharingOnly = $false
             $script:OwnerCalendarFolderPathSpecified = $true
             $script:RequestedOwnerCalendarLeafName = "Project Calendar"
             $Script:receiverStats[1].Name = "Project Calendar"
@@ -1480,14 +1794,12 @@ Describe "Check-SharingStatus structured diagnostics" {
             [PSCustomObject]@{ status = "Success"; error = $null }
         }
 
-        It "detects the production item-count and size asymmetry with structured evidence" {
+        It "detects the production item-count asymmetry with structured evidence" {
             $ownerStatistics = [PSCustomObject]@{
-                VisibleItemsInFolder   = 52
-                FolderAndSubfolderSize = "370.1 KB (379,018 bytes)"
+                VisibleItemsInFolder = 52
             }
             $receiverStatistics = [PSCustomObject]@{
-                VisibleItemsInFolder   = 1061
-                FolderAndSubfolderSize = "4.369 MB (4,581,441 bytes)"
+                VisibleItemsInFolder = 1061
             }
 
             Compare-CalendarFolderStatistics `
@@ -1496,28 +1808,21 @@ Describe "Check-SharingStatus structured diagnostics" {
 
             $countFinding = $script:SharingFindings |
                 Where-Object -Property ruleId -EQ "SHR432"
-            $sizeFinding = $script:SharingFindings |
-                Where-Object -Property ruleId -EQ "SHR433"
             $countFinding.status | Should -Be "Detected"
             $countFinding.evidence.ownerCount | Should -Be 52
             $countFinding.evidence.receiverCount | Should -Be 1061
             $countFinding.evidence.delta | Should -Be 1009
             $countFinding.evidence.ratio | Should -Be 20.4
-            $sizeFinding.status | Should -Be "Detected"
-            $sizeFinding.evidence.ownerBytes | Should -Be 379018
-            $sizeFinding.evidence.receiverBytes | Should -Be 4581441
-            $sizeFinding.evidence.deltaBytes | Should -Be 4202423
-            $sizeFinding.evidence.ratio | Should -Be 12.09
+            $script:CalendarStatisticsComparison.PSObject.Properties.Name |
+                Should -Be @("ownerCount", "receiverCount", "countDelta", "countRatio")
         }
 
-        It "does not detect when receiver values are below twice the owner values" {
+        It "does not detect when the receiver count is below twice the owner count" {
             $ownerStatistics = [PSCustomObject]@{
-                VisibleItemsInFolder   = 200
-                FolderAndSubfolderSize = "1 MB (1,048,576 bytes)"
+                VisibleItemsInFolder = 200
             }
             $receiverStatistics = [PSCustomObject]@{
-                VisibleItemsInFolder   = 399
-                FolderAndSubfolderSize = "1.9 MB (1,992,294 bytes)"
+                VisibleItemsInFolder = 399
             }
 
             Compare-CalendarFolderStatistics `
@@ -1527,18 +1832,14 @@ Describe "Check-SharingStatus structured diagnostics" {
 
             ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR432").status |
                 Should -Be "NotDetected"
-            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR433").status |
-                Should -Be "NotDetected"
         }
 
-        It "does not detect when receiver deltas are below the absolute guards" {
+        It "does not detect when the receiver count delta is below the absolute guard" {
             $ownerStatistics = [PSCustomObject]@{
-                VisibleItemsInFolder   = 1
-                FolderAndSubfolderSize = "100 bytes (100 bytes)"
+                VisibleItemsInFolder = 1
             }
             $receiverStatistics = [PSCustomObject]@{
-                VisibleItemsInFolder   = 100
-                FolderAndSubfolderSize = "1 MB (1,048,675 bytes)"
+                VisibleItemsInFolder = 100
             }
 
             Compare-CalendarFolderStatistics `
@@ -1548,18 +1849,14 @@ Describe "Check-SharingStatus structured diagnostics" {
 
             ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR432").status |
                 Should -Be "NotDetected"
-            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR433").status |
-                Should -Be "NotDetected"
         }
 
-        It "detects exact absolute thresholds safely when owner values are zero" {
+        It "detects the exact absolute threshold safely when the owner count is zero" {
             $ownerStatistics = [PSCustomObject]@{
-                VisibleItemsInFolder   = 0
-                FolderAndSubfolderSize = "0 bytes (0 bytes)"
+                VisibleItemsInFolder = 0
             }
             $receiverStatistics = [PSCustomObject]@{
-                VisibleItemsInFolder   = 100
-                FolderAndSubfolderSize = "1 MB (1,048,576 bytes)"
+                VisibleItemsInFolder = 100
             }
 
             Compare-CalendarFolderStatistics `
@@ -1567,21 +1864,16 @@ Describe "Check-SharingStatus structured diagnostics" {
                 -ReceiverFolderStatistics $receiverStatistics
 
             ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR432").status |
-                Should -Be "Detected"
-            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR433").status |
                 Should -Be "Detected"
             $script:CalendarStatisticsComparison.countRatio | Should -BeNullOrEmpty
-            $script:CalendarStatisticsComparison.sizeRatio | Should -BeNullOrEmpty
         }
 
-        It "keeps owner-larger comparisons informational" {
+        It "keeps an owner-larger item count informational" {
             $ownerStatistics = [PSCustomObject]@{
-                VisibleItemsInFolder   = 500
-                FolderAndSubfolderSize = "5 MB (5,242,880 bytes)"
+                VisibleItemsInFolder = 500
             }
             $receiverStatistics = [PSCustomObject]@{
-                VisibleItemsInFolder   = 100
-                FolderAndSubfolderSize = "1 MB (1,048,576 bytes)"
+                VisibleItemsInFolder = 100
             }
 
             Compare-CalendarFolderStatistics `
@@ -1590,40 +1882,16 @@ Describe "Check-SharingStatus structured diagnostics" {
             Complete-SharingFindings
 
             ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR432").status |
-                Should -Be "NotDetected"
-            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR433").status |
                 Should -Be "NotDetected"
             $script:CalendarStatisticsComparison.countDelta | Should -Be -400
-            $script:CalendarStatisticsComparison.sizeDeltaBytes | Should -Be -4194304
         }
 
-        It "uses a ByteQuantifiedSize-style Value ToBytes method" {
-            $byteValue = [PSCustomObject]@{ Bytes = 2097152 }
-            $byteValue | Add-Member -MemberType ScriptMethod -Name ToBytes -Value {
-                return $this.Bytes
-            } -Force
-            $ownerSize = [PSCustomObject]@{ Value = $byteValue }
-
-            ConvertTo-FolderStatisticsSizeBytes -FolderStatistics ([PSCustomObject]@{
-                    FolderAndSubfolderSize = $ownerSize
-                }) | Should -Be 2097152
-        }
-
-        It "falls back to FolderSize when FolderAndSubfolderSize cannot be converted" {
-            ConvertTo-FolderStatisticsSizeBytes -FolderStatistics ([PSCustomObject]@{
-                    FolderAndSubfolderSize = "Unavailable"
-                    FolderSize             = "2 MB (2,097,152 bytes)"
-                }) | Should -Be 2097152
-        }
-
-        It "marks only an unavailable metric NotEvaluated" {
+        It "marks an unavailable item count NotEvaluated" {
             $ownerStatistics = [PSCustomObject]@{
-                VisibleItemsInFolder   = "Unavailable"
-                FolderAndSubfolderSize = "1 KB (1,024 bytes)"
+                VisibleItemsInFolder = "Unavailable"
             }
             $receiverStatistics = [PSCustomObject]@{
-                VisibleItemsInFolder   = 10
-                FolderAndSubfolderSize = "Unavailable"
+                VisibleItemsInFolder = 10
             }
 
             Compare-CalendarFolderStatistics `
@@ -1632,22 +1900,17 @@ Describe "Check-SharingStatus structured diagnostics" {
             Complete-SharingFindings
 
             ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR432").status |
-                Should -Be "NotEvaluated"
-            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR433").status |
                 Should -Be "NotEvaluated"
         }
 
         It "marks the comparison NotApplicable without a unique receiver match" {
             Compare-CalendarFolderStatistics `
                 -OwnerFolderStatistics ([PSCustomObject]@{
-                    VisibleItemsInFolder   = 10
-                    FolderAndSubfolderSize = "1 KB (1,024 bytes)"
+                    VisibleItemsInFolder = 10
                 }) `
                 -ReceiverFolderStatistics $null
 
             ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR432").status |
-                Should -Be "NotApplicable"
-            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR433").status |
                 Should -Be "NotApplicable"
         }
 
@@ -1657,14 +1920,11 @@ Describe "Check-SharingStatus structured diagnostics" {
 
             Compare-CalendarFolderStatistics `
                 -OwnerFolderStatistics ([PSCustomObject]@{
-                    VisibleItemsInFolder   = 10
-                    FolderAndSubfolderSize = "1 KB (1,024 bytes)"
+                    VisibleItemsInFolder = 10
                 }) `
                 -ReceiverFolderStatistics $null
 
             ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR432").status |
-                Should -Be "NotEvaluated"
-            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR433").status |
                 Should -Be "NotEvaluated"
         }
     }
@@ -1922,6 +2182,35 @@ Describe "Check-SharingStatus structured diagnostics" {
             Should -Not -Invoke Write-Host -ParameterFilter {
                 $Object -eq "No confirmed issues were detected with the evidence available."
             }
+        }
+
+        It "prints recommended next steps as full-width lines below the findings table" {
+            Add-SharingFinding -RuleId "SHR324" -Status Detected -Evidence @{
+                reason = "Legacy MAPI relationship"
+            }
+
+            Write-SharingSummary -Owner "owner@contoso.com" -Receiver "receiver@contoso.com"
+
+            Should -Invoke Write-Host -ParameterFilter {
+                $Object -eq "[SHR324] Upgrade to Modern Calendar Sharing by following https://support.microsoft.com/en-us/outlook/calendar-sharing-in-microsoft-365"
+            }
+        }
+
+        It "capitalizes displayed finding table headers without changing structured properties" {
+            Add-SharingFinding -RuleId "SHR121" -Status Detected -Evidence @{
+                extendedFolderFlags = @()
+            }
+
+            $output = Write-SharingSummary `
+                -Owner "owner@contoso.com" `
+                -Receiver "receiver@contoso.com" |
+                Out-String -Width 200
+
+            $output | Should -Match "Severity\s+RuleId\s+Title\s+Evidence"
+            $script:SharingFindings[0].PSObject.Properties.Name |
+                Should -Contain "severity"
+            $script:SharingFindings[0].PSObject.Properties.Name |
+                Should -Contain "ruleId"
         }
 
         It "wraps long finding evidence without truncation" {
