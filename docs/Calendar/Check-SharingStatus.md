@@ -15,6 +15,11 @@ The script is intended to establish whether the sharing relationship is configur
 - **Local folder** - The copy of the owner's calendar created in the receiver's mailbox for Modern Sharing.
 - **Modern Sharing** - The REST-based sharing model in which Exchange synchronizes the owner's calendar to a local folder in the receiver's mailbox.
 - **Old Model Sharing** - The legacy MAPI-based model in which the client connects directly to the owner's mailbox.
+- **Published Calendar** - An Internet Calendar subscription in which the owner exposes an ICS URL and the receiver stores a local subscription folder.
+
+For internal legacy MAPI relationships, the script reports Modern-only rules as `NotApplicable`, checks pair-specific Old-model calendar entries, and recommends upgrading by following [Calendar sharing in Microsoft 365](https://support.microsoft.com/en-us/outlook/calendar-sharing-in-microsoft-365).
+
+When the selected owner calendar is published and no Modern relationship is identified, the script uses the Published Calendar path. It compares the owner's `PublishedICalUrl` with the receiver's InternetCalendar subscriptions and verifies that the matching subscription has a local receiver calendar folder. Modern-only rules are reported as `NotApplicable`.
 
 ## Requirements
 
@@ -30,7 +35,7 @@ Unavailable cmdlets, inaccessible data, and non-mailbox-name redacted evidence a
 ### Syntax
 
 ```powershell
-.\Check-SharingStatus.ps1 -Owner <String> -Receiver <String> [-OwnerCalendarFolderPath <String>] [-ModernSharingOnly <Boolean>] [-IncludeSensitiveData]
+.\Check-SharingStatus.ps1 -Owner <String> -Receiver <String> [-OwnerCalendarFolderPath <String>] [-IncludeSensitiveData]
 ```
 
 ### Parameters
@@ -40,7 +45,6 @@ Unavailable cmdlets, inaccessible data, and non-mailbox-name redacted evidence a
 | `Owner` | Mailbox that owns and shares the calendar. |
 | `Receiver` | Mailbox that receives the shared calendar. |
 | `OwnerCalendarFolderPath` | Optional owner-mailbox-relative calendar folder path. Slash and backslash separators and an optional leading separator are accepted. Do not include a mailbox identity prefix. When omitted, the folder whose `FolderType` is `Calendar` is selected. |
-| `ModernSharingOnly` | Defaults to `$true`. Set to `$false` to include Old Model Sharing entries and Internet Calendar information. |
 | `IncludeSensitiveData` | Retains full-fidelity values in structured in-memory findings and errors. Console output is always full fidelity. |
 
 The default owner calendar is selected when `-OwnerCalendarFolderPath` is omitted:
@@ -61,11 +65,7 @@ Exchange may report a user-created Calendar-scope folder as `/Project Calendar` 
 
 When a selected subfolder is requested, receiver folder matching, sharing entries, and accept-log output are scoped to that selected calendar name. Other calendars shared by the same owner do not satisfy the selected-calendar checks.
 
-By default, the script focuses on Modern Sharing. To include Old Model Sharing entries and Internet Calendar publishing/subscription information:
-
-```powershell
-.\Check-SharingStatus.ps1 -Owner owner@contoso.com -Receiver receiver@contoso.com -ModernSharingOnly $false
-```
+The script automatically evaluates Modern Sharing and pair-specific legacy MAPI evidence. When the selected owner calendar is published, it also evaluates Published Calendar configuration and the receiver's matching Internet Calendar subscription.
 
 The detailed console output always contains full-fidelity values. Structured diagnostic evidence is privacy-safe by default. To retain full-fidelity values in the structured in-memory findings and error records:
 
@@ -81,8 +81,10 @@ The detailed console output always contains full-fidelity values. Structured dia
 
 - Mailbox information and Send-on-Behalf grants.
 - Selected calendar folder statistics and permissions. The selected folder is the default calendar unless `-OwnerCalendarFolderPath` is supplied.
+- A receiver-specific permission summary across the owner calendar folder and owner mailbox. If no direct receiver entry exists, the output notes that access may come from the `Default` entry or a group.
 - Selected calendar size greater than 1 GB.
 - Selected calendar item count greater than 100,000 visible items.
+- Calendar folders whose names end in a one- or two-digit numeric suffix such as `(1)` or `(12)`.
 - Whether the selected owner-side folder is itself a shared copy owned by another mailbox. If it belongs to the supplied receiver, the script reports that Owner and Receiver appear reversed.
 - Sharing invite logs for the specified receiver.
 - Modern Sharing folder flags, including `SharedOut` and `ExchangeShareFolder`.
@@ -93,7 +95,8 @@ The detailed console output always contains full-fidelity values. Structured dia
 
 - Mailbox information and the likely sharing type.
 - The local folder corresponding to the selected owner calendar.
-- Missing, duplicate, or numerically suffixed local folders.
+- Missing or duplicate local folders.
+- Calendar folders whose names end in a one- or two-digit numeric suffix such as `(1)` or `(12)`.
 - Redacted receiver folder names, with guidance to obtain more access before matching the owner's calendar.
 - Accepted sharing invite logs.
 - Pair-specific New and Old sharing-model entries.
@@ -101,22 +104,23 @@ The detailed console output always contains full-fidelity values. Structured dia
 - Local folder flags, including `SharedIn` and `ExchangeShareFolder`.
 - `CalendarSharingOwnerSmtpAddress`.
 - Owner, receiver-folder, and active-sharing permission consistency.
-- A visible-item and folder-size comparison between the selected owner calendar and the uniquely matched receiver local folder.
+- A visible-item comparison between the selected owner calendar and the uniquely matched receiver local folder.
 - Periodic synchronization timestamps.
 - `SharedCalendarSyncStartDate`.
 
 ### Owner and receiver statistics comparison
 
-After the receiver folder is matched, the script always displays the selected owner and receiver values for `VisibleItemsInFolder` and `FolderAndSubfolderSize`, together with the receiver-minus-owner delta and receiver-to-owner ratio. `FolderSize` is used only when `FolderAndSubfolderSize` is unavailable. A metric that cannot be converted is displayed as unavailable and its corresponding rule is reported as `NotEvaluated`.
+After the receiver folder is matched, the script displays the selected owner and receiver values for `VisibleItemsInFolder`, together with the receiver-minus-owner delta and receiver-to-owner ratio. A count that cannot be converted is displayed as unavailable and its corresponding rule is reported as `NotEvaluated`.
 
 The comparison adds these asymmetric warning rules:
 
 - `SHR432` is detected only when the receiver has more visible items than the owner, has at least twice the owner's visible-item count, and exceeds the owner by at least 100 items.
-- `SHR433` is detected only when the receiver is larger than the owner, is at least twice the owner's size, and exceeds the owner by at least 1 MiB (1,048,576 bytes).
 
-An owner calendar that is larger than the receiver copy does not trigger either warning. That direction is informational because the receiver synchronization window may be bounded by `SharedCalendarSyncStartDate` and may contain only the last year's data.
+An owner calendar with more visible items than the receiver copy does not trigger this warning. That direction is informational because the receiver synchronization window may be bounded by `SharedCalendarSyncStartDate` and may contain only the last year's data.
 
-When `-ModernSharingOnly $false` is used, the script also displays Old Model Sharing entries and Internet Calendar subscription information.
+The script displays relevant pair-specific Old Model Sharing entries automatically. Internet Calendar information is collected only when the selected owner calendar is published.
+
+InternetCalendar information is always collected when the selected owner calendar has `PublishEnabled` set. Names containing parentheses elsewhere, such as `CUB01-3 McKinley (16-32) Public`, and names ending in three or more digits, such as `Archive (123)`, do not trigger duplicate-style folder warnings.
 
 ## Understanding the summary
 
