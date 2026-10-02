@@ -42,7 +42,6 @@ BeforeAll {
             }
 
             $latestSU = Get-ExchangeBuildVersionInformation -FileVersion $allSUsOnLatestCU[0]
-            $notSecondVersionSU = $null -eq ($latestSU.FriendlyName | Select-String "\D{3}\d{2}SUv\d")
 
             # On the latest CU, it shouldn't be secure if we have released an SU
             $latestCU.LatestSU | Should -Be (-not $trueSUReleaseForLatestCU)
@@ -71,11 +70,8 @@ BeforeAll {
 
                 if (-not $processedSUAlready) {
                     $currentSUTest.LatestSU | Should -Be $ExchangeVersionSupported
-
-                    if ($notSecondVersionSU) {
-                        # Once we hit a SU, processedSUAlready will be set to true, causing all remaining SUs to test false for LatestSU
-                        $processedSUAlready = $null -ne ($currentSUTest.FriendlyName | Select-String "\D{3}\d{2}SU")
-                    }
+                    # Once we hit an SU (base or v2), processedSUAlready will be set to true, causing all remaining SUs to test false for LatestSU.
+                    $processedSUAlready = $null -ne ($currentSUTest.FriendlyName | Select-String "\D{3}\d{2}SU")
                 } else {
                     $currentSUTest.LatestSU | Should -Be $false
                 }
@@ -103,11 +99,8 @@ BeforeAll {
 
             if (-not $processedSUAlready) {
                 $currentSUTest.LatestSU | Should -Be $ExchangeVersionSupported
-
-                if ($notSecondVersionSU) {
-                    # Once we hit a SU, processedSUAlready will be set to true, causing all remaining SUs to test false for LatestSU
-                    $processedSUAlready = $null -ne ($currentSUTest.FriendlyName | Select-String "\D{3}\d{2}SU")
-                }
+                # Once we hit an SU (base or v2), processedSUAlready will be set to true, causing all remaining SUs to test false for LatestSU.
+                $processedSUAlready = $null -ne ($currentSUTest.FriendlyName | Select-String "\D{3}\d{2}SU")
             } else {
                 $currentSUTest.LatestSU | Should -Be $false
             }
