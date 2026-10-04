@@ -75,17 +75,28 @@
         With this parameter, the script will only connect to target tenant and not source, instead it will rely on the zip file gathered when running this script along with the 'CollectSourceOnly' parameter. When used, you also need to specify the 'PathForCollectedData' parameter pointing to the collected zip file.
 
 .PARAMETER SourceConnectionUri
-        Optional Exchange Online connection URI for the source tenant. If omitted, the Exchange Online module default is used. Ignored when SourceIsOffline is used.
+        Optional Exchange Online connection URI for the source tenant. If omitted, the Exchange Online module default is used. Not available with SourceIsOffline, which never connects to the source tenant.
 
 .PARAMETER SourceAzureADAuthorizationEndpointUri
-        Optional Azure AD authorization endpoint URI for the source Exchange Online connection. If omitted, the Exchange Online module default is used. Ignored when SourceIsOffline is used.
+        Optional Azure AD authorization endpoint URI for the source Exchange Online connection. If omitted, the Exchange Online module default is used. Not available with SourceIsOffline.
 
 .PARAMETER TargetConnectionUri
-        Optional Exchange Online connection URI for the target tenant. If omitted, the Exchange Online module default is used. Ignored when CollectSourceOnly is used.
+        Optional Exchange Online connection URI for the target tenant. If omitted, the Exchange Online module default is used. Not available with CollectSourceOnly, which never connects to the target tenant.
 
 .PARAMETER TargetAzureADAuthorizationEndpointUri
-        Optional Azure AD authorization endpoint URI for the target Exchange Online connection. If omitted, the Exchange Online module default is used. Ignored when CollectSourceOnly is used.
-        These endpoint overrides apply only to Exchange Online, not Microsoft Graph connections, and do not enable otherwise unsupported cross-cloud migrations.
+        Optional Azure AD authorization endpoint URI for the target Exchange Online connection. If omitted, the Exchange Online module default is used. Not available with CollectSourceOnly.
+
+.PARAMETER GraphEndpointUri
+        Optional Microsoft Graph service endpoint used for both tenants. Must be specified together with AzureADEndpointUri. If omitted, the Microsoft Graph module default is used.
+        Cross-cloud migrations are not supported, so both tenants always reside in the same cloud and share a single Graph endpoint.
+
+.PARAMETER AzureADEndpointUri
+        Optional Microsoft Entra authority used for Microsoft Graph authentication for both tenants. Must be specified together with GraphEndpointUri.
+        The two Graph URIs are registered as a named Microsoft Graph environment only for the duration of each Connect-MgGraph call, because Connect-MgGraph accepts an environment name rather than individual URIs. The registration is removed again immediately, so the Microsoft Graph settings file is not left modified.
+
+.PARAMETER AADAppRedirectUri
+        Optional redirect URI used to locate the cross-tenant migration Microsoft Entra application. Defaults to https://office.com, which is correct for the public cloud.
+        Supply the redirect URI registered on the migration application in your environment if it differs.
 
 .EXAMPLE
         .\CrossTenantMailboxMigrationValidation.ps1 -CheckObjects -LogPath C:\Temp\LogFile.txt
@@ -122,6 +133,10 @@
 .EXAMPLE
         .\CrossTenantMailboxMigrationValidation.ps1 -CheckObjects -LogPath C:\Logs\CTMM.log -SourceConnectionUri $sourceConnectionUri -SourceAzureADAuthorizationEndpointUri $sourceAuthorizationEndpointUri -TargetConnectionUri $targetConnectionUri -TargetAzureADAuthorizationEndpointUri $targetAuthorizationEndpointUri
         Set the variables to the supported connection and authorization endpoint URIs for each tenant before running. Each override is optional and independent, and applies only to that tenant's Exchange Online connection.
+
+.EXAMPLE
+        .\CrossTenantMailboxMigrationValidation.ps1 -CheckOrgs -LogPath C:\Logs\CTMM.log -SourceConnectionUri $sourceConnectionUri -SourceAzureADAuthorizationEndpointUri $sourceAuthorizationEndpointUri -TargetConnectionUri $targetConnectionUri -TargetAzureADAuthorizationEndpointUri $targetAuthorizationEndpointUri -GraphEndpointUri $graphEndpointUri -AzureADEndpointUri $azureADEndpointUri
+        Validates the organization configuration in an environment where both Exchange Online and Microsoft Graph use non-default endpoints. Set each variable to the supported URI for your environment before running.
 .#>
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('CustomRules\AvoidUsingReadHost', '', Justification = 'Do not want to change logic of script as of now')]
@@ -160,14 +175,12 @@ param (
     [Parameter(Mandatory = $true, ParameterSetName = "ScriptUpdateOnly")]
     [switch]$ScriptUpdateOnly,
     [Parameter(ParameterSetName = "ObjectsValidation")]
-    [Parameter(ParameterSetName = "OfflineMode")]
     [Parameter(ParameterSetName = "CollectMode")]
     [Parameter(ParameterSetName = "OrgsValidation")]
     [Parameter(ParameterSetName = "SDP")]
     [ValidateNotNullOrEmpty()]
     [string]$SourceConnectionUri,
     [Parameter(ParameterSetName = "ObjectsValidation")]
-    [Parameter(ParameterSetName = "OfflineMode")]
     [Parameter(ParameterSetName = "CollectMode")]
     [Parameter(ParameterSetName = "OrgsValidation")]
     [Parameter(ParameterSetName = "SDP")]
@@ -175,24 +188,92 @@ param (
     [string]$SourceAzureADAuthorizationEndpointUri,
     [Parameter(ParameterSetName = "ObjectsValidation")]
     [Parameter(ParameterSetName = "OfflineMode")]
-    [Parameter(ParameterSetName = "CollectMode")]
     [Parameter(ParameterSetName = "OrgsValidation")]
     [Parameter(ParameterSetName = "SDP")]
     [ValidateNotNullOrEmpty()]
     [string]$TargetConnectionUri,
     [Parameter(ParameterSetName = "ObjectsValidation")]
     [Parameter(ParameterSetName = "OfflineMode")]
+    [Parameter(ParameterSetName = "OrgsValidation")]
+    [Parameter(ParameterSetName = "SDP")]
+    [ValidateNotNullOrEmpty()]
+    [string]$TargetAzureADAuthorizationEndpointUri,
+    [Parameter(ParameterSetName = "OfflineMode")]
     [Parameter(ParameterSetName = "CollectMode")]
     [Parameter(ParameterSetName = "OrgsValidation")]
     [Parameter(ParameterSetName = "SDP")]
     [ValidateNotNullOrEmpty()]
-    [string]$TargetAzureADAuthorizationEndpointUri
+    [string]$GraphEndpointUri,
+    [Parameter(ParameterSetName = "OfflineMode")]
+    [Parameter(ParameterSetName = "CollectMode")]
+    [Parameter(ParameterSetName = "OrgsValidation")]
+    [Parameter(ParameterSetName = "SDP")]
+    [ValidateNotNullOrEmpty()]
+    [string]$AzureADEndpointUri,
+    [Parameter(ParameterSetName = "OfflineMode")]
+    [Parameter(ParameterSetName = "CollectMode")]
+    [Parameter(ParameterSetName = "OrgsValidation")]
+    [Parameter(ParameterSetName = "SDP")]
+    [ValidateNotNullOrEmpty()]
+    [string]$AADAppRedirectUri = "https://office.com"
 )
 
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 . $PSScriptRoot\..\Shared\OutputOverrides\Write-Host.ps1
 $wsh = New-Object -ComObject WScript.Shell
+$Script:GraphEnvironmentName = "CrossTenantMailboxMigrationValidation"
 
+function TestGraphEndpointParameters {
+    if ([string]::IsNullOrEmpty($GraphEndpointUri) -and [string]::IsNullOrEmpty($AzureADEndpointUri)) {
+        return $false
+    }
+
+    if ([string]::IsNullOrEmpty($GraphEndpointUri) -or [string]::IsNullOrEmpty($AzureADEndpointUri)) {
+        throw "GraphEndpointUri and AzureADEndpointUri must be specified together"
+    }
+
+    return $true
+}
+function ConnectToTenantAAD {
+    $graphParameters = @{
+        Scopes = 'Application.Read.All'
+    }
+
+    if (-not (TestGraphEndpointParameters)) {
+        Connect-MgGraph @graphParameters | Out-Null
+        return
+    }
+
+    <#
+        Connect-MgGraph selects its endpoints by environment name rather than by individual URIs, and
+        Add-MgEnvironment writes the environment to the user's Microsoft Graph settings file. The
+        connection keeps the endpoints it resolved while connecting, so the entry is registered only
+        for the duration of the call and is removed again even if connecting fails.
+    #>
+    if (Get-MgEnvironment -Name $Script:GraphEnvironmentName -ErrorAction SilentlyContinue) {
+        Set-MgEnvironment -Name $Script:GraphEnvironmentName -GraphEndpoint $GraphEndpointUri -AzureADEndpoint $AzureADEndpointUri -ErrorAction Stop | Out-Null
+    } else {
+        Add-MgEnvironment -Name $Script:GraphEnvironmentName -GraphEndpoint $GraphEndpointUri -AzureADEndpoint $AzureADEndpointUri -ErrorAction Stop | Out-Null
+    }
+
+    try {
+        $graphParameters.Environment = $Script:GraphEnvironmentName
+        Connect-MgGraph @graphParameters | Out-Null
+    } finally {
+        RemoveGraphEnvironment
+    }
+}
+function RemoveGraphEnvironment {
+    if (-not (Get-MgEnvironment -Name $Script:GraphEnvironmentName -ErrorAction SilentlyContinue)) {
+        return
+    }
+
+    try {
+        Remove-MgEnvironment -Name $Script:GraphEnvironmentName -ErrorAction Stop | Out-Null
+    } catch {
+        Write-Host "Informational: Unable to remove the temporary Microsoft Graph environment '$Script:GraphEnvironmentName'" -ForegroundColor Yellow
+    }
+}
 function ConnectToEXOTenants {
     ConnectToSourceEXOTenant
     ConnectToTargetEXOTenant
@@ -817,21 +898,22 @@ function ConnectToSourceTenantAAD {
     #Connect to TargetTenant (AzureAD)
     Write-Verbose -Message "Informational: Connecting to AAD on SOURCE tenant"
     $wsh.Popup("You're about to connect to source tenant (AAD), please provide the SOURCE tenant admin credentials", 0, "SOURCE tenant") | Out-Null
-    Connect-MgGraph -Scopes 'Application.Read.All' | Out-Null
+    ConnectToTenantAAD
 }
 function ConnectToTargetTenantAAD {
     #Connect to TargetTenant (AzureAD)
     Write-Verbose -Message "Informational: Connecting to AAD on TARGET tenant"
     $wsh.Popup("You're about to connect to target tenant (AAD), please provide the TARGET tenant admin credentials", 0, "TARGET tenant") | Out-Null
-    Connect-MgGraph -Scopes 'Application.Read.All' | Out-Null
+    ConnectToTenantAAD
 }
 function CheckOrgs {
     #Check if there's an AAD app on the TARGET tenant as expected and load it onto a variable
     if ($TargetAADApp) {
         Write-Host "AAD application for EXO has been found on TARGET tenant" -ForegroundColor Green
         Write-Verbose -Message "Informational: Loading migration endpoints on TARGET tenant that meets the criteria"
-        if (Get-TargetMigrationEndpoint | Where-Object { ($_.RemoteServer -eq "outlook.office.com") -and ($_.EndpointType -eq "ExchangeRemoteMove") -and ($_.ApplicationId -eq $TargetAADApp.AppId) }) {
-            Write-Host "Migration endpoint found and correctly set" -ForegroundColor Green
+        $TargetMigrationEndpoint = Get-TargetMigrationEndpoint | Where-Object { ($_.EndpointType -eq "ExchangeRemoteMove") -and ($_.ApplicationId -eq $TargetAADApp.AppId) }
+        if ($TargetMigrationEndpoint) {
+            Write-Host "Migration endpoint found and correctly set, RemoteServer: $(($TargetMigrationEndpoint.RemoteServer | Sort-Object -Unique) -join ', ')" -ForegroundColor Green
         } else {
             Write-Host ">> Error: Expected Migration endpoint not found" -ForegroundColor Red
         }
@@ -898,8 +980,9 @@ function CheckOrgsSourceOffline {
     if ($TargetAADApp) {
         Write-Host "AAD application for EXO has been found" -ForegroundColor Green
         Write-Verbose -Message "Informational: Loading migration endpoints on TARGET tenant that meets the criteria"
-        if (Get-TargetMigrationEndpoint | Where-Object { ($_.RemoteServer -eq "outlook.office.com") -and ($_.EndpointType -eq "ExchangeRemoteMove") -and ($_.ApplicationId -eq $TargetAADApp.AppId) }) {
-            Write-Host "Migration endpoint found and correctly set" -ForegroundColor Green
+        $TargetMigrationEndpoint = Get-TargetMigrationEndpoint | Where-Object { ($_.EndpointType -eq "ExchangeRemoteMove") -and ($_.ApplicationId -eq $TargetAADApp.AppId) }
+        if ($TargetMigrationEndpoint) {
+            Write-Host "Migration endpoint found and correctly set, RemoteServer: $(($TargetMigrationEndpoint.RemoteServer | Sort-Object -Unique) -join ', ')" -ForegroundColor Green
         } else {
             Write-Host ">> Error: Expected Migration endpoint not found" -ForegroundColor Red
         }
@@ -962,7 +1045,7 @@ function CheckOrgsSourceOffline {
 }
 function KillSessions {
     #Check if there's any existing session opened for EXO and remove it so it doesn't remains open
-    Get-PSSession | Where-Object { $_.ComputerName -eq 'outlook.office365.com' } | Remove-PSSession
+    Get-PSSession | Where-Object { $_.Name -like "*ExchangeOnline*" } | Remove-PSSession
 }
 function CollectDataForSDP {
     $currentDate = (Get-Date).ToString('ddMMyyHHMM')
@@ -990,7 +1073,7 @@ function CollectDataForSDP {
     Write-Host "Informational: Exporting the TARGET tenant accepted domains"  -ForegroundColor Yellow
     Get-TargetAcceptedDomain | Export-Clixml $OutputPath\TargetAcceptedDomains.xml
     Write-Host "Informational: Exporting the TARGET tenant Azure AD applications" -ForegroundColor Yellow
-    Get-MgApplication | Where-Object { ($_.Web.RedirectUris -eq "https://office.com") -and ($_.RequiredResourceAccess.ResourceAppId -like "*00000002-0000-0ff1-ce00-000000000000*") } | Export-Clixml $OutputPath\TargetAADApps.xml
+    Get-MgApplication | Where-Object { ($_.Web.RedirectUris -eq $AADAppRedirectUri) -and ($_.RequiredResourceAccess.ResourceAppId -like "*00000002-0000-0ff1-ce00-000000000000*") } | Export-Clixml $OutputPath\TargetAADApps.xml
 
     #Compress folder contents into a zip file
     Write-Host "Informational: Data has been exported. Compressing it into a ZIP file"  -ForegroundColor Yellow
@@ -1070,6 +1153,18 @@ if ((-not($SkipVersionCheck)) -and
     return
 }
 
+# Parameter sets cannot express that the offline object check never reaches Microsoft Graph.
+if ($SourceIsOffline -and $CheckObjects -and -not $CheckOrgs -and ($GraphEndpointUri -or $AzureADEndpointUri -or $PSBoundParameters.ContainsKey("AADAppRedirectUri"))) {
+    Write-Host "Informational: Microsoft Graph is not used when validating objects against collected source data, so the Graph overrides will not be applied" -ForegroundColor Yellow
+}
+
+try {
+    TestGraphEndpointParameters | Out-Null
+} catch {
+    Write-Host (">> Error: " + $_.Exception.Message) -ForegroundColor Red
+    exit
+}
+
 if ($CheckObjects -and !$NoConn -and !$SourceIsOffline) {
     LoggingOn
     if ($CSV) {
@@ -1118,7 +1213,7 @@ if ($CheckOrgs -and !$SourceIsOffline) {
     $TargetTenantId = (Get-MgOrganization).id
     Write-Verbose -Message "Informational: TargetTenantId gathered from (Get-MgOrganization).id: $TargetTenantId"
     Write-Verbose -Message "Informational: Checking if there's already an AAD Application on TARGET tenant that meets the criteria"
-    $TargetAADApp = Get-MgApplication | Where-Object { ($_.Web.RedirectUris -eq "https://office.com") -and ($_.RequiredResourceAccess.ResourceAppId -like "*00000002-0000-0ff1-ce00-000000000000*") }
+    $TargetAADApp = Get-MgApplication | Where-Object { ($_.Web.RedirectUris -eq $AADAppRedirectUri) -and ($_.RequiredResourceAccess.ResourceAppId -like "*00000002-0000-0ff1-ce00-000000000000*") }
     Disconnect-MgGraph | Out-Null
     ConnectToEXOTenants
     CheckOrgs
@@ -1156,7 +1251,7 @@ if ($CollectSourceOnly) {
     $SourceTenantId = (Get-MgOrganization).id
     Write-Verbose -Message "SourceTenantId gathered from (Get-MgOrganization).id: $SourceTenantId"
     Write-Verbose -Message "Gathering AAD Service Principals"
-    Get-MgServicePrincipal -All | Where-Object { $_.ReplyUrls -eq 'https://office.com' } | Export-Clixml $OutputPath\SourceAADServicePrincipals.xml
+    Get-MgServicePrincipal -All | Where-Object { $_.ReplyUrls -eq $AADAppRedirectUri } | Export-Clixml $OutputPath\SourceAADServicePrincipals.xml
     Write-Verbose -Message "Informational: Connecting to the source EXO tenant to collect organization-level configuration"
     ConnectToSourceEXOTenant
 
@@ -1256,7 +1351,7 @@ if ($SourceIsOffline -and $PathForCollectedData -and $CheckOrgs) {
     Write-Verbose -Message "TargetTenantId gathered from (Get-MgOrganization).id: $TargetTenantId"
     $SourceAADApp = (Import-Clixml $OutputPath\SourceAADServicePrincipals.xml)
     Write-Verbose -Message "Informational: Checking if there's already an AAD Application on TARGET tenant that meets the criteria"
-    $TargetAADApp = Get-MgApplication | Where-Object { ($_.Web.RedirectUris -eq "https://office.com") -and ($_.RequiredResourceAccess.ResourceAppId -like "*00000002-0000-0ff1-ce00-000000000000*") }
+    $TargetAADApp = Get-MgApplication | Where-Object { ($_.Web.RedirectUris -eq $AADAppRedirectUri) -and ($_.RequiredResourceAccess.ResourceAppId -like "*00000002-0000-0ff1-ce00-000000000000*") }
     ConnectToTargetEXOTenant
     CheckOrgsSourceOffline
     Disconnect-MgGraph | Out-Null

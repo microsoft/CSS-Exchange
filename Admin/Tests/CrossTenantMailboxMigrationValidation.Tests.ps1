@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Pester testing file')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Stub definitions that exist only so Pester can mock the real cmdlets')]
 [CmdletBinding()]
 param()
 
@@ -39,13 +40,28 @@ BeforeDiscovery -ScriptBlock {
                 TargetConnectionUri                   = "https://target.example.com/powershell"
             }
         }
+        @{ Scenario = "graph endpoint pair"; Endpoints = @{
+                GraphEndpointUri   = "https://graph.example.com"
+                AzureADEndpointUri = "https://login.example.com"
+            }
+        }
+        @{ Scenario = "AAD app redirect override"; Endpoints = @{ AADAppRedirectUri = "https://portal.example.com" } }
+        @{ Scenario = "all graph overrides"; Endpoints = @{
+                GraphEndpointUri   = "https://graph.example.com"
+                AzureADEndpointUri = "https://login.example.com"
+                AADAppRedirectUri  = "https://portal.example.com"
+            }
+        }
     )
+    $Script:exoEndpointCases = $endpointCases | Where-Object {
+        $_.Endpoints.Keys.Count -eq 0 -or -not ($_.Endpoints.Keys | Where-Object { $_ -notlike "Source*" -and $_ -notlike "Target*" })
+    }
     $Script:connectionCases = foreach ($helper in @(
             @{ HelperName = "ConnectToEXOTenants"; ExpectedPrefixes = @("Source", "Target") }
             @{ HelperName = "ConnectToSourceEXOTenant"; ExpectedPrefixes = @("Source") }
             @{ HelperName = "ConnectToTargetEXOTenant"; ExpectedPrefixes = @("Target") }
         )) {
-        foreach ($endpointCase in $endpointCases) {
+        foreach ($endpointCase in $Script:exoEndpointCases) {
             @{
                 HelperName       = $helper.HelperName
                 ExpectedPrefixes = $helper.ExpectedPrefixes
@@ -54,20 +70,67 @@ BeforeDiscovery -ScriptBlock {
             }
         }
     }
-    $Script:bindingCases = foreach ($mode in @(
-            @{ ParameterSetName = "ObjectsValidation"; ModeParameters = @{ CheckObjects = $true; LogPath = "validation.log" } }
-            @{ ParameterSetName = "OrgsValidation"; ModeParameters = @{ CheckOrgs = $true; LogPath = "validation.log" } }
-            @{ ParameterSetName = "SDP"; ModeParameters = @{ SDP = $true; LogPath = "validation.log"; PathForCollectedData = "collected" } }
-            @{ ParameterSetName = "CollectMode"; ModeParameters = @{ CollectSourceOnly = $true; LogPath = "validation.log"; PathForCollectedData = "collected" } }
-            @{ ParameterSetName = "OfflineMode"; ModeParameters = @{ SourceIsOffline = $true; CheckObjects = $true; LogPath = "validation.log"; PathForCollectedData = "collected.zip" } }
-            @{ ParameterSetName = "OfflineMode"; ModeParameters = @{ SourceIsOffline = $true; CheckOrgs = $true; LogPath = "validation.log"; PathForCollectedData = "collected.zip" } }
-        )) {
+    $Script:allEndpointNames = @(
+        "SourceConnectionUri"
+        "SourceAzureADAuthorizationEndpointUri"
+        "TargetConnectionUri"
+        "TargetAzureADAuthorizationEndpointUri"
+        "GraphEndpointUri"
+        "AzureADEndpointUri"
+        "AADAppRedirectUri"
+    )
+    # Each execution path only connects to the tenants and services it actually uses, so the parameter
+    # sets only accept the overrides that can take effect. Keep this in sync with the param block.
+    $modes = @(
+        @{
+            ParameterSetName = "ObjectsValidation"
+            ModeParameters   = @{ CheckObjects = $true; LogPath = "validation.log" }
+            Allowed          = @("SourceConnectionUri", "SourceAzureADAuthorizationEndpointUri", "TargetConnectionUri", "TargetAzureADAuthorizationEndpointUri")
+        }
+        @{
+            ParameterSetName = "OrgsValidation"
+            ModeParameters   = @{ CheckOrgs = $true; LogPath = "validation.log" }
+            Allowed          = $Script:allEndpointNames
+        }
+        @{
+            ParameterSetName = "SDP"
+            ModeParameters   = @{ SDP = $true; LogPath = "validation.log"; PathForCollectedData = "collected" }
+            Allowed          = $Script:allEndpointNames
+        }
+        @{
+            ParameterSetName = "CollectMode"
+            ModeParameters   = @{ CollectSourceOnly = $true; LogPath = "validation.log"; PathForCollectedData = "collected" }
+            Allowed          = @("SourceConnectionUri", "SourceAzureADAuthorizationEndpointUri", "GraphEndpointUri", "AzureADEndpointUri", "AADAppRedirectUri")
+        }
+        @{
+            ParameterSetName = "OfflineMode"
+            ModeParameters   = @{ SourceIsOffline = $true; CheckObjects = $true; LogPath = "validation.log"; PathForCollectedData = "collected.zip" }
+            Allowed          = @("TargetConnectionUri", "TargetAzureADAuthorizationEndpointUri", "GraphEndpointUri", "AzureADEndpointUri", "AADAppRedirectUri")
+        }
+        @{
+            ParameterSetName = "OfflineMode"
+            ModeParameters   = @{ SourceIsOffline = $true; CheckOrgs = $true; LogPath = "validation.log"; PathForCollectedData = "collected.zip" }
+            Allowed          = @("TargetConnectionUri", "TargetAzureADAuthorizationEndpointUri", "GraphEndpointUri", "AzureADEndpointUri", "AADAppRedirectUri")
+        }
+    )
+    $Script:bindingCases = foreach ($mode in $modes) {
         foreach ($endpointCase in $endpointCases) {
+            if ($endpointCase.Endpoints.Keys | Where-Object { $_ -notin $mode.Allowed }) { continue }
             @{
                 ParameterSetName = $mode.ParameterSetName
                 ModeParameters   = $mode.ModeParameters
                 Scenario         = $endpointCase.Scenario
                 Endpoints        = $endpointCase.Endpoints
+            }
+        }
+    }
+    $Script:rejectedSetCases = foreach ($mode in $modes) {
+        foreach ($endpointName in ($Script:allEndpointNames | Where-Object { $_ -notin $mode.Allowed })) {
+            @{
+                ParameterSetName = $mode.ParameterSetName
+                ModeParameters   = $mode.ModeParameters
+                EndpointName     = $endpointName
+                Scenario         = ($mode.ModeParameters.Keys | Sort-Object) -join "+"
             }
         }
     }
@@ -81,7 +144,11 @@ BeforeDiscovery -ScriptBlock {
         @{ EndpointName = $endpointName; Value = $null; Description = "null" }
         @{ EndpointName = $endpointName; Value = ""; Description = "empty" }
     }
-    $Script:updateCases = foreach ($endpointName in $endpointNames) {
+    $Script:invalidGraphCases = foreach ($endpointName in @("GraphEndpointUri", "AzureADEndpointUri", "AADAppRedirectUri")) {
+        @{ EndpointName = $endpointName; Value = $null; Description = "null" }
+        @{ EndpointName = $endpointName; Value = ""; Description = "empty" }
+    }
+    $Script:updateCases = foreach ($endpointName in $Script:allEndpointNames) {
         @{ EndpointName = $endpointName }
     }
 }
@@ -94,10 +161,21 @@ BeforeAll -Scriptblock {
     $functions = $Script:ast.FindAll({
             param($Node)
             $Node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
-            $Node.Name -in @("ConnectToEXOTenants", "ConnectToSourceEXOTenant", "ConnectToTargetEXOTenant")
+            $Node.Name -in @("ConnectToEXOTenants", "ConnectToSourceEXOTenant", "ConnectToTargetEXOTenant",
+                "TestGraphEndpointParameters", "RemoveGraphEnvironment", "ConnectToTenantAAD", "KillSessions")
         }, $false)
     foreach ($function in $functions) {
         . ([ScriptBlock]::Create($function.Extent.Text))
+    }
+    # The migration endpoint check is the first statement of each org validation helper. Extracting just that
+    # statement keeps the assertion on real script code without running the rest of the validation.
+    $Script:migrationEndpointChecks = @{}
+    foreach ($helperName in @("CheckOrgs", "CheckOrgsSourceOffline")) {
+        $helper = $Script:ast.Find({
+                param($Node)
+                $Node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $Node.Name -eq $helperName
+            }, $false)
+        $Script:migrationEndpointChecks[$helperName] = [ScriptBlock]::Create($helper.Body.EndBlock.Statements[0].Extent.Text)
     }
     $Script:parameterBinding = [ScriptBlock]::Create($Script:ast.ParamBlock.Extent.Text + @'
 
@@ -116,6 +194,61 @@ BeforeAll -Scriptblock {
             [string]$AzureADAuthorizationEndpointUri
         )
         throw "Exchange Online must be mocked."
+    }
+
+    function Connect-MgGraph {
+        [CmdletBinding()]
+        param(
+            [string[]]$Scopes,
+            [string]$Environment
+        )
+        throw "Microsoft Graph must be mocked."
+    }
+
+    function Get-MgEnvironment {
+        [CmdletBinding()]
+        param([string]$Name)
+        throw "Microsoft Graph must be mocked."
+    }
+
+    function Add-MgEnvironment {
+        [CmdletBinding()]
+        param([string]$Name, [string]$GraphEndpoint, [string]$AzureADEndpoint)
+        throw "Microsoft Graph must be mocked."
+    }
+
+    function Set-MgEnvironment {
+        [CmdletBinding()]
+        param([string]$Name, [string]$GraphEndpoint, [string]$AzureADEndpoint)
+        throw "Microsoft Graph must be mocked."
+    }
+
+    function Remove-MgEnvironment {
+        [CmdletBinding()]
+        param([string]$Name)
+        throw "Microsoft Graph must be mocked."
+    }
+
+    function Get-TargetMigrationEndpoint {
+        [CmdletBinding()]
+        param()
+        throw "Exchange Online must be mocked."
+    }
+
+    # Shadow the session cmdlets so the tests can pipe plain objects without binding to real PSSession types.
+    function Get-PSSession {
+        [CmdletBinding()]
+        param()
+        throw "Remote sessions must be mocked."
+    }
+
+    function Remove-PSSession {
+        [CmdletBinding()]
+        param(
+            [Parameter(ValueFromPipeline = $true)]
+            $Session
+        )
+        process { throw "Remote sessions must be mocked." }
     }
 }
 
@@ -191,6 +324,198 @@ Describe -Name "Cross-tenant Exchange Online endpoint overrides" -Fixture {
     }
 }
 
+Describe -Name "Cross-tenant Microsoft Graph endpoint overrides" -Fixture {
+    BeforeEach -Scriptblock {
+        $Script:GraphEndpointUri = $null
+        $Script:AzureADEndpointUri = $null
+        $Script:GraphEnvironmentName = "CrossTenantMailboxMigrationValidation"
+        # Model the Microsoft Graph settings file so the tests see the same state the real cmdlets would leave behind.
+        $Script:fakeEnvironments = @{}
+        Mock -CommandName Get-MgEnvironment -MockWith {
+            if ($Script:fakeEnvironments.ContainsKey($Name)) { $Script:fakeEnvironments[$Name] }
+        }
+        Mock -CommandName Add-MgEnvironment -MockWith {
+            $Script:fakeEnvironments[$Name] = [PSCustomObject]@{ Name = $Name; GraphEndpoint = $GraphEndpoint; AzureADEndpoint = $AzureADEndpoint }
+        }
+        Mock -CommandName Set-MgEnvironment -MockWith {
+            $Script:fakeEnvironments[$Name] = [PSCustomObject]@{ Name = $Name; GraphEndpoint = $GraphEndpoint; AzureADEndpoint = $AzureADEndpoint }
+        }
+        Mock -CommandName Remove-MgEnvironment -MockWith {
+            $Script:fakeEnvironments.Remove($Name)
+        }
+        Mock -CommandName Connect-MgGraph -MockWith { }
+    }
+
+    It -Name "connects without an environment when no overrides are supplied" -Test {
+        ConnectToTenantAAD
+
+        Should -Invoke -CommandName Connect-MgGraph -Times 1 -Exactly -ParameterFilter {
+            $Scopes -contains "Application.Read.All" -and -not $PSBoundParameters.ContainsKey("Environment")
+        }
+        Should -Invoke -CommandName Add-MgEnvironment -Times 0
+        Should -Invoke -CommandName Set-MgEnvironment -Times 0
+    }
+
+    It -Name "registers the supplied endpoints and connects using them" -Test {
+        $Script:GraphEndpointUri = "https://graph.example.com"
+        $Script:AzureADEndpointUri = "https://login.example.com"
+
+        ConnectToTenantAAD
+
+        Should -Invoke -CommandName Add-MgEnvironment -Times 1 -Exactly -ParameterFilter {
+            $Name -eq "CrossTenantMailboxMigrationValidation" -and
+            $GraphEndpoint -eq "https://graph.example.com" -and
+            $AzureADEndpoint -eq "https://login.example.com"
+        }
+        Should -Invoke -CommandName Connect-MgGraph -Times 1 -Exactly -ParameterFilter {
+            $Scopes -contains "Application.Read.All" -and $Environment -eq "CrossTenantMailboxMigrationValidation"
+        }
+    }
+
+    It -Name "does not leave the registered environment in the settings file" -Test {
+        $Script:GraphEndpointUri = "https://graph.example.com"
+        $Script:AzureADEndpointUri = "https://login.example.com"
+
+        ConnectToTenantAAD
+
+        $Script:fakeEnvironments.Count | Should -Be 0
+        Should -Invoke -CommandName Remove-MgEnvironment -Times 1 -Exactly
+    }
+
+    It -Name "removes the registered environment when connecting fails" -Test {
+        $Script:GraphEndpointUri = "https://graph.example.com"
+        $Script:AzureADEndpointUri = "https://login.example.com"
+        Mock -CommandName Connect-MgGraph -MockWith { throw "Authentication failed" }
+
+        { ConnectToTenantAAD } | Should -Throw -ExpectedMessage "Authentication failed"
+
+        $Script:fakeEnvironments.Count | Should -Be 0
+        Should -Invoke -CommandName Remove-MgEnvironment -Times 1 -Exactly
+    }
+
+    It -Name "reuses an environment left behind by an earlier run" -Test {
+        $Script:fakeEnvironments["CrossTenantMailboxMigrationValidation"] = [PSCustomObject]@{ Name = "CrossTenantMailboxMigrationValidation" }
+        $Script:GraphEndpointUri = "https://graph.example.com"
+        $Script:AzureADEndpointUri = "https://login.example.com"
+
+        ConnectToTenantAAD
+
+        Should -Invoke -CommandName Set-MgEnvironment -Times 1 -Exactly -ParameterFilter {
+            $GraphEndpoint -eq "https://graph.example.com" -and $AzureADEndpoint -eq "https://login.example.com"
+        }
+        Should -Invoke -CommandName Add-MgEnvironment -Times 0
+        $Script:fakeEnvironments.Count | Should -Be 0
+    }
+
+    It -Name "connects to Graph for both the source and the target tenant" -Test {
+        $Script:GraphEndpointUri = "https://graph.example.com"
+        $Script:AzureADEndpointUri = "https://login.example.com"
+
+        ConnectToTenantAAD
+        ConnectToTenantAAD
+
+        Should -Invoke -CommandName Connect-MgGraph -Times 2 -Exactly -ParameterFilter {
+            $Environment -eq "CrossTenantMailboxMigrationValidation"
+        }
+        $Script:fakeEnvironments.Count | Should -Be 0
+    }
+
+    It -Name "requires <EndpointName> to be paired with the other override" -TestCases @(
+        @{ EndpointName = "GraphEndpointUri" }
+        @{ EndpointName = "AzureADEndpointUri" }
+    ) -Test {
+        param($EndpointName)
+        Set-Variable -Name $EndpointName -Value "https://only.example.com" -Scope Script
+
+        { TestGraphEndpointParameters } | Should -Throw -ExpectedMessage "GraphEndpointUri and AzureADEndpointUri must be specified together"
+        { ConnectToTenantAAD } | Should -Throw -ExpectedMessage "GraphEndpointUri and AzureADEndpointUri must be specified together"
+        Should -Invoke -CommandName Add-MgEnvironment -Times 0
+        Should -Invoke -CommandName Connect-MgGraph -Times 0
+    }
+
+    It -Name "reports whether the Graph overrides were supplied" -Test {
+        TestGraphEndpointParameters | Should -BeFalse
+
+        $Script:GraphEndpointUri = "https://graph.example.com"
+        $Script:AzureADEndpointUri = "https://login.example.com"
+
+        TestGraphEndpointParameters | Should -BeTrue
+    }
+
+    It -Name "does not remove an environment that is not registered" -Test {
+        RemoveGraphEnvironment
+
+        Should -Invoke -CommandName Remove-MgEnvironment -Times 0
+    }
+}
+
+Describe -Name "Cross-tenant migration endpoint validation" -Fixture {
+    BeforeEach -Scriptblock {
+        $Script:TargetAADApp = [PSCustomObject]@{ AppId = "00000000-0000-0000-0000-000000000001" }
+        Mock -CommandName Write-Host -MockWith { }
+        Mock -CommandName Get-TargetMigrationEndpoint -MockWith { }
+    }
+
+    It -Name "<HelperName> accepts a RemoteServer outside the commercial cloud" -TestCases @(
+        @{ HelperName = "CheckOrgs"; RemoteServer = "outlook.office365.us" }
+        @{ HelperName = "CheckOrgsSourceOffline"; RemoteServer = "outlook.office365.us" }
+        @{ HelperName = "CheckOrgs"; RemoteServer = "outlook.office.com" }
+        @{ HelperName = "CheckOrgsSourceOffline"; RemoteServer = "outlook.office.com" }
+    ) -Test {
+        param($HelperName, $RemoteServer)
+        Mock -CommandName Get-TargetMigrationEndpoint -MockWith {
+            [PSCustomObject]@{
+                EndpointType  = "ExchangeRemoteMove"
+                ApplicationId = "00000000-0000-0000-0000-000000000001"
+                RemoteServer  = $RemoteServer
+            }
+        }
+
+        & $Script:migrationEndpointChecks[$HelperName]
+
+        Should -Invoke -CommandName Write-Host -ParameterFilter {
+            $Object -eq "Migration endpoint found and correctly set, RemoteServer: $RemoteServer"
+        }
+    }
+
+    It -Name "<HelperName> still reports a missing migration endpoint" -TestCases @(
+        @{ HelperName = "CheckOrgs" }
+        @{ HelperName = "CheckOrgsSourceOffline" }
+    ) -Test {
+        param($HelperName)
+        Mock -CommandName Get-TargetMigrationEndpoint -MockWith {
+            [PSCustomObject]@{
+                EndpointType  = "ExchangeRemoteMove"
+                ApplicationId = "00000000-0000-0000-0000-000000000002"
+                RemoteServer  = "outlook.office365.us"
+            }
+        }
+
+        & $Script:migrationEndpointChecks[$HelperName]
+
+        Should -Invoke -CommandName Write-Host -ParameterFilter {
+            $Object -eq ">> Error: Expected Migration endpoint not found"
+        }
+    }
+}
+
+Describe -Name "Cross-tenant session cleanup" -Fixture {
+    It -Name "removes Exchange Online sessions regardless of the cloud endpoint" -Test {
+        $sessions = @(
+            [PSCustomObject]@{ Name = "ExchangeOnlineInternalSession_1"; ComputerName = "outlook.office365.us" }
+            [PSCustomObject]@{ Name = "ExchangeOnlineInternalSession_2"; ComputerName = "outlook.office365.com" }
+            [PSCustomObject]@{ Name = "WinRM1"; ComputerName = "exchange.contoso.com" }
+        )
+        Mock -CommandName Get-PSSession -MockWith { $sessions }
+        Mock -CommandName Remove-PSSession -MockWith { }
+
+        KillSessions
+
+        Should -Invoke -CommandName Remove-PSSession -Times 2 -Exactly
+        Should -Invoke -CommandName Remove-PSSession -Times 0 -ParameterFilter { $Session.Name -eq "WinRM1" }
+    }
+}
+
 Describe -Name "Cross-tenant script parameter binding" -Fixture {
     It -Name "has no parser errors" -Test {
         $Script:parseErrors | Should -BeNullOrEmpty
@@ -213,9 +538,27 @@ Describe -Name "Cross-tenant script parameter binding" -Fixture {
         }
     }
 
+    It -Name "rejects <EndpointName> in <ParameterSetName> (<Scenario>)" -TestCases $Script:rejectedSetCases -Test {
+        param($ModeParameters, $EndpointName)
+        $parameters = @{} + $ModeParameters
+        $parameters[$EndpointName] = "https://example.com/endpoint"
+        { & $Script:parameterBinding @parameters } | Should -Throw
+    }
+
+    It -Name "defaults AADAppRedirectUri when it is not supplied" -Test {
+        $result = & $Script:parameterBinding -CheckOrgs -LogPath "validation.log"
+        $result.BoundParameters.ContainsKey("AADAppRedirectUri") | Should -BeFalse
+    }
+
     It -Name "rejects <Description> for <EndpointName>" -TestCases $Script:invalidCases -Test {
         param($EndpointName, $Value)
         $parameters = @{ CheckObjects = $true; LogPath = "validation.log"; $EndpointName = $Value }
+        { & $Script:parameterBinding @parameters } | Should -Throw
+    }
+
+    It -Name "rejects <Description> for <EndpointName>" -TestCases $Script:invalidGraphCases -Test {
+        param($EndpointName, $Value)
+        $parameters = @{ CheckOrgs = $true; LogPath = "validation.log"; $EndpointName = $Value }
         { & $Script:parameterBinding @parameters } | Should -Throw
     }
 

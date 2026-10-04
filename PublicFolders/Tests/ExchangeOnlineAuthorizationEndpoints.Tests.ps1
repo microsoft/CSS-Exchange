@@ -113,7 +113,10 @@ Describe 'Exchange Online authorization endpoints: <ScriptPath>' -ForEach $Scrip
                     $args[0].GetCommandName() -eq $FunctionName
                 }, $false))
         if ($null -eq $definition -or $invocations.Count -ne 1) {
-            throw "Expected one connection helper and one invocation in $ScriptPath."
+            throw ("These tests execute the connection helper and its single call site extracted from $ScriptPath. " +
+                "Expected exactly one '$FunctionName' definition and one invocation, but found " +
+                "$(($definition | Measure-Object).Count) definitions and $($invocations.Count) invocations. " +
+                "If the script was restructured, update the test case metadata to match the new connection layout.")
         }
 
         # Execute only the connection definition and its real call site, never migration or diagnostic bodies.

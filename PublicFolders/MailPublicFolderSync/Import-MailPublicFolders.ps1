@@ -17,6 +17,9 @@
 #
 # Import-MailPublicFolders.ps1 -ToCloud
 #
+# .PARAMETER ConnectionUri
+#    The Exchange Online remote PowerShell connection uri. Defaults to https://outlook.office365.com/powerShell-liveID.
+#
 # .PARAMETER AzureADAuthorizationEndpointUri
 #    Optional Microsoft Entra authorization endpoint for Exchange Online. Use with the appropriate ConnectionUri for your environment.
 #    When omitted, Connect-ExchangeOnline uses its default authorization endpoint.

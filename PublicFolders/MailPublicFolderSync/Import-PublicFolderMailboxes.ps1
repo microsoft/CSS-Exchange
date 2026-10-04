@@ -40,6 +40,10 @@ param (
 
 ## Create a tenant PSSession.
 function CreateTenantSession() {
+    param (
+        [string] $AzureADAuthorizationEndpointUri
+    )
+
     Import-Module ExchangeOnlineManagement -ErrorAction SilentlyContinue
     if (Get-Module ExchangeOnlineManagement) {
         $connectParams = @{
@@ -180,7 +184,7 @@ EXOV2ModuleNotInstalled = This script uses modern authentication to connect to E
 '@
 
 # Create a tenant PSSession against Exchange Online with modern auth.
-CreateTenantSession
+CreateTenantSession -AzureADAuthorizationEndpointUri $AzureADAuthorizationEndpointUri
 
 WriteInfoMessage ($LocalizedStrings.StartedPublicFolderMailboxImport)
 Write-Host ""
