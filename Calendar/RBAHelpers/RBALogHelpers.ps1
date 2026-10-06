@@ -3,6 +3,10 @@
 
 # cspell:ignore Goid
 
+function Get-RbaLogProcessingStartPattern {
+    return 'START - HandleEventInternal Automatic Booking is enabled for resource\.\s*$'
+}
+
 function Write-RbaNextSteps {
     Write-RbaDashLineBox @("Next Steps") -Color Cyan
     Write-Host "Review the saved RBA log to see how meeting requests were processed."
@@ -76,7 +80,7 @@ function Split-RbaLogProcessingBlocks {
         return @()
     }
 
-    $exactStartPattern = 'START - HandleEventInternal Automatic Booking is enabled for resource\.\s*$'
+    $exactStartPattern = Get-RbaLogProcessingStartPattern
     $startIndexes = @(0..($Lines.Count - 1) | Where-Object { $Lines[$_] -match $exactStartPattern })
     $blocks = [System.Collections.Generic.List[object]]::new()
 
@@ -629,7 +633,7 @@ function Write-RbaLogSummary {
     }
 
     if ($script:RBALog.count -gt 1) {
-        $Starts = $script:RBALog | Select-String -Pattern "START -"
+        $Starts = $script:RBALog | Select-String -Pattern (Get-RbaLogProcessingStartPattern)
         $FirstDate = "[Unknown]"
         $LastDate = "[Unknown]"
 

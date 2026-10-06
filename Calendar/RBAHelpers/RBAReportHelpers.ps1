@@ -473,7 +473,7 @@ function Get-RbaLogSummaryObject {
         return $null
     }
 
-    $starts = @($script:RBALog | Select-String -Pattern "START -")
+    $starts = @($script:RBALog | Select-String -Pattern (Get-RbaLogProcessingStartPattern))
     return [PSCustomObject]@{
         entryCount                                 = @($script:RBALog).Count
         processedEventCount                        = $starts.Count
@@ -708,7 +708,7 @@ function Write-RbaJson {
                 -Value @(ConvertTo-CalendarDiagnosticPlainStringList -Value $script:Place.Localities)
         }
         $data.fullRbaLog = @(ConvertTo-CalendarDiagnosticPlainStringList -Value $script:RBALog)
-        if (Test-Path -Path $SummaryFilename) {
+        if (Test-Path -Path $SummaryFilename -PathType Leaf) {
             $data.transcript = ConvertTo-CalendarDiagnosticPlainString -Value (Get-Content -Path $SummaryFilename -Raw)
         }
     }

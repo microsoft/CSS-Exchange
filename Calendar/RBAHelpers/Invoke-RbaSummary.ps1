@@ -53,7 +53,7 @@ function Invoke-RbaSummary {
     }
     $script:InvocationCommandLine = $invocationParts -join ' '
 
-    $script:BuildVersion = ""
+    $BuildVersion = ""
 
     if (-not $SkipVersionCheck -and (Test-ScriptVersion -AutoUpdate)) {
         # Update was downloaded, so stop here.
@@ -175,16 +175,19 @@ function Invoke-RbaSummary {
     Write-RbaPhaseVerbose -Message "Building final output file list."
     $outputFileLines = [System.Collections.Generic.List[string]]::new()
     $outputFileLines.Add("RBA output files:")
-    $outputFileLines.Add("  Text summary: [$SummaryFilename]")
-    if (Test-Path -Path $JsonFilename) {
+    if (Test-Path -Path $SummaryFilename -PathType Leaf) {
+        $outputFileLines.Add("  Text summary: [$SummaryFilename]")
+    }
+    if (Test-Path -Path $JsonFilename -PathType Leaf) {
         $outputFileLines.Add("  JSON report:  [$JsonFilename]")
     }
-    if (-not [string]::IsNullOrWhiteSpace($script:RbaLogFilename) -and (Test-Path -Path $script:RbaLogFilename)) {
+    if (-not [string]::IsNullOrWhiteSpace($script:RbaLogFilename) -and
+        (Test-Path -Path $script:RbaLogFilename -PathType Leaf)) {
         $outputFileLines.Add("  RBA logs:     [$script:RbaLogFilename]")
     }
     Write-Host
     $outputFileLines | ForEach-Object { Write-Host -ForegroundColor Cyan $_ }
-    if (Test-Path -Path $SummaryFilename) {
+    if (Test-Path -Path $SummaryFilename -PathType Leaf) {
         Write-RbaPhaseVerbose -Message "Updating text summary with output file list."
         Add-Content -Path $SummaryFilename -Value ([Environment]::NewLine + ($outputFileLines -join [Environment]::NewLine)) -Encoding utf8
         Write-RbaPhaseVerbose -Message "Text summary update completed."

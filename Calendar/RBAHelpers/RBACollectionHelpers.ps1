@@ -236,24 +236,28 @@ function Get-RbaCalendarFolderPermissions {
 }
 
 function Initialize-RbaResourceDelegateIdentitySets {
-    $resourceDelegateIdentitySets = @($script:RbaSettings.ResourceDelegates | ForEach-Object {
-            $delegateIdentity = ([string]$_).ToLowerInvariant()
-            $identityAliases = [System.Collections.Generic.List[string]]::new()
-            $identityAliases.Add($delegateIdentity)
-            try {
-                $recipient = Get-Recipient -Identity $_ -ErrorAction Stop
-                if ($null -ne $recipient.PrimarySmtpAddress) {
-                    $identityAliases.Add(([string]$recipient.PrimarySmtpAddress).ToLowerInvariant())
-                }
-            } catch {
-                Write-Verbose "Unable to resolve resource delegate '$delegateIdentity' for direct Calendar permission comparison."
+    $identityEnrichmentComplete = $true
+    $resourceDelegateIdentitySets = [System.Collections.Generic.List[object]]::new()
+    foreach ($resourceDelegate in @($script:RbaSettings.ResourceDelegates)) {
+        $delegateIdentity = ([string]$resourceDelegate).ToLowerInvariant()
+        $identityAliases = [System.Collections.Generic.List[string]]::new()
+        $identityAliases.Add($delegateIdentity)
+        try {
+            $recipient = Get-Recipient -Identity $resourceDelegate -ErrorAction Stop
+            if ($null -ne $recipient.PrimarySmtpAddress) {
+                $identityAliases.Add(([string]$recipient.PrimarySmtpAddress).ToLowerInvariant())
             }
+        } catch {
+            $identityEnrichmentComplete = $false
+            Write-Verbose "Unable to resolve resource delegate '$delegateIdentity' for direct Calendar permission comparison."
+        }
+        $resourceDelegateIdentitySets.Add(
             [PSCustomObject]@{
                 aliases = @($identityAliases | Sort-Object -Unique)
-            }
-        })
-    $script:ResourceDelegateIdentitySets = $resourceDelegateIdentitySets
-    $script:ResourceDelegateIdentitySetsAvailable = $true
+            })
+    }
+    $script:ResourceDelegateIdentitySets = $resourceDelegateIdentitySets.ToArray()
+    $script:ResourceDelegateIdentitySetsAvailable = $identityEnrichmentComplete
 }
 
 function Get-RbaMailboxPermissions {

@@ -361,6 +361,51 @@ Describe "Get-RBASummary best-effort report" {
         $output | Should -Match "Text summary: \[RBA-Summary-For_room_.*\.txt\]"
     }
 
+    It "does not read or list a transcript path that is a directory" {
+        Mock Get-Date { [DateTime]"2026-09-11T10:00:00" }
+        $summaryDirectoryPath = Join-Path -Path $TestDrive -ChildPath "RBA-Summary-For_room_2026-09-11_10-00-00.txt"
+        New-Item -Path $summaryDirectoryPath -ItemType Directory | Out-Null
+
+        Push-Location -Path $TestDrive
+        try {
+            $output = & $Script:scriptPath -Identity "room@contoso.com" -SkipVersionCheck -IncludeSensitiveData *>&1 | Out-String
+            $jsonPath = Get-ChildItem -Path $TestDrive -Filter "RBA-Summary-For_room_*.json" |
+                Sort-Object -Property LastWriteTime | Select-Object -Last 1
+            $report = Get-Content -Path $jsonPath.FullName -Raw | ConvertFrom-Json
+        } finally {
+            Pop-Location
+        }
+
+        $output | Should -Match "Unable to start transcript"
+        $output | Should -Not -Match "Text summary:"
+        $report.PSObject.Properties.Name | Should -Not -Contain "transcript"
+    }
+
+    It "counts only exact RBA processing start markers" {
+        Mock Export-MailboxDiagnosticLogs {
+            [PSCustomObject]@{
+                MailboxLog = @(
+                    "2026-08-28T10:00:02Z, START - Retry checkpoint"
+                    "2026-08-28T10:00:01Z, Action:Accept"
+                    "2026-08-28T10:00:00Z, START - HandleEventInternal Automatic Booking is enabled for resource."
+                ) -join "`r`n"
+            }
+        }
+
+        Push-Location -Path $TestDrive
+        try {
+            $output = & $Script:scriptPath -Identity "room@contoso.com" -SkipVersionCheck *>&1 | Out-String
+            $jsonPath = Get-ChildItem -Path $TestDrive -Filter "RBA-Summary-For_room_*.json" |
+                Sort-Object -Property LastWriteTime | Select-Object -Last 1
+            $report = Get-Content -Path $jsonPath.FullName -Raw | ConvertFrom-Json
+        } finally {
+            Pop-Location
+        }
+
+        $output | Should -Match "Processed events\s+1"
+        $report.rbaLogSummary.processedEventCount | Should -Be 1
+    }
+
     It "prints each generated output file on one line and uses the feedback alias" {
         Push-Location -Path $TestDrive
         try {
@@ -1235,6 +1280,14 @@ Describe "Get-RBASummary best-effort report" {
         ($report.findings | Where-Object { $_.ruleId -eq "RBA803" }).status | Should -Be "NotDetected"
     }
 
+    It "does not evaluate direct Calendar access when delegate enrichment fails" {
+        Mock Get-Recipient { throw "Recipient lookup failed" }
+
+        $report = Invoke-TestRbaSummary
+
+        ($report.findings | Where-Object { $_.ruleId -eq "RBA803" }).status | Should -Be "NotEvaluated"
+    }
+
     It "reports explicit Full Access without claiming direct Calendar editing" {
         Mock Get-MailboxPermission {
             @(
@@ -1433,6 +1486,14 @@ Describe "Get-RBASummary script layout" {
                 Get-Verb -Verb $verb -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
             }
         }
+    }
+
+    It "uses the release build version marker expected by the build script" {
+        $invokeHelperPath = Join-Path -Path $Script:calendarPath -ChildPath "RBAHelpers\Invoke-RbaSummary.ps1"
+        $invokeHelper = Get-Content -Path $invokeHelperPath -Raw
+
+        $invokeHelper | Should -Match '(?m)^\s*\$BuildVersion = ""\s*$'
+        $invokeHelper | Should -Not -Match '(?m)^\s*\$script:BuildVersion = ""\s*$'
     }
 }
 
