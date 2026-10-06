@@ -131,7 +131,7 @@ function Get-ExchangeBuildVersionInformation {
                     $cuReleaseDate = "07/01/2025"
                     $supportedBuildNumber = $true
                 }
-                (GetBuildVersion $exSE "RTM" -SU "Sep26SU") { $latestSUBuild = $true }
+                (GetBuildVersion $exSE "RTM" -SU "Sep26SUv2") { $latestSUBuild = $true }
             }
         } elseif ($exchangeVersion.Major -eq 15 -and $exchangeVersion.Minor -eq 2) {
             Write-Verbose "Exchange 2019 is detected"
@@ -150,14 +150,14 @@ function Get-ExchangeBuildVersionInformation {
                     $cuReleaseDate = "02/10/2025"
                     $supportedBuildNumber = $true
                 }
-                (GetBuildVersion $ex19 "CU15" -SU "Sep26SU") { $latestSUBuild = $true }
+                (GetBuildVersion $ex19 "CU15" -SU "Sep26SUv2") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex19 "CU15") } {
                     $cuLevel = "CU14"
                     $cuReleaseDate = "02/13/2024"
                     $supportedBuildNumber = $true
                     $orgValue = 16762
                 }
-                (GetBuildVersion $ex19 "CU14" -SU "Sep26SU") { $latestSUBuild = $true }
+                (GetBuildVersion $ex19 "CU14" -SU "Sep26SUv2") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex19 "CU14") } {
                     $cuLevel = "CU13"
                     $cuReleaseDate = "05/03/2023"
@@ -254,7 +254,7 @@ function Get-ExchangeBuildVersionInformation {
                     $cuReleaseDate = "04/20/2022"
                     $supportedBuildNumber = $true
                 }
-                (GetBuildVersion $ex16 "CU23" -SU "Sep26SU") { $latestSUBuild = $true }
+                (GetBuildVersion $ex16 "CU23" -SU "Sep26SUv2") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex16 "CU23") } {
                     $cuLevel = "CU22"
                     $cuReleaseDate = "09/28/2021"
@@ -753,6 +753,7 @@ function GetExchangeBuildDictionary {
                     "Jul26SU"   = "15.1.2507.71"
                     "Aug26SU"   = "15.1.2507.72"
                     "Sep26SU"   = "15.1.2507.73"
+                    "Sep26SUv2" = "15.1.2507.75"
                 })
         }
         "Exchange2019" = @{
@@ -871,33 +872,36 @@ function GetExchangeBuildDictionary {
                     "Jul26SU"   = "15.2.1544.43"
                     "Aug26SU"   = "15.2.1544.44"
                     "Sep26SU"   = "15.2.1544.46"
+                    "Sep26SUv2" = "15.2.1544.48"
                 })
             "CU15" = (NewCUAndSUObject "15.2.1748.10" @{
-                    "Apr25HU" = "15.2.1748.24"
-                    "May25HU" = "15.2.1748.26"
-                    "Aug25SU" = "15.2.1748.36"
-                    "Sep25HU" = "15.2.1748.37"
-                    "Oct25SU" = "15.2.1748.39"
-                    "Dec25SU" = "15.2.1748.42"
-                    "Feb26SU" = "15.2.1748.43"
-                    "Jun26SU" = "15.2.1748.46"
-                    "Jul26SU" = "15.2.1748.48"
-                    "Aug26SU" = "15.2.1748.49"
-                    "Sep26SU" = "15.2.1748.51"
+                    "Apr25HU"   = "15.2.1748.24"
+                    "May25HU"   = "15.2.1748.26"
+                    "Aug25SU"   = "15.2.1748.36"
+                    "Sep25HU"   = "15.2.1748.37"
+                    "Oct25SU"   = "15.2.1748.39"
+                    "Dec25SU"   = "15.2.1748.42"
+                    "Feb26SU"   = "15.2.1748.43"
+                    "Jun26SU"   = "15.2.1748.46"
+                    "Jul26SU"   = "15.2.1748.48"
+                    "Aug26SU"   = "15.2.1748.49"
+                    "Sep26SU"   = "15.2.1748.51"
+                    "Sep26SUv2" = "15.2.1748.53"
                 })
         }
         "ExchangeSE"   = @{
             "RTM" = (NewCUAndSUObject "15.2.2562.17" @{
-                    "Aug25SU" = "15.2.2562.20"
-                    "Sep25HU" = "15.2.2562.27"
-                    "Oct25SU" = "15.2.2562.29"
-                    "Dec25SU" = "15.2.2562.35"
-                    "Feb26SU" = "15.2.2562.37"
-                    "May26HU" = "15.2.2562.41"
-                    "Jun26SU" = "15.2.2562.43"
-                    "Jul26SU" = "15.2.2562.45"
-                    "Aug26SU" = "15.2.2562.46"
-                    "Sep26SU" = "15.2.2562.49"
+                    "Aug25SU"   = "15.2.2562.20"
+                    "Sep25HU"   = "15.2.2562.27"
+                    "Oct25SU"   = "15.2.2562.29"
+                    "Dec25SU"   = "15.2.2562.35"
+                    "Feb26SU"   = "15.2.2562.37"
+                    "May26HU"   = "15.2.2562.41"
+                    "Jun26SU"   = "15.2.2562.43"
+                    "Jul26SU"   = "15.2.2562.45"
+                    "Aug26SU"   = "15.2.2562.46"
+                    "Sep26SU"   = "15.2.2562.49"
+                    "Sep26SUv2" = "15.2.2562.53"
                 })
         }
     }

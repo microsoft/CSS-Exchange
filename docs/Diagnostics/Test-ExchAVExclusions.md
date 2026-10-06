@@ -60,8 +60,9 @@ ScriptUpdateOnly | Just update script version to latest one.
 
 ## Outputs
 
-Log file:
-$PSScriptRoot\Test-ExchAvExclusions-#DateTime#.txt
+Log files:
+$PSScriptRoot\Test-ExchAvExclusions-#ServerName#-Results-#DateTime#.txt
+$PSScriptRoot\Test-ExchAvExclusions-#ServerName#-Debug-#DateTime#.txt
 
 List of Folders, extensions Scanned by AV and List of Non-Default Processes:
-$PSScriptRoot\BadExclusions-#DateTime#.txt
+$PSScriptRoot\BadExclusions-#ServerName#-#DateTime#.txt
