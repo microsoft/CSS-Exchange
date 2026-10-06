@@ -5555,6 +5555,10 @@
 <p>This cmdlet will collect all relevant data regarding IIS Logs (within the last 3 days by default) and all RPC type logs from the servers EXCH1 and EXCH2 and store them at the default location of "C:\MS_Logs_Collection"</p>
 <div class="highlight"><pre><span></span><code>.\ExchangeLogCollector.ps1 -Servers EXCH1,EXCH2 -IISLogs -RPCLogs
 </code></pre></div>
+<p>This command collects MRS and MRSProxy logs together with EWS and IIS logs for the last three days from EXCH1 and EXCH2:</p>
+<div class="highlight"><pre><span></span><code><span class="p">.\</span><span class="n">ExchangeLogCollector</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-Servers</span> <span class="n">EXCH1</span><span class="p">,</span><span class="n">EXCH2</span> <span class="n">-MRSProxyLogs</span> <span class="n">-DaysWorth</span> <span class="n">3</span>
+</code></pre></div>
+<p><code>-MRSProxyLogs</code> collects existing logs from the default <code>Logging\MailboxReplicationService</code> and <code>Logging\MrsProxyAuthorization</code> directories under the Exchange installation path on Exchange 2013 and later Mailbox servers. The first directory is shared by MRS and MRSProxy. It also enables <code>-EWSLogs</code> and <code>-IISLogs</code>, including HTTP error logs, so a single switch collects the migration service and HTTP request logs. The switch uses the standard time filtering and compression behavior and is included in <code>-AllPossibleLogs</code>. It does not enable tracing or change server configuration. Customized MRS logging locations must be collected separately.</p>
 <p>This cmdlet will collect all relevant data regarding Message Tracking Logs and Protocol Logs for the past 3 hours from the servers EXCH1 and EXCH2 and store them at the default location of "C:\MS_Logs_Collection"</p>
 <div class="highlight"><pre><span></span><code>.\ExchangeLogCollector.ps1 -Servers EXCH1,EXCH2 -MessageTrackingLogs -TransportProtocolLogs -LogAge "03:00:00"
 </code></pre></div>
@@ -5678,6 +5682,10 @@
 <tr>
 <td>MitigationService</td>
 <td>Enable to collect the Mitigation Service logs. Location: <code>V15\Logging\MitigationService</code></td>
+</tr>
+<tr>
+<td>MRSProxyLogs</td>
+<td>Collect existing MRS/MRSProxy logs on Mailbox servers. Default locations: <code>V15\Logging\MailboxReplicationService</code> and <code>V15\Logging\MrsProxyAuthorization</code>. Also enables <code>EWSLogs</code> and <code>IISLogs</code>. Included in <code>-AllPossibleLogs</code>. Does not enable tracing.</td>
 </tr>
 <tr>
 <td>OABLogs</td>
@@ -5849,7 +5857,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 12, 2026 14:11:59 UTC">June 12, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 28, 2026 16:01:04 UTC">September 28, 2026</span>
   </span>
 
     
