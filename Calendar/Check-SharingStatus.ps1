@@ -1539,10 +1539,11 @@ function ProcessCalendarSharingAcceptLogs {
     # Split the output into an array of lines
     $logLines = $logOutput.MailboxLog -split "`r`n"
 
-    # Loop through each line of the output
+    $acceptLogEntryPattern = '^\s*\d{1,2}/\d{1,2}/\d{4}\s+\d{1,2}:\d{2}:\d{2}(?:\s+[AP]M)?,'
     $filteredLogLines = @()
     foreach ($line in $logLines) {
-        if ($line -like "*CreateInternalSharedCalendarGroupEntry*") {
+        if (($line -match $acceptLogEntryPattern) -and
+            ($line -like "*Entry CreateInternalSharedCalendarGroupEntry*")) {
             $filteredLogLines += $line + "`n"
         }
     }
@@ -1640,8 +1641,12 @@ function ProcessCalendarSharingAcceptLogs {
         }
     }
 
+    $entriesToDisplay = @()
     try {
-        $displayCsvObject | Where-Object { [DateTime]::Parse($_.Timestamp, $culture) -gt (Get-Date).AddDays(-180) } | Format-Table -a Timestamp, SharedCalendarOwner, FolderName
+        $cutoffDate = (Get-Date).AddDays(-180)
+        $entriesToDisplay = @($displayCsvObject | Where-Object {
+                [DateTime]::Parse($_.Timestamp, $culture) -gt $cutoffDate
+            })
     } catch {
         $errorInfo = ConvertTo-SharingErrorInfo -ErrorRecord $_
         $script:EvaluationErrors.Add([PSCustomObject]@{
@@ -1650,8 +1655,9 @@ function ProcessCalendarSharingAcceptLogs {
             })
         Write-Error "Error parsing dates in the log entries.  Outputting all entries without date filtering."
         Add-SharingFinding -Severity Warning -Area "AcceptCalendarSharingInvite" -Issue "Accept-log timestamps could not be parsed." -Evidence $_.Exception.Message -RecommendedNextStep "Inspect the raw AcceptCalendarSharingInvite logs and their timestamp culture." -Incomplete
-        $displayCsvObject |  Format-Table -a Timestamp, SharedCalendarOwner, FolderName
+        $entriesToDisplay = @($displayCsvObject)
     }
+    $entriesToDisplay | Format-Table -a Timestamp, SharedCalendarOwner, FolderName
 }
 
 <#

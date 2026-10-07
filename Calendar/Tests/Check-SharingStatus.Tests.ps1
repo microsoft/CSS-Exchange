@@ -1930,6 +1930,30 @@ Describe "Check-SharingStatus structured diagnostics" {
     }
 
     Context "Selected-folder accept logs" {
+        It "ignores stack-trace method names when parsing accept-log entries" {
+            Mock Export-MailboxDiagnosticLogs {
+                [PSCustomObject]@{
+                    MailboxLog = @(
+                        "9/22/2026 6:35:50 AM,Mailbox: receiver,Entry CreateInternalSharedCalendarGroupEntry: Creating a shared calendar for owner@contoso.com,calendar name Owner Calendar",
+                        "   at Microsoft.Exchange.Entities.Calendaring.InternalSharing.InternalSharingHelpers.CreateInternalSharedCalendarGroupEntry(InternalSharingParameters internalSharingParameters,",
+                        "09/22/2026 18:35:49,Mailbox: receiver,Entry CreateInternalSharedCalendarGroupEntry: Creating a shared calendar for other@contoso.com,calendar name Other Calendar",
+                        "   at Microsoft.Exchange.Entities.Calendaring.InternalSharing.InternalSharingHelpers.<>c__DisplayClass7_0.<CreateInternalSharedCalendarGroupEntryWithFallbackRetryInternal>b__0()"
+                    ) -join "`r`n"
+                }
+            }
+            Mock Write-Error {}
+
+            $output = ProcessCalendarSharingAcceptLogs -Identity "receiver@contoso.com" | Out-String
+
+            $script:ReceiverAcceptLogEntries.Count | Should -Be 2
+            $script:ReceiverAcceptLogEntries.SharedCalendarOwner |
+                Should -Be @("owner@contoso.com", "other@contoso.com")
+            $script:EvaluationErrors | Should -BeNullOrEmpty
+            $output | Should -Match "Owner Calendar"
+            $output | Should -Match "Other Calendar"
+            Should -Not -Invoke Write-Error
+        }
+
         It "filters entries by both expected owner and selected folder" {
             $script:OwnerCalendarFolderPathSpecified = $true
             $script:RequestedOwnerCalendarLeafName = "MI Events Around the World"
