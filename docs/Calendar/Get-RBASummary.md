@@ -57,7 +57,7 @@ The text transcript and JSON metadata record a canonical command line with the b
 
 A collector is successful only when collection and its immediate evidence processing both finish successfully. An empty result from a collection-valued collector, such as Inbox Rules, is successful evidence and produces zero counts. A null result from a required scalar collector is a collection failure. If processing fails after evidence was retrieved, that collector is marked `Failed`, the overall status cannot be `Complete`, and other successfully collected evidence remains in the report. In `Sanitized` and `TargetedMeeting` modes, remote error messages, fully qualified error IDs, and inner-exception messages are omitted to prevent identity or object details from leaking into JSON. Bounded exception type and category remain available. `Full` mode includes the bounded error details. Stack traces, invocation details, target objects, and remote position details are never exported.
 
-Output is written to the current working directory. All files from one run share the same timestamp. Invalid filename characters in the supplied identity are replaced so aliases and distinguished-name-style inputs cannot create unintended paths.
+Output is written to the current working directory. All files from one run share the same timestamp. Invalid filename characters in the supplied identity are replaced so aliases and distinguished-name-style inputs cannot create unintended paths. Identities longer than 64 characters are shortened and end with an 8-character hash, which keeps filenames within Windows path limits and still unique per identity.
 
 | File | Contents |
 |---|---|

@@ -36,7 +36,7 @@ function Invoke-RbaSummary {
     $invocationParts.Add(".\Get-RBASummary.ps1")
     $parameterOrder = @(
         "Identity", "Subject", "MeetingId", "IncludeSensitiveData", "SkipVersionCheck",
-        "Verbose", "Debug", "ErrorAction", "WarningAction", "InformationAction",
+        "Verbose", "Debug", "ErrorAction", "WarningAction", "InformationAction", "ProgressAction",
         "ErrorVariable", "WarningVariable", "InformationVariable", "OutVariable", "OutBuffer", "PipelineVariable"
     )
     foreach ($parameterName in $parameterOrder) {

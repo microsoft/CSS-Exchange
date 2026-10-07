@@ -1140,6 +1140,47 @@ Describe "Get-RBASummary best-effort report" {
         $unexpectedDirectories | Should -BeNullOrEmpty
     }
 
+    It "bounds long identity filename stems while keeping them unique" {
+        $longIdentity = "CN=$('Conference Room ' * 20),OU=Resources,DC=contoso,DC=com"
+        Push-Location -Path $TestDrive
+        try {
+            & $Script:scriptPath -Identity $longIdentity -SkipVersionCheck *>&1 | Out-Null
+            $jsonFiles = @(Get-ChildItem -Path $TestDrive -Filter "RBA-Summary-For_CN=Conference Room*.json" -File)
+            $summaryFiles = @(Get-ChildItem -Path $TestDrive -Filter "RBA-Summary-For_CN=Conference Room*.txt" -File)
+        } finally {
+            Pop-Location
+        }
+
+        $jsonFiles.Count | Should -Be 1
+        $summaryFiles.Count | Should -Be 1
+        $jsonFiles[0].Name.Length | Should -BeLessThan 120
+        $jsonFiles[0].Name | Should -Match '^RBA-Summary-For_CN=Conference Room.*_[0-9a-f]{8}_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.json$'
+
+        . (Join-Path -Path $Script:calendarPath -ChildPath "CalendarHelpers\CalendarDiagnosticHelpers.ps1")
+        $firstStem = ConvertTo-CalendarDiagnosticFileNameStem -Value "$longIdentity-1"
+        $secondStem = ConvertTo-CalendarDiagnosticFileNameStem -Value "$longIdentity-2"
+        $firstStem.Length | Should -Be 64
+        $secondStem.Length | Should -Be 64
+        $firstStem | Should -Not -Be $secondStem
+        ConvertTo-CalendarDiagnosticFileNameStem -Value "$longIdentity-1" | Should -Be $firstStem
+        ConvertTo-CalendarDiagnosticFileNameStem -Value "room@contoso.com" | Should -Be "room"
+    }
+
+    It "records ProgressAction in the canonical command line" -Skip:($PSVersionTable.PSVersion -lt [version]"7.4") {
+        Push-Location -Path $TestDrive
+        try {
+            Get-ChildItem -Path $TestDrive -Filter "RBA-*_room_*" -ErrorAction SilentlyContinue | Remove-Item -Force
+            & $Script:scriptPath -Identity "room@contoso.com" -SkipVersionCheck -ProgressAction SilentlyContinue *>&1 | Out-Null
+            $jsonPath = Get-ChildItem -Path $TestDrive -Filter "RBA-Summary-For_room_*.json" |
+                Sort-Object -Property LastWriteTime | Select-Object -Last 1
+            $report = Get-Content -Path $jsonPath.FullName -Raw | ConvertFrom-Json
+        } finally {
+            Pop-Location
+        }
+
+        $report.metadata.commandLine | Should -Be ".\Get-RBASummary.ps1 -Identity 'room@contoso.com' -SkipVersionCheck:true -ProgressAction 'SilentlyContinue'"
+    }
+
     It "accepts MeetingSubject as a compatibility alias for Subject" {
         Push-Location -Path $TestDrive
         try {

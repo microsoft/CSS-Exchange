@@ -24,12 +24,29 @@ function ConvertTo-CalendarDiagnosticCommandLineValue {
 function ConvertTo-CalendarDiagnosticFileNameStem {
     param(
         [Parameter(Mandatory)]
-        [string]$Value
+        [string]$Value,
+
+        [ValidateRange(16, 128)]
+        [int]$MaximumLength = 64
     )
 
-    $stem = ($Value.Split('@')[0] -replace '[<>:"/\\|?*\x00-\x1F]', '_').Trim([char[]]@(' ', '.'))
+    $trimCharacters = [char[]]@(' ', '.')
+    $stem = ($Value.Split('@')[0] -replace '[<>:"/\\|?*\x00-\x1F]', '_').Trim($trimCharacters)
     if ([string]::IsNullOrWhiteSpace($stem) -or $stem -in @('.', '..')) {
         return "ResourceMailbox"
+    }
+
+    if ($stem.Length -gt $MaximumLength) {
+        # Keep long identities (for example, distinguished names) within Windows path limits while staying unique per identity.
+        $sha256 = [System.Security.Cryptography.SHA256]::Create()
+        try {
+            $hashBytes = $sha256.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($Value.ToLowerInvariant()))
+        } finally {
+            $sha256.Dispose()
+        }
+        $hashSuffix = ([System.BitConverter]::ToString($hashBytes, 0, 4) -replace '-', '').ToLowerInvariant()
+        $prefix = $stem.Substring(0, $MaximumLength - $hashSuffix.Length - 1).TrimEnd($trimCharacters)
+        $stem = "$prefix`_$hashSuffix"
     }
     return $stem
 }
