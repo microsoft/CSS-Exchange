@@ -403,6 +403,7 @@ Describe "Get-RBASummary best-effort report" {
         }
 
         $output | Should -Match "Processed events\s+1"
+        $output | Should -Match "Date range\s+2026-08-28T10:00:00Z to 2026-08-28T10:00:00Z"
         $report.rbaLogSummary.processedEventCount | Should -Be 1
     }
 
