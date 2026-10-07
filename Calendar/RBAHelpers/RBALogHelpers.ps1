@@ -637,9 +637,9 @@ function Write-RbaLogSummary {
         $FirstDate = "[Unknown]"
         $LastDate = "[Unknown]"
 
-        if ($starts.count -gt 1) {
+        if ($Starts.count -gt 0) {
             $LastDate = ($Starts[0] -split ",")[0].Trim()
-            $FirstDate = ($starts[$($Starts.count) -1 ] -split ",")[0].Trim()
+            $FirstDate = ($starts[$($Starts.count) - 1] -split ",")[0].Trim()
         }
 
         $AcceptLogs = $script:RBALog | Select-String -Pattern "Action:Accept"
