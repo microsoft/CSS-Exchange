@@ -1166,7 +1166,10 @@ Describe "Get-RBASummary best-effort report" {
         ConvertTo-CalendarDiagnosticFileNameStem -Value "room@contoso.com" | Should -Be "room"
     }
 
-    It "records ProgressAction in the canonical command line" -Skip:($PSVersionTable.PSVersion -lt [version]"7.4") {
+    # PowerShell 7.4 can fail ProgressAction parameter binding before the script begins execution.
+    It "records ProgressAction in the canonical command line" -Skip:(
+        $PSVersionTable.PSVersion -lt [version]"7.4" -or
+        ($PSVersionTable.PSVersion.Major -eq 7 -and $PSVersionTable.PSVersion.Minor -eq 4)) {
         Push-Location -Path $TestDrive
         try {
             Get-ChildItem -Path $TestDrive -Filter "RBA-*_room_*" -ErrorAction SilentlyContinue | Remove-Item -Force
