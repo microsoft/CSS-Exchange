@@ -10,17 +10,22 @@
     Collect the latest log or provide there is no logs in the directory
 #>
 function Copy-LogsBasedOnTime {
+    [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)][string]$LogPath,
         [Parameter(Mandatory = $true)][string]$CopyToThisLocation,
-        [Parameter(Mandatory = $true)][bool]$IncludeSubDirectory
+        [Parameter(Mandatory = $true)][bool]$IncludeSubDirectory,
+        [switch]$CopyAll
     )
     begin {
         function NoFilesInLocation {
             param(
-                [string]$Value = "No data in the location"
+                [string]$SourceLocation,
+                [string]$DestinationLocation,
+                [string]$Value = "No data in the location",
+                [string]$MarkerName = 'NoFilesDetected.txt'
             )
-            $line = "It doesn't look like you have any data in this location $LogPath."
+            $line = "No files were found in '$SourceLocation'."
 
             if (-not ($IncludeSubDirectory)) {
                 Write-Host $line -ForegroundColor "Yellow"
@@ -29,9 +34,10 @@ function Copy-LogsBasedOnTime {
             }
 
             $params = @{
-                Path     = "$CopyToThisLocation\NoFilesDetected.txt"
+                Path     = [System.IO.Path]::Combine($DestinationLocation, $MarkerName)
                 ItemType = "File"
-                Value    = $( "Location: $LogPath`r`n$Value" )
+                Value    = "Location: $SourceLocation`r`n$Value"
+                Force    = $true
             }
             New-Item @params | Out-Null
         }
@@ -42,10 +48,11 @@ function Copy-LogsBasedOnTime {
                 [string]$CopyToLocation
             )
 
-            if ($null -eq $AllItems) {
-                Write-Verbose "No items were found in the directory."
-                NoFilesInLocation
-            } else {
+            if (@($AllItems).Count -gt 0) {
+                if ($CopyAll) {
+                    Copy-BulkItems -CopyToLocation $CopyToLocation -ItemsToCopyLocation @($AllItems.FullName)
+                    return
+                }
                 $timeRangeFiles = $AllItems | Where-Object { $_.LastWriteTime -ge $copyFromDate -and $_.LastWriteTime -le $copyToDate }
 
                 if ($null -eq $timeRangeFiles) {
@@ -57,56 +64,87 @@ function Copy-LogsBasedOnTime {
                     $copyItemPaths = $timeRangeFiles | ForEach-Object { $_.FullName }
                     Copy-BulkItems -CopyToLocation $CopyToLocation -ItemsToCopyLocation $copyItemPaths
                 }
-                Invoke-ZipFolder -Folder $CopyToLocation
             }
         }
 
         Write-Verbose "Function Enter: $($MyInvocation.MyCommand)"
         Write-Verbose "LogPath: '$LogPath' | CopyToThisLocation: '$CopyToThisLocation'"
         New-Item -ItemType Directory -Path $CopyToThisLocation -Force | Out-Null
-        $copyFromDate = [DateTime]::Now - $PassedInfo.TimeSpan
-        $copyToDate = [DateTime]::Now - $PassedInfo.EndTimeSpan
-        Write-Verbose "Copy From Date: $copyFromDate"
-        Write-Verbose "Copy To Date: $copyToDate"
+        if (-not $CopyAll) {
+            $collectionTime = [DateTime]::Now
+            $copyFromDate = $collectionTime - $PassedInfo.TimeSpan
+            $copyToDate = $collectionTime - $PassedInfo.EndTimeSpan
+            Write-Verbose "Copy From Date: $copyFromDate"
+            Write-Verbose "Copy To Date: $copyToDate"
+        }
     }
     process {
-
-        # need to have the return in process
-        if (-not (Test-Path $LogPath)) {
-            # If the directory isn't there, provide that
-            Write-Verbose "$LogPath doesn't exist"
-            NoFilesInLocation "Path doesn't exist"
+        try {
+            $sourceRoot = Get-Item -LiteralPath $LogPath -ErrorAction Stop
+            if (-not $sourceRoot.PSIsContainer) {
+                throw "The log path is not a directory."
+            }
+        } catch [System.Management.Automation.ItemNotFoundException] {
+            $markerName = 'NoFilesDetected.txt'
+            if ($CopyAll) { $markerName = 'NoFolderDetected.txt' }
+            NoFilesInLocation -SourceLocation $LogPath -DestinationLocation $CopyToThisLocation -Value "Path doesn't exist" -MarkerName $markerName
+            return
+        } catch {
+            Write-Warning "Unable to inspect log directory '$LogPath': $($_.Exception.Message)"
             return
         }
 
-        if ($IncludeSubDirectory) {
-            $getChildItem = Get-ChildItem -Path $LogPath -Recurse
-            [array]$directories = Get-Item -Path $LogPath
-            $directories += @($getChildItem |
-                    Where-Object {
-                        $_.Mode -like "d*"
-                    })
+        $sourcePrefix = $sourceRoot.FullName.TrimEnd('\') + '\'
+        $destinationRoot = [System.IO.Path]::GetFullPath($CopyToThisLocation).TrimEnd('\') + '\'
+        if ($destinationRoot.StartsWith($sourcePrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+            Write-Warning "The collection destination '$CopyToThisLocation' is inside '$LogPath'; skipping recursive self-copy."
+            return
+        }
 
-            # Map and find all the items per directory
-            foreach ($directory in $directories) {
-
-                Write-Verbose "Working on finding items for directory $($directory.FullName)"
-                if ($directory.FullName -eq $LogPath) {
-                    $newCopyToThisLocation = $CopyToThisLocation
-                } else {
-                    $newCopyToThisLocation = "$CopyToThisLocation\$($directory.Name)"
-                    New-Item -ItemType Directory -Path $newCopyToThisLocation -Force | Out-Null
-                }
-                # all the items that match this directory. Don't need to worry about directories because DirectoryName doesn't exist there.
-                $items = $getChildItem | Where-Object { $_.DirectoryName -eq $directory.FullName } | Sort-Object LastWriteTime -Descending
-                CopyItemsFromDirectory -AllItems $items -CopyToLocation $newCopyToThisLocation
+        $directories = New-Object 'System.Collections.Generic.Queue[System.IO.DirectoryInfo]'
+        $directories.Enqueue($sourceRoot)
+        $hasFiles = $false
+        $enumerationFailed = $false
+        while ($directories.Count -gt 0) {
+            $directory = $directories.Dequeue()
+            $relativePath = ''
+            if ($directory.FullName -ne $sourceRoot.FullName) {
+                $relativePath = $directory.FullName.Substring($sourcePrefix.Length)
             }
-        } else {
-            $getChildItem = Get-ChildItem -Path $LogPath |
-                Sort-Object LastWriteTime -Descending |
-                Where-Object { $_.Mode -notlike "d*" }
+            $destination = [System.IO.Path]::Combine($CopyToThisLocation, $relativePath)
+            try {
+                $children = @(Get-ChildItem -LiteralPath $directory.FullName -Force -ErrorAction Stop)
+            } catch {
+                $enumerationFailed = $true
+                Write-Warning "Unable to enumerate log directory '$($directory.FullName)': $($_.Exception.Message)"
+                continue
+            }
 
-            CopyItemsFromDirectory -AllItems $getChildItem -CopyToLocation $CopyToThisLocation
+            New-Item -Path $destination -ItemType Directory -Force | Out-Null
+            $items = @($children | Where-Object { -not $_.PSIsContainer } | Sort-Object LastWriteTime -Descending)
+            if ($items.Count -gt 0) {
+                $hasFiles = $true
+                CopyItemsFromDirectory -AllItems $items -CopyToLocation $destination
+            } elseif (-not $CopyAll -and (-not $IncludeSubDirectory -or $children.Count -eq 0)) {
+                NoFilesInLocation -SourceLocation $directory.FullName -DestinationLocation $destination
+            }
+
+            if ($IncludeSubDirectory) {
+                foreach ($child in $children | Where-Object { $_.PSIsContainer }) {
+                    if ($child.Attributes -band [System.IO.FileAttributes]::ReparsePoint) {
+                        $enumerationFailed = $true
+                        Write-Warning "Skipping linked directory '$($child.FullName)' to avoid following a directory loop."
+                    } else {
+                        $directories.Enqueue($child)
+                    }
+                }
+            }
+        }
+
+        if ($hasFiles) {
+            Invoke-ZipFolder -Folder $CopyToThisLocation
+        } elseif ($CopyAll -and -not $enumerationFailed) {
+            NoFilesInLocation -SourceLocation $LogPath -DestinationLocation $CopyToThisLocation -MarkerName 'NoDataDetected.txt'
         }
     }
     end {
