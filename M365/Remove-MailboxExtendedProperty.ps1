@@ -75,8 +75,12 @@ process {
             # Url encode the extended property
             $extendedProperty = [System.Uri]::EscapeDataString($message.SingleValueExtendedProperties.Id)
 
-            # Construct the URL to remove the extended property from the message
-            $url = "https://graph.microsoft.com/v1.0/users/$($user.UserPrincipalName)/messages/$($message.ID)/singleValueExtendedProperties/$extendedProperty"
+            # Construct the URL to remove the extended property from the message.
+            # This is deliberately a relative Uri. Invoke-MgGraphRequest resolves a relative Uri
+            # against the Microsoft Graph environment of the active connection, so the call follows
+            # whichever cloud the caller connected to. An absolute worldwide Uri would bypass that
+            # and always address the public cloud, even from a sovereign environment.
+            $url = "/v1.0/users/$($user.UserPrincipalName)/messages/$($message.ID)/singleValueExtendedProperties/$extendedProperty"
 
             if ($PSCmdlet.ShouldProcess("Extended property '$($message.SingleValueExtendedProperties.Id)' on the message '$($message.Subject)'.", "Remove")) {
                 # Remove the extended property from the message (fire and forget)
