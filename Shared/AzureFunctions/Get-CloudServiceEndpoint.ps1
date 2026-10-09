@@ -9,10 +9,15 @@
         AutoDiscoverSecureName: The endpoint for Autodiscover
         AzureADEndpoint: The endpoint for Azure Active Directory
         EnvironmentName: The name of the Azure environment
+
+    The environment name is required and validated, because returning an object whose properties are
+    all null would let a caller continue with no endpoints at all and fail later in an unrelated place.
 #>
 function Get-CloudServiceEndpoint {
     [CmdletBinding()]
     param(
+        [Parameter(Mandatory = $true)]
+        [ValidateSet("Global", "USGovernmentL4", "USGovernmentL5", "ChinaCloud", "BleuCloud", "DelosCloud")]
         [string]$EndpointName
     )
 
@@ -69,6 +74,11 @@ function Get-CloudServiceEndpoint {
                 $autodiscoverSecureName = "https://autodiscover-s.outlook.sovcloud.de"
                 $azureADEndpoint = "https://login.sovcloud-identity.de"
                 break
+            }
+            default {
+                # Only reachable if an environment is added to the ValidateSet above without adding
+                # its endpoints here. Failing here is better than returning an object full of nulls.
+                throw "No endpoints are defined for the cloud environment '$EndpointName'."
             }
         }
     }
