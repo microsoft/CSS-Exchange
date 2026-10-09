@@ -69,7 +69,7 @@ Describe "Testing SetupAssist" {
             SetGetExchangeADSetupLevel -OrgValue 15130 -SchemaValue 15130 -MESOValue 13243
             SetGetSetupLogReviewer "15.00.1473.003" "contoso\user"
             $results = Test-ExchangeADSetupLevel
-            Assert-MockCalled -CommandName Test-UserGroupMemberOf -ParameterFilter { $PrepareAdRequired -eq $true -and $PrepareSchemaRequired -eq $true } -Exactly 1
+            Should -Invoke -CommandName Test-UserGroupMemberOf -ParameterFilter { $PrepareAdRequired -eq $true -and $PrepareSchemaRequired -eq $true } -Exactly 1
             $results.Result | Should -Be "Failed"
             $results.Details | Should -Be "Exchange 2013 CU22 Feb19SU"
         }
@@ -78,7 +78,7 @@ Describe "Testing SetupAssist" {
             SetGetExchangeADSetupLevel -OrgValue 16133 -SchemaValue 15312 -MESOValue 13237
             SetGetSetupLogReviewer "15.00.1497.002" "contoso\user"
             $results = Test-ExchangeADSetupLevel
-            Assert-MockCalled -CommandName Test-UserGroupMemberOf -Exactly 0
+            Should -Invoke -CommandName Test-UserGroupMemberOf -Exactly 0
             $results.Result | Should -Be "Passed"
             $results.Details | Should -Be "Exchange 2013 CU23"
         }
@@ -95,7 +95,7 @@ Describe "Testing SetupAssist" {
             SetGetExchangeADSetupLevel -OrgValue 16213 -SchemaValue 15332 -MESOValue 13236
             SetGetSetupLogReviewer "15.01.1591.010" "contoso\user"
             $results = Test-ExchangeADSetupLevel
-            Assert-MockCalled -CommandName Test-UserGroupMemberOf -ParameterFilter { $PrepareAdRequired -eq $true } -Exactly 1
+            Should -Invoke -CommandName Test-UserGroupMemberOf -ParameterFilter { $PrepareAdRequired -eq $true } -Exactly 1
             $results.Result | Should -Be "Failed"
             $results.Details | Should -Be "Exchange 2016 CU11"
         }
@@ -104,7 +104,7 @@ Describe "Testing SetupAssist" {
             SetGetExchangeADSetupLevel -OrgValue 16223 -SchemaValue 15334 -MESOValue 13243
             SetGetSetupLogReviewer "15.1.2507.6" "contoso\user"
             $results = Test-ExchangeADSetupLevel
-            Assert-MockCalled -CommandName Test-UserGroupMemberOf -Exactly 0
+            Should -Invoke -CommandName Test-UserGroupMemberOf -Exactly 0
             $results.Result | Should -Be "Passed"
             $results.Details | Should -Be "Exchange 2016 CU23"
         }
