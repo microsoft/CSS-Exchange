@@ -10,6 +10,23 @@ The script will prompt for global administrator username & password to connect t
 Then the script will ask for required group smtp
 Then start to check and provide feedback in case group migration blockers found as illustrated below:
 
+## Exchange Online endpoints
+
+The optional `-ConnectionUri` and `-AzureADAuthorizationEndpointUri` parameters override the Exchange Online connection and authorization endpoints when the script opens a session. If omitted, the Exchange Online module's defaults are unchanged.
+
+Set the variables below to the endpoints documented for your cloud:
+
+```powershell
+.\DLT365GroupsUpgrade.ps1 -ConnectionUri $connectionUri `
+    -AzureADAuthorizationEndpointUri $authorizationEndpointUri
+```
+
+Both overrides are used whether the Exchange Online module is already loaded or needs to be installed. An existing open Exchange Online session is still reused; these parameters do not reconnect or change that session.
+
+See [Connect-ExchangeOnline](https://learn.microsoft.com/powershell/module/exchangepowershell/connect-exchangeonline) for endpoint guidance. Endpoint selection does not change feature availability or the module installation requirement.
+
+## Example output
+
 ![image-01](img/img01.JPG)
 
 ![image-01](img/img02.JPG)

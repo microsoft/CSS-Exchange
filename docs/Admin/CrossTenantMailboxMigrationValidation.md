@@ -80,6 +80,35 @@ This will allow you to specify a path to store the exported data from the source
 ### SourceIsOffline
 With this parameter, the script will only connect to target tenant and not source, instead it will rely on the zip file gathered when running this script along with the 'CollectSourceOnly' parameter. When used, you also need to specify the 'PathForCollectedData' parameter pointing to the collected zip file.
 
+### SourceConnectionUri
+Optional connection URI passed to `Connect-ExchangeOnline -ConnectionUri` for the source tenant. If omitted, the Exchange Online module default is used. Not available with `-SourceIsOffline`, which never connects to the source tenant.
+
+### SourceAzureADAuthorizationEndpointUri
+Optional authorization endpoint URI passed to `Connect-ExchangeOnline -AzureADAuthorizationEndpointUri` for the source tenant. If omitted, the Exchange Online module default is used. Not available with `-SourceIsOffline`.
+
+### TargetConnectionUri
+Optional connection URI passed to `Connect-ExchangeOnline -ConnectionUri` for the target tenant. If omitted, the Exchange Online module default is used. Not available with `-CollectSourceOnly`, which never connects to the target tenant.
+
+### TargetAzureADAuthorizationEndpointUri
+Optional authorization endpoint URI passed to `Connect-ExchangeOnline -AzureADAuthorizationEndpointUri` for the target tenant. If omitted, the Exchange Online module default is used. Not available with `-CollectSourceOnly`.
+
+### GraphEndpointUri
+Optional Microsoft Graph service root endpoint used when the script connects to Microsoft Graph. Must be specified together with `AzureADEndpointUri`. If omitted, `Connect-MgGraph` uses its default environment.
+
+`Connect-MgGraph` selects endpoints by environment name rather than by individual URIs, and `Add-MgEnvironment` writes the environment to your Microsoft Graph settings file. The connection keeps the endpoints it resolved while connecting, so the script registers a temporary environment named `CrossTenantMailboxMigrationValidation` only for the duration of the `Connect-MgGraph` call and removes it again immediately, including when connecting fails. Your settings file is not left modified.
+
+### AzureADEndpointUri
+Optional Microsoft Entra endpoint used to obtain access tokens for Microsoft Graph. Must be specified together with `GraphEndpointUri`.
+
+### AADAppRedirectUri
+Optional redirect URI used to locate the Exchange Online cross-tenant migration application in Microsoft Entra. Defaults to `https://office.com`. Change this only if the migration application in your environment is registered with a different redirect URI.
+
+Each endpoint override is independent. The Exchange Online overrides can be used with object validation, organization validation, source collection, offline-source validation, or SDP collection; the Microsoft Graph overrides can be used with organization validation, source collection, offline-source validation, or SDP collection. None of them can be used with `-ScriptUpdateOnly`. Each parameter is only accepted in the modes that actually make the corresponding connection, so an override that could not take effect is rejected at parameter binding rather than silently ignored. Use the supported endpoint values for the tenant being connected to. These parameters override **connection endpoints only**: they do not enable otherwise unsupported cross-cloud migrations.
+
+!!! note "`-SourceIsOffline -CheckObjects`"
+
+    Offline object validation does not use Microsoft Graph. Because `-SourceIsOffline` shares a parameter set with `-CheckOrgs`, the Graph overrides are still accepted in this combination, but the script reports that they will not be applied.
+
 ## EXAMPLES
 
 ### EXAMPLE 1
@@ -130,3 +159,41 @@ This will expand the CTMMCollectedSourceData.zip file contents into a folder wit
 ```
 
 This will connect to the Source tenant against AAD and EXO, and will collect all the relevant information (config and user wise) so it can be used passed to the Target tenant admin for the Target validation to be done without the need to connect to the source tenant at the same time.
+
+### EXAMPLE 8
+```powershell
+# Set these variables to the supported endpoint URIs for each tenant.
+$sourceConnectionUri = '<source Exchange Online connection URI>'
+$sourceAuthorizationEndpointUri = '<source Azure AD authorization endpoint URI>'
+$targetConnectionUri = '<target Exchange Online connection URI>'
+$targetAuthorizationEndpointUri = '<target Azure AD authorization endpoint URI>'
+
+.\CrossTenantMailboxMigrationValidation.ps1 -CheckObjects -LogPath C:\Logs\CTMM.log `
+    -SourceConnectionUri $sourceConnectionUri `
+    -SourceAzureADAuthorizationEndpointUri $sourceAuthorizationEndpointUri `
+    -TargetConnectionUri $targetConnectionUri `
+    -TargetAzureADAuthorizationEndpointUri $targetAuthorizationEndpointUri
+```
+
+This validates objects using independent connection and authorization endpoint overrides for each Exchange Online tenant. Omit any override to retain the module default for that parameter. For source-only collection, use the source overrides; for offline-source validation, use the target overrides.
+
+### EXAMPLE 9
+```powershell
+# Set these variables to the supported endpoint URIs for your environment.
+$sourceConnectionUri = '<source Exchange Online connection URI>'
+$sourceAuthorizationEndpointUri = '<source Azure AD authorization endpoint URI>'
+$targetConnectionUri = '<target Exchange Online connection URI>'
+$targetAuthorizationEndpointUri = '<target Azure AD authorization endpoint URI>'
+$graphEndpointUri = '<Microsoft Graph service root endpoint URI>'
+$azureADEndpointUri = '<Microsoft Entra endpoint URI>'
+
+.\CrossTenantMailboxMigrationValidation.ps1 -CheckOrgs -LogPath C:\Logs\CTMM.log `
+    -SourceConnectionUri $sourceConnectionUri `
+    -SourceAzureADAuthorizationEndpointUri $sourceAuthorizationEndpointUri `
+    -TargetConnectionUri $targetConnectionUri `
+    -TargetAzureADAuthorizationEndpointUri $targetAuthorizationEndpointUri `
+    -GraphEndpointUri $graphEndpointUri `
+    -AzureADEndpointUri $azureADEndpointUri
+```
+
+This validates the organization configuration where both Exchange Online and Microsoft Graph use non-default endpoints. The Graph overrides must be supplied as a pair.
