@@ -10,6 +10,7 @@ param()
 
 BeforeAll {
     $scriptPath = Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -ChildPath 'DLT365Groupsupgrade.ps1'
+    $sharedPath = Join-Path -Path (Split-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -Parent) -ChildPath 'Shared\ExchangeOnlineFunctions'
     $parseErrors = $null
     $Script:ast = [System.Management.Automation.Language.Parser]::ParseFile($scriptPath, [ref]$null, [ref]$parseErrors)
     if ($parseErrors.Count -gt 0) {
@@ -60,6 +61,11 @@ BeforeAll {
         )
         throw 'Module installation must be mocked.'
     }
+
+    # The script connects through the shared helpers, so the real implementations are loaded here and
+    # only Connect-ExchangeOnline and the module cmdlets are mocked.
+    . (Join-Path -Path $sharedPath -ChildPath 'Connect-ExchangeOnlineEndpoint.ps1')
+    . (Join-Path -Path $sharedPath -ChildPath 'Test-ExchangeOnlineManagementModule.ps1')
 }
 
 Describe 'Distribution group endpoint parameters' {
@@ -100,10 +106,11 @@ Describe 'Distribution group Exchange Online connections' {
         $Script:moduleLoaded = $false
         Mock -CommandName Get-Module -MockWith {
             if ($Script:moduleLoaded) {
-                [PSCustomObject]@{ Name = 'ExchangeOnlineManagement'; Count = 1 }
+                [PSCustomObject]@{ Name = 'ExchangeOnlineManagement' }
             }
         }
-        Mock -CommandName Install-Module -MockWith {}
+        # A successful installation makes the module available to the following Get-Module call.
+        Mock -CommandName Install-Module -MockWith { $Script:moduleLoaded = $true }
         Mock -CommandName Import-Module -MockWith {}
         Mock -CommandName Connect-ExchangeOnline -MockWith {}
         Mock -CommandName log -MockWith {}
@@ -125,11 +132,10 @@ Describe 'Distribution group Exchange Online connections' {
             -not $PesterBoundParameters.ContainsKey('ConnectionUri') -and
             -not $PesterBoundParameters.ContainsKey('AzureADAuthorizationEndpointUri')
         }
-        Should -Invoke -CommandName Import-Module -Times 1 -Exactly -ParameterFilter {
-            $Name -eq 'ExchangeOnlineManagement' -and $Force -and $ErrorAction -eq 'Stop'
-        }
         $installCount = if ($Loaded) { 0 } else { 1 }
-        Should -Invoke -CommandName Install-Module -Times $installCount -Exactly
+        Should -Invoke -CommandName Install-Module -Times $installCount -Exactly -ParameterFilter {
+            $Name -eq 'ExchangeOnlineManagement' -and $Force -and $Scope -eq 'CurrentUser'
+        }
     }
 
     It 'forwards supplied endpoints when module loaded is <Loaded> and selection is <Selection>' -TestCases @(
@@ -145,7 +151,7 @@ Describe 'Distribution group Exchange Online connections' {
         $Script:ConnectionUri = $Connection
         $Script:AzureADAuthorizationEndpointUri = $Authorization
 
-        Connect2EXO
+        Connect2EXO -ConnectionUri $Connection -AzureADAuthorizationEndpointUri $Authorization
 
         Should -Invoke -CommandName Connect-ExchangeOnline -Times 1 -Exactly -ParameterFilter {
             $ErrorAction -eq 'Stop' -and
@@ -154,6 +160,16 @@ Describe 'Distribution group Exchange Online connections' {
             ([string]$ConnectionUri) -ceq ([string]$Script:ConnectionUri) -and
             ([string]$AzureADAuthorizationEndpointUri) -ceq ([string]$Script:AzureADAuthorizationEndpointUri)
         }
+    }
+
+    It 'reports a missing module that cannot be installed instead of connecting' {
+        $Script:moduleLoaded = $false
+        Mock -CommandName Install-Module -MockWith {}
+
+        Connect2EXO
+
+        Should -Invoke -CommandName Connect-ExchangeOnline -Times 0 -Exactly
+        Should -Invoke -CommandName log -Times 1 -Exactly -ParameterFilter { $CurrentStatus -eq 'Failure' }
     }
 
     It 'reuses an existing session even when overrides are provided' {
@@ -169,6 +185,7 @@ Describe 'Distribution group Exchange Online connections' {
     }
 
     It 'uses supplied overrides through the main connection path when there is no open session' {
+        $Script:moduleLoaded = $true
         $Script:ConnectionUri = 'https://outlook.contoso.com/powershell'
         $Script:AzureADAuthorizationEndpointUri = 'https://login.contoso.com/organizations'
         Mock -CommandName Get-PSSession -MockWith {}

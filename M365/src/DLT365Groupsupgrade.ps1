@@ -24,6 +24,9 @@ param(
     [string]$AzureADAuthorizationEndpointUri
 )
 
+. $PSScriptRoot\..\..\Shared\ExchangeOnlineFunctions\Connect-ExchangeOnlineEndpoint.ps1
+. $PSScriptRoot\..\..\Shared\ExchangeOnlineFunctions\Test-ExchangeOnlineManagementModule.ps1
+
 #Create working folder on the logged user desktop
 $ts = Get-Date -Format yyyyMMdd_HHmmss
 $ExportPath = "$env:USERPROFILE\Desktop\PowershellDGUpgrade\DlToO365GroupUpgradeChecks_$ts"
@@ -50,44 +53,29 @@ function log {
     $PSobject | Export-Csv $ExportPath\DlToO365GroupUpgradeChecksLogging.csv -NoTypeInformation -Append
 }
 function Connect2EXO {
-    $connectParams = @{
-        ErrorAction = "Stop"
-    }
-    if (-not [string]::IsNullOrEmpty($ConnectionUri)) {
-        $connectParams.ConnectionUri = $ConnectionUri
-    }
-    if (-not [string]::IsNullOrEmpty($AzureADAuthorizationEndpointUri)) {
-        $connectParams.AzureADAuthorizationEndpointUri = $AzureADAuthorizationEndpointUri
-    }
+    param(
+        [string]$ConnectionUri,
+
+        [string]$AzureADAuthorizationEndpointUri
+    )
 
     try {
-        #Validate EXO V2 is installed
-        if ((Get-Module | Where-Object { $_.Name -like "ExchangeOnlineManagement" }).count -eq 1) {
-            Import-Module ExchangeOnlineManagement -ErrorAction stop -Force
-            $CurrentDescription = "Importing EXO V2 Module"
-            $CurrentStatus = "Success"
-            log -CurrentStatus $CurrentStatus -Function "Importing EXO V2 Module" -CurrentDescription $CurrentDescription
-            Write-Warning "Connecting to EXO V2, please enter Global administrator credentials when prompted!"
-            Connect-ExchangeOnline @connectParams
-            $CurrentDescription = "Connecting to EXO V2"
-            $CurrentStatus = "Success"
-            log -CurrentStatus $CurrentStatus -Function "Connecting to EXO V2" -CurrentDescription $CurrentDescription
-            Write-Host "Connected to EXO V2 successfully" -ForegroundColor Cyan
-        } else {
-            #log failure and try to install EXO V2 module then Connect to EXO
-            Write-Host "ExchangeOnlineManagement Powershell Module is missing `n Trying to install the module" -ForegroundColor Red
-            Install-Module -Name ExchangeOnlineManagement -Force -ErrorAction Stop -Scope CurrentUser
-            Import-Module ExchangeOnlineManagement -ErrorAction stop -Force
-            $CurrentDescription = "Installing & Importing EXO V2 powershell module"
-            $CurrentStatus = "Success"
-            log -CurrentStatus $CurrentStatus -Function "Installing & Importing EXO V2 powershell module" -CurrentDescription $CurrentDescription
-            Write-Warning "Connecting to EXO V2, please enter Global administrator credentials when prompted!"
-            Connect-ExchangeOnline @connectParams
-            $CurrentDescription = "Connecting to EXO V2"
-            $CurrentStatus = "Success"
-            log -CurrentStatus $CurrentStatus -Function "Connecting to EXO V2" -CurrentDescription $CurrentDescription
-            Write-Host "Connected to EXO V2 successfully" -ForegroundColor Cyan
+        #Validate EXO V2 is installed, install it for the current user when it is missing
+        if (-not (Test-ExchangeOnlineManagementModule -InstallIfMissing)) {
+            throw "ExchangeOnlineManagement Powershell Module could not be installed or imported"
         }
+
+        $CurrentDescription = "Importing EXO V2 Module"
+        $CurrentStatus = "Success"
+        log -CurrentStatus $CurrentStatus -Function "Importing EXO V2 Module" -CurrentDescription $CurrentDescription
+        Write-Warning "Connecting to EXO V2, please enter Global administrator credentials when prompted!"
+        Connect-ExchangeOnlineEndpoint -ConnectionUri $ConnectionUri `
+            -AzureADAuthorizationEndpointUri $AzureADAuthorizationEndpointUri `
+            -ConnectErrorAction "Stop"
+        $CurrentDescription = "Connecting to EXO V2"
+        $CurrentStatus = "Success"
+        log -CurrentStatus $CurrentStatus -Function "Connecting to EXO V2" -CurrentDescription $CurrentDescription
+        Write-Host "Connected to EXO V2 successfully" -ForegroundColor Cyan
     } catch {
         $CurrentDescription = "Connecting to EXO V2 please check if ExchangeOnlineManagement Powershell Module is installed & imported"
         $CurrentStatus = "Failure"
@@ -437,7 +425,7 @@ function DebugDuplicateObjects {
 #Connect to EXO PS
 $SessionCheck = Get-PSSession | Where-Object { $_.Name -like "*ExchangeOnline*" -and $_.State -match "opened" }
 if ($null -eq $SessionCheck) {
-    Connect2EXO
+    Connect2EXO -ConnectionUri $ConnectionUri -AzureADAuthorizationEndpointUri $AzureADAuthorizationEndpointUri
 }
 
 #Getting the DG SMTP

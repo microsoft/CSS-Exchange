@@ -29,6 +29,7 @@ param(
     [ValidateNotNullOrEmpty()]
     [string]$AzureADAuthorizationEndpointUri)
 
+. $PSScriptRoot\..\Shared\ExchangeOnlineFunctions\Connect-ExchangeOnlineEndpoint.ps1
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\GenericScriptUpdate.ps1
 
 $Script:ReportName = "ValidatePFDumpsterREPORT.txt"
@@ -67,19 +68,18 @@ function WriteToScreenAndLog {
 }
 
 function Connect2EXO {
+    param(
+        [string]$ConnectionUri,
+
+        [string]$AzureADAuthorizationEndpointUri
+    )
+
     try {
 
         Write-Host "Connecting to EXO, please enter Global administrator credentials when prompted!" -ForegroundColor Yellow
-        $connectParams = @{
-            ErrorAction = "Stop"
-        }
-        if (-not [string]::IsNullOrEmpty($ConnectionUri)) {
-            $connectParams.ConnectionUri = $ConnectionUri
-        }
-        if (-not [string]::IsNullOrEmpty($AzureADAuthorizationEndpointUri)) {
-            $connectParams.AzureADAuthorizationEndpointUri = $AzureADAuthorizationEndpointUri
-        }
-        Connect-ExchangeOnline @connectParams
+        Connect-ExchangeOnlineEndpoint -ConnectionUri $ConnectionUri `
+            -AzureADAuthorizationEndpointUri $AzureADAuthorizationEndpointUri `
+            -ConnectErrorAction "Stop"
         $CurrentDescription= "Connecting to EXO"
         $CurrentStatus = "Success"
         LogError -CurrentStatus $CurrentStatus -Function "Connecting to EXO" -CurrentDescription $CurrentDescription
@@ -486,7 +486,7 @@ $Description | Out-File $ExportPath\$Script:ReportName -Append
 #Connect to EXO PS
 $SessionCheck = Get-PSSession | Where-Object { $_.Name -like "*ExchangeOnline*" -and $_.State -match "opened" }
 if ($null -eq $SessionCheck) {
-    Connect2EXO
+    Connect2EXO -ConnectionUri $ConnectionUri -AzureADAuthorizationEndpointUri $AzureADAuthorizationEndpointUri
 }
 #Main Function
 $PublicFolderInfo=GetPublicFolderInfo($PFolder)

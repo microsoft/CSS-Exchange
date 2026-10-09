@@ -155,6 +155,10 @@ BeforeDiscovery -ScriptBlock {
 
 BeforeAll -Scriptblock {
     $scriptPath = Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -ChildPath "CrossTenantMailboxMigrationValidation.ps1"
+    $sharedPath = Join-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -ChildPath "Shared\ExchangeOnlineFunctions"
+    # The script connects through the shared helper, so the real implementation is loaded here and only
+    # Connect-ExchangeOnline itself is mocked.
+    . (Join-Path -Path $sharedPath -ChildPath "Connect-ExchangeOnlineEndpoint.ps1")
     $Script:parseErrors = $null
     $Script:ast = [System.Management.Automation.Language.Parser]::ParseFile($scriptPath, [ref]$null, [ref]$Script:parseErrors)
     # Extract only connection helpers and parameter binding to avoid module loading, COM, and live script execution.

@@ -90,6 +90,8 @@ param(
     [switch] $SkipVersionCheck
 )
 
+. $PSScriptRoot\..\..\Shared\ExchangeOnlineFunctions\Connect-ExchangeOnlineEndpoint.ps1
+. $PSScriptRoot\..\..\Shared\ExchangeOnlineFunctions\Test-ExchangeOnlineManagementModule.ps1
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\GenericScriptUpdate.ps1
 
 # cSpell:words mepf, mepfs, EXOV2, MEPFDNs
@@ -252,29 +254,29 @@ function WriteProgress() {
 
 # Create a tenant PSSession against Exchange Online with modern auth.
 function InitializeExchangeOnlineRemoteSession() {
+    param (
+        [string] $ConnectionUri,
+        [PSCredential] $Credential,
+        [string] $AzureADAuthorizationEndpointUri
+    )
+
     WriteInfoMessage $LocalizedStrings.CreatingRemoteSession
+
+    $script:isConnectedToExchangeOnline = $false
+
+    if (-not (Test-ExchangeOnlineManagementModule)) {
+        throw $LocalizedStrings.EXOV2ModuleNotInstalled
+    }
 
     $oldWarningPreference = $WarningPreference
     $oldVerbosePreference = $VerbosePreference
-    $script:isConnectedToExchangeOnline = $false
 
     try {
-        Import-Module -Name ExchangeOnlineManagement -ErrorAction Stop
-        $connectParams = @{
-            ConnectionUri = $ConnectionUri
-            Prefix        = "Remote"
-            ErrorAction   = "Stop"
-        }
-
-        if ($null -ne $Credential) {
-            $connectParams.Credential = $Credential
-        }
-
-        if (-not [string]::IsNullOrEmpty($AzureADAuthorizationEndpointUri)) {
-            $connectParams.AzureADAuthorizationEndpointUri = $AzureADAuthorizationEndpointUri
-        }
-
-        Connect-ExchangeOnline @connectParams
+        Connect-ExchangeOnlineEndpoint -ConnectionUri $ConnectionUri `
+            -AzureADAuthorizationEndpointUri $AzureADAuthorizationEndpointUri `
+            -Credential $Credential `
+            -Prefix "Remote" `
+            -ConnectErrorAction "Stop"
         $script:isConnectedToExchangeOnline = $true
     } finally {
         $WarningPreference = $oldWarningPreference
@@ -747,7 +749,7 @@ try {
         WriteWarningMessage $_
     }
 
-    InitializeExchangeOnlineRemoteSession
+    InitializeExchangeOnlineRemoteSession -ConnectionUri $ConnectionUri -Credential $Credential -AzureADAuthorizationEndpointUri $AzureADAuthorizationEndpointUri
 
     WriteInfoMessage $LocalizedStrings.LocalMailPublicFolderEnumerationStart
 

@@ -218,6 +218,7 @@ param (
     [string]$AADAppRedirectUri = "https://office.com"
 )
 
+. $PSScriptRoot\..\Shared\ExchangeOnlineFunctions\Connect-ExchangeOnlineEndpoint.ps1
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 . $PSScriptRoot\..\Shared\OutputOverrides\Write-Host.ps1
 $wsh = New-Object -ComObject WScript.Shell
@@ -282,33 +283,19 @@ function ConnectToSourceEXOTenant {
     #Connect to SourceTenant (EXO)
     Write-Verbose -Message "Informational: Connecting to SOURCE EXO tenant"
     $wsh.Popup("You're about to connect to source tenant (EXO), please provide the SOURCE tenant admin credentials", 0, "SOURCE tenant") | Out-Null
-    $connectionParameters = @{
-        Prefix     = "Source"
-        ShowBanner = $false
-    }
-    if ($SourceConnectionUri) {
-        $connectionParameters.ConnectionUri = $SourceConnectionUri
-    }
-    if ($SourceAzureADAuthorizationEndpointUri) {
-        $connectionParameters.AzureADAuthorizationEndpointUri = $SourceAzureADAuthorizationEndpointUri
-    }
-    Connect-ExchangeOnline @connectionParameters
+    Connect-ExchangeOnlineEndpoint -ConnectionUri $SourceConnectionUri `
+        -AzureADAuthorizationEndpointUri $SourceAzureADAuthorizationEndpointUri `
+        -Prefix "Source" `
+        -ShowBanner $false
 }
 function ConnectToTargetEXOTenant {
     #Connect to SourceTenant (EXO)
     Write-Verbose -Message "Informational: Connecting to TARGET EXO tenant"
     $wsh.Popup("You're about to connect to target tenant (EXO), please provide the TARGET tenant admin credentials", 0, "TARGET tenant") | Out-Null
-    $connectionParameters = @{
-        Prefix     = "Target"
-        ShowBanner = $false
-    }
-    if ($TargetConnectionUri) {
-        $connectionParameters.ConnectionUri = $TargetConnectionUri
-    }
-    if ($TargetAzureADAuthorizationEndpointUri) {
-        $connectionParameters.AzureADAuthorizationEndpointUri = $TargetAzureADAuthorizationEndpointUri
-    }
-    Connect-ExchangeOnline @connectionParameters
+    Connect-ExchangeOnlineEndpoint -ConnectionUri $TargetConnectionUri `
+        -AzureADAuthorizationEndpointUri $TargetAzureADAuthorizationEndpointUri `
+        -Prefix "Target" `
+        -ShowBanner $false
 }
 function CheckObjects {
 

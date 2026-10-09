@@ -39,6 +39,8 @@ param (
     [string] $AzureADAuthorizationEndpointUri
 )
 
+. $PSScriptRoot\..\..\Shared\ExchangeOnlineFunctions\Connect-ExchangeOnlineEndpoint.ps1
+. $PSScriptRoot\..\..\Shared\ExchangeOnlineFunctions\Test-ExchangeOnlineManagementModule.ps1
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\GenericScriptUpdate.ps1
 
 # cspell:words EXOV2 MEPF
@@ -101,29 +103,26 @@ function EscapeCsvColumn() {
 
 ## Create a tenant PSSession against Exchange Online using modern auth.
 function InitializeExchangeOnlineRemoteSession() {
+    param (
+        [string] $ConnectionUri,
+        [PSCredential] $Credential,
+        [string] $AzureADAuthorizationEndpointUri
+    )
+
     WriteInfoMessage $LocalizedStrings.CreatingRemoteSession
 
-    try {
-        Import-Module ExchangeOnlineManagement -ErrorAction SilentlyContinue
-        if (Get-Module ExchangeOnlineManagement) {
-            $connectParams = @{
-                ConnectionUri = $ConnectionUri
-                Prefix        = "Remote"
-                ErrorAction   = "SilentlyContinue"
-            }
+    if (-not (Test-ExchangeOnlineManagementModule)) {
+        Write-Warning $LocalizedStrings.EXOV2ModuleNotInstalled
+        exit
+    }
 
-            if ($null -ne $Credential) {
-                $connectParams.Credential = $Credential
-            }
-            if (-not [string]::IsNullOrEmpty($AzureADAuthorizationEndpointUri)) {
-                $connectParams.AzureADAuthorizationEndpointUri = $AzureADAuthorizationEndpointUri
-            }
-            Connect-ExchangeOnline @connectParams
-            $script:isConnectedToExchangeOnline = $true
-        } else {
-            Write-Warning $LocalizedStrings.EXOV2ModuleNotInstalled
-            exit
-        }
+    try {
+        Connect-ExchangeOnlineEndpoint -ConnectionUri $ConnectionUri `
+            -AzureADAuthorizationEndpointUri $AzureADAuthorizationEndpointUri `
+            -Credential $Credential `
+            -Prefix "Remote" `
+            -ConnectErrorAction "SilentlyContinue"
+        $script:isConnectedToExchangeOnline = $true
     } catch {
         Write-Error "Error message: $($_.Exception.Message)"
         WriteInfoMessage ($LocalizedStrings.ConnectExchangeOnlineFailure)
@@ -548,7 +547,7 @@ if ($localServerVersion.Major -lt $minSupportedVersion) {
     exit
 }
 
-InitializeExchangeOnlineRemoteSession
+InitializeExchangeOnlineRemoteSession -ConnectionUri $ConnectionUri -Credential $Credential -AzureADAuthorizationEndpointUri $AzureADAuthorizationEndpointUri
 
 # Get mail enabled public folders in cloud
 WriteInfoMessage ($LocalizedStrings.StartedImportingMailPublicFolders)

@@ -46,6 +46,8 @@ param (
     [string] $AzureADAuthorizationEndpointUri
 )
 
+. $PSScriptRoot\..\..\Shared\ExchangeOnlineFunctions\Connect-ExchangeOnlineEndpoint.ps1
+. $PSScriptRoot\..\..\Shared\ExchangeOnlineFunctions\Test-ExchangeOnlineManagementModule.ps1
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\GenericScriptUpdate.ps1
 
 # Create a tenant PSSession against Exchange Online with modern auth.
@@ -56,25 +58,16 @@ function CreateTenantSession() {
         [string] $AzureADAuthorizationEndpointUri
     )
 
-    Import-Module -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
-    if (Get-Module -Name ExchangeOnlineManagement) {
-        $connectParams = @{
-            ConnectionUri = $ConnUri
-            Prefix        = "Remote"
-            ErrorAction   = "SilentlyContinue"
-        }
-
-        if ($null -ne $Credential) {
-            $connectParams.Credential = $Credential
-        }
-        if (-not [string]::IsNullOrEmpty($AzureADAuthorizationEndpointUri)) {
-            $connectParams.AzureADAuthorizationEndpointUri = $AzureADAuthorizationEndpointUri
-        }
-        Connect-ExchangeOnline @connectParams
-    } else {
+    if (-not (Test-ExchangeOnlineManagementModule)) {
         Write-Warning "This script uses modern authentication to connect to Exchange Online and requires EXO V2 module to be installed. Please follow the instructions at https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2?view=exchange-ps#install-the-exo-v2-module to install EXO V2 module."
         exit
     }
+
+    Connect-ExchangeOnlineEndpoint -ConnectionUri $ConnUri `
+        -AzureADAuthorizationEndpointUri $AzureADAuthorizationEndpointUri `
+        -Credential $Credential `
+        -Prefix "Remote" `
+        -ConnectErrorAction "SilentlyContinue"
 }
 
 ## Get organization guid

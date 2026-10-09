@@ -34,6 +34,8 @@ param (
     [string] $AzureADAuthorizationEndpointUri
 )
 
+. $PSScriptRoot\..\..\Shared\ExchangeOnlineFunctions\Connect-ExchangeOnlineEndpoint.ps1
+. $PSScriptRoot\..\..\Shared\ExchangeOnlineFunctions\Test-ExchangeOnlineManagementModule.ps1
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\GenericScriptUpdate.ps1
 
 #cspell:words EXOV2
@@ -41,28 +43,21 @@ param (
 ## Create a tenant PSSession.
 function CreateTenantSession() {
     param (
+        [string] $ConnectionUri,
+        [PSCredential] $Credential,
         [string] $AzureADAuthorizationEndpointUri
     )
 
-    Import-Module ExchangeOnlineManagement -ErrorAction SilentlyContinue
-    if (Get-Module ExchangeOnlineManagement) {
-        $connectParams = @{
-            ConnectionUri = $ConnectionUri
-            Prefix        = "Remote"
-            ErrorAction   = "SilentlyContinue"
-        }
-
-        if ($null -ne $Credential) {
-            $connectParams.Credential = $Credential
-        }
-        if (-not [string]::IsNullOrEmpty($AzureADAuthorizationEndpointUri)) {
-            $connectParams.AzureADAuthorizationEndpointUri = $AzureADAuthorizationEndpointUri
-        }
-        Connect-ExchangeOnline @connectParams
-    } else {
+    if (-not (Test-ExchangeOnlineManagementModule)) {
         Write-Warning $LocalizedStrings.EXOV2ModuleNotInstalled
         exit
     }
+
+    Connect-ExchangeOnlineEndpoint -ConnectionUri $ConnectionUri `
+        -AzureADAuthorizationEndpointUri $AzureADAuthorizationEndpointUri `
+        -Credential $Credential `
+        -Prefix "Remote" `
+        -ConnectErrorAction "SilentlyContinue"
 }
 
 ## Writes a dated information message to console
@@ -184,7 +179,7 @@ EXOV2ModuleNotInstalled = This script uses modern authentication to connect to E
 '@
 
 # Create a tenant PSSession against Exchange Online with modern auth.
-CreateTenantSession -AzureADAuthorizationEndpointUri $AzureADAuthorizationEndpointUri
+CreateTenantSession -ConnectionUri $ConnectionUri -Credential $Credential -AzureADAuthorizationEndpointUri $AzureADAuthorizationEndpointUri
 
 WriteInfoMessage ($LocalizedStrings.StartedPublicFolderMailboxImport)
 Write-Host ""

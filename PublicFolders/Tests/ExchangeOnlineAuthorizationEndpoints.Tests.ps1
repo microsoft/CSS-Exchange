@@ -67,6 +67,8 @@ BeforeDiscovery {
 }
 
 BeforeAll {
+    $Script:sharedPath = Join-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -ChildPath 'Shared\ExchangeOnlineFunctions'
+
     function Connect-ExchangeOnline {
         [CmdletBinding()]
         param(
@@ -78,6 +80,12 @@ BeforeAll {
         )
         throw 'Exchange Online connections must be mocked.'
     }
+
+    # The scripts call the shared connection helpers, so the real implementations are loaded here.
+    # Only Connect-ExchangeOnline itself is mocked, which keeps the assertions on the parameters
+    # that actually reach the module.
+    . (Join-Path -Path $Script:sharedPath -ChildPath 'Connect-ExchangeOnlineEndpoint.ps1')
+    . (Join-Path -Path $Script:sharedPath -ChildPath 'Test-ExchangeOnlineManagementModule.ps1')
 
     function WriteInfoMessage { param($Message) }
     function WriteLog { param($Path, $Message) }

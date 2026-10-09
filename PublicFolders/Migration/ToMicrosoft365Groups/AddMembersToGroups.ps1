@@ -98,30 +98,30 @@ param(
     [string] $AzureADAuthorizationEndpointUri
 )
 
+. $PSScriptRoot\..\..\..\Shared\ExchangeOnlineFunctions\Connect-ExchangeOnlineEndpoint.ps1
+. $PSScriptRoot\..\..\..\Shared\ExchangeOnlineFunctions\Test-ExchangeOnlineManagementModule.ps1
 . $PSScriptRoot\..\..\..\Shared\ScriptUpdateFunctions\GenericScriptUpdate.ps1
 
 # Create a tenant PSSession against Exchange Online using modern auth.
 function InitializeExchangeOnlineRemoteSession() {
-    Import-Module ExchangeOnlineManagement -ErrorAction SilentlyContinue
-    if (Get-Module ExchangeOnlineManagement) {
-        $connectParams = @{
-            ConnectionUri = $ConnectionUri
-            Prefix        = "Remote"
-            ErrorAction   = "SilentlyContinue"
-        }
+    param (
+        [string] $ConnectionUri,
+        [PSCredential] $Credential,
+        [string] $AzureADAuthorizationEndpointUri
+    )
 
-        if ($null -ne $Credential) {
-            $connectParams.Credential = $Credential
-        }
-        if (-not [string]::IsNullOrEmpty($AzureADAuthorizationEndpointUri)) {
-            $connectParams.AzureADAuthorizationEndpointUri = $AzureADAuthorizationEndpointUri
-        }
-        Connect-ExchangeOnline @connectParams
-        $script:isConnectedToExchangeOnline = $true
-    } else {
+    if (-not (Test-ExchangeOnlineManagementModule)) {
         Write-Warning $LocalizedStrings.EXOV2ModuleNotInstalled
         exit
     }
+
+    Connect-ExchangeOnlineEndpoint -ConnectionUri $ConnectionUri `
+        -AzureADAuthorizationEndpointUri $AzureADAuthorizationEndpointUri `
+        -Credential $Credential `
+        -Prefix "Remote" `
+        -ConnectErrorAction "SilentlyContinue"
+    $script:isConnectedToExchangeOnline = $true
+
     WriteLog -Path $logPath -Message $LocalizedStrings.RemoteSessionCreatedSuccessfully
 }
 
@@ -398,7 +398,7 @@ try {
     # If the public folders are on-premises, create an exchange online remote session
     if ($ArePublicFoldersOnPremises) {
         WriteLog -Path $logPath -Message $LocalizedStrings.CreatingRemoteSession
-        InitializeExchangeOnlineRemoteSession
+        InitializeExchangeOnlineRemoteSession -ConnectionUri $ConnectionUri -Credential $Credential -AzureADAuthorizationEndpointUri $AzureADAuthorizationEndpointUri
     }
 
     # If the public folders are locked, check for the back up file with permission list and read the permissions from the file,
