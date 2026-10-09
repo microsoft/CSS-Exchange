@@ -47,6 +47,36 @@ Specifies the local AD domain for the on-premises Organization.
 .PARAMETER Help
 Show help for this script.
 
+.PARAMETER ExchangeOnlineEwsEndpointUri
+Specifies the Exchange Online EWS endpoint. This is the target of the OAuth connectivity test and the expected value
+for the Organization Relationship TargetSharingEpr. Defaults to the worldwide endpoint.
+.PARAMETER ExchangeOnlineAutoDiscoverEndpointUri
+Specifies the Exchange Online AutoDiscover endpoint, without a trailing slash and without the WSSecurity suffix.
+The WSSecurity and Hybrid Agent forms are derived from it. Defaults to the worldwide endpoint.
+.PARAMETER ExchangeOnlineOwaUri
+Specifies the standard values accepted for the Organization Relationship TargetOwAUrl. The first entry has the
+Exchange Online domain appended to it, matching the documented standard value. Defaults to the worldwide values.
+.PARAMETER AzureADEndpointUri
+Specifies the Microsoft Entra authority used to build the expected AuthServer TokenIssuingEndpoint and
+AuthMetadataUrl values. Defaults to the worldwide authority.
+.PARAMETER AuthServerIssuerUri
+Specifies the security token service used to build the expected AuthServer IssuerIdentifier value.
+Defaults to the worldwide value.
+.PARAMETER FederationTrustTokenIssuerUri
+Specifies the expected Federation Trust TokenIssuerEpr. Defaults to the worldwide value.
+.PARAMETER FederationTrustMetadataUri
+Specifies the expected Federation Trust TokenIssuerMetadataEpr. Defaults to the worldwide value.
+.PARAMETER FederationTargetApplicationUri
+Specifies the expected Federation Information TargetApplicationUri. Defaults to the worldwide value.
+.PARAMETER HybridAgentTargetApplicationUri
+Specifies the expected Exchange Online Organization Relationship TargetApplicationUri when the Hybrid Agent is in
+use. Defaults to the worldwide value.
+
+Note on the endpoint parameters: all of them default to the current worldwide (public cloud) values, so omitting
+them leaves behavior unchanged. They exist because this script compares your live configuration against expected
+values. In a sovereign cloud the correct configuration differs, and without overrides a correctly configured
+organization is reported as incorrect.
+
 .EXAMPLE
 .\FreeBusyChecker.ps1
 This cmdlet will run the Free Busy Checker script and Check Availability OAuth and DAuth Configurations both for Exchange On-Premises and Exchange Online.
@@ -68,6 +98,11 @@ This cmdlet will run the Free Busy Checker Script for Exchange On-Premises and E
 .EXAMPLE
 .\FreeBusyChecker.ps1 -Org ExchangeOnPremise -Auth OAuth
 This cmdlet will run the Free Busy Checker Script for Exchange On-Premises Availability OAuth Configurations
+.EXAMPLE
+.\FreeBusyChecker.ps1 -ExchangeOnlineEwsEndpointUri "https://<EWS host>/EWS/Exchange.asmx" -ExchangeOnlineAutoDiscoverEndpointUri "https://<AutoDiscover host>/AutoDiscover/AutoDiscover.svc" -AzureADEndpointUri "https://<Entra authority>" -AuthServerIssuerUri "https://<STS host>" -FederationTargetApplicationUri "<Federation application uri>"
+This cmdlet will run the Free Busy Checker Script against a sovereign cloud, comparing your configuration against
+that cloud's endpoints instead of the worldwide ones. Supply the values for your environment. Omitted parameters
+keep their worldwide defaults.
 #>
 
 # Exchange On-Premises
@@ -98,9 +133,35 @@ param(
     [string]$OnPremEWSUrl,
     [Parameter(Mandatory = $false, ParameterSetName = "Test")]
     [string]$OnPremLocalDomain,
+    [Parameter(Mandatory = $false, ParameterSetName = "Test")]
+    [ValidateNotNullOrEmpty()]
+    [string]$ExchangeOnlineEwsEndpointUri = "https://outlook.office365.com/EWS/Exchange.asmx",
+    [Parameter(Mandatory = $false, ParameterSetName = "Test")]
+    [ValidateNotNullOrEmpty()]
+    [string]$ExchangeOnlineAutoDiscoverEndpointUri = "https://AutoDiscover-s.outlook.com/AutoDiscover/AutoDiscover.svc",
+    [Parameter(Mandatory = $false, ParameterSetName = "Test")]
+    [ValidateNotNullOrEmpty()]
+    [string[]]$ExchangeOnlineOwaUri = @("http://outlook.com/owa/", "https://outlook.office.com/mail."),
+    [Parameter(Mandatory = $false, ParameterSetName = "Test")]
+    [ValidateNotNullOrEmpty()]
+    [string]$AzureADEndpointUri = "https://login.windows.net",
+    [Parameter(Mandatory = $false, ParameterSetName = "Test")]
+    [ValidateNotNullOrEmpty()]
+    [string]$AuthServerIssuerUri = "https://sts.windows.net",
+    [Parameter(Mandatory = $false, ParameterSetName = "Test")]
+    [ValidateNotNullOrEmpty()]
+    [string]$FederationTrustTokenIssuerUri = "https://login.microsoftonline.com/extSTS.srf",
+    [Parameter(Mandatory = $false, ParameterSetName = "Test")]
+    [ValidateNotNullOrEmpty()]
+    [string]$FederationTrustMetadataUri = "https://nexus.microsoftonline-p.com/FederationMetadata/2006-12/FederationMetadata.xml",
+    [Parameter(Mandatory = $false, ParameterSetName = "Test")]
+    [ValidateNotNullOrEmpty()]
+    [string]$FederationTargetApplicationUri = "Outlook.com",
+    [Parameter(Mandatory = $false, ParameterSetName = "Test")]
+    [ValidateNotNullOrEmpty()]
+    [string]$HybridAgentTargetApplicationUri = "http://outlook.office.com/",
     [Parameter(Mandatory = $true, ParameterSetName = "ScriptUpdateOnly", HelpMessage = "Update only script.")]
     [switch]$ScriptUpdateOnly,
-    [Parameter(Mandatory = $false, ParameterSetName = "SkipVersionCheck", HelpMessage = "Skip version check.")]
     [switch]$SkipVersionCheck
 )
 begin {
@@ -119,6 +180,21 @@ begin {
     $Script:Server = hostname
     $Script:startingDate = (Get-Date -Format yyyyMMdd_HHmmss)
     $Script:htmlFile = "$PSScriptRoot\FBCheckerOutput_$($Script:startingDate).html"
+
+    #region Expected endpoint values
+    # Every value defaults to the worldwide endpoint, so omitting the related parameter keeps the previous behavior.
+    # Overrides exist so that an organization in a sovereign cloud is not reported as misconfigured simply because
+    # its correct endpoints differ from the worldwide ones.
+    SetExpectedEndpointValues -ExchangeOnlineEwsEndpointUri $ExchangeOnlineEwsEndpointUri `
+        -ExchangeOnlineAutoDiscoverEndpointUri $ExchangeOnlineAutoDiscoverEndpointUri `
+        -ExchangeOnlineOwaUri $ExchangeOnlineOwaUri `
+        -AzureADEndpointUri $AzureADEndpointUri `
+        -AuthServerIssuerUri $AuthServerIssuerUri `
+        -FederationTrustTokenIssuerUri $FederationTrustTokenIssuerUri `
+        -FederationTrustMetadataUri $FederationTrustMetadataUri `
+        -FederationTargetApplicationUri $FederationTargetApplicationUri `
+        -HybridAgentTargetApplicationUri $HybridAgentTargetApplicationUri
+    #endregion
 
     loadingParameters
     #Parameter input
