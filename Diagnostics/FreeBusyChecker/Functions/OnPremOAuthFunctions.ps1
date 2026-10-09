@@ -25,13 +25,13 @@ function IntraOrgConCheck {
         $Script:tdIntraOrgTarGetAddressDomainColor = "red"
     }
     Write-Host -ForegroundColor White " DiscoveryEndpoint: "
-    if ($Script:IntraOrgCon.DiscoveryEndpoint -like "https://AutoDiscover-s.outlook.com/AutoDiscover/AutoDiscover.svc") {
-        Write-Host -ForegroundColor Green "  https://AutoDiscover-s.outlook.com/AutoDiscover/AutoDiscover.svc"
+    if ($Script:IntraOrgCon.DiscoveryEndpoint -like $Script:ExchangeOnlineAutoDiscoverEndpointUri) {
+        Write-Host -ForegroundColor Green "  $($Script:ExchangeOnlineAutoDiscoverEndpointUri)"
         $Script:tdDiscoveryEndpointColor = "green"
     } else {
         Write-Host -ForegroundColor Red "  The DiscoveryEndpoint appears not to be correct. "
         Write-Host -ForegroundColor White "  It should represent the address of EXO AutoDiscover endpoint."
-        Write-Host  "  Examples: https://AutoDiscover-s.outlook.com/AutoDiscover/AutoDiscover.svc; https://outlook.office365.com/AutoDiscover/AutoDiscover.svc "
+        Write-Host  "  Example: $($Script:ExchangeOnlineAutoDiscoverEndpointUri) "
         $Script:tdDiscoveryEndpointColor = "red"
     }
     Write-Host -ForegroundColor White " Enabled: "
@@ -64,30 +64,30 @@ function AuthServerCheck {
     Write-Host -ForegroundColor Green " Summary - Auth Server"
     PrintDynamicWidthLine
     Write-Host -ForegroundColor White " IssuerIdentifier: "
-    if ($AuthServer.IssuerIdentifier -like "https://sts.windows.net/$($AuthServer.Realm)/" ) {
+    if ($AuthServer.IssuerIdentifier -like "$($Script:AuthServerIssuerUri)/$($AuthServer.Realm)/" ) {
         Write-Host -ForegroundColor Green " " $AuthServer.IssuerIdentifier
         $Script:tDAuthServerIssuerIdentifierColor = "green"
     } else {
         Write-Host -ForegroundColor Red " IssuerIdentifier appears not to be correct."
-        Write-Host -ForegroundColor White " Should be https://sts.windows.net/<Cloud Tenant ID>/"
+        Write-Host -ForegroundColor White " Should be $($Script:AuthServerIssuerUri)/<Cloud Tenant ID>/"
         $Script:tDAuthServerIssuerIdentifierColor = "red"
     }
     Write-Host -ForegroundColor White " TokenIssuingEndpoint: "
-    if ($AuthServer.TokenIssuingEndpoint -like "https://login.windows.net/common/oauth2/token*" ) {
+    if ($AuthServer.TokenIssuingEndpoint -like $Script:AzureADTokenIssuingEndpointPattern ) {
         Write-Host -ForegroundColor Green " " $AuthServer.TokenIssuingEndpoint
         $Script:tDAuthServerTokenIssuingEndpointColor = "green"
     } else {
         Write-Host -ForegroundColor Red " TokenIssuingEndpoint appears not to be correct."
-        Write-Host -ForegroundColor White " Should be  https://login.windows.net/common/oauth2/token"
+        Write-Host -ForegroundColor White " Should be  $($Script:AzureADEndpointUri)/common/oauth2/token"
         $Script:tDAuthServerTokenIssuingEndpointColor = "red"
     }
     Write-Host -ForegroundColor White " AuthMetadataUrl: "
-    if ($AuthServer.AuthMetadataUrl -like "https://login.windows.net/*/federationmetadata/2007-06/federationmetadata.xml" ) {
+    if ($AuthServer.AuthMetadataUrl -like $Script:AzureADAuthMetadataUrlPattern ) {
         Write-Host -ForegroundColor Green " " $AuthServer.AuthMetadataUrl
         $Script:tDAuthServerAuthMetadataUrlColor = "green"
     } else {
         Write-Host -ForegroundColor Red " AuthMetadataUrl appears not to be correct."
-        Write-Host -ForegroundColor White " Should be  https://login.windows.net/<Initial Tenant Domain>/FederationMetadata/2007-06/FederationMetadata.xml"
+        Write-Host -ForegroundColor White " Should be  $($Script:AzureADEndpointUri)/<Initial Tenant Domain>/FederationMetadata/2007-06/FederationMetadata.xml"
         $Script:tDAuthServerAuthMetadataUrlColor = "red"
     }
     Write-Host -ForegroundColor White " Enabled: "
@@ -416,9 +416,9 @@ function CurrentCertificateThumbprintCheck {
     CurrentCertificateThumbprintCheckHtml
 }
 function OAuthConnectivityCheck {
-    Write-Host -ForegroundColor Green " Test-OAuthConnectivity -Service EWS -TarGetUri https://outlook.office365.com/EWS/Exchange.asmx -Mailbox $Script:UserOnPrem"
+    Write-Host -ForegroundColor Green " Test-OAuthConnectivity -Service EWS -TarGetUri $($Script:ExchangeOnlineEwsEndpointUri) -Mailbox $Script:UserOnPrem"
     PrintDynamicWidthLine
-    $Script:OAuthConnectivity = Test-OAuthConnectivity -Service EWS -TarGetUri https://outlook.office365.com/EWS/Exchange.asmx -Mailbox $Script:UserOnPrem
+    $Script:OAuthConnectivity = Test-OAuthConnectivity -Service EWS -TarGetUri $Script:ExchangeOnlineEwsEndpointUri -Mailbox $Script:UserOnPrem
     if ($Script:OAuthConnectivity.ResultType -ne 'Success') {
         $Script:OAuthConnectivity
     }
@@ -437,8 +437,8 @@ function OAuthConnectivityCheck {
         $Script:OAuthConnectivityResultTypeColor = "green"
     } else {
         Write-Host -ForegroundColor Red " $Script:OAuthConnectivity.ResultType - OAuth Test was completed with Error. "
-        Write-Host -ForegroundColor White " Please rerun Test-OAuthConnectivity -Service EWS -TarGetUri https://outlook.office365.com/EWS/Exchange.asmx -Mailbox <On Premises Mailbox> | fl to confirm the test failure"
-        $Script:OAuthConnectivityResultType = " <div>OAuth Test was completed with Error.</div><div>Please rerun Test-OAuthConnectivity -Service EWS -TarGetUri https://outlook.office365.com/EWS/Exchange.asmx -Mailbox <On Premises Mailbox> | fl to confirm the test failure</div>"
+        Write-Host -ForegroundColor White " Please rerun Test-OAuthConnectivity -Service EWS -TarGetUri $($Script:ExchangeOnlineEwsEndpointUri) -Mailbox <On Premises Mailbox> | fl to confirm the test failure"
+        $Script:OAuthConnectivityResultType = " <div>OAuth Test was completed with Error.</div><div>Please rerun Test-OAuthConnectivity -Service EWS -TarGetUri $($Script:ExchangeOnlineEwsEndpointUri) -Mailbox &lt;On Premises Mailbox&gt; | fl to confirm the test failure</div>"
         $Script:OAuthConnectivityResultTypeColor = "red"
     }
     Write-Host -ForegroundColor Green " Reference: "
