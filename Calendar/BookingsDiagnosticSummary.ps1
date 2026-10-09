@@ -32,8 +32,21 @@
 # (For the first run, the script will install the module if not already installed,
 #  for this you need to run the script as an administrator)
 #
+# .PARAMETER GraphEndpointUri
+# Optional Microsoft Graph service endpoint. Must be specified together with AzureADEndpointUri.
+# If omitted, the Microsoft Graph module default is used, which is correct for the public cloud.
+#
+# .PARAMETER AzureADEndpointUri
+# Optional Microsoft Entra authority used for Microsoft Graph authentication. Must be specified together with GraphEndpointUri.
+# The two URIs are registered as a named Microsoft Graph environment only for the duration of the Connect-MgGraph call,
+# because Connect-MgGraph accepts an environment name rather than individual URIs. The registration is removed again
+# immediately, so the Microsoft Graph settings file is not left modified.
+#
 # .EXAMPLE
 # Get-BookingsDiagnosticSummary.ps1 -Identity fooBooking@microsoft.com
+#
+# .EXAMPLE
+# Get-BookingsDiagnosticSummary.ps1 -Identity fooBooking@contoso.com -GraphEndpointUri $graphEndpointUri -AzureADEndpointUri $azureADEndpointUri
 #
 param
 (
@@ -56,7 +69,13 @@ param
     [bool]$ExportToCSV = $true,
 
     [Parameter(Position=6, Mandatory=$False, HelpMessage="Export all data to Excel.")]
-    [bool]$ExportToExcel = $true
+    [bool]$ExportToExcel = $true,
+
+    [Parameter(Mandatory=$False, HelpMessage="Microsoft Graph service endpoint. Must be specified together with AzureADEndpointUri.")]
+    [string]$GraphEndpointUri,
+
+    [Parameter(Mandatory=$False, HelpMessage="Microsoft Entra authority for Microsoft Graph authentication. Must be specified together with GraphEndpointUri.")]
+    [string]$AzureADEndpointUri
 
 )
 
@@ -105,6 +124,9 @@ $script:PadCharsMessage = 40
 $script:indent = "         "
 $script:MessageTrackingDays = 5
 
+# Fail before any data is collected if only one half of the Graph endpoint override was supplied.
+TestGraphEndpointParameters -GraphEndpointUri $GraphEndpointUri -AzureADEndpointUri $AzureADEndpointUri | Out-Null
+
 CheckEXOConnection
 
 $script:Identity = $Identity
@@ -145,5 +167,5 @@ if ($ExportToCSV -eq $true) {
 }
 
 if ($ExportToExcel -eq $true) {
-    ExcelWrite -identity $Identity
+    ExcelWrite -Identity $Identity -GraphEndpointUri $GraphEndpointUri -AzureADEndpointUri $AzureADEndpointUri
 }
