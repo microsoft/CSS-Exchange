@@ -19,17 +19,28 @@ function Get-ProtocolEndpointViaAutoDv2 {
         [Parameter(Mandatory = $true, ParameterSetName = "OnPrem")]
         [Parameter(Mandatory = $true, ParameterSetName = "EXO")]
         [ValidateSet("EWS", "REST", "ActiveSync", "AutodiscoverV1")]
-        [string]$Protocol
+        [string]$Protocol,
+
+        [Parameter(Mandatory = $false, ParameterSetName = "EXO")]
+        [ValidateNotNullOrEmpty()]
+        [ValidatePattern("^(?!http:\/\/|https:\/\/).*(?<!\/)$")]
+        [string]$CustomAutoDiscoverUrl
     )
 
     begin {
         Write-Verbose "Calling: $($MyInvocation.MyCommand)"
 
         # AutoDiscover v2 automatically redirect calls to the right cloud - this URL works therefore for all clouds
+        # which can reach the worldwide endpoint. Environments that can't, for example because they are isolated from
+        # the internet, must pass the host to query via the CustomAutoDiscoverUrl parameter.
         $baseUrl = "outlook.office365.com"
 
         if ($PSCmdlet.ParameterSetName -eq "OnPrem") {
             $baseUrl = $Url
+        } elseif (-not([System.String]::IsNullOrWhiteSpace($CustomAutoDiscoverUrl))) {
+            Write-Verbose "Custom AutoDiscover endpoint was provided and will be used: $CustomAutoDiscoverUrl"
+
+            $baseUrl = $CustomAutoDiscoverUrl
         }
 
         # The 'ServerLocation' parameter doesn't exist in Exchange Server - it will be ignored by the server and no location will be returned
