@@ -85,7 +85,7 @@ The report identifies its handling mode in `metadata.privacyMode`:
 | `TargetedMeeting` | `-Subject` or `-MeetingId` without `-IncludeSensitiveData` | Adds only complete RBA blocks correlated by an extracted or supplied meeting ID. If a subject matches in a complete block but has no extractable ID, only that block is added. Content without an exact boundary is never added. Included blocks can contain subjects, identities, and processing details. |
 | `Full` | `-IncludeSensitiveData` | Adds full identities, target proxy addresses and stable identifiers, complete RBA log, transcript content, and additional response text. |
 
-Treat `TargetedMeeting` and `Full` reports as sensitive customer data.
+Privacy modes govern only the JSON report. The text transcript and the saved `RBA-Logs_*.txt` file are not sanitized in any mode: they contain the retained RBA log and recipient display names and SMTP addresses. Treat those text artifacts as sensitive customer data in every mode, and treat `TargetedMeeting` and `Full` JSON reports as sensitive as well.
 
 ## Targeted meeting log search
 
@@ -106,7 +106,7 @@ Possible search statuses are:
 - `NotRequested`: neither a meeting subject nor meeting ID was supplied. All count fields are `0`; `meetingIds`, `meetings`, and `events` are empty arrays.
 - `Found`: a subject resolved to at least one meeting ID, or the supplied meeting ID occurs in at least one complete retained block.
 - `FoundWithoutMeetingId`: the subject matched one or more complete blocks, but no meeting ID could be extracted. Only the directly subject-matched complete blocks are returned.
-- `AmbiguousBoundary`: the requested subject or meeting ID appeared only in content without an exact processing boundary. Counts are `0`, and no meeting IDs, meeting summaries, events, or raw targeted evidence are returned.
+- `AmbiguousBoundary`: the requested subject or meeting ID appeared only in content without an exact processing boundary. Event and meeting-ID counts are `0`, and no meeting IDs, meeting summaries, events, or raw targeted evidence are returned. For a subject search, `subjectMatchCount` is the number of ambiguous blocks and is therefore nonzero.
 - `NotFound`: no subject match or supplied meeting ID exists in the retained log. Counts are `0`, and `meetingIds`, `meetings`, and `events` are empty arrays.
 - `LogUnavailable`: RBA log collection failed. The complete search schema remains present, with zero counts and empty `meetingIds`, `meetings`, and `events`.
 

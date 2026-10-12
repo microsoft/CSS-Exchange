@@ -8,7 +8,7 @@ function Get-RbaLogProcessingStartPattern {
 }
 
 function Write-RbaNextSteps {
-    Write-RbaDashLineBox @("Next Steps") -Color Cyan
+    Write-RbaDashLineBox -Line @("Next Steps") -Color Cyan
     Write-Host "Review the saved RBA log to see how meeting requests were processed."
     Write-Host "To collect a new RBA log:"
     Write-Host -ForegroundColor Yellow "`tExport-MailboxDiagnosticLogs -Identity $Identity -ComponentName RBA"
@@ -625,7 +625,7 @@ function Write-RbaTargetedMeetingSummary {
 }
 
 function Write-RbaLogSummary {
-    Write-RbaDashLineBox @("RBA Log Summary") -Color Blue -DashChar =
+    Write-RbaDashLineBox -Line @("RBA Log Summary") -Color Blue -DashChar =
 
     if ($script:collectorStatuses["RbaLog"].status -ne "Success") {
         Write-Warning "RBA Log summary could not be evaluated because the log is unavailable."

@@ -15,7 +15,7 @@ function Invoke-RbaCalendarProcessingEvaluation {
 }
 
 function Write-RbaProcessingLogic {
-    Write-RbaDashLineBox @("RBA Processing Logic") -DashChar =
+    Write-RbaDashLineBox -Line @("RBA Processing Logic") -DashChar =
     @"
         The RBA first evaluates a request against all the policy configuration constraints assigned in the calendar
         processing object for the resource mailbox.
@@ -28,7 +28,7 @@ function Write-RbaProcessingLogic {
 }
 
 function Write-RbaPolicyCriteria {
-    Write-RbaDashLineBox @("Policy Configuration") -Color Cyan -DashChar =
+    Write-RbaDashLineBox -Line @("Policy Configuration") -Color Cyan -DashChar =
 
     Write-Host " The following criteria are used to determine if a meeting request is in-policy or out-of-policy. "
     Write-Host -ForegroundColor Cyan @"
@@ -106,7 +106,7 @@ function Write-RbaPolicyCriteria {
     if ($RbaSettings.ProcessExternalMeetingMessages -eq $true) {
         $RBACriteriaExtra += "External meeting requests will be evaluated.`r`n"
     } else {
-        $RBACriteriaExtra += "RBA will reject all External meeting requests.`r`n"
+        $RBACriteriaExtra += "RBA will skip all External meeting requests.`r`n"
     }
 
     $RBACriteriaExtra += "The resource booking window is $($RbaSettings.BookingWindowInDays) days; 0 means today.`r`n"
@@ -115,7 +115,7 @@ function Write-RbaPolicyCriteria {
 }
 
 function Write-RbaProcessingValidation {
-    Write-RbaDashLineBox @("Policy Processing:") -DashChar =
+    Write-RbaDashLineBox -Line @("Policy Processing:") -DashChar =
 
     # check for False null False null False null - RBA is configured to do nothing.
     if ($RbaSettings.RequestOutOfPolicy.Count -eq 0 `
@@ -162,7 +162,7 @@ function Write-RbaRecipientList {
 
 function Write-RbaInPolicyProcessing {
     # In-policy request processing
-    Write-RbaDashLineBox @("  In-Policy request processing:") -Color Yellow
+    Write-RbaDashLineBox -Line @("  In-Policy request processing:") -Color Yellow
 
     if ($RbaSettings.BookInPolicy.Count -eq 0) {
         Write-Host "`t BookInPolicy:                     {$($RbaSettings.BookInPolicy)}"
@@ -195,7 +195,7 @@ function Write-RbaInPolicyProcessing {
 }
 
 function Write-RbaOutOfPolicyProcessing {
-    Write-RbaDashLineBox @("  Out-of-Policy request processing:") -Color DarkYellow
+    Write-RbaDashLineBox -Line @("  Out-of-Policy request processing:") -Color DarkYellow
     if ($RbaSettings.RequestOutOfPolicy.Count -gt 0) {
         Write-Host "`t RequestOutOfPolicy:           These {$($RbaSettings.RequestOutOfPolicy.Count)} accounts are allowed to submit out-of-policy requests (that require approval by a resource delegate)."
         Write-RbaRecipientList -MBList $RbaSettings.RequestOutOfPolicy
@@ -220,7 +220,7 @@ function Write-RbaOutOfPolicyProcessing {
 }
 
 function Write-RbaDelegateSettings {
-    Write-RbaDashLineBox @("Resource Delegate Settings") -Color White
+    Write-RbaDashLineBox -Line @("Resource Delegate Settings") -Color White
 
     if ($RbaSettings.ResourceDelegates.Count -eq 0) {
         Write-Host "`t ResourceDelegates:               "$RbaSettings.ResourceDelegates
@@ -274,7 +274,7 @@ function Write-RbaDelegateSettings {
 }
 
 function Write-RbaPostProcessing {
-    Write-RbaDashLineBox @("PostProcessing Setup") -Color Cyan -DashChar =
+    Write-RbaDashLineBox -Line @("PostProcessing Setup") -Color Cyan -DashChar =
     Write-Host -ForegroundColor Cyan "The RBA will format the meeting based on the following settings."
 
     #    Write-Host -ForegroundColor Cyan "`r`n`t RBA PostProcessing Steps";
@@ -376,7 +376,7 @@ function Write-RbaVerbosePostProcessing {
 }
 
 function Test-RbaWorkspace {
-    Write-RbaDashLineBox @("Workspace Settings") -Color White
+    Write-RbaDashLineBox -Line @("Workspace Settings") -Color White
     Write-Host  -ForegroundColor White "`tIs Resource [$Identity] a Workspace: $(if ($script:Workspace) {"TRUE"} else {"False - Skipping additional Workspace Checks"})."
 
     if ($script:Workspace) {
@@ -413,7 +413,7 @@ function Test-RbaWorkspace {
 }
 
 function Test-RbaRoomListSettings {
-    Write-RbaDashLineBox @("Room List Settings") -Color White
+    Write-RbaDashLineBox -Line @("Room List Settings") -Color White
     Write-Host -ForegroundColor White "`tThe new Room Finder uses the City and other properties to help users find the right room for their meeting."
     Write-Host -ForegroundColor White "`tTags can be used to list features of this room (i.e. Projector, etc.) so that users can narrow down their search for conference rooms."
 

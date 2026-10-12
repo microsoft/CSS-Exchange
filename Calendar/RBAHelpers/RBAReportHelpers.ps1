@@ -415,8 +415,12 @@ function Get-RbaSanitizedIdentity {
     }
 
     $normalizedIdentity = $identityText.Trim().ToLowerInvariant()
-    if ($PreserveTargetIdentity -and $normalizedIdentity -eq $Identity.Trim().ToLowerInvariant()) {
-        return $identityText
+    if ($PreserveTargetIdentity -and -not [string]::IsNullOrEmpty($normalizedIdentity)) {
+        $resolvedPrimarySmtp = if ($null -ne $script:Mailbox) { ([string]$script:Mailbox.PrimarySmtpAddress).Trim().ToLowerInvariant() } else { $null }
+        if ($normalizedIdentity -eq $Identity.Trim().ToLowerInvariant() -or
+            (-not [string]::IsNullOrEmpty($resolvedPrimarySmtp) -and $normalizedIdentity -eq $resolvedPrimarySmtp)) {
+            return $identityText
+        }
     }
 
     if (-not [string]::IsNullOrEmpty($normalizedIdentity) -and
