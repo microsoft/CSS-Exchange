@@ -20,6 +20,10 @@
 # .PARAMETER ConnectionUri
 #    The Exchange Online remote PowerShell connection uri. If you are an Office 365 operated by 21Vianet customer in China, use "https://partner.outlook.cn/PowerShell".
 #
+# .PARAMETER AzureADAuthorizationEndpointUri
+#    Optional Microsoft Entra authorization endpoint for Exchange Online. Use with the appropriate ConnectionUri for your environment.
+#    When omitted, Connect-ExchangeOnline uses its default authorization endpoint.
+#
 # .PARAMETER Confirm
 #    The Confirm switch causes the script to pause processing and requires you to acknowledge what the script will do before processing continues. You don't have to specify
 #    a value with the Confirm switch.
@@ -79,9 +83,15 @@ param(
     [switch] $ScriptUpdateOnly,
 
     [Parameter(Mandatory=$false)]
-    [switch] $SkipVersionCheck
+    [switch] $SkipVersionCheck,
+
+    [Parameter(Mandatory = $false, ParameterSetName = "Default")]
+    [ValidateNotNullOrEmpty()]
+    [string] $AzureADAuthorizationEndpointUri
 )
 
+. $PSScriptRoot\..\..\Shared\ExchangeOnlineFunctions\Connect-ExchangeOnlineEndpoint.ps1
+. $PSScriptRoot\..\..\Shared\ExchangeOnlineFunctions\Test-ExchangeOnlineManagementModule.ps1
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\GenericScriptUpdate.ps1
 
 # Writes a dated information message to console
@@ -162,33 +172,31 @@ function WriteProgress() {
 
 # Create a tenant PSSession against Exchange Online using modern auth.
 function InitializeExchangeOnlineRemoteSession() {
+    param (
+        [string] $ConnectionUri,
+        [PSCredential] $Credential,
+        [string] $AzureADAuthorizationEndpointUri
+    )
+
     WriteInfoMessage $LocalizedStrings.CreatingRemoteSession
+
+    if (-not (Test-ExchangeOnlineManagementModule)) {
+        Write-Warning $LocalizedStrings.EXOV2ModuleNotInstalled
+        exit
+    }
 
     $oldWarningPreference = $WarningPreference
     $oldVerbosePreference = $VerbosePreference
     try {
-        Import-Module ExchangeOnlineManagement -ErrorAction SilentlyContinue
-        if (Get-Module ExchangeOnlineManagement) {
-            $connectParams = @{
-                ConnectionUri = $ConnectionUri
-                Prefix        = "Remote"
-                ErrorAction   = "SilentlyContinue"
-            }
-
-            if ($null -ne $Credential) {
-                $connectParams.Credential = $Credential
-            }
-            Connect-ExchangeOnline @connectParams
-            $script:isConnectedToExchangeOnline = $true
-        } else {
-            Write-Warning $LocalizedStrings.EXOV2ModuleNotInstalled
-            exit
-        }
+        Connect-ExchangeOnlineEndpoint -ConnectionUri $ConnectionUri `
+            -AzureADAuthorizationEndpointUri $AzureADAuthorizationEndpointUri `
+            -Credential $Credential `
+            -Prefix "Remote" `
+            -ConnectErrorAction "SilentlyContinue"
+        $script:isConnectedToExchangeOnline = $true
     } finally {
-        if ($script:isConnectedToExchangeOnline) {
-            $WarningPreference = $oldWarningPreference
-            $VerbosePreference = $oldVerbosePreference
-        }
+        $WarningPreference = $oldWarningPreference
+        $VerbosePreference = $oldVerbosePreference
     }
     WriteInfoMessage $LocalizedStrings.RemoteSessionCreatedSuccessfully
 }
@@ -639,7 +647,7 @@ if ($localServerVersion.Major -lt $minSupportedVersion) {
 }
 
 try {
-    InitializeExchangeOnlineRemoteSession
+    InitializeExchangeOnlineRemoteSession -ConnectionUri $ConnectionUri -Credential $Credential -AzureADAuthorizationEndpointUri $AzureADAuthorizationEndpointUri
 
     WriteInfoMessage $LocalizedStrings.LocalMailPublicFolderEnumerationStart
 

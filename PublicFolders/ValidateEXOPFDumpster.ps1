@@ -1,5 +1,16 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
+
+<#
+.SYNOPSIS
+    Validates Exchange Online public folder deletion issues.
+.PARAMETER ConnectionUri
+    Optional Exchange Online connection URI. When omitted, Connect-ExchangeOnline uses its default connection URI.
+    This applies only when the script creates a new connection, not when it reuses an existing session.
+.PARAMETER AzureADAuthorizationEndpointUri
+    Optional Microsoft Entra authorization endpoint for Exchange Online. Use with the appropriate ConnectionUri for your environment.
+    When omitted, Connect-ExchangeOnline uses its default authorization endpoint. Existing sessions are not changed.
+#>
 [CmdletBinding(DefaultParameterSetName = "Default")]
 param(
     [Parameter(Mandatory = $false, ParameterSetName = "Default")]
@@ -10,8 +21,15 @@ param(
     [String]$AffectedUser,
     [Parameter(Mandatory = $true, ParameterSetName = "ScriptUpdateOnly")]
     [switch]$ScriptUpdateOnly,
-    [switch]$SkipVersionCheck)
+    [switch]$SkipVersionCheck,
+    [Parameter(Mandatory = $false, ParameterSetName = "Default")]
+    [ValidateNotNullOrEmpty()]
+    [string]$ConnectionUri,
+    [Parameter(Mandatory = $false, ParameterSetName = "Default")]
+    [ValidateNotNullOrEmpty()]
+    [string]$AzureADAuthorizationEndpointUri)
 
+. $PSScriptRoot\..\Shared\ExchangeOnlineFunctions\Connect-ExchangeOnlineEndpoint.ps1
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\GenericScriptUpdate.ps1
 
 $Script:ReportName = "ValidatePFDumpsterREPORT.txt"
@@ -50,10 +68,18 @@ function WriteToScreenAndLog {
 }
 
 function Connect2EXO {
+    param(
+        [string]$ConnectionUri,
+
+        [string]$AzureADAuthorizationEndpointUri
+    )
+
     try {
 
         Write-Host "Connecting to EXO, please enter Global administrator credentials when prompted!" -ForegroundColor Yellow
-        Connect-ExchangeOnline -ErrorAction Stop
+        Connect-ExchangeOnlineEndpoint -ConnectionUri $ConnectionUri `
+            -AzureADAuthorizationEndpointUri $AzureADAuthorizationEndpointUri `
+            -ConnectErrorAction "Stop"
         $CurrentDescription= "Connecting to EXO"
         $CurrentStatus = "Success"
         LogError -CurrentStatus $CurrentStatus -Function "Connecting to EXO" -CurrentDescription $CurrentDescription
@@ -460,7 +486,7 @@ $Description | Out-File $ExportPath\$Script:ReportName -Append
 #Connect to EXO PS
 $SessionCheck = Get-PSSession | Where-Object { $_.Name -like "*ExchangeOnline*" -and $_.State -match "opened" }
 if ($null -eq $SessionCheck) {
-    Connect2EXO
+    Connect2EXO -ConnectionUri $ConnectionUri -AzureADAuthorizationEndpointUri $AzureADAuthorizationEndpointUri
 }
 #Main Function
 $PublicFolderInfo=GetPublicFolderInfo($PFolder)
@@ -479,4 +505,3 @@ ValidateParentPublicFolder($PublicFolderInfo)
 AskForFeedback
 QuitEXOSession
 # End of the Diag
-

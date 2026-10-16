@@ -11,6 +11,10 @@
 # Sync-MailPublicFoldersCloudToOnprem.ps1 -ConnectionUri <cloud url> -CsvSummaryFile <path for the summary file>
 #
 # The above example imports new mail public folders objects from Exchange Online as sync mail public folders to on-premise.
+#
+# .PARAMETER AzureADAuthorizationEndpointUri
+#    Optional Microsoft Entra authorization endpoint for Exchange Online. Use with the appropriate ConnectionUri for your environment.
+#    When omitted, Connect-ExchangeOnline uses its default authorization endpoint.
 [CmdletBinding(DefaultParameterSetName = "Default")]
 param (
     [Parameter(Mandatory=$false, ParameterSetName="Default")]
@@ -28,9 +32,15 @@ param (
     [switch] $ScriptUpdateOnly,
 
     [Parameter(Mandatory=$false)]
-    [switch] $SkipVersionCheck
+    [switch] $SkipVersionCheck,
+
+    [Parameter(Mandatory = $false, ParameterSetName = "Default")]
+    [ValidateNotNullOrEmpty()]
+    [string] $AzureADAuthorizationEndpointUri
 )
 
+. $PSScriptRoot\..\..\Shared\ExchangeOnlineFunctions\Connect-ExchangeOnlineEndpoint.ps1
+. $PSScriptRoot\..\..\Shared\ExchangeOnlineFunctions\Test-ExchangeOnlineManagementModule.ps1
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\GenericScriptUpdate.ps1
 
 # cspell:words EXOV2 MEPF
@@ -93,26 +103,26 @@ function EscapeCsvColumn() {
 
 ## Create a tenant PSSession against Exchange Online using modern auth.
 function InitializeExchangeOnlineRemoteSession() {
+    param (
+        [string] $ConnectionUri,
+        [PSCredential] $Credential,
+        [string] $AzureADAuthorizationEndpointUri
+    )
+
     WriteInfoMessage $LocalizedStrings.CreatingRemoteSession
 
-    try {
-        Import-Module ExchangeOnlineManagement -ErrorAction SilentlyContinue
-        if (Get-Module ExchangeOnlineManagement) {
-            $connectParams = @{
-                ConnectionUri = $ConnectionUri
-                Prefix        = "Remote"
-                ErrorAction   = "SilentlyContinue"
-            }
+    if (-not (Test-ExchangeOnlineManagementModule)) {
+        Write-Warning $LocalizedStrings.EXOV2ModuleNotInstalled
+        exit
+    }
 
-            if ($null -ne $Credential) {
-                $connectParams.Credential = $Credential
-            }
-            Connect-ExchangeOnline @connectParams
-            $script:isConnectedToExchangeOnline = $true
-        } else {
-            Write-Warning $LocalizedStrings.EXOV2ModuleNotInstalled
-            exit
-        }
+    try {
+        Connect-ExchangeOnlineEndpoint -ConnectionUri $ConnectionUri `
+            -AzureADAuthorizationEndpointUri $AzureADAuthorizationEndpointUri `
+            -Credential $Credential `
+            -Prefix "Remote" `
+            -ConnectErrorAction "SilentlyContinue"
+        $script:isConnectedToExchangeOnline = $true
     } catch {
         Write-Error "Error message: $($_.Exception.Message)"
         WriteInfoMessage ($LocalizedStrings.ConnectExchangeOnlineFailure)
@@ -537,7 +547,7 @@ if ($localServerVersion.Major -lt $minSupportedVersion) {
     exit
 }
 
-InitializeExchangeOnlineRemoteSession
+InitializeExchangeOnlineRemoteSession -ConnectionUri $ConnectionUri -Credential $Credential -AzureADAuthorizationEndpointUri $AzureADAuthorizationEndpointUri
 
 # Get mail enabled public folders in cloud
 WriteInfoMessage ($LocalizedStrings.StartedImportingMailPublicFolders)

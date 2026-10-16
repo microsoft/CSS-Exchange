@@ -16,6 +16,13 @@
 # Example input to the script:
 #
 # Import-MailPublicFolders.ps1 -ToCloud
+#
+# .PARAMETER ConnectionUri
+#    The Exchange Online remote PowerShell connection uri. Defaults to https://outlook.office365.com/powerShell-liveID.
+#
+# .PARAMETER AzureADAuthorizationEndpointUri
+#    Optional Microsoft Entra authorization endpoint for Exchange Online. Use with the appropriate ConnectionUri for your environment.
+#    When omitted, Connect-ExchangeOnline uses its default authorization endpoint.
 
 [CmdletBinding(DefaultParameterSetName = "Default")]
 param (
@@ -32,34 +39,35 @@ param (
     [switch] $ScriptUpdateOnly,
 
     [Parameter(Mandatory=$false)]
-    [switch] $SkipVersionCheck
+    [switch] $SkipVersionCheck,
+
+    [Parameter(Mandatory = $false, ParameterSetName = "Default")]
+    [ValidateNotNullOrEmpty()]
+    [string] $AzureADAuthorizationEndpointUri
 )
 
+. $PSScriptRoot\..\..\Shared\ExchangeOnlineFunctions\Connect-ExchangeOnlineEndpoint.ps1
+. $PSScriptRoot\..\..\Shared\ExchangeOnlineFunctions\Test-ExchangeOnlineManagementModule.ps1
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\GenericScriptUpdate.ps1
 
 # Create a tenant PSSession against Exchange Online with modern auth.
 function CreateTenantSession() {
     param (
         [string] $ConnUri,
-        [PSCredential] $Credential
+        [PSCredential] $Credential,
+        [string] $AzureADAuthorizationEndpointUri
     )
 
-    Import-Module -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
-    if (Get-Module -Name ExchangeOnlineManagement) {
-        $connectParams = @{
-            ConnectionUri = $ConnUri
-            Prefix        = "Remote"
-            ErrorAction   = "SilentlyContinue"
-        }
-
-        if ($null -ne $Credential) {
-            $connectParams.Credential = $Credential
-        }
-        Connect-ExchangeOnline @connectParams
-    } else {
+    if (-not (Test-ExchangeOnlineManagementModule)) {
         Write-Warning "This script uses modern authentication to connect to Exchange Online and requires EXO V2 module to be installed. Please follow the instructions at https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2?view=exchange-ps#install-the-exo-v2-module to install EXO V2 module."
         exit
     }
+
+    Connect-ExchangeOnlineEndpoint -ConnectionUri $ConnUri `
+        -AzureADAuthorizationEndpointUri $AzureADAuthorizationEndpointUri `
+        -Credential $Credential `
+        -Prefix "Remote" `
+        -ConnectErrorAction "SilentlyContinue"
 }
 
 ## Get organization guid
@@ -212,7 +220,7 @@ function ImportMailPublicFolders() {
 ################################ BEGINNING OF SCRIPT ################################
 
 # Create a PSSession for this organization
-CreateTenantSession -ConnUri $ConnectionUri -Credential $Credential
+CreateTenantSession -ConnUri $ConnectionUri -Credential $Credential -AzureADAuthorizationEndpointUri $AzureADAuthorizationEndpointUri
 
 # Determine the guid of the organization from where to export objects
 $organizationGuid = GetOrganizationGuid -targetForest $ToCloud
