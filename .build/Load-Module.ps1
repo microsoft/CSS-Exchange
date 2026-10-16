@@ -15,12 +15,17 @@ function Load-Module {
 
         [Parameter(Mandatory = $false)]
         [string]
-        $MinimumVersion
+        $MinimumVersion,
+
+        [Parameter(Mandatory = $false)]
+        [string]
+        $MaximumVersion
     )
 
     $moduleAlreadyLoaded = Get-Module -Name $Name
     if ($null -ne $moduleAlreadyLoaded) {
-        if ([string]::IsNullOrEmpty($MinimumVersion) -or $moduleAlreadyLoaded.Version -ge $MinimumVersion) {
+        if (([string]::IsNullOrEmpty($MinimumVersion) -or $moduleAlreadyLoaded.Version -ge [version]$MinimumVersion) -and
+            ([string]::IsNullOrEmpty($MaximumVersion) -or $moduleAlreadyLoaded.Version -le [version]$MaximumVersion)) {
             return $true
         } else {
             Remove-Module -Name $Name
@@ -30,7 +35,8 @@ function Load-Module {
     $modulesOnDisk = @(Get-Module -Name $Name -ListAvailable | Sort-Object Version -Descending)
     $moduleToLoad = $null
     foreach ($module in $modulesOnDisk) {
-        if ([string]::IsNullOrEmpty($MinimumVersion) -or $module.Version -ge $MinimumVersion) {
+        if (([string]::IsNullOrEmpty($MinimumVersion) -or $module.Version -ge [version]$MinimumVersion) -and
+            ([string]::IsNullOrEmpty($MaximumVersion) -or $module.Version -le [version]$MaximumVersion)) {
             $moduleToLoad = $module
             break
         }
@@ -48,6 +54,10 @@ function Load-Module {
 
     if (-not [string]::IsNullOrEmpty($MinimumVersion)) {
         $params.MinimumVersion = $MinimumVersion
+    }
+
+    if (-not [string]::IsNullOrEmpty($MaximumVersion)) {
+        $params.MaximumVersion = $MaximumVersion
     }
 
     # Under Network Isolation the public PowerShell Gallery is blocked, so install
