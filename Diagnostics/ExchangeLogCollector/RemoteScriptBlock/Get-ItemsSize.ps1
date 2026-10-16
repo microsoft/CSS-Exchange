@@ -9,10 +9,10 @@ function Get-ItemsSize {
     $totalSize = 0
     $hashSizes = @{}
     foreach ($file in $FilePaths) {
-        if (Test-Path $file) {
-            $totalSize += ($fileSize = (Get-Item $file).Length)
+        if (Test-Path -LiteralPath $file) {
+            $totalSize += ($fileSize = (Get-Item -LiteralPath $file -ErrorAction Stop).Length)
             Write-Verbose("File: {0} | Size: {1} MB" -f $file, ($fileSizeMB = $fileSize / 1MB))
-            $hashSizes.Add($file, ("{0}" -f $fileSizeMB))
+            $hashSizes[$file] = "{0}" -f $fileSizeMB
         } else {
             Write-Verbose("File no longer exists: {0}" -f $file)
         }

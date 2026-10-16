@@ -16,7 +16,7 @@ function Compress-Folder {
     Write-Verbose "Calling: $($MyInvocation.MyCommand)"
     Write-Verbose "Passed - [string]Folder: $Folder | [bool]IncludeDisplayZipping: $IncludeDisplayZipping | [bool]ReturnCompressedLocation: $ReturnCompressedLocation"
 
-    if (-not (Test-Path $Folder)) {
+    if (-not (Test-Path -LiteralPath $Folder)) {
         Write-Host "Failed to find the folder $Folder"
         return $null
     }
@@ -43,7 +43,7 @@ function Compress-Folder {
     Write-Verbose "[string]zipFolderNoEXT: $zipFolderNoEXT"
     $zipFolder = "{0}.zip" -f $zipFolderNoEXT
     [int]$i = 1
-    while (Test-Path $zipFolder) {
+    while (Test-Path -LiteralPath $zipFolder) {
         $zipFolder = "{0}-{1}.zip" -f $zipFolderNoEXT, $i
         $i++
     }
@@ -53,19 +53,19 @@ function Compress-Folder {
         Write-Host "Compressing Folder $Folder"
     }
     $sizeBytesBefore = 0
-    Get-ChildItem $Folder -Recurse |
+    Get-ChildItem -LiteralPath $Folder -Recurse |
         Where-Object { -not ($_.Mode.StartsWith("d-")) } |
         ForEach-Object { $sizeBytesBefore += $_.Length }
 
     $timer = [System.Diagnostics.Stopwatch]::StartNew()
     [System.IO.Compression.ZipFile]::CreateFromDirectory($Folder, $zipFolder)
     $timer.Stop()
-    $sizeBytesAfter = (Get-Item $zipFolder).Length
+    $sizeBytesAfter = (Get-Item -LiteralPath $zipFolder).Length
     Write-Verbose ("Compressing directory size of {0} MB down to the size of {1} MB took {2} seconds." -f ($sizeBytesBefore / 1MB), ($sizeBytesAfter / 1MB), $timer.Elapsed.TotalSeconds)
 
-    if ((Test-Path -Path $zipFolder)) {
+    if ((Test-Path -LiteralPath $zipFolder)) {
         Write-Verbose "Compress successful, removing folder."
-        Remove-Item $Folder -Force -Recurse
+        Remove-Item -LiteralPath $Folder -Force -Recurse
     }
 
     if ($ReturnCompressedLocation) {
