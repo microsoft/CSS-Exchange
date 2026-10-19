@@ -86,6 +86,7 @@ param (
 
 . $PSScriptRoot\CalendarHelpers\CalendarDiagnosticHelpers.ps1
 . $PSScriptRoot\CalendarHelpers\Write-DashLineBoxColor.ps1
+. $PSScriptRoot\CalendarHelpers\Test-CalendarExoConnection.ps1
 . $PSScriptRoot\RBAHelpers\RBACollectionHelpers.ps1
 . $PSScriptRoot\RBAHelpers\RBAEvaluationHelpers.ps1
 . $PSScriptRoot\RBAHelpers\RBALogHelpers.ps1
