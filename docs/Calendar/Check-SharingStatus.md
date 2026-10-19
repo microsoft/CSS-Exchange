@@ -17,20 +17,45 @@ The script is intended to establish whether the sharing relationship is configur
 - **Old Model Sharing** - The legacy MAPI-based model in which the client connects directly to the owner's mailbox.
 - **Published Calendar** - An Internet Calendar subscription in which the owner exposes an ICS URL and the receiver stores a local subscription folder.
 
-For internal legacy MAPI relationships, the script reports Modern-only rules as `NotApplicable`, checks pair-specific Old-model calendar entries, and recommends upgrading by following [Calendar sharing in Microsoft 365](https://support.microsoft.com/en-us/outlook/calendar-sharing-in-microsoft-365).
-
-When the selected owner calendar is published and no Modern relationship is identified, the script uses the Published Calendar path. It compares the owner's `PublishedICalUrl` with the receiver's InternetCalendar subscriptions and verifies that the matching subscription has a local receiver calendar folder. Modern-only rules are reported as `NotApplicable`.
-
 ## Requirements
 
-- An Exchange Online PowerShell session.
-- Permission to query both mailboxes and their calendar configuration.
-- PII access for the mailbox databases when pair-specific folder names or recipients are redacted.
-- The `Get-CalendarActiveSharingInformation` and `Get-CalendarEntries` cmdlets provide additional validation when they are available in the current session.
+- An Exchange Online PowerShell session with permission to query both mailboxes and their calendar configuration. Use primary SMTP addresses for both mailboxes.
+- Access to `Get-Mailbox`, `Get-MailboxFolderStatistics`, and `Get-MailboxCalendarFolder` for the prerequisite checks.
+- Access to `Get-MailboxFolderPermission`, `Get-MailboxPermission`, and `Export-MailboxDiagnosticLogs` for permission and log checks.
+- Readable personally identifiable information (PII), including mailbox and folder names, for pair-specific correlation.
 
-Unavailable cmdlets, inaccessible data, and non-mailbox-name redacted evidence are reported under **Incomplete Checks** rather than being treated as proof that the sharing relationship is unhealthy. A redacted Owner or Receiver mailbox name is a fatal prerequisite failure because folder selection and correlation cannot proceed reliably.
+The following diagnostic cmdlets affect how much the script can determine:
+
+| Cmdlet | Purpose and availability impact |
+| --- | --- |
+| `Get-CalendarActiveSharingInformation` | Validates the receiver's active sharing relationship and flags. If unavailable, the dependent checks are incomplete. |
+| `Get-CalendarEntries` | Queries New and Old sharing-model entries and enables legacy MAPI and Published Calendar classification. If the cmdlet is unavailable in the session, those classifications do not run, and the script cannot reliably distinguish those scenarios from missing Modern Sharing evidence. |
+
+Cmdlet availability and access to diagnostic properties depend on the session and permissions. Do not assume that a tenant administrator role exposes every diagnostic cmdlet or makes every property readable. If a required cmdlet is not exposed, or values remain redacted, involve Microsoft Support to obtain the appropriate diagnostic access or complete the affected checks.
+
+A mailbox lookup or selected-owner-calendar prerequisite failure stops dependent diagnostics and produces a **Fatal prerequisite failure** summary. Redacted owner or receiver mailbox names also cause a fatal stop.
+
+After those prerequisites succeed, unavailable evidence generally appears under **Incomplete Checks**. Receiver folder-name redaction is a specific exception: it produces a nonfatal **Detected `SHR201`** warning, while checks that depend on readable folder names can remain incomplete. This warning identifies an access limitation, not proof that calendar sharing is broken.
 
 ## Usage
+
+### Quick start
+
+**Privacy warning:** Console output always contains full-fidelity mailbox and diagnostic values, potentially including other recipients and published-calendar URLs. Treat the output, transcripts, and screenshots as sensitive, even when `-IncludeSensitiveData` is not used.
+
+Check the default owner calendar:
+
+```powershell
+.\Check-SharingStatus.ps1 -Owner owner@contoso.com -Receiver receiver@contoso.com
+```
+
+Check a nested owner calendar by supplying its owner-mailbox-relative path:
+
+```powershell
+.\Check-SharingStatus.ps1 -Owner owner@contoso.com -Receiver receiver@contoso.com -OwnerCalendarFolderPath "Calendar\Project Calendar"
+```
+
+Start with the final summary. Resolve any fatal prerequisite failure, then review **Detected Issues** and **Incomplete Checks** before interpreting the detailed command output.
 
 ### Syntax
 
@@ -42,38 +67,72 @@ Unavailable cmdlets, inaccessible data, and non-mailbox-name redacted evidence a
 
 | Parameter | Description |
 | --- | --- |
-| `Owner` | Mailbox that owns and shares the calendar. |
-| `Receiver` | Mailbox that receives the shared calendar. |
+| `Owner` | Primary SMTP address of the mailbox that owns and shares the calendar. |
+| `Receiver` | Primary SMTP address of the mailbox that receives the shared calendar. |
 | `OwnerCalendarFolderPath` | Optional owner-mailbox-relative calendar folder path. Slash and backslash separators and an optional leading separator are accepted. Do not include a mailbox identity prefix. When omitted, the folder whose `FolderType` is `Calendar` is selected. |
 | `IncludeSensitiveData` | Retains full-fidelity values in structured in-memory findings and errors. Console output is always full fidelity. |
 
-The default owner calendar is selected when `-OwnerCalendarFolderPath` is omitted:
-
-```powershell
-.\Check-SharingStatus.ps1 -Owner owner@contoso.com -Receiver receiver@contoso.com
-```
-
-To inspect a nested owner calendar, provide only its owner-mailbox-relative path:
-
-```powershell
-.\Check-SharingStatus.ps1 -Owner owner@contoso.com -Receiver receiver@contoso.com -OwnerCalendarFolderPath "Calendar\Project Calendar"
-```
+### Selecting an owner calendar folder
 
 `Calendar\Project Calendar`, `/Calendar/Project Calendar`, and `\Calendar\Project Calendar` identify the same folder. A full mailbox-folder identity such as `owner@contoso.com:\Calendar\Project Calendar` is rejected. The requested path must match exactly one Calendar-scope folder; the script does not fall back to the default calendar when the requested path is missing or ambiguous.
 
 Exchange may report a user-created Calendar-scope folder as `/Project Calendar` in `Get-MailboxFolderStatistics`, omitting the default Calendar segment. The public parameter remains Calendar-relative (`Calendar\Project Calendar`). The script uses the mailbox's default `FolderType Calendar` name as the identity root and accepts either `/Project Calendar` or `/Calendar/Project Calendar` from folder statistics when both identify the same exact path.
 
-When a selected subfolder is requested, receiver folder matching, sharing entries, and accept-log output are scoped to that selected calendar name. Other calendars shared by the same owner do not satisfy the selected-calendar checks.
+When a selected subfolder is requested, receiver folder matching, pair-specific sharing-entry checks, and accept-log output are scoped to that selected calendar name. Other calendars shared by the same owner do not satisfy the selected-calendar checks. The detailed New Model Calendar Sharing Entries table can still include entries for other calendars.
 
-The script automatically evaluates Modern Sharing and pair-specific legacy MAPI evidence. When the selected owner calendar is published, it also evaluates Published Calendar configuration and the receiver's matching Internet Calendar subscription.
+## Understanding the summary
 
-The detailed console output always contains full-fidelity values. Structured diagnostic evidence is privacy-safe by default. To retain full-fidelity values in the structured in-memory findings and error records:
+### Fatal prerequisite failure
 
-```powershell
-.\Check-SharingStatus.ps1 -Owner owner@contoso.com -Receiver receiver@contoso.com -IncludeSensitiveData
-```
+Before detailed diagnostics, the script resolves these fatal prerequisites in order:
 
-`-IncludeSensitiveData` does not change the console output. It controls only the structured diagnostic records intended for later programmatic output.
+1. Owner mailbox.
+2. Owner mailbox name and PII availability.
+3. Receiver mailbox.
+4. Receiver mailbox name and PII availability.
+5. Requested or default selected owner calendar folder.
+6. Ownership of the selected owner calendar folder.
+
+Mailbox results are cached and reused by the detailed diagnostics. If a prerequisite fails, the script stops before dependent invite, accept, calendar-entry, receiver-folder, synchronization, and comparison checks.
+
+The final console displays a red **Fatal prerequisite failure** section containing only the root `SHR100`, `SHR101`, `SHR200`, `SHR201`, `SHR110`, or `SHR123` finding. A confirmed mailbox lookup with no object or confirmed mailbox-name redaction is `Detected`; an exception or unavailable prerequisite is `NotEvaluated`. Every non-root rule remains present in the structured all-rules contract as `NotApplicable` with a bounded skip reason. The fatal summary does not claim that the sharing relationship is healthy or that it uses Modern Sharing.
+
+When all prerequisites succeed, the script retains the detailed command output and ends with three normal summary areas.
+
+### Sharing status
+
+The first section reports the sharing type and whether the available backend evidence indicates Modern Calendar Sharing, legacy MAPI sharing, or a published Internet Calendar subscription. If the evidence is insufficient, the model is reported as undetermined.
+
+Backend Modern Sharing evidence does not establish which sharing model a particular client is using or measure instant-sync latency.
+
+### Detected Issues
+
+Confirmed findings are sorted by severity and contain:
+
+| Field | Description |
+| --- | --- |
+| `severity` | Relative importance of the finding: `Critical`, `Error`, `Warning`, or `Information`. |
+| `ruleId` | Stable identifier for the diagnostic rule, such as `SHR121`. |
+| `title` | A concise description of the detected condition. |
+| `evidence` | The values or observations supporting the finding. |
+| `recommendedNextStep` | The next diagnostic action to take. |
+
+The **Detected Issues** section displays only rules whose status is `Detected`. Recommended next steps are printed below the findings table.
+
+A detected condition is not always a confirmed synchronization failure. For example, receiver folder-name redaction produces a nonfatal `SHR201` access warning, and a recent synchronization start date produces informational context.
+
+### Incomplete Checks
+
+This section displays rules whose status is `NotEvaluated`, together with collection or evaluation failures. Common reasons include:
+
+- A required cmdlet is unavailable.
+- A cmdlet failed or returned no data.
+- Redacted receiver folder names prevent dependent folder checks.
+- A receiver local folder could not be matched uniquely.
+- Owner or receiver calendar statistics required for comparison are unavailable or cannot be converted.
+- A timestamp or diagnostic log could not be parsed.
+
+Do not consider the relationship healthy until relevant incomplete checks have been resolved. An incomplete check is not, by itself, a confirmed sharing failure.
 
 ## What the script validates
 
@@ -82,7 +141,7 @@ The detailed console output always contains full-fidelity values. Structured dia
 - Mailbox information and Send-on-Behalf grants.
 - Selected calendar folder statistics and permissions. The selected folder is the default calendar unless `-OwnerCalendarFolderPath` is supplied.
 - A receiver-specific permission summary across the owner calendar folder and owner mailbox. If no direct receiver entry exists, the output notes that access may come from the `Default` entry or a group.
-- Selected calendar size greater than 1 GB.
+- Selected calendar size greater than 1 GB (1,000,000,000 bytes).
 - Selected calendar item count greater than 100,000 visible items.
 - Calendar folders whose names end in a one- or two-digit numeric suffix such as `(1)` or `(12)`.
 - Whether the selected owner-side folder is itself a shared copy owned by another mailbox. If it belongs to the supplied receiver, the script reports that Owner and Receiver appear reversed.
@@ -108,73 +167,94 @@ The detailed console output always contains full-fidelity values. Structured dia
 - Periodic synchronization timestamps.
 - `SharedCalendarSyncStartDate`.
 
+### Sharing models and published calendars
+
+The script evaluates the available Modern Sharing and pair-specific legacy MAPI evidence automatically; no sharing-model switch is required. Legacy MAPI and Published Calendar classification requires `Get-CalendarEntries` to be available, as described under **Requirements**.
+
+Pair-specific Old-model entries are displayed automatically when present, including when New-model entries also exist.
+
+For internal relationships classified as legacy MAPI sharing, the script reports Modern-only rules as `NotApplicable`, displays any pair-specific Old-model entries, and recommends upgrading by following [Calendar sharing in Microsoft 365](https://support.microsoft.com/en-us/outlook/calendar-sharing-in-microsoft-365). A Modern Sharing local receiver folder is not expected for this model.
+
+InternetCalendar information is collected only when the selected owner calendar has `PublishEnabled` set. When the relationship is classified as Published Calendar rather than Modern Sharing, the script compares the owner's `PublishedICalUrl` with the receiver's InternetCalendar subscriptions and checks for the matching local receiver folder. Modern-only rules are reported as `NotApplicable`.
+
+| Rule | Published Calendar finding |
+| --- | --- |
+| `SHR421` | No receiver subscription matches the owner's `PublishedICalUrl`. |
+| `SHR422` | A matching subscription exists, but its local receiver calendar folder is missing. |
+| `SHR423` | Publishing is enabled, but the owner's `PublishedICalUrl` is unavailable. |
+
+Publishing being enabled does not by itself establish that this receiver uses a published subscription.
+
+### Duplicate-style folder names
+
+Owner and receiver naming checks flag terminal one- or two-digit numeric suffixes such as `Calendar (1)` or `Calendar (12)`. These names suggest possible duplicates; confirm folder identifiers and sharing entries before making changes.
+
+Names containing parentheses elsewhere, such as `CUB01-3 McKinley (16-32) Public`, and names ending in three or more digits, such as `Archive (123)`, do not trigger duplicate-style folder warnings.
+
+### Accept-log history
+
+The receiver accept-log parser uses timestamped calendar-creation entries, not references to sharing methods in diagnostic stack traces.
+
+The displayed history normally includes only entries from the last **180 days**. By default, it can include calendars from other owners; when `-OwnerCalendarFolderPath` is supplied, it is filtered by both the expected owner and the selected calendar name.
+
+If timestamp parsing fails, the script reports an incomplete accept-log check (`SHR220`) and displays the selected entries without the date filter. An empty recent-history table is not proof that a calendar was never accepted.
+
 ### Owner and receiver statistics comparison
 
-After the receiver folder is matched, the script displays the selected owner and receiver values for `VisibleItemsInFolder`, together with the receiver-minus-owner delta and receiver-to-owner ratio. A count that cannot be converted is displayed as unavailable and its corresponding rule is reported as `NotEvaluated`.
+For Modern Sharing checks, after a receiver folder is matched, the script displays the selected owner and receiver values for `VisibleItemsInFolder`, together with the receiver-minus-owner delta and receiver-to-owner ratio. A count that cannot be converted is displayed as unavailable and its corresponding rule is reported as `NotEvaluated`. The ratio is unavailable when the owner count is zero.
 
-The comparison adds these asymmetric warning rules:
-
-- `SHR432` is detected only when the receiver has more visible items than the owner, has at least twice the owner's visible-item count, and exceeds the owner by at least 100 items.
+`SHR432` is detected only when the receiver has more visible items than the owner, has at least twice the owner's visible-item count, and exceeds the owner by at least 100 items. If the owner count is zero, a receiver count of at least 100 meets the warning criteria.
 
 An owner calendar with more visible items than the receiver copy does not trigger this warning. That direction is informational because the receiver synchronization window may be bounded by `SharedCalendarSyncStartDate` and may contain only the last year's data.
 
-The script displays relevant pair-specific Old Model Sharing entries automatically. Internet Calendar information is collected only when the selected owner calendar is published.
+## Synchronization results
 
-InternetCalendar information is always collected when the selected owner calendar has `PublishEnabled` set. Names containing parentheses elsewhere, such as `CUB01-3 McKinley (16-32) Public`, and names ending in three or more digits, such as `Archive (123)`, do not trigger duplicate-style folder warnings.
+### Periodic synchronization
 
-## Understanding the summary
+`LastAttemptedSyncTime` and `LastSuccessfulSyncTime` describe periodic synchronization by the sharing assistant. They do not directly measure Modern Sharing instant-sync latency.
 
-Before detailed diagnostics, the script resolves these fatal prerequisites in order:
+Exchange can return year-1 `DateTime` sentinel values for uninitialized properties. The script applies the following classifications in order:
 
-1. Owner mailbox.
-2. Owner mailbox name and PII availability.
-3. Receiver mailbox.
-4. Receiver mailbox name and PII availability.
-5. Requested or default selected owner calendar folder.
-6. Ownership of the selected owner calendar folder.
-
-Mailbox results are cached and reused by the detailed diagnostics. If a prerequisite fails, the script stops before dependent invite, accept, calendar-entry, receiver-folder, synchronization, and comparison checks.
-
-The final console displays a red **Fatal prerequisite failure** section containing only the root `SHR100`, `SHR101`, `SHR200`, `SHR201`, `SHR110`, or `SHR123` finding. A confirmed mailbox lookup with no object or confirmed mailbox-name redaction is `Detected`; an exception or unavailable prerequisite is `NotEvaluated`. Every non-root rule remains present in the structured all-rules contract as `NotApplicable` with a bounded skip reason. The fatal summary does not claim that the sharing relationship is healthy or that it uses Modern Sharing.
-
-When all prerequisites succeed, the script retains the detailed command output and ends with three normal summary areas.
-
-### Sharing status
-
-The first section reports the detected sharing type and whether the available evidence indicates that the backend is using Modern Calendar Sharing.
-
-### Detected Issues
-
-Confirmed findings are sorted by severity and contain:
-
-| Field | Description |
+| Condition | Interpretation |
 | --- | --- |
-| `severity` | Relative importance of the finding: `Critical`, `Error`, `Warning`, or `Information`. |
-| `ruleId` | Stable identifier for the diagnostic rule, such as `SHR121`. |
-| `title` | A concise description of the detected condition. |
-| `evidence` | The values or observations supporting the finding. |
-| `recommendedNextStep` | The next diagnostic action to take. |
+| Both timestamps have year 1 | `SHR403`: the selected receiver calendar appears never to have synchronized. The values are not treated as stale dates. |
+| Either timestamp is missing or cannot be parsed, or only one has year 1 | `SHR401`: periodic synchronization health is incomplete. |
+| Both valid timestamps are more than 24 hours old | `SHR400`: periodic synchronization is stale, even if the timestamps differ. The failed-attempt rule is not also detected. |
+| Both valid timestamps are equal and are not both stale | The latest periodic synchronization attempt succeeded. |
+| Both valid timestamps differ and are not both stale | `SHR402`: the latest periodic synchronization attempt did not succeed. |
 
-Each implemented rule is represented exactly once in the structured diagnostic model. The console displays only rules whose status is `Detected`.
+### Synchronization start date
 
-### Incomplete Checks
+`SharedCalendarSyncStartDate` controls how far back calendar data is synchronized to the receiver's local folder. The script evaluates it separately from periodic synchronization health:
 
-This section displays rules whose status is `NotEvaluated`, together with collection or evaluation failures. Common reasons include:
+| Rule | Condition and meaning |
+| --- | --- |
+| `SHR413` | A null or year-1 start date is unavailable. A year-1 value is never displayed as a valid data-back boundary. |
+| `SHR410` | A non-null value other than a year-1 sentinel cannot be interpreted as a date. The check is incomplete. |
+| `SHR411` | The start date is later than the local folder's `CreationTime`. This is a warning to investigate whether backfill was restarted. If the start date is valid but `CreationTime` cannot be parsed, this check is incomplete. |
+| `SHR412` | The start date is newer than the 24-hour cutoff. This is informational context that may reflect backfill or folder recreation, not proof of a synchronization failure. |
 
-- A required cmdlet is unavailable.
-- A cmdlet failed or returned no data.
-- Non-mailbox-name evidence needed by a detailed check is redacted.
-- A receiver local folder could not be matched uniquely.
-- Owner or receiver calendar statistics required for comparison are unavailable or cannot be converted.
-- A timestamp or diagnostic log could not be parsed.
+When the calendar appears never to have synchronized (`SHR403`), the start-date comparisons are skipped. A null or year-1 start date can still produce `SHR413`.
 
-Do not consider the relationship healthy until relevant incomplete checks have been resolved. An incomplete check is not, by itself, a confirmed sharing failure.
+## Troubleshooting workflow
+
+1. Confirm the owner, receiver, and sharing type.
+2. Resolve any red **Fatal prerequisite failure** before interpreting dependent checks.
+3. Review **Detected Issues** from highest to lowest severity.
+4. Resolve or collect the data required by **Incomplete Checks**.
+5. Follow each finding's `RecommendedNextStep`.
+6. If the configuration is healthy but an individual meeting is missing or delayed, collect Calendar Diagnostic Logs from both mailboxes. Use [Get-CalendarDiagnosticObjectsSummary](./Get-CalendarDiagnosticObjectsSummary.md) and correlate the same meeting by its `CleanGlobalObjectId`.
+7. If required checks cannot be completed in your session, or the next step calls for assistant or calendar-sharing validator diagnostics you cannot access, involve Microsoft Support. Provide the identities and selected calendar path used, relevant rule IDs, incomplete-check reasons, and diagnostic output through an approved support channel.
+
+The script recommends diagnostic actions such as reviewing sharing invite/accept logs, Sharing Sync Assistant logs, or calendar validation data. Treat these as diagnostic recommendations, not commands guaranteed to be available in every tenant administrator session.
+
+Avoid removing and re-adding permissions or shared calendars as a generic first troubleshooting step. Follow a specific remediation only after confirming the relevant finding; for example, `SHR422` recommends re-adding a published subscription whose local folder is missing.
 
 ## Structured diagnostic model
 
-The script maintains structured findings in memory for later automation and JSON support. It does not write a JSON file in the current version.
+This advanced reference describes the structured findings maintained in memory for later automation and JSON support. The script does not write a JSON file in the current version.
 
-Every finding contains:
+Each implemented rule is represented exactly once in the structured diagnostic model. Every finding contains:
 
 | Property | Description |
 | --- | --- |
@@ -218,30 +298,10 @@ Structured evidence is sanitized by default:
 - Folder names, folder paths, publishing URLs, and unbounded remote diagnostic details are omitted or replaced.
 - Error text is bounded and remote diagnostic internals are not retained.
 
-Use `-IncludeSensitiveData` only when full-fidelity structured evidence is required. Regardless of this switch, treat the normal console output as sensitive because it preserves the detailed Exchange output.
+To retain full-fidelity values in the structured in-memory findings and error records:
 
-## Synchronization results
+```powershell
+.\Check-SharingStatus.ps1 -Owner owner@contoso.com -Receiver receiver@contoso.com -IncludeSensitiveData
+```
 
-`LastAttemptedSyncTime` and `LastSuccessfulSyncTime` describe periodic synchronization by the sharing assistant. They do not directly measure Modern Sharing instant-sync latency.
-
-- Equal, recent timestamps indicate that the latest periodic synchronization attempt succeeded.
-- Different timestamps indicate that the latest periodic attempt did not succeed.
-- If both timestamps are more than 24 hours old, the script reports periodic synchronization as stale.
-- If either timestamp is missing, synchronization health is reported as incomplete.
-- Exchange can return year-1 `DateTime` sentinel values for uninitialized synchronization properties. If both periodic synchronization timestamps have year 1, `SHR403` reports that the selected receiver calendar appears never to have synchronized. These values are not classified as stale dates.
-- If only one periodic synchronization timestamp has year 1, it is treated as unavailable and synchronization health remains incomplete.
-
-For a specific missing or delayed meeting, collect Calendar Diagnostic Logs from both the owner and receiver. Use [Get-CalendarDiagnosticObjectsSummary](./Get-CalendarDiagnosticObjectsSummary.md) and correlate the same meeting by its `CleanGlobalObjectId`.
-
-`SharedCalendarSyncStartDate` controls how far back calendar data is synchronized to the receiver's local folder. A recent value may indicate that the folder was recreated or is still backfilling; it does not prove that synchronization failed. A year-1 value is an uninitialized sentinel, is handled by the existing unavailable start-date rule, and is never displayed as a valid data-back boundary.
-
-## Troubleshooting workflow
-
-1. Confirm the owner, receiver, and sharing type.
-2. Resolve any red **Fatal prerequisite failure** before interpreting dependent checks.
-3. Review **Detected Issues** from highest to lowest severity.
-4. Resolve or collect the data required by **Incomplete Checks**.
-5. Follow each finding's `RecommendedNextStep`.
-6. If the configuration is healthy but an individual meeting is missing or delayed, collect Calendar Diagnostic Logs from both mailboxes.
-
-The script recommends diagnostic actions such as reviewing sharing invite/accept logs, Sharing Sync Assistant logs, or calendar validation data. Avoid removing and re-adding permissions or shared calendars as a generic first troubleshooting step.
+Use `-IncludeSensitiveData` only when full-fidelity structured evidence is required. It does not change console output. Regardless of this switch, treat the normal console output as sensitive because it preserves the detailed Exchange output.
