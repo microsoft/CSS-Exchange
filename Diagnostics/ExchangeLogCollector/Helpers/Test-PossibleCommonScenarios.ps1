@@ -6,6 +6,7 @@ function Test-PossibleCommonScenarios {
     #all possible logs
     if ($AllPossibleLogs) {
         $Script:EWSLogs = $true
+        $Script:MRSProxyLogs = $true
         $Script:IISLogs = $true
         $Script:DailyPerformanceLogs = $true
         $Script:ManagedAvailabilityLogs = $true
@@ -38,6 +39,11 @@ function Test-PossibleCommonScenarios {
         $Script:MailboxAssistantsLogs = $true
         $Script:EventBasedAssistantsLogs = $true
         $Script:ConversationLogs = $true
+    }
+
+    if ($MRSProxyLogs) {
+        $Script:EWSLogs = $true
+        $Script:IISLogs = $true
     }
 
     if ($TransportLogging) {
