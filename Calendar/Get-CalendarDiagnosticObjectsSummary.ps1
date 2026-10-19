@@ -159,7 +159,7 @@ $script:ExceptionCollectionStatus = $null
 . $PSScriptRoot\CalLogHelpers\CalLogExportFunctions.ps1
 . $PSScriptRoot\CalLogHelpers\CreateTimelineRow.ps1
 . $PSScriptRoot\CalLogHelpers\FindChangedPropFunctions.ps1
-. $PSScriptRoot\CalLogHelpers\Write-DashLineBoxColor.ps1
+. $PSScriptRoot\CalendarHelpers\Write-DashLineBoxColor.ps1
 
 # Default to Excel unless specified otherwise.
 if (!$ExportToCSV.IsPresent) {

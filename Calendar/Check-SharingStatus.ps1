@@ -40,95 +40,8 @@ param(
 $BuildVersion = ""
 
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
-
-function ConvertTo-NormalizedCalendarFolderPath {
-    param(
-        [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
-        [string]$FolderPath
-    )
-
-    $normalizedFolderPath = $FolderPath.Trim()
-    if ([string]::IsNullOrWhiteSpace($normalizedFolderPath)) {
-        throw "OwnerCalendarFolderPath cannot be empty or whitespace."
-    }
-    if ($normalizedFolderPath -match "^[^\\/]+:\s*[\\/]") {
-        throw "OwnerCalendarFolderPath must contain only the owner-relative path. Do not provide a mailbox identity prefix such as owner@contoso.com:\."
-    }
-
-    $normalizedFolderPath = $normalizedFolderPath.Replace("/", "\").TrimStart("\")
-    $normalizedFolderPath = $normalizedFolderPath -replace "\\+", "\"
-    if ([string]::IsNullOrWhiteSpace($normalizedFolderPath)) {
-        throw "OwnerCalendarFolderPath must identify a folder in the owner mailbox."
-    }
-
-    return "\$normalizedFolderPath"
-}
-
-function Get-CanonicalMailboxFolderIdentity {
-    param(
-        [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
-        [string]$Mailbox,
-
-        [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
-        [string]$CalendarRootName,
-
-        [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
-        [string]$FolderPath
-    )
-
-    $normalizedFolderPath = ConvertTo-NormalizedCalendarFolderPath -FolderPath $FolderPath
-    $normalizedCalendarRootPath = ConvertTo-NormalizedCalendarFolderPath -FolderPath $CalendarRootName
-    if (($normalizedFolderPath -ne $normalizedCalendarRootPath) -and
-        (-not $normalizedFolderPath.StartsWith(
-            "$normalizedCalendarRootPath\",
-            [System.StringComparison]::OrdinalIgnoreCase))) {
-        $normalizedFolderPath = "$normalizedCalendarRootPath$normalizedFolderPath"
-    }
-
-    return "${Mailbox}:$normalizedFolderPath"
-}
-
-function ConvertTo-NormalizedFolderFlags {
-    param(
-        [AllowNull()]
-        [object[]]$Flags
-    )
-
-    return @(
-        foreach ($flag in $Flags) {
-            if ($null -eq $flag) {
-                continue
-            }
-
-            foreach ($token in @($flag.ToString() -split ",")) {
-                $normalizedFlag = $token.Trim()
-                if (-not [string]::IsNullOrWhiteSpace($normalizedFlag)) {
-                    $normalizedFlag
-                }
-            }
-        }
-    )
-}
-
-function Get-DuplicateStyleCalendarFolders {
-    param(
-        [AllowNull()]
-        [object[]]$FolderStatistics
-    )
-
-    return @($FolderStatistics | Where-Object -FilterScript {
-            $folderName = if (-not [string]::IsNullOrWhiteSpace([string]$_.Name)) {
-                [string]$_.Name
-            } else {
-                [string]$_.FolderPath
-            }
-            $folderName -match "\(\d{1,2}\)\s*$"
-        })
-}
+. $PSScriptRoot\Helpers\SharingPathUtilities.ps1
+. $PSScriptRoot\Writers\Write-SharingResults.ps1
 
 function Compare-CalendarFolderStatistics {
     param(
@@ -378,22 +291,8 @@ function ConvertTo-SharingErrorInfo {
         [object]$ErrorRecord
     )
 
-    $message = [string]$ErrorRecord
-    $exceptionType = $null
-    if ($null -ne $ErrorRecord) {
-        try {
-            if ($null -ne $ErrorRecord.Exception) {
-                $message = [string]$ErrorRecord.Exception.Message
-                $exceptionType = $ErrorRecord.Exception.GetType().FullName
-            }
-        } catch {
-            $message = [string]$ErrorRecord
-        }
-    }
-    if ([string]::IsNullOrWhiteSpace($message)) {
-        $message = "Unknown error."
-    }
-    $message = ($message -replace '[\r\n\t]+', ' ').Trim()
+    $errorInfo = ConvertTo-CalendarDiagnosticErrorInfo -ErrorRecord $ErrorRecord
+    $message = $errorInfo.message
     if ($message.Length -gt 1024) {
         $message = $message.Substring(0, 1024)
     }
@@ -403,7 +302,7 @@ function ConvertTo-SharingErrorInfo {
 
     return [PSCustomObject]@{
         message       = $message
-        exceptionType = $exceptionType
+        exceptionType = $errorInfo.exceptionType
     }
 }
 
@@ -935,167 +834,6 @@ function Complete-SharingFindings {
                 })
         }
     }
-}
-
-function Test-SmtpAddressEqual {
-    param(
-        [AllowNull()]
-        [object]$First,
-
-        [AllowNull()]
-        [object]$Second
-    )
-
-    if (($null -eq $First) -or ($null -eq $Second)) {
-        return $false
-    }
-
-    return [string]::Equals(
-        $First.ToString().Trim(),
-        $Second.ToString().Trim(),
-        [System.StringComparison]::OrdinalIgnoreCase)
-}
-
-function Get-PermissionEntriesForIdentity {
-    param(
-        [AllowNull()]
-        [object[]]$PermissionEntries,
-
-        [Parameter(Mandatory)]
-        [string]$Identity
-    )
-
-    return @($PermissionEntries | Where-Object -FilterScript {
-            (Test-SmtpAddressEqual -First $_.User -Second $Identity) -or
-            (Test-SmtpAddressEqual -First $_.User.PrimarySmtpAddress -Second $Identity) -or
-            (Test-SmtpAddressEqual -First $_.User.RecipientPrincipal.PrimarySmtpAddress -Second $Identity)
-        })
-}
-
-function Get-PermissionRightsText {
-    param(
-        [AllowNull()]
-        [object[]]$PermissionEntries,
-
-        [switch]$IncludeSharingFlags
-    )
-
-    $accessRights = @($PermissionEntries | ForEach-Object {
-            @($_.AccessRights) | ForEach-Object {
-                if ($null -ne $_) {
-                    $_.ToString()
-                }
-            }
-        } | Sort-Object -Unique)
-    $rightsText = if ($accessRights.Count -gt 0) {
-        $accessRights -join ", "
-    } else {
-        "None"
-    }
-    if ($IncludeSharingFlags) {
-        $sharingFlags = @($PermissionEntries | ForEach-Object {
-                @($_.SharingPermissionFlags) | ForEach-Object {
-                    if (-not [string]::IsNullOrWhiteSpace([string]$_)) {
-                        $_.ToString()
-                    }
-                }
-            } | Sort-Object -Unique)
-        if ($sharingFlags.Count -gt 0) {
-            $rightsText = "$rightsText; SharingPermissionFlags: $($sharingFlags -join ', ')"
-        }
-    }
-
-    return $rightsText
-}
-
-function Write-SharingFindingDetails {
-    param(
-        [AllowEmptyCollection()]
-        [object[]]$Findings,
-
-        [Parameter(Mandatory)]
-        [hashtable]$SeverityOrder
-    )
-
-    $displayFindings = @($Findings |
-            ForEach-Object {
-                [PSCustomObject]@{
-                    severity            = $_.severity
-                    ruleId              = $_.ruleId
-                    title               = $_.title
-                    evidence            = $script:ConsoleFindingEvidence[$_.ruleId]
-                    recommendedNextStep = $_.recommendedNextStep
-                }
-            } |
-            Sort-Object -Property @{ Expression = { $SeverityOrder[$_.severity] } }, ruleId)
-
-    $displayFindings |
-        Format-Table -AutoSize -Wrap -Property @{
-            Label      = "Severity"
-            Expression = { $_.severity }
-        }, @{
-            Label      = "RuleId"
-            Expression = { $_.ruleId }
-        }, @{
-            Label      = "Title"
-            Expression = { $_.title }
-        }, @{
-            Label      = "Evidence"
-            Expression = { $_.evidence }
-        }
-    Write-Host -ForegroundColor Blue "`rRecommended Next Steps:"
-    foreach ($finding in $displayFindings) {
-        Write-Host -ForegroundColor Yellow "[$($finding.ruleId)] $($finding.recommendedNextStep)"
-    }
-}
-
-function Write-OwnerReceiverPermissionSummary {
-    param(
-        [Parameter(Mandatory)]
-        [string]$Receiver
-    )
-
-    $receiverCalendarPermissions = Get-PermissionEntriesForIdentity `
-        -PermissionEntries $script:OwnerCalendarPerms `
-        -Identity $Receiver
-    $receiverMailboxPermissions = Get-PermissionEntriesForIdentity `
-        -PermissionEntries $script:OwnerMailboxPerms `
-        -Identity $Receiver
-    $calendarRights = if ($receiverCalendarPermissions.Count -gt 0) {
-        Get-PermissionRightsText `
-            -PermissionEntries $receiverCalendarPermissions `
-            -IncludeSharingFlags
-    } else {
-        $null
-    }
-    $mailboxRights = if ($receiverMailboxPermissions.Count -gt 0) {
-        Get-PermissionRightsText -PermissionEntries $receiverMailboxPermissions
-    } else {
-        $null
-    }
-
-    Write-Host -ForegroundColor DarkYellow "Owner-to-Receiver Permission Summary:"
-    if (($null -ne $calendarRights) -and ($null -ne $mailboxRights)) {
-        Write-Host -ForegroundColor Green "Receiver [$Receiver] has [$calendarRights] on the owner Calendar folder and [$mailboxRights] on the owner Mailbox."
-    } elseif ($null -ne $calendarRights) {
-        Write-Host -ForegroundColor Green "Receiver [$Receiver] is using [$calendarRights] on the owner Calendar folder."
-    } elseif ($null -ne $mailboxRights) {
-        Write-Host -ForegroundColor Green "Receiver [$Receiver] has [$mailboxRights] on the owner Mailbox."
-    } elseif ($script:OwnerCalendarPermsAvailable -and $script:OwnerMailboxPermsAvailable) {
-        Write-Host -ForegroundColor Yellow "Receiver [$Receiver] does not have an individual permission entry on the owner Calendar folder or Mailbox; access may come from Default or a group permission."
-    } else {
-        Write-Host -ForegroundColor Yellow "Receiver-specific permissions could not be fully evaluated because the owner Calendar folder or Mailbox permission query was unavailable."
-    }
-}
-
-function Test-UninitializedCalendarDate {
-    param(
-        [AllowNull()]
-        [object]$Value
-    )
-
-    $dateValue = $Value -as [DateTime]
-    return ($null -ne $dateValue) -and ($dateValue.Year -eq 1)
 }
 
 function Register-SharingFatalPrerequisiteFailure {

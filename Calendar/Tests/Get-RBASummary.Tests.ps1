@@ -1280,6 +1280,33 @@ Describe "Get-RBASummary best-effort report" {
         $report.PSObject.Properties.Name | Should -Not -Contain "SanitizedIdentityMap"
     }
 
+    It -Name "serializes every recipient well as an array with <RecipientCount> entries" -TestCases @(
+        @{ RecipientCount = 0 }
+        @{ RecipientCount = 1 }
+        @{ RecipientCount = 2 }
+    ) {
+        param($RecipientCount)
+
+        Mock -CommandName Get-CalendarProcessing -MockWith {
+            $settings = Get-TestCalendarProcessing
+            $recipients = @(for ($index = 0; $index -lt $RecipientCount; $index++) {
+                    "delegate$index@contoso.com"
+                })
+            $settings.RequestOutOfPolicy = $recipients
+            $settings.BookInPolicy = $recipients
+            $settings.RequestInPolicy = $recipients
+            $settings.ResourceDelegates = $recipients
+            $settings
+        }
+
+        $report = Invoke-TestRbaSummary
+
+        foreach ($propertyName in @("requestOutOfPolicy", "bookInPolicy", "requestInPolicy", "resourceDelegates")) {
+            ($report.calendarProcessing.$propertyName -is [array]) | Should -BeTrue
+            $report.calendarProcessing.$propertyName.Count | Should -Be $RecipientCount
+        }
+    }
+
     It "assigns separate placeholders when an identity has no stable key" {
         Mock Get-CalendarProcessing {
             $settings = Get-TestCalendarProcessing
@@ -1331,6 +1358,31 @@ Describe "Get-RBASummary best-effort report" {
         $report = Invoke-TestRbaSummary
 
         ($report.findings | Where-Object { $_.ruleId -eq "RBA803" }).status | Should -Be "NotEvaluated"
+    }
+
+    It -Name "does not evaluate direct Calendar access for a <Resolution> recipient lookup" -TestCases @(
+        @{ Resolution = "Null" }
+        @{ Resolution = "MissingAddress" }
+        @{ Resolution = "WhitespaceAddress" }
+    ) {
+        param($Resolution)
+
+        Mock -CommandName Get-Recipient -MockWith {
+            if ($Resolution -eq "Null") {
+                return $null
+            }
+            if ($Resolution -eq "MissingAddress") {
+                return [PSCustomObject]@{ DisplayName = "Unresolved delegate" }
+            }
+            return [PSCustomObject]@{ PrimarySmtpAddress = " " }
+        }
+
+        $report = Invoke-TestRbaSummary
+        $finding = $report.findings | Where-Object -Property ruleId -EQ "RBA803"
+
+        $finding.status | Should -Be "NotEvaluated"
+        $finding.evidence | Should -BeNullOrEmpty
+        $report.collectors.CalendarProcessing.status | Should -Be "Success"
     }
 
     It "reports explicit Full Access without claiming direct Calendar editing" {
@@ -1488,6 +1540,7 @@ Describe "Get-RBASummary script layout" {
         $entryScript = Get-Content -Path $Script:scriptPath -Raw
         $expectedHelperOrder = @(
             "CalendarHelpers\CalendarDiagnosticHelpers.ps1"
+            "CalendarHelpers\Write-DashLineBoxColor.ps1"
             "RBAHelpers\RBACollectionHelpers.ps1"
             "RBAHelpers\RBAEvaluationHelpers.ps1"
             "RBAHelpers\RBALogHelpers.ps1"
@@ -1539,6 +1592,66 @@ Describe "Get-RBASummary script layout" {
 
         $invokeHelper | Should -Match '(?m)^\s*\$BuildVersion = ""\s*$'
         $invokeHelper | Should -Not -Match '(?m)^\s*\$script:BuildVersion = ""\s*$'
+    }
+
+    It -Name "embeds the shared box writer once in <EntryScript>" -TestCases @(
+        @{ EntryScript = "Get-RBASummary.ps1" }
+        @{ EntryScript = "BookingsDiagnosticSummary.ps1" }
+        @{ EntryScript = "Get-CalendarDiagnosticObjectsSummary.ps1" }
+    ) {
+        param($EntryScript)
+
+        . "$Script:calendarPath\..\.build\BuildFunctions\Get-ExpandedScriptContent.ps1"
+        $entryPath = Join-Path -Path $Script:calendarPath -ChildPath $EntryScript
+        $content = Get-ExpandedScriptContent -File $entryPath
+        $tokens = $null
+        $parseErrors = $null
+        $ast = [System.Management.Automation.Language.Parser]::ParseInput(
+            ($content -join [Environment]::NewLine), [ref]$tokens, [ref]$parseErrors)
+
+        $parseErrors | Should -BeNullOrEmpty
+        $writers = $ast.FindAll({
+                param($node)
+                $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+                $node.Name -eq "Write-DashLineBoxColor"
+            }, $true)
+        $writers.Count | Should -Be 1
+    }
+}
+
+Describe -Name "Shared Calendar diagnostic helpers" {
+    BeforeAll {
+        . "$Script:calendarPath\CalendarHelpers\CalendarDiagnosticHelpers.ps1"
+        . "$Script:calendarPath\CalendarHelpers\Write-DashLineBoxColor.ps1"
+    }
+
+    It -Name "normalizes a permission identity from <Shape>" -TestCases @(
+        @{ Shape = "String"; PermissionUser = " DELEGATE@Contoso.com "; Expected = "delegate@contoso.com" }
+        @{ Shape = "PrimarySmtpAddress"; PermissionUser = [PSCustomObject]@{ PrimarySmtpAddress = " DELEGATE@Contoso.com " }; Expected = "delegate@contoso.com" }
+        @{ Shape = "RecipientPrincipal"; PermissionUser = [PSCustomObject]@{ RecipientPrincipal = [PSCustomObject]@{ PrimarySmtpAddress = " DELEGATE@Contoso.com " } }; Expected = "delegate@contoso.com" }
+        @{ Shape = "ADRecipient"; PermissionUser = [PSCustomObject]@{ ADRecipient = [PSCustomObject]@{ PrimarySmtpAddress = " DELEGATE@Contoso.com " } }; Expected = "delegate@contoso.com" }
+        @{ Shape = "Null"; PermissionUser = $null; Expected = "" }
+        @{ Shape = "Default"; PermissionUser = "Default"; Expected = "default" }
+    ) {
+        param($Shape, $PermissionUser, $Expected)
+
+        Get-CalendarDiagnosticPermissionIdentity -PermissionUser $PermissionUser | Should -Be $Expected
+    }
+
+    It -Name "writes the original box formatting through the shared implementation" {
+        Mock -CommandName Write-Host -MockWith {}
+
+        Write-DashLineBoxColor -Line @("Room", "Calendar") -Color Cyan -DashChar "="
+
+        Should -Invoke -CommandName Write-Host -Times 2 -Exactly -ParameterFilter {
+            $Object -eq "========" -and $ForegroundColor -eq "Cyan"
+        }
+        Should -Invoke -CommandName Write-Host -Times 1 -Exactly -ParameterFilter {
+            $Object -eq "Room" -and $ForegroundColor -eq "Cyan"
+        }
+        Should -Invoke -CommandName Write-Host -Times 1 -Exactly -ParameterFilter {
+            $Object -eq "Calendar" -and $ForegroundColor -eq "Cyan"
+        }
     }
 }
 
