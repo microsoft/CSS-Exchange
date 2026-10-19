@@ -40,6 +40,7 @@ param(
 $BuildVersion = ""
 
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
+. $PSScriptRoot\CalendarHelpers\Test-CalendarExoConnection.ps1
 . $PSScriptRoot\Helpers\SharingPathUtilities.ps1
 . $PSScriptRoot\Writers\Write-SharingResults.ps1
 
@@ -158,6 +159,10 @@ if ((-not $SkipMainExecution) -and (Test-ScriptVersion -AutoUpdate)) {
 }
 
 Write-Verbose "Script Versions: $BuildVersion"
+
+if ((-not $SkipMainExecution) -and (-not (Test-CalendarExoConnection))) {
+    return
+}
 
 $script:RunStartedAt = Get-Date
 $script:PIIAccess = $true #Assume we have PII access until we find out otherwise

@@ -90,6 +90,7 @@ Write-Verbose "Script Versions: $BuildVersion"
 . $PSScriptRoot\BookingHelpers\FileSaveHelpers.ps1
 . $PSScriptRoot\BookingHelpers\ExcelWrite.ps1
 . $PSScriptRoot\CalendarHelpers\Write-DashLineBoxColor.ps1
+. $PSScriptRoot\CalendarHelpers\Test-CalendarExoConnection.ps1
 . $PSScriptRoot\CalLogHelpers\ExcelModuleInstaller.ps1
 . $PSScriptRoot\..\Shared\Confirm-Administrator.ps1
 
@@ -105,7 +106,9 @@ $script:PadCharsMessage = 40
 $script:indent = "         "
 $script:MessageTrackingDays = 5
 
-CheckEXOConnection
+if (-not (Test-CalendarExoConnection)) {
+    exit
+}
 
 $script:Identity = $Identity
 $script:Domain = SplitDomainFromEmail $Identity -errorAction SilentlyContinue

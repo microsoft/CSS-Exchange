@@ -13,6 +13,12 @@ BeforeAll {
             [System.Management.Automation.ActionPreference]$ErrorAction
         )
     }
+    function Get-ConnectionInformation {
+        param(
+            [System.Management.Automation.ActionPreference]$ErrorAction
+        )
+        [PSCustomObject]@{ State = "Connected"; ConnectionUri = "https://outlook.office365.com" }
+    }
     function Get-Place {
         param(
             [string]$Identity,
@@ -1541,6 +1547,7 @@ Describe "Get-RBASummary script layout" {
         $expectedHelperOrder = @(
             "CalendarHelpers\CalendarDiagnosticHelpers.ps1"
             "CalendarHelpers\Write-DashLineBoxColor.ps1"
+            "CalendarHelpers\Test-CalendarExoConnection.ps1"
             "RBAHelpers\RBACollectionHelpers.ps1"
             "RBAHelpers\RBAEvaluationHelpers.ps1"
             "RBAHelpers\RBALogHelpers.ps1"
@@ -1655,7 +1662,133 @@ Describe -Name "Shared Calendar diagnostic helpers" {
     }
 }
 
+Describe -Name "Test-CalendarExoConnection" {
+    BeforeAll {
+        . "$Script:calendarPath\CalendarHelpers\Test-CalendarExoConnection.ps1"
+    }
+
+    BeforeEach {
+        Mock -CommandName Write-Host -MockWith {}
+        Mock -CommandName Write-Warning -MockWith {}
+    }
+
+    It -Name "fails when Get-Mailbox is not available" {
+        Mock -CommandName Get-Command -MockWith { $null } -ParameterFilter { $Name -eq "Get-Mailbox" }
+        Mock -CommandName Get-ConnectionInformation -MockWith {}
+
+        Test-CalendarExoConnection | Should -BeFalse
+
+        Should -Invoke -CommandName Get-ConnectionInformation -Times 0 -Exactly
+        Should -Invoke -CommandName Write-Host -Times 1 -Exactly -ParameterFilter {
+            $Object -like "Get-Mailbox cmdlet not found*" -and $ForegroundColor -eq "Red"
+        }
+    }
+
+    It -Name "passes when Get-ConnectionInformation is not available" {
+        Mock -CommandName Get-Command -MockWith { $null } -ParameterFilter { $Name -eq "Get-ConnectionInformation" }
+
+        Test-CalendarExoConnection | Should -BeTrue
+    }
+
+    It -Name "fails when no Exchange Online connection is active (<Case>)" -TestCases @(
+        @{ Case = "no connections"; Connections = @() }
+        @{ Case = "disconnected connection"; Connections = @([PSCustomObject]@{ State = "Disconnected"; ConnectionUri = "https://outlook.office365.com" }) }
+    ) {
+        param($Case, $Connections)
+        Mock -CommandName Get-ConnectionInformation -MockWith { $Connections }
+
+        Test-CalendarExoConnection | Should -BeFalse
+
+        Should -Invoke -CommandName Write-Host -Times 1 -Exactly -ParameterFilter {
+            $Object -like "*no active Exchange Online connection*" -and $ForegroundColor -eq "Red"
+        }
+    }
+
+    It -Name "passes without a warning for the recognized endpoint <EndpointUri>" -TestCases @(
+        @{ EndpointUri = "https://outlook.office365.com/PowerShell-LiveId" }
+        @{ EndpointUri = "https://outlook.office.com" }
+        @{ EndpointUri = "https://outlook.office365.us" }
+        @{ EndpointUri = "https://outlook-dod.office365.us" }
+        @{ EndpointUri = "https://partner.outlook.cn" }
+    ) {
+        param($EndpointUri)
+        Mock -CommandName Get-ConnectionInformation -MockWith {
+            @([PSCustomObject]@{ State = "Connected"; ConnectionUri = $EndpointUri })
+        }
+
+        Test-CalendarExoConnection | Should -BeTrue
+
+        Should -Invoke -CommandName Write-Warning -Times 0 -Exactly
+        Should -Invoke -CommandName Write-Host -Times 1 -Exactly -ParameterFilter {
+            $Object -like "Validated connection to Exchange Online (*" -and $ForegroundColor -eq "Green"
+        }
+    }
+
+    It -Name "passes with a warning for an unrecognized endpoint" {
+        Mock -CommandName Get-ConnectionInformation -MockWith {
+            @([PSCustomObject]@{ State = "Connected"; ConnectionUri = "https://exchange.contoso.local/PowerShell" })
+        }
+
+        Test-CalendarExoConnection | Should -BeTrue
+
+        Should -Invoke -CommandName Write-Warning -Times 1 -Exactly -ParameterFilter {
+            $Message -like "*exchange.contoso.local*not a recognized Exchange Online endpoint*"
+        }
+    }
+
+    It -Name "passes when the connection state cannot be queried" {
+        Mock -CommandName Get-ConnectionInformation -MockWith { throw "Connection state unavailable" }
+
+        Test-CalendarExoConnection | Should -BeTrue
+
+        Should -Invoke -CommandName Write-Warning -Times 0 -Exactly
+    }
+
+    It -Name "embeds the shared validator once in <EntryScript>" -TestCases @(
+        @{ EntryScript = "Get-RBASummary.ps1" }
+        @{ EntryScript = "Check-SharingStatus.ps1" }
+        @{ EntryScript = "BookingsDiagnosticSummary.ps1" }
+        @{ EntryScript = "Get-CalendarDiagnosticObjectsSummary.ps1" }
+    ) {
+        param($EntryScript)
+
+        . "$Script:calendarPath\..\.build\BuildFunctions\Get-ExpandedScriptContent.ps1"
+        $content = Get-ExpandedScriptContent -File (Join-Path -Path $Script:calendarPath -ChildPath $EntryScript)
+        $tokens = $null
+        $parseErrors = $null
+        $ast = [System.Management.Automation.Language.Parser]::ParseInput(
+            ($content -join [Environment]::NewLine), [ref]$tokens, [ref]$parseErrors)
+
+        $parseErrors | Should -BeNullOrEmpty
+        $validators = $ast.FindAll({
+                param($node)
+                $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+                $node.Name -eq "Test-CalendarExoConnection"
+            }, $true)
+        $validators.Count | Should -Be 1
+    }
+}
+
+Describe -Name "Get-RBASummary Exchange Online connection validation" {
+    It -Name "stops before creating output files when the session is not connected" {
+        Mock -CommandName Get-Command -MockWith { $null } -ParameterFilter { $Name -eq "Get-Mailbox" }
+        Mock -CommandName Get-Mailbox -MockWith {}
+        Mock -CommandName Write-Host -MockWith {}
+
+        Push-Location -Path $TestDrive
+        try {
+            & $Script:scriptPath -Identity "room@contoso.com" -SkipVersionCheck
+            @(Get-ChildItem -Path $TestDrive -Filter "RBA-*").Count | Should -Be 0
+        } finally {
+            Pop-Location
+        }
+
+        Should -Invoke -CommandName Get-Mailbox -Times 0 -Exactly
+    }
+}
+
 Describe "RBA log processing block extraction" {
+
     BeforeEach {
         Initialize-StandardMocks
         Mock Get-Mailbox {

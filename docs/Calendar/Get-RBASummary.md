@@ -11,7 +11,7 @@ The script validates mailbox type, booking policy, request routing, delegate con
 ## Requirements
 
 - Windows PowerShell 5.1 or PowerShell 7 or later.
-- The Exchange Online PowerShell module and an active `Connect-ExchangeOnline` session.
+- The Exchange Online PowerShell module and an active `Connect-ExchangeOnline` session. The script verifies that `Get-Mailbox` is available and, when `Get-ConnectionInformation` is available, that an active Exchange Online connection exists. It stops before collecting data if the check fails.
 - Permission to read the target mailbox, CalendarProcessing configuration, mailbox diagnostic logs, and applicable permissions.
 - A room or equipment mailbox. Workspace-specific validation applies when the mailbox resource type is `Workspace`.
 

@@ -23,7 +23,7 @@ The development entry script loads sharing-specific path and identity utilities 
 
 ## Requirements
 
-- An Exchange Online PowerShell session with permission to query both mailboxes and their calendar configuration. Use primary SMTP addresses for both mailboxes.
+- An Exchange Online PowerShell session with permission to query both mailboxes and their calendar configuration. Use primary SMTP addresses for both mailboxes. The script verifies that `Get-Mailbox` is available and, when `Get-ConnectionInformation` is available, that an active Exchange Online connection exists. It stops before collecting data if the check fails.
 - Access to `Get-Mailbox`, `Get-MailboxFolderStatistics`, and `Get-MailboxCalendarFolder` for the prerequisite checks.
 - Access to `Get-MailboxFolderPermission`, `Get-MailboxPermission`, and `Export-MailboxDiagnosticLogs` for permission and log checks.
 - Readable personally identifiable information (PII), including mailbox and folder names, for pair-specific correlation.
