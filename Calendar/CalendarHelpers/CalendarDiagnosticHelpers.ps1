@@ -1,7 +1,34 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-# Generic Calendar diagnostic infrastructure; consider promoting this file to Shared in the future.
+# Shared Calendar diagnostic infrastructure.
+
+function Get-CalendarDiagnosticPermissionIdentity {
+    param(
+        [AllowNull()]
+        [object]$PermissionUser
+    )
+
+    foreach ($propertyPath in @(
+            @("ADRecipient", "PrimarySmtpAddress"),
+            @("RecipientPrincipal", "PrimarySmtpAddress"),
+            @("PrimarySmtpAddress")
+        )) {
+        $value = $PermissionUser
+        foreach ($propertyName in $propertyPath) {
+            if ($null -eq $value) {
+                break
+            }
+            $property = $value.PSObject.Properties[$propertyName]
+            $value = if ($null -ne $property) { $property.Value } else { $null }
+        }
+        if (-not [string]::IsNullOrWhiteSpace([string]$value)) {
+            return ([string]$value).Trim().ToLowerInvariant()
+        }
+    }
+
+    return ([string]$PermissionUser).Trim().ToLowerInvariant()
+}
 
 function ConvertTo-CalendarDiagnosticCommandLineValue {
     param(

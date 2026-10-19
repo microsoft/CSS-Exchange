@@ -8,6 +8,10 @@ This script validates the calendar sharing relationship between an owner and a r
 
 The script is intended to establish whether the sharing relationship is configured correctly before investigating individual meeting synchronization.
 
+## Source layout
+
+The development entry script loads sharing-specific path and identity utilities from `Calendar/Helpers` and output functions from `Calendar/Writers`. Permission identity and error normalization use the same `Calendar/CalendarHelpers/CalendarDiagnosticHelpers.ps1` infrastructure as RBA diagnostics. Sharing-specific error redaction, finding schemas, and collection failure behavior remain unchanged. The release build embeds the dependencies into the standalone script; users do not need to download the helper files separately.
+
 ## Terminology
 
 - **Owner** - The mailbox that owns and shares the calendar.

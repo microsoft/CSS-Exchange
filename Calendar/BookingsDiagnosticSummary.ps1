@@ -89,7 +89,7 @@ Write-Verbose "Script Versions: $BuildVersion"
 . $PSScriptRoot\BookingHelpers\BookingStaffLogLogic.ps1
 . $PSScriptRoot\BookingHelpers\FileSaveHelpers.ps1
 . $PSScriptRoot\BookingHelpers\ExcelWrite.ps1
-. $PSScriptRoot\CalLogHelpers\Write-DashLineBoxColor.ps1
+. $PSScriptRoot\CalendarHelpers\Write-DashLineBoxColor.ps1
 . $PSScriptRoot\CalLogHelpers\ExcelModuleInstaller.ps1
 . $PSScriptRoot\..\Shared\Confirm-Administrator.ps1
 

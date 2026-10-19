@@ -340,6 +340,18 @@ Describe "Check-SharingStatus structured diagnostics" {
     }
 
     Context "Collectors, failures, and bounded diagnostics" {
+        It -Name "preserves the sharing error schema when using the shared normalizer" {
+            $IncludeSensitiveData = $true
+            $message = "first line" + [Environment]::NewLine + "second line"
+            $exception = [System.InvalidOperationException]::new($message)
+
+            $errorInfo = ConvertTo-SharingErrorInfo -ErrorRecord $exception
+
+            $errorInfo.message | Should -Be "first line second line"
+            $errorInfo.exceptionType | Should -Be "System.InvalidOperationException"
+            @($errorInfo.PSObject.Properties.Name).Count | Should -Be 2
+        }
+
         It "records success for a value and permits an explicit null result" {
             Invoke-SharingCollector -Name "OwnerMailbox" -Action { "value" } | Should -Be "value"
             $script:CollectorStatuses["OwnerMailbox"].status | Should -Be "Success"
@@ -977,6 +989,26 @@ Describe "Check-SharingStatus structured diagnostics" {
 
             Should -Invoke Write-Host -ParameterFilter {
                 $Object -eq "Receiver [receiver@contoso.com] does not have an individual permission entry on the owner Calendar folder or Mailbox; access may come from Default or a group permission."
+            }
+        }
+
+        It -Name "matches receiver permissions through the shared AD recipient identity" {
+            Mock -CommandName Get-MailboxFolderPermission -MockWith {
+                [PSCustomObject]@{
+                    User                   = [PSCustomObject]@{
+                        ADRecipient = [PSCustomObject]@{ PrimarySmtpAddress = " RECEIVER@Contoso.com " }
+                    }
+                    AccessRights           = @("Editor")
+                    SharingPermissionFlags = @("Delegate")
+                }
+            }
+            Mock -CommandName Get-MailboxPermission -MockWith { @() }
+            Mock -CommandName Write-Host -MockWith {}
+
+            GetOwnerInformation -Owner "owner@contoso.com"
+
+            Should -Invoke -CommandName Write-Host -ParameterFilter {
+                $Object -eq "Receiver [receiver@contoso.com] is using [Editor; SharingPermissionFlags: Delegate] on the owner Calendar folder."
             }
         }
 

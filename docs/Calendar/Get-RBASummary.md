@@ -75,6 +75,8 @@ The JSON records an overall `Complete`, `Partial`, or `Failed` collection status
 
 `rbaLogSummary.processedEventCount` counts retained `START -` processing blocks. The accepted, declined, tentative, updated, cancellation, delegate-referral, skipped-external, horizon-decline, and recurrence-truncation values count their respective retained markers independently. These categories are not mutually exclusive: one processing block can increment multiple marker counts, so their sum must not be expected to equal `processedEventCount`. The fields `processedEventCountRepresents`, `markerCountCategoryRelationship`, and `markerCountCategoriesMayOverlapWithinBlock` encode these semantics for consumers.
 
+The `calendarProcessing` recipient wells (`requestOutOfPolicy`, `bookInPolicy`, `requestInPolicy`, and `resourceDelegates`) are always JSON arrays, including empty lists and lists containing one identity.
+
 ## Privacy modes
 
 The report identifies its handling mode in `metadata.privacyMode`:
@@ -200,6 +202,10 @@ The report collects the resource's localized Calendar folder permissions and exp
 - The booking-policy recipient lists and all-user switches control who can book automatically or request approval. They do not grant Calendar folder access.
 - `DeleteSubject`, `AddOrganizerToSubject`, and `RemovePrivateProperty` are RBA post-processing settings. They change stored meeting properties but do not grant folder access.
 - Calendar `Owner` and explicit mailbox Full Access grants are warnings because they permit access outside normal RBA ownership. Their presence does not prove that anyone directly edited a meeting.
-- If a configured resource delegate has no matching direct Calendar `Editor` or `Owner` entry, validate effective access separately. The user might receive access through a group or another assignment path.
+- If a configured resource delegate has no matching direct Calendar `Editor` or `Owner` entry, validate effective access separately. The user might receive access through a group or another assignment path. If a delegate lookup fails, returns no recipient, or provides no primary SMTP address, `RBA803` remains `NotEvaluated` rather than reporting missing access from incomplete identity evidence.
 
 Direct editing is deliberately not inferred from permissions. Establishing that a user or client modified the resource calendar requires Calendar Diagnostic Log evidence. The `RBA830` identifier is reserved for that future evidence and is not emitted by the current report.
+
+## Source layout
+
+The development entry script loads RBA-specific collectors, evaluations, log processing, and reporting from `Calendar/RBAHelpers`. Shared diagnostic error and permission-identity normalization lives in `Calendar/CalendarHelpers/CalendarDiagnosticHelpers.ps1` and is also used by the sharing diagnostics. The shared `Calendar/CalendarHelpers/Write-DashLineBoxColor.ps1` writer is used by RBA, Bookings, and Calendar Diagnostic Objects summaries. The release build embeds these dependencies into each standalone script; users do not need to download the helper files separately.
