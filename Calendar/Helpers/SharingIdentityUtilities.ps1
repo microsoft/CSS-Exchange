@@ -42,6 +42,29 @@ function Get-PermissionEntriesForIdentity {
         })
 }
 
+function Test-SharingPermissionFlagsDiffer {
+    param(
+        [AllowNull()]
+        [object[]]$FirstFlags,
+
+        [AllowNull()]
+        [object[]]$SecondFlags
+    )
+
+    # The Editor access right can appear in only one side's flags even when the pair is configured correctly, so it is not a meaningful difference.
+    # Flag enumerations stringify as a single comma-separated value such as "Editor, Delegate", so split each value into individual flags.
+    $normalizeFlags = {
+        param($Flags)
+        @($Flags | ForEach-Object { if ($null -ne $_) { $_.ToString() -split ',' } } |
+                ForEach-Object { $_.Trim() } |
+                Where-Object -FilterScript { (-not [string]::IsNullOrWhiteSpace($_)) -and ($_ -ne "Editor") })
+    }
+    $normalizedFirstFlags = & $normalizeFlags $FirstFlags
+    $normalizedSecondFlags = & $normalizeFlags $SecondFlags
+
+    return (($normalizedFirstFlags -join ",") -ne ($normalizedSecondFlags -join ","))
+}
+
 function Get-PermissionRightsText {
     param(
         [AllowNull()]

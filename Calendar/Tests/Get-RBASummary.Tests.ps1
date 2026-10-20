@@ -582,7 +582,7 @@ Describe "Get-RBASummary best-effort report" {
     It "sanitizes non-target identities and emits the documented finding families by default" {
         $report = Invoke-TestRbaSummary
 
-        $report.metadata.schemaVersion | Should -Be "1.1-preview"
+        $report.metadata.schemaVersion | Should -Be "1.2-preview"
         $report.metadata.privacyMode | Should -Be "Sanitized"
         $report.metadata.identity | Should -Be "room@contoso.com"
         $report.mailbox.objectState | Should -Be "Active"
@@ -1643,6 +1643,29 @@ Describe -Name "Shared Calendar diagnostic helpers" {
         param($Shape, $PermissionUser, $Expected)
 
         Get-CalendarDiagnosticPermissionIdentity -PermissionUser $PermissionUser | Should -Be $Expected
+    }
+
+    It -Name "maps status <Status> with severity <Severity> to result <Expected>" -TestCases @(
+        @{ Status = "Detected"; Severity = "Critical"; Expected = "Fail" }
+        @{ Status = "Detected"; Severity = "Error"; Expected = "Fail" }
+        @{ Status = "Detected"; Severity = "Warning"; Expected = "Fail" }
+        @{ Status = "Detected"; Severity = "Information"; Expected = "Info" }
+        @{ Status = "NotDetected"; Severity = "Error"; Expected = "Pass" }
+        @{ Status = "NotEvaluated"; Severity = "Error"; Expected = "Inconclusive" }
+        @{ Status = "NotApplicable"; Severity = "Error"; Expected = "Skipped" }
+    ) {
+        param($Status, $Severity, $Expected)
+
+        Get-CalendarDiagnosticFindingResult -Status $Status -Severity $Severity | Should -Be $Expected
+    }
+
+    It -Name "adds the plain-language result to shared findings" {
+        $findings = [System.Collections.Generic.List[object]]::new()
+
+        Add-CalendarDiagnosticFinding -Findings $findings -RuleId "RBA001" -Severity Error -Status Detected -Title "Test" -Evidence $null
+
+        $findings[0].status | Should -Be "Detected"
+        $findings[0].result | Should -Be "Fail"
     }
 
     It -Name "writes the original box formatting through the shared implementation" {

@@ -9,7 +9,10 @@
 #  Receiver of the shared mailbox, often the Delegate.
 #
 # .PARAMETER IncludeSensitiveData
-#  Includes full-fidelity values in structured finding and error evidence. Console output is always full fidelity.
+#  Includes full-fidelity values in structured finding and error evidence and adds raw evidence to the JSON report. Console output is always full fidelity.
+#
+# .PARAMETER SkipJsonOutput
+#  Skips writing the JSON report. By default, a JSON report is saved to the current directory.
 #
 # .PARAMETER OwnerCalendarFolderPath
 #  Optional owner-mailbox-relative calendar folder path. When omitted, the default calendar is used.
@@ -30,6 +33,8 @@ param(
     [string]$Receiver,
     [Parameter()]
     [switch]$IncludeSensitiveData,
+    [Parameter()]
+    [switch]$SkipJsonOutput,
     [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]$OwnerCalendarFolderPath,
@@ -175,8 +180,17 @@ $script:EvaluationErrors = [System.Collections.Generic.List[object]]::new()
 $script:SanitizedIdentityMap = [System.Collections.Generic.Dictionary[string, string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 $script:SanitizedIdentitySequence = 0
 $script:OwnerInviteData = @()
+$script:OwnerInviteLogRaw = $null
+$script:ReceiverAcceptLogRaw = $null
+$script:SharingDiagnosticLogs = [ordered]@{}
+$script:SharingLogScanPerformed = $false
 $script:OwnerInviteCheckAvailable = $false
 $script:OwnerActiveReceiver = $null
+$script:OwnerActiveSharees = @()
+$script:ReceiverFolderStatistics = @()
+$script:ReceiverCalendarEntries = @()
+$script:ReceiverLocalCalendarFolder = $null
+$script:ReceiverLocalCalendarFolderIdentity = $null
 $script:OwnerActiveSharingAvailable = $false
 $script:OwnerCalendarPerms = @()
 $script:OwnerCalendarPermsAvailable = $false
@@ -214,11 +228,12 @@ $script:ModernSharingRuleIds = @(
     "SHR231", "SHR232", "SHR240", "SHR241", "SHR242", "SHR243",
     "SHR300", "SHR301", "SHR310", "SHR311", "SHR312",
     "SHR320", "SHR321", "SHR322", "SHR323",
-    "SHR400", "SHR401", "SHR402", "SHR403",
+    "SHR400", "SHR401", "SHR402", "SHR403", "SHR404", "SHR405", "SHR406", "SHR407",
     "SHR410", "SHR411", "SHR412", "SHR413", "SHR432"
 )
 $script:ModernSharingCollectorNames = @(
-    "OwnerInviteLog", "ActiveSharing", "ReceiverAcceptLog", "ReceiverLocalCalendarFolder"
+    "OwnerInviteLog", "ActiveSharing", "ReceiverAcceptLog", "ReceiverLocalCalendarFolder",
+    "ReceiverSharingSyncAssistantLog", "ReceiverSharingLog"
 )
 
 # Sharing diagnostic rule IDs use the SHR prefix. The hundreds digit identifies the owning area:
@@ -229,6 +244,7 @@ $script:SharingRuleCatalog = @(
     [PSCustomObject]@{ RuleId = "SHR110"; Severity = "Warning"; Title = "Owner folder statistics are unavailable"; Aliases = @("The owner calendar-folder checks were unavailable.", "The owner default-calendar checks could not be completed."); NextStep = "Rerun Get-MailboxFolderStatistics with sufficient access and inspect the owner calendar." }
     [PSCustomObject]@{ RuleId = "SHR111"; Severity = "Warning"; Title = "Owner calendar permissions are unavailable"; Aliases = @("The pair-specific permission check was unavailable."); NextStep = "Rerun Get-MailboxFolderPermission and compare permissions with the sharing relationship." }
     [PSCustomObject]@{ RuleId = "SHR112"; Severity = "Warning"; Title = "Owner calendar folder has a duplicate-style numeric suffix"; Aliases = @(); NextStep = "Review the owner calendar folders ending in a one- or two-digit numeric suffix and remove obsolete duplicates if appropriate." }
+    [PSCustomObject]@{ RuleId = "SHR113"; Severity = "Error"; Title = "Owner calendar is named Outbox"; Aliases = @(); NextStep = "This is a known issue. Escalate to Microsoft Support to resolve the renamed calendar before further troubleshooting." }
     [PSCustomObject]@{ RuleId = "SHR430"; Severity = "Warning"; Title = "Owner calendar is oversized"; Aliases = @("The owner calendar is larger than 1 GB."); NextStep = "Review folder statistics and item or attachment distribution before remediation." }
     [PSCustomObject]@{ RuleId = "SHR431"; Severity = "Warning"; Title = "Owner calendar has too many items"; Aliases = @("The owner calendar has more than 100,000 visible items."); NextStep = "Review folder statistics and item distribution before remediation." }
     [PSCustomObject]@{ RuleId = "SHR120"; Severity = "Warning"; Title = "Owner calendar folder evidence is unavailable"; Aliases = @("The owner calendar-flag checks were unavailable."); NextStep = "Rerun Get-MailboxCalendarFolder and inspect sharing diagnostics." }
@@ -243,6 +259,7 @@ $script:SharingRuleCatalog = @(
     [PSCustomObject]@{ RuleId = "SHR212"; Severity = "Warning"; Title = "Receiver has multiple generically named calendars"; Aliases = @("The receiver has multiple calendars whose names begin with Calendar."); NextStep = "Use folder identifiers and calendar entries to distinguish the shared folder." }
     [PSCustomObject]@{ RuleId = "SHR213"; Severity = "Error"; Title = "Receiver local owner calendar is missing"; Aliases = @("A local folder for the expected owner was not found."); NextStep = "Inspect invite or accept logs and calendar entries for the pair." }
     [PSCustomObject]@{ RuleId = "SHR214"; Severity = "Warning"; Title = "Receiver calendar folder has a duplicate-style numeric suffix"; Aliases = @(); NextStep = "Review the receiver calendar folders ending in a one- or two-digit numeric suffix and remove obsolete duplicates if appropriate." }
+    [PSCustomObject]@{ RuleId = "SHR215"; Severity = "Error"; Title = "Receiver calendar is named Outbox"; Aliases = @(); NextStep = "This is a known issue. Escalate to Microsoft Support to resolve the renamed calendar before further troubleshooting." }
     [PSCustomObject]@{ RuleId = "SHR220"; Severity = "Warning"; Title = "Receiver accept-log evidence is unavailable"; Aliases = @("The receiver accept-log check was unavailable.", "The receiver accept-log check failed.", "The receiver accept-log check had no data.", "No relevant receiver accept-log entries were available.", "The receiver accept logs could not be parsed.", "Accept-log timestamps could not be parsed."); NextStep = "Collect and inspect AcceptCalendarSharingInvite logs for the pair." }
     [PSCustomObject]@{ RuleId = "SHR230"; Severity = "Warning"; Title = "Calendar-entry evidence is unavailable"; Aliases = @("The receiver calendar-entry check was unavailable.", "Get-CalendarEntries is unavailable."); NextStep = "Rerun Get-CalendarEntries in a session with sufficient access." }
     [PSCustomObject]@{ RuleId = "SHR231"; Severity = "Error"; Title = "Pair-specific new-model calendar entry is missing"; Aliases = @("The pair-specific new-model calendar entry is missing."); NextStep = "Inspect invite or accept logs and sharing assistant diagnostics." }
@@ -265,7 +282,13 @@ $script:SharingRuleCatalog = @(
     [PSCustomObject]@{ RuleId = "SHR400"; Severity = "Warning"; Title = "Periodic synchronization is stale"; Aliases = @("Periodic synchronization is stale and the assistant may not be running."); NextStep = "Inspect SharingSyncAssistant logs for the receiver." }
     [PSCustomObject]@{ RuleId = "SHR401"; Severity = "Warning"; Title = "Periodic synchronization timestamps are incomplete"; Aliases = @("Periodic synchronization timestamps are incomplete."); NextStep = "Inspect SharingSyncAssistant logs and rerun folder diagnostics." }
     [PSCustomObject]@{ RuleId = "SHR402"; Severity = "Error"; Title = "Recent periodic synchronization attempt failed"; Aliases = @("A recent periodic synchronization attempt failed."); NextStep = "Inspect SharingSyncAssistant logs." }
-    [PSCustomObject]@{ RuleId = "SHR403"; Severity = "Error"; Title = "Receiver local calendar appears never synchronized"; Aliases = @(); NextStep = "Inspect SharingSyncAssistant and calendar-sharing validator diagnostics for the selected receiver folder." }
+    [PSCustomObject]@{ RuleId = "SHR403"; Severity = "Error"; Title = "Receiver local calendar has never successfully synchronized"; Aliases = @(); NextStep = "Inspect SharingSyncAssistant and calendar-sharing validator diagnostics for the selected receiver folder." }
+    [PSCustomObject]@{ RuleId = "SHR404"; Severity = "Warning"; Title = "Receiver SharingSyncAssistant log has no entries in the last 24 hours"; Aliases = @(); NextStep = "Inspect the SharingSyncAssistant log and confirm that the receiver mailbox is being processed." }
+    [PSCustomObject]@{ RuleId = "SHR405"; Severity = "Error"; Title = "Receiver SharingSyncAssistant log has no entries in the last 7 days"; Aliases = @(); NextStep = "The sharing sync assistant does not appear to be processing the receiver mailbox. Inspect the SharingSyncAssistant log and escalate to Microsoft Support if the condition persists." }
+    [PSCustomObject]@{ RuleId = "SHR406"; Severity = "Warning"; Title = "Receiver Sharing log has no entries in the last 24 hours"; Aliases = @(); NextStep = "Inspect the Sharing log and confirm that sharing activity is being recorded for the receiver mailbox." }
+    [PSCustomObject]@{ RuleId = "SHR407"; Severity = "Error"; Title = "Receiver Sharing log has no entries in the last 7 days"; Aliases = @(); NextStep = "No sharing activity has been recorded for the receiver mailbox. Inspect the Sharing log and escalate to Microsoft Support if the condition persists." }
+    [PSCustomObject]@{ RuleId = "SHR408"; Severity = "Error"; Title = "Sharing logs report a named property quota exception"; Aliases = @(); NextStep = "MapiExceptionNamedPropsQuotaExceeded means the mailbox exhausted its named property quota, which can block sharing synchronization. Escalate to Microsoft Support." }
+    [PSCustomObject]@{ RuleId = "SHR409"; Severity = "Warning"; Title = "Sharing logs contain exceptions"; Aliases = @(); NextStep = "Review the exceptions in the sharing logs (rawData in the JSON report) and correlate them with the synchronization state." }
     [PSCustomObject]@{ RuleId = "SHR410"; Severity = "Warning"; Title = "Synchronization start date cannot be parsed"; Aliases = @("SharedCalendarSyncStartDate could not be interpreted as a date."); NextStep = "Inspect raw folder data and SharingSyncAssistant logs." }
     [PSCustomObject]@{ RuleId = "SHR411"; Severity = "Warning"; Title = "Synchronization start is later than folder creation"; Aliases = @("SharedCalendarSyncStartDate is later than the local folder CreationTime."); NextStep = "Inspect invite, accept, and synchronization logs." }
     [PSCustomObject]@{ RuleId = "SHR412"; Severity = "Information"; Title = "Synchronization start is very recent"; Aliases = @("SharedCalendarSyncStartDate is very recent and may reflect backfill or folder recreation context."); NextStep = "Correlate invite, accept, and synchronization logs." }
@@ -281,7 +304,7 @@ $collectorNames = @(
     "OwnerMailbox", "ReceiverMailbox", "OwnerFolderStatistics", "ReceiverFolderStatistics",
     "OwnerCalendarPermissions", "OwnerMailboxPermissions", "OwnerInviteLog", "OwnerCalendarFolder",
     "ActiveSharing", "ReceiverAcceptLog", "CalendarEntries", "ReceiverLocalCalendarFolder",
-    "InternetCalendar"
+    "InternetCalendar", "ReceiverSharingSyncAssistantLog", "ReceiverSharingLog"
 )
 foreach ($collectorName in $collectorNames) {
     $script:CollectorStatuses[$collectorName] = [PSCustomObject]@{
@@ -440,6 +463,8 @@ function ConvertTo-SharingEvidence {
                 $sanitizedEvidence[$property.Name] = "Receiver"
             } elseif ($property.Name -match "(?i)identity|email|smtp|displayName") {
                 $sanitizedEvidence[$property.Name] = Get-SanitizedSharingIdentity -Identity $property.Value
+            } elseif ($property.Name -match "(?i)(SyncTime|SyncStartDate|EntryUtc)$") {
+                $sanitizedEvidence[$property.Name] = $property.Value
             } elseif ($property.Value -is [string]) {
                 $sanitizedEvidence[$property.Name] = if ($property.Name -in @("reason", "source", "mailboxRole", "fieldName")) {
                     $boundedValue = $property.Value -replace '[\r\n\t]+', ' '
@@ -659,7 +684,7 @@ function Complete-SharingFindings {
     $ruleCollectors = @{
         SHR100 = @("OwnerMailbox"); SHR101 = @("OwnerMailbox")
         SHR110 = @("OwnerFolderStatistics"); SHR111 = @("OwnerCalendarPermissions")
-        SHR112 = @("OwnerFolderStatistics")
+        SHR112 = @("OwnerFolderStatistics"); SHR113 = @("OwnerFolderStatistics")
         SHR430 = @("OwnerFolderStatistics"); SHR431 = @("OwnerFolderStatistics")
         SHR120 = @("OwnerCalendarFolder"); SHR121 = @("OwnerCalendarFolder"); SHR122 = @("OwnerCalendarFolder")
         SHR123 = @("OwnerCalendarFolder")
@@ -667,7 +692,7 @@ function Complete-SharingFindings {
         SHR200 = @("ReceiverMailbox"); SHR201 = @("ReceiverMailbox")
         SHR210 = @("ReceiverFolderStatistics"); SHR211 = @("ReceiverFolderStatistics")
         SHR212 = @("ReceiverFolderStatistics"); SHR213 = @("ReceiverFolderStatistics")
-        SHR214 = @("ReceiverFolderStatistics")
+        SHR214 = @("ReceiverFolderStatistics"); SHR215 = @("ReceiverFolderStatistics")
         SHR220 = @("ReceiverAcceptLog")
         SHR230 = @("CalendarEntries"); SHR231 = @("CalendarEntries")
         SHR232 = @("CalendarEntries"); SHR233 = @("CalendarEntries")
@@ -681,6 +706,8 @@ function Complete-SharingFindings {
         SHR323 = @("ActiveSharing", "ReceiverLocalCalendarFolder")
         SHR400 = @("ReceiverLocalCalendarFolder"); SHR401 = @("ReceiverLocalCalendarFolder")
         SHR402 = @("ReceiverLocalCalendarFolder"); SHR403 = @("ReceiverLocalCalendarFolder")
+        SHR404 = @("ReceiverSharingSyncAssistantLog"); SHR405 = @("ReceiverSharingSyncAssistantLog")
+        SHR406 = @("ReceiverSharingLog"); SHR407 = @("ReceiverSharingLog")
         SHR410 = @("ReceiverLocalCalendarFolder")
         SHR411 = @("ReceiverLocalCalendarFolder"); SHR412 = @("ReceiverLocalCalendarFolder")
         SHR413 = @("ReceiverLocalCalendarFolder"); SHR420 = @("InternetCalendar")
@@ -772,18 +799,23 @@ function Complete-SharingFindings {
     foreach ($rule in $script:SharingRuleCatalog) {
         if ($script:SharingFindingRuleIds.Add($rule.RuleId)) {
             $status = "NotDetected"
+            $reason = $null
             if ($script:LegacyMapiSharing -and
                 ($rule.RuleId -in $script:ModernSharingRuleIds)) {
                 $status = "NotApplicable"
+                $reason = "The relationship uses legacy MAPI sharing, so this Modern Sharing rule does not apply."
             } elseif ($script:PublishedSharing -and
                 ($rule.RuleId -in $script:ModernSharingRuleIds)) {
                 $status = "NotApplicable"
+                $reason = "The receiver uses a published calendar subscription, so this Modern Sharing rule does not apply."
             } elseif (($rule.RuleId -in @("SHR421", "SHR422", "SHR423")) -and
                 (-not $script:PublishedSharing)) {
                 $status = "NotApplicable"
+                $reason = "The relationship is not a published calendar subscription."
             } elseif (($rule.RuleId -eq "SHR420") -and
                 (-not $script:OwnerPublished)) {
                 $status = "NotApplicable"
+                $reason = "The owner calendar is not published."
             } elseif ($ruleCollectors.ContainsKey($rule.RuleId)) {
                 $requiredCollectorStatuses = @($ruleCollectors[$rule.RuleId] | ForEach-Object {
                         $script:CollectorStatuses[$_].status
@@ -793,6 +825,7 @@ function Complete-SharingFindings {
                     $status = "NotDetected"
                 } elseif (@($requiredCollectorStatuses | Where-Object { $_ -ne "Success" }).Count -gt 0) {
                     $status = "NotEvaluated"
+                    $reason = "Required evidence was unavailable: $((@($ruleCollectors[$rule.RuleId]) | Where-Object { $script:CollectorStatuses[$_].status -ne 'Success' }) -join ', ')."
                 }
             }
             if (($rule.RuleId -eq "SHR432") -and
@@ -800,6 +833,11 @@ function Complete-SharingFindings {
                 (-not $script:PublishedSharing) -and
                 (-not $script:CalendarStatisticsComparisonPerformed)) {
                 $status = "NotEvaluated"
+                $reason = "The owner and receiver statistics comparison was not performed."
+            }
+            if (($rule.RuleId -in @("SHR408", "SHR409")) -and (-not $script:SharingLogScanPerformed)) {
+                $status = "NotEvaluated"
+                $reason = "The sharing logs were not scanned."
             }
             $receiverFolderMissing = (
                 $script:CollectorStatuses["ReceiverFolderStatistics"].status -eq "Success" -and
@@ -810,34 +848,60 @@ function Complete-SharingFindings {
                     "SHR400", "SHR401", "SHR402", "SHR403", "SHR410",
                     "SHR411", "SHR412", "SHR413")) {
                 $status = "NotApplicable"
+                $reason = "No receiver local calendar folder was matched."
             }
             if ($rule.RuleId -in @("SHR400", "SHR402") -and
                 @($script:SharingFindings | Where-Object {
                         $_.ruleId -eq "SHR401" -and $_.status -eq "NotEvaluated"
                     }).Count -gt 0) {
                 $status = "NotEvaluated"
+                $reason = "The periodic synchronization timestamps are incomplete."
             }
             if ($rule.RuleId -in @("SHR410", "SHR411", "SHR412") -and
                 @($script:SharingFindings | Where-Object {
                         $_.ruleId -eq "SHR413" -and $_.status -eq "Detected"
                     }).Count -gt 0) {
                 $status = "NotApplicable"
+                $reason = "The synchronization start date is unavailable."
             } elseif ($rule.RuleId -in @("SHR411", "SHR412") -and
                 @($script:SharingFindings | Where-Object {
                         $_.ruleId -eq "SHR410" -and $_.status -in @("Detected", "NotEvaluated")
                     }).Count -gt 0) {
                 $status = "NotEvaluated"
+                $reason = "The synchronization start date could not be interpreted."
             }
             $script:SharingFindings.Add([PSCustomObject]@{
                     ruleId              = $rule.RuleId
                     severity            = $rule.Severity
                     status              = $status
                     title               = $rule.Title
-                    evidence            = @{}
+                    evidence            = $(if ($null -ne $reason) { @{ reason = $reason } } else { @{} })
                     recommendedNextStep = $rule.NextStep
                     area                = $null
                 })
         }
+    }
+}
+
+function Register-SharingOutboxCalendar {
+    param(
+        [Parameter(Mandatory)]
+        [ValidateSet("Owner", "Receiver")]
+        [string]$Role,
+
+        [Parameter(Mandatory)]
+        [string]$FolderName
+    )
+
+    $ruleId = if ($Role -eq "Owner") { "SHR113" } else { "SHR215" }
+    if ($script:SharingFindingRuleIds.Contains($ruleId)) {
+        return
+    }
+
+    Write-Host -ForegroundColor Red "Warning: The $Role calendar [$FolderName] has been renamed Outbox. This is a known issue; escalate to Microsoft Support."
+    Add-SharingFinding -RuleId $ruleId -Status Detected -Area "$Role calendar naming" -Evidence @{
+        mailboxRole = $Role
+        folderName  = $FolderName
     }
 }
 
@@ -1078,6 +1142,11 @@ function Resolve-OwnerCalendarPrerequisite {
         -CalendarRootName $script:OwnerCalendarRootName `
         -FolderPath $ownerCalendarStat.FolderPath.ToString()
     $script:OwnerCalendarLeafName = $ownerCalendarStat.Name
+    foreach ($ownerNamedCalendar in @($script:OwnerCalendarStats)) {
+        if (($null -ne $ownerNamedCalendar) -and (Test-SharingOutboxFolderName -Name $ownerNamedCalendar.Name)) {
+            Register-SharingOutboxCalendar -Role Owner -FolderName ([string]$ownerNamedCalendar.Name)
+        }
+    }
     if ($script:OwnerCalendarFolderPathSpecified -and
         ($ownerCalendarStat.FolderType -ne "Calendar")) {
         $script:OwnerCalendarLeafNameCandidate = $ownerCalendarStat.Name
@@ -1158,7 +1227,7 @@ function ProcessCalendarSharingInviteLogs {
     )
 
     # Define the header row
-    $header = "Timestamp", "Mailbox", "Entry MailboxOwner", "Recipient", "RecipientType", "SharingType", "DetailLevel"
+    $header = "Timestamp", "Mailbox", "MailboxOwner", "Recipient", "RecipientType", "SharingType", "DetailLevel"
     $csvString = @()
     $csvString = $header -join ","
     $csvString += "`n"
@@ -1185,6 +1254,7 @@ function ProcessCalendarSharingInviteLogs {
     }
 
     # Split the output into an array of lines
+    $script:OwnerInviteLogRaw = [string]$logOutput.MailboxLog
     $logLines = $logOutput.MailboxLog -split "`r`n"
 
     # Loop through each line of the output
@@ -1197,6 +1267,7 @@ function ProcessCalendarSharingInviteLogs {
     # Clean up output
     $csvString = $csvString.Replace("Mailbox: ", "")
     $csvString = $csvString.Replace("Entry MailboxOwner:", "")
+    $csvString = $csvString.Replace("'", "")
     $csvString = $csvString.Replace("Recipient:", "")
     $csvString = $csvString.Replace("RecipientType:", "")
     $csvString = $csvString.Replace("Handler=", "")
@@ -1280,6 +1351,7 @@ function ProcessCalendarSharingAcceptLogs {
     }
 
     # Split the output into an array of lines
+    $script:ReceiverAcceptLogRaw = [string]$logOutput.MailboxLog
     $logLines = $logOutput.MailboxLog -split "`r`n"
 
     $acceptLogEntryPattern = '^\s*\d{1,2}/\d{1,2}/\d{4}\s+\d{1,2}:\d{2}:\d{2}(?:\s+[AP]M)?,'
@@ -1362,8 +1434,8 @@ function ProcessCalendarSharingAcceptLogs {
     } else {
         Write-Host "Receiver [$Identity] has accepted copies of the shared calendar from the following recipients in the last 180 days:"
     }
-    # Try to determine date format by examining timestamps (updated to deal with 2/6/2026 5:20:07 PM)
-    $culture = [System.Globalization.CultureInfo]::CreateSpecificCulture("en-US")
+    # Determine the date layout by examining timestamps (a first value above 12 means day-first, for example 15/10/2026 13:44:31).
+    $preferDayFirst = $false
     foreach ($entry in $csvObject) {
         $timestamp = $entry.Timestamp
         if ([string]::IsNullOrEmpty($timestamp)) { continue }
@@ -1378,27 +1450,26 @@ function ProcessCalendarSharingAcceptLogs {
         if ([int]::TryParse($firstValue, [ref]$valueToTest)) {
             if ($valueToTest -gt 12) {
                 Write-Verbose "Looks like European DateTime Format - dd/MM/yyyy HH:mm:ss"
-                $culture = [System.Globalization.CultureInfo]::CreateSpecificCulture("en-GB")
+                $preferDayFirst = $true
                 break
             }
         }
     }
 
-    $entriesToDisplay = @()
-    try {
-        $cutoffDate = (Get-Date).AddDays(-180)
-        $entriesToDisplay = @($displayCsvObject | Where-Object {
-                [DateTime]::Parse($_.Timestamp, $culture) -gt $cutoffDate
-            })
-    } catch {
-        $errorInfo = ConvertTo-SharingErrorInfo -ErrorRecord $_
-        $script:EvaluationErrors.Add([PSCustomObject]@{
-                evaluation = "Receiver accept-log timestamp parsing"
-                error      = $errorInfo
-            })
-        Write-Error "Error parsing dates in the log entries.  Outputting all entries without date filtering."
-        Add-SharingFinding -Severity Warning -Area "AcceptCalendarSharingInvite" -Issue "Accept-log timestamps could not be parsed." -Evidence $_.Exception.Message -RecommendedNextStep "Inspect the raw AcceptCalendarSharingInvite logs and their timestamp culture." -Incomplete
-        $entriesToDisplay = @($displayCsvObject)
+    $unparsedTimestamps = [System.Collections.Generic.List[string]]::new()
+    $cutoffDate = (Get-Date).AddDays(-180)
+    $entriesToDisplay = @($displayCsvObject | Where-Object {
+            $entryTimestamp = ConvertTo-CalendarDiagnosticLogDateTime -Text $_.Timestamp -PreferDayFirst:$preferDayFirst
+            if ($null -eq $entryTimestamp) {
+                # Keep entries that cannot be dated so evidence is not hidden.
+                $unparsedTimestamps.Add([string]$_.Timestamp)
+                return $true
+            }
+            return ($entryTimestamp -gt $cutoffDate)
+        })
+    if ($unparsedTimestamps.Count -gt 0) {
+        Write-Warning "$($unparsedTimestamps.Count) accept-log timestamp(s) could not be parsed. Those entries are shown without date filtering."
+        Add-SharingFinding -Severity Warning -Area "AcceptCalendarSharingInvite" -Issue "Accept-log timestamps could not be parsed." -Evidence "Unparsed timestamps: [$(($unparsedTimestamps | Select-Object -Unique -First 5) -join '; ')]." -RecommendedNextStep "Inspect the raw AcceptCalendarSharingInvite logs and their timestamp culture." -Incomplete
     }
     $entriesToDisplay | Format-Table -a Timestamp, SharedCalendarOwner, FolderName
 }
@@ -1681,6 +1752,7 @@ function GetOwnerInformation {
             return
         }
         $script:OwnerActiveSharingAvailable = $true
+        $script:OwnerActiveSharees = @($OwnerActiveSharingInfo.ActiveShareesDataSet.Sharees)
         if ($OwnerActiveSharingInfo.ActiveShareesDataSet.Sharees.count -gt 0) {
             Write-Host -ForegroundColor Green "`t Calendar has [$($OwnerActiveSharingInfo.ActiveShareesDataSet.Sharees.count)] Active Receivers."
             $receivers = $OwnerActiveSharingInfo.ActiveShareesDataSet.Sharees | ForEach-Object {
@@ -1777,6 +1849,7 @@ function GetReceiverInformation {
         $receiverFolderStatsAvailable = $false
     }
     $CalStats | Format-Table -a FolderPath, VisibleItemsInFolder, FolderAndSubfolderSize
+    $script:ReceiverFolderStatistics = @($CalStats)
     $receiverDuplicateStyleFolders = Get-DuplicateStyleCalendarFolders -FolderStatistics $CalStats
     if ($receiverDuplicateStyleFolders.Count -gt 0) {
         Write-Host -ForegroundColor Yellow "Warning: Receiver calendar folders ending in a one- or two-digit numeric suffix may be duplicate folders."
@@ -1802,6 +1875,11 @@ function GetReceiverInformation {
         Where-Object -Property FolderType -EQ "Calendar" |
         Select-Object -First 1
     $ReceiverCalendarName = $receiverDefaultCalendar.Name
+    foreach ($receiverNamedCalendar in @($CalStats)) {
+        if (($null -ne $receiverNamedCalendar) -and (Test-SharingOutboxFolderName -Name $receiverNamedCalendar.Name)) {
+            Register-SharingOutboxCalendar -Role Receiver -FolderName ([string]$receiverNamedCalendar.Name)
+        }
+    }
     if ($receiverFolderStatsAvailable -and ($null -eq $receiverDefaultCalendar)) {
         Add-SharingFinding -RuleId "SHR201" -Status NotEvaluated -Evidence @{
             reason = "The receiver default calendar could not be identified."
@@ -1947,6 +2025,7 @@ function GetReceiverInformation {
             }
 
             Write-Host -ForegroundColor Cyan "`r`r`r------------------------------------------------"
+            $script:ReceiverCalendarEntries = @($ReceiverCalEntries)
             Write-Host "New Model Calendar Sharing Entries:"
             $ReceiverCalEntries | Where-Object SharingModelType -Like New | Format-Table CalendarGroupName, CalendarName, OwnerEmailAddress, SharingModelType, IsOrphanedEntry
             $pairNewEntries = @($ReceiverCalEntries | Where-Object -FilterScript {
@@ -2151,6 +2230,7 @@ function GetReceiverInformation {
             }
             Write-Host "Running cmdlet:"
             $receiverFolderIdentity = Get-ReceiverFolderIdentity -Receiver $Receiver -ReceiverCalendarName $ReceiverCalendarName -FolderPath $script:ReceiverMatchedCalendar.FolderPath.ToString()
+            $script:ReceiverLocalCalendarFolderIdentity = $receiverFolderIdentity
             Write-Host -NoNewline -ForegroundColor Yellow "Get-MailboxCalendarFolder -Identity `"$receiverFolderIdentity`""
             $MBCalFolder = $null
             try {
@@ -2158,6 +2238,7 @@ function GetReceiverInformation {
                     Get-MailboxCalendarFolder -Identity $receiverFolderIdentity -ErrorAction Stop
                 }
                 $MBCalFolder | Format-List Identity, CreationTime, ExtendedFolderFlags, CalendarSharingFolderFlags, CalendarSharingOwnerSmtpAddress, CalendarSharingPermissionLevel, SharingLevelOfDetails, SharingPermissionFlags, LastAttemptedSyncTime, LastSuccessfulSyncTime, SharedCalendarSyncStartDate
+                $script:ReceiverLocalCalendarFolder = $MBCalFolder
 
                 $receiverExtendedFolderFlags = ConvertTo-NormalizedFolderFlags -Flags @($MBCalFolder.ExtendedFolderFlags)
                 if ($receiverExtendedFolderFlags -notcontains "SharedIn") {
@@ -2179,26 +2260,28 @@ function GetReceiverInformation {
                 $successfulSyncTimeUninitialized = Test-UninitializedCalendarDate -Value $lastSuccessfulSyncTime
                 $syncStartDate = $MBCalFolder.SharedCalendarSyncStartDate -as [DateTime]
                 $syncStartDateUninitialized = Test-UninitializedCalendarDate -Value $syncStartDate
-                $neverSynchronized = $attemptedSyncTimeUninitialized -and $successfulSyncTimeUninitialized
+                $neverSynchronized = $successfulSyncTimeUninitialized
 
                 if ($neverSynchronized) {
-                    Write-Host -ForegroundColor Red "The selected receiver calendar appears never to have synchronized. LastAttemptedSyncTime and LastSuccessfulSyncTime contain uninitialized year-1 values."
+                    if ($attemptedSyncTimeUninitialized) {
+                        Write-Host -ForegroundColor Red "The selected receiver calendar appears never to have synchronized. LastAttemptedSyncTime and LastSuccessfulSyncTime contain uninitialized year-1 values."
+                    } else {
+                        Write-Host -ForegroundColor Red "This calendar has never successfully synchronized (LastSuccessfulSyncTime is uninitialized). The most recent attempt was at [$lastAttemptedSyncTime]."
+                    }
                     Add-SharingFinding -RuleId "SHR403" -Status Detected -Area "Periodic synchronization" -Evidence @{
                         attemptedSyncTimeUninitialized  = $attemptedSyncTimeUninitialized
+                        lastAttemptedSyncTime           = $(if ($attemptedSyncTimeUninitialized -or ($null -eq $lastAttemptedSyncTime)) { $null } else { $lastAttemptedSyncTime.ToString("o") })
                         successfulSyncTimeUninitialized = $successfulSyncTimeUninitialized
                         syncStartDateUninitialized      = $syncStartDateUninitialized
                     }
                     foreach ($ruleId in @("SHR400", "SHR402", "SHR410", "SHR411", "SHR412")) {
                         Add-SharingFinding -RuleId $ruleId -Status NotApplicable -Evidence @{
-                            reason = "The selected receiver calendar has never synchronized."
+                            reason = "The selected receiver calendar has never successfully synchronized."
                         }
                     }
                 } else {
                     if ($attemptedSyncTimeUninitialized) {
                         $lastAttemptedSyncTime = $null
-                    }
-                    if ($successfulSyncTimeUninitialized) {
-                        $lastSuccessfulSyncTime = $null
                     }
                     $bothSyncTimesStale = ($null -ne $lastAttemptedSyncTime) -and
                     ($null -ne $lastSuccessfulSyncTime) -and
@@ -2273,13 +2356,13 @@ function GetReceiverInformation {
                 if (($null -ne $ownerPermission) -and
                     ($ownerSharingFlags.Count -gt 0) -and
                     ($receiverSharingFlags.Count -gt 0) -and
-                    (($ownerSharingFlags -join ",") -ne ($receiverSharingFlags -join ","))) {
+                    (Test-SharingPermissionFlagsDiffer -FirstFlags $ownerSharingFlags -SecondFlags $receiverSharingFlags)) {
                     Add-SharingFinding -Severity Warning -Area "Pair permission configuration" -Issue "Owner and receiver sharing permission flags differ." -Evidence "Owner flags=[$($ownerSharingFlags -join ', ')]; receiver flags=[$($receiverSharingFlags -join ', ')]." -RecommendedNextStep "Compare the pair configuration with SharingPolicyAssistant or calendar-sharing validator diagnostics."
                 }
                 if (($null -ne $script:OwnerActiveReceiver) -and
                     ($activeSharingFlags.Count -gt 0) -and
                     ($receiverSharingFlags.Count -gt 0) -and
-                    (($activeSharingFlags -join ",") -ne ($receiverSharingFlags -join ","))) {
+                    (Test-SharingPermissionFlagsDiffer -FirstFlags $activeSharingFlags -SecondFlags $receiverSharingFlags)) {
                     Add-SharingFinding -Severity Warning -Area "Pair permission configuration" -Issue "Active-sharing and receiver-folder permission flags differ." -Evidence "Active relationship flags=[$($activeSharingFlags -join ', ')]; receiver flags=[$($receiverSharingFlags -join ', ')]." -RecommendedNextStep "Compare the pair configuration with SharingPolicyAssistant or calendar-sharing validator diagnostics."
                 }
             } catch {
@@ -2414,6 +2497,200 @@ function Write-SharingSummary {
     }
 }
 
+function Test-ReceiverSharingLogFreshness {
+    $logChecks = @(
+        @{ Key = "receiver_SharingSyncAssistantLog"; Component = "SharingSyncAssistant"; Collector = "ReceiverSharingSyncAssistantLog"; WarningRule = "SHR404"; ErrorRule = "SHR405" }
+        @{ Key = "receiver_SharingLog"; Component = "Sharing"; Collector = "ReceiverSharingLog"; WarningRule = "SHR406"; ErrorRule = "SHR407" }
+    )
+    $nowUtc = (Get-Date).ToUniversalTime()
+    foreach ($logCheck in $logChecks) {
+        $component = $logCheck.Component
+        $source = "Export-MailboxDiagnosticLogs -Identity $Receiver -ComponentName $component"
+        $logEntry = [ordered]@{ source = $source; status = "NotCollected"; error = $null; omittedOlderThanOneYear = 0; data = $null }
+        $script:SharingDiagnosticLogs[$logCheck.Key] = $logEntry
+
+        Write-Host -ForegroundColor Cyan "Checking the receiver $component log: $source"
+        try {
+            $logOutput = Invoke-SharingCollector -Name $logCheck.Collector -Action {
+                Export-MailboxDiagnosticLogs -Identity $Receiver -ComponentName $component
+            } -AllowNull
+        } catch {
+            $logEntry.status = "Failed"
+            $logEntry.error = (ConvertTo-CalendarDiagnosticErrorInfo -ErrorRecord $_).message
+            Write-Warning "Unable to collect the $component log for [$Receiver]: $($logEntry.error)"
+            continue
+        }
+
+        if ([string]::IsNullOrEmpty([string]$logOutput.MailboxLog)) {
+            $script:CollectorStatuses[$logCheck.Collector] = [PSCustomObject]@{ status = "NoData"; error = $null }
+            $logEntry.status = "NoData"
+            Write-Host -ForegroundColor Yellow "The receiver $component log has no entries, so its freshness cannot be evaluated."
+            continue
+        }
+
+        $logLines = @(([string]$logOutput.MailboxLog) -split "\r?\n")
+        $recentLog = ConvertTo-SharingLogLines -Text ([string]$logOutput.MailboxLog) -ReferenceTimeUtc $nowUtc
+        $logEntry.status = "Collected"
+        $logEntry.data = $recentLog.Line
+        $logEntry.omittedOlderThanOneYear = $recentLog.OmittedOlderThanOneYear
+        $latestEntry = Get-CalendarDiagnosticLogLatestTimestamp -Line $logLines -ReferenceTimeUtc $nowUtc
+        if ($null -eq $latestEntry) {
+            Write-Host -ForegroundColor Yellow "No parseable timestamps were found in the receiver $component log, so its freshness cannot be evaluated."
+            foreach ($ruleId in @($logCheck.WarningRule, $logCheck.ErrorRule)) {
+                Add-SharingFinding -RuleId $ruleId -Status NotEvaluated -Evidence @{
+                    reason = "No parseable timestamps were found in the log."
+                }
+            }
+            continue
+        }
+
+        $age = $nowUtc - $latestEntry
+        $ageText = "$([math]::Floor($age.TotalDays)) days $($age.Hours) hours"
+        $evidence = @{
+            latestEntryUtc = $latestEntry.ToString("o")
+            ageHours       = [math]::Round($age.TotalHours, 1)
+        }
+        if ($age.TotalDays -gt 7) {
+            Write-Host -ForegroundColor Red "Error: The latest receiver $component log entry is $latestEntry UTC ($ageText ago), more than 7 days old."
+            Add-SharingFinding -RuleId $logCheck.ErrorRule -Status Detected -Area "Receiver $component log" -Evidence $evidence
+            Add-SharingFinding -RuleId $logCheck.WarningRule -Status NotApplicable -Evidence @{
+                reason = "Superseded by $($logCheck.ErrorRule): the latest entry is more than 7 days old."
+            }
+        } elseif ($age.TotalHours -gt 24) {
+            Write-Host -ForegroundColor Yellow "Warning: The latest receiver $component log entry is $latestEntry UTC ($ageText ago), more than 24 hours old."
+            Add-SharingFinding -RuleId $logCheck.WarningRule -Status Detected -Area "Receiver $component log" -Evidence $evidence
+        } else {
+            Write-Host -ForegroundColor Green "The latest receiver $component log entry is $latestEntry UTC ($ageText ago)."
+        }
+    }
+}
+
+function Get-SharingDiagnosticLogs {
+    $logRequests = @(
+        @{ Key = "receiver_SharingSyncAssistantLog"; Identity = $Receiver; Component = "SharingSyncAssistant"; Mailbox = $script:ReceiverMB }
+        @{ Key = "receiver_SharingLog"; Identity = $Receiver; Component = "Sharing"; Mailbox = $script:ReceiverMB }
+    )
+    foreach ($logRequest in $logRequests) {
+        if ($script:SharingDiagnosticLogs.Contains($logRequest.Key)) {
+            # The receiver logs are already collected by the freshness check.
+            continue
+        }
+
+        $source = "Export-MailboxDiagnosticLogs -Identity $($logRequest.Identity) -ComponentName $($logRequest.Component)"
+        $logEntry = [ordered]@{ source = $source; status = "NotCollected"; error = $null; omittedOlderThanOneYear = 0; data = $null }
+        $script:SharingDiagnosticLogs[$logRequest.Key] = $logEntry
+        if ($null -eq $logRequest.Mailbox) {
+            $logEntry.error = "The mailbox was not resolved, so the log was not collected."
+            continue
+        }
+
+        Write-Host -ForegroundColor Cyan "Collecting the $($logRequest.Component) log: $source"
+        try {
+            $logOutput = Export-MailboxDiagnosticLogs -Identity $logRequest.Identity -ComponentName $logRequest.Component
+            if ([string]::IsNullOrEmpty([string]$logOutput.MailboxLog)) {
+                $logEntry.status = "NoData"
+            } else {
+                $recentLog = ConvertTo-SharingLogLines -Text ([string]$logOutput.MailboxLog)
+                $logEntry.status = "Collected"
+                $logEntry.data = $recentLog.Line
+                $logEntry.omittedOlderThanOneYear = $recentLog.OmittedOlderThanOneYear
+            }
+        } catch {
+            $logEntry.status = "Failed"
+            $logEntry.error = (ConvertTo-CalendarDiagnosticErrorInfo -ErrorRecord $_).message
+            Write-Warning "Unable to collect the $($logRequest.Component) log for [$($logRequest.Identity)]: $($logEntry.error)"
+        }
+    }
+}
+
+function Test-SharingLogExceptions {
+    $nowUtc = (Get-Date).ToUniversalTime()
+    $scannedLogs = [System.Collections.Generic.List[object]]::new()
+    foreach ($rawLog in @(
+            @{ Label = "Owner CalendarSharingInvite"; Text = $script:OwnerInviteLogRaw }
+            @{ Label = "Receiver AcceptCalendarSharingInvite"; Text = $script:ReceiverAcceptLogRaw }
+        )) {
+        if (-not [string]::IsNullOrEmpty($rawLog.Text)) {
+            $recentLog = ConvertTo-SharingLogLines -Text $rawLog.Text -ReferenceTimeUtc $nowUtc
+            $scannedLogs.Add(@{ Label = $rawLog.Label; Line = @($recentLog.Line) })
+        }
+    }
+    foreach ($diagnosticLog in @(
+            @{ Key = "receiver_SharingSyncAssistantLog"; Label = "Receiver SharingSyncAssistant" }
+            @{ Key = "receiver_SharingLog"; Label = "Receiver Sharing" }
+        )) {
+        $logEntry = $script:SharingDiagnosticLogs[$diagnosticLog.Key]
+        if (($null -ne $logEntry) -and ($null -ne $logEntry.data)) {
+            $scannedLogs.Add(@{ Label = $diagnosticLog.Label; Line = @($logEntry.data) })
+        }
+    }
+
+    $quotaPattern = "NamedPropsQuotaExceeded"
+    $exceptionPattern = "(?<Type>[A-Za-z][A-Za-z0-9_]*Exception)\b"
+    $quotaLogs = [System.Collections.Generic.List[string]]::new()
+    $exceptionLogs = [System.Collections.Generic.List[string]]::new()
+    $exceptionTypes = [System.Collections.Generic.HashSet[string]]::new()
+    $quotaCount = 0
+    $exceptionCount = 0
+    $latestQuota = $null
+    $latestException = $null
+    foreach ($scannedLog in $scannedLogs) {
+        $lineTimestamps = Get-CalendarDiagnosticLogLineTimestamp -Line $scannedLog.Line -ReferenceTimeUtc $nowUtc
+        $currentTimestamp = $null
+        for ($index = 0; $index -lt $scannedLog.Line.Count; $index++) {
+            $logLine = [string]$scannedLog.Line[$index]
+            if ($null -ne $lineTimestamps[$index]) {
+                $currentTimestamp = $lineTimestamps[$index]
+            }
+
+            if ($logLine -match $quotaPattern) {
+                $quotaCount++
+                if (-not $quotaLogs.Contains($scannedLog.Label)) {
+                    $quotaLogs.Add($scannedLog.Label)
+                }
+                if (($null -ne $currentTimestamp) -and (($null -eq $latestQuota) -or ($currentTimestamp -gt $latestQuota))) {
+                    $latestQuota = $currentTimestamp
+                }
+            } elseif (($logLine -match $exceptionPattern) -or
+                ($logLine -match "\[EX, [^\];\s][^\]]*\]") -or
+                ($logLine -match "numberOfFailures: [1-9]")) {
+                $exceptionCount++
+                if (-not $exceptionLogs.Contains($scannedLog.Label)) {
+                    $exceptionLogs.Add($scannedLog.Label)
+                }
+                foreach ($exceptionMatch in [regex]::Matches($logLine, $exceptionPattern)) {
+                    $null = $exceptionTypes.Add($exceptionMatch.Groups["Type"].Value)
+                }
+                if (($null -ne $currentTimestamp) -and (($null -eq $latestException) -or ($currentTimestamp -gt $latestException))) {
+                    $latestException = $currentTimestamp
+                }
+            }
+        }
+    }
+    $script:SharingLogScanPerformed = $true
+
+    if ($quotaCount -gt 0) {
+        Write-Host -ForegroundColor Red "Error: The sharing logs contain [$quotaCount] named property quota exceptions (MapiExceptionNamedPropsQuotaExceeded) in: $($quotaLogs -join ', '). Escalate to Microsoft Support."
+        Add-SharingFinding -RuleId "SHR408" -Status Detected -Area "Sharing logs" -Evidence @{
+            quotaExceptionCount = $quotaCount
+            affectedLogs        = @($quotaLogs)
+            latestEntryUtc      = $(if ($null -ne $latestQuota) { $latestQuota.ToString("o") } else { $null })
+        }
+    }
+    if ($exceptionCount -gt 0) {
+        Write-Host -ForegroundColor Yellow "Warning: The sharing logs contain [$exceptionCount] exception entries in: $($exceptionLogs -join ', ')."
+        Add-SharingFinding -RuleId "SHR409" -Status Detected -Area "Sharing logs" -Evidence @{
+            exceptionCount = $exceptionCount
+            exceptionTypes = @($exceptionTypes | Sort-Object)
+            affectedLogs   = @($exceptionLogs)
+            latestEntryUtc = $(if ($null -ne $latestException) { $latestException.ToString("o") } else { $null })
+        }
+    }
+    if (($quotaCount -eq 0) -and ($exceptionCount -eq 0)) {
+        Write-Host -ForegroundColor Green "No exceptions were found in the sharing logs from the last year."
+    }
+}
+
 function Invoke-SharingDiagnostics {
     if ($null -ne $script:FatalPrerequisiteFailure) {
         Write-SharingSummary -Owner $Owner -Receiver $Receiver
@@ -2459,6 +2736,17 @@ function Invoke-SharingDiagnostics {
             ProcessInternetCalendarLogs -Identity $Receiver
         }
     }
+    if ($script:ModernSharing) {
+        Invoke-SharingEvaluation -Name "Receiver sharing log freshness" -RuleIds @("SHR404", "SHR405", "SHR406", "SHR407") -Action {
+            Test-ReceiverSharingLogFreshness
+        }
+    }
+    Invoke-SharingEvaluation -Name "Sharing log collection" -Action {
+        Get-SharingDiagnosticLogs
+    }
+    Invoke-SharingEvaluation -Name "Sharing log exception scan" -RuleIds @("SHR408", "SHR409") -Action {
+        Test-SharingLogExceptions
+    }
 
     Write-SharingSummary -Owner $Owner -Receiver $Receiver
 }
@@ -2475,3 +2763,16 @@ $script:SharingType = $null
 $script:OwnerMB = $null
 $script:ReceiverMB = $null
 Invoke-SharingDiagnostics
+
+if (-not $SkipJsonOutput) {
+    try {
+        $ownerFileStem = ConvertTo-CalendarDiagnosticFileNameStem -Value $Owner
+        $receiverFileStem = ConvertTo-CalendarDiagnosticFileNameStem -Value $Receiver
+        $jsonFilename = "Sharing-Status-For_$ownerFileStem`_And_$receiverFileStem`_$($script:RunStartedAt.ToString('yyyy-MM-dd_HH-mm-ss')).json"
+        Write-SharingJsonReport -Path $jsonFilename
+        Write-Host -ForegroundColor Cyan "`r`nSharing JSON Output saved as [$jsonFilename] in the current directory."
+    } catch {
+        $errorInfo = ConvertTo-CalendarDiagnosticErrorInfo -ErrorRecord $_
+        Write-Warning "Unable to write Sharing JSON output: $($errorInfo.message)"
+    }
+}
