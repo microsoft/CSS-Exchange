@@ -1,6 +1,6 @@
 # Check-SharingStatus
 
-<!-- cSpell:ignore Sharee -->
+<!-- cSpell:ignore Sharee Sharees -->
 
 Download the latest release: [Check-SharingStatus.ps1](https://github.com/microsoft/CSS-Exchange/releases/latest/download/Check-SharingStatus.ps1)
 
@@ -10,7 +10,7 @@ The script is intended to establish whether the sharing relationship is configur
 
 ## Source layout
 
-The development entry script loads sharing-specific path and identity utilities from `Calendar/Helpers` and output functions from `Calendar/Writers`. Permission identity and error normalization use the same `Calendar/CalendarHelpers/CalendarDiagnosticHelpers.ps1` infrastructure as RBA diagnostics. Sharing-specific error redaction, finding schemas, and collection failure behavior remain unchanged. The release build embeds the dependencies into the standalone script; users do not need to download the helper files separately.
+The development entry script loads sharing-specific path and identity utilities from `Calendar/Helpers` and output functions (including the JSON report writer) from `Calendar/Writers`. Permission identity, error normalization, log timestamp parsing, and JSON file writing use the same `Calendar/CalendarHelpers/CalendarDiagnosticHelpers.ps1` infrastructure as RBA diagnostics, and the Exchange Online connection check uses `Calendar/CalendarHelpers/Test-CalendarExoConnection.ps1`. Sharing-specific error redaction, finding schemas, and collection failure behavior remain unchanged. The release build embeds the dependencies into the standalone script; users do not need to download the helper files separately.
 
 ## Terminology
 
@@ -45,7 +45,7 @@ After those prerequisites succeed, unavailable evidence generally appears under 
 
 ### Quick start
 
-**Privacy warning:** Console output always contains full-fidelity mailbox and diagnostic values, potentially including other recipients and published-calendar URLs. Treat the output, transcripts, and screenshots as sensitive, even when `-IncludeSensitiveData` is not used.
+**Privacy warning:** Console output always contains full-fidelity mailbox and diagnostic values, potentially including other recipients and published-calendar URLs. Treat the output, transcripts, and screenshots as sensitive, even when `-IncludeSensitiveData` is not used. The JSON report file name and metadata also contain the owner and receiver you supplied.
 
 Check the default owner calendar:
 
@@ -61,10 +61,20 @@ Check a nested owner calendar by supplying its owner-mailbox-relative path:
 
 Start with the final summary. Resolve any fatal prerequisite failure, then review **Detected Issues** and **Incomplete Checks** before interpreting the detailed command output.
 
+### Output files
+
+By default, the script also saves a JSON report to the current directory and prints its name after the summary:
+
+```text
+Sharing-Status-For_<owner>_And_<receiver>_<yyyy-MM-dd_HH-mm-ss>.json
+```
+
+Use the JSON report for automation or to share structured results. Add `-SkipJsonOutput` to skip it. See **JSON report** under **Structured diagnostic model** for the contents.
+
 ### Syntax
 
 ```powershell
-.\Check-SharingStatus.ps1 -Owner <String> -Receiver <String> [-OwnerCalendarFolderPath <String>] [-IncludeSensitiveData]
+.\Check-SharingStatus.ps1 -Owner <String> -Receiver <String> [-OwnerCalendarFolderPath <String>] [-IncludeSensitiveData] [-SkipJsonOutput]
 ```
 
 ### Parameters
@@ -74,7 +84,8 @@ Start with the final summary. Resolve any fatal prerequisite failure, then revie
 | `Owner` | Primary SMTP address of the mailbox that owns and shares the calendar. |
 | `Receiver` | Primary SMTP address of the mailbox that receives the shared calendar. |
 | `OwnerCalendarFolderPath` | Optional owner-mailbox-relative calendar folder path. Slash and backslash separators and an optional leading separator are accepted. Do not include a mailbox identity prefix. When omitted, the folder whose `FolderType` is `Calendar` is selected. |
-| `IncludeSensitiveData` | Retains full-fidelity values in structured in-memory findings and errors. Console output is always full fidelity. |
+| `IncludeSensitiveData` | Retains full-fidelity values in the structured findings, errors, and JSON report, and adds the raw evidence (permissions, mailbox data, and sharing logs) to the JSON `rawData`. Console output is always full fidelity. |
+| `SkipJsonOutput` | Skips writing the JSON report. By default, the script saves a JSON report to the current directory. |
 
 ### Selecting an owner calendar folder
 
@@ -151,7 +162,7 @@ Do not consider the relationship healthy until relevant incomplete checks have b
 - Whether the selected owner-side folder is itself a shared copy owned by another mailbox. If it belongs to the supplied receiver, the script reports that Owner and Receiver appear reversed.
 - Sharing invite logs for the specified receiver.
 - Modern Sharing folder flags, including `SharedOut` and `ExchangeShareFolder`.
-- The specified receiver's active sharing relationship.
+- The specified receiver's active sharing relationship. If the receiver is not in the owner's active sharees (`Get-CalendarActiveSharingInformation`) for a Modern Sharing relationship, the script reports `SHR311` as an error; `SHR321` also reports an owner permission that has no active relationship.
 - Non-default `ActiveShareeFlags`.
 
 ### Receiver
@@ -166,7 +177,7 @@ Do not consider the relationship healthy until relevant incomplete checks have b
 - Orphaned sharing entries.
 - Local folder flags, including `SharedIn` and `ExchangeShareFolder`.
 - `CalendarSharingOwnerSmtpAddress`.
-- Owner, receiver-folder, and active-sharing permission consistency.
+- Owner, receiver-folder, and active-sharing permission consistency. The `Editor` access right is ignored when comparing sharing permission flags (`SHR322` and `SHR323`), because it can appear in only one side's flags even when the pair is configured correctly. A difference in any other flag is still reported.
 - A visible-item comparison between the selected owner calendar and the uniquely matched receiver local folder.
 - Periodic synchronization timestamps.
 - `SharedCalendarSyncStartDate`.
@@ -195,13 +206,17 @@ Owner and receiver naming checks flag terminal one- or two-digit numeric suffixe
 
 Names containing parentheses elsewhere, such as `CUB01-3 McKinley (16-32) Public`, and names ending in three or more digits, such as `Archive (123)`, do not trigger duplicate-style folder warnings.
 
+### Calendars renamed Outbox
+
+A calendar folder named `Outbox` (case-insensitive) in the owner or receiver Calendar folder statistics is a known issue that Microsoft Support must resolve. The script reports `SHR113` for the owner and `SHR215` for the receiver as `Detected` errors, prints a red warning, and recommends escalating to Microsoft Support before further troubleshooting. Other calendar names are not affected.
+
 ### Accept-log history
 
 The receiver accept-log parser uses timestamped calendar-creation entries, not references to sharing methods in diagnostic stack traces.
 
 The displayed history normally includes only entries from the last **180 days**. By default, it can include calendars from other owners; when `-OwnerCalendarFolderPath` is supplied, it is filtered by both the expected owner and the selected calendar name.
 
-If timestamp parsing fails, the script reports an incomplete accept-log check (`SHR220`) and displays the selected entries without the date filter. An empty recent-history table is not proof that a calendar was never accepted.
+Accept-log timestamps use the administrator's regional format, so both day-first (for example `15/10/2026 13:44:31`) and month-first (for example `10/15/2026 1:44:31 PM`) formats are accepted. When every date in the log is ambiguous, the layout detected from the other entries is used. If an individual timestamp cannot be parsed, the script keeps that entry in the output without date filtering, writes a warning, and reports an incomplete accept-log check (`SHR220`) whose evidence lists the unparsed values. An empty recent-history table is not proof that a calendar was never accepted.
 
 ### Owner and receiver statistics comparison
 
@@ -221,11 +236,33 @@ Exchange can return year-1 `DateTime` sentinel values for uninitialized properti
 
 | Condition | Interpretation |
 | --- | --- |
-| Both timestamps have year 1 | `SHR403`: the selected receiver calendar appears never to have synchronized. The values are not treated as stale dates. |
-| Either timestamp is missing or cannot be parsed, or only one has year 1 | `SHR401`: periodic synchronization health is incomplete. |
+| `LastSuccessfulSyncTime` has year 1 | `SHR403`: the selected receiver calendar has never successfully synchronized, whether or not `LastAttemptedSyncTime` is also year 1. When an attempt time is present, the console output includes it. The values are not treated as stale dates. |
+| `LastAttemptedSyncTime` has year 1 but `LastSuccessfulSyncTime` is valid, or either timestamp is missing or cannot be parsed | `SHR401`: periodic synchronization health is incomplete. |
 | Both valid timestamps are more than 24 hours old | `SHR400`: periodic synchronization is stale, even if the timestamps differ. The failed-attempt rule is not also detected. |
 | Both valid timestamps are equal and are not both stale | The latest periodic synchronization attempt succeeded. |
 | Both valid timestamps differ and are not both stale | `SHR402`: the latest periodic synchronization attempt did not succeed. |
+
+### Sharing log exceptions
+
+The script scans the owner `CalendarSharingInvite` log and the receiver `AcceptCalendarSharingInvite`, `SharingSyncAssistant`, and `Sharing` logs (entries from the last year) for exceptions. The owner's `SharingSyncAssistant` and `Sharing` logs are not collected.
+
+| Rule | Condition |
+| --- | --- |
+| `SHR408` | An entry contains `MapiExceptionNamedPropsQuotaExceeded`: the mailbox exhausted its named property quota, which can block sharing synchronization (for example, `[EX, QuotaExceededException_Cannot get ID from name...]` in the `SharingSyncAssistant` log). This is an error; escalate to Microsoft Support. |
+| `SHR409` | Any other exception, such as `WrongObjectTypeException`, a non-empty `[EX, ...]` value, or a non-zero `numberOfFailures` count in a batch. This is a warning. The evidence lists the exception types, the affected logs, and the latest occurrence. |
+
+Informational text such as `Failed to read user configuration time zone` or `numberOfFailures: 0` is not reported. If the logs could not be scanned, both rules are `NotEvaluated`.
+
+### Receiver log freshness
+
+For Modern Sharing relationships, the script reads the receiver mailbox's `SharingSyncAssistant` and `Sharing` diagnostic logs and compares the newest entry with the time of collection. Timestamps are treated as UTC. Both month-first and day-first formats are accepted; when every date is ambiguous, month-first is assumed.
+
+| Log | More than 24 hours old | More than 7 days old |
+| --- | --- | --- |
+| `SharingSyncAssistant` | `SHR404` warning | `SHR405` error |
+| `Sharing` | `SHR406` warning | `SHR407` error |
+
+When the 7-day error is detected, the matching 24-hour warning is reported as `NotApplicable` because it is superseded. An empty log, a log without parseable timestamps, or a failure to retrieve the log is reported as `NotEvaluated`. The rules are `NotApplicable` for legacy MAPI and published-calendar relationships. A log with no recent entries means the sharing sync assistant does not appear to be processing the receiver mailbox; inspect the log and escalate to Microsoft Support if the condition persists. These logs are capped by Exchange (about 500 entries), so a busy mailbox can push older activity out of the log.
 
 ### Synchronization start date
 
@@ -238,7 +275,7 @@ Exchange can return year-1 `DateTime` sentinel values for uninitialized properti
 | `SHR411` | The start date is later than the local folder's `CreationTime`. This is a warning to investigate whether backfill was restarted. If the start date is valid but `CreationTime` cannot be parsed, this check is incomplete. |
 | `SHR412` | The start date is newer than the 24-hour cutoff. This is informational context that may reflect backfill or folder recreation, not proof of a synchronization failure. |
 
-When the calendar appears never to have synchronized (`SHR403`), the start-date comparisons are skipped. A null or year-1 start date can still produce `SHR413`.
+When the calendar has never successfully synchronized (`SHR403`), the start-date comparisons are skipped. A null or year-1 start date can still produce `SHR413`.
 
 ## Troubleshooting workflow
 
@@ -256,7 +293,45 @@ Avoid removing and re-adding permissions or shared calendars as a generic first 
 
 ## Structured diagnostic model
 
-This advanced reference describes the structured findings maintained in memory for later automation and JSON support. The script does not write a JSON file in the current version.
+This advanced reference describes the structured findings the script maintains and writes to the JSON report.
+
+### JSON report
+
+By default, the script saves a JSON report named `Sharing-Status-For_<owner>_And_<receiver>_<timestamp>.json` to the current directory after the console summary. Use `-SkipJsonOutput` to skip it. The report contains:
+
+| Property | Description |
+| --- | --- |
+| `metadata` | Schema and script versions, run and collection timestamps, the owner and receiver values you supplied, the selected owner calendar folder path in `ownerCalendarFolderPath` (`(main) calendar` when `-OwnerCalendarFolderPath` is not specified), `collectionStatus` (`Complete`, `Partial`, or `FatalPrerequisiteFailure`), and `privacyMode` (`Sanitized` or `Full`). |
+| `summary` | Quick overview: `overallResult` (`Fail` if any rule failed, otherwise `Inconclusive` if any check could not be evaluated, otherwise `Pass`), counts for each result, and the `failedRules` and `inconclusiveRules` lists. |
+| `sharing` | `sharingModel` (`Modern`, `LegacyMapi`, `PublishedCalendar`, or `Undetermined`), the detected `sharingType` (`InternalSharing` or `ExternalSharing`), the individual model flags, and any fatal prerequisite failure. |
+| `collectors` | The status of each independent Exchange data source. |
+| `findings` | Every rule exactly once, using the finding properties described below plus a `category` (`Owner`, `Receiver`, `Pair relationship`, or `Synchronization and performance`) and a plain-language `summary`. Rule titles describe the problem, so `summary` is prefixed with `Not detected:`, `Could not be evaluated:`, or `Not applicable:` when the problem was not confirmed. `recommendedNextStep` is `null` for `Pass` and `Skipped` findings, and `area` is `null` when no area applies. |
+| `collectionErrors` and `evaluationErrors` | Failures while retrieving or interpreting evidence. |
+| `rawData` | The evidence the findings were based on. In `Sanitized` mode it contains only `included: false` and entry counts. With `-IncludeSensitiveData` (`Full` mode) it contains the data described below. |
+
+#### Raw data (`-IncludeSensitiveData`)
+
+Raw data contains mailbox identities, permissions, and log entries, so treat the file as sensitive. Each section has a `source` (the PowerShell command that retrieved the data, including the identity it was run against) and `data`. Only key properties of mailbox and folder objects are included. Date values are ISO 8601 UTC strings, and an uninitialized (year-1) date is reported as `Uninitialized`. The JSON text uses plain apostrophes, ampersands, and angle brackets instead of `\uXXXX` escapes so log lines stay readable; the file is still standard JSON. Flag values such as `ExtendedFolderFlags`, `SharingPermissionFlags`, `ActiveShareeFlags`, and `AccessRights` are arrays of individual flags. Log entry `Timestamp` values are kept exactly as logged, in the administrator's regional format. Log sections are parsed entries from `Export-MailboxDiagnosticLogs`, and the matched and selected folder sections are entries taken from the folder statistics output.
+
+| Property | Contents |
+| --- | --- |
+| `owner_Mailbox`, `receiver_Mailbox` | Key mailbox properties: identity, display name, alias, primary SMTP address, recipient type, database, GUIDs, creation and change times, and Send-on-Behalf grants. |
+| `owner_CalendarFolderStatistics`, `owner_SelectedCalendar` | Owner calendar folder name, path, type, item counts, sizes, and times. |
+| `owner_CalendarFolder` | Owner calendar sharing and publishing properties, including `SharingPermissionFlags` and the sync times. |
+| `owner_CalendarPermissions`, `owner_MailboxPermissions` | Every permission entry with user, normalized `userIdentity`, access rights, and sharing flags (calendar) or inheritance and deny state (mailbox). |
+| `owner_ActiveSharees` | All active receivers from `Get-CalendarActiveSharingInformation`. |
+| `owner_InviteLog` | Parsed `CalendarSharingInvite` log entries. |
+| `receiver_FolderStatistics`, `receiver_MatchedCalendar`, `receiver_LocalCalendarFolder` | Receiver calendar folders, the matched local copy, and its sharing properties and sync times. |
+| `receiver_CalendarEntries` | `Get-CalendarEntries` results for the receiver. |
+| `receiver_AcceptLog`, `receiver_SelectedAcceptLog` | Parsed `AcceptCalendarSharingInvite` entries, all and for the selected calendar. |
+| `receiver_InternetCalendarLog`, `owner_PublishedICalUrl` | Published calendar log entries and the owner's published URL, when applicable. |
+| `owner_InviteLogFull`, `receiver_AcceptLogFull` | The complete `CalendarSharingInvite` (owner) and `AcceptCalendarSharingInvite` (receiver) logs as arrays of lines. The blank lines Exchange uses to separate entries are removed. |
+| `receiver_SharingSyncAssistantLog` | The complete `SharingSyncAssistant` log for the receiver mailbox. |
+| `receiver_SharingLog` | The complete `Sharing` log for the receiver mailbox. |
+
+The receiver's `SharingSyncAssistant` and `Sharing` logs are always collected, because the log freshness and exception rules evaluate them (see **Receiver log freshness** and **Sharing log exceptions**), and the JSON report reuses them. The owner's `SharingSyncAssistant` and `Sharing` logs are not collected. These logs can be large. Each of these sections also has a `status` (`Collected`, `NoData`, `Failed`, or `NotCollected`) and an `error`. Blank separator lines are removed from every log, and entries older than one calendar year (365 days before collection) are omitted from every log and parsed-entry section; the `omittedOlderThanOneYear` property reports how many entries were omitted. Lines without a timestamp, such as stack traces, are kept or omitted together with the entry above them.
+
+The file name and `metadata` contain the owner and receiver values you supplied, so treat the file as sensitive. Finding evidence follows the privacy behavior described below. If the file cannot be written, the script writes a warning and the console output is unaffected.
 
 Each implemented rule is represented exactly once in the structured diagnostic model. Every finding contains:
 
@@ -265,6 +340,7 @@ Each implemented rule is represented exactly once in the structured diagnostic m
 | `ruleId` | Stable `SHRxxx` identifier. |
 | `severity` | `Critical`, `Error`, `Warning`, or `Information`. |
 | `status` | `Detected`, `NotDetected`, `NotEvaluated`, or `NotApplicable`. |
+| `result` | Plain-language summary of `status` and `severity`: `Fail` (`Detected` with `Critical`, `Error`, or `Warning` severity), `Info` (`Detected` with `Information` severity), `Pass` (`NotDetected`), `Inconclusive` (`NotEvaluated`, evidence was unavailable and the check is neither a pass nor a fail), or `Skipped` (`NotApplicable`). |
 | `title` | Stable rule title. |
 | `evidence` | Structured evidence associated with the rule. |
 | `recommendedNextStep` | Suggested next diagnostic action. |
@@ -302,7 +378,7 @@ Structured evidence is sanitized by default:
 - Folder names, folder paths, publishing URLs, and unbounded remote diagnostic details are omitted or replaced.
 - Error text is bounded and remote diagnostic internals are not retained.
 
-To retain full-fidelity values in the structured in-memory findings and error records:
+To retain full-fidelity values in the structured findings, error records, and JSON report:
 
 ```powershell
 .\Check-SharingStatus.ps1 -Owner owner@contoso.com -Receiver receiver@contoso.com -IncludeSensitiveData

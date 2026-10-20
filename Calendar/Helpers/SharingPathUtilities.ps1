@@ -4,6 +4,15 @@
 # .DESCRIPTION
 # Sharing-specific calendar path and folder utilities.
 
+function Test-SharingOutboxFolderName {
+    param(
+        [AllowNull()]
+        [object]$Name
+    )
+
+    return [string]::Equals(([string]$Name).Trim(), "Outbox", [System.StringComparison]::OrdinalIgnoreCase)
+}
+
 function ConvertTo-NormalizedCalendarFolderPath {
     param(
         [Parameter(Mandatory)]

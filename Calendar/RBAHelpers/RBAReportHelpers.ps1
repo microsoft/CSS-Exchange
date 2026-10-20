@@ -676,7 +676,7 @@ function Write-RbaJson {
     Write-RbaPhaseVerbose -Message "Assembling JSON report."
     $data = [ordered]@{
         metadata            = [ordered]@{
-            schemaVersion    = "1.1-preview"
+            schemaVersion    = "1.2-preview"
             scriptVersion    = $BuildVersion
             collectedAtUtc   = (Get-Date).ToUniversalTime().ToString("o")
             identity         = $Identity
