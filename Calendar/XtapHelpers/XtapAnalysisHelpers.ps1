@@ -9,6 +9,7 @@ $Script:XtapGuidPattern = '^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$'
 $Script:XtapCalendarSharingActions = @("CalendarSharingFreeBusySimple", "CalendarSharingFreeBusyDetail", "CalendarSharingFreeBusyReviewer")
 $Script:XtapDomainTenantCache = @{}
 $Script:XtapEntraLoginHost = "login.microsoftonline.com"
+$Script:XtapOfflineData = $false
 
 <#
 .SYNOPSIS
@@ -108,6 +109,9 @@ function Resolve-XtapDomainTenantId {
 
     if ($Script:XtapDomainTenantCache.ContainsKey($normalizedDomain)) {
         return $Script:XtapDomainTenantCache[$normalizedDomain]
+    }
+    if ($Script:XtapOfflineData) {
+        return $null
     }
 
     $tenantId = $null

@@ -1,23 +1,6 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-function Protect-XtapCsvValue {
-    [CmdletBinding()]
-    [OutputType([object], [string])]
-    param(
-        [Parameter(Mandatory = $false)]
-        [AllowNull()]
-        [object]$Value
-    )
-
-    # Stop spreadsheet applications from running configuration values that look like formulas.
-    if ($Value -is [string] -and $Value -match '^[=+\-@\t\r]') {
-        return "'$Value"
-    }
-
-    return $Value
-}
-
 function Write-XtapTextFile {
     [CmdletBinding()]
     param(
@@ -31,36 +14,6 @@ function Write-XtapTextFile {
 
     # UTF-8 with a BOM so Windows PowerShell 5.1 reads the generated scripts correctly.
     [System.IO.File]::WriteAllText($Path, $Text, (New-Object System.Text.UTF8Encoding($true)))
-}
-
-function Export-XtapAnalysisCsv {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory = $false)]
-        [AllowNull()]
-        [AllowEmptyCollection()]
-        [object[]]$Analysis,
-
-        [Parameter(Mandatory = $true)]
-        [string]$Path
-    )
-
-    $rows = @(@($Analysis) | Where-Object { $null -ne $_ } | ForEach-Object {
-            $safeRow = [ordered]@{}
-            foreach ($property in $_.PSObject.Properties) {
-                $safeRow[$property.Name] = Protect-XtapCsvValue -Value $property.Value
-            }
-
-            [PSCustomObject]$safeRow
-        })
-
-    if ($rows.Count -eq 0) {
-        # Export-Csv writes nothing for empty input, so write an explicit empty file.
-        Write-XtapTextFile -Path $Path -Text ""
-        return
-    }
-
-    $rows | Export-Csv -LiteralPath $Path -NoTypeInformation -Encoding UTF8
 }
 
 function Get-XtapStatusSummary {
@@ -84,7 +37,7 @@ function Get-XtapStatusSummary {
 
 <#
 .SYNOPSIS
-    Builds the plain text summary for support and the customer.
+    Builds the plain text summary for tenant administrators and support.
 .DESCRIPTION
     Each line that describes an item starts with [Status] so the console writer can color it.
 #>
@@ -93,7 +46,7 @@ function Get-XtapSummaryLines {
     [OutputType([string[]])]
     param(
         [Parameter(Mandatory = $true)]
-        [string]$CustomerName,
+        [string]$RunName,
 
         [Parameter(Mandatory = $true)]
         [string]$Mode,
@@ -138,7 +91,7 @@ function Get-XtapSummaryLines {
     $sharingRows = @(@($SharingPolicyAnalysis) | Where-Object { $null -ne $_ })
 
     $lines = New-Object System.Collections.Generic.List[string]
-    $lines.Add("$CustomerName XTAP Migration Readiness - Summary")
+    $lines.Add("$RunName Cross-Tenant Access Policy Calendar Validation - Summary")
     $lines.Add("=" * 60)
     $lines.Add("Collection mode: $Mode")
     $lines.Add("Generated: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss zzz')")
@@ -271,11 +224,11 @@ function Get-XtapSummaryLines {
     $lines.Add("")
     $lines.Add("Next steps")
     $lines.Add("----------")
-    $lines.Add("1. Review the analysis CSV files and this summary.")
+    $lines.Add("1. Review the analysis in the JSON bundle and this summary.")
     if ($ScriptsGenerated) {
         $lines.Add("2. Replace any <placeholder> in XTAP_Part2_CreatePolicies.ps1, then run it. Creating the trust needs Global Administrator.")
         $lines.Add("3. Coordinate with the external organizations, then run XTAP_Part3_DisableForTesting.ps1 and test. XTAP_Part3_Rollback.ps1 undoes it.")
-        $lines.Add("4. When both sides confirm it works, run XTAP_Part4_Cleanup.ps1.")
+        $lines.Add("4. When both sides confirm it works, review XTAP_Part4_Cleanup.ps1. Its configuration-changing commands are commented out; deliberately uncomment the required commands or copy and run them individually. Deletion is permanent.")
     } else {
         $lines.Add("2. This was an assessment only and no command scripts were created. To get the cmdlets for the eligible items, run again with -GenerateCommandScripts (add -ProcessUsers to count the mailboxes for each Sharing Policy).")
     }
@@ -284,7 +237,7 @@ function Get-XtapSummaryLines {
 
     if (@($ReplayCommand).Count -gt 0) {
         $lines.Add("")
-        $lines.Add("Support offline-analysis command")
+        $lines.Add("Offline-analysis command")
         $lines.Add("--------------------------------")
         foreach ($line in $ReplayCommand) { $lines.Add($line) }
     }

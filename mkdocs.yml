@@ -21,7 +21,7 @@ nav:
     - Get-CalendarDiagnosticObjectsSummary: Calendar/Get-CalendarDiagnosticObjectsSummary.md
     - Get-RBASummary: Calendar/Get-RBASummary.md
     - BookingsDiagnosticSummary: Calendar/BookingsDiagnosticSummary.md
-    - Test-XtapMigrationReadiness: Calendar/Test-XtapMigrationReadiness.md
+    - CrossTenantAccessPolicyCalendarValidation: Calendar/CrossTenantAccessPolicyCalendarValidation.md
   - Databases:
     - Analyze-SpaceDump: Databases/Analyze-SpaceDump.md
     - Compare-MailboxStatistics: Databases/Compare-MailboxStatistics.md
