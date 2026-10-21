@@ -101,3 +101,24 @@ function Get-DuplicateStyleCalendarFolders {
             $folderName -match "\(\d{1,2}\)\s*$"
         })
 }
+
+function Get-ReceiverFolderIdentity {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Receiver,
+
+        [Parameter(Mandatory)]
+        [string]$ReceiverCalendarName,
+
+        [Parameter(Mandatory)]
+        [string]$FolderPath
+    )
+
+    $receiverFolderPath = $FolderPath.TrimStart("/").Replace("/", "\")
+    if (($receiverFolderPath -ne $ReceiverCalendarName) -and
+        (-not $receiverFolderPath.StartsWith("$ReceiverCalendarName\", [System.StringComparison]::OrdinalIgnoreCase))) {
+        $receiverFolderPath = "$ReceiverCalendarName\$receiverFolderPath"
+    }
+
+    return "${Receiver}:\$receiverFolderPath"
+}

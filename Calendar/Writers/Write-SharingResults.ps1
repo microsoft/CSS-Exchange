@@ -60,6 +60,8 @@ function Write-OwnerReceiverPermissionSummary {
     $receiverMailboxPermissions = Get-PermissionEntriesForIdentity `
         -PermissionEntries $script:OwnerMailboxPerms `
         -Identity $Receiver
+    $allowedMailboxPermissions = @($receiverMailboxPermissions | Where-Object -FilterScript { -not $_.Deny })
+    $deniedMailboxPermissions = @($receiverMailboxPermissions | Where-Object -FilterScript { $_.Deny })
     $calendarRights = if ($receiverCalendarPermissions.Count -gt 0) {
         Get-PermissionRightsText `
             -PermissionEntries $receiverCalendarPermissions `
@@ -67,14 +69,23 @@ function Write-OwnerReceiverPermissionSummary {
     } else {
         $null
     }
-    $mailboxRights = if ($receiverMailboxPermissions.Count -gt 0) {
-        Get-PermissionRightsText -PermissionEntries $receiverMailboxPermissions
+    $mailboxRights = if ($allowedMailboxPermissions.Count -gt 0) {
+        Get-PermissionRightsText -PermissionEntries $allowedMailboxPermissions
     } else {
         $null
     }
 
     Write-Host -ForegroundColor DarkYellow "Owner-to-Receiver Permission Summary:"
-    if (($null -ne $calendarRights) -and ($null -ne $mailboxRights)) {
+    if ($deniedMailboxPermissions.Count -gt 0) {
+        if ($null -ne $calendarRights) {
+            Write-Host -ForegroundColor Green "Receiver [$Receiver] is using [$calendarRights] on the owner Calendar folder."
+        }
+        if ($null -ne $mailboxRights) {
+            Write-Host -ForegroundColor Yellow "Receiver [$Receiver] has Allow entries for [$mailboxRights] on the owner Mailbox; Deny entries are also present, so these are not effective-access results."
+        }
+        $deniedRights = Get-PermissionRightsText -PermissionEntries $deniedMailboxPermissions
+        Write-Host -ForegroundColor Yellow "Receiver [$Receiver] has Deny entries for [$deniedRights] on the owner Mailbox."
+    } elseif (($null -ne $calendarRights) -and ($null -ne $mailboxRights)) {
         Write-Host -ForegroundColor Green "Receiver [$Receiver] has [$calendarRights] on the owner Calendar folder and [$mailboxRights] on the owner Mailbox."
     } elseif ($null -ne $calendarRights) {
         Write-Host -ForegroundColor Green "Receiver [$Receiver] is using [$calendarRights] on the owner Calendar folder."
@@ -318,10 +329,10 @@ function Get-SharingJsonRawData {
         receiver_LocalCalendarFolder   = & $newSection "Get-MailboxCalendarFolder -Identity `"$receiverFolderIdentity`"" (ConvertTo-SharingRawObject -InputObject $script:ReceiverLocalCalendarFolder -Property $calendarFolderProperties)
         receiver_CalendarEntries       = & $newSection "Get-CalendarEntries -Identity $Receiver" @($script:ReceiverCalendarEntries | ForEach-Object { ConvertTo-SharingRawObject -InputObject $_ -Property $calendarEntryProperties })
         receiver_AcceptLog             = & $newEntriesSection "Export-MailboxDiagnosticLogs -Identity $Receiver -ComponentName AcceptCalendarSharingInvite (parsed entries)" $script:ReceiverAcceptLogEntries
-        receiver_SelectedAcceptLog     = $(if ($script:OwnerCalendarFolderPathSpecified) {
+        receiver_SelectedAcceptLog     = $(if ($script:OwnerCalendarSubfolderSelected) {
                 & $newEntriesSection "Export-MailboxDiagnosticLogs -Identity $Receiver -ComponentName AcceptCalendarSharingInvite (parsed entries for the selected calendar)" $script:ReceiverSelectedAcceptLogEntries
             } else {
-                & $newSection "Not filtered: no -OwnerCalendarFolderPath was specified, so the selected entries are the same as receiver_AcceptLog." $null
+                & $newSection "Not filtered: the default owner calendar is selected, so the selected entries are the same as receiver_AcceptLog." $null
             })
         receiver_InternetCalendarLog   = & $newEntriesSection "Export-MailboxDiagnosticLogs -Identity $Receiver -ComponentName InternetCalendar (parsed entries)" $script:ReceiverInternetCalendarEntries
         owner_PublishedICalUrl         = & $newSection "$ownerCalendarFolderSource (PublishedICalUrl)" $script:OwnerPublishedICalUrl

@@ -6,7 +6,7 @@
 [CmdletBinding()]
 param()
 
-# cSpell:ignore Sharee Sharees SRES
+# cSpell:ignore Sharee Sharees SRES Kalender
 BeforeAll {
     $Script:parentPath = Split-Path -Parent $PSScriptRoot
 
@@ -30,7 +30,7 @@ BeforeAll {
         "SHR200", "SHR201", "SHR210", "SHR211", "SHR212", "SHR213", "SHR214", "SHR215", "SHR220",
         "SHR230", "SHR231", "SHR232", "SHR233", "SHR240", "SHR241", "SHR242", "SHR243",
         "SHR300", "SHR301", "SHR310", "SHR311", "SHR312", "SHR320", "SHR321", "SHR322",
-        "SHR323", "SHR324", "SHR400", "SHR401", "SHR402", "SHR403", "SHR404", "SHR405", "SHR406", "SHR407", "SHR408", "SHR409",
+        "SHR323", "SHR324", "SHR325", "SHR400", "SHR401", "SHR402", "SHR403", "SHR404", "SHR405", "SHR406", "SHR407", "SHR408", "SHR409",
         "SHR410", "SHR411", "SHR412", "SHR413",
         "SHR420", "SHR421", "SHR422", "SHR423", "SHR430", "SHR431", "SHR432"
     )
@@ -86,6 +86,7 @@ BeforeAll {
         $script:OwnerCalendarLeafName = $null
         $script:OwnerCalendarLeafNameCandidate = $null
         $script:OwnerCalendarFolderPathSpecified = $false
+        $script:OwnerCalendarSubfolderSelected = $false
         $script:NormalizedOwnerCalendarFolderPath = $null
         $script:RequestedOwnerCalendarLeafName = $null
         $script:ReceiverAcceptLogEntries = @()
@@ -93,6 +94,7 @@ BeforeAll {
         $script:OwnerActiveReceiver = $null
         $script:OwnerActiveSharingAvailable = $false
         $script:ReceiverMatchedCalendar = $null
+        $script:ReceiverLocalCalendarFolder = $null
         $script:ReceiverCalendarCandidates = @()
         $script:CalendarStatisticsComparisonPerformed = $false
         $script:CalendarStatisticsComparison = $null
@@ -235,6 +237,22 @@ BeforeAll {
     }
 }
 
+Describe "Check-SharingStatus source layout" {
+    It "keeps diagnostic functions in helpers and orchestration in the entry script" {
+        $parseErrors = $null
+        $entryAst = [System.Management.Automation.Language.Parser]::ParseFile(
+            "$Script:parentPath\Check-SharingStatus.ps1",
+            [ref]$null,
+            [ref]$parseErrors)
+
+        $parseErrors | Should -BeNullOrEmpty
+        $entryFunctions = @($entryAst.EndBlock.Statements | Where-Object -FilterScript {
+                $_ -is [System.Management.Automation.Language.FunctionDefinitionAst]
+            })
+        $entryFunctions.Name | Should -Be @("Invoke-SharingDiagnostics")
+    }
+}
+
 Describe "Check-SharingStatus permission flag comparison" {
     It -Name "returns Differ=<Differ> for <Case>" -TestCases @(
         @{ Case = "identical flags"; First = @("Delegate"); Second = @("Delegate"); Differ = $false }
@@ -251,6 +269,184 @@ Describe "Check-SharingStatus permission flag comparison" {
         param($Case, $First, $Second, $Differ)
 
         Test-SharingPermissionFlagsDiffer -FirstFlags $First -SecondFlags $Second | Should -Be $Differ
+    }
+}
+
+Describe "Check-SharingStatus explicit receiver delegation" {
+    BeforeEach {
+        Initialize-SharingTestState
+        $script:OwnerCalendarPermsAvailable = $true
+        $script:CollectorStatuses["ActiveSharing"] = [PSCustomObject]@{ status = "Success"; error = $null }
+        $script:CollectorStatuses["ReceiverLocalCalendarFolder"] = [PSCustomObject]@{ status = "Success"; error = $null }
+        $script:OwnerActiveReceiver = [PSCustomObject]@{ SharingPermissionFlags = @("Delegate") }
+        Mock -CommandName Write-Host -MockWith {}
+    }
+
+    It -Name "rejects <Case> as a substitute for individual delegate permissions" -TestCases @(
+        @{ Case = "a group"; PermissionUser = "delegates@contoso.com" }
+        @{ Case = "Default"; PermissionUser = "Default" }
+        @{ Case = "Anonymous"; PermissionUser = "Anonymous" }
+        @{ Case = "another delegate"; PermissionUser = "other@contoso.com" }
+    ) {
+        param($Case, $PermissionUser)
+        $script:OwnerCalendarPerms = @(
+            [PSCustomObject]@{ User = $PermissionUser; AccessRights = @("Editor"); SharingPermissionFlags = @("Delegate") }
+        )
+        $script:OwnerMailboxPerms = @(
+            [PSCustomObject]@{ User = "receiver@contoso.com"; AccessRights = @("FullAccess") }
+        )
+
+        Test-ReceiverDelegatePermissions
+        Complete-SharingFindings
+
+        $finding = $script:SharingFindings | Where-Object -Property ruleId -EQ "SHR325"
+        $finding.status | Should -Be "Detected"
+        $finding.severity | Should -Be "Error"
+        $finding.evidence.individualPermissionFound | Should -BeFalse
+        $finding.evidence.receiver | Should -Be "Receiver"
+        $finding.recommendedNextStep | Should -Match "individual.*Editor.*Delegate"
+        Should -Invoke -CommandName Write-Host -ParameterFilter {
+            ($ForegroundColor -eq "Red") -and ($Object -like "*Group or Default*")
+        }
+    }
+
+    It -Name "rejects explicit receiver rights <Rights> with flags <Flags>" -TestCases @(
+        @{ Rights = @("Reviewer"); Flags = @("Delegate") }
+        @{ Rights = @("Owner"); Flags = @("Delegate") }
+        @{ Rights = @("Editor"); Flags = @("None") }
+        @{ Rights = @("Editor"); Flags = @() }
+        @{ Rights = @(); Flags = @("Delegate") }
+    ) {
+        param($Rights, $Flags)
+        $script:OwnerCalendarPerms = @(
+            [PSCustomObject]@{ User = "receiver@contoso.com"; AccessRights = $Rights; SharingPermissionFlags = $Flags }
+        )
+
+        Test-ReceiverDelegatePermissions
+
+        $finding = $script:SharingFindings | Where-Object -Property ruleId -EQ "SHR325"
+        $finding.status | Should -Be "Detected"
+        $finding.evidence.individualPermissionFound | Should -BeTrue
+        $finding.evidence.delegatePermissionFound | Should -BeFalse
+    }
+
+    It -Name "accepts an explicit receiver entry through <Shape>" -TestCases @(
+        @{ Shape = "SMTP address"; PermissionUser = " RECEIVER@Contoso.com "; Flags = @("Delegate") }
+        @{ Shape = "AD recipient"; PermissionUser = [PSCustomObject]@{ ADRecipient = [PSCustomObject]@{ PrimarySmtpAddress = "receiver@contoso.com" } }; Flags = @("Delegate", "CanViewPrivateItems") }
+        @{ Shape = "comma-separated enum flags"; PermissionUser = "receiver@contoso.com"; Flags = @("Delegate, CanViewPrivateItems") }
+    ) {
+        param($Shape, $PermissionUser, $Flags)
+        $script:OwnerCalendarPerms = @(
+            [PSCustomObject]@{ User = $PermissionUser; AccessRights = @("Editor"); SharingPermissionFlags = $Flags },
+            [PSCustomObject]@{ User = "delegates@contoso.com"; AccessRights = @("Editor"); SharingPermissionFlags = @("Delegate") }
+        )
+        $script:OwnerActiveReceiver = $null
+        $script:CollectorStatuses["ActiveSharing"].status = "Unavailable"
+
+        Test-ReceiverDelegatePermissions
+
+        $finding = $script:SharingFindings | Where-Object -Property ruleId -EQ "SHR325"
+        $finding.status | Should -Be "NotDetected"
+        $finding.evidence.delegatePermissionFound | Should -BeTrue
+        Should -Not -Invoke -CommandName Write-Host
+    }
+
+    It -Name "recognizes delegate evidence from <Source> without requiring a matched local folder" -TestCases @(
+        @{ Source = "owner permissions" }
+        @{ Source = "active sharing" }
+        @{ Source = "receiver folder" }
+    ) {
+        param($Source)
+        $script:OwnerActiveReceiver = $null
+        $script:CollectorStatuses["ActiveSharing"].status = "Unavailable"
+        $script:CollectorStatuses["ReceiverLocalCalendarFolder"].status = "NotEvaluated"
+        switch ($Source) {
+            "owner permissions" {
+                $script:OwnerCalendarPerms = @(
+                    [PSCustomObject]@{ User = "receiver@contoso.com"; AccessRights = @("Reviewer"); SharingPermissionFlags = @("Delegate") }
+                )
+            }
+            "active sharing" {
+                $script:OwnerActiveReceiver = [PSCustomObject]@{ SharingPermissionFlags = @("Delegate, CanViewPrivateItems") }
+                $script:CollectorStatuses["ActiveSharing"].status = "Success"
+            }
+            "receiver folder" {
+                $script:ReceiverLocalCalendarFolder = [PSCustomObject]@{ SharingPermissionFlags = @("Delegate") }
+                $script:CollectorStatuses["ReceiverLocalCalendarFolder"].status = "Success"
+            }
+        }
+
+        Test-ReceiverDelegatePermissions
+
+        ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR325").status | Should -Be "Detected"
+    }
+
+    It "does not combine rights and flags from separate permission entries" {
+        $script:OwnerCalendarPerms = @(
+            [PSCustomObject]@{ User = "receiver@contoso.com"; AccessRights = @("Editor"); SharingPermissionFlags = @("None") },
+            [PSCustomObject]@{ User = "receiver@contoso.com"; AccessRights = @("Reviewer"); SharingPermissionFlags = @("Delegate") }
+        )
+
+        Test-ReceiverDelegatePermissions
+
+        ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR325").status | Should -Be "Detected"
+    }
+
+    It "reports unavailable calendar permissions as incomplete rather than a pass or a confirmed failure" {
+        $script:OwnerCalendarPermsAvailable = $false
+
+        Test-ReceiverDelegatePermissions
+
+        ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR325").status | Should -Be "NotEvaluated"
+    }
+
+    It "does not infer delegation from another delegate or group" {
+        $script:OwnerActiveReceiver = $null
+        $script:OwnerCalendarPerms = @(
+            [PSCustomObject]@{ User = "receiver@contoso.com"; AccessRights = @("Reviewer"); SharingPermissionFlags = @("None") },
+            [PSCustomObject]@{ User = "delegates@contoso.com"; AccessRights = @("Editor"); SharingPermissionFlags = @("Delegate") }
+        )
+
+        Test-ReceiverDelegatePermissions
+
+        ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR325").status | Should -Be "NotApplicable"
+    }
+
+    It -Name "reports missing <Collector> evidence as incomplete when delegation is unknown" -TestCases @(
+        @{ Collector = "ActiveSharing" }
+        @{ Collector = "ReceiverLocalCalendarFolder" }
+    ) {
+        param($Collector)
+        $script:OwnerActiveReceiver = $null
+        $script:CollectorStatuses[$Collector].status = "Unavailable"
+
+        Test-ReceiverDelegatePermissions
+
+        ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR325").status | Should -Be "NotEvaluated"
+    }
+
+    It "checks explicit calendar delegation for legacy MAPI relationships" {
+        $script:LegacyMapiSharing = $true
+
+        Test-ReceiverDelegatePermissions
+        Complete-SharingFindings
+
+        ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR325").status | Should -Be "Detected"
+    }
+
+    It "does not require delegation for a published subscription" {
+        $script:PublishedSharing = $true
+
+        Test-ReceiverDelegatePermissions
+        Complete-SharingFindings
+
+        ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR325").status | Should -Be "NotApplicable"
+    }
+
+    It "does not report a pass when the delegate check was not performed" {
+        Complete-SharingFindings
+
+        ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR325").status | Should -Be "NotEvaluated"
     }
 }
 
@@ -943,7 +1139,9 @@ Describe "Check-SharingStatus structured diagnostics" {
             Complete-SharingFindings
 
             @($script:SharingFindings | Where-Object -Property status -EQ "NotDetected").Count |
-                Should -Be ($Script:expectedRuleIds.Count - 4)
+                Should -Be ($Script:expectedRuleIds.Count - 5)
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR325").status |
+                Should -Be "NotEvaluated"
             ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR233").status |
                 Should -Be "NotDetected"
             ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR420").status |
@@ -1554,6 +1752,53 @@ Describe "Check-SharingStatus structured diagnostics" {
             }
             Should -Invoke Get-MailboxFolderPermission
             Should -Invoke Get-CalendarEntries
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR325").status |
+                Should -Be "Detected"
+        }
+
+        It "accepts explicit receiver delegate permissions in the full diagnostic path" {
+            Mock -CommandName Get-MailboxFolderPermission -MockWith {
+                [PSCustomObject]@{
+                    User                   = "receiver@contoso.com"
+                    AccessRights           = @("Editor")
+                    SharingPermissionFlags = @("Delegate")
+                }
+            }
+
+            Invoke-SharingDiagnostics
+
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR325").status |
+                Should -Be "NotDetected"
+        }
+
+        It "correlates an explicitly selected default calendar with the shared receiver copy" -TestCases @(
+            @{ CalendarRoot = "Calendar" }
+            @{ CalendarRoot = "Kalender" }
+        ) {
+            param($CalendarRoot)
+            $script:OwnerCalendarFolderPathSpecified = $true
+            $script:NormalizedOwnerCalendarFolderPath = "\$CalendarRoot"
+            $script:RequestedOwnerCalendarLeafName = $CalendarRoot
+            $Script:prerequisiteOwnerStats[0].Name = $CalendarRoot
+            $Script:prerequisiteOwnerStats[0].FolderPath = "/$CalendarRoot"
+
+            Invoke-SharingDiagnostics
+
+            $script:OwnerCalendarSubfolderSelected | Should -BeFalse
+            $script:ReceiverMatchedCalendar.Name | Should -Be "Owner Display"
+            $script:LegacyMapiSharing | Should -BeFalse
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR231").status |
+                Should -Be "NotDetected"
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR243").status |
+                Should -Be "NotDetected"
+            $script:CalendarStatisticsComparison.receiverCount | Should -Be 10
+            (Get-SharingJsonReportObject).metadata.ownerCalendarFolderPath | Should -Be "\$CalendarRoot"
+            Should -Invoke -CommandName Get-MailboxCalendarFolder -Times 1 -Exactly -ParameterFilter {
+                $Identity -eq "receiver@contoso.com:\Calendar\Owner Display"
+            }
+            Should -Not -Invoke -CommandName Get-MailboxCalendarFolder -ParameterFilter {
+                $Identity -eq "receiver@contoso.com:\Calendar"
+            }
         }
     }
 
@@ -1703,6 +1948,45 @@ Describe "Check-SharingStatus structured diagnostics" {
 
             Should -Invoke Write-Host -ParameterFilter {
                 $Object -eq "Receiver [receiver@contoso.com] has [FullAccess] on the owner Mailbox."
+            }
+        }
+
+        It -Name "separates mailbox Deny entries from Allow entries (mixed=<Mixed>)" -TestCases @(
+            @{ Mixed = $false }
+            @{ Mixed = $true }
+        ) {
+            param($Mixed)
+            Mock -CommandName Get-MailboxPermission -MockWith {
+                $permissions = @(
+                    [PSCustomObject]@{ User = "receiver@contoso.com"; AccessRights = @("FullAccess"); Deny = [switch]$true }
+                )
+                if ($Mixed) {
+                    $permissions += [PSCustomObject]@{
+                        User = "receiver@contoso.com"; AccessRights = @("FullAccess", "ReadPermission"); Deny = [switch]$false
+                    }
+                }
+                return $permissions
+            }
+            Mock -CommandName Write-Host -MockWith {}
+
+            GetOwnerInformation -Owner "owner@contoso.com"
+
+            Should -Invoke -CommandName Write-Host -ParameterFilter {
+                ($ForegroundColor -eq "Yellow") -and
+                ($Object -eq "Receiver [receiver@contoso.com] has Deny entries for [FullAccess] on the owner Mailbox.")
+            }
+            Should -Not -Invoke -CommandName Write-Host -ParameterFilter {
+                ($ForegroundColor -eq "Green") -and ($Object -like "*FullAccess*")
+            }
+            if ($Mixed) {
+                Should -Invoke -CommandName Write-Host -ParameterFilter {
+                    ($ForegroundColor -eq "Yellow") -and
+                    ($Object -eq "Receiver [receiver@contoso.com] has Allow entries for [FullAccess, ReadPermission] on the owner Mailbox; Deny entries are also present, so these are not effective-access results.")
+                }
+            } else {
+                Should -Not -Invoke -CommandName Write-Host -ParameterFilter {
+                    $Object -like "*Allow entries*"
+                }
             }
         }
 
@@ -2081,6 +2365,30 @@ Describe "Check-SharingStatus structured diagnostics" {
             Should -Not -Invoke Compare-CalendarFolderStatistics
         }
 
+        It -Name "does not infer legacy sharing from missing Modern evidence (<Case>)" -TestCases @(
+            @{ Case = "no sharing entries"; OtherOwner = $null }
+            @{ Case = "unrelated Old entry"; OtherOwner = "other@contoso.com" }
+        ) {
+            param($Case, $OtherOwner)
+            $Script:receiverStats = @($Script:receiverStats[0])
+            $Script:calendarEntries = @()
+            if ($OtherOwner) {
+                $Script:calendarEntries = @(
+                    [PSCustomObject]@{ OwnerEmailAddress = $OtherOwner; SharingModelType = "Old"; CalendarName = "Other Calendar" }
+                )
+            }
+            Add-SharingFinding -RuleId "SHR301" -Status Detected -Evidence @{ matchingInviteFound = $false }
+
+            GetReceiverInformation -Receiver "receiver@contoso.com"
+            Complete-SharingFindings
+
+            $script:LegacyMapiSharing | Should -BeFalse
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR324").status | Should -Be "NotDetected"
+            foreach ($ruleId in @("SHR301", "SHR231", "SHR213")) {
+                ($script:SharingFindings | Where-Object -Property ruleId -EQ $ruleId).status | Should -Be "Detected"
+            }
+        }
+
         It "validates a published subscription and its receiver local folder" {
             $script:OwnerPublished = $true
             $script:OwnerPublishedICalUrl = "https://outlook.office365.com/owa/calendar/owner/calendar.ics"
@@ -2150,6 +2458,58 @@ Describe "Check-SharingStatus structured diagnostics" {
                 Should -Be "Detected"
             ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR213").status |
                 Should -Be "NotApplicable"
+        }
+
+        It -Name "keeps a missing published folder inconclusive when <Unavailable> evidence is unavailable" -TestCases @(
+            @{ Unavailable = "subscription" }
+            @{ Unavailable = "folder statistics" }
+        ) {
+            param($Unavailable)
+            $script:OwnerPublished = $true
+            $script:OwnerPublishedICalUrl = "https://outlook.office365.com/owa/calendar/owner/calendar.ics"
+            $Script:calendarEntries = @()
+            $Script:receiverStats = @($Script:receiverStats[0])
+            Mock -CommandName ProcessInternetCalendarLogs -MockWith {
+                if ($Unavailable -eq "subscription") {
+                    $script:CollectorStatuses["InternetCalendar"] = [PSCustomObject]@{ status = "Failed"; error = "Access denied" }
+                    $script:ReceiverInternetCalendarEntries = @()
+                } else {
+                    $script:CollectorStatuses["InternetCalendar"] = [PSCustomObject]@{ status = "Success"; error = $null }
+                    $script:ReceiverInternetCalendarEntries = @(
+                        [PSCustomObject]@{ PublishingUrl = $script:OwnerPublishedICalUrl; Folder = "Published Owner" }
+                    )
+                }
+            }
+            if ($Unavailable -eq "folder statistics") {
+                Mock -CommandName Get-MailboxFolderStatistics -MockWith { throw "Access denied" }
+            }
+
+            GetReceiverInformation -Receiver "receiver@contoso.com"
+            Complete-SharingFindings
+
+            $script:PublishedSharing | Should -BeTrue
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR422").status | Should -Be "NotEvaluated"
+            if ($Unavailable -eq "subscription") {
+                ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR421").status | Should -Be "NotEvaluated"
+            }
+        }
+
+        It "detects a missing published folder only with a matching subscription and available statistics" {
+            $script:OwnerPublished = $true
+            $script:OwnerPublishedICalUrl = "https://outlook.office365.com/owa/calendar/owner/calendar.ics"
+            $Script:calendarEntries = @()
+            $Script:receiverStats = @($Script:receiverStats[0])
+            Mock -CommandName ProcessInternetCalendarLogs -MockWith {
+                $script:CollectorStatuses["InternetCalendar"] = [PSCustomObject]@{ status = "Success"; error = $null }
+                $script:ReceiverInternetCalendarEntries = @(
+                    [PSCustomObject]@{ PublishingUrl = $script:OwnerPublishedICalUrl; Folder = "Published Owner" }
+                )
+            }
+
+            GetReceiverInformation -Receiver "receiver@contoso.com"
+            Complete-SharingFindings
+
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR422").status | Should -Be "Detected"
         }
 
         It "requests more access when receiver calendar folder names are redacted" {
@@ -2319,6 +2679,7 @@ Describe "Check-SharingStatus structured diagnostics" {
 
         It "matches a selected subfolder by its leaf name" {
             $script:OwnerCalendarFolderPathSpecified = $true
+            $script:OwnerCalendarSubfolderSelected = $true
             $script:RequestedOwnerCalendarLeafName = "Project Calendar"
             $script:OwnerCalendarLeafNameCandidate = "Project Calendar"
             $Script:receiverStats[1].Name = "Project Calendar"
@@ -2346,6 +2707,7 @@ Describe "Check-SharingStatus structured diagnostics" {
 
         It "does not fall back to an owner display-name folder in selected-subfolder mode" {
             $script:OwnerCalendarFolderPathSpecified = $true
+            $script:OwnerCalendarSubfolderSelected = $true
             $script:RequestedOwnerCalendarLeafName = "Missing Project Calendar"
 
             GetReceiverInformation -Receiver "receiver@contoso.com"
@@ -2360,6 +2722,7 @@ Describe "Check-SharingStatus structured diagnostics" {
         It "uses the production selected folder and does not accept other same-owner entries" {
             $Owner = "myra.tse@mplus.org.hk"
             $script:OwnerCalendarFolderPathSpecified = $true
+            $script:OwnerCalendarSubfolderSelected = $true
             $script:NormalizedOwnerCalendarFolderPath = "\Calendar\MI Events Around the World"
             $script:RequestedOwnerCalendarLeafName = "MI Events Around the World"
             $script:OwnerCalendarLeafNameCandidate = "MI Events Around the World"
@@ -2421,6 +2784,7 @@ Describe "Check-SharingStatus structured diagnostics" {
             param($CalendarName, $ExpectedFinding)
 
             $script:OwnerCalendarFolderPathSpecified = $true
+            $script:OwnerCalendarSubfolderSelected = $true
             $script:RequestedOwnerCalendarLeafName = "Project Calendar"
             $Script:receiverStats[1].Name = "Project Calendar"
             $Script:receiverStats[1].FolderPath = "/Project Calendar"
@@ -2651,7 +3015,30 @@ Describe "Check-SharingStatus structured diagnostics" {
     }
 
     Context "Selected-folder accept logs" {
+        It "leaves accept-log entries unfiltered when the explicitly selected calendar is the default" {
+            $script:OwnerCalendarFolderPathSpecified = $true
+            $script:RequestedOwnerCalendarLeafName = "Calendar"
+            Mock -CommandName Get-Date -MockWith { [DateTime]::new(2026, 10, 21) }
+            Mock -CommandName Export-MailboxDiagnosticLogs -MockWith {
+                [PSCustomObject]@{
+                    MailboxLog = @(
+                        "9/22/2026 6:35:50 AM,Mailbox: receiver,Entry CreateInternalSharedCalendarGroupEntry: Creating a shared calendar for owner@contoso.com,calendar name Owner Calendar",
+                        "9/22/2026 6:35:49 AM,Mailbox: receiver,Entry CreateInternalSharedCalendarGroupEntry: Creating a shared calendar for other@contoso.com,calendar name Other Calendar"
+                    ) -join "`r`n"
+                }
+            }
+
+            $output = ProcessCalendarSharingAcceptLogs -Identity "receiver@contoso.com" | Out-String
+
+            $script:ReceiverSelectedAcceptLogEntries.Count | Should -Be 2
+            $output | Should -Match "Owner Calendar"
+            $output | Should -Match "Other Calendar"
+            $IncludeSensitiveData = $true
+            (Get-SharingJsonRawData).receiver_SelectedAcceptLog.source | Should -BeLike "Not filtered:*default owner calendar*"
+        }
+
         It "ignores stack-trace method names when parsing accept-log entries" {
+            Mock -CommandName Get-Date -MockWith { [DateTime]::new(2026, 10, 21) }
             Mock Export-MailboxDiagnosticLogs {
                 [PSCustomObject]@{
                     MailboxLog = @(
@@ -2678,6 +3065,7 @@ Describe "Check-SharingStatus structured diagnostics" {
 
         It "filters entries by both expected owner and selected folder" {
             $script:OwnerCalendarFolderPathSpecified = $true
+            $script:OwnerCalendarSubfolderSelected = $true
             $script:RequestedOwnerCalendarLeafName = "MI Events Around the World"
             Mock Export-MailboxDiagnosticLogs {
                 [PSCustomObject]@{
@@ -2985,6 +3373,8 @@ Describe "Check-SharingStatus structured diagnostics" {
                 $script:CollectorStatuses[$collectorName] = [PSCustomObject]@{ status = "Success"; error = $null }
             }
             $script:CalendarStatisticsComparisonPerformed = $true
+            $script:OwnerCalendarPermsAvailable = $true
+            Test-ReceiverDelegatePermissions
 
             Write-SharingSummary -Owner "owner@contoso.com" -Receiver "receiver@contoso.com"
 

@@ -10,7 +10,24 @@ The script is intended to establish whether the sharing relationship is configur
 
 ## Source layout
 
-The development entry script loads sharing-specific path and identity utilities from `Calendar/Helpers` and output functions (including the JSON report writer) from `Calendar/Writers`. Permission identity, error normalization, log timestamp parsing, and JSON file writing use the same `Calendar/CalendarHelpers/CalendarDiagnosticHelpers.ps1` infrastructure as RBA diagnostics, and the Exchange Online connection check uses `Calendar/CalendarHelpers/Test-CalendarExoConnection.ps1`. Sharing-specific error redaction, finding schemas, and collection failure behavior remain unchanged. The release build embeds the dependencies into the standalone script; users do not need to download the helper files separately.
+The development entry script contains parameters, run initialization, the rule catalog, and diagnostic orchestration. Diagnostic functions are organized by responsibility:
+
+| Source | Responsibility |
+| --- | --- |
+| `Calendar/Helpers/SharingCollectionUtilities.ps1` | Collector execution and evaluation error handling. |
+| `Calendar/Helpers/SharingEvidenceUtilities.ps1` | Evidence conversion, error redaction, and identity sanitization. |
+| `Calendar/Helpers/SharingFindings.ps1` | Finding registration and final status classification. |
+| `Calendar/Helpers/SharingPrerequisites.ps1` | Mailbox and selected owner-calendar prerequisites. |
+| `Calendar/Helpers/SharingLogParsers.ps1` | Sharing invite, accept, and InternetCalendar log parsing. |
+| `Calendar/Helpers/SharingOwnerDiagnostics.ps1` | Owner permissions, flags, and active-sharing information. |
+| `Calendar/Helpers/SharingReceiverDiagnostics.ps1` | Receiver folder matching, sharing-model classification, and synchronization diagnostics. This cohesive routine is the exception to the roughly 500-line source-file target. |
+| `Calendar/Helpers/SharingRelationshipChecks.ps1` | Calendar statistics comparison and explicit receiver delegate checks. |
+| `Calendar/Helpers/SharingDiagnosticLogs.ps1` | Diagnostic log collection, freshness, and exception detection. |
+| `Calendar/Helpers/SharingPathUtilities.ps1` and `SharingIdentityUtilities.ps1` | Shared path, folder, flag, and permission identity utilities. |
+| `Calendar/Writers/Write-SharingSummary.ps1` | Console summary of findings and incomplete checks. |
+| `Calendar/Writers/Write-SharingResults.ps1` | Permission summaries and JSON report serialization. |
+
+Permission identity, error normalization, log timestamp parsing, and JSON file writing use the same `Calendar/CalendarHelpers/CalendarDiagnosticHelpers.ps1` infrastructure as RBA diagnostics, and the Exchange Online connection check uses `Calendar/CalendarHelpers/Test-CalendarExoConnection.ps1`. Sharing-specific error redaction, finding schemas, and collection failure behavior remain unchanged. The release build embeds the dependencies into the standalone script; users do not need to download the helper files separately.
 
 ## Terminology
 
@@ -95,6 +112,8 @@ Exchange may report a user-created Calendar-scope folder as `/Project Calendar` 
 
 When a selected subfolder is requested, receiver folder matching, pair-specific sharing-entry checks, and accept-log output are scoped to that selected calendar name. Other calendars shared by the same owner do not satisfy the selected-calendar checks. The detailed New Model Calendar Sharing Entries table can still include entries for other calendars.
 
+Explicitly selecting the default calendar (for example, `-OwnerCalendarFolderPath "Calendar"`) uses the same receiver correlation and unfiltered accept-log output as omitting the parameter. It does not select the receiver's own default calendar.
+
 ## Understanding the summary
 
 ### Fatal prerequisite failure
@@ -156,6 +175,7 @@ Do not consider the relationship healthy until relevant incomplete checks have b
 - Mailbox information and Send-on-Behalf grants.
 - Selected calendar folder statistics and permissions. The selected folder is the default calendar unless `-OwnerCalendarFolderPath` is supplied.
 - A receiver-specific permission summary across the owner calendar folder and owner mailbox. If no direct receiver entry exists, the output notes that access may come from the `Default` entry or a group.
+- Mailbox permission summaries separate Allow and Deny entries. When both exist, the script reports them separately rather than claiming that the listed rights are effective access.
 - Selected calendar size greater than 1 GB (1,000,000,000 bytes).
 - Selected calendar item count greater than 100,000 visible items.
 - Calendar folders whose names end in a one- or two-digit numeric suffix such as `(1)` or `(12)`.
@@ -164,6 +184,14 @@ Do not consider the relationship healthy until relevant incomplete checks have b
 - Modern Sharing folder flags, including `SharedOut` and `ExchangeShareFolder`.
 - The specified receiver's active sharing relationship. If the receiver is not in the owner's active sharees (`Get-CalendarActiveSharingInformation`) for a Modern Sharing relationship, the script reports `SHR311` as an error; `SHR321` also reports an owner permission that has no active relationship.
 - Non-default `ActiveShareeFlags`.
+
+### Explicit receiver delegation
+
+`SHR325` checks the specified receiver, not every delegate. When the receiver is identified as a delegate by its individual owner-calendar permission, active-sharing flags, or receiver-folder flags, it must have its own permission entry on the selected owner calendar with both `AccessRights Editor` and `SharingPermissionFlags Delegate`.
+
+Group membership, `Default` permissions, another delegate's entry, and mailbox `FullAccess` do not satisfy this requirement. Each delegate must be listed individually. The check does not require Send on Behalf permissions.
+
+A missing individual entry or missing required rights produces a `Detected` error. Unavailable owner-calendar permissions, or insufficient evidence to determine whether the receiver is a delegate, produces `NotEvaluated`, not a pass. An ordinary non-delegate sharing relationship or a published subscription is `NotApplicable`. Calendar delegation is checked for both Modern Sharing and legacy MAPI relationships when delegate evidence is available.
 
 ### Receiver
 
@@ -188,7 +216,7 @@ The script evaluates the available Modern Sharing and pair-specific legacy MAPI 
 
 Pair-specific Old-model entries are displayed automatically when present, including when New-model entries also exist.
 
-For internal relationships classified as legacy MAPI sharing, the script reports Modern-only rules as `NotApplicable`, displays any pair-specific Old-model entries, and recommends upgrading by following [Calendar sharing in Microsoft 365](https://support.microsoft.com/en-us/outlook/calendar-sharing-in-microsoft-365). A Modern Sharing local receiver folder is not expected for this model.
+Legacy MAPI classification requires a pair-specific Old-model entry as well as the absence of a Modern local copy or pair-specific New-model entry. Missing Modern Sharing evidence alone does not establish that a sharing relationship exists. For internal relationships classified as legacy MAPI sharing, the script reports Modern-only rules as `NotApplicable`, displays the pair-specific Old-model entries, and recommends upgrading by following [Calendar sharing in Microsoft 365](https://support.microsoft.com/en-us/outlook/calendar-sharing-in-microsoft-365). A Modern Sharing local receiver folder is not expected for this model.
 
 InternetCalendar information is collected only when the selected owner calendar has `PublishEnabled` set. When the relationship is classified as Published Calendar rather than Modern Sharing, the script compares the owner's `PublishedICalUrl` with the receiver's InternetCalendar subscriptions and checks for the matching local receiver folder. Modern-only rules are reported as `NotApplicable`.
 
@@ -199,6 +227,8 @@ InternetCalendar information is collected only when the selected owner calendar 
 | `SHR423` | Publishing is enabled, but the owner's `PublishedICalUrl` is unavailable. |
 
 Publishing being enabled does not by itself establish that this receiver uses a published subscription.
+
+Detecting a missing published-calendar folder (`SHR422`) requires both a matching receiver subscription and available receiver folder statistics. If subscription collection or folder-statistics collection fails, the dependent checks remain `NotEvaluated` rather than recommending subscription removal based on missing evidence.
 
 ### Duplicate-style folder names
 
