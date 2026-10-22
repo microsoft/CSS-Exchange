@@ -109,6 +109,7 @@ function Get-XtapSharingConfiguration {
         if ($data.Metadata.TenantResolutionSkipped -isnot [bool] -or
             $data.Metadata.EntraLoginHost -isnot [string] -or
             $data.Metadata.EntraLoginHost -notmatch '^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$' -or
+            [uri]::CheckHostName($data.Metadata.EntraLoginHost) -ne [UriHostNameType]::Dns -or
             ($null -ne $savedRunName -and $savedRunName -isnot [string]) -or
             ($null -ne $data.Metadata.Organization -and $data.Metadata.Organization -isnot [string])) {
             throw "ImportData contains invalid collection metadata."
@@ -164,6 +165,11 @@ function Get-XtapSharingConfiguration {
                 $null -eq $entry.PSObject.Properties["TenantId"] -or
                 ($null -ne $entry.TenantId -and ($entry.TenantId -isnot [string] -or $entry.TenantId -notmatch $Script:XtapGuidPattern))) {
                 throw "ImportData contains an invalid tenant resolution entry."
+            }
+            $resolutionError = $entry.PSObject.Properties["Error"]
+            if ($null -ne $resolutionError -and $null -ne $resolutionError.Value -and
+                $resolutionError.Value -isnot [string]) {
+                throw "ImportData contains an invalid tenant resolution error."
             }
         }
         $configuration.Metadata = $data.Metadata

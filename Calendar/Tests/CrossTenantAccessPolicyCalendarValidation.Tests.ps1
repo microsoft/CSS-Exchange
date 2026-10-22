@@ -9,7 +9,6 @@ BeforeAll {
     . $Script:parentPath\XtapHelpers\XtapReportHelpers.ps1
     . $Script:parentPath\XtapHelpers\Invoke-CrossTenantAccessPolicyCalendarValidation.ps1
     . $Script:parentPath\CalendarHelpers\CalendarDiagnosticHelpers.ps1
-    . $Script:parentPath\CalLogHelpers\Write-DashLineBoxColor.ps1
 
     $Script:TenantA = "11111111-1111-1111-1111-111111111111"
     $Script:TenantB = "22222222-2222-2222-2222-222222222222"
@@ -26,25 +25,33 @@ BeforeAll {
             [string]$FreeBusyScope = "",
             [bool]$MailboxMove = $false,
             [string]$MailboxMoveCapability = "None",
+            [string[]]$AdditionalFeature = @(),
+            [string]$IdentityMoveCapability = "None",
             [string]$ApplicationUri = "outlook.com",
             [string]$AutodiscoverEpr = "https://autodiscover-s.outlook.com/autodiscover/autodiscover.svc/WSSecurity"
         )
 
         [PSCustomObject]@{
-            Name                  = $Name
-            DomainNames           = $DomainNames
-            Enabled               = $Enabled
-            FreeBusyAccessEnabled = $FreeBusy
-            FreeBusyAccessLevel   = $FreeBusyLevel
-            FreeBusyAccessScope   = $FreeBusyScope
-            MailTipsAccessEnabled = $MailTips
-            MailTipsAccessLevel   = $MailTipsLevel
-            MailTipsAccessScope   = ""
-            MailboxMoveEnabled    = $MailboxMove
-            MailboxMoveCapability = $MailboxMoveCapability
-            TargetApplicationUri  = $ApplicationUri
-            TargetSharingEpr      = ""
-            TargetAutodiscoverEpr = $AutodiscoverEpr
+            Name                   = $Name
+            DomainNames            = $DomainNames
+            Enabled                = $Enabled
+            FreeBusyAccessEnabled  = $FreeBusy
+            FreeBusyAccessLevel    = $FreeBusyLevel
+            FreeBusyAccessScope    = $FreeBusyScope
+            MailTipsAccessEnabled  = $MailTips
+            MailTipsAccessLevel    = $MailTipsLevel
+            MailTipsAccessScope    = ""
+            MailboxMoveEnabled     = $MailboxMove
+            MailboxMoveCapability  = $MailboxMoveCapability
+            IdentityMoveEnabled    = "IdentityMove" -in $AdditionalFeature
+            IdentityMoveCapability = $IdentityMoveCapability
+            PeopleSearchEnabled    = "PeopleSearch" -in $AdditionalFeature
+            ArchiveAccessEnabled   = "ArchiveAccess" -in $AdditionalFeature
+            DeliveryReportEnabled  = "DeliveryReport" -in $AdditionalFeature
+            PhotosEnabled          = "Photos" -in $AdditionalFeature
+            TargetApplicationUri   = $ApplicationUri
+            TargetSharingEpr       = ""
+            TargetAutodiscoverEpr  = $AutodiscoverEpr
         }
     }
 }
@@ -77,6 +84,79 @@ Describe "Endpoint and scenario detection" {
 
     It "Rejects an invalid domain without a lookup" {
         Resolve-XtapDomainTenantId -Domain "bad/domain" | Should -BeNullOrEmpty
+    }
+}
+
+Describe "Tenant resolution diagnostics" {
+    BeforeEach {
+        $Script:XtapDomainTenantCache = @{}
+        $Script:XtapDomainTenantErrors = @{}
+        $Script:XtapOfflineData = $false
+        $Script:XtapEntraLoginHost = "login.microsoftonline.com"
+    }
+
+    Describe "Entra login host validation" {
+        It "Rejects invalid lookup host <HostName> before collecting data" -TestCases @(
+            @{ HostName = "127.0.0.1" }
+            @{ HostName = "login..example.com" }
+            @{ HostName = "https://login.microsoftonline.com" }
+            @{ HostName = "login.microsoftonline.com:443" }
+        ) {
+            param($HostName)
+            Mock Get-XtapSharingConfiguration { throw "Must not collect data" }
+            { Invoke-CrossTenantAccessPolicyCalendarValidation -OutputPath $TestDrive -EntraLoginHost $HostName } |
+                Should -Throw -ExpectedMessage "*isn't a valid host name*"
+            Should -Invoke -CommandName Get-XtapSharingConfiguration -Times 0 -Exactly
+        }
+    }
+
+    It "Caches successful lookups across domain casing and whitespace" {
+        Mock Invoke-RestMethod { [PSCustomObject]@{ issuer = "https://login.microsoftonline.com/$Script:TenantA/v2.0" } }
+        (Get-XtapDomainTenantResolution -Domain " Partner.com ").TenantId | Should -Be $Script:TenantA
+        $result = Get-XtapDomainTenantResolution -Domain "PARTNER.COM"
+        $result.Domain | Should -Be "partner.com"
+        $result.Status | Should -Be "Resolved"
+        $result.Error | Should -BeNullOrEmpty
+        Should -Invoke -CommandName Invoke-RestMethod -Times 1 -Exactly
+    }
+
+    It "Caches the specific failure alongside the failed domain" {
+        Mock Invoke-RestMethod { throw "Synthetic lookup failure" }
+        $first = Get-XtapDomainTenantResolution -Domain "partner.com"
+        $second = Get-XtapDomainTenantResolution -Domain "PARTNER.COM"
+        $first.Status | Should -Be "Unresolved"
+        $first.Error | Should -Be "Synthetic lookup failure"
+        $second.Error | Should -Be $first.Error
+        Should -Invoke -CommandName Invoke-RestMethod -Times 1 -Exactly
+    }
+
+    It "Reports invalid OpenID issuer metadata" {
+        Mock Invoke-RestMethod { [PSCustomObject]@{ issuer = "https://login.microsoftonline.com/common/v2.0" } }
+        $result = Get-XtapDomainTenantResolution -Domain "partner.com"
+        $result.Status | Should -Be "Unresolved"
+        $result.Error | Should -Match "issuer did not contain a valid"
+    }
+
+    It "Reports an invalid domain without making a request" {
+        Mock Invoke-RestMethod { throw "Must not be called" }
+        $result = Get-XtapDomainTenantResolution -Domain "bad/domain"
+        $result.Error | Should -Match "not a valid DNS"
+        Should -Invoke -CommandName Invoke-RestMethod -Times 0 -Exactly
+    }
+
+    It "Explains missing offline lookup data without making a request" {
+        $Script:XtapOfflineData = $true
+        Mock Invoke-RestMethod { throw "Must not be called" }
+        $result = Get-XtapDomainTenantResolution -Domain "missing.com"
+        $result.Status | Should -Be "Unresolved"
+        $result.Error | Should -Match "No saved tenant resolution"
+        Should -Invoke -CommandName Invoke-RestMethod -Times 0 -Exactly
+    }
+
+    It "Explains legacy cached failures without inventing a detailed error" {
+        $Script:XtapOfflineData = $true
+        $Script:XtapDomainTenantCache["partner.com"] = $null
+        (Get-XtapDomainTenantResolution -Domain "partner.com").Error | Should -Match "no detailed lookup error was saved"
     }
 }
 
@@ -140,6 +220,86 @@ Describe "Get-XtapOrganizationRelationshipAnalysis" {
         Mock Resolve-XtapDomainTenantId { $null }
         (Get-XtapOrganizationRelationshipAnalysis -ResolveTenantId -OrganizationRelationship (Get-TestRelationship)).Status | Should -Be "Review"
     }
+
+    It "Detects and preserves additional <Feature> functionality" -TestCases @(
+        @{ Feature = "IdentityMove" }
+        @{ Feature = "PeopleSearch" }
+        @{ Feature = "ArchiveAccess" }
+        @{ Feature = "DeliveryReport" }
+        @{ Feature = "Photos" }
+    ) {
+        param($Feature)
+        $result = Get-XtapOrganizationRelationshipAnalysis -OrganizationRelationship (Get-TestRelationship -AdditionalFeature $Feature)
+        $result.Status | Should -Be "Eligible"
+        $result.HasAdditionalEnabledFunctionalities | Should -BeTrue
+        $result.HasAdditionalFunctionalitiesAndSharing | Should -BeTrue
+        $result.AdditionalEnabledFunctionalities | Should -Be $Feature
+        $result.AdditionalFunctionalitiesRecommendation | Should -Match "Preserve this Organization Relationship"
+    }
+
+    It "Detects IdentityMove from its capability without its enabled flag" {
+        $result = Get-XtapOrganizationRelationshipAnalysis -OrganizationRelationship (Get-TestRelationship -IdentityMoveCapability "RemoteOutbound")
+        $result.AdditionalEnabledFunctionalities | Should -Be "IdentityMove"
+    }
+
+    It "Lists every additional feature and preserves relationships with no sharing" {
+        $result = Get-XtapOrganizationRelationshipAnalysis -OrganizationRelationship (
+            Get-TestRelationship -FreeBusy $false -MailboxMove $true -AdditionalFeature @("IdentityMove", "PeopleSearch", "ArchiveAccess", "DeliveryReport", "Photos"))
+        $result.Status | Should -Be "MailboxMoveOnly"
+        $result.AdditionalEnabledFunctionalities | Should -Be "MailboxMove;IdentityMove;PeopleSearch;ArchiveAccess;DeliveryReport;Photos"
+        $result.HasAdditionalFunctionalitiesAndSharing | Should -BeFalse
+        $result.DomainTenantResolution.Count | Should -Be 0
+    }
+
+    It "Requires review when only some domains resolve" {
+        Mock Resolve-XtapDomainTenantId { if ($Domain -eq "good.com") { $Script:TenantA } }
+        $result = Get-XtapOrganizationRelationshipAnalysis -ResolveTenantId -OrganizationRelationship (
+            Get-TestRelationship -DomainNames @("good.com", "missing.com"))
+        $result.Status | Should -Be "Review"
+        $result.PartnerTenantIds | Should -Be $Script:TenantA
+        $result.UnresolvedDomains | Should -Be "missing.com"
+        $result.DomainTenantResolution.Count | Should -Be 2
+        $result.DomainTenantResolution[1].Status | Should -Be "Unresolved"
+        $result.Notes | Should -Match "Every relationship domain must resolve"
+        $result.SharingCapabilityWouldBeEligibleIfEnabled | Should -BeFalse
+    }
+
+    It "Requires domains even when ResolveTenantId is <Resolve>" -TestCases @(
+        @{ Resolve = $true }
+        @{ Resolve = $false }
+    ) {
+        param($Resolve)
+        $result = Get-XtapOrganizationRelationshipAnalysis -ResolveTenantId:$Resolve -OrganizationRelationship (
+            Get-TestRelationship -DomainNames @())
+        $result.Status | Should -Be "Review"
+        $result.Notes | Should -Match "no domain names"
+    }
+
+    It "Assesses disabled relationships without making them command eligible" {
+        $result = Get-XtapOrganizationRelationshipAnalysis -ResolveTenantId -OrganizationRelationship (
+            Get-TestRelationship -Enabled $false -MailTips $true -MailTipsLevel "All" -FreeBusyScope "SomeGroup")
+        $result.Status | Should -Be "Disabled"
+        $result.PartnerTenantIds | Should -Be $Script:TenantA
+        $result.SharingCapabilityWouldBeEligibleIfEnabled | Should -BeTrue
+        $result.FreeBusyCapabilityIfEnabled | Should -Be "crossTenantCalendarAvailabilityBasic"
+        $result.MailTipsCapabilityIfEnabled | Should -Be "crossTenantMailTipsAll"
+        $result.FreeBusyCapability | Should -BeNullOrEmpty
+        $result.MailTipsCapability | Should -BeNullOrEmpty
+        $result.Notes | Should -Match "If enabled"
+    }
+
+    It "Does not recommend disabled hybrid or unresolved relationships" {
+        Mock Resolve-XtapDomainTenantId { $null }
+        foreach ($relationship in @(
+                (Get-TestRelationship -Enabled $false -Name "Hybrid"),
+                (Get-TestRelationship -Enabled $false)
+            )) {
+            $result = Get-XtapOrganizationRelationshipAnalysis -ResolveTenantId -OrganizationRelationship $relationship
+            $result.Status | Should -Be "Disabled"
+            $result.SharingCapabilityWouldBeEligibleIfEnabled | Should -BeFalse
+            $result.FreeBusyCapabilityIfEnabled | Should -BeNullOrEmpty
+        }
+    }
 }
 
 Describe "Get-XtapAvailabilityAddressSpaceAnalysis" {
@@ -158,6 +318,65 @@ Describe "Get-XtapAvailabilityAddressSpaceAnalysis" {
     It "Marks Google Workspace not eligible" {
         $space = [PSCustomObject]@{ Name = "g.com"; ForestName = "g.com"; AccessMethod = "OrgWideFBToken"; TargetAutodiscoverEpr = "https://calendar.google.com/x" }
         (Get-XtapAvailabilityAddressSpaceAnalysis -AvailabilityAddressSpace $space).Status | Should -Be "NotEligible"
+    }
+
+    It "Gives the hybrid marker precedence over a valid tenant ID in <Endpoint>" -TestCases @(
+        @{ Endpoint = "TargetServiceEpr" }
+        @{ Endpoint = "TargetAutodiscoverEpr" }
+        @{ Endpoint = "ProxyUrl" }
+    ) {
+        param($Endpoint)
+        $space = [PSCustomObject]@{ Name = "Hybrid"; ForestName = "partner.com"; AccessMethod = "OrgWideFBToken"; TargetTenantId = $Script:TenantA }
+        $space | Add-Member -NotePropertyName $Endpoint -NotePropertyValue "https://FYDIBOHF25SPDLT.contoso.com/ews"
+        $result = Get-XtapAvailabilityAddressSpaceAnalysis -AvailabilityAddressSpace $space
+        $result.Status | Should -Be "NotEligible"
+        $result.Scenario | Should -Be "OnPremisesOrHybrid"
+        $result.RecommendedCapability | Should -BeNullOrEmpty
+    }
+
+    It "Distinguishes an invalid configured tenant ID from a missing one" {
+        Mock Resolve-XtapDomainTenantId { $Script:TenantA }
+        $space = [PSCustomObject]@{ Name = "Invalid"; ForestName = "partner.com"; AccessMethod = "OrgWideFBToken"; TargetTenantId = "not-a-guid"; TargetServiceEpr = "https://outlook.office365.com/ews" }
+        $result = Get-XtapAvailabilityAddressSpaceAnalysis -AvailabilityAddressSpace $space -ResolveTenantId
+        $result.Status | Should -Be "Review"
+        $result.ConfiguredTargetTenantId | Should -Be "not-a-guid"
+        $result.TargetTenantIdValid | Should -BeFalse
+        $result.TargetTenantId | Should -BeNullOrEmpty
+        $result.TenantResolutionStatus | Should -Be "Invalid"
+        $result.TenantResolutionError | Should -Match "not a valid GUID"
+        Should -Invoke -CommandName Resolve-XtapDomainTenantId -Times 0 -Exactly
+    }
+
+    It "Resolves missing tenant IDs and retains the original configured value" {
+        Mock Resolve-XtapDomainTenantId { $Script:TenantA }
+        $space = [PSCustomObject]@{ Name = "Missing"; ForestName = "partner.com"; AccessMethod = "OrgWideFBToken"; TargetServiceEpr = "https://outlook.office365.com/ews" }
+        $result = Get-XtapAvailabilityAddressSpaceAnalysis -AvailabilityAddressSpace $space -ResolveTenantId
+        $result.Status | Should -Be "Eligible"
+        $result.ConfiguredTargetTenantId | Should -BeNullOrEmpty
+        $result.ResolvedEntraTenantId | Should -Be $Script:TenantA
+        $result.TenantResolutionStatus | Should -Be "Resolved"
+        $result.MigrationRecommendation | Should -Match "not required because of EWS"
+    }
+
+    It "Normalizes valid GUID representations for <TenantId>" -TestCases @(
+        @{ TenantId = "{11111111-1111-1111-1111-111111111111}" }
+        @{ TenantId = "11111111111111111111111111111111" }
+    ) {
+        param($TenantId)
+        $space = [PSCustomObject]@{ Name = "Partner"; ForestName = "partner.com"; AccessMethod = "OrgWideFBToken"; TargetTenantId = $TenantId }
+        $result = Get-XtapAvailabilityAddressSpaceAnalysis -AvailabilityAddressSpace $space
+        $result.Status | Should -Be "Eligible"
+        $result.TargetTenantIdValid | Should -BeTrue
+        $result.ConfiguredTargetTenantId | Should -Be $TenantId
+        $result.TargetTenantId | Should -Be $Script:TenantA
+        $result.TenantResolutionStatus | Should -Be "Provided"
+    }
+
+    It "Does not let a valid tenant ID override Google Workspace endpoints" {
+        $space = [PSCustomObject]@{ Name = "Google"; ForestName = "partner.com"; AccessMethod = "OrgWideFBToken"; TargetTenantId = $Script:TenantA; TargetServiceEpr = "https://calendar.google.com/ews" }
+        $result = Get-XtapAvailabilityAddressSpaceAnalysis -AvailabilityAddressSpace $space
+        $result.Status | Should -Be "NotEligible"
+        $result.Scenario | Should -Be "GoogleWorkspace"
     }
 }
 
@@ -208,6 +427,36 @@ Describe "Get-XtapSharingPolicyAnalysis" {
         $policy = [PSCustomObject]@{ Name = "P"; Enabled = $true; Default = $false; Domains = @("*:CalendarSharingFreeBusySimple") }
         $assignment = [PSCustomObject]@{ Name = "P"; Count = 7 }
         (Get-XtapSharingPolicyAnalysis -SharingPolicy $policy -SharingPolicyAssignment $assignment).AssignedMailboxCount | Should -Be 7
+    }
+
+    It "Preserves ContactsSharing on the entire combined rule" {
+        $policy = [PSCustomObject]@{ Name = "P"; Enabled = $true; Default = $false; Domains = @("*:CalendarSharingFreeBusySimple,ContactsSharing") }
+        $result = @(Get-XtapSharingPolicyAnalysis -SharingPolicy $policy)
+        $result[0].Status | Should -Be "Eligible"
+        foreach ($row in $result) {
+            $row.HasContactsSharing | Should -BeTrue
+            $row.LegacyRuleCanBeRetired | Should -BeFalse
+            $row.ContactsSharingAssessment | Should -Match "Preserve this legacy rule"
+        }
+    }
+
+    It "Only allows retiring fully supported eligible rules" {
+        foreach ($entry in @("*:CalendarSharingFreeBusySimple", "*:CalendarSharingFreeBusySimple,UnknownAction")) {
+            $policy = [PSCustomObject]@{ Name = "P"; Enabled = $true; Default = $true; Domains = @($entry) }
+            $result = @(Get-XtapSharingPolicyAnalysis -SharingPolicy $policy)
+            $result[0].LegacyRuleCanBeRetired | Should -Be ($entry -notmatch "UnknownAction")
+        }
+    }
+
+    It "Assesses disabled domain rules and keeps active capabilities empty" {
+        $policy = [PSCustomObject]@{ Name = "P"; Enabled = $false; Default = $false; Domains = @("partner.com:CalendarSharingFreeBusyDetail,ContactsSharing") }
+        $result = @(Get-XtapSharingPolicyAnalysis -SharingPolicy $policy -ResolveTenantId)
+        $result[0].Status | Should -Be "Disabled"
+        $result[0].CalendarCapabilityWouldBeEligibleIfEnabled | Should -BeTrue
+        $result[0].RecommendedCapabilityIfEnabled | Should -Be "CrossTenantCalendarSharingFreeBusyDetail"
+        $result[0].RecommendedCapability | Should -BeNullOrEmpty
+        $result[0].LegacyRuleCanBeRetired | Should -BeFalse
+        $result[1].CalendarCapabilityWouldBeEligibleIfEnabled | Should -BeFalse
     }
 }
 
@@ -298,6 +547,51 @@ Describe "Get-XtapCommandScript" {
             $Script:scripts[$name] | Should -Match "for run 'BeforeMigration' on \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}"
         }
     }
+
+    It "Only changes sharing settings when <Feature> must be preserved" -TestCases @(
+        @{ Feature = "IdentityMove" }
+        @{ Feature = "PeopleSearch" }
+        @{ Feature = "ArchiveAccess" }
+        @{ Feature = "DeliveryReport" }
+        @{ Feature = "Photos" }
+    ) {
+        param($Feature)
+        $analysis = @(Get-XtapOrganizationRelationshipAnalysis -ResolveTenantId -OrganizationRelationship (
+                Get-TestRelationship -Name "Preserved" -AdditionalFeature $Feature -MailTips $true -MailTipsLevel "All" -FreeBusyScope "SomeGroup"))
+        $generated = Get-XtapCommandScript -OrganizationRelationshipAnalysis $analysis
+        $generated["XTAP_Part3_DisableForTesting.ps1"] | Should -Match "Set-OrganizationRelationship -Identity 'Preserved' -FreeBusyAccessEnabled \`$false -MailTipsAccessEnabled \`$false"
+        $generated["XTAP_Part4_Cleanup.ps1"] | Should -Match "(?m)^# Set-OrganizationRelationship -Identity 'Preserved' -FreeBusyAccessEnabled"
+        $generated["XTAP_Part3_Rollback.ps1"] | Should -Match "-FreeBusyAccessScope 'SomeGroup'.*-MailTipsAccessEnabled \`$true -MailTipsAccessLevel 'All'"
+        foreach ($name in $generated.Keys) {
+            $generated[$name] | Should -Not -Match "Remove-OrganizationRelationship|Set-OrganizationRelationship -Identity 'Preserved' -Enabled"
+            $errors = $null
+            [void][System.Management.Automation.Language.Parser]::ParseInput($generated[$name], [ref]$null, [ref]$errors)
+            $errors.Count | Should -Be 0
+        }
+    }
+
+    It "Generates no commands for partially resolved or disabled relationships" {
+        Mock Resolve-XtapDomainTenantId { if ($Domain -eq "good.com") { $Script:TenantA } }
+        $analysis = @(Get-XtapOrganizationRelationshipAnalysis -ResolveTenantId -OrganizationRelationship @(
+                (Get-TestRelationship -Name "Partial" -DomainNames @("good.com", "missing.com")),
+                (Get-TestRelationship -Enabled $false -DomainNames @("good.com")))
+        )
+        $generated = Get-XtapCommandScript -OrganizationRelationshipAnalysis $analysis
+        $generated.Count | Should -Be 0
+    }
+
+    It "Does not disable or remove policies containing mixed calendar and contacts rules" {
+        $policy = [PSCustomObject]@{ Name = "Mixed"; Enabled = $true; Default = $true; Domains = @("partner.com:CalendarSharingFreeBusySimple,ContactsSharing") }
+        $analysis = @(Get-XtapSharingPolicyAnalysis -SharingPolicy $policy -ResolveTenantId)
+        $generated = Get-XtapCommandScript -SharingPolicyAnalysis $analysis
+        $generated["XTAP_Part2_CreatePolicies.ps1"] | Should -Match "CrossTenantCalendarSharingFreeBusySimple"
+        $generated.Keys | Should -Not -Contain "XTAP_Part3_DisableForTesting.ps1"
+        $generated.Keys | Should -Not -Contain "XTAP_Part4_Cleanup.ps1"
+        $withPartner = Get-XtapCommandScript -OrganizationRelationshipAnalysis $Script:orgAnalysis -SharingPolicyAnalysis $analysis
+        $withPartner["XTAP_Part3_DisableForTesting.ps1"] | Should -Match "Not disabled: Sharing Policy 'Mixed'"
+        $withPartner["XTAP_Part3_DisableForTesting.ps1"] | Should -Not -Match "(?m)^Set-SharingPolicy"
+        $withPartner["XTAP_Part4_Cleanup.ps1"] | Should -Not -Match "Remove-SharingPolicy"
+    }
 }
 
 Describe "Get-XtapSharingConfiguration" {
@@ -345,11 +639,54 @@ Describe "Get-XtapSharingConfiguration" {
 }
 
 Describe "Report helpers" {
+    It "Summarizes preservation warnings and disabled potential capabilities" {
+        $analysis = @(Get-XtapOrganizationRelationshipAnalysis -OrganizationRelationship @(
+                (Get-TestRelationship -Name "Preserved" -AdditionalFeature "Photos"),
+                (Get-TestRelationship -Name "Dormant" -Enabled $false)))
+        $sharing = @(Get-XtapSharingPolicyAnalysis -SharingPolicy (
+                [PSCustomObject]@{ Name = "Mixed"; Enabled = $true; Default = $true; Domains = @("*:CalendarSharingFreeBusySimple,ContactsSharing") }))
+        $summary = Get-XtapSummaryLines -RunName "Test" -Mode "Live" -OrganizationRelationshipAnalysis $analysis -SharingPolicyAnalysis $sharing
+        $text = $summary -join "`n"
+        $text | Should -Match "No Availability Address Spaces found"
+        $text | Should -Match "'Preserved'.*Photos.*Preserve this Organization Relationship"
+        $text | Should -Match "\[Disabled\] Organization Relationship 'Dormant'.*Potential capabilities if enabled: crossTenantCalendarAvailabilityBasic"
+        $text | Should -Match "Sharing Policy 'Mixed'.*ContactsSharing.*Preserve this legacy rule"
+    }
+
     It "Writes text files with a UTF-8 BOM" {
         $path = Join-Path -Path $TestDrive -ChildPath "bom.txt"
         Write-XtapTextFile -Path $path -Text "hello"
         $bytes = [System.IO.File]::ReadAllBytes($path)
         $bytes[0..2] | Should -Be @(0xEF, 0xBB, 0xBF)
+    }
+
+    It "Uses the console default for normal summary text" -TestCases @(
+        @{ Line = "Summary" }
+        @{ Line = "[Eligible] Ready to migrate" }
+    ) {
+        param($Line)
+        Mock -CommandName Write-Host -MockWith {}
+
+        Write-XtapSummary -Line $Line
+
+        Should -Invoke -CommandName Write-Host -Times 1 -Exactly -ParameterFilter {
+            $Object -eq $Line -and $null -eq $ForegroundColor
+        }
+    }
+
+    It "Keeps warning colors for <Line>" -TestCases @(
+        @{ Line = "[Review] Needs confirmation"; Color = "Yellow" }
+        @{ Line = "[NotEligible] Keep existing configuration"; Color = "DarkYellow" }
+        @{ Line = "[MailboxMoveOnly] Keep existing configuration"; Color = "DarkYellow" }
+    ) {
+        param($Line, $Color)
+        Mock -CommandName Write-Host -MockWith {}
+
+        Write-XtapSummary -Line $Line
+
+        Should -Invoke -CommandName Write-Host -Times 1 -Exactly -ParameterFilter {
+            $Object -eq $Line -and $ForegroundColor -eq $Color
+        }
     }
 }
 
@@ -393,6 +730,47 @@ Describe "CrossTenantAccessPolicyCalendarValidation JSON replay" {
         }
     }
 
+    It "Uses the console default for the title and successful completion" {
+        Mock -CommandName Write-Host -MockWith {}
+
+        Invoke-CrossTenantAccessPolicyCalendarValidation -OutputPath $Script:outputPath -RunName "ConsoleColors" -ImportData $Script:importPath 6>$null | Out-Null
+
+        Should -Invoke -CommandName Write-Host -ParameterFilter {
+            $Object -eq "Cross-Tenant Access Policy Calendar Validation" -and $null -eq $ForegroundColor
+        }
+        Should -Invoke -CommandName Write-Host -ParameterFilter {
+            $Object -like "Results saved to *" -and $null -eq $ForegroundColor
+        }
+        Should -Not -Invoke -CommandName Write-Host -ParameterFilter {
+            $ForegroundColor -in @("Cyan", "Green", "Black", "White")
+        }
+    }
+
+    It "Puts the summary near the top and saves an empty run error array" {
+        $data = Get-Content -LiteralPath $Script:run.DataPath -Raw | ConvertFrom-Json
+
+        @($data.PSObject.Properties.Name | Select-Object -First 4) | Should -Be @("SchemaVersion", "Summary", "Metadata", "Errors")
+        $data.Summary -is [array] | Should -BeTrue
+        $data.Errors -is [array] | Should -BeTrue
+        $data.Errors.Count | Should -Be 0
+        $data.Metadata.User | Should -Not -BeNullOrEmpty
+        $data.Metadata.User | Should -BeLike "*$([System.Environment]::UserName)"
+    }
+
+    It "Records resolved arguments and explicit switch values without old session errors" {
+        Write-Error -Message "Unrelated session error" -ErrorAction SilentlyContinue
+        $result = Invoke-CrossTenantAccessPolicyCalendarValidation -OutputPath $Script:outputPath `
+            -RunName "Partner's Calendar" -ImportData $Script:importPath -SkipTenantResolution:$false 6>$null
+        $data = Get-Content -LiteralPath $result.DataPath -Raw | ConvertFrom-Json
+
+        $data.Metadata.CommandLine | Should -BeLike "*Invoke-CrossTenantAccessPolicyCalendarValidation*"
+        $data.Metadata.CommandLine | Should -Match ([regex]::Escape("-RunName 'Partner''s Calendar'"))
+        $data.Metadata.CommandLine | Should -Match ([regex]::Escape('-SkipTenantResolution:$false'))
+        $data.Metadata.CommandLine | Should -Match ([regex]::Escape("-ImportData '$Script:importPath'"))
+        $data.Metadata.InvocationLine | Should -Not -BeNullOrEmpty
+        $data.Errors.Count | Should -Be 0
+    }
+
     It "Only assesses by default" {
         $result = Invoke-CrossTenantAccessPolicyCalendarValidation -OutputPath $Script:outputPath -RunName "Assess" -ImportData $Script:importPath 6>$null
         @(Get-ChildItem -Path $result.ResultsPath -Filter "XTAP_*.ps1").Count | Should -Be 0
@@ -413,12 +791,56 @@ Describe "CrossTenantAccessPolicyCalendarValidation JSON replay" {
         $data.Metadata.RunName | Should -Be "AfterMigration"
         $data.Metadata.PSObject.Properties.Name | Should -Not -Contain "CustomerName"
         (Get-Content -LiteralPath $result.DataPath -Raw) | Should -Match '"GeneratedUtc"\s*:\s*"\d{4}-\d{2}-\d{2}T[^"]+Z"'
-        (Split-Path -Path $result.ResultsPath -Leaf) | Should -Match '^CrossTenantAccessPolicyCalendarValidation_AfterMigration_\d{8}_\d{6}_\d{3}$'
+        (Split-Path -Path $result.ResultsPath -Leaf) | Should -Match '^AfterMigration_XTAP_Calendar_\d{8}_\d{2}\.\d{2}\.\d{2}(?:_\d+)?$'
         (Split-Path -Path $result.DataPath -Leaf) | Should -Be "AfterMigration_CrossTenantAccessPolicyCalendarValidation_Data.json"
         $data.Summary[0] | Should -Match "^AfterMigration "
         $data.Summary -join "`n" | Should -Match "Generated: \d{4}-\d{2}-\d{2}"
         $data.CommandScripts.'XTAP_Part4_Cleanup.ps1' | Should -Match "for run 'AfterMigration'"
         $data.Summary -join "`n" | Should -Match "configuration-changing commands are commented out"
+    }
+
+    It "Uses a readable results folder timestamp for <Case>" -TestCases @(
+        @{ Case = "Named"; RunName = "Microsoft"; ExpectedPrefix = "Microsoft_" }
+        @{ Case = "NoLabel"; RunName = ""; ExpectedPrefix = "" }
+        @{ Case = "WhitespaceLabel"; RunName = "   "; ExpectedPrefix = "" }
+        @{ Case = "Sanitized"; RunName = "Microsoft/Calendar"; ExpectedPrefix = "Microsoft_Calendar_" }
+    ) {
+        param($Case, $RunName, $ExpectedPrefix)
+        Mock -CommandName Get-Date -MockWith { [DateTime]::new(2026, 10, 21, 14, 27, 42, 387) }
+        $outputPath = Join-Path -Path $TestDrive -ChildPath $Case
+        New-Item -Path $outputPath -ItemType Directory | Out-Null
+
+        $result = Invoke-CrossTenantAccessPolicyCalendarValidation -OutputPath $outputPath -RunName $RunName -ImportData $Script:importPath 6>$null
+
+        (Split-Path -Path $result.ResultsPath -Leaf) | Should -Be "${ExpectedPrefix}XTAP_Calendar_20261021_14.27.42"
+        (Split-Path -Path $result.DataPath -Leaf) | Should -Be "${ExpectedPrefix}CrossTenantAccessPolicyCalendarValidation_Data.json"
+        $result.GeneratedFiles | Should -Contain "${ExpectedPrefix}CrossTenantAccessPolicyCalendarValidation_Summary.txt"
+    }
+
+    It "Keeps repeated runs in separate folders without overwriting earlier output" {
+        Mock -CommandName Get-Date -MockWith { [DateTime]::new(2026, 10, 21, 14, 27, 42, 387) }
+        $first = Invoke-CrossTenantAccessPolicyCalendarValidation -OutputPath $Script:outputPath -RunName "Repeated" -ImportData $Script:importPath 6>$null
+        $originalData = Get-Content -LiteralPath $first.DataPath -Raw
+        $second = Invoke-CrossTenantAccessPolicyCalendarValidation -OutputPath $Script:outputPath -RunName "Repeated" -ImportData $Script:importPath 6>$null
+        $third = Invoke-CrossTenantAccessPolicyCalendarValidation -OutputPath $Script:outputPath -RunName "Repeated" -ImportData $Script:importPath 6>$null
+
+        (Split-Path -Path $first.ResultsPath -Leaf) | Should -Be "Repeated_XTAP_Calendar_20261021_14.27.42"
+        (Split-Path -Path $second.ResultsPath -Leaf) | Should -Be "Repeated_XTAP_Calendar_20261021_14.27.42_1"
+        (Split-Path -Path $third.ResultsPath -Leaf) | Should -Be "Repeated_XTAP_Calendar_20261021_14.27.42_2"
+        (Get-Content -LiteralPath $first.DataPath -Raw) | Should -Be $originalData
+        Test-Path -LiteralPath $second.DataPath | Should -BeTrue
+        Test-Path -LiteralPath $third.DataPath | Should -BeTrue
+    }
+
+    It "Skips an existing file when choosing a results folder name" {
+        Mock -CommandName Get-Date -MockWith { [DateTime]::new(2026, 10, 21, 14, 27, 42, 387) }
+        $existingPath = Join-Path -Path $Script:outputPath -ChildPath "ExistingFile_XTAP_Calendar_20261021_14.27.42"
+        Set-Content -LiteralPath $existingPath -Value "Preserve existing file" -NoNewline
+
+        $result = Invoke-CrossTenantAccessPolicyCalendarValidation -OutputPath $Script:outputPath -RunName "ExistingFile" -ImportData $Script:importPath 6>$null
+
+        (Split-Path -Path $result.ResultsPath -Leaf) | Should -Be "ExistingFile_XTAP_Calendar_20261021_14.27.42_1"
+        (Get-Content -LiteralPath $existingPath -Raw) | Should -Be "Preserve existing file"
     }
 
     It "Imports older CustomerName metadata as RunName and writes only the new name" {
@@ -484,15 +906,17 @@ Describe "CrossTenantAccessPolicyCalendarValidation JSON replay" {
 
     It "Rejects invalid configuration values and tenant resolution records" {
         $path = Join-Path -Path $TestDrive -ChildPath "invalidValues.json"
-        foreach ($invalidCase in @("Boolean", "Collection", "Item", "TenantId", "Count", "Metadata", "RunName")) {
+        foreach ($invalidCase in @("Boolean", "Collection", "Item", "TenantId", "TenantError", "Count", "Metadata", "MetadataHost", "RunName")) {
             $data = Get-Content -LiteralPath $Script:importPath -Raw | ConvertFrom-Json
             switch ($invalidCase) {
                 "Boolean" { $data.Configuration.SharingPolicy[0].Enabled = "false" }
                 "Collection" { $data.Configuration.SharingPolicy = $data.Configuration.SharingPolicy[0] }
                 "Item" { $data.Configuration.OrganizationRelationship = @("invalid") }
                 "TenantId" { $data.TenantResolution[0].TenantId = "invalid" }
+                "TenantError" { $data.TenantResolution[0] | Add-Member -NotePropertyName Error -NotePropertyValue 42 }
                 "Count" { $data.Configuration.SharingPolicyAssignment = @([PSCustomObject]@{ Name = "Default"; Count = -1 }) }
                 "Metadata" { $data.Metadata.TenantResolutionSkipped = "false" }
+                "MetadataHost" { $data.Metadata.EntraLoginHost = "127.0.0.1" }
                 "RunName" { $data.Metadata.RunName = 42 }
             }
             Write-CalendarDiagnosticJsonFile -InputObject $data -Path $path
@@ -530,6 +954,11 @@ Describe "CrossTenantAccessPolicyCalendarValidation JSON replay" {
         $files.Count | Should -Be 1
         $data = Get-Content -LiteralPath $files[0].FullName -Raw | ConvertFrom-Json
         $data.Metadata.Mode | Should -Be "Offline"
+        $data.Metadata.CommandLine | Should -Match ([regex]::Escape("CrossTenantAccessPolicyCalendarValidation.ps1'"))
+        $data.Metadata.CommandLine | Should -Match ([regex]::Escape("-RunName 'PublicReplay'"))
+        $data.Metadata.CommandLine | Should -Match ([regex]::Escape("-OutputPath '$publicOutputPath'"))
+        $data.Metadata.User | Should -Not -BeNullOrEmpty
+        $data.Metadata.InvocationLine | Should -Not -BeNullOrEmpty
         Should -Invoke -CommandName Invoke-RestMethod -Times 0 -Exactly
     }
 }
@@ -568,6 +997,35 @@ Describe "Calendar validation entry point update behavior" {
         $result.Count | Should -Be 0
         Should -Invoke -CommandName Test-ScriptVersion -Times 0 -Exactly
         Should -Invoke -CommandName Invoke-CrossTenantAccessPolicyCalendarValidation -Times 1 -Exactly -ParameterFilter { $ImportData -eq "data.json" }
+    }
+
+    It "Defaults output to the script folder when launched from another working directory" {
+        $scriptFolder = Join-Path -Path $TestDrive -ChildPath "script location"
+        $workingFolder = Join-Path -Path $TestDrive -ChildPath "working"
+        New-Item -Path $scriptFolder -ItemType Directory | Out-Null
+        New-Item -Path $workingFolder -ItemType Directory | Out-Null
+        $scriptCopy = Join-Path -Path $scriptFolder -ChildPath "CrossTenantAccessPolicyCalendarValidation.ps1"
+        Write-XtapTextFile -Path $scriptCopy -Text $Script:entryWithoutImports.ToString()
+
+        Push-Location -Path $workingFolder
+        try {
+            & $scriptCopy -ImportData "data.json" 6>$null
+
+            (Get-Location).Path | Should -Be $workingFolder
+            Should -Invoke -CommandName Invoke-CrossTenantAccessPolicyCalendarValidation -Times 1 -Exactly -ParameterFilter {
+                $OutputPath -eq $scriptFolder
+            }
+        } finally {
+            Pop-Location
+        }
+    }
+
+    It "Preserves an explicitly supplied output folder" {
+        & $Script:entryWithoutImports -ImportData "data.json" -OutputPath $TestDrive 6>$null
+
+        Should -Invoke -CommandName Invoke-CrossTenantAccessPolicyCalendarValidation -Times 1 -Exactly -ParameterFilter {
+            $OutputPath -eq $TestDrive
+        }
     }
 
     It "Stops before assessment when an update was downloaded" {
@@ -642,9 +1100,72 @@ Describe "JSON collection normalization and live replay" {
         $data = Get-Content -LiteralPath $live.DataPath -Raw | ConvertFrom-Json
         $data.TenantResolution.Count | Should -Be 1
         $data.TenantResolution[0].TenantId | Should -BeNullOrEmpty
+        $data.TenantResolution[0].Error | Should -Be "Lookup unavailable"
+        $live.OrganizationRelationshipAnalysis[0].DomainTenantResolution[0].Error | Should -Be "Lookup unavailable"
+        $live.OrganizationRelationshipAnalysis[0].Notes | Should -Match "partner.com.*Lookup unavailable"
+        $data.Errors.message | Should -Contain "Lookup unavailable"
+        $lookupError = $data.Errors | Where-Object -Property message -EQ "Lookup unavailable"
+        $lookupError.exceptionType | Should -Not -BeNullOrEmpty
+        $lookupError.category | Should -Not -BeNullOrEmpty
+        $lookupError.fullyQualifiedErrorId | Should -Not -BeNullOrEmpty
         $offline = Invoke-CrossTenantAccessPolicyCalendarValidation -OutputPath $TestDrive -ImportData $live.DataPath 6>$null
         $offline.OrganizationRelationshipAnalysis[0].Status | Should -Be "Review"
+        ($offline.OrganizationRelationshipAnalysis | ConvertTo-Json -Depth 8) | Should -Be (
+            $live.OrganizationRelationshipAnalysis | ConvertTo-Json -Depth 8)
+        $replayData = Get-Content -LiteralPath $offline.DataPath -Raw | ConvertFrom-Json
+        $replayData.Errors.Count | Should -Be 0
+        $replayData.Metadata.CommandLine | Should -Match ([regex]::Escape("-ImportData '$($live.DataPath)'"))
         Should -Invoke -CommandName Invoke-RestMethod -Times 1 -Exactly
+    }
+
+    It "Retains diagnostics across every assessment and replay without extra lookups" {
+        Mock Get-OrganizationRelationship { Get-TestRelationship -Enabled $false -AdditionalFeature "IdentityMove" }
+        Mock Get-AvailabilityAddressSpace {
+            [PSCustomObject]@{ Name = "Partner"; ForestName = "partner.com"; AccessMethod = "OrgWideFBToken"; TargetServiceEpr = "https://outlook.office365.com/ews" }
+        }
+        Mock Get-SharingPolicy {
+            [PSCustomObject]@{ Name = "Disabled"; Enabled = $false; Default = $false; Domains = @("partner.com:CalendarSharingFreeBusyDetail,ContactsSharing") }
+        }
+        Mock Invoke-RestMethod { throw "Shared lookup failure" }
+        $live = Invoke-CrossTenantAccessPolicyCalendarValidation -OutputPath $TestDrive -RunName "Diagnostics" -GenerateCommandScripts 6>$null 3>$null
+        $live.OrganizationRelationshipAnalysis[0].DomainTenantResolution[0].Error | Should -Be "Shared lookup failure"
+        $live.AvailabilityAddressSpaceAnalysis[0].TenantResolutionError | Should -Be "Shared lookup failure"
+        $live.SharingPolicyAnalysis[0].TenantResolutionError | Should -Be "Shared lookup failure"
+        $live.SharingPolicyAnalysis[0].RecommendedCapabilityIfEnabled | Should -BeNullOrEmpty
+        $live.GeneratedFiles | Should -Not -Contain "XTAP_Part2_CreatePolicies.ps1"
+        $offline = Invoke-CrossTenantAccessPolicyCalendarValidation -OutputPath $TestDrive -ImportData $live.DataPath 6>$null
+        foreach ($property in @("OrganizationRelationshipAnalysis", "AvailabilityAddressSpaceAnalysis", "SharingPolicyAnalysis")) {
+            ($offline.$property | ConvertTo-Json -Depth 8) | Should -Be ($live.$property | ConvertTo-Json -Depth 8)
+        }
+        $saved = Get-Content -LiteralPath $offline.DataPath -Raw | ConvertFrom-Json
+        $saved.TenantResolution[0].Error | Should -Be "Shared lookup failure"
+        $saved.Errors.Count | Should -Be 0
+        Should -Invoke -CommandName Invoke-RestMethod -Times 1 -Exactly
+    }
+
+    It "Includes recoverable mailbox-count errors in the saved diagnostics" {
+        Mock -CommandName Get-EXOMailbox -MockWith { throw "Mailbox count unavailable" }
+
+        $result = Invoke-CrossTenantAccessPolicyCalendarValidation -OutputPath $TestDrive -RunName "CountError" -ProcessUsers -SkipTenantResolution 6>$null 3>$null
+        $data = Get-Content -LiteralPath $result.DataPath -Raw | ConvertFrom-Json
+
+        $data.Errors.message | Should -Contain "Mailbox count unavailable"
+        $data.Configuration.SharingPolicyAssignment | Should -BeNullOrEmpty
+        $data.Metadata.CommandLine | Should -Match ([regex]::Escape('-ProcessUsers:$true'))
+    }
+
+    It "Records non-terminating collection errors without including older session errors" {
+        Write-Error -Message "Error from a previous run" -ErrorAction SilentlyContinue
+        Mock -CommandName Get-OrganizationRelationship -MockWith {
+            Write-Error -Message "Current collection diagnostic" -ErrorAction Continue
+            Get-TestRelationship
+        }
+
+        $result = Invoke-CrossTenantAccessPolicyCalendarValidation -OutputPath $TestDrive -RunName "DiagnosticError" -SkipTenantResolution 6>$null 2>$null
+        $data = Get-Content -LiteralPath $result.DataPath -Raw | ConvertFrom-Json
+
+        $data.Errors.message | Should -Contain "Current collection diagnostic"
+        $data.Errors.message | Should -Not -Contain "Error from a previous run"
     }
 
     It "Generates JSON backup and rollback scripts that parse and restore the address space" {

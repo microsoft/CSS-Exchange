@@ -13,6 +13,10 @@
       - A JSON bundle with collected configuration, analysis rows, and tenant resolution data.
       - CrossTenantAccessPolicyCalendarValidation_Summary.txt with the key results and warnings.
 
+    Assessment includes additional Organization Relationship functionality that must be preserved, complete domain-to-tenant
+    resolution, hybrid target indicators, ContactsSharing preservation, and potential capabilities of disabled configuration.
+    Lookup failures include per-domain diagnostics, retained during offline replay.
+
     Optional switches add more:
       - -GenerateCommandScripts creates ready-to-review cmdlet scripts for creating the XTAP policies, disabling the old
         configuration for testing, rolling back, and cleaning up. Nothing is changed by this script itself.
@@ -23,7 +27,7 @@
     Live runs check for script updates automatically; imported data is analyzed without an update check.
     Results are saved to files and displayed in the console, not returned as a PowerShell results object.
 .PARAMETER OutputPath
-    Folder where the results folder is created. Defaults to the current directory.
+    Folder where the results folder is created. Defaults to the folder containing this script.
 .PARAMETER RunName
     Optional label for this run, used in results folder and file names, JSON metadata, and report headers.
     Each run also has an automatic timestamp. When importing, defaults to the saved run name.
@@ -52,15 +56,15 @@
 .EXAMPLE
     .\CrossTenantAccessPolicyCalendarValidation.ps1 -GenerateCommandScripts -ProcessUsers
 .EXAMPLE
-    .\CrossTenantAccessPolicyCalendarValidation.ps1 -RunName BeforeMigration -OutputPath C:\Temp -SkipTenantResolution
+    .\CrossTenantAccessPolicyCalendarValidation.ps1 -RunName BeforeMigration -SkipTenantResolution
 .EXAMPLE
-    .\CrossTenantAccessPolicyCalendarValidation.ps1 -ImportData .\CrossTenantAccessPolicyCalendarValidation_Data.json
+    .\CrossTenantAccessPolicyCalendarValidation.ps1 -ImportData '.\BeforeMigration_CrossTenantAccessPolicyCalendarValidation_Data.json'
 #>
 
 [CmdletBinding(DefaultParameterSetName = "Live")]
 param(
     [Parameter(Mandatory = $false)]
-    [string]$OutputPath = (Get-Location).Path,
+    [string]$OutputPath = $PSScriptRoot,
 
     [Parameter(Mandatory = $false)]
     [string]$RunName,
@@ -93,7 +97,6 @@ $BuildVersion = ""
 . $PSScriptRoot\XtapHelpers\XtapReportHelpers.ps1
 . $PSScriptRoot\XtapHelpers\Invoke-CrossTenantAccessPolicyCalendarValidation.ps1
 . $PSScriptRoot\CalendarHelpers\CalendarDiagnosticHelpers.ps1
-. $PSScriptRoot\CalLogHelpers\Write-DashLineBoxColor.ps1
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 
 if ($PSCmdlet.ParameterSetName -eq "Live" -and (Test-ScriptVersion -AutoUpdate)) {
@@ -104,4 +107,6 @@ if ($PSCmdlet.ParameterSetName -eq "Live" -and (Test-ScriptVersion -AutoUpdate))
 
 Write-Verbose "Script Versions: $BuildVersion"
 
-[void](Invoke-CrossTenantAccessPolicyCalendarValidation @PSBoundParameters)
+$invokeParameters = @{} + $PSBoundParameters
+$invokeParameters["OutputPath"] = $OutputPath
+[void](Invoke-CrossTenantAccessPolicyCalendarValidation @invokeParameters -InvocationInfo $MyInvocation)

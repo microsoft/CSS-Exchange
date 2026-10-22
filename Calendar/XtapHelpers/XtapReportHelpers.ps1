@@ -1,6 +1,40 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+function Get-XtapInvocationMetadata {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.Management.Automation.InvocationInfo]$InvocationInfo
+    )
+
+    $commandName = if ($InvocationInfo.MyCommand -is [System.Management.Automation.ExternalScriptInfo]) {
+        $InvocationInfo.MyCommand.Path
+    } else {
+        $InvocationInfo.MyCommand.Name
+    }
+    $commandParts = New-Object System.Collections.Generic.List[string]
+    $commandParts.Add("& $(ConvertTo-CalendarDiagnosticCommandLineValue -Value $commandName)")
+    foreach ($parameterName in ($InvocationInfo.BoundParameters.Keys | Sort-Object)) {
+        if ($parameterName -eq "InvocationInfo") { continue }
+        $value = $InvocationInfo.BoundParameters[$parameterName]
+        if ($value -is [System.Management.Automation.SwitchParameter]) {
+            $switchValue = if ($value.IsPresent) { '$true' } else { '$false' }
+            $commandParts.Add("-${parameterName}:$switchValue")
+        } else {
+            $commandParts.Add("-$parameterName $(ConvertTo-CalendarDiagnosticCommandLineValue -Value $value)")
+        }
+    }
+    $userName = [System.Environment]::UserName
+    $userDomain = [System.Environment]::UserDomainName
+
+    [PSCustomObject]@{
+        CommandLine    = $commandParts -join " "
+        InvocationLine = ([string]$InvocationInfo.Line).Trim()
+        User           = $(if ([string]::IsNullOrEmpty($userDomain)) { $userName } else { "$userDomain\$userName" })
+    }
+}
+
 function Write-XtapTextFile {
     [CmdletBinding()]
     param(
@@ -99,6 +133,12 @@ function Get-XtapSummaryLines {
     $lines.Add("Organization Relationships: $(Get-XtapStatusSummary -Analysis $orgRows)")
     $lines.Add("Availability Address Spaces: $(Get-XtapStatusSummary -Analysis $aasRows)")
     $lines.Add("Sharing Policy rules: $(Get-XtapStatusSummary -Analysis $sharingRows)")
+    $lines.Add("Organization Relationships with additional enabled functionality: $(@($orgRows | Where-Object { $_.HasAdditionalEnabledFunctionalities }).Count)")
+    $lines.Add("Organization Relationships resolving to multiple tenants: $(@($orgRows | Where-Object { $_.MultipleTenants }).Count)")
+    $lines.Add("Unresolved Organization Relationship domains: $(@($orgRows | ForEach-Object { $_.DomainTenantResolution } | Where-Object { $_.Status -eq 'Unresolved' }).Count)")
+    if ($aasRows.Count -eq 0) {
+        $lines.Add("No Availability Address Spaces found.")
+    }
 
     $lines.Add("")
     $lines.Add("Ready to migrate")
@@ -171,6 +211,24 @@ function Get-XtapSummaryLines {
     }
 
     $lines.Add("")
+    $lines.Add("Disabled configuration - assessment if enabled")
+    $lines.Add("----------------------------------------------")
+    $disabled = 0
+    foreach ($row in @($orgRows | Where-Object { $_.Status -eq "Disabled" })) {
+        $disabled++
+        $capabilities = @($row.FreeBusyCapabilityIfEnabled, $row.MailTipsCapabilityIfEnabled) |
+            Where-Object { -not [string]::IsNullOrEmpty($_) }
+        $lines.Add("[Disabled] Organization Relationship '$($row.OrganizationRelationship)': $($row.Notes) Potential capabilities if enabled: $($capabilities -join ', ')")
+    }
+    foreach ($row in @($sharingRows | Where-Object { $_.Status -eq "Disabled" })) {
+        $disabled++
+        $lines.Add("[Disabled] Sharing Policy '$($row.SharingPolicy)' rule '$($row.Rule)' [$($row.AccessLevel)]: $($row.Notes) Potential capability if enabled: $($row.RecommendedCapabilityIfEnabled)")
+    }
+    if ($disabled -eq 0) {
+        $lines.Add("None.")
+    }
+
+    $lines.Add("")
     $lines.Add("Warnings")
     $lines.Add("--------")
     $warnings = 0
@@ -179,9 +237,9 @@ function Get-XtapSummaryLines {
         $lines.Add("Tenant ID lookup was skipped. Sharing Policy domains need a manual check and the generated commands contain placeholders for tenant IDs.")
     }
 
-    foreach ($row in @($orgRows | Where-Object { $_.HasMailboxMoveAndSharing })) {
+    foreach ($row in @($orgRows | Where-Object { $_.HasAdditionalEnabledFunctionalities })) {
         $warnings++
-        $lines.Add("'$($row.OrganizationRelationship)' combines mailbox moves with Free/Busy or MailTips. It is kept. The Part 3 and Part 4 scripts only turn off its Free/Busy and MailTips settings, and the Part 3 rollback restores them.")
+        $lines.Add("'$($row.OrganizationRelationship)': $($row.AdditionalFunctionalitiesRecommendation)")
     }
 
     foreach ($row in @($orgRows | Where-Object { $_.MultipleTenants })) {
@@ -200,9 +258,15 @@ function Get-XtapSummaryLines {
         $lines.Add("More than one enabled Sharing Policy is assigned to mailboxes ($($assignedPolicies -join ', ')). Comparable XTAP policies need security groups, so the generated calendar sharing commands contain group placeholders.")
     }
 
-    foreach ($row in @($orgRows | Where-Object { $_.Status -eq "Eligible" -and $_.UnresolvedDomains })) {
+    foreach ($row in @($orgRows | Where-Object { $_.UnresolvedDomains })) {
         $warnings++
-        $lines.Add("'$($row.OrganizationRelationship)' has domains with no tenant ID that are skipped: $($row.UnresolvedDomains)")
+        $lines.Add("'$($row.OrganizationRelationship)' has unresolved domains: $($row.UnresolvedDomains). No migration, test or cleanup commands are generated for this relationship until all domains resolve.")
+    }
+
+    foreach ($row in @($sharingRows | Where-Object { $_.HasContactsSharing } |
+                Select-Object -Property SharingPolicy, Rule, ContactsSharingAssessment -Unique)) {
+        $warnings++
+        $lines.Add("Sharing Policy '$($row.SharingPolicy)' rule '$($row.Rule)': $($row.ContactsSharingAssessment)")
     }
 
     if ($MailboxCountsMissing -and $sharingRows.Count -gt 0) {
@@ -255,7 +319,6 @@ function Write-XtapSummary {
 
     foreach ($text in $Line) {
         $color = switch -Regex ($text) {
-            "^\[Eligible\]" { "Green" }
             "^\[Review\]" { "Yellow" }
             "^\[(NotEligible|MailboxMoveOnly)\]" { "DarkYellow" }
             default { $null }

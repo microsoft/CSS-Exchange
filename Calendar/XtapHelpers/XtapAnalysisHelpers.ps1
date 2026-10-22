@@ -8,6 +8,7 @@ $Script:XtapHybridNamePattern = '(?i)on[\s-]*prem|hybrid'
 $Script:XtapGuidPattern = '^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$'
 $Script:XtapCalendarSharingActions = @("CalendarSharingFreeBusySimple", "CalendarSharingFreeBusyDetail", "CalendarSharingFreeBusyReviewer")
 $Script:XtapDomainTenantCache = @{}
+$Script:XtapDomainTenantErrors = @{}
 $Script:XtapEntraLoginHost = "login.microsoftonline.com"
 $Script:XtapOfflineData = $false
 
@@ -104,6 +105,8 @@ function Resolve-XtapDomainTenantId {
 
     $normalizedDomain = $Domain.Trim().ToLowerInvariant()
     if ($normalizedDomain -notmatch '^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$') {
+        $Script:XtapDomainTenantErrors[$normalizedDomain] = "The domain is not a valid DNS host name."
+        Write-Verbose "Unable to resolve domain [$normalizedDomain]: $($Script:XtapDomainTenantErrors[$normalizedDomain])"
         return $null
     }
 
@@ -111,6 +114,8 @@ function Resolve-XtapDomainTenantId {
         return $Script:XtapDomainTenantCache[$normalizedDomain]
     }
     if ($Script:XtapOfflineData) {
+        $Script:XtapDomainTenantCache[$normalizedDomain] = $null
+        $Script:XtapDomainTenantErrors[$normalizedDomain] = "No saved tenant resolution is available for this domain. Collect live data to resolve it."
         return $null
     }
 
@@ -120,13 +125,43 @@ function Resolve-XtapDomainTenantId {
         $response = Invoke-RestMethod -Uri $uri -Method Get -TimeoutSec 20 -ErrorAction Stop
         if ("$($response.issuer)" -match '/([0-9a-fA-F]{8}-(?:[0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12})/') {
             $tenantId = $Matches[1].ToLowerInvariant()
+        } else {
+            throw "The OpenID issuer did not contain a valid Microsoft Entra tenant ID: $($response.issuer)"
         }
     } catch {
+        $Script:XtapDomainTenantErrors[$normalizedDomain] = $_.Exception.Message
         Write-Verbose "Unable to resolve a tenant ID for domain [$normalizedDomain]: $($_.Exception.Message)"
     }
 
     $Script:XtapDomainTenantCache[$normalizedDomain] = $tenantId
     return $tenantId
+}
+
+function Get-XtapDomainTenantResolution {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Domain
+    )
+
+    $normalizedDomain = $Domain.Trim().ToLowerInvariant()
+    $tenantId = Resolve-XtapDomainTenantId -Domain $normalizedDomain
+    $resolved = -not [string]::IsNullOrEmpty($tenantId)
+    $resolutionError = ""
+    if (-not $resolved) {
+        $resolutionError = if ($Script:XtapDomainTenantErrors.ContainsKey($normalizedDomain)) {
+            $Script:XtapDomainTenantErrors[$normalizedDomain]
+        } else {
+            "The domain did not resolve to a Microsoft Entra tenant ID; no detailed lookup error was saved."
+        }
+    }
+
+    [PSCustomObject]@{
+        Domain   = $normalizedDomain
+        TenantId = $tenantId
+        Status   = if ($resolved) { "Resolved" } else { "Unresolved" }
+        Error    = $resolutionError
+    }
 }
 
 <#
@@ -182,6 +217,18 @@ function Get-XtapOrganizationRelationshipAnalysis {
         $hasSharing = $freeBusyEnabled -or $mailTipsEnabled
         $hasMailboxMove = ($relationship.MailboxMoveEnabled -eq $true) -or
         ("$($relationship.MailboxMoveCapability)" -notin @("", "None"))
+        $additionalFeatures = [ordered]@{
+            MailboxMove    = $hasMailboxMove
+            IdentityMove   = $relationship.IdentityMoveEnabled -eq $true -or
+            ("$($relationship.IdentityMoveCapability)" -notin @("", "None"))
+            PeopleSearch   = $relationship.PeopleSearchEnabled -eq $true
+            ArchiveAccess  = $relationship.ArchiveAccessEnabled -eq $true
+            DeliveryReport = $relationship.DeliveryReportEnabled -eq $true
+            Photos         = $relationship.PhotosEnabled -eq $true
+        }
+        $additionalEnabledFunctionalities = @($additionalFeatures.GetEnumerator() |
+                Where-Object { $_.Value } | ForEach-Object { $_.Key })
+        $hasAdditionalFunctionalitiesAndSharing = $additionalEnabledFunctionalities.Count -gt 0 -and $hasSharing
 
         $scenario = Get-XtapTargetScenario -Name $name -Endpoint @(
             $relationship.TargetApplicationUri, $relationship.TargetSharingEpr, $relationship.TargetAutodiscoverEpr)
@@ -221,17 +268,31 @@ function Get-XtapOrganizationRelationshipAnalysis {
             $hasMailboxMoveAndSharing = $true
             $notes.Add("This relationship also has mailbox move settings (MailboxMoveEnabled [$($relationship.MailboxMoveEnabled)], MailboxMoveCapability [$($relationship.MailboxMoveCapability)]). Keep it. The generated test and cleanup commands only turn off its Free/Busy and MailTips settings and leave mailbox moves working.")
         }
+        $additionalRecommendation = ""
+        if ($additionalEnabledFunctionalities.Count -gt 0) {
+            $additionalRecommendation = "Additional enabled functionality: $($additionalEnabledFunctionalities -join ', '). Preserve this Organization Relationship. Verify current XTAP capability support before retiring it, and split any functionality that is not covered into a separate relationship if necessary."
+            if ($hasAdditionalFunctionalitiesAndSharing) {
+                $additionalRecommendation += " The generated test and cleanup commands only turn off Free/Busy and MailTips; they do not disable or remove the relationship."
+            }
+            if ($hasMailboxMove) {
+                $additionalRecommendation += " Cross-tenant mailbox moves have no corresponding XTAP capability."
+            }
+            $notes.Add($additionalRecommendation)
+        }
 
         $partnerTenantIds = @()
         $unresolvedDomains = @()
-        $canMigrate = $enabled -and $hasSharing -and $scenario -ne "OnPremisesOrHybrid" -and ($freeBusyCapability -ne "" -or $mailTipsCapability -ne "")
-        if ($ResolveTenantId -and $canMigrate) {
+        $domainResolutions = @()
+        $canAssess = $hasSharing -and $scenario -ne "OnPremisesOrHybrid" -and ($freeBusyCapability -ne "" -or $mailTipsCapability -ne "")
+        if ($ResolveTenantId -and $canAssess) {
             foreach ($domain in $domains) {
-                $resolvedTenantId = Resolve-XtapDomainTenantId -Domain $domain
-                if ([string]::IsNullOrEmpty($resolvedTenantId)) {
+                $resolution = Get-XtapDomainTenantResolution -Domain $domain
+                $domainResolutions += $resolution
+                if ($resolution.Status -ne "Resolved") {
                     $unresolvedDomains += $domain
+                    $notes.Add("Tenant resolution failed for [$domain]: $($resolution.Error)")
                 } else {
-                    $partnerTenantIds += $resolvedTenantId
+                    $partnerTenantIds += $resolution.TenantId
                 }
             }
 
@@ -240,14 +301,26 @@ function Get-XtapOrganizationRelationshipAnalysis {
                 $notes.Add("The domains belong to $($partnerTenantIds.Count) different tenants. One XTAP partner policy is generated for each tenant.")
             }
 
-            if ($unresolvedDomains.Count -gt 0 -and $partnerTenantIds.Count -gt 0) {
-                $notes.Add("These domains didn't resolve to a Microsoft Entra tenant ID and are skipped: $($unresolvedDomains -join ', ').")
+            if ($unresolvedDomains.Count -gt 0) {
+                $notes.Add("Every relationship domain must resolve before migration commands can be generated. Resolve these domains first: $($unresolvedDomains -join ', ').")
             }
         }
+
+        $sharingCapabilityWouldBeEligibleIfEnabled = $canAssess -and $scenario -eq "Microsoft365" -and
+        $domains.Count -gt 0 -and (-not $ResolveTenantId -or $unresolvedDomains.Count -eq 0)
+        $freeBusyCapabilityIfEnabled = if ($sharingCapabilityWouldBeEligibleIfEnabled) { $freeBusyCapability } else { "" }
+        $mailTipsCapabilityIfEnabled = if ($sharingCapabilityWouldBeEligibleIfEnabled) { $mailTipsCapability } else { "" }
 
         if (-not $enabled) {
             $status = "Disabled"
             $notes.Add("The Organization Relationship is disabled, so it isn't sharing anything today.")
+            if ($sharingCapabilityWouldBeEligibleIfEnabled) {
+                $notes.Add("If enabled, its configured Free/Busy or MailTips capability appears eligible for XTAP. Scope and additional functionality still require review.")
+            } elseif (-not $hasSharing) {
+                $notes.Add("No Free/Busy or MailTips sharing is configured to migrate if enabled.")
+            } else {
+                $notes.Add("Eligibility if enabled is not confirmed. Review the target, domain names, access levels and tenant-resolution diagnostics.")
+            }
         } elseif (-not $hasSharing) {
             if ($hasMailboxMove) {
                 $status = "MailboxMoveOnly"
@@ -265,9 +338,12 @@ function Get-XtapOrganizationRelationshipAnalysis {
         } elseif ($scenario -eq "Unknown") {
             $status = "Review"
             $notes.Add("Can't tell from TargetApplicationUri, TargetSharingEpr and TargetAutodiscoverEpr whether the target is Microsoft 365. Confirm manually.")
-        } elseif ($ResolveTenantId -and $partnerTenantIds.Count -eq 0) {
+        } elseif ($domains.Count -eq 0) {
             $status = "Review"
-            $notes.Add("None of the domains resolved to a Microsoft Entra tenant ID. Ask the external organization for its tenant ID, or confirm it is hosted in Microsoft 365.")
+            $notes.Add("The relationship has no domain names to map to a Microsoft Entra tenant.")
+        } elseif ($ResolveTenantId -and $unresolvedDomains.Count -gt 0) {
+            $status = "Review"
+            $notes.Add("One or more domains could not be confirmed as Microsoft Entra tenant domains. Ask the external organization for its tenant ID, or confirm it is hosted in Microsoft 365.")
         } else {
             $status = "Eligible"
             if (-not $ResolveTenantId) {
@@ -283,32 +359,40 @@ function Get-XtapOrganizationRelationshipAnalysis {
         }
 
         [PSCustomObject]@{
-            OrganizationRelationship = $name
-            Enabled                  = $enabled
-            DomainNames              = $domains -join ";"
-            Scenario                 = $scenario
-            Status                   = $status
-            FreeBusyAccessEnabled    = $freeBusyEnabled
-            FreeBusyAccessLevel      = "$($relationship.FreeBusyAccessLevel)"
-            FreeBusyAccessScope      = if ([string]::IsNullOrEmpty($freeBusyScope)) { "All users" } else { $freeBusyScope }
-            FreeBusyScoped           = $freeBusyScoped
-            FreeBusyCapability       = $freeBusyCapability
-            MailTipsAccessEnabled    = $mailTipsEnabled
-            MailTipsAccessLevel      = "$($relationship.MailTipsAccessLevel)"
-            MailTipsAccessScope      = if ([string]::IsNullOrEmpty($mailTipsScope)) { "All users" } else { $mailTipsScope }
-            MailTipsScoped           = $mailTipsScoped
-            MailTipsCapability       = $mailTipsCapability
-            MailboxMoveEnabled       = $relationship.MailboxMoveEnabled -eq $true
-            MailboxMoveCapability    = "$($relationship.MailboxMoveCapability)"
-            HasMailboxMove           = $hasMailboxMove
-            HasMailboxMoveAndSharing = $hasMailboxMoveAndSharing
-            PartnerTenantIds         = $partnerTenantIds -join ";"
-            MultipleTenants          = $partnerTenantIds.Count -gt 1
-            UnresolvedDomains        = $unresolvedDomains -join ";"
-            TargetApplicationUri     = "$($relationship.TargetApplicationUri)"
-            TargetSharingEpr         = "$($relationship.TargetSharingEpr)"
-            TargetAutodiscoverEpr    = "$($relationship.TargetAutodiscoverEpr)"
-            Notes                    = $notes -join " "
+            OrganizationRelationship                  = $name
+            Enabled                                   = $enabled
+            DomainNames                               = $domains -join ";"
+            Scenario                                  = $scenario
+            Status                                    = $status
+            FreeBusyAccessEnabled                     = $freeBusyEnabled
+            FreeBusyAccessLevel                       = "$($relationship.FreeBusyAccessLevel)"
+            FreeBusyAccessScope                       = if ([string]::IsNullOrEmpty($freeBusyScope)) { "All users" } else { $freeBusyScope }
+            FreeBusyScoped                            = $freeBusyScoped
+            FreeBusyCapability                        = $freeBusyCapability
+            MailTipsAccessEnabled                     = $mailTipsEnabled
+            MailTipsAccessLevel                       = "$($relationship.MailTipsAccessLevel)"
+            MailTipsAccessScope                       = if ([string]::IsNullOrEmpty($mailTipsScope)) { "All users" } else { $mailTipsScope }
+            MailTipsScoped                            = $mailTipsScoped
+            MailTipsCapability                        = $mailTipsCapability
+            MailboxMoveEnabled                        = $relationship.MailboxMoveEnabled -eq $true
+            MailboxMoveCapability                     = "$($relationship.MailboxMoveCapability)"
+            HasMailboxMove                            = $hasMailboxMove
+            HasMailboxMoveAndSharing                  = $hasMailboxMoveAndSharing
+            HasAdditionalEnabledFunctionalities       = $additionalEnabledFunctionalities.Count -gt 0
+            AdditionalEnabledFunctionalities          = $additionalEnabledFunctionalities -join ";"
+            HasAdditionalFunctionalitiesAndSharing    = $hasAdditionalFunctionalitiesAndSharing
+            AdditionalFunctionalitiesRecommendation   = $additionalRecommendation
+            SharingCapabilityWouldBeEligibleIfEnabled = $sharingCapabilityWouldBeEligibleIfEnabled
+            FreeBusyCapabilityIfEnabled               = $freeBusyCapabilityIfEnabled
+            MailTipsCapabilityIfEnabled               = $mailTipsCapabilityIfEnabled
+            PartnerTenantIds                          = $partnerTenantIds -join ";"
+            MultipleTenants                           = $partnerTenantIds.Count -gt 1
+            UnresolvedDomains                         = $unresolvedDomains -join ";"
+            DomainTenantResolution                    = @($domainResolutions)
+            TargetApplicationUri                      = "$($relationship.TargetApplicationUri)"
+            TargetSharingEpr                          = "$($relationship.TargetSharingEpr)"
+            TargetAutodiscoverEpr                     = "$($relationship.TargetAutodiscoverEpr)"
+            Notes                                     = $notes -join " "
         }
     }
 }
@@ -339,11 +423,23 @@ function Get-XtapAvailabilityAddressSpaceAnalysis {
         $accessMethod = "$($addressSpace.AccessMethod)"
         $forestName = "$($addressSpace.ForestName)".Trim()
         $tenantId = "$($addressSpace.TargetTenantId)".Trim()
+        $configuredTenantId = $tenantId
+        $parsedTenantId = [guid]::Empty
+        $targetTenantIdValid = [guid]::TryParse($tenantId, [ref]$parsedTenantId)
+        if ($targetTenantIdValid) {
+            $tenantId = $parsedTenantId.ToString()
+        }
+        $resolutionStatus = if ($targetTenantIdValid) { "Provided" } elseif ($configuredTenantId -ne "") { "Invalid" } else { "NotRequired" }
+        $resolutionError = if ($resolutionStatus -eq "Invalid") { "TargetTenantId [$configuredTenantId] is not a valid GUID." } else { "" }
         $endpoints = @($addressSpace.TargetAutodiscoverEpr, $addressSpace.TargetServiceEpr, $addressSpace.ProxyUrl)
 
         if (@($endpoints | Where-Object { "$_" -match "(?i)google\.com" }).Count -gt 0) {
             $scenario = "GoogleWorkspace"
-        } elseif (-not [string]::IsNullOrEmpty($tenantId)) {
+        } elseif (@($endpoints | Where-Object { "$_" -match "FYDIBOHF25SPDLT" }).Count -gt 0) {
+            $scenario = "OnPremisesOrHybrid"
+        } elseif (-not [string]::IsNullOrEmpty($tenantId) -and -not $targetTenantIdValid) {
+            $scenario = "Unknown"
+        } elseif ($targetTenantIdValid) {
             $scenario = "Microsoft365"
         } else {
             $scenario = Get-XtapTargetScenario -Endpoint $endpoints
@@ -361,13 +457,28 @@ function Get-XtapAvailabilityAddressSpaceAnalysis {
             $status = "NotEligible"
             $notes.Add("The target is on-premises Exchange or a non-Microsoft 365 organization. Keep it.")
         } else {
-            if ([string]::IsNullOrEmpty($tenantId) -and $ResolveTenantId) {
-                $tenantId = "$(Resolve-XtapDomainTenantId -Domain $forestName)"
+            if (-not [string]::IsNullOrEmpty($configuredTenantId) -and -not $targetTenantIdValid) {
+                $notes.Add($resolutionError)
+                $tenantId = ""
+            } elseif ($targetTenantIdValid) {
+                $resolutionStatus = "Provided"
+            } elseif ($ResolveTenantId -and -not [string]::IsNullOrEmpty($forestName)) {
+                $resolution = Get-XtapDomainTenantResolution -Domain $forestName
+                $tenantId = "$($resolution.TenantId)"
+                $resolutionStatus = $resolution.Status
+                $resolutionError = $resolution.Error
+                if ($resolutionStatus -eq "Unresolved") {
+                    $notes.Add("Tenant resolution failed for [$forestName]: $resolutionError")
+                }
+            } else {
+                $resolutionStatus = "Skipped"
             }
 
             if ([string]::IsNullOrEmpty($tenantId) -or $tenantId -notmatch $Script:XtapGuidPattern) {
                 $tenantId = ""
-                $notes.Add("TargetTenantId is empty or couldn't be resolved. Get the partner tenant ID from the external organization.")
+                if ($resolutionStatus -ne "Invalid") {
+                    $notes.Add("TargetTenantId is empty or couldn't be resolved. Get the partner tenant ID from the external organization.")
+                }
             } elseif ($scenario -eq "Unknown") {
                 $notes.Add("The endpoints don't identify the target as Microsoft 365. Confirm manually.")
             } else {
@@ -389,6 +500,12 @@ function Get-XtapAvailabilityAddressSpaceAnalysis {
             Scenario                 = $scenario
             Status                   = $status
             TargetTenantId           = $tenantId
+            ConfiguredTargetTenantId = $configuredTenantId
+            TargetTenantIdValid      = $targetTenantIdValid
+            ResolvedEntraTenantId    = if ($tenantId -match $Script:XtapGuidPattern) { $tenantId } else { "" }
+            TenantResolutionStatus   = $resolutionStatus
+            TenantResolutionError    = $resolutionError
+            MigrationRecommendation  = "XTAP migration is recommended for additional security features and more granular configuration when eligible, but is not required because of EWS deprecation. Keep existing configuration until eligibility is confirmed."
             RecommendedCapability    = $capability
             TargetServiceEpr         = "$($addressSpace.TargetServiceEpr)"
             TargetAutodiscoverEpr    = "$($addressSpace.TargetAutodiscoverEpr)"
@@ -464,6 +581,11 @@ function Get-XtapSharingPolicyAnalysis {
             if ($actions.Count -eq 0) {
                 $actions = @("")
             }
+            $hasContactsSharing = "ContactsSharing" -in $actions
+            $contactsSharingAssessment = if ($hasContactsSharing) {
+                "ContactsSharing has no identified XTAP equivalent. Preserve this legacy rule until contacts sharing is separately addressed."
+            } else { "" }
+            $allActionsSupported = @($actions | Where-Object { $_ -notin $Script:XtapCalendarSharingActions }).Count -eq 0
 
             if ($domain -eq "*") {
                 $ruleType = "Wildcard"
@@ -477,6 +599,7 @@ function Get-XtapSharingPolicyAnalysis {
                 $notes = New-Object System.Collections.Generic.List[string]
                 $partnerTenantId = ""
                 $resolution = "NotApplicable"
+                $resolutionError = ""
                 $capability = ""
                 $status = "Eligible"
 
@@ -501,11 +624,14 @@ function Get-XtapSharingPolicyAnalysis {
                         $capability = ""
                         $notes.Add("This domain belongs to an on-premises or hybrid Organization Relationship, so XTAP doesn't apply. Keep this rule.")
                     } elseif ($ResolveTenantId) {
-                        $partnerTenantId = "$(Resolve-XtapDomainTenantId -Domain $domain)"
+                        $domainResolution = Get-XtapDomainTenantResolution -Domain $domain
+                        $partnerTenantId = "$($domainResolution.TenantId)"
+                        $resolutionError = $domainResolution.Error
                         if ([string]::IsNullOrEmpty($partnerTenantId)) {
                             $resolution = "Unresolved"
                             $status = "Review"
                             $notes.Add("The domain didn't resolve to a Microsoft Entra tenant ID. Either it isn't hosted in Microsoft 365, in which case XTAP can't be used, or the lookup failed.")
+                            $notes.Add("Tenant resolution failed for [$domain]: $resolutionError")
                         } else {
                             $resolution = "Resolved"
                         }
@@ -516,28 +642,44 @@ function Get-XtapSharingPolicyAnalysis {
                     }
                 }
 
+                $calendarCapabilityWouldBeEligibleIfEnabled = $status -eq "Eligible"
+                $capabilityIfEnabled = if ($calendarCapabilityWouldBeEligibleIfEnabled) { $capability } else { "" }
+                if ($hasContactsSharing -and $action -ne "ContactsSharing") {
+                    $notes.Add($contactsSharingAssessment)
+                }
                 if (-not $policyEnabled) {
                     $status = "Disabled"
                     $capability = ""
                     $notes.Add("The Sharing Policy is disabled.")
+                    if ($calendarCapabilityWouldBeEligibleIfEnabled) {
+                        $notes.Add("If enabled, this calendar-sharing capability appears eligible for XTAP.")
+                    } else {
+                        $notes.Add("Eligibility if enabled is not confirmed; review the rule and tenant-resolution diagnostics.")
+                    }
                 } elseif ($hasAssignmentData -and $assignedCount -eq 0) {
                     $notes.Add("The Sharing Policy isn't assigned to any user or shared mailbox.")
                 }
 
                 [PSCustomObject]@{
-                    SharingPolicy         = $policyName
-                    Enabled               = $policyEnabled
-                    Default               = $policyDefault
-                    AssignedMailboxCount  = $assignedCount
-                    Rule                  = $entry
-                    RuleType              = $ruleType
-                    Domain                = $domain
-                    AccessLevel           = $action
-                    Status                = $status
-                    RecommendedCapability = $capability
-                    PartnerTenantId       = $partnerTenantId
-                    TenantResolution      = $resolution
-                    Notes                 = $notes -join " "
+                    SharingPolicy                              = $policyName
+                    Enabled                                    = $policyEnabled
+                    Default                                    = $policyDefault
+                    AssignedMailboxCount                       = $assignedCount
+                    Rule                                       = $entry
+                    RuleType                                   = $ruleType
+                    Domain                                     = $domain
+                    AccessLevel                                = $action
+                    Status                                     = $status
+                    RecommendedCapability                      = $capability
+                    PartnerTenantId                            = $partnerTenantId
+                    TenantResolution                           = $resolution
+                    TenantResolutionError                      = $resolutionError
+                    HasContactsSharing                         = $hasContactsSharing
+                    ContactsSharingAssessment                  = $contactsSharingAssessment
+                    LegacyRuleCanBeRetired                     = $policyEnabled -and $calendarCapabilityWouldBeEligibleIfEnabled -and $allActionsSupported
+                    CalendarCapabilityWouldBeEligibleIfEnabled = $calendarCapabilityWouldBeEligibleIfEnabled
+                    RecommendedCapabilityIfEnabled             = $capabilityIfEnabled
+                    Notes                                      = $notes -join " "
                 }
             }
         }

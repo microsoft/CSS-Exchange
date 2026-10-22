@@ -1,5 +1,6 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
+# cSpell:ignore Dont
 
 function Invoke-CrossTenantAccessPolicyCalendarValidation {
     [CmdletBinding()]
@@ -26,20 +27,37 @@ function Invoke-CrossTenantAccessPolicyCalendarValidation {
         [switch]$GenerateCommandScripts,
 
         [Parameter(Mandatory = $false)]
-        [string]$Organization
+        [string]$Organization,
+
+        [Parameter(DontShow)]
+        [System.Management.Automation.InvocationInfo]$InvocationInfo = $MyInvocation
     )
 
-    if ($EntraLoginHost -notmatch '^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$') {
+    $initialErrors = New-Object 'System.Collections.Generic.HashSet[object]'
+    foreach ($runError in @($global:Error)) {
+        [void]$initialErrors.Add($runError)
+    }
+    $invocationMetadata = Get-XtapInvocationMetadata -InvocationInfo $InvocationInfo
+
+    if ($EntraLoginHost -notmatch '^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$' -or
+        [uri]::CheckHostName($EntraLoginHost) -ne [UriHostNameType]::Dns) {
         throw "EntraLoginHost [$EntraLoginHost] isn't a valid host name."
     }
 
-    Write-DashLineBoxColor -Line "Cross-Tenant Access Policy Calendar Validation" -Color Cyan
+    $title = "Cross-Tenant Access Policy Calendar Validation"
+    $separator = "-" * $title.Length
+    Write-XtapSummary -Line @("", $separator, $title, $separator, "")
     $configuration = Get-XtapSharingConfiguration -ImportData $ImportData -ProcessUsers:$ProcessUsers -Organization $Organization
     $Script:XtapDomainTenantCache = @{}
+    $Script:XtapDomainTenantErrors = @{}
     $Script:XtapOfflineData = $configuration.Mode -eq "Offline"
     if ($Script:XtapOfflineData) {
         foreach ($entry in $configuration.TenantResolution) {
             $Script:XtapDomainTenantCache[$entry.Domain.ToLowerInvariant()] = $entry.TenantId
+            $resolutionError = $entry.PSObject.Properties["Error"]
+            if ($null -ne $resolutionError -and -not [string]::IsNullOrEmpty($resolutionError.Value)) {
+                $Script:XtapDomainTenantErrors[$entry.Domain.ToLowerInvariant()] = $resolutionError.Value
+            }
         }
         $Organization = $configuration.Metadata.Organization
         $EntraLoginHost = $configuration.Metadata.EntraLoginHost
@@ -54,9 +72,14 @@ function Invoke-CrossTenantAccessPolicyCalendarValidation {
     $safeName = if ([string]::IsNullOrWhiteSpace($RunName)) { "" } else { ConvertTo-CalendarDiagnosticFileNameStem -Value $RunName }
     $filePrefix = if ([string]::IsNullOrWhiteSpace($RunName)) { "" } else { "${safeName}_" }
 
-    $folderName = "CrossTenantAccessPolicyCalendarValidation_{0}{1:yyyyMMdd_HHmmss_fff}" -f $filePrefix, (Get-Date)
+    $folderName = "{0}XTAP_Calendar_{1:yyyyMMdd_HH.mm.ss}" -f $filePrefix, (Get-Date)
     $resultsPath = Join-Path -Path $OutputPath -ChildPath $folderName
-    New-Item -Path $resultsPath -ItemType Directory -Force -ErrorAction Stop | Out-Null
+    $folderSuffix = 0
+    while (Test-Path -LiteralPath $resultsPath) {
+        $folderSuffix++
+        $resultsPath = Join-Path -Path $OutputPath -ChildPath "${folderName}_$folderSuffix"
+    }
+    New-Item -Path $resultsPath -ItemType Directory -ErrorAction Stop | Out-Null
     Write-Host "Results will be saved to $resultsPath"
 
     $resolve = -not $SkipTenantResolution
@@ -105,6 +128,7 @@ function Invoke-CrossTenantAccessPolicyCalendarValidation {
 
     $data = [ordered]@{
         SchemaVersion    = 1
+        Summary          = @($summaryLines)
         Metadata         = [ordered]@{
             ScriptName              = "CrossTenantAccessPolicyCalendarValidation"
             GeneratedUtc            = [DateTime]::UtcNow.ToString("o")
@@ -113,7 +137,13 @@ function Invoke-CrossTenantAccessPolicyCalendarValidation {
             Organization            = $Organization
             EntraLoginHost          = $EntraLoginHost
             TenantResolutionSkipped = [bool]$SkipTenantResolution
+            CommandLine             = $invocationMetadata.CommandLine
+            InvocationLine          = $invocationMetadata.InvocationLine
+            User                    = $invocationMetadata.User
         }
+        Errors           = @(@($global:Error) |
+                Where-Object { -not $initialErrors.Contains($_) } |
+                ForEach-Object { ConvertTo-CalendarDiagnosticErrorInfo -ErrorRecord $_ })
         Configuration    = [ordered]@{
             OrganizationRelationship = @($configuration.OrganizationRelationship)
             AvailabilityAddressSpace = @($configuration.AvailabilityAddressSpace)
@@ -122,7 +152,11 @@ function Invoke-CrossTenantAccessPolicyCalendarValidation {
         }
         TenantResolution = @(
             foreach ($domain in ($Script:XtapDomainTenantCache.Keys | Sort-Object)) {
-                [PSCustomObject]@{ Domain = $domain; TenantId = $Script:XtapDomainTenantCache[$domain] }
+                [PSCustomObject]@{
+                    Domain   = $domain
+                    TenantId = $Script:XtapDomainTenantCache[$domain]
+                    Error    = if ($Script:XtapDomainTenantErrors.ContainsKey($domain)) { $Script:XtapDomainTenantErrors[$domain] } else { "" }
+                }
             }
         )
         Analysis         = [ordered]@{
@@ -130,7 +164,6 @@ function Invoke-CrossTenantAccessPolicyCalendarValidation {
             AvailabilityAddressSpace = $availabilityAddressSpaceAnalysis
             SharingPolicy            = $sharingPolicyAnalysis
         }
-        Summary          = @($summaryLines)
         CommandScripts   = $commandScripts
         GeneratedFiles   = $generatedFiles
     }
@@ -139,8 +172,8 @@ function Invoke-CrossTenantAccessPolicyCalendarValidation {
     Write-Host ""
     Write-XtapSummary -Line $summaryLines
     Write-Host ""
-    Write-Host "Results saved to $resultsPath" -ForegroundColor Green
-    Write-Host "These files describe your sharing configuration, including external domain names. Review them before sharing them outside your organization."
+    Write-Host "Results saved to $resultsPath"
+    Write-Host "These files include your sharing configuration, external domains, command line, executing user, and run errors. Review them before sharing them outside your organization."
 
     [PSCustomObject]@{
         ResultsPath                      = $resultsPath

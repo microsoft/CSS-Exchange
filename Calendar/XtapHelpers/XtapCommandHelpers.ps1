@@ -272,9 +272,9 @@ function Get-XtapCommandScript {
         $scripts["XTAP_Part2_CreatePolicies.ps1"] = $lines -join "`r`n"
     }
 
-    # Relationships that also move mailboxes stay in place. Only their Free/Busy and MailTips settings are turned off.
-    $disableOrgRows = @($orgRows | Where-Object { -not $_.HasMailboxMoveAndSharing })
-    $sharingOnlyOrgRows = @($orgRows | Where-Object { $_.HasMailboxMoveAndSharing })
+    # Preserve other functionality while turning off only the sharing settings migrated to XTAP.
+    $disableOrgRows = @($orgRows | Where-Object { -not ($_.HasMailboxMoveAndSharing -or $_.HasAdditionalFunctionalitiesAndSharing) })
+    $sharingOnlyOrgRows = @($orgRows | Where-Object { $_.HasMailboxMoveAndSharing -or $_.HasAdditionalFunctionalitiesAndSharing })
     $policyNames = @($allSharingRows | Select-Object -ExpandProperty SharingPolicy -Unique)
     $disablePolicies = @($policyNames | Where-Object {
             $name = $_
@@ -348,10 +348,10 @@ function Get-XtapCommandScript {
         }
 
         if ($sharingOnlyOrgRows.Count -gt 0) {
-            $note = "# Also used for mailbox moves, so the relationship stays. Only its Free/Busy and MailTips settings are changed."
+            $note = "# Additional functionality must be preserved, so the relationship stays. Only its Free/Busy and MailTips settings are changed."
             foreach ($list in @($testLines, $rollbackLines, $cleanupLines)) {
                 $list.Add("")
-                $list.Add("# Organization Relationships that also move mailboxes")
+                $list.Add("# Organization Relationships with additional functionality")
                 $list.Add($note)
             }
 
