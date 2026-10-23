@@ -35,11 +35,12 @@ Set-Location -LiteralPath 'C:\Path\To\Script'
 # Include migration commands and mailbox counts per Sharing Policy
 .\CrossTenantAccessPolicyCalendarValidation.ps1 -RunName BeforeMigration -GenerateCommandScripts -ProcessUsers
 
-# Copy this script and the JSON bundle into one folder, then run:
-.\CrossTenantAccessPolicyCalendarValidation.ps1 -ImportData '.\BeforeMigration_CrossTenantAccessPolicyCalendarValidation_Data.json'
-
-# Generate commands from previously collected data
+# Generate commands from the same previously collected data
 .\CrossTenantAccessPolicyCalendarValidation.ps1 -ImportData '.\BeforeMigration_CrossTenantAccessPolicyCalendarValidation_Data.json' -GenerateCommandScripts
+
+# For MS Support to replay data:
+# Copy this script and the JSON bundle into one folder, then run from that folder:
+.\CrossTenantAccessPolicyCalendarValidation.ps1 -ImportData '.\BeforeMigration_CrossTenantAccessPolicyCalendarValidation_Data.json'
 ```
 
 ## Parameters
@@ -63,7 +64,8 @@ Warnings and errors retain their diagnostic colors.
 For automation, read the saved JSON bundle:
 
 ```PowerShell
-$data = Get-Content -LiteralPath .\BeforeMigration_CrossTenantAccessPolicyCalendarValidation_Data.json -Raw | ConvertFrom-Json
+# Replace the example timestamp with your results folder
+$data = Get-Content -LiteralPath '.\BeforeMigration_XTAP_Calendar_20261021_14.27.42\BeforeMigration_CrossTenantAccessPolicyCalendarValidation_Data.json' -Raw | ConvertFrom-Json
 $data.Analysis.OrganizationRelationship
 ```
 
@@ -73,7 +75,8 @@ A new `<RunName>_XTAP_Calendar_<yyyyMMdd_HH.mm.ss>` folder contains the output. 
 `-RunName Microsoft` produces `Microsoft_XTAP_Calendar_20261021_14.27.42`. Without a run name, the folder is
 `XTAP_Calendar_20261021_14.27.42`. The timestamp uses local time, with dots separating hours, minutes, and seconds;
 milliseconds are omitted. If the folder name already exists, a numeric suffix such as `_1` or `_2` keeps each run
-separate without overwriting earlier output. Filenames inside the folder are unchanged:
+separate without overwriting earlier output. Only the results folder name was shortened; the JSON and summary
+filenames inside the folder still use `CrossTenantAccessPolicyCalendarValidation`:
 
 | File | Contents |
 | --- | --- |
