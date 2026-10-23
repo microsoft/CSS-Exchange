@@ -34,7 +34,7 @@ Permission identity, error normalization, log timestamp parsing, and JSON file w
 - **Owner** - The mailbox that owns and shares the calendar.
 - **Receiver** - The mailbox that receives and opens the shared calendar.
 - **Local folder** - The copy of the owner's calendar created in the receiver's mailbox for Modern Sharing.
-- **Modern Sharing** - The REST-based sharing model in which Exchange synchronizes the owner's calendar to a local folder in the receiver's mailbox.
+- **Modern Sharing** - The internal REST-based sharing model in which Exchange synchronizes the owner's calendar to a local folder in the receiver's mailbox. An external local copy does not establish internal REST sharing.
 - **Old Model Sharing** - The legacy MAPI-based model in which the client connects directly to the owner's mailbox.
 - **Published Calendar** - An Internet Calendar subscription in which the owner exposes an ICS URL and the receiver stores a local subscription folder.
 
@@ -50,7 +50,7 @@ The following diagnostic cmdlets affect how much the script can determine:
 | Cmdlet | Purpose and availability impact |
 | --- | --- |
 | `Get-CalendarActiveSharingInformation` | Validates the receiver's active sharing relationship and flags. If unavailable, the dependent checks are incomplete. |
-| `Get-CalendarEntries` | Queries New and Old sharing-model entries and enables legacy MAPI and Published Calendar classification. If the cmdlet is unavailable in the session, those classifications do not run, and the script cannot reliably distinguish those scenarios from missing Modern Sharing evidence. |
+| `Get-CalendarEntries` | Queries internal New and Old sharing-model entries and enables legacy MAPI classification. External Sharing and Publishing do not require this internal-model evidence; publishing can be recognized independently. |
 
 Cmdlet availability and access to diagnostic properties depend on the session and permissions. Do not assume that a tenant administrator role exposes every diagnostic cmdlet or makes every property readable. If a required cmdlet is not exposed, or values remain redacted, involve Microsoft Support to obtain the appropriate diagnostic access or complete the affected checks.
 
@@ -191,7 +191,7 @@ Do not consider the relationship healthy until relevant incomplete checks have b
 
 Group membership, `Default` permissions, another delegate's entry, and mailbox `FullAccess` do not satisfy this requirement. Each delegate must be listed individually. The check does not require Send on Behalf permissions.
 
-A missing individual entry or missing required rights produces a `Detected` error. Unavailable owner-calendar permissions, or insufficient evidence to determine whether the receiver is a delegate, produces `NotEvaluated`, not a pass. An ordinary non-delegate sharing relationship or a published subscription is `NotApplicable`. Calendar delegation is checked for both Modern Sharing and legacy MAPI relationships when delegate evidence is available.
+A missing individual entry or missing required rights produces a `Detected` error. Unavailable owner-calendar permissions, or insufficient evidence to determine whether the receiver is a delegate, produces `NotEvaluated`, not a pass. An ordinary non-delegate sharing relationship, external relationship, or published subscription is `NotApplicable`. Calendar delegation is checked for both internal Modern Sharing and legacy MAPI relationships when delegate evidence is available.
 
 ### Receiver
 
@@ -212,21 +212,53 @@ A missing individual entry or missing required rights produces a `Detected` erro
 
 ### Sharing models and published calendars
 
-The script evaluates the available Modern Sharing and pair-specific legacy MAPI evidence automatically; no sharing-model switch is required. Legacy MAPI and Published Calendar classification requires `Get-CalendarEntries` to be available, as described under **Requirements**.
+The script distinguishes four relationship kinds automatically; no sharing-model switch is required:
+
+| Relationship kind | Evidence and applicable checks |
+| --- | --- |
+| Internal: REST (New Model) | Same organization and a local copy or pair-specific New entry. Internal REST flags, active sharing, synchronization start date, and assistant-log freshness checks apply. |
+| Internal: MAPI (old Model) | Same organization, a pair-specific Old entry, and no local copy or New entry. Modern-only checks do not apply. |
+| External: Publishing | A receiver-correlated `publish` invitation, `ExchangePublishedUser` permission, matching InternetCalendar subscription, or owner-matched receiver `WebCalFolder`. Publishing configuration and subscription checks apply. |
+| External: External Sharing | Different organizations and a pair-specific external invitation or receiver `ExchangeCrossOrgShareFolder`. Receiver owner identity, `SharedIn`, local-folder availability, item comparison, and actual synchronization timestamps remain relevant. |
+
+Missing organization or relationship evidence leaves the relationship kind `Undetermined`, rather than assuming that a
+local folder proves internal REST sharing. The console and JSON `sharing.relationshipKind` identify the relationship kind.
+Existing `sharingType` scope values are retained, with `Undetermined` when organizational evidence is missing.
+JSON `sharingModel` adds `ExternalSharing` alongside `Modern`, `LegacyMapi`, `PublishedCalendar`, and `Undetermined`;
+`sharing.externalSharing` is true for a confirmed external sharing relationship.
+
+For external relationships, internal-only rules are `NotApplicable`: `SHR121`, `SHR122`, `SHR220`, `SHR230`-`SHR233`,
+`SHR242`, `SHR310`-`SHR312`, `SHR320`-`SHR325`, `SHR404`-`SHR407`, and `SHR410`-`SHR413`.
+Missing internal REST flags, internal calendar entries, active sharees, old assistant logs, or an uninitialized
+`SharedCalendarSyncStartDate` therefore do not imply that external sharing is broken. Unavailable internal-only
+collectors and rule-scoped evaluations do not make an external relationship incomplete.
+Actual receiver synchronization failures and applicable collection failures remain reported. Exception diagnostics
+(`SHR408` and `SHR409`) are retained; exceptions are not automatically ignored merely because the relationship is external.
 
 Pair-specific Old-model entries are displayed automatically when present, including when New-model entries also exist.
 
 Legacy MAPI classification requires a pair-specific Old-model entry as well as the absence of a Modern local copy or pair-specific New-model entry. Missing Modern Sharing evidence alone does not establish that a sharing relationship exists. For internal relationships classified as legacy MAPI sharing, the script reports Modern-only rules as `NotApplicable`, displays the pair-specific Old-model entries, and recommends upgrading by following [Calendar sharing in Microsoft 365](https://support.microsoft.com/en-us/outlook/calendar-sharing-in-microsoft-365). A Modern Sharing local receiver folder is not expected for this model.
 
-InternetCalendar information is collected only when the selected owner calendar has `PublishEnabled` set. When the relationship is classified as Published Calendar rather than Modern Sharing, the script compares the owner's `PublishedICalUrl` with the receiver's InternetCalendar subscriptions and checks for the matching local receiver folder. Modern-only rules are reported as `NotApplicable`.
+Publishing can be recognized even when the owner has `PublishEnabled=False` or `Get-CalendarEntries` is unavailable.
+Invitation and permission evidence must match the receiver's SMTP address or a known SMTP alias, not merely another
+recipient or the same local part in another domain. Conflicting invitation types are ordered by their parsed timestamps;
+undated conflicting history does not establish the current model. Mailbox-wide invitations without a selected-calendar
+identity are not used to classify an explicitly selected calendar subfolder.
+
+InternetCalendar information is collected when the selected owner calendar has publishing enabled. For a publishing
+relationship, the script compares the owner's `PublishedICalUrl` with receiver subscriptions and checks for the matching
+local receiver folder. Modern-only rules are reported as `NotApplicable`.
 
 | Rule | Published Calendar finding |
 | --- | --- |
 | `SHR421` | No receiver subscription matches the owner's `PublishedICalUrl`. |
 | `SHR422` | A matching subscription exists, but its local receiver calendar folder is missing. |
 | `SHR423` | Publishing is enabled, but the owner's `PublishedICalUrl` is unavailable. |
+| `SHR424` | The receiver uses publishing, but publishing is disabled on the selected owner calendar. This is an Error. Verify the intended sharing method before enabling publishing or replacing the subscription. |
 
 Publishing being enabled does not by itself establish that this receiver uses a published subscription.
+When publishing is disabled, subscription and published-URL checks are not applicable until that configuration mismatch
+is resolved. An unavailable `PublishEnabled` value makes `SHR424` incomplete rather than falsely claiming publishing is disabled.
 
 Detecting a missing published-calendar folder (`SHR422`) requires both a matching receiver subscription and available receiver folder statistics. If subscription collection or folder-statistics collection fails, the dependent checks remain `NotEvaluated` rather than recommending subscription removal based on missing evidence.
 

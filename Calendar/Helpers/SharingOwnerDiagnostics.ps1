@@ -29,6 +29,9 @@ function GetOwnerInformation {
         (-not (Resolve-OwnerCalendarPrerequisite))) {
         return
     }
+    if ($null -ne $script:ReceiverMB) {
+        Initialize-SharingOrganizationScope
+    }
 
     #Standard Owner information
     Write-Host -ForegroundColor DarkYellow "------------------------------------------------"
@@ -164,7 +167,10 @@ function GetOwnerInformation {
 
     $ownerExtendedFolderFlags = ConvertTo-NormalizedFolderFlags -Flags @($OwnerCalendarFolder.ExtendedFolderFlags)
     Write-Host -ForegroundColor DarkYellow "`t ExtendedFolderFlags: $($ownerExtendedFolderFlags)"
-    if ($ownerExtendedFolderFlags -contains "SharedOut") {
+    if ($script:SharingType -eq "ExternalSharing") {
+        $script:OwnerModernSharing = $false
+        Write-Verbose "Internal REST owner-folder flag checks do not apply to external sharing or publishing."
+    } elseif ($ownerExtendedFolderFlags -contains "SharedOut") {
         Write-Host -ForegroundColor Green "Owner Calendar is Shared Out using Modern Sharing."
         $script:OwnerModernSharing = $true
     } else {
@@ -172,9 +178,15 @@ function GetOwnerInformation {
         $script:OwnerModernSharing = $false
         Add-SharingFinding -Severity Error -Area "Owner calendar flags" -Issue "The owner calendar is missing SharedOut." -Evidence "ExtendedFolderFlags: [$($ownerExtendedFolderFlags -join ', ')]." -RecommendedNextStep "Run the SharingPolicyAssistant or calendar-sharing validator diagnostics and inspect invite processing."
     }
-    if ($ownerExtendedFolderFlags -notcontains "ExchangeShareFolder") {
+    if (($ownerExtendedFolderFlags -notcontains "ExchangeShareFolder") -and
+        ($null -eq (Get-SharingRuleNotApplicableReason -RuleId "SHR122"))) {
         Write-Host -ForegroundColor Yellow "Owner Calendar is missing the ExchangeShareFolder flag."
         Add-SharingFinding -Severity Error -Area "Owner calendar flags" -Issue "The owner calendar is missing ExchangeShareFolder." -Evidence "ExtendedFolderFlags: [$($ownerExtendedFolderFlags -join ', ')]." -RecommendedNextStep "Run the SharingPolicyAssistant or calendar-sharing validator diagnostics and inspect invite processing."
+    }
+
+    if ($null -ne (Get-SharingRuleNotApplicableReason -RuleId "SHR310")) {
+        $script:CollectorStatuses["ActiveSharing"] = [PSCustomObject]@{ status = "NotApplicable"; error = $null }
+        return
     }
 
     # cSpell:ignore Sharee Sharees

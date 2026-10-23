@@ -127,6 +127,7 @@ $script:CalendarStatisticsComparison = $null
 $script:FatalPrerequisiteFailure = $null
 $script:LegacyMapiSharing = $false
 $script:PublishedSharing = $false
+$script:ExternalSharing = $false
 $script:OwnerPublished = $false
 $script:OwnerPublishedICalUrl = $null
 $script:ReceiverInternetCalendarEntries = @()
@@ -143,6 +144,15 @@ $script:ModernSharingRuleIds = @(
 )
 $script:ModernSharingCollectorNames = @(
     "OwnerInviteLog", "ActiveSharing", "ReceiverAcceptLog", "ReceiverLocalCalendarFolder",
+    "ReceiverSharingSyncAssistantLog", "ReceiverSharingLog"
+)
+$script:InternalRestRuleIds = @(
+    "SHR121", "SHR122", "SHR220", "SHR230", "SHR231", "SHR232", "SHR233", "SHR242",
+    "SHR310", "SHR311", "SHR312", "SHR320", "SHR321", "SHR322", "SHR323",
+    "SHR404", "SHR405", "SHR406", "SHR407", "SHR410", "SHR411", "SHR412", "SHR413"
+)
+$script:InternalRestCollectorNames = @(
+    "ActiveSharing", "CalendarEntries", "ReceiverAcceptLog",
     "ReceiverSharingSyncAssistantLog", "ReceiverSharingLog"
 )
 
@@ -208,6 +218,7 @@ $script:SharingRuleCatalog = @(
     [PSCustomObject]@{ RuleId = "SHR421"; Severity = "Warning"; Title = "Receiver published-calendar subscription is missing"; Aliases = @(); NextStep = "Subscribe the receiver to the owner's PublishedICalUrl and verify that the InternetCalendar entry is created." }
     [PSCustomObject]@{ RuleId = "SHR422"; Severity = "Warning"; Title = "Receiver published-calendar local folder is missing"; Aliases = @(); NextStep = "Remove and re-add the published calendar subscription, then verify that its local calendar folder is created." }
     [PSCustomObject]@{ RuleId = "SHR423"; Severity = "Warning"; Title = "Owner published-calendar URL is unavailable"; Aliases = @(); NextStep = "Verify the owner's PublishEnabled, PublishedCalendarUrl, and PublishedICalUrl values." }
+    [PSCustomObject]@{ RuleId = "SHR424"; Severity = "Error"; Title = "Receiver uses publishing but owner calendar publishing is disabled"; Aliases = @(); NextStep = "Verify the intended sharing method. Enable publishing on the selected owner calendar if publishing is intended, or replace the receiver's published subscription with an external sharing invitation." }
     [PSCustomObject]@{ RuleId = "SHR432"; Severity = "Warning"; Title = "Receiver local calendar has significantly more visible items than owner folder"; Aliases = @(); NextStep = "Review the selected folder mapping, synchronization state, and item retention differences before remediation." }
 )
 

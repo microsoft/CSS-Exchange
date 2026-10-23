@@ -4,6 +4,34 @@
 # .DESCRIPTION
 # Sharing finding registration and final status classification.
 
+function Get-SharingRuleNotApplicableReason {
+    param(
+        [Parameter(Mandatory)]
+        [string]$RuleId
+    )
+
+    if ($script:PublishedSharing -and ($RuleId -in ($script:ModernSharingRuleIds + @("SHR233", "SHR324", "SHR325")))) {
+        return "Not applicable to a published-calendar relationship."
+    }
+    if ($script:LegacyMapiSharing -and ($RuleId -in $script:ModernSharingRuleIds)) {
+        return "Not applicable to an internal legacy MAPI calendar-sharing relationship."
+    }
+    if (($script:SharingType -eq "ExternalSharing") -and
+        ($RuleId -in ($script:InternalRestRuleIds + @("SHR324", "SHR325")))) {
+        return "This check applies to internal REST or delegate sharing, not external sharing or publishing."
+    }
+    if (($RuleId -in @("SHR421", "SHR422", "SHR423", "SHR424")) -and (-not $script:PublishedSharing)) {
+        return "The relationship is not a published calendar subscription."
+    }
+    if (($RuleId -in @("SHR420", "SHR421", "SHR422", "SHR423")) -and
+        $script:PublishedSharing -and (-not $script:OwnerPublished)) {
+        return "Publishing is not enabled on the owner calendar; verify publishing configuration before subscription checks."
+    }
+    if (($RuleId -eq "SHR420") -and (-not $script:OwnerPublished) -and (-not $script:PublishedSharing)) {
+        return "The owner calendar is not published."
+    }
+}
+
 function Add-SharingFinding {
     param(
         [Parameter()]
@@ -57,13 +85,24 @@ function Add-SharingFinding {
     } else {
         "Detected"
     }
+    $notApplicableReason = Get-SharingRuleNotApplicableReason -RuleId $rule.RuleId
+    if ($null -ne $notApplicableReason) {
+        $findingStatus = "NotApplicable"
+        $Evidence = @{ reason = $notApplicableReason }
+        $script:ConsoleFindingEvidence[$rule.RuleId] = $Evidence
+    }
+    $nextStep = $rule.NextStep
+    if (($script:SharingType -eq "ExternalSharing") -and
+        ($rule.RuleId -in @("SHR400", "SHR401", "SHR402", "SHR403"))) {
+        $nextStep = "Inspect the receiver's external sharing configuration and actual synchronization timestamps. Internal REST assistant-log freshness does not determine external sharing health."
+    }
     $script:SharingFindings.Add([PSCustomObject]@{
             ruleId              = $rule.RuleId
             severity            = $rule.Severity
             status              = $findingStatus
             title               = $rule.Title
             evidence            = ConvertTo-SharingEvidence -RuleId $rule.RuleId -Evidence $Evidence
-            recommendedNextStep = $rule.NextStep
+            recommendedNextStep = $nextStep
             area                = $Area
         })
 }
@@ -101,6 +140,7 @@ function Complete-SharingFindings {
         SHR413 = @("ReceiverLocalCalendarFolder"); SHR420 = @("InternetCalendar")
         SHR421 = @("InternetCalendar"); SHR422 = @("InternetCalendar", "ReceiverFolderStatistics")
         SHR423 = @("OwnerCalendarFolder")
+        SHR424 = @("OwnerCalendarFolder")
         SHR432 = @("OwnerFolderStatistics", "ReceiverFolderStatistics")
     }
 
@@ -142,36 +182,45 @@ function Complete-SharingFindings {
         return
     }
 
-    if ($script:LegacyMapiSharing -or $script:PublishedSharing) {
-        $nonModernReason = if ($script:PublishedSharing) {
-            "Not applicable to a published-calendar relationship."
-        } else {
-            "Not applicable to an internal legacy MAPI calendar-sharing relationship."
-        }
-        foreach ($finding in $script:SharingFindings) {
-            if ($finding.ruleId -in $script:ModernSharingRuleIds) {
-                $finding.status = "NotApplicable"
-                $finding.evidence = ConvertTo-SharingEvidence -RuleId $finding.ruleId -Evidence @{
-                    reason = $nonModernReason
-                }
-                $script:ConsoleFindingEvidence[$finding.ruleId] = @{
-                    reason = $nonModernReason
-                }
+    foreach ($finding in $script:SharingFindings) {
+        $notApplicableReason = Get-SharingRuleNotApplicableReason -RuleId $finding.ruleId
+        if ($null -ne $notApplicableReason) {
+            $finding.status = "NotApplicable"
+            $finding.evidence = ConvertTo-SharingEvidence -RuleId $finding.ruleId -Evidence @{
+                reason = $notApplicableReason
             }
+            $script:ConsoleFindingEvidence[$finding.ruleId] = @{ reason = $notApplicableReason }
         }
-        foreach ($collectorName in $script:ModernSharingCollectorNames) {
+    }
+    $inapplicableCollectors = if ($script:LegacyMapiSharing -or $script:PublishedSharing) {
+        @($script:ModernSharingCollectorNames)
+    } elseif ($script:SharingType -eq "ExternalSharing") {
+        @($script:InternalRestCollectorNames)
+    } else {
+        @()
+    }
+    if ($inapplicableCollectors.Count -gt 0) {
+        foreach ($collectorName in $inapplicableCollectors) {
             $script:CollectorStatuses[$collectorName] = [PSCustomObject]@{
                 status = "NotApplicable"
                 error  = $null
             }
         }
         $relevantCollectionErrors = @($script:CollectionErrors | Where-Object {
-                $_.collector -notin $script:ModernSharingCollectorNames
+                $_.collector -notin $inapplicableCollectors
             })
         $script:CollectionErrors.Clear()
         foreach ($collectionError in $relevantCollectionErrors) {
             $script:CollectionErrors.Add($collectionError)
         }
+    }
+    $relevantEvaluationErrors = @($script:EvaluationErrors | Where-Object {
+            ($_.ruleIds.Count -eq 0) -or
+            @($_.ruleIds | Where-Object { $null -eq (Get-SharingRuleNotApplicableReason -RuleId $_) }).Count -gt 0
+        })
+    $script:EvaluationErrors.Clear()
+    foreach ($evaluationError in $relevantEvaluationErrors) {
+        $script:EvaluationErrors.Add($evaluationError)
     }
 
     if ((-not $script:OwnerPublished) -and
@@ -188,23 +237,7 @@ function Complete-SharingFindings {
         if ($script:SharingFindingRuleIds.Add($rule.RuleId)) {
             $status = "NotDetected"
             $reason = $null
-            if ($script:LegacyMapiSharing -and
-                ($rule.RuleId -in $script:ModernSharingRuleIds)) {
-                $status = "NotApplicable"
-                $reason = "The relationship uses legacy MAPI sharing, so this Modern Sharing rule does not apply."
-            } elseif ($script:PublishedSharing -and
-                ($rule.RuleId -in $script:ModernSharingRuleIds)) {
-                $status = "NotApplicable"
-                $reason = "The receiver uses a published calendar subscription, so this Modern Sharing rule does not apply."
-            } elseif (($rule.RuleId -in @("SHR421", "SHR422", "SHR423")) -and
-                (-not $script:PublishedSharing)) {
-                $status = "NotApplicable"
-                $reason = "The relationship is not a published calendar subscription."
-            } elseif (($rule.RuleId -eq "SHR420") -and
-                (-not $script:OwnerPublished)) {
-                $status = "NotApplicable"
-                $reason = "The owner calendar is not published."
-            } elseif ($ruleCollectors.ContainsKey($rule.RuleId)) {
+            if ($ruleCollectors.ContainsKey($rule.RuleId)) {
                 $requiredCollectorStatuses = @($ruleCollectors[$rule.RuleId] | ForEach-Object {
                         $script:CollectorStatuses[$_].status
                     })
@@ -226,6 +259,10 @@ function Complete-SharingFindings {
             if ($rule.RuleId -eq "SHR325") {
                 $status = "NotEvaluated"
                 $reason = "The receiver delegate permission check was not performed."
+            }
+            if ($rule.RuleId -eq "SHR424") {
+                $status = "NotEvaluated"
+                $reason = "The published-calendar configuration check was not performed."
             }
             if (($rule.RuleId -in @("SHR408", "SHR409")) -and (-not $script:SharingLogScanPerformed)) {
                 $status = "NotEvaluated"
@@ -261,6 +298,11 @@ function Complete-SharingFindings {
                     }).Count -gt 0) {
                 $status = "NotEvaluated"
                 $reason = "The synchronization start date could not be interpreted."
+            }
+            $notApplicableReason = Get-SharingRuleNotApplicableReason -RuleId $rule.RuleId
+            if ($null -ne $notApplicableReason) {
+                $status = "NotApplicable"
+                $reason = $notApplicableReason
             }
             $script:SharingFindings.Add([PSCustomObject]@{
                     ruleId              = $rule.RuleId

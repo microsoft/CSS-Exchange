@@ -32,7 +32,7 @@ BeforeAll {
         "SHR300", "SHR301", "SHR310", "SHR311", "SHR312", "SHR320", "SHR321", "SHR322",
         "SHR323", "SHR324", "SHR325", "SHR400", "SHR401", "SHR402", "SHR403", "SHR404", "SHR405", "SHR406", "SHR407", "SHR408", "SHR409",
         "SHR410", "SHR411", "SHR412", "SHR413",
-        "SHR420", "SHR421", "SHR422", "SHR423", "SHR430", "SHR431", "SHR432"
+        "SHR420", "SHR421", "SHR422", "SHR423", "SHR424", "SHR430", "SHR431", "SHR432"
     )
     $Script:collectorNames = @(
         "OwnerMailbox", "ReceiverMailbox", "OwnerFolderStatistics", "ReceiverFolderStatistics",
@@ -64,6 +64,7 @@ BeforeAll {
         $script:ModernSharing = $false
         $script:LegacyMapiSharing = $false
         $script:PublishedSharing = $false
+        $script:ExternalSharing = $false
         $script:OwnerPublished = $false
         $script:OwnerPublishedICalUrl = $null
         $script:ReceiverInternetCalendarEntries = @()
@@ -95,6 +96,8 @@ BeforeAll {
         $script:OwnerActiveSharingAvailable = $false
         $script:ReceiverMatchedCalendar = $null
         $script:ReceiverLocalCalendarFolder = $null
+        $script:ReceiverCalendarEntries = @()
+        $script:ReceiverFolderStatistics = @()
         $script:ReceiverCalendarCandidates = @()
         $script:CalendarStatisticsComparisonPerformed = $false
         $script:CalendarStatisticsComparison = $null
@@ -1139,14 +1142,14 @@ Describe "Check-SharingStatus structured diagnostics" {
             Complete-SharingFindings
 
             @($script:SharingFindings | Where-Object -Property status -EQ "NotDetected").Count |
-                Should -Be ($Script:expectedRuleIds.Count - 5)
+                Should -Be ($Script:expectedRuleIds.Count - 6)
             ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR325").status |
                 Should -Be "NotEvaluated"
             ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR233").status |
                 Should -Be "NotDetected"
             ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR420").status |
                 Should -Be "NotApplicable"
-            foreach ($ruleId in @("SHR421", "SHR422", "SHR423")) {
+            foreach ($ruleId in @("SHR421", "SHR422", "SHR423", "SHR424")) {
                 ($script:SharingFindings | Where-Object -Property ruleId -EQ $ruleId).status |
                     Should -Be "NotApplicable"
             }
@@ -2310,15 +2313,17 @@ Describe "Check-SharingStatus structured diagnostics" {
             Initialize-ReceiverMocks
         }
 
-        It "reports a missing local folder and missing pair-specific New entry" {
+        It "reports a missing external local folder without requiring an internal New entry" {
             $Script:receiverStats = @($Script:receiverStats[0])
             $Script:calendarEntries = @()
             $Script:receiverMailbox.OrganizationalUnitRoot = "OU2"
 
             GetReceiverInformation -Receiver "receiver@contoso.com"
+            Complete-SharingFindings
 
             $script:SharingFindings.ruleId | Should -Contain "SHR213"
-            $script:SharingFindings.ruleId | Should -Contain "SHR231"
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR231").status |
+                Should -Be "NotApplicable"
         }
 
         It "classifies internal sharing without a Modern copy as legacy MAPI" {
@@ -2438,6 +2443,7 @@ Describe "Check-SharingStatus structured diagnostics" {
         }
 
         It "warns when the receiver has no subscription to the published owner calendar" {
+            $script:OwnerInviteData = @([PSCustomObject]@{ Recipient = "receiver@contoso.com"; SharingType = "publish" })
             $script:OwnerPublished = $true
             $script:OwnerPublishedICalUrl = "https://outlook.office365.com/owa/calendar/owner/calendar.ics"
             $script:CollectorStatuses["OwnerCalendarFolder"] =
@@ -2465,6 +2471,7 @@ Describe "Check-SharingStatus structured diagnostics" {
             @{ Unavailable = "folder statistics" }
         ) {
             param($Unavailable)
+            $script:OwnerInviteData = @([PSCustomObject]@{ Recipient = "receiver@contoso.com"; SharingType = "publish" })
             $script:OwnerPublished = $true
             $script:OwnerPublishedICalUrl = "https://outlook.office365.com/owa/calendar/owner/calendar.ics"
             $Script:calendarEntries = @()
@@ -3457,5 +3464,231 @@ Describe "Check-SharingStatus structured diagnostics" {
             $output | Should -Match "END-EVIDENCE"
             $output | Should -Not -Match "\.\.\."
         }
+    }
+}
+
+Describe "Check-SharingStatus external model applicability" {
+    BeforeEach {
+        Initialize-SharingTestState
+        Initialize-OwnerMocks
+        Initialize-ReceiverMocks
+        $Script:receiverMailbox.OrganizationalUnitRoot = "OU2"
+        $script:ReceiverMB = $Script:receiverMailbox
+        $Script:calendarEntries = @()
+        $Script:receiverCalendarFolder.ExtendedFolderFlags = @(
+            "ReadOnly", "SharedIn", "PersonalShare", "ExclusivelyBound", "ExchangeCrossOrgShareFolder")
+        $Script:receiverCalendarFolder.SharingPermissionFlags = @("None")
+        $Script:receiverCalendarFolder.SharedCalendarSyncStartDate = [DateTime]::MinValue
+        $script:OwnerCalendarFolder.ExtendedFolderFlags = @("SharedViaExchange")
+        $script:OwnerSelectedCalendar = [PSCustomObject]@{ VisibleItemsInFolder = 10 }
+        $script:OwnerInviteData = @([PSCustomObject]@{ Recipient = "receiver@contoso.com"; SharingType = "external" })
+        foreach ($collectorName in $Script:collectorNames) {
+            $script:CollectorStatuses[$collectorName] = [PSCustomObject]@{ status = "Success"; error = $null }
+        }
+        Mock Write-Host {}
+        Mock Get-CalendarEntries { throw "Internal calendar-entry diagnostics must not run for external sharing." }
+    }
+
+    It "does not report internal REST failures for the good external sharing repro" {
+        foreach ($ruleId in $script:InternalRestRuleIds) {
+            Add-SharingFinding -RuleId $ruleId -Status Detected -Evidence @{ reason = "Earlier internal-only observation." }
+        }
+        GetReceiverInformation -Receiver $Receiver
+        Test-ReceiverDelegatePermissions
+        Test-ReceiverSharingLogFreshness
+        Complete-SharingFindings
+
+        $script:ExternalSharing | Should -BeTrue
+        $script:ModernSharing | Should -BeFalse
+        Get-SharingRelationshipKind | Should -Be "External: External Sharing"
+        foreach ($ruleId in $script:InternalRestRuleIds + @("SHR325")) {
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ $ruleId).status | Should -Be "NotApplicable"
+        }
+        @($script:SharingFindings | Where-Object -Property status -EQ "Detected").Count | Should -Be 0
+        Should -Not -Invoke Get-CalendarEntries
+        Should -Not -Invoke ProcessCalendarSharingAcceptLogs
+        Should -Not -Invoke Write-Host -ParameterFilter {
+            $Object -like "*missing ExchangeShareFolder*" -or
+            $Object -like "*does not have an initialized SharedCalendarSyncStartDate*" -or
+            $Object -like "*more than 7 days old*"
+        }
+        $report = Get-SharingJsonReportObject
+        $report.sharing.sharingModel | Should -Be "ExternalSharing"
+        $report.sharing.relationshipKind | Should -Be "External: External Sharing"
+        $report.summary.overallResult | Should -Be "Pass"
+        $report.summary.inconclusiveCount | Should -Be 0
+    }
+
+    It "retains external owner, SharedIn and synchronization failure checks" {
+        $Script:receiverCalendarFolder.ExtendedFolderFlags = @("ExchangeCrossOrgShareFolder")
+        $Script:receiverCalendarFolder.CalendarSharingOwnerSmtpAddress = "other@contoso.com"
+        $Script:receiverCalendarFolder.LastSuccessfulSyncTime = (Get-Date).AddHours(-1)
+        GetReceiverInformation -Receiver $Receiver
+        Complete-SharingFindings
+        foreach ($ruleId in @("SHR241", "SHR243", "SHR402")) {
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ $ruleId).status | Should -Be "Detected"
+        }
+    }
+
+    It "recognizes publishing with disabled owner from <Signal>" -TestCases @(
+        @{ Signal = "PublishInvite" }
+        @{ Signal = "PublishedPermission" }
+        @{ Signal = "WebCalFolder" }
+    ) {
+        param($Signal)
+        $script:OwnerInviteData = @()
+        switch ($Signal) {
+            "PublishInvite" {
+                $script:OwnerInviteData = @([PSCustomObject]@{ Recipient = $Receiver; SharingType = "publish" })
+            }
+            "PublishedPermission" {
+                $script:OwnerCalendarPerms = @([PSCustomObject]@{ User = "ExchangePublishedUser.$Receiver"; AccessRights = @("Reviewer") })
+            }
+            "WebCalFolder" {
+                $Script:receiverCalendarFolder.ExtendedFolderFlags = @(
+                    "ReadOnly", "WebCalFolder", "SharedIn", "PersonalShare", "SharedExchangeValid", "ExclusivelyBound")
+            }
+        }
+        GetReceiverInformation -Receiver $Receiver
+        Complete-SharingFindings
+        $script:PublishedSharing | Should -BeTrue
+        $script:ExternalSharing | Should -BeFalse
+        $script:ModernSharing | Should -BeFalse
+        Get-SharingRelationshipKind | Should -Be "External: Publishing"
+        $finding = $script:SharingFindings | Where-Object -Property ruleId -EQ "SHR424"
+        $finding.status | Should -Be "Detected"
+        $finding.severity | Should -Be "Error"
+        $finding.evidence.publishEnabled | Should -BeFalse
+        foreach ($ruleId in @("SHR121", "SHR122", "SHR231", "SHR242", "SHR405", "SHR407", "SHR413", "SHR421", "SHR422", "SHR423")) {
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ $ruleId).status | Should -Be "NotApplicable"
+        }
+        Should -Not -Invoke Get-CalendarEntries
+        Should -Not -Invoke ProcessInternetCalendarLogs
+    }
+
+    It "correlates published permission entries using the receiver's SMTP aliases" {
+        $Script:receiverMailbox | Add-Member -NotePropertyName EmailAddresses -NotePropertyValue @(
+            "SMTP:receiver@contoso.com", "smtp:alias@contoso.net", "X500:/o=NotAnSmtpAddress")
+        $script:OwnerInviteData = @()
+        $script:OwnerCalendarPerms = @([PSCustomObject]@{ User = "ExchangePublishedUser.alias@contoso.net" })
+        GetReceiverInformation -Receiver $Receiver
+        Complete-SharingFindings
+        $script:PublishedSharing | Should -BeTrue
+        ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR424").status | Should -Be "Detected"
+    }
+
+    It "does not infer publishing from another recipient or an enabled owner alone" {
+        $script:OwnerPublished = $true
+        $script:OwnerPublishedICalUrl = "https://example.com/calendar.ics"
+        $script:OwnerInviteData = @([PSCustomObject]@{ Recipient = "other@contoso.com"; SharingType = "publish" })
+        $script:OwnerCalendarPerms = @([PSCustomObject]@{ User = "ExchangePublishedUser.other@contoso.com" })
+        GetReceiverInformation -Receiver $Receiver
+        Complete-SharingFindings
+        $script:PublishedSharing | Should -BeFalse
+        $script:ExternalSharing | Should -BeTrue
+        ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR424").status | Should -Be "NotApplicable"
+    }
+
+    It "uses the most recent pair-specific sharing invitation rather than old publishing history" {
+        $script:OwnerInviteData = @(
+            [PSCustomObject]@{ Recipient = $Receiver; SharingType = "publish"; Timestamp = "2026-09-01T12:00:00Z" },
+            [PSCustomObject]@{ Recipient = $Receiver; SharingType = "external"; Timestamp = "2026-10-01T12:00:00Z" }
+        )
+        GetReceiverInformation -Receiver $Receiver
+        $script:PublishedSharing | Should -BeFalse
+        $script:ExternalSharing | Should -BeTrue
+    }
+
+    It "does not infer a sharing model from incomplete organization evidence" {
+        $Script:receiverMailbox.OrganizationalUnitRoot = $null
+        $script:OwnerMB.OrganizationalUnitRoot = $null
+        $script:OwnerInviteData = @()
+        Initialize-SharingOrganizationScope
+        $script:SharingType | Should -Be "Undetermined"
+        Get-SharingRelationshipKind | Should -Be "Undetermined"
+        Get-SharingRuleNotApplicableReason -RuleId "SHR121" | Should -BeNullOrEmpty
+    }
+
+    It "does not discard genuine exception diagnostics for an external relationship" {
+        Initialize-SharingOrganizationScope
+        $script:OwnerInviteLogRaw = "2026-10-22T12:00:00Z InvalidOperationException"
+        Test-SharingLogExceptions
+        Complete-SharingFindings
+        ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR409").status | Should -Be "Detected"
+    }
+
+    It "removes irrelevant internal collector and rule-scoped evaluation failures only" {
+        $script:CollectionErrors.Add([PSCustomObject]@{ collector = "CalendarEntries"; error = "Internal-only lookup failure" })
+        $script:CollectionErrors.Add([PSCustomObject]@{ collector = "ReceiverFolderStatistics"; error = "Applicable failure" })
+        $script:EvaluationErrors.Add([PSCustomObject]@{ evaluation = "Internal freshness"; ruleIds = @("SHR405"); error = "Internal-only failure" })
+        $script:EvaluationErrors.Add([PSCustomObject]@{ evaluation = "Sync"; ruleIds = @("SHR402"); error = "Applicable failure" })
+        Initialize-SharingOrganizationScope
+        Complete-SharingFindings
+        $script:CollectionErrors.Count | Should -Be 1
+        $script:CollectionErrors[0].collector | Should -Be "ReceiverFolderStatistics"
+        $script:EvaluationErrors.Count | Should -Be 1
+        $script:EvaluationErrors[0].evaluation | Should -Be "Sync"
+        $script:CollectorStatuses["CalendarEntries"].status | Should -Be "NotApplicable"
+    }
+
+    It "does not execute rule-scoped internal evaluations for an external pair" {
+        Initialize-SharingOrganizationScope
+        Invoke-SharingEvaluation -Name "Internal freshness" -RuleIds @("SHR405") -Action { throw "Must not execute" }
+        $script:EvaluationErrors.Count | Should -Be 0
+        ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR405").status | Should -Be "NotApplicable"
+    }
+
+    It "keeps the full external orchestration from retrying internal-only collectors" {
+        Mock Resolve-SharingMailboxPrerequisites { $true }
+        Mock Resolve-OwnerCalendarPrerequisite { $true }
+        Mock Test-ReceiverSharingLogFreshness {}
+        Invoke-SharingDiagnostics
+        $script:ExternalSharing | Should -BeTrue
+        $script:CollectorStatuses["ReceiverAcceptLog"].status | Should -Be "NotApplicable"
+        Should -Not -Invoke ProcessCalendarSharingAcceptLogs
+        Should -Not -Invoke Get-CalendarEntries
+        Should -Not -Invoke Get-CalendarActiveSharingInformation
+        Should -Not -Invoke Test-ReceiverSharingLogFreshness
+        $script:EvaluationErrors.Count | Should -Be 0
+    }
+
+    It "does not mistake an unavailable publishing setting for disabled publishing" {
+        $script:OwnerInviteData = @([PSCustomObject]@{ Recipient = $Receiver; SharingType = "publish" })
+        $script:OwnerCalendarFolder.PSObject.Properties.Remove("PublishEnabled")
+        GetReceiverInformation -Receiver $Receiver
+        Complete-SharingFindings
+        $script:PublishedSharing | Should -BeTrue
+        ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR424").status | Should -Be "NotEvaluated"
+    }
+
+    It "does not use an unrelated mailbox-wide invitation for a selected calendar subfolder" {
+        $script:OwnerCalendarSubfolderSelected = $true
+        $script:RequestedOwnerCalendarLeafName = "Project"
+        $script:OwnerInviteData = @([PSCustomObject]@{ Recipient = $Receiver; SharingType = "publish" })
+        Get-PairSharingInvite | Should -BeNullOrEmpty
+    }
+
+    It "does not choose a current invitation from <History> conflicting history" -TestCases @(
+        @{ History = "undated"; Timestamp = "not-a-date" }
+        @{ History = "tied"; Timestamp = "2026-10-22T12:00:00Z" }
+    ) {
+        param($History, $Timestamp)
+        $script:OwnerInviteData = @(
+            [PSCustomObject]@{ Recipient = $Receiver; SharingType = "publish"; Timestamp = $Timestamp },
+            [PSCustomObject]@{ Recipient = $Receiver; SharingType = "external"; Timestamp = $Timestamp }
+        )
+        Get-PairSharingInvite | Should -BeNullOrEmpty
+    }
+
+    It "preserves internal REST failures and explicit four-model labels" {
+        $script:SharingType = "InternalSharing"
+        $script:ModernSharing = $true
+        Add-SharingFinding -RuleId "SHR121" -Status Detected -Evidence @{ reason = "Missing internal flag" }
+        Complete-SharingFindings
+        ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR121").status | Should -Be "Detected"
+        Get-SharingRelationshipKind | Should -Be "Internal: REST (New Model)"
+        $script:ModernSharing = $false
+        $script:LegacyMapiSharing = $true
+        Get-SharingRelationshipKind | Should -Be "Internal: MAPI (old Model)"
     }
 }
