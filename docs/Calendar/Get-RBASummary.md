@@ -11,7 +11,7 @@ The script validates mailbox type, booking policy, request routing, delegate con
 ## Requirements
 
 - Windows PowerShell 5.1 or PowerShell 7 or later.
-- The Exchange Online PowerShell module and an active `Connect-ExchangeOnline` session.
+- The Exchange Online PowerShell module and an active `Connect-ExchangeOnline` session. The script verifies that `Get-Mailbox` is available and, when `Get-ConnectionInformation` is available, that an active Exchange Online connection exists. It stops before collecting data if the check fails.
 - Permission to read the target mailbox, CalendarProcessing configuration, mailbox diagnostic logs, and applicable permissions.
 - A room or equipment mailbox. Workspace-specific validation applies when the mailbox resource type is `Workspace`.
 
@@ -69,11 +69,13 @@ For example, running the script for `Room1@Contoso.com` creates a filename simil
 
 The JSON uses schema version `1.1-preview` and is encoded as UTF-8 without a byte order mark. Compared with `1.0-preview`, `calendarProcessing.maximumConflictPercentage` is removed; use `calendarProcessing.conflictPercentageAllowed`. The transcript and readable RBA-log files do not carry the same BOM-free encoding guarantee.
 
-Every finding contains `ruleId`, `severity`, `status`, `title`, and `evidence`. When `status` is `NotEvaluated`, `evidence` is always JSON `null`; consumers must not interpret unavailable evidence as a negative result. For evaluated findings, evidence is rule-specific and can be a scalar or object. `RBA001` uses an object with an `error` member, while `RBA002` through `RBA007` use a scalar error string or null. In sanitized modes, those error values can contain the fixed text `Error details omitted in sanitized mode.`
+Every finding contains `ruleId`, `severity`, `status`, `result`, `title`, and `evidence`. `result` is a plain-language summary of `status` and `severity`: `Fail` (`Detected` with `Critical`, `Error`, or `Warning` severity), `Info` (`Detected` with `Information` severity), `Pass` (`NotDetected`), `Inconclusive` (`NotEvaluated`), and `Skipped` (`NotApplicable`). Use `status` when you need the precise outcome. When `status` is `NotEvaluated`, `evidence` is always JSON `null`; consumers must not interpret unavailable evidence as a negative result. For evaluated findings, evidence is rule-specific and can be a scalar or object. `RBA001` uses an object with an `error` member, while `RBA002` through `RBA007` use a scalar error string or null. In sanitized modes, those error values can contain the fixed text `Error details omitted in sanitized mode.`
 
 The JSON records an overall `Complete`, `Partial`, or `Failed` collection status. Review `collectors`, `collectionErrors`, `evaluationErrors`, and `NotEvaluated` findings before drawing conclusions from a partial report. `NotApplicable` means that evidence was available but the finding does not apply to the resource or routing configuration.
 
 `rbaLogSummary.processedEventCount` counts retained `START -` processing blocks. The accepted, declined, tentative, updated, cancellation, delegate-referral, skipped-external, horizon-decline, and recurrence-truncation values count their respective retained markers independently. These categories are not mutually exclusive: one processing block can increment multiple marker counts, so their sum must not be expected to equal `processedEventCount`. The fields `processedEventCountRepresents`, `markerCountCategoryRelationship`, and `markerCountCategoriesMayOverlapWithinBlock` encode these semantics for consumers.
+
+The `calendarProcessing` recipient wells (`requestOutOfPolicy`, `bookInPolicy`, `requestInPolicy`, and `resourceDelegates`) are always JSON arrays, including empty lists and lists containing one identity.
 
 ## Privacy modes
 
@@ -200,6 +202,10 @@ The report collects the resource's localized Calendar folder permissions and exp
 - The booking-policy recipient lists and all-user switches control who can book automatically or request approval. They do not grant Calendar folder access.
 - `DeleteSubject`, `AddOrganizerToSubject`, and `RemovePrivateProperty` are RBA post-processing settings. They change stored meeting properties but do not grant folder access.
 - Calendar `Owner` and explicit mailbox Full Access grants are warnings because they permit access outside normal RBA ownership. Their presence does not prove that anyone directly edited a meeting.
-- If a configured resource delegate has no matching direct Calendar `Editor` or `Owner` entry, validate effective access separately. The user might receive access through a group or another assignment path.
+- If a configured resource delegate has no matching direct Calendar `Editor` or `Owner` entry, validate effective access separately. The user might receive access through a group or another assignment path. If a delegate lookup fails, returns no recipient, or provides no primary SMTP address, `RBA803` remains `NotEvaluated` rather than reporting missing access from incomplete identity evidence.
 
 Direct editing is deliberately not inferred from permissions. Establishing that a user or client modified the resource calendar requires Calendar Diagnostic Log evidence. The `RBA830` identifier is reserved for that future evidence and is not emitted by the current report.
+
+## Source layout
+
+The development entry script loads RBA-specific collectors, evaluations, log processing, and reporting from `Calendar/RBAHelpers`. Shared diagnostic error and permission-identity normalization lives in `Calendar/CalendarHelpers/CalendarDiagnosticHelpers.ps1` and is also used by the sharing diagnostics. The shared `Calendar/CalendarHelpers/Write-DashLineBoxColor.ps1` writer is used by RBA, Bookings, and Calendar Diagnostic Objects summaries. The release build embeds these dependencies into each standalone script; users do not need to download the helper files separately.

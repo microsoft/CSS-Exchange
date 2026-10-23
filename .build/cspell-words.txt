@@ -144,6 +144,7 @@ renego
 repadmin
 RESTAPI
 retryable
+rmguid
 RODC
 rsassa
 Runtimes
@@ -180,3 +181,4 @@ Weve
 wevtutil
 windir
 Xlsb
+xtap
