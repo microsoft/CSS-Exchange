@@ -568,6 +568,9 @@ function Get-XtapSharingPolicyAnalysis {
         $assignedCount = $null
         if ($hasAssignmentData) {
             $assignedCount = if ($assignmentByName.ContainsKey($policyName)) { $assignmentByName[$policyName] } else { 0 }
+            if ($policyDefault -and $assignmentByName.ContainsKey("")) {
+                $assignedCount += $assignmentByName[""]
+            }
         }
 
         foreach ($entry in @(@($policy.Domains) | Where-Object { $null -ne $_ } | ForEach-Object { "$_" })) {

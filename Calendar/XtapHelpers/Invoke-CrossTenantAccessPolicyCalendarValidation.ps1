@@ -97,7 +97,7 @@ function Invoke-CrossTenantAccessPolicyCalendarValidation {
     $commandScripts = [ordered]@{}
     if ($GenerateCommandScripts) {
         if ($mailboxCountsMissing -and $sharingPolicyAnalysis.Count -gt 0) {
-            Write-Warning "The mailbox count for each Sharing Policy wasn't collected (-ProcessUsers). The generated sharing commands assume only one Sharing Policy is in use."
+            Write-Warning "The mailbox count for each Sharing Policy wasn't collected (-ProcessUsers). The generated sharing commands require security groups matching each policy's mailbox assignments; tenant-wide access is not assumed."
         }
 
         $commandScripts = Get-XtapCommandScript -OrganizationRelationshipAnalysis $organizationRelationshipAnalysis `

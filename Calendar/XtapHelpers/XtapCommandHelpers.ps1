@@ -93,13 +93,10 @@ function Get-XtapCommandScript {
 
     $orgRows = @(@($OrganizationRelationshipAnalysis) | Where-Object { $null -ne $_ -and $_.Status -eq "Eligible" })
     $aasRows = @(@($AvailabilityAddressSpaceAnalysis) | Where-Object { $null -ne $_ -and $_.Status -eq "Eligible" })
-    $allSharingRows = @(@($SharingPolicyAnalysis) | Where-Object { $null -ne $_ })
+    $allSharingRows = @(@($SharingPolicyAnalysis) | Where-Object {
+            $null -ne $_ -and ($null -eq $_.AssignedMailboxCount -or $_.AssignedMailboxCount -gt 0)
+        })
     $sharingRows = @($allSharingRows | Where-Object { $_.Status -eq "Eligible" })
-
-    # More than one policy in use means the policies can only be told apart by group membership.
-    $assignedPolicyNames = @($allSharingRows | Where-Object { $_.Enabled -and $_.AssignedMailboxCount -gt 0 } |
-            Select-Object -ExpandProperty SharingPolicy -Unique)
-    $useSharingGroups = $assignedPolicyNames.Count -gt 1
 
     $trustTenants = New-Object System.Collections.Generic.List[string]
     $freeBusyCalls = New-Object System.Collections.Generic.List[string]
@@ -155,12 +152,10 @@ function Get-XtapCommandScript {
 
     foreach ($row in $sharingRows) {
         $resourceType = "group"
-        $resourceId = "All"
-        $lines = @("# Sharing Policy '$(ConvertTo-XtapComment -Value $row.SharingPolicy)' rule '$(ConvertTo-XtapComment -Value $row.Rule)'")
-        if ($useSharingGroups) {
-            $resourceId = "<SecurityGroupObjectId for Sharing Policy $($row.SharingPolicy)>"
-            $lines += "# Several Sharing Policies are in use. Put the object ID of a security group that contains the mailboxes assigned to this policy below."
-        }
+        $resourceId = "<SecurityGroupObjectId for Sharing Policy $($row.SharingPolicy)>"
+        $lines = @(
+            "# Sharing Policy '$(ConvertTo-XtapComment -Value $row.SharingPolicy)' rule '$(ConvertTo-XtapComment -Value $row.Rule)'",
+            "# Put the object ID of a security group containing only the mailboxes using this policy below, including inherited default-policy assignments.")
 
         $tenantArgument = ""
         $tenantKey = "default"
@@ -177,7 +172,7 @@ function Get-XtapCommandScript {
 
     $scripts = [ordered]@{}
 
-    if ($trustTenants.Count -gt 0) {
+    if ($trustTenants.Count -gt 0 -or $sharingCalls.Count -gt 0) {
         $lines = New-Object System.Collections.Generic.List[string]
         foreach ($line in (Get-XtapCommandScriptHeader -Title "Part 2 - Create the Microsoft 365 Cross-Tenant Access Policies" -RunName $RunName -Description @(
                     "https://learn.microsoft.com/exchange/sharing/migrate-to-m365-xtap#part-2--configure-your-new-microsoft-365-cross-tenant-access-policies",

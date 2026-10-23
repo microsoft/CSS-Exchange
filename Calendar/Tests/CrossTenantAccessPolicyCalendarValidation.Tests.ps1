@@ -429,6 +429,34 @@ Describe "Get-XtapSharingPolicyAnalysis" {
         (Get-XtapSharingPolicyAnalysis -SharingPolicy $policy -SharingPolicyAssignment $assignment).AssignedMailboxCount | Should -Be 7
     }
 
+    It "Counts implicit assignments only for the default policy with <AssignmentName> names" -TestCases @(
+        @{ AssignmentName = "" }
+        @{ AssignmentName = $null }
+    ) {
+        param($AssignmentName)
+        $policies = @(
+            [PSCustomObject]@{ Name = "Default"; Enabled = $true; Default = $true; Domains = @("*:CalendarSharingFreeBusySimple") },
+            [PSCustomObject]@{ Name = "Other"; Enabled = $true; Default = $false; Domains = @("*:CalendarSharingFreeBusyReviewer") })
+        $assignments = @(
+            [PSCustomObject]@{ Name = "Default"; Count = 2 },
+            [PSCustomObject]@{ Name = $AssignmentName; Count = 5 },
+            [PSCustomObject]@{ Name = "Other"; Count = 3 })
+
+        $analysis = @(Get-XtapSharingPolicyAnalysis -SharingPolicy $policies -SharingPolicyAssignment $assignments)
+
+        $analysis[0].AssignedMailboxCount | Should -Be 7
+        $analysis[1].AssignedMailboxCount | Should -Be 3
+    }
+
+    It "Distinguishes implicit-only, empty, and uncollected assignments" {
+        $policy = [PSCustomObject]@{ Name = "Default"; Enabled = $true; Default = $true; Domains = @("*:CalendarSharingFreeBusySimple") }
+        $assignments = @([PSCustomObject]@{ Name = ""; Count = 5 })
+
+        (Get-XtapSharingPolicyAnalysis -SharingPolicy $policy -SharingPolicyAssignment $assignments).AssignedMailboxCount | Should -Be 5
+        (Get-XtapSharingPolicyAnalysis -SharingPolicy $policy -SharingPolicyAssignment @()).AssignedMailboxCount | Should -Be 0
+        (Get-XtapSharingPolicyAnalysis -SharingPolicy $policy).AssignedMailboxCount | Should -BeNullOrEmpty
+    }
+
     It "Preserves ContactsSharing on the entire combined rule" {
         $policy = [PSCustomObject]@{ Name = "P"; Enabled = $true; Default = $false; Domains = @("*:CalendarSharingFreeBusySimple,ContactsSharing") }
         $result = @(Get-XtapSharingPolicyAnalysis -SharingPolicy $policy)
@@ -475,6 +503,77 @@ Describe "Get-XtapCommandScript" {
 
     It "Returns the four scripts" {
         @($Script:scripts.Keys) | Should -Be @("XTAP_Part2_CreatePolicies.ps1", "XTAP_Part3_DisableForTesting.ps1", "XTAP_Part3_Rollback.ps1", "XTAP_Part4_Cleanup.ps1")
+    }
+
+    It "Generates Part 2 for a standalone <RuleType> sharing rule" -TestCases @(
+        @{ RuleType = "Wildcard"; Domain = "*"; Capability = "CrossTenantCalendarSharingFreeBusySimple" }
+        @{ RuleType = "Anonymous"; Domain = "Anonymous"; Capability = "AnonymousCalendarSharingFreeBusySimple" }
+    ) {
+        param($RuleType, $Domain, $Capability)
+        $policy = [PSCustomObject]@{ Name = "Default"; Enabled = $true; Default = $true; Domains = @("${Domain}:CalendarSharingFreeBusySimple") }
+        $analysis = @(Get-XtapSharingPolicyAnalysis -SharingPolicy $policy)
+
+        $generated = Get-XtapCommandScript -SharingPolicyAnalysis $analysis
+
+        @($generated.Keys) | Should -Be @("XTAP_Part2_CreatePolicies.ps1", "XTAP_Part3_DisableForTesting.ps1", "XTAP_Part3_Rollback.ps1", "XTAP_Part4_Cleanup.ps1")
+        $generated["XTAP_Part2_CreatePolicies.ps1"] | Should -Match "(?m)^Add-XtapCapability -Capability '$Capability' -ResourceType group -ResourceId '<SecurityGroupObjectId for Sharing Policy Default>'"
+        $generated["XTAP_Part2_CreatePolicies.ps1"] | Should -Not -Match "(?m)^Set-XtapPartnerTrust -PartnerTenantId"
+        foreach ($name in $generated.Keys) {
+            $errors = $null
+            [void][System.Management.Automation.Language.Parser]::ParseInput($generated[$name], [ref]$null, [ref]$errors)
+            $errors.Count | Should -Be 0 -Because $name
+        }
+    }
+
+    It "Excludes a confirmed-unused higher-access policy from every generated script" {
+        $policies = @(
+            [PSCustomObject]@{ Name = "Basic"; Enabled = $true; Default = $true; Domains = @("*:CalendarSharingFreeBusySimple") },
+            [PSCustomObject]@{ Name = "Reviewer"; Enabled = $true; Default = $false; Domains = @("*:CalendarSharingFreeBusyReviewer") })
+        $analysis = @(Get-XtapSharingPolicyAnalysis -SharingPolicy $policies -SharingPolicyAssignment @(
+                [PSCustomObject]@{ Name = ""; Count = 5 }))
+
+        $generated = Get-XtapCommandScript -SharingPolicyAnalysis $analysis
+
+        $generated["XTAP_Part2_CreatePolicies.ps1"] | Should -Match "CrossTenantCalendarSharingFreeBusySimple"
+        $generated["XTAP_Part2_CreatePolicies.ps1"] | Should -Match "<SecurityGroupObjectId for Sharing Policy Basic>"
+        foreach ($name in $generated.Keys) {
+            $generated[$name] | Should -Not -Match "Reviewer"
+        }
+    }
+
+    It "Generates no Sharing Policy commands when collected assignments are empty" {
+        $analysis = @(Get-XtapSharingPolicyAnalysis -SharingPolicy (
+                [PSCustomObject]@{ Name = "Unused"; Enabled = $true; Default = $true; Domains = @("*:CalendarSharingFreeBusySimple") }) -SharingPolicyAssignment @())
+
+        (Get-XtapCommandScript -SharingPolicyAnalysis $analysis).Count | Should -Be 0
+    }
+
+    It "Guards Sharing Policy scopes with <Counts> mailbox counts" -TestCases @(
+        @{ Counts = "uncollected"; Assignments = $null }
+        @{ Counts = "one policy"; Assignments = @([PSCustomObject]@{ Name = "Basic"; Count = 5 }) }
+        @{ Counts = "multiple policies"; Assignments = @([PSCustomObject]@{ Name = "Basic"; Count = 5 }, [PSCustomObject]@{ Name = "Reviewer"; Count = 3 }) }
+    ) {
+        param($Counts, $Assignments)
+        $policies = @(
+            [PSCustomObject]@{ Name = "Basic"; Enabled = $true; Default = $true; Domains = @("*:CalendarSharingFreeBusySimple") },
+            [PSCustomObject]@{ Name = "Reviewer"; Enabled = $true; Default = $false; Domains = @("*:CalendarSharingFreeBusyReviewer") })
+        $analysis = @(Get-XtapSharingPolicyAnalysis -SharingPolicy $policies -SharingPolicyAssignment $Assignments)
+
+        $generated = Get-XtapCommandScript -SharingPolicyAnalysis $analysis
+        $part2 = $generated["XTAP_Part2_CreatePolicies.ps1"]
+        $part2 | Should -Match "<SecurityGroupObjectId for Sharing Policy Basic>"
+        $part2 | Should -Not -Match "(?m)^Add-XtapCapability .* -ResourceId 'All'"
+
+        $ast = [System.Management.Automation.Language.Parser]::ParseInput($part2, [ref]$null, [ref]$null)
+        $helpers = $ast.FindAll({
+                param($node)
+                $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -in @("Assert-XtapInput", "Add-XtapCapability")
+            }, $true)
+        foreach ($helper in $helpers) {
+            . ([ScriptBlock]::Create($helper.Extent.Text))
+        }
+        { Add-XtapCapability -Capability "CrossTenantCalendarSharingFreeBusySimple" -ResourceType "group" -ResourceId "<SecurityGroupObjectId for Sharing Policy Basic>" -ODataPrefix "#microsoft.graph." } |
+            Should -Throw -ExpectedMessage "*Replace the security group placeholder*"
     }
 
     It "Generates scripts that parse without errors" {
@@ -660,6 +759,31 @@ Describe "Report helpers" {
         $bytes[0..2] | Should -Be @(0xEF, 0xBB, 0xBF)
     }
 
+    It "Resolves relative text paths against the PowerShell location" {
+        $workingPath = Join-Path -Path $TestDrive -ChildPath "text working folder"
+        New-Item -Path $workingPath -ItemType Directory | Out-Null
+        $processPath = [System.Environment]::CurrentDirectory
+        Push-Location -Path $workingPath
+        try {
+            Write-XtapTextFile -Path ".\relative.txt" -Text "relative output"
+
+            Get-Content -LiteralPath ".\relative.txt" -Raw | Should -Be "relative output"
+            [System.Environment]::CurrentDirectory | Should -Be $processPath
+        } finally {
+            Pop-Location
+        }
+    }
+
+    It "Explains guarded Sharing Policy scopes when counts are missing" {
+        $sharing = @(Get-XtapSharingPolicyAnalysis -SharingPolicy (
+                [PSCustomObject]@{ Name = "Default"; Enabled = $true; Default = $true; Domains = @("*:CalendarSharingFreeBusySimple") }))
+
+        $text = (Get-XtapSummaryLines -RunName "Test" -Mode "Live" -SharingPolicyAnalysis $sharing -MailboxCountsMissing) -join "`n"
+
+        $text | Should -Match "Mailbox counts alone do not establish tenant-wide applicability"
+        $text | Should -Match "guarded security-group placeholders"
+    }
+
     It "Uses the console default for normal summary text" -TestCases @(
         @{ Line = "Summary" }
         @{ Line = "[Eligible] Ready to migrate" }
@@ -727,6 +851,22 @@ Describe "CrossTenantAccessPolicyCalendarValidation JSON replay" {
         $Script:run.OrganizationRelationshipAnalysis[0].Status | Should -Be "Eligible"
         foreach ($file in $Script:run.GeneratedFiles) {
             Test-Path -LiteralPath (Join-Path -Path $Script:run.ResultsPath -ChildPath $file) | Should -BeTrue -Because $file
+        }
+    }
+
+    It "Writes all output with a relative OutputPath after changing location" {
+        $workingPath = Join-Path -Path $TestDrive -ChildPath "replay working folder"
+        New-Item -Path $workingPath -ItemType Directory | Out-Null
+        Push-Location -Path $workingPath
+        try {
+            $result = Invoke-CrossTenantAccessPolicyCalendarValidation -OutputPath ".\relative results" -GenerateCommandScripts -ImportData $Script:importPath 6>$null 3>$null
+
+            foreach ($file in $result.GeneratedFiles) {
+                Test-Path -LiteralPath (Join-Path -Path $result.ResultsPath -ChildPath $file) | Should -BeTrue -Because $file
+            }
+            (Get-Content -LiteralPath $result.DataPath -Raw | ConvertFrom-Json).Metadata.Mode | Should -Be "Offline"
+        } finally {
+            Pop-Location
         }
     }
 

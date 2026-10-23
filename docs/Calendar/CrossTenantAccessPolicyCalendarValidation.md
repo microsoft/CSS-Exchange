@@ -54,7 +54,7 @@ Set-Location -LiteralPath 'C:\Path\To\Script'
 | EntraLoginHost | DNS host name for tenant lookup in sovereign clouds, without a scheme, port, path, or IP address. Defaults to login.microsoftonline.com in live mode; imports retain the saved host. |
 | Organization | Live mode only. Targets the specified tenant using cmdlets supporting Organization. The saved organization is also used in generated commands during replay. Unsupported collection cmdlets cause an error; an unsupported mailbox cmdlet skips mailbox counts with a warning. |
 | GenerateCommandScripts | Writes the optional XTAP Part 2, Part 3, rollback, and cleanup scripts for eligible items. |
-| ProcessUsers | Live mode only. Counts user and shared mailboxes per Sharing Policy using Get-EXOMailbox, or Get-Mailbox if unavailable. Off by default because it queries every mailbox. Counts are included in the JSON bundle for replay. |
+| ProcessUsers | Live mode only. Counts user and shared mailboxes per Sharing Policy using Get-EXOMailbox, or Get-Mailbox if unavailable. Mailboxes without an explicit assignment count toward the default policy. Off by default because it queries every mailbox. Counts are included in the JSON bundle for replay; policies confirmed unused are excluded from generated scripts. |
 Live runs check for script updates automatically. ImportData automatically skips the update check, as well as live
 collection and tenant lookups, so replay can run without network access.
 
@@ -144,6 +144,12 @@ error details. Review them before sharing outside your organization.
   scripts. Missing domain names also require review, even when lookup is skipped. Skipping lookup retains guarded
   tenant-ID placeholders for otherwise eligible relationships.
 - Scoped sharing requires security groups in XTAP. Validate scope behavior to avoid over-sharing.
+- Generated Sharing Policy commands always require a security group containing only the mailboxes using that
+  policy, including inherited default-policy assignments. Counts alone do not establish tenant-wide applicability,
+  so even a single policy uses a guarded group placeholder. Policies confirmed to have no assigned user or shared
+  mailboxes are excluded from migration, testing, rollback, and cleanup scripts.
+- Wildcard and Anonymous Sharing Policy rules generate Part 2 commands for the default XTAP policy even when
+  no partner tenant policy is needed.
 - Domains resolving to multiple tenants require separate partner policies.
 - XTAP is inbound; bidirectional sharing requires complementary external policies.
 - Existing relationships, address spaces, and sharing policies take precedence and must be disabled to test XTAP.

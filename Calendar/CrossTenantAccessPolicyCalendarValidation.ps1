@@ -44,8 +44,8 @@
     Also creates the cmdlet scripts for the eligible items. Without it the script only does the assessment.
 .PARAMETER ProcessUsers
     Counts the mailboxes assigned to each Sharing Policy with Get-EXOMailbox -ResultSize Unlimited (or Get-Mailbox if Get-EXOMailbox isn't available).
-    This can take a long time in large organizations, so it only runs when requested. The count only matters
-    when more than one Sharing Policy is in use, because the generated sharing commands then need security groups.
+    This can take a long time in large organizations, so it only runs when requested. Counts identify unused policies.
+    Generated sharing commands always require security groups matching each policy's mailbox assignments.
 .PARAMETER Organization
     Collects from a specific tenant by passing -Organization to Get-OrganizationRelationship, Get-AvailabilityAddressSpace,
     Get-SharingPolicy and Get-EXOMailbox/Get-Mailbox, and adds it to the Exchange cmdlets (and Connect-MgGraph -TenantId) in the generated scripts.

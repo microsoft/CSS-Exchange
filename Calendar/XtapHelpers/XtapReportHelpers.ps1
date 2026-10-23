@@ -47,7 +47,8 @@ function Write-XtapTextFile {
     )
 
     # UTF-8 with a BOM so Windows PowerShell 5.1 reads the generated scripts correctly.
-    [System.IO.File]::WriteAllText($Path, $Text, (New-Object System.Text.UTF8Encoding($true)))
+    $filePath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path)
+    [System.IO.File]::WriteAllText($filePath, $Text, (New-Object System.Text.UTF8Encoding($true)))
 }
 
 function Get-XtapStatusSummary {
@@ -257,6 +258,10 @@ function Get-XtapSummaryLines {
         $warnings++
         $lines.Add("More than one enabled Sharing Policy is assigned to mailboxes ($($assignedPolicies -join ', ')). Comparable XTAP policies need security groups, so the generated calendar sharing commands contain group placeholders.")
     }
+    if (@($sharingRows | Where-Object { $_.Status -eq "Eligible" -and ($null -eq $_.AssignedMailboxCount -or $_.AssignedMailboxCount -gt 0) }).Count -gt 0) {
+        $warnings++
+        $lines.Add("Generated calendar sharing commands require a security group containing only the mailboxes using each Sharing Policy, including inherited default-policy assignments. Mailbox counts alone do not establish tenant-wide applicability. Policies confirmed to have no assigned mailboxes are excluded from generated scripts.")
+    }
 
     foreach ($row in @($orgRows | Where-Object { $_.UnresolvedDomains })) {
         $warnings++
@@ -271,7 +276,7 @@ function Get-XtapSummaryLines {
 
     if ($MailboxCountsMissing -and $sharingRows.Count -gt 0) {
         $warnings++
-        $lines.Add("The number of mailboxes assigned to each Sharing Policy wasn't collected. Run with -ProcessUsers to count them. This matters when more than one Sharing Policy is in use.")
+        $lines.Add("The number of mailboxes assigned to each Sharing Policy wasn't collected. Run with -ProcessUsers to identify unused policies. Generated calendar sharing commands use guarded security-group placeholders rather than assuming tenant-wide access.")
     }
 
     if ($warnings -eq 0) {
