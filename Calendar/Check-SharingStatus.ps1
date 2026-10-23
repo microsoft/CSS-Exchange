@@ -177,7 +177,7 @@ $script:SharingRuleCatalog = @(
     [PSCustomObject]@{ RuleId = "SHR210"; Severity = "Warning"; Title = "Receiver folder statistics are unavailable"; Aliases = @("The receiver local-folder checks were unavailable."); NextStep = "Rerun Get-MailboxFolderStatistics and compare calendar entries and logs." }
     [PSCustomObject]@{ RuleId = "SHR211"; Severity = "Warning"; Title = "Receiver has duplicate owner calendar folders"; Aliases = @("Multiple local folders may represent the owner's shared calendar."); NextStep = "Compare folder identifiers, calendar entries, and invite or accept logs." }
     [PSCustomObject]@{ RuleId = "SHR212"; Severity = "Warning"; Title = "Receiver has multiple generically named calendars"; Aliases = @("The receiver has multiple calendars whose names begin with Calendar."); NextStep = "Use folder identifiers and calendar entries to distinguish the shared folder." }
-    [PSCustomObject]@{ RuleId = "SHR213"; Severity = "Error"; Title = "Receiver local owner calendar is missing"; Aliases = @("A local folder for the expected owner was not found."); NextStep = "Inspect invite or accept logs and calendar entries for the pair." }
+    [PSCustomObject]@{ RuleId = "SHR213"; Severity = "Error"; Title = "Receiver's local copy of owner calendar is missing"; Aliases = @("A local folder for the expected owner was not found."); NextStep = "Inspect invite or accept logs and calendar entries for the pair." }
     [PSCustomObject]@{ RuleId = "SHR214"; Severity = "Warning"; Title = "Receiver calendar folder has a duplicate-style numeric suffix"; Aliases = @(); NextStep = "Review the receiver calendar folders ending in a one- or two-digit numeric suffix and remove obsolete duplicates if appropriate." }
     [PSCustomObject]@{ RuleId = "SHR215"; Severity = "Error"; Title = "Receiver calendar is named Outbox"; Aliases = @(); NextStep = "This is a known issue. Escalate to Microsoft Support to resolve the renamed calendar before further troubleshooting." }
     [PSCustomObject]@{ RuleId = "SHR220"; Severity = "Warning"; Title = "Receiver accept-log evidence is unavailable"; Aliases = @("The receiver accept-log check was unavailable.", "The receiver accept-log check failed.", "The receiver accept-log check had no data.", "No relevant receiver accept-log entries were available.", "The receiver accept logs could not be parsed.", "Accept-log timestamps could not be parsed."); NextStep = "Collect and inspect AcceptCalendarSharingInvite logs for the pair." }
@@ -214,6 +214,7 @@ $script:SharingRuleCatalog = @(
     [PSCustomObject]@{ RuleId = "SHR411"; Severity = "Warning"; Title = "Synchronization start is later than folder creation"; Aliases = @("SharedCalendarSyncStartDate is later than the local folder CreationTime."); NextStep = "Inspect invite, accept, and synchronization logs." }
     [PSCustomObject]@{ RuleId = "SHR412"; Severity = "Information"; Title = "Synchronization start is very recent"; Aliases = @("SharedCalendarSyncStartDate is very recent and may reflect backfill or folder recreation context."); NextStep = "Correlate invite, accept, and synchronization logs." }
     [PSCustomObject]@{ RuleId = "SHR413"; Severity = "Warning"; Title = "Synchronization start date is unavailable"; Aliases = @("SharedCalendarSyncStartDate is null."); NextStep = "Inspect SharingSyncAssistant and validator diagnostics." }
+    [PSCustomObject]@{ RuleId = "SHR414"; Severity = "Warning"; Title = "Sharing logs contain XTAP-related failures"; Aliases = @(); NextStep = "Tenant administrator: review the public Microsoft 365 Cross-Tenant Access Policy (XTAP) guidance at https://learn.microsoft.com/en-us/exchange/sharing/migrate-to-m365-xtap. Correlate the failing recipient with this sharing pair before changing policy; mailbox logs can contain failures for other recipients." }
     [PSCustomObject]@{ RuleId = "SHR420"; Severity = "Warning"; Title = "InternetCalendar evidence is unavailable"; Aliases = @("The published-calendar log check was unavailable."); NextStep = "Collect InternetCalendar logs when published-calendar behavior is in scope." }
     [PSCustomObject]@{ RuleId = "SHR421"; Severity = "Warning"; Title = "Receiver published-calendar subscription is missing"; Aliases = @(); NextStep = "Subscribe the receiver to the owner's PublishedICalUrl and verify that the InternetCalendar entry is created." }
     [PSCustomObject]@{ RuleId = "SHR422"; Severity = "Warning"; Title = "Receiver published-calendar local folder is missing"; Aliases = @(); NextStep = "Remove and re-add the published calendar subscription, then verify that its local calendar folder is created." }
@@ -269,6 +270,9 @@ function Invoke-SharingDiagnostics {
         Write-SharingSummary -Owner $Owner -Receiver $Receiver
         return
     }
+    Invoke-SharingEvaluation -Name "Owner-to-receiver permission summary" -Action {
+        Write-OwnerReceiverPermissionSummary -Receiver $Receiver
+    }
     if ($script:CollectorStatuses["ReceiverAcceptLog"].status -eq "NotRun") {
         Invoke-SharingEvaluation -Name "Receiver accept-log diagnostics" -Action {
             ProcessCalendarSharingAcceptLogs -Identity $Receiver
@@ -291,7 +295,7 @@ function Invoke-SharingDiagnostics {
     Invoke-SharingEvaluation -Name "Sharing log collection" -Action {
         Get-SharingDiagnosticLogs
     }
-    Invoke-SharingEvaluation -Name "Sharing log exception scan" -RuleIds @("SHR408", "SHR409") -Action {
+    Invoke-SharingEvaluation -Name "Sharing log exception scan" -RuleIds @("SHR408", "SHR409", "SHR414") -Action {
         Test-SharingLogExceptions
     }
 

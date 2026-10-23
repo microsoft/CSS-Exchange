@@ -4,6 +4,88 @@
 # .DESCRIPTION
 # Calendar sharing invitation, acceptance, and InternetCalendar log parsing.
 
+function Get-DatedSharingLogEntries {
+    param(
+        [AllowNull()]
+        [object[]]$Entry,
+
+        [DateTime]$ReferenceTimeUtc = [DateTime]::UtcNow
+    )
+
+    $entries = @($Entry | Where-Object { $null -ne $_ })
+    $timestamps = Get-CalendarDiagnosticLogLineTimestamp -Line @($entries | ForEach-Object {
+            "$($_.Timestamp),"
+        }) -ReferenceTimeUtc $ReferenceTimeUtc
+    $datedEntries = @(
+        for ($index = 0; $index -lt $entries.Count; $index++) {
+            $date = $timestamps[$index]
+            if ($null -eq $date) {
+                $parsedDate = ConvertTo-CalendarDiagnosticLogDateTime -Text $entries[$index].Timestamp
+                if ($null -ne $parsedDate) {
+                    $candidateDate = if ($parsedDate.Kind -eq [DateTimeKind]::Unspecified) {
+                        [DateTime]::SpecifyKind($parsedDate, [DateTimeKind]::Utc)
+                    } else {
+                        $parsedDate.ToUniversalTime()
+                    }
+                    if ($candidateDate -le $ReferenceTimeUtc.AddHours(1)) {
+                        $date = $candidateDate
+                    }
+                }
+            }
+            [PSCustomObject]@{
+                Entry = $entries[$index]
+                Date  = $date
+            }
+        }
+    )
+    return $datedEntries | Sort-Object -Property Date -Descending
+}
+
+function Get-ReceiverSharingSyncRequestEntries {
+    param(
+        [AllowNull()]
+        [string[]]$Line,
+
+        [AllowNull()]
+        [object]$OwnerMailbox,
+
+        [AllowNull()]
+        [string]$CalendarName
+    )
+
+    $ownerGuid = [Guid]::Empty
+    if ((-not [Guid]::TryParse([string]$OwnerMailbox.ExchangeGuid, [ref]$ownerGuid)) -or
+        ($ownerGuid -eq [Guid]::Empty)) {
+        Write-Verbose "The owner's ExchangeGuid is unavailable, so receiver synchronization requests cannot be correlated."
+        return
+    }
+    foreach ($logLine in $Line) {
+        if ($logLine -notmatch "^\s*(?<Timestamp>[^,]+),.*?\bEntry RequestId:\s*'(?<RequestId>[^']+)',\s*Sync Details for folder (?<FolderName>.+?) are\s") {
+            continue
+        }
+        $timestamp = $Matches.Timestamp
+        $requestId = $Matches.RequestId
+        $folderName = $Matches.FolderName
+        if ((-not [string]::IsNullOrWhiteSpace($CalendarName)) -and
+            (-not [string]::Equals($folderName, $CalendarName, [System.StringComparison]::OrdinalIgnoreCase))) {
+            continue
+        }
+        if ($logLine -notmatch '\[RMGUID,\s*(?<OwnerGuid>[0-9a-f-]{36})\]') {
+            continue
+        }
+        $requestOwnerGuid = [Guid]::Empty
+        if ((-not [Guid]::TryParse($Matches.OwnerGuid, [ref]$requestOwnerGuid)) -or
+            ($requestOwnerGuid -ne $ownerGuid)) {
+            continue
+        }
+        [PSCustomObject]@{
+            Timestamp  = $timestamp
+            RequestId  = $requestId
+            FolderName = $folderName
+        }
+    }
+}
+
 <#
 .SYNOPSIS
     Formats the CalendarSharingInvite logs from Export-MailboxDiagnosticLogs for a given identity.
@@ -81,8 +163,14 @@ function ProcessCalendarSharingInviteLogs {
         Write-Debug "$($row.Recipient) - $($row.SharingType) - $($row.detailLevel)"
     }
 
-    #Filter the output to get the most recent update foreach recipient
-    $mostRecentRecipients = $csvObject | Sort-Object Recipient -Unique | Sort-Object Timestamp -Descending
+    $datedInvites = @(Get-DatedSharingLogEntries -Entry @($csvObject) -ReferenceTimeUtc $script:RunStartedAt.ToUniversalTime())
+    if (@($datedInvites | Where-Object { $null -eq $_.Date }).Count -gt 0) {
+        Write-Warning "Some invitation timestamps could not be parsed; undated entries are displayed alongside the latest dated invitations per recipient."
+    }
+    $mostRecentRecipients = $datedInvites | Group-Object -Property { $_.Entry.Recipient } | ForEach-Object {
+        $latestDate = $_.Group[0].Date
+        $_.Group | Where-Object { ($null -eq $_.Date) -or ($_.Date -eq $latestDate) }
+    } | Sort-Object -Property Date -Descending | ForEach-Object { $_.Entry }
 
     # Output the results to the console
     Write-Host "User [$Identity] has shared their calendar with the following recipients:"

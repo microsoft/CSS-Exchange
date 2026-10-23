@@ -481,7 +481,7 @@ function GetReceiverInformation {
 
                 $ownerPermission = Get-PermissionEntriesForIdentity `
                     -PermissionEntries $script:OwnerCalendarPerms `
-                    -Identity $Receiver |
+                    -Identity $Receiver -Mailbox $script:ReceiverMB |
                     Select-Object -First 1
                 if ($script:OwnerCalendarPermsAvailable -and
                     ($null -ne $script:OwnerActiveReceiver) -and

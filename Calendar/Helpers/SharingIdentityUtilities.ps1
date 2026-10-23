@@ -25,39 +25,82 @@ function Test-SmtpAddressEqual {
         [System.StringComparison]::OrdinalIgnoreCase)
 }
 
+function Get-SharingMailboxSmtpAddresses {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Identity,
+
+        [AllowNull()]
+        [object]$Mailbox
+    )
+
+    $addresses = @($Identity, $Mailbox.PrimarySmtpAddress) +
+    @($Mailbox.EmailAddresses | Where-Object { [string]$_ -match "^(?i)smtp:" } |
+            ForEach-Object { ([string]$_).Substring(5) })
+    return @($addresses | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) })
+}
+
 function Get-PermissionEntriesForIdentity {
     param(
         [AllowNull()]
         [object[]]$PermissionEntries,
 
         [Parameter(Mandatory)]
-        [string]$Identity
+        [string]$Identity,
+
+        [AllowNull()]
+        [object]$Mailbox
     )
 
+    $smtpAddresses = Get-SharingMailboxSmtpAddresses -Identity $Identity -Mailbox $Mailbox
     return @($PermissionEntries | Where-Object -FilterScript {
-            (Test-SmtpAddressEqual -First $_.User -Second $Identity) -or
-            (Test-SmtpAddressEqual -First (Get-CalendarDiagnosticPermissionIdentity -PermissionUser $_.User) -Second $Identity) -or
-            (Test-SmtpAddressEqual -First $_.User.PrimarySmtpAddress -Second $Identity) -or
-            (Test-SmtpAddressEqual -First $_.User.RecipientPrincipal.PrimarySmtpAddress -Second $Identity)
-        })
-}
+            $permissionUser = $_.User
+            $permissionText = ([string]$permissionUser).Trim()
+            $recipientTypes = @($permissionUser.ADRecipient.RecipientType, $permissionUser.ADRecipient.RecipientTypeDetails,
+                $permissionUser.RecipientPrincipal.RecipientType, $permissionUser.RecipientPrincipal.RecipientTypeDetails,
+                $permissionUser.RecipientType, $permissionUser.RecipientTypeDetails, $permissionUser.UserType)
+            if (($permissionText -in @("Default", "Anonymous", "NT AUTHORITY\SELF")) -or
+                @($recipientTypes | Where-Object { [string]$_ -match "Group" }).Count -gt 0) {
+                return $false
+            }
 
-function Test-SharingPermissionFlagsDiffer {
-    param(
-        [AllowNull()]
-        [object[]]$FirstFlags,
+            $permissionAddresses = @($permissionUser.ADRecipient.PrimarySmtpAddress,
+                $permissionUser.PrimarySmtpAddress, $permissionUser.RecipientPrincipal.PrimarySmtpAddress) |
+                Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) }
+                $permissionIdentities = if (@($permissionAddresses).Count -gt 0) { @($permissionAddresses) } else { @($permissionText) }
+                foreach ($permissionIdentity in $permissionIdentities) {
+                    if (@($smtpAddresses | Where-Object {
+                                Test-SmtpAddressEqual -First $permissionIdentity -Second $_
+                            }).Count -gt 0) {
+                        return $true
+                    }
+                }
+                # A readable display name is a fallback, not a reason to override a different SMTP identity.
+                if ((@($permissionAddresses).Count -gt 0) -or ($permissionText -match "^[^@\s]+@[^@\s]+$") -or
+                    [string]::IsNullOrWhiteSpace([string]$Mailbox.DisplayName)) {
+                    return $false
+                }
+                return (Test-SmtpAddressEqual -First $permissionText -Second $Mailbox.DisplayName) -or
+                (Test-SmtpAddressEqual -First $permissionUser.DisplayName -Second $Mailbox.DisplayName)
+            })
+    }
 
-        [AllowNull()]
-        [object[]]$SecondFlags
-    )
+    function Test-SharingPermissionFlagsDiffer {
+        param(
+            [AllowNull()]
+            [object[]]$FirstFlags,
 
-    # The Editor access right can appear in only one side's flags even when the pair is configured correctly, so it is not a meaningful difference.
-    # Flag enumerations stringify as a single comma-separated value such as "Editor, Delegate", so split each value into individual flags.
-    $normalizeFlags = {
-        param($Flags)
-        @($Flags | ForEach-Object { if ($null -ne $_) { $_.ToString() -split ',' } } |
-                ForEach-Object { $_.Trim() } |
-                Where-Object -FilterScript { (-not [string]::IsNullOrWhiteSpace($_)) -and ($_ -ne "Editor") })
+            [AllowNull()]
+            [object[]]$SecondFlags
+        )
+
+        # The Editor access right can appear in only one side's flags even when the pair is configured correctly, so it is not a meaningful difference.
+        # Flag enumerations stringify as a single comma-separated value such as "Editor, Delegate", so split each value into individual flags.
+        $normalizeFlags = {
+            param($Flags)
+            @($Flags | ForEach-Object { if ($null -ne $_) { $_.ToString() -split ',' } } |
+                    ForEach-Object { $_.Trim() } |
+                    Where-Object -FilterScript { (-not [string]::IsNullOrWhiteSpace($_)) -and ($_ -ne "Editor") })
     }
     $normalizedFirstFlags = & $normalizeFlags $FirstFlags
     $normalizedSecondFlags = & $normalizeFlags $SecondFlags

@@ -43,8 +43,14 @@ function Write-SharingFindingDetails {
             Expression = { $_.evidence }
         }
     Write-Host -ForegroundColor Blue "`rRecommended Next Steps:"
+    $writtenNextSteps = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
     foreach ($finding in $displayFindings) {
-        Write-Host -ForegroundColor Yellow "[$($finding.ruleId)] $($finding.recommendedNextStep)"
+        if ($writtenNextSteps.Add($finding.recommendedNextStep)) {
+            $ruleIds = @($displayFindings | Where-Object {
+                    $_.recommendedNextStep -ceq $finding.recommendedNextStep
+                } | ForEach-Object { $_.ruleId })
+            Write-Host -ForegroundColor Yellow "[$($ruleIds -join ', ')] $($finding.recommendedNextStep)"
+        }
     }
 }
 
@@ -54,12 +60,12 @@ function Write-OwnerReceiverPermissionSummary {
         [string]$Receiver
     )
 
-    $receiverCalendarPermissions = Get-PermissionEntriesForIdentity `
-        -PermissionEntries $script:OwnerCalendarPerms `
-        -Identity $Receiver
-    $receiverMailboxPermissions = Get-PermissionEntriesForIdentity `
-        -PermissionEntries $script:OwnerMailboxPerms `
-        -Identity $Receiver
+    $receiverCalendarPermissions = @(Get-PermissionEntriesForIdentity `
+            -PermissionEntries $script:OwnerCalendarPerms `
+            -Identity $Receiver -Mailbox $script:ReceiverMB)
+    $receiverMailboxPermissions = @(Get-PermissionEntriesForIdentity `
+            -PermissionEntries $script:OwnerMailboxPerms `
+            -Identity $Receiver -Mailbox $script:ReceiverMB)
     $allowedMailboxPermissions = @($receiverMailboxPermissions | Where-Object -FilterScript { -not $_.Deny })
     $deniedMailboxPermissions = @($receiverMailboxPermissions | Where-Object -FilterScript { $_.Deny })
     $calendarRights = if ($receiverCalendarPermissions.Count -gt 0) {
@@ -95,6 +101,96 @@ function Write-OwnerReceiverPermissionSummary {
         Write-Host -ForegroundColor Yellow "Receiver [$Receiver] does not have an individual permission entry on the owner Calendar folder or Mailbox; access may come from Default or a group permission."
     } else {
         Write-Host -ForegroundColor Yellow "Receiver-specific permissions could not be fully evaluated because the owner Calendar folder or Mailbox permission query was unavailable."
+    }
+}
+
+function Write-OwnerReceiverInviteSummary {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Owner,
+
+        [Parameter(Mandatory)]
+        [string]$Receiver
+    )
+
+    $referenceTimeUtc = $script:RunStartedAt.ToUniversalTime()
+    $receiverInvites = @(Get-DatedSharingLogEntries -Entry $script:OwnerInviteData -ReferenceTimeUtc $referenceTimeUtc |
+            Where-Object { Test-SharingReceiverAddress -Address $_.Entry.Recipient })
+    $ownerAddresses = Get-SharingMailboxSmtpAddresses -Identity $Owner -Mailbox $script:OwnerMB
+    $ownerAcceptEntries = @(Get-DatedSharingLogEntries -Entry $script:ReceiverAcceptLogEntries -ReferenceTimeUtc $referenceTimeUtc |
+            Where-Object {
+                $acceptOwner = $_.Entry.SharedCalendarOwner
+                @($ownerAddresses | Where-Object { Test-SmtpAddressEqual -First $acceptOwner -Second $_ }).Count -gt 0
+            })
+    $acceptEntries = if ($script:OwnerCalendarSubfolderSelected) {
+        @($ownerAcceptEntries | Where-Object {
+                [string]::Equals($_.Entry.FolderName, $script:RequestedOwnerCalendarLeafName,
+                    [System.StringComparison]::OrdinalIgnoreCase)
+            })
+    } else {
+        @($ownerAcceptEntries)
+    }
+    $calendarName = if ($script:OwnerCalendarSubfolderSelected) {
+        $script:RequestedOwnerCalendarLeafName
+    } else {
+        $script:ReceiverMatchedCalendar.Name
+    }
+    $syncEntries = @(Get-ReceiverSharingSyncRequestEntries `
+            -Line $script:SharingDiagnosticLogs["receiver_SharingSyncAssistantLog"].data `
+            -OwnerMailbox $script:OwnerMB -CalendarName $calendarName)
+    $syncRequests = @(Get-DatedSharingLogEntries -Entry $syncEntries -ReferenceTimeUtc $referenceTimeUtc)
+    if (($receiverInvites.Count -eq 0) -and ($ownerAcceptEntries.Count -eq 0) -and ($syncRequests.Count -eq 0)) {
+        return
+    }
+
+    Write-Host -ForegroundColor DarkYellow "Owner-to-Receiver Sharing Timeline:"
+    Write-Host -ForegroundColor Cyan "Owner [$Owner]; receiver [$Receiver]."
+    $sent = $receiverInvites | Select-Object -First 1
+    if (($null -ne $sent) -and ($null -ne $sent.Date)) {
+        Write-Host -ForegroundColor Green "Latest sent sharing invitation (CalendarSharingInvite): [$($sent.Entry.Timestamp)] (parsed as [$($sent.Date.ToString('yyyy-MM-dd HH:mm:ss'))]; sharing type [$($sent.Entry.SharingType)], detail level [$($sent.Entry.DetailLevel)])."
+    } elseif ($null -ne $sent) {
+        Write-Host -ForegroundColor Yellow "The owner invite log contains a sharing invitation to this receiver, but no reliable timestamp could be established."
+    } else {
+        Write-Host -ForegroundColor Yellow "No matching sent sharing invitation is available from CalendarSharingInvite."
+    }
+    if (($null -ne $sent) -and $script:OwnerCalendarSubfolderSelected) {
+        Write-Host -ForegroundColor Yellow "The sent-invitation row does not identify a calendar folder, so it cannot confirm that the selected calendar [$script:NormalizedOwnerCalendarFolderPath] was shared."
+    }
+
+    $accepted = $acceptEntries | Select-Object -First 1
+    if (($null -ne $accepted) -and ($null -ne $accepted.Date)) {
+        Write-Host -ForegroundColor Cyan "Latest receiver acceptance entry (AcceptCalendarSharingInvite): [$($accepted.Entry.Timestamp)] (parsed as [$($accepted.Date.ToString('yyyy-MM-dd HH:mm:ss'))]; calendar name [$($accepted.Entry.FolderName)])."
+    } elseif ($null -ne $accepted) {
+        Write-Host -ForegroundColor Yellow "A matching receiver acceptance entry exists, but no reliable timestamp could be established."
+    } elseif ($script:OwnerCalendarSubfolderSelected -and ($ownerAcceptEntries.Count -gt 0)) {
+        $otherCalendar = $ownerAcceptEntries[0]
+        Write-Host -ForegroundColor Yellow "No acceptance entry identifies the selected calendar [$script:NormalizedOwnerCalendarFolderPath]. The latest owner-matching entry refers to another calendar [$($otherCalendar.Entry.FolderName)] with logged timestamp [$($otherCalendar.Entry.Timestamp)]."
+    } else {
+        Write-Host -ForegroundColor Yellow "No matching receiver acceptance entry is available from AcceptCalendarSharingInvite."
+    }
+
+    $sync = $syncRequests | Select-Object -First 1
+    if (($null -ne $sync) -and ($null -ne $sync.Date)) {
+        Write-Host -ForegroundColor Cyan "Latest receiver synchronization request (SharingSyncAssistant): [$($sync.Entry.Timestamp)] (parsed as [$($sync.Date.ToString('yyyy-MM-dd HH:mm:ss'))]; calendar name [$($sync.Entry.FolderName)]). This is synchronization activity, not proof of invitation receipt or acceptance."
+    } elseif ($null -ne $sync) {
+        Write-Host -ForegroundColor Yellow "A matching receiver synchronization request exists, but no reliable timestamp could be established."
+    } else {
+        Write-Host -ForegroundColor Yellow "No owner-correlated receiver synchronization request is available from SharingSyncAssistant."
+    }
+
+    $receiverActivity = @(
+        if (($null -ne $accepted) -and ($null -ne $accepted.Date)) {
+            [PSCustomObject]@{ Date = $accepted.Date; Kind = "acceptance" }
+        }
+        if (($null -ne $sync) -and ($null -ne $sync.Date)) {
+            [PSCustomObject]@{ Date = $sync.Date; Kind = "synchronization request" }
+        }
+    ) | Sort-Object -Property Date -Descending | Select-Object -First 1
+    if (($null -ne $sent) -and ($null -ne $sent.Date) -and ($null -ne $receiverActivity)) {
+        $gap = ($sent.Date - $receiverActivity.Date).Duration()
+        if ($gap.TotalDays -gt 7) {
+            Write-Warning "The latest sent sharing invitation [$($sent.Date.ToString('yyyy-MM-dd HH:mm:ss'))] and latest receiver-side $($receiverActivity.Kind) [$($receiverActivity.Date.ToString('yyyy-MM-dd HH:mm:ss'))] are $($gap.Days) days, $($gap.Hours) hours, $($gap.Minutes) minutes and $($gap.Seconds) seconds apart (more than 7 days). These are different event types; this does not prove that the latest invitation was received or accepted."
+        }
     }
 }
 
