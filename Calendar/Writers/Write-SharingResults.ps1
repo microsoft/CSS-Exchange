@@ -405,7 +405,9 @@ function Get-SharingJsonReportObject {
     } else {
         "Pass"
     }
-    $sharingModel = if ($script:ModernSharing) {
+    $sharingModel = if ($script:ExternalSharing) {
+        "ExternalSharing"
+    } elseif ($script:ModernSharing) {
         "Modern"
     } elseif ($script:PublishedSharing) {
         "PublishedCalendar"
@@ -439,10 +441,12 @@ function Get-SharingJsonReportObject {
         }
         sharing          = [ordered]@{
             sharingModel             = $sharingModel
+            relationshipKind         = Get-SharingRelationshipKind
             sharingType              = $script:SharingType
             modernSharing            = [bool]$script:ModernSharing
             legacyMapiSharing        = [bool]$script:LegacyMapiSharing
             publishedSharing         = [bool]$script:PublishedSharing
+            externalSharing          = [bool]$script:ExternalSharing
             fatalPrerequisiteFailure = $fatalFailure
         }
         collectors       = $script:CollectorStatuses

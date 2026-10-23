@@ -5,6 +5,12 @@
 # Sharing diagnostic log collection, freshness, and exception checks.
 
 function Test-ReceiverSharingLogFreshness {
+    if ($null -ne (Get-SharingRuleNotApplicableReason -RuleId "SHR404")) {
+        foreach ($ruleId in @("SHR404", "SHR405", "SHR406", "SHR407")) {
+            Add-SharingFinding -RuleId $ruleId -Status NotApplicable
+        }
+        return
+    }
     $logChecks = @(
         @{ Key = "receiver_SharingSyncAssistantLog"; Component = "SharingSyncAssistant"; Collector = "ReceiverSharingSyncAssistantLog"; WarningRule = "SHR404"; ErrorRule = "SHR405" }
         @{ Key = "receiver_SharingLog"; Component = "Sharing"; Collector = "ReceiverSharingLog"; WarningRule = "SHR406"; ErrorRule = "SHR407" }

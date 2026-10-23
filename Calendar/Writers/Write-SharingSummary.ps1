@@ -42,7 +42,10 @@ function Write-SharingSummary {
     }
 
     Write-Host -ForegroundColor Blue "Mailbox Owner [$Owner] and Receiver [$Receiver] are using [$script:SharingType] for Calendar Sharing."
-    if ($script:ModernSharing) {
+    Write-Host -ForegroundColor Blue "Sharing relationship: $(Get-SharingRelationshipKind)."
+    if ($script:ExternalSharing) {
+        Write-Host -ForegroundColor Blue "The receiver is using cross-organization external calendar sharing, not internal REST sharing."
+    } elseif ($script:ModernSharing) {
         Write-Host -ForegroundColor Blue "The backend is using Modern Calendar Sharing."
     } elseif ($script:PublishedSharing) {
         Write-Host -ForegroundColor Blue "The receiver is using a published Internet Calendar subscription."

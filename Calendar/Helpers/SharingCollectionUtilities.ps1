@@ -46,6 +46,13 @@ function Invoke-SharingEvaluation {
         [string[]]$RuleIds
     )
 
+    if (($RuleIds.Count -gt 0) -and
+        @($RuleIds | Where-Object { $null -eq (Get-SharingRuleNotApplicableReason -RuleId $_) }).Count -eq 0) {
+        foreach ($ruleId in $RuleIds) {
+            Add-SharingFinding -RuleId $ruleId -Status NotApplicable
+        }
+        return
+    }
     try {
         & $Action
     } catch {
@@ -53,6 +60,7 @@ function Invoke-SharingEvaluation {
         $script:EvaluationErrors.Add([PSCustomObject]@{
                 evaluation = $Name
                 error      = $errorInfo
+                ruleIds    = @($RuleIds)
             })
         foreach ($ruleId in $RuleIds) {
             Add-SharingFinding -RuleId $ruleId -Status NotEvaluated -Evidence @{

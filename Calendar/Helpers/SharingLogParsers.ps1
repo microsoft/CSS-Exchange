@@ -89,7 +89,7 @@ function ProcessCalendarSharingInviteLogs {
     $mostRecentRecipients | Format-Table -a Timestamp, Recipient, SharingType, DetailLevel
 
     $receiverInvites = @($csvObject | Where-Object -FilterScript {
-            Test-SmtpAddressEqual -First $_.Recipient -Second $Receiver
+            Test-SharingReceiverAddress -Address $_.Recipient
         })
     if ($receiverInvites.Count -eq 0) {
         Add-SharingFinding -Severity Error -Area "CalendarSharingInvite" -Issue "No pair-specific sharing invite was found for the expected receiver." -Evidence "Parsed owner CalendarSharingInvite data did not contain receiver [$Receiver]." -RecommendedNextStep "Inspect CalendarSharingInvite and AcceptCalendarSharingInvite logs for this owner/receiver pair."

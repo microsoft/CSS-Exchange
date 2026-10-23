@@ -32,15 +32,15 @@ function GetReceiverInformation {
 
     $script:ReceiverMB | Format-List DisplayName, Database, LitigationHoldEnabled, CalendarVersionStoreDisabled, CalendarRepairDisabled, RecipientType*
 
-    if (($null -ne $script:OwnerMB) -and
-        ($script:OwnerMB.OrganizationalUnitRoot -eq $script:ReceiverMB.OrganizationalUnitRoot)) {
+    Initialize-SharingOrganizationScope
+    if ($script:SharingType -eq "InternalSharing") {
         Write-Host -ForegroundColor Yellow "Owner and Receiver are in the same OU."
         Write-Host -ForegroundColor Yellow "Owner and Receiver will be using Internal Sharing."
-        $script:SharingType = "InternalSharing"
-    } else {
+    } elseif ($script:SharingType -eq "ExternalSharing") {
         Write-Host -ForegroundColor Yellow "Owner and Receiver are in different OUs."
         Write-Host -ForegroundColor Yellow "Owner and Receiver will be using External Sharing or Publishing."
-        $script:SharingType = "ExternalSharing"
+    } else {
+        Write-Host -ForegroundColor Yellow "Owner or Receiver organization evidence is unavailable; internal versus external sharing is undetermined."
     }
 
     $OwnerCalendarName = $($script:OwnerMB.DisplayName)
@@ -200,9 +200,11 @@ function GetReceiverInformation {
         } else {
             Write-Host -ForegroundColor Green "Looks like we might have found a copy of the Owner Calendar in the Receiver Mailbox."
         }
-        Write-Host -ForegroundColor Green "This is a good indication the there is a Modern Sharing Relationship between these users."
-        Write-Host -ForegroundColor Green "If the clients use the Modern Sharing or not is a up to the client."
-        $script:ModernSharing = $true
+        if ($script:SharingType -eq "InternalSharing") {
+            Write-Host -ForegroundColor Green "This is a good indication the there is a Modern Sharing Relationship between these users."
+            Write-Host -ForegroundColor Green "If the clients use the Modern Sharing or not is a up to the client."
+            $script:ModernSharing = $true
+        }
 
         $matchingOwnerCalendars | Format-Table -a FolderPath, VisibleItemsInFolder, FolderAndSubfolderSize
         if ($matchingOwnerCalendars.Count -gt 1) {
@@ -216,15 +218,25 @@ function GetReceiverInformation {
         }
     }
 
-    ProcessCalendarSharingAcceptLogs -Identity $Receiver
+    if ($script:SharingType -ne "ExternalSharing") {
+        ProcessCalendarSharingAcceptLogs -Identity $Receiver
+    } else {
+        $script:CollectorStatuses["ReceiverAcceptLog"] = [PSCustomObject]@{ status = "NotApplicable"; error = $null }
+    }
     if ($script:OwnerPublished) {
         ProcessInternetCalendarLogs -Identity $Receiver
     }
+    if ($script:SharingType -eq "ExternalSharing") {
+        Test-PublishedCalendarRelationship
+    }
 
     if (($script:SharingType -like "InternalSharing") -or
-        ($script:SharingType -like "ExternalSharing")) {
+        ($script:SharingType -like "ExternalSharing") -or
+        ($script:SharingType -eq "Undetermined")) {
         # Validate Modern Sharing Status
-        if (Get-Command -Name Get-CalendarEntries -ErrorAction SilentlyContinue) {
+        if ($script:PublishedSharing -or ($script:SharingType -eq "ExternalSharing")) {
+            $script:CollectorStatuses["CalendarEntries"] = [PSCustomObject]@{ status = "NotApplicable"; error = $null }
+        } elseif (Get-Command -Name Get-CalendarEntries -ErrorAction SilentlyContinue) {
             Write-Verbose "Found Get-CalendarEntries cmdlet. Running cmdlet: Get-CalendarEntries -Identity $Receiver"
             $calendarEntriesAvailable = $true
             try {
@@ -285,97 +297,6 @@ function GetReceiverInformation {
                         $selectedOwnerCalendarName,
                         [System.StringComparison]::OrdinalIgnoreCase))
                 })
-            $matchingPublishedEntries = @()
-            if ($script:OwnerPublished -and
-                (-not [string]::IsNullOrWhiteSpace($script:OwnerPublishedICalUrl))) {
-                $matchingPublishedEntries = @($script:ReceiverInternetCalendarEntries |
-                        Where-Object -FilterScript {
-                            [string]::Equals(
-                                ([string]$_.PublishingUrl).Trim(),
-                                $script:OwnerPublishedICalUrl.Trim(),
-                                [System.StringComparison]::OrdinalIgnoreCase)
-                        })
-            }
-            $script:PublishedSharing = (
-                $script:OwnerPublished -and
-                ($pairNewEntries.Count -eq 0) -and
-                (($null -eq $script:ReceiverMatchedCalendar) -or
-                ($matchingPublishedEntries.Count -gt 0)))
-            if ($script:PublishedSharing) {
-                $script:ModernSharing = $false
-                if ([string]::IsNullOrWhiteSpace($script:OwnerPublishedICalUrl)) {
-                    Add-SharingFinding -RuleId "SHR423" -Status Detected -Area "Published calendar" -Evidence @{
-                        reason = "PublishEnabled is true, but PublishedICalUrl is unavailable."
-                    }
-                    foreach ($ruleId in @("SHR421", "SHR422")) {
-                        Add-SharingFinding -RuleId $ruleId -Status NotApplicable -Evidence @{
-                            reason = "The owner PublishedICalUrl is unavailable."
-                        }
-                    }
-                } elseif (($matchingPublishedEntries.Count -eq 0) -and
-                    ($script:CollectorStatuses["InternetCalendar"].status -in @("Success", "NoData"))) {
-                    Add-SharingFinding -RuleId "SHR421" -Status Detected -Area "Published calendar" -Evidence @{
-                        reason = "No receiver InternetCalendar entry matches the owner PublishedICalUrl."
-                    }
-                    Add-SharingFinding -RuleId "SHR422" -Status NotApplicable -Evidence @{
-                        reason = "No matching receiver published-calendar subscription was found."
-                    }
-                } elseif ($matchingPublishedEntries.Count -eq 0) {
-                    foreach ($ruleId in @("SHR421", "SHR422")) {
-                        Add-SharingFinding -RuleId $ruleId -Status NotEvaluated -Evidence @{
-                            reason = "Receiver InternetCalendar subscription evidence is unavailable."
-                        }
-                    }
-                } elseif (-not $receiverFolderStatsAvailable) {
-                    $script:ReceiverPublishedCalendarEntry = $matchingPublishedEntries |
-                        Select-Object -First 1
-                    Add-SharingFinding -RuleId "SHR422" -Status NotEvaluated -Evidence @{
-                        reason = "Receiver calendar folder statistics are unavailable."
-                    }
-                } else {
-                    $script:ReceiverPublishedCalendarEntry = $matchingPublishedEntries |
-                        Select-Object -First 1
-                    $publishedLocalFolderNames = if (-not [string]::IsNullOrWhiteSpace(
-                            [string]$script:ReceiverPublishedCalendarEntry.Folder)) {
-                        @(([string]$script:ReceiverPublishedCalendarEntry.Folder).Trim().TrimStart("\", "/"))
-                    } elseif (-not [string]::IsNullOrWhiteSpace(
-                            [string]$script:ReceiverPublishedCalendarEntry.RemoteFolderName)) {
-                        @(([string]$script:ReceiverPublishedCalendarEntry.RemoteFolderName).Trim().TrimStart("\", "/"))
-                    } else {
-                        @()
-                    }
-                    $publishedLocalFolderId = [string]$script:ReceiverPublishedCalendarEntry.LocalFolderId
-                    $script:ReceiverPublishedCalendarFolder = @($CalStats |
-                            Where-Object -FilterScript {
-                                $statisticsFolderName = [string]$_.Name
-                                $statisticsFolderPath = ([string]$_.FolderPath).Trim().TrimStart("\", "/")
-                                if (-not [string]::IsNullOrWhiteSpace($publishedLocalFolderId)) {
-                                    return [string]::Equals(
-                                        [string]$_.FolderId,
-                                        $publishedLocalFolderId,
-                                        [System.StringComparison]::OrdinalIgnoreCase)
-                                }
-                                return @($publishedLocalFolderNames | Where-Object -FilterScript {
-                                        [string]::Equals(
-                                            $statisticsFolderName,
-                                            $_,
-                                            [System.StringComparison]::OrdinalIgnoreCase) -or
-                                        [string]::Equals(
-                                            $statisticsFolderPath,
-                                            $_,
-                                            [System.StringComparison]::OrdinalIgnoreCase)
-                                    }).Count -gt 0
-                            }) | Select-Object -First 1
-                    if ($null -eq $script:ReceiverPublishedCalendarFolder) {
-                        Add-SharingFinding -RuleId "SHR422" -Status Detected -Area "Published calendar" -Evidence @{
-                            folderName = $script:ReceiverPublishedCalendarEntry.Folder
-                            reason     = "The matching InternetCalendar subscription has no matching receiver calendar folder."
-                        }
-                    } else {
-                        Write-Host -ForegroundColor Green "Receiver published-calendar local folder: [$($script:ReceiverPublishedCalendarFolder.FolderPath)]."
-                    }
-                }
-            }
             $script:LegacyMapiSharing = (
                 (-not $script:PublishedSharing) -and
                 ($script:SharingType -eq "InternalSharing") -and
@@ -410,6 +331,7 @@ function GetReceiverInformation {
             $script:CollectorStatuses["CalendarEntries"] = [PSCustomObject]@{ status = "Unavailable"; error = $null }
             Add-SharingFinding -Severity Warning -Area "Calendar entries" -Issue "Get-CalendarEntries is unavailable." -Evidence "The cmdlet was not found in the current session." -RecommendedNextStep "Run the check in a session where Get-CalendarEntries is available." -Incomplete
         }
+        Test-PublishedCalendarRelationship
 
         if ($receiverFolderStatsAvailable -and
             ($null -eq $script:ReceiverMatchedCalendar)) {
@@ -460,13 +382,16 @@ function GetReceiverInformation {
                 }
                 $MBCalFolder | Format-List Identity, CreationTime, ExtendedFolderFlags, CalendarSharingFolderFlags, CalendarSharingOwnerSmtpAddress, CalendarSharingPermissionLevel, SharingLevelOfDetails, SharingPermissionFlags, LastAttemptedSyncTime, LastSuccessfulSyncTime, SharedCalendarSyncStartDate
                 $script:ReceiverLocalCalendarFolder = $MBCalFolder
+                Test-PublishedCalendarRelationship
+                if ($script:PublishedSharing) { return }
 
                 $receiverExtendedFolderFlags = ConvertTo-NormalizedFolderFlags -Flags @($MBCalFolder.ExtendedFolderFlags)
                 if ($receiverExtendedFolderFlags -notcontains "SharedIn") {
                     Write-Host -ForegroundColor Yellow "Warning: The Receiver's copy of the Owner's Calendar is missing SharedIn."
                     Add-SharingFinding -Severity Error -Area "Receiver calendar flags" -Issue "The receiver local folder is missing SharedIn." -Evidence "ExtendedFolderFlags: [$($receiverExtendedFolderFlags -join ', ')]." -RecommendedNextStep "Run SharingPolicyAssistant or calendar-sharing validator diagnostics for the pair."
                 }
-                if ($receiverExtendedFolderFlags -notcontains "ExchangeShareFolder") {
+                if (($receiverExtendedFolderFlags -notcontains "ExchangeShareFolder") -and
+                    ($null -eq (Get-SharingRuleNotApplicableReason -RuleId "SHR242"))) {
                     Write-Host -ForegroundColor Yellow "Warning: The Receiver's copy of the Owner's Calendar is missing ExchangeShareFolder."
                     Add-SharingFinding -Severity Error -Area "Receiver calendar flags" -Issue "The receiver local folder is missing ExchangeShareFolder." -Evidence "ExtendedFolderFlags: [$($receiverExtendedFolderFlags -join ', ')]." -RecommendedNextStep "Run SharingPolicyAssistant or calendar-sharing validator diagnostics for the pair."
                 }
@@ -524,7 +449,9 @@ function GetReceiverInformation {
                     }
                 }
 
-                if (($null -eq $MBCalFolder.SharedCalendarSyncStartDate) -or $syncStartDateUninitialized) {
+                if ($null -ne (Get-SharingRuleNotApplicableReason -RuleId "SHR413")) {
+                    Write-Verbose "Internal REST synchronization start-date checks do not apply to this relationship."
+                } elseif (($null -eq $MBCalFolder.SharedCalendarSyncStartDate) -or $syncStartDateUninitialized) {
                     Write-Host -ForegroundColor Yellow "Warning: The Receiver's copy of the Owner's Calendar does not have an initialized SharedCalendarSyncStartDate."
                     Add-SharingFinding -RuleId "SHR413" -Status Detected -Area "Synchronization start date" -Evidence @{
                         syncStartDateUninitialized = $syncStartDateUninitialized
