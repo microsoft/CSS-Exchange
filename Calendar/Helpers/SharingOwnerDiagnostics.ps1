@@ -145,8 +145,6 @@ function GetOwnerInformation {
         Write-Warning "Failed to retrieve Owner mailbox permissions for [$Owner]: $($_.Exception.Message)"
         Add-SharingFinding -Severity Warning -Area "Owner mailbox permissions" -Issue "The owner mailbox-permission check was unavailable." -Evidence $_.Exception.Message -RecommendedNextStep "Rerun Get-MailboxPermission with sufficient access." -Incomplete
     }
-    Write-OwnerReceiverPermissionSummary -Receiver $Receiver
-
     Write-Host -ForegroundColor DarkYellow "Owner Modern Sharing Sent Invites"
     ProcessCalendarSharingInviteLogs -Identity $Owner
 
@@ -226,7 +224,7 @@ function GetOwnerInformation {
             Write-Host -ForegroundColor Yellow "`t Calendar has no Active Receivers according to Get-CalendarActiveSharingInformation."
         }
         $script:OwnerActiveReceiver = @($OwnerActiveSharingInfo.ActiveShareesDataSet.Sharees | Where-Object -FilterScript {
-                Test-SmtpAddressEqual -First $_.EmailAddress -Second $Receiver
+                Test-SharingReceiverAddress -Address $_.EmailAddress
             }) | Select-Object -First 1
         if ($null -eq $script:OwnerActiveReceiver) {
             Add-SharingFinding -Severity Error -Area "Active sharing information" -Issue "The expected receiver is absent from the owner's active-sharing relationships." -Evidence "Get-CalendarActiveSharingInformation did not contain [$Receiver]." -RecommendedNextStep "Inspect invite/accept logs and run SharingPolicyAssistant or calendar-sharing validator diagnostics."

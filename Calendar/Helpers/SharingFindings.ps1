@@ -91,7 +91,12 @@ function Add-SharingFinding {
         $Evidence = @{ reason = $notApplicableReason }
         $script:ConsoleFindingEvidence[$rule.RuleId] = $Evidence
     }
+    $title = $rule.Title
     $nextStep = $rule.NextStep
+    if (($rule.RuleId -eq "SHR325") -and ($findingStatus -eq "NotEvaluated")) {
+        $title = "Receiver delegation check could not be completed"
+        $nextStep = "Confirm whether the receiver is intended to be a delegate. Collect the missing permission or sharing evidence and rerun the check; do not grant delegate permissions unless delegation is intended."
+    }
     if (($script:SharingType -eq "ExternalSharing") -and
         ($rule.RuleId -in @("SHR400", "SHR401", "SHR402", "SHR403"))) {
         $nextStep = "Inspect the receiver's external sharing configuration and actual synchronization timestamps. Internal REST assistant-log freshness does not determine external sharing health."
@@ -100,7 +105,7 @@ function Add-SharingFinding {
             ruleId              = $rule.RuleId
             severity            = $rule.Severity
             status              = $findingStatus
-            title               = $rule.Title
+            title               = $title
             evidence            = ConvertTo-SharingEvidence -RuleId $rule.RuleId -Evidence $Evidence
             recommendedNextStep = $nextStep
             area                = $Area
@@ -234,6 +239,12 @@ function Complete-SharingFindings {
     }
 
     foreach ($rule in $script:SharingRuleCatalog) {
+        if (($rule.RuleId -eq "SHR325") -and (-not $script:SharingFindingRuleIds.Contains($rule.RuleId))) {
+            Add-SharingFinding -RuleId "SHR325" -Status NotEvaluated -Evidence @{
+                reason = "The receiver delegate permission check was not performed."
+            }
+            continue
+        }
         if ($script:SharingFindingRuleIds.Add($rule.RuleId)) {
             $status = "NotDetected"
             $reason = $null
@@ -256,15 +267,11 @@ function Complete-SharingFindings {
                 $status = "NotEvaluated"
                 $reason = "The owner and receiver statistics comparison was not performed."
             }
-            if ($rule.RuleId -eq "SHR325") {
-                $status = "NotEvaluated"
-                $reason = "The receiver delegate permission check was not performed."
-            }
             if ($rule.RuleId -eq "SHR424") {
                 $status = "NotEvaluated"
                 $reason = "The published-calendar configuration check was not performed."
             }
-            if (($rule.RuleId -in @("SHR408", "SHR409")) -and (-not $script:SharingLogScanPerformed)) {
+            if (($rule.RuleId -in @("SHR408", "SHR409", "SHR414")) -and (-not $script:SharingLogScanPerformed)) {
                 $status = "NotEvaluated"
                 $reason = "The sharing logs were not scanned."
             }

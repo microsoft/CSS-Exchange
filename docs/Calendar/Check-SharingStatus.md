@@ -151,7 +151,7 @@ Confirmed findings are sorted by severity and contain:
 | `evidence` | The values or observations supporting the finding. |
 | `recommendedNextStep` | The next diagnostic action to take. |
 
-The **Detected Issues** section displays only rules whose status is `Detected`. Recommended next steps are printed below the findings table.
+The **Detected Issues** section displays only rules whose status is `Detected`. Recommended next steps are printed below the findings table. Within each section, identical recommendations appear once with all triggering rule IDs, for example `[SHR231, SHR311] Inspect invite or accept logs and sharing assistant diagnostics.` Individual findings remain separate in the table and JSON report.
 
 A detected condition is not always a confirmed synchronization failure. For example, receiver folder-name redaction produces a nonfatal `SHR201` access warning, and a recent synchronization start date produces informational context.
 
@@ -174,7 +174,8 @@ Do not consider the relationship healthy until relevant incomplete checks have b
 
 - Mailbox information and Send-on-Behalf grants.
 - Selected calendar folder statistics and permissions. The selected folder is the default calendar unless `-OwnerCalendarFolderPath` is supplied.
-- A receiver-specific permission summary across the owner calendar folder and owner mailbox. If no direct receiver entry exists, the output notes that access may come from the `Default` entry or a group.
+- A receiver-specific permission summary across the owner calendar folder and owner mailbox, displayed after receiver diagnostics. Matching uses the resolved receiver mailbox's primary SMTP address and SMTP aliases. When permission entries expose only a display name, an exact case-insensitive match to the receiver's full display name is used as a fallback; partial names and conflicting SMTP identities do not match. If no direct receiver entry exists, the output notes that access may come from the `Default` entry or a group.
+
 - Mailbox permission summaries separate Allow and Deny entries. When both exist, the script reports them separately rather than claiming that the listed rights are effective access.
 - Selected calendar size greater than 1 GB (1,000,000,000 bytes).
 - Selected calendar item count greater than 100,000 visible items.
@@ -185,13 +186,49 @@ Do not consider the relationship healthy until relevant incomplete checks have b
 - The specified receiver's active sharing relationship. If the receiver is not in the owner's active sharees (`Get-CalendarActiveSharingInformation`) for a Modern Sharing relationship, the script reports `SHR311` as an error; `SHR321` also reports an owner permission that has no active relationship.
 - Non-default `ActiveShareeFlags`.
 
+Single matching permission entries are counted as collections, including in Windows PowerShell 5.1, where a single
+returned custom object may not expose a `Count` property.
+
+The final summary shows an **Owner-to-Receiver Sharing Timeline**, including both mailbox identities:
+
+- The latest owner-to-receiver sent invitation from `CalendarSharingInvite`, matching the receiver's primary SMTP
+  address or known SMTP aliases.
+- The latest receiver-side owner-matching entry from `AcceptCalendarSharingInvite`, matching the owner's primary
+  SMTP address or known SMTP aliases. Selected subfolders require a matching calendar name; entries for other owner
+  calendars are identified separately and are not treated as acceptance of the selected calendar.
+- The latest receiver synchronization request from `SharingSyncAssistant`, correlated using the owner's mailbox GUID
+  and the selected calendar name when available. A synchronization request is not labeled as a received invitation.
+
+Timestamps are sorted chronologically using the shared regional-format parser. Mixed day-first and month-first
+entries are supported, and an ambiguous future interpretation is retried with the opposite date layout. The run's
+start time is the reference. Original timestamps are displayed alongside unambiguous `yyyy-MM-dd HH:mm:ss` readings;
+unreadable or future-only values do not establish a date.
+
+If the sent timestamp and newest relevant receiver-side acceptance or synchronization request differ by **more than
+7 days**, the console emits a warning with both dates and the gap. Exactly 7 days does not trigger the warning.
+An unreadable or unavailable receiver date does not trigger a speculative warning.
+
+These are different event types: a timestamp comparison does not prove receipt or acceptance of the latest invitation.
+Parsed owner invite rows do not identify the calendar folder, even when the full log contains additional folder
+context. For a selected subfolder, the summary explicitly notes that limitation. This timeline does not change
+selected-calendar findings or imply that synchronization is healthy.
+
 ### Explicit receiver delegation
 
 `SHR325` checks the specified receiver, not every delegate. When the receiver is identified as a delegate by its individual owner-calendar permission, active-sharing flags, or receiver-folder flags, it must have its own permission entry on the selected owner calendar with both `AccessRights Editor` and `SharingPermissionFlags Delegate`.
 
 Group membership, `Default` permissions, another delegate's entry, and mailbox `FullAccess` do not satisfy this requirement. Each delegate must be listed individually. The check does not require Send on Behalf permissions.
 
+The permission summary, pair-consistency checks, and delegate checks use the same resolved receiver identity matching.
+Recognized group principals are excluded from individual matches. A display-name match identifies an entry to inspect;
+it does not establish group membership or effective access, and `Editor` alone does not satisfy the delegate flag requirement.
+
 A missing individual entry or missing required rights produces a `Detected` error. Unavailable owner-calendar permissions, or insufficient evidence to determine whether the receiver is a delegate, produces `NotEvaluated`, not a pass. An ordinary non-delegate sharing relationship, external relationship, or published subscription is `NotApplicable`. Calendar delegation is checked for both internal Modern Sharing and legacy MAPI relationships when delegate evidence is available.
+
+An incomplete `SHR325` check is labeled **Receiver delegation check could not be completed**. It recommends confirming
+whether delegation is intended and collecting the missing evidence, not granting delegate permissions merely because
+the check is incomplete. The rule's Error severity describes a potential delegate-permission failure; a
+`NotEvaluated` status is inconclusive, not confirmation that the receiver is or should be a delegate.
 
 ### Receiver
 
@@ -233,7 +270,7 @@ Missing internal REST flags, internal calendar entries, active sharees, old assi
 `SharedCalendarSyncStartDate` therefore do not imply that external sharing is broken. Unavailable internal-only
 collectors and rule-scoped evaluations do not make an external relationship incomplete.
 Actual receiver synchronization failures and applicable collection failures remain reported. Exception diagnostics
-(`SHR408` and `SHR409`) are retained; exceptions are not automatically ignored merely because the relationship is external.
+(`SHR408`, `SHR409`, and `SHR414`) are retained; exceptions and XTAP failures are not automatically ignored merely because the relationship is external.
 
 Pair-specific Old-model entries are displayed automatically when present, including when New-model entries also exist.
 
@@ -245,14 +282,23 @@ recipient or the same local part in another domain. Conflicting invitation types
 undated conflicting history does not establish the current model. Mailbox-wide invitations without a selected-calendar
 identity are not used to classify an explicitly selected calendar subfolder.
 
+The invitation summary displays the latest invitation per recipient using parsed timestamps rather than log order.
+Entries tied for the latest timestamp are retained. If a timestamp cannot be parsed, the script warns and retains
+that entry alongside the latest dated invitations, so ambiguous history is not hidden. Full invitation history
+remains available for relationship classification and in sensitive raw evidence.
+
 InternetCalendar information is collected when the selected owner calendar has publishing enabled. For a publishing
 relationship, the script compares the owner's `PublishedICalUrl` with receiver subscriptions and checks for the matching
-local receiver folder. Modern-only rules are reported as `NotApplicable`.
+local receiver folder. URL scheme and host names are compared without regard to case, and default ports are normalized;
+path and query values remain case-sensitive. Matching subscription history is checked against current receiver folders,
+preferring the newest parsed timestamp when multiple entries have existing folders. Undated entries can still establish
+a folder match. An obsolete log entry referencing a deleted folder does not cause a missing-folder warning when another
+matching entry references an existing folder. Modern-only rules are reported as `NotApplicable`.
 
 | Rule | Published Calendar finding |
 | --- | --- |
 | `SHR421` | No receiver subscription matches the owner's `PublishedICalUrl`. |
-| `SHR422` | A matching subscription exists, but its local receiver calendar folder is missing. |
+| `SHR422` | Matching subscriptions exist, but none references an existing local receiver calendar folder. |
 | `SHR423` | Publishing is enabled, but the owner's `PublishedICalUrl` is unavailable. |
 | `SHR424` | The receiver uses publishing, but publishing is disabled on the selected owner calendar. This is an Error. Verify the intended sharing method before enabling publishing or replacing the subscription. |
 
@@ -312,6 +358,12 @@ The script scans the owner `CalendarSharingInvite` log and the receiver `AcceptC
 | --- | --- |
 | `SHR408` | An entry contains `MapiExceptionNamedPropsQuotaExceeded`: the mailbox exhausted its named property quota, which can block sharing synchronization (for example, `[EX, QuotaExceededException_Cannot get ID from name...]` in the `SharingSyncAssistant` log). This is an error; escalate to Microsoft Support. |
 | `SHR409` | Any other exception, such as `WrongObjectTypeException`, a non-empty `[EX, ...]` value, or a non-zero `numberOfFailures` count in a batch. This is a warning. The evidence lists the exception types, the affected logs, and the latest occurrence. |
+| `SHR414` | An XTAP-tagged entry records a failure, error, denied operation, or exception. This warning directs the tenant administrator to the public [Microsoft 365 Cross-Tenant Access Policy guidance](https://learn.microsoft.com/en-us/exchange/sharing/migrate-to-m365-xtap). |
+
+`XTAPPolicyFound=False`, policy-evaluation start messages, and anonymous capability traces alone do not establish an
+XTAP failure. The warning retains its source-log evidence and can coexist with the generic exception finding.
+Mailbox-wide logs can contain failures for other recipients; correlate the failing recipient with the owner/receiver
+pair before attributing the sharing problem to XTAP or changing policy.
 
 Informational text such as `Failed to read user configuration time zone` or `numberOfFailures: 0` is not reported. If the logs could not be scanned, both rules are `NotEvaluated`.
 

@@ -140,13 +140,17 @@ function Test-SharingLogExceptions {
 
     $quotaPattern = "NamedPropsQuotaExceeded"
     $exceptionPattern = "(?<Type>[A-Za-z][A-Za-z0-9_]*Exception)\b"
+    $xtapFailurePattern = '\[XTAP(?:-[^\]]+)?\](?:\[[^\]]+\])*.*(?:\b(?:failure|failed|forbidden|denied|AuthError)\b|\b[A-Za-z][A-Za-z0-9_]*Exception\b|\berror\s*:)'
     $quotaLogs = [System.Collections.Generic.List[string]]::new()
     $exceptionLogs = [System.Collections.Generic.List[string]]::new()
+    $xtapLogs = [System.Collections.Generic.List[string]]::new()
     $exceptionTypes = [System.Collections.Generic.HashSet[string]]::new()
     $quotaCount = 0
     $exceptionCount = 0
+    $xtapFailureCount = 0
     $latestQuota = $null
     $latestException = $null
+    $latestXtapFailure = $null
     foreach ($scannedLog in $scannedLogs) {
         $lineTimestamps = Get-CalendarDiagnosticLogLineTimestamp -Line $scannedLog.Line -ReferenceTimeUtc $nowUtc
         $currentTimestamp = $null
@@ -154,6 +158,17 @@ function Test-SharingLogExceptions {
             $logLine = [string]$scannedLog.Line[$index]
             if ($null -ne $lineTimestamps[$index]) {
                 $currentTimestamp = $lineTimestamps[$index]
+            }
+
+            if ($logLine -match $xtapFailurePattern) {
+                $xtapFailureCount++
+                if (-not $xtapLogs.Contains($scannedLog.Label)) {
+                    $xtapLogs.Add($scannedLog.Label)
+                }
+                if (($null -ne $currentTimestamp) -and
+                    (($null -eq $latestXtapFailure) -or ($currentTimestamp -gt $latestXtapFailure))) {
+                    $latestXtapFailure = $currentTimestamp
+                }
             }
 
             if ($logLine -match $quotaPattern) {
@@ -199,7 +214,15 @@ function Test-SharingLogExceptions {
             latestEntryUtc = $(if ($null -ne $latestException) { $latestException.ToString("o") } else { $null })
         }
     }
-    if (($quotaCount -eq 0) -and ($exceptionCount -eq 0)) {
+    if ($xtapFailureCount -gt 0) {
+        Write-Host -ForegroundColor Yellow "Warning: The sharing logs contain [$xtapFailureCount] XTAP-related failure entries. Review the tenant administrator's public XTAP guidance in the recommended next steps."
+        Add-SharingFinding -RuleId "SHR414" -Status Detected -Area "Sharing logs" -Evidence @{
+            xtapFailureCount = $xtapFailureCount
+            affectedLogs     = @($xtapLogs)
+            latestEntryUtc   = $(if ($null -ne $latestXtapFailure) { $latestXtapFailure.ToString("o") } else { $null })
+        }
+    }
+    if (($quotaCount -eq 0) -and ($exceptionCount -eq 0) -and ($xtapFailureCount -eq 0)) {
         Write-Host -ForegroundColor Green "No exceptions were found in the sharing logs from the last year."
     }
 }

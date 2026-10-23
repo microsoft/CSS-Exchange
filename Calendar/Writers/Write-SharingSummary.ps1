@@ -55,6 +55,8 @@ function Write-SharingSummary {
         Write-Host -ForegroundColor Blue "The calendar sharing model could not be determined from the available evidence."
     }
 
+    Write-OwnerReceiverInviteSummary -Owner $Owner -Receiver $Receiver
+
     $severityOrder = @{
         Critical    = 0
         Error       = 1

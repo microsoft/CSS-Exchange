@@ -37,9 +37,7 @@ function Test-SharingReceiverAddress {
         [object]$Address
     )
 
-    $receiverAddresses = @($Receiver, $script:ReceiverMB.PrimarySmtpAddress) +
-    @($script:ReceiverMB.EmailAddresses | Where-Object { [string]$_ -match "^(?i)smtp:" } |
-            ForEach-Object { ([string]$_).Substring(5) })
+    $receiverAddresses = Get-SharingMailboxSmtpAddresses -Identity $Receiver -Mailbox $script:ReceiverMB
     return @($receiverAddresses | Where-Object {
             Test-SmtpAddressEqual -First $Address -Second $_
         }).Count -gt 0
@@ -57,17 +55,36 @@ function Get-PairSharingInvite {
         return $invites | Select-Object -First 1
     }
     # Conflicting invitation types require a reliable ordering; undated history cannot establish the current model.
-    $datedInvites = @($invites | ForEach-Object {
-            [PSCustomObject]@{
-                Invite = $_
-                Date   = ConvertTo-CalendarDiagnosticLogDateTime -Text $_.Timestamp
-            }
-        })
+    $datedInvites = @(Get-DatedSharingLogEntries -Entry $invites -ReferenceTimeUtc $script:RunStartedAt.ToUniversalTime())
     if (@($datedInvites | Where-Object { $null -eq $_.Date }).Count -gt 0) { return }
     $latestInvite = $datedInvites | Sort-Object -Property Date -Descending | Select-Object -First 1
     if (@($datedInvites | Where-Object { $_.Date -eq $latestInvite.Date } |
-                ForEach-Object { $_.Invite.SharingType } | Select-Object -Unique).Count -gt 1) { return }
-    return $latestInvite.Invite
+                ForEach-Object { $_.Entry.SharingType } | Select-Object -Unique).Count -gt 1) { return }
+    return $latestInvite.Entry
+}
+
+function Test-PublishedCalendarUrlEqual {
+    param(
+        [AllowNull()]
+        [string]$First,
+
+        [AllowNull()]
+        [string]$Second
+    )
+
+    if ([string]::IsNullOrWhiteSpace($First) -or [string]::IsNullOrWhiteSpace($Second)) {
+        return $false
+    }
+    $firstUri = $null
+    $secondUri = $null
+    if ((-not [System.Uri]::TryCreate($First.Trim(), [System.UriKind]::Absolute, [ref]$firstUri)) -or
+        (-not [System.Uri]::TryCreate($Second.Trim(), [System.UriKind]::Absolute, [ref]$secondUri))) {
+        Write-Verbose "Publishing URL evidence is not an absolute URL and cannot establish a subscription match."
+        return $false
+    }
+
+    # Uri normalizes the scheme, host, and default port without ignoring case in paths or tokens.
+    return [string]::Equals($firstUri.AbsoluteUri, $secondUri.AbsoluteUri, [System.StringComparison]::Ordinal)
 }
 
 function Test-PublishedCalendarRelationship {
@@ -91,9 +108,7 @@ function Test-PublishedCalendarRelationship {
                 [System.StringComparison]::OrdinalIgnoreCase))
         })
     $matchingPublishedEntries = @($script:ReceiverInternetCalendarEntries | Where-Object {
-            (-not [string]::IsNullOrWhiteSpace($script:OwnerPublishedICalUrl)) -and
-            [string]::Equals(([string]$_.PublishingUrl).Trim(), $script:OwnerPublishedICalUrl.Trim(),
-                [System.StringComparison]::OrdinalIgnoreCase)
+            Test-PublishedCalendarUrlEqual -First $_.PublishingUrl -Second $script:OwnerPublishedICalUrl
         })
     $publishingEvidence = ($pairInvite.SharingType -eq "publish") -or
     ($publishedPermission -and $pairInvite.SharingType -ne "external") -or
@@ -139,8 +154,7 @@ function Test-PublishedCalendarRelationship {
     if ($script:CollectorStatuses["InternetCalendar"].status -eq "NotRun") {
         ProcessInternetCalendarLogs -Identity $Receiver
         $matchingPublishedEntries = @($script:ReceiverInternetCalendarEntries | Where-Object {
-                [string]::Equals(([string]$_.PublishingUrl).Trim(), $script:OwnerPublishedICalUrl.Trim(),
-                    [System.StringComparison]::OrdinalIgnoreCase)
+                Test-PublishedCalendarUrlEqual -First $_.PublishingUrl -Second $script:OwnerPublishedICalUrl
             })
     }
     if ($matchingPublishedEntries.Count -eq 0) {
@@ -153,34 +167,41 @@ function Test-PublishedCalendarRelationship {
         }
         return
     }
+    $matchingPublishedEntries = @($matchingPublishedEntries | Sort-Object -Property @{
+            Expression = { ConvertTo-CalendarDiagnosticLogDateTime -Text $_.Timestamp }
+            Descending = $true
+        })
     $script:ReceiverPublishedCalendarEntry = $matchingPublishedEntries | Select-Object -First 1
     if ($script:CollectorStatuses["ReceiverFolderStatistics"].status -ne "Success") {
         Add-SharingFinding -RuleId "SHR422" -Status NotEvaluated -Evidence @{ reason = "Receiver calendar folder statistics are unavailable." }
         return
     }
-    $publishedEntry = $script:ReceiverPublishedCalendarEntry
-    $publishedFolderName = if (-not [string]::IsNullOrWhiteSpace([string]$publishedEntry.Folder)) {
-        ([string]$publishedEntry.Folder).Trim().TrimStart("\", "/")
-    } else {
-        ([string]$publishedEntry.RemoteFolderName).Trim().TrimStart("\", "/")
+    foreach ($publishedEntry in $matchingPublishedEntries) {
+        $publishedFolderName = if (-not [string]::IsNullOrWhiteSpace([string]$publishedEntry.Folder)) {
+            ([string]$publishedEntry.Folder).Trim().TrimStart("\", "/")
+        } else {
+            ([string]$publishedEntry.RemoteFolderName).Trim().TrimStart("\", "/")
+        }
+        $publishedCalendarFolder = $script:ReceiverFolderStatistics | Where-Object {
+            if (-not [string]::IsNullOrWhiteSpace([string]$publishedEntry.LocalFolderId)) {
+                return [string]::Equals([string]$_.FolderId, [string]$publishedEntry.LocalFolderId,
+                    [System.StringComparison]::OrdinalIgnoreCase)
+            }
+            return (-not [string]::IsNullOrWhiteSpace($publishedFolderName)) -and
+            ([string]::Equals([string]$_.Name, $publishedFolderName, [System.StringComparison]::OrdinalIgnoreCase) -or
+            [string]::Equals(([string]$_.FolderPath).Trim().TrimStart("\", "/"), $publishedFolderName,
+                [System.StringComparison]::OrdinalIgnoreCase))
+        } | Select-Object -First 1
+        if ($null -ne $publishedCalendarFolder) {
+            $script:ReceiverPublishedCalendarEntry = $publishedEntry
+            $script:ReceiverPublishedCalendarFolder = $publishedCalendarFolder
+            Write-Host -ForegroundColor Green "Receiver published-calendar local folder: [$($script:ReceiverPublishedCalendarFolder.FolderPath)]."
+            return
+        }
     }
-    $script:ReceiverPublishedCalendarFolder = $script:ReceiverFolderStatistics | Where-Object {
-        if (-not [string]::IsNullOrWhiteSpace([string]$publishedEntry.LocalFolderId)) {
-            return [string]::Equals([string]$_.FolderId, [string]$publishedEntry.LocalFolderId,
-                [System.StringComparison]::OrdinalIgnoreCase)
-        }
-        return (-not [string]::IsNullOrWhiteSpace($publishedFolderName)) -and
-        ([string]::Equals([string]$_.Name, $publishedFolderName, [System.StringComparison]::OrdinalIgnoreCase) -or
-        [string]::Equals(([string]$_.FolderPath).Trim().TrimStart("\", "/"), $publishedFolderName,
-            [System.StringComparison]::OrdinalIgnoreCase))
-    } | Select-Object -First 1
-    if ($null -eq $script:ReceiverPublishedCalendarFolder) {
-        Add-SharingFinding -RuleId "SHR422" -Status Detected -Evidence @{
-            folderName = $publishedFolderName
-            reason     = "The matching InternetCalendar subscription has no matching receiver calendar folder."
-        }
-    } else {
-        Write-Host -ForegroundColor Green "Receiver published-calendar local folder: [$($script:ReceiverPublishedCalendarFolder.FolderPath)]."
+    Add-SharingFinding -RuleId "SHR422" -Status Detected -Evidence @{
+        subscriptionCount = $matchingPublishedEntries.Count
+        reason            = "None of the matching InternetCalendar subscriptions has a matching receiver calendar folder."
     }
 }
 
@@ -300,7 +321,7 @@ function Test-ReceiverDelegatePermissions {
     }
 
     $individualPermissions = @(Get-PermissionEntriesForIdentity `
-            -PermissionEntries $script:OwnerCalendarPerms -Identity $Receiver)
+            -PermissionEntries $script:OwnerCalendarPerms -Identity $Receiver -Mailbox $script:ReceiverMB)
     $permissionFlags = ConvertTo-NormalizedFolderFlags -Flags @($individualPermissions.SharingPermissionFlags)
     $activeFlags = ConvertTo-NormalizedFolderFlags -Flags @($script:OwnerActiveReceiver.SharingPermissionFlags)
     $localFolderFlags = ConvertTo-NormalizedFolderFlags -Flags @($script:ReceiverLocalCalendarFolder.SharingPermissionFlags)
