@@ -13,6 +13,26 @@
 . $PSScriptRoot\BookingCustomQuestionHelpers.ps1
 . $PSScriptRoot\BookingStaffLogHelper.ps1
 
+# Name of the temporary Microsoft Graph environment used when endpoint overrides are supplied.
+$script:GraphEnvironmentName = "BookingsDiagnosticSummary"
+
+function TestGraphEndpointParameters {
+    param(
+        [string]$GraphEndpointUri,
+        [string]$AzureADEndpointUri
+    )
+
+    if ([string]::IsNullOrEmpty($GraphEndpointUri) -and [string]::IsNullOrEmpty($AzureADEndpointUri)) {
+        return $false
+    }
+
+    if ([string]::IsNullOrEmpty($GraphEndpointUri) -or [string]::IsNullOrEmpty($AzureADEndpointUri)) {
+        throw "GraphEndpointUri and AzureADEndpointUri must be specified together"
+    }
+
+    return $true
+}
+
 function GetExcelParams($Path, $TabName) {
 
     return @{
@@ -33,6 +53,11 @@ function GetExcelParams($Path, $TabName) {
 }
 
 function CheckModulesAndConnectGraph {
+    param(
+        [string]$GraphEndpointUri,
+        [string]$AzureADEndpointUri
+    )
+
     Write-Host -ForegroundColor Gray "Checking Excel, Graph and bookings modules"
     CheckExcelModuleInstalled
     CheckGraphAuthModuleInstalled
@@ -45,13 +70,56 @@ function CheckModulesAndConnectGraph {
         exit
     }
 
-    Connect-MgGraph -Scopes "User.Read.All", "Bookings.Read.All" -NoWelcome
+    $graphParameters = @{
+        Scopes    = "User.Read.All", "Bookings.Read.All"
+        NoWelcome = $true
+    }
+
+    if (-not (TestGraphEndpointParameters -GraphEndpointUri $GraphEndpointUri -AzureADEndpointUri $AzureADEndpointUri)) {
+        Connect-MgGraph @graphParameters
+        return
+    }
+
+    <#
+        Connect-MgGraph selects its endpoints by environment name rather than by individual URIs, and
+        Add-MgEnvironment writes the environment to the user's Microsoft Graph settings file. The
+        connection keeps the endpoints it resolved while connecting, so the entry is registered only
+        for the duration of the call and is removed again even if connecting fails.
+    #>
+    if (Get-MgEnvironment -Name $script:GraphEnvironmentName -ErrorAction SilentlyContinue) {
+        Set-MgEnvironment -Name $script:GraphEnvironmentName -GraphEndpoint $GraphEndpointUri -AzureADEndpoint $AzureADEndpointUri -ErrorAction Stop | Out-Null
+    } else {
+        Add-MgEnvironment -Name $script:GraphEnvironmentName -GraphEndpoint $GraphEndpointUri -AzureADEndpoint $AzureADEndpointUri -ErrorAction Stop | Out-Null
+    }
+
+    try {
+        $graphParameters.Environment = $script:GraphEnvironmentName
+        Connect-MgGraph @graphParameters
+    } finally {
+        RemoveGraphEnvironment
+    }
+}
+
+function RemoveGraphEnvironment {
+    if (-not (Get-MgEnvironment -Name $script:GraphEnvironmentName -ErrorAction SilentlyContinue)) {
+        return
+    }
+
+    try {
+        Remove-MgEnvironment -Name $script:GraphEnvironmentName -ErrorAction Stop | Out-Null
+    } catch {
+        Write-Host -ForegroundColor Yellow "Informational: Unable to remove the temporary Microsoft Graph environment '$script:GraphEnvironmentName'"
+    }
 }
 
 function ExcelWrite {
-    param($Identity)
+    param(
+        $Identity,
+        [string]$GraphEndpointUri,
+        [string]$AzureADEndpointUri
+    )
 
-    CheckModulesAndConnectGraph
+    CheckModulesAndConnectGraph -GraphEndpointUri $GraphEndpointUri -AzureADEndpointUri $AzureADEndpointUri
 
     Write-Host -ForegroundColor Green "Exporting to Excel..."
 
