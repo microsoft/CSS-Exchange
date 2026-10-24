@@ -67,3 +67,20 @@ To connect to Graph, using application access and a shared secret, to search by 
     $clientSecretCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $clientId, $secureClientSecret
     Connect-MgGraph -ClientSecretCredential $clientSecretCredential -TenantId 2bbb42ba-e564-4f7b-9765-e19bc80c6123
 ```
+
+## Sovereign and national clouds
+
+The script does not take an endpoint of its own. It addresses Microsoft Graph relative to the environment of the connection you already established, so it follows whichever cloud you connected to. Select that cloud when you connect.
+
+```PowerShell
+    Connect-MgGraph -Environment USGov -TenantId 2bbb42ba-e564-4f7b-9765-e19bc80c6123 -ClientId 8af900d8-db73-4918-81ef-3d35a873b6b2 -Scopes "User.Read Mail.ReadWrite"
+```
+
+Run `Get-MgEnvironment` to list the environments your installed Microsoft Graph PowerShell module knows about.
+
+If you operate in an environment whose endpoints are not published in that module, register it yourself with `Add-MgEnvironment` and then connect to it by name. The endpoints stay local to your environment.
+
+```PowerShell
+    Add-MgEnvironment -Name ContosoCloud -GraphEndpoint "<your Graph endpoint>" -AzureADEndpoint "<your Entra endpoint>"
+    Connect-MgGraph -Environment ContosoCloud -TenantId 2bbb42ba-e564-4f7b-9765-e19bc80c6123 -ClientId 8af900d8-db73-4918-81ef-3d35a873b6b2 -Scopes "User.Read Mail.ReadWrite"
+```
