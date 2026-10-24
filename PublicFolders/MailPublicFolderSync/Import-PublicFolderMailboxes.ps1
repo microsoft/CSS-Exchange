@@ -10,6 +10,10 @@
 # Import-PublicFolderMailboxes.ps1 -ConnectionUri <cloud url>
 #
 # The above example imports public folder mailbox objects from cloud as mail enabled users to on-premise.
+#
+# .PARAMETER AzureADAuthorizationEndpointUri
+#    Optional Microsoft Entra authorization endpoint for Exchange Online. Use with the appropriate ConnectionUri for your environment.
+#    When omitted, Connect-ExchangeOnline uses its default authorization endpoint.
 [CmdletBinding(DefaultParameterSetName = "Default")]
 param (
     [Parameter(Mandatory = $false)]
@@ -23,31 +27,37 @@ param (
     [switch] $ScriptUpdateOnly,
 
     [Parameter(Mandatory = $false)]
-    [switch] $SkipVersionCheck
+    [switch] $SkipVersionCheck,
+
+    [Parameter(Mandatory = $false, ParameterSetName = "Default")]
+    [ValidateNotNullOrEmpty()]
+    [string] $AzureADAuthorizationEndpointUri
 )
 
+. $PSScriptRoot\..\..\Shared\ExchangeOnlineFunctions\Connect-ExchangeOnlineEndpoint.ps1
+. $PSScriptRoot\..\..\Shared\ExchangeOnlineFunctions\Test-ExchangeOnlineManagementModule.ps1
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\GenericScriptUpdate.ps1
 
 #cspell:words EXOV2
 
 ## Create a tenant PSSession.
 function CreateTenantSession() {
-    Import-Module ExchangeOnlineManagement -ErrorAction SilentlyContinue
-    if (Get-Module ExchangeOnlineManagement) {
-        $connectParams = @{
-            ConnectionUri = $ConnectionUri
-            Prefix        = "Remote"
-            ErrorAction   = "SilentlyContinue"
-        }
+    param (
+        [string] $ConnectionUri,
+        [PSCredential] $Credential,
+        [string] $AzureADAuthorizationEndpointUri
+    )
 
-        if ($null -ne $Credential) {
-            $connectParams.Credential = $Credential
-        }
-        Connect-ExchangeOnline @connectParams
-    } else {
+    if (-not (Test-ExchangeOnlineManagementModule)) {
         Write-Warning $LocalizedStrings.EXOV2ModuleNotInstalled
         exit
     }
+
+    Connect-ExchangeOnlineEndpoint -ConnectionUri $ConnectionUri `
+        -AzureADAuthorizationEndpointUri $AzureADAuthorizationEndpointUri `
+        -Credential $Credential `
+        -Prefix "Remote" `
+        -ConnectErrorAction "SilentlyContinue"
 }
 
 ## Writes a dated information message to console
@@ -169,7 +179,7 @@ EXOV2ModuleNotInstalled = This script uses modern authentication to connect to E
 '@
 
 # Create a tenant PSSession against Exchange Online with modern auth.
-CreateTenantSession
+CreateTenantSession -ConnectionUri $ConnectionUri -Credential $Credential -AzureADAuthorizationEndpointUri $AzureADAuthorizationEndpointUri
 
 WriteInfoMessage ($LocalizedStrings.StartedPublicFolderMailboxImport)
 Write-Host ""
