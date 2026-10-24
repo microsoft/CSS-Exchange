@@ -118,9 +118,9 @@ Describe "Testing $scriptName" {
             $result.MinimumValue | Should -Not -Be -1
             $result.RegistryValue | Should -Not -Be -1
 
-            Assert-MockCalled -CommandName Write-Verbose -Exactly 10
-            Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -eq "Calling: Get-NETFrameworkVersion" }
-            Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -like "FriendlyName: * | RegistryValue: * | MinimumValue: *" }
+            Should -Invoke -CommandName Write-Verbose -Exactly 10
+            Should -Invoke -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -eq "Calling: Get-NETFrameworkVersion" }
+            Should -Invoke -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -like "FriendlyName: * | RegistryValue: * | MinimumValue: *" }
         }
 
         It "Testing a catch script block" {
@@ -137,7 +137,7 @@ Describe "Testing $scriptName" {
             $result.MinimumValue | Should -Be -1
             $result.RegistryValue | Should -Be 0
 
-            Assert-MockCalled -CommandName Write-Host -Exactly 1 -ParameterFilter { $Object -eq "Write-CustomScriptBlock" }
+            Should -Invoke -CommandName Write-Host -Exactly 1 -ParameterFilter { $Object -eq "Write-CustomScriptBlock" }
         }
     }
 
