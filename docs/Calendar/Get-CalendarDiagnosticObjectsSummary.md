@@ -23,6 +23,17 @@ This script runs the Get-CalendarDiagnosticObjects cmdlet and returns a summariz
 
 Use **-ExportToCSV** to export to CSV files instead if ImportExcel is not available.
 
+## Cmdlet List
+
+The script uses the following Exchange cmdlets. These queries do not change mailbox settings; local PowerShell commands used for processing and exporting results are not listed.
+
+| Cmdlet | Runs against | Why |
+|---|---|---|
+| `Get-ConnectionInformation` | The current Exchange Online PowerShell session, when the cmdlet is available | Checks for an active connection and identifies the Exchange Online endpoint before collecting logs. |
+| `Get-Mailbox` | Each mailbox supplied through `-Identity` (calendar owner, organizer, attendee, delegate, or room/resource); also used as a group-mailbox fallback when a lookup fails | Validates the collection mailboxes and reads properties such as mailbox type and `CalendarVersionStoreDisabled` to identify potentially incomplete logs. |
+| `Get-CalendarDiagnosticObjects` | Each validated mailbox supplied through `-Identity` | Collects diagnostic logs for the specified meeting ID or subject to build the timeline. Also collects tracking and recurring-meeting exception logs when applicable and enabled. |
+| `Get-Recipient` | Senders and responsible users referenced in the collected logs, which can include the owner or delegates | Resolves directory identities to display names and SMTP addresses so the output identifies who performed an action. This lookup does not collect those recipients' calendar logs unless they are also supplied through `-Identity`. |
+
 ## Who to collect from
 
 Collect from **all key participants** upfront. Partial collections produce incomplete analysis.
@@ -35,7 +46,7 @@ Collect from **all key participants** upfront. Partial collections produce incom
 | **Room/resource mailbox** | If the issue involves a room booking |
 | **Modern Sharing partners** | If the calendar is shared via Modern Sharing |
 
-> **Note:** Calendar diagnostic logs are removed after 31 days. Collect promptly.
+> **Note:** Calendar diagnostic logs are start to get cleaned up after 31 days. Collect promptly.
 
 ## Parameters
 
