@@ -137,6 +137,11 @@ function Test-SharingLogExceptions {
             $scannedLogs.Add(@{ Label = $diagnosticLog.Label; Line = @($logEntry.data) })
         }
     }
+    $script:SharingLogScanPerformed = $scannedLogs.Count -gt 0
+    if (-not $script:SharingLogScanPerformed) {
+        Write-Host -ForegroundColor Yellow "No sharing logs were available, so the exception checks could not be evaluated."
+        return
+    }
 
     $quotaPattern = "NamedPropsQuotaExceeded"
     $exceptionPattern = "(?<Type>[A-Za-z][A-Za-z0-9_]*Exception)\b"
@@ -195,8 +200,6 @@ function Test-SharingLogExceptions {
             }
         }
     }
-    $script:SharingLogScanPerformed = $true
-
     if ($quotaCount -gt 0) {
         Write-Host -ForegroundColor Red "Error: The sharing logs contain [$quotaCount] named property quota exceptions (MapiExceptionNamedPropsQuotaExceeded) in: $($quotaLogs -join ', '). Escalate to Microsoft Support."
         Add-SharingFinding -RuleId "SHR408" -Status Detected -Area "Sharing logs" -Evidence @{

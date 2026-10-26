@@ -398,7 +398,7 @@ function Get-SharingJsonRawData {
         $logLines = ConvertTo-SharingLogLines -Text $Text -ReferenceTimeUtc $referenceUtc
         [ordered]@{
             source                  = $Source
-            data                    = $(if ($null -eq $logLines) { $null } else { $logLines.Line })
+            data                    = $(if ($null -eq $logLines) { $null } else { , @($logLines.Line) })
             omittedOlderThanOneYear = $(if ($null -eq $logLines) { 0 } else { $logLines.OmittedOlderThanOneYear })
         }
     }
@@ -496,7 +496,7 @@ function Get-SharingJsonReportObject {
     $inconclusiveRules = @($jsonFindings | Where-Object -Property result -EQ "Inconclusive" | ForEach-Object { $_.ruleId })
     $overallResult = if ($failedRules.Count -gt 0) {
         "Fail"
-    } elseif ($inconclusiveRules.Count -gt 0) {
+    } elseif (($inconclusiveRules.Count -gt 0) -or ($collectionStatus -ne "Complete")) {
         "Inconclusive"
     } else {
         "Pass"

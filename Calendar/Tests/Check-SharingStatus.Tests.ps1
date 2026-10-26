@@ -813,6 +813,52 @@ Describe "Check-SharingStatus log exceptions and age filter" {
         }
     }
 
+    It -Name "does not pass exception checks when all logs are <Status>" -TestCases @(
+        @{ Status = "Missing" }
+        @{ Status = "NoData" }
+        @{ Status = "Failed" }
+        @{ Status = "NotCollected" }
+    ) {
+        param($Status)
+        $script:SharingLogScanPerformed = $true
+        if ($Status -ne "Missing") {
+            foreach ($logKey in @("receiver_SharingSyncAssistantLog", "receiver_SharingLog")) {
+                $script:SharingDiagnosticLogs[$logKey] = @{ status = $Status; data = $null }
+            }
+        }
+
+        Test-SharingLogExceptions
+        Complete-SharingFindings
+
+        $script:SharingLogScanPerformed | Should -BeFalse
+        foreach ($ruleId in @("SHR408", "SHR409", "SHR414")) {
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ $ruleId).status | Should -Be "NotEvaluated"
+        }
+        Should -Not -Invoke -CommandName Write-Host -ParameterFilter {
+            $Object -like "No exceptions were found*"
+        }
+    }
+
+    It -Name "completes an available exception scan after all <Source> entries were filtered by age" -TestCases @(
+        @{ Source = "owner invite" }
+        @{ Source = "receiver sharing" }
+    ) {
+        param($Source)
+        if ($Source -eq "owner invite") {
+            $script:OwnerInviteLogRaw = "01/01/2020 12:00:00, InvalidOperationException"
+        } else {
+            $script:SharingDiagnosticLogs["receiver_SharingLog"] = @{ status = "Collected"; data = @() }
+        }
+
+        Test-SharingLogExceptions
+        Complete-SharingFindings
+
+        $script:SharingLogScanPerformed | Should -BeTrue
+        foreach ($ruleId in @("SHR408", "SHR409", "SHR414")) {
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ $ruleId).status | Should -Be "NotDetected"
+        }
+    }
+
     It -Name "points tenant administrators to public XTAP guidance for failures in <Source>" -TestCases @(
         @{ Source = "Owner invite" }
         @{ Source = "Receiver accept" }
@@ -1217,6 +1263,42 @@ Describe "Check-SharingStatus JSON report" {
         $report.rawData.Contains("owner_SharingSyncAssistantLog") | Should -BeFalse
     }
 
+    It -Name "preserves full-log JSON arrays for <Shape> log data" -TestCases @(
+        @{ Shape = "single-line"; Count = 1; Omitted = 0 }
+        @{ Shape = "multiple-line"; Count = 2; Omitted = 0 }
+        @{ Shape = "age-filtered"; Count = 0; Omitted = 1 }
+        @{ Shape = "unavailable"; Count = 0; Omitted = 0 }
+    ) {
+        param($Shape, $Count, $Omitted)
+        $IncludeSensitiveData = $true
+        $stamp = (Get-Date).ToUniversalTime().ToString("MM/dd/yyyy HH:mm:ss", [System.Globalization.CultureInfo]::InvariantCulture)
+        $logText = switch ($Shape) {
+            "single-line" { "$stamp, current entry" }
+            "multiple-line" { "$stamp, first entry`r`n$stamp, second entry" }
+            "age-filtered" { "01/01/2020 12:00:00, old entry" }
+            "unavailable" { $null }
+        }
+        $script:OwnerInviteLogRaw = $logText
+        $script:ReceiverAcceptLogRaw = $logText
+        Complete-SharingFindings
+        $jsonPath = Join-Path -Path $TestDrive -ChildPath "Full-Logs.json"
+
+        Write-SharingJsonReport -Path $jsonPath
+
+        $written = Get-Content -Path $jsonPath -Raw | ConvertFrom-Json
+        foreach ($sectionName in @("owner_InviteLogFull", "receiver_AcceptLogFull")) {
+            $section = $written.rawData.$sectionName
+            if ($Shape -eq "unavailable") {
+                $section.data | Should -BeNullOrEmpty
+                ($null -eq $section.data) | Should -BeTrue
+            } else {
+                ($section.data -is [array]) | Should -BeTrue
+                $section.data.Count | Should -Be $Count
+            }
+            $section.omittedOlderThanOneYear | Should -Be $Omitted
+        }
+    }
+
     It "builds the report with metadata, collectors, all rules, and error lists" {
         Add-SharingFinding -RuleId "SHR301" -Status Detected -Area "Invite" -Evidence @{
             owner    = "owner@contoso.com"
@@ -1448,6 +1530,32 @@ Describe "Check-SharingStatus JSON report" {
         $report.summary.inconclusiveRules | Should -Contain "SHR220"
     }
 
+    It -Name "reports <Result> with a retained <ErrorKind> error and rule status <FindingStatus>" -TestCases @(
+        @{ ErrorKind = "evaluation"; FindingStatus = "NotDetected"; Result = "Inconclusive" }
+        @{ ErrorKind = "collection"; FindingStatus = "NotDetected"; Result = "Inconclusive" }
+        @{ ErrorKind = "evaluation"; FindingStatus = "Detected"; Result = "Fail" }
+        @{ ErrorKind = "collection"; FindingStatus = "Detected"; Result = "Fail" }
+    ) {
+        param($ErrorKind, $FindingStatus, $Result)
+        foreach ($rule in $script:SharingRuleCatalog) {
+            $status = if ($rule.RuleId -eq "SHR301") { $FindingStatus } else { "NotDetected" }
+            Add-SharingFinding -RuleId $rule.RuleId -Status $status
+        }
+        if ($ErrorKind -eq "evaluation") {
+            Invoke-SharingEvaluation -Name "Unscoped diagnostics" -Action { throw "Evaluation failed" }
+        } else {
+            { Invoke-SharingCollector -Name "OwnerMailbox" -Action { throw "Collection failed" } } | Should -Throw
+        }
+        Complete-SharingFindings
+
+        $report = Get-SharingJsonReportObject
+
+        $report.metadata.collectionStatus | Should -Be "Partial"
+        $report.summary.inconclusiveCount | Should -Be 0
+        $report.summary.overallResult | Should -Be $Result
+        (@($report.collectionErrors).Count + @($report.evaluationErrors).Count) | Should -Be 1
+    }
+
     It "writes the report by default and only skips it with SkipJsonOutput" {
         $entryScript = Get-Content -Path "$Script:parentPath\Check-SharingStatus.ps1" -Raw
         $entryScript | Should -Match '(?m)^\s*\[switch\]\$SkipJsonOutput'
@@ -1624,6 +1732,40 @@ Describe "Check-SharingStatus structured diagnostics" {
                 Should -Be "NotEvaluated"
             @($script:SharingFindings | Where-Object -Property status -EQ "Detected").Count |
                 Should -Be 0
+        }
+
+        It "completes and writes a report after an unscoped evaluation failure" {
+            Invoke-SharingEvaluation -Name "Owner diagnostics" -Action { throw "Malformed diagnostic evidence" }
+
+            $script:EvaluationErrors.Count | Should -Be 1
+            $script:EvaluationErrors[0].ruleIds.Count | Should -Be 0
+            { Complete-SharingFindings } | Should -Not -Throw
+            $jsonPath = Join-Path -Path $TestDrive -ChildPath "Evaluation-Failure.json"
+            Write-SharingJsonReport -Path $jsonPath
+
+            $written = Get-Content -Path $jsonPath -Raw | ConvertFrom-Json
+            @($written.evaluationErrors).Count | Should -Be 1
+            $written.evaluationErrors[0].evaluation | Should -Be "Owner diagnostics"
+            $written.metadata.collectionStatus | Should -Be "Partial"
+            $written.summary.overallResult | Should -Be "Inconclusive"
+        }
+
+        It -Name "ignores null rule IDs while retaining <Case> evaluation errors" -TestCases @(
+            @{ Case = "unscoped"; RuleIds = @($null); RetainedCount = 1 }
+            @{ Case = "applicable"; RuleIds = @($null, "SHR409"); RetainedCount = 1 }
+            @{ Case = "inapplicable"; RuleIds = @($null, "SHR405"); RetainedCount = 0 }
+        ) {
+            param($RuleIds, $RetainedCount)
+            $script:PublishedSharing = $true
+            $script:EvaluationErrors.Add([PSCustomObject]@{
+                    evaluation = "Diagnostics"
+                    error      = "Evaluation failed"
+                    ruleIds    = $RuleIds
+                })
+
+            { Complete-SharingFindings } | Should -Not -Throw
+
+            $script:EvaluationErrors.Count | Should -Be $RetainedCount
         }
 
         It "marks rules dependent on failed collectors as NotEvaluated" {
@@ -2299,6 +2441,27 @@ Describe "Check-SharingStatus structured diagnostics" {
     }
 
     Context "Duplicate-style calendar folder names" {
+        It -Name "preserves a duplicate-style folder array with <Count> matches" -TestCases @(
+            @{ Count = 0 }
+            @{ Count = 1 }
+            @{ Count = 2 }
+        ) {
+            param($Count)
+            $folderStatistics = @(
+                for ($index = 1; $index -le $Count; $index++) {
+                    [PSCustomObject]@{ Name = "Calendar ($index)"; FolderPath = "/Calendar ($index)" }
+                }
+            )
+
+            $matchingFolders = Get-DuplicateStyleCalendarFolders -FolderStatistics $folderStatistics
+
+            ($matchingFolders -is [array]) | Should -BeTrue
+            $matchingFolders.Count | Should -Be $Count
+            if ($Count -gt 0) {
+                $matchingFolders[0].Name | Should -Be "Calendar (1)"
+            }
+        }
+
         It "matches only terminal one- or two-digit numeric suffixes" {
             $folderStatistics = @(
                 [PSCustomObject]@{ Name = "Calendar (1)"; FolderPath = "/Calendar (1)" },
@@ -2810,6 +2973,38 @@ Describe "Check-SharingStatus structured diagnostics" {
     Context "Receiver matching and calendar entries" {
         BeforeEach {
             Initialize-ReceiverMocks
+        }
+
+        It -Name "only classifies a correlated New entry as Modern with confirmed internal organizations (<Case>)" -TestCases @(
+            @{ Case = "owner missing"; OwnerOrganization = $null; ReceiverOrganization = "OU1"; Modern = $false }
+            @{ Case = "receiver missing"; OwnerOrganization = "OU1"; ReceiverOrganization = $null; Modern = $false }
+            @{ Case = "both missing"; OwnerOrganization = $null; ReceiverOrganization = $null; Modern = $false }
+            @{ Case = "internal confirmed"; OwnerOrganization = "OU1"; ReceiverOrganization = "OU1"; Modern = $true }
+        ) {
+            param($OwnerOrganization, $ReceiverOrganization, $Modern)
+            $script:OwnerMB.OrganizationalUnitRoot = $OwnerOrganization
+            $Script:receiverMailbox.OrganizationalUnitRoot = $ReceiverOrganization
+            $Script:receiverStats[1].Name = "Renamed local calendar"
+            $Script:receiverStats[1].FolderPath = "/Renamed local calendar"
+            $Script:calendarEntries[0].CalendarName = "Renamed local calendar"
+            Mock Write-Host {}
+
+            GetReceiverInformation -Receiver "receiver@contoso.com"
+            Complete-SharingFindings
+
+            $script:ReceiverMatchedCalendar.Name | Should -Be "Renamed local calendar"
+            $script:ReceiverCalendarCandidates.Count | Should -Be 1
+            $script:ModernSharing | Should -Be $Modern
+            $report = Get-SharingJsonReportObject
+            if ($Modern) {
+                $report.sharing.sharingType | Should -Be "InternalSharing"
+                $report.sharing.sharingModel | Should -Be "Modern"
+                $report.sharing.relationshipKind | Should -Be "Internal: REST (New Model)"
+            } else {
+                $report.sharing.sharingType | Should -Be "Undetermined"
+                $report.sharing.sharingModel | Should -Be "Undetermined"
+                $report.sharing.relationshipKind | Should -Be "Undetermined"
+            }
         }
 
         It "reports a missing external local folder without requiring an internal New entry" {

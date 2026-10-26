@@ -92,7 +92,7 @@ function Get-DuplicateStyleCalendarFolders {
         [object[]]$FolderStatistics
     )
 
-    return @($FolderStatistics | Where-Object -FilterScript {
+    return , @($FolderStatistics | Where-Object -FilterScript {
             $folderName = if (-not [string]::IsNullOrWhiteSpace([string]$_.Name)) {
                 [string]$_.Name
             } else {
