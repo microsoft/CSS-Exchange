@@ -8,27 +8,6 @@ This script validates the calendar sharing relationship between an owner and a r
 
 The script is intended to establish whether the sharing relationship is configured correctly before investigating individual meeting synchronization.
 
-## Source layout
-
-The development entry script contains parameters, run initialization, the rule catalog, and diagnostic orchestration. Diagnostic functions are organized by responsibility:
-
-| Source | Responsibility |
-| --- | --- |
-| `Calendar/Helpers/SharingCollectionUtilities.ps1` | Collector execution and evaluation error handling. |
-| `Calendar/Helpers/SharingEvidenceUtilities.ps1` | Evidence conversion, error redaction, and identity sanitization. |
-| `Calendar/Helpers/SharingFindings.ps1` | Finding registration and final status classification. |
-| `Calendar/Helpers/SharingPrerequisites.ps1` | Mailbox and selected owner-calendar prerequisites. |
-| `Calendar/Helpers/SharingLogParsers.ps1` | Sharing invite, accept, and InternetCalendar log parsing. |
-| `Calendar/Helpers/SharingOwnerDiagnostics.ps1` | Owner permissions, flags, and active-sharing information. |
-| `Calendar/Helpers/SharingReceiverDiagnostics.ps1` | Receiver folder matching, sharing-model classification, and synchronization diagnostics. This cohesive routine is the exception to the roughly 500-line source-file target. |
-| `Calendar/Helpers/SharingRelationshipChecks.ps1` | Calendar statistics comparison and explicit receiver delegate checks. |
-| `Calendar/Helpers/SharingDiagnosticLogs.ps1` | Diagnostic log collection, freshness, and exception detection. |
-| `Calendar/Helpers/SharingPathUtilities.ps1` and `SharingIdentityUtilities.ps1` | Shared path, folder, flag, and permission identity utilities. |
-| `Calendar/Writers/Write-SharingSummary.ps1` | Console summary of findings and incomplete checks. |
-| `Calendar/Writers/Write-SharingResults.ps1` | Permission summaries and JSON report serialization. |
-
-Permission identity, error normalization, log timestamp parsing, and JSON file writing use the same `Calendar/CalendarHelpers/CalendarDiagnosticHelpers.ps1` infrastructure as RBA diagnostics, and the Exchange Online connection check uses `Calendar/CalendarHelpers/Test-CalendarExoConnection.ps1`. Sharing-specific error redaction, finding schemas, and collection failure behavior remain unchanged. The release build embeds the dependencies into the standalone script; users do not need to download the helper files separately.
-
 ## Terminology
 
 - **Owner** - The mailbox that owns and shares the calendar.
@@ -57,6 +36,25 @@ Cmdlet availability and access to diagnostic properties depend on the session an
 A mailbox lookup or selected-owner-calendar prerequisite failure stops dependent diagnostics and produces a **Fatal prerequisite failure** summary. Redacted owner or receiver mailbox names also cause a fatal stop.
 
 After those prerequisites succeed, unavailable evidence generally appears under **Incomplete Checks**. Receiver folder-name redaction is a specific exception: it produces a nonfatal **Detected `SHR201`** warning, while checks that depend on readable folder names can remain incomplete. This warning identifies an access limitation, not proof that calendar sharing is broken.
+
+## Cmdlet List
+
+The script uses the following Exchange cmdlets. These queries do not change mailbox settings; local PowerShell commands used for processing and writing the report are not listed. Calls depend on successful prerequisites, cmdlet availability, and the sharing relationship being investigated.
+
+| Cmdlet | Runs against | Why |
+| --- | --- | --- |
+| `Get-ConnectionInformation` | Current Exchange Online PowerShell session, when available | Checks for an active connection and identifies the endpoint before collecting mailbox data. |
+| `Get-Mailbox` | Owner and Receiver | Validates both mailboxes and retrieves identity and organization information used to correlate the sharing relationship. |
+| `Get-MailboxFolderStatistics` | Owner and Receiver, with `-FolderScope Calendar` | Finds the selected owner calendar and the receiver's corresponding local folder. Supplies folder names, item counts, and timestamps for duplicate-folder and synchronization checks. |
+| `Get-MailboxCalendarFolder` | Selected Owner calendar and matched Receiver local calendar, when present | Reads sharing, publishing, and synchronization properties to classify the relationship and check folder flags and sync times. |
+| `Get-MailboxFolderPermission` | Selected Owner calendar | Reads calendar access rights and sharing permission flags to check the Receiver's permissions and explicit delegation. |
+| `Get-MailboxPermission` | Owner mailbox | Reads mailbox-level permissions, including FullAccess, for permission context. Mailbox access does not replace the Receiver's required calendar delegate permission. |
+| `Get-CalendarActiveSharingInformation` | Selected Owner calendar, when available | Retrieves active sharing relationships and flags to check whether the Receiver is an active sharee and whether permissions agree. |
+| `Get-CalendarEntries` | Receiver mailbox, when available and applicable | Retrieves New and Old sharing-model entries to distinguish internal Modern Sharing from legacy MAPI and identify orphaned entries. |
+| `Export-MailboxDiagnosticLogs` (`CalendarSharingInvite`) | Owner mailbox | Collects sent sharing invitations to correlate the Receiver, build the sharing timeline, and detect logged failures. |
+| `Export-MailboxDiagnosticLogs` (`AcceptCalendarSharingInvite`) | Receiver mailbox | Collects sharing acceptance events to correlate the Owner and selected calendar and identify acceptance failures. |
+| `Export-MailboxDiagnosticLogs` (`InternetCalendar`) | Receiver mailbox, when investigating publishing | Collects subscription evidence to correlate a published calendar with the Receiver's local subscription. |
+| `Export-MailboxDiagnosticLogs` (`SharingSyncAssistant`, `Sharing`) | Receiver mailbox only | Collects synchronization activity to check log freshness and detect exceptions or other failures. The Owner's logs for these components are not collected. |
 
 ## Usage
 
