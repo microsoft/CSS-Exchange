@@ -209,10 +209,10 @@ function Get-XtapCommandScript {
                 '        Write-Verbose "No existing partner policy for $PartnerTenantId."',
                 '    }',
                 '    if ($null -eq $existing) {',
-                '        New-MgPolicyCrossTenantAccessPolicyPartner -BodyParameter @{ tenantId = $PartnerTenantId; m365CollaborationInbound = $inbound } | Out-Null',
+                '        New-MgPolicyCrossTenantAccessPolicyPartner -BodyParameter @{ tenantId = $PartnerTenantId; m365CollaborationInbound = $inbound } -ErrorAction Stop | Out-Null',
                 '        Write-Host "Created the Microsoft 365 Collaboration trust for $PartnerTenantId."',
                 '    } elseif ($null -eq $existing.AdditionalProperties.m365CollaborationInbound) {',
-                '        Update-MgPolicyCrossTenantAccessPolicyPartner -CrossTenantAccessPolicyConfigurationPartnerTenantId $PartnerTenantId -BodyParameter @{ m365CollaborationInbound = $inbound } | Out-Null',
+                '        Update-MgPolicyCrossTenantAccessPolicyPartner -CrossTenantAccessPolicyConfigurationPartnerTenantId $PartnerTenantId -BodyParameter @{ m365CollaborationInbound = $inbound } -ErrorAction Stop | Out-Null',
                 '        Write-Host "Enabled the Microsoft 365 Collaboration trust for $PartnerTenantId."',
                 '    } else {',
                 '        Write-Warning "A Microsoft 365 Collaboration trust already exists for $PartnerTenantId. It was left unchanged. Confirm it allows the users you expect."',
@@ -239,7 +239,7 @@ function Get-XtapCommandScript {
                 '        }',
                 '        Write-Host "Created $Capability for $target."',
                 '    } catch {',
-                '        Write-Warning "Failed to create $Capability for $($target): $($_.Exception.Message)"',
+                '        throw "Failed to create $Capability for $($target): $($_.Exception.Message)"',
                 '    }',
                 '}',
                 '') ) {
@@ -318,7 +318,7 @@ function Get-XtapCommandScript {
                 '',
                 'function Restore-XtapAvailabilityAddressSpace {',
                 '    param([string]$Path, [string]$Organization)',
-                '    Get-Content -LiteralPath $Path -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop | ForEach-Object {',
+                '    Get-Content -LiteralPath $Path -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop | ForEach-Object {',
                 '      foreach ($addressSpace in $_) {',
                 '        $p = @{ ForestName = $addressSpace.ForestName; AccessMethod = $addressSpace.AccessMethod }',
                 '        foreach ($n in ''ProxyUrl'', ''TargetAutodiscoverEpr'', ''TargetServiceEpr'', ''TargetTenantId'') {',
@@ -379,8 +379,8 @@ function Get-XtapCommandScript {
             $rollbackLines.Add("# Availability Address Spaces")
             foreach ($row in $aasRows) {
                 $safeName = ConvertTo-CalendarDiagnosticFileNameStem -Value $row.ForestName
-                $backupPath = ".\AvailabilityAddressSpaceBackup_$safeName.json"
-                $backupLiteral = ConvertTo-XtapLiteral -Value $backupPath
+                $backupName = "AvailabilityAddressSpaceBackup_$safeName.json"
+                $backupLiteral = "(Join-Path -Path `$PSScriptRoot -ChildPath $(ConvertTo-XtapLiteral -Value $backupName))"
                 $testLines.Add("`$backup = @(Get-AvailabilityAddressSpace -Identity $(ConvertTo-XtapLiteral -Value $row.ForestName)$orgArg -ErrorAction Stop | ForEach-Object {")
                 $testLines.Add('    $item = [ordered]@{}')
                 $testLines.Add('    foreach ($name in @("ForestName", "AccessMethod", "ProxyUrl", "TargetAutodiscoverEpr", "TargetServiceEpr", "TargetTenantId")) { $item[$name] = [string]$_.$name }')
@@ -398,6 +398,9 @@ function Get-XtapCommandScript {
                 $nameLiteral = ConvertTo-XtapLiteral -Value $name
                 $testLines.Add("Set-SharingPolicy -Identity $nameLiteral -Enabled `$false$orgArg")
                 $rollbackLines.Add("Set-SharingPolicy -Identity $nameLiteral -Enabled `$true$orgArg")
+                $cleanupLines.Add("# Keep Sharing Policy '$(ConvertTo-XtapComment -Value $name)' disabled until all mailbox assignments have been removed or reassigned.")
+                $cleanupLines.Add("# If this is the default Sharing Policy, select a replacement default policy before removal. Verify the replacement preserves the intended sharing restrictions.")
+                $cleanupLines.Add("# Only remove this policy after confirming no mailboxes remain assigned to it and it is no longer the default.")
                 $cleanupLines.Add("# Remove-SharingPolicy -Identity $nameLiteral -Confirm:`$true$orgArg")
             }
         }

@@ -641,6 +641,129 @@ Describe "Get-XtapCommandScript" {
         @(& ([ScriptBlock]::Create($cleanup))).Count | Should -Be 0
     }
 
+    It "Explains assignment and default-policy prerequisites before removing a Sharing Policy" {
+        $cleanup = $Script:scripts["XTAP_Part4_Cleanup.ps1"]
+
+        $cleanup | Should -Match "Keep Sharing Policy 'Default' disabled until all mailbox assignments have been removed or reassigned"
+        $cleanup | Should -Match "default Sharing Policy, select a replacement default policy before removal"
+        $cleanup | Should -Match "no mailboxes remain assigned to it and it is no longer the default"
+        $cleanup.IndexOf("all mailbox assignments") | Should -BeLessThan $cleanup.IndexOf("# Remove-SharingPolicy")
+    }
+
+    Describe "Generated Graph commands" {
+        BeforeAll {
+            function Connect-MgGraph { [CmdletBinding()] param($Scopes, $TenantId, $ContextScope) }
+            function Get-MgPolicyCrossTenantAccessPolicyPartner { [CmdletBinding()] param($CrossTenantAccessPolicyConfigurationPartnerTenantId) }
+            function New-MgPolicyCrossTenantAccessPolicyPartner {
+                [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "", Justification = "Mocked Graph cmdlet used to test generated scripts.")]
+                [CmdletBinding()]
+                param($BodyParameter)
+            }
+            function Update-MgPolicyCrossTenantAccessPolicyPartner {
+                [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "", Justification = "Mocked Graph cmdlet used to test generated scripts.")]
+                [CmdletBinding()]
+                param($CrossTenantAccessPolicyConfigurationPartnerTenantId, $BodyParameter)
+            }
+            function New-MgPolicyCrossTenantAccessPolicyPartnerM365Capability {
+                [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "", Justification = "Mocked Graph cmdlet used to test generated scripts.")]
+                [CmdletBinding()]
+                param($CrossTenantAccessPolicyConfigurationPartnerTenantId, $BodyParameter)
+            }
+            function New-MgPolicyCrossTenantAccessPolicyDefaultM365Capability {
+                [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "", Justification = "Mocked Graph cmdlet used to test generated scripts.")]
+                [CmdletBinding()]
+                param($BodyParameter)
+            }
+
+            $ast = [System.Management.Automation.Language.Parser]::ParseInput($Script:scripts["XTAP_Part2_CreatePolicies.ps1"], [ref]$null, [ref]$null)
+            $helpers = $ast.FindAll({
+                    param($node)
+                    $node -is [System.Management.Automation.Language.FunctionDefinitionAst]
+                }, $true)
+            foreach ($helper in $helpers) {
+                . ([ScriptBlock]::Create($helper.Extent.Text))
+            }
+        }
+
+        BeforeEach {
+            Mock Connect-MgGraph {}
+            Mock Get-MgPolicyCrossTenantAccessPolicyPartner { $null }
+            Mock New-MgPolicyCrossTenantAccessPolicyPartner {}
+            Mock Update-MgPolicyCrossTenantAccessPolicyPartner {}
+            Mock New-MgPolicyCrossTenantAccessPolicyPartnerM365Capability {}
+            Mock New-MgPolicyCrossTenantAccessPolicyDefaultM365Capability {}
+            $Script:trustMessage = ""
+            Mock Write-Host { $Script:trustMessage = "$Object" }
+        }
+
+        It "Stops the generated Part 2 script when a <Target> capability fails" -TestCases @(
+            @{ Target = "Partner" }
+            @{ Target = "Default" }
+        ) {
+            param($Target)
+            Mock New-MgPolicyCrossTenantAccessPolicyPartnerM365Capability { throw "Capability creation failed" }
+            Mock New-MgPolicyCrossTenantAccessPolicyDefaultM365Capability { throw "Capability creation failed" }
+            $generated = if ($Target -eq "Partner") {
+                Get-XtapCommandScript -OrganizationRelationshipAnalysis $Script:orgAnalysis
+            } else {
+                Get-XtapCommandScript -SharingPolicyAnalysis $Script:sharingAnalysis
+            }
+            $text = $generated["XTAP_Part2_CreatePolicies.ps1"].Replace("<SecurityGroupObjectId for Sharing Policy Default>", $Script:TenantA)
+            $path = Join-Path -Path $TestDrive -ChildPath "Part2_$Target.ps1"
+            Write-XtapTextFile -Path $path -Text ($text + "`r`nWrite-Host 'Must not continue'")
+
+            { & $path } | Should -Throw -ExpectedMessage "*Failed to create*Capability creation failed*"
+
+            Should -Invoke -CommandName Write-Host -Times 0 -Exactly -ParameterFilter { $Object -eq "Must not continue" }
+        }
+
+        It "Creates a <Target> capability successfully" -TestCases @(
+            @{ Target = "Partner" }
+            @{ Target = "Default" }
+        ) {
+            param($Target)
+            $parameters = @{ Capability = "crossTenantCalendarAvailabilityBasic"; ResourceType = "user"; ResourceId = "All"; ODataPrefix = "microsoft.graph." }
+            if ($Target -eq "Partner") { $parameters.PartnerTenantId = $Script:TenantA }
+
+            Add-XtapCapability @parameters
+
+            $commandName = "New-MgPolicyCrossTenantAccessPolicy${Target}M365Capability"
+            Should -Invoke -CommandName $commandName -Times 1 -Exactly -ParameterFilter { $ErrorAction -eq "Stop" }
+            Should -Invoke -CommandName Write-Host -Times 1 -Exactly -ParameterFilter { $Object -like "Created crossTenantCalendarAvailabilityBasic for *" }
+        }
+
+        It "Stops without reporting success when trust <Operation> raises a non-terminating error" -TestCases @(
+            @{ Operation = "creation"; Existing = $null }
+            @{ Operation = "update"; Existing = [PSCustomObject]@{ AdditionalProperties = @{} } }
+        ) {
+            param($Operation, $Existing)
+            $Script:existingPartner = $Existing
+            Mock Get-MgPolicyCrossTenantAccessPolicyPartner { $Script:existingPartner }
+            Mock New-MgPolicyCrossTenantAccessPolicyPartner { Write-Error -Message "Trust write failed" }
+            Mock Update-MgPolicyCrossTenantAccessPolicyPartner { Write-Error -Message "Trust write failed" }
+
+            { Set-XtapPartnerTrust -PartnerTenantId $Script:TenantA } | Should -Throw -ExpectedMessage "*Trust write failed*"
+
+            Should -Invoke -CommandName Write-Host -Times 0 -Exactly
+            $commandName = if ($Operation -eq "creation") { "New-MgPolicyCrossTenantAccessPolicyPartner" } else { "Update-MgPolicyCrossTenantAccessPolicyPartner" }
+            Should -Invoke -CommandName $commandName -Times 1 -Exactly -ParameterFilter { $ErrorAction -eq "Stop" }
+        }
+
+        It "Reports success after trust <Operation> succeeds" -TestCases @(
+            @{ Operation = "creation"; Existing = $null; Message = "Created" }
+            @{ Operation = "update"; Existing = [PSCustomObject]@{ AdditionalProperties = @{} }; Message = "Enabled" }
+        ) {
+            param($Operation, $Existing, $Message)
+            $Script:existingPartner = $Existing
+            Mock Get-MgPolicyCrossTenantAccessPolicyPartner { $Script:existingPartner }
+
+            Set-XtapPartnerTrust -PartnerTenantId $Script:TenantA
+
+            Should -Invoke -CommandName Write-Host -Times 1 -Exactly
+            $Script:trustMessage | Should -Be "$Message the Microsoft 365 Collaboration trust for $($Script:TenantA)."
+        }
+    }
+
     It "Includes the run label and timestamp in generated headers" {
         foreach ($name in $Script:scripts.Keys) {
             $Script:scripts[$name] | Should -Match "for run 'BeforeMigration' on \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}"
@@ -738,6 +861,60 @@ Describe "Get-XtapSharingConfiguration" {
 }
 
 Describe "Report helpers" {
+    It "Lists only generated scripts in next steps for <Scenario>" -TestCases @(
+        @{ Scenario = "ineligible"; Expected = @() }
+        @{ Scenario = "address space only"; Expected = @("XTAP_Part2_CreatePolicies.ps1", "XTAP_Part3_DisableForTesting.ps1", "XTAP_Part3_Rollback.ps1") }
+        @{ Scenario = "mixed policy"; Expected = @("XTAP_Part2_CreatePolicies.ps1") }
+        @{ Scenario = "all scripts"; Expected = @("XTAP_Part2_CreatePolicies.ps1", "XTAP_Part3_DisableForTesting.ps1", "XTAP_Part3_Rollback.ps1", "XTAP_Part4_Cleanup.ps1") }
+    ) {
+        param($Scenario, $Expected)
+        $policy = [PSCustomObject]@{ Name = "Test"; Enabled = $true; Default = $true; Domains = @("*:CalendarSharingFreeBusySimple") }
+        $generated = switch ($Scenario) {
+            "ineligible" {
+                $policy.Domains = @("*:ContactsSharing")
+                Get-XtapCommandScript -SharingPolicyAnalysis @(Get-XtapSharingPolicyAnalysis -SharingPolicy $policy)
+            }
+            "address space only" {
+                $space = [PSCustomObject]@{ ForestName = "partner.com"; AccessMethod = "OrgWideFBToken"; TargetTenantId = $Script:TenantA }
+                Get-XtapCommandScript -AvailabilityAddressSpaceAnalysis @(Get-XtapAvailabilityAddressSpaceAnalysis -AvailabilityAddressSpace $space)
+            }
+            "mixed policy" {
+                $policy.Domains = @("*:CalendarSharingFreeBusySimple,ContactsSharing")
+                Get-XtapCommandScript -SharingPolicyAnalysis @(Get-XtapSharingPolicyAnalysis -SharingPolicy $policy)
+            }
+            "all scripts" {
+                Get-XtapCommandScript -SharingPolicyAnalysis @(Get-XtapSharingPolicyAnalysis -SharingPolicy $policy)
+            }
+        }
+        @($generated.Keys) | Should -Be $Expected
+        $files = @("Data.json", "Summary.txt") + @($generated.Keys)
+
+        $text = (Get-XtapSummaryLines -RunName "Test" -Mode "Offline" -GeneratedFile $files -ScriptsGenerated) -join "`n"
+
+        foreach ($name in @("XTAP_Part2_CreatePolicies.ps1", "XTAP_Part3_DisableForTesting.ps1", "XTAP_Part3_Rollback.ps1", "XTAP_Part4_Cleanup.ps1")) {
+            if ($name -in $Expected) {
+                $text | Should -Match ([regex]::Escape($name))
+            } else {
+                $text | Should -Not -Match ([regex]::Escape($name))
+            }
+        }
+        if ($Scenario -eq "ineligible") {
+            $text | Should -Match "No command scripts were generated"
+        } elseif ($Scenario -eq "mixed policy") {
+            $text | Should -Match "Automatic disable commands are unavailable"
+            $text | Should -Match "Automatic rollback commands are unavailable"
+            $text | Should -Match "Preserve unsupported legacy functionality"
+        }
+    }
+
+    It "Explains how to request scripts for an assessment-only run" {
+        $text = (Get-XtapSummaryLines -RunName "Test" -Mode "Offline" -GeneratedFile @("Data.json", "Summary.txt")) -join "`n"
+
+        $text | Should -Match "assessment only"
+        $text | Should -Match "run again with -GenerateCommandScripts"
+        $text | Should -Not -Match "XTAP_Part\d.*\.ps1"
+    }
+
     It "Summarizes preservation warnings and disabled potential capabilities" {
         $analysis = @(Get-XtapOrganizationRelationshipAnalysis -OrganizationRelationship @(
                 (Get-TestRelationship -Name "Preserved" -AdditionalFeature "Photos"),
@@ -852,6 +1029,34 @@ Describe "CrossTenantAccessPolicyCalendarValidation JSON replay" {
         foreach ($file in $Script:run.GeneratedFiles) {
             Test-Path -LiteralPath (Join-Path -Path $Script:run.ResultsPath -ChildPath $file) | Should -BeTrue -Because $file
         }
+    }
+
+    It "Reads BOM-less bundles as UTF-8 and preserves non-ASCII identities in generated commands" {
+        $bundle = $Script:bundle | ConvertTo-Json -Depth 20 | ConvertFrom-Json
+        $name = "Calendar " + [char]0x00E9 + " " + [char]0x65E5
+        $bundle.Configuration.OrganizationRelationship[0].Name = $name
+        $bundle.Configuration.SharingPolicy[0].Name = $name
+        $path = Join-Path -Path $TestDrive -ChildPath "names.json"
+        $Script:bundlePath = $path
+        Write-CalendarDiagnosticJsonFile -InputObject $bundle -Path $path
+        $bytes = [System.IO.File]::ReadAllBytes($path)
+        $bytes[0..2] | Should -Not -Be @(0xEF, 0xBB, 0xBF)
+        $readContentCommand = Get-Command -Name Get-Content -CommandType Cmdlet
+        Mock Get-Content { & $readContentCommand -LiteralPath $LiteralPath -Raw -Encoding $Encoding }
+
+        $configuration = Get-XtapSharingConfiguration -ImportData $path 6>$null
+
+        Should -Invoke -CommandName Get-Content -Times 1 -Exactly -ParameterFilter {
+            $LiteralPath -eq $Script:bundlePath -and
+            ($Encoding -eq "UTF8" -or ($Encoding -is [System.Text.Encoding] -and $Encoding.WebName -eq "utf-8"))
+        }
+        $configuration.OrganizationRelationship[0].Name | Should -Be $name
+        $configuration.SharingPolicy[0].Name | Should -Be $name
+        $relationships = @(Get-XtapOrganizationRelationshipAnalysis -OrganizationRelationship $configuration.OrganizationRelationship)
+        $sharing = @(Get-XtapSharingPolicyAnalysis -SharingPolicy $configuration.SharingPolicy)
+        $generated = Get-XtapCommandScript -OrganizationRelationshipAnalysis $relationships -SharingPolicyAnalysis $sharing
+        $generated["XTAP_Part3_DisableForTesting.ps1"] | Should -Match ([regex]::Escape("-Identity '$name'"))
+        $generated["XTAP_Part2_CreatePolicies.ps1"] | Should -Match ([regex]::Escape("Sharing Policy '$name'"))
     }
 
     It "Writes all output with a relative OutputPath after changing location" {
@@ -1308,7 +1513,7 @@ Describe "JSON collection normalization and live replay" {
         $data.Errors.message | Should -Not -Contain "Error from a previous run"
     }
 
-    It "Generates JSON backup and rollback scripts that parse and restore the address space" {
+    It "Keeps saved-script backups beside each assessment and restores them from another working directory" {
         $space = [PSCustomObject]@{ Name = "partner.com"; ForestName = "partner.com"; AccessMethod = "OrgWideFBToken"; TargetTenantId = $Script:TenantA }
         $analysis = @(Get-XtapAvailabilityAddressSpaceAnalysis -AvailabilityAddressSpace $space)
         $scripts = Get-XtapCommandScript -AvailabilityAddressSpaceAnalysis $analysis
@@ -1327,14 +1532,37 @@ Describe "JSON collection normalization and live replay" {
         Mock Get-AvailabilityAddressSpace { $space }
         Mock Remove-AvailabilityAddressSpace {}
         Mock Add-AvailabilityAddressSpace {}
-        Push-Location -Path $TestDrive
+        $firstPath = Join-Path -Path $TestDrive -ChildPath "first assessment"
+        $secondPath = Join-Path -Path $TestDrive -ChildPath "second assessment"
+        $workingPath = Join-Path -Path $TestDrive -ChildPath "unrelated working folder"
+        New-Item -Path $firstPath, $secondPath, $workingPath -ItemType Directory | Out-Null
+        foreach ($folder in @($firstPath, $secondPath)) {
+            foreach ($name in $scripts.Keys) {
+                Write-XtapTextFile -Path (Join-Path -Path $folder -ChildPath $name) -Text $scripts[$name]
+            }
+        }
+        Push-Location -Path $workingPath
         try {
-            & ([ScriptBlock]::Create($scripts["XTAP_Part3_DisableForTesting.ps1"]))
-            Test-Path -LiteralPath ".\AvailabilityAddressSpaceBackup_partner.com.json" | Should -BeTrue
-            & ([ScriptBlock]::Create($scripts["XTAP_Part3_Rollback.ps1"]))
+            & (Join-Path -Path $firstPath -ChildPath "XTAP_Part3_DisableForTesting.ps1")
+            $firstBackup = Join-Path -Path $firstPath -ChildPath "AvailabilityAddressSpaceBackup_partner.com.json"
+            Test-Path -LiteralPath $firstBackup | Should -BeTrue
+            Test-Path -LiteralPath ".\AvailabilityAddressSpaceBackup_partner.com.json" | Should -BeFalse
+            $firstText = Get-Content -LiteralPath $firstBackup -Raw -Encoding UTF8
+            $otherSpace = [PSCustomObject]@{ ForestName = "partner.com"; AccessMethod = "OrgWideFBToken"; TargetTenantId = $Script:TenantB }
+            Mock Get-AvailabilityAddressSpace { $otherSpace }
+            & (Join-Path -Path $secondPath -ChildPath "XTAP_Part3_DisableForTesting.ps1")
+            Get-Content -LiteralPath $firstBackup -Raw -Encoding UTF8 | Should -Be $firstText
+            Test-Path -LiteralPath (Join-Path -Path $secondPath -ChildPath "AvailabilityAddressSpaceBackup_partner.com.json") | Should -BeTrue
+
+            & (Join-Path -Path $firstPath -ChildPath "XTAP_Part3_Rollback.ps1")
             Should -Invoke -CommandName Add-AvailabilityAddressSpace -Times 1 -Exactly -ParameterFilter {
                 $ForestName -eq "partner.com" -and $AccessMethod -eq "OrgWideFBToken" -and $TargetTenantId -eq $Script:TenantA
             }
+            & (Join-Path -Path $secondPath -ChildPath "XTAP_Part3_Rollback.ps1")
+            Should -Invoke -CommandName Add-AvailabilityAddressSpace -Times 1 -Exactly -ParameterFilter {
+                $ForestName -eq "partner.com" -and $AccessMethod -eq "OrgWideFBToken" -and $TargetTenantId -eq $Script:TenantB
+            }
+            Should -Invoke -CommandName Remove-AvailabilityAddressSpace -Times 2 -Exactly
         } finally {
             Pop-Location
         }

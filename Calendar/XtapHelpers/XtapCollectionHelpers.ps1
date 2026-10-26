@@ -99,7 +99,7 @@ function Get-XtapSharingConfiguration {
         }
     } else {
         Write-Host "Importing collected JSON data..."
-        $data = Get-Content -LiteralPath $ImportData -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+        $data = Get-Content -LiteralPath $ImportData -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
         if ($null -eq $data -or $data.SchemaVersion -ne 1 -or
             $data.Metadata.ScriptName -ne "CrossTenantAccessPolicyCalendarValidation") {
             throw "ImportData must be a version 1 CrossTenantAccessPolicyCalendarValidation JSON bundle."

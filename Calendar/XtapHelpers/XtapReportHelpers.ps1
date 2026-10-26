@@ -294,10 +294,32 @@ function Get-XtapSummaryLines {
     $lines.Add("Next steps")
     $lines.Add("----------")
     $lines.Add("1. Review the analysis in the JSON bundle and this summary.")
-    if ($ScriptsGenerated) {
-        $lines.Add("2. Replace any <placeholder> in XTAP_Part2_CreatePolicies.ps1, then run it. Creating the trust needs Global Administrator.")
-        $lines.Add("3. Coordinate with the external organizations, then run XTAP_Part3_DisableForTesting.ps1 and test. XTAP_Part3_Rollback.ps1 undoes it.")
-        $lines.Add("4. When both sides confirm it works, review XTAP_Part4_Cleanup.ps1. Its configuration-changing commands are commented out; deliberately uncomment the required commands or copy and run them individually. Deletion is permanent.")
+    $hasCreateScript = "XTAP_Part2_CreatePolicies.ps1" -in $GeneratedFile
+    $hasTestScript = "XTAP_Part3_DisableForTesting.ps1" -in $GeneratedFile
+    $hasRollbackScript = "XTAP_Part3_Rollback.ps1" -in $GeneratedFile
+    $hasCleanupScript = "XTAP_Part4_Cleanup.ps1" -in $GeneratedFile
+    $nextStep = 2
+    if ($hasCreateScript -or $hasTestScript -or $hasRollbackScript -or $hasCleanupScript) {
+        if ($hasCreateScript) {
+            $lines.Add("$nextStep. Replace any <placeholder> in XTAP_Part2_CreatePolicies.ps1, then run it. Creating the trust needs Global Administrator. Stop if any command fails; do not disable legacy sharing until replacement policies are confirmed.")
+            $nextStep++
+        }
+        if ($hasTestScript) {
+            $lines.Add("$nextStep. After confirming Part 2 succeeded, coordinate with the external organizations, then run XTAP_Part3_DisableForTesting.ps1 and test.")
+            $nextStep++
+        } else {
+            $lines.Add("Automatic disable commands are unavailable for this assessment. Preserve unsupported legacy functionality and plan manual testing before changing the existing configuration.")
+        }
+        if ($hasRollbackScript) {
+            $lines.Add("XTAP_Part3_Rollback.ps1 restores the configuration changed during testing. Keep it together with any Availability Address Space backups.")
+        } else {
+            $lines.Add("Automatic rollback commands are unavailable for this assessment. Plan a manual rollback before changing the existing configuration.")
+        }
+        if ($hasCleanupScript) {
+            $lines.Add("$nextStep. When both sides confirm it works, review XTAP_Part4_Cleanup.ps1. Its configuration-changing commands are commented out; deliberately uncomment the required commands or copy and run them individually. Deletion is permanent.")
+        }
+    } elseif ($ScriptsGenerated) {
+        $lines.Add("2. No command scripts were generated. Review eligibility and mailbox assignments in the analysis; keep the existing configuration until migration prerequisites are satisfied.")
     } else {
         $lines.Add("2. This was an assessment only and no command scripts were created. To get the cmdlets for the eligible items, run again with -GenerateCommandScripts (add -ProcessUsers to count the mailboxes for each Sharing Policy).")
     }

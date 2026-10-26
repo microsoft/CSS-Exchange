@@ -65,7 +65,7 @@ For automation, read the saved JSON bundle:
 
 ```PowerShell
 # Replace the example timestamp with your results folder
-$data = Get-Content -LiteralPath '.\BeforeMigration_XTAP_Calendar_20261021_14.27.42\BeforeMigration_CrossTenantAccessPolicyCalendarValidation_Data.json' -Raw | ConvertFrom-Json
+$data = Get-Content -LiteralPath '.\BeforeMigration_XTAP_Calendar_20261021_14.27.42\BeforeMigration_CrossTenantAccessPolicyCalendarValidation_Data.json' -Raw -Encoding UTF8 | ConvertFrom-Json
 $data.Analysis.OrganizationRelationship
 ```
 
@@ -90,6 +90,14 @@ Empty configuration and analysis collections remain JSON arrays. SharingPolicyAs
 collected, and an empty array when collection succeeded with no mailboxes. Exchange-specific values such as domains,
 sharing rules, enums, directory identities, and URIs are stored as plain strings; booleans and numbers retain their types.
 No XML or CSV data files are created. Existing CLIXML collections are not accepted by ImportData.
+JSON bundles are read as UTF-8, including in Windows PowerShell 5.1, so non-ASCII names survive replay.
+
+Next steps list only the command scripts actually generated. An assessment with no eligible, used configuration
+can produce no command scripts. Availability Address Space-only assessments do not need a cleanup script.
+Policies containing both calendar sharing and unsupported rules can produce Part 2 without automatic testing or
+rollback scripts; preserve the unsupported functionality and plan manual testing and rollback before changing them.
+Availability Address Space backups are saved beside the generated testing and rollback scripts, regardless of the
+working directory. Keep those scripts and backups together in their assessment folder.
 
 `Summary` immediately follows `SchemaVersion`. `Metadata.CommandLine` records the script path and resolved bound
 parameter values, including explicit switch values; `Metadata.InvocationLine` preserves the original invocation text
@@ -154,9 +162,14 @@ error details. Review them before sharing outside your organization.
 - XTAP is inbound; bidirectional sharing requires complementary external policies.
 - Existing relationships, address spaces, and sharing policies take precedence and must be disabled to test XTAP.
 - Generated scripts contain guarded placeholders for unknown tenant IDs or security groups. Replace them before running.
+- Part 2 stops on trust creation, trust update, or capability creation failures. Resolve the error and confirm
+  replacement policies are working before running Part 3 or disabling any legacy sharing.
 - All Step 4 changes, including deletion and sharing-setting changes, are commented out until you deliberately enable them.
   Deletion is permanent. Retain the collected JSON bundle, Part 3 rollback script, and backups; Part 3 rollback does not
   recreate Organization Relationships or Sharing Policies deleted during Step 4.
+- Keep migrated Sharing Policies disabled until their mailbox assignments have been removed or reassigned.
+  Before removing a default Sharing Policy, select an appropriate replacement default and verify its sharing
+  restrictions. Disabling a policy does not clear its assignments or make it ready for removal.
 - Microsoft Graph cmdlet names can change; confirm them against the linked migration documentation.
 
 ## Additional assessment details
