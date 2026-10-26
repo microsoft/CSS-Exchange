@@ -220,8 +220,9 @@ function Complete-SharingFindings {
         }
     }
     $relevantEvaluationErrors = @($script:EvaluationErrors | Where-Object {
-            ($_.ruleIds.Count -eq 0) -or
-            @($_.ruleIds | Where-Object { $null -eq (Get-SharingRuleNotApplicableReason -RuleId $_) }).Count -gt 0
+            $ruleIds = @($_.ruleIds | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+            ($ruleIds.Count -eq 0) -or
+            @($ruleIds | Where-Object { $null -eq (Get-SharingRuleNotApplicableReason -RuleId $_) }).Count -gt 0
         })
     $script:EvaluationErrors.Clear()
     foreach ($evaluationError in $relevantEvaluationErrors) {

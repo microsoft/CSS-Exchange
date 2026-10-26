@@ -43,7 +43,7 @@ function Invoke-SharingEvaluation {
 
         [Parameter()]
         [ValidatePattern("^SHR\d{3}$")]
-        [string[]]$RuleIds
+        [string[]]$RuleIds = @()
     )
 
     if (($RuleIds.Count -gt 0) -and

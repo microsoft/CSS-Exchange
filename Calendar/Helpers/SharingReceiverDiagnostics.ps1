@@ -279,7 +279,7 @@ function GetReceiverInformation {
                 if ($entryFolderMatches.Count -eq 1) {
                     $script:ReceiverMatchedCalendar = $entryFolderMatches[0]
                     $script:ReceiverCalendarCandidates = @($entryFolderMatches[0])
-                    $script:ModernSharing = $true
+                    $script:ModernSharing = $script:SharingType -eq "InternalSharing"
                 }
             }
             foreach ($pairNewEntry in $pairNewEntries) {
