@@ -80,8 +80,8 @@ function Test-ReceiverSharingLogFreshness {
 
 function Get-SharingDiagnosticLogs {
     $logRequests = @(
-        @{ Key = "receiver_SharingSyncAssistantLog"; Identity = $Receiver; Component = "SharingSyncAssistant"; Mailbox = $script:ReceiverMB }
-        @{ Key = "receiver_SharingLog"; Identity = $Receiver; Component = "Sharing"; Mailbox = $script:ReceiverMB }
+        @{ Key = "receiver_SharingSyncAssistantLog"; Identity = $Receiver; Component = "SharingSyncAssistant"; Mailbox = $script:ReceiverMB; Collector = "ReceiverSharingSyncAssistantLog" }
+        @{ Key = "receiver_SharingLog"; Identity = $Receiver; Component = "Sharing"; Mailbox = $script:ReceiverMB; Collector = "ReceiverSharingLog" }
     )
     foreach ($logRequest in $logRequests) {
         if ($script:SharingDiagnosticLogs.Contains($logRequest.Key)) {
@@ -99,9 +99,12 @@ function Get-SharingDiagnosticLogs {
 
         Write-Host -ForegroundColor Cyan "Collecting the $($logRequest.Component) log: $source"
         try {
-            $logOutput = Export-MailboxDiagnosticLogs -Identity $logRequest.Identity -ComponentName $logRequest.Component
+            $logOutput = Invoke-SharingCollector -Name $logRequest.Collector -Action {
+                Export-MailboxDiagnosticLogs -Identity $logRequest.Identity -ComponentName $logRequest.Component
+            } -AllowNull
             if ([string]::IsNullOrEmpty([string]$logOutput.MailboxLog)) {
                 $logEntry.status = "NoData"
+                $script:CollectorStatuses[$logRequest.Collector] = [PSCustomObject]@{ status = "NoData"; error = $null }
             } else {
                 $recentLog = ConvertTo-SharingLogLines -Text ([string]$logOutput.MailboxLog)
                 $logEntry.status = "Collected"

@@ -43,6 +43,106 @@ function Test-SharingReceiverAddress {
         }).Count -gt 0
 }
 
+function Test-SharingReceiverFolderMissing {
+    return ($script:CollectorStatuses["ReceiverFolderStatistics"].status -eq "Success") -and
+    ($null -eq $script:ReceiverMatchedCalendar) -and
+    ($null -eq $script:ReceiverLocalCalendarFolder) -and
+    ($script:CollectorStatuses["ReceiverLocalCalendarFolder"].status -ne "Failed") -and
+    ($script:ReceiverCalendarCandidates.Count -eq 0) -and
+    (@($script:SharingFindings | Where-Object {
+            $_.ruleId -eq "SHR213" -and $_.status -eq "NotEvaluated"
+        }).Count -eq 0)
+}
+
+function Get-SharingRelationshipAssessment {
+    if ((-not $script:OwnerCalendarSubfolderSelected) -or ($null -ne $script:FatalPrerequisiteFailure)) {
+        return $null
+    }
+
+    $ownerAddresses = Get-SharingMailboxSmtpAddresses -Identity $Owner -Mailbox $script:OwnerMB
+    $mailboxInvites = @(Get-DatedSharingLogEntries -Entry @($script:OwnerInviteData | Where-Object {
+                Test-SharingReceiverAddress -Address $_.Recipient
+            }) -ReferenceTimeUtc $script:RunStartedAt.ToUniversalTime())
+    $evidence = [ordered]@{
+        mailboxInviteCount           = $(if ($script:OwnerInviteCheckAvailable) { $mailboxInvites.Count } else { $null })
+        latestMailboxInviteTimestamp = $(if ($script:OwnerInviteCheckAvailable -and $mailboxInvites.Count -gt 0) { $mailboxInvites[0].Entry.Timestamp } else { $null })
+        mailboxInvitesIdentifyFolder = $false
+        individualPermissionFound    = $null
+        activeRelationshipFound      = $null
+        calendarEntryFound           = $null
+        localFolderFound             = $null
+        acceptanceFound              = $null
+        synchronizationRequestFound  = $null
+    }
+    if ($script:OwnerCalendarPermsAvailable) {
+        $permissions = @(Get-PermissionEntriesForIdentity -PermissionEntries $script:OwnerCalendarPerms `
+                -Identity $Receiver -Mailbox $script:ReceiverMB)
+        $rights = @(ConvertTo-NormalizedFolderFlags -Flags @($permissions.AccessRights))
+        $evidence.individualPermissionFound = @($rights | Where-Object { $_ -ne "None" }).Count -gt 0
+    }
+    if ($script:CollectorStatuses["ActiveSharing"].status -eq "Success") {
+        $evidence.activeRelationshipFound = $null -ne $script:OwnerActiveReceiver
+    }
+    if ($script:CollectorStatuses["CalendarEntries"].status -eq "Success") {
+        $evidence.calendarEntryFound = @($script:ReceiverCalendarEntries | Where-Object {
+                $entryOwner = $_.OwnerEmailAddress
+                @($ownerAddresses | Where-Object { Test-SmtpAddressEqual -First $entryOwner -Second $_ }).Count -gt 0 -and
+                [string]::Equals($_.CalendarName, $script:RequestedOwnerCalendarLeafName, [System.StringComparison]::OrdinalIgnoreCase)
+            }).Count -gt 0
+    }
+    if ($null -ne $script:ReceiverMatchedCalendar) {
+        $evidence.localFolderFound = $true
+    } elseif (Test-SharingReceiverFolderMissing) {
+        $evidence.localFolderFound = $false
+    }
+    if ($script:CollectorStatuses["ReceiverAcceptLog"].status -eq "Success") {
+        $evidence.acceptanceFound = @($script:ReceiverAcceptLogEntries | Where-Object {
+                $acceptOwner = $_.SharedCalendarOwner
+                @($ownerAddresses | Where-Object { Test-SmtpAddressEqual -First $acceptOwner -Second $_ }).Count -gt 0 -and
+                [string]::Equals($_.FolderName, $script:RequestedOwnerCalendarLeafName, [System.StringComparison]::OrdinalIgnoreCase)
+            }).Count -gt 0
+    }
+    $syncLog = $script:SharingDiagnosticLogs["receiver_SharingSyncAssistantLog"]
+    $ownerGuid = [Guid]::Empty
+    if (($syncLog.status -in @("Collected", "NoData")) -and
+        [Guid]::TryParse([string]$script:OwnerMB.ExchangeGuid, [ref]$ownerGuid) -and ($ownerGuid -ne [Guid]::Empty)) {
+        $evidence.synchronizationRequestFound = @(Get-ReceiverSharingSyncRequestEntries `
+                -Line $syncLog.data -OwnerMailbox $script:OwnerMB `
+                -CalendarName $script:RequestedOwnerCalendarLeafName).Count -gt 0
+    }
+
+    # A mailbox-wide invitation and a similarly named local folder alone cannot identify the shared sub-calendar.
+    $folderEvidenceFound = @(
+        $evidence.individualPermissionFound, $evidence.activeRelationshipFound,
+        $evidence.calendarEntryFound, $evidence.acceptanceFound, $evidence.synchronizationRequestFound
+    ) -contains $true
+    $unavailableEvidence = @(
+        @("mailboxInviteCount", "individualPermissionFound", "activeRelationshipFound", "calendarEntryFound",
+            "localFolderFound", "acceptanceFound", "synchronizationRequestFound") |
+            Where-Object { $null -eq $evidence[$_] }
+    )
+    $message = if ($folderEvidenceFound) {
+        "Folder-specific relationship evidence was found for the selected calendar and receiver. This does not establish synchronization health or prove delivery of a particular invitation."
+    } else {
+        "Sharing of the selected calendar to this receiver could not be confirmed from the collected evidence."
+    }
+    if (($evidence.mailboxInviteCount -gt 0) -and (-not $folderEvidenceFound)) {
+        $message += " A mailbox-level invitation exists, but its calendar folder is unknown."
+    }
+    if (-not $folderEvidenceFound) {
+        $message += " Verify that this specific calendar was shared with the receiver before investigating synchronization. This is not proof that the calendar was never shared."
+    }
+    if ($unavailableEvidence.Count -gt 0) {
+        $message += " Some evidence sources were unavailable."
+    }
+    return [PSCustomObject]@{
+        status              = $(if ($folderEvidenceFound) { "EvidenceFound" } else { "NotConfirmed" })
+        message             = $message
+        evidence            = $evidence
+        unavailableEvidence = $unavailableEvidence
+    }
+}
+
 function Get-PairSharingInvite {
     $invites = @($script:OwnerInviteData | Where-Object {
             (Test-SharingReceiverAddress -Address $_.Recipient) -and
@@ -332,7 +432,8 @@ function Test-ReceiverDelegatePermissions {
     if (-not $isDelegate) {
         $delegateEvidenceAvailable = $script:LegacyMapiSharing -or
         (($script:CollectorStatuses["ActiveSharing"].status -eq "Success") -and
-        ($script:CollectorStatuses["ReceiverLocalCalendarFolder"].status -eq "Success"))
+        (($script:CollectorStatuses["ReceiverLocalCalendarFolder"].status -eq "Success") -or
+        (Test-SharingReceiverFolderMissing)))
         $status = if ($delegateEvidenceAvailable) { "NotApplicable" } else { "NotEvaluated" }
         $reason = if ($delegateEvidenceAvailable) {
             "The receiver is not identified as a delegate."

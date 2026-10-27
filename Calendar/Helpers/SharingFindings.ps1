@@ -7,7 +7,9 @@
 function Get-SharingRuleNotApplicableReason {
     param(
         [Parameter(Mandatory)]
-        [string]$RuleId
+        [string]$RuleId,
+
+        [switch]$PolicyOnly
     )
 
     if ($script:PublishedSharing -and ($RuleId -in ($script:ModernSharingRuleIds + @("SHR233", "SHR324", "SHR325")))) {
@@ -29,6 +31,18 @@ function Get-SharingRuleNotApplicableReason {
     }
     if (($RuleId -eq "SHR420") -and (-not $script:OwnerPublished) -and (-not $script:PublishedSharing)) {
         return "The owner calendar is not published."
+    }
+    if ($PolicyOnly) {
+        return
+    }
+    if (($RuleId -in @("SHR240", "SHR241", "SHR242", "SHR243", "SHR322", "SHR323",
+                "SHR400", "SHR401", "SHR402", "SHR403", "SHR410", "SHR411", "SHR412", "SHR413")) -and
+        (Test-SharingReceiverFolderMissing)) {
+        return "No receiver local calendar folder was matched; this dependent check is not applicable."
+    }
+    if (($RuleId -in @("SHR404", "SHR405", "SHR406", "SHR407")) -and
+        (-not $script:ModernSharing) -and (Test-SharingReceiverFolderMissing)) {
+        return "No receiver local calendar folder was matched; mailbox-wide log freshness cannot establish synchronization of this relationship."
     }
 }
 
@@ -204,6 +218,10 @@ function Complete-SharingFindings {
     } else {
         @()
     }
+    # These mailbox-wide logs are collected for exception checks even when internal freshness rules do not apply.
+    $inapplicableCollectors = @($inapplicableCollectors | Where-Object {
+            $_ -notin @("ReceiverSharingSyncAssistantLog", "ReceiverSharingLog")
+        })
     if ($inapplicableCollectors.Count -gt 0) {
         foreach ($collectorName in $inapplicableCollectors) {
             $script:CollectorStatuses[$collectorName] = [PSCustomObject]@{
@@ -222,7 +240,7 @@ function Complete-SharingFindings {
     $relevantEvaluationErrors = @($script:EvaluationErrors | Where-Object {
             $ruleIds = @($_.ruleIds | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
             ($ruleIds.Count -eq 0) -or
-            @($ruleIds | Where-Object { $null -eq (Get-SharingRuleNotApplicableReason -RuleId $_) }).Count -gt 0
+            @($ruleIds | Where-Object { $null -eq (Get-SharingRuleNotApplicableReason -RuleId $_ -PolicyOnly) }).Count -gt 0
         })
     $script:EvaluationErrors.Clear()
     foreach ($evaluationError in $relevantEvaluationErrors) {
@@ -237,6 +255,10 @@ function Complete-SharingFindings {
         if ($script:CollectorStatuses[$collectorName].status -eq "NotRun") {
             $script:CollectorStatuses[$collectorName] = [PSCustomObject]@{ status = "NotEvaluated"; error = $null }
         }
+    }
+    if ((Test-SharingReceiverFolderMissing) -and
+        ($script:CollectorStatuses["ReceiverLocalCalendarFolder"].status -eq "NotEvaluated")) {
+        $script:CollectorStatuses["ReceiverLocalCalendarFolder"] = [PSCustomObject]@{ status = "NotApplicable"; error = $null }
     }
 
     foreach ($rule in $script:SharingRuleCatalog) {
@@ -276,16 +298,10 @@ function Complete-SharingFindings {
                 $status = "NotEvaluated"
                 $reason = "The sharing logs were not scanned."
             }
-            $receiverFolderMissing = (
-                $script:CollectorStatuses["ReceiverFolderStatistics"].status -eq "Success" -and
-                $script:ReceiverCalendarCandidates.Count -eq 0)
-            if ($receiverFolderMissing -and
-                $rule.RuleId -in @(
-                    "SHR240", "SHR241", "SHR242", "SHR243",
-                    "SHR400", "SHR401", "SHR402", "SHR403", "SHR410",
-                    "SHR411", "SHR412", "SHR413")) {
-                $status = "NotApplicable"
-                $reason = "No receiver local calendar folder was matched."
+            if (($rule.RuleId -in @("SHR404", "SHR405", "SHR406", "SHR407")) -and
+                (-not $script:ModernSharing) -and ($null -eq $reason)) {
+                $status = "NotEvaluated"
+                $reason = "Receiver logs were collected, but freshness was not evaluated because an internal Modern Sharing relationship was not established."
             }
             if ($rule.RuleId -in @("SHR400", "SHR402") -and
                 @($script:SharingFindings | Where-Object {
@@ -318,7 +334,10 @@ function Complete-SharingFindings {
                     status              = $status
                     title               = $rule.Title
                     evidence            = $(if ($null -ne $reason) { @{ reason = $reason } } else { @{} })
-                    recommendedNextStep = $rule.NextStep
+                    recommendedNextStep = $(if (($rule.RuleId -in @("SHR404", "SHR405", "SHR406", "SHR407")) -and
+                            $status -eq "NotEvaluated" -and (-not $script:ModernSharing)) {
+                            "Confirm the calendar-sharing relationship before interpreting receiver mailbox-wide log freshness."
+                        } else { $rule.NextStep })
                     area                = $null
                 })
         }

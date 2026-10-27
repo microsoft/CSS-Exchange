@@ -436,6 +436,10 @@ function Get-SharingJsonRawData {
         receiver_AcceptLogFull         = & $newLogTextSection "Export-MailboxDiagnosticLogs -Identity $Receiver -ComponentName AcceptCalendarSharingInvite (full log)" $script:ReceiverAcceptLogRaw
     }
 
+    $inviteLogScopeNote = Get-SharingInviteLogScopeNote
+    $rawData.owner_InviteLog["note"] = $inviteLogScopeNote
+    $rawData.owner_InviteLogFull["note"] = $inviteLogScopeNote
+
     # The receiver SharingSyncAssistant and Sharing logs were collected for the freshness and exception rules.
     foreach ($logKey in @($script:SharingDiagnosticLogs.Keys)) {
         $rawData[$logKey] = $script:SharingDiagnosticLogs[$logKey]
@@ -526,14 +530,15 @@ function Get-SharingJsonReportObject {
             privacyMode             = $(if ($IncludeSensitiveData) { "Full" } else { "Sanitized" })
         }
         summary          = [ordered]@{
-            overallResult     = $overallResult
-            failCount         = $failedRules.Count
-            infoCount         = @($jsonFindings | Where-Object -Property result -EQ "Info").Count
-            inconclusiveCount = $inconclusiveRules.Count
-            passCount         = @($jsonFindings | Where-Object -Property result -EQ "Pass").Count
-            skippedCount      = @($jsonFindings | Where-Object -Property result -EQ "Skipped").Count
-            failedRules       = $failedRules
-            inconclusiveRules = $inconclusiveRules
+            overallResult          = $overallResult
+            relationshipAssessment = Get-SharingRelationshipAssessment
+            failCount              = $failedRules.Count
+            infoCount              = @($jsonFindings | Where-Object -Property result -EQ "Info").Count
+            inconclusiveCount      = $inconclusiveRules.Count
+            passCount              = @($jsonFindings | Where-Object -Property result -EQ "Pass").Count
+            skippedCount           = @($jsonFindings | Where-Object -Property result -EQ "Skipped").Count
+            failedRules            = $failedRules
+            inconclusiveRules      = $inconclusiveRules
         }
         sharing          = [ordered]@{
             sharingModel             = $sharingModel
