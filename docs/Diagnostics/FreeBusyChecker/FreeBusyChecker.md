@@ -70,6 +70,10 @@ The script will generate the following files on the folder that contains the scr
 - Html File Output with Script Results, example: FreeBusyChecker_timestamp.html;
 - txt File Output with Script Results, example: FreeBusyChecker_timestamp.txt;
 
+The HTML report is self-contained and works offline in a modern browser. It includes an environment overview, section navigation, responsive diagnostic tables, and a collapsible reference library. Green, amber, and red identify expected values, items to review, and items needing attention; nonstandard values may still be intentional.
+
+Use the browser's Print command to print the report or save it as a PDF with the print-friendly layout. The report's presentation does not change the diagnostic checks or their results.
+
 
 ## Usage:
 
