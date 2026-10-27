@@ -55,6 +55,13 @@ function Write-SharingSummary {
         Write-Host -ForegroundColor Blue "The calendar sharing model could not be determined from the available evidence."
     }
 
+    $relationshipAssessment = Get-SharingRelationshipAssessment
+    if ($null -ne $relationshipAssessment) {
+        $assessmentColor = if ($relationshipAssessment.status -eq "NotConfirmed") { "Yellow" } else { "Cyan" }
+        Write-Host -ForegroundColor $assessmentColor -Object "Selected-calendar sharing assessment: Owner [$Owner], receiver [$Receiver], calendar [$script:NormalizedOwnerCalendarFolderPath]."
+        Write-Host -ForegroundColor $assessmentColor -Object $relationshipAssessment.message
+    }
+
     Write-OwnerReceiverInviteSummary -Owner $Owner -Receiver $Receiver
 
     $severityOrder = @{

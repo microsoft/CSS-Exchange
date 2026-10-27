@@ -22,3 +22,5 @@ The development entry script contains parameters, run initialization, the rule c
 | [Write-SharingResults.ps1](./Writers/Write-SharingResults.ps1) | Permission summaries and JSON report serialization. |
 
 Permission identity, error normalization, log timestamp parsing, and JSON file writing use the same [CalendarDiagnosticHelpers.ps1](./CalendarHelpers/CalendarDiagnosticHelpers.ps1) infrastructure as RBA diagnostics, and the Exchange Online connection check uses [Test-CalendarExoConnection.ps1](./CalendarHelpers/Test-CalendarExoConnection.ps1). Sharing-specific error redaction, finding schemas, and collection failure behavior remain unchanged. The release build embeds the dependencies into the standalone script; users do not need to download the helper files separately.
+
+Invitation logs are parsed by their field labels rather than as CSV, preserving commas and apostrophes in mailbox display names. Malformed invitation entries make the invite check unavailable instead of producing shifted columns or a confirmed missing-invite finding. The original log text remains available in sensitive-data JSON reports for investigation.

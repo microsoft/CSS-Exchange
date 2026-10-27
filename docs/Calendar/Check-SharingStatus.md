@@ -211,6 +211,24 @@ Parsed owner invite rows do not identify the calendar folder, even when the full
 context. For a selected subfolder, the summary explicitly notes that limitation. This timeline does not change
 selected-calendar findings or imply that synchronization is healthy.
 
+The **Owner Modern Sharing Sent Invites** table also displays this caveat: invitation entries are mailbox-wide and
+cannot distinguish sharing of the main Calendar from a sub-calendar. When a subfolder is selected, the note names
+that folder and explains that these entries cannot confirm it was shared.
+
+For a selected sub-calendar, the console and JSON `summary.relationshipAssessment` also summarize the evidence for
+that specific calendar and receiver. `NotConfirmed` means the collected data did not establish the relationship;
+it does not mean the calendar was never shared. A mailbox-level invitation alone does not confirm the selected
+folder. `EvidenceFound` means folder-specific permission, active-sharing, calendar-entry, acceptance, or correlated
+synchronization evidence exists; it is not a synchronization-health verdict or proof of invitation delivery.
+The assessment includes supporting counts and matches, with `null` for unavailable evidence and a list of those
+unavailable checks. It is `null` for default-calendar runs and fatal prerequisite failures.
+
+The passing `SHR301` result includes the mailbox-level invitation count, latest reliable timestamp, and the
+unknown-folder limitation. Receiver diagnostic-log collection is reported independently from freshness evaluation.
+If the receiver folder is known to be absent, dependent folder and synchronization checks are skipped rather than
+reported as additional collection failures. Unavailable or redacted folder data remains inconclusive, and explicit
+delegate permission requirements are still checked.
+
 ### Explicit receiver delegation
 
 `SHR325` checks the specified receiver, not every delegate. When the receiver is identified as a delegate by its individual owner-calendar permission, active-sharing flags, or receiver-folder flags, it must have its own permission entry on the selected owner calendar with both `AccessRights Editor` and `SharingPermissionFlags Delegate`.
@@ -432,12 +450,12 @@ Raw data contains mailbox identities, permissions, and log entries, so treat the
 | `owner_CalendarFolder` | Owner calendar sharing and publishing properties, including `SharingPermissionFlags` and the sync times. |
 | `owner_CalendarPermissions`, `owner_MailboxPermissions` | Every permission entry with user, normalized `userIdentity`, access rights, and sharing flags (calendar) or inheritance and deny state (mailbox). |
 | `owner_ActiveSharees` | All active receivers from `Get-CalendarActiveSharingInformation`. |
-| `owner_InviteLog` | Parsed `CalendarSharingInvite` log entries. |
+| `owner_InviteLog` | Parsed `CalendarSharingInvite` log entries, with a `note` explaining that invitation entries are mailbox-wide and cannot identify the shared calendar folder. |
 | `receiver_FolderStatistics`, `receiver_MatchedCalendar`, `receiver_LocalCalendarFolder` | Receiver calendar folders, the matched local copy, and its sharing properties and sync times. |
 | `receiver_CalendarEntries` | `Get-CalendarEntries` results for the receiver. |
 | `receiver_AcceptLog`, `receiver_SelectedAcceptLog` | Parsed `AcceptCalendarSharingInvite` entries, all and for the selected calendar. |
 | `receiver_InternetCalendarLog`, `owner_PublishedICalUrl` | Published calendar log entries and the owner's published URL, when applicable. |
-| `owner_InviteLogFull`, `receiver_AcceptLogFull` | The complete `CalendarSharingInvite` (owner) and `AcceptCalendarSharingInvite` (receiver) logs as arrays of lines. The blank lines Exchange uses to separate entries are removed. |
+| `owner_InviteLogFull`, `receiver_AcceptLogFull` | The complete `CalendarSharingInvite` (owner) and `AcceptCalendarSharingInvite` (receiver) logs as arrays of lines. The blank lines Exchange uses to separate entries are removed. `owner_InviteLogFull` includes the same invitation folder-scope `note` as `owner_InviteLog`. |
 | `receiver_SharingSyncAssistantLog` | The complete `SharingSyncAssistant` log for the receiver mailbox. |
 | `receiver_SharingLog` | The complete `Sharing` log for the receiver mailbox. |
 

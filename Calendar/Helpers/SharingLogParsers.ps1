@@ -4,6 +4,14 @@
 # .DESCRIPTION
 # Calendar sharing invitation, acceptance, and InternetCalendar log parsing.
 
+function Get-SharingInviteLogScopeNote {
+    $note = "CalendarSharingInvite invitation entries are mailbox-wide and do not identify the shared folder. These entries cannot distinguish sharing of the main Calendar from a sub-calendar."
+    if ($script:OwnerCalendarSubfolderSelected) {
+        $note += " They cannot confirm that the selected calendar [$script:NormalizedOwnerCalendarFolderPath] was shared."
+    }
+    return $note
+}
+
 function Get-DatedSharingLogEntries {
     param(
         [AllowNull()]
@@ -90,20 +98,17 @@ function Get-ReceiverSharingSyncRequestEntries {
 .SYNOPSIS
     Formats the CalendarSharingInvite logs from Export-MailboxDiagnosticLogs for a given identity.
 .DESCRIPTION
-    This function processes calendar sharing accept logs for a given identity and outputs the most recent update for each recipient.
+    This function processes calendar sharing invite logs for a given identity and outputs the most recent update for each recipient.
 .PARAMETER Identity
-    The SMTP Address for which to process calendar sharing accept logs.
+    The SMTP Address for which to process calendar sharing invite logs.
 #>
 function ProcessCalendarSharingInviteLogs {
     param (
         [string]$Identity
     )
 
-    # Define the header row
-    $header = "Timestamp", "Mailbox", "MailboxOwner", "Recipient", "RecipientType", "SharingType", "DetailLevel"
-    $csvString = @()
-    $csvString = $header -join ","
-    $csvString += "`n"
+    $script:OwnerInviteCheckAvailable = $false
+    $script:OwnerInviteData = @()
 
     try {
         # -ErrorAction is not supported on Export-MailboxDiagnosticLogs
@@ -128,42 +133,50 @@ function ProcessCalendarSharingInviteLogs {
 
     # Split the output into an array of lines
     $script:OwnerInviteLogRaw = [string]$logOutput.MailboxLog
-    $logLines = $logOutput.MailboxLog -split "`r`n"
+    $logLines = $logOutput.MailboxLog -split "\r?\n"
 
-    # Loop through each line of the output
-    foreach ($line in $logLines) {
-        if ($line -like "*RecipientType*") {
-            $csvString += $line + "`n"
-        }
+    $inviteEntries = Invoke-SharingEvaluation -Name "Owner invite-log parsing" -RuleIds @("SHR300", "SHR301") -Action {
+        # These logs use labeled fields, not CSV quoting; mailbox names can contain commas and apostrophes.
+        $entryPattern = '^\s*(?<Timestamp>[^,]+),\s*Mailbox:\s*(?<Mailbox>.*?),\s*Entry MailboxOwner:\s*(?<MailboxOwner>[^,]+),\s*Recipient:\s*(?<Recipient>[^,]+),\s*RecipientType:\s*(?<RecipientType>[^,]+),\s*Handler=(?:ms-exchange-)?(?<SharingType>[^,]+),\s*DetailLevel=(?<DetailLevel>.*)$'
+        $entries = @(
+            for ($index = 0; $index -lt $logLines.Count; $index++) {
+                $line = $logLines[$index]
+                if ($line -notlike "*RecipientType*") {
+                    continue
+                }
+                if ($line -notmatch $entryPattern) {
+                    throw "CalendarSharingInvite entry on line [$($index + 1)] did not match the expected labeled fields."
+                }
+                $mailbox = $Matches.Mailbox.Trim()
+                if (($mailbox.Length -ge 2) -and $mailbox.StartsWith("'") -and $mailbox.EndsWith("'")) {
+                    $mailbox = $mailbox.Substring(1, $mailbox.Length - 2)
+                }
+                [PSCustomObject]@{
+                    Timestamp     = $Matches.Timestamp.Trim()
+                    Mailbox       = $mailbox
+                    MailboxOwner  = $Matches.MailboxOwner.Trim()
+                    Recipient     = $Matches.Recipient.Trim()
+                    RecipientType = $Matches.RecipientType.Trim()
+                    SharingType   = $Matches.SharingType.Trim()
+                    DetailLevel   = $Matches.DetailLevel.Trim()
+                }
+            }
+        )
+        return $entries
     }
-
-    # Clean up output
-    $csvString = $csvString.Replace("Mailbox: ", "")
-    $csvString = $csvString.Replace("Entry MailboxOwner:", "")
-    $csvString = $csvString.Replace("'", "")
-    $csvString = $csvString.Replace("Recipient:", "")
-    $csvString = $csvString.Replace("RecipientType:", "")
-    $csvString = $csvString.Replace("Handler=", "")
-    $csvString = $csvString.Replace("ms-exchange-", "")
-    $csvString = $csvString.Replace("DetailLevel=", "")
-
-    # Convert the CSV string to an object
-    $csvObject = Invoke-SharingEvaluation -Name "Owner invite-log parsing" -RuleIds @("SHR300", "SHR301") -Action {
-        $csvString | ConvertFrom-Csv
-    }
-    if ($null -eq $csvObject) {
+    if ($null -eq $inviteEntries) {
         Add-SharingFinding -Severity Warning -Area "CalendarSharingInvite" -Issue "The owner invite-log check was unavailable." -Evidence "CalendarSharingInvite data could not be parsed." -RecommendedNextStep "Inspect the raw CalendarSharingInvite logs." -Incomplete
         return
     }
     $script:OwnerInviteCheckAvailable = $true
-    $script:OwnerInviteData = @($csvObject)
+    $script:OwnerInviteData = @($inviteEntries)
 
     # Access the values as properties of the object
-    foreach ($row in $csvObject) {
+    foreach ($row in $inviteEntries) {
         Write-Debug "$($row.Recipient) - $($row.SharingType) - $($row.detailLevel)"
     }
 
-    $datedInvites = @(Get-DatedSharingLogEntries -Entry @($csvObject) -ReferenceTimeUtc $script:RunStartedAt.ToUniversalTime())
+    $datedInvites = @(Get-DatedSharingLogEntries -Entry @($inviteEntries) -ReferenceTimeUtc $script:RunStartedAt.ToUniversalTime())
     if (@($datedInvites | Where-Object { $null -eq $_.Date }).Count -gt 0) {
         Write-Warning "Some invitation timestamps could not be parsed; undated entries are displayed alongside the latest dated invitations per recipient."
     }
@@ -173,14 +186,26 @@ function ProcessCalendarSharingInviteLogs {
     } | Sort-Object -Property Date -Descending | ForEach-Object { $_.Entry }
 
     # Output the results to the console
-    Write-Host "User [$Identity] has shared their calendar with the following recipients:"
+    Write-Host -Object "User [$Identity] has calendar-sharing invitation entries for the following recipients:"
+    Write-Host -ForegroundColor Yellow -Object (Get-SharingInviteLogScopeNote)
     $mostRecentRecipients | Format-Table -a Timestamp, Recipient, SharingType, DetailLevel
 
-    $receiverInvites = @($csvObject | Where-Object -FilterScript {
+    $receiverInvites = @($inviteEntries | Where-Object -FilterScript {
             Test-SharingReceiverAddress -Address $_.Recipient
         })
     if ($receiverInvites.Count -eq 0) {
         Add-SharingFinding -Severity Error -Area "CalendarSharingInvite" -Issue "No pair-specific sharing invite was found for the expected receiver." -Evidence "Parsed owner CalendarSharingInvite data did not contain receiver [$Receiver]." -RecommendedNextStep "Inspect CalendarSharingInvite and AcceptCalendarSharingInvite logs for this owner/receiver pair."
+    } else {
+        $latestInvite = $datedInvites | Where-Object {
+            Test-SharingReceiverAddress -Address $_.Entry.Recipient
+        } | Select-Object -First 1
+        Add-SharingFinding -RuleId "SHR301" -Status NotDetected -Evidence @{
+            matchedInviteCount       = $receiverInvites.Count
+            latestEntryUtc           = $(if ($null -ne $latestInvite.Date) { $latestInvite.Date.ToString("o") } else { $null })
+            mailboxScoped            = $true
+            calendarFolderIdentified = $false
+            reason                   = "A mailbox-level invitation to the receiver was found; it does not identify which calendar folder was shared."
+        }
     }
 }
 
