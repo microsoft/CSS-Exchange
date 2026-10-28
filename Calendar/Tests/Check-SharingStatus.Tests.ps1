@@ -405,6 +405,9 @@ Describe "Check-SharingStatus permission flag comparison" {
         @{ Case = "null flags"; First = $null; Second = @("Editor"); Differ = $false }
         @{ Case = "a single comma-separated flags value with Editor as the only difference"; First = @("Delegate"); Second = @("Editor, Delegate"); Differ = $false }
         @{ Case = "single comma-separated flags values that are identical"; First = @("Editor, Delegate"); Second = @("Editor, Delegate"); Differ = $false }
+        @{ Case = "equivalent flags in a different order"; First = @("Delegate", "CanViewPrivateItems"); Second = @("CanViewPrivateItems", "Delegate"); Differ = $false }
+        @{ Case = "duplicate flags and mixed representations"; First = @("Delegate, CanViewPrivateItems", "Delegate"); Second = @("CanViewPrivateItems".ToLowerInvariant(), "delegate", "Editor"); Differ = $false }
+        @{ Case = "different sets with the same number of flags"; First = @("Delegate", "CanViewPrivateItems"); Second = @("Delegate", "Reviewer"); Differ = $true }
         @{ Case = "a single comma-separated flags value with a real difference"; First = @("Delegate"); Second = @("Editor, Reviewer"); Differ = $true }
     ) {
         param($Case, $First, $Second, $Differ)
@@ -741,6 +744,11 @@ Describe "Check-SharingStatus log exceptions and age filter" {
         Mock Write-Host {}
         Mock Write-Warning {}
         $script:RecentStamp = (Get-Date).ToUniversalTime().AddDays(-3).ToString("MM/dd/yyyy HH:mm:ss", [System.Globalization.CultureInfo]::InvariantCulture)
+        $script:OwnerInviteLogRaw = "$script:RecentStamp, benign invitation entry"
+        $script:ReceiverAcceptLogRaw = "$script:RecentStamp, benign acceptance entry"
+        foreach ($logKey in @("receiver_SharingSyncAssistantLog", "receiver_SharingLog")) {
+            $script:SharingDiagnosticLogs[$logKey] = @{ status = "Collected"; data = @("$script:RecentStamp, benign sharing entry") }
+        }
     }
 
     It "detects the named property quota exception and reports the other exceptions separately" {
@@ -821,6 +829,9 @@ Describe "Check-SharingStatus log exceptions and age filter" {
     ) {
         param($Status)
         $script:SharingLogScanPerformed = $true
+        $script:OwnerInviteLogRaw = $null
+        $script:ReceiverAcceptLogRaw = $null
+        $script:SharingDiagnosticLogs = [ordered]@{}
         if ($Status -ne "Missing") {
             foreach ($logKey in @("receiver_SharingSyncAssistantLog", "receiver_SharingLog")) {
                 $script:SharingDiagnosticLogs[$logKey] = @{ status = $Status; data = $null }
@@ -844,6 +855,11 @@ Describe "Check-SharingStatus log exceptions and age filter" {
         @{ Source = "receiver sharing" }
     ) {
         param($Source)
+        $script:OwnerInviteLogRaw = "01/01/2020 12:00:00, InvalidOperationException"
+        $script:ReceiverAcceptLogRaw = "01/01/2020 12:00:00, InvalidOperationException"
+        foreach ($logKey in @("receiver_SharingSyncAssistantLog", "receiver_SharingLog")) {
+            $script:SharingDiagnosticLogs[$logKey] = @{ status = "Collected"; data = @() }
+        }
         if ($Source -eq "owner invite") {
             $script:OwnerInviteLogRaw = "01/01/2020 12:00:00, InvalidOperationException"
         } else {
@@ -854,6 +870,81 @@ Describe "Check-SharingStatus log exceptions and age filter" {
         Complete-SharingFindings
 
         $script:SharingLogScanPerformed | Should -BeTrue
+        foreach ($ruleId in @("SHR408", "SHR409", "SHR414")) {
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ $ruleId).status | Should -Be "NotDetected"
+        }
+    }
+
+    It -Name "leaves negative exception checks incomplete when <Source> is <Status>" -TestCases @(
+        foreach ($source in @("OwnerInviteLog", "ReceiverAcceptLog", "receiver_SharingSyncAssistantLog", "receiver_SharingLog")) {
+            foreach ($status in @("Missing", "Failed", "NoData", "NotCollected", "NotRun")) {
+                @{ Source = $source; Status = $status }
+            }
+        }
+    ) {
+        param($Source, $Status)
+        switch ($Source) {
+            "OwnerInviteLog" {
+                $script:OwnerInviteLogRaw = $null
+                $script:CollectorStatuses[$Source].status = $Status
+            }
+            "ReceiverAcceptLog" {
+                $script:ReceiverAcceptLogRaw = $null
+                $script:CollectorStatuses[$Source].status = $Status
+            }
+            default {
+                if ($Status -eq "Missing") {
+                    $script:SharingDiagnosticLogs.Remove($Source)
+                } else {
+                    $script:SharingDiagnosticLogs[$Source] = @{ status = $Status; data = $null }
+                }
+            }
+        }
+
+        Test-SharingLogExceptions
+        Complete-SharingFindings
+
+        $script:SharingLogScanPerformed | Should -BeTrue
+        foreach ($ruleId in @("SHR408", "SHR409", "SHR414")) {
+            $finding = $script:SharingFindings | Where-Object -Property ruleId -EQ $ruleId
+            $finding.status | Should -Be "NotEvaluated"
+            $finding.evidence.unavailableLogs.Count | Should -Be 1
+            ((Get-SharingJsonReportObject).findings | Where-Object -Property ruleId -EQ $ruleId).result |
+                Should -Be "Inconclusive"
+        }
+        Should -Not -Invoke -CommandName Write-Host -ParameterFilter {
+            $Object -like "No exceptions were found*"
+        }
+    }
+
+    It -Name "preserves a detected <RuleId> during an incomplete scan" -TestCases @(
+        @{ RuleId = "SHR408"; Trace = "MapiExceptionNamedPropsQuotaExceeded" }
+        @{ RuleId = "SHR409"; Trace = "InvalidOperationException" }
+        @{ RuleId = "SHR414"; Trace = "[XTAP] Policy evaluation failed" }
+    ) {
+        param($RuleId, $Trace)
+        $script:OwnerInviteLogRaw = $null
+        $script:ReceiverAcceptLogRaw = "$script:RecentStamp, $Trace"
+
+        Test-SharingLogExceptions
+        Complete-SharingFindings
+
+        ($script:SharingFindings | Where-Object -Property ruleId -EQ $RuleId).status | Should -Be "Detected"
+        foreach ($negativeRule in @("SHR408", "SHR409", "SHR414") | Where-Object { $_ -ne $RuleId }) {
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ $negativeRule).status | Should -Be "NotEvaluated"
+        }
+    }
+
+    It "does not require invitation logs that are not applicable to the sharing model" {
+        $script:OwnerInviteLogRaw = $null
+        $script:ReceiverAcceptLogRaw = $null
+        foreach ($collector in @("OwnerInviteLog", "ReceiverAcceptLog")) {
+            $script:CollectorStatuses[$collector].status = "NotApplicable"
+        }
+
+        Test-SharingLogExceptions
+        Complete-SharingFindings
+
         foreach ($ruleId in @("SHR408", "SHR409", "SHR414")) {
             ($script:SharingFindings | Where-Object -Property ruleId -EQ $ruleId).status | Should -Be "NotDetected"
         }
@@ -963,6 +1054,7 @@ Describe "Check-SharingStatus log exceptions and age filter" {
     }
 
     It "omits old entries when collecting diagnostic logs and records the count" {
+        $script:SharingDiagnosticLogs = [ordered]@{}
         $script:OwnerMB = [PSCustomObject]@{ DisplayName = "Owner Display" }
         $script:ReceiverMB = [PSCustomObject]@{ DisplayName = "Receiver Display" }
         $oldStamp = (Get-Date).ToUniversalTime().AddDays(-800).ToString("MM/dd/yyyy HH:mm:ss", [System.Globalization.CultureInfo]::InvariantCulture)
@@ -3649,6 +3741,43 @@ Describe "Check-SharingStatus structured diagnostics" {
             $script:SharingFindings.ruleId | Should -Contain "SHR211"
         }
 
+        It -Name "does not confirm a missing folder for ambiguous <Source> candidates" -TestCases @(
+            @{ Source = "owner names"; OldEntry = $false }
+            @{ Source = "owner names with an Old entry"; OldEntry = $true }
+            @{ Source = "calendar entries"; OldEntry = $false }
+        ) {
+            param($Source, $OldEntry)
+            $Script:receiverStats += [PSCustomObject]@{
+                FolderType           = "User Created"
+                Name                 = "Owner Display (1)"
+                FolderPath           = "/Owner Display (1)"
+                FolderSize           = "1 KB"
+                VisibleItemsInFolder = 5
+            }
+            if ($Source -eq "calendar entries") {
+                $Script:receiverStats[1].Name = "Renamed calendar"
+                $Script:receiverStats[1].FolderPath = "/Renamed calendar"
+                $Script:receiverStats[2].Name = "Renamed calendar"
+                $Script:receiverStats[2].FolderPath = "/Calendar/Renamed calendar"
+                $Script:calendarEntries[0].CalendarName = "Renamed calendar"
+            } elseif ($OldEntry) {
+                $Script:calendarEntries[0].SharingModelType = "Old"
+            } else {
+                $Script:calendarEntries = @()
+            }
+
+            GetReceiverInformation -Receiver "receiver@contoso.com"
+            Complete-SharingFindings
+
+            $script:ReceiverMatchedCalendar | Should -BeNullOrEmpty
+            $script:ReceiverCalendarCandidates.Count | Should -Be 2
+            $script:LegacyMapiSharing | Should -BeFalse
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR213").status | Should -Be "NotEvaluated"
+            ((Get-SharingJsonReportObject).findings | Where-Object -Property ruleId -EQ "SHR213").result |
+                Should -Be "Inconclusive"
+            Should -Not -Invoke -CommandName Get-MailboxCalendarFolder
+        }
+
         It "reports an orphaned New entry and a relevant Old entry" {
             Mock Write-Host {}
             $Script:calendarEntries[0].IsOrphanedEntry = $true
@@ -3801,6 +3930,7 @@ Describe "Check-SharingStatus structured diagnostics" {
 
             $script:ReceiverMatchedCalendar | Should -BeNullOrEmpty
             $script:SharingFindings.ruleId | Should -Contain "SHR213"
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR213").status | Should -Be "Detected"
             Should -Not -Invoke Get-MailboxCalendarFolder -ParameterFilter {
                 $Identity -eq "receiver@contoso.com:\Calendar\Owner Display"
             }
@@ -4102,6 +4232,46 @@ Describe "Check-SharingStatus structured diagnostics" {
     }
 
     Context "Selected-folder accept logs" {
+        It "preserves mailbox name apostrophes while removing delimiters across comma-separated name columns" {
+            Mock -CommandName Get-Date -MockWith { [DateTime]::new(2026, 10, 21) }
+            Mock -CommandName Export-MailboxDiagnosticLogs -MockWith {
+                [PSCustomObject]@{
+                    MailboxLog = "10/20/2026 13:44:31, Mailbox: 'O'Neil, Receiver', Entry CreateInternalSharedCalendarGroupEntry: Creating a shared calendar for owner@contoso.com, calendar name Team's Calendar"
+                }
+            }
+
+            ProcessCalendarSharingAcceptLogs -Identity "receiver@contoso.com"
+
+            $script:ReceiverAcceptLogEntries[0].MailboxLast | Should -Be "O'Neil"
+            $script:ReceiverAcceptLogEntries[0].MailboxFirst | Should -Be "Receiver"
+            $script:ReceiverAcceptLogEntries[0].FolderName | Should -Be "Team's Calendar"
+            $script:EvaluationErrors.Count | Should -Be 0
+        }
+
+        It -Name "preserves apostrophes in <Folder> acceptance entries" -TestCases @(
+            @{ Folder = "Team's Calendar" }
+            @{ Folder = "'Team's Calendar'" }
+        ) {
+            param($Folder)
+            $script:OwnerCalendarSubfolderSelected = $true
+            $script:RequestedOwnerCalendarLeafName = "Team's Calendar"
+            Mock -CommandName Get-Date -MockWith { [DateTime]::new(2026, 10, 21) }
+            Mock -CommandName Export-MailboxDiagnosticLogs -MockWith {
+                [PSCustomObject]@{
+                    MailboxLog = "10/20/2026 13:44:31, Mailbox: 'Receiver O'Neil', Entry CreateInternalSharedCalendarGroupEntry: Creating a shared calendar for 'owner@contoso.com', calendar name $Folder"
+                }
+            }
+
+            $output = ProcessCalendarSharingAcceptLogs -Identity "receiver@contoso.com" | Out-String
+
+            $script:ReceiverAcceptLogEntries[0].Mailbox | Should -Be "Receiver O'Neil"
+            $script:ReceiverAcceptLogEntries[0].SharedCalendarOwner | Should -Be "owner@contoso.com"
+            $script:ReceiverSelectedAcceptLogEntries.Count | Should -Be 1
+            $script:ReceiverSelectedAcceptLogEntries[0].FolderName | Should -Be "Team's Calendar"
+            $output | Should -Match "Team's Calendar"
+            $script:EvaluationErrors.Count | Should -Be 0
+        }
+
         It "leaves accept-log entries unfiltered when the explicitly selected calendar is the default" {
             $script:OwnerCalendarFolderPathSpecified = $true
             $script:RequestedOwnerCalendarLeafName = "Calendar"
@@ -4223,6 +4393,24 @@ Describe "Check-SharingStatus structured diagnostics" {
     Context "Periodic synchronization and start-date classifications" {
         BeforeEach {
             Initialize-ReceiverMocks
+        }
+
+        It -Name "leaves never-synchronized status inconclusive for last success <Success>" -TestCases @(
+            @{ Success = $null }
+            @{ Success = "" }
+            @{ Success = "not a date" }
+        ) {
+            param($Success)
+            $Script:receiverCalendarFolder.LastSuccessfulSyncTime = $Success
+
+            GetReceiverInformation -Receiver "receiver@contoso.com"
+            Complete-SharingFindings
+
+            foreach ($ruleId in @("SHR400", "SHR401", "SHR402", "SHR403")) {
+                ($script:SharingFindings | Where-Object -Property ruleId -EQ $ruleId).status | Should -Be "NotEvaluated"
+            }
+            ((Get-SharingJsonReportObject).findings | Where-Object -Property ruleId -EQ "SHR403").result |
+                Should -Be "Inconclusive"
         }
 
         It "detects production-shaped year-one synchronization sentinels without stale or backfill output" {
@@ -4785,6 +4973,28 @@ Describe "Check-SharingStatus structured diagnostics" {
 
             $output | Should -Match "END-EVIDENCE"
             $output | Should -Not -Match "\.\.\."
+        }
+
+        It "displays finalization evidence for incomplete checks without console-specific evidence" {
+            Complete-SharingFindings
+            $finding = $script:SharingFindings | Where-Object -Property ruleId -EQ "SHR111"
+            $script:ConsoleFindingEvidence.ContainsKey("SHR111") | Should -BeFalse
+
+            $output = Write-SharingFindingDetails -Findings @($finding) -SeverityOrder @{
+                Critical = 0; Error = 1; Warning = 2; Information = 3
+            } | Out-String -Width 300
+
+            $output | Should -Match "Required evidence was unavailable: OwnerCalendarPermissions"
+        }
+
+        It "prefers full-fidelity console evidence over structured evidence" {
+            Add-SharingFinding -RuleId "SHR301" -Status NotEvaluated -Evidence "owner@contoso.com"
+
+            $output = Write-SharingFindingDetails -Findings $script:SharingFindings -SeverityOrder @{
+                Critical = 0; Error = 1; Warning = 2; Information = 3
+            } | Out-String -Width 300
+
+            $output | Should -Match "owner@contoso.com"
         }
     }
 }

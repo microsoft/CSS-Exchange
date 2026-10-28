@@ -280,6 +280,8 @@ function GetReceiverInformation {
                     $script:ReceiverMatchedCalendar = $entryFolderMatches[0]
                     $script:ReceiverCalendarCandidates = @($entryFolderMatches[0])
                     $script:ModernSharing = $script:SharingType -eq "InternalSharing"
+                } elseif ($entryFolderMatches.Count -gt 1) {
+                    $script:ReceiverCalendarCandidates = @($entryFolderMatches)
                 }
             }
             foreach ($pairNewEntry in $pairNewEntries) {
@@ -305,6 +307,7 @@ function GetReceiverInformation {
                 $calendarEntriesAvailable -and
                 ($pairNewEntries.Count -eq 0) -and
                 ($pairOldEntries.Count -gt 0) -and
+                ($script:ReceiverCalendarCandidates.Count -eq 0) -and
                 ($null -eq $script:ReceiverMatchedCalendar))
             if ($script:LegacyMapiSharing) {
                 $legacyEvidence = "A pair-specific Old calendar entry was found and no Modern local copy or New entry was identified."
@@ -343,6 +346,11 @@ function GetReceiverInformation {
                 Write-Verbose "A local receiver folder is not expected for legacy MAPI calendar sharing."
             } elseif ($script:PublishedSharing) {
                 Write-Verbose "Modern Sharing local-folder matching is not applicable to a published-calendar relationship."
+            } elseif ($script:ReceiverCalendarCandidates.Count -gt 0) {
+                Add-SharingFinding -RuleId "SHR213" -Status NotEvaluated -Evidence @{
+                    reason         = "Candidate receiver folders were found, but the owner's local calendar could not be uniquely identified."
+                    candidateCount = $script:ReceiverCalendarCandidates.Count
+                }
             } else {
                 if ($script:OwnerCalendarSubfolderSelected) {
                     Write-Host -ForegroundColor Yellow "Warning: Could not identify the selected Owner Calendar [$selectedOwnerCalendarName] in the Receiver Mailbox."
@@ -407,6 +415,11 @@ function GetReceiverInformation {
                 $syncStartDate = $MBCalFolder.SharedCalendarSyncStartDate -as [DateTime]
                 $syncStartDateUninitialized = Test-UninitializedCalendarDate -Value $syncStartDate
                 $neverSynchronized = $successfulSyncTimeUninitialized
+                if ($null -eq $lastSuccessfulSyncTime) {
+                    Add-SharingFinding -RuleId "SHR403" -Status NotEvaluated -Evidence @{
+                        reason = "LastSuccessfulSyncTime is unavailable or could not be interpreted as a date."
+                    }
+                }
 
                 if ($neverSynchronized) {
                     if ($attemptedSyncTimeUninitialized) {

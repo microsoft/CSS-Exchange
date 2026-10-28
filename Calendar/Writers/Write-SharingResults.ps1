@@ -22,7 +22,9 @@ function Write-SharingFindingDetails {
                     severity            = $_.severity
                     ruleId              = $_.ruleId
                     title               = $_.title
-                    evidence            = $script:ConsoleFindingEvidence[$_.ruleId]
+                    evidence            = $(if ($script:ConsoleFindingEvidence.ContainsKey($_.ruleId)) {
+                            $script:ConsoleFindingEvidence[$_.ruleId]
+                        } else { $_.evidence })
                     recommendedNextStep = $_.recommendedNextStep
                 }
             } |

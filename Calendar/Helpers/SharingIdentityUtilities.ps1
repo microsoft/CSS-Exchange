@@ -100,7 +100,8 @@ function Get-PermissionEntriesForIdentity {
             param($Flags)
             @($Flags | ForEach-Object { if ($null -ne $_) { $_.ToString() -split ',' } } |
                     ForEach-Object { $_.Trim() } |
-                    Where-Object -FilterScript { (-not [string]::IsNullOrWhiteSpace($_)) -and ($_ -ne "Editor") })
+                    Where-Object -FilterScript { (-not [string]::IsNullOrWhiteSpace($_)) -and ($_ -ne "Editor") } |
+                    Sort-Object -Unique)
     }
     $normalizedFirstFlags = & $normalizeFlags $FirstFlags
     $normalizedSecondFlags = & $normalizeFlags $SecondFlags
