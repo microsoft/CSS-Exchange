@@ -300,7 +300,6 @@ function ProcessCalendarSharingAcceptLogs {
 
     # Clean up output
     $csvString = $csvString.Replace("Mailbox: ", "")
-    $csvString = $csvString.Replace("'", "")
     $csvString = $csvString.Replace("Entry MailboxOwner:", "")
     $csvString = $csvString.Replace("Entry CreateInternalSharedCalendarGroupEntry: ", "")
     $csvString = $csvString.Replace("Creating a shared calendar for ", "")
@@ -308,7 +307,24 @@ function ProcessCalendarSharingAcceptLogs {
 
     # Convert the CSV string to an object
     $csvObject = Invoke-SharingEvaluation -Name "Receiver accept-log parsing" -RuleIds @("SHR220") -Action {
-        $csvString | ConvertFrom-Csv
+        $entries = @($csvString | ConvertFrom-Csv)
+        foreach ($entry in $entries) {
+            # A comma in the mailbox display name splits its surrounding quotes across two columns.
+            if (($null -ne $entry.PSObject.Properties["MailboxLast"]) -and
+                $entry.MailboxLast.Trim().StartsWith("'") -and $entry.MailboxFirst.Trim().EndsWith("'")) {
+                $entry.MailboxLast = $entry.MailboxLast.Trim().Substring(1)
+                $mailboxFirst = $entry.MailboxFirst.Trim()
+                $entry.MailboxFirst = $mailboxFirst.Substring(0, $mailboxFirst.Length - 1)
+            }
+            foreach ($property in $entry.PSObject.Properties) {
+                $value = ([string]$property.Value).Trim()
+                if (($value.Length -ge 2) -and $value.StartsWith("'") -and $value.EndsWith("'")) {
+                    $value = $value.Substring(1, $value.Length - 2)
+                }
+                $property.Value = $value
+            }
+        }
+        $entries
     }
     if ($null -eq $csvObject) {
         Add-SharingFinding -Severity Warning -Area "AcceptCalendarSharingInvite" -Issue "The receiver accept logs could not be parsed." -Evidence "AcceptCalendarSharingInvite data could not be parsed." -RecommendedNextStep "Inspect the raw AcceptCalendarSharingInvite logs." -Incomplete

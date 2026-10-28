@@ -250,7 +250,7 @@ the check is incomplete. The rule's Error severity describes a potential delegat
 
 - Mailbox information and the likely sharing type.
 - The local folder corresponding to the selected owner calendar.
-- Missing or duplicate local folders.
+- Missing or duplicate local folders. If candidate folders exist but cannot be uniquely matched, `SHR213` is `NotEvaluated`, not a confirmed missing-folder error.
 - Calendar folders whose names end in a one- or two-digit numeric suffix such as `(1)` or `(12)`.
 - Redacted receiver folder names, with guidance to obtain more access before matching the owner's calendar.
 - Accepted sharing invite logs.
@@ -258,7 +258,7 @@ the check is incomplete. The rule's Error severity describes a potential delegat
 - Orphaned sharing entries.
 - Local folder flags, including `SharedIn` and `ExchangeShareFolder`.
 - `CalendarSharingOwnerSmtpAddress`.
-- Owner, receiver-folder, and active-sharing permission consistency. The `Editor` access right is ignored when comparing sharing permission flags (`SHR322` and `SHR323`), because it can appear in only one side's flags even when the pair is configured correctly. A difference in any other flag is still reported.
+- Owner, receiver-folder, and active-sharing permission consistency. Flag order, duplicates, and casing do not affect comparisons. The `Editor` access right is ignored when comparing sharing permission flags (`SHR322` and `SHR323`), because it can appear in only one side's flags even when the pair is configured correctly. A difference in any other flag is still reported.
 - A visible-item comparison between the selected owner calendar and the uniquely matched receiver local folder.
 - Periodic synchronization timestamps.
 - `SharedCalendarSyncStartDate`.
@@ -336,7 +336,7 @@ A calendar folder named `Outbox` (case-insensitive) in the owner or receiver Cal
 
 ### Accept-log history
 
-The receiver accept-log parser uses timestamped calendar-creation entries, not references to sharing methods in diagnostic stack traces.
+The receiver accept-log parser uses timestamped calendar-creation entries, not references to sharing methods in diagnostic stack traces. Apostrophes within names, such as `Team's Calendar`, are preserved when matching the selected calendar.
 
 The displayed history normally includes only entries from the last **180 days**. By default, it can include calendars from other owners; when `-OwnerCalendarFolderPath` is supplied, it is filtered by both the expected owner and the selected calendar name.
 
@@ -361,6 +361,7 @@ Exchange can return year-1 `DateTime` sentinel values for uninitialized properti
 | Condition | Interpretation |
 | --- | --- |
 | `LastSuccessfulSyncTime` has year 1 | `SHR403`: the selected receiver calendar has never successfully synchronized, whether or not `LastAttemptedSyncTime` is also year 1. When an attempt time is present, the console output includes it. The values are not treated as stale dates. |
+| `LastSuccessfulSyncTime` is missing or cannot be parsed | `SHR403` is `NotEvaluated`: the script cannot determine whether the calendar has ever successfully synchronized. |
 | `LastAttemptedSyncTime` has year 1 but `LastSuccessfulSyncTime` is valid, or either timestamp is missing or cannot be parsed | `SHR401`: periodic synchronization health is incomplete. |
 | Both valid timestamps are more than 24 hours old | `SHR400`: periodic synchronization is stale, even if the timestamps differ. The failed-attempt rule is not also detected. |
 | Both valid timestamps are equal and are not both stale | The latest periodic synchronization attempt succeeded. |
@@ -381,7 +382,7 @@ XTAP failure. The warning retains its source-log evidence and can coexist with t
 Mailbox-wide logs can contain failures for other recipients; correlate the failing recipient with the owner/receiver
 pair before attributing the sharing problem to XTAP or changing policy.
 
-Informational text such as `Failed to read user configuration time zone` or `numberOfFailures: 0` is not reported. If the logs could not be scanned, both rules are `NotEvaluated`.
+Informational text such as `Failed to read user configuration time zone` or `numberOfFailures: 0` is not reported. If any required log is unavailable, negative results for `SHR408`, `SHR409`, and `SHR414` remain `NotEvaluated`, with evidence identifying the unavailable logs. Exceptions found in available logs are still reported as `Detected`. A successful scan with no exceptions is reported only when all applicable logs were available, including logs whose entries were all excluded by the one-year filter.
 
 ### Receiver log freshness
 

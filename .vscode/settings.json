@@ -34,9 +34,5 @@
     "cSpell.caseSensitive": true,
     "editor.detectIndentation": false,
     "editor.unicodeHighlight.includeComments": true,
-    "editor.unicodeHighlight.nonBasicASCII": true,
-    "chat.tools.terminal.autoApprove": {
-        "Invoke-Pester": true,
-        ".": true
-    }
+    "editor.unicodeHighlight.nonBasicASCII": true
 }

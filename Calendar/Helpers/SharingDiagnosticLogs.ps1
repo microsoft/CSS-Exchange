@@ -122,13 +122,16 @@ function Get-SharingDiagnosticLogs {
 function Test-SharingLogExceptions {
     $nowUtc = (Get-Date).ToUniversalTime()
     $scannedLogs = [System.Collections.Generic.List[object]]::new()
+    $unavailableLogs = [System.Collections.Generic.List[string]]::new()
     foreach ($rawLog in @(
-            @{ Label = "Owner CalendarSharingInvite"; Text = $script:OwnerInviteLogRaw }
-            @{ Label = "Receiver AcceptCalendarSharingInvite"; Text = $script:ReceiverAcceptLogRaw }
+            @{ Label = "Owner CalendarSharingInvite"; Text = $script:OwnerInviteLogRaw; Collector = "OwnerInviteLog" }
+            @{ Label = "Receiver AcceptCalendarSharingInvite"; Text = $script:ReceiverAcceptLogRaw; Collector = "ReceiverAcceptLog" }
         )) {
         if (-not [string]::IsNullOrEmpty($rawLog.Text)) {
             $recentLog = ConvertTo-SharingLogLines -Text $rawLog.Text -ReferenceTimeUtc $nowUtc
             $scannedLogs.Add(@{ Label = $rawLog.Label; Line = @($recentLog.Line) })
+        } elseif ($script:CollectorStatuses[$rawLog.Collector].status -ne "NotApplicable") {
+            $unavailableLogs.Add($rawLog.Label)
         }
     }
     foreach ($diagnosticLog in @(
@@ -138,6 +141,8 @@ function Test-SharingLogExceptions {
         $logEntry = $script:SharingDiagnosticLogs[$diagnosticLog.Key]
         if (($null -ne $logEntry) -and ($null -ne $logEntry.data)) {
             $scannedLogs.Add(@{ Label = $diagnosticLog.Label; Line = @($logEntry.data) })
+        } else {
+            $unavailableLogs.Add($diagnosticLog.Label)
         }
     }
     $script:SharingLogScanPerformed = $scannedLogs.Count -gt 0
@@ -228,7 +233,21 @@ function Test-SharingLogExceptions {
             latestEntryUtc   = $(if ($null -ne $latestXtapFailure) { $latestXtapFailure.ToString("o") } else { $null })
         }
     }
-    if (($quotaCount -eq 0) -and ($exceptionCount -eq 0) -and ($xtapFailureCount -eq 0)) {
+    if ($unavailableLogs.Count -gt 0) {
+        Write-Host -ForegroundColor Yellow "The sharing log exception scan is incomplete. Unavailable logs: $($unavailableLogs -join ', ')."
+        foreach ($exceptionCheck in @(
+                @{ RuleId = "SHR408"; Count = $quotaCount }
+                @{ RuleId = "SHR409"; Count = $exceptionCount }
+                @{ RuleId = "SHR414"; Count = $xtapFailureCount }
+            )) {
+            if ($exceptionCheck.Count -eq 0) {
+                Add-SharingFinding -RuleId $exceptionCheck.RuleId -Status NotEvaluated -Area "Sharing logs" -Evidence @{
+                    reason          = "Not all required sharing logs were available for the exception scan."
+                    unavailableLogs = @($unavailableLogs)
+                }
+            }
+        }
+    } elseif (($quotaCount -eq 0) -and ($exceptionCount -eq 0) -and ($xtapFailureCount -eq 0)) {
         Write-Host -ForegroundColor Green "No exceptions were found in the sharing logs from the last year."
     }
 }
