@@ -188,7 +188,7 @@ function Get-XtapCommandScript {
             $tenantArg = " -TenantId $(ConvertTo-XtapLiteral -Value $Organization)"
         }
 
-        $lines.Add("Connect-MgGraph -Scopes `"Policy.Read.All,Policy.ReadWrite.CrossTenantAccess,Policy.ReadWrite.CrossTenantCapability`"$tenantArg -ContextScope Process")
+        $lines.Add("Connect-MgGraph -Scopes `"Policy.Read.All,Policy.ReadWrite.CrossTenantAccess,Policy.ReadWrite.CrossTenantCapability`"$tenantArg -ContextScope Process -ErrorAction Stop")
         $lines.Add("")
         foreach ($line in @(
                 'function Assert-XtapInput {',
