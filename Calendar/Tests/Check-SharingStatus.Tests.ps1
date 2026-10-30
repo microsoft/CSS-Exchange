@@ -1745,6 +1745,16 @@ Describe "Check-SharingStatus JSON report" {
         $script:OwnerActiveSharees = @([PSCustomObject]@{ EmailAddress = "receiver@contoso.com"; SharingPermissionFlags = "Editor, Delegate"; ActiveShareeFlags = @("None") })
         $script:ReceiverAcceptLogEntries = @([PSCustomObject]@{ Timestamp = "15/10/2026 13:44:31"; SharedCalendarOwner = "owner@contoso.com"; FolderName = "Owner Calendar" })
         $script:ReceiverCalendarEntries = @([PSCustomObject]@{ CalendarName = "Owner Calendar"; OwnerEmailAddress = "owner@contoso.com"; SharingModelType = "New"; IsOrphanedEntry = $false })
+        $script:OwnerCalendarStats = @(
+            [PSCustomObject]@{ Name = "Calendar"; FolderId = "owner-calendar-id" }
+            [PSCustomObject]@{ Name = "Project Calendar"; FolderId = "owner-project-id" }
+        )
+        $script:OwnerSelectedCalendar = $script:OwnerCalendarStats[1]
+        $script:ReceiverFolderStatistics = @(
+            [PSCustomObject]@{ Name = "Calendar"; FolderId = "receiver-calendar-id" }
+            [PSCustomObject]@{ Name = "Owner Calendar"; FolderId = "receiver-owner-copy-id" }
+        )
+        $script:ReceiverMatchedCalendar = $script:ReceiverFolderStatistics[1]
         Complete-SharingFindings
 
         $report = Get-SharingJsonReportObject
@@ -1766,6 +1776,10 @@ Describe "Check-SharingStatus JSON report" {
         $json.rawData.receiver_AcceptLog.data[0].FolderName | Should -Be "Owner Calendar"
         $json.rawData.receiver_CalendarEntries.source | Should -Be "Get-CalendarEntries -Identity receiver@contoso.com"
         $json.rawData.receiver_CalendarEntries.data[0].SharingModelType | Should -Be "New"
+        $json.rawData.owner_CalendarFolderStatistics.data.FolderId | Should -Be @("owner-calendar-id", "owner-project-id")
+        $json.rawData.owner_SelectedCalendar.data.FolderId | Should -Be "owner-project-id"
+        $json.rawData.receiver_FolderStatistics.data.FolderId | Should -Be @("receiver-calendar-id", "receiver-owner-copy-id")
+        $json.rawData.receiver_MatchedCalendar.data.FolderId | Should -Be "receiver-owner-copy-id"
         foreach ($sectionName in @($report.rawData.Keys | Where-Object { $_ -notin @("included", "counts") })) {
             $report.rawData[$sectionName].source | Should -Not -BeNullOrEmpty
         }
