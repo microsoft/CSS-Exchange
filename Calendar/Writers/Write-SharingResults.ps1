@@ -336,7 +336,7 @@ function Get-SharingJsonRawData {
         "Database", "ExchangeGuid", "ExternalDirectoryObjectId", "WhenCreatedUTC", "WhenChangedUTC", "GrantSendOnBehalfTo"
     )
     $folderStatisticsProperties = @(
-        "Name", "FolderPath", "FolderType", "ItemsInFolder", "VisibleItemsInFolder",
+        "Name", "FolderId", "FolderPath", "FolderType", "ItemsInFolder", "VisibleItemsInFolder",
         "FolderSize", "FolderAndSubfolderSize", "CreationTime", "LastModifiedTime"
     )
     $calendarFolderProperties = @(
