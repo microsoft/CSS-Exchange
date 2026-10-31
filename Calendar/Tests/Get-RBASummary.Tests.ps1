@@ -13,6 +13,12 @@ BeforeAll {
             [System.Management.Automation.ActionPreference]$ErrorAction
         )
     }
+    function Get-ConnectionInformation {
+        param(
+            [System.Management.Automation.ActionPreference]$ErrorAction
+        )
+        [PSCustomObject]@{ State = "Connected"; ConnectionUri = "https://outlook.office365.com" }
+    }
     function Get-Place {
         param(
             [string]$Identity,
@@ -576,7 +582,7 @@ Describe "Get-RBASummary best-effort report" {
     It "sanitizes non-target identities and emits the documented finding families by default" {
         $report = Invoke-TestRbaSummary
 
-        $report.metadata.schemaVersion | Should -Be "1.1-preview"
+        $report.metadata.schemaVersion | Should -Be "1.2-preview"
         $report.metadata.privacyMode | Should -Be "Sanitized"
         $report.metadata.identity | Should -Be "room@contoso.com"
         $report.mailbox.objectState | Should -Be "Active"
@@ -1280,6 +1286,33 @@ Describe "Get-RBASummary best-effort report" {
         $report.PSObject.Properties.Name | Should -Not -Contain "SanitizedIdentityMap"
     }
 
+    It -Name "serializes every recipient well as an array with <RecipientCount> entries" -TestCases @(
+        @{ RecipientCount = 0 }
+        @{ RecipientCount = 1 }
+        @{ RecipientCount = 2 }
+    ) {
+        param($RecipientCount)
+
+        Mock -CommandName Get-CalendarProcessing -MockWith {
+            $settings = Get-TestCalendarProcessing
+            $recipients = @(for ($index = 0; $index -lt $RecipientCount; $index++) {
+                    "delegate$index@contoso.com"
+                })
+            $settings.RequestOutOfPolicy = $recipients
+            $settings.BookInPolicy = $recipients
+            $settings.RequestInPolicy = $recipients
+            $settings.ResourceDelegates = $recipients
+            $settings
+        }
+
+        $report = Invoke-TestRbaSummary
+
+        foreach ($propertyName in @("requestOutOfPolicy", "bookInPolicy", "requestInPolicy", "resourceDelegates")) {
+            ($report.calendarProcessing.$propertyName -is [array]) | Should -BeTrue
+            $report.calendarProcessing.$propertyName.Count | Should -Be $RecipientCount
+        }
+    }
+
     It "assigns separate placeholders when an identity has no stable key" {
         Mock Get-CalendarProcessing {
             $settings = Get-TestCalendarProcessing
@@ -1331,6 +1364,31 @@ Describe "Get-RBASummary best-effort report" {
         $report = Invoke-TestRbaSummary
 
         ($report.findings | Where-Object { $_.ruleId -eq "RBA803" }).status | Should -Be "NotEvaluated"
+    }
+
+    It -Name "does not evaluate direct Calendar access for a <Resolution> recipient lookup" -TestCases @(
+        @{ Resolution = "Null" }
+        @{ Resolution = "MissingAddress" }
+        @{ Resolution = "WhitespaceAddress" }
+    ) {
+        param($Resolution)
+
+        Mock -CommandName Get-Recipient -MockWith {
+            if ($Resolution -eq "Null") {
+                return $null
+            }
+            if ($Resolution -eq "MissingAddress") {
+                return [PSCustomObject]@{ DisplayName = "Unresolved delegate" }
+            }
+            return [PSCustomObject]@{ PrimarySmtpAddress = " " }
+        }
+
+        $report = Invoke-TestRbaSummary
+        $finding = $report.findings | Where-Object -Property ruleId -EQ "RBA803"
+
+        $finding.status | Should -Be "NotEvaluated"
+        $finding.evidence | Should -BeNullOrEmpty
+        $report.collectors.CalendarProcessing.status | Should -Be "Success"
     }
 
     It "reports explicit Full Access without claiming direct Calendar editing" {
@@ -1488,6 +1546,8 @@ Describe "Get-RBASummary script layout" {
         $entryScript = Get-Content -Path $Script:scriptPath -Raw
         $expectedHelperOrder = @(
             "CalendarHelpers\CalendarDiagnosticHelpers.ps1"
+            "CalendarHelpers\Write-DashLineBoxColor.ps1"
+            "CalendarHelpers\Test-CalendarExoConnection.ps1"
             "RBAHelpers\RBACollectionHelpers.ps1"
             "RBAHelpers\RBAEvaluationHelpers.ps1"
             "RBAHelpers\RBALogHelpers.ps1"
@@ -1540,9 +1600,218 @@ Describe "Get-RBASummary script layout" {
         $invokeHelper | Should -Match '(?m)^\s*\$BuildVersion = ""\s*$'
         $invokeHelper | Should -Not -Match '(?m)^\s*\$script:BuildVersion = ""\s*$'
     }
+
+    It -Name "embeds the shared box writer once in <EntryScript>" -TestCases @(
+        @{ EntryScript = "Get-RBASummary.ps1" }
+        @{ EntryScript = "BookingsDiagnosticSummary.ps1" }
+        @{ EntryScript = "Get-CalendarDiagnosticObjectsSummary.ps1" }
+    ) {
+        param($EntryScript)
+
+        . "$Script:calendarPath\..\.build\BuildFunctions\Get-ExpandedScriptContent.ps1"
+        $entryPath = Join-Path -Path $Script:calendarPath -ChildPath $EntryScript
+        $content = Get-ExpandedScriptContent -File $entryPath
+        $tokens = $null
+        $parseErrors = $null
+        $ast = [System.Management.Automation.Language.Parser]::ParseInput(
+            ($content -join [Environment]::NewLine), [ref]$tokens, [ref]$parseErrors)
+
+        $parseErrors | Should -BeNullOrEmpty
+        $writers = $ast.FindAll({
+                param($node)
+                $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+                $node.Name -eq "Write-DashLineBoxColor"
+            }, $true)
+        $writers.Count | Should -Be 1
+    }
+}
+
+Describe -Name "Shared Calendar diagnostic helpers" {
+    BeforeAll {
+        . "$Script:calendarPath\CalendarHelpers\CalendarDiagnosticHelpers.ps1"
+        . "$Script:calendarPath\CalendarHelpers\Write-DashLineBoxColor.ps1"
+    }
+
+    It -Name "normalizes a permission identity from <Shape>" -TestCases @(
+        @{ Shape = "String"; PermissionUser = " DELEGATE@Contoso.com "; Expected = "delegate@contoso.com" }
+        @{ Shape = "PrimarySmtpAddress"; PermissionUser = [PSCustomObject]@{ PrimarySmtpAddress = " DELEGATE@Contoso.com " }; Expected = "delegate@contoso.com" }
+        @{ Shape = "RecipientPrincipal"; PermissionUser = [PSCustomObject]@{ RecipientPrincipal = [PSCustomObject]@{ PrimarySmtpAddress = " DELEGATE@Contoso.com " } }; Expected = "delegate@contoso.com" }
+        @{ Shape = "ADRecipient"; PermissionUser = [PSCustomObject]@{ ADRecipient = [PSCustomObject]@{ PrimarySmtpAddress = " DELEGATE@Contoso.com " } }; Expected = "delegate@contoso.com" }
+        @{ Shape = "Null"; PermissionUser = $null; Expected = "" }
+        @{ Shape = "Default"; PermissionUser = "Default"; Expected = "default" }
+    ) {
+        param($Shape, $PermissionUser, $Expected)
+
+        Get-CalendarDiagnosticPermissionIdentity -PermissionUser $PermissionUser | Should -Be $Expected
+    }
+
+    It -Name "maps status <Status> with severity <Severity> to result <Expected>" -TestCases @(
+        @{ Status = "Detected"; Severity = "Critical"; Expected = "Fail" }
+        @{ Status = "Detected"; Severity = "Error"; Expected = "Fail" }
+        @{ Status = "Detected"; Severity = "Warning"; Expected = "Fail" }
+        @{ Status = "Detected"; Severity = "Information"; Expected = "Info" }
+        @{ Status = "NotDetected"; Severity = "Error"; Expected = "Pass" }
+        @{ Status = "NotEvaluated"; Severity = "Error"; Expected = "Inconclusive" }
+        @{ Status = "NotApplicable"; Severity = "Error"; Expected = "Skipped" }
+    ) {
+        param($Status, $Severity, $Expected)
+
+        Get-CalendarDiagnosticFindingResult -Status $Status -Severity $Severity | Should -Be $Expected
+    }
+
+    It -Name "adds the plain-language result to shared findings" {
+        $findings = [System.Collections.Generic.List[object]]::new()
+
+        Add-CalendarDiagnosticFinding -Findings $findings -RuleId "RBA001" -Severity Error -Status Detected -Title "Test" -Evidence $null
+
+        $findings[0].status | Should -Be "Detected"
+        $findings[0].result | Should -Be "Fail"
+    }
+
+    It -Name "writes the original box formatting through the shared implementation" {
+        Mock -CommandName Write-Host -MockWith {}
+
+        Write-DashLineBoxColor -Line @("Room", "Calendar") -Color Cyan -DashChar "="
+
+        Should -Invoke -CommandName Write-Host -Times 2 -Exactly -ParameterFilter {
+            $Object -eq "========" -and $ForegroundColor -eq "Cyan"
+        }
+        Should -Invoke -CommandName Write-Host -Times 1 -Exactly -ParameterFilter {
+            $Object -eq "Room" -and $ForegroundColor -eq "Cyan"
+        }
+        Should -Invoke -CommandName Write-Host -Times 1 -Exactly -ParameterFilter {
+            $Object -eq "Calendar" -and $ForegroundColor -eq "Cyan"
+        }
+    }
+}
+
+Describe -Name "Test-CalendarExoConnection" {
+    BeforeAll {
+        . "$Script:calendarPath\CalendarHelpers\Test-CalendarExoConnection.ps1"
+    }
+
+    BeforeEach {
+        Mock -CommandName Write-Host -MockWith {}
+        Mock -CommandName Write-Warning -MockWith {}
+    }
+
+    It -Name "fails when Get-Mailbox is not available" {
+        Mock -CommandName Get-Command -MockWith { $null } -ParameterFilter { $Name -eq "Get-Mailbox" }
+        Mock -CommandName Get-ConnectionInformation -MockWith {}
+
+        Test-CalendarExoConnection | Should -BeFalse
+
+        Should -Invoke -CommandName Get-ConnectionInformation -Times 0 -Exactly
+        Should -Invoke -CommandName Write-Host -Times 1 -Exactly -ParameterFilter {
+            $Object -like "Get-Mailbox cmdlet not found*" -and $ForegroundColor -eq "Red"
+        }
+    }
+
+    It -Name "passes when Get-ConnectionInformation is not available" {
+        Mock -CommandName Get-Command -MockWith { $null } -ParameterFilter { $Name -eq "Get-ConnectionInformation" }
+
+        Test-CalendarExoConnection | Should -BeTrue
+    }
+
+    It -Name "fails when no Exchange Online connection is active (<Case>)" -TestCases @(
+        @{ Case = "no connections"; Connections = @() }
+        @{ Case = "disconnected connection"; Connections = @([PSCustomObject]@{ State = "Disconnected"; ConnectionUri = "https://outlook.office365.com" }) }
+    ) {
+        param($Case, $Connections)
+        Mock -CommandName Get-ConnectionInformation -MockWith { $Connections }
+
+        Test-CalendarExoConnection | Should -BeFalse
+
+        Should -Invoke -CommandName Write-Host -Times 1 -Exactly -ParameterFilter {
+            $Object -like "*no active Exchange Online connection*" -and $ForegroundColor -eq "Red"
+        }
+    }
+
+    It -Name "passes without a warning for the recognized endpoint <EndpointUri>" -TestCases @(
+        @{ EndpointUri = "https://outlook.office365.com/PowerShell-LiveId" }
+        @{ EndpointUri = "https://outlook.office.com" }
+        @{ EndpointUri = "https://outlook.office365.us" }
+        @{ EndpointUri = "https://outlook-dod.office365.us" }
+        @{ EndpointUri = "https://partner.outlook.cn" }
+    ) {
+        param($EndpointUri)
+        Mock -CommandName Get-ConnectionInformation -MockWith {
+            @([PSCustomObject]@{ State = "Connected"; ConnectionUri = $EndpointUri })
+        }
+
+        Test-CalendarExoConnection | Should -BeTrue
+
+        Should -Invoke -CommandName Write-Warning -Times 0 -Exactly
+        Should -Invoke -CommandName Write-Host -Times 1 -Exactly -ParameterFilter {
+            $Object -like "Validated connection to Exchange Online (*" -and $ForegroundColor -eq "Green"
+        }
+    }
+
+    It -Name "passes with a warning for an unrecognized endpoint" {
+        Mock -CommandName Get-ConnectionInformation -MockWith {
+            @([PSCustomObject]@{ State = "Connected"; ConnectionUri = "https://exchange.contoso.local/PowerShell" })
+        }
+
+        Test-CalendarExoConnection | Should -BeTrue
+
+        Should -Invoke -CommandName Write-Warning -Times 1 -Exactly -ParameterFilter {
+            $Message -like "*exchange.contoso.local*not a recognized Exchange Online endpoint*"
+        }
+    }
+
+    It -Name "passes when the connection state cannot be queried" {
+        Mock -CommandName Get-ConnectionInformation -MockWith { throw "Connection state unavailable" }
+
+        Test-CalendarExoConnection | Should -BeTrue
+
+        Should -Invoke -CommandName Write-Warning -Times 0 -Exactly
+    }
+
+    It -Name "embeds the shared validator once in <EntryScript>" -TestCases @(
+        @{ EntryScript = "Get-RBASummary.ps1" }
+        @{ EntryScript = "Check-SharingStatus.ps1" }
+        @{ EntryScript = "BookingsDiagnosticSummary.ps1" }
+        @{ EntryScript = "Get-CalendarDiagnosticObjectsSummary.ps1" }
+    ) {
+        param($EntryScript)
+
+        . "$Script:calendarPath\..\.build\BuildFunctions\Get-ExpandedScriptContent.ps1"
+        $content = Get-ExpandedScriptContent -File (Join-Path -Path $Script:calendarPath -ChildPath $EntryScript)
+        $tokens = $null
+        $parseErrors = $null
+        $ast = [System.Management.Automation.Language.Parser]::ParseInput(
+            ($content -join [Environment]::NewLine), [ref]$tokens, [ref]$parseErrors)
+
+        $parseErrors | Should -BeNullOrEmpty
+        $validators = $ast.FindAll({
+                param($node)
+                $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+                $node.Name -eq "Test-CalendarExoConnection"
+            }, $true)
+        $validators.Count | Should -Be 1
+    }
+}
+
+Describe -Name "Get-RBASummary Exchange Online connection validation" {
+    It -Name "stops before creating output files when the session is not connected" {
+        Mock -CommandName Get-Command -MockWith { $null } -ParameterFilter { $Name -eq "Get-Mailbox" }
+        Mock -CommandName Get-Mailbox -MockWith {}
+        Mock -CommandName Write-Host -MockWith {}
+
+        Push-Location -Path $TestDrive
+        try {
+            & $Script:scriptPath -Identity "room@contoso.com" -SkipVersionCheck
+            @(Get-ChildItem -Path $TestDrive -Filter "RBA-*").Count | Should -Be 0
+        } finally {
+            Pop-Location
+        }
+
+        Should -Invoke -CommandName Get-Mailbox -Times 0 -Exactly
+    }
 }
 
 Describe "RBA log processing block extraction" {
+
     BeforeEach {
         Initialize-StandardMocks
         Mock Get-Mailbox {

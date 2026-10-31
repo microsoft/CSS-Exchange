@@ -186,33 +186,6 @@ function Get-RbaCalendarProcessing {
     Write-Host
 }
 
-function Get-RbaPermissionIdentity {
-    param(
-        [AllowNull()]
-        [object]$PermissionUser
-    )
-
-    foreach ($propertyPath in @(
-            @("ADRecipient", "PrimarySmtpAddress"),
-            @("RecipientPrincipal", "PrimarySmtpAddress"),
-            @("PrimarySmtpAddress")
-        )) {
-        try {
-            $value = $PermissionUser
-            foreach ($propertyName in $propertyPath) {
-                $value = $value.PSObject.Properties[$propertyName].Value
-            }
-            if (-not [string]::IsNullOrWhiteSpace([string]$value)) {
-                return ([string]$value).ToLowerInvariant()
-            }
-        } catch {
-            continue
-        }
-    }
-
-    return ([string]$PermissionUser).ToLowerInvariant()
-}
-
 function Get-RbaCalendarFolderPermissions {
     Write-Host -ForegroundColor Cyan "Running: Get-MailboxFolderPermission for the Calendar folder of $Identity"
     $failureMessage = "Unable to collect Calendar folder permissions for $Identity. Continuing with other available evidence."
@@ -244,9 +217,10 @@ function Initialize-RbaResourceDelegateIdentitySets {
         $identityAliases.Add($delegateIdentity)
         try {
             $recipient = Get-Recipient -Identity $resourceDelegate -ErrorAction Stop
-            if ($null -ne $recipient.PrimarySmtpAddress) {
-                $identityAliases.Add(([string]$recipient.PrimarySmtpAddress).ToLowerInvariant())
+            if ($null -eq $recipient -or [string]::IsNullOrWhiteSpace([string]$recipient.PrimarySmtpAddress)) {
+                throw "Recipient lookup returned no primary SMTP address for resource delegate '$delegateIdentity'."
             }
+            $identityAliases.Add(([string]$recipient.PrimarySmtpAddress).Trim().ToLowerInvariant())
         } catch {
             $identityEnrichmentComplete = $false
             Write-Verbose "Unable to resolve resource delegate '$delegateIdentity' for direct Calendar permission comparison."

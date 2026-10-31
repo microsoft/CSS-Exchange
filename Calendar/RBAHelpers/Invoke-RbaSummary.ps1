@@ -63,6 +63,10 @@ function Invoke-RbaSummary {
 
     Write-Verbose "Script Versions: $BuildVersion"
 
+    if (-not (Test-CalendarExoConnection)) {
+        return
+    }
+
     $script:runTimestamp = (Get-Date).ToString('yyyy-MM-dd_HH-mm-ss')
     $script:outputFileStem = ConvertTo-CalendarDiagnosticFileNameStem -Value $Identity
     $script:SummaryFilename = "RBA-Summary-For_$outputFileStem`_$runTimestamp.txt"

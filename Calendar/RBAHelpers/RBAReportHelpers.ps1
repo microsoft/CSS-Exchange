@@ -329,7 +329,7 @@ function Get-RbaFindings {
         -Evidence @{ declineCount = $script:MeetingLogSearch.declineCount; horizonDeclineCount = $script:MeetingLogSearch.horizonDeclineCount }
 
     $defaultCalendarPermission = @($script:CalendarFolderPermissions | Where-Object {
-            (Get-RbaPermissionIdentity -PermissionUser $_.User) -eq "default"
+            (Get-CalendarDiagnosticPermissionIdentity -PermissionUser $_.User) -eq "default"
         } | Select-Object -First 1)
     $defaultAccessRights = if ($defaultCalendarPermission.Count -gt 0) {
         @($defaultCalendarPermission[0].AccessRights | ForEach-Object { [string]$_ })
@@ -350,7 +350,7 @@ function Get-RbaFindings {
     $directCalendarEditorIdentities = @($script:CalendarFolderPermissions | Where-Object {
             $rights = @($_.AccessRights | ForEach-Object { [string]$_ })
             $rights -contains "Editor" -or $rights -contains "Owner"
-        } | ForEach-Object { Get-RbaPermissionIdentity -PermissionUser $_.User })
+        } | ForEach-Object { Get-CalendarDiagnosticPermissionIdentity -PermissionUser $_.User })
     $configuredDelegateCount = if ($settingsAvailable) {
         @($script:RbaSettings.ResourceDelegates).Count
     } else { 0 }
@@ -378,7 +378,7 @@ function Get-RbaFindings {
     $explicitFullAccessPermissions = @($script:MailboxPermissions | Where-Object {
             -not $_.IsInherited -and -not $_.Deny -and
             @($_.AccessRights | ForEach-Object { [string]$_ }) -contains "FullAccess" -and
-            (Get-RbaPermissionIdentity -PermissionUser $_.User) -notin @("nt authority\self", "self")
+            (Get-CalendarDiagnosticPermissionIdentity -PermissionUser $_.User) -notin @("nt authority\self", "self")
         })
     Add-CalendarDiagnosticFinding -Findings $findings -RuleId "RBA820" -Severity Warning `
         -Status $(if (-not $mailboxPermissionsAvailable) { "NotEvaluated" } elseif ($explicitFullAccessPermissions.Count -gt 0) { "Detected" } else { "NotDetected" }) `
@@ -503,7 +503,7 @@ function Get-RbaCalendarPermissionSummaryObject {
 
     $entries = [System.Collections.Generic.List[object]]::new()
     foreach ($permission in @($script:CalendarFolderPermissions)) {
-        $permissionIdentity = Get-RbaPermissionIdentity -PermissionUser $permission.User
+        $permissionIdentity = Get-CalendarDiagnosticPermissionIdentity -PermissionUser $permission.User
         $principal = if ($permissionIdentity.Trim() -in @("default", "anonymous") -or $IncludeSensitiveData) {
             [string]$permission.User
         } else {
@@ -530,13 +530,13 @@ function Get-RbaMailboxPermissionSummaryObject {
     $fullAccessPermissions = @($script:MailboxPermissions | Where-Object {
             -not $_.IsInherited -and -not $_.Deny -and
             @($_.AccessRights | ForEach-Object { [string]$_ }) -contains "FullAccess" -and
-            (Get-RbaPermissionIdentity -PermissionUser $_.User) -notin @("nt authority\self", "self")
+            (Get-CalendarDiagnosticPermissionIdentity -PermissionUser $_.User) -notin @("nt authority\self", "self")
         })
     $grantees = @($fullAccessPermissions | ForEach-Object {
             if ($IncludeSensitiveData) {
                 [string]$_.User
             } else {
-                Get-RbaSanitizedIdentity -Value (Get-RbaPermissionIdentity -PermissionUser $_.User)
+                Get-RbaSanitizedIdentity -Value (Get-CalendarDiagnosticPermissionIdentity -PermissionUser $_.User)
             }
         })
 
@@ -620,13 +620,13 @@ function Write-RbaJson {
             maximumConflictInstances            = $RbaSettings.MaximumConflictInstances
             enforceSchedulingHorizon            = $RbaSettings.EnforceSchedulingHorizon
             enforceCapacity                     = $RbaSettings.EnforceCapacity
-            requestOutOfPolicy                  = ConvertTo-RbaIdentityList -Value $RbaSettings.RequestOutOfPolicy
+            requestOutOfPolicy                  = @(ConvertTo-RbaIdentityList -Value $RbaSettings.RequestOutOfPolicy)
             allRequestOutOfPolicy               = $RbaSettings.AllRequestOutOfPolicy
-            bookInPolicy                        = ConvertTo-RbaIdentityList -Value $RbaSettings.BookInPolicy
+            bookInPolicy                        = @(ConvertTo-RbaIdentityList -Value $RbaSettings.BookInPolicy)
             allBookInPolicy                     = $RbaSettings.AllBookInPolicy
-            requestInPolicy                     = ConvertTo-RbaIdentityList -Value $RbaSettings.RequestInPolicy
+            requestInPolicy                     = @(ConvertTo-RbaIdentityList -Value $RbaSettings.RequestInPolicy)
             allRequestInPolicy                  = $RbaSettings.AllRequestInPolicy
-            resourceDelegates                   = ConvertTo-RbaIdentityList -Value $RbaSettings.ResourceDelegates
+            resourceDelegates                   = @(ConvertTo-RbaIdentityList -Value $RbaSettings.ResourceDelegates)
             addNewRequestsTentatively           = $RbaSettings.AddNewRequestsTentatively
             forwardRequestsToDelegates          = $RbaSettings.ForwardRequestsToDelegates
             addOrganizerToSubject               = $RbaSettings.AddOrganizerToSubject
@@ -676,7 +676,7 @@ function Write-RbaJson {
     Write-RbaPhaseVerbose -Message "Assembling JSON report."
     $data = [ordered]@{
         metadata            = [ordered]@{
-            schemaVersion    = "1.1-preview"
+            schemaVersion    = "1.2-preview"
             scriptVersion    = $BuildVersion
             collectedAtUtc   = (Get-Date).ToUniversalTime().ToString("o")
             identity         = $Identity
