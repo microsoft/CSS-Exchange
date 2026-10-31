@@ -696,6 +696,32 @@ Describe "Get-XtapCommandScript" {
             Mock Write-Host { $Script:trustMessage = "$Object" }
         }
 
+        It "Stops before policy operations when authentication fails <Scenario>" -TestCases @(
+            @{ Scenario = "without an organization"; Organization = $null }
+            @{ Scenario = "for a specified organization"; Organization = "contoso.onmicrosoft.com" }
+        ) {
+            param($Scenario, $Organization)
+            $ErrorActionPreference = "Continue"
+            Mock Connect-MgGraph { Write-Error -Message "Graph authentication failed" }
+            $generated = Get-XtapCommandScript -OrganizationRelationshipAnalysis $Script:orgAnalysis -SharingPolicyAnalysis $Script:sharingAnalysis -Organization $Organization
+            $text = $generated["XTAP_Part2_CreatePolicies.ps1"].Replace("<SecurityGroupObjectId for Sharing Policy Default>", $Script:TenantA)
+            $path = Join-Path -Path $TestDrive -ChildPath "Part2_AuthenticationFailure.ps1"
+            Write-XtapTextFile -Path $path -Text ($text + "`r`nWrite-Host 'Must not continue'")
+
+            { & $path } | Should -Throw -ExpectedMessage "*Graph authentication failed*"
+
+            Should -Invoke -CommandName Connect-MgGraph -Times 1 -Exactly -ParameterFilter { $ErrorAction -eq "Stop" }
+            foreach ($commandName in @(
+                    "Get-MgPolicyCrossTenantAccessPolicyPartner",
+                    "New-MgPolicyCrossTenantAccessPolicyPartner",
+                    "Update-MgPolicyCrossTenantAccessPolicyPartner",
+                    "New-MgPolicyCrossTenantAccessPolicyPartnerM365Capability",
+                    "New-MgPolicyCrossTenantAccessPolicyDefaultM365Capability")) {
+                Should -Invoke -CommandName $commandName -Times 0 -Exactly
+            }
+            Should -Invoke -CommandName Write-Host -Times 0 -Exactly -ParameterFilter { $Object -eq "Must not continue" }
+        }
+
         It "Stops the generated Part 2 script when a <Target> capability fails" -TestCases @(
             @{ Target = "Partner" }
             @{ Target = "Default" }

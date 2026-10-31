@@ -177,6 +177,7 @@ function Get-XtapCommandScript {
         foreach ($line in (Get-XtapCommandScriptHeader -Title "Part 2 - Create the Microsoft 365 Cross-Tenant Access Policies" -RunName $RunName -Description @(
                     "https://learn.microsoft.com/exchange/sharing/migrate-to-m365-xtap#part-2--configure-your-new-microsoft-365-cross-tenant-access-policies",
                     "Requires the Microsoft Graph PowerShell SDK. Creating the trust needs Global Administrator.",
+                    "Authentication failures stop this script before any policy changes. Resolve the error before rerunning Part 2.",
                     "XTAP is an inbound setting. For two-way sharing the external organization must create complementary policies.",
                     "The Microsoft 365 cross-tenant access policy cmdlets can change. Confirm the cmdlet names against the documentation if one isn't found."))) {
             $lines.Add($line)

@@ -162,8 +162,9 @@ error details. Review them before sharing outside your organization.
 - XTAP is inbound; bidirectional sharing requires complementary external policies.
 - Existing relationships, address spaces, and sharing policies take precedence and must be disabled to test XTAP.
 - Generated scripts contain guarded placeholders for unknown tenant IDs or security groups. Replace them before running.
-- Part 2 stops on trust creation, trust update, or capability creation failures. Resolve the error and confirm
-  replacement policies are working before running Part 3 or disabling any legacy sharing.
+- Part 2 stops on Microsoft Graph authentication failures before any policy changes, rather than continuing with
+  an existing Graph context. It also stops on trust creation, trust update, or capability creation failures.
+  Resolve the error and confirm replacement policies are working before running Part 3 or disabling any legacy sharing.
 - All Step 4 changes, including deletion and sharing-setting changes, are commented out until you deliberately enable them.
   Deletion is permanent. Retain the collected JSON bundle, Part 3 rollback script, and backups; Part 3 rollback does not
   recreate Organization Relationships or Sharing Policies deleted during Step 4.
