@@ -7,6 +7,34 @@
 
 . $PSScriptRoot\..\Helpers\SharingIdentityUtilities.ps1
 
+function ConvertTo-SharingConsoleEvidence {
+    param(
+        [AllowNull()]
+        [object]$Evidence
+    )
+
+    if ($null -eq $Evidence) {
+        return ""
+    }
+    if (($Evidence -is [System.Collections.IDictionary]) -or
+        ($Evidence.GetType() -eq [System.Management.Automation.PSCustomObject])) {
+        $evidenceObject = if ($Evidence -is [System.Collections.IDictionary]) {
+            [PSCustomObject]$Evidence
+        } else {
+            $Evidence
+        }
+        return (@($evidenceObject.PSObject.Properties | Sort-Object -Property Name | ForEach-Object {
+                    "$($_.Name): $(ConvertTo-SharingConsoleEvidence -Evidence $_.Value)"
+                }) -join "; ")
+    }
+    if (($Evidence -is [System.Collections.IEnumerable]) -and ($Evidence -isnot [string])) {
+        return (@($Evidence | ForEach-Object {
+                    ConvertTo-SharingConsoleEvidence -Evidence $_
+                }) -join ", ")
+    }
+    return [string]$Evidence
+}
+
 function Write-SharingFindingDetails {
     param(
         [AllowEmptyCollection()]
@@ -18,14 +46,20 @@ function Write-SharingFindingDetails {
 
     $displayFindings = @($Findings |
             ForEach-Object {
+                $incomplete = $_.status -eq "NotEvaluated"
+                $evidence = if ($script:ConsoleFindingEvidence.ContainsKey($_.ruleId)) {
+                    $script:ConsoleFindingEvidence[$_.ruleId]
+                } else {
+                    $_.evidence
+                }
                 [PSCustomObject]@{
                     severity            = $_.severity
                     ruleId              = $_.ruleId
-                    title               = $_.title
-                    evidence            = $(if ($script:ConsoleFindingEvidence.ContainsKey($_.ruleId)) {
-                            $script:ConsoleFindingEvidence[$_.ruleId]
-                        } else { $_.evidence })
-                    recommendedNextStep = $_.recommendedNextStep
+                    title               = $(if ($incomplete) { "Not evaluated: $($_.title)" } else { $_.title })
+                    evidence            = ConvertTo-SharingConsoleEvidence -Evidence $evidence
+                    recommendedNextStep = $(if ($incomplete) {
+                            "Collect the missing evidence or resolve the evaluation failures shown above, then rerun these checks. Incomplete checks do not confirm the issues in their titles."
+                        } else { $_.recommendedNextStep })
                 }
             } |
             Sort-Object -Property @{ Expression = { $SeverityOrder[$_.severity] } }, ruleId)

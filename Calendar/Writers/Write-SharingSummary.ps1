@@ -41,7 +41,13 @@ function Write-SharingSummary {
         return
     }
 
-    Write-Host -ForegroundColor Blue "Mailbox Owner [$Owner] and Receiver [$Receiver] are using [$script:SharingType] for Calendar Sharing."
+    $organizationScope = switch ($script:SharingType) {
+        "ExternalSharing" { "Cross-organization" }
+        "InternalSharing" { "Same organization" }
+        default { "Undetermined" }
+    }
+    Write-Host -ForegroundColor Blue "Mailbox Owner [$Owner] and Receiver [$Receiver]."
+    Write-Host -ForegroundColor Blue "Organization scope: $organizationScope [$script:SharingType]."
     Write-Host -ForegroundColor Blue "Sharing relationship: $(Get-SharingRelationshipKind)."
     if ($script:ExternalSharing) {
         Write-Host -ForegroundColor Blue "The receiver is using cross-organization external calendar sharing, not internal REST sharing."
@@ -53,6 +59,7 @@ function Write-SharingSummary {
         Write-Host -ForegroundColor Blue "The internal relationship is using legacy MAPI calendar sharing."
     } else {
         Write-Host -ForegroundColor Blue "The calendar sharing model could not be determined from the available evidence."
+        Write-Host -ForegroundColor Yellow "Organization scope does not confirm that a calendar-sharing relationship exists. Verify that this calendar was shared with the receiver before investigating synchronization."
     }
 
     $relationshipAssessment = Get-SharingRelationshipAssessment
