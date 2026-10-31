@@ -4884,6 +4884,61 @@ Describe "Check-SharingStatus structured diagnostics" {
             }
         }
 
+        It "distinguishes organization scope from an unconfirmed external relationship" {
+            $script:SharingType = "ExternalSharing"
+
+            Write-SharingSummary -Owner "owner@contoso.com" -Receiver "receiver@contoso.com"
+
+            Should -Invoke -CommandName Write-Host -ParameterFilter {
+                $Object -eq "Organization scope: Cross-organization [ExternalSharing]."
+            }
+            Should -Invoke -CommandName Write-Host -ParameterFilter {
+                $Object -eq "Sharing relationship: Undetermined."
+            }
+            Should -Invoke -CommandName Write-Host -ParameterFilter {
+                $Object -like "*Organization scope does not confirm that a calendar-sharing relationship exists*"
+            }
+            Should -Not -Invoke -CommandName Write-Host -ParameterFilter {
+                $Object -like "*are using*ExternalSharing*"
+            }
+        }
+
+        It "does not present unavailable exception scans as detected failures" {
+            $script:SharingType = "ExternalSharing"
+            $script:SharingLogScanPerformed = $false
+            $script:CollectorStatuses["OwnerInviteLog"].status = "Failed"
+            foreach ($collectorName in @("ReceiverSharingSyncAssistantLog", "ReceiverSharingLog")) {
+                $script:CollectorStatuses[$collectorName].status = "NoData"
+            }
+            Complete-SharingFindings
+            $findings = @($script:SharingFindings | Where-Object {
+                    $_.ruleId -in @("SHR301", "SHR408", "SHR409", "SHR414")
+                })
+
+            $output = Write-SharingFindingDetails -Findings $findings -SeverityOrder @{
+                Critical = 0; Error = 1; Warning = 2; Information = 3
+            } | Out-String -Width 400
+
+            $output | Should -Match "Required evidence was unavailable: OwnerInviteLog"
+            $output | Should -Match "The sharing logs were not scanned"
+            $output | Should -Not -Match "\{reason\}"
+            foreach ($finding in $findings) {
+                $output | Should -Match ([regex]::Escape("Not evaluated: $($finding.title)"))
+                $finding.status | Should -Be "NotEvaluated"
+            }
+            Should -Invoke -CommandName Write-Host -ParameterFilter {
+                $Object -like "[[]SHR301, SHR408, SHR409, SHR414] Collect the missing evidence*"
+            }
+            Should -Not -Invoke -CommandName Write-Host -ParameterFilter {
+                $Object -like "*Escalate to Microsoft Support*" -or
+                $Object -like "*migrate-to-m365-xtap*"
+            }
+            $reportedFindings = @((Get-SharingJsonReportObject).findings | Where-Object {
+                    $_.ruleId -in $findings.ruleId
+                })
+            @($reportedFindings | Where-Object -Property result -NE "Inconclusive").Count | Should -Be 0
+        }
+
         It "retains detected findings in the final summary" {
             Add-SharingFinding -RuleId "SHR121" -Status Detected -Evidence @{
                 extendedFolderFlags = @()
@@ -4918,10 +4973,17 @@ Describe "Check-SharingStatus structured diagnostics" {
             Add-SharingFinding -RuleId "SHR231" -Status $Status
             Add-SharingFinding -RuleId "SHR311" -Status $Status
 
-            Write-SharingSummary -Owner "owner@contoso.com" -Receiver "receiver@contoso.com"
+            Write-SharingFindingDetails -Findings $script:SharingFindings -SeverityOrder @{
+                Critical = 0; Error = 1; Warning = 2; Information = 3
+            }
 
+            $expectedNextStep = if ($Status -eq "NotEvaluated") {
+                "[SHR231, SHR311] Collect the missing evidence or resolve the evaluation failures shown above, then rerun these checks. Incomplete checks do not confirm the issues in their titles."
+            } else {
+                "[SHR231, SHR311] Inspect invite or accept logs and sharing assistant diagnostics."
+            }
             Should -Invoke -CommandName Write-Host -Times 1 -Exactly -ParameterFilter {
-                $Object -eq "[SHR231, SHR311] Inspect invite or accept logs and sharing assistant diagnostics."
+                $Object -eq $expectedNextStep
             }
             Should -Not -Invoke -CommandName Write-Host -ParameterFilter {
                 $Object -eq "[SHR231] Inspect invite or accept logs and sharing assistant diagnostics." -or
@@ -4999,6 +5061,33 @@ Describe "Check-SharingStatus structured diagnostics" {
             } | Out-String -Width 300
 
             $output | Should -Match "Required evidence was unavailable: OwnerCalendarPermissions"
+        }
+
+        It -Name "renders <EvidenceType> evidence with readable values and log names" -TestCases @(
+            @{ EvidenceType = "hashtable" }
+            @{ EvidenceType = "ordered dictionary" }
+            @{ EvidenceType = "custom object" }
+        ) {
+            param($EvidenceType)
+            $evidence = [ordered]@{
+                reason          = "Not all required sharing logs were available for the exception scan."
+                unavailableLogs = @("Owner CalendarSharingInvite", "Receiver Sharing")
+            }
+            if ($EvidenceType -eq "hashtable") {
+                $evidence = @{ reason = $evidence.reason; unavailableLogs = $evidence.unavailableLogs }
+            } elseif ($EvidenceType -eq "custom object") {
+                $evidence = [PSCustomObject]$evidence
+            }
+            Add-SharingFinding -RuleId "SHR414" -Status NotEvaluated -Evidence $evidence
+
+            $output = Write-SharingFindingDetails -Findings $script:SharingFindings -SeverityOrder @{
+                Critical = 0; Error = 1; Warning = 2; Information = 3
+            } | Out-String -Width 400
+
+            $output | Should -Match "reason: Not all required sharing logs were available for the exception scan"
+            $output | Should -Match "unavailableLogs: Owner CalendarSharingInvite, Receiver Sharing"
+            $output | Should -Not -Match "System.Object\[\]|\{reason\}"
+            $script:SharingFindings[0].evidence.unavailableLogs.Count | Should -Be 2
         }
 
         It "prefers full-fidelity console evidence over structured evidence" {
