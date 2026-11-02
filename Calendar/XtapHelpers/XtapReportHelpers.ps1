@@ -262,6 +262,11 @@ function Get-XtapSummaryLines {
         $warnings++
         $lines.Add("Generated calendar sharing commands require a security group containing only the mailboxes using each Sharing Policy, including inherited default-policy assignments. Mailbox counts alone do not establish tenant-wide applicability. Policies confirmed to have no assigned mailboxes are excluded from generated scripts.")
     }
+    if (@($sharingRows | Where-Object { $_.Status -eq "Eligible" -and $_.RuleType -eq "Wildcard" -and ($null -eq $_.AssignedMailboxCount -or $_.AssignedMailboxCount -gt 0) }).Count -gt 0) {
+        $warnings++
+        $lines.Add("Wildcard Sharing Policies also cover on-premises and hybrid recipients, which XTAP cannot replace. Their disable commands remain commented out until an administrator confirms no such dependencies remain; calendar sharing can be tested while these policies stay enabled.")
+        $lines.Add("Wildcard default capabilities do not establish Microsoft 365 Collaboration trust. Manually verify effective default or partner-specific trust, partner overrides, and user/group scopes for every intended Microsoft 365 partner before disabling legacy sharing. Broad default trust is not enabled by these scripts.")
+    }
 
     foreach ($row in @($orgRows | Where-Object { $_.UnresolvedDomains })) {
         $warnings++
@@ -301,17 +306,17 @@ function Get-XtapSummaryLines {
     $nextStep = 2
     if ($hasCreateScript -or $hasTestScript -or $hasRollbackScript -or $hasCleanupScript) {
         if ($hasCreateScript) {
-            $lines.Add("$nextStep. Replace any <placeholder> in XTAP_Part2_CreatePolicies.ps1, then run it. Creating the trust needs Global Administrator. Stop if any command fails; do not disable legacy sharing until replacement policies are confirmed.")
+            $lines.Add("$nextStep. Replace any <placeholder> in XTAP_Part2_CreatePolicies.ps1, then run it. Creating the trust needs Global Administrator. Keep XTAP_Part2_CapabilityBackup.json for rollback. Pre-existing capabilities require manual review and are not overwritten. Stop if any command fails; do not disable legacy sharing until effective collaboration trust and replacement policies are verified.")
             $nextStep++
         }
         if ($hasTestScript) {
-            $lines.Add("$nextStep. After confirming Part 2 succeeded, coordinate with the external organizations, then run XTAP_Part3_DisableForTesting.ps1 and test.")
+            $lines.Add("$nextStep. After confirming Part 2 succeeded and manually verifying effective Microsoft 365 Collaboration trust and replacement policy functionality, coordinate with the external organizations, then run XTAP_Part3_DisableForTesting.ps1 -ReplacementPoliciesVerified and test. Leave wildcard Sharing Policies enabled if on-premises or hybrid dependencies remain.")
             $nextStep++
         } else {
             $lines.Add("Automatic disable commands are unavailable for this assessment. Preserve unsupported legacy functionality and plan manual testing before changing the existing configuration.")
         }
         if ($hasRollbackScript) {
-            $lines.Add("XTAP_Part3_Rollback.ps1 restores the configuration changed during testing. Keep it together with any Availability Address Space backups.")
+            $lines.Add("XTAP_Part3_Rollback.ps1 restores legacy settings and removes only this run's new capabilities using XTAP_Part2_CapabilityBackup.json. Pre-existing capabilities, partner policies and collaboration trust are retained; changed capabilities or uncertain creation outcomes require manual review. Keep all scripts and backups together.")
         } else {
             $lines.Add("Automatic rollback commands are unavailable for this assessment. Plan a manual rollback before changing the existing configuration.")
         }
@@ -324,7 +329,7 @@ function Get-XtapSummaryLines {
         $lines.Add("2. This was an assessment only and no command scripts were created. To get the cmdlets for the eligible items, run again with -GenerateCommandScripts (add -ProcessUsers to count the mailboxes for each Sharing Policy).")
     }
 
-    $lines.Add("Existing Organization Relationships, Availability Address Spaces and Sharing Policies take precedence over XTAP.")
+    $lines.Add("Existing Organization Relationships and Availability Address Spaces take precedence over XTAP. Applicable XTAP calendar sharing capabilities take precedence over Sharing Policies, so calendar sharing can be tested while Sharing Policies remain enabled.")
 
     if (@($ReplayCommand).Count -gt 0) {
         $lines.Add("")

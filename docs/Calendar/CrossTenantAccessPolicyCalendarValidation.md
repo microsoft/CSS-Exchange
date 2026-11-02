@@ -82,9 +82,10 @@ filenames inside the folder still use `CrossTenantAccessPolicyCalendarValidation
 | --- | --- |
 | `*_CrossTenantAccessPolicyCalendarValidation_Data.json` | Versioned bundle with the summary near the top, invocation metadata, run errors, all collected configuration properties, optional mailbox counts, tenant resolution results (including failed lookups), analysis arrays, generated command text, and output file names. |
 | `*_CrossTenantAccessPolicyCalendarValidation_Summary.txt` | Readable results, warnings, next steps, and the ImportData replay command. |
-| `XTAP_Part2_CreatePolicies.ps1` | Optional commands to create XTAP partner policies and capabilities. |
-| `XTAP_Part3_DisableForTesting.ps1`, `XTAP_Part3_Rollback.ps1` | Optional commands to disable the old configuration and restore it. Availability Address Space backups use JSON. |
+| `XTAP_Part2_CreatePolicies.ps1` | Optional commands to create XTAP partner policies and capabilities. Saves a tenant-bound capability backup before creating capabilities; refuses to overwrite pre-existing capabilities. |
+| `XTAP_Part3_DisableForTesting.ps1`, `XTAP_Part3_Rollback.ps1` | Optional commands to disable legacy settings and roll back this run's capability additions. Disabling requires explicit prerequisite confirmation. Availability Address Space backups use JSON. |
 | `XTAP_Part4_Cleanup.ps1` | Review-only cleanup commands. All configuration-changing commands are commented out, so running the file unchanged makes no changes. Deliberately uncomment commands or copy and run them individually after successful testing. |
+| `XTAP_Part2_CapabilityBackup.json` | Created only when Part 2 runs, not during assessment. Records the connected tenant, relevant capability baselines, intended inbound scopes, and confirmed creation outcomes for rollback. |
 
 Empty configuration and analysis collections remain JSON arrays. SharingPolicyAssignment is null when counts were not
 collected, and an empty array when collection succeeded with no mailboxes. Exchange-specific values such as domains,
@@ -94,10 +95,10 @@ JSON bundles are read as UTF-8, including in Windows PowerShell 5.1, so non-ASCI
 
 Next steps list only the command scripts actually generated. An assessment with no eligible, used configuration
 can produce no command scripts. Availability Address Space-only assessments do not need a cleanup script.
-Policies containing both calendar sharing and unsupported rules can produce Part 2 without automatic testing or
-rollback scripts; preserve the unsupported functionality and plan manual testing and rollback before changing them.
-Availability Address Space backups are saved beside the generated testing and rollback scripts, regardless of the
-working directory. Keep those scripts and backups together in their assessment folder.
+Policies containing both calendar sharing and unsupported rules can produce Part 2 and capability rollback without
+automatic legacy-disable commands; preserve unsupported functionality and plan manual testing before changing it.
+Capability and Availability Address Space backups are saved beside the generated scripts, regardless of the working
+directory. Keep all scripts and backups together in their assessment folder.
 
 `Summary` immediately follows `SchemaVersion`. `Metadata.CommandLine` records the script path and resolved bound
 parameter values, including explicit switch values; `Metadata.InvocationLine` preserves the original invocation text
@@ -158,13 +159,40 @@ error details. Review them before sharing outside your organization.
   mailboxes are excluded from migration, testing, rollback, and cleanup scripts.
 - Wildcard and Anonymous Sharing Policy rules generate Part 2 commands for the default XTAP policy even when
   no partner tenant policy is needed.
+- Wildcard rules also apply to on-premises and hybrid recipients. Their Part 3 disable commands are commented out.
+  Leave these policies enabled unless you confirm no on-premises or hybrid sharing dependencies remain.
+- Default calendar capabilities do not establish collaboration trust. For wildcard sharing, manually inspect
+  `Get-MgPolicyCrossTenantAccessPolicyDefault` and each intended partner's
+  `Get-MgPolicyCrossTenantAccessPolicyPartner` configuration. Verify effective `m365CollaborationInbound` access,
+  user/group scopes, inheritance, and partner overrides for every intended Microsoft 365 partner. Generated commands
+  never broadly enable default collaboration trust. An authored capability without effective trust does not prove
+  sharing works.
 - Domains resolving to multiple tenants require separate partner policies.
 - XTAP is inbound; bidirectional sharing requires complementary external policies.
-- Existing relationships, address spaces, and sharing policies take precedence and must be disabled to test XTAP.
+- Existing Organization Relationships and Availability Address Spaces take precedence over XTAP and must be
+  disabled or removed to test the replacement Free/Busy and MailTips configuration. Applicable XTAP calendar
+  sharing capabilities take precedence over Sharing Policies; calendar sharing can be tested while those policies
+  remain enabled. If no capability applies, the Sharing Policy is used.
 - Generated scripts contain guarded placeholders for unknown tenant IDs or security groups. Replace them before running.
 - Part 2 stops on Microsoft Graph authentication failures before any policy changes, rather than continuing with
   an existing Graph context. It also stops on trust creation, trust update, or capability creation failures.
   Resolve the error and confirm replacement policies are working before running Part 3 or disabling any legacy sharing.
+- Before running Part 3, manually verify effective collaboration trust and replacement policy functionality,
+  including the intended users and partner configurations. Only then run
+  `.\XTAP_Part3_DisableForTesting.ps1 -ReplacementPoliciesVerified`. This switch provides your explicit confirmation;
+  it does not automatically validate or configure trust.
+- Part 2 records relevant capability baselines before creation and refuses to overwrite any pre-existing capability.
+  Existing configurations require manual scope review and merging rather than an automatic replacement. Rerunning
+  Part 2 preserves the original backup and skips this run's confirmed additions only if their inbound access still
+  matches. Conflicting scopes stop the script; do not delete the backup or run Part 2 concurrently to bypass a conflict.
+- Rollback requires Microsoft Graph authentication as well as Exchange Online PowerShell. It verifies the backup's
+  tenant and checks this run's new capabilities before making changes, restores legacy settings, then removes only
+  confirmed additions whose inbound access still matches the recorded settings. Pre-existing and unrelated
+  capabilities remain untouched. Re-enabling a Sharing Policy alone cannot override applicable XTAP calendar sharing.
+  Missing backups, capability drift, and uncertain creation outcomes stop automatic rollback for manual review.
+  Partner policy objects and collaboration trust created or updated in Part 2 are retained to avoid disrupting other
+  workloads; review their cleanup separately. A completed rollback is recorded so repeated rollback is inert.
+  Generate a fresh assessment and scripts before starting a new migration after rollback.
 - All Step 4 changes, including deletion and sharing-setting changes, are commented out until you deliberately enable them.
   Deletion is permanent. Retain the collected JSON bundle, Part 3 rollback script, and backups; Part 3 rollback does not
   recreate Organization Relationships or Sharing Policies deleted during Step 4.

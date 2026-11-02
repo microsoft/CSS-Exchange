@@ -171,6 +171,68 @@ function Get-XtapCommandScript {
     }
 
     $scripts = [ordered]@{}
+    $hasWildcardSharing = @($sharingRows | Where-Object { $_.RuleType -eq "Wildcard" }).Count -gt 0
+    $capabilityHelpers = @(
+        'function Get-XtapCapability {',
+        '    param([string]$PartnerTenantId, [string]$Capability)',
+        '    $items = if ($PartnerTenantId -eq "default") {',
+        '        @(Get-MgPolicyCrossTenantAccessPolicyDefaultM365Capability -All -ErrorAction Stop)',
+        '    } else {',
+        '        @(Get-MgPolicyCrossTenantAccessPolicyPartnerM365Capability -CrossTenantAccessPolicyConfigurationPartnerTenantId $PartnerTenantId -All -ErrorAction Stop)',
+        '    }',
+        '    $matches = @($items | Where-Object { $_.Name -eq $Capability })',
+        '    if ($matches.Count -gt 1) { throw "More than one $Capability capability was returned for $PartnerTenantId. Review manually." }',
+        '    if ($matches.Count -eq 1) { return $matches[0] }',
+        '}',
+        '',
+        'function Get-XtapAccessFingerprint {',
+        '    param($Access)',
+        '    if ($Access.IsAllowed -isnot [bool] -or $null -eq $Access.ResourceScopes) {',
+        '        throw "The capability inbound access could not be read. Review manually before making changes."',
+        '    }',
+        '    $scopes = @{}',
+        '    foreach ($name in @("included", "excluded")) {',
+        '        $scopes[$name] = @($Access.ResourceScopes.$name | Where-Object { -not [string]::IsNullOrWhiteSpace($_.ResourceId) } | ForEach-Object {',
+        '            "$($_.ResourceType):$($_.ResourceId)".ToLowerInvariant()',
+        '        } | Sort-Object -Unique)',
+        '    }',
+        '    [ordered]@{ isAllowed = $Access.IsAllowed; included = $scopes.included; excluded = $scopes.excluded } | ConvertTo-Json -Depth 10 -Compress',
+        '}',
+        '',
+        'function Read-XtapMigrationState {',
+        '    param([switch]$Required)',
+        '    $tenantId = [string](Get-MgContext).TenantId',
+        '    if ($tenantId -notmatch ''^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$'') { throw "Cannot identify the connected Graph tenant." }',
+        '    if (-not (Test-Path -LiteralPath $script:migrationStatePath)) {',
+        '        if ($Required) { throw "The Part 2 capability backup is missing: $script:migrationStatePath. Do not remove capabilities without the original backup." }',
+        '        return [PSCustomObject]@{ SchemaVersion = 1; TenantId = $tenantId; RollbackCompleted = $false; Capabilities = @() }',
+        '    }',
+        '    $state = Get-Content -LiteralPath $script:migrationStatePath -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop',
+        '    if ($state.SchemaVersion -ne 1 -or $state.TenantId -ne $tenantId -or $state.Capabilities -isnot [array] -or $state.RollbackCompleted -isnot [bool]) {',
+        '        throw "The Part 2 capability backup is invalid or belongs to a different tenant. Keep the original backup and connect to the correct tenant."',
+        '    }',
+        '    foreach ($entry in $state.Capabilities) {',
+        '        if ($entry.Existed -isnot [bool] -or $entry.Created -isnot [bool] -or [string]::IsNullOrWhiteSpace($entry.Capability) -or [string]::IsNullOrWhiteSpace($entry.PartnerTenantId) -or ($entry.Created -and $entry.CreatedName -ine $entry.Capability)) {',
+        '            throw "The Part 2 capability backup contains an invalid entry. Review manually."',
+        '        }',
+        '    }',
+        '    return $state',
+        '}',
+        '',
+        'function Save-XtapMigrationState {',
+        '    $temporaryPath = "$script:migrationStatePath.tmp"',
+        '    try {',
+        '        ConvertTo-Json -InputObject $script:migrationState -Depth 30 -ErrorAction Stop | Set-Content -LiteralPath $temporaryPath -Encoding UTF8 -ErrorAction Stop',
+        '        if (Test-Path -LiteralPath $script:migrationStatePath) {',
+        '            [System.IO.File]::Replace($temporaryPath, $script:migrationStatePath, [NullString]::Value)',
+        '        } else {',
+        '            [System.IO.File]::Move($temporaryPath, $script:migrationStatePath)',
+        '        }',
+        '    } finally {',
+        '        if (Test-Path -LiteralPath $temporaryPath) { Remove-Item -LiteralPath $temporaryPath -ErrorAction Stop }',
+        '    }',
+        '}',
+        '')
 
     if ($trustTenants.Count -gt 0 -or $sharingCalls.Count -gt 0) {
         $lines = New-Object System.Collections.Generic.List[string]
@@ -178,6 +240,9 @@ function Get-XtapCommandScript {
                     "https://learn.microsoft.com/exchange/sharing/migrate-to-m365-xtap#part-2--configure-your-new-microsoft-365-cross-tenant-access-policies",
                     "Requires the Microsoft Graph PowerShell SDK. Creating the trust needs Global Administrator.",
                     "Authentication failures stop this script before any policy changes. Resolve the error before rerunning Part 2.",
+                    "Capability baselines are saved beside this script in XTAP_Part2_CapabilityBackup.json before creation. Keep this file for rollback.",
+                    "Pre-existing capabilities are left unchanged and stop automatic migration; review and merge their scopes manually.",
+                    "Do not run Part 2 concurrently or delete its backup to bypass a conflict. After rollback, generate a fresh assessment for a new migration.",
                     "XTAP is an inbound setting. For two-way sharing the external organization must create complementary policies.",
                     "The Microsoft 365 cross-tenant access policy cmdlets can change. Confirm the cmdlet names against the documentation if one isn't found."))) {
             $lines.Add($line)
@@ -190,6 +255,11 @@ function Get-XtapCommandScript {
         }
 
         $lines.Add("Connect-MgGraph -Scopes `"Policy.Read.All,Policy.ReadWrite.CrossTenantAccess,Policy.ReadWrite.CrossTenantCapability`"$tenantArg -ContextScope Process -ErrorAction Stop")
+        $lines.Add("")
+        foreach ($line in $capabilityHelpers) { $lines.Add($line) }
+        $lines.Add('$script:migrationStatePath = Join-Path -Path $PSScriptRoot -ChildPath "XTAP_Part2_CapabilityBackup.json"')
+        $lines.Add('$script:migrationState = Read-XtapMigrationState')
+        $lines.Add('if ($script:migrationState.RollbackCompleted) { throw "This migration was rolled back. Generate a fresh assessment and scripts before migrating again." }')
         $lines.Add("")
         foreach ($line in @(
                 'function Assert-XtapInput {',
@@ -228,16 +298,40 @@ function Get-XtapCommandScript {
                 '        "@odata.type" = "$ODataPrefix$Capability"',
                 '        inboundAccess = @{',
                 '            isAllowed = $true',
-                '            resourceScopes = @{ included = @(@{ resourceId = $ResourceId; resourceType = $ResourceType }); excluded = @(@{ }) }',
+                '            resourceScopes = @{ included = @(@{ resourceId = $ResourceId; resourceType = $ResourceType }); excluded = @() }',
                 '        }',
                 '    }',
                 '    $target = if ($PSBoundParameters.ContainsKey("PartnerTenantId")) { $PartnerTenantId } else { "the default policy" }',
+                '    $targetId = if ($PSBoundParameters.ContainsKey("PartnerTenantId")) { $PartnerTenantId } else { "default" }',
+                '    $existing = Get-XtapCapability -PartnerTenantId $targetId -Capability $Capability',
+                '    $entries = @($script:migrationState.Capabilities | Where-Object { $_.PartnerTenantId -eq $targetId -and $_.Capability -eq $Capability })',
+                '    if ($entries.Count -gt 1) { throw "Duplicate capability backup entries for $Capability on $target. Review manually." }',
+                '    if ($entries.Count -eq 0) {',
+                '        $entry = [PSCustomObject]@{ PartnerTenantId = $targetId; Capability = $Capability; Existed = ($null -ne $existing); Created = $false; CreatedName = $null; OriginalInboundAccess = $existing.InboundAccess; AppliedInboundAccess = $body.inboundAccess }',
+                '        $script:migrationState.Capabilities += $entry',
+                '        Save-XtapMigrationState',
+                '    } else {',
+                '        $entry = $entries[0]',
+                '    }',
+                '    if ($entry.Existed) { throw "A pre-existing $Capability capability for $target was left unchanged. Review its access and merge scopes manually before migrating." }',
+                '    $expected = Get-XtapAccessFingerprint -Access $entry.AppliedInboundAccess',
+                '    if ($expected -ne (Get-XtapAccessFingerprint -Access $body.inboundAccess)) { throw "The requested $Capability scope differs from this run''s backup. Review manually." }',
+                '    if ($null -ne $existing) {',
+                '        if (-not $entry.Created) { throw "The previous creation of $Capability for $target has an uncertain outcome. Review manually; do not adopt or remove it automatically." }',
+                '        if ($expected -ne (Get-XtapAccessFingerprint -Access $existing.InboundAccess)) { throw "$Capability for $target changed after this run began. Review manually." }',
+                '        Write-Host "$Capability for $target already matches this run. The original backup was preserved."',
+                '        return',
+                '    }',
                 '    try {',
                 '        if ($PSBoundParameters.ContainsKey("PartnerTenantId")) {',
-                '            New-MgPolicyCrossTenantAccessPolicyPartnerM365Capability -CrossTenantAccessPolicyConfigurationPartnerTenantId $PartnerTenantId -BodyParameter $body -ErrorAction Stop | Out-Null',
+                '            $created = New-MgPolicyCrossTenantAccessPolicyPartnerM365Capability -CrossTenantAccessPolicyConfigurationPartnerTenantId $PartnerTenantId -BodyParameter $body -ErrorAction Stop',
                 '        } else {',
-                '            New-MgPolicyCrossTenantAccessPolicyDefaultM365Capability -BodyParameter $body -ErrorAction Stop | Out-Null',
+                '            $created = New-MgPolicyCrossTenantAccessPolicyDefaultM365Capability -BodyParameter $body -ErrorAction Stop',
                 '        }',
+                '        if ($created.Name -ine $Capability) { throw "Graph did not return the expected created capability. Review the creation outcome manually." }',
+                '        $entry.CreatedName = [string]$created.Name',
+                '        $entry.Created = $true',
+                '        Save-XtapMigrationState',
                 '        Write-Host "Created $Capability for $target."',
                 '    } catch {',
                 '        throw "Failed to create $Capability for $($target): $($_.Exception.Message)"',
@@ -252,6 +346,14 @@ function Get-XtapCommandScript {
             if ($tenantId -match "^<" -or $tenantId -match $Script:XtapGuidPattern) {
                 $lines.Add("Set-XtapPartnerTrust -PartnerTenantId $(ConvertTo-XtapLiteral -Value $tenantId)")
             }
+        }
+        if ($hasWildcardSharing) {
+            $lines.Add("")
+            $lines.Add("# Wildcard calendar sharing uses default capabilities but does not establish collaboration trust.")
+            $lines.Add("# Manually inspect Get-MgPolicyCrossTenantAccessPolicyDefault and each intended partner's Get-MgPolicyCrossTenantAccessPolicyPartner result.")
+            $lines.Add("# Verify effective m365CollaborationInbound access and user/group scopes, including partner overrides, for every intended Microsoft 365 partner.")
+            $lines.Add("# Do not broadly enable default collaboration trust just to migrate a wildcard Sharing Policy.")
+            $lines.Add('Write-Warning "Wildcard capabilities have no effect without effective Microsoft 365 Collaboration trust. Manually verify trust and sharing before disabling any legacy policy."')
         }
 
         foreach ($section in @(
@@ -284,21 +386,29 @@ function Get-XtapCommandScript {
             @($rows | Where-Object { $_.Status -ne "Eligible" }).Count -gt 0
         })
 
-    if ($disableOrgRows.Count + $sharingOnlyOrgRows.Count + $aasRows.Count + $disablePolicies.Count -gt 0) {
+    $hasLegacyTestCommands = $disableOrgRows.Count + $sharingOnlyOrgRows.Count + $aasRows.Count + $disablePolicies.Count -gt 0
+    if ($hasLegacyTestCommands -or $scripts.Contains("XTAP_Part2_CreatePolicies.ps1")) {
         $testLines = New-Object System.Collections.Generic.List[string]
         $rollbackLines = New-Object System.Collections.Generic.List[string]
         $cleanupLines = New-Object System.Collections.Generic.List[string]
 
         foreach ($line in (Get-XtapCommandScriptHeader -Title "Part 3 - Disable the existing configuration to test XTAP" -RunName $RunName -Description @(
                     "https://learn.microsoft.com/exchange/sharing/migrate-to-m365-xtap#part-3--test-functionality",
-                    "Run Part 2 first. Existing configurations take precedence over XTAP, so they must be disabled to test XTAP.",
+                    "Run Part 2 first. Organization Relationships and Availability Address Spaces take precedence over XTAP.",
+                    "Applicable XTAP calendar sharing capabilities take precedence over Sharing Policies; calendar sharing can be tested with those policies enabled.",
+                    "Manually verify effective Microsoft 365 Collaboration trust, including default settings, partner overrides and user/group scopes, and test the replacement policies.",
+                    "Only after verification, run this script with -ReplacementPoliciesVerified. This confirmation does not configure or automatically validate trust.",
                     "Coordinate with the external organization administrators. Both organizations must test at the same time.",
                     "Connect to Exchange Online PowerShell first (Connect-ExchangeOnline). To undo, run XTAP_Part3_Rollback.ps1."))) {
             $testLines.Add($line)
         }
 
-        foreach ($line in (Get-XtapCommandScriptHeader -Title "Part 3 - Roll back: re-enable the existing configuration" -RunName $RunName -Description @(
-                    "Connect to Exchange Online PowerShell first (Connect-ExchangeOnline).",
+        foreach ($line in (Get-XtapCommandScriptHeader -Title "Part 3 - Roll back: restore legacy sharing and remove this run's new capabilities" -RunName $RunName -Description @(
+                    "Connect to Exchange Online PowerShell first (Connect-ExchangeOnline). Microsoft Graph authentication is also required.",
+                    "Keep XTAP_Part2_CapabilityBackup.json beside this script. Only capabilities absent before this run and still matching its recorded access are removed.",
+                    "Pre-existing capabilities are never overwritten by Part 2 and are left unchanged here. Drift or missing backups stop rollback for manual review.",
+                    "Partner policies and collaboration trust created or updated in Part 2 are retained to avoid disrupting other workloads; review trust cleanup separately.",
+                    "Legacy settings are restored before removing capabilities. Applicable pre-existing XTAP capabilities will still take precedence over Sharing Policies.",
                     "Availability Address Spaces are restored from the backup files created by XTAP_Part3_DisableForTesting.ps1."))) {
             $rollbackLines.Add($line)
         }
@@ -313,6 +423,40 @@ function Get-XtapCommandScript {
                     "Availability Address Spaces were already removed (and backed up) by XTAP_Part3_DisableForTesting.ps1.",
                     "Connect to Exchange Online PowerShell first (Connect-ExchangeOnline)."))) {
             $cleanupLines.Add($line)
+        }
+
+        foreach ($line in @(
+                '',
+                'param([switch]$ReplacementPoliciesVerified)',
+                '',
+                'if (-not $ReplacementPoliciesVerified) {',
+                '    throw "Manually verify effective Microsoft 365 Collaboration trust and replacement policy functionality before disabling legacy sharing. Then rerun with -ReplacementPoliciesVerified."',
+                '}',
+                '')) {
+            $testLines.Add($line)
+        }
+
+        $rollbackLines.Add("")
+        $rollbackLines.Add('$ErrorActionPreference = "Stop"')
+        $rollbackLines.Add("Connect-MgGraph -Scopes `"Policy.Read.All,Policy.ReadWrite.CrossTenantCapability`"$tenantArg -ContextScope Process -ErrorAction Stop")
+        foreach ($line in $capabilityHelpers) { $rollbackLines.Add($line) }
+        foreach ($line in @(
+                '$script:migrationStatePath = Join-Path -Path $PSScriptRoot -ChildPath "XTAP_Part2_CapabilityBackup.json"',
+                '$script:migrationState = Read-XtapMigrationState -Required',
+                'if ($script:migrationState.RollbackCompleted) { Write-Host "This migration was already rolled back."; return }',
+                '$capabilitiesToRemove = @(',
+                '    foreach ($entry in $script:migrationState.Capabilities) {',
+                '        if ($entry.Existed) { continue }',
+                '        $current = Get-XtapCapability -PartnerTenantId $entry.PartnerTenantId -Capability $entry.Capability',
+                '        if ($null -eq $current) { continue }',
+                '        if (-not $entry.Created) { throw "The creation of $($entry.Capability) has an uncertain outcome. No rollback changes were made. Review manually." }',
+                '        if ((Get-XtapAccessFingerprint -Access $current.InboundAccess) -ne (Get-XtapAccessFingerprint -Access $entry.AppliedInboundAccess)) {',
+                '            throw "$($entry.Capability) for $($entry.PartnerTenantId) changed after migration. No rollback changes were made. Review manually."',
+                '        }',
+                '        $entry',
+                '    }',
+                ')')) {
+            $rollbackLines.Add($line)
         }
 
         foreach ($line in @(
@@ -397,7 +541,15 @@ function Get-XtapCommandScript {
             foreach ($list in @($testLines, $rollbackLines, $cleanupLines)) { $list.Add(""); $list.Add("# Sharing Policies") }
             foreach ($name in $disablePolicies) {
                 $nameLiteral = ConvertTo-XtapLiteral -Value $name
-                $testLines.Add("Set-SharingPolicy -Identity $nameLiteral -Enabled `$false$orgArg")
+                $hasWildcardRule = @($allSharingRows | Where-Object { $_.SharingPolicy -eq $name -and $_.RuleType -eq "Wildcard" }).Count -gt 0
+                $prefix = ""
+                if ($hasWildcardRule) {
+                    $testLines.Add("# Wildcard rules also cover on-premises and hybrid recipients, which XTAP cannot replace. Keep this policy enabled unless you confirm no such dependencies remain.")
+                    $testLines.Add("# Calendar sharing can be tested while this policy stays enabled. Only deliberately uncomment the next command after confirming all dependencies.")
+                    $cleanupLines.Add("# Do not remove this wildcard policy if on-premises or hybrid sharing still depends on it.")
+                    $prefix = "# "
+                }
+                $testLines.Add("${prefix}Set-SharingPolicy -Identity $nameLiteral -Enabled `$false$orgArg")
                 $rollbackLines.Add("Set-SharingPolicy -Identity $nameLiteral -Enabled `$true$orgArg")
                 $cleanupLines.Add("# Keep Sharing Policy '$(ConvertTo-XtapComment -Value $name)' disabled until all mailbox assignments have been removed or reassigned.")
                 $cleanupLines.Add("# If this is the default Sharing Policy, select a replacement default policy before removal. Verify the replacement preserves the intended sharing restrictions.")
@@ -411,7 +563,23 @@ function Get-XtapCommandScript {
             $testLines.Add("# Not disabled: Sharing Policy '$(ConvertTo-XtapComment -Value $name)' has rules that can't move to XTAP yet (for example ContactsSharing). Disabling it would stop those rules.")
         }
 
-        $scripts["XTAP_Part3_DisableForTesting.ps1"] = $testLines -join "`r`n"
+        foreach ($line in @(
+                '',
+                '# Remove only the new capabilities recorded by Part 2, never a whole partner policy or unrelated capability.',
+                'foreach ($entry in $capabilitiesToRemove) {',
+                '    if ($entry.PartnerTenantId -eq "default") {',
+                '        Remove-MgPolicyCrossTenantAccessPolicyDefaultM365Capability -M365CapabilityBaseName $entry.CreatedName -Confirm:$false -ErrorAction Stop',
+                '    } else {',
+                '        Remove-MgPolicyCrossTenantAccessPolicyPartnerM365Capability -CrossTenantAccessPolicyConfigurationPartnerTenantId $entry.PartnerTenantId -M365CapabilityBaseName $entry.CreatedName -Confirm:$false -ErrorAction Stop',
+                '    }',
+                '}',
+                '$script:migrationState.RollbackCompleted = $true',
+                'Save-XtapMigrationState')) {
+            $rollbackLines.Add($line)
+        }
+        if ($hasLegacyTestCommands) {
+            $scripts["XTAP_Part3_DisableForTesting.ps1"] = $testLines -join "`r`n"
+        }
         $scripts["XTAP_Part3_Rollback.ps1"] = $rollbackLines -join "`r`n"
         if ($disableOrgRows.Count + $sharingOnlyOrgRows.Count + $disablePolicies.Count -gt 0) {
             $scripts["XTAP_Part4_Cleanup.ps1"] = $cleanupLines -join "`r`n"
