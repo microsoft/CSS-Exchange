@@ -608,7 +608,7 @@ function Get-XtapSharingPolicyAnalysis {
 
                 if ($action -in $Script:XtapCalendarSharingActions) {
                     $suffix = $action.Substring("CalendarSharing".Length)
-                    $capability = if ($ruleType -eq "Anonymous") { "AnonymousCalendarSharing$suffix" } else { "CrossTenantCalendarSharing$suffix" }
+                    $capability = if ($ruleType -eq "Anonymous") { "anonymousCalendarSharing$suffix" } else { "crossTenantCalendarSharing$suffix" }
                 } elseif ($action -eq "ContactsSharing") {
                     $status = "NotEligible"
                     $notes.Add("ContactsSharing has no Microsoft 365 Cross-Tenant Access Policy equivalent. Keep this Sharing Policy rule.")

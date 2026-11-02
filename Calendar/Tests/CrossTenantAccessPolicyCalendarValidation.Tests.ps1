@@ -389,8 +389,8 @@ Describe "Get-XtapSharingPolicyAnalysis" {
         $policy = [PSCustomObject]@{ Name = "Default"; Enabled = $true; Default = $true; Domains = @("*:CalendarSharingFreeBusySimple", "Anonymous:CalendarSharingFreeBusyReviewer") }
         $result = @(Get-XtapSharingPolicyAnalysis -SharingPolicy $policy)
         $result.Count | Should -Be 2
-        $result[0].RecommendedCapability | Should -Be "CrossTenantCalendarSharingFreeBusySimple"
-        $result[1].RecommendedCapability | Should -Be "AnonymousCalendarSharingFreeBusyReviewer"
+        $result[0].RecommendedCapability | Should -BeExactly "crossTenantCalendarSharingFreeBusySimple"
+        $result[1].RecommendedCapability | Should -BeExactly "anonymousCalendarSharingFreeBusyReviewer"
         $result[0].Status | Should -Be "Eligible"
     }
 
@@ -481,7 +481,7 @@ Describe "Get-XtapSharingPolicyAnalysis" {
         $result = @(Get-XtapSharingPolicyAnalysis -SharingPolicy $policy -ResolveTenantId)
         $result[0].Status | Should -Be "Disabled"
         $result[0].CalendarCapabilityWouldBeEligibleIfEnabled | Should -BeTrue
-        $result[0].RecommendedCapabilityIfEnabled | Should -Be "CrossTenantCalendarSharingFreeBusyDetail"
+        $result[0].RecommendedCapabilityIfEnabled | Should -BeExactly "crossTenantCalendarSharingFreeBusyDetail"
         $result[0].RecommendedCapability | Should -BeNullOrEmpty
         $result[0].LegacyRuleCanBeRetired | Should -BeFalse
         $result[1].CalendarCapabilityWouldBeEligibleIfEnabled | Should -BeFalse
@@ -506,8 +506,8 @@ Describe "Get-XtapCommandScript" {
     }
 
     It "Generates Part 2 for a standalone <RuleType> sharing rule" -TestCases @(
-        @{ RuleType = "Wildcard"; Domain = "*"; Capability = "CrossTenantCalendarSharingFreeBusySimple" }
-        @{ RuleType = "Anonymous"; Domain = "Anonymous"; Capability = "AnonymousCalendarSharingFreeBusySimple" }
+        @{ RuleType = "Wildcard"; Domain = "*"; Capability = "crossTenantCalendarSharingFreeBusySimple" }
+        @{ RuleType = "Anonymous"; Domain = "Anonymous"; Capability = "anonymousCalendarSharingFreeBusySimple" }
     ) {
         param($RuleType, $Domain, $Capability)
         $policy = [PSCustomObject]@{ Name = "Default"; Enabled = $true; Default = $true; Domains = @("${Domain}:CalendarSharingFreeBusySimple") }
@@ -687,6 +687,17 @@ Describe "Get-XtapCommandScript" {
                 [CmdletBinding()]
                 param($Identity, $Enabled, $Organization)
             }
+            function Get-AvailabilityAddressSpace { [CmdletBinding()] param($Identity, $Organization) }
+            function Remove-AvailabilityAddressSpace {
+                [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSShouldProcess", "", Justification = "Mocked Exchange cmdlet used to test generated scripts.")]
+                [CmdletBinding(SupportsShouldProcess)]
+                param($Identity, $Organization)
+            }
+            function Add-AvailabilityAddressSpace {
+                [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "", Justification = "Mocked Exchange cmdlet used to test generated scripts.")]
+                [CmdletBinding()]
+                param($ForestName, $AccessMethod, $ProxyUrl, $TargetAutodiscoverEpr, $TargetServiceEpr, $TargetTenantId, $Organization)
+            }
             function New-MgPolicyCrossTenantAccessPolicyPartner {
                 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "", Justification = "Mocked Graph cmdlet used to test generated scripts.")]
                 [CmdletBinding()]
@@ -710,8 +721,12 @@ Describe "Get-XtapCommandScript" {
             function ConvertTo-TestCapability {
                 param($Body)
                 $name = $Body["@odata.type"] -replace "^#?microsoft.graph\.", ""
+                if ($name -cnotmatch "^(crossTenantCalendarSharing|anonymousCalendarSharing)FreeBusy(Simple|Detail|Reviewer)$" -and
+                    $name -cnotmatch "^crossTenant(CalendarAvailability(Basic|LimitedDetails)|MailTips(Limited|All)|Migration)$") {
+                    throw "Invalid Graph type discriminator: $($Body['@odata.type'])"
+                }
                 [PSCustomObject]@{
-                    Name          = $name.Substring(0, 1).ToLowerInvariant() + $name.Substring(1)
+                    Name          = $name
                     InboundAccess = $Body.inboundAccess
                 }
             }
@@ -846,17 +861,70 @@ Describe "Get-XtapCommandScript" {
             Should -Invoke -CommandName Write-Host -Times 1 -Exactly -ParameterFilter { $Object -like "Created crossTenantCalendarAvailabilityBasic for *" }
         }
 
+        It "Uses the canonical Graph discriminator for <Domain> sharing with <Level> access" -TestCases @(
+            @{ Domain = "*"; Level = "Simple"; Prefix = "crossTenant" }
+            @{ Domain = "*"; Level = "Detail"; Prefix = "crossTenant" }
+            @{ Domain = "*"; Level = "Reviewer"; Prefix = "crossTenant" }
+            @{ Domain = "Anonymous"; Level = "Simple"; Prefix = "anonymous" }
+            @{ Domain = "Anonymous"; Level = "Detail"; Prefix = "anonymous" }
+            @{ Domain = "Anonymous"; Level = "Reviewer"; Prefix = "anonymous" }
+        ) {
+            param($Domain, $Level, $Prefix)
+            $policy = [PSCustomObject]@{ Name = "Migrated"; Enabled = $true; Default = $false; Domains = @("${Domain}:CalendarSharingFreeBusy$Level") }
+            $generated = Get-XtapCommandScript -SharingPolicyAnalysis @(Get-XtapSharingPolicyAnalysis -SharingPolicy $policy)
+            $path = Join-Path -Path $Script:graphScriptFolder -ChildPath "Create.ps1"
+            Write-XtapTextFile -Path $path -Text $generated["XTAP_Part2_CreatePolicies.ps1"].Replace("<SecurityGroupObjectId for Sharing Policy Migrated>", $Script:TenantA)
+
+            & $path
+
+            $expectedType = "#microsoft.graph.${Prefix}CalendarSharingFreeBusy$Level"
+            Should -Invoke -CommandName New-MgPolicyCrossTenantAccessPolicyDefaultM365Capability -Times 1 -Exactly -ParameterFilter {
+                $BodyParameter["@odata.type"] -ceq $expectedType
+            }
+        }
+
+        It "Combines policy groups into one <Target> capability and preserves drift checks" -TestCases @(
+            @{ Target = "Default"; TargetId = "default"; Domain = "*" }
+            @{ Target = "Default"; TargetId = "default"; Domain = "Anonymous" }
+            @{ Target = "Partner"; TargetId = "11111111-1111-1111-1111-111111111111"; Domain = "partner.com" }
+        ) {
+            param($Target, $TargetId, $Domain)
+            $policies = @(
+                [PSCustomObject]@{ Name = "First"; Enabled = $true; Default = $true; Domains = @("${Domain}:CalendarSharingFreeBusySimple") },
+                [PSCustomObject]@{ Name = "Second"; Enabled = $true; Default = $false; Domains = @("${Domain}:CalendarSharingFreeBusySimple") })
+            $generated = Get-XtapCommandScript -SharingPolicyAnalysis @(Get-XtapSharingPolicyAnalysis -SharingPolicy $policies -ResolveTenantId)
+            $text = $generated["XTAP_Part2_CreatePolicies.ps1"].Replace("<SecurityGroupObjectId for Sharing Policy First>", $Script:TenantA)
+            $path = Join-Path -Path $Script:graphScriptFolder -ChildPath "Create.ps1"
+            Write-XtapTextFile -Path $path -Text $text
+
+            { & $path } | Should -Throw -ExpectedMessage "*Replace the security group placeholder*"
+            Should -Invoke -CommandName "New-MgPolicyCrossTenantAccessPolicy${Target}M365Capability" -Times 0 -Exactly
+            Write-XtapTextFile -Path $path -Text $text.Replace("<SecurityGroupObjectId for Sharing Policy Second>", $Script:TenantB)
+            & $path
+            $originalBackup = Get-Content -LiteralPath $Script:migrationStatePath -Raw -Encoding UTF8
+            & $path
+
+            Should -Invoke -CommandName "New-MgPolicyCrossTenantAccessPolicy${Target}M365Capability" -Times 1 -Exactly
+            $backup = $originalBackup | ConvertFrom-Json
+            $backup.Capabilities.Count | Should -Be 1
+            @($backup.Capabilities[0].AppliedInboundAccess.resourceScopes.included.resourceId | Sort-Object) | Should -Be @($Script:TenantA, $Script:TenantB)
+            Get-Content -LiteralPath $Script:migrationStatePath -Raw -Encoding UTF8 | Should -Be $originalBackup
+            $Script:capabilities[$TargetId][0].InboundAccess.resourceScopes.included[0].resourceId = "33333333-3333-3333-3333-333333333333"
+
+            { & $path } | Should -Throw -ExpectedMessage "*changed after this run began*"
+        }
+
         It "Preserves pre-existing <Target> capabilities and their scopes during migration and rollback" -TestCases @(
             @{ Target = "Partner"; TargetId = "11111111-1111-1111-1111-111111111111" }
             @{ Target = "Default"; TargetId = "default" }
         ) {
             param($Target, $TargetId)
             $existing = ConvertTo-TestCapability -Body @{
-                "@odata.type" = "#microsoft.graph.CrossTenantCalendarSharingFreeBusySimple"
+                "@odata.type" = "#microsoft.graph.crossTenantCalendarSharingFreeBusySimple"
                 inboundAccess = @{ isAllowed = $false; resourceScopes = @{ included = @(@{ resourceType = "group"; resourceId = $Script:TenantB }); excluded = @() } }
             }
             $Script:capabilities[$TargetId] = @($existing)
-            $parameters = @{ Capability = "CrossTenantCalendarSharingFreeBusySimple"; ResourceType = "group"; ResourceId = $Script:TenantA; ODataPrefix = "#microsoft.graph." }
+            $parameters = @{ Capability = "crossTenantCalendarSharingFreeBusySimple"; ResourceType = "group"; ResourceId = $Script:TenantA; ODataPrefix = "#microsoft.graph." }
             if ($Target -eq "Partner") { $parameters.PartnerTenantId = $Script:TenantA }
 
             { Add-XtapCapability @parameters } | Should -Throw -ExpectedMessage "*pre-existing*left unchanged*"
@@ -883,7 +951,7 @@ Describe "Get-XtapCommandScript" {
         ) {
             param($Target, $TargetId, $Domain)
             $unrelated = ConvertTo-TestCapability -Body @{ "@odata.type" = "#microsoft.graph.crossTenantMigration"; inboundAccess = @{ isAllowed = $true } }
-            $otherPartner = ConvertTo-TestCapability -Body @{ "@odata.type" = "#microsoft.graph.CrossTenantCalendarSharingFreeBusySimple"; inboundAccess = @{ isAllowed = $true } }
+            $otherPartner = ConvertTo-TestCapability -Body @{ "@odata.type" = "#microsoft.graph.crossTenantCalendarSharingFreeBusySimple"; inboundAccess = @{ isAllowed = $true } }
             $Script:capabilities[$TargetId] = @($unrelated)
             $Script:capabilities[$Script:TenantB] = @($otherPartner)
             $policy = [PSCustomObject]@{ Name = "Migrated"; Enabled = $true; Default = $true; Domains = @("${Domain}:CalendarSharingFreeBusySimple") }
@@ -925,14 +993,14 @@ Describe "Get-XtapCommandScript" {
         It "Stops before creating a capability if its baseline cannot be saved" {
             Mock Set-Content { Write-Error -Message "Backup write failed" } -ParameterFilter { $LiteralPath -like "*.tmp" }
 
-            { Add-XtapCapability -Capability "CrossTenantCalendarSharingFreeBusySimple" -ResourceType "group" -ResourceId $Script:TenantA -ODataPrefix "#microsoft.graph." } |
+            { Add-XtapCapability -Capability "crossTenantCalendarSharingFreeBusySimple" -ResourceType "group" -ResourceId $Script:TenantA -ODataPrefix "#microsoft.graph." } |
                 Should -Throw -ExpectedMessage "*Backup write failed*"
 
             Should -Invoke -CommandName New-MgPolicyCrossTenantAccessPolicyDefaultM365Capability -Times 0 -Exactly
         }
 
         It "Rejects a different connected tenant without overwriting the baseline or changing legacy settings" {
-            Add-XtapCapability -Capability "CrossTenantCalendarSharingFreeBusySimple" -ResourceType "group" -ResourceId $Script:TenantA -ODataPrefix "#microsoft.graph."
+            Add-XtapCapability -Capability "crossTenantCalendarSharingFreeBusySimple" -ResourceType "group" -ResourceId $Script:TenantA -ODataPrefix "#microsoft.graph."
             $originalBackup = Get-Content -LiteralPath $Script:migrationStatePath -Raw -Encoding UTF8
             Mock Get-MgContext { [PSCustomObject]@{ TenantId = "22222222-2222-2222-2222-222222222222" } }
             $generated = Get-XtapCommandScript -SharingPolicyAnalysis $Script:sharingAnalysis
@@ -950,7 +1018,7 @@ Describe "Get-XtapCommandScript" {
         }
 
         It "Checks every capability and leaves legacy and XTAP settings untouched if any access has drifted" {
-            foreach ($capability in @("CrossTenantCalendarSharingFreeBusySimple", "CrossTenantCalendarSharingFreeBusyReviewer")) {
+            foreach ($capability in @("crossTenantCalendarSharingFreeBusySimple", "crossTenantCalendarSharingFreeBusyReviewer")) {
                 Add-XtapCapability -Capability $capability -ResourceType "group" -ResourceId $Script:TenantA -ODataPrefix "#microsoft.graph."
             }
             $Script:capabilities.default[1].InboundAccess.isAllowed = $false
@@ -969,7 +1037,7 @@ Describe "Get-XtapCommandScript" {
                 $Script:capabilities.default += ConvertTo-TestCapability -Body $BodyParameter
                 Write-Error -Message "Connection lost after creation"
             }
-            { Add-XtapCapability -Capability "CrossTenantCalendarSharingFreeBusySimple" -ResourceType "group" -ResourceId $Script:TenantA -ODataPrefix "#microsoft.graph." } |
+            { Add-XtapCapability -Capability "crossTenantCalendarSharingFreeBusySimple" -ResourceType "group" -ResourceId $Script:TenantA -ODataPrefix "#microsoft.graph." } |
                 Should -Throw -ExpectedMessage "*Connection lost after creation*"
             $generated = Get-XtapCommandScript -SharingPolicyAnalysis $Script:sharingAnalysis
             $path = Join-Path -Path $Script:graphScriptFolder -ChildPath "Rollback.ps1"
@@ -983,9 +1051,9 @@ Describe "Get-XtapCommandScript" {
         }
 
         It "Can roll back an earlier confirmed addition after a later creation fails without adding a capability" {
-            Add-XtapCapability -Capability "CrossTenantCalendarSharingFreeBusySimple" -ResourceType "group" -ResourceId $Script:TenantA -ODataPrefix "#microsoft.graph."
+            Add-XtapCapability -Capability "crossTenantCalendarSharingFreeBusySimple" -ResourceType "group" -ResourceId $Script:TenantA -ODataPrefix "#microsoft.graph."
             Mock New-MgPolicyCrossTenantAccessPolicyDefaultM365Capability { throw "Creation rejected" }
-            { Add-XtapCapability -Capability "CrossTenantCalendarSharingFreeBusyReviewer" -ResourceType "group" -ResourceId $Script:TenantA -ODataPrefix "#microsoft.graph." } |
+            { Add-XtapCapability -Capability "crossTenantCalendarSharingFreeBusyReviewer" -ResourceType "group" -ResourceId $Script:TenantA -ODataPrefix "#microsoft.graph." } |
                 Should -Throw -ExpectedMessage "*Creation rejected*"
             $generated = Get-XtapCommandScript -SharingPolicyAnalysis $Script:sharingAnalysis
             $path = Join-Path -Path $Script:graphScriptFolder -ChildPath "Rollback.ps1"
@@ -1008,6 +1076,147 @@ Describe "Get-XtapCommandScript" {
 
             Should -Invoke -CommandName Set-SharingPolicy -Times 0 -Exactly
             Should -Invoke -CommandName Remove-MgPolicyCrossTenantAccessPolicyDefaultM365Capability -Times 0 -Exactly
+        }
+
+        Describe "Availability Address Space rollback" {
+            BeforeEach {
+                $Script:availabilityStore = @{}
+                foreach ($forest in @("first.com", "second.com")) {
+                    $Script:availabilityStore[$forest] = [PSCustomObject]@{
+                        ForestName = $forest; AccessMethod = "OrgWideFBToken"; TargetTenantId = $Script:TenantA
+                        ProxyUrl = ""; TargetAutodiscoverEpr = ""; TargetServiceEpr = ""
+                    }
+                }
+                $store = $Script:availabilityStore
+                $Script:restoreControl = @{ FailForest = "" }
+                $control = $Script:restoreControl
+                Mock -CommandName Get-AvailabilityAddressSpace -MockWith ({
+                        param($Identity)
+                        if ($Identity) { $store[$Identity] } else { $store.Values }
+                    }.GetNewClosure())
+                Mock -CommandName Remove-AvailabilityAddressSpace -MockWith ({
+                        param($Identity)
+                        $store.Remove($Identity)
+                    }.GetNewClosure())
+                Mock -CommandName Add-AvailabilityAddressSpace -MockWith ({
+                        param($ForestName, $AccessMethod, $TargetTenantId, $ProxyUrl, $TargetAutodiscoverEpr, $TargetServiceEpr)
+                        if ($store.ContainsKey($ForestName)) { throw "Address space already exists" }
+                        if ($control.FailForest -eq $ForestName) { throw "Restore failed" }
+                        $store[$ForestName] = [PSCustomObject]@{
+                            ForestName = $ForestName; AccessMethod = $AccessMethod; TargetTenantId = $TargetTenantId
+                            ProxyUrl = "$ProxyUrl"; TargetAutodiscoverEpr = "$TargetAutodiscoverEpr"; TargetServiceEpr = "$TargetServiceEpr"
+                        }
+                    }.GetNewClosure())
+                $analysis = @(Get-XtapAvailabilityAddressSpaceAnalysis -AvailabilityAddressSpace @($store.Values | Sort-Object -Property ForestName))
+                $generated = Get-XtapCommandScript -AvailabilityAddressSpaceAnalysis $analysis
+                foreach ($name in $generated.Keys) {
+                    Write-XtapTextFile -Path (Join-Path -Path $Script:graphScriptFolder -ChildPath $name) -Text $generated[$name]
+                }
+                $Script:disablePath = Join-Path -Path $Script:graphScriptFolder -ChildPath "XTAP_Part3_DisableForTesting.ps1"
+                $Script:rollbackPath = Join-Path -Path $Script:graphScriptFolder -ChildPath "XTAP_Part3_Rollback.ps1"
+                & (Join-Path -Path $Script:graphScriptFolder -ChildPath "XTAP_Part2_CreatePolicies.ps1")
+            }
+
+            It "Rolls back capabilities before Part 3 without restoring untouched address spaces" {
+                & $Script:rollbackPath
+
+                $Script:availabilityStore.Count | Should -Be 2
+                Should -Invoke -CommandName Add-AvailabilityAddressSpace -Times 0 -Exactly
+                Should -Invoke -CommandName Remove-MgPolicyCrossTenantAccessPolicyPartnerM365Capability -Times 1 -Exactly
+            }
+
+            It "Does not restore address spaces when the administrator declines their removal" {
+                Mock Remove-AvailabilityAddressSpace {}
+                & $Script:disablePath -ReplacementPoliciesVerified
+
+                & $Script:rollbackPath
+
+                $Script:availabilityStore.Count | Should -Be 2
+                Should -Invoke -CommandName Add-AvailabilityAddressSpace -Times 0 -Exactly
+                Should -Invoke -CommandName Remove-MgPolicyCrossTenantAccessPolicyPartnerM365Capability -Times 1 -Exactly
+            }
+
+            It "Restores only completed removals after Part 3 fails partway through" {
+                Mock Remove-AvailabilityAddressSpace { throw "Removal failed" } -ParameterFilter { $Identity -eq "second.com" }
+                { & $Script:disablePath -ReplacementPoliciesVerified } | Should -Throw -ExpectedMessage "*Removal failed*"
+
+                & $Script:rollbackPath
+
+                $Script:availabilityStore.Count | Should -Be 2
+                Should -Invoke -CommandName Add-AvailabilityAddressSpace -Times 1 -Exactly -ParameterFilter { $ForestName -eq "first.com" }
+                Should -Invoke -CommandName Add-AvailabilityAddressSpace -Times 0 -Exactly -ParameterFilter { $ForestName -eq "second.com" }
+                Should -Invoke -CommandName Remove-MgPolicyCrossTenantAccessPolicyPartnerM365Capability -Times 1 -Exactly
+            }
+
+            It "Resumes a partial restore without adding an already-restored address space" {
+                & $Script:disablePath -ReplacementPoliciesVerified
+                $Script:restoreControl.FailForest = "second.com"
+                { & $Script:rollbackPath } | Should -Throw -ExpectedMessage "*Restore failed*"
+                Should -Invoke -CommandName Remove-MgPolicyCrossTenantAccessPolicyPartnerM365Capability -Times 0 -Exactly
+                $Script:restoreControl.FailForest = ""
+
+                & $Script:rollbackPath
+                & $Script:rollbackPath
+
+                $Script:availabilityStore.Count | Should -Be 2
+                Should -Invoke -CommandName Add-AvailabilityAddressSpace -Times 1 -Exactly -ParameterFilter { $ForestName -eq "first.com" }
+                Should -Invoke -CommandName Add-AvailabilityAddressSpace -Times 2 -Exactly -ParameterFilter { $ForestName -eq "second.com" }
+                Should -Invoke -CommandName Remove-MgPolicyCrossTenantAccessPolicyPartnerM365Capability -Times 1 -Exactly
+            }
+
+            It "Requires the original backup for a removed address space" {
+                & $Script:disablePath -ReplacementPoliciesVerified
+                Remove-Item -LiteralPath (Join-Path -Path $Script:graphScriptFolder -ChildPath "AvailabilityAddressSpaceBackup_first.com.json")
+
+                { & $Script:rollbackPath } | Should -Throw -ExpectedMessage "*backup is missing*"
+
+                Should -Invoke -CommandName Add-AvailabilityAddressSpace -Times 0 -Exactly
+                Should -Invoke -CommandName Remove-MgPolicyCrossTenantAccessPolicyPartnerM365Capability -Times 0 -Exactly
+            }
+
+            It "Recovers when <Stage> completed before progress was saved" -TestCases @(
+                @{ Stage = "removal"; ExpectedAdds = 1 }
+                @{ Stage = "restoration"; ExpectedAdds = 0 }
+            ) {
+                param($Stage, $ExpectedAdds)
+                & $Script:disablePath -ReplacementPoliciesVerified
+                $path = Join-Path -Path $Script:graphScriptFolder -ChildPath "AvailabilityAddressSpaceBackup_first.com.json"
+                $backup = Get-Content -LiteralPath $path -Raw -Encoding UTF8 | ConvertFrom-Json
+                if ($Stage -eq "removal") {
+                    $backup.Removed = $false
+                } else {
+                    $Script:availabilityStore["first.com"] = $backup.Configuration
+                }
+                Write-CalendarDiagnosticJsonFile -Path $path -InputObject $backup
+
+                & $Script:rollbackPath
+
+                $Script:availabilityStore.Count | Should -Be 2
+                Should -Invoke -CommandName Add-AvailabilityAddressSpace -Times $ExpectedAdds -Exactly -ParameterFilter { $ForestName -eq "first.com" }
+                Should -Invoke -CommandName Remove-MgPolicyCrossTenantAccessPolicyPartnerM365Capability -Times 1 -Exactly
+            }
+
+            It "Does not treat an address-space lookup failure as an absent or untouched space" {
+                Mock Get-AvailabilityAddressSpace { Write-Error -Message "Address space lookup failed" }
+
+                { & $Script:rollbackPath } | Should -Throw -ExpectedMessage "*Address space lookup failed*"
+
+                Should -Invoke -CommandName Add-AvailabilityAddressSpace -Times 0 -Exactly
+                Should -Invoke -CommandName Remove-MgPolicyCrossTenantAccessPolicyPartnerM365Capability -Times 0 -Exactly
+            }
+
+            It "Rejects a conflicting address space instead of overwriting it" {
+                & $Script:disablePath -ReplacementPoliciesVerified
+                $Script:availabilityStore["first.com"] = [PSCustomObject]@{
+                    ForestName = "first.com"; AccessMethod = "OrgWideFBToken"; TargetTenantId = $Script:TenantB
+                }
+
+                { & $Script:rollbackPath } | Should -Throw -ExpectedMessage "*configuration conflicts*"
+
+                $Script:availabilityStore["first.com"].TargetTenantId | Should -Be $Script:TenantB
+                Should -Invoke -CommandName Add-AvailabilityAddressSpace -Times 0 -Exactly
+                Should -Invoke -CommandName Remove-MgPolicyCrossTenantAccessPolicyPartnerM365Capability -Times 0 -Exactly
+            }
         }
 
         It "Stops without reporting success when trust <Operation> raises a non-terminating error" -TestCases @(
@@ -1823,8 +2032,9 @@ Describe "JSON collection normalization and live replay" {
         function Connect-MgGraph { [CmdletBinding()] param($Scopes, $TenantId, $ContextScope) }
         function Get-MgContext { [PSCustomObject]@{ TenantId = "11111111-1111-1111-1111-111111111111" } }
         Mock Connect-MgGraph {}
-        Mock Get-AvailabilityAddressSpace { $space }
-        Mock Remove-AvailabilityAddressSpace {}
+        $availabilityState = @{ Current = $space }
+        Mock -CommandName Get-AvailabilityAddressSpace -MockWith ({ $availabilityState.Current }.GetNewClosure())
+        Mock -CommandName Remove-AvailabilityAddressSpace -MockWith ({ $availabilityState.Current = $null }.GetNewClosure())
         Mock Add-AvailabilityAddressSpace {}
         $firstPath = Join-Path -Path $TestDrive -ChildPath "first assessment"
         $secondPath = Join-Path -Path $TestDrive -ChildPath "second assessment"
@@ -1846,7 +2056,7 @@ Describe "JSON collection normalization and live replay" {
             Test-Path -LiteralPath ".\AvailabilityAddressSpaceBackup_partner.com.json" | Should -BeFalse
             $firstText = Get-Content -LiteralPath $firstBackup -Raw -Encoding UTF8
             $otherSpace = [PSCustomObject]@{ ForestName = "partner.com"; AccessMethod = "OrgWideFBToken"; TargetTenantId = $Script:TenantB }
-            Mock Get-AvailabilityAddressSpace { $otherSpace }
+            $availabilityState.Current = $otherSpace
             & (Join-Path -Path $secondPath -ChildPath "XTAP_Part3_DisableForTesting.ps1") -ReplacementPoliciesVerified
             Get-Content -LiteralPath $firstBackup -Raw -Encoding UTF8 | Should -Be $firstText
             Test-Path -LiteralPath (Join-Path -Path $secondPath -ChildPath "AvailabilityAddressSpaceBackup_partner.com.json") | Should -BeTrue

@@ -157,6 +157,8 @@ error details. Review them before sharing outside your organization.
   policy, including inherited default-policy assignments. Counts alone do not establish tenant-wide applicability,
   so even a single policy uses a guarded group placeholder. Policies confirmed to have no assigned user or shared
   mailboxes are excluded from migration, testing, rollback, and cleanup scripts.
+  Policies targeting the same tenant and capability combine their security-group scopes into one creation request.
+  Replace every group placeholder before running that request; existing capabilities and drift checks remain protected.
 - Wildcard and Anonymous Sharing Policy rules generate Part 2 commands for the default XTAP policy even when
   no partner tenant policy is needed.
 - Wildcard rules also apply to on-premises and hybrid recipients. Their Part 3 disable commands are commented out.
@@ -193,6 +195,9 @@ error details. Review them before sharing outside your organization.
   Partner policy objects and collaboration trust created or updated in Part 2 are retained to avoid disrupting other
   workloads; review their cleanup separately. A completed rollback is recorded so repeated rollback is inert.
   Generate a fresh assessment and scripts before starting a new migration after rollback.
+- Availability Address Space backups record original configuration and removal/restoration progress. Rollback skips
+  untouched spaces, including when Part 3 has not run or removal was declined, and safely resumes a partial restore.
+  Missing backups for absent spaces or conflicting existing configuration require manual review; they are not ignored.
 - All Step 4 changes, including deletion and sharing-setting changes, are commented out until you deliberately enable them.
   Deletion is permanent. Retain the collected JSON bundle, Part 3 rollback script, and backups; Part 3 rollback does not
   recreate Organization Relationships or Sharing Policies deleted during Step 4.

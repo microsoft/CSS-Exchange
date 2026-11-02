@@ -150,8 +150,8 @@ function Get-XtapCommandScript {
             "Add-XtapCapability -PartnerTenantId $(ConvertTo-XtapLiteral -Value $tenantId) -Capability $(ConvertTo-XtapLiteral -Value $row.RecommendedCapability) -ResourceType user -ResourceId 'All' -ODataPrefix 'microsoft.graph.'")
     }
 
+    $sharingRequests = [ordered]@{}
     foreach ($row in $sharingRows) {
-        $resourceType = "group"
         $resourceId = "<SecurityGroupObjectId for Sharing Policy $($row.SharingPolicy)>"
         $lines = @(
             "# Sharing Policy '$(ConvertTo-XtapComment -Value $row.SharingPolicy)' rule '$(ConvertTo-XtapComment -Value $row.Rule)'",
@@ -166,8 +166,17 @@ function Get-XtapCommandScript {
             $tenantKey = $tenantId
         }
 
-        $lines += "Add-XtapCapability $tenantArgument-Capability $(ConvertTo-XtapLiteral -Value $row.RecommendedCapability) -ResourceType $resourceType -ResourceId $(ConvertTo-XtapLiteral -Value $resourceId) -ODataPrefix '#microsoft.graph.'"
-        Add-UniqueCall -List $sharingCalls -Key "$tenantKey|$($row.RecommendedCapability)|$resourceId" -Line $lines
+        $key = "$tenantKey|$($row.RecommendedCapability)"
+        if (-not $sharingRequests.Contains($key)) {
+            $sharingRequests[$key] = @{ TenantArgument = $tenantArgument; Capability = $row.RecommendedCapability; ResourceIds = @(); Comments = @() }
+        }
+        $sharingRequests[$key].ResourceIds += $resourceId
+        $sharingRequests[$key].Comments += $lines
+    }
+    foreach ($request in $sharingRequests.Values) {
+        foreach ($comment in @($request.Comments | Select-Object -Unique)) { $sharingCalls.Add($comment) }
+        $resourceLiterals = @($request.ResourceIds | Select-Object -Unique | ForEach-Object { ConvertTo-XtapLiteral -Value $_ }) -join ", "
+        $sharingCalls.Add("Add-XtapCapability $($request.TenantArgument)-Capability $(ConvertTo-XtapLiteral -Value $request.Capability) -ResourceType group -ResourceId $resourceLiterals -ODataPrefix '#microsoft.graph.'")
     }
 
     $scripts = [ordered]@{}
@@ -291,14 +300,20 @@ function Get-XtapCommandScript {
                 '}',
                 '',
                 'function Add-XtapCapability {',
-                '    param([string]$PartnerTenantId, [string]$Capability, [string]$ResourceType, [string]$ResourceId, [string]$ODataPrefix)',
+                '    param([string]$PartnerTenantId, [string]$Capability, [string]$ResourceType, [string[]]$ResourceId, [string]$ODataPrefix)',
                 '    if ($PSBoundParameters.ContainsKey("PartnerTenantId")) { Assert-XtapInput -Value $PartnerTenantId -Name "partner tenant ID" }',
-                '    Assert-XtapInput -Value $ResourceId -Name "security group"',
+                '    if ($ResourceId.Count -eq 0) { throw "At least one resource scope is required." }',
+                '    $included = @(',
+                '        foreach ($id in @($ResourceId | Sort-Object -Unique)) {',
+                '            Assert-XtapInput -Value $id -Name "security group"',
+                '            @{ resourceId = $id; resourceType = $ResourceType }',
+                '        }',
+                '    )',
                 '    $body = @{',
                 '        "@odata.type" = "$ODataPrefix$Capability"',
                 '        inboundAccess = @{',
                 '            isAllowed = $true',
-                '            resourceScopes = @{ included = @(@{ resourceId = $ResourceId; resourceType = $ResourceType }); excluded = @() }',
+                '            resourceScopes = @{ included = $included; excluded = @() }',
                 '        }',
                 '    }',
                 '    $target = if ($PSBoundParameters.ContainsKey("PartnerTenantId")) { $PartnerTenantId } else { "the default policy" }',
@@ -409,7 +424,8 @@ function Get-XtapCommandScript {
                     "Pre-existing capabilities are never overwritten by Part 2 and are left unchanged here. Drift or missing backups stop rollback for manual review.",
                     "Partner policies and collaboration trust created or updated in Part 2 are retained to avoid disrupting other workloads; review trust cleanup separately.",
                     "Legacy settings are restored before removing capabilities. Applicable pre-existing XTAP capabilities will still take precedence over Sharing Policies.",
-                    "Availability Address Spaces are restored from the backup files created by XTAP_Part3_DisableForTesting.ps1."))) {
+                    "Only Availability Address Spaces removed by this run are restored from the Part 3 backups. Untouched spaces are skipped.",
+                    "Restoration can be retried after partial execution. Missing backups for absent spaces or conflicting existing configuration stop rollback for manual review."))) {
             $rollbackLines.Add($line)
         }
 
@@ -459,24 +475,6 @@ function Get-XtapCommandScript {
             $rollbackLines.Add($line)
         }
 
-        foreach ($line in @(
-                '',
-                'function Restore-XtapAvailabilityAddressSpace {',
-                '    param([string]$Path, [string]$Organization)',
-                '    Get-Content -LiteralPath $Path -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop | ForEach-Object {',
-                '      foreach ($addressSpace in $_) {',
-                '        $p = @{ ForestName = $addressSpace.ForestName; AccessMethod = $addressSpace.AccessMethod }',
-                '        foreach ($n in ''ProxyUrl'', ''TargetAutodiscoverEpr'', ''TargetServiceEpr'', ''TargetTenantId'') {',
-                '            if (-not [string]::IsNullOrEmpty($addressSpace.$n)) { $p[$n] = $addressSpace.$n }',
-                '        }',
-                '        if (-not [string]::IsNullOrEmpty($Organization)) { $p[''Organization''] = $Organization }',
-                '        Add-AvailabilityAddressSpace @p',
-                '      }',
-                '    }',
-                '}') ) {
-            $rollbackLines.Add($line)
-        }
-
         if ($disableOrgRows.Count -gt 0) {
             foreach ($list in @($testLines, $rollbackLines, $cleanupLines)) { $list.Add(""); $list.Add("# Organization Relationships") }
             foreach ($row in $disableOrgRows) {
@@ -518,22 +516,123 @@ function Get-XtapCommandScript {
         }
 
         if ($aasRows.Count -gt 0) {
+            $availabilityHelpers = @(
+                '',
+                'function Get-XtapAvailabilityConfiguration {',
+                '    param($AddressSpace)',
+                '    $configuration = [ordered]@{}',
+                '    foreach ($name in @("ForestName", "AccessMethod", "ProxyUrl", "TargetAutodiscoverEpr", "TargetServiceEpr", "TargetTenantId")) {',
+                '        $configuration[$name] = [string]$AddressSpace.$name',
+                '    }',
+                '    return $configuration',
+                '}',
+                '',
+                'function Get-XtapAvailabilityAddressSpace {',
+                '    param([string]$ForestName, [string]$Organization)',
+                '    $p = @{}',
+                '    if (-not [string]::IsNullOrEmpty($Organization)) { $p.Organization = $Organization }',
+                '    $items = @(Get-AvailabilityAddressSpace @p -ErrorAction Stop | Where-Object { $_.ForestName -eq $ForestName })',
+                '    if ($items.Count -gt 1) { throw "More than one Availability Address Space matches $ForestName. Review manually." }',
+                '    if ($items.Count -eq 1) { return $items[0] }',
+                '}',
+                '',
+                'function Save-XtapAvailabilityBackup {',
+                '    param([string]$Path, $State)',
+                '    $temporaryPath = "$Path.tmp"',
+                '    try {',
+                '        ConvertTo-Json -InputObject $State -Depth 10 -ErrorAction Stop | Set-Content -LiteralPath $temporaryPath -Encoding UTF8 -ErrorAction Stop',
+                '        if (Test-Path -LiteralPath $Path) {',
+                '            [System.IO.File]::Replace($temporaryPath, $Path, [NullString]::Value)',
+                '        } else {',
+                '            [System.IO.File]::Move($temporaryPath, $Path)',
+                '        }',
+                '    } finally {',
+                '        if (Test-Path -LiteralPath $temporaryPath) { Remove-Item -LiteralPath $temporaryPath -ErrorAction Stop }',
+                '    }',
+                '}',
+                '',
+                'function Update-XtapAvailabilityAddressSpace {',
+                '    param([string]$Path, [string]$ForestName, [string]$Organization, [switch]$Restore)',
+                '    $current = Get-XtapAvailabilityAddressSpace -ForestName $ForestName -Organization $Organization',
+                '    if (Test-Path -LiteralPath $Path) {',
+                '        $state = Get-Content -LiteralPath $Path -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop',
+                '        if ($state.SchemaVersion -ne 1 -or $state.ForestName -ne $ForestName -or "$($state.Organization)" -ne "$Organization" -or',
+                '            $state.Configuration.ForestName -ne $ForestName -or [string]::IsNullOrWhiteSpace($state.Configuration.AccessMethod) -or',
+                '            $state.RemovalAttempted -isnot [bool] -or $state.Removed -isnot [bool] -or $state.Restored -isnot [bool]) {',
+                '            throw "The Availability Address Space backup for $ForestName is invalid or belongs to a different organization. Review manually."',
+                '        }',
+                '    } elseif ($Restore) {',
+                '        if ($null -eq $current) { throw "The Availability Address Space backup is missing for $ForestName. Review manually." }',
+                '        return',
+                '    } else {',
+                '        if ($null -eq $current) { throw "Cannot back up the missing Availability Address Space $ForestName. Review manually." }',
+                '        $state = [PSCustomObject]@{',
+                '            SchemaVersion = 1; ForestName = $ForestName; Organization = "$Organization"',
+                '            RemovalAttempted = $false; Removed = $false; Restored = $false',
+                '            Configuration = Get-XtapAvailabilityConfiguration -AddressSpace $current',
+                '        }',
+                '        Save-XtapAvailabilityBackup -Path $Path -State $state',
+                '    }',
+                '    $expected = Get-XtapAvailabilityConfiguration -AddressSpace $state.Configuration | ConvertTo-Json -Compress',
+                '    if ($null -ne $current -and (Get-XtapAvailabilityConfiguration -AddressSpace $current | ConvertTo-Json -Compress) -ne $expected) {',
+                '        throw "The Availability Address Space $ForestName configuration conflicts with its backup. Review manually."',
+                '    }',
+                '    $p = @{}',
+                '    if (-not [string]::IsNullOrEmpty($Organization)) { $p.Organization = $Organization }',
+                '    if ($Restore) {',
+                '        if ($null -ne $current) {',
+                '            if ($state.Removed -and -not $state.Restored) {',
+                '                $state.Restored = $true',
+                '                Save-XtapAvailabilityBackup -Path $Path -State $state',
+                '            }',
+                '            return',
+                '        }',
+                '        if ($state.Restored -or -not ($state.RemovalAttempted -or $state.Removed)) {',
+                '            throw "No pending removal is recorded for the missing Availability Address Space $ForestName. Review manually."',
+                '        }',
+                '        foreach ($name in @("ForestName", "AccessMethod", "ProxyUrl", "TargetAutodiscoverEpr", "TargetServiceEpr", "TargetTenantId")) {',
+                '            if (-not [string]::IsNullOrEmpty($state.Configuration.$name)) { $p[$name] = $state.Configuration.$name }',
+                '        }',
+                '        Add-AvailabilityAddressSpace @p -ErrorAction Stop',
+                '        $state.Removed = $true',
+                '        $state.Restored = $true',
+                '        Save-XtapAvailabilityBackup -Path $Path -State $state',
+                '        return',
+                '    }',
+                '    if ($state.Restored) { throw "$ForestName was already restored. Generate a fresh assessment before migrating again." }',
+                '    if ($null -eq $current) {',
+                '        if (-not ($state.RemovalAttempted -or $state.Removed)) { throw "No removal is recorded for the missing Availability Address Space $ForestName. Review manually." }',
+                '        $state.Removed = $true',
+                '        Save-XtapAvailabilityBackup -Path $Path -State $state',
+                '        return',
+                '    }',
+                '    if ($state.Removed) { throw "The removed Availability Address Space $ForestName has reappeared. Review manually." }',
+                '    $state.RemovalAttempted = $true',
+                '    Save-XtapAvailabilityBackup -Path $Path -State $state',
+                '    Remove-AvailabilityAddressSpace -Identity $ForestName @p -Confirm:$true -ErrorAction Stop',
+                '    $remaining = Get-XtapAvailabilityAddressSpace -ForestName $ForestName -Organization $Organization',
+                '    if ($null -eq $remaining) {',
+                '        $state.Removed = $true',
+                '    } elseif ((Get-XtapAvailabilityConfiguration -AddressSpace $remaining | ConvertTo-Json -Compress) -ne $expected) {',
+                '        throw "The Availability Address Space $ForestName configuration conflicts with its backup after removal. Review manually."',
+                '    } else {',
+                '        $state.RemovalAttempted = $false',
+                '    }',
+                '    Save-XtapAvailabilityBackup -Path $Path -State $state',
+                '}')
+            foreach ($list in @($testLines, $rollbackLines)) {
+                foreach ($line in $availabilityHelpers) { $list.Add($line) }
+            }
             $testLines.Add("")
-            $testLines.Add("# Availability Address Spaces can't be disabled, so each one is backed up and then removed.")
+            $testLines.Add("# Availability Address Spaces can't be disabled. Original configuration and removal progress are saved before removal.")
             $rollbackLines.Add("")
             $rollbackLines.Add("# Availability Address Spaces")
             foreach ($row in $aasRows) {
                 $safeName = ConvertTo-CalendarDiagnosticFileNameStem -Value $row.ForestName
                 $backupName = "AvailabilityAddressSpaceBackup_$safeName.json"
                 $backupLiteral = "(Join-Path -Path `$PSScriptRoot -ChildPath $(ConvertTo-XtapLiteral -Value $backupName))"
-                $testLines.Add("`$backup = @(Get-AvailabilityAddressSpace -Identity $(ConvertTo-XtapLiteral -Value $row.ForestName)$orgArg -ErrorAction Stop | ForEach-Object {")
-                $testLines.Add('    $item = [ordered]@{}')
-                $testLines.Add('    foreach ($name in @("ForestName", "AccessMethod", "ProxyUrl", "TargetAutodiscoverEpr", "TargetServiceEpr", "TargetTenantId")) { $item[$name] = [string]$_.$name }')
-                $testLines.Add('    [PSCustomObject]$item')
-                $testLines.Add('})')
-                $testLines.Add("ConvertTo-Json -InputObject `$backup -Depth 4 -ErrorAction Stop | Set-Content -LiteralPath $backupLiteral -Encoding UTF8 -ErrorAction Stop")
-                $testLines.Add("Remove-AvailabilityAddressSpace -Identity $(ConvertTo-XtapLiteral -Value $row.ForestName) -Confirm:`$true$orgArg")
-                $rollbackLines.Add("Restore-XtapAvailabilityAddressSpace -Path $backupLiteral$orgArg")
+                $testLines.Add("Update-XtapAvailabilityAddressSpace -Path $backupLiteral -ForestName $(ConvertTo-XtapLiteral -Value $row.ForestName)$orgArg")
+                $rollbackLines.Add("Update-XtapAvailabilityAddressSpace -Restore -Path $backupLiteral -ForestName $(ConvertTo-XtapLiteral -Value $row.ForestName)$orgArg")
             }
         }
 
