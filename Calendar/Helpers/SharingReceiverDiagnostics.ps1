@@ -49,6 +49,7 @@ function GetReceiverInformation {
     } else {
         $OwnerCalendarName
     }
+    $defaultCalendarEntryCorrelationUnknown = $false
     Write-Host -ForegroundColor Cyan "Receiver Calendar Folders (look for a copy of [$selectedOwnerCalendarName] Calendar):"
     Write-Host -ForegroundColor Cyan "Running: 'Get-MailboxFolderStatistics -Identity $Receiver -FolderScope Calendar'"
     $receiverFolderStatsAvailable = $true
@@ -254,16 +255,44 @@ function GetReceiverInformation {
             $script:ReceiverCalendarEntries = @($ReceiverCalEntries)
             Write-Host "New Model Calendar Sharing Entries:"
             $ReceiverCalEntries | Where-Object SharingModelType -Like New | Format-Table CalendarGroupName, CalendarName, OwnerEmailAddress, SharingModelType, IsOrphanedEntry
-            $pairNewEntries = @($ReceiverCalEntries | Where-Object -FilterScript {
-                    ($_.SharingModelType -like "New") -and
-                    (Test-SmtpAddressEqual -First $_.OwnerEmailAddress -Second $Owner) -and
-                    ((-not $script:OwnerCalendarSubfolderSelected) -or
+            $ownerCalendarEntries = @($ReceiverCalEntries | Where-Object -FilterScript {
+                    Test-SmtpAddressEqual -First $_.OwnerEmailAddress -Second $Owner
+                })
+            $selectedEntryCalendarName = if ($script:OwnerCalendarSubfolderSelected) {
+                $selectedOwnerCalendarName
+            } else {
+                $script:ReceiverMatchedCalendar.Name
+            }
+            $selectedCalendarEntries = @($ownerCalendarEntries | Where-Object -FilterScript {
+                    (-not [string]::IsNullOrWhiteSpace($selectedEntryCalendarName)) -and
                     [string]::Equals(
                         $_.CalendarName,
-                        $selectedOwnerCalendarName,
-                        [System.StringComparison]::OrdinalIgnoreCase))
+                        $selectedEntryCalendarName,
+                        [System.StringComparison]::OrdinalIgnoreCase)
                 })
-            if ($pairNewEntries.Count -gt 0) {
+            $pairNewEntries = @($selectedCalendarEntries | Where-Object -Property SharingModelType -EQ "New")
+            $pairOldEntries = @($selectedCalendarEntries | Where-Object -Property SharingModelType -EQ "Old")
+            $defaultCalendarEntryCorrelationUnknown = (-not $script:OwnerCalendarSubfolderSelected) -and
+            ($ownerCalendarEntries.Count -gt 0) -and ($selectedCalendarEntries.Count -eq 0)
+            $newEntryCorrelationUnknown = $defaultCalendarEntryCorrelationUnknown -or
+            ((-not $script:OwnerCalendarSubfolderSelected) -and ($pairNewEntries.Count -eq 0) -and
+            (@($ownerCalendarEntries | Where-Object -Property SharingModelType -EQ "New").Count -gt 0))
+            $oldEntryCorrelationUnknown = $defaultCalendarEntryCorrelationUnknown -or
+            ((-not $script:OwnerCalendarSubfolderSelected) -and ($pairOldEntries.Count -eq 0) -and
+            (@($ownerCalendarEntries | Where-Object -Property SharingModelType -EQ "Old").Count -gt 0))
+            $correlationReason = "The owner's calendar entries could not be correlated to the selected default calendar."
+            if ($newEntryCorrelationUnknown) {
+                foreach ($ruleId in @("SHR231", "SHR232")) {
+                    Add-SharingFinding -RuleId $ruleId -Status NotEvaluated -Evidence @{ reason = $correlationReason }
+                }
+            }
+            if ($oldEntryCorrelationUnknown) {
+                Add-SharingFinding -RuleId "SHR233" -Status NotEvaluated -Evidence @{ reason = $correlationReason }
+            }
+            if ($defaultCalendarEntryCorrelationUnknown) {
+                Add-SharingFinding -RuleId "SHR324" -Status NotEvaluated -Evidence @{ reason = $correlationReason }
+            }
+            if ($script:OwnerCalendarSubfolderSelected -and ($pairNewEntries.Count -gt 0)) {
                 $pairCalendarNames = @($pairNewEntries.CalendarName | Where-Object -FilterScript {
                         -not [string]::IsNullOrWhiteSpace($_)
                     })
@@ -290,15 +319,6 @@ function GetReceiverInformation {
                 }
             }
 
-            $pairOldEntries = @($ReceiverCalEntries | Where-Object -FilterScript {
-                    ($_.SharingModelType -like "Old") -and
-                    (Test-SmtpAddressEqual -First $_.OwnerEmailAddress -Second $Owner) -and
-                    ((-not $script:OwnerCalendarSubfolderSelected) -or
-                    [string]::Equals(
-                        $_.CalendarName,
-                        $selectedOwnerCalendarName,
-                        [System.StringComparison]::OrdinalIgnoreCase))
-                })
             $script:LegacyMapiSharing = (
                 (-not $script:PublishedSharing) -and
                 ($script:SharingType -eq "InternalSharing") -and
@@ -317,7 +337,8 @@ function GetReceiverInformation {
                     reason             = $legacyEvidence
                     oldModelEntryCount = $pairOldEntries.Count
                 }
-            } elseif ($calendarEntriesAvailable -and ($pairNewEntries.Count -eq 0)) {
+            } elseif ($calendarEntriesAvailable -and ($pairNewEntries.Count -eq 0) -and
+                (-not $newEntryCorrelationUnknown)) {
                 Add-SharingFinding -Severity Error -Area "Calendar entries" -Issue "The pair-specific new-model calendar entry is missing." -Evidence "Get-CalendarEntries returned data but no New entry for owner [$Owner] and selected calendar [$selectedOwnerCalendarName]." -RecommendedNextStep "Inspect invite/accept logs and SharingPolicyAssistant or calendar-sharing validator diagnostics."
             }
 
@@ -336,11 +357,37 @@ function GetReceiverInformation {
         }
         Test-PublishedCalendarRelationship
 
+        $ownerPermission = if ($script:OwnerCalendarPermsAvailable) {
+            Get-PermissionEntriesForIdentity `
+                -PermissionEntries $script:OwnerCalendarPerms `
+                -Identity $Receiver -Mailbox $script:ReceiverMB |
+                Select-Object -First 1
+        } else {
+            $null
+        }
+        if ($script:OwnerCalendarPermsAvailable -and $script:OwnerActiveSharingAvailable) {
+            if (($null -ne $script:OwnerActiveReceiver) -and ($null -eq $ownerPermission)) {
+                Add-SharingFinding -Severity Error -Area "Pair permission configuration" -Issue "The expected active relationship has no matching owner calendar permission." -Evidence "Active sharing contains [$Receiver], but owner calendar permissions do not." -RecommendedNextStep "Run SharingPolicyAssistant or calendar-sharing validator diagnostics and compare invite/accept logs."
+            } elseif (($null -ne $ownerPermission) -and ($null -eq $script:OwnerActiveReceiver)) {
+                Add-SharingFinding -Severity Error -Area "Pair permission configuration" -Issue "The owner calendar permission exists but the expected active relationship is absent." -Evidence "Owner permission was found for [$Receiver], but active-sharing information did not contain the receiver." -RecommendedNextStep "Inspect invite/accept logs and run SharingPolicyAssistant or calendar-sharing validator diagnostics."
+            }
+        } else {
+            foreach ($ruleId in @("SHR320", "SHR321")) {
+                Add-SharingFinding -RuleId $ruleId -Status NotEvaluated -Evidence @{
+                    reason = "Owner calendar permissions and active-sharing evidence are both required."
+                }
+            }
+        }
+
         if ($receiverFolderStatsAvailable -and
             ($null -eq $script:ReceiverMatchedCalendar)) {
             if ($receiverCalendarFolderNamesRedacted) {
                 Add-SharingFinding -RuleId "SHR213" -Status NotEvaluated -Evidence @{
                     reason = "Receiver calendar folder names are redacted."
+                }
+            } elseif ($defaultCalendarEntryCorrelationUnknown) {
+                Add-SharingFinding -RuleId "SHR213" -Status NotEvaluated -Evidence @{
+                    reason = "The owner's calendar entries do not identify a local copy of the selected default calendar."
                 }
             } elseif ($script:LegacyMapiSharing) {
                 Write-Verbose "A local receiver folder is not expected for legacy MAPI calendar sharing."
@@ -492,19 +539,6 @@ function GetReceiverInformation {
                     }
                 }
 
-                $ownerPermission = Get-PermissionEntriesForIdentity `
-                    -PermissionEntries $script:OwnerCalendarPerms `
-                    -Identity $Receiver -Mailbox $script:ReceiverMB |
-                    Select-Object -First 1
-                if ($script:OwnerCalendarPermsAvailable -and
-                    ($null -ne $script:OwnerActiveReceiver) -and
-                    ($null -eq $ownerPermission)) {
-                    Add-SharingFinding -Severity Error -Area "Pair permission configuration" -Issue "The expected active relationship has no matching owner calendar permission." -Evidence "Active sharing contains [$Receiver], but owner calendar permissions do not." -RecommendedNextStep "Run SharingPolicyAssistant or calendar-sharing validator diagnostics and compare invite/accept logs."
-                } elseif ($script:OwnerActiveSharingAvailable -and
-                    ($null -ne $ownerPermission) -and
-                    ($null -eq $script:OwnerActiveReceiver)) {
-                    Add-SharingFinding -Severity Error -Area "Pair permission configuration" -Issue "The owner calendar permission exists but the expected active relationship is absent." -Evidence "Owner permission was found for [$Receiver], but active-sharing information did not contain the receiver." -RecommendedNextStep "Inspect invite/accept logs and run SharingPolicyAssistant or calendar-sharing validator diagnostics."
-                }
                 $ownerSharingFlags = @($ownerPermission.SharingPermissionFlags) | Where-Object -FilterScript {
                     -not [string]::IsNullOrWhiteSpace($_)
                 }

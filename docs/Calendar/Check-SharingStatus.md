@@ -112,6 +112,13 @@ When a selected subfolder is requested, receiver folder matching, pair-specific 
 
 Explicitly selecting the default calendar (for example, `-OwnerCalendarFolderPath "Calendar"`) uses the same receiver correlation and unfiltered accept-log output as omitting the parameter. It does not select the receiver's own default calendar.
 
+For default-calendar runs, New and Old entries must correlate to the already matched receiver folder before they
+satisfy selected-calendar checks. An entry for another calendar owned by the same mailbox cannot replace that match.
+If the entries cannot be correlated, including a renamed copy without enough matching evidence, the dependent checks
+remain `NotEvaluated`; a literal entry name of `Calendar` alone is not sufficient. Uncorrelated Old entries do not
+classify the selected default calendar as legacy MAPI. The full calendar-entry collection remains available in
+sensitive JSON evidence; the detailed New-model table remains unfiltered.
+
 ## Understanding the summary
 
 ### Fatal prerequisite failure
@@ -183,6 +190,11 @@ Do not consider the relationship healthy until relevant incomplete checks have b
 - Modern Sharing folder flags, including `SharedOut` and `ExchangeShareFolder`.
 - The specified receiver's active sharing relationship. If the receiver is not in the owner's active sharees (`Get-CalendarActiveSharingInformation`) for a Modern Sharing relationship, the script reports `SHR311` as an error; `SHR321` also reports an owner permission that has no active relationship.
 - Non-default `ActiveShareeFlags`.
+
+`SHR320` and `SHR321` compare selected-owner-calendar permissions with active-sharing information even when no
+receiver local folder is matched. Both owner evidence sources must be available; otherwise these checks remain
+`NotEvaluated`. Their existing sharing-model applicability is unchanged. `SHR322` and `SHR323` still require
+receiver-folder evidence because they compare its permission flags.
 
 Single matching permission entries are counted as collections, including in Windows PowerShell 5.1, where a single
 returned custom object may not expose a `Count` property.

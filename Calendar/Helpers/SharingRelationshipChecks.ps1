@@ -200,12 +200,17 @@ function Test-PublishedCalendarRelationship {
     $localFlags = ConvertTo-NormalizedFolderFlags -Flags @($script:ReceiverLocalCalendarFolder.ExtendedFolderFlags)
     $publishedFolder = ($localFlags -contains "WebCalFolder") -and
     (Test-SmtpAddressEqual -First $script:ReceiverLocalCalendarFolder.CalendarSharingOwnerSmtpAddress -Second $Owner)
+    $selectedEntryCalendarName = if ($script:OwnerCalendarSubfolderSelected) {
+        $script:RequestedOwnerCalendarLeafName
+    } else {
+        $script:ReceiverMatchedCalendar.Name
+    }
     $pairNewEntries = @($script:ReceiverCalendarEntries | Where-Object {
             ($_.SharingModelType -eq "New") -and
             (Test-SmtpAddressEqual -First $_.OwnerEmailAddress -Second $Owner) -and
-            ((-not $script:OwnerCalendarSubfolderSelected) -or
-            [string]::Equals($_.CalendarName, $script:RequestedOwnerCalendarLeafName,
-                [System.StringComparison]::OrdinalIgnoreCase))
+            (-not [string]::IsNullOrWhiteSpace($selectedEntryCalendarName)) -and
+            [string]::Equals($_.CalendarName, $selectedEntryCalendarName,
+                [System.StringComparison]::OrdinalIgnoreCase)
         })
     $matchingPublishedEntries = @($script:ReceiverInternetCalendarEntries | Where-Object {
             Test-PublishedCalendarUrlEqual -First $_.PublishingUrl -Second $script:OwnerPublishedICalUrl

@@ -543,6 +543,23 @@ Describe "Check-SharingStatus published subscription history" {
         $script:PublishedSharing | Should -BeFalse
         $script:SharingFindings.Count | Should -Be 0
     }
+
+    It "uses only selected-calendar New entries to distinguish publishing (<CalendarName>)" -TestCases @(
+        @{ CalendarName = "Project"; Published = $true }
+        @{ CalendarName = "Owner Display"; Published = $false }
+    ) {
+        param($CalendarName, $Published)
+        $script:ReceiverMatchedCalendar = [PSCustomObject]@{ Name = "Owner Display" }
+        $script:ReceiverCalendarEntries = @([PSCustomObject]@{
+                OwnerEmailAddress = "owner@contoso.com"
+                SharingModelType  = "New"
+                CalendarName      = $CalendarName
+            })
+
+        Test-PublishedCalendarRelationship
+
+        $script:PublishedSharing | Should -Be $Published
+    }
 }
 
 Describe "Check-SharingStatus explicit receiver delegation" {
@@ -3467,6 +3484,83 @@ Describe "Check-SharingStatus structured diagnostics" {
             Initialize-ReceiverMocks
         }
 
+        It "keeps uncorrelated <Model> entries for <CalendarName> inconclusive when the default calendar is selected" -TestCases @(
+            @{ Model = "New"; CalendarName = "Project"; LocalFolder = $true }
+            @{ Model = "New"; CalendarName = "Renamed calendar"; LocalFolder = $true }
+            @{ Model = "New"; CalendarName = "Calendar"; LocalFolder = $true }
+            @{ Model = "Old"; CalendarName = "Project"; LocalFolder = $false }
+        ) {
+            param($Model, $CalendarName, $LocalFolder)
+            $Script:receiverStats = @($Script:receiverStats[0])
+            if ($LocalFolder) {
+                $Script:receiverStats += [PSCustomObject]@{
+                    FolderType = "User Created"
+                    Name       = $CalendarName
+                    FolderPath = "/Calendar/$CalendarName"
+                }
+            }
+            $Script:calendarEntries = @([PSCustomObject]@{
+                    OwnerEmailAddress = "owner@contoso.com"
+                    SharingModelType  = $Model
+                    CalendarName      = $CalendarName
+                    IsOrphanedEntry   = $true
+                })
+            Mock Compare-CalendarFolderStatistics {}
+
+            GetReceiverInformation -Receiver "receiver@contoso.com"
+            Complete-SharingFindings
+
+            $script:ReceiverMatchedCalendar | Should -BeNullOrEmpty
+            $script:ModernSharing | Should -BeFalse
+            $script:LegacyMapiSharing | Should -BeFalse
+            foreach ($ruleId in @("SHR213", "SHR231", "SHR232", "SHR233", "SHR324")) {
+                ($script:SharingFindings | Where-Object -Property ruleId -EQ $ruleId).status |
+                    Should -Be "NotEvaluated" -Because $ruleId
+            }
+            Should -Not -Invoke -CommandName Get-MailboxCalendarFolder
+            Should -Invoke -CommandName Compare-CalendarFolderStatistics -Times 1 -Exactly -ParameterFilter {
+                $null -eq $ReceiverFolderStatistics
+            }
+        }
+
+        It "does not replace the default-calendar match with a secondary-calendar entry" {
+            $Script:receiverStats += [PSCustomObject]@{
+                FolderType = "User Created"
+                Name       = "Project"
+                FolderPath = "/Calendar/Project"
+            }
+            $Script:calendarEntries[0].CalendarName = "Project"
+
+            GetReceiverInformation -Receiver "receiver@contoso.com"
+            Complete-SharingFindings
+
+            $script:ReceiverMatchedCalendar.Name | Should -Be "Owner Display"
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR231").status |
+                Should -Be "NotEvaluated"
+            Should -Not -Invoke -CommandName Get-MailboxCalendarFolder -ParameterFilter {
+                $Identity -eq "receiver@contoso.com:\Calendar\Project"
+            }
+        }
+
+        It "does not apply an uncorrelated Old entry to a matched default calendar" {
+            $Script:calendarEntries += [PSCustomObject]@{
+                OwnerEmailAddress = "owner@contoso.com"
+                SharingModelType  = "Old"
+                CalendarName      = "Project"
+                IsOrphanedEntry   = $false
+            }
+
+            GetReceiverInformation -Receiver "receiver@contoso.com"
+            Complete-SharingFindings
+
+            $script:ReceiverMatchedCalendar.Name | Should -Be "Owner Display"
+            $script:LegacyMapiSharing | Should -BeFalse
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR231").status |
+                Should -Be "NotDetected"
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR233").status |
+                Should -Be "NotEvaluated"
+        }
+
         It -Name "only classifies a correlated New entry as Modern with confirmed internal organizations (<Case>)" -TestCases @(
             @{ Case = "owner missing"; OwnerOrganization = $null; ReceiverOrganization = "OU1"; Modern = $false }
             @{ Case = "receiver missing"; OwnerOrganization = "OU1"; ReceiverOrganization = $null; Modern = $false }
@@ -3476,15 +3570,15 @@ Describe "Check-SharingStatus structured diagnostics" {
             param($OwnerOrganization, $ReceiverOrganization, $Modern)
             $script:OwnerMB.OrganizationalUnitRoot = $OwnerOrganization
             $Script:receiverMailbox.OrganizationalUnitRoot = $ReceiverOrganization
-            $Script:receiverStats[1].Name = "Renamed local calendar"
-            $Script:receiverStats[1].FolderPath = "/Renamed local calendar"
-            $Script:calendarEntries[0].CalendarName = "Renamed local calendar"
+            $Script:receiverStats[1].Name = "Owner Display renamed"
+            $Script:receiverStats[1].FolderPath = "/Owner Display renamed"
+            $Script:calendarEntries[0].CalendarName = "Owner Display renamed"
             Mock Write-Host {}
 
             GetReceiverInformation -Receiver "receiver@contoso.com"
             Complete-SharingFindings
 
-            $script:ReceiverMatchedCalendar.Name | Should -Be "Renamed local calendar"
+            $script:ReceiverMatchedCalendar.Name | Should -Be "Owner Display renamed"
             $script:ReceiverCalendarCandidates.Count | Should -Be 1
             $script:ModernSharing | Should -Be $Modern
             $report = Get-SharingJsonReportObject
@@ -3512,12 +3606,14 @@ Describe "Check-SharingStatus structured diagnostics" {
                 Should -Be "NotApplicable"
         }
 
-        It "classifies internal sharing without a Modern copy as legacy MAPI" {
+        It "classifies a selected internal subfolder without a Modern copy as legacy MAPI" {
+            $script:OwnerCalendarSubfolderSelected = $true
+            $script:RequestedOwnerCalendarLeafName = "Project Calendar"
             $Script:receiverStats = @($Script:receiverStats[0])
             $Script:calendarEntries = @(
                 [PSCustomObject]@{
                     CalendarGroupName = "People's calendars"
-                    CalendarName      = "Owner Display"
+                    CalendarName      = "Project Calendar"
                     OwnerEmailAddress = "owner@contoso.com"
                     SharingModelType  = "Old"
                     IsOrphanedEntry   = $false
@@ -3756,11 +3852,11 @@ Describe "Check-SharingStatus structured diagnostics" {
         }
 
         It -Name "does not confirm a missing folder for ambiguous <Source> candidates" -TestCases @(
-            @{ Source = "owner names"; OldEntry = $false }
-            @{ Source = "owner names with an Old entry"; OldEntry = $true }
-            @{ Source = "calendar entries"; OldEntry = $false }
+            @{ Source = "owner names"; OldEntry = $false; ExpectedCandidates = 2 }
+            @{ Source = "owner names with an Old entry"; OldEntry = $true; ExpectedCandidates = 2 }
+            @{ Source = "calendar entries"; OldEntry = $false; ExpectedCandidates = 0 }
         ) {
-            param($Source, $OldEntry)
+            param($Source, $OldEntry, $ExpectedCandidates)
             $Script:receiverStats += [PSCustomObject]@{
                 FolderType           = "User Created"
                 Name                 = "Owner Display (1)"
@@ -3784,7 +3880,7 @@ Describe "Check-SharingStatus structured diagnostics" {
             Complete-SharingFindings
 
             $script:ReceiverMatchedCalendar | Should -BeNullOrEmpty
-            $script:ReceiverCalendarCandidates.Count | Should -Be 2
+            $script:ReceiverCalendarCandidates.Count | Should -Be $ExpectedCandidates
             $script:LegacyMapiSharing | Should -BeFalse
             ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR213").status | Should -Be "NotEvaluated"
             ((Get-SharingJsonReportObject).findings | Where-Object -Property ruleId -EQ "SHR213").result |
@@ -3921,17 +4017,17 @@ Describe "Check-SharingStatus structured diagnostics" {
             $script:ReceiverMatchedCalendar.Name | Should -Be "Project Calendar"
         }
 
-        It "uses pair-specific calendar entries to uniquely match a folder from all statistics" {
-            $Script:receiverStats[1].Name = "Project Calendar"
-            $Script:receiverStats[1].FolderPath = "/Project Calendar"
-            $Script:calendarEntries[0].CalendarName = "Project Calendar"
+        It "retains a correlated renamed default folder from the statistics" {
+            $Script:receiverStats[1].Name = "Owner Display renamed"
+            $Script:receiverStats[1].FolderPath = "/Owner Display renamed"
+            $Script:calendarEntries[0].CalendarName = "Owner Display renamed"
 
             GetReceiverInformation -Receiver "receiver@contoso.com"
 
-            $script:ReceiverMatchedCalendar.Name | Should -Be "Project Calendar"
+            $script:ReceiverMatchedCalendar.Name | Should -Be "Owner Display renamed"
             $script:SharingFindings.ruleId | Should -Not -Contain "SHR213"
             Should -Invoke Get-MailboxCalendarFolder -ParameterFilter {
-                $Identity -eq "receiver@contoso.com:\Calendar\Project Calendar"
+                $Identity -eq "receiver@contoso.com:\Calendar\Owner Display renamed"
             }
         }
 
@@ -4099,6 +4195,66 @@ Describe "Check-SharingStatus structured diagnostics" {
 
             $script:SharingFindings.ruleId | Should -Contain "SHR241"
             $script:SharingFindings.ruleId | Should -Contain "SHR242"
+        }
+    }
+
+    Context "Owner permission consistency without a receiver folder" {
+        BeforeEach {
+            Initialize-ReceiverMocks
+            $Script:receiverStats = @($Script:receiverStats[0])
+            $Script:calendarEntries = @()
+            $script:OwnerCalendarPermsAvailable = $true
+            $script:OwnerActiveSharingAvailable = $true
+            foreach ($collectorName in @("OwnerCalendarPermissions", "ActiveSharing")) {
+                $script:CollectorStatuses[$collectorName] = [PSCustomObject]@{ status = "Success"; error = $null }
+            }
+        }
+
+        It "evaluates permission consistency with Permission=<Permission> and Relationship=<Relationship>" -TestCases @(
+            @{ Permission = $false; Relationship = $true; Rule320 = "Detected"; Rule321 = "NotDetected" }
+            @{ Permission = $true; Relationship = $false; Rule320 = "NotDetected"; Rule321 = "Detected" }
+            @{ Permission = $true; Relationship = $true; Rule320 = "NotDetected"; Rule321 = "NotDetected" }
+            @{ Permission = $false; Relationship = $false; Rule320 = "NotDetected"; Rule321 = "NotDetected" }
+        ) {
+            param($Permission, $Relationship, $Rule320, $Rule321)
+            if ($Permission) {
+                $script:OwnerCalendarPerms = @([PSCustomObject]@{
+                        User                   = "receiver@contoso.com"
+                        AccessRights           = @("Reviewer")
+                        SharingPermissionFlags = @("None")
+                    })
+            }
+            if ($Relationship) {
+                $script:OwnerActiveReceiver = [PSCustomObject]@{ EmailAddress = "receiver@contoso.com" }
+            }
+
+            GetReceiverInformation -Receiver "receiver@contoso.com"
+            Complete-SharingFindings
+
+            $script:ReceiverMatchedCalendar | Should -BeNullOrEmpty
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR320").status | Should -Be $Rule320
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR321").status | Should -Be $Rule321
+            foreach ($ruleId in @("SHR322", "SHR323")) {
+                ($script:SharingFindings | Where-Object -Property ruleId -EQ $ruleId).status | Should -Be "NotApplicable"
+            }
+            Should -Not -Invoke -CommandName Get-MailboxCalendarFolder
+        }
+
+        It "does not evaluate consistency when <Source> is unavailable" -TestCases @(
+            @{ Source = "permissions"; PermissionsAvailable = $false; SharingAvailable = $true; Collector = "OwnerCalendarPermissions" }
+            @{ Source = "active sharing"; PermissionsAvailable = $true; SharingAvailable = $false; Collector = "ActiveSharing" }
+        ) {
+            param($Source, $PermissionsAvailable, $SharingAvailable, $Collector)
+            $script:OwnerCalendarPermsAvailable = $PermissionsAvailable
+            $script:OwnerActiveSharingAvailable = $SharingAvailable
+            $script:CollectorStatuses[$Collector].status = "Failed"
+
+            GetReceiverInformation -Receiver "receiver@contoso.com"
+            Complete-SharingFindings
+
+            foreach ($ruleId in @("SHR320", "SHR321")) {
+                ($script:SharingFindings | Where-Object -Property ruleId -EQ $ruleId).status | Should -Be "NotEvaluated"
+            }
         }
     }
 
