@@ -99,6 +99,7 @@ meso
 mesos
 mfcmapi
 Mgmt
+microsoftonline
 mitigations
 msdcs
 MSDTC
@@ -180,3 +181,4 @@ Weve
 wevtutil
 windir
 Xlsb
+Xtap
