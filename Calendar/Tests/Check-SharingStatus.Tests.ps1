@@ -4514,6 +4514,7 @@ Describe "Check-SharingStatus structured diagnostics" {
                 Should -Be "MI Events Around the World"
         }
         It "parses European day-first accept-log timestamps without a timestamp finding" {
+            Mock -CommandName Get-Date -MockWith { [DateTime]::new(2026, 10, 21) }
             $recentDay = (Get-Date).AddDays(-2)
             $olderDay = (Get-Date).AddDays(-300)
             Mock Export-MailboxDiagnosticLogs {

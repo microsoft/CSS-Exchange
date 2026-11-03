@@ -935,6 +935,7 @@ Describe "Get-RBASummary best-effort report" {
     It "separates outcomes when a subject resolves to multiple meeting IDs" {
         $newerMeetingId = "040000008200E00074C5B7101A82E0080000000040102B6651CBDC01000000000000000010000000F88270875E4D8C4EAE68086FFC170C60"
         $olderMeetingId = "040000008200E00074C5B7101A82E0080000000060043C1FE2C5DC01000000000000000010000000849AA4DF567BE0499C0A21B37BE890E1"
+        Mock -CommandName Write-Warning -MockWith {}
         Mock Export-MailboxDiagnosticLogs {
             [PSCustomObject]@{
                 MailboxLog = @(
@@ -965,11 +966,14 @@ Describe "Get-RBASummary best-effort report" {
         $olderMeeting.policyResult | Should -Be "OutOfPolicy"
         $olderMeeting.disposition | Should -Be "Decline"
         $olderMeeting.forwardedToDelegates | Should -BeFalse
+        Should -Invoke -CommandName Write-Warning -Times 1 -Exactly -ParameterFilter {
+            $Message -like "The subject matched 2 meeting IDs.*"
+        }
 
         $summary = Get-ChildItem -Path $TestDrive -Filter "RBA-Summary-For_room_*.txt" |
             Sort-Object -Property LastWriteTime | Select-Object -Last 1
         $summaryContent = Get-Content -Path $summary.FullName -Raw
-        $summaryContent | Should -Match "subject matched 2 meeting IDs"
+        $summaryContent | Should -Match "Subject matches\s+2"
         $summaryContent | Should -Match "Meeting 1 of 2:"
         $summaryContent | Should -Match "Meeting 2 of 2:"
         $summaryContent | Should -Match ([regex]::Escape($newerMeetingId))
