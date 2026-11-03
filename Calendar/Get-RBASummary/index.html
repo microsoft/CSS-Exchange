@@ -1009,6 +1009,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#source-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source layout
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -5670,6 +5681,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#source-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source layout
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -5704,7 +5726,7 @@
 <h2 id="requirements">Requirements</h2>
 <ul>
 <li>Windows PowerShell 5.1 or PowerShell 7 or later.</li>
-<li>The Exchange Online PowerShell module and an active <code>Connect-ExchangeOnline</code> session.</li>
+<li>The Exchange Online PowerShell module and an active <code>Connect-ExchangeOnline</code> session. The script verifies that <code>Get-Mailbox</code> is available and, when <code>Get-ConnectionInformation</code> is available, that an active Exchange Online connection exists. It stops before collecting data if the check fails.</li>
 <li>Permission to read the target mailbox, CalendarProcessing configuration, mailbox diagnostic logs, and applicable permissions.</li>
 <li>A room or equipment mailbox. Workspace-specific validation applies when the mailbox resource type is <code>Workspace</code>.</li>
 </ul>
@@ -5797,9 +5819,10 @@
 </table>
 <p>For example, running the script for <code>Room1@Contoso.com</code> creates a filename similar to <code>RBA-Summary-For_Room1_2026-08-28_15-42-10.json</code>. The timestamp matches the associated text summary produced by the same run.</p>
 <p>The JSON uses schema version <code>1.1-preview</code> and is encoded as UTF-8 without a byte order mark. Compared with <code>1.0-preview</code>, <code>calendarProcessing.maximumConflictPercentage</code> is removed; use <code>calendarProcessing.conflictPercentageAllowed</code>. The transcript and readable RBA-log files do not carry the same BOM-free encoding guarantee.</p>
-<p>Every finding contains <code>ruleId</code>, <code>severity</code>, <code>status</code>, <code>title</code>, and <code>evidence</code>. When <code>status</code> is <code>NotEvaluated</code>, <code>evidence</code> is always JSON <code>null</code>; consumers must not interpret unavailable evidence as a negative result. For evaluated findings, evidence is rule-specific and can be a scalar or object. <code>RBA001</code> uses an object with an <code>error</code> member, while <code>RBA002</code> through <code>RBA007</code> use a scalar error string or null. In sanitized modes, those error values can contain the fixed text <code>Error details omitted in sanitized mode.</code></p>
+<p>Every finding contains <code>ruleId</code>, <code>severity</code>, <code>status</code>, <code>result</code>, <code>title</code>, and <code>evidence</code>. <code>result</code> is a plain-language summary of <code>status</code> and <code>severity</code>: <code>Fail</code> (<code>Detected</code> with <code>Critical</code>, <code>Error</code>, or <code>Warning</code> severity), <code>Info</code> (<code>Detected</code> with <code>Information</code> severity), <code>Pass</code> (<code>NotDetected</code>), <code>Inconclusive</code> (<code>NotEvaluated</code>), and <code>Skipped</code> (<code>NotApplicable</code>). Use <code>status</code> when you need the precise outcome. When <code>status</code> is <code>NotEvaluated</code>, <code>evidence</code> is always JSON <code>null</code>; consumers must not interpret unavailable evidence as a negative result. For evaluated findings, evidence is rule-specific and can be a scalar or object. <code>RBA001</code> uses an object with an <code>error</code> member, while <code>RBA002</code> through <code>RBA007</code> use a scalar error string or null. In sanitized modes, those error values can contain the fixed text <code>Error details omitted in sanitized mode.</code></p>
 <p>The JSON records an overall <code>Complete</code>, <code>Partial</code>, or <code>Failed</code> collection status. Review <code>collectors</code>, <code>collectionErrors</code>, <code>evaluationErrors</code>, and <code>NotEvaluated</code> findings before drawing conclusions from a partial report. <code>NotApplicable</code> means that evidence was available but the finding does not apply to the resource or routing configuration.</p>
 <p><code>rbaLogSummary.processedEventCount</code> counts retained <code>START -</code> processing blocks. The accepted, declined, tentative, updated, cancellation, delegate-referral, skipped-external, horizon-decline, and recurrence-truncation values count their respective retained markers independently. These categories are not mutually exclusive: one processing block can increment multiple marker counts, so their sum must not be expected to equal <code>processedEventCount</code>. The fields <code>processedEventCountRepresents</code>, <code>markerCountCategoryRelationship</code>, and <code>markerCountCategoriesMayOverlapWithinBlock</code> encode these semantics for consumers.</p>
+<p>The <code>calendarProcessing</code> recipient wells (<code>requestOutOfPolicy</code>, <code>bookInPolicy</code>, <code>requestInPolicy</code>, and <code>resourceDelegates</code>) are always JSON arrays, including empty lists and lists containing one identity.</p>
 <h2 id="privacy-modes">Privacy modes</h2>
 <p>The report identifies its handling mode in <code>metadata.privacyMode</code>:</p>
 <table>
@@ -5959,9 +5982,11 @@
 <li>The booking-policy recipient lists and all-user switches control who can book automatically or request approval. They do not grant Calendar folder access.</li>
 <li><code>DeleteSubject</code>, <code>AddOrganizerToSubject</code>, and <code>RemovePrivateProperty</code> are RBA post-processing settings. They change stored meeting properties but do not grant folder access.</li>
 <li>Calendar <code>Owner</code> and explicit mailbox Full Access grants are warnings because they permit access outside normal RBA ownership. Their presence does not prove that anyone directly edited a meeting.</li>
-<li>If a configured resource delegate has no matching direct Calendar <code>Editor</code> or <code>Owner</code> entry, validate effective access separately. The user might receive access through a group or another assignment path.</li>
+<li>If a configured resource delegate has no matching direct Calendar <code>Editor</code> or <code>Owner</code> entry, validate effective access separately. The user might receive access through a group or another assignment path. If a delegate lookup fails, returns no recipient, or provides no primary SMTP address, <code>RBA803</code> remains <code>NotEvaluated</code> rather than reporting missing access from incomplete identity evidence.</li>
 </ul>
 <p>Direct editing is deliberately not inferred from permissions. Establishing that a user or client modified the resource calendar requires Calendar Diagnostic Log evidence. The <code>RBA830</code> identifier is reserved for that future evidence and is not emitted by the current report.</p>
+<h2 id="source-layout">Source layout</h2>
+<p>The development entry script loads RBA-specific collectors, evaluations, log processing, and reporting from <code>Calendar/RBAHelpers</code>. Shared diagnostic error and permission-identity normalization lives in <code>Calendar/CalendarHelpers/CalendarDiagnosticHelpers.ps1</code> and is also used by the sharing diagnostics. The shared <code>Calendar/CalendarHelpers/Write-DashLineBoxColor.ps1</code> writer is used by RBA, Bookings, and Calendar Diagnostic Objects summaries. The release build embeds these dependencies into each standalone script; users do not need to download the helper files separately.</p>
 
 
 
@@ -5982,7 +6007,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="October 12, 2026 21:27:07 UTC">October 12, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="October 20, 2026 23:07:55 UTC">October 20, 2026</span>
   </span>
 
     

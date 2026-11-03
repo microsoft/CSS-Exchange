@@ -883,6 +883,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#cmdlet-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cmdlet List
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#who-to-collect-from" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5567,6 +5578,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#cmdlet-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cmdlet List
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#who-to-collect-from" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5706,6 +5728,39 @@
 </li>
 </ol>
 <p>Use <strong>-ExportToCSV</strong> to export to CSV files instead if ImportExcel is not available.</p>
+<h2 id="cmdlet-list">Cmdlet List</h2>
+<p>The script uses the following Exchange cmdlets. These queries do not change mailbox settings; local PowerShell commands used for processing and exporting results are not listed.</p>
+<table>
+<thead>
+<tr>
+<th>Cmdlet</th>
+<th>Runs against</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Get-ConnectionInformation</code></td>
+<td>The current Exchange Online PowerShell session, when the cmdlet is available</td>
+<td>Checks for an active connection and identifies the Exchange Online endpoint before collecting logs.</td>
+</tr>
+<tr>
+<td><code>Get-Mailbox</code></td>
+<td>Each mailbox supplied through <code>-Identity</code> (calendar owner, organizer, attendee, delegate, or room/resource); also used as a group-mailbox fallback when a lookup fails</td>
+<td>Validates the collection mailboxes and reads properties such as mailbox type and <code>CalendarVersionStoreDisabled</code> to identify potentially incomplete logs.</td>
+</tr>
+<tr>
+<td><code>Get-CalendarDiagnosticObjects</code></td>
+<td>Each validated mailbox supplied through <code>-Identity</code></td>
+<td>Collects diagnostic logs for the specified meeting ID or subject to build the timeline. Also collects tracking and recurring-meeting exception logs when applicable and enabled.</td>
+</tr>
+<tr>
+<td><code>Get-Recipient</code></td>
+<td>Senders and responsible users referenced in the collected logs, which can include the owner or delegates</td>
+<td>Resolves directory identities to display names and SMTP addresses so the output identifies who performed an action. This lookup does not collect those recipients' calendar logs unless they are also supplied through <code>-Identity</code>.</td>
+</tr>
+</tbody>
+</table>
 <h2 id="who-to-collect-from">Who to collect from</h2>
 <p>Collect from <strong>all key participants</strong> upfront. Partial collections produce incomplete analysis.</p>
 <table>
@@ -5739,7 +5794,7 @@
 </tbody>
 </table>
 <blockquote>
-<p><strong>Note:</strong> Calendar diagnostic logs are removed after 31 days. Collect promptly.</p>
+<p><strong>Note:</strong> Calendar diagnostic logs are start to get cleaned up after 31 days. Collect promptly.</p>
 </blockquote>
 <h2 id="parameters">Parameters</h2>
 <p>Using <strong>-MeetingID</strong> (the <code>CleanGlobalObjectId</code>) is the preferred collection method. It produces more detailed logs than a subject search and allows collecting for multiple participants in a single run.</p>
@@ -5935,7 +5990,7 @@ Will create file like  <code>.\123456_CalLogSummary_&lt;MeetingID&gt;.xlsx</code
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 26, 2026 21:50:03 UTC">June 26, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="October 26, 2026 17:46:44 UTC">October 26, 2026</span>
   </span>
 
     
