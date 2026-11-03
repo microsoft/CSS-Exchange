@@ -131,7 +131,7 @@ function Get-ExchangeBuildVersionInformation {
                     $cuReleaseDate = "07/01/2025"
                     $supportedBuildNumber = $true
                 }
-                (GetBuildVersion $exSE "RTM" -SU "Oct26SU") { $latestSUBuild = $true }
+                (GetBuildVersion -ExchangeVersion $exSE -CU "RTM" -SU "Nov26SU") { $latestSUBuild = $true }
             }
         } elseif ($exchangeVersion.Major -eq 15 -and $exchangeVersion.Minor -eq 2) {
             Write-Verbose "Exchange 2019 is detected"
@@ -906,6 +906,7 @@ function GetExchangeBuildDictionary {
                     "Sep26SU"   = "15.2.2562.49"
                     "Sep26SUv2" = "15.2.2562.53"
                     "Oct26SU"   = "15.2.2562.56"
+                    "Nov26SU"   = "15.2.2562.57"
                 })
         }
     }
