@@ -295,10 +295,10 @@ Describe "Testing Get-ExchangeBuildVersionInformation.ps1" {
             Invoke-ProcessSUProcess -ResultsKeyName "ExchangeSE"
         }
         It "Exchange 2019 SU testing" {
-            Invoke-ProcessSUProcess -ResultsKeyName "Exchange2019" -ExchangeVersionSupported $true #This gets set to false once ESU is no longer a thing
+            Invoke-ProcessSUProcess -ResultsKeyName "Exchange2019" -ExchangeVersionSupported $false #This gets set to false once ESU is no longer a thing
         }
         It "Exchange 2016 Latest SU" {
-            Invoke-ProcessSUProcess -ResultsKeyName "Exchange2016" -ProcessLatestCUOnly $true -ExchangeVersionSupported $true #This gets set to false once ESU is no longer a thing
+            Invoke-ProcessSUProcess -ResultsKeyName "Exchange2016" -ProcessLatestCUOnly $true -ExchangeVersionSupported $false #This gets set to false once ESU is no longer a thing
         }
     }
 }
