@@ -15,6 +15,9 @@
     The unresolved provider-path API normalizes paths without probing
     their targets; the root-to-leaf reparse walk precedes existence checks.
 
+    Consumed by:
+    - .github/skills/trace-code-introduction/Trace-CodeIntroduction.ps1
+
 .PARAMETER Path
     Caller-supplied path. Invalid or inaccessible paths return null.
 
