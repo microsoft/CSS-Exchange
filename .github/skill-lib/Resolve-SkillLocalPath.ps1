@@ -16,6 +16,10 @@
     their targets; the root-to-leaf reparse walk precedes existence checks.
 
     Consumed by:
+    - .github/skills/analyze-debug-files/Get-DebugFileMetadata.ps1
+    - .github/skills/analyze-debug-files/Assert-BaselineTrusted.ps1
+    - .github/skills/analyze-debug-files/Get-BaselineDependencyGraph.ps1
+    - .github/skills/analyze-debug-files/Write-DebugAnalysisReport.ps1
     - .github/skills/trace-code-introduction/Trace-CodeIntroduction.ps1
 
 .PARAMETER Path
