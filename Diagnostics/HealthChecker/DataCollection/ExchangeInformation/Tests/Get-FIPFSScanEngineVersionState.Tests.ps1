@@ -88,7 +88,7 @@ Describe "Testing Get-FIPFSScanEngineVersionState.ps1" {
             $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server -ExSetupVersion $Script:notFixed -AffectedServerRole $true
             $results.HighestVersionNumberDetected | Should -Be $null
             $results.BadVersionNumberDirDetected | Should -Be $false
-            Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -eq "No FIP-FS scan engine version(s) detected - GetFolderFromExchangeInstallPath returned null" }
+            Should -Invoke -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -eq "No FIP-FS scan engine version(s) detected - GetFolderFromExchangeInstallPath returned null" }
         }
     }
 
@@ -102,7 +102,7 @@ Describe "Testing Get-FIPFSScanEngineVersionState.ps1" {
             $Script:results = Get-FIPFSScanEngineVersionState -ComputerName $Script:Server -ExSetupVersion $Script:notFixed -AffectedServerRole $true
             $results.HighestVersionNumberDetected | Should -Be $null
             $results.BadVersionNumberDirDetected | Should -Be $false
-            Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -eq "Failed to find the scan engine directory" }
+            Should -Invoke -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -eq "Failed to find the scan engine directory" }
         }
     }
 }

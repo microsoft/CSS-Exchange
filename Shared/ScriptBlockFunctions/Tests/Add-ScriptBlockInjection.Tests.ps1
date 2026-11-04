@@ -217,7 +217,7 @@ Describe "Supported Primary Script Block Types" {
                 }
 
                 foreach ($match in $VerboseMockMatches) {
-                    Assert-MockCalled Write-Verbose -ParameterFilter { $Message -eq $match } -Exactly 1
+                    Should -Invoke Write-Verbose -ParameterFilter { $Message -eq $match } -Exactly 1
                 }
             } finally {
                 if ($restPSSenderInfo) {
@@ -449,11 +449,11 @@ Describe "Supported Additional Parameters" {
                 }
 
                 foreach ($match in $VerboseMockMatches) {
-                    Assert-MockCalled Write-Verbose -ParameterFilter { $Message -eq $match } -Exactly 1
+                    Should -Invoke Write-Verbose -ParameterFilter { $Message -eq $match } -Exactly 1
                 }
 
                 # Not sure why, but we need to add 1 here.
-                Assert-MockCalled Write-Verbose -Exactly ($verboseFromScriptBlock + $VerboseMockMatches.Count + 1)
+                Should -Invoke Write-Verbose -Exactly ($verboseFromScriptBlock + $VerboseMockMatches.Count + 1)
             } finally {
                 if ($restPSSenderInfo) {
                     $PSSenderInfo = $PSSenderInfoOriginal

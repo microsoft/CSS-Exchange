@@ -67,13 +67,13 @@ BeforeAll {
             $withoutValue = "with"
         }
 
-        Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -eq "Calling: Invoke-ScriptBlockHandler" }
-        Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -eq "Exiting: Invoke-ScriptBlockHandler" }
+        Should -Invoke -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -eq "Calling: Invoke-ScriptBlockHandler" }
+        Should -Invoke -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -eq "Exiting: Invoke-ScriptBlockHandler" }
 
         if ($Local) {
-            Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -eq "Running Script Block Locally $withoutValue argument list" }
+            Should -Invoke -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -eq "Running Script Block Locally $withoutValue argument list" }
         } else {
-            Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -eq "Running Invoke-Command $withoutValue argument list" }
+            Should -Invoke -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -eq "Running Invoke-Command $withoutValue argument list" }
         }
     }
 
@@ -95,7 +95,7 @@ Describe "Testing $scriptName" {
                 -ScriptBlockDescription "Getting Processor Count"
             $result | Should -Be $myValue
 
-            Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -like "*Getting Processor Count" }
+            Should -Invoke -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -like "*Getting Processor Count" }
             Test-VerboseOutput
         }
 
@@ -105,7 +105,7 @@ Describe "Testing $scriptName" {
                 -ScriptBlockDescription "Getting Processor Count"
             $result | Should -Be $null
 
-            Assert-MockCalled -CommandName Write-Verbose -Exactly 2 -ParameterFilter { $Message -like "*Getting Processor Count" }
+            Should -Invoke -CommandName Write-Verbose -Exactly 2 -ParameterFilter { $Message -like "*Getting Processor Count" }
             Test-VerboseOutput -Local $false
         }
 
@@ -118,21 +118,21 @@ Describe "Testing $scriptName" {
                 -ArgumentList $httpProxyPath32
             $results | Should -Be $testResults
 
-            Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -like "*Getting Http Proxy Settings 32 bit" }
+            Should -Invoke -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -like "*Getting Http Proxy Settings 32 bit" }
             Test-VerboseOutput -Without $false
         }
 
-        <# TODO ADD This back
         It "Pending SCCM Reboot" {
+            # Mock the CIM call so the result doesn't depend on the ConfigMgr client being installed.
+            Mock Invoke-CimMethod { return $null }
             $results = Invoke-ScriptBlockHandler -ComputerName $env:COMPUTERNAME `
                 -ScriptBlock ${Function:Get-PendingSCCMReboot} `
                 -ScriptBlockDescription "Getting Pending SCCM Reboot Result"
             $results | Should -Be $false
 
-            Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -like "*Getting Pending SCCM Reboot Result" }
+            Should -Invoke -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -like "*Getting Pending SCCM Reboot Result" }
             Test-VerboseOutput
         }
-    #>
     }
 
     Context "Remote Execution Test Results" {
@@ -155,8 +155,8 @@ Describe "Testing $scriptName" {
             #not able to properly test because of Admin
             $results | Should -Be $null
 
-            Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -like "*Getting Processor Count" }
-            Assert-MockCalled -CommandName Invoke-Command -Exactly 1
+            Should -Invoke -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -like "*Getting Processor Count" }
+            Should -Invoke -CommandName Invoke-Command -Exactly 1
             Test-VerboseOutput -Local $false
         }
         It "Passing Argument List" {
@@ -169,8 +169,8 @@ Describe "Testing $scriptName" {
             #not able to properly test because of Admin
             $results | Should -Be $null
 
-            Assert-MockCalled -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -like "*Getting Http Proxy Settings 32 bit" }
-            Assert-MockCalled -CommandName Invoke-Command -Exactly 1
+            Should -Invoke -CommandName Write-Verbose -Exactly 1 -ParameterFilter { $Message -like "*Getting Http Proxy Settings 32 bit" }
+            Should -Invoke -CommandName Invoke-Command -Exactly 1
             Test-VerboseOutput -Local $false -Without $false
         }
     }
@@ -194,7 +194,7 @@ Describe "Testing $scriptName" {
                 $env:COMPUTERNAME = $trueComputerName
             }
 
-            Assert-MockCalled -CommandName Write-Host -Exactly 1 -ParameterFilter { $Object -eq "Test-PesterCatchAction" }
+            Should -Invoke -CommandName Write-Host -Exactly 1 -ParameterFilter { $Object -eq "Test-PesterCatchAction" }
         }
     }
 }

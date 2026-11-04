@@ -309,76 +309,76 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange SE" {
         }
 
         It "Data Collection Mock Call Counts" {
-            Assert-MockCalled Get-WmiObjectHandler -Exactly 6 -Scope Context
-            Assert-MockCalled Get-RemoteRegistryValue -Exactly 30 -Scope Context
-            Assert-MockCalled Get-RemoteRegistrySubKey -Exactly 1 -Scope Context
-            Assert-MockCalled Get-NETFrameworkVersion -Exactly 1 -Scope Context
-            Assert-MockCalled Get-DotNetDllFileVersions -Exactly 1 -Scope Context
-            Assert-MockCalled Get-NicPnpCapabilitiesSetting -Exactly 1 -Scope Context
-            Assert-MockCalled Get-NetIPConfiguration -Exactly 1 -Scope Context
-            Assert-MockCalled Get-DnsClient -Exactly 1 -Scope Context
-            Assert-MockCalled Get-NetAdapterRss -Exactly 1 -Scope Context
-            Assert-MockCalled Get-HotFix -Exactly 1 -Scope Context
-            Assert-MockCalled Get-LocalizedCounterSamples -Exactly 2 -Scope Context
-            Assert-MockCalled Get-ServerRebootPending -Exactly 1 -Scope Context
-            Assert-MockCalled Get-AllTlsSettings -Exactly 1 -Scope Context
-            Assert-MockCalled Get-SmbServerConfiguration -Exactly 1 -Scope Context
-            Assert-MockCalled Get-ExchangeAppPoolsInformation -Exactly 1 -Scope Context
-            Assert-MockCalled Get-ExchangeDomainsAclPermissions -Exactly 1 -Scope Context
-            Assert-MockCalled Get-ExchangeAdSchemaClass -Exactly 2 -Scope Context
-            Assert-MockCalled Get-ExchangeServer -Exactly 2 -Scope Context
-            Assert-MockCalled Get-ExchangeCertificate -Exactly 1 -Scope Context
-            Assert-MockCalled Get-AuthConfig -Exactly 1 -Scope Context
-            Assert-MockCalled Get-ExSetupFileVersionInfo -Exactly 1 -Scope Context
-            Assert-MockCalled Get-MailboxServer -Exactly 1 -Scope Context
-            Assert-MockCalled Get-OwaVirtualDirectory -Exactly 1 -Scope Context
-            Assert-MockCalled Get-WebServicesVirtualDirectory -Exactly 1 -Scope Context
-            Assert-MockCalled Get-OrganizationConfig -Exactly 1 -Scope Context
-            Assert-MockCalled Get-HybridConfiguration -Exactly 1 -Scope Context
-            Assert-MockCalled Get-PartnerApplication -Exactly 1 -Scope Context
-            Assert-MockCalled Get-Service -Exactly 2 -Scope Context
-            Assert-MockCalled Get-SettingOverride -Exactly 1 -Scope Context
-            Assert-MockCalled Get-ServerComponentState -Exactly 1 -Scope Context
-            Assert-MockCalled Test-ServiceHealth -Exactly 1 -Scope Context
-            Assert-MockCalled Get-AcceptedDomain -Exactly 1 -Scope Context
-            Assert-MockCalled Get-FIPFSScanEngineVersionState -Exactly 1 -Scope Context
-            Assert-MockCalled Get-ReceiveConnector -Exactly 1 -Scope Context
-            Assert-MockCalled Get-SendConnector -Exactly 1 -Scope Context
-            Assert-MockCalled Get-IISModules -Exactly 1 -Scope Context
-            Assert-MockCalled Get-ExchangeDiagnosticInfo -Exactly 2 -Scope Context
-            Assert-MockCalled Get-ExchangeADSplitPermissionsEnabled -Exactly 1 -Scope Context
-            Assert-MockCalled Search-AllActiveDirectoryDomains -Exactly 1 -Scope Context
-            Assert-MockCalled Get-DynamicDistributionGroup -Exactly 1 -Scope Context
-            Assert-MockCalled Get-ActiveSyncVirtualDirectory -Exactly 1 -Scope Context
-            Assert-MockCalled Get-AutodiscoverVirtualDirectory -Exactly 1 -Scope Context
-            Assert-MockCalled Get-EcpVirtualDirectory -Exactly 1 -Scope Context
-            Assert-MockCalled Get-MapiVirtualDirectory -Exactly 1 -Scope Context
-            Assert-MockCalled Get-OutlookAnywhere -Exactly 1 -Scope Context
-            Assert-MockCalled Get-PowerShellVirtualDirectory -Exactly 1 -Scope Context
-            Assert-MockCalled Get-WindowsFeature -Exactly 1 -Scope Context
-            Assert-MockCalled Get-GlobalMonitoringOverride -Exactly 1 -Scope Context
-            Assert-MockCalled Get-ServerMonitoringOverride -Exactly 1 -Scope Context
-            Assert-MockCalled Get-IRMConfiguration -Exactly 1 -Scope Context
-            Assert-MockCalled Get-ExchangeProtocolContainer -Exactly 1 -Scope Context
-            Assert-MockCalled Get-TransportService -Exactly 1 -Scope Context
-            Assert-MockCalled Get-AuthServer -Exactly 1 -Scope Context
-            Assert-MockCalled Get-WinEvent -Exactly 4 -Scope Context
-            Assert-MockCalled Get-WebSite -Exactly 1 -Scope Context
-            Assert-MockCalled Get-WebConfigFile -Exactly 30 -Scope Context
-            Assert-MockCalled Get-WebApplication -Exactly 1 -Scope Context
-            Assert-MockCalled Get-WebBinding -Exactly 1 -Scope Context
-            Assert-MockCalled GetCachtoknVersionInfo -Exactly 1 -Scope Context
-            Assert-MockCalled GetExchangeServerADInformation -Exactly 1 -Scope Context
-            Assert-MockCalled Get-ExchangeWellKnownSecurityGroups -Exactly 1 -Scope Context
-            Assert-MockCalled Get-HttpProxySetting -Exactly 1 -Scope Context
-            Assert-MockCalled Get-LocalGroupMember -Exactly 1 -Scope Context
-            Assert-MockCalled Get-VisualCRedistributableInstalledVersion -Exactly 1 -Scope Context
-            Assert-MockCalled Get-CimInstance -Exactly 1 -Scope Context
-            Assert-MockCalled Get-Content -Exactly 6 -Scope Context
-            Assert-MockCalled Test-Path -Exactly 5 -Scope Context
-            Assert-MockCalled GetCurrentTimeZone -Exactly 1 -Scope Context
-            Assert-MockCalled GetProcessorCount -Exactly 1 -Scope Context
-            Assert-MockCalled Invoke-DefaultConnectExchangeShell -Exactly 2 -Scope Context
+            Should -Invoke Get-WmiObjectHandler -Exactly 6 -Scope Context
+            Should -Invoke Get-RemoteRegistryValue -Exactly 30 -Scope Context
+            Should -Invoke Get-RemoteRegistrySubKey -Exactly 1 -Scope Context
+            Should -Invoke Get-NETFrameworkVersion -Exactly 1 -Scope Context
+            Should -Invoke Get-DotNetDllFileVersions -Exactly 1 -Scope Context
+            Should -Invoke Get-NicPnpCapabilitiesSetting -Exactly 1 -Scope Context
+            Should -Invoke Get-NetIPConfiguration -Exactly 1 -Scope Context
+            Should -Invoke Get-DnsClient -Exactly 1 -Scope Context
+            Should -Invoke Get-NetAdapterRss -Exactly 1 -Scope Context
+            Should -Invoke Get-HotFix -Exactly 1 -Scope Context
+            Should -Invoke Get-LocalizedCounterSamples -Exactly 2 -Scope Context
+            Should -Invoke Get-ServerRebootPending -Exactly 1 -Scope Context
+            Should -Invoke Get-AllTlsSettings -Exactly 1 -Scope Context
+            Should -Invoke Get-SmbServerConfiguration -Exactly 1 -Scope Context
+            Should -Invoke Get-ExchangeAppPoolsInformation -Exactly 1 -Scope Context
+            Should -Invoke Get-ExchangeDomainsAclPermissions -Exactly 1 -Scope Context
+            Should -Invoke Get-ExchangeAdSchemaClass -Exactly 2 -Scope Context
+            Should -Invoke Get-ExchangeServer -Exactly 2 -Scope Context
+            Should -Invoke Get-ExchangeCertificate -Exactly 1 -Scope Context
+            Should -Invoke Get-AuthConfig -Exactly 1 -Scope Context
+            Should -Invoke Get-ExSetupFileVersionInfo -Exactly 1 -Scope Context
+            Should -Invoke Get-MailboxServer -Exactly 1 -Scope Context
+            Should -Invoke Get-OwaVirtualDirectory -Exactly 1 -Scope Context
+            Should -Invoke Get-WebServicesVirtualDirectory -Exactly 1 -Scope Context
+            Should -Invoke Get-OrganizationConfig -Exactly 1 -Scope Context
+            Should -Invoke Get-HybridConfiguration -Exactly 1 -Scope Context
+            Should -Invoke Get-PartnerApplication -Exactly 1 -Scope Context
+            Should -Invoke Get-Service -Exactly 2 -Scope Context
+            Should -Invoke Get-SettingOverride -Exactly 1 -Scope Context
+            Should -Invoke Get-ServerComponentState -Exactly 1 -Scope Context
+            Should -Invoke Test-ServiceHealth -Exactly 1 -Scope Context
+            Should -Invoke Get-AcceptedDomain -Exactly 1 -Scope Context
+            Should -Invoke Get-FIPFSScanEngineVersionState -Exactly 1 -Scope Context
+            Should -Invoke Get-ReceiveConnector -Exactly 1 -Scope Context
+            Should -Invoke Get-SendConnector -Exactly 1 -Scope Context
+            Should -Invoke Get-IISModules -Exactly 1 -Scope Context
+            Should -Invoke Get-ExchangeDiagnosticInfo -Exactly 2 -Scope Context
+            Should -Invoke Get-ExchangeADSplitPermissionsEnabled -Exactly 1 -Scope Context
+            Should -Invoke Search-AllActiveDirectoryDomains -Exactly 1 -Scope Context
+            Should -Invoke Get-DynamicDistributionGroup -Exactly 1 -Scope Context
+            Should -Invoke Get-ActiveSyncVirtualDirectory -Exactly 1 -Scope Context
+            Should -Invoke Get-AutodiscoverVirtualDirectory -Exactly 1 -Scope Context
+            Should -Invoke Get-EcpVirtualDirectory -Exactly 1 -Scope Context
+            Should -Invoke Get-MapiVirtualDirectory -Exactly 1 -Scope Context
+            Should -Invoke Get-OutlookAnywhere -Exactly 1 -Scope Context
+            Should -Invoke Get-PowerShellVirtualDirectory -Exactly 1 -Scope Context
+            Should -Invoke Get-WindowsFeature -Exactly 1 -Scope Context
+            Should -Invoke Get-GlobalMonitoringOverride -Exactly 1 -Scope Context
+            Should -Invoke Get-ServerMonitoringOverride -Exactly 1 -Scope Context
+            Should -Invoke Get-IRMConfiguration -Exactly 1 -Scope Context
+            Should -Invoke Get-ExchangeProtocolContainer -Exactly 1 -Scope Context
+            Should -Invoke Get-TransportService -Exactly 1 -Scope Context
+            Should -Invoke Get-AuthServer -Exactly 1 -Scope Context
+            Should -Invoke Get-WinEvent -Exactly 4 -Scope Context
+            Should -Invoke Get-WebSite -Exactly 1 -Scope Context
+            Should -Invoke Get-WebConfigFile -Exactly 30 -Scope Context
+            Should -Invoke Get-WebApplication -Exactly 1 -Scope Context
+            Should -Invoke Get-WebBinding -Exactly 1 -Scope Context
+            Should -Invoke GetCachtoknVersionInfo -Exactly 1 -Scope Context
+            Should -Invoke GetExchangeServerADInformation -Exactly 1 -Scope Context
+            Should -Invoke Get-ExchangeWellKnownSecurityGroups -Exactly 1 -Scope Context
+            Should -Invoke Get-HttpProxySetting -Exactly 1 -Scope Context
+            Should -Invoke Get-LocalGroupMember -Exactly 1 -Scope Context
+            Should -Invoke Get-VisualCRedistributableInstalledVersion -Exactly 1 -Scope Context
+            Should -Invoke Get-CimInstance -Exactly 1 -Scope Context
+            Should -Invoke Get-Content -Exactly 6 -Scope Context
+            Should -Invoke Test-Path -Exactly 5 -Scope Context
+            Should -Invoke GetCurrentTimeZone -Exactly 1 -Scope Context
+            Should -Invoke GetProcessorCount -Exactly 1 -Scope Context
+            Should -Invoke Invoke-DefaultConnectExchangeShell -Exactly 2 -Scope Context
         }
     }
 

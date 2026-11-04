@@ -15,9 +15,18 @@ begin {
     . $PSScriptRoot\Load-Module.ps1
     . $PSScriptRoot\HelpFunctions\Get-CommitFilesOnBranch.ps1
 
-    if (-not (Load-Module -Name Pester -MinimumVersion 5.2.0)) {
+    # TODO (ADO 85680): remove the MaximumVersion ceiling once the remaining Pester 6
+    # failures are fixed. Pester 6 turns an unmatched -ParameterFilter into a hard error
+    # instead of calling the real command, which fails 3 test files that pass on Pester 5.
+    if (-not (Load-Module -Name Pester -MinimumVersion 5.2.0 -MaximumVersion 5.99.99)) {
         throw "Pester module could not be loaded"
     }
+
+    # Each test runs in a Start-Job child process, which does not inherit the module loaded
+    # above. Pin the child to this exact version so every job agrees with the parent instead
+    # of independently resolving whatever is highest on disk.
+    $pesterVersion = @(Get-Module -Name Pester)[0].Version.ToString()
+    Write-Host "Pester version: $pesterVersion"
 
     $jobsCompleted = @{}
     $jobsProgress = @{}
@@ -126,9 +135,20 @@ begin {
             }
 
             $newJob = Start-Job -ScriptBlock {
-                param([string]$FileName)
-                return Invoke-Pester -Path $FileName -PassThru
-            } -ArgumentList $nextScript.FullName -Name $nextScript.Name
+                param([string]$FileName, [string]$PesterVersion)
+                Import-Module -Name Pester -RequiredVersion $PesterVersion -Force
+                $result = Invoke-Pester -Path $FileName -PassThru
+
+                # Calling a command that doesn't exist in the pinned version makes PowerShell
+                # auto-discover another Pester on disk, which then shadows core commands like
+                # Mock and Should and fails unrelated tests. Surface that directly.
+                $loadedPester = @(Get-Module -Name Pester)
+                if ($loadedPester.Count -gt 1) {
+                    throw "Expected only Pester $PesterVersion to be loaded, but found $($loadedPester.Version -join ', ') after running $FileName. A command missing from Pester $PesterVersion likely triggered module auto-discovery."
+                }
+
+                return $result
+            } -ArgumentList $nextScript.FullName, $pesterVersion -Name $nextScript.Name
 
             $jobsRunning.Add([PSCustomObject]@{
                     Job      = $newJob
