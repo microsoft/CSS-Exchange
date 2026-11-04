@@ -5,7 +5,8 @@
 . $PSScriptRoot\Get-ItemsSize.ps1
 function Test-FreeSpace {
     param(
-        [Parameter(Mandatory = $false)][array]$FilePaths
+        [Parameter(Mandatory = $false)][array]$FilePaths,
+        [switch]$CheckOnly
     )
     Write-Verbose("Calling: Test-FreeSpace")
 
@@ -43,8 +44,10 @@ function Test-FreeSpace {
         }
     }
 
-    $Script:TotalBytesSizeCopied += $currentSizeCopy
-    $Script:FreeSpaceMinusCopiedAndCompressedGB = $Script:FreeSpaceMinusCopiedAndCompressedGB - ($currentSizeCopy / 1GB)
+    if (-not $CheckOnly) {
+        $Script:TotalBytesSizeCopied += $currentSizeCopy
+        $Script:FreeSpaceMinusCopiedAndCompressedGB = $Script:FreeSpaceMinusCopiedAndCompressedGB - ($currentSizeCopy / 1GB)
+    }
 
     Write-Verbose("Current values [double]FreeSpaceMinusCopiedAndCompressedGB: {0} | [double]TotalBytesSizeCopied: {1}" -f $Script:FreeSpaceMinusCopiedAndCompressedGB, $Script:TotalBytesSizeCopied)
     Write-Verbose("Returning: {0}" -f $passed)
