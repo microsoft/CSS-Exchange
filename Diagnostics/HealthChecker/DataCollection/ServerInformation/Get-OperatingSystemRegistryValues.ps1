@@ -17,6 +17,7 @@ function Get-OperatingSystemRegistryValues {
     $ipv6ComponentsValue = $null
     $tcpKeepAliveValue = $null
     $rpcMinValue = $null
+    $epmapSavedContextCapValue = $null
     $credGuardValue = $null
     $lmValue = $null
     $renegoServerValue = $null
@@ -55,6 +56,12 @@ function Get-OperatingSystemRegistryValues {
     $rpcMinParams = $baseParams + @{
         SubKey   = "Software\Policies\Microsoft\Windows NT\RPC\"
         GetValue = "MinimumConnectionTimeout"
+    }
+
+    $epmapSavedContextCapParams = $baseParams + @{
+        SubKey    = "SOFTWARE\Microsoft\Rpc"
+        GetValue  = "EpmapSavedContextCap"
+        ValueType = "DWord"
     }
 
     $renegoClientsParams = $baseParams + @{
@@ -113,6 +120,7 @@ function Get-OperatingSystemRegistryValues {
     Get-RemoteRegistryValue @ipv6ComponentsParams | Invoke-RemotePipelineHandler -Result ([ref]$ipv6ComponentsValue)
     Get-RemoteRegistryValue @tcpKeepAliveParams | Invoke-RemotePipelineHandler -Result ([ref]$tcpKeepAliveValue)
     Get-RemoteRegistryValue @rpcMinParams | Invoke-RemotePipelineHandler -Result ([ref]$rpcMinValue)
+    Get-RemoteRegistryValue @epmapSavedContextCapParams | Invoke-RemotePipelineHandler -Result ([ref]$epmapSavedContextCapValue)
     Get-RemoteRegistryValue @credGuardParams | Invoke-RemotePipelineHandler -Result ([ref]$credGuardValue)
     Get-RemoteRegistryValue @renegoServersParams | Invoke-RemotePipelineHandler -Result ([ref]$renegoServerValue)
     Get-RemoteRegistryValue @renegoClientsParams | Invoke-RemotePipelineHandler -Result ([ref]$renegoClientValue)
@@ -133,6 +141,7 @@ function Get-OperatingSystemRegistryValues {
         IPv6DisabledComponents          = [int]$ipv6ComponentsValue
         TCPKeepAlive                    = [int]$tcpKeepAliveValue
         RpcMinConnectionTimeout         = [int]$rpcMinValue
+        EpmapSavedContextCap            = $epmapSavedContextCapValue
         AllowInsecureRenegoServers      = $renegoServerValue
         AllowInsecureRenegoClients      = $renegoClientValue
         CredentialGuard                 = [int]$credGuardValue
