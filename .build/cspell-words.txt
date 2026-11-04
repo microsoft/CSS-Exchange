@@ -98,6 +98,7 @@ mepfdns
 mepfs
 meso
 mesos
+metacharacters
 mfcmapi
 Mgmt
 microsoftonline
@@ -164,6 +165,7 @@ subfolders
 syncall
 tcpip
 TDSDSA
+triaging
 Truncater
 UCMA
 unconfigured
