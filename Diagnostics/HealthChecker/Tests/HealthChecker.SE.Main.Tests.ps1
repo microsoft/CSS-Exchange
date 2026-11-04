@@ -25,7 +25,8 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange SE" {
                 }
             }
 
-            SetDefaultRunOfHealthChecker "Debug_SE_HyperV_Results.xml"
+            $Script:rpcSavedContextVerbose = SetDefaultRunOfHealthChecker -ExportDebugFileName "Debug_SE_HyperV_Results.xml" -Verbose 4>&1 |
+                Where-Object { $_ -is [System.Management.Automation.VerboseRecord] -and $_.Message -eq "EpmapSavedContextCap registry value is NULL." }
         }
 
         It "Display Results - Exchange Information" {
@@ -136,6 +137,9 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange SE" {
 
             TestObjectMatch "TCP/IP Settings" 90000 -WriteType "Yellow"
             TestObjectMatch "RPC Min Connection Timeout" 0
+            $Script:ActiveGrouping | Where-Object { $_.Name -eq "RPC Saved Context Limit" } | Should -BeNullOrEmpty
+            GetHtmlServerDetail -Name "RPC Saved Context Limit" | Should -BeNullOrEmpty
+            $Script:rpcSavedContextVerbose | Should -Not -BeNullOrEmpty
             TestObjectMatch "FIPS Algorithm Policy Enabled" 0
             TestObjectMatch "EnableEccCertificateSupport Registry Value" $false
             TestObjectMatch "CTS Processor Affinity Percentage" 0 -WriteType "Green"
@@ -310,7 +314,12 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange SE" {
 
         It "Data Collection Mock Call Counts" {
             Assert-MockCalled Get-WmiObjectHandler -Exactly 6 -Scope Context
-            Assert-MockCalled Get-RemoteRegistryValue -Exactly 30 -Scope Context
+            Assert-MockCalled Get-RemoteRegistryValue -Exactly 31 -Scope Context
+            Should -Invoke -CommandName Get-RemoteRegistryValue -Times 1 -Exactly -Scope Context -ParameterFilter {
+                $SubKey -eq "SOFTWARE\Microsoft\Rpc" -and
+                $GetValue -eq "EpmapSavedContextCap" -and
+                $ValueType -eq "DWord"
+            }
             Assert-MockCalled Get-RemoteRegistrySubKey -Exactly 1 -Scope Context
             Assert-MockCalled Get-NETFrameworkVersion -Exactly 1 -Scope Context
             Assert-MockCalled Get-DotNetDllFileVersions -Exactly 1 -Scope Context
@@ -447,6 +456,8 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange SE" {
 
     Context "Testing Scenario 1" {
         BeforeAll {
+            Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "EpmapSavedContextCap" } -MockWith { return 0 }
+
             # VariantConfiguration3: SDS override changed to Enabled=false in per-server data
             Mock Get-ExchangeDiagnosticInfo -ParameterFilter { $Process -eq "Microsoft.Exchange.Directory.TopologyService" -and $Component -eq "VariantConfiguration" -and $Argument -eq "Overrides" } `
                 -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetExchangeDiagnosticInfo_ADTopVariantConfiguration3.xml" }
@@ -459,6 +470,14 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange SE" {
             Mock Get-HybridConfiguration -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetHybridConfiguration.xml" }
 
             SetDefaultRunOfHealthChecker "Debug_SE_SDS_Disabled_Results.xml"
+        }
+
+        It "Displays a configured RPC endpoint mapper value of zero as an error" {
+            SetActiveDisplayGrouping -Name "Frequent Configuration Issues"
+            TestObjectMatch -Name "RPC Saved Context Limit" -ResultValue "0 --- Error" -WriteType "Red"
+            $htmlEntry = GetHtmlServerDetail -Name "RPC Saved Context Limit"
+            $htmlEntry.DetailValue | Should -Be "0 --- Error"
+            $htmlEntry.Class | Should -Be "Red"
         }
 
         It "SerializedDataSigning Disabled" {
@@ -493,6 +512,8 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange SE" {
 
     Context "Testing Scenario 2" {
         BeforeAll {
+            Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "EpmapSavedContextCap" } -MockWith { return 65536 }
+
             Mock Get-Content -ParameterFilter { $Path -eq "$($env:WINDIR)\System32\inetSrv\config\applicationHost.config" } `
                 -MockWith { return Get-Content "$Script:MockDataCollectionRoot\Exchange\IIS\BadApplicationHost.config" -Raw -Encoding UTF8 }
             Mock Get-WebApplication -MockWith { throw "Error - Pester" }
@@ -507,6 +528,14 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange SE" {
             Mock Get-SettingOverride -MockWith { return $null }
 
             SetDefaultRunOfHealthChecker "Debug_SE_BadAppHost_Results.xml"
+        }
+
+        It "Displays the recommended RPC endpoint mapper value" {
+            SetActiveDisplayGrouping -Name "Frequent Configuration Issues"
+            TestObjectMatch -Name "RPC Saved Context Limit" -ResultValue 65536
+            $htmlEntry = GetHtmlServerDetail -Name "RPC Saved Context Limit"
+            $htmlEntry.DetailValue | Should -Be "65536"
+            $htmlEntry.Class | Should -BeNullOrEmpty
         }
 
         It "Invalid Application Host Config File Detected" {
@@ -548,6 +577,8 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange SE" {
 
     Context "Testing Scenario 3" {
         BeforeAll {
+            Mock Get-RemoteRegistryValue -ParameterFilter { $GetValue -eq "EpmapSavedContextCap" } -MockWith { return 131072 }
+
             Mock Get-WebConfigFile -ParameterFilter { $PSPath -like "IIS:\Sites\Default Web Site*" } -MockWith { return [PSCustomObject]@{ FullName = "$Script:MockDataCollectionRoot\Exchange\IIS\DefaultWebSite_web1.config" } }
             Mock Get-WebConfigFile -ParameterFilter { $PSPath -eq "IIS:\Sites\Exchange Back End/mapi/emsmdb" } -MockWith { return [PSCustomObject]@{ FullName = "$Script:MockDataCollectionRoot\Exchange\IIS\applicationHost.config" } }
 
@@ -559,6 +590,14 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange SE" {
             Mock Get-PartnerApplication -MockWith { return Import-Clixml "$Script:MockDataCollectionRoot\Exchange\GetPartnerApplication.xml" }
 
             SetDefaultRunOfHealthChecker "Debug_SE_BadWebConfig_Results.xml"
+        }
+
+        It "Displays a higher RPC endpoint mapper value without a warning" {
+            SetActiveDisplayGrouping -Name "Frequent Configuration Issues"
+            TestObjectMatch -Name "RPC Saved Context Limit" -ResultValue 131072
+            $htmlEntry = GetHtmlServerDetail -Name "RPC Saved Context Limit"
+            $htmlEntry.DetailValue | Should -Be "131072"
+            $htmlEntry.Class | Should -BeNullOrEmpty
         }
 
         It "Bad Default Web Site web.config file" {
