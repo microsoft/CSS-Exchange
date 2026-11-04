@@ -1001,6 +1001,11 @@ Describe 'Testing Rehoming.ps1' {
                 $StartUtc -ceq '2026-11-09T17:00:00.0000000Z' -and $EndUtc -ceq '2026-11-09T18:00:00.0000000Z'
             }
         }
+
+        It 'Saves the attachment hash limit with the original snapshot' {
+            $before = Get-Content -LiteralPath $Script:migrationResult.SnapshotPath -Raw -Encoding UTF8 | ConvertFrom-Json
+            $before.AttachmentHashLimitBytes | Should -Be $script:MaxAttachmentHashBytes
+        }
         It 'Journals a definitive rejection only for rejected sends' {
             $journal = @(Get-ChildItem -LiteralPath $Script:migrationLogDirectory -Recurse -Filter 'details.jsonl' |
                     ForEach-Object { Get-Content -LiteralPath $_.FullName } | ForEach-Object { $_ | ConvertFrom-Json })

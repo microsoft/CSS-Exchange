@@ -47,7 +47,7 @@ function New-ExOPMigrationRun {
         $ToWindowsTimeZoneId
     )
     $id = [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssfffZ') + '-' + [Guid]::NewGuid().ToString('N').Substring(0, 12)
-    $path = if ($Directory) { Join-Path -Path ([IO.Path]::GetFullPath($Directory)) -ChildPath $id } else { '' }
+    $path = if ($Directory) { Join-Path -Path (Resolve-ExOPFileSystemPath -Path $Directory) -ChildPath $id } else { '' }
     $run = [PSCustomObject]@{
         RunId = $id; Directory = $path; Apply = $Apply; Sequence = 0
         Mailboxes = @{}; Results = (New-Object 'System.Collections.Generic.List[object]')
@@ -351,13 +351,35 @@ function Get-ExOPOrdinalSorted {
     $copy
 }
 
+function Get-ExOPRecipientIdentities {
+    param (
+        [Xml.XmlNode]
+        $Item
+    )
+    $ns = Get-ExOPNamespaceManager -Node $Item
+    $identities = foreach ($list in 'RequiredAttendees', 'OptionalAttendees', 'Resources') {
+        foreach ($mailbox in $Item.SelectNodes("t:$list/t:Attendee/t:Mailbox", $ns)) {
+            $address = Get-ExOPText -Node $mailbox -Path 't:EmailAddress'
+            $identity = if ($address) { 'smtp:' + $address.ToLowerInvariant() } else { 'name:' + (Get-ExOPText -Node $mailbox -Path 't:Name') }
+            $list + '=' + $identity
+        }
+    }
+    @(Get-ExOPOrdinalSorted -Values @($identities))
+}
+
 function Get-ExOPCalendarStateHash {
     <#
-        Hash version 4: checked calendar fields, raw active reminder metadata, timezone properties,
-        attachment descriptors, deletions and exceptions, serialized by ConvertTo-ExOPCanonicalText.
+        Hash version 5: checked calendar fields, attendee and resource identities, raw active reminder
+        metadata, timezone properties, attachment descriptors, deletions and exceptions, serialized by
+        ConvertTo-ExOPCanonicalText. Version 4 is the same without recipients; it only verifies receipts
+        written by earlier versions.
     #>
     param (
-        $Snapshot
+        $Snapshot,
+
+        [ValidateSet(4, 5)]
+        [int]
+        $Version = 5
     )
     $document = New-Object Xml.XmlDocument
     $document.XmlResolver = $null
@@ -373,6 +395,7 @@ function Get-ExOPCalendarStateHash {
         $fields.ReminderSignal = Get-ExOPRawReminderValue -Item $item -PropertyId 34144
     }
     $ns = Get-ExOPNamespaceManager -Node $item
+    if ($Version -ge 5) { $fields.Recipients = Get-ExOPRecipientIdentities -Item $item }
     $fields.StartZone = $item.SelectSingleNode('t:StartTimeZone', $ns).GetAttribute('Id')
     $fields.EndZone = $item.SelectSingleNode('t:EndTimeZone', $ns).GetAttribute('Id')
     $fields.Recurrence = Get-ExOPRecurrenceLocalXml -Item $item
@@ -398,6 +421,7 @@ function Get-ExOPCalendarStateHash {
                 $values.ReminderSignal = Get-ExOPRawReminderValue -Item $old.DocumentElement -PropertyId 34144
             }
             $values.Attachments = @(Get-ExOPOrdinalSorted -Values @($entry.Attachments | ForEach-Object { ConvertTo-ExOPCanonicalText -Value $_ }))
+            if ($Version -ge 5) { $values.Recipients = Get-ExOPRecipientIdentities -Item $old.DocumentElement }
             if ($null -ne $entry.PSObject.Properties['TimeZoneProperties']) {
                 $exceptionProperties = Get-ExOPTimezonePropertyMap -Properties $entry.TimeZoneProperties
                 $values.Timezones = @(Get-ExOPOrdinalSorted -Values @($exceptionProperties.Keys) | ForEach-Object { $_ + '=' + $exceptionProperties[$_].Value })

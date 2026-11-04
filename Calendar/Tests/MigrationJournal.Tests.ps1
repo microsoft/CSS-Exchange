@@ -17,8 +17,8 @@ BeforeDiscovery {
         @{ Culture = 'ar-SA' }
     )
     $Script:stateHashCases = @(
-        @{ Name = 'with timezone properties'; WithProperties = $true; ExpectedHash = '68765331DBA6CCA2EDDEC62A5522000E965774C698340F2E62240D1E8C1611CD' }
-        @{ Name = 'without timezone properties'; WithProperties = $false; ExpectedHash = '11FEF0A744365FA1B5B89D56830A4C1CB77408743C113B9DB61F38784A6F7DF8' }
+        @{ Name = 'with timezone properties'; WithProperties = $true; ExpectedHash = 'C6A13AF91A3BCBC8C41916DA082C122B0DB96CFEC136A02D4C8B6DF7743E2B92'; Version4Hash = '68765331DBA6CCA2EDDEC62A5522000E965774C698340F2E62240D1E8C1611CD' }
+        @{ Name = 'without timezone properties'; WithProperties = $false; ExpectedHash = '01B96FF4C95C7B1B8AB9B8C4E0BBF6936FF7E2221FBDF18B751C687C0AF81993'; Version4Hash = '11FEF0A744365FA1B5B89D56830A4C1CB77408743C113B9DB61F38784A6F7DF8' }
     )
 }
 
@@ -154,6 +154,76 @@ Describe 'Testing MigrationJournal.ps1' {
             $snapshot = New-StateSnapshot -WithProperties $WithProperties
             $snapshot.Xml = $snapshot.Xml.Replace('Weekly sync', 'Monthly sync')
             Get-ExOPCalendarStateHash -Snapshot $snapshot | Should -Not -BeExactly $ExpectedHash
+        }
+
+        It 'Keeps the version 4 hash of receipts written by earlier versions' {
+            $snapshot = New-StateSnapshot -WithProperties $WithProperties
+            Get-ExOPCalendarStateHash -Snapshot $snapshot -Version 4 | Should -BeExactly $Version4Hash
+        }
+    }
+
+    Context 'Calendar state hash recipients' {
+        BeforeAll {
+            function New-RecipientSnapshot {
+                param([string]$Recipients)
+                $snapshot = New-StateSnapshot -WithProperties $true
+                $snapshot.Xml = $snapshot.Xml.Replace('<t:StartTimeZone', $Recipients + '<t:StartTimeZone')
+                $snapshot
+            }
+            $Script:attendee = '<t:RequiredAttendees><t:Attendee><t:Mailbox><t:Name>Ann</t:Name><t:EmailAddress>Ann@Contoso.com</t:EmailAddress></t:Mailbox>' +
+            '<t:ResponseType>Unknown</t:ResponseType></t:Attendee></t:RequiredAttendees>'
+            $Script:baseHash = Get-ExOPCalendarStateHash -Snapshot (New-RecipientSnapshot -Recipients $Script:attendee)
+        }
+
+        It 'Changes when <Name>' -ForEach @(
+            @{ Name = 'an attendee is added'; Recipients = '<t:RequiredAttendees><t:Attendee><t:Mailbox><t:EmailAddress>ann@contoso.com</t:EmailAddress></t:Mailbox></t:Attendee><t:Attendee><t:Mailbox><t:EmailAddress>bob@contoso.com</t:EmailAddress></t:Mailbox></t:Attendee></t:RequiredAttendees>' }
+            @{ Name = 'an attendee is removed'; Recipients = '' }
+            @{ Name = 'an attendee becomes optional'; Recipients = '<t:OptionalAttendees><t:Attendee><t:Mailbox><t:EmailAddress>ann@contoso.com</t:EmailAddress></t:Mailbox></t:Attendee></t:OptionalAttendees>' }
+            @{ Name = 'a room is added'; Recipients = '<t:RequiredAttendees><t:Attendee><t:Mailbox><t:EmailAddress>ann@contoso.com</t:EmailAddress></t:Mailbox></t:Attendee></t:RequiredAttendees><t:Resources><t:Attendee><t:Mailbox><t:EmailAddress>room@contoso.com</t:EmailAddress></t:Mailbox></t:Attendee></t:Resources>' }
+        ) {
+            Get-ExOPCalendarStateHash -Snapshot (New-RecipientSnapshot -Recipients $Recipients) | Should -Not -BeExactly $Script:baseHash
+        }
+
+        It 'Ignores address case, display names and responses' {
+            $same = '<t:RequiredAttendees><t:Attendee><t:Mailbox><t:Name>Ann Smith</t:Name><t:EmailAddress>ann@contoso.com</t:EmailAddress></t:Mailbox>' +
+            '<t:ResponseType>Accept</t:ResponseType></t:Attendee></t:RequiredAttendees>'
+            Get-ExOPCalendarStateHash -Snapshot (New-RecipientSnapshot -Recipients $same) | Should -BeExactly $Script:baseHash
+        }
+
+        It 'Checks the recipients of modified occurrences' {
+            $snapshot = New-RecipientSnapshot -Recipients $Script:attendee
+            $exception = '<t:CalendarItem xmlns:t="' + $script:TypesNamespace + '"><t:Subject>Occurrence</t:Subject>' + $Script:attendee + '</t:CalendarItem>'
+            $snapshot.Modified = @([PSCustomObject]@{ OriginalStartUtc = '2026-11-16T18:00:00Z'; Xml = $exception; Attachments = @() })
+            $before = Get-ExOPCalendarStateHash -Snapshot $snapshot
+            $snapshot.Modified[0].Xml = $exception.Replace('Ann@Contoso.com', 'bob@contoso.com')
+            Get-ExOPCalendarStateHash -Snapshot $snapshot | Should -Not -BeExactly $before
+        }
+
+        It 'Ignores recipients in version 4' {
+            Get-ExOPCalendarStateHash -Snapshot (New-RecipientSnapshot -Recipients '') -Version 4 |
+                Should -BeExactly (Get-ExOPCalendarStateHash -Snapshot (New-RecipientSnapshot -Recipients $Script:attendee) -Version 4)
+        }
+    }
+
+    Context 'Relative log directories' {
+        It 'Resolves a relative directory against the current PowerShell location, not the process directory' {
+            $location = Join-Path -Path $TestDrive -ChildPath 'operator-location'
+            $null = New-Item -ItemType Directory -Path $location
+            $processDirectory = [Environment]::CurrentDirectory
+            Push-Location -LiteralPath $location
+            try {
+                [Environment]::CurrentDirectory = $env:SystemRoot
+                $run = New-ExOPMigrationRun -Directory '.\Logs' -Rows @([PSCustomObject]@{ Mailbox = 'user@contoso.com'; RecordType = 'Single' }) -Apply $false
+            } finally {
+                [Environment]::CurrentDirectory = $processDirectory
+                Pop-Location
+            }
+            Split-Path -Parent $run.Directory | Should -BeExactly (Join-Path -Path $location -ChildPath 'Logs')
+            Test-Path -LiteralPath $run.Directory -PathType Container | Should -BeTrue
+        }
+
+        It 'Rejects a directory outside the file system' {
+            { New-ExOPMigrationRun -Directory 'Env:\Logs' -Rows @() -Apply $false } | Should -Throw -ExpectedMessage '*not a file system path*'
         }
     }
 

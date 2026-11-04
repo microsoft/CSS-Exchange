@@ -597,8 +597,10 @@ function Get-ExOPPreparedTimeZoneProperties {
                     $firstYear = [int]$startDate.Substring(0, 4)
                     $endDate = Get-ExOPText -Node $Item -Path 't:Recurrence/t:EndDateRecurrence/t:EndDate'
                     $last = Get-ExOPText -Node $Item -Path 't:LastOccurrence/t:Start'
+                    # EndDate is a local date, LastOccurrence a UTC instant. Local dates are preserved, so the local
+                    # year in the series' current zone is the last year the target rules must cover.
                     $lastYear = if ($endDate) { [int]$endDate.Substring(0, 4) }
-                    elseif ($last) { [int]$last.Substring(0, 4) }
+                    elseif ($last) { Get-ExOPDefinitionLocalYear -Definition $Definitions[$from] -Utc (ConvertTo-ExOPInstant -Value $last) }
                     else { 9999 }
                     if ($null -eq $Item.SelectSingleNode('t:Recurrence', $ns)) { throw 'The recurring timezone has no recurrence range.' }
                 }

@@ -97,7 +97,7 @@ If Autodiscover fails, the error lists every URL tried. Specify `-EwsUrl`, for e
 | Credential | EWS account. Default: the current Windows account. |
 | Impersonation | Use EWS impersonation of the owner. |
 | SkipSendPermissionCheck | Allows a delegate without Send on Behalf or Send As to migrate items and send the meeting updates. See [Delegates](#delegates). |
-| MaxAttachmentHashSizeMB | File attachments up to this size are verified by SHA256, larger ones by name, type and size. Default: 25. |
+| MaxAttachmentHashSizeMB | File attachments up to this size are verified by SHA256, larger ones by name, type and size. Default: 25. Reconcile verifies each interrupted operation with the limit that operation used. |
 | SkipVersionCheck | Do not check for a newer version. |
 
 ## Delegates

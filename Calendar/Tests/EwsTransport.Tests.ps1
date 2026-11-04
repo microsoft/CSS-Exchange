@@ -195,6 +195,32 @@ BeforeAll {
 }
 
 Describe 'Testing EwsTransport.ps1' {
+    Context 'Report path relative to the current PowerShell location' {
+        BeforeAll {
+            $Script:reportLocation = Join-Path -Path $TestDrive -ChildPath 'report-location'
+            $null = New-Item -ItemType Directory -Path $Script:reportLocation
+            $Script:processDirectory = [Environment]::CurrentDirectory
+            Push-Location -LiteralPath $Script:reportLocation
+            [Environment]::CurrentDirectory = $env:SystemRoot
+        }
+
+        AfterAll {
+            [Environment]::CurrentDirectory = $Script:processDirectory
+            Pop-Location
+        }
+
+        It 'Writes the report below the current location, not the process directory' {
+            $exported = [PSCustomObject]@{ Mailbox = 'user@contoso.com'; Subject = 'Sync' } | Export-ExOPCalendarMigrationReport -Path '.\Report.csv'
+            $exported.Path | Should -BeExactly (Join-Path -Path $Script:reportLocation -ChildPath 'Report.csv')
+            Test-Path -LiteralPath $exported.Path -PathType Leaf | Should -BeTrue
+        }
+
+        It 'Protects the existing report it would replace' {
+            { [PSCustomObject]@{ Mailbox = 'user@contoso.com'; Subject = 'Sync' } | Export-ExOPCalendarMigrationReport -Path '.\Report.csv' } |
+                Should -Throw -ExpectedMessage '*Output already exists*'
+        }
+    }
+
     Context 'New-ExOPCalendarSession' {
         BeforeAll {
             Mock Invoke-ExOPEwsRequest { throw 'Unexpected EWS request in an offline test.' }

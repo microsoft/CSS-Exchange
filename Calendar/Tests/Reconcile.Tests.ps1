@@ -103,7 +103,10 @@ BeforeAll {
             $Subject = 'Original',
 
             [string]
-            $BodyText = 'Agenda'
+            $BodyText = 'Agenda',
+
+            [long]
+            $AttachmentHashLimitBytes = -1
         )
         $null = New-Item -ItemType Directory -Path $Directory -Force
         $before = [ordered]@{
@@ -117,6 +120,7 @@ BeforeAll {
             }
             Snapshot      = New-ReconcileSnapshot -Subject $Subject -BodyText $BodyText
         }
+        if ($AttachmentHashLimitBytes -ge 0) { $before['AttachmentHashLimitBytes'] = $AttachmentHashLimitBytes }
         Write-ExOPDurableText -Path (Join-Path -Path $Directory -ChildPath "$($Script:operationId)-before.json") -Text (ConvertTo-Json -InputObject $before -Depth 35)
         if ($null -ne $After) {
             Write-ExOPDurableText -Path (Join-Path -Path $Directory -ChildPath "$($Script:operationId)-after.json") -Text (ConvertTo-Json -InputObject $After -Depth 35)
@@ -360,6 +364,26 @@ Describe 'Testing Reconcile.ps1' {
             $evidence.JournalPath | Should -BeLike '*details.jsonl'
             @($evidence.Events) | Should -HaveCount 5
             @($evidence.Events | Where-Object { $_.OperationId -cne $Script:operationId }) | Should -HaveCount 0
+        }
+
+        It 'Ignores an unterminated record left by an interrupted append of <Owner>' -ForEach @(
+            @{ Owner = 'this operation'; OperationId = '0123456789abcdef0123456789abcdef' }
+            @{ Owner = 'another operation'; OperationId = 'fedcba9876543210fedcba9876543210' }
+        ) {
+            $directory = Join-Path -Path $TestDrive -ChildPath "find-torn-$Owner"
+            Write-OperationEvidence -Directory $directory -Events (New-InterruptedJournal) -After (New-ReconcileSnapshot -Subject 'Target')
+            Write-ExOPDurableText -Path (Join-Path -Path $directory -ChildPath 'details.jsonl') -Append `
+                -Text ('{"SchemaVersion":1,"OperationId":"' + $OperationId + '","Phase":"MasterDates","Event":"WriteInt')
+            $evidence = Find-ExOPOperationEvidence -SearchDirectory $directory -OperationId $Script:operationId
+            @($evidence.Events) | Should -HaveCount 5
+            (Get-ExOPJournalWriteState -Events $evidence.Events).LastWriteUnknown | Should -BeFalse
+        }
+
+        It 'Still rejects a malformed complete journal record' {
+            $directory = Join-Path -Path $TestDrive -ChildPath 'find-malformed'
+            Write-OperationEvidence -Directory $directory -Events (New-InterruptedJournal)
+            Write-ExOPDurableText -Path (Join-Path -Path $directory -ChildPath 'details.jsonl') -Append -Text ("{not json`r`n")
+            { Find-ExOPOperationEvidence -SearchDirectory $directory -OperationId $Script:operationId } | Should -Throw
         }
     }
 
@@ -808,11 +832,55 @@ Describe 'Testing Reconcile.ps1' {
         }
     }
 
+    Context 'Reconcile verifies attachments with the interrupted operation''s hash limit' {
+        BeforeAll {
+            $document = New-Object Xml.XmlDocument
+            $document.LoadXml('<t:CalendarItem xmlns:t="' + $script:TypesNamespace + '"><t:Attachments><t:FileAttachment><t:AttachmentId Id="attachment-1"/>' +
+                '<t:Name>notes.txt</t:Name><t:ContentType>text/plain</t:ContentType><t:Size>100</t:Size><t:IsInline>false</t:IsInline>' +
+                '</t:FileAttachment></t:Attachments></t:CalendarItem>')
+            $Script:attachmentItem = $document.DocumentElement
+            $Script:runLimit = $script:MaxAttachmentHashBytes
+            $script:MaxAttachmentHashBytes = 0
+            try {
+                $Script:attachmentTarget = New-ReconcileSnapshot -Subject 'Target'
+                $Script:attachmentTarget.Attachments = @(Get-ExOPAttachmentSnapshot -Session $null -Mailbox $Script:mailbox -Item $Script:attachmentItem)
+            } finally { $script:MaxAttachmentHashBytes = $Script:runLimit }
+            $Script:attachmentTarget.Attachments[0].Sha256 | Should -BeExactly ''
+            Mock Get-ExOPCalendarItem { New-ReconcileItem -ChangeKey 'CK-current' -WithMarker -NotificationMayHaveStarted $true }
+            Mock Get-ExOPItemSnapshot {
+                $Script:observedLimit = $script:MaxAttachmentHashBytes
+                $current = $Script:attachmentTarget.PSObject.Copy()
+                # The real descriptor reader requests file content only for attachments within the active limit.
+                $current.Attachments = @(Get-ExOPAttachmentSnapshot -Session $Session -Mailbox $Mailbox -Item $Script:attachmentItem)
+                $current
+            }
+            Write-OperationEvidence -Directory (Join-Path -Path $TestDrive -ChildPath 'attachment-limit-evidence') -Events (New-InterruptedJournal -NotificationIntent) `
+                -After $Script:attachmentTarget -AttachmentHashLimitBytes 0
+            $Script:result = Invoke-TestReconcile -Name 'attachment-limit'
+        }
+
+        It 'Uses the saved limit of 0 MB instead of the default 25 MB' {
+            $Script:runLimit | Should -Be 25MB
+            $Script:observedLimit | Should -Be 0
+            Should -Invoke Invoke-ExOPEwsRequest -Times 0 -Exactly -Scope Context
+        }
+
+        It 'Verifies the unchanged target' {
+            $Script:result.Status | Should -BeExactly 'Preview'
+            $Script:result.CalendarState | Should -BeExactly 'TargetVerified'
+        }
+
+        It 'Restores the limit of the current run afterwards' {
+            $script:MaxAttachmentHashBytes | Should -Be $Script:runLimit
+        }
+    }
+
     Context 'Rejected-send recovery with the real rollback: <Name>' -ForEach @(
-        @{ Name = 'SendAs rejection with an unchanged target'; Code = 'ErrorSendAsDenied'; Edited = $false; HasAfter = $true; Expected = 'RolledBack'; Writes = 1 }
-        @{ Name = 'recipient rejection with an unchanged target'; Code = 'ErrorInvalidRecipients'; Edited = $false; HasAfter = $true; Expected = 'RolledBack'; Writes = 1 }
-        @{ Name = 'a concurrent edit after the rejection'; Code = 'ErrorSendAsDenied'; Edited = $true; HasAfter = $true; Expected = 'Critical'; Writes = 0 }
-        @{ Name = 'missing verified-target evidence'; Code = 'ErrorSendAsDenied'; Edited = $false; HasAfter = $false; Expected = 'Critical'; Writes = 0 }
+        @{ Name = 'SendAs rejection with an unchanged target'; Code = 'ErrorSendAsDenied'; Edited = $false; Recipients = $false; HasAfter = $true; Expected = 'RolledBack'; Writes = 1 }
+        @{ Name = 'recipient rejection with an unchanged target'; Code = 'ErrorInvalidRecipients'; Edited = $false; Recipients = $false; HasAfter = $true; Expected = 'RolledBack'; Writes = 1 }
+        @{ Name = 'a concurrent edit after the rejection'; Code = 'ErrorSendAsDenied'; Edited = $true; Recipients = $false; HasAfter = $true; Expected = 'Critical'; Writes = 0 }
+        @{ Name = 'a recipient-only edit after the rejection'; Code = 'ErrorSendAsDenied'; Edited = $false; Recipients = $true; HasAfter = $true; Expected = 'Critical'; Writes = 0 }
+        @{ Name = 'missing verified-target evidence'; Code = 'ErrorSendAsDenied'; Edited = $false; Recipients = $false; HasAfter = $false; Expected = 'Critical'; Writes = 0 }
     ) {
         BeforeAll {
             $Script:rejectedRestored = $false
@@ -824,6 +892,10 @@ Describe 'Testing Reconcile.ps1' {
             Replace('2026-11-09T19:00:00Z', '2026-11-09T18:00:00Z').Replace('Pacific Standard Time', 'Mountain Standard Time')
             $Script:rejectedCurrent = $target.PSObject.Copy()
             if ($Edited) { $Script:rejectedCurrent.Xml = $Script:rejectedCurrent.Xml.Replace($text, 'Concurrent edit') }
+            if ($Recipients) {
+                $Script:rejectedCurrent.Xml = $Script:rejectedCurrent.Xml.Replace('<t:StartTimeZone',
+                    '<t:RequiredAttendees><t:Attendee><t:Mailbox><t:EmailAddress>added@contoso.com</t:EmailAddress></t:Mailbox></t:Attendee></t:RequiredAttendees><t:StartTimeZone')
+            }
             Mock Get-ExOPCalendarItem {
                 New-ReconcileItem -ChangeKey 'CK-saved-before-rejection' -WithMarker:(-not $Script:rejectedMarkerCleared) -NotificationMayHaveStarted $true
             }

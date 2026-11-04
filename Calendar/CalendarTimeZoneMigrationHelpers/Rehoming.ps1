@@ -1515,11 +1515,11 @@ function Invoke-ExOPCalendarEventMigration {
                 if ($currentStartZone -eq $expectedStartZone -and $currentEndZone -eq $expectedEndZone) {
                     $receipt = Get-ExOPMigrationReceipt -Item $item
                     if ($null -eq $receipt -or $receipt.InputHash -cne $inputHash -or
-                        $null -eq $receipt.PSObject.Properties['StateHashVersion'] -or $receipt.StateHashVersion -ne 4) {
+                        $null -eq $receipt.PSObject.Properties['StateHashVersion'] -or $receipt.StateHashVersion -notin 4, 5) {
                         throw 'The item is already in the target zone but has no matching verified migration receipt.'
                     }
                     $current = Get-ExOPItemSnapshot -Session $Session -Mailbox $mailbox -Item $item -From $currentStartZone -To $currentStartZone
-                    if ((Get-ExOPCalendarStateHash -Snapshot $current) -cne $receipt.StateHash) {
+                    if ((Get-ExOPCalendarStateHash -Snapshot $current -Version $receipt.StateHashVersion) -cne $receipt.StateHash) {
                         throw 'The target-zone item no longer matches its verified complete migration state.'
                     }
                     $result.RelatedOperationId = $receipt.OperationId
@@ -1601,8 +1601,11 @@ function Invoke-ExOPCalendarEventMigration {
                         })
                     if (-not $Apply) { $result.Status='Preview'; $result.Severity='Information' }
                     elseif ($PSCmdlet.ShouldProcess("$($row.Mailbox): $($row.ItemId)", "Rehome $($row.RecordType) from '$from' to '$to' and send normal meeting updates")) {
-                        $result.SnapshotPath = Save-ExOPMigrationSnapshot -Run $run -Mailbox $mailbox -OperationId $result.OperationId -Name 'before' `
-                            -Snapshot ([ordered]@{SchemaVersion=4; RunId=$run.RunId; OperationId=$result.OperationId; Input=$inputIdentity; Values=$values; Snapshot=$snapshot })
+                        $beforeDocument = [ordered]@{
+                            SchemaVersion=4; RunId=$run.RunId; OperationId=$result.OperationId; Input=$inputIdentity; Values=$values
+                            AttachmentHashLimitBytes=[long]$script:MaxAttachmentHashBytes; Snapshot=$snapshot
+                        }
+                        $result.SnapshotPath = Save-ExOPMigrationSnapshot -Run $run -Mailbox $mailbox -OperationId $result.OperationId -Name 'before' -Snapshot $beforeDocument
                         $fresh = Get-ExOPCalendarItem -Session $Session -Mailbox $mailbox -ItemId $itemId
                         if ($fresh.SelectSingleNode('t:ItemId', (Get-ExOPNamespaceManager -Node $fresh)).GetAttribute('ChangeKey') -cne $row.ChangeKey) {
                             throw 'The item changed during preflight; no original item changes were made.'
@@ -1671,7 +1674,7 @@ function Invoke-ExOPCalendarEventMigration {
                         if ((Get-ExOPCalendarStateHash -Snapshot $final) -cne $operation.VerifiedTargetHash) { throw 'The verified state changed before finalization.' }
                         $receipt = [PSCustomObject]@{
                             SchemaVersion=1; OperationId=$result.OperationId; RunId=$run.RunId; InputHash=$inputHash
-                            StateHash=$operation.VerifiedTargetHash; StateHashVersion=4; FromZone=$from; ToZone=$to
+                            StateHash=$operation.VerifiedTargetHash; StateHashVersion=5; FromZone=$from; ToZone=$to
                             O12Modes=$prepared.O12Modes; ExceptionModes=$exceptionModes; CompletedUtc=[DateTimeOffset]::UtcNow.ToString('o')
                         }
                         $operation.Phase = 'FinalizeReceipt'

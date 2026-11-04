@@ -69,6 +69,7 @@
     only when that is acceptable in your organization.
 .PARAMETER MaxAttachmentHashSizeMB
     File attachments up to this size are verified by SHA256; larger ones by name, type and size. Default: 25.
+    Reconcile verifies each interrupted operation with the limit that operation used.
 .PARAMETER Force
     Replace an existing report CSV.
 .PARAMETER SkipVersionCheck

@@ -583,6 +583,50 @@ Describe 'Testing CalendarTimeZoneData.ps1' {
         }
     }
 
+    Context 'Get-ExOPPreparedTimeZoneProperties checks a numbered series through its local last year' {
+        BeforeAll {
+            $Script:numberedDefinitions = @{}
+            foreach ($id in 'Pacific Standard Time', 'AUS Eastern Standard Time', 'British Columbia Standard Time') {
+                $Script:numberedDefinitions[$id] = Get-ExOPRegistryTimeZoneData -Id $id
+            }
+
+            function Invoke-NumberedPreparation {
+                param([string]$From, [string]$Day, [string]$StartDate, [string]$StartUtc, [string]$LastUtc)
+                $document = New-Object Xml.XmlDocument
+                $document.LoadXml('<t:CalendarItem xmlns:t="' + $script:TypesNamespace + '"><t:CalendarItemType>RecurringMaster</t:CalendarItemType>' +
+                    '<t:Recurrence><t:WeeklyRecurrence><t:Interval>1</t:Interval><t:DaysOfWeek>' + $Day + '</t:DaysOfWeek></t:WeeklyRecurrence>' +
+                    '<t:NumberedRecurrence><t:StartDate>' + $StartDate + '</t:StartDate><t:NumberOfOccurrences>5</t:NumberOfOccurrences></t:NumberedRecurrence></t:Recurrence>' +
+                    '<t:LastOccurrence><t:ItemId Id="last"/><t:Start>' + $LastUtc + '</t:Start></t:LastOccurrence></t:CalendarItem>')
+                $start = [DateTimeOffset]::Parse($StartUtc, [Globalization.CultureInfo]::InvariantCulture)
+                $definition = $Script:numberedDefinitions[$From]
+                $properties = foreach ($key in '33374', '33375', '33376') {
+                    '<t:ExtendedProperty xmlns:t="' + $script:TypesNamespace + '"><t:ExtendedFieldURI DistinguishedPropertySetId="Appointment" PropertyId="' + $key +
+                    '" PropertyType="Binary"/><t:Value>' + (New-ExOPO12Definition -Definition $definition -EffectiveUtc $start -Mode Partial -Recurring:($key -eq '33376')) +
+                    '</t:Value></t:ExtendedProperty>'
+                }
+                $values = [PSCustomObject]@{
+                    StartZone = $From; EndZone = $From; NewStartZone = 'British Columbia Standard Time'; NewEndZone = 'British Columbia Standard Time'
+                    NewStartUtc = $StartUtc; NewEndUtc = $start.AddHours(1).ToString('o')
+                }
+                Get-ExOPPreparedTimeZoneProperties -Properties @($properties) -Definitions $Script:numberedDefinitions -Values $values `
+                    -Item $document.DocumentElement -Receipt $null -Now ([DateTimeOffset]::Parse('2026-11-03T12:00:00Z', [Globalization.CultureInfo]::InvariantCulture))
+            }
+        }
+
+        It 'Requires the target rules of 2027 when the last occurrence is January 1, 2027 locally but 2026 in UTC' {
+            # Fridays from December 4, 2026 at 09:00 Sydney summer time; the fifth occurrence is 2026-12-31T22:00Z.
+            { Invoke-NumberedPreparation -From 'AUS Eastern Standard Time' -Day 'Friday' -StartDate '2026-12-04' -StartUtc '2026-12-03T22:00:00Z' -LastUtc '2026-12-31T22:00:00Z' } |
+                Should -Throw -ExpectedMessage "*cannot express 'British Columbia Standard Time'*"
+        }
+
+        It 'Accepts a partial definition when the last occurrence is December 31, 2026 locally but 2027 in UTC' {
+            # Thursdays from December 3, 2026 at 20:00 PST; the fifth occurrence is 2027-01-01T04:00Z.
+            $prepared = Invoke-NumberedPreparation -From 'Pacific Standard Time' -Day 'Thursday' -StartDate '2026-12-03' -StartUtc '2026-12-04T04:00:00Z' -LastUtc '2027-01-01T04:00:00Z'
+            $prepared.O12Modes['33376'].Mode | Should -BeExactly 'Partial'
+            $prepared.O12Modes['33376'].Rules | Should -Be 1
+        }
+    }
+
     Context 'Get-ExOPPreparedTimeZoneProperties writes 33331 for a series as Exchange derives it from 33376' {
         BeforeAll {
             $Script:seriesStartUtc = '2025-06-04T17:00:00Z'

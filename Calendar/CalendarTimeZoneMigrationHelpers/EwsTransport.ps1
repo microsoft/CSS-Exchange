@@ -1083,6 +1083,23 @@ function Get-ExOPCalendarMigrationReport {
     }
 }
 
+function Resolve-ExOPFileSystemPath {
+    <#
+        .NET file APIs resolve relative paths against the process directory, which Set-Location does not change.
+        Resolve user paths against the current PowerShell location instead.
+    #>
+    param (
+        [Parameter(Mandatory)]
+        [string]
+        $Path
+    )
+    $provider = $null
+    $drive = $null
+    $resolved = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path, [ref]$provider, [ref]$drive)
+    if ($provider.Name -ne 'FileSystem') { throw "The path '$Path' is not a file system path." }
+    $resolved
+}
+
 function Export-ExOPCalendarMigrationReport {
     <#
     .SYNOPSIS
@@ -1108,7 +1125,8 @@ function Export-ExOPCalendarMigrationReport {
         $Force
     )
     begin {
-        if ((Test-Path -LiteralPath $Path) -and -not $Force) { throw "Output already exists: $Path. Use -Force explicitly to replace it." }
+        $outputPath = Resolve-ExOPFileSystemPath -Path $Path
+        if ((Test-Path -LiteralPath $outputPath) -and -not $Force) { throw "Output already exists: $outputPath. Use -Force explicitly to replace it." }
         $rows=New-Object 'System.Collections.Generic.List[object]'
     }
     process {
@@ -1125,7 +1143,7 @@ function Export-ExOPCalendarMigrationReport {
     end {
         if ($rows.Count -eq 0) { throw 'No report rows were supplied; no CSV was created.' }
         $text=($rows | ConvertTo-Csv -NoTypeInformation)-join "`r`n"
-        [IO.File]::WriteAllText([IO.Path]::GetFullPath($Path), $text+"`r`n", (New-Object Text.UTF8Encoding($true)))
-        [PSCustomObject]@{Path=[IO.Path]::GetFullPath($Path); RowCount=$rows.Count }
+        [IO.File]::WriteAllText($outputPath, $text+"`r`n", (New-Object Text.UTF8Encoding($true)))
+        [PSCustomObject]@{Path=$outputPath; RowCount=$rows.Count }
     }
 }

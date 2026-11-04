@@ -27,7 +27,11 @@ function Find-ExOPOperationEvidence {
     $journalPath = Join-Path -Path $folder -ChildPath 'details.jsonl'
     $events = @(
         if (Test-Path -LiteralPath $journalPath -PathType Leaf) {
-            foreach ($line in [IO.File]::ReadAllLines($journalPath)) {
+            $records = [IO.File]::ReadAllText($journalPath, [Text.UTF8Encoding]::new($false)).Split("`n")
+            # Each record is appended with its line terminator. A process stopped during an append leaves an
+            # unterminated tail; its intent was never durable, so no request was sent for it.
+            for ($index = 0; $index -lt $records.Count - 1; $index++) {
+                $line = $records[$index].TrimEnd("`r")
                 if (-not $line) { continue }
                 $record = $line | ConvertFrom-Json
                 if ($record.OperationId -ceq $OperationId) { $record }
@@ -153,6 +157,7 @@ function Invoke-ExOPCalendarMigrationReconcile {
         $run = New-ExOPMigrationRun -Directory $LogDirectory -Rows @($inputRows.ToArray()) -Apply ([bool]$Apply) -EwsUrl $Session.EwsUrl.AbsoluteUri `
             -EwsUrlSource (Get-ExOPSessionEwsUrlSource -Session $Session)
         Update-ExOPMigrationSummary -Run $run
+        $runAttachmentHashBytes = $script:MaxAttachmentHashBytes
         $seen = New-Object 'System.Collections.Generic.HashSet[string]'
         foreach ($row in $inputRows) {
             $mailbox = if ($null -ne $row.PSObject.Properties['Mailbox'] -and [string]$row.Mailbox) { [string]$row.Mailbox } else { '_invalid-input' }
@@ -210,6 +215,10 @@ function Invoke-ExOPCalendarMigrationReconcile {
                     }
                     if ($saved.Input.Mailbox -ne $mailbox -or $saved.Input.ItemId -cne $itemId) {
                         throw 'The saved snapshot belongs to a different mailbox or item.'
+                    }
+                    # Attachment descriptors are only comparable when hashed with the interrupted operation's size limit.
+                    if ($null -ne $saved.PSObject.Properties['AttachmentHashLimitBytes']) {
+                        $script:MaxAttachmentHashBytes = [long]$saved.AttachmentHashLimitBytes
                     }
                     $result.RecordType = $saved.Input.RecordType
                     $result.StartUtcBefore = $saved.Values.StartUtc
@@ -307,7 +316,7 @@ function Invoke-ExOPCalendarMigrationReconcile {
                             $plan = $writes.Plan
                             $receipt = [ordered]@{
                                 SchemaVersion=1; OperationId=$marker.OperationId; RunId=$saved.RunId
-                                InputHash=(Get-ExOPCanonicalHash -Value $saved.Input); StateHash=$targetHash; StateHashVersion=4
+                                InputHash=(Get-ExOPCanonicalHash -Value $saved.Input); StateHash=$targetHash; StateHashVersion=5
                                 FromZone=$marker.FromZone; ToZone=$marker.ToZone
                                 O12Modes       =$(if ($null -ne $plan) { $plan.O12Modes } else { $null })
                                 ExceptionModes =$(if ($null -ne $plan) { $plan.ExceptionModes } else { $null })
@@ -344,6 +353,7 @@ function Invoke-ExOPCalendarMigrationReconcile {
                 Write-Warning ("{0}: {1}. {2}" -f $result.Severity.ToUpperInvariant(), $result.Status, $result.Error)
             } finally {
                 $Session.ActiveOperation = $null
+                $script:MaxAttachmentHashBytes = $runAttachmentHashBytes
             }
             Complete-ExOPMigrationResult -Run $run -Result $result
             Write-Output -InputObject $result
