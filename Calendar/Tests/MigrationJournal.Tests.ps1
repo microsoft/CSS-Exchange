@@ -322,17 +322,40 @@ Describe 'Testing MigrationJournal.ps1' {
     }
 
     Context 'Incremental result output failure' {
-        It 'Marks audit storage as failed if the CSV append fails, retaining the journal event' {
+        It 'Marks audit storage as failed if the CSV append fails, retaining the journal event and the result' {
             $run = New-ExOPMigrationRun -Directory (Join-Path -Path $TestDrive -ChildPath 'append-failure') `
                 -Rows @([PSCustomObject]@{ Mailbox = 'user@contoso.com'; RecordType = 'Single' }) -Apply $true
             Mock Export-ExOPSafeResultsCsv { throw 'CSV disk failure' } -ParameterFilter { $Append }
-            $result = [PSCustomObject]@{ Mailbox = 'user@contoso.com'; OperationId = 'result-1'; Phase = 'Completed'; FinishedUtc = '' }
-            { Complete-ExOPMigrationResult -Run $run -Result $result } | Should -Throw -ExpectedMessage 'CSV disk failure'
+            $result = [PSCustomObject]@{ Mailbox = 'user@contoso.com'; OperationId = 'result-1'; Phase = 'Completed'; FinishedUtc = ''; Error = '' }
+            $warnings = @(Complete-ExOPMigrationResult -Run $run -Result $result 3>&1)
+            $warnings | Should -HaveCount 1
+            [string]$warnings[0] | Should -BeLike '*CSV disk failure*'
             $run.LoggingFailed | Should -BeTrue
+            $result.Error | Should -BeLike 'Audit storage failed: *CSV disk failure*'
+            $run.Results | Should -Contain $result
             $events = @([IO.File]::ReadAllLines((Join-Path -Path $run.Mailboxes['user@contoso.com'].Directory -ChildPath 'details.jsonl')) |
                     ForEach-Object { $_ | ConvertFrom-Json })
             $events | Should -HaveCount 1
             $events[0].Event | Should -BeExactly 'ObjectResult'
+        }
+
+        It 'Records later results only in memory after audit storage failed' {
+            $run = New-ExOPMigrationRun -Directory (Join-Path -Path $TestDrive -ChildPath 'after-failure') `
+                -Rows @([PSCustomObject]@{ Mailbox = 'user@contoso.com'; RecordType = 'Single' }) -Apply $true
+            $run.LoggingFailed = $true
+            $result = [PSCustomObject]@{ Mailbox = 'user@contoso.com'; OperationId = 'result-2'; Phase = 'Preflight'; FinishedUtc = ''; Error = '' }
+            Complete-ExOPMigrationResult -Run $run -Result $result
+            $run.Results | Should -Contain $result
+            Test-Path -LiteralPath (Join-Path -Path $run.Mailboxes['user@contoso.com'].Directory -ChildPath 'details.jsonl') | Should -BeFalse
+        }
+
+        It 'Warns instead of failing when the final summary cannot be written' {
+            $run = New-ExOPMigrationRun -Directory (Join-Path -Path $TestDrive -ChildPath 'summary-failure') `
+                -Rows @([PSCustomObject]@{ Mailbox = 'user@contoso.com'; RecordType = 'Single' }) -Apply $true
+            Mock Update-ExOPMigrationSummary { throw 'Summary disk failure' }
+            $warnings = @(Update-ExOPFinalMigrationSummary -Run $run 3>&1)
+            [string]$warnings[0] | Should -BeLike '*Summary disk failure*'
+            $run.LoggingFailed | Should -BeTrue
         }
     }
 

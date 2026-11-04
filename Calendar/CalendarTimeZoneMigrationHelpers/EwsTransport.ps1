@@ -969,7 +969,10 @@ function Get-ExOPCalendarMigrationReport {
         $PageSize = 500
     )
     $available=@(Get-ExOPCalendarTimeZone $Session)
-    if (-not ($available | Where-Object Id -EQ $FromWindowsTimeZoneId)) { throw "EWS does not recognize source zone '$FromWindowsTimeZoneId'." }
+    $sourceZone = @($available | Where-Object Id -EQ $FromWindowsTimeZoneId)
+    if ($sourceZone.Count -eq 0) { throw "EWS does not recognize source zone '$FromWindowsTimeZoneId'." }
+    # Report rows carry the server's exact ID, not the caller's spelling.
+    $FromWindowsTimeZoneId = [string]$sourceZone[0].Id
     $start=$QueryStartDate.ToUniversalTime()
     $end=$start.AddDays($QueryWindowInDays)
     # EWS rejects calendar views longer than two years (ErrorCalendarViewRangeTooBig); query in one-year slices.

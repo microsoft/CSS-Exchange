@@ -48,6 +48,22 @@ function ConvertFrom-ExOPRegistryRule {
     }
 }
 
+function Resolve-ExOPWindowsTimeZoneId {
+    <#
+        Returns the exact Windows time zone ID. IDs are matched without regard to case, but the ID is written
+        into calendar items and receipts, and Windows PowerShell 5.1 echoes the caller's spelling.
+    #>
+    param (
+        [string]
+        $Id
+    )
+    $match = @([TimeZoneInfo]::GetSystemTimeZones() | Where-Object { $_.Id -eq $Id })
+    if ($match.Count -ne 1) {
+        throw "The time zone '$Id' does not exist on this computer. Install the current Windows time zone update here and on all Exchange servers."
+    }
+    $match[0].Id
+}
+
 function Get-ExOPRegistryTimeZoneRaw {
     <#
         Reads the raw Windows registry definition. Kept separate so tests can supply captured data.

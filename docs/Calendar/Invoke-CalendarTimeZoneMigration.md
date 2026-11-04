@@ -92,7 +92,7 @@ If Autodiscover fails, the error lists every URL tried. Specify `-EwsUrl`, for e
 | LogDirectory | Directory for logs. Every run creates a new subdirectory. |
 | Apply | Changes items. Without it the script only previews. Confirmation is requested unless `-Confirm:$false` is used. |
 | Reconcile | Resolves items left incomplete by an interrupted run. |
-| SearchDirectory | Log directory of the interrupted run. |
+| SearchDirectory | Log directory of the interrupted run. Include the log directory of an interrupted earlier `-Reconcile` run as well; all journals below these directories are read. |
 | ResendNotification | With `-Reconcile`: resend the meeting update when it is unknown whether the update was sent. |
 | Credential | EWS account. Default: the current Windows account. |
 | Impersonation | Use EWS impersonation of the owner. |

@@ -220,6 +220,15 @@ Describe 'Testing Reconcile.ps1' {
             $state.LastWriteUnknown | Should -BeFalse
             $state.NotificationAttempted | Should -BeFalse
             $state.Plan | Should -BeNullOrEmpty
+            $state.RollbackStarted | Should -BeFalse
+        }
+
+        It 'Detects a rollback that an earlier run started' {
+            $state = Get-ExOPJournalWriteState -Events @(
+                New-JournalRecord -EventName 'WriteAcknowledged' -Phase 'TimezoneMetadata' -Data ([PSCustomObject]@{ ChangeKey = 'CK-2' })
+                New-JournalRecord -EventName 'RollbackStarted' -Phase 'RollbackInspection' -Data $null
+            )
+            $state.RollbackStarted | Should -BeTrue
         }
 
         It 'Tracks acknowledged writes by phase' {
@@ -384,6 +393,28 @@ Describe 'Testing Reconcile.ps1' {
             Write-OperationEvidence -Directory $directory -Events (New-InterruptedJournal)
             Write-ExOPDurableText -Path (Join-Path -Path $directory -ChildPath 'details.jsonl') -Append -Text ("{not json`r`n")
             { Find-ExOPOperationEvidence -SearchDirectory $directory -OperationId $Script:operationId } | Should -Throw
+        }
+
+        It 'Adds the records of an earlier reconcile run below the search directory in time order' {
+            $directory = Join-Path -Path $TestDrive -ChildPath 'find-reconcile-runs'
+            Write-OperationEvidence -Directory (Join-Path -Path $directory -ChildPath 'migration') -Events (New-InterruptedJournal)
+            $records = @(
+                [PSCustomObject]@{ SchemaVersion = 1; Utc = '2026-11-05T10:00:02.0000000+00:00'; Sequence = 3; OperationId = $Script:operationId; Phase = 'TimezoneMetadata'; Event = 'WriteAcknowledged'; Data = [PSCustomObject]@{ ChangeKey = 'CK-4' } }
+                [PSCustomObject]@{ SchemaVersion = 1; Utc = '2026-11-05T10:00:01.0000000+00:00'; Sequence = 2; OperationId = $Script:operationId; Phase = 'RollbackInspection'; Event = 'RollbackStarted'; Data = $null }
+                [PSCustomObject]@{ SchemaVersion = 1; Utc = '2026-11-05T10:00:00.5000000+00:00'; Sequence = 1; OperationId = 'fedcba9876543210fedcba9876543210'; Phase = 'Reconcile'; Event = 'RollbackStarted'; Data = $null }
+            )
+            $reconcileRun = Join-Path -Path $directory -ChildPath 'reconcile\user'
+            $null = New-Item -ItemType Directory -Path $reconcileRun -Force
+            Write-ExOPDurableText -Path (Join-Path -Path $reconcileRun -ChildPath 'details.jsonl') `
+                -Text ((@($records | ForEach-Object { ConvertTo-Json -InputObject $_ -Depth 5 -Compress }) -join "`r`n") + "`r`n")
+            $evidence = Find-ExOPOperationEvidence -SearchDirectory $directory -OperationId $Script:operationId
+            @($evidence.Events) | Should -HaveCount 7
+            $evidence.Events[5].Event | Should -BeExactly 'RollbackStarted'
+            $evidence.Events[6].Data.ChangeKey | Should -BeExactly 'CK-4'
+            $evidence.JournalPath | Should -BeLike '*\migration\details.jsonl'
+            $state = Get-ExOPJournalWriteState -Events $evidence.Events
+            $state.LastChangeKey | Should -BeExactly 'CK-4'
+            $state.RollbackStarted | Should -BeTrue
         }
     }
 
@@ -710,6 +741,78 @@ Describe 'Testing Reconcile.ps1' {
             $baseline | Should -HaveCount 1
             $baseline[0].Data.JournalLastChangeKey | Should -BeExactly 'CK-2'
             $baseline[0].Data.CurrentChangeKey | Should -BeExactly $Key
+        }
+    }
+
+    Context 'Reconcile after an interrupted earlier reconcile rollback: <Name>' -ForEach @(
+        @{ Name = 'the last rollback write was acknowledged'; Key = 'CK-3'; RollbackJournal = $true; PendingRollbackWrite = $false; Outcome = 'Restored' }
+        @{ Name = 'the last rollback write is unknown'; Key = 'CK-unknown'; RollbackJournal = $true; PendingRollbackWrite = $true; Outcome = 'Restored' }
+        @{ Name = 'no rollback was started (the same state is refused)'; Key = 'CK-unknown'; RollbackJournal = $false; PendingRollbackWrite = $false; Outcome = 'Endpoints' }
+    ) {
+        BeforeAll {
+            # The earlier rollback restored the original zones; the original times were not yet written.
+            $Script:secondRestore = [PSCustomObject]@{ Key = $Key; Done = $false; MarkerCleared = $false }
+            function New-SecondRestoreItem {
+                $marker = ''
+                if (-not $Script:secondRestore.MarkerCleared) {
+                    $state = ConvertTo-Json -Compress -InputObject ([ordered]@{
+                            SchemaVersion = 1; Status = 'InProgress'; OperationId = $Script:operationId
+                            FromZone = 'Pacific Standard Time'; ToZone = 'Mountain Standard Time'; NotificationMayHaveStarted = $false
+                        })
+                    $marker = '<t:ExtendedProperty>' + $script:MigrationStateFieldUri + '<t:Value>' + (ConvertTo-ExOPXmlText -Value $state) + '</t:Value></t:ExtendedProperty>'
+                }
+                $document = New-Object Xml.XmlDocument
+                $document.LoadXml('<t:CalendarItem xmlns:t="' + $script:TypesNamespace + '"><t:ItemId Id="' + $Script:itemId + '" ChangeKey="' + $Script:secondRestore.Key + '"/>' +
+                    '<t:Subject>Weekly sync</t:Subject><t:CalendarItemType>Single</t:CalendarItemType><t:Start>2026-11-09T17:00:00Z</t:Start><t:End>2026-11-09T18:00:00Z</t:End>' +
+                    '<t:StartTimeZone Id="Pacific Standard Time"/><t:EndTimeZone Id="Pacific Standard Time"/>' + $marker + '</t:CalendarItem>')
+                Write-Output -InputObject $document.DocumentElement -NoEnumerate
+            }
+
+            Mock Get-ExOPCalendarItem { New-SecondRestoreItem }
+            Mock Get-ExOPItemSnapshot { if ($Script:secondRestore.Done) { New-ReconcileSnapshot -Subject 'Original' } else { New-ReconcileSnapshot -Subject 'Intermediate' } }
+            Mock Assert-ExOPPreservedItemData { }
+            Mock Assert-ExOPRehomeResult { New-SecondRestoreItem }
+            Mock Set-ExOPSeriesTimeZoneState { $Script:secondRestore.Done = $true }
+            Mock Set-ExOPFinalMigrationState { $Script:secondRestore.MarkerCleared = $true }
+            $name = 'second-reconcile-' + [Guid]::NewGuid().ToString('N')
+            $evidence = Join-Path -Path $TestDrive -ChildPath "$name-evidence"
+            Write-OperationEvidence -Directory (Join-Path -Path $evidence -ChildPath 'migration') -Events (New-InterruptedJournal)
+            if ($RollbackJournal) {
+                $records = @(
+                    [PSCustomObject]@{ Utc = '2026-11-05T10:00:00.0000000+00:00'; OperationId = $Script:operationId; Phase = 'RollbackInspection'; Event = 'RollbackStarted'; Data = $null }
+                    [PSCustomObject]@{ Utc = '2026-11-05T10:00:01.0000000+00:00'; OperationId = $Script:operationId; Phase = 'TimezoneMetadata'; Event = 'WriteIntent'; Data = [PSCustomObject]@{ ChangeKey = 'CK-2'; Send = $false } }
+                    [PSCustomObject]@{ Utc = '2026-11-05T10:00:02.0000000+00:00'; OperationId = $Script:operationId; Phase = 'TimezoneMetadata'; Event = 'WriteAcknowledged'; Data = [PSCustomObject]@{ ChangeKey = 'CK-3' } }
+                    if ($PendingRollbackWrite) {
+                        [PSCustomObject]@{ Utc = '2026-11-05T10:00:03.0000000+00:00'; OperationId = $Script:operationId; Phase = 'MasterDates'; Event = 'WriteIntent'; Data = [PSCustomObject]@{ ChangeKey = 'CK-3'; Send = $false } }
+                    }
+                )
+                $reconcileRun = Join-Path -Path $evidence -ChildPath 'reconcile\user'
+                $null = New-Item -ItemType Directory -Path $reconcileRun -Force
+                Write-ExOPDurableText -Path (Join-Path -Path $reconcileRun -ChildPath 'details.jsonl') `
+                    -Text ((@($records | ForEach-Object { ConvertTo-Json -InputObject $_ -Depth 5 -Compress }) -join "`r`n") + "`r`n")
+            } else {
+                Write-ExOPDurableText -Path (Join-Path -Path $evidence -ChildPath 'migration\details.jsonl') -Append -Text ((ConvertTo-Json -Compress -InputObject (
+                            New-JournalRecord -EventName 'WriteIntent' -Phase 'MasterDates' -Data ([PSCustomObject]@{ ChangeKey = 'CK-2'; Send = $false }))) + "`r`n")
+            }
+            $Script:result = Invoke-TestReconcile -Name $name -Apply
+        }
+
+        It 'Ends with <Outcome>' {
+            if ($Outcome -eq 'Restored') {
+                $Script:result.Status | Should -BeExactly 'RolledBack'
+                $Script:result.CalendarState | Should -BeExactly 'OriginalVerified'
+                Should -Invoke Set-ExOPSeriesTimeZoneState -Times 1 -Exactly -Scope Context
+            } else {
+                $Script:result.Status | Should -BeExactly 'Critical'
+                $Script:result.RollbackError | Should -BeExactly 'The item times or time zones changed outside this operation; the item was not overwritten.'
+                Should -Invoke Set-ExOPSeriesTimeZoneState -Times 0 -Exactly -Scope Context
+            }
+        }
+
+        It 'Records the earlier rollback in the reconcile baseline' {
+            $baseline = @(Get-RunJournal -Directory $Script:logDirectory | Where-Object Event -EQ 'ReconcileBaseline')
+            $baseline[0].Data.RollbackInProgress | Should -Be $RollbackJournal
+            if ($RollbackJournal) { $baseline[0].Data.JournalLastChangeKey | Should -BeExactly 'CK-3' }
         }
     }
 

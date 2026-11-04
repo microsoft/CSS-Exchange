@@ -1,6 +1,8 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+$script:ExOPJournalCache = @{}
+
 function Find-ExOPOperationEvidence {
     <#
         Locates the evidence that an interrupted migration saved before it changed the item:
@@ -25,19 +27,34 @@ function Find-ExOPOperationEvidence {
     $folder = $before[0].DirectoryName
     $afterPath = Join-Path -Path $folder -ChildPath "$OperationId-after.json"
     $journalPath = Join-Path -Path $folder -ChildPath 'details.jsonl'
-    $events = @(
-        if (Test-Path -LiteralPath $journalPath -PathType Leaf) {
-            $records = [IO.File]::ReadAllText($journalPath, [Text.UTF8Encoding]::new($false)).Split("`n")
-            # Each record is appended with its line terminator. A process stopped during an append leaves an
-            # unterminated tail; its intent was never durable, so no request was sent for it.
-            for ($index = 0; $index -lt $records.Count - 1; $index++) {
-                $line = $records[$index].TrimEnd("`r")
-                if (-not $line) { continue }
-                $record = $line | ConvertFrom-Json
-                if ($record.OperationId -ceq $OperationId) { $record }
+    # An interrupted Reconcile journals its rollback writes in its own run folder. Records of this operation are
+    # therefore collected from every journal below the search directories and ordered by time.
+    $journals = New-Object 'System.Collections.Generic.Dictionary[string,IO.FileInfo]' ([StringComparer]::OrdinalIgnoreCase)
+    foreach ($directory in $SearchDirectory) {
+        foreach ($file in @(Get-ChildItem -LiteralPath $directory -Recurse -File -Filter 'details.jsonl' -ErrorAction Stop)) {
+            $journals[$file.FullName] = $file
+        }
+    }
+    $entries = @(
+        foreach ($file in $journals.Values) {
+            $line = 0
+            foreach ($record in (Read-ExOPJournalRecords -File $file)) {
+                $line++
+                if ($record.OperationId -cne $OperationId) { continue }
+                $utc = $record.PSObject.Properties['Utc']
+                # PowerShell 7 reads ISO timestamps from JSON as DateTime values, Windows PowerShell 5.1 as strings.
+                $time = if ($null -eq $utc -or $null -eq $utc.Value) { [DateTimeOffset]::MinValue }
+                elseif ($utc.Value -is [DateTime]) { [DateTimeOffset]$utc.Value }
+                elseif ($utc.Value -is [DateTimeOffset]) { $utc.Value }
+                else { ConvertTo-ExOPInstant -Value ([string]$utc.Value) }
+                [PSCustomObject]@{
+                    Utc = $time.UtcDateTime
+                    Original = $file.FullName -eq $journalPath; File = $file.FullName; Line = $line; Record = $record
+                }
             }
         }
     )
+    $events = @($entries | Sort-Object -Property Utc, @{ Expression = 'Original'; Descending = $true }, File, Line | ForEach-Object { $_.Record })
     [PSCustomObject]@{
         BeforePath  = $before[0].FullName
         Before      = Get-Content -LiteralPath $before[0].FullName -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -45,6 +62,30 @@ function Find-ExOPOperationEvidence {
         JournalPath = if (Test-Path -LiteralPath $journalPath -PathType Leaf) { $journalPath } else { '' }
         Events      = $events
     }
+}
+
+function Read-ExOPJournalRecords {
+    <#
+        Parses the complete records of one journal. Each record is appended with its line terminator; a process
+        stopped during an append leaves an unterminated tail whose intent was never durable, so no request was
+        sent for it. Parsed journals are cached until the file changes.
+    #>
+    param (
+        [IO.FileInfo]
+        $File
+    )
+    $stamp = '{0}|{1}' -f $File.Length, $File.LastWriteTimeUtc.Ticks
+    $cached = $script:ExOPJournalCache[$File.FullName]
+    if ($null -ne $cached -and $cached.Stamp -ceq $stamp) { return , $cached.Records }
+    $lines = [IO.File]::ReadAllText($File.FullName, [Text.UTF8Encoding]::new($false)).Split("`n")
+    $records = @(
+        for ($index = 0; $index -lt $lines.Count - 1; $index++) {
+            $line = $lines[$index].TrimEnd("`r")
+            if ($line) { $line | ConvertFrom-Json }
+        }
+    )
+    $script:ExOPJournalCache[$File.FullName] = [PSCustomObject]@{ Stamp = $stamp; Records = $records }
+    , $records
 }
 
 function Get-ExOPJournalWriteState {
@@ -59,10 +100,12 @@ function Get-ExOPJournalWriteState {
     $state = [PSCustomObject]@{
         LastChangeKey = ''; AcknowledgedWrites = 0; WriteAttempted = $false; LastWriteUnknown = $false
         MetadataWritten = $false; DatesWritten = $false; NotificationAttempted = $false; NotificationRejected = $false; NotificationRejectionCode = ''; Plan = $null
+        RollbackStarted = $false
     }
     foreach ($record in $Events) {
         switch ($record.Event) {
             'PlanValidated' { $state.Plan = $record.Data }
+            'RollbackStarted' { $state.RollbackStarted = $true }
             'WriteIntent' {
                 $state.WriteAttempted = $true
                 $state.LastWriteUnknown = $true
@@ -247,7 +290,7 @@ function Invoke-ExOPCalendarMigrationReconcile {
                             RollingBack=$false; IsSeries=($saved.Input.RecordType -eq 'RecurringSeries'); Before=$saved.Snapshot
                             Values=$saved.Values; Prepared=$null; OriginalStateHash=(Get-ExOPCalendarStateHash -Snapshot $saved.Snapshot)
                             VerifiedTargetHash=$verifiedTargetHash; JournalChangeKey=[string]$writes.LastChangeKey
-                            NotificationRejected =$writes.NotificationRejectionCode
+                            NotificationRejected =$writes.NotificationRejectionCode; RollbackInProgress=$writes.RollbackStarted
                         }
                         Write-ExOPMigrationAudit -Run $run -Mailbox $mailbox -OperationId $marker.OperationId -Phase 'Reconcile' `
                             -EventName 'ReconcileBaseline' -Data ([ordered]@{
@@ -255,7 +298,7 @@ function Invoke-ExOPCalendarMigrationReconcile {
                                 JournalLastChangeKey=$writes.LastChangeKey; CurrentChangeKey=$currentKey
                                 AcknowledgedWrites=$writes.AcknowledgedWrites; LastWriteUnknown=$writes.LastWriteUnknown
                                 MetadataWritten=$writes.MetadataWritten; DatesWritten=$writes.DatesWritten
-                                NotificationRejected=$writes.NotificationRejectionCode; VerifiedTargetHash=$verifiedTargetHash
+                                NotificationRejected=$writes.NotificationRejectionCode; VerifiedTargetHash=$verifiedTargetHash; RollbackInProgress=$writes.RollbackStarted
                             })
                         if (-not $Apply) {
                             $result.Status = 'Preview'
@@ -323,7 +366,9 @@ function Invoke-ExOPCalendarMigrationReconcile {
                                 CompletedUtc=[DateTimeOffset]::UtcNow.ToString('o'); Reconciled=$true
                             }
                             $operation.Phase = 'FinalizeReceipt'
-                            Set-ExOPFinalMigrationState -Session $Session -Mailbox $mailbox -Item $item -Receipt $receipt
+                            # A notification may have been delivered, so attendee responses can still update the item.
+                            Set-ExOPVerifiedFinalMigrationState -Session $Session -Mailbox $mailbox -ItemId $itemId -Item $item `
+                                -Receipt $receipt -TargetHash $targetHash
                             $item = Get-ExOPCalendarItem -Session $Session -Mailbox $mailbox -ItemId $itemId
                             $zone = $item.SelectSingleNode('t:StartTimeZone', (Get-ExOPNamespaceManager -Node $item)).GetAttribute('Id')
                             $final = Get-ExOPItemSnapshot -Session $Session -Mailbox $mailbox -Item $item -From $zone -To $zone
@@ -359,6 +404,6 @@ function Invoke-ExOPCalendarMigrationReconcile {
             Write-Output -InputObject $result
             if ($run.LoggingFailed) { break }
         }
-        Update-ExOPMigrationSummary -Run $run
+        Update-ExOPFinalMigrationSummary -Run $run
     }
 }

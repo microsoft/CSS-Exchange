@@ -277,6 +277,8 @@ function Complete-ExOPMigrationResult {
     )
     $Result.FinishedUtc = [DateTimeOffset]::UtcNow.ToString('o')
     $Run.Results.Add($Result)
+    # Once audit storage failed, no further output is attempted; the caller still returns the result and stops.
+    if ($Run.LoggingFailed) { return }
     try {
         Write-ExOPMigrationAudit -Run $Run -Mailbox $Result.Mailbox -OperationId $Result.OperationId `
             -Phase $Result.Phase -EventName 'ObjectResult' -Data $Result
@@ -285,8 +287,27 @@ function Complete-ExOPMigrationResult {
         }
     } catch {
         $Run.LoggingFailed = $true
-        $_.Exception.Data['AuditStorageFailure'] = $true
-        throw
+        if ($null -ne $Result.PSObject.Properties['Error']) {
+            $Result.Error = ([string]$Result.Error + ' Audit storage failed: ' + $_.Exception.Message).Trim()
+        }
+        Write-Warning ('Audit storage failed; no further items are changed: ' + $_.Exception.Message)
+    }
+}
+
+function Update-ExOPFinalMigrationSummary {
+    <#
+        Final summary refresh. A storage failure here must not hide the results already returned or the
+        exit code that reflects them.
+    #>
+    [CmdletBinding()]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Writes explicitly requested local audit output; mailbox ShouldProcess is enforced separately.')]
+    param (
+        $Run
+    )
+    try { Update-ExOPMigrationSummary -Run $Run }
+    catch {
+        $Run.LoggingFailed = $true
+        Write-Warning ('The summary files could not be updated: ' + $_.Exception.Message)
     }
 }
 

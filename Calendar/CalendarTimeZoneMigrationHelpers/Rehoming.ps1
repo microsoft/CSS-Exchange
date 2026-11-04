@@ -1135,7 +1135,10 @@ function Assert-ExOPRollbackEndpoints {
         [Xml.XmlNode]
         $Item,
 
-        $Values
+        $Values,
+
+        [switch]
+        $AllowRollbackIntermediate
     )
     $ns = Get-ExOPNamespaceManager $Item
     $start = ConvertTo-ExOPInstant (Get-ExOPText $Item 't:Start')
@@ -1144,12 +1147,14 @@ function Assert-ExOPRollbackEndpoints {
     $endZone = $Item.SelectSingleNode('t:EndTimeZone', $ns).GetAttribute('Id')
     # Each write sets both times together and both zones together, and the time zone metadata is written before
     # the dates. Valid states are therefore: original times and zones, original times with new zones, or new times
-    # and zones. A partial or other combination may be a user's change.
+    # and zones. A rollback that was itself interrupted can also leave new times with the original zones.
+    # A partial or other combination may be a user's change.
     $originalTimes = $start -eq (ConvertTo-ExOPInstant $Values.StartUtc) -and $end -eq (ConvertTo-ExOPInstant $Values.EndUtc)
     $newTimes = $start -eq (ConvertTo-ExOPInstant $Values.NewStartUtc) -and $end -eq (ConvertTo-ExOPInstant $Values.NewEndUtc)
     $originalZones = $startZone -eq $Values.StartZone -and $endZone -eq $Values.EndZone
     $newZones = $startZone -eq $Values.NewStartZone -and $endZone -eq $Values.NewEndZone
-    if (-not (($originalTimes -and ($originalZones -or $newZones)) -or ($newTimes -and $newZones))) {
+    if (-not (($originalTimes -and ($originalZones -or $newZones)) -or ($newTimes -and $newZones) -or
+            ($AllowRollbackIntermediate -and $newTimes -and $originalZones))) {
         throw 'The item times or time zones changed outside this operation; the item was not overwritten.'
     }
 }
@@ -1206,6 +1211,57 @@ function Set-ExOPFinalMigrationState {
     }
     if ($updates.Count -gt 0) {
         $null = Set-ExOPCalendarFields -Session $Session -Mailbox $Mailbox -Item $Item -Updates $updates -PassThru
+    }
+}
+
+function Set-ExOPVerifiedFinalMigrationState {
+    <#
+        Writes the final bookkeeping after a meeting update was sent. Attendee responses, for example a room's
+        automatic acceptance, update the organizer's item and its ChangeKey without changing the calendar data.
+        A newer key is accepted only while the state hash still proves the verified target state.
+    #>
+    [CmdletBinding()]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Private writer within the public migration ShouldProcess boundary.')]
+    param (
+        $Session,
+
+        [string]
+        $Mailbox,
+
+        [string]
+        $ItemId,
+
+        [Xml.XmlNode]
+        $Item,
+
+        $Receipt,
+
+        [string]
+        $TargetHash,
+
+        [int]
+        $MaxAttempts = 3
+    )
+    $operation = $Session.ActiveOperation
+    for ($attempt = 1; ; $attempt++) {
+        $ns = Get-ExOPNamespaceManager -Node $Item
+        $key = $Item.SelectSingleNode('t:ItemId', $ns).GetAttribute('ChangeKey')
+        if ($key -cne $operation.LastChangeKey) {
+            $zone = $Item.SelectSingleNode('t:StartTimeZone', $ns).GetAttribute('Id')
+            $current = Get-ExOPItemSnapshot -Session $Session -Mailbox $Mailbox -Item $Item -From $zone -To $zone
+            if ((Get-ExOPCalendarStateHash -Snapshot $current) -cne $TargetHash) { throw 'The verified state changed before finalization.' }
+            Write-ExOPMigrationAudit -Run $operation.Run -Mailbox $Mailbox -OperationId $operation.OperationId -Phase $operation.Phase `
+                -EventName 'VerifiedTargetKeyAccepted' -Data ([ordered]@{ PreviousChangeKey = $operation.LastChangeKey; ChangeKey = $key })
+            $operation.LastChangeKey = $key
+        }
+        try {
+            Set-ExOPFinalMigrationState -Session $Session -Mailbox $Mailbox -Item $Item -Receipt $Receipt
+            return
+        } catch {
+            # A response processed between the read and the write makes Exchange reject the stale key.
+            if ($attempt -ge $MaxAttempts -or [string]$_.Exception.Data['EwsResponseCode'] -ne 'ErrorIrresolvableConflict') { throw }
+            $Item = Get-ExOPCalendarItem -Session $Session -Mailbox $Mailbox -ItemId $ItemId
+        }
     }
 }
 
@@ -1272,7 +1328,8 @@ function Invoke-ExOPPreSendRollback {
             if (-not [bool]$Operation.LastWriteUnknown) {
                 throw 'The item changed after the last acknowledged write of this operation; it was not overwritten.'
             }
-            Assert-ExOPRollbackEndpoints -Item $item -Values $Operation.Values
+            $rollbackInProgress = $null -ne $Operation.PSObject.Properties['RollbackInProgress'] -and [bool]$Operation.RollbackInProgress
+            Assert-ExOPRollbackEndpoints -Item $item -Values $Operation.Values -AllowRollbackIntermediate:$rollbackInProgress
         }
         Assert-ExOPPreservedItemData -Session $Session -Mailbox $Operation.Mailbox -Item $item -Snapshot $Operation.Before
         if ($Operation.IsSeries) {
@@ -1452,7 +1509,10 @@ function Invoke-ExOPCalendarEventMigration {
             }
             $Session.ActiveOperation = $null
             try {
-                if ($run.LoggingFailed) { throw 'Audit storage is unavailable; no additional writes are allowed.' }
+                if ($run.LoggingFailed) {
+                    $result.Status = 'NotAttempted'
+                    throw 'Audit storage is unavailable; no additional writes are allowed.'
+                }
                 if ($blocked.ContainsKey($mailbox)) {
                     $result.Status = 'NotAttempted'
                     throw ('Mailbox processing is suspended: ' + $blocked[$mailbox])
@@ -1468,14 +1528,11 @@ function Invoke-ExOPCalendarEventMigration {
                     $result.Status = 'NotAttempted'
                     throw
                 }
-                $from=[string]$row.FromWindowsTimeZoneId
-                $to=$ToWindowsTimeZoneId
+                $from = Resolve-ExOPWindowsTimeZoneId -Id ([string]$row.FromWindowsTimeZoneId)
+                $result.From = $from
+                $to = Resolve-ExOPWindowsTimeZoneId -Id $ToWindowsTimeZoneId
                 $result.To=$to
                 if ($from -eq $to) { throw 'Source and target timezone IDs must differ.' }
-                foreach ($zoneId in $from, $to) {
-                    try { $null = [TimeZoneInfo]::FindSystemTimeZoneById($zoneId) }
-                    catch { throw "The time zone '$zoneId' does not exist on this computer. Install the current Windows time zone update here and on all Exchange servers." }
-                }
                 if (-not $calendarIds.ContainsKey($row.Mailbox)) { $calendarIds[$row.Mailbox]=Get-ExOPDefaultCalendarId $Session $row.Mailbox }
                 $item=Get-ExOPCalendarItem $Session $row.Mailbox $row.ItemId
                 $ns=Get-ExOPNamespaceManager $item
@@ -1678,7 +1735,12 @@ function Invoke-ExOPCalendarEventMigration {
                             O12Modes=$prepared.O12Modes; ExceptionModes=$exceptionModes; CompletedUtc=[DateTimeOffset]::UtcNow.ToString('o')
                         }
                         $operation.Phase = 'FinalizeReceipt'
-                        Set-ExOPFinalMigrationState -Session $Session -Mailbox $mailbox -Item $verified -Receipt $receipt
+                        if ($result.NotificationStatus -eq 'SendAcknowledged') {
+                            Set-ExOPVerifiedFinalMigrationState -Session $Session -Mailbox $mailbox -ItemId $itemId -Item $verified `
+                                -Receipt $receipt -TargetHash $operation.VerifiedTargetHash
+                        } else {
+                            Set-ExOPFinalMigrationState -Session $Session -Mailbox $mailbox -Item $verified -Receipt $receipt
+                        }
                         $verified = Get-ExOPCalendarItem -Session $Session -Mailbox $mailbox -ItemId $itemId
                         if ($null -ne (Get-ExOPMigrationState -Item $verified) -or
                             (Get-ExOPMigrationReceipt -Item $verified).OperationId -cne $result.OperationId) {
@@ -1730,6 +1792,6 @@ function Invoke-ExOPCalendarEventMigration {
             Complete-ExOPMigrationResult -Run $run -Result $result
             Write-Output -InputObject $result
         }
-        Update-ExOPMigrationSummary -Run $run
+        Update-ExOPFinalMigrationSummary -Run $run
     }
 }

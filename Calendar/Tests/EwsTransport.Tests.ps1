@@ -348,13 +348,17 @@ Describe 'Testing EwsTransport.ps1' {
             }
             $session = [PSCustomObject]@{ Diagnostics = New-Object 'System.Collections.Generic.List[object]' }
             $start = [DateTimeOffset]::Parse('2026-11-01T00:00:00Z', [Globalization.CultureInfo]::InvariantCulture)
-            $Script:rows = @(Get-ExOPCalendarMigrationReport -Session $session -Mailbox 'user@contoso.com' -FromWindowsTimeZoneId 'Pacific Standard Time' -QueryStartDate $start)
+            $Script:rows = @(Get-ExOPCalendarMigrationReport -Session $session -Mailbox 'user@contoso.com' -FromWindowsTimeZoneId 'pacific STANDARD time' -QueryStartDate $start)
         }
 
         It 'Returns both items without conflating identifiers that differ only by case' {
             $Script:rows | Should -HaveCount 2
             @($Script:rows | Where-Object { $_.ItemId -ceq $Expected[0] }) | Should -HaveCount 1
             @($Script:rows | Where-Object { $_.ItemId -ceq $Expected[1] }) | Should -HaveCount 1
+        }
+
+        It 'Writes the server''s exact source time zone ID, not the spelling typed by the operator' {
+            @($Script:rows | Where-Object { $_.FromWindowsTimeZoneId -cne 'Pacific Standard Time' }) | Should -HaveCount 0
         }
 
         It 'Never contacts Exchange' {

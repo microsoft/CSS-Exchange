@@ -55,7 +55,8 @@
 .PARAMETER Reconcile
     Resolves items that still carry an in-progress marker from an interrupted run.
 .PARAMETER SearchDirectory
-    The LogDirectory (or directories) of the interrupted run. Used with -Reconcile.
+    The LogDirectory (or directories) of the interrupted run. Used with -Reconcile. Include the LogDirectory of an
+    interrupted earlier -Reconcile run as well; all journals below these directories are read.
 .PARAMETER ResendNotification
     With -Reconcile: resend the meeting update for an item whose update may not have been delivered.
 .PARAMETER Credential

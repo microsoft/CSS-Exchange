@@ -907,6 +907,112 @@ Describe 'Testing Rehoming.ps1' {
         }
     }
 
+    Context 'Final receipt after a sent meeting update when <Name>' -ForEach @(
+        @{ Name = 'the key is unchanged'; InitialKey = 'CK-sent'; StateMatches = $true; Conflicts = 0; ErrorText = ''; Updates = 1; Snapshots = 0; Accepted = 0; Reads = 0 }
+        @{ Name = 'a response changed the key'; InitialKey = 'CK-response'; StateMatches = $true; Conflicts = 0; ErrorText = ''; Updates = 1; Snapshots = 1; Accepted = 1; Reads = 0 }
+        @{ Name = 'a response arrives between the read and the write'; InitialKey = 'CK-sent'; StateMatches = $true; Conflicts = 1; ErrorText = ''; Updates = 2; Snapshots = 1; Accepted = 1; Reads = 1 }
+        @{ Name = 'calendar data changed with the key'; InitialKey = 'CK-response'; StateMatches = $false; Conflicts = 0; ErrorText = 'The verified state changed before finalization.'; Updates = 0; Snapshots = 1; Accepted = 0; Reads = 0 }
+        @{ Name = 'conflicts persist'; InitialKey = 'CK-sent'; StateMatches = $true; Conflicts = 5; ErrorText = 'EWS `[ErrorIrresolvableConflict`]*'; Updates = 3; Snapshots = 2; Accepted = 2; Reads = 2 }
+    ) {
+        BeforeAll {
+            $Script:receiptServer = [PSCustomObject]@{ Key = $InitialKey; Conflicts = $Conflicts; Responses = 0 }
+            function New-ReceiptItem {
+                (New-CalendarItemXml -InnerXml ('<t:ItemId Id="item-1" ChangeKey="' + $Script:receiptServer.Key + '"/><t:Subject>Weekly sync</t:Subject>' +
+                    '<t:StartTimeZone Id="Mountain Standard Time"/><t:EndTimeZone Id="Mountain Standard Time"/>')).DocumentElement
+            }
+            function New-ReceiptSnapshot {
+                param([string]$Subject)
+                [PSCustomObject]@{
+                    Xml = '<t:CalendarItem xmlns:t="' + $script:TypesNamespace + '"><t:Subject>' + $Subject + '</t:Subject>' +
+                    '<t:StartTimeZone Id="Mountain Standard Time"/><t:EndTimeZone Id="Mountain Standard Time"/></t:CalendarItem>'
+                    TimeZoneProperties = @(); Attachments = @(); Deleted = @(); Modified = @()
+                }
+            }
+            $Script:receiptTargetHash = Get-ExOPCalendarStateHash -Snapshot (New-ReceiptSnapshot -Subject 'Weekly sync')
+            $Script:receiptMatches = $StateMatches
+            Mock Get-ExOPCalendarItem { Write-Output -InputObject (New-ReceiptItem) -NoEnumerate }
+            Mock Get-ExOPItemSnapshot { if ($Script:receiptMatches) { New-ReceiptSnapshot -Subject 'Weekly sync' } else { New-ReceiptSnapshot -Subject 'Edited' } }
+            Mock Invoke-ExOPEwsRequest {
+                if ($Body -notlike '*<m:UpdateItem *') { throw 'Unexpected EWS request in an offline test.' }
+                if ($Script:receiptServer.Conflicts -gt 0) {
+                    $Script:receiptServer.Conflicts--
+                    $Script:receiptServer.Responses++
+                    $Script:receiptServer.Key = 'CK-response-' + $Script:receiptServer.Responses
+                    throw (New-EwsFailure -Code 'ErrorIrresolvableConflict')
+                }
+                New-UpdateItemResponse -ChangeKey 'CK-final'
+            }
+            $run = New-ExOPMigrationRun -Directory (Join-Path -Path $TestDrive -ChildPath ('receipt-' + [Guid]::NewGuid().ToString('N'))) `
+                -Rows @([PSCustomObject]@{ Mailbox = 'user@contoso.com'; RecordType = 'Single' }) -Apply $true
+            $Script:receiptRun = $run
+            $session = New-ExOPCalendarSession -EwsUrl 'https://mail.contoso.com/EWS/Exchange.asmx'
+            $session.ActiveOperation = [PSCustomObject]@{
+                Run = $run; OperationId = 'receipt-op'; Mailbox = 'user@contoso.com'; ItemId = 'item-1'; Phase = 'FinalizeReceipt'
+                LastChangeKey = 'CK-sent'; AcknowledgedWrites = 4; WriteAttempted = $true; LastWriteUnknown = $false; NotificationStarted = $true
+            }
+            $receipt = [PSCustomObject]@{ SchemaVersion = 1; OperationId = 'receipt-op'; StateHash = $Script:receiptTargetHash; StateHashVersion = 5 }
+            $Script:receiptError = ''
+            try {
+                Set-ExOPVerifiedFinalMigrationState -Session $session -Mailbox 'user@contoso.com' -ItemId 'item-1' -Item (New-ReceiptItem) `
+                    -Receipt $receipt -TargetHash $Script:receiptTargetHash
+            } catch { $Script:receiptError = $_.Exception.Message }
+            $Script:receiptOperation = $session.ActiveOperation
+        }
+
+        It 'Ends as expected' {
+            if ($ErrorText) { $Script:receiptError | Should -BeLike $ErrorText }
+            else {
+                $Script:receiptError | Should -BeExactly ''
+                $Script:receiptOperation.LastChangeKey | Should -BeExactly 'CK-final'
+            }
+        }
+
+        It 'Writes the receipt <Updates> time(s) with the proven key' {
+            Should -Invoke Invoke-ExOPEwsRequest -Times $Updates -Exactly -Scope Context
+            if ($Updates -gt 0 -and -not $ErrorText) {
+                $Script:expectedReceiptKey = if ($Conflicts -gt 0) { 'CK-response-' + $Conflicts } else { $InitialKey }
+                Should -Invoke Invoke-ExOPEwsRequest -Times 1 -Exactly -Scope Context -ParameterFilter { $Body -like ('*ChangeKey="' + $Script:expectedReceiptKey + '"*') }
+            }
+        }
+
+        It 'Accepts a new key only after proving the verified state' {
+            Should -Invoke Get-ExOPItemSnapshot -Times $Snapshots -Exactly -Scope Context
+            Should -Invoke Get-ExOPCalendarItem -Times $Reads -Exactly -Scope Context
+            $events = @(Get-ChildItem -LiteralPath $Script:receiptRun.Directory -Recurse -Filter 'details.jsonl' |
+                    ForEach-Object { [IO.File]::ReadAllLines($_.FullName) } | ForEach-Object { $_ | ConvertFrom-Json } |
+                    Where-Object Event -EQ 'VerifiedTargetKeyAccepted')
+            $events | Should -HaveCount $Accepted
+        }
+    }
+
+    Context 'Audit storage failure during a migration run' {
+        BeforeAll {
+            $session = New-ExOPCalendarSession -EwsUrl 'https://mail.contoso.com/EWS/Exchange.asmx'
+            $directory = Join-Path -Path $TestDrive -ChildPath 'storage-failure'
+            Mock Write-ExOPDurableText { throw 'The disk is full.' } -ParameterFilter { $Path -like '*details.jsonl' }
+            $rows = @(
+                [PSCustomObject]@{ Mailbox = 'user@contoso.com'; ItemId = 'item-1' }
+                [PSCustomObject]@{ Mailbox = 'user@contoso.com'; ItemId = 'item-2' }
+            )
+            $Script:storageError = ''
+            try {
+                $Script:storageResults = @(Invoke-ExOPCalendarEventMigration -Session $session -InputObject $rows -ToWindowsTimeZoneId 'Mountain Standard Time' `
+                        -Apply -LogDirectory $directory -Confirm:$false -WarningAction SilentlyContinue)
+            } catch { $Script:storageError = $_.Exception.Message }
+        }
+
+        It 'Returns a result for every row instead of failing' {
+            $Script:storageError | Should -BeExactly ''
+            $Script:storageResults | Should -HaveCount 2
+            $Script:storageResults[0].Error | Should -BeLike '*Audit storage failed: *The disk is full.*'
+        }
+
+        It 'Changes nothing after the failure' {
+            $Script:storageResults[1].Status | Should -BeExactly 'NotAttempted'
+            $Script:storageResults[1].Error | Should -BeLike 'Audit storage is unavailable*'
+        }
+    }
+
     Context 'Invoke-ExOPCalendarEventMigration notification outcome: <Name>' -ForEach @(
         @{ Name = 'send rejected with ErrorSendAsDenied'; Attendees = $true; FailureCode = 'ErrorSendAsDenied'; SendFails = $true; Status = 'RolledBack'; NotificationStatus = 'NotSent'; RollbackStatus = 'Verified'; RollbackCalls = 1; ErrorCode = 'ErrorSendAsDenied' }
         @{ Name = 'send rejected with ErrorInvalidRecipients'; Attendees = $true; FailureCode = 'ErrorInvalidRecipients'; SendFails = $true; Status = 'RolledBack'; NotificationStatus = 'NotSent'; RollbackStatus = 'Verified'; RollbackCalls = 1; ErrorCode = 'ErrorInvalidRecipients' }
@@ -969,8 +1075,13 @@ Describe 'Testing Rehoming.ps1' {
                 StartUtc = '2026-11-09T18:00:00Z'; EndUtc = '2026-11-09T19:00:00Z'
             }
             $Script:migrationLogDirectory = Join-Path -Path $TestDrive -ChildPath ('migration-' + [Guid]::NewGuid().ToString('N'))
-            $Script:migrationResult = Invoke-ExOPCalendarEventMigration -Session $session -InputObject $row -ToWindowsTimeZoneId 'Mountain Standard Time' `
+            $Script:migrationResult = Invoke-ExOPCalendarEventMigration -Session $session -InputObject $row -ToWindowsTimeZoneId 'mountain STANDARD time' `
                 -Apply -LogDirectory $Script:migrationLogDirectory -Confirm:$false -WarningAction SilentlyContinue
+        }
+
+        It 'Uses the exact Windows time zone ID, not the spelling typed by the operator' {
+            $Script:migrationResult.To | Should -BeExactly 'Mountain Standard Time'
+            Should -Invoke Set-ExOPFinalMigrationState -Times ([int]($Status -eq 'Applied')) -Exactly -Scope Context -ParameterFilter { $Receipt.ToZone -ceq 'Mountain Standard Time' }
         }
 
         It 'Ends with status <Status>, notification <NotificationStatus> and rollback <RollbackStatus>' {

@@ -583,6 +583,17 @@ Describe 'Testing CalendarTimeZoneData.ps1' {
         }
     }
 
+    Context 'Resolve-ExOPWindowsTimeZoneId' {
+        It 'Returns the exact ID for <_>' -ForEach @('BRITISH COLUMBIA STANDARD TIME', 'pacific standard time', 'Pacific Standard Time') {
+            $expected = if ($_ -like 'British*') { 'British Columbia Standard Time' } else { 'Pacific Standard Time' }
+            Resolve-ExOPWindowsTimeZoneId -Id $_ | Should -BeExactly $expected
+        }
+
+        It 'Rejects an unknown ID' {
+            { Resolve-ExOPWindowsTimeZoneId -Id 'Atlantis Standard Time' } | Should -Throw -ExpectedMessage "The time zone 'Atlantis Standard Time' does not exist on this computer.*"
+        }
+    }
+
     Context 'Get-ExOPPreparedTimeZoneProperties checks a numbered series through its local last year' {
         BeforeAll {
             $Script:numberedDefinitions = @{}
