@@ -5,8 +5,6 @@ Download the latest release: [Invoke-CalendarTimeZoneMigration.ps1](https://gith
 
 Moves organizer-owned calendar items in Exchange Server (on-premises) mailboxes from one Windows time zone to another while keeping their local date and time. Use it when a region changes its time zone rules and a new Windows time zone is introduced, for example British Columbia, or when users relocate and their meetings must follow a different time zone.
 
-For Exchange Online use the `Invoke-CalendarEventMigration` cmdlet instead.
-
 ## What the script changes
 
 For each selected single item or recurring series (the whole series, including past occurrences and exceptions):
@@ -26,6 +24,12 @@ The script does not change mailbox regional settings, Windows settings, room or 
 - An HTTPS EWS URL with a certificate trusted by the computer, specified with `-EwsUrl` or found by Autodiscover. Extended Protection on EWS is supported.
 - Permission to the calendar: the owner's own credentials, a delegate with Editor permission on the owner's Calendar and Send on Behalf or Send As for the owner, or an account with a scoped ApplicationImpersonation role (`-Impersonation`). See [Delegates](#delegates).
 - The source and target time zones must exist, with identical rules, on the Exchange servers and on the computer running the script. Install the Windows time zone update on all Exchange servers (a restart may be required) and on the computer running the script first. The script compares the complete rules before it changes anything and stops if they differ.
+
+## Before you start
+
+- Back up the affected mailboxes and export their calendars to PST. Verify that you can restore them. The script's logs and snapshots are not a substitute for a backup.
+- Coordinate the migration with the organizers. Applying changes sends normal meeting updates, including to external attendees and rooms. Restoring a calendar does not undo updates already delivered to attendees.
+- Start with one or two pilot mailboxes. Review the report and preview the changes before using `-Apply`. Verify local times, recurring exceptions and attendee and room copies in the clients your organization uses before processing more mailboxes.
 
 ## Recommended procedure
 
