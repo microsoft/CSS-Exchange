@@ -22,6 +22,11 @@ param()
 Describe "Get-BaselineDependencyGraph" {
 
     BeforeAll {
+        $Script:originalGitFunction = $null
+        $gitFunction = Get-Command -Name git -CommandType Function -ErrorAction SilentlyContinue
+        if ($null -ne $gitFunction) {
+            $Script:originalGitFunction = $gitFunction.ScriptBlock
+        }
         $Script:repoRoot = (Get-Item "$PSScriptRoot\..\..\..\..").FullName
         $Script:scriptPath = Join-Path $Script:repoRoot '.github\skills\analyze-debug-files\Get-BaselineDependencyGraph.ps1'
         $Script:sha = '1111111111111111111111111111111111111111'
@@ -197,13 +202,22 @@ Describe "Get-BaselineDependencyGraph" {
         $env:TEMP = $Script:realTemp
         $env:TMP = $Script:realTmp
         Remove-Item -LiteralPath $Script:fixtureRoot -Recurse -Force -ErrorAction SilentlyContinue
-        Remove-Item -LiteralPath 'function:\global:git' -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath 'Function:\git' -ErrorAction SilentlyContinue
+        if ($null -ne $Script:originalGitFunction) {
+            ${function:global:git} = $Script:originalGitFunction
+        }
         foreach ($n in @('MockGitRepositoryRoot', 'MockGitCalls', 'MockGitCurrentPath', 'MockGitRemote', 'MockGitRemoteExit',
                 'MockGitTreeExit', 'MockGitTree', 'MockGitWorktreeAddCalled',
                 'MockGitTagSha', 'MockGitTagExit', 'MockGitWorktreeAddExit',
                 'MockGitWorktreeRemoveExit', 'MockGitWorktreeRoot', 'MockGitBuildXmlMissing',
                 'MockGitNewCacheWinner')) {
             Remove-Item -LiteralPath "env:\$n" -ErrorAction SilentlyContinue
+        }
+        $gitFunction = Get-Command -Name git -CommandType Function -ErrorAction SilentlyContinue
+        if ($null -eq $Script:originalGitFunction) {
+            $gitFunction | Should -BeNullOrEmpty
+        } else {
+            $gitFunction.ScriptBlock | Should -Be $Script:originalGitFunction
         }
     }
 

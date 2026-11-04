@@ -14,6 +14,11 @@ param()
 Describe "Assert-BaselineTrusted" {
 
     BeforeAll {
+        $Script:originalGitFunction = $null
+        $gitFunction = Get-Command -Name git -CommandType Function -ErrorAction SilentlyContinue
+        if ($null -ne $gitFunction) {
+            $Script:originalGitFunction = $gitFunction.ScriptBlock
+        }
         $Script:repoRoot = (Get-Item "$PSScriptRoot\..\..\..\..").FullName
         $Script:scriptPath = Join-Path $Script:repoRoot '.github\skills\analyze-debug-files\Assert-BaselineTrusted.ps1'
         $Script:goodSha = '1e55f00d9ae4578f15f5250811a552dd34a55f69'
@@ -70,10 +75,19 @@ Describe "Assert-BaselineTrusted" {
     }
 
     AfterAll {
-        Remove-Item -LiteralPath 'function:\global:git' -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath 'Function:\git' -ErrorAction SilentlyContinue
+        if ($null -ne $Script:originalGitFunction) {
+            ${function:global:git} = $Script:originalGitFunction
+        }
         foreach ($n in @('MockGitOrigin', 'MockGitOriginExit', 'MockGitCommitExistsExit',
                 'MockGitTagPeel', 'MockGitTagPeelExit')) {
             Remove-Item -LiteralPath "env:\$n" -ErrorAction SilentlyContinue
+        }
+        $gitFunction = Get-Command -Name git -CommandType Function -ErrorAction SilentlyContinue
+        if ($null -eq $Script:originalGitFunction) {
+            $gitFunction | Should -BeNullOrEmpty
+        } else {
+            $gitFunction.ScriptBlock | Should -Be $Script:originalGitFunction
         }
     }
 
