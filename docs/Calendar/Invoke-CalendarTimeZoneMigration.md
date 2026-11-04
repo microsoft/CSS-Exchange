@@ -134,6 +134,10 @@ Each run creates `<LogDirectory>\<RunId>` with:
 
 The logs contain calendar data and must be protected. File attachment content is not stored, only its SHA256 hash.
 
+The journal is flushed after every write event, and each completed item's result is appended to its mailbox's
+`results.csv`. Summaries and `mailboxes.csv` are finalized when the run finishes. If the process is interrupted,
+use the journal and result CSVs for progress; the summaries may still show their initial counts.
+
 | Status | Meaning |
 |---|---|
 | Applied | Changed and verified. |

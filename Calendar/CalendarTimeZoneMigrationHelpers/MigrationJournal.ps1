@@ -169,7 +169,10 @@ function Export-ExOPSafeResultsCsv {
         $Rows,
 
         [string]
-        $Path
+        $Path,
+
+        [switch]
+        $Append
     )
     if ($Rows.Count -eq 0) { return }
     $safe = foreach ($row in $Rows) {
@@ -180,8 +183,12 @@ function Export-ExOPSafeResultsCsv {
         }
         $copy
     }
-    $csv = @($safe | ConvertTo-Csv -NoTypeInformation) -join "`r`n"
-    Write-ExOPDurableText -Path $Path -Text ([string][char]0xFEFF + $csv + "`r`n")
+    $appendRows = $Append -and (Test-Path -LiteralPath $Path -PathType Leaf) -and (Get-Item -LiteralPath $Path).Length -gt 0
+    $lines = @($safe | ConvertTo-Csv -NoTypeInformation)
+    if ($appendRows) { $lines = @($lines | Select-Object -Skip 1) }
+    $text = ($lines -join "`r`n") + "`r`n"
+    if (-not $appendRows) { $text = [string][char]0xFEFF + $text }
+    Write-ExOPDurableText -Path $Path -Text $text -Append:$appendRows
 }
 
 function Update-ExOPMigrationSummary {
@@ -191,10 +198,17 @@ function Update-ExOPMigrationSummary {
         $Run
     )
     if ($null -eq $Run -or -not $Run.Directory) { return }
+    $byMailbox = @{}
+    foreach ($row in $Run.Results) {
+        if (-not $byMailbox.ContainsKey($row.Mailbox)) {
+            $byMailbox[$row.Mailbox] = New-Object 'System.Collections.Generic.List[object]'
+        }
+        $byMailbox[$row.Mailbox].Add($row)
+    }
     $overview = @(
         foreach ($mailbox in @($Run.Mailboxes.Keys | Sort-Object)) {
             $entry = $Run.Mailboxes[$mailbox]
-            $rows = @($Run.Results | Where-Object Mailbox -EQ $mailbox)
+            $rows = @(if ($byMailbox.ContainsKey($mailbox)) { $byMailbox[$mailbox].ToArray() })
             $critical = @($rows | Where-Object Severity -EQ 'Critical')
             $failed = @($rows | Where-Object { $_.Status -in 'Failed', 'RolledBack' })
             $applied = @($rows | Where-Object Status -EQ 'Applied').Count
@@ -245,7 +259,6 @@ function Update-ExOPMigrationSummary {
                     (ConvertTo-ExOPLogLine -Value $row.Subject), (ConvertTo-ExOPLogLine -Value $row.Error)) -join ' | '
             }
             Write-ExOPDurableText -Path (Join-Path $entry.Directory 'summary.txt') -Text (($summary -join "`r`n") + "`r`n")
-            Export-ExOPSafeResultsCsv -Rows $rows -Path (Join-Path $entry.Directory 'results.csv')
             [PSCustomObject]@{
                 Mailbox = $mailbox; Selected = $entry.Selected; Applied = $applied; AlreadyMigrated = $already
                 RolledBack = $rolledBack; FailedUnchanged = $unchanged; Critical = $critical.Count
@@ -264,9 +277,17 @@ function Complete-ExOPMigrationResult {
     )
     $Result.FinishedUtc = [DateTimeOffset]::UtcNow.ToString('o')
     $Run.Results.Add($Result)
-    Write-ExOPMigrationAudit -Run $Run -Mailbox $Result.Mailbox -OperationId $Result.OperationId `
-        -Phase $Result.Phase -EventName 'ObjectResult' -Data $Result
-    Update-ExOPMigrationSummary -Run $Run
+    try {
+        Write-ExOPMigrationAudit -Run $Run -Mailbox $Result.Mailbox -OperationId $Result.OperationId `
+            -Phase $Result.Phase -EventName 'ObjectResult' -Data $Result
+        if ($Run.Directory) {
+            Export-ExOPSafeResultsCsv -Rows @($Result) -Path (Join-Path $Run.Mailboxes[$Result.Mailbox].Directory 'results.csv') -Append
+        }
+    } catch {
+        $Run.LoggingFailed = $true
+        $_.Exception.Data['AuditStorageFailure'] = $true
+        throw
+    }
 }
 
 function ConvertTo-ExOPCanonicalText {

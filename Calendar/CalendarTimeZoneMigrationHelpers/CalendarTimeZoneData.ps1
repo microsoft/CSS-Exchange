@@ -98,7 +98,10 @@ function ConvertFrom-ExOPRegistryTimeZoneRaw {
     } else {
         $rules.Add([PSCustomObject]@{Year = 1; Rule = (ConvertFrom-ExOPRegistryRule -Bytes ([byte[]]$Raw.Tzi)) })
     }
-    [PSCustomObject]@{Id = $Raw.Id; Rules = $rules.ToArray(); DisplayName = $Raw.DisplayName }
+    [PSCustomObject]@{
+        Id = $Raw.Id; Rules = $rules.ToArray(); DisplayName = $Raw.DisplayName
+        BaseOffset = (ConvertFrom-ExOPRegistryRule -Bytes ([byte[]]$Raw.Tzi)).StandardOffset
+    }
 }
 
 function Get-ExOPRegistryTimeZoneData {
@@ -136,13 +139,101 @@ function Get-ExOPDefinitionLocalYear {
         $Utc
     )
     $utcDate = $Utc.UtcDateTime
-    $rule = (Get-ExOPRuleForYear -Definition $Definition -Year $utcDate.Year).Rule
-    $standardYear = $utcDate.AddMinutes($rule.StandardOffset).Year
-    $daylightYear = $utcDate.AddMinutes($rule.DaylightOffset).Year
-    if ($standardYear -eq $daylightYear) { return $standardYear }
-    # Only possible close to New Year: daylight time is active then when it starts later in the year than it ends.
-    if ($rule.Standard[1] -ne 0 -and $rule.Daylight[1] -gt $rule.Standard[1]) { return $daylightYear }
-    $standardYear
+    if (($utcDate.Month -ne 1 -or $utcDate.Day -ne 1) -and ($utcDate.Month -ne 12 -or $utcDate.Day -ne 31)) {
+        $null = Get-ExOPRuleForYear -Definition $Definition -Year $utcDate.Year
+        return $utcDate.Year
+    }
+
+    function Get-TransitionDate {
+        param (
+            [int[]]
+            $Transition,
+
+            [int]
+            $Year
+        )
+        $month = $Transition[1]
+        $days = [DateTime]::DaysInMonth($Year, $month)
+        if ($Transition[0] -eq 0) {
+            $firstDay = [DateTime]::new($Year, $month, 1)
+            $day = 1 + (($Transition[2] - [int]$firstDay.DayOfWeek + 7) % 7) + 7 * ($Transition[3] - 1)
+            if ($day -gt $days) { $day -= 7 }
+        } else {
+            $day = [Math]::Min($Transition[3], $days)
+        }
+        [DateTime]::new($Year, $month, $day, $Transition[4], $Transition[5], $Transition[6], $Transition[7])
+    }
+
+    function Get-YearRule {
+        param (
+            [int]
+            $Year
+        )
+        $rule = (Get-ExOPRuleForYear -Definition $Definition -Year $Year).Rule
+        $hasTransitions = $rule.Standard[1] -ne 0
+        if ($hasTransitions) {
+            $standard = Get-TransitionDate -Transition $rule.Standard -Year $Year
+            $daylight = Get-TransitionDate -Transition $rule.Daylight -Year $Year
+            if ($standard -eq $daylight) { throw 'Timezone transitions occur at the same local instant.' }
+            $markers = @(
+                foreach ($transition in @($rule.Daylight, $rule.Standard)) {
+                    $transition[1] -eq 1 -and ($transition[0] -eq 0 -or $transition[3] -eq 1) -and
+                    $transition[4] -eq 0 -and $transition[5] -eq 0 -and $transition[6] -eq 0
+                }
+            )
+        } else {
+            $daylight = [DateTime]::new($Year, 1, 1)
+            $standard = $daylight.AddMilliseconds(1)
+            $markers = @($true, $true)
+        }
+        [PSCustomObject]@{
+            Rule = $rule; HasTransitions = $hasTransitions
+            HasAdjustment  = $hasTransitions -or $rule.StandardOffset -ne $Definition.BaseOffset
+            DaylightOffset = if ($hasTransitions) { $rule.DaylightOffset } else { $rule.StandardOffset }
+            Standard = $standard; Daylight = $daylight; StartsWithDaylight = $markers[0]; EndsWithDaylight = $markers[1]
+        }
+    }
+
+    $year = $utcDate.AddMinutes($Definition.BaseOffset).Year
+    $current = Get-YearRule -Year $year
+    $offset = $current.Rule.StandardOffset
+    if ($current.HasTransitions) {
+        $start = $current.Daylight.AddMinutes(-$current.Rule.StandardOffset)
+        $end = $current.Standard.AddMinutes(-$current.Rule.DaylightOffset)
+        $extended = $false
+        # Windows uses January 1 midnight transitions as year-boundary markers. Adjacent rules can continue
+        # daylight time across that boundary, including fixed offsets different from the zone's base offset.
+        if ($current.StartsWithDaylight -and $year -gt 1) {
+            $previous = Get-YearRule -Year ($year - 1)
+            if ($previous.HasAdjustment -and ($previous.EndsWithDaylight -or $previous.Daylight -gt $previous.Standard)) {
+                $start = $previous.Daylight.AddMinutes(-$previous.Rule.StandardOffset)
+                $extended = $true
+            } else {
+                $start = [DateTime]::new($year, 1, 1).AddMinutes(-$current.Rule.StandardOffset)
+            }
+        }
+        if ($current.EndsWithDaylight -and $year -lt 9999) {
+            $next = Get-YearRule -Year ($year + 1)
+            if ($next.HasAdjustment -and ($next.StartsWithDaylight -or
+                    ($next.Standard -lt $next.Daylight -and -not $next.EndsWithDaylight))) {
+                $end = if ($next.StartsWithDaylight -and $next.EndsWithDaylight) {
+                    [DateTime]::new($year + 1, 12, 31).AddMinutes(-$next.DaylightOffset)
+                } else { $next.Standard.AddMinutes(-$next.DaylightOffset) }
+                $extended = $true
+            } else {
+                $end = [DateTime]::new($year + 1, 1, 1).AddTicks(-1).AddMinutes(-$current.Rule.DaylightOffset)
+            }
+        }
+        $instant = $utcDate
+        if (-not $extended) {
+            $end = $end.AddYears($start.Year - $end.Year)
+            $instant = $instant.AddYears($start.Year - $instant.Year)
+        }
+        $daylight = if ($start -gt $end) { $instant -lt $end -or $instant -ge $start }
+        else { $instant -ge $start -and $instant -lt $end }
+        if ($daylight) { $offset = $current.Rule.DaylightOffset }
+    }
+    $utcDate.AddMinutes($offset).Year
 }
 
 function ConvertFrom-ExOPServerTimeZoneData {

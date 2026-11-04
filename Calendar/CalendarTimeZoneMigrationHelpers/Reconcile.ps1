@@ -36,7 +36,7 @@ function Find-ExOPOperationEvidence {
     )
     [PSCustomObject]@{
         BeforePath  = $before[0].FullName
-        Before      = Get-Content -LiteralPath $before[0].FullName -Raw | ConvertFrom-Json
+        Before      = Get-Content -LiteralPath $before[0].FullName -Raw -Encoding UTF8 | ConvertFrom-Json
         AfterPath   = if (Test-Path -LiteralPath $afterPath -PathType Leaf) { $afterPath } else { '' }
         JournalPath = if (Test-Path -LiteralPath $journalPath -PathType Leaf) { $journalPath } else { '' }
         Events      = $events
@@ -54,7 +54,7 @@ function Get-ExOPJournalWriteState {
     )
     $state = [PSCustomObject]@{
         LastChangeKey = ''; AcknowledgedWrites = 0; WriteAttempted = $false; LastWriteUnknown = $false
-        MetadataWritten = $false; DatesWritten = $false; NotificationAttempted = $false; NotificationRejected = $false; Plan = $null
+        MetadataWritten = $false; DatesWritten = $false; NotificationAttempted = $false; NotificationRejected = $false; NotificationRejectionCode = ''; Plan = $null
     }
     foreach ($record in $Events) {
         switch ($record.Event) {
@@ -65,13 +65,19 @@ function Get-ExOPJournalWriteState {
                 if ($record.Phase -eq 'Notification' -or $record.Data.Send) {
                     $state.NotificationAttempted = $true
                     $state.NotificationRejected = $false
+                    $state.NotificationRejectionCode = ''
                 }
             }
             'NotificationRejected' {
+                if ($null -eq $record.Data -or $null -eq $record.Data.PSObject.Properties['Code'] -or
+                    $record.Data.Code -notin $script:DefinitiveSendRejectionCodes) {
+                    throw 'The journal does not contain a definitive notification rejection code.'
+                }
                 # Exchange rejected the submission with a definitive response; no update was sent.
                 $state.LastWriteUnknown = $false
                 $state.NotificationAttempted = $false
                 $state.NotificationRejected = $true
+                $state.NotificationRejectionCode = [string]$record.Data.Code
             }
             'WriteAcknowledged' {
                 $state.LastWriteUnknown = $false
@@ -216,16 +222,23 @@ function Invoke-ExOPCalendarMigrationReconcile {
                     if (-not $notificationMayHaveStarted) {
                         $result.Action = 'RestoreOriginal'
                         $result.NotificationStatus = 'NotSent'
-                        # The marker proves ownership. A crash can lose the acknowledgement of the last write, so the
-                        # current ChangeKey is the baseline; the restore still refuses changed content or exceptions.
+                        $verifiedTargetHash = ''
+                        if ($writes.NotificationRejected -and $evidence.AfterPath) {
+                            $target = Get-Content -LiteralPath $evidence.AfterPath -Raw -Encoding UTF8 | ConvertFrom-Json
+                            $verifiedTargetHash = Get-ExOPCalendarStateHash -Snapshot $target
+                        }
+                        $rollbackKey = if ($writes.NotificationRejected) { [string]$writes.LastChangeKey } else { $currentKey }
+                        # Rejected sends may save a new key without changing the verified target. Retain the acknowledged
+                        # key and target hash so rollback can distinguish that save from a concurrent edit.
                         $operation = [PSCustomObject]@{
                             Run=$run; OperationId=$marker.OperationId; Mailbox=$mailbox; ItemId=$itemId
-                            Phase='Reconcile'; LastChangeKey=$currentKey; AcknowledgedWrites=[Math]::Max(1, $writes.AcknowledgedWrites)
+                            Phase='Reconcile'; LastChangeKey=$rollbackKey; AcknowledgedWrites=[Math]::Max(1, $writes.AcknowledgedWrites)
                             WriteAttempted=$true; LastWriteUnknown=$writes.LastWriteUnknown
                             MetadataWritten=$writes.MetadataWritten; DatesWritten=$writes.DatesWritten; NotificationStarted=$false
                             RollingBack=$false; IsSeries=($saved.Input.RecordType -eq 'RecurringSeries'); Before=$saved.Snapshot
                             Values=$saved.Values; Prepared=$null; OriginalStateHash=(Get-ExOPCalendarStateHash -Snapshot $saved.Snapshot)
-                            VerifiedTargetHash =''; JournalChangeKey=[string]$writes.LastChangeKey
+                            VerifiedTargetHash=$verifiedTargetHash; JournalChangeKey=[string]$writes.LastChangeKey
+                            NotificationRejected =$writes.NotificationRejectionCode
                         }
                         Write-ExOPMigrationAudit -Run $run -Mailbox $mailbox -OperationId $marker.OperationId -Phase 'Reconcile' `
                             -EventName 'ReconcileBaseline' -Data ([ordered]@{
@@ -233,6 +246,7 @@ function Invoke-ExOPCalendarMigrationReconcile {
                                 JournalLastChangeKey=$writes.LastChangeKey; CurrentChangeKey=$currentKey
                                 AcknowledgedWrites=$writes.AcknowledgedWrites; LastWriteUnknown=$writes.LastWriteUnknown
                                 MetadataWritten=$writes.MetadataWritten; DatesWritten=$writes.DatesWritten
+                                NotificationRejected=$writes.NotificationRejectionCode; VerifiedTargetHash=$verifiedTargetHash
                             })
                         if (-not $Apply) {
                             $result.Status = 'Preview'
@@ -264,7 +278,7 @@ function Invoke-ExOPCalendarMigrationReconcile {
                         $result.NotificationStatus = 'OutcomeUnknown'
                         $result.RollbackStatus = 'ProhibitedAfterNotification'
                         if (-not $evidence.AfterPath) { throw 'No verified target snapshot exists; the state after a possible notification cannot be proven.' }
-                        $target = Get-Content -LiteralPath $evidence.AfterPath -Raw | ConvertFrom-Json
+                        $target = Get-Content -LiteralPath $evidence.AfterPath -Raw -Encoding UTF8 | ConvertFrom-Json
                         $targetHash = Get-ExOPCalendarStateHash -Snapshot $target
                         $current = Get-ExOPItemSnapshot -Session $Session -Mailbox $mailbox -Item $item -From $zone -To $zone
                         $currentHash = Get-ExOPCalendarStateHash -Snapshot $current
@@ -335,5 +349,6 @@ function Invoke-ExOPCalendarMigrationReconcile {
             Write-Output -InputObject $result
             if ($run.LoggingFailed) { break }
         }
+        Update-ExOPMigrationSummary -Run $run
     }
 }

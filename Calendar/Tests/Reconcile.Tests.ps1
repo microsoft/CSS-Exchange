@@ -71,17 +71,21 @@ BeforeAll {
     function New-ReconcileSnapshot {
         param(
             [string]
-            $Subject
+            $Subject,
+
+            [string]
+            $BodyText = 'Agenda'
         )
         [PSCustomObject]@{
             Xml                = '<t:CalendarItem xmlns:t="' + $script:TypesNamespace + '"><t:ItemId Id="item-1" ChangeKey="CK-0"/>' +
-            '<t:Subject>' + $Subject + '</t:Subject><t:Body BodyType="HTML">&lt;p&gt;Agenda&lt;/p&gt;</t:Body><t:ReminderIsSet>false</t:ReminderIsSet>' +
+            '<t:Subject>' + $Subject + '</t:Subject><t:Body BodyType="HTML">&lt;p&gt;' + $BodyText + '&lt;/p&gt;</t:Body><t:ReminderIsSet>false</t:ReminderIsSet>' +
             '<t:Start>2026-11-09T18:00:00Z</t:Start><t:End>2026-11-09T19:00:00Z</t:End><t:UID>calendar-uid-1</t:UID>' +
             '<t:StartTimeZone Id="Pacific Standard Time"/><t:EndTimeZone Id="Pacific Standard Time"/></t:CalendarItem>'
             TimeZoneProperties = @()
             Attachments        = @()
             Deleted            = @()
             Modified           = @()
+            Receipt            = $null
         }
     }
 
@@ -93,7 +97,13 @@ BeforeAll {
             [object[]]
             $Events,
 
-            $After
+            $After,
+
+            [string]
+            $Subject = 'Original',
+
+            [string]
+            $BodyText = 'Agenda'
         )
         $null = New-Item -ItemType Directory -Path $Directory -Force
         $before = [ordered]@{
@@ -105,15 +115,15 @@ BeforeAll {
                 StartZone = 'Pacific Standard Time'; EndZone = 'Pacific Standard Time'; NewStartZone = 'Mountain Standard Time'; NewEndZone = 'Mountain Standard Time'
                 StartUtc = '2026-11-09T18:00:00.0000000Z'; EndUtc = '2026-11-09T19:00:00.0000000Z'; NewStartUtc = '2026-11-09T17:00:00.0000000Z'; NewEndUtc = '2026-11-09T18:00:00.0000000Z'
             }
-            Snapshot      = New-ReconcileSnapshot -Subject 'Original'
+            Snapshot      = New-ReconcileSnapshot -Subject $Subject -BodyText $BodyText
         }
-        Set-Content -LiteralPath (Join-Path -Path $Directory -ChildPath "$($Script:operationId)-before.json") -Value (ConvertTo-Json -InputObject $before -Depth 35) -Encoding UTF8
+        Write-ExOPDurableText -Path (Join-Path -Path $Directory -ChildPath "$($Script:operationId)-before.json") -Text (ConvertTo-Json -InputObject $before -Depth 35)
         if ($null -ne $After) {
-            Set-Content -LiteralPath (Join-Path -Path $Directory -ChildPath "$($Script:operationId)-after.json") -Value (ConvertTo-Json -InputObject $After -Depth 35) -Encoding UTF8
+            Write-ExOPDurableText -Path (Join-Path -Path $Directory -ChildPath "$($Script:operationId)-after.json") -Text (ConvertTo-Json -InputObject $After -Depth 35)
         }
         if ($Events.Count -gt 0) {
             $lines = @($Events | ForEach-Object { ConvertTo-Json -InputObject $_ -Depth 10 -Compress })
-            Set-Content -LiteralPath (Join-Path -Path $Directory -ChildPath 'details.jsonl') -Value $lines -Encoding UTF8
+            Write-ExOPDurableText -Path (Join-Path -Path $Directory -ChildPath 'details.jsonl') -Text (($lines -join "`r`n") + "`r`n")
         }
     }
 
@@ -264,6 +274,7 @@ Describe 'Testing Reconcile.ps1' {
             $state = Get-ExOPJournalWriteState -Events $events
             $state.NotificationAttempted | Should -BeFalse
             $state.NotificationRejected | Should -BeTrue
+            $state.NotificationRejectionCode | Should -BeExactly 'ErrorSendAsDenied'
             $state.LastWriteUnknown | Should -BeFalse
             $state.WriteAttempted | Should -BeTrue
         }
@@ -277,6 +288,7 @@ Describe 'Testing Reconcile.ps1' {
             $state = Get-ExOPJournalWriteState -Events $events
             $state.NotificationAttempted | Should -BeTrue
             $state.NotificationRejected | Should -BeFalse
+            $state.NotificationRejectionCode | Should -BeExactly ''
             $state.LastWriteUnknown | Should -BeTrue
         }
 
@@ -292,6 +304,12 @@ Describe 'Testing Reconcile.ps1' {
             $state.NotificationRejected | Should -BeTrue
             $state.LastWriteUnknown | Should -BeFalse
             $state.LastChangeKey | Should -BeExactly 'CK-4'
+            $state.NotificationRejectionCode | Should -BeExactly 'ErrorInvalidRecipients'
+        }
+
+        It 'Rejects journal entries that do not prove a definitive send rejection' {
+            $events = @(New-JournalRecord -EventName 'NotificationRejected' -Phase 'Notification' -Data ([PSCustomObject]@{ Code = 'ErrorInternalServerError' }))
+            { Get-ExOPJournalWriteState -Events $events } | Should -Throw -ExpectedMessage '*definitive notification rejection code*'
         }
 
         It 'Keeps an attempt that was not rejected when an earlier one was' {
@@ -694,7 +712,8 @@ Describe 'Testing Reconcile.ps1' {
 
         It 'Rolls back only with -Apply and never as a started notification' {
             Should -Invoke Invoke-ExOPPreSendRollback -Times $RollbackCalls -Exactly -Scope Context -ParameterFilter {
-                $Operation.NotificationStarted -eq $false -and $Operation.LastChangeKey -ceq 'CK-current'
+                $Operation.NotificationStarted -eq $false -and $Operation.LastChangeKey -ceq 'CK-2' -and
+                $Operation.NotificationRejected -ceq 'ErrorSendAsDenied'
             }
             Should -Invoke Get-ExOPItemSnapshot -Times 0 -Exactly -Scope Context
         }
@@ -750,6 +769,104 @@ Describe 'Testing Reconcile.ps1' {
         It 'Sends the meeting update again only when attendees exist' {
             $Script:result.NotificationStatus | Should -BeExactly $NotificationStatus
             Should -Invoke Send-ExOPSeriesUpdate -Times $Sends -Exactly -Scope Context
+        }
+    }
+
+    Context 'BOM-less UTF-8 recovery evidence' {
+        BeforeAll {
+            $Script:internationalText = 'Meeting ' + [char]0x00E9 + [char]0x0416 + [char]0x6771
+            $Script:internationalSnapshot = New-ReconcileSnapshot -Subject $Script:internationalText -BodyText $Script:internationalText
+            $Script:internationalEvidence = Join-Path -Path $TestDrive -ChildPath 'international-evidence'
+            Write-OperationEvidence -Directory $Script:internationalEvidence -Events (New-InterruptedJournal -NotificationIntent) `
+                -After $Script:internationalSnapshot -Subject $Script:internationalText -BodyText $Script:internationalText
+        }
+
+        It 'Reads the original snapshot without changing non-ASCII subjects, bodies or hashes' {
+            $evidence = Find-ExOPOperationEvidence -SearchDirectory $Script:internationalEvidence -OperationId $Script:operationId
+            $bytes = [IO.File]::ReadAllBytes($evidence.BeforePath)
+            $bytes[0..2] -join ',' | Should -Not -BeExactly '239,187,191'
+            $evidence.Before.Snapshot.Xml | Should -BeExactly $Script:internationalSnapshot.Xml
+            Get-ExOPCalendarStateHash -Snapshot $evidence.Before.Snapshot |
+                Should -BeExactly (Get-ExOPCalendarStateHash -Snapshot $Script:internationalSnapshot)
+        }
+
+        It 'Finalizes an unchanged non-ASCII target after an interrupted notification' {
+            $Script:internationalFinalized = $false
+            Mock Get-ExOPCalendarItem {
+                if ($Script:internationalFinalized) { New-ReconcileItem -ChangeKey 'CK-final' -ReceiptOperationId $Script:operationId }
+                else { New-ReconcileItem -ChangeKey 'CK-current' -WithMarker -NotificationMayHaveStarted $true }
+            }
+            Mock Get-ExOPItemSnapshot { $Script:internationalSnapshot }
+            Mock Set-ExOPFinalMigrationState { $Script:internationalFinalized = $true }
+            $row = [PSCustomObject]@{ Mailbox = $Script:mailbox; ItemId = $Script:itemId; RecordType = 'Single' }
+            $result = Invoke-ExOPCalendarMigrationReconcile -Session $Script:session -InputObject $row -SearchDirectory $Script:internationalEvidence `
+                -LogDirectory (Join-Path -Path $TestDrive -ChildPath 'international-logs') -Apply -Confirm:$false -WarningAction SilentlyContinue
+            $result.Status | Should -BeExactly 'Applied'
+            $result.CalendarState | Should -BeExactly 'TargetVerified'
+            Should -Invoke Set-ExOPFinalMigrationState -Times 1 -Exactly
+            Should -Invoke Send-ExOPSeriesUpdate -Times 0 -Exactly
+        }
+    }
+
+    Context 'Rejected-send recovery with the real rollback: <Name>' -ForEach @(
+        @{ Name = 'SendAs rejection with an unchanged target'; Code = 'ErrorSendAsDenied'; Edited = $false; HasAfter = $true; Expected = 'RolledBack'; Writes = 1 }
+        @{ Name = 'recipient rejection with an unchanged target'; Code = 'ErrorInvalidRecipients'; Edited = $false; HasAfter = $true; Expected = 'RolledBack'; Writes = 1 }
+        @{ Name = 'a concurrent edit after the rejection'; Code = 'ErrorSendAsDenied'; Edited = $true; HasAfter = $true; Expected = 'Critical'; Writes = 0 }
+        @{ Name = 'missing verified-target evidence'; Code = 'ErrorSendAsDenied'; Edited = $false; HasAfter = $false; Expected = 'Critical'; Writes = 0 }
+    ) {
+        BeforeAll {
+            $Script:rejectedRestored = $false
+            $Script:rejectedMarkerCleared = $false
+            $text = 'Meeting ' + [char]0x00E9 + [char]0x0416 + [char]0x6771
+            $Script:rejectedOriginal = New-ReconcileSnapshot -Subject $text -BodyText $text
+            $target = New-ReconcileSnapshot -Subject $text -BodyText $text
+            $target.Xml = $target.Xml.Replace('2026-11-09T18:00:00Z', '2026-11-09T17:00:00Z').
+            Replace('2026-11-09T19:00:00Z', '2026-11-09T18:00:00Z').Replace('Pacific Standard Time', 'Mountain Standard Time')
+            $Script:rejectedCurrent = $target.PSObject.Copy()
+            if ($Edited) { $Script:rejectedCurrent.Xml = $Script:rejectedCurrent.Xml.Replace($text, 'Concurrent edit') }
+            Mock Get-ExOPCalendarItem {
+                New-ReconcileItem -ChangeKey 'CK-saved-before-rejection' -WithMarker:(-not $Script:rejectedMarkerCleared) -NotificationMayHaveStarted $true
+            }
+            Mock Get-ExOPItemSnapshot {
+                if ($Script:rejectedRestored) { $Script:rejectedOriginal } else { $Script:rejectedCurrent }
+            }
+            Mock Assert-ExOPPreservedItemData { }
+            Mock Assert-ExOPRehomeResult { New-ReconcileItem -ChangeKey 'CK-restored' -WithMarker }
+            Mock Set-ExOPSeriesTimeZoneState { $Script:rejectedRestored = $true }
+            Mock Set-ExOPFinalMigrationState { $Script:rejectedMarkerCleared = $true }
+            $events = @(New-InterruptedJournal -NotificationIntent) + @(
+                New-JournalRecord -EventName 'NotificationRejected' -Phase 'Notification' -Data ([PSCustomObject]@{ Code = $Code })
+            )
+            $name = 'real-rejected-' + [Guid]::NewGuid().ToString('N')
+            $after = if ($HasAfter) { $target } else { $null }
+            Write-OperationEvidence -Directory (Join-Path -Path $TestDrive -ChildPath "$name-evidence") -Events $events `
+                -After $after -Subject $text -BodyText $text
+            $Script:result = Invoke-TestReconcile -Name $name -Apply
+        }
+
+        It 'Returns <Expected> without sending another update' {
+            $Script:result.Status | Should -BeExactly $Expected
+            $Script:result.NotificationStatus | Should -BeExactly 'NotSent'
+            Should -Invoke Send-ExOPSeriesUpdate -Times 0 -Exactly -Scope Context
+        }
+
+        It 'Restores only a verified unchanged target' {
+            Should -Invoke Set-ExOPSeriesTimeZoneState -Times $Writes -Exactly -Scope Context
+            Should -Invoke Set-ExOPFinalMigrationState -Times $Writes -Exactly -Scope Context
+            if ($Writes) {
+                $Script:result.RollbackStatus | Should -BeExactly 'Verified'
+                $Script:result.CalendarState | Should -BeExactly 'OriginalVerified'
+            } else {
+                $Script:result.RollbackError | Should -BeLike '*cannot be safely reconciled*'
+            }
+        }
+
+        It 'Retains the rejection and acknowledged key in the recovery journal' {
+            $baseline = @(Get-RunJournal -Directory $Script:logDirectory | Where-Object Event -EQ 'ReconcileBaseline')
+            $baseline[0].Data.NotificationRejected | Should -BeExactly $Code
+            $baseline[0].Data.JournalLastChangeKey | Should -BeExactly 'CK-2'
+            if ($HasAfter) { $baseline[0].Data.VerifiedTargetHash | Should -Not -BeNullOrEmpty }
+            else { $baseline[0].Data.VerifiedTargetHash | Should -BeNullOrEmpty }
         }
     }
 

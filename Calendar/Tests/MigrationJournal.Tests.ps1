@@ -178,6 +178,94 @@ Describe 'Testing MigrationJournal.ps1' {
         }
     }
 
+    Context 'Incremental report output for <Items> items across <Mailboxes> mailboxes' -ForEach @(
+        @{ Items = 20; Mailboxes = 2 }
+        @{ Items = 40; Mailboxes = 2 }
+        @{ Items = 40; Mailboxes = 10 }
+    ) {
+        BeforeAll {
+            $Script:serializedResultRows = 0
+            $Script:summaryRefreshes = 0
+            $Script:exportCsv = (Get-Command -Name Export-ExOPSafeResultsCsv).ScriptBlock
+            $Script:updateSummary = (Get-Command -Name Update-ExOPMigrationSummary).ScriptBlock
+            Mock Export-ExOPSafeResultsCsv {
+                if ([IO.Path]::GetFileName($Path) -eq 'results.csv') { $Script:serializedResultRows += $Rows.Count }
+                & $Script:exportCsv -Rows $Rows -Path $Path -Append:$Append
+            }
+            Mock Update-ExOPMigrationSummary {
+                $Script:summaryRefreshes++
+                & $Script:updateSummary -Run $Run
+            }
+            $rows = @(for ($index = 0; $index -lt $Items; $index++) {
+                    [PSCustomObject]@{ Mailbox = "user$($index % $Mailboxes)@contoso.com"; RecordType = 'Single'; ItemId = "item-$index" }
+                })
+            $Script:incrementalRun = New-ExOPMigrationRun -Directory (Join-Path -Path $TestDrive -ChildPath "incremental-$Items-$Mailboxes") -Rows $rows -Apply $true
+            Update-ExOPMigrationSummary -Run $Script:incrementalRun
+            for ($index = 0; $index -lt $Items; $index++) {
+                $result = [PSCustomObject]@{
+                    Mailbox = $rows[$index].Mailbox; OperationId = "item-$index"; RecordType = 'Single'; Status = 'Applied'; Severity = 'Information'
+                    Subject = '=formula'; StartUtcBefore = ''; Phase = 'Completed'; CalendarState = 'TargetVerified'; NotificationStatus = 'NotRequired'
+                    RollbackStatus = 'NotNeeded'; Error = ''; FinishedUtc = ''; From = 'Pacific Standard Time'; To = 'Mountain Standard Time'
+                }
+                Complete-ExOPMigrationResult -Run $Script:incrementalRun -Result $result
+            }
+            $Script:refreshesBeforeCompletion = $Script:summaryRefreshes
+            $Script:rowsBeforeCompletion = $Script:serializedResultRows
+            $Script:liveCsvCount = @(Get-ChildItem -LiteralPath $Script:incrementalRun.Directory -Recurse -Filter 'results.csv' |
+                    ForEach-Object { Import-Csv -LiteralPath $_.FullName }).Count
+            Update-ExOPMigrationSummary -Run $Script:incrementalRun
+        }
+
+        It 'Appends every result before the summaries are finalized' {
+            $Script:liveCsvCount | Should -Be $Items
+            $Script:rowsBeforeCompletion | Should -Be $Items
+            $Script:refreshesBeforeCompletion | Should -Be 1
+        }
+
+        It 'Serializes every result exactly once without rewriting it at finalization' {
+            $Script:serializedResultRows | Should -Be $Items
+            $Script:summaryRefreshes | Should -Be 2
+        }
+
+        It 'Keeps exactly one header and UTF-8 marker in each result CSV' {
+            foreach ($mailbox in $Script:incrementalRun.Mailboxes.Values) {
+                $path = Join-Path -Path $mailbox.Directory -ChildPath 'results.csv'
+                $bytes = [IO.File]::ReadAllBytes($path)
+                $bytes[0..2] -join ',' | Should -BeExactly '239,187,191'
+                $text = [Text.Encoding]::UTF8.GetString($bytes)
+                @($text.ToCharArray() | Where-Object { $_ -eq [char]0xFEFF }) | Should -HaveCount 1
+                @([IO.File]::ReadAllLines($path) | Where-Object { $_ -like '"Mailbox",*' }) | Should -HaveCount 1
+                $csv = @(Import-Csv -LiteralPath $path)
+                $csv | Should -HaveCount ($Items / $Mailboxes)
+                $csv[0].Subject | Should -BeExactly "'=formula"
+            }
+        }
+
+        It 'Keeps every result in the durable journal and final overview' {
+            $events = @(Get-ChildItem -LiteralPath $Script:incrementalRun.Directory -Recurse -Filter 'details.jsonl' |
+                    ForEach-Object { [IO.File]::ReadAllLines($_.FullName) } | ForEach-Object { $_ | ConvertFrom-Json })
+            @($events | Where-Object Event -EQ 'ObjectResult') | Should -HaveCount $Items
+            $overview = @(Import-Csv -LiteralPath (Join-Path -Path $Script:incrementalRun.Directory -ChildPath 'mailboxes.csv'))
+            $overview | Should -HaveCount $Mailboxes
+            ($overview | Measure-Object -Property Applied -Sum).Sum | Should -Be $Items
+        }
+    }
+
+    Context 'Incremental result output failure' {
+        It 'Marks audit storage as failed if the CSV append fails, retaining the journal event' {
+            $run = New-ExOPMigrationRun -Directory (Join-Path -Path $TestDrive -ChildPath 'append-failure') `
+                -Rows @([PSCustomObject]@{ Mailbox = 'user@contoso.com'; RecordType = 'Single' }) -Apply $true
+            Mock Export-ExOPSafeResultsCsv { throw 'CSV disk failure' } -ParameterFilter { $Append }
+            $result = [PSCustomObject]@{ Mailbox = 'user@contoso.com'; OperationId = 'result-1'; Phase = 'Completed'; FinishedUtc = '' }
+            { Complete-ExOPMigrationResult -Run $run -Result $result } | Should -Throw -ExpectedMessage 'CSV disk failure'
+            $run.LoggingFailed | Should -BeTrue
+            $events = @([IO.File]::ReadAllLines((Join-Path -Path $run.Mailboxes['user@contoso.com'].Directory -ChildPath 'details.jsonl')) |
+                    ForEach-Object { $_ | ConvertFrom-Json })
+            $events | Should -HaveCount 1
+            $events[0].Event | Should -BeExactly 'ObjectResult'
+        }
+    }
+
     Context 'Migration run journal' {
         BeforeAll {
             $runtimeDirectory = Join-Path -Path $TestDrive -ChildPath 'runtime'
@@ -227,6 +315,7 @@ Describe 'Testing MigrationJournal.ps1' {
                 Write-ExOPMigrationAudit -Run $Script:run -Mailbox $result.Mailbox -OperationId $result.OperationId -Phase 'After' -EventName 'ReadBack' -Data @{ Value = 'new' }
                 Complete-ExOPMigrationResult -Run $Script:run -Result $result
             }
+            Update-ExOPMigrationSummary -Run $Script:run
             $Script:firstDirectory = $Script:run.Mailboxes['first@contoso.com'].Directory
             $Script:secondDirectory = $Script:run.Mailboxes['second@contoso.com'].Directory
             $Script:firstSummary = Get-Content -LiteralPath (Join-Path -Path $Script:firstDirectory -ChildPath 'summary.txt') -Raw

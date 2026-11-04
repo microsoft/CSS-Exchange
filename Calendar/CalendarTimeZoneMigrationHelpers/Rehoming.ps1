@@ -1727,5 +1727,6 @@ function Invoke-ExOPCalendarEventMigration {
             Complete-ExOPMigrationResult -Run $run -Result $result
             Write-Output -InputObject $result
         }
+        Update-ExOPMigrationSummary -Run $run
     }
 }

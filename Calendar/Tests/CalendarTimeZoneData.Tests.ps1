@@ -44,7 +44,7 @@ BeforeDiscovery {
             }
         }
     )
-    # Hand-derived from the captured rules (the rule is chosen by the UTC year):
+    # Hand-derived from the captured rules and local-year transition boundaries:
     # AUS Eastern: standard UTC+10 from April, daylight UTC+11 from October, so daylight applies at New Year.
     # Pacific 2007+: daylight UTC-07:00 from March, standard UTC-08:00 from November, so standard applies at New Year.
     # Morocco 2026: standard UTC+00:00 from September, daylight UTC+01:00 from March, so standard applies at New Year.
@@ -60,6 +60,10 @@ BeforeDiscovery {
         @{ Id = 'Morocco Standard Time'; Utc = '2026-12-31T23:30:00Z'; Expected = 2026; Local = '2026-12-31 23:30 (UTC+00)' }
         @{ Id = 'British Columbia Standard Time'; Utc = '2027-01-01T06:30:00Z'; Expected = 2026; Local = '2026-12-31 23:30 (UTC-07)' }
         @{ Id = 'British Columbia Standard Time'; Utc = '2027-01-01T07:30:00Z'; Expected = 2027; Local = '2027-01-01 00:30 (UTC-07)' }
+        @{ Id = 'British Columbia Standard Time'; Utc = '2026-01-01T07:30:00Z'; Expected = 2025; Local = '2025-12-31 23:30 (UTC-08)' }
+        @{ Id = 'British Columbia Standard Time'; Utc = '2026-01-01T07:59:59Z'; Expected = 2025; Local = '2025-12-31 23:59:59 (UTC-08)' }
+        @{ Id = 'British Columbia Standard Time'; Utc = '2026-01-01T08:00:00Z'; Expected = 2026; Local = '2026-01-01 00:00 (UTC-08)' }
+        @{ Id = 'British Columbia Standard Time'; Utc = '2027-01-01T07:00:00Z'; Expected = 2027; Local = '2027-01-01 00:00 (UTC-07)' }
     )
 }
 
@@ -254,6 +258,85 @@ Describe 'Testing CalendarTimeZoneData.ps1' {
             $definition = Get-ExOPRegistryTimeZoneData -Id $Id
             $instant = [DateTimeOffset]::Parse($Utc, [Globalization.CultureInfo]::InvariantCulture)
             Get-ExOPDefinitionLocalYear -Definition $definition -Utc $instant | Should -Be $Expected
+        }
+
+        It 'Selects the preceding local year for partial O12 and legacy O11 definitions' {
+            $definition = Get-ExOPRegistryTimeZoneData -Id 'British Columbia Standard Time'
+            $instant = [DateTimeOffset]::Parse('2026-01-01T07:30:00Z', [Globalization.CultureInfo]::InvariantCulture)
+            $encoded = New-ExOPO12Definition -Definition $definition -EffectiveUtc $instant -Mode Partial
+            $parsed = Read-ExOPO12Definition -Base64 $encoded
+            $parsed.Rules[0].Year | Should -Be 2025
+            $parsed.Rules[0].Rule.Signature | Should -BeExactly (Get-ExOPRuleForYear -Definition $definition -Year 2025).Rule.Signature
+            $legacy = [Convert]::FromBase64String((New-ExOPO11Definition -Definition $definition -EffectiveUtc $instant))
+            [BitConverter]::ToUInt16($legacy, 16) | Should -Be 11
+        }
+
+        It 'Handles a transition inside January instead of inferring the season from month order' {
+            $bytes = New-TziBytes -Bias 480 -DaylightBias -60 -Standard @(1, 4, 1, 2) -Daylight @(1, 0, 3, 2)
+            $definition = ConvertFrom-ExOPRegistryTimeZoneRaw -Raw ([PSCustomObject]@{ Id = 'Test'; DisplayName = 'Test'; Tzi = $bytes; Dynamic = @() })
+            Get-ExOPDefinitionLocalYear -Definition $definition -Utc ([DateTimeOffset]'2026-01-01T07:30:00Z') | Should -Be 2026
+        }
+
+        It 'Handles a fixed-date transition at midnight on January 1' {
+            $bytes = New-TziBytes -Bias 480 -DaylightBias -60 -Standard @(1, 0, 1, 0) -Daylight @(3, 0, 2, 2)
+            [Array]::Copy([BitConverter]::GetBytes([uint16]2026), 0, $bytes, 12, 2)
+            $definition = ConvertFrom-ExOPRegistryTimeZoneRaw -Raw ([PSCustomObject]@{ Id = 'Test'; DisplayName = 'Test'; Tzi = $bytes; Dynamic = @() })
+            Get-ExOPDefinitionLocalYear -Definition $definition -Utc ([DateTimeOffset]'2026-01-01T07:30:00Z') | Should -Be 2025
+            Get-ExOPDefinitionLocalYear -Definition $definition -Utc ([DateTimeOffset]'2026-01-01T08:00:00Z') | Should -Be 2026
+        }
+
+        It 'Uses the captured base offset to select adjacent yearly rules' {
+            $old = New-TziBytes -Bias -660
+            $new = New-TziBytes -Bias -600
+            $definition = ConvertFrom-ExOPRegistryTimeZoneRaw -Raw ([PSCustomObject]@{
+                    Id = 'Test'; DisplayName = 'Test'; Tzi = $new
+                    Dynamic = @([PSCustomObject]@{ Year = 2026; Tzi = $old }, [PSCustomObject]@{ Year = 2027; Tzi = $new })
+                })
+            Get-ExOPDefinitionLocalYear -Definition $definition -Utc ([DateTimeOffset]'2026-12-31T12:59:00Z') | Should -Be 2026
+            Get-ExOPDefinitionLocalYear -Definition $definition -Utc ([DateTimeOffset]'2026-12-31T13:30:00Z') | Should -Be 2027
+            Get-ExOPDefinitionLocalYear -Definition $definition -Utc ([DateTimeOffset]'2026-12-31T14:00:00Z') | Should -Be 2027
+        }
+
+        It 'Preserves the captured base offset independently of the final dynamic rule' {
+            $definition = Get-ExOPRegistryTimeZoneData -Id 'British Columbia Standard Time'
+            $definition.BaseOffset | Should -Be -480
+            $definition.Rules[-1].Rule.StandardOffset | Should -Be -420
+        }
+
+        It 'Keeps the preceding daylight season until the base-offset year changes' {
+            $old = New-TziBytes -Bias 0 -DaylightBias -60 -Standard @(2, 0, 5, 3) -Daylight @(4, 0, 1, 2)
+            $new = New-TziBytes -Bias 0 -DaylightBias -60 -Standard @(9, 0, 3, 2) -Daylight @(3, 0, 4, 2)
+            $definition = ConvertFrom-ExOPRegistryTimeZoneRaw -Raw ([PSCustomObject]@{
+                    Id = 'Test'; DisplayName = 'Test'; Tzi = $new
+                    Dynamic = @([PSCustomObject]@{ Year = 2025; Tzi = $old }, [PSCustomObject]@{ Year = 2026; Tzi = $new })
+                })
+            Get-ExOPDefinitionLocalYear -Definition $definition -Utc ([DateTimeOffset]'2025-12-31T23:30:00Z') | Should -Be 2026
+        }
+
+        It 'Handles a January daylight marker with <Name>' -ForEach @(
+            @{ Name = 'no preceding base-offset adjustment'; BaseBias = -240; PreviousBias = -240; StandardBias = -180; DeltaBias = -60; Utc = '2013-12-31T20:59:00Z'; Expected = 2013 }
+            @{ Name = 'a preceding fixed-offset adjustment'; BaseBias = -540; PreviousBias = -600; StandardBias = -480; DeltaBias = -120; Utc = '2013-12-31T15:59:00Z'; Expected = 2014 }
+        ) {
+            $base = New-TziBytes -Bias $BaseBias
+            $old = New-TziBytes -Bias $PreviousBias
+            $transition = New-TziBytes -Bias $StandardBias -DaylightBias $DeltaBias -Standard @(10, 0, 5, 2) -Daylight @(1, 3, 1, 0)
+            $definition = ConvertFrom-ExOPRegistryTimeZoneRaw -Raw ([PSCustomObject]@{
+                    Id = 'Test'; DisplayName = 'Test'; Tzi = $base
+                    Dynamic = @(
+                        [PSCustomObject]@{ Year = 2013; Tzi = $old }
+                        [PSCustomObject]@{ Year = 2014; Tzi = $transition }
+                        [PSCustomObject]@{ Year = 2015; Tzi = (New-TziBytes -Bias $StandardBias) }
+                        [PSCustomObject]@{ Year = 2016; Tzi = $base }
+                    )
+                })
+            Get-ExOPDefinitionLocalYear -Definition $definition -Utc ([DateTimeOffset]$Utc) | Should -Be $Expected
+        }
+
+        It 'Handles negative daylight adjustments at New Year' {
+            $bytes = New-TziBytes -Bias -60 -DaylightBias 60 -Standard @(4, 0, 1, 2) -Daylight @(10, 0, 1, 2)
+            $definition = ConvertFrom-ExOPRegistryTimeZoneRaw -Raw ([PSCustomObject]@{ Id = 'Test'; DisplayName = 'Test'; Tzi = $bytes; Dynamic = @() })
+            Get-ExOPDefinitionLocalYear -Definition $definition -Utc ([DateTimeOffset]'2026-12-31T23:30:00Z') | Should -Be 2026
+            Get-ExOPDefinitionLocalYear -Definition $definition -Utc ([DateTimeOffset]'2027-01-01T00:00:00Z') | Should -Be 2027
         }
     }
 
