@@ -43,6 +43,7 @@ Mock Get-RemoteRegistryValue {
         "DisabledComponents" { return $null }
         "KeepAliveTime" { return 90000 }
         "MinimumConnectionTimeout" { return 0 }
+        "EpmapSavedContextCap" { return $null }
         "LmCompatibilityLevel" { return $null }
         "UBR" { return 720 }
         "ProductName" { return Import-Clixml "$Script:MockDataCollectionRoot\OS\RemoteRegistryValueProductName.xml" }
