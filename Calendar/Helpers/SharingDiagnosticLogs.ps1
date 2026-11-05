@@ -12,8 +12,8 @@ function Test-ReceiverSharingLogFreshness {
         return
     }
     $logChecks = @(
-        @{ Key = "receiver_SharingSyncAssistantLog"; Component = "SharingSyncAssistant"; Collector = "ReceiverSharingSyncAssistantLog"; WarningRule = "SHR404"; ErrorRule = "SHR405" }
-        @{ Key = "receiver_SharingLog"; Component = "Sharing"; Collector = "ReceiverSharingLog"; WarningRule = "SHR406"; ErrorRule = "SHR407" }
+        @{ Key = "receiver_SharingSyncAssistantLog"; Component = "SharingSyncAssistant"; Collector = "ReceiverSharingSyncAssistantLog"; WarningRule = "SHR404"; SevenDayRule = "SHR405" }
+        @{ Key = "receiver_SharingLog"; Component = "Sharing"; Collector = "ReceiverSharingLog"; WarningRule = "SHR406"; SevenDayRule = "SHR407" }
     )
     $nowUtc = (Get-Date).ToUniversalTime()
     foreach ($logCheck in $logChecks) {
@@ -49,7 +49,7 @@ function Test-ReceiverSharingLogFreshness {
         $latestEntry = Get-CalendarDiagnosticLogLatestTimestamp -Line $logLines -ReferenceTimeUtc $nowUtc
         if ($null -eq $latestEntry) {
             Write-Host -ForegroundColor Yellow "No parseable timestamps were found in the receiver $component log, so its freshness cannot be evaluated."
-            foreach ($ruleId in @($logCheck.WarningRule, $logCheck.ErrorRule)) {
+            foreach ($ruleId in @($logCheck.WarningRule, $logCheck.SevenDayRule)) {
                 Add-SharingFinding -RuleId $ruleId -Status NotEvaluated -Evidence @{
                     reason = "No parseable timestamps were found in the log."
                 }
@@ -64,10 +64,10 @@ function Test-ReceiverSharingLogFreshness {
             ageHours       = [math]::Round($age.TotalHours, 1)
         }
         if ($age.TotalDays -gt 7) {
-            Write-Host -ForegroundColor Red "Error: The latest receiver $component log entry is $latestEntry UTC ($ageText ago), more than 7 days old."
-            Add-SharingFinding -RuleId $logCheck.ErrorRule -Status Detected -Area "Receiver $component log" -Evidence $evidence
+            Write-Host -ForegroundColor Yellow "Warning: The latest receiver $component log entry is $latestEntry UTC ($ageText ago), more than 7 days old. Stale logging alone does not prove synchronization is failing."
+            Add-SharingFinding -RuleId $logCheck.SevenDayRule -Status Detected -Area "Receiver $component log" -Evidence $evidence
             Add-SharingFinding -RuleId $logCheck.WarningRule -Status NotApplicable -Evidence @{
-                reason = "Superseded by $($logCheck.ErrorRule): the latest entry is more than 7 days old."
+                reason = "Superseded by $($logCheck.SevenDayRule): the latest entry is more than 7 days old."
             }
         } elseif ($age.TotalHours -gt 24) {
             Write-Host -ForegroundColor Yellow "Warning: The latest receiver $component log entry is $latestEntry UTC ($ageText ago), more than 24 hours old."
@@ -120,6 +120,11 @@ function Get-SharingDiagnosticLogs {
 }
 
 function Test-SharingLogExceptions {
+    $ignoreXtapEntries = $script:SharingType -eq "InternalSharing"
+    if ($ignoreXtapEntries) {
+        Write-Host -ForegroundColor Cyan "XTAP does not apply to internal sharing. XTAP log entries and their exception details are ignored."
+        Add-SharingFinding -RuleId "SHR414" -Status NotApplicable
+    }
     $nowUtc = (Get-Date).ToUniversalTime()
     $scannedLogs = [System.Collections.Generic.List[object]]::new()
     $unavailableLogs = [System.Collections.Generic.List[string]]::new()
@@ -167,10 +172,28 @@ function Test-SharingLogExceptions {
     foreach ($scannedLog in $scannedLogs) {
         $lineTimestamps = Get-CalendarDiagnosticLogLineTimestamp -Line $scannedLog.Line -ReferenceTimeUtc $nowUtc
         $currentTimestamp = $null
+        $skipXtapEntry = $false
         for ($index = 0; $index -lt $scannedLog.Line.Count; $index++) {
             $logLine = [string]$scannedLog.Line[$index]
             if ($null -ne $lineTimestamps[$index]) {
                 $currentTimestamp = $lineTimestamps[$index]
+            }
+
+            if ($ignoreXtapEntries -and (($index -eq 0) -or ($null -ne $lineTimestamps[$index]))) {
+                # XTAP markers can follow exception headers, so inspect the whole entry, including continuation lines.
+                $skipXtapEntry = $false
+                for ($entryIndex = $index; $entryIndex -lt $scannedLog.Line.Count; $entryIndex++) {
+                    if (($entryIndex -gt $index) -and ($null -ne $lineTimestamps[$entryIndex])) {
+                        break
+                    }
+                    if ([string]$scannedLog.Line[$entryIndex] -match '\[XTAP(?:-[^\]]+)?\]') {
+                        $skipXtapEntry = $true
+                        break
+                    }
+                }
+            }
+            if ($skipXtapEntry) {
+                continue
             }
 
             if ($logLine -match $xtapFailurePattern) {

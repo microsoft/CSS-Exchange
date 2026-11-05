@@ -12,6 +12,9 @@ function Get-SharingRuleNotApplicableReason {
         [switch]$PolicyOnly
     )
 
+    if (($RuleId -eq "SHR414") -and ($script:SharingType -eq "InternalSharing")) {
+        return "XTAP does not apply to internal sharing; XTAP log entries are ignored."
+    }
     if ($script:PublishedSharing -and ($RuleId -in ($script:ModernSharingRuleIds + @("SHR233", "SHR324", "SHR325")))) {
         return "Not applicable to a published-calendar relationship."
     }

@@ -222,10 +222,6 @@ function ProcessCalendarSharingAcceptLogs {
         [string]$Identity
     )
 
-    # Define the header row
-    $header4Line = "Timestamp", "Mailbox", "SharedCalendarOwner", "FolderName"
-    $header5Line = "Timestamp", "MailboxLast", "MailboxFirst", "SharedCalendarOwner", "FolderName"
-
     try {
         # -ErrorAction is not supported on Export-MailboxDiagnosticLogs
         # $logOutput = Export-MailboxDiagnosticLogs $Identity -ComponentName AcceptCalendarSharingInvite -ErrorAction SilentlyContinue
@@ -256,14 +252,14 @@ function ProcessCalendarSharingAcceptLogs {
 
     # Split the output into an array of lines
     $script:ReceiverAcceptLogRaw = [string]$logOutput.MailboxLog
-    $logLines = $logOutput.MailboxLog -split "`r`n"
+    $logLines = $logOutput.MailboxLog -split "\r?\n"
 
     $acceptLogEntryPattern = '^\s*\d{1,2}/\d{1,2}/\d{4}\s+\d{1,2}:\d{2}:\d{2}(?:\s+[AP]M)?,'
     $filteredLogLines = @()
     foreach ($line in $logLines) {
         if (($line -match $acceptLogEntryPattern) -and
             ($line -like "*Entry CreateInternalSharedCalendarGroupEntry*")) {
-            $filteredLogLines += $line + "`n"
+            $filteredLogLines += $line
         }
     }
     if ($filteredLogLines.Count -eq 0) {
@@ -272,67 +268,39 @@ function ProcessCalendarSharingAcceptLogs {
         Add-SharingFinding -Severity Warning -Area "AcceptCalendarSharingInvite" -Issue "No relevant receiver accept-log entries were available." -Evidence "No CreateInternalSharedCalendarGroupEntry entries were returned for [$Identity]." -RecommendedNextStep "Inspect AcceptCalendarSharingInvite logs for acceptance of the calendar from [$Owner]." -Incomplete
         return
     }
-    $ElementCount = ($filteredLogLines[0] -split ',').Count
-
-    if ($ElementCount -eq 4) {
-        $header = $header4Line
-    } elseif ($ElementCount -eq 5) {
-        $header = $header5Line
-    } else {
-        $parseError = ConvertTo-SharingErrorInfo -ErrorRecord "Unexpected receiver accept-log format."
-        $script:CollectorStatuses["ReceiverAcceptLog"] = [PSCustomObject]@{ status = "Failed"; error = $parseError }
-        $script:CollectionErrors.Add([PSCustomObject]@{
-                collector = "ReceiverAcceptLog"
-                error     = $parseError
-            })
-        Write-Host "Unexpected number of elements [$ElementCount] in the log lines for [$Identity]."
-        Add-SharingFinding -Severity Warning -Area "AcceptCalendarSharingInvite" -Issue "The receiver accept logs could not be parsed." -Evidence "The relevant log entry contained [$ElementCount] comma-delimited elements." -RecommendedNextStep "Inspect the raw AcceptCalendarSharingInvite logs for the owner/receiver pair." -Incomplete
-        return
-    }
-
-    $csvString = @()
-    $csvString = $header -join ","
-    $csvString += "`n"
-
-    foreach ($line in $filteredLogLines) {
-        $csvString += $line + "`n"
-    }
-
-    # Clean up output
-    $csvString = $csvString.Replace("Mailbox: ", "")
-    $csvString = $csvString.Replace("Entry MailboxOwner:", "")
-    $csvString = $csvString.Replace("Entry CreateInternalSharedCalendarGroupEntry: ", "")
-    $csvString = $csvString.Replace("Creating a shared calendar for ", "")
-    $csvString = $csvString.Replace("calendar name ", "")
-
-    # Convert the CSV string to an object
-    $csvObject = Invoke-SharingEvaluation -Name "Receiver accept-log parsing" -RuleIds @("SHR220") -Action {
-        $entries = @($csvString | ConvertFrom-Csv)
-        foreach ($entry in $entries) {
-            # A comma in the mailbox display name splits its surrounding quotes across two columns.
-            if (($null -ne $entry.PSObject.Properties["MailboxLast"]) -and
-                $entry.MailboxLast.Trim().StartsWith("'") -and $entry.MailboxFirst.Trim().EndsWith("'")) {
-                $entry.MailboxLast = $entry.MailboxLast.Trim().Substring(1)
-                $mailboxFirst = $entry.MailboxFirst.Trim()
-                $entry.MailboxFirst = $mailboxFirst.Substring(0, $mailboxFirst.Length - 1)
-            }
-            foreach ($property in $entry.PSObject.Properties) {
-                $value = ([string]$property.Value).Trim()
-                if (($value.Length -ge 2) -and $value.StartsWith("'") -and $value.EndsWith("'")) {
-                    $value = $value.Substring(1, $value.Length - 2)
+    $acceptEntries = Invoke-SharingEvaluation -Name "Receiver accept-log parsing" -RuleIds @("SHR220") -Action {
+        # These logs use labeled fields, not CSV quoting; both mailbox and calendar names can contain commas.
+        $entryPattern = '^\s*(?<Timestamp>[^,]+),\s*Mailbox:\s*(?<Mailbox>.*?),\s*Entry CreateInternalSharedCalendarGroupEntry:\s*Creating a shared calendar for\s+(?<SharedCalendarOwner>[^,]+),\s*calendar name\s+(?<FolderName>.*)$'
+        $entries = @(
+            for ($index = 0; $index -lt $filteredLogLines.Count; $index++) {
+                if ($filteredLogLines[$index] -notmatch $entryPattern) {
+                    throw "AcceptCalendarSharingInvite entry [$($index + 1)] did not match the expected labeled fields."
                 }
-                $property.Value = $value
+                $entry = [PSCustomObject]@{
+                    Timestamp           = $Matches.Timestamp
+                    Mailbox             = $Matches.Mailbox
+                    SharedCalendarOwner = $Matches.SharedCalendarOwner
+                    FolderName          = $Matches.FolderName
+                }
+                foreach ($property in $entry.PSObject.Properties) {
+                    $value = ([string]$property.Value).Trim()
+                    if (($value.Length -ge 2) -and $value.StartsWith("'") -and $value.EndsWith("'")) {
+                        $value = $value.Substring(1, $value.Length - 2)
+                    }
+                    $property.Value = $value
+                }
+                $entry
             }
-        }
-        $entries
+        )
+        return $entries
     }
-    if ($null -eq $csvObject) {
+    if ($null -eq $acceptEntries) {
         Add-SharingFinding -Severity Warning -Area "AcceptCalendarSharingInvite" -Issue "The receiver accept logs could not be parsed." -Evidence "AcceptCalendarSharingInvite data could not be parsed." -RecommendedNextStep "Inspect the raw AcceptCalendarSharingInvite logs." -Incomplete
         return
     }
-    $script:ReceiverAcceptLogEntries = @($csvObject)
-    $displayCsvObject = if ($script:OwnerCalendarSubfolderSelected) {
-        @($csvObject | Where-Object -FilterScript {
+    $script:ReceiverAcceptLogEntries = @($acceptEntries)
+    $displayEntries = if ($script:OwnerCalendarSubfolderSelected) {
+        @($acceptEntries | Where-Object -FilterScript {
                 (Test-SmtpAddressEqual -First $_.SharedCalendarOwner -Second $Owner) -and
                 [string]::Equals(
                     $_.FolderName,
@@ -340,12 +308,12 @@ function ProcessCalendarSharingAcceptLogs {
                     [System.StringComparison]::OrdinalIgnoreCase)
             })
     } else {
-        @($csvObject)
+        @($acceptEntries)
     }
-    $script:ReceiverSelectedAcceptLogEntries = @($displayCsvObject)
+    $script:ReceiverSelectedAcceptLogEntries = @($displayEntries)
 
     # Access the values as properties of the object
-    foreach ($row in $csvObject) {
+    foreach ($row in $acceptEntries) {
         Write-Debug "$($row.Timestamp) - $($row.SharedCalendarOwner) - $($row.FolderName) "
     }
 
@@ -356,7 +324,7 @@ function ProcessCalendarSharingAcceptLogs {
     }
     # Determine the date layout by examining timestamps (a first value above 12 means day-first, for example 15/10/2026 13:44:31).
     $preferDayFirst = $false
-    foreach ($entry in $csvObject) {
+    foreach ($entry in $acceptEntries) {
         $timestamp = $entry.Timestamp
         if ([string]::IsNullOrEmpty($timestamp)) { continue }
 
@@ -378,7 +346,7 @@ function ProcessCalendarSharingAcceptLogs {
 
     $unparsedTimestamps = [System.Collections.Generic.List[string]]::new()
     $cutoffDate = (Get-Date).AddDays(-180)
-    $entriesToDisplay = @($displayCsvObject | Where-Object {
+    $entriesToDisplay = @($displayEntries | Where-Object {
             $entryTimestamp = ConvertTo-CalendarDiagnosticLogDateTime -Text $_.Timestamp -PreferDayFirst:$preferDayFirst
             if ($null -eq $entryTimestamp) {
                 # Keep entries that cannot be dated so evidence is not hidden.
