@@ -162,6 +162,7 @@ Exit code 0 means all items succeeded or were previewed, 1 means some items were
 
 - Items whose time zone rules cannot be represented safely are rejected before any change, for example partial recurrence definitions that cannot express the future rules of the target time zone.
 - Items whose stored time zone definition differs from the current Windows rules of the source time zone for the affected years (for example definitions saved before a Windows time zone update) are rejected before any change, because their local times are ambiguous.
+- A recurring meeting whose local time falls into a daylight saving gap of the target time zone on some dates (for example a series at 02:30) is shown by Exchange at the next valid time on those dates, as for any recurring meeting at that local time.
 - When the original definition uses a single-rule source time zone (for example GMT Standard Time or UTC), its full and partial forms cannot be distinguished. The full form of the target time zone is written, which is correct in every year, and `AssumedFull` is recorded in the `O12Modes` column of `results.csv`.
 - Items without Outlook time zone definitions (EWS reports them in a pseudo time zone such as `tzone://Microsoft/Utc`) cannot be matched to a source time zone. They are listed as warnings during the search and are not migrated.
 - Items with IANA time zone names (for example `Europe/Lisbon`, created by Exchange Online and moved on-premises) are listed as warnings during the search and are not migrated.

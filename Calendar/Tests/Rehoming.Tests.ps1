@@ -1370,11 +1370,12 @@ Describe 'Testing Rehoming.ps1' {
     }
 
     Context 'Series rollback after an unknown write outcome with an exception in state <Name>' -ForEach @(
-        @{ Name = 'intended'; Start = '2026-11-16T17:00:00.0000000Z'; End = '2026-11-16T18:00:00.0000000Z'; AddedAttendee = $false; Restores = $true; ExpectedError = '' }
-        @{ Name = 'original'; Start = '2026-11-16T18:00:00.0000000Z'; End = '2026-11-16T19:00:00.0000000Z'; AddedAttendee = $false; Restores = $true; ExpectedError = '' }
-        @{ Name = 'intended start with original end (an organizer edit)'; Start = '2026-11-16T17:00:00.0000000Z'; End = '2026-11-16T19:00:00.0000000Z'; AddedAttendee = $false; Restores = $false; ExpectedError = 'An exception no longer matches the original or intended operation state.' }
-        @{ Name = 'original start with intended end'; Start = '2026-11-16T18:00:00.0000000Z'; End = '2026-11-16T18:00:00.0000000Z'; AddedAttendee = $false; Restores = $false; ExpectedError = 'An exception no longer matches the original or intended operation state.' }
-        @{ Name = 'intended with an attendee added to the occurrence'; Start = '2026-11-16T17:00:00.0000000Z'; End = '2026-11-16T18:00:00.0000000Z'; AddedAttendee = $true; Restores = $false; ExpectedError = 'An exception changed unexpectedly in its attendees or resources.' }
+        @{ Name = 'intended'; Start = '2026-11-16T17:00:00.0000000Z'; End = '2026-11-16T18:00:00.0000000Z'; Intermediate = $false; AddedAttendee = $false; Restores = $true; ExpectedError = '' }
+        @{ Name = 'original'; Start = '2026-11-16T18:00:00.0000000Z'; End = '2026-11-16T19:00:00.0000000Z'; Intermediate = $false; AddedAttendee = $false; Restores = $true; ExpectedError = '' }
+        @{ Name = 'intended start with original end (an organizer edit)'; Start = '2026-11-16T17:00:00.0000000Z'; End = '2026-11-16T19:00:00.0000000Z'; Intermediate = $false; AddedAttendee = $false; Restores = $false; ExpectedError = 'An exception no longer matches the original or intended operation state.' }
+        @{ Name = 'original start with intended end'; Start = '2026-11-16T18:00:00.0000000Z'; End = '2026-11-16T18:00:00.0000000Z'; Intermediate = $false; AddedAttendee = $false; Restores = $false; ExpectedError = 'An exception no longer matches the original or intended operation state.' }
+        @{ Name = 'a mixed pair while the master dates were not yet written'; Start = '2026-11-16T17:00:00.0000000Z'; End = '2026-11-16T19:00:00.0000000Z'; Intermediate = $true; AddedAttendee = $false; Restores = $false; ExpectedError = 'An exception no longer matches the original or intended operation state.' }
+        @{ Name = 'intended with an attendee added to the occurrence'; Start = '2026-11-16T17:00:00.0000000Z'; End = '2026-11-16T18:00:00.0000000Z'; Intermediate = $false; AddedAttendee = $true; Restores = $false; ExpectedError = 'An exception changed unexpectedly in its attendees or resources.' }
     ) {
         BeforeAll {
             $Script:seriesRollback = [PSCustomObject]@{ Restored = $false; MarkerCleared = $false; OperationId = [Guid]::NewGuid().ToString('N') }
@@ -1422,7 +1423,7 @@ Describe 'Testing Rehoming.ps1' {
                         -Rows @([PSCustomObject]@{ Mailbox = 'user@contoso.com'; RecordType = 'RecurringSeries' }) -Apply $true)
                 OperationId = $Script:seriesRollback.OperationId; Mailbox = 'user@contoso.com'; ItemId = 'item-1'; Phase = 'MasterDates'
                 LastChangeKey = 'CK-acknowledged'; AcknowledgedWrites = 3; WriteAttempted = $true; LastWriteUnknown = $true; RollbackInProgress = $true
-                MetadataWritten = $true; DatesWritten = $true; NotificationStarted = $false; RollingBack = $false; IsSeries = $true
+                MetadataWritten = $true; DatesWritten = (-not $Intermediate); NotificationStarted = $false; RollingBack = $false; IsSeries = $true
                 Before = $Script:seriesOriginal; Prepared = $null; VerifiedTargetHash = ''
                 Values            = [PSCustomObject]@{
                     StartZone = 'Pacific Standard Time'; EndZone = 'Pacific Standard Time'; NewStartZone = 'Mountain Standard Time'; NewEndZone = 'Mountain Standard Time'
@@ -1440,6 +1441,7 @@ Describe 'Testing Rehoming.ps1' {
                 Should -Invoke Update-ExOPPreservedExceptions -Times 1 -Exactly -Scope Context
             } else {
                 $Script:seriesRollbackError | Should -BeExactly $ExpectedError
+                Should -Invoke Set-ExOPCalendarFields -Times 0 -Exactly -Scope Context
                 Should -Invoke Set-ExOPSeriesTimeZoneState -Times 0 -Exactly -Scope Context
                 Should -Invoke Update-ExOPPreservedExceptions -Times 0 -Exactly -Scope Context
             }
@@ -1555,7 +1557,7 @@ Describe 'Testing Rehoming.ps1' {
             Should -Invoke Set-ExOPFinalMigrationState -Times 0 -Exactly -Scope It
         }
 
-        It 'Refuses an unexplained key after an unknown write outcome outside a journaled rollback' {
+        It 'Refuses an unexplained key after an unknown write outcome outside a logged rollback' {
             $operation = New-RollbackOperation
             $operation.LastWriteUnknown = $true
             { Invoke-ExOPPreSendRollback -Session $null -Operation $operation } |

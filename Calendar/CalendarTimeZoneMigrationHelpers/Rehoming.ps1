@@ -1289,6 +1289,23 @@ function Get-ExOPOriginalSlotKey {
         [TimeZoneInfo]::FindSystemTimeZoneById($Zone)).ToString('yyyy-MM-ddTHH:mm:ss', [Globalization.CultureInfo]::InvariantCulture)
 }
 
+function Test-ExOPExceptionEndpointPair {
+    <#
+        Each exception write sets both endpoints together, so only the complete original or intended pair can be
+        produced by this operation. A mixed pair, such as an intended start with the original end, is a user's change.
+    #>
+    param (
+        $Entry,
+
+        $Original
+    )
+    $start = ConvertTo-ExOPInstant -Value $Entry.Values.StartUtc
+    $end = ConvertTo-ExOPInstant -Value $Entry.Values.EndUtc
+    $expected = $Original.Values
+    ($start -eq (ConvertTo-ExOPInstant -Value $expected.StartUtc) -and $end -eq (ConvertTo-ExOPInstant -Value $expected.EndUtc)) -or
+    ($start -eq (ConvertTo-ExOPInstant -Value $expected.NewStartUtc) -and $end -eq (ConvertTo-ExOPInstant -Value $expected.NewEndUtc))
+}
+
 function Invoke-ExOPPreSendRollback {
     [CmdletBinding()]
     param (
@@ -1366,6 +1383,9 @@ function Invoke-ExOPPreSendRollback {
                     (@(Get-ExOPRecipientIdentities -Item $originalXml.DocumentElement) -join "`n")) {
                     throw 'An exception changed unexpectedly in its attendees or resources.'
                 }
+                if (-not (Test-ExOPExceptionEndpointPair -Entry $entry -Original $original[0])) {
+                    throw 'An exception no longer matches the original or intended operation state.'
+                }
             }
         }
         if ($Operation.IsSeries) {
@@ -1389,17 +1409,7 @@ function Invoke-ExOPPreSendRollback {
                 $original = @($Operation.Before.Modified | Where-Object {
                         (Get-ExOPOriginalSlotKey -Utc $_.OriginalStartUtc -Zone $Operation.Values.StartZone) -ceq $slot
                     })
-                # Each exception write sets both endpoints together, so only the complete original or intended pair
-                # can be ours. A mixed pair, such as an intended start with the original end, is a user's change.
-                $pairMatches = $false
-                if ($original.Count -eq 1) {
-                    $start = ConvertTo-ExOPInstant -Value $entry.Values.StartUtc
-                    $end = ConvertTo-ExOPInstant -Value $entry.Values.EndUtc
-                    $expected = $original[0].Values
-                    $pairMatches = ($start -eq (ConvertTo-ExOPInstant -Value $expected.StartUtc) -and $end -eq (ConvertTo-ExOPInstant -Value $expected.EndUtc)) -or
-                    ($start -eq (ConvertTo-ExOPInstant -Value $expected.NewStartUtc) -and $end -eq (ConvertTo-ExOPInstant -Value $expected.NewEndUtc))
-                }
-                if (-not $pairMatches) {
+                if ($original.Count -ne 1 -or -not (Test-ExOPExceptionEndpointPair -Entry $entry -Original $original[0])) {
                     throw 'An exception no longer matches the original or intended operation state.'
                 }
             }

@@ -855,7 +855,7 @@ Describe 'Testing Reconcile.ps1' {
             $events = @(New-InterruptedJournal -NotificationIntent)
             if ($Acknowledged) { $events += New-JournalRecord -EventName 'WriteAcknowledged' -Phase 'Notification' -Data ([PSCustomObject]@{ ChangeKey = 'CK-3' }) }
             Write-OperationEvidence -Directory (Join-Path -Path $evidence -ChildPath 'migration') -Events $events -After (New-ReconcileSnapshot -Subject 'Target')
-            # The earlier Reconcile -ResendNotification run journaled its own rejected resend in its run folder.
+            # The earlier Reconcile -ResendNotification run logged its own rejected resend in its run folder.
             $records = @(
                 [PSCustomObject]@{ Utc = '2026-11-05T10:00:00.0000000+00:00'; OperationId = $Script:operationId; Phase = 'Notification'; Event = 'WriteIntent'; Data = [PSCustomObject]@{ ChangeKey = 'CK-3'; Send = $true } }
                 [PSCustomObject]@{ Utc = '2026-11-05T10:00:01.0000000+00:00'; OperationId = $Script:operationId; Phase = 'Notification'; Event = 'NotificationRejected'; Data = [PSCustomObject]@{ Code = 'ErrorSendAsDenied' } }
