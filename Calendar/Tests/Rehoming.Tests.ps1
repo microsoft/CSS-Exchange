@@ -907,6 +907,67 @@ Describe 'Testing Rehoming.ps1' {
         }
     }
 
+    Context 'Rerun of a completed migration whose receipt <Name>' -ForEach @(
+        @{ Name = 'records a 0 MB attachment hash limit'; Limit = 0; Status = 'AlreadyMigrated'; AttachmentReads = 0 }
+        @{ Name = 'was written by an earlier version without the limit'; Limit = -1; Status = 'Failed'; AttachmentReads = 1 }
+    ) {
+        BeforeAll {
+            $Script:receiptLimit = $Limit
+            function New-CompletedItem {
+                param([string]$ReceiptJson)
+                $receiptXml = if ($ReceiptJson) {
+                    '<t:ExtendedProperty>' + $script:MigrationReceiptFieldUri + '<t:Value>' + (ConvertTo-ExOPXmlText -Value $ReceiptJson) + '</t:Value></t:ExtendedProperty>'
+                } else { '' }
+                (New-CalendarItemXml -InnerXml ('<t:ItemId Id="item-1" ChangeKey="CK-done"/><t:ParentFolderId Id="calendar-folder"/>' +
+                    '<t:Subject>Weekly sync</t:Subject><t:UID>calendar-uid-1</t:UID><t:CalendarItemType>Single</t:CalendarItemType>' +
+                    '<t:IsOrganizer>true</t:IsOrganizer><t:Start>2026-11-09T17:00:00Z</t:Start><t:End>2026-11-09T18:00:00Z</t:End>' +
+                    '<t:Attachments><t:FileAttachment><t:AttachmentId Id="attachment-1"/><t:Name>notes.txt</t:Name><t:ContentType>text/plain</t:ContentType>' +
+                    '<t:Size>100</t:Size><t:IsInline>false</t:IsInline></t:FileAttachment></t:Attachments>' +
+                    '<t:StartTimeZone Id="Mountain Standard Time"/><t:EndTimeZone Id="Mountain Standard Time"/>' + $receiptXml)).DocumentElement
+            }
+            Mock Get-ExOPDefaultCalendarId { 'calendar-folder' }
+            Mock Get-ExOPTimeZoneProperties { [PSCustomObject]@{ ChangeKey = 'CK-done'; Properties = @(); HasIanaNames = $false } }
+            Mock Invoke-ExOPEwsRequest { throw 'Unexpected EWS request in an offline test.' }
+            $row = [PSCustomObject]@{
+                SchemaVersion = '1'; Mailbox = 'user@contoso.com'; ItemId = 'item-1'; ChangeKey = 'CK-0'; RecordType = 'Single'
+                FromWindowsTimeZoneId = 'Pacific Standard Time'; StartTimeZoneId = 'Pacific Standard Time'; EndTimeZoneId = 'Pacific Standard Time'
+                StartUtc = '2026-11-09T18:00:00Z'; EndUtc = '2026-11-09T19:00:00Z'
+            }
+            $inputHash = Get-ExOPCanonicalHash -Value ([ordered]@{
+                    Mailbox = 'user@contoso.com'; ItemId = 'item-1'; From = 'Pacific Standard Time'; To = 'Mountain Standard Time'; RecordType = 'Single'
+                    StartZone = 'Pacific Standard Time'; EndZone = 'Pacific Standard Time'
+                    StartUtc = '2026-11-09T18:00:00Z'; EndUtc = '2026-11-09T19:00:00Z'; ChangeKey = 'CK-0'
+                })
+            # The completing run hashed the target state with a 0 MB limit, so the attachment has no content hash.
+            $stateHash = Get-ExOPCalendarStateHash -Snapshot (Get-ExOPItemSnapshot -Session $null -Mailbox 'user@contoso.com' `
+                    -Item (New-CompletedItem) -From 'Mountain Standard Time' -To 'Mountain Standard Time' -AttachmentHashLimitBytes 0)
+            $receipt = [ordered]@{
+                SchemaVersion = 1; OperationId = 'done-op'; RunId = 'earlier-run'; InputHash = $inputHash; StateHash = $stateHash; StateHashVersion = 5
+                FromZone = 'Pacific Standard Time'; ToZone = 'Mountain Standard Time'
+            }
+            if ($Limit -ge 0) { $receipt.AttachmentHashLimitBytes = [long]$Limit }
+            $Script:completedItem = New-CompletedItem -ReceiptJson (ConvertTo-Json -InputObject $receipt -Compress)
+            Mock Get-ExOPCalendarItem { Write-Output -InputObject $Script:completedItem -NoEnumerate }
+            $session = New-ExOPCalendarSession -EwsUrl 'https://mail.contoso.com/EWS/Exchange.asmx'
+            $Script:limitBefore = $script:MaxAttachmentHashBytes
+            $Script:rerunResult = Invoke-ExOPCalendarEventMigration -Session $session -InputObject $row -ToWindowsTimeZoneId 'Mountain Standard Time' `
+                -Apply -LogDirectory (Join-Path -Path $TestDrive -ChildPath ('rerun-' + [Guid]::NewGuid().ToString('N'))) -Confirm:$false -WarningAction SilentlyContinue
+        }
+
+        It 'Ends with <Status>' {
+            $Script:rerunResult.Status | Should -BeExactly $Status
+            if ($Status -eq 'AlreadyMigrated') { $Script:rerunResult.CalendarState | Should -BeExactly 'TargetVerified' }
+        }
+
+        It 'Reads attachment content only under the run''s own limit' {
+            Should -Invoke Invoke-ExOPEwsRequest -Times $AttachmentReads -Exactly -Scope Context -ParameterFilter { $Body -like '*<m:GetAttachment>*' }
+        }
+
+        It 'Restores the limit of the current run' {
+            $script:MaxAttachmentHashBytes | Should -Be $Script:limitBefore
+        }
+    }
+
     Context 'Final receipt after a sent meeting update when <Name>' -ForEach @(
         @{ Name = 'the key is unchanged'; InitialKey = 'CK-sent'; StateMatches = $true; Conflicts = 0; ErrorText = ''; Updates = 1; Snapshots = 0; Accepted = 0; Reads = 0 }
         @{ Name = 'a response changed the key'; InitialKey = 'CK-response'; StateMatches = $true; Conflicts = 0; ErrorText = ''; Updates = 1; Snapshots = 1; Accepted = 1; Reads = 0 }
@@ -1082,6 +1143,12 @@ Describe 'Testing Rehoming.ps1' {
         It 'Uses the exact Windows time zone ID, not the spelling typed by the operator' {
             $Script:migrationResult.To | Should -BeExactly 'Mountain Standard Time'
             Should -Invoke Set-ExOPFinalMigrationState -Times ([int]($Status -eq 'Applied')) -Exactly -Scope Context -ParameterFilter { $Receipt.ToZone -ceq 'Mountain Standard Time' }
+        }
+
+        It 'Records the attachment hash limit in the completion receipt' {
+            Should -Invoke Set-ExOPFinalMigrationState -Times ([int]($Status -eq 'Applied')) -Exactly -Scope Context -ParameterFilter {
+                $null -ne $Receipt -and $Receipt.AttachmentHashLimitBytes -eq $script:MaxAttachmentHashBytes
+            }
         }
 
         It 'Ends with status <Status>, notification <NotificationStatus> and rollback <RollbackStatus>' {

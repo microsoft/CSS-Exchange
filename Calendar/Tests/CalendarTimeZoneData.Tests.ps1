@@ -516,6 +516,7 @@ Describe 'Testing CalendarTimeZoneData.ps1' {
                 $stored = New-ExOPO12Definition -Definition $Script:definitions[$From] -EffectiveUtc $instant -Mode $StoredMode
                 $values = [PSCustomObject]@{
                     StartZone = $From; EndZone = $From; NewStartZone = $To; NewEndZone = $To
+                    StartUtc = $Script:effectiveUtc; EndUtc = '2026-11-09T19:00:00Z'
                     NewStartUtc = $Script:effectiveUtc; NewEndUtc = '2026-11-09T19:00:00Z'
                 }
                 $properties = @((New-DisplayProperty -PropertyId '33374' -Value $stored), (New-DisplayProperty -PropertyId '33375' -Value $stored))
@@ -594,6 +595,51 @@ Describe 'Testing CalendarTimeZoneData.ps1' {
         }
     }
 
+    Context 'Get-ExOPPreparedTimeZoneProperties validates the stored source definition: <Name>' -ForEach @(
+        @{ Name = 'a current single-rule Pacific definition'; From = 'Pacific Standard Time'; Stale = 'None'; StartUtc = '2026-03-15T18:00:00Z'; Throws = $false }
+        @{ Name = 'a stale pre-2007 Pacific rule in March'; From = 'Pacific Standard Time'; Stale = 'Pre2007'; StartUtc = '2026-03-15T18:00:00Z'; Throws = $true }
+        @{ Name = 'a stale pre-2007 Pacific rule in July, where both rules agree on the offset but not the rule'; From = 'Pacific Standard Time'; Stale = 'Pre2007'; StartUtc = '2026-07-15T17:00:00Z'; Throws = $true }
+        @{ Name = 'British Columbia stored with the old Pacific rules after the change'; From = 'British Columbia Standard Time'; Stale = 'PacificRules'; StartUtc = '2027-01-20T18:00:00Z'; Throws = $true }
+        @{ Name = 'British Columbia stored with its full current rules'; From = 'British Columbia Standard Time'; Stale = 'None'; StartUtc = '2027-01-20T18:00:00Z'; Throws = $false }
+    ) {
+        BeforeAll {
+            $definitions = @{}
+            foreach ($id in 'Pacific Standard Time', 'British Columbia Standard Time', 'UTC') { $definitions[$id] = Get-ExOPRegistryTimeZoneData -Id $id }
+            $start = [DateTimeOffset]::Parse($StartUtc, [Globalization.CultureInfo]::InvariantCulture)
+            $source = $definitions[$From]
+            $storedDefinition = switch ($Stale) {
+                'Pre2007' { [PSCustomObject]@{ Id = $source.Id; Rules = @($definitions['Pacific Standard Time'].Rules | Where-Object Year -LT 2007) } }
+                'PacificRules' { [PSCustomObject]@{ Id = $source.Id; Rules = @($definitions['Pacific Standard Time'].Rules) } }
+                default { $source }
+            }
+            $mode = if ($Stale -eq 'None' -and $From -like 'Pacific*') { 'Partial' } else { 'Full' }
+            $stored = New-ExOPO12Definition -Definition $storedDefinition -EffectiveUtc $start -Mode $mode
+            $properties = foreach ($key in '33374', '33375') {
+                '<t:ExtendedProperty xmlns:t="' + $script:TypesNamespace + '"><t:ExtendedFieldURI DistinguishedPropertySetId="Appointment" PropertyId="' + $key +
+                '" PropertyType="Binary"/><t:Value>' + $stored + '</t:Value></t:ExtendedProperty>'
+            }
+            $document = New-Object Xml.XmlDocument
+            $document.LoadXml('<t:CalendarItem xmlns:t="' + $script:TypesNamespace + '"><t:CalendarItemType>Single</t:CalendarItemType></t:CalendarItem>')
+            $end = $start.AddHours(1).ToString('o')
+            $newStart = Convert-ExOPWallClockZone -Utc $StartUtc -From $From -To 'UTC'
+            $newEnd = Convert-ExOPWallClockZone -Utc $end -From $From -To 'UTC'
+            $values = [PSCustomObject]@{
+                StartZone = $From; EndZone = $From; NewStartZone = 'UTC'; NewEndZone = 'UTC'
+                StartUtc = $StartUtc; EndUtc = $end; NewStartUtc = $newStart; NewEndUtc = $newEnd
+            }
+            $Script:sourceError = ''
+            try {
+                $null = Get-ExOPPreparedTimeZoneProperties -Properties @($properties) -Definitions $definitions -Values $values -Item $document.DocumentElement -Receipt $null
+            } catch { $Script:sourceError = $_.Exception.Message }
+        }
+
+        It 'Refuses only a definition that disagrees with the Windows rules' {
+            if ($Throws) {
+                $Script:sourceError | Should -BeLike "The time zone definition stored in the item differs from the current Windows rules of '$From'*no original item changes were made."
+            } else { $Script:sourceError | Should -BeExactly '' }
+        }
+    }
+
     Context 'Get-ExOPPreparedTimeZoneProperties checks a numbered series through its local last year' {
         BeforeAll {
             $Script:numberedDefinitions = @{}
@@ -617,6 +663,7 @@ Describe 'Testing CalendarTimeZoneData.ps1' {
                 }
                 $values = [PSCustomObject]@{
                     StartZone = $From; EndZone = $From; NewStartZone = 'British Columbia Standard Time'; NewEndZone = 'British Columbia Standard Time'
+                    StartUtc = $StartUtc; EndUtc = $start.AddHours(1).ToString('o')
                     NewStartUtc = $StartUtc; NewEndUtc = $start.AddHours(1).ToString('o')
                 }
                 Get-ExOPPreparedTimeZoneProperties -Properties @($properties) -Definitions $Script:numberedDefinitions -Values $values `
@@ -670,6 +717,7 @@ Describe 'Testing CalendarTimeZoneData.ps1' {
                 )
                 $values = [PSCustomObject]@{
                     StartZone = $From; EndZone = $From; NewStartZone = $To; NewEndZone = $To
+                    StartUtc = $Script:seriesStartUtc; EndUtc = '2025-06-04T18:00:00Z'
                     NewStartUtc = $Script:seriesStartUtc; NewEndUtc = '2025-06-04T18:00:00Z'
                 }
                 $prepared = Get-ExOPPreparedTimeZoneProperties -Properties $properties -Definitions $Script:seriesDefinitions -Values $values `

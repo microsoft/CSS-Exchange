@@ -593,6 +593,34 @@ function Get-ExOPPreparedTimeZoneProperties {
             $assumed = $false
             if ($from -ine $to) {
                 $effectiveUtc = ConvertTo-ExOPInstant -Value $instant
+                $sourceUtc = ConvertTo-ExOPInstant -Value $(if ($end) { $Values.EndUtc } else { $Values.StartUtc })
+                $sourceFirstYear = Get-ExOPDefinitionLocalYear -Definition $Definitions[$from] -Utc $sourceUtc
+                $sourceLastYear = $sourceFirstYear
+                $firstYear = Get-ExOPDefinitionLocalYear -Definition $Definitions[$to] -Utc $effectiveUtc
+                $lastYear = $firstYear
+                if ($series -and $key -eq '33376') {
+                    $ns = Get-ExOPNamespaceManager -Node $Item
+                    if ($null -eq $Item.SelectSingleNode('t:Recurrence', $ns)) { throw 'The recurring timezone has no recurrence range.' }
+                    $startDate = Get-ExOPText -Node $Item -Path 't:Recurrence/t:*/t:StartDate'
+                    $firstYear = [int]$startDate.Substring(0, 4)
+                    $endDate = Get-ExOPText -Node $Item -Path 't:Recurrence/t:EndDateRecurrence/t:EndDate'
+                    $last = Get-ExOPText -Node $Item -Path 't:LastOccurrence/t:Start'
+                    # EndDate is a local date, LastOccurrence a UTC instant. Local dates are preserved, so the local
+                    # year in the series' current zone is the last year the target rules must cover.
+                    $lastYear = if ($endDate) { [int]$endDate.Substring(0, 4) }
+                    elseif ($last) { Get-ExOPDefinitionLocalYear -Definition $Definitions[$from] -Utc (ConvertTo-ExOPInstant -Value $last) }
+                    else { 9999 }
+                    $sourceFirstYear = $firstYear
+                    $sourceLastYear = $lastYear
+                }
+                # Local times are derived with the current Windows rules of the source zone. A stored definition with
+                # other rules for these years (for example from before a time zone update) means the organizer's
+                # local time is ambiguous, so the item is not changed.
+                try {
+                    Assert-ExOPO12Coverage -Stored $stored -Reference $Definitions[$from] -FirstYear $sourceFirstYear -LastYear $sourceLastYear
+                } catch {
+                    throw "The time zone definition stored in the item differs from the current Windows rules of '$from' ($($_.Exception.Message)) The local times cannot be determined reliably; no original item changes were made."
+                }
                 if ($mode -eq 'Ambiguous') {
                     # A single-rule source looks the same in both forms. The full form is a superset that is
                     # correct in every year; the assumption is recorded when it changes the written bytes.
@@ -604,22 +632,6 @@ function Get-ExOPPreparedTimeZoneProperties {
                 $value = New-ExOPO12Definition -Definition $Definitions[$to] -EffectiveUtc $effectiveUtc `
                     -Mode $mode -Recurring:($key -eq '33376')
                 $prepared = Read-ExOPO12Definition -Base64 $value
-                $localYear = Get-ExOPDefinitionLocalYear -Definition $Definitions[$to] -Utc (ConvertTo-ExOPInstant -Value $instant)
-                $firstYear = $localYear
-                $lastYear = $localYear
-                if ($series -and $key -eq '33376') {
-                    $ns = Get-ExOPNamespaceManager -Node $Item
-                    $startDate = Get-ExOPText -Node $Item -Path 't:Recurrence/t:*/t:StartDate'
-                    $firstYear = [int]$startDate.Substring(0, 4)
-                    $endDate = Get-ExOPText -Node $Item -Path 't:Recurrence/t:EndDateRecurrence/t:EndDate'
-                    $last = Get-ExOPText -Node $Item -Path 't:LastOccurrence/t:Start'
-                    # EndDate is a local date, LastOccurrence a UTC instant. Local dates are preserved, so the local
-                    # year in the series' current zone is the last year the target rules must cover.
-                    $lastYear = if ($endDate) { [int]$endDate.Substring(0, 4) }
-                    elseif ($last) { Get-ExOPDefinitionLocalYear -Definition $Definitions[$from] -Utc (ConvertTo-ExOPInstant -Value $last) }
-                    else { 9999 }
-                    if ($null -eq $Item.SelectSingleNode('t:Recurrence', $ns)) { throw 'The recurring timezone has no recurrence range.' }
-                }
                 Assert-ExOPO12Coverage -Stored $prepared -Reference $Definitions[$to] -FirstYear $firstYear -LastYear $lastYear
             } else { $prepared = $stored }
             $modes[$key] = [PSCustomObject]@{

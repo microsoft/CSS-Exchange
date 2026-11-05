@@ -97,7 +97,7 @@ If Autodiscover fails, the error lists every URL tried. Specify `-EwsUrl`, for e
 | Credential | EWS account. Default: the current Windows account. |
 | Impersonation | Use EWS impersonation of the owner. |
 | SkipSendPermissionCheck | Allows a delegate without Send on Behalf or Send As to migrate items and send the meeting updates. See [Delegates](#delegates). |
-| MaxAttachmentHashSizeMB | File attachments up to this size are verified by SHA256, larger ones by name, type and size. Default: 25. Reconcile verifies each interrupted operation with the limit that operation used. |
+| MaxAttachmentHashSizeMB | File attachments up to this size are verified by SHA256, larger ones by name, type and size. Default: 25. Reruns and Reconcile verify each item with the limit that its migration used. |
 | SkipVersionCheck | Do not check for a newer version. |
 
 ## Delegates
@@ -161,6 +161,7 @@ Exit code 0 means all items succeeded or were previewed, 1 means some items were
 ## Limitations
 
 - Items whose time zone rules cannot be represented safely are rejected before any change, for example partial recurrence definitions that cannot express the future rules of the target time zone.
+- Items whose stored time zone definition differs from the current Windows rules of the source time zone for the affected years (for example definitions saved before a Windows time zone update) are rejected before any change, because their local times are ambiguous.
 - When the original definition uses a single-rule source time zone (for example GMT Standard Time or UTC), its full and partial forms cannot be distinguished. The full form of the target time zone is written, which is correct in every year, and `AssumedFull` is recorded in the `O12Modes` column of `results.csv`.
 - Items without Outlook time zone definitions (EWS reports them in a pseudo time zone such as `tzone://Microsoft/Utc`) cannot be matched to a source time zone. They are listed as warnings during the search and are not migrated.
 - Items with IANA time zone names (for example `Europe/Lisbon`, created by Exchange Online and moved on-premises) are listed as warnings during the search and are not migrated.

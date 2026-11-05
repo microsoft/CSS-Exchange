@@ -1105,23 +1105,31 @@ function Get-ExOPItemSnapshot {
         $From,
 
         [string]
-        $To
+        $To,
+
+        # Hash limit of the operation that produced the hash being compared; -1 uses the limit of this run.
+        [long]
+        $AttachmentHashLimitBytes = -1
     )
-    if ((Get-ExOPText -Node $Item -Path 't:CalendarItemType') -eq 'RecurringMaster') {
-        $snapshot = Get-ExOPSeriesSnapshot -Session $Session -Mailbox $Mailbox -Item $Item -From $From -To $To
-    } else {
-        $ns = Get-ExOPNamespaceManager -Node $Item
-        $body = $Item.SelectSingleNode('t:Body', $ns)
-        if ($null -ne $body -and $body.GetAttribute('IsTruncated') -eq 'true') { throw 'A truncated body prevents a reliable snapshot.' }
-        $identifier = $Item.SelectSingleNode('t:ItemId', $ns)
-        $properties = Get-ExOPTimeZoneProperties -Session $Session -Mailbox $Mailbox -ItemId $identifier.GetAttribute('Id') -Single
-        if ($properties.ChangeKey -cne $identifier.GetAttribute('ChangeKey')) { throw 'The item changed while reading its snapshot.' }
-        $snapshot = [PSCustomObject]@{
-            Xml = $Item.OuterXml; Modified = @(); Deleted = @(); TimeZoneProperties = $properties.Properties
-            HasIanaNames = $properties.HasIanaNames; RecurrenceBase64 = ''
-            Attachments = @(Get-ExOPAttachmentSnapshot -Session $Session -Mailbox $Mailbox -Item $Item)
+    $runLimit = $script:MaxAttachmentHashBytes
+    if ($AttachmentHashLimitBytes -ge 0) { $script:MaxAttachmentHashBytes = $AttachmentHashLimitBytes }
+    try {
+        if ((Get-ExOPText -Node $Item -Path 't:CalendarItemType') -eq 'RecurringMaster') {
+            $snapshot = Get-ExOPSeriesSnapshot -Session $Session -Mailbox $Mailbox -Item $Item -From $From -To $To
+        } else {
+            $ns = Get-ExOPNamespaceManager -Node $Item
+            $body = $Item.SelectSingleNode('t:Body', $ns)
+            if ($null -ne $body -and $body.GetAttribute('IsTruncated') -eq 'true') { throw 'A truncated body prevents a reliable snapshot.' }
+            $identifier = $Item.SelectSingleNode('t:ItemId', $ns)
+            $properties = Get-ExOPTimeZoneProperties -Session $Session -Mailbox $Mailbox -ItemId $identifier.GetAttribute('Id') -Single
+            if ($properties.ChangeKey -cne $identifier.GetAttribute('ChangeKey')) { throw 'The item changed while reading its snapshot.' }
+            $snapshot = [PSCustomObject]@{
+                Xml = $Item.OuterXml; Modified = @(); Deleted = @(); TimeZoneProperties = $properties.Properties
+                HasIanaNames = $properties.HasIanaNames; RecurrenceBase64 = ''
+                Attachments = @(Get-ExOPAttachmentSnapshot -Session $Session -Mailbox $Mailbox -Item $Item)
+            }
         }
-    }
+    } finally { $script:MaxAttachmentHashBytes = $runLimit }
     $snapshot | Add-Member -MemberType NoteProperty -Name Receipt -Value (Get-ExOPMigrationReceipt -Item $Item)
     $snapshot
 }
@@ -1575,7 +1583,8 @@ function Invoke-ExOPCalendarEventMigration {
                         $null -eq $receipt.PSObject.Properties['StateHashVersion'] -or $receipt.StateHashVersion -notin 4, 5) {
                         throw 'The item is already in the target zone but has no matching verified migration receipt.'
                     }
-                    $current = Get-ExOPItemSnapshot -Session $Session -Mailbox $mailbox -Item $item -From $currentStartZone -To $currentStartZone
+                    $current = Get-ExOPItemSnapshot -Session $Session -Mailbox $mailbox -Item $item -From $currentStartZone -To $currentStartZone `
+                        -AttachmentHashLimitBytes $(if ($null -ne $receipt.PSObject.Properties['AttachmentHashLimitBytes']) { [long]$receipt.AttachmentHashLimitBytes } else { -1 })
                     if ((Get-ExOPCalendarStateHash -Snapshot $current -Version $receipt.StateHashVersion) -cne $receipt.StateHash) {
                         throw 'The target-zone item no longer matches its verified complete migration state.'
                     }
@@ -1732,7 +1741,8 @@ function Invoke-ExOPCalendarEventMigration {
                         $receipt = [PSCustomObject]@{
                             SchemaVersion=1; OperationId=$result.OperationId; RunId=$run.RunId; InputHash=$inputHash
                             StateHash=$operation.VerifiedTargetHash; StateHashVersion=5; FromZone=$from; ToZone=$to
-                            O12Modes=$prepared.O12Modes; ExceptionModes=$exceptionModes; CompletedUtc=[DateTimeOffset]::UtcNow.ToString('o')
+                            AttachmentHashLimitBytes=[long]$script:MaxAttachmentHashBytes; O12Modes=$prepared.O12Modes
+                            ExceptionModes=$exceptionModes; CompletedUtc=[DateTimeOffset]::UtcNow.ToString('o')
                         }
                         $operation.Phase = 'FinalizeReceipt'
                         if ($result.NotificationStatus -eq 'SendAcknowledged') {

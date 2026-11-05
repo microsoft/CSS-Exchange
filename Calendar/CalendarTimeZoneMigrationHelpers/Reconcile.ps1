@@ -360,7 +360,7 @@ function Invoke-ExOPCalendarMigrationReconcile {
                             $receipt = [ordered]@{
                                 SchemaVersion=1; OperationId=$marker.OperationId; RunId=$saved.RunId
                                 InputHash=(Get-ExOPCanonicalHash -Value $saved.Input); StateHash=$targetHash; StateHashVersion=5
-                                FromZone=$marker.FromZone; ToZone=$marker.ToZone
+                                FromZone=$marker.FromZone; ToZone=$marker.ToZone; AttachmentHashLimitBytes=[long]$script:MaxAttachmentHashBytes
                                 O12Modes       =$(if ($null -ne $plan) { $plan.O12Modes } else { $null })
                                 ExceptionModes =$(if ($null -ne $plan) { $plan.ExceptionModes } else { $null })
                                 CompletedUtc=[DateTimeOffset]::UtcNow.ToString('o'); Reconciled=$true
