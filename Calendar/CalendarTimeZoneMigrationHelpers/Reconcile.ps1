@@ -146,7 +146,11 @@ function Get-ExOPJournalWriteState {
                 $state.AcknowledgedWrites++
                 $state.LastChangeKey = [string]$record.Data.ChangeKey
                 if ($record.Phase -eq 'TimezoneMetadata') { $state.MetadataWritten = $true }
-                if ($record.Phase -eq 'MasterDates') { $state.DatesWritten = $true }
+                if ($record.Phase -eq 'MasterDates') {
+                    $state.DatesWritten = $true
+                    # The rollback restored the original dates, so its intermediate state can no longer exist.
+                    if ($state.RollbackStarted) { $state.RollbackWriteAttempted = $false }
+                }
             }
         }
     }

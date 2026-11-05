@@ -248,6 +248,19 @@ Describe 'Testing Reconcile.ps1' {
             $state.RollbackWriteAttempted | Should -BeFalse
         }
 
+        It 'Ends the rollback intermediate state once the rollback dates were acknowledged' {
+            $state = Get-ExOPJournalWriteState -Events @(
+                New-JournalRecord -EventName 'RollbackStarted' -Phase 'RollbackInspection' -Data $null
+                New-JournalRecord -EventName 'WriteIntent' -Phase 'TimezoneMetadata' -Data ([PSCustomObject]@{ ChangeKey = 'CK-2'; Send = $false })
+                New-JournalRecord -EventName 'WriteAcknowledged' -Phase 'TimezoneMetadata' -Data ([PSCustomObject]@{ ChangeKey = 'CK-3' })
+                New-JournalRecord -EventName 'WriteIntent' -Phase 'MasterDates' -Data ([PSCustomObject]@{ ChangeKey = 'CK-3'; Send = $false })
+                New-JournalRecord -EventName 'WriteAcknowledged' -Phase 'MasterDates' -Data ([PSCustomObject]@{ ChangeKey = 'CK-4' })
+                New-JournalRecord -EventName 'WriteIntent' -Phase 'RollbackFinalize' -Data ([PSCustomObject]@{ ChangeKey = 'CK-4'; Send = $false })
+            )
+            $state.RollbackWriteAttempted | Should -BeFalse
+            $state.LastWriteUnknown | Should -BeTrue
+        }
+
         It 'Keeps an earlier <Outcome> send when a later resend is rejected' -ForEach @(
             @{ Outcome = 'acknowledged'; Acknowledged = $true }
             @{ Outcome = 'unknown'; Acknowledged = $false }
