@@ -229,6 +229,15 @@ Describe 'Testing Reconcile.ps1' {
                 New-JournalRecord -EventName 'RollbackStarted' -Phase 'RollbackInspection' -Data $null
             )
             $state.RollbackStarted | Should -BeTrue
+            $state.RollbackWriteAttempted | Should -BeFalse
+        }
+
+        It 'Treats a rollback as in progress only after it attempted a write' {
+            $state = Get-ExOPJournalWriteState -Events @(
+                New-JournalRecord -EventName 'RollbackStarted' -Phase 'RollbackInspection' -Data $null
+                New-JournalRecord -EventName 'WriteIntent' -Phase 'TimezoneMetadata' -Data ([PSCustomObject]@{ ChangeKey = 'CK-2'; Send = $false })
+            )
+            $state.RollbackWriteAttempted | Should -BeTrue
         }
 
         It 'Keeps an earlier <Outcome> send when a later resend is rejected' -ForEach @(
@@ -401,6 +410,19 @@ Describe 'Testing Reconcile.ps1' {
             $evidence = Find-ExOPOperationEvidence -SearchDirectory $directory -OperationId $Script:operationId
             @($evidence.Events) | Should -HaveCount 5
             (Get-ExOPJournalWriteState -Events $evidence.Events).LastWriteUnknown | Should -BeFalse
+        }
+
+        It 'Ignores the journal of the current run below the search directory' {
+            $directory = Join-Path -Path $TestDrive -ChildPath 'find-exclude-current'
+            Write-OperationEvidence -Directory (Join-Path -Path $directory -ChildPath 'migration') -Events (New-InterruptedJournal)
+            $current = Join-Path -Path $directory -ChildPath 'current-run'
+            $null = New-Item -ItemType Directory -Path (Join-Path -Path $current -ChildPath 'user') -Force
+            Write-ExOPDurableText -Path (Join-Path -Path $current -ChildPath 'user\details.jsonl') -Text ((ConvertTo-Json -Compress -InputObject (
+                        New-JournalRecord -EventName 'RollbackStarted' -Phase 'RollbackInspection' -Data $null)) + "`r`n")
+            @((Find-ExOPOperationEvidence -SearchDirectory $directory -OperationId $Script:operationId).Events) | Should -HaveCount 6
+            $evidence = Find-ExOPOperationEvidence -SearchDirectory $directory -OperationId $Script:operationId -ExcludeDirectory $current
+            @($evidence.Events) | Should -HaveCount 5
+            @($evidence.Events | Where-Object Event -EQ 'RollbackStarted') | Should -HaveCount 0
         }
 
         It 'Still rejects a malformed complete journal record' {
@@ -763,6 +785,7 @@ Describe 'Testing Reconcile.ps1' {
         @{ Name = 'the last rollback write was acknowledged'; Mode = 'Reconcile'; Key = 'CK-3'; RollbackJournal = $true; PendingRollbackWrite = $false; Outcome = 'Restored' }
         @{ Name = 'the last rollback write is unknown'; Mode = 'Reconcile'; Key = 'CK-unknown'; RollbackJournal = $true; PendingRollbackWrite = $true; Outcome = 'Restored' }
         @{ Name = 'no rollback was started (the same state is refused)'; Mode = 'Reconcile'; Key = 'CK-unknown'; RollbackJournal = $false; PendingRollbackWrite = $false; Outcome = 'Endpoints' }
+        @{ Name = 'an earlier reconcile refused the item without writing (the same state is refused)'; Mode = 'Refused'; Key = 'CK-unknown'; RollbackJournal = $false; PendingRollbackWrite = $false; Outcome = 'Endpoints' }
         @{ Name = 'the rollback after a rejected send was interrupted'; Mode = 'RejectedSend'; Key = 'CK-unknown'; RollbackJournal = $true; PendingRollbackWrite = $true; Outcome = 'Restored' }
     ) {
         BeforeAll {
@@ -816,7 +839,14 @@ Describe 'Testing Reconcile.ps1' {
                 $null = New-Item -ItemType Directory -Path $reconcileRun -Force
                 Write-ExOPDurableText -Path (Join-Path -Path $reconcileRun -ChildPath 'details.jsonl') `
                     -Text ((@($records | ForEach-Object { ConvertTo-Json -InputObject $_ -Depth 5 -Compress }) -join "`r`n") + "`r`n")
-            } elseif ($Mode -eq 'Reconcile') {
+            } elseif ($Mode -in 'Reconcile', 'Refused') {
+                if ($Mode -eq 'Refused') {
+                    # The refused run logged only that it inspected a rollback; it wrote nothing.
+                    $refusedRun = Join-Path -Path $evidence -ChildPath 'refused\user'
+                    $null = New-Item -ItemType Directory -Path $refusedRun -Force
+                    Write-ExOPDurableText -Path (Join-Path -Path $refusedRun -ChildPath 'details.jsonl') -Text ((ConvertTo-Json -Compress -InputObject (
+                                [PSCustomObject]@{ Utc = '2026-11-05T10:00:00.0000000+00:00'; OperationId = $Script:operationId; Phase = 'RollbackInspection'; Event = 'RollbackStarted'; Data = $null })) + "`r`n")
+                }
                 Write-ExOPDurableText -Path (Join-Path -Path $evidence -ChildPath 'migration\details.jsonl') -Append -Text ((ConvertTo-Json -Compress -InputObject (
                             New-JournalRecord -EventName 'WriteIntent' -Phase 'MasterDates' -Data ([PSCustomObject]@{ ChangeKey = 'CK-2'; Send = $false }))) + "`r`n")
             }

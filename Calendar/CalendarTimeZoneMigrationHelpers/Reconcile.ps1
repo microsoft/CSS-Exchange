@@ -13,7 +13,11 @@ function Find-ExOPOperationEvidence {
         $SearchDirectory,
 
         [string]
-        $OperationId
+        $OperationId,
+
+        # Output of the current run; its growing journal is never evidence of an earlier interruption.
+        [string]
+        $ExcludeDirectory
     )
     if ($OperationId -cnotmatch '^[0-9a-f]{32}$') { throw 'The migration marker contains an invalid operation ID.' }
     $before = @(
@@ -29,9 +33,11 @@ function Find-ExOPOperationEvidence {
     $journalPath = Join-Path -Path $folder -ChildPath 'details.jsonl'
     # An interrupted Reconcile journals its rollback writes in its own run folder. Records of this operation are
     # therefore collected from every journal below the search directories and ordered by time.
+    $excludePrefix = if ($ExcludeDirectory) { $ExcludeDirectory.TrimEnd('\') + '\' } else { '' }
     $journals = New-Object 'System.Collections.Generic.Dictionary[string,IO.FileInfo]' ([StringComparer]::OrdinalIgnoreCase)
     foreach ($directory in $SearchDirectory) {
         foreach ($file in @(Get-ChildItem -LiteralPath $directory -Recurse -File -Filter 'details.jsonl' -ErrorAction Stop)) {
+            if ($excludePrefix -and $file.FullName.StartsWith($excludePrefix, [StringComparison]::OrdinalIgnoreCase)) { continue }
             $journals[$file.FullName] = $file
         }
     }
@@ -100,7 +106,7 @@ function Get-ExOPJournalWriteState {
     $state = [PSCustomObject]@{
         LastChangeKey = ''; AcknowledgedWrites = 0; WriteAttempted = $false; LastWriteUnknown = $false
         MetadataWritten = $false; DatesWritten = $false; NotificationAttempted = $false; NotificationRejected = $false; NotificationRejectionCode = ''; Plan = $null
-        RollbackStarted = $false
+        RollbackStarted = $false; RollbackWriteAttempted = $false
     }
     # A definitive rejection resolves only its own send attempt. An earlier send that was acknowledged, or whose
     # outcome stayed unknown, may have reached attendees, so a later rejected resend never clears it.
@@ -112,6 +118,8 @@ function Get-ExOPJournalWriteState {
             'RollbackStarted' { $state.RollbackStarted = $true }
             'WriteIntent' {
                 if ($pendingSend) { $sentOrUnknown = $true; $pendingSend = $false }
+                # RollbackStarted is logged before the safety checks; only a write after it means a rollback changed the item.
+                if ($state.RollbackStarted) { $state.RollbackWriteAttempted = $true }
                 $state.WriteAttempted = $true
                 $state.LastWriteUnknown = $true
                 if ($record.Phase -eq 'Notification' -or $record.Data.Send) {
@@ -260,7 +268,7 @@ function Invoke-ExOPCalendarMigrationReconcile {
                     $result.RelatedOperationId = $marker.OperationId
                     $result.From = $marker.FromZone
                     $result.To = $marker.ToZone
-                    $evidence = Find-ExOPOperationEvidence -SearchDirectory $SearchDirectory -OperationId $marker.OperationId
+                    $evidence = Find-ExOPOperationEvidence -SearchDirectory $SearchDirectory -OperationId $marker.OperationId -ExcludeDirectory $run.Directory
                     $result.SnapshotPath = $evidence.BeforePath
                     $result.AfterSnapshotPath = $evidence.AfterPath
                     $saved = $evidence.Before
@@ -301,7 +309,7 @@ function Invoke-ExOPCalendarMigrationReconcile {
                             RollingBack=$false; IsSeries=($saved.Input.RecordType -eq 'RecurringSeries'); Before=$saved.Snapshot
                             Values=$saved.Values; Prepared=$null; OriginalStateHash=(Get-ExOPCalendarStateHash -Snapshot $saved.Snapshot)
                             VerifiedTargetHash=$verifiedTargetHash; JournalChangeKey=[string]$writes.LastChangeKey
-                            NotificationRejected =$writes.NotificationRejectionCode; RollbackInProgress=$writes.RollbackStarted
+                            NotificationRejected =$writes.NotificationRejectionCode; RollbackInProgress=$writes.RollbackWriteAttempted
                         }
                         Write-ExOPMigrationAudit -Run $run -Mailbox $mailbox -OperationId $marker.OperationId -Phase 'Reconcile' `
                             -EventName 'ReconcileBaseline' -Data ([ordered]@{
@@ -309,7 +317,7 @@ function Invoke-ExOPCalendarMigrationReconcile {
                                 JournalLastChangeKey=$writes.LastChangeKey; CurrentChangeKey=$currentKey
                                 AcknowledgedWrites=$writes.AcknowledgedWrites; LastWriteUnknown=$writes.LastWriteUnknown
                                 MetadataWritten=$writes.MetadataWritten; DatesWritten=$writes.DatesWritten
-                                NotificationRejected=$writes.NotificationRejectionCode; VerifiedTargetHash=$verifiedTargetHash; RollbackInProgress=$writes.RollbackStarted
+                                NotificationRejected=$writes.NotificationRejectionCode; VerifiedTargetHash=$verifiedTargetHash; RollbackInProgress=$writes.RollbackWriteAttempted
                             })
                         if (-not $Apply) {
                             $result.Status = 'Preview'

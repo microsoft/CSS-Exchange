@@ -1193,7 +1193,43 @@ function Assert-ExOPPreservedItemData {
     if ((@(Get-ExOPRecipientIdentities -Item $Item) -join "`n") -cne (@(Get-ExOPRecipientIdentities -Item $before.DocumentElement) -join "`n")) {
         throw 'The item changed unexpectedly in its attendees or resources.'
     }
+    # The migration preserves the local recurrence, so any difference is an organizer change such as a new interval.
+    if ((Get-ExOPRecurrenceLocalXml -Item $Item) -cne (Get-ExOPRecurrenceLocalXml -Item $before.DocumentElement)) {
+        throw 'The recurrence pattern or local range dates changed.'
+    }
     Assert-ExOPAttachmentSnapshot -Session $Session -Mailbox $Mailbox -Item $Item -Expected @($Snapshot.Attachments)
+}
+
+function Assert-ExOPPreservedExceptionData {
+    <#
+        Compares a modified occurrence with its original snapshot without reading it again, so that a series
+        rollback can refuse an organizer's occurrence change before any write.
+    #>
+    param (
+        $Current,
+
+        $Original
+    )
+    $currentXml = New-Object Xml.XmlDocument
+    $currentXml.XmlResolver = $null
+    $currentXml.LoadXml($Current.Xml)
+    $originalXml = New-Object Xml.XmlDocument
+    $originalXml.XmlResolver = $null
+    $originalXml.LoadXml($Original.Xml)
+    foreach ($name in 'Subject', 'Body', 'Location', 'Categories', 'Sensitivity', 'IsAllDayEvent',
+        'LegacyFreeBusyStatus', 'ReminderIsSet', 'ReminderMinutesBeforeStart') {
+        if ((Get-ExOPText -Node $currentXml.DocumentElement -Path ("t:" + $name)) -cne
+            (Get-ExOPText -Node $originalXml.DocumentElement -Path ("t:" + $name))) {
+            throw "An exception changed unexpectedly in $name."
+        }
+    }
+    if ((@(Get-ExOPRecipientIdentities -Item $currentXml.DocumentElement) -join "`n") -cne
+        (@(Get-ExOPRecipientIdentities -Item $originalXml.DocumentElement) -join "`n")) {
+        throw 'An exception changed unexpectedly in its attendees or resources.'
+    }
+    $before = @(@($Original.Attachments) | Where-Object { $null -ne $_ } | ForEach-Object { $_ | ConvertTo-Json -Compress } | Sort-Object)
+    $after = @(@($Current.Attachments) | Where-Object { $null -ne $_ } | ForEach-Object { $_ | ConvertTo-Json -Compress } | Sort-Object)
+    if (($before -join "`n") -cne ($after -join "`n")) { throw 'An exception changed unexpectedly in its attachments.' }
 }
 
 function Set-ExOPFinalMigrationState {
@@ -1373,16 +1409,7 @@ function Invoke-ExOPPreSendRollback {
                         (Get-ExOPOriginalSlotKey -Utc $_.OriginalStartUtc -Zone $Operation.Values.StartZone) -ceq $slot
                     })
                 if ($original.Count -ne 1) { throw 'An exception no longer matches the original or intended operation state.' }
-                $currentXml = New-Object Xml.XmlDocument
-                $currentXml.XmlResolver = $null
-                $currentXml.LoadXml($entry.Xml)
-                $originalXml = New-Object Xml.XmlDocument
-                $originalXml.XmlResolver = $null
-                $originalXml.LoadXml($original[0].Xml)
-                if ((@(Get-ExOPRecipientIdentities -Item $currentXml.DocumentElement) -join "`n") -cne
-                    (@(Get-ExOPRecipientIdentities -Item $originalXml.DocumentElement) -join "`n")) {
-                    throw 'An exception changed unexpectedly in its attendees or resources.'
-                }
+                Assert-ExOPPreservedExceptionData -Current $entry -Original $original[0]
                 if (-not (Test-ExOPExceptionEndpointPair -Entry $entry -Original $original[0])) {
                     throw 'An exception no longer matches the original or intended operation state.'
                 }
