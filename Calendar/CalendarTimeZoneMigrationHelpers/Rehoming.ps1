@@ -1364,9 +1364,17 @@ function Invoke-ExOPPreSendRollback {
                 $original = @($Operation.Before.Modified | Where-Object {
                         (Get-ExOPOriginalSlotKey -Utc $_.OriginalStartUtc -Zone $Operation.Values.StartZone) -ceq $slot
                     })
-                if ($original.Count -ne 1 -or
-                    $entry.Values.StartUtc -notin @($original[0].Values.StartUtc, $original[0].Values.NewStartUtc) -or
-                    $entry.Values.EndUtc -notin @($original[0].Values.EndUtc, $original[0].Values.NewEndUtc)) {
+                # Each exception write sets both endpoints together, so only the complete original or intended pair
+                # can be ours. A mixed pair, such as an intended start with the original end, is a user's change.
+                $pairMatches = $false
+                if ($original.Count -eq 1) {
+                    $start = ConvertTo-ExOPInstant -Value $entry.Values.StartUtc
+                    $end = ConvertTo-ExOPInstant -Value $entry.Values.EndUtc
+                    $expected = $original[0].Values
+                    $pairMatches = ($start -eq (ConvertTo-ExOPInstant -Value $expected.StartUtc) -and $end -eq (ConvertTo-ExOPInstant -Value $expected.EndUtc)) -or
+                    ($start -eq (ConvertTo-ExOPInstant -Value $expected.NewStartUtc) -and $end -eq (ConvertTo-ExOPInstant -Value $expected.NewEndUtc))
+                }
+                if (-not $pairMatches) {
                     throw 'An exception no longer matches the original or intended operation state.'
                 }
             }

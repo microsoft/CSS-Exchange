@@ -1343,6 +1343,80 @@ Describe 'Testing Rehoming.ps1' {
                 Should -Throw -ExpectedMessage 'The item times or time zones changed outside this operation; the item was not overwritten.'
         }
     }
+    Context 'Series rollback after an unknown write outcome with an exception in state <Name>' -ForEach @(
+        @{ Name = 'intended'; Start = '2026-11-16T17:00:00.0000000Z'; End = '2026-11-16T18:00:00.0000000Z'; Restores = $true }
+        @{ Name = 'original'; Start = '2026-11-16T18:00:00.0000000Z'; End = '2026-11-16T19:00:00.0000000Z'; Restores = $true }
+        @{ Name = 'intended start with original end (an organizer edit)'; Start = '2026-11-16T17:00:00.0000000Z'; End = '2026-11-16T19:00:00.0000000Z'; Restores = $false }
+        @{ Name = 'original start with intended end'; Start = '2026-11-16T18:00:00.0000000Z'; End = '2026-11-16T18:00:00.0000000Z'; Restores = $false }
+    ) {
+        BeforeAll {
+            $Script:seriesRollback = [PSCustomObject]@{ Restored = $false; MarkerCleared = $false; OperationId = [Guid]::NewGuid().ToString('N') }
+            function New-SeriesRollbackItem {
+                $marker = ''
+                if (-not $Script:seriesRollback.MarkerCleared) {
+                    $state = ConvertTo-Json -Compress -InputObject ([ordered]@{ SchemaVersion = 1; Status = 'InProgress'; OperationId = $Script:seriesRollback.OperationId })
+                    $marker = '<t:ExtendedProperty>' + $script:MigrationStateFieldUri + '<t:Value>' + (ConvertTo-ExOPXmlText -Value $state) + '</t:Value></t:ExtendedProperty>'
+                }
+                (New-CalendarItemXml -InnerXml ('<t:ItemId Id="item-1" ChangeKey="CK-unknown-write"/><t:Subject>Weekly sync</t:Subject>' +
+                    '<t:CalendarItemType>RecurringMaster</t:CalendarItemType><t:Start>2026-11-09T17:00:00Z</t:Start><t:End>2026-11-09T18:00:00Z</t:End>' +
+                    '<t:StartTimeZone Id="Mountain Standard Time"/><t:EndTimeZone Id="Mountain Standard Time"/>' + $marker)).DocumentElement
+            }
+            function New-SeriesRollbackSnapshot {
+                param([string]$OriginalStartUtc, $Values)
+                [PSCustomObject]@{
+                    Xml = (New-CalendarItemXml -InnerXml '<t:Subject>Weekly sync</t:Subject><t:StartTimeZone Id="Pacific Standard Time"/><t:EndTimeZone Id="Pacific Standard Time"/>').DocumentElement.OuterXml
+                    TimeZoneProperties = @(); Attachments = @(); Deleted = @(); RecurrenceBase64 = ''; Receipt = $null
+                    Modified = @([PSCustomObject]@{
+                            OriginalStartUtc = $OriginalStartUtc; Values = $Values; Attachments = @()
+                            Xml = (New-CalendarItemXml -InnerXml '<t:Subject>Occurrence</t:Subject>').DocumentElement.OuterXml
+                        })
+                }
+            }
+            $exceptionValues = [PSCustomObject]@{
+                StartZone = 'Pacific Standard Time'; EndZone = 'Pacific Standard Time'; NewStartZone = 'Mountain Standard Time'; NewEndZone = 'Mountain Standard Time'
+                StartUtc = '2026-11-16T18:00:00.0000000Z'; EndUtc = '2026-11-16T19:00:00.0000000Z'; NewStartUtc = '2026-11-16T17:00:00.0000000Z'; NewEndUtc = '2026-11-16T18:00:00.0000000Z'
+            }
+            $Script:seriesOriginal = New-SeriesRollbackSnapshot -OriginalStartUtc '2026-11-16T18:00:00.0000000Z' -Values $exceptionValues
+            # The same local slot (10:00) after the series moved to Mountain time.
+            $Script:seriesCurrent = New-SeriesRollbackSnapshot -OriginalStartUtc '2026-11-16T17:00:00.0000000Z' -Values ([PSCustomObject]@{ StartUtc = $Start; EndUtc = $End })
+            Mock Get-ExOPCalendarItem { Write-Output -InputObject (New-SeriesRollbackItem) -NoEnumerate }
+            Mock Get-ExOPItemSnapshot { if ($Script:seriesRollback.Restored) { $Script:seriesOriginal } else { $Script:seriesCurrent } }
+            Mock Assert-ExOPPreservedItemData { }
+            Mock New-ExOPExceptionTimeBridge { 'AAAA' }
+            Mock Set-ExOPSeriesTimeZoneState { }
+            Mock Update-ExOPPreservedExceptions { $Script:seriesRollback.Restored = $true }
+            Mock Set-ExOPCalendarFields { }
+            Mock Assert-ExOPRehomeResult { Write-Output -InputObject (New-SeriesRollbackItem) -NoEnumerate }
+            Mock Set-ExOPFinalMigrationState { $Script:seriesRollback.MarkerCleared = $true }
+            $operation = [PSCustomObject]@{
+                Run = (New-ExOPMigrationRun -Directory (Join-Path -Path $TestDrive -ChildPath ('series-rollback-' + [Guid]::NewGuid().ToString('N'))) `
+                        -Rows @([PSCustomObject]@{ Mailbox = 'user@contoso.com'; RecordType = 'RecurringSeries' }) -Apply $true)
+                OperationId = $Script:seriesRollback.OperationId; Mailbox = 'user@contoso.com'; ItemId = 'item-1'; Phase = 'MasterDates'
+                LastChangeKey = 'CK-acknowledged'; AcknowledgedWrites = 3; WriteAttempted = $true; LastWriteUnknown = $true
+                MetadataWritten = $true; DatesWritten = $true; NotificationStarted = $false; RollingBack = $false; IsSeries = $true
+                Before = $Script:seriesOriginal; Prepared = $null; VerifiedTargetHash = ''
+                Values = [PSCustomObject]@{
+                    StartZone = 'Pacific Standard Time'; EndZone = 'Pacific Standard Time'; NewStartZone = 'Mountain Standard Time'; NewEndZone = 'Mountain Standard Time'
+                    StartUtc = '2026-11-09T18:00:00.0000000Z'; EndUtc = '2026-11-09T19:00:00.0000000Z'; NewStartUtc = '2026-11-09T17:00:00.0000000Z'; NewEndUtc = '2026-11-09T18:00:00.0000000Z'
+                }
+                OriginalStateHash = Get-ExOPCalendarStateHash -Snapshot $Script:seriesOriginal
+            }
+            $Script:seriesRollbackError = ''
+            try { $null = Invoke-ExOPPreSendRollback -Session $null -Operation $operation } catch { $Script:seriesRollbackError = $_.Exception.Message }
+        }
+
+        It 'Restores only when every exception has a complete original or intended pair' {
+            if ($Restores) {
+                $Script:seriesRollbackError | Should -BeExactly ''
+                Should -Invoke Update-ExOPPreservedExceptions -Times 1 -Exactly -Scope Context
+            } else {
+                $Script:seriesRollbackError | Should -BeExactly 'An exception no longer matches the original or intended operation state.'
+                Should -Invoke Set-ExOPSeriesTimeZoneState -Times 0 -Exactly -Scope Context
+                Should -Invoke Update-ExOPPreservedExceptions -Times 0 -Exactly -Scope Context
+            }
+        }
+    }
+
     Context 'Invoke-ExOPPreSendRollback after the item ChangeKey changed' {
         BeforeAll {
             Mock Invoke-ExOPEwsRequest { throw 'Unexpected EWS request in an offline test.' }
