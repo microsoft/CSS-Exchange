@@ -1364,7 +1364,7 @@ Describe 'Testing Rehoming.ps1' {
             function New-SeriesRollbackSnapshot {
                 param([string]$OriginalStartUtc, $Values)
                 [PSCustomObject]@{
-                    Xml = (New-CalendarItemXml -InnerXml '<t:Subject>Weekly sync</t:Subject><t:StartTimeZone Id="Pacific Standard Time"/><t:EndTimeZone Id="Pacific Standard Time"/>').DocumentElement.OuterXml
+                    Xml      = (New-CalendarItemXml -InnerXml '<t:Subject>Weekly sync</t:Subject><t:StartTimeZone Id="Pacific Standard Time"/><t:EndTimeZone Id="Pacific Standard Time"/>').DocumentElement.OuterXml
                     TimeZoneProperties = @(); Attachments = @(); Deleted = @(); RecurrenceBase64 = ''; Receipt = $null
                     Modified = @([PSCustomObject]@{
                             OriginalStartUtc = $OriginalStartUtc; Values = $Values; Attachments = @()
@@ -1389,13 +1389,13 @@ Describe 'Testing Rehoming.ps1' {
             Mock Assert-ExOPRehomeResult { Write-Output -InputObject (New-SeriesRollbackItem) -NoEnumerate }
             Mock Set-ExOPFinalMigrationState { $Script:seriesRollback.MarkerCleared = $true }
             $operation = [PSCustomObject]@{
-                Run = (New-ExOPMigrationRun -Directory (Join-Path -Path $TestDrive -ChildPath ('series-rollback-' + [Guid]::NewGuid().ToString('N'))) `
+                Run               = (New-ExOPMigrationRun -Directory (Join-Path -Path $TestDrive -ChildPath ('series-rollback-' + [Guid]::NewGuid().ToString('N'))) `
                         -Rows @([PSCustomObject]@{ Mailbox = 'user@contoso.com'; RecordType = 'RecurringSeries' }) -Apply $true)
                 OperationId = $Script:seriesRollback.OperationId; Mailbox = 'user@contoso.com'; ItemId = 'item-1'; Phase = 'MasterDates'
                 LastChangeKey = 'CK-acknowledged'; AcknowledgedWrites = 3; WriteAttempted = $true; LastWriteUnknown = $true; RollbackInProgress = $true
                 MetadataWritten = $true; DatesWritten = $true; NotificationStarted = $false; RollingBack = $false; IsSeries = $true
                 Before = $Script:seriesOriginal; Prepared = $null; VerifiedTargetHash = ''
-                Values = [PSCustomObject]@{
+                Values            = [PSCustomObject]@{
                     StartZone = 'Pacific Standard Time'; EndZone = 'Pacific Standard Time'; NewStartZone = 'Mountain Standard Time'; NewEndZone = 'Mountain Standard Time'
                     StartUtc = '2026-11-09T18:00:00.0000000Z'; EndUtc = '2026-11-09T19:00:00.0000000Z'; NewStartUtc = '2026-11-09T17:00:00.0000000Z'; NewEndUtc = '2026-11-09T18:00:00.0000000Z'
                 }
