@@ -231,6 +231,21 @@ Describe 'Testing Reconcile.ps1' {
             $state.RollbackStarted | Should -BeTrue
         }
 
+        It 'Keeps an earlier <Outcome> send when a later resend is rejected' -ForEach @(
+            @{ Outcome = 'acknowledged'; Acknowledged = $true }
+            @{ Outcome = 'unknown'; Acknowledged = $false }
+        ) {
+            $events = @(
+                New-JournalRecord -EventName 'WriteIntent' -Phase 'Notification' -Data ([PSCustomObject]@{ ChangeKey = 'CK-2'; Send = $true })
+                if ($Acknowledged) { New-JournalRecord -EventName 'WriteAcknowledged' -Phase 'Notification' -Data ([PSCustomObject]@{ ChangeKey = 'CK-3' }) }
+                New-JournalRecord -EventName 'WriteIntent' -Phase 'Notification' -Data ([PSCustomObject]@{ ChangeKey = 'CK-3'; Send = $true })
+                New-JournalRecord -EventName 'NotificationRejected' -Phase 'Notification' -Data ([PSCustomObject]@{ Code = 'ErrorSendAsDenied' })
+            )
+            $state = Get-ExOPJournalWriteState -Events $events
+            $state.NotificationAttempted | Should -BeTrue
+            $state.NotificationRejected | Should -BeFalse
+        }
+
         It 'Tracks acknowledged writes by phase' {
             $events = @(
                 New-JournalRecord -EventName 'PlanValidated' -Phase 'Plan' -Data ([PSCustomObject]@{ O12Modes = 'none' })
@@ -745,19 +760,20 @@ Describe 'Testing Reconcile.ps1' {
     }
 
     Context 'Reconcile after an interrupted earlier reconcile rollback: <Name>' -ForEach @(
-        @{ Name = 'the last rollback write was acknowledged'; Key = 'CK-3'; RollbackJournal = $true; PendingRollbackWrite = $false; Outcome = 'Restored' }
-        @{ Name = 'the last rollback write is unknown'; Key = 'CK-unknown'; RollbackJournal = $true; PendingRollbackWrite = $true; Outcome = 'Restored' }
-        @{ Name = 'no rollback was started (the same state is refused)'; Key = 'CK-unknown'; RollbackJournal = $false; PendingRollbackWrite = $false; Outcome = 'Endpoints' }
+        @{ Name = 'the last rollback write was acknowledged'; Mode = 'Reconcile'; Key = 'CK-3'; RollbackJournal = $true; PendingRollbackWrite = $false; Outcome = 'Restored' }
+        @{ Name = 'the last rollback write is unknown'; Mode = 'Reconcile'; Key = 'CK-unknown'; RollbackJournal = $true; PendingRollbackWrite = $true; Outcome = 'Restored' }
+        @{ Name = 'no rollback was started (the same state is refused)'; Mode = 'Reconcile'; Key = 'CK-unknown'; RollbackJournal = $false; PendingRollbackWrite = $false; Outcome = 'Endpoints' }
+        @{ Name = 'the rollback after a rejected send was interrupted'; Mode = 'RejectedSend'; Key = 'CK-unknown'; RollbackJournal = $true; PendingRollbackWrite = $true; Outcome = 'Restored' }
     ) {
         BeforeAll {
             # The earlier rollback restored the original zones; the original times were not yet written.
-            $Script:secondRestore = [PSCustomObject]@{ Key = $Key; Done = $false; MarkerCleared = $false }
+            $Script:secondRestore = [PSCustomObject]@{ Key = $Key; Done = $false; MarkerCleared = $false; MayHaveStarted = ($Mode -eq 'RejectedSend') }
             function New-SecondRestoreItem {
                 $marker = ''
                 if (-not $Script:secondRestore.MarkerCleared) {
                     $state = ConvertTo-Json -Compress -InputObject ([ordered]@{
                             SchemaVersion = 1; Status = 'InProgress'; OperationId = $Script:operationId
-                            FromZone = 'Pacific Standard Time'; ToZone = 'Mountain Standard Time'; NotificationMayHaveStarted = $false
+                            FromZone = 'Pacific Standard Time'; ToZone = 'Mountain Standard Time'; NotificationMayHaveStarted = $Script:secondRestore.MayHaveStarted
                         })
                     $marker = '<t:ExtendedProperty>' + $script:MigrationStateFieldUri + '<t:Value>' + (ConvertTo-ExOPXmlText -Value $state) + '</t:Value></t:ExtendedProperty>'
                 }
@@ -776,8 +792,18 @@ Describe 'Testing Reconcile.ps1' {
             Mock Set-ExOPFinalMigrationState { $Script:secondRestore.MarkerCleared = $true }
             $name = 'second-reconcile-' + [Guid]::NewGuid().ToString('N')
             $evidence = Join-Path -Path $TestDrive -ChildPath "$name-evidence"
-            Write-OperationEvidence -Directory (Join-Path -Path $evidence -ChildPath 'migration') -Events (New-InterruptedJournal)
-            if ($RollbackJournal) {
+            if ($Mode -eq 'RejectedSend') {
+                # The migration run itself rolled back after the rejection and stopped before the metadata write was acknowledged.
+                $events = @(New-InterruptedJournal -NotificationIntent) + @(
+                    New-JournalRecord -EventName 'NotificationRejected' -Phase 'Notification' -Data ([PSCustomObject]@{ Code = 'ErrorSendAsDenied' })
+                    New-JournalRecord -EventName 'RollbackStarted' -Phase 'RollbackInspection' -Data $null
+                    New-JournalRecord -EventName 'WriteIntent' -Phase 'TimezoneMetadata' -Data ([PSCustomObject]@{ ChangeKey = 'CK-2'; Send = $false })
+                )
+                Write-OperationEvidence -Directory (Join-Path -Path $evidence -ChildPath 'migration') -Events $events
+            } else {
+                Write-OperationEvidence -Directory (Join-Path -Path $evidence -ChildPath 'migration') -Events (New-InterruptedJournal)
+            }
+            if ($Mode -eq 'Reconcile' -and $RollbackJournal) {
                 $records = @(
                     [PSCustomObject]@{ Utc = '2026-11-05T10:00:00.0000000+00:00'; OperationId = $Script:operationId; Phase = 'RollbackInspection'; Event = 'RollbackStarted'; Data = $null }
                     [PSCustomObject]@{ Utc = '2026-11-05T10:00:01.0000000+00:00'; OperationId = $Script:operationId; Phase = 'TimezoneMetadata'; Event = 'WriteIntent'; Data = [PSCustomObject]@{ ChangeKey = 'CK-2'; Send = $false } }
@@ -790,7 +816,7 @@ Describe 'Testing Reconcile.ps1' {
                 $null = New-Item -ItemType Directory -Path $reconcileRun -Force
                 Write-ExOPDurableText -Path (Join-Path -Path $reconcileRun -ChildPath 'details.jsonl') `
                     -Text ((@($records | ForEach-Object { ConvertTo-Json -InputObject $_ -Depth 5 -Compress }) -join "`r`n") + "`r`n")
-            } else {
+            } elseif ($Mode -eq 'Reconcile') {
                 Write-ExOPDurableText -Path (Join-Path -Path $evidence -ChildPath 'migration\details.jsonl') -Append -Text ((ConvertTo-Json -Compress -InputObject (
                             New-JournalRecord -EventName 'WriteIntent' -Phase 'MasterDates' -Data ([PSCustomObject]@{ ChangeKey = 'CK-2'; Send = $false }))) + "`r`n")
             }
@@ -812,7 +838,39 @@ Describe 'Testing Reconcile.ps1' {
         It 'Records the earlier rollback in the reconcile baseline' {
             $baseline = @(Get-RunJournal -Directory $Script:logDirectory | Where-Object Event -EQ 'ReconcileBaseline')
             $baseline[0].Data.RollbackInProgress | Should -Be $RollbackJournal
-            if ($RollbackJournal) { $baseline[0].Data.JournalLastChangeKey | Should -BeExactly 'CK-3' }
+            if ($RollbackJournal -and $Mode -eq 'Reconcile') { $baseline[0].Data.JournalLastChangeKey | Should -BeExactly 'CK-3' }
+            if ($Mode -eq 'RejectedSend') { $baseline[0].Data.NotificationRejected | Should -BeExactly 'ErrorSendAsDenied' }
+        }
+    }
+
+    Context 'Reconcile after a delivered update whose resend was rejected (<Outcome> first send)' -ForEach @(
+        @{ Outcome = 'acknowledged'; Acknowledged = $true }
+        @{ Outcome = 'unknown'; Acknowledged = $false }
+    ) {
+        BeforeAll {
+            Mock Get-ExOPCalendarItem { New-ReconcileItem -ChangeKey 'CK-current' -WithMarker -NotificationMayHaveStarted $true }
+            Mock Get-ExOPItemSnapshot { New-ReconcileSnapshot -Subject 'Target' }
+            $name = 'resend-rejected-' + [Guid]::NewGuid().ToString('N')
+            $evidence = Join-Path -Path $TestDrive -ChildPath "$name-evidence"
+            $events = @(New-InterruptedJournal -NotificationIntent)
+            if ($Acknowledged) { $events += New-JournalRecord -EventName 'WriteAcknowledged' -Phase 'Notification' -Data ([PSCustomObject]@{ ChangeKey = 'CK-3' }) }
+            Write-OperationEvidence -Directory (Join-Path -Path $evidence -ChildPath 'migration') -Events $events -After (New-ReconcileSnapshot -Subject 'Target')
+            # The earlier Reconcile -ResendNotification run journaled its own rejected resend in its run folder.
+            $records = @(
+                [PSCustomObject]@{ Utc = '2026-11-05T10:00:00.0000000+00:00'; OperationId = $Script:operationId; Phase = 'Notification'; Event = 'WriteIntent'; Data = [PSCustomObject]@{ ChangeKey = 'CK-3'; Send = $true } }
+                [PSCustomObject]@{ Utc = '2026-11-05T10:00:01.0000000+00:00'; OperationId = $Script:operationId; Phase = 'Notification'; Event = 'NotificationRejected'; Data = [PSCustomObject]@{ Code = 'ErrorSendAsDenied' } }
+            )
+            $reconcileRun = Join-Path -Path $evidence -ChildPath 'reconcile\user'
+            $null = New-Item -ItemType Directory -Path $reconcileRun -Force
+            Write-ExOPDurableText -Path (Join-Path -Path $reconcileRun -ChildPath 'details.jsonl') `
+                -Text ((@($records | ForEach-Object { ConvertTo-Json -InputObject $_ -Depth 5 -Compress }) -join "`r`n") + "`r`n")
+            $Script:result = Invoke-TestReconcile -Name $name
+        }
+
+        It 'Never plans to move the item back' {
+            $Script:result.Action | Should -BeExactly 'FinalizeTarget'
+            $Script:result.RollbackStatus | Should -BeExactly 'ProhibitedAfterNotification'
+            $Script:result.NotificationStatus | Should -BeExactly 'OutcomeUnknown'
         }
     }
 

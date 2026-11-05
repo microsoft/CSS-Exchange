@@ -1322,7 +1322,10 @@ function Invoke-ExOPPreSendRollback {
         $rejectedSendSaved = $owned -and $null -ne $Operation.PSObject.Properties['NotificationRejected'] -and
         [bool]$Operation.NotificationRejected -and $null -ne $Operation.PSObject.Properties['VerifiedTargetHash'] -and
         [bool]$Operation.VerifiedTargetHash -and (Get-ExOPCalendarStateHash -Snapshot $current) -ceq $Operation.VerifiedTargetHash
-        if (-not $rejectedSendSaved -and (-not $alreadyOriginal -or (-not $owned -and $Operation.WriteAttempted))) {
+        # A key that this operation's own unacknowledged last write may have produced is not proof of a concurrent
+        # change; the endpoint and preserved-data checks below decide whether the state is ours.
+        $ownUnknownWrite = $owned -and [bool]$Operation.LastWriteUnknown
+        if (-not $rejectedSendSaved -and -not $ownUnknownWrite -and (-not $alreadyOriginal -or (-not $owned -and $Operation.WriteAttempted))) {
             throw 'The latest write outcome or a concurrent change cannot be safely reconciled; rollback was not forced.'
         }
         if ($rejectedSendSaved) { $keyProven = $true }

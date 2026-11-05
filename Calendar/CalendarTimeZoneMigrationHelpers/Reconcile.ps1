@@ -102,15 +102,20 @@ function Get-ExOPJournalWriteState {
         MetadataWritten = $false; DatesWritten = $false; NotificationAttempted = $false; NotificationRejected = $false; NotificationRejectionCode = ''; Plan = $null
         RollbackStarted = $false
     }
+    # A definitive rejection resolves only its own send attempt. An earlier send that was acknowledged, or whose
+    # outcome stayed unknown, may have reached attendees, so a later rejected resend never clears it.
+    $pendingSend = $false
+    $sentOrUnknown = $false
     foreach ($record in $Events) {
         switch ($record.Event) {
             'PlanValidated' { $state.Plan = $record.Data }
             'RollbackStarted' { $state.RollbackStarted = $true }
             'WriteIntent' {
+                if ($pendingSend) { $sentOrUnknown = $true; $pendingSend = $false }
                 $state.WriteAttempted = $true
                 $state.LastWriteUnknown = $true
                 if ($record.Phase -eq 'Notification' -or $record.Data.Send) {
-                    $state.NotificationAttempted = $true
+                    $pendingSend = $true
                     $state.NotificationRejected = $false
                     $state.NotificationRejectionCode = ''
                 }
@@ -120,13 +125,14 @@ function Get-ExOPJournalWriteState {
                     $record.Data.Code -notin $script:DefinitiveSendRejectionCodes) {
                     throw 'The journal does not contain a definitive notification rejection code.'
                 }
-                # Exchange rejected the submission with a definitive response; no update was sent.
+                # Exchange rejected the submission with a definitive response; this attempt sent no update.
                 $state.LastWriteUnknown = $false
-                $state.NotificationAttempted = $false
+                $pendingSend = $false
                 $state.NotificationRejected = $true
                 $state.NotificationRejectionCode = [string]$record.Data.Code
             }
             'WriteAcknowledged' {
+                if ($pendingSend) { $sentOrUnknown = $true; $pendingSend = $false }
                 $state.LastWriteUnknown = $false
                 $state.AcknowledgedWrites++
                 $state.LastChangeKey = [string]$record.Data.ChangeKey
@@ -134,6 +140,11 @@ function Get-ExOPJournalWriteState {
                 if ($record.Phase -eq 'MasterDates') { $state.DatesWritten = $true }
             }
         }
+    }
+    $state.NotificationAttempted = $sentOrUnknown -or $pendingSend
+    if ($state.NotificationAttempted) {
+        $state.NotificationRejected = $false
+        $state.NotificationRejectionCode = ''
     }
     $state
 }
