@@ -1349,6 +1349,26 @@ function Invoke-ExOPPreSendRollback {
         }
         Assert-ExOPPreservedItemData -Session $Session -Mailbox $Operation.Mailbox -Item $item -Snapshot $Operation.Before
         if ($Operation.IsSeries) {
+            # Read before any rollback write: an occurrence update sent to changed attendees must never be moved back.
+            foreach ($entry in @($current.Modified)) {
+                $slot = Get-ExOPOriginalSlotKey -Utc $entry.OriginalStartUtc -Zone $zone
+                $original = @($Operation.Before.Modified | Where-Object {
+                        (Get-ExOPOriginalSlotKey -Utc $_.OriginalStartUtc -Zone $Operation.Values.StartZone) -ceq $slot
+                    })
+                if ($original.Count -ne 1) { throw 'An exception no longer matches the original or intended operation state.' }
+                $currentXml = New-Object Xml.XmlDocument
+                $currentXml.XmlResolver = $null
+                $currentXml.LoadXml($entry.Xml)
+                $originalXml = New-Object Xml.XmlDocument
+                $originalXml.XmlResolver = $null
+                $originalXml.LoadXml($original[0].Xml)
+                if ((@(Get-ExOPRecipientIdentities -Item $currentXml.DocumentElement) -join "`n") -cne
+                    (@(Get-ExOPRecipientIdentities -Item $originalXml.DocumentElement) -join "`n")) {
+                    throw 'An exception changed unexpectedly in its attendees or resources.'
+                }
+            }
+        }
+        if ($Operation.IsSeries) {
             if ($Operation.MetadataWritten -and -not $Operation.DatesWritten) {
                 $Operation.Phase = 'RollbackNormalizeIntermediateDates'
                 $updates = @(

@@ -1370,10 +1370,11 @@ Describe 'Testing Rehoming.ps1' {
     }
 
     Context 'Series rollback after an unknown write outcome with an exception in state <Name>' -ForEach @(
-        @{ Name = 'intended'; Start = '2026-11-16T17:00:00.0000000Z'; End = '2026-11-16T18:00:00.0000000Z'; Restores = $true }
-        @{ Name = 'original'; Start = '2026-11-16T18:00:00.0000000Z'; End = '2026-11-16T19:00:00.0000000Z'; Restores = $true }
-        @{ Name = 'intended start with original end (an organizer edit)'; Start = '2026-11-16T17:00:00.0000000Z'; End = '2026-11-16T19:00:00.0000000Z'; Restores = $false }
-        @{ Name = 'original start with intended end'; Start = '2026-11-16T18:00:00.0000000Z'; End = '2026-11-16T18:00:00.0000000Z'; Restores = $false }
+        @{ Name = 'intended'; Start = '2026-11-16T17:00:00.0000000Z'; End = '2026-11-16T18:00:00.0000000Z'; AddedAttendee = $false; Restores = $true; ExpectedError = '' }
+        @{ Name = 'original'; Start = '2026-11-16T18:00:00.0000000Z'; End = '2026-11-16T19:00:00.0000000Z'; AddedAttendee = $false; Restores = $true; ExpectedError = '' }
+        @{ Name = 'intended start with original end (an organizer edit)'; Start = '2026-11-16T17:00:00.0000000Z'; End = '2026-11-16T19:00:00.0000000Z'; AddedAttendee = $false; Restores = $false; ExpectedError = 'An exception no longer matches the original or intended operation state.' }
+        @{ Name = 'original start with intended end'; Start = '2026-11-16T18:00:00.0000000Z'; End = '2026-11-16T18:00:00.0000000Z'; AddedAttendee = $false; Restores = $false; ExpectedError = 'An exception no longer matches the original or intended operation state.' }
+        @{ Name = 'intended with an attendee added to the occurrence'; Start = '2026-11-16T17:00:00.0000000Z'; End = '2026-11-16T18:00:00.0000000Z'; AddedAttendee = $true; Restores = $false; ExpectedError = 'An exception changed unexpectedly in its attendees or resources.' }
     ) {
         BeforeAll {
             $Script:seriesRollback = [PSCustomObject]@{ Restored = $false; MarkerCleared = $false; OperationId = [Guid]::NewGuid().ToString('N') }
@@ -1388,13 +1389,13 @@ Describe 'Testing Rehoming.ps1' {
                     '<t:StartTimeZone Id="Mountain Standard Time"/><t:EndTimeZone Id="Mountain Standard Time"/>' + $marker)).DocumentElement
             }
             function New-SeriesRollbackSnapshot {
-                param([string]$OriginalStartUtc, $Values)
+                param([string]$OriginalStartUtc, $Values, [string]$ExceptionRecipients = '')
                 [PSCustomObject]@{
                     Xml      = (New-CalendarItemXml -InnerXml '<t:Subject>Weekly sync</t:Subject><t:StartTimeZone Id="Pacific Standard Time"/><t:EndTimeZone Id="Pacific Standard Time"/>').DocumentElement.OuterXml
                     TimeZoneProperties = @(); Attachments = @(); Deleted = @(); RecurrenceBase64 = ''; Receipt = $null
                     Modified = @([PSCustomObject]@{
                             OriginalStartUtc = $OriginalStartUtc; Values = $Values; Attachments = @()
-                            Xml = (New-CalendarItemXml -InnerXml '<t:Subject>Occurrence</t:Subject>').DocumentElement.OuterXml
+                            Xml = (New-CalendarItemXml -InnerXml ('<t:Subject>Occurrence</t:Subject>' + $ExceptionRecipients)).DocumentElement.OuterXml
                         })
                 }
             }
@@ -1404,7 +1405,9 @@ Describe 'Testing Rehoming.ps1' {
             }
             $Script:seriesOriginal = New-SeriesRollbackSnapshot -OriginalStartUtc '2026-11-16T18:00:00.0000000Z' -Values $exceptionValues
             # The same local slot (10:00) after the series moved to Mountain time.
-            $Script:seriesCurrent = New-SeriesRollbackSnapshot -OriginalStartUtc '2026-11-16T17:00:00.0000000Z' -Values ([PSCustomObject]@{ StartUtc = $Start; EndUtc = $End })
+            $addedAttendee = if ($AddedAttendee) { '<t:RequiredAttendees><t:Attendee><t:Mailbox><t:EmailAddress>added@contoso.com</t:EmailAddress></t:Mailbox></t:Attendee></t:RequiredAttendees>' } else { '' }
+            $Script:seriesCurrent = New-SeriesRollbackSnapshot -OriginalStartUtc '2026-11-16T17:00:00.0000000Z' -Values ([PSCustomObject]@{ StartUtc = $Start; EndUtc = $End }) `
+                -ExceptionRecipients $addedAttendee
             Mock Get-ExOPCalendarItem { Write-Output -InputObject (New-SeriesRollbackItem) -NoEnumerate }
             Mock Get-ExOPItemSnapshot { if ($Script:seriesRollback.Restored) { $Script:seriesOriginal } else { $Script:seriesCurrent } }
             Mock Assert-ExOPPreservedItemData { }
@@ -1436,7 +1439,7 @@ Describe 'Testing Rehoming.ps1' {
                 $Script:seriesRollbackError | Should -BeExactly ''
                 Should -Invoke Update-ExOPPreservedExceptions -Times 1 -Exactly -Scope Context
             } else {
-                $Script:seriesRollbackError | Should -BeExactly 'An exception no longer matches the original or intended operation state.'
+                $Script:seriesRollbackError | Should -BeExactly $ExpectedError
                 Should -Invoke Set-ExOPSeriesTimeZoneState -Times 0 -Exactly -Scope Context
                 Should -Invoke Update-ExOPPreservedExceptions -Times 0 -Exactly -Scope Context
             }
