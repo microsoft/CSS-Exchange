@@ -1397,8 +1397,8 @@ function Invoke-ExOPPreSendRollback {
             if (-not [bool]$Operation.LastWriteUnknown) {
                 throw 'The item changed after the last acknowledged write of this operation; it was not overwritten.'
             }
-            $rollbackInProgress = $null -ne $Operation.PSObject.Properties['RollbackInProgress'] -and [bool]$Operation.RollbackInProgress
-            Assert-ExOPRollbackEndpoints -Item $item -Values $Operation.Values -AllowRollbackIntermediate:$rollbackInProgress
+            $rollbackIntermediate = $null -ne $Operation.PSObject.Properties['RollbackIntermediatePossible'] -and [bool]$Operation.RollbackIntermediatePossible
+            Assert-ExOPRollbackEndpoints -Item $item -Values $Operation.Values -AllowRollbackIntermediate:$rollbackIntermediate
         }
         Assert-ExOPPreservedItemData -Session $Session -Mailbox $Operation.Mailbox -Item $item -Snapshot $Operation.Before
         if ($Operation.IsSeries) {

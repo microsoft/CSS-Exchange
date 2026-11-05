@@ -238,6 +238,7 @@ Describe 'Testing Reconcile.ps1' {
                 New-JournalRecord -EventName 'WriteIntent' -Phase 'TimezoneMetadata' -Data ([PSCustomObject]@{ ChangeKey = 'CK-2'; Send = $false })
             )
             $state.RollbackWriteAttempted | Should -BeTrue
+            $state.RollbackIntermediatePossible | Should -BeTrue
         }
 
         It 'Does not treat a rollback bookkeeping write in phase <_> as a time zone rollback write' -ForEach @('RollbackFinalize', 'Marker', 'FinalizeReceipt') {
@@ -257,7 +258,21 @@ Describe 'Testing Reconcile.ps1' {
                 New-JournalRecord -EventName 'WriteAcknowledged' -Phase 'MasterDates' -Data ([PSCustomObject]@{ ChangeKey = 'CK-4' })
                 New-JournalRecord -EventName 'WriteIntent' -Phase 'RollbackFinalize' -Data ([PSCustomObject]@{ ChangeKey = 'CK-4'; Send = $false })
             )
-            $state.RollbackWriteAttempted | Should -BeFalse
+            $state.RollbackIntermediatePossible | Should -BeFalse
+            $state.LastWriteUnknown | Should -BeTrue
+        }
+
+        It 'Keeps a rollback resumable after its dates when an exception write is unknown' {
+            $state = Get-ExOPJournalWriteState -Events @(
+                New-JournalRecord -EventName 'RollbackStarted' -Phase 'RollbackInspection' -Data $null
+                New-JournalRecord -EventName 'WriteIntent' -Phase 'TimezoneMetadata' -Data ([PSCustomObject]@{ ChangeKey = 'CK-2'; Send = $false })
+                New-JournalRecord -EventName 'WriteAcknowledged' -Phase 'TimezoneMetadata' -Data ([PSCustomObject]@{ ChangeKey = 'CK-3' })
+                New-JournalRecord -EventName 'WriteIntent' -Phase 'MasterDates' -Data ([PSCustomObject]@{ ChangeKey = 'CK-3'; Send = $false })
+                New-JournalRecord -EventName 'WriteAcknowledged' -Phase 'MasterDates' -Data ([PSCustomObject]@{ ChangeKey = 'CK-4' })
+                New-JournalRecord -EventName 'WriteIntent' -Phase 'Exception:2026-11-16T18:00:00.0000000Z' -Data ([PSCustomObject]@{ ChangeKey = 'CK-4'; Send = $false })
+            )
+            $state.RollbackWriteAttempted | Should -BeTrue
+            $state.RollbackIntermediatePossible | Should -BeFalse
             $state.LastWriteUnknown | Should -BeTrue
         }
 
@@ -807,6 +822,7 @@ Describe 'Testing Reconcile.ps1' {
         @{ Name = 'the last rollback write is unknown'; Mode = 'Reconcile'; Key = 'CK-unknown'; RollbackJournal = $true; PendingRollbackWrite = $true; Outcome = 'Restored' }
         @{ Name = 'no rollback was started (the same state is refused)'; Mode = 'Reconcile'; Key = 'CK-unknown'; RollbackJournal = $false; PendingRollbackWrite = $false; Outcome = 'Endpoints' }
         @{ Name = 'an earlier reconcile refused the item without writing (the same state is refused)'; Mode = 'Refused'; Key = 'CK-unknown'; RollbackJournal = $false; PendingRollbackWrite = $false; Outcome = 'Endpoints' }
+        @{ Name = 'a completed rollback whose marker removal is unknown (an organizer edit is refused)'; Mode = 'Completed'; Key = 'CK-unknown'; RollbackJournal = $true; PendingRollbackWrite = $false; Outcome = 'Endpoints' }
         @{ Name = 'the rollback after a rejected send was interrupted'; Mode = 'RejectedSend'; Key = 'CK-unknown'; RollbackJournal = $true; PendingRollbackWrite = $true; Outcome = 'Restored' }
     ) {
         BeforeAll {
@@ -860,6 +876,19 @@ Describe 'Testing Reconcile.ps1' {
                 $null = New-Item -ItemType Directory -Path $reconcileRun -Force
                 Write-ExOPDurableText -Path (Join-Path -Path $reconcileRun -ChildPath 'details.jsonl') `
                     -Text ((@($records | ForEach-Object { ConvertTo-Json -InputObject $_ -Depth 5 -Compress }) -join "`r`n") + "`r`n")
+            } elseif ($Mode -eq 'Completed') {
+                $records = @(
+                    [PSCustomObject]@{ Utc = '2026-11-05T10:00:00.0000000+00:00'; OperationId = $Script:operationId; Phase = 'RollbackInspection'; Event = 'RollbackStarted'; Data = $null }
+                    [PSCustomObject]@{ Utc = '2026-11-05T10:00:01.0000000+00:00'; OperationId = $Script:operationId; Phase = 'TimezoneMetadata'; Event = 'WriteIntent'; Data = [PSCustomObject]@{ ChangeKey = 'CK-2'; Send = $false } }
+                    [PSCustomObject]@{ Utc = '2026-11-05T10:00:02.0000000+00:00'; OperationId = $Script:operationId; Phase = 'TimezoneMetadata'; Event = 'WriteAcknowledged'; Data = [PSCustomObject]@{ ChangeKey = 'CK-3' } }
+                    [PSCustomObject]@{ Utc = '2026-11-05T10:00:03.0000000+00:00'; OperationId = $Script:operationId; Phase = 'MasterDates'; Event = 'WriteIntent'; Data = [PSCustomObject]@{ ChangeKey = 'CK-3'; Send = $false } }
+                    [PSCustomObject]@{ Utc = '2026-11-05T10:00:04.0000000+00:00'; OperationId = $Script:operationId; Phase = 'MasterDates'; Event = 'WriteAcknowledged'; Data = [PSCustomObject]@{ ChangeKey = 'CK-4' } }
+                    [PSCustomObject]@{ Utc = '2026-11-05T10:00:05.0000000+00:00'; OperationId = $Script:operationId; Phase = 'RollbackFinalize'; Event = 'WriteIntent'; Data = [PSCustomObject]@{ ChangeKey = 'CK-4'; Send = $false } }
+                )
+                $completedRun = Join-Path -Path $evidence -ChildPath 'completed\user'
+                $null = New-Item -ItemType Directory -Path $completedRun -Force
+                Write-ExOPDurableText -Path (Join-Path -Path $completedRun -ChildPath 'details.jsonl') `
+                    -Text ((@($records | ForEach-Object { ConvertTo-Json -InputObject $_ -Depth 5 -Compress }) -join "`r`n") + "`r`n")
             } elseif ($Mode -in 'Reconcile', 'Refused') {
                 if ($Mode -eq 'Refused') {
                     # The refused run logged only that it inspected a rollback; it wrote nothing.
@@ -890,6 +919,7 @@ Describe 'Testing Reconcile.ps1' {
             $baseline = @(Get-RunJournal -Directory $Script:logDirectory | Where-Object Event -EQ 'ReconcileBaseline')
             $baseline[0].Data.RollbackInProgress | Should -Be $RollbackJournal
             if ($RollbackJournal -and $Mode -eq 'Reconcile') { $baseline[0].Data.JournalLastChangeKey | Should -BeExactly 'CK-3' }
+            $baseline[0].Data.RollbackIntermediatePossible | Should -Be ($Mode -in 'Reconcile', 'RejectedSend' -and $RollbackJournal)
             if ($Mode -eq 'RejectedSend') { $baseline[0].Data.NotificationRejected | Should -BeExactly 'ErrorSendAsDenied' }
         }
     }

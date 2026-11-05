@@ -106,7 +106,7 @@ function Get-ExOPJournalWriteState {
     $state = [PSCustomObject]@{
         LastChangeKey = ''; AcknowledgedWrites = 0; WriteAttempted = $false; LastWriteUnknown = $false
         MetadataWritten = $false; DatesWritten = $false; NotificationAttempted = $false; NotificationRejected = $false; NotificationRejectionCode = ''; Plan = $null
-        RollbackStarted = $false; RollbackWriteAttempted = $false
+        RollbackStarted = $false; RollbackWriteAttempted = $false; RollbackIntermediatePossible = $false
     }
     # A definitive rejection resolves only its own send attempt. An earlier send that was acknowledged, or whose
     # outcome stayed unknown, may have reached attendees, so a later rejected resend never clears it.
@@ -118,9 +118,13 @@ function Get-ExOPJournalWriteState {
             'RollbackStarted' { $state.RollbackStarted = $true }
             'WriteIntent' {
                 if ($pendingSend) { $sentOrUnknown = $true; $pendingSend = $false }
-                # RollbackStarted is logged before the safety checks. Only a rollback write of the time zone metadata
-                # can leave new times with the original zones; bookkeeping writes such as marker removal cannot.
-                if ($state.RollbackStarted -and $record.Phase -eq 'TimezoneMetadata') { $state.RollbackWriteAttempted = $true }
+                # RollbackStarted is logged before the safety checks, so only a later calendar write shows that a rollback
+                # changed the item. Bookkeeping writes such as marker removal do not count. Only the rollback's time zone
+                # metadata write can leave new times with the original zones, until its date write is acknowledged.
+                if ($state.RollbackStarted -and $record.Phase -notin 'RollbackFinalize', 'Marker', 'FinalizeReceipt', 'NotificationIntent', 'Notification') {
+                    $state.RollbackWriteAttempted = $true
+                }
+                if ($state.RollbackStarted -and $record.Phase -eq 'TimezoneMetadata') { $state.RollbackIntermediatePossible = $true }
                 $state.WriteAttempted = $true
                 $state.LastWriteUnknown = $true
                 if ($record.Phase -eq 'Notification' -or $record.Data.Send) {
@@ -149,7 +153,7 @@ function Get-ExOPJournalWriteState {
                 if ($record.Phase -eq 'MasterDates') {
                     $state.DatesWritten = $true
                     # The rollback restored the original dates, so its intermediate state can no longer exist.
-                    if ($state.RollbackStarted) { $state.RollbackWriteAttempted = $false }
+                    if ($state.RollbackStarted) { $state.RollbackIntermediatePossible = $false }
                 }
             }
         }
@@ -315,6 +319,7 @@ function Invoke-ExOPCalendarMigrationReconcile {
                             Values=$saved.Values; Prepared=$null; OriginalStateHash=(Get-ExOPCalendarStateHash -Snapshot $saved.Snapshot)
                             VerifiedTargetHash=$verifiedTargetHash; JournalChangeKey=[string]$writes.LastChangeKey
                             NotificationRejected =$writes.NotificationRejectionCode; RollbackInProgress=$writes.RollbackWriteAttempted
+                            RollbackIntermediatePossible =$writes.RollbackIntermediatePossible
                         }
                         Write-ExOPMigrationAudit -Run $run -Mailbox $mailbox -OperationId $marker.OperationId -Phase 'Reconcile' `
                             -EventName 'ReconcileBaseline' -Data ([ordered]@{
@@ -323,6 +328,7 @@ function Invoke-ExOPCalendarMigrationReconcile {
                                 AcknowledgedWrites=$writes.AcknowledgedWrites; LastWriteUnknown=$writes.LastWriteUnknown
                                 MetadataWritten=$writes.MetadataWritten; DatesWritten=$writes.DatesWritten
                                 NotificationRejected=$writes.NotificationRejectionCode; VerifiedTargetHash=$verifiedTargetHash; RollbackInProgress=$writes.RollbackWriteAttempted
+                                RollbackIntermediatePossible =$writes.RollbackIntermediatePossible
                             })
                         if (-not $Apply) {
                             $result.Status = 'Preview'
