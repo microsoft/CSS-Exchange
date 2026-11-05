@@ -1392,7 +1392,7 @@ Describe 'Testing Rehoming.ps1' {
                 Run = (New-ExOPMigrationRun -Directory (Join-Path -Path $TestDrive -ChildPath ('series-rollback-' + [Guid]::NewGuid().ToString('N'))) `
                         -Rows @([PSCustomObject]@{ Mailbox = 'user@contoso.com'; RecordType = 'RecurringSeries' }) -Apply $true)
                 OperationId = $Script:seriesRollback.OperationId; Mailbox = 'user@contoso.com'; ItemId = 'item-1'; Phase = 'MasterDates'
-                LastChangeKey = 'CK-acknowledged'; AcknowledgedWrites = 3; WriteAttempted = $true; LastWriteUnknown = $true
+                LastChangeKey = 'CK-acknowledged'; AcknowledgedWrites = 3; WriteAttempted = $true; LastWriteUnknown = $true; RollbackInProgress = $true
                 MetadataWritten = $true; DatesWritten = $true; NotificationStarted = $false; RollingBack = $false; IsSeries = $true
                 Before = $Script:seriesOriginal; Prepared = $null; VerifiedTargetHash = ''
                 Values = [PSCustomObject]@{
@@ -1524,6 +1524,14 @@ Describe 'Testing Rehoming.ps1' {
             $operation.LastChangeKey | Should -BeExactly 'CK-acknowledged'
             Should -Invoke Set-ExOPSeriesTimeZoneState -Times 0 -Exactly -Scope It
             Should -Invoke Set-ExOPFinalMigrationState -Times 0 -Exactly -Scope It
+        }
+
+        It 'Refuses an unexplained key after an unknown write outcome outside a journaled rollback' {
+            $operation = New-RollbackOperation
+            $operation.LastWriteUnknown = $true
+            { Invoke-ExOPPreSendRollback -Session $null -Operation $operation } |
+                Should -Throw -ExpectedMessage 'The latest write outcome or a concurrent change cannot be safely reconciled; rollback was not forced.'
+            Should -Invoke Set-ExOPSeriesTimeZoneState -Times 0 -Exactly -Scope It
         }
 
         It 'Refuses an item that the operation no longer owns after acknowledged writes' {
