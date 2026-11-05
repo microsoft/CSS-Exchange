@@ -118,8 +118,9 @@ function Get-ExOPJournalWriteState {
             'RollbackStarted' { $state.RollbackStarted = $true }
             'WriteIntent' {
                 if ($pendingSend) { $sentOrUnknown = $true; $pendingSend = $false }
-                # RollbackStarted is logged before the safety checks; only a write after it means a rollback changed the item.
-                if ($state.RollbackStarted) { $state.RollbackWriteAttempted = $true }
+                # RollbackStarted is logged before the safety checks. Only a rollback write of the time zone metadata
+                # can leave new times with the original zones; bookkeeping writes such as marker removal cannot.
+                if ($state.RollbackStarted -and $record.Phase -eq 'TimezoneMetadata') { $state.RollbackWriteAttempted = $true }
                 $state.WriteAttempted = $true
                 $state.LastWriteUnknown = $true
                 if ($record.Phase -eq 'Notification' -or $record.Data.Send) {
