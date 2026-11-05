@@ -413,7 +413,6 @@ function Invoke-ExOPCalendarMigrationReconcile {
             }
             Complete-ExOPMigrationResult -Run $run -Result $result
             Write-Output -InputObject $result
-            if ($run.LoggingFailed) { break }
         }
         Update-ExOPFinalMigrationSummary -Run $run
     }

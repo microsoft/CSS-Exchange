@@ -1343,6 +1343,32 @@ Describe 'Testing Rehoming.ps1' {
                 Should -Throw -ExpectedMessage 'The item times or time zones changed outside this operation; the item was not overwritten.'
         }
     }
+    Context 'Assert-ExOPPreservedItemData compares attendees and resources' {
+        BeforeAll {
+            Mock Assert-ExOPAttachmentSnapshot { }
+            function New-PreservedItem {
+                param([string]$Recipients)
+                (New-CalendarItemXml -InnerXml ('<t:Subject>Weekly sync</t:Subject><t:UID>calendar-uid-1</t:UID>' + $Recipients)).DocumentElement
+            }
+            $Script:attendeeA = '<t:RequiredAttendees><t:Attendee><t:Mailbox><t:EmailAddress>a@contoso.com</t:EmailAddress></t:Mailbox></t:Attendee></t:RequiredAttendees>'
+            $Script:preservedBefore = [PSCustomObject]@{ Xml = (New-PreservedItem -Recipients $Script:attendeeA).OuterXml; Attachments = @() }
+        }
+
+        It 'Accepts unchanged recipients with a different response or display name' {
+            $same = '<t:RequiredAttendees><t:Attendee><t:Mailbox><t:Name>A</t:Name><t:EmailAddress>A@Contoso.com</t:EmailAddress></t:Mailbox><t:ResponseType>Accept</t:ResponseType></t:Attendee></t:RequiredAttendees>'
+            { Assert-ExOPPreservedItemData -Session $null -Mailbox 'user@contoso.com' -Item (New-PreservedItem -Recipients $same) -Snapshot $Script:preservedBefore } | Should -Not -Throw
+        }
+
+        It 'Refuses <Name>' -ForEach @(
+            @{ Name = 'an added attendee'; Recipients = '<t:RequiredAttendees><t:Attendee><t:Mailbox><t:EmailAddress>a@contoso.com</t:EmailAddress></t:Mailbox></t:Attendee><t:Attendee><t:Mailbox><t:EmailAddress>b@contoso.com</t:EmailAddress></t:Mailbox></t:Attendee></t:RequiredAttendees>' }
+            @{ Name = 'a removed attendee'; Recipients = '' }
+            @{ Name = 'an added room'; Recipients = '<t:RequiredAttendees><t:Attendee><t:Mailbox><t:EmailAddress>a@contoso.com</t:EmailAddress></t:Mailbox></t:Attendee></t:RequiredAttendees><t:Resources><t:Attendee><t:Mailbox><t:EmailAddress>room@contoso.com</t:EmailAddress></t:Mailbox></t:Attendee></t:Resources>' }
+        ) {
+            { Assert-ExOPPreservedItemData -Session $null -Mailbox 'user@contoso.com' -Item (New-PreservedItem -Recipients $Recipients) -Snapshot $Script:preservedBefore } |
+                Should -Throw -ExpectedMessage 'The item changed unexpectedly in its attendees or resources.'
+        }
+    }
+
     Context 'Series rollback after an unknown write outcome with an exception in state <Name>' -ForEach @(
         @{ Name = 'intended'; Start = '2026-11-16T17:00:00.0000000Z'; End = '2026-11-16T18:00:00.0000000Z'; Restores = $true }
         @{ Name = 'original'; Start = '2026-11-16T18:00:00.0000000Z'; End = '2026-11-16T19:00:00.0000000Z'; Restores = $true }

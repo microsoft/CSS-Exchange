@@ -195,6 +195,22 @@ BeforeAll {
 }
 
 Describe 'Testing EwsTransport.ps1' {
+    Context 'Get-ExOPCredentialAccountFilter' {
+        It 'Searches a DOMAIN\user account by its SID' {
+            $current = [Security.Principal.WindowsIdentity]::GetCurrent()
+            Get-ExOPCredentialAccountFilter -UserName $current.Name | Should -BeExactly "(objectSid=$($current.User.Value))"
+        }
+
+        It 'Falls back to the account name when the domain cannot be resolved' {
+            Get-ExOPCredentialAccountFilter -UserName 'NO-SUCH-DOMAIN-7F3A\delegate' -Verbose:$false |
+                Should -BeExactly '(&(objectCategory=person)(sAMAccountName=delegate))'
+        }
+
+        It 'Searches a user principal name as given' {
+            Get-ExOPCredentialAccountFilter -UserName 'delegate@contoso.com' | Should -BeExactly '(userPrincipalName=delegate@contoso.com)'
+        }
+    }
+
     Context 'Report path relative to the current PowerShell location' {
         BeforeAll {
             $Script:reportLocation = Join-Path -Path $TestDrive -ChildPath 'report-location'

@@ -1036,6 +1036,30 @@ Describe 'Testing Reconcile.ps1' {
         }
     }
 
+    Context 'Reconcile continues with failure results after an audit storage failure' {
+        BeforeAll {
+            Mock Get-ExOPCalendarItem { New-ReconcileItem -ChangeKey 'CK-current' }
+            Mock Write-ExOPDurableText { throw 'The disk is full.' } -ParameterFilter { $Path -like '*details.jsonl' }
+            $rows = @(
+                [PSCustomObject]@{ Mailbox = $Script:mailbox; ItemId = 'item-1'; RecordType = 'Single' }
+                [PSCustomObject]@{ Mailbox = $Script:mailbox; ItemId = 'item-2'; RecordType = 'Single' }
+                [PSCustomObject]@{ Mailbox = $Script:mailbox; ItemId = 'item-3'; RecordType = 'Single' }
+            )
+            $Script:storageResults = @(Invoke-ExOPCalendarMigrationReconcile -Session $Script:session -InputObject $rows -SearchDirectory $TestDrive `
+                    -LogDirectory (Join-Path -Path $TestDrive -ChildPath 'reconcile-storage-failure') -Apply -Confirm:$false -WarningAction SilentlyContinue)
+        }
+
+        It 'Returns a result for every row' {
+            $Script:storageResults | Should -HaveCount 3
+            $Script:storageResults[0].Error | Should -BeLike '*Audit storage failed: *The disk is full.*'
+        }
+
+        It 'Reports the remaining rows as failed without reading them' {
+            @($Script:storageResults[1..2] | Where-Object { $_.Status -eq 'Failed' -and $_.Error -like 'Audit storage is unavailable*' }) | Should -HaveCount 2
+            Should -Invoke Get-ExOPCalendarItem -Times 1 -Exactly -Scope Context
+        }
+    }
+
     Context 'Rejected-send recovery with the real rollback: <Name>' -ForEach @(
         @{ Name = 'SendAs rejection with an unchanged target'; Code = 'ErrorSendAsDenied'; Edited = $false; Recipients = $false; HasAfter = $true; Expected = 'RolledBack'; Writes = 1 }
         @{ Name = 'recipient rejection with an unchanged target'; Code = 'ErrorInvalidRecipients'; Edited = $false; Recipients = $false; HasAfter = $true; Expected = 'RolledBack'; Writes = 1 }

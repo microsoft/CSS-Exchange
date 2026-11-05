@@ -1189,6 +1189,10 @@ function Assert-ExOPPreservedItemData {
             throw "The item changed unexpectedly in $name."
         }
     }
+    # An organizer may change only the attendees and send an update; such an item must never be moved back.
+    if ((@(Get-ExOPRecipientIdentities -Item $Item) -join "`n") -cne (@(Get-ExOPRecipientIdentities -Item $before.DocumentElement) -join "`n")) {
+        throw 'The item changed unexpectedly in its attendees or resources.'
+    }
     Assert-ExOPAttachmentSnapshot -Session $Session -Mailbox $Mailbox -Item $Item -Expected @($Snapshot.Attachments)
 }
 

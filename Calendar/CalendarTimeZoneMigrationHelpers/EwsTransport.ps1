@@ -475,6 +475,27 @@ function ConvertTo-ExOPLdapFilterValue {
     $builder.ToString()
 }
 
+function Get-ExOPCredentialAccountFilter {
+    <#
+        LDAP filter for the account of an explicit credential. sAMAccountName is unique only within a domain, so a
+        DOMAIN\user name is resolved to its SID first; the forest-wide name search is only the fallback.
+    #>
+    param (
+        [string]
+        $UserName
+    )
+    if ($UserName -like '*@*') { return "(userPrincipalName=$(ConvertTo-ExOPLdapFilterValue $UserName))" }
+    if ($UserName -like '*\*') {
+        try {
+            $sid = (New-Object Security.Principal.NTAccount($UserName)).Translate([Security.Principal.SecurityIdentifier]).Value
+            return "(objectSid=$sid)"
+        } catch {
+            Write-Verbose "The account $UserName could not be resolved to a SID: $($_.Exception.Message)"
+        }
+    }
+    "(&(objectCategory=person)(sAMAccountName=$(ConvertTo-ExOPLdapFilterValue ($UserName -replace '^.*\\', ''))))"
+}
+
 function Get-ExOPCallerIdentity {
     <#
     .SYNOPSIS
@@ -492,8 +513,7 @@ function Get-ExOPCallerIdentity {
         }
     }
     $name = $Credential.UserName
-    $filter = if ($name -like '*@*') { "(userPrincipalName=$(ConvertTo-ExOPLdapFilterValue $name))" }
-    else { "(&(objectCategory=person)(sAMAccountName=$(ConvertTo-ExOPLdapFilterValue ($name -replace '^.*\\', ''))))" }
+    $filter = Get-ExOPCredentialAccountFilter -UserName $name
     $entry = Get-ExOPDirectoryEntry -Path ('LDAP://' + (Find-ExOPDirectoryObject -Filter $filter -Credential $Credential)) -Credential $Credential
     $entry.RefreshCache([string[]]@('objectSid', 'tokenGroups'))
     [PSCustomObject]@{
