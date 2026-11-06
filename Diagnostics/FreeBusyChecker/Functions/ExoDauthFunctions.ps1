@@ -51,8 +51,8 @@ function ExoOrgRelCheck () {
     #TarGetApplicationUri
     Write-Host  " TarGetApplicationUri:"
     $a = "FYDIBOHF25SPDLT." + $Script:ExchangeOnPremDomain
-    $HybridAgentTargetSharingEpr = "http://outlook.office.com/"
-    $HATargetAutodiscoverEpr = "https://autodiscover-s.outlook.com/autodiscover/autodiscover.svc/"
+    $HybridAgentTargetSharingEpr = $Script:HybridAgentTargetApplicationUri
+    $HATargetAutodiscoverEpr = $Script:HybridAgentAutoDiscoverEndpointUri
     if ($exoOrgRel.TarGetSharingEpr -like "*resource.mailboxMigration.his.MSAppProxy.net/EWS/Exchange.asmx") {
         if ($exoOrgRel.TarGetApplicationUri -like $HybridAgentTargetSharingEpr) {
             Write-Host -ForegroundColor Green "  TarGetApplicationUri is $($exoOrgRel.TarGetSharingEpr) . This is correct when Hybrid Agent is in use"

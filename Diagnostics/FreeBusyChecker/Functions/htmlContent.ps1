@@ -117,6 +117,22 @@ margin-right: 1%;
               <p>Exchange Online Mailbox:</p>
               <span style='color:green; font-weight:500; padding-left:2%'>$Script:UserOnline</span>
             </li>
+            <li>
+              <p>Expected Exchange Online EWS endpoint:</p>
+              <span style='color:green; font-weight:500; padding-left:2%'>$Script:ExchangeOnlineEwsEndpointUri</span>
+            </li>
+            <li>
+              <p>Expected Exchange Online AutoDiscover endpoint:</p>
+              <span style='color:green; font-weight:500; padding-left:2%'>$Script:ExchangeOnlineAutoDiscoverEndpointUri</span>
+            </li>
+            <li>
+              <p>Expected Microsoft Entra authority:</p>
+              <span style='color:green; font-weight:500; padding-left:2%'>$Script:AzureADEndpointUri</span>
+            </li>
+            <li>
+              <p>Expected Federation TarGetApplicationUri:</p>
+              <span style='color:green; font-weight:500; padding-left:2%'>$Script:FederationTargetApplicationUri</span>
+            </li>
           </ul>
         </div>
         <div class='Black'  style = 'padding-left: 0%;'><h2>Configuration:</h2></div>
@@ -324,7 +340,7 @@ function TestOrgRelHtmlNoUri() {
 <tr>
 <td><b>Test-OrganizationRelationship</b></td>
 <td>
-<div class='red'> <b> Test-OrganizationRelationship can't be run if the Organization Relationship Target Application uri is not correct. Organization Relationship Target Application Uri should be Outlook.com</b><div>"
+<div class='red'> <b> Test-OrganizationRelationship can't be run if the Organization Relationship Target Application uri is not correct. Organization Relationship Target Application Uri should be $Script:FederationTargetApplicationUri</b><div>"
 }
 #On Prem OAuth
 function IntraOrgConCheckHtml() {
@@ -474,7 +490,7 @@ function OAuthConnectivityCheckHtml() {
   <th ColSpan='2' style='color:white;'>Summary - Test-OAuthConnectivity</th>
 </tr>
 <tr>
-  <td><b>  Test-OAuthConnectivity -Service EWS -TarGetUri https://outlook.office365.com/EWS/Exchange.asmx -Mailbox $Script:UserOnPrem | fl</b></td>
+  <td><b>  Test-OAuthConnectivity -Service EWS -TarGetUri $Script:ExchangeOnlineEwsEndpointUri -Mailbox $Script:UserOnPrem | fl</b></td>
   <td>
     <div><b>Result:</b><span style='color: $Script:OAuthConnectivityResultTypeColor'> $Script:OAuthConnectivityResultType</span></div>
   </td>
