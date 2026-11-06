@@ -585,8 +585,9 @@ Describe 'Testing CalendarTimeZoneData.ps1' {
     }
 
     Context 'Resolve-ExOPWindowsTimeZoneId' {
-        It 'Returns the exact ID for <_>' -ForEach @('BRITISH COLUMBIA STANDARD TIME', 'pacific standard time', 'Pacific Standard Time') {
-            $expected = if ($_ -like 'British*') { 'British Columbia Standard Time' } else { 'Pacific Standard Time' }
+        # Uses zones present on every supported Windows build; newer zones may be missing on build agents.
+        It 'Returns the exact ID for <_>' -ForEach @('MOUNTAIN STANDARD TIME', 'pacific standard time', 'Pacific Standard Time') {
+            $expected = if ($_ -like 'Mountain*') { 'Mountain Standard Time' } else { 'Pacific Standard Time' }
             Resolve-ExOPWindowsTimeZoneId -Id $_ | Should -BeExactly $expected
         }
 
@@ -621,11 +622,11 @@ Describe 'Testing CalendarTimeZoneData.ps1' {
             $document = New-Object Xml.XmlDocument
             $document.LoadXml('<t:CalendarItem xmlns:t="' + $script:TypesNamespace + '"><t:CalendarItemType>Single</t:CalendarItemType></t:CalendarItem>')
             $end = $start.AddHours(1).ToString('o')
-            $newStart = Convert-ExOPWallClockZone -Utc $StartUtc -From $From -To 'UTC'
-            $newEnd = Convert-ExOPWallClockZone -Utc $end -From $From -To 'UTC'
+            # The validation depends only on the captured definitions; the exact target instants do not matter, and
+            # the machine's own time zone data (which may lack newer zones) must not be used.
             $values = [PSCustomObject]@{
                 StartZone = $From; EndZone = $From; NewStartZone = 'UTC'; NewEndZone = 'UTC'
-                StartUtc = $StartUtc; EndUtc = $end; NewStartUtc = $newStart; NewEndUtc = $newEnd
+                StartUtc = $StartUtc; EndUtc = $end; NewStartUtc = $StartUtc; NewEndUtc = $end
             }
             $Script:sourceError = ''
             try {
