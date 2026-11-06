@@ -22,6 +22,7 @@ nav:
     - Get-RBASummary: Calendar/Get-RBASummary.md
     - BookingsDiagnosticSummary: Calendar/BookingsDiagnosticSummary.md
     - CrossTenantAccessPolicyCalendarValidation: Calendar/CrossTenantAccessPolicyCalendarValidation.md
+    - Invoke-CalendarTimeZoneMigration: Calendar/Invoke-CalendarTimeZoneMigration.md
   - Databases:
     - Analyze-SpaceDump: Databases/Analyze-SpaceDump.md
     - Compare-MailboxStatistics: Databases/Compare-MailboxStatistics.md
