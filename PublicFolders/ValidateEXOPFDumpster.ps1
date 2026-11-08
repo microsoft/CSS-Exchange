@@ -198,6 +198,25 @@ function ValidateParentPublicFolder {
         }
     }
 }
+function ValidateRootPublicFolderDumpsterEntryId {
+    param([PSCustomObject]$PublicFolderInfo)
+    #Validate Root NON/IPM_SUBTREE Public Folder DumpsterEntryId values are not null
+    if ($PublicFolderInfo.IPM_SUBTREE.DumpsterEntryId -eq  $null) {
+        $Fix="FIX --> Repair the IPM_SUBTREE root by running below command then validate that IPM_SUBTREE DumpsterEntryId has a populated value
+        Update-PublicFolderMailbox -Identity $($PublicFolderInfo.IPM_SUBTREE.ContentMailboxName) -CreateAssociatedDumpster -FolderId $($PublicFolderInfo.IPM_SUBTREE.EntryId) -InvokeSynchronizer
+        Get-PublicFolder -Identity \ | Format-List Identity,EntryId,DumpsterEntryId,ContentMailboxName,ContentMailboxGuid"
+        $Issue="Public folder IPM_SUBTREE DumpsterEntryId value is blank/empty"
+        WriteToScreenAndLog -Issue $Issue -Fix $Fix
+    }
+    if $PublicFolderInfo.NON_IPM_SUBTREE.DumpsterEntryId -eq $null) {
+        $Fix="FIX --> Repair the NON_IPM_SUBTREE root by running below command then validate that IPM_SUBTREE DumpsterEntryId has a populated value
+        Update-PublicFolderMailbox -Identity $($PublicFolderInfo.NON_IPM_SUBTREE.ContentMailboxName) -CreateAssociatedDumpster -FolderId $($PublicFolderInfo.NON_IPM_SUBTREE.EntryId) -InvokeSynchronizer
+        Get-PublicFolder -Identity \NON_IPM_SUBTREE | Format-List Identity,EntryId,DumpsterEntryId,ContentMailboxName,ContentMailboxGuid"
+        $Issue="Public folder NON_IPM_SUBTREE DumpsterEntryId value is blank/empty"
+        WriteToScreenAndLog -Issue $Issue -Fix $Fix
+    }
+}
+
 function ValidateDumpsterFlag {
     param([PSCustomObject]$PublicFolderInfo)
     if ($PublicFolderInfo.PublicFolder.AdminFolderFlags -eq "DumpsterFolder") {
@@ -468,6 +487,7 @@ $PublicFolderInfo=GetPublicFolderInfo($PFolder)
 if (![string]::IsNullOrEmpty($AffectedUser)) {
     ValidatePublicFolderIssue -PublicFolderInfo $PublicFolderInfo -AffectedUser $AffectedUser
 }
+ValidateRootPublicFolderDumpsterEntryId($PublicFolderInfo)
 ValidateDumpsterFlag($PublicFolderInfo)
 ValidateContentMBXUniqueness($PublicFolderInfo)
 ValidateEntryIDMapping($PublicFolderInfo)
