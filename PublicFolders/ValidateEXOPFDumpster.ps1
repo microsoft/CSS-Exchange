@@ -98,13 +98,14 @@ function GetPublicFolderInfo {
     param([String]$PFolder)
     try {
         $PublicFolder=Get-PublicFolder $PFolder -ErrorAction stop
+        $IPM_SUBTREE=Get-PublicFolder \ -ErrorAction stop
+        $NON_IPM_SUBTREE=Get-PublicFolder \NON_IPM_SUBTREE -ErrorAction stop
         Write-Host "Retrieving PublicFolder $($PublicFolder.Identity) information for diagnosing!,please wait as this might take awhile...." -ForegroundColor Yellow
+        ValidateRootPublicFolderDumpsterEntryId -IPM_SUBTREE $IPM_SUBTREE -NON_IPM_SUBTREE $NON_IPM_SUBTREE
         $PublicFolderDumpster=ValidateDumpsterExistence($PublicFolder)
         $PublicFolderStats=Get-PublicFolderStatistics $PublicFolder.EntryId -ErrorAction stop
         $PfMbx=Get-mailbox -PublicFolder $PublicFolder.ContentMailboxGuid.Guid
         $PfMbxStats=Get-mailboxStatistics $PublicFolder.ContentMailboxGuid.Guid -ErrorAction stop
-        $IPM_SUBTREE=Get-PublicFolder \ -ErrorAction stop
-        $NON_IPM_SUBTREE=Get-PublicFolder \NON_IPM_SUBTREE -ErrorAction stop
         $DUMPSTER_ROOT=Get-PublicFolder \NON_IPM_SUBTREE\DUMPSTER_ROOT -ErrorAction stop
         $OrganizationConfig =Get-OrganizationConfig -ErrorAction stop
         [Int64]$DefaultPublicFolderProhibitPostQuota=[Int64]$OrganizationConfig.DefaultPublicFolderProhibitPostQuota.Split("(")[1].split(" ")[0].Replace(",", "")
@@ -199,22 +200,39 @@ function ValidateParentPublicFolder {
     }
 }
 function ValidateRootPublicFolderDumpsterEntryId {
-    param([PSCustomObject]$PublicFolderInfo)
+    param([PSCustomObject]$IPM_SUBTREE, [PSCustomObject]$NON_IPM_SUBTREE )
     #Validate Root NON/IPM_SUBTREE Public Folder DumpsterEntryId values are not null
-    if ($PublicFolderInfo.IPM_SUBTREE.DumpsterEntryId -eq  $null) {
-        $Fix="FIX --> Repair the IPM_SUBTREE root by running below command then validate that IPM_SUBTREE DumpsterEntryId has a populated value
-        Update-PublicFolderMailbox -Identity $($PublicFolderInfo.IPM_SUBTREE.ContentMailboxName) -CreateAssociatedDumpster -FolderId $($PublicFolderInfo.IPM_SUBTREE.EntryId) -InvokeSynchronizer
-        Get-PublicFolder -Identity \ | Format-List Identity,EntryId,DumpsterEntryId,ContentMailboxName,ContentMailboxGuid"
-        $Issue="Public folder IPM_SUBTREE DumpsterEntryId value is blank/empty"
-        WriteToScreenAndLog -Issue $Issue -Fix $Fix
-    }
-    if $PublicFolderInfo.NON_IPM_SUBTREE.DumpsterEntryId -eq $null) {
-        $Fix="FIX --> Repair the NON_IPM_SUBTREE root by running below command then validate that IPM_SUBTREE DumpsterEntryId has a populated value
-        Update-PublicFolderMailbox -Identity $($PublicFolderInfo.NON_IPM_SUBTREE.ContentMailboxName) -CreateAssociatedDumpster -FolderId $($PublicFolderInfo.NON_IPM_SUBTREE.EntryId) -InvokeSynchronizer
-        Get-PublicFolder -Identity \NON_IPM_SUBTREE | Format-List Identity,EntryId,DumpsterEntryId,ContentMailboxName,ContentMailboxGuid"
-        $Issue="Public folder NON_IPM_SUBTREE DumpsterEntryId value is blank/empty"
-        WriteToScreenAndLog -Issue $Issue -Fix $Fix
-    }
+        if($IPM_SUBTREE.DumpsterEntryId -eq $null -and $NON_IPM_SUBTREE.DumpsterEntryId -eq $null) {
+            $Fix="FIX --> Repair the NON_IPM_SUBTREE & IPM_SUBTREE root by running below command then validate that IPM_SUBTREE DumpsterEntryId has a populated value
+            Update-PublicFolderMailbox -Identity $NON_IPM_SUBTREE.ContentMailboxGuid.Guid -CreateAssociatedDumpster -FolderId $NON_IPM_SUBTREE.EntryId -InvokeSynchronizer
+            Update-PublicFolderMailbox -Identity $IPM_SUBTREE.ContentMailboxGuid.Guid -CreateAssociatedDumpster -FolderId $IPM_SUBTREE.EntryId -InvokeSynchronizer
+            Get-PublicFolder -Identity \ | Format-List Identity,EntryId,DumpsterEntryId,ContentMailboxName,ContentMailboxGuid
+            Get-PublicFolder -Identity \NON_IPM_SUBTREE | Format-List Identity,EntryId,DumpsterEntryId,ContentMailboxName,ContentMailboxGuid"
+            $Issue="Public folder NON_IPM_SUBTREE & IPM_SUBTREE DumpsterEntryId value are blank/empty"
+            WriteToScreenAndLog -Issue $Issue -Fix $Fix
+            AskForFeedback
+            QuitEXOSession
+        }
+        elseif ($IPM_SUBTREE.DumpsterEntryId -eq  $null){
+            $Fix="FIX --> Repair the IPM_SUBTREE root by running below command then validate that IPM_SUBTREE DumpsterEntryId has a populated value
+            Update-PublicFolderMailbox -Identity $IPM_SUBTREE.ContentMailboxGuid.Guid -CreateAssociatedDumpster -FolderId $IPM_SUBTREE.EntryId -InvokeSynchronizer
+            Get-PublicFolder -Identity \ | Format-List Identity,EntryId,DumpsterEntryId,ContentMailboxName,ContentMailboxGuid"
+            $Issue="Public folder IPM_SUBTREE DumpsterEntryId value is blank/empty"
+            WriteToScreenAndLog -Issue $Issue -Fix $Fix
+            AskForFeedback
+            QuitEXOSession
+        }
+        elseif ($NON_IPM_SUBTREE.DumpsterEntryId -eq $null) {
+            $Fix="FIX --> Repair the NON_IPM_SUBTREE root by running below command then validate that IPM_SUBTREE DumpsterEntryId has a populated value
+            Update-PublicFolderMailbox -Identity $NON_IPM_SUBTREE.ContentMailboxGuid.Guid -CreateAssociatedDumpster -FolderId $NON_IPM_SUBTREE.EntryId -InvokeSynchronizer
+            Get-PublicFolder -Identity \NON_IPM_SUBTREE | Format-List Identity,EntryId,DumpsterEntryId,ContentMailboxName,ContentMailboxGuid"
+            $Issue="Public folder NON_IPM_SUBTREE DumpsterEntryId value is blank/empty"
+            WriteToScreenAndLog -Issue $Issue -Fix $Fix
+            AskForFeedback
+            QuitEXOSession
+        }
+
+
 }
 
 function ValidateDumpsterFlag {
