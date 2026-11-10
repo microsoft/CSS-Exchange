@@ -36,6 +36,7 @@ param (
     [switch]$MapiLogs,
     [switch]$MessageTrackingLogs,
     [switch]$MitigationService,
+    [switch]$MRSProxyLogs,
     [switch]$OABLogs,
     [switch]$OrganizationConfig,
     [switch]$OWALogs,
