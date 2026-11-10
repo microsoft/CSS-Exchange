@@ -98,3 +98,27 @@ function Add-DefaultLogCopyTaskAction {
         Add-LogCopyFullTaskAction $LogPath $CopyToThisLocation
     }
 }
+
+function Get-LogSourceIdentifier {
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [Parameter(Mandatory = $true)][string]$Path
+    )
+
+    $normalizedPath = [System.IO.Path]::GetFullPath($Path).TrimEnd('\').ToUpperInvariant()
+    $label = [regex]::Replace($normalizedPath, '[^A-Z0-9_-]+', '_').Trim('_')
+    if ($label.Length -gt 48) {
+        $label = $label.Substring($label.Length - 48)
+    }
+
+    $algorithm = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        $hash = $algorithm.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($normalizedPath))
+    } finally {
+        $algorithm.Dispose()
+    }
+
+    $shortHash = [System.BitConverter]::ToString($hash).Replace('-', '').Substring(0, 12).ToLowerInvariant()
+    return "${label}_$shortHash"
+}
