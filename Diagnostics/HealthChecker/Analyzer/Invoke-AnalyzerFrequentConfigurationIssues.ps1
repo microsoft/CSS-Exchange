@@ -68,6 +68,24 @@ function Invoke-AnalyzerFrequentConfigurationIssues {
     }
     Add-AnalyzedResultInformation @params
 
+    $displayValue = $osInformation.RegistryValues.EpmapSavedContextCap
+
+    if ($null -eq $displayValue) {
+        Write-Verbose "EpmapSavedContextCap registry value is NULL."
+    } else {
+        $params = $baseParams + @{
+            Name    = "RPC Saved Context Limit"
+            Details = $displayValue
+        }
+
+        if ($displayValue -eq 0) {
+            $params.Details = "0 --- Error"
+            $params.DisplayWriteType = "Red"
+        }
+
+        Add-AnalyzedResultInformation @params
+    }
+
     if ($exchangeInformation.RegistryValues.DisableGranularReplication -ne 0) {
         $params = $baseParams + @{
             Name                = "DisableGranularReplication"
