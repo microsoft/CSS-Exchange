@@ -1,0 +1,1145 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+  <s:Header>
+    <h:ServerVersionInfo MajorVersion="15" MinorVersion="2" MajorBuildNumber="2562" MinorBuildNumber="46" Version="V2017_07_11" xmlns:h="http://schemas.microsoft.com/exchange/services/2006/types" xmlns="http://schemas.microsoft.com/exchange/services/2006/types" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
+  </s:Header>
+  <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <m:GetServerTimeZonesResponse xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages" xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types">
+      <m:ResponseMessages>
+        <m:GetServerTimeZonesResponseMessage ResponseClass="Success">
+          <m:ResponseCode>NoError</m:ResponseCode>
+          <m:TimeZoneDefinitions>
+            <t:TimeZoneDefinition Name="(UTC-08:00) Pacific Time (US &amp; Canada)" Id="Pacific Standard Time">
+              <t:Periods>
+                <t:Period Bias="PT8H" Name="Standard" Id="trule:Microsoft/Registry/Pacific Standard Time/2006-Standard" />
+                <t:Period Bias="PT7H" Name="Daylight" Id="trule:Microsoft/Registry/Pacific Standard Time/2006-Daylight" />
+                <t:Period Bias="PT8H" Name="Standard" Id="trule:Microsoft/Registry/Pacific Standard Time/2007-Standard" />
+                <t:Period Bias="PT7H" Name="Daylight" Id="trule:Microsoft/Registry/Pacific Standard Time/2007-Daylight" />
+              </t:Periods>
+              <t:TransitionsGroups>
+                <t:TransitionsGroup Id="0">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Pacific Standard Time/2006-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>4</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Pacific Standard Time/2006-Standard</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>10</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>-1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="1">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Pacific Standard Time/2007-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>2</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Pacific Standard Time/2007-Standard</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>11</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+              </t:TransitionsGroups>
+              <t:Transitions>
+                <t:Transition>
+                  <t:To Kind="Group">0</t:To>
+                </t:Transition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">1</t:To>
+                  <t:DateTime>2007-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+              </t:Transitions>
+            </t:TimeZoneDefinition>
+            <t:TimeZoneDefinition Name="(UTC-07:00) Pacific Time (British Columbia)" Id="British Columbia Standard Time">
+              <t:Periods>
+                <t:Period Bias="PT8H" Name="Standard" Id="trule:Microsoft/Registry/British Columbia Standard Time/2006-Standard" />
+                <t:Period Bias="PT7H" Name="Daylight" Id="trule:Microsoft/Registry/British Columbia Standard Time/2006-Daylight" />
+                <t:Period Bias="PT8H" Name="Standard" Id="trule:Microsoft/Registry/British Columbia Standard Time/2007-Standard" />
+                <t:Period Bias="PT7H" Name="Daylight" Id="trule:Microsoft/Registry/British Columbia Standard Time/2007-Daylight" />
+                <t:Period Bias="PT8H" Name="Standard" Id="trule:Microsoft/Registry/British Columbia Standard Time/2008-Standard" />
+                <t:Period Bias="PT7H" Name="Daylight" Id="trule:Microsoft/Registry/British Columbia Standard Time/2008-Daylight" />
+                <t:Period Bias="PT8H" Name="Standard" Id="trule:Microsoft/Registry/British Columbia Standard Time/2009-Standard" />
+                <t:Period Bias="PT7H" Name="Daylight" Id="trule:Microsoft/Registry/British Columbia Standard Time/2009-Daylight" />
+                <t:Period Bias="PT8H" Name="Standard" Id="trule:Microsoft/Registry/British Columbia Standard Time/2010-Standard" />
+                <t:Period Bias="PT7H" Name="Daylight" Id="trule:Microsoft/Registry/British Columbia Standard Time/2010-Daylight" />
+                <t:Period Bias="PT8H" Name="Standard" Id="trule:Microsoft/Registry/British Columbia Standard Time/2011-Standard" />
+                <t:Period Bias="PT7H" Name="Daylight" Id="trule:Microsoft/Registry/British Columbia Standard Time/2011-Daylight" />
+                <t:Period Bias="PT8H" Name="Standard" Id="trule:Microsoft/Registry/British Columbia Standard Time/2012-Standard" />
+                <t:Period Bias="PT7H" Name="Daylight" Id="trule:Microsoft/Registry/British Columbia Standard Time/2012-Daylight" />
+                <t:Period Bias="PT8H" Name="Standard" Id="trule:Microsoft/Registry/British Columbia Standard Time/2013-Standard" />
+                <t:Period Bias="PT7H" Name="Daylight" Id="trule:Microsoft/Registry/British Columbia Standard Time/2013-Daylight" />
+                <t:Period Bias="PT8H" Name="Standard" Id="trule:Microsoft/Registry/British Columbia Standard Time/2014-Standard" />
+                <t:Period Bias="PT7H" Name="Daylight" Id="trule:Microsoft/Registry/British Columbia Standard Time/2014-Daylight" />
+                <t:Period Bias="PT8H" Name="Standard" Id="trule:Microsoft/Registry/British Columbia Standard Time/2015-Standard" />
+                <t:Period Bias="PT7H" Name="Daylight" Id="trule:Microsoft/Registry/British Columbia Standard Time/2015-Daylight" />
+                <t:Period Bias="PT8H" Name="Standard" Id="trule:Microsoft/Registry/British Columbia Standard Time/2016-Standard" />
+                <t:Period Bias="PT7H" Name="Daylight" Id="trule:Microsoft/Registry/British Columbia Standard Time/2016-Daylight" />
+                <t:Period Bias="PT8H" Name="Standard" Id="trule:Microsoft/Registry/British Columbia Standard Time/2017-Standard" />
+                <t:Period Bias="PT7H" Name="Daylight" Id="trule:Microsoft/Registry/British Columbia Standard Time/2017-Daylight" />
+                <t:Period Bias="PT8H" Name="Standard" Id="trule:Microsoft/Registry/British Columbia Standard Time/2018-Standard" />
+                <t:Period Bias="PT7H" Name="Daylight" Id="trule:Microsoft/Registry/British Columbia Standard Time/2018-Daylight" />
+                <t:Period Bias="PT8H" Name="Standard" Id="trule:Microsoft/Registry/British Columbia Standard Time/2019-Standard" />
+                <t:Period Bias="PT7H" Name="Daylight" Id="trule:Microsoft/Registry/British Columbia Standard Time/2019-Daylight" />
+                <t:Period Bias="PT8H" Name="Standard" Id="trule:Microsoft/Registry/British Columbia Standard Time/2020-Standard" />
+                <t:Period Bias="PT7H" Name="Daylight" Id="trule:Microsoft/Registry/British Columbia Standard Time/2020-Daylight" />
+                <t:Period Bias="PT8H" Name="Standard" Id="trule:Microsoft/Registry/British Columbia Standard Time/2021-Standard" />
+                <t:Period Bias="PT7H" Name="Daylight" Id="trule:Microsoft/Registry/British Columbia Standard Time/2021-Daylight" />
+                <t:Period Bias="PT8H" Name="Standard" Id="trule:Microsoft/Registry/British Columbia Standard Time/2022-Standard" />
+                <t:Period Bias="PT7H" Name="Daylight" Id="trule:Microsoft/Registry/British Columbia Standard Time/2022-Daylight" />
+                <t:Period Bias="PT8H" Name="Standard" Id="trule:Microsoft/Registry/British Columbia Standard Time/2023-Standard" />
+                <t:Period Bias="PT7H" Name="Daylight" Id="trule:Microsoft/Registry/British Columbia Standard Time/2023-Daylight" />
+                <t:Period Bias="PT8H" Name="Standard" Id="trule:Microsoft/Registry/British Columbia Standard Time/2024-Standard" />
+                <t:Period Bias="PT7H" Name="Daylight" Id="trule:Microsoft/Registry/British Columbia Standard Time/2024-Daylight" />
+                <t:Period Bias="PT8H" Name="Standard" Id="trule:Microsoft/Registry/British Columbia Standard Time/2025-Standard" />
+                <t:Period Bias="PT7H" Name="Daylight" Id="trule:Microsoft/Registry/British Columbia Standard Time/2025-Daylight" />
+                <t:Period Bias="PT7H" Name="Daylight" Id="trule:Microsoft/Registry/British Columbia Standard Time/2026-Daylight" />
+                <t:Period Bias="PT8H" Name="Standard" Id="trule:Microsoft/Registry/British Columbia Standard Time/2026-Standard" />
+                <t:Period Bias="PT7H" Name="Standard" Id="trule:Microsoft/Registry/British Columbia Standard Time/2027-Standard" />
+              </t:Periods>
+              <t:TransitionsGroups>
+                <t:TransitionsGroup Id="0">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2006-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>4</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2006-Standard</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>10</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>-1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="1">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2007-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>2</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2007-Standard</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>11</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="2">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2008-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>2</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2008-Standard</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>11</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="3">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2009-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>2</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2009-Standard</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>11</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="4">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2010-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>2</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2010-Standard</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>11</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="5">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2011-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>2</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2011-Standard</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>11</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="6">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2012-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>2</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2012-Standard</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>11</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="7">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2013-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>2</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2013-Standard</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>11</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="8">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2014-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>2</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2014-Standard</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>11</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="9">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2015-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>2</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2015-Standard</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>11</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="10">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2016-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>2</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2016-Standard</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>11</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="11">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2017-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>2</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2017-Standard</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>11</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="12">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2018-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>2</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2018-Standard</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>11</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="13">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2019-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>2</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2019-Standard</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>11</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="14">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2020-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>2</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2020-Standard</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>11</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="15">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2021-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>2</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2021-Standard</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>11</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="16">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2022-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>2</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2022-Standard</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>11</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="17">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2023-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>2</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2023-Standard</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>11</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="18">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2024-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>2</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2024-Standard</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>11</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="19">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2025-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>2</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2025-Standard</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>11</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="20">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2026-Standard</t:To>
+                    <t:TimeOffset>PT0H</t:TimeOffset>
+                    <t:Month>1</t:Month>
+                    <t:DayOfWeek>Thursday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2026-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>2</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="21">
+                  <t:Transition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/British Columbia Standard Time/2027-Standard</t:To>
+                  </t:Transition>
+                </t:TransitionsGroup>
+              </t:TransitionsGroups>
+              <t:Transitions>
+                <t:Transition>
+                  <t:To Kind="Group">0</t:To>
+                </t:Transition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">1</t:To>
+                  <t:DateTime>2007-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">2</t:To>
+                  <t:DateTime>2008-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">3</t:To>
+                  <t:DateTime>2009-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">4</t:To>
+                  <t:DateTime>2010-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">5</t:To>
+                  <t:DateTime>2011-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">6</t:To>
+                  <t:DateTime>2012-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">7</t:To>
+                  <t:DateTime>2013-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">8</t:To>
+                  <t:DateTime>2014-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">9</t:To>
+                  <t:DateTime>2015-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">10</t:To>
+                  <t:DateTime>2016-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">11</t:To>
+                  <t:DateTime>2017-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">12</t:To>
+                  <t:DateTime>2018-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">13</t:To>
+                  <t:DateTime>2019-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">14</t:To>
+                  <t:DateTime>2020-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">15</t:To>
+                  <t:DateTime>2021-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">16</t:To>
+                  <t:DateTime>2022-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">17</t:To>
+                  <t:DateTime>2023-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">18</t:To>
+                  <t:DateTime>2024-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">19</t:To>
+                  <t:DateTime>2025-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">20</t:To>
+                  <t:DateTime>2026-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">21</t:To>
+                  <t:DateTime>2027-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+              </t:Transitions>
+            </t:TimeZoneDefinition>
+            <t:TimeZoneDefinition Name="(UTC+10:00) Canberra, Melbourne, Sydney" Id="AUS Eastern Standard Time">
+              <t:Periods>
+                <t:Period Bias="-PT11H" Name="Daylight" Id="trule:Microsoft/Registry/AUS Eastern Standard Time/2007-Daylight" />
+                <t:Period Bias="-PT10H" Name="Standard" Id="trule:Microsoft/Registry/AUS Eastern Standard Time/2007-Standard" />
+                <t:Period Bias="-PT11H" Name="Daylight" Id="trule:Microsoft/Registry/AUS Eastern Standard Time/2008-Daylight" />
+                <t:Period Bias="-PT10H" Name="Standard" Id="trule:Microsoft/Registry/AUS Eastern Standard Time/2008-Standard" />
+              </t:Periods>
+              <t:TransitionsGroups>
+                <t:TransitionsGroup Id="0">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/AUS Eastern Standard Time/2007-Standard</t:To>
+                    <t:TimeOffset>PT3H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>-1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/AUS Eastern Standard Time/2007-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>10</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>-1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="1">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/AUS Eastern Standard Time/2008-Standard</t:To>
+                    <t:TimeOffset>PT3H</t:TimeOffset>
+                    <t:Month>4</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/AUS Eastern Standard Time/2008-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>10</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+              </t:TransitionsGroups>
+              <t:Transitions>
+                <t:Transition>
+                  <t:To Kind="Group">0</t:To>
+                </t:Transition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">1</t:To>
+                  <t:DateTime>2008-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+              </t:Transitions>
+            </t:TimeZoneDefinition>
+            <t:TimeZoneDefinition Name="(UTC+09:30) Adelaide" Id="Cen. Australia Standard Time">
+              <t:Periods>
+                <t:Period Bias="-PT10H30M" Name="Daylight" Id="trule:Microsoft/Registry/Cen. Australia Standard Time/2007-Daylight" />
+                <t:Period Bias="-PT9H30M" Name="Standard" Id="trule:Microsoft/Registry/Cen. Australia Standard Time/2007-Standard" />
+                <t:Period Bias="-PT10H30M" Name="Daylight" Id="trule:Microsoft/Registry/Cen. Australia Standard Time/2008-Daylight" />
+                <t:Period Bias="-PT9H30M" Name="Standard" Id="trule:Microsoft/Registry/Cen. Australia Standard Time/2008-Standard" />
+              </t:Periods>
+              <t:TransitionsGroups>
+                <t:TransitionsGroup Id="0">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Cen. Australia Standard Time/2007-Standard</t:To>
+                    <t:TimeOffset>PT3H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>-1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Cen. Australia Standard Time/2007-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>10</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>-1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="1">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Cen. Australia Standard Time/2008-Standard</t:To>
+                    <t:TimeOffset>PT3H</t:TimeOffset>
+                    <t:Month>4</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Cen. Australia Standard Time/2008-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>10</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+              </t:TransitionsGroups>
+              <t:Transitions>
+                <t:Transition>
+                  <t:To Kind="Group">0</t:To>
+                </t:Transition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">1</t:To>
+                  <t:DateTime>2008-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+              </t:Transitions>
+            </t:TimeZoneDefinition>
+            <t:TimeZoneDefinition Name="(UTC+01:00) Casablanca" Id="Morocco Standard Time">
+              <t:Periods>
+                <t:Period Bias="PT0H" Name="Standard" Id="trule:Microsoft/Registry/Morocco Standard Time/2007-Standard" />
+                <t:Period Bias="PT0H" Name="Standard" Id="trule:Microsoft/Registry/Morocco Standard Time/2008-Standard" />
+                <t:Period Bias="-PT1H" Name="Daylight" Id="trule:Microsoft/Registry/Morocco Standard Time/2008-Daylight" />
+                <t:Period Bias="PT0H" Name="Standard" Id="trule:Microsoft/Registry/Morocco Standard Time/2009-Standard" />
+                <t:Period Bias="-PT1H" Name="Daylight" Id="trule:Microsoft/Registry/Morocco Standard Time/2009-Daylight" />
+                <t:Period Bias="PT0H" Name="Standard" Id="trule:Microsoft/Registry/Morocco Standard Time/2010-Standard" />
+                <t:Period Bias="-PT1H" Name="Daylight" Id="trule:Microsoft/Registry/Morocco Standard Time/2010-Daylight" />
+                <t:Period Bias="PT0H" Name="Standard" Id="trule:Microsoft/Registry/Morocco Standard Time/2011-Standard" />
+                <t:Period Bias="-PT1H" Name="Daylight" Id="trule:Microsoft/Registry/Morocco Standard Time/2011-Daylight" />
+                <t:Period Bias="PT0H" Name="Standard" Id="trule:Microsoft/Registry/Morocco Standard Time/2012-Standard" />
+                <t:Period Bias="-PT1H" Name="Daylight" Id="trule:Microsoft/Registry/Morocco Standard Time/2012-Daylight" />
+                <t:Period Bias="PT0H" Name="Standard" Id="trule:Microsoft/Registry/Morocco Standard Time/2013-Standard" />
+                <t:Period Bias="-PT1H" Name="Daylight" Id="trule:Microsoft/Registry/Morocco Standard Time/2013-Daylight" />
+                <t:Period Bias="PT0H" Name="Standard" Id="trule:Microsoft/Registry/Morocco Standard Time/2014-Standard" />
+                <t:Period Bias="-PT1H" Name="Daylight" Id="trule:Microsoft/Registry/Morocco Standard Time/2014-Daylight" />
+                <t:Period Bias="PT0H" Name="Standard" Id="trule:Microsoft/Registry/Morocco Standard Time/2015-Standard" />
+                <t:Period Bias="-PT1H" Name="Daylight" Id="trule:Microsoft/Registry/Morocco Standard Time/2015-Daylight" />
+                <t:Period Bias="PT0H" Name="Standard" Id="trule:Microsoft/Registry/Morocco Standard Time/2016-Standard" />
+                <t:Period Bias="-PT1H" Name="Daylight" Id="trule:Microsoft/Registry/Morocco Standard Time/2016-Daylight" />
+                <t:Period Bias="PT0H" Name="Standard" Id="trule:Microsoft/Registry/Morocco Standard Time/2017-Standard" />
+                <t:Period Bias="-PT1H" Name="Daylight" Id="trule:Microsoft/Registry/Morocco Standard Time/2017-Daylight" />
+                <t:Period Bias="PT0H" Name="Standard" Id="trule:Microsoft/Registry/Morocco Standard Time/2018-Standard" />
+                <t:Period Bias="-PT1H" Name="Daylight" Id="trule:Microsoft/Registry/Morocco Standard Time/2018-Daylight" />
+                <t:Period Bias="-PT1H" Name="Daylight" Id="trule:Microsoft/Registry/Morocco Standard Time/2019-Daylight" />
+                <t:Period Bias="PT0H" Name="Standard" Id="trule:Microsoft/Registry/Morocco Standard Time/2019-Standard" />
+                <t:Period Bias="-PT1H" Name="Daylight" Id="trule:Microsoft/Registry/Morocco Standard Time/2020-Daylight" />
+                <t:Period Bias="PT0H" Name="Standard" Id="trule:Microsoft/Registry/Morocco Standard Time/2020-Standard" />
+                <t:Period Bias="-PT1H" Name="Daylight" Id="trule:Microsoft/Registry/Morocco Standard Time/2021-Daylight" />
+                <t:Period Bias="PT0H" Name="Standard" Id="trule:Microsoft/Registry/Morocco Standard Time/2021-Standard" />
+                <t:Period Bias="-PT1H" Name="Daylight" Id="trule:Microsoft/Registry/Morocco Standard Time/2022-Daylight" />
+                <t:Period Bias="PT0H" Name="Standard" Id="trule:Microsoft/Registry/Morocco Standard Time/2022-Standard" />
+                <t:Period Bias="-PT1H" Name="Daylight" Id="trule:Microsoft/Registry/Morocco Standard Time/2023-Daylight" />
+                <t:Period Bias="PT0H" Name="Standard" Id="trule:Microsoft/Registry/Morocco Standard Time/2023-Standard" />
+                <t:Period Bias="-PT1H" Name="Daylight" Id="trule:Microsoft/Registry/Morocco Standard Time/2024-Daylight" />
+                <t:Period Bias="PT0H" Name="Standard" Id="trule:Microsoft/Registry/Morocco Standard Time/2024-Standard" />
+                <t:Period Bias="-PT1H" Name="Daylight" Id="trule:Microsoft/Registry/Morocco Standard Time/2025-Daylight" />
+                <t:Period Bias="PT0H" Name="Standard" Id="trule:Microsoft/Registry/Morocco Standard Time/2025-Standard" />
+                <t:Period Bias="PT0H" Name="Standard" Id="trule:Microsoft/Registry/Morocco Standard Time/2026-Standard" />
+                <t:Period Bias="-PT1H" Name="Daylight" Id="trule:Microsoft/Registry/Morocco Standard Time/2026-Daylight" />
+                <t:Period Bias="PT0H" Name="Standard" Id="trule:Microsoft/Registry/Morocco Standard Time/2027-Standard" />
+              </t:Periods>
+              <t:TransitionsGroups>
+                <t:TransitionsGroup Id="0">
+                  <t:Transition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2007-Standard</t:To>
+                  </t:Transition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="1">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2008-Daylight</t:To>
+                    <t:TimeOffset>PT23H59M59.999S</t:TimeOffset>
+                    <t:Month>5</t:Month>
+                    <t:DayOfWeek>Saturday</t:DayOfWeek>
+                    <t:Occurrence>-1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2008-Standard</t:To>
+                    <t:TimeOffset>PT23H59M59.999S</t:TimeOffset>
+                    <t:Month>8</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>-1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="2">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2009-Daylight</t:To>
+                    <t:TimeOffset>PT23H59M59.999S</t:TimeOffset>
+                    <t:Month>5</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>-1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2009-Standard</t:To>
+                    <t:TimeOffset>PT23H59M59.999S</t:TimeOffset>
+                    <t:Month>8</t:Month>
+                    <t:DayOfWeek>Thursday</t:DayOfWeek>
+                    <t:Occurrence>3</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="3">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2010-Daylight</t:To>
+                    <t:TimeOffset>PT23H59M59.999S</t:TimeOffset>
+                    <t:Month>5</t:Month>
+                    <t:DayOfWeek>Saturday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2010-Standard</t:To>
+                    <t:TimeOffset>PT23H59M59.999S</t:TimeOffset>
+                    <t:Month>8</t:Month>
+                    <t:DayOfWeek>Saturday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="4">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2011-Daylight</t:To>
+                    <t:TimeOffset>PT23H59M59.999S</t:TimeOffset>
+                    <t:Month>4</t:Month>
+                    <t:DayOfWeek>Saturday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2011-Standard</t:To>
+                    <t:TimeOffset>PT23H59M59.999S</t:TimeOffset>
+                    <t:Month>7</t:Month>
+                    <t:DayOfWeek>Saturday</t:DayOfWeek>
+                    <t:Occurrence>-1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="5">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2012-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>4</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>-1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2012-Standard</t:To>
+                    <t:TimeOffset>PT3H</t:TimeOffset>
+                    <t:Month>9</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>-1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="6">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2013-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>4</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>-1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2013-Standard</t:To>
+                    <t:TimeOffset>PT3H</t:TimeOffset>
+                    <t:Month>10</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>-1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="7">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2014-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>-1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2014-Standard</t:To>
+                    <t:TimeOffset>PT3H</t:TimeOffset>
+                    <t:Month>10</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>-1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="8">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2015-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>-1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2015-Standard</t:To>
+                    <t:TimeOffset>PT3H</t:TimeOffset>
+                    <t:Month>10</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>-1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="9">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2016-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>-1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2016-Standard</t:To>
+                    <t:TimeOffset>PT3H</t:TimeOffset>
+                    <t:Month>10</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>-1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="10">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2017-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>-1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2017-Standard</t:To>
+                    <t:TimeOffset>PT3H</t:TimeOffset>
+                    <t:Month>10</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>-1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="11">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2018-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>4</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2018-Standard</t:To>
+                    <t:TimeOffset>PT3H</t:TimeOffset>
+                    <t:Month>10</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>4</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="12">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2019-Standard</t:To>
+                    <t:TimeOffset>PT0H</t:TimeOffset>
+                    <t:Month>1</t:Month>
+                    <t:DayOfWeek>Tuesday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2019-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>6</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>2</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="13">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2020-Standard</t:To>
+                    <t:TimeOffset>PT3H</t:TimeOffset>
+                    <t:Month>4</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>3</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2020-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>5</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>-1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="14">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2021-Standard</t:To>
+                    <t:TimeOffset>PT3H</t:TimeOffset>
+                    <t:Month>4</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>2</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2021-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>5</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>3</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="15">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2022-Standard</t:To>
+                    <t:TimeOffset>PT3H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>-1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2022-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>5</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>2</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="16">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2023-Standard</t:To>
+                    <t:TimeOffset>PT3H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>3</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2023-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>4</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>4</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="17">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2024-Standard</t:To>
+                    <t:TimeOffset>PT3H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>2</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2024-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>4</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>2</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="18">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2025-Standard</t:To>
+                    <t:TimeOffset>PT3H</t:TimeOffset>
+                    <t:Month>2</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>-1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2025-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>4</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>1</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="19">
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2026-Daylight</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>3</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>4</t:Occurrence>
+                  </t:RecurringDayTransition>
+                  <t:RecurringDayTransition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2026-Standard</t:To>
+                    <t:TimeOffset>PT2H</t:TimeOffset>
+                    <t:Month>9</t:Month>
+                    <t:DayOfWeek>Sunday</t:DayOfWeek>
+                    <t:Occurrence>3</t:Occurrence>
+                  </t:RecurringDayTransition>
+                </t:TransitionsGroup>
+                <t:TransitionsGroup Id="20">
+                  <t:Transition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Morocco Standard Time/2027-Standard</t:To>
+                  </t:Transition>
+                </t:TransitionsGroup>
+              </t:TransitionsGroups>
+              <t:Transitions>
+                <t:Transition>
+                  <t:To Kind="Group">0</t:To>
+                </t:Transition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">1</t:To>
+                  <t:DateTime>2008-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">2</t:To>
+                  <t:DateTime>2009-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">3</t:To>
+                  <t:DateTime>2010-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">4</t:To>
+                  <t:DateTime>2011-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">5</t:To>
+                  <t:DateTime>2012-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">6</t:To>
+                  <t:DateTime>2013-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">7</t:To>
+                  <t:DateTime>2014-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">8</t:To>
+                  <t:DateTime>2015-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">9</t:To>
+                  <t:DateTime>2016-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">10</t:To>
+                  <t:DateTime>2017-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">11</t:To>
+                  <t:DateTime>2018-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">12</t:To>
+                  <t:DateTime>2019-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">13</t:To>
+                  <t:DateTime>2020-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">14</t:To>
+                  <t:DateTime>2021-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">15</t:To>
+                  <t:DateTime>2022-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">16</t:To>
+                  <t:DateTime>2023-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">17</t:To>
+                  <t:DateTime>2024-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">18</t:To>
+                  <t:DateTime>2025-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">19</t:To>
+                  <t:DateTime>2026-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+                <t:AbsoluteDateTransition>
+                  <t:To Kind="Group">20</t:To>
+                  <t:DateTime>2027-01-01T00:00:00</t:DateTime>
+                </t:AbsoluteDateTransition>
+              </t:Transitions>
+            </t:TimeZoneDefinition>
+            <t:TimeZoneDefinition Name="(UTC+05:30) Chennai, Kolkata, Mumbai, New Delhi" Id="India Standard Time">
+              <t:Periods>
+                <t:Period Bias="-PT5H30M" Name="Standard" Id="trule:Microsoft/Registry/India Standard Time/1-Standard" />
+              </t:Periods>
+              <t:TransitionsGroups>
+                <t:TransitionsGroup Id="0">
+                  <t:Transition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/India Standard Time/1-Standard</t:To>
+                  </t:Transition>
+                </t:TransitionsGroup>
+              </t:TransitionsGroups>
+              <t:Transitions>
+                <t:Transition>
+                  <t:To Kind="Group">0</t:To>
+                </t:Transition>
+              </t:Transitions>
+            </t:TimeZoneDefinition>
+            <t:TimeZoneDefinition Name="(UTC+05:45) Kathmandu" Id="Nepal Standard Time">
+              <t:Periods>
+                <t:Period Bias="-PT5H45M" Name="Standard" Id="trule:Microsoft/Registry/Nepal Standard Time/1-Standard" />
+              </t:Periods>
+              <t:TransitionsGroups>
+                <t:TransitionsGroup Id="0">
+                  <t:Transition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/Nepal Standard Time/1-Standard</t:To>
+                  </t:Transition>
+                </t:TransitionsGroup>
+              </t:TransitionsGroups>
+              <t:Transitions>
+                <t:Transition>
+                  <t:To Kind="Group">0</t:To>
+                </t:Transition>
+              </t:Transitions>
+            </t:TimeZoneDefinition>
+            <t:TimeZoneDefinition Name="(UTC) Coordinated Universal Time" Id="UTC">
+              <t:Periods>
+                <t:Period Bias="PT0H" Name="Standard" Id="trule:Microsoft/Registry/UTC/1-Standard" />
+              </t:Periods>
+              <t:TransitionsGroups>
+                <t:TransitionsGroup Id="0">
+                  <t:Transition>
+                    <t:To Kind="Period">trule:Microsoft/Registry/UTC/1-Standard</t:To>
+                  </t:Transition>
+                </t:TransitionsGroup>
+              </t:TransitionsGroups>
+              <t:Transitions>
+                <t:Transition>
+                  <t:To Kind="Group">0</t:To>
+                </t:Transition>
+              </t:Transitions>
+            </t:TimeZoneDefinition>
+          </m:TimeZoneDefinitions>
+        </m:GetServerTimeZonesResponseMessage>
+      </m:ResponseMessages>
+    </m:GetServerTimeZonesResponse>
+  </s:Body>
+</s:Envelope>
