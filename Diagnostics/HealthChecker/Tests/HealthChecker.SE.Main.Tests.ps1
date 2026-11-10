@@ -201,7 +201,7 @@ Describe "Testing Health Checker by Mock Data Imports - Exchange SE" {
             SetActiveDisplayGrouping "Security Vulnerability"
 
             $cveTests = GetObject "Security Vulnerability"
-            $cveTests.Count | Should -Be 46
+            $cveTests.Count | Should -Be 55
 
             $downloadDomains = GetObject "CVE-2021-1730"
             $downloadDomains.DownloadDomainsEnabled | Should -Be "False"

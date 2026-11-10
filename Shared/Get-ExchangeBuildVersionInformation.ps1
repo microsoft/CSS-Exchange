@@ -131,7 +131,7 @@ function Get-ExchangeBuildVersionInformation {
                     $cuReleaseDate = "07/01/2025"
                     $supportedBuildNumber = $true
                 }
-                (GetBuildVersion $exSE "RTM" -SU "Oct26SU") { $latestSUBuild = $true }
+                (GetBuildVersion -ExchangeVersion $exSE -CU "RTM" -SU "Nov26SU") { $latestSUBuild = $true }
             }
         } elseif ($exchangeVersion.Major -eq 15 -and $exchangeVersion.Minor -eq 2) {
             Write-Verbose "Exchange 2019 is detected"
@@ -150,14 +150,12 @@ function Get-ExchangeBuildVersionInformation {
                     $cuReleaseDate = "02/10/2025"
                     $supportedBuildNumber = $true
                 }
-                (GetBuildVersion $ex19 "CU15" -SU "Oct26SU") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex19 "CU15") } {
                     $cuLevel = "CU14"
                     $cuReleaseDate = "02/13/2024"
                     $supportedBuildNumber = $true
                     $orgValue = 16762
                 }
-                (GetBuildVersion $ex19 "CU14" -SU "Oct26SU") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex19 "CU14") } {
                     $cuLevel = "CU13"
                     $cuReleaseDate = "05/03/2023"
@@ -254,7 +252,6 @@ function Get-ExchangeBuildVersionInformation {
                     $cuReleaseDate = "04/20/2022"
                     $supportedBuildNumber = $true
                 }
-                (GetBuildVersion $ex16 "CU23" -SU "Oct26SU") { $latestSUBuild = $true }
                 { $_ -lt (GetBuildVersion $ex16 "CU23") } {
                     $cuLevel = "CU22"
                     $cuReleaseDate = "09/28/2021"
@@ -906,6 +903,7 @@ function GetExchangeBuildDictionary {
                     "Sep26SU"   = "15.2.2562.49"
                     "Sep26SUv2" = "15.2.2562.53"
                     "Oct26SU"   = "15.2.2562.56"
+                    "Nov26SU"   = "15.2.2562.57"
                 })
         }
     }
