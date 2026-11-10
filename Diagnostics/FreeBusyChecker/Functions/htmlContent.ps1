@@ -128,6 +128,7 @@ td:first-child { width: 32%; background: #f8fafc; color: #53647b; font-family: C
 td:first-child b { font-weight: 500; }
 td > div + div { margin-top: 8px; }
 td > div > b { margin-right: 6px; color: #485b72; font-weight: 600; }
+td > div.green > b, td > div.red > b { color: inherit; }
 td > div > span { overflow-wrap: anywhere; }
 tr:last-child td { border-bottom: 0; }
 .green, [style*="color:green" i], [style*="color: green" i] { color: var(--good) !important; }
