@@ -33,6 +33,16 @@ The following diagnostic cmdlets affect how much the script can determine:
 
 Cmdlet availability and access to diagnostic properties depend on the session and permissions. Do not assume that a tenant administrator role exposes every diagnostic cmdlet or makes every property readable. If a required cmdlet is not exposed, or values remain redacted, involve Microsoft Support to obtain the appropriate diagnostic access or complete the affected checks.
 
+For internal cross-forest runs, `Get-CalendarEntries` may not proxy to the receiver mailbox forest. When both
+`Get-Mailbox` results expose `Database` as `forestFqdn/database`, the script compares the forest portions without
+regard to case and warns if they differ; different database names alone do not establish different forests.
+The query is still attempted. Proxy-reported failures are captured instead of being printed as a raw diagnostic dump.
+If an error contains `the ExchangePrincipal object contains outdated information`, `SHR230` reports
+`Failed to Proxy for CMDLET Get-CalendarEntries`. This message also replaces the raw payload in collection failures.
+`SHR230` and dependent calendar-entry checks remain `NotEvaluated`, not proof of missing sharing entries.
+Other diagnostics continue. Retry the failed query from the receiver mailbox forest with sufficient access.
+Cross-forest placement does not by itself make sharing external or change the XTAP applicability rules.
+
 A mailbox lookup or selected-owner-calendar prerequisite failure stops dependent diagnostics and produces a **Fatal prerequisite failure** summary. Redacted owner or receiver mailbox names also cause a fatal stop.
 
 After those prerequisites succeed, unavailable evidence generally appears under **Incomplete Checks**. Receiver folder-name redaction is a specific exception: it produces a nonfatal **Detected `SHR201`** warning, while checks that depend on readable folder names can remain incomplete. This warning identifies an access limitation, not proof that calendar sharing is broken.
@@ -270,7 +280,7 @@ the check is incomplete. The rule's Error severity describes a potential delegat
 - Orphaned sharing entries.
 - Local folder flags, including `SharedIn` and `ExchangeShareFolder`.
 - `CalendarSharingOwnerSmtpAddress`.
-- Owner, receiver-folder, and active-sharing permission consistency. Flag order, duplicates, and casing do not affect comparisons. The `Editor` access right is ignored when comparing sharing permission flags (`SHR322` and `SHR323`), because it can appear in only one side's flags even when the pair is configured correctly. A difference in any other flag is still reported.
+- Owner, receiver-folder, and active-sharing permission consistency. Flag order, duplicates, and casing do not affect comparisons. The `Editor` access right is ignored when comparing sharing permission flags (`SHR322` and `SHR323`), because it can appear in only one side's flags even when the pair is configured correctly. `SHR322` also ignores `FullMailboxAccess` when comparing owner and receiver-folder flags; that flag alone does not establish a mismatch. `SHR323` is unchanged. A difference in any other flag is still reported.
 - A visible-item comparison between the selected owner calendar and the uniquely matched receiver local folder.
 - Periodic synchronization timestamps.
 - `SharedCalendarSyncStartDate`.
@@ -387,14 +397,21 @@ The script scans the owner `CalendarSharingInvite` log and the receiver `AcceptC
 | --- | --- |
 | `SHR408` | An entry contains `MapiExceptionNamedPropsQuotaExceeded`: the mailbox exhausted its named property quota, which can block sharing synchronization (for example, `[EX, QuotaExceededException_Cannot get ID from name...]` in the `SharingSyncAssistant` log). This is an error; escalate to Microsoft Support. |
 | `SHR409` | Any other exception, such as `WrongObjectTypeException`, a non-empty `[EX, ...]` value, or a non-zero `numberOfFailures` count in a batch. This is a warning. The evidence lists the exception types, the affected logs, and the latest occurrence. |
-| `SHR414` | An XTAP-tagged entry records a failure, error, denied operation, or exception. This warning directs the tenant administrator to the public [Microsoft 365 Cross-Tenant Access Policy guidance](https://learn.microsoft.com/en-us/exchange/sharing/migrate-to-m365-xtap). |
+| `SHR414` | For relationships not identified as internal sharing, an XTAP-tagged entry records a failure, error, denied operation, or exception. This warning directs the tenant administrator to the public [Microsoft 365 Cross-Tenant Access Policy guidance](https://learn.microsoft.com/en-us/exchange/sharing/migrate-to-m365-xtap). |
+
+**XTAP does not apply to internal sharing.** When `sharingType` is `InternalSharing`, `SHR414` is
+`NotApplicable`, even if logs are unavailable. XTAP-tagged entries (including `[XTAP-Anon]`) and their multiline
+exception details are ignored by the exception scan, so they do not trigger generic exception or quota findings
+(`SHR409` or `SHR408`) either. Unrelated exceptions and quota failures are still checked. Raw logs remain unchanged
+and are included in the JSON report when `-IncludeSensitiveData` is used. Do not change XTAP policy to troubleshoot
+an internal-sharing relationship.
 
 `XTAPPolicyFound=False`, policy-evaluation start messages, and anonymous capability traces alone do not establish an
 XTAP failure. The warning retains its source-log evidence and can coexist with the generic exception finding.
 Mailbox-wide logs can contain failures for other recipients; correlate the failing recipient with the owner/receiver
 pair before attributing the sharing problem to XTAP or changing policy.
 
-Informational text such as `Failed to read user configuration time zone` or `numberOfFailures: 0` is not reported. If any required log is unavailable, negative results for `SHR408`, `SHR409`, and `SHR414` remain `NotEvaluated`, with evidence identifying the unavailable logs. Exceptions found in available logs are still reported as `Detected`. A successful scan with no exceptions is reported only when all applicable logs were available, including logs whose entries were all excluded by the one-year filter.
+Informational text such as `Failed to read user configuration time zone` or `numberOfFailures: 0` is not reported. If any required log is unavailable, negative results for applicable exception rules (`SHR408`, `SHR409`, and `SHR414`) remain `NotEvaluated`, with evidence identifying the unavailable logs. Applicable exceptions found in available logs are still reported as `Detected`. A successful scan with no exceptions is reported only when all applicable logs were available, including logs whose entries were all excluded by the one-year filter.
 
 ### Receiver log freshness
 
@@ -402,10 +419,10 @@ For Modern Sharing relationships, the script reads the receiver mailbox's `Shari
 
 | Log | More than 24 hours old | More than 7 days old |
 | --- | --- | --- |
-| `SharingSyncAssistant` | `SHR404` warning | `SHR405` error |
-| `Sharing` | `SHR406` warning | `SHR407` error |
+| `SharingSyncAssistant` | `SHR404` warning | `SHR405` warning |
+| `Sharing` | `SHR406` warning | `SHR407` warning |
 
-When the 7-day error is detected, the matching 24-hour warning is reported as `NotApplicable` because it is superseded. An empty log, a log without parseable timestamps, or a failure to retrieve the log is reported as `NotEvaluated`. The rules are `NotApplicable` for legacy MAPI and published-calendar relationships. A log with no recent entries means the sharing sync assistant does not appear to be processing the receiver mailbox; inspect the log and escalate to Microsoft Support if the condition persists. These logs are capped by Exchange (about 500 entries), so a busy mailbox can push older activity out of the log.
+When the 7-day warning is detected, the matching 24-hour warning is reported as `NotApplicable` because it is superseded. An empty log, a log without parseable timestamps, or a failure to retrieve the log is reported as `NotEvaluated`. The rules are `NotApplicable` for legacy MAPI and published-calendar relationships. Stale or unavailable diagnostic logging alone does not prove that sharing is broken; calendar synchronization may still work correctly. Compare the receiver calendar's actual synchronization timestamps and behavior, and escalate to Microsoft Support if synchronization also fails. These logs are capped by Exchange (about 500 entries), so a busy mailbox can push older activity out of the log.
 
 ### Synchronization start date
 
