@@ -40,9 +40,15 @@ begin {
         }
     }
 
+    # Only `.github/examples` is excluded. Those files are documentation samples
+    # demonstrating test style, not tests of shipping code, and they were the
+    # sole reason this exclusion was added. Real tests elsewhere under `.github`
+    # -- notably the agent-skill helper tests at
+    # `.github/skills/<skill>/Tests/*.Tests.ps1` -- MUST run, because they are
+    # the drift guards that pin the skills to the product code they parse.
     $root = Get-Item "$PSScriptRoot\.."
     $scripts = @(Get-ChildItem -Recurse $root |
-            Where-Object { $_.Name -like "*.Tests.ps1" -and $_.FullName -notmatch "\.github" })
+            Where-Object { $_.Name -like "*.Tests.ps1" -and $_.FullName -notmatch "\.github[\\/]examples[\\/]" })
 
     # Categorize test files by priority using comment tag: # PesterPriority: High
     $highPriorityQueue = New-Object 'System.Collections.Generic.Queue[object]'

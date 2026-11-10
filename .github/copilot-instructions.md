@@ -32,6 +32,20 @@ Specialized agents are available in `.github/agents/` for specific tasks:
 Skills are available in `.github/skills/` and are automatically loaded when relevant:
 
 - **dependency-analysis** — Maps cascading impact of changes using build system XML. Auto-loads when working with shared functions or assessing change impact. Can also be invoked explicitly: `"Use the /dependency-analysis skill to analyze impact of changing FunctionName"`
+- **analyze-debug-files** — Analyzes a directory of CSS-Exchange debug logs, pins the source to a release-tag baseline, and produces a root-cause analysis of unhandled exceptions. Use: `"Use the /analyze-debug-files skill on C:\logs"`
+- **find-release-tag-for-script-version** — Given a script name and version (e.g. `HealthChecker 26.10.02.1907`), finds the earliest GitHub release whose `ScriptVersions.csv` shipped that build.
+- **find-related-github-issues** — Given an exception signature, searches Issues and PRs and classifies each hit as a possible duplicate or merely similar.
+- **trace-code-introduction** — Given a file path, line range, and pinned SHA, identifies the commit and PR that introduced that code, with a conservative regression verdict.
+
+Shared filesystem-safety helpers used by these skills live in `.github/skill-lib/`. See its README — skills that depend on it are repository-scoped and are not independently distributable.
+
+**Skill authoring rules:**
+
+- Keep `SKILL.md` under 500 lines and roughly 5,000 tokens, per the [Agent Skills specification](https://github.com/agentskills/agentskills). Move detail into a `reference/` subfolder that the skill loads on demand.
+- Put executable logic in a real `.ps1` beside `SKILL.md`, never in a fenced code block. Code in markdown gets **zero** PSScriptAnalyzer, formatter, and Pester coverage.
+- Supported front matter keys are `name`, `description`, `license`, and `allowed-tools`. Any other key is silently ignored.
+- Do **not** declare `allowed-tools: shell` on a skill that consumes untrusted input (debug logs, GitHub issue/PR content, downloaded release assets). Keeping it omitted preserves the human confirmation step against prompt injection.
+- `.build/Pester.ps1` discovers skill tests at `.github/skills/<skill>/Tests/*.Tests.ps1` — put them beside the skill they test, not in a product folder. Contract tests for `.github/skill-lib/` live at `.github/skill-lib/Tests/` because those helpers are shared across skills.
 
 ## Personal Overrides
 
@@ -117,7 +131,7 @@ For formatting all changed files on a branch:
 - Uses `cspell` (Node.js-based tool)
 - Dictionary is in `.build/cspell-words.txt`
 - Most spelling issues are caught by using proper camelCase or PascalCase variable names
-- Note: `.github/` is excluded from spell checking via `.build/cspell.json`
+- Note: `.build/cspell.json` lists `.github` in `ignorePaths`, but that pattern does **not** match descendants — `.github/**` files ARE spell-checked in practice. Add new words to `.build/cspell-words.txt` as normal.
 
 ### Testing (Pester)
 
@@ -125,7 +139,7 @@ For formatting all changed files on a branch:
 .build/Pester.ps1
 ```
 
-- Runs all Pester tests (`*.Tests.ps1`) found recursively across the repository (excludes `.github/`)
+- Runs all Pester tests (`*.Tests.ps1`) found recursively across the repository, including skill tests (excludes only `.github/examples/`)
 - Runs tests in parallel (auto-scales to CPU cores)
 - To test only changed files: `.build/Pester.ps1 -Branch main`
 - Tests use `BeforeAll` to dot-source scripts and set up the environment
@@ -222,6 +236,8 @@ Tests follow a **colocated pattern**: `*.Tests.ps1` files are placed in a `Tests
 - `Setup/Tests/*.Tests.ps1` - Tests for Setup scripts
 - `Diagnostics/HealthChecker/Tests/*.Tests.ps1` - Tests for HealthChecker
 - `Admin/MonitorExchangeAuthCertificate/DataCollection/Tests/*.Tests.ps1` - Tests colocated near the script
+- `.github/skills/<skill-name>/Tests/*.Tests.ps1` - Tests for agent skill helper scripts
+- `.github/skill-lib/Tests/*.Tests.ps1` - Contract tests for the shared skill helpers (they are consumed by more than one skill, so they are not owned by any single skill's folder)
 
 Basic test structure:
 
@@ -250,4 +266,3 @@ Key conventions:
 - Store mock data in XML files in a `Tests/Data/` subfolder: `Import-Clixml $Script:parentPath\Tests\Data\MockData.xml`
 - For complex multi-script testing (e.g., HealthChecker), create helper functions in `NotPublished.ps1` files (e.g., `HealthCheckerTests.ImportCode.NotPublished.ps1`)
 - Load functions dynamically with `Get-PesterScriptContent` and `Invoke-Expression` when testing individual functions from large scripts
-

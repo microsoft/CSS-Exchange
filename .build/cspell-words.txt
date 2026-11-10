@@ -98,9 +98,12 @@ mepfdns
 mepfs
 meso
 mesos
+metacharacters
 mfcmapi
 Mgmt
 microsoftonline
+misattributed
+misrouting
 mitigations
 msdcs
 MSDTC
@@ -164,6 +167,7 @@ subfolders
 syncall
 tcpip
 TDSDSA
+triaging
 Truncater
 UCMA
 unconfigured
@@ -182,6 +186,7 @@ Webex
 Weve
 wevtutil
 windir
+worktree
 xtap
 Xlsb
 Xtap
