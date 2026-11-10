@@ -69,6 +69,8 @@
     This parameter is reserved for internal Microsoft use. Do not use it unless explicitly advised by Microsoft.
 .PARAMETER CustomEntraAuthUri
     This parameter is reserved for internal Microsoft use. Do not use it unless explicitly advised by Microsoft.
+.PARAMETER CustomAutoDiscoverUri
+    This parameter is reserved for internal Microsoft use. Do not use it unless explicitly advised by Microsoft.
 .PARAMETER CustomInitialCloudDomains
     This parameter is reserved for internal Microsoft use. Do not use it unless explicitly advised by Microsoft.
 .PARAMETER CustomMicrosoftDomains
@@ -210,6 +212,12 @@ param(
     [Parameter(Mandatory = $false, ParameterSetName = "Delete")]
     [Parameter(Mandatory = $false, ParameterSetName = "RemovePermissions")]
     [string]$CustomEntraAuthUri = $null,
+
+    [Parameter(Mandatory = $false, ParameterSetName = "FullyConfigureExchangeHybridApplication")]
+    [Parameter(Mandatory = $false, ParameterSetName = "Create")]
+    [Parameter(Mandatory = $false, ParameterSetName = "CustomAppId")]
+    [ValidatePattern("^(?!http:\/\/|https:\/\/).*(?<!\/)$")]
+    [string]$CustomAutoDiscoverUri = $null,
 
     [Parameter(Mandatory = $false, ParameterSetName = "FullyConfigureExchangeHybridApplication")]
     [Parameter(Mandatory = $false, ParameterSetName = "Create")]
@@ -1215,7 +1223,19 @@ begin {
                 Write-Verbose "Selected domain that will be used for AutoD v2 call is: $matchingDomainName"
 
                 # Now, query the EWS endpoint by using AutoD v2 - we use an arbitration mailbox that exists in all tenants, regardless of the cloud or region
-                $autoDiscoverInformation = Get-ProtocolEndpointViaAutoDv2 -SmtpAddress "$arbitrationMailbox@$matchingDomainName" -Protocol "EWS"
+                $autoDiscoverV2Params = @{
+                    SmtpAddress = "$arbitrationMailbox@$matchingDomainName"
+                    Protocol    = "EWS"
+                }
+
+                # Environments which can't reach the worldwide AutoDiscover endpoint must tell us which host to query
+                if (-not([System.String]::IsNullOrWhiteSpace($Script:CustomAutoDiscoverUri))) {
+                    Write-Verbose "Custom AutoDiscover Endpoint was provided and will be used: $Script:CustomAutoDiscoverUri"
+
+                    $autoDiscoverV2Params.Add("CustomAutoDiscoverUrl", $Script:CustomAutoDiscoverUri)
+                }
+
+                $autoDiscoverInformation = Get-ProtocolEndpointViaAutoDv2 @autoDiscoverV2Params
 
                 # We can't continue if no information via AutoD v2 were returned
                 if ([System.String]::IsNullOrEmpty($autoDiscoverInformation.Url)) {
