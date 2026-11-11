@@ -82,6 +82,7 @@ param (
 . $PSScriptRoot\..\..\Shared\Confirm-Administrator.ps1
 . $PSScriptRoot\..\..\Shared\Confirm-ExchangeShell.ps1
 . $PSScriptRoot\..\..\Shared\Get-ExchAVExclusions.ps1
+. $PSScriptRoot\..\..\Shared\Get-ExchangeProcessModuleAllowList.ps1
 . $PSScriptRoot\..\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 . $PSScriptRoot\..\..\Shared\LoggerFunctions.ps1
 . $PSScriptRoot\..\..\Shared\OutputOverrides\Write-Host.ps1
@@ -357,125 +358,11 @@ while ($currentDiff -gt 0) {
         # Gather all processes on the computer and filter by the Exchange Process List
         $ServerProcess = Get-Process | Where-Object { $ExchangeProcessList -contains $_.path } | Sort-Object -Property ProcessName
 
-        # Module allow list
-        $ModuleAllowList = New-Object Collections.Generic.List[string]
-
-        # cSpell:disable
-
-        # No company name
-
-        #Exchange 2013
-        # Bin\Search\Ceres\HostController\Data\Repository\Journal\
-        $ModuleAllowList.Add("Microsoft.Exchange.TransportFlow.50.dll")
-        $ModuleAllowList.Add("Microsoft.ClientResourceView.FlowService.dll")
-        $ModuleAllowList.Add("Microsoft.Exchange.TransportFlowMdm.50.dll")
-        $ModuleAllowList.Add("Microsoft.Exchange.Search.Writer.50.dll")
-
-        $ModuleAllowList.Add("FUSE.Paxos.Network.dll")
-        $ModuleAllowList.Add("FUSE.Weld.Base.Portable.dll")
-        $ModuleAllowList.Add("ParallelExtensionsExtras.dll")
-        $ModuleAllowList.Add("Google.ProtocolBuffers.dll")
-
-        #Exchange 2016
-        # Bin\Search\Ceres\HostController\Data\Repository\Journal\
-        $ModuleAllowList.Add("Microsoft.Exchange.TransportFlowMdm.105.dll")
-        $ModuleAllowList.Add("Microsoft.Exchange.TransportFlow.105.dll")
-        $ModuleAllowList.Add("Microsoft.Exchange.Search.Writer.109.dll")
-        $ModuleAllowList.Add("Microsoft.Exchange.WatermarkCtsFlow.100.dll")
-
-        $ModuleAllowList.Add("Bond.Precompiler.dll")
-        $ModuleAllowList.Add("Microsoft.Applications.Telemetry.dll")
-        $ModuleAllowList.Add("Microsoft.Applications.Telemetry.Server.dll")
-        $ModuleAllowList.Add("Microsoft.RightsManagementServices.Core.dll")
-        $ModuleAllowList.Add("Microsoft.Search.ObjectStore.Client.dll")
-        $ModuleAllowList.Add("ParallelExtensionsExtras.dll")
-        $ModuleAllowList.Add("System.IdentityModel.Tokens.Jwt.dll")
-        $ModuleAllowList.Add("Owin.dll")
-        $ModuleAllowList.Add("Google.ProtocolBuffers.dll")
-
-        $ModuleAllowList.Add("DiskLockerApi.dll")
-        $ModuleAllowList.Add("ExDbFailureItemApi.dll")
-        $ModuleAllowList.Add("ManagedBlingSigned.dll")
-        $ModuleAllowList.Add("Microsoft.DSSMNativeSSELib.dll")
-
-        #Exchange 2019
-        $ModuleAllowList.Add("Microsoft.Exchange.BigFunnelFlow.28.dll")
-        $ModuleAllowList.Add("BigFunnel.NeuralTree.dll")
-        $ModuleAllowList.Add("DocParserWrapper.dll")
-        $ModuleAllowList.Add("MimeKit.dll")
-
-        #.NET Foundation
-        $ModuleAllowList.Add("Microsoft.AspNet.SignalR.Core.dll")
-        $ModuleAllowList.Add("Microsoft.AspNet.SignalR.SystemWeb.dll")
-
-        #Microsoft Research Limited
-        $ModuleAllowList.Add("Infer.Compiler.dll")
-        $ModuleAllowList.Add("Infer.Runtime.dll")
-
-        #The Legion of the Bouncy Castle
-        $ModuleAllowList.Add("BouncyCastle.Crypto.dll")
-
-        #Google Inc.
-        $ModuleAllowList.Add("Google.Protobuf.dll")
-
-        #Newtonsoft
-        $ModuleAllowList.Add("Newtonsoft.Json.dll")
-        $ModuleAllowList.Add("Newtonsoft.Json.Bson.dll")
-
-        #Marc Gravell
-        $ModuleAllowList.Add("protobuf-net.dll")
-        $ModuleAllowList.Add("protobuf-net.Core.dll")
-
-        #Matthew Manela
-        $ModuleAllowList.Add("DiffPlex.dll")
-
-        #The Apache Software Foundation
-        $ModuleAllowList.Add("log4net.dll")
-
-        #http://system.data.sqlite.org/
-        $ModuleAllowList.Add("System.Data.SQLite.dll")
-
-        #Robert Simpson, et al.
-        $ModuleAllowList.Add("SQLite.Interop.dll")
-
-        #Microsoft.Cloud.InstrumentationFramework.*
-        $ModuleAllowList.Add("Microsoft.Cloud.InstrumentationFramework.Events.dll")
-        $ModuleAllowList.Add("Microsoft.Cloud.InstrumentationFramework.Health.dll")
-        $ModuleAllowList.Add("Microsoft.Cloud.InstrumentationFramework.Metrics.dll")
-
-        #Windows
-        $ModuleAllowList.Add("prxyqry.DLL")
-        $ModuleAllowList.Add("icu.dll")
-        # ICU component libraries shipped next to icu.dll, still present in Windows Server 2025
-        $ModuleAllowList.Add("icuuc.dll")
-        $ModuleAllowList.Add("icuin.dll")
-        $ModuleAllowList.Add("TextShaping.dll")
-
-        #Windows Fraunhofer IIS MPEG Audio Layer-3 ACM codec - MPEG Audio Layer-3 Codec for MSACM
-        $ModuleAllowList.Add("l3codecp.acm")
-
-        # CompanyName allow list
-        $CompanyNameAllowList = New-Object Collections.Generic.List[string]
-        $CompanyNameAllowList.Add("Microsoft Corporation")
-        $CompanyNameAllowList.Add("Microsoft Corporation.")
-        $CompanyNameAllowList.Add("Microsoft")
-        $CompanyNameAllowList.Add("Microsoft Corp.")
-        $CompanyNameAllowList.Add("Microsoft CoreXT")
-        #$CompanyNameAllowList.Add("Microsoft Research Limited") #Only 2 modules
-
-        $CompanyNameAllowList.Add("Корпорация Майкрософт")
-        $CompanyNameAllowList.Add("Корпорація Майкрософт")
-        $CompanyNameAllowList.Add("Корпорація Майкрософт (Microsoft Corporation)")
-        $CompanyNameAllowList.Add("Корпорація Майкрософт (Microsoft Corporation)")
-        $CompanyNameAllowList.Add("Microsoft  корпорациясы")
-        $CompanyNameAllowList.Add("Корпорация Майкрософт.")
-
-        # CompanyName allow list
-        $FIPCompanyNameAllowList = New-Object Collections.Generic.List[string]
-        $FIPCompanyNameAllowList.Add("Oracle Corporation")
-        $FIPCompanyNameAllowList.Add("Oracle Corp.")
-
-        # cSpell:enable
+        # Known modules and company names, shared with Troubleshoot-ModernSearch
+        $moduleAllowListInfo = Get-ExchangeProcessModuleAllowList
+        $ModuleAllowList = $moduleAllowListInfo.ModuleNames
+        $CompanyNameAllowList = $moduleAllowListInfo.CompanyNames
+        $FIPCompanyNameAllowList = $moduleAllowListInfo.FipFsCompanyNames
 
         Write-Verbose "Allow List Module Count: $($ModuleAllowList.count)"
 
@@ -518,11 +405,10 @@ while ($currentDiff -gt 0) {
                         }
                         # Additionally check for known Windows Defender AMSI-related modules by filename
                         # This handles version mismatches where MPCLIENT.DLL path was constructed from registry
+                        # cSpell:ignore MPCLIENT
                         if (-not $isAmsiProvider) {
                             $moduleFileName = [System.IO.Path]::GetFileName($module.FileName)
-                            # cSpell:ignore MPCLIENT MpOav
-                            $knownDefenderModules = @("MPCLIENT.DLL", "MpOav.dll")
-                            if ($knownDefenderModules -contains $moduleFileName) {
+                            if ($moduleAllowListInfo.AmsiKnownModuleNames -contains $moduleFileName) {
                                 $isAmsiProvider = $true
                             }
                         }
