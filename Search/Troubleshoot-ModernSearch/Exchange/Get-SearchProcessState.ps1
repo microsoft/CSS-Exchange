@@ -1,6 +1,7 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+. $PSScriptRoot\..\..\..\Shared\Get-ExchangeProcessModuleAllowList.ps1
 . $PSScriptRoot\..\..\..\Shared\Invoke-ScriptBlockHandler.ps1
 
 <#
@@ -20,6 +21,11 @@ function Get-SearchProcessState {
     begin {
 
         function GetSearchProcessStateScriptBlock {
+            param(
+                [string[]]$ModuleAllowList,
+                [string[]]$CompanyNameAllowList,
+                [string[]]$DefenderModuleNames
+            )
 
             $admin = "AdminNode1"
             $content = "ContentEngineNode1"
@@ -49,20 +55,95 @@ function Get-SearchProcessState {
                 $_.Name -eq "Microsoft.Exchange.Search.Service"
             }
 
+            # AMSI provider detection is the same as in Test-ExchAVExclusions.ps1.
+            # Unlike Test-ExchAVExclusions.ps1, only the registered provider DLL is accepted.
+            # Other modules loaded by the provider (like MPCLIENT.DLL) are expected in w3wp, not in the search processes.
+            # cSpell:ignore MPCLIENT CLSID
+            $amsiProviderModuleNames = New-Object 'System.Collections.Generic.List[string]'
+            $amsiProviderErrors = New-Object 'System.Collections.Generic.List[string]'
+            $amsiProvidersPath = "HKLM:\SOFTWARE\Microsoft\AMSI\Providers"
+
+            $amsiProvidersPathExists = Test-Path -Path $amsiProvidersPath -ErrorAction SilentlyContinue -ErrorVariable providersPathError
+
+            foreach ($providersPathErrorRecord in $providersPathError) {
+                $amsiProviderErrors.Add("Failed to check $amsiProvidersPath. Error: $($providersPathErrorRecord.Exception.Message)")
+            }
+
+            if ($amsiProvidersPathExists) {
+                $providerKeys = Get-ChildItem -Path $amsiProvidersPath -ErrorAction SilentlyContinue -ErrorVariable providerKeysError
+
+                foreach ($providerKeyError in $providerKeysError) {
+                    $amsiProviderErrors.Add("Failed to read $amsiProvidersPath. Error: $($providerKeyError.Exception.Message)")
+                }
+
+                foreach ($providerKey in $providerKeys) {
+                    if ($providerKey.PSChildName -match '[0-9A-Fa-f\-]{36}') {
+                        $inProcServerPath = "HKLM:\SOFTWARE\Classes\CLSID\{$($Matches[0])}\InprocServer32"
+                        $providerDll = (Get-ItemProperty -Path $inProcServerPath -ErrorAction SilentlyContinue -ErrorVariable providerDllError).'(default)'
+
+                        if ([string]::IsNullOrEmpty($providerDll)) {
+                            $amsiProviderErrors.Add("Failed to get the AMSI provider DLL from $inProcServerPath. Error: $($providerDllError.Exception.Message)")
+                        } else {
+                            $amsiProviderModuleNames.Add(($providerDll.Trim('"') -split '\\')[-1])
+                        }
+                    }
+                }
+            }
+
             $returnProcesses = New-Object 'System.Collections.Generic.List[object]'
             # Foreach of the processes collect some minor information
             foreach ($process in $searchProcesses) {
                 # Only return 3 party modules, as that should be the only thing we care about.
                 $thirdPartyModule = New-Object 'System.Collections.Generic.List[object]'
-                $process.Modules | Where-Object {
-                    $_.Company -notlike "*Microsoft*" -and
-                    $_.ModuleName -ne "ManagedBlingSigned.dll"
-                } | ForEach-Object {
-                    $thirdPartyModule.Add([PSCustomObject]@{
-                            ModuleName = $_.ModuleName
-                            Company    = $_.Company
-                            FileName   = $_.FileName
-                        })
+                $amsiModule = New-Object 'System.Collections.Generic.List[object]'
+                $modulesReadError = $null
+
+                try {
+                    $processModules = $process.Modules
+                } catch {
+                    $processModules = $null
+                    $modulesReadError = $_.Exception.Message
+                }
+
+                # A running process always has loaded modules. Nothing returned means that the module list couldn't be read.
+                if ($null -eq $processModules -or
+                    @($processModules).Count -eq 0) {
+                    $processModules = @()
+
+                    if ($null -eq $modulesReadError) {
+                        $modulesReadError = "No modules were returned for the process."
+                    }
+                }
+
+                $hasAmsiDll = $null -ne ($processModules | Where-Object { $_.ModuleName -eq "amsi.dll" })
+
+                foreach ($module in $processModules) {
+                    $isAmsiProvider = $hasAmsiDll -and $module.ModuleName -in $amsiProviderModuleNames
+                    # Windows Defender modules aren't expected even though they are Microsoft modules
+                    # NGen native images (*.ni.dll) are allowed when their IL assembly is allowed
+                    $isUnexpectedModule = (($module.Company -notlike "*Microsoft*" -and
+                            $module.Company -notin $CompanyNameAllowList) -or
+                        $module.FileName -like "*Windows Defender*" -or
+                        $module.ModuleName -in $DefenderModuleNames) -and
+                    ($module.ModuleName -replace "\.ni\.dll$", ".dll") -notin $ModuleAllowList
+
+                    if (-not $isAmsiProvider -and
+                        -not $isUnexpectedModule) {
+                        continue
+                    }
+
+                    $moduleInformation = [PSCustomObject]@{
+                        ModuleName  = $module.ModuleName
+                        Company     = $module.Company
+                        FileVersion = $module.FileVersion
+                        FileName    = $module.FileName
+                    }
+
+                    if ($isAmsiProvider) {
+                        $amsiModule.Add($moduleInformation)
+                    } else {
+                        $thirdPartyModule.Add($moduleInformation)
+                    }
                 }
 
                 # Need to know which node runners are having an issue.
@@ -88,13 +169,17 @@ function Get-SearchProcessState {
                         PID               = $process.Id
                         StartTime         = $process.StartTime
                         ThirdPartyModules = $thirdPartyModule
+                        AmsiModules       = $amsiModule
+                        ModulesReadError  = $modulesReadError
                     })
             }
 
             return [PSCustomObject]@{
-                Services    = $getSearchServices
-                Processes   = $returnProcesses
-                CurrentTime = [DateTime]::Now
+                Services                = $getSearchServices
+                Processes               = $returnProcesses
+                AmsiProviderModuleNames = $amsiProviderModuleNames
+                AmsiProviderErrors      = $amsiProviderErrors
+                CurrentTime             = [DateTime]::Now
             }
         }
 
@@ -110,12 +195,15 @@ function Get-SearchProcessState {
         $servicesNotCorrect = New-Object 'System.Collections.Generic.List[object]'
         $processesRunningForOneHour = $true
         $thirdPartyModuleFound = $false
+        $modulesReadFailed = $false
     }
     process {
 
+        $allowList = Get-ExchangeProcessModuleAllowList
         $params = @{
             ComputerName = $ComputerName
             ScriptBlock  = ${Function:GetSearchProcessStateScriptBlock}
+            ArgumentList = @($allowList.ModuleNames, $allowList.CompanyNames, $allowList.AmsiKnownModuleNames)
         }
 
         $processInformation = Invoke-ScriptBlockHandler @params
@@ -154,6 +242,10 @@ function Get-SearchProcessState {
             if ($process.ThirdPartyModules.Count -gt 0) {
                 $thirdPartyModuleFound = $true
             }
+
+            if ($null -ne $process.ModulesReadError) {
+                $modulesReadFailed = $true
+            }
         }
     }
     end {
@@ -166,6 +258,7 @@ function Get-SearchProcessState {
             ProcessesNotRunning     = $processesNotRunning
             RunForAnHour            = $processesRunningForOneHour
             ThirdPartyModuleFound   = $thirdPartyModuleFound
+            ModulesReadFailed       = $modulesReadFailed
             LatestProcessStartTime  = $latestProcessStartTime
         }
     }
