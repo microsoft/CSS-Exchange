@@ -36,6 +36,7 @@ Emotet
 emsmdb
 Entra
 EOMT
+epmap
 Eseback
 Eventlog
 evtx
@@ -99,6 +100,7 @@ meso
 mesos
 mfcmapi
 Mgmt
+microsoftonline
 mitigations
 msdcs
 MSDTC
@@ -144,6 +146,7 @@ renego
 repadmin
 RESTAPI
 retryable
+rmguid
 RODC
 rsassa
 Runtimes
@@ -179,4 +182,6 @@ Webex
 Weve
 wevtutil
 windir
+xtap
 Xlsb
+Xtap

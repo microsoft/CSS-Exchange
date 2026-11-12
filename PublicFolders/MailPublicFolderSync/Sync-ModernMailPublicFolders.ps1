@@ -15,10 +15,14 @@
 #    Exchange Online user name and password. Don't use this param if MFA is enabled.
 #
 # .PARAMETER CsvSummaryFile
-#    The file path where sync operations and errors will be logged in a CSV format.
+#    The file path where sync operations and errors will be logged in a CSV format. Existing files are preserved.
+#    If the path already exists or remains locked, a uniquely named CSV in the same directory is used and reported.
 #
 # .PARAMETER ConnectionUri
 #    The Exchange Online remote PowerShell connection uri. If you are an Office 365 operated by 21Vianet customer in China, use "https://partner.outlook.cn/PowerShell".
+#
+# .PARAMETER AzureADAuthorizationEndpointUri
+#    Optional authorization endpoint for Connect-ExchangeOnline. Use the endpoint appropriate for your cloud together with ConnectionUri.
 #
 # .PARAMETER Confirm
 #    The Confirm switch causes the script to pause processing and requires you to acknowledge what the script will do before processing continues. You don't have to specify
@@ -62,6 +66,10 @@ param(
     [Parameter(Mandatory=$false, ParameterSetName="Default")]
     [ValidateNotNullOrEmpty()]
     [string] $ConnectionUri = "https://outlook.office365.com/powerShell-liveID",
+
+    [Parameter(Mandatory=$false, ParameterSetName="Default")]
+    [ValidateNotNullOrEmpty()]
+    [string] $AzureADAuthorizationEndpointUri,
 
     [Parameter(Mandatory=$false, ParameterSetName="Default")]
     [bool] $Confirm = $true,
@@ -108,8 +116,88 @@ function WriteVerboseMessage() {
 function WriteErrorSummary() {
     param ($folder, $operation, $errorMessage, $commandText)
 
-    WriteOperationSummary -folder $folder.Guid -operation $operation -result $errorMessage -commandText $commandText
     $script:errorsEncountered++
+    WriteOperationSummary -folder $folder -operation $operation -result $errorMessage -commandText $commandText
+}
+
+function InitializeOperationSummary() {
+    param ([string]$Path)
+
+    $script:summaryFilePath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path)
+    $script:summaryFilePaths = [System.Collections.Generic.List[string]]::new()
+    $script:summaryCsvHeader = "#{0},{1},{2},{3},{4}" -f $LocalizedStrings.TimestampCsvHeader,
+    $LocalizedStrings.IdentityCsvHeader,
+    $LocalizedStrings.OperationCsvHeader,
+    $LocalizedStrings.ResultCsvHeader,
+    $LocalizedStrings.CommandCsvHeader
+
+    Write-SummaryCsv -Initialize
+}
+
+function Write-SummaryCsv {
+    param (
+        [string]$Line,
+        [switch]$Initialize
+    )
+
+    $originalPath = $script:summaryFilePath
+    $targetPath = $originalPath
+    $fileMode = if ($Initialize) { [System.IO.FileMode]::CreateNew } else { [System.IO.FileMode]::Append }
+    $stream = $null
+
+    # Retry only opening the file. Retrying a failed write could duplicate a partially written record.
+    for ($attempt = 0; $attempt -lt 3; $attempt++) {
+        try {
+            $stream = [System.IO.File]::Open($targetPath, $fileMode, [System.IO.FileAccess]::Write, [System.IO.FileShare]::Read)
+            break
+        } catch [System.IO.IOException] {
+            $errorCode = $_.Exception.HResult -band 0xFFFF
+            if ($Initialize -and $errorCode -in @(80, 183)) {
+                break
+            }
+
+            if ($errorCode -notin @(32, 33)) {
+                throw
+            }
+
+            if ($attempt -lt 2) {
+                Start-Sleep -Milliseconds 200
+            }
+        }
+    }
+
+    if ($null -eq $stream) {
+        $fallbackName = "{0}.{1}.csv" -f [System.IO.Path]::GetFileNameWithoutExtension($originalPath), (New-Guid).ToString("N")
+        $targetPath = Join-Path -Path ([System.IO.Path]::GetDirectoryName($originalPath)) -ChildPath $fallbackName
+        $stream = [System.IO.File]::Open($targetPath, [System.IO.FileMode]::CreateNew, [System.IO.FileAccess]::Write, [System.IO.FileShare]::Read)
+    }
+
+    try {
+        $needsHeader = $stream.Length -eq 0
+        $writer = [System.IO.StreamWriter]::new($stream, [System.Text.UTF8Encoding]::new($true))
+        try {
+            if ($needsHeader) {
+                $writer.WriteLine($script:summaryCsvHeader)
+            }
+
+            if (-not $Initialize) {
+                $writer.WriteLine($Line)
+            }
+        } finally {
+            $writer.Dispose()
+        }
+    } finally {
+        $stream.Dispose()
+    }
+
+    $script:summaryFilePath = $targetPath
+    if (-not $script:summaryFilePaths.Contains($targetPath)) {
+        $script:summaryFilePaths.Add($targetPath)
+    }
+
+    if ($targetPath -ne $originalPath) {
+        WriteWarningMessage -message ($LocalizedStrings.SummaryFileChanged -f $originalPath, $targetPath)
+    }
 }
 
 # Writes the operation executed and its result to the output CSV
@@ -117,14 +205,14 @@ function WriteOperationSummary() {
     param ($folder, $operation, $result, $commandText)
 
     $columns = @(
-        (Get-Date).ToString(),
-        $folder.Guid,
-        $operation,
-        (EscapeCsvColumn $result),
-        (EscapeCsvColumn $commandText)
+        (EscapeCsvColumn -text (Get-Date).ToString()),
+        (EscapeCsvColumn -text $folder.Guid),
+        (EscapeCsvColumn -text $operation),
+        (EscapeCsvColumn -text $result),
+        (EscapeCsvColumn -text $commandText)
     )
 
-    Add-Content $CsvSummaryFile -Value ("{0},{1},{2},{3},{4}" -f $columns)
+    Write-SummaryCsv -Line ("{0},{1},{2},{3},{4}" -f $columns)
 }
 
 #Escapes a column value based on RFC 4180 (http://tools.ietf.org/html/rfc4180)
@@ -168,32 +256,57 @@ function InitializeExchangeOnlineRemoteSession() {
 
     $oldWarningPreference = $WarningPreference
     $oldVerbosePreference = $VerbosePreference
+    $script:isConnectedToExchangeOnline = $false
 
     try {
-        Import-Module ExchangeOnlineManagement -ErrorAction SilentlyContinue
-        if (Get-Module ExchangeOnlineManagement) {
-            $connectParams = @{
-                ConnectionUri = $ConnectionUri
-                Prefix        = "Remote"
-                ErrorAction   = "SilentlyContinue"
-            }
+        Import-Module -Name ExchangeOnlineManagement -ErrorAction Stop
+        $connectParams = @{
+            ConnectionUri = $ConnectionUri
+            Prefix        = "Remote"
+            ErrorAction   = "Stop"
+        }
 
-            if ($null -ne $Credential) {
-                $connectParams.Credential = $Credential
-            }
-            Connect-ExchangeOnline @connectParams
-            $script:isConnectedToExchangeOnline = $true
-        } else {
-            WriteWarningMessage $LocalizedStrings.EXOV2ModuleNotInstalled
-            exit
+        if ($null -ne $Credential) {
+            $connectParams.Credential = $Credential
         }
+
+        if (-not [string]::IsNullOrEmpty($AzureADAuthorizationEndpointUri)) {
+            $connectParams.AzureADAuthorizationEndpointUri = $AzureADAuthorizationEndpointUri
+        }
+
+        Connect-ExchangeOnline @connectParams
+        $script:isConnectedToExchangeOnline = $true
     } finally {
-        if ($script:isConnectedToExchangeOnline) {
-            $WarningPreference = $oldWarningPreference
-            $VerbosePreference = $oldVerbosePreference
-        }
+        $WarningPreference = $oldWarningPreference
+        $VerbosePreference = $oldVerbosePreference
     }
     WriteInfoMessage $LocalizedStrings.RemoteSessionCreatedSuccessfully
+}
+
+function ConvertTo-EmailAddressStrings {
+    param ($EmailAddresses)
+
+    $addresses = [System.Collections.Generic.List[string]]::new()
+    foreach ($emailAddress in $EmailAddresses) {
+        if ($emailAddress -is [string]) {
+            $address = $emailAddress
+        } elseif ($null -ne $emailAddress -and
+            $null -ne $emailAddress.PSObject.Properties["ProxyAddressString"] -and
+            $emailAddress.ProxyAddressString -is [string]) {
+            $address = $emailAddress.ProxyAddressString
+        } else {
+            throw $LocalizedStrings.UnsupportedEmailAddress
+        }
+
+        if ([string]::IsNullOrWhiteSpace($address)) {
+            throw $LocalizedStrings.UnsupportedEmailAddress
+        }
+
+        $addresses.Add($address)
+    }
+
+    # Keep empty and single-address results as arrays for subsequent address additions.
+    return , $addresses.ToArray()
 }
 
 # Invokes New-SyncMailPublicFolder to create a new MEPF object on AD
@@ -208,7 +321,8 @@ function NewMailEnabledPublicFolder() {
     }
 
     # preserve the ability to reply via Outlook's nickname cache post-migration
-    $emailAddressesArray = $localFolder.EmailAddresses.ToStringArray() + ("x500:" + $localFolder.LegacyExchangeDN)
+    $emailAddressesArray = ConvertTo-EmailAddressStrings -EmailAddresses $localFolder.EmailAddresses
+    $emailAddressesArray += ("x500:" + $localFolder.LegacyExchangeDN)
 
     $newParams = @{}
     AddNewOrSetCommonParameters -localFolder $localFolder -emailAddresses $emailAddressesArray -parameters $newParams
@@ -221,15 +335,17 @@ function NewMailEnabledPublicFolder() {
 
     try {
         $null = &$script:NewSyncMailPublicFolderCommand @newParams
-        WriteOperationSummary -folder $localFolder -operation $LocalizedStrings.CreateOperationName -result $LocalizedStrings.CsvSuccessResult -commandText $commandText
-
-        if (-not $WhatIf) {
-            $script:ObjectsCreated++
-        }
     } catch {
-        WriteErrorSummary -folder $localFolder -operation $LocalizedStrings.CreateOperationName -errorMessage $error[0].Exception.Message -commandText $commandText
+        WriteErrorSummary -folder $localFolder -operation $LocalizedStrings.CreateOperationName -errorMessage $_.Exception.Message -commandText $commandText
         Write-Error $_
+        return
     }
+
+    if (-not $WhatIf) {
+        $script:ObjectsCreated++
+    }
+
+    WriteOperationSummary -folder $localFolder -operation $LocalizedStrings.CreateOperationName -result $LocalizedStrings.CsvSuccessResult -commandText $commandText
 }
 
 # Invokes Remove-SyncMailPublicFolder to remove a MEPF from AD
@@ -254,22 +370,24 @@ function RemoveMailEnabledPublicFolder() {
 
     try {
         &$script:RemoveSyncMailPublicFolderCommand @removeParams
-        WriteOperationSummary -folder $remoteFolder -operation $LocalizedStrings.RemoveOperationName -result $LocalizedStrings.CsvSuccessResult -commandText $commandText
-
-        if (-not $WhatIf) {
-            $script:ObjectsDeleted++
-        }
     } catch {
         WriteErrorSummary -folder $remoteFolder -operation $LocalizedStrings.RemoveOperationName -errorMessage $_.Exception.Message -commandText $commandText
         Write-Error $_
+        return
     }
+
+    if (-not $WhatIf) {
+        $script:ObjectsDeleted++
+    }
+
+    WriteOperationSummary -folder $remoteFolder -operation $LocalizedStrings.RemoveOperationName -result $LocalizedStrings.CsvSuccessResult -commandText $commandText
 }
 
 # Invokes Set-MailPublicFolder to update the properties of an existing MEPF
 function UpdateMailEnabledPublicFolder() {
     param ($localFolder, $remoteFolder)
 
-    $localEmailAddresses = $localFolder.EmailAddresses.ToStringArray()
+    $localEmailAddresses = ConvertTo-EmailAddressStrings -EmailAddresses $localFolder.EmailAddresses
     $localEmailAddresses += ("x500:" + $localFolder.LegacyExchangeDN); # preserve the ability to reply via Outlook's nickname cache post-migration
     $emailAddresses = ConsolidateEmailAddresses -localEmailAddresses $localEmailAddresses -remoteEmailAddresses $remoteFolder.EmailAddresses -remoteLegDN $remoteFolder.LegacyExchangeDN
 
@@ -290,15 +408,17 @@ function UpdateMailEnabledPublicFolder() {
 
     try {
         &$script:SetMailPublicFolderCommand @setParams
-        WriteOperationSummary -folder $remoteFolder -operation $LocalizedStrings.UpdateOperationName -result $LocalizedStrings.CsvSuccessResult -commandText $commandText
-
-        if (-not $WhatIf) {
-            $script:ObjectsUpdated++
-        }
     } catch {
         WriteErrorSummary -folder $remoteFolder -operation $LocalizedStrings.UpdateOperationName -errorMessage $_.Exception.Message -commandText $commandText
         Write-Error $_
+        return
     }
+
+    if (-not $WhatIf) {
+        $script:ObjectsUpdated++
+    }
+
+    WriteOperationSummary -folder $remoteFolder -operation $LocalizedStrings.UpdateOperationName -result $LocalizedStrings.CsvSuccessResult -commandText $commandText
 }
 
 # Adds the common set of parameters between New and Set cmdlets to the given dictionary
@@ -328,6 +448,9 @@ function AddNewOrSetCommonParameters() {
 # Finds out the cloud-only email addresses and merges those with the values current persisted in the on-premises object
 function ConsolidateEmailAddresses() {
     param($localEmailAddresses, $remoteEmailAddresses, $remoteLegDN)
+
+    $localEmailAddresses = ConvertTo-EmailAddressStrings -EmailAddresses $localEmailAddresses
+    $remoteEmailAddresses = ConvertTo-EmailAddressStrings -EmailAddresses $remoteEmailAddresses
 
     # Check if the email address in the existing cloud object is present on-premises; if it is not, then the address was either:
     # 1. Deleted on-premises and must be removed from cloud
@@ -372,7 +495,7 @@ function ConsolidateEmailAddresses() {
         }
     }
 
-    return $localEmailAddresses + $remoteAuthoritative
+    return , ([string[]]($localEmailAddresses + $remoteAuthoritative))
 }
 
 # Formats the command and its parameters to be printed on console or to file
@@ -587,6 +710,9 @@ OperationCsvHeader = Operation
 ResultCsvHeader = Result
 CommandCsvHeader = Command text
 CsvSuccessResult = Success
+UnsupportedEmailAddress = EmailAddresses contains a null, empty, or unsupported value. Expected an address string or a proxy address with a string ProxyAddressString property.
+SummaryFileChanged = Summary file '{0}' already exists or remains locked. Output is continuing in '{1}'. Keep all summary files from this run.
+SummaryFilesWritten = Operation summaries were written to '{0}'.
 ProgressBarActivity = Syncing mail public folders...
 ProgressBarStatusRemoving = Removing items from Exchange Online: {0}/{1}.
 ProgressBarStatusUpdating = Updating existing items on Exchange Online: {0}/{1}.
@@ -612,24 +738,15 @@ EXOV2ModuleNotInstalled = This script uses modern authentication to connect to E
 ################ END OF DECLARATION #################
 
 try {
-    ValidateMailEnabledPublicFolders
-} catch {
-    WriteWarningMessage $LocalizedStrings.ValidateMailEnabledPublicFoldersFailed
-    WriteWarningMessage $_
-}
+    InitializeOperationSummary -Path $CsvSummaryFile
 
-if (Test-Path $CsvSummaryFile) {
-    Remove-Item $CsvSummaryFile -Confirm:$Confirm -Force
-}
+    try {
+        ValidateMailEnabledPublicFolders
+    } catch {
+        WriteWarningMessage $LocalizedStrings.ValidateMailEnabledPublicFoldersFailed
+        WriteWarningMessage $_
+    }
 
-# Write the output CSV headers
-$null = New-Item -Path $CsvSummaryFile -ItemType File -Force -ErrorAction:Stop -Value ("#{0},{1},{2},{3},{4}`r`n" -f $LocalizedStrings.TimestampCsvHeader,
-    $LocalizedStrings.IdentityCsvHeader,
-    $LocalizedStrings.OperationCsvHeader,
-    $LocalizedStrings.ResultCsvHeader,
-    $LocalizedStrings.CommandCsvHeader)
-
-try {
     InitializeExchangeOnlineRemoteSession
 
     WriteInfoMessage $LocalizedStrings.LocalMailPublicFolderEnumerationStart
@@ -844,9 +961,10 @@ try {
 
     Write-Progress -Activity $LocalizedStrings.ProgressBarActivity -Status ($LocalizedStrings.ProgressBarStatusCreating -f $pendingAdds.Count, $pendingAdds.Count) -Completed
     WriteInfoMessage ($LocalizedStrings.SyncMailPublicFolderObjectsComplete -f $script:ObjectsCreated, $script:ObjectsUpdated, $script:ObjectsDeleted)
+    WriteInfoMessage -message ($LocalizedStrings.SummaryFilesWritten -f ($script:summaryFilePaths -join "', '"))
 
     if ($script:errorsEncountered -gt 0) {
-        WriteWarningMessage ($LocalizedStrings.ErrorsFoundDuringImport -f $script:errorsEncountered, (Get-Item $CsvSummaryFile).FullName)
+        WriteWarningMessage -message ($LocalizedStrings.ErrorsFoundDuringImport -f $script:errorsEncountered, ($script:summaryFilePaths -join "', '"))
     }
 } finally {
     if (checkForInconsistenciesWithMEPF) {
