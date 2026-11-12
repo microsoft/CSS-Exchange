@@ -15,13 +15,16 @@ The function returns the connection information or null if the connection fails.
  Mandatory array of strings specifying the modules required for the connection.
 .PARAMETER TenantId
  Optional array of strings specifying the tenant ID(s) for the connection.
+.PARAMETER Environment
+ Optional Microsoft Graph environment. Valid values are Global, USGov, USGovDoD, and China. The default is Global.
 .PARAMETER DoNotShowConnectionDetails
  Optional switch to hide connection details.
 .PARAMETER MinModuleVersion
  Optional parameter to specify the minimum version of the Graph modules (default and minimum supported version 2.0.0).
 
 .OUTPUTS
-Microsoft.Graph.PowerShell.Authentication.AuthContext. The connection information object for the Microsoft Graph session.
+Microsoft.Graph.PowerShell.Authentication.AuthContext on success. The function returns $null on failure and does not throw operational errors.
+Callers should verify the return value before continuing.
 
 .EXAMPLE
 $graphConnection = Connect-GraphAdvanced -Scope User.Read, Mail.Read -Module Microsoft.Graph
@@ -34,11 +37,29 @@ This example establishes a connection to Microsoft Graph with the scopes "Group.
 .EXAMPLE
 $graphConnection = Connect-GraphAdvanced -Scope Group.Read.All, User.Read.All -Module Microsoft.Graph.Users, Microsoft.Graph.Groups -MinModuleVersion 2.25.0
 This example establishes a connection to Microsoft Graph with the scopes "Group.Read.All" and "User.Read.All" using the "Microsoft.Graph.Users" and "Microsoft.Graph.Groups" modules, and specifies a minimum module version of 2.25.0.
+
+.EXAMPLE
+$graphConnection = Connect-GraphAdvanced -Scope User.Read -Module Microsoft.Graph.Users -Environment USGov
+This example establishes a connection to the Microsoft Graph US Government environment.
+
+.EXAMPLE
+$graph = Connect-GraphAdvanced -Scope User.Read -Module Microsoft.Graph.Users -Confirm:$false
+if (-not $graph) {
+    return
+}
+This example establishes a connection without confirmation prompts for unattended automation and stops the caller when the connection fails.
+
+.NOTES
+Connect-GraphAdvanced has ConfirmImpact set to High. Unattended callers must explicitly pass -Confirm:$false.
+The function returns $null on failure instead of throwing. Always validate the returned connection before continuing.
 #>
 
 . $PSScriptRoot\..\ModuleHandle.ps1
 
+$Script:graphAdvancedConnectionCreated = $false
+
 function Connect-GraphAdvanced {
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = "High")]
     param (
         [Parameter(Mandatory = $true)]
         [string[]]$Scope,
@@ -46,6 +67,9 @@ function Connect-GraphAdvanced {
         [string[]]$Module,
         [Parameter(Mandatory = $false)]
         [string]$TenantId = $null,
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("Global", "USGov", "USGovDoD", "China")]
+        [string]$Environment = "Global",
         [Parameter(Mandatory = $false)]
         [switch]$DoNotShowConnectionDetails,
         [ValidateScript({
@@ -77,50 +101,66 @@ function Connect-GraphAdvanced {
         return $null
     }
 
+    $requiresConnection = $false
+    $newConnection = $null
     if ($null -eq $connection) {
         Write-Host "Not connected to Graph" -ForegroundColor Yellow
-        $connection = Add-GraphConnection -Scope $Scope
+        $requiresConnection = $true
+    } elseif ($connection.Environment -ne $Environment) {
+        Write-Host "Not connected to the expected Graph environment: $Environment" -ForegroundColor Yellow
+        $requiresConnection = $true
     } else {
         Write-Verbose "You have a Graph sessions"
         Write-Verbose "Checking scopes"
         if (-not (Test-GraphScopeContext -Scope $connection.Scopes -ExpectedScope $Scope)) {
             Write-Host "Not connected to Graph with expected scopes" -ForegroundColor Yellow
-            $connection = Add-GraphConnection -Scope $Scope
+            $requiresConnection = $true
         } else {
             Write-Verbose "All scopes are present"
+            $newConnection = $connection
         }
     }
 
-    if ($connection) {
+    if ($requiresConnection) {
+        if ($PSCmdlet.ShouldProcess("Microsoft Graph session", "Connect with scopes $Scope in the $Environment environment")) {
+            $newConnection = Add-GraphConnection -Scope $Scope -Environment $Environment -Confirm:$false
+        }
+    }
+
+    if ($newConnection) {
         Write-Verbose "Checking TenantId"
         if ($TenantId) {
-            if ($connection.TenantId -ne $TenantId) {
-                Write-Host "Connected to $($connection.TenantId). Not expected tenant: $TenantId" -ForegroundColor Red
+            if ($newConnection.TenantId -ne $TenantId) {
+                Write-Host "Connected to $($newConnection.TenantId). Not expected tenant: $TenantId" -ForegroundColor Red
                 return $null
             } else {
                 Write-Verbose "TenantId is correct"
             }
         }
 
-        $connection.PSObject.Properties | ForEach-Object { Write-Verbose "$($_.Name): $($_.Value)" }
+        $newConnection.PSObject.Properties | ForEach-Object { Write-Verbose "$($_.Name): $($_.Value)" }
         if (-not $DoNotShowConnectionDetails) {
-            Show-GraphContext -Context $connection
+            Show-GraphContext -Context $newConnection
         }
     }
-    return $connection
+    return $newConnection
 }
 
 function Add-GraphConnection {
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = "High")]
     param (
         [Parameter(Mandatory = $true)]
-        [string[]]$Scope
+        [string[]]$Scope,
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("Global", "USGov", "USGovDoD", "China")]
+        [string]$Environment = "Global"
     )
 
     if ($PSCmdlet.ShouldProcess("Do you want to connect?", "We need a Graph connection with scopes $Scope")) {
-        Write-Verbose "Connecting to Microsoft Graph API using scopes $Scope"
+        $Script:graphAdvancedConnectionCreated = $false
+        Write-Verbose "Connecting to the Microsoft Graph $Environment environment using scopes $Scope"
         try {
-            Connect-MgGraph -Scope $Scope -NoWelcome -ErrorAction Stop
+            Connect-MgGraph -Scope $Scope -Environment $Environment -NoWelcome -ErrorAction Stop
         } catch {
             Write-Host "We cannot connect to Graph. Error:`n$_" -ForegroundColor Red
             return $null
@@ -137,11 +177,50 @@ function Add-GraphConnection {
             Write-Host "We cannot continue without Graph Powershell session" -ForegroundColor Red
             return $null
         }
+        Write-Verbose "Checking environment"
+        if ($connection.Environment -ne $Environment) {
+            Write-Host "We cannot continue without the expected Graph environment: $Environment" -ForegroundColor Red
+            return $null
+        }
         if (-not (Test-GraphScopeContext -Scope $connection.Scopes -ExpectedScope $Scope)) {
             Write-Host "We cannot continue without Graph Powershell session without Expected Scopes" -ForegroundColor Red
             return $null
         }
+        $Script:graphAdvancedConnectionCreated = $true
         return $connection
+    }
+}
+
+<#
+.SYNOPSIS
+Disconnects the Microsoft Graph session created by the advanced Graph connection functions.
+
+.DESCRIPTION
+Disconnects only when Add-GraphConnection successfully created and validated a Microsoft Graph session.
+Pre-existing connections are not disconnected.
+
+.EXAMPLE
+Disconnect-GraphAdvanced
+Disconnects the Microsoft Graph session created by Add-GraphConnection.
+#>
+function Disconnect-GraphAdvanced {
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param ()
+
+    if (-not $Script:graphAdvancedConnectionCreated) {
+        Write-Verbose "There is no Microsoft Graph session created by the advanced Graph connection functions."
+        return
+    }
+
+    if ($PSCmdlet.ShouldProcess("Microsoft Graph session", "Disconnect the tracked session")) {
+        try {
+            Disconnect-MgGraph -ErrorAction Stop | Out-Null
+        } catch {
+            Write-Host "We cannot disconnect from Graph. Error:`n$_" -ForegroundColor Red
+            return
+        }
+        $Script:graphAdvancedConnectionCreated = $false
+        Write-Host "Disconnected from Microsoft Graph." -ForegroundColor Yellow
     }
 }
 
