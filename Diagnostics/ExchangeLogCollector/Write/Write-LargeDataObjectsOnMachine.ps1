@@ -3,6 +3,7 @@
 
 . $PSScriptRoot\..\ExchangeServerInfo\Get-DAGInformation.ps1
 . $PSScriptRoot\..\ExchangeServerInfo\Get-ExchangeBasicServerObject.ps1
+. $PSScriptRoot\..\ExchangeServerInfo\Get-ReceiveConnectorPermission.ps1
 . $PSScriptRoot\..\Helpers\Start-JobManager.ps1
 . $PSScriptRoot\..\RemoteScriptBlock\Get-ExchangeInstallDirectory.ps1
 . $PSScriptRoot\..\RemoteScriptBlock\IO\Compress-Folder.ps1
@@ -216,6 +217,7 @@ function Write-LargeDataObjectsOnMachine {
         if ($ServerData.Hub) {
             Save-DataToFile -DataIn $ServerData.TransportServerInfo -SaveToLocation ("{0}_TransportServer" -f $tempLocation)
             Save-DataToFile -DataIn $ServerData.ReceiveConnectors -SaveToLocation ("{0}_ReceiveConnectors" -f $tempLocation)
+            Save-DataToFile -DataIn $ServerData.ReceiveConnectorPermissions -SaveToLocation ("{0}_ReceiveConnectorPermissions" -f $tempLocation)
             Save-DataToFile -DataIn $ServerData.QueueData -SaveToLocation ("{0}_InstantQueueInfo" -f $tempLocation)
         }
 
@@ -386,8 +388,10 @@ function Write-LargeDataObjectsOnMachine {
             $basicServerObject = Get-ExchangeBasicServerObject -ServerName $server -AddGetServerProperty $true
 
             if ($basicServerObject.Hub) {
+                $receiveConnectors = Get-ReceiveConnector -Server $server
                 $basicServerObject | Add-Member -MemberType NoteProperty -Name "TransportServerInfo" -Value (Get-TransportService $server)
-                $basicServerObject | Add-Member -MemberType NoteProperty -Name "ReceiveConnectors" -Value (Get-ReceiveConnector -Server $server)
+                $basicServerObject | Add-Member -MemberType NoteProperty -Name "ReceiveConnectors" -Value $receiveConnectors
+                $basicServerObject | Add-Member -MemberType NoteProperty -Name "ReceiveConnectorPermissions" -Value (Get-ReceiveConnectorPermission -ServerName $server -ReceiveConnector $receiveConnectors)
                 $basicServerObject | Add-Member -MemberType NoteProperty -Name "QueueData" -Value (Get-Queue -Server $server)
             }
 

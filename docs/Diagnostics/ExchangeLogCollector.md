@@ -106,7 +106,7 @@ PipelineTracingLogs | Enable to collect the Pipeline Tracing Logs. Location `(Ge
 PopLogs | Enable to collect POP logging. Location: `(Get-PopSettings -Server $server).LogFileLocation`
 PowerShellLogs | Enable to collect the PowerShell Logs. Location: `V15\Logging\HttpProxy\PowerShell`
 QueueInformation | Enable to collect the historical queue information. Location: `(Get-TransportService $server).QueueLogPath`
-ReceiveConnectors | Enable to collect the Receive Connector information from the server.
+ReceiveConnectors | Enable to collect the Receive Connector information from the server. The AD permissions of each Receive Connector (`Get-ADPermission`) are collected with it to `<Server>_ReceiveConnectorPermissions`, including inherited and deny entries. A connector whose permissions can't be read is logged and skipped.
 RESTLogs | Enable to collect REST API Logs. Location: `V15\Logging\Rest` and `V15\Logging\HttpProxy\Rest`
 RPCLogs | Enable to collect RPC Logs. Location: `V15\Logging\RPC Client Access`, `V15\Logging\HttpProxy\RpcHttp`, and `V15\Logging\RpcHttp`
 SearchLogs | Enable to collect Search Logs. Location: `V15\Bin\Search\Ceres\Diagnostics\Logs`, `V15\Bin\Search\Ceres\Diagnostics\ETLTraces`, `V15\Logging\Search`. On 2019 only we also include `V15\Logging\BigFunnelMetricsCollectionAssistant`, `V15\Logging\BigFunnelQueryParityAssistant`, and `V15\Logging\BigFunnelRetryFeederTimeBasedAssistant`
