@@ -1,10 +1,10 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-function OrgRelCheck($Script:OrgRelParameter) {
+function OrgRelCheck($OrgRelParameter) {
     PrintDynamicWidthLine
-    Write-Host -ForegroundColor Green " Get-OrganizationRelationship  | Where{($_.DomainNames -like $Script:ExchangeOnlineDomain )} | Select Identity,DomainNames,FreeBusy*,TarGet*,Enabled, ArchiveAccessEnabled"
+    Write-Host -ForegroundColor Green " Get-OrganizationRelationship  | Where{(`$_.DomainNames -like $Script:ExchangeOnlineDomain )} | Select Identity,DomainNames,FreeBusy*,TarGet*,Enabled, ArchiveAccessEnabled"
     PrintDynamicWidthLine
-    $Script:OrgRelParameter
+    $OrgRelParameter
     $countOrgRelIssues = (0)
     PrintDynamicWidthLine
     Write-Host -ForegroundColor Green " Summary - Get-OrganizationRelationship"
@@ -18,54 +18,54 @@ function OrgRelCheck($Script:OrgRelParameter) {
             }) | Out-Null
     }
     # Domain Names
-    if ($Script:OrgRelParameter.DomainNames -like $Script:ExchangeOnlineDomain) {
+    if ($OrgRelParameter.DomainNames -like $Script:ExchangeOnlineDomain) {
         AddSettingToList -list $settingsList -name "Domain Names" -value "Domain Names include the $Script:ExchangeOnlineDomain Domain" -color "green"
     } else {
         AddSettingToList -list $settingsList -name "Domain Names" -value "Domain Names do Not Include the $Script:ExchangeOnlineDomain Domain" -color "red"
     }
     # FreeBusyAccessEnabled
-    if ($Script:OrgRelParameter.FreeBusyAccessEnabled -like "True") {
+    if ($OrgRelParameter.FreeBusyAccessEnabled -like "True") {
         AddSettingToList -list $settingsList -name "FreeBusyAccessEnabled" -value "FreeBusyAccessEnabled is set to True" -color "green"
     } else {
         AddSettingToList -list $settingsList -name "FreeBusyAccessEnabled" -value "FreeBusyAccessEnabled is set to False" -color "red"
         $countOrgRelIssues++
     }
     # TarGetOwAUrl
-    $standardValues = @("http://outlook.com/owa/$($Script:ExchangeOnlineDomain).", "https://outlook.office.com/mail.")
-    if ([string]::IsNullOrWhiteSpace($Script:OrgRelParameter.TarGetOwAUrl)) {
+    $standardValues = @("$($Script:ExchangeOnlineOwaUri[0])$($Script:ExchangeOnlineDomain).", $Script:ExchangeOnlineOwaUri[1])
+    if ([string]::IsNullOrWhiteSpace($OrgRelParameter.TarGetOwAUrl)) {
         AddSettingToList -list $settingsList -name "TarGetOwAUrl" -value "TarGetOwAUrl Is Blank. Can also be configured to be $($standardValues[0]) or $($standardValues[1])" -color "green"
-    } elseif ($Script:OrgRelParameter.TarGetOwAUrl -in $standardValues) {
-        AddSettingToList -list $settingsList -name "TarGetOwAUrl" -value "TarGetOwAUrl Is $($Script:OrgRelParameter.TarGetOwAUrl). This is a possible standard value." -color "green"
+    } elseif ($OrgRelParameter.TarGetOwAUrl -in $standardValues) {
+        AddSettingToList -list $settingsList -name "TarGetOwAUrl" -value "TarGetOwAUrl Is $($OrgRelParameter.TarGetOwAUrl). This is a possible standard value." -color "green"
     } else {
         $countOrgRelIssues++
     }
     # TarGetSharingEpr
-    if ([string]::IsNullOrWhitespace($Script:OrgRelParameter.TarGetSharingEpr) -or $Script:OrgRelParameter.TarGetSharingEpr -eq "https://outlook.office365.com/EWS/Exchange.asmx") {
-        AddSettingToList -list $settingsList -name "TarGetSharingEpr" -value "TarGetSharingEpr Is ideally blank. If set, should be Office 365 EWS endpoint. Example: https://outlook.office365.com/EWS/Exchange.asmx" -color "green"
+    if ([string]::IsNullOrWhitespace($OrgRelParameter.TarGetSharingEpr) -or $OrgRelParameter.TarGetSharingEpr -eq $Script:ExchangeOnlineEwsEndpointUri) {
+        AddSettingToList -list $settingsList -name "TarGetSharingEpr" -value "TarGetSharingEpr Is ideally blank. If set, should be Exchange Online EWS endpoint. Example: $($Script:ExchangeOnlineEwsEndpointUri)" -color "green"
     } else {
-        AddSettingToList -list $settingsList -name "TarGetSharingEpr" -value "TarGetSharingEpr Should be blank or https://outlook.office365.com/EWS/Exchange.asmx. If set, should be Office 365 EWS endpoint." -color "red"
+        AddSettingToList -list $settingsList -name "TarGetSharingEpr" -value "TarGetSharingEpr Should be blank or $($Script:ExchangeOnlineEwsEndpointUri). If set, should be Exchange Online EWS endpoint." -color "red"
         $countOrgRelIssues++
     }
     # FreeBusyAccessScope
-    if ([string]::IsNullOrWhitespace($Script:OrgRelParameter.FreeBusyAccessScope)) {
+    if ([string]::IsNullOrWhitespace($OrgRelParameter.FreeBusyAccessScope)) {
         AddSettingToList -list $settingsList -name "FreeBusyAccessScope" -value "FreeBusyAccessScope Is blank, this is the standard Value." -color "green"
     } else {
         AddSettingToList -list $settingsList -name "FreeBusyAccessScope" -value "FreeBusyAccessScope Should be Blank, that is the standard Value." -color "red"
         $countOrgRelIssues++
     }
     # TarGetAutoDiscoverEpr
-    $Script:OrgRelTarGetAutoDiscoverEpr = $Script:OrgRelParameter.TarGetAutoDiscoverEpr
+    $Script:OrgRelTarGetAutoDiscoverEpr = $OrgRelParameter.TarGetAutoDiscoverEpr
     if ([string]::IsNullOrWhitespace($Script:OrgRelTarGetAutoDiscoverEpr)) {
         $Script:OrgRelTarGetAutoDiscoverEpr = "Blank"
     }
-    if ($Script:OrgRelParameter.TarGetAutoDiscoverEpr -like "https://AutoDiscover-s.outlook.com/AutoDiscover/AutoDiscover.svc/WSSecurity") {
+    if ($OrgRelParameter.TarGetAutoDiscoverEpr -like $Script:ExchangeOnlineAutoDiscoverWsSecurityUri) {
         AddSettingToList -list $settingsList -name "TarGetAutoDiscoverEpr" -value "TarGetAutoDiscoverEpr Is correct" -color "green"
     } else {
-        AddSettingToList -list $settingsList -name "TarGetAutoDiscoverEpr" -value "TarGetAutoDiscoverEpr Is not correct. Should be https://AutoDiscover-s.outlook.com/AutoDiscover/AutoDiscover.svc/WSSecurity" -color "red"
+        AddSettingToList -list $settingsList -name "TarGetAutoDiscoverEpr" -value "TarGetAutoDiscoverEpr Is not correct. Should be $($Script:ExchangeOnlineAutoDiscoverWsSecurityUri)" -color "red"
         $countOrgRelIssues++
     }
     # Enabled
-    if ($Script:OrgRelParameter.enabled -like "True") {
+    if ($OrgRelParameter.enabled -like "True") {
         AddSettingToList -list $settingsList -name "Enabled" -value "Enabled is set to True" -color "green"
     } else {
         AddSettingToList -list $settingsList -name "Enabled" -value "Enabled is set to False. This may be intentional if Hybrid Free Busy lookups are done with OAuth and Intra Organization Connector." -color "yellow"
@@ -82,7 +82,7 @@ function OrgRelCheck($Script:OrgRelParameter) {
         Write-Host -ForegroundColor $setting.Color " $($setting.Value)"
     }
     $Script:OrgRelDomainNames = ""
-    foreach ($domain in $Script:OrgRelParameter.DomainNames.Domain) {
+    foreach ($domain in $OrgRelParameter.DomainNames.Domain) {
         if ($Script:OrgRelDomainNames -ne "") {
             $Script:OrgRelDomainNames += "; "
         }
@@ -125,29 +125,29 @@ function FedInfoCheck {
         $Script:tdTokenIssuerUrisFL = "   TokenIssuerUris should be urn:federation:MicrosoftOnline"
     }
     Write-Host -ForegroundColor White   "  TarGetApplicationUri:"
-    if ($FedInfo.TarGetApplicationUri -like "Outlook.com") {
+    if ($FedInfo.TarGetApplicationUri -like $Script:FederationTargetApplicationUri) {
         Write-Host -ForegroundColor Green "  "$FedInfo.TarGetApplicationUri
         $Script:tdTarGetApplicationUriColor = "green"
         $Script:tdTarGetApplicationUriFL = $FedInfo.TarGetApplicationUri
     } else {
         Write-Host -ForegroundColor Red "   "$FedInfo.TarGetApplicationUri
-        Write-Host -ForegroundColor Red   "   TarGetApplicationUri should be Outlook.com"
+        Write-Host -ForegroundColor Red   "   TarGetApplicationUri should be $($Script:FederationTargetApplicationUri)"
         $Script:tdTarGetApplicationUriColor = "red"
-        $Script:tdTarGetApplicationUriFL = "   TarGetApplicationUri should be Outlook.com"
+        $Script:tdTarGetApplicationUriFL = "   TarGetApplicationUri should be $($Script:FederationTargetApplicationUri)"
     }
     Write-Host -ForegroundColor White   "  TarGetAutoDiscoverEpr:"
-    if ($FedInfo.TarGetAutoDiscoverEpr -like "https://AutoDiscover-s.outlook.com/AutoDiscover/AutoDiscover.svc/WSSecurity") {
+    if ($FedInfo.TarGetAutoDiscoverEpr -like $Script:ExchangeOnlineAutoDiscoverWsSecurityUri) {
         Write-Host -ForegroundColor Green "   "$FedInfo.TarGetAutoDiscoverEpr
         $Script:tdTarGetAutoDiscoverEprColor = "green"
         $Script:tdTarGetAutoDiscoverEprFL = $FedInfo.TarGetAutoDiscoverEpr
     } else {
         Write-Host -ForegroundColor Red "   "$FedInfo.TarGetAutoDiscoverEpr
-        Write-Host -ForegroundColor Red   " TarGetAutoDiscoverEpr should be https://AutoDiscover-s.outlook.com/AutoDiscover/AutoDiscover.svc/WSSecurity"
+        Write-Host -ForegroundColor Red   " TarGetAutoDiscoverEpr should be $($Script:ExchangeOnlineAutoDiscoverWsSecurityUri)"
         $Script:tdTarGetAutoDiscoverEprColor = "red"
-        $Script:tdTarGetAutoDiscoverEprFL = "   TarGetAutoDiscoverEpr should be https://AutoDiscover-s.outlook.com/AutoDiscover/AutoDiscover.svc/WSSecurity"
+        $Script:tdTarGetAutoDiscoverEprFL = "   TarGetAutoDiscoverEpr should be $($Script:ExchangeOnlineAutoDiscoverWsSecurityUri)"
     }
     Write-Host -ForegroundColor White "  Federation Information TarGetApplicationUri vs Organization Relationship TarGetApplicationUri "
-    if ($FedInfo.TarGetApplicationUri -like "Outlook.com") {
+    if ($FedInfo.TarGetApplicationUri -like $Script:FederationTargetApplicationUri) {
         if ($Script:OrgRel.TarGetApplicationUri -like $FedInfo.TarGetApplicationUri) {
             Write-Host -ForegroundColor Green "   => Federation Information TarGetApplicationUri matches the Organization Relationship TarGetApplicationUri "
             Write-Host  "       Organization Relationship TarGetApplicationUri:"  $Script:OrgRel.TarGetApplicationUri
@@ -155,11 +155,11 @@ function FedInfoCheck {
             $Script:tdFederationInformationTAColor = "green"
             $Script:tdFederationInformationTA_FL = " => Federation Information TarGetApplicationUri matches the Organization Relationship TarGetApplicationUri"
         } else {
-            Write-Host -ForegroundColor Red "   => Federation Information TarGetApplicationUri should be Outlook.com and match the Organization Relationship TarGetApplicationUri "
+            Write-Host -ForegroundColor Red "   => Federation Information TarGetApplicationUri should be $($Script:FederationTargetApplicationUri) and match the Organization Relationship TarGetApplicationUri "
             Write-Host  "       Organization Relationship TarGetApplicationUri:"  $Script:OrgRel.TarGetApplicationUri
             Write-Host  "       Federation Information TarGetApplicationUri:   "  $FedInfo.TarGetApplicationUri
             $Script:tdFederationInformationTAColor = "red"
-            $Script:tdFederationInformationTA_FL = " => Federation Information TarGetApplicationUri should be Outlook.com and match the Organization Relationship TarGetApplicationUri"
+            $Script:tdFederationInformationTA_FL = " => Federation Information TarGetApplicationUri should be $($Script:FederationTargetApplicationUri) and match the Organization Relationship TarGetApplicationUri"
         }
     }
     Write-Host -ForegroundColor White  "  Federation Information TarGetAutoDiscoverEpr vs Organization Relationship TarGetAutoDiscoverEpr "
@@ -245,7 +245,7 @@ function FedTrustCheck {
         $Script:tdFedTrustTokenIssuerCertificateNotAfterDateTimeColor = "red"
         $Script:tdFedTrustTokenIssuerCertificateNotAfterDateTimeFL = $FedTrust.TokenIssuerCertificate.NotAfter.DateTime
     }
-    $FedTrustTokenIssuerMetadataEpr = "https://nexus.microsoftonline-p.com/FederationMetadata/2006-12/FederationMetadata.xml"
+    $FedTrustTokenIssuerMetadataEpr = $Script:FederationTrustMetadataUri
     Write-Host -ForegroundColor White " `Token Issuer Metadata EPR:"
     if ($FedTrust.TokenIssuerMetadataEpr.AbsoluteUri -like $FedTrustTokenIssuerMetadataEpr) {
         Write-Host -ForegroundColor Green "  Token Issuer Metadata EPR is " $FedTrust.TokenIssuerMetadataEpr.AbsoluteUri
@@ -257,7 +257,7 @@ function FedTrustCheck {
         $Script:tdFedTrustTokenIssuerMetadataEprAbsoluteUriColor = "red"
         $Script:tdFedTrustTokenIssuerMetadataEprAbsoluteUriFL = $FedTrust.TokenIssuerMetadataEpr.AbsoluteUri
     }
-    $FedTrustTokenIssuerEpr = "https://login.microsoftonline.com/extSTS.srf"
+    $FedTrustTokenIssuerEpr = $Script:FederationTrustTokenIssuerUri
     Write-Host -ForegroundColor White " Token Issuer EPR:"
     if ($FedTrust.TokenIssuerEpr.AbsoluteUri -like $FedTrustTokenIssuerEpr) {
         Write-Host -ForegroundColor Green "  Token Issuer EPR is:" $FedTrust.TokenIssuerEpr.AbsoluteUri
@@ -499,7 +499,7 @@ function TestOrgRel {
     #$Script:TestFail = 0
     $Script:OrgRelIdentity = $Script:OrgRel.Identity
     $Script:OrgRelTarGetApplicationUri = $Script:OrgRel.TarGetApplicationUri
-    if ( $Script:OrgRelTarGetApplicationUri -like "Outlook.com" -or $Script:OrgRelTarGetApplicationUri -like "outlook.com") {
+    if ( $Script:OrgRelTarGetApplicationUri -like $Script:FederationTargetApplicationUri) {
         Write-Host -ForegroundColor Green "Test-OrganizationRelationship -Identity $Script:OrgRelIdentity  -UserIdentity $Script:UserOnPrem"
         #need to grab errors and provide alerts in error case
         PrintDynamicWidthLine
@@ -545,7 +545,7 @@ function TestOrgRel {
         Write-Host -ForegroundColor Green " Test-OrganizationRelationship -Identity $Script:OrgRelIdentity  -UserIdentity $Script:UserOnPrem"
         #need to grab errors and provide alerts in error case
         PrintDynamicWidthLine
-        Write-Host -ForegroundColor Red "`n Test-OrganizationRelationship can't be run if the Organization Relationship TarGet Application uri is not correct. Organization Relationship TarGet Application Uri should be Outlook.com"
+        Write-Host -ForegroundColor Red "`n Test-OrganizationRelationship can't be run if the Organization Relationship TarGet Application uri is not correct. Organization Relationship TarGet Application Uri should be $($Script:FederationTargetApplicationUri)"
         TestOrgRelHtmlNoUri
     }
     Write-Host -ForegroundColor Yellow "`n  Reference: https://techcommunity.microsoft.com/t5/exchange-team-blog/how-to-address-federation-trust-issues-in-hybrid-configuration/ba-p/1144285"

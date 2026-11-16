@@ -1,5 +1,49 @@
 ﻿# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
+function SetExpectedEndpointValues {
+    <#
+    .SYNOPSIS
+    Resolves the endpoint values that the configuration checks compare against, and publishes them to script scope.
+
+    .DESCRIPTION
+    Every parameter defaults to the worldwide (public cloud) value, so calling this function without arguments
+    reproduces the behavior the script had before endpoint overrides existed. The derived values, such as the
+    WSSecurity form of the AutoDiscover endpoint, are built from the supplied base values so that an override is
+    applied consistently everywhere the base value is used.
+
+    The wildcard patterns are built as patterns on purpose. They are consumed by -like comparisons and the
+    wildcards must survive an override, otherwise an override would silently turn a pattern match into an
+    exact match.
+    #>
+    param(
+        [string]$ExchangeOnlineEwsEndpointUri = "https://outlook.office365.com/EWS/Exchange.asmx",
+        [string]$ExchangeOnlineAutoDiscoverEndpointUri = "https://AutoDiscover-s.outlook.com/AutoDiscover/AutoDiscover.svc",
+        [string[]]$ExchangeOnlineOwaUri = @("http://outlook.com/owa/", "https://outlook.office.com/mail."),
+        [string]$AzureADEndpointUri = "https://login.windows.net",
+        [string]$AuthServerIssuerUri = "https://sts.windows.net",
+        [string]$FederationTrustTokenIssuerUri = "https://login.microsoftonline.com/extSTS.srf",
+        [string]$FederationTrustMetadataUri = "https://nexus.microsoftonline-p.com/FederationMetadata/2006-12/FederationMetadata.xml",
+        [string]$FederationTargetApplicationUri = "Outlook.com",
+        [string]$HybridAgentTargetApplicationUri = "http://outlook.office.com/"
+    )
+
+    $autoDiscoverBase = $ExchangeOnlineAutoDiscoverEndpointUri.TrimEnd("/")
+    $azureADBase = $AzureADEndpointUri.TrimEnd("/")
+
+    $Script:ExchangeOnlineEwsEndpointUri = $ExchangeOnlineEwsEndpointUri
+    $Script:ExchangeOnlineAutoDiscoverEndpointUri = $autoDiscoverBase
+    $Script:ExchangeOnlineAutoDiscoverWsSecurityUri = "$autoDiscoverBase/WSSecurity"
+    $Script:HybridAgentAutoDiscoverEndpointUri = "$autoDiscoverBase/"
+    $Script:ExchangeOnlineOwaUri = $ExchangeOnlineOwaUri
+    $Script:AzureADEndpointUri = $azureADBase
+    $Script:AzureADTokenIssuingEndpointPattern = "$azureADBase/common/oauth2/token*"
+    $Script:AzureADAuthMetadataUrlPattern = "$azureADBase/*/federationmetadata/2007-06/federationmetadata.xml"
+    $Script:AuthServerIssuerUri = $AuthServerIssuerUri.TrimEnd("/")
+    $Script:FederationTrustTokenIssuerUri = $FederationTrustTokenIssuerUri
+    $Script:FederationTrustMetadataUri = $FederationTrustMetadataUri
+    $Script:FederationTargetApplicationUri = $FederationTargetApplicationUri
+    $Script:HybridAgentTargetApplicationUri = $HybridAgentTargetApplicationUri
+}
 function Test-ExchangeOnlineConnection {
     Write-Host -ForegroundColor Green " Checking Exchange Online Configuration"
     Write-Host " Testing Connection to Exchange Online with EO Prefix."

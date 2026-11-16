@@ -53,14 +53,25 @@ Module  : ExchangeOnlineManagement Module
 
 ```powershell
     FreeBusyChecker.ps1
-        [-Auth <string>]
-        [-Org <string>]
-        [-OnPremUser <string>]
+        [-Auth <string[]>]
+        [-Org <string[]>]
+        [-OnPremisesUser <string>]
         [-OnlineUser <string>]
         [-OnPremDomain <string>]
         [-OnPremEWSUrl <string>]
         [-OnPremLocalDomain <string>]
-        [-Help <string>]
+        [-ExchangeOnlineEwsEndpointUri <string>]
+        [-ExchangeOnlineAutoDiscoverEndpointUri <string>]
+        [-ExchangeOnlineOwaUri <string[]>]
+        [-AzureADEndpointUri <string>]
+        [-AuthServerIssuerUri <string>]
+        [-FederationTrustTokenIssuerUri <string>]
+        [-FederationTrustMetadataUri <string>]
+        [-FederationTargetApplicationUri <string>]
+        [-HybridAgentTargetApplicationUri <string>]
+        [-SkipVersionCheck]
+        [-ScriptUpdateOnly]
+        [-Help]
 ```
 
 ## Output
@@ -106,15 +117,20 @@ Valid Input Option Parameters:
 
         True              : Use the $True parameter to use display valid parameter Options.
 
-  Parameter               : OnPremUser
+  Parameter               : OnPremisesUser
     Options               : Exchange On premise Email Address
 
-        OnPremUser        : Use OnPremUser parameter to run script using a specific Exchange on premises mailbox
+        OnPremisesUser    : Use OnPremisesUser parameter to run script using a specific Exchange on premises mailbox
 
   Parameter               : OnlineUser
     Options               : Exchange Online Hybrid Email Address
 
         OnlineUser        : Use OnlineUser parameter to run script using a specific Exchange Online Hybrid mailbox
+
+  Parameter               : OnPremDomain
+    Options               : Exchange On Premises domain
+
+        OnPremDomain      : Use OnPremDomain parameter to run script specifying the Exchange On Premises domain
 
   Parameter               : OnPremEWSUrl
     Options               : Exchange On Premises EWS url
@@ -125,6 +141,63 @@ Valid Input Option Parameters:
     Options               : Exchange On Premises EWS url
 
         OnPremLocalDomain : Use OnPremLocalDomain parameter to run script specifying the Exchange On Premises local Domain
+
+  Parameter               : SkipVersionCheck
+    Options               : Null; True; False
+
+        SkipVersionCheck  : Use the SkipVersionCheck parameter to skip the check for a newer version of the script. This parameter can be combined with any other parameter, which matters in environments that have no route to the internet.
+
+
+### Endpoint Override Parameters
+
+The script compares the configuration it collects against the expected Exchange Online, Microsoft Entra ID and federation endpoints. Every parameter below defaults to the worldwide endpoint, so omitting all of them keeps the behavior unchanged.
+
+Organizations in a sovereign or otherwise isolated cloud use different endpoints. Without these parameters the script compares against the worldwide values and reports a correct configuration as incorrect. Supply only the values that differ in your environment.
+
+  Parameter               : ExchangeOnlineEwsEndpointUri
+    Default               : https://outlook.office365.com/EWS/Exchange.asmx
+
+        The Exchange Online EWS endpoint expected in the Organization Relationship TargetSharingEpr and in the Availability Address Space.
+
+  Parameter               : ExchangeOnlineAutoDiscoverEndpointUri
+    Default               : https://AutoDiscover-s.outlook.com/AutoDiscover/AutoDiscover.svc
+
+        The Exchange Online AutoDiscover endpoint expected in the Organization Relationship TargetAutoDiscoverEpr. The WSSecurity variant used by the Intra Organization Connector is derived from this value.
+
+  Parameter               : ExchangeOnlineOwaUri
+    Default               : http://outlook.com/owa/, https://outlook.office.com/mail.
+
+        The two Exchange Online Outlook on the web addresses expected in the Organization Relationship TargetOwaURL. Supply both values when overriding.
+
+  Parameter               : AzureADEndpointUri
+    Default               : https://login.windows.net
+
+        The Microsoft Entra ID endpoint used to derive the expected Auth Server TokenIssuingEndpoint and AuthMetadataUrl.
+
+  Parameter               : AuthServerIssuerUri
+    Default               : https://sts.windows.net
+
+        The expected Auth Server IssuerIdentifier.
+
+  Parameter               : FederationTrustTokenIssuerUri
+    Default               : https://login.microsoftonline.com/extSTS.srf
+
+        The expected Federation Trust TokenIssuerUri.
+
+  Parameter               : FederationTrustMetadataUri
+    Default               : https://nexus.microsoftonline-p.com/FederationMetadata/2006-12/FederationMetadata.xml
+
+        The expected Federation Trust TokenIssuerMetadataEpr and TokenIssuerEpr.
+
+  Parameter               : FederationTargetApplicationUri
+    Default               : Outlook.com
+
+        The expected Organization Relationship TargetApplicationUri.
+
+  Parameter               : HybridAgentTargetApplicationUri
+    Default               : http://outlook.office.com/
+
+        The expected Organization Relationship TargetApplicationUri when the Hybrid Agent is in use. The matching AutoDiscover endpoint is derived from ExchangeOnlineAutoDiscoverEndpointUri.
 
 
 ## Examples:
@@ -174,5 +247,16 @@ Valid Input Option Parameters:
 - This cmdlet will run the Free Busy Checker Script for Exchange On Premises Availability OAuth Configurations using a specific On Premises mailbox
 
 ```powershell
-            PS C:\> .\FreeBusyChecker.ps1 -Org ExchangeOnPremise -Auth OAuth -OnPremUser John.OnPrem@Contoso.com
+            PS C:\> .\FreeBusyChecker.ps1 -Org ExchangeOnPremise -Auth OAuth -OnPremisesUser John.OnPrem@Contoso.com
+```
+
+- This cmdlet will run the Free Busy Checker Script against a cloud whose endpoints differ from the worldwide ones. Replace the values below with the endpoints used by your environment and supply only the ones that differ. Add -SkipVersionCheck when the server has no route to the internet.
+
+```powershell
+            PS C:\> .\FreeBusyChecker.ps1 -Auth All `
+                        -ExchangeOnlineEwsEndpointUri "https://outlook.office365.<tld>/EWS/Exchange.asmx" `
+                        -ExchangeOnlineAutoDiscoverEndpointUri "https://autodiscover-s.office365.<tld>/autodiscover/autodiscover.svc" `
+                        -AzureADEndpointUri "https://login.microsoftonline.<tld>" `
+                        -AuthServerIssuerUri "https://sts.windows.<tld>" `
+                        -SkipVersionCheck
 ```

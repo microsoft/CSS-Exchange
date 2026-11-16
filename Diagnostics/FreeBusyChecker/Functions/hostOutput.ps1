@@ -26,7 +26,13 @@ function ShowHelp() {
     Write-Host -ForegroundColor White "`n  Parameter: Pause"
     Write-Host  "                 : Use the Pause parameter to use this script pausing after each test done."
     Write-Host -ForegroundColor White "`n  Parameter: Help"
-    Write-Host  "                 : Use the Help parameter to use display valid parameter Options. `n`n"
+    Write-Host  "                 : Use the Help parameter to use display valid parameter Options. `n"
+    Write-Host -ForegroundColor White "`n  Endpoint override parameters"
+    Write-Host  "                 : ExchangeOnlineEwsEndpointUri, ExchangeOnlineAutoDiscoverEndpointUri, ExchangeOnlineOwaUri,"
+    Write-Host  "                   AzureADEndpointUri, AuthServerIssuerUri, FederationTrustTokenIssuerUri,"
+    Write-Host  "                   FederationTrustMetadataUri, FederationTargetApplicationUri, HybridAgentTargetApplicationUri"
+    Write-Host  "                 : Each defaults to the worldwide endpoint. Use them when running against a sovereign cloud,"
+    Write-Host  "                   where the correct configuration differs from the worldwide one. Run Get-Help .\FreeBusyChecker.ps1 -Detailed for details. `n`n"
 }
 
 function loadingParameters() {
@@ -65,6 +71,14 @@ function ShowParameters() {
     Write-Host -ForegroundColor Green "  $Script:UserOnPrem"
     Write-Host -ForegroundColor White " Exchange Online Mailbox:"
     Write-Host -ForegroundColor Green "  $Script:UserOnline"
+    Write-Host -ForegroundColor White " Expected Exchange Online EWS endpoint:"
+    Write-Host -ForegroundColor Green "  $Script:ExchangeOnlineEwsEndpointUri"
+    Write-Host -ForegroundColor White " Expected Exchange Online AutoDiscover endpoint:"
+    Write-Host -ForegroundColor Green "  $Script:ExchangeOnlineAutoDiscoverEndpointUri"
+    Write-Host -ForegroundColor White " Expected Microsoft Entra authority:"
+    Write-Host -ForegroundColor Green "  $Script:AzureADEndpointUri"
+    Write-Host -ForegroundColor White " Expected Federation TarGetApplicationUri:"
+    Write-Host -ForegroundColor Green "  $Script:FederationTargetApplicationUri"
     showParametersHtml
 }
 function hostOutputIntraOrgConEnabled($Auth) {
