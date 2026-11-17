@@ -126,6 +126,24 @@ BeforeAll {
         '</m:GetFolderResponseMessage></m:ResponseMessages></m:GetFolderResponse></s:Body></s:Envelope>'
     }
 
+    function New-GetItemResponseXml {
+        param(
+            # Each entry is a calendar item element or the response code of a failed message.
+            [object[]]
+            $Messages
+        )
+        $body = foreach ($message in $Messages) {
+            if ($message -is [string]) {
+                '<m:GetItemResponseMessage ResponseClass="Error"><m:MessageText>Test failure.</m:MessageText><m:ResponseCode>' + $message +
+                '</m:ResponseCode><m:DescriptiveLinkKey>0</m:DescriptiveLinkKey><m:Items/></m:GetItemResponseMessage>'
+            } else {
+                '<m:GetItemResponseMessage ResponseClass="Success"><m:ResponseCode>NoError</m:ResponseCode><m:Items>' + $message.OuterXml + '</m:Items></m:GetItemResponseMessage>'
+            }
+        }
+        '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" xmlns:m="' + $script:MessagesNamespace + '" xmlns:t="' + $script:TypesNamespace + '">' +
+        '<s:Body><m:GetItemResponse><m:ResponseMessages>' + ($body -join '') + '</m:ResponseMessages></m:GetItemResponse></s:Body></s:Envelope>'
+    }
+
     function New-AutodiscoverSettingsXml {
         param(
             [string]
@@ -526,6 +544,39 @@ Describe 'Testing EwsTransport.ps1' {
         }
     }
 
+    Context 'Report skips items deleted while it is built' {
+        BeforeAll {
+            Register-FakeHttp
+            Mock Start-Sleep { }
+            [ExOPTests.FakeEwsServer]::Reset()
+            Mock Get-ExOPCalendarTimeZone { [PSCustomObject]@{ Id = 'Pacific Standard Time'; DisplayName = 'Pacific' } }
+            Mock Get-ExOPCalendarWindow {
+                Get-IdentityItem -Id 'OccurrenceGone' -Type 'Occurrence'
+                Get-IdentityItem -Id 'OccurrenceLive' -Type 'Occurrence'
+                Get-IdentityItem -Id 'SingleGone' -Type 'Single'
+                Get-IdentityItem -Id 'SingleLive' -Type 'Single'
+            }
+            [ExOPTests.FakeEwsServer]::Enqueue(200, (New-GetItemResponseXml -Messages @('ErrorItemNotFound', (Get-IdentityItem -Id 'MasterLive' -Type 'RecurringMaster'))))
+            [ExOPTests.FakeEwsServer]::Enqueue(200, (New-GetItemResponseXml -Messages @(
+                        (Get-IdentityItem -Id 'MasterLive' -Type 'RecurringMaster'), 'ErrorItemNotFound', (Get-IdentityItem -Id 'SingleLive' -Type 'Single'))))
+            $Script:session = New-ExOPCalendarSession -EwsUrl $Script:fakeEwsUrl
+            $start = [DateTimeOffset]::Parse('2026-11-01T00:00:00Z', [Globalization.CultureInfo]::InvariantCulture)
+            $Script:rows = @(Get-ExOPCalendarMigrationReport -Session $Script:session -Mailbox 'user@contoso.com' -FromWindowsTimeZoneId 'Pacific Standard Time' `
+                    -QueryStartDate $start -WarningVariable reportWarnings -WarningAction SilentlyContinue)
+            $Script:reportWarnings = @($reportWarnings)
+        }
+
+        It 'Reports the remaining series and single item' {
+            ($Script:rows | ForEach-Object { $_.ItemId }) -join ',' | Should -BeExactly 'MasterLive,SingleLive'
+            [ExOPTests.FakeEwsServer]::Requests.Count | Should -Be 2
+        }
+
+        It 'Records and warns about each deleted item' {
+            ($Script:session.Diagnostics | Where-Object Code -EQ 'ItemNotFound' | ForEach-Object { $_.ItemId }) -join ',' | Should -BeExactly 'OccurrenceGone,SingleGone'
+            @($Script:reportWarnings | Where-Object { $_.Message -like '*could not be read while the report was built*deleted or is no longer accessible*' }) | Should -HaveCount 2
+        }
+    }
+
     Context 'Invoke-ExOPEwsRequest with an in-memory HTTP endpoint' {
         BeforeAll {
             Register-FakeHttp
@@ -647,6 +698,19 @@ Describe 'Testing EwsTransport.ps1' {
             $failure = { Invoke-ExOPEwsRequest -Session $Script:session -Body '<m:GetItem/>' -Mailbox 'user@contoso.com' -ReadOnly } |
                 Should -Throw -ExpectedMessage '*ErrorItemNotFound*' -PassThru
             $failure.Exception.Data['EwsResponseCode'] | Should -BeExactly 'ErrorItemNotFound'
+        }
+
+        It 'Returns a batch whose failed messages all have an allowed code' {
+            [ExOPTests.FakeEwsServer]::Enqueue(200, (New-GetItemResponseXml -Messages @((Get-IdentityItem -Id 'Live' -Type 'Single'), 'ErrorItemNotFound')))
+            $document = Invoke-ExOPEwsRequest -Session $Script:session -Body '<m:GetItem/>' -Mailbox 'user@contoso.com' -ReadOnly -AllowedResponseCodes 'ErrorItemNotFound'
+            $document -is [Xml.XmlDocument] | Should -BeTrue
+        }
+
+        It 'Throws the first failed message whose code is not allowed' {
+            [ExOPTests.FakeEwsServer]::Enqueue(200, (New-GetItemResponseXml -Messages @('ErrorItemNotFound', 'ErrorAccessDenied')))
+            $failure = { Invoke-ExOPEwsRequest -Session $Script:session -Body '<m:GetItem/>' -Mailbox 'user@contoso.com' -ReadOnly -AllowedResponseCodes 'ErrorItemNotFound' } |
+                Should -Throw -ExpectedMessage '*ErrorAccessDenied*' -PassThru
+            $failure.Exception.Data['EwsResponseCode'] | Should -BeExactly 'ErrorAccessDenied'
         }
 
         It 'Retries a read after HTTP 503' {

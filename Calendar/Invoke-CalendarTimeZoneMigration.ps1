@@ -267,6 +267,10 @@ begin {
         if ($unclassified.Count -gt 0) {
             Write-Host "$($unclassified.Count) organizer-owned item(s) have no usable time zone definition and were not included. See the warnings above." -ForegroundColor Yellow
         }
+        $unreadable = @($session.Diagnostics | Where-Object { $_.Code -eq 'ItemNotFound' })
+        if ($unreadable.Count -gt 0) {
+            Write-Host "$($unreadable.Count) item(s) or occurrence(s) could not be read while the report was built and were not included. If they still exist, check the permissions and run the report again." -ForegroundColor Yellow
+        }
         if ($rows.Count -eq 0) {
             return
         }

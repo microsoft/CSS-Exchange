@@ -414,6 +414,15 @@ Describe 'Testing Reconcile.ps1' {
             { Find-ExOPOperationEvidence -SearchDirectory $directory -OperationId $Script:operationId } | Should -Throw -ExpectedMessage '*found 2*'
         }
 
+        It 'Finds the saved snapshot and journal once through nested search directories' {
+            $directory = Join-Path -Path $TestDrive -ChildPath 'find-nested'
+            $run = Join-Path -Path $directory -ChildPath 'run'
+            Write-OperationEvidence -Directory $run -Events (New-InterruptedJournal)
+            $evidence = Find-ExOPOperationEvidence -SearchDirectory @($directory, $run, $run.ToUpperInvariant()) -OperationId $Script:operationId
+            $evidence.BeforePath | Should -BeLike "*$($Script:operationId)-before.json"
+            @($evidence.Events) | Should -HaveCount 5
+        }
+
         It 'Treats the after snapshot and journal as optional' {
             $directory = Join-Path -Path $TestDrive -ChildPath 'find-minimal'
             Write-OperationEvidence -Directory $directory -Events @()
@@ -1219,7 +1228,7 @@ Describe 'Testing Reconcile.ps1' {
             $session = New-ExOPCalendarSession -EwsUrl 'https://mail.contoso.com/EWS/Exchange.asmx'
             $searchDirectory = Join-Path -Path $TestDrive -ChildPath "permission-$Resend-$Skip-evidence"
             $null = New-Item -ItemType Directory -Path $searchDirectory -Force
-            $row = [PSCustomObject]@{ Mailbox = $Script:mailbox; ItemId = $Script:itemId; RecordType = 'Single' }
+            $row = [PSCustomObject]@{ Mailbox = $Script:mailbox; ItemId = $Script:itemId; RecordType = 'Single'; Subject = 'Subject from the report'; UID = 'uid-from-report' }
             $Script:result = Invoke-ExOPCalendarMigrationReconcile -Session $session -InputObject $row -SearchDirectory $searchDirectory `
                 -LogDirectory (Join-Path -Path $TestDrive -ChildPath "permission-$Resend-$Skip-logs") -Apply -ResendNotification:$Resend `
                 -SkipSendPermissionCheck:$Skip -Confirm:$false -WarningAction SilentlyContinue
@@ -1228,6 +1237,15 @@ Describe 'Testing Reconcile.ps1' {
         It 'Ends with status <Status>' {
             $Script:result.Status | Should -BeExactly $Status
             if ($Status -eq 'NotAttempted') { $Script:result.ErrorCode | Should -BeExactly 'SendPermissionMissing' }
+        }
+
+        It 'Identifies an item that was not read by the subject and UID of the input row' {
+            if ($Reads -eq 0) {
+                $Script:result.Subject | Should -BeExactly 'Subject from the report'
+                $Script:result.UID | Should -BeExactly 'uid-from-report'
+            } else {
+                $Script:result.Subject | Should -Not -BeExactly 'Subject from the report'
+            }
         }
 
         It 'Checks the permission only for a resend without -SkipSendPermissionCheck' {

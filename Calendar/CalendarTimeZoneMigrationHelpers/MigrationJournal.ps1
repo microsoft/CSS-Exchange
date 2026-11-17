@@ -85,7 +85,7 @@ function New-ExOPMigrationRun {
             SelectedRows=$Rows.Count; RuntimeFiles=$hashes
         }
         Write-ExOPDurableText -Path (Join-Path $path 'run.json') -Text ((ConvertTo-Json -InputObject $manifest -Depth 8) + "`r`n") -CreateNew
-        $selection = @($Rows | Select-Object SchemaVersion, Mailbox, ItemId, ChangeKey, RecordType, Subject,
+        $selection = @($Rows | Select-Object SchemaVersion, Mailbox, ItemId, ChangeKey, RecordType, Subject, UID,
             FromWindowsTimeZoneId, StartTimeZoneId, EndTimeZoneId, StartUtc, EndUtc, QueryStartUtc, QueryEndUtc, HasRoom, RoomNames, RoomSmtpAddresses)
         Export-ExOPSafeResultsCsv -Rows $selection -Path (Join-Path $path 'selection.csv')
     }
@@ -467,8 +467,8 @@ function Get-ExOPCalendarDifferences {
     $afterXml.LoadXml($After.Xml)
     foreach ($name in 'Start', 'End', 'Subject', 'Body', 'Location', 'Categories', 'Sensitivity',
         'IsAllDayEvent', 'LegacyFreeBusyStatus', 'ReminderIsSet', 'ReminderMinutesBeforeStart', 'ReminderDueBy', 'UID') {
-        $old = Get-ExOPText -Node $beforeXml.DocumentElement -Path ("t:" + $name)
-        $new = Get-ExOPText -Node $afterXml.DocumentElement -Path ("t:" + $name)
+        $old = Get-ExOPFieldText -Node $beforeXml.DocumentElement -Name $name
+        $new = Get-ExOPFieldText -Node $afterXml.DocumentElement -Name $name
         if ($old -cne $new) { [PSCustomObject]@{Field = $name; Before = $old; After = $new } }
     }
     foreach ($propertyId in 34050, 34144) {

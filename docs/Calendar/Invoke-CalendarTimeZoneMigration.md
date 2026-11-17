@@ -92,7 +92,7 @@ If Autodiscover fails, the error lists every URL tried. Specify `-EwsUrl`, for e
 | LogDirectory | Directory for logs. Every run creates a new subdirectory. |
 | Apply | Changes items. Without it the script only previews. Confirmation is requested unless `-Confirm:$false` is used. |
 | Reconcile | Resolves items left incomplete by an interrupted run. |
-| SearchDirectory | Log directory of the interrupted run. Include the log directory of an interrupted earlier `-Reconcile` run as well; all journals below these directories are read. |
+| SearchDirectory | Log directory of the interrupted run. Include the log directory of an interrupted earlier `-Reconcile` run as well; all journals below these directories are read. The directories may overlap. |
 | ResendNotification | With `-Reconcile`: resend the meeting update when it is unknown whether the update was sent. |
 | Credential | EWS account. Default: the current Windows account. |
 | Impersonation | Use EWS impersonation of the owner. |
@@ -166,6 +166,7 @@ Exit code 0 means all items succeeded or were previewed, 1 means some items were
 - When the original definition uses a single-rule source time zone (for example GMT Standard Time or UTC), its full and partial forms cannot be distinguished. The full form of the target time zone is written, which is correct in every year, and `AssumedFull` is recorded in the `O12Modes` column of `results.csv`.
 - Items without Outlook time zone definitions (EWS reports them in a pseudo time zone such as `tzone://Microsoft/Utc`) cannot be matched to a source time zone. They are listed as warnings during the search and are not migrated.
 - Items with IANA time zone names (for example `Europe/Lisbon`, created by Exchange Online and moved on-premises) are listed as warnings during the search and are not migrated.
+- Items and occurrences that cannot be read while the report is being built (deleted, or no longer accessible to the account) are listed as warnings and are not included. If they still exist, check the permissions and run the report again.
 - All-day recurring meetings whose UTC times do not change are rejected, because Exchange cannot merge such an update into attendee calendars reliably.
 - Recurring series whose start and end time zones differ from each other are rejected.
 - Recurring series are not migrated within one day of New Year (in the target time zone) when the target time zone has different rules in the old and the new year, for example British Columbia Standard Time around January 1, 2027. Run the script again after January 2.

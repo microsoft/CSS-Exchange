@@ -1381,6 +1381,21 @@ Describe 'Testing Rehoming.ps1' {
             { Assert-ExOPPreservedItemData -Session $null -Mailbox 'user@contoso.com' -Item (New-PreservedItem -Recipients ($Script:attendeeA + $changed)) -Snapshot $before } |
                 Should -Throw -ExpectedMessage 'The recurrence pattern or local range dates changed.'
         }
+
+        It 'Refuses the categories <Before> regrouped as <After>' -ForEach @(
+            @{ Before = 'a,b'; After = 'ab' }
+            @{ Before = 'ab'; After = 'a,b' }
+            @{ Before = 'a,b'; After = 'a,,b' }
+        ) {
+            $toXml = { param($List) '<t:Categories>' + (($List -split ',' | ForEach-Object { '<t:String>' + $_ + '</t:String>' }) -join '') + '</t:Categories>' }
+            $snapshot = [PSCustomObject]@{ Xml = (New-PreservedItem -Recipients ($Script:attendeeA + (& $toXml $Before))).OuterXml; Attachments = @() }
+            { Assert-ExOPPreservedItemData -Session $null -Mailbox 'user@contoso.com' -Item (New-PreservedItem -Recipients ($Script:attendeeA + (& $toXml $Before))) -Snapshot $snapshot } | Should -Not -Throw
+            { Assert-ExOPPreservedItemData -Session $null -Mailbox 'user@contoso.com' -Item (New-PreservedItem -Recipients ($Script:attendeeA + (& $toXml $After))) -Snapshot $snapshot } |
+                Should -Throw -ExpectedMessage 'The item changed unexpectedly in Categories.'
+            $original = [PSCustomObject]@{ Xml = $snapshot.Xml; Attachments = @() }
+            $current = [PSCustomObject]@{ Xml = (New-PreservedItem -Recipients ($Script:attendeeA + (& $toXml $After))).OuterXml; Attachments = @() }
+            { Assert-ExOPPreservedExceptionData -Current $current -Original $original } | Should -Throw -ExpectedMessage 'An exception changed unexpectedly in Categories.'
+        }
     }
 
     Context 'Series rollback after an unknown write outcome with an exception in state <Name>' -ForEach @(
@@ -1622,6 +1637,7 @@ Describe 'Testing Rehoming.ps1' {
                 foreach ($id in 'item-1', 'item-2') {
                     [PSCustomObject]@{
                         SchemaVersion = '1'; Mailbox = 'owner@contoso.com'; ItemId = $id; ChangeKey = 'CK-0'; RecordType = 'Single'
+                        Subject = "Weekly sync $id"; UID = "uid-$id"
                         FromWindowsTimeZoneId = 'Pacific Standard Time'; StartTimeZoneId = 'Pacific Standard Time'; EndTimeZoneId = 'Pacific Standard Time'
                         StartUtc = '2026-11-09T18:00:00Z'; EndUtc = '2026-11-09T19:00:00Z'
                     }
@@ -1649,6 +1665,13 @@ Describe 'Testing Rehoming.ps1' {
                 } else {
                     $result.Error | Should -BeExactly 'Reached the first EWS read.'
                 }
+            }
+        }
+
+        It 'Identifies each item that was not read by the subject and UID of its report row' {
+            foreach ($result in $Script:permissionResults) {
+                $result.Subject | Should -BeExactly "Weekly sync $($result.ItemId)"
+                $result.UID | Should -BeExactly "uid-$($result.ItemId)"
             }
         }
 

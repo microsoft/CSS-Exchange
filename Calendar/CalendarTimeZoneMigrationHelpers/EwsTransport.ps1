@@ -52,6 +52,25 @@ function Get-ExOPText {
     return ''
 }
 
+function Get-ExOPFieldText {
+    <#
+        Text of a calendar field for comparisons. Categories keep the boundaries between their values;
+        their InnerText would read the categories "a", "b" and the single category "ab" alike.
+    #>
+    param (
+        [System.Xml.XmlNode]
+        $Node,
+
+        [string]
+        $Name
+    )
+    if ($Name -ne 'Categories') { return Get-ExOPText -Node $Node -Path ('t:' + $Name) }
+    $ns = Get-ExOPNamespaceManager $Node
+    $list = $Node.SelectSingleNode('t:Categories', $ns)
+    if ($null -eq $list) { return '' }
+    return ConvertTo-Json -InputObject @($list.SelectNodes('t:String', $ns) | ForEach-Object { $_.InnerText }) -Compress
+}
+
 function ConvertTo-ExOPInstant {
     param (
         [Parameter(Mandatory)]
@@ -680,7 +699,11 @@ function Invoke-ExOPEwsRequest {
         $ReadOnly,
 
         [string]
-        $TimeZoneContextId = 'UTC'
+        $TimeZoneContextId = 'UTC',
+
+        # Response messages with these codes are returned to the caller instead of failing the whole batch.
+        [string[]]
+        $AllowedResponseCodes
     )
     $impersonationHeader=''
     if ($Session.Impersonation -and $Mailbox) {
@@ -764,7 +787,12 @@ function Invoke-ExOPEwsRequest {
                         throw $exception
                     }
                 }
-                $errorNode=if ($null -eq $retryMilliseconds) { $document.SelectSingleNode("//m:*[@ResponseClass='Error']", $namespaces) } else { $null }
+                $errorNode=$null
+                if ($null -eq $retryMilliseconds) {
+                    foreach ($candidate in $document.SelectNodes("//m:*[@ResponseClass='Error']", $namespaces)) {
+                        if ((Get-ExOPText $candidate 'm:ResponseCode') -notin $AllowedResponseCodes) { $errorNode=$candidate; break }
+                    }
+                }
                 if ($null -ne $errorNode) {
                     $code=Get-ExOPText $errorNode 'm:ResponseCode'
                     $message=Get-ExOPText $errorNode 'm:MessageText'
@@ -900,7 +928,11 @@ function Get-ExOPCalendarItems {
         $References,
 
         [switch]
-        $IdOnly
+        $IdOnly,
+
+        # Emits $null in place of an item deleted after it was found, so that results stay aligned with the references.
+        [switch]
+        $AllowMissing
     )
     for ($offset=0; $offset -lt $References.Count; $offset+=50) {
         $last=[Math]::Min($offset+49, $References.Count-1)
@@ -916,9 +948,16 @@ function Get-ExOPCalendarItems {
         }
         $body='<m:GetItem><m:ItemShape>'+$properties+'</m:ItemShape><m:ItemIds>'+
         ($References[$offset..$last] -join '')+'</m:ItemIds></m:GetItem>'
-        $xml=Invoke-ExOPEwsRequest $Session $body -Mailbox $Mailbox -ReadOnly
-        foreach ($item in $xml.SelectNodes('//m:GetItemResponseMessage/m:Items/t:CalendarItem', (Get-ExOPNamespaceManager $xml))) {
-            Write-Output -InputObject $item -NoEnumerate
+        $xml=Invoke-ExOPEwsRequest $Session $body -Mailbox $Mailbox -ReadOnly -AllowedResponseCodes $(if ($AllowMissing) { 'ErrorItemNotFound' })
+        $ns=Get-ExOPNamespaceManager $xml
+        foreach ($message in $xml.SelectNodes('//m:GetItemResponseMessage', $ns)) {
+            if ($message.GetAttribute('ResponseClass') -eq 'Error') {
+                Write-Output -InputObject $null
+                continue
+            }
+            foreach ($item in $message.SelectNodes('m:Items/t:CalendarItem', $ns)) {
+                Write-Output -InputObject $item -NoEnumerate
+            }
         }
     }
 }
@@ -1010,20 +1049,28 @@ function Get-ExOPCalendarMigrationReport {
     }
     $occurrences=@($unique | Where-Object { (Get-ExOPText $_ 't:CalendarItemType') -in @('Occurrence', 'Exception') })
     $occurrenceToMaster = [Collections.Generic.Dictionary[string, string]]::new([StringComparer]::Ordinal)
+    $vanished = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal)
     if ($occurrences.Count -gt 0) {
         $refs=@($occurrences | ForEach-Object {
                 '<t:RecurringMasterItemId OccurrenceId="'+(ConvertTo-ExOPXmlText $_.SelectSingleNode('t:ItemId', (Get-ExOPNamespaceManager $_)).GetAttribute('Id'))+'"/>'
             })
-        $masters=@(Get-ExOPCalendarItems -Session $Session -Mailbox $Mailbox -References $refs -IdOnly)
+        $masters=@(Get-ExOPCalendarItems -Session $Session -Mailbox $Mailbox -References $refs -IdOnly -AllowMissing)
         if ($masters.Count -ne $occurrences.Count) { throw 'EWS master resolution returned an unexpected response count.' }
         for ($index=0; $index -lt $masters.Count; $index++) {
             $occurrenceId=$occurrences[$index].SelectSingleNode('t:ItemId', (Get-ExOPNamespaceManager $occurrences[$index])).GetAttribute('Id')
+            if ($null -eq $masters[$index]) {
+                $null = $vanished.Add($occurrenceId)
+                $Session.Diagnostics.Add([PSCustomObject]@{Mailbox=$Mailbox; ItemId=$occurrenceId; Code='ItemNotFound' })
+                Write-Warning "Calendar occurrence $occurrenceId could not be read while the report was built; it was deleted or is no longer accessible and is skipped."
+                continue
+            }
             $occurrenceToMaster[$occurrenceId]=$masters[$index].SelectSingleNode('t:ItemId', (Get-ExOPNamespaceManager $masters[$index])).GetAttribute('Id')
         }
     }
     $firstById = [Collections.Generic.Dictionary[string, object]]::new([StringComparer]::Ordinal)
     foreach ($item in $unique) {
         $id=$item.SelectSingleNode('t:ItemId', (Get-ExOPNamespaceManager $item)).GetAttribute('Id')
+        if ($vanished.Contains($id)) { continue }
         if ($occurrenceToMaster.ContainsKey($id)) { $id=$occurrenceToMaster[$id] }
         $when=ConvertTo-ExOPInstant (Get-ExOPText $item 't:Start')
         if (-not $firstById.ContainsKey($id) -or $when -lt $firstById[$id].Start) {
@@ -1031,9 +1078,17 @@ function Get-ExOPCalendarMigrationReport {
         }
     }
     if ($firstById.Count -eq 0) { return }
-    $references=@($firstById.Keys | ForEach-Object { '<t:ItemId Id="'+(ConvertTo-ExOPXmlText $_)+'"/>' })
-    $details=@(Get-ExOPCalendarItems -Session $Session -Mailbox $Mailbox -References $references)
-    foreach ($item in $details) {
+    $ids=@($firstById.Keys)
+    $references=@($ids | ForEach-Object { '<t:ItemId Id="'+(ConvertTo-ExOPXmlText $_)+'"/>' })
+    $details=@(Get-ExOPCalendarItems -Session $Session -Mailbox $Mailbox -References $references -AllowMissing)
+    if ($details.Count -ne $ids.Count) { throw 'EWS item retrieval returned an unexpected response count.' }
+    for ($index=0; $index -lt $details.Count; $index++) {
+        $item=$details[$index]
+        if ($null -eq $item) {
+            $Session.Diagnostics.Add([PSCustomObject]@{Mailbox=$Mailbox; ItemId=$ids[$index]; Code='ItemNotFound' })
+            Write-Warning "Calendar item $($ids[$index]) could not be read while the report was built; it was deleted or is no longer accessible and is not reported."
+            continue
+        }
         $ns=Get-ExOPNamespaceManager $item
         $identifier=$item.SelectSingleNode('t:ItemId', $ns)
         $id=$identifier.GetAttribute('Id')

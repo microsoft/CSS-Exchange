@@ -246,6 +246,21 @@ Describe 'Testing MigrationJournal.ps1' {
         It 'Does not label unchanged arrays as differences' {
             $Script:differences | Should -HaveCount 2
         }
+
+        It 'Reports categories regrouped without changing their text' {
+            $item = $Script:beforeReminder.DocumentElement.CloneNode($true)
+            $categories = $item.OwnerDocument.CreateElement('t', 'Categories', $script:TypesNamespace)
+            $categories.InnerXml = '<t:String xmlns:t="' + $script:TypesNamespace + '">a</t:String><t:String xmlns:t="' + $script:TypesNamespace + '">b</t:String>'
+            $null = $item.AppendChild($categories)
+            $before = [PSCustomObject]@{ Xml = $item.OuterXml; TimeZoneProperties = @(); RecurrenceBase64 = ''; Modified = @(); Deleted = @() }
+            $categories.InnerXml = '<t:String xmlns:t="' + $script:TypesNamespace + '">ab</t:String>'
+            $after = [PSCustomObject]@{ Xml = $item.OuterXml; TimeZoneProperties = @(); RecurrenceBase64 = ''; Modified = @(); Deleted = @() }
+            $difference = @(Get-ExOPCalendarDifferences -Before $before -After $after)
+            $difference | Should -HaveCount 1
+            $difference[0].Field | Should -BeExactly 'Categories'
+            $difference[0].Before | Should -BeExactly '["a","b"]'
+            $difference[0].After | Should -BeExactly '["ab"]'
+        }
     }
 
     Context 'Incremental report output for <Items> items across <Mailboxes> mailboxes' -ForEach @(
@@ -372,7 +387,7 @@ Describe 'Testing MigrationJournal.ps1' {
 
             $Script:journalDirectory = Join-Path -Path $TestDrive -ChildPath 'journal'
             $Script:rows = @(
-                [PSCustomObject]@{ Mailbox = 'first@contoso.com'; RecordType = 'Single'; ItemId = '+AAAA'; ChangeKey = '+key' },
+                [PSCustomObject]@{ Mailbox = 'first@contoso.com'; RecordType = 'Single'; ItemId = '+AAAA'; ChangeKey = '+key'; UID = 'uid-first' },
                 [PSCustomObject]@{ Mailbox = 'first@contoso.com'; RecordType = 'RecurringSeries' },
                 [PSCustomObject]@{ Mailbox = 'first@contoso.com'; RecordType = 'Single' },
                 [PSCustomObject]@{ Mailbox = 'first@contoso.com'; RecordType = 'RecurringSeries' },
@@ -469,6 +484,7 @@ Describe 'Testing MigrationJournal.ps1' {
             $selection | Should -HaveCount $Script:rows.Count
             $selection[0].ItemId | Should -BeExactly '+AAAA'
             $selection[0].ChangeKey | Should -BeExactly '+key'
+            $selection[0].UID | Should -BeExactly 'uid-first'
         }
 
         It 'Records the runtime version, destination and selection size' {
