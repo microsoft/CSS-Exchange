@@ -20,10 +20,11 @@ function Find-ExOPOperationEvidence {
         $ExcludeDirectory
     )
     if ($OperationId -cnotmatch '^[0-9a-f]{32}$') { throw 'The migration marker contains an invalid operation ID.' }
+    # Nested search directories list the same files more than once.
     $before = @(
-        foreach ($directory in $SearchDirectory) {
-            Get-ChildItem -LiteralPath $directory -Recurse -File -Filter "$OperationId-before.json" -ErrorAction Stop
-        }
+        @(foreach ($directory in $SearchDirectory) {
+                Get-ChildItem -LiteralPath $directory -Recurse -File -Filter "$OperationId-before.json" -ErrorAction Stop
+            }) | Sort-Object -Property FullName -Unique
     )
     if ($before.Count -ne 1) {
         throw "Expected exactly one saved snapshot for operation $OperationId below the search directories; found $($before.Count)."
@@ -234,7 +235,9 @@ function Invoke-ExOPCalendarMigrationReconcile {
             $mailbox = if ($null -ne $row.PSObject.Properties['Mailbox'] -and [string]$row.Mailbox) { [string]$row.Mailbox } else { '_invalid-input' }
             $itemId = if ($null -ne $row.PSObject.Properties['ItemId']) { [string]$row.ItemId } else { '' }
             $result = [PSCustomObject][ordered]@{
-                RunId=$run.RunId; OperationId=''; Mailbox=$mailbox; ItemId=$itemId; UID=''; Subject=''
+                RunId=$run.RunId; OperationId=''; Mailbox=$mailbox; ItemId=$itemId
+                UID=$(if ($null -ne $row.PSObject.Properties['UID']) { [string]$row.UID } else { '' })
+                Subject=$(if ($null -ne $row.PSObject.Properties['Subject']) { [string]$row.Subject } else { '' })
                 Status='Failed'; Severity='Warning'; From=''; To=''; RecordType=''; Phase='Reconcile'
                 Action=''; StartUtcBefore=''; StartUtcAfter=''; EndUtcBefore=''; EndUtcAfter=''
                 HasRoom=$false; RoomNames=''; RoomSmtpAddresses=''; BackEndServer=''

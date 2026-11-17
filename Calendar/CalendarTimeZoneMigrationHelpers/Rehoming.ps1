@@ -937,7 +937,7 @@ function Assert-ExOPRehomeResult {
             }
             $old=New-Object Xml.XmlDocument; $old.XmlResolver=$null; $old.LoadXml($entry.Xml)
             foreach ($name in 'Subject', 'Location', 'Body', 'Categories', 'Sensitivity', 'IsAllDayEvent', 'LegacyFreeBusyStatus', 'ReminderIsSet', 'ReminderMinutesBeforeStart') {
-                if ((Get-ExOPText $exception "t:$name") -cne (Get-ExOPText $old.DocumentElement "t:$name")) {
+                if ((Get-ExOPFieldText $exception $name) -cne (Get-ExOPFieldText $old.DocumentElement $name)) {
                     throw "A preserved exception failed verification for $name."
                 }
             }
@@ -1184,8 +1184,7 @@ function Assert-ExOPPreservedItemData {
     $before.LoadXml($Snapshot.Xml)
     foreach ($name in 'UID', 'Subject', 'Body', 'Location', 'Categories', 'Sensitivity', 'IsAllDayEvent',
         'LegacyFreeBusyStatus', 'ReminderIsSet', 'ReminderMinutesBeforeStart') {
-        if ((Get-ExOPText -Node $Item -Path ("t:" + $name)) -cne
-            (Get-ExOPText -Node $before.DocumentElement -Path ("t:" + $name))) {
+        if ((Get-ExOPFieldText -Node $Item -Name $name) -cne (Get-ExOPFieldText -Node $before.DocumentElement -Name $name)) {
             throw "The item changed unexpectedly in $name."
         }
     }
@@ -1218,8 +1217,8 @@ function Assert-ExOPPreservedExceptionData {
     $originalXml.LoadXml($Original.Xml)
     foreach ($name in 'Subject', 'Body', 'Location', 'Categories', 'Sensitivity', 'IsAllDayEvent',
         'LegacyFreeBusyStatus', 'ReminderIsSet', 'ReminderMinutesBeforeStart') {
-        if ((Get-ExOPText -Node $currentXml.DocumentElement -Path ("t:" + $name)) -cne
-            (Get-ExOPText -Node $originalXml.DocumentElement -Path ("t:" + $name))) {
+        if ((Get-ExOPFieldText -Node $currentXml.DocumentElement -Name $name) -cne
+            (Get-ExOPFieldText -Node $originalXml.DocumentElement -Name $name)) {
             throw "An exception changed unexpectedly in $name."
         }
     }
@@ -1572,7 +1571,8 @@ function Invoke-ExOPCalendarEventMigration {
             $sourceId = if ($null -ne $row.PSObject.Properties['FromWindowsTimeZoneId']) { [string]$row.FromWindowsTimeZoneId } else { '' }
             $result=[PSCustomObject][ordered]@{
                 RunId=$run.RunId; OperationId=[Guid]::NewGuid().ToString('N')
-                Mailbox=$mailbox; ItemId=$itemId; UID=''; Subject=''; Status='Failed'; Severity='Warning'
+                Mailbox=$mailbox; ItemId=$itemId; UID=$(if ($null -ne $row.PSObject.Properties['UID']) { [string]$row.UID } else { '' })
+                Subject=$(if ($null -ne $row.PSObject.Properties['Subject']) { [string]$row.Subject } else { '' }); Status='Failed'; Severity='Warning'
                 From=$sourceId; To=''; RecordType=$recordType; Phase='Preflight'
                 StartUtcBefore=''; StartUtcAfter=''; EndUtcBefore=''; EndUtcAfter=''
                 HasRoom=$false; RoomNames=''; RoomSmtpAddresses=''; ResourceStatus='NotChecked'

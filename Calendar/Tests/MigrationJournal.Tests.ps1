@@ -246,6 +246,21 @@ Describe 'Testing MigrationJournal.ps1' {
         It 'Does not label unchanged arrays as differences' {
             $Script:differences | Should -HaveCount 2
         }
+
+        It 'Reports categories regrouped without changing their text' {
+            $item = $Script:beforeReminder.DocumentElement.CloneNode($true)
+            $categories = $item.OwnerDocument.CreateElement('t', 'Categories', $script:TypesNamespace)
+            $categories.InnerXml = '<t:String xmlns:t="' + $script:TypesNamespace + '">a</t:String><t:String xmlns:t="' + $script:TypesNamespace + '">b</t:String>'
+            $null = $item.AppendChild($categories)
+            $before = [PSCustomObject]@{ Xml = $item.OuterXml; TimeZoneProperties = @(); RecurrenceBase64 = ''; Modified = @(); Deleted = @() }
+            $categories.InnerXml = '<t:String xmlns:t="' + $script:TypesNamespace + '">ab</t:String>'
+            $after = [PSCustomObject]@{ Xml = $item.OuterXml; TimeZoneProperties = @(); RecurrenceBase64 = ''; Modified = @(); Deleted = @() }
+            $difference = @(Get-ExOPCalendarDifferences -Before $before -After $after)
+            $difference | Should -HaveCount 1
+            $difference[0].Field | Should -BeExactly 'Categories'
+            $difference[0].Before | Should -BeExactly '["a","b"]'
+            $difference[0].After | Should -BeExactly '["ab"]'
+        }
     }
 
     Context 'Incremental report output for <Items> items across <Mailboxes> mailboxes' -ForEach @(
