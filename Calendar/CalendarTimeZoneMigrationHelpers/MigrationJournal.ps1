@@ -85,7 +85,7 @@ function New-ExOPMigrationRun {
             SelectedRows=$Rows.Count; RuntimeFiles=$hashes
         }
         Write-ExOPDurableText -Path (Join-Path $path 'run.json') -Text ((ConvertTo-Json -InputObject $manifest -Depth 8) + "`r`n") -CreateNew
-        $selection = @($Rows | Select-Object SchemaVersion, Mailbox, ItemId, ChangeKey, RecordType, Subject,
+        $selection = @($Rows | Select-Object SchemaVersion, Mailbox, ItemId, ChangeKey, RecordType, Subject, UID,
             FromWindowsTimeZoneId, StartTimeZoneId, EndTimeZoneId, StartUtc, EndUtc, QueryStartUtc, QueryEndUtc, HasRoom, RoomNames, RoomSmtpAddresses)
         Export-ExOPSafeResultsCsv -Rows $selection -Path (Join-Path $path 'selection.csv')
     }
