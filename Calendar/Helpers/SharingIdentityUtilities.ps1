@@ -91,7 +91,9 @@ function Get-PermissionEntriesForIdentity {
             [object[]]$FirstFlags,
 
             [AllowNull()]
-            [object[]]$SecondFlags
+            [object[]]$SecondFlags,
+
+            [switch]$IgnoreFullMailboxAccess
         )
 
         # The Editor access right can appear in only one side's flags even when the pair is configured correctly, so it is not a meaningful difference.
@@ -100,11 +102,14 @@ function Get-PermissionEntriesForIdentity {
             param($Flags)
             @($Flags | ForEach-Object { if ($null -ne $_) { $_.ToString() -split ',' } } |
                     ForEach-Object { $_.Trim() } |
-                    Where-Object -FilterScript { (-not [string]::IsNullOrWhiteSpace($_)) -and ($_ -ne "Editor") } |
+                    Where-Object -FilterScript {
+                        (-not [string]::IsNullOrWhiteSpace($_)) -and ($_ -ne "Editor") -and
+                        ((-not $IgnoreFullMailboxAccess) -or ($_ -ne "FullMailboxAccess"))
+                    } |
                     Sort-Object -Unique)
     }
-    $normalizedFirstFlags = & $normalizeFlags $FirstFlags
-    $normalizedSecondFlags = & $normalizeFlags $SecondFlags
+    $normalizedFirstFlags = & $normalizeFlags -Flags $FirstFlags
+    $normalizedSecondFlags = & $normalizeFlags -Flags $SecondFlags
 
     return (($normalizedFirstFlags -join ",") -ne ($normalizedSecondFlags -join ","))
 }

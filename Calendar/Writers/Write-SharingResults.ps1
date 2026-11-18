@@ -78,13 +78,15 @@ function Write-SharingFindingDetails {
             Label      = "Evidence"
             Expression = { $_.evidence }
         }
-    Write-Host -ForegroundColor Blue "`rRecommended Next Steps:"
+    Write-Host -Object ""
+    Write-Host -ForegroundColor Blue "Recommended Next Steps:"
     $writtenNextSteps = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
     foreach ($finding in $displayFindings) {
         if ($writtenNextSteps.Add($finding.recommendedNextStep)) {
             $ruleIds = @($displayFindings | Where-Object {
                     $_.recommendedNextStep -ceq $finding.recommendedNextStep
                 } | ForEach-Object { $_.ruleId })
+            Write-Host -Object ""
             Write-Host -ForegroundColor Yellow "[$($ruleIds -join ', ')] $($finding.recommendedNextStep)"
         }
     }
@@ -179,8 +181,10 @@ function Write-OwnerReceiverInviteSummary {
         return
     }
 
+    Write-Host -Object "`r`n"
     Write-Host -ForegroundColor DarkYellow "Owner-to-Receiver Sharing Timeline:"
     Write-Host -ForegroundColor Cyan "Owner [$Owner]; receiver [$Receiver]."
+    Write-Host -Object ""
     $sent = $receiverInvites | Select-Object -First 1
     if (($null -ne $sent) -and ($null -ne $sent.Date)) {
         Write-Host -ForegroundColor Green "Latest sent sharing invitation (CalendarSharingInvite): [$($sent.Entry.Timestamp)] (parsed as [$($sent.Date.ToString('yyyy-MM-dd HH:mm:ss'))]; sharing type [$($sent.Entry.SharingType)], detail level [$($sent.Entry.DetailLevel)])."
@@ -193,6 +197,7 @@ function Write-OwnerReceiverInviteSummary {
         Write-Host -ForegroundColor Yellow "The sent-invitation row does not identify a calendar folder, so it cannot confirm that the selected calendar [$script:NormalizedOwnerCalendarFolderPath] was shared."
     }
 
+    Write-Host -Object ""
     $accepted = $acceptEntries | Select-Object -First 1
     if (($null -ne $accepted) -and ($null -ne $accepted.Date)) {
         Write-Host -ForegroundColor Cyan "Latest receiver acceptance entry (AcceptCalendarSharingInvite): [$($accepted.Entry.Timestamp)] (parsed as [$($accepted.Date.ToString('yyyy-MM-dd HH:mm:ss'))]; calendar name [$($accepted.Entry.FolderName)])."
@@ -205,6 +210,7 @@ function Write-OwnerReceiverInviteSummary {
         Write-Host -ForegroundColor Yellow "No matching receiver acceptance entry is available from AcceptCalendarSharingInvite."
     }
 
+    Write-Host -Object ""
     $sync = $syncRequests | Select-Object -First 1
     if (($null -ne $sync) -and ($null -ne $sync.Date)) {
         Write-Host -ForegroundColor Cyan "Latest receiver synchronization request (SharingSyncAssistant): [$($sync.Entry.Timestamp)] (parsed as [$($sync.Date.ToString('yyyy-MM-dd HH:mm:ss'))]; calendar name [$($sync.Entry.FolderName)]). This is synchronization activity, not proof of invitation receipt or acceptance."

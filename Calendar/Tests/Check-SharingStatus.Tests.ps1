@@ -974,6 +974,7 @@ Describe "Check-SharingStatus log exceptions and age filter" {
         @{ Source = "Receiver sync" }
     ) {
         param($Source)
+        $script:SharingType = "ExternalSharing"
         $lines = @(
             "$script:RecentStamp, Mailbox: test, Entry [XTAP] Starting XTAP policy evaluation"
             '[XTAP][UR] Flow failure (strictMode=False): DsApiForbiddenException: Missing RequiredPermission'
@@ -998,6 +999,104 @@ Describe "Check-SharingStatus log exceptions and age filter" {
         $finding.recommendedNextStep | Should -BeLike "*failures for other recipients*"
         $reportedFinding = (Get-SharingJsonReportObject).findings | Where-Object -Property ruleId -EQ "SHR414"
         $reportedFinding.recommendedNextStep | Should -Be $finding.recommendedNextStep
+    }
+
+    It -Name "ignores internal XTAP records and their exception details in <Source> without changing raw logs" -TestCases @(
+        @{ Source = "Owner invite" }
+        @{ Source = "Receiver accept" }
+        @{ Source = "Receiver sharing" }
+        @{ Source = "Receiver sync" }
+    ) {
+        param($Source)
+        $script:SharingType = "InternalSharing"
+        $lines = @(
+            "$script:RecentStamp, Mailbox: test, Entry DsApiHttpStatusException: Request failed"
+            '[XTAP][UR] Flow failure: DsApiForbiddenException'
+            '   at DsApiHttpStatusException.Throw()'
+            '[EX, MapiExceptionNamedPropsQuotaExceeded]'
+            'numberOfFailures: 2'
+            "$script:RecentStamp, Mailbox: test, Entry [XTAP-Anon] error: denied"
+            'InvalidOperationException: Additional failure details'
+        )
+        switch ($Source) {
+            "Owner invite" { $script:OwnerInviteLogRaw = $lines -join "`r`n" }
+            "Receiver accept" { $script:ReceiverAcceptLogRaw = $lines -join "`r`n" }
+            "Receiver sharing" { $script:SharingDiagnosticLogs["receiver_SharingLog"] = @{ data = $lines } }
+            "Receiver sync" { $script:SharingDiagnosticLogs["receiver_SharingSyncAssistantLog"] = @{ data = $lines } }
+        }
+
+        Test-SharingLogExceptions
+        Complete-SharingFindings
+
+        foreach ($ruleId in @("SHR408", "SHR409")) {
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ $ruleId).status | Should -Be "NotDetected"
+        }
+        $finding = $script:SharingFindings | Where-Object -Property ruleId -EQ "SHR414"
+        $finding.status | Should -Be "NotApplicable"
+        $finding.evidence.reason | Should -BeLike "XTAP does not apply to internal sharing*"
+        $reportedFinding = (Get-SharingJsonReportObject).findings | Where-Object -Property ruleId -EQ "SHR414"
+        $reportedFinding.result | Should -Be "Skipped"
+        $reportedFinding.recommendedNextStep | Should -BeNullOrEmpty
+        switch ($Source) {
+            "Owner invite" { $script:OwnerInviteLogRaw | Should -Be ($lines -join "`r`n") }
+            "Receiver accept" { $script:ReceiverAcceptLogRaw | Should -Be ($lines -join "`r`n") }
+            "Receiver sharing" { $script:SharingDiagnosticLogs["receiver_SharingLog"].data | Should -Be $lines }
+            "Receiver sync" { $script:SharingDiagnosticLogs["receiver_SharingSyncAssistantLog"].data | Should -Be $lines }
+        }
+        Should -Not -Invoke -CommandName Write-Host -ParameterFilter {
+            $Object -like "Warning: The sharing logs contain*"
+        }
+        Should -Invoke -CommandName Write-Host -Times 1 -Exactly -ParameterFilter {
+            $Object -like "XTAP does not apply to internal sharing*"
+        }
+    }
+
+    It "preserves unrelated internal exceptions and quota failures after an XTAP record with the same timestamp" {
+        $script:SharingType = "InternalSharing"
+        $script:OwnerInviteLogRaw = @(
+            "$script:RecentStamp, Mailbox: test, Entry [XTAP] DsApiForbiddenException"
+            'InvalidOperationException: XTAP failure details'
+            "$script:RecentStamp, Mailbox: test, Entry DsApiHttpStatusException: Unrelated request failed"
+            "$script:RecentStamp, Mailbox: test, Entry MapiExceptionNamedPropsQuotaExceeded"
+        ) -join "`r`n"
+
+        Test-SharingLogExceptions
+        Complete-SharingFindings
+
+        $exceptions = $script:SharingFindings | Where-Object -Property ruleId -EQ "SHR409"
+        $exceptions.status | Should -Be "Detected"
+        $exceptions.evidence.exceptionCount | Should -Be 1
+        $exceptions.evidence.exceptionTypes | Should -Be @("DsApiHttpStatusException")
+        $quota = $script:SharingFindings | Where-Object -Property ruleId -EQ "SHR408"
+        $quota.status | Should -Be "Detected"
+        $quota.evidence.quotaExceptionCount | Should -Be 1
+        ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR414").status | Should -Be "NotApplicable"
+    }
+
+    It -Name "keeps internal XTAP checks inapplicable when the log scan is <ScanStatus>" -TestCases @(
+        @{ ScanStatus = "Incomplete" }
+        @{ ScanStatus = "Unavailable" }
+        @{ ScanStatus = "NotRun" }
+    ) {
+        param($ScanStatus)
+        $script:SharingType = "InternalSharing"
+        $script:ReceiverAcceptLogRaw = $null
+        $script:SharingDiagnosticLogs = [ordered]@{}
+        $script:OwnerInviteLogRaw = if ($ScanStatus -eq "Incomplete") {
+            "$script:RecentStamp, Mailbox: test, Entry [XTAP] DsApiForbiddenException"
+        } else {
+            $null
+        }
+
+        if ($ScanStatus -ne "NotRun") {
+            Test-SharingLogExceptions
+        }
+        Complete-SharingFindings
+
+        ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR414").status | Should -Be "NotApplicable"
+        foreach ($ruleId in @("SHR408", "SHR409")) {
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ $ruleId).status | Should -Be "NotEvaluated"
+        }
     }
 
     It -Name "does not interpret benign XTAP trace <Trace> as a failure" -TestCases @(
@@ -1421,11 +1520,17 @@ Describe "Check-SharingStatus receiver log freshness" {
 
         $finding = $script:SharingFindings | Where-Object -Property ruleId -EQ $ExpectedRule
         $finding.status | Should -Be "Detected"
+        $finding.severity | Should -Be "Warning"
         $finding.evidence.ageHours | Should -BeGreaterThan 23
         $finding.evidence.latestEntryUtc | Should -Not -BeNullOrEmpty
         if ($null -ne $SupersededRule) {
             ($script:SharingFindings | Where-Object -Property ruleId -EQ $SupersededRule).status | Should -Be "NotApplicable"
+            Should -Invoke -CommandName Write-Host -Times 1 -Exactly -ParameterFilter {
+                $Object -like "Warning: The latest receiver*more than 7 days old*" -and $ForegroundColor -eq "Yellow"
+            }
         }
+        ((Get-SharingJsonReportObject).findings | Where-Object -Property ruleId -EQ $ExpectedRule).severity |
+            Should -Be "Warning"
         ($script:SharingFindings | Where-Object -Property ruleId -EQ $OtherRule).status | Should -Be "NotDetected"
     }
 
@@ -3484,6 +3589,134 @@ Describe "Check-SharingStatus structured diagnostics" {
             Initialize-ReceiverMocks
         }
 
+        It -Name "captures a calendar-entry proxy failure from <FailureMode> and continues other receiver checks" -TestCases @(
+            @{ FailureMode = "Information" }
+            @{ FailureMode = "Output" }
+            @{ FailureMode = "Error" }
+            @{ FailureMode = "Throw" }
+            @{ FailureMode = "PlainInformation" }
+            @{ FailureMode = "ErrorDetails" }
+            @{ FailureMode = "ErrorId" }
+        ) {
+            param($FailureMode)
+            $Script:calendarEntryFailureMode = $FailureMode
+            $script:IncludeSensitiveData = $true
+            $script:OwnerMB | Add-Member -NotePropertyName Database -NotePropertyValue "owner.example.com/database-a"
+            $Script:receiverMailbox | Add-Member -NotePropertyName Database -NotePropertyValue "receiver.example.com/database-b"
+            Mock -CommandName Write-Host -MockWith {}
+            Mock -CommandName Write-Warning -MockWith {}
+            Mock -CommandName Get-CalendarEntries -MockWith {
+                $proxyError = 'FullyQualifiedErrorId: {"code":"InternalServerError","message":"The mailbox could not be reached because the ExchangePrincipal object contains outdated information.","stacktrace":"ProxyDiagnosticStackFrame"}'
+                switch ($Script:calendarEntryFailureMode) {
+                    "Information" {
+                        Write-Information -MessageData $proxyError -InformationAction Continue
+                        Write-Information -MessageData "HostFqdn: server.owner.example.com" -InformationAction Continue
+                    }
+                    "Output" { Write-Output -InputObject $proxyError }
+                    "Error" { Write-Error -Message $proxyError -ErrorAction Continue }
+                    "Throw" { throw $proxyError }
+                    "PlainInformation" {
+                        Write-Information -MessageData "The ExchangePrincipal object contains outdated information. ProxyDiagnosticStackFrame" -InformationAction Continue
+                    }
+                    { $_ -in @("ErrorDetails", "ErrorId") } {
+                        $errorId = if ($Script:calendarEntryFailureMode -eq "ErrorId") { $proxyError } else { "CalendarEntriesProxyFailure" }
+                        $entryError = [System.Management.Automation.ErrorRecord]::new(
+                            [System.InvalidOperationException]::new("Error executing cmdlet"),
+                            $errorId,
+                            [System.Management.Automation.ErrorCategory]::NotSpecified,
+                            $null)
+                        if ($Script:calendarEntryFailureMode -eq "ErrorDetails") {
+                            $entryError.ErrorDetails = [System.Management.Automation.ErrorDetails]::new($proxyError)
+                        }
+                        Write-Error -ErrorRecord $entryError -ErrorAction Continue
+                    }
+                }
+            }
+
+            $output = @(& {
+                    $IncludeSensitiveData = $true
+                    GetReceiverInformation -Receiver "receiver@contoso.com"
+                    Write-SharingSummary -Owner "owner@contoso.com" -Receiver "receiver@contoso.com"
+                } *>&1)
+
+            $script:CollectorStatuses["CalendarEntries"].status | Should -Be "Failed"
+            @($script:CollectionErrors | Where-Object -Property collector -EQ "CalendarEntries").Count | Should -Be 1
+            $script:CollectorStatuses["CalendarEntries"].error.message | Should -Be "Failed to Proxy for CMDLET Get-CalendarEntries"
+            $script:ConsoleFindingEvidence["SHR230"] | Should -Be "Failed to Proxy for CMDLET Get-CalendarEntries"
+            $script:ReceiverCalendarEntries | Should -BeNullOrEmpty
+            foreach ($ruleId in @("SHR230", "SHR231", "SHR232", "SHR233")) {
+                ($script:SharingFindings | Where-Object -Property ruleId -EQ $ruleId).status | Should -Be "NotEvaluated"
+            }
+            $script:SharingType | Should -Be "InternalSharing"
+            $script:ReceiverLocalCalendarFolder | Should -Not -BeNullOrEmpty
+            Should -Invoke -CommandName Get-MailboxCalendarFolder -Times 1 -Exactly
+            ($output | Out-String) | Should -Not -Match "FullyQualifiedErrorId|HostFqdn|ProxyDiagnosticStackFrame|the ExchangePrincipal object contains outdated information"
+            ($output | Out-String) | Should -Match "Failed to Proxy for CMDLET Get-CalendarEntries"
+            Should -Invoke -CommandName Write-Warning -Times 1 -Exactly -ParameterFilter {
+                $Message -like "Get-CalendarEntries failed for*" -and
+                $Message.Contains("Failed to Proxy for CMDLET Get-CalendarEntries") -and
+                $Message.Contains("receiver.example.com") -and
+                $Message -notmatch "FullyQualifiedErrorId|ProxyDiagnosticStackFrame" -and
+                $Message.Length -lt 500
+            }
+            $reportedFinding = (Get-SharingJsonReportObject).findings | Where-Object -Property ruleId -EQ "SHR230"
+            $reportedFinding.result | Should -Be "Inconclusive"
+            $reportedFinding.recommendedNextStep | Should -BeLike "*receiver mailbox forest*"
+        }
+
+        It "warns about different mailbox forests but still accepts a successful calendar-entry query" {
+            $script:OwnerMB | Add-Member -NotePropertyName Database -NotePropertyValue "owner.example.com/database-a"
+            $Script:receiverMailbox | Add-Member -NotePropertyName Database -NotePropertyValue "receiver.example.com/database-b"
+            Mock -CommandName Write-Host -MockWith {}
+            Mock -CommandName Write-Warning -MockWith {}
+
+            GetReceiverInformation -Receiver "receiver@contoso.com"
+            Complete-SharingFindings
+
+            Should -Invoke -CommandName Get-CalendarEntries -Times 1 -Exactly
+            Should -Invoke -CommandName Write-Warning -Times 1 -Exactly -ParameterFilter {
+                $Message -like "Owner and receiver mailbox databases are in different forests*" -and
+                $Message.Contains("owner.example.com") -and $Message.Contains("receiver.example.com")
+            }
+            $script:CollectorStatuses["CalendarEntries"].status | Should -Be "Success"
+            $script:ReceiverCalendarEntries.Count | Should -Be 1
+            $script:SharingType | Should -Be "InternalSharing"
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR231").status | Should -Be "NotDetected"
+        }
+
+        It -Name "does not infer different forests from <DatabaseCase>" -TestCases @(
+            @{ DatabaseCase = "different databases in the same forest"; OwnerDatabase = "FOREST.EXAMPLE.COM/database-a"; ReceiverDatabase = "forest.example.com/database-b" }
+            @{ DatabaseCase = "database names without forest information"; OwnerDatabase = "database-a"; ReceiverDatabase = "database-b" }
+            @{ DatabaseCase = "missing database information"; OwnerDatabase = $null; ReceiverDatabase = "forest.example.com/database-b" }
+        ) {
+            param($OwnerDatabase, $ReceiverDatabase)
+            $script:OwnerMB | Add-Member -NotePropertyName Database -NotePropertyValue $OwnerDatabase
+            $Script:receiverMailbox | Add-Member -NotePropertyName Database -NotePropertyValue $ReceiverDatabase
+            Mock -CommandName Write-Host -MockWith {}
+            Mock -CommandName Write-Warning -MockWith {}
+
+            GetReceiverInformation -Receiver "receiver@contoso.com"
+
+            Should -Not -Invoke -CommandName Write-Warning -ParameterFilter {
+                $Message -like "*different forests*"
+            }
+            $script:CollectorStatuses["CalendarEntries"].status | Should -Be "Success"
+        }
+
+        It "does not treat informational proxy output as calendar-entry data" {
+            Mock -CommandName Write-Host -MockWith {}
+            Mock -CommandName Get-CalendarEntries -MockWith {
+                Write-Information -MessageData "Calendar-entry diagnostic trace" -InformationAction Continue
+                @($Script:calendarEntries)
+            }
+
+            GetReceiverInformation -Receiver "receiver@contoso.com"
+
+            $script:CollectorStatuses["CalendarEntries"].status | Should -Be "Success"
+            $script:ReceiverCalendarEntries.Count | Should -Be 1
+            $script:ReceiverCalendarEntries[0].SharingModelType | Should -Be "New"
+        }
+
         It "keeps uncorrelated <Model> entries for <CalendarName> inconclusive when the default calendar is selected" -TestCases @(
             @{ Model = "New"; CalendarName = "Project"; LocalFolder = $true }
             @{ Model = "New"; CalendarName = "Renamed calendar"; LocalFolder = $true }
@@ -4402,7 +4635,75 @@ Describe "Check-SharingStatus structured diagnostics" {
     }
 
     Context "Selected-folder accept logs" {
-        It "preserves mailbox name apostrophes while removing delimiters across comma-separated name columns" {
+        It "preserves comma-containing calendar names with <Case>" -TestCases @(
+            @{ Case = "a plain mailbox name"; MailboxName = "Receiver Name"; FolderName = "Owner, Calendar"; ExpectedFolderName = "Owner, Calendar" }
+            @{ Case = "a comma-containing mailbox name"; MailboxName = "Receiver, Name"; FolderName = "Owner, Calendar"; ExpectedFolderName = "Owner, Calendar" }
+            @{ Case = "multiple commas and apostrophes"; MailboxName = "O'Neil, Receiver, Team"; FolderName = "'Owner's Calendar, Project, Planning'"; ExpectedFolderName = "Owner's Calendar, Project, Planning" }
+        ) {
+            param($Case, $MailboxName, $FolderName, $ExpectedFolderName)
+            $script:OwnerCalendarSubfolderSelected = $true
+            $script:RequestedOwnerCalendarLeafName = $ExpectedFolderName
+            Mock -CommandName Get-Date -MockWith { [DateTime]::new(2026, 10, 21) }
+            Mock -CommandName Export-MailboxDiagnosticLogs -MockWith {
+                [PSCustomObject]@{
+                    MailboxLog = "10/20/2026 13:44:31, Mailbox: '$MailboxName', Entry CreateInternalSharedCalendarGroupEntry: Creating a shared calendar for 'owner@contoso.com', calendar name $FolderName"
+                }
+            }
+
+            ProcessCalendarSharingAcceptLogs -Identity "receiver@contoso.com"
+
+            $script:ReceiverAcceptLogEntries.Count | Should -Be 1
+            $script:ReceiverAcceptLogEntries[0].Mailbox | Should -Be $MailboxName
+            $script:ReceiverAcceptLogEntries[0].SharedCalendarOwner | Should -Be "owner@contoso.com"
+            $script:ReceiverAcceptLogEntries[0].FolderName | Should -Be $ExpectedFolderName
+            $script:ReceiverSelectedAcceptLogEntries.Count | Should -Be 1
+            $script:ReceiverSelectedAcceptLogEntries[0].FolderName | Should -Be $ExpectedFolderName
+            $script:CollectorStatuses["ReceiverAcceptLog"].status | Should -Be "Success"
+            $script:SharingFindings.ruleId | Should -Not -Contain "SHR220"
+            $script:EvaluationErrors | Should -BeNullOrEmpty
+        }
+
+        It "parses mixed mailbox and calendar names in line-feed-separated entries" {
+            Mock -CommandName Get-Date -MockWith { [DateTime]::new(2026, 10, 21) }
+            Mock -CommandName Export-MailboxDiagnosticLogs -MockWith {
+                [PSCustomObject]@{
+                    MailboxLog = @(
+                        "10/20/2026 13:44:31, Mailbox: 'Receiver Name', Entry CreateInternalSharedCalendarGroupEntry: Creating a shared calendar for owner@contoso.com, calendar name Owner Calendar",
+                        "10/20/2026 13:44:30, Mailbox: 'O'Neil, Receiver', Entry CreateInternalSharedCalendarGroupEntry: Creating a shared calendar for other@contoso.com, calendar name Other, Calendar"
+                    ) -join "`n"
+                }
+            }
+
+            ProcessCalendarSharingAcceptLogs -Identity "receiver@contoso.com"
+
+            $script:ReceiverAcceptLogEntries.Count | Should -Be 2
+            $script:ReceiverAcceptLogEntries.Mailbox | Should -Be @("Receiver Name", "O'Neil, Receiver")
+            $script:ReceiverAcceptLogEntries.SharedCalendarOwner | Should -Be @("owner@contoso.com", "other@contoso.com")
+            $script:ReceiverAcceptLogEntries.FolderName | Should -Be @("Owner Calendar", "Other, Calendar")
+            $script:EvaluationErrors | Should -BeNullOrEmpty
+        }
+
+        It "reports malformed acceptance entries without retaining partial parsed data" {
+            Mock -CommandName Export-MailboxDiagnosticLogs -MockWith {
+                [PSCustomObject]@{
+                    MailboxLog = @(
+                        "10/20/2026 13:44:31, Mailbox: 'Receiver Name', Entry CreateInternalSharedCalendarGroupEntry: Creating a shared calendar for owner@contoso.com, calendar name Owner Calendar",
+                        "10/20/2026 13:44:30, Mailbox: 'Receiver Name', Entry CreateInternalSharedCalendarGroupEntry: Creating a shared calendar for other@contoso.com, Other Calendar"
+                    ) -join "`r`n"
+                }
+            }
+            Mock -CommandName Write-Warning -MockWith {}
+
+            ProcessCalendarSharingAcceptLogs -Identity "receiver@contoso.com"
+
+            $script:ReceiverAcceptLogEntries | Should -BeNullOrEmpty
+            $script:ReceiverSelectedAcceptLogEntries | Should -BeNullOrEmpty
+            $script:EvaluationErrors.Count | Should -Be 1
+            $script:EvaluationErrors[0].evaluation | Should -Be "Receiver accept-log parsing"
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR220").status | Should -Be "NotEvaluated"
+        }
+
+        It "preserves mailbox name commas and apostrophes while removing surrounding delimiters" {
             Mock -CommandName Get-Date -MockWith { [DateTime]::new(2026, 10, 21) }
             Mock -CommandName Export-MailboxDiagnosticLogs -MockWith {
                 [PSCustomObject]@{
@@ -4412,8 +4713,7 @@ Describe "Check-SharingStatus structured diagnostics" {
 
             ProcessCalendarSharingAcceptLogs -Identity "receiver@contoso.com"
 
-            $script:ReceiverAcceptLogEntries[0].MailboxLast | Should -Be "O'Neil"
-            $script:ReceiverAcceptLogEntries[0].MailboxFirst | Should -Be "Receiver"
+            $script:ReceiverAcceptLogEntries[0].Mailbox | Should -Be "O'Neil, Receiver"
             $script:ReceiverAcceptLogEntries[0].FolderName | Should -Be "Team's Calendar"
             $script:EvaluationErrors.Count | Should -Be 0
         }
@@ -4738,8 +5038,35 @@ Describe "Check-SharingStatus structured diagnostics" {
             $script:SharingFindings.ruleId | Should -Not -Contain "SHR322"
         }
 
-        It "still reports a permission flag difference other than Editor" {
-            $Script:receiverCalendarFolder.SharingPermissionFlags = @("Editor, Reviewer")
+        It -Name "ignores FullMailboxAccess-only differences for SHR322 without changing SHR323 (<Shape>)" -TestCases @(
+            @{ Shape = "separate values"; OwnerFlags = @("Delegate"); ReceiverFlags = @("Delegate", "FullMailboxAccess") }
+            @{ Shape = "single comma-separated value"; OwnerFlags = @("Delegate"); ReceiverFlags = @("Editor, Delegate, FullMailboxAccess") }
+            @{ Shape = "mixed casing"; OwnerFlags = @("Delegate"); ReceiverFlags = @("FullMailboxAccess, Delegate".ToLowerInvariant()) }
+            @{ Shape = "only ignored flags"; OwnerFlags = @("Editor"); ReceiverFlags = @("FullMailboxAccess") }
+        ) {
+            param($OwnerFlags, $ReceiverFlags)
+            $Script:receiverCalendarFolder.SharingPermissionFlags = $ReceiverFlags
+            $script:OwnerCalendarPermsAvailable = $true
+            $script:CollectorStatuses["OwnerCalendarPermissions"].status = "Success"
+            $script:OwnerCalendarPerms = @([PSCustomObject]@{
+                    User                   = "receiver@contoso.com"
+                    AccessRights           = @("Reviewer")
+                    SharingPermissionFlags = $OwnerFlags
+                })
+            $script:OwnerActiveSharingAvailable = $true
+            $script:OwnerActiveReceiver = [PSCustomObject]@{ SharingPermissionFlags = @("Delegate") }
+            $script:CollectorStatuses["ActiveSharing"].status = "Success"
+            Mock -CommandName Write-Host -MockWith {}
+
+            GetReceiverInformation -Receiver "receiver@contoso.com"
+            Complete-SharingFindings
+
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR322").status | Should -Be "NotDetected"
+            ($script:SharingFindings | Where-Object -Property ruleId -EQ "SHR323").status | Should -Be "Detected"
+        }
+
+        It "still reports a permission flag difference other than Editor or FullMailboxAccess" {
+            $Script:receiverCalendarFolder.SharingPermissionFlags = @("Editor, FullMailboxAccess, Reviewer")
             $script:OwnerCalendarPermsAvailable = $true
             $script:OwnerCalendarPerms = @([PSCustomObject]@{
                     User                   = "receiver@contoso.com"
@@ -4806,6 +5133,55 @@ Describe "Check-SharingStatus structured diagnostics" {
 
             $finding = $script:SharingFindings | Where-Object -Property ruleId -EQ "SHR401"
             $finding.status | Should -Be "NotEvaluated"
+        }
+    }
+
+    Context "Final summary spacing" {
+        It "separates summary sections, timeline events, and recommended steps with blank lines" {
+            $script:SharingType = "InternalSharing"
+            $script:ModernSharing = $true
+            $script:OwnerMB = [PSCustomObject]@{ ExchangeGuid = "11111111-1111-1111-1111-111111111111" }
+            $script:ReceiverMatchedCalendar = [PSCustomObject]@{ Name = "Owner calendar" }
+            $script:OwnerInviteData = @(
+                [PSCustomObject]@{ Recipient = "receiver@contoso.com"; Timestamp = "10/22/2026 10:00:00"; SharingType = "internal"; DetailLevel = "Editor" }
+            )
+            $script:ReceiverAcceptLogEntries = @(
+                [PSCustomObject]@{ SharedCalendarOwner = "owner@contoso.com"; Timestamp = "10/22/2026 11:00:00"; FolderName = "Owner calendar" }
+            )
+            $script:SharingDiagnosticLogs["receiver_SharingSyncAssistantLog"] = @{
+                data = @("10/22/2026 12:00:00, Mailbox: receiver, Entry RequestId: 'request-1', Sync Details for folder Owner calendar are [RMGUID, 11111111-1111-1111-1111-111111111111]")
+            }
+            foreach ($collectorName in $Script:collectorNames) {
+                $script:CollectorStatuses[$collectorName].status = "Success"
+            }
+            $script:CollectorStatuses["CalendarEntries"].status = "Failed"
+            Add-SharingFinding -RuleId "SHR405" -Status Detected
+            Add-SharingFinding -RuleId "SHR407" -Status Detected
+            Add-SharingFinding -RuleId "SHR230" -Status NotEvaluated -Evidence "Failed to Proxy for CMDLET Get-CalendarEntries"
+            $script:CollectionErrors.Add([PSCustomObject]@{
+                    collector = "CalendarEntries"
+                    error     = "Failed to Proxy for CMDLET Get-CalendarEntries"
+                })
+            $script:EvaluationErrors.Add([PSCustomObject]@{
+                    evaluation = "Sample evaluation"
+                    error      = "Evaluation unavailable"
+                    ruleIds    = @("SHR230")
+                })
+
+            $output = (Write-SharingSummary -Owner "owner@contoso.com" -Receiver "receiver@contoso.com" *>&1 |
+                    Out-String -Width 600).Replace("`r`n", "`n").Replace("`r", "")
+
+            $output | Should -Match 'Summary \(from run on [^\n]+\):\n[ \t]*\nMailbox Owner'
+            $output | Should -Match 'Modern Calendar Sharing\.\n(?:[ \t]*\n){2}Owner-to-Receiver Sharing Timeline:'
+            $output | Should -Match 'receiver \[receiver@contoso\.com\]\.\n[ \t]*\nLatest sent sharing invitation'
+            $output | Should -Match 'Latest sent sharing invitation[^\n]+\n[ \t]*\nLatest receiver acceptance entry'
+            $output | Should -Match 'Latest receiver acceptance entry[^\n]+\n[ \t]*\nLatest receiver synchronization request'
+            $output | Should -Match 'receipt or acceptance\.\n(?:[ \t]*\n){2}Detected Issues:'
+            $output | Should -Match 'Recommended Next Steps:\n[ \t]*\n\[SHR405\]'
+            $output | Should -Match '\[SHR405\][^\n]+\n[ \t]*\n\[SHR407\]'
+            $output | Should -Match '\[SHR407\][^\n]+\n(?:[ \t]*\n){2}Incomplete Checks:'
+            $output | Should -Match '\n(?:[ \t]*\n){2}Collection failures:'
+            $output | Should -Match '\n(?:[ \t]*\n){2}Evaluation failures:'
         }
     }
 

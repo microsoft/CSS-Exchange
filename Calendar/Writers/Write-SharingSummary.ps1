@@ -15,8 +15,10 @@ function Write-SharingSummary {
 
     Complete-SharingFindings
     $summaryColor = if ($null -ne $script:FatalPrerequisiteFailure) { "Red" } else { "Blue" }
-    Write-Host -ForegroundColor $summaryColor "`r`r`r------------------------------------------------"
+    Write-Host -Object "`r`n"
+    Write-Host -ForegroundColor $summaryColor "------------------------------------------------"
     Write-Host -ForegroundColor $summaryColor "Summary (from run on $($script:RunStartedAt.ToString('g'))):"
+    Write-Host -Object ""
     if ($null -ne $script:FatalPrerequisiteFailure) {
         $rootFinding = $script:SharingFindings |
             Where-Object -Property ruleId -EQ $script:FatalPrerequisiteFailure.ruleId |
@@ -35,6 +37,7 @@ function Write-SharingSummary {
             } | Format-Table -AutoSize -Wrap
         }
         if ($script:CollectionErrors.Count -gt 0) {
+            Write-Host -Object ""
             Write-Host -ForegroundColor Red "Root prerequisite collection failure:"
             $script:CollectionErrors | Format-Table -AutoSize -Property collector, error
         }
@@ -64,6 +67,7 @@ function Write-SharingSummary {
 
     $relationshipAssessment = Get-SharingRelationshipAssessment
     if ($null -ne $relationshipAssessment) {
+        Write-Host -Object ""
         $assessmentColor = if ($relationshipAssessment.status -eq "NotConfirmed") { "Yellow" } else { "Cyan" }
         Write-Host -ForegroundColor $assessmentColor -Object "Selected-calendar sharing assessment: Owner [$Owner], receiver [$Receiver], calendar [$script:NormalizedOwnerCalendarFolderPath]."
         Write-Host -ForegroundColor $assessmentColor -Object $relationshipAssessment.message
@@ -81,7 +85,9 @@ function Write-SharingSummary {
     $detectedFindings = @($script:SharingFindings | Where-Object -Property status -EQ "Detected")
     $incompleteFindings = @($script:SharingFindings | Where-Object -Property status -EQ "NotEvaluated")
 
-    Write-Host -ForegroundColor Blue "`r`rDetected Issues:"
+    Write-Host -Object "`r`n"
+    Write-Host -ForegroundColor Blue "Detected Issues:"
+    Write-Host -Object ""
     if ($detectedFindings.Count -eq 0) {
         Write-Host -ForegroundColor Green "No confirmed issues were detected with the evidence available."
     } else {
@@ -90,7 +96,9 @@ function Write-SharingSummary {
             -SeverityOrder $severityOrder
     }
 
-    Write-Host -ForegroundColor Blue "`r`rIncomplete Checks:"
+    Write-Host -Object "`r`n"
+    Write-Host -ForegroundColor Blue "Incomplete Checks:"
+    Write-Host -Object ""
     if (($incompleteFindings.Count -eq 0) -and
         ($script:CollectionErrors.Count -eq 0) -and
         ($script:EvaluationErrors.Count -eq 0)) {
@@ -100,13 +108,17 @@ function Write-SharingSummary {
             -Findings $incompleteFindings `
             -SeverityOrder $severityOrder
         if ($script:CollectionErrors.Count -gt 0) {
+            Write-Host -Object "`r`n"
             Write-Host -ForegroundColor Yellow "Collection failures:"
             $script:CollectionErrors | Format-Table -AutoSize -Property collector, error
         }
         if ($script:EvaluationErrors.Count -gt 0) {
+            Write-Host -Object "`r`n"
             Write-Host -ForegroundColor Yellow "Evaluation failures:"
             $script:EvaluationErrors | Format-Table -AutoSize -Property evaluation, error
         }
+        Write-Host -Object ""
         Write-Host -ForegroundColor Yellow "The sharing state should not be considered healthy until the incomplete checks are resolved."
     }
+    Write-Host -Object ""
 }

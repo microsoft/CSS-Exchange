@@ -238,15 +238,58 @@ function GetReceiverInformation {
         if ($script:PublishedSharing -or ($script:SharingType -eq "ExternalSharing")) {
             $script:CollectorStatuses["CalendarEntries"] = [PSCustomObject]@{ status = "NotApplicable"; error = $null }
         } elseif (Get-Command -Name Get-CalendarEntries -ErrorAction SilentlyContinue) {
+            $databaseForestPattern = '^(?<Forest>[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+)/[^/]+$'
+            $ownerForest = if ([string]$script:OwnerMB.Database -match $databaseForestPattern) { $Matches.Forest }
+            $receiverForest = if ([string]$script:ReceiverMB.Database -match $databaseForestPattern) { $Matches.Forest }
+            $crossForestRun = (-not [string]::IsNullOrWhiteSpace($ownerForest)) -and
+            (-not [string]::IsNullOrWhiteSpace($receiverForest)) -and ($ownerForest -ne $receiverForest)
+            if ($crossForestRun) {
+                Write-Warning "Owner and receiver mailbox databases are in different forests [$ownerForest] and [$receiverForest]. Attempting Get-CalendarEntries; this cmdlet may not proxy across forests."
+            }
             Write-Verbose "Found Get-CalendarEntries cmdlet. Running cmdlet: Get-CalendarEntries -Identity $Receiver"
             $calendarEntriesAvailable = $true
             try {
                 $ReceiverCalEntries = @(Invoke-SharingCollector -Name "CalendarEntries" -Action {
-                        @(Get-CalendarEntries -Identity $Receiver -ErrorAction Stop)
+                        # Some proxies report failures through host output or non-terminating errors instead of throwing.
+                        try {
+                            $entryOutput = @(Get-CalendarEntries -Identity $Receiver -ErrorAction Stop *>&1)
+                            $entryError = @($entryOutput | Where-Object -FilterScript {
+                                    $_ -is [System.Management.Automation.ErrorRecord]
+                                } | Select-Object -First 1)
+                            if ($entryError.Count -gt 0) { throw $entryError[0] }
+
+                            $proxyText = @($entryOutput | Where-Object -FilterScript {
+                                    ($_ -is [string]) -or ($_ -is [System.Management.Automation.InformationRecord])
+                                } | ForEach-Object -Process { [string]$_ }) -join "`n"
+                            if ($proxyText -match '(?m)^\s*FullyQualifiedErrorId\s*:|the ExchangePrincipal object contains outdated information|\b(?:MailboxInfoStaleException|DatabaseNotFoundException)\b') {
+                                throw $proxyText
+                            }
+                            $entryOutput | Where-Object -FilterScript {
+                                $_ -isnot [string] -and
+                                $_ -isnot [System.Management.Automation.InformationRecord] -and
+                                $_ -isnot [System.Management.Automation.WarningRecord] -and
+                                $_ -isnot [System.Management.Automation.VerboseRecord] -and
+                                $_ -isnot [System.Management.Automation.DebugRecord]
+                            }
+                        } catch {
+                            $errorText = @($_.Exception.Message, $_.ErrorDetails.Message, $_.FullyQualifiedErrorId) -join "`n"
+                            if ($errorText -match 'the ExchangePrincipal object contains outdated information') {
+                                throw "Failed to Proxy for CMDLET Get-CalendarEntries"
+                            }
+                            throw
+                        }
                     } -AllowNull)
             } catch {
-                Write-Warning "Failed to retrieve calendar entries for [$Receiver]: $($_.Exception.Message)"
-                Add-SharingFinding -Severity Warning -Area "Calendar entries" -Issue "The receiver calendar-entry check was unavailable." -Evidence $_.Exception.Message -RecommendedNextStep "Rerun Get-CalendarEntries with sufficient access and inspect the owner/receiver pair." -Incomplete
+                $failureMessage = if ($_.Exception.Message -match '(?m)^\s*FullyQualifiedErrorId\s*:') {
+                    "The cmdlet proxy reported an error instead of returning calendar entries."
+                } else {
+                    ConvertTo-CalendarDiagnosticSafeErrorText -Value $_.Exception.Message -MaximumLength 256
+                }
+                $forestGuidance = if ($crossForestRun) {
+                    " Retry Get-CalendarEntries from the receiver mailbox forest [$receiverForest]."
+                }
+                Write-Warning "Get-CalendarEntries failed for [$Receiver]: $failureMessage$forestGuidance"
+                Add-SharingFinding -Severity Warning -Area "Calendar entries" -Issue "The receiver calendar-entry check was unavailable." -Evidence $failureMessage -RecommendedNextStep "Rerun Get-CalendarEntries with sufficient access and inspect the owner/receiver pair." -Incomplete
                 $ReceiverCalEntries = @()
                 $calendarEntriesAvailable = $false
             }
@@ -551,7 +594,7 @@ function GetReceiverInformation {
                 if (($null -ne $ownerPermission) -and
                     ($ownerSharingFlags.Count -gt 0) -and
                     ($receiverSharingFlags.Count -gt 0) -and
-                    (Test-SharingPermissionFlagsDiffer -FirstFlags $ownerSharingFlags -SecondFlags $receiverSharingFlags)) {
+                    (Test-SharingPermissionFlagsDiffer -FirstFlags $ownerSharingFlags -SecondFlags $receiverSharingFlags -IgnoreFullMailboxAccess)) {
                     Add-SharingFinding -Severity Warning -Area "Pair permission configuration" -Issue "Owner and receiver sharing permission flags differ." -Evidence "Owner flags=[$($ownerSharingFlags -join ', ')]; receiver flags=[$($receiverSharingFlags -join ', ')]." -RecommendedNextStep "Compare the pair configuration with SharingPolicyAssistant or calendar-sharing validator diagnostics."
                 }
                 if (($null -ne $script:OwnerActiveReceiver) -and
