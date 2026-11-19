@@ -353,7 +353,7 @@ begin {
     $localServerFqdn = [System.Net.Dns]::GetHostEntry($env:COMPUTERNAME).HostName
 
     # Endpoints which we need to run the Graph API calls against
-    $cloudService = Get-CloudServiceEndpoint $Script:AzureEnvironment
+    $cloudService = Get-CloudServiceEndpoint -EndpointName $Script:AzureEnvironment
 
     $azureADEndpoint = $cloudService.AzureADEndpoint
 

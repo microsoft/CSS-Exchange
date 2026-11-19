@@ -34,6 +34,10 @@
 # .PARAMETER ConnectionUri
 #    The Exchange Online remote PowerShell connection uri. If you are an Office 365 operated by 21Vianet customer in China, use "https://partner.outlook.cn/PowerShell".
 #
+# .PARAMETER AzureADAuthorizationEndpointUri
+#    Optional Microsoft Entra authorization endpoint for Exchange Online when ArePublicFoldersOnPremises is $true.
+#    Use with the appropriate ConnectionUri for your environment. When omitted, Connect-ExchangeOnline uses its default authorization endpoint.
+#
 # .PARAMETER WhatIf
 #    The WhatIf switch instructs the script to simulate the actions that it would take on the object. By using the WhatIf switch, you can view what changes would occur
 #    without having to apply any of those changes. You don't have to specify a value with the WhatIf switch.
@@ -72,9 +76,15 @@ param(
     [switch] $ScriptUpdateOnly,
 
     [Parameter(Mandatory=$false)]
-    [switch] $SkipVersionCheck
+    [switch] $SkipVersionCheck,
+
+    [Parameter(Mandatory = $false, ParameterSetName = "Default")]
+    [ValidateNotNullOrEmpty()]
+    [string] $AzureADAuthorizationEndpointUri
 )
 
+. $PSScriptRoot\..\..\..\Shared\ExchangeOnlineFunctions\Connect-ExchangeOnlineEndpoint.ps1
+. $PSScriptRoot\..\..\..\Shared\ExchangeOnlineFunctions\Test-ExchangeOnlineManagementModule.ps1
 . $PSScriptRoot\..\..\..\Shared\ScriptUpdateFunctions\GenericScriptUpdate.ps1
 
 ###################### START OF DEFAULTS ######################
@@ -292,23 +302,23 @@ function EnableMailPfWithProperties {
 
 # Create a tenant PSSession against Exchange Online with modern auth.
 function InitializeExchangeOnlineRemoteSession() {
-    Import-Module ExchangeOnlineManagement -ErrorAction SilentlyContinue
-    if (Get-Module ExchangeOnlineManagement) {
-        $connectParams = @{
-            ConnectionUri = $ConnectionUri
-            Prefix        = "Remote"
-            ErrorAction   = "SilentlyContinue"
-        }
+    param (
+        [string] $ConnectionUri,
+        [PSCredential] $Credential,
+        [string] $AzureADAuthorizationEndpointUri
+    )
 
-        if ($null -ne $Credential) {
-            $connectParams.Credential = $Credential
-        }
-        Connect-ExchangeOnline @connectParams
-        $script:isConnectedToExchangeOnline = $true
-    } else {
+    if (-not (Test-ExchangeOnlineManagementModule)) {
         Write-Warning $LocalizedStrings.EXOV2ModuleNotInstalled
         exit
     }
+
+    Connect-ExchangeOnlineEndpoint -ConnectionUri $ConnectionUri `
+        -AzureADAuthorizationEndpointUri $AzureADAuthorizationEndpointUri `
+        -Credential $Credential `
+        -Prefix "Remote" `
+        -ConnectErrorAction "SilentlyContinue"
+    $script:isConnectedToExchangeOnline = $true
 
     WriteLog -Path $logPath -Message $LocalizedStrings.RemoteSessionCreatedSuccessfully
 }
@@ -385,7 +395,7 @@ try {
     # if public folders are on-premises, create an EXO remote session
     if ($ArePublicFoldersOnPremises) {
         WriteLog -Path $logPath -Message $LocalizedStrings.CreatingRemoteSession
-        InitializeExchangeOnlineRemoteSession
+        InitializeExchangeOnlineRemoteSession -ConnectionUri $ConnectionUri -Credential $Credential -AzureADAuthorizationEndpointUri $AzureADAuthorizationEndpointUri
     }
 
     foreach ($accessRight in $accessRights) {
