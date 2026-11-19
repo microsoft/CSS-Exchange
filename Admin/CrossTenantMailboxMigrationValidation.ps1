@@ -98,6 +98,10 @@
         Optional redirect URI used to locate the cross-tenant migration Microsoft Entra application. Defaults to https://office.com, which is correct for the public cloud.
         Supply the redirect URI registered on the migration application in your environment if it differs.
 
+.PARAMETER MigrationEndpointRemoteServer
+        Expected RemoteServer host name for the target migration endpoint checked by CheckOrgs, including with SourceIsOffline. Defaults to outlook.office.com.
+        Supply the supported migration endpoint host name for your cloud if it differs. This validates the migration endpoint configuration; it does not change any connection endpoint.
+
 .EXAMPLE
         .\CrossTenantMailboxMigrationValidation.ps1 -CheckObjects -LogPath C:\Temp\LogFile.txt
         This will prompt you to type the source mailbox identity and the target identity, will establish 2 EXO remote powershell sessions (one to the source tenant and another one to the target tenant), and will check the objects.
@@ -215,7 +219,11 @@ param (
     [Parameter(ParameterSetName = "OrgsValidation")]
     [Parameter(ParameterSetName = "SDP")]
     [ValidateNotNullOrEmpty()]
-    [string]$AADAppRedirectUri = "https://office.com"
+    [string]$AADAppRedirectUri = "https://office.com",
+    [Parameter(ParameterSetName = "OfflineMode")]
+    [Parameter(ParameterSetName = "OrgsValidation")]
+    [ValidateNotNullOrEmpty()]
+    [string]$MigrationEndpointRemoteServer = "outlook.office.com"
 )
 
 . $PSScriptRoot\..\Shared\ExchangeOnlineFunctions\Connect-ExchangeOnlineEndpoint.ps1
@@ -887,7 +895,7 @@ function CheckOrgs {
     if ($TargetAADApp) {
         Write-Host "AAD application for EXO has been found on TARGET tenant" -ForegroundColor Green
         Write-Verbose -Message "Informational: Loading migration endpoints on TARGET tenant that meets the criteria"
-        $TargetMigrationEndpoint = Get-TargetMigrationEndpoint | Where-Object { ($_.EndpointType -eq "ExchangeRemoteMove") -and ($_.ApplicationId -eq $TargetAADApp.AppId) }
+        $TargetMigrationEndpoint = Get-TargetMigrationEndpoint | Where-Object { ($_.RemoteServer -eq $MigrationEndpointRemoteServer) -and ($_.EndpointType -eq "ExchangeRemoteMove") -and ($_.ApplicationId -eq $TargetAADApp.AppId) }
         if ($TargetMigrationEndpoint) {
             Write-Host "Migration endpoint found and correctly set, RemoteServer: $(($TargetMigrationEndpoint.RemoteServer | Sort-Object -Unique) -join ', ')" -ForegroundColor Green
         } else {
@@ -956,7 +964,7 @@ function CheckOrgsSourceOffline {
     if ($TargetAADApp) {
         Write-Host "AAD application for EXO has been found" -ForegroundColor Green
         Write-Verbose -Message "Informational: Loading migration endpoints on TARGET tenant that meets the criteria"
-        $TargetMigrationEndpoint = Get-TargetMigrationEndpoint | Where-Object { ($_.EndpointType -eq "ExchangeRemoteMove") -and ($_.ApplicationId -eq $TargetAADApp.AppId) }
+        $TargetMigrationEndpoint = Get-TargetMigrationEndpoint | Where-Object { ($_.RemoteServer -eq $MigrationEndpointRemoteServer) -and ($_.EndpointType -eq "ExchangeRemoteMove") -and ($_.ApplicationId -eq $TargetAADApp.AppId) }
         if ($TargetMigrationEndpoint) {
             Write-Host "Migration endpoint found and correctly set, RemoteServer: $(($TargetMigrationEndpoint.RemoteServer | Sort-Object -Unique) -join ', ')" -ForegroundColor Green
         } else {
@@ -1132,6 +1140,10 @@ if ((-not($SkipVersionCheck)) -and
 # Parameter sets cannot express that the offline object check never reaches Microsoft Graph.
 if ($SourceIsOffline -and $CheckObjects -and -not $CheckOrgs -and ($GraphEndpointUri -or $AzureADEndpointUri -or $PSBoundParameters.ContainsKey("AADAppRedirectUri"))) {
     Write-Host "Informational: Microsoft Graph is not used when validating objects against collected source data, so the Graph overrides will not be applied" -ForegroundColor Yellow
+}
+
+if ($SourceIsOffline -and $CheckObjects -and -not $CheckOrgs -and $PSBoundParameters.ContainsKey("MigrationEndpointRemoteServer")) {
+    Write-Host "Informational: MigrationEndpointRemoteServer is only used by CheckOrgs and will not be applied when validating objects against collected source data" -ForegroundColor Yellow
 }
 
 try {

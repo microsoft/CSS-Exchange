@@ -46,6 +46,7 @@ BeforeDiscovery -ScriptBlock {
             }
         }
         @{ Scenario = "AAD app redirect override"; Endpoints = @{ AADAppRedirectUri = "https://portal.example.com" } }
+        @{ Scenario = "migration endpoint server override"; Endpoints = @{ MigrationEndpointRemoteServer = "migration.example.com" } }
         @{ Scenario = "all graph overrides"; Endpoints = @{
                 GraphEndpointUri   = "https://graph.example.com"
                 AzureADEndpointUri = "https://login.example.com"
@@ -78,6 +79,7 @@ BeforeDiscovery -ScriptBlock {
         "GraphEndpointUri"
         "AzureADEndpointUri"
         "AADAppRedirectUri"
+        "MigrationEndpointRemoteServer"
     )
     # Each execution path only connects to the tenants and services it actually uses, so the parameter
     # sets only accept the overrides that can take effect. Keep this in sync with the param block.
@@ -95,7 +97,7 @@ BeforeDiscovery -ScriptBlock {
         @{
             ParameterSetName = "SDP"
             ModeParameters   = @{ SDP = $true; LogPath = "validation.log"; PathForCollectedData = "collected" }
-            Allowed          = $Script:allEndpointNames
+            Allowed          = @($Script:allEndpointNames | Where-Object { $_ -ne "MigrationEndpointRemoteServer" })
         }
         @{
             ParameterSetName = "CollectMode"
@@ -105,12 +107,12 @@ BeforeDiscovery -ScriptBlock {
         @{
             ParameterSetName = "OfflineMode"
             ModeParameters   = @{ SourceIsOffline = $true; CheckObjects = $true; LogPath = "validation.log"; PathForCollectedData = "collected.zip" }
-            Allowed          = @("TargetConnectionUri", "TargetAzureADAuthorizationEndpointUri", "GraphEndpointUri", "AzureADEndpointUri", "AADAppRedirectUri")
+            Allowed          = @("TargetConnectionUri", "TargetAzureADAuthorizationEndpointUri", "GraphEndpointUri", "AzureADEndpointUri", "AADAppRedirectUri", "MigrationEndpointRemoteServer")
         }
         @{
             ParameterSetName = "OfflineMode"
             ModeParameters   = @{ SourceIsOffline = $true; CheckOrgs = $true; LogPath = "validation.log"; PathForCollectedData = "collected.zip" }
-            Allowed          = @("TargetConnectionUri", "TargetAzureADAuthorizationEndpointUri", "GraphEndpointUri", "AzureADEndpointUri", "AADAppRedirectUri")
+            Allowed          = @("TargetConnectionUri", "TargetAzureADAuthorizationEndpointUri", "GraphEndpointUri", "AzureADEndpointUri", "AADAppRedirectUri", "MigrationEndpointRemoteServer")
         }
     )
     $Script:bindingCases = foreach ($mode in $modes) {
@@ -144,7 +146,7 @@ BeforeDiscovery -ScriptBlock {
         @{ EndpointName = $endpointName; Value = $null; Description = "null" }
         @{ EndpointName = $endpointName; Value = ""; Description = "empty" }
     }
-    $Script:invalidGraphCases = foreach ($endpointName in @("GraphEndpointUri", "AzureADEndpointUri", "AADAppRedirectUri")) {
+    $Script:invalidOrgCases = foreach ($endpointName in @("GraphEndpointUri", "AzureADEndpointUri", "AADAppRedirectUri", "MigrationEndpointRemoteServer")) {
         @{ EndpointName = $endpointName; Value = $null; Description = "null" }
         @{ EndpointName = $endpointName; Value = ""; Description = "empty" }
     }
@@ -187,6 +189,7 @@ BeforeAll -Scriptblock {
     ParameterSetName = $PSCmdlet.ParameterSetName
     BoundParameters = $PSBoundParameters
     AADAppRedirectUri = $AADAppRedirectUri
+    MigrationEndpointRemoteServer = $MigrationEndpointRemoteServer
 }
 '@)
 
@@ -482,17 +485,19 @@ Describe -Name "Cross-tenant Microsoft Graph endpoint overrides" -Fixture {
 Describe -Name "Cross-tenant migration endpoint validation" -Fixture {
     BeforeEach -Scriptblock {
         $Script:TargetAADApp = [PSCustomObject]@{ AppId = "00000000-0000-0000-0000-000000000001" }
+        $Script:MigrationEndpointRemoteServer = "outlook.office.com"
         Mock -CommandName Write-Host -MockWith { }
         Mock -CommandName Get-TargetMigrationEndpoint -MockWith { }
     }
 
-    It -Name "<HelperName> accepts a RemoteServer outside the commercial cloud" -TestCases @(
+    It -Name "<HelperName> accepts the expected RemoteServer <RemoteServer>" -TestCases @(
         @{ HelperName = "CheckOrgs"; RemoteServer = "outlook.office365.us" }
         @{ HelperName = "CheckOrgsSourceOffline"; RemoteServer = "outlook.office365.us" }
         @{ HelperName = "CheckOrgs"; RemoteServer = "outlook.office.com" }
         @{ HelperName = "CheckOrgsSourceOffline"; RemoteServer = "outlook.office.com" }
     ) -Test {
         param($HelperName, $RemoteServer)
+        $Script:MigrationEndpointRemoteServer = $RemoteServer
         Mock -CommandName Get-TargetMigrationEndpoint -MockWith {
             [PSCustomObject]@{
                 EndpointType  = "ExchangeRemoteMove"
@@ -508,6 +513,32 @@ Describe -Name "Cross-tenant migration endpoint validation" -Fixture {
         }
     }
 
+    It -Name "<HelperName> rejects a RemoteServer that differs from <ExpectedServer>" -TestCases @(
+        @{ HelperName = "CheckOrgs"; ExpectedServer = "outlook.office.com" }
+        @{ HelperName = "CheckOrgsSourceOffline"; ExpectedServer = "outlook.office.com" }
+        @{ HelperName = "CheckOrgs"; ExpectedServer = "migration.example.com" }
+        @{ HelperName = "CheckOrgsSourceOffline"; ExpectedServer = "migration.example.com" }
+    ) -Test {
+        param($HelperName, $ExpectedServer)
+        $Script:MigrationEndpointRemoteServer = $ExpectedServer
+        Mock -CommandName Get-TargetMigrationEndpoint -MockWith {
+            [PSCustomObject]@{
+                EndpointType  = "ExchangeRemoteMove"
+                ApplicationId = "00000000-0000-0000-0000-000000000001"
+                RemoteServer  = "wrong.example.invalid"
+            }
+        }
+
+        & $Script:migrationEndpointChecks[$HelperName]
+
+        Should -Invoke -CommandName Write-Host -Times 1 -Exactly -ParameterFilter {
+            $Object -eq ">> Error: Expected Migration endpoint not found"
+        }
+        Should -Invoke -CommandName Write-Host -Times 0 -ParameterFilter {
+            $Object -like "Migration endpoint found and correctly set*"
+        }
+    }
+
     It -Name "<HelperName> still reports a missing migration endpoint" -TestCases @(
         @{ HelperName = "CheckOrgs" }
         @{ HelperName = "CheckOrgsSourceOffline" }
@@ -517,7 +548,7 @@ Describe -Name "Cross-tenant migration endpoint validation" -Fixture {
             [PSCustomObject]@{
                 EndpointType  = "ExchangeRemoteMove"
                 ApplicationId = "00000000-0000-0000-0000-000000000002"
-                RemoteServer  = "outlook.office365.us"
+                RemoteServer  = "outlook.office.com"
             }
         }
 
@@ -581,13 +612,21 @@ Describe -Name "Cross-tenant script parameter binding" -Fixture {
         $result.AADAppRedirectUri | Should -BeExactly "https://office.com"
     }
 
+    It -Name "preserves the default migration endpoint host unless overridden" -Test {
+        $result = & $Script:parameterBinding -CheckOrgs -LogPath "validation.log"
+        $result.MigrationEndpointRemoteServer | Should -BeExactly "outlook.office.com"
+
+        $result = & $Script:parameterBinding -CheckOrgs -LogPath "validation.log" -MigrationEndpointRemoteServer "migration.example.com"
+        $result.MigrationEndpointRemoteServer | Should -BeExactly "migration.example.com"
+    }
+
     It -Name "rejects <Description> for <EndpointName>" -TestCases $Script:invalidCases -Test {
         param($EndpointName, $Value)
         $parameters = @{ CheckObjects = $true; LogPath = "validation.log"; $EndpointName = $Value }
         { & $Script:parameterBinding @parameters } | Should -Throw
     }
 
-    It -Name "rejects <Description> for <EndpointName>" -TestCases $Script:invalidGraphCases -Test {
+    It -Name "rejects <Description> for <EndpointName>" -TestCases $Script:invalidOrgCases -Test {
         param($EndpointName, $Value)
         $parameters = @{ CheckOrgs = $true; LogPath = "validation.log"; $EndpointName = $Value }
         { & $Script:parameterBinding @parameters } | Should -Throw

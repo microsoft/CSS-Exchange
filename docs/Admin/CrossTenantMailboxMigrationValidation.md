@@ -109,6 +109,11 @@ Each endpoint override is independent. The Exchange Online overrides can be used
 
     Offline object validation does not use Microsoft Graph. Because `-SourceIsOffline` shares a parameter set with `-CheckOrgs`, the Graph overrides are still accepted in this combination, but the script reports that they will not be applied.
 
+### MigrationEndpointRemoteServer
+Expected `RemoteServer` host name for the target migration endpoint validated by `-CheckOrgs`, including with `-SourceIsOffline`. Defaults to `outlook.office.com`, preserving the existing commercial-cloud check. In other clouds, pass the supported migration endpoint host name explicitly. The endpoint must also have the expected application ID and `ExchangeRemoteMove` type.
+
+This parameter validates the existing migration endpoint; it does not change the Exchange Online or Graph connection URIs. It is not accepted with object-only validation, source collection, SDP collection, or `-ScriptUpdateOnly`. The shared offline parameter set also accepts it with `-SourceIsOffline -CheckObjects`, but the script reports that it will not be applied unless `-CheckOrgs` is used.
+
 ## EXAMPLES
 
 ### EXAMPLE 1
