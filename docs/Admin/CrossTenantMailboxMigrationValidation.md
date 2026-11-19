@@ -95,7 +95,7 @@ Optional authorization endpoint URI passed to `Connect-ExchangeOnline -AzureADAu
 ### GraphEndpointUri
 Optional Microsoft Graph service root endpoint used when the script connects to Microsoft Graph. Must be specified together with `AzureADEndpointUri`. If omitted, `Connect-MgGraph` uses its default environment.
 
-`Connect-MgGraph` selects endpoints by environment name rather than by individual URIs, and `Add-MgEnvironment` writes the environment to your Microsoft Graph settings file. The connection keeps the endpoints it resolved while connecting, so the script registers a temporary environment named `CrossTenantMailboxMigrationValidation` only for the duration of the `Connect-MgGraph` call and removes it again immediately, including when connecting fails. Your settings file is not left modified.
+`Connect-MgGraph` selects endpoints by environment name rather than by individual URIs, and `Add-MgEnvironment` writes the environment to your Microsoft Graph settings file. The connection keeps the endpoints it resolved while connecting, so the script registers a temporary environment named `CrossTenantMailboxMigrationValidation-<unique GUID>` for each `Connect-MgGraph` call and removes it immediately afterwards, including when connecting fails. It does not reuse or remove environments belonging to users or other calls. If removal fails, execution stops with the environment name and a `Remove-MgEnvironment` command for manual cleanup; the temporary entry may remain until that cleanup succeeds.
 
 ### AzureADEndpointUri
 Optional Microsoft Entra endpoint used to obtain access tokens for Microsoft Graph. Must be specified together with `GraphEndpointUri`.

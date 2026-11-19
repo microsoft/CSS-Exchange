@@ -166,7 +166,7 @@ BeforeAll -Scriptblock {
             param($Node)
             $Node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
             $Node.Name -in @("ConnectToEXOTenants", "ConnectToSourceEXOTenant", "ConnectToTargetEXOTenant",
-                "TestGraphEndpointParameters", "RemoveGraphEnvironment", "ConnectToTenantAAD", "KillSessions")
+                "TestGraphEndpointParameters", "ConnectToTenantAAD", "KillSessions")
         }, $false)
     foreach ($function in $functions) {
         . ([ScriptBlock]::Create($function.Extent.Text))
@@ -186,6 +186,7 @@ BeforeAll -Scriptblock {
 [PSCustomObject]@{
     ParameterSetName = $PSCmdlet.ParameterSetName
     BoundParameters = $PSBoundParameters
+    AADAppRedirectUri = $AADAppRedirectUri
 }
 '@)
 
@@ -209,19 +210,7 @@ BeforeAll -Scriptblock {
         throw "Microsoft Graph must be mocked."
     }
 
-    function Get-MgEnvironment {
-        [CmdletBinding()]
-        param([string]$Name)
-        throw "Microsoft Graph must be mocked."
-    }
-
     function Add-MgEnvironment {
-        [CmdletBinding()]
-        param([string]$Name, [string]$GraphEndpoint, [string]$AzureADEndpoint)
-        throw "Microsoft Graph must be mocked."
-    }
-
-    function Set-MgEnvironment {
         [CmdletBinding()]
         param([string]$Name, [string]$GraphEndpoint, [string]$AzureADEndpoint)
         throw "Microsoft Graph must be mocked."
@@ -332,22 +321,18 @@ Describe -Name "Cross-tenant Microsoft Graph endpoint overrides" -Fixture {
     BeforeEach -Scriptblock {
         $Script:GraphEndpointUri = $null
         $Script:AzureADEndpointUri = $null
-        $Script:GraphEnvironmentName = "CrossTenantMailboxMigrationValidation"
         # Model the Microsoft Graph settings file so the tests see the same state the real cmdlets would leave behind.
         $Script:fakeEnvironments = @{}
-        Mock -CommandName Get-MgEnvironment -MockWith {
-            if ($Script:fakeEnvironments.ContainsKey($Name)) { $Script:fakeEnvironments[$Name] }
-        }
+        $Script:graphConnections = [System.Collections.Generic.List[object]]::new()
         Mock -CommandName Add-MgEnvironment -MockWith {
-            $Script:fakeEnvironments[$Name] = [PSCustomObject]@{ Name = $Name; GraphEndpoint = $GraphEndpoint; AzureADEndpoint = $AzureADEndpoint }
-        }
-        Mock -CommandName Set-MgEnvironment -MockWith {
             $Script:fakeEnvironments[$Name] = [PSCustomObject]@{ Name = $Name; GraphEndpoint = $GraphEndpoint; AzureADEndpoint = $AzureADEndpoint }
         }
         Mock -CommandName Remove-MgEnvironment -MockWith {
             $Script:fakeEnvironments.Remove($Name)
         }
-        Mock -CommandName Connect-MgGraph -MockWith { }
+        Mock -CommandName Connect-MgGraph -MockWith {
+            if ($Environment) { $Script:graphConnections.Add($Script:fakeEnvironments[$Environment]) }
+        }
     }
 
     It -Name "connects without an environment when no overrides are supplied" -Test {
@@ -357,7 +342,7 @@ Describe -Name "Cross-tenant Microsoft Graph endpoint overrides" -Fixture {
             $Scopes -contains "Application.Read.All" -and -not $PSBoundParameters.ContainsKey("Environment")
         }
         Should -Invoke -CommandName Add-MgEnvironment -Times 0
-        Should -Invoke -CommandName Set-MgEnvironment -Times 0
+        Should -Invoke -CommandName Remove-MgEnvironment -Times 0
     }
 
     It -Name "registers the supplied endpoints and connects using them" -Test {
@@ -367,13 +352,16 @@ Describe -Name "Cross-tenant Microsoft Graph endpoint overrides" -Fixture {
         ConnectToTenantAAD
 
         Should -Invoke -CommandName Add-MgEnvironment -Times 1 -Exactly -ParameterFilter {
-            $Name -eq "CrossTenantMailboxMigrationValidation" -and
+            $Name -eq $Script:graphConnections[0].Name -and
             $GraphEndpoint -eq "https://graph.example.com" -and
             $AzureADEndpoint -eq "https://login.example.com"
         }
         Should -Invoke -CommandName Connect-MgGraph -Times 1 -Exactly -ParameterFilter {
-            $Scopes -contains "Application.Read.All" -and $Environment -eq "CrossTenantMailboxMigrationValidation"
+            $Scopes -contains "Application.Read.All" -and $Environment -eq $Script:graphConnections[0].Name
         }
+        $Script:graphConnections[0].Name | Should -Match "^CrossTenantMailboxMigrationValidation-[0-9a-f]{32}$"
+        $Script:graphConnections[0].GraphEndpoint | Should -BeExactly $Script:GraphEndpointUri
+        $Script:graphConnections[0].AzureADEndpoint | Should -BeExactly $Script:AzureADEndpointUri
     }
 
     It -Name "does not leave the registered environment in the settings file" -Test {
@@ -397,18 +385,21 @@ Describe -Name "Cross-tenant Microsoft Graph endpoint overrides" -Fixture {
         Should -Invoke -CommandName Remove-MgEnvironment -Times 1 -Exactly
     }
 
-    It -Name "reuses an environment left behind by an earlier run" -Test {
-        $Script:fakeEnvironments["CrossTenantMailboxMigrationValidation"] = [PSCustomObject]@{ Name = "CrossTenantMailboxMigrationValidation" }
+    It -Name "preserves environments belonging to users or other runs" -Test {
+        $existingNames = @("CrossTenantMailboxMigrationValidation", "CrossTenantMailboxMigrationValidation-0123456789abcdef0123456789abcdef")
+        foreach ($name in $existingNames) {
+            $Script:fakeEnvironments[$name] = [PSCustomObject]@{ Name = $name; GraphEndpoint = "https://existing.example.com" }
+        }
         $Script:GraphEndpointUri = "https://graph.example.com"
         $Script:AzureADEndpointUri = "https://login.example.com"
 
         ConnectToTenantAAD
 
-        Should -Invoke -CommandName Set-MgEnvironment -Times 1 -Exactly -ParameterFilter {
-            $GraphEndpoint -eq "https://graph.example.com" -and $AzureADEndpoint -eq "https://login.example.com"
+        $Script:fakeEnvironments.Count | Should -Be 2
+        foreach ($name in $existingNames) {
+            $Script:fakeEnvironments[$name].GraphEndpoint | Should -BeExactly "https://existing.example.com"
         }
-        Should -Invoke -CommandName Add-MgEnvironment -Times 0
-        $Script:fakeEnvironments.Count | Should -Be 0
+        Should -Invoke -CommandName Remove-MgEnvironment -Times 0 -ParameterFilter { $Name -in $existingNames }
     }
 
     It -Name "connects to Graph for both the source and the target tenant" -Test {
@@ -418,10 +409,51 @@ Describe -Name "Cross-tenant Microsoft Graph endpoint overrides" -Fixture {
         ConnectToTenantAAD
         ConnectToTenantAAD
 
-        Should -Invoke -CommandName Connect-MgGraph -Times 2 -Exactly -ParameterFilter {
-            $Environment -eq "CrossTenantMailboxMigrationValidation"
-        }
+        Should -Invoke -CommandName Connect-MgGraph -Times 2 -Exactly
+        $Script:graphConnections[0].Name | Should -Not -Be $Script:graphConnections[1].Name
         $Script:fakeEnvironments.Count | Should -Be 0
+    }
+
+    It -Name "keeps overlapping connections isolated" -Test {
+        $Script:GraphEndpointUri = "https://graph.example.com"
+        $Script:AzureADEndpointUri = "https://login.example.com"
+        $Script:outerEnvironmentName = $null
+        Mock -CommandName Connect-MgGraph -MockWith {
+            if (-not $Script:outerEnvironmentName) {
+                $Script:outerEnvironmentName = $Environment
+                ConnectToTenantAAD
+                $Script:fakeEnvironments.ContainsKey($Environment) | Should -BeTrue
+            } else {
+                $Environment | Should -Not -Be $Script:outerEnvironmentName
+                $Script:fakeEnvironments.Count | Should -Be 2
+            }
+        }
+
+        ConnectToTenantAAD
+
+        $Script:fakeEnvironments.Count | Should -Be 0
+        Should -Invoke -CommandName Remove-MgEnvironment -Times 2 -Exactly
+    }
+
+    It -Name "reports a cleanup failure with the environment to remove" -Test {
+        $Script:GraphEndpointUri = "https://graph.example.com"
+        $Script:AzureADEndpointUri = "https://login.example.com"
+        Mock -CommandName Remove-MgEnvironment -MockWith { Write-Error -Message "Settings file is locked" }
+
+        { ConnectToTenantAAD } | Should -Throw -ExpectedMessage "*Remove-MgEnvironment -Name 'CrossTenantMailboxMigrationValidation-*Settings file is locked*"
+
+        $Script:fakeEnvironments.Count | Should -Be 1
+    }
+
+    It -Name "does not connect or remove another environment when registration fails" -Test {
+        $Script:GraphEndpointUri = "https://graph.example.com"
+        $Script:AzureADEndpointUri = "https://login.example.com"
+        Mock -CommandName Add-MgEnvironment -MockWith { throw "Registration failed" }
+
+        { ConnectToTenantAAD } | Should -Throw -ExpectedMessage "Registration failed"
+
+        Should -Invoke -CommandName Connect-MgGraph -Times 0
+        Should -Invoke -CommandName Remove-MgEnvironment -Times 0
     }
 
     It -Name "requires <EndpointName> to be paired with the other override" -TestCases @(
@@ -444,12 +476,6 @@ Describe -Name "Cross-tenant Microsoft Graph endpoint overrides" -Fixture {
         $Script:AzureADEndpointUri = "https://login.example.com"
 
         TestGraphEndpointParameters | Should -BeTrue
-    }
-
-    It -Name "does not remove an environment that is not registered" -Test {
-        RemoveGraphEnvironment
-
-        Should -Invoke -CommandName Remove-MgEnvironment -Times 0
     }
 }
 
@@ -552,6 +578,7 @@ Describe -Name "Cross-tenant script parameter binding" -Fixture {
     It -Name "defaults AADAppRedirectUri when it is not supplied" -Test {
         $result = & $Script:parameterBinding -CheckOrgs -LogPath "validation.log"
         $result.BoundParameters.ContainsKey("AADAppRedirectUri") | Should -BeFalse
+        $result.AADAppRedirectUri | Should -BeExactly "https://office.com"
     }
 
     It -Name "rejects <Description> for <EndpointName>" -TestCases $Script:invalidCases -Test {

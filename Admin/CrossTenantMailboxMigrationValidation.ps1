@@ -92,7 +92,7 @@
 
 .PARAMETER AzureADEndpointUri
         Optional Microsoft Entra authority used for Microsoft Graph authentication for both tenants. Must be specified together with GraphEndpointUri.
-        The two Graph URIs are registered as a named Microsoft Graph environment only for the duration of each Connect-MgGraph call, because Connect-MgGraph accepts an environment name rather than individual URIs. The registration is removed again immediately, so the Microsoft Graph settings file is not left modified.
+        The two Graph URIs are registered as a uniquely named Microsoft Graph environment only for the duration of each Connect-MgGraph call, because Connect-MgGraph accepts an environment name rather than individual URIs. The registration is removed immediately afterwards; a cleanup failure stops execution and reports the environment name for manual removal.
 
 .PARAMETER AADAppRedirectUri
         Optional redirect URI used to locate the cross-tenant migration Microsoft Entra application. Defaults to https://office.com, which is correct for the public cloud.
@@ -222,7 +222,6 @@ param (
 . $PSScriptRoot\..\Shared\ScriptUpdateFunctions\Test-ScriptVersion.ps1
 . $PSScriptRoot\..\Shared\OutputOverrides\Write-Host.ps1
 $wsh = New-Object -ComObject WScript.Shell
-$Script:GraphEnvironmentName = "CrossTenantMailboxMigrationValidation"
 
 function TestGraphEndpointParameters {
     if ([string]::IsNullOrEmpty($GraphEndpointUri) -and [string]::IsNullOrEmpty($AzureADEndpointUri)) {
@@ -251,28 +250,18 @@ function ConnectToTenantAAD {
         connection keeps the endpoints it resolved while connecting, so the entry is registered only
         for the duration of the call and is removed again even if connecting fails.
     #>
-    if (Get-MgEnvironment -Name $Script:GraphEnvironmentName -ErrorAction SilentlyContinue) {
-        Set-MgEnvironment -Name $Script:GraphEnvironmentName -GraphEndpoint $GraphEndpointUri -AzureADEndpoint $AzureADEndpointUri -ErrorAction Stop | Out-Null
-    } else {
-        Add-MgEnvironment -Name $Script:GraphEnvironmentName -GraphEndpoint $GraphEndpointUri -AzureADEndpoint $AzureADEndpointUri -ErrorAction Stop | Out-Null
-    }
+    $graphEnvironmentName = "CrossTenantMailboxMigrationValidation-$([guid]::NewGuid().ToString('N'))"
+    Add-MgEnvironment -Name $graphEnvironmentName -GraphEndpoint $GraphEndpointUri -AzureADEndpoint $AzureADEndpointUri -ErrorAction Stop | Out-Null
 
     try {
-        $graphParameters.Environment = $Script:GraphEnvironmentName
+        $graphParameters.Environment = $graphEnvironmentName
         Connect-MgGraph @graphParameters | Out-Null
     } finally {
-        RemoveGraphEnvironment
-    }
-}
-function RemoveGraphEnvironment {
-    if (-not (Get-MgEnvironment -Name $Script:GraphEnvironmentName -ErrorAction SilentlyContinue)) {
-        return
-    }
-
-    try {
-        Remove-MgEnvironment -Name $Script:GraphEnvironmentName -ErrorAction Stop | Out-Null
-    } catch {
-        Write-Host "Informational: Unable to remove the temporary Microsoft Graph environment '$Script:GraphEnvironmentName'" -ForegroundColor Yellow
+        try {
+            Remove-MgEnvironment -Name $graphEnvironmentName -ErrorAction Stop | Out-Null
+        } catch {
+            throw "Unable to remove the temporary Microsoft Graph environment '$graphEnvironmentName'. Remove it with Remove-MgEnvironment -Name '$graphEnvironmentName' before retrying. Cleanup error: $($_.Exception.Message)"
+        }
     }
 }
 function ConnectToEXOTenants {
