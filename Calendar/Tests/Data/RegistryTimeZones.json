@@ -1,0 +1,243 @@
+[
+  {
+    "Id": "Pacific Standard Time",
+    "Tzi": "4AEAAAAAAADE////AAALAAAAAQACAAAAAAAAAAAAAwAAAAIAAgAAAAAAAAA=",
+    "Dynamic": [
+      {
+        "Year": 2006,
+        "Tzi": "4AEAAAAAAADE////AAAKAAAABQACAAAAAAAAAAAABAAAAAEAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2007,
+        "Tzi": "4AEAAAAAAADE////AAALAAAAAQACAAAAAAAAAAAAAwAAAAIAAgAAAAAAAAA="
+      }
+    ]
+  },
+  {
+    "Id": "British Columbia Standard Time",
+    "Tzi": "4AEAAAAAAADE////AAABAAQAAQAAAAAAAAAAAAAAAwAAAAIAAgAAAAAAAAA=",
+    "Dynamic": [
+      {
+        "Year": 2006,
+        "Tzi": "4AEAAAAAAADE////AAAKAAAABQACAAAAAAAAAAAABAAAAAEAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2007,
+        "Tzi": "4AEAAAAAAADE////AAALAAAAAQACAAAAAAAAAAAAAwAAAAIAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2008,
+        "Tzi": "4AEAAAAAAADE////AAALAAAAAQACAAAAAAAAAAAAAwAAAAIAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2009,
+        "Tzi": "4AEAAAAAAADE////AAALAAAAAQACAAAAAAAAAAAAAwAAAAIAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2010,
+        "Tzi": "4AEAAAAAAADE////AAALAAAAAQACAAAAAAAAAAAAAwAAAAIAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2011,
+        "Tzi": "4AEAAAAAAADE////AAALAAAAAQACAAAAAAAAAAAAAwAAAAIAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2012,
+        "Tzi": "4AEAAAAAAADE////AAALAAAAAQACAAAAAAAAAAAAAwAAAAIAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2013,
+        "Tzi": "4AEAAAAAAADE////AAALAAAAAQACAAAAAAAAAAAAAwAAAAIAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2014,
+        "Tzi": "4AEAAAAAAADE////AAALAAAAAQACAAAAAAAAAAAAAwAAAAIAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2015,
+        "Tzi": "4AEAAAAAAADE////AAALAAAAAQACAAAAAAAAAAAAAwAAAAIAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2016,
+        "Tzi": "4AEAAAAAAADE////AAALAAAAAQACAAAAAAAAAAAAAwAAAAIAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2017,
+        "Tzi": "4AEAAAAAAADE////AAALAAAAAQACAAAAAAAAAAAAAwAAAAIAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2018,
+        "Tzi": "4AEAAAAAAADE////AAALAAAAAQACAAAAAAAAAAAAAwAAAAIAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2019,
+        "Tzi": "4AEAAAAAAADE////AAALAAAAAQACAAAAAAAAAAAAAwAAAAIAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2020,
+        "Tzi": "4AEAAAAAAADE////AAALAAAAAQACAAAAAAAAAAAAAwAAAAIAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2021,
+        "Tzi": "4AEAAAAAAADE////AAALAAAAAQACAAAAAAAAAAAAAwAAAAIAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2022,
+        "Tzi": "4AEAAAAAAADE////AAALAAAAAQACAAAAAAAAAAAAAwAAAAIAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2023,
+        "Tzi": "4AEAAAAAAADE////AAALAAAAAQACAAAAAAAAAAAAAwAAAAIAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2024,
+        "Tzi": "4AEAAAAAAADE////AAALAAAAAQACAAAAAAAAAAAAAwAAAAIAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2025,
+        "Tzi": "4AEAAAAAAADE////AAALAAAAAQACAAAAAAAAAAAAAwAAAAIAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2026,
+        "Tzi": "4AEAAAAAAADE////AAABAAQAAQAAAAAAAAAAAAAAAwAAAAIAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2027,
+        "Tzi": "pAEAAAAAAADE////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+      }
+    ]
+  },
+  {
+    "Id": "AUS Eastern Standard Time",
+    "Tzi": "qP3//wAAAADE////AAAEAAAAAQADAAAAAAAAAAAACgAAAAEAAgAAAAAAAAA=",
+    "Dynamic": [
+      {
+        "Year": 2007,
+        "Tzi": "qP3//wAAAADE////AAADAAAABQADAAAAAAAAAAAACgAAAAUAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2008,
+        "Tzi": "qP3//wAAAADE////AAAEAAAAAQADAAAAAAAAAAAACgAAAAEAAgAAAAAAAAA="
+      }
+    ]
+  },
+  {
+    "Id": "Cen. Australia Standard Time",
+    "Tzi": "xv3//wAAAADE////AAAEAAAAAQADAAAAAAAAAAAACgAAAAEAAgAAAAAAAAA=",
+    "Dynamic": [
+      {
+        "Year": 2007,
+        "Tzi": "xv3//wAAAADE////AAADAAAABQADAAAAAAAAAAAACgAAAAUAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2008,
+        "Tzi": "xv3//wAAAADE////AAAEAAAAAQADAAAAAAAAAAAACgAAAAEAAgAAAAAAAAA="
+      }
+    ]
+  },
+  {
+    "Id": "Morocco Standard Time",
+    "Tzi": "AAAAAAAAAADE////AAAJAAAAAwACAAAAAAAAAAAAAwAAAAQAAgAAAAAAAAA=",
+    "Dynamic": [
+      {
+        "Year": 2007,
+        "Tzi": "AAAAAAAAAADE////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+      },
+      {
+        "Year": 2008,
+        "Tzi": "AAAAAAAAAADE////AAAIAAAABQAXADsAOwDnAwAABQAGAAUAFwA7ADsA5wM="
+      },
+      {
+        "Year": 2009,
+        "Tzi": "AAAAAAAAAADE////AAAIAAQAAwAXADsAOwDnAwAABQAAAAUAFwA7ADsA5wM="
+      },
+      {
+        "Year": 2010,
+        "Tzi": "AAAAAAAAAADE////AAAIAAYAAQAXADsAOwDnAwAABQAGAAEAFwA7ADsA5wM="
+      },
+      {
+        "Year": 2011,
+        "Tzi": "AAAAAAAAAADE////AAAHAAYABQAXADsAOwDnAwAABAAGAAEAFwA7ADsA5wM="
+      },
+      {
+        "Year": 2012,
+        "Tzi": "AAAAAAAAAADE////AAAJAAAABQADAAAAAAAAAAAABAAAAAUAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2013,
+        "Tzi": "AAAAAAAAAADE////AAAKAAAABQADAAAAAAAAAAAABAAAAAUAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2014,
+        "Tzi": "AAAAAAAAAADE////AAAKAAAABQADAAAAAAAAAAAAAwAAAAUAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2015,
+        "Tzi": "AAAAAAAAAADE////AAAKAAAABQADAAAAAAAAAAAAAwAAAAUAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2016,
+        "Tzi": "AAAAAAAAAADE////AAAKAAAABQADAAAAAAAAAAAAAwAAAAUAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2017,
+        "Tzi": "AAAAAAAAAADE////AAAKAAAABQADAAAAAAAAAAAAAwAAAAUAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2018,
+        "Tzi": "AAAAAAAAAADE////AAAKAAAABAADAAAAAAAAAAAAAwAAAAQAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2019,
+        "Tzi": "AAAAAAAAAADE////AAABAAIAAQAAAAAAAAAAAAAABgAAAAIAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2020,
+        "Tzi": "AAAAAAAAAADE////AAAEAAAAAwADAAAAAAAAAAAABQAAAAUAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2021,
+        "Tzi": "AAAAAAAAAADE////AAAEAAAAAgADAAAAAAAAAAAABQAAAAMAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2022,
+        "Tzi": "AAAAAAAAAADE////AAADAAAABQADAAAAAAAAAAAABQAAAAIAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2023,
+        "Tzi": "AAAAAAAAAADE////AAADAAAAAwADAAAAAAAAAAAABAAAAAQAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2024,
+        "Tzi": "AAAAAAAAAADE////AAADAAAAAgADAAAAAAAAAAAABAAAAAIAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2025,
+        "Tzi": "AAAAAAAAAADE////AAACAAAABQADAAAAAAAAAAAABAAAAAEAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2026,
+        "Tzi": "AAAAAAAAAADE////AAAJAAAAAwACAAAAAAAAAAAAAwAAAAQAAgAAAAAAAAA="
+      },
+      {
+        "Year": 2027,
+        "Tzi": "AAAAAAAAAADE////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+      }
+    ]
+  },
+  {
+    "Id": "India Standard Time",
+    "Tzi": "tv7//wAAAADE////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+    "Dynamic": []
+  },
+  {
+    "Id": "Nepal Standard Time",
+    "Tzi": "p/7//wAAAADE////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+    "Dynamic": []
+  },
+  {
+    "Id": "UTC",
+    "Tzi": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+    "Dynamic": []
+  }
+]

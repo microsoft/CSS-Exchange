@@ -4,6 +4,7 @@
 . $PSScriptRoot\Enter-YesNoLoopAction.ps1
 function Test-NoSwitchesProvided {
     if ($EWSLogs -or
+        $MRSProxyLogs -or
         $IISLogs -or
         $DailyPerformanceLogs -or
         $ManagedAvailabilityLogs -or

@@ -42,6 +42,7 @@ BeforeAll {
             }
 
             $latestSU = Get-ExchangeBuildVersionInformation -FileVersion $allSUsOnLatestCU[0]
+            $notSecondVersionSU = $null -eq ($latestSU.FriendlyName | Select-String "\D{3}\d{2}SUv\d")
 
             # On the latest CU, it shouldn't be secure if we have released an SU
             $latestCU.LatestSU | Should -Be (-not $trueSUReleaseForLatestCU)
@@ -70,8 +71,11 @@ BeforeAll {
 
                 if (-not $processedSUAlready) {
                     $currentSUTest.LatestSU | Should -Be $ExchangeVersionSupported
-                    # Once we hit an SU (base or v2), processedSUAlready will be set to true, causing all remaining SUs to test false for LatestSU.
-                    $processedSUAlready = $null -ne ($currentSUTest.FriendlyName | Select-String "\D{3}\d{2}SU")
+
+                    if ($notSecondVersionSU) {
+                        # Once we hit a SU, processedSUAlready will be set to true, causing all remaining SUs to test false for LatestSU
+                        $processedSUAlready = $null -ne ($currentSUTest.FriendlyName | Select-String "\D{3}\d{2}SU")
+                    }
                 } else {
                     $currentSUTest.LatestSU | Should -Be $false
                 }
@@ -99,8 +103,11 @@ BeforeAll {
 
             if (-not $processedSUAlready) {
                 $currentSUTest.LatestSU | Should -Be $ExchangeVersionSupported
-                # Once we hit an SU (base or v2), processedSUAlready will be set to true, causing all remaining SUs to test false for LatestSU.
-                $processedSUAlready = $null -ne ($currentSUTest.FriendlyName | Select-String "\D{3}\d{2}SU")
+
+                if ($notSecondVersionSU) {
+                    # Once we hit a SU, processedSUAlready will be set to true, causing all remaining SUs to test false for LatestSU
+                    $processedSUAlready = $null -ne ($currentSUTest.FriendlyName | Select-String "\D{3}\d{2}SU")
+                }
             } else {
                 $currentSUTest.LatestSU | Should -Be $false
             }
@@ -255,6 +262,15 @@ Describe "Testing Get-ExchangeBuildVersionInformation.ps1" {
             $results = Get-ExchangeBuildVersionInformation -FindBySUName "Nov22SU"
             $results.Count | Should -Be 5
         }
+
+        It "Nov26SU is available only for Exchange SE" {
+            $results = @(Get-ExchangeBuildVersionInformation -FindBySUName "Nov26SU")
+            $results.Count | Should -Be 1
+            $results[0].MajorVersion | Should -Be "ExchangeSE"
+            $results[0].FriendlyName | Should -Be "Exchange SE RTM Nov26SU"
+            $results[0].BuildVersion.ToString() | Should -Be "15.2.2562.57"
+            $results[0].LatestSU | Should -Be $true
+        }
     }
 
     # This is to make sure the latest SU do include the flag for latest SU.
@@ -279,10 +295,10 @@ Describe "Testing Get-ExchangeBuildVersionInformation.ps1" {
             Invoke-ProcessSUProcess -ResultsKeyName "ExchangeSE"
         }
         It "Exchange 2019 SU testing" {
-            Invoke-ProcessSUProcess -ResultsKeyName "Exchange2019" -ExchangeVersionSupported $true #This gets set to false once ESU is no longer a thing
+            Invoke-ProcessSUProcess -ResultsKeyName "Exchange2019" -ExchangeVersionSupported $false #This gets set to false once ESU is no longer a thing
         }
         It "Exchange 2016 Latest SU" {
-            Invoke-ProcessSUProcess -ResultsKeyName "Exchange2016" -ProcessLatestCUOnly $true -ExchangeVersionSupported $true #This gets set to false once ESU is no longer a thing
+            Invoke-ProcessSUProcess -ResultsKeyName "Exchange2016" -ProcessLatestCUOnly $true -ExchangeVersionSupported $false #This gets set to false once ESU is no longer a thing
         }
     }
 }
